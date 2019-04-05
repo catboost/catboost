@@ -428,6 +428,8 @@ void NCatboostOptions::TCatBoostOptions::Validate() const {
         "Boosting type should be Plain for loss functions " << lossFunction);
 
     if (GetTaskType() == ETaskType::CPU) {
+        CB_ENSURE(lossFunction != ELossFunction::QueryCrossEntropy,
+                  ELossFunction::QueryCrossEntropy << " loss function is not supported for CPU learning");
         CB_ENSURE(!(IsPairwiseScoring(lossFunction) && leavesEstimation == ELeavesEstimation::Newton),
                   "This leaf estimation method is not supported for querywise error for CPU learning");
         CB_ENSURE(
