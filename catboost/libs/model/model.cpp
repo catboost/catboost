@@ -112,29 +112,46 @@ void OutputModelCoreML(
     const TString& modelFile,
     const NJson::TJsonValue& userParameters) {
 
-    CoreML::Specification::Model outModel, treeModel, mappingModel;
-    outModel.set_specificationversion(1);
+    CoreML::Specification::Model treeModel;
     treeModel.set_specificationversion(1);
-
-    auto* container = outModel.mutable_pipeline()->mutable_models();
-    auto* containedMapping = container->Add();
-    auto* containedTree = container->Add();
 
     auto regressor = treeModel.mutable_treeensembleregressor();
     auto ensemble = regressor->mutable_treeensemble();
-    auto description = outModel.mutable_description();
-    auto mapping = mappingModel.mutable_categoricalmapping();
 
-    NCatboost::NCoreML::ConfigureMetadata(model, userParameters, description);
-    NCatboost::NCoreML::ConfigureTrees(model, ensemble);
-    NCatboost::NCoreML::ConfigureCategoricalMapping(model, mapping);
-    NCatboost::NCoreML::ConfigureIO(model, userParameters, regressor, description);
-
-    *containedTree = treeModel;
-    *containedMapping = treeModel;
+    bool createPipeline;
+    NCatboost::NCoreML::ConfigureTrees(model, ensemble, &createPipeline);
 
     TString data;
-    outModel.SerializeToString(&data);
+
+    createPipeline = true;
+
+    if (createPipeline) {
+        CoreML::Specification::Model outModel, arrayModel;
+        outModel.set_specificationversion(1);
+
+        auto* container = outModel.mutable_pipeline()->mutable_models();
+        auto* containedArray = container->Add();
+        auto* containedTree = container->Add();
+
+        auto array = mappingModel.mutable_arrayfeatureextractor();
+        NCatboost::NCoreML::ConfigureCategoricalMappings(model, array);
+
+        auto description = outModel.mutable_description();
+        NCatboost::NCoreML::ConfigureMetadata(model, userParameters, description);
+        NCatboost::NCoreML::ConfigureIO(model, userParameters, regressor, description);
+
+        *containedTree = treeModel;
+        *containedArray = arrayModel;
+
+        outModel.SerializeToString(&data);
+
+    } else {
+        auto description = treeModel.mutable_description();
+        NCatboost::NCoreML::ConfigureMetadata(model, userParameters, description);
+        NCatboost::NCoreML::ConfigureIO(model, userParameters, regressor, description);
+
+        treeModel.SerializeToString(&data);
+    }
 
     TOFStream out(modelFile);
     out.Write(data);
