@@ -262,8 +262,8 @@ def expanduser(path):
             try:
                 userhome = pwd.getpwuid(os.getuid()).pw_dir
             except KeyError:
-                # Yandex support for users without home directory; otherwise the
-                # error is KeyError: 'getpwuid(): uid not found'.
+                # bpo-10496: if the current user identifier doesn't exist in the
+                # password database, return the path unchanged
                 return path
         else:
             userhome = os.environ['HOME']
@@ -272,6 +272,8 @@ def expanduser(path):
         try:
             pwent = pwd.getpwnam(path[1:i])
         except KeyError:
+            # bpo-10496: if the user name from the path doesn't exist in the
+            # password database, return the path unchanged
             return path
         userhome = pwent.pw_dir
     userhome = userhome.rstrip('/')
