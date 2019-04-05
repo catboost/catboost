@@ -86,8 +86,11 @@ namespace NCatboostCuda {
             const auto& errorTracker = progressTracker.GetErrorTracker();
             CATBOOST_NOTICE_LOG << "bestTest = " << errorTracker.GetBestError() << Endl;
             CATBOOST_NOTICE_LOG << "bestIteration = " << errorTracker.GetBestIteration() << Endl;
-
-            *testMultiApprox = progressTracker.GetBestTestCursor();
+            if (outputOptions.ShrinkModelToBestIteration()) {
+                *testMultiApprox = progressTracker.GetBestTestCursor();
+            } else {
+                *testMultiApprox = progressTracker.GetFinalTestCursor();
+            }
         }
 
         if (outputOptions.ShrinkModelToBestIteration()) {

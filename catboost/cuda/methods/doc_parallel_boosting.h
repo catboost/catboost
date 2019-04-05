@@ -377,17 +377,22 @@ namespace NCatboostCuda {
             }
 
             progressTracker->MaybeSaveSnapshot(snapshotSaver);
-
-            if (bestTestCursor) {
+            auto gatherCpuApproxByCursor = [&](TVec* cursor) -> TVector<TVector<double>> {
                 TVector<TVector<double>> cpuApproxPermuted;
-                ReadApproxInCpuFormat(*bestTestCursor, TargetOptions.GetLossFunction() == ELossFunction::MultiClass, &cpuApproxPermuted);
+                ReadApproxInCpuFormat(*cursor, TargetOptions.GetLossFunction() == ELossFunction::MultiClass, &cpuApproxPermuted);
                 TVector<ui32> order;
                 dataSet.GetTestLoadBalancingPermutation().FillOrder(order);
                 TVector<TVector<double>> cpuApprox(cpuApproxPermuted.size());
                 for (ui64 i = 0; i < cpuApproxPermuted.size(); ++i) {
                     cpuApprox[i] = Scatter(order, cpuApproxPermuted[i]);
                 }
-                progressTracker->SetBestTestCursor(cpuApprox);
+                return cpuApproxPermuted;
+            };
+            if (bestTestCursor) {
+                progressTracker->SetBestTestCursor(gatherCpuApproxByCursor(bestTestCursor));
+            }
+            if (dataSet.HasTestDataSet()) {
+                progressTracker->SetFinalTestCursor(gatherCpuApproxByCursor(testCursor));
             }
             CATBOOST_INFO_LOG << "Total time " << (Now() - startTimeBoosting).SecondsFloat() << Endl;
         }

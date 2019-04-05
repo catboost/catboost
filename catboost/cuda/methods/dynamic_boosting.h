@@ -462,7 +462,12 @@ namespace NCatboostCuda {
             if (bestTestCursor) {
                 TVector<TVector<double>> cpuApprox;
                 ReadApproxInCpuFormat(*bestTestCursor, TargetOptions.GetLossFunction() == ELossFunction::MultiClass, &cpuApprox);
-                progressTracker->SetBestTestCursor(cpuApprox);
+                progressTracker->SetBestTestCursor(std::move(cpuApprox));
+            }
+            if (dataSet.HasTestDataSet()) {
+                TVector<TVector<double>> cpuApprox;
+                ReadApproxInCpuFormat(*testCursor, TargetOptions.GetLossFunction() == ELossFunction::MultiClass, &cpuApprox);
+                progressTracker->SetFinalTestCursor(std::move(cpuApprox));
             }
             CATBOOST_INFO_LOG << "Total time " << (Now() - startTimeBoosting).SecondsFloat() << Endl;
         }
