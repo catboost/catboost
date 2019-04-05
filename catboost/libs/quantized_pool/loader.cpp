@@ -120,9 +120,9 @@ namespace {
         ui32 LocalIndex = 0;
     };
 
-    class TSequantialChunkEvictor {
+    class TSequentialChunkEvictor {
     public:
-        explicit TSequantialChunkEvictor(ui64 minSizeInBytesToEvict);
+        explicit TSequentialChunkEvictor(ui64 minSizeInBytesToEvict);
 
         void Push(const TChunkRef& chunk);
         void MaybeEvict(bool force = false) noexcept;
@@ -135,11 +135,11 @@ namespace {
     };
 }
 
-TSequantialChunkEvictor::TSequantialChunkEvictor(const ui64 minSizeInBytesToEvict)
+TSequentialChunkEvictor::TSequentialChunkEvictor(const ui64 minSizeInBytesToEvict)
     : MinSizeInBytesToEvict_(minSizeInBytesToEvict) {
 }
 
-void TSequantialChunkEvictor::Push(const TChunkRef& chunk) {
+void TSequentialChunkEvictor::Push(const TChunkRef& chunk) {
     Y_DEFER { Evicted_ = false; };
 
     const auto* const data = reinterpret_cast<const ui8*>(chunk.Description->Chunk->Quants()->data());
@@ -160,7 +160,7 @@ void TSequantialChunkEvictor::Push(const TChunkRef& chunk) {
     }
 }
 
-void TSequantialChunkEvictor::MaybeEvict(const bool force) noexcept {
+void TSequentialChunkEvictor::MaybeEvict(const bool force) noexcept {
     if (Evicted_ || !force && Size_ < MinSizeInBytesToEvict_) {
         return;
     }
@@ -303,7 +303,7 @@ void TCBQuantizedDataLoader::Do(IQuantizedFeaturesDataVisitor* visitor) {
     const auto columnIdxToBaselineIdx = GetColumnIndexToBaselineIndexMap(QuantizedPool);
     const auto chunkRefs = GatherAndSortChunks(QuantizedPool);
 
-    TSequantialChunkEvictor evictor(1ULL << 24);
+    TSequentialChunkEvictor evictor(1ULL << 24);
     for (const auto chunkRef : chunkRefs) {
         evictor.Push(chunkRef);
         Y_DEFER { evictor.MaybeEvict(); };
