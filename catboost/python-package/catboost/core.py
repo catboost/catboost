@@ -1562,12 +1562,7 @@ class CatBoost(_CatBoostBase):
 
     @property
     def feature_importances_(self):
-        feature_importances_ = getattr(self, "_feature_importance", None)
-        if not self.is_fitted():
-            raise CatBoostError("There is no trained model to use `feature_importances_`. Use fit() to train model. Then use `feature_importances_`.")
-        if not self._object._is_oblivious():
-            raise CatBoostError('Feature importance is not supported for non symmetric trees')
-        return np.array(feature_importances_)
+        return np.array(getattr(self, "_feature_importance", None))
 
     def get_feature_importance(self, data=None, type=EFstrType.FeatureImportance, prettified=False, thread_count=-1, verbose=False, fstr_type=None):
         """

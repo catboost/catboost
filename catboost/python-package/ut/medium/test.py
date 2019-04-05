@@ -1794,16 +1794,26 @@ def test_cv_overfitting_detector(with_metric_period, task_type):
 
 def test_feature_importance(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    pool_querywise = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
+    fimp_npy_path = test_output_path(FIMP_NPY_PATH)
+
+    model = CatBoost({"iterations": 5, "learning_rate": 0.03, "task_type": task_type, "devices": "0", "loss_function": "QueryRMSE"})
+    model.fit(pool_querywise)
+
+    assert len(model.feature_importances_.shape) == 0
+    model.get_feature_importance(type=EFstrType.LossFunctionChange, data=pool_querywise)
+
     model = CatBoostClassifier(iterations=5, learning_rate=0.03, task_type=task_type, devices='0')
     model.fit(pool)
     assert model.get_feature_importance() == model.get_feature_importance(type=EFstrType.PredictionValuesChange)
+    failed = False
     try:
         model.get_feature_importance(type=EFstrType.LossFunctionChange)
     except CatBoostError:
-        pass
-    fimp_npy_path = test_output_path(FIMP_NPY_PATH)
+        failed = True
+    assert failed
     np.save(fimp_npy_path, np.array(model.feature_importances_))
-    print(model.feature_importances_)
+    assert len(model.feature_importances_.shape)
     return local_canonical_file(fimp_npy_path)
 
 
