@@ -22,6 +22,6 @@ namespace NCatboostCuda {
     TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorLoglossLevelwise(GetTrainerFactoryKey(ELossFunction::Logloss, EGrowingPolicy::Levelwise));
     TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorCrossEntropyLevelwise(GetTrainerFactoryKey(ELossFunction::CrossEntropy, EGrowingPolicy::Levelwise));
 
-    //    TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorRmseOT(GetTrainerFactoryKey(ELossFunction::RMSE, EGrowingPolicy::ObliviousTree));
+    //    TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorRmseOT(GetTrainerFactoryKey(ELossFunction::RMSE, EGrowingPolicy::SymmetricTree));
 
 }

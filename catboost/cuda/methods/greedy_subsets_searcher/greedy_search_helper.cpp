@@ -341,7 +341,7 @@ namespace NCatboostCuda {
                 leavesToSplit->push_back(0);
             }
         } else {
-            CB_ENSURE(Options.Policy == EGrowingPolicy::ObliviousTree || Options.Policy == EGrowingPolicy::Levelwise);
+            CB_ENSURE(Options.Policy == EGrowingPolicy::SymmetricTree || Options.Policy == EGrowingPolicy::Levelwise);
 
             for (ui32 leaf = 0; leaf < subsets.Leaves.size(); ++leaf) {
                 if (subsets.Leaves[leaf].BestSplit.Defined() && subsets.Leaves[leaf].BestSplit.Score < 0) {
@@ -385,7 +385,7 @@ namespace NCatboostCuda {
         }
         ui32 numScoreBlocks = 1;
         switch (Options.Policy) {
-            case EGrowingPolicy::ObliviousTree: {
+            case EGrowingPolicy::SymmetricTree: {
                 numScoreBlocks = 1;
                 break;
             }
@@ -409,7 +409,7 @@ namespace NCatboostCuda {
         TMirrorBuffer<double> reducedStats;
         AllReduceThroughMaster(subsets->CurrentPartStats(), reducedStats);
 
-        if (Options.Policy == EGrowingPolicy::ObliviousTree) {
+        if (Options.Policy == EGrowingPolicy::SymmetricTree) {
             TMirrorBuffer<ui32> restLeafIds;
             auto leafIds = TMirrorBuffer<ui32>::Create(NCudaLib::TMirrorMapping(leavesToVisit.size()));
             leafIds.Write(leavesToVisit);
@@ -636,7 +636,7 @@ namespace NCatboostCuda {
 
     bool TGreedySearchHelper::IsTerminalLeaf(const TPointsSubsets& subsets, ui32 leafId) {
         auto& leaf = subsets.Leaves.at(leafId);
-        const bool checkLeafSize = Options.Policy != EGrowingPolicy::ObliviousTree;
+        const bool checkLeafSize = Options.Policy != EGrowingPolicy::SymmetricTree;
         const bool flag = (checkLeafSize && leaf.Size <= Options.MinLeafSize) || leaf.Path.GetDepth() >= Options.MaxDepth;
         return flag;
     }

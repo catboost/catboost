@@ -15,7 +15,7 @@ namespace NCatboostCuda {
         ui32 MaxLeaves = 64;
         ui32 MaxDepth = 6;
         double L2Reg = 3.0;
-        EGrowingPolicy Policy = EGrowingPolicy::ObliviousTree;
+        EGrowingPolicy Policy = EGrowingPolicy::SymmetricTree;
 
         double MinLeafSize = 1;
         double RandomStrength = 0;

@@ -81,7 +81,7 @@ namespace NCatboostCuda {
         }
     };
 
-    inline TGpuTrainerFactoryKey GetTrainerFactoryKey(ELossFunction loss, EGrowingPolicy policy = EGrowingPolicy::ObliviousTree) {
+    inline TGpuTrainerFactoryKey GetTrainerFactoryKey(ELossFunction loss, EGrowingPolicy policy = EGrowingPolicy::SymmetricTree) {
         return TGpuTrainerFactoryKey(loss, policy);
     }
 

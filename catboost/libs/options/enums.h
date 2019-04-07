@@ -81,7 +81,7 @@ enum class EBootstrapType {
 };
 
 enum class EGrowingPolicy {
-    ObliviousTree,
+    SymmetricTree,
     Lossguide,
     Levelwise,
     Region
