@@ -201,7 +201,9 @@ class Pool(_PoolBase):
             If not None, giving 1 dimensional array like data with floats.
 
         cat_features : list or numpy.array, optional (default=None)
-            If not None, giving the list of Categ columns indices.
+            If not None, giving the list of Categ features indices or names.
+            If it contains feature names, Pool's feature names must be defined: either by passing 'feature_names'
+              parameter or if data is pandas.DataFrame (feature names are initialized from it's column names)
             Must be None if 'data' parameter has FeaturesData type
 
         column_description : string, optional (default=None)
@@ -253,6 +255,8 @@ class Pool(_PoolBase):
 
         feature_names : list, optional (default=None)
             Names for each given data_feature.
+              If this parameter is None and 'data' is pandas.DataFrame feature names will be initialized
+              from DataFrame's column names.
             Must be None if 'data' parameter has FeaturesData type
 
         thread_count : int, optional (default=-1)
