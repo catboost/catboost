@@ -503,6 +503,7 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
 
         if (ObliviousTreeOptions->GrowingPolicy == EGrowingPolicy::Lossguide) {
             ObliviousTreeOptions->MaxDepth.SetDefault(16);
+            ObliviousTreeOptions->ScoreFunction.SetDefault(EScoreFunction::NewtonL2);
         }
         if (ObliviousTreeOptions->MaxLeavesCount.IsDefault() && ObliviousTreeOptions->GrowingPolicy != EGrowingPolicy::Lossguide) {
             const ui32 maxLeaves = 1u << ObliviousTreeOptions->MaxDepth.Get();
