@@ -150,7 +150,7 @@ namespace {
         }
 
         inline TContClosure FilterClosure() {
-            return {&TrampoLine_, TMemRegion(Stack_, sizeof(Stack_))};
+            return {&TrampoLine_, TArrayRef(Stack_, sizeof(Stack_))};
         }
 
         inline size_t ReadImpl(void* ptr, size_t len) {

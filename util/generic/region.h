@@ -10,7 +10,6 @@
 template <typename T>
 using TRegion = TArrayRef<T>;
 using TDataRegion = TArrayRef<const char>;
-using TMemRegion = TArrayRef<char>;
 
 /**
  * Legacy converters to region containers which follow yandex-style memory access

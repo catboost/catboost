@@ -53,7 +53,7 @@ struct ITrampoLine {
 
 struct TContClosure {
     ITrampoLine* TrampoLine;
-    TMemRegion Stack;
+    TArrayRef<char> Stack;
 };
 
 #if defined(USE_UCONTEXT_CONT)
