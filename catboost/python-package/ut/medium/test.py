@@ -248,10 +248,18 @@ def test_pool_cat_features():
     assert np.all(pool.get_cat_feature_indices() == CAT_FEATURES)
 
 
-def test_pool_feature_names():
+def test_pool_cat_features_as_strings():
     df = DataFrame(data=[[1, 2], [3, 4]], columns=['col1', 'col2'])
     pool = Pool(df, cat_features=['col2'])
     assert np.all(pool.get_cat_feature_indices() == [1])
+
+    data = [[1, 2, 3], [4, 5, 6]]
+    pool = Pool(data, feature_names=['col1', 'col2', 'col3'], cat_features=['col2', 'col3'])
+    assert np.all(pool.get_cat_feature_indices() == [1, 2])
+
+    data = [[1, 2, 3], [4, 5, 6]]
+    with pytest.raises(CatBoostError):
+        Pool(data, cat_features=['col2', 'col3'])
 
 
 def test_load_generated():

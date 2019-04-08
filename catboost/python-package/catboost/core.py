@@ -585,12 +585,8 @@ class Pool(_PoolBase):
         Initialize Pool from array like data.
         """
         if isinstance(data, DataFrame):
-            feature_names = list(data.columns)
-            if cat_features is not None:
-                cat_features = [
-                    data.columns.get_loc(cf) if isinstance(cf, STRING_TYPES) else cf
-                    for cf in cat_features
-                ]
+            if feature_names is None:
+                feature_names = list(data.columns)
         if isinstance(data, Series):
             data = data.values.tolist()
         if isinstance(data, FeaturesData):
@@ -606,7 +602,14 @@ class Pool(_PoolBase):
             self._check_label_empty(label)
             label = self._if_pandas_to_numpy(label)
             self._check_label_shape(label, samples_count)
+        if feature_names is not None:
+            self._check_feature_names(feature_names, features_count)
         if cat_features is not None:
+            if feature_names is not None:
+                cat_features = [
+                    feature_names.index(cf) if isinstance(cf, STRING_TYPES) else cf
+                    for cf in cat_features
+                ]
             self._check_cf_type(cat_features)
             self._check_cf_value(cat_features, features_count)
         if pairs is not None:
@@ -640,8 +643,6 @@ class Pool(_PoolBase):
             baseline = self._if_pandas_to_numpy(baseline)
             baseline = np.reshape(baseline, (samples_count, -1))
             self._check_baseline_shape(baseline, samples_count)
-        if feature_names is not None:
-            self._check_feature_names(feature_names, features_count)
         self._init_pool(data, label, cat_features, pairs, weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, feature_names)
 
 
