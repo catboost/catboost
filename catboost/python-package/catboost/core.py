@@ -224,7 +224,7 @@ class Pool(_PoolBase):
             Delimiter to use for separate features in file.
             Should be only one symbol, otherwise would be taken only the first character of the string.
 
-        has_header : boolm optional (default=False)
+        has_header : bool optional (default=False)
             If True, read column names from first line.
 
         weight : list or numpy.array, optional (default=None)
