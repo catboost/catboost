@@ -46,8 +46,8 @@ namespace NCatboostOptions {
         TGpuOnlyOption<bool> AddRidgeToTargetFunctionFlag;
         TGpuOnlyOption<EScoreFunction> ScoreFunction;
         TGpuOnlyOption<ui32> MaxCtrComplexityForBordersCaching;
-        TGpuOnlyOption<EGrowingPolicy> GrowingPolicy;
-        TGpuOnlyOption<ui32> MaxLeavesCount;
-        TGpuOnlyOption<double> MinSamplesInLeaf;
+        TGpuOnlyOption<EGrowPolicy> GrowPolicy;
+        TGpuOnlyOption<ui32> MaxLeaves;
+        TGpuOnlyOption<double> MinDataInLeaf;
     };
 }

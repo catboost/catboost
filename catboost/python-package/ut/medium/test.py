@@ -51,7 +51,7 @@ EPS = 1e-5
 
 BOOSTING_TYPE = ['Ordered', 'Plain']
 OVERFITTING_DETECTOR_TYPE = ['IncToDec', 'Iter']
-NONSYMMETRIC = ['Lossguide', 'Levelwise']
+NONSYMMETRIC = ['Lossguide', 'Depthwise']
 
 TRAIN_FILE = data_file('adult', 'train_small')
 TEST_FILE = data_file('adult', 'test_small')
@@ -4078,8 +4078,8 @@ def test_param_synonyms(task_type):
                 assert training_stdout_len == canonical_training_stdout_len
 
 
-@pytest.mark.parametrize('growing_policy', NONSYMMETRIC)
-def test_growing_policy_fails(task_type, growing_policy):
+@pytest.mark.parametrize('grow_policy', NONSYMMETRIC)
+def test_grow_policy_fails(task_type, grow_policy):
     if task_type == 'CPU':
         return
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
@@ -4089,7 +4089,7 @@ def test_growing_policy_fails(task_type, growing_policy):
         'loss_function': 'Logloss',
         'use_best_model': False,
         'learning_rate': 0.3,
-        'growing_policy': growing_policy,
+        'grow_policy': grow_policy,
         'boosting_type': 'Plain',
         'task_type': task_type,
         'devices': '0'
@@ -4113,13 +4113,13 @@ def test_growing_policy_fails(task_type, growing_policy):
         pass
 
 
-@pytest.mark.parametrize('growing_policy', NONSYMMETRIC)
-def test_multiclass_growing_policy(task_type, growing_policy):
+@pytest.mark.parametrize('grow_policy', NONSYMMETRIC)
+def test_multiclass_grow_policy(task_type, grow_policy):
     if task_type == 'CPU':
         return
     pool = Pool(CLOUDNESS_TRAIN_FILE, column_description=CLOUDNESS_CD_FILE)
     # MultiClass
-    classifier = CatBoostClassifier(iterations=2, loss_function='MultiClass', thread_count=8, task_type=task_type, devices='0', boosting_type='Plain', growing_policy=growing_policy)
+    classifier = CatBoostClassifier(iterations=2, loss_function='MultiClass', thread_count=8, task_type=task_type, devices='0', boosting_type='Plain', grow_policy=grow_policy)
     classifier.fit(pool)
     output_model_path = test_output_path(OUTPUT_MODEL_PATH)
     classifier.save_model(output_model_path)

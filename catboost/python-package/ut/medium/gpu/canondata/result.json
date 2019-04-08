@@ -185,13 +185,13 @@
         "checksum": "361ddce8b7778aa74fbd0edac5d05e86",
         "uri": "file://test.test_multiclass_custom_class_labels_from_files_GPU_/predictions.txt"
     },
-    "test.test_multiclass_growing_policy[GPU-Levelwise]": {
+    "test.test_multiclass_grow_policy[GPU-Depthwise]": {
         "checksum": "daf7ade4db8b601ddf45ea7b8b18e4bb",
-        "uri": "file://test.test_multiclass_growing_policy_GPU-Levelwise_/predictions.npy"
+        "uri": "file://test.test_multiclass_grow_policy_GPU-Depthwise_/predictions.npy"
     },
-    "test.test_multiclass_growing_policy[GPU-Lossguide]": {
+    "test.test_multiclass_grow_policy[GPU-Lossguide]": {
         "checksum": "398374db9829e0710b797be00059080f",
-        "uri": "file://test.test_multiclass_growing_policy_GPU-Lossguide_/predictions.npy"
+        "uri": "file://test.test_multiclass_grow_policy_GPU-Lossguide_/predictions.npy"
     },
     "test.test_non_ones_weight[GPU]": {
         "checksum": "c010078303776c35b3b4382a06db7db9",

@@ -501,17 +501,17 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
             BoostingOptions->DataPartitionType = EDataPartitionType::DocParallel;
         }
 
-        if (ObliviousTreeOptions->GrowingPolicy == EGrowingPolicy::Lossguide) {
+        if (ObliviousTreeOptions->GrowPolicy == EGrowPolicy::Lossguide) {
             ObliviousTreeOptions->MaxDepth.SetDefault(16);
             ObliviousTreeOptions->ScoreFunction.SetDefault(EScoreFunction::NewtonL2);
         }
-        if (ObliviousTreeOptions->MaxLeavesCount.IsDefault() && ObliviousTreeOptions->GrowingPolicy != EGrowingPolicy::Lossguide) {
+        if (ObliviousTreeOptions->MaxLeaves.IsDefault() && ObliviousTreeOptions->GrowPolicy != EGrowPolicy::Lossguide) {
             const ui32 maxLeaves = 1u << ObliviousTreeOptions->MaxDepth.Get();
-            ObliviousTreeOptions->MaxLeavesCount.SetDefault(maxLeaves);
+            ObliviousTreeOptions->MaxLeaves.SetDefault(maxLeaves);
 
-            if (ObliviousTreeOptions->GrowingPolicy != EGrowingPolicy::Lossguide) {
-                CB_ENSURE(ObliviousTreeOptions->MaxLeavesCount == maxLeaves,
-                          "max_leaves_count options works only with lossguide tree growing");
+            if (ObliviousTreeOptions->GrowPolicy != EGrowPolicy::Lossguide) {
+                CB_ENSURE(ObliviousTreeOptions->MaxLeaves == maxLeaves,
+                          "max_leaves option works only with lossguide tree growing");
             }
         }
     }

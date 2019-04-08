@@ -277,9 +277,9 @@ void NCatboostOptions::PlainJsonToOptions(
     CopyOption(plainOptions, "efb_max_conflict_fraction", &treeOptions, &seenKeys);
     CopyOption(plainOptions, "random_strength", &treeOptions, &seenKeys);
     CopyOption(plainOptions, "leaf_estimation_method", &treeOptions, &seenKeys);
-    CopyOption(plainOptions, "growing_policy", &treeOptions, &seenKeys);
-    CopyOption(plainOptions, "max_leaves_count", &treeOptions, &seenKeys);
-    CopyOption(plainOptions, "min_samples_in_leaf", &treeOptions, &seenKeys);
+    CopyOption(plainOptions, "grow_policy", &treeOptions, &seenKeys);
+    CopyOption(plainOptions, "max_leaves", &treeOptions, &seenKeys);
+    CopyOption(plainOptions, "min_data_in_leaf", &treeOptions, &seenKeys);
     CopyOption(plainOptions, "score_function", &treeOptions, &seenKeys);
     CopyOption(plainOptions, "fold_size_loss_normalization", &treeOptions, &seenKeys);
     CopyOption(plainOptions, "add_ridge_penalty_to_loss_function", &treeOptions, &seenKeys);

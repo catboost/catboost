@@ -548,22 +548,22 @@ static void BindTreeParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* pla
         });
 
 
-    parser.AddLongOption("growing-policy", "Tree growing policy. Must be one of: " + GetEnumAllNames<EGrowingPolicy>())
+    parser.AddLongOption("grow-policy", "Tree growing policy. Must be one of: " + GetEnumAllNames<EGrowPolicy>())
         .RequiredArgument("type")
         .Handler1T<TString>([plainJsonPtr](const TString& policy) {
-            (*plainJsonPtr)["growing_policy"] = policy;
+            (*plainJsonPtr)["grow_policy"] = policy;
         });
 
-    parser.AddLongOption("max-leaves-count", "Max leaves count")
+    parser.AddLongOption("max-leaves", "Maximum number of leaves per tree")
         .RequiredArgument("INT")
-        .Handler1T<ui32>([plainJsonPtr](const ui32 maxLeavesCount) {
-            (*plainJsonPtr)["max_leaves_count"] = maxLeavesCount;
+        .Handler1T<ui32>([plainJsonPtr](const ui32 maxLeaves) {
+            (*plainJsonPtr)["max_leaves"] = maxLeaves;
         });
 
-    parser.AddLongOption("min-samples-in-leaf", "Minimum number of samples in leaf")
+    parser.AddLongOption("min-data-in-leaf", "Minimum number of samples in leaf")
         .RequiredArgument("Double")
         .Handler1T<double>([plainJsonPtr](double minSamples) {
-            (*plainJsonPtr)["min_samples_in_leaf"] = minSamples;
+            (*plainJsonPtr)["min_data_in_leaf"] = minSamples;
         });
 
     parser.AddLongOption("l2-leaf-reg", "Regularization value. Should be >= 0")

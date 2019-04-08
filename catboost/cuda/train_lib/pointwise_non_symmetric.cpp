@@ -4,24 +4,24 @@
 namespace NCatboostCuda {
     using TPointwiseTrainer = TGpuTrainer<TPointwiseTargetsImpl, TNonSymmetricTree>;
 
-    TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorPoissonLossguide(GetTrainerFactoryKey(ELossFunction::Poisson, EGrowingPolicy::Lossguide));
-    TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorMapeLossguide(GetTrainerFactoryKey(ELossFunction::MAPE, EGrowingPolicy::Lossguide));
-    TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorMaeLossguide(GetTrainerFactoryKey(ELossFunction::MAE, EGrowingPolicy::Lossguide));
-    TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorQuantileLossguide(GetTrainerFactoryKey(ELossFunction::Quantile, EGrowingPolicy::Lossguide));
-    TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorLogLinQuantileLossguide(GetTrainerFactoryKey(ELossFunction::LogLinQuantile, EGrowingPolicy::Lossguide));
-    TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorRMSELossguide(GetTrainerFactoryKey(ELossFunction::RMSE, EGrowingPolicy::Lossguide));
-    TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorLoglossLossguide(GetTrainerFactoryKey(ELossFunction::Logloss, EGrowingPolicy::Lossguide));
-    TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorCrossEntropyLossguide(GetTrainerFactoryKey(ELossFunction::CrossEntropy, EGrowingPolicy::Lossguide));
+    TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorPoissonLossguide(GetTrainerFactoryKey(ELossFunction::Poisson, EGrowPolicy::Lossguide));
+    TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorMapeLossguide(GetTrainerFactoryKey(ELossFunction::MAPE, EGrowPolicy::Lossguide));
+    TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorMaeLossguide(GetTrainerFactoryKey(ELossFunction::MAE, EGrowPolicy::Lossguide));
+    TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorQuantileLossguide(GetTrainerFactoryKey(ELossFunction::Quantile, EGrowPolicy::Lossguide));
+    TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorLogLinQuantileLossguide(GetTrainerFactoryKey(ELossFunction::LogLinQuantile, EGrowPolicy::Lossguide));
+    TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorRMSELossguide(GetTrainerFactoryKey(ELossFunction::RMSE, EGrowPolicy::Lossguide));
+    TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorLoglossLossguide(GetTrainerFactoryKey(ELossFunction::Logloss, EGrowPolicy::Lossguide));
+    TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorCrossEntropyLossguide(GetTrainerFactoryKey(ELossFunction::CrossEntropy, EGrowPolicy::Lossguide));
 
-    TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorPoissonLevelwise(GetTrainerFactoryKey(ELossFunction::Poisson, EGrowingPolicy::Levelwise));
-    TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorMapeLevelwise(GetTrainerFactoryKey(ELossFunction::MAPE, EGrowingPolicy::Levelwise));
-    TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorMaeLevelwise(GetTrainerFactoryKey(ELossFunction::MAE, EGrowingPolicy::Levelwise));
-    TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorQuantileLevelwise(GetTrainerFactoryKey(ELossFunction::Quantile, EGrowingPolicy::Levelwise));
-    TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorLogLinQuantileLevelwise(GetTrainerFactoryKey(ELossFunction::LogLinQuantile, EGrowingPolicy::Levelwise));
-    TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorRMSELevelwise(GetTrainerFactoryKey(ELossFunction::RMSE, EGrowingPolicy::Levelwise));
-    TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorLoglossLevelwise(GetTrainerFactoryKey(ELossFunction::Logloss, EGrowingPolicy::Levelwise));
-    TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorCrossEntropyLevelwise(GetTrainerFactoryKey(ELossFunction::CrossEntropy, EGrowingPolicy::Levelwise));
+    TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorPoissonDepthwise(GetTrainerFactoryKey(ELossFunction::Poisson, EGrowPolicy::Depthwise));
+    TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorMapeDepthwise(GetTrainerFactoryKey(ELossFunction::MAPE, EGrowPolicy::Depthwise));
+    TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorMaeDepthwise(GetTrainerFactoryKey(ELossFunction::MAE, EGrowPolicy::Depthwise));
+    TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorQuantileDepthwise(GetTrainerFactoryKey(ELossFunction::Quantile, EGrowPolicy::Depthwise));
+    TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorLogLinQuantileDepthwise(GetTrainerFactoryKey(ELossFunction::LogLinQuantile, EGrowPolicy::Depthwise));
+    TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorRMSEDepthwise(GetTrainerFactoryKey(ELossFunction::RMSE, EGrowPolicy::Depthwise));
+    TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorLoglossDepthwise(GetTrainerFactoryKey(ELossFunction::Logloss, EGrowPolicy::Depthwise));
+    TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorCrossEntropyDepthwise(GetTrainerFactoryKey(ELossFunction::CrossEntropy, EGrowPolicy::Depthwise));
 
-    //    TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorRmseOT(GetTrainerFactoryKey(ELossFunction::RMSE, EGrowingPolicy::SymmetricTree));
+    //    TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorRmseOT(GetTrainerFactoryKey(ELossFunction::RMSE, EGrowPolicy::SymmetricTree));
 
 }

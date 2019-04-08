@@ -2306,9 +2306,9 @@ class CatBoostClassifier(CatBoost):
         metadata=None,
         early_stopping_rounds=None,
         cat_features=None,
-        growing_policy=None,
-        min_samples_in_leaf=None,
-        max_leaves_count=None,
+        grow_policy=None,
+        min_data_in_leaf=None,
+        max_leaves=None,
         leaf_estimation_backtracking=None,
         ctr_history_unit=None
     ):
@@ -2734,9 +2734,9 @@ class CatBoostRegressor(CatBoost):
         metadata=None,
         early_stopping_rounds=None,
         cat_features=None,
-        growing_policy=None,
-        min_samples_in_leaf=None,
-        max_leaves_count=None,
+        grow_policy=None,
+        min_data_in_leaf=None,
+        max_leaves=None,
         leaf_estimation_backtracking=None,
         ctr_history_unit=None
     ):
