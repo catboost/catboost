@@ -1047,6 +1047,17 @@ def _params_type_cast(params):
     return casted_params
 
 
+def _is_data_single_object(data):
+    if isinstance(data, (Pool, FeaturesData, Series, DataFrame)):
+        return False
+    if not isinstance(data, ARRAY_TYPES):
+        raise CatBoostError(
+            "Invalid data type={} : must be list, numpy.ndarray, pandas.Series, pandas.DataFrame,"
+            " catboost.FeaturesData or catboost.Pool".format(type(data))
+        )
+    return len(np.shape(data)) == 1
+
+
 class CatBoost(_CatBoostBase):
     """
     CatBoost model. Contains training, prediction and evaluation methods.
@@ -1289,9 +1300,11 @@ class CatBoost(_CatBoostBase):
             verbose = False
         if not self.is_fitted():
             raise CatBoostError("There is no trained model to use {}(). Use fit() to train model. Then use this method.".format(parent_method_name))
+
+        data_is_single_object = _is_data_single_object(data)
         if not isinstance(data, Pool):
             data = Pool(
-                data=data,
+                data=[data] if data_is_single_object else data,
                 cat_features=self._get_cat_feature_indices() if not isinstance(data, FeaturesData) else None
             )
         if not isinstance(prediction_type, STRING_TYPES):
@@ -1307,7 +1320,7 @@ class CatBoost(_CatBoostBase):
         predictions = np.array(self._base_predict(data, prediction_type, ntree_start, ntree_end, thread_count, verbose))
         if prediction_type == 'Probability':
             predictions = np.transpose([1 - predictions, predictions])
-        return predictions
+        return predictions[0] if data_is_single_object else predictions
 
     def predict(self, data, prediction_type='RawFormulaVal', ntree_start=0, ntree_end=0, thread_count=-1, verbose=None):
         """
@@ -1315,9 +1328,11 @@ class CatBoost(_CatBoostBase):
 
         Parameters
         ----------
-        data : catboost.Pool or list or numpy.array or pandas.DataFrame or pandas.Series
+        data : catboost.Pool or list of features or list of lists or numpy.array or pandas.DataFrame or pandas.Series
                 or catboost.FeaturesData
             Data to apply model on.
+            If data is a simple list (not list of lists) or a one-dimensional numpy.ndarray it is interpreted
+            as a list of features for a single object.
 
         prediction_type : string, optional (default='RawFormulaVal')
             Can be:
@@ -1342,7 +1357,16 @@ class CatBoost(_CatBoostBase):
 
         Returns
         -------
-        prediction : numpy.array
+        prediction :
+            If data is for a single object, the return value depends on prediction_type value:
+                - 'RawFormulaVal' : return raw formula value.
+                - 'Class' : return majority vote class.
+                - 'Probability' : return one-dimensional numpy.ndarray with probability for every class.
+            otherwise numpy.ndarray, with values that depend on prediction_type value:
+                - 'RawFormulaVal' : one-dimensional array of raw formula value for each object.
+                - 'Class' : one-dimensional array of majority vote class for each object.
+                - 'Probability' : two-dimensional numpy.ndarray with shape (number_of_objects x number_of_classes)
+                  with probability for every class for each object.
         """
         return self._predict(data, prediction_type, ntree_start, ntree_end, thread_count, verbose, 'predict')
 
@@ -1352,9 +1376,11 @@ class CatBoost(_CatBoostBase):
             verbose = False
         if not self.is_fitted() or self.tree_count_ is None:
             raise CatBoostError("There is no trained model to use {}(). Use fit() to train model. Then use this method.".format(parent_method_name))
+
+        data_is_single_object = _is_data_single_object(data)
         if not isinstance(data, Pool):
             data = Pool(
-                data=data,
+                data=[data] if data_is_single_object else data,
                 cat_features=self._get_cat_feature_indices() if not isinstance(data, FeaturesData) else None
             )
         if not isinstance(prediction_type, STRING_TYPES):
@@ -1373,7 +1399,7 @@ class CatBoost(_CatBoostBase):
                 predictions = np.array(predictions[0])
                 if prediction_type == 'Probability':
                     predictions = np.transpose([1 - predictions, predictions])
-            yield predictions
+            yield predictions[0] if data_is_single_object else predictions
 
     def staged_predict(self, data, prediction_type='RawFormulaVal', ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, verbose=None):
         """
@@ -1381,12 +1407,15 @@ class CatBoost(_CatBoostBase):
 
         Parameters
         ----------
-        data : catboost.Pool or list or numpy.array or pandas.DataFrame or pandas.Series
+        data : catboost.Pool or list of features or list of lists or numpy.array or pandas.DataFrame or pandas.Series
+                or catboost.FeaturesData
             Data to apply model on.
+            If data is a simple list (not list of lists) or a one-dimensional numpy.ndarray it is interpreted
+            as a list of features for a single object.
 
         prediction_type : string, optional (default='RawFormulaVal')
             Can be:
-            - 'RawFormulaVal' : return raw value.
+            - 'RawFormulaVal' : return raw formula value.
             - 'Class' : return majority vote class.
             - 'Probability' : return probability for every class.
 
@@ -1410,7 +1439,16 @@ class CatBoost(_CatBoostBase):
 
         Returns
         -------
-        prediction : generator numpy.array for each iteration
+        prediction : generator for each iteration that generates:
+            If data is for a single object, the return value depends on prediction_type value:
+                - 'RawFormulaVal' : return raw formula value.
+                - 'Class' : return majority vote class.
+                - 'Probability' : return one-dimensional numpy.ndarray with probability for every class.
+            otherwise numpy.ndarray, with values that depend on prediction_type value:
+                - 'RawFormulaVal' : one-dimensional array of raw formula value for each object.
+                - 'Class' : one-dimensional array of majority vote classe for each object.
+                - 'Probability' : two-dimensional numpy.ndarray with shape (number_of_objects x number_of_classes)
+                  with probability for every class for each object.
         """
         return self._staged_predict(data, prediction_type, ntree_start, ntree_end, eval_period, thread_count, verbose, 'staged_predict')
 
@@ -2364,12 +2402,15 @@ class CatBoostClassifier(CatBoost):
 
         Parameters
         ----------
-        data : catboost.Pool or list or numpy.array or pandas.DataFrame or pandas.Series
+        data : catboost.Pool or list of features or list of lists or numpy.array or pandas.DataFrame or pandas.Series
+                or catboost.FeaturesData
             Data to apply model on.
+            If data is a simple list (not list of lists) or a one-dimensional numpy.ndarray it is interpreted
+            as a list of features for a single object.
 
         prediction_type : string, optional (default='Class')
             Can be:
-            - 'RawFormulaVal' : return raw value.
+            - 'RawFormulaVal' : return raw formula value.
             - 'Class' : return majority vote class.
             - 'Probability' : return probability for every class.
 
@@ -2390,7 +2431,16 @@ class CatBoostClassifier(CatBoost):
 
         Returns
         -------
-        prediction : numpy.array
+        prediction:
+            If data is for a single object, the return value depends on prediction_type value:
+                - 'RawFormulaVal' : return raw formula value.
+                - 'Class' : return majority vote class.
+                - 'Probability' : return one-dimensional numpy.ndarray with probability for every class.
+            otherwise numpy.ndarray, with values that depend on prediction_type value:
+                - 'RawFormulaVal' : one-dimensional array of raw formula value for each object.
+                - 'Class' : one-dimensional array of majority vote classe for each object.
+                - 'Probability' : two-dimensional numpy.ndarray with shape (number_of_objects x number_of_classes)
+                  with probability for every class for each object.
         """
         return self._predict(data, prediction_type, ntree_start, ntree_end, thread_count, verbose, 'predict')
 
@@ -2400,8 +2450,11 @@ class CatBoostClassifier(CatBoost):
 
         Parameters
         ----------
-        data : catboost.Pool or list or numpy.array or pandas.DataFrame or pandas.Series
+        data : catboost.Pool or list of features or list of lists or numpy.array or pandas.DataFrame or pandas.Series
+                or catboost.FeaturesData
             Data to apply model on.
+            If data is a simple list (not list of lists) or a one-dimensional numpy.ndarray it is interpreted
+            as a list of features for a single object.
 
         ntree_start: int, optional (default=0)
             Model is applied on the interval [ntree_start, ntree_end) (zero-based indexing).
@@ -2420,7 +2473,12 @@ class CatBoostClassifier(CatBoost):
 
         Returns
         -------
-        prediction : numpy.array
+        prediction :
+            If data is for a single object
+                return one-dimensional numpy.ndarray with probability for every class.
+            otherwise
+                return two-dimensional numpy.ndarray with shape (number_of_objects x number_of_classes)
+                with probability for every class for each object.
         """
         return self._predict(data, 'Probability', ntree_start, ntree_end, thread_count, verbose, 'predict_proba')
 
@@ -2430,12 +2488,15 @@ class CatBoostClassifier(CatBoost):
 
         Parameters
         ----------
-        data : catboost.Pool or list or numpy.array or pandas.DataFrame or pandas.Series
+        data : catboost.Pool or list of features or list of lists or numpy.array or pandas.DataFrame or pandas.Series
+                or catboost.FeaturesData
             Data to apply model on.
+            If data is a simple list (not list of lists) or a one-dimensional numpy.ndarray it is interpreted
+            as a list of features for a single object.
 
         prediction_type : string, optional (default='Class')
             Can be:
-            - 'RawFormulaVal' : return raw value.
+            - 'RawFormulaVal' : return raw formula value.
             - 'Class' : return majority vote class.
             - 'Probability' : return probability for every class.
 
@@ -2459,7 +2520,16 @@ class CatBoostClassifier(CatBoost):
 
         Returns
         -------
-        prediction : generator numpy.array for each iteration
+        prediction : generator for each iteration that generates:
+            If data is for a single object, the return value depends on prediction_type value:
+                - 'RawFormulaVal' : return raw formula value.
+                - 'Class' : return majority vote class.
+                - 'Probability' : return one-dimensional numpy.ndarray with probability for every class.
+            otherwise numpy.ndarray, with values that depend on prediction_type value:
+                - 'RawFormulaVal' : one-dimensional array of raw formula value for each object.
+                - 'Class' : one-dimensional array of majority vote class for each object.
+                - 'Probability' : two-dimensional numpy.ndarray with shape (number_of_objects x number_of_classes)
+                  with probability for every class for each object.
         """
         return self._staged_predict(data, prediction_type, ntree_start, ntree_end, eval_period, thread_count, verbose, 'staged_predict')
 
@@ -2469,8 +2539,11 @@ class CatBoostClassifier(CatBoost):
 
         Parameters
         ----------
-        data : catboost.Pool or list or numpy.array or pandas.DataFrame or pandas.Series
+        data : catboost.Pool or list of features or list of lists or numpy.array or pandas.DataFrame or pandas.Series
+                or catboost.FeaturesData
             Data to apply model on.
+            If data is a simple list (not list of lists) or a one-dimensional numpy.ndarray it is interpreted
+            as a list of features for a single object.
 
         ntree_start: int, optional (default=0)
             Model is applied on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
@@ -2492,7 +2565,12 @@ class CatBoostClassifier(CatBoost):
 
         Returns
         -------
-        prediction : generator numpy.array for each iteration
+        prediction : generator for each iteration that generates:
+            If data is for a single object
+                return one-dimensional numpy.ndarray with probability for every class.
+            otherwise
+                return two-dimensional numpy.ndarray with shape (number_of_objects x number_of_classes)
+                with probability for every class for each object.
         """
         return self._staged_predict(data, 'Probability', ntree_start, ntree_end, eval_period, thread_count, verbose, 'staged_predict_proba')
 
@@ -2749,8 +2827,11 @@ class CatBoostRegressor(CatBoost):
 
         Parameters
         ----------
-        data : catboost.Pool or list or numpy.array or pandas.DataFrame or pandas.Series
+        data : catboost.Pool or list of features or list of lists or numpy.array or pandas.DataFrame or pandas.Series
+                or catboost.FeaturesData
             Data to apply model on.
+            If data is a simple list (not list of lists) or a one-dimensional numpy.ndarray it is interpreted
+            as a list of features for a single object.
 
         ntree_start: int, optional (default=0)
             Model is applied on the interval [ntree_start, ntree_end) (zero-based indexing).
@@ -2769,7 +2850,9 @@ class CatBoostRegressor(CatBoost):
 
         Returns
         -------
-        prediction : numpy.array
+        prediction :
+            If data is for a single object, the return value is single float formula return value
+            otherwise one-dimensional numpy.ndarray of formula return values for each object.
         """
         return self._predict(data, "RawFormulaVal", ntree_start, ntree_end, thread_count, verbose, 'predict')
 
@@ -2779,8 +2862,11 @@ class CatBoostRegressor(CatBoost):
 
         Parameters
         ----------
-        data : catboost.Pool or list or numpy.array or pandas.DataFrame or pandas.Series
+        data : catboost.Pool or list of features or list of lists or numpy.array or pandas.DataFrame or pandas.Series
+                or catboost.FeaturesData
             Data to apply model on.
+            If data is a simple list (not list of lists) or a one-dimensional numpy.ndarray it is interpreted
+            as a list of features for a single object.
 
         ntree_start: int, optional (default=0)
             Model is applied on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
@@ -2802,7 +2888,9 @@ class CatBoostRegressor(CatBoost):
 
         Returns
         -------
-        prediction : generator numpy.array for each iteration
+        prediction : generator for each iteration that generates:
+            If data is for a single object, the return value is single float formula return value
+            otherwise one-dimensional numpy.ndarray of formula return values for each object.
         """
         return self._staged_predict(data, "RawFormulaVal", ntree_start, ntree_end, eval_period, thread_count, verbose, 'staged_predict')
 

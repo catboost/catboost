@@ -3,6 +3,7 @@ import math
 import numpy as np
 import pprint
 import pytest
+import random
 import re
 import subprocess
 import sys
@@ -655,6 +656,32 @@ def test_raw_predict_equals_to_model_predict(task_type):
     assert np.all(np.isclose(model.get_test_eval(), pred, rtol=1.e-6))
 
 
+@pytest.mark.parametrize('problem', ['Classifier', 'Regressor'])
+def test_predict_and_predict_proba_on_single_object(problem):
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    if problem == 'Classifier':
+        model = CatBoostClassifier(iterations=2)
+    else:
+        model = CatBoostRegressor(iterations=2)
+
+    model.fit(train_pool)
+
+    test_data = read_table(TEST_FILE, header=None)
+    test_data.drop([TARGET_IDX], axis=1, inplace=True)
+
+    pred = model.predict(test_data)
+    if problem == 'Classifier':
+        pred_probabilities = model.predict_proba(test_data)
+
+    random.seed(0)
+    for i in xrange(3):  # just some indices
+        test_object_idx = random.randrange(test_data.shape[0])
+        assert pred[test_object_idx] == model.predict(test_data.values[test_object_idx])
+
+        if problem == 'Classifier':
+            assert np.array_equal(pred_probabilities[test_object_idx], model.predict_proba(test_data.values[test_object_idx]))
+
+
 def test_model_pickling(task_type):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)
@@ -1266,6 +1293,50 @@ def test_staged_predict(task_type):
     preds_path = test_output_path(PREDS_PATH)
     np.save(preds_path, np.array(preds))
     return local_canonical_file(preds_path)
+
+
+@pytest.mark.parametrize('problem', ['Classifier', 'Regressor'])
+def test_staged_predict_and_predict_proba_on_single_object(problem):
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    if problem == 'Classifier':
+        model = CatBoostClassifier(iterations=10)
+    else:
+        model = CatBoostRegressor(iterations=10)
+
+    model.fit(train_pool)
+
+    test_data = read_table(TEST_FILE, header=None)
+    test_data.drop([TARGET_IDX], axis=1, inplace=True)
+
+    preds = []
+    for pred in model.staged_predict(test_data):
+        preds.append(pred)
+
+    if problem == 'Classifier':
+        pred_probabilities = []
+        for pred_probabilities_for_iteration in model.staged_predict_proba(test_data):
+            pred_probabilities.append(pred_probabilities_for_iteration)
+
+    random.seed(0)
+    for i in xrange(3):  # just some indices
+        test_object_idx = random.randrange(test_data.shape[0])
+
+        single_object_preds = []
+        for pred in model.staged_predict(test_data.values[test_object_idx]):
+            single_object_preds.append(pred)
+
+        assert len(preds) == len(single_object_preds)
+        for iteration in xrange(len(preds)):
+            assert preds[iteration][test_object_idx] == single_object_preds[iteration]
+
+        if problem == 'Classifier':
+            single_object_pred_probabilities = []
+            for pred_probabilities_for_iteration in model.staged_predict_proba(test_data.values[test_object_idx]):
+                single_object_pred_probabilities.append(pred_probabilities_for_iteration)
+
+            assert len(pred_probabilities) == len(single_object_pred_probabilities)
+            for iteration in xrange(len(pred_probabilities)):
+                assert np.array_equal(pred_probabilities[iteration][test_object_idx], single_object_pred_probabilities[iteration])
 
 
 @fails_on_gpu(how='assert 1.0 < EPS')
