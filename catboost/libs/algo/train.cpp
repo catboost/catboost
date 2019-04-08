@@ -66,7 +66,7 @@ void TrainOneIteration(const NCB::TTrainingForCPUDataProviders& data, TLearnCont
         TFold* takenFold = &ctx->LearnProgress.Folds[ctx->Rand.GenRand() % foldCount];
         const TVector<ui64> randomSeeds = GenRandUI64Vector(takenFold->BodyTailArr.ysize(), ctx->Rand.GenRand());
         if (ctx->Params.SystemOptions->IsSingleHost()) {
-            ctx->LocalExecutor->ExecRange([&](int bodyTailId) {
+            ctx->LocalExecutor->ExecRangeWithThrow([&](int bodyTailId) {
                 CalcWeightedDerivatives(*error, bodyTailId, ctx->Params, randomSeeds[bodyTailId], takenFold, ctx->LocalExecutor);
             }, 0, takenFold->BodyTailArr.ysize(), NPar::TLocalExecutor::WAIT_COMPLETE);
         } else {
@@ -139,7 +139,7 @@ void TrainOneIteration(const NCB::TTrainingForCPUDataProviders& data, TLearnCont
 
         if (ctx->Params.SystemOptions->IsSingleHost()) {
             const TVector<ui64> randomSeeds = GenRandUI64Vector(foldCount, ctx->Rand.GenRand());
-            ctx->LocalExecutor->ExecRange([&](int foldId) {
+            ctx->LocalExecutor->ExecRangeWithThrow([&](int foldId) {
                 UpdateLearningFold(data, *error, bestSplitTree, randomSeeds[foldId], trainFolds[foldId], ctx);
             }, 0, foldCount, NPar::TLocalExecutor::WAIT_COMPLETE);
 

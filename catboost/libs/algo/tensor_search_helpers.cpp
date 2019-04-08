@@ -384,7 +384,7 @@ void CalcWeightedDerivatives(
 
         Y_ASSERT(error.GetErrorType() == EErrorType::PerObjectError);
         if (approxDimension == 1) {
-            localExecutor->ExecRange([&](int blockId) {
+            localExecutor->ExecRangeWithThrow([&](int blockId) {
                 const int blockOffset = blockId * blockParams.GetBlockSize();
                 error.CalcFirstDerRange(blockOffset, Min<int>(blockParams.GetBlockSize(), tailFinish - blockOffset),
                     approx[0].data(),
@@ -394,7 +394,7 @@ void CalcWeightedDerivatives(
                     (*weightedDerivatives)[0].data());
             }, 0, blockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
         } else {
-            localExecutor->ExecRange([&](int blockId) {
+            localExecutor->ExecRangeWithThrow([&](int blockId) {
                 TVector<double> curApprox(approxDimension);
                 TVector<double> curDelta(approxDimension);
                 NPar::TLocalExecutor::BlockedLoopBody(blockParams, [&](int z) {

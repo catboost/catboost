@@ -3468,7 +3468,11 @@ TMetricHolder TCustomMetric::Eval(
 ) const {
     auto weight = UseWeights ? weightIn : TConstArrayRef<float>{};
     TMetricHolder result = Descriptor.EvalFunc(approx, target, weight, begin, end, Descriptor.CustomData);
-    CB_ENSURE(result.Stats.ysize() == 2, "Custom metric evaluate() returned incorrect value");
+    CB_ENSURE(
+        result.Stats.ysize() == 2,
+        "Custom metric evaluate() returned incorrect value."\
+        " Expected tuple of size 2, got tuple of size " << result.Stats.ysize() << "."
+    );
     return result;
 }
 

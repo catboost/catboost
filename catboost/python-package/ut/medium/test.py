@@ -2568,7 +2568,7 @@ class TestInvalidCustomLossAndMetric(object):
         model.fit(pool)
 
     def test_loss_none_metric_incomplete(self):
-        with pytest.raises(CatBoostError, match='evaluate.*returned incorrect value'):
+        with pytest.raises(CatBoostError, match='has no.*evaluate'):
             model = CatBoost({"eval_metric": self.IncompleteCustomMetric(), "iterations": 2})
             prng = np.random.RandomState(seed=20181219)
             pool = Pool(*random_xy(10, 5, prng=prng))

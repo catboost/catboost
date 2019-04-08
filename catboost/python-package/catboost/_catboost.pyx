@@ -9,6 +9,7 @@ from json import dumps, loads, JSONEncoder
 from copy import deepcopy
 from collections import Sequence, defaultdict
 import functools
+import traceback
 
 import numpy as np
 cimport numpy as np
@@ -63,6 +64,7 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
     cdef void ProcessException()
     cdef void SetPythonInterruptHandler() nogil
     cdef void ResetPythonInterruptHandler() nogil
+    cdef void ThrowCppExceptionWithMessage(const TString&) nogil
 
 
 cdef extern from "catboost/libs/logging/logging.h":
@@ -567,7 +569,7 @@ cdef extern from "catboost/libs/metrics/metric.h":
             const TConstArrayRef[float] target,
             const TConstArrayRef[float] weight,
             int begin, int end, void* customData
-        ) except * with gil
+        ) with gil
 
         TString (*GetDescriptionFunc)(void *customData) except * with gil
         bool_t (*IsMaxOptimalFunc)(void *customData) except * with gil
@@ -584,7 +586,7 @@ cdef extern from "catboost/libs/algo/custom_objective_descriptor.h":
             const float* weights,
             TDers* ders,
             void* customData
-        ) except * with gil
+        ) with gil
 
         void (*CalcDersMulti)(
             const TVector[double]& approx,
@@ -593,7 +595,7 @@ cdef extern from "catboost/libs/algo/custom_objective_descriptor.h":
             TVector[double]* ders,
             THessianInfo* der2,
             void* customData
-        ) except * with gil
+        ) with gil
 
 cdef extern from "catboost/libs/options/cross_validation_params.h":
     cdef cppclass TCrossValidationParams:
@@ -974,8 +976,9 @@ cdef TMetricHolder _MetricEval(
     int begin,
     int end,
     void* customData
-) except * with gil:
+) with gil:
     cdef metricObject = <object>customData
+    cdef TString errorMessage
     cdef TMetricHolder holder
     holder.Stats.resize(2)
 
@@ -987,7 +990,12 @@ cdef TMetricHolder _MetricEval(
     else:
         weights = _FloatArrayWrapper.create(weight.data() + begin, end - begin)
 
-    error, weight_ = metricObject.evaluate(approxes, targets, weights)
+    try:
+        error, weight_ = metricObject.evaluate(approxes, targets, weights)
+    except:
+        errorMessage = to_arcadia_string(traceback.format_exc())
+        with nogil:
+            ThrowCppExceptionWithMessage(errorMessage)
 
     holder.Stats[0] = error
     holder.Stats[1] = weight_
@@ -1000,8 +1008,9 @@ cdef void _ObjectiveCalcDersRange(
     const float* weights,
     TDers* ders,
     void* customData
-) except * with gil:
+) with gil:
     cdef objectiveObject = <object>(customData)
+    cdef TString errorMessage
 
     approx = _DoubleArrayWrapper.create(approxes, count)
     target = _FloatArrayWrapper.create(targets, count)
@@ -1011,7 +1020,13 @@ cdef void _ObjectiveCalcDersRange(
     else:
         weight = None
 
-    result = objectiveObject.calc_ders_range(approx, target, weight)
+    try:
+        result = objectiveObject.calc_ders_range(approx, target, weight)
+    except:
+        errorMessage = to_arcadia_string(traceback.format_exc())
+        with nogil:
+            ThrowCppExceptionWithMessage(errorMessage)
+
     index = 0
     for der1, der2 in result:
         ders[index].Der1 = der1
@@ -1025,12 +1040,19 @@ cdef void _ObjectiveCalcDersMulti(
     TVector[double]* ders,
     THessianInfo* der2,
     void* customData
-) except * with gil:
+) with gil:
     cdef objectiveObject = <object>(customData)
+    cdef TString errorMessage
 
     approxes = _DoubleArrayWrapper.create(approx.data(), approx.size())
 
-    ders_vector, second_ders_matrix = objectiveObject.calc_ders_multi(approxes, target, weight)
+    try:
+        ders_vector, second_ders_matrix = objectiveObject.calc_ders_multi(approxes, target, weight)
+    except:
+        errorMessage = to_arcadia_string(traceback.format_exc())
+        with nogil:
+            ThrowCppExceptionWithMessage(errorMessage)
+
     for index, der in enumerate(ders_vector):
         dereference(ders)[index] = der
 
