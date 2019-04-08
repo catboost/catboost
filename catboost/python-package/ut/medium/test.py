@@ -3075,28 +3075,30 @@ def test_permuted_columns_dataset():
     assert all(pred == permuted_pred)
 
 
-def test_roc(task_type):
+def non_decreasing(sequence):
+    for i in xrange(1, len(sequence)):
+        if sequence[i] < sequence[i - 1]:
+            return False
+    return True
+
+
+# different iteration parameters needed to check less and more accurate models
+@pytest.mark.parametrize('iterations', [5, 20], ids=['iterations=5', 'iterations=20'])
+def test_roc(task_type, iterations):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)
-    cv(
-        train_pool,
-        params={
-            'loss_function': 'Logloss',
-            'iterations': 10,
-            'roc_file': 'out_cv',
-            'thread_count': 4,
-            'task_type': task_type
-        },
-        dev_max_iterations_batch_size=6
-    )
 
-    model = CatBoostClassifier(loss_function='Logloss', iterations=20)
+    model = CatBoostClassifier(loss_function='Logloss', iterations=iterations)
     model.fit(train_pool)
 
     curve = get_roc_curve(model, test_pool, thread_count=4)
+    (fpr, tpr, thresholds) = curve
+    assert non_decreasing(fpr)
+    assert non_decreasing(tpr)
+
     table = np.array(list(zip(curve[2], [1 - x for x in curve[1]], curve[0])))
-    out_model = test_output_path('out_model')
-    np.savetxt(out_model, table)
+    out_roc = test_output_path('roc')
+    np.savetxt(out_roc, table)
 
     try:
         select_threshold(model, data=test_pool, FNR=0.5, FPR=0.5)
@@ -3104,8 +3106,8 @@ def test_roc(task_type):
     except CatBoostError:
         pass
 
-    bounds = test_output_path('bounds')
-    with open(bounds, 'w') as f:
+    out_bounds = test_output_path('bounds')
+    with open(out_bounds, 'w') as f:
         fnr_boundary = select_threshold(model, data=test_pool, FNR=0.4)
         fpr_boundary = select_threshold(model, data=test_pool, FPR=0.2)
         inter_boundary = select_threshold(model, data=test_pool)
@@ -3125,9 +3127,27 @@ def test_roc(task_type):
         f.write('by intersection: ' + str(inter_boundary) + '\n')
 
     return [
-        local_canonical_file('catboost_info/out_cv'),
-        local_canonical_file(out_model),
-        local_canonical_file(bounds)
+        local_canonical_file(out_roc),
+        local_canonical_file(out_bounds)
+    ]
+
+
+def test_roc_cv(task_type):
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    cv(
+        train_pool,
+        params={
+            'loss_function': 'Logloss',
+            'iterations': 10,
+            'roc_file': 'out_roc',
+            'thread_count': 4,
+            'task_type': task_type
+        },
+        dev_max_iterations_batch_size=6
+    )
+
+    return [
+        local_canonical_file('catboost_info/out_roc')
     ]
 
 

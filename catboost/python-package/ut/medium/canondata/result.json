@@ -295,18 +295,30 @@
         "checksum": "5465d14f78df9b758fe943aa06161046",
         "uri": "file://test.test_regression_ctr_CPU_/model.bin"
     },
-    "test.test_roc[CPU]": [
-        {
-            "checksum": "2124aebfa1cfb10751d57285ec6f393a",
-            "uri": "file://test.test_roc_CPU_/out_cv"
-        },
+    "test.test_roc[CPU-iterations=20]": [
         {
             "checksum": "39078b8bbae47a35cc450d23eb94726f",
-            "uri": "file://test.test_roc_CPU_/out_model"
+            "uri": "file://test.test_roc_CPU-iterations=20_/roc"
         },
         {
             "checksum": "51086c84c450571cfdf5521c1d2ed724",
-            "uri": "file://test.test_roc_CPU_/bounds"
+            "uri": "file://test.test_roc_CPU-iterations=20_/bounds"
+        }
+    ],
+    "test.test_roc[CPU-iterations=5]": [
+        {
+            "checksum": "3ec39abd61d7cf0ec6c31793e10bf297",
+            "uri": "file://test.test_roc_CPU-iterations=5_/roc"
+        },
+        {
+            "checksum": "37ff04debb4609474d1127de47e2635f",
+            "uri": "file://test.test_roc_CPU-iterations=5_/bounds"
+        }
+    ],
+    "test.test_roc_cv[CPU]": [
+        {
+            "checksum": "2124aebfa1cfb10751d57285ec6f393a",
+            "uri": "file://test.test_roc_cv_CPU_/out_roc"
         }
     ],
     "test.test_save_border_file": [
