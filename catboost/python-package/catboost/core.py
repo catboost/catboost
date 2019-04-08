@@ -202,7 +202,7 @@ class Pool(_PoolBase):
 
         cat_features : list or numpy.array, optional (default=None)
             If not None, giving the list of Categ columns indices.
-            Must be None if 'data' parameter has FeatureData type
+            Must be None if 'data' parameter has FeaturesData type
 
         column_description : string, optional (default=None)
             ColumnsDescription parameter.
@@ -253,7 +253,7 @@ class Pool(_PoolBase):
 
         feature_names : list, optional (default=None)
             Names for each given data_feature.
-            Must be None if 'data' parameter has FeatureData type
+            Must be None if 'data' parameter has FeaturesData type
 
         thread_count : int, optional (default=-1)
             Thread count to read data from file.
