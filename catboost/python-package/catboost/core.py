@@ -801,7 +801,7 @@ class _CatBoostBase(object):
             params['_test_evals'] = test_evals
         if self.is_fitted():
             params['__model'] = self._serialize_model()
-        for attr in ['_classes', '_feature_importance']:
+        for attr in ['_classes', '_prediction_values_change', '_loss_value_change']:
             if getattr(self, attr, None) is not None:
                 params[attr] = getattr(self, attr, None)
         return params
@@ -821,7 +821,7 @@ class _CatBoostBase(object):
         if '_test_evals' in state:
             self._set_test_evals(state['_test_evals'])
             del state['_test_evals']
-        for attr in ['_classes', '_feature_importance']:
+        for attr in ['_classes', '_prediction_values_change', '_loss_value_change']:
             if attr in state:
                 setattr(self, attr, state[attr])
                 del state[attr]
@@ -1174,11 +1174,7 @@ class CatBoost(_CatBoostBase):
         if (not self._object._has_leaf_weights_in_model()) and allow_clear_pool:
             train_pool = _build_train_pool(X, y, cat_features, pairs, sample_weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, column_description)
         if self._object._is_oblivious() and not self._object._is_groupwise_learned_model():
-            setattr(
-                self,
-                "_feature_importance",
-                self.get_feature_importance(type=EFstrType.PredictionValuesChange)
-            )
+            self.get_feature_importance(type=EFstrType.PredictionValuesChange)
 
         if 'loss_function' in params and self._is_classification_objective(params['loss_function']):
             setattr(self, "_classes", np.unique(train_pool.get_label()))
@@ -1600,7 +1596,10 @@ class CatBoost(_CatBoostBase):
 
     @property
     def feature_importances_(self):
-        return np.array(getattr(self, "_feature_importance", None))
+        if self._object._is_groupwise_learned_model():
+            return np.array(getattr(self, "_loss_function_change", None))
+        else:
+            return np.array(getattr(self, "_prediction_values_change", None))
 
     def get_feature_importance(self, data=None, type=EFstrType.FeatureImportance, prettified=False, thread_count=-1, verbose=False, fstr_type=None):
         """
@@ -1669,12 +1668,17 @@ class CatBoost(_CatBoostBase):
             warnings.warn("'fstr_type' parameter will be deprecated soon, use 'type' parameter instead")
 
         type = enum_from_enum_or_str(EFstrType, type)
+        if type == EFstrType.FeatureImportance:
+            if self._object._is_groupwise_learned_model():
+                type = EFstrType.LossFunctionChange
+            else:
+                type = EFstrType.PredictionValuesChange
 
         if data is not None and not isinstance(data, Pool):
             from __builtin__ import type as typeof
             raise CatBoostError("Invalid data type={}, must be catboost.Pool.".format(typeof(data)))
 
-        need_meta_info = type in (EFstrType.PredictionValuesChange, EFstrType.FeatureImportance)
+        need_meta_info = type == EFstrType.PredictionValuesChange
         empty_data_is_ok = need_meta_info and self._object._has_leaf_weights_in_model() or type == EFstrType.Interaction
         if not empty_data_is_ok:
             if data is None:
@@ -1691,12 +1695,17 @@ class CatBoost(_CatBoostBase):
 
         with log_fixup():
             fstr, feature_names = self._calc_fstr(type, data, thread_count, verbose)
-        if type in (EFstrType.PredictionValuesChange, EFstrType.LossFunctionChange, EFstrType.FeatureImportance):
+        if type in (EFstrType.PredictionValuesChange, EFstrType.LossFunctionChange):
             feature_importances = [value[0] for value in fstr]
             if prettified:
-                return sorted(zip(feature_names, feature_importances), key=itemgetter(1), reverse=True)
-            else:
-                return feature_importances
+                feature_importances = sorted(zip(feature_names, feature_importances), key=itemgetter(1), reverse=True)
+            attribute_name = "_prediction_values_change" if type == EFstrType.PredictionValuesChange else "_loss_value_change"
+            setattr(
+                self,
+                attribute_name,
+                feature_importances
+            )
+            return feature_importances
         if type == EFstrType.ShapValues:
             if isinstance(fstr[0][0], ARRAY_TYPES):
                 return np.array([np.array([np.array([
