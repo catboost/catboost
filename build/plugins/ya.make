@@ -5,7 +5,6 @@ PY_LIBRARY()
 PY_SRCS(
     code_generator.py
     flatc.py
-    pyx.py
     swig.py
 
     _common.py
