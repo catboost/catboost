@@ -510,7 +510,7 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
         if (ObliviousTreeOptions->ScoreFunction != EScoreFunction::Correlation &&
             ObliviousTreeOptions->ScoreFunction != EScoreFunction::NewtonCorrelation) {
             CB_ENSURE(BoostingOptions->BoostingType == EBoostingType::Plain,
-                    "Score function " << ObliviousTreeOptions->ScoreFunction << " can't be used with ordered boosting");
+                    "Score function " << ObliviousTreeOptions->ScoreFunction.Get() << " can't be used with ordered boosting");
         }
 
         if (ObliviousTreeOptions->GrowPolicy == EGrowPolicy::Lossguide) {
