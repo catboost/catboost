@@ -123,32 +123,36 @@ void OutputModelCoreML(
 
     TString data;
 
-    createPipeline = true;
-
     if (createPipeline) {
-        CoreML::Specification::Model outModel, arrayModel;
+        CoreML::Specification::Model outModel, arrayModel, vectorizerModel;
         outModel.set_specificationversion(1);
 
         auto* container = outModel.mutable_pipeline()->mutable_models();
         auto* containedArray = container->Add();
-        auto* containedTree = container->Add();
 
-        auto array = mappingModel.mutable_arrayfeatureextractor();
-        NCatboost::NCoreML::ConfigureCategoricalMappings(model, array);
+        auto array = arrayModel.mutable_arrayfeatureextractor();
+        auto arrayDescription = arrayModel.mutable_description();
+        NCatboost::NCoreML::ConfigureArrayFeatureExtractor(model, array, arrayDescription);
+        NCatboost::NCoreML::ConfigureCategoricalMappings(model, container);
+
+        auto* containedVectorizer = container->Add();
+        auto* containedTree = container->Add();
+        auto featureVectorizer = vectorizerModel.mutable_featurevectorizer();
 
         auto description = outModel.mutable_description();
         NCatboost::NCoreML::ConfigureMetadata(model, userParameters, description);
-        NCatboost::NCoreML::ConfigureIO(model, userParameters, regressor, description);
+        NCatboost::NCoreML::ConfigureIO(model, userParameters, regressor, description, createPipeline);
 
-        *containedTree = treeModel;
         *containedArray = arrayModel;
+        *containedVectorizer = vectorizerModel;
+        *containedTree = treeModel;
 
         outModel.SerializeToString(&data);
 
     } else {
         auto description = treeModel.mutable_description();
         NCatboost::NCoreML::ConfigureMetadata(model, userParameters, description);
-        NCatboost::NCoreML::ConfigureIO(model, userParameters, regressor, description);
+        NCatboost::NCoreML::ConfigureIO(model, userParameters, regressor, description, createPipeline);
 
         treeModel.SerializeToString(&data);
     }

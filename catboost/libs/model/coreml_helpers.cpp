@@ -110,73 +110,88 @@ void NCatboost::NCoreML::ConfigureTrees(const TFullModel& model, TreeEnsemblePar
     }
 }
 
-void NCatboost::NCoreML::ConfigureCategoricalMappings(const TFullModel& model, CoreML::Specification::ArrayFeatureExtractor* array) {
-    auto& oneHotFeatures = model.ObliviousTrees.OneHotFeatures;
-    std::unordered_map<TString, long> categoricalMapping;
+void NCatboost::NCoreML::ConfigureArrayFeatureExtractor(const TFullModel& model, CoreML::Specification::ArrayFeatureExtractor* array, CoreML::Specification::ModelDescription* description) {
+    auto input = description->add_input();
+    input->set_name("categorical_features");
 
-    for (auto& oneHotFeature: oneHotFeatures) {
-        auto feature = array->mutable_extractindex();
+    auto featuresCount = model.ObliviousTrees.OneHotFeatures.size();
+    for (size_t i = 0; i < featuresCount; i++) {
+        array->add_extractindex(i);
+
+        auto outputFeature = description->add_output();
+        auto featureType = outputFeature->mutable_type();
+        featureType->set_isoptional(false);
+        featureType->set_allocated_stringtype(new StringFeatureType());
+        outputFeature->set_allocated_type(featureType);
+        outputFeature->set_name(("categorical_feature_" + std::to_string(i)).c_str());
     }
-
-//    size_t currentSplitIndex = 0;
-//    for (size_t treeIdx = 0; treeIdx < model.ObliviousTrees.TreeSizes.size(); ++treeIdx) {
-//        auto treeDepth = model.ObliviousTrees.TreeSizes[treeIdx];
-//        for (int layer = treeDepth - 1; layer >= 0; --layer) {
-//            const auto &binFeature = binFeatures[model.ObliviousTrees.TreeSplits.at(currentSplitIndex)];
-//            ++currentSplitIndex;
-//            auto featureType = binFeature.Type;
-//            CB_ENSURE(featureType == ESplitType::FloatFeature || featureType == ESplitType::OneHotFeature,
-//                      "model with only float features or one hot encoded features supported");
-//
-//            int featureId = -1;
-//            TString featureName;
-//            if (featureType == ESplitType::OneHotFeature) {
-//                int catFeatureId = binFeature.OneHotFeature.CatFeatureIdx;
-//                for (const auto &catFeature : model.ObliviousTrees.CatFeatures) {
-//                    if (catFeature.FeatureIndex == catFeatureId) {
-//                        featureId = catFeature.FlatFeatureIndex;
-//                        featureName = catFeature.FeatureId;
-//                        break;
-//                    }
-//                }
-//                if (featureId != -1) {
-//                    categoricalMapping.insert(std::make_pair(featureName, featureId));
-//                }
-//            }
-//        }
-//    }
-
-//    auto* stringtoint64map = mapping->mutable_stringtoint64map();
-//    auto* map = stringtoint64map->mutable_map();
-//    map->insert(categoricalMapping.begin(), categoricalMapping.end());
 }
 
-void NCatboost::NCoreML::ConfigureIO(const TFullModel& model, const NJson::TJsonValue& userParameters, TreeEnsembleRegressor* regressor, ModelDescription* description) {
-    for (const auto& floatFeature : model.ObliviousTrees.FloatFeatures) {
-        auto feature = description->add_input();
-        if (!floatFeature.FeatureId.empty()) {
-            feature->set_name(floatFeature.FeatureId);
-        } else {
-            feature->set_name(("feature_" + std::to_string(floatFeature.FlatFeatureIndex)).c_str());
+void NCatboost::NCoreML::ConfigureCategoricalMappings(const TFullModel& model, google::protobuf::RepeatedPtrField<CoreML::Specification::Model>* container) {
+    auto& oneHotFeatures = model.ObliviousTrees.OneHotFeatures;
+    auto featuresCount = oneHotFeatures.size();
+
+
+    for (size_t i = 0; i < featuresCount; i++) {
+        std::unordered_map<TString, long> categoricalMapping;
+        auto* contained = container->Add();
+
+        CoreML::Specification::Model mappingModel;
+        auto mapping = mappingModel.mutable_categoricalmapping();
+
+        auto valuesCount = oneHotFeatures[i].Values.size();
+
+        for (size_t j = 0; j < valuesCount; j++) {
+            categoricalMapping.insert(std::make_pair(oneHotFeatures[i].StringValues[j], oneHotFeatures[i].Values[j]));
         }
+
+        auto* stringtoint64map = mapping->mutable_stringtoint64map();
+        auto* map = stringtoint64map->mutable_map();
+        map->insert(categoricalMapping.begin(), categoricalMapping.end());
+
+        auto description = mappingModel.mutable_description();
+        auto catFeature = description->add_input();
+        catFeature->set_name(("categorical_feature_" + std::to_string(i)).c_str());
 
         auto featureType = new FeatureType();
         featureType->set_isoptional(false);
-        featureType->set_allocated_doubletype(new DoubleFeatureType());
-        feature->set_allocated_type(featureType);
-    }
+        featureType->set_allocated_stringtype(new StringFeatureType());
+        catFeature->set_allocated_type(featureType);
 
-//    for (const auto& oneHotFeature : model.ObliviousTrees.OneHotFeatures) {
-//        auto feature = description->add_input();
-//
-//        feature->set_name(oneHotValue);
-//
-//        auto featureType = new FeatureType();
-//        featureType->set_isoptional(false);
-//        featureType->set_allocated_int64type(new Int64FeatureType());
-//        feature->set_allocated_type(featureType);
-//
-//    }
+        auto outputFeature = description->add_output();
+        featureType = outputFeature->mutable_type();
+        featureType->set_isoptional(false);
+        featureType->set_allocated_int64type(new Int64FeatureType());
+        outputFeature->set_allocated_type(featureType);
+        outputFeature->set_name(("categorical_feature_" + std::to_string(i)).c_str());
+
+        *contained = mappingModel;
+    }
+}
+
+void NCatboost::NCoreML::ConfigureIO(const TFullModel& model, const NJson::TJsonValue& userParameters, TreeEnsembleRegressor* regressor, ModelDescription* description, bool pipeline) {
+    if (pipeline) {
+        auto catFeatures = description->add_input();
+        catFeatures->set_name("categorical_features");
+
+        auto floatFeatures = description->add_input();
+        floatFeatures->set_name("numerical_features");
+
+    } else {
+        for (const auto& floatFeature : model.ObliviousTrees.FloatFeatures) {
+            auto feature = description->add_input();
+            if (!floatFeature.FeatureId.empty()) {
+                feature->set_name(floatFeature.FeatureId);
+            } else {
+                feature->set_name(("feature_" + std::to_string(floatFeature.FlatFeatureIndex)).c_str());
+            }
+
+            auto featureType = new FeatureType();
+            featureType->set_isoptional(false);
+            featureType->set_allocated_doubletype(new DoubleFeatureType());
+            feature->set_allocated_type(featureType);
+        }
+    }
 
     const auto classesCount = static_cast<size_t>(model.ObliviousTrees.ApproxDimension);
     regressor->mutable_treeensemble()->set_numpredictiondimensions(classesCount);
