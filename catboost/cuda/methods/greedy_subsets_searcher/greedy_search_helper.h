@@ -54,7 +54,7 @@ namespace NCatboostCuda {
                                  TVector<ui32>* leavesToVisit);
 
         bool IsObliviousSplit() const {
-            return Options.Policy == EGrowingPolicy::ObliviousTree;
+            return Options.Policy == EGrowPolicy::SymmetricTree;
         }
 
     private:

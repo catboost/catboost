@@ -121,7 +121,7 @@ static void CalcApproxDers(
 ) {
     NPar::TLocalExecutor::TExecRangeParams blockParams(sampleStart, sampleFinish);
     blockParams.SetBlockSize(APPROX_BLOCK_SIZE);
-    ctx->LocalExecutor->ExecRange(
+    ctx->LocalExecutor->ExecRangeWithThrow(
         [&](int blockId) {
             // espetrov: OK for small datasets
             const int blockOffset = sampleStart + blockId * blockParams.GetBlockSize();
@@ -190,7 +190,7 @@ static void CalcLeafDers(
     // Check speedup on flights dataset.
     TVector<TVector<double>> blockBucketSumWeights(blockParams.GetBlockCount(), TVector<double>(leafCount, 0));
     TVector<double>* blockBucketSumWeightsData = blockBucketSumWeights.data();
-    localExecutor->ExecRange(
+    localExecutor->ExecRangeWithThrow(
         [=, &error](int blockId) {
             constexpr int innerBlockSize = APPROX_BLOCK_SIZE;
             const auto approxDers = MakeArrayRef(
@@ -970,7 +970,7 @@ void CalcApproxForLeafStruct(
         randomSeeds = GenRandUI64Vector(fold.BodyTailArr.ysize(), randomSeed);
     }
     approxesDelta->resize(fold.BodyTailArr.ysize());
-    ctx->LocalExecutor->ExecRange(
+    ctx->LocalExecutor->ExecRangeWithThrow(
         [&](int bodyTailId) {
             const TFold::TBodyTail& bt = fold.BodyTailArr[bodyTailId];
             TVector<TVector<double>>& approxDeltas = (*approxesDelta)[bodyTailId];

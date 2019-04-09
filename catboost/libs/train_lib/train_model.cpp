@@ -881,11 +881,11 @@ void TrainModel(
 
     const auto fstrRegularFileName = outputOptions.CreateFstrRegularFullPath();
     const auto fstrInternalFileName = outputOptions.CreateFstrIternalFullPath();
-    EGrowingPolicy growingPolicy = catBoostOptions.ObliviousTreeOptions.Get().GrowingPolicy.GetUnchecked();  // GpuOnlyOption
+    EGrowPolicy growPolicy = catBoostOptions.ObliviousTreeOptions.Get().GrowPolicy.GetUnchecked();  // GpuOnlyOption
     bool needFstr = !fstrInternalFileName.empty() || !fstrRegularFileName.empty();
-    if (needFstr && ShouldSkipFstrGrowingPolicy(growingPolicy)) {
+    if (needFstr && ShouldSkipFstrGrowPolicy(growPolicy)) {
         needFstr = false;
-        CATBOOST_INFO_LOG << "Skip fstr for " << growingPolicy << " growingPolicy" << Endl;
+        CATBOOST_INFO_LOG << "Skip fstr for " << growPolicy << " growPolicy" << Endl;
     }
     bool needPoolAfterTrain = !evalOutputFileName.empty() || (needFstr && outputOptions.GetFstrType() == EFstrType::LossFunctionChange);
     if (needFstr && outputOptions.GetFstrType() == EFstrType::FeatureImportance && updatedTrainJson.Has("loss_function")) {

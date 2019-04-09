@@ -35,6 +35,10 @@ void ResetPythonInterruptHandler() {
     ResetInterruptHandler();
 }
 
+void ThrowCppExceptionWithMessage(const TString& message) {
+    ythrow TCatBoostException() << message;
+}
+
 TVector<TVector<double>> EvalMetrics(
     const TFullModel& model,
     const NCB::TDataProvider& srcData,

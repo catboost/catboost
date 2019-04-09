@@ -555,11 +555,11 @@ struct TContRep : public TIntrusiveListItem<TContRep>, public ITrampoLine {
 
     TContStackAllocator::TStackPtr real;
 
-    TMemRegion full;
+    TArrayRef<char> full;
 #if defined(STACK_GROW_DOWN)
-    TMemRegion stack;
-    TMemRegion cont;
-    TMemRegion machine;
+    TArrayRef<char> stack;
+    TArrayRef<char> cont;
+    TArrayRef<char> machine;
 #else
 #error todo
 #endif

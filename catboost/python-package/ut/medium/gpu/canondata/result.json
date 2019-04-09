@@ -185,13 +185,13 @@
         "checksum": "361ddce8b7778aa74fbd0edac5d05e86",
         "uri": "file://test.test_multiclass_custom_class_labels_from_files_GPU_/predictions.txt"
     },
-    "test.test_multiclass_growing_policy[GPU-Levelwise]": {
+    "test.test_multiclass_grow_policy[GPU-Depthwise]": {
         "checksum": "daf7ade4db8b601ddf45ea7b8b18e4bb",
-        "uri": "file://test.test_multiclass_growing_policy_GPU-Levelwise_/predictions.npy"
+        "uri": "file://test.test_multiclass_grow_policy_GPU-Depthwise_/predictions.npy"
     },
-    "test.test_multiclass_growing_policy[GPU-Lossguide]": {
+    "test.test_multiclass_grow_policy[GPU-Lossguide]": {
         "checksum": "398374db9829e0710b797be00059080f",
-        "uri": "file://test.test_multiclass_growing_policy_GPU-Lossguide_/predictions.npy"
+        "uri": "file://test.test_multiclass_grow_policy_GPU-Lossguide_/predictions.npy"
     },
     "test.test_non_ones_weight[GPU]": {
         "checksum": "c010078303776c35b3b4382a06db7db9",
@@ -249,18 +249,30 @@
         "checksum": "1d77ec6223e47c0b5bc20a2537f5db89",
         "uri": "file://test.test_priors_GPU_/model.bin"
     },
-    "test.test_roc[GPU]": [
+    "test.test_roc[GPU-iterations=20]": [
         {
-            "checksum": "be65cce443bde1bbb861f957a17bdb6a",
-            "uri": "file://test.test_roc_GPU_/out_cv"
+            "checksum": "39078b8bbae47a35cc450d23eb94726f",
+            "uri": "file://test.test_roc_GPU-iterations=20_/roc"
         },
         {
-            "checksum": "785dbddc0093c1559adb44276505c439",
-            "uri": "file://test.test_roc_GPU_/out_model"
+            "checksum": "51086c84c450571cfdf5521c1d2ed724",
+            "uri": "file://test.test_roc_GPU-iterations=20_/bounds"
+        }
+    ],
+    "test.test_roc[GPU-iterations=5]": [
+        {
+            "checksum": "3ec39abd61d7cf0ec6c31793e10bf297",
+            "uri": "file://test.test_roc_GPU-iterations=5_/roc"
         },
         {
-            "checksum": "b5774fb7dbb4da7bb37cabda34eda8a6",
-            "uri": "file://test.test_roc_GPU_/bounds"
+            "checksum": "37ff04debb4609474d1127de47e2635f",
+            "uri": "file://test.test_roc_GPU-iterations=5_/bounds"
+        }
+    ],
+    "test.test_roc_cv[GPU]": [
+        {
+            "checksum": "c91c4aad5d71bee6a15bbb002ffbee17",
+            "uri": "file://test.test_roc_cv_GPU_/out_roc"
         }
     ],
     "test.test_shap[GPU]": {

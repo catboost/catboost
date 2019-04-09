@@ -1,3 +1,32 @@
+# Release 0.14
+
+## New features:
+
+- GPU training now supports several tree learning strategies, selectable with `grow_policy` parameter. Possible values:
+  - `SymmetricTree` -- The tree is built level by level until `max_depth` is reached. On each iteration, all leaves from the last tree level will be split with the same condition. The resulting tree structure will always be symmetric.
+  - `Depthwise` -- The tree is built level by level until `max_depth` is reached. On each iteration, all non-terminal leaves from the last tree level will be split. Each leaf is split by condition with the best loss improvement.
+  - `Lossguide` -- The tree is built leaf by leaf until `max_leaves` limit is reached. On each iteration, non-terminal leaf with best loss improvement will be split.
+  > **Note:** grow policies `Depthwise` and `Lossguide` currently support only training and prediction modes. They do not support model analysis (like feature importances and SHAP values) and saving to different model formats like CoreML, ONNX, and JSON.
+  - The new grow policies support several new parameters:
+    `max_leaves` -- Maximum leaf count in the resulting tree, default 31. Used only for `Lossguide` grow policy. __Warning:__ It is not recommended to set this parameter greater than 64, as this can significantly slow down training.
+    `min_data_in_leaf` -- Minimum number of training samples per leaf, default 1. CatBoost will not search for new splits in leaves with sample count less than  `min_data_in_leaf`. This option is available for `Lossguide` and `Depthwise` grow policies only.
+  > **Note:** the new types of trees will be at least 10x slower in prediction than default symmetric trees.
+
+- GPU training also supports several score functions, that might give your model a boost in quality. Use parameter `score_function` to experiment with them.
+
+- Now you can use quantization with more than 255 borders and `one_hot_max_size` > 255 in CPU training.
+
+## New features in Python package:
+- It is now possible to use `save_borders()` function to write borders to a file after training.
+- Functions `predict`, `predict_proba`, `staged_predict`, and `staged_predict_proba` now support applying a model to a single object, in addition to usual data matrices.
+
+## Speedups:
+- Impressive speedups for sparse datsets. Will depend on the dataset, but will be at least 2--3 times for sparse data.
+
+## Breaking changes:
+- Python-package class attributes don't raise exceptions now. Attributes return `None` if not initialized.
+- Starting from 0.13 we have new feature importances for ranking modes. The new algorithm for feature importances shows how much features contribute to the optimized loss function. They are also signed as opposed to feature importances for not ranking modes which are non negative. This importances are expensive to calculate, thus we decided to not calculate them by default during training starting from 0.14. You need to calculate them after training.
+
 # Release 0.13.1
 
 ## Changes:

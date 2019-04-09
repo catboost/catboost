@@ -260,7 +260,7 @@ bool NCatboostOptions::TCatFeatureParams::operator!=(const TCatFeatureParams& rh
 
 void NCatboostOptions::TCatFeatureParams::Validate() const {
     CB_ENSURE(OneHotMaxSize.Get() <= OneHotMaxSizeLimit,
-            "Error in one_hot_max_size: maximum value of one-hot-encoding is 255");
+            "Error in one_hot_max_size: maximum value of one-hot-encoding is " << OneHotMaxSizeLimit);
     const ui32 ctrComplexityLimit = GetMaxTreeDepth();
     CB_ENSURE(MaxTensorComplexity.Get() < ctrComplexityLimit,
             "Error: max ctr complexity should be less than " << ctrComplexityLimit);

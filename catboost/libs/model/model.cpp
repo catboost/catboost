@@ -525,6 +525,26 @@ void TFullModel::CalcFlatTransposed(
         ObliviousTrees.GetFlatFeatureVectorExpectedSize() <= transposedFeatures.size(),
         "Not enough features provided"
     );
+    TMaybe<size_t> docCount;
+    CB_ENSURE(!ObliviousTrees.FloatFeatures.empty() || !ObliviousTrees.CatFeatures.empty(),
+        "Both float features and categorical features information are empty");
+    if (!ObliviousTrees.FloatFeatures.empty()) {
+        for (const auto& floatFeature : ObliviousTrees.FloatFeatures) {
+            if (floatFeature.UsedInModel()) {
+                docCount = transposedFeatures[floatFeature.FlatFeatureIndex].size();
+                break;
+            }
+        }
+    }
+    if (!docCount.Defined() && !ObliviousTrees.CatFeatures.empty()) {
+        for (const auto& catFeature : ObliviousTrees.CatFeatures) {
+            if (catFeature.UsedInModel) {
+                docCount = transposedFeatures[catFeature.FlatFeatureIndex].size();
+                break;
+            }
+        }
+    }
+    CB_ENSURE(docCount.Defined(), "couldn't determine document count, something went wrong");
     CalcGeneric(
         *this,
         [&transposedFeatures](const TFloatFeature& floatFeature, size_t index) -> float {
@@ -533,7 +553,7 @@ void TFullModel::CalcFlatTransposed(
         [&transposedFeatures](const TCatFeature& catFeature, size_t index) -> int {
             return ConvertFloatCatFeatureToIntHash(transposedFeatures[catFeature.FlatFeatureIndex][index]);
         },
-        transposedFeatures[0].size(),
+        *docCount,
         treeStart,
         treeEnd,
         results

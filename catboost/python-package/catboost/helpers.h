@@ -27,6 +27,7 @@ private:
 void ProcessException();
 void SetPythonInterruptHandler();
 void ResetPythonInterruptHandler();
+void ThrowCppExceptionWithMessage(const TString& message);
 
 TVector<TVector<double>> EvalMetrics(
     const TFullModel& model,

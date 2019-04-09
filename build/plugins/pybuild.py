@@ -1,7 +1,6 @@
 import os
 import ymake
 from _common import stripext, rootrel_arc_src, tobuilddir, listid, resolve_to_ymake_path, generate_chunks
-from pyx import PyxParser
 
 
 def is_arc_src(src, unit):
@@ -59,7 +58,7 @@ def parse_pyx_includes(filename, path, source_root, seen=None):
 
     with open(abs_path, 'rb') as f:
         # Don't parse cimports and etc - irrelevant for cython, it's linker work
-        includes, _, _ = PyxParser.parse_includes(f.readlines(), perm_includes=False, direct_includes_only=True)
+        includes = ymake.parse_cython_includes(f.read())
 
     abs_dirname = os.path.dirname(abs_path)
     # All includes are relative to the file which include

@@ -75,7 +75,7 @@ namespace NCatboostCuda {
     }
 
     inline TGpuTrainerFactoryKey GetTrainerFactoryKeyForRegion(ELossFunction loss) {
-        return GetTrainerFactoryKey(loss, EGrowingPolicy::Region);
+        return GetTrainerFactoryKey(loss, EGrowPolicy::Region);
     }
 
 }

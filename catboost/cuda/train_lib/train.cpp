@@ -540,7 +540,7 @@ TTrainerFactory::TRegistrator<NCatboostCuda::TGPUModelTrainer> GPURegistrator(ET
 
 template <>
 inline TString ToString<NCatboostCuda::TGpuTrainerFactoryKey>(const NCatboostCuda::TGpuTrainerFactoryKey& key) {
-    return TStringBuilder() << "Loss=" << key.Loss << ";OptimizationScheme=" << key.GrowingPolicy;
+    return TStringBuilder() << "Loss=" << key.Loss << ";OptimizationScheme=" << key.GrowPolicy;
 }
 
 template <>

@@ -32,12 +32,19 @@ namespace {
     };
 }
 
-static TRocPoint IntersectSegments(const TRocPoint& leftEnds, const TRocPoint& rightEnds) {
+TRocPoint TRocCurve::IntersectSegments(const TRocPoint& leftEnds, const TRocPoint& rightEnds) {
     double x1 = leftEnds.Boundary, x2 = rightEnds.Boundary;
     double y11 = leftEnds.FalseNegativeRate, y21 = rightEnds.FalseNegativeRate;
     double y12 = leftEnds.FalsePositiveRate, y22 = rightEnds.FalsePositiveRate;
     double x = x1 + (x1 - x2) * (y11 - y12) / ((y21 - y22) - (y11 - y12));
-    double y = y11 + (x1 - x) * (y21 - y11) / (x1 - x2);
+    double y;
+    if ((y22 - y12) < EPS) {
+        y = 0.5 * (y12 + y22);
+    } else if ((y11 - y21) < EPS) {
+        y = 0.5 * (y11 + y21);
+    } else {
+        y = y11 + (x1 - x) * (y21 - y11) / (x1 - x2);
+    }
     return TRocPoint(x, y, y);
 }
 
@@ -114,9 +121,9 @@ void TRocCurve::BuildCurve(
         double boundary = 0.5 * (probabilitiesWithTargets[pointIdx].Probability
                                + probabilitiesWithTargets[pointIdx + 1].Probability);
 
-        if (probabilitiesWithTargets[pointIdx].Probability !=
-            probabilitiesWithTargets[pointIdx + 1].Probability) {
-
+        if (probabilitiesWithTargets[pointIdx + 1].Probability
+            < (probabilitiesWithTargets[pointIdx].Probability - EPS))
+        {
             double newFnr = double(countTargets[1] - countTargetsIntermediate[1]) / countTargets[1];
             double newFpr = double(countTargetsIntermediate[0]) / countTargets[0];
 

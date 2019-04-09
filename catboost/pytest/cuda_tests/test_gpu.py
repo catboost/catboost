@@ -23,7 +23,7 @@ from catboost_pytest_lib import (
 CATBOOST_PATH = yatest.common.binary_path("catboost/app/catboost")
 BOOSTING_TYPE = ['Ordered', 'Plain']
 MULTICLASS_LOSSES = ['MultiClass', 'MultiClassOneVsAll']
-NONSYMMETRIC = ['Lossguide', 'Levelwise']
+NONSYMMETRIC = ['Lossguide', 'Depthwise']
 
 
 def generate_random_labeled_set(nrows, nvals, labels, seed=20181219, prng=None):
@@ -2238,8 +2238,8 @@ def test_train_on_quantized_pool_with_large_grid():
     fit_catboost_gpu(params)
 
 
-@pytest.mark.parametrize('growing_policy', NONSYMMETRIC)
-def test_apply_with_growing_policy(growing_policy):
+@pytest.mark.parametrize('grow_policy', NONSYMMETRIC)
+def test_apply_with_grow_policy(grow_policy):
     output_model_path = yatest.common.test_output_path('model.bin')
     test_eval_path = yatest.common.test_output_path('test.eval')
     calc_eval_path = yatest.common.test_output_path('calc.eval')
@@ -2259,7 +2259,7 @@ def test_apply_with_growing_policy(growing_policy):
         '-w': '0.03',
         '-T': '4',
         '-m': output_model_path,
-        '--growing-policy': growing_policy,
+        '--grow-policy': grow_policy,
         '--eval-file': test_eval_path,
         '--output-columns': 'RawFormulaVal'
     }

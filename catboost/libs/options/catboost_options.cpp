@@ -428,6 +428,8 @@ void NCatboostOptions::TCatBoostOptions::Validate() const {
         "Boosting type should be Plain for loss functions " << lossFunction);
 
     if (GetTaskType() == ETaskType::CPU) {
+        CB_ENSURE(lossFunction != ELossFunction::QueryCrossEntropy,
+                  ELossFunction::QueryCrossEntropy << " loss function is not supported for CPU learning");
         CB_ENSURE(!(IsPairwiseScoring(lossFunction) && leavesEstimation == ELeavesEstimation::Newton),
                   "This leaf estimation method is not supported for querywise error for CPU learning");
         CB_ENSURE(
@@ -499,16 +501,17 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
             BoostingOptions->DataPartitionType = EDataPartitionType::DocParallel;
         }
 
-        if (ObliviousTreeOptions->GrowingPolicy == EGrowingPolicy::Lossguide) {
+        if (ObliviousTreeOptions->GrowPolicy == EGrowPolicy::Lossguide) {
             ObliviousTreeOptions->MaxDepth.SetDefault(16);
+            ObliviousTreeOptions->ScoreFunction.SetDefault(EScoreFunction::NewtonL2);
         }
-        if (ObliviousTreeOptions->MaxLeavesCount.IsDefault() && ObliviousTreeOptions->GrowingPolicy != EGrowingPolicy::Lossguide) {
+        if (ObliviousTreeOptions->MaxLeaves.IsDefault() && ObliviousTreeOptions->GrowPolicy != EGrowPolicy::Lossguide) {
             const ui32 maxLeaves = 1u << ObliviousTreeOptions->MaxDepth.Get();
-            ObliviousTreeOptions->MaxLeavesCount.SetDefault(maxLeaves);
+            ObliviousTreeOptions->MaxLeaves.SetDefault(maxLeaves);
 
-            if (ObliviousTreeOptions->GrowingPolicy != EGrowingPolicy::Lossguide) {
-                CB_ENSURE(ObliviousTreeOptions->MaxLeavesCount == maxLeaves,
-                          "max_leaves_count options works only with lossguide tree growing");
+            if (ObliviousTreeOptions->GrowPolicy != EGrowPolicy::Lossguide) {
+                CB_ENSURE(ObliviousTreeOptions->MaxLeaves == maxLeaves,
+                          "max_leaves option works only with lossguide tree growing");
             }
         }
     }

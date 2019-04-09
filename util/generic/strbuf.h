@@ -47,7 +47,7 @@ public:
     }
 
     template <typename TCharTraits>
-    inline TBasicStringBuf(std::basic_string_view<TChar, TCharTraits> view) noexcept
+    constexpr TBasicStringBuf(std::basic_string_view<TChar, TCharTraits> view) noexcept
         : TBaseStr(view.data(), view.size())
     {
     }
@@ -74,7 +74,7 @@ public:
     }
 
     template<typename TCharTraits>
-    /* implicit */ operator std::basic_string_view<TChar, TCharTraits>() const noexcept {
+    constexpr operator std::basic_string_view<TChar, TCharTraits>() const noexcept {
         return {data(), length()};
     }
 

@@ -26,9 +26,9 @@ NCatboostOptions::TObliviousTreeLearnerOptions::TObliviousTreeLearnerOptions(ETa
       , AddRidgeToTargetFunctionFlag("add_ridge_penalty_to_loss_function", false, taskType)
       , ScoreFunction("score_function", EScoreFunction::Correlation, taskType)
       , MaxCtrComplexityForBordersCaching("max_ctr_complexity_for_borders_cache", 1, taskType)
-      , GrowingPolicy("growing_policy", EGrowingPolicy::ObliviousTree, taskType)
-      , MaxLeavesCount("max_leaves_count", 31, taskType)
-      , MinSamplesInLeaf("min_samples_in_leaf", 1, taskType)
+      , GrowPolicy("grow_policy", EGrowPolicy::SymmetricTree, taskType)
+      , MaxLeaves("max_leaves", 31, taskType)
+      , MinDataInLeaf("min_data_in_leaf", 1, taskType)
 
 {
     SamplingFrequency.ChangeLoadUnimplementedPolicy(ELoadUnimplementedPolicy::ExceptionOnChange);
@@ -55,9 +55,9 @@ void NCatboostOptions::TObliviousTreeLearnerOptions::Load(const NJson::TJsonValu
             &DevScoreCalcObjBlockSize,
             &DevExclusiveFeaturesBundleMaxBuckets,
             &ExclusiveFeaturesBundleMaxConflictFraction,
-            &GrowingPolicy,
-            &MaxLeavesCount,
-            &MinSamplesInLeaf
+            &GrowPolicy,
+            &MaxLeaves,
+            &MinDataInLeaf
             );
 
     Validate();
@@ -74,9 +74,9 @@ void NCatboostOptions::TObliviousTreeLearnerOptions::Save(NJson::TJsonValue* opt
             DevScoreCalcObjBlockSize,
             DevExclusiveFeaturesBundleMaxBuckets,
             ExclusiveFeaturesBundleMaxConflictFraction,
-            GrowingPolicy,
-            MaxLeavesCount,
-            MinSamplesInLeaf
+            GrowPolicy,
+            MaxLeaves,
+            MinDataInLeaf
             );
 }
 
@@ -86,7 +86,7 @@ bool NCatboostOptions::TObliviousTreeLearnerOptions::operator==(const TOblivious
             AddRidgeToTargetFunctionFlag, ScoreFunction, MaxCtrComplexityForBordersCaching,
             PairwiseNonDiagReg, LeavesEstimationBacktrackingType, DevScoreCalcObjBlockSize,
             DevExclusiveFeaturesBundleMaxBuckets, ExclusiveFeaturesBundleMaxConflictFraction,
-            GrowingPolicy, MaxLeavesCount, MinSamplesInLeaf
+            GrowPolicy, MaxLeaves, MinDataInLeaf
             ) ==
         std::tie(rhs.MaxDepth, rhs.LeavesEstimationIterations, rhs.LeavesEstimationMethod, rhs.L2Reg, rhs.ModelSizeReg,
                 rhs.RandomStrength, rhs.BootstrapConfig, rhs.Rsm, rhs.SamplingFrequency,
@@ -94,7 +94,7 @@ bool NCatboostOptions::TObliviousTreeLearnerOptions::operator==(const TOblivious
                 rhs.ScoreFunction, rhs.MaxCtrComplexityForBordersCaching, rhs.PairwiseNonDiagReg, rhs.LeavesEstimationBacktrackingType,
                 rhs.DevScoreCalcObjBlockSize,
                 rhs.DevExclusiveFeaturesBundleMaxBuckets, rhs.ExclusiveFeaturesBundleMaxConflictFraction,
-                rhs.GrowingPolicy, rhs.MaxLeavesCount, rhs.MinSamplesInLeaf);
+                rhs.GrowPolicy, rhs.MaxLeaves, rhs.MinDataInLeaf);
 }
 
 bool NCatboostOptions::TObliviousTreeLearnerOptions::operator!=(const TObliviousTreeLearnerOptions& rhs) const {
