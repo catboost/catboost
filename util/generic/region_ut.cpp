@@ -49,23 +49,17 @@ Y_UNIT_TEST_SUITE(TRegion) {
         UNIT_ASSERT_VALUES_EQUAL(0u, constInts.size());
     }
 
-    Y_UNIT_TEST(ToRegionFromVector) {
-        TVector<int> vec;
-        vec.push_back(17);
-        vec.push_back(19);
-        vec.push_back(21);
-        TRegion<int> r = ToRegion(vec);
+    Y_UNIT_TEST(MakeArrayRefFromVector) {
+        TVector<int> vec{17, 19, 21};
+        TArrayRef<int> r = MakeArrayRef(vec);
         UNIT_ASSERT_VALUES_EQUAL(21, r[2]);
         r[1] = 23;
         UNIT_ASSERT_VALUES_EQUAL(23, vec[1]);
     }
 
     Y_UNIT_TEST(ToRegionFromConstVector) {
-        TVector<int> vec;
-        vec.push_back(17);
-        vec.push_back(19);
-        vec.push_back(21);
-        TRegion<const int> r = ToRegion(static_cast<const TVector<int>&>(vec));
+        const TVector<int> vec{17, 19, 21};
+        TArrayRef<const int> r = MakeArrayRef(vec);
         UNIT_ASSERT_VALUES_EQUAL(21, r[2]);
     }
 
