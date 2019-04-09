@@ -175,6 +175,32 @@ class EFstrType(Enum):
     ShapValues = 4
 
 
+def _get_cat_features_indices(cat_features, feature_names):
+    """
+        Parameters
+        ----------
+        cat_features :
+            must be a sequence of either integers or strings
+            if it contains strings 'feature_names' parameter must be defined and string ids from 'cat_features'
+            must represent a subset of in 'feature_names'
+
+        feature_names :
+            A sequence of string ids for features or None.
+            Used to get feature indices for string ids in 'cat_features' parameter
+    """
+    if feature_names is not None:
+        return [
+            feature_names.index(cf) if isinstance(cf, STRING_TYPES) else cf
+            for cf in cat_features
+        ]
+    else:
+        for cf in cat_features:
+            if isinstance(cf, STRING_TYPES):
+                raise CatBoostError("cat_features parameter contains string value '{}' but feature names "
+                                    "for a dataset are not specified".format(cf))
+    return cat_features
+
+
 class Pool(_PoolBase):
     """
     Pool used in CatBoost as a data structure to train model from.
@@ -609,11 +635,7 @@ class Pool(_PoolBase):
         if feature_names is not None:
             self._check_feature_names(feature_names, features_count)
         if cat_features is not None:
-            if feature_names is not None:
-                cat_features = [
-                    feature_names.index(cf) if isinstance(cf, STRING_TYPES) else cf
-                    for cf in cat_features
-                ]
+            cat_features = _get_cat_features_indices(cat_features, feature_names)
             self._check_cf_type(cat_features)
             self._check_cf_value(cat_features, features_count)
         if pairs is not None:
@@ -1094,9 +1116,11 @@ class CatBoost(_CatBoostBase):
 
         if 'cat_features' in params:
             if isinstance(X, Pool):
-                if set(X.get_cat_feature_indices()) != set(params['cat_features']):
-                    raise CatBoostError("categorical features in the model are set to " + str(params['cat_features']) +
-                                        " and train dataset categorical features are set to " +
+                cat_feature_indices_from_params = _get_cat_features_indices(params['cat_features'], X.get_feature_names())
+                if set(X.get_cat_feature_indices()) != set(cat_feature_indices_from_params):
+                    raise CatBoostError("categorical features indices in the model are set to "
+                                        + str(cat_feature_indices_from_params) +
+                                        " and train dataset categorical features indices are set to " +
                                         str(X.get_cat_feature_indices()))
             elif isinstance(X, FeaturesData):
                 raise CatBoostError("Categorical features are set in the model. It is not allowed to use FeaturesData type for training dataset.")
@@ -2210,7 +2234,9 @@ class CatBoostClassifier(CatBoost):
     early_stopping_rounds : int
         Synonym for od_wait. Only one of these parameters should be set.
 
-    cat_features : list of numpy.array of integer feature indices.
+    cat_features : list or numpy.array, [default=None]
+        If not None, giving the list of Categ features indices or names (names are represented as strings).
+        If it contains feature names, feature names must be defined for the training dataset passed to 'fit'.
 
     leaf_estimation_backtracking : string, [default=None]
         Type of backtracking during gradient descent.
@@ -3247,8 +3273,10 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
         assert nfold is None or nfold == fold_count
 
     if 'cat_features' in params:
-        if set(pool.get_cat_feature_indices()) != set(params['cat_features']):
-            raise CatBoostError("categorical features in params are different from ones in pool " + str(params['cat_features']) +
+        cat_feature_indices_from_params = _get_cat_features_indices(params['cat_features'], pool.get_feature_names())
+        if set(pool.get_cat_feature_indices()) != set(cat_feature_indices_from_params):
+            raise CatBoostError("categorical features indices in params are different from ones in pool "
+                                + str(cat_feature_indices_from_params) +
                                 " vs " + str(pool.get_cat_feature_indices()))
         del params['cat_features']
 
