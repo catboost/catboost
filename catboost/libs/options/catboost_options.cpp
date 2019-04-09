@@ -501,6 +501,18 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
             BoostingOptions->DataPartitionType = EDataPartitionType::DocParallel;
         }
 
+        const EGrowPolicy growPolicy = ObliviousTreeOptions->GrowPolicy;
+        if (growPolicy != EGrowPolicy::SymmetricTree) {
+            CB_ENSURE(BoostingOptions->BoostingType == EBoostingType::Plain, "Grow policies Lossguide and Depthwise can't be used with ordered boosting");
+            BoostingOptions->DataPartitionType.SetDefault(EDataPartitionType::DocParallel);
+        }
+
+        if (ObliviousTreeOptions->ScoreFunction != EScoreFunction::Correlation &&
+            ObliviousTreeOptions->ScoreFunction != EScoreFunction::NewtonCorrelation) {
+            CB_ENSURE(BoostingOptions->BoostingType == EBoostingType::Plain,
+                    "Score function " << ObliviousTreeOptions->ScoreFunction << " can't be used with ordered boosting");
+        }
+
         if (ObliviousTreeOptions->GrowPolicy == EGrowPolicy::Lossguide) {
             ObliviousTreeOptions->MaxDepth.SetDefault(16);
             ObliviousTreeOptions->ScoreFunction.SetDefault(EScoreFunction::NewtonL2);
