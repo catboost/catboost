@@ -1,10 +1,9 @@
 #include "pairwise_scoring.h"
 #include "pairwise_leaves_calculation.h"
+#include "short_vector_ops.h"
 
 #include <util/generic/xrange.h>
 #include <util/system/yassert.h>
-
-#include <emmintrin.h>
 
 
 using namespace NCB;
@@ -47,32 +46,20 @@ void TPairwiseStats::Add(const TPairwiseStats& rhs) {
 }
 
 
-static inline double XmmHorizontalAdd(__m128d x) {
-    return _mm_cvtsd_f64(_mm_add_pd(x, _mm_shuffle_pd(x, x, /*swap halves*/ 0x1)));
-}
-
-static inline __m128d XmmFusedMultiplyAdd(const double* x, const double* y, __m128d z) {
-    return _mm_add_pd(_mm_mul_pd(_mm_loadu_pd(x), _mm_loadu_pd(y)), z);
-}
-
-static inline __m128d XmmGather(const double* first, const double* second) {
-    return _mm_loadh_pd(_mm_loadl_pd(_mm_undefined_pd(), first), second);
-}
-
 static double CalculateScore(const TVector<double>& avrg, const TVector<double>& sumDer, const TArray2D<double>& sumWeights) {
     const ui32 sumDerSize = sumDer.ysize();
     double score = 0;
     for (ui32 x = 0; x < sumDerSize; ++x) {
         const double* avrgData = avrg.data();
         const double* sumWeightsData = &sumWeights[x][0];
-        __m128d subScore0 = _mm_setzero_pd();
-        __m128d subScore2 = _mm_setzero_pd();
-        for (ui32 y = 0; y + 4 <= sumDerSize; y += 4) {
-            subScore0 = XmmFusedMultiplyAdd(avrgData + y + 0, sumWeightsData + y + 0, subScore0);
-            subScore2 = XmmFusedMultiplyAdd(avrgData + y + 2, sumWeightsData + y + 2, subScore2);
+        auto subScore0 = NSimdOps::MakeZeros();
+        auto subScore2 = NSimdOps::MakeZeros();
+        for (ui32 y = 0; y + 2 * NSimdOps::Size <= sumDerSize; y += 2 * NSimdOps::Size) {
+            subScore0 = NSimdOps::FusedMultiplyAdd(avrgData + y + 0 * NSimdOps::Size, sumWeightsData + y + 0 * NSimdOps::Size, subScore0);
+            subScore2 = NSimdOps::FusedMultiplyAdd(avrgData + y + 1 * NSimdOps::Size, sumWeightsData + y + 1 * NSimdOps::Size, subScore2);
         }
-        double subScore = XmmHorizontalAdd(subScore0) + XmmHorizontalAdd(subScore2);
-        for (ui32 y = sumDerSize & ~3u; y < sumDerSize; ++y) {
+        double subScore = NSimdOps::HorizontalAdd(subScore0) + NSimdOps::HorizontalAdd(subScore2);
+        for (ui32 y = sumDerSize - sumDerSize % (2 * NSimdOps::Size); y < sumDerSize; ++y) {
             subScore += avrgData[y] * sumWeightsData[y];
         }
         score += avrg[x] * (sumDer[x] - 0.5 * subScore);
@@ -154,18 +141,31 @@ void CalculatePairwiseScore(
                     for (int x = y + 1; x < leafCount; ++x) {
                         const TBucketPairWeightStatistics* xyData = pairWeightStatistics[x][y].data();
                         const TBucketPairWeightStatistics* yxData = pairWeightStatistics[y][x].data();
-                        __m128d totalXY0 = _mm_setzero_pd();
-                        __m128d totalXY2 = _mm_setzero_pd();
-                        __m128d totalYX0 = _mm_setzero_pd();
-                        __m128d totalYX2 = _mm_setzero_pd();
-                        for (int bucketId = 0; bucketId + 4 <= bucketCount; bucketId += 4) {
-                            totalXY0 = _mm_add_pd(totalXY0, XmmGather(&xyData[bucketId + 0].SmallerBorderWeightSum, &xyData[bucketId + 1].SmallerBorderWeightSum));
-                            totalXY2 = _mm_add_pd(totalXY2, XmmGather(&xyData[bucketId + 2].SmallerBorderWeightSum, &xyData[bucketId + 3].SmallerBorderWeightSum));
-                            totalYX0 = _mm_add_pd(totalYX0, XmmGather(&yxData[bucketId + 0].SmallerBorderWeightSum, &yxData[bucketId + 1].SmallerBorderWeightSum));
-                            totalYX2 = _mm_add_pd(totalYX2, XmmGather(&yxData[bucketId + 2].SmallerBorderWeightSum, &yxData[bucketId + 3].SmallerBorderWeightSum));
+                        auto totalXY0 = NSimdOps::MakeZeros();
+                        auto totalXY2 = NSimdOps::MakeZeros();
+                        auto totalYX0 = NSimdOps::MakeZeros();
+                        auto totalYX2 = NSimdOps::MakeZeros();
+                        for (int bucketId = 0; bucketId + 2 * static_cast<int>(NSimdOps::Size) <= bucketCount; bucketId += 2 * NSimdOps::Size) {
+                            totalXY0 = NSimdOps::ElementwiseAdd(
+                                totalXY0,
+                                NSimdOps::Gather(&xyData[bucketId + 0].SmallerBorderWeightSum, &xyData[bucketId + 1].SmallerBorderWeightSum)
+                            );
+                            totalXY2 = NSimdOps::ElementwiseAdd(
+                                totalXY2,
+                                NSimdOps::Gather(&xyData[bucketId + 2].SmallerBorderWeightSum, &xyData[bucketId + 3].SmallerBorderWeightSum)
+                            );
+                            totalYX0 = NSimdOps::ElementwiseAdd(
+                                totalYX0,
+                                NSimdOps::Gather(&yxData[bucketId + 0].SmallerBorderWeightSum, &yxData[bucketId + 1].SmallerBorderWeightSum)
+                            );
+                            totalYX2 = NSimdOps::ElementwiseAdd(
+                                totalYX2,
+                                NSimdOps::Gather(&yxData[bucketId + 2].SmallerBorderWeightSum, &yxData[bucketId + 3].SmallerBorderWeightSum)
+                            );
                         }
-                        double total = XmmHorizontalAdd(totalXY0) + XmmHorizontalAdd(totalXY2) + XmmHorizontalAdd(totalYX0) + XmmHorizontalAdd(totalYX2);
-                        for (int bucketId = bucketCount & ~3u; bucketId < bucketCount; ++bucketId) {
+                        double total = NSimdOps::HorizontalAdd(totalXY0) + NSimdOps::HorizontalAdd(totalXY2) +
+                            NSimdOps::HorizontalAdd(totalYX0) + NSimdOps::HorizontalAdd(totalYX2);
+                        for (int bucketId = bucketCount - bucketCount % (2 * NSimdOps::Size); bucketId < bucketCount; ++bucketId) {
                             total += xyData[bucketId].SmallerBorderWeightSum + yxData[bucketId].SmallerBorderWeightSum;
                         }
 
@@ -314,19 +314,32 @@ void CalculatePairwiseScore(
                         for (int x = y + 1; x < leafCount; ++x) {
                             const TBucketPairWeightStatistics* xyData = pairWeightStatistics[x][y].data();
                             const TBucketPairWeightStatistics* yxData = pairWeightStatistics[y][x].data();
-                            __m128d totalXY0 = _mm_setzero_pd();
-                            __m128d totalXY2 = _mm_setzero_pd();
-                            __m128d totalYX0 = _mm_setzero_pd();
-                            __m128d totalYX2 = _mm_setzero_pd();
+                            auto totalXY0 = NSimdOps::MakeZeros();
+                            auto totalXY2 = NSimdOps::MakeZeros();
+                            auto totalYX0 = NSimdOps::MakeZeros();
+                            auto totalYX2 = NSimdOps::MakeZeros();
 
                             auto bucketId = bucketBegin;
-                            for (; bucketId + 4 <= bucketEnd; bucketId += 4) {
-                                totalXY0 = _mm_add_pd(totalXY0, XmmGather(&xyData[bucketId + 0].SmallerBorderWeightSum, &xyData[bucketId + 1].SmallerBorderWeightSum));
-                                totalXY2 = _mm_add_pd(totalXY2, XmmGather(&xyData[bucketId + 2].SmallerBorderWeightSum, &xyData[bucketId + 3].SmallerBorderWeightSum));
-                                totalYX0 = _mm_add_pd(totalYX0, XmmGather(&yxData[bucketId + 0].SmallerBorderWeightSum, &yxData[bucketId + 1].SmallerBorderWeightSum));
-                                totalYX2 = _mm_add_pd(totalYX2, XmmGather(&yxData[bucketId + 2].SmallerBorderWeightSum, &yxData[bucketId + 3].SmallerBorderWeightSum));
+                            for (; bucketId + 2 * NSimdOps::Size <= bucketEnd; bucketId += 2 * NSimdOps::Size) {
+                                totalXY0 = NSimdOps::ElementwiseAdd(
+                                    totalXY0,
+                                    NSimdOps::Gather(&xyData[bucketId + 0].SmallerBorderWeightSum, &xyData[bucketId + 1].SmallerBorderWeightSum)
+                                );
+                                totalXY2 = NSimdOps::ElementwiseAdd(
+                                    totalXY2,
+                                    NSimdOps::Gather(&xyData[bucketId + 2].SmallerBorderWeightSum, &xyData[bucketId + 3].SmallerBorderWeightSum)
+                                );
+                                totalYX0 = NSimdOps::ElementwiseAdd(
+                                    totalYX0,
+                                    NSimdOps::Gather(&yxData[bucketId + 0].SmallerBorderWeightSum, &yxData[bucketId + 1].SmallerBorderWeightSum)
+                                );
+                                totalYX2 = NSimdOps::ElementwiseAdd(
+                                    totalYX2,
+                                    NSimdOps::Gather(&yxData[bucketId + 2].SmallerBorderWeightSum, &yxData[bucketId + 3].SmallerBorderWeightSum)
+                                );
                             }
-                            double total = XmmHorizontalAdd(totalXY0) + XmmHorizontalAdd(totalXY2) + XmmHorizontalAdd(totalYX0) + XmmHorizontalAdd(totalYX2);
+                            double total = NSimdOps::HorizontalAdd(totalXY0) + NSimdOps::HorizontalAdd(totalXY2)
+                                + NSimdOps::HorizontalAdd(totalYX0) + NSimdOps::HorizontalAdd(totalYX2);
                             for (; bucketId < bucketEnd; ++bucketId) {
                                 total += xyData[bucketId].SmallerBorderWeightSum + yxData[bucketId].SmallerBorderWeightSum;
                             }
