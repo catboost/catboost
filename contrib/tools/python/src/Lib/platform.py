@@ -293,7 +293,7 @@ _release_version = re.compile(r'([^0-9]+)'
 _supported_dists = (
     'SuSE', 'debian', 'fedora', 'redhat', 'centos',
     'mandrake', 'mandriva', 'rocks', 'slackware', 'yellowdog', 'gentoo',
-    'UnitedLinux', 'turbolinux', 'Ubuntu')
+    'UnitedLinux', 'turbolinux', 'Ubuntu', 'arch')
 
 def _parse_release_file(firstline):
 
