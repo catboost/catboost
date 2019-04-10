@@ -229,7 +229,7 @@ public:
             auto newBuckets = SizeFitter_.EvalSize(sz);
             size_type occupied = bucket_count() - Buckets_.Empty();
             if (Expander::NeedGrow(occupied, newBuckets)) {
-                newBuckets = SizeFitter_.EvalSize(Expander::SuitableSize(occupied));
+                newBuckets = Max(newBuckets, SizeFitter_.EvalSize(Expander::SuitableSize(size())));
             }
             RehashImpl(newBuckets);
         } else {
@@ -279,11 +279,20 @@ public:
     }
 
     void RehashImpl() {
-        RehashImpl(SizeFitter_.EvalSize(Expander::EvalNewSize(bucket_count())));
+        if constexpr (NConcepts::RemovalContainerV<Container>) {
+            size_type occupied = bucket_count() - Buckets_.Empty();
+            if (size() < occupied / 2) {
+                rehash(bucket_count()); // Just clearing all deleted elements
+            } else {
+                RehashImpl(SizeFitter_.EvalSize(Expander::EvalNewSize(bucket_count())));
+            }
+        } else {
+            RehashImpl(SizeFitter_.EvalSize(Expander::EvalNewSize(bucket_count())));
+        }
     }
 
     void RehashImpl(size_type newSize) {
-        TTable tmp{ Buckets_.Clone(newSize) };
+        TTable tmp = Buckets_.Clone(newSize);
         for (auto& value : *this) {
             size_type hs = hash_function()(KeyGetter::Apply(value));
             tmp.Buckets_.InitNode(

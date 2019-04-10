@@ -39,6 +39,7 @@ namespace {
 #define GET_TYPE(ti) typename decltype(ti)::type
 
     constexpr size_t INIT_SIZE = 32;
+    constexpr size_t BIG_INIT_SIZE = 128;
 
     template <class T>
     struct TSimpleKeyGetter {
@@ -370,6 +371,22 @@ Y_UNIT_TEST_SUITE(TCommonTableTest) {
 
             UNIT_ASSERT_EQUAL(table.size(), 0);
             UNIT_ASSERT_EQUAL(table.count(value), 0);
+        }, TRemovalContainers{});
+    }
+
+    Y_UNIT_TEST(EraseBigTest) {
+        ForEachTable<int>([](auto t) {
+            GET_TYPE(t) table{ BIG_INIT_SIZE };
+
+            for (int i = 0; i < 1000; ++i) {
+                for (int j = 0; j < static_cast<int>(BIG_INIT_SIZE); ++j) {
+                    table.emplace(j);
+                }
+                for (int j = 0; j < static_cast<int>(BIG_INIT_SIZE); ++j) {
+                    table.erase(j);
+                }
+            }
+            UNIT_ASSERT(table.bucket_count() <= BIG_INIT_SIZE * 8);
         }, TRemovalContainers{});
     }
 
