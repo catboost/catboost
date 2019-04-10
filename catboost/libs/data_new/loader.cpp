@@ -1,6 +1,5 @@
 #include "baseline.h"
 #include "loader.h"
-#include "dsv_parser.h"
 
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/mem_usage.h>
