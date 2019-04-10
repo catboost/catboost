@@ -149,7 +149,10 @@ def get_svn_dict(fpath, arc_root, python_cmd=[sys.executable]):
             svn_info = json.load(fp)
 
             url = str(svn_info.get('repository'))
-            branch = get_branch_from_url(url) if url else None
+            try:
+                branch = get_branch_from_url(url) if url else None
+            except:
+                branch = None
 
             return {
                 'rev': str(svn_info.get('revision')),
@@ -168,8 +171,11 @@ def get_svn_dict(fpath, arc_root, python_cmd=[sys.executable]):
         info['lastchg'] = get_svn_field(svn_info, 'Last Changed Rev')
         info['url'] = get_svn_field(svn_info, 'URL')
 
-        if info['url']:
-            info['branch'] = get_branch_from_url(info['url'])
+        try:
+            if info['url']:
+                info['branch'] = get_branch_from_url(info['url'])
+        except:
+            pass
 
         info['date'] = get_svn_field(svn_info, 'Last Changed Date')
     return info
