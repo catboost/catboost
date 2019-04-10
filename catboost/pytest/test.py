@@ -3,7 +3,6 @@ from yatest.common import network, ExecutionTimeoutError, ExecutionError
 import pytest
 import os
 import filecmp
-import csv
 import numpy as np
 import time
 import timeit
@@ -11,14 +10,16 @@ import json
 
 import catboost
 from catboost_pytest_lib import (
-    data_file,
-    local_canonical_file,
-    remove_time_from_json,
     apply_catboost,
-    permute_dataset_columns,
-    generate_random_labeled_set,
+    compare_evals,
+    compare_evals_with_precision,
+    data_file,
     execute_catboost_fit,
-    format_crossvalidation
+    format_crossvalidation,
+    generate_random_labeled_set,
+    local_canonical_file,
+    permute_dataset_columns,
+    remove_time_from_json,
 )
 
 CATBOOST_PATH = yatest.common.binary_path("catboost/app/catboost")
@@ -2635,29 +2636,6 @@ def test_calc_prediction_type(boosting_type):
     yatest.common.execute(calc_cmd)
 
     return local_canonical_file(output_eval_path)
-
-
-def compare_evals(fit_eval, calc_eval):
-    csv_fit = csv.reader(open(fit_eval, "r"), dialect='excel-tab')
-    csv_calc = csv.reader(open(calc_eval, "r"), dialect='excel-tab')
-    while True:
-        try:
-            line_fit = next(csv_fit)
-            line_calc = next(csv_calc)
-            if line_fit[:-1] != line_calc:
-                return False
-        except StopIteration:
-            break
-    return True
-
-
-def compare_evals_with_precision(fit_eval, calc_eval, rtol=1e-7):
-    array_fit = np.genfromtxt(fit_eval, delimiter='\t', skip_header=True)
-    array_calc = np.genfromtxt(calc_eval, delimiter='\t', skip_header=True)
-    if open(fit_eval, "r").readline().split()[:-1] != open(calc_eval, "r").readline().split():
-        return False
-    array_fit = np.delete(array_fit, np.s_[-1], 1)
-    return np.all(np.isclose(array_fit, array_calc, rtol=rtol))
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)

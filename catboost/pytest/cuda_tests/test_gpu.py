@@ -1,5 +1,4 @@
 import catboost
-import csv
 import filecmp
 import json
 import numpy as np
@@ -8,16 +7,17 @@ import pytest
 import re
 import yatest.common
 
-from copy import deepcopy
 from catboost_pytest_lib import (
     append_params_to_cmdline,
     apply_catboost,
+    compare_evals_with_precision,
+    compare_metrics_with_diff,
     data_file,
     execute,
     execute_catboost_fit,
+    format_crossvalidation,
     get_limited_precision_dsv_diff_tool,
     local_canonical_file,
-    format_crossvalidation
 )
 
 CATBOOST_PATH = yatest.common.binary_path("catboost/app/catboost")
@@ -32,50 +32,6 @@ def generate_random_labeled_set(nrows, nvals, labels, seed=20181219, prng=None):
     label = prng.choice(labels, [nrows, 1])
     feature = prng.random_sample([nrows, nvals])
     return np.concatenate([label, feature], axis=1)
-
-
-BY_CLASS_METRICS = ['AUC', 'Precision', 'Recall', 'F1']
-
-
-def compare_evals(custom_metric, fit_eval, calc_eval, eps=1e-7):
-    csv_fit = csv.reader(open(fit_eval, "r"), dialect='excel-tab')
-    csv_calc = csv.reader(open(calc_eval, "r"), dialect='excel-tab')
-
-    head_fit = next(csv_fit)
-    head_calc = next(csv_calc)
-
-    if isinstance(custom_metric, basestring):
-        custom_metric = [custom_metric]
-
-    for metric_name in deepcopy(custom_metric):
-        if metric_name in BY_CLASS_METRICS:
-            custom_metric.remove(metric_name)
-
-            for fit_metric_name in head_fit:
-                if fit_metric_name[:len(metric_name)] == metric_name:
-                    custom_metric.append(fit_metric_name)
-
-    col_idx_fit = {}
-    col_idx_calc = {}
-
-    for metric_name in custom_metric:
-        col_idx_fit[metric_name] = head_fit.index(metric_name)
-        col_idx_calc[metric_name] = head_calc.index(metric_name)
-
-    while True:
-        try:
-            line_fit = next(csv_fit)
-            line_calc = next(csv_calc)
-            for metric_name in custom_metric:
-                fit_value = float(line_fit[col_idx_fit[metric_name]])
-                calc_value = float(line_calc[col_idx_calc[metric_name]])
-                max_abs = max(abs(fit_value), abs(calc_value))
-                err = abs(fit_value - calc_value) / max_abs if max_abs > 0 else 0
-                if err > eps:
-                    raise Exception('{}, iter {}: fit vs calc = {} vs {}, err = {} > eps = {}'.format(
-                        metric_name, line_fit[0], fit_value, calc_value, err, eps))
-        except StopIteration:
-            break
 
 
 def diff_tool(threshold=2e-7):
@@ -1362,7 +1318,7 @@ def test_class_weight_multiclass(loss_function):
     fit_catboost_gpu(fit_params)
 
     eval_metric(model_path, METRIC_CHECKING_MULTICLASS, test_path, cd_path, eval_error_path)
-    compare_evals(METRIC_CHECKING_MULTICLASS, test_error_path, eval_error_path)
+    compare_metrics_with_diff(METRIC_CHECKING_MULTICLASS, test_error_path, eval_error_path)
 
     return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
 
@@ -1399,7 +1355,7 @@ def test_multi_leaf_estimation_method(leaf_estimation_method):
     fit_catboost_gpu(fit_params)
 
     eval_metric(output_model_path, METRIC_CHECKING_MULTICLASS, test_path, cd_path, eval_test_error_path)
-    compare_evals(METRIC_CHECKING_MULTICLASS, test_error_path, eval_test_error_path)
+    compare_metrics_with_diff(METRIC_CHECKING_MULTICLASS, test_error_path, eval_test_error_path)
 
     return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
 
@@ -1445,7 +1401,7 @@ def test_multiclass_baseline(loss_function):
     fit_params['--test-err-log'] = test_error_path
     fit_catboost_gpu(fit_params)
 
-    compare_evals(METRIC_CHECKING_MULTICLASS, test_error_path, eval_error_path)
+    compare_metrics_with_diff(METRIC_CHECKING_MULTICLASS, test_error_path, eval_error_path)
     return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
 
 
@@ -1519,7 +1475,7 @@ def test_ctr_buckets():
 
     eval_metric(model_path, METRIC_CHECKING_MULTICLASS, test_path, cd_path, eval_error_path)
 
-    compare_evals(METRIC_CHECKING_MULTICLASS, test_error_path, eval_error_path)
+    compare_metrics_with_diff(METRIC_CHECKING_MULTICLASS, test_error_path, eval_error_path)
     return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
 
 
@@ -1554,7 +1510,7 @@ def test_multi_targets(loss_function):
 
     eval_metric(model_path, METRIC_CHECKING_MULTICLASS, test_path, cd_path, eval_error_path)
 
-    compare_evals(METRIC_CHECKING_MULTICLASS, test_error_path, eval_error_path)
+    compare_metrics_with_diff(METRIC_CHECKING_MULTICLASS, test_error_path, eval_error_path)
     return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
 
 
@@ -1604,7 +1560,7 @@ def test_custom_loss_for_multiclassification():
     fit_catboost_gpu(fit_params)
 
     eval_metric(model_path, custom_metric_string, test_path, cd_path, eval_error_path)
-    compare_evals(custom_metric, test_error_path, eval_error_path)
+    compare_metrics_with_diff(custom_metric, test_error_path, eval_error_path)
 
     return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
 
@@ -1663,7 +1619,7 @@ def test_custom_loss_for_classification(boosting_type):
     fit_catboost_gpu(fit_params)
 
     eval_metric(model_path, custom_metric_string, test_path, cd_path, eval_error_path)
-    compare_evals(custom_metric, test_error_path, eval_error_path, 1e-6)
+    compare_metrics_with_diff(custom_metric, test_error_path, eval_error_path, 1e-6)
 
     return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
 
@@ -1699,7 +1655,7 @@ def test_class_names_multiclass(loss_function):
     fit_catboost_gpu(fit_params)
 
     eval_metric(model_path, METRIC_CHECKING_MULTICLASS, test_path, cd_path, eval_error_path)
-    compare_evals(METRIC_CHECKING_MULTICLASS, test_error_path, eval_error_path)
+    compare_metrics_with_diff(METRIC_CHECKING_MULTICLASS, test_error_path, eval_error_path)
 
     return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
 
@@ -1735,7 +1691,7 @@ def test_lost_class(loss_function):
     fit_catboost_gpu(fit_params)
 
     eval_metric(model_path, METRIC_CHECKING_MULTICLASS, test_path, cd_path, eval_error_path)
-    compare_evals(METRIC_CHECKING_MULTICLASS, test_error_path, eval_error_path)
+    compare_metrics_with_diff(METRIC_CHECKING_MULTICLASS, test_error_path, eval_error_path)
 
     return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
 
@@ -1771,7 +1727,7 @@ def test_class_weight_with_lost_class():
     fit_catboost_gpu(fit_params)
 
     eval_metric(model_path, METRIC_CHECKING_MULTICLASS, test_path, cd_path, eval_error_path)
-    compare_evals(METRIC_CHECKING_MULTICLASS, test_error_path, eval_error_path)
+    compare_metrics_with_diff(METRIC_CHECKING_MULTICLASS, test_error_path, eval_error_path)
 
     return [local_canonical_file(eval_error_path)]
 
@@ -1909,7 +1865,7 @@ def test_fit_multiclass_with_class_names():
 
     eval_metric(model_path, METRIC_CHECKING_MULTICLASS, test_path, cd_path, eval_error_path)
 
-    compare_evals(METRIC_CHECKING_MULTICLASS, test_error_path, eval_error_path)
+    compare_metrics_with_diff(METRIC_CHECKING_MULTICLASS, test_error_path, eval_error_path)
 
     return [local_canonical_file(test_error_path)]
 
@@ -1951,7 +1907,7 @@ def test_extract_multiclass_labels_from_class_names():
     fit_catboost_gpu(fit_params)
 
     eval_metric(model_path, METRIC_CHECKING_MULTICLASS, test_path, cd_path, eval_error_path)
-    compare_evals(METRIC_CHECKING_MULTICLASS, test_error_path, eval_error_path)
+    compare_metrics_with_diff(METRIC_CHECKING_MULTICLASS, test_error_path, eval_error_path)
 
     py_catboost = catboost.CatBoost()
     py_catboost.load_model(model_path)
@@ -2098,15 +2054,6 @@ def test_eval_result_on_different_pool_type():
 
     assert filecmp.cmp(output_eval_path, output_quantized_eval_path)
     return [local_canonical_file(output_eval_path)]
-
-
-def compare_evals_with_precision(fit_eval, calc_eval):
-    array_fit = np.genfromtxt(fit_eval, delimiter='\t', skip_header=True)
-    array_calc = np.genfromtxt(calc_eval, delimiter='\t', skip_header=True)
-    if open(fit_eval, "r").readline().split()[:-1] != open(calc_eval, "r").readline().split():
-        return False
-    array_fit = np.delete(array_fit, np.s_[-1], 1)
-    return np.all(np.isclose(array_fit, array_calc, rtol=1e-6))
 
 
 def test_convert_model_to_json_without_cat_features():
@@ -2261,10 +2208,10 @@ def test_apply_with_grow_policy(grow_policy):
         '-m': output_model_path,
         '--grow-policy': grow_policy,
         '--eval-file': test_eval_path,
-        '--output-columns': 'RawFormulaVal'
+        '--output-columns': 'RawFormulaVal',
+        '--counter-calc-method': 'SkipTest',
     }
 
     fit_catboost_gpu(params)
     apply_catboost(output_model_path, test_file, cd_file, calc_eval_path, output_columns=['RawFormulaVal'])
-    # TODO(noxoomo, kirillovs): fix it
-    assert(compare_evals_with_precision(test_eval_path, calc_eval_path))
+    assert(compare_evals_with_precision(test_eval_path, calc_eval_path, skip_last_column_in_fit=False))
