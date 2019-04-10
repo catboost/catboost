@@ -295,14 +295,14 @@ void NCB::CheckCompatibleForApply(
         );
         CB_ENSURE(
             learnFeatureMetaInfo.Type == applyFeatureMetaInfo.Type,
-            "Feature #" << i << " has type " << learnFeatureMetaInfo.Type << " in training data, but "
-            << applyFeatureMetaInfo.Type << " type in " << applyDataName
+            "Feature #" << i << " has '" << learnFeatureMetaInfo.Type << "' type in training data, but '"
+            << applyFeatureMetaInfo.Type << "' type in " << applyDataName
         );
         CB_ENSURE(
             !learnFeatureMetaInfo.Name || !applyFeatureMetaInfo.Name ||
             (learnFeatureMetaInfo.Name == applyFeatureMetaInfo.Name),
-            "Feature #" << i << " has name " << learnFeatureMetaInfo.Type << " in training data, but "
-            << applyFeatureMetaInfo.Type << " name in " << applyDataName
+            "Feature #" << i << " has '" << learnFeatureMetaInfo.Name << "' name in training data, but '"
+            << applyFeatureMetaInfo.Name << "' name in " << applyDataName
         );
     }
     for (; i < learnFeaturesMetaInfo.size(); ++i) {
