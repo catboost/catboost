@@ -7,7 +7,5 @@
  *
  * DEPRECATED. DO NOT USE.
  */
-template <typename T>
-using TRegion = TArrayRef<T>;
 using TDataRegion = TArrayRef<const char>;
 
