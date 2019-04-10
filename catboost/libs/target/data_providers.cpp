@@ -98,6 +98,7 @@ namespace NCB {
         TStringBuf datasetName,
         bool isLearnData,
         bool allowConstLabel,
+        bool needCheckTarget,
         TConstArrayRef<NCatboostOptions::TLossDescription> metricDescriptions)
     {
         if (!maybeConvertedTarget) {
@@ -109,14 +110,16 @@ namespace NCB {
             return;
         }
 
-        for (auto objectIdx : xrange(convertedTarget.size())) {
-            const float value = convertedTarget[objectIdx];
-            if (!IsSafeTarget(value)) {
-                CATBOOST_WARNING_LOG
-                    << "Got unsafe target "
-                    << LabeledOutput(value)
-                    << " at object #" << objectIdx << " of dataset " << datasetName << Endl;
-                break;
+        if (needCheckTarget) {
+            for (auto objectIdx : xrange(convertedTarget.size())) {
+                const float value = convertedTarget[objectIdx];
+                if (!IsSafeTarget(value)) {
+                    CATBOOST_WARNING_LOG
+                        << "Got unsafe target "
+                        << LabeledOutput(value)
+                        << " at object #" << objectIdx << " of dataset " << datasetName << Endl;
+                    break;
+                }
             }
         }
 
@@ -649,12 +652,14 @@ namespace NCB {
         }
 
 
+        const bool needCheckTarget = !mainLossFunction || !IsRegressionObjective((*mainLossFunction)->GetLossFunction());
         // TODO(akhropov): Will be split by target type. MLTOOLS-2337.
         CheckPreprocessedTarget(
             maybeConvertedTarget,
             datasetName,
             isLearnData,
             allowConstLabel,
+            needCheckTarget,
             metricDescriptions);
 
         return MakeIntrusive<TTargetDataProvider>(
