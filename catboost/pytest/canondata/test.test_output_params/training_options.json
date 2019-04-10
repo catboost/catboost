@@ -67,7 +67,7 @@
                 "ctr_type" : "Counter"
             }
         ],
-        "counter_calc_method" : "Full",
+        "counter_calc_method" : "SkipTest",
         "one_hot_max_size" : 2,
         "max_ctr_complexity" : 4,
         "combinations_ctrs" : [
