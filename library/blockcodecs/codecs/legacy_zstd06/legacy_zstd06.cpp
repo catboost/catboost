@@ -1,23 +1,9 @@
-#include "codecs.h"
-#include "legacy.h"
+#include <library/blockcodecs/core/codecs.h>
+#include <library/blockcodecs/core/common.h>
+#include <library/blockcodecs/core/register.h>
 
 #include <contrib/libs/zstd06/common/zstd.h>
 #include <contrib/libs/zstd06/common/zstd_static.h>
-
-#include <util/ysaveload.h>
-#include <util/stream/null.h>
-#include <util/stream/mem.h>
-#include <util/string/cast.h>
-#include <util/string/join.h>
-#include <util/system/align.h>
-#include <util/system/unaligned_mem.h>
-#include <util/generic/hash.h>
-#include <util/generic/cast.h>
-#include <util/generic/buffer.h>
-#include <util/generic/region.h>
-#include <util/generic/singleton.h>
-#include <util/generic/algorithm.h>
-#include <util/generic/mem_copy.h>
 
 using namespace NBlockCodecs;
 
@@ -61,16 +47,12 @@ namespace {
         const TString MyName;
     };
 
-}
-
-namespace NBlockCodecs {
-    TVector<TCodecPtr> LegacyZStd06Codec() {
-        TVector<TCodecPtr> codecs;
-
-        for (unsigned i = 1; i <= ZSTD_maxCLevel(); ++i) {
-            codecs.emplace_back(new TZStd06Codec(i));
+    struct TZStd06Registrar {
+        TZStd06Registrar() {
+            for (unsigned i = 1; i <= ZSTD_maxCLevel(); ++i) {
+                RegisterCodec(new TZStd06Codec(i));
+            }
         }
-
-        return codecs;
-    }
+    };
+    static const TZStd06Registrar Registrar{};
 }

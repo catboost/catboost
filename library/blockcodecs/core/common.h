@@ -34,8 +34,6 @@ namespace NBlockCodecs {
         }
     };
 
-    using TCodecPtr = THolder<ICodec>;
-
     struct TNullCodec: public ICodec {
         size_t DecompressedLength(const TData& in) const override {
             return in.size();
