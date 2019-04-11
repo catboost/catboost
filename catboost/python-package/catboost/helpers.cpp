@@ -128,6 +128,7 @@ TVector<double> EvalMetricsForUtils(
             metricResult = metric->Eval(approx, label, weight, queriesInfo, begin, end, executor);
         } else {
             Y_VERIFY(metric->GetErrorType() == EErrorType::QuerywiseError || metric->GetErrorType() == EErrorType::PairwiseError);
+            CB_ENSURE(!queriesInfo.empty(), "You should provide group_id for groupwise metrics.");
             const int queryStartIndex = 0, queryEndIndex = queriesInfo.ysize();
             metricResult = metric->Eval(approx, label, weight, queriesInfo, queryStartIndex, queryEndIndex, executor);
         }
