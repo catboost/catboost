@@ -51,6 +51,18 @@ namespace NCB {
         bool Contains(TSize idx) const {
             return (idx >= Begin) && (idx < End);
         }
+
+        void ConvexHull(TIndexRange rhs) {
+            if (rhs.Empty()) {
+                return;
+            } else if (Empty()) {
+                Begin = rhs.Begin;
+                End = rhs.End;
+            } else {
+                Begin = Min(Begin, rhs.Begin);
+                End = Max(End, rhs.End);
+            }
+        }
     };
 
     template <class TSize>

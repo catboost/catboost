@@ -146,7 +146,7 @@ Y_UNIT_TEST_SUITE(SerializationTests) {
             NCB::SaveQuantizedPool(pool, &output);
         }
 
-        const auto loadedPool = NCB::LoadQuantizedPool(path.GetPath(), {false, false});
+        const auto loadedPool = NCB::LoadQuantizedPool(NCB::TPathWithScheme(path.GetPath(), "quantized"), {false, false});
 
         const auto poolAsText = QuantizedPoolToString(pool);
         const auto loadedPoolAsText = QuantizedPoolToString(loadedPool);

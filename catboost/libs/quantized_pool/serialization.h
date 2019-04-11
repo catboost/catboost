@@ -1,5 +1,7 @@
 #pragma once
 
+#include <catboost/libs/data_util/path_with_scheme.h>
+
 #include <util/generic/fwd.h>
 #include <util/stream/fwd.h>
 
@@ -22,9 +24,10 @@ namespace NCB {
     };
 
     // Load quantized pool saved by `SaveQuantizedPool` from file.
-    TQuantizedPool LoadQuantizedPool(TStringBuf path, const TLoadQuantizedPoolParameters& params);
+    TQuantizedPool LoadQuantizedPool(const TPathWithScheme& pathWithScheme, const TLoadQuantizedPoolParameters& params);
 
     NIdl::TPoolQuantizationSchema LoadQuantizationSchemaFromPool(TStringBuf path);
     NIdl::TPoolMetainfo LoadPoolMetainfo(TStringBuf path);
     TQuantizedPoolDigest CalculateQuantizedPoolDigest(TStringBuf path);
+    void AddPoolMetainfo(const NIdl::TPoolMetainfo& metainfo, TQuantizedPool* const pool);
 }
