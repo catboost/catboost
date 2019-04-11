@@ -771,16 +771,28 @@ namespace {
         ui32 BestSplit;
         double BestScore;
 
+        double CalcSplitScore(ui32 splitPos) {
+            Y_ASSERT(splitPos >= BinStart && splitPos <= BinEnd);
+            if (splitPos == BinStart || splitPos == BinEnd) {
+                return -std::numeric_limits<double>::infinity();
+            }
+            const auto penaltyType = EPenaltyType::MaxSumLog;
+            const double leftPartScore = -Penalty((double)(splitPos - BinStart), 0.0, penaltyType);
+            const double rightPartScore = -Penalty((double)(BinEnd - splitPos), 0.0, penaltyType);
+            const double currBinScore = -Penalty((double)(BinEnd - BinStart), 0.0, penaltyType);
+            return leftPartScore + rightPartScore - currBinScore;
+        }
+
         inline void UpdateBestSplitProperties() {
             const int mid = (BinStart + BinEnd) / 2;
             float midValue = *(FeaturesStart + mid);
 
             ui32 lb = (ui32)(LowerBound(FeaturesStart + BinStart, FeaturesStart + mid, midValue) - FeaturesStart);
-            ui32 up = (ui32)(UpperBound(FeaturesStart + mid, FeaturesStart + BinEnd, midValue) - FeaturesStart);
+            ui32 ub = (ui32)(UpperBound(FeaturesStart + mid, FeaturesStart + BinEnd, midValue) - FeaturesStart);
 
-            const double scoreLeft = lb != BinStart ? log((double)(lb - BinStart)) + log((double)(BinEnd - lb)) : 0.0;
-            const double scoreRight = up != BinEnd ? log((double)(up - BinStart)) + log((double)(BinEnd - up)) : 0.0;
-            BestSplit = scoreLeft >= scoreRight ? lb : up;
+            const double scoreLeft = CalcSplitScore(lb);
+            const double scoreRight = CalcSplitScore(ub);
+            BestSplit = scoreLeft >= scoreRight ? lb : ub;
             BestScore = BestSplit == lb ? scoreLeft : scoreRight;
         }
 
