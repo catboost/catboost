@@ -6,6 +6,9 @@ ALLOW .* -> vendor/github.com/alicebob/miniredis
 # AWS client libraries
 ALLOW .* -> vendor/github.com/aws/aws-sdk-go          
 
+# TOML parser/encoder with reflection
+ALLOW .* -> vendor/github.com/BurntSushi/toml
+
 # helpers for data sizes (kilobytes, petabytes), human readable sizes, parsing
 ALLOW .* -> vendor/github.com/c2h5oh/datasize         
 
