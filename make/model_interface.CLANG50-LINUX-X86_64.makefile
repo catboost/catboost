@@ -94,17 +94,27 @@ $(BUILD_ROOT)/catboost/libs/model_interface/libcatboostmodel.so.1\
         $(BUILD_ROOT)/library/json/liblibrary-json.a\
         $(BUILD_ROOT)/library/grid_creator/liblibrary-grid_creator.a\
         $(BUILD_ROOT)/catboost/libs/options/libcatboost-libs-options.a\
-        $(BUILD_ROOT)/contrib/libs/fastlz/libcontrib-libs-fastlz.a\
-        $(BUILD_ROOT)/contrib/libs/libbz2/libcontrib-libs-libbz2.a\
-        $(BUILD_ROOT)/contrib/libs/lz4/liblz4.a\
-        $(BUILD_ROOT)/contrib/libs/lz4/generated/liblibs-lz4-generated.a\
-        $(BUILD_ROOT)/contrib/libs/lzmasdk/libcontrib-libs-lzmasdk.a\
-        $(BUILD_ROOT)/contrib/libs/snappy/libcontrib-libs-snappy.a\
-        $(BUILD_ROOT)/contrib/libs/zstd06/libcontrib-libs-zstd06.a\
-        $(BUILD_ROOT)/contrib/libs/zstd/libzstd.a\
+        $(BUILD_ROOT)/library/blockcodecs/core/liblibrary-blockcodecs-core.a\
         $(BUILD_ROOT)/contrib/libs/brotli/common/liblibs-brotli-common.a\
         $(BUILD_ROOT)/contrib/libs/brotli/dec/liblibs-brotli-dec.a\
         $(BUILD_ROOT)/contrib/libs/brotli/enc/liblibs-brotli-enc.a\
+        $(BUILD_ROOT)/library/blockcodecs/codecs/brotli/brotli.cpp.pic.o\
+        $(BUILD_ROOT)/contrib/libs/libbz2/libcontrib-libs-libbz2.a\
+        $(BUILD_ROOT)/library/blockcodecs/codecs/bzip/bzip.cpp.pic.o\
+        $(BUILD_ROOT)/contrib/libs/fastlz/libcontrib-libs-fastlz.a\
+        $(BUILD_ROOT)/library/blockcodecs/codecs/fastlz/fastlz.cpp.pic.o\
+        $(BUILD_ROOT)/contrib/libs/zstd06/libcontrib-libs-zstd06.a\
+        $(BUILD_ROOT)/library/blockcodecs/codecs/legacy_zstd06/legacy_zstd06.cpp.pic.o\
+        $(BUILD_ROOT)/contrib/libs/lz4/liblz4.a\
+        $(BUILD_ROOT)/contrib/libs/lz4/generated/liblibs-lz4-generated.a\
+        $(BUILD_ROOT)/library/blockcodecs/codecs/lz4/lz4.cpp.pic.o\
+        $(BUILD_ROOT)/contrib/libs/lzmasdk/libcontrib-libs-lzmasdk.a\
+        $(BUILD_ROOT)/library/blockcodecs/codecs/lzma/lzma.cpp.pic.o\
+        $(BUILD_ROOT)/contrib/libs/snappy/libcontrib-libs-snappy.a\
+        $(BUILD_ROOT)/library/blockcodecs/codecs/snappy/snappy.cpp.pic.o\
+        $(BUILD_ROOT)/library/blockcodecs/codecs/zlib/zlib.cpp.pic.o\
+        $(BUILD_ROOT)/contrib/libs/zstd/libzstd.a\
+        $(BUILD_ROOT)/library/blockcodecs/codecs/zstd/zstd.cpp.pic.o\
         $(BUILD_ROOT)/library/blockcodecs/liblibrary-blockcodecs.a\
         $(BUILD_ROOT)/library/resource/liblibrary-resource.a\
         $(BUILD_ROOT)/catboost/libs/model/model_export/1cc3e14d43bed0c73ca4b4b233.cpp.pic.o\
@@ -123,8 +133,8 @@ $(BUILD_ROOT)/catboost/libs/model_interface/libcatboostmodel.so.1\
         $(SOURCE_ROOT)/catboost/libs/model_interface/calcer.exports\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/model_interface'
-	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name catboostmodel -o catboost/libs/model_interface/libcatboostmodel.so.1.mf -t UNKNOWN -Ya,lics -Ya,peers contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a util/charset/libutil-charset.a contrib/libs/zlib/libcontrib-libs-zlib.a contrib/libs/double-conversion/libcontrib-libs-double-conversion.a util/libyutil.a catboost/libs/cat_feature/libcatboost-libs-cat_feature.a catboost/libs/index_range/libcatboost-libs-index_range.a library/containers/2d_array/liblibrary-containers-2d_array.a library/binsaver/liblibrary-binsaver.a catboost/libs/data_types/libcatboost-libs-data_types.a library/object_factory/liblibrary-object_factory.a catboost/libs/data_util/libcatboost-libs-data_util.a tools/enum_parser/enum_serialization_runtime/libtools-enum_parser-enum_serialization_runtime.a library/logger/liblibrary-logger.a library/logger/global/liblibrary-logger-global.a catboost/libs/logging/libcatboost-libs-logging.a library/colorizer/liblibrary-colorizer.a library/dbg_output/liblibrary-dbg_output.a contrib/libs/crcutil/libcontrib-libs-crcutil.a library/digest/crc32c/liblibrary-digest-crc32c.a contrib/libs/nayuki_md5/libcontrib-libs-nayuki_md5.a contrib/libs/base64/avx2/liblibs-base64-avx2.a contrib/libs/base64/ssse3/liblibs-base64-ssse3.a contrib/libs/base64/neon32/liblibs-base64-neon32.a contrib/libs/base64/neon64/liblibs-base64-neon64.a contrib/libs/base64/plain32/liblibs-base64-plain32.a contrib/libs/base64/plain64/liblibs-base64-plain64.a library/string_utils/base64/liblibrary-string_utils-base64.a library/digest/md5/liblibrary-digest-md5.a library/malloc/api/liblibrary-malloc-api.a library/threading/local_executor/liblibrary-threading-local_executor.a catboost/libs/helpers/libcatboost-libs-helpers.a catboost/libs/ctr_description/libcatboost-libs-ctr_description.a contrib/libs/flatbuffers/libcontrib-libs-flatbuffers.a library/json/common/liblibrary-json-common.a library/json/fast_sax/liblibrary-json-fast_sax.a library/json/writer/liblibrary-json-writer.a library/string_utils/relaxed_escaper/liblibrary-string_utils-relaxed_escaper.a library/json/liblibrary-json.a library/getopt/small/liblibrary-getopt-small.a library/grid_creator/liblibrary-grid_creator.a catboost/libs/options/libcatboost-libs-options.a contrib/libs/fastlz/libcontrib-libs-fastlz.a contrib/libs/libbz2/libcontrib-libs-libbz2.a contrib/libs/lz4/liblz4.a contrib/libs/lz4/generated/liblibs-lz4-generated.a contrib/libs/lzmasdk/libcontrib-libs-lzmasdk.a contrib/libs/snappy/libcontrib-libs-snappy.a contrib/libs/zstd06/libcontrib-libs-zstd06.a contrib/libs/zstd/libzstd.a contrib/libs/brotli/common/liblibs-brotli-common.a contrib/libs/brotli/dec/liblibs-brotli-dec.a contrib/libs/brotli/enc/liblibs-brotli-enc.a library/blockcodecs/liblibrary-blockcodecs.a library/resource/liblibrary-resource.a catboost/libs/model/model_export/liblibs-model-model_export.a contrib/libs/protobuf/libcontrib-libs-protobuf.a contrib/libs/coreml/libcontrib-libs-coreml.a contrib/libs/onnx/proto/liblibs-onnx-proto.a contrib/libs/onnx/libcontrib-libs-onnx.a library/containers/dense_hash/liblibrary-containers-dense_hash.a library/svnversion/liblibrary-svnversion.a catboost/libs/model/libcatboost-libs-model.a
-	cd $(BUILD_ROOT) && '$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_dyn_lib.py' --target '$(BUILD_ROOT)/catboost/libs/model_interface/libcatboostmodel.so.1' --arch=LINUX --soname '$(BUILD_ROOT)/catboost/libs/model_interface/libcatboostmodel.so' --fix-elf '$(BUILD_ROOT)/tools/fix_elf/fix_elf' '$(CXX)' catboost/libs/data_util/line_data_reader.cpp.pic.o catboost/libs/data_util/exists_checker.cpp.pic.o catboost/libs/model/model_export/1cc3e14d43bed0c73ca4b4b233.cpp.pic.o '$(BUILD_ROOT)/catboost/libs/model_interface/c_api.cpp.pic.o' -o '$(BUILD_ROOT)/catboost/libs/model_interface/libcatboostmodel.so.1' -shared -Wl,-soname,libcatboostmodel.so.1 --target=x86_64-linux-gnu -Wl,--start-group contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a util/charset/libutil-charset.a contrib/libs/zlib/libcontrib-libs-zlib.a contrib/libs/double-conversion/libcontrib-libs-double-conversion.a util/libyutil.a catboost/libs/cat_feature/libcatboost-libs-cat_feature.a catboost/libs/index_range/libcatboost-libs-index_range.a library/containers/2d_array/liblibrary-containers-2d_array.a library/binsaver/liblibrary-binsaver.a catboost/libs/data_types/libcatboost-libs-data_types.a library/object_factory/liblibrary-object_factory.a catboost/libs/data_util/libcatboost-libs-data_util.a tools/enum_parser/enum_serialization_runtime/libtools-enum_parser-enum_serialization_runtime.a library/logger/liblibrary-logger.a library/logger/global/liblibrary-logger-global.a catboost/libs/logging/libcatboost-libs-logging.a library/colorizer/liblibrary-colorizer.a library/dbg_output/liblibrary-dbg_output.a contrib/libs/crcutil/libcontrib-libs-crcutil.a library/digest/crc32c/liblibrary-digest-crc32c.a contrib/libs/nayuki_md5/libcontrib-libs-nayuki_md5.a contrib/libs/base64/avx2/liblibs-base64-avx2.a contrib/libs/base64/ssse3/liblibs-base64-ssse3.a contrib/libs/base64/neon32/liblibs-base64-neon32.a contrib/libs/base64/neon64/liblibs-base64-neon64.a contrib/libs/base64/plain32/liblibs-base64-plain32.a contrib/libs/base64/plain64/liblibs-base64-plain64.a library/string_utils/base64/liblibrary-string_utils-base64.a library/digest/md5/liblibrary-digest-md5.a library/malloc/api/liblibrary-malloc-api.a library/threading/local_executor/liblibrary-threading-local_executor.a catboost/libs/helpers/libcatboost-libs-helpers.a catboost/libs/ctr_description/libcatboost-libs-ctr_description.a contrib/libs/flatbuffers/libcontrib-libs-flatbuffers.a library/json/common/liblibrary-json-common.a library/json/fast_sax/liblibrary-json-fast_sax.a library/json/writer/liblibrary-json-writer.a library/string_utils/relaxed_escaper/liblibrary-string_utils-relaxed_escaper.a library/json/liblibrary-json.a library/getopt/small/liblibrary-getopt-small.a library/grid_creator/liblibrary-grid_creator.a catboost/libs/options/libcatboost-libs-options.a contrib/libs/fastlz/libcontrib-libs-fastlz.a contrib/libs/libbz2/libcontrib-libs-libbz2.a contrib/libs/lz4/liblz4.a contrib/libs/lz4/generated/liblibs-lz4-generated.a contrib/libs/lzmasdk/libcontrib-libs-lzmasdk.a contrib/libs/snappy/libcontrib-libs-snappy.a contrib/libs/zstd06/libcontrib-libs-zstd06.a contrib/libs/zstd/libzstd.a contrib/libs/brotli/common/liblibs-brotli-common.a contrib/libs/brotli/dec/liblibs-brotli-dec.a contrib/libs/brotli/enc/liblibs-brotli-enc.a library/blockcodecs/liblibrary-blockcodecs.a library/resource/liblibrary-resource.a catboost/libs/model/model_export/liblibs-model-model_export.a contrib/libs/protobuf/libcontrib-libs-protobuf.a contrib/libs/coreml/libcontrib-libs-coreml.a contrib/libs/onnx/proto/liblibs-onnx-proto.a contrib/libs/onnx/libcontrib-libs-onnx.a library/containers/dense_hash/liblibrary-containers-dense_hash.a library/svnversion/liblibrary-svnversion.a catboost/libs/model/libcatboost-libs-model.a -Wl,--end-group '-Wl,--version-script=$(SOURCE_ROOT)/catboost/libs/model_interface/calcer.exports' -ldl -lrt -Wl,--no-as-needed -Wl,-z,notext -lpthread -lrt -ldl -nodefaultlibs -lpthread -lc -lm
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name catboostmodel -o catboost/libs/model_interface/libcatboostmodel.so.1.mf -t UNKNOWN -Ya,lics -Ya,peers contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a util/charset/libutil-charset.a contrib/libs/zlib/libcontrib-libs-zlib.a contrib/libs/double-conversion/libcontrib-libs-double-conversion.a util/libyutil.a catboost/libs/cat_feature/libcatboost-libs-cat_feature.a catboost/libs/index_range/libcatboost-libs-index_range.a library/containers/2d_array/liblibrary-containers-2d_array.a library/binsaver/liblibrary-binsaver.a catboost/libs/data_types/libcatboost-libs-data_types.a library/object_factory/liblibrary-object_factory.a catboost/libs/data_util/libcatboost-libs-data_util.a tools/enum_parser/enum_serialization_runtime/libtools-enum_parser-enum_serialization_runtime.a library/logger/liblibrary-logger.a library/logger/global/liblibrary-logger-global.a catboost/libs/logging/libcatboost-libs-logging.a library/colorizer/liblibrary-colorizer.a library/dbg_output/liblibrary-dbg_output.a contrib/libs/crcutil/libcontrib-libs-crcutil.a library/digest/crc32c/liblibrary-digest-crc32c.a contrib/libs/nayuki_md5/libcontrib-libs-nayuki_md5.a contrib/libs/base64/avx2/liblibs-base64-avx2.a contrib/libs/base64/ssse3/liblibs-base64-ssse3.a contrib/libs/base64/neon32/liblibs-base64-neon32.a contrib/libs/base64/neon64/liblibs-base64-neon64.a contrib/libs/base64/plain32/liblibs-base64-plain32.a contrib/libs/base64/plain64/liblibs-base64-plain64.a library/string_utils/base64/liblibrary-string_utils-base64.a library/digest/md5/liblibrary-digest-md5.a library/malloc/api/liblibrary-malloc-api.a library/threading/local_executor/liblibrary-threading-local_executor.a catboost/libs/helpers/libcatboost-libs-helpers.a catboost/libs/ctr_description/libcatboost-libs-ctr_description.a contrib/libs/flatbuffers/libcontrib-libs-flatbuffers.a library/json/common/liblibrary-json-common.a library/json/fast_sax/liblibrary-json-fast_sax.a library/json/writer/liblibrary-json-writer.a library/string_utils/relaxed_escaper/liblibrary-string_utils-relaxed_escaper.a library/json/liblibrary-json.a library/getopt/small/liblibrary-getopt-small.a library/grid_creator/liblibrary-grid_creator.a catboost/libs/options/libcatboost-libs-options.a library/blockcodecs/core/liblibrary-blockcodecs-core.a contrib/libs/brotli/common/liblibs-brotli-common.a contrib/libs/brotli/dec/liblibs-brotli-dec.a contrib/libs/brotli/enc/liblibs-brotli-enc.a contrib/libs/libbz2/libcontrib-libs-libbz2.a contrib/libs/fastlz/libcontrib-libs-fastlz.a contrib/libs/zstd06/libcontrib-libs-zstd06.a contrib/libs/lz4/liblz4.a contrib/libs/lz4/generated/liblibs-lz4-generated.a contrib/libs/lzmasdk/libcontrib-libs-lzmasdk.a contrib/libs/snappy/libcontrib-libs-snappy.a contrib/libs/zstd/libzstd.a library/blockcodecs/liblibrary-blockcodecs.a library/resource/liblibrary-resource.a catboost/libs/model/model_export/liblibs-model-model_export.a contrib/libs/protobuf/libcontrib-libs-protobuf.a contrib/libs/coreml/libcontrib-libs-coreml.a contrib/libs/onnx/proto/liblibs-onnx-proto.a contrib/libs/onnx/libcontrib-libs-onnx.a library/containers/dense_hash/liblibrary-containers-dense_hash.a library/svnversion/liblibrary-svnversion.a catboost/libs/model/libcatboost-libs-model.a
+	cd $(BUILD_ROOT) && '$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_dyn_lib.py' --target '$(BUILD_ROOT)/catboost/libs/model_interface/libcatboostmodel.so.1' --arch=LINUX --soname '$(BUILD_ROOT)/catboost/libs/model_interface/libcatboostmodel.so' --fix-elf '$(BUILD_ROOT)/tools/fix_elf/fix_elf' '$(CXX)' catboost/libs/data_util/line_data_reader.cpp.pic.o catboost/libs/data_util/exists_checker.cpp.pic.o library/blockcodecs/codecs/brotli/brotli.cpp.pic.o library/blockcodecs/codecs/bzip/bzip.cpp.pic.o library/blockcodecs/codecs/fastlz/fastlz.cpp.pic.o library/blockcodecs/codecs/legacy_zstd06/legacy_zstd06.cpp.pic.o library/blockcodecs/codecs/lz4/lz4.cpp.pic.o library/blockcodecs/codecs/lzma/lzma.cpp.pic.o library/blockcodecs/codecs/snappy/snappy.cpp.pic.o library/blockcodecs/codecs/zlib/zlib.cpp.pic.o library/blockcodecs/codecs/zstd/zstd.cpp.pic.o catboost/libs/model/model_export/1cc3e14d43bed0c73ca4b4b233.cpp.pic.o '$(BUILD_ROOT)/catboost/libs/model_interface/c_api.cpp.pic.o' -o '$(BUILD_ROOT)/catboost/libs/model_interface/libcatboostmodel.so.1' -shared -Wl,-soname,libcatboostmodel.so.1 --target=x86_64-linux-gnu -Wl,--start-group contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a util/charset/libutil-charset.a contrib/libs/zlib/libcontrib-libs-zlib.a contrib/libs/double-conversion/libcontrib-libs-double-conversion.a util/libyutil.a catboost/libs/cat_feature/libcatboost-libs-cat_feature.a catboost/libs/index_range/libcatboost-libs-index_range.a library/containers/2d_array/liblibrary-containers-2d_array.a library/binsaver/liblibrary-binsaver.a catboost/libs/data_types/libcatboost-libs-data_types.a library/object_factory/liblibrary-object_factory.a catboost/libs/data_util/libcatboost-libs-data_util.a tools/enum_parser/enum_serialization_runtime/libtools-enum_parser-enum_serialization_runtime.a library/logger/liblibrary-logger.a library/logger/global/liblibrary-logger-global.a catboost/libs/logging/libcatboost-libs-logging.a library/colorizer/liblibrary-colorizer.a library/dbg_output/liblibrary-dbg_output.a contrib/libs/crcutil/libcontrib-libs-crcutil.a library/digest/crc32c/liblibrary-digest-crc32c.a contrib/libs/nayuki_md5/libcontrib-libs-nayuki_md5.a contrib/libs/base64/avx2/liblibs-base64-avx2.a contrib/libs/base64/ssse3/liblibs-base64-ssse3.a contrib/libs/base64/neon32/liblibs-base64-neon32.a contrib/libs/base64/neon64/liblibs-base64-neon64.a contrib/libs/base64/plain32/liblibs-base64-plain32.a contrib/libs/base64/plain64/liblibs-base64-plain64.a library/string_utils/base64/liblibrary-string_utils-base64.a library/digest/md5/liblibrary-digest-md5.a library/malloc/api/liblibrary-malloc-api.a library/threading/local_executor/liblibrary-threading-local_executor.a catboost/libs/helpers/libcatboost-libs-helpers.a catboost/libs/ctr_description/libcatboost-libs-ctr_description.a contrib/libs/flatbuffers/libcontrib-libs-flatbuffers.a library/json/common/liblibrary-json-common.a library/json/fast_sax/liblibrary-json-fast_sax.a library/json/writer/liblibrary-json-writer.a library/string_utils/relaxed_escaper/liblibrary-string_utils-relaxed_escaper.a library/json/liblibrary-json.a library/getopt/small/liblibrary-getopt-small.a library/grid_creator/liblibrary-grid_creator.a catboost/libs/options/libcatboost-libs-options.a library/blockcodecs/core/liblibrary-blockcodecs-core.a contrib/libs/brotli/common/liblibs-brotli-common.a contrib/libs/brotli/dec/liblibs-brotli-dec.a contrib/libs/brotli/enc/liblibs-brotli-enc.a contrib/libs/libbz2/libcontrib-libs-libbz2.a contrib/libs/fastlz/libcontrib-libs-fastlz.a contrib/libs/zstd06/libcontrib-libs-zstd06.a contrib/libs/lz4/liblz4.a contrib/libs/lz4/generated/liblibs-lz4-generated.a contrib/libs/lzmasdk/libcontrib-libs-lzmasdk.a contrib/libs/snappy/libcontrib-libs-snappy.a contrib/libs/zstd/libzstd.a library/blockcodecs/liblibrary-blockcodecs.a library/resource/liblibrary-resource.a catboost/libs/model/model_export/liblibs-model-model_export.a contrib/libs/protobuf/libcontrib-libs-protobuf.a contrib/libs/coreml/libcontrib-libs-coreml.a contrib/libs/onnx/proto/liblibs-onnx-proto.a contrib/libs/onnx/libcontrib-libs-onnx.a library/containers/dense_hash/liblibrary-containers-dense_hash.a library/svnversion/liblibrary-svnversion.a catboost/libs/model/libcatboost-libs-model.a -Wl,--end-group '-Wl,--version-script=$(SOURCE_ROOT)/catboost/libs/model_interface/calcer.exports' -ldl -lrt -Wl,--no-as-needed -Wl,-z,notext -lpthread -lrt -ldl -nodefaultlibs -lpthread -lc -lm
 
 $(BUILD_ROOT)/contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a.mf\
         ::\
@@ -4943,26 +4953,272 @@ $(BUILD_ROOT)/catboost/libs/options/json_helper.h_serialized.cpp\
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/options'
 	'$(BUILD_ROOT)/tools/enum_parser/enum_parser/enum_parser' '$(SOURCE_ROOT)/catboost/libs/options/json_helper.h' --include-path catboost/libs/options/json_helper.h --output '$(BUILD_ROOT)/catboost/libs/options/json_helper.h_serialized.cpp'
 
-$(BUILD_ROOT)/contrib/libs/fastlz/libcontrib-libs-fastlz.a.mf\
+$(BUILD_ROOT)/library/blockcodecs/core/liblibrary-blockcodecs-core.a.mf\
         ::\
-        $(BUILD_ROOT)/contrib/libs/fastlz/libcontrib-libs-fastlz.a\
+        $(BUILD_ROOT)/library/blockcodecs/core/liblibrary-blockcodecs-core.a\
 
-$(BUILD_ROOT)/contrib/libs/fastlz/libcontrib-libs-fastlz.a\
+$(BUILD_ROOT)/library/blockcodecs/core/liblibrary-blockcodecs-core.a\
         ::\
-        $(BUILD_ROOT)/contrib/libs/fastlz/fastlz.c.pic.o\
+        $(BUILD_ROOT)/library/blockcodecs/core/codecs.cpp.pic.o\
+        $(BUILD_ROOT)/library/blockcodecs/core/stream.cpp.pic.o\
         $(SOURCE_ROOT)/build/scripts/generate_mf.py\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/fastlz'
-	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name contrib-libs-fastlz -o contrib/libs/fastlz/libcontrib-libs-fastlz.a.mf -t LIBRARY -Ya,lics MIT -Ya,peers
-	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/fastlz/libcontrib-libs-fastlz.a' '$(BUILD_ROOT)/contrib/libs/fastlz/fastlz.c.pic.o'
+	mkdir -p '$(BUILD_ROOT)/library/blockcodecs/core'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name library-blockcodecs-core -o library/blockcodecs/core/liblibrary-blockcodecs-core.a.mf -t LIBRARY -Ya,lics -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/library/blockcodecs/core/liblibrary-blockcodecs-core.a' '$(BUILD_ROOT)/library/blockcodecs/core/codecs.cpp.pic.o' '$(BUILD_ROOT)/library/blockcodecs/core/stream.cpp.pic.o'
 
-$(BUILD_ROOT)/contrib/libs/fastlz/fastlz.c.pic.o\
+$(BUILD_ROOT)/library/blockcodecs/core/codecs.cpp.pic.o\
         ::\
-        $(SOURCE_ROOT)/contrib/libs/fastlz/fastlz.c\
+        $(SOURCE_ROOT)/library/blockcodecs/core/codecs.cpp\
 
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/fastlz'
-	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/fastlz/fastlz.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/fastlz/fastlz.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++
+	mkdir -p '$(BUILD_ROOT)/library/blockcodecs/core'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/library/blockcodecs/core/codecs.cpp.pic.o' '$(SOURCE_ROOT)/library/blockcodecs/core/codecs.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/library/blockcodecs/core/stream.cpp.pic.o\
+        ::\
+        $(SOURCE_ROOT)/library/blockcodecs/core/stream.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/library/blockcodecs/core'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/library/blockcodecs/core/stream.cpp.pic.o' '$(SOURCE_ROOT)/library/blockcodecs/core/stream.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/brotli/common/liblibs-brotli-common.a.mf\
+        ::\
+        $(BUILD_ROOT)/contrib/libs/brotli/common/liblibs-brotli-common.a\
+
+$(BUILD_ROOT)/contrib/libs/brotli/common/liblibs-brotli-common.a\
+        ::\
+        $(BUILD_ROOT)/contrib/libs/brotli/common/dictionary.c.pic.o\
+        $(BUILD_ROOT)/contrib/libs/brotli/common/transform.c.pic.o\
+        $(SOURCE_ROOT)/build/scripts/generate_mf.py\
+        $(SOURCE_ROOT)/build/scripts/link_lib.py\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/brotli/common'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name libs-brotli-common -o contrib/libs/brotli/common/liblibs-brotli-common.a.mf -t LIBRARY -Ya,lics MIT -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/brotli/common/liblibs-brotli-common.a' '$(BUILD_ROOT)/contrib/libs/brotli/common/dictionary.c.pic.o' '$(BUILD_ROOT)/contrib/libs/brotli/common/transform.c.pic.o'
+
+$(BUILD_ROOT)/contrib/libs/brotli/common/dictionary.c.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/brotli/common/dictionary.c\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/brotli/common'
+	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/brotli/common/dictionary.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/brotli/common/dictionary.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/brotli/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/brotli/common/transform.c.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/brotli/common/transform.c\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/brotli/common'
+	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/brotli/common/transform.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/brotli/common/transform.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/brotli/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/brotli/dec/liblibs-brotli-dec.a.mf\
+        ::\
+        $(BUILD_ROOT)/contrib/libs/brotli/dec/liblibs-brotli-dec.a\
+
+$(BUILD_ROOT)/contrib/libs/brotli/dec/liblibs-brotli-dec.a\
+        ::\
+        $(BUILD_ROOT)/contrib/libs/brotli/dec/bit_reader.c.pic.o\
+        $(BUILD_ROOT)/contrib/libs/brotli/dec/decode.c.pic.o\
+        $(BUILD_ROOT)/contrib/libs/brotli/dec/huffman.c.pic.o\
+        $(BUILD_ROOT)/contrib/libs/brotli/dec/state.c.pic.o\
+        $(SOURCE_ROOT)/build/scripts/generate_mf.py\
+        $(SOURCE_ROOT)/build/scripts/link_lib.py\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/brotli/dec'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name libs-brotli-dec -o contrib/libs/brotli/dec/liblibs-brotli-dec.a.mf -t LIBRARY -Ya,lics MIT -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/brotli/dec/liblibs-brotli-dec.a' '$(BUILD_ROOT)/contrib/libs/brotli/dec/bit_reader.c.pic.o' '$(BUILD_ROOT)/contrib/libs/brotli/dec/decode.c.pic.o' '$(BUILD_ROOT)/contrib/libs/brotli/dec/huffman.c.pic.o' '$(BUILD_ROOT)/contrib/libs/brotli/dec/state.c.pic.o'
+
+$(BUILD_ROOT)/contrib/libs/brotli/dec/bit_reader.c.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/brotli/dec/bit_reader.c\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/brotli/dec'
+	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/brotli/dec/bit_reader.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/brotli/dec/bit_reader.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/brotli/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/brotli/dec/decode.c.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/brotli/dec/decode.c\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/brotli/dec'
+	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/brotli/dec/decode.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/brotli/dec/decode.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/brotli/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/brotli/dec/huffman.c.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/brotli/dec/huffman.c\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/brotli/dec'
+	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/brotli/dec/huffman.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/brotli/dec/huffman.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/brotli/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/brotli/dec/state.c.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/brotli/dec/state.c\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/brotli/dec'
+	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/brotli/dec/state.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/brotli/dec/state.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/brotli/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/brotli/enc/liblibs-brotli-enc.a.mf\
+        ::\
+        $(BUILD_ROOT)/contrib/libs/brotli/enc/liblibs-brotli-enc.a\
+
+$(BUILD_ROOT)/contrib/libs/brotli/enc/liblibs-brotli-enc.a\
+        ::\
+        $(BUILD_ROOT)/contrib/libs/brotli/enc/backward_references.c.pic.o\
+        $(BUILD_ROOT)/contrib/libs/brotli/enc/backward_references_hq.c.pic.o\
+        $(BUILD_ROOT)/contrib/libs/brotli/enc/bit_cost.c.pic.o\
+        $(BUILD_ROOT)/contrib/libs/brotli/enc/block_splitter.c.pic.o\
+        $(BUILD_ROOT)/contrib/libs/brotli/enc/brotli_bit_stream.c.pic.o\
+        $(BUILD_ROOT)/contrib/libs/brotli/enc/cluster.c.pic.o\
+        $(BUILD_ROOT)/contrib/libs/brotli/enc/compress_fragment.c.pic.o\
+        $(BUILD_ROOT)/contrib/libs/brotli/enc/compress_fragment_two_pass.c.pic.o\
+        $(BUILD_ROOT)/contrib/libs/brotli/enc/dictionary_hash.c.pic.o\
+        $(BUILD_ROOT)/contrib/libs/brotli/enc/encode.c.pic.o\
+        $(BUILD_ROOT)/contrib/libs/brotli/enc/encoder_dict.c.pic.o\
+        $(BUILD_ROOT)/contrib/libs/brotli/enc/entropy_encode.c.pic.o\
+        $(BUILD_ROOT)/contrib/libs/brotli/enc/histogram.c.pic.o\
+        $(BUILD_ROOT)/contrib/libs/brotli/enc/literal_cost.c.pic.o\
+        $(BUILD_ROOT)/contrib/libs/brotli/enc/memory.c.pic.o\
+        $(BUILD_ROOT)/contrib/libs/brotli/enc/metablock.c.pic.o\
+        $(BUILD_ROOT)/contrib/libs/brotli/enc/static_dict.c.pic.o\
+        $(BUILD_ROOT)/contrib/libs/brotli/enc/utf8_util.c.pic.o\
+        $(SOURCE_ROOT)/build/scripts/generate_mf.py\
+        $(SOURCE_ROOT)/build/scripts/link_lib.py\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/brotli/enc'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name libs-brotli-enc -o contrib/libs/brotli/enc/liblibs-brotli-enc.a.mf -t LIBRARY -Ya,lics MIT -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/brotli/enc/liblibs-brotli-enc.a' '$(BUILD_ROOT)/contrib/libs/brotli/enc/backward_references.c.pic.o' '$(BUILD_ROOT)/contrib/libs/brotli/enc/backward_references_hq.c.pic.o' '$(BUILD_ROOT)/contrib/libs/brotli/enc/bit_cost.c.pic.o' '$(BUILD_ROOT)/contrib/libs/brotli/enc/block_splitter.c.pic.o' '$(BUILD_ROOT)/contrib/libs/brotli/enc/brotli_bit_stream.c.pic.o' '$(BUILD_ROOT)/contrib/libs/brotli/enc/cluster.c.pic.o' '$(BUILD_ROOT)/contrib/libs/brotli/enc/compress_fragment.c.pic.o' '$(BUILD_ROOT)/contrib/libs/brotli/enc/compress_fragment_two_pass.c.pic.o' '$(BUILD_ROOT)/contrib/libs/brotli/enc/dictionary_hash.c.pic.o' '$(BUILD_ROOT)/contrib/libs/brotli/enc/encode.c.pic.o' '$(BUILD_ROOT)/contrib/libs/brotli/enc/encoder_dict.c.pic.o' '$(BUILD_ROOT)/contrib/libs/brotli/enc/entropy_encode.c.pic.o' '$(BUILD_ROOT)/contrib/libs/brotli/enc/histogram.c.pic.o' '$(BUILD_ROOT)/contrib/libs/brotli/enc/literal_cost.c.pic.o' '$(BUILD_ROOT)/contrib/libs/brotli/enc/memory.c.pic.o' '$(BUILD_ROOT)/contrib/libs/brotli/enc/metablock.c.pic.o' '$(BUILD_ROOT)/contrib/libs/brotli/enc/static_dict.c.pic.o' '$(BUILD_ROOT)/contrib/libs/brotli/enc/utf8_util.c.pic.o'
+
+$(BUILD_ROOT)/contrib/libs/brotli/enc/backward_references.c.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/brotli/enc/backward_references.c\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/brotli/enc'
+	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/brotli/enc/backward_references.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/brotli/enc/backward_references.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/brotli/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/brotli/enc/backward_references_hq.c.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/brotli/enc/backward_references_hq.c\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/brotli/enc'
+	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/brotli/enc/backward_references_hq.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/brotli/enc/backward_references_hq.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/brotli/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/brotli/enc/bit_cost.c.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/brotli/enc/bit_cost.c\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/brotli/enc'
+	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/brotli/enc/bit_cost.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/brotli/enc/bit_cost.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/brotli/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/brotli/enc/block_splitter.c.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/brotli/enc/block_splitter.c\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/brotli/enc'
+	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/brotli/enc/block_splitter.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/brotli/enc/block_splitter.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/brotli/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/brotli/enc/brotli_bit_stream.c.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/brotli/enc/brotli_bit_stream.c\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/brotli/enc'
+	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/brotli/enc/brotli_bit_stream.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/brotli/enc/brotli_bit_stream.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/brotli/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/brotli/enc/cluster.c.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/brotli/enc/cluster.c\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/brotli/enc'
+	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/brotli/enc/cluster.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/brotli/enc/cluster.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/brotli/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/brotli/enc/compress_fragment.c.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/brotli/enc/compress_fragment.c\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/brotli/enc'
+	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/brotli/enc/compress_fragment.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/brotli/enc/compress_fragment.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/brotli/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/brotli/enc/compress_fragment_two_pass.c.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/brotli/enc/compress_fragment_two_pass.c\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/brotli/enc'
+	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/brotli/enc/compress_fragment_two_pass.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/brotli/enc/compress_fragment_two_pass.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/brotli/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/brotli/enc/dictionary_hash.c.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/brotli/enc/dictionary_hash.c\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/brotli/enc'
+	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/brotli/enc/dictionary_hash.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/brotli/enc/dictionary_hash.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/brotli/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/brotli/enc/encode.c.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/brotli/enc/encode.c\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/brotli/enc'
+	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/brotli/enc/encode.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/brotli/enc/encode.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/brotli/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/brotli/enc/encoder_dict.c.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/brotli/enc/encoder_dict.c\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/brotli/enc'
+	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/brotli/enc/encoder_dict.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/brotli/enc/encoder_dict.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/brotli/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/brotli/enc/entropy_encode.c.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/brotli/enc/entropy_encode.c\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/brotli/enc'
+	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/brotli/enc/entropy_encode.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/brotli/enc/entropy_encode.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/brotli/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/brotli/enc/histogram.c.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/brotli/enc/histogram.c\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/brotli/enc'
+	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/brotli/enc/histogram.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/brotli/enc/histogram.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/brotli/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/brotli/enc/literal_cost.c.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/brotli/enc/literal_cost.c\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/brotli/enc'
+	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/brotli/enc/literal_cost.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/brotli/enc/literal_cost.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/brotli/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/brotli/enc/memory.c.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/brotli/enc/memory.c\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/brotli/enc'
+	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/brotli/enc/memory.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/brotli/enc/memory.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/brotli/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/brotli/enc/metablock.c.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/brotli/enc/metablock.c\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/brotli/enc'
+	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/brotli/enc/metablock.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/brotli/enc/metablock.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/brotli/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/brotli/enc/static_dict.c.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/brotli/enc/static_dict.c\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/brotli/enc'
+	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/brotli/enc/static_dict.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/brotli/enc/static_dict.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/brotli/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/brotli/enc/utf8_util.c.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/brotli/enc/utf8_util.c\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/brotli/enc'
+	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/brotli/enc/utf8_util.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/brotli/enc/utf8_util.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/brotli/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/library/blockcodecs/codecs/brotli/brotli.cpp.pic.o\
+        ::\
+        $(SOURCE_ROOT)/library/blockcodecs/codecs/brotli/brotli.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/library/blockcodecs/codecs/brotli'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/library/blockcodecs/codecs/brotli/brotli.cpp.pic.o' '$(SOURCE_ROOT)/library/blockcodecs/codecs/brotli/brotli.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/brotli/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
 
 $(BUILD_ROOT)/contrib/libs/libbz2/libcontrib-libs-libbz2.a.mf\
         ::\
@@ -5033,273 +5289,40 @@ $(BUILD_ROOT)/contrib/libs/libbz2/huffman.c.pic.o\
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/libbz2'
 	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/libbz2/huffman.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/libbz2/huffman.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++
 
-$(BUILD_ROOT)/contrib/libs/lz4/liblz4.a.mf\
+$(BUILD_ROOT)/library/blockcodecs/codecs/bzip/bzip.cpp.pic.o\
         ::\
-        $(BUILD_ROOT)/contrib/libs/lz4/liblz4.a\
+        $(SOURCE_ROOT)/library/blockcodecs/codecs/bzip/bzip.cpp\
 
-$(BUILD_ROOT)/contrib/libs/lz4/liblz4.a\
+	mkdir -p '$(BUILD_ROOT)/library/blockcodecs/codecs/bzip'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/library/blockcodecs/codecs/bzip/bzip.cpp.pic.o' '$(SOURCE_ROOT)/library/blockcodecs/codecs/bzip/bzip.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/fastlz/libcontrib-libs-fastlz.a.mf\
         ::\
-        $(BUILD_ROOT)/contrib/libs/lz4/lz4.c.pic.o\
-        $(BUILD_ROOT)/contrib/libs/lz4/lz4frame.c.pic.o\
-        $(BUILD_ROOT)/contrib/libs/lz4/lz4hc.c.pic.o\
-        $(BUILD_ROOT)/contrib/libs/lz4/xxhash.c.pic.o\
+        $(BUILD_ROOT)/contrib/libs/fastlz/libcontrib-libs-fastlz.a\
+
+$(BUILD_ROOT)/contrib/libs/fastlz/libcontrib-libs-fastlz.a\
+        ::\
+        $(BUILD_ROOT)/contrib/libs/fastlz/fastlz.c.pic.o\
         $(SOURCE_ROOT)/build/scripts/generate_mf.py\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/lz4'
-	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name lz4 -o contrib/libs/lz4/liblz4.a.mf -t LIBRARY -Ya,lics BSD -Ya,peers
-	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/lz4/liblz4.a' '$(BUILD_ROOT)/contrib/libs/lz4/lz4.c.pic.o' '$(BUILD_ROOT)/contrib/libs/lz4/lz4frame.c.pic.o' '$(BUILD_ROOT)/contrib/libs/lz4/lz4hc.c.pic.o' '$(BUILD_ROOT)/contrib/libs/lz4/xxhash.c.pic.o'
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/fastlz'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name contrib-libs-fastlz -o contrib/libs/fastlz/libcontrib-libs-fastlz.a.mf -t LIBRARY -Ya,lics MIT -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/fastlz/libcontrib-libs-fastlz.a' '$(BUILD_ROOT)/contrib/libs/fastlz/fastlz.c.pic.o'
 
-$(BUILD_ROOT)/contrib/libs/lz4/lz4.c.pic.o\
+$(BUILD_ROOT)/contrib/libs/fastlz/fastlz.c.pic.o\
         ::\
-        $(SOURCE_ROOT)/contrib/libs/lz4/lz4.c\
+        $(SOURCE_ROOT)/contrib/libs/fastlz/fastlz.c\
 
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/lz4'
-	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lz4/lz4.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/lz4/lz4.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DXXH_NAMESPACE=LZ4_ -nostdinc++
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/fastlz'
+	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/fastlz/fastlz.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/fastlz/fastlz.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++
 
-$(BUILD_ROOT)/contrib/libs/lz4/lz4frame.c.pic.o\
+$(BUILD_ROOT)/library/blockcodecs/codecs/fastlz/fastlz.cpp.pic.o\
         ::\
-        $(SOURCE_ROOT)/contrib/libs/lz4/lz4frame.c\
+        $(SOURCE_ROOT)/library/blockcodecs/codecs/fastlz/fastlz.cpp\
 
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/lz4'
-	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lz4/lz4frame.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/lz4/lz4frame.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DXXH_NAMESPACE=LZ4_ -nostdinc++
-
-$(BUILD_ROOT)/contrib/libs/lz4/lz4hc.c.pic.o\
-        ::\
-        $(SOURCE_ROOT)/contrib/libs/lz4/lz4hc.c\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/lz4'
-	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lz4/lz4hc.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/lz4/lz4hc.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DXXH_NAMESPACE=LZ4_ -nostdinc++
-
-$(BUILD_ROOT)/contrib/libs/lz4/xxhash.c.pic.o\
-        ::\
-        $(SOURCE_ROOT)/contrib/libs/lz4/xxhash.c\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/lz4'
-	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lz4/xxhash.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/lz4/xxhash.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DXXH_NAMESPACE=LZ4_ -nostdinc++
-
-$(BUILD_ROOT)/contrib/libs/lz4/generated/liblibs-lz4-generated.a.mf\
-        ::\
-        $(BUILD_ROOT)/contrib/libs/lz4/generated/liblibs-lz4-generated.a\
-
-$(BUILD_ROOT)/contrib/libs/lz4/generated/liblibs-lz4-generated.a\
-        ::\
-        $(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_10.cpp.pic.o\
-        $(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_11.cpp.pic.o\
-        $(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_12.cpp.pic.o\
-        $(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_13.cpp.pic.o\
-        $(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_14.cpp.pic.o\
-        $(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_15.cpp.pic.o\
-        $(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_16.cpp.pic.o\
-        $(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_17.cpp.pic.o\
-        $(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_18.cpp.pic.o\
-        $(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_19.cpp.pic.o\
-        $(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_20.cpp.pic.o\
-        $(BUILD_ROOT)/contrib/libs/lz4/generated/lz4methods.cpp.pic.o\
-        $(SOURCE_ROOT)/build/scripts/generate_mf.py\
-        $(SOURCE_ROOT)/build/scripts/link_lib.py\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/lz4/generated'
-	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name libs-lz4-generated -o contrib/libs/lz4/generated/liblibs-lz4-generated.a.mf -t LIBRARY -Ya,lics BSD -Ya,peers
-	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/lz4/generated/liblibs-lz4-generated.a' '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_10.cpp.pic.o' '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_11.cpp.pic.o' '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_12.cpp.pic.o' '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_13.cpp.pic.o' '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_14.cpp.pic.o' '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_15.cpp.pic.o' '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_16.cpp.pic.o' '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_17.cpp.pic.o' '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_18.cpp.pic.o' '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_19.cpp.pic.o' '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_20.cpp.pic.o' '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4methods.cpp.pic.o'
-
-$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_10.cpp.pic.o\
-        ::\
-        $(SOURCE_ROOT)/contrib/libs/lz4/generated/lz4_10.cpp\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/lz4/generated'
-	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_10.cpp.pic.o' '$(SOURCE_ROOT)/contrib/libs/lz4/generated/lz4_10.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
-
-$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_11.cpp.pic.o\
-        ::\
-        $(SOURCE_ROOT)/contrib/libs/lz4/generated/lz4_11.cpp\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/lz4/generated'
-	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_11.cpp.pic.o' '$(SOURCE_ROOT)/contrib/libs/lz4/generated/lz4_11.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
-
-$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_12.cpp.pic.o\
-        ::\
-        $(SOURCE_ROOT)/contrib/libs/lz4/generated/lz4_12.cpp\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/lz4/generated'
-	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_12.cpp.pic.o' '$(SOURCE_ROOT)/contrib/libs/lz4/generated/lz4_12.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
-
-$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_13.cpp.pic.o\
-        ::\
-        $(SOURCE_ROOT)/contrib/libs/lz4/generated/lz4_13.cpp\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/lz4/generated'
-	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_13.cpp.pic.o' '$(SOURCE_ROOT)/contrib/libs/lz4/generated/lz4_13.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
-
-$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_14.cpp.pic.o\
-        ::\
-        $(SOURCE_ROOT)/contrib/libs/lz4/generated/lz4_14.cpp\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/lz4/generated'
-	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_14.cpp.pic.o' '$(SOURCE_ROOT)/contrib/libs/lz4/generated/lz4_14.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
-
-$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_15.cpp.pic.o\
-        ::\
-        $(SOURCE_ROOT)/contrib/libs/lz4/generated/lz4_15.cpp\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/lz4/generated'
-	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_15.cpp.pic.o' '$(SOURCE_ROOT)/contrib/libs/lz4/generated/lz4_15.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
-
-$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_16.cpp.pic.o\
-        ::\
-        $(SOURCE_ROOT)/contrib/libs/lz4/generated/lz4_16.cpp\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/lz4/generated'
-	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_16.cpp.pic.o' '$(SOURCE_ROOT)/contrib/libs/lz4/generated/lz4_16.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
-
-$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_17.cpp.pic.o\
-        ::\
-        $(SOURCE_ROOT)/contrib/libs/lz4/generated/lz4_17.cpp\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/lz4/generated'
-	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_17.cpp.pic.o' '$(SOURCE_ROOT)/contrib/libs/lz4/generated/lz4_17.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
-
-$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_18.cpp.pic.o\
-        ::\
-        $(SOURCE_ROOT)/contrib/libs/lz4/generated/lz4_18.cpp\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/lz4/generated'
-	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_18.cpp.pic.o' '$(SOURCE_ROOT)/contrib/libs/lz4/generated/lz4_18.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
-
-$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_19.cpp.pic.o\
-        ::\
-        $(SOURCE_ROOT)/contrib/libs/lz4/generated/lz4_19.cpp\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/lz4/generated'
-	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_19.cpp.pic.o' '$(SOURCE_ROOT)/contrib/libs/lz4/generated/lz4_19.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
-
-$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_20.cpp.pic.o\
-        ::\
-        $(SOURCE_ROOT)/contrib/libs/lz4/generated/lz4_20.cpp\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/lz4/generated'
-	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_20.cpp.pic.o' '$(SOURCE_ROOT)/contrib/libs/lz4/generated/lz4_20.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
-
-$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4methods.cpp.pic.o\
-        ::\
-        $(SOURCE_ROOT)/contrib/libs/lz4/generated/lz4methods.cpp\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/lz4/generated'
-	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4methods.cpp.pic.o' '$(SOURCE_ROOT)/contrib/libs/lz4/generated/lz4methods.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
-
-$(BUILD_ROOT)/contrib/libs/lzmasdk/libcontrib-libs-lzmasdk.a.mf\
-        ::\
-        $(BUILD_ROOT)/contrib/libs/lzmasdk/libcontrib-libs-lzmasdk.a\
-
-$(BUILD_ROOT)/contrib/libs/lzmasdk/libcontrib-libs-lzmasdk.a\
-        ::\
-        $(BUILD_ROOT)/contrib/libs/lzmasdk/7zStream.c.pic.o\
-        $(BUILD_ROOT)/contrib/libs/lzmasdk/Alloc.c.pic.o\
-        $(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaDec.c.pic.o\
-        $(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaEnc.c.pic.o\
-        $(BUILD_ROOT)/contrib/libs/lzmasdk/LzFind.c.pic.o\
-        $(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaLib.c.pic.o\
-        $(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaUtil.c.pic.o\
-        $(SOURCE_ROOT)/build/scripts/generate_mf.py\
-        $(SOURCE_ROOT)/build/scripts/link_lib.py\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/lzmasdk'
-	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name contrib-libs-lzmasdk -o contrib/libs/lzmasdk/libcontrib-libs-lzmasdk.a.mf -t LIBRARY -Ya,lics PD -Ya,peers
-	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/lzmasdk/libcontrib-libs-lzmasdk.a' '$(BUILD_ROOT)/contrib/libs/lzmasdk/7zStream.c.pic.o' '$(BUILD_ROOT)/contrib/libs/lzmasdk/Alloc.c.pic.o' '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaDec.c.pic.o' '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaEnc.c.pic.o' '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzFind.c.pic.o' '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaLib.c.pic.o' '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaUtil.c.pic.o'
-
-$(BUILD_ROOT)/contrib/libs/lzmasdk/7zStream.c.pic.o\
-        ::\
-        $(SOURCE_ROOT)/contrib/libs/lzmasdk/7zStream.c\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/lzmasdk'
-	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lzmasdk/7zStream.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/lzmasdk/7zStream.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -Wno-shadow -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -D_7ZIP_ST=1 -nostdinc++
-
-$(BUILD_ROOT)/contrib/libs/lzmasdk/Alloc.c.pic.o\
-        ::\
-        $(SOURCE_ROOT)/contrib/libs/lzmasdk/Alloc.c\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/lzmasdk'
-	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lzmasdk/Alloc.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/lzmasdk/Alloc.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -Wno-shadow -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -D_7ZIP_ST=1 -nostdinc++
-
-$(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaDec.c.pic.o\
-        ::\
-        $(SOURCE_ROOT)/contrib/libs/lzmasdk/LzmaDec.c\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/lzmasdk'
-	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaDec.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/lzmasdk/LzmaDec.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -Wno-shadow -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -D_7ZIP_ST=1 -nostdinc++
-
-$(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaEnc.c.pic.o\
-        ::\
-        $(SOURCE_ROOT)/contrib/libs/lzmasdk/LzmaEnc.c\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/lzmasdk'
-	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaEnc.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/lzmasdk/LzmaEnc.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -Wno-shadow -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -D_7ZIP_ST=1 -nostdinc++
-
-$(BUILD_ROOT)/contrib/libs/lzmasdk/LzFind.c.pic.o\
-        ::\
-        $(SOURCE_ROOT)/contrib/libs/lzmasdk/LzFind.c\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/lzmasdk'
-	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzFind.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/lzmasdk/LzFind.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -Wno-shadow -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -D_7ZIP_ST=1 -nostdinc++
-
-$(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaLib.c.pic.o\
-        ::\
-        $(SOURCE_ROOT)/contrib/libs/lzmasdk/LzmaLib.c\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/lzmasdk'
-	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaLib.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/lzmasdk/LzmaLib.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -Wno-shadow -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -D_7ZIP_ST=1 -nostdinc++
-
-$(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaUtil.c.pic.o\
-        ::\
-        $(SOURCE_ROOT)/contrib/libs/lzmasdk/LzmaUtil.c\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/lzmasdk'
-	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaUtil.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/lzmasdk/LzmaUtil.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -Wno-shadow -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -D_7ZIP_ST=1 -nostdinc++
-
-$(BUILD_ROOT)/contrib/libs/snappy/libcontrib-libs-snappy.a.mf\
-        ::\
-        $(BUILD_ROOT)/contrib/libs/snappy/libcontrib-libs-snappy.a\
-
-$(BUILD_ROOT)/contrib/libs/snappy/libcontrib-libs-snappy.a\
-        ::\
-        $(BUILD_ROOT)/contrib/libs/snappy/snappy.cc.pic.o\
-        $(BUILD_ROOT)/contrib/libs/snappy/snappy-c.cc.pic.o\
-        $(BUILD_ROOT)/contrib/libs/snappy/snappy-stubs-internal.cc.pic.o\
-        $(BUILD_ROOT)/contrib/libs/snappy/snappy-sinksource.cc.pic.o\
-        $(SOURCE_ROOT)/build/scripts/generate_mf.py\
-        $(SOURCE_ROOT)/build/scripts/link_lib.py\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/snappy'
-	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name contrib-libs-snappy -o contrib/libs/snappy/libcontrib-libs-snappy.a.mf -t LIBRARY -Ya,lics BSD -Ya,peers
-	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/snappy/libcontrib-libs-snappy.a' '$(BUILD_ROOT)/contrib/libs/snappy/snappy.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/snappy/snappy-c.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/snappy/snappy-stubs-internal.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/snappy/snappy-sinksource.cc.pic.o'
-
-$(BUILD_ROOT)/contrib/libs/snappy/snappy.cc.pic.o\
-        ::\
-        $(SOURCE_ROOT)/contrib/libs/snappy/snappy.cc\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/snappy'
-	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/snappy/snappy.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/snappy/snappy.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Wno-register -DCATBOOST_OPENSOURCE=yes -nostdinc++
-
-$(BUILD_ROOT)/contrib/libs/snappy/snappy-c.cc.pic.o\
-        ::\
-        $(SOURCE_ROOT)/contrib/libs/snappy/snappy-c.cc\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/snappy'
-	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/snappy/snappy-c.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/snappy/snappy-c.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Wno-register -DCATBOOST_OPENSOURCE=yes -nostdinc++
-
-$(BUILD_ROOT)/contrib/libs/snappy/snappy-stubs-internal.cc.pic.o\
-        ::\
-        $(SOURCE_ROOT)/contrib/libs/snappy/snappy-stubs-internal.cc\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/snappy'
-	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/snappy/snappy-stubs-internal.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/snappy/snappy-stubs-internal.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Wno-register -DCATBOOST_OPENSOURCE=yes -nostdinc++
-
-$(BUILD_ROOT)/contrib/libs/snappy/snappy-sinksource.cc.pic.o\
-        ::\
-        $(SOURCE_ROOT)/contrib/libs/snappy/snappy-sinksource.cc\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/snappy'
-	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/snappy/snappy-sinksource.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/snappy/snappy-sinksource.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Wno-register -DCATBOOST_OPENSOURCE=yes -nostdinc++
+	mkdir -p '$(BUILD_ROOT)/library/blockcodecs/codecs/fastlz'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/library/blockcodecs/codecs/fastlz/fastlz.cpp.pic.o' '$(SOURCE_ROOT)/library/blockcodecs/codecs/fastlz/fastlz.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
 
 $(BUILD_ROOT)/contrib/libs/zstd06/libcontrib-libs-zstd06.a.mf\
         ::\
@@ -5473,6 +5496,309 @@ $(BUILD_ROOT)/contrib/libs/zstd06/legacy/zstd_v08.c.pic.o\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/zstd06/legacy'
 	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/zstd06/legacy/zstd_v08.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/zstd06/legacy/zstd_v08.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/zstd06' '-I$(SOURCE_ROOT)/contrib/libs/zstd06/common' '-I$(SOURCE_ROOT)/contrib/libs/zstd06/compress' '-I$(SOURCE_ROOT)/contrib/libs/zstd06/decompress' '-I$(SOURCE_ROOT)/contrib/libs/zstd06/dictBuilder' '-I$(SOURCE_ROOT)/contrib/libs/zstd06/legacy' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DZSTD_LEGACY_SUPPORT=1 -nostdinc++
+
+$(BUILD_ROOT)/library/blockcodecs/codecs/legacy_zstd06/legacy_zstd06.cpp.pic.o\
+        ::\
+        $(SOURCE_ROOT)/library/blockcodecs/codecs/legacy_zstd06/legacy_zstd06.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/library/blockcodecs/codecs/legacy_zstd06'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/library/blockcodecs/codecs/legacy_zstd06/legacy_zstd06.cpp.pic.o' '$(SOURCE_ROOT)/library/blockcodecs/codecs/legacy_zstd06/legacy_zstd06.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/lz4/liblz4.a.mf\
+        ::\
+        $(BUILD_ROOT)/contrib/libs/lz4/liblz4.a\
+
+$(BUILD_ROOT)/contrib/libs/lz4/liblz4.a\
+        ::\
+        $(BUILD_ROOT)/contrib/libs/lz4/lz4.c.pic.o\
+        $(BUILD_ROOT)/contrib/libs/lz4/lz4frame.c.pic.o\
+        $(BUILD_ROOT)/contrib/libs/lz4/lz4hc.c.pic.o\
+        $(BUILD_ROOT)/contrib/libs/lz4/xxhash.c.pic.o\
+        $(SOURCE_ROOT)/build/scripts/generate_mf.py\
+        $(SOURCE_ROOT)/build/scripts/link_lib.py\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/lz4'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name lz4 -o contrib/libs/lz4/liblz4.a.mf -t LIBRARY -Ya,lics BSD -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/lz4/liblz4.a' '$(BUILD_ROOT)/contrib/libs/lz4/lz4.c.pic.o' '$(BUILD_ROOT)/contrib/libs/lz4/lz4frame.c.pic.o' '$(BUILD_ROOT)/contrib/libs/lz4/lz4hc.c.pic.o' '$(BUILD_ROOT)/contrib/libs/lz4/xxhash.c.pic.o'
+
+$(BUILD_ROOT)/contrib/libs/lz4/lz4.c.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/lz4/lz4.c\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/lz4'
+	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lz4/lz4.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/lz4/lz4.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DXXH_NAMESPACE=LZ4_ -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/lz4/lz4frame.c.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/lz4/lz4frame.c\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/lz4'
+	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lz4/lz4frame.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/lz4/lz4frame.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DXXH_NAMESPACE=LZ4_ -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/lz4/lz4hc.c.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/lz4/lz4hc.c\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/lz4'
+	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lz4/lz4hc.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/lz4/lz4hc.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DXXH_NAMESPACE=LZ4_ -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/lz4/xxhash.c.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/lz4/xxhash.c\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/lz4'
+	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lz4/xxhash.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/lz4/xxhash.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DXXH_NAMESPACE=LZ4_ -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/lz4/generated/liblibs-lz4-generated.a.mf\
+        ::\
+        $(BUILD_ROOT)/contrib/libs/lz4/generated/liblibs-lz4-generated.a\
+
+$(BUILD_ROOT)/contrib/libs/lz4/generated/liblibs-lz4-generated.a\
+        ::\
+        $(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_10.cpp.pic.o\
+        $(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_11.cpp.pic.o\
+        $(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_12.cpp.pic.o\
+        $(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_13.cpp.pic.o\
+        $(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_14.cpp.pic.o\
+        $(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_15.cpp.pic.o\
+        $(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_16.cpp.pic.o\
+        $(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_17.cpp.pic.o\
+        $(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_18.cpp.pic.o\
+        $(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_19.cpp.pic.o\
+        $(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_20.cpp.pic.o\
+        $(BUILD_ROOT)/contrib/libs/lz4/generated/lz4methods.cpp.pic.o\
+        $(SOURCE_ROOT)/build/scripts/generate_mf.py\
+        $(SOURCE_ROOT)/build/scripts/link_lib.py\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/lz4/generated'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name libs-lz4-generated -o contrib/libs/lz4/generated/liblibs-lz4-generated.a.mf -t LIBRARY -Ya,lics BSD -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/lz4/generated/liblibs-lz4-generated.a' '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_10.cpp.pic.o' '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_11.cpp.pic.o' '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_12.cpp.pic.o' '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_13.cpp.pic.o' '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_14.cpp.pic.o' '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_15.cpp.pic.o' '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_16.cpp.pic.o' '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_17.cpp.pic.o' '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_18.cpp.pic.o' '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_19.cpp.pic.o' '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_20.cpp.pic.o' '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4methods.cpp.pic.o'
+
+$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_10.cpp.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/lz4/generated/lz4_10.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/lz4/generated'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_10.cpp.pic.o' '$(SOURCE_ROOT)/contrib/libs/lz4/generated/lz4_10.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_11.cpp.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/lz4/generated/lz4_11.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/lz4/generated'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_11.cpp.pic.o' '$(SOURCE_ROOT)/contrib/libs/lz4/generated/lz4_11.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_12.cpp.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/lz4/generated/lz4_12.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/lz4/generated'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_12.cpp.pic.o' '$(SOURCE_ROOT)/contrib/libs/lz4/generated/lz4_12.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_13.cpp.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/lz4/generated/lz4_13.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/lz4/generated'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_13.cpp.pic.o' '$(SOURCE_ROOT)/contrib/libs/lz4/generated/lz4_13.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_14.cpp.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/lz4/generated/lz4_14.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/lz4/generated'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_14.cpp.pic.o' '$(SOURCE_ROOT)/contrib/libs/lz4/generated/lz4_14.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_15.cpp.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/lz4/generated/lz4_15.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/lz4/generated'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_15.cpp.pic.o' '$(SOURCE_ROOT)/contrib/libs/lz4/generated/lz4_15.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_16.cpp.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/lz4/generated/lz4_16.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/lz4/generated'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_16.cpp.pic.o' '$(SOURCE_ROOT)/contrib/libs/lz4/generated/lz4_16.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_17.cpp.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/lz4/generated/lz4_17.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/lz4/generated'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_17.cpp.pic.o' '$(SOURCE_ROOT)/contrib/libs/lz4/generated/lz4_17.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_18.cpp.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/lz4/generated/lz4_18.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/lz4/generated'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_18.cpp.pic.o' '$(SOURCE_ROOT)/contrib/libs/lz4/generated/lz4_18.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_19.cpp.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/lz4/generated/lz4_19.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/lz4/generated'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_19.cpp.pic.o' '$(SOURCE_ROOT)/contrib/libs/lz4/generated/lz4_19.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_20.cpp.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/lz4/generated/lz4_20.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/lz4/generated'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_20.cpp.pic.o' '$(SOURCE_ROOT)/contrib/libs/lz4/generated/lz4_20.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4methods.cpp.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/lz4/generated/lz4methods.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/lz4/generated'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4methods.cpp.pic.o' '$(SOURCE_ROOT)/contrib/libs/lz4/generated/lz4methods.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/library/blockcodecs/codecs/lz4/lz4.cpp.pic.o\
+        ::\
+        $(SOURCE_ROOT)/library/blockcodecs/codecs/lz4/lz4.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/library/blockcodecs/codecs/lz4'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/library/blockcodecs/codecs/lz4/lz4.cpp.pic.o' '$(SOURCE_ROOT)/library/blockcodecs/codecs/lz4/lz4.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/lzmasdk/libcontrib-libs-lzmasdk.a.mf\
+        ::\
+        $(BUILD_ROOT)/contrib/libs/lzmasdk/libcontrib-libs-lzmasdk.a\
+
+$(BUILD_ROOT)/contrib/libs/lzmasdk/libcontrib-libs-lzmasdk.a\
+        ::\
+        $(BUILD_ROOT)/contrib/libs/lzmasdk/7zStream.c.pic.o\
+        $(BUILD_ROOT)/contrib/libs/lzmasdk/Alloc.c.pic.o\
+        $(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaDec.c.pic.o\
+        $(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaEnc.c.pic.o\
+        $(BUILD_ROOT)/contrib/libs/lzmasdk/LzFind.c.pic.o\
+        $(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaLib.c.pic.o\
+        $(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaUtil.c.pic.o\
+        $(SOURCE_ROOT)/build/scripts/generate_mf.py\
+        $(SOURCE_ROOT)/build/scripts/link_lib.py\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/lzmasdk'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name contrib-libs-lzmasdk -o contrib/libs/lzmasdk/libcontrib-libs-lzmasdk.a.mf -t LIBRARY -Ya,lics PD -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/lzmasdk/libcontrib-libs-lzmasdk.a' '$(BUILD_ROOT)/contrib/libs/lzmasdk/7zStream.c.pic.o' '$(BUILD_ROOT)/contrib/libs/lzmasdk/Alloc.c.pic.o' '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaDec.c.pic.o' '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaEnc.c.pic.o' '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzFind.c.pic.o' '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaLib.c.pic.o' '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaUtil.c.pic.o'
+
+$(BUILD_ROOT)/contrib/libs/lzmasdk/7zStream.c.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/lzmasdk/7zStream.c\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/lzmasdk'
+	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lzmasdk/7zStream.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/lzmasdk/7zStream.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -Wno-shadow -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -D_7ZIP_ST=1 -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/lzmasdk/Alloc.c.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/lzmasdk/Alloc.c\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/lzmasdk'
+	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lzmasdk/Alloc.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/lzmasdk/Alloc.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -Wno-shadow -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -D_7ZIP_ST=1 -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaDec.c.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/lzmasdk/LzmaDec.c\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/lzmasdk'
+	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaDec.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/lzmasdk/LzmaDec.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -Wno-shadow -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -D_7ZIP_ST=1 -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaEnc.c.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/lzmasdk/LzmaEnc.c\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/lzmasdk'
+	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaEnc.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/lzmasdk/LzmaEnc.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -Wno-shadow -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -D_7ZIP_ST=1 -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/lzmasdk/LzFind.c.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/lzmasdk/LzFind.c\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/lzmasdk'
+	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzFind.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/lzmasdk/LzFind.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -Wno-shadow -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -D_7ZIP_ST=1 -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaLib.c.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/lzmasdk/LzmaLib.c\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/lzmasdk'
+	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaLib.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/lzmasdk/LzmaLib.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -Wno-shadow -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -D_7ZIP_ST=1 -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaUtil.c.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/lzmasdk/LzmaUtil.c\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/lzmasdk'
+	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaUtil.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/lzmasdk/LzmaUtil.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -Wno-shadow -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -D_7ZIP_ST=1 -nostdinc++
+
+$(BUILD_ROOT)/library/blockcodecs/codecs/lzma/lzma.cpp.pic.o\
+        ::\
+        $(SOURCE_ROOT)/library/blockcodecs/codecs/lzma/lzma.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/library/blockcodecs/codecs/lzma'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/library/blockcodecs/codecs/lzma/lzma.cpp.pic.o' '$(SOURCE_ROOT)/library/blockcodecs/codecs/lzma/lzma.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/snappy/libcontrib-libs-snappy.a.mf\
+        ::\
+        $(BUILD_ROOT)/contrib/libs/snappy/libcontrib-libs-snappy.a\
+
+$(BUILD_ROOT)/contrib/libs/snappy/libcontrib-libs-snappy.a\
+        ::\
+        $(BUILD_ROOT)/contrib/libs/snappy/snappy.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/snappy/snappy-c.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/snappy/snappy-stubs-internal.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/snappy/snappy-sinksource.cc.pic.o\
+        $(SOURCE_ROOT)/build/scripts/generate_mf.py\
+        $(SOURCE_ROOT)/build/scripts/link_lib.py\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/snappy'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name contrib-libs-snappy -o contrib/libs/snappy/libcontrib-libs-snappy.a.mf -t LIBRARY -Ya,lics BSD -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/snappy/libcontrib-libs-snappy.a' '$(BUILD_ROOT)/contrib/libs/snappy/snappy.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/snappy/snappy-c.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/snappy/snappy-stubs-internal.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/snappy/snappy-sinksource.cc.pic.o'
+
+$(BUILD_ROOT)/contrib/libs/snappy/snappy.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/snappy/snappy.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/snappy'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/snappy/snappy.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/snappy/snappy.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Wno-register -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/snappy/snappy-c.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/snappy/snappy-c.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/snappy'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/snappy/snappy-c.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/snappy/snappy-c.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Wno-register -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/snappy/snappy-stubs-internal.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/snappy/snappy-stubs-internal.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/snappy'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/snappy/snappy-stubs-internal.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/snappy/snappy-stubs-internal.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Wno-register -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/snappy/snappy-sinksource.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/snappy/snappy-sinksource.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/snappy'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/snappy/snappy-sinksource.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/snappy/snappy-sinksource.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Wno-register -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/library/blockcodecs/codecs/snappy/snappy.cpp.pic.o\
+        ::\
+        $(SOURCE_ROOT)/library/blockcodecs/codecs/snappy/snappy.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/library/blockcodecs/codecs/snappy'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/library/blockcodecs/codecs/snappy/snappy.cpp.pic.o' '$(SOURCE_ROOT)/library/blockcodecs/codecs/snappy/snappy.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/library/blockcodecs/codecs/zlib/zlib.cpp.pic.o\
+        ::\
+        $(SOURCE_ROOT)/library/blockcodecs/codecs/zlib/zlib.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/library/blockcodecs/codecs/zlib'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/library/blockcodecs/codecs/zlib/zlib.cpp.pic.o' '$(SOURCE_ROOT)/library/blockcodecs/codecs/zlib/zlib.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
 
 $(BUILD_ROOT)/contrib/libs/zstd/libzstd.a.mf\
         ::\
@@ -5735,236 +6061,12 @@ $(BUILD_ROOT)/contrib/libs/zstd/legacy/zstd_v07.c.pic.o\
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/zstd/legacy'
 	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/zstd/legacy/zstd_v07.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/zstd/legacy/zstd_v07.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/zstd' '-I$(SOURCE_ROOT)/contrib/libs/zstd/common' '-I$(SOURCE_ROOT)/contrib/libs/zstd/legacy' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DXXH_NAMESPACE=ZSTD_ -DZSTD_LEGACY_SUPPORT=1 -nostdinc++
 
-$(BUILD_ROOT)/contrib/libs/brotli/common/liblibs-brotli-common.a.mf\
+$(BUILD_ROOT)/library/blockcodecs/codecs/zstd/zstd.cpp.pic.o\
         ::\
-        $(BUILD_ROOT)/contrib/libs/brotli/common/liblibs-brotli-common.a\
+        $(SOURCE_ROOT)/library/blockcodecs/codecs/zstd/zstd.cpp\
 
-$(BUILD_ROOT)/contrib/libs/brotli/common/liblibs-brotli-common.a\
-        ::\
-        $(BUILD_ROOT)/contrib/libs/brotli/common/dictionary.c.pic.o\
-        $(BUILD_ROOT)/contrib/libs/brotli/common/transform.c.pic.o\
-        $(SOURCE_ROOT)/build/scripts/generate_mf.py\
-        $(SOURCE_ROOT)/build/scripts/link_lib.py\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/brotli/common'
-	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name libs-brotli-common -o contrib/libs/brotli/common/liblibs-brotli-common.a.mf -t LIBRARY -Ya,lics MIT -Ya,peers
-	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/brotli/common/liblibs-brotli-common.a' '$(BUILD_ROOT)/contrib/libs/brotli/common/dictionary.c.pic.o' '$(BUILD_ROOT)/contrib/libs/brotli/common/transform.c.pic.o'
-
-$(BUILD_ROOT)/contrib/libs/brotli/common/dictionary.c.pic.o\
-        ::\
-        $(SOURCE_ROOT)/contrib/libs/brotli/common/dictionary.c\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/brotli/common'
-	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/brotli/common/dictionary.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/brotli/common/dictionary.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/brotli/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++
-
-$(BUILD_ROOT)/contrib/libs/brotli/common/transform.c.pic.o\
-        ::\
-        $(SOURCE_ROOT)/contrib/libs/brotli/common/transform.c\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/brotli/common'
-	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/brotli/common/transform.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/brotli/common/transform.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/brotli/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++
-
-$(BUILD_ROOT)/contrib/libs/brotli/dec/liblibs-brotli-dec.a.mf\
-        ::\
-        $(BUILD_ROOT)/contrib/libs/brotli/dec/liblibs-brotli-dec.a\
-
-$(BUILD_ROOT)/contrib/libs/brotli/dec/liblibs-brotli-dec.a\
-        ::\
-        $(BUILD_ROOT)/contrib/libs/brotli/dec/bit_reader.c.pic.o\
-        $(BUILD_ROOT)/contrib/libs/brotli/dec/decode.c.pic.o\
-        $(BUILD_ROOT)/contrib/libs/brotli/dec/huffman.c.pic.o\
-        $(BUILD_ROOT)/contrib/libs/brotli/dec/state.c.pic.o\
-        $(SOURCE_ROOT)/build/scripts/generate_mf.py\
-        $(SOURCE_ROOT)/build/scripts/link_lib.py\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/brotli/dec'
-	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name libs-brotli-dec -o contrib/libs/brotli/dec/liblibs-brotli-dec.a.mf -t LIBRARY -Ya,lics MIT -Ya,peers
-	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/brotli/dec/liblibs-brotli-dec.a' '$(BUILD_ROOT)/contrib/libs/brotli/dec/bit_reader.c.pic.o' '$(BUILD_ROOT)/contrib/libs/brotli/dec/decode.c.pic.o' '$(BUILD_ROOT)/contrib/libs/brotli/dec/huffman.c.pic.o' '$(BUILD_ROOT)/contrib/libs/brotli/dec/state.c.pic.o'
-
-$(BUILD_ROOT)/contrib/libs/brotli/dec/bit_reader.c.pic.o\
-        ::\
-        $(SOURCE_ROOT)/contrib/libs/brotli/dec/bit_reader.c\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/brotli/dec'
-	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/brotli/dec/bit_reader.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/brotli/dec/bit_reader.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/brotli/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++
-
-$(BUILD_ROOT)/contrib/libs/brotli/dec/decode.c.pic.o\
-        ::\
-        $(SOURCE_ROOT)/contrib/libs/brotli/dec/decode.c\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/brotli/dec'
-	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/brotli/dec/decode.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/brotli/dec/decode.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/brotli/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++
-
-$(BUILD_ROOT)/contrib/libs/brotli/dec/huffman.c.pic.o\
-        ::\
-        $(SOURCE_ROOT)/contrib/libs/brotli/dec/huffman.c\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/brotli/dec'
-	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/brotli/dec/huffman.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/brotli/dec/huffman.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/brotli/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++
-
-$(BUILD_ROOT)/contrib/libs/brotli/dec/state.c.pic.o\
-        ::\
-        $(SOURCE_ROOT)/contrib/libs/brotli/dec/state.c\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/brotli/dec'
-	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/brotli/dec/state.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/brotli/dec/state.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/brotli/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++
-
-$(BUILD_ROOT)/contrib/libs/brotli/enc/liblibs-brotli-enc.a.mf\
-        ::\
-        $(BUILD_ROOT)/contrib/libs/brotli/enc/liblibs-brotli-enc.a\
-
-$(BUILD_ROOT)/contrib/libs/brotli/enc/liblibs-brotli-enc.a\
-        ::\
-        $(BUILD_ROOT)/contrib/libs/brotli/enc/backward_references.c.pic.o\
-        $(BUILD_ROOT)/contrib/libs/brotli/enc/backward_references_hq.c.pic.o\
-        $(BUILD_ROOT)/contrib/libs/brotli/enc/bit_cost.c.pic.o\
-        $(BUILD_ROOT)/contrib/libs/brotli/enc/block_splitter.c.pic.o\
-        $(BUILD_ROOT)/contrib/libs/brotli/enc/brotli_bit_stream.c.pic.o\
-        $(BUILD_ROOT)/contrib/libs/brotli/enc/cluster.c.pic.o\
-        $(BUILD_ROOT)/contrib/libs/brotli/enc/compress_fragment.c.pic.o\
-        $(BUILD_ROOT)/contrib/libs/brotli/enc/compress_fragment_two_pass.c.pic.o\
-        $(BUILD_ROOT)/contrib/libs/brotli/enc/dictionary_hash.c.pic.o\
-        $(BUILD_ROOT)/contrib/libs/brotli/enc/encode.c.pic.o\
-        $(BUILD_ROOT)/contrib/libs/brotli/enc/encoder_dict.c.pic.o\
-        $(BUILD_ROOT)/contrib/libs/brotli/enc/entropy_encode.c.pic.o\
-        $(BUILD_ROOT)/contrib/libs/brotli/enc/histogram.c.pic.o\
-        $(BUILD_ROOT)/contrib/libs/brotli/enc/literal_cost.c.pic.o\
-        $(BUILD_ROOT)/contrib/libs/brotli/enc/memory.c.pic.o\
-        $(BUILD_ROOT)/contrib/libs/brotli/enc/metablock.c.pic.o\
-        $(BUILD_ROOT)/contrib/libs/brotli/enc/static_dict.c.pic.o\
-        $(BUILD_ROOT)/contrib/libs/brotli/enc/utf8_util.c.pic.o\
-        $(SOURCE_ROOT)/build/scripts/generate_mf.py\
-        $(SOURCE_ROOT)/build/scripts/link_lib.py\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/brotli/enc'
-	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name libs-brotli-enc -o contrib/libs/brotli/enc/liblibs-brotli-enc.a.mf -t LIBRARY -Ya,lics MIT -Ya,peers
-	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/brotli/enc/liblibs-brotli-enc.a' '$(BUILD_ROOT)/contrib/libs/brotli/enc/backward_references.c.pic.o' '$(BUILD_ROOT)/contrib/libs/brotli/enc/backward_references_hq.c.pic.o' '$(BUILD_ROOT)/contrib/libs/brotli/enc/bit_cost.c.pic.o' '$(BUILD_ROOT)/contrib/libs/brotli/enc/block_splitter.c.pic.o' '$(BUILD_ROOT)/contrib/libs/brotli/enc/brotli_bit_stream.c.pic.o' '$(BUILD_ROOT)/contrib/libs/brotli/enc/cluster.c.pic.o' '$(BUILD_ROOT)/contrib/libs/brotli/enc/compress_fragment.c.pic.o' '$(BUILD_ROOT)/contrib/libs/brotli/enc/compress_fragment_two_pass.c.pic.o' '$(BUILD_ROOT)/contrib/libs/brotli/enc/dictionary_hash.c.pic.o' '$(BUILD_ROOT)/contrib/libs/brotli/enc/encode.c.pic.o' '$(BUILD_ROOT)/contrib/libs/brotli/enc/encoder_dict.c.pic.o' '$(BUILD_ROOT)/contrib/libs/brotli/enc/entropy_encode.c.pic.o' '$(BUILD_ROOT)/contrib/libs/brotli/enc/histogram.c.pic.o' '$(BUILD_ROOT)/contrib/libs/brotli/enc/literal_cost.c.pic.o' '$(BUILD_ROOT)/contrib/libs/brotli/enc/memory.c.pic.o' '$(BUILD_ROOT)/contrib/libs/brotli/enc/metablock.c.pic.o' '$(BUILD_ROOT)/contrib/libs/brotli/enc/static_dict.c.pic.o' '$(BUILD_ROOT)/contrib/libs/brotli/enc/utf8_util.c.pic.o'
-
-$(BUILD_ROOT)/contrib/libs/brotli/enc/backward_references.c.pic.o\
-        ::\
-        $(SOURCE_ROOT)/contrib/libs/brotli/enc/backward_references.c\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/brotli/enc'
-	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/brotli/enc/backward_references.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/brotli/enc/backward_references.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/brotli/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++
-
-$(BUILD_ROOT)/contrib/libs/brotli/enc/backward_references_hq.c.pic.o\
-        ::\
-        $(SOURCE_ROOT)/contrib/libs/brotli/enc/backward_references_hq.c\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/brotli/enc'
-	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/brotli/enc/backward_references_hq.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/brotli/enc/backward_references_hq.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/brotli/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++
-
-$(BUILD_ROOT)/contrib/libs/brotli/enc/bit_cost.c.pic.o\
-        ::\
-        $(SOURCE_ROOT)/contrib/libs/brotli/enc/bit_cost.c\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/brotli/enc'
-	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/brotli/enc/bit_cost.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/brotli/enc/bit_cost.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/brotli/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++
-
-$(BUILD_ROOT)/contrib/libs/brotli/enc/block_splitter.c.pic.o\
-        ::\
-        $(SOURCE_ROOT)/contrib/libs/brotli/enc/block_splitter.c\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/brotli/enc'
-	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/brotli/enc/block_splitter.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/brotli/enc/block_splitter.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/brotli/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++
-
-$(BUILD_ROOT)/contrib/libs/brotli/enc/brotli_bit_stream.c.pic.o\
-        ::\
-        $(SOURCE_ROOT)/contrib/libs/brotli/enc/brotli_bit_stream.c\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/brotli/enc'
-	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/brotli/enc/brotli_bit_stream.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/brotli/enc/brotli_bit_stream.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/brotli/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++
-
-$(BUILD_ROOT)/contrib/libs/brotli/enc/cluster.c.pic.o\
-        ::\
-        $(SOURCE_ROOT)/contrib/libs/brotli/enc/cluster.c\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/brotli/enc'
-	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/brotli/enc/cluster.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/brotli/enc/cluster.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/brotli/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++
-
-$(BUILD_ROOT)/contrib/libs/brotli/enc/compress_fragment.c.pic.o\
-        ::\
-        $(SOURCE_ROOT)/contrib/libs/brotli/enc/compress_fragment.c\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/brotli/enc'
-	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/brotli/enc/compress_fragment.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/brotli/enc/compress_fragment.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/brotli/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++
-
-$(BUILD_ROOT)/contrib/libs/brotli/enc/compress_fragment_two_pass.c.pic.o\
-        ::\
-        $(SOURCE_ROOT)/contrib/libs/brotli/enc/compress_fragment_two_pass.c\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/brotli/enc'
-	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/brotli/enc/compress_fragment_two_pass.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/brotli/enc/compress_fragment_two_pass.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/brotli/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++
-
-$(BUILD_ROOT)/contrib/libs/brotli/enc/dictionary_hash.c.pic.o\
-        ::\
-        $(SOURCE_ROOT)/contrib/libs/brotli/enc/dictionary_hash.c\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/brotli/enc'
-	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/brotli/enc/dictionary_hash.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/brotli/enc/dictionary_hash.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/brotli/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++
-
-$(BUILD_ROOT)/contrib/libs/brotli/enc/encode.c.pic.o\
-        ::\
-        $(SOURCE_ROOT)/contrib/libs/brotli/enc/encode.c\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/brotli/enc'
-	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/brotli/enc/encode.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/brotli/enc/encode.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/brotli/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++
-
-$(BUILD_ROOT)/contrib/libs/brotli/enc/encoder_dict.c.pic.o\
-        ::\
-        $(SOURCE_ROOT)/contrib/libs/brotli/enc/encoder_dict.c\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/brotli/enc'
-	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/brotli/enc/encoder_dict.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/brotli/enc/encoder_dict.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/brotli/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++
-
-$(BUILD_ROOT)/contrib/libs/brotli/enc/entropy_encode.c.pic.o\
-        ::\
-        $(SOURCE_ROOT)/contrib/libs/brotli/enc/entropy_encode.c\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/brotli/enc'
-	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/brotli/enc/entropy_encode.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/brotli/enc/entropy_encode.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/brotli/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++
-
-$(BUILD_ROOT)/contrib/libs/brotli/enc/histogram.c.pic.o\
-        ::\
-        $(SOURCE_ROOT)/contrib/libs/brotli/enc/histogram.c\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/brotli/enc'
-	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/brotli/enc/histogram.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/brotli/enc/histogram.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/brotli/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++
-
-$(BUILD_ROOT)/contrib/libs/brotli/enc/literal_cost.c.pic.o\
-        ::\
-        $(SOURCE_ROOT)/contrib/libs/brotli/enc/literal_cost.c\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/brotli/enc'
-	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/brotli/enc/literal_cost.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/brotli/enc/literal_cost.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/brotli/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++
-
-$(BUILD_ROOT)/contrib/libs/brotli/enc/memory.c.pic.o\
-        ::\
-        $(SOURCE_ROOT)/contrib/libs/brotli/enc/memory.c\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/brotli/enc'
-	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/brotli/enc/memory.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/brotli/enc/memory.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/brotli/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++
-
-$(BUILD_ROOT)/contrib/libs/brotli/enc/metablock.c.pic.o\
-        ::\
-        $(SOURCE_ROOT)/contrib/libs/brotli/enc/metablock.c\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/brotli/enc'
-	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/brotli/enc/metablock.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/brotli/enc/metablock.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/brotli/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++
-
-$(BUILD_ROOT)/contrib/libs/brotli/enc/static_dict.c.pic.o\
-        ::\
-        $(SOURCE_ROOT)/contrib/libs/brotli/enc/static_dict.c\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/brotli/enc'
-	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/brotli/enc/static_dict.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/brotli/enc/static_dict.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/brotli/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++
-
-$(BUILD_ROOT)/contrib/libs/brotli/enc/utf8_util.c.pic.o\
-        ::\
-        $(SOURCE_ROOT)/contrib/libs/brotli/enc/utf8_util.c\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/brotli/enc'
-	'$(CC)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/brotli/enc/utf8_util.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/brotli/enc/utf8_util.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/brotli/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++
+	mkdir -p '$(BUILD_ROOT)/library/blockcodecs/codecs/zstd'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/library/blockcodecs/codecs/zstd/zstd.cpp.pic.o' '$(SOURCE_ROOT)/library/blockcodecs/codecs/zstd/zstd.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
 
 $(BUILD_ROOT)/library/blockcodecs/liblibrary-blockcodecs.a.mf\
         ::\
@@ -5972,7 +6074,6 @@ $(BUILD_ROOT)/library/blockcodecs/liblibrary-blockcodecs.a.mf\
 
 $(BUILD_ROOT)/library/blockcodecs/liblibrary-blockcodecs.a\
         ::\
-        $(BUILD_ROOT)/library/blockcodecs/legacy_zstd06.cpp.pic.o\
         $(BUILD_ROOT)/library/blockcodecs/codecs.cpp.pic.o\
         $(BUILD_ROOT)/library/blockcodecs/stream.cpp.pic.o\
         $(SOURCE_ROOT)/build/scripts/generate_mf.py\
@@ -5980,14 +6081,7 @@ $(BUILD_ROOT)/library/blockcodecs/liblibrary-blockcodecs.a\
 
 	mkdir -p '$(BUILD_ROOT)/library/blockcodecs'
 	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name library-blockcodecs -o library/blockcodecs/liblibrary-blockcodecs.a.mf -t LIBRARY -Ya,lics -Ya,peers
-	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/library/blockcodecs/liblibrary-blockcodecs.a' '$(BUILD_ROOT)/library/blockcodecs/legacy_zstd06.cpp.pic.o' '$(BUILD_ROOT)/library/blockcodecs/codecs.cpp.pic.o' '$(BUILD_ROOT)/library/blockcodecs/stream.cpp.pic.o'
-
-$(BUILD_ROOT)/library/blockcodecs/legacy_zstd06.cpp.pic.o\
-        ::\
-        $(SOURCE_ROOT)/library/blockcodecs/legacy_zstd06.cpp\
-
-	mkdir -p '$(BUILD_ROOT)/library/blockcodecs'
-	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/library/blockcodecs/legacy_zstd06.cpp.pic.o' '$(SOURCE_ROOT)/library/blockcodecs/legacy_zstd06.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/brotli/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/library/blockcodecs/liblibrary-blockcodecs.a' '$(BUILD_ROOT)/library/blockcodecs/codecs.cpp.pic.o' '$(BUILD_ROOT)/library/blockcodecs/stream.cpp.pic.o'
 
 $(BUILD_ROOT)/library/blockcodecs/codecs.cpp.pic.o\
         ::\
@@ -6063,17 +6157,27 @@ $(BUILD_ROOT)/tools/rorescompiler/rorescompiler\
         $(BUILD_ROOT)/contrib/libs/zlib/libcontrib-libs-zlib.a\
         $(BUILD_ROOT)/contrib/libs/double-conversion/libcontrib-libs-double-conversion.a\
         $(BUILD_ROOT)/util/libyutil.a\
-        $(BUILD_ROOT)/contrib/libs/fastlz/libcontrib-libs-fastlz.a\
-        $(BUILD_ROOT)/contrib/libs/libbz2/libcontrib-libs-libbz2.a\
-        $(BUILD_ROOT)/contrib/libs/lz4/liblz4.a\
-        $(BUILD_ROOT)/contrib/libs/lz4/generated/liblibs-lz4-generated.a\
-        $(BUILD_ROOT)/contrib/libs/lzmasdk/libcontrib-libs-lzmasdk.a\
-        $(BUILD_ROOT)/contrib/libs/snappy/libcontrib-libs-snappy.a\
-        $(BUILD_ROOT)/contrib/libs/zstd06/libcontrib-libs-zstd06.a\
-        $(BUILD_ROOT)/contrib/libs/zstd/libzstd.a\
+        $(BUILD_ROOT)/library/blockcodecs/core/liblibrary-blockcodecs-core.a\
         $(BUILD_ROOT)/contrib/libs/brotli/common/liblibs-brotli-common.a\
         $(BUILD_ROOT)/contrib/libs/brotli/dec/liblibs-brotli-dec.a\
         $(BUILD_ROOT)/contrib/libs/brotli/enc/liblibs-brotli-enc.a\
+        $(BUILD_ROOT)/library/blockcodecs/codecs/brotli/brotli.cpp.pic.o\
+        $(BUILD_ROOT)/contrib/libs/libbz2/libcontrib-libs-libbz2.a\
+        $(BUILD_ROOT)/library/blockcodecs/codecs/bzip/bzip.cpp.pic.o\
+        $(BUILD_ROOT)/contrib/libs/fastlz/libcontrib-libs-fastlz.a\
+        $(BUILD_ROOT)/library/blockcodecs/codecs/fastlz/fastlz.cpp.pic.o\
+        $(BUILD_ROOT)/contrib/libs/zstd06/libcontrib-libs-zstd06.a\
+        $(BUILD_ROOT)/library/blockcodecs/codecs/legacy_zstd06/legacy_zstd06.cpp.pic.o\
+        $(BUILD_ROOT)/contrib/libs/lz4/liblz4.a\
+        $(BUILD_ROOT)/contrib/libs/lz4/generated/liblibs-lz4-generated.a\
+        $(BUILD_ROOT)/library/blockcodecs/codecs/lz4/lz4.cpp.pic.o\
+        $(BUILD_ROOT)/contrib/libs/lzmasdk/libcontrib-libs-lzmasdk.a\
+        $(BUILD_ROOT)/library/blockcodecs/codecs/lzma/lzma.cpp.pic.o\
+        $(BUILD_ROOT)/contrib/libs/snappy/libcontrib-libs-snappy.a\
+        $(BUILD_ROOT)/library/blockcodecs/codecs/snappy/snappy.cpp.pic.o\
+        $(BUILD_ROOT)/library/blockcodecs/codecs/zlib/zlib.cpp.pic.o\
+        $(BUILD_ROOT)/contrib/libs/zstd/libzstd.a\
+        $(BUILD_ROOT)/library/blockcodecs/codecs/zstd/zstd.cpp.pic.o\
         $(BUILD_ROOT)/library/blockcodecs/liblibrary-blockcodecs.a\
         $(BUILD_ROOT)/library/resource/liblibrary-resource.a\
         $(BUILD_ROOT)/tools/rorescompiler/main.cpp.pic.o\
@@ -6081,8 +6185,79 @@ $(BUILD_ROOT)/tools/rorescompiler/rorescompiler\
         $(SOURCE_ROOT)/build/scripts/link_exe.py\
 
 	mkdir -p '$(BUILD_ROOT)/tools/rorescompiler'
-	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name rorescompiler -o tools/rorescompiler/rorescompiler.mf -t PROGRAM -Ya,lics -Ya,peers contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a util/charset/libutil-charset.a contrib/libs/zlib/libcontrib-libs-zlib.a contrib/libs/double-conversion/libcontrib-libs-double-conversion.a util/libyutil.a library/malloc/api/liblibrary-malloc-api.a library/lfalloc/liblibrary-lfalloc.a contrib/libs/fastlz/libcontrib-libs-fastlz.a contrib/libs/libbz2/libcontrib-libs-libbz2.a contrib/libs/lz4/liblz4.a contrib/libs/lz4/generated/liblibs-lz4-generated.a contrib/libs/lzmasdk/libcontrib-libs-lzmasdk.a contrib/libs/snappy/libcontrib-libs-snappy.a contrib/libs/zstd06/libcontrib-libs-zstd06.a contrib/libs/zstd/libzstd.a contrib/libs/brotli/common/liblibs-brotli-common.a contrib/libs/brotli/dec/liblibs-brotli-dec.a contrib/libs/brotli/enc/liblibs-brotli-enc.a library/blockcodecs/liblibrary-blockcodecs.a library/resource/liblibrary-resource.a
-	cd $(BUILD_ROOT) && '$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_exe.py' '$(CXX)' '$(BUILD_ROOT)/tools/rorescompiler/main.cpp.pic.o' -o '$(BUILD_ROOT)/tools/rorescompiler/rorescompiler' -rdynamic --target=x86_64-linux-gnu -Wl,--start-group contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a util/charset/libutil-charset.a contrib/libs/zlib/libcontrib-libs-zlib.a contrib/libs/double-conversion/libcontrib-libs-double-conversion.a util/libyutil.a library/malloc/api/liblibrary-malloc-api.a library/lfalloc/liblibrary-lfalloc.a contrib/libs/fastlz/libcontrib-libs-fastlz.a contrib/libs/libbz2/libcontrib-libs-libbz2.a contrib/libs/lz4/liblz4.a contrib/libs/lz4/generated/liblibs-lz4-generated.a contrib/libs/lzmasdk/libcontrib-libs-lzmasdk.a contrib/libs/snappy/libcontrib-libs-snappy.a contrib/libs/zstd06/libcontrib-libs-zstd06.a contrib/libs/zstd/libzstd.a contrib/libs/brotli/common/liblibs-brotli-common.a contrib/libs/brotli/dec/liblibs-brotli-dec.a contrib/libs/brotli/enc/liblibs-brotli-enc.a library/blockcodecs/liblibrary-blockcodecs.a library/resource/liblibrary-resource.a -Wl,--end-group -ldl -lrt -Wl,--no-as-needed -lpthread -lrt -ldl -nodefaultlibs -lpthread -lc -lm
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name rorescompiler -o tools/rorescompiler/rorescompiler.mf -t PROGRAM -Ya,lics -Ya,peers contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a util/charset/libutil-charset.a contrib/libs/zlib/libcontrib-libs-zlib.a contrib/libs/double-conversion/libcontrib-libs-double-conversion.a util/libyutil.a library/malloc/api/liblibrary-malloc-api.a library/lfalloc/liblibrary-lfalloc.a library/blockcodecs/core/liblibrary-blockcodecs-core.a contrib/libs/brotli/common/liblibs-brotli-common.a contrib/libs/brotli/dec/liblibs-brotli-dec.a contrib/libs/brotli/enc/liblibs-brotli-enc.a contrib/libs/libbz2/libcontrib-libs-libbz2.a contrib/libs/fastlz/libcontrib-libs-fastlz.a contrib/libs/zstd06/libcontrib-libs-zstd06.a contrib/libs/lz4/liblz4.a contrib/libs/lz4/generated/liblibs-lz4-generated.a contrib/libs/lzmasdk/libcontrib-libs-lzmasdk.a contrib/libs/snappy/libcontrib-libs-snappy.a contrib/libs/zstd/libzstd.a library/blockcodecs/liblibrary-blockcodecs.a library/resource/liblibrary-resource.a
+	cd $(BUILD_ROOT) && '$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_exe.py' '$(CXX)' library/blockcodecs/codecs/brotli/brotli.cpp.pic.o library/blockcodecs/codecs/bzip/bzip.cpp.pic.o library/blockcodecs/codecs/fastlz/fastlz.cpp.pic.o library/blockcodecs/codecs/legacy_zstd06/legacy_zstd06.cpp.pic.o library/blockcodecs/codecs/lz4/lz4.cpp.pic.o library/blockcodecs/codecs/lzma/lzma.cpp.pic.o library/blockcodecs/codecs/snappy/snappy.cpp.pic.o library/blockcodecs/codecs/zlib/zlib.cpp.pic.o library/blockcodecs/codecs/zstd/zstd.cpp.pic.o '$(BUILD_ROOT)/tools/rorescompiler/main.cpp.pic.o' -o '$(BUILD_ROOT)/tools/rorescompiler/rorescompiler' -rdynamic --target=x86_64-linux-gnu -Wl,--start-group contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a util/charset/libutil-charset.a contrib/libs/zlib/libcontrib-libs-zlib.a contrib/libs/double-conversion/libcontrib-libs-double-conversion.a util/libyutil.a library/malloc/api/liblibrary-malloc-api.a library/lfalloc/liblibrary-lfalloc.a library/blockcodecs/core/liblibrary-blockcodecs-core.a contrib/libs/brotli/common/liblibs-brotli-common.a contrib/libs/brotli/dec/liblibs-brotli-dec.a contrib/libs/brotli/enc/liblibs-brotli-enc.a contrib/libs/libbz2/libcontrib-libs-libbz2.a contrib/libs/fastlz/libcontrib-libs-fastlz.a contrib/libs/zstd06/libcontrib-libs-zstd06.a contrib/libs/lz4/liblz4.a contrib/libs/lz4/generated/liblibs-lz4-generated.a contrib/libs/lzmasdk/libcontrib-libs-lzmasdk.a contrib/libs/snappy/libcontrib-libs-snappy.a contrib/libs/zstd/libzstd.a library/blockcodecs/liblibrary-blockcodecs.a library/resource/liblibrary-resource.a -Wl,--end-group -ldl -lrt -Wl,--no-as-needed -lpthread -lrt -ldl -nodefaultlibs -lpthread -lc -lm
+
+$(BUILD_ROOT)/library/blockcodecs/core/liblibrary-blockcodecs-core.a.mf\
+        ::\
+        $(BUILD_ROOT)/library/blockcodecs/core/liblibrary-blockcodecs-core.a\
+
+$(BUILD_ROOT)/library/blockcodecs/core/liblibrary-blockcodecs-core.a\
+        ::\
+        $(BUILD_ROOT)/library/blockcodecs/core/codecs.cpp.pic.o\
+        $(BUILD_ROOT)/library/blockcodecs/core/stream.cpp.pic.o\
+        $(SOURCE_ROOT)/build/scripts/generate_mf.py\
+        $(SOURCE_ROOT)/build/scripts/link_lib.py\
+
+	mkdir -p '$(BUILD_ROOT)/library/blockcodecs/core'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name library-blockcodecs-core -o library/blockcodecs/core/liblibrary-blockcodecs-core.a.mf -t LIBRARY -Ya,lics -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/library/blockcodecs/core/liblibrary-blockcodecs-core.a' '$(BUILD_ROOT)/library/blockcodecs/core/codecs.cpp.pic.o' '$(BUILD_ROOT)/library/blockcodecs/core/stream.cpp.pic.o'
+
+$(BUILD_ROOT)/library/blockcodecs/core/codecs.cpp.pic.o\
+        ::\
+        $(SOURCE_ROOT)/library/blockcodecs/core/codecs.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/library/blockcodecs/core'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/library/blockcodecs/core/codecs.cpp.pic.o' '$(SOURCE_ROOT)/library/blockcodecs/core/codecs.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/library/blockcodecs/core/stream.cpp.pic.o\
+        ::\
+        $(SOURCE_ROOT)/library/blockcodecs/core/stream.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/library/blockcodecs/core'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/library/blockcodecs/core/stream.cpp.pic.o' '$(SOURCE_ROOT)/library/blockcodecs/core/stream.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/library/blockcodecs/codecs/brotli/brotli.cpp.pic.o\
+        ::\
+        $(SOURCE_ROOT)/library/blockcodecs/codecs/brotli/brotli.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/library/blockcodecs/codecs/brotli'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/library/blockcodecs/codecs/brotli/brotli.cpp.pic.o' '$(SOURCE_ROOT)/library/blockcodecs/codecs/brotli/brotli.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/brotli/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/library/blockcodecs/codecs/bzip/bzip.cpp.pic.o\
+        ::\
+        $(SOURCE_ROOT)/library/blockcodecs/codecs/bzip/bzip.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/library/blockcodecs/codecs/bzip'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/library/blockcodecs/codecs/bzip/bzip.cpp.pic.o' '$(SOURCE_ROOT)/library/blockcodecs/codecs/bzip/bzip.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/library/blockcodecs/codecs/fastlz/fastlz.cpp.pic.o\
+        ::\
+        $(SOURCE_ROOT)/library/blockcodecs/codecs/fastlz/fastlz.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/library/blockcodecs/codecs/fastlz'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/library/blockcodecs/codecs/fastlz/fastlz.cpp.pic.o' '$(SOURCE_ROOT)/library/blockcodecs/codecs/fastlz/fastlz.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/library/blockcodecs/codecs/legacy_zstd06/legacy_zstd06.cpp.pic.o\
+        ::\
+        $(SOURCE_ROOT)/library/blockcodecs/codecs/legacy_zstd06/legacy_zstd06.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/library/blockcodecs/codecs/legacy_zstd06'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/library/blockcodecs/codecs/legacy_zstd06/legacy_zstd06.cpp.pic.o' '$(SOURCE_ROOT)/library/blockcodecs/codecs/legacy_zstd06/legacy_zstd06.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/library/blockcodecs/codecs/lz4/lz4.cpp.pic.o\
+        ::\
+        $(SOURCE_ROOT)/library/blockcodecs/codecs/lz4/lz4.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/library/blockcodecs/codecs/lz4'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/library/blockcodecs/codecs/lz4/lz4.cpp.pic.o' '$(SOURCE_ROOT)/library/blockcodecs/codecs/lz4/lz4.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/library/blockcodecs/codecs/lzma/lzma.cpp.pic.o\
+        ::\
+        $(SOURCE_ROOT)/library/blockcodecs/codecs/lzma/lzma.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/library/blockcodecs/codecs/lzma'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/library/blockcodecs/codecs/lzma/lzma.cpp.pic.o' '$(SOURCE_ROOT)/library/blockcodecs/codecs/lzma/lzma.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
 
 $(BUILD_ROOT)/contrib/libs/snappy/libcontrib-libs-snappy.a.mf\
         ::\
@@ -6122,13 +6297,33 @@ $(BUILD_ROOT)/contrib/libs/snappy/snappy-stubs-internal.cc.pic.o\
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/snappy'
 	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/snappy/snappy-stubs-internal.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/snappy/snappy-stubs-internal.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Wno-register -DCATBOOST_OPENSOURCE=yes -nostdinc++
 
+$(BUILD_ROOT)/library/blockcodecs/codecs/snappy/snappy.cpp.pic.o\
+        ::\
+        $(SOURCE_ROOT)/library/blockcodecs/codecs/snappy/snappy.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/library/blockcodecs/codecs/snappy'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/library/blockcodecs/codecs/snappy/snappy.cpp.pic.o' '$(SOURCE_ROOT)/library/blockcodecs/codecs/snappy/snappy.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/library/blockcodecs/codecs/zlib/zlib.cpp.pic.o\
+        ::\
+        $(SOURCE_ROOT)/library/blockcodecs/codecs/zlib/zlib.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/library/blockcodecs/codecs/zlib'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/library/blockcodecs/codecs/zlib/zlib.cpp.pic.o' '$(SOURCE_ROOT)/library/blockcodecs/codecs/zlib/zlib.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/library/blockcodecs/codecs/zstd/zstd.cpp.pic.o\
+        ::\
+        $(SOURCE_ROOT)/library/blockcodecs/codecs/zstd/zstd.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/library/blockcodecs/codecs/zstd'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/library/blockcodecs/codecs/zstd/zstd.cpp.pic.o' '$(SOURCE_ROOT)/library/blockcodecs/codecs/zstd/zstd.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
 $(BUILD_ROOT)/library/blockcodecs/liblibrary-blockcodecs.a.mf\
         ::\
         $(BUILD_ROOT)/library/blockcodecs/liblibrary-blockcodecs.a\
 
 $(BUILD_ROOT)/library/blockcodecs/liblibrary-blockcodecs.a\
         ::\
-        $(BUILD_ROOT)/library/blockcodecs/legacy_zstd06.cpp.pic.o\
         $(BUILD_ROOT)/library/blockcodecs/codecs.cpp.pic.o\
         $(BUILD_ROOT)/library/blockcodecs/stream.cpp.pic.o\
         $(SOURCE_ROOT)/build/scripts/generate_mf.py\
@@ -6136,14 +6331,7 @@ $(BUILD_ROOT)/library/blockcodecs/liblibrary-blockcodecs.a\
 
 	mkdir -p '$(BUILD_ROOT)/library/blockcodecs'
 	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name library-blockcodecs -o library/blockcodecs/liblibrary-blockcodecs.a.mf -t LIBRARY -Ya,lics -Ya,peers
-	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/library/blockcodecs/liblibrary-blockcodecs.a' '$(BUILD_ROOT)/library/blockcodecs/legacy_zstd06.cpp.pic.o' '$(BUILD_ROOT)/library/blockcodecs/codecs.cpp.pic.o' '$(BUILD_ROOT)/library/blockcodecs/stream.cpp.pic.o'
-
-$(BUILD_ROOT)/library/blockcodecs/legacy_zstd06.cpp.pic.o\
-        ::\
-        $(SOURCE_ROOT)/library/blockcodecs/legacy_zstd06.cpp\
-
-	mkdir -p '$(BUILD_ROOT)/library/blockcodecs'
-	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/library/blockcodecs/legacy_zstd06.cpp.pic.o' '$(SOURCE_ROOT)/library/blockcodecs/legacy_zstd06.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/brotli/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/library/blockcodecs/liblibrary-blockcodecs.a' '$(BUILD_ROOT)/library/blockcodecs/codecs.cpp.pic.o' '$(BUILD_ROOT)/library/blockcodecs/stream.cpp.pic.o'
 
 $(BUILD_ROOT)/library/blockcodecs/codecs.cpp.pic.o\
         ::\
@@ -6260,17 +6448,27 @@ $(BUILD_ROOT)/tools/rescompressor/rescompressor\
         $(BUILD_ROOT)/contrib/libs/zlib/libcontrib-libs-zlib.a\
         $(BUILD_ROOT)/contrib/libs/double-conversion/libcontrib-libs-double-conversion.a\
         $(BUILD_ROOT)/util/libyutil.a\
-        $(BUILD_ROOT)/contrib/libs/fastlz/libcontrib-libs-fastlz.a\
-        $(BUILD_ROOT)/contrib/libs/libbz2/libcontrib-libs-libbz2.a\
-        $(BUILD_ROOT)/contrib/libs/lz4/liblz4.a\
-        $(BUILD_ROOT)/contrib/libs/lz4/generated/liblibs-lz4-generated.a\
-        $(BUILD_ROOT)/contrib/libs/lzmasdk/libcontrib-libs-lzmasdk.a\
-        $(BUILD_ROOT)/contrib/libs/snappy/libcontrib-libs-snappy.a\
-        $(BUILD_ROOT)/contrib/libs/zstd06/libcontrib-libs-zstd06.a\
-        $(BUILD_ROOT)/contrib/libs/zstd/libzstd.a\
+        $(BUILD_ROOT)/library/blockcodecs/core/liblibrary-blockcodecs-core.a\
         $(BUILD_ROOT)/contrib/libs/brotli/common/liblibs-brotli-common.a\
         $(BUILD_ROOT)/contrib/libs/brotli/dec/liblibs-brotli-dec.a\
         $(BUILD_ROOT)/contrib/libs/brotli/enc/liblibs-brotli-enc.a\
+        $(BUILD_ROOT)/library/blockcodecs/codecs/brotli/brotli.cpp.pic.o\
+        $(BUILD_ROOT)/contrib/libs/libbz2/libcontrib-libs-libbz2.a\
+        $(BUILD_ROOT)/library/blockcodecs/codecs/bzip/bzip.cpp.pic.o\
+        $(BUILD_ROOT)/contrib/libs/fastlz/libcontrib-libs-fastlz.a\
+        $(BUILD_ROOT)/library/blockcodecs/codecs/fastlz/fastlz.cpp.pic.o\
+        $(BUILD_ROOT)/contrib/libs/zstd06/libcontrib-libs-zstd06.a\
+        $(BUILD_ROOT)/library/blockcodecs/codecs/legacy_zstd06/legacy_zstd06.cpp.pic.o\
+        $(BUILD_ROOT)/contrib/libs/lz4/liblz4.a\
+        $(BUILD_ROOT)/contrib/libs/lz4/generated/liblibs-lz4-generated.a\
+        $(BUILD_ROOT)/library/blockcodecs/codecs/lz4/lz4.cpp.pic.o\
+        $(BUILD_ROOT)/contrib/libs/lzmasdk/libcontrib-libs-lzmasdk.a\
+        $(BUILD_ROOT)/library/blockcodecs/codecs/lzma/lzma.cpp.pic.o\
+        $(BUILD_ROOT)/contrib/libs/snappy/libcontrib-libs-snappy.a\
+        $(BUILD_ROOT)/library/blockcodecs/codecs/snappy/snappy.cpp.pic.o\
+        $(BUILD_ROOT)/library/blockcodecs/codecs/zlib/zlib.cpp.pic.o\
+        $(BUILD_ROOT)/contrib/libs/zstd/libzstd.a\
+        $(BUILD_ROOT)/library/blockcodecs/codecs/zstd/zstd.cpp.pic.o\
         $(BUILD_ROOT)/library/blockcodecs/liblibrary-blockcodecs.a\
         $(BUILD_ROOT)/library/resource/liblibrary-resource.a\
         $(BUILD_ROOT)/tools/rescompressor/main.cpp.pic.o\
@@ -6278,8 +6476,8 @@ $(BUILD_ROOT)/tools/rescompressor/rescompressor\
         $(SOURCE_ROOT)/build/scripts/link_exe.py\
 
 	mkdir -p '$(BUILD_ROOT)/tools/rescompressor'
-	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name rescompressor -o tools/rescompressor/rescompressor.mf -t PROGRAM -Ya,lics -Ya,peers contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a util/charset/libutil-charset.a contrib/libs/zlib/libcontrib-libs-zlib.a contrib/libs/double-conversion/libcontrib-libs-double-conversion.a util/libyutil.a library/malloc/api/liblibrary-malloc-api.a library/lfalloc/liblibrary-lfalloc.a contrib/libs/fastlz/libcontrib-libs-fastlz.a contrib/libs/libbz2/libcontrib-libs-libbz2.a contrib/libs/lz4/liblz4.a contrib/libs/lz4/generated/liblibs-lz4-generated.a contrib/libs/lzmasdk/libcontrib-libs-lzmasdk.a contrib/libs/snappy/libcontrib-libs-snappy.a contrib/libs/zstd06/libcontrib-libs-zstd06.a contrib/libs/zstd/libzstd.a contrib/libs/brotli/common/liblibs-brotli-common.a contrib/libs/brotli/dec/liblibs-brotli-dec.a contrib/libs/brotli/enc/liblibs-brotli-enc.a library/blockcodecs/liblibrary-blockcodecs.a library/resource/liblibrary-resource.a
-	cd $(BUILD_ROOT) && '$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_exe.py' '$(CXX)' '$(BUILD_ROOT)/tools/rescompressor/main.cpp.pic.o' -o '$(BUILD_ROOT)/tools/rescompressor/rescompressor' -rdynamic --target=x86_64-linux-gnu -Wl,--start-group contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a util/charset/libutil-charset.a contrib/libs/zlib/libcontrib-libs-zlib.a contrib/libs/double-conversion/libcontrib-libs-double-conversion.a util/libyutil.a library/malloc/api/liblibrary-malloc-api.a library/lfalloc/liblibrary-lfalloc.a contrib/libs/fastlz/libcontrib-libs-fastlz.a contrib/libs/libbz2/libcontrib-libs-libbz2.a contrib/libs/lz4/liblz4.a contrib/libs/lz4/generated/liblibs-lz4-generated.a contrib/libs/lzmasdk/libcontrib-libs-lzmasdk.a contrib/libs/snappy/libcontrib-libs-snappy.a contrib/libs/zstd06/libcontrib-libs-zstd06.a contrib/libs/zstd/libzstd.a contrib/libs/brotli/common/liblibs-brotli-common.a contrib/libs/brotli/dec/liblibs-brotli-dec.a contrib/libs/brotli/enc/liblibs-brotli-enc.a library/blockcodecs/liblibrary-blockcodecs.a library/resource/liblibrary-resource.a -Wl,--end-group -ldl -lrt -Wl,--no-as-needed -lpthread -lrt -ldl -nodefaultlibs -lpthread -lc -lm
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name rescompressor -o tools/rescompressor/rescompressor.mf -t PROGRAM -Ya,lics -Ya,peers contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a util/charset/libutil-charset.a contrib/libs/zlib/libcontrib-libs-zlib.a contrib/libs/double-conversion/libcontrib-libs-double-conversion.a util/libyutil.a library/malloc/api/liblibrary-malloc-api.a library/lfalloc/liblibrary-lfalloc.a library/blockcodecs/core/liblibrary-blockcodecs-core.a contrib/libs/brotli/common/liblibs-brotli-common.a contrib/libs/brotli/dec/liblibs-brotli-dec.a contrib/libs/brotli/enc/liblibs-brotli-enc.a contrib/libs/libbz2/libcontrib-libs-libbz2.a contrib/libs/fastlz/libcontrib-libs-fastlz.a contrib/libs/zstd06/libcontrib-libs-zstd06.a contrib/libs/lz4/liblz4.a contrib/libs/lz4/generated/liblibs-lz4-generated.a contrib/libs/lzmasdk/libcontrib-libs-lzmasdk.a contrib/libs/snappy/libcontrib-libs-snappy.a contrib/libs/zstd/libzstd.a library/blockcodecs/liblibrary-blockcodecs.a library/resource/liblibrary-resource.a
+	cd $(BUILD_ROOT) && '$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_exe.py' '$(CXX)' library/blockcodecs/codecs/brotli/brotli.cpp.pic.o library/blockcodecs/codecs/bzip/bzip.cpp.pic.o library/blockcodecs/codecs/fastlz/fastlz.cpp.pic.o library/blockcodecs/codecs/legacy_zstd06/legacy_zstd06.cpp.pic.o library/blockcodecs/codecs/lz4/lz4.cpp.pic.o library/blockcodecs/codecs/lzma/lzma.cpp.pic.o library/blockcodecs/codecs/snappy/snappy.cpp.pic.o library/blockcodecs/codecs/zlib/zlib.cpp.pic.o library/blockcodecs/codecs/zstd/zstd.cpp.pic.o '$(BUILD_ROOT)/tools/rescompressor/main.cpp.pic.o' -o '$(BUILD_ROOT)/tools/rescompressor/rescompressor' -rdynamic --target=x86_64-linux-gnu -Wl,--start-group contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a util/charset/libutil-charset.a contrib/libs/zlib/libcontrib-libs-zlib.a contrib/libs/double-conversion/libcontrib-libs-double-conversion.a util/libyutil.a library/malloc/api/liblibrary-malloc-api.a library/lfalloc/liblibrary-lfalloc.a library/blockcodecs/core/liblibrary-blockcodecs-core.a contrib/libs/brotli/common/liblibs-brotli-common.a contrib/libs/brotli/dec/liblibs-brotli-dec.a contrib/libs/brotli/enc/liblibs-brotli-enc.a contrib/libs/libbz2/libcontrib-libs-libbz2.a contrib/libs/fastlz/libcontrib-libs-fastlz.a contrib/libs/zstd06/libcontrib-libs-zstd06.a contrib/libs/lz4/liblz4.a contrib/libs/lz4/generated/liblibs-lz4-generated.a contrib/libs/lzmasdk/libcontrib-libs-lzmasdk.a contrib/libs/snappy/libcontrib-libs-snappy.a contrib/libs/zstd/libzstd.a library/blockcodecs/liblibrary-blockcodecs.a library/resource/liblibrary-resource.a -Wl,--end-group -ldl -lrt -Wl,--no-as-needed -lpthread -lrt -ldl -nodefaultlibs -lpthread -lc -lm
 
 $(BUILD_ROOT)/tools/rescompressor/main.cpp.pic.o\
         ::\
@@ -10001,8 +10199,37 @@ clean\
 	rm -f '$(BUILD_ROOT)/catboost/libs/options/enums.h_serialized.cpp'
 	rm -f '$(BUILD_ROOT)/catboost/libs/options/json_helper.h_serialized.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/catboost/libs/options/json_helper.h_serialized.cpp'
-	rm -f '$(BUILD_ROOT)/contrib/libs/fastlz/libcontrib-libs-fastlz.a' '$(BUILD_ROOT)/contrib/libs/fastlz/libcontrib-libs-fastlz.a.mf'
-	rm -f '$(BUILD_ROOT)/contrib/libs/fastlz/fastlz.c.pic.o'
+	rm -f '$(BUILD_ROOT)/library/blockcodecs/core/liblibrary-blockcodecs-core.a' '$(BUILD_ROOT)/library/blockcodecs/core/liblibrary-blockcodecs-core.a.mf'
+	rm -f '$(BUILD_ROOT)/library/blockcodecs/core/codecs.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/library/blockcodecs/core/stream.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/brotli/common/liblibs-brotli-common.a' '$(BUILD_ROOT)/contrib/libs/brotli/common/liblibs-brotli-common.a.mf'
+	rm -f '$(BUILD_ROOT)/contrib/libs/brotli/common/dictionary.c.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/brotli/common/transform.c.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/brotli/dec/liblibs-brotli-dec.a' '$(BUILD_ROOT)/contrib/libs/brotli/dec/liblibs-brotli-dec.a.mf'
+	rm -f '$(BUILD_ROOT)/contrib/libs/brotli/dec/bit_reader.c.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/brotli/dec/decode.c.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/brotli/dec/huffman.c.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/brotli/dec/state.c.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/brotli/enc/liblibs-brotli-enc.a' '$(BUILD_ROOT)/contrib/libs/brotli/enc/liblibs-brotli-enc.a.mf'
+	rm -f '$(BUILD_ROOT)/contrib/libs/brotli/enc/backward_references.c.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/brotli/enc/backward_references_hq.c.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/brotli/enc/bit_cost.c.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/brotli/enc/block_splitter.c.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/brotli/enc/brotli_bit_stream.c.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/brotli/enc/cluster.c.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/brotli/enc/compress_fragment.c.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/brotli/enc/compress_fragment_two_pass.c.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/brotli/enc/dictionary_hash.c.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/brotli/enc/encode.c.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/brotli/enc/encoder_dict.c.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/brotli/enc/entropy_encode.c.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/brotli/enc/histogram.c.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/brotli/enc/literal_cost.c.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/brotli/enc/memory.c.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/brotli/enc/metablock.c.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/brotli/enc/static_dict.c.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/brotli/enc/utf8_util.c.pic.o'
+	rm -f '$(BUILD_ROOT)/library/blockcodecs/codecs/brotli/brotli.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/contrib/libs/libbz2/libcontrib-libs-libbz2.a' '$(BUILD_ROOT)/contrib/libs/libbz2/libcontrib-libs-libbz2.a.mf'
 	rm -f '$(BUILD_ROOT)/contrib/libs/libbz2/randtable.c.pic.o'
 	rm -f '$(BUILD_ROOT)/contrib/libs/libbz2/crctable.c.pic.o'
@@ -10011,37 +10238,10 @@ clean\
 	rm -f '$(BUILD_ROOT)/contrib/libs/libbz2/decompress.c.pic.o'
 	rm -f '$(BUILD_ROOT)/contrib/libs/libbz2/blocksort.c.pic.o'
 	rm -f '$(BUILD_ROOT)/contrib/libs/libbz2/huffman.c.pic.o'
-	rm -f '$(BUILD_ROOT)/contrib/libs/lz4/liblz4.a' '$(BUILD_ROOT)/contrib/libs/lz4/liblz4.a.mf'
-	rm -f '$(BUILD_ROOT)/contrib/libs/lz4/lz4.c.pic.o'
-	rm -f '$(BUILD_ROOT)/contrib/libs/lz4/lz4frame.c.pic.o'
-	rm -f '$(BUILD_ROOT)/contrib/libs/lz4/lz4hc.c.pic.o'
-	rm -f '$(BUILD_ROOT)/contrib/libs/lz4/xxhash.c.pic.o'
-	rm -f '$(BUILD_ROOT)/contrib/libs/lz4/generated/liblibs-lz4-generated.a' '$(BUILD_ROOT)/contrib/libs/lz4/generated/liblibs-lz4-generated.a.mf'
-	rm -f '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_10.cpp.pic.o'
-	rm -f '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_11.cpp.pic.o'
-	rm -f '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_12.cpp.pic.o'
-	rm -f '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_13.cpp.pic.o'
-	rm -f '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_14.cpp.pic.o'
-	rm -f '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_15.cpp.pic.o'
-	rm -f '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_16.cpp.pic.o'
-	rm -f '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_17.cpp.pic.o'
-	rm -f '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_18.cpp.pic.o'
-	rm -f '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_19.cpp.pic.o'
-	rm -f '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_20.cpp.pic.o'
-	rm -f '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4methods.cpp.pic.o'
-	rm -f '$(BUILD_ROOT)/contrib/libs/lzmasdk/libcontrib-libs-lzmasdk.a' '$(BUILD_ROOT)/contrib/libs/lzmasdk/libcontrib-libs-lzmasdk.a.mf'
-	rm -f '$(BUILD_ROOT)/contrib/libs/lzmasdk/7zStream.c.pic.o'
-	rm -f '$(BUILD_ROOT)/contrib/libs/lzmasdk/Alloc.c.pic.o'
-	rm -f '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaDec.c.pic.o'
-	rm -f '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaEnc.c.pic.o'
-	rm -f '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzFind.c.pic.o'
-	rm -f '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaLib.c.pic.o'
-	rm -f '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaUtil.c.pic.o'
-	rm -f '$(BUILD_ROOT)/contrib/libs/snappy/libcontrib-libs-snappy.a' '$(BUILD_ROOT)/contrib/libs/snappy/libcontrib-libs-snappy.a.mf'
-	rm -f '$(BUILD_ROOT)/contrib/libs/snappy/snappy.cc.pic.o'
-	rm -f '$(BUILD_ROOT)/contrib/libs/snappy/snappy-c.cc.pic.o'
-	rm -f '$(BUILD_ROOT)/contrib/libs/snappy/snappy-stubs-internal.cc.pic.o'
-	rm -f '$(BUILD_ROOT)/contrib/libs/snappy/snappy-sinksource.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/library/blockcodecs/codecs/bzip/bzip.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/fastlz/libcontrib-libs-fastlz.a' '$(BUILD_ROOT)/contrib/libs/fastlz/libcontrib-libs-fastlz.a.mf'
+	rm -f '$(BUILD_ROOT)/contrib/libs/fastlz/fastlz.c.pic.o'
+	rm -f '$(BUILD_ROOT)/library/blockcodecs/codecs/fastlz/fastlz.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/contrib/libs/zstd06/libcontrib-libs-zstd06.a' '$(BUILD_ROOT)/contrib/libs/zstd06/libcontrib-libs-zstd06.a.mf'
 	rm -f '$(BUILD_ROOT)/contrib/libs/zstd06/common/entropy_common.c.pic.o'
 	rm -f '$(BUILD_ROOT)/contrib/libs/zstd06/common/fse_decompress.c.pic.o'
@@ -10063,6 +10263,42 @@ clean\
 	rm -f '$(BUILD_ROOT)/contrib/libs/zstd06/legacy/zstd_v05.c.pic.o'
 	rm -f '$(BUILD_ROOT)/contrib/libs/zstd06/legacy/zstd_v07.c.pic.o'
 	rm -f '$(BUILD_ROOT)/contrib/libs/zstd06/legacy/zstd_v08.c.pic.o'
+	rm -f '$(BUILD_ROOT)/library/blockcodecs/codecs/legacy_zstd06/legacy_zstd06.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/lz4/liblz4.a' '$(BUILD_ROOT)/contrib/libs/lz4/liblz4.a.mf'
+	rm -f '$(BUILD_ROOT)/contrib/libs/lz4/lz4.c.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/lz4/lz4frame.c.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/lz4/lz4hc.c.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/lz4/xxhash.c.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/lz4/generated/liblibs-lz4-generated.a' '$(BUILD_ROOT)/contrib/libs/lz4/generated/liblibs-lz4-generated.a.mf'
+	rm -f '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_10.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_11.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_12.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_13.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_14.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_15.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_16.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_17.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_18.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_19.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_20.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4methods.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/library/blockcodecs/codecs/lz4/lz4.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/lzmasdk/libcontrib-libs-lzmasdk.a' '$(BUILD_ROOT)/contrib/libs/lzmasdk/libcontrib-libs-lzmasdk.a.mf'
+	rm -f '$(BUILD_ROOT)/contrib/libs/lzmasdk/7zStream.c.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/lzmasdk/Alloc.c.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaDec.c.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaEnc.c.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzFind.c.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaLib.c.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaUtil.c.pic.o'
+	rm -f '$(BUILD_ROOT)/library/blockcodecs/codecs/lzma/lzma.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/snappy/libcontrib-libs-snappy.a' '$(BUILD_ROOT)/contrib/libs/snappy/libcontrib-libs-snappy.a.mf'
+	rm -f '$(BUILD_ROOT)/contrib/libs/snappy/snappy.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/snappy/snappy-c.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/snappy/snappy-stubs-internal.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/snappy/snappy-sinksource.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/library/blockcodecs/codecs/snappy/snappy.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/library/blockcodecs/codecs/zlib/zlib.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/contrib/libs/zstd/libzstd.a' '$(BUILD_ROOT)/contrib/libs/zstd/libzstd.a.mf'
 	rm -f '$(BUILD_ROOT)/contrib/libs/zstd/common/entropy_common.c.pic.o'
 	rm -f '$(BUILD_ROOT)/contrib/libs/zstd/common/error_private.c.pic.o'
@@ -10095,35 +10331,8 @@ clean\
 	rm -f '$(BUILD_ROOT)/contrib/libs/zstd/legacy/zstd_v05.c.pic.o'
 	rm -f '$(BUILD_ROOT)/contrib/libs/zstd/legacy/zstd_v06.c.pic.o'
 	rm -f '$(BUILD_ROOT)/contrib/libs/zstd/legacy/zstd_v07.c.pic.o'
-	rm -f '$(BUILD_ROOT)/contrib/libs/brotli/common/liblibs-brotli-common.a' '$(BUILD_ROOT)/contrib/libs/brotli/common/liblibs-brotli-common.a.mf'
-	rm -f '$(BUILD_ROOT)/contrib/libs/brotli/common/dictionary.c.pic.o'
-	rm -f '$(BUILD_ROOT)/contrib/libs/brotli/common/transform.c.pic.o'
-	rm -f '$(BUILD_ROOT)/contrib/libs/brotli/dec/liblibs-brotli-dec.a' '$(BUILD_ROOT)/contrib/libs/brotli/dec/liblibs-brotli-dec.a.mf'
-	rm -f '$(BUILD_ROOT)/contrib/libs/brotli/dec/bit_reader.c.pic.o'
-	rm -f '$(BUILD_ROOT)/contrib/libs/brotli/dec/decode.c.pic.o'
-	rm -f '$(BUILD_ROOT)/contrib/libs/brotli/dec/huffman.c.pic.o'
-	rm -f '$(BUILD_ROOT)/contrib/libs/brotli/dec/state.c.pic.o'
-	rm -f '$(BUILD_ROOT)/contrib/libs/brotli/enc/liblibs-brotli-enc.a' '$(BUILD_ROOT)/contrib/libs/brotli/enc/liblibs-brotli-enc.a.mf'
-	rm -f '$(BUILD_ROOT)/contrib/libs/brotli/enc/backward_references.c.pic.o'
-	rm -f '$(BUILD_ROOT)/contrib/libs/brotli/enc/backward_references_hq.c.pic.o'
-	rm -f '$(BUILD_ROOT)/contrib/libs/brotli/enc/bit_cost.c.pic.o'
-	rm -f '$(BUILD_ROOT)/contrib/libs/brotli/enc/block_splitter.c.pic.o'
-	rm -f '$(BUILD_ROOT)/contrib/libs/brotli/enc/brotli_bit_stream.c.pic.o'
-	rm -f '$(BUILD_ROOT)/contrib/libs/brotli/enc/cluster.c.pic.o'
-	rm -f '$(BUILD_ROOT)/contrib/libs/brotli/enc/compress_fragment.c.pic.o'
-	rm -f '$(BUILD_ROOT)/contrib/libs/brotli/enc/compress_fragment_two_pass.c.pic.o'
-	rm -f '$(BUILD_ROOT)/contrib/libs/brotli/enc/dictionary_hash.c.pic.o'
-	rm -f '$(BUILD_ROOT)/contrib/libs/brotli/enc/encode.c.pic.o'
-	rm -f '$(BUILD_ROOT)/contrib/libs/brotli/enc/encoder_dict.c.pic.o'
-	rm -f '$(BUILD_ROOT)/contrib/libs/brotli/enc/entropy_encode.c.pic.o'
-	rm -f '$(BUILD_ROOT)/contrib/libs/brotli/enc/histogram.c.pic.o'
-	rm -f '$(BUILD_ROOT)/contrib/libs/brotli/enc/literal_cost.c.pic.o'
-	rm -f '$(BUILD_ROOT)/contrib/libs/brotli/enc/memory.c.pic.o'
-	rm -f '$(BUILD_ROOT)/contrib/libs/brotli/enc/metablock.c.pic.o'
-	rm -f '$(BUILD_ROOT)/contrib/libs/brotli/enc/static_dict.c.pic.o'
-	rm -f '$(BUILD_ROOT)/contrib/libs/brotli/enc/utf8_util.c.pic.o'
+	rm -f '$(BUILD_ROOT)/library/blockcodecs/codecs/zstd/zstd.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/library/blockcodecs/liblibrary-blockcodecs.a' '$(BUILD_ROOT)/library/blockcodecs/liblibrary-blockcodecs.a.mf'
-	rm -f '$(BUILD_ROOT)/library/blockcodecs/legacy_zstd06.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/library/blockcodecs/codecs.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/library/blockcodecs/stream.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/library/resource/liblibrary-resource.a' '$(BUILD_ROOT)/library/resource/liblibrary-resource.a.mf'
@@ -10132,12 +10341,23 @@ clean\
 	rm -f '$(BUILD_ROOT)/catboost/libs/model/model_export/1cc3e14d43bed0c73ca4b4b233.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/catboost/libs/model/model_export/1cc3e14d43bed0c73ca4b4b233.cpp'
 	rm -f '$(BUILD_ROOT)/tools/rorescompiler/rorescompiler' '$(BUILD_ROOT)/tools/rorescompiler/rorescompiler.mf'
+	rm -f '$(BUILD_ROOT)/library/blockcodecs/core/liblibrary-blockcodecs-core.a' '$(BUILD_ROOT)/library/blockcodecs/core/liblibrary-blockcodecs-core.a.mf'
+	rm -f '$(BUILD_ROOT)/library/blockcodecs/core/codecs.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/library/blockcodecs/core/stream.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/library/blockcodecs/codecs/brotli/brotli.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/library/blockcodecs/codecs/bzip/bzip.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/library/blockcodecs/codecs/fastlz/fastlz.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/library/blockcodecs/codecs/legacy_zstd06/legacy_zstd06.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/library/blockcodecs/codecs/lz4/lz4.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/library/blockcodecs/codecs/lzma/lzma.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/contrib/libs/snappy/libcontrib-libs-snappy.a' '$(BUILD_ROOT)/contrib/libs/snappy/libcontrib-libs-snappy.a.mf'
 	rm -f '$(BUILD_ROOT)/contrib/libs/snappy/snappy.cc.pic.o'
 	rm -f '$(BUILD_ROOT)/contrib/libs/snappy/snappy-c.cc.pic.o'
 	rm -f '$(BUILD_ROOT)/contrib/libs/snappy/snappy-stubs-internal.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/library/blockcodecs/codecs/snappy/snappy.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/library/blockcodecs/codecs/zlib/zlib.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/library/blockcodecs/codecs/zstd/zstd.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/library/blockcodecs/liblibrary-blockcodecs.a' '$(BUILD_ROOT)/library/blockcodecs/liblibrary-blockcodecs.a.mf'
-	rm -f '$(BUILD_ROOT)/library/blockcodecs/legacy_zstd06.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/library/blockcodecs/codecs.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/library/blockcodecs/stream.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/library/resource/liblibrary-resource.a' '$(BUILD_ROOT)/library/resource/liblibrary-resource.a.mf'
