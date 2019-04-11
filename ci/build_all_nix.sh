@@ -21,12 +21,14 @@ function python_version {
     esac
 }
 
-case `uname -s` in
-    Linux) OS_SDK="-DOS_SDK=ubuntu-10" USE_SYSTEM_PYTHON="-DUSE_SYSTEM_PYTHON=`python_version python`" ;;
-    *) OS_SDK="-DOS_SDK=local" ;;
-esac
+function os_sdk {
+    case `uname -s` in
+        Linux) echo "-DOS_SDK=ubuntu-10 -DUSE_SYSTEM_PYTHON=`python_version python`" ;;
+        *) echo "-DOS_SDK=local" ;;
+    esac
+}
 
-python ya make -r -DNO_DEBUGINFO $OS_SDK $USE_SYSTEM_PYTHON $CUDA_ARG -o . catboost/app
+python ya make -r -DNO_DEBUGINFO $(os_sdk) $CUDA_ARG -o . catboost/app
 
 echo "Starting R package build"
 cd catboost/R-package
@@ -42,7 +44,7 @@ cp -r inst catboost
 cp -r man catboost
 cp -r tests catboost
 
-python ../../ya make -r -DNO_DEBUGINFO -T src $OS_SDK $USE_SYSTEM_PYTHON $CUDA_ARG
+python ../../ya make -r -DNO_DEBUGINFO -T src $(os_sdk) $CUDA_ARG
 
 mkdir -p catboost/inst/libs
 cp $(readlink src/libcatboostr.so) catboost/inst/libs
@@ -54,19 +56,19 @@ cd ../python-package
 PY27=2.7.14
 pyenv install -s $PY27
 pyenv shell $PY27
-python mk_wheel.py $OS_SDK -DUSE_SYSTEM_PYTHON=2.7 $CUDA_ARG -DPYTHON_CONFIG=$(pyenv prefix)/bin/python2-config
+python mk_wheel.py $(os_sdk) $CUDA_ARG -DPYTHON_CONFIG=$(pyenv prefix)/bin/python2-config
 
 PY35=3.5.5
 pyenv install -s $PY35
 pyenv shell $PY35
-python mk_wheel.py $OS_SDK -DUSE_SYSTEM_PYTHON=3.5 $CUDA_ARG -DPYTHON_CONFIG=$(pyenv prefix)/bin/python3-config
+python mk_wheel.py $(os_sdk) $CUDA_ARG -DPYTHON_CONFIG=$(pyenv prefix)/bin/python3-config
 
 PY36=3.6.6
 pyenv install -s $PY36
 pyenv shell $PY36
-python mk_wheel.py $OS_SDK -DUSE_SYSTEM_PYTHON=3.6 $CUDA_ARG -DPYTHON_CONFIG=$(pyenv prefix)/bin/python3-config
+python mk_wheel.py $(os_sdk) $CUDA_ARG -DPYTHON_CONFIG=$(pyenv prefix)/bin/python3-config
 
 PY37=3.7.0
 pyenv install -s $PY37
 pyenv shell $PY37
-python mk_wheel.py $OS_SDK -DUSE_SYSTEM_PYTHON=3.7 $CUDA_ARG -DPYTHON_CONFIG=$(pyenv prefix)/bin/python3-config
+python mk_wheel.py $(os_sdk) $CUDA_ARG -DPYTHON_CONFIG=$(pyenv prefix)/bin/python3-config
