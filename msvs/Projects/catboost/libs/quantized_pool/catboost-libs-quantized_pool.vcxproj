@@ -113,6 +113,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\quantized_pool\print.h_serialized.cpp;</Outputs>
     </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\quantized_pool\detail.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\quantized_pool\loader.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\quantized_pool\pool.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\quantized_pool\quantized.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\quantized_pool\serialization.h"/>
