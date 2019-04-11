@@ -43,20 +43,21 @@ class CatboostEvaluation(object):
                  min_fold_count=1):
         """
         Args:
-            :param path_to_dataset: (str) Path to dataset to be used for evaluation.
+            :param path_to_dataset: (str) Path to the dataset to be used for evaluation.
             :param fold_size: (int) Size of the folds in cross-validation.
-            :param folds_count: (int) Number of times we get new fold, learn model and check results as if there wouldn't be
-            any offset. If there'are some offset it means that the real count of folds will be smaller.
-            :param fold_offset: (int) Number of folds we skip before begin to make cross-validation.
-            :param set_features_for_eval: Numbers of features to be evaluated. Numeration begins from zero. It corresponds
-            to column description if it exists.
-            :param sep: (str) Delimiter of dataset.
-            :param partition_random_seed: (int) The seed using in random for getting permutations for cross-validation.
-            :param min_fold_count: (int) Minimun amount of folds dataset can be cut to.
+            :param fold_count: (int) Number of times we get a new fold, learn a model and check results as if
+            there wouldn't be any offset. If there'are some offset it means that the real count of folds will
+            be smaller.
             :param column_description: (str) Path to the file where column description is placed.
+            :param fold_offset: (int) Number of folds we skip before begin to make cross-validation.
+            :param group_column: (int) GroupId column index in the dataset file.
+            'None' value means absence of grouping information in the dataset (it's the default).
+            :param working_dir: Working dir for temporary files
             :param remove_models: (bool) Set true if you want models to be removed after applying them.
-            :param group_column: (int) Number of feature that represents a group numeration. Numeration begins from
-            zero. It corresponds to the initial dataset.
+            :param delimiter: (str) Field delimiter used in dataset files.
+            :param partition_random_seed: (int) The seed for random value generator used for getting permutations for
+             cross-validation.
+            :param min_fold_count: (int) Minimun amount of folds dataset can be cut to.
         """
         import os.path
 
@@ -155,7 +156,7 @@ class CatboostEvaluation(object):
         Args:
             :param cases: List of the ExecutionCases you want to evaluate
             :param metrics: List of the metrics to be computed
-            :param thread_count: Count of thread to use.
+            :param thread_count: Count of threads to use.
             :param: evaluation_step: Step to evaluate metrics
             :return: instance of EvaluationResult
         """
@@ -204,8 +205,8 @@ class CatboostEvaluation(object):
         """ Evaluate features.
             Args:
             learn_config: dict with params or instance of CatBoost. In second case instance params will be used
-            objective_function:
-            objective_function: one of CatBoost loss functions
+            features_to_eval: list of indices of features to evaluate
+            loss_function: one of CatBoost loss functions, get it from learn_config if not specified
             eval_type: Type of feature evaluate (All, SeqAdd, SeqRem)
             eval_metrics: Additional metrics to calculate
             thread_count: thread_count to use. If not none will override learn_config values

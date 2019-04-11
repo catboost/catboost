@@ -28,11 +28,13 @@ class ScoreConfig:
                  interval_level=0.01,
                  overfit_iterations_info=True):
         """
+
+        :param score_type: type of score. For abs difference score will be (baseline - test).mean(),
+        for relative it's ((baseline - test) / baseline).mean()
         :param multiplier: multiplier to print score
-        :param score_type: type of score. For abs difference score will be (baseline - test).mean(), for relative it's ((baseline - test) / baseline).mean()
         :param score_level: WX-test level. Will be used to make if tested case significantly better or worse
         :param interval_level: level to compute score confidence interval
-        :param overfit_iterations_info: if information about oberfit iterations should be prested
+        :param overfit_iterations_info: if information about overfit iterations should be preserved
         """
         self.type = score_type
         self.multiplier = multiplier
@@ -81,7 +83,7 @@ def calc_bootstrap_ci_for_mean(samples, level=0.05, tries=999):
 
 class CaseEvaluationResult:
     """
-        CaseEvaluationResults stores aggregated statistics for once EvaluationCase and one metric.
+        CaseEvaluationResults stores aggregated statistics for one EvaluationCase and one metric.
     """
 
     def __init__(self, case, metric_description, eval_step):
@@ -121,12 +123,14 @@ class CaseEvaluationResult:
 
     def get_fold_ids(self):
         """
-        :return: FoldsIds for which this caseResult was calculatee
+
+        :return: FoldsIds for which this caseResult was calculated
         """
         return self._fold_curves.keys()
 
     def get_best_metric_for_fold(self, fold):
         """
+
         :param fold: id of fold to get result
         :return: best metric value, best metric iteration
         """
@@ -134,18 +138,21 @@ class CaseEvaluationResult:
 
     def get_best_iterations(self):
         """
+
         :return: pandas Series with best iterations on all folds
         """
         return self._fold_metric_iteration
 
     def get_best_metrics(self):
         """
+
         :return: pandas series with best metric values
         """
         return self._fold_metric
 
     def get_fold_curve(self, fold):
         """
+
         :param fold:
         :return: fold learning curve (test scores on every eval_period iteration)
         """
@@ -160,6 +167,7 @@ class CaseEvaluationResult:
 
     def get_eval_step(self):
         """
+
         :return: step which was used for metric computations
         """
         return self._eval_step
@@ -167,7 +175,7 @@ class CaseEvaluationResult:
     def count_under_and_over_fits(self, overfit_border=0.15, underfit_border=0.95):
         """
 
-        :param overfit_border: min fraction of iterations untill overffiting stars one excpects all models to have
+        :param overfit_border: min fraction of iterations until overfitting starts one expects all models to have
         :param underfit_border: border, after which there should be no best_metric_scores
         :return: #models with best_metric > underfit_border * iter_count, #models, with best_metric > overfit_border
         """
@@ -185,7 +193,8 @@ class CaseEvaluationResult:
 
     def estimate_fit_quality(self):
         """
-        :return: Simple sanity check that all models overfitt and not too fast
+
+        :return: Simple sanity check that all models overfit and not too fast
         """
         count_overfitting, count_underfitting = self.count_under_and_over_fits()
         if count_overfitting > count_underfitting:
@@ -196,6 +205,7 @@ class CaseEvaluationResult:
 
     def create_learning_curves_plot(self, offset=None):
         """
+
         :param offset: First iteration to plot
         :return: plotly Figure with learning curves for each fold
         """
@@ -334,7 +344,7 @@ class MetricEvaluationResult:
     def get_baseline_case(self):
         """
 
-        :return: ExecutionCases used as baseline (with everything else is compared)
+        :return: ExecutionCases used as a baseline (with everything else is compared)
         """
         return self._baseline_case
 
@@ -355,20 +365,24 @@ class MetricEvaluationResult:
     def get_baseline_comparison(self, score_config=None):
         """
         Method to get human-friendly table with model comparisons.
+
         Returns baseline vs all other computed cases result
         :param score_config: Config to present human-friendly score, optional. Instance of ScoreConfig
         :return: pandas DataFrame. Each row is related to one ExecutionCase.
-        Each row describes how better (or worse) this case compared to baseline.
+        Each row describes how better (or worse) this case is compared to baseline.
         """
         case = self._baseline_case
         return self.get_case_comparison(case, score_config)
 
     def get_case_comparison(self, case, score_config=None):
         """
-        Same as previous method, but with other non-baseline case specified as baseline
+        Method to get human-friendly table with model comparisons.
+        Same as get_baseline_comparison(), but with other non-baseline case specified as baseline
+
         :param case: use specified case as baseline
         :param score_config:
-        :return:
+        :return: pandas DataFrame. Each row is related to one ExecutionCase.
+        Each row describes how better (or worse) this case is compared to baseline.
         """
         self._change_score_config(score_config)
         if case not in self._case_comparisons:
@@ -377,6 +391,7 @@ class MetricEvaluationResult:
 
     def change_baseline_case(self, case):
         """
+
         :param case: new baseline case
         :return:
         """
@@ -386,6 +401,7 @@ class MetricEvaluationResult:
 
     def get_case_result(self, case):
         """
+
         :param case:
         :return: CaseEvaluationResult. Scores and other information about single execution case
         """
@@ -479,17 +495,16 @@ class EvaluationResults:
 
     def get_metrics(self):
         """
-        Returns
-        -------
-            Metric names which were computed
+
+        :return: Names of the metrics which were computed
         """
         return self._metrics
 
     def get_results(self):
         """
-        Returns
-        -------
-            Results are map from metric names to computed results (instance of MetricEvaluationResult) on this fold
+
+        :return: Results are the map from metric names to computed results (instance of MetricEvaluationResult)
+         on this fold
         """
         return self._results
 

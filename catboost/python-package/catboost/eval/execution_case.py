@@ -15,8 +15,8 @@ class ExecutionCase:
         """
             Instances of this class are cases which will be compared during evaluation
             Params are CatBoost params
-            label is string which will be used for plots and other visualisations
-            ignored_features is set of additional features to ignore
+            label is a string which will be used for plots and other visualisations
+            ignored_features is a set of additional feature indices to ignore
         """
         case_params = dict(params)
 
