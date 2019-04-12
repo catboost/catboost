@@ -73,9 +73,9 @@
         "go_1.12.1": { "description": "Run go tool (1.12.1)" },
         "godoc_1.12.1": { "description": "Run godoc tool (1.12.1)" },
         "gofmt_1.12.1": { "description": "Run gofmt tool (1.12.1)" },
-        "go": { "description": "Run go tool (1.12.3)" },
-        "godoc": { "description": "Run godoc tool (1.12.3)" },
-        "gofmt": { "description": "Run gofmt tool (1.12.3)" },
+        "go": { "description": "Run go tool (1.12.4)" },
+        "godoc": { "description": "Run godoc tool (1.12.4)" },
+        "gofmt": { "description": "Run gofmt tool (1.12.4)" },
         "yo": { "description": "Tool for managing vendor/ directory" },
         "tvmknife": { "description": "Tool for debugging and testing with TVM tickets" },
         "sandboxctl": { "description": "Tool to run tasks in Sandbox" },
@@ -1386,12 +1386,12 @@
                 "version": "1.12.1"
             }
         },
-        "golang_1_12_3": {
+        "golang_1_12_4": {
             "tools": {
-                "golang": {"bottle": "golang_1.12.3",  "executable": "golang"},
-                "go": {"bottle": "golang_1.12.3",  "executable": "go"},
-                "godoc": {"bottle": "golang_1.12.3",  "executable": "godoc"},
-                "gofmt": {"bottle": "golang_1.12.3",  "executable": "gofmt"}
+                "golang": {"bottle": "golang_1.12.4",  "executable": "golang"},
+                "go": {"bottle": "golang_1.12.4",  "executable": "go"},
+                "godoc": {"bottle": "golang_1.12.4",  "executable": "godoc"},
+                "gofmt": {"bottle": "golang_1.12.4",  "executable": "gofmt"}
             },
             "platforms": [
                 {"host": {"os": "LINUX"}, "default": true},
@@ -1400,7 +1400,7 @@
             ],
             "params": {
                 "type": "golang",
-                "version": "1.12.3"
+                "version": "1.12.4"
             }
         },
         "yfm": {
@@ -2271,9 +2271,9 @@
                 "gofmt_1.12.1": ["bin", "gofmt"]
             }
         },
-        "golang_1.12.3": {
+        "golang_1.12.4": {
             "formula": {
-                "sandbox_id": [410171411, 410172392, 410173116],
+                "sandbox_id": [412009563, 412010042, 412010635],
                 "match": "GOLANG"
             },
             "executable": {
