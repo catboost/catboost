@@ -1403,37 +1403,37 @@
     ],
     "test.test_dist_train_quantized[calc_block=5000000]": [
         {
-            "checksum": "47c9e52668e63e4d3cfd9abadfacd257",
+            "checksum": "e548cf2007b782d6918b7c751c043413",
             "uri": "file://test.test_dist_train_quantized_calc_block=5000000_/test_1.eval"
         }
     ],
     "test.test_dist_train_quantized[calc_block=60]": [
         {
-            "checksum": "47c9e52668e63e4d3cfd9abadfacd257",
+            "checksum": "e548cf2007b782d6918b7c751c043413",
             "uri": "file://test.test_dist_train_quantized_calc_block=60_/test_1.eval"
         }
     ],
     "test.test_dist_train_quantized_baseline[calc_block=5000000]": [
         {
-            "checksum": "c1b939f75ff37ed62659638c2df602e2",
+            "checksum": "59117494bd9219c3db135a0f1938fc15",
             "uri": "file://test.test_dist_train_quantized_baseline_calc_block=5000000_/test_1.eval"
         }
     ],
     "test.test_dist_train_quantized_baseline[calc_block=60]": [
         {
-            "checksum": "c1b939f75ff37ed62659638c2df602e2",
+            "checksum": "59117494bd9219c3db135a0f1938fc15",
             "uri": "file://test.test_dist_train_quantized_baseline_calc_block=60_/test_1.eval"
         }
     ],
     "test.test_dist_train_quantized_group_weights[calc_block=5000000]": [
         {
-            "checksum": "050c08f94409cc1d0f5c3e901c32268b",
+            "checksum": "f96b4e5d8c6a2cf030fcdf81f8a09fac",
             "uri": "file://test.test_dist_train_quantized_group_weights_calc_block=5000000_/test_1.eval"
         }
     ],
     "test.test_dist_train_quantized_group_weights[calc_block=60]": [
         {
-            "checksum": "050c08f94409cc1d0f5c3e901c32268b",
+            "checksum": "f96b4e5d8c6a2cf030fcdf81f8a09fac",
             "uri": "file://test.test_dist_train_quantized_group_weights_calc_block=60_/test_1.eval"
         }
     ],
@@ -1463,25 +1463,25 @@
     ],
     "test.test_dist_train_quantized_groupid[QuerySoftMax-train.pairs-calc_block=5000000]": [
         {
-            "checksum": "5b63810d20ea835146a63ef441c5cf89",
+            "checksum": "e6ee9a26743e89849bb91dd166a7b637",
             "uri": "file://test.test_dist_train_quantized_groupid_QuerySoftMax-train.pairs-calc_block=5000000_/test_1.eval"
         }
     ],
     "test.test_dist_train_quantized_groupid[QuerySoftMax-train.pairs-calc_block=60]": [
         {
-            "checksum": "5b63810d20ea835146a63ef441c5cf89",
+            "checksum": "e6ee9a26743e89849bb91dd166a7b637",
             "uri": "file://test.test_dist_train_quantized_groupid_QuerySoftMax-train.pairs-calc_block=60_/test_1.eval"
         }
     ],
     "test.test_dist_train_quantized_groupid[QuerySoftMax-train.pairs.weighted-calc_block=5000000]": [
         {
-            "checksum": "5b63810d20ea835146a63ef441c5cf89",
+            "checksum": "e6ee9a26743e89849bb91dd166a7b637",
             "uri": "file://test.test_dist_train_quantized_groupid_QuerySoftMax-train.pairs.weighted-calc_block=5000000_/test_1.eval"
         }
     ],
     "test.test_dist_train_quantized_groupid[QuerySoftMax-train.pairs.weighted-calc_block=60]": [
         {
-            "checksum": "5b63810d20ea835146a63ef441c5cf89",
+            "checksum": "e6ee9a26743e89849bb91dd166a7b637",
             "uri": "file://test.test_dist_train_quantized_groupid_QuerySoftMax-train.pairs.weighted-calc_block=60_/test_1.eval"
         }
     ],
@@ -1517,7 +1517,7 @@
     ],
     "test.test_dist_train_snapshot[quantized://-train_small_x128_greedylogsum.bin]": [
         {
-            "checksum": "88516b34c2b889097898c058a7205a9d",
+            "checksum": "8e4f9738f10fc390b94254badeab1cde",
             "uri": "file://test.test_dist_train_snapshot_quantized___-train_small_x128_greedylogsum.bin_/5_plus_5_trees.eval"
         }
     ],
@@ -2055,7 +2055,7 @@
     },
     "test.test_eval_result_on_different_pool_type": [
         {
-            "checksum": "a7a8843e4f6bb0ac65c2a0eab6f7dcde",
+            "checksum": "0ee7dff8c31f05b9979aa4c8bb99bf4d",
             "uri": "file://test.test_eval_result_on_different_pool_type/test.eval"
         }
     ],
@@ -2277,7 +2277,7 @@
     ],
     "test.test_group_weights_file_quantized": [
         {
-            "checksum": "e6c0d89f4fc4c17ff9b0e0cf3f5bae22",
+            "checksum": "1b04cd27b131f92410369f6b0f80a1f1",
             "uri": "file://test.test_group_weights_file_quantized/first.eval"
         }
     ],

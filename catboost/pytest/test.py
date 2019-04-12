@@ -6046,7 +6046,6 @@ def execute_fit_for_test_quantized_pool(loss_function, pool_path, test_path, cd_
     yatest.common.execute(cmd + other_options)
 
 
-@pytest.mark.xfail
 def test_quantized_pool():
     test_path = data_file('higgs', 'test_small')
 
@@ -6071,7 +6070,6 @@ def test_quantized_pool():
     assert filecmp.cmp(tsv_eval_path, quantized_eval_path)
 
 
-@pytest.mark.xfail
 def test_quantized_pool_ignored_features():
     test_path = data_file('higgs', 'test_small')
 
@@ -6356,7 +6354,6 @@ def test_quantized_with_one_thread(boosting_type):
     yatest.common.execute(cmd)
 
 
-@pytest.mark.xfail
 def test_eval_result_on_different_pool_type():
     output_eval_path = yatest.common.test_output_path('test.eval')
     output_quantized_eval_path = yatest.common.test_output_path('test.eval.quantized')
