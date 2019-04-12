@@ -13,6 +13,8 @@ using CatBoostNet;
 
 using Deedle;
 using Microsoft.ML.Data;
+using Microsoft.Data.DataView;
+using System.Text.RegularExpressions;
 
 namespace ProofOfConcept
 {
@@ -51,29 +53,34 @@ namespace ProofOfConcept
         {
             var workdir = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "datasets", "iris");
             var dsPath = Path.Combine(workdir, "iris.data");
-            var df = Frame.ReadCsv(dsPath, hasHeaders: false);
-            df.RenameColumns(new Collection<string>
-            {
-                "sepal length", "sepal width", "petal length", "petal width", "target"
-            });
-            var target = df.Rows.Select(obj => obj.Value["target"]).Values.Select(x => (string)x).ToArray();
-            df.DropColumn("target");
-            var data = df.ToArray2D<float>();
 
-            var model = new CatBoostModelEvaluator(Path.Combine(workdir, "iris_model.cbm"));
-            model.CatFeaturesIndices = new Collection<int> { };
-            double[,] res = model.EvaluateBatch(data, new string[df.RowCount, 0]);
+            MLContext mlContext = new MLContext();
+
+            var model = new CatBoostModel(
+                Path.Combine(workdir, "iris_model.cbm"),
+                "IrisType",
+                mlContext
+            );
+
+            IDataView dataView = mlContext.Data.LoadFromTextFile<IrisDataPoint>(dsPath, hasHeader: false, separatorChar: ',');
+            IEnumerable<IrisDataPoint> dataPoints = mlContext.Data.CreateEnumerable<IrisDataPoint>(dataView, reuseRowObject: false);
+
+            var predictions = model.Transform(dataView);
+            IEnumerable<CatBoostValuePrediction> predictionsBatch = mlContext.Data.CreateEnumerable<CatBoostValuePrediction>(predictions, reuseRowObject: false);
 
             string[] targetLabelList = new string[] { "Iris-setosa", "Iris-versicolor", "Iris-virginica" };
-            for (int i = 0; i < res.GetLength(0); ++i)
+
+            int i = 0;
+            foreach (var xy in dataPoints.Zip(predictionsBatch, Tuple.Create))
             {
-                int argmax = Enumerable.Range(0, res.GetLength(1)).Select(j => Tuple.Create(res[i, j], j)).Max().Item2;
+                (var x, var y) = xy;
+                int argmax = Enumerable.Range(0, y.OutputValues.Length).Select(j => Tuple.Create(y.OutputValues[j], j)).Max().Item2;
                 string predLabel = targetLabelList[argmax];
-                if (predLabel == target[i])
-                    Console.WriteLine($"Sample {i + 1} / {res.GetLength(0)}, predicted {predLabel}... ok");
+                if (predLabel == x.IrisType)
+                    Console.WriteLine($"Sample {i + 1} / {dataPoints.Count()}, predicted {predLabel}... ok");
                 else
                 {
-                    Console.WriteLine($"Sample {i + 1} / {res.GetLength(0)}, predicted {predLabel}... FAILED (actual = {target[i]})");
+                    Console.WriteLine($"Sample {i + 1} / {dataPoints.Count()}, predicted {predLabel}... FAILED (actual = {x.IrisType})");
                     return false;
                 }
             }
@@ -86,75 +93,86 @@ namespace ProofOfConcept
             var workdir = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "datasets", "boston");
             var dsPath = Path.Combine(workdir, "housing.data");
 
-            List<float[]> featureList = new List<float[]>();
-            List<double> targetList = new List<double>();
-            using (TextReader textReader = new StreamReader(dsPath))
-            {
-                while (textReader.Peek() != -1)
-                {
-                    var tokens = textReader.ReadLine().Split(' ').ToList().Where(x => x != "");
-                    targetList.Add(double.Parse(tokens.Last()));
-                    featureList.Add(tokens.Select(x => float.Parse(x)).ToArray());
-                }
-            }
+            var newDsPath = Path.Combine(workdir, "housing.csv");
+            File.WriteAllText(newDsPath, "");
+            File.AppendAllLines(
+                newDsPath,
+                File.ReadLines(dsPath).Select(x => Regex.Replace(x.Trim(), @"\s+", ","))
+            );
+            dsPath = newDsPath;
 
-            if (featureList.Where(x => x.Length != featureList.First().Length).Any())
-            {
-                throw new InvalidDataException("Incosistent column count in housing.data");
-            }
+            MLContext mlContext = new MLContext();
 
-            double[] target = targetList.ToArray();
-            float[,] features = new float[featureList.Count, featureList.First().Length];
-            for (int i = 0; i < featureList.Count; ++i)
-            {
-                for (int j = 0; j < featureList.First().Length; ++j)
-                {
-                    features[i, j] = featureList[i][j];
-                }
-            }
+            var model = new CatBoostModel(
+                Path.Combine(workdir, "boston_housing_model.cbm"),
+                "MedV",
+                mlContext
+            );
 
-            var model = new CatBoostModelEvaluator(Path.Combine(workdir, "boston_housing_model.cbm"));
-            model.CatFeaturesIndices = new Collection<int> { };
-            double[,] res = model.EvaluateBatch(features, new string[featureList.Count, 0]);
+            IDataView dataView = mlContext.Data.LoadFromTextFile<BostonDataPoint>(dsPath, hasHeader: false, separatorChar: ',');
+            IEnumerable<BostonDataPoint> dataPoints = mlContext.Data.CreateEnumerable<BostonDataPoint>(dataView, reuseRowObject: false);
 
-            var deltas = Enumerable.Range(0, featureList.Count).Select(i => new
+            var predictions = model.Transform(dataView);
+            IEnumerable<CatBoostValuePrediction> predictionsBatch = mlContext.Data.CreateEnumerable<CatBoostValuePrediction>(predictions, reuseRowObject: false);
+
+            var deltas = dataPoints.Zip(predictionsBatch, Tuple.Create).Select(xy => new
             {
-                Index = i + 1,
-                LogDelta = Math.Abs(res[i, 0] - Math.Log(target[i])),
-                Pred = Math.Exp(res[i, 0]),
-                Target = target[i]
+                LogDelta = Math.Abs(xy.Item2.OutputValues[0] - Math.Log(xy.Item1.MedV)),
+                Pred = Math.Exp(xy.Item2.OutputValues[0]),
+                Target = xy.Item1.MedV
             });
-            foreach (var delta in deltas)
-                Console.WriteLine($"Sample #{delta.Index} / {deltas.Count()}, pred = {delta.Pred:0.00}, target = {delta.Target:0.00}");
 
-            return deltas.Where(x => x.LogDelta >= .4).Count() <= 7;
+            int i = 0;
+            foreach (var delta in deltas)
+            {
+                ++i;
+                Console.WriteLine($"Sample #{i} / {deltas.Count()}, pred = {delta.Pred:0.00}, target = {delta.Target:0.00}");
+            }
+
+            int totalErrors = deltas.Where(x => x.LogDelta >= .4).Count();
+            if (totalErrors > 7) return false;
+
+            return true;
         }
 
         private static bool RunMushroom()
         {
             var workdir = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "datasets", "mushrooms");
             var dsPath = Path.Combine(workdir, "mushrooms.csv");
-            var df = Frame.ReadCsv(dsPath);
-            var target = df.Rows.Select(obj => obj.Value["class"]).Values.Select(x => (string)x).ToArray();
-            df.DropColumn("class");
-            var data = df.ToArray2D<string>();
 
-            var model = new CatBoostModelEvaluator(Path.Combine(workdir, "mushroom_model.cbm"));
-            model.CatFeaturesIndices = Enumerable.Range(0, df.ColumnCount).ToList();
-            double[,] res = model.EvaluateBatch(new float[df.RowCount, 0], data);
+            MLContext mlContext = new MLContext();
+
+            var model = new CatBoostModel(
+                Path.Combine(workdir, "mushroom_model.cbm"),
+                "Class",
+                mlContext
+            );
+
+            IDataView dataView = mlContext.Data.LoadFromTextFile<MushroomDataPoint>(dsPath, hasHeader: true, separatorChar: ',');
+            IEnumerable<MushroomDataPoint> dataPoints = mlContext.Data.CreateEnumerable<MushroomDataPoint>(dataView, reuseRowObject: false);
+
+            var predictions = model.Transform(dataView);
+            IEnumerable<CatBoostValuePrediction> predictionsBatch = mlContext.Data.CreateEnumerable<CatBoostValuePrediction>(predictions, reuseRowObject: false);
 
             string[] targetLabelList = new string[] { "e", "p" };
-            for (int i = 0; i < res.GetLength(0); ++i)
+
+            int i = 0;
+            foreach (var xy in dataPoints.Zip(predictionsBatch, Tuple.Create))
             {
-                int argmax = res[i, 0] > 0 ? 1 : 0;
+                (var x, var y) = xy;
+
+                int argmax = (y.OutputValues[0] > 0) ? 1 : 0;
                 string predLabel = targetLabelList[argmax];
-                if (predLabel == target[i])
-                    Console.WriteLine($"Sample {i + 1} / {res.GetLength(0)}, predicted {predLabel}... ok");
+
+                if (predLabel == x.Class)
+                    Console.WriteLine($"Sample {i + 1} / {predictionsBatch.Count()}, predicted {predLabel}... ok");
                 else
                 {
-                    Console.WriteLine($"Sample {i + 1} / {res.GetLength(0)}, predicted {predLabel}... FAILED (actual = {target[i]})");
+                    Console.WriteLine($"Sample {i + 1} / {predictionsBatch.Count()}, predicted {predLabel}... FAILED (actual = {x.Class})");
                     return false;
                 }
+
+                ++i;
             }
 
             return true;

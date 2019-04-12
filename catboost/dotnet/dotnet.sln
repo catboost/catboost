@@ -3,9 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28010.2048
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CatBoostNet", "CatBoostNet\CatBoostNet.csproj", "{50D772D4-8573-4DAA-AB47-0DDAA5C271F3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CatBoostNet", "CatBoostNet\CatBoostNet.csproj", "{50D772D4-8573-4DAA-AB47-0DDAA5C271F3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProofOfConcept", "ProofOfConcept\ProofOfConcept.csproj", "{9AB66ABC-6886-4F78-ACEF-E799912FF73C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ProofOfConcept", "ProofOfConcept\ProofOfConcept.csproj", "{9AB66ABC-6886-4F78-ACEF-E799912FF73C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CatBoostNetTests", "CatBoostNetTests\CatBoostNetTests.csproj", "{04D6755C-1E6D-46A4-B188-3646CD88BB72}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -41,6 +43,18 @@ Global
 		{9AB66ABC-6886-4F78-ACEF-E799912FF73C}.Release|x64.Build.0 = Release|Any CPU
 		{9AB66ABC-6886-4F78-ACEF-E799912FF73C}.Release|x86.ActiveCfg = Release|Any CPU
 		{9AB66ABC-6886-4F78-ACEF-E799912FF73C}.Release|x86.Build.0 = Release|Any CPU
+		{04D6755C-1E6D-46A4-B188-3646CD88BB72}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{04D6755C-1E6D-46A4-B188-3646CD88BB72}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{04D6755C-1E6D-46A4-B188-3646CD88BB72}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{04D6755C-1E6D-46A4-B188-3646CD88BB72}.Debug|x64.Build.0 = Debug|Any CPU
+		{04D6755C-1E6D-46A4-B188-3646CD88BB72}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{04D6755C-1E6D-46A4-B188-3646CD88BB72}.Debug|x86.Build.0 = Debug|Any CPU
+		{04D6755C-1E6D-46A4-B188-3646CD88BB72}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{04D6755C-1E6D-46A4-B188-3646CD88BB72}.Release|Any CPU.Build.0 = Release|Any CPU
+		{04D6755C-1E6D-46A4-B188-3646CD88BB72}.Release|x64.ActiveCfg = Release|Any CPU
+		{04D6755C-1E6D-46A4-B188-3646CD88BB72}.Release|x64.Build.0 = Release|Any CPU
+		{04D6755C-1E6D-46A4-B188-3646CD88BB72}.Release|x86.ActiveCfg = Release|Any CPU
+		{04D6755C-1E6D-46A4-B188-3646CD88BB72}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
