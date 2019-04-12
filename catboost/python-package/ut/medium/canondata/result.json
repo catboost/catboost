@@ -244,15 +244,15 @@
         "uri": "file://test.test_ones_weight_CPU_/model.bin"
     },
     "test.test_onnx_export[binclass]": {
-        "checksum": "197a125e643db0f73f570776422b62aa",
+        "checksum": "d1ce434e5a172bb14cefe97c15e0f2f9",
         "uri": "file://test.test_onnx_export_binclass_/model.onnx"
     },
     "test.test_onnx_export[multiclass]": {
-        "checksum": "072b2a634cc7d0d669fbf66b05463625",
+        "checksum": "117f2302b3caa5f787e88c8dacfbadd6",
         "uri": "file://test.test_onnx_export_multiclass_/model.onnx"
     },
     "test.test_onnx_export[regression]": {
-        "checksum": "8e2f1f0d97fc874b07b27992b3d06ee4",
+        "checksum": "60e4c5eeac0d3129cdf33d843e560242",
         "uri": "file://test.test_onnx_export_regression_/model.onnx"
     },
     "test.test_pairs_generation[CPU]": {

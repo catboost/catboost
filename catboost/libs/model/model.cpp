@@ -25,6 +25,7 @@
 #include <util/generic/algorithm.h>
 #include <util/generic/buffer.h>
 #include <util/generic/fwd.h>
+#include <util/generic/guid.h>
 #include <util/generic/variant.h>
 #include <util/generic/xrange.h>
 #include <util/string/builder.h>
@@ -1034,6 +1035,7 @@ TFullModel SumModels(
     }
     result.CtrProvider = MergeCtrProvidersData(ctrProviders, ctrMergePolicy);
     result.UpdateDynamicData();
+    result.ModelInfo["model_guid"] = CreateGuidAsString();
     return result;
 }
 
