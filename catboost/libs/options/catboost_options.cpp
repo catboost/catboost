@@ -490,27 +490,34 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
         }
     }
     if (TaskType == ETaskType::GPU) {
-        if (IsGpuPlainDocParallelOnlyMode(LossFunctionDescription->GetLossFunction())) {
+        if (IsGpuPlainDocParallelOnlyMode(LossFunctionDescription->GetLossFunction()) ||
+            ObliviousTreeOptions->GrowPolicy != EGrowPolicy::SymmetricTree) {
             //lets check correctness first
             BoostingOptions->DataPartitionType.SetDefault(EDataPartitionType::DocParallel);
             BoostingOptions->BoostingType.SetDefault(EBoostingType::Plain);
-            CB_ENSURE(BoostingOptions->DataPartitionType == EDataPartitionType::DocParallel, "Loss " << LossFunctionDescription->GetLossFunction() << " on GPU is implemented in doc-parallel mode only");
-            CB_ENSURE(BoostingOptions->BoostingType == EBoostingType::Plain, "Loss " << LossFunctionDescription->GetLossFunction() << " on GPU can't be used for ordered boosting");
+
+            TString option;
+            if (IsGpuPlainDocParallelOnlyMode(LossFunctionDescription->GetLossFunction())) {
+                option = "loss " + ToString(LossFunctionDescription->GetLossFunction());
+            } else {
+                option = "grow policy " + ToString(ObliviousTreeOptions->GrowPolicy.Get());
+            }
+
+            CB_ENSURE(BoostingOptions->DataPartitionType == EDataPartitionType::DocParallel,
+                    "On GPU " << option << " is implemented in doc-parallel mode only");
+            CB_ENSURE(BoostingOptions->BoostingType == EBoostingType::Plain,
+                    "On GPU " << option << " can't be used with ordered boosting");
+
             //now ensure automatic estimations won't override this
             BoostingOptions->BoostingType = EBoostingType::Plain;
             BoostingOptions->DataPartitionType = EDataPartitionType::DocParallel;
         }
 
-        const EGrowPolicy growPolicy = ObliviousTreeOptions->GrowPolicy;
-        if (growPolicy != EGrowPolicy::SymmetricTree) {
-            CB_ENSURE(BoostingOptions->BoostingType == EBoostingType::Plain, "Grow policies Lossguide and Depthwise can't be used with ordered boosting");
-            BoostingOptions->DataPartitionType.SetDefault(EDataPartitionType::DocParallel);
-        }
-
-        if (ObliviousTreeOptions->ScoreFunction != EScoreFunction::Correlation &&
-            ObliviousTreeOptions->ScoreFunction != EScoreFunction::NewtonCorrelation) {
+        if (IsPlainOnlyModeScoreFunction(ObliviousTreeOptions->ScoreFunction)) {
+            BoostingOptions->BoostingType.SetDefault(EBoostingType::Plain);
             CB_ENSURE(BoostingOptions->BoostingType == EBoostingType::Plain,
                     "Score function " << ObliviousTreeOptions->ScoreFunction.Get() << " can't be used with ordered boosting");
+            BoostingOptions->BoostingType = EBoostingType::Plain;
         }
 
         if (ObliviousTreeOptions->GrowPolicy == EGrowPolicy::Lossguide) {

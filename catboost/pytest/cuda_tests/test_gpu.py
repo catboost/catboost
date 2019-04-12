@@ -24,6 +24,12 @@ CATBOOST_PATH = yatest.common.binary_path("catboost/app/catboost")
 BOOSTING_TYPE = ['Ordered', 'Plain']
 MULTICLASS_LOSSES = ['MultiClass', 'MultiClassOneVsAll']
 NONSYMMETRIC = ['Lossguide', 'Depthwise']
+GROW_POLICIES = ['SymmetricTree'] + NONSYMMETRIC
+SCORE_FUNCTIONS = [
+    'L2', 'Correlation',
+    'NewtonL2', 'NewtonCorrelation',
+    'SolarL2', 'LOOL2'
+]
 
 
 def generate_random_labeled_set(nrows, nvals, labels, seed=20181219, prng=None):
@@ -2216,3 +2222,69 @@ def test_apply_with_grow_policy(grow_policy):
     fit_catboost_gpu(params)
     apply_catboost(output_model_path, test_file, cd_file, calc_eval_path, output_columns=['RawFormulaVal'])
     assert(compare_evals_with_precision(test_eval_path, calc_eval_path, skip_last_column_in_fit=False))
+
+
+def is_valid_gpu_params(boosting_type, grow_policy, score_function, loss_func):
+    correlation_scores = ['Correlation', 'NewtonCorrelation']
+    second_order_scores = ['NewtonL2', 'NewtonCorrelation']
+
+    is_correct = True
+
+    # compatibility with ordered boosting
+    if (grow_policy in NONSYMMETRIC) or (score_function not in correlation_scores) or (loss_func in MULTICLASS_LOSSES):
+        is_correct = boosting_type in ['Plain', 'Default']
+
+    if loss_func in MULTICLASS_LOSSES and score_function in second_order_scores:
+        is_correct = False
+
+    return is_correct
+
+
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE + ['Default'])
+@pytest.mark.parametrize('grow_policy', GROW_POLICIES)
+@pytest.mark.parametrize('score_function', SCORE_FUNCTIONS)
+@pytest.mark.parametrize('loss_func', ['RMSE', 'Logloss', 'MultiClass', 'YetiRank'])
+def test_grow_policies(boosting_type, grow_policy, score_function, loss_func):
+    learn_error_path = yatest.common.test_output_path('learn_error.tsv')
+    test_error_path = yatest.common.test_output_path('test_error.tsv')
+
+    if loss_func in ['RMSE', 'Logloss']:
+        learn = data_file('adult', 'train_small')
+        test = data_file('adult', 'test_small')
+        cd = data_file('adult', 'train.cd')
+    elif loss_func == 'MultiClass':
+        learn = data_file('cloudness_small', 'train_small')
+        test = data_file('cloudness_small', 'test_small')
+        cd = data_file('cloudness_small', 'train.cd')
+    else:
+        learn = data_file('querywise', 'train')
+        test = data_file('querywise', 'test')
+        cd = data_file('querywise', 'train.cd')
+
+    params = {
+        '--loss-function': loss_func,
+        '--grow-policy': grow_policy,
+        '--score-function': score_function,
+        '-f': learn,
+        '-t': test,
+        '--column-description': cd,
+        '-i': '20',
+        '-T': '4',
+        '--learn-err-log': learn_error_path,
+        '--test-err-log': test_error_path,
+        '--use-best-model': 'false',
+    }
+
+    if boosting_type != 'Default':
+        params['--boosting-type'] = boosting_type
+
+    try:
+        fit_catboost_gpu(params)
+    except Exception:
+        assert not is_valid_gpu_params(boosting_type, grow_policy, score_function, loss_func)
+        return
+
+    assert is_valid_gpu_params(boosting_type, grow_policy, score_function, loss_func)
+
+    return [local_canonical_file(learn_error_path, diff_tool=diff_tool()),
+            local_canonical_file(test_error_path, diff_tool=diff_tool())]

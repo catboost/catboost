@@ -65,3 +65,5 @@ bool ShouldSkipCalcOnTrainByDefault(ELossFunction lossFunction);
 bool IsUserDefined(ELossFunction lossFunction);
 
 bool ShouldSkipFstrGrowPolicy(EGrowPolicy growPolicy);
+
+bool IsPlainOnlyModeScoreFunction(EScoreFunction scoreFunction);

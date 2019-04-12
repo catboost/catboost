@@ -309,3 +309,10 @@ bool ShouldSkipFstrGrowPolicy(EGrowPolicy growPolicy) {
         growPolicy == EGrowPolicy::Lossguide
     );
 }
+
+bool IsPlainOnlyModeScoreFunction(EScoreFunction scoreFunction) {
+    return (
+        scoreFunction != EScoreFunction::Correlation &&
+        scoreFunction != EScoreFunction::NewtonCorrelation
+    );
+}
