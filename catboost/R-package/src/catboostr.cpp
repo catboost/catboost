@@ -544,7 +544,7 @@ SEXP CatBoostPredictMulti_R(SEXP modelParam, SEXP poolParam, SEXP verboseParam,
     CB_ENSURE(TryFromString<EPredictionType>(CHAR(asChar(typeParam)), predictionType),
               "unsupported prediction type: 'Probability', 'Class' or 'RawFormulaVal' was expected");
     TVector<TVector<double>> prediction = ApplyModelMulti(*model,
-                                                          *pool->ObjectsData,
+                                                          *pool,
                                                           asLogical(verboseParam),
                                                           predictionType,
                                                           asInteger(treeCountStartParam),

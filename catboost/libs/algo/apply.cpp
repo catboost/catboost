@@ -261,7 +261,15 @@ TVector<TVector<double>> ApplyModelMulti(
     int end,
     int threadCount)
 {
-    return ApplyModelMulti(model, *data.ObjectsData, verbose, predictionType, begin, end, threadCount);
+    auto approxes = ApplyModelMulti(model, *data.ObjectsData, verbose, predictionType, begin, end, threadCount);
+    if (const auto& baseline = data.RawTargetData.GetBaseline()) {
+        for (size_t i = 0; i < approxes.size(); ++i) {
+            for (size_t j = 0; j < approxes[0].size(); ++j) {
+                approxes[i][j] += (*baseline)[i][j];
+            }
+        }
+    }
+    return approxes;
 }
 
 TVector<double> ApplyModel(
@@ -274,6 +282,18 @@ TVector<double> ApplyModel(
     int threadCount /*= 1*/)
 {
     return ApplyModelMulti(model, objectsData, verbose, predictionType, begin, end, threadCount)[0];
+}
+
+TVector<double> ApplyModel(
+    const TFullModel& model,
+    const TDataProvider& data,
+    bool verbose,
+    const EPredictionType predictionType,
+    int begin, /*= 0*/
+    int end, /*= 0*/
+    int threadCount /*= 1*/)
+{
+    return ApplyModelMulti(model, data, verbose, predictionType, begin, end, threadCount)[0];
 }
 
 

@@ -673,7 +673,7 @@ cdef extern from "catboost/libs/algo/apply.h":
 
     cdef TVector[double] ApplyModel(
         const TFullModel& model,
-        const TObjectsDataProvider& objectsData,
+        const TDataProvider& objectsData,
         bool_t verbose,
         const EPredictionType predictionType,
         int begin,
@@ -683,7 +683,7 @@ cdef extern from "catboost/libs/algo/apply.h":
 
     cdef TVector[TVector[double]] ApplyModelMulti(
         const TFullModel& calcer,
-        const TObjectsDataProvider& objectsData,
+        const TDataProvider& objectsData,
         bool_t verbose,
         const EPredictionType predictionType,
         int begin,
@@ -2446,11 +2446,10 @@ cdef class _CatBoost:
         cdef TVector[double] pred
         cdef EPredictionType predictionType = PyPredictionType(prediction_type).predictionType
         thread_count = UpdateThreadCount(thread_count);
-        cdef const TObjectsDataProvider* objectsData = &pool.__pool.Get()[0].ObjectsData.Get()[0]
         with nogil:
             pred = ApplyModel(
                 dereference(self.__model),
-                dereference(objectsData),
+                dereference(pool.__pool.Get()),
                 verbose,
                 predictionType,
                 ntree_start,
@@ -2465,11 +2464,10 @@ cdef class _CatBoost:
         cdef TVector[TVector[double]] pred
         cdef EPredictionType predictionType = PyPredictionType(prediction_type).predictionType
         thread_count = UpdateThreadCount(thread_count);
-        cdef const TObjectsDataProvider* objectsData = &pool.__pool.Get()[0].ObjectsData.Get()[0]
         with nogil:
             pred = ApplyModelMulti(
                 dereference(self.__model),
-                dereference(objectsData),
+                dereference(pool.__pool.Get()),
                 verbose,
                 predictionType,
                 ntree_start,

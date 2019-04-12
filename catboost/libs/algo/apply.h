@@ -52,6 +52,15 @@ TVector<double> ApplyModel(
     int end = 0,
     int threadCount = 1);
 
+TVector<double> ApplyModel(
+    const TFullModel& model,
+    const NCB::TDataProvider& data,
+    bool verbose,
+    const EPredictionType predictionType,
+    int begin = 0,
+    int end = 0,
+    int threadCount = 1);
+
 /*
  * Tradeoff memory for speed
  * Don't use if you need to compute model only once and on all features

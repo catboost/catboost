@@ -168,7 +168,7 @@
         "uri": "file://test.test_feature_names_from_model/feature_names"
     },
     "test.test_fit_data[CPU]": {
-        "checksum": "0a9a9e8d8837d7770e63ffef14616212",
+        "checksum": "16fb2028fc6adf96862819882cc9cedd",
         "uri": "file://test.test_fit_data_CPU_/predictions.npy"
     },
     "test.test_full_history[CPU]": {
