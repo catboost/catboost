@@ -1413,6 +1413,78 @@
             "uri": "file://test.test_dist_train_quantized_calc_block=60_/test_1.eval"
         }
     ],
+    "test.test_dist_train_quantized_baseline[calc_block=5000000]": [
+        {
+            "checksum": "c1b939f75ff37ed62659638c2df602e2",
+            "uri": "file://test.test_dist_train_quantized_baseline_calc_block=5000000_/test_1.eval"
+        }
+    ],
+    "test.test_dist_train_quantized_baseline[calc_block=60]": [
+        {
+            "checksum": "c1b939f75ff37ed62659638c2df602e2",
+            "uri": "file://test.test_dist_train_quantized_baseline_calc_block=60_/test_1.eval"
+        }
+    ],
+    "test.test_dist_train_quantized_group_weights[calc_block=5000000]": [
+        {
+            "checksum": "050c08f94409cc1d0f5c3e901c32268b",
+            "uri": "file://test.test_dist_train_quantized_group_weights_calc_block=5000000_/test_1.eval"
+        }
+    ],
+    "test.test_dist_train_quantized_group_weights[calc_block=60]": [
+        {
+            "checksum": "050c08f94409cc1d0f5c3e901c32268b",
+            "uri": "file://test.test_dist_train_quantized_group_weights_calc_block=60_/test_1.eval"
+        }
+    ],
+    "test.test_dist_train_quantized_groupid[PairLogitPairwise-train.pairs-calc_block=5000000]": [
+        {
+            "checksum": "5ec6b48b7e1966cdc5b970808001e061",
+            "uri": "file://test.test_dist_train_quantized_groupid_PairLogitPairwise-train.pairs-calc_block=5000000_/test_1.eval"
+        }
+    ],
+    "test.test_dist_train_quantized_groupid[PairLogitPairwise-train.pairs-calc_block=60]": [
+        {
+            "checksum": "5ec6b48b7e1966cdc5b970808001e061",
+            "uri": "file://test.test_dist_train_quantized_groupid_PairLogitPairwise-train.pairs-calc_block=60_/test_1.eval"
+        }
+    ],
+    "test.test_dist_train_quantized_groupid[PairLogitPairwise-train.pairs.weighted-calc_block=5000000]": [
+        {
+            "checksum": "48d82d46a022e71690946139f3a10897",
+            "uri": "file://test.test_dist_train_quantized_groupid_PairLogitPairwise-train.pairs.weighted-calc_block=5000000_/test_1.eval"
+        }
+    ],
+    "test.test_dist_train_quantized_groupid[PairLogitPairwise-train.pairs.weighted-calc_block=60]": [
+        {
+            "checksum": "48d82d46a022e71690946139f3a10897",
+            "uri": "file://test.test_dist_train_quantized_groupid_PairLogitPairwise-train.pairs.weighted-calc_block=60_/test_1.eval"
+        }
+    ],
+    "test.test_dist_train_quantized_groupid[QuerySoftMax-train.pairs-calc_block=5000000]": [
+        {
+            "checksum": "5b63810d20ea835146a63ef441c5cf89",
+            "uri": "file://test.test_dist_train_quantized_groupid_QuerySoftMax-train.pairs-calc_block=5000000_/test_1.eval"
+        }
+    ],
+    "test.test_dist_train_quantized_groupid[QuerySoftMax-train.pairs-calc_block=60]": [
+        {
+            "checksum": "5b63810d20ea835146a63ef441c5cf89",
+            "uri": "file://test.test_dist_train_quantized_groupid_QuerySoftMax-train.pairs-calc_block=60_/test_1.eval"
+        }
+    ],
+    "test.test_dist_train_quantized_groupid[QuerySoftMax-train.pairs.weighted-calc_block=5000000]": [
+        {
+            "checksum": "5b63810d20ea835146a63ef441c5cf89",
+            "uri": "file://test.test_dist_train_quantized_groupid_QuerySoftMax-train.pairs.weighted-calc_block=5000000_/test_1.eval"
+        }
+    ],
+    "test.test_dist_train_quantized_groupid[QuerySoftMax-train.pairs.weighted-calc_block=60]": [
+        {
+            "checksum": "5b63810d20ea835146a63ef441c5cf89",
+            "uri": "file://test.test_dist_train_quantized_groupid_QuerySoftMax-train.pairs.weighted-calc_block=60_/test_1.eval"
+        }
+    ],
     "test.test_dist_train_queryrmse[calc_block=5000000]": [
         {
             "checksum": "19cd7df5906dfa8666eec0f05cad15f6",
@@ -1437,10 +1509,16 @@
             "uri": "file://test.test_dist_train_querysoftmax_calc_block=60_/test_1.eval"
         }
     ],
-    "test.test_dist_train_snapshot": [
+    "test.test_dist_train_snapshot[-train_small]": [
         {
             "checksum": "8e4f9738f10fc390b94254badeab1cde",
-            "uri": "file://test.test_dist_train_snapshot/5_plus_5_trees.eval"
+            "uri": "file://test.test_dist_train_snapshot_-train_small_/5_plus_5_trees.eval"
+        }
+    ],
+    "test.test_dist_train_snapshot[quantized://-train_small_x128_greedylogsum.bin]": [
+        {
+            "checksum": "88516b34c2b889097898c058a7205a9d",
+            "uri": "file://test.test_dist_train_snapshot_quantized___-train_small_x128_greedylogsum.bin_/5_plus_5_trees.eval"
         }
     ],
     "test.test_dist_train_subgroup[calc_block=5000000]": [

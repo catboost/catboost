@@ -3997,9 +3997,9 @@ def test_without_cat_features(boosting_type, dev_score_calc_obj_block_size):
     return [local_canonical_file(output_eval_path)]
 
 
-def make_deterministic_train_cmd(loss_function, pool, train, test, cd, schema='', dev_score_calc_obj_block_size=None, other_options=()):
+def make_deterministic_train_cmd(loss_function, pool, train, test, cd, schema='', test_schema='', dev_score_calc_obj_block_size=None, other_options=()):
     pool_path = schema + data_file(pool, train)
-    test_path = data_file(pool, test)
+    test_path = test_schema + data_file(pool, test)
     cd_path = data_file(pool, cd)
     cmd = (
         CATBOOST_PATH,
@@ -4152,6 +4152,64 @@ def test_dist_train_quantized(dev_score_calc_obj_block_size):
     SCORE_CALC_OBJ_BLOCK_SIZES,
     ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
 )
+@pytest.mark.parametrize('pairs_file', ['train.pairs', 'train.pairs.weighted'])
+@pytest.mark.parametrize('target', ['PairLogitPairwise', 'QuerySoftMax'])
+def test_dist_train_quantized_groupid(dev_score_calc_obj_block_size, pairs_file, target):
+    return [local_canonical_file(run_dist_train(make_deterministic_train_cmd(
+        loss_function=target,
+        pool='querywise',
+        train='train_x128_greedylogsum_aqtaa.bin',
+        test='test',
+        cd='train.cd.query_id',
+        schema='quantized://',
+        dev_score_calc_obj_block_size=dev_score_calc_obj_block_size,
+        other_options=('-x', '128', '--feature-border-type', 'GreedyLogSum',
+            '--learn-pairs', data_file('querywise', pairs_file)))))]
+
+
+@pytest.mark.parametrize(
+    'dev_score_calc_obj_block_size',
+    SCORE_CALC_OBJ_BLOCK_SIZES,
+    ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
+)
+def test_dist_train_quantized_group_weights(dev_score_calc_obj_block_size):
+    return [local_canonical_file(run_dist_train(make_deterministic_train_cmd(
+        loss_function='QueryRMSE',
+        pool='querywise',
+        train='train.quantized',
+        test='test',
+        cd='train.cd.query_id',
+        schema='quantized://',
+        dev_score_calc_obj_block_size=dev_score_calc_obj_block_size,
+        other_options=('-x', '128', '--feature-border-type', 'GreedyLogSum',
+            '--learn-group-weights', data_file('querywise', 'train.group_weights')))))]
+
+
+@pytest.mark.parametrize(
+    'dev_score_calc_obj_block_size',
+    SCORE_CALC_OBJ_BLOCK_SIZES,
+    ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
+)
+def test_dist_train_quantized_baseline(dev_score_calc_obj_block_size):
+    return [local_canonical_file(run_dist_train(make_deterministic_train_cmd(
+        loss_function='Logloss',
+        pool='higgs',
+        train='train_small_x128_greedylogsum.bin',
+        test='train_small_x128_greedylogsum.bin',
+        cd='train_baseline.cd',
+        schema='quantized://',
+        test_schema='quantized://',
+        dev_score_calc_obj_block_size=dev_score_calc_obj_block_size,
+        other_options=('-x', '128', '--feature-border-type', 'GreedyLogSum',
+                        '--test-baseline', data_file('higgs', 'test_baseline'),
+                        '--learn-baseline', data_file('higgs', 'train_baseline')))))]
+
+
+@pytest.mark.parametrize(
+    'dev_score_calc_obj_block_size',
+    SCORE_CALC_OBJ_BLOCK_SIZES,
+    ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
+)
 def test_dist_train_queryrmse(dev_score_calc_obj_block_size):
     return [local_canonical_file(run_dist_train(make_deterministic_train_cmd(
         loss_function='QueryRMSE',
@@ -4245,12 +4303,14 @@ def test_dist_train_auc_weight(loss_func):
         output_file_switch='--test-err-log'))]
 
 
-def test_dist_train_snapshot():
+@pytest.mark.parametrize('schema,train', [('quantized://', 'train_small_x128_greedylogsum.bin'), ('', 'train_small')])
+def test_dist_train_snapshot(schema, train):
     train_cmd = make_deterministic_train_cmd(
         loss_function='RMSE',
         pool='higgs',
-        train='train_small',
+        train=train,
         test='test_small',
+        schema=schema,
         cd='train.cd')
 
     eval_10_trees_path = yatest.common.test_output_path('10_trees.eval')
