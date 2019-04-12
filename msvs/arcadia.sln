@@ -267,6 +267,12 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "limited_precision_dsv_diff"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "catboost-tools-limited_precision_dsv_diff-pytest", "Projects\catboost\tools\limited_precision_dsv_diff\pytest\catboost-tools-limited_precision_dsv_diff-pytest.vcxproj", "{80DC5BF9-035F-F88C-4C26-104C11222744}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "limited_precision_json_diff", "Projects\catboost\tools\limited_precision_json_diff", "{03063753-9FF3-A031-BECA-4C70874DE98A}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "limited_precision_json_diff", "Projects\catboost\tools\limited_precision_json_diff\limited_precision_json_diff.vcxproj", "{58046E9D-93FC-BD9F-7DEB-1445003B9272}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "catboost-tools-limited_precision_json_diff-pytest", "Projects\catboost\tools\limited_precision_json_diff\pytest\catboost-tools-limited_precision_json_diff-pytest.vcxproj", "{E2A18523-2E86-AE22-92F3-B4AB2474F789}"
+EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "model_comparator", "Projects\catboost\tools\model_comparator\model_comparator.vcxproj", "{F2890E3D-C0D6-F694-F586-9591CDA361D1}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "contrib", "Projects\contrib", "{7B85CA1A-8311-CE55-344B-96CBB3DE4F3B}"
@@ -1207,6 +1213,14 @@ Global
 		{80DC5BF9-035F-F88C-4C26-104C11222744}.Debug|x64.Build.0 = Debug|x64
 		{80DC5BF9-035F-F88C-4C26-104C11222744}.Release|x64.ActiveCfg = Release|x64
 		{80DC5BF9-035F-F88C-4C26-104C11222744}.Release|x64.Build.0 = Release|x64
+		{58046E9D-93FC-BD9F-7DEB-1445003B9272}.Debug|x64.ActiveCfg = Debug|x64
+		{58046E9D-93FC-BD9F-7DEB-1445003B9272}.Debug|x64.Build.0 = Debug|x64
+		{58046E9D-93FC-BD9F-7DEB-1445003B9272}.Release|x64.ActiveCfg = Release|x64
+		{58046E9D-93FC-BD9F-7DEB-1445003B9272}.Release|x64.Build.0 = Release|x64
+		{E2A18523-2E86-AE22-92F3-B4AB2474F789}.Debug|x64.ActiveCfg = Debug|x64
+		{E2A18523-2E86-AE22-92F3-B4AB2474F789}.Debug|x64.Build.0 = Debug|x64
+		{E2A18523-2E86-AE22-92F3-B4AB2474F789}.Release|x64.ActiveCfg = Release|x64
+		{E2A18523-2E86-AE22-92F3-B4AB2474F789}.Release|x64.Build.0 = Release|x64
 		{F2890E3D-C0D6-F694-F586-9591CDA361D1}.Debug|x64.ActiveCfg = Debug|x64
 		{F2890E3D-C0D6-F694-F586-9591CDA361D1}.Debug|x64.Build.0 = Debug|x64
 		{F2890E3D-C0D6-F694-F586-9591CDA361D1}.Release|x64.ActiveCfg = Release|x64
@@ -2200,6 +2214,9 @@ Global
 		{E59E0962-A30C-7237-222A-240AFC8892F8} = {86A8C76E-6302-85F7-984C-B92D83E87465}
 		{5FF2816F-34FA-81D6-B543-4B882E775E06} = {E59E0962-A30C-7237-222A-240AFC8892F8}
 		{80DC5BF9-035F-F88C-4C26-104C11222744} = {E59E0962-A30C-7237-222A-240AFC8892F8}
+		{03063753-9FF3-A031-BECA-4C70874DE98A} = {86A8C76E-6302-85F7-984C-B92D83E87465}
+		{58046E9D-93FC-BD9F-7DEB-1445003B9272} = {03063753-9FF3-A031-BECA-4C70874DE98A}
+		{E2A18523-2E86-AE22-92F3-B4AB2474F789} = {03063753-9FF3-A031-BECA-4C70874DE98A}
 		{F2890E3D-C0D6-F694-F586-9591CDA361D1} = {86A8C76E-6302-85F7-984C-B92D83E87465}
 		{32E78DFF-5451-B440-4B35-E627E82B514E} = {7B85CA1A-8311-CE55-344B-96CBB3DE4F3B}
 		{5A6BA3D4-700F-320B-BC81-8F7B463F1DBE} = {7B85CA1A-8311-CE55-344B-96CBB3DE4F3B}
