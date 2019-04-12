@@ -40,6 +40,11 @@ class UnsupportedProtocolException(Exception):
     pass
 
 
+class PutRequest(urllib2.Request):
+    def get_method(self, *args, **kwargs):
+        return 'PUT'
+
+
 def download_by_skynet(resource_info, file_name):
     def _sky_path():
         return "/usr/local/bin/sky"
@@ -75,12 +80,12 @@ def download_by_skynet(resource_info, file_name):
     return os.path.join(temp_dir, file_name)
 
 
-def _query(url):
+def _urlopen(url, data=None):
     n = 10
 
     for i in xrange(n):
         try:
-            return json.loads(urllib2.urlopen(url, timeout=30).read())
+            return urllib2.urlopen(url, timeout=30, data=data).read()
 
         except urllib2.HTTPError as e:
             logging.error(e)
@@ -97,8 +102,20 @@ def _query(url):
         time.sleep(i)
 
 
+def _query(url):
+    return json.loads(_urlopen(url))
+
+
+def _query_put(url, data):
+    return _urlopen(PutRequest(url), data)
+
+
 def get_resource_info(resource_id):
     return _query('https://sandbox.yandex-team.ru/api/v1.0/resource/' + str(resource_id))
+
+
+def update_access_time(resource_id):
+    return _query_put('https://sandbox.yandex-team.ru/api/v1.0/resource/' + str(resource_id), {})
 
 
 def get_resource_http_links(resource_id):
@@ -116,6 +133,11 @@ def fetch(resource_id, custom_fetcher):
         raise ResourceInfoError(str(e))
 
     logging.info('Resource %s info %s', str(resource_id), json.dumps(resource_info))
+
+    try:
+        update_access_time(resource_id)
+    except Exception as e:
+        sys.stderr.write("Failed to update access time for {} resource: {}\n".format(resource_id, e))
 
     resource_file_name = os.path.basename(resource_info["file_name"])
     expected_md5 = resource_info.get('md5')
