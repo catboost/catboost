@@ -1,4 +1,5 @@
 import hashlib
+import json
 import math
 import numpy as np
 import pprint
@@ -20,7 +21,7 @@ from catboost import (
     cv,
     sum_models,
     train,)
-from catboost.eval.catboost_evaluation import CatboostEvaluation
+from catboost.eval.catboost_evaluation import CatboostEvaluation, EvalType
 from catboost.utils import eval_metric, create_cd, get_roc_curve, select_threshold
 import os.path
 from pandas import read_table, DataFrame, Series, Categorical
@@ -32,6 +33,7 @@ from catboost_pytest_lib import (
     DelayedTee,
     binary_path,
     data_file,
+    get_limited_precision_json_diff_tool,
     local_canonical_file,
     permute_dataset_columns,
     remove_time_from_json,
@@ -4189,3 +4191,81 @@ def test_baseline():
     baseline = np.array([[1, 3, 2, 1, 2]], dtype=np.float32).reshape(5, 1)
     input_pool.set_baseline(baseline)
     assert (input_pool.get_baseline() == baseline).all()
+
+
+EVAL_TYPES = ['All', 'SeqRem', 'SeqAdd', 'SeqAddAndAll']
+EVAL_PROBLEMS = ['binclass', 'multiclass', 'regression', 'ranking']
+
+
+@pytest.mark.parametrize('eval_type', EVAL_TYPES, ids=['eval_type=%s' % eval_type for eval_type in EVAL_TYPES])
+@pytest.mark.parametrize('problem', EVAL_PROBLEMS, ids=['problem=%s' % problem for problem in EVAL_PROBLEMS])
+def test_eval_features(task_type, eval_type, problem):
+    if problem == 'binclass':
+        loss_function = 'Logloss'
+        eval_metrics = ['AUC']
+        train_file = TRAIN_FILE
+        cd_file = CD_FILE
+        features_to_eval = [6, 7, 8]
+        group_column = None
+    elif problem == 'multiclass':
+        loss_function = 'MultiClass'
+        eval_metrics = ['Accuracy']
+        train_file = CLOUDNESS_TRAIN_FILE
+        cd_file = CLOUDNESS_CD_FILE
+        features_to_eval = [101, 102, 105, 106]
+        group_column = None
+    elif problem == 'regression':
+        loss_function = 'RMSE'
+        eval_metrics = ['RMSE']
+        train_file = TRAIN_FILE
+        cd_file = CD_FILE
+        features_to_eval = [6, 7, 8]
+        group_column = None
+    elif problem == 'ranking':
+        loss_function = 'QueryRMSE'
+        eval_metrics = ['NDCG']
+        train_file = QUERYWISE_TRAIN_FILE
+        cd_file = QUERYWISE_CD_FILE
+        features_to_eval = [20, 22, 23, 25, 26]
+        group_column = 1
+
+    learn_params = {
+        'task_type': task_type,
+        'devices': '0',
+        'iterations': 20,
+        'learning_rate': 0.5,
+        'logging_level': 'Silent',
+        'loss_function': loss_function,
+        'boosting_type': 'Plain',
+        'allow_const_label': True
+    }
+    evaluator = CatboostEvaluation(
+        train_file,
+        fold_size=50,
+        fold_count=2,
+        column_description=cd_file,
+        group_column=group_column,
+        partition_random_seed=0
+    )
+    results = evaluator.eval_features(
+        learn_config=learn_params,
+        features_to_eval=features_to_eval,
+        eval_type=EvalType(eval_type),
+        eval_metrics=eval_metrics
+    )
+
+    eval_results_file_name = test_output_path('eval_results.json')
+    with open(eval_results_file_name, 'w') as eval_results_file:
+        eval_results_for_json_dump = {}
+        for metric_name, metric_results in results.get_results().items():
+            # two-step conversion to dict is required because json.dump can't dump the result of
+            # 'metric_results.get_baseline_comparison().to_dict()'
+            eval_results_for_json_dump[metric_name] = json.loads(
+                metric_results.get_baseline_comparison().to_json()
+            )
+        json.dump(eval_results_for_json_dump, eval_results_file, indent=4, sort_keys=True)
+
+    return local_canonical_file(
+        eval_results_file_name,
+        diff_tool=get_limited_precision_json_diff_tool(1.0e-5 if task_type == 'GPU' else 0.0)
+    )

@@ -113,6 +113,70 @@
             "uri": "file://test.test_early_stopping_rounds_CPU_/json_log_train.json"
         }
     ],
+    "test.test_eval_features[CPU-problem=binclass-eval_type=All]": {
+        "checksum": "205223185e59e2404138003c705db903",
+        "uri": "file://test.test_eval_features_CPU-problem=binclass-eval_type=All_/eval_results.json"
+    },
+    "test.test_eval_features[CPU-problem=binclass-eval_type=SeqAddAndAll]": {
+        "checksum": "205223185e59e2404138003c705db903",
+        "uri": "file://test.test_eval_features_CPU-problem=binclass-eval_type=SeqAddAndAll_/eval_results.json"
+    },
+    "test.test_eval_features[CPU-problem=binclass-eval_type=SeqAdd]": {
+        "checksum": "02dfe7d4c5d35786476bedab29dab744",
+        "uri": "file://test.test_eval_features_CPU-problem=binclass-eval_type=SeqAdd_/eval_results.json"
+    },
+    "test.test_eval_features[CPU-problem=binclass-eval_type=SeqRem]": {
+        "checksum": "05b85aae3924f48bec755b0be668d7be",
+        "uri": "file://test.test_eval_features_CPU-problem=binclass-eval_type=SeqRem_/eval_results.json"
+    },
+    "test.test_eval_features[CPU-problem=multiclass-eval_type=All]": {
+        "checksum": "63a3bc42781ef4357188986ba5b517ec",
+        "uri": "file://test.test_eval_features_CPU-problem=multiclass-eval_type=All_/eval_results.json"
+    },
+    "test.test_eval_features[CPU-problem=multiclass-eval_type=SeqAddAndAll]": {
+        "checksum": "63a3bc42781ef4357188986ba5b517ec",
+        "uri": "file://test.test_eval_features_CPU-problem=multiclass-eval_type=SeqAddAndAll_/eval_results.json"
+    },
+    "test.test_eval_features[CPU-problem=multiclass-eval_type=SeqAdd]": {
+        "checksum": "b579a5b4daa19fb7b520c70b9483635d",
+        "uri": "file://test.test_eval_features_CPU-problem=multiclass-eval_type=SeqAdd_/eval_results.json"
+    },
+    "test.test_eval_features[CPU-problem=multiclass-eval_type=SeqRem]": {
+        "checksum": "6546fd6e72ea79d3e7bdb4dcd9024ad6",
+        "uri": "file://test.test_eval_features_CPU-problem=multiclass-eval_type=SeqRem_/eval_results.json"
+    },
+    "test.test_eval_features[CPU-problem=ranking-eval_type=All]": {
+        "checksum": "d5c60c192cc4ff66ce161a1580a13ed2",
+        "uri": "file://test.test_eval_features_CPU-problem=ranking-eval_type=All_/eval_results.json"
+    },
+    "test.test_eval_features[CPU-problem=ranking-eval_type=SeqAddAndAll]": {
+        "checksum": "d5c60c192cc4ff66ce161a1580a13ed2",
+        "uri": "file://test.test_eval_features_CPU-problem=ranking-eval_type=SeqAddAndAll_/eval_results.json"
+    },
+    "test.test_eval_features[CPU-problem=ranking-eval_type=SeqAdd]": {
+        "checksum": "65768eee80babd882d420485d6f4bbe3",
+        "uri": "file://test.test_eval_features_CPU-problem=ranking-eval_type=SeqAdd_/eval_results.json"
+    },
+    "test.test_eval_features[CPU-problem=ranking-eval_type=SeqRem]": {
+        "checksum": "0eeb5a8f955a0dfb342de7c65f347c94",
+        "uri": "file://test.test_eval_features_CPU-problem=ranking-eval_type=SeqRem_/eval_results.json"
+    },
+    "test.test_eval_features[CPU-problem=regression-eval_type=All]": {
+        "checksum": "269106c12bbb31793516e4c212b2adcb",
+        "uri": "file://test.test_eval_features_CPU-problem=regression-eval_type=All_/eval_results.json"
+    },
+    "test.test_eval_features[CPU-problem=regression-eval_type=SeqAddAndAll]": {
+        "checksum": "269106c12bbb31793516e4c212b2adcb",
+        "uri": "file://test.test_eval_features_CPU-problem=regression-eval_type=SeqAddAndAll_/eval_results.json"
+    },
+    "test.test_eval_features[CPU-problem=regression-eval_type=SeqAdd]": {
+        "checksum": "2960ed9590f25c6ada360c634696e6f6",
+        "uri": "file://test.test_eval_features_CPU-problem=regression-eval_type=SeqAdd_/eval_results.json"
+    },
+    "test.test_eval_features[CPU-problem=regression-eval_type=SeqRem]": {
+        "checksum": "5ce8c8b148e823af8abd7388279c9d28",
+        "uri": "file://test.test_eval_features_CPU-problem=regression-eval_type=SeqRem_/eval_results.json"
+    },
     "test.test_eval_period_size": [
         {
             "checksum": "71c3b35098024d744a800a3b1f8e91bb",

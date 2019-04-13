@@ -1,0 +1,48 @@
+{
+    "NDCG:type=Base": {
+        "Decision": {
+            "{}": "UNKNOWN"
+        }, 
+        "Overfit iter diff": {
+            "{}": 2.0
+        }, 
+        "Overfit iter pValue": {
+            "{}": 0.5
+        }, 
+        "PValue": {
+            "{}": 1.0
+        }, 
+        "Quantile 0.005": {
+            "{}": -5.5194344702
+        }, 
+        "Quantile 0.995": {
+            "{}": 7.1508727959
+        }, 
+        "Score": {
+            "{}": 0.8157191628
+        }
+    }, 
+    "QueryRMSE": {
+        "Decision": {
+            "{}": "UNKNOWN"
+        }, 
+        "Overfit iter diff": {
+            "{}": -6.0
+        }, 
+        "Overfit iter pValue": {
+            "{}": 0.5
+        }, 
+        "PValue": {
+            "{}": 1.0
+        }, 
+        "Quantile 0.005": {
+            "{}": -0.1649847278
+        }, 
+        "Quantile 0.995": {
+            "{}": 0.7354501423
+        }, 
+        "Score": {
+            "{}": 0.2852327073
+        }
+    }
+}

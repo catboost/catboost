@@ -1,0 +1,48 @@
+{
+    "AUC": {
+        "Decision": {
+            "{}": "UNKNOWN"
+        }, 
+        "Overfit iter diff": {
+            "{}": 1.0
+        }, 
+        "Overfit iter pValue": {
+            "{}": 1.0
+        }, 
+        "PValue": {
+            "{}": 0.5
+        }, 
+        "Quantile 0.005": {
+            "{}": 1.2658227848
+        }, 
+        "Quantile 0.995": {
+            "{}": 4.8808172531
+        }, 
+        "Score": {
+            "{}": 3.073320019
+        }
+    }, 
+    "Logloss": {
+        "Decision": {
+            "{}": "UNKNOWN"
+        }, 
+        "Overfit iter diff": {
+            "{}": 4.0
+        }, 
+        "Overfit iter pValue": {
+            "{}": 0.5
+        }, 
+        "PValue": {
+            "{}": 0.5
+        }, 
+        "Quantile 0.005": {
+            "{}": -8.8940758517
+        }, 
+        "Quantile 0.995": {
+            "{}": -7.0328446218
+        }, 
+        "Score": {
+            "{}": -7.9634602367
+        }
+    }
+}

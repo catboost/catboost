@@ -1,0 +1,48 @@
+{
+    "Accuracy": {
+        "Decision": {
+            "{}": "UNKNOWN"
+        }, 
+        "Overfit iter diff": {
+            "{}": 8.5
+        }, 
+        "Overfit iter pValue": {
+            "{}": 0.5
+        }, 
+        "PValue": {
+            "{}": 0.5
+        }, 
+        "Quantile 0.005": {
+            "{}": -10.2564102564
+        }, 
+        "Quantile 0.995": {
+            "{}": -6.25
+        }, 
+        "Score": {
+            "{}": -8.2532051282
+        }
+    }, 
+    "MultiClass": {
+        "Decision": {
+            "{}": "UNKNOWN"
+        }, 
+        "Overfit iter diff": {
+            "{}": 0.5
+        }, 
+        "Overfit iter pValue": {
+            "{}": 0.5
+        }, 
+        "PValue": {
+            "{}": 1.0
+        }, 
+        "Quantile 0.005": {
+            "{}": -6.1852058295
+        }, 
+        "Quantile 0.995": {
+            "{}": 0.5799676635
+        }, 
+        "Score": {
+            "{}": -2.802619083
+        }
+    }
+}
