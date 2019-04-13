@@ -1,3 +1,16 @@
+# Release 0.14.1
+
+## Breaking changes
+- Changed default value for `--counter-calc-method` option to `SkipTest`
+
+## New features:
+- Add guid to trained models. You can access it in Python using [`get_metadata`](https://catboost.ai/docs/concepts/python-reference_catboost_metadata.html) function, for example `print catboost_model.get_metadata()['model_guid']`
+
+## Bug fixes and other changes:
+- Compatibility with glibc 2.12
+- Improved embedded documentation
+- Improved warning and error messages
+
 # Release 0.14.0
 
 ## New features:
