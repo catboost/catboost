@@ -118,44 +118,30 @@ void OutputModelCoreML(
     auto regressor = treeModel.mutable_treeensembleregressor();
     auto ensemble = regressor->mutable_treeensemble();
 
-    bool createPipeline;
-    NCatboost::NCoreML::ConfigureTrees(model, ensemble, &createPipeline);
+    bool createMappingModel;
+    NCatboost::NCoreML::ConfigureTrees(model, ensemble, &createMappingModel);
+
+    if (createMappingModel) {
+        CoreML::Specification::Model mappingModel;
+        mappingModel.set_specificationversion(1);
+
+        auto* container = mappingModel.mutable_pipeline()->mutable_models();
+        auto mappingDescription = mappingModel.mutable_description();
+        NCatboost::NCoreML::ConfigureCategoricalMappings(model, container);
+        NCatboost::NCoreML::ConfigureMappingModelIO(model, mappingDescription);
+
+        TString mappingData;
+        mappingModel.SerializeToString(&mappingData);
+        TOFStream outMapping(modelFile);
+        outMapping.Write(mappingData);
+    }
+
+    auto description = treeModel.mutable_description();
+    NCatboost::NCoreML::ConfigureMetadata(model, userParameters, description);
+    NCatboost::NCoreML::ConfigureTreeModelIO(model, userParameters, regressor, description);
 
     TString data;
-
-    if (createPipeline) {
-        CoreML::Specification::Model outModel, arrayModel, vectorizerModel;
-        outModel.set_specificationversion(1);
-
-        auto* container = outModel.mutable_pipeline()->mutable_models();
-        auto* containedArray = container->Add();
-
-        auto array = arrayModel.mutable_arrayfeatureextractor();
-        auto arrayDescription = arrayModel.mutable_description();
-        NCatboost::NCoreML::ConfigureArrayFeatureExtractor(model, array, arrayDescription);
-        NCatboost::NCoreML::ConfigureCategoricalMappings(model, container);
-
-        auto* containedVectorizer = container->Add();
-        auto* containedTree = container->Add();
-        auto featureVectorizer = vectorizerModel.mutable_featurevectorizer();
-
-        auto description = outModel.mutable_description();
-        NCatboost::NCoreML::ConfigureMetadata(model, userParameters, description);
-        NCatboost::NCoreML::ConfigureIO(model, userParameters, regressor, description, createPipeline);
-
-        *containedArray = arrayModel;
-        *containedVectorizer = vectorizerModel;
-        *containedTree = treeModel;
-
-        outModel.SerializeToString(&data);
-
-    } else {
-        auto description = treeModel.mutable_description();
-        NCatboost::NCoreML::ConfigureMetadata(model, userParameters, description);
-        NCatboost::NCoreML::ConfigureIO(model, userParameters, regressor, description, createPipeline);
-
-        treeModel.SerializeToString(&data);
-    }
+    treeModel.SerializeToString(&data);
 
     TOFStream out(modelFile);
     out.Write(data);
