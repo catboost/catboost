@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{4D71E8A1-7ED9-3C27-AEE6-23DC48127699}</ProjectGUID>
+    <ProjectGUID>{D4A23E39-75EE-97F4-A50A-283C64388B74}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>library-sse2neon</ProjectName>
+    <ProjectName>library-sse</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>library-sse2neon</TargetName>
+    <TargetName>library-sse</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\library\sse2neon\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\4D71E8A1-7ED9-3C27-AEE6-23DC48127699\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\library\sse\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\D4A23E39-75EE-97F4-A50A-283C64388B74\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,10 +78,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\library\sse2neon\sse_adhoc.cpp"/>
-    <ClInclude Include="$(SolutionDir)..\library\sse2neon\powerpc.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\sse2neon\sse2neon.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\sse2neon\sse_adhoc.h"/>
+    <ClCompile Include="$(SolutionDir)..\library\sse\sse.cpp"/>
+    <ClInclude Include="$(SolutionDir)..\library\sse\powerpc.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\sse\sse.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\sse\sse2neon.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>

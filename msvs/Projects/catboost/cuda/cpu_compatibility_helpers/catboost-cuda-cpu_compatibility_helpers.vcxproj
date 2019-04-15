@@ -477,8 +477,8 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\resource\library-resource.vcxproj">
       <Project>{0182C1FA-B7CF-C21E-561C-06B91159C53A}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\sse2neon\library-sse2neon.vcxproj">
-      <Project>{4D71E8A1-7ED9-3C27-AEE6-23DC48127699}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\library\sse\library-sse.vcxproj">
+      <Project>{D4A23E39-75EE-97F4-A50A-283C64388B74}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\statistics\library-statistics.vcxproj">
       <Project>{898C3811-AD77-869C-24DC-EF6A89FA8399}</Project>

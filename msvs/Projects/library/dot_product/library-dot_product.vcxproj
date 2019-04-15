@@ -96,8 +96,8 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zlib\contrib-libs-zlib.vcxproj">
       <Project>{E8A35EC0-40EE-2D96-1FB2-D065B804958D}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\sse2neon\library-sse2neon.vcxproj">
-      <Project>{4D71E8A1-7ED9-3C27-AEE6-23DC48127699}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\library\sse\library-sse.vcxproj">
+      <Project>{D4A23E39-75EE-97F4-A50A-283C64388B74}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\util\charset\util-charset.vcxproj">
       <Project>{44174C28-7454-8F7D-C06B-E2E8E0B4BF9E}</Project>
