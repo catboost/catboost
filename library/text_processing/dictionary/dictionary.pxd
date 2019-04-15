@@ -91,6 +91,7 @@ cdef extern from "library/text_processing/dictionary/bpe_dictionary.h" namespace
     cdef cppclass TBpeDictionary(IDictionary):
         TBpeDictionary(...) except +
         void Load(const TString& dictionaryPath, const TString& bpePath) except +
+        void Save(const TString& dictionaryPath, const TString& bpePath) except +
 
 
 cdef extern from "library/text_processing/dictionary/options.h" namespace "NTextProcessing::NDictionary" nogil:
@@ -105,6 +106,10 @@ cdef extern from "library/text_processing/dictionary/options.h" namespace "NText
     cdef cppclass TDictionaryBuilderOptions:
         ui64 OccurrenceLowerBound
         i32 MaxDictionarySize
+
+    cdef cppclass TBpeDictionaryOptions:
+        size_t NumUnits
+        bool_t SkipUnknown
 
 
 cdef extern from "library/text_processing/dictionary/dictionary_builder.h" namespace "NTextProcessing::NDictionary" nogil:
