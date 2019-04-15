@@ -542,9 +542,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\symbols\registry\python-symbols-registry.vcxproj">
       <Project>{BD115620-103F-AECF-8093-05A7D89F72D6}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\python\symbols\uuid\python-symbols-uuid.vcxproj">
-      <Project>{EDB0FDCB-BB9D-C1F0-4E99-99941382FCC0}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\windows\pylibrary-python-windows.vcxproj">
       <Project>{73CACD62-64C7-DBB4-CF29-B554C02CAA74}</Project>
     </ProjectReference>

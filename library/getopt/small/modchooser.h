@@ -54,10 +54,12 @@ public:
 
     void AddGroupModeDescription(const TString& description);
 
+    void AddAlias(const TString& alias, const TString& mode);
+
     //! Set main program description.
     void SetDescription(const TString& descr);
 
-    //! Set modes help option name (-h is by default)
+    //! Set modes help option name (-? is by default)
     void SetModesHelpOption(const TString& helpOption);
 
     //! Specify handler for '--version' parameter
@@ -95,6 +97,7 @@ private:
         TMainClassV* Main;
         TString Description;
         bool Separator;
+        TVector<TString> Aliases;
 
         TMode()
             : Main(nullptr)
@@ -103,9 +106,13 @@ private:
         }
 
         TMode(const TString& name, TMainClassV* main, const TString& descr);
+
+        // Full name includes primary name and aliases. Also, will add ANSI colors.
+        size_t CalculateFullNameLen() const;
+        TString FormatFullName(size_t pad) const;
     };
 
-    typedef TMap<TString, TMode> TModes;
+    typedef TMap<TString, TMode*> TModes;
 
 private:
     //! Main program description.
@@ -133,5 +140,5 @@ private:
     TString SeparationString;
 
     //! Unsorted list of options
-    TVector<TMode> UnsortedModes;
+    TVector<THolder<TMode>> UnsortedModes;
 };

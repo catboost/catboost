@@ -12,6 +12,7 @@ Platform: Mac OSX
 Platform: Windows
 Platform: Unix
 Requires-Dist: enum34
+Requires-Dist: graphviz
 Requires-Dist: six
 Requires-Dist: numpy >=1.11.1
 Requires-Dist: pandas >=0.19.1

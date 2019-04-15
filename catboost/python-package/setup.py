@@ -13,6 +13,7 @@ setup(
     packages=find_packages(),
     install_requires=[
         'enum34',
+        'graphviz',
         'six',
         'numpy >= 1.11.1',
         'pandas >= 0.19.1'

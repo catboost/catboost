@@ -9,8 +9,12 @@ IF (USE_ARCADIA_PYTHON)
         contrib/libs/python/Include
         library/python/symbols/module
         library/python/symbols/libc
-        library/python/symbols/uuid
     )
+
+    IF (NOT OS_WINDOWS)
+        PEERDIR(
+        )
+    ENDIF()
 
     IF (MUSL)
         PEERDIR(

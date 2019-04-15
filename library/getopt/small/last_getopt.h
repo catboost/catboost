@@ -40,7 +40,7 @@ namespace NLastGetopt {
                     TValue last = mutableValue ? NPrivate::OptFromString<TValue>(mutableValue, parser->CurOpt()) : first;
 
                     if (last < first) {
-                        ythrow TUsageException() << "failed to parse opt " << NPrivate::OptToString(parser->CurOpt()) << " value " << TString(val).Quote() << ": the second argument is less than the first one";
+                        throw TUsageException() << "failed to parse opt " << NPrivate::OptToString(parser->CurOpt()) << " value " << TString(val).Quote() << ": the second argument is less than the first one";
                     }
 
                     for (++last; first < last; ++first) {
@@ -100,7 +100,7 @@ namespace NLastGetopt {
             if (curval.IsInited()) {
                 TStringBuf key, value;
                 if (!curval.TrySplit(KVDelim, key, value)) {
-                    ythrow TUsageException() << "failed to parse opt " << NPrivate::OptToString(curOpt)
+                    throw TUsageException() << "failed to parse opt " << NPrivate::OptToString(curOpt)
                                              << " value " << TString(curval).Quote() << ": expected key" << KVDelim << "value format";
                 }
                 Func(NPrivate::OptFromString<TKey>(key, curOpt), NPrivate::OptFromString<TValue>(value, curOpt));
@@ -119,8 +119,10 @@ namespace NLastGetopt {
             const TpArg& arg = curval.IsInited() ? OptFromString<TpArg>(curval, parser->CurOpt()) : Def_;
             try {
                 Func_(arg);
+            } catch (const TUsageException&) {
+                throw;
             } catch (...) {
-                ythrow TUsageException() << "failed to handle opt " << OptToString(parser->CurOpt())
+                throw TUsageException() << "failed to handle opt " << OptToString(parser->CurOpt())
                                          << " value " << TString(curval).Quote() << ": " << CurrentExceptionMessage();
             }
         }

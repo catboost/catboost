@@ -519,6 +519,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\funcsigs\pycontrib-python-funcsigs.vcxproj">
       <Project>7E6B0B75-8CFD-8357-FA3A-F2B353EDA5DF</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\graphviz\pycontrib-python-graphviz.vcxproj">
+      <Project>F7A1107D-8D70-ACE8-DC3B-C262EC7A87FA</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\more-itertools\pycontrib-python-more-itertools.vcxproj">
       <Project>BC62290A-1F8B-7962-8C00-63BFE8DAE2A0</Project>
     </ProjectReference>
@@ -881,9 +884,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\symbols\registry\python-symbols-registry.vcxproj">
       <Project>BD115620-103F-AECF-8093-05A7D89F72D6</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\python\symbols\uuid\python-symbols-uuid.vcxproj">
-      <Project>EDB0FDCB-BB9D-C1F0-4E99-99941382FCC0</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\testing\import_test\pypython-testing-import_test.vcxproj">
       <Project>8B8BC972-CC2F-567D-7196-F4B2070D8544</Project>
