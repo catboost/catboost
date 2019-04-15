@@ -96,7 +96,7 @@ ALLOW .* -> vendor/github.com/go-openapi
 # redis client
 ALLOW .* -> vendor/github.com/go-redis/redis          
 
-# fast JSON serializer for golang
+# fast JSON serializer for golang. relies on code generation.
 ALLOW .* -> vendor/github.com/mailru/easyjson
 
 # lz4 compression codec
@@ -131,7 +131,8 @@ ALLOW .* -> vendor/github.com/spf13/pflag
 # a toolkit with common test assertions and mocks
 ALLOW .* -> vendor/github.com/stretchr/testify        
 
-# very fast (fastest) json parser and encoder
+# very fast json parser and encoder.
+# uses dynamic message structure, suitable for cases where json structure is not known in advance.
 ALLOW .* -> vendor/github.com/valyala/fastjson
 
 # xxhash32 and xxhash64 hash functions
