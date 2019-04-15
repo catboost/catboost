@@ -38,12 +38,12 @@ struct T_mm_CallWrapper {
 };
 
 #if defined(_arm64_)
-#include "library/sse2neon/sse2neon.h"
+#include "library/sse/sse2neon.h"
 #elif defined(_i386_) || defined(_x86_64_)
 #include <xmmintrin.h>
 #include <emmintrin.h>
 #elif defined(_ppc64_)
-#include "library/sse2neon/powerpc.h"
+#include "library/sse/powerpc.h"
 #else
 #error "Unsupported platform"
 #endif

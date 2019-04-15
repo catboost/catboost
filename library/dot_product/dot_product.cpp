@@ -1,6 +1,6 @@
 #include "dot_product.h"
 
-#include <library/sse2neon/sse_adhoc.h>
+#include <library/sse/sse.h>
 #include <util/system/platform.h>
 #include <util/system/compiler.h>
 #include <util/generic/utility.h>

@@ -1,4 +1,4 @@
-UNITTEST_FOR(library/sse2neon)
+UNITTEST_FOR(library/sse)
 
 
 

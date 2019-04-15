@@ -4,9 +4,9 @@
   The header chooses appropriate SSE support.
   On Intel: SSE intrinsics
   On ARM64: translation to NEON intrinsics or software emulation
-  On other platforms: pure software emulation (not ready yet)
+  On PowerPc: translation to Altivec intrinsics or software emulation
 */
-/* Author: Vitaliy Manushkin <agri@yandex-team.ru> */
+/* Author: Vitaliy Manushkin <agri@yandex-team.ru>, Danila Kutenin <danlark@yandex-team.ru> */
 
 #include <util/system/platform.h>
 

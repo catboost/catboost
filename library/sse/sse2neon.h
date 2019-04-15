@@ -17,7 +17,7 @@
 
 #if !defined(_arm64_)
 #error "This header is for ARM64 (aarch64) platform only. " \
-    "Include sse_adhoc.h instead of including this header directly."
+    "Include sse.h instead of including this header directly."
 #endif
 
 #include <arm_neon.h>
@@ -326,6 +326,7 @@ inline __m128i _mm_madd_epi16(__m128i a, __m128i b) {
     return res;
 }
 
+using _mm_sub_epi8 = TWrapperDual<uint8x16_t, decltype(vsubq_u8), vsubq_u8>;
 using _mm_sub_epi16 = TWrapperDual<uint16x8_t, decltype(vsubq_u16), vsubq_u16>;
 using _mm_sub_epi32 = TWrapperDual<uint32x4_t, decltype(vsubq_u32), vsubq_u32>;
 using _mm_sub_epi64 = TWrapperDual<uint64x2_t, decltype(vsubq_u64), vsubq_u64>;
@@ -762,6 +763,10 @@ struct _mm_and_ps : TBaseWrapper<__m128> {
     }
 };
 
+Y_FORCE_INLINE __m128d _mm_and_pd(__m128d a, __m128d b) {
+    return vandq_u64(a, b);
+}
+
 inline static __attribute__((__always_inline__)) void _MM_TRANSPOSE4_PS(__m128& op0, __m128& op1, __m128& op2, __m128& op3) {
     float64x2_t im0 =
         (float64x2_t)vtrn1q_f32(op0.AsFloat32x4, op1.AsFloat32x4);
@@ -902,3 +907,50 @@ inline __m128 _mm_or_ps(__m128 a, __m128 b) {
     return res;
 }
 
+inline __m128i _mm_sad_epu8(__m128i a, __m128i b) {
+    __m128i sad;
+    sad.AsUi8x16 = vabdq_u8(a.AsUi8x16, b.AsUi8x16);
+    sad.AsUi8x16 = vpaddlq_u8(a.AsUi8x16);
+    sad.AsUi16x8 = vpaddlq_u16(sad.AsUi16x8);
+    sad.AsUi32x4 = vpaddlq_u32(sad.AsUi32x4);
+    return sad;
+}
+
+Y_FORCE_INLINE __m128i _mm_subs_epi8(__m128i a, __m128i b) {
+    __m128i ans;
+    ans.AsSi8x16 = vqsubq_s8(a.AsSi8x16, b.AsSi8x16);
+    return ans;
+}
+
+Y_FORCE_INLINE __m128i _mm_subs_epi16(__m128i a, __m128i b) {
+    __m128i ans;
+    ans.AsSi16x8 = vqsubq_s16(a.AsSi16x8, b.AsSi16x8);
+    return ans;
+}
+
+Y_FORCE_INLINE __m128i _mm_subs_epu8(__m128i a, __m128i b) {
+    __m128i ans;
+    ans.AsUi8x16 = vqsubq_u8(a.AsUi8x16, b.AsUi8x16);
+    return ans;
+}
+
+Y_FORCE_INLINE __m128i _mm_subs_epu16(__m128i a, __m128i b) {
+    __m128i ans;
+    ans.AsUi16x8 = vqsubq_u16(a.AsUi16x8, b.AsUi16x8);
+    return ans;
+}
+
+Y_FORCE_INLINE __m128d _mm_castsi128_pd(__m128i __A) {
+    return reinterpret_cast<__m128d&>(__A);
+}
+
+Y_FORCE_INLINE __m128i _mm_set_epi8(uint8_t i15, uint8_t i14, uint8_t i13, uint8_t i12, uint8_t i11, uint8_t i10, uint8_t i9, uint8_t i8,
+        uint8_t i7, uint8_t i6, uint8_t i5, uint8_t i4, uint8_t i3, uint8_t i2, uint8_t i1, uint8_t i0)
+{
+    int32_t a0 =  i0 |  (i1<<8) |  (i2<<16) |  (i3<<24);
+    int32_t a1 =  i4 |  (i5<<8) |  (i6<<16) |  (i7<<24);
+    int32_t a2 =  i8 |  (i9<<8) | (i10<<16) | (i11<<24);
+    int32_t a3 = i12 | (i13<<8) | (i14<<16) | (i15<<24);
+
+    return _mm_set_epi32(a3, a2, a1, a0);
+}
