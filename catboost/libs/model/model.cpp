@@ -132,7 +132,7 @@ void OutputModelCoreML(
 
         TString mappingData;
         mappingModel.SerializeToString(&mappingData);
-        TOFStream outMapping(modelFile);
+        TOFStream outMapping("mapping_" + modelFile);
         outMapping.Write(mappingData);
     }
 

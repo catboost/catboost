@@ -151,7 +151,7 @@ void NCatboost::NCoreML::ConfigureCategoricalMappings(const TFullModel& model, g
         featureType->set_isoptional(false);
         featureType->set_allocated_int64type(new Int64FeatureType());
         mappedCategoricalFeature->set_allocated_type(featureType);
-        mappedCategoricalFeature->set_name(("feature_" + std::to_string(FlatFeatureIndex)).c_str());
+        mappedCategoricalFeature->set_name(("mapped_feature_" + std::to_string(FlatFeatureIndex)).c_str());
 
         *contained = mappingModel;
     }
@@ -182,7 +182,7 @@ void NCatboost::NCoreML::ConfigureMappingModelIO(const TFullModel& model, CoreML
         featureType->set_isoptional(false);
         featureType->set_allocated_int64type(new Int64FeatureType());
         mappedCategoricalFeature->set_allocated_type(featureType);
-        mappedCategoricalFeature->set_name(("feature_" + std::to_string(FlatFeatureIndex)).c_str());
+        mappedCategoricalFeature->set_name(("mapped_feature_" + std::to_string(FlatFeatureIndex)).c_str());
     }
 }
 
