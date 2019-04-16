@@ -531,8 +531,8 @@
                 "llvm-cov": { "bottle": "clang7", "executable": "llvm-cov" },
                 "llvm-profdata": { "bottle": "clang7", "executable": "llvm-profdata" },
                 "llvm-symbolizer": { "bottle": "clang7", "executable": "llvm-symbolizer" },
-                "nm": { "bottle": "clang7", "executable": "nm" },
-                "strip": { "bottle": "clang7", "executable": "strip" }
+                "nm": { "bottle": "clang7", "executable": "llvm-nm" },
+                "strip": { "bottle": "clang7", "executable": "llvm-strip" }
             },
             "platforms": [
                 {"host": {"os": "LINUX"}, "target": {"os": "LINUX", "arch": "x86_64"}, "default": true},
@@ -1626,8 +1626,8 @@
                 "llvm-cov": ["bin", "llvm-cov"],
                 "llvm-profdata": ["bin", "llvm-profdata"],
                 "llvm-symbolizer": ["bin", "llvm-symbolizer"],
-                "nm": ["bin", "nm"],
-                "strip": ["bin", "strip"]
+                "llvm-nm": ["bin", "llvm-nm"],
+                "llvm-strip": ["bin", "llvm-strip"]
             }
         },
         "clang6-android-x86": {
