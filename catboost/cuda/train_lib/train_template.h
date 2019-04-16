@@ -13,18 +13,13 @@ namespace NCatboostCuda {
     inline TBoosting MakeBoosting(
         const NCatboostOptions::TCatBoostOptions& catBoostOptions,
         TBinarizedFeaturesManager* featureManager,
-        typename TBoosting::TWeakLearner* weak,
         TGpuAwareRandom* random,
         NPar::TLocalExecutor* localExecutor
     ) {
-        const auto& boostingOptions = catBoostOptions.BoostingOptions.Get();
         TBoosting boosting(*featureManager,
-                           boostingOptions,
-                           catBoostOptions.ModelBasedEvalOptions,
-                           catBoostOptions.LossFunctionDescription,
+                           catBoostOptions,
                            catBoostOptions.DataProcessingOptions->GpuCatFeaturesStorage,
                            *random,
-                           *weak,
                            localExecutor);
         return boosting;
     }
@@ -68,11 +63,7 @@ namespace NCatboostCuda {
                                                                          NPar::TLocalExecutor* localExecutor,
                                                                          TVector<TVector<double>>* testMultiApprox, // [dim][docIdx]
                                                                          TMetricsAndTimeLeftHistory* metricsAndTimeHistory) {
-        using TWeakLearner = typename TBoosting::TWeakLearner;
-
-        auto weak = MakeWeakLearner<TWeakLearner>(featureManager, catBoostOptions);
-
-        auto boosting = MakeBoosting<TBoosting>(catBoostOptions, &featureManager, &weak, &random, localExecutor);
+        auto boosting = MakeBoosting<TBoosting>(catBoostOptions, &featureManager, &random, localExecutor);
 
         boosting.SetDataProvider(learn, featureEstimators, test);
 
@@ -120,11 +111,7 @@ namespace NCatboostCuda {
                                TGpuAwareRandom& random,
                                ui32 approxDimension,
                                NPar::TLocalExecutor* localExecutor) {
-        using TWeakLearner = typename TBoosting::TWeakLearner;
-
-        auto weak = MakeWeakLearner<TWeakLearner>(featureManager, catBoostOptions);
-
-        auto boosting = MakeBoosting<TBoosting>(catBoostOptions, &featureManager, &weak, &random, localExecutor);
+        auto boosting = MakeBoosting<TBoosting>(catBoostOptions, &featureManager, &random, localExecutor);
 
         //TODO(noxoomo): support estimators in MBE
         NCB::TFeatureEstimators estimators;
