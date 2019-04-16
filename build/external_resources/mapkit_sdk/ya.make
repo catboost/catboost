@@ -11,8 +11,8 @@ IF (GCC OR CLANG)
 ENDIF()
 
 IF (OS_LINUX)
-    # Qt + protobuf 2.6.1 + GL headers + GLES2
-    DECLARE_EXTERNAL_RESOURCE(MAPKIT_SDK sbr:649684872)
+    # Qt 5.6.1 + protobuf 3.6.1 + GL headers + GLES2
+    DECLARE_EXTERNAL_RESOURCE(MAPKIT_SDK sbr:897945809)
     CFLAGS(
         GLOBAL "-I$MAPKIT_SDK_RESOURCE_GLOBAL/mapkit_sdk/include"
         GLOBAL "-I$MAPKIT_SDK_RESOURCE_GLOBAL/mapkit_sdk/local/linux.x86-64/include"
