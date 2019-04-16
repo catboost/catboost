@@ -83,7 +83,6 @@
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\methods\boosting_metric_calcer.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\methods\boosting_progress_tracker.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\methods\ctr_from_tensor_calcer.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\cuda\methods\dynamic_boosting.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\methods\feature_parallel_pointwise_oblivious_tree.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\methods\greedy_subsets_searcher\compute_by_blocks_helper.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\methods\greedy_subsets_searcher\greedy_search_helper.cpp"/>
