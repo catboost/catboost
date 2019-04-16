@@ -5,6 +5,7 @@
         "clang-format": { "description": "Run Clang Format" },
         "clang-tidy": { "description": "Run Clang Tidy" },
         "cling": { "description": "Run cling" },
+        "dctl": {"description": "Run Yandex.Deploy CLI"},
         "llvm-profdata": { "description": "Run llvm-profdata Clang utility" },
         "llvm-symbolizer": { "description": "Run llvm-symbolizer Clang utility" },
         "llvm-cov": { "description": "Run llvm-cov Clang utility" },
@@ -1011,6 +1012,15 @@
                 {"host": {"os": "DARWIN"}, "default": true}
             ]
         },
+        "dctl": {
+            "tools": {
+                "dctl": { "bottle": "dctl", "executable": "dctl" }
+            },
+            "platforms": [
+                {"host": {"os": "LINUX"}, "default": true},
+                {"host": {"os": "DARWIN"}, "default": true}
+            ]
+        },
         "jq": {
             "tools": {
                 "jq": { "bottle": "jq", "executable": "jq" }
@@ -1932,6 +1942,15 @@
             },
             "executable": {
                 "yp": ["yp"]
+            }
+        },
+        "dctl": {
+            "formula": {
+                "sandbox_id":  [414346940],
+                "match": "dctl"
+            },
+            "executable": {
+                "dctl": ["dctl"]
             }
         },
         "vim": {
