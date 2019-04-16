@@ -39,6 +39,7 @@ class CatboostEvaluation(object):
                  working_dir=None,
                  remove_models=True,
                  delimiter='\t',
+                 has_header=False,
                  partition_random_seed=0,
                  min_fold_count=1):
         """
@@ -55,6 +56,7 @@ class CatboostEvaluation(object):
             :param working_dir: Working dir for temporary files
             :param remove_models: (bool) Set true if you want models to be removed after applying them.
             :param delimiter: (str) Field delimiter used in dataset files.
+            :param has_header: (bool) Set true if you want to skip first line in dataset files.
             :param partition_random_seed: (int) The seed for random value generator used for getting permutations for
              cross-validation.
             :param min_fold_count: (int) Minimun amount of folds dataset can be cut to.
@@ -69,6 +71,7 @@ class CatboostEvaluation(object):
         self._fold_count = fold_count
         self._fold_size = fold_size
         self._delimiter = delimiter
+        self._has_header = has_header
         self._seed = partition_random_seed
         self._min_fold_count = int(min_fold_count)
         self._remove_models = remove_models
@@ -178,6 +181,7 @@ class CatboostEvaluation(object):
 
             reader = _SimpleStreamingFileReader(self._path_to_dataset,
                                                 sep=self._delimiter,
+                                                has_header=self._has_header,
                                                 group_feature_num=self._group_feature_num)
             splitter = _Splitter(reader,
                                  self._column_description,
