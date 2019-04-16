@@ -9,51 +9,53 @@
 #include <util/generic/vector.h>
 #include <util/generic/yexception.h>
 #include <util/generic/ymath.h>
+#include <util/generic/serialized_enum.h>
 
 using NSplitSelection::IBinarizer;
 
 namespace {
-    class TMedianInBinBinarizer: public IBinarizer {
+    template <EPenaltyType PenaltyType>
+    class TGreedyBinarizer: public IBinarizer {
     public:
-        THashSet<float> BestSplit(TVector<float>& featureValues,
-                                    int maxBordersCount,
-                                    bool isSorted) const override;
+        THashSet<float> BestSplit(
+            TVector<float>& featureValues,
+            int maxBordersCount,
+            bool isSorted) const override;
+    };
+
+    template <EPenaltyType PenaltyType>
+    class TExactBinarizer: public IBinarizer {
+    public:
+        THashSet<float> BestSplit(
+            TVector<float>& featureValues,
+            int maxBordersCount,
+            bool isSorted) const override;
     };
 
     class TMedianPlusUniformBinarizer: public IBinarizer {
     public:
-        THashSet<float> BestSplit(TVector<float>& featureValues,
-                                    int maxBordersCount,
-                                    bool isSorted) const override;
+        THashSet<float> BestSplit(
+            TVector<float>& featureValues,
+            int maxBordersCount,
+            bool isSorted) const override;
     };
 
-    class TMinEntropyBinarizer: public IBinarizer {
-    public:
-        THashSet<float> BestSplit(TVector<float>& featureValues,
-                                    int maxBordersCount,
-                                    bool isSorted) const override;
-    };
-
-    class TMaxSumLogBinarizer: public IBinarizer {
-    public:
-        THashSet<float> BestSplit(TVector<float>& featureValues,
-                                    int maxBordersCount,
-                                    bool isSorted) const override;
-    };
-
-    // Works in O(binCount * log(n)) + O(nlogn) for sorting.
+    // Works in O(binCount * log(n)) + O(n * log(n)) for sorting.
+    // It's possible to implement O(n * log(binCount)) version.
     class TMedianBinarizer: public IBinarizer {
     public:
-        THashSet<float> BestSplit(TVector<float>& featureValues,
-                                    int maxBordersCount,
-                                    bool isSorted) const override;
+        THashSet<float> BestSplit(
+            TVector<float>& featureValues,
+            int maxBordersCount,
+            bool isSorted) const override;
     };
 
     class TUniformBinarizer: public IBinarizer {
     public:
-        THashSet<float> BestSplit(TVector<float>& featureValues,
-                                    int maxBordersCount,
-                                    bool isSorted) const override;
+        THashSet<float> BestSplit(
+            TVector<float>& featureValues,
+            int maxBordersCount,
+            bool isSorted) const override;
     };
 }
 
@@ -63,11 +65,13 @@ namespace NSplitSelection {
             case EBorderSelectionType::UniformAndQuantiles:
                 return MakeHolder<TMedianPlusUniformBinarizer>();
             case EBorderSelectionType::GreedyLogSum:
-                return MakeHolder<TMedianInBinBinarizer>();
-            case EBorderSelectionType::MinEntropy:
-                return MakeHolder<TMinEntropyBinarizer>();
+                return MakeHolder<TGreedyBinarizer<EPenaltyType::MaxSumLog>>();
+            case EBorderSelectionType::GreedyMinEntropy:
+                return MakeHolder<TGreedyBinarizer<EPenaltyType::MinEntropy>>();
             case EBorderSelectionType::MaxLogSum:
-                return MakeHolder<TMaxSumLogBinarizer>();
+                return MakeHolder<TExactBinarizer<EPenaltyType::MaxSumLog>>();
+            case EBorderSelectionType::MinEntropy:
+                return MakeHolder<TExactBinarizer<EPenaltyType::MinEntropy>>();
             case EBorderSelectionType::Median:
                 return MakeHolder<TMedianBinarizer>();
             case EBorderSelectionType::Uniform:
@@ -78,25 +82,28 @@ namespace NSplitSelection {
     }
 }
 
-THashSet<float> BestSplit(TVector<float>& features,
-                          int maxBordersCount,
-                          EBorderSelectionType type,
-                          bool nanValueIsInfty,
-                          bool featuresAreSorted) {
-    if (nanValueIsInfty) {
-        features.erase(std::remove_if(features.begin(), features.end(), [](auto v) { return std::isnan(v); }), features.end());
+THashSet<float> BestSplit(
+    TVector<float>& features,
+    int maxBordersCount,
+    EBorderSelectionType type,
+    bool filterNans,
+    bool featuresAreSorted
+) {
+    auto firstNanPos = std::remove_if(features.begin(), features.end(), IsNan);
+    if (firstNanPos != features.end()) {
+        if (filterNans) {
+            features.erase(firstNanPos, features.end());
+        } else {
+            throw (yexception() << "Unexpected Nan value.");
+        }
     }
 
     if (features.empty()) {
         return {};
     }
 
-    if (!featuresAreSorted) {
-        Sort(features.begin(), features.end());
-    }
-
     const auto binarizer = NSplitSelection::MakeBinarizer(type);
-    return binarizer->BestSplit(features, maxBordersCount, true);
+    return binarizer->BestSplit(features, maxBordersCount, featuresAreSorted);
 }
 
 namespace {
@@ -112,33 +119,29 @@ namespace {
         E_DaC,        // Guaranteed O(wsize * log(wsize) * bins) time
         E_SF_End
     };
-
-    enum class EPenaltyType {
-        MinEntropy,
-        MaxSumLog,
-        W2
-    };
 }
 
-static double Penalty(double weight, double, EPenaltyType type) {
-    switch (type) {
-        case EPenaltyType::MinEntropy:
-            return weight * log(weight + 1e-8);
-        case EPenaltyType::MaxSumLog:
-            return -log(weight + 1e-8);
-        case EPenaltyType::W2:
-            return weight * weight;
-        default:
-            Y_VERIFY(false);
-    }
+template <>
+double Penalty<EPenaltyType::MinEntropy>(double weight) {
+    return weight * log(weight + 1e-8);
+}
+template <>
+double Penalty<EPenaltyType::MaxSumLog>(double weight) {
+    return -log(weight + 1e-8);
 }
 
-template <typename TWeightType>
-static void BestSplit(const TVector<TWeightType>& weights,
-                      size_t maxBordersCount,
-                      TVector<size_t>& thresholds,
-                      EPenaltyType type,
-                      ESF mode) {
+template <>
+double Penalty<EPenaltyType::W2>(double weight) {
+    return weight * weight;
+}
+
+template <typename TWeightType, EPenaltyType type>
+static void BestSplit(
+    const TVector<TWeightType>& weights,
+    size_t maxBordersCount,
+    TVector<size_t>& thresholds,
+    ESF mode
+) {
     size_t bins = maxBordersCount + 1;
     // Safety checks
     if (bins <= 1 || weights.empty()) {
@@ -164,7 +167,6 @@ static void BestSplit(const TVector<TWeightType>& weights,
     for (size_t i = 1; i < wsize; ++i) {
         sweights[i] += sweights[i - 1];
     }
-    double expected = double(sweights[wsize - 1]) / bins;
     size_t dsize = ((mode == E_Base) || (mode == E_Old_Linear)) ? wsize : (wsize - bins + 1);
     TVector<size_t> bestSolutionsBuffer((bins - 2) * dsize);
     TVector<TArrayRef<size_t>> bestSolutions(bins - 2);
@@ -174,7 +176,7 @@ static void BestSplit(const TVector<TWeightType>& weights,
 
     TVector<double> current_error(dsize), prevError(dsize);
     for (size_t i = 0; i < dsize; ++i) {
-        current_error[i] = Penalty(double(sweights[i]), expected, type);
+        current_error[i] = Penalty<type>(double(sweights[i]));
     }
     // For 2 loops runs:
     TVector<size_t> bs1(dsize), bs2(dsize);
@@ -186,9 +188,9 @@ static void BestSplit(const TVector<TWeightType>& weights,
         if (mode == E_Base) {
             for (size_t j = 0; j < wsize; ++j) {
                 size_t bestIndex = 0;
-                double bestError = prevError[0] + Penalty(double(sweights[j] - sweights[0]), expected, type);
+                double bestError = prevError[0] + Penalty<type>(double(sweights[j] - sweights[0]));
                 for (size_t i = 1; i <= j; ++i) {
-                    double newError = prevError[i] + Penalty(double(sweights[j] - sweights[i]), expected, type);
+                    double newError = prevError[i] + Penalty<type>(double(sweights[j] - sweights[i]));
                     if (newError <= bestError) {
                         bestError = newError;
                         bestIndex = i;
@@ -200,9 +202,9 @@ static void BestSplit(const TVector<TWeightType>& weights,
         } else if (mode == E_Old_Linear) {
             size_t i = 0;
             for (size_t j = 0; j < wsize; ++j) {
-                double bestError = prevError[i] + Penalty(double(sweights[j] - sweights[i]), expected, type);
+                double bestError = prevError[i] + Penalty<type>(double(sweights[j] - sweights[i]));
                 for (++i; i < j; ++i) {
-                    double newError = prevError[i] + Penalty(double(sweights[j] - sweights[i]), expected, type);
+                    double newError = prevError[i] + Penalty<type>(double(sweights[j] - sweights[i]));
                     if (newError > bestError + Eps) {
                         break;
                     }
@@ -215,9 +217,9 @@ static void BestSplit(const TVector<TWeightType>& weights,
         } else if (mode == E_Base2) {
             for (size_t j = 0; j < dsize; ++j) {
                 size_t bestIndex = 0;
-                double bestError = prevError[0] + Penalty(double(sweights[l + j + 1] - sweights[l]), expected, type);
+                double bestError = prevError[0] + Penalty<type>(double(sweights[l + j + 1] - sweights[l]));
                 for (size_t i = 1; i <= j; ++i) {
-                    double newError = prevError[i] + Penalty(double(sweights[l + j + 1] - sweights[l + i]), expected, type);
+                    double newError = prevError[i] + Penalty<type>(double(sweights[l + j + 1] - sweights[l + i]));
                     if (newError <= bestError) {
                         bestError = newError;
                         bestIndex = i;
@@ -229,9 +231,9 @@ static void BestSplit(const TVector<TWeightType>& weights,
         } else if (mode == E_Linear) {
             size_t i = 0;
             for (size_t j = 0; j < dsize; ++j) {
-                double bestError = prevError[i] + Penalty(double(sweights[l + j + 1] - sweights[l + i]), expected, type);
+                double bestError = prevError[i] + Penalty<type>(double(sweights[l + j + 1] - sweights[l + i]));
                 for (++i; i <= j; ++i) {
-                    double newError = prevError[i] + Penalty(double(sweights[l + j + 1] - sweights[l + i]), expected, type);
+                    double newError = prevError[i] + Penalty<type>(double(sweights[l + j + 1] - sweights[l + i]));
                     if (newError > bestError + Eps) {
                         break;
                     }
@@ -245,9 +247,9 @@ static void BestSplit(const TVector<TWeightType>& weights,
             // First loop
             size_t left = 0;
             for (size_t j = 0; j < dsize; ++j) {
-                double bestError = prevError[left] + Penalty(double(sweights[l + j + 1] - sweights[l + left]), expected, type);
+                double bestError = prevError[left] + Penalty<type>(double(sweights[l + j + 1] - sweights[l + left]));
                 for (++left; left <= j; ++left) {
-                    double newError = prevError[left] + Penalty(double(sweights[l + j + 1] - sweights[l + left]), expected, type);
+                    double newError = prevError[left] + Penalty<type>(double(sweights[l + j + 1] - sweights[l + left]));
                     if (newError > bestError + Eps) {
                         break;
                     }
@@ -262,9 +264,9 @@ static void BestSplit(const TVector<TWeightType>& weights,
             left = 0;
             for (size_t j = 0; j < dsize; ++j) {
                 left = Max(left, j);
-                double bestError = prevError[dsize - left - 1] + Penalty(double(sweights[l + dsize - j] - sweights[l + dsize - left - 1]), expected, type);
+                double bestError = prevError[dsize - left - 1] + Penalty<type>(double(sweights[l + dsize - j] - sweights[l + dsize - left - 1]));
                 for (++left; left < dsize; ++left) {
-                    double newError = prevError[dsize - left - 1] + Penalty(double(sweights[l + dsize - j] - sweights[l + dsize - left - 1]), expected, type);
+                    double newError = prevError[dsize - left - 1] + Penalty<type>(double(sweights[l + dsize - j] - sweights[l + dsize - left - 1]));
                     if (newError > bestError + Eps) {
                         break;
                     }
@@ -291,7 +293,7 @@ static void BestSplit(const TVector<TWeightType>& weights,
                     double bestError = e1[j];
                     size_t bestIndex = bs1[j];
                     for (size_t i = bs1[j] + 1; i <= bs2[j]; ++i) {
-                        double newError = prevError[i] + Penalty(double(sweights[l + j + 1] - sweights[l + i]), expected, type);
+                        double newError = prevError[i] + Penalty<type>(double(sweights[l + j + 1] - sweights[l + i]));
                         if (newError <= bestError) {
                             bestError = newError;
                             bestIndex = i;
@@ -323,7 +325,7 @@ static void BestSplit(const TVector<TWeightType>& weights,
                             size_t bestIndex = bs1[j1];
                             for (size_t i = bs1[j1] + 2; i <= bs2[j1]; ++i) // We can start from bs1[j1] + 2 because bs1[j1] + 1 was checked before
                             {
-                                double newError = prevError[i] + Penalty(double(sweights[l + j1 + 1] - sweights[l + i]), expected, type);
+                                double newError = prevError[i] + Penalty<type>(double(sweights[l + j1 + 1] - sweights[l + i]));
                                 if (newError < bestError - Eps) {
                                     bestError = newError;
                                     bestIndex = i;
@@ -338,9 +340,9 @@ static void BestSplit(const TVector<TWeightType>& weights,
                             if (rebuild_required_1) {
                                 size_t i = bs1[j1];
                                 for (size_t ji = j1 + 1; ji <= j2; ++ji) {
-                                    double bestError = prevError[i] + Penalty(double(sweights[l + ji + 1] - sweights[l + i]), expected, type);
+                                    double bestError = prevError[i] + Penalty<type>(double(sweights[l + ji + 1] - sweights[l + i]));
                                     for (++i; i <= ji; ++i) {
-                                        double newError = prevError[i] + Penalty(double(sweights[l + ji + 1] - sweights[l + i]), expected, type);
+                                        double newError = prevError[i] + Penalty<type>(double(sweights[l + ji + 1] - sweights[l + i]));
                                         if (newError > bestError + Eps) {
                                             break;
                                         }
@@ -358,7 +360,7 @@ static void BestSplit(const TVector<TWeightType>& weights,
                                 size_t bestIndex = bs2[j2];
                                 for (size_t i = bs1[j2]; i < bs2[j2] - 1; ++i) // bs2[j2]-1 was checked before
                                 {
-                                    double newError = prevError[i] + Penalty(double(sweights[l + j2 + 1] - sweights[l + i]), expected, type);
+                                    double newError = prevError[i] + Penalty<type>(double(sweights[l + j2 + 1] - sweights[l + i]));
                                     if (newError < bestError - Eps) {
                                         bestError = newError;
                                         bestIndex = i;
@@ -374,9 +376,9 @@ static void BestSplit(const TVector<TWeightType>& weights,
                                 size_t i = dsize - bs2[j2] - 1;
                                 for (size_t ji = dsize - j2; ji < dsize - j1 - 1; ++ji) {
                                     i = Max(i, ji);
-                                    double bestError = prevError[dsize - i - 1] + Penalty(double(sweights[l + dsize - ji] - sweights[l + dsize - i - 1]), expected, type);
+                                    double bestError = prevError[dsize - i - 1] + Penalty<type>(double(sweights[l + dsize - ji] - sweights[l + dsize - i - 1]));
                                     for (++i; i < dsize; ++i) {
-                                        double newError = prevError[dsize - i - 1] + Penalty(double(sweights[l + dsize - ji] - sweights[l + dsize - i - 1]), expected, type);
+                                        double newError = prevError[dsize - i - 1] + Penalty<type>(double(sweights[l + dsize - ji] - sweights[l + dsize - i - 1]));
                                         if (newError > bestError + Eps) {
                                             break;
                                         }
@@ -396,9 +398,9 @@ static void BestSplit(const TVector<TWeightType>& weights,
             {
                 size_t i = 0;
                 for (size_t j = 0; j < dsize; ++j) {
-                    double bestError = prevError[i] + Penalty(double(sweights[l + j + 1] - sweights[l + i]), expected, type);
+                    double bestError = prevError[i] + Penalty<type>(double(sweights[l + j + 1] - sweights[l + i]));
                     for (++i; i <= j; ++i) {
-                        double newError = prevError[i] + Penalty(double(sweights[l + j + 1] - sweights[l + i]), expected, type);
+                        double newError = prevError[i] + Penalty<type>(double(sweights[l + j + 1] - sweights[l + i]));
                         if (newError > bestError + Eps) {
                             break;
                         }
@@ -424,7 +426,7 @@ static void BestSplit(const TVector<TWeightType>& weights,
                     }
                     double bestError = e1[dsize - j - 1];
                     for (; i + 1 < maxi; ++i) {
-                        double newError = prevError[dsize - i - 1] + Penalty(double(sweights[l + dsize - j] - sweights[l + dsize - i - 1]), expected, type);
+                        double newError = prevError[dsize - i - 1] + Penalty<type>(double(sweights[l + dsize - j] - sweights[l + dsize - i - 1]));
                         if (newError + Eps < bestError) {
                             bestError = newError;
                             break;
@@ -434,7 +436,7 @@ static void BestSplit(const TVector<TWeightType>& weights,
                         i = maxi;
                     } else {
                         for (++i; i + 1 < maxi; ++i) {
-                            double newError = prevError[dsize - i - 1] + Penalty(double(sweights[l + dsize - j] - sweights[l + dsize - i - 1]), expected, type);
+                            double newError = prevError[dsize - i - 1] + Penalty<type>(double(sweights[l + dsize - j] - sweights[l + dsize - i - 1]));
                             if (newError > bestError + Eps) {
                                 break;
                             }
@@ -469,7 +471,7 @@ static void BestSplit(const TVector<TWeightType>& weights,
                             }
                             double bestError = e2[j];
                             for (; i + 1 < maxi; ++i) {
-                                double newError = prevError[i] + Penalty(double(sweights[l + j + 1] - sweights[l + i]), expected, type);
+                                double newError = prevError[i] + Penalty<type>(double(sweights[l + j + 1] - sweights[l + i]));
                                 if (newError + Eps < bestError) {
                                     bestError = newError;
                                     break;
@@ -479,7 +481,7 @@ static void BestSplit(const TVector<TWeightType>& weights,
                                 i = maxi;
                             } else {
                                 for (++i; i + 1 < maxi; ++i) {
-                                    double newError = prevError[i] + Penalty(double(sweights[l + j + 1] - sweights[l + i]), expected, type);
+                                    double newError = prevError[i] + Penalty<type>(double(sweights[l + j + 1] - sweights[l + i]));
                                     if (newError > bestError + Eps) {
                                         break;
                                     }
@@ -507,7 +509,7 @@ static void BestSplit(const TVector<TWeightType>& weights,
                             }
                             double bestError = e1[dsize - j - 1];
                             for (; i + 1 < maxi; ++i) {
-                                double newError = prevError[dsize - i - 1] + Penalty(double(sweights[l + dsize - j] - sweights[l + dsize - i - 1]), expected, type);
+                                double newError = prevError[dsize - i - 1] + Penalty<type>(double(sweights[l + dsize - j] - sweights[l + dsize - i - 1]));
                                 if (newError + Eps < bestError) {
                                     bestError = newError;
                                     break;
@@ -517,7 +519,7 @@ static void BestSplit(const TVector<TWeightType>& weights,
                                 i = maxi;
                             } else {
                                 for (++i; i + 1 < maxi; ++i) {
-                                    double newError = prevError[dsize - i - 1] + Penalty(double(sweights[l + dsize - j] - sweights[l + dsize - i - 1]), expected, type);
+                                    double newError = prevError[dsize - i - 1] + Penalty<type>(double(sweights[l + dsize - j] - sweights[l + dsize - i - 1]));
                                     if (newError > bestError + Eps) {
                                         break;
                                     }
@@ -548,15 +550,15 @@ static void BestSplit(const TVector<TWeightType>& weights,
                     // i is already fixed
                     for (size_t j = jbegin; j < jend; ++j) {
                         bestSolutions[l][j] = ibegin;
-                        current_error[j] = prevError[ibegin] + Penalty(double(sweights[l + j + 1] - sweights[l + ibegin]), expected, type);
+                        current_error[j] = prevError[ibegin] + Penalty<type>(double(sweights[l + j + 1] - sweights[l + ibegin]));
                     }
                 } else {
                     size_t j = (jbegin + jend) / 2;
                     size_t bestIndex = ibegin;
-                    double bestError = prevError[ibegin] + Penalty(double(sweights[l + j + 1] - sweights[l + ibegin]), expected, type);
+                    double bestError = prevError[ibegin] + Penalty<type>(double(sweights[l + j + 1] - sweights[l + ibegin]));
                     size_t iend2 = Min(iend, j + 1);
                     for (size_t i = ibegin + 1; i < iend2; ++i) {
-                        double newError = prevError[i] + Penalty(double(sweights[l + j + 1] - sweights[l + i]), expected, type);
+                        double newError = prevError[i] + Penalty<type>(double(sweights[l + j + 1] - sweights[l + i]));
                         if (newError <= bestError) {
                             bestError = newError;
                             bestIndex = i;
@@ -578,18 +580,18 @@ static void BestSplit(const TVector<TWeightType>& weights,
         size_t j = dsize - 1; // we don't care about other
         size_t bestIndex = 0;
         if ((mode == E_Base) || (mode == E_Old_Linear)) {
-            double bestError = prevError[0] + Penalty(double(sweights[j] - sweights[0]), expected, type);
+            double bestError = prevError[0] + Penalty<type>(double(sweights[j] - sweights[0]));
             for (size_t i = 1; i <= j; ++i) {
-                double newError = prevError[i] + Penalty(double(sweights[j] - sweights[i]), expected, type);
+                double newError = prevError[i] + Penalty<type>(double(sweights[j] - sweights[i]));
                 if (newError < bestError) {
                     bestError = newError;
                     bestIndex = i;
                 }
             }
         } else {
-            double bestError = prevError[0] + Penalty(double(sweights[l + j + 1] - sweights[l]), expected, type);
+            double bestError = prevError[0] + Penalty<type>(double(sweights[l + j + 1] - sweights[l]));
             for (size_t i = 1; i <= j; ++i) {
-                double newError = prevError[i] + Penalty(double(sweights[l + j + 1] - sweights[l + i]), expected, type);
+                double newError = prevError[i] + Penalty<type>(double(sweights[l + j + 1] - sweights[l + i]));
                 if (newError < bestError) {
                     bestError = newError;
                     bestIndex = i;
@@ -611,31 +613,14 @@ static void BestSplit(const TVector<TWeightType>& weights,
     }
 }
 
-// Border before element with value "border"
-static float RegularBorder(float border, const TVector<float>& sortedValues) {
-    TVector<float>::const_iterator lowerBound = LowerBound(sortedValues.begin(), sortedValues.end(), border);
-
-    if (lowerBound == sortedValues.end()) // binarizing to always false
-        return Max(2.f * sortedValues.back(), sortedValues.back() + 1.f);
-
-    if (lowerBound == sortedValues.begin()) // binarizing to always true
-        return Min(.5f * sortedValues.front(), 2.f * sortedValues.front());
-
-    float res = (lowerBound[0] + lowerBound[-1]) * .5f;
-    if (res == lowerBound[0]) // wrong side rounding (should be very scarce)
-        res = lowerBound[-1];
-
-    return res;
-}
-
+template <EPenaltyType type>
 static THashSet<float> BestSplit(const TVector<float>& values,
                                  const TVector<float>& weight,
-                                 size_t maxBordersCount,
-                                 EPenaltyType type) {
+                                 size_t maxBordersCount) {
     // Positions after which threshold should be inserted.
     TVector<size_t> thresholds;
     thresholds.reserve(maxBordersCount);
-    BestSplit(weight, maxBordersCount, thresholds, type, E_RLM2);
+    BestSplit<float, type>(weight, maxBordersCount, thresholds, E_RLM2);
 
     THashSet<float> borders;
     borders.reserve(thresholds.size());
@@ -647,33 +632,128 @@ static THashSet<float> BestSplit(const TVector<float>& values,
     return borders;
 }
 
-static THashSet<float> SplitWithGuaranteedOptimum(
-    TVector<float>& featureValues,
-    int maxBordersCount,
-    EPenaltyType type,
-    bool isSorted) {
-    if (!isSorted) {
-        Sort(featureValues.begin(), featureValues.end());
+// Border before element with value "border"
+static float RegularBorder(float border, const TVector<float>& sortedValues) {
+    TVector<float>::const_iterator lowerBound = LowerBound(sortedValues.begin(), sortedValues.end(), border);
+
+    if (lowerBound == sortedValues.end()) // binarizing to always false
+        return Max(2.f * sortedValues.back(), sortedValues.back() + 1.f);
+
+    if (lowerBound == sortedValues.begin()) // binarizing to always true
+        return Min(.5f * sortedValues.front(), 2.f * sortedValues.front());
+
+    float res = (lowerBound[0] + lowerBound[-1]) * .5f;
+    if (res == lowerBound[0]) { // wrong side rounding (should be very scarce)
+        res = lowerBound[-1];
     }
+    return res;
+}
 
-    // TODO(yazevnul): rewrite this (well, actually, most of the code in this file) there is a lot
-    // of place to save memory, here are first two that came to mind:
-    // - reuse `featureValues`, no need to allocate `features`
-    // - use `ui32` instead of `size_t` for indices
 
-    TVector<float> features;
-    features.reserve(featureValues.size());
-    TVector<float> weights;
-    weights.reserve(featureValues.size());
-    for (auto f : featureValues) {
-        if (features.empty() || features.back() != f) {
-            features.push_back(f);
-            weights.push_back(1);
-        } else {
-            weights.back()++;
+namespace {
+    template <typename T>
+    class TRepeatIterator {
+    private:
+        T Value;
+    public:
+        TRepeatIterator(T value) : Value(value) {}
+        TRepeatIterator& operator++() { return *this; }
+        TRepeatIterator& operator++(int) { return *this; }
+        T operator*() const { return Value; }
+    };
+
+    template <typename TWeightType>
+    static inline bool ShouldBeSkipped(float value, TWeightType weight, bool filterNans) {
+        if (weight <= 0) {
+            return true;
         }
+        if (IsNan(value)) {
+            Y_ENSURE(filterNans, "Nan value occurred");
+            return true;
+        }
+        return false;
     }
-    return BestSplit(features, weights, maxBordersCount, type);
+
+    template <class TWeightIteratorType>
+    std::pair<TVector<float>, TVector<float>> GroupAndSortWeighedValuesImpl(
+        const TVector<float>& featureValues,
+        TWeightIteratorType weightsIterator,
+        bool filterNans,
+        bool isSorted,
+        bool normalizeWeights = false
+    ) {
+        TVector<float> uniqueFeatureValues; // is it worth to make a reserve?
+        TVector<float> uniqueValueWeights;
+        size_t valueCount = 0;
+        double totalWeight = 0.0f;
+        if (isSorted) {
+            for (auto value : featureValues) {
+                auto weight = *weightsIterator++;
+                if (ShouldBeSkipped(value, weight, filterNans)) {
+                    continue;
+                }
+                ++valueCount;
+                totalWeight += weight;
+                if (uniqueFeatureValues.empty() || uniqueFeatureValues.back() != value) {
+                    uniqueFeatureValues.push_back(value);
+                    uniqueValueWeights.push_back(weight);
+                } else {
+                    uniqueValueWeights.back() += weight;
+                }
+            }
+        } else {
+            THashMap<float, float> groupedValues;
+            for (auto value : featureValues) {
+                auto weight = *weightsIterator++;
+                if (ShouldBeSkipped(value, weight, filterNans)) {
+                    continue;
+                }
+                ++valueCount;
+                totalWeight += weight;
+                if (groupedValues.contains(value)) {
+                    groupedValues.at(value) += weight;
+                } else {
+                    groupedValues.emplace(value, weight);
+                    uniqueFeatureValues.push_back(value);
+                }
+            }
+            Sort(uniqueFeatureValues.begin(), uniqueFeatureValues.end());
+            uniqueValueWeights.reserve(uniqueFeatureValues.size());
+            for (auto value : uniqueFeatureValues) {
+                uniqueValueWeights.push_back(groupedValues.at(value));
+            }
+        }
+        if (normalizeWeights && valueCount > 0) {
+            const double weightMultiplier = static_cast<double>(valueCount) / totalWeight;
+            for (float& weight : uniqueValueWeights) {
+                weight *= weightMultiplier;
+            }
+        }
+        return {std::move(uniqueFeatureValues), std::move(uniqueValueWeights)};
+    }
+}
+
+std::pair<TVector<float>, TVector<float>> GroupAndSortWeighedValues(
+        const TVector<float>& featureValues,
+        const TVector<float>& weights,
+        bool filterNans, bool isSorted) {
+    Y_ENSURE(featureValues.size() == weights.size());
+    return GroupAndSortWeighedValuesImpl(featureValues, weights.begin(), filterNans, isSorted, true);
+}
+
+std::pair<TVector<float>, TVector<float>> GroupAndSortValues(
+        const TVector<float>& featureValues, bool filterNans, bool isSorted) {
+    return GroupAndSortWeighedValuesImpl(
+        featureValues, TRepeatIterator<float>(1.0f), filterNans, isSorted);
+}
+
+template <EPenaltyType type>
+static THashSet<float> SplitWithGuaranteedOptimum(TVector<float>& featureValues,
+                                                  int maxBordersCount,
+                                                  bool isSorted) {
+    const auto [uniqueFeatureValues, uniqueValueWeights] = GroupAndSortValues(
+        featureValues, false, isSorted);
+    return BestSplit<type>(uniqueFeatureValues, uniqueValueWeights, maxBordersCount);
 }
 
 static THashSet<float> GenerateMedianBorders(
@@ -695,14 +775,10 @@ static THashSet<float> GenerateMedianBorders(
     return result;
 }
 
-THashSet<float> TMinEntropyBinarizer::BestSplit(
+template <EPenaltyType PenaltyType>
+THashSet<float> TExactBinarizer<PenaltyType>::BestSplit(
     TVector<float>& featureValues, int maxBordersCount, bool isSorted) const {
-    return SplitWithGuaranteedOptimum(featureValues, maxBordersCount, EPenaltyType::MinEntropy, isSorted);
-}
-
-THashSet<float> TMaxSumLogBinarizer::BestSplit(
-    TVector<float>& featureValues, int maxBordersCount, bool isSorted) const {
-    return SplitWithGuaranteedOptimum(featureValues, maxBordersCount, EPenaltyType::MaxSumLog, isSorted);
+    return SplitWithGuaranteedOptimum<PenaltyType>(featureValues, maxBordersCount, isSorted);
 }
 
 THashSet<float> TMedianBinarizer::BestSplit(
@@ -738,9 +814,11 @@ THashSet<float> TMedianPlusUniformBinarizer::BestSplit(
     return borders;
 }
 
-THashSet<float> TUniformBinarizer::BestSplit(TVector<float>& featureValues,
-                                                int maxBordersCount,
-                                                bool isSorted) const {
+THashSet<float> TUniformBinarizer::BestSplit(
+    TVector<float>& featureValues,
+    int maxBordersCount,
+    bool isSorted
+) const {
     if (!isSorted) {
         Sort(featureValues.begin(), featureValues.end());
     }
@@ -761,51 +839,82 @@ THashSet<float> TUniformBinarizer::BestSplit(TVector<float>& featureValues,
 }
 
 namespace {
+    template<typename TWeightType, EPenaltyType penaltyType>
     class TFeatureBin {
     private:
         ui32 BinStart;
         ui32 BinEnd;
         TVector<float>::const_iterator FeaturesStart;
-        TVector<float>::const_iterator FeaturesEnd;
+        typename TVector<TWeightType>::const_iterator CumulativeWeightsStart;
 
         ui32 BestSplit;
         double BestScore;
 
+    private:
         double CalcSplitScore(ui32 splitPos) {
             Y_ASSERT(splitPos >= BinStart && splitPos <= BinEnd);
             if (splitPos == BinStart || splitPos == BinEnd) {
                 return -std::numeric_limits<double>::infinity();
             }
-            const auto penaltyType = EPenaltyType::MaxSumLog;
-            const double leftPartScore = -Penalty((double)(splitPos - BinStart), 0.0, penaltyType);
-            const double rightPartScore = -Penalty((double)(BinEnd - splitPos), 0.0, penaltyType);
-            const double currBinScore = -Penalty((double)(BinEnd - BinStart), 0.0, penaltyType);
-            return leftPartScore + rightPartScore - currBinScore;
+            const TWeightType leftBinsWeight = (
+                    BinStart == 0 ? (TWeightType) 0 : *(CumulativeWeightsStart + BinStart - 1)
+            );
+            const TWeightType leftPartWeight = *(CumulativeWeightsStart + splitPos - 1) - leftBinsWeight;
+            const TWeightType rightPartWeight = (
+                *(CumulativeWeightsStart + BinEnd - 1) - *(CumulativeWeightsStart + splitPos - 1)
+            );
+            const double currBinScore = -Penalty<penaltyType>(leftPartWeight + rightPartWeight);
+            const double newBinsScore = -(
+                Penalty<penaltyType>(leftPartWeight) + Penalty<penaltyType>(rightPartWeight)
+            );
+            return newBinsScore - currBinScore;
         }
 
-        inline void UpdateBestSplitProperties() {
-            const int mid = (BinStart + BinEnd) / 2;
-            float midValue = *(FeaturesStart + mid);
+        void UpdateBestSplitProperties() {
+            Y_ASSERT(BinStart < BinEnd);
+            const TWeightType leftBinsWeight = (
+                    BinStart == 0 ? (TWeightType) 0 : *(CumulativeWeightsStart + BinStart - 1)
+            );
+            const double midCumulativeWeight =
+                0.5 * (leftBinsWeight + *(CumulativeWeightsStart + BinEnd - 1));
 
-            ui32 lb = (ui32)(LowerBound(FeaturesStart + BinStart, FeaturesStart + mid, midValue) - FeaturesStart);
-            ui32 ub = (ui32)(UpperBound(FeaturesStart + mid, FeaturesStart + BinEnd, midValue) - FeaturesStart);
+            const ui32 lb = LowerBound(CumulativeWeightsStart + BinStart, CumulativeWeightsStart + BinEnd,
+                                       midCumulativeWeight) - CumulativeWeightsStart;
+            Y_ASSERT(lb < BinEnd); // weights are (strictly) positive hence ub > BinStart
+            const ui32 ub = lb + 1;
 
             const double scoreLeft = CalcSplitScore(lb);
             const double scoreRight = CalcSplitScore(ub);
+
             BestSplit = scoreLeft >= scoreRight ? lb : ub;
             BestScore = BestSplit == lb ? scoreLeft : scoreRight;
         }
 
     public:
-        TFeatureBin(ui32 binStart, ui32 binEnd, const TVector<float>::const_iterator featuresStart, const TVector<float>::const_iterator featuresEnd)
-            : BinStart(binStart)
-            , BinEnd(binEnd)
+        TFeatureBin(
+            ui32 binStart,
+            ui32 binEnd,
+            typename TVector<float>::const_iterator featuresStart,
+            typename TVector<TWeightType>::const_iterator cumulativeWeightsStart
+        )
+            : BinStart(binStart), BinEnd(binEnd)
             , FeaturesStart(featuresStart)
-            , FeaturesEnd(featuresEnd)
-            , BestSplit(BinStart)
+            , CumulativeWeightsStart(cumulativeWeightsStart)
+            , BestSplit(binStart)
             , BestScore(0.0)
         {
+            Y_ASSERT(BinStart < BinEnd);
             UpdateBestSplitProperties();
+        }
+
+        TFeatureBin Split() {
+            if (!CanSplit()) {
+                throw yexception() << "Can't add new split";
+            }
+            TFeatureBin left(BinStart, BestSplit, FeaturesStart, CumulativeWeightsStart);
+            BinStart = BestSplit;
+            UpdateBestSplitProperties();
+            return left;
         }
 
         ui32 Size() const {
@@ -820,61 +929,157 @@ namespace {
             return BestScore;
         }
 
-        TFeatureBin Split() {
-            if (!CanSplit()) {
-                throw yexception() << "Can't add new split";
-            }
-            TFeatureBin left = TFeatureBin(BinStart, BestSplit, FeaturesStart, FeaturesEnd);
-            BinStart = BestSplit;
-            UpdateBestSplitProperties();
-            return left;
-        }
-
         bool CanSplit() const {
             return (BinStart != BestSplit && BinEnd != BestSplit);
         }
 
-        float Border() const {
+        float LeftBorder() const {
             Y_ASSERT(BinStart < BinEnd);
-            float borderValue = 0.5f * (*(FeaturesStart + BinEnd - 1));
-            const float nextValue = ((FeaturesStart + BinEnd) < FeaturesEnd)
-                                        ? (*(FeaturesStart + BinEnd))
-                                        : (*(FeaturesStart + BinEnd - 1));
-            borderValue += 0.5f * nextValue;
+            if (IsFirst()) {
+                return *FeaturesStart;
+            }
+            float borderValue = 0.5f * (*(FeaturesStart + BinStart - 1));
+            borderValue += 0.5f * (*(FeaturesStart + BinStart));
             return borderValue;
         }
 
-        bool IsLast() const {
-            return BinEnd == (FeaturesEnd - FeaturesStart);
+        bool IsFirst() const {
+            return BinStart == 0;
         }
     };
-}
 
-THashSet<float> TMedianInBinBinarizer::BestSplit(TVector<float>& featureValues,
-                                                 int maxBordersCount, bool isSorted) const {
-    THashSet<float> borders;
-    if (featureValues.size()) {
-        if (!isSorted) {
-            Sort(featureValues.begin(), featureValues.end());
-        }
-
-        std::priority_queue<TFeatureBin> splits;
-        splits.push(TFeatureBin(0, (ui32) featureValues.size(), featureValues.begin(), featureValues.end()));
+    template<class TBinType>
+    THashSet<float> GreedySplit(const TBinType& initialBin, int maxBordersCount) {
+        std::priority_queue<TBinType> splits;
+        splits.push(initialBin);
 
         while (splits.size() <= (ui32) maxBordersCount && splits.top().CanSplit()) {
-            TFeatureBin top = splits.top();
+            auto top = splits.top();
             splits.pop();
-            splits.push(top.Split());
+            auto left = top.Split();
+            splits.push(left);
             splits.push(top);
         }
 
-        while (splits.size()) {
-            if (!splits.top().IsLast())
-                borders.insert(splits.top().Border());
+        THashSet<float> borders;
+        borders.reserve(splits.size() - 1);
+        while (!splits.empty()) {
+            if (!splits.top().IsFirst())
+                borders.insert(splits.top().LeftBorder());
             splits.pop();
         }
+        return borders;
     }
-    return borders;
+
+    template<EPenaltyType penaltyType, class TWeightIteratorType>
+    THashSet<float> BestWeightedSplitImpl(
+        const TVector<float>& featureValues,
+        TWeightIteratorType weightsIterator,
+        int maxBordersCount,
+        EOptimizationType optimizationType,
+        bool filterNans,
+        bool featuresAreSorted,
+        bool normalizeWeights = true
+    ) {
+        auto[uniqueFeatureValues, uniqueValueWeights] = GroupAndSortWeighedValuesImpl(
+            featureValues, weightsIterator, filterNans, featuresAreSorted, normalizeWeights);
+        if (uniqueFeatureValues.empty()) {
+            return {};
+        }
+        switch (optimizationType) {
+            case EOptimizationType::Exact:
+                return BestSplit<penaltyType>(uniqueFeatureValues, uniqueValueWeights, maxBordersCount);
+            case EOptimizationType::Greedy: {
+                for (size_t i = 0; i + 1 < uniqueValueWeights.size(); ++i) {
+                    uniqueValueWeights[i + 1] += uniqueValueWeights[i];
+                }
+                TFeatureBin<float, penaltyType> initialBin(
+                    0, uniqueFeatureValues.size(), uniqueFeatureValues.begin(),
+                    uniqueValueWeights.begin());
+                return GreedySplit(initialBin, maxBordersCount);
+            }
+            default:
+                throw (yexception() << "Invalid Optimization type.");
+        }
+    }
+}
+
+template <EPenaltyType penaltyType>
+Y_NO_INLINE THashSet<float> BestWeightedSplit(
+    const TVector<float>& featureValues,
+    const TVector<float>& weights,
+    int maxBordersCount,
+    EOptimizationType optimizationType,
+    bool filterNans,
+    bool featuresAreSorted
+) {
+    Y_ENSURE(featureValues.size() == weights.size(), "weights and features should have equal size.");
+    return BestWeightedSplitImpl<penaltyType>(
+        featureValues, weights.begin(), maxBordersCount, optimizationType, filterNans, featuresAreSorted);
+}
+
+template<>
+Y_NO_INLINE THashSet<float> BestWeightedSplit<EPenaltyType::W2>(
+    const TVector<float>& featureValues,
+    const TVector<float>& weights,
+    int maxBordersCount,
+    EOptimizationType optimizationType,
+    bool filterNans,
+    bool featuresAreSorted
+) {
+    Y_ENSURE(featureValues.size() == weights.size(), "weights and features should have equal size.");
+    return BestWeightedSplitImpl<EPenaltyType::W2>(
+        featureValues, weights.begin(), maxBordersCount, optimizationType, filterNans, featuresAreSorted);
+}
+
+THashSet<float> BestWeightedSplit(
+    const TVector<float>& featureValues,
+    const TVector<float>& weights,
+    int maxBordersCount,
+    EBorderSelectionType borderSelectionType,
+    bool filterNans,
+    bool featuresAreSorted
+) {
+    switch (borderSelectionType) {
+        case EBorderSelectionType::MinEntropy:
+            return BestWeightedSplit<EPenaltyType::MinEntropy>(featureValues, weights, maxBordersCount,
+                EOptimizationType::Exact, filterNans, featuresAreSorted);
+        case EBorderSelectionType::MaxLogSum:
+            return BestWeightedSplit<EPenaltyType::MaxSumLog>(featureValues, weights, maxBordersCount,
+                EOptimizationType::Exact, filterNans, featuresAreSorted);
+        case EBorderSelectionType ::GreedyLogSum:
+            return BestWeightedSplit<EPenaltyType::MaxSumLog>(featureValues, weights, maxBordersCount,
+                EOptimizationType::Greedy, filterNans, featuresAreSorted);
+        case EBorderSelectionType ::GreedyMinEntropy:
+            return BestWeightedSplit<EPenaltyType::MinEntropy>(featureValues, weights, maxBordersCount,
+                EOptimizationType::Greedy, filterNans, featuresAreSorted);
+        default:
+            const auto borderSelectionTypeName = GetEnumNames<EBorderSelectionType>().at(borderSelectionType);
+            throw (yexception() << "Weights are unsupported for " << borderSelectionTypeName <<
+                                " border selection type.");
+    }
+}
+
+template <EPenaltyType PenaltyType>
+THashSet<float> TGreedyBinarizer<PenaltyType>::BestSplit(
+        TVector<float>& featureValues,
+        int maxBordersCount,
+        bool isSorted
+) const {
+    return BestWeightedSplitImpl<PenaltyType>(
+        featureValues,
+        TRepeatIterator<float>(1.0f),
+        maxBordersCount,
+        EOptimizationType::Greedy,
+        false,
+        isSorted,
+        false);
+}
+
+template <typename TKey, typename TValue>
+size_t EstimateHashMapMemoryUsage(size_t hashMapSize) {
+    size_t powTwoUpRoundedSize = (1 << static_cast<size_t>(log2(hashMapSize + 2) + 1));
+    return 2 * sizeof(std::pair<TKey, TValue>) * powTwoUpRoundedSize;
 }
 
 size_t CalcMemoryForFindBestSplit(int maxBordersCount, size_t docsCount, EBorderSelectionType type) {
@@ -884,7 +1089,12 @@ size_t CalcMemoryForFindBestSplit(int maxBordersCount, size_t docsCount, EBorder
         case EBorderSelectionType::Uniform:
             return maxBordersCount * sizeof(float);
         case EBorderSelectionType::GreedyLogSum:
-            return maxBordersCount * sizeof(TFeatureBin) + maxBordersCount * sizeof(float);
+            return (
+                2 * docsCount * sizeof(float) + // cumulative weights and vector of unique feature values.
+                EstimateHashMapMemoryUsage<float, float>(docsCount) + // hash map for feature values grouping.
+                maxBordersCount * sizeof(TFeatureBin<float, EPenaltyType::MinEntropy>) * 4 + // 4 stands for queue overhead.
+                maxBordersCount * sizeof(float)
+            );
         case EBorderSelectionType::MinEntropy:
         case EBorderSelectionType::MaxLogSum:
             return docsCount * ((maxBordersCount + 2) * sizeof(size_t) + 4 * sizeof(double)) + docsCount * 3 * sizeof(float);
