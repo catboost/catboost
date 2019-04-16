@@ -6,6 +6,7 @@
 #include <util/generic/algorithm.h>
 #include <util/generic/set.h>
 #include <util/string/cast.h>
+#include <util/system/info.h>
 
 template <>
 void Out<NCatboostOptions::TCatBoostOptions>(IOutputStream& out, const NCatboostOptions::TCatBoostOptions& options) {
@@ -373,10 +374,6 @@ void NCatboostOptions::TCatBoostOptions::ValidateCtr(const TCtrDescription& ctr,
 }
 
 void NCatboostOptions::TCatBoostOptions::Validate() const {
-    SystemOptions.Get().Validate();
-    BoostingOptions.Get().Validate();
-    ObliviousTreeOptions.Get().Validate();
-
     ELossFunction lossFunction = LossFunctionDescription->GetLossFunction();
     {
         const ui32 classesCount = DataProcessingOptions->ClassesCount;
@@ -584,6 +581,12 @@ ETaskType NCatboostOptions::GetTaskType(const NJson::TJsonValue& source) {
     TOption<ETaskType> taskType("task_type", ETaskType::CPU);
     TJsonFieldHelper<decltype(taskType)>::Read(source, &taskType);
     return taskType.Get();
+}
+
+ui32 NCatboostOptions::GetThreadCount(const NJson::TJsonValue& source) {
+    TOption<ui32> threadCount("thread_count", NSystemInfo::CachedNumberOfCpus());
+    TJsonFieldHelper<decltype(threadCount)>::Read(source["system_options"], &threadCount);
+    return threadCount.Get();
 }
 
 NCatboostOptions::TCatBoostOptions NCatboostOptions::LoadOptions(const NJson::TJsonValue& source) {

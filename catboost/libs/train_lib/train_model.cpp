@@ -1152,7 +1152,7 @@ void TrainModel(
 
     NPar::TLocalExecutor executor;
     executor.RunAdditionalThreads(
-        NCatboostOptions::LoadOptions(trainOptionsJson).SystemOptions.Get().NumThreads.Get() - 1);
+        NCatboostOptions::GetThreadCount(trainOptionsJson) - 1);
 
     TrainModel(
         trainOptionsJson,
