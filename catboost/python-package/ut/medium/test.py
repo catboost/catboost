@@ -4163,7 +4163,16 @@ def test_multiclass_grow_policy(task_type, grow_policy):
         return
     pool = Pool(CLOUDNESS_TRAIN_FILE, column_description=CLOUDNESS_CD_FILE)
     # MultiClass
-    classifier = CatBoostClassifier(iterations=2, loss_function='MultiClass', thread_count=8, task_type=task_type, devices='0', boosting_type='Plain', grow_policy=grow_policy)
+    classifier = CatBoostClassifier(
+        iterations=2,
+        loss_function='MultiClass',
+        thread_count=8,
+        task_type=task_type,
+        devices='0',
+        boosting_type='Plain',
+        grow_policy=grow_policy,
+        score_function='Correlation'
+    )
     classifier.fit(pool)
     output_model_path = test_output_path(OUTPUT_MODEL_PATH)
     classifier.save_model(output_model_path)
