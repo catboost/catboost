@@ -125,6 +125,8 @@ int mode_eval_metrics(int argc, const char* argv[]) {
     }
     TSetLoggingVerboseOrSilent inThisScope(verbose);
 
+    NCatboostOptions::ValidatePoolParams(params.InputPath, params.DsvPoolFormatParams);
+
     TFullModel model = ReadModel(params.ModelFileName, params.ModelFormat);
     CB_ENSURE(model.GetUsedCatFeaturesCount() == 0 || params.DsvPoolFormatParams.CdFilePath.Inited(),
               "Model has categorical features. Specify column_description file with correct categorical features.");

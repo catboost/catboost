@@ -135,6 +135,8 @@ void NCB::CalcModelSingleHost(
     const TFullModel& model ) {
 
     CB_ENSURE(params.OutputPath.Scheme == "dsv" || params.OutputPath.Scheme == "stream", "Local model evaluation supports only \"dsv\"  and \"stream\" output file schemas.");
+    NCatboostOptions::ValidatePoolParams(params.InputPath, params.DsvPoolFormatParams);
+
     TSetLogging logging(params.OutputPath.Scheme == "dsv" ? ELoggingLevel::Info : ELoggingLevel::Silent);
     THolder<IOutputStream> outputStream;
     if (params.OutputPath.Scheme == "dsv") {

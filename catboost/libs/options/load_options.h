@@ -46,4 +46,9 @@ namespace NCatboostOptions {
         void Validate() const;
         void Validate(TMaybe<ETaskType> taskType) const;
     };
+
+    void ValidatePoolParams(
+        const NCB::TPathWithScheme& poolPath,
+        const TDsvPoolFormatParams& poolFormatParams
+    );
 }
