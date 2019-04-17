@@ -113,69 +113,153 @@
             "uri": "file://test.test_early_stopping_rounds_CPU_/json_log_train.json"
         }
     ],
-    "test.test_eval_features[CPU-problem=binclass-eval_type=All]": {
-        "checksum": "205223185e59e2404138003c705db903",
-        "uri": "file://test.test_eval_features_CPU-problem=binclass-eval_type=All_/eval_results.json"
-    },
-    "test.test_eval_features[CPU-problem=binclass-eval_type=SeqAddAndAll]": {
-        "checksum": "205223185e59e2404138003c705db903",
-        "uri": "file://test.test_eval_features_CPU-problem=binclass-eval_type=SeqAddAndAll_/eval_results.json"
-    },
-    "test.test_eval_features[CPU-problem=binclass-eval_type=SeqAdd]": {
-        "checksum": "02dfe7d4c5d35786476bedab29dab744",
-        "uri": "file://test.test_eval_features_CPU-problem=binclass-eval_type=SeqAdd_/eval_results.json"
-    },
-    "test.test_eval_features[CPU-problem=binclass-eval_type=SeqRem]": {
-        "checksum": "05b85aae3924f48bec755b0be668d7be",
-        "uri": "file://test.test_eval_features_CPU-problem=binclass-eval_type=SeqRem_/eval_results.json"
-    },
-    "test.test_eval_features[CPU-problem=multiclass-eval_type=All]": {
-        "checksum": "63a3bc42781ef4357188986ba5b517ec",
-        "uri": "file://test.test_eval_features_CPU-problem=multiclass-eval_type=All_/eval_results.json"
-    },
-    "test.test_eval_features[CPU-problem=multiclass-eval_type=SeqAddAndAll]": {
-        "checksum": "63a3bc42781ef4357188986ba5b517ec",
-        "uri": "file://test.test_eval_features_CPU-problem=multiclass-eval_type=SeqAddAndAll_/eval_results.json"
-    },
-    "test.test_eval_features[CPU-problem=multiclass-eval_type=SeqAdd]": {
-        "checksum": "b579a5b4daa19fb7b520c70b9483635d",
-        "uri": "file://test.test_eval_features_CPU-problem=multiclass-eval_type=SeqAdd_/eval_results.json"
-    },
-    "test.test_eval_features[CPU-problem=multiclass-eval_type=SeqRem]": {
-        "checksum": "6546fd6e72ea79d3e7bdb4dcd9024ad6",
-        "uri": "file://test.test_eval_features_CPU-problem=multiclass-eval_type=SeqRem_/eval_results.json"
-    },
-    "test.test_eval_features[CPU-problem=ranking-eval_type=All]": {
-        "checksum": "d5c60c192cc4ff66ce161a1580a13ed2",
-        "uri": "file://test.test_eval_features_CPU-problem=ranking-eval_type=All_/eval_results.json"
-    },
-    "test.test_eval_features[CPU-problem=ranking-eval_type=SeqAddAndAll]": {
-        "checksum": "d5c60c192cc4ff66ce161a1580a13ed2",
-        "uri": "file://test.test_eval_features_CPU-problem=ranking-eval_type=SeqAddAndAll_/eval_results.json"
-    },
-    "test.test_eval_features[CPU-problem=ranking-eval_type=SeqAdd]": {
-        "checksum": "65768eee80babd882d420485d6f4bbe3",
-        "uri": "file://test.test_eval_features_CPU-problem=ranking-eval_type=SeqAdd_/eval_results.json"
-    },
-    "test.test_eval_features[CPU-problem=ranking-eval_type=SeqRem]": {
-        "checksum": "0eeb5a8f955a0dfb342de7c65f347c94",
-        "uri": "file://test.test_eval_features_CPU-problem=ranking-eval_type=SeqRem_/eval_results.json"
-    },
-    "test.test_eval_features[CPU-problem=regression-eval_type=All]": {
-        "checksum": "269106c12bbb31793516e4c212b2adcb",
-        "uri": "file://test.test_eval_features_CPU-problem=regression-eval_type=All_/eval_results.json"
-    },
-    "test.test_eval_features[CPU-problem=regression-eval_type=SeqAddAndAll]": {
-        "checksum": "269106c12bbb31793516e4c212b2adcb",
-        "uri": "file://test.test_eval_features_CPU-problem=regression-eval_type=SeqAddAndAll_/eval_results.json"
-    },
-    "test.test_eval_features[CPU-problem=regression-eval_type=SeqAdd]": {
-        "checksum": "2960ed9590f25c6ada360c634696e6f6",
-        "uri": "file://test.test_eval_features_CPU-problem=regression-eval_type=SeqAdd_/eval_results.json"
-    },
-    "test.test_eval_features[CPU-problem=regression-eval_type=SeqRem]": {
-        "checksum": "5ce8c8b148e823af8abd7388279c9d28",
-        "uri": "file://test.test_eval_features_CPU-problem=regression-eval_type=SeqRem_/eval_results.json"
+    "test.test_eval_features[CPU-problem=binclass-eval_type=All]": [
+        {
+            "checksum": "28ece3e3682864ff8297dd27f2760947",
+            "uri": "file://test.test_eval_features_CPU-problem=binclass-eval_type=All_/eval_results_Logloss.csv"
+        },
+        {
+            "checksum": "3dacbeb2ba4859883652e4590f841fca",
+            "uri": "file://test.test_eval_features_CPU-problem=binclass-eval_type=All_/eval_results_AUC.csv"
+        }
+    ],
+    "test.test_eval_features[CPU-problem=binclass-eval_type=SeqAddAndAll]": [
+        {
+            "checksum": "28ece3e3682864ff8297dd27f2760947",
+            "uri": "file://test.test_eval_features_CPU-problem=binclass-eval_type=SeqAddAndAll_/eval_results_Logloss.csv"
+        },
+        {
+            "checksum": "3dacbeb2ba4859883652e4590f841fca",
+            "uri": "file://test.test_eval_features_CPU-problem=binclass-eval_type=SeqAddAndAll_/eval_results_AUC.csv"
+        }
+    ],
+    "test.test_eval_features[CPU-problem=binclass-eval_type=SeqAdd]": [
+        {
+            "checksum": "b2860e359fda271a7ad49b6240f6e644",
+            "uri": "file://test.test_eval_features_CPU-problem=binclass-eval_type=SeqAdd_/eval_results_Logloss.csv"
+        },
+        {
+            "checksum": "4736e51305e1a01d4a0fead8a998edfe",
+            "uri": "file://test.test_eval_features_CPU-problem=binclass-eval_type=SeqAdd_/eval_results_AUC.csv"
+        }
+    ],
+    "test.test_eval_features[CPU-problem=binclass-eval_type=SeqRem]": [
+        {
+            "checksum": "25321f8e03228cc5af09b081f3b0cadd",
+            "uri": "file://test.test_eval_features_CPU-problem=binclass-eval_type=SeqRem_/eval_results_Logloss.csv"
+        },
+        {
+            "checksum": "13b5715cde3193fd4e1c0f3b1bd3b15c",
+            "uri": "file://test.test_eval_features_CPU-problem=binclass-eval_type=SeqRem_/eval_results_AUC.csv"
+        }
+    ],
+    "test.test_eval_features[CPU-problem=multiclass-eval_type=All]": [
+        {
+            "checksum": "7a87dcda2337f0fa0a800d834453454f",
+            "uri": "file://test.test_eval_features_CPU-problem=multiclass-eval_type=All_/eval_results_MultiClass.csv"
+        },
+        {
+            "checksum": "9ac87bd15f4ad377add1497d784849d6",
+            "uri": "file://test.test_eval_features_CPU-problem=multiclass-eval_type=All_/eval_results_Accuracy.csv"
+        }
+    ],
+    "test.test_eval_features[CPU-problem=multiclass-eval_type=SeqAddAndAll]": [
+        {
+            "checksum": "7a87dcda2337f0fa0a800d834453454f",
+            "uri": "file://test.test_eval_features_CPU-problem=multiclass-eval_type=SeqAddAndAll_/eval_results_MultiClass.csv"
+        },
+        {
+            "checksum": "9ac87bd15f4ad377add1497d784849d6",
+            "uri": "file://test.test_eval_features_CPU-problem=multiclass-eval_type=SeqAddAndAll_/eval_results_Accuracy.csv"
+        }
+    ],
+    "test.test_eval_features[CPU-problem=multiclass-eval_type=SeqAdd]": [
+        {
+            "checksum": "21130d241359d61af17f6dfce37049fd",
+            "uri": "file://test.test_eval_features_CPU-problem=multiclass-eval_type=SeqAdd_/eval_results_MultiClass.csv"
+        },
+        {
+            "checksum": "190f3a95ff4590e56445dfab402356e2",
+            "uri": "file://test.test_eval_features_CPU-problem=multiclass-eval_type=SeqAdd_/eval_results_Accuracy.csv"
+        }
+    ],
+    "test.test_eval_features[CPU-problem=multiclass-eval_type=SeqRem]": [
+        {
+            "checksum": "265e4537febb03d65b3d2ae3489884b0",
+            "uri": "file://test.test_eval_features_CPU-problem=multiclass-eval_type=SeqRem_/eval_results_MultiClass.csv"
+        },
+        {
+            "checksum": "e8b49348221132a2360260b8fb348b9d",
+            "uri": "file://test.test_eval_features_CPU-problem=multiclass-eval_type=SeqRem_/eval_results_Accuracy.csv"
+        }
+    ],
+    "test.test_eval_features[CPU-problem=ranking-eval_type=All]": [
+        {
+            "checksum": "501b6d3e1721d1dc9b1bbbb16c105db7",
+            "uri": "file://test.test_eval_features_CPU-problem=ranking-eval_type=All_/eval_results_QueryRMSE.csv"
+        },
+        {
+            "checksum": "85822c175724ca05c775be490fae3d8f",
+            "uri": "file://test.test_eval_features_CPU-problem=ranking-eval_type=All_/eval_results_NDCG_type=Base.csv"
+        }
+    ],
+    "test.test_eval_features[CPU-problem=ranking-eval_type=SeqAddAndAll]": [
+        {
+            "checksum": "501b6d3e1721d1dc9b1bbbb16c105db7",
+            "uri": "file://test.test_eval_features_CPU-problem=ranking-eval_type=SeqAddAndAll_/eval_results_QueryRMSE.csv"
+        },
+        {
+            "checksum": "85822c175724ca05c775be490fae3d8f",
+            "uri": "file://test.test_eval_features_CPU-problem=ranking-eval_type=SeqAddAndAll_/eval_results_NDCG_type=Base.csv"
+        }
+    ],
+    "test.test_eval_features[CPU-problem=ranking-eval_type=SeqAdd]": [
+        {
+            "checksum": "70364abd486b674ced44a505dd1fd56e",
+            "uri": "file://test.test_eval_features_CPU-problem=ranking-eval_type=SeqAdd_/eval_results_QueryRMSE.csv"
+        },
+        {
+            "checksum": "8ac3040e6488670a716637c8c94933b1",
+            "uri": "file://test.test_eval_features_CPU-problem=ranking-eval_type=SeqAdd_/eval_results_NDCG_type=Base.csv"
+        }
+    ],
+    "test.test_eval_features[CPU-problem=ranking-eval_type=SeqRem]": [
+        {
+            "checksum": "a57c5fb6c8103493a3c14dde33966b5b",
+            "uri": "file://test.test_eval_features_CPU-problem=ranking-eval_type=SeqRem_/eval_results_QueryRMSE.csv"
+        },
+        {
+            "checksum": "808c668c3bb7ca68f24d3232b6b21fbb",
+            "uri": "file://test.test_eval_features_CPU-problem=ranking-eval_type=SeqRem_/eval_results_NDCG_type=Base.csv"
+        }
+    ],
+    "test.test_eval_features[CPU-problem=regression-eval_type=All]": [
+        {
+            "checksum": "395992d9aaf76163aead98fb467f9171",
+            "uri": "file://test.test_eval_features_CPU-problem=regression-eval_type=All_/eval_results_RMSE.csv"
+        }
+    ],
+    "test.test_eval_features[CPU-problem=regression-eval_type=SeqAddAndAll]": [
+        {
+            "checksum": "395992d9aaf76163aead98fb467f9171",
+            "uri": "file://test.test_eval_features_CPU-problem=regression-eval_type=SeqAddAndAll_/eval_results_RMSE.csv"
+        }
+    ],
+    "test.test_eval_features[CPU-problem=regression-eval_type=SeqAdd]": [
+        {
+            "checksum": "8a0b9db98ba8d36ad7c15ae66ecd392b",
+            "uri": "file://test.test_eval_features_CPU-problem=regression-eval_type=SeqAdd_/eval_results_RMSE.csv"
+        }
+    ],
+    "test.test_eval_features[CPU-problem=regression-eval_type=SeqRem]": [
+        {
+            "checksum": "5149bfb422156d7dbe156935cd86bb14",
+            "uri": "file://test.test_eval_features_CPU-problem=regression-eval_type=SeqRem_/eval_results_RMSE.csv"
+        }
+    ],
+    "test.test_eval_features_with_file_header": {
+        "checksum": "5befb04acac0fe2da34ebbccc6d23dfb",
+        "uri": "file://test.test_eval_features_with_file_header/eval_results.csv"
     },
     "test.test_eval_period_size": [
         {
