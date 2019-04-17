@@ -2272,13 +2272,11 @@ def is_valid_gpu_params(boosting_type, grow_policy, score_function, loss_func):
     return is_correct
 
 
-@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE + ['Default'])
-@pytest.mark.parametrize('grow_policy', GROW_POLICIES)
-@pytest.mark.parametrize('score_function', SCORE_FUNCTIONS)
-@pytest.mark.parametrize('loss_func', ['RMSE', 'Logloss', 'MultiClass', 'YetiRank'])
-def test_grow_policies(boosting_type, grow_policy, score_function, loss_func):
+def template_test_grow_policies(boosting_type, grow_policy, score_function, loss_func):
     learn_error_path = yatest.common.test_output_path('learn_error.tsv')
     test_error_path = yatest.common.test_output_path('test_error.tsv')
+    model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
 
     if loss_func in ['RMSE', 'Logloss']:
         learn = data_file('adult', 'train_small')
@@ -2288,15 +2286,18 @@ def test_grow_policies(boosting_type, grow_policy, score_function, loss_func):
         learn = data_file('cloudness_small', 'train_small')
         test = data_file('cloudness_small', 'test_small')
         cd = data_file('cloudness_small', 'train.cd')
-    else:
+    elif loss_func == 'YetiRank':
         learn = data_file('querywise', 'train')
         test = data_file('querywise', 'test')
         cd = data_file('querywise', 'train.cd')
+    else:
+        assert False
 
     params = {
         '--loss-function': loss_func,
         '--grow-policy': grow_policy,
         '--score-function': score_function,
+        '-m': model_path,
         '-f': learn,
         '-t': test,
         '--column-description': cd,
@@ -2304,6 +2305,7 @@ def test_grow_policies(boosting_type, grow_policy, score_function, loss_func):
         '-T': '4',
         '--learn-err-log': learn_error_path,
         '--test-err-log': test_error_path,
+        '--eval-file': output_eval_path,
         '--use-best-model': 'false',
     }
 
@@ -2318,5 +2320,45 @@ def test_grow_policies(boosting_type, grow_policy, score_function, loss_func):
 
     assert is_valid_gpu_params(boosting_type, grow_policy, score_function, loss_func)
 
+    formula_predict_path = yatest.common.test_output_path('predict_test.eval')
+    calc_cmd = (
+        CATBOOST_PATH,
+        'calc',
+        '--input-path', test,
+        '--column-description', cd,
+        '-m', model_path,
+        '--output-path', formula_predict_path
+    )
+    execute(calc_cmd)
+    assert (compare_evals_with_precision(output_eval_path, formula_predict_path, 1e-4))
+
     return [local_canonical_file(learn_error_path, diff_tool=diff_tool()),
             local_canonical_file(test_error_path, diff_tool=diff_tool())]
+
+
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE + ['Default'])
+@pytest.mark.parametrize('grow_policy', GROW_POLICIES)
+@pytest.mark.parametrize('score_function', SCORE_FUNCTIONS)
+def test_grow_policies_regression(boosting_type, grow_policy, score_function):
+    return template_test_grow_policies(boosting_type, grow_policy, score_function, 'RMSE')
+
+
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE + ['Default'])
+@pytest.mark.parametrize('grow_policy', GROW_POLICIES)
+@pytest.mark.parametrize('score_function', SCORE_FUNCTIONS)
+def test_grow_policies_classification(boosting_type, grow_policy, score_function):
+    return template_test_grow_policies(boosting_type, grow_policy, score_function, 'Logloss')
+
+
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE + ['Default'])
+@pytest.mark.parametrize('grow_policy', GROW_POLICIES)
+@pytest.mark.parametrize('score_function', SCORE_FUNCTIONS)
+def test_grow_policies_multiclass(boosting_type, grow_policy, score_function):
+    return template_test_grow_policies(boosting_type, grow_policy, score_function, 'MultiClass')
+
+
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE + ['Default'])
+@pytest.mark.parametrize('grow_policy', GROW_POLICIES)
+@pytest.mark.parametrize('score_function', SCORE_FUNCTIONS)
+def test_grow_policies_ranking(boosting_type, grow_policy, score_function):
+    return template_test_grow_policies(boosting_type, grow_policy, score_function, 'YetiRank')

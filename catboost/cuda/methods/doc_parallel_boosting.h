@@ -391,7 +391,7 @@ namespace NCatboostCuda {
                 for (ui64 i = 0; i < cpuApproxPermuted.size(); ++i) {
                     cpuApprox[i] = Scatter(order, cpuApproxPermuted[i]);
                 }
-                return cpuApproxPermuted;
+                return cpuApprox;
             };
             if (bestTestCursor) {
                 progressTracker->SetBestTestCursor(gatherCpuApproxByCursor(bestTestCursor));
