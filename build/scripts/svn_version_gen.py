@@ -385,7 +385,8 @@ def is_git(arc_root):
 
 
 def is_arc(arc_root):
-    return os.path.isdir(os.path.join(arc_root, '.arc'))
+    path = os.path.join(arc_root, '.arc')
+    return (os.path.isdir(path) or os.path.islink(path)) and os.path.exists(os.path.join(path, "TREE"))
 
 
 def main(header, footer, line):
