@@ -369,7 +369,7 @@ class Options(object):
         self.toolchain_params = self.options.toolchain_params
 
         self.presets = parse_presets(self.options.presets)
-        userify_presets(self.presets, ('CFLAGS', 'CXXFLAGS', 'CONLYFLAGS'))
+        userify_presets(self.presets, ('CFLAGS', 'CXXFLAGS', 'CONLYFLAGS', 'LDFLAGS'))
 
     Instance = None
 
@@ -1435,7 +1435,7 @@ class LD(Linker):
             else:
                 self.ar = 'ar'
 
-        self.ld_flags = filter(None, [preset('LDFLAGS')])
+        self.ld_flags = []
 
         if target.is_linux:
             self.ld_flags.extend(['-ldl', '-lrt', '-Wl,--no-as-needed'])
@@ -1536,7 +1536,7 @@ class LD(Linker):
         emit('AR_TOOL', self.ar)
         emit('AR_TYPE', 'AR' if 'libtool' not in self.ar else 'LIBTOOL')
 
-        append('LDFLAGS', self.ld_flags)
+        append('LDFLAGS', '$USER_LDFLAGS', self.ld_flags)
         append('LDFLAGS_GLOBAL', '')
 
         emit('LD_STRIP_FLAG', self.ld_stripflag)
