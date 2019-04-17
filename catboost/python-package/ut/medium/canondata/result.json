@@ -145,31 +145,31 @@
     ],
     "test.test_eval_features[CPU-problem=binclass-eval_type=SeqRem]": [
         {
-            "checksum": "25321f8e03228cc5af09b081f3b0cadd",
+            "checksum": "13f6bc5a0034132363a4279ed9bbf4f9",
             "uri": "file://test.test_eval_features_CPU-problem=binclass-eval_type=SeqRem_/eval_results_Logloss.csv"
         },
         {
-            "checksum": "13b5715cde3193fd4e1c0f3b1bd3b15c",
+            "checksum": "c7cb391d54a84c60ec0ae74c14031d51",
             "uri": "file://test.test_eval_features_CPU-problem=binclass-eval_type=SeqRem_/eval_results_AUC.csv"
         }
     ],
     "test.test_eval_features[CPU-problem=multiclass-eval_type=All]": [
         {
-            "checksum": "7a87dcda2337f0fa0a800d834453454f",
+            "checksum": "62d05f366df936cc899b2bd6cf7ac9d9",
             "uri": "file://test.test_eval_features_CPU-problem=multiclass-eval_type=All_/eval_results_MultiClass.csv"
         },
         {
-            "checksum": "9ac87bd15f4ad377add1497d784849d6",
+            "checksum": "8c0cab0f2d47f78f46fa7c8c9c488b99",
             "uri": "file://test.test_eval_features_CPU-problem=multiclass-eval_type=All_/eval_results_Accuracy.csv"
         }
     ],
     "test.test_eval_features[CPU-problem=multiclass-eval_type=SeqAddAndAll]": [
         {
-            "checksum": "7a87dcda2337f0fa0a800d834453454f",
+            "checksum": "62d05f366df936cc899b2bd6cf7ac9d9",
             "uri": "file://test.test_eval_features_CPU-problem=multiclass-eval_type=SeqAddAndAll_/eval_results_MultiClass.csv"
         },
         {
-            "checksum": "9ac87bd15f4ad377add1497d784849d6",
+            "checksum": "8c0cab0f2d47f78f46fa7c8c9c488b99",
             "uri": "file://test.test_eval_features_CPU-problem=multiclass-eval_type=SeqAddAndAll_/eval_results_Accuracy.csv"
         }
     ],
@@ -185,31 +185,31 @@
     ],
     "test.test_eval_features[CPU-problem=multiclass-eval_type=SeqRem]": [
         {
-            "checksum": "265e4537febb03d65b3d2ae3489884b0",
+            "checksum": "4b62adbb94e1c2d12f39582ff80b9e52",
             "uri": "file://test.test_eval_features_CPU-problem=multiclass-eval_type=SeqRem_/eval_results_MultiClass.csv"
         },
         {
-            "checksum": "e8b49348221132a2360260b8fb348b9d",
+            "checksum": "97b7570d50e6c56f11d8fe2066131937",
             "uri": "file://test.test_eval_features_CPU-problem=multiclass-eval_type=SeqRem_/eval_results_Accuracy.csv"
         }
     ],
     "test.test_eval_features[CPU-problem=ranking-eval_type=All]": [
         {
-            "checksum": "501b6d3e1721d1dc9b1bbbb16c105db7",
+            "checksum": "ad3064cb1134967ccdca66a467f735bc",
             "uri": "file://test.test_eval_features_CPU-problem=ranking-eval_type=All_/eval_results_QueryRMSE.csv"
         },
         {
-            "checksum": "85822c175724ca05c775be490fae3d8f",
+            "checksum": "406ba88747583681f1e9e0e8b802d465",
             "uri": "file://test.test_eval_features_CPU-problem=ranking-eval_type=All_/eval_results_NDCG_type=Base.csv"
         }
     ],
     "test.test_eval_features[CPU-problem=ranking-eval_type=SeqAddAndAll]": [
         {
-            "checksum": "501b6d3e1721d1dc9b1bbbb16c105db7",
+            "checksum": "ad3064cb1134967ccdca66a467f735bc",
             "uri": "file://test.test_eval_features_CPU-problem=ranking-eval_type=SeqAddAndAll_/eval_results_QueryRMSE.csv"
         },
         {
-            "checksum": "85822c175724ca05c775be490fae3d8f",
+            "checksum": "406ba88747583681f1e9e0e8b802d465",
             "uri": "file://test.test_eval_features_CPU-problem=ranking-eval_type=SeqAddAndAll_/eval_results_NDCG_type=Base.csv"
         }
     ],
@@ -225,11 +225,11 @@
     ],
     "test.test_eval_features[CPU-problem=ranking-eval_type=SeqRem]": [
         {
-            "checksum": "a57c5fb6c8103493a3c14dde33966b5b",
+            "checksum": "b0b516e6d48d121305b9b2a53a30430c",
             "uri": "file://test.test_eval_features_CPU-problem=ranking-eval_type=SeqRem_/eval_results_QueryRMSE.csv"
         },
         {
-            "checksum": "808c668c3bb7ca68f24d3232b6b21fbb",
+            "checksum": "09f3399c1bb4574722ab6797dd6d7717",
             "uri": "file://test.test_eval_features_CPU-problem=ranking-eval_type=SeqRem_/eval_results_NDCG_type=Base.csv"
         }
     ],
@@ -253,7 +253,7 @@
     ],
     "test.test_eval_features[CPU-problem=regression-eval_type=SeqRem]": [
         {
-            "checksum": "5149bfb422156d7dbe156935cd86bb14",
+            "checksum": "da0b5504c4cc81049949c48531c03c4f",
             "uri": "file://test.test_eval_features_CPU-problem=regression-eval_type=SeqRem_/eval_results_RMSE.csv"
         }
     ],
