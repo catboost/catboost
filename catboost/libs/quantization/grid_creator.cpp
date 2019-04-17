@@ -64,8 +64,6 @@ namespace NCB {
                 return MakeHolder<TCpuGridBuilder<EBorderSelectionType::UniformAndQuantiles>>();
             case EBorderSelectionType::GreedyLogSum:
                 return MakeHolder<TCpuGridBuilder<EBorderSelectionType::GreedyLogSum>>();
-            case EBorderSelectionType::GreedyMinEntropy:
-                return MakeHolder<TCpuGridBuilder<EBorderSelectionType::GreedyMinEntropy>>();
             case EBorderSelectionType::MinEntropy:
                 return MakeHolder<TCpuGridBuilder<EBorderSelectionType::MinEntropy>>();
             case EBorderSelectionType::MaxLogSum:
