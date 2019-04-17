@@ -67,7 +67,8 @@ cdef extern from "library/text_processing/dictionary/dictionary.h" namespace "NT
 
         ui32 Size() except +
 
-        TStringBuf GetToken(TTokenId tokenId) except +
+        TString GetToken(TTokenId tokenId) except +
+        TString GetTokens(TConstArrayRef[TTokenId] tokenIds, TVector[TString]* tokens) except +
 
         ui64 GetCount(TTokenId tokenId) except +
         TVector[TString] GetTopTokens() except +

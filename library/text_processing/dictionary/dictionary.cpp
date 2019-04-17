@@ -4,9 +4,18 @@
 
 using NTextProcessing::NDictionary::IDictionary;
 using NTextProcessing::NDictionary::TDictionary;
+using NTextProcessing::NDictionary::TTokenId;
 
 THolder<IDictionary> IDictionary::Load(IInputStream *stream) {
     auto dictionary = MakeHolder<TDictionary>();
     dictionary->Load(stream);
     return dictionary;
+}
+
+void IDictionary::GetTokens(TConstArrayRef<TTokenId> tokenIds, TVector<TString>* tokens) const {
+    tokens->clear();
+    tokens->reserve(tokenIds.size());
+    for (auto tokenId : tokenIds) {
+        tokens->emplace_back(GetToken(tokenId));
+    }
 }
