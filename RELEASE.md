@@ -1,3 +1,11 @@
+# Release 0.14.2
+
+## New features
+- Add `has_header` parameter to [`CatboostEvaluation`](https://github.com/catboost/catboost/blob/2f35e0366c0bb6c1b44be89fda0a02fe12f84513/catboost/python-package/catboost/eval/catboost_evaluation.py#L30) class.
+
+## Breaking changes
+- Change output feature indices separator (`:` to `;`) in the `CatboostEvaluation` class.
+
 # Release 0.14.1
 
 ## Breaking changes
