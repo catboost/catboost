@@ -2035,7 +2035,6 @@ def test_reg_targets(loss_function, boosting_type, custom_metric):
     return [local_canonical_file(test_error_path, diff_tool=diff_tool(1e-5))]
 
 
-@pytest.mark.xfail
 def test_eval_result_on_different_pool_type():
     output_eval_path = yatest.common.test_output_path('test.eval')
     output_quantized_eval_path = yatest.common.test_output_path('test.eval.quantized')

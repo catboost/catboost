@@ -1011,7 +1011,7 @@
     ],
     "test_gpu.test_eval_result_on_different_pool_type": [
         {
-            "checksum": "0978b5643d26ecdafa18dc9c239df2dd",
+            "checksum": "a59c489e83212964b09381b1780be4c4",
             "uri": "file://test_gpu.test_eval_result_on_different_pool_type/test.eval"
         }
     ],
