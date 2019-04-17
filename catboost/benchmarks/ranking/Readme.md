@@ -160,6 +160,9 @@ MeanDCG = sum_query DCG(query) / num_queries.
 
 ### Plots
 
+Each plot represents a single dataset.
+A plot contains a line for the best set of hyper-parameters for an algorithm, where algorithm is a pair library+mode.
+
 ![MQ2008](./plots/mq2008.png)
 ![MSLR](./plots/msrank.png)
 ![Yahoo](./plots/yahoo.png)
