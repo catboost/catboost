@@ -6024,7 +6024,8 @@ def test_output_params():
     return [local_canonical_file(os.path.join(train_dir, output_options_path))]
 
 
-def execute_fit_for_test_quantized_pool(loss_function, pool_path, test_path, cd_path, eval_path, other_options=()):
+def execute_fit_for_test_quantized_pool(loss_function, pool_path, test_path, cd_path, eval_path,
+                                        border_count=128, other_options=()):
     model_path = yatest.common.test_output_path('model.bin')
 
     cmd = (
@@ -6038,7 +6039,7 @@ def execute_fit_for_test_quantized_pool(loss_function, pool_path, test_path, cd_
         '-i', '10',
         '-w', '0.03',
         '-T', '4',
-        '-x', '128',
+        '-x', str(border_count),
         '--feature-border-type', 'GreedyLogSum',
         '-m', model_path,
         '--eval-file', eval_path,
@@ -6162,6 +6163,31 @@ def test_quantized_pool_quantized_test():
         loss_function='PairLogitPairwise',
         pool_path='quantized://' + data_file('querywise', 'train_x128_greedylogsum_aqtaa.bin'),
         test_path='quantized://' + data_file('querywise', 'test_borders_from_train_aqtaa.bin'),
+        cd_path=data_file('querywise', 'train.cd.query_id'),
+        eval_path=quantized_eval_path
+    )
+
+    assert filecmp.cmp(tsv_eval_path, quantized_eval_path)
+
+
+def test_quantized_pool_with_large_grid():
+    test_path = data_file('querywise', 'test')
+
+    tsv_eval_path = yatest.common.test_output_path('tsv.eval')
+    execute_fit_for_test_quantized_pool(
+        loss_function='PairLogitPairwise',
+        pool_path=data_file('querywise', 'train'),
+        test_path=test_path,
+        cd_path=data_file('querywise', 'train.cd.query_id'),
+        eval_path=tsv_eval_path,
+        border_count=1024
+    )
+
+    quantized_eval_path = yatest.common.test_output_path('quantized.eval')
+    execute_fit_for_test_quantized_pool(
+        loss_function='PairLogitPairwise',
+        pool_path='quantized://' + data_file('querywise', 'train.quantized_x1024'),
+        test_path='quantized://' + data_file('querywise', 'test.quantized_x1024'),
         cd_path=data_file('querywise', 'train.cd.query_id'),
         eval_path=quantized_eval_path
     )
@@ -6562,20 +6588,6 @@ def test_load_quantized_pool_with_double_baseline():
     cmd = (
         CATBOOST_PATH, 'fit',
         '-f', 'quantized://' + data_file('quantized_with_baseline', 'dataset.qbin'),
-        '-i', '10')
-
-    yatest.common.execute(cmd)
-
-
-def test_train_on_quantized_pool_with_large_grid():
-    # Dataset with 2 random columns, first is Target, second is Num, used Uniform grid with 10000
-    # borders
-    #
-    # There are 10 rows in a dataset.
-    cmd = (
-        CATBOOST_PATH, 'fit',
-        '-f', 'quantized://' + data_file('quantized_with_large_grid', 'train.qbin'),
-        '-t', 'quantized://' + data_file('quantized_with_large_grid', 'test.qbin'),
         '-i', '10')
 
     yatest.common.execute(cmd)

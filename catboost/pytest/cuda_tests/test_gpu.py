@@ -1029,6 +1029,53 @@ def test_quantized_pool(loss_function, boosting_type):
     return [local_canonical_file(output_eval_path, diff_tool=diff_tool(1.e-5))]
 
 
+def execute_fit_for_test_quantized_pool(loss_function, pool_path, test_path, cd_path, eval_path,
+                                        border_count=128, other_options=()):
+    model_path = yatest.common.test_output_path('model.bin')
+
+    params = (
+        '--use-best-model', 'false',
+        '--loss-function', loss_function,
+        '-f', pool_path,
+        '-t', test_path,
+        '--cd', cd_path,
+        '-i', '10',
+        '-w', '0.03',
+        '-T', '4',
+        '-x', str(border_count),
+        '--feature-border-type', 'GreedyLogSum',
+        '-m', model_path,
+        '--eval-file', eval_path,
+    )
+    fit_catboost_gpu(params + other_options)
+
+
+@pytest.mark.xfail(reason='TODO(kirillovs): Not yet implemented. MLTOOLS-2636.')
+def test_quantized_pool_with_large_grid():
+    test_path = data_file('querywise', 'test')
+
+    tsv_eval_path = yatest.common.test_output_path('tsv.eval')
+    execute_fit_for_test_quantized_pool(
+        loss_function='PairLogitPairwise',
+        pool_path=data_file('querywise', 'train'),
+        test_path=test_path,
+        cd_path=data_file('querywise', 'train.cd.query_id'),
+        eval_path=tsv_eval_path,
+        border_count=1024
+    )
+
+    quantized_eval_path = yatest.common.test_output_path('quantized.eval')
+    execute_fit_for_test_quantized_pool(
+        loss_function='PairLogitPairwise',
+        pool_path='quantized://' + data_file('querywise', 'train.quantized_x1024'),
+        test_path='quantized://' + data_file('querywise', 'test.quantized_x1024'),
+        cd_path=data_file('querywise', 'train.cd.query_id'),
+        eval_path=quantized_eval_path
+    )
+
+    assert (compare_evals_with_precision(tsv_eval_path, quantized_eval_path))
+
+
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 @pytest.mark.parametrize('used_ram_limit', ['1Kb', '550Mb'])
 def test_allow_writing_files_and_used_ram_limit(boosting_type, used_ram_limit):
@@ -2175,20 +2222,6 @@ def test_ctr_target_quantization(border_count, boosting_type):
     fit_catboost_gpu(params)
     apply_catboost(output_model_path, test_file, cd_file, output_eval_path)
     return [local_canonical_file(output_eval_path, diff_tool=diff_tool())]
-
-
-def test_train_on_quantized_pool_with_large_grid():
-    # Dataset with 2 random columns, first is Target, second is Num, used Uniform grid with 10000
-    # borders
-    #
-    # There are 20 rows in a dataset.
-
-    params = {
-        '-f': 'quantized://' + data_file('quantized_with_large_grid', 'train.qbin'),
-        '-t': 'quantized://' + data_file('quantized_with_large_grid', 'test.qbin'),
-        '-i': '10'
-    }
-    fit_catboost_gpu(params)
 
 
 @pytest.mark.parametrize('grow_policy', NONSYMMETRIC)
