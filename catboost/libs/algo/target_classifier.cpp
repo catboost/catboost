@@ -50,6 +50,7 @@ TTargetClassifier BuildTargetClassifier(TConstArrayRef<float> target,
     switch (loss) {
         case ELossFunction::RMSE:
         case ELossFunction::Quantile:
+        case ELossFunction::Expectile:
         case ELossFunction::Lq:
         case ELossFunction::LogLinQuantile:
         case ELossFunction::Poisson:

@@ -582,6 +582,91 @@ void TQuantileMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
     *valueType = EMetricBestValue::Min;
 }
 
+/* Expectile */
+namespace {
+    class TExpectileMetric : public TAdditiveMetric<TExpectileMetric> {
+    public:
+        explicit TExpectileMetric(ELossFunction lossFunction, double alpha);
+        TMetricHolder EvalSingleThread(
+            const TVector<TVector<double>>& approx,
+            const TVector<TVector<double>>& approxDelta,
+            bool isExpApprox,
+            TConstArrayRef<float> target,
+            TConstArrayRef<float> weight,
+            TConstArrayRef<TQueryInfo> queriesInfo,
+            int begin,
+            int end
+        ) const;
+        TString GetDescription() const override;
+        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+
+    private:
+        ELossFunction LossFunction;
+        double Alpha;
+    };
+}
+
+THolder<IMetric> MakeExpectileMetric(ELossFunction lossFunction, double alpha) {
+    return MakeHolder<TExpectileMetric>(lossFunction, alpha);
+}
+
+TExpectileMetric::TExpectileMetric(ELossFunction lossFunction, double alpha)
+        : LossFunction(lossFunction)
+        , Alpha(alpha)
+{
+    Y_ASSERT(lossFunction == ELossFunction::Expectile);
+    CB_ENSURE(Alpha > -1e-6 && Alpha < 1.0 + 1e-6, "Alpha parameter for expectile metric should be in interval [0, 1]");
+}
+
+TMetricHolder TExpectileMetric::EvalSingleThread(
+    const TVector<TVector<double>>& approx,
+    const TVector<TVector<double>>& approxDelta,
+    bool isExpApprox,
+    TConstArrayRef<float> target,
+    TConstArrayRef<float> weight,
+    TConstArrayRef<TQueryInfo> /*queriesInfo*/,
+    int begin,
+    int end
+) const {
+    CB_ENSURE(approx.size() == 1, "Metric expectile supports only single-dimensional data");
+    Y_ASSERT(!isExpApprox);
+    const auto impl = [=] (auto hasDelta, auto hasWeight, double alpha, TConstArrayRef<double> approx, TConstArrayRef<double> approxDelta) {
+        TMetricHolder error(2);
+        for (int i : xrange(begin, end)) {
+            double val = target[i] - approx[i];
+            if (hasDelta) {
+                val -= approxDelta[i];
+            }
+            const double multiplier = (val > 0) ? alpha: (1 - alpha);
+            const float w = hasWeight ? weight[i] : 1;
+            error.Stats[0] += multiplier * Sqr(val) * w;
+            error.Stats[1] += w;
+        }
+        return error;
+    };
+    switch (EncodeFlags(!approxDelta.empty(), !weight.empty())) {
+        case EncodeFlags(false, false):
+            return impl(std::false_type(), std::false_type(), Alpha, approx[0], GetRowRef(approxDelta, /*rowIdx*/0));
+        case EncodeFlags(false, true):
+            return impl(std::false_type(), std::true_type(), Alpha, approx[0], GetRowRef(approxDelta, /*rowIdx*/0));
+        case EncodeFlags(true, false):
+            return impl(std::true_type(), std::false_type(), Alpha, approx[0], GetRowRef(approxDelta, /*rowIdx*/0));
+        case EncodeFlags(true, true):
+            return impl(std::true_type(), std::true_type(), Alpha, approx[0], GetRowRef(approxDelta, /*rowIdx*/0));
+        default:
+            Y_VERIFY(false);
+    }
+}
+
+TString TExpectileMetric::GetDescription() const {
+    const TMetricParam<double> alpha("alpha", Alpha, /*userDefined*/true);
+    return BuildDescription(LossFunction, UseWeights, "%.3g", alpha);
+}
+
+void TExpectileMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+    *valueType = EMetricBestValue::Min;
+}
+
 /* LogLinQuantile */
 
 namespace {
@@ -3974,6 +4059,17 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
                 result.push_back(MakeQuantileMetric(ELossFunction::Quantile, FromString<float>(it->second)));
             } else {
                 result.push_back(MakeQuantileMetric(ELossFunction::Quantile));
+            }
+            validParams = {"alpha"};
+            break;
+        }
+
+        case ELossFunction::Expectile: {
+            auto it = params.find("alpha");
+            if (it != params.end()) {
+                result.push_back(MakeExpectileMetric(ELossFunction::Expectile, FromString<float>(it->second)));
+            } else {
+                result.push_back(MakeExpectileMetric(ELossFunction::Expectile));
             }
             validParams = {"alpha"};
             break;

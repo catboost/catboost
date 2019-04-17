@@ -11,6 +11,7 @@ TConstArrayRef<ELossFunction> GetAllObjectives() {
     static TVector<ELossFunction> allObjectives = {
         ELossFunction::Logloss, ELossFunction::CrossEntropy, ELossFunction::RMSE,
         ELossFunction::MAE, ELossFunction::Quantile, ELossFunction::LogLinQuantile,
+        ELossFunction::Expectile,
         ELossFunction::MAPE, ELossFunction::Poisson, ELossFunction::MultiClass,
         ELossFunction::MultiClassOneVsAll, ELossFunction::PairLogit,
         ELossFunction::PairLogitPairwise, ELossFunction::YetiRank, ELossFunction::YetiRankPairwise,
@@ -156,6 +157,7 @@ bool IsRegressionObjective(ELossFunction lossFunction) {
             lossFunction == ELossFunction::MAPE ||
             lossFunction == ELossFunction::Poisson ||
             lossFunction == ELossFunction::Quantile ||
+            lossFunction == ELossFunction::Expectile ||
             lossFunction == ELossFunction::RMSE ||
             lossFunction == ELossFunction::LogLinQuantile ||
             lossFunction == ELossFunction::Lq ||

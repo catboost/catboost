@@ -222,6 +222,8 @@ THolder<IMetric> MakeNumErrorsMetric(double k);
 
 THolder<IMetric> MakeQuantileMetric(ELossFunction lossFunction, double alpha = 0.5);
 
+THolder<IMetric> MakeExpectileMetric(ELossFunction lossFunction, double alpha = 0.5);
+
 THolder<IMetric> MakeLogLinQuantileMetric(double alpha = 0.5);
 
 THolder<IMetric> MakeMAPEMetric();

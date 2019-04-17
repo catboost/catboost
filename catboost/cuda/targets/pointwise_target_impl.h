@@ -287,6 +287,10 @@ namespace NCatboostCuda {
                     Alpha = NCatboostOptions::GetAlpha(targetOptions);
                     break;
                 }
+                case ELossFunction::Expectile: {
+                    Alpha = NCatboostOptions::GetAlpha(targetOptions);
+                    break;
+                }
                 case ELossFunction::Logloss: {
                     Border = NCatboostOptions::GetLogLossBorder(targetOptions);
                     break;

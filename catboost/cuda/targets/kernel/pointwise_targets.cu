@@ -31,6 +31,32 @@ namespace NKernel {
         }
     };
 
+    struct TExpectileTarget  {
+        float Alpha;
+
+        __host__ __device__ __forceinline__ TExpectileTarget(float alpha = 0.5)
+                : Alpha(alpha) {
+        }
+
+        __device__ __forceinline__ float Score(float target, float prediction) const {
+            const float val = target - prediction;
+            const float multiplier = (val > 0) ? Alpha : (1 - Alpha);
+            return multiplier * val * val;
+        }
+
+        __device__ __forceinline__ float Der(float target, float prediction) const {
+            const float val = target - prediction;
+            const float multiplier = (val > 0) ? Alpha : (1 - Alpha);
+            return 2.0 * multiplier * val;
+        }
+
+        __device__ __forceinline__ float Der2(float target, float prediction) const {
+            const float val = target - prediction;
+            const float multiplier = (val > 0) ? Alpha : (1 - Alpha);
+            return 2.0 * multiplier;
+        }
+    };
+
     struct TLogLinQuantileTarget {
         float Alpha;
 
@@ -367,6 +393,12 @@ namespace NKernel {
         const ui32 blockSize = 1024;
         switch (loss)
         {
+            case ELossFunction::Expectile:
+            {
+                TExpectileTarget target(alpha);
+                POINTWISE_TARGET()
+                break;
+            }
             case ELossFunction::Quantile:
             case ELossFunction::MAE:
             {
