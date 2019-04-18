@@ -118,7 +118,7 @@ TDataProviderPtr GetAdultPool() {
     );
 }
 
-TFullModel SimpleFloatModel() {
+TFullModel SimpleFloatModel(size_t treeCount) {
     TFullModel model;
     model.ObliviousTrees.FloatFeatures = {
         TFloatFeature{
@@ -141,12 +141,31 @@ TFullModel SimpleFloatModel() {
         model.ObliviousTrees.FloatFeatures[0].Borders.push_back(-298.0f + i);
     }
     {
-        TVector<int> tree = {300, 301, 302};
-        model.ObliviousTrees.AddBinTree(tree);
-        model.ObliviousTrees.LeafValues = {
-            {0., 1., 2., 3., 4., 5., 6., 7.}
-        };
+        double tenPower = 1.0;
+        for (size_t treeIndex = 0; treeIndex < treeCount; ++treeIndex) {
+            TVector<int> tree = {300, 301, 302};
+            model.ObliviousTrees.AddBinTree(tree);
+            for (int leafIndex = 0; leafIndex < 8; ++leafIndex) {
+                model.ObliviousTrees.LeafValues.push_back(leafIndex * tenPower);
+            }
+            tenPower *= 10.0;
+        }
     }
+    model.UpdateDynamicData();
+    return model;
+}
+
+TFullModel SimpleDeepTreeModel(size_t treeDepth) {
+    TFullModel model;
+    for (size_t featureIndex : xrange(treeDepth)) {
+        const auto feature = TFloatFeature(false, featureIndex, featureIndex, {0.5f}, "");
+        model.ObliviousTrees.FloatFeatures.push_back(feature);
+    }
+    for (size_t val : xrange(1 << treeDepth)) {
+        model.ObliviousTrees.LeafValues.push_back(val);
+    }
+    TVector<int> tree = xrange(treeDepth);
+    model.ObliviousTrees.AddBinTree(tree);
     model.UpdateDynamicData();
     return model;
 }
@@ -283,10 +302,10 @@ TFullModel MultiValueFloatModel() {
         TVector<int> tree = {0, 1};
         model.ObliviousTrees.AddBinTree(tree);
         model.ObliviousTrees.LeafValues = {
-            {00., 10., 20.,
-                01., 11., 21.,
-                02., 12., 22.,
-                03., 13., 23.}
+            00., 10., 20.,
+            01., 11., 21.,
+            02., 12., 22.,
+            03., 13., 23.
         };
         model.ObliviousTrees.ApproxDimension = 3;
     }
