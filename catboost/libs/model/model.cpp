@@ -118,30 +118,33 @@ void OutputModelCoreML(
     auto regressor = treeModel.mutable_treeensembleregressor();
     auto ensemble = regressor->mutable_treeensemble();
 
-    bool createMappingModel;
-    NCatboost::NCoreML::ConfigureTrees(model, ensemble, &createMappingModel);
-
-    if (createMappingModel) {
-        CoreML::Specification::Model mappingModel;
-        mappingModel.set_specificationversion(1);
-
-        auto* container = mappingModel.mutable_pipeline()->mutable_models();
-        auto mappingDescription = mappingModel.mutable_description();
-        NCatboost::NCoreML::ConfigureCategoricalMappings(model, container);
-        NCatboost::NCoreML::ConfigureMappingModelIO(model, mappingDescription);
-
-        TString mappingData;
-        mappingModel.SerializeToString(&mappingData);
-        TOFStream outMapping("mapping_" + modelFile);
-        outMapping.Write(mappingData);
-    }
-
-    auto description = treeModel.mutable_description();
-    NCatboost::NCoreML::ConfigureMetadata(model, userParameters, description);
-    NCatboost::NCoreML::ConfigureTreeModelIO(model, userParameters, regressor, description);
+    bool createPipelineModel;
+    NCatboost::NCoreML::ConfigureTrees(model, ensemble, &createPipelineModel);
 
     TString data;
-    treeModel.SerializeToString(&data);
+    if (createPipelineModel) {
+        CoreML::Specification::Model pipelineModel;
+        pipelineModel.set_specificationversion(1);
+
+        auto* container = pipelineModel.mutable_pipeline()->mutable_models();
+        NCatboost::NCoreML::ConfigureCategoricalMappings(model, container);
+
+        auto* contained = container->Add();
+        auto treeDescription = treeModel.mutable_description();
+        NCatboost::NCoreML::ConfigureTreeModelIO(model, userParameters, regressor, treeDescription);
+        *contained = treeModel;
+
+        auto pipelineDescription = pipelineModel.mutable_description();
+        NCatboost::NCoreML::ConfigureMetadata(model, userParameters, pipelineDescription);
+        NCatboost::NCoreML::ConfigurePipelineModelIO(model, pipelineDescription);
+
+        pipelineModel.SerializeToString(&data);
+    } else {
+        auto description = treeModel.mutable_description();
+        NCatboost::NCoreML::ConfigureMetadata(model, userParameters, description);
+        NCatboost::NCoreML::ConfigureTreeModelIO(model, userParameters, regressor, description);
+        treeModel.SerializeToString(&data);
+    }
 
     TOFStream out(modelFile);
     out.Write(data);
