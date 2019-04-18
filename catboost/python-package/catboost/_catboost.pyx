@@ -1105,13 +1105,13 @@ cdef EModelType string_to_model_type(model_type_str) except *:
 cdef EFstrType string_to_fstr_type(fstr_type_str) except *:
     cdef EFstrType fstr_type
     if not TryFromString[EFstrType](to_arcadia_string(fstr_type_str), fstr_type):
-        raise CatBoostError("Unknown model type {}.".format(fstr_type_str))
+        raise CatBoostError("Unknown fstr type {}.".format(fstr_type_str))
     return fstr_type
 
 cdef EPreCalcShapValues string_to_shap_mode(shap_mode_str) except *:
     cdef EPreCalcShapValues shap_mode
     if not TryFromString[EPreCalcShapValues](to_arcadia_string(shap_mode_str), shap_mode):
-        raise CatBoostError("Unknown model type {}.".format(shap_mode_str))
+        raise CatBoostError("Unknown shap values mode {}.".format(shap_mode_str))
     return shap_mode
 
 
