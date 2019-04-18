@@ -615,7 +615,7 @@ TShapPreparedTrees PrepareTrees(
     TImportanceLogger treesLogger(treeCount, "trees processed", "Processing trees...", logPeriod);
 
     // use only if model.ObliviousTrees.LeafWeights is empty
-    TVector <TVector<double>> leafWeights;
+    TVector<TVector<double>> leafWeights;
     if (model.ObliviousTrees.LeafWeights.empty()) {
         CB_ENSURE(
                 dataset,
@@ -716,7 +716,7 @@ void CalcShapValuesInternalForFeature(
                 );
 
                 if (preparedTrees.CalcShapValuesByLeafForAllTrees) {
-                    for (const TShapValue &shapValue : preparedTrees.ShapValuesByLeafForAllTrees[treeIdx][leafIdx]) {
+                    for (const TShapValue& shapValue : preparedTrees.ShapValuesByLeafForAllTrees[treeIdx][leafIdx]) {
                         for (int dimension = 0; dimension < forest.ApproxDimension; ++dimension) {
                             docShapValues[shapValue.Feature][dimension] += shapValue.Value[dimension];
                         }
@@ -758,7 +758,7 @@ TVector<TVector<TVector<double>>> CalcShapValuesMulti(
         &dataset,
         logPeriod,
         localExecutor,
-        false, //default
+        /*calcInternalValues=*/false,
         mode
     );
 
@@ -844,7 +844,7 @@ void CalcAndOutputShapValues(
         &dataset,
         logPeriod,
         localExecutor,
-        false, //default
+        /*calcInternalValues=*/false,
         mode
     );
 
