@@ -30,7 +30,6 @@ DATA(
 )
 
 DEPENDS(
-    catboost/tools/limited_precision_json_diff
     catboost/tools/model_comparator
     catboost/python-package/catboost/no_cuda
     catboost/python-package/ut/medium/python_binary
