@@ -946,7 +946,7 @@ class _CatBoostBase(object):
         metrics_description_list = metrics_description if isinstance(metrics_description, list) else [metrics_description]
         return self._object._base_eval_metrics(pool, metrics_description_list, ntree_start, ntree_end, eval_period, thread_count, result_dir, tmp_dir)
 
-    def _calc_fstr(self, type, pool, thread_count, verbose, shap_mode="Auto"):
+    def _calc_fstr(self, type, pool, thread_count, verbose, shap_mode):
         """returns (fstr_values, feature_ids)."""
         return self._object._calc_fstr(type.name, pool, thread_count, verbose, shap_mode)
 

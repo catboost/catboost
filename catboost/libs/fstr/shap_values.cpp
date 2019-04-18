@@ -603,9 +603,9 @@ TShapPreparedTrees PrepareTrees(
     const TFullModel& model,
     const TDataProvider* dataset, // can be nullptr if model has LeafWeights
     int logPeriod,
+    EPreCalcShapValues mode,
     NPar::TLocalExecutor* localExecutor,
-    bool calcInternalValues,
-    EPreCalcShapValues mode
+    bool calcInternalValues
 ) {
     WarnForComplexCtrs(model.ObliviousTrees);
 
@@ -679,7 +679,7 @@ TShapPreparedTrees PrepareTrees(
         !model.ObliviousTrees.LeafWeights.empty(),
         "Model must have leaf weights or sample pool must be provided"
     );
-    return PrepareTrees(model, nullptr, 0, localExecutor);
+    return PrepareTrees(model, nullptr, 0, EPreCalcShapValues::Auto, localExecutor);
 }
 
 void CalcShapValuesInternalForFeature(
@@ -750,16 +750,16 @@ TVector<TVector<TVector<double>>> CalcShapValuesMulti(
     const TFullModel& model,
     const TDataProvider& dataset,
     int logPeriod,
-    NPar::TLocalExecutor* localExecutor,
-    EPreCalcShapValues mode
+    EPreCalcShapValues mode,
+    NPar::TLocalExecutor* localExecutor
 ) {
     TShapPreparedTrees preparedTrees = PrepareTrees(
         model,
         &dataset,
         logPeriod,
+        mode,
         localExecutor,
-        /*calcInternalValues=*/false,
-        mode
+        /*calcInternalValues=*/false
     );
 
     const size_t documentCount = dataset.ObjectsGrouping->GetObjectCount();
@@ -799,16 +799,16 @@ TVector<TVector<double>> CalcShapValues(
     const TFullModel& model,
     const TDataProvider& dataset,
     int logPeriod,
-    NPar::TLocalExecutor* localExecutor,
-    EPreCalcShapValues mode
+    EPreCalcShapValues mode,
+    NPar::TLocalExecutor* localExecutor
 ) {
     CB_ENSURE(model.ObliviousTrees.ApproxDimension == 1, "Model must not be trained for multiclassification.");
     TVector<TVector<TVector<double>>> shapValuesMulti = CalcShapValuesMulti(
         model,
         dataset,
         logPeriod,
-        localExecutor,
-        mode
+        mode,
+        localExecutor
     );
 
     size_t documentsCount = dataset.ObjectsGrouping->GetObjectCount();
@@ -836,16 +836,16 @@ void CalcAndOutputShapValues(
     const TDataProvider& dataset,
     const TString& outputPath,
     int logPeriod,
-    NPar::TLocalExecutor* localExecutor,
-    EPreCalcShapValues mode
+    EPreCalcShapValues mode,
+    NPar::TLocalExecutor* localExecutor
 ) {
     TShapPreparedTrees preparedTrees = PrepareTrees(
         model,
         &dataset,
         logPeriod,
+        mode,
         localExecutor,
-        /*calcInternalValues=*/false,
-        mode
+        /*calcInternalValues=*/false
     );
 
     const size_t documentCount = dataset.ObjectsGrouping->GetObjectCount();

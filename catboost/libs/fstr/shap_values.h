@@ -77,9 +77,9 @@ TShapPreparedTrees PrepareTrees(
     const TFullModel& model,
     const NCB::TDataProvider* dataset, // can be nullptr if model has LeafWeights
     int logPeriod,
+    EPreCalcShapValues mode,
     NPar::TLocalExecutor* localExecutor,
-    bool calcInternalValues = false,
-    EPreCalcShapValues mode = EPreCalcShapValues::Auto
+    bool calcInternalValues = false
 );
 
 // returned: ShapValues[documentIdx][dimenesion][feature]
@@ -87,8 +87,8 @@ TVector<TVector<TVector<double>>> CalcShapValuesMulti(
     const TFullModel& model,
     const NCB::TDataProvider& dataset,
     int logPeriod,
-    NPar::TLocalExecutor* localExecutor,
-    EPreCalcShapValues mode = EPreCalcShapValues::Auto
+    EPreCalcShapValues mode,
+    NPar::TLocalExecutor* localExecutor
 );
 
 // returned: ShapValues[documentIdx][feature]
@@ -96,8 +96,8 @@ TVector<TVector<double>> CalcShapValues(
     const TFullModel& model,
     const NCB::TDataProvider& dataset,
     int logPeriod,
-    NPar::TLocalExecutor* localExecutor,
-    EPreCalcShapValues mode = EPreCalcShapValues::Auto
+    EPreCalcShapValues mode,
+    NPar::TLocalExecutor* localExecutor
 );
 
 // outputs for each document in order for each dimension in order an array of feature contributions
@@ -106,8 +106,8 @@ void CalcAndOutputShapValues(
     const NCB::TDataProvider& dataset,
     const TString& outputPath,
     int logPeriod,
-    NPar::TLocalExecutor* localExecutor,
-    EPreCalcShapValues mode = EPreCalcShapValues::Auto
+    EPreCalcShapValues mode,
+    NPar::TLocalExecutor* localExecutor
 );
 
 void CalcShapValuesInternalForFeature(
