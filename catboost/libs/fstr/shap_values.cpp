@@ -683,7 +683,7 @@ TShapPreparedTrees PrepareTrees(
 }
 
 void CalcShapValuesInternalForFeature(
-    TShapPreparedTrees& preparedTrees,
+    const TShapPreparedTrees& preparedTrees,
     const TFullModel& model,
     int /*logPeriod*/,
     ui32 start,
