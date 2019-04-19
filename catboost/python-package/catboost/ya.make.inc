@@ -9,6 +9,7 @@ PYTHON_ADDINCL()
 # add only headers for dynamic linking
 ADDINCL(
     contrib/python/numpy/numpy/core/include
+    contrib/python/graphviz
 )
 
 PEERDIR(
