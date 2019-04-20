@@ -34,9 +34,9 @@ void NCatboost::NCoreML::ConfigureTrees(const TFullModel& model, TreeEnsemblePar
     for (const auto& oneHotFeature: model.ObliviousTrees.OneHotFeatures) {
         THashMap<int, double> valuesMapping;
         for (size_t i = 0; i < oneHotFeature.Values.size(); i++) {
-            valuesMapping.insert(std::pair<int, double>(oneHotFeature.Values[i], i));
+            valuesMapping.insert(std::pair<int, double>(oneHotFeature.Values[i], double(i)));
         }
-        splitCategoricalValues[oneHotFeature.CatFeatureIndex] = valuesMapping;
+        splitCategoricalValues[oneHotFeature.CatFeatureIndex] = std::move(valuesMapping);
     }
 
     for (size_t treeIdx = 0; treeIdx < model.ObliviousTrees.TreeSizes.size(); ++treeIdx) {
@@ -131,7 +131,7 @@ void NCatboost::NCoreML::ConfigureCategoricalMappings(const TFullModel& model, g
     }
 
     for (const auto& oneHotFeature : model.ObliviousTrees.OneHotFeatures) {
-        int FlatFeatureIndex = categoricalFlatIndexes[oneHotFeature.CatFeatureIndex];
+        int flatFeatureIndex = categoricalFlatIndexes[oneHotFeature.CatFeatureIndex];
         std::unordered_map<TString, long> categoricalMapping;
         auto* contained = container->Add();
 
@@ -150,7 +150,7 @@ void NCatboost::NCoreML::ConfigureCategoricalMappings(const TFullModel& model, g
 
         auto description = mappingModel.mutable_description();
         auto catFeature = description->add_input();
-        catFeature->set_name(("feature_" + std::to_string(FlatFeatureIndex)).c_str());
+        catFeature->set_name(("feature_" + std::to_string(flatFeatureIndex)).c_str());
 
         auto featureType = new FeatureType();
         featureType->set_isoptional(false);
@@ -162,13 +162,13 @@ void NCatboost::NCoreML::ConfigureCategoricalMappings(const TFullModel& model, g
         featureType->set_isoptional(false);
         featureType->set_allocated_int64type(new Int64FeatureType());
         mappedCategoricalFeature->set_allocated_type(featureType);
-        mappedCategoricalFeature->set_name(("mapped_feature_" + std::to_string(FlatFeatureIndex)).c_str());
+        mappedCategoricalFeature->set_name(("mapped_feature_" + std::to_string(flatFeatureIndex)).c_str());
 
         *contained = mappingModel;
     }
 }
 
-void NCatboost::NCoreML::ConfigurePipelineModelIO(const TFullModel& model, CoreML::Specification::ModelDescription* description) {
+void NCatboost::NCoreML::ConfigureFloatInput(const TFullModel& model, CoreML::Specification::ModelDescription* description) {
     for (const auto& floatFeature : model.ObliviousTrees.FloatFeatures) {
         auto feature = description->add_input();
         feature->set_name(("feature_" + std::to_string(floatFeature.FlatFeatureIndex)).c_str());
@@ -178,6 +178,10 @@ void NCatboost::NCoreML::ConfigurePipelineModelIO(const TFullModel& model, CoreM
         featureType->set_allocated_doubletype(new DoubleFeatureType());
         feature->set_allocated_type(featureType);
     }
+}
+
+void NCatboost::NCoreML::ConfigurePipelineModelIO(const TFullModel& model, CoreML::Specification::ModelDescription* description) {
+    ConfigureFloatInput(model, description);
 
     size_t catFeaturesCount  = model.ObliviousTrees.CatFeatures.size();
     TVector<int> categoricalFlatIndexes(catFeaturesCount);
@@ -187,9 +191,9 @@ void NCatboost::NCoreML::ConfigurePipelineModelIO(const TFullModel& model, CoreM
 
     for (const auto& oneHotFeature : model.ObliviousTrees.OneHotFeatures) {
         auto feature = description->add_input();
-        int FlatFeatureIndex = categoricalFlatIndexes[oneHotFeature.CatFeatureIndex];
+        int flatFeatureIndex = categoricalFlatIndexes[oneHotFeature.CatFeatureIndex];
 
-        feature->set_name(("feature_" + std::to_string(FlatFeatureIndex)).c_str());
+        feature->set_name(("feature_" + std::to_string(flatFeatureIndex)).c_str());
 
         auto featureType = new FeatureType();
         featureType->set_isoptional(false);
@@ -214,15 +218,7 @@ void NCatboost::NCoreML::ConfigurePipelineModelIO(const TFullModel& model, CoreM
 }
 
 void NCatboost::NCoreML::ConfigureTreeModelIO(const TFullModel& model, const NJson::TJsonValue& userParameters, TreeEnsembleRegressor* regressor, ModelDescription* description) {
-    for (const auto& floatFeature : model.ObliviousTrees.FloatFeatures) {
-        auto feature = description->add_input();
-        feature->set_name(("feature_" + std::to_string(floatFeature.FlatFeatureIndex)).c_str());
-
-        auto featureType = new FeatureType();
-        featureType->set_isoptional(false);
-        featureType->set_allocated_doubletype(new DoubleFeatureType());
-        feature->set_allocated_type(featureType);
-    }
+    ConfigureFloatInput(model, description);
 
     size_t catFeaturesCount  = model.ObliviousTrees.CatFeatures.size();
     TVector<int> categoricalFlatIndexes(catFeaturesCount);
@@ -232,9 +228,9 @@ void NCatboost::NCoreML::ConfigureTreeModelIO(const TFullModel& model, const NJs
 
     for (const auto& oneHotFeature : model.ObliviousTrees.OneHotFeatures) {
         auto feature = description->add_input();
-        int FlatFeatureIndex = categoricalFlatIndexes[oneHotFeature.CatFeatureIndex];
+        int flatFeatureIndex = categoricalFlatIndexes[oneHotFeature.CatFeatureIndex];
 
-        feature->set_name(("mapped_feature_" + std::to_string(FlatFeatureIndex)).c_str());
+        feature->set_name(("mapped_feature_" + std::to_string(flatFeatureIndex)).c_str());
 
         auto featureType = new FeatureType();
         featureType->set_isoptional(false);
