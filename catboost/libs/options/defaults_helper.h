@@ -4,8 +4,12 @@
 #include "cat_feature_options.h"
 #include "catboost_options.h"
 
+#include <catboost/libs/helpers/maybe_data.h>
+#include <catboost/libs/helpers/vector_helpers.h>
+
 #include <util/system/types.h>
 #include <util/generic/ymath.h>
+#include <util/generic/maybe.h>
 
 const ui32 FoldPermutationBlockSizeNotSet = 0;
 
@@ -91,19 +95,24 @@ void UpdateOneHotMaxSize(
     NCatboostOptions::TCatBoostOptions* catBoostOptions
 );
 
+void UpdateYetiRankEvalMetric(
+    NCB::TMaybeData<TConstArrayRef<float>> learnTarget,
+    NCB::TMaybeData<TConstArrayRef<float>> testTarget,
+    NCatboostOptions::TCatBoostOptions* catBoostOptions);
 
 inline void SetDataDependentDefaults(
     ui32 learnPoolSize,
-    bool hasLearnTarget,
+    NCB::TMaybeData<TConstArrayRef<float>> learnTarget,
+    NCB::TMaybeData<TConstArrayRef<float>> testTarget,
     ui32 maxCategoricalFeaturesUniqValuesOnLearn,
     ui32 testPoolSize,
-    bool hasTestConstTarget,
     bool hasTestPairs,
     NCatboostOptions::TOption<bool>* useBestModel,
     NCatboostOptions::TCatBoostOptions* catBoostOptions
 ) {
-    UpdateUseBestModel(testPoolSize, hasTestConstTarget, hasTestPairs, useBestModel);
+    UpdateUseBestModel(testPoolSize, testTarget && IsConst(*testTarget), hasTestPairs, useBestModel);
     UpdateBoostingTypeOption(learnPoolSize, &catBoostOptions->BoostingOptions->BoostingType);
     UpdateLearningRate(learnPoolSize, useBestModel->Get(), catBoostOptions);
-    UpdateOneHotMaxSize(maxCategoricalFeaturesUniqValuesOnLearn, hasLearnTarget, catBoostOptions);
+    UpdateOneHotMaxSize(maxCategoricalFeaturesUniqValuesOnLearn, bool(learnTarget), catBoostOptions);
+    UpdateYetiRankEvalMetric(learnTarget, testTarget, catBoostOptions);
 }

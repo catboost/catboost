@@ -96,6 +96,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\map_merge.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\math_utils.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\matrix.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\maybe_data.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\maybe_owning_array_holder.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\mem_usage.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\parallel_tasks.cpp"/>
@@ -130,6 +131,7 @@
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\map_merge.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\math_utils.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\matrix.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\maybe_data.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\maybe_owning_array_holder.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\mem_usage.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\parallel_tasks.h"/>

@@ -139,7 +139,6 @@ static void InitializeAndCheckMetricData(
     const int approxDimension = ctx.LearnProgress.ApproxDimension;
     auto& metrics = metricsData->Metrics;
     metrics = CreateMetrics(
-        ctx.Params.LossFunctionDescription,
         ctx.Params.MetricOptions,
         ctx.EvalMetricDescriptor,
         approxDimension
@@ -498,12 +497,11 @@ namespace {
 
             SetDataDependentDefaults(
                 trainingDataForCpu.Learn->GetObjectCount(),
-                /*hasLearnTarget*/ trainingDataForCpu.Learn->MetaInfo.HasTarget,
+                trainingDataForCpu.Learn->TargetData.Get()->GetTarget(),
+                trainingDataForCpu.Test.size() > 0  ?
+                trainingDataForCpu.Test[0]->TargetData.Get()->GetTarget() : Nothing(),
                 quantizedFeaturesInfo.CalcMaxCategoricalFeaturesUniqueValuesCountOnLearn(),
                 /*testPoolSize*/ trainingDataForCpu.GetTestSampleCount(),
-                /*hasTestLabels*/ trainingDataForCpu.Test.size() > 0 &&
-                    trainingDataForCpu.Test[0]->MetaInfo.HasTarget &&
-                    IsConst(*trainingDataForCpu.Test[0]->TargetData->GetTarget()),
                 /*hasTestPairs*/ trainingDataForCpu.Test.size() > 0 &&
                     trainingDataForCpu.Test[0]->MetaInfo.HasPairs,
                 &updatedOutputOptions.UseBestModel,

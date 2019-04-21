@@ -31,7 +31,6 @@ TLearnContext::~TLearnContext() {
 
 void TLearnContext::OutputMeta() {
     auto losses = CreateMetrics(
-            Params.LossFunctionDescription,
             Params.MetricOptions,
             EvalMetricDescriptor,
             LearnProgress.ApproxDimension

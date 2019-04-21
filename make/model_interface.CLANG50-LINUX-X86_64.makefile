@@ -4181,6 +4181,7 @@ $(BUILD_ROOT)/catboost/libs/helpers/libcatboost-libs-helpers.a\
         $(BUILD_ROOT)/catboost/libs/helpers/map_merge.cpp.pic.o\
         $(BUILD_ROOT)/catboost/libs/helpers/math_utils.cpp.pic.o\
         $(BUILD_ROOT)/catboost/libs/helpers/matrix.cpp.pic.o\
+        $(BUILD_ROOT)/catboost/libs/helpers/maybe_data.cpp.pic.o\
         $(BUILD_ROOT)/catboost/libs/helpers/maybe_owning_array_holder.cpp.pic.o\
         $(BUILD_ROOT)/catboost/libs/helpers/mem_usage.cpp.pic.o\
         $(BUILD_ROOT)/catboost/libs/helpers/parallel_tasks.cpp.pic.o\
@@ -4201,7 +4202,7 @@ $(BUILD_ROOT)/catboost/libs/helpers/libcatboost-libs-helpers.a\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/helpers'
 	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name catboost-libs-helpers -o catboost/libs/helpers/libcatboost-libs-helpers.a.mf -t LIBRARY -Ya,lics -Ya,peers
-	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/catboost/libs/helpers/libcatboost-libs-helpers.a' '$(BUILD_ROOT)/catboost/libs/helpers/array_subset.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/borders_io.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/checksum.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/clear_array.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/compare.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/compression.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/cpu_random.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/dbg_output.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/dense_hash.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/dense_hash_view.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/element_range.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/exception.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/hash.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/int_cast.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/interrupt.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/map_merge.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/math_utils.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/matrix.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/maybe_owning_array_holder.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/mem_usage.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/parallel_tasks.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/power_hash.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/progress_helper.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/permutation.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/query_info_helper.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/resource_constrained_executor.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/resource_holder.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/restorable_rng.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/serialization.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/set.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/vec_list.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/vector_helpers.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/wx_test.cpp.pic.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/catboost/libs/helpers/libcatboost-libs-helpers.a' '$(BUILD_ROOT)/catboost/libs/helpers/array_subset.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/borders_io.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/checksum.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/clear_array.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/compare.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/compression.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/cpu_random.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/dbg_output.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/dense_hash.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/dense_hash_view.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/element_range.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/exception.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/hash.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/int_cast.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/interrupt.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/map_merge.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/math_utils.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/matrix.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/maybe_data.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/maybe_owning_array_holder.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/mem_usage.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/parallel_tasks.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/power_hash.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/progress_helper.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/permutation.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/query_info_helper.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/resource_constrained_executor.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/resource_holder.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/restorable_rng.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/serialization.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/set.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/vec_list.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/vector_helpers.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/wx_test.cpp.pic.o'
 
 $(BUILD_ROOT)/catboost/libs/helpers/array_subset.cpp.pic.o\
         ::\
@@ -4328,6 +4329,13 @@ $(BUILD_ROOT)/catboost/libs/helpers/matrix.cpp.pic.o\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/helpers'
 	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/helpers/matrix.cpp.pic.o' '$(SOURCE_ROOT)/catboost/libs/helpers/matrix.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/catboost/libs/helpers/maybe_data.cpp.pic.o\
+        ::\
+        $(SOURCE_ROOT)/catboost/libs/helpers/maybe_data.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/catboost/libs/helpers'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/helpers/maybe_data.cpp.pic.o' '$(SOURCE_ROOT)/catboost/libs/helpers/maybe_data.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
 
 $(BUILD_ROOT)/catboost/libs/helpers/maybe_owning_array_holder.cpp.pic.o\
         ::\
@@ -7820,13 +7828,6 @@ $(BUILD_ROOT)/contrib/libs/protobuf/stubs/int128.cc.pic.o\
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf/stubs'
 	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/int128.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/stubs/int128.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -DCATBOOST_OPENSOURCE=yes -nostdinc++
 
-$(BUILD_ROOT)/contrib/libs/protobuf/stubs/io_win32.cc.pic.o\
-        ::\
-        $(SOURCE_ROOT)/contrib/libs/protobuf/stubs/io_win32.cc\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf/stubs'
-	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/io_win32.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/stubs/io_win32.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -DCATBOOST_OPENSOURCE=yes -nostdinc++
-
 $(BUILD_ROOT)/contrib/libs/protobuf/stubs/mathlimits.cc.pic.o\
         ::\
         $(SOURCE_ROOT)/contrib/libs/protobuf/stubs/mathlimits.cc\
@@ -10123,6 +10124,7 @@ clean\
 	rm -f '$(BUILD_ROOT)/catboost/libs/helpers/map_merge.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/catboost/libs/helpers/math_utils.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/catboost/libs/helpers/matrix.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/helpers/maybe_data.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/catboost/libs/helpers/maybe_owning_array_holder.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/catboost/libs/helpers/mem_usage.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/catboost/libs/helpers/parallel_tasks.cpp.pic.o'
@@ -10517,7 +10519,6 @@ clean\
 	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/bytestream.cc.pic.o'
 	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/common.cc.pic.o'
 	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/int128.cc.pic.o'
-	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/io_win32.cc.pic.o'
 	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/mathlimits.cc.pic.o'
 	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/once.cc.pic.o'
 	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/status.cc.pic.o'

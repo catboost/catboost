@@ -18,11 +18,18 @@ ALLOW .* -> vendor/github.com/coreos/etcd
 # mocking for database/sql
 ALLOW .* -> vendor/github.com/DATA-DOG/go-sqlmock    
 
+# Cucumber-like BDD for Go
+ALLOW .* -> vendor/github.com/DATA-DOG/godog
+
 # pretty printer for GO
 ALLOW .* -> vendor/github.com/davecgh/go-spew/spew    
 
 # implementation of JSON Web Tokens (JWT)
 ALLOW .* -> vendor/github.com/dgrijalva/jwt-go        
+
+# Docker API client
+ALLOW .* -> vendor/github.com/docker/docker/client
+ALLOW .* -> vendor/github.com/docker/docker/api
 
 # cross-platform file system notifications
 ALLOW .* -> vendor/github.com/fsnotify/fsnotify       
@@ -112,6 +119,9 @@ ALLOW .* -> vendor/github.com/PuerkitoBio/goquery
 ALLOW .* -> vendor/github.com/prometheus/client_golang
 ALLOW .* -> vendor/github.com/prometheus/client_model
 ALLOW .* -> vendor/github.com/prometheus/common
+
+# ZooKeeper client
+ALLOW .* -> vendor/github.com/samuel/go-zookeeper
 
 # text diffing and patching
 ALLOW .* -> vendor/github.com/sergi/go-diff

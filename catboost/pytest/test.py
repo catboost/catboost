@@ -756,6 +756,30 @@ def test_yetirank_pairwise(dev_score_calc_obj_block_size):
     return [local_canonical_file(output_eval_path)]
 
 
+@pytest.mark.parametrize('loss_function', ('YetiRank', 'YetiRankPairwise'))
+def test_yetirank_default_metric(loss_function):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    test_error_path = yatest.common.test_output_path('test_error.tsv')
+
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', loss_function,
+        '--has-header',
+        '-f', data_file('black_friday', 'train'),
+        '-t', data_file('black_friday', 'test'),
+        '--column-description', data_file('black_friday', 'cd'),
+        '--model-file', output_model_path,
+        '--boosting-type', 'Plain',
+        '-i', '10',
+        '-T', '4',
+        '--test-err-log', test_error_path,
+    )
+    yatest.common.execute(cmd)
+
+    return [local_canonical_file(test_error_path)]
+
+
 NAN_MODE = ['Min', 'Max']
 
 

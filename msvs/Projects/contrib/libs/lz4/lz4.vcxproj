@@ -92,9 +92,7 @@
     </ClCompile>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\lz4\lz4.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\lz4\lz4frame.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\lz4\lz4frame_static.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\lz4\lz4hc.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\lz4\lz4opt.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\lz4\xxhash.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>

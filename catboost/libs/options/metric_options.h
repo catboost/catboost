@@ -25,6 +25,7 @@ namespace NCatboostOptions {
         bool operator!=(const TMetricOptions& rhs) const;
 
         TOption<TLossDescription> EvalMetric;
+        TOption<TLossDescription> ObjectiveMetric;
         TOption<TVector<TLossDescription>> CustomMetrics;
     };
 }

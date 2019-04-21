@@ -486,6 +486,28 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
             break;
         }
     }
+
+    switch (LossFunctionDescription->GetLossFunction()) {
+        case ELossFunction::YetiRank:
+        case ELossFunction::YetiRankPairwise: {
+            NCatboostOptions::TLossDescription lossDescription;
+            lossDescription.Load(LossDescriptionToJson("PFound"));
+            MetricOptions->ObjectiveMetric.Set(lossDescription);
+            break;
+        }
+        case ELossFunction::PairLogit:
+        case ELossFunction::PairLogitPairwise: {
+            NCatboostOptions::TLossDescription lossDescription;
+            lossDescription.Load(LossDescriptionToJson("PairLogit"));
+            MetricOptions->ObjectiveMetric.Set(lossDescription);
+            break;
+        }
+        default: {
+            MetricOptions->ObjectiveMetric.Set(LossFunctionDescription.Get());
+            break;
+        }
+    }
+
     if (TaskType == ETaskType::GPU) {
         if (IsGpuPlainDocParallelOnlyMode(LossFunctionDescription->GetLossFunction()) ||
             ObliviousTreeOptions->GrowPolicy != EGrowPolicy::SymmetricTree) {

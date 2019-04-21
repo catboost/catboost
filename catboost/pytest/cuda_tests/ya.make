@@ -14,7 +14,8 @@ DEPENDS(
     catboost/tools/limited_precision_dsv_diff
 )
 
-SIZE(MEDIUM)
+SIZE(LARGE)
+TAG(ya:fat)
 REQUIREMENTS(network:full)
 
 IF(AUTOCHECK)

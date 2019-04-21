@@ -207,24 +207,19 @@ namespace NCatboostCuda {
                                                NCatboostOptions::TOutputFilesOptions& outputOptions,
                                                TBinarizedFeaturesManager& featuresManager,
                                                NPar::TLocalExecutor* localExecutor) {
-        bool hasTestConstTarget = true;
         bool hasTestPairs = false;
         ui32 testPoolSize = 0;
         if (testProvider) {
-            auto maybeTestTarget = testProvider->TargetData->GetTarget();
-            if (maybeTestTarget) {
-                hasTestConstTarget = IsConst(*maybeTestTarget);
-            }
             hasTestPairs = testProvider->MetaInfo.HasPairs;
             testPoolSize = testProvider->GetObjectCount();
         }
 
         SetDataDependentDefaults(dataProvider.GetObjectCount(),
-                                 dataProvider.MetaInfo.HasTarget,
+                                 dataProvider.TargetData.Get()->GetTarget(),
+                                 testProvider ? testProvider->TargetData->GetTarget() : Nothing(),
                                  dataProvider.ObjectsData->GetQuantizedFeaturesInfo()
                                      ->CalcMaxCategoricalFeaturesUniqueValuesCountOnLearn(),
                                  testPoolSize,
-                                 hasTestConstTarget,
                                  hasTestPairs,
                                  &outputOptions.UseBestModel,
                                  &catBoostOptions);

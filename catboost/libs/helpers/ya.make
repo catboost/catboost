@@ -21,6 +21,7 @@ SRCS(
     map_merge.cpp
     math_utils.cpp
     matrix.cpp
+    maybe_data.cpp
     maybe_owning_array_holder.cpp
     mem_usage.cpp
     parallel_tasks.cpp

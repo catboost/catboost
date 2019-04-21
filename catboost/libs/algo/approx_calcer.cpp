@@ -318,7 +318,7 @@ void CalcLeafDersSimple(
 
         TVector<TQueryInfo> recalculatedQueriesInfo;
         TVector<float> recalculatedPairwiseWeights;
-        const bool shouldGenerateYetiRankPairs = ShouldGenerateYetiRankPairs(
+        const bool shouldGenerateYetiRankPairs = IsYetiRankLossFunction(
             params.LossFunctionDescription->GetLossFunction()
         );
         if (shouldGenerateYetiRankPairs) {
@@ -528,7 +528,7 @@ static void UpdateApproxDeltasHistorically(
 ) {
     TVector<TQueryInfo> recalculatedQueriesInfo;
     TVector<float> recalculatedPairwiseWeights;
-    const bool shouldGenerateYetiRankPairs = ShouldGenerateYetiRankPairs(
+    const bool shouldGenerateYetiRankPairs = IsYetiRankLossFunction(
         params.LossFunctionDescription->GetLossFunction()
     );
     if (shouldGenerateYetiRankPairs) {
@@ -774,7 +774,7 @@ static void CalcApproxDeltaSimple(
     TVector<THolder<IMetric>> lossFunction;
     double directionSign = 0;
     if (!isTrivialWalker) {
-        lossFunction = CreateDefaultMetricForObjective(ctx->Params.LossFunctionDescription, dimensionCount);
+        lossFunction = CreateMetricFromDescription(ctx->Params.MetricOptions.Get().ObjectiveMetric, dimensionCount);
         directionSign = GetDirectionSign(lossFunction[0]);
     }
     const auto lossCalcerFunc = [&] (const TVector<TVector<double>>& approxDeltas) {
@@ -896,7 +896,7 @@ static void CalcLeafValuesSimple(
     TVector<THolder<IMetric>> lossFunction;
     double directionSign = 0;
     if (!isTrivialWalker) {
-        lossFunction = CreateDefaultMetricForObjective(ctx->Params.LossFunctionDescription, dimensionCount);
+        lossFunction = CreateMetricFromDescription(ctx->Params.MetricOptions->ObjectiveMetric, dimensionCount);
         directionSign = GetDirectionSign(lossFunction[0]);
     }
     const auto lossCalcerFunc = [&] (const TVector<TVector<double>>& approx) {
