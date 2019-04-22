@@ -1,8 +1,10 @@
 #define FROM_IMPL_CPP
+
+#include "coro_events.h"
 #include "impl.h"
 
-#include <util/stream/output.h>
 #include <util/generic/yexception.h>
+#include <util/stream/output.h>
 #include <util/system/yassert.h>
 
 template <>
@@ -419,19 +421,21 @@ int TCont::Connect(TSocketHolder& s, const TNetworkAddress& addr, TInstant deadL
     return ret;
 }
 
-TContExecutor::TContExecutor(size_t stackSize, THolder<IPollerFace> poller)
+TContExecutor::TContExecutor(size_t stackSize, THolder<IPollerFace> poller, NCoro::IScheduleCallback& callback)
     : Poller_(std::move(poller))
     , MyPool_(new TContRepPool(stackSize))
     , Pool_(*MyPool_)
     , Current_(nullptr)
+    , Callback_(callback)
     , FailOnError_(false)
 {
 }
 
-TContExecutor::TContExecutor(TContRepPool* pool, THolder<IPollerFace> poller)
+TContExecutor::TContExecutor(TContRepPool* pool, THolder<IPollerFace> poller, NCoro::IScheduleCallback& callback)
     : Poller_(std::move(poller))
     , Pool_(*pool)
     , Current_(nullptr)
+    , Callback_(callback)
     , FailOnError_(false)
 {
 }
@@ -453,7 +457,9 @@ void TContExecutor::RunScheduler() noexcept {
             TContRep* cont = Ready_.PopFront();
 
             Y_CORO_DBGOUT(Y_CORO_PRINT(cont->ContPtr()) << " prepare for activate");
+            Callback_.OnSchedule(*this, *cont->ContPtr());
             Activate(cont);
+            Callback_.OnUnschedule(*this, *cont->ContPtr());
 
             WaitForIO();
             DeleteScheduled();

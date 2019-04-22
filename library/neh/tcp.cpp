@@ -7,6 +7,8 @@
 #include "utils.h"
 
 #include <library/coroutine/listener/listen.h>
+#include <library/coroutine/engine/events.h>
+#include <library/coroutine/engine/sockpool.h>
 #include <library/dns/cache.h>
 
 #include <util/ysaveload.h>
