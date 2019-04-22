@@ -23,7 +23,8 @@ TEST_SRCS(
 
 NO_CHECK_IMPORTS(widget.ipythonwidget)
 
-SIZE(MEDIUM)
+SIZE(LARGE)
+TAG(ya:fat)
 
 DATA(
     arcadia/catboost/pytest/data
