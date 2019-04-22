@@ -208,6 +208,9 @@ ALLOW .* -> vendor/github.com/tinylib/msgp
 # Generate fancy REST API from grpc api
 ALLOW .* -> vendor/github.com/grpc-ecosystem/grpc-gateway
 
+# tus: the open protocol for resumable file uploads
+ALLOW .* -> vendor/github.com/tus/tusd
+
 # 
 # Temporary exceptions.
 #
