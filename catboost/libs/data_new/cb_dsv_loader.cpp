@@ -103,6 +103,9 @@ namespace NCB {
             TVector<ui32> catFeatures;
             catFeatures.yresize(featuresLayout.GetCatFeatureCount());
 
+            TVector<TString> textFeatures;
+            textFeatures.yresize(featuresLayout.GetTextFeatureCount());
+
             size_t tokenCount = 0;
             TVector<TStringBuf> tokens = StringSplitter(line).Split(FieldDelimiter);
             try {
@@ -130,6 +133,14 @@ namespace NCB {
                                             " Try correcting column description file."
                                         );
                                     }
+                                }
+                                ++featureId;
+                                break;
+                            }
+                            case EColumn::Text: {
+                                if (!FeatureIgnored[featureId]) {
+                                    const ui32 textFeatureIdx = featuresLayout.GetInternalFeatureIdx(featureId);
+                                    textFeatures[textFeatureIdx] = TString(token);
                                 }
                                 ++featureId;
                                 break;
@@ -192,6 +203,9 @@ namespace NCB {
                 }
                 if (!catFeatures.empty()) {
                     visitor->AddAllCatFeatures(lineIdx, catFeatures);
+                }
+                if (!textFeatures.empty()) {
+                    visitor->AddAllTextFeatures(lineIdx, textFeatures);
                 }
                 CB_ENSURE(
                     tokenCount == columnsDescription.size(),

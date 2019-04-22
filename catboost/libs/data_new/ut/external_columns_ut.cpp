@@ -24,7 +24,7 @@ Y_UNIT_TEST_SUITE(ExternalColumns) {
             /*discretization*/3
         );
 
-        TFeaturesLayout featuresLayout(ui32(1), TVector<ui32>{}, TVector<TString>{});
+        TFeaturesLayout featuresLayout(ui32(1), TVector<ui32>{}, TVector<ui32>{}, TVector<TString>{});
         auto quantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
             featuresLayout,
             TConstArrayRef<ui32>(),
@@ -87,7 +87,7 @@ Y_UNIT_TEST_SUITE(ExternalColumns) {
 
         const NCatboostOptions::TBinarizationOptions binarizationOptions;
 
-        TFeaturesLayout featuresLayout(ui32(1), TVector<ui32>{0}, TVector<TString>{});
+        TFeaturesLayout featuresLayout(ui32(1), TVector<ui32>{0}, TVector<ui32>{}, TVector<TString>{});
 
         for (auto mapMostFrequentValueTo0 : {false, true}) {
 

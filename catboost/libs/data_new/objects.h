@@ -189,6 +189,7 @@ namespace NCB {
          */
         TVector<THolder<TFloatValuesHolder>> FloatFeatures; // [floatFeatureIdx]
         TVector<THolder<THashedCatValuesHolder>> CatFeatures; // [catFeatureIdx]
+        TVector<THolder<TStringTextValuesHolder>> TextFeatures;
 
     public:
         bool operator==(const TRawObjectsData& rhs) const;
@@ -265,6 +266,13 @@ namespace NCB {
          */
         TMaybeData<const THashedCatValuesHolder*> GetCatFeature(ui32 catFeatureIdx) const {
             return MakeMaybeData<const THashedCatValuesHolder>(Data.CatFeatures[catFeatureIdx]);
+        }
+
+        /* can return nullptr if this feature is unavailable
+         * (ignored or this data provider contains only subset of features)
+         */
+        TMaybeData<const TStringTextValuesHolder*> GetTextFeature(ui32 textFeatureIdx) const {
+            return MakeMaybeData<const TStringTextValuesHolder>(Data.TextFeatures[textFeatureIdx]);
         }
 
         /* set functions are needed for current python mutable Pool interface
@@ -577,8 +585,10 @@ namespace NCB {
         TMaybe<TPackedBinaryIndex> GetFeatureToPackedBinaryIndex(TFeatureIdx<FeatureType> featureIdx) const {
             if constexpr (FeatureType == EFeatureType::Float) {
                 return GetFloatFeatureToPackedBinaryIndex(featureIdx);
-            } else {
+            } else if constexpr (FeatureType == EFeatureType::Categorical) {
                 return GetCatFeatureToPackedBinaryIndex(featureIdx);
+            } else {
+                CB_ENSURE_INTERNAL(false, "Unsupported feature type " << ToString(FeatureType));
             }
         }
 
@@ -626,8 +636,10 @@ namespace NCB {
         ) const {
             if constexpr (FeatureType == EFeatureType::Float) {
                 return GetFloatFeatureToExclusiveBundleIndex(featureIdx);
-            } else {
+            } else if constexpr (FeatureType == EFeatureType::Categorical) {
                 return GetCatFeatureToExclusiveBundleIndex(featureIdx);
+            } else {
+                CB_ENSURE_INTERNAL(false, "Unsupported feature type " << FeatureType);
             }
         }
 

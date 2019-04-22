@@ -105,6 +105,7 @@ namespace NCB {
 
             FloatFeaturesStorage.PrepareForInitialization(*metaInfo.FeaturesLayout, ObjectCount, prevTailSize);
             CatFeaturesStorage.PrepareForInitialization(*metaInfo.FeaturesLayout, ObjectCount, prevTailSize);
+            TextFeaturesStorage.PrepareForInitialization(*metaInfo.FeaturesLayout, ObjectCount, prevTailSize);
 
             if (metaInfo.HasWeights) {
                 PrepareForInitialization(ObjectCount, prevTailSize, &WeightsBuffer);
@@ -186,6 +187,24 @@ namespace NCB {
             }
         }
 
+        void AddTextFeature(ui32 localObjectIdx, ui32 flatFeatureIdx, const TString& feature) override {
+            auto textFeatureIdx = GetInternalFeatureIdx<EFeatureType::Text>(flatFeatureIdx);
+            TextFeaturesStorage.Set(
+                textFeatureIdx,
+                Cursor + localObjectIdx,
+                feature
+            );
+        }
+        void AddAllTextFeatures(ui32 localObjectIdx, TConstArrayRef<TString> features) override {
+            auto objectIdx = Cursor + localObjectIdx;
+            for (auto perTypeFeatureIdx : xrange(features.size())) {
+                TextFeaturesStorage.Set(
+                    TTextFeatureIdx(perTypeFeatureIdx),
+                    objectIdx,
+                    features[perTypeFeatureIdx]
+                );
+            }
+        }
 
         // TRawTargetData
 
@@ -305,6 +324,12 @@ namespace NCB {
                     }
                 }
             }
+
+            TextFeaturesStorage.GetResult(
+                *Data.MetaInfo.FeaturesLayout,
+                Data.CommonObjectsData.SubsetIndexing.Get(),
+                &Data.ObjectsData.TextFeatures
+            );
 
             ResultTaken = true;
 
@@ -516,6 +541,7 @@ namespace NCB {
 
         TFeaturesStorage<EFeatureType::Float, float> FloatFeaturesStorage;
         TFeaturesStorage<EFeatureType::Categorical, ui32> CatFeaturesStorage;
+        TFeaturesStorage<EFeatureType::Text, TString> TextFeaturesStorage;
 
         std::array<THashPart, CB_THREAD_LIMIT> HashMapParts;
 
@@ -622,6 +648,14 @@ namespace NCB {
             );
         }
 
+        void AddTextFeature(ui32 flatFeatureIdx, TMaybeOwningConstArrayHolder<TString> features) override {
+            auto textFeatureIdx = GetInternalFeatureIdx<EFeatureType::Text>(flatFeatureIdx);
+            Data.ObjectsData.TextFeatures[*textFeatureIdx] = MakeHolder<TStringTextValuesHolder>(
+                flatFeatureIdx,
+                std::move(features),
+                Data.CommonObjectsData.SubsetIndexing.Get()
+            );
+        }
 
         // TRawTargetData
 

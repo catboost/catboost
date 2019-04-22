@@ -355,7 +355,8 @@ static bool AreFeaturesValuesEqual(
 
 bool NCB::TRawObjectsData::operator==(const NCB::TRawObjectsData& rhs) const {
     return AreFeaturesValuesEqual(FloatFeatures, rhs.FloatFeatures) &&
-        AreFeaturesValuesEqual(CatFeatures, rhs.CatFeatures);
+        AreFeaturesValuesEqual(CatFeatures, rhs.CatFeatures) &&
+        AreFeaturesValuesEqual(TextFeatures, rhs.TextFeatures);
 }
 
 void NCB::TRawObjectsData::PrepareForInitialization(const TDataMetaInfo& metaInfo) {
@@ -366,6 +367,9 @@ void NCB::TRawObjectsData::PrepareForInitialization(const TDataMetaInfo& metaInf
     CatFeatures.clear();
     const size_t catFeatureCount = (size_t)metaInfo.FeaturesLayout->GetCatFeatureCount();
     CatFeatures.resize(catFeatureCount);
+
+    TextFeatures.clear();
+    TextFeatures.resize((size_t)metaInfo.FeaturesLayout->GetTextFeatureCount());
 }
 
 
@@ -428,6 +432,7 @@ void NCB::TRawObjectsData::Check(
         );
     }
     CheckDataSizes(objectCount, featuresLayout, EFeatureType::Categorical, CatFeatures);
+    CheckDataSizes(objectCount, featuresLayout, EFeatureType::Text, TextFeatures);
 
     localExecutor->ExecRangeWithThrow(
         [&] (int catFeatureIdx) {
@@ -492,14 +497,19 @@ TObjectsDataProviderPtr NCB::TRawObjectsDataProvider::GetSubset(
 
     TRawObjectsData subsetData;
     CreateSubsetFeatures(
-        (TConstArrayRef<THolder<TFloatValuesHolder>>)Data.FloatFeatures,
+        MakeConstArrayRef(Data.FloatFeatures),
         subsetCommonData.SubsetIndexing.Get(),
         &subsetData.FloatFeatures
     );
     CreateSubsetFeatures(
-        (TConstArrayRef<THolder<THashedCatValuesHolder>>)Data.CatFeatures,
+        MakeConstArrayRef(Data.CatFeatures),
         subsetCommonData.SubsetIndexing.Get(),
         &subsetData.CatFeatures
+    );
+    CreateSubsetFeatures(
+        MakeConstArrayRef(Data.TextFeatures),
+        subsetCommonData.SubsetIndexing.Get(),
+        &subsetData.TextFeatures
     );
 
     return MakeIntrusive<TRawObjectsDataProvider>(
@@ -552,6 +562,10 @@ TVector<float> NCB::TRawObjectsDataProvider::GetFeatureDataOldFormat(ui32 flatFe
         "feature #" << flatFeatureIdx << " is not present in pool"
     );
     const auto& featureMetaInfo = featuresMetaInfo[flatFeatureIdx];
+    CB_ENSURE(
+        featureMetaInfo.Type != EFeatureType::Text,
+        "feature #" << flatFeatureIdx << " has type Text and cannot be converted to float format"
+    );
     if (!featureMetaInfo.IsAvailable) {
         return result;
     }
@@ -1152,8 +1166,10 @@ TPackedBinaryIndex NCB::TPackedBinaryFeaturesData::AddFeature(
     PackedBinaryToSrcIndex.emplace_back(featureType, perTypeFeatureIdx);
     if (featureType == EFeatureType::Float) {
         FloatFeatureToPackedBinaryIndex[perTypeFeatureIdx] = packedBinaryIndex;
-    } else {
+    } else if (featureType == EFeatureType::Categorical) {
         CatFeatureToPackedBinaryIndex[perTypeFeatureIdx] = packedBinaryIndex;
+    } else {
+        CB_ENSURE(false, "Feature type " << featureType << " is not supported in PackedBinaryFeatures");
     }
 
     return packedBinaryIndex;
