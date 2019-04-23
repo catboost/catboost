@@ -43,14 +43,10 @@
   - signal.h:      contrib/tools/bison/gnulib/platform/win64/signal.h
   - spawn.h:       contrib/tools/bison/gnulib/platform/win64/spawn.h
   - stdbool.h:     contrib/tools/bison/gnulib/platform/win64/stdbool.h
-  - stdint.h:      contrib/tools/bison/gnulib/platform/win64/stdint.h
   - sys/stat.h:    contrib/tools/bison/gnulib/platform/win64/sys/stat.h
   - sys/time.h:    contrib/tools/bison/gnulib/platform/win64/sys/time.h
   - sys/wait.h:    contrib/tools/bison/gnulib/platform/win64/sys/wait.h
   - unistd.h:      contrib/tools/bison/gnulib/platform/win64/unistd.h
-- source_filter: "^contrib/libs/cxxsupp/libcxx/include"
-  includes:
-  - stdint.h:      contrib/tools/bison/gnulib/platform/win64/stdint.h
 
 - source_filter: "^contrib/tools/watchman"
   includes:
