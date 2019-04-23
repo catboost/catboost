@@ -12,6 +12,7 @@
 #include <util/generic/cast.h>
 #include <util/generic/ymath.h>
 #include <util/stream/format.h>
+#include <util/stream/output.h>
 #include <util/system/yassert.h>
 
 #include <algorithm>
@@ -977,6 +978,40 @@ void NCB::TQuantizedObjectsData::SaveNonSharedPart(IBinSaver* binSaver) const {
 }
 
 
+void NCB::DbgDumpQuantizedFeatures(
+    const NCB::TQuantizedObjectsDataProvider& quantizedObjectsDataProvider,
+    IOutputStream* out
+) {
+    const auto& featuresLayout = *quantizedObjectsDataProvider.GetQuantizedFeaturesInfo()->GetFeaturesLayout();
+
+    NPar::TLocalExecutor localExecutor;
+
+    featuresLayout.IterateOverAvailableFeatures<EFeatureType::Float>(
+        [&] (TFloatFeatureIdx floatFeatureIdx) {
+            const auto values = (*quantizedObjectsDataProvider.GetFloatFeature(*floatFeatureIdx))
+                ->ExtractValues(&localExecutor);
+
+            for (auto objectIdx : xrange((*values).size())) {
+                (*out) << "(floatFeature=" << *floatFeatureIdx << ',' << LabeledOutput(objectIdx)
+                    << ").bin=" << ui32(values[objectIdx]) << Endl;
+            }
+        }
+    );
+
+    featuresLayout.IterateOverAvailableFeatures<EFeatureType::Categorical>(
+        [&] (TCatFeatureIdx catFeatureIdx) {
+            const auto values = (*quantizedObjectsDataProvider.GetCatFeature(*catFeatureIdx))
+                ->ExtractValues(&localExecutor);
+
+            for (auto objectIdx : xrange((*values).size())) {
+                (*out) << "(catFeature=" << *catFeatureIdx << ',' << LabeledOutput(objectIdx)
+                    << ").bin=" << ui32(values[objectIdx]) << Endl;
+            }
+        }
+    );
+}
+
+
 NCB::TExclusiveFeatureBundlesData::TExclusiveFeatureBundlesData(
     const NCB::TQuantizedFeaturesInfo& quantizedFeaturesInfo,
     TVector<NCB::TExclusiveFeaturesBundle>&& metaData
@@ -1175,6 +1210,29 @@ TPackedBinaryIndex NCB::TPackedBinaryFeaturesData::AddFeature(
     return packedBinaryIndex;
 }
 
+TString NCB::DbgDumpMetaData(const NCB::TPackedBinaryFeaturesData& packedBinaryFeaturesData) {
+    TStringBuilder sb;
+    sb << "FloatFeatureToPackedBinaryIndex="
+       << NCB::DbgDumpWithIndices(packedBinaryFeaturesData.FloatFeatureToPackedBinaryIndex, true)
+       << "CatFeatureToPackedBinaryIndex="
+       << NCB::DbgDumpWithIndices(packedBinaryFeaturesData.CatFeatureToPackedBinaryIndex, true)
+       << "PackedBinaryToSrcIndex=[";
+
+    const auto& packedBinaryToSrcIndex = packedBinaryFeaturesData.PackedBinaryToSrcIndex;
+    if (!packedBinaryToSrcIndex.empty()) {
+        sb << Endl;
+        for (auto linearIdx : xrange(packedBinaryToSrcIndex.size())) {
+            auto packedBinaryIndex = NCB::TPackedBinaryIndex::FromLinearIdx(linearIdx);
+            const auto& srcIndex = packedBinaryToSrcIndex[linearIdx];
+            sb << "LinearIdx=" << linearIdx << "," << DbgDump(packedBinaryIndex) << " : FeatureType="
+               << srcIndex.first << ",FeatureIdx=" << srcIndex.second << Endl;
+        }
+        sb << Endl;
+    }
+    sb << "]\n";
+
+    return sb;
+}
 
 
 void NCB::TQuantizedForCPUObjectsData::Load(

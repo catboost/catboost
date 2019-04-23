@@ -19,6 +19,7 @@
 #include <catboost/libs/options/binarization_options.h>
 
 #include <library/binsaver/bin_saver.h>
+#include <library/dbg_output/dump.h>
 #include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/array_ref.h>
@@ -32,6 +33,9 @@
 #include <util/system/types.h>
 
 #include <utility>
+
+
+class IOutputStream;
 
 
 namespace NCB {
@@ -405,6 +409,11 @@ namespace NCB {
 
     using TQuantizedObjectsDataProviderPtr = TIntrusivePtr<TQuantizedObjectsDataProvider>;
 
+    void DbgDumpQuantizedFeatures(
+        const TQuantizedObjectsDataProvider& quantizedObjectsDataProvider,
+        IOutputStream* out
+    );
+
 
     struct TExclusiveFeatureBundlesData {
         // lookups
@@ -454,6 +463,24 @@ namespace NCB {
 
         TPackedBinaryIndex AddFeature(EFeatureType featureType, ui32 perTypeFeatureIdx);
     };
+
+}
+
+template <>
+struct TDumper<TMaybe<NCB::TPackedBinaryIndex>> {
+    template <class S>
+    static inline void Dump(S& s, const TMaybe<NCB::TPackedBinaryIndex>& maybePackedBinaryIndex) {
+        if (maybePackedBinaryIndex) {
+            s << DbgDump(*maybePackedBinaryIndex);
+        } else {
+            s << '-';
+        }
+    }
+};
+
+
+namespace NCB {
+    TString DbgDumpMetaData(const TPackedBinaryFeaturesData& packedBinaryFeaturesData);
 
     using TPackedBinaryFeaturesArraySubset
         = TArraySubset<const TMaybeOwningArrayHolder<TBinaryFeaturesPack>, ui32>;
