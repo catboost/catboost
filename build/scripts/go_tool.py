@@ -69,19 +69,21 @@ def classify_srcs(srcs, args):
 
 
 def create_import_config(peers, import_map={}, module_map={}):
-    content = ''
+    lines = []
     for key, value in import_map.items():
-        content += 'importmap {}={}\n'.format(key, value)
+        lines.append('importmap {}={}'.format(key, value))
     for peer in peers:
         peer_import_path, _ = get_import_path(os.path.dirname(peer))
         index = get_vendor_index(peer_import_path)
         if index >= 0:
             index += len(vendor_prefix)
-            content += 'importmap {}={}\n'.format(peer_import_path[index:], peer_import_path)
-        content += 'packagefile {}={}\n'.format(peer_import_path, os.path.join(args.build_root, peer))
+            lines.append('importmap {}={}'.format(peer_import_path[index:], peer_import_path))
+        lines.append('packagefile {}={}'.format(peer_import_path, os.path.join(args.build_root, peer)))
     for key, value in module_map.items():
-        content += 'packagefile {}={}\n'.format(key, value)
-    if len(content) > 0:
+        lines.append('packagefile {}={}'.format(key, value))
+    if len(lines) > 0:
+        lines.append('')
+        content = '\n'.join(lines)
         # print >>sys.stderr, content
         with tempfile.NamedTemporaryFile(delete=False) as f:
             f.write(content)
@@ -152,18 +154,18 @@ def do_link_exe(args):
     if import_config_name:
         cmd += ['-importcfg', import_config_name]
     cmd += ['-buildmode=exe', '-extld={}'.format(args.extld)]
-    extldflags = ''
-    if args.extldflags is not None and len(args.extldflags) > 0:
-        extldflags = ' '.join(args.extldflags)
+    extldflags = []
+    if args.extldflags is not None:
+        extldflags += args.extldflags
     if args.cgo_peers is not None and len(args.cgo_peers) > 0:
-        peer_libs = ' '.join(os.path.join(args.build_root, x) for x in args.cgo_peers)
-        extldflags += ' ' if len(extldflags) > 0 else ''
-        if args.targ_os == 'linux':
-            extldflags += '-Wl,--start-group {} -Wl,--end-group'.format(peer_libs)
-        else:
-            extldflags += peer_libs
-    if extldflags:
-        cmd.append('-extldflags=' + extldflags)
+        is_group = args.targ_os == 'linux'
+        if is_group:
+            extldflags.append('-Wl,--start-group')
+        extldflags.extend(os.path.join(args.build_root, x) for x in args.cgo_peers)
+        if is_group:
+            extldflags.append('-Wl,--end-group')
+    if len(extldflags) > 0:
+        cmd.append('-extldflags=' + ' '.join(extldflags))
     cmd.append(compile_args.output)
     call(cmd, args.build_root)
 
@@ -222,40 +224,37 @@ def gen_test_main(args, test_lib_args, xtest_lib_args):
 
     shutil.rmtree(go_path_root)
 
-    content = """package main
-
-import (
-"""
+    lines = ['package main', '', 'import (']
     if test_main_package is None:
-        content += """    "os"
-"""
-    content += """    "testing"
-    "testing/internal/testdeps"
-"""
+        lines.append('    "os"')
+    lines.extend(['    "testing"', '    "testing/internal/testdeps"'])
     if len(tests) > 0:
-        content += '    _test "{}"\n'.format(test_module_path)
+        lines.append('    _test "{}"'.format(test_module_path))
     if len(xtests) > 0:
-        content += '    _xtest "{}"\n'.format(xtest_module_path)
-    content += ')\n\n'
+        lines.append('    _xtest "{}"'.format(xtest_module_path))
+    lines.extend([')', ''])
 
     for kind in ['Test', 'Benchmark', 'Example']:
-        content += 'var {}s = []testing.Internal{}{{\n'.format(kind.lower(), kind)
+        lines.append('var {}s = []testing.Internal{}{{'.format(kind.lower(), kind))
         for test in list(filter(lambda x: x.startswith(kind), tests)):
-            content += '    {{"{test}", _test.{test}}},\n'.format(test=test)
+            lines.append('    {{"{test}", _test.{test}}},'.format(test=test))
         for test in list(filter(lambda x: x.startswith(kind), xtests)):
-            content += '    {{"{test}", _xtest.{test}}},\n'.format(test=test)
-        content += '}\n\n'
+            lines.append('    {{"{test}", _xtest.{test}}},'.format(test=test))
+        lines.extend(['}', ''])
 
-    content += """func main() {
-    m := testing.MainStart(testdeps.TestDeps{}, tests, benchmarks, examples)
-"""
+    lines.extend([
+        'func main() {',
+        '    m := testing.MainStart(testdeps.TestDeps{}, tests, benchmarks, examples)'
+        '',
+    ])
+
     if test_main_package:
-        content += '    {}.TestMain(m)'.format(test_main_package)
+        lines.append('    {}.TestMain(m)'.format(test_main_package))
     else:
-        content += '    os.Exit(m.Run())'
-    content += """
-}
-"""
+        lines.append('    os.Exit(m.Run())')
+    lines.extend(['}', ''])
+
+    content = '\n'.join(lines)
     # print >>sys.stderr, content
     return content
 
