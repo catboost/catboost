@@ -112,19 +112,39 @@ void OutputModelCoreML(
     const TString& modelFile,
     const NJson::TJsonValue& userParameters) {
 
-    CoreML::Specification::Model outModel;
-    outModel.set_specificationversion(1);
+    CoreML::Specification::Model treeModel;
+    treeModel.set_specificationversion(1);
 
-    auto regressor = outModel.mutable_treeensembleregressor();
+    auto regressor = treeModel.mutable_treeensembleregressor();
     auto ensemble = regressor->mutable_treeensemble();
-    auto description = outModel.mutable_description();
 
-    NCatboost::NCoreML::ConfigureMetadata(model, userParameters, description);
-    NCatboost::NCoreML::ConfigureTrees(model, ensemble);
-    NCatboost::NCoreML::ConfigureIO(model, userParameters, regressor, description);
+    bool createPipelineModel;
+    NCatboost::NCoreML::ConfigureTrees(model, ensemble, &createPipelineModel);
 
     TString data;
-    outModel.SerializeToString(&data);
+    if (createPipelineModel) {
+        CoreML::Specification::Model pipelineModel;
+        pipelineModel.set_specificationversion(1);
+
+        auto* container = pipelineModel.mutable_pipeline()->mutable_models();
+        NCatboost::NCoreML::ConfigureCategoricalMappings(model, container);
+
+        auto* contained = container->Add();
+        auto treeDescription = treeModel.mutable_description();
+        NCatboost::NCoreML::ConfigureTreeModelIO(model, userParameters, regressor, treeDescription);
+        *contained = treeModel;
+
+        auto pipelineDescription = pipelineModel.mutable_description();
+        NCatboost::NCoreML::ConfigureMetadata(model, userParameters, pipelineDescription);
+        NCatboost::NCoreML::ConfigurePipelineModelIO(model, pipelineDescription);
+
+        pipelineModel.SerializeToString(&data);
+    } else {
+        auto description = treeModel.mutable_description();
+        NCatboost::NCoreML::ConfigureMetadata(model, userParameters, description);
+        NCatboost::NCoreML::ConfigureTreeModelIO(model, userParameters, regressor, description);
+        treeModel.SerializeToString(&data);
+    }
 
     TOFStream out(modelFile);
     out.Write(data);

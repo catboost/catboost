@@ -77,6 +77,9 @@ AIRLINES_5K_TRAIN_FILE = data_file('airlines_5K', 'train')
 AIRLINES_5K_TEST_FILE = data_file('airlines_5K', 'test')
 AIRLINES_5K_CD_FILE = data_file('airlines_5K', 'cd')
 
+SMALL_CATEGORIAL_FILE = data_file('small_categorial', 'train')
+SMALL_CATEGORIAL_CD_FILE = data_file('small_categorial', 'train.cd')
+
 OUTPUT_MODEL_PATH = 'model.bin'
 OUTPUT_COREML_MODEL_PATH = 'model.mlmodel'
 OUTPUT_CPP_MODEL_PATH = 'model.cpp'
@@ -719,6 +722,19 @@ def test_coreml_import_export(task_type):
     coreml_loaded_model = CatBoostRegressor()
     coreml_loaded_model.load_model(output_coreml_model_path, format="coreml")
     assert all(canon_pred == coreml_loaded_model.predict(test_pool))
+    return compare_canonical_models(output_coreml_model_path)
+
+
+def test_coreml_import_export_one_hot_features(task_type):
+    train_pool = Pool(SMALL_CATEGORIAL_FILE, column_description=SMALL_CATEGORIAL_CD_FILE)
+    model = CatBoost(params={'loss_function': 'RMSE', 'iterations': 2, 'task_type': task_type, 'devices': '0', 'one_hot_max_size': 4})
+    model.fit(train_pool)
+    output_coreml_model_path = test_output_path(OUTPUT_COREML_MODEL_PATH)
+    model.save_model(output_coreml_model_path, format="coreml")
+    pred = model.predict(train_pool)
+    coreml_loaded_model = CatBoostRegressor()
+    coreml_loaded_model.load_model(output_coreml_model_path, format="coreml")
+    assert all(pred == coreml_loaded_model.predict(train_pool))
     return compare_canonical_models(output_coreml_model_path)
 
 
