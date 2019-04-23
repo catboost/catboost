@@ -13,16 +13,16 @@ def get_leaks_suppressions(cmd):
 
 
 def gen_default_suppressions(inputs, output):
-     parts = []
-     for filename in inputs:
-         with open(filename) as src:
+    parts = []
+    for filename in inputs:
+        with open(filename) as src:
             parts.append(src.read().strip() + "\n")
-     supp_str = "\n".join(parts).replace("\n", "\\n")
+    supp_str = "\n".join(parts).replace("\n", "\\n")
 
-     with open(output, "wb") as dst:
-         dst.write('extern "C" const char *__lsan_default_suppressions() {\n')
-         dst.write('    return "{}";\n'.format(supp_str))
-         dst.write('}\n')
+    with open(output, "wb") as dst:
+        dst.write('extern "C" const char *__lsan_default_suppressions() {\n')
+        dst.write('    return "{}";\n'.format(supp_str))
+        dst.write('}\n')
 
 
 if __name__ == '__main__':
