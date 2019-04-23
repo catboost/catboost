@@ -747,10 +747,8 @@ static ui32 CalcFeatureValuesCheckSum(
             if (compressedValuesFeatureData) {
                 checkSums[perTypeFeatureIdx] = CalcCompressedFeatureChecksum(0, compressedValuesFeatureData);
             } else {
-                const auto valuesFeatureData = featuresData[perTypeFeatureIdx]->ExtractValues(localExecutor);
-                for (auto element : *valuesFeatureData) {
-                    checkSums[perTypeFeatureIdx] = UpdateCheckSum(0, element);
-                }
+                const auto repackedHolder = featuresData[perTypeFeatureIdx]->ExtractValues(localExecutor);
+                checkSums[perTypeFeatureIdx] = UpdateCheckSum(0, *repackedHolder);
             }
         } else {
             checkSums[perTypeFeatureIdx] = UpdateCheckSum(0, emptyColumnDataForCrc);
