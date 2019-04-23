@@ -1149,23 +1149,6 @@ class GnuCompiler(Compiler):
         if self.target.is_x86_64:
             self.c_flags.append('-m64')
 
-        enable_sse = self.target.is_intel
-        if self.target.is_ios:
-            # TODO(somov): Расследовать.
-            # contrib/libs/crcutil не собирается под clang*-ios-i386 со включенным SSE.
-            # multiword_64_64_gcc_i386_mmx.cc:98:5: error: inline assembly requires more registers than available
-            enable_sse = False
-
-        if enable_sse:
-            # TODO(somov): Удалить define-ы и сборочный флаг
-            gcc_sse_opts = {'-msse': '-DSSE_ENABLED=1', '-msse2': '-DSSE2_ENABLED=1', '-msse3': '-DSSE3_ENABLED=1', '-mssse3': '-DSSSE3_ENABLED=1'}
-            if not is_positive('NOSSE'):
-                for opt, define in gcc_sse_opts.iteritems():
-                    self.c_flags.append(opt)
-                    self.c_defines.append(define)
-            else:
-                self.c_flags.append('-no-sse')
-
         self.debug_info_flags = ['-g']
         if self.target.is_linux:
             self.debug_info_flags.append('-ggnu-pubnames')
@@ -1823,10 +1806,6 @@ class MSVCCompiler(MSVC, Compiler):
             '__STDC_CONSTANT_MACROS',
             '__STDC_FORMAT_MACROS',
             '_USING_V110_SDK71_',
-            'SSE_ENABLED=1',
-            'SSE2_ENABLED=1',
-            'SSE3_ENABLED=1',
-            'SSSE3_ENABLED=1',
             '_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES',
         ]
 
