@@ -1,4 +1,4 @@
-- source_filter: "^(?!contrib/libs/musl).*"
+- source_filter: "^(contrib/libs/(ImageMagick|ffmpeg-3|pthreads_win32|zookeeper))|^contrib/deprecated/boost|^logbroker|^market|^rtline|^strm"
   includes:
   - pthread.h:     contrib/libs/pthreads_win32/include/pthread.h
   - sched.h:       contrib/libs/pthreads_win32/include/sched.h
