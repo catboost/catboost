@@ -140,8 +140,8 @@ Y_FORCE_INLINE __m128 _mm_and_ps(__m128 a, __m128 b) {
     return ((__m128)vec_and((__v4sf)a, (__v4sf)b));
 }
 
-Y_FORCE_INLINE __m128d _mm_and_pd(__m128d __A, __m128d __B) {
-    return vec_and((__v2df)__A, (__v2df)__B);
+Y_FORCE_INLINE __m128d _mm_and_pd(__m128d a, __m128d b) {
+    return vec_and((__v2df)a, (__v2df)b);
 }
 
 Y_FORCE_INLINE __m128 _mm_rsqrt_ps(__m128 a) {
@@ -477,7 +477,7 @@ Y_FORCE_INLINE __m128i _mm_srli_epi64(__m128i a, int count) {
     }
 }
 
-Y_FORCE_INLINE __m128i _mm_bsrli_si128(__m128i __A, const int __N) {
+Y_FORCE_INLINE __m128i _mm_bsrli_si128(__m128i a, const int __N) {
     __v16qu result;
     const __v16qu zeros = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
@@ -486,10 +486,10 @@ Y_FORCE_INLINE __m128i _mm_bsrli_si128(__m128i __A, const int __N) {
             /* Would like to use Vector Shift Left Double by Octet
      Immediate here to use the immediate form and avoid
      load of __N * 8 value into a separate VR.  */
-            result = vec_sld(zeros, (__v16qu)__A, (16 - __N));
+            result = vec_sld(zeros, (__v16qu)a, (16 - __N));
         else {
             __v16qu shift = vec_splats((unsigned char)(__N * 8));
-            result = vec_sro((__v16qu)__A, shift);
+            result = vec_sro((__v16qu)a, shift);
         }
     else
         result = zeros;
@@ -684,8 +684,8 @@ Y_FORCE_INLINE __m128i _mm_madd_epi16(__m128i a, __m128i b) {
     return (__m128i)vec_vmsumshm((__v8hi)a, (__v8hi)b, zero);
 }
 
-Y_FORCE_INLINE __m128i _mm_sub_epi8(__m128i __A, __m128i __B) {
-    return (__m128i)((__v16qu)__A - (__v16qu)__B);
+Y_FORCE_INLINE __m128i _mm_sub_epi8(__m128i a, __m128i b) {
+    return (__m128i)((__v16qu)a - (__v16qu)b);
 }
 
 Y_FORCE_INLINE __m128i _mm_sub_epi16(__m128i a, __m128i b) {
@@ -835,15 +835,15 @@ Y_FORCE_INLINE __m128i _mm_cmplt_epi64(__m128i a, __m128i b) {
     return vec_cmplt((vector signed long long)a, (vector signed long long)b);
 }
 
-Y_FORCE_INLINE __m128i _mm_sad_epu8(__m128i __A, __m128i __B) {
+Y_FORCE_INLINE __m128i _mm_sad_epu8(__m128i A, __m128i B) {
     __v16qu a, b;
     __v16qu vmin, vmax, vabsdiff;
     __v4si vsum;
     const __v4su zero = {0, 0, 0, 0};
     __v4si result;
 
-    a = (__v16qu)__A;
-    b = (__v16qu)__B;
+    a = (__v16qu)A;
+    b = (__v16qu)B;
     vmin = vec_min(a, b);
     vmax = vec_max(a, b);
     vabsdiff = vec_sub(vmax, vmin);
@@ -861,38 +861,38 @@ Y_FORCE_INLINE __m128i _mm_sad_epu8(__m128i __A, __m128i __B) {
     return (__m128i)result;
 }
 
-Y_FORCE_INLINE __m128i _mm_subs_epi8(__m128i __A, __m128i __B) {
-    return (__m128i)vec_subs((__v16qi)__A, (__v16qi)__B);
+Y_FORCE_INLINE __m128i _mm_subs_epi8(__m128i a, __m128i b) {
+    return (__m128i)vec_subs((__v16qi)a, (__v16qi)b);
 }
 
-Y_FORCE_INLINE __m128i _mm_subs_epi16(__m128i __A, __m128i __B) {
-    return (__m128i)vec_subs((__v8hi)__A, (__v8hi)__B);
+Y_FORCE_INLINE __m128i _mm_subs_epi16(__m128i a, __m128i b) {
+    return (__m128i)vec_subs((__v8hi)a, (__v8hi)b);
 }
 
-Y_FORCE_INLINE __m128i _mm_subs_epu8(__m128i __A, __m128i __B) {
-    return (__m128i)vec_subs((__v16qu)__A, (__v16qu)__B);
+Y_FORCE_INLINE __m128i _mm_subs_epu8(__m128i a, __m128i b) {
+    return (__m128i)vec_subs((__v16qu)a, (__v16qu)b);
 }
 
-Y_FORCE_INLINE __m128i _mm_subs_epu16(__m128i __A, __m128i __B) {
-    return (__m128i)vec_subs((__v8hu)__A, (__v8hu)__B);
+Y_FORCE_INLINE __m128i _mm_subs_epu16(__m128i a, __m128i b) {
+    return (__m128i)vec_subs((__v8hu)a, (__v8hu)b);
 }
 
-Y_FORCE_INLINE __m128i _mm_adds_epi8(__m128i __A, __m128i __B) {
-    return (__m128i)vec_adds((__v16qi)__A, (__v16qi)__B);
+Y_FORCE_INLINE __m128i _mm_adds_epi8(__m128i a, __m128i b) {
+    return (__m128i)vec_adds((__v16qi)a, (__v16qi)b);
 }
 
-Y_FORCE_INLINE __m128i _mm_adds_epi16(__m128i __A, __m128i __B) {
-    return (__m128i)vec_adds((__v8hi)__A, (__v8hi)__B);
+Y_FORCE_INLINE __m128i _mm_adds_epi16(__m128i a, __m128i b) {
+    return (__m128i)vec_adds((__v8hi)a, (__v8hi)b);
 }
 
-Y_FORCE_INLINE __m128i _mm_adds_epu8(__m128i __A, __m128i __B) {
-    return (__m128i)vec_adds((__v16qu)__A, (__v16qu)__B);
+Y_FORCE_INLINE __m128i _mm_adds_epu8(__m128i a, __m128i b) {
+    return (__m128i)vec_adds((__v16qu)a, (__v16qu)b);
 }
 
-Y_FORCE_INLINE __m128i _mm_adds_epu16(__m128i __A, __m128i __B) {
-    return (__m128i)vec_adds((__v8hu)__A, (__v8hu)__B);
+Y_FORCE_INLINE __m128i _mm_adds_epu16(__m128i a, __m128i b) {
+    return (__m128i)vec_adds((__v8hu)a, (__v8hu)b);
 }
 
-Y_FORCE_INLINE __m128d _mm_castsi128_pd(__m128i __A) {
-    return (__m128d)__A;
+Y_FORCE_INLINE __m128d _mm_castsi128_pd(__m128i a) {
+    return (__m128d)a;
 }
