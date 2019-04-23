@@ -34,6 +34,17 @@ using __v16qi = __vector signed char;
 using __v16qu = __vector unsigned char;
 using __v4sf = __vector float;
 
+enum _mm_hint
+{
+  /* _MM_HINT_ET is _MM_HINT_T with set 3rd bit.  */
+  _MM_HINT_ET0 = 7,
+  _MM_HINT_ET1 = 6,
+  _MM_HINT_T0 = 3,
+  _MM_HINT_T1 = 2,
+  _MM_HINT_T2 = 1,
+  _MM_HINT_NTA = 0
+};
+
 #define _MM_SHUFFLE(a, b, c, d) ((signed char)(a * 64 + b * 16 + c * 4 + d))
 
 /// Functions that work with floats.
@@ -130,6 +141,10 @@ Y_FORCE_INLINE __m128 _mm_cmpgt_ps(__m128 a, __m128 b) {
 
 Y_FORCE_INLINE __m128 _mm_max_ps(__m128 a, __m128 b) {
     return (__m128)vec_max((vector float)a, (vector float)b);
+}
+
+Y_FORCE_INLINE __m128i _mm_max_epu8(__m128i a, __m128i b) {
+    return (__m128i)vec_max((__v16qu)a, (__v16qu)b);
 }
 
 Y_FORCE_INLINE __m128 _mm_min_ps(__m128 a, __m128 b) {
@@ -249,6 +264,21 @@ Y_FORCE_INLINE __m128 _mm_shuffle_ps(__m128 a, __m128 b, long shuff) {
     t[0] = permute_selectors[element_selector_76];
 #endif
     return vec_perm((__v4sf)a, (__v4sf)b, (__vector unsigned char)t);
+}
+
+Y_FORCE_INLINE __m128d _mm_shuffle_pd(__m128d a, __m128d b, const int mask) {
+    __vector double result;
+    const int litmsk = mask & 0x3;
+
+    if (litmsk == 0)
+        result = vec_mergeh(a, b);
+    else if (litmsk == 1)
+        result = vec_xxpermdi(a, b, 2);
+    else if (litmsk == 2)
+        result = vec_xxpermdi(a, b, 1);
+    else
+        result = vec_mergel(a, b);
+    return result;
 }
 
 Y_FORCE_INLINE __m128i _mm_cvtps_epi32(__m128 a) {
@@ -667,6 +697,10 @@ Y_FORCE_INLINE __m128i _mm_unpacklo_epi64(__m128i a, __m128i b) {
     return (__m128i)vec_mergeh((vector long long)a, (vector long long)b);
 }
 
+Y_FORCE_INLINE __m128i _mm_add_epi8(__m128i a, __m128i b) {
+    return (__m128i)((__v16qu)a + (__v16qu)b);
+}
+
 Y_FORCE_INLINE __m128i _mm_add_epi16(__m128i a, __m128i b) {
     return (__m128i)((__v8hu)a + (__v8hu)b);
 }
@@ -780,6 +814,10 @@ Y_FORCE_INLINE __m128i _mm_loadu_si128(const __m128i* p) {
     return (__m128i)(vec_vsx_ld(0, (signed int const*)p));
 }
 
+Y_FORCE_INLINE __m128i _mm_lddqu_si128(const __m128i* p) {
+    return _mm_loadu_si128(p);
+}
+
 Y_FORCE_INLINE __m128i _mm_loadl_epi64(const __m128i* a) {
 #ifdef __LITTLE_ENDIAN__
     const vector bool long long mask = {
@@ -793,6 +831,30 @@ Y_FORCE_INLINE __m128i _mm_loadl_epi64(const __m128i* a) {
 
 Y_FORCE_INLINE void _mm_storel_epi64(__m128i* a, __m128i b) {
     *(long long*)a = ((__v2di)b)[0];
+}
+
+Y_FORCE_INLINE double _mm_cvtsd_f64(__m128d a) {
+    return ((__v2df)a)[0];
+}
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wuninitialized"
+Y_FORCE_INLINE __m128d _mm_undefined_pd(void) {
+    __m128d ans = ans;
+    return ans;
+}
+#pragma GCC diagnostic pop
+
+Y_FORCE_INLINE __m128d _mm_loadh_pd(__m128d a, const double* b) {
+    __v2df result = (__v2df)a;
+    result[1] = *b;
+    return (__m128d)result;
+}
+
+Y_FORCE_INLINE __m128d _mm_loadl_pd(__m128d a, const double* b) {
+    __v2df result = (__v2df)a;
+    result[0] = *b;
+    return (__m128d)result;
 }
 
 Y_FORCE_INLINE __m128 _mm_castsi128_ps(__m128i a) {
@@ -895,4 +957,8 @@ Y_FORCE_INLINE __m128i _mm_adds_epu16(__m128i a, __m128i b) {
 
 Y_FORCE_INLINE __m128d _mm_castsi128_pd(__m128i a) {
     return (__m128d)a;
+}
+
+Y_FORCE_INLINE void _mm_prefetch(const void *p, enum _mm_hint) {
+    __builtin_prefetch(p);
 }

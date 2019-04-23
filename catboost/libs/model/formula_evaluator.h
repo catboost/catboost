@@ -19,9 +19,7 @@
 #include <functional>
 #include <limits>
 
-#ifdef _sse2_
-#include <emmintrin.h>
-#endif
+#include <library/sse/sse.h>
 
 constexpr size_t FORMULA_EVALUATION_BLOCK_SIZE = 128;
 constexpr ui32 MAX_VALUES_PER_BIN = 254;
@@ -115,7 +113,7 @@ Y_FORCE_INLINE void BinarizeFloatsNonSse(
     result += docCount * ((borders.size() + MAX_VALUES_PER_BIN - 1) / MAX_VALUES_PER_BIN);
 }
 
-#ifndef _sse2_
+#ifndef ARCADIA_SSE
 
 template <bool UseNanSubstitution, typename TFloatFeatureAccessor>
 Y_FORCE_INLINE void BinarizeFloats(
