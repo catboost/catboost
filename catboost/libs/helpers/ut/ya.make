@@ -14,6 +14,7 @@ SRCS(
     resource_holder_ut.cpp
     serialization_ut.cpp
     vec_list_ut.cpp
+    wx_test_ut.cpp
 )
 
 PEERDIR(
