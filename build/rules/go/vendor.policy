@@ -103,6 +103,9 @@ ALLOW .* -> vendor/github.com/go-openapi
 # redis client
 ALLOW .* -> vendor/github.com/go-redis/redis          
 
+# library for accessing the GitHub API v3
+ALLOW .* -> vendor/github.com/google/go-github/v25/github
+
 # fast JSON serializer for golang. relies on code generation.
 ALLOW .* -> vendor/github.com/mailru/easyjson
 
