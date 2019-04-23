@@ -84,7 +84,7 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetTreeC
 /*
  * Class:     ai_catboost_CatBoostJNIImpl
  * Method:    catBoostModelGetFeatureNames
- * Signature: J[Ljava/lang/String;)Ljava/lang/String;
+ * Signature: (J[Ljava/lang/String;)Ljava/lang/String;
  */
 JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetFeatureNames
   (JNIEnv *, jclass, jlong, jobjectArray);
