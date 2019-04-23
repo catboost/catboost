@@ -2,6 +2,7 @@
 
 #include <library/unittest/registar.h>
 
+#include <library/sse/sse.h>
 #include <util/generic/vector.h>
 #include <util/random/fast.h>
 
