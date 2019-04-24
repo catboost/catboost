@@ -558,12 +558,34 @@ struct _mm_set_epi16 : TBaseWrapper<__m128i> {
     }
 };
 
+struct _mm_setr_epi16 : TBaseWrapper<__m128i> {
+    Y_FORCE_INLINE
+    _mm_setr_epi16(const short w7, const short w6,
+                  const short w5, const short w4,
+                  const short w3, const short w2,
+                  const short w1, const short w0) {
+        int16x4_t d0 = {w7, w6, w5, w4};
+        int16x4_t d1 = {w3, w2, w1, w0};
+        TQType<int16x8_t>::As(Value) = vcombine_s16(d0, d1);
+    }
+};
+
 struct _mm_set_epi32 : TBaseWrapper<__m128i> {
     Y_FORCE_INLINE
     _mm_set_epi32(const int x3, const int x2,
                   const int x1, const int x0) {
         int32x2_t d0 = {x0, x1};
         int32x2_t d1 = {x2, x3};
+        TQType<int32x4_t>::As(Value) = vcombine_s32(d0, d1);
+    }
+};
+
+struct _mm_setr_epi32 : TBaseWrapper<__m128i> {
+    Y_FORCE_INLINE
+    _mm_setr_epi32(const int x3, const int x2,
+                  const int x1, const int x0) {
+        int32x2_t d0 = {x3, x2};
+        int32x2_t d1 = {x1, x0};
         TQType<int32x4_t>::As(Value) = vcombine_s32(d0, d1);
     }
 };
@@ -620,12 +642,30 @@ struct TScalarOutWrapper : TBaseWrapper<TOpOut> {
 };
 
 template<int imm>
-uint16_t extract_epi16_arm(__m128i arg) {
+int extract_epi8_arm(__m128i arg) {
+    return vgetq_lane_u8(arg.AsUi8x16, imm);
+}
+
+template<int imm>
+int extract_epi16_arm(__m128i arg) {
     return vgetq_lane_u16(arg.AsUi16x8, imm);
 }
 
-#define _mm_extract_epi16(op, imm)           \
-    extract_epi16_arm<imm>(op)
+template<int imm>
+int extract_epi32_arm(__m128i arg) {
+    return vgetq_lane_s32(arg.AsSi32x4, imm);
+}
+
+template<int imm>
+long long extract_epi64_arm(__m128i arg) {
+    return vgetq_lane_s64(arg.AsSi64x2, imm);
+}
+
+#define _mm_extract_epi8(op, imm) extract_epi8_arm<imm>(op)
+#define _mm_extract_epi16(op, imm) extract_epi16_arm<imm>(op)
+#define _mm_extract_epi32(op, imm) extract_epi32_arm<imm>(op)
+#define _mm_extract_epi64(op, imm) extract_epi64_arm<imm>(op)
+#define _mm_extract_ps(op, imm) _mm_extract_epi32(op, imm)
 
 static Y_FORCE_INLINE
 __m128i _mm_mul_epu32(__m128i op1, __m128i op2) {

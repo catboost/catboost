@@ -392,6 +392,22 @@ Y_FORCE_INLINE int _mm_extract_epi16(__m128i a, int imm) {
     return (unsigned short)((__v8hi)a)[imm & 7];
 }
 
+Y_FORCE_INLINE int _mm_extract_epi8(__m128i a, int imm) {
+    return (unsigned char)((__v16qi)a)[imm & 15];
+}
+
+Y_FORCE_INLINE int _mm_extract_epi32(__m128i a, int imm) {
+    return ((__v4si)a)[imm & 3];
+}
+
+Y_FORCE_INLINE long long _mm_extract_epi64(__m128i a, int imm) {
+    return ((__v2di)a)[imm & 1];
+}
+
+Y_FORCE_INLINE int _mm_extract_ps(__m128 a, int imm) {
+    return ((__v4si)a)[imm & 3];
+}
+
 Y_FORCE_INLINE __m128i _mm_slli_epi16(__m128i a, int count) {
     __v8hu lshift;
     __v8hi result = {0, 0, 0, 0, 0, 0, 0, 0};
@@ -746,12 +762,24 @@ Y_FORCE_INLINE __m128i _mm_set_epi8(char q15, char q14, char q13, char q12, char
     return (__m128i)(__v16qi){q00, q01, q02, q03, q04, q05, q06, q07, q08, q09, q10, q11, q12, q13, q14, q15};
 };
 
+Y_FORCE_INLINE __m128i _mm_setr_epi8(char q15, char q14, char q13, char q12, char q11, char q10, char q09, char q08, char q07, char q06, char q05, char q04, char q03, char q02, char q01, char q00) {
+    return (__m128i)(__v16qi){q15, q14, q13, q12, q11, q10, q09, q08, q07, q06, q05, q04, q03, q02, q01, q00};
+};
+
 Y_FORCE_INLINE __m128i _mm_set_epi16(short q7, short q6, short q5, short q4, short q3, short q2, short q1, short q0) {
     return (__m128i)(__v8hi){q0, q1, q2, q3, q4, q5, q6, q7};
 }
 
+Y_FORCE_INLINE __m128i _mm_setr_epi16(short q7, short q6, short q5, short q4, short q3, short q2, short q1, short q0) {
+    return (__m128i)(__v8hi){q7, q6, q5, q4, q3, q2, q1, q0};
+}
+
 Y_FORCE_INLINE __m128i _mm_set_epi32(int q3, int q2, int q1, int q0) {
     return (__m128i)(__v4si){q0, q1, q2, q3};
+}
+
+Y_FORCE_INLINE __m128i _mm_setr_epi32(int q3, int q2, int q1, int q0) {
+    return (__m128i)(__v4si){q3, q2, q1, q0};
 }
 
 Y_FORCE_INLINE __m128i _mm_set1_epi8(char a) {
