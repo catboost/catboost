@@ -70,11 +70,6 @@ struct TNonSymmetricTreeStepNode {
         return TNonSymmetricTreeStepNode{0, 0};
     }
 
-    inline bool IsTerminalNode() const {
-        static_assert(sizeof(TNonSymmetricTreeStepNode) == 4, "TNonSymmetricTreeStepNode should be 4 bytes");
-        return LeftSubtreeDiff == TerminalMarker && RightSubtreeDiff == TerminalMarker;
-    }
-
     TNonSymmetricTreeStepNode& operator=(const NCatBoostFbs::TNonSymmetricTreeStepNode* stepNode) {
         LeftSubtreeDiff = stepNode->LeftSubtreeDiff();
         RightSubtreeDiff = stepNode->RightSubtreeDiff();
@@ -139,13 +134,13 @@ public:
     //! Offset of first split in TreeSplits array
     TVector<int> TreeStartOffsets;
 
-    //! Steps in non-symmetric tree.
-    //! If both steps are zero, it's terminal value node in tree, and corresponding split condition node may be invalid
-    //! If only one of steps are zero it's semi-terminal node (left or right self-loop node)
+    //! Steps in a non-symmetric tree.
+    //! If at least one diff in a step node is zero, it's a terminal node and has a value.
+    //! If both diffs are zero, the corresponding split condition (in the RepackedBins vector) may be invalid.
     TVector<TNonSymmetricTreeStepNode> NonSymmetricStepNodes;
 
-    //! Holds value index for each non terminal and non semi-terminal symmetric tree node.
-    //! For multiclass model holds indexes for 0-class.
+    //! Holds a value index (in the LeafValues vector) for each terminal node in a non-symmetric tree.
+    //! For multiclass models holds indexes for 0-class.
     TVector<ui32> NonSymmetricNodeIdToLeafId;
 
     //! Leaf values layout: [treeIndex][leafId * ApproxDimension + dimension]
