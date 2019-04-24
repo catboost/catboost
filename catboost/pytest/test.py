@@ -6476,6 +6476,70 @@ def test_apply_on_different_pool_type():
     assert filecmp.cmp(output_eval_path, output_quantized_eval_path)
 
 
+def test_apply_output_column_by_idx():
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+
+    learn = data_file('black_friday', 'train')
+    test = data_file('black_friday', 'test')
+    cd = data_file('black_friday', 'cd')
+
+    cmd = (
+        CATBOOST_PATH, 'fit',
+        '--use-best-model', 'false',
+        '--loss-function', 'RMSE',
+        '--learn-set', learn,
+        '--test-set', test,
+        '--column-description', cd,
+        '-i', '10',
+        '-T', '4',
+        '--model-file', output_model_path,
+        '--has-header'
+    )
+    yatest.common.execute(cmd)
+
+    column_names = [
+        'User_ID',
+        'Product_ID',
+        'Gender',
+        'Age',
+        'Occupation',
+        'City_Category',
+        'Stay_In_Current_City_Years',
+        'Marital_Status',
+        'Product_Category_1',
+        'Product_Category_2',
+        'Product_Category_3',
+        'Purchase'
+    ]
+    output_columns = ','.join(['#{}:{}'.format(idx, name) for idx, name in enumerate(column_names)])
+    output_columns = 'RawFormulaVal,' + output_columns
+
+    cmd = (
+        CATBOOST_PATH, 'calc',
+        '--input-path', test,
+        '--column-description', cd,
+        '--model-file', output_model_path,
+        '--output-path', output_eval_path,
+        '--output-columns', output_columns,
+        '--has-header'
+    )
+    yatest.common.execute(cmd)
+
+    with open(output_eval_path, 'r') as f:
+        eval_lines = f.readlines()
+    with open(test, 'r') as f:
+        test_lines = f.readlines()
+
+    assert len(eval_lines) == len(test_lines)
+    for i in range(len(eval_lines)):
+        eval_line = eval_lines[i].split('\t')[1:]  # skip RawFormulaVal
+        test_line = test_lines[i].split('\t')
+
+        for eval_column, test_column in zip(eval_line, test_line):
+            assert eval_column == test_column
+
+
 @pytest.mark.parametrize(
     'dataset_name,loss_function,has_pairs,has_group_weights',
     [

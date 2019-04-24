@@ -160,7 +160,7 @@ void NCB::CalcModelSingleHost(
     const int blockSize = Max<int>(32, static_cast<int>(10000. / (static_cast<double>(iterationsLimit) / evalPeriod) / model.ObliviousTrees.ApproxDimension));
     ReadAndProceedPoolInBlocks(params, blockSize, [&](const NCB::TDataProviderPtr datasetPart) {
         if (IsFirstBlock) {
-            ValidateColumnOutput(params.OutputColumnsIds, *datasetPart, true);
+            ValidateColumnOutput(params.OutputColumnsIds, *datasetPart);
         }
         auto approx = Apply(model, *datasetPart, 0, iterationsLimit, evalPeriod, &executor);
         auto visibleLabelsHelper = BuildLabelsHelper<TExternalLabelsHelper>(model);
@@ -174,7 +174,6 @@ void NCB::CalcModelSingleHost(
             params.OutputColumnsIds,
             visibleLabelsHelper,
             *datasetPart,
-            true,
             outputStream.Get(),
             // TODO: src file columns output is incompatible with block processing
             poolColumnsPrinter,

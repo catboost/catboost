@@ -120,24 +120,26 @@ namespace NCB {
 
     class TNumColumnPrinter: public IColumnPrinter {
     public:
-        TNumColumnPrinter(TIntrusivePtr<IPoolColumnsPrinter> printerPtr, int colId, ui64 docIdOffset)
+        TNumColumnPrinter(TIntrusivePtr<IPoolColumnsPrinter> printerPtr, int columnId, TString columnName, ui64 docIdOffset)
             : PrinterPtr(printerPtr)
-            , ColId(colId)
+            , ColumnId(columnId)
+            , ColumnName(std::move(columnName))
             , DocIdOffset(docIdOffset)
         {
         }
 
         void OutputValue(IOutputStream* outStream, size_t docIndex) override  {
-            PrinterPtr->OutputColumnByIndex(outStream, DocIdOffset + docIndex, ColId);
+            PrinterPtr->OutputColumnByIndex(outStream, DocIdOffset + docIndex, ColumnId);
         }
 
         void OutputHeader(IOutputStream* outStream) override {
-            *outStream << '#' << ColId;
+            *outStream << ColumnName;
         }
 
     private:
         TIntrusivePtr<IPoolColumnsPrinter> PrinterPtr;
-        int ColId;
+        int ColumnId;
+        TString ColumnName;
         ui64 DocIdOffset;
     };
 

@@ -852,7 +852,6 @@ void TrainModel(
             ValidateColumnOutput(
                 outputColumns,
                 testPool,
-                false,
                 loadOptions.CvParams.FoldCount > 0
             );
         }
@@ -928,7 +927,6 @@ void TrainModel(
                 outputColumns,
                 visibleLabelsHelper,
                 testPool,
-                false,
                 &fileStream,
                 testSetPath,
                 {testIdx, pools.Test.ysize()},
