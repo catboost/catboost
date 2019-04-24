@@ -11,6 +11,7 @@
 #include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/algorithm.h>
+#include <util/generic/guid.h>
 #include <util/datetime/base.h>
 #include <util/generic/hash_set.h>
 #include <util/generic/ptr.h>
@@ -235,6 +236,7 @@ namespace NCB {
         if (CoreModel != dstModel) {
             *dstModel = std::move(*CoreModel);
         }
+        dstModel->ModelInfo["model_guid"] = CreateGuidAsString();
         dstModel->ModelInfo["train_finish_time"] = TInstant::Now().ToStringUpToSeconds();
         dstModel->ModelInfo["catboost_version_info"] = GetProgramSvnVersion();
 

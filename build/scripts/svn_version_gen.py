@@ -9,6 +9,9 @@ import re
 import socket
 import json
 
+ARC_PREFIX_MATCHER = 'arcadia(?:.yandex.ru)?/arc/'
+ARC_DIRECTORIES = '(?:/arcadia|/arcadia_tests_data|/data|/quality-eval|$)'
+
 indent = "    "
 
 
@@ -134,17 +137,30 @@ def get_svn_field(svn_info, field):
     return ''
 
 
+# Taken from https://a.yandex-team.ru/arc/trunk/arcadia/devtools/ya/package/packager.py?rev=4747056#L340-341
+def get_branch_from_url(url):
+    return re.search('{}(?P<branch>.+?){}'.format(ARC_PREFIX_MATCHER, ARC_DIRECTORIES), url).group('branch').split('/')[-1]
+
+
 def get_svn_dict(fpath, arc_root, python_cmd=[sys.executable]):
     svn_info_file = os.path.join(arc_root, '__SVNVERSION__')  # use on the distbuild
     if os.path.exists(svn_info_file) and os.path.isfile(svn_info_file):
         with open(svn_info_file) as fp:
             svn_info = json.load(fp)
+
+            url = str(svn_info.get('repository'))
+            try:
+                branch = get_branch_from_url(url) if url else None
+            except:
+                branch = None
+
             return {
                 'rev': str(svn_info.get('revision')),
                 'author': str(svn_info.get('author')),
                 'lastchg': str(svn_info.get('last_revision')),
-                'url': str(svn_info.get('repository')),
+                'url': url,
                 'date': str(svn_info.get('date')),
+                'branch': branch,
             }
 
     svn_info = system_command_call(get_svn_info_cmd(arc_root, python_cmd) + [fpath])
@@ -154,6 +170,13 @@ def get_svn_dict(fpath, arc_root, python_cmd=[sys.executable]):
         info['author'] = get_svn_field(svn_info, 'Last Changed Author')
         info['lastchg'] = get_svn_field(svn_info, 'Last Changed Rev')
         info['url'] = get_svn_field(svn_info, 'URL')
+
+        try:
+            if info['url']:
+                info['branch'] = get_branch_from_url(info['url'])
+        except:
+            pass
+
         info['date'] = get_svn_field(svn_info, 'Last Changed Date')
     return info
 
@@ -362,7 +385,8 @@ def is_git(arc_root):
 
 
 def is_arc(arc_root):
-    return os.path.isdir(os.path.join(arc_root, '.arc'))
+    path = os.path.join(arc_root, '.arc')
+    return (os.path.isdir(path) or os.path.islink(path)) and os.path.exists(os.path.join(path, "TREE"))
 
 
 def main(header, footer, line):

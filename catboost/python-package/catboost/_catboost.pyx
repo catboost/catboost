@@ -119,6 +119,7 @@ cdef extern from "catboost/libs/options/enums.h":
 
     cdef EFeatureType EFeatureType_Float "EFeatureType::Float"
     cdef EFeatureType EFeatureType_Categorical "EFeatureType::Categorical"
+    cdef EFeatureType EFeatureType_Text "EFeatureType::Text"
 
 
     cdef cppclass EPredictionType:
@@ -152,7 +153,8 @@ cdef extern from "catboost/libs/data_new/features_layout.h" namespace "NCB":
         TFeaturesLayout(
             const ui32 featureCount,
             const TVector[ui32]& catFeatureIndices,
-            const TVector[TString]& featureId
+            const TVector[ui32]& textFeatureIndices,
+            const TVector[TString]& featureId,
         )  except +ProcessException
 
         TConstArrayRef[TFeatureMetaInfo] GetExternalFeaturesMetaInfo() except +ProcessException
@@ -679,7 +681,7 @@ cdef extern from "catboost/libs/algo/apply.h":
 
     cdef TVector[double] ApplyModel(
         const TFullModel& model,
-        const TObjectsDataProvider& objectsData,
+        const TDataProvider& objectsData,
         bool_t verbose,
         const EPredictionType predictionType,
         int begin,
@@ -689,7 +691,7 @@ cdef extern from "catboost/libs/algo/apply.h":
 
     cdef TVector[TVector[double]] ApplyModelMulti(
         const TFullModel& calcer,
-        const TObjectsDataProvider& objectsData,
+        const TDataProvider& objectsData,
         bool_t verbose,
         const EPredictionType predictionType,
         int begin,
@@ -1363,6 +1365,7 @@ class FeaturesData(object):
 
 cdef TFeaturesLayout* _init_features_layout(data, cat_features, feature_names):
     cdef TVector[ui32] cat_features_vector
+    cdef TVector[ui32] text_features_vector # TODO(d-kruchinin): support text features in python package
     cdef TVector[TString] feature_names_vector
 
     if isinstance(data, FeaturesData):
@@ -1383,6 +1386,7 @@ cdef TFeaturesLayout* _init_features_layout(data, cat_features, feature_names):
     return new TFeaturesLayout(
         <ui32>feature_count,
         cat_features_vector,
+        text_features_vector,
         feature_names_vector)
 
 cdef TVector[bool_t] _get_is_cat_feature_mask(const TFeaturesLayout* featuresLayout):
@@ -2466,11 +2470,10 @@ cdef class _CatBoost:
         cdef TVector[double] pred
         cdef EPredictionType predictionType = PyPredictionType(prediction_type).predictionType
         thread_count = UpdateThreadCount(thread_count);
-        cdef const TObjectsDataProvider* objectsData = &pool.__pool.Get()[0].ObjectsData.Get()[0]
         with nogil:
             pred = ApplyModel(
                 dereference(self.__model),
-                dereference(objectsData),
+                dereference(pool.__pool.Get()),
                 verbose,
                 predictionType,
                 ntree_start,
@@ -2485,11 +2488,10 @@ cdef class _CatBoost:
         cdef TVector[TVector[double]] pred
         cdef EPredictionType predictionType = PyPredictionType(prediction_type).predictionType
         thread_count = UpdateThreadCount(thread_count);
-        cdef const TObjectsDataProvider* objectsData = &pool.__pool.Get()[0].ObjectsData.Get()[0]
         with nogil:
             pred = ApplyModelMulti(
                 dereference(self.__model),
-                dereference(objectsData),
+                dereference(pool.__pool.Get()),
                 verbose,
                 predictionType,
                 ntree_start,

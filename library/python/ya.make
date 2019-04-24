@@ -16,6 +16,7 @@ RECURSE(
     resource
     runtime
     runtime/main
+    runtime/test
     runtime_py3
     runtime_py3/main
     runtime_py3/test

@@ -23,6 +23,13 @@ void TBpeDictionary::Load(const TString& dictionaryPath, const TString& bpePath)
     InitBpeTokens();
 }
 
+void TBpeDictionary::Save(const TString& dictionaryPath, const TString& bpePath) const {
+    auto dictionaryOutput = OpenOutput(dictionaryPath);
+    GetAlphabet()->Save(dictionaryOutput.Get());
+    auto bpeDictionaryOutput = OpenOutput(bpePath);
+    Save(bpeDictionaryOutput.Get());
+}
+
 // TODO(annaveronika): more efficient apply.
 template <typename TStringVector>
 static void ApplyImpl(

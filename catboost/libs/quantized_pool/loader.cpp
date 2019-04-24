@@ -1,10 +1,8 @@
-#include "pool.h"
+#include "loader.h"
 #include "quantized.h"
-#include "serialization.h"
 
 #include <catboost/idl/pool/flat/quantized_chunk_t.fbs.h>
 #include <catboost/libs/column_description/column.h>
-#include <catboost/libs/data_new/loader.h>
 #include <catboost/libs/data_new/meta_info.h>
 #include <catboost/libs/data_new/unaligned_mem.h>
 #include <catboost/libs/data_util/exists_checker.h>
@@ -39,45 +37,9 @@ using NCB::TPathWithScheme;
 using NCB::TQuantizedPool;
 using NCB::TUnalignedArrayBuf;
 
-namespace {
-    class TCBQuantizedDataLoader : public IQuantizedFeaturesDatasetLoader {
-    public:
-        explicit TCBQuantizedDataLoader(TDatasetLoaderPullArgs&& args);
-
-        void Do(IQuantizedFeaturesDataVisitor* visitor) override;
-
-    private:
-        void AddChunk(
-            const TQuantizedPool::TChunkDescription& chunk,
-            EColumn columnType,
-            const size_t* flatFeatureIdx,
-            const size_t* baselineIdx,
-            IQuantizedFeaturesDataVisitor* visitor) const;
-
-        void AddQuantizedFeatureChunk(
-            const TQuantizedPool::TChunkDescription& chunk,
-            const size_t flatFeatureIdx,
-            IQuantizedFeaturesDataVisitor* visitor) const;
-
-        static TLoadQuantizedPoolParameters GetLoadParameters() {
-            return {/*LockMemory*/ false, /*Precharge*/ false};
-        }
-
-    private:
-        ui32 ObjectCount;
-        TVector<bool> IsFeatureIgnored;
-        TQuantizedPool QuantizedPool;
-        TPathWithScheme PairsPath;
-        TPathWithScheme GroupWeightsPath;
-        TPathWithScheme BaselinePath;
-        TDataMetaInfo DataMetaInfo;
-        EObjectsOrder ObjectsOrder;
-    };
-}
-
-TCBQuantizedDataLoader::TCBQuantizedDataLoader(TDatasetLoaderPullArgs&& args)
+NCB::TCBQuantizedDataLoader::TCBQuantizedDataLoader(TDatasetLoaderPullArgs&& args)
     : ObjectCount(0) // inited later
-    , QuantizedPool(std::forward<TQuantizedPool>(LoadQuantizedPool(args.PoolPath.Path, GetLoadParameters())))
+    , QuantizedPool(std::forward<TQuantizedPool>(LoadQuantizedPool(args.PoolPath, GetLoadParameters())))
     , PairsPath(args.CommonArgs.PairsFilePath)
     , GroupWeightsPath(args.CommonArgs.GroupWeightsFilePath)
     , BaselinePath(args.CommonArgs.BaselineFilePath)
@@ -221,7 +183,7 @@ static void AssignUnaligned(const TConstArrayRef<ui8> unaligned, TVector<U>* dst
     }
 }
 
-void TCBQuantizedDataLoader::AddQuantizedFeatureChunk(
+void NCB::TCBQuantizedDataLoader::AddQuantizedFeatureChunk(
     const TQuantizedPool::TChunkDescription& chunk,
     const size_t flatFeatureIdx,
     IQuantizedFeaturesDataVisitor* const visitor) const
@@ -237,7 +199,7 @@ void TCBQuantizedDataLoader::AddQuantizedFeatureChunk(
         TMaybeOwningConstArrayHolder<ui8>::CreateNonOwning(quants));
 }
 
-void TCBQuantizedDataLoader::AddChunk(
+void NCB::TCBQuantizedDataLoader::AddChunk(
     const TQuantizedPool::TChunkDescription& chunk,
     const EColumn columnType,
     const size_t* const flatFeatureIdx,
@@ -279,6 +241,7 @@ void TCBQuantizedDataLoader::AddChunk(
         case EColumn::Categ:
             // TODO(yazevnul): categorical feature quantization on YT is still in progress
         case EColumn::Auxiliary:
+        case EColumn::Text:
             // Should not be present in quantized pool
         case EColumn::Timestamp:
             // Not supported by quantized pools right now
@@ -291,7 +254,7 @@ void TCBQuantizedDataLoader::AddChunk(
     }
 }
 
-void TCBQuantizedDataLoader::Do(IQuantizedFeaturesDataVisitor* visitor) {
+void NCB::TCBQuantizedDataLoader::Do(IQuantizedFeaturesDataVisitor* visitor) {
     visitor->Start(
         DataMetaInfo,
         ObjectCount,
@@ -305,7 +268,9 @@ void TCBQuantizedDataLoader::Do(IQuantizedFeaturesDataVisitor* visitor) {
 
     TSequentialChunkEvictor evictor(1ULL << 24);
     for (const auto chunkRef : chunkRefs) {
-        evictor.Push(chunkRef);
+        if (QuantizedPool.ColumnsDump.empty()) { // reading from mapped file
+            evictor.Push(chunkRef);
+        }
         Y_DEFER { evictor.MaybeEvict(); };
 
         const auto columnIdx = chunkRef.ColumnIndex;
@@ -353,6 +318,6 @@ void TCBQuantizedDataLoader::Do(IQuantizedFeaturesDataVisitor* visitor) {
 
 namespace {
     TExistsCheckerFactory::TRegistrator<TFSExistsChecker> FSQuantizedExistsCheckerReg("quantized");
-    TDatasetLoaderFactory::TRegistrator<TCBQuantizedDataLoader> CBQuantizedDataLoaderReg("quantized");
+    TDatasetLoaderFactory::TRegistrator<NCB::TCBQuantizedDataLoader> CBQuantizedDataLoaderReg("quantized");
 }
 

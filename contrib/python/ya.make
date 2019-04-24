@@ -8,6 +8,7 @@ RECURSE(
     dateutil/tests
     enum34
     funcsigs
+    graphviz
     Jinja2
     MarkupSafe
     more-itertools

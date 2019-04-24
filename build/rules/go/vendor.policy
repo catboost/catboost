@@ -6,6 +6,9 @@ ALLOW .* -> vendor/github.com/alicebob/miniredis
 # AWS client libraries
 ALLOW .* -> vendor/github.com/aws/aws-sdk-go          
 
+# TOML parser/encoder with reflection
+ALLOW .* -> vendor/github.com/BurntSushi/toml
+
 # helpers for data sizes (kilobytes, petabytes), human readable sizes, parsing
 ALLOW .* -> vendor/github.com/c2h5oh/datasize         
 
@@ -15,11 +18,18 @@ ALLOW .* -> vendor/github.com/coreos/etcd
 # mocking for database/sql
 ALLOW .* -> vendor/github.com/DATA-DOG/go-sqlmock    
 
+# Cucumber-like BDD for Go
+ALLOW .* -> vendor/github.com/DATA-DOG/godog
+
 # pretty printer for GO
 ALLOW .* -> vendor/github.com/davecgh/go-spew/spew    
 
 # implementation of JSON Web Tokens (JWT)
 ALLOW .* -> vendor/github.com/dgrijalva/jwt-go        
+
+# Docker API client
+ALLOW .* -> vendor/github.com/docker/docker/client
+ALLOW .* -> vendor/github.com/docker/docker/api
 
 # cross-platform file system notifications
 ALLOW .* -> vendor/github.com/fsnotify/fsnotify       
@@ -93,7 +103,10 @@ ALLOW .* -> vendor/github.com/go-openapi
 # redis client
 ALLOW .* -> vendor/github.com/go-redis/redis          
 
-# fast JSON serializer for golang
+# library for accessing the GitHub API v3
+ALLOW .* -> vendor/github.com/google/go-github/v25/github
+
+# fast JSON serializer for golang. relies on code generation.
 ALLOW .* -> vendor/github.com/mailru/easyjson
 
 # lz4 compression codec
@@ -109,6 +122,9 @@ ALLOW .* -> vendor/github.com/PuerkitoBio/goquery
 ALLOW .* -> vendor/github.com/prometheus/client_golang
 ALLOW .* -> vendor/github.com/prometheus/client_model
 ALLOW .* -> vendor/github.com/prometheus/common
+
+# ZooKeeper client
+ALLOW .* -> vendor/github.com/samuel/go-zookeeper
 
 # text diffing and patching
 ALLOW .* -> vendor/github.com/sergi/go-diff
@@ -127,6 +143,10 @@ ALLOW .* -> vendor/github.com/spf13/pflag
 
 # a toolkit with common test assertions and mocks
 ALLOW .* -> vendor/github.com/stretchr/testify        
+
+# very fast json parser and encoder.
+# uses dynamic message structure, suitable for cases where json structure is not known in advance.
+ALLOW .* -> vendor/github.com/valyala/fastjson
 
 # xxhash32 and xxhash64 hash functions
 ALLOW .* -> vendor/github.com/OneOfOne/xxhash
@@ -190,6 +210,9 @@ ALLOW .* -> vendor/github.com/tinylib/msgp
 
 # Generate fancy REST API from grpc api
 ALLOW .* -> vendor/github.com/grpc-ecosystem/grpc-gateway
+
+# tus: the open protocol for resumable file uploads
+ALLOW .* -> vendor/github.com/tus/tusd
 
 # 
 # Temporary exceptions.

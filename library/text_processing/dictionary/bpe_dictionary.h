@@ -55,6 +55,7 @@ namespace NTextProcessing::NDictionary {
 
         // TODO(annaveronika): Allow loading without GetToken functionality (less memory).
         void Load(const TString& dictionaryPath, const TString& bpePath);
+        void Save(const TString& dictionaryPath, const TString& bpePath) const;
 
     private:
         struct TBpeUnit {

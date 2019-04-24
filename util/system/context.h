@@ -5,7 +5,7 @@
 #include "compiler.h"
 #include "sanitizers.h"
 
-#include <util/generic/region.h>
+#include <util/generic/array_ref.h>
 #include <util/generic/utility.h>
 #include <util/generic/yexception.h>
 

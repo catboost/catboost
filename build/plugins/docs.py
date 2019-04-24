@@ -37,7 +37,7 @@ def generate_dart(unit, as_lib=False):
     docs_dir = (unit.get('DOCSDIR') or '').rstrip('/')
     if docs_dir:
         docs_dir = os.path.normpath(docs_dir)
-        unit.onsrcdir(docs_dir)
+        unit.set(['SRCDIR', docs_dir])
     else:
         docs_dir = module_dir
 

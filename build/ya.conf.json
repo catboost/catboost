@@ -5,6 +5,7 @@
         "clang-format": { "description": "Run Clang Format" },
         "clang-tidy": { "description": "Run Clang Tidy" },
         "cling": { "description": "Run cling" },
+        "dctl": {"description": "Run Yandex.Deploy CLI"},
         "llvm-profdata": { "description": "Run llvm-profdata Clang utility" },
         "llvm-symbolizer": { "description": "Run llvm-symbolizer Clang utility" },
         "llvm-cov": { "description": "Run llvm-cov Clang utility" },
@@ -73,9 +74,9 @@
         "go_1.12.1": { "description": "Run go tool (1.12.1)" },
         "godoc_1.12.1": { "description": "Run godoc tool (1.12.1)" },
         "gofmt_1.12.1": { "description": "Run gofmt tool (1.12.1)" },
-        "go": { "description": "Run go tool (1.12.2)" },
-        "godoc": { "description": "Run godoc tool (1.12.2)" },
-        "gofmt": { "description": "Run gofmt tool (1.12.2)" },
+        "go": { "description": "Run go tool (1.12.4)" },
+        "godoc": { "description": "Run godoc tool (1.12.4)" },
+        "gofmt": { "description": "Run gofmt tool (1.12.4)" },
         "yo": { "description": "Tool for managing vendor/ directory" },
         "tvmknife": { "description": "Tool for debugging and testing with TVM tickets" },
         "sandboxctl": { "description": "Tool to run tasks in Sandbox" },
@@ -530,8 +531,8 @@
                 "llvm-cov": { "bottle": "clang7", "executable": "llvm-cov" },
                 "llvm-profdata": { "bottle": "clang7", "executable": "llvm-profdata" },
                 "llvm-symbolizer": { "bottle": "clang7", "executable": "llvm-symbolizer" },
-                "nm": { "bottle": "clang7", "executable": "nm" },
-                "strip": { "bottle": "clang7", "executable": "strip" }
+                "nm": { "bottle": "clang7", "executable": "llvm-nm" },
+                "strip": { "bottle": "clang7", "executable": "llvm-strip" }
             },
             "platforms": [
                 {"host": {"os": "LINUX"}, "target": {"os": "LINUX", "arch": "x86_64"}, "default": true},
@@ -596,8 +597,14 @@
             "tools": {
                 "cc": { "bottle": "clang6-android-x86", "executable": "cc" },
                 "c++": { "bottle": "clang6-android-x86", "executable": "c++" },
-                "gcov": { "bottle": "clang6-android-x86", "executable": "gcov" },
-                "strip": { "bottle": "clang6-android-x86", "executable": "strip" }
+                "gcov": { "bottle": "clang6-android-x86", "executable": "llvm-cov" },
+                "strip": { "bottle": "clang6-android-x86", "executable": "strip" },
+                "nm": { "bottle": "clang6-android-x86_64", "executable": "nm" },
+                "clang-format": { "bottle": "clang6-android-x86", "executable": "clang-format" },
+                "clang-tidy": { "bottle": "clang6-android-x86", "executable": "clang-tidy" },
+                "llvm-cov": { "bottle": "clang6-android-x86", "executable": "llvm-cov" },
+                "llvm-profdata": { "bottle": "clang6-android-x86", "executable": "llvm-profdata" },
+                "llvm-symbolizer": { "bottle": "clang6-android-x86", "executable": "llvm-symbolizer" }
             },
             "platforms": [
                 {"host": {"os": "LINUX"}, "target": {"os": "ANDROID", "arch": "i686"}, "default": true},
@@ -617,8 +624,14 @@
             "tools": {
                 "cc": { "bottle": "clang6-android-x86_64", "executable": "cc" },
                 "c++": { "bottle": "clang6-android-x86_64", "executable": "c++" },
-                "gcov": { "bottle": "clang6-android-x86_64", "executable": "gcov" },
-                "strip": { "bottle": "clang6-android-x86_64", "executable": "strip" }
+                "gcov": { "bottle": "clang6-android-x86_64", "executable": "llvm-cov" },
+                "strip": { "bottle": "clang6-android-x86_64", "executable": "strip" },
+                "nm": { "bottle": "clang6-android-x86_64", "executable": "nm" },
+                "clang-format": { "bottle": "clang6-android-x86_64", "executable": "clang-format" },
+                "clang-tidy": { "bottle": "clang6-android-x86_64", "executable": "clang-tidy" },
+                "llvm-cov": { "bottle": "clang6-android-x86_64", "executable": "llvm-cov" },
+                "llvm-profdata": { "bottle": "clang6-android-x86_64", "executable": "llvm-profdata" },
+                "llvm-symbolizer": { "bottle": "clang6-android-x86_64", "executable": "llvm-symbolizer" }
             },
             "platforms": [
                 {"host": {"os": "LINUX"}, "target": {"os": "ANDROID", "arch": "x86_64"}, "default": true},
@@ -638,8 +651,14 @@
             "tools": {
                 "cc": { "bottle": "clang6-android-armv7", "executable": "cc" },
                 "c++": { "bottle": "clang6-android-armv7", "executable": "c++" },
-                "gcov": { "bottle": "clang6-android-armv7", "executable": "gcov" },
-                "strip": { "bottle": "clang6-android-armv7", "executable": "strip" }
+                "gcov": { "bottle": "clang6-android-armv7", "executable": "llvm-cov" },
+                "llvm-cov": { "bottle": "clang6-android-armv7", "executable": "llvm-cov" },
+                "strip": { "bottle": "clang6-android-armv7", "executable": "strip" },
+                "nm": { "bottle": "clang6-android-armv7", "executable": "nm" },
+                "clang-format": { "bottle": "clang6-android-armv7", "executable": "clang-format" },
+                "clang-tidy": { "bottle": "clang6-android-armv7", "executable": "clang-tidy" },
+                "llvm-profdata": { "bottle": "clang6-android-armv7", "executable": "llvm-profdata" },
+                "llvm-symbolizer": { "bottle": "clang6-android-armv7", "executable": "llvm-symbolizer" }
             },
             "platforms": [
                 {"host": {"os": "LINUX"}, "target": {"os": "ANDROID", "arch": "armv7a"}, "default": true},
@@ -659,8 +678,14 @@
             "tools": {
                 "cc": { "bottle": "clang6-android-armv7", "executable": "cc" },
                 "c++": { "bottle": "clang6-android-armv7", "executable": "c++" },
-                "gcov": { "bottle": "clang6-android-armv7", "executable": "gcov" },
-                "strip": { "bottle": "clang6-android-armv7", "executable": "strip" }
+                "gcov": { "bottle": "clang6-android-armv7", "executable": "llvm-cov" },
+                "llvm-cov": { "bottle": "clang6-android-armv7", "executable": "llvm-cov" },
+                "strip": { "bottle": "clang6-android-armv7", "executable": "strip" },
+                "nm": { "bottle": "clang6-android-armv7", "executable": "nm" },
+                "clang-format": { "bottle": "clang6-android-armv7", "executable": "clang-format" },
+                "clang-tidy": { "bottle": "clang6-android-armv7", "executable": "clang-tidy" },
+                "llvm-profdata": { "bottle": "clang6-android-armv7", "executable": "llvm-profdata" },
+                "llvm-symbolizer": { "bottle": "clang6-android-armv7", "executable": "llvm-symbolizer" }
             },
             "platforms": [
                 {"host": {"os": "LINUX"}, "target": {"os": "ANDROID", "arch": "armv7a_neon"}, "default": true},
@@ -680,8 +705,14 @@
             "tools": {
                 "cc": { "bottle": "clang6-android-armv8", "executable": "cc" },
                 "c++": { "bottle": "clang6-android-armv8", "executable": "c++" },
-                "gcov": { "bottle": "clang6-android-armv8", "executable": "gcov" },
-                "strip": { "bottle": "clang6-android-armv8", "executable": "strip" }
+                "gcov": { "bottle": "clang6-android-armv8", "executable": "llvm-cov" },
+                "llvm-cov": { "bottle": "clang6-android-armv8", "executable": "llvm-cov" },
+                "strip": { "bottle": "clang6-android-armv8", "executable": "strip" },
+                "nm": { "bottle": "clang6-android-armv8", "executable": "nm" },
+                "clang-format": { "bottle": "clang6-android-armv8", "executable": "clang-format" },
+                "clang-tidy": { "bottle": "clang6-android-armv8", "executable": "clang-tidy" },
+                "llvm-profdata": { "bottle": "clang6-android-armv8", "executable": "llvm-profdata" },
+                "llvm-symbolizer": { "bottle": "clang6-android-armv8", "executable": "llvm-symbolizer" }
             },
             "platforms": [
                 {"host": {"os": "LINUX"}, "target": {"os": "ANDROID", "arch": "armv8a"}, "default": true},
@@ -1005,6 +1036,15 @@
         "yp": {
             "tools": {
                 "yp": { "bottle": "yp", "executable": "yp" }
+            },
+            "platforms": [
+                {"host": {"os": "LINUX"}, "default": true},
+                {"host": {"os": "DARWIN"}, "default": true}
+            ]
+        },
+        "dctl": {
+            "tools": {
+                "dctl": { "bottle": "dctl", "executable": "dctl" }
             },
             "platforms": [
                 {"host": {"os": "LINUX"}, "default": true},
@@ -1386,12 +1426,12 @@
                 "version": "1.12.1"
             }
         },
-        "golang_1_12_2": {
+        "golang_1_12_4": {
             "tools": {
-                "golang": {"bottle": "golang_1.12.2",  "executable": "golang"},
-                "go": {"bottle": "golang_1.12.2",  "executable": "go"},
-                "godoc": {"bottle": "golang_1.12.2",  "executable": "godoc"},
-                "gofmt": {"bottle": "golang_1.12.2",  "executable": "gofmt"}
+                "golang": {"bottle": "golang_1.12.4",  "executable": "golang"},
+                "go": {"bottle": "golang_1.12.4",  "executable": "go"},
+                "godoc": {"bottle": "golang_1.12.4",  "executable": "godoc"},
+                "gofmt": {"bottle": "golang_1.12.4",  "executable": "gofmt"}
             },
             "platforms": [
                 {"host": {"os": "LINUX"}, "default": true},
@@ -1400,7 +1440,7 @@
             ],
             "params": {
                 "type": "golang",
-                "version": "1.12.2"
+                "version": "1.12.4"
             }
         },
         "yfm": {
@@ -1435,7 +1475,7 @@
         },
         "ymake": {
             "formula": {
-                "sandbox_id": [409907690],
+                "sandbox_id": [416222158],
                 "match": "ymake"
             },
             "executable": {
@@ -1471,7 +1511,7 @@
         },
         "arc": {
             "formula": {
-                "sandbox_id": [409662209],
+                "sandbox_id": [417760159],
                 "match": "arc"
             },
             "executable": {
@@ -1616,8 +1656,8 @@
                 "llvm-cov": ["bin", "llvm-cov"],
                 "llvm-profdata": ["bin", "llvm-profdata"],
                 "llvm-symbolizer": ["bin", "llvm-symbolizer"],
-                "nm": ["bin", "nm"],
-                "strip": ["bin", "strip"]
+                "llvm-nm": ["bin", "llvm-nm"],
+                "llvm-strip": ["bin", "llvm-strip"]
             }
         },
         "clang6-android-x86": {
@@ -1628,7 +1668,14 @@
             "executable": {
                 "c++": ["bin", "clang++"],
                 "cc": ["bin", "clang"],
-                "strip": ["bin", "strip"]
+                "strip": ["bin", "i686-linux-android-strip"],
+                "c++filt": ["bin", "i686-linux-android-c++filt"],
+                "clang-format": ["bin", "clang-format"],
+                "clang-tidy": ["bin", "clang-tidy"],
+                "llvm-cov": ["bin", "llvm-cov"],
+                "llvm-profdata": ["bin", "llvm-profdata"],
+                "llvm-symbolizer": ["bin", "llvm-symbolizer"],
+                "nm": ["bin", "i686-linux-android-nm"]
             }
         },
         "clang6-android-x86_64": {
@@ -1638,8 +1685,15 @@
             },
             "executable": {
                 "c++": ["bin", "clang++"],
+                "c++filt": ["bin", "x86_64-linux-android-c++filt"],
                 "cc": ["bin", "clang"],
-                "strip": ["bin", "strip"]
+                "clang-format": ["bin", "clang-format"],
+                "clang-tidy": ["bin", "clang-tidy"],
+                "llvm-cov": ["bin", "llvm-cov"],
+                "llvm-profdata": ["bin", "llvm-profdata"],
+                "llvm-symbolizer": ["bin", "llvm-symbolizer"],
+                "nm": ["bin", "x86_64-linux-android-nm"],
+                "strip": ["bin", "x86_64-linux-android-strip"]
             }
         },
         "clang6-android-armv7": {
@@ -1650,8 +1704,14 @@
             "executable": {
                 "c++": ["bin", "clang++"],
                 "cc": ["bin", "clang"],
-                "gcov": ["bin", "gcov"],
-                "strip": ["bin", "strip"]
+                "llvm-cov": ["bin", "llvm-cov"],
+                "strip": ["bin", "arm-linux-androideabi-strip"],
+                "c++filt": ["bin", "arm-linux-androidabi-c++filt"],
+                "clang-format": ["bin", "clang-format"],
+                "clang-tidy": ["bin", "clang-tidy"],
+                "llvm-profdata": ["bin", "llvm-profdata"],
+                "llvm-symbolizer": ["bin", "llvm-symbolizer"],
+                "nm": ["bin", "arm-linux-androidabi-nm"]
             }
         },
         "clang6-android-armv8": {
@@ -1662,8 +1722,14 @@
             "executable": {
                 "c++": ["bin", "clang++"],
                 "cc": ["bin", "clang"],
-                "gcov": ["bin", "gcov"],
-                "strip": ["bin", "strip"]
+                "llvm-cov": ["bin", "llvm-cov"],
+                "strip": ["bin", "aarch64-linux-androideabi-strip"],
+                "c++filt": ["bin", "aarch64-linux-androidabi-c++filt"],
+                "clang-format": ["bin", "clang-format"],
+                "clang-tidy": ["bin", "clang-tidy"],
+                "llvm-profdata": ["bin", "llvm-profdata"],
+                "llvm-symbolizer": ["bin", "llvm-symbolizer"],
+                "nm": ["bin", "aarch64-linux-androidabi-nm"]
             }
         },
         "cuda": {
@@ -1842,7 +1908,7 @@
         },
         "samogonctl": {
             "formula": {
-                "sandbox_id": 389591068,
+                "sandbox_id": 410806334,
                 "match": "SAMOGONCTL"
             },
             "executable": {
@@ -1918,7 +1984,7 @@
         },
         "yp-util": {
             "formula": {
-                "sandbox_id":  [401046412],
+                "sandbox_id":  [416318891],
                 "match": "yp_util"
             },
             "executable": {
@@ -1932,6 +1998,15 @@
             },
             "executable": {
                 "yp": ["yp"]
+            }
+        },
+        "dctl": {
+            "formula": {
+                "sandbox_id":  [415676788],
+                "match": "dctl"
+            },
+            "executable": {
+                "dctl": ["dctl"]
             }
         },
         "vim": {
@@ -2190,7 +2265,7 @@
         },
         "horadric":{
             "formula": {
-                "sandbox_id": 392844084,
+                "sandbox_id": 415739617,
                 "match": "horadric"
             },
             "executable": {
@@ -2271,9 +2346,9 @@
                 "gofmt_1.12.1": ["bin", "gofmt"]
             }
         },
-        "golang_1.12.2": {
+        "golang_1.12.4": {
             "formula": {
-                "sandbox_id": [409308002, 409308325, 409308718],
+                "sandbox_id": [412009563, 412010042, 412010635],
                 "match": "GOLANG"
             },
             "executable": {

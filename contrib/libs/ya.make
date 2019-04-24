@@ -105,9 +105,3 @@ IF (OS_ANDROID)
     
 )
 ENDIF()
-
-IF (ARCH_PPC64LE)
-    RECURSE(
-    
-)
-ENDIF()

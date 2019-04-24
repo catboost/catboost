@@ -88,6 +88,8 @@ void NCB::PrepareFstrModeParamsParser(
 
 void NCB::ModeFstrSingleHost(const NCB::TAnalyticalModeCommonParams& params) {
 
+    NCatboostOptions::ValidatePoolParams(params.InputPath, params.DsvPoolFormatParams);
+
     TFullModel model = ReadModel(params.ModelFileName, params.ModelFormat);
     if (model.HasCategoricalFeatures()) {
         CB_ENSURE(model.HasValidCtrProvider(),

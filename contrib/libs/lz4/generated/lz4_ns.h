@@ -10,7 +10,7 @@
 namespace LZ4_NAMESPACE {
 
 #define ONLY_COMPRESS
-#include "../lz4.c"
+#include "../lz4.h"
 
 struct TLZ4Methods ytbl = {
     LZ4_compress_default,

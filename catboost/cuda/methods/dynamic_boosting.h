@@ -42,7 +42,7 @@ namespace NCatboostCuda {
 
         EGpuCatFeaturesStorage CatFeaturesStorage;
         TGpuAwareRandom& Random;
-        TWeakLearner& Weak;
+        const NCatboostOptions::TCatBoostOptions& CatBoostOptions;
         const NCatboostOptions::TBoostingOptions& Config;
         const NCatboostOptions::TLossDescription& TargetOptions;
 
@@ -244,6 +244,7 @@ namespace NCatboostCuda {
                 }
             };
 
+            auto weak = MakeWeakLearner<TWeakLearner>(FeaturesManager, CatBoostOptions);
             while (!progressTracker->ShouldStop()) {
                 CheckInterrupted(); // check after long-lasting operation
                 auto iterationTimeGuard = profiler.Profile("Boosting iteration");
@@ -268,7 +269,7 @@ namespace NCatboostCuda {
 
                         using TWeakTarget = typename TTargetAtPointTrait<TObjective>::Type;
 
-                        auto optimizer = Weak.template CreateStructureSearcher<TWeakTarget, TFeatureParallelDataSet>(
+                        auto optimizer = weak.template CreateStructureSearcher<TWeakTarget, TFeatureParallelDataSet>(
                             *iterationCacheHolderPtr,
                             taskDataSet);
 
@@ -314,21 +315,21 @@ namespace NCatboostCuda {
 
                         //should be first for learn-estimation-permutation cache-hit
                         if (dataSet.HasTestDataSet()) {
-                            Weak.CacheStructure(*iterationCacheHolderPtr,
+                            weak.CacheStructure(*iterationCacheHolderPtr,
                                                 weakModelStructure,
                                                 dataSet.GetTestDataSet());
                         }
 
                         {
                             const auto& estimationDataSet = dataSet.GetDataSetForPermutation(estimationPermutation);
-                            Weak.CacheStructure(*iterationCacheHolderPtr,
+                            weak.CacheStructure(*iterationCacheHolderPtr,
                                                 weakModelStructure,
                                                 estimationDataSet);
                         }
 
                         for (ui32 i = 0; i < learnPermutationCount; ++i) {
                             auto& ds = dataSet.GetDataSetForPermutation(i);
-                            Weak.CacheStructure(*iterationCacheHolderPtr,
+                            weak.CacheStructure(*iterationCacheHolderPtr,
                                                 weakModelStructure,
                                                 ds);
                         }
@@ -348,7 +349,7 @@ namespace NCatboostCuda {
                     {
                         auto estimateModelsGuard = profiler.Profile("Estimate models");
 
-                        auto estimator = Weak.CreateEstimator();
+                        auto estimator = weak.CreateEstimator();
 
                         for (ui32 permutation = 0; permutation < learnPermutationCount; ++permutation) {
                             auto& folds = permutationFolds[permutation];
@@ -394,7 +395,7 @@ namespace NCatboostCuda {
                     {
                         auto appendModelTime = profiler.Profile("Append models time");
 
-                        auto addModelValue = Weak.template CreateAddModelValue<TFeatureParallelDataSet>(
+                        auto addModelValue = weak.template CreateAddModelValue<TFeatureParallelDataSet>(
                             weakModelStructure,
                             *iterationCacheHolderPtr);
 
@@ -474,19 +475,16 @@ namespace NCatboostCuda {
 
     public:
         TDynamicBoosting(TBinarizedFeaturesManager& binarizedFeaturesManager,
-                         const NCatboostOptions::TBoostingOptions& config,
-                         const NCatboostOptions::TModelBasedEvalOptions& /*featureEvalConfig*/,
-                         const NCatboostOptions::TLossDescription& targetOptions,
+                         const NCatboostOptions::TCatBoostOptions& catBoostOptions,
                          EGpuCatFeaturesStorage catFeaturesStorage,
                          TGpuAwareRandom& random,
-                         TWeakLearner& weak,
                          NPar::TLocalExecutor* localExecutor)
             : FeaturesManager(binarizedFeaturesManager)
             , CatFeaturesStorage(catFeaturesStorage)
             , Random(random)
-            , Weak(weak)
-            , Config(config)
-            , TargetOptions(targetOptions)
+            , CatBoostOptions(catBoostOptions)
+            , Config(catBoostOptions.BoostingOptions)
+            , TargetOptions(catBoostOptions.LossFunctionDescription)
             , LocalExecutor(localExecutor)
         {
         }

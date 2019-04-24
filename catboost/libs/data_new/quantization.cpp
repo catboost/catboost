@@ -342,7 +342,7 @@ namespace NCB {
                         TFloatFeatureIdx(part.FeatureIdx)
                     )
                 );
-            } else {
+            } else if (part.FeatureType == EFeatureType::Categorical) {
                 getBinFunctions.push_back(
                     GetQuantizedCatFeatureFunction(
                         rawObjectsData,
@@ -350,6 +350,8 @@ namespace NCB {
                         TCatFeatureIdx(part.FeatureIdx)
                     )
                 );
+            } else {
+                CB_ENSURE(false, "Feature bundling is not supported for features of type " << part.FeatureType);
             }
         }
 
@@ -452,7 +454,7 @@ namespace NCB {
                                 if (clearSrcObjectsData) {
                                     rawObjectsData->FloatFeatures[part.FeatureIdx].Destroy();
                                 }
-                            } else {
+                            } else if (part.FeatureType == EFeatureType::Categorical) {
                                 quantizedObjectsData->Data.CatFeatures[part.FeatureIdx].Reset(
                                     new TQuantizedCatBundlePartValuesHolder(
                                         rawObjectsData->CatFeatures[part.FeatureIdx]->GetId(),
@@ -465,6 +467,8 @@ namespace NCB {
                                 if (clearSrcObjectsData) {
                                     rawObjectsData->CatFeatures[part.FeatureIdx].Destroy();
                                 }
+                            } else {
+                                CB_ENSURE(false, "Feature bundling is not supported for features of type " << part.FeatureType);
                             }
                         }
                     }
@@ -788,7 +792,7 @@ namespace NCB {
                                         TFloatFeatureIdx(it->second)
                                     )
                                 );
-                            } else {
+                            } else if (it->first == EFeatureType::Categorical) {
                                 getBitFunctions.push_back(
                                     GetBinaryCatFeatureFunction(
                                         *rawObjectsData,
@@ -829,7 +833,7 @@ namespace NCB {
                                 if (clearSrcObjectsData) {
                                     rawObjectsData->FloatFeatures[it->second].Destroy();
                                 }
-                            } else {
+                            } else if (it->first == EFeatureType::Categorical) {
                                 SetBinaryFeatureColumn(
                                     rawObjectsData->CatFeatures[it->second]->GetId(),
                                     packedBinaryFeaturesData.SrcData[packIdx],
@@ -1111,6 +1115,16 @@ namespace NCB {
             auto& srcObjectsCommonData = rawDataProvider->ObjectsData->CommonData;
 
             auto featuresLayout = quantizedFeaturesInfo->GetFeaturesLayout();
+
+            // TODO(d-kruchinin): support text features in QuantizedDataProvider
+            const auto& srcFeaturesLayout = srcObjectsCommonData.FeaturesLayout;
+            for (ui32 i: xrange(srcFeaturesLayout->GetTextFeatureCount())) {
+                const TFeatureMetaInfo& featureMetaInfo = srcFeaturesLayout->GetInternalFeatureMetaInfo(i, EFeatureType::Text);
+                CB_ENSURE_INTERNAL(
+                    !featureMetaInfo.IsAvailable || featureMetaInfo.IsIgnored,
+                    "Text features shouldn't present in dataProvider for quantization"
+                );
+            }
 
             CheckCompatibleForApply(
                 *featuresLayout,

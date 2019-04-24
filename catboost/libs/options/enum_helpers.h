@@ -52,7 +52,7 @@ bool IsPairwiseScoring(ELossFunction lossFunction);
 
 bool IsGpuPlainDocParallelOnlyMode(ELossFunction lossFunction);
 
-bool ShouldGenerateYetiRankPairs(ELossFunction lossFunction);
+bool IsYetiRankLossFunction(ELossFunction lossFunction);
 
 bool IsPairLogit(ELossFunction lossFunction);
 
@@ -65,3 +65,5 @@ bool ShouldSkipCalcOnTrainByDefault(ELossFunction lossFunction);
 bool IsUserDefined(ELossFunction lossFunction);
 
 bool ShouldSkipFstrGrowPolicy(EGrowPolicy growPolicy);
+
+bool IsPlainOnlyModeScoreFunction(EScoreFunction scoreFunction);

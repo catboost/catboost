@@ -19,6 +19,7 @@
 #include <catboost/libs/options/binarization_options.h>
 
 #include <library/binsaver/bin_saver.h>
+#include <library/dbg_output/dump.h>
 #include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/array_ref.h>
@@ -32,6 +33,9 @@
 #include <util/system/types.h>
 
 #include <utility>
+
+
+class IOutputStream;
 
 
 namespace NCB {
@@ -189,6 +193,7 @@ namespace NCB {
          */
         TVector<THolder<TFloatValuesHolder>> FloatFeatures; // [floatFeatureIdx]
         TVector<THolder<THashedCatValuesHolder>> CatFeatures; // [catFeatureIdx]
+        TVector<THolder<TStringTextValuesHolder>> TextFeatures;
 
     public:
         bool operator==(const TRawObjectsData& rhs) const;
@@ -265,6 +270,13 @@ namespace NCB {
          */
         TMaybeData<const THashedCatValuesHolder*> GetCatFeature(ui32 catFeatureIdx) const {
             return MakeMaybeData<const THashedCatValuesHolder>(Data.CatFeatures[catFeatureIdx]);
+        }
+
+        /* can return nullptr if this feature is unavailable
+         * (ignored or this data provider contains only subset of features)
+         */
+        TMaybeData<const TStringTextValuesHolder*> GetTextFeature(ui32 textFeatureIdx) const {
+            return MakeMaybeData<const TStringTextValuesHolder>(Data.TextFeatures[textFeatureIdx]);
         }
 
         /* set functions are needed for current python mutable Pool interface
@@ -397,6 +409,11 @@ namespace NCB {
 
     using TQuantizedObjectsDataProviderPtr = TIntrusivePtr<TQuantizedObjectsDataProvider>;
 
+    void DbgDumpQuantizedFeatures(
+        const TQuantizedObjectsDataProvider& quantizedObjectsDataProvider,
+        IOutputStream* out
+    );
+
 
     struct TExclusiveFeatureBundlesData {
         // lookups
@@ -446,6 +463,24 @@ namespace NCB {
 
         TPackedBinaryIndex AddFeature(EFeatureType featureType, ui32 perTypeFeatureIdx);
     };
+
+}
+
+template <>
+struct TDumper<TMaybe<NCB::TPackedBinaryIndex>> {
+    template <class S>
+    static inline void Dump(S& s, const TMaybe<NCB::TPackedBinaryIndex>& maybePackedBinaryIndex) {
+        if (maybePackedBinaryIndex) {
+            s << DbgDump(*maybePackedBinaryIndex);
+        } else {
+            s << '-';
+        }
+    }
+};
+
+
+namespace NCB {
+    TString DbgDumpMetaData(const TPackedBinaryFeaturesData& packedBinaryFeaturesData);
 
     using TPackedBinaryFeaturesArraySubset
         = TArraySubset<const TMaybeOwningArrayHolder<TBinaryFeaturesPack>, ui32>;
@@ -577,8 +612,10 @@ namespace NCB {
         TMaybe<TPackedBinaryIndex> GetFeatureToPackedBinaryIndex(TFeatureIdx<FeatureType> featureIdx) const {
             if constexpr (FeatureType == EFeatureType::Float) {
                 return GetFloatFeatureToPackedBinaryIndex(featureIdx);
-            } else {
+            } else if constexpr (FeatureType == EFeatureType::Categorical) {
                 return GetCatFeatureToPackedBinaryIndex(featureIdx);
+            } else {
+                CB_ENSURE_INTERNAL(false, "Unsupported feature type " << ToString(FeatureType));
             }
         }
 
@@ -626,8 +663,10 @@ namespace NCB {
         ) const {
             if constexpr (FeatureType == EFeatureType::Float) {
                 return GetFloatFeatureToExclusiveBundleIndex(featureIdx);
-            } else {
+            } else if constexpr (FeatureType == EFeatureType::Categorical) {
                 return GetCatFeatureToExclusiveBundleIndex(featureIdx);
+            } else {
+                CB_ENSURE_INTERNAL(false, "Unsupported feature type " << FeatureType);
             }
         }
 

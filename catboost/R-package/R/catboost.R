@@ -765,6 +765,58 @@ print.catboost.Pool <- function(x, ...) {
 #'
 #'       Default value depends on the selected loss function
 #'
+#'     \item grow_policy
+#'
+#'       GPU only. The tree growing policy. It describes how to perform greedy tree construction.
+#'
+#'       Possible values:
+#'       \itemize{
+#'         \item SymmetricTree
+#'         \item Lossguide
+#'         \item Depthwise
+#'       }
+#'
+#'       Default value:
+#'
+#'       SymmetricTree
+#'
+#'     \item min_data_in_leaf
+#'
+#'       GPU only.
+#'       The minimum training samples count in leaf.
+#'       CatBoost will not search for new splits in leaves with samples count less than min_data_in_leaf.
+#'       This parameter is used only for Depthwise and Lossguide growing policies.
+#'
+#'       Default value:
+#'
+#'       1
+#'
+#'     \item max_leaves
+#'
+#'       GPU only. The maximum leaf count in resulting tree. Used only for Lossguide growing policy.
+#'       This parameter is used only for Lossguide growing policy.
+#'
+#'       Default value:
+#'
+#'       31
+#'
+#'     \item score_function
+#'       GPU only. Score that is used during tree construction to select the next tree split.
+#'
+#'       Possible values:
+#'       \itemize{
+#'         \item L2
+#'         \item Correlation
+#'         \item NewtonL2
+#'         \item NewtonCorrelation
+#'       }
+#'
+#'       Default value:
+#'
+#'       Correlation
+#'
+#'       For growing policy Lossguide default is NewtonL2.
+#'
 #'     \item l2_leaf_reg
 #'
 #'       L2 regularization coefficient. Used for leaf value calculation.

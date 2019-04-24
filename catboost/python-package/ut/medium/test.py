@@ -20,7 +20,7 @@ from catboost import (
     cv,
     sum_models,
     train,)
-from catboost.eval.catboost_evaluation import CatboostEvaluation
+from catboost.eval.catboost_evaluation import CatboostEvaluation, EvalType
 from catboost.utils import eval_metric, create_cd, get_roc_curve, select_threshold
 import os.path
 from pandas import read_table, DataFrame, Series, Categorical
@@ -78,6 +78,10 @@ QUERYWISE_TEST_PAIRS_FILE = data_file('querywise', 'test.pairs')
 AIRLINES_5K_TRAIN_FILE = data_file('airlines_5K', 'train')
 AIRLINES_5K_TEST_FILE = data_file('airlines_5K', 'test')
 AIRLINES_5K_CD_FILE = data_file('airlines_5K', 'cd')
+
+BLACK_FRIDAY_TRAIN_FILE = data_file('black_friday', 'train')
+BLACK_FRIDAY_TEST_FILE = data_file('black_friday', 'test')
+BLACK_FRIDAY_CD_FILE = data_file('black_friday', 'cd')
 
 OUTPUT_MODEL_PATH = 'model.bin'
 OUTPUT_COREML_MODEL_PATH = 'model.mlmodel'
@@ -4173,7 +4177,16 @@ def test_multiclass_grow_policy(task_type, grow_policy):
         return
     pool = Pool(CLOUDNESS_TRAIN_FILE, column_description=CLOUDNESS_CD_FILE)
     # MultiClass
-    classifier = CatBoostClassifier(iterations=2, loss_function='MultiClass', thread_count=8, task_type=task_type, devices='0', boosting_type='Plain', grow_policy=grow_policy)
+    classifier = CatBoostClassifier(
+        iterations=2,
+        loss_function='MultiClass',
+        thread_count=8,
+        task_type=task_type,
+        devices='0',
+        boosting_type='Plain',
+        grow_policy=grow_policy,
+        score_function='Correlation'
+    )
     classifier.fit(pool)
     output_model_path = test_output_path(OUTPUT_MODEL_PATH)
     classifier.save_model(output_model_path)
@@ -4201,3 +4214,108 @@ def test_baseline():
     baseline = np.array([[1, 3, 2, 1, 2]], dtype=np.float32).reshape(5, 1)
     input_pool.set_baseline(baseline)
     assert (input_pool.get_baseline() == baseline).all()
+
+
+EVAL_TYPES = ['All', 'SeqRem', 'SeqAdd', 'SeqAddAndAll']
+EVAL_PROBLEMS = ['binclass', 'multiclass', 'regression', 'ranking']
+
+
+@pytest.mark.parametrize('eval_type', EVAL_TYPES, ids=['eval_type=%s' % eval_type for eval_type in EVAL_TYPES])
+@pytest.mark.parametrize('problem', EVAL_PROBLEMS, ids=['problem=%s' % problem for problem in EVAL_PROBLEMS])
+def test_eval_features(task_type, eval_type, problem):
+    if problem == 'binclass':
+        loss_function = 'Logloss'
+        eval_metrics = ['AUC']
+        train_file = TRAIN_FILE
+        cd_file = CD_FILE
+        features_to_eval = [6, 7, 8]
+        group_column = None
+    elif problem == 'multiclass':
+        loss_function = 'MultiClass'
+        eval_metrics = ['Accuracy']
+        train_file = CLOUDNESS_TRAIN_FILE
+        cd_file = CLOUDNESS_CD_FILE
+        features_to_eval = [101, 102, 105, 106]
+        group_column = None
+    elif problem == 'regression':
+        loss_function = 'RMSE'
+        eval_metrics = ['RMSE']
+        train_file = TRAIN_FILE
+        cd_file = CD_FILE
+        features_to_eval = [6, 7, 8]
+        group_column = None
+    elif problem == 'ranking':
+        loss_function = 'QueryRMSE'
+        eval_metrics = ['NDCG']
+        train_file = QUERYWISE_TRAIN_FILE
+        cd_file = QUERYWISE_CD_FILE
+        features_to_eval = [20, 22, 23, 25, 26]
+        group_column = 1
+
+    learn_params = {
+        'task_type': task_type,
+        'devices': '0',
+        'iterations': 20,
+        'learning_rate': 0.5,
+        'logging_level': 'Silent',
+        'loss_function': loss_function,
+        'boosting_type': 'Plain',
+        'allow_const_label': True
+    }
+    evaluator = CatboostEvaluation(
+        train_file,
+        fold_size=50,
+        fold_count=2,
+        column_description=cd_file,
+        group_column=group_column,
+        partition_random_seed=0
+    )
+    results = evaluator.eval_features(
+        learn_config=learn_params,
+        features_to_eval=features_to_eval,
+        eval_type=EvalType(eval_type),
+        eval_metrics=eval_metrics
+    )
+
+    canonical_files = []
+    for metric_name, metric_results in results.get_results().items():
+        name = 'eval_results_{}.csv'.format(metric_name.replace(':', '_'))
+        eval_results_file_name = test_output_path(name)
+        metric_results.get_baseline_comparison().to_csv(eval_results_file_name)
+        canonical_files.append(local_canonical_file(eval_results_file_name))
+
+    return canonical_files
+
+
+def test_eval_features_with_file_header():
+    learn_params = {
+        'iterations': 20,
+        'learning_rate': 0.5,
+        'logging_level': 'Silent',
+        'loss_function': 'RMSE',
+        'boosting_type': 'Plain',
+        'allow_const_label': True
+    }
+
+    evaluator = CatboostEvaluation(
+        BLACK_FRIDAY_TRAIN_FILE,
+        fold_size=50,
+        fold_count=2,
+        column_description=BLACK_FRIDAY_CD_FILE,
+        has_header=True,
+        partition_random_seed=0
+    )
+
+    results = evaluator.eval_features(
+        learn_config=learn_params,
+        features_to_eval=[6, 7, 8],
+        eval_type=EvalType('SeqAdd'),
+        eval_metrics=['RMSE']
+    )
+
+    eval_results_file_name = test_output_path('eval_results.csv')
+    logloss_result = results.get_metric_results('RMSE')
+    comparison_results = logloss_result.get_baseline_comparison()
+    comparison_results.to_csv(eval_results_file_name)
+
+    return local_canonical_file(eval_results_file_name)

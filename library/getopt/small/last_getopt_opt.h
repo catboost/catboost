@@ -494,15 +494,17 @@ namespace NLastGetopt {
      */
     struct TFreeArgSpec {
         TFreeArgSpec() = default;
-        TFreeArgSpec(const TString& title, const TString& help = TString(), const TOpt* namedAlias = nullptr)
+        TFreeArgSpec(const TString& title, const TString& help = TString(), bool optional = false, const TOpt* namedAlias = nullptr)
             : Title(title)
             , Help(help)
+            , Optional(optional)
             , NamedAlias(namedAlias)
         {
         }
 
         TString Title;
         TString Help;
+        bool Optional = false;
         const TOpt* NamedAlias = nullptr; //unimplemented yet
     };
 

@@ -1,0 +1,2 @@
+- includes:
+  - ifaddrs.h: contrib/libs/android_ifaddrs/ifaddrs.h

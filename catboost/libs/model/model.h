@@ -703,7 +703,7 @@ public:
     }
 
     /**
-     * Evaluate raw formula predictions for objects. Uses model trees for interval [treeStart, treeEnd)
+     * Evaluate raw formula predictions for objects. Uses model trees from interval [treeStart, treeEnd)
      * @param floatFeatures
      * @param catFeatures vector of vector of TStringBuf with categorical features strings
      * @param treeStart
@@ -744,6 +744,65 @@ public:
         }
         result.Truncate(begin, end);
         return result;
+    }
+
+    /**
+     * Evaluate indexes of leafs at which object are mapped by trees from interval [treeStart, treeEnd).
+     * @param floatFeatures
+     * @param catFeatures vector of TStringBuf with categorical features strings
+     * @param treeStart
+     * @param treeEnd
+     * @return indexes; size should be equal to (treeEnd - treeStart).
+     */
+    void CalcLeafIndexesSingle(
+        TConstArrayRef<float> floatFeatures,
+        TConstArrayRef<TStringBuf> catFeatures,
+        size_t treeStart,
+        size_t treeEnd,
+        TArrayRef<ui32> indexes) const;
+
+    /**
+     * Evaluate indexes of leafs at which object are mapped by all trees of the model.
+     * @param floatFeatures
+     * @param catFeatures vector of TStringBuf with categorical features strings
+     * @return indexes; size should be equal to number of trees in the model.
+     */
+    void CalcLeafIndexesSingle(
+        TConstArrayRef<float> floatFeatures,
+        TConstArrayRef<TStringBuf> catFeatures,
+        TArrayRef<ui32> indexes
+    ) const {
+        CalcLeafIndexesSingle(floatFeatures, catFeatures, 0, ObliviousTrees.TreeSizes.size(), indexes);
+    }
+
+    /**
+     * Evaluate indexes of leafs at which objects are mapped by trees from interval [treeStart, treeEnd).
+     * @param floatFeatures
+     * @param catFeatures vector of vector of TStringBuf with categorical features strings
+     * @param treeStart
+     * @param treeEnd
+     * @return indexes; indexation is [objectIndex * (treeEnd -  treeStrart) + treeIndex]
+     */
+    void CalcLeafIndexes(
+        TConstArrayRef<TConstArrayRef<float>> floatFeatures,
+        TConstArrayRef<TVector<TStringBuf>> catFeatures,
+        size_t treeStart,
+        size_t treeEnd,
+        TArrayRef<ui32> indexes
+    ) const;
+
+    /**
+     * Evaluate indexes of leafs at which objects are mapped by all trees of the model.
+     * @param floatFeatures
+     * @param catFeatures vector of vector of TStringBuf with categorical features strings
+     * @return indexes; indexation is [objectIndex * treeCount + treeIndex]
+     */
+    void CalcLeafIndexes(
+        TConstArrayRef<TConstArrayRef<float>> floatFeatures,
+        TConstArrayRef<TVector<TStringBuf>> catFeatures,
+        TArrayRef<ui32> indexes
+    ) const {
+        CalcLeafIndexes(floatFeatures, catFeatures, 0, ObliviousTrees.TreeSizes.size(), indexes);
     }
 
     /**

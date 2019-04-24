@@ -70,37 +70,40 @@ class catboost_model_ctrs_container(object):
 ###  Model data
 class catboost_model(object):
     float_features_index = [
-        3, 4, 5,
+        0, 1, 3, 4,
     ]
     float_feature_count = 6
     cat_feature_count = 11
-    binary_feature_count = 5
+    binary_feature_count = 8
     tree_count = 2
     float_feature_borders = [
-        [1087, 11356],
-        [1881.5, 2189.5],
-        [44.5],
+        [18.5],
+        [231641.5],
+        [11356],
+        [1862],
     ]
-    tree_depth = [4, 4]
-    tree_split_border = [1, 2, 2, 2, 1, 1, 1, 1]
-    tree_split_feature_index = [0, 1, 0, 3, 4, 2, 3, 1]
-    tree_split_xor_mask = [0, 0, 0, 0, 0, 0, 0, 0]
+    tree_depth = [3, 6]
+    tree_split_border = [1, 1, 1, 1, 1, 1, 1, 2, 1]
+    tree_split_feature_index = [2, 3, 4, 5, 0, 1, 7, 4, 6]
+    tree_split_xor_mask = [0, 0, 0, 0, 0, 0, 0, 0, 0]
     cat_features_index = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     one_hot_cat_feature_index = []
     one_hot_hash_values = [
     ]
     ctr_feature_borders = [
-        [3.99999905, 10.999999],
-        [7.99999905]
+        [10.999999, 12.999999],
+        [2.99999905],
+        [8.99999905],
+        [13.999999]
     ]
 
     ## Aggregated array of leaf values for trees. Each tree is represented by a separate line:
     leaf_values = [
-        0.01999999955296516, 0.007499999832361937, 0, 0, 0, 0, 0, 0, 0.02558823472217602, 0, 0, 0, 0, 0, 0, 0,
-        0.01175999974250793, 0.01052727250050415, 0, -0.0001999999910593034, 0.02339779360812595, 0.02482017149086524, 0, 0.01591102906929, 0, 0, 0, 0, 0, 0, 0, 0.004772058721960467
+        0.01999999955296516, 0, 0.004999999888241291, 0, 0.0247826081417177, 0, 0.00599999986588955, 0,
+        0, 0, -0.0001499999932944775, 0.003470380363463545, 0, 0, -0.0001499999932944775, 0.01156760844676067, 0, 0.007314130275453562, 0, 0.02304875726047787, 0, 0.007314130275453562, 0, 0.0117026084407257, 0, 0, 0, -4.499999798834327e-05, 0, 0, 0, -0.0001858695569083744, 0, 0, 0, 0.01462826055090712, 0, 0, 0, 0, 0, 0, -3.749999832361938e-05, 0.01346434753710809, 0, 0, 0, 0.01247329165524577, 0, 0, 0, 0.02416112479182612, 0, 0, 0, 0.02413580509986337, 0, 0, 0, 0.009504347624726918, 0, 0, 0, 0.007314130275453562, 0, 0.007314130275453562, 0, 0.02149234735704245, 0, 0.007314130275453562, 0, 0.007314130275453562
     ]
     model_ctrs = catboost_model_ctrs_container(
-        used_model_ctrs_count = 2,
+        used_model_ctrs_count = 4,
         compressed_model_ctrs = [
             catboost_compressed_model_ctr(
                 projection = catboost_projection(
@@ -108,16 +111,26 @@ class catboost_model(object):
                     binarized_indexes = []
                 ),
                 model_ctrs = [
-                    catboost_model_ctr(base_hash = 14216163332699387099, base_ctr_type = "Borders", target_border_idx = 0, prior_num = 0, prior_denom = 1, shift = -0, scale = 15)
+                    catboost_model_ctr(base_hash = 14216163332699387099, base_ctr_type = "Borders", target_border_idx = 0, prior_num = 0, prior_denom = 1, shift = -0, scale = 15),
+                    catboost_model_ctr(base_hash = 14216163332699387099, base_ctr_type = "Borders", target_border_idx = 0, prior_num = 0.5, prior_denom = 1, shift = -0, scale = 15)
                 ]
             ),
             catboost_compressed_model_ctr(
                 projection = catboost_projection(
-                    transposed_cat_feature_indexes = [8],
+                    transposed_cat_feature_indexes = [4],
                     binarized_indexes = []
                 ),
                 model_ctrs = [
-                    catboost_model_ctr(base_hash = 16890222057671696975, base_ctr_type = "Counter", target_border_idx = 0, prior_num = 0, prior_denom = 1, shift = -0, scale = 15)
+                    catboost_model_ctr(base_hash = 16890222057671696979, base_ctr_type = "Counter", target_border_idx = 0, prior_num = 0, prior_denom = 1, shift = -0, scale = 15)
+                ]
+            ),
+            catboost_compressed_model_ctr(
+                projection = catboost_projection(
+                    transposed_cat_feature_indexes = [5],
+                    binarized_indexes = []
+                ),
+                model_ctrs = [
+                    catboost_model_ctr(base_hash = 14216163332699387101, base_ctr_type = "Borders", target_border_idx = 0, prior_num = 1, prior_denom = 1, shift = -0, scale = 15)
                 ]
             )
         ],
@@ -131,13 +144,21 @@ class catboost_model(object):
                     ctr_mean_history = [catboost_ctr_mean_history(sum = 1.4013e-44, count = 58), catboost_ctr_mean_history(sum = 1.4013e-45, count = 6), catboost_ctr_mean_history(sum = 1.4013e-45, count = 5), catboost_ctr_mean_history(sum = 4.2039e-45, count = 6), catboost_ctr_mean_history(sum = 0, count = 4), catboost_ctr_mean_history(sum = 2.8026e-45, count = 0), catboost_ctr_mean_history(sum = 7.00649e-45, count = 0)],
                     ctr_total = [10, 58, 1, 6, 1, 5, 3, 6, 0, 4, 2, 0, 5, 0]
                 ),
-                16890222057671696975 :
+                14216163332699387101 :
                 catboost_ctr_value_table(
-                    index_hash_viewer = {18446744073709551615 : 0, 18446744073709551615 : 0, 8473802870189803490 : 2, 7071392469244395075 : 1, 18446744073709551615 : 0, 8806438445905145973 : 3, 619730330622847022 : 0, 18446744073709551615 : 0},
+                    index_hash_viewer = {18446744073709551615 : 0, 18446744073709551615 : 0, 13987540656699198946 : 4, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18089724839685297862 : 5, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 10353740403438739754 : 2, 3922001124998993866 : 0, 13686716744772876732 : 1, 18293943161539901837 : 3, 18446744073709551615 : 0, 18446744073709551615 : 0},
+                    target_classes_count = 2,
+                    counter_denominator = 0,
+                    ctr_mean_history = [catboost_ctr_mean_history(sum = 0, count = 37), catboost_ctr_mean_history(sum = 0, count = 4), catboost_ctr_mean_history(sum = 3.08286e-44, count = 20), catboost_ctr_mean_history(sum = 0, count = 13), catboost_ctr_mean_history(sum = 0, count = 2), catboost_ctr_mean_history(sum = 0, count = 3)],
+                    ctr_total = [0, 37, 0, 4, 22, 20, 0, 13, 0, 2, 0, 3]
+                ),
+                16890222057671696979 :
+                catboost_ctr_value_table(
+                    index_hash_viewer = {7537614347373541888 : 4, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 5903587924673389870 : 1, 18278593470046426063 : 6, 10490918088663114479 : 8, 18446744073709551615 : 0, 407784798908322194 : 10, 5726141494028968211 : 3, 1663272627194921140 : 0, 8118089682304925684 : 5, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 15431483020081801594 : 9, 18446744073709551615 : 0, 18446744073709551615 : 0, 1403990565605003389 : 2, 3699047549849816830 : 11, 14914630290137473119 : 7},
                     target_classes_count = 0,
-                    counter_denominator = 82,
-                    ctr_mean_history = [catboost_ctr_mean_history(sum = 1.68156e-44, count = 6), catboost_ctr_mean_history(sum = 1.14906e-43, count = 1)],
-                    ctr_total = [12, 6, 82, 1]
+                    counter_denominator = 28,
+                    ctr_mean_history = [catboost_ctr_mean_history(sum = 4.2039e-45, count = 28), catboost_ctr_mean_history(sum = 2.66247e-44, count = 4), catboost_ctr_mean_history(sum = 2.8026e-44, count = 2), catboost_ctr_mean_history(sum = 5.60519e-45, count = 10), catboost_ctr_mean_history(sum = 4.2039e-45, count = 1), catboost_ctr_mean_history(sum = 7.00649e-45, count = 2)],
+                    ctr_total = [3, 28, 19, 4, 20, 2, 4, 10, 3, 1, 5, 2]
                 )
             }
         )

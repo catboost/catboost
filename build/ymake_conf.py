@@ -369,7 +369,7 @@ class Options(object):
         self.toolchain_params = self.options.toolchain_params
 
         self.presets = parse_presets(self.options.presets)
-        userify_presets(self.presets, ('CFLAGS', 'CXXFLAGS', 'CONLYFLAGS'))
+        userify_presets(self.presets, ('CFLAGS', 'CXXFLAGS', 'CONLYFLAGS', 'LDFLAGS'))
 
     Instance = None
 
@@ -558,7 +558,7 @@ class Build(object):
         else:
             def find_svn():
                 for i in range(0, 3):
-                    for path in (['.svn', 'wc.db'], ['.svn', 'entries'], ['.git', 'logs', 'HEAD'], ['.arc', 'TREE']):
+                    for path in (['.svn', 'wc.db'], ['.svn', 'entries'], ['.git', 'logs', 'HEAD']):
                         path_parts = [os.pardir] * i + path
                         full_path = os.path.join(self.arcadia.root, *path_parts)
                         # HACK(somov): No "normpath" here. ymake fails with the "source file name is outside the build tree" error
@@ -566,6 +566,14 @@ class Build(object):
                         if os.path.exists(full_path):
                             out_path = os.path.join('${ARCADIA_ROOT}', *path_parts)
                             return '${input;hide:"%s"}' % out_path
+
+                # Special processing for arc repository since .arc may be a symlink.
+                dot_arc = os.path.realpath(os.path.join(self.arcadia.root, '.arc'))
+                full_path = os.path.join(dot_arc, 'TREE')
+                if os.path.exists(full_path):
+                    out_path = os.path.join('${ARCADIA_ROOT}', os.path.relpath(full_path, self.arcadia.root))
+                    return '${input;hide:"%s"}' % out_path
+
                 return ''
 
             emit('SVN_DEPENDS', find_svn())
@@ -1141,23 +1149,6 @@ class GnuCompiler(Compiler):
         if self.target.is_x86_64:
             self.c_flags.append('-m64')
 
-        enable_sse = self.target.is_intel
-        if self.target.is_ios:
-            # TODO(somov): Расследовать.
-            # contrib/libs/crcutil не собирается под clang*-ios-i386 со включенным SSE.
-            # multiword_64_64_gcc_i386_mmx.cc:98:5: error: inline assembly requires more registers than available
-            enable_sse = False
-
-        if enable_sse:
-            # TODO(somov): Удалить define-ы и сборочный флаг
-            gcc_sse_opts = {'-msse': '-DSSE_ENABLED=1', '-msse2': '-DSSE2_ENABLED=1', '-msse3': '-DSSE3_ENABLED=1', '-mssse3': '-DSSSE3_ENABLED=1'}
-            if not is_positive('NOSSE'):
-                for opt, define in gcc_sse_opts.iteritems():
-                    self.c_flags.append(opt)
-                    self.c_defines.append(define)
-            else:
-                self.c_flags.append('-no-sse')
-
         self.debug_info_flags = ['-g']
         if self.target.is_linux:
             self.debug_info_flags.append('-ggnu-pubnames')
@@ -1263,6 +1254,10 @@ class GnuCompiler(Compiler):
             when ($NOGCCSTACKCHECK != "yes") {
                 FSTACK += -fstack-check
             }
+            ### @usage: MSVC_FLAGS([GLOBAL compiler_flag]* compiler_flags)
+            ###
+            ### Add the specified flags to the compilation line of C/C++files.
+            ### Flags apply only if the compiler used is MSVC (cl.exe)
             macro MSVC_FLAGS(Flags...) {
                 # TODO: FIXME
                 ENABLE(UNUSED_MACRO)
@@ -1427,7 +1422,7 @@ class LD(Linker):
             else:
                 self.ar = 'ar'
 
-        self.ld_flags = filter(None, [preset('LDFLAGS')])
+        self.ld_flags = []
 
         if target.is_linux:
             self.ld_flags.extend(['-ldl', '-lrt', '-Wl,--no-as-needed'])
@@ -1528,7 +1523,7 @@ class LD(Linker):
         emit('AR_TOOL', self.ar)
         emit('AR_TYPE', 'AR' if 'libtool' not in self.ar else 'LIBTOOL')
 
-        append('LDFLAGS', self.ld_flags)
+        append('LDFLAGS', '$USER_LDFLAGS', self.ld_flags)
         append('LDFLAGS_GLOBAL', '')
 
         emit('LD_STRIP_FLAG', self.ld_stripflag)
@@ -1811,10 +1806,6 @@ class MSVCCompiler(MSVC, Compiler):
             '__STDC_CONSTANT_MACROS',
             '__STDC_FORMAT_MACROS',
             '_USING_V110_SDK71_',
-            'SSE_ENABLED=1',
-            'SSE2_ENABLED=1',
-            'SSE3_ENABLED=1',
-            'SSSE3_ENABLED=1',
             '_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES',
         ]
 
@@ -1968,6 +1959,10 @@ class MSVCCompiler(MSVC, Compiler):
             emit('ML_WRAPPER')
 
         emit_big('''
+            ### @usage: MSVC_FLAGS([GLOBAL compiler_flag]* compiler_flags)
+            ###
+            ### Add the specified flags to the compilation line of C/C++files.
+            ### Flags apply only if the compiler used is MSVC (cl.exe)"
             macro MSVC_FLAGS(Flags...) {
                 CFLAGS($Flags)
             }

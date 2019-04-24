@@ -388,11 +388,11 @@ void CrossValidate(
     const ui32 cvTrainSize = cvParams.Inverted ? oneFoldSize : oneFoldSize * (cvParams.FoldCount - 1);
     SetDataDependentDefaults(
         cvTrainSize,
-        /*hasLearnTarget*/trainingData->MetaInfo.HasTarget,
+        trainingData->TargetData.Get()->GetTarget(),
+        Nothing(),
         trainingData->ObjectsData->GetQuantizedFeaturesInfo()
             ->CalcMaxCategoricalFeaturesUniqueValuesCountOnLearn(),
         /*testPoolSize=*/allDataObjectCount - cvTrainSize,
-        /*hasTestLabels=*/trainingData->MetaInfo.HasTarget,
         /*hasTestPairs*/trainingData->MetaInfo.HasPairs,
         &outputFileOptions.UseBestModel,
         &catBoostOptions
@@ -430,7 +430,6 @@ void CrossValidate(
 
 
     TVector<THolder<IMetric>> metrics = CreateMetrics(
-        catBoostOptions.LossFunctionDescription,
         catBoostOptions.MetricOptions,
         evalMetricDescriptor,
         approxDimension

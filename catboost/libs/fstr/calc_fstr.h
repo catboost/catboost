@@ -156,8 +156,6 @@ TVector<TString> GetMaybeGeneratedModelFeatureIds(
     const TFullModel& model,
     const NCB::TDataProviderPtr dataset); // can be nullptr
 
-bool TryGetLossDescription(const TFullModel& model, NCatboostOptions::TLossDescription& lossDescription);
-
 bool IsGroupwiseLearnedModel(const TFullModel& model);
 
 EFstrType GetFeatureImportanceType(

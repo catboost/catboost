@@ -25,7 +25,8 @@ enum class ESamplingUnit {
 
 enum class EFeatureType {
     Float,
-    Categorical
+    Categorical,
+    Text
 };
 
 enum EErrorType {

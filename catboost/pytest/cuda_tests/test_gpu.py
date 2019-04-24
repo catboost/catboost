@@ -1,5 +1,4 @@
 import catboost
-import csv
 import filecmp
 import json
 import numpy as np
@@ -8,22 +7,29 @@ import pytest
 import re
 import yatest.common
 
-from copy import deepcopy
 from catboost_pytest_lib import (
     append_params_to_cmdline,
     apply_catboost,
+    compare_evals_with_precision,
+    compare_metrics_with_diff,
     data_file,
     execute,
     execute_catboost_fit,
+    format_crossvalidation,
     get_limited_precision_dsv_diff_tool,
     local_canonical_file,
-    format_crossvalidation
 )
 
 CATBOOST_PATH = yatest.common.binary_path("catboost/app/catboost")
 BOOSTING_TYPE = ['Ordered', 'Plain']
 MULTICLASS_LOSSES = ['MultiClass', 'MultiClassOneVsAll']
 NONSYMMETRIC = ['Lossguide', 'Depthwise']
+GROW_POLICIES = ['SymmetricTree'] + NONSYMMETRIC
+SCORE_FUNCTIONS = [
+    'L2', 'Correlation',
+    'NewtonL2', 'NewtonCorrelation',
+    'SolarL2', 'LOOL2'
+]
 
 
 def generate_random_labeled_set(nrows, nvals, labels, seed=20181219, prng=None):
@@ -32,50 +38,6 @@ def generate_random_labeled_set(nrows, nvals, labels, seed=20181219, prng=None):
     label = prng.choice(labels, [nrows, 1])
     feature = prng.random_sample([nrows, nvals])
     return np.concatenate([label, feature], axis=1)
-
-
-BY_CLASS_METRICS = ['AUC', 'Precision', 'Recall', 'F1']
-
-
-def compare_evals(custom_metric, fit_eval, calc_eval, eps=1e-7):
-    csv_fit = csv.reader(open(fit_eval, "r"), dialect='excel-tab')
-    csv_calc = csv.reader(open(calc_eval, "r"), dialect='excel-tab')
-
-    head_fit = next(csv_fit)
-    head_calc = next(csv_calc)
-
-    if isinstance(custom_metric, basestring):
-        custom_metric = [custom_metric]
-
-    for metric_name in deepcopy(custom_metric):
-        if metric_name in BY_CLASS_METRICS:
-            custom_metric.remove(metric_name)
-
-            for fit_metric_name in head_fit:
-                if fit_metric_name[:len(metric_name)] == metric_name:
-                    custom_metric.append(fit_metric_name)
-
-    col_idx_fit = {}
-    col_idx_calc = {}
-
-    for metric_name in custom_metric:
-        col_idx_fit[metric_name] = head_fit.index(metric_name)
-        col_idx_calc[metric_name] = head_calc.index(metric_name)
-
-    while True:
-        try:
-            line_fit = next(csv_fit)
-            line_calc = next(csv_calc)
-            for metric_name in custom_metric:
-                fit_value = float(line_fit[col_idx_fit[metric_name]])
-                calc_value = float(line_calc[col_idx_calc[metric_name]])
-                max_abs = max(abs(fit_value), abs(calc_value))
-                err = abs(fit_value - calc_value) / max_abs if max_abs > 0 else 0
-                if err > eps:
-                    raise Exception('{}, iter {}: fit vs calc = {} vs {}, err = {} > eps = {}'.format(
-                        metric_name, line_fit[0], fit_value, calc_value, err, eps))
-        except StopIteration:
-            break
 
 
 def diff_tool(threshold=2e-7):
@@ -1067,6 +1029,53 @@ def test_quantized_pool(loss_function, boosting_type):
     return [local_canonical_file(output_eval_path, diff_tool=diff_tool(1.e-5))]
 
 
+def execute_fit_for_test_quantized_pool(loss_function, pool_path, test_path, cd_path, eval_path,
+                                        border_count=128, other_options=()):
+    model_path = yatest.common.test_output_path('model.bin')
+
+    params = (
+        '--use-best-model', 'false',
+        '--loss-function', loss_function,
+        '-f', pool_path,
+        '-t', test_path,
+        '--cd', cd_path,
+        '-i', '10',
+        '-w', '0.03',
+        '-T', '4',
+        '-x', str(border_count),
+        '--feature-border-type', 'GreedyLogSum',
+        '-m', model_path,
+        '--eval-file', eval_path,
+    )
+    fit_catboost_gpu(params + other_options)
+
+
+@pytest.mark.xfail(reason='TODO(kirillovs): Not yet implemented. MLTOOLS-2636.')
+def test_quantized_pool_with_large_grid():
+    test_path = data_file('querywise', 'test')
+
+    tsv_eval_path = yatest.common.test_output_path('tsv.eval')
+    execute_fit_for_test_quantized_pool(
+        loss_function='PairLogitPairwise',
+        pool_path=data_file('querywise', 'train'),
+        test_path=test_path,
+        cd_path=data_file('querywise', 'train.cd.query_id'),
+        eval_path=tsv_eval_path,
+        border_count=1024
+    )
+
+    quantized_eval_path = yatest.common.test_output_path('quantized.eval')
+    execute_fit_for_test_quantized_pool(
+        loss_function='PairLogitPairwise',
+        pool_path='quantized://' + data_file('querywise', 'train.quantized_x1024'),
+        test_path='quantized://' + data_file('querywise', 'test.quantized_x1024'),
+        cd_path=data_file('querywise', 'train.cd.query_id'),
+        eval_path=quantized_eval_path
+    )
+
+    assert (compare_evals_with_precision(tsv_eval_path, quantized_eval_path))
+
+
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 @pytest.mark.parametrize('used_ram_limit', ['1Kb', '550Mb'])
 def test_allow_writing_files_and_used_ram_limit(boosting_type, used_ram_limit):
@@ -1362,7 +1371,7 @@ def test_class_weight_multiclass(loss_function):
     fit_catboost_gpu(fit_params)
 
     eval_metric(model_path, METRIC_CHECKING_MULTICLASS, test_path, cd_path, eval_error_path)
-    compare_evals(METRIC_CHECKING_MULTICLASS, test_error_path, eval_error_path)
+    compare_metrics_with_diff(METRIC_CHECKING_MULTICLASS, test_error_path, eval_error_path)
 
     return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
 
@@ -1399,7 +1408,7 @@ def test_multi_leaf_estimation_method(leaf_estimation_method):
     fit_catboost_gpu(fit_params)
 
     eval_metric(output_model_path, METRIC_CHECKING_MULTICLASS, test_path, cd_path, eval_test_error_path)
-    compare_evals(METRIC_CHECKING_MULTICLASS, test_error_path, eval_test_error_path)
+    compare_metrics_with_diff(METRIC_CHECKING_MULTICLASS, test_error_path, eval_test_error_path)
 
     return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
 
@@ -1445,7 +1454,7 @@ def test_multiclass_baseline(loss_function):
     fit_params['--test-err-log'] = test_error_path
     fit_catboost_gpu(fit_params)
 
-    compare_evals(METRIC_CHECKING_MULTICLASS, test_error_path, eval_error_path)
+    compare_metrics_with_diff(METRIC_CHECKING_MULTICLASS, test_error_path, eval_error_path)
     return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
 
 
@@ -1519,7 +1528,7 @@ def test_ctr_buckets():
 
     eval_metric(model_path, METRIC_CHECKING_MULTICLASS, test_path, cd_path, eval_error_path)
 
-    compare_evals(METRIC_CHECKING_MULTICLASS, test_error_path, eval_error_path)
+    compare_metrics_with_diff(METRIC_CHECKING_MULTICLASS, test_error_path, eval_error_path)
     return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
 
 
@@ -1554,7 +1563,7 @@ def test_multi_targets(loss_function):
 
     eval_metric(model_path, METRIC_CHECKING_MULTICLASS, test_path, cd_path, eval_error_path)
 
-    compare_evals(METRIC_CHECKING_MULTICLASS, test_error_path, eval_error_path)
+    compare_metrics_with_diff(METRIC_CHECKING_MULTICLASS, test_error_path, eval_error_path)
     return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
 
 
@@ -1604,7 +1613,7 @@ def test_custom_loss_for_multiclassification():
     fit_catboost_gpu(fit_params)
 
     eval_metric(model_path, custom_metric_string, test_path, cd_path, eval_error_path)
-    compare_evals(custom_metric, test_error_path, eval_error_path)
+    compare_metrics_with_diff(custom_metric, test_error_path, eval_error_path)
 
     return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
 
@@ -1663,7 +1672,7 @@ def test_custom_loss_for_classification(boosting_type):
     fit_catboost_gpu(fit_params)
 
     eval_metric(model_path, custom_metric_string, test_path, cd_path, eval_error_path)
-    compare_evals(custom_metric, test_error_path, eval_error_path, 1e-6)
+    compare_metrics_with_diff(custom_metric, test_error_path, eval_error_path, 1e-6)
 
     return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
 
@@ -1699,7 +1708,7 @@ def test_class_names_multiclass(loss_function):
     fit_catboost_gpu(fit_params)
 
     eval_metric(model_path, METRIC_CHECKING_MULTICLASS, test_path, cd_path, eval_error_path)
-    compare_evals(METRIC_CHECKING_MULTICLASS, test_error_path, eval_error_path)
+    compare_metrics_with_diff(METRIC_CHECKING_MULTICLASS, test_error_path, eval_error_path)
 
     return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
 
@@ -1735,7 +1744,7 @@ def test_lost_class(loss_function):
     fit_catboost_gpu(fit_params)
 
     eval_metric(model_path, METRIC_CHECKING_MULTICLASS, test_path, cd_path, eval_error_path)
-    compare_evals(METRIC_CHECKING_MULTICLASS, test_error_path, eval_error_path)
+    compare_metrics_with_diff(METRIC_CHECKING_MULTICLASS, test_error_path, eval_error_path)
 
     return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
 
@@ -1771,7 +1780,7 @@ def test_class_weight_with_lost_class():
     fit_catboost_gpu(fit_params)
 
     eval_metric(model_path, METRIC_CHECKING_MULTICLASS, test_path, cd_path, eval_error_path)
-    compare_evals(METRIC_CHECKING_MULTICLASS, test_error_path, eval_error_path)
+    compare_metrics_with_diff(METRIC_CHECKING_MULTICLASS, test_error_path, eval_error_path)
 
     return [local_canonical_file(eval_error_path)]
 
@@ -1818,9 +1827,9 @@ def test_eval_metrics_multiclass(metric, loss_function, dataset, metric_period):
 
     idx_test_metric = 1 if metric == loss_function else 2
 
-    first_metrics = np.round(np.loadtxt(test_error_path, skiprows=1)[:, idx_test_metric], 5)
-    second_metrics = np.round(np.loadtxt(eval_error_path, skiprows=1)[:, 1], 5)
-    assert np.all(first_metrics == second_metrics)
+    first_metrics = np.loadtxt(test_error_path, skiprows=1)[:, idx_test_metric]
+    second_metrics = np.loadtxt(eval_error_path, skiprows=1)[:, 1]
+    assert np.allclose(first_metrics, second_metrics, atol=1e-5)
     return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
 
 
@@ -1909,7 +1918,7 @@ def test_fit_multiclass_with_class_names():
 
     eval_metric(model_path, METRIC_CHECKING_MULTICLASS, test_path, cd_path, eval_error_path)
 
-    compare_evals(METRIC_CHECKING_MULTICLASS, test_error_path, eval_error_path)
+    compare_metrics_with_diff(METRIC_CHECKING_MULTICLASS, test_error_path, eval_error_path)
 
     return [local_canonical_file(test_error_path)]
 
@@ -1951,7 +1960,7 @@ def test_extract_multiclass_labels_from_class_names():
     fit_catboost_gpu(fit_params)
 
     eval_metric(model_path, METRIC_CHECKING_MULTICLASS, test_path, cd_path, eval_error_path)
-    compare_evals(METRIC_CHECKING_MULTICLASS, test_error_path, eval_error_path)
+    compare_metrics_with_diff(METRIC_CHECKING_MULTICLASS, test_error_path, eval_error_path)
 
     py_catboost = catboost.CatBoost()
     py_catboost.load_model(model_path)
@@ -2100,15 +2109,6 @@ def test_eval_result_on_different_pool_type():
     return [local_canonical_file(output_eval_path)]
 
 
-def compare_evals_with_precision(fit_eval, calc_eval):
-    array_fit = np.genfromtxt(fit_eval, delimiter='\t', skip_header=True)
-    array_calc = np.genfromtxt(calc_eval, delimiter='\t', skip_header=True)
-    if open(fit_eval, "r").readline().split()[:-1] != open(calc_eval, "r").readline().split():
-        return False
-    array_fit = np.delete(array_fit, np.s_[-1], 1)
-    return np.all(np.isclose(array_fit, array_calc, rtol=1e-6))
-
-
 def test_convert_model_to_json_without_cat_features():
     output_model_path = yatest.common.test_output_path('model.json')
     output_eval_path = yatest.common.test_output_path('test.eval')
@@ -2224,20 +2224,6 @@ def test_ctr_target_quantization(border_count, boosting_type):
     return [local_canonical_file(output_eval_path, diff_tool=diff_tool())]
 
 
-def test_train_on_quantized_pool_with_large_grid():
-    # Dataset with 2 random columns, first is Target, second is Num, used Uniform grid with 10000
-    # borders
-    #
-    # There are 20 rows in a dataset.
-
-    params = {
-        '-f': 'quantized://' + data_file('quantized_with_large_grid', 'train.qbin'),
-        '-t': 'quantized://' + data_file('quantized_with_large_grid', 'test.qbin'),
-        '-i': '10'
-    }
-    fit_catboost_gpu(params)
-
-
 @pytest.mark.parametrize('grow_policy', NONSYMMETRIC)
 def test_apply_with_grow_policy(grow_policy):
     output_model_path = yatest.common.test_output_path('model.bin')
@@ -2261,10 +2247,120 @@ def test_apply_with_grow_policy(grow_policy):
         '-m': output_model_path,
         '--grow-policy': grow_policy,
         '--eval-file': test_eval_path,
-        '--output-columns': 'RawFormulaVal'
+        '--output-columns': 'RawFormulaVal',
+        '--counter-calc-method': 'SkipTest',
     }
 
     fit_catboost_gpu(params)
     apply_catboost(output_model_path, test_file, cd_file, calc_eval_path, output_columns=['RawFormulaVal'])
-    # TODO(noxoomo, kirillovs): fix it
-    assert(compare_evals_with_precision(test_eval_path, calc_eval_path))
+    assert(compare_evals_with_precision(test_eval_path, calc_eval_path, skip_last_column_in_fit=False))
+
+
+@pytest.mark.parametrize('loss_function', ('YetiRank', 'YetiRankPairwise'))
+def test_yetirank_default_metric(loss_function):
+    test_error_path = yatest.common.test_output_path('test_error.tsv')
+
+    train_file = data_file('black_friday', 'train')
+    test_file = data_file('black_friday', 'test')
+    cd_file = data_file('black_friday', 'cd')
+
+    params = [
+        '--loss-function', loss_function,
+        '--has-header',
+        '-f', train_file,
+        '-t', test_file,
+        '--column-description', cd_file,
+        '--boosting-type', 'Plain',
+        '-i', '10',
+        '-T', '4',
+        '--test-err-log', test_error_path,
+    ]
+
+    fit_catboost_gpu(params)
+
+    diff_precision = 2e-3 if loss_function == 'YetiRankPairwise' else 1e-5
+    return [local_canonical_file(test_error_path, diff_tool=diff_tool(diff_precision))]
+
+
+def is_valid_gpu_params(boosting_type, grow_policy, score_function, loss_func):
+    correlation_scores = ['Correlation', 'NewtonCorrelation']
+    second_order_scores = ['NewtonL2', 'NewtonCorrelation']
+
+    is_correct = True
+
+    # compatibility with ordered boosting
+    if (grow_policy in NONSYMMETRIC) or (score_function not in correlation_scores) or (loss_func in MULTICLASS_LOSSES):
+        is_correct = boosting_type in ['Plain', 'Default']
+
+    if loss_func in MULTICLASS_LOSSES and score_function in second_order_scores:
+        is_correct = False
+
+    return is_correct
+
+
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE + ['Default'])
+@pytest.mark.parametrize('grow_policy', GROW_POLICIES)
+@pytest.mark.parametrize('score_function', SCORE_FUNCTIONS)
+@pytest.mark.parametrize('loss_func', ['RMSE', 'Logloss', 'MultiClass', 'YetiRank'])
+def test_grow_policies(boosting_type, grow_policy, score_function, loss_func):
+    learn_error_path = yatest.common.test_output_path('learn_error.tsv')
+    test_error_path = yatest.common.test_output_path('test_error.tsv')
+    model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+
+    if loss_func in ['RMSE', 'Logloss']:
+        learn = data_file('adult', 'train_small')
+        test = data_file('adult', 'test_small')
+        cd = data_file('adult', 'train.cd')
+    elif loss_func == 'MultiClass':
+        learn = data_file('cloudness_small', 'train_small')
+        test = data_file('cloudness_small', 'test_small')
+        cd = data_file('cloudness_small', 'train.cd')
+    elif loss_func == 'YetiRank':
+        learn = data_file('querywise', 'train')
+        test = data_file('querywise', 'test')
+        cd = data_file('querywise', 'train.cd')
+    else:
+        assert False
+
+    params = {
+        '--loss-function': loss_func,
+        '--grow-policy': grow_policy,
+        '--score-function': score_function,
+        '-m': model_path,
+        '-f': learn,
+        '-t': test,
+        '--column-description': cd,
+        '-i': '20',
+        '-T': '4',
+        '--learn-err-log': learn_error_path,
+        '--test-err-log': test_error_path,
+        '--eval-file': output_eval_path,
+        '--use-best-model': 'false',
+    }
+
+    if boosting_type != 'Default':
+        params['--boosting-type'] = boosting_type
+
+    try:
+        fit_catboost_gpu(params)
+    except Exception:
+        assert not is_valid_gpu_params(boosting_type, grow_policy, score_function, loss_func)
+        return
+
+    assert is_valid_gpu_params(boosting_type, grow_policy, score_function, loss_func)
+
+    formula_predict_path = yatest.common.test_output_path('predict_test.eval')
+    calc_cmd = (
+        CATBOOST_PATH,
+        'calc',
+        '--input-path', test,
+        '--column-description', cd,
+        '-m', model_path,
+        '--output-path', formula_predict_path
+    )
+    execute(calc_cmd)
+    assert (compare_evals_with_precision(output_eval_path, formula_predict_path, 1e-4))
+
+    return [local_canonical_file(learn_error_path, diff_tool=diff_tool()),
+            local_canonical_file(test_error_path, diff_tool=diff_tool())]

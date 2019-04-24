@@ -1,6 +1,6 @@
 #include "dot_product.h"
 
-#include <library/sse2neon/sse_adhoc.h>
+#include <library/sse/sse.h>
 #include <util/system/platform.h>
 #include <util/system/compiler.h>
 #include <util/generic/utility.h>
@@ -370,7 +370,7 @@ TTriWayDotProduct<float> TriWayDotProduct(const float* lhs, const float* rhs, ui
     return result;
 }
 
-#endif // _sse_
+#endif // ARCADIA_SSE
 
 i64 DotProduct(const i32* lhs, const i32* rhs, ui32 length) noexcept {
     /*

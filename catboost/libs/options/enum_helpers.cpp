@@ -235,7 +235,7 @@ bool IsPlainOnlyModeLoss(ELossFunction lossFunction) {
     );
 }
 
-bool ShouldGenerateYetiRankPairs(ELossFunction lossFunction) {
+bool IsYetiRankLossFunction(ELossFunction lossFunction) {
     return (
         lossFunction == ELossFunction::YetiRank ||
         lossFunction == ELossFunction::YetiRankPairwise
@@ -307,5 +307,12 @@ bool ShouldSkipFstrGrowPolicy(EGrowPolicy growPolicy) {
     return (
         growPolicy == EGrowPolicy::Depthwise ||
         growPolicy == EGrowPolicy::Lossguide
+    );
+}
+
+bool IsPlainOnlyModeScoreFunction(EScoreFunction scoreFunction) {
+    return (
+        scoreFunction != EScoreFunction::Correlation &&
+        scoreFunction != EScoreFunction::NewtonCorrelation
     );
 }

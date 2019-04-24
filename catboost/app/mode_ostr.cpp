@@ -56,6 +56,9 @@ int mode_ostr(int argc, const char* argv[]) {
     parser.SetFreeArgsNum(0);
     NLastGetopt::TOptsParseResult parserResult{&parser, argc, argv};
 
+    NCatboostOptions::ValidatePoolParams(params.LearnSetPath, params.DsvPoolFormatParams);
+    NCatboostOptions::ValidatePoolParams(params.TestSetPath, params.DsvPoolFormatParams);
+
     TFullModel model = ReadModel(params.ModelFileName, params.ModelFormat);
 
     //TODO(eermishkina): support non symmetric trees

@@ -1,4 +1,25 @@
-# Release 0.14
+# Release 0.14.2
+
+## New features
+- Add `has_header` parameter to [`CatboostEvaluation`](https://github.com/catboost/catboost/blob/2f35e0366c0bb6c1b44be89fda0a02fe12f84513/catboost/python-package/catboost/eval/catboost_evaluation.py#L30) class.
+
+## Breaking changes
+- Change output feature indices separator (`:` to `;`) in the `CatboostEvaluation` class.
+
+# Release 0.14.1
+
+## Breaking changes
+- Changed default value for `--counter-calc-method` option to `SkipTest`
+
+## New features:
+- Add guid to trained models. You can access it in Python using [`get_metadata`](https://catboost.ai/docs/concepts/python-reference_catboost_metadata.html) function, for example `print catboost_model.get_metadata()['model_guid']`
+
+## Bug fixes and other changes:
+- Compatibility with glibc 2.12
+- Improved embedded documentation
+- Improved warning and error messages
+
+# Release 0.14.0
 
 ## New features:
 

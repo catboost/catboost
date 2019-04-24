@@ -2219,6 +2219,23 @@ class CatBoostClassifier(CatBoost):
         CPU only. Maximum allowed fraction of conflicting non-default values for features in exclusive features bundle.
         Should be a real value in [0, 1) interval.
 
+    grow_policy : string, [SymmetricTree,Lossguide,Depthwise], [default=SymmetricTree]
+        GPU only. The tree growing policy. It describes how to perform greedy tree construction.
+
+    min_data_in_leaf : int, [default=1].
+        GPU only.
+        The minimum training samples count in leaf.
+        CatBoost will not search for new splits in leaves with samples count less than min_data_in_leaf.
+        This parameter is used only for Depthwise and Lossguide growing policies.
+
+    max_leaves : int, [default=31],
+        GPU only. The maximum leaf count in resulting tree.
+        This parameter is used only for Lossguide growing policy.
+
+    score_function : string, possible values L2, Correlation, NewtonL2, NewtonCorrelation, [default=Correlation]
+        For growing policy Lossguide default=NewtonL2.
+        GPU only. Score that is used during tree construction to select the next tree split.
+
     max_depth : int, Synonym for depth.
 
     n_estimators : int, synonym for iterations.
@@ -2349,6 +2366,7 @@ class CatBoostClassifier(CatBoost):
         grow_policy=None,
         min_data_in_leaf=None,
         max_leaves=None,
+        score_function=None,
         leaf_estimation_backtracking=None,
         ctr_history_unit=None
     ):
@@ -2777,6 +2795,7 @@ class CatBoostRegressor(CatBoost):
         grow_policy=None,
         min_data_in_leaf=None,
         max_leaves=None,
+        score_function=None,
         leaf_estimation_backtracking=None,
         ctr_history_unit=None
     ):

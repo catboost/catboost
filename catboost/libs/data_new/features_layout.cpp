@@ -22,12 +22,13 @@ bool TFeatureMetaInfo::operator==(const TFeatureMetaInfo& rhs) const {
 }
 
 TFeaturesLayout::TFeaturesLayout(const ui32 featureCount)
-    : TFeaturesLayout(featureCount, {}, {})
+    : TFeaturesLayout(featureCount, {}, {}, {})
 {}
 
 TFeaturesLayout::TFeaturesLayout(
     const ui32 featureCount,
     const TVector<ui32>& catFeatureIndices,
+    const TVector<ui32>& textFeatureIndices,
     const TVector<TString>& featureId)
 {
     CheckDataSize(featureId.size(), (size_t)featureCount, "feature Ids", true, "feature count");
@@ -48,14 +49,32 @@ TFeaturesLayout::TFeaturesLayout(
         );
         ExternalIdxToMetaInfo[catFeatureExternalIdx].Type = EFeatureType::Categorical;
     }
+    for (auto textFeatureExternalIdx : textFeatureIndices) {
+        CB_ENSURE(
+            textFeatureExternalIdx < featureCount,
+            "Text feature index (" << textFeatureExternalIdx << ") is out of valid range [0,"
+            << featureCount << ')'
+        );
+        ExternalIdxToMetaInfo[textFeatureExternalIdx].Type = EFeatureType::Text;
+    }
 
     for (auto externalFeatureIdx : xrange(ExternalIdxToMetaInfo.size())) {
-        if (ExternalIdxToMetaInfo[externalFeatureIdx].Type == EFeatureType::Float) {
-            FeatureExternalIdxToInternalIdx.push_back((ui32)FloatFeatureInternalIdxToExternalIdx.size());
-            FloatFeatureInternalIdxToExternalIdx.push_back(externalFeatureIdx);
-        } else {
-            FeatureExternalIdxToInternalIdx.push_back((ui32)CatFeatureInternalIdxToExternalIdx.size());
-            CatFeatureInternalIdxToExternalIdx.push_back(externalFeatureIdx);
+        switch (ExternalIdxToMetaInfo[externalFeatureIdx].Type) {
+            case EFeatureType::Float: {
+                FeatureExternalIdxToInternalIdx.push_back((ui32)FloatFeatureInternalIdxToExternalIdx.size());
+                FloatFeatureInternalIdxToExternalIdx.push_back(externalFeatureIdx);
+                break;
+            }
+            case EFeatureType::Categorical: {
+                FeatureExternalIdxToInternalIdx.push_back((ui32)CatFeatureInternalIdxToExternalIdx.size());
+                CatFeatureInternalIdxToExternalIdx.push_back(externalFeatureIdx);
+                break;
+            }
+            case EFeatureType::Text: {
+                FeatureExternalIdxToInternalIdx.push_back((ui32)TextFeatureInternalIdxToExternalIdx.size());
+                TextFeatureInternalIdxToExternalIdx.push_back(externalFeatureIdx);
+                break;
+            }
         }
     }
 }
@@ -144,10 +163,13 @@ TString TFeaturesLayout::GetExternalFeatureDescription(ui32 internalFeatureIdx, 
 }
 
 ui32 TFeaturesLayout::GetExternalFeatureIdx(ui32 internalFeatureIdx, EFeatureType type) const {
-    if (type == EFeatureType::Float) {
-        return FloatFeatureInternalIdxToExternalIdx[internalFeatureIdx];
-    } else {
-        return CatFeatureInternalIdxToExternalIdx[internalFeatureIdx];
+    switch (type) {
+        case EFeatureType::Float:
+            return FloatFeatureInternalIdxToExternalIdx[internalFeatureIdx];
+        case EFeatureType::Categorical:
+            return CatFeatureInternalIdxToExternalIdx[internalFeatureIdx];
+        case EFeatureType::Text:
+            return TextFeatureInternalIdxToExternalIdx[internalFeatureIdx];
     }
 }
 
@@ -166,10 +188,13 @@ bool TFeaturesLayout::IsCorrectExternalFeatureIdx(ui32 externalFeatureIdx) const
 }
 
 bool TFeaturesLayout::IsCorrectInternalFeatureIdx(ui32 internalFeatureIdx, EFeatureType type) const {
-    if (type == EFeatureType::Float) {
-        return (size_t)internalFeatureIdx < FloatFeatureInternalIdxToExternalIdx.size();
-    } else {
-        return (size_t)internalFeatureIdx < CatFeatureInternalIdxToExternalIdx.size();
+    switch (type) {
+        case EFeatureType::Float:
+            return (size_t)internalFeatureIdx < FloatFeatureInternalIdxToExternalIdx.size();
+        case EFeatureType::Categorical:
+            return (size_t)internalFeatureIdx < CatFeatureInternalIdxToExternalIdx.size();
+        case EFeatureType::Text:
+            return (size_t)internalFeatureIdx < TextFeatureInternalIdxToExternalIdx.size();
     }
 }
 
@@ -190,16 +215,24 @@ ui32 TFeaturesLayout::GetCatFeatureCount() const {
     return (ui32)CatFeatureInternalIdxToExternalIdx.size();
 }
 
+ui32 TFeaturesLayout::GetTextFeatureCount() const {
+    // cast is safe because of size invariant established in constructors
+    return (ui32)TextFeatureInternalIdxToExternalIdx.size();
+}
+
 ui32 TFeaturesLayout::GetExternalFeatureCount() const {
     // cast is safe because of size invariant established in constructors
     return (ui32)ExternalIdxToMetaInfo.size();
 }
 
 ui32 TFeaturesLayout::GetFeatureCount(EFeatureType type) const {
-    if (type == EFeatureType::Float) {
-        return GetFloatFeatureCount();
-    } else {
-        return GetCatFeatureCount();
+    switch (type) {
+        case EFeatureType::Float:
+            return GetFloatFeatureCount();
+        case EFeatureType::Categorical:
+            return GetCatFeatureCount();
+        case EFeatureType::Text:
+            return GetTextFeatureCount();
     }
 }
 
@@ -223,18 +256,24 @@ TConstArrayRef<ui32> TFeaturesLayout::GetCatFeatureInternalIdxToExternalIdx() co
     return CatFeatureInternalIdxToExternalIdx;
 }
 
+TConstArrayRef<ui32> TFeaturesLayout::GetTextFeatureInternalIdxToExternalIdx() const {
+    return TextFeatureInternalIdxToExternalIdx;
+}
+
 
 bool TFeaturesLayout::operator==(const TFeaturesLayout& rhs) const {
     return std::tie(
             ExternalIdxToMetaInfo,
             FeatureExternalIdxToInternalIdx,
             CatFeatureInternalIdxToExternalIdx,
-            FloatFeatureInternalIdxToExternalIdx
+            FloatFeatureInternalIdxToExternalIdx,
+            TextFeatureInternalIdxToExternalIdx
         ) == std::tie(
             rhs.ExternalIdxToMetaInfo,
             rhs.FeatureExternalIdxToInternalIdx,
             rhs.CatFeatureInternalIdxToExternalIdx,
-            rhs.FloatFeatureInternalIdxToExternalIdx
+            rhs.FloatFeatureInternalIdxToExternalIdx,
+            rhs.TextFeatureInternalIdxToExternalIdx
         );
 }
 
@@ -295,14 +334,14 @@ void NCB::CheckCompatibleForApply(
         );
         CB_ENSURE(
             learnFeatureMetaInfo.Type == applyFeatureMetaInfo.Type,
-            "Feature #" << i << " has type " << learnFeatureMetaInfo.Type << " in training data, but "
-            << applyFeatureMetaInfo.Type << " type in " << applyDataName
+            "Feature #" << i << " has '" << learnFeatureMetaInfo.Type << "' type in training data, but '"
+            << applyFeatureMetaInfo.Type << "' type in " << applyDataName
         );
         CB_ENSURE(
             !learnFeatureMetaInfo.Name || !applyFeatureMetaInfo.Name ||
             (learnFeatureMetaInfo.Name == applyFeatureMetaInfo.Name),
-            "Feature #" << i << " has name " << learnFeatureMetaInfo.Type << " in training data, but "
-            << applyFeatureMetaInfo.Type << " name in " << applyDataName
+            "Feature #" << i << " has '" << learnFeatureMetaInfo.Name << "' name in training data, but '"
+            << applyFeatureMetaInfo.Name << "' name in " << applyDataName
         );
     }
     for (; i < learnFeaturesMetaInfo.size(); ++i) {

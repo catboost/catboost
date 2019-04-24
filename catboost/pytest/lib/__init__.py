@@ -166,6 +166,15 @@ def get_limited_precision_dsv_diff_tool(diff_limit, have_header=False):
     return diff_tool
 
 
+def get_limited_precision_json_diff_tool(diff_limit):
+    diff_tool = [
+        yatest.common.binary_path("catboost/tools/limited_precision_json_diff/limited_precision_json_diff"),
+    ]
+    if diff_limit is not None:
+        diff_tool += ['--diff-limit', str(diff_limit)]
+    return diff_tool
+
+
 def local_canonical_file(*args, **kwargs):
     return yatest.common.canonical_file(*args, local=True, **kwargs)
 

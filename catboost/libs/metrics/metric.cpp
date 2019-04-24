@@ -4314,22 +4314,6 @@ TVector<THolder<IMetric>> CreateMetricFromDescription(const NCatboostOptions::TL
     return CreateMetric(metric, description.GetLossParams(), approxDimension);
 }
 
-TVector<THolder<IMetric>> CreateDefaultMetricForObjective(
-    const NCatboostOptions::TLossDescription& objective,
-    int approxDimension) {
-
-    auto defaultMetric = objective;
-    const auto lossFunction = objective.GetLossFunction();
-    if (lossFunction == ELossFunction::YetiRank || lossFunction == ELossFunction::YetiRankPairwise) {
-        defaultMetric.LossFunction = ELossFunction::PFound;
-        defaultMetric.LossParams->clear();
-    } else if (lossFunction == ELossFunction::PairLogitPairwise) {
-        defaultMetric.LossFunction = ELossFunction::PairLogit;
-        defaultMetric.LossParams->clear();
-    }
-    return CreateMetricFromDescription(defaultMetric, approxDimension);
-}
-
 TVector<THolder<IMetric>> CreateMetrics(
     TConstArrayRef<NCatboostOptions::TLossDescription> metricDescriptions,
     int approxDim) {
@@ -4346,7 +4330,6 @@ TVector<THolder<IMetric>> CreateMetrics(
 
 
 TVector<THolder<IMetric>> CreateMetrics(
-        const NCatboostOptions::TOption<NCatboostOptions::TLossDescription>& lossFunctionOption,
         const NCatboostOptions::TOption<NCatboostOptions::TMetricOptions>& evalMetricOptions,
         const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
         int approxDimension
@@ -4369,9 +4352,9 @@ TVector<THolder<IMetric>> CreateMetrics(
         usedDescriptions.insert(errors.back()->GetDescription());
     }
 
-    if (lossFunctionOption->GetLossFunction() != ELossFunction::PythonUserDefinedPerObject) {
-        TVector<THolder<IMetric>> createdMetrics = CreateDefaultMetricForObjective(
-            lossFunctionOption,
+    if (evalMetricOptions.Get().ObjectiveMetric->GetLossFunction() != ELossFunction::PythonUserDefinedPerObject) {
+        TVector<THolder<IMetric>> createdMetrics = CreateMetricFromDescription(
+            evalMetricOptions.Get().ObjectiveMetric,
             approxDimension);
         for (auto& metric : createdMetrics) {
             if (!usedDescriptions.contains(metric->GetDescription())) {
@@ -4690,7 +4673,7 @@ void CheckPreprocessedTarget(
         auto targetBounds = CalcMinMax(target);
         CB_ENSURE((targetBounds.Min != targetBounds.Max) || allowConstLabel, "All train targets are equal");
     }
-    if (lossFunction == ELossFunction::CrossEntropy) {
+    if (lossFunction == ELossFunction::CrossEntropy || lossFunction == ELossFunction::PFound) {
         auto targetBounds = CalcMinMax(target);
         CB_ENSURE(targetBounds.Min >= 0, "Min target less than 0: " + ToString(targetBounds.Min));
         CB_ENSURE(targetBounds.Max <= 1, "Max target greater than 1: " + ToString(targetBounds.Max));

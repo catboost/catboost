@@ -119,6 +119,8 @@ def py_program(unit, py3):
 
 def onpy_srcs(unit, *args):
     """
+        @usage PY_SRCS({| CYTHON_C} { | TOP_LEVEL | NAMESPACE ns} Files...)
+
         PY_SRCS() - is rule to build extended versions of Python interpreters and containing all application code in its executable file. It can be used to collect only the executables but not shared libraries, and, in particular, not to collect the modules that are imported using import directive.
         The main disadvantage is the lack of IDE support; There is also no readline yet.
         The application can be collect from any of the sources from which the C library, and with the help of PY_SRCS .py , .pyx,.proto and .swg files.
@@ -129,10 +131,11 @@ def onpy_srcs(unit, *args):
 
         Example of library declaration with PY_SRCS():
         PY_LIBRARY(mymodule)
-        PY_SRCS({| CYTHON_C} { | TOP_LEVEL | NAMESPACE ns} a.py sub/dir/b.py e.proto sub/dir/f.proto c.pyx sub/dir/d.pyx g.swg sub/dir/h.swg)
+        PY_SRCS(a.py sub/dir/b.py e.proto sub/dir/f.proto c.pyx sub/dir/d.pyx g.swg sub/dir/h.swg)
         END()
 
-        Documentation: https://wiki.yandex-team.ru/devtools/commandsandvars/py_srcs/
+        PY_REGISTER honors Python2 and Python3 differences and adjusts itself to Python version of a current module
+        Documentation: https://wiki.yandex-team.ru/arcadia/python/pysrcs/#modulipylibrarypy3libraryimakrospysrcs
     """
     # Each file arg must either be a path, or "${...}/buildpath=modname", where
     # "${...}/buildpath" part will be used as a file source in a future macro,
@@ -430,6 +433,12 @@ def ontest_srcs(unit, *args):
 
 
 def onpy_doctests(unit, *args):
+    """
+    @usage PY_DOCTEST(Packages...)
+
+    Add to the test doctests for specified Python packages
+    The packages should be part of a test (listed as sources of the test or its PEERDIRs).
+    """
     if unit.get('PY3TEST_BIN' if is_py3(unit) else 'PYTEST_BIN') != 'no':
         unit.onresource(['-', 'PY_DOCTEST_PACKAGES="{}"'.format(' '.join(args))])
 
@@ -443,10 +452,19 @@ def py_register(unit, func, py3):
 
 def onpy_register(unit, *args):
     """
-    Python knows about which built-ins can be imported, due to their registration in the Assembly or at the start of the interpreter.
+    @usage: PY_REGISTER([package.]module_name[=module_name])
 
+    Python knows about which built-ins can be imported, due to their registration in the Assembly or at the start of the interpreter.
     All modules from the sources listed in PY_SRCS() are registered automatically.
     To register the modules from the sources in the SRCS(), you need to use PY_REGISTER().
+
+    PY_REGISTER(module_name) initializes module globally via call to initmodule_name()
+    PY_REGISTER(package.module_name) initializes module in the specified package using package-specific initialization using init7package11module_name
+    PY_REGISTER(package.module_name=module_name) redeclares global initialization of a module to use
+    package-specific initialization within package CFLAGS(-Dinitmodule_name=init7package11module_name)
+
+    PY_REGISTER honors Python2 and Python3 differences and adjusts itself to Python version of a current module
+    Documentation: https://wiki.yandex-team.ru/arcadia/python/pysrcs/#makrospyregister
     """
 
     py3 = is_py3(unit)
@@ -472,11 +490,11 @@ def py_main(unit, arg):
 
 def onpy_main(unit, arg):
     """
-        @usage: PY_MAIN(pkg.mod[:func])
+        @usage: PY_MAIN(package.module[:func])
 
-        Specifies the function from which to start executing a python program
+        Specifies the module or function from which to start executing a python program
 
-        Documentation: https://wiki.yandex-team.ru/devtools/commandsandvars/py_srcs/
+        Documentation: https://wiki.yandex-team.ru/arcadia/python/pysrcs/#modulipyprogrampy3programimakrospymain
     """
     if ':' not in arg:
         arg += ':main'

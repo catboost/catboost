@@ -3,7 +3,6 @@ from yatest.common import network, ExecutionTimeoutError, ExecutionError
 import pytest
 import os
 import filecmp
-import csv
 import numpy as np
 import time
 import timeit
@@ -11,14 +10,16 @@ import json
 
 import catboost
 from catboost_pytest_lib import (
-    data_file,
-    local_canonical_file,
-    remove_time_from_json,
     apply_catboost,
-    permute_dataset_columns,
-    generate_random_labeled_set,
+    compare_evals,
+    compare_evals_with_precision,
+    data_file,
     execute_catboost_fit,
-    format_crossvalidation
+    format_crossvalidation,
+    generate_random_labeled_set,
+    local_canonical_file,
+    permute_dataset_columns,
+    remove_time_from_json,
 )
 
 CATBOOST_PATH = yatest.common.binary_path("catboost/app/catboost")
@@ -753,6 +754,30 @@ def test_yetirank_pairwise(dev_score_calc_obj_block_size):
     yatest.common.execute(cmd)
 
     return [local_canonical_file(output_eval_path)]
+
+
+@pytest.mark.parametrize('loss_function', ('YetiRank', 'YetiRankPairwise'))
+def test_yetirank_default_metric(loss_function):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    test_error_path = yatest.common.test_output_path('test_error.tsv')
+
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', loss_function,
+        '--has-header',
+        '-f', data_file('black_friday', 'train'),
+        '-t', data_file('black_friday', 'test'),
+        '--column-description', data_file('black_friday', 'cd'),
+        '--model-file', output_model_path,
+        '--boosting-type', 'Plain',
+        '-i', '10',
+        '-T', '4',
+        '--test-err-log', test_error_path,
+    )
+    yatest.common.execute(cmd)
+
+    return [local_canonical_file(test_error_path)]
 
 
 NAN_MODE = ['Min', 'Max']
@@ -2637,29 +2662,6 @@ def test_calc_prediction_type(boosting_type):
     return local_canonical_file(output_eval_path)
 
 
-def compare_evals(fit_eval, calc_eval):
-    csv_fit = csv.reader(open(fit_eval, "r"), dialect='excel-tab')
-    csv_calc = csv.reader(open(calc_eval, "r"), dialect='excel-tab')
-    while True:
-        try:
-            line_fit = next(csv_fit)
-            line_calc = next(csv_calc)
-            if line_fit[:-1] != line_calc:
-                return False
-        except StopIteration:
-            break
-    return True
-
-
-def compare_evals_with_precision(fit_eval, calc_eval, rtol=1e-7):
-    array_fit = np.genfromtxt(fit_eval, delimiter='\t', skip_header=True)
-    array_calc = np.genfromtxt(calc_eval, delimiter='\t', skip_header=True)
-    if open(fit_eval, "r").readline().split()[:-1] != open(calc_eval, "r").readline().split():
-        return False
-    array_fit = np.delete(array_fit, np.s_[-1], 1)
-    return np.all(np.isclose(array_fit, array_calc, rtol=rtol))
-
-
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 def test_calc_no_target(boosting_type):
     model_path = yatest.common.test_output_path('adult_model.bin')
@@ -4019,9 +4021,9 @@ def test_without_cat_features(boosting_type, dev_score_calc_obj_block_size):
     return [local_canonical_file(output_eval_path)]
 
 
-def make_deterministic_train_cmd(loss_function, pool, train, test, cd, schema='', dev_score_calc_obj_block_size=None, other_options=()):
+def make_deterministic_train_cmd(loss_function, pool, train, test, cd, schema='', test_schema='', dev_score_calc_obj_block_size=None, other_options=()):
     pool_path = schema + data_file(pool, train)
-    test_path = data_file(pool, test)
+    test_path = test_schema + data_file(pool, test)
     cd_path = data_file(pool, cd)
     cmd = (
         CATBOOST_PATH,
@@ -4073,7 +4075,7 @@ def run_dist_train(cmd, output_file_switch='--eval-file'):
 
     eval_0 = np.loadtxt(eval_0_path, dtype='float', delimiter='\t', skiprows=1)
     eval_1 = np.loadtxt(eval_1_path, dtype='float', delimiter='\t', skiprows=1)
-    assert(np.allclose(eval_0, eval_1, rtol=1e-3))
+    assert(np.allclose(eval_0, eval_1, atol=1e-6, rtol=1e-3))
     return eval_1_path
 
 
@@ -4174,6 +4176,64 @@ def test_dist_train_quantized(dev_score_calc_obj_block_size):
     SCORE_CALC_OBJ_BLOCK_SIZES,
     ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
 )
+@pytest.mark.parametrize('pairs_file', ['train.pairs', 'train.pairs.weighted'])
+@pytest.mark.parametrize('target', ['PairLogitPairwise', 'QuerySoftMax'])
+def test_dist_train_quantized_groupid(dev_score_calc_obj_block_size, pairs_file, target):
+    return [local_canonical_file(run_dist_train(make_deterministic_train_cmd(
+        loss_function=target,
+        pool='querywise',
+        train='train_x128_greedylogsum_aqtaa.bin',
+        test='test',
+        cd='train.cd.query_id',
+        schema='quantized://',
+        dev_score_calc_obj_block_size=dev_score_calc_obj_block_size,
+        other_options=('-x', '128', '--feature-border-type', 'GreedyLogSum',
+            '--learn-pairs', data_file('querywise', pairs_file)))))]
+
+
+@pytest.mark.parametrize(
+    'dev_score_calc_obj_block_size',
+    SCORE_CALC_OBJ_BLOCK_SIZES,
+    ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
+)
+def test_dist_train_quantized_group_weights(dev_score_calc_obj_block_size):
+    return [local_canonical_file(run_dist_train(make_deterministic_train_cmd(
+        loss_function='QueryRMSE',
+        pool='querywise',
+        train='train.quantized',
+        test='test',
+        cd='train.cd.query_id',
+        schema='quantized://',
+        dev_score_calc_obj_block_size=dev_score_calc_obj_block_size,
+        other_options=('-x', '128', '--feature-border-type', 'GreedyLogSum',
+            '--learn-group-weights', data_file('querywise', 'train.group_weights')))))]
+
+
+@pytest.mark.parametrize(
+    'dev_score_calc_obj_block_size',
+    SCORE_CALC_OBJ_BLOCK_SIZES,
+    ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
+)
+def test_dist_train_quantized_baseline(dev_score_calc_obj_block_size):
+    return [local_canonical_file(run_dist_train(make_deterministic_train_cmd(
+        loss_function='Logloss',
+        pool='higgs',
+        train='train_small_x128_greedylogsum.bin',
+        test='train_small_x128_greedylogsum.bin',
+        cd='train_baseline.cd',
+        schema='quantized://',
+        test_schema='quantized://',
+        dev_score_calc_obj_block_size=dev_score_calc_obj_block_size,
+        other_options=('-x', '128', '--feature-border-type', 'GreedyLogSum',
+                        '--test-baseline', data_file('higgs', 'test_baseline'),
+                        '--learn-baseline', data_file('higgs', 'train_baseline')))))]
+
+
+@pytest.mark.parametrize(
+    'dev_score_calc_obj_block_size',
+    SCORE_CALC_OBJ_BLOCK_SIZES,
+    ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
+)
 def test_dist_train_queryrmse(dev_score_calc_obj_block_size):
     return [local_canonical_file(run_dist_train(make_deterministic_train_cmd(
         loss_function='QueryRMSE',
@@ -4267,12 +4327,14 @@ def test_dist_train_auc_weight(loss_func):
         output_file_switch='--test-err-log'))]
 
 
-def test_dist_train_snapshot():
+@pytest.mark.parametrize('schema,train', [('quantized://', 'train_small_x128_greedylogsum.bin'), ('', 'train_small')])
+def test_dist_train_snapshot(schema, train):
     train_cmd = make_deterministic_train_cmd(
         loss_function='RMSE',
         pool='higgs',
-        train='train_small',
+        train=train,
         test='test_small',
+        schema=schema,
         cd='train.cd')
 
     eval_10_trees_path = yatest.common.test_output_path('10_trees.eval')
@@ -5986,7 +6048,8 @@ def test_output_params():
     return [local_canonical_file(os.path.join(train_dir, output_options_path))]
 
 
-def execute_fit_for_test_quantized_pool(loss_function, pool_path, test_path, cd_path, eval_path, other_options=()):
+def execute_fit_for_test_quantized_pool(loss_function, pool_path, test_path, cd_path, eval_path,
+                                        border_count=128, other_options=()):
     model_path = yatest.common.test_output_path('model.bin')
 
     cmd = (
@@ -6000,7 +6063,7 @@ def execute_fit_for_test_quantized_pool(loss_function, pool_path, test_path, cd_
         '-i', '10',
         '-w', '0.03',
         '-T', '4',
-        '-x', '128',
+        '-x', str(border_count),
         '--feature-border-type', 'GreedyLogSum',
         '-m', model_path,
         '--eval-file', eval_path,
@@ -6124,6 +6187,31 @@ def test_quantized_pool_quantized_test():
         loss_function='PairLogitPairwise',
         pool_path='quantized://' + data_file('querywise', 'train_x128_greedylogsum_aqtaa.bin'),
         test_path='quantized://' + data_file('querywise', 'test_borders_from_train_aqtaa.bin'),
+        cd_path=data_file('querywise', 'train.cd.query_id'),
+        eval_path=quantized_eval_path
+    )
+
+    assert filecmp.cmp(tsv_eval_path, quantized_eval_path)
+
+
+def test_quantized_pool_with_large_grid():
+    test_path = data_file('querywise', 'test')
+
+    tsv_eval_path = yatest.common.test_output_path('tsv.eval')
+    execute_fit_for_test_quantized_pool(
+        loss_function='PairLogitPairwise',
+        pool_path=data_file('querywise', 'train'),
+        test_path=test_path,
+        cd_path=data_file('querywise', 'train.cd.query_id'),
+        eval_path=tsv_eval_path,
+        border_count=1024
+    )
+
+    quantized_eval_path = yatest.common.test_output_path('quantized.eval')
+    execute_fit_for_test_quantized_pool(
+        loss_function='PairLogitPairwise',
+        pool_path='quantized://' + data_file('querywise', 'train.quantized_x1024'),
+        test_path='quantized://' + data_file('querywise', 'test.quantized_x1024'),
         cd_path=data_file('querywise', 'train.cd.query_id'),
         eval_path=quantized_eval_path
     )
@@ -6524,20 +6612,6 @@ def test_load_quantized_pool_with_double_baseline():
     cmd = (
         CATBOOST_PATH, 'fit',
         '-f', 'quantized://' + data_file('quantized_with_baseline', 'dataset.qbin'),
-        '-i', '10')
-
-    yatest.common.execute(cmd)
-
-
-def test_train_on_quantized_pool_with_large_grid():
-    # Dataset with 2 random columns, first is Target, second is Num, used Uniform grid with 10000
-    # borders
-    #
-    # There are 10 rows in a dataset.
-    cmd = (
-        CATBOOST_PATH, 'fit',
-        '-f', 'quantized://' + data_file('quantized_with_large_grid', 'train.qbin'),
-        '-t', 'quantized://' + data_file('quantized_with_large_grid', 'test.qbin'),
         '-i', '10')
 
     yatest.common.execute(cmd)

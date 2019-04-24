@@ -677,6 +677,7 @@ void TShellCommand::TImpl::OnFork(TPipes& pipes, sigset_t oldmask, char* const* 
         }
 
         if (Nice) {
+            // Don't verify Nice() call - it does not work properly with WSL https://github.com/Microsoft/WSL/issues/1838
             ::Nice(Nice);
         }
 

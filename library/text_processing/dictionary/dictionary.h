@@ -55,6 +55,11 @@ namespace NTextProcessing::NDictionary {
         virtual TString GetToken(TTokenId tokenId) const = 0;
 
         /*
+         * Get tokens by tokenIds.
+         * */
+        void GetTokens(TConstArrayRef<TTokenId> tokenIds, TVector<TString>* tokens) const;
+
+        /*
          * Get token count by tokenId.
          *
          * Example:

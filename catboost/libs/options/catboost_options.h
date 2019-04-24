@@ -76,6 +76,8 @@ namespace NCatboostOptions {
 
     ETaskType GetTaskType(const NJson::TJsonValue& source);
 
+    ui32 GetThreadCount(const NJson::TJsonValue& source);
+
     TCatBoostOptions LoadOptions(const NJson::TJsonValue& source);
 
     bool IsParamsCompatible(TStringBuf firstSerializedParams, TStringBuf secondSerializedParams);

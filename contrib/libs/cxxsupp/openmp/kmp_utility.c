@@ -18,7 +18,10 @@
 #include "kmp_str.h"
 #include <float.h>
 #include "kmp_i18n.h"
-#include <util/system/cpu_id.h>
+
+#include <util/system/types.h>
+
+const char* CpuBrand(ui32 store[12]) noexcept; //defined in <util/system/cpu_id.h>
 
 /* ------------------------------------------------------------------------ */
 /* ------------------------------------------------------------------------ */

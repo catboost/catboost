@@ -227,7 +227,7 @@ NCatboostOptions::TCatFeatureParams::TCatFeatureParams(ETaskType taskType)
     , MaxTensorComplexity("max_ctr_complexity", 4)
     , OneHotMaxSize("one_hot_max_size", 2)
     , OneHotMaxSizeLimit(GetMaxBinCount(taskType))
-    , CounterCalcMethod("counter_calc_method", ECounterCalc::Full)
+    , CounterCalcMethod("counter_calc_method", ECounterCalc::SkipTest)
     , StoreAllSimpleCtrs("store_all_simple_ctr", false, taskType)
     , CtrLeafCountLimit("ctr_leaf_count_limit", Max<ui64>(), taskType)
     , CtrHistoryUnit("ctr_history_unit", ECtrHistoryUnit::Sample, taskType) {

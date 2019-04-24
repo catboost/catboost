@@ -18,11 +18,12 @@ enum class EColumn {
     SubgroupId,
     Timestamp,
     Sparse,
-    Prediction
+    Prediction,
+    Text
 };
 
 inline bool IsFactorColumn(EColumn column) {
-    return column == EColumn::Num || column == EColumn::Categ || column == EColumn::Sparse;
+    return column == EColumn::Num || column == EColumn::Categ || column == EColumn::Sparse || column == EColumn::Text;
 }
 
 TStringBuf ToCanonicalColumnName(TStringBuf columnName);

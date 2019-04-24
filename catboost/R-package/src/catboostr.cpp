@@ -189,6 +189,7 @@ SEXP CatBoostCreateFromMatrix_R(SEXP matrixParam,
         metaInfo.FeaturesLayout = MakeIntrusive<TFeaturesLayout>(
             dataColumns,
             ToUnsigned(GetVectorFromSEXP<int>(catFeaturesParam)),
+            TVector<ui32>{}, // TODO(d-kruchinin) support text features in R
             featureId);
 
         metaInfo.HasTarget = targetParam != R_NilValue;
@@ -544,7 +545,7 @@ SEXP CatBoostPredictMulti_R(SEXP modelParam, SEXP poolParam, SEXP verboseParam,
     CB_ENSURE(TryFromString<EPredictionType>(CHAR(asChar(typeParam)), predictionType),
               "unsupported prediction type: 'Probability', 'Class' or 'RawFormulaVal' was expected");
     TVector<TVector<double>> prediction = ApplyModelMulti(*model,
-                                                          *pool->ObjectsData,
+                                                          *pool,
                                                           asLogical(verboseParam),
                                                           predictionType,
                                                           asInteger(treeCountStartParam),

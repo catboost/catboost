@@ -14,7 +14,7 @@ def BuildPlnHeader():
     tmpPath = outPath + '.tmp'
     tmpFile = open(tmpPath, 'w')
 
-    tmpFile.write('#include <library/sse2neon/sse_adhoc.h>\n')
+    tmpFile.write('#include <library/sse/sse.h>\n')
     tmpFile.write('#include <kernel/relevfml/relev_fml.h>\n')
     for path in sys.argv[2:]:
         name = os.path.basename(path).split(".")[0]  # name without extensions
