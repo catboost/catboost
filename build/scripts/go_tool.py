@@ -114,7 +114,10 @@ def do_compile_go(args):
             cmd += ['-symabis'] + args.symabis
         if import_path in ('runtime', 'runtime/internal/atomic'):
             cmd.append('-allabis')
-    cmd += ['-pack', '-c=4'] + args.go_srcs
+    cmd += ['-pack', '-c=4']
+    if args.compile_flags:
+        cmd += args.compile_flags
+    cmd += args.go_srcs
     call(cmd, args.build_root)
 
 
@@ -122,7 +125,10 @@ def do_compile_asm(args):
     assert(len(args.srcs) == 1 and len(args.asm_srcs) == 1)
     cmd = [args.go_asm, '-trimpath', args.build_root]
     cmd += ['-I', args.output_root, '-I', os.path.join(args.pkg_root, 'include')]
-    cmd += ['-D', 'GOOS_' + args.targ_os, '-D', 'GOARCH_' + args.targ_arch, '-o', args.output] + args.asm_srcs
+    cmd += ['-D', 'GOOS_' + args.targ_os, '-D', 'GOARCH_' + args.targ_arch, '-o', args.output]
+    if args.asm_flags:
+        cmd += args.asm_flags
+    cmd += args.asm_srcs
     call(cmd, args.build_root)
 
 
@@ -166,6 +172,8 @@ def do_link_exe(args):
             extldflags.append('-Wl,--end-group')
     if len(extldflags) > 0:
         cmd.append('-extldflags=' + ' '.join(extldflags))
+    if args.link_flags:
+        cmd += args.link_flags
     cmd.append(compile_args.output)
     call(cmd, args.build_root)
 
@@ -327,6 +335,9 @@ if __name__ == '__main__':
     parser.add_argument('++extld', nargs='?', default=None)
     parser.add_argument('++extldflags', nargs='+', default=None)
     parser.add_argument('++goversion', required=True)
+    parser.add_argument('++asm-flags', nargs='*')
+    parser.add_argument('++compile-flags', nargs='*')
+    parser.add_argument('++link-flags', nargs='*')
     args = parser.parse_args()
 
     args.pkg_root = os.path.join(str(args.tools_root), 'pkg')
