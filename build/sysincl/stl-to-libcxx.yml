@@ -27,4 +27,8 @@
   - wchar.h:    contrib/libs/cxxsupp/libcxx/include/wchar.h
   - wctype.h:   contrib/libs/cxxsupp/libcxx/include/wctype.h
 
+- source_filter: "^contrib/libs/cxxsupp/libcxx/include"
+  includes:
+  - __config:   contrib/libs/cxxsupp/libcxx/include/__config
+
 #TODO(kikht): other stl headers

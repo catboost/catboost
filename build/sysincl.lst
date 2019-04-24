@@ -1883,7 +1883,6 @@ android/native_window.h
 Windows.System.Threading.h
 procinfo.h
 mach/kern_return.h
-__config
 #if defined(__HAIKU__)
 FindDirectory.h
 StorageDefs.h
