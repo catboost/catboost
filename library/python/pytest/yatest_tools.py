@@ -210,8 +210,8 @@ def get_unique_file_path(dir_path, filename):
         max_path = 260
         filename_len = len(dir_path) + len(extension) + tail_length + len(os.sep)
         if filename_len < max_path:
-            filename = filename[:max_path - filename_len]
-    filename = filename[:get_max_filename_length(dir_path) - tail_length - len(extension)] + extension
+            filename = yatest_lib.tools.trim_string(filename, max_path - filename_len)
+    filename = yatest_lib.tools.trim_string(filename, get_max_filename_length(dir_path) - tail_length - len(extension)) + extension
     candidate = os.path.join(dir_path, filename)
     while os.path.exists(candidate):
         counter += 1
