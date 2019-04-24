@@ -500,10 +500,6 @@ Y_FORCE_INLINE void CalcIndexesNonSymmetric(
         countStopped = 0;
         for (size_t docId = 0; docId < docCountInBlock; ++docId) {
             const auto* stepNode = treeStepNodes + indexesVec[docId];
-            if (stepNode->IsTerminalNode()) {
-                ++countStopped;
-                continue;
-            }
             const TRepackedBin split = treeSplitsPtr[indexesVec[docId]];
             ui8 featureValue = binFeatures[split.FeatureIndex * docCountInBlock + docId];
             if constexpr (NeedXorMask) {
@@ -576,9 +572,6 @@ inline void CalcNonSymmetricTreesSingle(
         index = model.ObliviousTrees.TreeStartOffsets[treeId];
         while (true) {
             const auto* stepNode = treeStepNodes + index;
-            if (stepNode->IsTerminalNode()) {
-                break;
-            }
             const TRepackedBin split = treeSplitsPtr[index];
             ui8 featureValue = binFeatures[split.FeatureIndex];
             if constexpr (NeedXorMask) {
