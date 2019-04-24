@@ -5,8 +5,6 @@
 #include "utility.h"
 #include "typetraits.h"
 
-#include <string_view>
-
 template <typename TChar, typename TTraits>
 class TBasicStringBuf: public TFixedString<TChar, TTraits>, public TStringBase<TBasicStringBuf<TChar, TTraits>, TChar, TTraits> {
     using TdSelf = TBasicStringBuf;
