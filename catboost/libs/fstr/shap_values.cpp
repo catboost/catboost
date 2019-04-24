@@ -594,7 +594,7 @@ bool PrepareTreesCalcShapValues(
                     treesAverageLeafCount += (size_t(1) << forest.TreeSizes[treeIdx]);
                 }
                 treesAverageLeafCount /= treeCount;
-                return treesAverageLeafCount > dataset->ObjectsGrouping->GetObjectCount();
+                return treesAverageLeafCount < dataset->ObjectsGrouping->GetObjectCount();
             }
     }
 }
