@@ -477,13 +477,13 @@ IF (OS_DARWIN AND ARCH_X86_64 OR OS_LINUX AND ARCH_X86_64)
     )
 ENDIF()
 
-IF (OS_LINUX AND ARCH_AARCH64 OR OS_LINUX AND ARCH_X86_64)
+IF (OS_LINUX AND ARCH_AARCH64 OR OS_LINUX AND ARCH_X86_64 OR OS_LINUX AND ARCH_PPC64LE)
     SRCS(
         engines/e_afalg.c
     )
 ENDIF()
 
-IF (OS_LINUX AND ARCH_AARCH64 OR OS_WINDOWS AND ARCH_X86_64)
+IF (OS_LINUX AND ARCH_AARCH64 OR OS_WINDOWS AND ARCH_X86_64 OR OS_LINUX AND ARCH_PPC64LE)
     SRCS(
         crypto/bn/bn_asm.c
     )
@@ -542,6 +542,37 @@ IF (OS_LINUX AND ARCH_AARCH64)
         crypto/aes/aes_cbc.c
         crypto/aes/aes_core.c
         crypto/armcap.c
+        crypto/camellia/camellia.c
+        crypto/camellia/cmll_cbc.c
+        crypto/rc4/rc4_enc.c
+        crypto/rc4/rc4_skey.c
+        crypto/whrlpool/wp_block.c
+    )
+ENDIF()
+
+IF (OS_LINUX AND ARCH_PPC64LE)
+    SRCS(
+        asm/ppc64le/crypto/aes/aesp8-ppc.s
+        asm/ppc64le/crypto/aes/vpaes-ppc.s
+        asm/ppc64le/crypto/bn/bn-ppc.s
+        asm/ppc64le/crypto/bn/ppc-mont.s
+        asm/ppc64le/crypto/bn/ppc64-mont.s
+        asm/ppc64le/crypto/chacha/chacha-ppc.s
+        asm/ppc64le/crypto/ec/ecp_nistz256-ppc64.s
+        asm/ppc64le/crypto/ec/x25519-ppc64.s
+        asm/ppc64le/crypto/modes/ghashp8-ppc.s
+        asm/ppc64le/crypto/poly1305/poly1305-ppc.s
+        asm/ppc64le/crypto/poly1305/poly1305-ppcfp.s
+        asm/ppc64le/crypto/ppccpuid.s
+        asm/ppc64le/crypto/sha/keccak1600-ppc64.s
+        asm/ppc64le/crypto/sha/sha1-ppc.s
+        asm/ppc64le/crypto/sha/sha256-ppc.s
+        asm/ppc64le/crypto/sha/sha256p8-ppc.s
+        asm/ppc64le/crypto/sha/sha512-ppc.s
+        asm/ppc64le/crypto/sha/sha512p8-ppc.s
+        crypto/aes/aes_cbc.c
+        crypto/aes/aes_core.c
+        crypto/ppccap.c
         crypto/camellia/camellia.c
         crypto/camellia/cmll_cbc.c
         crypto/rc4/rc4_enc.c
