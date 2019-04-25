@@ -10,6 +10,7 @@ import numpy as np
 import ctypes
 import platform
 import tempfile
+import shutil
 from enum import Enum
 from operator import itemgetter
 
@@ -703,20 +704,21 @@ def _get_train_dir(params):
     return params.get('train_dir', 'catboost_info')
 
 
-def _get_catboost_widget(train_dir):
-    _clear_training_files(train_dir)
+def _get_catboost_widget(train_dirs):
+    for train_dir in train_dirs:
+        _clear_training_files(train_dir)
     try:
         from .widget import MetricVisualizer
-        return MetricVisualizer(train_dir)
+        return MetricVisualizer(train_dirs)
     except ImportError as e:
         warnings.warn("To draw plots in fit() method you should install ipywidgets and ipython")
         raise ImportError(str(e))
 
 
 @contextmanager
-def plot_wrapper(plot, params):
+def plot_wrapper(plot, train_dirs):
     if plot:
-        widget = _get_catboost_widget(_get_train_dir(params))
+        widget = _get_catboost_widget(train_dirs)
         widget._run_update()
     try:
         yield
@@ -1197,7 +1199,7 @@ class CatBoost(_CatBoostBase):
         if self.get_param('use_best_model') and eval_total_row_count == 0:
             raise CatBoostError("To employ param {'use_best_model': True} provide non-empty 'eval_set'.")
 
-        with log_fixup(), plot_wrapper(plot, self.get_params()):
+        with log_fixup(), plot_wrapper(plot, [_get_train_dir(self.get_params())]):
             self._train(train_pool, eval_sets, params, allow_clear_pool)
 
         if (not self._object._has_leaf_weights_in_model()) and allow_clear_pool:
@@ -1482,7 +1484,7 @@ class CatBoost(_CatBoostBase):
             raise CatBoostError("Model is not fitted")
         return self._get_cat_feature_indices()
 
-    def _eval_metrics(self, data, metrics, ntree_start, ntree_end, eval_period, thread_count, tmp_dir, plot):
+    def _eval_metrics(self, data, metrics, ntree_start, ntree_end, eval_period, thread_count, res_dir, tmp_dir, plot):
         if not self.is_fitted():
             raise CatBoostError("There is no trained model to evaluate metrics on. Use fit() to train model. Then call this method.")
         if not isinstance(data, Pool):
@@ -1496,8 +1498,8 @@ class CatBoost(_CatBoostBase):
         if tmp_dir is None:
             tmp_dir = tempfile.mkdtemp()
 
-        with log_fixup(), plot_wrapper(plot, self.get_params()):
-            metrics_score, metric_names = self._base_eval_metrics(data, metrics, ntree_start, ntree_end, eval_period, thread_count, _get_train_dir(self.get_params()), tmp_dir)
+        with log_fixup(), plot_wrapper(plot, [res_dir]):
+            metrics_score, metric_names = self._base_eval_metrics(data, metrics, ntree_start, ntree_end, eval_period, thread_count, res_dir, tmp_dir)
 
         return dict(zip(metric_names, metrics_score))
 
@@ -1539,9 +1541,9 @@ class CatBoost(_CatBoostBase):
         -------
         prediction : dict: metric -> array of shape [(ntree_end - ntree_start) / eval_period]
         """
-        return self._eval_metrics(data, metrics, ntree_start, ntree_end, eval_period, thread_count, tmp_dir, plot)
+        return self._eval_metrics(data, metrics, ntree_start, ntree_end, eval_period, thread_count, _get_train_dir(self.get_params()), tmp_dir, plot)
 
-    def compare(self, second_model, data=None, metrics=None, ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, tmp_dir=None):
+    def compare(self, second_model, data, metrics, ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, tmp_dir=None):
         """
         Draw train and eval errors in Jupyter notebook for both models
 
@@ -1578,27 +1580,32 @@ class CatBoost(_CatBoostBase):
         plot : bool, optional (default=False)
             If True, draw train and eval error in Jupyter notebook
         """
-        assert self is not second_model, "The models should be different"
-        assert bool(metrics) == bool(data), "If you provide data, you should also provide metrics list"
 
-        train_dir_first = _get_train_dir(self.get_params())
-        train_dir_second = _get_train_dir(second_model.get_params())
+        if second_model is None:
+            raise CatBoostError("You should provide second_model for comparison.")
+        if data is None:
+            raise CatBoostError("You should provide data for comparison.")
+        if metrics is None:
+            raise CatBoostError("You should provide metrics for comparison.")
 
-        assert train_dir_first != train_dir_second, "Models' train dirs should be different"
+        need_to_remove = False
+        if tmp_dir is None:
+            need_to_remove = True
+            tmp_dir = tempfile.mkdtemp()
+        first_dir = os.path.join(tmp_dir, 'first_model')
+        second_dir = os.path.join(tmp_dir, 'second_model')
 
-        try:
-            from .widget import MetricVisualizer
-            widget = MetricVisualizer([train_dir_first, train_dir_second])
-            widget._run_update()
-            if data:
-                _clear_training_files(train_dir_first)
-                _clear_training_files(train_dir_second)
-                self._eval_metrics(data, metrics, ntree_start, ntree_end, eval_period, thread_count, tmp_dir, plot=False)
-                second_model._eval_metrics(data, metrics, ntree_start, ntree_end, eval_period, thread_count, tmp_dir, plot=False)
-            widget._stop_update()
-        except ImportError as e:
-            warnings.warn("To draw plots in fit() method you should install ipywidgets and ipython")
-            raise ImportError(str(e))
+        create_if_not_exist = lambda path: os.mkdir(path) if not os.path.exists(path) else None
+        create_if_not_exist(tmp_dir)
+        create_if_not_exist(first_dir)
+        create_if_not_exist(second_dir)
+
+        with plot_wrapper(True, [first_dir, second_dir]):
+            self._eval_metrics(data, metrics, ntree_start, ntree_end, eval_period, thread_count, first_dir, tmp_dir, plot=False)
+            second_model._eval_metrics(data, metrics, ntree_start, ntree_end, eval_period, thread_count, second_dir, tmp_dir, plot=False)
+
+        if need_to_remove:
+            shutil.rmtree(tmp_dir)
 
     def create_metric_calcer(self, metrics, ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, tmp_dir=None):
         """
@@ -3313,7 +3320,7 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
                                 " vs " + str(pool.get_cat_feature_indices()))
         del params['cat_features']
 
-    with log_fixup(), plot_wrapper(plot, params):
+    with log_fixup(), plot_wrapper(plot, [_get_train_dir(params)]):
         return _cv(params, pool, fold_count, inverted, partition_random_seed, shuffle, stratified,
                    as_pandas, max_time_spent_on_fixed_cost_ratio, dev_max_iterations_batch_size)
 
