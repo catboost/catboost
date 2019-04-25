@@ -990,3 +990,11 @@ Y_FORCE_INLINE __m128d _mm_castsi128_pd(__m128i a) {
 Y_FORCE_INLINE void _mm_prefetch(const void *p, enum _mm_hint) {
     __builtin_prefetch(p);
 }
+
+Y_FORCE_INLINE __m128i _mm_hadd_epi16(__m128i a, __m128i b) {
+    const __v16qu p = {  0,  1,  4,  5,  8,  9, 12, 13, 16, 17, 20, 21, 24, 25, 28, 29 };
+    const __v16qu q = {  2,  3,  6,  7, 10, 11, 14, 15, 18, 19, 22, 23, 26, 27, 30, 31 };
+    __v8hi c = vec_perm((__v8hi)a, (__v8hi)b, p);
+    __v8hi d = vec_perm((__v8hi)a, (__v8hi)b, q);
+    return (__m128i)vec_add(c, d);
+}
