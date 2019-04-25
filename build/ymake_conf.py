@@ -1835,10 +1835,12 @@ class MSVCCompiler(MSVC, Compiler):
         flags += ['/wd{}'.format(code) for code in warns_disabled]
         flags += self.tc.arch_opt
 
-        flags_debug = ['/Ob0', '/Od', '/std:c++17'] + self._gen_defines(defines_debug)
-        flags_release = ['/Ox', '/Ob2', '/Oi', '/std:c++17'] + self._gen_defines(defines_release)
+        flags_debug = ['/Ob0', '/Od'] + self._gen_defines(defines_debug)
+        flags_release = ['/Ox', '/Ob2', '/Oi'] + self._gen_defines(defines_release)
 
-        flags_cxx = []
+        flags_cxx = [
+            '/std:c++17',
+        ]
         flags_c_only = []
 
         if self.tc.use_clang:
@@ -1852,6 +1854,10 @@ class MSVCCompiler(MSVC, Compiler):
                 '-Wno-inconsistent-missing-override',
                 '-Wno-undefined-var-template',
             ]
+            if self.tc.ide_msvs:
+                flags_cxx += [
+                    '-Wno-unused-command-line-argument',
+                ]
 
         if target.is_armv7:
             masm_io = '-o ${output;suf=${OBJECT_SUF}:SRC} ${input;msvs_source:SRC}'
@@ -1935,6 +1941,8 @@ class MSVCCompiler(MSVC, Compiler):
 
         append('CFLAGS', '/DY_UCRT_INCLUDE="%s"' % ucrt_include)
         append('CFLAGS', '/DY_MSVC_INCLUDE="%s"' % vc_include)
+
+        append('CFLAGS', '$EXTRA_C_FLAGS')
 
         emit_big('''
             when ($NO_OPTIMIZE == "yes") {{
