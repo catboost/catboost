@@ -6,10 +6,7 @@
 
 #include <cstring>
 
-#ifdef _sse2_
-#include <emmintrin.h>
-#include <pmmintrin.h>
-#endif
+#include <library/sse/sse.h>
 
 constexpr size_t SSE_BLOCK_SIZE = 16;
 static_assert(SSE_BLOCK_SIZE * 8 == FORMULA_EVALUATION_BLOCK_SIZE);
@@ -84,7 +81,7 @@ void CalcIndexes(
         CalcIndexesBasic<false, 0>(binFeatures, docCountInBlock, indexesVec, treeSplitsCurPtr, curTreeSize);
     }
 }
-#ifdef _sse2_
+#ifdef ARCADIA_SSE
 
 template <bool NeedXorMask, size_t SSEBlockCount, int curTreeSize>
 Y_FORCE_INLINE void CalcIndexesSseDepthed(
@@ -204,7 +201,7 @@ Y_FORCE_INLINE void CalculateLeafValues(const size_t docCountInBlock, const doub
     }
 }
 
-#ifdef _sse2_
+#ifdef ARCADIA_SSE
 template <int SSEBlockCount>
 Y_FORCE_INLINE static void GatherAddLeafSSE(const double* __restrict treeLeafPtr, const ui8* __restrict indexesPtr, __m128d* __restrict writePtr) {
     _mm_prefetch((const char*)(treeLeafPtr + 64), _MM_HINT_T2);
@@ -303,7 +300,7 @@ Y_FORCE_INLINE void CalcTreesBlockedImpl(
     ui8* __restrict indexesVec = (ui8*)indexesVecUI32;
     const auto treeLeafPtr = model.ObliviousTrees.LeafValues.data();
     auto firstLeafOffsetsPtr = model.ObliviousTrees.GetFirstLeafOffsets().data();
-#ifdef _sse2_
+#ifdef ARCADIA_SSE
     bool allTreesAreShallow = AllOf(
             model.ObliviousTrees.TreeSizes.begin() + treeStart,
             model.ObliviousTrees.TreeSizes.begin() + treeEnd,
@@ -356,7 +353,7 @@ Y_FORCE_INLINE void CalcTreesBlockedImpl(
     for (size_t treeId = treeStart; treeId < treeEnd; ++treeId) {
         auto curTreeSize = model.ObliviousTrees.TreeSizes[treeId];
         memset(indexesVec, 0, sizeof(ui32) * docCountInBlock);
-#ifdef _sse2_
+#ifdef ARCADIA_SSE
         if (!CalcLeafIndexesOnly && curTreeSize <= 8) {
             CalcIndexesSse<NeedXorMask, SSEBlockCount>(binFeatures, docCountInBlock, indexesVec, treeSplitsCurPtr, curTreeSize);
             if (IsSingleClassModel) { // single class model
@@ -503,10 +500,6 @@ Y_FORCE_INLINE void CalcIndexesNonSymmetric(
         countStopped = 0;
         for (size_t docId = 0; docId < docCountInBlock; ++docId) {
             const auto* stepNode = treeStepNodes + indexesVec[docId];
-            if (stepNode->IsTerminalNode()) {
-                ++countStopped;
-                continue;
-            }
             const TRepackedBin split = treeSplitsPtr[indexesVec[docId]];
             ui8 featureValue = binFeatures[split.FeatureIndex * docCountInBlock + docId];
             if constexpr (NeedXorMask) {
@@ -579,9 +572,6 @@ inline void CalcNonSymmetricTreesSingle(
         index = model.ObliviousTrees.TreeStartOffsets[treeId];
         while (true) {
             const auto* stepNode = treeStepNodes + index;
-            if (stepNode->IsTerminalNode()) {
-                break;
-            }
             const TRepackedBin split = treeSplitsPtr[index];
             ui8 featureValue = binFeatures[split.FeatureIndex];
             if constexpr (NeedXorMask) {

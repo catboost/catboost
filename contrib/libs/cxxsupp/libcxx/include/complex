@@ -1477,6 +1477,7 @@ inline namespace literals
     }
 
 
+#if !defined(__CUDACC__)
     constexpr complex<float> operator""if(long double __im)
     {
         return { 0.0f, static_cast<float>(__im) };
@@ -1486,6 +1487,7 @@ inline namespace literals
     {
         return { 0.0f, static_cast<float>(__im) };
     }
+#endif
   }
 }
 #endif

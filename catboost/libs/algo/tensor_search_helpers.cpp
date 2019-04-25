@@ -359,7 +359,7 @@ void CalcWeightedDerivatives(
 
     if (error.GetErrorType() == EErrorType::QuerywiseError || error.GetErrorType() == EErrorType::PairwiseError) {
         TVector<TQueryInfo> recalculatedQueriesInfo;
-        const bool shouldGenerateYetiRankPairs = ShouldGenerateYetiRankPairs(params.LossFunctionDescription->GetLossFunction());
+        const bool shouldGenerateYetiRankPairs = IsYetiRankLossFunction(params.LossFunctionDescription->GetLossFunction());
         if (shouldGenerateYetiRankPairs) {
             YetiRankRecalculation(*takenFold, bt, params, randomSeed, localExecutor, &recalculatedQueriesInfo, &bt.PairwiseWeights);
         }

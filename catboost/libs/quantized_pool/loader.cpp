@@ -241,6 +241,7 @@ void NCB::TCBQuantizedDataLoader::AddChunk(
         case EColumn::Categ:
             // TODO(yazevnul): categorical feature quantization on YT is still in progress
         case EColumn::Auxiliary:
+        case EColumn::Text:
             // Should not be present in quantized pool
         case EColumn::Timestamp:
             // Not supported by quantized pools right now

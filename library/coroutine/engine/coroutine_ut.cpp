@@ -1,4 +1,5 @@
 #include "impl.h"
+#include "condvar.h"
 
 #include <library/unittest/registar.h>
 

@@ -235,7 +235,7 @@ bool IsPlainOnlyModeLoss(ELossFunction lossFunction) {
     );
 }
 
-bool ShouldGenerateYetiRankPairs(ELossFunction lossFunction) {
+bool IsYetiRankLossFunction(ELossFunction lossFunction) {
     return (
         lossFunction == ELossFunction::YetiRank ||
         lossFunction == ELossFunction::YetiRankPairwise

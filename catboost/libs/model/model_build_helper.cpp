@@ -45,14 +45,14 @@ TCommonModelBuilderHelper::TCommonModelBuilderHelper(
 
 void TCommonModelBuilderHelper::ProcessSplitsSet(const TSet<TModelSplit>& modelSplitSet, TObliviousTrees* tree) {
     tree->ApproxDimension = ApproxDimension;
-    tree->CatFeatures = CatFeatures;
-    tree->FloatFeatures = FloatFeatures;
-    for (auto& feature : tree->FloatFeatures) {
+    for (auto& feature : FloatFeatures) {
         feature.Borders.clear();
     }
-    for (auto& feature : tree->CatFeatures) {
+    tree->FloatFeatures = std::move(FloatFeatures);
+    for (auto& feature : CatFeatures) {
         feature.UsedInModel = false;
     }
+    tree->CatFeatures = std::move(CatFeatures);
     THashSet<int> usedCatFeatureIndexes;
     for (const auto& split : modelSplitSet) {
         if (split.Type == ESplitType::FloatFeature) {
@@ -99,7 +99,8 @@ void TObliviousTreeBuilder::AddTree(const TVector<TModelSplit>& modelSplits,
     CB_ENSURE(ApproxDimension == treeLeafValues.ysize());
     auto leafCount = treeLeafValues.at(0).size();
 
-    TVector<double> leafValues(ApproxDimension * leafCount);
+    TVector<double> leafValues;
+    leafValues.yresize(ApproxDimension * leafCount);
 
     for (size_t dimension = 0; dimension < treeLeafValues.size(); ++dimension) {
         CB_ENSURE(treeLeafValues[dimension].size() == (1u << modelSplits.size()));
@@ -141,8 +142,8 @@ TObliviousTrees TObliviousTreeBuilder::Build() {
     // filling binary tree splits
     TObliviousTrees result;
     ProcessSplitsSet(modelSplitSet, &result);
-    result.LeafValues = LeafValues;
-    result.LeafWeights = LeafWeights;
+    result.LeafValues = std::move(LeafValues);
+    result.LeafWeights = std::move(LeafWeights);
     for (const auto& treeStruct : Trees) {
         for (const auto& split : treeStruct) {
             result.TreeSplits.push_back(BinFeatureIndexes.at(split));

@@ -4,6 +4,8 @@
 #include <string.h>
 #include <locale.h>
 
+void Py_InitArgcArgv(int argc, wchar_t **argv);
+
 static const char* env_entry_point = "Y_PYTHON_ENTRY_POINT";
 
 #ifdef _MSC_VER
@@ -112,6 +114,7 @@ static int pymain(int argc, char** argv) {
         return Py_Main(argc, argv_copy);
     }
 
+    Py_InitArgcArgv(argc, argv_copy);
     if (argc >= 1)
         Py_SetProgramName(argv_copy[0]);
     Py_Initialize();

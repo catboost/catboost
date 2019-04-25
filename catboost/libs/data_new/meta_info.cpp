@@ -59,6 +59,7 @@ TDataMetaInfo::TDataMetaInfo(
     }
 
     TVector<ui32> catFeatureIndices;
+    TVector<ui32> textFeatureIndices;
 
     ui32 featureIdx = 0;
     for (const auto& column : ColumnsInfo->Columns) {
@@ -68,6 +69,8 @@ TDataMetaInfo::TDataMetaInfo(
             }
             if (column.Type == EColumn::Categ) {
                 catFeatureIndices.push_back(featureIdx);
+            } else if (column.Type == EColumn::Text) {
+                textFeatureIndices.push_back(featureIdx);
             }
             ++featureIdx;
         }
@@ -76,6 +79,7 @@ TDataMetaInfo::TDataMetaInfo(
     FeaturesLayout = MakeIntrusive<TFeaturesLayout>(
         featureIdx,
         std::move(catFeatureIndices),
+        std::move(textFeatureIndices),
         finalFeatureNames);
 
     ColumnsInfo->Validate();
@@ -133,13 +137,13 @@ TVector<TString> TDataColumnsMetaInfo::GenerateFeatureIds(const TMaybe<TVector<T
     // TODO: this convoluted logic is for compatibility
     if (!AllOf(Columns.begin(), Columns.end(), [](const TColumn& column) { return column.Id.empty(); })) {
         for (auto column : Columns) {
-            if (column.Type == EColumn::Categ || column.Type == EColumn::Num) {
+            if (IsFactorColumn(column.Type)) {
                 featureIds.push_back(column.Id);
             }
         }
     } else if (header.Defined()) {
         for (auto i : xrange(header->size())) {
-            if (Columns[i].Type == EColumn::Categ || Columns[i].Type == EColumn::Num) {
+            if (IsFactorColumn(Columns[i].Type)) {
                 featureIds.push_back((*header)[i]);
             }
         }

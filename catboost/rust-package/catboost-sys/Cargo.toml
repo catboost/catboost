@@ -1,0 +1,8 @@
+[package]
+name = "catboost-sys"
+version = "0.1.0"
+authors = ["Sergey Kiselev <kiselev.sg@gmail.com>"]
+edition = "2018"
+
+[build-dependencies]
+bindgen = "~0.48"

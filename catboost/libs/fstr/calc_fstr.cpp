@@ -224,7 +224,7 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectAverageChange(
     return result;
 }
 
-bool TryGetLossDescription(const TFullModel& model, NCatboostOptions::TLossDescription& lossDescription) {
+static bool TryGetLossDescription(const TFullModel& model, NCatboostOptions::TLossDescription& lossDescription) {
     if (!(model.ModelInfo.contains("loss_function") ||  model.ModelInfo.contains("params") && ReadTJsonValue(model.ModelInfo.at("params")).Has("loss_function"))) {
         return false;
     }
@@ -236,14 +236,25 @@ bool TryGetLossDescription(const TFullModel& model, NCatboostOptions::TLossDescr
     return true;
 }
 
+static bool TryGetObjectiveMetric(const TFullModel& model, NCatboostOptions::TLossDescription& lossDescription) {
+    if (model.ModelInfo.contains("params")) {
+        const auto &params = ReadTJsonValue(model.ModelInfo.at("params"));
+        if (params.Has("metrics") && params["metrics"].Has("objective_metric")) {
+            lossDescription.Load(params["metrics"]["objective_metric"]);
+            return true;
+        }
+    }
+    return TryGetLossDescription(model, lossDescription);
+}
+
 static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
         const TFullModel& model,
         const TDataProvider& dataProvider,
         NPar::TLocalExecutor* localExecutor)
 {
-    NCatboostOptions::TLossDescription lossDescription;
-    Y_VERIFY(TryGetLossDescription(model, lossDescription), "No loss_function in model params");
-    CATBOOST_INFO_LOG << "Used " << lossDescription << " metric for fstr calculation" << Endl;
+    NCatboostOptions::TLossDescription metricDescription;
+    Y_VERIFY(TryGetObjectiveMetric(model, metricDescription), "No loss_function in model params");
+    CATBOOST_INFO_LOG << "Used " << metricDescription << " metric for fstr calculation" << Endl;
     int approxDimension = model.ObliviousTrees.ApproxDimension;
 
     auto combinationClassFeatures = GetCombinationClassFeatures(model.ObliviousTrees);
@@ -264,8 +275,8 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
     CATBOOST_INFO_LOG << "Selected " << documentCount << " documents from " << totalDocumentCount << " for LossFunctionChange calculation." << Endl;
 
     TRestorableFastRng64 rand(0);
-    auto targetData = CreateModelCompatibleProcessedDataProvider(dataset, {lossDescription}, model, &rand, localExecutor).TargetData;
-    TShapPreparedTrees preparedTrees = PrepareTrees(model, &dataset, 0, localExecutor, true);
+    auto targetData = CreateModelCompatibleProcessedDataProvider(dataset, {metricDescription}, model, &rand, localExecutor).TargetData;
+    TShapPreparedTrees preparedTrees = PrepareTrees(model, &dataset, 0, EPreCalcShapValues::Auto, localExecutor, true);
 
     TVector<TMetricHolder> scores(featuresCount + 1);
 
@@ -273,6 +284,9 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
     TVector<TVector<double>> approx = ApplyModelMulti(model, objectsData, EPredictionType::RawFormulaVal, 0, documentCount,
                                                       localExecutor);
     TVector<TQueryInfo> queriesInfo(targetQueriesInfo.begin(), targetQueriesInfo.end());
+
+    NCatboostOptions::TLossDescription lossDescription;
+    Y_VERIFY(TryGetLossDescription(model, lossDescription), "No loss_function in model params");
     if (lossDescription.GetLossFunction() == ELossFunction::YetiRank || lossDescription.GetLossFunction() == ELossFunction::YetiRankPairwise) {
         UpdatePairsForYetiRank(
             approx[0],
@@ -283,9 +297,9 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
             &queriesInfo,
             localExecutor
         );
-        lossDescription = NCatboostOptions::ParseLossDescription("PairLogit");
+        metricDescription = NCatboostOptions::ParseLossDescription("PairLogit");
     }
-    THolder<IMetric> metric = std::move(CreateDefaultMetricForObjective(lossDescription, approxDimension)[0]);
+    THolder<IMetric> metric = std::move(CreateMetricFromDescription(metricDescription, approxDimension)[0]);
     CB_ENSURE(metric->IsAdditiveMetric(), "LossFunctionChange support only additive metric");
 
     ui32 blockCount = queriesInfo.empty() ? documentCount : queriesInfo.size();
@@ -652,15 +666,15 @@ static bool AllFeatureIdsEmpty(TConstArrayRef<TFeatureMetaInfo> featuresMetaInfo
 
 
 TVector<TVector<double>> GetFeatureImportances(
-    const TString& type,
+    const EFstrType fstrType,
     const TFullModel& model,
     const TDataProviderPtr dataset, // can be nullptr
     int threadCount,
+    EPreCalcShapValues mode,
     int logPeriod)
 {
     TSetLoggingVerbose inThisScope;
 
-    EFstrType fstrType = FromString<EFstrType>(type);
     switch (fstrType) {
         case EFstrType::PredictionValuesChange:
         case EFstrType::LossFunctionChange:
@@ -681,7 +695,7 @@ TVector<TVector<double>> GetFeatureImportances(
             NPar::TLocalExecutor localExecutor;
             localExecutor.RunAdditionalThreads(threadCount - 1);
 
-            return CalcShapValues(model, *dataset, logPeriod, &localExecutor);
+            return CalcShapValues(model, *dataset, logPeriod, mode, &localExecutor);
         }
         default:
             Y_UNREACHABLE();
@@ -689,15 +703,14 @@ TVector<TVector<double>> GetFeatureImportances(
 }
 
 TVector<TVector<TVector<double>>> GetFeatureImportancesMulti(
-    const TString& type,
+    const EFstrType fstrType,
     const TFullModel& model,
     const TDataProviderPtr dataset,
     int threadCount,
+    EPreCalcShapValues mode,
     int logPeriod)
 {
     TSetLoggingVerbose inThisScope;
-
-    EFstrType fstrType = FromString<EFstrType>(type);
 
     CB_ENSURE(fstrType == EFstrType::ShapValues, "Only shap values can provide multi approxes.");
 
@@ -706,7 +719,7 @@ TVector<TVector<TVector<double>>> GetFeatureImportancesMulti(
     NPar::TLocalExecutor localExecutor;
     localExecutor.RunAdditionalThreads(threadCount - 1);
 
-    return CalcShapValuesMulti(model, *dataset, logPeriod, &localExecutor);
+    return CalcShapValuesMulti(model, *dataset, logPeriod, mode, &localExecutor);
 }
 
 TVector<TString> GetMaybeGeneratedModelFeatureIds(const TFullModel& model, const TDataProviderPtr dataset) {
@@ -744,7 +757,7 @@ TVector<TString> GetMaybeGeneratedModelFeatureIds(const TFullModel& model, const
 bool IsGroupwiseLearnedModel(const TFullModel& model) {
     CB_ENSURE(model.GetTreeCount(), "Model is not trained");
     NCatboostOptions::TLossDescription lossDescription;
-    Y_VERIFY(TryGetLossDescription(model, lossDescription), "No loss_function in model params");
+    Y_VERIFY(TryGetObjectiveMetric(model, lossDescription), "No loss_function in model params");
     return IsGroupwiseMetric(lossDescription.LossFunction);
 }
 

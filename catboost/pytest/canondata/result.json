@@ -3067,12 +3067,10 @@
         "checksum": "d41d8cd98f00b204e9800998ecf8427e",
         "uri": "file://test.test_output_columns_format/test.eval"
     },
-    "test.test_output_params": [
-        {
-            "checksum": "d67f30c6a8a47046e6a1980aff55ccce",
-            "uri": "file://test.test_output_params/training_options.json"
-        }
-    ],
+    "test.test_output_options": {
+        "checksum": "426f89a84aa7817f277540dbd1350e6d",
+        "uri": "file://test.test_output_options/training_options.json"
+    },
     "test.test_overfit_detector_inc_to_dec[Ordered]": [
         {
             "checksum": "ff4248a68778321668e297a7330dff06",
@@ -4873,6 +4871,18 @@
         {
             "checksum": "c555ab5869a237f01d8f5298cb4ef0ce",
             "uri": "file://test.test_yetirank_calc_block=60-Plain_/test.eval"
+        }
+    ],
+    "test.test_yetirank_default_metric[YetiRankPairwise]": [
+        {
+            "checksum": "f33c3e2800f69e44a5dab88b02977fa7",
+            "uri": "file://test.test_yetirank_default_metric_YetiRankPairwise_/test_error.tsv"
+        }
+    ],
+    "test.test_yetirank_default_metric[YetiRank]": [
+        {
+            "checksum": "b64dc49ffbe9ee4ff151ca16c1f7291b",
+            "uri": "file://test.test_yetirank_default_metric_YetiRank_/test_error.tsv"
         }
     ],
     "test.test_yetirank_pairwise[calc_block=5000000]": [

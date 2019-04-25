@@ -2,9 +2,11 @@
 
 #include <catboost/libs/algo/short_vector_ops.h>
 
+#include <library/sse/sse.h>
+
 Y_UNIT_TEST_SUITE(ShortVectorOpsTest) {
     Y_UNIT_TEST(CalculateScorePattern) {
-#ifdef _sse2_
+#ifdef ARCADIA_SSE
         const double values[] = {0.0, 0.25, 0.5, 0.75};
         auto genericHorizontalSum = NGenericSimdOps::HorizontalAdd(
             NGenericSimdOps::FusedMultiplyAdd(
@@ -23,7 +25,7 @@ Y_UNIT_TEST_SUITE(ShortVectorOpsTest) {
     }
 
     Y_UNIT_TEST(CalculatePairwiseScorePattern) {
-#ifdef _sse2_
+#ifdef ARCADIA_SSE
         const double values[] = {0.0, 0.25, 0.5, 0.75};
         auto genericHorizontalSum = NGenericSimdOps::HorizontalAdd(
             NGenericSimdOps::ElementwiseAdd(

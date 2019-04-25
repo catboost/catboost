@@ -119,6 +119,7 @@ cdef extern from "catboost/libs/options/enums.h":
 
     cdef EFeatureType EFeatureType_Float "EFeatureType::Float"
     cdef EFeatureType EFeatureType_Categorical "EFeatureType::Categorical"
+    cdef EFeatureType EFeatureType_Text "EFeatureType::Text"
 
 
     cdef cppclass EPredictionType:
@@ -127,6 +128,12 @@ cdef extern from "catboost/libs/options/enums.h":
     cdef EPredictionType EPredictionType_Class "EPredictionType::Class"
     cdef EPredictionType EPredictionType_Probability "EPredictionType::Probability"
     cdef EPredictionType EPredictionType_RawFormulaVal "EPredictionType::RawFormulaVal"
+
+    cdef cppclass EFstrType:
+        pass
+
+    cdef cppclass EPreCalcShapValues:
+        pass
 
 
 cdef extern from "catboost/libs/quantization_schema/schema.h" namespace "NCB":
@@ -146,7 +153,8 @@ cdef extern from "catboost/libs/data_new/features_layout.h" namespace "NCB":
         TFeaturesLayout(
             const ui32 featureCount,
             const TVector[ui32]& catFeatureIndices,
-            const TVector[TString]& featureId
+            const TVector[ui32]& textFeatureIndices,
+            const TVector[TString]& featureId,
         )  except +ProcessException
 
         TConstArrayRef[TFeatureMetaInfo] GetExternalFeaturesMetaInfo() except +ProcessException
@@ -797,18 +805,20 @@ cdef extern from "catboost/libs/init/init_reg.h" namespace "NCB":
 
 cdef extern from "catboost/libs/fstr/calc_fstr.h":
     cdef TVector[TVector[double]] GetFeatureImportances(
-        const TString& type,
+        const EFstrType type,
         const TFullModel& model,
         const TDataProviderPtr dataset,
         int threadCount,
+        EPreCalcShapValues mode,
         int logPeriod
     ) nogil except +ProcessException
 
     cdef TVector[TVector[TVector[double]]] GetFeatureImportancesMulti(
-        const TString& type,
+        const EFstrType type,
         const TFullModel& model,
         const TDataProviderPtr dataset,
         int threadCount,
+        EPreCalcShapValues mode,
         int logPeriod
     ) nogil except +ProcessException
 
@@ -1133,6 +1143,18 @@ cdef EModelType string_to_model_type(model_type_str) except *:
         raise CatBoostError("Unknown model type {}.".format(model_type_str))
     return model_type
 
+cdef EFstrType string_to_fstr_type(fstr_type_str) except *:
+    cdef EFstrType fstr_type
+    if not TryFromString[EFstrType](to_arcadia_string(fstr_type_str), fstr_type):
+        raise CatBoostError("Unknown fstr type {}.".format(fstr_type_str))
+    return fstr_type
+
+cdef EPreCalcShapValues string_to_shap_mode(shap_mode_str) except *:
+    cdef EPreCalcShapValues shap_mode
+    if not TryFromString[EPreCalcShapValues](to_arcadia_string(shap_mode_str), shap_mode):
+        raise CatBoostError("Unknown shap values mode {}.".format(shap_mode_str))
+    return shap_mode
+
 
 cdef class _PreprocessParams:
     cdef TJsonValue tree
@@ -1382,6 +1404,7 @@ class FeaturesData(object):
 
 cdef TFeaturesLayout* _init_features_layout(data, cat_features, feature_names):
     cdef TVector[ui32] cat_features_vector
+    cdef TVector[ui32] text_features_vector # TODO(d-kruchinin): support text features in python package
     cdef TVector[TString] feature_names_vector
 
     if isinstance(data, FeaturesData):
@@ -1402,6 +1425,7 @@ cdef TFeaturesLayout* _init_features_layout(data, cat_features, feature_names):
     return new TFeaturesLayout(
         <ui32>feature_count,
         cat_features_vector,
+        text_features_vector,
         feature_names_vector)
 
 cdef TVector[bool_t] _get_is_cat_feature_mask(const TFeaturesLayout* featuresLayout):
@@ -2545,7 +2569,7 @@ cdef class _CatBoost:
     cpdef bool_t _is_groupwise_learned_model(self):
         return IsGroupwiseLearnedModel(dereference(self.__model))
 
-    cpdef _calc_fstr(self, type_name, _PoolBase pool, int thread_count, int verbose):
+    cpdef _calc_fstr(self, type_name, _PoolBase pool, int thread_count, int verbose, shap_mode_name):
         thread_count = UpdateThreadCount(thread_count);
         cdef TVector[TString] feature_ids = GetMaybeGeneratedModelFeatureIds(
             dereference(self.__model),
@@ -2558,24 +2582,29 @@ cdef class _CatBoost:
         cdef TDataProviderPtr dataProviderPtr
         if pool:
             dataProviderPtr = pool.__pool
-        cdef TString type_name_str = to_arcadia_string(type_name)
+
+        cdef EFstrType fstr_type = string_to_fstr_type(type_name)
+        cdef EPreCalcShapValues shap_mode = string_to_shap_mode(shap_mode_name)
+
         if type_name == 'ShapValues' and dereference(self.__model).ObliviousTrees.ApproxDimension > 1:
             with nogil:
                 fstr_multi = GetFeatureImportancesMulti(
-                    type_name_str,
+                    fstr_type,
                     dereference(self.__model),
                     dataProviderPtr,
                     thread_count,
+                    shap_mode,
                     verbose
                 )
             return _3d_vector_of_double_to_np_array(fstr_multi), native_feature_ids
         else:
             with nogil:
                 fstr = GetFeatureImportances(
-                    type_name_str,
+                    fstr_type,
                     dereference(self.__model),
                     dataProviderPtr,
                     thread_count,
+                    shap_mode,
                     verbose
                 )
             return _2d_vector_of_double_to_np_array(fstr), native_feature_ids

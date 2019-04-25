@@ -42,6 +42,22 @@ def on_go_process_srcs(unit):
         if not f.endswith('_test.go'):
             ymake.report_configure_error('file {} should not be listed in GO_TEST_SRCS() or GO_XTEST_SRCS() macros'.format(f))
 
+    resolved_go_files = []
+    for path in go_files + go_test_files + go_xtest_files:
+        if path.endswith(".go"):
+            resolved = unit.resolve_arc_path([path])
+            if resolved != path and not resolved.startswith("$S/vendor") and not resolved.startswith("$S/contrib"):
+                resolved_go_files.append(resolved)
+    if resolved_go_files:
+        basedirs = {}
+        for f in resolved_go_files:
+            basedir = os.path.dirname(f)
+            if basedir not in basedirs:
+                basedirs[basedir] = []
+            basedirs[basedir].append(f)
+        for basedir in basedirs:
+            unit.onadd_check(["gofmt"] + basedirs[basedir])
+
     go_std_root = unit.get('GOSTD') + os.path.sep
 
     proto_files = filter(lambda x: x.endswith('.proto'), go_files)

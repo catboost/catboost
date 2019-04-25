@@ -231,7 +231,7 @@ TString TModChooser::TMode::FormatFullName(size_t pad) const {
 }
 
 void TModChooser::PrintHelp(const TString& progName) const {
-    Cerr << Description << Endl;
+    Cerr << Description << Endl << Endl;
     Cerr << NColorizer::StdErr().BoldColor() << "Usage" << NColorizer::StdErr().OldColor() << ": " << progName << " MODE [MODE_OPTIONS]" << Endl;
     Cerr << Endl;
     Cerr << NColorizer::StdErr().BoldColor() << "Modes" << NColorizer::StdErr().OldColor() << ":" << Endl;

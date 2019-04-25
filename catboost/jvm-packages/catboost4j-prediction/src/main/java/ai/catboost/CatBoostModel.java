@@ -16,6 +16,7 @@ public class CatBoostModel implements AutoCloseable {
     private int treeCount = 0;
     private int usedNumericFeatureCount = 0;
     private int usedCategoricFeatureCount = 0;
+    private String[] featureNames;
 
     /**
      * Load CatBoost model from file modelPath.
@@ -31,6 +32,8 @@ public class CatBoostModel implements AutoCloseable {
         final int[] treeCount = new int[1];
         final int[] usedNumericFeatureCount = new int[1];
         final int[] usedCatFeatureCount = new int[1];
+        int usedFeatureCount = 0;
+        String[] featureNames;
 
         final CatBoostModel model = new CatBoostModel();
         NativeLib.handle().catBoostLoadModelFromFile(modelPath, handles);
@@ -46,10 +49,20 @@ public class CatBoostModel implements AutoCloseable {
             throw e;
         }
 
+        try {
+            usedFeatureCount = usedNumericFeatureCount[0] + usedCatFeatureCount[0];
+            featureNames = new String[usedFeatureCount];
+            NativeLib.handle().catBoostModelGetFeatureNames(model.handle, featureNames);
+        } catch (CatBoostError e) {
+            model.close();
+            throw e;
+        }
+
         model.predictionDimension = predictionDimension[0];
         model.treeCount = treeCount[0];
         model.usedNumericFeatureCount = usedNumericFeatureCount[0];
         model.usedCategoricFeatureCount = usedCatFeatureCount[0];
+        model.featureNames = featureNames;
 
         return model;
     }
@@ -69,6 +82,8 @@ public class CatBoostModel implements AutoCloseable {
         final int[] treeCount = new int[1];
         final int[] usedNumericFeatureCount = new int[1];
         final int[] usedCatFeatureCount = new int[1];
+        int usedFeatureCount = 0;
+        String[] featureNames;
         final byte[] copyBuffer = new byte[4 * 1024];
 
         int bytesRead;
@@ -92,10 +107,20 @@ public class CatBoostModel implements AutoCloseable {
             throw e;
         }
 
+        try {
+            usedFeatureCount = usedNumericFeatureCount[0] + usedCatFeatureCount[0];
+            featureNames = new String[usedFeatureCount];
+            NativeLib.handle().catBoostModelGetFeatureNames(model.handle, featureNames);
+        } catch (CatBoostError e) {
+            model.close();
+            throw e;
+        }
+
         model.predictionDimension = predictionDimension[0];
         model.treeCount = treeCount[0];
         model.usedNumericFeatureCount = usedNumericFeatureCount[0];
         model.usedCategoricFeatureCount = usedCatFeatureCount[0];
+        model.featureNames = featureNames;
 
         return model;
     }
@@ -151,7 +176,7 @@ public class CatBoostModel implements AutoCloseable {
     }
 
     /**
-     * @return Number of tees in model.
+     * @return Number of trees in model.
      */
     public int getTreeCount() {
         return treeCount;
@@ -170,6 +195,11 @@ public class CatBoostModel implements AutoCloseable {
     public int getUsedCategoricFeatureCount() {
         return usedCategoricFeatureCount;
     }
+
+    /**
+     * @return Name of features used by the model.
+     */
+    public String[] getFeatureNames() { return featureNames; }
 
     /**
      * Apply model to object defined by features.

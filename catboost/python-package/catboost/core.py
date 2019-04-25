@@ -947,9 +947,9 @@ class _CatBoostBase(object):
         metrics_description_list = metrics_description if isinstance(metrics_description, list) else [metrics_description]
         return self._object._base_eval_metrics(pool, metrics_description_list, ntree_start, ntree_end, eval_period, thread_count, result_dir, tmp_dir)
 
-    def _calc_fstr(self, type, pool, thread_count, verbose):
+    def _calc_fstr(self, type, pool, thread_count, verbose, shap_mode):
         """returns (fstr_values, feature_ids)."""
-        return self._object._calc_fstr(type.name, pool, thread_count, verbose)
+        return self._object._calc_fstr(type.name, pool, thread_count, verbose, shap_mode)
 
     def _calc_ostr(self, train_pool, test_pool, top_size, ostr_type, update_method, importance_values_sign, thread_count, verbose):
         return self._object._calc_ostr(train_pool, test_pool, top_size, ostr_type, update_method, importance_values_sign, thread_count, verbose)
@@ -1637,7 +1637,7 @@ class CatBoost(_CatBoostBase):
         else:
             return np.array(getattr(self, "_prediction_values_change", None))
 
-    def get_feature_importance(self, data=None, type=EFstrType.FeatureImportance, prettified=False, thread_count=-1, verbose=False, fstr_type=None):
+    def get_feature_importance(self, data=None, type=EFstrType.FeatureImportance, prettified=False, thread_count=-1, verbose=False, fstr_type=None, shap_mode="Auto"):
         """
         Parameters
         ----------
@@ -1675,6 +1675,20 @@ class CatBoost(_CatBoostBase):
 
         fstr_type : string, deprecated, use type instead
 
+        shap_mode : string, optional (default="Auto")
+            used only for ShapValues type
+            Possible values:
+                - "Auto"
+                    Use direct SHAP Values calculation only if data size is smaller than average leaves number
+                    (the best of two strategies below is chosen).
+                - "UsePreCalc"
+                    Calculate SHAP Values for every leaf in preprocessing. Final complexity is
+                    O(NT(D+F))+O(TL^2 D^2) where N is the number of documents(objects), T - number of trees,
+                    D - average tree depth, F - average number of features in tree, L - average number of leaves in tree
+                    This is much faster (because of a smaller constant) than direct calculation when N >> L
+                - "NoPreCalc"
+                    Use direct SHAP Values calculation calculation with complexity O(NTLD^2). Direct algorithm
+                    is faster when N < L (algorithm from https://arxiv.org/abs/1802.03888)
         Returns
         -------
         depends on type:
@@ -1730,7 +1744,7 @@ class CatBoost(_CatBoostBase):
                 raise CatBoostError("data is empty.")
 
         with log_fixup():
-            fstr, feature_names = self._calc_fstr(type, data, thread_count, verbose)
+            fstr, feature_names = self._calc_fstr(type, data, thread_count, verbose, shap_mode)
         if type in (EFstrType.PredictionValuesChange, EFstrType.LossFunctionChange):
             feature_importances = [value[0] for value in fstr]
             if prettified:

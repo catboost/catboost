@@ -12,6 +12,7 @@
 #include <util/generic/cast.h>
 #include <util/generic/ymath.h>
 #include <util/stream/format.h>
+#include <util/stream/output.h>
 #include <util/system/yassert.h>
 
 #include <algorithm>
@@ -355,7 +356,8 @@ static bool AreFeaturesValuesEqual(
 
 bool NCB::TRawObjectsData::operator==(const NCB::TRawObjectsData& rhs) const {
     return AreFeaturesValuesEqual(FloatFeatures, rhs.FloatFeatures) &&
-        AreFeaturesValuesEqual(CatFeatures, rhs.CatFeatures);
+        AreFeaturesValuesEqual(CatFeatures, rhs.CatFeatures) &&
+        AreFeaturesValuesEqual(TextFeatures, rhs.TextFeatures);
 }
 
 void NCB::TRawObjectsData::PrepareForInitialization(const TDataMetaInfo& metaInfo) {
@@ -366,6 +368,9 @@ void NCB::TRawObjectsData::PrepareForInitialization(const TDataMetaInfo& metaInf
     CatFeatures.clear();
     const size_t catFeatureCount = (size_t)metaInfo.FeaturesLayout->GetCatFeatureCount();
     CatFeatures.resize(catFeatureCount);
+
+    TextFeatures.clear();
+    TextFeatures.resize((size_t)metaInfo.FeaturesLayout->GetTextFeatureCount());
 }
 
 
@@ -428,6 +433,7 @@ void NCB::TRawObjectsData::Check(
         );
     }
     CheckDataSizes(objectCount, featuresLayout, EFeatureType::Categorical, CatFeatures);
+    CheckDataSizes(objectCount, featuresLayout, EFeatureType::Text, TextFeatures);
 
     localExecutor->ExecRangeWithThrow(
         [&] (int catFeatureIdx) {
@@ -492,14 +498,19 @@ TObjectsDataProviderPtr NCB::TRawObjectsDataProvider::GetSubset(
 
     TRawObjectsData subsetData;
     CreateSubsetFeatures(
-        (TConstArrayRef<THolder<TFloatValuesHolder>>)Data.FloatFeatures,
+        MakeConstArrayRef(Data.FloatFeatures),
         subsetCommonData.SubsetIndexing.Get(),
         &subsetData.FloatFeatures
     );
     CreateSubsetFeatures(
-        (TConstArrayRef<THolder<THashedCatValuesHolder>>)Data.CatFeatures,
+        MakeConstArrayRef(Data.CatFeatures),
         subsetCommonData.SubsetIndexing.Get(),
         &subsetData.CatFeatures
+    );
+    CreateSubsetFeatures(
+        MakeConstArrayRef(Data.TextFeatures),
+        subsetCommonData.SubsetIndexing.Get(),
+        &subsetData.TextFeatures
     );
 
     return MakeIntrusive<TRawObjectsDataProvider>(
@@ -552,6 +563,10 @@ TVector<float> NCB::TRawObjectsDataProvider::GetFeatureDataOldFormat(ui32 flatFe
         "feature #" << flatFeatureIdx << " is not present in pool"
     );
     const auto& featureMetaInfo = featuresMetaInfo[flatFeatureIdx];
+    CB_ENSURE(
+        featureMetaInfo.Type != EFeatureType::Text,
+        "feature #" << flatFeatureIdx << " has type Text and cannot be converted to float format"
+    );
     if (!featureMetaInfo.IsAvailable) {
         return result;
     }
@@ -732,10 +747,8 @@ static ui32 CalcFeatureValuesCheckSum(
             if (compressedValuesFeatureData) {
                 checkSums[perTypeFeatureIdx] = CalcCompressedFeatureChecksum(0, compressedValuesFeatureData);
             } else {
-                const auto valuesFeatureData = featuresData[perTypeFeatureIdx]->ExtractValues(localExecutor);
-                for (auto element : *valuesFeatureData) {
-                    checkSums[perTypeFeatureIdx] = UpdateCheckSum(0, element);
-                }
+                const auto repackedHolder = featuresData[perTypeFeatureIdx]->ExtractValues(localExecutor);
+                checkSums[perTypeFeatureIdx] = UpdateCheckSum(0, *repackedHolder);
             }
         } else {
             checkSums[perTypeFeatureIdx] = UpdateCheckSum(0, emptyColumnDataForCrc);
@@ -963,6 +976,40 @@ void NCB::TQuantizedObjectsData::SaveNonSharedPart(IBinSaver* binSaver) const {
 }
 
 
+void NCB::DbgDumpQuantizedFeatures(
+    const NCB::TQuantizedObjectsDataProvider& quantizedObjectsDataProvider,
+    IOutputStream* out
+) {
+    const auto& featuresLayout = *quantizedObjectsDataProvider.GetQuantizedFeaturesInfo()->GetFeaturesLayout();
+
+    NPar::TLocalExecutor localExecutor;
+
+    featuresLayout.IterateOverAvailableFeatures<EFeatureType::Float>(
+        [&] (TFloatFeatureIdx floatFeatureIdx) {
+            const auto values = (*quantizedObjectsDataProvider.GetFloatFeature(*floatFeatureIdx))
+                ->ExtractValues(&localExecutor);
+
+            for (auto objectIdx : xrange((*values).size())) {
+                (*out) << "(floatFeature=" << *floatFeatureIdx << ',' << LabeledOutput(objectIdx)
+                    << ").bin=" << ui32(values[objectIdx]) << Endl;
+            }
+        }
+    );
+
+    featuresLayout.IterateOverAvailableFeatures<EFeatureType::Categorical>(
+        [&] (TCatFeatureIdx catFeatureIdx) {
+            const auto values = (*quantizedObjectsDataProvider.GetCatFeature(*catFeatureIdx))
+                ->ExtractValues(&localExecutor);
+
+            for (auto objectIdx : xrange((*values).size())) {
+                (*out) << "(catFeature=" << *catFeatureIdx << ',' << LabeledOutput(objectIdx)
+                    << ").bin=" << ui32(values[objectIdx]) << Endl;
+            }
+        }
+    );
+}
+
+
 NCB::TExclusiveFeatureBundlesData::TExclusiveFeatureBundlesData(
     const NCB::TQuantizedFeaturesInfo& quantizedFeaturesInfo,
     TVector<NCB::TExclusiveFeaturesBundle>&& metaData
@@ -1152,13 +1199,38 @@ TPackedBinaryIndex NCB::TPackedBinaryFeaturesData::AddFeature(
     PackedBinaryToSrcIndex.emplace_back(featureType, perTypeFeatureIdx);
     if (featureType == EFeatureType::Float) {
         FloatFeatureToPackedBinaryIndex[perTypeFeatureIdx] = packedBinaryIndex;
-    } else {
+    } else if (featureType == EFeatureType::Categorical) {
         CatFeatureToPackedBinaryIndex[perTypeFeatureIdx] = packedBinaryIndex;
+    } else {
+        CB_ENSURE(false, "Feature type " << featureType << " is not supported in PackedBinaryFeatures");
     }
 
     return packedBinaryIndex;
 }
 
+TString NCB::DbgDumpMetaData(const NCB::TPackedBinaryFeaturesData& packedBinaryFeaturesData) {
+    TStringBuilder sb;
+    sb << "FloatFeatureToPackedBinaryIndex="
+       << NCB::DbgDumpWithIndices(packedBinaryFeaturesData.FloatFeatureToPackedBinaryIndex, true)
+       << "CatFeatureToPackedBinaryIndex="
+       << NCB::DbgDumpWithIndices(packedBinaryFeaturesData.CatFeatureToPackedBinaryIndex, true)
+       << "PackedBinaryToSrcIndex=[";
+
+    const auto& packedBinaryToSrcIndex = packedBinaryFeaturesData.PackedBinaryToSrcIndex;
+    if (!packedBinaryToSrcIndex.empty()) {
+        sb << Endl;
+        for (auto linearIdx : xrange(packedBinaryToSrcIndex.size())) {
+            auto packedBinaryIndex = NCB::TPackedBinaryIndex::FromLinearIdx(linearIdx);
+            const auto& srcIndex = packedBinaryToSrcIndex[linearIdx];
+            sb << "LinearIdx=" << linearIdx << "," << DbgDump(packedBinaryIndex) << " : FeatureType="
+               << srcIndex.first << ",FeatureIdx=" << srcIndex.second << Endl;
+        }
+        sb << Endl;
+    }
+    sb << "]\n";
+
+    return sb;
+}
 
 
 void NCB::TQuantizedForCPUObjectsData::Load(

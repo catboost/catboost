@@ -417,8 +417,6 @@ void NCatboostOptions::TCatBoostOptions::Validate() const {
     {
         CB_ENSURE(leavesEstimation != ELeavesEstimation::Newton,
                   "Newton leave estimation method is not supported for " << lossFunction << " loss function");
-        CB_ENSURE(ObliviousTreeOptions->LeavesEstimationIterations == 1U,
-                  "gradient_iterations should equals 1 for this mode");
     }
 
     CB_ENSURE(!(IsPlainOnlyModeLoss(lossFunction) && (BoostingOptions->BoostingType == EBoostingType::Ordered)),
@@ -486,6 +484,28 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
             break;
         }
     }
+
+    switch (LossFunctionDescription->GetLossFunction()) {
+        case ELossFunction::YetiRank:
+        case ELossFunction::YetiRankPairwise: {
+            NCatboostOptions::TLossDescription lossDescription;
+            lossDescription.Load(LossDescriptionToJson("PFound"));
+            MetricOptions->ObjectiveMetric.Set(lossDescription);
+            break;
+        }
+        case ELossFunction::PairLogit:
+        case ELossFunction::PairLogitPairwise: {
+            NCatboostOptions::TLossDescription lossDescription;
+            lossDescription.Load(LossDescriptionToJson("PairLogit"));
+            MetricOptions->ObjectiveMetric.Set(lossDescription);
+            break;
+        }
+        default: {
+            MetricOptions->ObjectiveMetric.Set(LossFunctionDescription.Get());
+            break;
+        }
+    }
+
     if (TaskType == ETaskType::GPU) {
         if (IsGpuPlainDocParallelOnlyMode(LossFunctionDescription->GetLossFunction()) ||
             ObliviousTreeOptions->GrowPolicy != EGrowPolicy::SymmetricTree) {

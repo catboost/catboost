@@ -181,9 +181,9 @@ void TrainOneIteration(const NCB::TTrainingForCPUDataProviders& data, TLearnCont
         }
 
         ctx->LearnProgress.TreeStats.emplace_back();
-        ctx->LearnProgress.TreeStats.back().LeafWeightsSum = sumLeafWeights;
-        ctx->LearnProgress.LeafValues.push_back(treeValues);
-        ctx->LearnProgress.TreeStruct.push_back(bestSplitTree);
+        ctx->LearnProgress.TreeStats.back().LeafWeightsSum = std::move(sumLeafWeights);
+        ctx->LearnProgress.LeafValues.push_back(std::move(treeValues));
+        ctx->LearnProgress.TreeStruct.push_back(std::move(bestSplitTree));
 
         profile.AddOperation("Update final approxes");
         CheckInterrupted(); // check after long-lasting operation

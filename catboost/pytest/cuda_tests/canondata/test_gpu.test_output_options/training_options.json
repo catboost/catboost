@@ -1,20 +1,32 @@
 {
+    "model_based_eval_options" : {
+        "experiment_size" : 5,
+        "experiment_count" : 200,
+        "baseline_model_snapshot" : "baseline_model_snapshot",
+        "offset" : 1000,
+        "features_to_evaluate" : [ ]
+    },
     "detailed_profile" : false,
     "boosting_options" : {
-        "approx_on_full_history" : false,
         "fold_len_multiplier" : 2,
-        "fold_permutation_block" : 0,
+        "data_partition" : "FeatureParallel",
+        "fold_permutation_block" : 64,
         "boosting_type" : "Ordered",
-        "iterations" : 5,
+        "iterations" : 10,
         "od_config" : {
             "wait_iterations" : 20,
             "type" : "None",
             "stop_pvalue" : 0
         },
+        "min_fold_size" : 100,
         "permutation_count" : 4,
-        "learning_rate" : 0.02999999933
+        "learning_rate" : 0.4402559996
     },
     "metrics" : {
+        "objective_metric" : {
+            "type" : "Logloss",
+            "params" : { }
+        },
         "eval_metric" : {
             "type" : "RMSE",
             "params" : { }
@@ -23,8 +35,6 @@
     },
     "metadata" : { },
     "cat_feature_params" : {
-        "store_all_simple_ctr" : false,
-        "ctr_leaf_count_limit" : 18446744073709551615,
         "simple_ctrs" : [
             {
                 "ctr_binarization" : {
@@ -55,7 +65,7 @@
             {
                 "ctr_binarization" : {
                     "border_count" : 15,
-                    "border_type" : "Uniform"
+                    "border_type" : "MinEntropy"
                 },
                 "prior_estimation" : "No",
                 "priors" : [
@@ -64,7 +74,7 @@
                         1
                     ]
                 ],
-                "ctr_type" : "Counter"
+                "ctr_type" : "FeatureFreq"
             }
         ],
         "counter_calc_method" : "SkipTest",
@@ -100,7 +110,7 @@
             {
                 "ctr_binarization" : {
                     "border_count" : 15,
-                    "border_type" : "Uniform"
+                    "border_type" : "Median"
                 },
                 "prior_estimation" : "No",
                 "priors" : [
@@ -109,65 +119,74 @@
                         1
                     ]
                 ],
-                "ctr_type" : "Counter"
+                "ctr_type" : "FeatureFreq"
             }
         ],
         "target_binarization" : {
             "border_count" : 1,
             "border_type" : "MinEntropy"
         },
+        "ctr_history_unit" : "Sample",
         "per_feature_ctrs" : { }
     },
     "logging_level" : "Verbose",
     "data_processing_options" : {
-        "classes_count" : 0,
-        "allow_const_label" : false,
-        "class_names" : [ ],
         "has_time" : false,
-        "ignored_features" : [ ],
+        "gpu_cat_features_storage" : "GpuRam",
+        "allow_const_label" : false,
         "class_weights" : [ ],
+        "class_names" : [ ],
         "float_features_binarization" : {
-            "border_count" : 254,
+            "border_count" : 128,
             "nan_mode" : "Min",
             "border_type" : "GreedyLogSum"
-        }
+        },
+        "classes_count" : 0,
+        "ignored_features" : [ ]
     },
     "loss_function" : {
-        "type" : "RMSE",
+        "type" : "Logloss",
         "params" : { }
     },
     "tree_learner_options" : {
+        "max_leaves" : 64,
         "rsm" : 1,
         "random_strength" : 1,
-        "leaf_estimation_iterations" : 1,
-        "dev_efb_max_buckets" : 1024,
-        "dev_score_calc_obj_block_size" : 5000000,
+        "leaf_estimation_iterations" : 10,
+        "score_function" : "Correlation",
+        "max_ctr_complexity_for_borders_cache" : 1,
         "leaf_estimation_backtracking" : "AnyImprovement",
         "bayesian_matrix_reg" : 0.1000000015,
+        "fold_size_loss_normalization" : false,
         "leaf_estimation_method" : "Newton",
-        "sampling_frequency" : "PerTree",
-        "model_size_reg" : 0.5,
         "bootstrap" : {
             "bagging_temperature" : 1,
             "type" : "Bayesian"
         },
-        "efb_max_conflict_fraction" : 0,
+        "observations_to_bootstrap" : "TestOnly",
+        "grow_policy" : "SymmetricTree",
+        "add_ridge_penalty_to_loss_function" : false,
         "l2_leaf_reg" : 3,
-        "depth" : 6
+        "depth" : 6,
+        "min_data_in_leaf" : 1
     },
-    "task_type" : "CPU",
+    "task_type" : "GPU",
     "flat_params" : {
-        "training_options_file" : "training_options.json",
-        "train_dir" : "catboost_info",
+        "gpu_ram_part" : 0.25,
+        "iterations" : 10,
         "thread_count" : 4,
-        "iterations" : 5
+        "training_options_file" : "training_options.json",
+        "loss_function" : "Logloss",
+        "devices" : "0",
+        "train_dir" : "catboost_info",
+        "task_type" : "GPU"
     },
     "random_seed" : 0,
     "system_options" : {
+        "devices" : "0",
         "thread_count" : 4,
-        "file_with_hosts" : "hosts.txt",
-        "node_type" : "SingleHost",
-        "node_port" : 0,
-        "used_ram_limit" : ""
+        "used_ram_limit" : "",
+        "pinned_memory_bytes" : "104857600",
+        "gpu_ram_part" : 0.25
     }
 }

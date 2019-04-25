@@ -1,8 +1,10 @@
 #define FROM_IMPL_CPP
+
+#include "coro_events.h"
 #include "impl.h"
 
-#include <util/stream/output.h>
 #include <util/generic/yexception.h>
+#include <util/stream/output.h>
 #include <util/system/yassert.h>
 
 template <>
@@ -206,28 +208,9 @@ TContIOStatus TCont::ReadVectorD(SOCKET fd, TContIOVector* vec, TInstant deadlin
 }
 
 TContIOStatus TCont::ReadD(SOCKET fd, void* buf, size_t len, TInstant deadline) noexcept {
-    Y_CORO_DBGOUT(Y_CORO_PRINT(this) << " do read");
-    Y_VERIFY(!Dead_, "%s", Y_CORO_PRINTF(this));
-
-    while (true) {
-        ssize_t res = DoRead(fd, (char*)buf, len);
-
-        if (res >= 0) {
-            return TContIOStatus::Success((size_t)res);
-        }
-
-        {
-            const int err = LastSystemError();
-
-            if (!IsBlocked(err)) {
-                return TContIOStatus::Error(err);
-            }
-        }
-
-        if ((res = PollD(fd, CONT_POLL_READ, deadline)) != 0) {
-            return TContIOStatus::Error((int)res);
-        }
-    }
+    IOutputStream::TPart part(buf, len);
+    TContIOVector vec(&part, 1);
+    return ReadVectorD(fd, &vec, deadline);
 }
 
 TContIOStatus TCont::WriteVectorD(SOCKET fd, TContIOVector* vec, TInstant deadline) noexcept {
@@ -419,19 +402,21 @@ int TCont::Connect(TSocketHolder& s, const TNetworkAddress& addr, TInstant deadL
     return ret;
 }
 
-TContExecutor::TContExecutor(size_t stackSize, THolder<IPollerFace> poller)
+TContExecutor::TContExecutor(size_t stackSize, THolder<IPollerFace> poller, NCoro::IScheduleCallback& callback)
     : Poller_(std::move(poller))
     , MyPool_(new TContRepPool(stackSize))
     , Pool_(*MyPool_)
     , Current_(nullptr)
+    , Callback_(callback)
     , FailOnError_(false)
 {
 }
 
-TContExecutor::TContExecutor(TContRepPool* pool, THolder<IPollerFace> poller)
+TContExecutor::TContExecutor(TContRepPool* pool, THolder<IPollerFace> poller, NCoro::IScheduleCallback& callback)
     : Poller_(std::move(poller))
     , Pool_(*pool)
     , Current_(nullptr)
+    , Callback_(callback)
     , FailOnError_(false)
 {
 }
@@ -453,7 +438,9 @@ void TContExecutor::RunScheduler() noexcept {
             TContRep* cont = Ready_.PopFront();
 
             Y_CORO_DBGOUT(Y_CORO_PRINT(cont->ContPtr()) << " prepare for activate");
+            Callback_.OnSchedule(*this, *cont->ContPtr());
             Activate(cont);
+            Callback_.OnUnschedule(*this, *cont->ContPtr());
 
             WaitForIO();
             DeleteScheduled();

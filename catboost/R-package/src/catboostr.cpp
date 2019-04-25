@@ -189,6 +189,7 @@ SEXP CatBoostCreateFromMatrix_R(SEXP matrixParam,
         metaInfo.FeaturesLayout = MakeIntrusive<TFeaturesLayout>(
             dataColumns,
             ToUnsigned(GetVectorFromSEXP<int>(catFeaturesParam)),
+            TVector<ui32>{}, // TODO(d-kruchinin) support text features in R
             featureId);
 
         metaInfo.HasTarget = targetParam != R_NilValue;
@@ -625,14 +626,19 @@ SEXP CatBoostCalcRegularFeatureEffect_R(SEXP modelParam, SEXP poolParam, SEXP fs
     R_API_BEGIN();
     TFullModelHandle model = reinterpret_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
     TDataProviderPtr pool = reinterpret_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
-    TString fstrType = CHAR(asChar(fstrTypeParam));
+    EFstrType fstrType = FromString<EFstrType>(CHAR(asChar(fstrTypeParam)));
 
     const int threadCount = UpdateThreadCount(asInteger(threadCountParam));
     const bool multiClass = model->ObliviousTrees.ApproxDimension > 1;
     const bool verbose = false;
     // TODO(akhropov): make prettified mode as in python-package
-    if (fstrType == "ShapValues" && multiClass) {
-        TVector<TVector<TVector<double>>> fstr = GetFeatureImportancesMulti(fstrType, *model, pool, threadCount, verbose);
+    if (fstrType == EFstrType::ShapValues && multiClass) {
+        TVector<TVector<TVector<double>>> fstr = GetFeatureImportancesMulti(fstrType,
+                                                                            *model,
+                                                                            pool,
+                                                                            threadCount,
+                                                                            EPreCalcShapValues::Auto,
+                                                                            verbose);
         size_t numDocs = fstr.size();
         size_t numClasses = numDocs > 0 ? fstr[0].size() : 0;
         size_t numValues = numClasses > 0 ? fstr[0][0].size() : 0;
@@ -652,7 +658,12 @@ SEXP CatBoostCalcRegularFeatureEffect_R(SEXP modelParam, SEXP poolParam, SEXP fs
         INTEGER(resultDim)[2] = numValues;
         setAttrib(result, R_DimSymbol, resultDim);
     } else {
-        TVector<TVector<double>> fstr = GetFeatureImportances(fstrType, *model, pool, threadCount, verbose);
+        TVector<TVector<double>> fstr = GetFeatureImportances(fstrType,
+                                                              *model,
+                                                              pool,
+                                                              threadCount,
+                                                              EPreCalcShapValues::Auto,
+                                                              verbose);
         size_t numRows = fstr.size();
         size_t numCols = numRows > 0 ? fstr[0].size() : 0;
         size_t resultSize = numRows * numCols;
