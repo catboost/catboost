@@ -27,6 +27,7 @@
 #include <catboost/libs/quantization/utils.h>
 #include <catboost/libs/train_lib/train_model.h>
 
+#include <library/json/json_prettifier.h>
 #include <library/json/json_value.h>
 #include <library/threading/local_executor/local_executor.h>
 
@@ -306,17 +307,6 @@ namespace NCatboostCuda {
             localExecutor);
     }
 
-    inline void CreateDirIfNotExist(const TString& path) {
-        TFsPath trainDirPath(path);
-        try {
-            if (!path.empty() && !trainDirPath.Exists()) {
-                trainDirPath.MkDir();
-            }
-        } catch (...) {
-            ythrow TCatBoostException() << "Can't create working dir: " << path;
-        }
-    }
-
     class TGPUModelTrainer: public IModelTrainer {
     public:
         void TrainModel(
@@ -372,6 +362,12 @@ namespace NCatboostCuda {
                 featuresManager,
                 localExecutor);
 
+            const TString trainingOptionsFileName = updatedOutputOptions.CreateTrainingOptionsFullPath();
+            if (!trainingOptionsFileName.empty()) {
+                TOFStream trainingOptionsFile(trainingOptionsFileName);
+                trainingOptionsFile.Write(NJson::PrettifyJson(ToString(catBoostOptions)));
+            }
+
             NCB::TOnCpuGridBuilderFactory gridBuilderFactory;
             featuresManager.SetTargetBorders(
                 NCB::TBordersBuilder(
@@ -379,7 +375,6 @@ namespace NCatboostCuda {
                     *trainingData.Learn->TargetData->GetTarget())(featuresManager.GetTargetBinarizationDescription()));
 
             TSetLogging inThisScope(catBoostOptions.LoggingLevel);
-            CreateDirIfNotExist(updatedOutputOptions.GetTrainDir());
             auto deviceRequestConfig = CreateDeviceRequestConfig(catBoostOptions);
             auto stopCudaManagerGuard = StartCudaManager(deviceRequestConfig,
                                                          catBoostOptions.LoggingLevel);
@@ -511,7 +506,6 @@ namespace NCatboostCuda {
                     *trainingData.Learn->TargetData->GetTarget())(featuresManager.GetTargetBinarizationDescription()));
 
             TSetLogging inThisScope(catBoostOptions.LoggingLevel);
-            CreateDirIfNotExist(updatedOutputOptions.GetTrainDir());
             auto deviceRequestConfig = CreateDeviceRequestConfig(catBoostOptions);
             auto stopCudaManagerGuard = StartCudaManager(deviceRequestConfig,
                                                          catBoostOptions.LoggingLevel);

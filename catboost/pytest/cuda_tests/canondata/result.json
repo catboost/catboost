@@ -2797,6 +2797,10 @@
             "uri": "file://test_gpu.test_one_hot_max_size_Plain_/test.eval"
         }
     ],
+    "test_gpu.test_output_options": {
+        "checksum": "4149e2c1beae6727f097966eb715db61",
+        "uri": "file://test_gpu.test_output_options/training_options.json"
+    },
     "test_gpu.test_overfit_detector_inc_to_dec[Ordered]": [
         {
             "checksum": "51e6a774a78e98e0700ea8869f984d19",

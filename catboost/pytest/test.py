@@ -6029,25 +6029,6 @@ def test_extra_commas(metric):
             yatest.common.execute(cmd)
 
 
-def test_output_params():
-    output_options_path = 'training_options.json'
-    train_dir = 'catboost_info'
-    cmd = (
-        CATBOOST_PATH,
-        'fit',
-        '-f', data_file('adult', 'train_small'),
-        '-t', data_file('adult', 'test_small'),
-        '--column-description', data_file('adult', 'train.cd'),
-        '-i', '5',
-        '-T', '4',
-        '--train-dir', train_dir,
-        '--training-options-file', output_options_path,
-    )
-    yatest.common.execute(cmd)
-
-    return [local_canonical_file(os.path.join(train_dir, output_options_path))]
-
-
 def execute_fit_for_test_quantized_pool(loss_function, pool_path, test_path, cd_path, eval_path,
                                         border_count=128, other_options=()):
     model_path = yatest.common.test_output_path('model.bin')
@@ -6786,3 +6767,23 @@ def test_simple_ctr():
     ))
 
     return [local_canonical_file(output_eval_path)]
+
+
+def test_output_options():
+    output_options_path = 'training_options.json'
+    train_dir = 'catboost_info'
+
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'Logloss',
+        '-f', data_file('adult', 'train_small'),
+        '-t', data_file('adult', 'test_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '-i', '10',
+        '-T', '4',
+        '--train-dir', train_dir,
+        '--training-options-file', output_options_path,
+    )
+    yatest.common.execute(cmd)
+    return local_canonical_file(os.path.join(train_dir, output_options_path))

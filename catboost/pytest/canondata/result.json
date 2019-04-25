@@ -3067,12 +3067,10 @@
         "checksum": "d41d8cd98f00b204e9800998ecf8427e",
         "uri": "file://test.test_output_columns_format/test.eval"
     },
-    "test.test_output_params": [
-        {
-            "checksum": "5c9c2822f620677bed055f23692c8fb9",
-            "uri": "file://test.test_output_params/training_options.json"
-        }
-    ],
+    "test.test_output_options": {
+        "checksum": "426f89a84aa7817f277540dbd1350e6d",
+        "uri": "file://test.test_output_options/training_options.json"
+    },
     "test.test_overfit_detector_inc_to_dec[Ordered]": [
         {
             "checksum": "ff4248a68778321668e297a7330dff06",

@@ -2364,3 +2364,21 @@ def test_grow_policies(boosting_type, grow_policy, score_function, loss_func):
 
     return [local_canonical_file(learn_error_path, diff_tool=diff_tool()),
             local_canonical_file(test_error_path, diff_tool=diff_tool())]
+
+
+def test_output_options():
+    output_options_path = 'training_options.json'
+    train_dir = 'catboost_info'
+
+    params = (
+        '--loss-function', 'Logloss',
+        '-f', data_file('adult', 'train_small'),
+        '-t', data_file('adult', 'test_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '-i', '10',
+        '-T', '4',
+        '--train-dir', train_dir,
+        '--training-options-file', output_options_path,
+    )
+    fit_catboost_gpu(params)
+    return local_canonical_file(os.path.join(train_dir, output_options_path))
