@@ -130,17 +130,19 @@ TVector<TFeatureInteraction> CalcFeatureInteraction(
 
 TVector<TVector<double>> CalcInteraction(const TFullModel& model);
 TVector<TVector<double>> GetFeatureImportances(
-    const TString& type,
+    const EFstrType type,
     const TFullModel& model,
     const NCB::TDataProviderPtr dataset, // can be nullptr
     int threadCount,
+    EPreCalcShapValues mode,
     int logPeriod = 0);
 
 TVector<TVector<TVector<double>>> GetFeatureImportancesMulti(
-    const TString& type,
+    const EFstrType type,
     const TFullModel& model,
     const NCB::TDataProviderPtr dataset,
     int threadCount,
+    EPreCalcShapValues mode,
     int logPeriod = 0);
 
 

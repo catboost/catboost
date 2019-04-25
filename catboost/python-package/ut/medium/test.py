@@ -1971,6 +1971,18 @@ def test_shap_feature_importance(task_type):
     return local_canonical_file(fimp_npy_path)
 
 
+def test_shap_feature_importance_modes(task_type):
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(iterations=5, task_type=task_type)
+    model.fit(pool)
+    modes = ["Auto", "UsePreCalc", "NoPreCalc"]
+    shaps_for_modes = []
+    for mode in modes:
+        shaps_for_modes.append(model.get_feature_importance(type=EFstrType.ShapValues, data=pool, shap_mode=mode))
+    for i in range(len(modes) - 1):
+        assert np.all(np.abs(shaps_for_modes[i] - shaps_for_modes[i-1]) < 1e-9)
+
+
 def test_od(task_type):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)

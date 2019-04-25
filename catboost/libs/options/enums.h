@@ -210,6 +210,12 @@ enum class EFstrType {
     ShapValues
 };
 
+enum class EPreCalcShapValues {
+    Auto,
+    UsePreCalc,
+    NoPreCalc
+};
+
 enum class EObservationsToBootstrap {
     LearnAndTest,
     TestOnly

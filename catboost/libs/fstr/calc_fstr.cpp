@@ -276,7 +276,7 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
 
     TRestorableFastRng64 rand(0);
     auto targetData = CreateModelCompatibleProcessedDataProvider(dataset, {metricDescription}, model, &rand, localExecutor).TargetData;
-    TShapPreparedTrees preparedTrees = PrepareTrees(model, &dataset, 0, localExecutor, true);
+    TShapPreparedTrees preparedTrees = PrepareTrees(model, &dataset, 0, EPreCalcShapValues::Auto, localExecutor, true);
 
     TVector<TMetricHolder> scores(featuresCount + 1);
 
@@ -666,15 +666,15 @@ static bool AllFeatureIdsEmpty(TConstArrayRef<TFeatureMetaInfo> featuresMetaInfo
 
 
 TVector<TVector<double>> GetFeatureImportances(
-    const TString& type,
+    const EFstrType fstrType,
     const TFullModel& model,
     const TDataProviderPtr dataset, // can be nullptr
     int threadCount,
+    EPreCalcShapValues mode,
     int logPeriod)
 {
     TSetLoggingVerbose inThisScope;
 
-    EFstrType fstrType = FromString<EFstrType>(type);
     switch (fstrType) {
         case EFstrType::PredictionValuesChange:
         case EFstrType::LossFunctionChange:
@@ -695,7 +695,7 @@ TVector<TVector<double>> GetFeatureImportances(
             NPar::TLocalExecutor localExecutor;
             localExecutor.RunAdditionalThreads(threadCount - 1);
 
-            return CalcShapValues(model, *dataset, logPeriod, &localExecutor);
+            return CalcShapValues(model, *dataset, logPeriod, mode, &localExecutor);
         }
         default:
             Y_UNREACHABLE();
@@ -703,15 +703,14 @@ TVector<TVector<double>> GetFeatureImportances(
 }
 
 TVector<TVector<TVector<double>>> GetFeatureImportancesMulti(
-    const TString& type,
+    const EFstrType fstrType,
     const TFullModel& model,
     const TDataProviderPtr dataset,
     int threadCount,
+    EPreCalcShapValues mode,
     int logPeriod)
 {
     TSetLoggingVerbose inThisScope;
-
-    EFstrType fstrType = FromString<EFstrType>(type);
 
     CB_ENSURE(fstrType == EFstrType::ShapValues, "Only shap values can provide multi approxes.");
 
@@ -720,7 +719,7 @@ TVector<TVector<TVector<double>>> GetFeatureImportancesMulti(
     NPar::TLocalExecutor localExecutor;
     localExecutor.RunAdditionalThreads(threadCount - 1);
 
-    return CalcShapValuesMulti(model, *dataset, logPeriod, &localExecutor);
+    return CalcShapValuesMulti(model, *dataset, logPeriod, mode, &localExecutor);
 }
 
 TVector<TString> GetMaybeGeneratedModelFeatureIds(const TFullModel& model, const TDataProviderPtr dataset) {
