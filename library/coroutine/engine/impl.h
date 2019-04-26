@@ -802,13 +802,13 @@ public:
     TContExecutor(
         size_t stackSize,
         THolder<IPollerFace> poller = IPollerFace::Default(),
-        NCoro::IScheduleCallback& = NCoro::TDummyScheduleCallback::Instance()
+        NCoro::IScheduleCallback* = nullptr
     );
 
     TContExecutor(
         TContRepPool* pool,
         THolder<IPollerFace> poller = IPollerFace::Default(),
-        NCoro::IScheduleCallback& = NCoro::TDummyScheduleCallback::Instance()
+        NCoro::IScheduleCallback* = nullptr
     );
 
     ~TContExecutor();
@@ -1004,8 +1004,8 @@ private:
     THolder<TContRepPool> MyPool_;
     TContRepPool& Pool_;
     TExceptionSafeContext SchedContext_;
-    TContRep* Current_;
-    NCoro::IScheduleCallback& Callback_;
+    TContRep* Current_ = nullptr;
+    NCoro::IScheduleCallback* const CallbackPtr_ = nullptr;
     typedef TContPoller::TEvents TEvents;
     TEvents Events_;
     bool FailOnError_;
