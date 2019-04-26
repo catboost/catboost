@@ -1,4 +1,3 @@
-
 import sys
 from copy import deepcopy
 from six import iteritems, string_types, integer_types
@@ -1108,6 +1107,12 @@ class CatBoost(_CatBoostBase):
              column_description, verbose_eval, metric_period, silent, early_stopping_rounds,
              save_snapshot, snapshot_file, snapshot_interval):
 
+        if X is None:
+            raise CatBoostError("X must not be None")
+
+        if y is None:
+            raise CatBoostError("y must not be None")
+
         params = deepcopy(self._init_params)
         if params is None:
             params = {}
@@ -1184,7 +1189,10 @@ class CatBoost(_CatBoostBase):
             elif isinstance(eval_set, tuple):
                 if len(eval_set) != 2:
                     raise CatBoostError("Invalid shape of 'eval_set': {}, must be (X, y).".format(str(tuple(type(_) for _ in eval_set))))
+                if eval_set[0] is None or eval_set[1] is None:
+                    raise CatBoostError("'eval_set' tuple contains at least one None value")
                 eval_sets.append(Pool(eval_set[0], eval_set[1], cat_features=train_pool.get_cat_feature_indices()))
+
                 eval_total_row_count += eval_sets[-1].num_row()
                 if eval_sets[-1].num_row() == 0:
                     raise CatBoostError("Empty 'eval_set' in tuple")
