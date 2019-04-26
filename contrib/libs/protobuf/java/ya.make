@@ -1,4 +1,4 @@
-_JAVA_LIBRARY()
+JAR()
 
 
 
