@@ -48,10 +48,10 @@ static void AddImpl(
     counts->push_back(weight);
 
     if (tokenLevelType == ETokenLevelType::Letter) {
-        auto addTokenFunc = [&] (const TString& character) {
+        auto addTokenFunc = [&] (TStringBuf character) {
             AddToken(character, skipUnknown, alphabet, lines);
         };
-        ApplyFuncToLetterNGrams(tokens, /*gramOrder*/1, /*skipStep*/0, addEndOfWordToken, addTokenFunc);
+        ApplyFuncToLetterNGrams(tokens, /*gramOrder*/1, addEndOfWordToken, addTokenFunc);
     } else {
         Y_ASSERT(tokenLevelType == ETokenLevelType::Word);
         for (const auto& token : tokens) {

@@ -114,13 +114,12 @@ namespace NTextProcessing::NDictionary {
                 TokenToCount[token] += weight;
             }
         } else {
-            auto updateTokenToCountFunc = [&] (const TString& token) {
+            auto updateTokenToCountFunc = [&] (TStringBuf token) {
                 TokenToCount[token] += weight;
             };
             ApplyFuncToLetterNGrams(
                 tokens,
                 DictionaryOptions.GramOrder,
-                DictionaryOptions.SkipStep,
                 DictionaryOptions.EndOfWordTokenPolicy == EEndOfWordTokenPolicy::Insert,
                 updateTokenToCountFunc
             );
@@ -342,6 +341,13 @@ namespace NTextProcessing::NDictionary {
         const TDictionaryBuilderOptions& dictionaryBuilderOptions,
         const TDictionaryOptions& dictionaryOptions
     ) {
+        Y_ENSURE(dictionaryOptions.GramOrder > 0, "GramOrder should be positive.");
+        Y_ENSURE(
+            dictionaryOptions.TokenLevelType == ETokenLevelType::Word ||
+            dictionaryOptions.SkipStep == 0,
+            "SkipStep should be equal to zero in case of Letter token level type."
+        );
+
         if (dictionaryOptions.GramOrder == 1 || dictionaryOptions.TokenLevelType == ETokenLevelType::Letter) {
             DictionaryBuilderImpl = MakeHolder<TUnigramDictionaryBuilderImpl>(dictionaryBuilderOptions, dictionaryOptions);
             return;
