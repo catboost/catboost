@@ -415,7 +415,10 @@
         "927018820": "https://storage.mds.yandex.net/get-devtools-opensource/233854/927018820", 
         "928830562": "https://storage.mds.yandex.net/get-devtools-opensource/233854/928830562", 
         "928830675": "https://storage.mds.yandex.net/get-devtools-opensource/250854/928830675", 
-        "928830766": "https://storage.mds.yandex.net/get-devtools-opensource/479623/928830766"
+        "928830766": "https://storage.mds.yandex.net/get-devtools-opensource/479623/928830766", 
+        "933757579": "https://storage.mds.yandex.net/get-devtools-opensource/250854/933757579", 
+        "933757677": "https://storage.mds.yandex.net/get-devtools-opensource/471749/933757677", 
+        "933757727": "https://storage.mds.yandex.net/get-devtools-opensource/250854/933757727"
     }, 
     "tasks": {
         "220049371": {
@@ -1003,6 +1006,11 @@
             "darwin": "922117658", 
             "linux": "922118024", 
             "win32": "922117438"
+        }, 
+        "421750006": {
+            "darwin": "933757677", 
+            "linux": "933757727", 
+            "win32": "933757579"
         }, 
         "74052635": {
             "cygwin": "173608101", 
