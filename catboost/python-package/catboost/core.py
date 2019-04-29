@@ -944,6 +944,12 @@ class _CatBoostBase(object):
     def _staged_predict_iterator(self, pool, prediction_type, ntree_start, ntree_end, eval_period, thread_count, verbose):
         return self._object._staged_predict_iterator(pool, prediction_type, ntree_start, ntree_end, eval_period, thread_count, verbose)
 
+    def _leaf_indexes_iterator(self, pool, ntree_start, ntree_end):
+        return self._object._leaf_indexes_iterator(pool, ntree_start, ntree_end)
+
+    def _base_calc_leaf_indexes(self, pool, ntree_start, ntree_end, thread_count, verbose):
+        return self._object._base_calc_leaf_indexes(pool, ntree_start, ntree_end, thread_count, verbose)
+
     def _base_eval_metrics(self, pool, metrics_description, ntree_start, ntree_end, eval_period, thread_count, result_dir, tmp_dir):
         metrics_description_list = metrics_description if isinstance(metrics_description, list) else [metrics_description]
         return self._object._base_eval_metrics(pool, metrics_description_list, ntree_start, ntree_end, eval_period, thread_count, result_dir, tmp_dir)
@@ -1478,6 +1484,91 @@ class CatBoost(_CatBoostBase):
                   with probability for every class for each object.
         """
         return self._staged_predict(data, prediction_type, ntree_start, ntree_end, eval_period, thread_count, verbose, 'staged_predict')
+
+    def _validate_predict_input(self, data):
+        if not self.is_fitted() or self.tree_count_ is None:
+            raise CatBoostError("There is no trained model to use iterate_leaf_indexes(). "
+                                "Use fit() to train model. Then use this method.")
+        is_single_object = _is_data_single_object(data)
+        if not isinstance(data, Pool):
+            data = Pool(
+                data=[data] if is_single_object else data,
+                cat_features=self._get_cat_feature_indices() if not isinstance(data, FeaturesData) else None
+            )
+        return data, is_single_object
+
+    def _iterate_leaf_indexes(self, data, ntree_start, ntree_end):
+        if ntree_end == 0:
+            ntree_end = self.tree_count_
+        data, _ = self._validate_predict_input(data)
+        leaf_indexes_iterator = self._leaf_indexes_iterator(data, ntree_start, ntree_end)
+        while True:
+            yield leaf_indexes_iterator.next()
+
+    def iterate_leaf_indexes(self, data, ntree_start=0, ntree_end=0):
+        """
+        Returns indexes of leafs to which objects from pool are mapped by model trees.
+
+        Parameters
+        ----------
+        data : catboost.Pool or list of features or list of lists or numpy.array or pandas.DataFrame or pandas.Series
+                or catboost.FeaturesData
+            Data to apply model on.
+            If data is a simple list (not list of lists) or a one-dimensional numpy.ndarray it is interpreted
+            as a list of features for a single object.
+
+        ntree_start: int, optional (default=0)
+            Index of first tree for which leaf indexes will be calculated (zero-based indexing).
+
+        ntree_end: int, optional (default=0)
+            Index of the tree after last tree for which leaf indexes will be calculated (zero-based indexing).
+            If value equals to 0 this parameter is ignored and ntree_end equal to tree_count_.
+
+        Returns
+        -------
+        leaf_indexes : generator. For each object in pool yields one-dimensional numpy.ndarray of leaf indexes.
+        """
+        return self._iterate_leaf_indexes(data, ntree_start, ntree_end)
+
+    def _calc_leaf_indexes(self, data, ntree_start, ntree_end, thread_count, verbose):
+        if ntree_end == 0:
+            ntree_end = self.tree_count_
+        data, is_single_object = self._validate_predict_input(data)
+        return self._base_calc_leaf_indexes(data, ntree_start, ntree_end, thread_count, verbose)
+
+    def calc_leaf_indexes(self, data, ntree_start=0, ntree_end=0, thread_count=-1, verbose=False):
+        """
+        Returns indexes of leafs to which objects from pool are mapped by model trees.
+
+        Parameters
+        ----------
+        data : catboost.Pool or list of features or list of lists or numpy.array or pandas.DataFrame or pandas.Series
+                or catboost.FeaturesData
+            Data to apply model on.
+            If data is a simple list (not list of lists) or a one-dimensional numpy.ndarray it is interpreted
+            as a list of features for a single object.
+
+        ntree_start: int, optional (default=0)
+            Index of first tree for which leaf indexes will be calculated (zero-based indexing).
+
+        ntree_end: int, optional (default=0)
+            Index of the tree after last tree for which leaf indexes will be calculated (zero-based indexing).
+            If value equals to 0 this parameter is ignored and ntree_end equal to tree_count_.
+
+        thread_count : int (default=-1)
+            The number of threads to use when applying the model.
+            Allows you to optimize the speed of execution. This parameter doesn't affect results.
+            If -1, then the number of threads is set to the number of CPU cores.
+
+        verbose : bool (default=False)
+            Enable debug logging level.
+
+        Returns
+        -------
+        leaf_indexes : 2-dimensional numpy.ndarray of numpy.uint32 with shape (object count, ntree_end - ntree_start).
+            i-th row is an array of leaf indexes for i-th object.
+        """
+        return self._calc_leaf_indexes(data, ntree_start, ntree_end, thread_count, verbose)
 
     def get_cat_feature_indices(self):
         if not self.is_fitted():

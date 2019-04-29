@@ -18,6 +18,7 @@
 #include <algorithm>
 #include <functional>
 #include <limits>
+#include <type_traits>
 
 #include <library/sse/sse.h>
 
@@ -437,7 +438,7 @@ inline void ProcessDocsInBlocks(
 }
 
 
-template <bool isQuantizedFeaturesData = false, typename TFloatFeatureAccessor, typename TCatFeatureAccessor>
+template <bool IsQuantizedFeaturesData = false, typename TFloatFeatureAccessor, typename TCatFeatureAccessor>
 inline void CalcGeneric(
     const TFullModel& model,
     TFloatFeatureAccessor floatFeatureAccessor,
@@ -457,7 +458,7 @@ inline void CalcGeneric(
     std::fill(results.begin(), results.end(), 0.0);
     TVector<TCalcerIndexType> indexesVec(blockSize);
     auto rawResultsPtr = results.data();
-    ProcessDocsInBlocks<isQuantizedFeaturesData>(
+    ProcessDocsInBlocks<IsQuantizedFeaturesData>(
         model,
         floatFeatureAccessor,
         catFeaturesAccessor,
@@ -495,7 +496,7 @@ void Transpose2DArray(
     }
 }
 
-template <bool isQuantizedFeaturesData = false, typename TFloatFeatureAccessor, typename TCatFeatureAccessor>
+template <bool IsQuantizedFeaturesData = false, typename TFloatFeatureAccessor, typename TCatFeatureAccessor>
 inline void CalcLeafIndexesGeneric(
     const TFullModel& model,
     TFloatFeatureAccessor floatFeatureAccessor,
@@ -521,7 +522,7 @@ inline void CalcLeafIndexesGeneric(
     auto calcTrees = GetCalcTreesFunction(model, blockSize, true);
 
     if (docCount == 1) {
-        ProcessDocsInBlocks(
+        ProcessDocsInBlocks<IsQuantizedFeaturesData>(
             model, floatFeatureAccessor, catFeaturesAccessor, docCount, blockSize,
             [&](size_t docCountInBlock, TArrayRef<ui8> binFeatures) {
                 calcTrees(
@@ -539,7 +540,7 @@ inline void CalcLeafIndexesGeneric(
     }
     TVector<TCalcerIndexType> tmpLeafIndexHolder(blockSize * treeCount);
     TCalcerIndexType* transposedLeafIndexesPtr = tmpLeafIndexHolder.data();
-    ProcessDocsInBlocks(model, floatFeatureAccessor, catFeaturesAccessor, docCount, blockSize,
+    ProcessDocsInBlocks<IsQuantizedFeaturesData>(model, floatFeatureAccessor, catFeaturesAccessor, docCount, blockSize,
         [&](size_t docCountInBlock, TArrayRef<ui8> binFeatures) {
             calcTrees(
                 model,
@@ -678,36 +679,36 @@ inline TVector<TVector<double>> CalcTreeIntervalsGeneric(
     return results;
 }
 
-template <typename TCatFeatureValue = TStringBuf>
-class TLeafIndexCalcer {
-    static_assert(std::is_same_v<TCatFeatureValue, TStringBuf > || std::is_integral_v<TCatFeatureValue>);
+class ILeafIndexCalcer {
+public:
+    virtual bool Next() = 0;
+    virtual bool CanGet() const = 0;
+    virtual TVector<TCalcerIndexType> Get() const = 0;
+    virtual ~ILeafIndexCalcer() = default;
+};
+
+template <class TFloatFeatureAccessor, class TCatFeatureAccessor, bool IsQuantizedFeaturesData = false>
+class TLeafIndexCalcer : public ILeafIndexCalcer {
 public:
     TLeafIndexCalcer(
         const TFullModel& model,
-        TConstArrayRef<TConstArrayRef<float>> floatFeatures,
-        TConstArrayRef<TVector<TCatFeatureValue>> catFeatures,
+        TFloatFeatureAccessor floatFeatureAccessor,
+        TCatFeatureAccessor catFeatureAccessor,
+        size_t docCount,
         size_t treeStrat,
         size_t treeEnd
     )
         : Model(model)
-        , FloatFeatures(floatFeatures)
-        , CatFeatures(catFeatures)
-        , DocCount(Max(floatFeatures.size(), catFeatures.size()))
+        , FloatFeatureAccessor(floatFeatureAccessor)
+        , CatFeatureAccessor(catFeatureAccessor)
+        , DocCount(docCount)
         , TreeStart(treeStrat)
         , TreeEnd(treeEnd)
     {
-        CB_ENSURE(floatFeatures.empty() || catFeatures.empty() || floatFeatures.size() == catFeatures.size());
         CalcNextBatch();
     }
 
-    TLeafIndexCalcer(
-        const TFullModel& model,
-        TConstArrayRef<TConstArrayRef<float>> floatFeatures,
-        TConstArrayRef<TVector<TStringBuf>> catFeatures
-    )
-        : TLeafIndexCalcer(model, floatFeatures, catFeatures, 0, model.ObliviousTrees.TreeSizes.size()) {}
-
-    bool Next() {
+    bool Next() override {
         ++CurrDocIndex;
         if (CurrDocIndex < DocCount) {
             if (CurrDocIndex == CurrBatchStart + CurrBatchSize) {
@@ -719,11 +720,11 @@ public:
         }
     }
 
-    bool CanGet() const {
+    bool CanGet() const override {
         return CurrDocIndex < DocCount;
     }
 
-    TVector<TCalcerIndexType> Get() const {
+    TVector<TCalcerIndexType> Get() const override {
         const auto treeCount = TreeEnd - TreeStart;
         const auto docIndexInBatch = CurrDocIndex - CurrBatchStart;
         TVector<TCalcerIndexType> result;
@@ -742,17 +743,13 @@ private:
         const size_t batchResultSize = (TreeEnd - TreeStart) * CurrBatchSize;
         CurrentBatchLeafIndexes.resize(batchResultSize);
         auto calcTrees = GetCalcTreesFunction(Model, CurrBatchSize, true);
-        ProcessDocsInBlocks(
+        ProcessDocsInBlocks<IsQuantizedFeaturesData>(
             Model,
             [this](const TFloatFeature& floatFeature, size_t index) -> float {
-                return FloatFeatures[CurrBatchStart + index][floatFeature.FeatureIndex];
+                return FloatFeatureAccessor(floatFeature, CurrBatchStart + index);
             },
             [this](const TCatFeature& catFeature, size_t index) -> int {
-                if constexpr (std::is_integral_v<TCatFeatureValue>) {
-                    return CatFeatures[CurrBatchStart + index][catFeature.FeatureIndex];
-                } else {
-                    return CalcCatFeatureHash(CatFeatures[CurrBatchStart + index][catFeature.FeatureIndex]);
-                }
+                return CatFeatureAccessor(catFeature, CurrBatchStart + index);
             },
             CurrBatchSize,
             CurrBatchSize, [&] (size_t docCountInBlock, TArrayRef<ui8> binFeatures) {
@@ -772,8 +769,8 @@ private:
 
 private:
     const TFullModel& Model;
-    TConstArrayRef<TConstArrayRef<float>> FloatFeatures;
-    TConstArrayRef<TVector<TCatFeatureValue>> CatFeatures;
+    TFloatFeatureAccessor FloatFeatureAccessor;
+    TCatFeatureAccessor CatFeatureAccessor;
     TVector<TCalcerIndexType> CurrentBatchLeafIndexes;
 
     const size_t DocCount = 0;
@@ -784,3 +781,72 @@ private:
     size_t CurrBatchSize = 0;
     size_t CurrDocIndex = 0;
 };
+
+template <class TQuantizedFeatureAccessor>
+THolder<ILeafIndexCalcer> MakeLeafIndexCalcer(
+    const TFullModel& model,
+    const TQuantizedFeatureAccessor& quantizedAccessor,
+    size_t docCount,
+    size_t treeStart,
+    size_t treeEnd
+) {
+    static_assert(std::is_same_v<decltype(quantizedAccessor(std::declval<TFloatFeature>(), 0)), ui8>);
+    const auto catAccessor = [](const TCatFeature&, size_t) -> ui32 {
+        Y_ASSERT("Quantized datasets with categorical features are not currently supported");
+        return 0;
+    };
+    return new TLeafIndexCalcer<TQuantizedFeatureAccessor, decltype(catAccessor), true>(
+        model, quantizedAccessor, catAccessor, docCount, treeStart, treeEnd);
+}
+
+template <class TFloatFeatureAccessor, class TCatFeatureAccessor>
+THolder<ILeafIndexCalcer> MakeLeafIndexCalcer(
+    const TFullModel& model,
+    const TFloatFeatureAccessor& floatAccessor,
+    const TCatFeatureAccessor& catAccessor,
+    size_t docCount,
+    size_t treeStart,
+    size_t treeEnd
+) {
+    return new TLeafIndexCalcer<TFloatFeatureAccessor, TCatFeatureAccessor>(
+        model, floatAccessor, catAccessor, docCount, treeStart, treeEnd);
+}
+
+template <typename TCatFeatureValue = TStringBuf,
+    class = typename std::enable_if<
+        std::is_same_v<TCatFeatureValue, TStringBuf> || std::is_integral_v<TCatFeatureValue>>::type>
+THolder<ILeafIndexCalcer> MakeLeafIndexCalcer(
+    const TFullModel& model,
+    TConstArrayRef<TConstArrayRef<float>> floatFeatures,
+    TConstArrayRef<TVector<TCatFeatureValue>> catFeatures,
+    size_t treeStrat,
+    size_t treeEnd
+) {
+    CB_ENSURE(floatFeatures.empty() || catFeatures.empty() || floatFeatures.size() == catFeatures.size());
+    const size_t docCount = Max(floatFeatures.size(), catFeatures.size());
+    return MakeLeafIndexCalcer(
+        model,
+        [floatFeatures](const TFloatFeature& floatFeature, size_t index) -> float {
+            return floatFeatures[index][floatFeature.FeatureIndex];
+        },
+        [catFeatures](const TCatFeature& catFeature, size_t index) -> int {
+            if constexpr (std::is_integral_v<TCatFeatureValue>) {
+                return catFeatures[index][catFeature.FeatureIndex];
+            } else {
+                return CalcCatFeatureHash(catFeatures[index][catFeature.FeatureIndex]);
+            }
+        },
+        docCount,
+        treeStrat,
+        treeEnd
+    );
+}
+
+template <typename TCatFeatureValue = TStringBuf>
+THolder<ILeafIndexCalcer> MakeLeafIndexCalcer(
+    const TFullModel& model,
+    TConstArrayRef<TConstArrayRef<float>> floatFeatures,
+    TConstArrayRef<TVector<TCatFeatureValue>> catFeatures
+) {
+    return MakeLeafIndexCalcer(model, floatFeatures, catFeatures, 0, model.ObliviousTrees.TreeSizes.size());
+}
