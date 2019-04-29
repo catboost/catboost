@@ -86,9 +86,9 @@ struct TNonSymmetricTreeStepNode {
 struct TObliviousTrees {
 public:
     /**
-     * This structure stores model metadata. Should be kept up to date
+     * This structure stores model runtime data. Should be kept up to date
      */
-    struct TMetaData {
+    struct TRuntimeData {
         size_t UsedFloatFeaturesCount = 0;
         size_t UsedCatFeaturesCount = 0;
         size_t MinimalSufficientFloatFeaturesVectorSize = 0;
@@ -312,41 +312,41 @@ public:
      void DropUnusedFeatures();
 
     /**
-     * Internal usage only. Updates metadata UsedModelCtrs and BinFeatures vectors to contain all features
-     *  currently used in model.
+     * Internal usage only. Updates UsedModelCtrs and BinFeatures vectors in RuntimeData to contain all
+     *  features currently used in model.
      * Should be called after any modifications.
      */
-    void UpdateMetadata() const;
+    void UpdateRuntimeData() const;
     /**
      * List of all CTRs in model
      * @return
      */
     const TVector<TModelCtr>& GetUsedModelCtrs() const {
-        CB_ENSURE(MetaData.Defined(), "metadata should be initialized");
-        return MetaData->UsedModelCtrs;
+        CB_ENSURE(RuntimeData.Defined(), "runtime data should be initialized");
+        return RuntimeData->UsedModelCtrs;
     }
     /**
      * List all binary features corresponding to binary feature indexes in trees
      * @return
      */
     const TVector<TModelSplit>& GetBinFeatures() const {
-        CB_ENSURE(MetaData.Defined(), "metadata should be initialized");
-        return MetaData->BinFeatures;
+        CB_ENSURE(RuntimeData.Defined(), "runtime data should be initialized");
+        return RuntimeData->BinFeatures;
     }
 
     const TVector<TRepackedBin>& GetRepackedBins() const {
-        CB_ENSURE(MetaData.Defined(), "metadata should be initialized");
-        return MetaData->RepackedBins;
+        CB_ENSURE(RuntimeData.Defined(), "runtime data should be initialized");
+        return RuntimeData->RepackedBins;
     }
 
     const TVector<size_t>& GetFirstLeafOffsets() const {
-        CB_ENSURE(MetaData.Defined(), "metadata should be initialized");
-        return MetaData->TreeFirstLeafOffsets;
+        CB_ENSURE(RuntimeData.Defined(), "runtime data should be initialized");
+        return RuntimeData->TreeFirstLeafOffsets;
     }
 
     const double* GetFirstLeafPtrForTree(size_t treeIdx) const {
-        CB_ENSURE(MetaData.Defined(), "metadata should be initialized");
-        return &LeafValues[MetaData->TreeFirstLeafOffsets[treeIdx]];
+        CB_ENSURE(RuntimeData.Defined(), "runtime data should be initialized");
+        return &LeafValues[RuntimeData->TreeFirstLeafOffsets[treeIdx]];
     }
 
     /**
@@ -370,13 +370,13 @@ public:
     }
 
     size_t GetMinimalSufficientFloatFeaturesVectorSize() const {
-        CB_ENSURE(MetaData.Defined(), "metadata should be initialized");
-        return MetaData->MinimalSufficientFloatFeaturesVectorSize;
+        CB_ENSURE(RuntimeData.Defined(), "runtime data should be initialized");
+        return RuntimeData->MinimalSufficientFloatFeaturesVectorSize;
     }
 
     size_t GetUsedFloatFeaturesCount() const {
-        CB_ENSURE(MetaData.Defined(), "metadata should be initialized");
-        return MetaData->UsedFloatFeaturesCount;
+        CB_ENSURE(RuntimeData.Defined(), "runtime data should be initialized");
+        return RuntimeData->UsedFloatFeaturesCount;
     }
 
     size_t GetNumCatFeatures() const {
@@ -388,13 +388,13 @@ public:
     }
 
     size_t GetMinimalSufficientCatFeaturesVectorSize() const {
-        CB_ENSURE(MetaData.Defined(), "metadata should be initialized");
-        return MetaData->MinimalSufficientCatFeaturesVectorSize;
+        CB_ENSURE(RuntimeData.Defined(), "runtime data should be initialized");
+        return RuntimeData->MinimalSufficientCatFeaturesVectorSize;
     }
 
     size_t GetUsedCatFeaturesCount() const {
-        CB_ENSURE(MetaData.Defined(), "metadata should be initialized");
-        return MetaData->UsedCatFeaturesCount;
+        CB_ENSURE(RuntimeData.Defined(), "runtime data should be initialized");
+        return RuntimeData->UsedCatFeaturesCount;
     }
 
     size_t GetBinaryFeaturesFullCount() const {
@@ -402,8 +402,8 @@ public:
     }
 
     ui32 GetEffectiveBinaryFeaturesBucketsCount() const {
-        CB_ENSURE(MetaData.Defined(), "metadata should be initialized");
-        return MetaData->EffectiveBinFeaturesBucketCount;
+        CB_ENSURE(RuntimeData.Defined(), "runtime data should be initialized");
+        return RuntimeData->EffectiveBinFeaturesBucketCount;
     }
 
     size_t GetFlatFeatureVectorExpectedSize() const {
@@ -414,7 +414,7 @@ public:
     }
 
 private:
-    mutable TMaybe<TMetaData> MetaData;
+    mutable TMaybe<TRuntimeData> RuntimeData;
 };
 
 /*!
@@ -802,10 +802,11 @@ public:
 
     /**
      * Internal usage only.
-     * Updates indexes in CTR provider and recalculates metadata in Oblivious trees after model modifications.
+     * Updates indexes in CTR provider and recalculates runtime data in Oblivious trees after model
+     *  modifications.
      */
     void UpdateDynamicData() {
-        ObliviousTrees.UpdateMetadata();
+        ObliviousTrees.UpdateRuntimeData();
         if (CtrProvider) {
             CtrProvider->SetupBinFeatureIndexes(
                 ObliviousTrees.FloatFeatures,
