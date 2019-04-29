@@ -2,6 +2,8 @@ UNITTEST_FOR(catboost/libs/helpers)
 
 
 
+SIZE(MEDIUM)
+
 SRCS(
     array_subset_ut.cpp
     checksum_ut.cpp

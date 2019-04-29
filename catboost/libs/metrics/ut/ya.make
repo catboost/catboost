@@ -2,6 +2,8 @@
 
 UNITTEST()
 
+SIZE(MEDIUM)
+
 PEERDIR(
     catboost/libs/metrics
     catboost/libs/algo
