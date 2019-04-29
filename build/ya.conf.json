@@ -1908,7 +1908,7 @@
         },
         "samogonctl": {
             "formula": {
-                "sandbox_id": 410806334,
+                "sandbox_id": 421882980,
                 "match": "SAMOGONCTL"
             },
             "executable": {
