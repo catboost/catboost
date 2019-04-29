@@ -1275,7 +1275,6 @@ class GnuCompiler(Compiler):
 
         emit('OBJECT_SUF', '$OBJ_SUF%s.o' % self.cross_suffix)
         emit('GCC_COMPILE_FLAGS', '$EXTRA_C_FLAGS -c -o ${output;suf=${OBJECT_SUF}:SRC}', '${input:SRC} ${pre=-I:INCLUDE}')
-        emit('EXTRA_C_FLAGS')
         emit('EXTRA_COVERAGE_OUTPUT', '${output;noauto;hide;suf=${OBJ_SUF}%s.gcno:SRC}' % self.cross_suffix)
         emit('YNDEXER_OUTPUT_FILE', '${output;noauto;suf=${OBJ_SUF}%s.ydx.pb2:SRC}' % self.cross_suffix)  # should be the last output
 
@@ -1921,7 +1920,6 @@ class MSVCCompiler(MSVC, Compiler):
         emit('CFLAGS_DEBUG', flags_debug)
         emit('CFLAGS_RELEASE', flags_release)
         emit('MASMFLAGS', '')
-        emit('EXTRA_C_FLAGS', '')
         emit('DEBUG_INFO_FLAGS', debug_info_flags)
 
         if self.build.is_release:
@@ -1942,8 +1940,6 @@ class MSVCCompiler(MSVC, Compiler):
 
         append('CFLAGS', '/DY_UCRT_INCLUDE="%s"' % ucrt_include)
         append('CFLAGS', '/DY_MSVC_INCLUDE="%s"' % vc_include)
-
-        append('CFLAGS', '$EXTRA_C_FLAGS')
 
         emit_big('''
             when ($NO_OPTIMIZE == "yes") {{
