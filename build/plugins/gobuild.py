@@ -63,7 +63,7 @@ def on_go_process_srcs(unit):
     proto_files = filter(lambda x: x.endswith('.proto'), go_files)
     if len(proto_files) > 0:
         for f in proto_files:
-            unit.ongo_proto_cmd(f)
+            unit.on_go_proto_cmd(f)
 
     in_files = filter(lambda x: x.endswith('.in'), go_files)
     if len(in_files) > 0:
