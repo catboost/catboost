@@ -1634,13 +1634,13 @@ class CatBoost(_CatBoostBase):
         """
         return self._eval_metrics(data, metrics, ntree_start, ntree_end, eval_period, thread_count, _get_train_dir(self.get_params()), tmp_dir, plot)
 
-    def compare(self, second_model, data, metrics, ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, tmp_dir=None):
+    def compare(self, model, data, metrics, ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, tmp_dir=None):
         """
         Draw train and eval errors in Jupyter notebook for both models
 
         Parameters
         ----------
-        second_model: CatBoost model
+        model: CatBoost model
             Another model to draw metrics
 
         data : catboost.Pool
@@ -1672,8 +1672,8 @@ class CatBoost(_CatBoostBase):
             If True, draw train and eval error in Jupyter notebook
         """
 
-        if second_model is None:
-            raise CatBoostError("You should provide second_model for comparison.")
+        if model is None:
+            raise CatBoostError("You should provide model for comparison.")
         if data is None:
             raise CatBoostError("You should provide data for comparison.")
         if metrics is None:
@@ -1693,7 +1693,7 @@ class CatBoost(_CatBoostBase):
 
         with plot_wrapper(True, [first_dir, second_dir]):
             self._eval_metrics(data, metrics, ntree_start, ntree_end, eval_period, thread_count, first_dir, tmp_dir, plot=False)
-            second_model._eval_metrics(data, metrics, ntree_start, ntree_end, eval_period, thread_count, second_dir, tmp_dir, plot=False)
+            model._eval_metrics(data, metrics, ntree_start, ntree_end, eval_period, thread_count, second_dir, tmp_dir, plot=False)
 
         if need_to_remove:
             shutil.rmtree(tmp_dir)
