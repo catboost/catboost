@@ -1345,7 +1345,7 @@ class Linker(object):
     def _print_linker_selector(self):
         if self.type == self.LLD or self.type == self.GOLD:
             emit_big('''
-                macro USE_LINKER() {
+                macro _USE_LINKER() {
                     DEFAULT(_LINKER_ID %(default_linker)s)
 
                     when ($NEED_PLATFORM_PEERDIRS == "yes") {
@@ -1363,17 +1363,23 @@ class Linker(object):
 
         else:
             emit_big('''
-                macro USE_LINKER() {
+                macro _USE_LINKER() {
                     ENABLE(UNUSED_MACRO)
                 }''')
 
         emit_big('''
+            ### @usage: USE_LINKER_BFD()
+            ### Use bfd linker for a program. This doesn't work in libraries
             macro USE_LINKER_BFD() {
                 SET(_LINKER_ID bfd)
             }
+            ### @usage: USE_LINKER_GOLD()
+            ### Use gold linker for a program. This doesn't work in libraries
             macro USE_LINKER_GOLD() {
                 SET(_LINKER_ID gold)
             }
+            ### @usage: USE_LINKER_LLD()
+            ### Use lld linker for a program. This doesn't work in libraries
             macro USE_LINKER_LLD() {
                 SET(_LINKER_ID lld)
             }''')
