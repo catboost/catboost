@@ -1,7 +1,7 @@
 from os.path import basename, splitext
 
 
-def onbuild_mns_files(unit, *args):
+def on_build_mns_files(unit, *args):
     files = []
     name = ''
     ranking_suffix = ''
@@ -26,4 +26,4 @@ def onbuild_mns_files(unit, *args):
         file_basename, _ = splitext(basename(filename))
         asmdataname = "staticMn{0}{1}Ptr".format(ranking_suffix, file_basename)
         output_name = 'mn.staticMn{0}{1}Ptr.cpp'.format(ranking_suffix, file_basename)
-        unit.onbuild_mns_file([filename, name, output_name, ranking_suffix, check, fml_unused_tool, asmdataname])
+        unit.on_build_mns_file([filename, name, output_name, ranking_suffix, check, fml_unused_tool, asmdataname])

@@ -256,14 +256,14 @@ void TObliviousTrees::TruncateTrees(size_t begin, size_t end) {
     CB_ENSURE(begin <= end, "begin tree index should be not greater than end tree index.");
     CB_ENSURE(end <= TreeSplits.size(), "end tree index should be not greater than tree count.");
     TObliviousTreeBuilder builder(FloatFeatures, CatFeatures, ApproxDimension);
-    const auto& leafOffsets = MetaData->TreeFirstLeafOffsets;
+    const auto& leafOffsets = RuntimeData->TreeFirstLeafOffsets;
     for (size_t treeIdx = begin; treeIdx < end; ++treeIdx) {
         TVector<TModelSplit> modelSplits;
         for (int splitIdx = TreeStartOffsets[treeIdx];
              splitIdx < TreeStartOffsets[treeIdx] + TreeSizes[treeIdx];
              ++splitIdx)
         {
-            modelSplits.push_back(MetaData->BinFeatures[TreeSplits[splitIdx]]);
+            modelSplits.push_back(RuntimeData->BinFeatures[TreeSplits[splitIdx]]);
         }
         TArrayRef<double> leafValuesRef(
             LeafValues.begin() + leafOffsets[treeIdx],
@@ -325,14 +325,14 @@ TObliviousTrees::FBSerialize(TModelPartsCachingSerializer& serializer) const {
     );
 }
 
-void TObliviousTrees::UpdateMetadata() const {
+void TObliviousTrees::UpdateRuntimeData() const {
     struct TFeatureSplitId {
         ui32 FeatureIdx = 0;
         ui32 SplitIdx = 0;
     };
-    MetaData = TMetaData{}; // reset metadata
+    RuntimeData = TRuntimeData{}; // reset RuntimeData
     TVector<TFeatureSplitId> splitIds;
-    auto& ref = MetaData.GetRef();
+    auto& ref = RuntimeData.GetRef();
 
     ref.TreeFirstLeafOffsets.resize(TreeSizes.size());
     if (IsOblivious()) {
@@ -447,7 +447,7 @@ void TObliviousTrees::UpdateMetadata() const {
 void TObliviousTrees::DropUnusedFeatures() {
     EraseIf(FloatFeatures, [](const TFloatFeature& feature) { return !feature.UsedInModel();});
     EraseIf(CatFeatures, [](const TCatFeature& feature) { return !feature.UsedInModel; });
-    UpdateMetadata();
+    UpdateRuntimeData();
 }
 
 void TObliviousTrees::ConvertObliviousToAsymmetric() {
@@ -487,7 +487,7 @@ void TObliviousTrees::ConvertObliviousToAsymmetric() {
     TreeStartOffsets = std::move(treeStartOffsets);
     NonSymmetricStepNodes = std::move(nonSymmetricStepNodes);
     NonSymmetricNodeIdToLeafId = std::move(nonSymmetricNodeIdToLeafId);
-    UpdateMetadata();
+    UpdateRuntimeData();
 }
 
 void TFullModel::CalcFlat(
@@ -1156,7 +1156,7 @@ DEFINE_DUMPER(TRepackedBin, FeatureIndex, XorMask, SplitIdx)
 DEFINE_DUMPER(TNonSymmetricTreeStepNode, LeftSubtreeDiff, RightSubtreeDiff)
 
 DEFINE_DUMPER(
-    TObliviousTrees::TMetaData,
+    TObliviousTrees::TRuntimeData,
     UsedFloatFeaturesCount,
     UsedCatFeaturesCount,
     MinimalSufficientFloatFeaturesVectorSize,

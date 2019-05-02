@@ -155,7 +155,7 @@ TObliviousTrees TObliviousTreeBuilder::Build() {
         }
         result.TreeSizes.push_back(treeStruct.ysize());
     }
-    result.UpdateMetadata();
+    result.UpdateRuntimeData();
     return result;
 }
 
@@ -185,7 +185,7 @@ TObliviousTrees TNonSymmetricTreeModelBuilder::Build() {
     result.TreeSizes = std::move(TreeSizes);
     result.TreeStartOffsets = std::move(TreeStartOffsets);
     result.LeafWeights.emplace_back(std::move(LeafWeights));
-    result.UpdateMetadata();
+    result.UpdateRuntimeData();
     return result;
 }
 

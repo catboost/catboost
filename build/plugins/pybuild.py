@@ -293,10 +293,10 @@ def onpy_srcs(unit, *args):
                 pass
 
         for pyxs, cython, out_suffix, noext in [
-            (pyxs_c, unit.onbuildwith_cython_c_dep, ".c", False),
-            (pyxs_c_h, unit.onbuildwith_cython_c_h, ".c", True),
-            (pyxs_c_api_h, unit.onbuildwith_cython_c_api_h, ".c", True),
-            (pyxs_cpp, unit.onbuildwith_cython_cpp_dep, ".cpp", False),
+            (pyxs_c, unit.on_buildwith_cython_c_dep, ".c", False),
+            (pyxs_c_h, unit.on_buildwith_cython_c_h, ".c", True),
+            (pyxs_c_api_h, unit.on_buildwith_cython_c_api_h, ".c", True),
+            (pyxs_cpp, unit.on_buildwith_cython_cpp_dep, ".cpp", False),
         ]:
             for path, mod in pyxs:
                 filename = rootrel_arc_src(path, unit)
@@ -340,7 +340,7 @@ def onpy_srcs(unit, *args):
                     res += ['DEST', dest, path]
                 if with_pyc:
                     root_rel_path = rootrel_arc_src(path, unit)
-                    unit.onpy3_compile_bytecode([root_rel_path + '-', path])
+                    unit.on_py3_compile_bytecode([root_rel_path + '-', path])
                     res += ['DEST', dest + '.yapyc3', path + '.yapyc3']
 
             unit.onresource_files(res)
@@ -357,7 +357,7 @@ def onpy_srcs(unit, *args):
                 if with_pyc:
                     src = unit.resolve_arc_path(path) or path
                     dst = tobuilddir(src) + '.yapyc'
-                    unit.onpy_compile_bytecode([root_rel_path + '-', src])
+                    unit.on_py_compile_bytecode([root_rel_path + '-', src])
                     res += [dst, '/py_code/' + mod]
 
             unit.onresource(res)
@@ -370,7 +370,7 @@ def onpy_srcs(unit, *args):
         unit.onpeerdir(unit.get("PY_PROTO_DEPS").split())
 
         proto_paths = [path for path, mod in protos]
-        unit.ongenerate_py_protos_internal(proto_paths)
+        unit.on_generate_py_protos_internal(proto_paths)
         unit.onpy_srcs([
             pb2_arg(py_suf, path, mod, unit)
             for path, mod in protos
@@ -396,7 +396,7 @@ def onpy_srcs(unit, *args):
         if not upath.startswith('contrib/libs/protobuf/python/google_lib'):
             unit.onpeerdir(['contrib/libs/protobuf/python/google_lib'])
 
-        unit.ongenerate_py_evs_internal([path for path, mod in evs])
+        unit.on_generate_py_evs_internal([path for path, mod in evs])
         unit.onpy_srcs([ev_arg(path, mod, unit) for path, mod in evs])
 
         if optimize_proto:

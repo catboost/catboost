@@ -1,10 +1,9 @@
 import yatest.common
-from yatest.common import network, ExecutionTimeoutError, ExecutionError
+from yatest.common import ExecutionTimeoutError, ExecutionError
 import pytest
 import os
 import filecmp
 import numpy as np
-import time
 import timeit
 import json
 
@@ -20,6 +19,7 @@ from catboost_pytest_lib import (
     local_canonical_file,
     permute_dataset_columns,
     remove_time_from_json,
+    execute_dist_train,
 )
 
 CATBOOST_PATH = yatest.common.binary_path("catboost/app/catboost")
@@ -4043,27 +4043,6 @@ def make_deterministic_train_cmd(loss_function, pool, train, test, cd, schema=''
     if dev_score_calc_obj_block_size:
         cmd += ('--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size)
     return cmd + other_options
-
-
-def execute_dist_train(cmd):
-    hosts_path = yatest.common.test_output_path('hosts.txt')
-    with network.PortManager() as pm:
-        port0 = pm.get_port()
-        port1 = pm.get_port()
-        with open(hosts_path, 'w') as hosts:
-            hosts.write('localhost:' + str(port0) + '\n')
-            hosts.write('localhost:' + str(port1) + '\n')
-
-        worker0 = yatest.common.execute((CATBOOST_PATH, 'run-worker', '--node-port', str(port0),), wait=False)
-        worker1 = yatest.common.execute((CATBOOST_PATH, 'run-worker', '--node-port', str(port1),), wait=False)
-        while pm.is_port_free(port0) or pm.is_port_free(port1):
-            time.sleep(1)
-
-        yatest.common.execute(
-            cmd + ('--node-type', 'Master', '--file-with-hosts', hosts_path,)
-        )
-        worker0.wait()
-        worker1.wait()
 
 
 def run_dist_train(cmd, output_file_switch='--eval-file'):

@@ -13,20 +13,6 @@ namespace NCoro {
 
         virtual void OnSchedule(TContExecutor&, TCont&) {}
 
-        virtual void OnUnschedule(TContExecutor&, TCont&) {}
-    };
-
-
-    class TDummyScheduleCallback : public IScheduleCallback {
-    public:
-        static TDummyScheduleCallback& Instance() {
-            return *Singleton<TDummyScheduleCallback>();
-        }
-
-        virtual void OnSchedule(TContExecutor&, TCont&) {
-        }
-
-        virtual void OnUnschedule(TContExecutor&, TCont&) {
-        }
+        virtual void OnUnschedule(TContExecutor&) {}
     };
 }

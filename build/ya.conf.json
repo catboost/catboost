@@ -1475,7 +1475,7 @@
         },
         "ymake": {
             "formula": {
-                "sandbox_id": [416222158],
+                "sandbox_id": [421750006],
                 "match": "ymake"
             },
             "executable": {
@@ -1511,7 +1511,7 @@
         },
         "arc": {
             "formula": {
-                "sandbox_id": [417760159],
+                "sandbox_id": [421982617],
                 "match": "arc"
             },
             "executable": {
@@ -1908,7 +1908,7 @@
         },
         "samogonctl": {
             "formula": {
-                "sandbox_id": 410806334,
+                "sandbox_id": 421882980,
                 "match": "SAMOGONCTL"
             },
             "executable": {
@@ -2292,7 +2292,7 @@
         },
         "python3": {
             "formula": {
-                "sandbox_id": 320165094,
+                "sandbox_id": 422563749,
                 "match": "python3"
             },
             "executable": {

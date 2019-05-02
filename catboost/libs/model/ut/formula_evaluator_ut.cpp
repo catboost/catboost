@@ -48,7 +48,7 @@ void CheckFlatCalcResult(
         UNIT_ASSERT_EQUAL(expectedLeafIndexes, leafIndexes);
     }
 
-    TLeafIndexCalcer leafIndexCalcer(model, features, {});
+    auto leafIndexCalcer = MakeLeafIndexCalcer(model, features, {});
     for (size_t sampleIndex = 0; sampleIndex < features.size(); ++sampleIndex) {
         const auto sampleFeatures = features[sampleIndex];
         const TVector<double> expectedSamplePredict(
@@ -67,14 +67,14 @@ void CheckFlatCalcResult(
         model.CalcLeafIndexesSingle(sampleFeatures, {}, sampleLeafIndexes);
         UNIT_ASSERT_EQUAL(expectedSampleIndexes, sampleLeafIndexes);
 
-        UNIT_ASSERT(leafIndexCalcer.CanGet());
-        sampleLeafIndexes = leafIndexCalcer.Get();
+        UNIT_ASSERT(leafIndexCalcer->CanGet());
+        sampleLeafIndexes = leafIndexCalcer->Get();
         UNIT_ASSERT_EQUAL(expectedSampleIndexes, sampleLeafIndexes);
-        const bool hasNextResult = leafIndexCalcer.Next();
+        const bool hasNextResult = leafIndexCalcer->Next();
         UNIT_ASSERT_EQUAL(hasNextResult, sampleIndex + 1 != features.size());
-        UNIT_ASSERT_EQUAL(hasNextResult, leafIndexCalcer.CanGet());
+        UNIT_ASSERT_EQUAL(hasNextResult, leafIndexCalcer->CanGet());
     }
-    UNIT_ASSERT(!leafIndexCalcer.CanGet());
+    UNIT_ASSERT(!leafIndexCalcer->CanGet());
 }
 
 Y_UNIT_TEST_SUITE(TObliviousTreeModel) {

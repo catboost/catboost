@@ -36,7 +36,6 @@ void TUnigramDictionaryImpl::ApplyImpl(
         ApplyFuncToLetterNGrams(
             tokens,
             DictionaryOptions.GramOrder,
-            DictionaryOptions.SkipStep,
             DictionaryOptions.EndOfWordTokenPolicy == EEndOfWordTokenPolicy::Insert,
             applyFunc
         );

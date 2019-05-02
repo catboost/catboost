@@ -98,29 +98,8 @@ Y_UNIT_TEST_SUITE(DictionaryTests) {
         dictionaryBuilder.Add(tokens);
         const auto dictionary = dictionaryBuilder.FinishBuilding();
 
-        UNIT_ASSERT_VALUES_UNEQUAL(dictionary->Apply("i l"), dictionary->GetUnknownTokenId());
         UNIT_ASSERT_VALUES_UNEQUAL(dictionary->Apply("cat"), dictionary->GetUnknownTokenId());
         UNIT_ASSERT_VALUES_EQUAL(dictionary->Apply("cot"), dictionary->GetUnknownTokenId());
-    }
-
-    Y_UNIT_TEST(DictionaryLetterSkipBigramTest) {
-
-        TVector<TString> tokens = {"i", "love", "catboost"};
-
-        TDictionaryOptions dictionaryOptions;
-        dictionaryOptions.GramOrder = 2;
-        dictionaryOptions.SkipStep = 2;
-        dictionaryOptions.TokenLevelType = ETokenLevelType::Letter;
-        TDictionaryBuilderOptions dictionaryBuilderOptions;
-        dictionaryBuilderOptions.OccurrenceLowerBound = 0;
-
-        TDictionaryBuilder dictionaryBuilder(dictionaryBuilderOptions, dictionaryOptions);
-        dictionaryBuilder.Add(tokens);
-        const auto dictionary = dictionaryBuilder.FinishBuilding();
-
-        UNIT_ASSERT_VALUES_UNEQUAL(dictionary->Apply("io"), dictionary->GetUnknownTokenId());
-        UNIT_ASSERT_VALUES_UNEQUAL(dictionary->Apply("cb"), dictionary->GetUnknownTokenId());
-        UNIT_ASSERT_VALUES_EQUAL(dictionary->Apply("ct"), dictionary->GetUnknownTokenId());
     }
 
     Y_UNIT_TEST(DictionaryWordSkipBigramTest) {

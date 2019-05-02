@@ -459,6 +459,13 @@ namespace NLastGetopt {
             return Handler1T<T>(std::bind(functionPointer, target, std::placeholders::_1));
         }
 
+        // Appends FromString<T>(arg) to *target for each argument
+        template <typename T>
+        TOpt& InsertTo(THashSet<T>* target) {
+            std::pair<typename THashSet<T>::iterator, bool> (THashSet<T>::*functionPointer)(const T&) = &THashSet<T>::insert;
+            return Handler1T<T>(std::bind(functionPointer, target, std::placeholders::_1));
+        }
+
         // Emplaces TString arg to *target for each argument
         template <typename T>
         TOpt& EmplaceTo(TVector<T>* target) {

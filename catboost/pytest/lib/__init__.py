@@ -2,7 +2,9 @@ import os
 import pytest
 import re
 import tempfile
+import time
 import yatest.common
+import yatest.common.network
 import yatest.yt
 from common_helpers import *  # noqa
 
@@ -182,3 +184,25 @@ def local_canonical_file(*args, **kwargs):
 def format_crossvalidation(is_inverted, n, k):
     cv_type = 'Inverted' if is_inverted else 'Classical'
     return '{}:{};{}'.format(cv_type, n, k)
+
+
+def execute_dist_train(cmd):
+    hosts_path = yatest.common.test_output_path('hosts.txt')
+    with yatest.common.network.PortManager() as pm:
+        port0 = pm.get_port()
+        port1 = pm.get_port()
+        with open(hosts_path, 'w') as hosts:
+            hosts.write('localhost:' + str(port0) + '\n')
+            hosts.write('localhost:' + str(port1) + '\n')
+
+        catboost_path = yatest.common.binary_path("catboost/app/catboost")
+        worker0 = yatest.common.execute((catboost_path, 'run-worker', '--node-port', str(port0),), wait=False)
+        worker1 = yatest.common.execute((catboost_path, 'run-worker', '--node-port', str(port1),), wait=False)
+        while pm.is_port_free(port0) or pm.is_port_free(port1):
+            time.sleep(1)
+
+        yatest.common.execute(
+            cmd + ('--node-type', 'Master', '--file-with-hosts', hosts_path,)
+        )
+        worker0.wait()
+        worker1.wait()

@@ -720,6 +720,18 @@ cdef extern from "catboost/libs/algo/apply.h":
             TVector[TVector[double]]* approx
         ) nogil except +ProcessException
 
+    cdef cppclass TLeafIndexCalcerOnPool:
+        TLeafIndexCalcerOnPool(
+            const TFullModel& model,
+            TIntrusivePtr[TObjectsDataProvider] objectsData,
+            int treeStart,
+            int treeEnd
+        ) nogil
+
+        bool_t Next() nogil except +ProcessException;
+        bool_t CanGet() nogil except +ProcessException;
+        TVector[ui32] Get() nogil except +ProcessException;
+
     cdef TVector[double] ApplyModel(
         const TFullModel& model,
         const TDataProvider& objectsData,
@@ -739,6 +751,15 @@ cdef extern from "catboost/libs/algo/apply.h":
         int end,
         int threadCount
     ) nogil except +ProcessException
+            
+    cdef TVector[ui32] CalcLeafIndexesMulti(
+        const TFullModel& model,
+        TIntrusivePtr[TObjectsDataProvider] objectsData,
+        bool_t verbose,
+        int treeStart,
+        int treeEnd,
+        int threadCount
+    )  nogil except +ProcessException
 
 cdef extern from "catboost/libs/algo/helpers.h":
     cdef void ConfigureMalloc() nogil except *
@@ -977,6 +998,19 @@ cdef _3d_vector_of_double_to_np_array(TVector[TVector[TVector[double]]]& vectors
                 result[i][j][k] = vectors[i][j][k]
     return result
 
+cdef _vector_of_uints_to_np_array(TVector[ui32]& vec):
+    result = np.empty(vec.size(), dtype=np.uint32)
+    for i in xrange(vec.size()):
+        result[i] = vec[i]
+    return result
+
+cdef _vector_of_uints_to_2d_np_array(TVector[ui32]& vec, int row_count, int column_count):
+    assert vec.size() == row_count * column_count
+    result = np.empty((row_count, column_count), dtype=np.uint32)
+    for row_num in xrange(row_count):
+        for col_num in xrange(column_count):
+            result[row_num][col_num] = vec[row_num * column_count + col_num]
+    return result
 
 cdef class _FloatArrayWrapper:
     cdef const float* _arr
@@ -2547,6 +2581,28 @@ cdef class _CatBoost:
         stagedPredictIterator._initialize_model_calcer(self.__model, pool)
         return stagedPredictIterator
 
+    cpdef _base_calc_leaf_indexes(self, _PoolBase pool, int ntree_start, int ntree_end,
+                                  int thread_count, bool_t verbose):
+        cdef int tree_count = ntree_end - ntree_start
+        cdef int object_count = pool.__pool.Get()[0].ObjectsData.Get()[0].GetObjectCount()
+        cdef TVector[ui32] flat_leaf_indexes
+        thread_count = UpdateThreadCount(thread_count);
+        with nogil:
+            flat_leaf_indexes = CalcLeafIndexesMulti(
+                dereference(self.__model),
+                pool.__pool.Get()[0].ObjectsData,
+                verbose,
+                ntree_start,
+                ntree_end,
+                thread_count
+            )
+        return _vector_of_uints_to_2d_np_array(flat_leaf_indexes, object_count, tree_count)
+
+    cpdef _leaf_indexes_iterator(self, _PoolBase pool, int ntree_start, int ntree_end):
+        leafIndexIterator = _LeafIndexIterator()
+        leafIndexIterator._initialize(self.__model, pool, ntree_start, ntree_end)
+        return leafIndexIterator
+
     cpdef _base_eval_metrics(self, _PoolBase pool, metric_descriptions, int ntree_start, int ntree_end, int eval_period, int thread_count, result_dir, tmp_dir):
         thread_count = UpdateThreadCount(thread_count);
         cdef TVector[TString] metricDescriptions
@@ -2943,6 +2999,29 @@ cdef class _StagedPredictIterator:
 
         return _convert_to_visible_labels(self.predictionType, self.__pred, self.thread_count, self.__model)
 
+cdef class _LeafIndexIterator:
+    cdef TLeafIndexCalcerOnPool* __leafIndexCalcer
+
+    cdef _initialize(self, TFullModel* model, _PoolBase pool, int ntree_start, int ntree_end):
+        self.__leafIndexCalcer = new TLeafIndexCalcerOnPool(
+            dereference(model),
+            pool.__pool.Get()[0].ObjectsData,
+            ntree_start,
+            ntree_end
+        )
+
+    def __dealloc__(self):
+        del self.__leafIndexCalcer
+
+    def __deepcopy__(self, _):
+        raise CatBoostError('Can\'t deepcopy _LeafIndexIterator object')
+
+    def next(self):
+        if not dereference(self.__leafIndexCalcer).CanGet():
+            raise StopIteration
+        result = _vector_of_uints_to_np_array(dereference(self.__leafIndexCalcer).Get())
+        dereference(self.__leafIndexCalcer).Next()
+        return result
 
 class MetricDescription:
 

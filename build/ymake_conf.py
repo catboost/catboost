@@ -1275,7 +1275,6 @@ class GnuCompiler(Compiler):
 
         emit('OBJECT_SUF', '$OBJ_SUF%s.o' % self.cross_suffix)
         emit('GCC_COMPILE_FLAGS', '$EXTRA_C_FLAGS -c -o ${output;suf=${OBJECT_SUF}:SRC}', '${input:SRC} ${pre=-I:INCLUDE}')
-        emit('EXTRA_C_FLAGS')
         emit('EXTRA_COVERAGE_OUTPUT', '${output;noauto;hide;suf=${OBJ_SUF}%s.gcno:SRC}' % self.cross_suffix)
         emit('YNDEXER_OUTPUT_FILE', '${output;noauto;suf=${OBJ_SUF}%s.ydx.pb2:SRC}' % self.cross_suffix)  # should be the last output
 
@@ -1346,7 +1345,7 @@ class Linker(object):
     def _print_linker_selector(self):
         if self.type == self.LLD or self.type == self.GOLD:
             emit_big('''
-                macro USE_LINKER() {
+                macro _USE_LINKER() {
                     DEFAULT(_LINKER_ID %(default_linker)s)
 
                     when ($NEED_PLATFORM_PEERDIRS == "yes") {
@@ -1364,17 +1363,23 @@ class Linker(object):
 
         else:
             emit_big('''
-                macro USE_LINKER() {
+                macro _USE_LINKER() {
                     ENABLE(UNUSED_MACRO)
                 }''')
 
         emit_big('''
+            ### @usage: USE_LINKER_BFD()
+            ### Use bfd linker for a program. This doesn't work in libraries
             macro USE_LINKER_BFD() {
                 SET(_LINKER_ID bfd)
             }
+            ### @usage: USE_LINKER_GOLD()
+            ### Use gold linker for a program. This doesn't work in libraries
             macro USE_LINKER_GOLD() {
                 SET(_LINKER_ID gold)
             }
+            ### @usage: USE_LINKER_LLD()
+            ### Use lld linker for a program. This doesn't work in libraries
             macro USE_LINKER_LLD() {
                 SET(_LINKER_ID lld)
             }''')
@@ -1942,8 +1947,6 @@ class MSVCCompiler(MSVC, Compiler):
         append('CFLAGS', '/DY_UCRT_INCLUDE="%s"' % ucrt_include)
         append('CFLAGS', '/DY_MSVC_INCLUDE="%s"' % vc_include)
 
-        append('CFLAGS', '$EXTRA_C_FLAGS')
-
         emit_big('''
             when ($NO_OPTIMIZE == "yes") {{
                 OPTIMIZE = {no_opt}
@@ -1976,11 +1979,11 @@ class MSVCCompiler(MSVC, Compiler):
             }
 
             macro _SRC_cpp(SRC, SRCFLAGS...) {
-                .CMD=${cwd:ARCADIA_BUILD_ROOT} ${TOOLCHAIN_ENV} ${CL_WRAPPER} ${CXX_COMPILER} /c /Fo${output;suf=${OBJECT_SUF}:SRC} ${input;msvs_source:SRC} ${pre=/I :INCLUDE} ${CXXFLAGS} ${SRCFLAGS} ${hide;kv:"soe"} ${hide;kv:"p CC"} ${hide;kv:"pc yellow"}
+                .CMD=${cwd:ARCADIA_BUILD_ROOT} ${TOOLCHAIN_ENV} ${CL_WRAPPER} ${CXX_COMPILER} /c /Fo${output;suf=${OBJECT_SUF}:SRC} ${input;msvs_source:SRC} ${EXTRA_C_FLAGS} ${pre=/I :INCLUDE} ${CXXFLAGS} ${SRCFLAGS} ${hide;kv:"soe"} ${hide;kv:"p CC"} ${hide;kv:"pc yellow"}
             }
 
             macro _SRC_c(SRC, SRCFLAGS...) {
-                .CMD=${cwd:ARCADIA_BUILD_ROOT} ${TOOLCHAIN_ENV} ${CL_WRAPPER} ${C_COMPILER} /c /Fo${output;suf=${OBJECT_SUF}:SRC} ${input;msvs_source:SRC} ${pre=/I :INCLUDE} ${CFLAGS} ${CONLYFLAGS} ${SRCFLAGS} ${hide;kv:"soe"} ${hide;kv:"p CC"} ${hide;kv:"pc yellow"}
+                .CMD=${cwd:ARCADIA_BUILD_ROOT} ${TOOLCHAIN_ENV} ${CL_WRAPPER} ${C_COMPILER} /c /Fo${output;suf=${OBJECT_SUF}:SRC} ${input;msvs_source:SRC} ${EXTRA_C_FLAGS} ${pre=/I :INCLUDE} ${CFLAGS} ${CONLYFLAGS} ${SRCFLAGS} ${hide;kv:"soe"} ${hide;kv:"p CC"} ${hide;kv:"pc yellow"}
             }
 
             macro _SRC_m(SRC, SRCFLAGS...) {
