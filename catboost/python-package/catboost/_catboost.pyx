@@ -535,6 +535,8 @@ cdef extern from "catboost/libs/model/model.h":
         size_t GetTreeCount() nogil except +ProcessException
         void Truncate(size_t begin, size_t end) except +ProcessException
         bool_t IsOblivious() except +ProcessException
+        TVector[TString] GetTreeSplits(size_t tree_idx, TDataProvider pool)
+        TVector[TString] GetTreeLeafValues(int tree_idx, int leaves_num)
 
     cdef cppclass EModelType:
         pass
@@ -2737,61 +2739,20 @@ cdef class _CatBoost:
         SaveModelBorders( to_arcadia_string(output_file), dereference(self.__model))
 
     cpdef _get_tree_splits(self, tree_idx, _PoolBase pool):
-        cat_features_hash_to_string = MergeCatFeaturesHashToString(pool.__pool.Get()[0].ObjectsData.Get()[0])
-        cat_features_hash = dict()
+        splits = self.__model.GetTreeSplits(tree_idx, dereference(pool.__pool.Get()))
+        node_descriptions = []
+        for description in splits:
+            node_descriptions.append(description)
+        return node_descriptions
 
-        for key_value in cat_features_hash_to_string:
-            cat_features_hash[key_value.first] = key_value.second
+    cpdef _get_tree_leaf_values(self, tree_idx, leaves_num):
+        leaf_values = self.__model.GetTreeLeafValues(tree_idx, leaves_num)
+        leaf_values_list = []
 
-        splits = []
+        for value in leaf_values:
+            leaf_values_list.append(value)
 
-        tree_num = self.__model.ObliviousTrees.TreeStartOffsets.size()
-        bin_features = self.__model.ObliviousTrees.GetBinFeatures()
-        oblivious_trees = self.__model.ObliviousTrees
-
-        if tree_idx + 1 < tree_num:
-            tree_split_end = oblivious_trees.TreeStartOffsets[tree_idx + 1]
-        else:
-            tree_split_end = tree_num
-
-        cdef TFeaturesLayout* featuresLayout = dereference(pool.__pool.Get()).MetaInfo.FeaturesLayout.Get()
-        cdef TMaybe[TFeaturesLayout] featuresLayoutMaybe = dereference(featuresLayout)
-
-        for idx in range(oblivious_trees.TreeStartOffsets[tree_idx], tree_split_end):
-            bin_feature = bin_features[oblivious_trees.TreeSplits[idx]]
-            feature_description = BuildDescription(featuresLayoutMaybe, bin_feature)
-
-            if bin_feature.Type == ESplitType_FloatFeature:
-                splits.append({"split_type": "FloatFeature",
-                                "float_feature_idx": bin_feature.FloatFeature.FloatFeature,
-                                "border": bin_feature.FloatFeature.Split,
-                                "feature_description": feature_description})
-
-            elif bin_feature.Type == ESplitType_OneHotFeature:
-                feature_description += cat_features_hash[np.uint32(bin_feature.OneHotFeature.Value)]
-                splits.append({"split_type": "OneHotFeature",
-                                "cat_feature_index": bin_feature.OneHotFeature.CatFeatureIdx,
-                                "value": bin_feature.OneHotFeature.Value,
-                                "feature_description": feature_description})
-            else:
-                splits.append({"split_type": "OnlineCtr",
-                                "border": bin_feature.OnlineCtr.Border,
-                                "feature_description": feature_description})
-
-        return splits
-
-    def _get_tree_leaves(self, tree_idx):
-        leaf_offset = 0
-        leaf_values = []
-
-        for idx in range(tree_idx):
-            leaf_offset += (1uLL <<  self.__model.ObliviousTrees.TreeSizes[idx]) * self.__model.ObliviousTrees.ApproxDimension
-        tree_leaf_count = (1uLL <<  self.__model.ObliviousTrees.TreeSizes[tree_idx]) * self.__model.ObliviousTrees.ApproxDimension
-
-        for idx in range(tree_leaf_count):
-            leaf_values.append(self.__model.ObliviousTrees.LeafValues[leaf_offset + idx])
-
-        return leaf_values
+        return leaf_values_list
 
 
 cdef class _MetadataHashProxy:

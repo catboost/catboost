@@ -1048,9 +1048,8 @@ class _CatBoostBase(object):
     def get_tree_splits(self, tree_idx, pool):
         return self._object._get_tree_splits(tree_idx, pool)
 
-    def get_tree_leaves(self, tree_idx):
-        return self._object._get_tree_leaves(tree_idx)
-
+    def get_tree_leaf_values(self, tree_idx, leaves_num):
+        return self._object._get_tree_leaf_values(tree_idx, leaves_num)
 
 def _check_param_types(params):
     if not isinstance(params, (Mapping, MutableMapping)):
@@ -1959,49 +1958,11 @@ class CatBoost(_CatBoostBase):
             self._init_params[key] = value
         return self
 
-
-    def parse_split_node(self, split):
-        split_type = split['split_type']
-
-        if split_type == 'FloatFeature':
-            # node_label = 'f{} > {:4.3f}'.format(split['float_feature_idx'], split['border'])
-            node_label = split['feature_description'].decode("utf-8")
-            color = 'black'
-            shape ='ellipse'
-        elif split_type == 'OneHotFeature':
-            # node_label = 'f{} == {}'.format(split['cat_feature_index'], split['value'])
-            node_label = split['feature_description'].decode("utf-8")
-            color = 'blue3'
-            shape='ellipse'
-        else:
-            assert split_type == 'OnlineCtr'
-            # node_label = 'f > {:4.3f}'.format(split['border'])
-            node_label = split['feature_description'].decode("utf-8")
-            color = 'green'
-            shape = 'ellipse'
-
-
-        return node_label, color, shape
-
-    def parse_leaf_node(self, leaf_values, leaf_idx, leaves_number):
-        values_in_leaf = len(leaf_values) // leaves_number
-        val_indexes = [leaf_idx + class_num * leaves_number for class_num in range(values_in_leaf)]
-        vals = np.array(leaf_values)[::-1][val_indexes]
-
-        node_label = ''
-        for val in vals[::-1]:
-            node_label += 'val = {:4.3f}\n'.format(val)
-        color = 'red'
-        shape='rect'
-
-        return node_label, color, shape
-
-
     def plot_tree(self, tree_idx, pool):
         graph = Digraph()
 
         splits = self.get_tree_splits(tree_idx, pool)
-        leaf_values = self.get_tree_leaves(tree_idx)
+        leaf_values = self.get_tree_leaf_values(tree_idx, 1 << len(splits))
 
         layer_size = 1
         current_size = 0
@@ -2009,9 +1970,13 @@ class CatBoost(_CatBoostBase):
         for split_num in range(len(splits) - 1, -2, -1):
             for node_num in range(layer_size):
                 if split_num >= 0:
-                    node_label, color, shape = self.parse_split_node(splits[split_num])
+                    node_label = splits[split_num].decode('utf-8')
+                    color = 'black'
+                    shape = 'ellipse'
                 else:
-                    node_label, color, shape = self.parse_leaf_node(leaf_values, node_num, layer_size)
+                    node_label = leaf_values[node_num].decode('utf-8')
+                    color = 'red'
+                    shape = 'rect'
 
                 graph.node(str(current_size), node_label, color=color, shape=shape)
 
@@ -2025,7 +1990,6 @@ class CatBoost(_CatBoostBase):
             layer_size *= 2
 
         return graph
-
 
 
 class CatBoostClassifier(CatBoost):

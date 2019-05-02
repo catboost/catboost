@@ -9,7 +9,10 @@
 #include "onnx_helpers.h"
 #include "static_ctr_provider.h"
 
+#include <catboost/libs/algo/tree_print.h>
 #include <catboost/libs/cat_feature/cat_feature.h>
+#include <catboost/libs/data_new/features_layout.h>
+#include <catboost/libs/data_new/objects.h>
 #include <catboost/libs/helpers/borders_io.h>
 #include <catboost/libs/logging/logging.h>
 #include <catboost/libs/options/json_helper.h>
@@ -30,6 +33,7 @@
 #include <util/generic/xrange.h>
 #include <util/generic/ylimits.h>
 #include <util/string/builder.h>
+#include <util/string/cast.h>
 #include <util/stream/buffer.h>
 #include <util/stream/file.h>
 #include <util/system/fs.h>
@@ -841,6 +845,69 @@ void TFullModel::Load(IInputStream* s) {
     }
     UpdateDynamicData();
 }
+
+TVector<TString> TFullModel::GetTreeSplits(int tree_idx, NCB::TDataProvider pool) {
+    THashMap<ui32, TString> cat_features_hash = MergeCatFeaturesHashToString(pool.ObjectsData.Get()[0]);
+
+    TVector<TString> splits;
+
+    int tree_num = this->ObliviousTrees.TreeStartOffsets.size();
+    int tree_split_end;
+    TVector<TModelSplit> bin_features = this->ObliviousTrees.GetBinFeatures();
+
+    if (tree_idx + 1 < tree_num) {
+        tree_split_end = this->ObliviousTrees.TreeStartOffsets[tree_idx + 1];
+    } else {
+        tree_split_end = tree_num;
+    }
+
+    NCB::TFeaturesLayout* featuresLayout = pool.MetaInfo.FeaturesLayout.Get();
+    TMaybe<NCB::TFeaturesLayout> featuresLayoutMaybe = *featuresLayout;
+
+    for (int split_idx = this->ObliviousTrees.TreeStartOffsets[tree_idx]; split_idx < tree_split_end; ++split_idx) {
+        TModelSplit bin_feature = bin_features[this->ObliviousTrees.TreeSplits[split_idx]];
+        TString feature_description = BuildDescription(featuresLayoutMaybe, bin_feature);
+
+        if (bin_feature.Type == ESplitType::OneHotFeature) {
+            feature_description += cat_features_hash[(ui32)bin_feature.OneHotFeature.Value];
+        }
+
+        splits.push_back(feature_description);
+    }
+
+    return splits;
+}
+
+TVector<TString> TFullModel::GetTreeLeafValues(int tree_idx, int leaves_num) {
+    int leaf_offset = 0;
+    TVector<double> leaf_values;
+
+    for (int idx = 0; idx < tree_idx; ++idx) {
+        leaf_offset += (1uLL <<  this->ObliviousTrees.TreeSizes[idx]) * this->ObliviousTrees.ApproxDimension;
+    }
+    int tree_leaf_count = (1uLL <<  this->ObliviousTrees.TreeSizes[tree_idx]) * this->ObliviousTrees.ApproxDimension;
+
+    for (int idx = 0; idx < tree_leaf_count; ++idx) {
+        leaf_values.push_back(this->ObliviousTrees.LeafValues[leaf_offset + idx]);
+    }
+
+    std::reverse(leaf_values.begin(), leaf_values.end());
+
+    TVector<TString> leaf_descriptions;
+    int values_per_list = leaf_values.size() / leaves_num;
+
+    for (int leaf_idx = 0; leaf_idx < leaves_num; ++leaf_idx) {
+        TStringBuilder description;
+        for (int internal_idx = 0; internal_idx < values_per_list; ++internal_idx) {
+            double value = leaf_values[leaf_idx + internal_idx * leaves_num];
+            description << "val = " << FloatToString(value, EFloatToStringMode::PREC_POINT_DIGITS, 3) << "\n";
+        }
+        leaf_descriptions.push_back(description);
+    }
+
+    return leaf_descriptions;
+}
+
 
 TVector<TString> GetModelUsedFeaturesNames(const TFullModel& model) {
     TVector<int> featuresIdxs;
