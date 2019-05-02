@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Net;
 
 namespace CatBoostNetTests
 {
@@ -15,8 +16,20 @@ namespace CatBoostNetTests
         [TestMethod]
         public void RunIrisTest()
         {
-            var workdir = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "datasets", "iris");
+            var workdir = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "testbed", "iris");
             var dsPath = Path.Combine(workdir, "iris.data");
+
+            try
+            {
+                DownloadHelpers.DownloadDataset(
+                    "https://archive.ics.uci.edu/ml/machine-learning-databases/iris/iris.data",
+                    dsPath);
+            }
+            catch (WebException ex)
+            {
+                Assert.Fail("Failed to download Iris dataset");
+            }
+
             var df = Frame.ReadCsv(dsPath, hasHeaders: false);
             df.RenameColumns(new Collection<string>
             {
@@ -42,8 +55,19 @@ namespace CatBoostNetTests
         [TestMethod]
         public void RunBostonTest()
         {
-            var workdir = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "datasets", "boston");
+            var workdir = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "testbed", "boston");
             var dsPath = Path.Combine(workdir, "housing.data");
+
+            try
+            {
+                DownloadHelpers.DownloadDataset(
+                    "https://archive.ics.uci.edu/ml/machine-learning-databases/housing/housing.data",
+                    dsPath);
+            }
+            catch (WebException ex)
+            {
+                Assert.Fail("Failed to download Boston dataset");
+            }
 
             List<float[]> featureList = new List<float[]>();
             List<double> targetList = new List<double>();
@@ -83,8 +107,6 @@ namespace CatBoostNetTests
                 Pred = Math.Exp(res[i, 0]),
                 Target = target[i]
             });
-            foreach (var delta in deltas)
-                Console.WriteLine($"Sample #{delta.Index} / {deltas.Count()}, pred = {delta.Pred:0.00}, target = {delta.Target:0.00}");
 
             int totalErrors = deltas.Where(x => x.LogDelta >= .4).Count();
             Assert.IsTrue(
@@ -100,11 +122,23 @@ namespace CatBoostNetTests
         [TestMethod]
         public void RunMushroomTest()
         {
-            var workdir = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "datasets", "mushrooms");
+            var workdir = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "testbed", "mushrooms");
             var dsPath = Path.Combine(workdir, "mushrooms.csv");
-            var df = Frame.ReadCsv(dsPath);
-            var target = df.Rows.Select(obj => obj.Value["class"]).Values.Select(x => (string)x).ToArray();
-            df.DropColumn("class");
+
+            try
+            {
+                DownloadHelpers.DownloadDataset(
+                    "https://archive.ics.uci.edu/ml/machine-learning-databases/mushroom/agaricus-lepiota.data",
+                    dsPath);
+            }
+            catch (WebException ex)
+            {
+                Assert.Fail("Failed to download Mushroom dataset");
+            }
+
+            var df = Frame.ReadCsv(dsPath, hasHeaders: false);
+            var target = df.Rows.Select(obj => obj.Value["Column1"]).Values.Select(x => (string)x).ToArray();
+            df.DropColumn("Column1");
             var data = df.ToArray2D<string>();
 
             var model = new CatBoostModelEvaluator(Path.Combine(workdir, "mushroom_model.cbm"));

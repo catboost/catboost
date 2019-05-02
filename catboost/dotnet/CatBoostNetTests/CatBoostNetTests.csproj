@@ -19,22 +19,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="datasets\boston\boston_housing_model.cbm">
+    <None Update="testbed\boston\boston_housing_model.cbm">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="datasets\boston\housing.data">
+    <None Update="testbed\iris\iris_model.cbm">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="datasets\iris\iris.data">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="datasets\iris\iris_model.cbm">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="datasets\mushrooms\mushrooms.csv">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="datasets\mushrooms\mushroom_model.cbm">
+    <None Update="testbed\mushrooms\mushroom_model.cbm">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

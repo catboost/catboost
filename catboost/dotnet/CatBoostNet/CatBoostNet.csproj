@@ -2,9 +2,14 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
+    <RunPostBuildEvent>Always</RunPostBuildEvent>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
 
@@ -13,9 +18,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="catboostmodel.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    <Content Include="$(SolutionDir)LibraryBuilder\lib\x64\$(ConfigurationName)\catboost\libs\model_interface\catboostmodel.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
+
+  <!-- <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="copy &quot;$(SolutionDir)LibraryBuilder\lib\x64\$(ConfigurationName)\catboost\libs\model_interface\catboostmodel.dll&quot; &quot;$(TargetDir)&quot;" />
+  </Target> -->
 
 </Project>
