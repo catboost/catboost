@@ -1938,6 +1938,35 @@ class CatBoost(_CatBoostBase):
             self._init_params[key] = value
         return self
 
+    def get_binarized_statistics(self, data, target, feature, prediction_type=None):
+        data = Pool(data)
+        if prediction_type is None:
+            if isinstance(self, CatBoostClassifier):
+                prediction_type = prediction_type or 'Probability'
+                prediction = self.predict(data, prediction_type=prediction_type)
+            elif isinstance(self, CatBoostRegressor):
+                prediction = self.predict(data)
+            else:
+                prediction_type = prediction_type or 'RawFormulaVal'
+                prediction = self.predict(data, prediction_type=prediction_type)
+
+        if not isinstance(feature, int):
+            if self.feature_names_ is None or feature not in self.feature_names_:
+                raise CatBoostError('No feature named "{}" in model'.format(feature))
+            if feature not in data.get_feature_names():
+                raise CatBoostError('No feature named "{}" in dataset'.format(feature))
+            feature = self.feature_names_.index(feature)
+
+        res = self._object._get_binarized_statistics(data, target, prediction, feature)
+        return {
+            'Borders': np.array(res['Borders'], dtype=np.float64),
+            'BinarizedFeature': res['BinarizedFeature'],
+            'MeanTarget': np.array(res['MeanTarget'], dtype=np.float64),
+            'MeanPrediction': np.array(res['MeanPrediction'], dtype=np.float64),
+            'ObjectsPerBin': np.array(res['ObjectsPerBin'], dtype=np.int32)
+        }
+
+
 
 class CatBoostClassifier(CatBoost):
 
@@ -3323,3 +3352,54 @@ def sum_models(models, weights=None, ctr_merge_policy='IntersectingCountersAvera
     result = CatBoost()
     result._sum_models(models, weights, ctr_merge_policy)
     return result
+
+
+def plot_binarized_feature_statistics(statistics, feature_num):
+    import plotly.graph_objs as go
+
+    trace_1 = go.Scatter(
+        x=statistics['Borders'],
+        y=statistics['MeanTarget'],
+        mode='lines+markers',
+        name='Mean Target',
+        yaxis='y1',
+        xaxis='x'
+    )
+
+    trace_2 = go.Scatter(
+        x=statistics['Borders'],
+        y=statistics['MeanPrediction'],
+        mode='lines+markers',
+        name='Mean Prediction',
+        yaxis='y1',
+        xaxis='x'
+    )
+
+    trace_3 = go.Scatter(
+        x=statistics['Borders'],
+        y=statistics['ObjectsPerBin'],
+        mode='markers',
+        name='Objects per Bin',
+        yaxis='y2',
+        xaxis='x'
+    )
+
+    data = [trace_1, trace_2, trace_3]
+
+    layout = go.Layout(
+        title='Statistics for feature {}'.format(feature_num),
+        yaxis={
+            'title': 'Mean prediction and target'
+        },
+        yaxis2={
+            'title': 'Objects per bin',
+            'overlaying': 'y',
+            'side': 'right'
+        },
+        xaxis={
+            'title': 'Bins'
+        }
+    )
+
+    fig = go.Figure(data=data, layout=layout)
+    return fig

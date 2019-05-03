@@ -864,6 +864,20 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
         TVector[TVector[double]] ComputeScores()
         void AddPool(const TDataProvider& srcData)
 
+cdef extern from "catboost/libs/quantized_pool_analysis/quantized_pool_analysis.h":
+    cdef cppclass TBinarizedFloatFeatureStatistics:
+        TVector[float] Borders
+        TVector[ui8] BinarizedFeature
+        TVector[float] MeanTarget
+        TVector[float] MeanPrediction
+        TVector[size_t] ObjectsPerBin
+    cdef TBinarizedFloatFeatureStatistics GetBinarizedStatistics(
+        const TFullModel& model,
+        const TDataProvider& dataset,
+        const TVector[float]& target,
+        const TVector[float]& prediction,
+        const size_t featureNum)
+
 
 cdef inline float _FloatOrNan(object obj) except *:
     try:
@@ -2667,6 +2681,21 @@ cdef class _CatBoost:
 
     cpdef _save_borders(self, output_file):
         SaveModelBorders( to_arcadia_string(output_file), dereference(self.__model))
+
+    cpdef _get_binarized_statistics(self, _PoolBase pool, TVector[float] target, TVector[float] prediction, size_t featureNum):
+        cdef TBinarizedFloatFeatureStatistics res = GetBinarizedStatistics(
+            dereference(self.__model),
+            dereference(pool.__pool.Get()),
+            target,
+            prediction,
+            featureNum)
+        return {
+            'Borders': res.Borders,
+            'BinarizedFeature': res.BinarizedFeature,
+            'MeanTarget': res.MeanTarget,
+            'MeanPrediction': res.MeanPrediction,
+            'ObjectsPerBin': res.ObjectsPerBin
+        }
 
 
 cdef class _MetadataHashProxy:
