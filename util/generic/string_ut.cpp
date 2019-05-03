@@ -14,8 +14,6 @@
 #include <algorithm>
 #include <stdexcept>
 
-#define UNIT_CHECK UNIT_ASSERT
-
 static_assert(sizeof(TString) == sizeof(const char*), "expect sizeof(TString) == sizeof(const char*)");
 
 template <class TStringType, typename TTestData>
@@ -922,12 +920,12 @@ protected:
         // ISO/IEC 14882:1998(E), ISO/IEC 14882:2003(E), 21.3.4 ('... the const version')
         const TStringType s(Data._123456());
 
-        UNIT_CHECK(s[s.size()] == 0);
+        UNIT_ASSERT(s[s.size()] == 0);
 
 #if 0
         try {
             //Check is only here to avoid warning about value of expression not used
-            UNIT_CHECK(s.at(s.size()) == 0);
+            UNIT_ASSERT(s.at(s.size()) == 0);
             UNIT_ASSERT(false);
         } catch (const std::out_of_range&) {
             UNIT_ASSERT(true);
@@ -1056,15 +1054,15 @@ protected:
     void capacity() {
         TStringType s;
 
-        UNIT_CHECK(s.capacity() < s.max_size());
-        UNIT_CHECK(s.capacity() >= s.size());
+        UNIT_ASSERT(s.capacity() < s.max_size());
+        UNIT_ASSERT(s.capacity() >= s.size());
 
         for (int i = 0; i < 18; ++i) {
             s += ' ';
 
-            UNIT_CHECK(s.capacity() > 0);
-            UNIT_CHECK(s.capacity() < s.max_size());
-            UNIT_CHECK(s.capacity() >= s.size());
+            UNIT_ASSERT(s.capacity() > 0);
+            UNIT_ASSERT(s.capacity() < s.max_size());
+            UNIT_ASSERT(s.capacity() >= s.size());
         }
     }
 
@@ -1172,13 +1170,13 @@ protected:
 
         TStringType test(Data.aba());
 
-        UNIT_CHECK(test.find_last_of(Data.a(), 2, 1) == 2);
-        UNIT_CHECK(test.find_last_of(Data.a(), 1, 1) == 0);
-        UNIT_CHECK(test.find_last_of(Data.a(), 0, 1) == 0);
+        UNIT_ASSERT(test.find_last_of(Data.a(), 2, 1) == 2);
+        UNIT_ASSERT(test.find_last_of(Data.a(), 1, 1) == 0);
+        UNIT_ASSERT(test.find_last_of(Data.a(), 0, 1) == 0);
 
-        UNIT_CHECK(test.find_last_of(*Data.a(), 2) == 2);
-        UNIT_CHECK(test.find_last_of(*Data.a(), 1) == 0);
-        UNIT_CHECK(test.find_last_of(*Data.a(), 0) == 0);
+        UNIT_ASSERT(test.find_last_of(*Data.a(), 2) == 2);
+        UNIT_ASSERT(test.find_last_of(*Data.a(), 1) == 0);
+        UNIT_ASSERT(test.find_last_of(*Data.a(), 0) == 0);
     }
 #if 0
     void rfind() {
@@ -1192,13 +1190,13 @@ protected:
 
         TStringType test(Data.aba());
 
-        UNIT_CHECK(test.rfind(Data.a(), 2, 1) == 2);
-        UNIT_CHECK(test.rfind(Data.a(), 1, 1) == 0);
-        UNIT_CHECK(test.rfind(Data.a(), 0, 1) == 0);
+        UNIT_ASSERT(test.rfind(Data.a(), 2, 1) == 2);
+        UNIT_ASSERT(test.rfind(Data.a(), 1, 1) == 0);
+        UNIT_ASSERT(test.rfind(Data.a(), 0, 1) == 0);
 
-        UNIT_CHECK(test.rfind(*Data.a(), 2) == 2);
-        UNIT_CHECK(test.rfind(*Data.a(), 1) == 0);
-        UNIT_CHECK(test.rfind(*Data.a(), 0) == 0);
+        UNIT_ASSERT(test.rfind(*Data.a(), 2) == 2);
+        UNIT_ASSERT(test.rfind(*Data.a(), 1) == 0);
+        UNIT_ASSERT(test.rfind(*Data.a(), 0) == 0);
     }
 #endif
     void find_last_not_of() {
@@ -1209,19 +1207,19 @@ protected:
 
         TStringType test(Data.aba());
 
-        UNIT_CHECK(test.find_last_not_of(Data.a(), 2, 1) == 1);
-        UNIT_CHECK(test.find_last_not_of(Data.b(), 2, 1) == 2);
-        UNIT_CHECK(test.find_last_not_of(Data.a(), 1, 1) == 1);
-        UNIT_CHECK(test.find_last_not_of(Data.b(), 1, 1) == 0);
-        UNIT_CHECK(test.find_last_not_of(Data.a(), 0, 1) == TStringType::npos);
-        UNIT_CHECK(test.find_last_not_of(Data.b(), 0, 1) == 0);
+        UNIT_ASSERT(test.find_last_not_of(Data.a(), 2, 1) == 1);
+        UNIT_ASSERT(test.find_last_not_of(Data.b(), 2, 1) == 2);
+        UNIT_ASSERT(test.find_last_not_of(Data.a(), 1, 1) == 1);
+        UNIT_ASSERT(test.find_last_not_of(Data.b(), 1, 1) == 0);
+        UNIT_ASSERT(test.find_last_not_of(Data.a(), 0, 1) == TStringType::npos);
+        UNIT_ASSERT(test.find_last_not_of(Data.b(), 0, 1) == 0);
 
-        UNIT_CHECK(test.find_last_not_of(*Data.a(), 2) == 1);
-        UNIT_CHECK(test.find_last_not_of(*Data.b(), 2) == 2);
-        UNIT_CHECK(test.find_last_not_of(*Data.a(), 1) == 1);
-        UNIT_CHECK(test.find_last_not_of(*Data.b(), 1) == 0);
-        UNIT_CHECK(test.find_last_not_of(*Data.a(), 0) == TStringType::npos);
-        UNIT_CHECK(test.find_last_not_of(*Data.b(), 0) == 0);
+        UNIT_ASSERT(test.find_last_not_of(*Data.a(), 2) == 1);
+        UNIT_ASSERT(test.find_last_not_of(*Data.b(), 2) == 2);
+        UNIT_ASSERT(test.find_last_not_of(*Data.a(), 1) == 1);
+        UNIT_ASSERT(test.find_last_not_of(*Data.b(), 1) == 0);
+        UNIT_ASSERT(test.find_last_not_of(*Data.a(), 0) == TStringType::npos);
+        UNIT_ASSERT(test.find_last_not_of(*Data.b(), 0) == 0);
     }
 #if 0
     void replace() {
@@ -1264,7 +1262,7 @@ protected:
         i = s.begin();
         ci = s.begin() + 1;
         s.replace(i, i, ci, ci + 1);
-        UNIT_CHECK(s == Data._2123456());
+        UNIT_ASSERT(s == Data._2123456());
 
         s = Data._123456();
         s.replace(s.begin() + 4, s.end(), cs.begin(), cs.end());
