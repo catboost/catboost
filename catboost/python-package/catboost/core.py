@@ -1110,8 +1110,8 @@ class CatBoost(_CatBoostBase):
         if X is None:
             raise CatBoostError("X must not be None")
 
-        if y is None and not isinstance(X, Pool):
-            raise CatBoostError("y may be None only when X is an instance of catboost.Pool")
+        if y is None and not isinstance(X, STRING_TYPES + (Pool,)):
+            raise CatBoostError("y may be None only when X is an instance of catboost.Pool or string")
 
         params = deepcopy(self._init_params)
         if params is None:
