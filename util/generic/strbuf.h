@@ -71,11 +71,6 @@ public:
     {
     }
 
-    template<typename TCharTraits>
-    constexpr operator std::basic_string_view<TChar, TCharTraits>() const noexcept {
-        return {data(), length()};
-    }
-
 public: // required by TStringBase
     constexpr inline const TChar* data() const noexcept {
         return Start;

@@ -2183,3 +2183,17 @@ public:
 };
 
 UNIT_TEST_SUITE_REGISTRATION(TWideStringStdTest);
+
+Y_UNIT_TEST_SUITE(TStringConversionTest) {
+    Y_UNIT_TEST(ConversionToStdStringTest) {
+        TString abra = "cadabra";
+        std::string stdAbra = abra;
+        UNIT_ASSERT_VALUES_EQUAL(stdAbra, "cadabra");
+    }
+
+    Y_UNIT_TEST(ConversionToStdStringViewTest) {
+        TString abra = "cadabra";
+        std::string_view stdAbra = abra;
+        UNIT_ASSERT_VALUES_EQUAL(stdAbra, "cadabra");
+    }
+}
