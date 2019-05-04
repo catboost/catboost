@@ -1479,7 +1479,7 @@ class CatBoost(_CatBoostBase):
                 - 'Probability' : return one-dimensional numpy.ndarray with probability for every class.
             otherwise numpy.ndarray, with values that depend on prediction_type value:
                 - 'RawFormulaVal' : one-dimensional array of raw formula value for each object.
-                - 'Class' : one-dimensional array of majority vote classe for each object.
+                - 'Class' : one-dimensional array of majority vote class for each object.
                 - 'Probability' : two-dimensional numpy.ndarray with shape (number_of_objects x number_of_classes)
                   with probability for every class for each object.
         """
@@ -2608,7 +2608,7 @@ class CatBoostClassifier(CatBoost):
                 - 'Probability' : return one-dimensional numpy.ndarray with probability for every class.
             otherwise numpy.ndarray, with values that depend on prediction_type value:
                 - 'RawFormulaVal' : one-dimensional array of raw formula value for each object.
-                - 'Class' : one-dimensional array of majority vote classe for each object.
+                - 'Class' : one-dimensional array of majority vote class for each object.
                 - 'Probability' : two-dimensional numpy.ndarray with shape (number_of_objects x number_of_classes)
                   with probability for every class for each object.
         """
