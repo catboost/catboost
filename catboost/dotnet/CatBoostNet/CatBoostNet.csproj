@@ -1,8 +1,8 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
-    <RunPostBuildEvent>Always</RunPostBuildEvent>
+    <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -13,18 +13,29 @@
     <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Authors>Konstantin Sidorov</Authors>
+    <Company>CatBoostNet</Company>
+    <Description></Description>
+    <Version>0.1.0</Version>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Microsoft.ML" Version="0.11.0" />
   </ItemGroup>
-
+  
   <ItemGroup>
     <Content Include="$(SolutionDir)LibraryBuilder\lib\x64\$(ConfigurationName)\catboost\libs\model_interface\catboostmodel.dll">
+      <PackagePath>runtimes/win/native/catboostmodel.dll</PackagePath>
+      <Pack>true</Pack>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+
+    <Content Include="build\CatBoostNet.targets">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <Pack>true</Pack>
+    </Content>
   </ItemGroup>
-
-  <!-- <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="copy &quot;$(SolutionDir)LibraryBuilder\lib\x64\$(ConfigurationName)\catboost\libs\model_interface\catboostmodel.dll&quot; &quot;$(TargetDir)&quot;" />
-  </Target> -->
-
 </Project>
