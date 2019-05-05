@@ -5,6 +5,16 @@
 #include <util/generic/array_ref.h>
 
 
+namespace NCatboostOptions {
+    class TCatBoostOptions;
+    class TLossDescription;
+}
+
+namespace NPar {
+    class TLocalExecutor;
+}
+
+
 void UpdatePairsForYetiRank(
     TConstArrayRef<double> approxes,
     TConstArrayRef<float> relevances,

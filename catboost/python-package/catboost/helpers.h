@@ -86,9 +86,9 @@ public:
             end,
             evalPeriod,
             /*processedIterationsStep=*/-1,
-            Executor,
             tmpDir,
-            Metrics)) {
+            Metrics,
+            &Executor)) {
         Executor.RunAdditionalThreads(threadCount - 1);
         MetricPlotCalcer.SetDeleteTmpDirOnExit(deleteTempDirOnExit);
     }

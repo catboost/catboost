@@ -25,13 +25,12 @@ namespace NCB {
     inline const ui8* GetQuantizedForCpuFloatFeatureDataBeginPtr(
         const TQuantizedForCPUObjectsDataProvider& quantizedObjectsData,
         ui32 consecutiveSubsetBegin,
-        ui32 flatFeatureIdx)
-    {
+        ui32 flatFeatureIdx) {
+
         const auto featuresLayout = *quantizedObjectsData.GetFeaturesLayout();
         CB_ENSURE_INTERNAL(
             featuresLayout.GetExternalFeatureType(flatFeatureIdx) == EFeatureType::Float,
-            "Mismatched feature type"
-        );
+            "Mismatched feature type");
         return quantizedObjectsData.GetFloatFeatureRawSrcData(flatFeatureIdx) + consecutiveSubsetBegin;
     }
 
@@ -41,8 +40,7 @@ namespace NCB {
             objectsData.GetFeaturesArraySubsetIndexing().GetConsecutiveSubsetBegin();
         CB_ENSURE_INTERNAL(
             maybeConsecutiveSubsetBegin,
-            "Only consecutive feature data is supported for apply"
-        );
+            "Only consecutive feature data is supported for apply");
         return *maybeConsecutiveSubsetBegin;
     }
 
@@ -53,8 +51,8 @@ namespace NCB {
         const TVector<TMaybe<TExclusiveBundleIndex>>& bundledIndexes,
         const TVector<TMaybe<TPackedBinaryIndex>>& packedIndexes,
         const TFloatFeature& floatFeature,
-        size_t index)
-    {
+        size_t index) {
+
         const auto& bundleIdx = bundledIndexes[floatFeature.FeatureIndex];
         const auto& packIdx = packedIndexes[floatFeature.FeatureIndex];
 
@@ -79,8 +77,7 @@ namespace NCB {
                 default:
                     CB_ENSURE_INTERNAL(
                         false,
-                        "unsupported Bundle SizeInBytes = " << bundleMetaData.SizeInBytes
-                    );
+                        "unsupported Bundle SizeInBytes = " << bundleMetaData.SizeInBytes);
             }
         } else if (packIdx.Defined()) {
             TBinaryFeaturesPack bitIdx = packIdx->BitIdx;

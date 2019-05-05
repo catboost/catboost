@@ -1,16 +1,25 @@
 #include "score_calcer.h"
 
+#include "calc_score_cache.h"
+#include "fold.h"
 #include "index_calcer.h"
 #include "online_predictor.h"
+#include "pairwise_scoring.h"
+#include "split.h"
 
+#include <catboost/libs/data_new/objects.h>
 #include <catboost/libs/data_types/pair.h>
-#include <catboost/libs/index_range/index_range.h>
 #include <catboost/libs/helpers/map_merge.h>
+#include <catboost/libs/index_range/index_range.h>
+#include <catboost/libs/options/catboost_options.h>
 #include <catboost/libs/options/defaults_helper.h>
+
+#include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/array_ref.h>
 
 #include <type_traits>
+
 
 using namespace NCB;
 
@@ -87,8 +96,8 @@ inline static const TOnlineCTR& GetCtr(
     static const constexpr size_t OnlineSingleCtrsIndex = 0;
     static const constexpr size_t OnlineCTRIndex = 1;
     return proj.HasSingleFeature() ?
-              std::get<OnlineSingleCtrsIndex>(allCtrs).at(proj)
-            : std::get<OnlineCTRIndex>(allCtrs).at(proj);
+          std::get<OnlineSingleCtrsIndex>(allCtrs).at(proj)
+        : std::get<OnlineCTRIndex>(allCtrs).at(proj);
 }
 
 
@@ -190,13 +199,19 @@ inline static void BuildSingleIndex(
                 {
                     const auto& splitCandidate = splitEnsemble.SplitCandidate;
                     if (splitCandidate.Type == ESplitType::FloatFeature) {
-                        const auto* featureColumnValuesHolder = (*objectsDataProvider.GetNonPackedFloatFeature((ui32)splitCandidate.FeatureIdx));
+                        const auto* featureColumnValuesHolder
+                            = (*objectsDataProvider.GetNonPackedFloatFeature(
+                                (ui32)splitCandidate.FeatureIdx)
+                            );
                         if (featureColumnValuesHolder->GetBitsPerKey() == 8) {
                             setSingleIndexFunc(
                                 *featureColumnValuesHolder->GetArrayData<ui8>().GetSrc()
                             );
                         } else {
-                            CB_ENSURE_INTERNAL(featureColumnValuesHolder->GetBitsPerKey() == 16, "Only 8 and 16 bit wide float feature quantization expected");
+                            CB_ENSURE_INTERNAL(
+                                featureColumnValuesHolder->GetBitsPerKey() == 16,
+                                "Only 8 and 16 bit wide float feature quantization expected"
+                            );
                             setSingleIndexFunc(
                                 *featureColumnValuesHolder->GetArrayData<ui16>().GetSrc()
                             );
@@ -452,11 +467,15 @@ static void CalcStatsImpl(
                                     .Feature[ctr.CtrIdx][ctr.TargetBorderIdx][ctr.PriorIdx];
                             setOutput([buckets](ui32 docIdx) { return buckets[docIdx]; });
                         } else if (splitCandidate.Type == ESplitType::FloatFeature) {
-                            const auto* featureColumnHolder = (*objectsDataProvider.GetNonPackedFloatFeature((ui32)splitCandidate.FeatureIdx));
+                            const auto* featureColumnHolder
+                                = (*objectsDataProvider.GetNonPackedFloatFeature(
+                                    (ui32)splitCandidate.FeatureIdx
+                                ));
                             const ui32* bucketIndexing
                                 = fold.LearnPermutationFeaturesSubset.Get<TIndexedSubset<ui32>>().data();
                             if (featureColumnHolder->GetBitsPerKey() == 8) {
-                                const ui8* bucketSrcData = *(featureColumnHolder->GetArrayData<ui8>().GetSrc());
+                                const ui8* bucketSrcData
+                                    = *(featureColumnHolder->GetArrayData<ui8>().GetSrc());
                                 setOutput(
                                     [bucketSrcData, bucketIndexing](ui32 docIdx) {
                                         return bucketSrcData[bucketIndexing[docIdx]];
@@ -464,7 +483,8 @@ static void CalcStatsImpl(
                                 );
                             } else {
                                 Y_ASSERT(featureColumnHolder->GetBitsPerKey() == 16);
-                                const ui16* bucketSrcData = *(featureColumnHolder->GetArrayData<ui16>().GetSrc());
+                                const ui16* bucketSrcData
+                                    = *(featureColumnHolder->GetArrayData<ui16>().GetSrc());
                                 setOutput(
                                     [bucketSrcData, bucketIndexing](ui32 docIdx) {
                                         return bucketSrcData[bucketIndexing[docIdx]];
@@ -643,7 +663,8 @@ static void CalcStatsImpl(
                 splitEnsemble,
                 indexer,
                 docIndexRange,
-                &singleIdx);
+                &singleIdx
+            );
 
             if (output->NonInited()) {
                 (*output) = TBucketStatsRefOptionalHolder(statsCount);
@@ -788,7 +809,8 @@ inline static void UpdateScoreBins(
             allDocCount,
             trueStats,
             falseStats,
-            scoreBin);
+            scoreBin
+        );
     };
 
     // used only if splitEnsembleSpec.Type == ESplitEnsembleType::ExclusiveBundle
@@ -844,7 +866,8 @@ inline static void UpdateScoreBins(
                             updateScoreBinClosure(
                                 /*trueStats*/ stats[indexer.GetIndex(leaf, bucketIdx)],
                                 falseStats,
-                                &((*scoreBins)[bucketIdx]));
+                                &((*scoreBins)[bucketIdx])
+                            );
                         }
                     }
                 }
@@ -860,7 +883,6 @@ inline static void UpdateScoreBins(
                             auto& dstStats = ((bucketIdx >> binFeatureIdx) & 1) ? trueStats : falseStats;
                             dstStats.Add(stats[indexer.GetIndex(leaf, bucketIdx)]);
                         }
-
 
                         updateScoreBinClosure(trueStats, falseStats, &((*scoreBins)[binFeatureIdx]));
                     }
@@ -1026,7 +1048,10 @@ void CalcStatsAndScores(
     TPairwiseStats* pairwiseStats,
     TVector<TScoreBin>* scoreBins
 ) {
-    CB_ENSURE(stats3d || pairwiseStats || scoreBins, "stats3d, pairwiseStats, and scoreBins are empty - nothing to calculate");
+    CB_ENSURE(
+        stats3d || pairwiseStats || scoreBins,
+        "stats3d, pairwiseStats, and scoreBins are empty - nothing to calculate"
+    );
     CB_ENSURE(!scoreBins || initialFold, "initialFold must be non-nullptr for scoreBins calculation");
 
     const bool isPairwiseScoring = IsPairwiseScoring(fitParams.LossFunctionDescription->GetLossFunction());
@@ -1160,8 +1185,10 @@ void CalcStatsAndScores(
         } else {
             splitStatsCount = indexer.CalcSize(treeOptions.MaxDepth);
             bool areStatsDirty;
+
+            // thread-safe access
             TVector<TBucketStats, TPoolAllocator>& splitStatsFromCache =
-                statsFromPrevTree->GetStats(splitEnsemble, splitStatsCount, &areStatsDirty); // thread-safe access
+                statsFromPrevTree->GetStats(splitEnsemble, splitStatsCount, &areStatsDirty);
             extOrInSplitStats = TBucketStatsRefOptionalHolder(splitStatsFromCache);
             if (depth == 0 || areStatsDirty) {
                 selectCalcStatsImpl(

@@ -1,12 +1,23 @@
 #include "tree_print.h"
 
+#include "projection.h"
+#include "split.h"
+
+#include <catboost/libs/data_new/features_layout.h>
+
 #include <util/string/builder.h>
 #include <util/string/cast.h>
 #include <util/system/yassert.h>
 
 
-TString BuildFeatureDescription(const NCB::TFeaturesLayout& featuresLayout, const int internalFeatureIdx, EFeatureType type) {
-    TString externalFeatureDescription = featuresLayout.GetExternalFeatureDescription(internalFeatureIdx, type);
+TString BuildFeatureDescription(
+    const NCB::TFeaturesLayout& featuresLayout,
+    const int internalFeatureIdx,
+    EFeatureType type) {
+
+    TString externalFeatureDescription = featuresLayout.GetExternalFeatureDescription(
+        internalFeatureIdx,
+        type);
     if (externalFeatureDescription.empty()) {
         // just return index
         return ToString<int>(featuresLayout.GetExternalFeatureIdx(internalFeatureIdx, type));
@@ -22,7 +33,10 @@ TString BuildDescription(const NCB::TFeaturesLayout& featuresLayout, const TProj
         if (fc++ > 0) {
             result << ", ";
         }
-        TString featureDescription = BuildFeatureDescription(featuresLayout, featureIdx, EFeatureType::Categorical);
+        TString featureDescription = BuildFeatureDescription(
+            featuresLayout,
+            featureIdx,
+            EFeatureType::Categorical);
         result << featureDescription;
     }
 
@@ -30,7 +44,10 @@ TString BuildDescription(const NCB::TFeaturesLayout& featuresLayout, const TProj
         if (fc++ > 0) {
             result << ", ";
         }
-        TString featureDescription = BuildFeatureDescription(featuresLayout, feature.FloatFeature, EFeatureType::Float);
+        TString featureDescription = BuildFeatureDescription(
+            featuresLayout,
+            feature.FloatFeature,
+            EFeatureType::Float);
         result << featureDescription << " b" << feature.SplitIdx;
     }
 
@@ -38,7 +55,10 @@ TString BuildDescription(const NCB::TFeaturesLayout& featuresLayout, const TProj
         if (fc++ > 0) {
             result << ", ";
         }
-        TString featureDescription = BuildFeatureDescription(featuresLayout, feature.CatFeatureIdx, EFeatureType::Categorical);
+        TString featureDescription = BuildFeatureDescription(
+            featuresLayout,
+            feature.CatFeatureIdx,
+            EFeatureType::Categorical);
         result << featureDescription << " val = " << feature.Value;
     }
     result << "}";
@@ -53,7 +73,10 @@ TString BuildDescription(const NCB::TFeaturesLayout& featuresLayout, const TFeat
         if (fc++ > 0) {
             result << ", ";
         }
-        TString featureDescription = BuildFeatureDescription(featuresLayout, featureIdx, EFeatureType::Categorical);
+        TString featureDescription = BuildFeatureDescription(
+            featuresLayout,
+            featureIdx,
+            EFeatureType::Categorical);
         result << featureDescription;
     }
 
@@ -61,7 +84,10 @@ TString BuildDescription(const NCB::TFeaturesLayout& featuresLayout, const TFeat
         if (fc++ > 0) {
             result << ", ";
         }
-        TString featureDescription = BuildFeatureDescription(featuresLayout, feature.FloatFeature, EFeatureType::Float);
+        TString featureDescription = BuildFeatureDescription(
+            featuresLayout,
+            feature.FloatFeature,
+            EFeatureType::Float);
         result << featureDescription << " border=" << feature.Split;
     }
 
@@ -69,7 +95,10 @@ TString BuildDescription(const NCB::TFeaturesLayout& featuresLayout, const TFeat
         if (fc++ > 0) {
             result << ", ";
         }
-        TString featureDescription = BuildFeatureDescription(featuresLayout, feature.CatFeatureIdx, EFeatureType::Categorical);
+        TString featureDescription = BuildFeatureDescription(
+            featuresLayout,
+            feature.CatFeatureIdx,
+            EFeatureType::Categorical);
         result << featureDescription << " val = " << feature.Value;
     }
     result << "}";

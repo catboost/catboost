@@ -1,6 +1,9 @@
 #include "approx_updater_helpers.h"
 
+#include "learn_context.h"
+
 #include <util/generic/cast.h>
+
 
 using namespace NCB;
 

@@ -1,20 +1,29 @@
 #pragma once
 
 #include <catboost/libs/data_new/data_provider.h>
-#include <catboost/libs/helpers/restorable_rng.h>
-#include <catboost/libs/options/catboost_options.h>
-#include <catboost/libs/options/data_processing_options.h>
 #include <catboost/libs/options/enums.h>
-#include <catboost/libs/options/output_file_options.h>
-
-#include <library/json/json_value.h>
-#include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/string.h>
 #include <util/generic/vector.h>
 #include <util/stream/file.h>
 
 #include <functional>
+
+
+struct TRestorableFastRng64;
+
+namespace NCatboostOptions {
+    class TCatBoostOptions;
+    class TOutputFilesOptions;
+}
+
+namespace NJson {
+    class TJsonValue;
+}
+
+namespace NPar {
+    class TLocalExecutor;
+}
 
 
 void CheckConsistency(const NCB::TTrainingDataProviders& data);

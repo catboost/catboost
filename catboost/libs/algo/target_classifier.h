@@ -11,9 +11,10 @@
 #include <util/generic/maybe.h>
 
 
-TTargetClassifier BuildTargetClassifier(TConstArrayRef<float> target,
-                                        ELossFunction loss,
-                                        const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
-                                        int targetBorderCount,
-                                        EBorderSelectionType targetBorderType,
-                                        bool allowConstLabel);
+TTargetClassifier BuildTargetClassifier(
+    TConstArrayRef<float> target,
+    ELossFunction loss,
+    const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
+    int targetBorderCount,
+    EBorderSelectionType targetBorderType,
+    bool allowConstLabel);

@@ -4,9 +4,9 @@
 
 #include <library/binsaver/bin_saver.h>
 
-#include <util/generic/vector.h>
-#include <util/generic/algorithm.h>
 #include <util/digest/multi.h>
+#include <util/generic/algorithm.h>
+#include <util/generic/vector.h>
 
 
 template <class T>
@@ -26,14 +26,7 @@ struct TBinFeature {
     int FloatFeature = 0;
     int SplitIdx = 0;
 
-    bool operator==(const TBinFeature& other) const {
-        return FloatFeature == other.FloatFeature && SplitIdx == other.SplitIdx;
-    }
-
-    bool operator<(const TBinFeature& other) const {
-        return std::tie(FloatFeature, SplitIdx) < std::tie(other.FloatFeature, other.SplitIdx);
-    }
-
+public:
     TBinFeature() = default;
 
     TBinFeature(int floatFeature, int splitIdx)
@@ -42,12 +35,20 @@ struct TBinFeature {
     {
     }
 
+    bool operator==(const TBinFeature& other) const {
+        return FloatFeature == other.FloatFeature && SplitIdx == other.SplitIdx;
+    }
+
+    bool operator<(const TBinFeature& other) const {
+        return std::tie(FloatFeature, SplitIdx) < std::tie(other.FloatFeature, other.SplitIdx);
+    }
+
+    SAVELOAD(FloatFeature, SplitIdx);
+    Y_SAVELOAD_DEFINE(FloatFeature, SplitIdx);
+
     ui64 GetHash() const {
         return MultiHash(FloatFeature, SplitIdx);
     }
-
-    Y_SAVELOAD_DEFINE(FloatFeature, SplitIdx);
-    SAVELOAD(FloatFeature, SplitIdx);
 };
 
 template <>
@@ -62,8 +63,24 @@ struct TProjection {
     TVector<TBinFeature> BinFeatures;
     TVector<TOneHotSplit> OneHotFeatures;
 
-    Y_SAVELOAD_DEFINE(CatFeatures, BinFeatures, OneHotFeatures)
+public:
+    bool operator==(const TProjection& other) const {
+        return CatFeatures == other.CatFeatures &&
+            BinFeatures == other.BinFeatures &&
+            OneHotFeatures == other.OneHotFeatures;
+    }
+
+    bool operator!=(const TProjection& other) const {
+        return !(*this == other);
+    }
+
+    bool operator<(const TProjection& other) const {
+        return std::tie(CatFeatures, BinFeatures, OneHotFeatures) <
+            std::tie(other.CatFeatures, other.BinFeatures, other.OneHotFeatures);
+    }
+
     SAVELOAD(CatFeatures, BinFeatures, OneHotFeatures);
+    Y_SAVELOAD_DEFINE(CatFeatures, BinFeatures, OneHotFeatures)
 
     void Add(const TProjection& proj) {
         CatFeatures.insert(CatFeatures.end(), proj.CatFeatures.begin(), proj.CatFeatures.end());
@@ -112,22 +129,10 @@ struct TProjection {
             return MultiHash(intVectorHash(CatFeatures), binFeatureHash(BinFeatures));
         }
         TVecHash<TOneHotSplit> oneHotFeatureHash;
-        return MultiHash(intVectorHash(CatFeatures), binFeatureHash(BinFeatures), oneHotFeatureHash(OneHotFeatures));
-    }
-
-    bool operator==(const TProjection& other) const {
-        return CatFeatures == other.CatFeatures &&
-               BinFeatures == other.BinFeatures &&
-               OneHotFeatures == other.OneHotFeatures;
-    }
-
-    bool operator!=(const TProjection& other) const {
-        return !(*this == other);
-    }
-
-    bool operator<(const TProjection& other) const {
-        return std::tie(CatFeatures, BinFeatures, OneHotFeatures) <
-               std::tie(other.CatFeatures, other.BinFeatures, other.OneHotFeatures);
+        return MultiHash(
+            intVectorHash(CatFeatures),
+            binFeatureHash(BinFeatures),
+            oneHotFeatureHash(OneHotFeatures));
     }
 
     size_t GetFullProjectionLength() const {

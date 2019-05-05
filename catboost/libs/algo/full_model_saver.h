@@ -1,19 +1,14 @@
 #pragma once
 
-
 #include "online_ctr.h"
 #include "projection.h"
 
 #include <catboost/libs/data_new/data_provider.h>
 #include <catboost/libs/model/ctr_data.h>
-#include <catboost/libs/model/ctr_value_table.h>
-#include <catboost/libs/model/model.h>
 #include <catboost/libs/model/online_ctr.h>
 #include <catboost/libs/model/target_classifier.h>
-#include <catboost/libs/options/catboost_options.h>
 #include <catboost/libs/options/cat_feature_options.h>
 #include <catboost/libs/options/enums.h>
-#include <catboost/libs/target/classification_target_helper.h>
 
 #include <util/generic/maybe.h>
 #include <util/generic/hash.h>
@@ -21,6 +16,19 @@
 #include <util/system/types.h>
 
 #include <functional>
+
+
+class TCtrValueTable;
+struct TDatasetDataForFinalCtrs;
+struct TFullModel;
+
+namespace NCatboostOptions {
+    class TCatBoostOptions;
+}
+
+namespace NCB {
+    class TClassificationTargetHelper;
+}
 
 
 namespace NCB {

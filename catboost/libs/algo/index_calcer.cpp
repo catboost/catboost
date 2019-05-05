@@ -1,17 +1,20 @@
 #include "index_calcer.h"
 
 #include "features_data_helpers.h"
-#include "score_calcer.h"
+#include "fold.h"
 #include "online_ctr.h"
+#include "score_calcer.h"
+#include "split.h"
 #include "tree_print.h"
 
 #include <catboost/libs/cat_feature/cat_feature.h>
 #include <catboost/libs/data_new/model_dataset_compatibility.h>
-#include <catboost/libs/model/model.h>
-#include <catboost/libs/model/formula_evaluator.h>
 #include <catboost/libs/helpers/dense_hash.h>
+#include <catboost/libs/model/formula_evaluator.h>
+#include <catboost/libs/model/model.h>
 
 #include <library/containers/stack_vector/stack_vec.h>
+#include <library/threading/local_executor/local_executor.h>
 
 #include <functional>
 
@@ -34,6 +37,7 @@ static inline ui16 GetFeatureSplitIdx(const TSplit& split) {
 static inline const TVariant<const ui8*, const ui16*> GetFloatHistogram(
     const TSplit& split,
     const TQuantizedForCPUObjectsDataProvider& objectsDataProvider) {
+
     const auto* featureColumnHolder = *objectsDataProvider.GetNonPackedFloatFeature((ui32)split.FeatureIdx);
     if (featureColumnHolder->GetBitsPerKey() == 8) {
         return *featureColumnHolder->GetArrayData<ui8>().GetSrc();
@@ -45,10 +49,12 @@ static inline const TVariant<const ui8*, const ui16*> GetFloatHistogram(
 static inline const ui32* GetRemappedCatFeatures(
     const TSplit& split,
     const TQuantizedForCPUObjectsDataProvider& objectsDataProvider) {
-    return *(*objectsDataProvider.GetNonPackedCatFeature((ui32)split.FeatureIdx))->GetArrayData<ui32>().GetSrc();
+
+    return *(*objectsDataProvider.GetNonPackedCatFeature((ui32)split.FeatureIdx))
+        ->GetArrayData<ui32>().GetSrc();
 }
 
-template <typename TCount, typename TCmpOp, int vectorWidth>
+template <typename TCount, typename TCmpOp, int VectorWidth>
 inline void BuildIndicesKernel(
     const ui32* permutation,
     const TCount* histogram,
@@ -56,7 +62,7 @@ inline void BuildIndicesKernel(
     int level,
     TIndexType* indices) {
 
-    Y_ASSERT(vectorWidth == 4);
+    Y_ASSERT(VectorWidth == 4);
     const ui32 perm0 = permutation[0];
     const ui32 perm1 = permutation[1];
     const ui32 perm2 = permutation[2];
@@ -165,8 +171,7 @@ inline void OfflineCtrBlock(
             default:
                 CB_ENSURE_INTERNAL(
                     false,
-                    "unsupported Bundle SizeInBytes = " << bundleSubset.MetaData->SizeInBytes
-                );
+                    "unsupported Bundle SizeInBytes = " << bundleSubset.MetaData->SizeInBytes);
         }
     } else {
         OfflineCtrBlock(
@@ -348,8 +353,7 @@ static void BuildIndicesForDataset(
         permutationStorage.yresize(featuresArraySubsetIndexing.Size());
         featuresArraySubsetIndexing.ParallelForEach(
             [&](ui32 idx, ui32 srcIdx) { permutationStorage[idx] = srcIdx; },
-            localExecutor
-        );
+            localExecutor);
         permutation = permutationStorage.data();
     }
 
@@ -427,8 +431,7 @@ static void BuildIndicesForDataset(
                     blockParams,
                     [&](int doc) {
                         indices[doc] += GetCtrSplit(split, doc + docOffset, splitOnlineCtr) * splitWeight;
-                    }
-                )(blockIdx);
+                    })(blockIdx);
             } else {
                 Y_ASSERT(split.Type == ESplitType::OneHotFeature);
 
@@ -627,8 +630,8 @@ TVector<ui8> GetModelCompatibleQuantizedFeatures(
     const TFullModel& model,
     const NCB::TObjectsDataProvider& objectsData,
     size_t start,
-    size_t end)
-{
+    size_t end) {
+
     TVector<ui8> result;
     if (const auto* const rawObjectsData = dynamic_cast<const TRawObjectsDataProvider*>(&objectsData)) {
         BinarizeRawFeatures(model, *rawObjectsData, start, end, &result);
@@ -645,8 +648,8 @@ TVector<ui8> GetModelCompatibleQuantizedFeatures(
 
 TVector<ui8> GetModelCompatibleQuantizedFeatures(
     const TFullModel& model,
-    const NCB::TObjectsDataProvider& objectsData)
-{
+    const NCB::TObjectsDataProvider& objectsData) {
+
     return GetModelCompatibleQuantizedFeatures(model, objectsData, /*start*/0, objectsData.GetObjectCount());
 }
 

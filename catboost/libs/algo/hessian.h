@@ -3,9 +3,9 @@
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/options/enums.h>
 
-#include <util/generic/vector.h>
-
 #include <library/binsaver/bin_saver.h>
+
+#include <util/generic/vector.h>
 
 
 class THessianInfo;
@@ -50,7 +50,6 @@ public:
 
     static int CalcInternalDer2DataSize(int /*approxDimension*/);
 };
-
 
 
 static int CalcInternalDer2DataSize(EHessianType hessianType, int approxDimension) {

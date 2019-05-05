@@ -1,5 +1,8 @@
 #include "calc_score_cache.h"
 
+#include <catboost/libs/helpers/restorable_rng.h>
+#include <catboost/libs/options/oblivious_tree_options.h>
+
 #include <util/generic/algorithm.h>
 #include <util/generic/xrange.h>
 #include <util/generic/ymath.h>
@@ -346,7 +349,8 @@ void TCalcScoreFold::SelectBlockFromFold(const TFoldType& fold, TSlice srcBlock,
         srcBlock.GetConstRef(fold.LearnPermutationFeaturesSubset.template Get<TIndexedSubset<ui32>>()),
         GetElement<ui32>,
         dstBlock.GetRef(LearnPermutationFeaturesSubset.template Get<TIndexedSubset<ui32>>()),
-        &ignored);
+        &ignored
+    );
 
     const auto& srcLearnWeights = fold.GetLearnWeights();
     TArrayRef<float> dstLearnWeights = dstBlock.GetRef(LearnWeights);
@@ -430,7 +434,8 @@ void TCalcScoreFold::SelectSmallestSplitSide(
         &blockCount,
         &srcBlocks,
         &dstBlocks,
-        &LearnQueriesInfo);
+        &LearnQueriesInfo
+    );
 
     DocCount = dstBlocks.Total;
     LearnPermutationFeaturesSubset.Get<TIndexedSubset<ui32>>().yresize(DocCount);
@@ -449,18 +454,21 @@ void TCalcScoreFold::SelectSmallestSplitSide(
                 srcBlock.GetConstRef(TVector<TIndexType>()),
                 [=](const TIndexType*, size_t i) {return srcIndicesRef[i] | splitWeight;},
                 dstBlock.GetRef(Indices),
-                &ignored);
+                &ignored
+            );
             SetElements(
                 srcControlRef,
                 srcBlock.GetConstRef(fold.IndexInFold),
                 GetElement<ui32>,
                 dstBlock.GetRef(IndexInFold),
-                &ignored);
+                &ignored
+            );
             SelectBlockFromFold(fold, srcBlock, dstBlock);
         },
         0,
         blockCount,
-        NPar::TLocalExecutor::WAIT_COMPLETE);
+        NPar::TLocalExecutor::WAIT_COMPLETE
+    );
     SetPermutationBlockSizeAndCalcStatsRanges(FoldPermutationBlockSizeNotSet, FoldPermutationBlockSizeNotSet);
 }
 
@@ -490,7 +498,8 @@ void TCalcScoreFold::Sample(
         &blockCount,
         &srcBlocks,
         &dstBlocks,
-        &LearnQueriesInfo);
+        &LearnQueriesInfo
+    );
 
     DocCount = dstBlocks.Total;
     LearnPermutationFeaturesSubset.Get<TIndexedSubset<ui32>>().yresize(DocCount);
@@ -507,22 +516,26 @@ void TCalcScoreFold::Sample(
                 srcBlock.GetConstRef(indices),
                 GetElement<TIndexType>,
                 dstBlock.GetRef(Indices),
-                &ignored);
+                &ignored
+            );
             SetElements(
                 srcControlRef,
                 srcBlock.GetConstRef(TVector<size_t>()),
                 [=](const size_t*, size_t j) {return ui32(srcBlock.Offset + j);},
                 dstBlock.GetRef(IndexInFold),
-                &ignored);
+                &ignored
+            );
             SelectBlockFromFold(fold, srcBlock, dstBlock);
         },
         0,
         blockCount,
-        NPar::TLocalExecutor::WAIT_COMPLETE);
+        NPar::TLocalExecutor::WAIT_COMPLETE
+    );
     SetPermutationBlockSizeAndCalcStatsRanges(
         (BernoulliSampleRate == 1.0f || IsPairwiseScoring) ? fold.PermutationBlockSize :
             FoldPermutationBlockSizeNotSet,
-        (BernoulliSampleRate == 1.0f || IsPairwiseScoring) ? DocCount : FoldPermutationBlockSizeNotSet);
+        (BernoulliSampleRate == 1.0f || IsPairwiseScoring) ? DocCount : FoldPermutationBlockSizeNotSet
+    );
 }
 
 void TCalcScoreFold::UpdateIndices(const TVector<TIndexType>& indices, NPar::TLocalExecutor* localExecutor) {
@@ -551,11 +564,13 @@ void TCalcScoreFold::UpdateIndices(const TVector<TIndexType>& indices, NPar::TLo
                 srcBlock.GetConstRef(indices),
                 GetElement<TIndexType>,
                 dstBlock.GetRef(Indices),
-                &ignored);
+                &ignored
+            );
         },
         0,
         blockCount,
-        NPar::TLocalExecutor::WAIT_COMPLETE);
+        NPar::TLocalExecutor::WAIT_COMPLETE
+    );
 }
 
 int TCalcScoreFold::GetApproxDimension() const {
@@ -595,14 +610,18 @@ void TCalcScoreFold::SetSmallestSideControl(
     localExecutor->ExecRange(
         [=, &blockSize](int blockIdx) {
             int size = 0;
-            NPar::TLocalExecutor::BlockedLoopBody(blockParams, [=, &size](int docIdx) {
+            NPar::TLocalExecutor::BlockedLoopBody(
+                blockParams,
+                [=, &size](int docIdx) {
                     size += indicesData[docIdx] >> (curDepth - 1);
-                })(blockIdx);
+                }
+            )(blockIdx);
             blockSize[blockIdx] = size;
         },
         0,
         blockCount,
-        NPar::TLocalExecutor::WAIT_COMPLETE);
+        NPar::TLocalExecutor::WAIT_COMPLETE
+    );
 
     int trueCount = 0;
     for (int size : blockSize) {
@@ -617,7 +636,8 @@ void TCalcScoreFold::SetSmallestSideControl(
                 controlData[docIdx] = indicesData[docIdx] < splitWeight;
             },
             blockParams,
-            NPar::TLocalExecutor::WAIT_COMPLETE);
+            NPar::TLocalExecutor::WAIT_COMPLETE
+        );
     } else {
         SmallestSplitSideValue = true;
         localExecutor->ExecRange(
@@ -625,7 +645,8 @@ void TCalcScoreFold::SetSmallestSideControl(
                 controlData[docIdx] = indicesData[docIdx] > splitWeight - 1;
             },
             blockParams,
-            NPar::TLocalExecutor::WAIT_COMPLETE);
+            NPar::TLocalExecutor::WAIT_COMPLETE
+        );
     }
 }
 
@@ -659,7 +680,8 @@ void TCalcScoreFold::SetControlNoZeroWeighted(
 ) {
     CB_ENSURE(
         samplingUnit != ESamplingUnit::Group,
-        "MVS bootstrap is not implemented for groupwise sampling (sampling_unit=Group)");
+        "MVS bootstrap is not implemented for groupwise sampling (sampling_unit=Group)"
+    );
     constexpr float EPS = std::numeric_limits<float>::epsilon();
     for (int docIdx = 0; docIdx < docCount; ++docIdx) {
         Control[docIdx] = sampleWeights[docIdx] > EPS;
@@ -744,15 +766,19 @@ void TCalcScoreFold::SetPermutationBlockSizeAndCalcStatsRanges(
                     int(
                         Min<i64>(
                             DefaultCalcStatsObjBlockSize,
-                            i64(DefaultCalcStatsObjBlockSize) * rangeEnd / docCount)),
-                    1);
+                            i64(DefaultCalcStatsObjBlockSize) * rangeEnd / docCount
+                        )
+                    ),
+                    1
+                );
             }
         } else {
             rangeEnd = docCount;
         }
         CalcStatsIndexRanges = MakeHolder<NCB::TSimpleIndexRangesGenerator<int>>(
             NCB::TIndexRange<int>(rangeEnd),
-            blockSize);
+            blockSize
+        );
     } else { // non-trivial permutation
         CB_ENSURE(!HasQueryInfo(), "Queries not supported if permutation block size is non-trivial");
         TVector<NCB::TIndexRange<int>> indexRanges;
