@@ -12,6 +12,7 @@
 #include <catboost/libs/helpers/map_merge.h>
 #include <catboost/libs/index_range/index_range.h>
 #include <catboost/libs/options/catboost_options.h>
+#include <catboost/libs/options/catboost_options.h>
 #include <catboost/libs/options/defaults_helper.h>
 
 #include <library/threading/local_executor/local_executor.h>
