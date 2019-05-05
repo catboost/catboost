@@ -29,8 +29,6 @@ static void DoOnlyDecode(const TPackUnpackCase& case_) {
     TNullOutput no;
     TCountingOutput cno(&no);
     TransferData(&di, &cno);
-
-    Y_VERIFY((case_.GetData().size() > 0) == (cno.Counter() > 0));
 }
 
 static void DoDecodeEncode(const TPackUnpackCase& case_) {
