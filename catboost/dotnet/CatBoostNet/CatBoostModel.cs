@@ -1,5 +1,4 @@
-﻿using Microsoft.Data.DataView;
-using Microsoft.ML;
+﻿using Microsoft.ML;
 using Microsoft.ML.Data;
 using System;
 using System.Collections.Generic;
@@ -19,13 +18,11 @@ namespace CatBoostNet
     {
         private CatBoostModelEvaluator Evaluator { get; }
         public string TargetFeature { get; }
-        public MLContext Context { get; }
 
-        public CatBoostModel(string modelFilePath, string targetFeature, MLContext context)
+        public CatBoostModel(string modelFilePath, string targetFeature)
         {
             Evaluator = new CatBoostModelEvaluator(modelFilePath);
             TargetFeature = targetFeature;
-            Context = context;
         }
 
         public bool IsRowToRowMapper => true;
@@ -47,6 +44,11 @@ namespace CatBoostNet
 
         public IDataView Transform(IDataView input)
         {
+            HashSet<string> numTypes = new HashSet<string>
+            {
+                "Boolean", "Single", "Int32"
+            };
+
             int nFloat = 0, nCat = 0;
             Collection<int> catFeatureIxs = new Collection<int>();
 
@@ -64,16 +66,12 @@ namespace CatBoostNet
                     }
 
                     string typeId = col.Type.ToString();
-                    if ("IUR".Contains(typeId[0]))
+                    if (numTypes.Contains(typeId))
                     {
-                        float target = 0.0f;
-                        cursor.GetGetter<float>(ix)(ref target);
                         nFloat++;
                     }
-                    else if (typeId == "Text")
+                    else if (typeId == "String")
                     {
-                        ReadOnlyMemory<char> target = new ReadOnlyMemory<char>();
-                        cursor.GetGetter<ReadOnlyMemory<char>>(ix)(ref target);
                         catFeatureIxs.Add(ptr);
                         nCat++;
                     }
@@ -110,16 +108,43 @@ namespace CatBoostNet
                         }
 
                         string typeId = col.Type.ToString();
-                        if ("IUR".Contains(typeId[0]))
+                        if (numTypes.Contains(typeId))
                         {
-                            cursor.GetGetter<float>(ix)(ref floats[realPtr]);
+                            object value = new object();
+
+                            switch (typeId)
+                            {
+                                case "Boolean":
+                                {
+                                    bool receivedVal = new bool();
+                                    cursor.GetGetter<bool>(col)(ref receivedVal);
+                                    value = receivedVal;
+                                    break;
+                                }
+                                case "Single":
+                                {
+                                    float receivedVal = new float();
+                                    cursor.GetGetter<float>(col)(ref receivedVal);
+                                    value = receivedVal;
+                                    break;
+                                }
+                                case "Int32":
+                                {
+                                    int receivedVal = new int();
+                                    cursor.GetGetter<int>(col)(ref receivedVal);
+                                    value = receivedVal;
+                                    break;
+                                }
+                            }
+
+                            floats[realPtr] = Convert.ToSingle(value);
                             realPtr++;
                         }
-                        else if (typeId == "Text")
+                        else if (typeId == "String")
                         {
                             Debug.Assert(catFeatureIxs.Contains(ptr));
                             ReadOnlyMemory<char> target = new ReadOnlyMemory<char>();
-                            cursor.GetGetter<ReadOnlyMemory<char>>(ix)(ref target);
+                            cursor.GetGetter<ReadOnlyMemory<char>>(col)(ref target);
                             cats[catPtr] = new string(target.ToArray());
                             catPtr++;
                         }
@@ -158,7 +183,7 @@ namespace CatBoostNet
             Evaluator.CatFeaturesIndices = catFeatureIxs;
             double[,] res = Evaluator.EvaluateBatch(floatFeaturesArray, catFeaturesArray);
 
-            return Context.Data.LoadFromEnumerable<CatBoostValuePrediction>(
+            return (new MLContext()).Data.LoadFromEnumerable(
                 Enumerable.Range(0, res.GetLength(0)).Select(i => new CatBoostValuePrediction
                 {
                     OutputValues = Enumerable.Range(0, res.GetLength(1)).Select(j => res[i, j]).ToArray()

@@ -1,5 +1,4 @@
 ﻿using CatBoostNet;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
@@ -38,8 +37,7 @@ namespace CatBoostNetTests
 
             var model = new CatBoostModel(
                 Path.Combine(workdir, "iris_model.cbm"),
-                "IrisType",
-                mlContext
+                "IrisType"
             );
 
             IDataView dataView = mlContext.Data.LoadFromTextFile<IrisDataPoint>(dsPath, hasHeader: false, separatorChar: ',');
@@ -89,8 +87,7 @@ namespace CatBoostNetTests
 
             var model = new CatBoostModel(
                 Path.Combine(workdir, "boston_housing_model.cbm"),
-                "MedV",
-                mlContext
+                "MedV"
             );
 
             IDataView dataView = mlContext.Data.LoadFromTextFile<BostonDataPoint>(dsPath, hasHeader: false, separatorChar: ',');
@@ -142,8 +139,7 @@ namespace CatBoostNetTests
 
             var model = new CatBoostModel(
                 Path.Combine(workdir, "mushroom_model.cbm"),
-                "Class",
-                mlContext
+                "Class"
             );
 
             IDataView dataView = mlContext.Data.LoadFromTextFile<MushroomDataPoint>(dsPath, hasHeader: false, separatorChar: ',');

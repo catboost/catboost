@@ -1,16 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
+﻿using CatBoostNet;
+using HeartDiseaseDemo.Helpers;
 using HeartDiseaseDemo.Models;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Diagnostics;
 
 namespace HeartDiseaseDemo.Controllers
 {
     public class HomeController : Controller
     {
+        public CatBoostModel Predictor { get; } = new CatBoostModel("predictor.cbm", "Target");
+
         public IActionResult Index([FromQuery]PatientModel model)
         {
             ViewBag.Sex = model.IsEmpty ? PatientModel.Gender.Male : model.Sex;
@@ -25,14 +25,10 @@ namespace HeartDiseaseDemo.Controllers
 
             if (!model.IsEmpty)
             {
-                if (!ModelState.IsValid)
-                {
-                    ViewBag.Output = null;
-                }
-                else
-                {
-                    ViewBag.Output = 2.15d;
-                }
+                // https://localhost:44396/?IsEmpty=False&Age=63&Sex=Male&ChestPain=Type3&BloodPressure=145&Cholesterol=233&HighBloodSugar=true&ECGResults=Normal&MaxHeartRate=150&OldPeak=2.3&SlopeST=Uprising&FlurMajorVessels=0&Thal=Normal&HighBloodSugar=true&Exang=false
+                ViewBag.Output = ModelState.IsValid
+                    ? new Nullable<double>(PredictionHelpers.Predict(model, Predictor))
+                    : null;
             }
 
             return View();

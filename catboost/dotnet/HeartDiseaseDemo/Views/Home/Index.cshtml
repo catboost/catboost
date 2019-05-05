@@ -256,6 +256,26 @@
                             @class = ViewBag.FlurMajorVessels == 2 ? "default" : ""
                         }) 2
                 </label>
+
+                <label class="btn btn-secondary btn-light">
+                    @Html.RadioButtonFor(
+                        model => model.FlurMajorVessels,
+                        3,
+                        new
+                        {
+                            @class = ViewBag.FlurMajorVessels == 3 ? "default" : ""
+                        }) 3
+                </label>
+
+                <label class="btn btn-secondary btn-light">
+                    @Html.RadioButtonFor(
+                        model => model.FlurMajorVessels,
+                        4,
+                        new
+                        {
+                            @class = ViewBag.FlurMajorVessels == 4 ? "default" : ""
+                        }) 4
+                </label>
             </div>
         </div>
 
@@ -303,11 +323,28 @@
 
     @if (ViewBag.Output != null)
     {
+        string fmt = $"{ViewBag.Output * 100:0.##} %";
+
         <hr />
 
-        <div class="alert alert-primary">
-            Disease estimate: @ViewBag.Output
-        </div>
+        @if (ViewBag.Output >= 0.85)
+        {
+            <div class="alert alert-danger">
+                Disease estimate: @fmt. <strong>Take immediate action.</strong>
+            </div>
+        }
+        else if (ViewBag.Output >= 0.5)
+        {
+            <div class="alert alert-warning">
+                Disease estimate: @fmt.
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-success">
+                Disease estimate: @fmt.
+            </div>
+        }
     }
 
 </div>

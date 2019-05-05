@@ -14,7 +14,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LibraryBuilder", "LibraryBu
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "demo", "demo", "{86257827-73CA-4EEB-A695-0F7FF044C0D3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HeartDiseaseDemo", "HeartDiseaseDemo\HeartDiseaseDemo.csproj", "{F9F67283-2892-410D-AC2D-AFC196E16B01}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HeartDiseaseDemo", "HeartDiseaseDemo\HeartDiseaseDemo.csproj", "{F9F67283-2892-410D-AC2D-AFC196E16B01}"
+	ProjectSection(ProjectDependencies) = postProject
+		{50D772D4-8573-4DAA-AB47-0DDAA5C271F3} = {50D772D4-8573-4DAA-AB47-0DDAA5C271F3}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
