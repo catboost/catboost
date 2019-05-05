@@ -33,7 +33,7 @@ namespace HeartDiseaseDemo.Models
 
         public enum ThalType
         {
-            Normal = 1, FixedDefect = 2, ReversableDefect = 3
+            Normal = 1, FixedDefect = 2, ReversibleDefect = 3
         }
 
         [LoadColumn(0)]
@@ -76,7 +76,7 @@ namespace HeartDiseaseDemo.Models
         public int MaxHeartRate { get; set; }
 
         [LoadColumn(8)]
-        [DisplayName("Exerecise induced angina")]
+        [DisplayName("Exercise induced angina")]
         public bool Exang { get; set; }
 
         [LoadColumn(9)]

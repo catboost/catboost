@@ -306,11 +306,11 @@
                 <label class="btn btn-secondary btn-light">
                     @Html.RadioButtonFor(
                         model => model.Thal,
-                        PatientModel.ThalType.ReversableDefect,
+                        PatientModel.ThalType.ReversibleDefect,
                         new
                         {
-                            @class = ViewBag.Thal == PatientModel.ThalType.ReversableDefect ? "default" : ""
-                        }) Reversable defect
+                            @class = ViewBag.Thal == PatientModel.ThalType.ReversibleDefect ? "default" : ""
+                        }) Reversible defect
                 </label>
             </div>
         </div>

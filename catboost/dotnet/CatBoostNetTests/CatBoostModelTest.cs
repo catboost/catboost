@@ -28,7 +28,7 @@ namespace CatBoostNetTests
                     "https://archive.ics.uci.edu/ml/machine-learning-databases/iris/iris.data",
                     dsPath);
             }
-            catch (WebException ex)
+            catch (WebException)
             {
                 Assert.Fail("Failed to download Iris dataset");
             }
@@ -70,7 +70,7 @@ namespace CatBoostNetTests
                     "https://archive.ics.uci.edu/ml/machine-learning-databases/housing/housing.data",
                     dsPath);
             }
-            catch (WebException ex)
+            catch (WebException)
             {
                 Assert.Fail("Failed to download Boston dataset");
             }
@@ -130,7 +130,7 @@ namespace CatBoostNetTests
                     "https://archive.ics.uci.edu/ml/machine-learning-databases/mushroom/agaricus-lepiota.data",
                     dsPath);
             }
-            catch (WebException ex)
+            catch (WebException)
             {
                 Assert.Fail("Failed to download Mushroom dataset");
             }

@@ -8,40 +8,71 @@ using System.Linq;
 
 namespace CatBoostNet
 {
+    /// <summary>
+    /// Schema for the CatBoost model prediction.
+    /// Currently it stores the array of doubles which can mean:
+    /// <list type="bullet">
+    /// <item>response variable (1 real number) for regression;</item>
+    /// <item>logit of probability estimate (1 real number) for binary classification;</item>
+    /// <item>logits of probability estimates (several real numbers, one for each class) for multiclass classification</item>
+    /// </list>
+    /// </summary>
     public class CatBoostValuePrediction
     {
+        /// <summary>
+        /// Array of output values
+        /// </summary>
         [ColumnName("Prediction")]
         public double[] OutputValues;
     }
 
+    /// <summary>
+    /// High-level, ML.NET-compliant class for making predictions using CatBoost models.
+    /// If you need to implement a custom model code, use <see cref="CatBoostModelEvaluator"/>
+    /// as the basic building block.
+    /// </summary>
     public class CatBoostModel : ITransformer
     {
         private CatBoostModelEvaluator Evaluator { get; }
+
+        /// <summary>
+        /// Name of the predicted feature
+        /// </summary>
         public string TargetFeature { get; }
 
+        /// <summary>
+        /// Model constructor
+        /// </summary>
+        /// <param name="modelFilePath">Path to the model file</param>
+        /// <param name="targetFeature">Name of the target feature</param>
         public CatBoostModel(string modelFilePath, string targetFeature)
         {
             Evaluator = new CatBoostModelEvaluator(modelFilePath);
             TargetFeature = targetFeature;
         }
 
+        /// <inheritdoc />
         public bool IsRowToRowMapper => true;
 
+        /// <inheritdoc />
         public DataViewSchema GetOutputSchema(DataViewSchema inputSchema)
         {
             throw new NotImplementedException();
         }
 
+        /// <inheritdoc />
         public IRowToRowMapper GetRowToRowMapper(DataViewSchema inputSchema)
         {
             throw new NotImplementedException();
         }
 
+        /// <inheritdoc />
         public void Save(ModelSaveContext ctx)
         {
             // Nothing to do here, we are loading model from the file anyway ;)
         }
 
+        /// <inheritdoc />
         public IDataView Transform(IDataView input)
         {
             HashSet<string> numTypes = new HashSet<string>
@@ -77,7 +108,7 @@ namespace CatBoostNet
                     }
                     else
                     {
-                        throw new NotSupportedException($"Datatype {typeId} is not supported.");
+                        throw new NotSupportedException($"Data type {typeId} is not supported.");
                     }
                     ptr++;
                 }
@@ -150,7 +181,7 @@ namespace CatBoostNet
                         }
                         else
                         {
-                            throw new NotSupportedException($"Datatype {typeId} is not supported.");
+                            throw new NotSupportedException($"Data type {typeId} is not supported.");
                         }
                         ptr++;
                     }

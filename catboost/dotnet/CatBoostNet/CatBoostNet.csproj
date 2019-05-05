@@ -7,6 +7,7 @@
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <PlatformTarget>AnyCPU</PlatformTarget>
+    <DocumentationFile>$(ProjectDir)CatBoostNet.xml</DocumentationFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -25,7 +26,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.ML" Version="1.0.0" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <Content Include="$(SolutionDir)LibraryBuilder\lib\x64\$(ConfigurationName)\catboost\libs\model_interface\catboostmodel.dll">
       <PackagePath>runtimes/win/native/catboostmodel.dll</PackagePath>

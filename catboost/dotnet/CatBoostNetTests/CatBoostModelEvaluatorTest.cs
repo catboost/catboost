@@ -25,7 +25,7 @@ namespace CatBoostNetTests
                     "https://archive.ics.uci.edu/ml/machine-learning-databases/iris/iris.data",
                     dsPath);
             }
-            catch (WebException ex)
+            catch (WebException)
             {
                 Assert.Fail("Failed to download Iris dataset");
             }
@@ -64,7 +64,7 @@ namespace CatBoostNetTests
                     "https://archive.ics.uci.edu/ml/machine-learning-databases/housing/housing.data",
                     dsPath);
             }
-            catch (WebException ex)
+            catch (WebException)
             {
                 Assert.Fail("Failed to download Boston dataset");
             }
@@ -83,7 +83,7 @@ namespace CatBoostNetTests
 
             if (featureList.Where(x => x.Length != featureList.First().Length).Any())
             {
-                throw new InvalidDataException("Incosistent column count in housing.data");
+                throw new InvalidDataException("Inconsistent column count in housing.data");
             }
 
             double[] target = targetList.ToArray();
@@ -131,7 +131,7 @@ namespace CatBoostNetTests
                     "https://archive.ics.uci.edu/ml/machine-learning-databases/mushroom/agaricus-lepiota.data",
                     dsPath);
             }
-            catch (WebException ex)
+            catch (WebException)
             {
                 Assert.Fail("Failed to download Mushroom dataset");
             }
