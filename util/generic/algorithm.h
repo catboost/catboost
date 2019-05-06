@@ -664,6 +664,11 @@ bool IsSorted(ForwardIt begin, ForwardIt end, Compare comp) {
     return std::is_sorted(begin, end, comp);
 }
 
+template <class TIterator, typename TGetKey>
+bool IsSortedBy(TIterator begin, TIterator end, const TGetKey& getKey) {
+    return IsSorted(begin, end, [&](auto&& left, auto&& right) { return getKey(left) < getKey(right); });
+}
+
 template <class It, class Val>
 void Iota(It begin, It end, Val val) {
     std::iota(begin, end, val);
