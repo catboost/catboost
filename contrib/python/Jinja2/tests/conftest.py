@@ -49,7 +49,11 @@ def package_loader():
 def filesystem_loader():
     '''returns FileSystemLoader initialized to res/templates directory
     '''
-    here = os.path.dirname(os.path.abspath(__file__))
+    try:
+        import yatest.common
+        here =  yatest.common.test_source_path("..")
+    except ImportError:
+        here = os.path.dirname(os.path.abspath(__file__))
     return loaders.FileSystemLoader(here + '/res/templates')
 
 
