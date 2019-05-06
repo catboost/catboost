@@ -1327,23 +1327,30 @@ class CatBoost(_CatBoostBase):
                          column_description, verbose_eval, metric_period, silent, early_stopping_rounds,
                          save_snapshot, snapshot_file, snapshot_interval)
 
-    def _predict(self, data, prediction_type, ntree_start, ntree_end, thread_count, verbose, parent_method_name):
-        verbose = verbose or self.get_param('verbose')
-        if verbose is None:
-            verbose = False
-        if not self.is_fitted():
-            raise CatBoostError("There is no trained model to use {}(). Use fit() to train model. Then use this method.".format(parent_method_name))
-
-        data_is_single_object = _is_data_single_object(data)
+    def _process_predict_input_data(self, data, parent_method_name):
+        if not self.is_fitted() or self.tree_count_ is None:
+            raise CatBoostError(("There is no trained model to use {}(). "
+                                 "Use fit() to train model. Then use this method.").format(parent_method_name))
+        is_single_object = _is_data_single_object(data)
         if not isinstance(data, Pool):
             data = Pool(
-                data=[data] if data_is_single_object else data,
+                data=[data] if is_single_object else data,
                 cat_features=self._get_cat_feature_indices() if not isinstance(data, FeaturesData) else None
             )
+        return data, is_single_object
+
+    def _validate_prediction_type(self, prediction_type):
         if not isinstance(prediction_type, STRING_TYPES):
             raise CatBoostError("Invalid prediction_type type={}: must be str().".format(type(prediction_type)))
         if prediction_type not in ('Class', 'RawFormulaVal', 'Probability'):
             raise CatBoostError("Invalid value of prediction_type={}: must be Class, RawFormulaVal or Probability.".format(prediction_type))
+
+    def _predict(self, data, prediction_type, ntree_start, ntree_end, thread_count, verbose, parent_method_name):
+        verbose = verbose or self.get_param('verbose')
+        if verbose is None:
+            verbose = False
+        data, data_is_single_object = self._process_predict_input_data(data, parent_method_name)
+        self._validate_prediction_type(prediction_type)
 
         loss_function_type = _get_loss_function(self._get_params())
 
@@ -1407,19 +1414,9 @@ class CatBoost(_CatBoostBase):
         verbose = verbose or self.get_param('verbose')
         if verbose is None:
             verbose = False
-        if not self.is_fitted() or self.tree_count_ is None:
-            raise CatBoostError("There is no trained model to use {}(). Use fit() to train model. Then use this method.".format(parent_method_name))
+        data, data_is_single_object = self._process_predict_input_data(data, parent_method_name)
+        self._validate_prediction_type(prediction_type)
 
-        data_is_single_object = _is_data_single_object(data)
-        if not isinstance(data, Pool):
-            data = Pool(
-                data=[data] if data_is_single_object else data,
-                cat_features=self._get_cat_feature_indices() if not isinstance(data, FeaturesData) else None
-            )
-        if not isinstance(prediction_type, STRING_TYPES):
-            raise CatBoostError("Invalid prediction_type type={}: must be str().".format(type(prediction_type)))
-        if prediction_type not in ('Class', 'RawFormulaVal', 'Probability'):
-            raise CatBoostError("Invalid value of prediction_type={}: must be Class, RawFormulaVal or Probability.".format(prediction_type))
         if ntree_end == 0:
             ntree_end = self.tree_count_
         staged_predict_iterator = self._staged_predict_iterator(data, prediction_type, ntree_start, ntree_end, eval_period, thread_count, verbose)
@@ -1485,22 +1482,10 @@ class CatBoost(_CatBoostBase):
         """
         return self._staged_predict(data, prediction_type, ntree_start, ntree_end, eval_period, thread_count, verbose, 'staged_predict')
 
-    def _validate_predict_input(self, data):
-        if not self.is_fitted() or self.tree_count_ is None:
-            raise CatBoostError("There is no trained model to use iterate_leaf_indexes(). "
-                                "Use fit() to train model. Then use this method.")
-        is_single_object = _is_data_single_object(data)
-        if not isinstance(data, Pool):
-            data = Pool(
-                data=[data] if is_single_object else data,
-                cat_features=self._get_cat_feature_indices() if not isinstance(data, FeaturesData) else None
-            )
-        return data, is_single_object
-
     def _iterate_leaf_indexes(self, data, ntree_start, ntree_end):
         if ntree_end == 0:
             ntree_end = self.tree_count_
-        data, _ = self._validate_predict_input(data)
+        data, _ = self._process_predict_input_data(data, "iterate_leaf_indexes")
         leaf_indexes_iterator = self._leaf_indexes_iterator(data, ntree_start, ntree_end)
         while True:
             yield leaf_indexes_iterator.next()
@@ -1533,7 +1518,7 @@ class CatBoost(_CatBoostBase):
     def _calc_leaf_indexes(self, data, ntree_start, ntree_end, thread_count, verbose):
         if ntree_end == 0:
             ntree_end = self.tree_count_
-        data, is_single_object = self._validate_predict_input(data)
+        data, _ = self._process_predict_input_data(data, "calc_leaf_indexes")
         return self._base_calc_leaf_indexes(data, ntree_start, ntree_end, thread_count, verbose)
 
     def calc_leaf_indexes(self, data, ntree_start=0, ntree_end=0, thread_count=-1, verbose=False):
