@@ -535,8 +535,6 @@ cdef extern from "catboost/libs/model/model.h":
         size_t GetTreeCount() nogil except +ProcessException
         void Truncate(size_t begin, size_t end) except +ProcessException
         bool_t IsOblivious() except +ProcessException
-        TVector[TString] GetTreeSplits(size_t tree_idx, TDataProvider pool)
-        TVector[TString] GetTreeLeafValues(int tree_idx, int leaves_num)
 
     cdef cppclass EModelType:
         pass
@@ -603,6 +601,8 @@ cdef extern from "catboost/libs/algo/ders_holder.h":
 
 cdef extern from "catboost/libs/algo/tree_print.h":
     TString BuildDescription(const TMaybe[TFeaturesLayout]& layout, const TModelSplit& feature)
+    TVector[TString] GetTreeSplitsDescriptions(const TFullModel& model, size_t tree_idx, TDataProvider pool)
+    TVector[TString] GetTreeLeafValuesDescriptions(const TFullModel& model, int tree_idx, int leaves_num)
 
 
 cdef extern from "catboost/libs/options/enum_helpers.h":
@@ -2795,14 +2795,14 @@ cdef class _CatBoost:
         SaveModelBorders( to_arcadia_string(output_file), dereference(self.__model))
 
     cpdef _get_tree_splits(self, tree_idx, _PoolBase pool):
-        splits = self.__model.GetTreeSplits(tree_idx, dereference(pool.__pool.Get()))
+        splits = GetTreeSplitsDescriptions(dereference(self.__model), tree_idx, dereference(pool.__pool.Get()))
         node_descriptions = []
         for description in splits:
             node_descriptions.append(description)
         return node_descriptions
 
     cpdef _get_tree_leaf_values(self, tree_idx, leaves_num):
-        leaf_values = self.__model.GetTreeLeafValues(tree_idx, leaves_num)
+        leaf_values = GetTreeLeafValuesDescriptions(dereference(self.__model), tree_idx, leaves_num)
         leaf_values_list = []
 
         for value in leaf_values:

@@ -5,7 +5,6 @@
 #include "online_ctr.h"
 #include "split.h"
 
-#include <catboost/libs/data_new/data_provider.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/model/flatbuffers/model.fbs.h>
 #include <catboost/libs/options/enums.h>
@@ -816,8 +815,6 @@ public:
         }
     }
 
-    TVector<TString> GetTreeSplits(int tree_idx, NCB::TDataProvider pool);
-    TVector<TString> GetTreeLeafValues(int tree_idx, int leaves_num);
 };
 
 void OutputModel(const TFullModel& model, TStringBuf modelFile);
