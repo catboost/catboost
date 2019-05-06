@@ -76,16 +76,17 @@ static void GenerateYetiRankPairsForQuery(
 void UpdatePairsForYetiRank(
     TConstArrayRef<double> approxes,
     TConstArrayRef<float> relevances,
-    int queryInfoSize,
     const NCatboostOptions::TLossDescription& lossDescription,
     ui64 randomSeed,
+    int queryBegin,
+    int queryEnd,
     TVector<TQueryInfo>* queriesInfo,
     NPar::TLocalExecutor* localExecutor
 ) {
     const int permutationCount = NCatboostOptions::GetYetiRankPermutations(lossDescription);
     const double decaySpeed = NCatboostOptions::GetYetiRankDecay(lossDescription);
 
-    NPar::TLocalExecutor::TExecRangeParams blockParams(0, queryInfoSize);
+    NPar::TLocalExecutor::TExecRangeParams blockParams(queryBegin, queryEnd);
     blockParams.SetBlockCount(CB_THREAD_LIMIT);
     const int blockSize = blockParams.GetBlockSize();
     const ui32 blockCount = blockParams.GetBlockCount();
@@ -96,8 +97,8 @@ void UpdatePairsForYetiRank(
         blockCount,
         [&](int blockId) {
             TFastRng64 rand(randomSeeds[blockId]);
-            const int from = blockId * blockSize;
-            const int to = Min<int>((blockId + 1) * blockSize, queryInfoSize);
+            const int from = queryBegin + blockId * blockSize;
+            const int to = Min<int>(queryBegin + (blockId + 1) * blockSize, queryEnd);
             for (int queryIndex = from; queryIndex < to; ++queryIndex) {
                 TQueryInfo& queryInfoRef = (*queriesInfo)[queryIndex];
                 GenerateYetiRankPairsForQuery(
@@ -128,9 +129,10 @@ void YetiRankRecalculation(
     UpdatePairsForYetiRank(
         bt.Approx[0],
         ff.LearnTarget,
-        bt.TailQueryFinish,
         params.LossFunctionDescription.Get(),
         randomSeed,
+        0,
+        bt.TailQueryFinish,
         recalculatedQueriesInfo,
         localExecutor
     );
