@@ -5,10 +5,11 @@
 #include "ders_holder.h"
 #include "hessian.h"
 
-#include <catboost/libs/options/catboost_options.h>
-#include <catboost/libs/options/enums.h>
 #include <catboost/libs/data_types/pair.h>
 #include <catboost/libs/eval_result/eval_helpers.h>
+#include <catboost/libs/options/catboost_options.h>
+#include <catboost/libs/options/enums.h>
+#include <catboost/libs/options/restrictions.h>
 
 #include <library/containers/2d_array/2d_array.h>
 #include <library/fast_exp/fast_exp.h>
@@ -17,8 +18,9 @@
 #include <util/generic/algorithm.h>
 #include <util/generic/vector.h>
 #include <util/generic/ymath.h>
-#include <util/system/yassert.h>
 #include <util/string/iterator.h>
+#include <util/system/yassert.h>
+
 
 class IDerCalcer {
 public:
@@ -65,13 +67,13 @@ public:
     ) const {
         CalcDersRange(
             start,
-            count, /*maxDerivativeOrder*/
-            1,
+            count,
+            /*maxDerivativeOrder*/ 1,
             approxes,
             approxDeltas,
             targets,
-            weights, /*ders*/
-            nullptr,
+            weights,
+            /*ders*/ nullptr,
             firstDers);
     }
 
@@ -94,8 +96,8 @@ public:
             approxDeltas,
             targets,
             weights,
-            ders, /*firstDers*/
-            nullptr);
+            ders,
+            /*firstDers*/ nullptr);
     }
 
     virtual void CalcDersMulti(

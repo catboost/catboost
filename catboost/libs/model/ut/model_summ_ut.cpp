@@ -9,6 +9,11 @@ using namespace std;
 using namespace NCB;
 
 Y_UNIT_TEST_SUITE(TModelSummTests) {
+    Y_UNIT_TEST(SimpleModelMerge) {
+        const auto model1 = SimpleFloatModel();
+        const auto model2 = SimpleFloatModel();
+        const auto largeModel = SumModels({&model1, &model2}, {2.0, 1.0});
+    }
 
     Y_UNIT_TEST(FloatModelMergeTest) {
         auto bigModel = TrainFloatCatboostModel(40);

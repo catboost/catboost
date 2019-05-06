@@ -3,9 +3,10 @@
 #include <catboost/libs/helpers/clear_array.h>
 #include <catboost/libs/helpers/exception.h>
 
-#include <util/generic/vector.h>
 #include <util/generic/utility.h>
+#include <util/generic/vector.h>
 #include <util/system/yassert.h>
+
 
 const int BS_MASK = 0x7fffffff;
 const int BS_NEW_ELEM = 0x80000000;
@@ -15,6 +16,8 @@ struct TBinTracker {
         ui64 HashValue = 0;
         int Version = 0;
         int ElemId = 0;
+
+    public:
         THashElem() = default;
     };
 

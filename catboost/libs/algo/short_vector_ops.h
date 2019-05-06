@@ -1,11 +1,12 @@
 #pragma once
 
+#include <library/sse/sse.h>
+
 #include <util/generic/xrange.h>
 
 #include <array>
 #include <type_traits>
 
-#include <library/sse/sse.h>
 
 namespace NSimdOps {
     constexpr size_t Size = 2;

@@ -41,7 +41,7 @@ namespace NCatboostDistributed {
             trainData->ApproxDimension,
             localData.StoreExpApprox,
             UsesPairsForCalculation(localData.Params.LossFunctionDescription->GetLossFunction()),
-            *localData.Rand,
+            localData.Rand.Get(),
             &NPar::LocalExecutor());
         Y_ASSERT(localData.Progress.AveragingFold.BodyTailArr.ysize() == 1);
 

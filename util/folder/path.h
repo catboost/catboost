@@ -88,7 +88,12 @@ public:
     }
 
     TFsPath RelativeTo(const TFsPath& root) const;   //must be subpath of root
+
+    /**
+     * @returns relative path or empty path if root equals to this.
+     */
     TFsPath RelativePath(const TFsPath& root) const; //..; for relative paths 1st component must be the same
+
     /**
      * Never fails. Returns this if already a root.
      */

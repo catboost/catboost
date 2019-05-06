@@ -1,4 +1,3 @@
-
 import sys
 from copy import deepcopy
 from six import iteritems, string_types, integer_types
@@ -1122,6 +1121,12 @@ class CatBoost(_CatBoostBase):
              column_description, verbose_eval, metric_period, silent, early_stopping_rounds,
              save_snapshot, snapshot_file, snapshot_interval):
 
+        if X is None:
+            raise CatBoostError("X must not be None")
+
+        if y is None and not isinstance(X, STRING_TYPES + (Pool,)):
+            raise CatBoostError("y may be None only when X is an instance of catboost.Pool or string")
+
         params = deepcopy(self._init_params)
         if params is None:
             params = {}
@@ -1198,7 +1203,10 @@ class CatBoost(_CatBoostBase):
             elif isinstance(eval_set, tuple):
                 if len(eval_set) != 2:
                     raise CatBoostError("Invalid shape of 'eval_set': {}, must be (X, y).".format(str(tuple(type(_) for _ in eval_set))))
+                if eval_set[0] is None or eval_set[1] is None:
+                    raise CatBoostError("'eval_set' tuple contains at least one None value")
                 eval_sets.append(Pool(eval_set[0], eval_set[1], cat_features=train_pool.get_cat_feature_indices()))
+
                 eval_total_row_count += eval_sets[-1].num_row()
                 if eval_sets[-1].num_row() == 0:
                     raise CatBoostError("Empty 'eval_set' in tuple")
@@ -1333,23 +1341,30 @@ class CatBoost(_CatBoostBase):
                          column_description, verbose_eval, metric_period, silent, early_stopping_rounds,
                          save_snapshot, snapshot_file, snapshot_interval)
 
-    def _predict(self, data, prediction_type, ntree_start, ntree_end, thread_count, verbose, parent_method_name):
-        verbose = verbose or self.get_param('verbose')
-        if verbose is None:
-            verbose = False
-        if not self.is_fitted():
-            raise CatBoostError("There is no trained model to use {}(). Use fit() to train model. Then use this method.".format(parent_method_name))
-
-        data_is_single_object = _is_data_single_object(data)
+    def _process_predict_input_data(self, data, parent_method_name):
+        if not self.is_fitted() or self.tree_count_ is None:
+            raise CatBoostError(("There is no trained model to use {}(). "
+                                 "Use fit() to train model. Then use this method.").format(parent_method_name))
+        is_single_object = _is_data_single_object(data)
         if not isinstance(data, Pool):
             data = Pool(
-                data=[data] if data_is_single_object else data,
+                data=[data] if is_single_object else data,
                 cat_features=self._get_cat_feature_indices() if not isinstance(data, FeaturesData) else None
             )
+        return data, is_single_object
+
+    def _validate_prediction_type(self, prediction_type):
         if not isinstance(prediction_type, STRING_TYPES):
             raise CatBoostError("Invalid prediction_type type={}: must be str().".format(type(prediction_type)))
         if prediction_type not in ('Class', 'RawFormulaVal', 'Probability'):
             raise CatBoostError("Invalid value of prediction_type={}: must be Class, RawFormulaVal or Probability.".format(prediction_type))
+
+    def _predict(self, data, prediction_type, ntree_start, ntree_end, thread_count, verbose, parent_method_name):
+        verbose = verbose or self.get_param('verbose')
+        if verbose is None:
+            verbose = False
+        data, data_is_single_object = self._process_predict_input_data(data, parent_method_name)
+        self._validate_prediction_type(prediction_type)
 
         loss_function_type = _get_loss_function(self._get_params())
 
@@ -1413,19 +1428,9 @@ class CatBoost(_CatBoostBase):
         verbose = verbose or self.get_param('verbose')
         if verbose is None:
             verbose = False
-        if not self.is_fitted() or self.tree_count_ is None:
-            raise CatBoostError("There is no trained model to use {}(). Use fit() to train model. Then use this method.".format(parent_method_name))
+        data, data_is_single_object = self._process_predict_input_data(data, parent_method_name)
+        self._validate_prediction_type(prediction_type)
 
-        data_is_single_object = _is_data_single_object(data)
-        if not isinstance(data, Pool):
-            data = Pool(
-                data=[data] if data_is_single_object else data,
-                cat_features=self._get_cat_feature_indices() if not isinstance(data, FeaturesData) else None
-            )
-        if not isinstance(prediction_type, STRING_TYPES):
-            raise CatBoostError("Invalid prediction_type type={}: must be str().".format(type(prediction_type)))
-        if prediction_type not in ('Class', 'RawFormulaVal', 'Probability'):
-            raise CatBoostError("Invalid value of prediction_type={}: must be Class, RawFormulaVal or Probability.".format(prediction_type))
         if ntree_end == 0:
             ntree_end = self.tree_count_
         staged_predict_iterator = self._staged_predict_iterator(data, prediction_type, ntree_start, ntree_end, eval_period, thread_count, verbose)
@@ -1485,28 +1490,16 @@ class CatBoost(_CatBoostBase):
                 - 'Probability' : return one-dimensional numpy.ndarray with probability for every class.
             otherwise numpy.ndarray, with values that depend on prediction_type value:
                 - 'RawFormulaVal' : one-dimensional array of raw formula value for each object.
-                - 'Class' : one-dimensional array of majority vote classe for each object.
+                - 'Class' : one-dimensional array of majority vote class for each object.
                 - 'Probability' : two-dimensional numpy.ndarray with shape (number_of_objects x number_of_classes)
                   with probability for every class for each object.
         """
         return self._staged_predict(data, prediction_type, ntree_start, ntree_end, eval_period, thread_count, verbose, 'staged_predict')
 
-    def _validate_predict_input(self, data):
-        if not self.is_fitted() or self.tree_count_ is None:
-            raise CatBoostError("There is no trained model to use iterate_leaf_indexes(). "
-                                "Use fit() to train model. Then use this method.")
-        is_single_object = _is_data_single_object(data)
-        if not isinstance(data, Pool):
-            data = Pool(
-                data=[data] if is_single_object else data,
-                cat_features=self._get_cat_feature_indices() if not isinstance(data, FeaturesData) else None
-            )
-        return data, is_single_object
-
     def _iterate_leaf_indexes(self, data, ntree_start, ntree_end):
         if ntree_end == 0:
             ntree_end = self.tree_count_
-        data, _ = self._validate_predict_input(data)
+        data, _ = self._process_predict_input_data(data, "iterate_leaf_indexes")
         leaf_indexes_iterator = self._leaf_indexes_iterator(data, ntree_start, ntree_end)
         while True:
             yield leaf_indexes_iterator.next()
@@ -1539,7 +1532,7 @@ class CatBoost(_CatBoostBase):
     def _calc_leaf_indexes(self, data, ntree_start, ntree_end, thread_count, verbose):
         if ntree_end == 0:
             ntree_end = self.tree_count_
-        data, is_single_object = self._validate_predict_input(data)
+        data, _ = self._process_predict_input_data(data, "calc_leaf_indexes")
         return self._base_calc_leaf_indexes(data, ntree_start, ntree_end, thread_count, verbose)
 
     def calc_leaf_indexes(self, data, ntree_start=0, ntree_end=0, thread_count=-1, verbose=False):
@@ -2647,7 +2640,7 @@ class CatBoostClassifier(CatBoost):
                 - 'Probability' : return one-dimensional numpy.ndarray with probability for every class.
             otherwise numpy.ndarray, with values that depend on prediction_type value:
                 - 'RawFormulaVal' : one-dimensional array of raw formula value for each object.
-                - 'Class' : one-dimensional array of majority vote classe for each object.
+                - 'Class' : one-dimensional array of majority vote class for each object.
                 - 'Probability' : two-dimensional numpy.ndarray with shape (number_of_objects x number_of_classes)
                   with probability for every class for each object.
         """

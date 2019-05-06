@@ -1,10 +1,9 @@
 #pragma once
 
-#include "learn_context.h"
-
-#include <catboost/libs/options/catboost_options.h>
 #include <catboost/libs/data_new/data_provider.h>
 #include <catboost/libs/data_types/query.h>
+#include <catboost/libs/options/catboost_options.h>
+#include <catboost/libs/options/restrictions.h>
 
 #include <library/fast_exp/fast_exp.h>
 #include <library/fast_log/fast_log.h>
@@ -16,6 +15,9 @@
 #include <util/generic/ymath.h>
 #include <util/system/types.h>
 #include <util/system/yassert.h>
+
+
+struct TLearnProgress;
 
 
 template <bool StoreExpApprox>

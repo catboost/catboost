@@ -1,6 +1,7 @@
 #include "apply.h"
-#include "index_calcer.h"
+
 #include "features_data_helpers.h"
+#include "index_calcer.h"
 
 #include <catboost/libs/cat_feature/cat_feature.h>
 #include <catboost/libs/data_new/data_provider.h>
@@ -15,8 +16,10 @@
 
 #include <cmath>
 
+
 using namespace NCB;
 using NPar::TLocalExecutor;
+
 
 TLocalExecutor::TExecRangeParams GetBlockParams(int executorThreadCount, int docCount, int begin, int end) {
     const int threadCount = executorThreadCount + 1; // one for current thread
@@ -369,25 +372,23 @@ public:
         const ui32 consecutiveSubsetBegin = GetConsecutiveSubsetBegin(rawObjectsData);
         const auto& featuresLayout = *rawObjectsData.GetFeaturesLayout();
         auto getFeatureDataBeginPtr = [consecutiveSubsetBegin, &rawObjectsData](
-                ui32 flatFeatureIdx,
-                TVector<TMaybe<NCB::TExclusiveBundleIndex>>*,
-                TVector<TMaybe<TPackedBinaryIndex>>*
+            ui32 flatFeatureIdx,
+            TVector<TMaybe<NCB::TExclusiveBundleIndex>>*,
+            TVector<TMaybe<TPackedBinaryIndex>>*
         ) -> const float* {
             return GetRawFeatureDataBeginPtr(
-                    rawObjectsData,
-                    consecutiveSubsetBegin,
-                    flatFeatureIdx
-            );
+                rawObjectsData,
+                consecutiveSubsetBegin,
+                flatFeatureIdx);
         };
         GetRepackedFeatures(
-                objectsBegin,
-                objectsEnd,
-                model.ObliviousTrees.GetFlatFeatureVectorExpectedSize(),
-                columnReorderMap,
-                getFeatureDataBeginPtr,
-                featuresLayout,
-                &RepackedFeaturesRef
-        );
+            objectsBegin,
+            objectsEnd,
+            model.ObliviousTrees.GetFlatFeatureVectorExpectedSize(),
+            columnReorderMap,
+            getFeatureDataBeginPtr,
+            featuresLayout,
+            &RepackedFeaturesRef);
     }
 
     Y_FORCE_INLINE float operator()(const TFloatFeature& floatFeature, size_t index) const {
@@ -459,17 +460,16 @@ public:
             model.ObliviousTrees.GetFlatFeatureVectorExpectedSize(),
             columnReorderMap,
             [&quantizedObjectsData, &consecutiveSubsetBegin](
-                    ui32 featureIdx,
-                    TVector<TMaybe<TExclusiveBundleIndex>>* bundledIndexes,
-                    TVector<TMaybe<TPackedBinaryIndex>>* packedIndexes
+                ui32 featureIdx,
+                TVector<TMaybe<TExclusiveBundleIndex>>* bundledIndexes,
+                TVector<TMaybe<TPackedBinaryIndex>>* packedIndexes
             ) -> const ui8* {
                 return GetFeatureDataBeginPtr(
-                        quantizedObjectsData,
-                        featureIdx,
-                        consecutiveSubsetBegin,
-                        bundledIndexes,
-                        packedIndexes
-                );
+                    quantizedObjectsData,
+                    featureIdx,
+                    consecutiveSubsetBegin,
+                    bundledIndexes,
+                    packedIndexes);
             },
             featuresLayout,
             &RepackedFeaturesRef,
@@ -491,7 +491,8 @@ public:
     }
 
     Y_FORCE_INLINE ui8 operator()(const TCatFeature&, size_t) const {
-        ythrow TCatBoostException() << "Quantized datasets with categorical features are not currently supported";
+        ythrow TCatBoostException()
+            << "Quantized datasets with categorical features are not currently supported";
         return 0;
     }
 
@@ -517,8 +518,8 @@ void TModelCalcerOnPool::InitForQuantizedFeatures(
     const TQuantizedForCPUObjectsDataProvider& quantizedObjectsData,
     const THashMap<ui32, ui32>& columnReorderMap,
     const NPar::TLocalExecutor::TExecRangeParams& blockParams,
-    NPar::TLocalExecutor* executor
-) {
+    NPar::TLocalExecutor* executor)
+{
     executor->ExecRange(
         [&](int blockId) {
             const int blockFirstIdx = blockParams.FirstId + blockId * blockParams.GetBlockSize();
@@ -580,8 +581,8 @@ TLeafIndexCalcerOnPool::TLeafIndexCalcerOnPool(
     const TFullModel& model,
     NCB::TObjectsDataProviderPtr objectsData,
     int treeStart,
-    int treeEnd
-) {
+    int treeEnd)
+{
     CB_ENSURE(treeStart >= 0);
     CB_ENSURE(treeEnd >= 0);
     THashMap<ui32, ui32> columnReorderMap;
@@ -617,16 +618,16 @@ bool TLeafIndexCalcerOnPool::Next() {
     return InnerLeafIndexCalcer->Next();
 }
 
-template<bool IsQuantizedData, class TDataProvider, class TFeatureAccessorType =
-         typename std::conditional<IsQuantizedData, TQuantizedFeaturesAccessor, TFeatureAccessor>::type>
+template <bool IsQuantizedData, class TDataProvider, class TFeatureAccessorType =
+    typename std::conditional<IsQuantizedData, TQuantizedFeaturesAccessor, TFeatureAccessor>::type>
 static void CalcLeafIndexesMultiImpll(
     const TFullModel& model,
     const TDataProvider& objectsData,
     int treeStart,
     int treeEnd,
     NPar::TLocalExecutor* executor, /* = nullptr */
-    TArrayRef<ui32> leafIndexes
-) {
+    TArrayRef<ui32> leafIndexes)
+{
     THashMap<ui32, ui32> columnReorderMap;
     CheckModelAndDatasetCompatibility(model, objectsData, &columnReorderMap);
 
@@ -664,8 +665,8 @@ TVector<ui32> CalcLeafIndexesMulti(
     NCB::TObjectsDataProviderPtr objectsData,
     int treeStart,
     int treeEnd,
-    NPar::TLocalExecutor* executor /* = nullptr */
-) {
+    NPar::TLocalExecutor* executor /* = nullptr */)
+{
     CB_ENSURE(treeStart >= 0);
     CB_ENSURE(treeEnd >= 0);
     CB_ENSURE(treeEnd >= treeStart);
@@ -697,8 +698,8 @@ TVector<ui32> CalcLeafIndexesMulti(
     bool verbose,
     int treeStart,
     int treeEnd,
-    int threadCount
-) {
+    int threadCount)
+{
     TSetLoggingVerboseOrSilent inThisScope(verbose);
 
     CB_ENSURE(threadCount > 0);

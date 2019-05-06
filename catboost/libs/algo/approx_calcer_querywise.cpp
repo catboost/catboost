@@ -1,9 +1,12 @@
 #include "approx_calcer_querywise.h"
 
-#include <catboost/libs/index_range/index_range.h>
 #include <catboost/libs/helpers/map_merge.h>
+#include <catboost/libs/index_range/index_range.h>
+
+#include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/cast.h>
+
 
 void CalculateDersForQueries(
     const TVector<double>& approxes,

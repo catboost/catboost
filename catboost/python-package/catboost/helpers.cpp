@@ -63,9 +63,9 @@ TVector<TVector<double>> EvalMetrics(
         end,
         evalPeriod,
         /*processedIterationsStep=*/50,
-        executor,
         tmpDir,
-        metrics
+        metrics,
+        &executor
     );
 
     auto processedDataProvider = NCB::CreateModelCompatibleProcessedDataProvider(

@@ -153,9 +153,9 @@ int mode_eval_metrics(int argc, const char* argv[]) {
         plotParams.EndIteration,
         plotParams.Step,
         /*processedIterationsStep=*/50, // TODO(nikitxskv): Make auto estimation of this parameter based on the free RAM and pool size.
-        executor,
         plotParams.TmpDir,
-        metrics
+        metrics,
+        &executor
     );
 
     TVector<TProcessedDataProvider> datasetParts;

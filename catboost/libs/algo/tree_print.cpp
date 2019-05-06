@@ -1,22 +1,30 @@
 #include "tree_print.h"
 
+
+#include "projection.h"
+#include "split.h"
+
+#include <catboost/libs/data_new/features_layout.h>
 #include <catboost/libs/data_new/objects.h>
+
 #include <util/string/builder.h>
 #include <util/string/cast.h>
 #include <util/system/yassert.h>
 
 
-TString BuildFeatureDescription(const TMaybe<NCB::TFeaturesLayout>& featuresLayout, const int internalFeatureIdx, EFeatureType type) {
-    if (featuresLayout) {
-        TString externalFeatureDescription = featuresLayout->GetExternalFeatureDescription(internalFeatureIdx, type);
-        if (externalFeatureDescription.empty()) {
-            // just return index
-            return ToString<int>(featuresLayout->GetExternalFeatureIdx(internalFeatureIdx, type));
-        }
-        return externalFeatureDescription;
-    } else {
-        return ToString<int>(internalFeatureIdx);
+TString BuildFeatureDescription(
+    const TMaybe<NCB::TFeaturesLayout>& featuresLayout,
+    const int internalFeatureIdx,
+    EFeatureType type) {
+
+    TString externalFeatureDescription = featuresLayout->GetExternalFeatureDescription(
+        internalFeatureIdx,
+        type);
+    if (externalFeatureDescription.empty()) {
+        // just return index
+        return ToString<int>(featuresLayout->GetExternalFeatureIdx(internalFeatureIdx, type));
     }
+    return externalFeatureDescription;
 }
 
 TString BuildDescription(const NCB::TFeaturesLayout& featuresLayout, const TProjection& proj) {
@@ -27,7 +35,10 @@ TString BuildDescription(const NCB::TFeaturesLayout& featuresLayout, const TProj
         if (fc++ > 0) {
             result << ", ";
         }
-        TString featureDescription = BuildFeatureDescription(featuresLayout, featureIdx, EFeatureType::Categorical);
+        TString featureDescription = BuildFeatureDescription(
+            featuresLayout,
+            featureIdx,
+            EFeatureType::Categorical);
         result << featureDescription;
     }
 
@@ -35,7 +46,10 @@ TString BuildDescription(const NCB::TFeaturesLayout& featuresLayout, const TProj
         if (fc++ > 0) {
             result << ", ";
         }
-        TString featureDescription = BuildFeatureDescription(featuresLayout, feature.FloatFeature, EFeatureType::Float);
+        TString featureDescription = BuildFeatureDescription(
+            featuresLayout,
+            feature.FloatFeature,
+            EFeatureType::Float);
         result << featureDescription << " b" << feature.SplitIdx;
     }
 
@@ -43,7 +57,10 @@ TString BuildDescription(const NCB::TFeaturesLayout& featuresLayout, const TProj
         if (fc++ > 0) {
             result << ", ";
         }
-        TString featureDescription = BuildFeatureDescription(featuresLayout, feature.CatFeatureIdx, EFeatureType::Categorical);
+        TString featureDescription = BuildFeatureDescription(
+            featuresLayout,
+            feature.CatFeatureIdx,
+            EFeatureType::Categorical);
         result << featureDescription << " val = " << feature.Value;
     }
     result << "}";
@@ -58,7 +75,10 @@ TString BuildDescription(const TMaybe<NCB::TFeaturesLayout>& featuresLayout, con
         if (fc++ > 0) {
             result << ", ";
         }
-        TString featureDescription = BuildFeatureDescription(featuresLayout, featureIdx, EFeatureType::Categorical);
+        TString featureDescription = BuildFeatureDescription(
+            featuresLayout,
+            featureIdx,
+            EFeatureType::Categorical);
         result << featureDescription;
     }
 
@@ -66,7 +86,10 @@ TString BuildDescription(const TMaybe<NCB::TFeaturesLayout>& featuresLayout, con
         if (fc++ > 0) {
             result << ", ";
         }
-        TString featureDescription = BuildFeatureDescription(featuresLayout, feature.FloatFeature, EFeatureType::Float);
+        TString featureDescription = BuildFeatureDescription(
+            featuresLayout,
+            feature.FloatFeature,
+            EFeatureType::Float);
         result << featureDescription << " border=" << feature.Split;
     }
 
@@ -74,7 +97,10 @@ TString BuildDescription(const TMaybe<NCB::TFeaturesLayout>& featuresLayout, con
         if (fc++ > 0) {
             result << ", ";
         }
-        TString featureDescription = BuildFeatureDescription(featuresLayout, feature.CatFeatureIdx, EFeatureType::Categorical);
+        TString featureDescription = BuildFeatureDescription(
+            featuresLayout,
+            feature.CatFeatureIdx,
+            EFeatureType::Categorical);
         result << featureDescription << " val = " << feature.Value;
     }
     result << "}";

@@ -287,25 +287,13 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
 
     NCatboostOptions::TLossDescription lossDescription;
     Y_VERIFY(TryGetLossDescription(model, lossDescription), "No loss_function in model params");
-    if (lossDescription.GetLossFunction() == ELossFunction::YetiRank || lossDescription.GetLossFunction() == ELossFunction::YetiRankPairwise) {
-        UpdatePairsForYetiRank(
-            approx[0],
-            *targetData->GetTarget(),
-            queriesInfo.size(),
-            lossDescription,
-            /*randomSeed*/ 0,
-            &queriesInfo,
-            localExecutor
-        );
+    if (IsYetiRankLossFunction(lossDescription.GetLossFunction())) {
         metricDescription = NCatboostOptions::ParseLossDescription("PairLogit");
     }
     THolder<IMetric> metric = std::move(CreateMetricFromDescription(metricDescription, approxDimension)[0]);
     CB_ENSURE(metric->IsAdditiveMetric(), "LossFunctionChange support only additive metric");
 
     ui32 blockCount = queriesInfo.empty() ? documentCount : queriesInfo.size();
-    scores.back().Add(
-            metric->Eval(approx, *targetData->GetTarget(), GetWeights(*targetData), queriesInfo, 0, blockCount, *localExecutor)
-    );
     ui32 blockSize = Min(ui32(10000), ui32(1e6) / (featuresCount * approx.ysize())); // shapValues[blockSize][featuresCount][dim] double
 
     TProfileInfo profile(documentCount);
@@ -321,6 +309,21 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
             begin = queriesInfo[queryBegin].Begin;
             end = queriesInfo[queryEnd - 1].End;
         }
+        if (IsYetiRankLossFunction(lossDescription.GetLossFunction())) {
+            UpdatePairsForYetiRank(
+                approx[0],
+                *targetData->GetTarget(),
+                lossDescription,
+                /*randomSeed*/ 0,
+                queryBegin,
+                queryEnd,
+                &queriesInfo,
+                localExecutor
+            );
+        }
+        scores.back().Add(
+            metric->Eval(approx, *targetData->GetTarget(), GetWeights(*targetData), queriesInfo, queryBegin, queryEnd, *localExecutor)
+        );
         TVector<TVector<TVector<double>>> shapValues;
         CalcShapValuesInternalForFeature(
             preparedTrees,
@@ -350,6 +353,12 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
                     approx[dimensionIdx][docIdx] += shapValues[docIdx - begin][featureIdx][dimensionIdx];
                 }
             }, blockParams, NPar::TLocalExecutor::WAIT_COMPLETE);
+        }
+        if (IsYetiRankLossFunction(lossDescription.GetLossFunction())) {
+            for (ui32 queryIndex = queryBegin; queryIndex < queryEnd; ++queryIndex) {
+                queriesInfo[queryIndex].Competitors.clear();
+                queriesInfo[queryIndex].Competitors.shrink_to_fit();
+            }
         }
         profile.FinishIterationBlock(end - begin);
         importanceLogger.Log(profile.GetProfileResults());

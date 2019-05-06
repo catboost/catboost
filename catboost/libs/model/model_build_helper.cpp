@@ -118,7 +118,8 @@ void TObliviousTreeBuilder::AddTree(const TVector<TModelSplit>& modelSplits,
     CB_ENSURE((1u << modelSplits.size()) * ApproxDimension == treeLeafValues.size());
     LeafValues.insert(LeafValues.end(), treeLeafValues.begin(), treeLeafValues.end());
     if (!treeLeafWeights.empty()) {
-        LeafWeights.push_back(TVector<double>(treeLeafWeights.begin(), treeLeafWeights.end()));
+        CB_ENSURE((1u << modelSplits.size()) == treeLeafWeights.size());
+        LeafWeights.emplace_back(treeLeafWeights.begin(), treeLeafWeights.end());
     }
     Trees.emplace_back(modelSplits);
 }

@@ -2,7 +2,7 @@ PY23_LIBRARY()
 
 
 
-VERSION(0.8.0)
+VERSION(0.9.0)
 
 LICENSE(MIT)
 
@@ -19,3 +19,7 @@ PY_SRCS(
 )
 
 END()
+
+RECURSE_FOR_TESTS(
+    tests
+)

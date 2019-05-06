@@ -1,16 +1,26 @@
 #pragma once
 
-#include "fold.h"
 #include "features_data_helpers.h"
-#include "split.h"
 
 #include <catboost/libs/data_new/data_provider.h>
-#include <catboost/libs/data_new/objects.h>
 #include <catboost/libs/options/restrictions.h>
 
-#include <library/threading/local_executor/local_executor.h>
-
 #include <util/generic/vector.h>
+
+
+class TFold;
+struct TFullModel;
+struct TSplit;
+struct TSplitTree;
+
+namespace NCB {
+    class TObjectsDataProvider;
+    class TQuantizedForCPUObjectsDataProvider;
+}
+
+namespace NPar {
+    class TLocalExecutor;
+}
 
 
 void SetPermutedIndices(
@@ -31,8 +41,6 @@ TVector<TIndexType> BuildIndices(
     NCB::TTrainingForCPUDataProviderPtr learnData, // can be nullptr
     TConstArrayRef<NCB::TTrainingForCPUDataProviderPtr> testData, // can be empty
     NPar::TLocalExecutor* localExecutor);
-
-struct TFullModel;
 
 TVector<ui8> GetModelCompatibleQuantizedFeatures(
     const TFullModel& model,
