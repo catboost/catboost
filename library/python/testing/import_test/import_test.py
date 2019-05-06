@@ -197,6 +197,8 @@ def check_imports(no_check=None, extra=[], skip_func=None):
         "catboost.widget.*",
         "kubiki.geobase",
 
+        "hypothesis.extra.*",
+
     ] + list(no_check or [])
 
     if sys.version_info.major == 3:

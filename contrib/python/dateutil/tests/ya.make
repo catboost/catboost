@@ -7,13 +7,12 @@ PEERDIR(
     contrib/python/pytest
     contrib/python/six
     contrib/python/freezegun
+    contrib/python/hypothesis
 )
 
 TEST_SRCS(
-    # too much time to import hypothesis lib
-    # property/test_isoparse_prop.py
-    # property/test_parser_prop.py
-
+    property/test_isoparse_prop.py
+    property/test_parser_prop.py
     __init__.py
     _common.py
     conftest.py
