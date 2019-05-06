@@ -329,7 +329,7 @@ def _fix_user_data(orig_cmd, shell, user_input, user_output, strategy):
 
 
 def _dump_spec(data):
-    filename = tempfile.NamedTemporaryFile(delete=False)
+    filename = tempfile.NamedTemporaryFile(prefix='yt_op_spec_', suffix='.json', delete=False)
     with open(filename.name, 'w') as afile:
         json.dump(data, afile, indent=4, sort_keys=True)
     return filename.name
