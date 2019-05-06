@@ -562,17 +562,6 @@ static void CalcShapValuesByLeafForTreeBlock(
     }, blockParams, NPar::TLocalExecutor::WAIT_COMPLETE);
 }
 
-static void WarnForComplexCtrs(const TObliviousTrees& forest) {
-    for (const TCtrFeature& ctrFeature : forest.CtrFeatures) {
-        const TFeatureCombination& combination = ctrFeature.Ctr.Base.Projection;
-        if (!combination.IsSingleCatFeature()) {
-            CATBOOST_WARNING_LOG << "The model has complex ctrs, so the SHAP values will be calculated"
-                " approximately." << Endl;
-            return;
-        }
-    }
-}
-
 bool PrepareTreesCalcShapValues(
     const TFullModel& model,
     const TDataProvider* dataset,
@@ -607,8 +596,6 @@ TShapPreparedTrees PrepareTrees(
     NPar::TLocalExecutor* localExecutor,
     bool calcInternalValues
 ) {
-    WarnForComplexCtrs(model.ObliviousTrees);
-
     const size_t treeCount = model.GetTreeCount();
     const size_t treeBlockSize = CB_THREAD_LIMIT; // least necessary for threading
 
