@@ -7,4 +7,5 @@ DENY .* -> contrib/deprecated/libcds
 
 ALLOW contrib/deprecated/blackhole -> contrib/deprecated/blackhole
 ALLOW mds -> contrib/deprecated/blackhole
+ALLOW devtools/experimental/mds -> contrib/deprecated/blackhole
 DENY .* -> contrib/deprecated/blackhole
