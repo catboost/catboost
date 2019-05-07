@@ -72,7 +72,7 @@ def check_imports(no_check=None, extra=[], skip_func=None):
         "numpy.testing.__init__",
         "numpy.ma.version",
         "numpy.matrixlib.__init__",
-        "numpy.testing.noseclasses",
+        "numpy.testing.*",
         "numpy.__init__",
         "numpy.core.code_generators.generate_numpy_api",
         "numpy.doc.basics",

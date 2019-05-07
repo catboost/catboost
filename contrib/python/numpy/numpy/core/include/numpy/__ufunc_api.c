@@ -45,5 +45,6 @@ void *PyUFunc_API[] = {
         (void *) PyUFunc_ee_e_As_dd_d,
         (void *) PyUFunc_DefaultTypeResolver,
         (void *) PyUFunc_ValidateCasting,
-        (void *) PyUFunc_RegisterLoopForDescr
+        (void *) PyUFunc_RegisterLoopForDescr,
+        (void *) PyUFunc_FromFuncAndDataAndSignatureAndIdentity
 };

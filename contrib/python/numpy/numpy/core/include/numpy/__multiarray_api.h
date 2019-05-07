@@ -615,6 +615,12 @@ NPY_NO_EXPORT  void * PyDataMem_NEW_ZEROED \
        (size_t, size_t);
 NPY_NO_EXPORT NPY_GCC_NONNULL(1) int PyArray_CheckAnyScalarExact \
        (PyObject *);
+NPY_NO_EXPORT  PyObject * PyArray_MapIterArrayCopyIfOverlap \
+       (PyArrayObject *, PyObject *, int, PyArrayObject *);
+NPY_NO_EXPORT  int PyArray_ResolveWritebackIfCopy \
+       (PyArrayObject *);
+NPY_NO_EXPORT  int PyArray_SetWritebackIfCopyBase \
+       (PyArrayObject *, PyArrayObject *);
 
 #else
 
@@ -1445,17 +1451,25 @@ static void **PyArray_API=NULL;
 #define PyArray_CheckAnyScalarExact \
         (*(int (*)(PyObject *)) \
          PyArray_API[300])
+#define PyArray_MapIterArrayCopyIfOverlap \
+        (*(PyObject * (*)(PyArrayObject *, PyObject *, int, PyArrayObject *)) \
+         PyArray_API[301])
+#define PyArray_ResolveWritebackIfCopy \
+        (*(int (*)(PyArrayObject *)) \
+         PyArray_API[302])
+#define PyArray_SetWritebackIfCopyBase \
+        (*(int (*)(PyArrayObject *, PyArrayObject *)) \
+         PyArray_API[303])
 
 #if !defined(NO_IMPORT_ARRAY) && !defined(NO_IMPORT)
 static int
 _import_array(void)
 {
   int st;
-  PyObject *numpy = PyImport_ImportModule("numpy.core.multiarray");
+  PyObject *numpy = PyImport_ImportModule("numpy.core._multiarray_umath");
   PyObject *c_api = NULL;
 
   if (numpy == NULL) {
-      PyErr_SetString(PyExc_ImportError, "numpy.core.multiarray failed to import");
       return -1;
   }
   c_api = PyObject_GetAttrString(numpy, "_ARRAY_API");
@@ -1527,13 +1541,7 @@ _import_array(void)
 }
 
 #if PY_VERSION_HEX >= 0x03000000
-
-#if CYTHON_PEP489_MULTI_PHASE_INIT
-#define NUMPY_IMPORT_ARRAY_RETVAL -1
-#else
 #define NUMPY_IMPORT_ARRAY_RETVAL NULL
-#endif
-
 #else
 #define NUMPY_IMPORT_ARRAY_RETVAL
 #endif

@@ -9,11 +9,12 @@ import datetime
 import sys
 import operator
 import warnings
+import pytest
 
 import numpy as np
 from numpy.testing import (
-    run_module_suite, assert_raises, assert_warns, assert_no_warnings,
-    assert_array_equal, assert_, dec)
+    assert_raises, assert_warns, assert_
+    )
 
 try:
     import pytz
@@ -22,134 +23,33 @@ except ImportError:
     _has_pytz = False
 
 
-class _VisibleDeprecationTestCase(object):
-    # Just as warning: warnings uses re.match, so the start of this message
-    # must match.
-    message = ''
-
-    def setUp(self):
-        self.warn_ctx = warnings.catch_warnings(record=True)
-        self.log = self.warn_ctx.__enter__()
-
-        # Do *not* ignore other DeprecationWarnings. Ignoring warnings
-        # can give very confusing results because of
-        # http://bugs.python.org/issue4180 and it is probably simplest to
-        # try to keep the tests cleanly giving only the right warning type.
-        # (While checking them set to "error" those are ignored anyway)
-        # We still have them show up, because otherwise they would be raised
-        warnings.filterwarnings("always", category=np.VisibleDeprecationWarning)
-        warnings.filterwarnings("always", message=self.message,
-                                category=np.VisibleDeprecationWarning)
-
-    def tearDown(self):
-        self.warn_ctx.__exit__()
-
-    def assert_deprecated(self, function, num=1, ignore_others=False,
-                          function_fails=False,
-                          exceptions=(np.VisibleDeprecationWarning,),
-                          args=(), kwargs={}):
-        """Test if VisibleDeprecationWarnings are given and raised.
-
-        This first checks if the function when called gives `num`
-        VisibleDeprecationWarnings, after that it tries to raise these
-        VisibleDeprecationWarnings and compares them with `exceptions`.
-        The exceptions can be different for cases where this code path
-        is simply not anticipated and the exception is replaced.
-
-        Parameters
-        ----------
-        f : callable
-            The function to test
-        num : int
-            Number of VisibleDeprecationWarnings to expect. This should
-            normally be 1.
-        ignore_other : bool
-            Whether warnings of the wrong type should be ignored (note that
-            the message is not checked)
-        function_fails : bool
-            If the function would normally fail, setting this will check for
-            warnings inside a try/except block.
-        exceptions : Exception or tuple of Exceptions
-            Exception to expect when turning the warnings into an error.
-            The default checks for DeprecationWarnings. If exceptions is
-            empty the function is expected to run successfull.
-        args : tuple
-            Arguments for `f`
-        kwargs : dict
-            Keyword arguments for `f`
-        """
-        # reset the log
-        self.log[:] = []
-
-        try:
-            function(*args, **kwargs)
-        except (Exception if function_fails else tuple()):
-            pass
-
-        # just in case, clear the registry
-        num_found = 0
-        for warning in self.log:
-            if warning.category is np.VisibleDeprecationWarning:
-                num_found += 1
-            elif not ignore_others:
-                raise AssertionError(
-                        "expected DeprecationWarning but got: %s" %
-                        (warning.category,))
-        if num is not None and num_found != num:
-            msg = "%i warnings found but %i expected." % (len(self.log), num)
-            lst = [w.category for w in self.log]
-            raise AssertionError("\n".join([msg] + lst))
-
-        with warnings.catch_warnings():
-            warnings.filterwarnings("error", message=self.message,
-                                    category=np.VisibleDeprecationWarning)
-            try:
-                function(*args, **kwargs)
-                if exceptions != tuple():
-                    raise AssertionError(
-                            "No error raised during function call")
-            except exceptions:
-                if exceptions == tuple():
-                    raise AssertionError(
-                            "Error raised during function call")
-
-    def assert_not_deprecated(self, function, args=(), kwargs={}):
-        """Test if VisibleDeprecationWarnings are given and raised.
-
-        This is just a shorthand for:
-
-        self.assert_deprecated(function, num=0, ignore_others=True,
-                        exceptions=tuple(), args=args, kwargs=kwargs)
-        """
-        self.assert_deprecated(function, num=0, ignore_others=True,
-                        exceptions=tuple(), args=args, kwargs=kwargs)
-
-
 class _DeprecationTestCase(object):
     # Just as warning: warnings uses re.match, so the start of this message
     # must match.
     message = ''
+    warning_cls = DeprecationWarning
 
-    def setUp(self):
+    def setup(self):
         self.warn_ctx = warnings.catch_warnings(record=True)
         self.log = self.warn_ctx.__enter__()
 
         # Do *not* ignore other DeprecationWarnings. Ignoring warnings
         # can give very confusing results because of
-        # http://bugs.python.org/issue4180 and it is probably simplest to
+        # https://bugs.python.org/issue4180 and it is probably simplest to
         # try to keep the tests cleanly giving only the right warning type.
         # (While checking them set to "error" those are ignored anyway)
         # We still have them show up, because otherwise they would be raised
-        warnings.filterwarnings("always", category=DeprecationWarning)
+        warnings.filterwarnings("always", category=self.warning_cls)
         warnings.filterwarnings("always", message=self.message,
-                                    category=DeprecationWarning)
+                                category=self.warning_cls)
 
-    def tearDown(self):
+    def teardown(self):
         self.warn_ctx.__exit__()
 
     def assert_deprecated(self, function, num=1, ignore_others=False,
-                        function_fails=False,
-                        exceptions=(DeprecationWarning,), args=(), kwargs={}):
+                          function_fails=False,
+                          exceptions=np._NoValue,
+                          args=(), kwargs={}):
         """Test if DeprecationWarnings are given and raised.
 
         This first checks if the function when called gives `num`
@@ -160,11 +60,11 @@ class _DeprecationTestCase(object):
 
         Parameters
         ----------
-        f : callable
+        function : callable
             The function to test
         num : int
             Number of DeprecationWarnings to expect. This should normally be 1.
-        ignore_other : bool
+        ignore_others : bool
             Whether warnings of the wrong type should be ignored (note that
             the message is not checked)
         function_fails : bool
@@ -173,14 +73,17 @@ class _DeprecationTestCase(object):
         exceptions : Exception or tuple of Exceptions
             Exception to expect when turning the warnings into an error.
             The default checks for DeprecationWarnings. If exceptions is
-            empty the function is expected to run successfull.
+            empty the function is expected to run successfully.
         args : tuple
-            Arguments for `f`
+            Arguments for `function`
         kwargs : dict
-            Keyword arguments for `f`
+            Keyword arguments for `function`
         """
         # reset the log
         self.log[:] = []
+
+        if exceptions is np._NoValue:
+            exceptions = (self.warning_cls,)
 
         try:
             function(*args, **kwargs)
@@ -190,20 +93,20 @@ class _DeprecationTestCase(object):
         # just in case, clear the registry
         num_found = 0
         for warning in self.log:
-            if warning.category is DeprecationWarning:
+            if warning.category is self.warning_cls:
                 num_found += 1
             elif not ignore_others:
                 raise AssertionError(
-                        "expected DeprecationWarning but got: %s" %
-                        (warning.category,))
+                        "expected %s but got: %s" %
+                        (self.warning_cls.__name__, warning.category))
         if num is not None and num_found != num:
             msg = "%i warnings found but %i expected." % (len(self.log), num)
-            lst = [w.category for w in self.log]
+            lst = [str(w.category) for w in self.log]
             raise AssertionError("\n".join([msg] + lst))
 
         with warnings.catch_warnings():
             warnings.filterwarnings("error", message=self.message,
-                                    category=DeprecationWarning)
+                                    category=self.warning_cls)
             try:
                 function(*args, **kwargs)
                 if exceptions != tuple():
@@ -215,7 +118,7 @@ class _DeprecationTestCase(object):
                             "Error raised during function call")
 
     def assert_not_deprecated(self, function, args=(), kwargs={}):
-        """Test if DeprecationWarnings are given and raised.
+        """Test that warnings are not raised.
 
         This is just a shorthand for:
 
@@ -226,271 +129,24 @@ class _DeprecationTestCase(object):
                         exceptions=tuple(), args=args, kwargs=kwargs)
 
 
-class TestFloatNonIntegerArgumentDeprecation(_VisibleDeprecationTestCase):
-    """
-    These test that ``DeprecationWarning`` is given when you try to use
-    non-integers as arguments to for indexing and slicing e.g. ``a[0.0:5]``
-    and ``a[0.5]``, or other functions like ``array.reshape(1., -1)``.
-
-    After deprecation, changes need to be done inside conversion_utils.c
-    in PyArray_PyIntAsIntp and possibly PyArray_IntpConverter.
-    In iterators.c the function slice_GetIndices could be removed in favor
-    of its python equivalent and in mapping.c the function _tuple_of_integers
-    can be simplified (if ``np.array([1]).__index__()`` is also deprecated).
-
-    As for the deprecation time-frame: via Ralf Gommers,
-
-    "Hard to put that as a version number, since we don't know if the
-    version after 1.8 will be 6 months or 2 years after. I'd say 2
-    years is reasonable."
-
-    I interpret this to mean 2 years after the 1.8 release. Possibly
-    giving a PendingDeprecationWarning before that (which is visible
-    by default)
-
-    """
-    message = "using a non-integer number instead of an integer " \
-              "will result in an error in the future"
-
-    def test_indexing(self):
-        a = np.array([[[5]]])
-
-        def assert_deprecated(*args, **kwargs):
-            self.assert_deprecated(*args, exceptions=(IndexError,), **kwargs)
-
-        assert_deprecated(lambda: a[0.0])
-        assert_deprecated(lambda: a[0, 0.0])
-        assert_deprecated(lambda: a[0.0, 0])
-        assert_deprecated(lambda: a[0.0,:])
-        assert_deprecated(lambda: a[:, 0.0])
-        assert_deprecated(lambda: a[:, 0.0,:])
-        assert_deprecated(lambda: a[0.0,:,:])
-        assert_deprecated(lambda: a[0, 0, 0.0])
-        assert_deprecated(lambda: a[0.0, 0, 0])
-        assert_deprecated(lambda: a[0, 0.0, 0])
-        assert_deprecated(lambda: a[-1.4])
-        assert_deprecated(lambda: a[0, -1.4])
-        assert_deprecated(lambda: a[-1.4, 0])
-        assert_deprecated(lambda: a[-1.4,:])
-        assert_deprecated(lambda: a[:, -1.4])
-        assert_deprecated(lambda: a[:, -1.4,:])
-        assert_deprecated(lambda: a[-1.4,:,:])
-        assert_deprecated(lambda: a[0, 0, -1.4])
-        assert_deprecated(lambda: a[-1.4, 0, 0])
-        assert_deprecated(lambda: a[0, -1.4, 0])
-
-        # Test that the slice parameter deprecation warning doesn't mask
-        # the scalar index warning.
-        assert_deprecated(lambda: a[0.0:, 0.0], num=2)
-        assert_deprecated(lambda: a[0.0:, 0.0,:], num=2)
-
-    def test_valid_indexing(self):
-        a = np.array([[[5]]])
-        assert_not_deprecated = self.assert_not_deprecated
-
-        assert_not_deprecated(lambda: a[np.array([0])])
-        assert_not_deprecated(lambda: a[[0, 0]])
-        assert_not_deprecated(lambda: a[:, [0, 0]])
-        assert_not_deprecated(lambda: a[:, 0,:])
-        assert_not_deprecated(lambda: a[:,:,:])
-
-    def test_slicing(self):
-        a = np.array([[5]])
-
-        def assert_deprecated(*args, **kwargs):
-            self.assert_deprecated(*args, exceptions=(IndexError,), **kwargs)
-
-        # start as float.
-        assert_deprecated(lambda: a[0.0:])
-        assert_deprecated(lambda: a[0:, 0.0:2])
-        assert_deprecated(lambda: a[0.0::2, :0])
-        assert_deprecated(lambda: a[0.0:1:2,:])
-        assert_deprecated(lambda: a[:, 0.0:])
-        # stop as float.
-        assert_deprecated(lambda: a[:0.0])
-        assert_deprecated(lambda: a[:0, 1:2.0])
-        assert_deprecated(lambda: a[:0.0:2, :0])
-        assert_deprecated(lambda: a[:0.0,:])
-        assert_deprecated(lambda: a[:, 0:4.0:2])
-        # step as float.
-        assert_deprecated(lambda: a[::1.0])
-        assert_deprecated(lambda: a[0:, :2:2.0])
-        assert_deprecated(lambda: a[1::4.0, :0])
-        assert_deprecated(lambda: a[::5.0,:])
-        assert_deprecated(lambda: a[:, 0:4:2.0])
-        # mixed.
-        assert_deprecated(lambda: a[1.0:2:2.0], num=2)
-        assert_deprecated(lambda: a[1.0::2.0], num=2)
-        assert_deprecated(lambda: a[0:, :2.0:2.0], num=2)
-        assert_deprecated(lambda: a[1.0:1:4.0, :0], num=2)
-        assert_deprecated(lambda: a[1.0:5.0:5.0,:], num=3)
-        assert_deprecated(lambda: a[:, 0.4:4.0:2.0], num=3)
-        # should still get the DeprecationWarning if step = 0.
-        assert_deprecated(lambda: a[::0.0], function_fails=True)
-
-    def test_valid_slicing(self):
-        a = np.array([[[5]]])
-        assert_not_deprecated = self.assert_not_deprecated
-
-        assert_not_deprecated(lambda: a[::])
-        assert_not_deprecated(lambda: a[0:])
-        assert_not_deprecated(lambda: a[:2])
-        assert_not_deprecated(lambda: a[0:2])
-        assert_not_deprecated(lambda: a[::2])
-        assert_not_deprecated(lambda: a[1::2])
-        assert_not_deprecated(lambda: a[:2:2])
-        assert_not_deprecated(lambda: a[1:2:2])
-
-    def test_non_integer_argument_deprecations(self):
-        a = np.array([[5]])
-
-        self.assert_deprecated(np.reshape, args=(a, (1., 1., -1)), num=2)
-        self.assert_deprecated(np.reshape, args=(a, (np.array(1.), -1)))
-        self.assert_deprecated(np.take, args=(a, [0], 1.))
-        self.assert_deprecated(np.take, args=(a, [0], np.float64(1.)))
-
-    def test_non_integer_sequence_multiplication(self):
-        # Numpy scalar sequence multiply should not work with non-integers
-        def mult(a, b):
-            return a * b
-
-        self.assert_deprecated(mult, args=([1], np.float_(3)))
-        self.assert_not_deprecated(mult, args=([1], np.int_(3)))
-
-    def test_reduce_axis_float_index(self):
-        d = np.zeros((3,3,3))
-        self.assert_deprecated(np.min, args=(d, 0.5))
-        self.assert_deprecated(np.min, num=1, args=(d, (0.5, 1)))
-        self.assert_deprecated(np.min, num=1, args=(d, (1, 2.2)))
-        self.assert_deprecated(np.min, num=2, args=(d, (.2, 1.2)))
+class _VisibleDeprecationTestCase(_DeprecationTestCase):
+    warning_cls = np.VisibleDeprecationWarning
 
 
-class TestBooleanArgumentDeprecation(_VisibleDeprecationTestCase):
-    """This tests that using a boolean as integer argument/indexing is
-    deprecated.
-
-    This should be kept in sync with TestFloatNonIntegerArgumentDeprecation
-    and like it is handled in PyArray_PyIntAsIntp.
-    """
-    message = "using a boolean instead of an integer " \
-              "will result in an error in the future"
-
-    def test_bool_as_int_argument(self):
-        a = np.array([[[1]]])
-
-        self.assert_deprecated(np.reshape, args=(a, (True, -1)))
-        self.assert_deprecated(np.reshape, args=(a, (np.bool_(True), -1)))
-        # Note that operator.index(np.array(True)) does not work, a boolean
-        # array is thus also deprecated, but not with the same message:
-        assert_raises(TypeError, operator.index, np.array(True))
-        self.assert_deprecated(np.take, args=(a, [0], False))
-        self.assert_deprecated(lambda: a[False:True:True], exceptions=IndexError, num=3)
-        self.assert_deprecated(lambda: a[False, 0], exceptions=IndexError)
-        self.assert_deprecated(lambda: a[False, 0, 0], exceptions=IndexError)
-
-
-class TestArrayToIndexDeprecation(_VisibleDeprecationTestCase):
-    """This tests that creating an an index from an array is deprecated
-    if the array is not 0d.
-
-    This can probably be deprecated somewhat faster then the integer
-    deprecations. The deprecation period started with NumPy 1.8.
-    For deprecation this needs changing of array_index in number.c
-    """
-    message = "converting an array with ndim \> 0 to an index will result " \
-              "in an error in the future"
-
-    def test_array_to_index_deprecation(self):
-        # This drops into the non-integer deprecation, which is ignored here,
-        # so no exception is expected. The raising is effectively tested above.
-        a = np.array([[[1]]])
-
-        self.assert_deprecated(operator.index, args=(np.array([1]),))
-        self.assert_deprecated(np.reshape, args=(a, (a, -1)), exceptions=())
-        self.assert_deprecated(np.take, args=(a, [0], a), exceptions=())
-        # Check slicing. Normal indexing checks arrays specifically.
-        self.assert_deprecated(lambda: a[a:a:a], exceptions=(), num=3)
-
-class TestNonIntegerArrayLike(_VisibleDeprecationTestCase):
-    """Tests that array likes, i.e. lists give a deprecation warning
-    when they cannot be safely cast to an integer.
-    """
-    message = "non integer \(and non boolean\) array-likes will not be " \
-              "accepted as indices in the future"
-
+class TestNonTupleNDIndexDeprecation(object):
     def test_basic(self):
-        a = np.arange(10)
-        self.assert_deprecated(a.__getitem__, args=([0.5, 1.5],),
-                               exceptions=IndexError)
-        self.assert_deprecated(a.__getitem__, args=((['1', '2'],),),
-                               exceptions=IndexError)
-
-        self.assert_not_deprecated(a.__getitem__, ([],))
-
-    def test_boolean_futurewarning(self):
-        a = np.arange(10)
+        a = np.zeros((5, 5))
         with warnings.catch_warnings():
             warnings.filterwarnings('always')
-            assert_warns(FutureWarning, a.__getitem__, [True])
-            # Unfortunatly, the deprecation warning takes precedence:
-            #assert_warns(FutureWarning, a.__getitem__, True)
+            assert_warns(FutureWarning, a.__getitem__, [[0, 1], [0, 1]])
+            assert_warns(FutureWarning, a.__getitem__, [slice(None)])
 
-        with warnings.catch_warnings():
             warnings.filterwarnings('error')
-            assert_raises(FutureWarning, a.__getitem__, [True])
-            #assert_raises(FutureWarning, a.__getitem__, True)
+            assert_raises(FutureWarning, a.__getitem__, [[0, 1], [0, 1]])
+            assert_raises(FutureWarning, a.__getitem__, [slice(None)])
 
-
-class TestMultipleEllipsisDeprecation(_VisibleDeprecationTestCase):
-    message = "an index can only have a single Ellipsis \(`...`\); replace " \
-              "all but one with slices \(`:`\)."
-
-    def test_basic(self):
-        a = np.arange(10)
-        self.assert_deprecated(a.__getitem__, args=((Ellipsis, Ellipsis),))
-
-        with warnings.catch_warnings():
-            warnings.filterwarnings('ignore', '', np.VisibleDeprecationWarning)
-            # Just check that this works:
-            b = a[...,...]
-            assert_array_equal(a, b)
-            assert_raises(IndexError, a.__getitem__, ((Ellipsis, ) * 3,))
-
-
-class TestBooleanUnaryMinusDeprecation(_DeprecationTestCase):
-    """Test deprecation of unary boolean `-`. While + and * are well
-    defined, unary - is not and even a corrected form seems to have
-    no real uses.
-
-    The deprecation process was started in NumPy 1.9.
-    """
-    message = r"numpy boolean negative, the `-` operator, .*"
-
-    def test_unary_minus_operator_deprecation(self):
-        array = np.array([True])
-        generic = np.bool_(True)
-
-        # Unary minus/negative ufunc:
-        self.assert_deprecated(operator.neg, args=(array,))
-        self.assert_deprecated(operator.neg, args=(generic,))
-
-
-class TestBooleanBinaryMinusDeprecation(_DeprecationTestCase):
-    """Test deprecation of binary boolean `-`. While + and * are well
-    defined, binary  - is not and even a corrected form seems to have
-    no real uses.
-
-    The deprecation process was started in NumPy 1.9.
-    """
-    message = r"numpy boolean subtract, the `-` operator, .*"
-
-    def test_operator_deprecation(self):
-        array = np.array([True])
-        generic = np.bool_(True)
-
-        # Minus operator/subtract ufunc:
-        self.assert_deprecated(operator.sub, args=(array, array))
-        self.assert_deprecated(operator.sub, args=(generic, generic))
+            # a a[[0, 1]] always was advanced indexing, so no error/warning
+            a[[0, 1]]
 
 
 class TestRankDeprecation(_DeprecationTestCase):
@@ -533,44 +189,10 @@ class TestComparisonDeprecations(_DeprecationTestCase):
         b = np.array(['a', 'b', 'c'])
         assert_raises(ValueError, lambda x, y: x == y, a, b)
 
-        # The empty list is not cast to string, as this is only to document
-        # that fact (it likely should be changed). This means that the
-        # following works (and returns False) due to dtype mismatch:
-        a == []
-
-    def test_none_comparison(self):
-        # Test comparison of None, which should result in element-wise
-        # comparison in the future. [1, 2] == None should be [False, False].
-        with warnings.catch_warnings():
-            warnings.filterwarnings('always', '', FutureWarning)
-            assert_warns(FutureWarning, operator.eq, np.arange(3), None)
-            assert_warns(FutureWarning, operator.ne, np.arange(3), None)
-
-        with warnings.catch_warnings():
-            warnings.filterwarnings('error', '', FutureWarning)
-            assert_raises(FutureWarning, operator.eq, np.arange(3), None)
-            assert_raises(FutureWarning, operator.ne, np.arange(3), None)
-
-    def test_scalar_none_comparison(self):
-        # Scalars should still just return False and not give a warnings.
-        # The comparisons are flagged by pep8, ignore that.
-        with warnings.catch_warnings(record=True) as w:
-            warnings.filterwarnings('always', '', FutureWarning)
-            assert_(not np.float32(1) == None)
-            assert_(not np.str_('test') == None)
-            # This is dubious (see below):
-            assert_(not np.datetime64('NaT') == None)
-
-            assert_(np.float32(1) != None)
-            assert_(np.str_('test') != None)
-            # This is dubious (see below):
-            assert_(np.datetime64('NaT') != None)
-        assert_(len(w) == 0)
-
-        # For documentation purposes, this is why the datetime is dubious.
-        # At the time of deprecation this was no behaviour change, but
-        # it has to be considered when the deprecations are done.
-        assert_(np.equal(np.datetime64('NaT'), None))
+        # The empty list is not cast to string, and this used to pass due
+        # to dtype mismatch; now (2018-06-21) it correctly leads to a
+        # FutureWarning.
+        assert_warns(FutureWarning, lambda: a == [])
 
     def test_void_dtype_equality_failures(self):
         class NotArray(object):
@@ -624,109 +246,6 @@ class TestComparisonDeprecations(_DeprecationTestCase):
                         assert_warns(DeprecationWarning, f, arg1, arg2)
 
 
-class TestIdentityComparisonDeprecations(_DeprecationTestCase):
-    """This tests the equal and not_equal object ufuncs identity check
-    deprecation. This was due to the usage of PyObject_RichCompareBool.
-
-    This tests that for example for `a = np.array([np.nan], dtype=object)`
-    `a == a` it is warned that False and not `np.nan is np.nan` is returned.
-
-    Should be kept in sync with TestComparisonDeprecations and new tests
-    added when the deprecation is over. Requires only removing of @identity@
-    (and blocks) from the ufunc loops.c.src of the OBJECT comparisons.
-    """
-
-    message = "numpy .* will not check object identity in the future."
-
-    def test_identity_equality_mismatch(self):
-        a = np.array([np.nan], dtype=object)
-
-        with warnings.catch_warnings():
-            warnings.filterwarnings('always', '', FutureWarning)
-            assert_warns(FutureWarning, np.equal, a, a)
-            assert_warns(FutureWarning, np.not_equal, a, a)
-
-        with warnings.catch_warnings():
-            warnings.filterwarnings('error', '', FutureWarning)
-            assert_raises(FutureWarning, np.equal, a, a)
-            assert_raises(FutureWarning, np.not_equal, a, a)
-            # And the other do not warn:
-            with np.errstate(invalid='ignore'):
-                np.less(a, a)
-                np.greater(a, a)
-                np.less_equal(a, a)
-                np.greater_equal(a, a)
-
-    def test_comparison_error(self):
-        class FunkyType(object):
-            def __eq__(self, other):
-                raise TypeError("I won't compare")
-
-            def __ne__(self, other):
-                raise TypeError("I won't compare")
-
-        a = np.array([FunkyType()])
-        self.assert_deprecated(np.equal, args=(a, a))
-        self.assert_deprecated(np.not_equal, args=(a, a))
-
-    def test_bool_error(self):
-        # The comparison result cannot be interpreted as a bool
-        a = np.array([np.array([1, 2, 3]), None], dtype=object)
-        self.assert_deprecated(np.equal, args=(a, a))
-        self.assert_deprecated(np.not_equal, args=(a, a))
-
-
-class TestAlterdotRestoredotDeprecations(_DeprecationTestCase):
-    """The alterdot/restoredot functions are deprecated.
-
-    These functions no longer do anything in numpy 1.10, so
-    they should not be used.
-
-    """
-
-    def test_alterdot_restoredot_deprecation(self):
-        self.assert_deprecated(np.alterdot)
-        self.assert_deprecated(np.restoredot)
-
-
-class TestBooleanIndexShapeMismatchDeprecation():
-    """Tests deprecation for boolean indexing where the boolean array
-    does not match the input array along the given dimensions.
-    """
-    message = r"boolean index did not match indexed array"
-
-    def test_simple(self):
-        arr = np.ones((5, 4, 3))
-        index = np.array([True])
-        #self.assert_deprecated(arr.__getitem__, args=(index,))
-        assert_warns(np.VisibleDeprecationWarning,
-                     arr.__getitem__, index)
-
-        index = np.array([False] * 6)
-        #self.assert_deprecated(arr.__getitem__, args=(index,))
-        assert_warns(np.VisibleDeprecationWarning,
-             arr.__getitem__, index)
-
-        index = np.zeros((4, 4), dtype=bool)
-        #self.assert_deprecated(arr.__getitem__, args=(index,))
-        assert_warns(np.VisibleDeprecationWarning,
-             arr.__getitem__, index)
-        #self.assert_deprecated(arr.__getitem__, args=((slice(None), index),))
-        assert_warns(np.VisibleDeprecationWarning,
-             arr.__getitem__, (slice(None), index))
-
-
-class TestFullDefaultDtype(object):
-    """np.full defaults to float when dtype is not set.  In the future, it will
-    use the fill value's dtype.
-    """
-
-    def test_full_default_dtype(self):
-        assert_warns(FutureWarning, np.full, 1, 1)
-        assert_warns(FutureWarning, np.full, 1, None)
-        assert_no_warnings(np.full, 1, 1, float)
-
-
 class TestDatetime64Timezone(_DeprecationTestCase):
     """Parsing of datetime64 with timezones deprecated in 1.11.0, because
     datetime64 is now timezone naive rather than UTC only.
@@ -740,8 +259,8 @@ class TestDatetime64Timezone(_DeprecationTestCase):
         self.assert_deprecated(np.datetime64, args=('2000-01-01T00+01',))
         self.assert_deprecated(np.datetime64, args=('2000-01-01T00Z',))
 
-    @dec.skipif(not _has_pytz, "The pytz module is not available.")
-    @dec.knownfailureif(sys.version_info[0:2] < (2, 7))
+    @pytest.mark.skipif(not _has_pytz,
+                        reason="The pytz module is not available.")
     def test_datetime(self):
         tz = pytz.timezone('US/Eastern')
         dt = datetime.datetime(2000, 1, 1, 0, 0, tzinfo=tz)
@@ -758,7 +277,7 @@ class TestNonCContiguousViewDeprecation(_DeprecationTestCase):
     """
 
     def test_fortran_contiguous(self):
-        self.assert_deprecated(np.ones((2,2)).T.view, args=(np.complex,))
+        self.assert_deprecated(np.ones((2,2)).T.view, args=(complex,))
         self.assert_deprecated(np.ones((2,2)).T.view, args=(np.int8,))
 
 
@@ -792,18 +311,225 @@ class TestInvalidOrderParameterInputForFlattenArrayDeprecation(_DeprecationTestC
         self.assert_deprecated(x.flatten, args=("FACK",))
 
 
+class TestArrayDataAttributeAssignmentDeprecation(_DeprecationTestCase):
+    """Assigning the 'data' attribute of an ndarray is unsafe as pointed
+     out in gh-7093. Eventually, such assignment should NOT be allowed, but
+     in the interests of maintaining backwards compatibility, only a Deprecation-
+     Warning will be raised instead for the time being to give developers time to
+     refactor relevant code.
+    """
+
+    def test_data_attr_assignment(self):
+        a = np.arange(10)
+        b = np.linspace(0, 1, 10)
+
+        self.message = ("Assigning the 'data' attribute is an "
+                        "inherently unsafe operation and will "
+                        "be removed in the future.")
+        self.assert_deprecated(a.__setattr__, args=('data', b.data))
+
+
+class TestLinspaceInvalidNumParameter(_DeprecationTestCase):
+    """Argument to the num parameter in linspace that cannot be
+    safely interpreted as an integer is deprecated in 1.12.0.
+
+    Argument to the num parameter in linspace that cannot be
+    safely interpreted as an integer should not be allowed.
+    In the interest of not breaking code that passes
+    an argument that could still be interpreted as an integer, a
+    DeprecationWarning will be issued for the time being to give
+    developers time to refactor relevant code.
+    """
+    def test_float_arg(self):
+        # 2016-02-25, PR#7328
+        self.assert_deprecated(np.linspace, args=(0, 10, 2.5))
+
+
+class TestBinaryReprInsufficientWidthParameterForRepresentation(_DeprecationTestCase):
+    """
+    If a 'width' parameter is passed into ``binary_repr`` that is insufficient to
+    represent the number in base 2 (positive) or 2's complement (negative) form,
+    the function used to silently ignore the parameter and return a representation
+    using the minimal number of bits needed for the form in question. Such behavior
+    is now considered unsafe from a user perspective and will raise an error in the future.
+    """
+
+    def test_insufficient_width_positive(self):
+        args = (10,)
+        kwargs = {'width': 2}
+
+        self.message = ("Insufficient bit width provided. This behavior "
+                        "will raise an error in the future.")
+        self.assert_deprecated(np.binary_repr, args=args, kwargs=kwargs)
+
+    def test_insufficient_width_negative(self):
+        args = (-5,)
+        kwargs = {'width': 2}
+
+        self.message = ("Insufficient bit width provided. This behavior "
+                        "will raise an error in the future.")
+        self.assert_deprecated(np.binary_repr, args=args, kwargs=kwargs)
+
+
+class TestNumericStyleTypecodes(_DeprecationTestCase):
+    """
+    Deprecate the old numeric-style dtypes, which are especially
+    confusing for complex types, e.g. Complex32 -> complex64. When the
+    deprecation cycle is complete, the check for the strings should be
+    removed from PyArray_DescrConverter in descriptor.c, and the
+    deprecated keys should not be added as capitalized aliases in
+    _add_aliases in numerictypes.py.
+    """
+    def test_all_dtypes(self):
+        deprecated_types = [
+            'Bool', 'Complex32', 'Complex64', 'Float16', 'Float32', 'Float64',
+            'Int8', 'Int16', 'Int32', 'Int64', 'Object0', 'Timedelta64',
+            'UInt8', 'UInt16', 'UInt32', 'UInt64', 'Void0'
+            ]
+        if sys.version_info[0] < 3:
+            deprecated_types.extend(['Unicode0', 'String0'])
+
+        for dt in deprecated_types:
+            self.assert_deprecated(np.dtype, exceptions=(TypeError,),
+                                   args=(dt,))
+
+
 class TestTestDeprecated(object):
     def test_assert_deprecated(self):
         test_case_instance = _DeprecationTestCase()
-        test_case_instance.setUp()
+        test_case_instance.setup()
         assert_raises(AssertionError,
                       test_case_instance.assert_deprecated,
                       lambda: None)
 
         def foo():
-            warnings.warn("foo", category=DeprecationWarning)
+            warnings.warn("foo", category=DeprecationWarning, stacklevel=2)
 
         test_case_instance.assert_deprecated(foo)
+        test_case_instance.teardown()
 
-if __name__ == "__main__":
-    run_module_suite()
+
+class TestClassicIntDivision(_DeprecationTestCase):
+    """
+    See #7949. Deprecate the numeric-style dtypes with -3 flag in python 2
+    if used for division
+    List of data types: https://docs.scipy.org/doc/numpy/user/basics.types.html
+    """
+    def test_int_dtypes(self):
+        #scramble types and do some mix and match testing
+        deprecated_types = [
+           'bool_', 'int_', 'intc', 'uint8', 'int8', 'uint64', 'int32', 'uint16',
+           'intp', 'int64', 'uint32', 'int16'
+            ]
+        if sys.version_info[0] < 3 and sys.py3kwarning:
+            import operator as op
+            dt2 = 'bool_'
+            for dt1 in deprecated_types:
+                a = np.array([1,2,3], dtype=dt1)
+                b = np.array([1,2,3], dtype=dt2)
+                self.assert_deprecated(op.div, args=(a,b))
+                dt2 = dt1
+
+
+class TestNonNumericConjugate(_DeprecationTestCase):
+    """
+    Deprecate no-op behavior of ndarray.conjugate on non-numeric dtypes,
+    which conflicts with the error behavior of np.conjugate.
+    """
+    def test_conjugate(self):
+        for a in np.array(5), np.array(5j):
+            self.assert_not_deprecated(a.conjugate)
+        for a in (np.array('s'), np.array('2016', 'M'),
+                np.array((1, 2), [('a', int), ('b', int)])):
+            self.assert_deprecated(a.conjugate)
+
+
+class TestNPY_CHAR(_DeprecationTestCase):
+    # 2017-05-03, 1.13.0
+    def test_npy_char_deprecation(self):
+        from numpy.core._multiarray_tests import npy_char_deprecation
+        self.assert_deprecated(npy_char_deprecation)
+        assert_(npy_char_deprecation() == 'S1')
+
+
+class Test_UPDATEIFCOPY(_DeprecationTestCase):
+    """
+    v1.14 deprecates creating an array with the UPDATEIFCOPY flag, use
+    WRITEBACKIFCOPY instead
+    """
+    def test_npy_updateifcopy_deprecation(self):
+        from numpy.core._multiarray_tests import npy_updateifcopy_deprecation
+        arr = np.arange(9).reshape(3, 3)
+        v = arr.T
+        self.assert_deprecated(npy_updateifcopy_deprecation, args=(v,))
+
+
+class TestDatetimeEvent(_DeprecationTestCase):
+    # 2017-08-11, 1.14.0
+    def test_3_tuple(self):
+        for cls in (np.datetime64, np.timedelta64):
+            # two valid uses - (unit, num) and (unit, num, den, None)
+            self.assert_not_deprecated(cls, args=(1, ('ms', 2)))
+            self.assert_not_deprecated(cls, args=(1, ('ms', 2, 1, None)))
+
+            # trying to use the event argument, removed in 1.7.0, is deprecated
+            # it used to be a uint8
+            self.assert_deprecated(cls, args=(1, ('ms', 2, 'event')))
+            self.assert_deprecated(cls, args=(1, ('ms', 2, 63)))
+            self.assert_deprecated(cls, args=(1, ('ms', 2, 1, 'event')))
+            self.assert_deprecated(cls, args=(1, ('ms', 2, 1, 63)))
+
+
+class TestTruthTestingEmptyArrays(_DeprecationTestCase):
+    # 2017-09-25, 1.14.0
+    message = '.*truth value of an empty array is ambiguous.*'
+
+    def test_1d(self):
+        self.assert_deprecated(bool, args=(np.array([]),))
+
+    def test_2d(self):
+        self.assert_deprecated(bool, args=(np.zeros((1, 0)),))
+        self.assert_deprecated(bool, args=(np.zeros((0, 1)),))
+        self.assert_deprecated(bool, args=(np.zeros((0, 0)),))
+
+
+class TestBincount(_DeprecationTestCase):
+    # 2017-06-01, 1.14.0
+    def test_bincount_minlength(self):
+        self.assert_deprecated(lambda: np.bincount([1, 2, 3], minlength=None))
+
+
+class TestGeneratorSum(_DeprecationTestCase):
+    # 2018-02-25, 1.15.0
+    def test_generator_sum(self):
+        self.assert_deprecated(np.sum, args=((i for i in range(5)),))
+
+
+class TestSctypeNA(_VisibleDeprecationTestCase):
+    # 2018-06-24, 1.16
+    def test_sctypeNA(self):
+        self.assert_deprecated(lambda: np.sctypeNA['?'])
+        self.assert_deprecated(lambda: np.typeNA['?'])
+        self.assert_deprecated(lambda: np.typeNA.get('?'))
+
+
+class TestPositiveOnNonNumerical(_DeprecationTestCase):
+    # 2018-06-28, 1.16.0
+    def test_positive_on_non_number(self):
+        self.assert_deprecated(operator.pos, args=(np.array('foo'),))
+
+class TestFromstring(_DeprecationTestCase):
+    # 2017-10-19, 1.14
+    def test_fromstring(self):
+        self.assert_deprecated(np.fromstring, args=('\x00'*80,))
+
+class Test_GetSet_NumericOps(_DeprecationTestCase):
+    # 2018-09-20, 1.16.0
+    def test_get_numeric_ops(self):
+        from numpy.core._multiarray_tests import getset_numericops
+        self.assert_deprecated(getset_numericops, num=2)
+        
+        # empty kwargs prevents any state actually changing which would break
+        # other tests.
+        self.assert_deprecated(np.set_numeric_ops, kwargs={})
+        assert_raises(ValueError, np.set_numeric_ops, add='abc')

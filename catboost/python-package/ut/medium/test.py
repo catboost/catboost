@@ -101,6 +101,8 @@ CAT_FEATURES = [0, 1, 2, 4, 6, 8, 9, 10, 11, 12, 16]
 
 model_diff_tool = binary_path("catboost/tools/model_comparator/model_comparator")
 
+np.set_printoptions(legacy='1.13')
+
 
 class LogStdout:
     def __init__(self, file):
