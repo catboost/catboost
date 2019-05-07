@@ -162,7 +162,7 @@ TString BuildDescription(const NCB::TFeaturesLayout& layout, const TModelSplit& 
     return result;
 }
 
-TVector<TString> GetTreeSplitsDescriptions(const TFullModel& model, int tree_idx, NCB::TDataProvider pool) {
+TVector<TString> GetTreeSplitsDescriptions(const TFullModel& model, int tree_idx, const NCB::TDataProvider& pool) {
     //TODO: support non symmetric trees
     CB_ENSURE(model.IsOblivious(), "Is not supported for non symmetric trees");
 

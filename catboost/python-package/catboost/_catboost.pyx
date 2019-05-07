@@ -565,7 +565,7 @@ cdef extern from "catboost/libs/algo/ders_holder.h":
 
 
 cdef extern from "catboost/libs/algo/tree_print.h":
-    TVector[TString] GetTreeSplitsDescriptions(const TFullModel& model, size_t tree_idx, TDataProvider pool)
+    TVector[TString] GetTreeSplitsDescriptions(const TFullModel& model, size_t tree_idx, const TDataProvider& pool)
     TVector[TString] GetTreeLeafValuesDescriptions(const TFullModel& model, int tree_idx, int leaves_num)
 
 
