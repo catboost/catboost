@@ -279,9 +279,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\netliba\v6\library-netliba-v6.vcxproj">
       <Project>{CF99E3A7-16F9-8EA9-027D-B9629FC7C3CD}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\openssl\compat\library-openssl-compat.vcxproj">
-      <Project>{116B0E1A-B4E8-F1BE-0208-27DA4E6AF3C4}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\openssl\holders\library-openssl-holders.vcxproj">
       <Project>{8BD519C9-FE74-64B1-416B-3052CA898BD0}</Project>
     </ProjectReference>

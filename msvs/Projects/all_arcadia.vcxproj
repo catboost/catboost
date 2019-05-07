@@ -813,9 +813,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\object_factory\library-object_factory.vcxproj">
       <Project>F7622D70-2702-4C7E-04DA-52DC56DF911E</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\openssl\compat\library-openssl-compat.vcxproj">
-      <Project>116B0E1A-B4E8-F1BE-0208-27DA4E6AF3C4</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\openssl\holders\library-openssl-holders.vcxproj">
       <Project>8BD519C9-FE74-64B1-416B-3052CA898BD0</Project>
     </ProjectReference>

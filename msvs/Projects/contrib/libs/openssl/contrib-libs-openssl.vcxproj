@@ -2063,7 +2063,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\e_os2.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\ebcdic.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\ec.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\ecdsa.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\ecerr.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\engine.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\engineerr.h"/>

@@ -102,9 +102,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zlib\contrib-libs-zlib.vcxproj">
       <Project>{E8A35EC0-40EE-2D96-1FB2-D065B804958D}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\openssl\compat\library-openssl-compat.vcxproj">
-      <Project>{116B0E1A-B4E8-F1BE-0208-27DA4E6AF3C4}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\openssl\holders\library-openssl-holders.vcxproj">
       <Project>{8BD519C9-FE74-64B1-416B-3052CA898BD0}</Project>
     </ProjectReference>
