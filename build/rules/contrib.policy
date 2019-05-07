@@ -1,2 +1,5 @@
 ALLOW contrib/tools/lftp -> contrib/libs/lftp
 DENY .* -> contrib/libs/lftp
+
+ALLOW contrib/deprecated/libcds -> contrib/deprecated/libcds
+DENY .* -> contrib/deprecated/libcds

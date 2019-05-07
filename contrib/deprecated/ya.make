@@ -8,6 +8,7 @@ RECURSE(
     glibmm
     jsoncpp
     libahocorasick
+    libcds
     libcouchbase
     libctpp
     libffi
