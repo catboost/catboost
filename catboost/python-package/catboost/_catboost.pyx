@@ -482,47 +482,12 @@ cdef extern from "catboost/libs/model/model.h":
         TVector[float] Borders
         TString FeatureId
 
-
-    cdef cppclass ESplitType:
-        bool_t operator==(ESplitType)
-
-    cdef ESplitType ESplitType_FloatFeature "ESplitType::FloatFeature"
-    cdef ESplitType ESplitType_OneHotFeature "ESplitType::OneHotFeature"
-    cdef ESplitType ESplitType_OnlineCtr "ESplitType::OnlineCtr"
-
-    cdef cppclass TFloatSplit:
-        int FloatFeature
-        float Split
-
-    cdef cppclass TModelCtr:
-        pass
-
-    cdef cppclass TModelCtrSplit:
-        TModelCtr Ctr
-        float Border
-
-    cdef cppclass TOneHotSplit:
-        int CatFeatureIdx
-        int Value
-
-
-    cdef cppclass TModelSplit:
-        ESplitType Type
-        TFloatSplit FloatFeature
-        TModelCtrSplit OnlineCtr
-        TOneHotSplit OneHotFeature
-
     cdef cppclass TObliviousTrees:
         int ApproxDimension
         TVector[TVector[double]] LeafWeights
         TVector[TCatFeature] CatFeatures
         TVector[TFloatFeature] FloatFeatures
         void DropUnusedFeatures() except +ProcessException
-        TVector[TModelSplit] GetBinFeatures()
-        TVector[int] TreeStartOffsets
-        TVector[int] TreeSplits
-        TVector[int] TreeSizes
-        TVector[double] LeafValues;
 
     cdef cppclass TFullModel:
         TObliviousTrees ObliviousTrees
@@ -600,7 +565,6 @@ cdef extern from "catboost/libs/algo/ders_holder.h":
 
 
 cdef extern from "catboost/libs/algo/tree_print.h":
-    TString BuildDescription(const TMaybe[TFeaturesLayout]& layout, const TModelSplit& feature)
     TVector[TString] GetTreeSplitsDescriptions(const TFullModel& model, size_t tree_idx, TDataProvider pool)
     TVector[TString] GetTreeLeafValuesDescriptions(const TFullModel& model, int tree_idx, int leaves_num)
 

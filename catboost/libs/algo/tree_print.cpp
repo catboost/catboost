@@ -1,6 +1,5 @@
 #include "tree_print.h"
 
-
 #include "projection.h"
 #include "split.h"
 

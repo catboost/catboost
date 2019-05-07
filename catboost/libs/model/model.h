@@ -814,7 +814,6 @@ public:
                 ObliviousTrees.CatFeatures);
         }
     }
-
 };
 
 void OutputModel(const TFullModel& model, TStringBuf modelFile);
