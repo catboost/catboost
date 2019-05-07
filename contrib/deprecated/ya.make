@@ -1,6 +1,7 @@
 
 
 RECURSE(
+    blackhole
     boost
     boost/libs/test
     glib
