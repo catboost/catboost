@@ -31,4 +31,8 @@
   includes:
   - __config:   contrib/libs/cxxsupp/libcxx/include/__config
 
+- source_filter: "^contrib/deprecated/boost/boost/asio/detail"
+  includes:
+  - __config:   contrib/libs/cxxsupp/libcxx/include/__config
+
 #TODO(kikht): other stl headers

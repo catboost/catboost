@@ -1906,6 +1906,23 @@ def test_cv_with_cat_features_param(param_type):
         cv(pool, params_with_wrong_cat_features)
 
 
+def test_cv_with_save_snapshot(task_type):
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    with pytest.raises(CatBoostError):
+        cv(
+            pool,
+            {
+                "iterations": 20,
+                "learning_rate": 0.03,
+                "loss_function": "Logloss",
+                "eval_metric": "AUC",
+                "task_type": task_type,
+                "save_snapshot": True
+            },
+            dev_max_iterations_batch_size=6
+        )
+
+
 def test_feature_importance(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     pool_querywise = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)

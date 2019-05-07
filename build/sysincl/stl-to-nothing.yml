@@ -27,4 +27,8 @@
   - wchar.h
   - wctype.h
 
+- source_filter: "^contrib/deprecated/boost/boost/asio/detail"
+  includes:
+  - __config
+
 #TODO(kikht): other stl headers

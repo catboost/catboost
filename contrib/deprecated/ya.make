@@ -1,6 +1,7 @@
 
 
 RECURSE(
+    blackhole
     boost
     boost/libs/test
     glib
@@ -8,6 +9,7 @@ RECURSE(
     glibmm
     jsoncpp
     libahocorasick
+    libcds
     libcouchbase
     libctpp
     libffi
