@@ -78,6 +78,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="$(SolutionDir)..\library\svnversion\svn_interface.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
     <ClCompile Include="$(SolutionDir)..\library\svnversion\svnversion.cpp"/>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\yield_line.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
