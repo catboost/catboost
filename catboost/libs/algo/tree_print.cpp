@@ -12,16 +12,16 @@
 
 
 TString BuildFeatureDescription(
-    const TMaybe<NCB::TFeaturesLayout>& featuresLayout,
+    const NCB::TFeaturesLayout& featuresLayout,
     const int internalFeatureIdx,
     EFeatureType type) {
 
-    TString externalFeatureDescription = featuresLayout->GetExternalFeatureDescription(
+    TString externalFeatureDescription = featuresLayout.GetExternalFeatureDescription(
         internalFeatureIdx,
         type);
     if (externalFeatureDescription.empty()) {
         // just return index
-        return ToString<int>(featuresLayout->GetExternalFeatureIdx(internalFeatureIdx, type));
+        return ToString<int>(featuresLayout.GetExternalFeatureIdx(internalFeatureIdx, type));
     }
     return externalFeatureDescription;
 }
@@ -66,7 +66,7 @@ TString BuildDescription(const NCB::TFeaturesLayout& featuresLayout, const TProj
     return result;
 }
 
-TString BuildDescription(const TMaybe<NCB::TFeaturesLayout>& featuresLayout, const TFeatureCombination& proj) {
+TString BuildDescription(const NCB::TFeaturesLayout& featuresLayout, const TFeatureCombination& proj) {
     TStringBuilder result;
     result << "{";
     int fc = 0;
@@ -137,7 +137,7 @@ TString BuildDescription(const NCB::TFeaturesLayout& layout, const TSplit& featu
     return result;
 }
 
-TString BuildDescription(const TMaybe<NCB::TFeaturesLayout>& layout, const TModelSplit& feature) {
+TString BuildDescription(const NCB::TFeaturesLayout& layout, const TModelSplit& feature) {
     TStringBuilder result;
     if (feature.Type == ESplitType::OnlineCtr) {
         result << BuildDescription(layout, feature.OnlineCtr.Ctr.Base.Projection);
@@ -180,12 +180,11 @@ TVector<TString> GetTreeSplitsDescriptions(const TFullModel& model, int tree_idx
         tree_split_end = tree_num;
     }
 
-    NCB::TFeaturesLayout* featuresLayout = pool.MetaInfo.FeaturesLayout.Get();
-    TMaybe<NCB::TFeaturesLayout> featuresLayoutMaybe = *featuresLayout;
+    NCB::TFeaturesLayout featuresLayout = *(pool.MetaInfo.FeaturesLayout.Get());
 
     for (int split_idx = model.ObliviousTrees.TreeStartOffsets[tree_idx]; split_idx < tree_split_end; ++split_idx) {
         TModelSplit bin_feature = bin_features[model.ObliviousTrees.TreeSplits[split_idx]];
-        TString feature_description = BuildDescription(featuresLayoutMaybe, bin_feature);
+        TString feature_description = BuildDescription(featuresLayout, bin_feature);
 
         if (bin_feature.Type == ESplitType::OneHotFeature) {
             feature_description += cat_features_hash[(ui32)bin_feature.OneHotFeature.Value];
