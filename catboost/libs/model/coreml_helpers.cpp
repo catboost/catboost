@@ -335,10 +335,23 @@ void ProcessOneTree(const TVector<const TreeEnsembleParameters::TreeNode*>& tree
 void NCatboost::NCoreML::ConvertCoreMLToCatboostModel(const Model& coreMLModel, TFullModel* fullModel) {
     CB_ENSURE(coreMLModel.specificationversion() == 1, "expected specificationVersion == 1");
     TreeEnsembleRegressor regressor;
+    TVector<TCatFeature> catFeatures;
     if (coreMLModel.has_pipeline()) {
-        auto& pipelineModel = coreMLModel.pipeline().models().Get(1);
-        CB_ENSURE(pipelineModel.has_treeensembleregressor(), "expected treeensembleregressor model");
-        regressor = pipelineModel.treeensembleregressor();
+        for (const auto& pipelineModel: coreMLModel.pipeline().models()) {
+            CB_ENSURE(pipelineModel.has_treeensembleregressor(), "expected treeensembleregressor model");
+            regressor = pipelineModel.treeensembleregressor();
+            CB_ENSURE(pipelineModel.has_categoricalmapping(), "expected categorical mapping in model");
+            auto& mapping = pipelineModel.categoricalmapping();
+            CB_ENSURE(mapping.has_stringtoint64map(), "expected stringtoint64map in categorical mapping");
+            auto& stringtoint64map = mapping.stringtoint64map();
+            auto& categoricalMapping = stringtoint64map.map();
+            for (const auto& el: categoricalMapping) {
+                TCatFeature catFeature;
+                // TODO: update FlatFeatureIndex and FeatureIndex
+                catFeature.FeatureId = el.first;
+                catFeatures.push_back(catFeature);
+            }
+        }
     } else {
         CB_ENSURE(coreMLModel.has_treeensembleregressor(), "expected treeensembleregressor model");
         regressor = coreMLModel.treeensembleregressor();
@@ -387,7 +400,7 @@ void NCatboost::NCoreML::ConvertCoreMLToCatboostModel(const Model& coreMLModel, 
             floatFeature.Borders.push_back(split.Split);
         }
     }
-    TObliviousTreeBuilder treeBuilder(floatFeatures, TVector<TCatFeature>(), approxDimension);
+    TObliviousTreeBuilder treeBuilder(floatFeatures, catFeatures, approxDimension);
     for (size_t i = 0; i < trees.size(); ++i) {
         TVector<TModelSplit> splits(trees[i].begin(), trees[i].end());
         treeBuilder.AddTree(splits, leafValues[i]);
