@@ -2,6 +2,7 @@
 #include "user.h"
 #include "nice.h"
 #include "sigset.h"
+#include "atomic.h"
 
 #include <util/folder/dirut.h>
 #include <util/generic/algorithm.h>
@@ -167,7 +168,7 @@ private:
     TString Command;
     TList<TString> Arguments;
     TString WorkDir;
-    TShellCommand::ECommandStatus ExecutionStatus;
+    TAtomic ExecutionStatus;  // TShellCommand::ECommandStatus
     TMaybe<int> ExitCode;
     IInputStream* InputStream;
     IOutputStream* OutputStream;
@@ -295,35 +296,35 @@ public:
     }
 
     inline void AppendArgument(const TStringBuf argument) {
-        if (ExecutionStatus == SHELL_RUNNING) {
+        if (AtomicGet(ExecutionStatus) == SHELL_RUNNING) {
             ythrow yexception() << "You cannot change command parameters while process is running";
         }
         Arguments.push_back(argument.ToString());
     }
 
     inline const TString& GetOutput() const {
-        if (ExecutionStatus == SHELL_RUNNING) {
+        if (AtomicGet(ExecutionStatus) == SHELL_RUNNING) {
             ythrow yexception() << "You cannot retrieve output while process is running.";
         }
         return CollectedOutput;
     }
 
     inline const TString& GetError() const {
-        if (ExecutionStatus == SHELL_RUNNING) {
+        if (AtomicGet(ExecutionStatus) == SHELL_RUNNING) {
             ythrow yexception() << "You cannot retrieve output while process is running.";
         }
         return CollectedError;
     }
 
     inline const TString& GetInternalError() const {
-        if (ExecutionStatus != SHELL_INTERNAL_ERROR) {
+        if (AtomicGet(ExecutionStatus) != SHELL_INTERNAL_ERROR) {
             ythrow yexception() << "Internal error hasn't occured so can't be retrieved.";
         }
         return InternalError;
     }
 
     inline ECommandStatus GetStatus() const {
-        return ExecutionStatus;
+        return static_cast<ECommandStatus>(AtomicGet(ExecutionStatus));
     }
 
     inline TMaybe<int> GetExitCode() const {
@@ -346,7 +347,7 @@ public:
     void Run();
 
     inline void Terminate() {
-        if (!!Pid && (ExecutionStatus == SHELL_RUNNING)) {
+        if (!!Pid && (AtomicGet(ExecutionStatus) == SHELL_RUNNING)) {
             bool ok =
 #if defined(_unix_)
                 kill(DetachSession ? -1 * Pid : Pid, SIGTERM) == 0;
@@ -561,7 +562,7 @@ void TShellCommand::TImpl::StartProcess(TShellCommand::TImpl::TPipes& pipes) {
     }
 
     if (!res) {
-        ExecutionStatus = SHELL_ERROR;
+        AtomicSet(ExecutionStatus, SHELL_ERROR);
         /// @todo: write to error stream if set
         TStringOutput out(CollectedError);
         out << "Process was not created: " << LastSystemErrorText() << " command text was: '" << GetAString(cmdcopy.Data()) << "'";
@@ -695,7 +696,7 @@ void TShellCommand::TImpl::OnFork(TPipes& pipes, sigset_t oldmask, char* const* 
 #endif
 
 void TShellCommand::TImpl::Run() {
-    Y_ENSURE(ExecutionStatus != SHELL_RUNNING, AsStringBuf("Process is already running"));
+    Y_ENSURE(AtomicGet(ExecutionStatus) != SHELL_RUNNING, AsStringBuf("Process is already running"));
     // Prepare I/O streams
     CollectedOutput.clear();
     CollectedError.clear();
@@ -711,7 +712,7 @@ void TShellCommand::TImpl::Run() {
         TRealPipeHandle::Pipe(pipes.InputPipeFd[0], pipes.InputPipeFd[1]);
     }
 
-    ExecutionStatus = SHELL_RUNNING;
+    AtomicSet(ExecutionStatus, SHELL_RUNNING);
 
 #if defined(_unix_)
     // block all signals to avoid signal handler race after fork()
@@ -758,7 +759,7 @@ void TShellCommand::TImpl::Run() {
 
     pid_t pid = fork();
     if (pid == -1) {
-        ExecutionStatus = SHELL_ERROR;
+        AtomicSet(ExecutionStatus, SHELL_ERROR);
         /// @todo check if pipes are still open
         ythrow TSystemError() << "Cannot fork";
     } else if (pid == 0) { // child
@@ -779,7 +780,7 @@ void TShellCommand::TImpl::Run() {
 #endif
     pipes.PrepareParents();
 
-    if (ExecutionStatus != SHELL_RUNNING)
+    if (AtomicGet(ExecutionStatus) != SHELL_RUNNING)
         return;
 
     if (InputMode == TShellCommandOptions::HANDLE_PIPE) {
@@ -1013,13 +1014,13 @@ void TShellCommand::TImpl::Communicate(TProcessInfo* pi) {
 #endif
         pi->Parent->ExitCode = processExitCode;
         if (cleanExit) {
-            pi->Parent->ExecutionStatus = SHELL_FINISHED;
+            AtomicSet(pi->Parent->ExecutionStatus, SHELL_FINISHED);
         } else {
-            pi->Parent->ExecutionStatus = SHELL_ERROR;
+            AtomicSet(pi->Parent->ExecutionStatus, SHELL_ERROR);
         }
     } catch (const yexception& e) {
         // Some error in watch occured, set result to error
-        pi->Parent->ExecutionStatus = SHELL_INTERNAL_ERROR;
+        AtomicSet(pi->Parent->ExecutionStatus, SHELL_INTERNAL_ERROR);
         pi->Parent->InternalError = e.what();
         if (input)
             pi->InputFd.Close();
