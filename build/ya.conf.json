@@ -1475,7 +1475,7 @@
         },
         "ymake": {
             "formula": {
-                "sandbox_id": [421750006],
+                "sandbox_id": [425819336],
                 "match": "ymake"
             },
             "executable": {
@@ -1643,7 +1643,7 @@
         },
         "clang7": {
             "formula": {
-                "sandbox_id": [315520088, 290144580],
+                "sandbox_id": [426097867, 425919040],
                 "match": "CLANG"
             },
             "executable": {
@@ -1706,12 +1706,12 @@
                 "cc": ["bin", "clang"],
                 "llvm-cov": ["bin", "llvm-cov"],
                 "strip": ["bin", "arm-linux-androideabi-strip"],
-                "c++filt": ["bin", "arm-linux-androidabi-c++filt"],
+                "c++filt": ["bin", "arm-linux-androideabi-c++filt"],
                 "clang-format": ["bin", "clang-format"],
                 "clang-tidy": ["bin", "clang-tidy"],
                 "llvm-profdata": ["bin", "llvm-profdata"],
                 "llvm-symbolizer": ["bin", "llvm-symbolizer"],
-                "nm": ["bin", "arm-linux-androidabi-nm"]
+                "nm": ["bin", "arm-linux-androideabi-nm"]
             }
         },
         "clang6-android-armv8": {
@@ -1723,13 +1723,13 @@
                 "c++": ["bin", "clang++"],
                 "cc": ["bin", "clang"],
                 "llvm-cov": ["bin", "llvm-cov"],
-                "strip": ["bin", "aarch64-linux-androideabi-strip"],
-                "c++filt": ["bin", "aarch64-linux-androidabi-c++filt"],
+                "strip": ["bin", "aarch64-linux-android-strip"],
+                "c++filt": ["bin", "aarch64-linux-android-c++filt"],
                 "clang-format": ["bin", "clang-format"],
                 "clang-tidy": ["bin", "clang-tidy"],
                 "llvm-profdata": ["bin", "llvm-profdata"],
                 "llvm-symbolizer": ["bin", "llvm-symbolizer"],
-                "nm": ["bin", "aarch64-linux-androidabi-nm"]
+                "nm": ["bin", "aarch64-linux-android-nm"]
             }
         },
         "cuda": {

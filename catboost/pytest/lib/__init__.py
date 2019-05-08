@@ -81,16 +81,15 @@ def execute(*args, **kwargs):
         return yatest.yt.execute(
             *args,
             task_spec={
-                # temporary layers
                 'layer_paths': [
-                    '//home/codecoverage/nvidia-396.tar.gz',
+                    '//home/devtools/porto_layers/test/gpu/cuda-drivers_396.44-1.tar.gz',
                     '//porto_layers/ubuntu-xenial-base.tar.xz',
                 ],
                 'gpu_limit': 1
             },
             operation_spec={
                 'pool_trees': ['gpu_geforce_1080ti'],
-                'scheduling_tag_filter': 'porto',
+                'scheduling_tag_filter': 'porto & !testing',
             },
             input_data=input_data,
             output_data=output_data,

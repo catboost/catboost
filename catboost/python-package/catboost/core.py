@@ -1058,6 +1058,7 @@ class _CatBoostBase(object):
     def get_tree_leaf_values(self, tree_idx, leaves_num):
         return self._object._get_tree_leaf_values(tree_idx, leaves_num)
 
+
 def _check_param_types(params):
     if not isinstance(params, (Mapping, MutableMapping)):
         raise CatBoostError("Invalid params type={}: must be dict().".format(type(params)))

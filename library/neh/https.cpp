@@ -14,8 +14,6 @@
 #include <contrib/libs/openssl/include/openssl/bio.h>
 #include <contrib/libs/openssl/include/openssl/x509v3.h>
 
-#include <library/openssl/compat/asn1.h> // Remove after OpenSSL upgrade
-#include <library/openssl/compat/bio.h> // Remove after OpenSSL upgrade
 #include <library/openssl/init/init.h>
 #include <library/openssl/method/io.h>
 #include <library/coroutine/listener/listen.h>

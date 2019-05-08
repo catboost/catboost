@@ -25,6 +25,7 @@
 #include <util/string/cast.h>
 #include <util/system/compiler.h>
 
+#include <cmath>
 #include <functional>
 
 
@@ -285,16 +286,27 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
                                                       localExecutor);
     TVector<TQueryInfo> queriesInfo(targetQueriesInfo.begin(), targetQueriesInfo.end());
 
+    ui32 blockCount = queriesInfo.empty() ? documentCount : queriesInfo.size();
+    ui32 blockSize = Min(ui32(10000), ui32(1e6) / (featuresCount * approx.ysize())); // shapValues[blockSize][featuresCount][dim] double
+
     NCatboostOptions::TLossDescription lossDescription;
     Y_VERIFY(TryGetLossDescription(model, lossDescription), "No loss_function in model params");
-    if (IsYetiRankLossFunction(lossDescription.GetLossFunction())) {
+
+    // NDCG and PFound metrics are possible for YetiRank
+    // PFound replace with PairLogit (with YetiRank generated pairs) due to quality
+    // NDCG used for labels not in [0., 1.] and don't use YetiRank pairs
+    bool needYetiRankPairs = IsYetiRankLossFunction(lossDescription.GetLossFunction())
+                             && metricDescription.LossFunction != ELossFunction::NDCG;
+    if (needYetiRankPairs) {
         metricDescription = NCatboostOptions::ParseLossDescription("PairLogit");
+        ui32 maxQuerySize = 0;
+        for (const auto& query : queriesInfo) {
+            maxQuerySize = Max(maxQuerySize, query.GetSize());
+        }
+        blockSize = Min(blockSize, ui32(ceil(20000. / maxQuerySize)));
     }
     THolder<IMetric> metric = std::move(CreateMetricFromDescription(metricDescription, approxDimension)[0]);
     CB_ENSURE(metric->IsAdditiveMetric(), "LossFunctionChange support only additive metric");
-
-    ui32 blockCount = queriesInfo.empty() ? documentCount : queriesInfo.size();
-    ui32 blockSize = Min(ui32(10000), ui32(1e6) / (featuresCount * approx.ysize())); // shapValues[blockSize][featuresCount][dim] double
 
     TProfileInfo profile(documentCount);
     TImportanceLogger importanceLogger(documentCount, "Process documents", "Started LossFunctionChange calculation", 1);
@@ -309,7 +321,7 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
             begin = queriesInfo[queryBegin].Begin;
             end = queriesInfo[queryEnd - 1].End;
         }
-        if (IsYetiRankLossFunction(lossDescription.GetLossFunction())) {
+        if (needYetiRankPairs) {
             UpdatePairsForYetiRank(
                 approx[0],
                 *targetData->GetTarget(),
@@ -354,7 +366,7 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
                 }
             }, blockParams, NPar::TLocalExecutor::WAIT_COMPLETE);
         }
-        if (IsYetiRankLossFunction(lossDescription.GetLossFunction())) {
+        if (needYetiRankPairs) {
             for (ui32 queryIndex = queryBegin; queryIndex < queryEnd; ++queryIndex) {
                 queriesInfo[queryIndex].Competitors.clear();
                 queriesInfo[queryIndex].Competitors.shrink_to_fit();

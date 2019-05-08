@@ -9,6 +9,6 @@ sed -i -e "s/\'5 0\'/\'6 0\'/" make/*.makefile
 # endian.h => sys/endian.h
 sed -i -e "s/<endian.h>/<sys\/endian.h>/" contrib/python/numpy/numpy/core/include/numpy/npy_endian.h
 # don't build AFALG on freebsd
-echo '#define OPENSSL_NO_AFALGENG' >> contrib/libs/openssl/1.1.1/include/openssl/opensslconf.h
+echo '#define OPENSSL_NO_AFALGENG' >> contrib/libs/openssl/include/openssl/opensslconf.h
 # hack
-echo '#include <stdio.h>' > contrib/libs/openssl/1.1.1/engines/e_afalg.c
+echo '#include <stdio.h>' > contrib/libs/openssl/engines/e_afalg.c

@@ -12,8 +12,8 @@ PEERDIR(
 
 TEST_SRCS(
     test_decorators.py
-    test_utils.py
     test_doctesting.py
+    test_utils.py
 )
 
 END()

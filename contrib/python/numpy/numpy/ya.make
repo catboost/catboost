@@ -1,13 +1,13 @@
 
 
 RECURSE(
-    fft/tests
-    testing/tests
-    polynomial/tests
-    linalg/tests
     core/tests
-    matrixlib/tests
-    ma/tests
-    random/tests
+    fft/tests
     lib/tests
+    linalg/tests
+    ma/tests
+    matrixlib/tests
+    polynomial/tests
+    random/tests
+    testing/tests
 )
