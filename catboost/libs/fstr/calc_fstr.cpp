@@ -390,7 +390,7 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
                 score = -score;
                 break;
             case EMetricBestValue::FixedValue:
-                score = abs(score - bestValue);
+                score = abs(metric->GetFinalError(scores[idx]) - bestValue) - abs(metric->GetFinalError(scores.back()) - bestValue);
             default:
                 ythrow TCatBoostException() << "unsupported bestValue metric type";
         }
