@@ -4,7 +4,7 @@ import atexit
 import re
 import functools
 
-from six.moves import urllib, http_client, map, filter
+from setuptools.extern.six.moves import urllib, http_client, map, filter
 
 from pkg_resources import ResolutionError, ExtractionError
 
@@ -59,7 +59,7 @@ if not match_hostname:
     def _dnsname_match(dn, hostname, max_wildcards=1):
         """Matching according to RFC 6125, section 6.4.3
 
-        http://tools.ietf.org/html/rfc6125#section-6.4.3
+        https://tools.ietf.org/html/rfc6125#section-6.4.3
         """
         pats = []
         if not dn:
@@ -186,9 +186,14 @@ class VerifyingHTTPSConn(HTTPSConnection):
         else:
             actual_host = self.host
 
-        self.sock = ssl.wrap_socket(
-            sock, cert_reqs=ssl.CERT_REQUIRED, ca_certs=self.ca_bundle
-        )
+        if hasattr(ssl, 'create_default_context'):
+            ctx = ssl.create_default_context(cafile=self.ca_bundle)
+            self.sock = ctx.wrap_socket(sock, server_hostname=actual_host)
+        else:
+            # This is for python < 2.7.9 and < 3.4?
+            self.sock = ssl.wrap_socket(
+                sock, cert_reqs=ssl.CERT_REQUIRED, ca_certs=self.ca_bundle
+            )
         try:
             match_hostname(self.sock.getpeercert(), actual_host)
         except CertificateError:
