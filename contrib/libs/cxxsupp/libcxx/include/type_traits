@@ -2259,7 +2259,7 @@ _LIBCPP_INLINE_VAR _LIBCPP_CONSTEXPR bool is_move_assignable_v
 #if defined(_LIBCPP_COMPILER_MSVC)
 
 template <typename _Tp>
-struct is_destructible : bool_constant<__is_destructible(_Tp)> {};
+struct is_destructible : integral_constant<bool, __is_destructible(_Tp)> {};
 
 #else
 
