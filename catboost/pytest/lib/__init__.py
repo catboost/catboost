@@ -89,7 +89,7 @@ def execute(*args, **kwargs):
             },
             operation_spec={
                 'pool_trees': ['gpu_geforce_1080ti'],
-                'scheduling_tag_filter': 'porto',
+                'scheduling_tag_filter': 'porto & !testing',
             },
             input_data=input_data,
             output_data=output_data,
