@@ -81,9 +81,8 @@ def execute(*args, **kwargs):
         return yatest.yt.execute(
             *args,
             task_spec={
-                # temporary layers
                 'layer_paths': [
-                    '//home/codecoverage/nvidia-396.tar.gz',
+                    '//home/devtools/porto_layers/test/gpu/cuda-drivers_396.44-1.tar.gz',
                     '//porto_layers/ubuntu-xenial-base.tar.xz',
                 ],
                 'gpu_limit': 1
