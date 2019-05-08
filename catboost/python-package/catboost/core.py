@@ -12,6 +12,7 @@ import tempfile
 import shutil
 from enum import Enum
 from operator import itemgetter
+from graphviz import Digraph
 
 if platform.system() == 'Linux':
     try:
@@ -1051,6 +1052,12 @@ class _CatBoostBase(object):
     def best_iteration_(self):
         return self.get_best_iteration()
 
+    def get_tree_splits(self, tree_idx, pool):
+        return self._object._get_tree_splits(tree_idx, pool)
+
+    def get_tree_leaf_values(self, tree_idx, leaves_num):
+        return self._object._get_tree_leaf_values(tree_idx, leaves_num)
+
 
 def _check_param_types(params):
     if not isinstance(params, (Mapping, MutableMapping)):
@@ -2042,6 +2049,39 @@ class CatBoost(_CatBoostBase):
         for key, value in iteritems(params):
             self._init_params[key] = value
         return self
+
+    def plot_tree(self, tree_idx, pool):
+        graph = Digraph()
+
+        splits = self.get_tree_splits(tree_idx, pool)
+        leaf_values = self.get_tree_leaf_values(tree_idx, 1 << len(splits))
+
+        layer_size = 1
+        current_size = 0
+
+        for split_num in range(len(splits) - 1, -2, -1):
+            for node_num in range(layer_size):
+                if split_num >= 0:
+                    node_label = splits[split_num].decode('utf-8')
+                    color = 'black'
+                    shape = 'ellipse'
+                else:
+                    node_label = leaf_values[node_num].decode('utf-8')
+                    color = 'red'
+                    shape = 'rect'
+
+                graph.node(str(current_size), node_label, color=color, shape=shape)
+
+                if (current_size > 0):
+                    parent = (current_size - 1) // 2
+                    edge_label = 'Yes' if current_size % 2 == 1 else 'No'
+                    graph.edge(str(parent), str(current_size), edge_label)
+
+                current_size += 1
+
+            layer_size *= 2
+
+        return graph
 
 
 class CatBoostClassifier(CatBoost):

@@ -16,6 +16,7 @@ SPLIT_FACTOR(40)
 NO_CHECK_IMPORTS(widget.ipythonwidget)
 
 PEERDIR(
+    contrib/python/graphviz
     contrib/python/pandas
     contrib/python/numpy
     contrib/python/six

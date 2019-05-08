@@ -4,6 +4,7 @@ PROGRAM(catboost-python)
 
 PEERDIR(
     contrib/python/six
+    contrib/python/graphviz
     contrib/python/numpy
     contrib/python/pandas
     contrib/python/enum34

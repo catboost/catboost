@@ -564,6 +564,11 @@ cdef extern from "catboost/libs/algo/ders_holder.h":
         double Der2
 
 
+cdef extern from "catboost/libs/algo/tree_print.h":
+    TVector[TString] GetTreeSplitsDescriptions(const TFullModel& model, size_t tree_idx, const TDataProvider& pool)
+    TVector[TString] GetTreeLeafValuesDescriptions(const TFullModel& model, int tree_idx, int leaves_num)
+
+
 cdef extern from "catboost/libs/options/enum_helpers.h":
     cdef bool_t IsClassificationObjective(const TString& lossFunction) nogil except +ProcessException
     cdef bool_t IsRegressionObjective(const TString& lossFunction) nogil except +ProcessException
@@ -2752,6 +2757,22 @@ cdef class _CatBoost:
 
     cpdef _save_borders(self, output_file):
         SaveModelBorders( to_arcadia_string(output_file), dereference(self.__model))
+
+    cpdef _get_tree_splits(self, tree_idx, _PoolBase pool):
+        splits = GetTreeSplitsDescriptions(dereference(self.__model), tree_idx, dereference(pool.__pool.Get()))
+        node_descriptions = []
+        for description in splits:
+            node_descriptions.append(description)
+        return node_descriptions
+
+    cpdef _get_tree_leaf_values(self, tree_idx, leaves_num):
+        leaf_values = GetTreeLeafValuesDescriptions(dereference(self.__model), tree_idx, leaves_num)
+        leaf_values_list = []
+
+        for value in leaf_values:
+            leaf_values_list.append(value)
+
+        return leaf_values_list
 
 
 cdef class _MetadataHashProxy:
