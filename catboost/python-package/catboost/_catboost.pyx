@@ -2689,6 +2689,7 @@ cdef class _CatBoost:
             target,
             prediction,
             featureNum)
+
         return {
             'Borders': res.Borders,
             'BinarizedFeature': res.BinarizedFeature,
