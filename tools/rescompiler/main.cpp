@@ -6,7 +6,7 @@
 #include <util/string/cast.h>
 #include <util/string/hex.h>
 #include <util/string/vector.h>
-#include <util/string/iterator.h>
+#include <util/string/split.h>
 
 using namespace NResource;
 

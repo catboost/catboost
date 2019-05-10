@@ -6,7 +6,7 @@
 #include <util/generic/array_size.h>
 #include <util/string/subst.h>
 #include <util/string/vector.h>
-#include <util/string/iterator.h>
+#include <util/string/split.h>
 
 using namespace NLastGetopt;
 

@@ -2,7 +2,7 @@
 
 #include <library/streams/factory/factory.h>
 
-#include <util/string/iterator.h>
+#include <util/string/split.h>
 
 using namespace NTextProcessing::NDictionary;
 using NTextProcessing::NDictionary::EUnknownTokenPolicy;

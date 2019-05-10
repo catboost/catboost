@@ -25,7 +25,7 @@
 #include <util/generic/ymath.h>
 #include <util/string/builder.h>
 #include <util/string/cast.h>
-#include <util/string/iterator.h>
+#include <util/string/split.h>
 #include <util/string/printf.h>
 #include <util/system/yassert.h>
 

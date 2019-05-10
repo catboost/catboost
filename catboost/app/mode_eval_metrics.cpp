@@ -15,7 +15,7 @@
 #include <library/getopt/small/last_getopt_opts.h>
 
 #include <util/folder/tempdir.h>
-#include <util/string/iterator.h>
+#include <util/string/split.h>
 #include <util/system/compiler.h>
 
 

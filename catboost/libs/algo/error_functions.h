@@ -18,7 +18,7 @@
 #include <util/generic/algorithm.h>
 #include <util/generic/vector.h>
 #include <util/generic/ymath.h>
-#include <util/string/iterator.h>
+#include <util/string/split.h>
 #include <util/system/yassert.h>
 
 

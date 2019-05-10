@@ -4,7 +4,7 @@
 #include <util/stream/output.h>
 #include <util/stream/file.h>
 #include <util/string/vector.h>
-#include <util/string/iterator.h>
+#include <util/string/split.h>
 
 
 using namespace NResource;

@@ -3,7 +3,7 @@
 
 #include <util/string/builder.h>
 #include <util/string/cast.h>
-#include <util/string/iterator.h>
+#include <util/string/split.h>
 #include <util/string/vector.h>
 
 

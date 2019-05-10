@@ -10,7 +10,7 @@
 #include <catboost/libs/logging/logging.h>
 
 #include <util/string/cast.h>
-#include <util/string/iterator.h>
+#include <util/string/split.h>
 
 #include <util/generic/utility.h>
 #include <util/generic/xrange.h>

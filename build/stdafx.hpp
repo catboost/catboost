@@ -253,7 +253,6 @@
 #include <util/string/scan.h>
 #include <util/string/type.h>
 #include <util/string/join.h>
-#include <util/string/iterator.h>
 #include <util/string/vector.h>
 #include <util/string/kmp.h>
 #include <util/string/split.h>

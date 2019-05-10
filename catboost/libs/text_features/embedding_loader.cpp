@@ -1,7 +1,7 @@
 #include "embedding.h"
 #include <catboost/libs/data_util/path_with_scheme.h>
 #include <catboost/libs/data_util/line_data_reader.h>
-#include <util/string/iterator.h>
+#include <util/string/split.h>
 #include <util/stream/file.h>
 
 namespace NCB {

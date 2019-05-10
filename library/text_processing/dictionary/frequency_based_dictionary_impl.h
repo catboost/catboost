@@ -10,7 +10,7 @@
 #include <util/generic/hash.h>
 #include <util/generic/vector.h>
 #include <util/generic/xrange.h>
-#include <util/string/iterator.h>
+#include <util/string/split.h>
 
 #include <array>
 

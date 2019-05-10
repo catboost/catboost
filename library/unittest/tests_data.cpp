@@ -4,7 +4,7 @@
 #include <util/network/sock.h>
 #include <util/random/random.h>
 #include <util/stream/file.h>
-#include <util/string/iterator.h>
+#include <util/string/split.h>
 #include <util/system/env.h>
 #include <util/system/file_lock.h>
 #include <util/system/fs.h>
