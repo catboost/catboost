@@ -10,7 +10,6 @@
 #include <util/system/yassert.h>
 
 #define KEEP_EMPTY_TOKENS 0x01
-#define KEEP_DELIMITERS 0x02
 
 //
 // NOTE: Check StringSplitter below to get more convenient split string interface.
