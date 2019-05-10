@@ -3,7 +3,6 @@
 #include <util/generic/hash.h>
 #include <util/generic/strbuf.h>
 #include <util/string/split.h>
-#include <util/string/iterator.h>
 #include <util/charset/utf8.h>
 
 ////////////////////////////////////

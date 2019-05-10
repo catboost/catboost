@@ -12,7 +12,7 @@
 #define KEEP_DELIMITERS 0x02
 
 //
-// NOTE: Check util/string/iterator.h to get more convenient split string interface.
+// NOTE: Check StringSplitter below to get more convenient split string interface.
 
 namespace NPrivate {
 
