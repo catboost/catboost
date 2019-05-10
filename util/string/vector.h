@@ -1,6 +1,7 @@
 #pragma once
 
 #include "cast.h"
+#include "split.h"
 
 #include <util/generic/map.h>
 #include <util/generic/strbuf.h>

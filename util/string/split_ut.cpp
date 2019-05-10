@@ -238,7 +238,7 @@ Y_UNIT_TEST_SUITE(SplitStringTest) {
     }
 
     Y_UNIT_TEST(TestSplit) {
-        TString data("qw ab qwababcab");
+        TString data("qw ab qwababcba");
         TString canonic[] = {"qw ", " qw", "c"};
         TVector<TString> good(canonic, canonic + 3);
         TString delim = "ab";
