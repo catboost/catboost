@@ -20,7 +20,7 @@ namespace {
         auto os = TStringOutput(res);
 
         TVector<TStringBuf> words;
-        Split(text, "\n ", words);
+        StringSplitter(text).SplitBySet("\n ").SkipEmpty().Collect(&words);
 
         size_t lenSoFar = 0;
         for (TStringBuf word: words) {
@@ -433,7 +433,7 @@ namespace NLastGetopt {
                     }
 
                     TVector<TStringBuf> helpLines;
-                    Split(help, "\n", helpLines);
+                    StringSplitter(help).Split('\n').SkipEmpty().Collect(&helpLines);
                     multiLineHelp = (helpLines.size() > 1);
                     lestLineLength = helpLines.back().size();
                     os << helpLines[0];

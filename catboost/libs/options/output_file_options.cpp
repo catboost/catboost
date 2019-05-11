@@ -41,8 +41,8 @@ bool NCatboostOptions::TryGetModelTypeFromExtension(const TStringBuf modelExtens
 
 EModelType NCatboostOptions::DefineModelFormat(TStringBuf modelPath) {
     EModelType modelType;
-    TVector<TString> tokens;
-    if (Split(TString(modelPath), ".", tokens) > 1) {
+    TVector<TString> tokens = StringSplitter(modelPath).Split('.').SkipEmpty().ToList<TString>();
+    if (tokens.size() > 1) {
         if (NCatboostOptions::TryGetModelTypeFromExtension(tokens.back(), modelType)) {
             return modelType;
         }

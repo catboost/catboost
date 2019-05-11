@@ -8,7 +8,7 @@
 namespace NCB {
     void ParseBordersFileLine(const TString& line, ui32* flatFeatureIdx, float* border, TMaybe<ENanMode>* nanMode) {
         TVector<TString> tokens;
-        Split(line, "\t", tokens);
+        StringSplitter(line).Split('\t').SkipEmpty().Collect(&tokens);
         CB_ENSURE(
             tokens.ysize() == 2 || tokens.ysize() == 3,
             "Each line should have two or three columns");
