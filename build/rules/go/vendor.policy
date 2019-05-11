@@ -221,4 +221,14 @@ ALLOW .* -> vendor/github.com/tus/tusd
 # MIGRATION-289. responsible: nekto0n@. deadline: 30.06.2019
 ALLOW infra/nanny2 -> vendor/github.com/golang/glog
 
+#
+# Permanent exceptions.
+#
+
+# CONTRIB-865. Jaeger YT plugin. responsible: prime@
+ALLOW yt/jaeger/plugin -> vendor/github.com/jaegertracing/jaeger
+ALLOW yt/jaeger/plugin -> vendor/github.com/uber/jaeger-lib
+ALLOW yt/jaeger/plugin -> vendor/github.com/spf13/viper
+
+
 DENY .* -> vendor/
