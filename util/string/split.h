@@ -182,31 +182,6 @@ private:
     Condition Fn;
 };
 
-template <class Iterator, class TDelim>
-class TLimitedDelimiter {
-public:
-    template <class... Args>
-    TLimitedDelimiter(size_t limit, Args&&... args)
-        : Delim(std::forward<Args>(args)...)
-        , Limit(limit)
-    {
-        Y_ASSERT(limit > 0);
-    }
-
-    inline Iterator Find(Iterator& b, Iterator e) noexcept {
-        if (Limit > 1) {
-            --Limit;
-            return Delim.Find(b, e);
-        } else {
-            return (b = e);
-        }
-    }
-
-private:
-    TDelim Delim;
-    size_t Limit = Max<size_t>();
-};
-
 template <class Char>
 struct TFindFirstOf {
     inline TFindFirstOf(Char* set)
