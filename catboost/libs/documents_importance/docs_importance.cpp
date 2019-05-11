@@ -26,14 +26,14 @@ using namespace NCB;
 static TUpdateMethod ParseUpdateMethod(const TString& updateMethod) {
     TString errorMessage = "Incorrect update-method param value. Should be one of: SinglePoint, \
         TopKLeaves, AllPoints or TopKLeaves:top=2 to set the top size in TopKLeaves method.";
-    TVector<TString> tokens = StringSplitter(updateMethod).SplitLimited(':', 2);
+    TVector<TString> tokens = StringSplitter(updateMethod).Split(':').Limit(2);
     CB_ENSURE(tokens.size() <= 2, errorMessage);
     EUpdateType updateType;
     CB_ENSURE(TryFromString<EUpdateType>(tokens[0], updateType), tokens[0] + " update method is not supported");
     CB_ENSURE(tokens.size() == 1 || (tokens.size() == 2 && updateType == EUpdateType::TopKLeaves), errorMessage);
     int topSize = 0;
     if (tokens.size() == 2) {
-        TVector<TString> keyValue = StringSplitter(tokens[1]).SplitLimited('=', 2);
+        TVector<TString> keyValue = StringSplitter(tokens[1]).Split('=').Limit(2);
         CB_ENSURE(keyValue[0] == "top", errorMessage);
         CB_ENSURE(TryFromString<int>(keyValue[1], topSize), "Top size should be nonnegative integer, got: " + keyValue[1]);
     }

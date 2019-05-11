@@ -46,7 +46,7 @@ int main(int argc, char** argv) {
 
     while (*argv) {
         if (AsStringBuf("-") == *argv) {
-            TVector<TString> items = StringSplitter(TString(*(argv + 1))).SplitByStringLimited("=", 2).ToList<TString>();
+            TVector<TString> items = StringSplitter(TString(*(argv + 1))).Split('=').Limit(2).ToList<TString>();
             GenOne(TString(items[1]), TString(items[0]), out);
         } else {
             GenOne(TUnbufferedFileInput(*argv).ReadAll(), *(argv + 1), out);

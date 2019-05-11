@@ -949,13 +949,37 @@ namespace NPrivate {
             }
 
             template <class TToken>
-            inline bool Stop(const TToken*) noexcept {
+            inline bool Stop(TToken*) noexcept {
                 if (Count > 0) {
                     --Count;
                     return false;
                 } else {
                     return true;
                 }
+            }
+
+            size_t Count = 0;
+        };
+
+        struct TLimit {
+            TLimit() = default;
+
+            TLimit(size_t count)
+                : Count(count)
+            {
+                Y_ASSERT(Count > 0);
+            }
+
+            template <class TToken>
+            inline bool Stop(TToken* token) noexcept {
+                if (Count > 1) {
+                    --Count;
+                    return false;
+                } else if (Count == 1) {
+                    token->TokD = token->B = token->E;
+                    return false;
+                }
+                return true;
             }
 
             size_t Count = 0;
@@ -973,6 +997,10 @@ namespace NPrivate {
             }
 
             inline TIt<TTake> Take(size_t count) {
+                return { *this, count };
+            }
+
+            inline TIt<TLimit> Limit(size_t count) {
                 return { *this, count };
             }
         };
@@ -1008,28 +1036,6 @@ namespace NPrivate {
         template <class TFunc>
         inline TIt<TEmbedPolicy<TFuncDelimiter<TIterator, TFunc>>> SplitByFunc(TFunc f) const noexcept {
             return { String_, f };
-        }
-
-        template <class TDelim>
-        inline TIt<TEmbedPolicy<TLimitedDelimiter<const TChar*, TDelim>>> SplitLimited(const TDelim& d, size_t limit) const noexcept {
-            return { String_, limit, d };
-        }
-
-        inline TIt<TEmbedPolicy<TLimitedDelimiter<const TChar*, TCharDelimiter<const TChar>>>> SplitLimited(TChar ch, size_t limit) const noexcept {
-            return { String_, limit, ch };
-        }
-
-        inline TIt<TEmbedPolicy<TLimitedDelimiter<const TChar*, TSetDelimiter<const TChar>>>> SplitBySetLimited(const TChar* set, size_t limit) const noexcept {
-            return { String_, limit, set };
-        }
-
-        inline TIt<TEmbedPolicy<TLimitedDelimiter<const TChar*, TStringDelimiter<const TChar>>>> SplitByStringLimited(const TStringBufType& str, size_t limit) const noexcept {
-            return { String_, limit, str.data(), str.size() };
-        }
-
-        template <class TFunc>
-        inline TIt<TEmbedPolicy<TLimitedDelimiter<TIterator, TFuncDelimiter<TIterator, TFunc>>>> SplitByFuncLimited(TFunc f, size_t limit) const noexcept {
-            return { String_, limit, f };
         }
 
     private:

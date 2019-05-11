@@ -380,7 +380,7 @@ namespace NTextProcessing::NDictionary {
             TVector<ui64>* idToCount
         ) {
             TVector<TStringBuf> splittedLine;
-            StringSplitter(line).SplitLimited('\t', 3).Collect(&splittedLine);
+            StringSplitter(line).Split('\t').Limit(3).Collect(&splittedLine);
 
             auto& key = sortedInternalIds->emplace_back();
             ui32 gramIndex = 0;

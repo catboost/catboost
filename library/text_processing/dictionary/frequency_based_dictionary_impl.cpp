@@ -187,7 +187,7 @@ static void GetTokenInfoFromLineInNewFormat(
     TVector<ui64>* idToCount
 ) {
     TVector<TStringBuf> splittedLine;
-    StringSplitter(line).SplitLimited('\t', 3).Collect(&splittedLine);
+    StringSplitter(line).Split('\t').Limit(3).Collect(&splittedLine);
     auto token = splittedLine[2];
     (*tokenToId)[token] = FromString<ui32>(splittedLine[0]);
     idToToken->emplace_back(tokenToId->find(token)->first);

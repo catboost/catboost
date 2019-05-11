@@ -335,7 +335,17 @@ Y_UNIT_TEST_SUITE(StringSplitter) {
 
     Y_UNIT_TEST(TestSplitLimited) {
         TVector<TString> expected = {"1", "2", "3,4,5"};
-        TVector<TString> actual = StringSplitter("1,2,3,4,5").SplitLimited(',', 3).ToList<TString>();
+        TVector<TString> actual = StringSplitter("1,2,3,4,5").Split(',').Limit(3).ToList<TString>();
+        UNIT_ASSERT_VALUES_EQUAL(expected, actual);
+    }
+
+    Y_UNIT_TEST(TestSplitLimitedWithEmptySkip) {
+        TVector<TString> expected = {"1", "2", "3,4,5"};
+        TVector<TString> actual = StringSplitter("1,,,2,,,,3,4,5").Split(',').SkipEmpty().Limit(3).ToList<TString>();
+        UNIT_ASSERT_VALUES_EQUAL(expected, actual);
+
+        expected = {"1", "2", ",,,3,4,5"};
+        actual = StringSplitter("1,2,,,,3,4,5").Split(',').Limit(3).SkipEmpty().ToList<TString>();
         UNIT_ASSERT_VALUES_EQUAL(expected, actual);
     }
 
@@ -351,7 +361,17 @@ Y_UNIT_TEST_SUITE(StringSplitter) {
 
     Y_UNIT_TEST(TestSplitBySetLimited) {
         TVector<TString> expected = {"1", "2", "3,4:5"};
-        TVector<TString> actual = StringSplitter("1,2:3,4:5").SplitBySetLimited(",:", 3).ToList<TString>();
+        TVector<TString> actual = StringSplitter("1,2:3,4:5").SplitBySet(",:").Limit(3).ToList<TString>();
+        UNIT_ASSERT_VALUES_EQUAL(expected, actual);
+    }
+
+    Y_UNIT_TEST(TestSplitBySetLimitedWithEmptySkip) {
+        TVector<TString> expected = {"1", "2", "3,4:5"};
+        TVector<TString> actual = StringSplitter("1,:,2::::,3,4:5").SplitBySet(",:").SkipEmpty().Limit(3).ToList<TString>();
+        UNIT_ASSERT_VALUES_EQUAL(expected, actual);
+
+        expected = {"1", ",2::::,3,4:5"};
+        actual = StringSplitter("1,:,2::::,3,4:5").SplitBySet(",:").Limit(3).SkipEmpty().ToList<TString>();
         UNIT_ASSERT_VALUES_EQUAL(expected, actual);
     }
 
@@ -367,7 +387,13 @@ Y_UNIT_TEST_SUITE(StringSplitter) {
 
     Y_UNIT_TEST(TestSplitByStringLimited) {
         TVector<TString> expected = {"1", "2", "3ab4ab5"};
-        TVector<TString> actual = StringSplitter("1ab2ab3ab4ab5").SplitByStringLimited("ab", 3).ToList<TString>();
+        TVector<TString> actual = StringSplitter("1ab2ab3ab4ab5").SplitByString("ab").Limit(3).ToList<TString>();
+        UNIT_ASSERT_VALUES_EQUAL(expected, actual);
+    }
+
+    Y_UNIT_TEST(TestSplitByStringLimitedWithEmptySkip) {
+        TVector<TString> expected = {"1", "2", "3ab4ab5"};
+        TVector<TString> actual = StringSplitter("1abab2ababababab3ab4ab5").SplitByString("ab").SkipEmpty().Limit(3).ToList<TString>();
         UNIT_ASSERT_VALUES_EQUAL(expected, actual);
     }
 
@@ -388,7 +414,14 @@ Y_UNIT_TEST_SUITE(StringSplitter) {
     Y_UNIT_TEST(TestSplitByFuncLimited) {
         TVector<TString> expected = {"1", "2", "3a4b5"};
         auto f = [](char a) { return a == 'a' || a == 'b'; };
-        TVector<TString> actual = StringSplitter("1a2b3a4b5").SplitByFuncLimited(f, 3).ToList<TString>();
+        TVector<TString> actual = StringSplitter("1a2b3a4b5").SplitByFunc(f).Limit(3).ToList<TString>();
+        UNIT_ASSERT_VALUES_EQUAL(expected, actual);
+    }
+
+    Y_UNIT_TEST(TestSplitByFuncLimitedWithEmptySkip) {
+        TVector<TString> expected = {"1", "2", "3a4b5"};
+        auto f = [](char a) { return a == 'a' || a == 'b'; };
+        TVector<TString> actual = StringSplitter("1aaba2bbababa3a4b5").SplitByFunc(f).SkipEmpty().Limit(3).Take(3).ToList<TString>();
         UNIT_ASSERT_VALUES_EQUAL(expected, actual);
     }
 

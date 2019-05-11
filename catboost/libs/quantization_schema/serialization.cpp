@@ -36,7 +36,7 @@ static NCB::TPoolQuantizationSchema LoadInMatrixnetFormat(IInputStream* const in
     TVector<TStringBuf> columns;
     for (TString line; input->ReadLine(line); ++lineIndex) {
         columns.clear();
-        StringSplitter(line).SplitLimited('\t', 3).Collect(&columns);
+        StringSplitter(line).Split('\t').Limit(3).Collect(&columns);
 
         if (columns.size() < 2) {
             ythrow TCatBoostException() << "only " << columns.size() << "columns at line " << lineIndex;
