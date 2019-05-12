@@ -14,7 +14,7 @@ fn main() {
     Command::new("../../../ya")
         .args(&[
             "make",
-            "-d",
+            "-r",
             cb_model_interface_root.to_str().unwrap(),
             // "--sanitize=address",
             "-o",
