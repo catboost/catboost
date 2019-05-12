@@ -3,16 +3,13 @@ CatBoost Rust Package
 
 ### Basic usage example
 
-1. Checkout CatBoost repository.
-
-2. Add a dependency to your Cargo.toml:
+1. Add a dependency to your Cargo.toml:
 ```
 [dependencies]
-catboost = { path = somepath/catboost/catboost/rust-package", version = "0.1"}
+catboost = { git = "https://github.com/catboost/catboost" }
 ```
-Where `somepath/catboost` is path to the repository root.
 
-3. Now you can apply pretrained model in your code:
+2. Now you can apply pretrained model in your code:
 ```rust
 // Bring catboost module into the scope
 use catboost;
