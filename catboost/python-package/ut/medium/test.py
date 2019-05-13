@@ -4296,6 +4296,17 @@ def test_eval_features(task_type, eval_type, problem):
     return canonical_files
 
 
+def test_metric_period_with_vertbose_true():
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoost(dict(iterations=16, metric_period=4))
+
+    tmpfile = test_output_path('tmpfile')
+    with LogStdout(open(tmpfile, 'w')):
+        model.fit(pool, verbose=True)
+
+    assert(_count_lines(tmpfile) == 5)
+
+
 def test_eval_features_with_file_header():
     learn_params = {
         'iterations': 20,
