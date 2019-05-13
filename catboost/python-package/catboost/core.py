@@ -144,13 +144,6 @@ def _process_verbose(metric_period=None, verbose=None, logging_level=None, verbo
         logging_level = 'Verbose' if verbose else 'Silent'
         verbose = int(verbose)
 
-    if isinstance(metric_period, int):
-        if metric_period <= 0:
-            raise CatBoostError('metric_period should be positive.')
-        if verbose is not None:
-            if verbose % metric_period != 0:
-                raise CatBoostError('verbose should be a multiple of metric_period')
-
     return (metric_period, verbose, logging_level)
 
 
