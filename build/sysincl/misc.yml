@@ -66,6 +66,11 @@
   includes:
     - libintl.h:     contrib/deprecated/libintl/libintl.h
 
+# unused legacy include in boost
+- source_filter: "^contrib/deprecated/boost"
+  includes:
+    - fstream.h
+
 # temporary here, will be moved to linux header list
 - source_filter: "^contrib/libs/musl"
   includes:
