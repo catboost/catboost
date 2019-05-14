@@ -1,10 +1,13 @@
 #pragma once
 
+#include <catboost/libs/algo/apply.h>
 #include <catboost/libs/algo/index_calcer.h>
 #include <catboost/libs/data_new/quantization.h>
 #include <catboost/libs/data_new/data_provider.h>
+#include <catboost/libs/data_new/data_provider_builders.cpp>
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/model/formula_evaluator.h>
+#include <catboost/libs/target/data_providers.h>
 #include <util/generic/vector.h>
 
 struct TBinarizedFloatFeatureStatistics {
@@ -13,21 +16,85 @@ struct TBinarizedFloatFeatureStatistics {
     TVector<float> MeanTarget;
     TVector<float> MeanPrediction;
     TVector<size_t> ObjectsPerBin;
+    TVector<float> Target;          // for debugging,
+    TVector<double> Prediction;     // will remove in further versions
+    TVector<double> PredictionsOnVaryingFeature;
 };
 
 namespace NCB {
 
+    void GetPredictionsOnVaryingFeature(
+        const TFullModel& model,
+        const size_t featureNum,
+        const TVector<float>& featureValues,
+        const EPredictionType predictionType,
+        TDataProvider& dataProvider,
+        TVector<double>* predictions,
+        NPar::TLocalExecutor* executor) {
+        TRawDataProvider rawDataProvider(
+            std::move(dataProvider.MetaInfo),
+            std::move(dynamic_cast<TRawObjectsDataProvider*>(dataProvider.ObjectsData.Get())),
+            dataProvider.ObjectsGrouping,
+            std::move(dataProvider.RawTargetData));
+        size_t objectCount = rawDataProvider.GetObjectCount();
+        TIntrusivePtr<TRawDataProvider> rawDataProviderPtr(&rawDataProvider);
+        TRawBuilderData data = TRawBuilderDataHelper::Extract(std::move(*(rawDataProviderPtr.Get())));
+        auto initialHolder = std::move(data.ObjectsData.FloatFeatures[featureNum]);
+
+        for (size_t numVal = 0; numVal < featureValues.size(); ++numVal) {
+            THolder<TFloatValuesHolder> holder = MakeHolder<TFloatValuesHolder>(
+                featureNum,
+                TMaybeOwningConstArrayHolder<float>::CreateOwning(TVector<float>(objectCount, featureValues[numVal])),
+                data.CommonObjectsData.SubsetIndexing.Get());
+            data.ObjectsData.FloatFeatures[featureNum] = std::move(holder);
+
+            rawDataProviderPtr = MakeDataProvider<TRawObjectsDataProvider>(
+                Nothing(),
+                std::move(data),
+                false,
+                executor);
+
+            auto pred = ApplyModel(model, *(rawDataProviderPtr->ObjectsData), false, predictionType);
+            (*predictions)[numVal] = std::accumulate(pred.begin(), pred.end(), 0.) / static_cast<double>(pred.size());
+            data = TRawBuilderDataHelper::Extract(std::move(*(rawDataProviderPtr.Get())));
+        }
+
+        data.ObjectsData.FloatFeatures[featureNum] = std::move(initialHolder);
+        rawDataProviderPtr = MakeDataProvider<TRawObjectsDataProvider>(
+            Nothing(),
+            std::move(data),
+            false,
+            executor);
+        rawDataProvider = *(rawDataProviderPtr.Get());
+
+        dataProvider = TDataProvider(
+            std::move(rawDataProvider.MetaInfo),
+            std::move(rawDataProvider.ObjectsData),
+            rawDataProvider.ObjectsGrouping,
+            std::move(rawDataProvider.RawTargetData));
+    }
+
+
     TBinarizedFloatFeatureStatistics GetBinarizedStatistics(
         const TFullModel& model,
-        const TDataProvider& dataset,
-        const TVector<float>& target,
-        const TVector<float>& prediction,
-        const size_t featureNum) {
+        TDataProvider& dataset,
+        const size_t featureNum,
+        const EPredictionType predictionType) {
+        NPar::TLocalExecutor executor;
+        TRestorableFastRng64 rand(0);
+
         TVector<float> borders = model.ObliviousTrees.FloatFeatures[featureNum].Borders;
+        size_t bordersSize = borders.size();
+        TVector<double> prediction = ApplyModel(model, dataset, false, predictionType, 0, 0, 1);
+
+        TMaybeData<TConstArrayRef<float>> targetData = CreateModelCompatibleProcessedDataProvider(
+                dataset, {}, model, &rand, &executor).TargetData->GetTarget();
+        CB_ENSURE(targetData);
+        TVector<float> target(targetData.GetRef().begin(), targetData.GetRef().end());
 
         auto objectsPtr = dynamic_cast<TRawObjectsDataProvider*>(dataset.ObjectsData.Get());
         CB_ENSURE(objectsPtr);
-        TRawObjectsDataProviderPtr rawObjectsDataProvider(objectsPtr);
+        TRawObjectsDataProviderPtr rawObjectsDataProviderPtr(objectsPtr);
 
         TVector<ui32> ignoredFeatureNums;
 
@@ -50,15 +117,14 @@ namespace NCB {
             ignoredFeatures,
             commonFloatFeaturesBinarization);
         quantizedFeaturesInfo->SetBorders(TFloatFeatureIdx(featureNum), std::move(borders));
-        quantizedFeaturesInfo->SetNanMode(TFloatFeatureIdx(featureNum), ENanMode::Forbidden);
+        quantizedFeaturesInfo->SetNanMode(TFloatFeatureIdx(featureNum),
+            model.ObliviousTrees.FloatFeatures[featureNum].HasNans ? ENanMode::Min : ENanMode::Forbidden);
 
         TQuantizationOptions options;
-        TRestorableFastRng64 rand(0);
-        NPar::TLocalExecutor executor;
 
         TQuantizedObjectsDataProviderPtr ptr = Quantize(
             options,
-            rawObjectsDataProvider,
+            rawObjectsDataProviderPtr,
             quantizedFeaturesInfo,
             &rand,
             &executor);
@@ -80,7 +146,7 @@ namespace NCB {
             meanPrediction[binNum] += prediction[numObj];
             countObjectsPerBin[binNum] += 1;
         }
-        for (size_t binNum = 0; binNum < borders.size() + 1; ++binNum) {
+        for (size_t binNum = 0; binNum < bordersSize + 1; ++binNum) {
             size_t numObjs = countObjectsPerBin[binNum];
             if (numObjs == 0) {
                 continue;
@@ -89,12 +155,26 @@ namespace NCB {
             meanPrediction[binNum] /= static_cast<float>(numObjs);
         }
 
+        TVector<double> predictionsOnVarying(bordersSize, 0.);
+        GetPredictionsOnVaryingFeature(
+            model,
+            featureNum,
+            quantizedFeaturesInfo->GetBorders(TFloatFeatureIdx(featureNum)),
+            predictionType,
+            dataset,
+            &predictionsOnVarying,
+            &executor);
+
         return TBinarizedFloatFeatureStatistics{
             quantizedFeaturesInfo->GetBorders(TFloatFeatureIdx(featureNum)),
             binNums,
             meanTarget,
             meanPrediction,
-            countObjectsPerBin
+            countObjectsPerBin,
+            target,
+            prediction,
+            predictionsOnVarying
         };
     }
+
 }

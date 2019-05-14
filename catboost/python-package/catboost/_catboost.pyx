@@ -871,12 +871,14 @@ cdef extern from "catboost/libs/quantized_pool_analysis/quantized_pool_analysis.
         TVector[float] MeanTarget
         TVector[float] MeanPrediction
         TVector[size_t] ObjectsPerBin
+        TVector[float] Target
+        TVector[double] Prediction
+        TVector[double] PredictionsOnVaryingFeature
     cdef TBinarizedFloatFeatureStatistics GetBinarizedStatistics(
         const TFullModel& model,
-        const TDataProvider& dataset,
-        const TVector[float]& target,
-        const TVector[float]& prediction,
-        const size_t featureNum)
+        TDataProvider& dataset,
+        const size_t featureNum,
+        const EPredictionType predictionType)
 
 
 cdef inline float _FloatOrNan(object obj) except *:
@@ -2682,20 +2684,22 @@ cdef class _CatBoost:
     cpdef _save_borders(self, output_file):
         SaveModelBorders( to_arcadia_string(output_file), dereference(self.__model))
 
-    cpdef _get_binarized_statistics(self, _PoolBase pool, TVector[float] target, TVector[float] prediction, size_t featureNum):
+    cpdef _get_binarized_statistics(self, _PoolBase pool, size_t featureNum, predictionType):
         cdef TBinarizedFloatFeatureStatistics res = GetBinarizedStatistics(
             dereference(self.__model),
             dereference(pool.__pool.Get()),
-            target,
-            prediction,
-            featureNum)
+            featureNum,
+            PyPredictionType(predictionType).predictionType)
 
         return {
             'Borders': res.Borders,
             'BinarizedFeature': res.BinarizedFeature,
             'MeanTarget': res.MeanTarget,
             'MeanPrediction': res.MeanPrediction,
-            'ObjectsPerBin': res.ObjectsPerBin
+            'ObjectsPerBin': res.ObjectsPerBin,
+            'Target': res.Target,
+            'Prediction': _vector_of_double_to_np_array(res.Prediction),
+            'PredictionsOnVaryingFeature': _vector_of_double_to_np_array(res.PredictionsOnVaryingFeature)
         }
 
 

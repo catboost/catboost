@@ -1939,16 +1939,14 @@ class CatBoost(_CatBoostBase):
         return self
 
     def get_binarized_statistics(self, data, target, feature, prediction_type=None):
-        data = Pool(data)
+        data = Pool(data, target)
         if prediction_type is None:
             if isinstance(self, CatBoostClassifier):
                 prediction_type = prediction_type or 'Probability'
-                prediction = self.predict(data, prediction_type=prediction_type)
             elif isinstance(self, CatBoostRegressor):
-                prediction = self.predict(data)
+                prediction_type = prediction_type or 'RawFormulaVal'
             else:
                 prediction_type = prediction_type or 'RawFormulaVal'
-                prediction = self.predict(data, prediction_type=prediction_type)
 
         if not isinstance(feature, int):
             if self.feature_names_ is None or feature not in self.feature_names_:
@@ -1957,13 +1955,19 @@ class CatBoost(_CatBoostBase):
                 raise CatBoostError('No feature named "{}" in dataset'.format(feature))
             feature = self.feature_names_.index(feature)
 
-        res = self._object._get_binarized_statistics(data, target, prediction, feature)
+        if prediction_type not in ['Class', 'Probability', 'RawFormulaVal']:
+            raise CatBoostError('Unknown prediction type "{}"'.format(prediction_type))
+
+        res = self._object._get_binarized_statistics(data, feature, prediction_type)
         return {
             'Borders': np.array(res['Borders'], dtype=np.float64),
             'BinarizedFeature': res['BinarizedFeature'],
             'MeanTarget': np.array(res['MeanTarget'], dtype=np.float64),
             'MeanPrediction': np.array(res['MeanPrediction'], dtype=np.float64),
-            'ObjectsPerBin': np.array(res['ObjectsPerBin'], dtype=np.int32)
+            'ObjectsPerBin': np.array(res['ObjectsPerBin'], dtype=np.int32),
+            'Target': np.array(res['Target'], dtype=np.float64),
+            'Prediction': res['Prediction'],
+            'PredictionsOnVaryingFeature': res['PredictionsOnVaryingFeature']
         }
 
 
@@ -3361,7 +3365,7 @@ def plot_binarized_feature_statistics(statistics, feature_num):
         x=statistics['Borders'],
         y=statistics['MeanTarget'],
         mode='lines+markers',
-        name='Mean Target',
+        name='Mean target',
         yaxis='y1',
         xaxis='x'
     )
@@ -3370,7 +3374,7 @@ def plot_binarized_feature_statistics(statistics, feature_num):
         x=statistics['Borders'],
         y=statistics['MeanPrediction'],
         mode='lines+markers',
-        name='Mean Prediction',
+        name='Mean prediction',
         yaxis='y1',
         xaxis='x'
     )
@@ -3379,25 +3383,44 @@ def plot_binarized_feature_statistics(statistics, feature_num):
         x=statistics['Borders'],
         y=statistics['ObjectsPerBin'],
         mode='markers',
-        name='Objects per Bin',
+        name='Objects per bin',
         yaxis='y2',
         xaxis='x'
     )
 
-    data = [trace_1, trace_2, trace_3]
+    trace_4 = go.Scatter(
+        x=statistics['Borders'],
+        y=statistics['PredictionsOnVaryingFeature'],
+        mode='lines+markers',
+        name='Predictions for different feature values',
+        yaxis='y3',
+        xaxis='x'
+    )
+
+    data = [trace_1, trace_2, trace_3, trace_4]
 
     layout = go.Layout(
         title='Statistics for feature {}'.format(feature_num),
         yaxis={
-            'title': 'Mean prediction and target'
+            'title': 'Mean prediction and target',
+            'side': 'left'
         },
         yaxis2={
             'title': 'Objects per bin',
             'overlaying': 'y',
-            'side': 'right'
+            'side': 'right',
+            'position': 1.0
+        },
+        yaxis3={
+            'title': 'Predictions for varying feature',
+            'overlaying': 'y',
+            'side': 'right',
+            'position': 1.0,
+            'anchor': 'x'
         },
         xaxis={
-            'title': 'Bins'
+            'title': 'Bins',
+            'domain': [0.1, 0.9]
         }
     )
 
