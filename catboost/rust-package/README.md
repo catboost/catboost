@@ -3,15 +3,25 @@ CatBoost Rust Package
 
 ### Basic usage example
 
+1. Add a dependency to your Cargo.toml:
+```
+[dependencies]
+catboost = { git = "https://github.com/catboost/catboost" }
+```
+
+2. Now you can apply pretrained model in your code:
 ```rust
+// Bring catboost module into the scope
 use catboost;
 
 fn main() {
+    // Load the trained model
     let model = catboost::Model::load("tmp/model.bin").unwrap();
 
-    println!("Number of cat features {:?}", model.get_cat_features_count());
-    println!("Number of float features {:?}", model.get_float_features_count());
+    println!("Number of cat features {}", model.get_cat_features_count());
+    println!("Number of float features {}", model.get_float_features_count());
 
+    // Apply the model
     let prediction = model
         .calc_model_prediction(
             vec![
