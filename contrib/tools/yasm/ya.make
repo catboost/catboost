@@ -7,9 +7,7 @@ PROGRAM()
 
 
 
-IF(MUSL)
-    NO_CLANG_COVERAGE()
-ENDIF()
+NO_CLANG_COVERAGE()
 
 NO_COMPILER_WARNINGS()
 
@@ -127,14 +125,5 @@ SRCS(
     modules/x86cpu.c
     modules/x86regtmod.c
 )
-
-IF (MUSL)
-    ADDINCL(
-        contrib/libs/musl-1.1.20/arch/generic
-        contrib/libs/musl-1.1.20/arch/x86_64
-        contrib/libs/musl-1.1.20/extra
-        contrib/libs/musl-1.1.20/include
-    )
-ENDIF ()
 
 END()
