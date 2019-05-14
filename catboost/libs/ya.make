@@ -43,4 +43,5 @@ RECURSE(
     feature_estimator
     text_features
     text_features/ut
+    train_interface
 )
