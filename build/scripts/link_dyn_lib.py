@@ -194,7 +194,7 @@ C++ geobase5::hardcoded_service
 """
     filename = write_temp_file(export_file_content)
     args = ['-Wl,--version-script={}'.format(filename)]
-    assert fix_cmd('DARWIN', args) == [
+    assert fix_cmd('DARWIN', False, args) == [
         '-Wl,-exported_symbol,__ZN8geobase57details11lookup_impl*',
         '-Wl,-exported_symbol,__ZTIN8geobase57details11lookup_impl*',
         '-Wl,-exported_symbol,__ZTSN8geobase57details11lookup_impl*',

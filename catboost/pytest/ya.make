@@ -12,10 +12,15 @@ DEPENDS(
 
 FORK_SUBTESTS()
 FORK_TEST_FILES()
-SPLIT_FACTOR(20)
+SPLIT_FACTOR(60)
 
 SIZE(MEDIUM)
-REQUIREMENTS(network:full)
+
+IF(AUTOCHECK)
+    REQUIREMENTS(cpu:4 network:full)
+ELSE()
+    REQUIREMENTS(cpu:2 network:full)
+ENDIF()
 
 PEERDIR(
     catboost/pytest/lib

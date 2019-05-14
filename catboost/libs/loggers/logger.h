@@ -488,7 +488,7 @@ public:
         if (GetLastWriteIterationsNumber() > oldPassedIterations) {
             CATBOOST_INFO_LOG << profileResults.PassedIterations << "/" << Iterations << " " << ProcessedObjectToken;
             CATBOOST_INFO_LOG << "\tpassed time: " << HumanReadable(TDuration::Seconds(profileResults.PassedTime));
-            CATBOOST_INFO_LOG << "\tremaining time: " << HumanReadable(TDuration::Seconds(profileResults.RemainingTime)) << " sec";
+            CATBOOST_INFO_LOG << "\tremaining time: " << HumanReadable(TDuration::Seconds(profileResults.RemainingTime));
             CATBOOST_INFO_LOG << Endl;
         }
     }

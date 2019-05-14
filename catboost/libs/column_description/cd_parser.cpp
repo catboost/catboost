@@ -37,7 +37,7 @@ namespace {
             TVector<TString> tokens;
             try {
                 try {
-                    Split(line, "\t", tokens);
+                    StringSplitter(line).Split('\t').SkipEmpty().Collect(&tokens);
                 } catch (const yexception& e) {
                     CATBOOST_DEBUG_LOG << "Got exception " << e.what() << " while parsing feature descriptions line " << line << Endl;
                     break;

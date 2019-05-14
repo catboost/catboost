@@ -7,7 +7,6 @@ SRCS(
     string/cast_ut.cpp
     string/cgiparam_ut.cpp
     string/escape_ut.cpp
-    string/iterator_ut.cpp
     string/join_ut.cpp
     string/hex_ut.cpp
     string/kmp_ut.cpp

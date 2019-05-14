@@ -88,7 +88,5 @@ void TrainModel(
     const TVector<TEvalResult*>& evalResultPtrs,
     TMetricsAndTimeLeftHistory* metricsAndTimeHistory = nullptr);
 
-/// Used by cross validation, hence one test dataset.
-void TrainOneIteration(const NCB::TTrainingForCPUDataProviders& data, TLearnContext* ctx);
 
 using TTrainerFactory = NObjectFactory::TParametrizedObjectFactory<IModelTrainer, ETaskType>;

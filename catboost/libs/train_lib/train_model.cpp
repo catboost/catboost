@@ -47,6 +47,16 @@
 
 using namespace NCB;
 
+static void CreateDirIfNotExist(const TString& path) {
+    TFsPath trainDirPath(path);
+    try {
+        if (!path.empty() && !trainDirPath.Exists()) {
+            trainDirPath.MkDir();
+        }
+    } catch (...) {
+        ythrow TCatBoostException() << "Can't create working dir: " << path;
+    }
+}
 
 static void ShrinkModel(int itCount, const TCtrHelper& ctrsHelper, TLearnProgress* progress) {
     progress->LeafValues.resize(itCount);
@@ -139,7 +149,6 @@ static void InitializeAndCheckMetricData(
     const int approxDimension = ctx.LearnProgress.ApproxDimension;
     auto& metrics = metricsData->Metrics;
     metrics = CreateMetrics(
-        ctx.Params.LossFunctionDescription,
         ctx.Params.MetricOptions,
         ctx.EvalMetricDescriptor,
         approxDimension
@@ -498,17 +507,22 @@ namespace {
 
             SetDataDependentDefaults(
                 trainingDataForCpu.Learn->GetObjectCount(),
-                /*hasLearnTarget*/ trainingDataForCpu.Learn->MetaInfo.HasTarget,
+                trainingDataForCpu.Learn->TargetData.Get()->GetTarget(),
+                trainingDataForCpu.Test.size() > 0  ?
+                trainingDataForCpu.Test[0]->TargetData.Get()->GetTarget() : Nothing(),
                 quantizedFeaturesInfo.CalcMaxCategoricalFeaturesUniqueValuesCountOnLearn(),
                 /*testPoolSize*/ trainingDataForCpu.GetTestSampleCount(),
-                /*hasTestLabels*/ trainingDataForCpu.Test.size() > 0 &&
-                    trainingDataForCpu.Test[0]->MetaInfo.HasTarget &&
-                    IsConst(*trainingDataForCpu.Test[0]->TargetData->GetTarget()),
                 /*hasTestPairs*/ trainingDataForCpu.Test.size() > 0 &&
                     trainingDataForCpu.Test[0]->MetaInfo.HasPairs,
                 &updatedOutputOptions.UseBestModel,
                 &updatedParams
             );
+
+            const TString trainingOptionsFileName = updatedOutputOptions.CreateTrainingOptionsFullPath();
+            if (!trainingOptionsFileName.empty()) {
+                TOFStream trainingOptionsFile(trainingOptionsFileName);
+                trainingOptionsFile.Write(NJson::PrettifyJson(ToString(updatedParams)));
+            }
 
             TLearnContext ctx(
                 updatedParams,
@@ -558,12 +572,6 @@ namespace {
 
             if (metricsAndTimeHistory) {
                 *metricsAndTimeHistory = ctx.LearnProgress.MetricsAndTimeHistory;
-            }
-
-            const TString trainingOptionsFileName = ctx.OutputOptions.CreateTrainingOptionsFullPath();
-            if (!trainingOptionsFileName.empty()) {
-                TOFStream trainingOptionsFile(trainingOptionsFileName);
-                trainingOptionsFile.Write(NJson::PrettifyJson(ToString(ctx.Params)));
             }
 
             if (internalOptions.CalcMetricsOnly) {
@@ -780,13 +788,9 @@ static void TrainModel(
 
     CheckConsistency(trainingData);
 
+    CreateDirIfNotExist(outputOptions.GetTrainDir());
+
     if (outputOptions.NeedSaveBorders()) {
-        if (outputOptions.GetTrainDir()) {
-            TFsPath dirPath(outputOptions.GetTrainDir());
-            if (!dirPath.Exists()) {
-                dirPath.MkDirs();
-            }
-        }
         SaveBordersAndNanModesToFileInMatrixnetFormat(
             outputOptions.CreateOutputBordersFullPath(),
             *trainingData.Learn->ObjectsData->GetQuantizedFeaturesInfo());
@@ -854,7 +858,6 @@ void TrainModel(
             ValidateColumnOutput(
                 outputColumns,
                 testPool,
-                false,
                 loadOptions.CvParams.FoldCount > 0
             );
         }
@@ -930,7 +933,6 @@ void TrainModel(
                 outputColumns,
                 visibleLabelsHelper,
                 testPool,
-                false,
                 &fileStream,
                 testSetPath,
                 {testIdx, pools.Test.ysize()},
@@ -962,12 +964,6 @@ void TrainModel(
             &fstrRegularFileName,
             &fstrInternalFileName,
             outputOptions.GetFstrType());
-    }
-
-    const TString trainingOptionsFileName = outputOptions.CreateTrainingOptionsFullPath();
-    if (!trainingOptionsFileName.empty()) {
-        TOFStream trainingOptionsFile(trainingOptionsFileName);
-        trainingOptionsFile.Write(NJson::PrettifyJson(ToString(catBoostOptions)));
     }
 
     CATBOOST_INFO_LOG << runTimer.Passed() / 60 << " min passed" << Endl;
@@ -1055,6 +1051,8 @@ static void ModelBasedEval(
     UpdateUndefinedClassNames(catBoostOptions.DataProcessingOptions.Get().ClassNames, &updatedTrainOptionsJson);
 
     CheckConsistency(trainingData);
+
+    CreateDirIfNotExist(outputOptions.GetTrainDir());
 
     modelTrainerHolder->ModelBasedEval(
         updatedTrainOptionsJson,

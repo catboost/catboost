@@ -17,7 +17,7 @@
  * http://ndevilla.free.fr/median/median/
  *
  * Quick select with median of 3 pivot is usually the fastest,
- * but the worst case scenario can be quadratic complexcity,
+ * but the worst case scenario can be quadratic complexity,
  * e.g. np.roll(np.arange(x), x / 2)
  * To avoid this if it recurses too much it falls back to the
  * worst case linear median of median of group 5 pivot strategy.
@@ -285,7 +285,7 @@ introselect_bool(npy_bool *v,
 {
     npy_intp low  = 0;
     npy_intp high = num - 1;
-    npy_intp depth_limit;
+    int depth_limit;
 
     if (npiv == NULL)
         pivots = NULL;
@@ -331,15 +331,7 @@ introselect_bool(npy_bool *v,
         return 0;
     }
 
-    /* dumb integer msb, float npy_log2 too slow for small parititions */
-    {
-        npy_uintp unum = num;
-        depth_limit = 0;
-        while (unum >>= 1)  {
-            depth_limit++;
-        }
-        depth_limit *= 2;
-    }
+    depth_limit = npy_get_msb(num) * 2;
 
     /* guarantee three elements */
     for (;low + 1 < high;) {
@@ -621,7 +613,7 @@ aintroselect_bool(npy_bool *v,
 {
     npy_intp low  = 0;
     npy_intp high = num - 1;
-    npy_intp depth_limit;
+    int depth_limit;
 
     if (npiv == NULL)
         pivots = NULL;
@@ -667,15 +659,7 @@ aintroselect_bool(npy_bool *v,
         return 0;
     }
 
-    /* dumb integer msb, float npy_log2 too slow for small parititions */
-    {
-        npy_uintp unum = num;
-        depth_limit = 0;
-        while (unum >>= 1)  {
-            depth_limit++;
-        }
-        depth_limit *= 2;
-    }
+    depth_limit = npy_get_msb(num) * 2;
 
     /* guarantee three elements */
     for (;low + 1 < high;) {
@@ -971,7 +955,7 @@ introselect_byte(npy_byte *v,
 {
     npy_intp low  = 0;
     npy_intp high = num - 1;
-    npy_intp depth_limit;
+    int depth_limit;
 
     if (npiv == NULL)
         pivots = NULL;
@@ -1017,15 +1001,7 @@ introselect_byte(npy_byte *v,
         return 0;
     }
 
-    /* dumb integer msb, float npy_log2 too slow for small parititions */
-    {
-        npy_uintp unum = num;
-        depth_limit = 0;
-        while (unum >>= 1)  {
-            depth_limit++;
-        }
-        depth_limit *= 2;
-    }
+    depth_limit = npy_get_msb(num) * 2;
 
     /* guarantee three elements */
     for (;low + 1 < high;) {
@@ -1307,7 +1283,7 @@ aintroselect_byte(npy_byte *v,
 {
     npy_intp low  = 0;
     npy_intp high = num - 1;
-    npy_intp depth_limit;
+    int depth_limit;
 
     if (npiv == NULL)
         pivots = NULL;
@@ -1353,15 +1329,7 @@ aintroselect_byte(npy_byte *v,
         return 0;
     }
 
-    /* dumb integer msb, float npy_log2 too slow for small parititions */
-    {
-        npy_uintp unum = num;
-        depth_limit = 0;
-        while (unum >>= 1)  {
-            depth_limit++;
-        }
-        depth_limit *= 2;
-    }
+    depth_limit = npy_get_msb(num) * 2;
 
     /* guarantee three elements */
     for (;low + 1 < high;) {
@@ -1657,7 +1625,7 @@ introselect_ubyte(npy_ubyte *v,
 {
     npy_intp low  = 0;
     npy_intp high = num - 1;
-    npy_intp depth_limit;
+    int depth_limit;
 
     if (npiv == NULL)
         pivots = NULL;
@@ -1703,15 +1671,7 @@ introselect_ubyte(npy_ubyte *v,
         return 0;
     }
 
-    /* dumb integer msb, float npy_log2 too slow for small parititions */
-    {
-        npy_uintp unum = num;
-        depth_limit = 0;
-        while (unum >>= 1)  {
-            depth_limit++;
-        }
-        depth_limit *= 2;
-    }
+    depth_limit = npy_get_msb(num) * 2;
 
     /* guarantee three elements */
     for (;low + 1 < high;) {
@@ -1993,7 +1953,7 @@ aintroselect_ubyte(npy_ubyte *v,
 {
     npy_intp low  = 0;
     npy_intp high = num - 1;
-    npy_intp depth_limit;
+    int depth_limit;
 
     if (npiv == NULL)
         pivots = NULL;
@@ -2039,15 +1999,7 @@ aintroselect_ubyte(npy_ubyte *v,
         return 0;
     }
 
-    /* dumb integer msb, float npy_log2 too slow for small parititions */
-    {
-        npy_uintp unum = num;
-        depth_limit = 0;
-        while (unum >>= 1)  {
-            depth_limit++;
-        }
-        depth_limit *= 2;
-    }
+    depth_limit = npy_get_msb(num) * 2;
 
     /* guarantee three elements */
     for (;low + 1 < high;) {
@@ -2343,7 +2295,7 @@ introselect_short(npy_short *v,
 {
     npy_intp low  = 0;
     npy_intp high = num - 1;
-    npy_intp depth_limit;
+    int depth_limit;
 
     if (npiv == NULL)
         pivots = NULL;
@@ -2389,15 +2341,7 @@ introselect_short(npy_short *v,
         return 0;
     }
 
-    /* dumb integer msb, float npy_log2 too slow for small parititions */
-    {
-        npy_uintp unum = num;
-        depth_limit = 0;
-        while (unum >>= 1)  {
-            depth_limit++;
-        }
-        depth_limit *= 2;
-    }
+    depth_limit = npy_get_msb(num) * 2;
 
     /* guarantee three elements */
     for (;low + 1 < high;) {
@@ -2679,7 +2623,7 @@ aintroselect_short(npy_short *v,
 {
     npy_intp low  = 0;
     npy_intp high = num - 1;
-    npy_intp depth_limit;
+    int depth_limit;
 
     if (npiv == NULL)
         pivots = NULL;
@@ -2725,15 +2669,7 @@ aintroselect_short(npy_short *v,
         return 0;
     }
 
-    /* dumb integer msb, float npy_log2 too slow for small parititions */
-    {
-        npy_uintp unum = num;
-        depth_limit = 0;
-        while (unum >>= 1)  {
-            depth_limit++;
-        }
-        depth_limit *= 2;
-    }
+    depth_limit = npy_get_msb(num) * 2;
 
     /* guarantee three elements */
     for (;low + 1 < high;) {
@@ -3029,7 +2965,7 @@ introselect_ushort(npy_ushort *v,
 {
     npy_intp low  = 0;
     npy_intp high = num - 1;
-    npy_intp depth_limit;
+    int depth_limit;
 
     if (npiv == NULL)
         pivots = NULL;
@@ -3075,15 +3011,7 @@ introselect_ushort(npy_ushort *v,
         return 0;
     }
 
-    /* dumb integer msb, float npy_log2 too slow for small parititions */
-    {
-        npy_uintp unum = num;
-        depth_limit = 0;
-        while (unum >>= 1)  {
-            depth_limit++;
-        }
-        depth_limit *= 2;
-    }
+    depth_limit = npy_get_msb(num) * 2;
 
     /* guarantee three elements */
     for (;low + 1 < high;) {
@@ -3365,7 +3293,7 @@ aintroselect_ushort(npy_ushort *v,
 {
     npy_intp low  = 0;
     npy_intp high = num - 1;
-    npy_intp depth_limit;
+    int depth_limit;
 
     if (npiv == NULL)
         pivots = NULL;
@@ -3411,15 +3339,7 @@ aintroselect_ushort(npy_ushort *v,
         return 0;
     }
 
-    /* dumb integer msb, float npy_log2 too slow for small parititions */
-    {
-        npy_uintp unum = num;
-        depth_limit = 0;
-        while (unum >>= 1)  {
-            depth_limit++;
-        }
-        depth_limit *= 2;
-    }
+    depth_limit = npy_get_msb(num) * 2;
 
     /* guarantee three elements */
     for (;low + 1 < high;) {
@@ -3715,7 +3635,7 @@ introselect_int(npy_int *v,
 {
     npy_intp low  = 0;
     npy_intp high = num - 1;
-    npy_intp depth_limit;
+    int depth_limit;
 
     if (npiv == NULL)
         pivots = NULL;
@@ -3761,15 +3681,7 @@ introselect_int(npy_int *v,
         return 0;
     }
 
-    /* dumb integer msb, float npy_log2 too slow for small parititions */
-    {
-        npy_uintp unum = num;
-        depth_limit = 0;
-        while (unum >>= 1)  {
-            depth_limit++;
-        }
-        depth_limit *= 2;
-    }
+    depth_limit = npy_get_msb(num) * 2;
 
     /* guarantee three elements */
     for (;low + 1 < high;) {
@@ -4051,7 +3963,7 @@ aintroselect_int(npy_int *v,
 {
     npy_intp low  = 0;
     npy_intp high = num - 1;
-    npy_intp depth_limit;
+    int depth_limit;
 
     if (npiv == NULL)
         pivots = NULL;
@@ -4097,15 +4009,7 @@ aintroselect_int(npy_int *v,
         return 0;
     }
 
-    /* dumb integer msb, float npy_log2 too slow for small parititions */
-    {
-        npy_uintp unum = num;
-        depth_limit = 0;
-        while (unum >>= 1)  {
-            depth_limit++;
-        }
-        depth_limit *= 2;
-    }
+    depth_limit = npy_get_msb(num) * 2;
 
     /* guarantee three elements */
     for (;low + 1 < high;) {
@@ -4401,7 +4305,7 @@ introselect_uint(npy_uint *v,
 {
     npy_intp low  = 0;
     npy_intp high = num - 1;
-    npy_intp depth_limit;
+    int depth_limit;
 
     if (npiv == NULL)
         pivots = NULL;
@@ -4447,15 +4351,7 @@ introselect_uint(npy_uint *v,
         return 0;
     }
 
-    /* dumb integer msb, float npy_log2 too slow for small parititions */
-    {
-        npy_uintp unum = num;
-        depth_limit = 0;
-        while (unum >>= 1)  {
-            depth_limit++;
-        }
-        depth_limit *= 2;
-    }
+    depth_limit = npy_get_msb(num) * 2;
 
     /* guarantee three elements */
     for (;low + 1 < high;) {
@@ -4737,7 +4633,7 @@ aintroselect_uint(npy_uint *v,
 {
     npy_intp low  = 0;
     npy_intp high = num - 1;
-    npy_intp depth_limit;
+    int depth_limit;
 
     if (npiv == NULL)
         pivots = NULL;
@@ -4783,15 +4679,7 @@ aintroselect_uint(npy_uint *v,
         return 0;
     }
 
-    /* dumb integer msb, float npy_log2 too slow for small parititions */
-    {
-        npy_uintp unum = num;
-        depth_limit = 0;
-        while (unum >>= 1)  {
-            depth_limit++;
-        }
-        depth_limit *= 2;
-    }
+    depth_limit = npy_get_msb(num) * 2;
 
     /* guarantee three elements */
     for (;low + 1 < high;) {
@@ -5087,7 +4975,7 @@ introselect_long(npy_long *v,
 {
     npy_intp low  = 0;
     npy_intp high = num - 1;
-    npy_intp depth_limit;
+    int depth_limit;
 
     if (npiv == NULL)
         pivots = NULL;
@@ -5133,15 +5021,7 @@ introselect_long(npy_long *v,
         return 0;
     }
 
-    /* dumb integer msb, float npy_log2 too slow for small parititions */
-    {
-        npy_uintp unum = num;
-        depth_limit = 0;
-        while (unum >>= 1)  {
-            depth_limit++;
-        }
-        depth_limit *= 2;
-    }
+    depth_limit = npy_get_msb(num) * 2;
 
     /* guarantee three elements */
     for (;low + 1 < high;) {
@@ -5423,7 +5303,7 @@ aintroselect_long(npy_long *v,
 {
     npy_intp low  = 0;
     npy_intp high = num - 1;
-    npy_intp depth_limit;
+    int depth_limit;
 
     if (npiv == NULL)
         pivots = NULL;
@@ -5469,15 +5349,7 @@ aintroselect_long(npy_long *v,
         return 0;
     }
 
-    /* dumb integer msb, float npy_log2 too slow for small parititions */
-    {
-        npy_uintp unum = num;
-        depth_limit = 0;
-        while (unum >>= 1)  {
-            depth_limit++;
-        }
-        depth_limit *= 2;
-    }
+    depth_limit = npy_get_msb(num) * 2;
 
     /* guarantee three elements */
     for (;low + 1 < high;) {
@@ -5773,7 +5645,7 @@ introselect_ulong(npy_ulong *v,
 {
     npy_intp low  = 0;
     npy_intp high = num - 1;
-    npy_intp depth_limit;
+    int depth_limit;
 
     if (npiv == NULL)
         pivots = NULL;
@@ -5819,15 +5691,7 @@ introselect_ulong(npy_ulong *v,
         return 0;
     }
 
-    /* dumb integer msb, float npy_log2 too slow for small parititions */
-    {
-        npy_uintp unum = num;
-        depth_limit = 0;
-        while (unum >>= 1)  {
-            depth_limit++;
-        }
-        depth_limit *= 2;
-    }
+    depth_limit = npy_get_msb(num) * 2;
 
     /* guarantee three elements */
     for (;low + 1 < high;) {
@@ -6109,7 +5973,7 @@ aintroselect_ulong(npy_ulong *v,
 {
     npy_intp low  = 0;
     npy_intp high = num - 1;
-    npy_intp depth_limit;
+    int depth_limit;
 
     if (npiv == NULL)
         pivots = NULL;
@@ -6155,15 +6019,7 @@ aintroselect_ulong(npy_ulong *v,
         return 0;
     }
 
-    /* dumb integer msb, float npy_log2 too slow for small parititions */
-    {
-        npy_uintp unum = num;
-        depth_limit = 0;
-        while (unum >>= 1)  {
-            depth_limit++;
-        }
-        depth_limit *= 2;
-    }
+    depth_limit = npy_get_msb(num) * 2;
 
     /* guarantee three elements */
     for (;low + 1 < high;) {
@@ -6459,7 +6315,7 @@ introselect_longlong(npy_longlong *v,
 {
     npy_intp low  = 0;
     npy_intp high = num - 1;
-    npy_intp depth_limit;
+    int depth_limit;
 
     if (npiv == NULL)
         pivots = NULL;
@@ -6505,15 +6361,7 @@ introselect_longlong(npy_longlong *v,
         return 0;
     }
 
-    /* dumb integer msb, float npy_log2 too slow for small parititions */
-    {
-        npy_uintp unum = num;
-        depth_limit = 0;
-        while (unum >>= 1)  {
-            depth_limit++;
-        }
-        depth_limit *= 2;
-    }
+    depth_limit = npy_get_msb(num) * 2;
 
     /* guarantee three elements */
     for (;low + 1 < high;) {
@@ -6795,7 +6643,7 @@ aintroselect_longlong(npy_longlong *v,
 {
     npy_intp low  = 0;
     npy_intp high = num - 1;
-    npy_intp depth_limit;
+    int depth_limit;
 
     if (npiv == NULL)
         pivots = NULL;
@@ -6841,15 +6689,7 @@ aintroselect_longlong(npy_longlong *v,
         return 0;
     }
 
-    /* dumb integer msb, float npy_log2 too slow for small parititions */
-    {
-        npy_uintp unum = num;
-        depth_limit = 0;
-        while (unum >>= 1)  {
-            depth_limit++;
-        }
-        depth_limit *= 2;
-    }
+    depth_limit = npy_get_msb(num) * 2;
 
     /* guarantee three elements */
     for (;low + 1 < high;) {
@@ -7145,7 +6985,7 @@ introselect_ulonglong(npy_ulonglong *v,
 {
     npy_intp low  = 0;
     npy_intp high = num - 1;
-    npy_intp depth_limit;
+    int depth_limit;
 
     if (npiv == NULL)
         pivots = NULL;
@@ -7191,15 +7031,7 @@ introselect_ulonglong(npy_ulonglong *v,
         return 0;
     }
 
-    /* dumb integer msb, float npy_log2 too slow for small parititions */
-    {
-        npy_uintp unum = num;
-        depth_limit = 0;
-        while (unum >>= 1)  {
-            depth_limit++;
-        }
-        depth_limit *= 2;
-    }
+    depth_limit = npy_get_msb(num) * 2;
 
     /* guarantee three elements */
     for (;low + 1 < high;) {
@@ -7481,7 +7313,7 @@ aintroselect_ulonglong(npy_ulonglong *v,
 {
     npy_intp low  = 0;
     npy_intp high = num - 1;
-    npy_intp depth_limit;
+    int depth_limit;
 
     if (npiv == NULL)
         pivots = NULL;
@@ -7527,15 +7359,7 @@ aintroselect_ulonglong(npy_ulonglong *v,
         return 0;
     }
 
-    /* dumb integer msb, float npy_log2 too slow for small parititions */
-    {
-        npy_uintp unum = num;
-        depth_limit = 0;
-        while (unum >>= 1)  {
-            depth_limit++;
-        }
-        depth_limit *= 2;
-    }
+    depth_limit = npy_get_msb(num) * 2;
 
     /* guarantee three elements */
     for (;low + 1 < high;) {
@@ -7831,7 +7655,7 @@ introselect_half(npy_ushort *v,
 {
     npy_intp low  = 0;
     npy_intp high = num - 1;
-    npy_intp depth_limit;
+    int depth_limit;
 
     if (npiv == NULL)
         pivots = NULL;
@@ -7877,15 +7701,7 @@ introselect_half(npy_ushort *v,
         return 0;
     }
 
-    /* dumb integer msb, float npy_log2 too slow for small parititions */
-    {
-        npy_uintp unum = num;
-        depth_limit = 0;
-        while (unum >>= 1)  {
-            depth_limit++;
-        }
-        depth_limit *= 2;
-    }
+    depth_limit = npy_get_msb(num) * 2;
 
     /* guarantee three elements */
     for (;low + 1 < high;) {
@@ -8167,7 +7983,7 @@ aintroselect_half(npy_ushort *v,
 {
     npy_intp low  = 0;
     npy_intp high = num - 1;
-    npy_intp depth_limit;
+    int depth_limit;
 
     if (npiv == NULL)
         pivots = NULL;
@@ -8213,15 +8029,7 @@ aintroselect_half(npy_ushort *v,
         return 0;
     }
 
-    /* dumb integer msb, float npy_log2 too slow for small parititions */
-    {
-        npy_uintp unum = num;
-        depth_limit = 0;
-        while (unum >>= 1)  {
-            depth_limit++;
-        }
-        depth_limit *= 2;
-    }
+    depth_limit = npy_get_msb(num) * 2;
 
     /* guarantee three elements */
     for (;low + 1 < high;) {
@@ -8517,7 +8325,7 @@ introselect_float(npy_float *v,
 {
     npy_intp low  = 0;
     npy_intp high = num - 1;
-    npy_intp depth_limit;
+    int depth_limit;
 
     if (npiv == NULL)
         pivots = NULL;
@@ -8563,15 +8371,7 @@ introselect_float(npy_float *v,
         return 0;
     }
 
-    /* dumb integer msb, float npy_log2 too slow for small parititions */
-    {
-        npy_uintp unum = num;
-        depth_limit = 0;
-        while (unum >>= 1)  {
-            depth_limit++;
-        }
-        depth_limit *= 2;
-    }
+    depth_limit = npy_get_msb(num) * 2;
 
     /* guarantee three elements */
     for (;low + 1 < high;) {
@@ -8853,7 +8653,7 @@ aintroselect_float(npy_float *v,
 {
     npy_intp low  = 0;
     npy_intp high = num - 1;
-    npy_intp depth_limit;
+    int depth_limit;
 
     if (npiv == NULL)
         pivots = NULL;
@@ -8899,15 +8699,7 @@ aintroselect_float(npy_float *v,
         return 0;
     }
 
-    /* dumb integer msb, float npy_log2 too slow for small parititions */
-    {
-        npy_uintp unum = num;
-        depth_limit = 0;
-        while (unum >>= 1)  {
-            depth_limit++;
-        }
-        depth_limit *= 2;
-    }
+    depth_limit = npy_get_msb(num) * 2;
 
     /* guarantee three elements */
     for (;low + 1 < high;) {
@@ -9203,7 +8995,7 @@ introselect_double(npy_double *v,
 {
     npy_intp low  = 0;
     npy_intp high = num - 1;
-    npy_intp depth_limit;
+    int depth_limit;
 
     if (npiv == NULL)
         pivots = NULL;
@@ -9249,15 +9041,7 @@ introselect_double(npy_double *v,
         return 0;
     }
 
-    /* dumb integer msb, float npy_log2 too slow for small parititions */
-    {
-        npy_uintp unum = num;
-        depth_limit = 0;
-        while (unum >>= 1)  {
-            depth_limit++;
-        }
-        depth_limit *= 2;
-    }
+    depth_limit = npy_get_msb(num) * 2;
 
     /* guarantee three elements */
     for (;low + 1 < high;) {
@@ -9539,7 +9323,7 @@ aintroselect_double(npy_double *v,
 {
     npy_intp low  = 0;
     npy_intp high = num - 1;
-    npy_intp depth_limit;
+    int depth_limit;
 
     if (npiv == NULL)
         pivots = NULL;
@@ -9585,15 +9369,7 @@ aintroselect_double(npy_double *v,
         return 0;
     }
 
-    /* dumb integer msb, float npy_log2 too slow for small parititions */
-    {
-        npy_uintp unum = num;
-        depth_limit = 0;
-        while (unum >>= 1)  {
-            depth_limit++;
-        }
-        depth_limit *= 2;
-    }
+    depth_limit = npy_get_msb(num) * 2;
 
     /* guarantee three elements */
     for (;low + 1 < high;) {
@@ -9889,7 +9665,7 @@ introselect_longdouble(npy_longdouble *v,
 {
     npy_intp low  = 0;
     npy_intp high = num - 1;
-    npy_intp depth_limit;
+    int depth_limit;
 
     if (npiv == NULL)
         pivots = NULL;
@@ -9935,15 +9711,7 @@ introselect_longdouble(npy_longdouble *v,
         return 0;
     }
 
-    /* dumb integer msb, float npy_log2 too slow for small parititions */
-    {
-        npy_uintp unum = num;
-        depth_limit = 0;
-        while (unum >>= 1)  {
-            depth_limit++;
-        }
-        depth_limit *= 2;
-    }
+    depth_limit = npy_get_msb(num) * 2;
 
     /* guarantee three elements */
     for (;low + 1 < high;) {
@@ -10225,7 +9993,7 @@ aintroselect_longdouble(npy_longdouble *v,
 {
     npy_intp low  = 0;
     npy_intp high = num - 1;
-    npy_intp depth_limit;
+    int depth_limit;
 
     if (npiv == NULL)
         pivots = NULL;
@@ -10271,15 +10039,7 @@ aintroselect_longdouble(npy_longdouble *v,
         return 0;
     }
 
-    /* dumb integer msb, float npy_log2 too slow for small parititions */
-    {
-        npy_uintp unum = num;
-        depth_limit = 0;
-        while (unum >>= 1)  {
-            depth_limit++;
-        }
-        depth_limit *= 2;
-    }
+    depth_limit = npy_get_msb(num) * 2;
 
     /* guarantee three elements */
     for (;low + 1 < high;) {
@@ -10575,7 +10335,7 @@ introselect_cfloat(npy_cfloat *v,
 {
     npy_intp low  = 0;
     npy_intp high = num - 1;
-    npy_intp depth_limit;
+    int depth_limit;
 
     if (npiv == NULL)
         pivots = NULL;
@@ -10621,15 +10381,7 @@ introselect_cfloat(npy_cfloat *v,
         return 0;
     }
 
-    /* dumb integer msb, float npy_log2 too slow for small parititions */
-    {
-        npy_uintp unum = num;
-        depth_limit = 0;
-        while (unum >>= 1)  {
-            depth_limit++;
-        }
-        depth_limit *= 2;
-    }
+    depth_limit = npy_get_msb(num) * 2;
 
     /* guarantee three elements */
     for (;low + 1 < high;) {
@@ -10911,7 +10663,7 @@ aintroselect_cfloat(npy_cfloat *v,
 {
     npy_intp low  = 0;
     npy_intp high = num - 1;
-    npy_intp depth_limit;
+    int depth_limit;
 
     if (npiv == NULL)
         pivots = NULL;
@@ -10957,15 +10709,7 @@ aintroselect_cfloat(npy_cfloat *v,
         return 0;
     }
 
-    /* dumb integer msb, float npy_log2 too slow for small parititions */
-    {
-        npy_uintp unum = num;
-        depth_limit = 0;
-        while (unum >>= 1)  {
-            depth_limit++;
-        }
-        depth_limit *= 2;
-    }
+    depth_limit = npy_get_msb(num) * 2;
 
     /* guarantee three elements */
     for (;low + 1 < high;) {
@@ -11261,7 +11005,7 @@ introselect_cdouble(npy_cdouble *v,
 {
     npy_intp low  = 0;
     npy_intp high = num - 1;
-    npy_intp depth_limit;
+    int depth_limit;
 
     if (npiv == NULL)
         pivots = NULL;
@@ -11307,15 +11051,7 @@ introselect_cdouble(npy_cdouble *v,
         return 0;
     }
 
-    /* dumb integer msb, float npy_log2 too slow for small parititions */
-    {
-        npy_uintp unum = num;
-        depth_limit = 0;
-        while (unum >>= 1)  {
-            depth_limit++;
-        }
-        depth_limit *= 2;
-    }
+    depth_limit = npy_get_msb(num) * 2;
 
     /* guarantee three elements */
     for (;low + 1 < high;) {
@@ -11597,7 +11333,7 @@ aintroselect_cdouble(npy_cdouble *v,
 {
     npy_intp low  = 0;
     npy_intp high = num - 1;
-    npy_intp depth_limit;
+    int depth_limit;
 
     if (npiv == NULL)
         pivots = NULL;
@@ -11643,15 +11379,7 @@ aintroselect_cdouble(npy_cdouble *v,
         return 0;
     }
 
-    /* dumb integer msb, float npy_log2 too slow for small parititions */
-    {
-        npy_uintp unum = num;
-        depth_limit = 0;
-        while (unum >>= 1)  {
-            depth_limit++;
-        }
-        depth_limit *= 2;
-    }
+    depth_limit = npy_get_msb(num) * 2;
 
     /* guarantee three elements */
     for (;low + 1 < high;) {
@@ -11947,7 +11675,7 @@ introselect_clongdouble(npy_clongdouble *v,
 {
     npy_intp low  = 0;
     npy_intp high = num - 1;
-    npy_intp depth_limit;
+    int depth_limit;
 
     if (npiv == NULL)
         pivots = NULL;
@@ -11993,15 +11721,7 @@ introselect_clongdouble(npy_clongdouble *v,
         return 0;
     }
 
-    /* dumb integer msb, float npy_log2 too slow for small parititions */
-    {
-        npy_uintp unum = num;
-        depth_limit = 0;
-        while (unum >>= 1)  {
-            depth_limit++;
-        }
-        depth_limit *= 2;
-    }
+    depth_limit = npy_get_msb(num) * 2;
 
     /* guarantee three elements */
     for (;low + 1 < high;) {
@@ -12283,7 +12003,7 @@ aintroselect_clongdouble(npy_clongdouble *v,
 {
     npy_intp low  = 0;
     npy_intp high = num - 1;
-    npy_intp depth_limit;
+    int depth_limit;
 
     if (npiv == NULL)
         pivots = NULL;
@@ -12329,15 +12049,7 @@ aintroselect_clongdouble(npy_clongdouble *v,
         return 0;
     }
 
-    /* dumb integer msb, float npy_log2 too slow for small parititions */
-    {
-        npy_uintp unum = num;
-        depth_limit = 0;
-        while (unum >>= 1)  {
-            depth_limit++;
-        }
-        depth_limit *= 2;
-    }
+    depth_limit = npy_get_msb(num) * 2;
 
     /* guarantee three elements */
     for (;low + 1 < high;) {

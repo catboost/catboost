@@ -34,5 +34,5 @@ namespace NCB {
         const NCB::TAnalyticalModeCommonParams& params,
         size_t iterationsLimit,
         size_t evalPeriod,
-        const TFullModel& model);
+        TFullModel&& model);
 }

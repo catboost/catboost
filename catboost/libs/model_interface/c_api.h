@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdbool.h>
 #include <stddef.h>
 
 #if defined(__cplusplus)
@@ -82,7 +83,7 @@ EXPORT bool CalcModelPredictionFlat(
  * Calculate raw model predictions on float features and string categorical feature values
  * @param calcer model handle
  * @param docCount object count
- * @param floatFeatures array of array of float (first dimension is object index, second if feature index)
+ * @param floatFeatures array of array of float (first dimension is object index, second is feature index)
  * @param floatFeaturesSize float feature count
  * @param catFeatures array of array of char* categorical value pointers.
  * String pointer should point to zero terminated string.
@@ -130,7 +131,7 @@ EXPORT bool CalcModelPredictionSingle(
  * @param result pointer to user allocated results vector
  * @param resultSize result size should be equal to modelApproxDimension * docCount
  * (e.g. for non multiclass models should be equal to docCount)
- * @return
+ * @return false if error occured
  */
 EXPORT bool CalcModelPredictionWithHashedCatFeatures(
     ModelCalcerHandle* modelHandle,

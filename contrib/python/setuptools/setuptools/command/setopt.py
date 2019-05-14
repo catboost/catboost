@@ -4,7 +4,7 @@ from distutils.errors import DistutilsOptionError
 import distutils
 import os
 
-from six.moves import configparser
+from setuptools.extern.six.moves import configparser
 
 from setuptools import Command
 

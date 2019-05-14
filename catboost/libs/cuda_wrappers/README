@@ -1,0 +1,4 @@
+Light cuda wrappers for single host usage
+
+
+TODO: proper place + split to API wrappers + kernel utils

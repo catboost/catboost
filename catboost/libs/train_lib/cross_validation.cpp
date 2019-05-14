@@ -346,6 +346,8 @@ void CrossValidate(
     NCatboostOptions::TOutputFilesOptions outputFileOptions;
     outputFileOptions.Load(outputJsonParams);
 
+    // TODO(akhropov): implement snapshots in CV. MLTOOLS-3439.
+    CB_ENSURE(!outputFileOptions.SaveSnapshot(), "Saving snapshots in Cross-validation is not supported yet");
 
     const ui32 allDataObjectCount = data->ObjectsData->GetObjectCount();
 
@@ -388,11 +390,11 @@ void CrossValidate(
     const ui32 cvTrainSize = cvParams.Inverted ? oneFoldSize : oneFoldSize * (cvParams.FoldCount - 1);
     SetDataDependentDefaults(
         cvTrainSize,
-        /*hasLearnTarget*/trainingData->MetaInfo.HasTarget,
+        trainingData->TargetData.Get()->GetTarget(),
+        Nothing(),
         trainingData->ObjectsData->GetQuantizedFeaturesInfo()
             ->CalcMaxCategoricalFeaturesUniqueValuesCountOnLearn(),
         /*testPoolSize=*/allDataObjectCount - cvTrainSize,
-        /*hasTestLabels=*/trainingData->MetaInfo.HasTarget,
         /*hasTestPairs*/trainingData->MetaInfo.HasPairs,
         &outputFileOptions.UseBestModel,
         &catBoostOptions
@@ -430,7 +432,6 @@ void CrossValidate(
 
 
     TVector<THolder<IMetric>> metrics = CreateMetrics(
-        catBoostOptions.LossFunctionDescription,
         catBoostOptions.MetricOptions,
         evalMetricDescriptor,
         approxDimension

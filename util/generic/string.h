@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <cstring>
 #include <stlfwd>
+#include <string_view>
 
 #include <util/system/compat.h>
 #include <util/system/yassert.h>
@@ -207,10 +208,15 @@ public:
         return s ? TTraits::GetLength(s) : 0;
     }
 
+    template <class TCharTraits>
+    inline constexpr operator std::basic_string_view<TCharType, TCharTraits>() const {
+        return std::basic_string_view<TCharType>(data(), size());
+    }
+
     // TODO: DROP! this one provides an implicit TStringBuf -> std::string conversion!
-    template <class T, class A>
-    inline operator std::basic_string<TCharType, T, A>() const {
-        return std::basic_string<TCharType, T, A>(Ptr(), Len());
+    template <class TCharTraits, class Allocator>
+    inline operator std::basic_string<TCharType, TCharTraits, Allocator>() const {
+        return std::basic_string<TCharType, TCharTraits, Allocator>(Ptr(), Len());
     }
 
     /**

@@ -2,20 +2,25 @@
 #include "approx_calcer_helpers.h"
 #include "approx_calcer_multi.h"
 #include "approx_calcer_querywise.h"
+#include "error_functions.h"
 #include "fold.h"
-#include "score_calcer.h"
 #include "index_calcer.h"
 #include "learn_context.h"
-#include "error_functions.h"
-#include "yetirank_helpers.h"
 #include "pairwise_leaves_calculation.h"
+#include "score_calcer.h"
+#include "split.h"
+#include "yetirank_helpers.h"
 
 #include <catboost/libs/data_new/data_provider.h>
 #include <catboost/libs/logging/logging.h>
 #include <catboost/libs/logging/profile_info.h>
+#include <catboost/libs/options/catboost_options.h>
 #include <catboost/libs/options/enum_helpers.h>
 
+#include <library/threading/local_executor/local_executor.h>
+
 #include <util/generic/ymath.h>
+
 
 template <bool StoreExpApprox, int VectorWidth>
 inline void UpdateApproxKernel(const double* leafDeltas, const TIndexType* indices, double* deltasDimension) {
@@ -318,7 +323,7 @@ void CalcLeafDersSimple(
 
         TVector<TQueryInfo> recalculatedQueriesInfo;
         TVector<float> recalculatedPairwiseWeights;
-        const bool shouldGenerateYetiRankPairs = ShouldGenerateYetiRankPairs(
+        const bool shouldGenerateYetiRankPairs = IsYetiRankLossFunction(
             params.LossFunctionDescription->GetLossFunction()
         );
         if (shouldGenerateYetiRankPairs) {
@@ -528,7 +533,7 @@ static void UpdateApproxDeltasHistorically(
 ) {
     TVector<TQueryInfo> recalculatedQueriesInfo;
     TVector<float> recalculatedPairwiseWeights;
-    const bool shouldGenerateYetiRankPairs = ShouldGenerateYetiRankPairs(
+    const bool shouldGenerateYetiRankPairs = IsYetiRankLossFunction(
         params.LossFunctionDescription->GetLossFunction()
     );
     if (shouldGenerateYetiRankPairs) {
@@ -774,7 +779,7 @@ static void CalcApproxDeltaSimple(
     TVector<THolder<IMetric>> lossFunction;
     double directionSign = 0;
     if (!isTrivialWalker) {
-        lossFunction = CreateDefaultMetricForObjective(ctx->Params.LossFunctionDescription, dimensionCount);
+        lossFunction = CreateMetricFromDescription(ctx->Params.MetricOptions.Get().ObjectiveMetric, dimensionCount);
         directionSign = GetDirectionSign(lossFunction[0]);
     }
     const auto lossCalcerFunc = [&] (const TVector<TVector<double>>& approxDeltas) {
@@ -788,7 +793,8 @@ static void CalcApproxDeltaSimple(
             fold.GetLearnWeights(),
             bodyTailQueryInfo,
             lossFunction[0],
-            ctx->LocalExecutor);
+            ctx->LocalExecutor
+        );
         return directionSign * lossFunction[0]->GetFinalError(additiveStats);
     };
 
@@ -896,7 +902,7 @@ static void CalcLeafValuesSimple(
     TVector<THolder<IMetric>> lossFunction;
     double directionSign = 0;
     if (!isTrivialWalker) {
-        lossFunction = CreateDefaultMetricForObjective(ctx->Params.LossFunctionDescription, dimensionCount);
+        lossFunction = CreateMetricFromDescription(ctx->Params.MetricOptions->ObjectiveMetric, dimensionCount);
         directionSign = GetDirectionSign(lossFunction[0]);
     }
     const auto lossCalcerFunc = [&] (const TVector<TVector<double>>& approx) {

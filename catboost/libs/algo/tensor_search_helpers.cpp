@@ -1,8 +1,13 @@
 #include "tensor_search_helpers.h"
+
+#include "calc_score_cache.h"
 #include "mvs.h"
 
 #include <catboost/libs/data_new/objects.h>
 #include <catboost/libs/helpers/restorable_rng.h>
+#include <catboost/libs/options/catboost_options.h>
+
+#include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/maybe.h>
 #include <util/generic/xrange.h>
@@ -86,7 +91,9 @@ THolder<IDerCalcer> BuildError(
             if (lossParams.empty()) {
                 return MakeHolder<TQuantileError>(isStoreExpApprox);
             } else {
-                CB_ENSURE(lossParams.begin()->first == "alpha", "Invalid loss description" << ToString(params.LossFunctionDescription.Get()));
+                CB_ENSURE(
+                    lossParams.begin()->first == "alpha",
+                    "Invalid loss description" << ToString(params.LossFunctionDescription.Get()));
                 return MakeHolder<TQuantileError>(FromString<float>(lossParams.at("alpha")), isStoreExpApprox);
             }
         }
@@ -95,8 +102,12 @@ THolder<IDerCalcer> BuildError(
             if (lossParams.empty()) {
                 return MakeHolder<TLogLinQuantileError>(isStoreExpApprox);
             } else {
-                CB_ENSURE(lossParams.begin()->first == "alpha", "Invalid loss description" << ToString(params.LossFunctionDescription.Get()));
-                return MakeHolder<TLogLinQuantileError>(FromString<float>(lossParams.at("alpha")), isStoreExpApprox);
+                CB_ENSURE(
+                    lossParams.begin()->first == "alpha",
+                    "Invalid loss description" << ToString(params.LossFunctionDescription.Get()));
+                return MakeHolder<TLogLinQuantileError>(
+                    FromString<float>(lossParams.at("alpha")),
+                    isStoreExpApprox);
             }
         }
         case ELossFunction::MAPE:
@@ -118,8 +129,7 @@ THolder<IDerCalcer> BuildError(
             const auto& lossParams = lossFunctionDescription->GetLossParams();
             CB_ENSURE(
                 lossParams.empty() || lossParams.begin()->first == "lambda",
-                "Invalid loss description" << ToString(lossFunctionDescription.Get())
-            );
+                "Invalid loss description" << ToString(lossFunctionDescription.Get()));
 
             const double lambdaReg = NCatboostOptions::GetQuerySoftMaxLambdaReg(lossFunctionDescription);
             return MakeHolder<TQuerySoftMaxError>(lambdaReg, isStoreExpApprox);
@@ -129,18 +139,25 @@ THolder<IDerCalcer> BuildError(
         case ELossFunction::YetiRankPairwise:
             return MakeHolder<TPairLogitError>(isStoreExpApprox);
         case ELossFunction::Lq:
-            return MakeHolder<TLqError>(NCatboostOptions::GetLqParam(params.LossFunctionDescription), isStoreExpApprox);
+            return MakeHolder<TLqError>(
+                NCatboostOptions::GetLqParam(params.LossFunctionDescription),
+                isStoreExpApprox);
         case ELossFunction::StochasticFilter: {
             double sigma = NCatboostOptions::GetStochasticFilterSigma(params.LossFunctionDescription);
-            int numEstimations = NCatboostOptions::GetStochasticFilterNumEstimations(params.LossFunctionDescription);
+            int numEstimations = NCatboostOptions::GetStochasticFilterNumEstimations(
+                params.LossFunctionDescription);
             return MakeHolder<TStochasticFilterError>(sigma, numEstimations, isStoreExpApprox);
         }
         case ELossFunction::PythonUserDefinedPerObject:
             return MakeHolder<TCustomError>(params, descriptor);
         case ELossFunction::UserPerObjMetric:
-            return MakeHolder<TUserDefinedPerObjectError>(params.LossFunctionDescription->GetLossParams(), isStoreExpApprox);
+            return MakeHolder<TUserDefinedPerObjectError>(
+                params.LossFunctionDescription->GetLossParams(),
+                isStoreExpApprox);
         case ELossFunction::UserQuerywiseMetric:
-            return MakeHolder<TUserDefinedQuerywiseError>(params.LossFunctionDescription->GetLossParams(), isStoreExpApprox);
+            return MakeHolder<TUserDefinedQuerywiseError>(
+                params.LossFunctionDescription->GetLossParams(),
+                isStoreExpApprox);
         default:
             CB_ENSURE(false, "provided error function is not supported");
     }
@@ -170,21 +187,27 @@ static void GenerateRandomWeights(
 
     NPar::TLocalExecutor::TExecRangeParams blockParams(0, sampleCount);
     blockParams.SetBlockSize(1000);
-    localExecutor->ExecRange([&](int blockIdx) {
-        TRestorableFastRng64 rand(randSeed + blockIdx);
-        rand.Advance(10); // reduce correlation between RNGs in different threads
-        float* sampleWeightsData = fold->SampleWeights.data();
-        NPar::TLocalExecutor::BlockedLoopBody(blockParams, [=,&rand](int i) {
-            const float w = GenerateBayessianWeight(baggingTemperature, rand);
-            if (samplingUnit == ESamplingUnit::Object) {
-                sampleWeightsData[i] = w;
-            } else {
-                ui32 begin = fold->LearnQueriesInfo[i].Begin;
-                ui32 end = fold->LearnQueriesInfo[i].End;
-                Fill(sampleWeightsData + begin, sampleWeightsData + end, w);
-            }
-        })(blockIdx);
-    }, 0, blockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
+    localExecutor->ExecRange(
+        [&](int blockIdx) {
+            TRestorableFastRng64 rand(randSeed + blockIdx);
+            rand.Advance(10); // reduce correlation between RNGs in different threads
+            float* sampleWeightsData = fold->SampleWeights.data();
+            NPar::TLocalExecutor::BlockedLoopBody(
+                blockParams,
+                [=,&rand](int i) {
+                const float w = GenerateBayessianWeight(baggingTemperature, rand);
+                    if (samplingUnit == ESamplingUnit::Object) {
+                        sampleWeightsData[i] = w;
+                    } else {
+                        ui32 begin = fold->LearnQueriesInfo[i].Begin;
+                        ui32 end = fold->LearnQueriesInfo[i].End;
+                        Fill(sampleWeightsData + begin, sampleWeightsData + end, w);
+                    }
+                })(blockIdx);
+        },
+        0,
+        blockParams.GetBlockCount(),
+        NPar::TLocalExecutor::WAIT_COMPLETE);
 }
 
 static void GenerateBayesianWeightsForPairs(
@@ -200,20 +223,26 @@ static void GenerateBayesianWeightsForPairs(
     const ui64 randSeed = rand->GenRand();
     NPar::TLocalExecutor::TExecRangeParams blockParams(0, fold->LearnQueriesInfo.ysize());
     blockParams.SetBlockSize(1000);
-    localExecutor->ExecRange([&](int blockIdx) {
-        TRestorableFastRng64 rand(randSeed + blockIdx);
-        rand.Advance(10); // reduce correlation between RNGs in different threads
-        NPar::TLocalExecutor::BlockedLoopBody(blockParams, [&](int i) {
-            const float wGroup = GenerateBayessianWeight(baggingTemperature, rand);
-            for (auto& competitors : fold->LearnQueriesInfo[i].Competitors) {
-                for (auto& competitor : competitors) {
-                    float w = (samplingUnit == ESamplingUnit::Group) ?
-                            wGroup : GenerateBayessianWeight(baggingTemperature, rand);
-                    competitor.SampleWeight = competitor.Weight * w;
-                }
-            }
-        })(blockIdx);
-    }, 0, blockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
+    localExecutor->ExecRange(
+        [&](int blockIdx) {
+            TRestorableFastRng64 rand(randSeed + blockIdx);
+            rand.Advance(10); // reduce correlation between RNGs in different threads
+            NPar::TLocalExecutor::BlockedLoopBody(
+                blockParams,
+                [&](int i) {
+                    const float wGroup = GenerateBayessianWeight(baggingTemperature, rand);
+                    for (auto& competitors : fold->LearnQueriesInfo[i].Competitors) {
+                        for (auto& competitor : competitors) {
+                            float w = (samplingUnit == ESamplingUnit::Group) ?
+                                wGroup : GenerateBayessianWeight(baggingTemperature, rand);
+                            competitor.SampleWeight = competitor.Weight * w;
+                        }
+                    }
+                })(blockIdx);
+        },
+        0,
+        blockParams.GetBlockCount(),
+        NPar::TLocalExecutor::WAIT_COMPLETE);
 }
 
 static void GenerateBernoulliWeightsForPairs(
@@ -229,23 +258,29 @@ static void GenerateBernoulliWeightsForPairs(
     const ui64 randSeed = rand->GenRand();
     NPar::TLocalExecutor::TExecRangeParams blockParams(0, fold->LearnQueriesInfo.ysize());
     blockParams.SetBlockSize(1000);
-    localExecutor->ExecRange([&](int blockIdx) {
-        TRestorableFastRng64 rand(randSeed + blockIdx);
-        rand.Advance(10); // reduce correlation between RNGs in different threads
-        NPar::TLocalExecutor::BlockedLoopBody(blockParams, [&](int i) {
-            const double wGroup = rand.GenRandReal1();
-            for (auto& competitors : fold->LearnQueriesInfo[i].Competitors) {
-                for (auto& competitor : competitors) {
-                    double w = (samplingUnit == ESamplingUnit::Group) ? wGroup : rand.GenRandReal1();
-                    if (w < takenFraction) {
-                        competitor.SampleWeight = competitor.Weight;
-                    } else {
-                        competitor.SampleWeight = 0.0f;
+    localExecutor->ExecRange(
+        [&](int blockIdx) {
+            TRestorableFastRng64 rand(randSeed + blockIdx);
+            rand.Advance(10); // reduce correlation between RNGs in different threads
+            NPar::TLocalExecutor::BlockedLoopBody(
+                blockParams,
+                [&](int i) {
+                    const double wGroup = rand.GenRandReal1();
+                    for (auto& competitors : fold->LearnQueriesInfo[i].Competitors) {
+                        for (auto& competitor : competitors) {
+                            double w = (samplingUnit == ESamplingUnit::Group) ? wGroup : rand.GenRandReal1();
+                            if (w < takenFraction) {
+                                competitor.SampleWeight = competitor.Weight;
+                            } else {
+                                competitor.SampleWeight = 0.0f;
+                            }
+                        }
                     }
-                }
-            }
-        })(blockIdx);
-    }, 0, blockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
+                })(blockIdx);
+        },
+        0,
+        blockParams.GetBlockCount(),
+        NPar::TLocalExecutor::WAIT_COMPLETE);
 }
 
 static void CalcWeightedData(
@@ -266,18 +301,22 @@ static void CalcWeightedData(
         if (!bt.PairwiseWeights.empty()) {
             const float* pairwiseWeightsData = bt.PairwiseWeights.data();
             float* samplePairwiseWeightsData = bt.SamplePairwiseWeights.data();
-            localExecutor->ExecRange([=](int z) {
-                samplePairwiseWeightsData[z] = pairwiseWeightsData[z] * sampleWeightsData[z];
-            }, NPar::TLocalExecutor::TExecRangeParams(begin, bt.TailFinish).SetBlockSize(4000)
-             , NPar::TLocalExecutor::WAIT_COMPLETE);
+            localExecutor->ExecRange(
+                [=](int z) {
+                    samplePairwiseWeightsData[z] = pairwiseWeightsData[z] * sampleWeightsData[z];
+                },
+                NPar::TLocalExecutor::TExecRangeParams(begin, bt.TailFinish).SetBlockSize(4000),
+                NPar::TLocalExecutor::WAIT_COMPLETE);
         }
         for (int dim = 0; dim < approxDimension; ++dim) {
             const double* weightedDerivativesData = bt.WeightedDerivatives[dim].data();
             double* sampleWeightedDerivativesData = bt.SampleWeightedDerivatives[dim].data();
-            localExecutor->ExecRange([=](int z) {
-                sampleWeightedDerivativesData[z] = weightedDerivativesData[z] * sampleWeightsData[z];
-            }, NPar::TLocalExecutor::TExecRangeParams(begin, bt.TailFinish).SetBlockSize(4000)
-             , NPar::TLocalExecutor::WAIT_COMPLETE);
+            localExecutor->ExecRange(
+                [=](int z) {
+                    sampleWeightedDerivativesData[z] = weightedDerivativesData[z] * sampleWeightsData[z];
+                },
+                NPar::TLocalExecutor::TExecRangeParams(begin, bt.TailFinish).SetBlockSize(4000),
+                NPar::TLocalExecutor::WAIT_COMPLETE);
         }
     }
 
@@ -319,14 +358,20 @@ void Bootstrap(
             if (isPairwiseScoring) {
                 GenerateBayesianWeightsForPairs(baggingTemperature, samplingUnit, localExecutor, rand, fold);
             } else {
-                GenerateRandomWeights(learnSampleCount, baggingTemperature, samplingUnit, localExecutor, rand, fold);
+                GenerateRandomWeights(
+                    learnSampleCount,
+                    baggingTemperature,
+                    samplingUnit,
+                    localExecutor,
+                    rand,
+                    fold);
             }
             break;
         case EBootstrapType::MVS:
             if (!isPairwiseScoring) {
                 isCoinFlipping = false;
                 TMvsSampler sampler(learnSampleCount, headFraction);
-                sampler.GenSampleWeights(*fold, boostingType, rand, localExecutor);
+                sampler.GenSampleWeights(boostingType, rand, localExecutor, fold);
             }
             break;
         case EBootstrapType::No:
@@ -357,22 +402,43 @@ void CalcWeightedDerivatives(
     const TVector<float>& weight = takenFold->GetLearnWeights();
     TVector<TVector<double>>* weightedDerivatives = &bt.WeightedDerivatives;
 
-    if (error.GetErrorType() == EErrorType::QuerywiseError || error.GetErrorType() == EErrorType::PairwiseError) {
+    if (error.GetErrorType() == EErrorType::QuerywiseError ||
+        error.GetErrorType() == EErrorType::PairwiseError)
+    {
         TVector<TQueryInfo> recalculatedQueriesInfo;
-        const bool shouldGenerateYetiRankPairs = ShouldGenerateYetiRankPairs(params.LossFunctionDescription->GetLossFunction());
+        const bool shouldGenerateYetiRankPairs = IsYetiRankLossFunction(
+            params.LossFunctionDescription->GetLossFunction());
         if (shouldGenerateYetiRankPairs) {
-            YetiRankRecalculation(*takenFold, bt, params, randomSeed, localExecutor, &recalculatedQueriesInfo, &bt.PairwiseWeights);
+            YetiRankRecalculation(
+                *takenFold,
+                bt,
+                params,
+                randomSeed,
+                localExecutor,
+                &recalculatedQueriesInfo,
+                &bt.PairwiseWeights);
         }
-        const TVector<TQueryInfo>& queriesInfo = shouldGenerateYetiRankPairs ? recalculatedQueriesInfo : takenFold->LearnQueriesInfo;
+        const TVector<TQueryInfo>& queriesInfo
+            = shouldGenerateYetiRankPairs ? recalculatedQueriesInfo : takenFold->LearnQueriesInfo;
 
         const int tailQueryFinish = bt.TailQueryFinish;
         TVector<TDers> ders((*weightedDerivatives)[0].ysize());
-        error.CalcDersForQueries(0, tailQueryFinish, approx[0], target, weight, queriesInfo, ders, randomSeed, localExecutor);
+        error.CalcDersForQueries(
+            0,
+            tailQueryFinish,
+            approx[0],
+            target,
+            weight,
+            queriesInfo,
+            ders,
+            randomSeed,
+            localExecutor);
         for (int docId = 0; docId < ders.ysize(); ++docId) {
             (*weightedDerivatives)[0][docId] = ders[docId].Der1;
         }
         if (params.LossFunctionDescription->GetLossFunction() == ELossFunction::YetiRankPairwise) {
-            // In case of YetiRankPairwise loss function we need to store generated pairs for tree structure building.
+            // In case of YetiRankPairwise loss function we need to store generated pairs for tree structure
+            //  building.
             Y_ASSERT(takenFold->BodyTailArr.size() == 1);
             takenFold->LearnQueriesInfo.swap(recalculatedQueriesInfo);
         }
@@ -384,29 +450,46 @@ void CalcWeightedDerivatives(
 
         Y_ASSERT(error.GetErrorType() == EErrorType::PerObjectError);
         if (approxDimension == 1) {
-            localExecutor->ExecRangeWithThrow([&](int blockId) {
-                const int blockOffset = blockId * blockParams.GetBlockSize();
-                error.CalcFirstDerRange(blockOffset, Min<int>(blockParams.GetBlockSize(), tailFinish - blockOffset),
-                    approx[0].data(),
-                    nullptr, // no approx deltas
-                    target.data(),
-                    weight.data(),
-                    (*weightedDerivatives)[0].data());
-            }, 0, blockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
+            localExecutor->ExecRangeWithThrow(
+                [&](int blockId) {
+                    const int blockOffset = blockId * blockParams.GetBlockSize();
+                    error.CalcFirstDerRange(
+                        blockOffset,
+                        Min<int>(blockParams.GetBlockSize(), tailFinish - blockOffset),
+                        approx[0].data(),
+                        nullptr, // no approx deltas
+                        target.data(),
+                        weight.data(),
+                        (*weightedDerivatives)[0].data());
+                },
+                0,
+                blockParams.GetBlockCount(),
+                NPar::TLocalExecutor::WAIT_COMPLETE);
         } else {
-            localExecutor->ExecRangeWithThrow([&](int blockId) {
-                TVector<double> curApprox(approxDimension);
-                TVector<double> curDelta(approxDimension);
-                NPar::TLocalExecutor::BlockedLoopBody(blockParams, [&](int z) {
-                    for (int dim = 0; dim < approxDimension; ++dim) {
-                        curApprox[dim] = approx[dim][z];
-                    }
-                    error.CalcDersMulti(curApprox, target[z], weight.empty() ? 1 : weight[z], &curDelta, nullptr);
-                    for (int dim = 0; dim < approxDimension; ++dim) {
-                        (*weightedDerivatives)[dim][z] = curDelta[dim];
-                    }
-                })(blockId);
-            }, 0, blockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
+            localExecutor->ExecRangeWithThrow(
+                [&](int blockId) {
+                    TVector<double> curApprox(approxDimension);
+                    TVector<double> curDelta(approxDimension);
+                    NPar::TLocalExecutor::BlockedLoopBody(
+                        blockParams,
+                        [&](int z) {
+                            for (int dim = 0; dim < approxDimension; ++dim) {
+                                curApprox[dim] = approx[dim][z];
+                            }
+                            error.CalcDersMulti(
+                                curApprox,
+                                target[z],
+                                weight.empty() ? 1 : weight[z],
+                                &curDelta,
+                                nullptr);
+                            for (int dim = 0; dim < approxDimension; ++dim) {
+                                (*weightedDerivatives)[dim][z] = curDelta[dim];
+                            }
+                        })(blockId);
+                },
+                0,
+                blockParams.GetBlockCount(),
+                NPar::TLocalExecutor::WAIT_COMPLETE);
         }
     }
 }

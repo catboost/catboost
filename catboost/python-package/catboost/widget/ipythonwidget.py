@@ -46,12 +46,13 @@ class MetricVisualizer(DOMWidget):
             self._update_data()
 
     def _run_update(self):
-        thread = Thread(target=self.start, args=())
-        thread.start()
+        self.thread = Thread(target=self.start, args=())
+        self.thread.start()
 
     def _stop_update(self):
         self._update_after_stop_signal = True
         self._need_to_stop.set()
+        self.thread.join()
 
     def _get_subdirectories(self, a_dir):
         return [os.path.join(a_dir, name) for name in os.listdir(a_dir) if os.path.isdir(os.path.join(a_dir, name))]

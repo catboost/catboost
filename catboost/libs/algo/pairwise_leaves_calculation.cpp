@@ -5,6 +5,7 @@
 #include <catboost/libs/index_range/index_range.h>
 #include <catboost/libs/lapack/linear_system.h>
 
+
 TVector<double> CalculatePairwiseLeafValues(
     const TArray2D<double>& pairwiseWeightSums,
     const TVector<double>& derSums,

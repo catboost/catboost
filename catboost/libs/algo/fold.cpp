@@ -1,11 +1,14 @@
 #include "fold.h"
-#include "helpers.h"
+
 #include "approx_updater_helpers.h"
+#include "helpers.h"
 
 #include <catboost/libs/data_types/groupid.h>
 #include <catboost/libs/helpers/permutation.h>
 #include <catboost/libs/helpers/query_info_helper.h>
 #include <catboost/libs/helpers/restorable_rng.h>
+
+#include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/cast.h>
 
@@ -123,7 +126,7 @@ TFold TFold::BuildDynamicFold(
     double multiplier,
     bool storeExpApproxes,
     bool hasPairwiseWeights,
-    TRestorableFastRng64& rand,
+    TRestorableFastRng64* rand,
     NPar::TLocalExecutor* localExecutor
 ) {
     const ui32 learnSampleCount = learnData.GetObjectCount();
@@ -131,7 +134,7 @@ TFold TFold::BuildDynamicFold(
     TFold ff;
     ff.SampleWeights.resize(learnSampleCount, 1);
 
-    InitPermutationData(learnData, shuffle, permuteBlockSize, &rand, &ff);
+    InitPermutationData(learnData, shuffle, permuteBlockSize, rand, &ff);
 
     ff.AssignTarget(learnData.TargetData->GetTarget(), targetClassifiers);
     ff.SetWeights(GetWeights(*learnData.TargetData), learnSampleCount);
@@ -231,7 +234,7 @@ TFold TFold::BuildPlainFold(
     int approxDimension,
     bool storeExpApproxes,
     bool hasPairwiseWeights,
-    TRestorableFastRng64& rand,
+    TRestorableFastRng64* rand,
     NPar::TLocalExecutor* localExecutor
 ) {
     const ui32 learnSampleCount = learnData.GetObjectCount();
@@ -239,7 +242,7 @@ TFold TFold::BuildPlainFold(
     TFold ff;
     ff.SampleWeights.resize(learnSampleCount, 1);
 
-    InitPermutationData(learnData, shuffle, permuteBlockSize, &rand, &ff);
+    InitPermutationData(learnData, shuffle, permuteBlockSize, rand, &ff);
 
     ff.AssignTarget(learnData.TargetData->GetTarget(), targetClassifiers);
     ff.SetWeights(GetWeights(*learnData.TargetData), learnSampleCount);

@@ -15,73 +15,6 @@ namespace NTextProcessing::NDictionary {
         return maxDictionarySize == -1 ? Max<ui32>() : maxDictionarySize;
     }
 
-    class LetterGenerator {
-    public:
-        LetterGenerator(TStringBuf token)
-            : Token(token)
-            , Current(reinterpret_cast<const unsigned char*>(token.data()))
-            , Last(Current + token.size())
-        {
-        }
-
-        TStringBuf GetNextLetter() {
-            size_t length;
-            GetUTF8CharLen(length, Current, Last);
-            length = Min(length, static_cast<size_t>(Last - Current));
-            TStringBuf result(reinterpret_cast<const char*>(Current), length);
-            Current += length;
-            return result;
-        }
-
-        bool HasNextLetter() const {
-            return Current != Last;
-        }
-
-    private:
-        TStringBuf Token;
-        const unsigned char* Current;
-        const unsigned char* Last;
-    };
-
-
-    template <typename TVisitor>
-    static void MaybeUpdateLetterNGram(
-        TStringBuf letter,
-        ui32 gramOrder,
-        ui32 skipStep,
-        TDeque<TStringBuf>* letters,
-        TVisitor& visitor
-    ) {
-        letters->push_back(letter);
-        if ((gramOrder - 1) * (skipStep + 1) == letters->size() - 1) {
-            TString letterNGram((*letters)[0]);
-            for (ui32 gramIndex = 1; gramIndex < gramOrder; ++gramIndex) {
-                letterNGram += (*letters)[(gramIndex) * (skipStep + 1)];
-            }
-            visitor(letterNGram);
-            letters->pop_front();
-        }
-    }
-
-    template <typename TTokenType, typename TVisitor>
-    static void ApplyFuncToLetterNGramsAddEOW(
-        TConstArrayRef<TTokenType> tokens,
-        ui32 gramOrder,
-        ui32 skipStep,
-        TVisitor& visitor
-    ) {
-        TDeque<TStringBuf> letters;
-        static const TString spaceSymbol = " ";
-        MaybeUpdateLetterNGram(spaceSymbol, gramOrder, skipStep, &letters, visitor);
-        for (const auto& token : tokens) {
-            LetterGenerator lettersGenerator(token);
-            while (lettersGenerator.HasNextLetter()) {
-                MaybeUpdateLetterNGram(lettersGenerator.GetNextLetter(), gramOrder, skipStep, &letters, visitor);
-            }
-            MaybeUpdateLetterNGram(spaceSymbol, gramOrder, skipStep, &letters, visitor);
-        }
-    }
-
     template <typename TTokenType>
     static void GetLetterIndices(const TTokenType& token, TVector<ui32>* letterStartIndices) {
         letterStartIndices->clear();
@@ -99,39 +32,38 @@ namespace NTextProcessing::NDictionary {
         letterStartIndices->push_back(tokenSize);
     }
 
-    template <typename TTokenType, typename TVisitor>
-    static void ApplyFuncToLetterNGramsSkipEOW(
+    template <bool needToAddEndOfWordToken, typename TTokenType, typename TVisitor>
+    static void ApplyFuncToLetterNGramsImpl(
         TConstArrayRef<TTokenType> tokens,
-        ui32 gramOrder,
-        ui32 skipStep,
+        int gramOrder,
         TVisitor& visitor
     ) {
         TVector<ui32> letterStartIndices;
-        TString letterNGram;
         for (const auto& token : tokens) {
             GetLetterIndices(token, &letterStartIndices);
-            const ui32 lettersCount = letterStartIndices.size() - 1; // Last element of this vector is token.size()
-            const ui32 windowSize = (gramOrder - 1) * (skipStep + 1) + 1;
-            if (windowSize > lettersCount) {
-                continue;
-            }
-            const ui32 gramCount = lettersCount - windowSize + 1;
-            for (ui32 i = 0; i < gramCount; ++i) {
-                letterNGram.clear();
-                letterNGram.insert(
-                    letterNGram.end(),
+            const int lettersCount = letterStartIndices.size() - 1; // Last element of this vector is token.size()
+            const int gramCount = lettersCount - gramOrder + 1;
+            for (int i = 0; i < gramCount; ++i) {
+                visitor({
                     token.data() + letterStartIndices[i],
-                    token.data() + letterStartIndices[i + 1]
-                );
-                for (ui32 gramIndex = 1; gramIndex < gramOrder; ++gramIndex) {
-                    const ui32 letterIndex = i + gramIndex * (skipStep + 1);
-                    letterNGram.insert(
-                        letterNGram.end(),
-                        token.data() + letterStartIndices[letterIndex],
-                        token.data() + letterStartIndices[letterIndex + 1]
-                    );
+                    token.data() + letterStartIndices[i + gramOrder]
+                });
+            }
+
+            // Add start of word token (First gramOrder - 1 symbols)
+            if (gramOrder <= lettersCount + 1) {
+                visitor({token.data(), token.data() + letterStartIndices[gramOrder - 1]});
+            }
+
+            if constexpr (needToAddEndOfWordToken) {
+                // Add end of word token (Last gramOrder - 1 symbols + " ")
+                if (gramOrder <= lettersCount + 2) {
+                    const int lastGramBegin = Max<int>(0, lettersCount + 1 - gramOrder);
+                    visitor(TString(
+                        token.data() + letterStartIndices[lastGramBegin],
+                        token.data() + token.size()
+                    ) + " ");
                 }
-                visitor(letterNGram);
             }
         }
     }
@@ -140,14 +72,13 @@ namespace NTextProcessing::NDictionary {
     void ApplyFuncToLetterNGrams(
         TConstArrayRef<TTokenType> tokens,
         ui32 gramOrder,
-        ui32 skipStep,
         bool needToAddEndOfWordToken,
         TVisitor& visitor
     ) {
         if (needToAddEndOfWordToken) {
-            ApplyFuncToLetterNGramsAddEOW(tokens, gramOrder, skipStep, visitor);
+            ApplyFuncToLetterNGramsImpl<true>(tokens, gramOrder, visitor);
         } else {
-            ApplyFuncToLetterNGramsSkipEOW(tokens, gramOrder, skipStep, visitor);
+            ApplyFuncToLetterNGramsImpl<false>(tokens, gramOrder, visitor);
         }
     }
 

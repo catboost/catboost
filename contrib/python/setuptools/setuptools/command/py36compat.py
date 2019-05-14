@@ -3,7 +3,7 @@ from glob import glob
 from distutils.util import convert_path
 from distutils.command import sdist
 
-from six.moves import filter
+from setuptools.extern.six.moves import filter
 
 
 class sdist_add_defaults:

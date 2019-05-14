@@ -54,6 +54,11 @@ class CatBoostJNIImpl {
             @NotNull int[] treeCount);
 
     @Nullable
+    final static native String catBoostModelGetFeatureNames(
+            long handle,
+            @NotNull String[] featureNames);
+
+    @Nullable
     final static native String catBoostModelPredict(
             long handle,
             @Nullable float[] numericFeatures,

@@ -370,7 +370,7 @@ TTriWayDotProduct<float> TriWayDotProduct(const float* lhs, const float* rhs, ui
     return result;
 }
 
-#endif // _sse_
+#endif // ARCADIA_SSE
 
 i64 DotProduct(const i32* lhs, const i32* rhs, ui32 length) noexcept {
     /*

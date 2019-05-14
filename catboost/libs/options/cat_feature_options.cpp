@@ -5,7 +5,7 @@
 #include <util/charset/utf8.h>
 #include <util/generic/maybe.h>
 #include <util/string/cast.h>
-#include <util/string/iterator.h>
+#include <util/string/split.h>
 
 namespace {
     struct TCtrParam {

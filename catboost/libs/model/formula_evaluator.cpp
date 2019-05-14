@@ -6,10 +6,10 @@
 
 #include <cstring>
 
-#ifdef _sse2_
-#include <emmintrin.h>
-#include <pmmintrin.h>
-#endif
+#include <library/sse/sse.h>
+
+constexpr size_t SSE_BLOCK_SIZE = 16;
+static_assert(SSE_BLOCK_SIZE * 8 == FORMULA_EVALUATION_BLOCK_SIZE);
 
 
 void TFeatureCachedTreeEvaluator::Calc(size_t treeStart, size_t treeEnd, TArrayRef<double> results) const {
@@ -32,8 +32,6 @@ void TFeatureCachedTreeEvaluator::Calc(size_t treeStart, size_t treeEnd, TArrayR
         ++id;
     }
 }
-
-constexpr size_t SSE_BLOCK_SIZE = 16;
 
 template <bool NeedXorMask, size_t START_BLOCK, typename TIndexType>
 Y_FORCE_INLINE void CalcIndexesBasic(
@@ -83,7 +81,7 @@ void CalcIndexes(
         CalcIndexesBasic<false, 0>(binFeatures, docCountInBlock, indexesVec, treeSplitsCurPtr, curTreeSize);
     }
 }
-#ifdef _sse2_
+#ifdef ARCADIA_SSE
 
 template <bool NeedXorMask, size_t SSEBlockCount, int curTreeSize>
 Y_FORCE_INLINE void CalcIndexesSseDepthed(
@@ -203,7 +201,7 @@ Y_FORCE_INLINE void CalculateLeafValues(const size_t docCountInBlock, const doub
     }
 }
 
-#ifdef _sse2_
+#ifdef ARCADIA_SSE
 template <int SSEBlockCount>
 Y_FORCE_INLINE static void GatherAddLeafSSE(const double* __restrict treeLeafPtr, const ui8* __restrict indexesPtr, __m128d* __restrict writePtr) {
     _mm_prefetch((const char*)(treeLeafPtr + 64), _MM_HINT_T2);
@@ -286,7 +284,7 @@ Y_FORCE_INLINE void CalculateLeafValuesMulti(const size_t docCountInBlock, const
     }
 }
 
-template <bool IsSingleClassModel, bool NeedXorMask, int SSEBlockCount>
+template <bool IsSingleClassModel, bool NeedXorMask, int SSEBlockCount, bool CalcLeafIndexesOnly = false>
 Y_FORCE_INLINE void CalcTreesBlockedImpl(
     const TFullModel& model,
     const ui8* __restrict binFeatures,
@@ -302,13 +300,13 @@ Y_FORCE_INLINE void CalcTreesBlockedImpl(
     ui8* __restrict indexesVec = (ui8*)indexesVecUI32;
     const auto treeLeafPtr = model.ObliviousTrees.LeafValues.data();
     auto firstLeafOffsetsPtr = model.ObliviousTrees.GetFirstLeafOffsets().data();
-#ifdef _sse2_
+#ifdef ARCADIA_SSE
     bool allTreesAreShallow = AllOf(
             model.ObliviousTrees.TreeSizes.begin() + treeStart,
             model.ObliviousTrees.TreeSizes.begin() + treeEnd,
             [](int depth) { return depth <= 8; }
     );
-    if (IsSingleClassModel && allTreesAreShallow) {
+    if (IsSingleClassModel && !CalcLeafIndexesOnly && allTreesAreShallow) {
         auto alignedResultsPtr = resultsPtr;
         TVector<double> resultsTmpArray;
         const size_t neededMemory = docCountInBlock * model.ObliviousTrees.ApproxDimension * sizeof(double);
@@ -355,8 +353,8 @@ Y_FORCE_INLINE void CalcTreesBlockedImpl(
     for (size_t treeId = treeStart; treeId < treeEnd; ++treeId) {
         auto curTreeSize = model.ObliviousTrees.TreeSizes[treeId];
         memset(indexesVec, 0, sizeof(ui32) * docCountInBlock);
-#ifdef _sse2_
-        if (curTreeSize <= 8) {
+#ifdef ARCADIA_SSE
+        if (!CalcLeafIndexesOnly && curTreeSize <= 8) {
             CalcIndexesSse<NeedXorMask, SSEBlockCount>(binFeatures, docCountInBlock, indexesVec, treeSplitsCurPtr, curTreeSize);
             if (IsSingleClassModel) { // single class model
                 CalculateLeafValues(docCountInBlock, treeLeafPtr + firstLeafOffsetsPtr[treeId], indexesVec, resultsPtr);
@@ -367,18 +365,26 @@ Y_FORCE_INLINE void CalcTreesBlockedImpl(
 #else
         {
 #endif
-            CalcIndexesBasic<NeedXorMask, 0>(binFeatures, docCountInBlock, indexesVecUI32, treeSplitsCurPtr, curTreeSize);
-            if (IsSingleClassModel) { // single class model
-                CalculateLeafValues(docCountInBlock, treeLeafPtr + firstLeafOffsetsPtr[treeId], indexesVecUI32, resultsPtr);
-            } else { // multiclass model
-                CalculateLeafValuesMulti(docCountInBlock, treeLeafPtr + firstLeafOffsetsPtr[treeId], indexesVecUI32, model.ObliviousTrees.ApproxDimension, resultsPtr);
+            CalcIndexesBasic<NeedXorMask, 0>(binFeatures, docCountInBlock, indexesVecUI32, treeSplitsCurPtr,
+                                             curTreeSize);
+            if constexpr (CalcLeafIndexesOnly) {
+                indexesVecUI32 += docCountInBlock;
+                indexesVec += sizeof(ui32) * docCountInBlock;
+            } else {
+                if (IsSingleClassModel) { // single class model
+                    CalculateLeafValues(docCountInBlock, treeLeafPtr + firstLeafOffsetsPtr[treeId],
+                                        indexesVecUI32, resultsPtr);
+                } else { // multiclass model
+                    CalculateLeafValuesMulti(docCountInBlock, treeLeafPtr + firstLeafOffsetsPtr[treeId],
+                                             indexesVecUI32, model.ObliviousTrees.ApproxDimension, resultsPtr);
+                }
             }
         }
         treeSplitsCurPtr += curTreeSize;
     }
 }
 
-template <bool IsSingleClassModel, bool NeedXorMask>
+template <bool IsSingleClassModel, bool NeedXorMask, bool CalcLeafIndexesOnly = false>
 Y_FORCE_INLINE void CalcTreesBlocked(
     const TFullModel& model,
     const ui8* __restrict binFeatures,
@@ -390,50 +396,62 @@ Y_FORCE_INLINE void CalcTreesBlocked(
 {
     switch (docCountInBlock / SSE_BLOCK_SIZE) {
     case 0:
-        CalcTreesBlockedImpl<IsSingleClassModel, NeedXorMask, 0>(model, binFeatures, docCountInBlock, indexesVec, treeStart, treeEnd, resultsPtr);
+        CalcTreesBlockedImpl<IsSingleClassModel, NeedXorMask, 0, CalcLeafIndexesOnly>(
+            model, binFeatures, docCountInBlock, indexesVec, treeStart, treeEnd, resultsPtr);
         break;
     case 1:
-        CalcTreesBlockedImpl<IsSingleClassModel, NeedXorMask, 1>(model, binFeatures, docCountInBlock, indexesVec, treeStart, treeEnd, resultsPtr);
+        CalcTreesBlockedImpl<IsSingleClassModel, NeedXorMask, 1, CalcLeafIndexesOnly>(
+            model, binFeatures, docCountInBlock, indexesVec, treeStart, treeEnd, resultsPtr);
         break;
     case 2:
-        CalcTreesBlockedImpl<IsSingleClassModel, NeedXorMask, 2>(model, binFeatures, docCountInBlock, indexesVec, treeStart, treeEnd, resultsPtr);
+        CalcTreesBlockedImpl<IsSingleClassModel, NeedXorMask, 2, CalcLeafIndexesOnly>(
+            model, binFeatures, docCountInBlock, indexesVec, treeStart, treeEnd, resultsPtr);
         break;
     case 3:
-        CalcTreesBlockedImpl<IsSingleClassModel, NeedXorMask, 3>(model, binFeatures, docCountInBlock, indexesVec, treeStart, treeEnd, resultsPtr);
+        CalcTreesBlockedImpl<IsSingleClassModel, NeedXorMask, 3, CalcLeafIndexesOnly>(
+            model, binFeatures, docCountInBlock, indexesVec, treeStart, treeEnd, resultsPtr);
         break;
     case 4:
-        CalcTreesBlockedImpl<IsSingleClassModel, NeedXorMask, 4>(model, binFeatures, docCountInBlock, indexesVec, treeStart, treeEnd, resultsPtr);
+        CalcTreesBlockedImpl<IsSingleClassModel, NeedXorMask, 4, CalcLeafIndexesOnly>(
+            model, binFeatures, docCountInBlock, indexesVec, treeStart, treeEnd, resultsPtr);
         break;
     case 5:
-        CalcTreesBlockedImpl<IsSingleClassModel, NeedXorMask, 5>(model, binFeatures, docCountInBlock, indexesVec, treeStart, treeEnd, resultsPtr);
+        CalcTreesBlockedImpl<IsSingleClassModel, NeedXorMask, 5, CalcLeafIndexesOnly>(
+            model, binFeatures, docCountInBlock, indexesVec, treeStart, treeEnd, resultsPtr);
         break;
     case 6:
-        CalcTreesBlockedImpl<IsSingleClassModel, NeedXorMask, 6>(model, binFeatures, docCountInBlock, indexesVec, treeStart, treeEnd, resultsPtr);
+        CalcTreesBlockedImpl<IsSingleClassModel, NeedXorMask, 6, CalcLeafIndexesOnly>(
+            model, binFeatures, docCountInBlock, indexesVec, treeStart, treeEnd, resultsPtr);
         break;
     case 7:
-        CalcTreesBlockedImpl<IsSingleClassModel, NeedXorMask, 7>(model, binFeatures, docCountInBlock, indexesVec, treeStart, treeEnd, resultsPtr);
+        CalcTreesBlockedImpl<IsSingleClassModel, NeedXorMask, 7, CalcLeafIndexesOnly>(
+            model, binFeatures, docCountInBlock, indexesVec, treeStart, treeEnd, resultsPtr);
         break;
     case 8:
-        CalcTreesBlockedImpl<IsSingleClassModel, NeedXorMask, 8>(model, binFeatures, docCountInBlock, indexesVec, treeStart, treeEnd, resultsPtr);
+        CalcTreesBlockedImpl<IsSingleClassModel, NeedXorMask, 8, CalcLeafIndexesOnly>(
+            model, binFeatures, docCountInBlock, indexesVec, treeStart, treeEnd, resultsPtr);
         break;
     default:
         Y_UNREACHABLE();
     }
 }
 
-template <bool IsSingleClassModel, bool NeedXorMask>
+template <bool IsSingleClassModel, bool NeedXorMask, bool calcIndexesOnly = false>
 inline void CalcTreesSingleDocImpl(
     const TFullModel& model,
     const ui8* __restrict binFeatures,
     size_t,
-    TCalcerIndexType* __restrict,
+    TCalcerIndexType* __restrict indexesVec,
     size_t treeStart,
     size_t treeEnd,
     double* __restrict results)
 {
+    Y_ASSERT(!calcIndexesOnly || (indexesVec && AllOf(indexesVec, indexesVec + (treeEnd - treeStart),
+            [] (TCalcerIndexType index) { return index == 0; })));
+    Y_ASSERT(calcIndexesOnly || (results && AllOf(results, results + model.ObliviousTrees.ApproxDimension,
+            [] (double value) { return value == 0.0; })));
     const TRepackedBin* treeSplitsCurPtr =
         model.ObliviousTrees.GetRepackedBins().data() + model.ObliviousTrees.TreeStartOffsets[treeStart];
-    double result = 0.0;
     const double* treeLeafPtr = model.ObliviousTrees.GetFirstLeafPtrForTree(treeStart);
     for (size_t treeId = treeStart; treeId < treeEnd; ++treeId) {
         const auto curTreeSize = model.ObliviousTrees.TreeSizes[treeId];
@@ -441,30 +459,63 @@ inline void CalcTreesSingleDocImpl(
         for (int depth = 0; depth < curTreeSize; ++depth) {
             const ui8 borderVal = (ui8)(treeSplitsCurPtr[depth].SplitIdx);
             const ui32 featureIndex = (treeSplitsCurPtr[depth].FeatureIndex);
-            if (NeedXorMask) {
+            if constexpr (NeedXorMask) {
                 const ui8 xorMask = (ui8)(treeSplitsCurPtr[depth].XorMask);
                 index |= ((binFeatures[featureIndex] ^ xorMask) >= borderVal) << depth;
             } else {
                 index |= (binFeatures[featureIndex] >= borderVal) << depth;
             }
         }
-        if (IsSingleClassModel) { // single class model
-            result += treeLeafPtr[index];
-        } else { // multiclass model
-            auto leafValuePtr = treeLeafPtr + index * model.ObliviousTrees.ApproxDimension;
-            for (int classId = 0; classId < model.ObliviousTrees.ApproxDimension; ++classId) {
-                results[classId] += leafValuePtr[classId];
+        if constexpr (calcIndexesOnly) {
+            Y_ASSERT(*indexesVec == 0);
+            *indexesVec++ = index;
+        } else {
+            if constexpr (IsSingleClassModel) { // single class model
+                results[0] += treeLeafPtr[index];
+            } else { // multiclass model
+                auto leafValuePtr = treeLeafPtr + index * model.ObliviousTrees.ApproxDimension;
+                for (int classId = 0; classId < model.ObliviousTrees.ApproxDimension; ++classId) {
+                    results[classId] += leafValuePtr[classId];
+                }
             }
+            treeLeafPtr += (1 << curTreeSize) * model.ObliviousTrees.ApproxDimension;
         }
-        treeLeafPtr += (1 << curTreeSize) * model.ObliviousTrees.ApproxDimension;
         treeSplitsCurPtr += curTreeSize;
-    }
-    if (IsSingleClassModel) {
-        results[0] = result;
     }
 }
 
-template <bool IsSingleClassModel, bool NeedXorMask>
+template <bool NeedXorMask>
+Y_FORCE_INLINE void CalcIndexesNonSymmetric(
+    const TFullModel& model,
+    const ui8* __restrict binFeatures,
+    const size_t docCountInBlock,
+    const size_t treeId,
+    TCalcerIndexType* __restrict indexesVec
+) {
+    const TRepackedBin* treeSplitsPtr = model.ObliviousTrees.GetRepackedBins().data();
+    const TNonSymmetricTreeStepNode* treeStepNodes = model.ObliviousTrees.NonSymmetricStepNodes.data();
+    std::fill(indexesVec, indexesVec + docCountInBlock, model.ObliviousTrees.TreeStartOffsets[treeId]);
+    size_t countStopped = 0;
+    while (countStopped != docCountInBlock) {
+        countStopped = 0;
+        for (size_t docId = 0; docId < docCountInBlock; ++docId) {
+            const auto* stepNode = treeStepNodes + indexesVec[docId];
+            const TRepackedBin split = treeSplitsPtr[indexesVec[docId]];
+            ui8 featureValue = binFeatures[split.FeatureIndex * docCountInBlock + docId];
+            if constexpr (NeedXorMask) {
+                featureValue ^= split.XorMask;
+            }
+            const auto diff = (featureValue >= split.SplitIdx) ? stepNode->RightSubtreeDiff : stepNode->LeftSubtreeDiff;
+            countStopped += (diff == 0);
+            indexesVec[docId] += diff;
+        }
+    }
+    for (size_t docId = 0; docId < docCountInBlock; ++docId) {
+        indexesVec[docId] = model.ObliviousTrees.NonSymmetricNodeIdToLeafId[indexesVec[docId]];
+    }
+}
+
+template <bool IsSingleClassModel, bool NeedXorMask, bool CalcLeafIndexesOnly = false>
 inline void CalcNonSymmetricTreesSimple(
     const TFullModel& model,
     const ui8* __restrict binFeatures,
@@ -472,113 +523,99 @@ inline void CalcNonSymmetricTreesSimple(
     TCalcerIndexType* __restrict indexesVec,
     size_t treeStart,
     size_t treeEnd,
-    double* __restrict resultsPtr) {
-
-    const TRepackedBin* treeSplitsPtr = model.ObliviousTrees.GetRepackedBins().data();
-    const TNonSymmetricTreeStepNode* treeStepNodes = model.ObliviousTrees.NonSymmetricStepNodes.data();
-
+    double* __restrict resultsPtr
+) {
     for (size_t treeId = treeStart; treeId < treeEnd; ++treeId) {
-        std::fill(indexesVec, indexesVec + docCountInBlock, model.ObliviousTrees.TreeStartOffsets[treeId]);
-        size_t countStopped = 0;
-        while (countStopped != docCountInBlock) {
-            countStopped = 0;
+        CalcIndexesNonSymmetric<NeedXorMask>(model, binFeatures, docCountInBlock, treeId, indexesVec);
+        if constexpr (CalcLeafIndexesOnly) {
+            const auto firstLeafOffsets = model.ObliviousTrees.GetFirstLeafOffsets();
+            const auto approxDimension = model.ObliviousTrees.ApproxDimension;
             for (size_t docId = 0; docId < docCountInBlock; ++docId) {
-                const auto* stepNode = treeStepNodes + indexesVec[docId];
-                if (stepNode->IsTerminalNode()) {
-                    ++countStopped;
-                    continue;
-                }
-                const TRepackedBin split = treeSplitsPtr[indexesVec[docId]];
-                const ui8 featureValue = binFeatures[split.FeatureIndex * docCountInBlock + docId];
-                if constexpr (NeedXorMask) {
-                    const auto diff = ((featureValue ^ split.XorMask) >= split.SplitIdx) ? stepNode->RightSubtreeDiff : stepNode->LeftSubtreeDiff;
-                    countStopped += (diff == 0);
-                    indexesVec[docId] += diff;
-                } else {
-                    const auto diff = (featureValue >= split.SplitIdx) ? stepNode->RightSubtreeDiff : stepNode->LeftSubtreeDiff;
-                    countStopped += (diff == 0);
-                    indexesVec[docId] += diff;
-                }
+                Y_ASSERT((indexesVec[docId] - firstLeafOffsets[treeId]) % approxDimension == 0);
+                indexesVec[docId] = ((indexesVec[docId] - firstLeafOffsets[treeId]) / approxDimension);
             }
-        }
-        if constexpr (IsSingleClassModel) {
-            for (size_t docId = 0; docId < docCountInBlock; ++docId) {
-                resultsPtr[docId] += model.ObliviousTrees.LeafValues[model.ObliviousTrees.NonSymmetricNodeIdToLeafId[indexesVec[docId]]];
-            }
+            indexesVec += docCountInBlock;
         } else {
-            auto resultWritePtr = resultsPtr;
-            for (size_t docId = 0; docId < docCountInBlock; ++docId) {
-                const ui32 firstValueIdx = model.ObliviousTrees.NonSymmetricNodeIdToLeafId[indexesVec[docId]];
-                for (int classId = 0; classId < model.ObliviousTrees.ApproxDimension; ++classId, ++resultWritePtr) {
-                    *resultWritePtr += model.ObliviousTrees.LeafValues[firstValueIdx + classId];
+            if constexpr (IsSingleClassModel) {
+                for (size_t docId = 0; docId < docCountInBlock; ++docId) {
+                    resultsPtr[docId] += model.ObliviousTrees.LeafValues[indexesVec[docId]];
+                }
+            } else {
+                auto resultWritePtr = resultsPtr;
+                for (size_t docId = 0; docId < docCountInBlock; ++docId) {
+                    const ui32 firstValueIdx = indexesVec[docId];
+                    for (int classId = 0;
+                         classId < model.ObliviousTrees.ApproxDimension; ++classId, ++resultWritePtr) {
+                        *resultWritePtr += model.ObliviousTrees.LeafValues[firstValueIdx + classId];
+                    }
                 }
             }
         }
     }
 }
 
-template <bool IsSingleClassModel, bool NeedXorMask>
+template <bool IsSingleClassModel, bool NeedXorMask, bool CalcIndexesOnly>
 inline void CalcNonSymmetricTreesSingle(
     const TFullModel& model,
     const ui8* __restrict binFeatures,
     size_t ,
-    TCalcerIndexType* __restrict ,
+    TCalcerIndexType* __restrict indexesVec,
     size_t treeStart,
     size_t treeEnd,
-    double* __restrict resultsPtr) {
+    double* __restrict resultsPtr
+) {
     TCalcerIndexType index;
     const TRepackedBin* treeSplitsPtr = model.ObliviousTrees.GetRepackedBins().data();
     const TNonSymmetricTreeStepNode* treeStepNodes = model.ObliviousTrees.NonSymmetricStepNodes.data();
+    const auto firstLeafOffsets = model.ObliviousTrees.GetFirstLeafOffsets();
     for (size_t treeId = treeStart; treeId < treeEnd; ++treeId) {
         index = model.ObliviousTrees.TreeStartOffsets[treeId];
         while (true) {
             const auto* stepNode = treeStepNodes + index;
-            if (stepNode->IsTerminalNode()) {
+            const TRepackedBin split = treeSplitsPtr[index];
+            ui8 featureValue = binFeatures[split.FeatureIndex];
+            if constexpr (NeedXorMask) {
+                featureValue ^= split.XorMask;
+            }
+            const auto diff = (featureValue >= split.SplitIdx) ? stepNode->RightSubtreeDiff
+                                                               : stepNode->LeftSubtreeDiff;
+            index += diff;
+            if (diff == 0) {
                 break;
             }
-            const TRepackedBin split = treeSplitsPtr[index];
-            const ui8 featureValue = binFeatures[split.FeatureIndex];
-            if constexpr (NeedXorMask) {
-                const auto diff = ((featureValue ^ split.XorMask) >= split.SplitIdx) ? stepNode->RightSubtreeDiff
-                                                                                     : stepNode->LeftSubtreeDiff;
-                index += diff;
-                if (diff == 0) {
-                    break;
-                }
-            } else {
-                const auto diff = (featureValue >= split.SplitIdx) ? stepNode->RightSubtreeDiff
-                                                                   : stepNode->LeftSubtreeDiff;
-                index += diff;
-                if (diff == 0) {
-                    break;
-                }
-            }
         }
-        if constexpr (IsSingleClassModel) {
-            *resultsPtr += model.ObliviousTrees.LeafValues[model.ObliviousTrees.NonSymmetricNodeIdToLeafId[index]];
+        const ui32 firstValueIdx = model.ObliviousTrees.NonSymmetricNodeIdToLeafId[index];
+        if constexpr (CalcIndexesOnly) {
+            Y_ASSERT((firstValueIdx - firstLeafOffsets[treeId]) % model.ObliviousTrees.ApproxDimension == 0);
+            *indexesVec++ = ((firstValueIdx - firstLeafOffsets[treeId]) / model.ObliviousTrees.ApproxDimension);
         } else {
-            ui32 firstValueIdx = model.ObliviousTrees.NonSymmetricNodeIdToLeafId[index];
-            for (int classId = 0; classId < model.ObliviousTrees.ApproxDimension; ++classId) {
-                resultsPtr[classId] += model.ObliviousTrees.LeafValues[firstValueIdx + classId];
+            if constexpr (IsSingleClassModel) {
+                *resultsPtr += model.ObliviousTrees.LeafValues[firstValueIdx];
+            } else {
+                for (int classId = 0; classId < model.ObliviousTrees.ApproxDimension; ++classId) {
+                    resultsPtr[classId] += model.ObliviousTrees.LeafValues[firstValueIdx + classId];
+                }
             }
         }
     }
 }
 
-template <bool areTreesOblivious, bool isSingleDoc, bool IsSingleClassModel, bool NeedXorMask>
+
+template <bool AreTreesOblivious, bool IsSingleDoc, bool IsSingleClassModel, bool NeedXorMask,
+          bool CalcLeafIndexesOnly>
 struct CalcTreeFunctionInstantiationGetter {
-    TTreeCalcFunction operator()() {
-        if constexpr (areTreesOblivious) {
-            if constexpr (isSingleDoc) {
-                return CalcTreesSingleDocImpl<IsSingleClassModel, NeedXorMask>;
+    TTreeCalcFunction operator()() const {
+        if constexpr (AreTreesOblivious) {
+            if constexpr (IsSingleDoc) {
+                return CalcTreesSingleDocImpl<IsSingleClassModel, NeedXorMask, CalcLeafIndexesOnly>;
             } else {
-                return CalcTreesBlocked<IsSingleClassModel, NeedXorMask>;
+                return CalcTreesBlocked<IsSingleClassModel, NeedXorMask, CalcLeafIndexesOnly>;
             }
         } else {
-            if constexpr (isSingleDoc) {
-                return CalcNonSymmetricTreesSingle<IsSingleClassModel, NeedXorMask>;
+            if constexpr (IsSingleDoc) {
+                return CalcNonSymmetricTreesSingle<IsSingleClassModel, NeedXorMask, CalcLeafIndexesOnly>;
             } else {
-                return CalcNonSymmetricTreesSimple<IsSingleClassModel, NeedXorMask>;
+                return CalcNonSymmetricTreesSimple<IsSingleClassModel, NeedXorMask, CalcLeafIndexesOnly>;
             }
         }
     }
@@ -600,11 +637,15 @@ struct FunctorTemplateParamsSubstitutor {
     }
 };
 
-TTreeCalcFunction GetCalcTreesFunction(const TFullModel& model, size_t docCountInBlock) {
+TTreeCalcFunction GetCalcTreesFunction(
+    const TFullModel& model,
+    size_t docCountInBlock,
+    bool calcIndexesOnly
+) {
     const bool areTreesOblivious = model.ObliviousTrees.IsOblivious();
     const bool isSingleDoc = (docCountInBlock == 1);
-    const bool IsSingleClassModel = (model.ObliviousTrees.ApproxDimension == 1);
-    const bool NeedXorMask = !model.ObliviousTrees.OneHotFeatures.empty();
+    const bool isSingleClassModel = (model.ObliviousTrees.ApproxDimension == 1);
+    const bool needXorMask = !model.ObliviousTrees.OneHotFeatures.empty();
     return FunctorTemplateParamsSubstitutor<CalcTreeFunctionInstantiationGetter>::Call(
-            areTreesOblivious, isSingleDoc, IsSingleClassModel, NeedXorMask);
+        areTreesOblivious, isSingleDoc, isSingleClassModel, needXorMask, calcIndexesOnly);
 }

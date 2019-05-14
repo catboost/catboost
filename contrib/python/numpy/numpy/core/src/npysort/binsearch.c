@@ -37,7 +37,12 @@ binsearch_left_bool(const char *arr, const char *key, char *ret,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_bool last_key_val = *(const npy_bool *)key;
+    npy_bool last_key_val;
+
+    if (key_len == 0) {
+        return;
+    }
+    last_key_val = *(const npy_bool *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_bool key_val = *(const npy_bool *)key;
@@ -80,7 +85,12 @@ argbinsearch_left_bool(const char *arr, const char *key,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_bool last_key_val = *(const npy_bool *)key;
+    npy_bool last_key_val;
+
+    if (key_len == 0) {
+        return 0;
+    }
+    last_key_val = *(const npy_bool *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_bool key_val = *(const npy_bool *)key;
@@ -133,7 +143,12 @@ binsearch_right_bool(const char *arr, const char *key, char *ret,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_bool last_key_val = *(const npy_bool *)key;
+    npy_bool last_key_val;
+
+    if (key_len == 0) {
+        return;
+    }
+    last_key_val = *(const npy_bool *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_bool key_val = *(const npy_bool *)key;
@@ -176,7 +191,12 @@ argbinsearch_right_bool(const char *arr, const char *key,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_bool last_key_val = *(const npy_bool *)key;
+    npy_bool last_key_val;
+
+    if (key_len == 0) {
+        return 0;
+    }
+    last_key_val = *(const npy_bool *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_bool key_val = *(const npy_bool *)key;
@@ -234,7 +254,12 @@ binsearch_left_byte(const char *arr, const char *key, char *ret,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_byte last_key_val = *(const npy_byte *)key;
+    npy_byte last_key_val;
+
+    if (key_len == 0) {
+        return;
+    }
+    last_key_val = *(const npy_byte *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_byte key_val = *(const npy_byte *)key;
@@ -277,7 +302,12 @@ argbinsearch_left_byte(const char *arr, const char *key,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_byte last_key_val = *(const npy_byte *)key;
+    npy_byte last_key_val;
+
+    if (key_len == 0) {
+        return 0;
+    }
+    last_key_val = *(const npy_byte *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_byte key_val = *(const npy_byte *)key;
@@ -330,7 +360,12 @@ binsearch_right_byte(const char *arr, const char *key, char *ret,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_byte last_key_val = *(const npy_byte *)key;
+    npy_byte last_key_val;
+
+    if (key_len == 0) {
+        return;
+    }
+    last_key_val = *(const npy_byte *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_byte key_val = *(const npy_byte *)key;
@@ -373,7 +408,12 @@ argbinsearch_right_byte(const char *arr, const char *key,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_byte last_key_val = *(const npy_byte *)key;
+    npy_byte last_key_val;
+
+    if (key_len == 0) {
+        return 0;
+    }
+    last_key_val = *(const npy_byte *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_byte key_val = *(const npy_byte *)key;
@@ -431,7 +471,12 @@ binsearch_left_ubyte(const char *arr, const char *key, char *ret,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_ubyte last_key_val = *(const npy_ubyte *)key;
+    npy_ubyte last_key_val;
+
+    if (key_len == 0) {
+        return;
+    }
+    last_key_val = *(const npy_ubyte *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_ubyte key_val = *(const npy_ubyte *)key;
@@ -474,7 +519,12 @@ argbinsearch_left_ubyte(const char *arr, const char *key,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_ubyte last_key_val = *(const npy_ubyte *)key;
+    npy_ubyte last_key_val;
+
+    if (key_len == 0) {
+        return 0;
+    }
+    last_key_val = *(const npy_ubyte *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_ubyte key_val = *(const npy_ubyte *)key;
@@ -527,7 +577,12 @@ binsearch_right_ubyte(const char *arr, const char *key, char *ret,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_ubyte last_key_val = *(const npy_ubyte *)key;
+    npy_ubyte last_key_val;
+
+    if (key_len == 0) {
+        return;
+    }
+    last_key_val = *(const npy_ubyte *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_ubyte key_val = *(const npy_ubyte *)key;
@@ -570,7 +625,12 @@ argbinsearch_right_ubyte(const char *arr, const char *key,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_ubyte last_key_val = *(const npy_ubyte *)key;
+    npy_ubyte last_key_val;
+
+    if (key_len == 0) {
+        return 0;
+    }
+    last_key_val = *(const npy_ubyte *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_ubyte key_val = *(const npy_ubyte *)key;
@@ -628,7 +688,12 @@ binsearch_left_short(const char *arr, const char *key, char *ret,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_short last_key_val = *(const npy_short *)key;
+    npy_short last_key_val;
+
+    if (key_len == 0) {
+        return;
+    }
+    last_key_val = *(const npy_short *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_short key_val = *(const npy_short *)key;
@@ -671,7 +736,12 @@ argbinsearch_left_short(const char *arr, const char *key,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_short last_key_val = *(const npy_short *)key;
+    npy_short last_key_val;
+
+    if (key_len == 0) {
+        return 0;
+    }
+    last_key_val = *(const npy_short *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_short key_val = *(const npy_short *)key;
@@ -724,7 +794,12 @@ binsearch_right_short(const char *arr, const char *key, char *ret,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_short last_key_val = *(const npy_short *)key;
+    npy_short last_key_val;
+
+    if (key_len == 0) {
+        return;
+    }
+    last_key_val = *(const npy_short *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_short key_val = *(const npy_short *)key;
@@ -767,7 +842,12 @@ argbinsearch_right_short(const char *arr, const char *key,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_short last_key_val = *(const npy_short *)key;
+    npy_short last_key_val;
+
+    if (key_len == 0) {
+        return 0;
+    }
+    last_key_val = *(const npy_short *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_short key_val = *(const npy_short *)key;
@@ -825,7 +905,12 @@ binsearch_left_ushort(const char *arr, const char *key, char *ret,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_ushort last_key_val = *(const npy_ushort *)key;
+    npy_ushort last_key_val;
+
+    if (key_len == 0) {
+        return;
+    }
+    last_key_val = *(const npy_ushort *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_ushort key_val = *(const npy_ushort *)key;
@@ -868,7 +953,12 @@ argbinsearch_left_ushort(const char *arr, const char *key,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_ushort last_key_val = *(const npy_ushort *)key;
+    npy_ushort last_key_val;
+
+    if (key_len == 0) {
+        return 0;
+    }
+    last_key_val = *(const npy_ushort *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_ushort key_val = *(const npy_ushort *)key;
@@ -921,7 +1011,12 @@ binsearch_right_ushort(const char *arr, const char *key, char *ret,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_ushort last_key_val = *(const npy_ushort *)key;
+    npy_ushort last_key_val;
+
+    if (key_len == 0) {
+        return;
+    }
+    last_key_val = *(const npy_ushort *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_ushort key_val = *(const npy_ushort *)key;
@@ -964,7 +1059,12 @@ argbinsearch_right_ushort(const char *arr, const char *key,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_ushort last_key_val = *(const npy_ushort *)key;
+    npy_ushort last_key_val;
+
+    if (key_len == 0) {
+        return 0;
+    }
+    last_key_val = *(const npy_ushort *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_ushort key_val = *(const npy_ushort *)key;
@@ -1022,7 +1122,12 @@ binsearch_left_int(const char *arr, const char *key, char *ret,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_int last_key_val = *(const npy_int *)key;
+    npy_int last_key_val;
+
+    if (key_len == 0) {
+        return;
+    }
+    last_key_val = *(const npy_int *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_int key_val = *(const npy_int *)key;
@@ -1065,7 +1170,12 @@ argbinsearch_left_int(const char *arr, const char *key,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_int last_key_val = *(const npy_int *)key;
+    npy_int last_key_val;
+
+    if (key_len == 0) {
+        return 0;
+    }
+    last_key_val = *(const npy_int *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_int key_val = *(const npy_int *)key;
@@ -1118,7 +1228,12 @@ binsearch_right_int(const char *arr, const char *key, char *ret,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_int last_key_val = *(const npy_int *)key;
+    npy_int last_key_val;
+
+    if (key_len == 0) {
+        return;
+    }
+    last_key_val = *(const npy_int *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_int key_val = *(const npy_int *)key;
@@ -1161,7 +1276,12 @@ argbinsearch_right_int(const char *arr, const char *key,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_int last_key_val = *(const npy_int *)key;
+    npy_int last_key_val;
+
+    if (key_len == 0) {
+        return 0;
+    }
+    last_key_val = *(const npy_int *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_int key_val = *(const npy_int *)key;
@@ -1219,7 +1339,12 @@ binsearch_left_uint(const char *arr, const char *key, char *ret,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_uint last_key_val = *(const npy_uint *)key;
+    npy_uint last_key_val;
+
+    if (key_len == 0) {
+        return;
+    }
+    last_key_val = *(const npy_uint *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_uint key_val = *(const npy_uint *)key;
@@ -1262,7 +1387,12 @@ argbinsearch_left_uint(const char *arr, const char *key,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_uint last_key_val = *(const npy_uint *)key;
+    npy_uint last_key_val;
+
+    if (key_len == 0) {
+        return 0;
+    }
+    last_key_val = *(const npy_uint *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_uint key_val = *(const npy_uint *)key;
@@ -1315,7 +1445,12 @@ binsearch_right_uint(const char *arr, const char *key, char *ret,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_uint last_key_val = *(const npy_uint *)key;
+    npy_uint last_key_val;
+
+    if (key_len == 0) {
+        return;
+    }
+    last_key_val = *(const npy_uint *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_uint key_val = *(const npy_uint *)key;
@@ -1358,7 +1493,12 @@ argbinsearch_right_uint(const char *arr, const char *key,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_uint last_key_val = *(const npy_uint *)key;
+    npy_uint last_key_val;
+
+    if (key_len == 0) {
+        return 0;
+    }
+    last_key_val = *(const npy_uint *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_uint key_val = *(const npy_uint *)key;
@@ -1416,7 +1556,12 @@ binsearch_left_long(const char *arr, const char *key, char *ret,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_long last_key_val = *(const npy_long *)key;
+    npy_long last_key_val;
+
+    if (key_len == 0) {
+        return;
+    }
+    last_key_val = *(const npy_long *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_long key_val = *(const npy_long *)key;
@@ -1459,7 +1604,12 @@ argbinsearch_left_long(const char *arr, const char *key,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_long last_key_val = *(const npy_long *)key;
+    npy_long last_key_val;
+
+    if (key_len == 0) {
+        return 0;
+    }
+    last_key_val = *(const npy_long *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_long key_val = *(const npy_long *)key;
@@ -1512,7 +1662,12 @@ binsearch_right_long(const char *arr, const char *key, char *ret,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_long last_key_val = *(const npy_long *)key;
+    npy_long last_key_val;
+
+    if (key_len == 0) {
+        return;
+    }
+    last_key_val = *(const npy_long *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_long key_val = *(const npy_long *)key;
@@ -1555,7 +1710,12 @@ argbinsearch_right_long(const char *arr, const char *key,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_long last_key_val = *(const npy_long *)key;
+    npy_long last_key_val;
+
+    if (key_len == 0) {
+        return 0;
+    }
+    last_key_val = *(const npy_long *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_long key_val = *(const npy_long *)key;
@@ -1613,7 +1773,12 @@ binsearch_left_ulong(const char *arr, const char *key, char *ret,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_ulong last_key_val = *(const npy_ulong *)key;
+    npy_ulong last_key_val;
+
+    if (key_len == 0) {
+        return;
+    }
+    last_key_val = *(const npy_ulong *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_ulong key_val = *(const npy_ulong *)key;
@@ -1656,7 +1821,12 @@ argbinsearch_left_ulong(const char *arr, const char *key,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_ulong last_key_val = *(const npy_ulong *)key;
+    npy_ulong last_key_val;
+
+    if (key_len == 0) {
+        return 0;
+    }
+    last_key_val = *(const npy_ulong *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_ulong key_val = *(const npy_ulong *)key;
@@ -1709,7 +1879,12 @@ binsearch_right_ulong(const char *arr, const char *key, char *ret,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_ulong last_key_val = *(const npy_ulong *)key;
+    npy_ulong last_key_val;
+
+    if (key_len == 0) {
+        return;
+    }
+    last_key_val = *(const npy_ulong *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_ulong key_val = *(const npy_ulong *)key;
@@ -1752,7 +1927,12 @@ argbinsearch_right_ulong(const char *arr, const char *key,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_ulong last_key_val = *(const npy_ulong *)key;
+    npy_ulong last_key_val;
+
+    if (key_len == 0) {
+        return 0;
+    }
+    last_key_val = *(const npy_ulong *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_ulong key_val = *(const npy_ulong *)key;
@@ -1810,7 +1990,12 @@ binsearch_left_longlong(const char *arr, const char *key, char *ret,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_longlong last_key_val = *(const npy_longlong *)key;
+    npy_longlong last_key_val;
+
+    if (key_len == 0) {
+        return;
+    }
+    last_key_val = *(const npy_longlong *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_longlong key_val = *(const npy_longlong *)key;
@@ -1853,7 +2038,12 @@ argbinsearch_left_longlong(const char *arr, const char *key,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_longlong last_key_val = *(const npy_longlong *)key;
+    npy_longlong last_key_val;
+
+    if (key_len == 0) {
+        return 0;
+    }
+    last_key_val = *(const npy_longlong *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_longlong key_val = *(const npy_longlong *)key;
@@ -1906,7 +2096,12 @@ binsearch_right_longlong(const char *arr, const char *key, char *ret,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_longlong last_key_val = *(const npy_longlong *)key;
+    npy_longlong last_key_val;
+
+    if (key_len == 0) {
+        return;
+    }
+    last_key_val = *(const npy_longlong *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_longlong key_val = *(const npy_longlong *)key;
@@ -1949,7 +2144,12 @@ argbinsearch_right_longlong(const char *arr, const char *key,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_longlong last_key_val = *(const npy_longlong *)key;
+    npy_longlong last_key_val;
+
+    if (key_len == 0) {
+        return 0;
+    }
+    last_key_val = *(const npy_longlong *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_longlong key_val = *(const npy_longlong *)key;
@@ -2007,7 +2207,12 @@ binsearch_left_ulonglong(const char *arr, const char *key, char *ret,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_ulonglong last_key_val = *(const npy_ulonglong *)key;
+    npy_ulonglong last_key_val;
+
+    if (key_len == 0) {
+        return;
+    }
+    last_key_val = *(const npy_ulonglong *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_ulonglong key_val = *(const npy_ulonglong *)key;
@@ -2050,7 +2255,12 @@ argbinsearch_left_ulonglong(const char *arr, const char *key,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_ulonglong last_key_val = *(const npy_ulonglong *)key;
+    npy_ulonglong last_key_val;
+
+    if (key_len == 0) {
+        return 0;
+    }
+    last_key_val = *(const npy_ulonglong *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_ulonglong key_val = *(const npy_ulonglong *)key;
@@ -2103,7 +2313,12 @@ binsearch_right_ulonglong(const char *arr, const char *key, char *ret,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_ulonglong last_key_val = *(const npy_ulonglong *)key;
+    npy_ulonglong last_key_val;
+
+    if (key_len == 0) {
+        return;
+    }
+    last_key_val = *(const npy_ulonglong *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_ulonglong key_val = *(const npy_ulonglong *)key;
@@ -2146,7 +2361,12 @@ argbinsearch_right_ulonglong(const char *arr, const char *key,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_ulonglong last_key_val = *(const npy_ulonglong *)key;
+    npy_ulonglong last_key_val;
+
+    if (key_len == 0) {
+        return 0;
+    }
+    last_key_val = *(const npy_ulonglong *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_ulonglong key_val = *(const npy_ulonglong *)key;
@@ -2204,7 +2424,12 @@ binsearch_left_half(const char *arr, const char *key, char *ret,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_ushort last_key_val = *(const npy_ushort *)key;
+    npy_ushort last_key_val;
+
+    if (key_len == 0) {
+        return;
+    }
+    last_key_val = *(const npy_ushort *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_ushort key_val = *(const npy_ushort *)key;
@@ -2247,7 +2472,12 @@ argbinsearch_left_half(const char *arr, const char *key,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_ushort last_key_val = *(const npy_ushort *)key;
+    npy_ushort last_key_val;
+
+    if (key_len == 0) {
+        return 0;
+    }
+    last_key_val = *(const npy_ushort *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_ushort key_val = *(const npy_ushort *)key;
@@ -2300,7 +2530,12 @@ binsearch_right_half(const char *arr, const char *key, char *ret,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_ushort last_key_val = *(const npy_ushort *)key;
+    npy_ushort last_key_val;
+
+    if (key_len == 0) {
+        return;
+    }
+    last_key_val = *(const npy_ushort *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_ushort key_val = *(const npy_ushort *)key;
@@ -2343,7 +2578,12 @@ argbinsearch_right_half(const char *arr, const char *key,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_ushort last_key_val = *(const npy_ushort *)key;
+    npy_ushort last_key_val;
+
+    if (key_len == 0) {
+        return 0;
+    }
+    last_key_val = *(const npy_ushort *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_ushort key_val = *(const npy_ushort *)key;
@@ -2401,7 +2641,12 @@ binsearch_left_float(const char *arr, const char *key, char *ret,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_float last_key_val = *(const npy_float *)key;
+    npy_float last_key_val;
+
+    if (key_len == 0) {
+        return;
+    }
+    last_key_val = *(const npy_float *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_float key_val = *(const npy_float *)key;
@@ -2444,7 +2689,12 @@ argbinsearch_left_float(const char *arr, const char *key,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_float last_key_val = *(const npy_float *)key;
+    npy_float last_key_val;
+
+    if (key_len == 0) {
+        return 0;
+    }
+    last_key_val = *(const npy_float *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_float key_val = *(const npy_float *)key;
@@ -2497,7 +2747,12 @@ binsearch_right_float(const char *arr, const char *key, char *ret,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_float last_key_val = *(const npy_float *)key;
+    npy_float last_key_val;
+
+    if (key_len == 0) {
+        return;
+    }
+    last_key_val = *(const npy_float *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_float key_val = *(const npy_float *)key;
@@ -2540,7 +2795,12 @@ argbinsearch_right_float(const char *arr, const char *key,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_float last_key_val = *(const npy_float *)key;
+    npy_float last_key_val;
+
+    if (key_len == 0) {
+        return 0;
+    }
+    last_key_val = *(const npy_float *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_float key_val = *(const npy_float *)key;
@@ -2598,7 +2858,12 @@ binsearch_left_double(const char *arr, const char *key, char *ret,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_double last_key_val = *(const npy_double *)key;
+    npy_double last_key_val;
+
+    if (key_len == 0) {
+        return;
+    }
+    last_key_val = *(const npy_double *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_double key_val = *(const npy_double *)key;
@@ -2641,7 +2906,12 @@ argbinsearch_left_double(const char *arr, const char *key,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_double last_key_val = *(const npy_double *)key;
+    npy_double last_key_val;
+
+    if (key_len == 0) {
+        return 0;
+    }
+    last_key_val = *(const npy_double *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_double key_val = *(const npy_double *)key;
@@ -2694,7 +2964,12 @@ binsearch_right_double(const char *arr, const char *key, char *ret,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_double last_key_val = *(const npy_double *)key;
+    npy_double last_key_val;
+
+    if (key_len == 0) {
+        return;
+    }
+    last_key_val = *(const npy_double *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_double key_val = *(const npy_double *)key;
@@ -2737,7 +3012,12 @@ argbinsearch_right_double(const char *arr, const char *key,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_double last_key_val = *(const npy_double *)key;
+    npy_double last_key_val;
+
+    if (key_len == 0) {
+        return 0;
+    }
+    last_key_val = *(const npy_double *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_double key_val = *(const npy_double *)key;
@@ -2795,7 +3075,12 @@ binsearch_left_longdouble(const char *arr, const char *key, char *ret,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_longdouble last_key_val = *(const npy_longdouble *)key;
+    npy_longdouble last_key_val;
+
+    if (key_len == 0) {
+        return;
+    }
+    last_key_val = *(const npy_longdouble *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_longdouble key_val = *(const npy_longdouble *)key;
@@ -2838,7 +3123,12 @@ argbinsearch_left_longdouble(const char *arr, const char *key,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_longdouble last_key_val = *(const npy_longdouble *)key;
+    npy_longdouble last_key_val;
+
+    if (key_len == 0) {
+        return 0;
+    }
+    last_key_val = *(const npy_longdouble *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_longdouble key_val = *(const npy_longdouble *)key;
@@ -2891,7 +3181,12 @@ binsearch_right_longdouble(const char *arr, const char *key, char *ret,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_longdouble last_key_val = *(const npy_longdouble *)key;
+    npy_longdouble last_key_val;
+
+    if (key_len == 0) {
+        return;
+    }
+    last_key_val = *(const npy_longdouble *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_longdouble key_val = *(const npy_longdouble *)key;
@@ -2934,7 +3229,12 @@ argbinsearch_right_longdouble(const char *arr, const char *key,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_longdouble last_key_val = *(const npy_longdouble *)key;
+    npy_longdouble last_key_val;
+
+    if (key_len == 0) {
+        return 0;
+    }
+    last_key_val = *(const npy_longdouble *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_longdouble key_val = *(const npy_longdouble *)key;
@@ -2992,7 +3292,12 @@ binsearch_left_cfloat(const char *arr, const char *key, char *ret,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_cfloat last_key_val = *(const npy_cfloat *)key;
+    npy_cfloat last_key_val;
+
+    if (key_len == 0) {
+        return;
+    }
+    last_key_val = *(const npy_cfloat *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_cfloat key_val = *(const npy_cfloat *)key;
@@ -3035,7 +3340,12 @@ argbinsearch_left_cfloat(const char *arr, const char *key,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_cfloat last_key_val = *(const npy_cfloat *)key;
+    npy_cfloat last_key_val;
+
+    if (key_len == 0) {
+        return 0;
+    }
+    last_key_val = *(const npy_cfloat *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_cfloat key_val = *(const npy_cfloat *)key;
@@ -3088,7 +3398,12 @@ binsearch_right_cfloat(const char *arr, const char *key, char *ret,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_cfloat last_key_val = *(const npy_cfloat *)key;
+    npy_cfloat last_key_val;
+
+    if (key_len == 0) {
+        return;
+    }
+    last_key_val = *(const npy_cfloat *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_cfloat key_val = *(const npy_cfloat *)key;
@@ -3131,7 +3446,12 @@ argbinsearch_right_cfloat(const char *arr, const char *key,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_cfloat last_key_val = *(const npy_cfloat *)key;
+    npy_cfloat last_key_val;
+
+    if (key_len == 0) {
+        return 0;
+    }
+    last_key_val = *(const npy_cfloat *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_cfloat key_val = *(const npy_cfloat *)key;
@@ -3189,7 +3509,12 @@ binsearch_left_cdouble(const char *arr, const char *key, char *ret,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_cdouble last_key_val = *(const npy_cdouble *)key;
+    npy_cdouble last_key_val;
+
+    if (key_len == 0) {
+        return;
+    }
+    last_key_val = *(const npy_cdouble *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_cdouble key_val = *(const npy_cdouble *)key;
@@ -3232,7 +3557,12 @@ argbinsearch_left_cdouble(const char *arr, const char *key,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_cdouble last_key_val = *(const npy_cdouble *)key;
+    npy_cdouble last_key_val;
+
+    if (key_len == 0) {
+        return 0;
+    }
+    last_key_val = *(const npy_cdouble *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_cdouble key_val = *(const npy_cdouble *)key;
@@ -3285,7 +3615,12 @@ binsearch_right_cdouble(const char *arr, const char *key, char *ret,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_cdouble last_key_val = *(const npy_cdouble *)key;
+    npy_cdouble last_key_val;
+
+    if (key_len == 0) {
+        return;
+    }
+    last_key_val = *(const npy_cdouble *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_cdouble key_val = *(const npy_cdouble *)key;
@@ -3328,7 +3663,12 @@ argbinsearch_right_cdouble(const char *arr, const char *key,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_cdouble last_key_val = *(const npy_cdouble *)key;
+    npy_cdouble last_key_val;
+
+    if (key_len == 0) {
+        return 0;
+    }
+    last_key_val = *(const npy_cdouble *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_cdouble key_val = *(const npy_cdouble *)key;
@@ -3386,7 +3726,12 @@ binsearch_left_clongdouble(const char *arr, const char *key, char *ret,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_clongdouble last_key_val = *(const npy_clongdouble *)key;
+    npy_clongdouble last_key_val;
+
+    if (key_len == 0) {
+        return;
+    }
+    last_key_val = *(const npy_clongdouble *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_clongdouble key_val = *(const npy_clongdouble *)key;
@@ -3429,7 +3774,12 @@ argbinsearch_left_clongdouble(const char *arr, const char *key,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_clongdouble last_key_val = *(const npy_clongdouble *)key;
+    npy_clongdouble last_key_val;
+
+    if (key_len == 0) {
+        return 0;
+    }
+    last_key_val = *(const npy_clongdouble *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_clongdouble key_val = *(const npy_clongdouble *)key;
@@ -3482,7 +3832,12 @@ binsearch_right_clongdouble(const char *arr, const char *key, char *ret,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_clongdouble last_key_val = *(const npy_clongdouble *)key;
+    npy_clongdouble last_key_val;
+
+    if (key_len == 0) {
+        return;
+    }
+    last_key_val = *(const npy_clongdouble *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_clongdouble key_val = *(const npy_clongdouble *)key;
@@ -3525,7 +3880,12 @@ argbinsearch_right_clongdouble(const char *arr, const char *key,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_clongdouble last_key_val = *(const npy_clongdouble *)key;
+    npy_clongdouble last_key_val;
+
+    if (key_len == 0) {
+        return 0;
+    }
+    last_key_val = *(const npy_clongdouble *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_clongdouble key_val = *(const npy_clongdouble *)key;
@@ -3583,7 +3943,12 @@ binsearch_left_datetime(const char *arr, const char *key, char *ret,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_datetime last_key_val = *(const npy_datetime *)key;
+    npy_datetime last_key_val;
+
+    if (key_len == 0) {
+        return;
+    }
+    last_key_val = *(const npy_datetime *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_datetime key_val = *(const npy_datetime *)key;
@@ -3626,7 +3991,12 @@ argbinsearch_left_datetime(const char *arr, const char *key,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_datetime last_key_val = *(const npy_datetime *)key;
+    npy_datetime last_key_val;
+
+    if (key_len == 0) {
+        return 0;
+    }
+    last_key_val = *(const npy_datetime *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_datetime key_val = *(const npy_datetime *)key;
@@ -3679,7 +4049,12 @@ binsearch_right_datetime(const char *arr, const char *key, char *ret,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_datetime last_key_val = *(const npy_datetime *)key;
+    npy_datetime last_key_val;
+
+    if (key_len == 0) {
+        return;
+    }
+    last_key_val = *(const npy_datetime *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_datetime key_val = *(const npy_datetime *)key;
@@ -3722,7 +4097,12 @@ argbinsearch_right_datetime(const char *arr, const char *key,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_datetime last_key_val = *(const npy_datetime *)key;
+    npy_datetime last_key_val;
+
+    if (key_len == 0) {
+        return 0;
+    }
+    last_key_val = *(const npy_datetime *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_datetime key_val = *(const npy_datetime *)key;
@@ -3780,7 +4160,12 @@ binsearch_left_timedelta(const char *arr, const char *key, char *ret,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_timedelta last_key_val = *(const npy_timedelta *)key;
+    npy_timedelta last_key_val;
+
+    if (key_len == 0) {
+        return;
+    }
+    last_key_val = *(const npy_timedelta *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_timedelta key_val = *(const npy_timedelta *)key;
@@ -3823,7 +4208,12 @@ argbinsearch_left_timedelta(const char *arr, const char *key,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_timedelta last_key_val = *(const npy_timedelta *)key;
+    npy_timedelta last_key_val;
+
+    if (key_len == 0) {
+        return 0;
+    }
+    last_key_val = *(const npy_timedelta *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_timedelta key_val = *(const npy_timedelta *)key;
@@ -3876,7 +4266,12 @@ binsearch_right_timedelta(const char *arr, const char *key, char *ret,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_timedelta last_key_val = *(const npy_timedelta *)key;
+    npy_timedelta last_key_val;
+
+    if (key_len == 0) {
+        return;
+    }
+    last_key_val = *(const npy_timedelta *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_timedelta key_val = *(const npy_timedelta *)key;
@@ -3919,7 +4314,12 @@ argbinsearch_right_timedelta(const char *arr, const char *key,
 {
     npy_intp min_idx = 0;
     npy_intp max_idx = arr_len;
-    npy_timedelta last_key_val = *(const npy_timedelta *)key;
+    npy_timedelta last_key_val;
+
+    if (key_len == 0) {
+        return 0;
+    }
+    last_key_val = *(const npy_timedelta *)key;
 
     for (; key_len > 0; key_len--, key += key_str, ret += ret_str) {
         const npy_timedelta key_val = *(const npy_timedelta *)key;
@@ -3970,7 +4370,7 @@ argbinsearch_right_timedelta(const char *arr, const char *key,
  *****************************************************************************
  */
 
- #line 145
+ #line 155
 
 NPY_VISIBILITY_HIDDEN void
 npy_binsearch_left(const char *arr, const char *key, char *ret,
@@ -4067,7 +4467,7 @@ npy_argbinsearch_left(const char *arr, const char *key,
 }
 
 
-#line 145
+#line 155
 
 NPY_VISIBILITY_HIDDEN void
 npy_binsearch_right(const char *arr, const char *key, char *ret,

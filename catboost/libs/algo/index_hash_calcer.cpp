@@ -1,5 +1,6 @@
 #include "index_hash_calcer.h"
 
+
 /// Compute reindexHash and reindex hash values in range [begin,end).
 size_t ComputeReindexHash(ui64 topSize, TDenseHash<ui64, ui32>* reindexHashPtr, ui64* begin, ui64* end) {
     auto& reindexHash = *reindexHashPtr;
@@ -36,10 +37,13 @@ size_t ComputeReindexHash(ui64 topSize, TDenseHash<ui64, ui32>* reindexHashPtr, 
             for (const auto& it : reindexHash) {
                 freqValList.emplace_back(it.first, it.second);
             }
-            std::nth_element(freqValList.begin(), freqValList.begin() + topSize, freqValList.end(),
-                         [](const TFreqPair& a, const TFreqPair& b) {
-                             return a.second > b.second;
-                         });
+            std::nth_element(
+                freqValList.begin(),
+                freqValList.begin() + topSize,
+                freqValList.end(),
+                [](const TFreqPair& a, const TFreqPair& b) {
+                    return a.second > b.second;
+                });
 
             reindexHash.MakeEmpty();
             for (ui32 i = 0; i < topSize; ++i) {

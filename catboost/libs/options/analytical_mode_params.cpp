@@ -4,7 +4,7 @@
 
 #include <util/generic/strbuf.h>
 #include <util/generic/serialized_enum.h>
-#include <util/string/iterator.h>
+#include <util/string/split.h>
 #include <util/string/vector.h>
 #include <util/system/info.h>
 

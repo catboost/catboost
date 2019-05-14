@@ -96,7 +96,8 @@ inline void ProcessFeatureForCalcHashes(
             );
         }
     } else {
-        dynamic_cast<const NCB::TCompressedValuesHolderImpl<IFeatureColumn>*>(getFeatureColumn())->ForEach(std::move(f), &featuresSubsetIndexing);
+        dynamic_cast<const NCB::TCompressedValuesHolderImpl<IFeatureColumn>*>(getFeatureColumn())
+            ->ForEach(std::move(f), &featuresSubsetIndexing);
     }
 }
 
@@ -311,7 +312,8 @@ inline void CalcHashes(
                 ) {
                     hashArr[i] = CalcHash(
                         hashArr[i],
-                        (ui64)((~(binaryFeaturesPack ^ packProjBinaryFeatureValues)) & bitMask) + (ui64)bitMask);
+                        (ui64)((~(binaryFeaturesPack ^ packProjBinaryFeatureValues)) & bitMask) + (ui64)bitMask
+                    );
                 }
             );
         }

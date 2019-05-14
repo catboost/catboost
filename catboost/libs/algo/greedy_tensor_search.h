@@ -1,11 +1,15 @@
 #pragma once
 
-#include "fold.h"
-#include "learn_context.h"
-
 #include <catboost/libs/data_new/data_provider.h>
 
 #include <util/generic/vector.h>
+
+
+class TFold;
+class TLearnContext;
+class TProfileInfo;
+struct TSplitTree;
+
 
 void TrimOnlineCTRcache(const TVector<TFold*>& folds);
 

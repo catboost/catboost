@@ -101,6 +101,8 @@ CAT_FEATURES = [0, 1, 2, 4, 6, 8, 9, 10, 11, 12, 16]
 
 model_diff_tool = binary_path("catboost/tools/model_comparator/model_comparator")
 
+np.set_printoptions(legacy='1.13')
+
 
 class LogStdout:
     def __init__(self, file):
@@ -1906,6 +1908,23 @@ def test_cv_with_cat_features_param(param_type):
         cv(pool, params_with_wrong_cat_features)
 
 
+def test_cv_with_save_snapshot(task_type):
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    with pytest.raises(CatBoostError):
+        cv(
+            pool,
+            {
+                "iterations": 20,
+                "learning_rate": 0.03,
+                "loss_function": "Logloss",
+                "eval_metric": "AUC",
+                "task_type": task_type,
+                "save_snapshot": True
+            },
+            dev_max_iterations_batch_size=6
+        )
+
+
 def test_feature_importance(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     pool_querywise = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
@@ -1969,6 +1988,18 @@ def test_shap_feature_importance(task_type):
     fimp_npy_path = test_output_path(FIMP_NPY_PATH)
     np.save(fimp_npy_path, np.array(model.get_feature_importance(type=EFstrType.ShapValues, data=pool)))
     return local_canonical_file(fimp_npy_path)
+
+
+def test_shap_feature_importance_modes(task_type):
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(iterations=5, task_type=task_type)
+    model.fit(pool)
+    modes = ["Auto", "UsePreCalc", "NoPreCalc"]
+    shaps_for_modes = []
+    for mode in modes:
+        shaps_for_modes.append(model.get_feature_importance(type=EFstrType.ShapValues, data=pool, shap_mode=mode))
+    for i in range(len(modes) - 1):
+        assert np.all(np.abs(shaps_for_modes[i] - shaps_for_modes[i-1]) < 1e-9)
 
 
 def test_od(task_type):
@@ -3018,26 +3049,16 @@ def test_str_eval_metrics_in_eval_features():
     assert first_result.get_results()['MAE'] == second_result.get_results()['MAE']
 
 
-@pytest.mark.parametrize("test_case",
-                         ["dataset_and_metrics",
-                          "no_dataset_and_no_metrics",
-                          pytest.param("dataset_and_no_metrics", marks=pytest.mark.xfail)])
-def test_compare(test_case):
+def test_compare():
     dataset = np.array([[1, 4, 5, 6], [4, 5, 6, 7], [30, 40, 50, 60], [20, 15, 85, 60]])
     train_labels = [1.2, 3.4, 9.5, 24.5]
-    model = CatBoostRegressor(learning_rate=1, depth=6, loss_function='RMSE', train_dir="catboost_info1")
+    model = CatBoostRegressor(learning_rate=1, depth=6, loss_function='RMSE')
     model.fit(dataset, train_labels)
-    model2 = CatBoostRegressor(learning_rate=0.1, depth=1, loss_function='MAE', train_dir="catboost_info2")
+    model2 = CatBoostRegressor(learning_rate=0.1, depth=1, loss_function='MAE')
     model2.fit(dataset, train_labels)
 
-    kwargs = {"second_model": model2}   # "no_dataset_and_no_metrics" case
-    if test_case == "dataset_and_no_metrics":
-        kwargs.update({"data": Pool(dataset, label=train_labels)})
-    elif test_case == "dataset_and_metrics":
-        kwargs.update({"data": Pool(dataset, label=train_labels), "metrics": ["RMSE"]})
-
     try:
-        model.compare(**kwargs)
+        model.compare(model2, Pool(dataset, label=train_labels), ["RMSE"])
     except ImportError as ie:
         pytest.xfail(str(ie)) if str(ie) == "No module named widget" \
             else pytest.fail(str(ie))
@@ -4273,6 +4294,17 @@ def test_eval_features(task_type, eval_type, problem):
         canonical_files.append(local_canonical_file(eval_results_file_name))
 
     return canonical_files
+
+
+def test_metric_period_with_vertbose_true():
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoost(dict(iterations=16, metric_period=4))
+
+    tmpfile = test_output_path('tmpfile')
+    with LogStdout(open(tmpfile, 'w')):
+        model.fit(pool, verbose=True)
+
+    assert(_count_lines(tmpfile) == 5)
 
 
 def test_eval_features_with_file_header():

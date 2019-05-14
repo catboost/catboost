@@ -2,12 +2,18 @@
 
 #include "approx_dimension.h"
 
-#include <catboost/libs/helpers/exception.h>
+
 #include <catboost/libs/data_new/borders_io.h>
 #include <catboost/libs/data_new/quantization.h>
+#include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/helpers/restorable_rng.h>
+#include <catboost/libs/labels/label_converter.h>
 #include <catboost/libs/metrics/metric.h>
+#include <catboost/libs/options/catboost_options.h>
 #include <catboost/libs/options/system_options.h>
 #include <catboost/libs/target/data_providers.h>
+
+#include <library/threading/local_executor/local_executor.h>
 
 #include <util/string/builder.h>
 
@@ -155,7 +161,8 @@ namespace NCB {
                 std::move(rawObjectsDataProvider),
                 quantizedFeaturesInfo,
                 rand,
-                localExecutor);
+                localExecutor
+            );
 
             // because some features can become unavailable/ignored due to quantization
             trainingData->MetaInfo.FeaturesLayout = quantizedFeaturesInfo->GetFeaturesLayout();
@@ -193,7 +200,8 @@ namespace NCB {
             labelConverter,
             rand,
             localExecutor,
-            &trainingData->MetaInfo.HasPairs);
+            &trainingData->MetaInfo.HasPairs
+        );
 
         return trainingData;
     }
@@ -244,7 +252,8 @@ namespace NCB {
             params,
             labelConverter,
             localExecutor,
-            rand);
+            rand
+        );
 
         quantizedFeaturesInfo = trainingData.Learn->ObjectsData->GetQuantizedFeaturesInfo();
 
@@ -262,7 +271,9 @@ namespace NCB {
                     params,
                     labelConverter,
                     localExecutor,
-                    rand));
+                    rand
+                )
+            );
         }
 
 
@@ -271,7 +282,8 @@ namespace NCB {
             CheckCompatibilityWithEvalMetric(
                 params->MetricOptions->EvalMetric,
                 *trainingData.Test.back(),
-                GetApproxDimension(*params, *labelConverter));
+                GetApproxDimension(*params, *labelConverter)
+            );
         }
 
 

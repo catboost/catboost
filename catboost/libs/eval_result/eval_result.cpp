@@ -68,7 +68,6 @@ namespace NCB {
 
     void ValidateColumnOutput(const TVector<TString>& outputColumns,
                               const TDataProvider& pool,
-                              bool isPartOfFullTestSet,
                               bool CV_mode)
     {
         THashSet<TString> featureIds;
@@ -100,12 +99,10 @@ namespace NCB {
                     case (EColumn::GroupId):
                         CB_ENSURE(pool.MetaInfo.ColumnsInfo.Defined(), "GroupId output is currently supported only for columnar pools");
                         CB_ENSURE(pool.MetaInfo.HasGroupId, "bad output column name " << name << " (No GroupId info in pool)");
-                        CB_ENSURE(!isPartOfFullTestSet, "GroupId output is currently supported only for full pools, not pool parts");
                         break;
                     case (EColumn::SubgroupId):
                         CB_ENSURE(pool.MetaInfo.ColumnsInfo.Defined(), "SubgroupId output is currently supported only for columnar pools");
                         CB_ENSURE(pool.MetaInfo.HasSubgroupIds, "bad output column name " << name << " (No SubgroupIds info in pool)");
-                        CB_ENSURE(!isPartOfFullTestSet, "SubgroupId output is currently supported only for full pools, not pool parts");
                         break;
                     case (EColumn::Timestamp):
                         CB_ENSURE(pool.MetaInfo.HasTimestamp, "bad output column name " << name << " (No Timestamp info in pool)");
@@ -126,9 +123,11 @@ namespace NCB {
             if (name[0] == '#') {
                 CB_ENSURE(pool.MetaInfo.ColumnsInfo.Defined(),
                           "Non-columnar pool, can't specify column index");
-                CB_ENSURE(FromString<size_t>(name.substr(1)) < pool.MetaInfo.ColumnsInfo->Columns.size(),
-                          "bad output column name " << name);
-                CB_ENSURE(!isPartOfFullTestSet, "Column output by # is currently supported only for full pools, not pool parts");
+                ui32 columnNumber;
+                TString columnName;
+                ParseOutputColumnByIndex(name, &columnNumber, &columnName);
+                CB_ENSURE(columnNumber < pool.MetaInfo.ColumnsInfo->Columns.size(),
+                          "column number " << columnNumber << " is out of range");
             } else {
                 CB_ENSURE(featureIds.contains(name), "bad output column name " << name);
                 CB_ENSURE(
@@ -163,7 +162,6 @@ namespace NCB {
         const TVector<TString>& outputColumns,
         const TExternalLabelsHelper& visibleLabelsHelper,
         const TDataProvider& pool,
-        bool isPartOfFullTestSet,
         IOutputStream* outputStream,
         TIntrusivePtr<IPoolColumnsPrinter> poolColumnsPrinter,
         std::pair<int, int> testFileWhichOf,
@@ -175,16 +173,16 @@ namespace NCB {
 
         TVector<THolder<IColumnPrinter>> columnPrinter;
 
-        for (const auto& columnName : outputColumns) {
+        for (const auto& outputColumn : outputColumns) {
             EPredictionType type;
-            if (TryFromString<EPredictionType>(columnName, type)) {
+            if (TryFromString<EPredictionType>(outputColumn, type)) {
                 columnPrinter.push_back(MakeHolder<TEvalPrinter>(executor, evalResult.GetRawValuesConstRef(), type, visibleLabelsHelper, evalParameters));
                 continue;
             }
             EColumn outputType;
-            if (TryFromString<EColumn>(ToCanonicalColumnName(columnName), outputType)) {
+            if (TryFromString<EColumn>(ToCanonicalColumnName(outputColumn), outputType)) {
                 if (outputType == EColumn::Label) {
-                    columnPrinter.push_back(MakeHolder<TArrayPrinter<TString>>(*pool.RawTargetData.GetTarget(), columnName));
+                    columnPrinter.push_back(MakeHolder<TArrayPrinter<TString>>(*pool.RawTargetData.GetTarget(), outputColumn));
                     continue;
                 }
                 if (outputType == EColumn::SampleId) {
@@ -195,27 +193,25 @@ namespace NCB {
                         (THolder<IColumnPrinter>)MakeHolder<TDocIdPrinter>(
                             poolColumnsPrinter,
                             docIdOffset,
-                            columnName)
+                            outputColumn)
                     );
                     continue;
                 }
                 if (outputType == EColumn::Timestamp) {
-                    columnPrinter.push_back(MakeHolder<TArrayPrinter<ui64>>(*pool.ObjectsData->GetTimestamp(), columnName));
+                    columnPrinter.push_back(MakeHolder<TArrayPrinter<ui64>>(*pool.ObjectsData->GetTimestamp(), outputColumn));
                     continue;
                 }
                 if (outputType == EColumn::Weight) {
-                    columnPrinter.push_back(MakeHolder<TWeightsPrinter>(pool.RawTargetData.GetWeights(), columnName));
+                    columnPrinter.push_back(MakeHolder<TWeightsPrinter>(pool.RawTargetData.GetWeights(), outputColumn));
                     continue;
                 }
                 if ((outputType == EColumn::GroupId) || (outputType == EColumn::SubgroupId)) {
-                    CB_ENSURE(!isPartOfFullTestSet, "output for column " << columnName << "is currently supported only for full pools, not pool parts");
-
                     columnPrinter.push_back(
                         (THolder<IColumnPrinter>)MakeHolder<TColumnPrinter>(
                             poolColumnsPrinter,
                             outputType,
                             docIdOffset,
-                            columnName)
+                            outputColumn)
                     );
                     continue;
                 }
@@ -232,25 +228,28 @@ namespace NCB {
                     continue;
                 }
             }
-            if (!columnName.compare(0, BaselinePrefix.length(), BaselinePrefix)) {
-                int idx = FromString<int>(columnName.substr(BaselinePrefix.length()));
-                columnPrinter.push_back(MakeHolder<TArrayPrinter<float>>((*pool.RawTargetData.GetBaseline())[idx], columnName));
+            if (!outputColumn.compare(0, BaselinePrefix.length(), BaselinePrefix)) {
+                int idx = FromString<int>(outputColumn.substr(BaselinePrefix.length()));
+                columnPrinter.push_back(MakeHolder<TArrayPrinter<float>>((*pool.RawTargetData.GetBaseline())[idx], outputColumn));
                 continue;
             }
-            if (columnName[0] == '#') {
-                CB_ENSURE(!isPartOfFullTestSet, "Column output by # is currently supported only for full pools, not pool parts");
+            if (outputColumn[0] == '#') {
+                ui32 columnNumber;
+                TString columnName;
+                ParseOutputColumnByIndex(outputColumn, &columnNumber, &columnName);
 
                 columnPrinter.push_back(
                     MakeHolder<TNumColumnPrinter>(
                         poolColumnsPrinter,
-                        FromString<int>(columnName.substr(1)),
+                        columnNumber,
+                        columnName,
                         docIdOffset
                     )
                 );
             } else {
-                auto it = featureIdToDesc.find(columnName);
+                auto it = featureIdToDesc.find(outputColumn);
                 CB_ENSURE(it != featureIdToDesc.end(),
-                          "columnName [" << columnName << "] not found in featureIds");
+                          "output column [" << outputColumn << "] not found in featureIds");
 
                 const auto* rawObjectsData = dynamic_cast<const TRawObjectsDataProvider*>(pool.ObjectsData.Get());
                 CB_ENSURE(
@@ -269,7 +268,7 @@ namespace NCB {
                         MakeHolder<TCatFeaturePrinter>(
                             std::move(catFeaturesArray),
                             rawObjectsData->GetCatFeaturesHashToString(it->second.Index),
-                            columnName
+                            outputColumn
                         )
                     );
                 } else {
@@ -282,7 +281,7 @@ namespace NCB {
                     columnPrinter.push_back(
                         MakeHolder<TArrayPrinter<float>>(
                             std::move(floatFeaturesArray),
-                            columnName
+                            outputColumn
                         )
                     );
                 }
@@ -314,7 +313,6 @@ namespace NCB {
         const TVector<TString>& outputColumns,
         const TExternalLabelsHelper& visibleLabelsHelper,
         const TDataProvider& pool,
-        bool isPartOfFullTestSet,
         IOutputStream* outputStream,
         const TPathWithScheme& testSetPath,
         std::pair<int, int> testFileWhichOf,
@@ -333,7 +331,6 @@ namespace NCB {
             outputColumns,
             visibleLabelsHelper,
             pool,
-            isPartOfFullTestSet,
             outputStream,
             poolColumnsPrinter,
             testFileWhichOf,

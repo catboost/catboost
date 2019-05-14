@@ -1,5 +1,8 @@
 #pragma once
 
+#include "events.h"
+#include "mutex.h"
+
 class TContCondVar {
 public:
     inline int WaitD(TCont* current, TContMutex* mutex, TInstant deadline) {

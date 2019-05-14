@@ -71,3 +71,26 @@ void UpdateOneHotMaxSize(
 
     // TODO(akhropov): Tune OneHotMaxSize for regression. MLTOOLS-2503.
 }
+
+void UpdateYetiRankEvalMetric(
+    NCB::TMaybeData<TConstArrayRef<float>> learnTarget,
+    NCB::TMaybeData<TConstArrayRef<float>> testTarget,
+    NCatboostOptions::TCatBoostOptions* catBoostOptions) {
+
+    if (!IsYetiRankLossFunction(catBoostOptions->LossFunctionDescription.Get().LossFunction)) {
+        return;
+    }
+    CB_ENSURE(learnTarget.Defined(),
+        "Targets are required for " << catBoostOptions->LossFunctionDescription.Get().LossFunction << " loss function.");
+    auto targetBounds = CalcMinMax(*learnTarget.Get());
+    bool isPfoundMetricApplicable = 0 <= targetBounds.Min && targetBounds.Max <= 1;
+    if (testTarget.Defined()) {
+        targetBounds = CalcMinMax(*testTarget.Get());
+        isPfoundMetricApplicable &= 0 <= targetBounds.Min && targetBounds.Max <= 1;
+    }
+    if (!isPfoundMetricApplicable) {
+        NCatboostOptions::TLossDescription lossDescription;
+        lossDescription.Load(LossDescriptionToJson("NDCG"));
+        catBoostOptions->MetricOptions.Get().ObjectiveMetric.Set(lossDescription);
+    }
+}

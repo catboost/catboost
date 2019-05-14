@@ -262,7 +262,6 @@ void MapCalcErrors(TLearnContext* ctx) {
     }
 
     const auto metrics = CreateMetrics(
-        ctx->Params.LossFunctionDescription,
         ctx->Params.MetricOptions,
         ctx->EvalMetricDescriptor,
         ctx->LearnProgress.ApproxDimension

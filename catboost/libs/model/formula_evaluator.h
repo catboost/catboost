@@ -3,6 +3,7 @@
 #include "model.h"
 
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/cat_feature/cat_feature.h>
 
 #include <util/generic/array_ref.h>
 #include <util/generic/hash.h>
@@ -17,10 +18,9 @@
 #include <algorithm>
 #include <functional>
 #include <limits>
+#include <type_traits>
 
-#ifdef _sse2_
-#include <emmintrin.h>
-#endif
+#include <library/sse/sse.h>
 
 constexpr size_t FORMULA_EVALUATION_BLOCK_SIZE = 128;
 constexpr ui32 MAX_VALUES_PER_BIN = 254;
@@ -114,7 +114,7 @@ Y_FORCE_INLINE void BinarizeFloatsNonSse(
     result += docCount * ((borders.size() + MAX_VALUES_PER_BIN - 1) / MAX_VALUES_PER_BIN);
 }
 
-#ifndef _sse2_
+#ifndef ARCADIA_SSE
 
 template <bool UseNanSubstitution, typename TFloatFeatureAccessor>
 Y_FORCE_INLINE void BinarizeFloats(
@@ -373,7 +373,10 @@ void CalcIndexes(
     const TRepackedBin* __restrict treeSplitsCurPtr,
     int curTreeSize);
 
-TTreeCalcFunction GetCalcTreesFunction(const TFullModel& model, size_t docCountInBlock);
+TTreeCalcFunction GetCalcTreesFunction(
+    const TFullModel& model,
+    size_t docCountInBlock,
+    bool calcIndexesOnly = false);
 
 template <class X>
 inline X* GetAligned(X* val) {
@@ -382,40 +385,30 @@ inline X* GetAligned(X* val) {
     return val;
 }
 
-template <bool isQuantizedFeaturesData = false, typename TFloatFeatureAccessor, typename TCatFeatureAccessor>
-inline void CalcGeneric(
+template <bool isQuantizedFeaturesData = false,
+          typename TFloatFeatureAccessor, typename TCatFeatureAccessor, typename TFunctor>
+inline void ProcessDocsInBlocks(
     const TFullModel& model,
     TFloatFeatureAccessor floatFeatureAccessor,
     TCatFeatureAccessor catFeaturesAccessor,
     size_t docCount,
-    size_t treeStart,
-    size_t treeEnd,
-    TArrayRef<double> results
+    size_t blockSize,
+    TFunctor callback
 ) {
-    size_t blockSize = FORMULA_EVALUATION_BLOCK_SIZE;
-    blockSize = Min(blockSize, docCount);
     const size_t binSlots = blockSize * model.ObliviousTrees.GetEffectiveBinaryFeaturesBucketsCount();
     TArrayRef<ui8> binFeatures;
     TVector<ui8> binFeaturesHolder;
     if (binSlots < 65536) { // 65KB of stack maximum
         binFeatures = MakeArrayRef(GetAligned((ui8*)(alloca(binSlots + 0x20))), binSlots);
     } else {
-        binFeaturesHolder.yresize(blockSize * model.ObliviousTrees.GetEffectiveBinaryFeaturesBucketsCount());
+        binFeaturesHolder.yresize(binSlots);
         binFeatures = binFeaturesHolder;
     }
-    auto calcTrees = GetCalcTreesFunction(model, blockSize);
-
-    CB_ENSURE(
-        results.size() == docCount * model.ObliviousTrees.ApproxDimension,
-        "`results` size is insufficient: "
-        LabeledOutput(results.size(), docCount * model.ObliviousTrees.ApproxDimension));
-    std::fill(results.begin(), results.end(), 0.0);
-    TVector<TCalcerIndexType> indexesVec(blockSize);
-    TVector<ui32> transposedHash(blockSize * model.GetUsedCatFeaturesCount());
-    TVector<float> ctrs(model.ObliviousTrees.GetUsedModelCtrs().size() * blockSize);
-    for (size_t blockStart = 0; blockStart < docCount; blockStart += blockSize) {
-        const auto docCountInBlock = Min(blockSize, docCount - blockStart);
-        if constexpr (!isQuantizedFeaturesData) {
+    if constexpr (!isQuantizedFeaturesData) {
+        TVector<ui32> transposedHash(blockSize * model.GetUsedCatFeaturesCount());
+        TVector<float> ctrs(model.ObliviousTrees.GetUsedModelCtrs().size() * blockSize);
+        for (size_t blockStart = 0; blockStart < docCount; blockStart += blockSize) {
+            const auto docCountInBlock = Min(blockSize, docCount - blockStart);
             BinarizeFeatures(
                 model,
                 floatFeatureAccessor,
@@ -426,7 +419,11 @@ inline void CalcGeneric(
                 transposedHash,
                 ctrs
             );
-        } else {
+            callback(docCountInBlock, binFeatures);
+        }
+    } else {
+        for (size_t blockStart = 0; blockStart < docCount; blockStart += blockSize) {
+            const auto docCountInBlock = Min(blockSize, docCount - blockStart);
             AssignFeatureBins(
                 model,
                 floatFeatureAccessor,
@@ -435,20 +432,136 @@ inline void CalcGeneric(
                 blockStart + docCountInBlock,
                 binFeatures
             );
+            callback(docCountInBlock, binFeatures);
         }
-
-        calcTrees(
-            model,
-            binFeatures.data(),
-            docCountInBlock,
-            docCount == 1 ? nullptr : indexesVec.data(),
-            treeStart,
-            treeEnd,
-            results.data() + blockStart * model.ObliviousTrees.ApproxDimension
-        );
     }
 }
 
+
+template <bool IsQuantizedFeaturesData = false, typename TFloatFeatureAccessor, typename TCatFeatureAccessor>
+inline void CalcGeneric(
+    const TFullModel& model,
+    TFloatFeatureAccessor floatFeatureAccessor,
+    TCatFeatureAccessor catFeaturesAccessor,
+    size_t docCount,
+    size_t treeStart,
+    size_t treeEnd,
+    TArrayRef<double> results
+) {
+    const size_t blockSize = Min(FORMULA_EVALUATION_BLOCK_SIZE, docCount);
+    auto calcTrees = GetCalcTreesFunction(model, blockSize);
+    CB_ENSURE(
+        results.size() == docCount * model.ObliviousTrees.ApproxDimension,
+        "`results` size is insufficient: "
+        LabeledOutput(results.size(), docCount * model.ObliviousTrees.ApproxDimension)
+    );
+    std::fill(results.begin(), results.end(), 0.0);
+    TVector<TCalcerIndexType> indexesVec(blockSize);
+    auto rawResultsPtr = results.data();
+    ProcessDocsInBlocks<IsQuantizedFeaturesData>(
+        model,
+        floatFeatureAccessor,
+        catFeaturesAccessor,
+        docCount,
+        blockSize,
+        [&] (size_t docCountInBlock, TArrayRef<ui8> binFeatures) {
+            calcTrees(
+                model,
+                binFeatures.data(),
+                docCountInBlock,
+                docCount == 1 ? nullptr : indexesVec.data(),
+                treeStart,
+                treeEnd,
+                rawResultsPtr
+            );
+            rawResultsPtr += docCountInBlock * model.ObliviousTrees.ApproxDimension;
+        }
+    );
+}
+
+template <typename T>
+void Transpose2DArray(
+    TConstArrayRef<T> srcArray, // assume values are laid row by row
+    size_t srcRowCount,
+    size_t srcColumnCount,
+    TArrayRef<T> dstArray
+) {
+    Y_ASSERT(srcArray.size() == srcRowCount * srcColumnCount);
+    Y_ASSERT(srcArray.size() == dstArray.size());
+    for (size_t srcRowIndex = 0; srcRowIndex < srcRowCount; ++srcRowIndex) {
+        for (size_t srcColumnIndex = 0; srcColumnIndex < srcColumnCount; ++srcColumnIndex) {
+            dstArray[srcColumnIndex * srcRowCount + srcRowIndex] =
+                srcArray[srcRowIndex * srcColumnCount + srcColumnIndex];
+        }
+    }
+}
+
+template <bool IsQuantizedFeaturesData = false, typename TFloatFeatureAccessor, typename TCatFeatureAccessor>
+inline void CalcLeafIndexesGeneric(
+    const TFullModel& model,
+    TFloatFeatureAccessor floatFeatureAccessor,
+    TCatFeatureAccessor catFeaturesAccessor,
+    size_t docCount,
+    size_t treeStart,
+    size_t treeEnd,
+    TArrayRef<TCalcerIndexType> treeLeafIndexes
+) {
+    Y_ASSERT(treeEnd >= treeStart);
+    const size_t treeCount = treeEnd - treeStart;
+    if (model.ObliviousTrees.GetFirstLeafOffsets().size() < treeEnd) {
+        model.ObliviousTrees.UpdateRuntimeData();
+    }
+    Y_ASSERT(model.ObliviousTrees.GetFirstLeafOffsets().size() >= treeEnd);
+    CB_ENSURE(treeLeafIndexes.size() == docCount * treeCount,
+              "`treeLeafIndexes` size is insufficient: "
+              LabeledOutput(treeLeafIndexes.size(), docCount * treeCount));
+    std::fill(treeLeafIndexes.begin(), treeLeafIndexes.end(), 0);
+    const size_t blockSize = Min(FORMULA_EVALUATION_BLOCK_SIZE, docCount);
+    TCalcerIndexType* indexesWritePtr = treeLeafIndexes.data();
+
+    auto calcTrees = GetCalcTreesFunction(model, blockSize, true);
+
+    if (docCount == 1) {
+        ProcessDocsInBlocks<IsQuantizedFeaturesData>(
+            model, floatFeatureAccessor, catFeaturesAccessor, docCount, blockSize,
+            [&](size_t docCountInBlock, TArrayRef<ui8> binFeatures) {
+                calcTrees(
+                    model,
+                    binFeatures.data(),
+                    docCountInBlock,
+                    indexesWritePtr,
+                    treeStart,
+                    treeEnd,
+                    nullptr
+                );
+            }
+        );
+        return;
+    }
+    TVector<TCalcerIndexType> tmpLeafIndexHolder(blockSize * treeCount);
+    TCalcerIndexType* transposedLeafIndexesPtr = tmpLeafIndexHolder.data();
+    ProcessDocsInBlocks<IsQuantizedFeaturesData>(model, floatFeatureAccessor, catFeaturesAccessor, docCount, blockSize,
+        [&](size_t docCountInBlock, TArrayRef<ui8> binFeatures) {
+            calcTrees(
+                model,
+                binFeatures.data(),
+                docCountInBlock,
+                transposedLeafIndexesPtr,
+                treeStart,
+                treeEnd,
+                nullptr
+            );
+            const size_t indexCountInBlock = docCountInBlock * treeCount;
+            Transpose2DArray<TCalcerIndexType>(
+                {transposedLeafIndexesPtr, indexCountInBlock},
+                treeCount,
+                docCountInBlock,
+                {indexesWritePtr, indexCountInBlock}
+            );
+            indexesWritePtr += indexCountInBlock;
+        }
+    );
+}
 
 /**
  * Warning: use aggressive caching. Stores all binarized features in RAM
@@ -534,46 +647,206 @@ inline TVector<TVector<double>> CalcTreeIntervalsGeneric(
     TFloatFeatureAccessor floatFeatureAccessor,
     TCatFeatureAccessor catFeaturesAccessor,
     size_t docCount,
-    size_t incrementStep)
-{
-    size_t blockSize = FORMULA_EVALUATION_BLOCK_SIZE;
-    blockSize = Min(blockSize, docCount);
+    size_t incrementStep
+) {
+    const size_t blockSize = Min(FORMULA_EVALUATION_BLOCK_SIZE, docCount);
     auto treeStepCount = (model.ObliviousTrees.TreeSizes.size() + incrementStep - 1) / incrementStep;
     TVector<TVector<double>> results(docCount, TVector<double>(treeStepCount));
     CB_ENSURE(model.ObliviousTrees.ApproxDimension == 1);
-    TVector<ui8> binFeatures(model.ObliviousTrees.GetEffectiveBinaryFeaturesBucketsCount() * blockSize);
     TVector<TCalcerIndexType> indexesVec(blockSize);
-    TVector<ui32> transposedHash(blockSize * model.GetUsedCatFeaturesCount());
-    TVector<float> ctrs(model.ObliviousTrees.GetUsedModelCtrs().size() * blockSize);
-    TVector<double> tmpResult(docCount);
-    TArrayRef<double> tmpResultRef(tmpResult);
+    TVector<double> tmpResult(blockSize);
     auto calcTrees = GetCalcTreesFunction(model, blockSize);
-    for (size_t blockStart = 0; blockStart < docCount; blockStart += blockSize) {
-        const auto docCountInBlock = Min(blockSize, docCount - blockStart);
-        BinarizeFeatures(
-            model,
-            floatFeatureAccessor,
-            catFeaturesAccessor,
-            blockStart,
-            blockStart + docCountInBlock,
-            binFeatures,
-            transposedHash,
-            ctrs
-        );
-        for (size_t stepIdx = 0; stepIdx < treeStepCount; ++stepIdx) {
-            calcTrees(
-                model,
-                binFeatures.data(),
-                docCountInBlock,
-                indexesVec.data(),
-                stepIdx * incrementStep,
-                Min((stepIdx + 1) * incrementStep, model.ObliviousTrees.TreeSizes.size()),
-                tmpResultRef.data() + blockStart * model.ObliviousTrees.ApproxDimension
-            );
-            for (size_t i = 0; i < docCountInBlock; ++i) {
-                results[blockStart + i][stepIdx] = tmpResult[i];
+    size_t blockStart = 0;
+    ProcessDocsInBlocks(model, floatFeatureAccessor, catFeaturesAccessor, docCount, blockSize,
+        [&] (size_t docCountInBlock, TArrayRef<ui8> binFeatures) {
+            for (size_t stepIdx = 0; stepIdx < treeStepCount; ++stepIdx) {
+                calcTrees(
+                    model,
+                    binFeatures.data(),
+                    docCountInBlock,
+                    indexesVec.data(),
+                    stepIdx * incrementStep,
+                    Min((stepIdx + 1) * incrementStep, model.ObliviousTrees.TreeSizes.size()),
+                    tmpResult.data()
+                );
+                for (size_t i = 0; i < docCountInBlock; ++i) {
+                    results[blockStart + i][stepIdx] = tmpResult[i];
+                }
+                blockStart += docCountInBlock;
             }
         }
-    }
+    );
     return results;
+}
+
+class ILeafIndexCalcer {
+public:
+    virtual bool Next() = 0;
+    virtual bool CanGet() const = 0;
+    virtual TVector<TCalcerIndexType> Get() const = 0;
+    virtual ~ILeafIndexCalcer() = default;
+};
+
+template <class TFloatFeatureAccessor, class TCatFeatureAccessor, bool IsQuantizedFeaturesData = false>
+class TLeafIndexCalcer : public ILeafIndexCalcer {
+public:
+    TLeafIndexCalcer(
+        const TFullModel& model,
+        TFloatFeatureAccessor floatFeatureAccessor,
+        TCatFeatureAccessor catFeatureAccessor,
+        size_t docCount,
+        size_t treeStrat,
+        size_t treeEnd
+    )
+        : Model(model)
+        , FloatFeatureAccessor(floatFeatureAccessor)
+        , CatFeatureAccessor(catFeatureAccessor)
+        , DocCount(docCount)
+        , TreeStart(treeStrat)
+        , TreeEnd(treeEnd)
+    {
+        CalcNextBatch();
+    }
+
+    bool Next() override {
+        ++CurrDocIndex;
+        if (CurrDocIndex < DocCount) {
+            if (CurrDocIndex == CurrBatchStart + CurrBatchSize) {
+                CalcNextBatch();
+            }
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    bool CanGet() const override {
+        return CurrDocIndex < DocCount;
+    }
+
+    TVector<TCalcerIndexType> Get() const override {
+        const auto treeCount = TreeEnd - TreeStart;
+        const auto docIndexInBatch = CurrDocIndex - CurrBatchStart;
+        TVector<TCalcerIndexType> result;
+        result.reserve(treeCount);
+        for (size_t treeNum = 0; treeNum < treeCount; ++treeNum) {
+            result.push_back(CurrentBatchLeafIndexes[docIndexInBatch + treeNum * CurrBatchSize]);
+        }
+        return result;
+    }
+
+private:
+    void CalcNextBatch() {
+        Y_ASSERT(CurrDocIndex == CurrBatchStart + CurrBatchSize);
+        CurrBatchStart += CurrBatchSize;
+        CurrBatchSize = Min(DocCount - CurrDocIndex, FORMULA_EVALUATION_BLOCK_SIZE);
+        const size_t batchResultSize = (TreeEnd - TreeStart) * CurrBatchSize;
+        CurrentBatchLeafIndexes.resize(batchResultSize);
+        auto calcTrees = GetCalcTreesFunction(Model, CurrBatchSize, true);
+        ProcessDocsInBlocks<IsQuantizedFeaturesData>(
+            Model,
+            [this](const TFloatFeature& floatFeature, size_t index) -> float {
+                return FloatFeatureAccessor(floatFeature, CurrBatchStart + index);
+            },
+            [this](const TCatFeature& catFeature, size_t index) -> int {
+                return CatFeatureAccessor(catFeature, CurrBatchStart + index);
+            },
+            CurrBatchSize,
+            CurrBatchSize, [&] (size_t docCountInBlock, TArrayRef<ui8> binFeatures) {
+                Y_ASSERT(docCountInBlock == CurrBatchSize);
+                calcTrees(
+                    Model,
+                    binFeatures.data(),
+                    docCountInBlock,
+                    CurrentBatchLeafIndexes.data(),
+                    TreeStart,
+                    TreeEnd,
+                    nullptr
+                );
+            }
+        );
+    }
+
+private:
+    const TFullModel& Model;
+    TFloatFeatureAccessor FloatFeatureAccessor;
+    TCatFeatureAccessor CatFeatureAccessor;
+    TVector<TCalcerIndexType> CurrentBatchLeafIndexes;
+
+    const size_t DocCount = 0;
+    const size_t TreeStart = 0;
+    const size_t TreeEnd = 0;
+
+    size_t CurrBatchStart = 0;
+    size_t CurrBatchSize = 0;
+    size_t CurrDocIndex = 0;
+};
+
+template <class TQuantizedFeatureAccessor>
+THolder<ILeafIndexCalcer> MakeLeafIndexCalcer(
+    const TFullModel& model,
+    const TQuantizedFeatureAccessor& quantizedAccessor,
+    size_t docCount,
+    size_t treeStart,
+    size_t treeEnd
+) {
+    static_assert(std::is_same_v<decltype(quantizedAccessor(std::declval<TFloatFeature>(), 0)), ui8>);
+    const auto catAccessor = [](const TCatFeature&, size_t) -> ui32 {
+        Y_ASSERT("Quantized datasets with categorical features are not currently supported");
+        return 0;
+    };
+    return new TLeafIndexCalcer<TQuantizedFeatureAccessor, decltype(catAccessor), true>(
+        model, quantizedAccessor, catAccessor, docCount, treeStart, treeEnd);
+}
+
+template <class TFloatFeatureAccessor, class TCatFeatureAccessor>
+THolder<ILeafIndexCalcer> MakeLeafIndexCalcer(
+    const TFullModel& model,
+    const TFloatFeatureAccessor& floatAccessor,
+    const TCatFeatureAccessor& catAccessor,
+    size_t docCount,
+    size_t treeStart,
+    size_t treeEnd
+) {
+    return new TLeafIndexCalcer<TFloatFeatureAccessor, TCatFeatureAccessor>(
+        model, floatAccessor, catAccessor, docCount, treeStart, treeEnd);
+}
+
+template <typename TCatFeatureValue = TStringBuf,
+    class = typename std::enable_if<
+        std::is_same_v<TCatFeatureValue, TStringBuf> || std::is_integral_v<TCatFeatureValue>>::type>
+THolder<ILeafIndexCalcer> MakeLeafIndexCalcer(
+    const TFullModel& model,
+    TConstArrayRef<TConstArrayRef<float>> floatFeatures,
+    TConstArrayRef<TVector<TCatFeatureValue>> catFeatures,
+    size_t treeStrat,
+    size_t treeEnd
+) {
+    CB_ENSURE(floatFeatures.empty() || catFeatures.empty() || floatFeatures.size() == catFeatures.size());
+    const size_t docCount = Max(floatFeatures.size(), catFeatures.size());
+    return MakeLeafIndexCalcer(
+        model,
+        [floatFeatures](const TFloatFeature& floatFeature, size_t index) -> float {
+            return floatFeatures[index][floatFeature.FeatureIndex];
+        },
+        [catFeatures](const TCatFeature& catFeature, size_t index) -> int {
+            if constexpr (std::is_integral_v<TCatFeatureValue>) {
+                return catFeatures[index][catFeature.FeatureIndex];
+            } else {
+                return CalcCatFeatureHash(catFeatures[index][catFeature.FeatureIndex]);
+            }
+        },
+        docCount,
+        treeStrat,
+        treeEnd
+    );
+}
+
+template <typename TCatFeatureValue = TStringBuf>
+THolder<ILeafIndexCalcer> MakeLeafIndexCalcer(
+    const TFullModel& model,
+    TConstArrayRef<TConstArrayRef<float>> floatFeatures,
+    TConstArrayRef<TVector<TCatFeatureValue>> catFeatures
+) {
+    return MakeLeafIndexCalcer(model, floatFeatures, catFeatures, 0, model.ObliviousTrees.TreeSizes.size());
 }

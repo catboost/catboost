@@ -1,0 +1,9 @@
+[package]
+name = "catboost"
+version = "0.1.0"
+authors = ["Sergey Kiselev <kiselev.sg@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+catboost-sys = { path = "catboost-sys", version = "0.1"}
+# catboost-sys = "0.1"

@@ -2,8 +2,6 @@
 
 #include "holder.h"
 
-#include <library/openssl/compat/hmac.h> // Remove after OpenSSL upgrade
-
 #include <contrib/libs/openssl/include/openssl/hmac.h>
 
 namespace NOpenSSL {

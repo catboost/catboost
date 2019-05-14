@@ -34,6 +34,8 @@ namespace NNeh {
         ///  for this request before this call return control
         virtual THandleRef Request(const TRequest& req) = 0;
 
+        virtual size_t QueueSize() = 0;
+
         struct TEvent {
             enum TType {
                 Timeout,

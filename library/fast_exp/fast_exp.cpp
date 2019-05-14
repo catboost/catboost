@@ -6,8 +6,10 @@
 
 #include <cmath>
 
+#if defined(_x86_64_) || defined(_i386_)
 void FastExpInplaceAvx2(double* x, size_t count) noexcept;
 void FastExpInplaceSse2(double* x, size_t count) noexcept;
+#endif
 
 namespace {
     union TDoubleInt {
@@ -47,11 +49,14 @@ double fast_exp(double x) {
 }
 
 void FastExpInplace(double* x, size_t count) {
+#if defined(_x86_64_) || defined(_i386_)
     if (NX86::CachedHaveAVX() && NX86::CachedHaveAVX2()) {
         FastExpInplaceAvx2(x, count);
     } else if (NX86::CachedHaveSSE2()) {
         FastExpInplaceSse2(x, count);
-    } else {
+    } else
+#endif
+    {
         for (size_t i = 0; i < count; ++i) {
             x[i] = fast_exp(x[i]);
         }

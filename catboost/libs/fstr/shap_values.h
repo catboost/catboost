@@ -2,7 +2,7 @@
 
 #include <catboost/libs/data_new/data_provider.h>
 #include <catboost/libs/model/model.h>
-
+#include <catboost/libs/options/enums.h>
 #include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/vector.h>
@@ -31,6 +31,12 @@ public:
 struct TShapPreparedTrees {
     TVector<TVector<TVector<TShapValue>>> ShapValuesByLeafForAllTrees; // [treeIdx][leafIdx][shapFeature] trees * 2^d * d
     TVector<TVector<double>> MeanValuesForAllTrees;
+    TVector<int> BinFeatureCombinationClass;
+    TVector<TVector<int>> CombinationClassFeatures;
+    bool CalcShapValuesByLeafForAllTrees;
+    bool CalcInternalValues;
+    TVector<TVector<double>> LeafWeightsForAllTrees;
+    TVector<TVector<TVector<double>>> SubtreeWeightsForAllTrees;
 
 public:
     TShapPreparedTrees() = default;
@@ -44,7 +50,16 @@ public:
     {
     }
 
-    Y_SAVELOAD_DEFINE(ShapValuesByLeafForAllTrees, MeanValuesForAllTrees);
+    Y_SAVELOAD_DEFINE(
+        ShapValuesByLeafForAllTrees,
+        MeanValuesForAllTrees,
+        BinFeatureCombinationClass,
+        CombinationClassFeatures,
+        CalcShapValuesByLeafForAllTrees,
+        CalcInternalValues,
+        LeafWeightsForAllTrees,
+        SubtreeWeightsForAllTrees
+    );
 };
 
 void CalcShapValuesForDocumentMulti(
@@ -59,11 +74,12 @@ void CalcShapValuesForDocumentMulti(
 
 TShapPreparedTrees PrepareTrees(const TFullModel& model, NPar::TLocalExecutor* localExecutor);
 TShapPreparedTrees PrepareTrees(
-        const TFullModel& model,
-        const NCB::TDataProvider* dataset, // can be nullptr if model has LeafWeights
-        int logPeriod,
-        NPar::TLocalExecutor* localExecutor,
-        bool calcInternalValues = false
+    const TFullModel& model,
+    const NCB::TDataProvider* dataset, // can be nullptr if model has LeafWeights
+    int logPeriod,
+    EPreCalcShapValues mode,
+    NPar::TLocalExecutor* localExecutor,
+    bool calcInternalValues = false
 );
 
 // returned: ShapValues[documentIdx][dimenesion][feature]
@@ -71,6 +87,7 @@ TVector<TVector<TVector<double>>> CalcShapValuesMulti(
     const TFullModel& model,
     const NCB::TDataProvider& dataset,
     int logPeriod,
+    EPreCalcShapValues mode,
     NPar::TLocalExecutor* localExecutor
 );
 
@@ -79,6 +96,7 @@ TVector<TVector<double>> CalcShapValues(
     const TFullModel& model,
     const NCB::TDataProvider& dataset,
     int logPeriod,
+    EPreCalcShapValues mode,
     NPar::TLocalExecutor* localExecutor
 );
 
@@ -88,11 +106,12 @@ void CalcAndOutputShapValues(
     const NCB::TDataProvider& dataset,
     const TString& outputPath,
     int logPeriod,
+    EPreCalcShapValues mode,
     NPar::TLocalExecutor* localExecutor
 );
 
 void CalcShapValuesInternalForFeature(
-    TShapPreparedTrees& preparedTrees,
+    const TShapPreparedTrees& preparedTrees,
     const TFullModel& model,
     int logPeriod,
     ui32 start,

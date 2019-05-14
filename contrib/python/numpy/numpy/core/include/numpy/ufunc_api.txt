@@ -1,6 +1,6 @@
 
 =================
-Numpy Ufunc C-API
+NumPy Ufunc C-API
 =================
 ::
 
@@ -317,5 +317,21 @@ Returns 0 on success, -1 (with exception raised) on validation failure.
                                *user_dtype, PyUFuncGenericFunction
                                function, PyArray_Descr
                                **arg_dtypes, void *data)
+
+
+::
+
+  PyObject *
+  PyUFunc_FromFuncAndDataAndSignatureAndIdentity(PyUFuncGenericFunction
+                                                 *func, void
+                                                 **data, char
+                                                 *types, int ntypes, int
+                                                 nin, int nout, int
+                                                 identity, const char
+                                                 *name, const char
+                                                 *doc, int unused, const
+                                                 char
+                                                 *signature, PyObject
+                                                 *identity_value)
 
 

@@ -25,7 +25,8 @@ enum class ESamplingUnit {
 
 enum class EFeatureType {
     Float,
-    Categorical
+    Categorical,
+    Text
 };
 
 enum EErrorType {
@@ -207,6 +208,12 @@ enum class EFstrType {
     Interaction,
     InternalInteraction,
     ShapValues
+};
+
+enum class EPreCalcShapValues {
+    Auto,
+    UsePreCalc,
+    NoPreCalc
 };
 
 enum class EObservationsToBootstrap {

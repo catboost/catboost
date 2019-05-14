@@ -119,6 +119,7 @@ cdef extern from "catboost/libs/options/enums.h":
 
     cdef EFeatureType EFeatureType_Float "EFeatureType::Float"
     cdef EFeatureType EFeatureType_Categorical "EFeatureType::Categorical"
+    cdef EFeatureType EFeatureType_Text "EFeatureType::Text"
 
 
     cdef cppclass EPredictionType:
@@ -127,6 +128,12 @@ cdef extern from "catboost/libs/options/enums.h":
     cdef EPredictionType EPredictionType_Class "EPredictionType::Class"
     cdef EPredictionType EPredictionType_Probability "EPredictionType::Probability"
     cdef EPredictionType EPredictionType_RawFormulaVal "EPredictionType::RawFormulaVal"
+
+    cdef cppclass EFstrType:
+        pass
+
+    cdef cppclass EPreCalcShapValues:
+        pass
 
 
 cdef extern from "catboost/libs/quantization_schema/schema.h" namespace "NCB":
@@ -146,7 +153,8 @@ cdef extern from "catboost/libs/data_new/features_layout.h" namespace "NCB":
         TFeaturesLayout(
             const ui32 featureCount,
             const TVector[ui32]& catFeatureIndices,
-            const TVector[TString]& featureId
+            const TVector[ui32]& textFeatureIndices,
+            const TVector[TString]& featureId,
         )  except +ProcessException
 
         TConstArrayRef[TFeatureMetaInfo] GetExternalFeaturesMetaInfo() except +ProcessException
@@ -556,6 +564,11 @@ cdef extern from "catboost/libs/algo/ders_holder.h":
         double Der2
 
 
+cdef extern from "catboost/libs/algo/tree_print.h":
+    TVector[TString] GetTreeSplitsDescriptions(const TFullModel& model, size_t tree_idx, const TDataProvider& pool)
+    TVector[TString] GetTreeLeafValuesDescriptions(const TFullModel& model, int tree_idx, int leaves_num)
+
+
 cdef extern from "catboost/libs/options/enum_helpers.h":
     cdef bool_t IsClassificationObjective(const TString& lossFunction) nogil except +ProcessException
     cdef bool_t IsRegressionObjective(const TString& lossFunction) nogil except +ProcessException
@@ -671,6 +684,18 @@ cdef extern from "catboost/libs/algo/apply.h":
             TVector[TVector[double]]* approx
         ) nogil except +ProcessException
 
+    cdef cppclass TLeafIndexCalcerOnPool:
+        TLeafIndexCalcerOnPool(
+            const TFullModel& model,
+            TIntrusivePtr[TObjectsDataProvider] objectsData,
+            int treeStart,
+            int treeEnd
+        ) nogil
+
+        bool_t Next() nogil except +ProcessException;
+        bool_t CanGet() nogil except +ProcessException;
+        TVector[ui32] Get() nogil except +ProcessException;
+
     cdef TVector[double] ApplyModel(
         const TFullModel& model,
         const TDataProvider& objectsData,
@@ -690,6 +715,15 @@ cdef extern from "catboost/libs/algo/apply.h":
         int end,
         int threadCount
     ) nogil except +ProcessException
+            
+    cdef TVector[ui32] CalcLeafIndexesMulti(
+        const TFullModel& model,
+        TIntrusivePtr[TObjectsDataProvider] objectsData,
+        bool_t verbose,
+        int treeStart,
+        int treeEnd,
+        int threadCount
+    )  nogil except +ProcessException
 
 cdef extern from "catboost/libs/algo/helpers.h":
     cdef void ConfigureMalloc() nogil except *
@@ -758,18 +792,20 @@ cdef extern from "catboost/libs/init/init_reg.h" namespace "NCB":
 
 cdef extern from "catboost/libs/fstr/calc_fstr.h":
     cdef TVector[TVector[double]] GetFeatureImportances(
-        const TString& type,
+        const EFstrType type,
         const TFullModel& model,
         const TDataProviderPtr dataset,
         int threadCount,
+        EPreCalcShapValues mode,
         int logPeriod
     ) nogil except +ProcessException
 
     cdef TVector[TVector[TVector[double]]] GetFeatureImportancesMulti(
-        const TString& type,
+        const EFstrType type,
         const TFullModel& model,
         const TDataProviderPtr dataset,
         int threadCount,
+        EPreCalcShapValues mode,
         int logPeriod
     ) nogil except +ProcessException
 
@@ -942,6 +978,19 @@ cdef _3d_vector_of_double_to_np_array(TVector[TVector[TVector[double]]]& vectors
                 result[i][j][k] = vectors[i][j][k]
     return result
 
+cdef _vector_of_uints_to_np_array(TVector[ui32]& vec):
+    result = np.empty(vec.size(), dtype=np.uint32)
+    for i in xrange(vec.size()):
+        result[i] = vec[i]
+    return result
+
+cdef _vector_of_uints_to_2d_np_array(TVector[ui32]& vec, int row_count, int column_count):
+    assert vec.size() == row_count * column_count
+    result = np.empty((row_count, column_count), dtype=np.uint32)
+    for row_num in xrange(row_count):
+        for col_num in xrange(column_count):
+            result[row_num][col_num] = vec[row_num * column_count + col_num]
+    return result
 
 cdef class _FloatArrayWrapper:
     cdef const float* _arr
@@ -1109,6 +1158,18 @@ cdef EModelType string_to_model_type(model_type_str) except *:
     if not TryFromString[EModelType](to_arcadia_string(model_type_str), model_type):
         raise CatBoostError("Unknown model type {}.".format(model_type_str))
     return model_type
+
+cdef EFstrType string_to_fstr_type(fstr_type_str) except *:
+    cdef EFstrType fstr_type
+    if not TryFromString[EFstrType](to_arcadia_string(fstr_type_str), fstr_type):
+        raise CatBoostError("Unknown fstr type {}.".format(fstr_type_str))
+    return fstr_type
+
+cdef EPreCalcShapValues string_to_shap_mode(shap_mode_str) except *:
+    cdef EPreCalcShapValues shap_mode
+    if not TryFromString[EPreCalcShapValues](to_arcadia_string(shap_mode_str), shap_mode):
+        raise CatBoostError("Unknown shap values mode {}.".format(shap_mode_str))
+    return shap_mode
 
 
 cdef class _PreprocessParams:
@@ -1359,6 +1420,7 @@ class FeaturesData(object):
 
 cdef TFeaturesLayout* _init_features_layout(data, cat_features, feature_names):
     cdef TVector[ui32] cat_features_vector
+    cdef TVector[ui32] text_features_vector # TODO(d-kruchinin): support text features in python package
     cdef TVector[TString] feature_names_vector
 
     if isinstance(data, FeaturesData):
@@ -1379,6 +1441,7 @@ cdef TFeaturesLayout* _init_features_layout(data, cat_features, feature_names):
     return new TFeaturesLayout(
         <ui32>feature_count,
         cat_features_vector,
+        text_features_vector,
         feature_names_vector)
 
 cdef TVector[bool_t] _get_is_cat_feature_mask(const TFeaturesLayout* featuresLayout):
@@ -2498,6 +2561,28 @@ cdef class _CatBoost:
         stagedPredictIterator._initialize_model_calcer(self.__model, pool)
         return stagedPredictIterator
 
+    cpdef _base_calc_leaf_indexes(self, _PoolBase pool, int ntree_start, int ntree_end,
+                                  int thread_count, bool_t verbose):
+        cdef int tree_count = ntree_end - ntree_start
+        cdef int object_count = pool.__pool.Get()[0].ObjectsData.Get()[0].GetObjectCount()
+        cdef TVector[ui32] flat_leaf_indexes
+        thread_count = UpdateThreadCount(thread_count);
+        with nogil:
+            flat_leaf_indexes = CalcLeafIndexesMulti(
+                dereference(self.__model),
+                pool.__pool.Get()[0].ObjectsData,
+                verbose,
+                ntree_start,
+                ntree_end,
+                thread_count
+            )
+        return _vector_of_uints_to_2d_np_array(flat_leaf_indexes, object_count, tree_count)
+
+    cpdef _leaf_indexes_iterator(self, _PoolBase pool, int ntree_start, int ntree_end):
+        leafIndexIterator = _LeafIndexIterator()
+        leafIndexIterator._initialize(self.__model, pool, ntree_start, ntree_end)
+        return leafIndexIterator
+
     cpdef _base_eval_metrics(self, _PoolBase pool, metric_descriptions, int ntree_start, int ntree_end, int eval_period, int thread_count, result_dir, tmp_dir):
         thread_count = UpdateThreadCount(thread_count);
         cdef TVector[TString] metricDescriptions
@@ -2522,7 +2607,7 @@ cdef class _CatBoost:
     cpdef bool_t _is_groupwise_learned_model(self):
         return IsGroupwiseLearnedModel(dereference(self.__model))
 
-    cpdef _calc_fstr(self, type_name, _PoolBase pool, int thread_count, int verbose):
+    cpdef _calc_fstr(self, type_name, _PoolBase pool, int thread_count, int verbose, shap_mode_name):
         thread_count = UpdateThreadCount(thread_count);
         cdef TVector[TString] feature_ids = GetMaybeGeneratedModelFeatureIds(
             dereference(self.__model),
@@ -2535,24 +2620,29 @@ cdef class _CatBoost:
         cdef TDataProviderPtr dataProviderPtr
         if pool:
             dataProviderPtr = pool.__pool
-        cdef TString type_name_str = to_arcadia_string(type_name)
+
+        cdef EFstrType fstr_type = string_to_fstr_type(type_name)
+        cdef EPreCalcShapValues shap_mode = string_to_shap_mode(shap_mode_name)
+
         if type_name == 'ShapValues' and dereference(self.__model).ObliviousTrees.ApproxDimension > 1:
             with nogil:
                 fstr_multi = GetFeatureImportancesMulti(
-                    type_name_str,
+                    fstr_type,
                     dereference(self.__model),
                     dataProviderPtr,
                     thread_count,
+                    shap_mode,
                     verbose
                 )
             return _3d_vector_of_double_to_np_array(fstr_multi), native_feature_ids
         else:
             with nogil:
                 fstr = GetFeatureImportances(
-                    type_name_str,
+                    fstr_type,
                     dereference(self.__model),
                     dataProviderPtr,
                     thread_count,
+                    shap_mode,
                     verbose
                 )
             return _2d_vector_of_double_to_np_array(fstr), native_feature_ids
@@ -2701,6 +2791,22 @@ cdef class _CatBoost:
             'Prediction': _vector_of_double_to_np_array(res.Prediction),
             'PredictionsOnVaryingFeature': _vector_of_double_to_np_array(res.PredictionsOnVaryingFeature)
         }
+
+    cpdef _get_tree_splits(self, tree_idx, _PoolBase pool):
+        splits = GetTreeSplitsDescriptions(dereference(self.__model), tree_idx, dereference(pool.__pool.Get()))
+        node_descriptions = []
+        for description in splits:
+            node_descriptions.append(description)
+        return node_descriptions
+
+    cpdef _get_tree_leaf_values(self, tree_idx, leaves_num):
+        leaf_values = GetTreeLeafValuesDescriptions(dereference(self.__model), tree_idx, leaves_num)
+        leaf_values_list = []
+
+        for value in leaf_values:
+            leaf_values_list.append(value)
+
+        return leaf_values_list
 
 
 cdef class _MetadataHashProxy:
@@ -2891,6 +2997,29 @@ cdef class _StagedPredictIterator:
 
         return _convert_to_visible_labels(self.predictionType, self.__pred, self.thread_count, self.__model)
 
+cdef class _LeafIndexIterator:
+    cdef TLeafIndexCalcerOnPool* __leafIndexCalcer
+
+    cdef _initialize(self, TFullModel* model, _PoolBase pool, int ntree_start, int ntree_end):
+        self.__leafIndexCalcer = new TLeafIndexCalcerOnPool(
+            dereference(model),
+            pool.__pool.Get()[0].ObjectsData,
+            ntree_start,
+            ntree_end
+        )
+
+    def __dealloc__(self):
+        del self.__leafIndexCalcer
+
+    def __deepcopy__(self, _):
+        raise CatBoostError('Can\'t deepcopy _LeafIndexIterator object')
+
+    def next(self):
+        if not dereference(self.__leafIndexCalcer).CanGet():
+            raise StopIteration
+        result = _vector_of_uints_to_np_array(dereference(self.__leafIndexCalcer).Get())
+        dereference(self.__leafIndexCalcer).Next()
+        return result
 
 class MetricDescription:
 

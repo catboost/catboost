@@ -1,9 +1,8 @@
 #pragma once
 
-#include "target_classifier.h"
-
 #include "online_ctr.h"
 #include "projection.h"
+#include "target_classifier.h"
 
 #include <catboost/libs/data_new/data_provider.h>
 #include <catboost/libs/data_types/pair.h>
@@ -13,26 +12,32 @@
 #include <catboost/libs/model/online_ctr.h>
 #include <catboost/libs/options/defaults_helper.h>
 
-#include <library/threading/local_executor/local_executor.h>
-
 #include <util/generic/array_ref.h>
 #include <util/generic/maybe.h>
 #include <util/generic/vector.h>
-#include <util/random/shuffle.h>
 #include <util/generic/ymath.h>
+#include <util/random/shuffle.h>
 
 #include <tuple>
 
+
 struct TRestorableFastRng64;
+
+namespace NPar {
+    class TLocalExecutor;
+}
+
 
 class TFold {
 public:
     struct TBodyTail {
-        TBodyTail(int bodyQueryFinish,
-                  int tailQueryFinish,
-                  int bodyFinish,
-                  int tailFinish,
-                  double bodySumWeight)
+    public:
+        TBodyTail(
+            int bodyQueryFinish,
+            int tailQueryFinish,
+            int bodyFinish,
+            int tailFinish,
+            double bodySumWeight)
             : BodyQueryFinish(bodyQueryFinish)
             , TailQueryFinish(tailQueryFinish)
             , BodyFinish(bodyFinish)
@@ -116,7 +121,7 @@ public:
         double multiplier,
         bool storeExpApproxes,
         bool hasPairwiseWeights,
-        TRestorableFastRng64& rand,
+        TRestorableFastRng64* rand,
         NPar::TLocalExecutor* localExecutor
     );
 
@@ -128,7 +133,7 @@ public:
         int approxDimension,
         bool storeExpApproxes,
         bool hasPairwiseWeights,
-        TRestorableFastRng64& rand,
+        TRestorableFastRng64* rand,
         NPar::TLocalExecutor* localExecutor
     );
 
@@ -140,8 +145,11 @@ public:
     }
 
 private:
-    void AssignTarget(NCB::TMaybeData<TConstArrayRef<float>> target,
-                      const TVector<TTargetClassifier>& targetClassifiers);
+    void AssignTarget(
+        NCB::TMaybeData<TConstArrayRef<float>> target,
+        const TVector<TTargetClassifier>& targetClassifiers
+    );
+
     void SetWeights(TConstArrayRef<float> weights, ui32 learnSampleCount);
 
 public:

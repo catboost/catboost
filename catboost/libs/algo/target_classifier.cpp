@@ -6,6 +6,7 @@
 
 #include <util/generic/algorithm.h>
 
+
 static TVector<float> GetMultiClassBorders(int cnt) {
     TVector<float> borders(cnt);
     for (int i = 0; i < cnt; ++i) {
@@ -14,10 +15,12 @@ static TVector<float> GetMultiClassBorders(int cnt) {
     return borders;
 }
 
-static TVector<float> SelectBorders(TConstArrayRef<float> target,
-                                    int targetBorderCount,
-                                    EBorderSelectionType targetBorderType,
-                                    bool allowConstLabel) {
+static TVector<float> SelectBorders(
+    TConstArrayRef<float> target,
+    int targetBorderCount,
+    EBorderSelectionType targetBorderType,
+    bool allowConstLabel) {
+
     TVector<float> learnTarget(target.begin(), target.end());
 
     THashSet<float> borderSet = BestSplit(learnTarget, targetBorderCount, targetBorderType);
@@ -32,12 +35,14 @@ static TVector<float> SelectBorders(TConstArrayRef<float> target,
     return borders;
 }
 
-TTargetClassifier BuildTargetClassifier(TConstArrayRef<float> target,
-                                        ELossFunction loss,
-                                        const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
-                                        int targetBorderCount,
-                                        EBorderSelectionType targetBorderType,
-                                        bool allowConstLabel) {
+TTargetClassifier BuildTargetClassifier(
+    TConstArrayRef<float> target,
+    ELossFunction loss,
+    const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
+    int targetBorderCount,
+    EBorderSelectionType targetBorderType,
+    bool allowConstLabel) {
+
     if (targetBorderCount == 0) {
         return TTargetClassifier();
     }
@@ -45,7 +50,9 @@ TTargetClassifier BuildTargetClassifier(TConstArrayRef<float> target,
     CB_ENSURE(!target.empty(), "train target should not be empty");
 
     TMinMax<float> targetBounds = CalcMinMax<float>(target);
-    CB_ENSURE((targetBounds.Min != targetBounds.Max) || allowConstLabel, "target in train should not be constant");
+    CB_ENSURE(
+        (targetBounds.Min != targetBounds.Max) || allowConstLabel,
+        "target in train should not be constant");
 
     switch (loss) {
         case ELossFunction::RMSE:
@@ -66,11 +73,8 @@ TTargetClassifier BuildTargetClassifier(TConstArrayRef<float> target,
         case ELossFunction::CrossEntropy:
         case ELossFunction::UserPerObjMetric:
         case ELossFunction::UserQuerywiseMetric:
-            return TTargetClassifier(SelectBorders(
-                target,
-                targetBorderCount,
-                targetBorderType,
-                allowConstLabel));
+            return TTargetClassifier(
+                SelectBorders(target, targetBorderCount, targetBorderType, allowConstLabel));
 
         case ELossFunction::MultiClass:
         case ELossFunction::MultiClassOneVsAll:
@@ -78,11 +82,8 @@ TTargetClassifier BuildTargetClassifier(TConstArrayRef<float> target,
 
         case ELossFunction::PythonUserDefinedPerObject: {
             Y_ASSERT(objectiveDescriptor.Defined());
-            return TTargetClassifier(SelectBorders(
-                target,
-                targetBorderCount,
-                targetBorderType,
-                allowConstLabel));
+            return TTargetClassifier(
+                SelectBorders(target, targetBorderCount, targetBorderType, allowConstLabel));
         }
 
         default:

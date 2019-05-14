@@ -14,7 +14,7 @@
 #include <util/stream/labeled.h>
 #include <util/string/cast.h>
 #include <util/string/escape.h>
-#include <util/string/iterator.h>
+#include <util/string/split.h>
 #include <util/system/types.h>
 
 
