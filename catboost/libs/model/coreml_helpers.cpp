@@ -123,7 +123,9 @@ void NCatboost::NCoreML::ConfigureTrees(const TFullModel& model, TreeEnsemblePar
     }
 }
 
-void NCatboost::NCoreML::ConfigureCategoricalMappings(const TFullModel& model, google::protobuf::RepeatedPtrField<CoreML::Specification::Model>* container) {
+void NCatboost::NCoreML::ConfigureCategoricalMappings(const TFullModel& model,
+                                                      const THashMap<ui32, TString>* catFeaturesHashToString,
+                                                      google::protobuf::RepeatedPtrField<CoreML::Specification::Model>* container) {
     size_t catFeaturesCount  = model.ObliviousTrees.CatFeatures.size();
     TVector<int> categoricalFlatIndexes(catFeaturesCount);
     for (const auto& catFeature: model.ObliviousTrees.CatFeatures) {
@@ -141,9 +143,11 @@ void NCatboost::NCoreML::ConfigureCategoricalMappings(const TFullModel& model, g
         auto valuesCount = oneHotFeature.Values.size();
 
         for (size_t j = 0; j < valuesCount; j++) {
-            categoricalMapping.insert(std::make_pair(oneHotFeature.StringValues[j], j));
+            ui32 oneHotValue = ui32(oneHotFeature.Values[j]);
+            categoricalMapping.insert(std::make_pair(catFeaturesHashToString->find(oneHotValue)->second, j));
         }
 
+        mapping->set_int64value(valuesCount);
         auto* stringtoint64map = mapping->mutable_stringtoint64map();
         auto* map = stringtoint64map->mutable_map();
         map->insert(categoricalMapping.begin(), categoricalMapping.end());
@@ -158,11 +162,12 @@ void NCatboost::NCoreML::ConfigureCategoricalMappings(const TFullModel& model, g
         catFeature->set_allocated_type(featureType);
 
         auto mappedCategoricalFeature = description->add_output();
-        featureType = mappedCategoricalFeature->mutable_type();
-        featureType->set_isoptional(false);
-        featureType->set_allocated_int64type(new Int64FeatureType());
-        mappedCategoricalFeature->set_allocated_type(featureType);
         mappedCategoricalFeature->set_name(("mapped_feature_" + std::to_string(flatFeatureIndex)).c_str());
+
+        auto mappedCategoricalFeatureType = new FeatureType();
+        mappedCategoricalFeatureType->set_isoptional(false);
+        mappedCategoricalFeatureType->set_allocated_doubletype(new DoubleFeatureType());
+        mappedCategoricalFeature->set_allocated_type(mappedCategoricalFeatureType);
 
         *contained = mappingModel;
     }

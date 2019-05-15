@@ -110,7 +110,8 @@ TFullModel ReadModel(const void* binaryBuffer, size_t binaryBufferSize, EModelTy
 void OutputModelCoreML(
     const TFullModel& model,
     const TString& modelFile,
-    const NJson::TJsonValue& userParameters) {
+    const NJson::TJsonValue& userParameters,
+    const THashMap<ui32, TString>* catFeaturesHashToString) {
 
     CoreML::Specification::Model treeModel;
     treeModel.set_specificationversion(1);
@@ -127,7 +128,7 @@ void OutputModelCoreML(
         pipelineModel.set_specificationversion(1);
 
         auto* container = pipelineModel.mutable_pipeline()->mutable_models();
-        NCatboost::NCoreML::ConfigureCategoricalMappings(model, container);
+        NCatboost::NCoreML::ConfigureCategoricalMappings(model, catFeaturesHashToString, container);
 
         auto* contained = container->Add();
         auto treeDescription = treeModel.mutable_description();
@@ -205,7 +206,7 @@ void ExportModel(
                 NJson::TJsonValue params;
                 NJson::ReadJsonTree(&is, &params);
 
-                OutputModelCoreML(model, modelFileName, params);
+                OutputModelCoreML(model, modelFileName, params, catFeaturesHashToString);
             }
             break;
         case EModelType::Json:
@@ -214,6 +215,7 @@ void ExportModel(
                     userParametersJson.empty(),
                     "JSON user params for CatBoost model export are not supported"
                 );
+
                 OutputModelJson(model, modelFileName, featureId, catFeaturesHashToString);
             }
             break;

@@ -730,7 +730,7 @@ def test_coreml_import_export_one_hot_features(task_type):
     model = CatBoost(params={'loss_function': 'RMSE', 'iterations': 2, 'task_type': task_type, 'devices': '0', 'one_hot_max_size': 4})
     model.fit(train_pool)
     output_coreml_model_path = test_output_path(OUTPUT_COREML_MODEL_PATH)
-    model.save_model(output_coreml_model_path, format="coreml")
+    model.save_model(output_coreml_model_path, format="coreml",  pool=train_pool)
     pred = model.predict(train_pool)
     coreml_loaded_model = CatBoostRegressor()
     coreml_loaded_model.load_model(output_coreml_model_path, format="coreml")
