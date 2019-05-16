@@ -518,8 +518,6 @@ template <int BlockSize,
 __forceinline__ __device__ void WarpReduceN(int x, volatile T* data, int reduceSize, TOp op = TOp()) {
     __syncwarp();
 
-    const int reduceSize = min(reduceSize, 32);
-
     float val[N];
     #pragma unroll
     for (int k = 0; k < N; ++k) {
@@ -548,8 +546,6 @@ template <int BlockSize,
           class T,
           class TOp = TCudaAdd<T>>
 __forceinline__ __device__ void BlockReduceN(volatile T* data, int reduceSize, TOp op = TOp()) {
-    TOp op;
-
     if (reduceSize > 32) {
 
         #pragma  unroll
@@ -567,12 +563,12 @@ __forceinline__ __device__ void BlockReduceN(volatile T* data, int reduceSize, T
     }
 
     if (threadIdx.x < 32) {
-        WarpReduceN<BlockSize, N>(threadIdx.x, data, reduceSize, op);
+        WarpReduceN<BlockSize, N>(threadIdx.x, data, min(reduceSize, 32), op);
     }
 }
 
 
 
 __forceinline__ __device__ int RoundUpToPowerTwo(int dim) {
-    return 1 << (32 - __clz(dim));
+    return 1 << (33 - __clz(dim));
 }
