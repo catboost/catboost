@@ -1,0 +1,8 @@
+[package]
+name = "catboost_rust_prediction_tutorial"
+version = "0.1.0"
+authors = ["Sergey Kiselev <kiselev.sg@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+catboost = { git = "https://github.com/catboost/catboost" }
