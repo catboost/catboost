@@ -127,6 +127,16 @@ double NCatboostOptions::GetLqParam(const TLossDescription& lossFunctionConfig) 
     }
 }
 
+double NCatboostOptions::GetHuberParam(const TLossDescription& lossFunctionConfig) {
+    Y_ASSERT(lossFunctionConfig.GetLossFunction() == ELossFunction::Huber);
+    const auto& lossParams = lossFunctionConfig.GetLossParams();
+    if (lossParams.contains("delta")) {
+        return FromString<double>(lossParams.at("delta"));
+    } else {
+        CB_ENSURE(false, "For " << ELossFunction::Huber << " delta parameter is mandatory");
+    }
+}
+
 double NCatboostOptions::GetQuerySoftMaxLambdaReg(const TLossDescription& lossFunctionConfig) {
     Y_ASSERT(lossFunctionConfig.GetLossFunction() == ELossFunction::QuerySoftMax);
     const auto& lossParams = lossFunctionConfig.GetLossParams();

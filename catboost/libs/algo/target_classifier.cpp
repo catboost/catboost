@@ -71,6 +71,7 @@ TTargetClassifier BuildTargetClassifier(
         case ELossFunction::StochasticFilter:
         case ELossFunction::Logloss:
         case ELossFunction::CrossEntropy:
+        case ELossFunction::Huber:
         case ELossFunction::UserPerObjMetric:
         case ELossFunction::UserQuerywiseMetric:
             return TTargetClassifier(

@@ -21,6 +21,7 @@
 #include <util/string/split.h>
 #include <util/system/yassert.h>
 
+#include <cmath>
 
 class IDerCalcer {
 public:
@@ -850,6 +851,44 @@ private:
             }
         }
         return baselineValue;
+    }
+};
+
+class THuberError final : public IDerCalcer {
+    static constexpr double HUBER_DER2 = -1.0;
+    static constexpr double HUBER_DER3 = 0.0;
+
+    const double Delta;
+public:
+
+    explicit THuberError(double delta, bool isExpApprox)
+        : IDerCalcer(isExpApprox)
+        , Delta(delta)
+    {
+        CB_ENSURE(isExpApprox == false, "Approx format does not match");
+    }
+
+private:
+    double CalcDer(double approx, float target) const override {
+        double diff = target - approx;
+        if (fabs(diff) < Delta) {
+            return diff;
+        } else {
+            return diff > 0.0 ? Delta : -Delta;
+        }
+    }
+
+    double CalcDer2(double approx, float target) const override {
+        double diff = target - approx;
+        if (fabs(diff) < Delta) {
+            return HUBER_DER2;
+        } else {
+            return 0.0;
+        }
+    }
+
+    double CalcDer3(double /*approx*/, float /*target*/) const override {
+        return HUBER_DER3;
     }
 };
 

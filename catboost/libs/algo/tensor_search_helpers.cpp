@@ -158,6 +158,8 @@ THolder<IDerCalcer> BuildError(
             return MakeHolder<TUserDefinedQuerywiseError>(
                 params.LossFunctionDescription->GetLossParams(),
                 isStoreExpApprox);
+        case ELossFunction::Huber:
+            return MakeHolder<THuberError>(NCatboostOptions::GetHuberParam(params.LossFunctionDescription), isStoreExpApprox);
         default:
             CB_ENSURE(false, "provided error function is not supported");
     }

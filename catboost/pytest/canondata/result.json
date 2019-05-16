@@ -4171,6 +4171,12 @@
             "uri": "file://test.test_recall_at_k/test_error.tsv"
         }
     ],
+    "test.test_reg_targets[calc_block=5000000-Ordered-Huber:delta=1.0]": [
+        {
+            "checksum": "268b5738c6a653e8ca49ba01cee25fb1",
+            "uri": "file://test.test_reg_targets_calc_block=5000000-Ordered-Huber_delta=1.0_/test.eval"
+        }
+    ],
     "test.test_reg_targets[calc_block=5000000-Ordered-LogLinQuantile]": [
         {
             "checksum": "a8d8ddaf1d58062d55452fb98fdb8894",
@@ -4223,6 +4229,12 @@
         {
             "checksum": "268b5738c6a653e8ca49ba01cee25fb1",
             "uri": "file://test.test_reg_targets_calc_block=5000000-Ordered-RMSE_/test.eval"
+        }
+    ],
+    "test.test_reg_targets[calc_block=5000000-Plain-Huber:delta=1.0]": [
+        {
+            "checksum": "f6ecaff35e10dfd8c9ff3d200ac397e5",
+            "uri": "file://test.test_reg_targets_calc_block=5000000-Plain-Huber_delta=1.0_/test.eval"
         }
     ],
     "test.test_reg_targets[calc_block=5000000-Plain-LogLinQuantile]": [
@@ -4279,6 +4291,12 @@
             "uri": "file://test.test_reg_targets_calc_block=5000000-Plain-RMSE_/test.eval"
         }
     ],
+    "test.test_reg_targets[calc_block=60-Ordered-Huber:delta=1.0]": [
+        {
+            "checksum": "268b5738c6a653e8ca49ba01cee25fb1",
+            "uri": "file://test.test_reg_targets_calc_block=60-Ordered-Huber_delta=1.0_/test.eval"
+        }
+    ],
     "test.test_reg_targets[calc_block=60-Ordered-LogLinQuantile]": [
         {
             "checksum": "a8d8ddaf1d58062d55452fb98fdb8894",
@@ -4331,6 +4349,12 @@
         {
             "checksum": "268b5738c6a653e8ca49ba01cee25fb1",
             "uri": "file://test.test_reg_targets_calc_block=60-Ordered-RMSE_/test.eval"
+        }
+    ],
+    "test.test_reg_targets[calc_block=60-Plain-Huber:delta=1.0]": [
+        {
+            "checksum": "f6ecaff35e10dfd8c9ff3d200ac397e5",
+            "uri": "file://test.test_reg_targets_calc_block=60-Plain-Huber_delta=1.0_/test.eval"
         }
     ],
     "test.test_reg_targets[calc_block=60-Plain-LogLinQuantile]": [

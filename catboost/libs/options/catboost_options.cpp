@@ -132,6 +132,12 @@ void NCatboostOptions::TCatBoostOptions::SetLeavesEstimationDefault() {
             defaultL2Reg = 1;
             break;
         }
+        case ELossFunction::Huber: {
+            defaultEstimationMethod = ELeavesEstimation::Newton;
+            defaultNewtonIterations = 1;
+            defaultGradientIterations = 1;
+            break;
+        }
         case ELossFunction::StochasticFilter: {
             defaultEstimationMethod = ELeavesEstimation::Gradient;
             defaultGradientIterations = 100;
