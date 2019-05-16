@@ -245,5 +245,6 @@ namespace NNeh {
         //'?' + JoinUrlParts
         void WriteUrlParts(const TVector<TString>& urlParts, IOutputStream& out);
 
+        bool IsHttpScheme(TStringBuf scheme);
     }
 }

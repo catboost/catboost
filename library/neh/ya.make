@@ -22,6 +22,7 @@ SRCS(
     factory.cpp
     https.cpp
     http_common.cpp
+    http_headers.cpp
     http2.cpp
     inproc.cpp
     jobqueue.cpp
