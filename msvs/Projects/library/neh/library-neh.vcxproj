@@ -83,6 +83,7 @@
     <ClCompile Include="$(SolutionDir)..\library\neh\http2.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\neh\http_common.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\library\neh\http_common.h_serialized.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\neh\http_headers.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\neh\https.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\neh\inproc.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\neh\jobqueue.cpp"/>
@@ -132,6 +133,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\library\neh\details.h"/>
     <ClInclude Include="$(SolutionDir)..\library\neh\factory.h"/>
     <ClInclude Include="$(SolutionDir)..\library\neh\http2.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\neh\http_headers.h"/>
     <ClInclude Include="$(SolutionDir)..\library\neh\https.h"/>
     <ClInclude Include="$(SolutionDir)..\library\neh\inproc.h"/>
     <ClInclude Include="$(SolutionDir)..\library\neh\jobqueue.h"/>
