@@ -3,7 +3,7 @@ from copy import deepcopy
 from six import iteritems, string_types, integer_types
 import os
 import imp
-from collections import Iterable, Sequence, Mapping, MutableMapping
+from collections.abc import Iterable, Sequence, Mapping, MutableMapping
 import warnings
 import numpy as np
 import ctypes
