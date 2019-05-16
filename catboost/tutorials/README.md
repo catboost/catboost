@@ -61,12 +61,6 @@ It's better to start CatBoost exploring from this basic tutorials.
 * [Export CatBoost Model in JSON format Tutorial](apply_model/model_export_as_json_tutorial.ipynb)
     * Catboost model could be saved in JSON format and applied.
 
-* [Apply CatBoost model from Java](apply_model/catboost4j_prediction_tutorial/train_model.ipynb)
-    * Explore how to apply CatBoost model from Java application. If you just want to look at code snippets you can go directly to [CatBoost4jPredictionTutorial.java](apply_model/catboost4j_prediction_tutorial/src/main/java/CatBoost4jPredictionTutorial.java)
-
-* [Apply CatBoost model from Rust](apply_model/catboost_rust_prediction_tutorial/train_model.ipynb)
-    * Explore how to apply CatBoost model from Rust application. If you just want to look at code snippets you can go directly to [main.rs](apply_model/catboost_rust_prediction_tutorial/src/main.rs)
-
 ## Tools
 
 * [CatBoost on Google Colaboratory](tools/google_colaboratory_cpu_vs_gpu_tutorial.ipynb)
