@@ -78,7 +78,35 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\more-itertools\04c5608b992131f3e1d865c4a3.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\more-itertools\3590898429be54cf0e480f2c55.cpp"/>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\more-itertools\_04c5608b992131f3e1d865c4a3.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\more-itertools
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/brotli/include" "-o" "$(SolutionDir)$(Configuration)/contrib/python/more-itertools/_04c5608b992131f3e1d865c4a3.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/more-itertools/_04c5608b992131f3e1d865c4a3.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\more-itertools
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/brotli/include" "-o" "$(SolutionDir)$(Configuration)/contrib/python/more-itertools/_04c5608b992131f3e1d865c4a3.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/more-itertools/_04c5608b992131f3e1d865c4a3.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/more-itertools/_04c5608b992131f3e1d865c4a3.py2.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\more-itertools\_04c5608b992131f3e1d865c4a3.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\more-itertools\_04c5608b992131f3e1d865c4a3.py2.obj;</Outputs>
+    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\more-itertools\_3590898429be54cf0e480f2c55.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\more-itertools
@@ -110,6 +138,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\more-itertools
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/more-itertools/04c5608b992131f3e1d865c4a3.cpp" "_29fed9caaa4adbbeab16bc87f2=resfs/src/resfs/file/contrib/python/more-itertools/.dist-info/METADATA" "_dc20081126a6e72b3c763c0140=resfs/file/contrib/python/more-itertools/.dist-info/METADATA" "_6aeb81b9ca7eda3bab4fd4daca=resfs/src/resfs/file/contrib/python/more-itertools/.dist-info/top_level.txt" "_63d821fccf1b9cd579c91dccc1=resfs/file/contrib/python/more-itertools/.dist-info/top_level.txt"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\more-itertools
+if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/more-itertools/3590898429be54cf0e480f2c55.cpp" "_03da97c1c9b570232b13bef822=/py_modules/more_itertools.__init__" "_bd6fe8ab5d268535a9911dd35d=resfs/src//py_modules/more_itertools.__init__" "_bd5576b749db73127d4872f222=/py_code/more_itertools.__init__" "_2d5f650ea3f7e6331eaa8babe6=/py_modules/more_itertools.more" "_bbec6a1ab2bc2047d18a1789b6=resfs/src//py_modules/more_itertools.more" "_46b9b8cd14fd26a5a8795de911=/py_code/more_itertools.more" "_98111e1807545576c5f30d2435=/py_modules/more_itertools.recipes" "_7fe6dd87e26c83171a9d514562=resfs/src//py_modules/more_itertools.recipes" "_648c4a3b1080ce493f3d970101=/py_code/more_itertools.recipes"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
@@ -121,6 +153,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\more-itertools
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/more-itertools/04c5608b992131f3e1d865c4a3.cpp" "_29fed9caaa4adbbeab16bc87f2=resfs/src/resfs/file/contrib/python/more-itertools/.dist-info/METADATA" "_dc20081126a6e72b3c763c0140=resfs/file/contrib/python/more-itertools/.dist-info/METADATA" "_6aeb81b9ca7eda3bab4fd4daca=resfs/src/resfs/file/contrib/python/more-itertools/.dist-info/top_level.txt" "_63d821fccf1b9cd579c91dccc1=resfs/file/contrib/python/more-itertools/.dist-info/top_level.txt"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\more-itertools
+if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/more-itertools/3590898429be54cf0e480f2c55.cpp" "_03da97c1c9b570232b13bef822=/py_modules/more_itertools.__init__" "_bd6fe8ab5d268535a9911dd35d=resfs/src//py_modules/more_itertools.__init__" "_bd5576b749db73127d4872f222=/py_code/more_itertools.__init__" "_2d5f650ea3f7e6331eaa8babe6=/py_modules/more_itertools.more" "_bbec6a1ab2bc2047d18a1789b6=resfs/src//py_modules/more_itertools.more" "_46b9b8cd14fd26a5a8795de911=/py_code/more_itertools.more" "_98111e1807545576c5f30d2435=/py_modules/more_itertools.recipes" "_7fe6dd87e26c83171a9d514562=resfs/src//py_modules/more_itertools.recipes" "_648c4a3b1080ce493f3d970101=/py_code/more_itertools.recipes"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
@@ -129,9 +165,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/more-itertools/3590898429be54cf0e480f2c55.cpp	</Message>
+      <Message>$B/contrib/python/more-itertools/04c5608b992131f3e1d865c4a3.cpp	$B/contrib/python/more-itertools/3590898429be54cf0e480f2c55.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\more-itertools\3590898429be54cf0e480f2c55.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\more-itertools\04c5608b992131f3e1d865c4a3.cpp;$(SolutionDir)$(Configuration)\contrib\python\more-itertools\3590898429be54cf0e480f2c55.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -175,6 +211,33 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/more-itertools/more_itertools/__init__.py.yapyc	$B/contrib/python/more-itertools/more_itertools/more.py.yapyc	$B/contrib/python/more-itertools/more_itertools/recipes.py.yapyc	</Message>
       <AdditionalInputs>$(SolutionDir)..\build\scripts\py_compile.py;$(SolutionDir)..\contrib\python\more-itertools\more_itertools\__init__.py;$(SolutionDir)..\contrib\python\more-itertools\more_itertools\more.py;$(SolutionDir)..\contrib\python\more-itertools\more_itertools\recipes.py;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\more-itertools\more_itertools\__init__.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\more-itertools\more_itertools\more.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\more-itertools\more_itertools\recipes.py.yapyc;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\more-itertools\.dist-info\METADATA">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\more-itertools
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/more-itertools/_04c5608b992131f3e1d865c4a3.yasm" "-" "contrib/python/more-itertools/.dist-info/METADATA" "_29fed9caaa4adbbeab16bc87f2.rodata" "$(SolutionDir)../contrib/python/more-itertools/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/more-itertools/_dc20081126a6e72b3c763c0140.rodata" "-" "contrib/python/more-itertools/.dist-info/top_level.txt" "_6aeb81b9ca7eda3bab4fd4daca.rodata" "$(SolutionDir)../contrib/python/more-itertools/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/more-itertools/_63d821fccf1b9cd579c91dccc1.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\more-itertools
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/more-itertools/_04c5608b992131f3e1d865c4a3.yasm" "-" "contrib/python/more-itertools/.dist-info/METADATA" "_29fed9caaa4adbbeab16bc87f2.rodata" "$(SolutionDir)../contrib/python/more-itertools/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/more-itertools/_dc20081126a6e72b3c763c0140.rodata" "-" "contrib/python/more-itertools/.dist-info/top_level.txt" "_6aeb81b9ca7eda3bab4fd4daca.rodata" "$(SolutionDir)../contrib/python/more-itertools/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/more-itertools/_63d821fccf1b9cd579c91dccc1.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/more-itertools/_04c5608b992131f3e1d865c4a3.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\more-itertools\.dist-info\METADATA;$(SolutionDir)..\contrib\python\more-itertools\.dist-info\top_level.txt;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\more-itertools\_04c5608b992131f3e1d865c4a3.yasm;$(SolutionDir)$(Configuration)\contrib\python\more-itertools\_dc20081126a6e72b3c763c0140.rodata;$(SolutionDir)$(Configuration)\contrib\python\more-itertools\_63d821fccf1b9cd579c91dccc1.rodata;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\python\more-itertools\more_itertools\__init__.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
