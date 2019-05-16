@@ -694,7 +694,7 @@ TVector<TVector<double>> GetFeatureImportances(
     EPreCalcShapValues mode,
     int logPeriod)
 {
-    TSetLoggingVerbose inThisScope;
+    TSetLoggingVerboseOrSilent inThisScope(logPeriod);
 
     switch (fstrType) {
         case EFstrType::PredictionValuesChange:
@@ -731,7 +731,7 @@ TVector<TVector<TVector<double>>> GetFeatureImportancesMulti(
     EPreCalcShapValues mode,
     int logPeriod)
 {
-    TSetLoggingVerbose inThisScope;
+    TSetLoggingVerboseOrSilent inThisScope(logPeriod);
 
     CB_ENSURE(fstrType == EFstrType::ShapValues, "Only shap values can provide multi approxes.");
 
@@ -747,22 +747,20 @@ TVector<TString> GetMaybeGeneratedModelFeatureIds(const TFullModel& model, const
     const NCB::TFeaturesLayout modelFeaturesLayout(
         model.ObliviousTrees.FloatFeatures,
         model.ObliviousTrees.CatFeatures);
-    TVector<TString> modelFeatureIds;
+    TVector<TString> modelFeatureIds(modelFeaturesLayout.GetExternalFeatureCount());
     if (AllFeatureIdsEmpty(modelFeaturesLayout.GetExternalFeaturesMetaInfo())) {
         if (dataset) {
             const auto& datasetFeaturesLayout = *dataset->MetaInfo.FeaturesLayout;
             const auto datasetFeaturesMetaInfo = datasetFeaturesLayout.GetExternalFeaturesMetaInfo();
             if (!AllFeatureIdsEmpty(datasetFeaturesMetaInfo)) {
                 CB_ENSURE(
-                    datasetFeaturesMetaInfo.size() >= (size_t)modelFeaturesLayout.GetExternalFeatureCount(),
+                    datasetFeaturesMetaInfo.size() >= modelFeatureIds.size(),
                     "dataset has less features than the model"
                 );
-                for (auto i : xrange(modelFeaturesLayout.GetExternalFeatureCount())) {
-                    modelFeatureIds.push_back(datasetFeaturesMetaInfo[i].Name);
+                for (auto i : xrange(modelFeatureIds.size())) {
+                    modelFeatureIds[i] = datasetFeaturesMetaInfo[i].Name;
                 }
             }
-        } else {
-            modelFeatureIds.resize(modelFeaturesLayout.GetExternalFeatureCount());
         }
     } else {
         modelFeatureIds = modelFeaturesLayout.GetExternalFeatureIds();

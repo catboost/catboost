@@ -1,0 +1,175 @@
+{
+    "boosting_options": {
+        "approx_on_full_history": false, 
+        "boosting_type": "Plain", 
+        "fold_len_multiplier": 2, 
+        "fold_permutation_block": 0, 
+        "iterations": 1000, 
+        "learning_rate": 0.02999999933, 
+        "od_config": {
+            "stop_pvalue": 0, 
+            "type": "None", 
+            "wait_iterations": 20
+        }, 
+        "permutation_count": 4
+    }, 
+    "cat_feature_params": {
+        "combinations_ctrs": [
+            {
+                "ctr_binarization": {
+                    "border_count": 15, 
+                    "border_type": "Uniform"
+                }, 
+                "ctr_type": "Borders", 
+                "prior_estimation": "No", 
+                "priors": [
+                    [
+                        0, 
+                        1
+                    ], 
+                    [
+                        0.5, 
+                        1
+                    ], 
+                    [
+                        1, 
+                        1
+                    ]
+                ], 
+                "target_binarization": {
+                    "border_count": 1, 
+                    "border_type": "MinEntropy"
+                }
+            }, 
+            {
+                "ctr_binarization": {
+                    "border_count": 15, 
+                    "border_type": "Uniform"
+                }, 
+                "ctr_type": "Counter", 
+                "prior_estimation": "No", 
+                "priors": [
+                    [
+                        0, 
+                        1
+                    ]
+                ]
+            }
+        ], 
+        "counter_calc_method": "SkipTest", 
+        "ctr_leaf_count_limit": 18446744073709551615, 
+        "max_ctr_complexity": 4, 
+        "one_hot_max_size": 2, 
+        "per_feature_ctrs": {}, 
+        "simple_ctrs": [
+            {
+                "ctr_binarization": {
+                    "border_count": 15, 
+                    "border_type": "Uniform"
+                }, 
+                "ctr_type": "Borders", 
+                "prior_estimation": "No", 
+                "priors": [
+                    [
+                        0, 
+                        1
+                    ], 
+                    [
+                        0.5, 
+                        1
+                    ], 
+                    [
+                        1, 
+                        1
+                    ]
+                ], 
+                "target_binarization": {
+                    "border_count": 1, 
+                    "border_type": "MinEntropy"
+                }
+            }, 
+            {
+                "ctr_binarization": {
+                    "border_count": 15, 
+                    "border_type": "Uniform"
+                }, 
+                "ctr_type": "Counter", 
+                "prior_estimation": "No", 
+                "priors": [
+                    [
+                        0, 
+                        1
+                    ]
+                ]
+            }
+        ], 
+        "store_all_simple_ctr": false, 
+        "target_binarization": {
+            "border_count": 1, 
+            "border_type": "MinEntropy"
+        }
+    }, 
+    "data_processing_options": {
+        "allow_const_label": false, 
+        "class_names": [], 
+        "class_weights": [], 
+        "classes_count": 0, 
+        "float_features_binarization": {
+            "border_count": 254, 
+            "border_type": "GreedyLogSum", 
+            "nan_mode": "Min"
+        }, 
+        "has_time": false, 
+        "ignored_features": []
+    }, 
+    "detailed_profile": false, 
+    "flat_params": {
+        "thread_count": 1, 
+        "verbose": 1
+    }, 
+    "logging_level": "Verbose", 
+    "loss_function": {
+        "params": {}, 
+        "type": "RMSE"
+    }, 
+    "metadata": {}, 
+    "metrics": {
+        "custom_metrics": [], 
+        "eval_metric": {
+            "params": {}, 
+            "type": "RMSE"
+        }, 
+        "objective_metric": {
+            "params": {}, 
+            "type": "RMSE"
+        }
+    }, 
+    "random_seed": 0, 
+    "system_options": {
+        "file_with_hosts": "hosts.txt", 
+        "node_port": 0, 
+        "node_type": "SingleHost", 
+        "thread_count": 1, 
+        "used_ram_limit": ""
+    }, 
+    "task_type": "CPU", 
+    "tree_learner_options": {
+        "bayesian_matrix_reg": 0.1000000015, 
+        "bootstrap": {
+            "bagging_temperature": 1, 
+            "type": "Bayesian"
+        }, 
+        "depth": 6, 
+        "dev_efb_max_buckets": 1024, 
+        "dev_score_calc_obj_block_size": 5000000, 
+        "efb_max_conflict_fraction": 0, 
+        "l2_leaf_reg": 3, 
+        "leaf_estimation_backtracking": "AnyImprovement", 
+        "leaf_estimation_iterations": 1, 
+        "leaf_estimation_method": "Newton", 
+        "model_size_reg": 0.5, 
+        "random_strength": 1, 
+        "rsm": 1, 
+        "sampling_frequency": "PerTree"
+    }
+}

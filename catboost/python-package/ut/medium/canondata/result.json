@@ -19,6 +19,10 @@
         "checksum": "b8f7828fcba976a78d2f1e8182e94ac6",
         "uri": "file://test.test_classification_ctr_CPU_/model.bin"
     },
+    "test.test_compute_options": {
+        "checksum": "b18f1cc90c4675afc62a5728c0c60142",
+        "uri": "file://test.test_compute_options/options.json"
+    },
     "test.test_convert_model_to_json[CPU-adult]": {
         "checksum": "89aa1f7ac8b814975ed16be5350a2e6b",
         "uri": "file://test.test_convert_model_to_json_CPU-adult_/converted_model.bin"

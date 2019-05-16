@@ -264,6 +264,13 @@ TStringBuf CutWWWPrefix(const TStringBuf url) noexcept {
     return url;
 }
 
+TStringBuf CutMPrefix(const TStringBuf url) noexcept {
+    if (url.size() >= 2 && url[1] == '.' && (url[0] == 'm' || url[0] == 'M')) {
+        return url.substr(2);
+    }
+    return url;
+}
+
 static inline bool IsSchemeChar(char c) noexcept {
     return IsAsciiAlnum(c); //what about '+' ?..
 }

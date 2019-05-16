@@ -508,3 +508,71 @@ __forceinline__ __device__ float4 DotProduct4(
     __syncthreads();
     return result;
 }
+
+
+
+template <int BlockSize,
+          int N,
+          class T,
+          class TOp = TCudaAdd<T>>
+__forceinline__ __device__ void WarpReduceN(int x, volatile T* data, int reduceSize, TOp op = TOp()) {
+    __syncwarp();
+
+    const int reduceSize = min(reduceSize, 32);
+
+    float val[N];
+    #pragma unroll
+    for (int k = 0; k < N; ++k) {
+        val[k] = data[x + k * BlockSize];
+    }
+
+    #pragma unroll
+    for (int s = reduceSize >> 1; s > 0; s >>= 1) {
+        #pragma unroll
+        for (int k = 0; k < N; ++k) {
+            val[k] = op(val[k], __shfl_down_sync(0xFFFFFF, val[k], s));
+        }
+    }
+
+    if (x == 0) {
+        #pragma unroll
+        for (int k = 0; k < N; ++k) {
+            data[k * BlockSize] = val[k];
+        }
+    }
+}
+
+
+template <int BlockSize,
+          int N,
+          class T,
+          class TOp = TCudaAdd<T>>
+__forceinline__ __device__ void BlockReduceN(volatile T* data, int reduceSize, TOp op = TOp()) {
+    TOp op;
+
+    if (reduceSize > 32) {
+
+        #pragma  unroll
+        for (int s = reduceSize >> 1; s >= 32; s >>= 1) {
+            if (threadIdx.x < s) {
+                #pragma unroll
+                for (int k = 0; k < N; ++k) {
+                    T tmp1 = data[threadIdx.x + k * BlockSize];
+                    T tmp2 = data[threadIdx.x + k * BlockSize + s];
+                    data[threadIdx.x + k * BlockSize] = op(tmp1, tmp2);
+                }
+            }
+            __syncthreads();
+        }
+    }
+
+    if (threadIdx.x < 32) {
+        WarpReduceN<BlockSize, N>(threadIdx.x, data, reduceSize, op);
+    }
+}
+
+
+
+__forceinline__ __device__ int RoundUpToPowerTwo(int dim) {
+    return 1 << (32 - __clz(dim));
+}

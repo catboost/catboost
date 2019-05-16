@@ -350,13 +350,15 @@ namespace NCB {
 
             ExecuteTasksInParallel(&tasks, localExecutor);
 
-
-            return MakeIntrusive<TProcessedDataProviderTemplate>(
+            auto subset = MakeIntrusive<TProcessedDataProviderTemplate>(
                 TDataMetaInfo(MetaInfo), // assuming copying it is not very expensive
                 objectsDataSubset->GetObjectsGrouping(),
                 std::move(objectsDataSubset),
                 std::move(targetDataSubset)
             );
+            subset->UpdateMetaInfo();
+
+            return subset;
         }
 
         template <class TNewObjectsDataProvider>
@@ -369,6 +371,18 @@ namespace NCB {
             newDataProvider.ObjectsData = newObjectsDataProvider;
             newDataProvider.TargetData = TargetData;
             return newDataProvider;
+        }
+
+        void UpdateMetaInfo() {
+            MetaInfo.ObjectCount = GetObjectCount();
+            MetaInfo.MaxCatFeaturesUniqValuesOnLearn =
+                ObjectsData->GetQuantizedFeaturesInfo()->CalcMaxCategoricalFeaturesUniqueValuesCountOnLearn();
+
+            const auto& targets = TargetData->GetTarget();
+            if (targets.Defined() && !targets->empty()) {
+                auto targetBounds = CalcMinMax(*targets);
+                MetaInfo.TargetStats = {targetBounds.Min, targetBounds.Max};
+            }
         }
     };
 

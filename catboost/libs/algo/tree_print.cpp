@@ -177,7 +177,7 @@ TVector<TString> GetTreeSplitsDescriptions(const TFullModel& model, int tree_idx
     if (tree_idx + 1 < tree_num) {
         tree_split_end = model.ObliviousTrees.TreeStartOffsets[tree_idx + 1];
     } else {
-        tree_split_end = tree_num;
+        tree_split_end = model.ObliviousTrees.TreeSplits.size();
     }
 
     NCB::TFeaturesLayout featuresLayout = *(pool.MetaInfo.FeaturesLayout.Get());

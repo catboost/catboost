@@ -1,5 +1,5 @@
 #include "train_model.h"
-
+#include "options_helper.h"
 #include "cross_validation.h"
 
 #include <catboost/libs/algo/approx_dimension.h>
@@ -467,7 +467,7 @@ namespace {
 
         void TrainModel(
             const TTrainModelInternalOptions& internalOptions,
-            const NJson::TJsonValue& jsonParams,
+            const NCatboostOptions::TCatBoostOptions& catboostOptions,
             const NCatboostOptions::TOutputFilesOptions& outputOptions,
             const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
             const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
@@ -502,30 +502,26 @@ namespace {
             const auto& quantizedFeaturesInfo
                 = *trainingDataForCpu.Learn->ObjectsData->GetQuantizedFeaturesInfo();
 
-            NCatboostOptions::TCatBoostOptions updatedParams(NCatboostOptions::LoadOptions(jsonParams));
+            NCatboostOptions::TCatBoostOptions updatedCatboostOptions(catboostOptions);
             NCatboostOptions::TOutputFilesOptions updatedOutputOptions = outputOptions;
 
             SetDataDependentDefaults(
-                trainingDataForCpu.Learn->GetObjectCount(),
-                trainingDataForCpu.Learn->TargetData.Get()->GetTarget(),
-                trainingDataForCpu.Test.size() > 0  ?
-                trainingDataForCpu.Test[0]->TargetData.Get()->GetTarget() : Nothing(),
-                quantizedFeaturesInfo.CalcMaxCategoricalFeaturesUniqueValuesCountOnLearn(),
-                /*testPoolSize*/ trainingDataForCpu.GetTestSampleCount(),
-                /*hasTestPairs*/ trainingDataForCpu.Test.size() > 0 &&
-                    trainingDataForCpu.Test[0]->MetaInfo.HasPairs,
+                trainingDataForCpu.Learn->MetaInfo,
+                trainingDataForCpu.Test.size() > 0 ?
+                    TMaybe<NCB::TDataMetaInfo>(trainingDataForCpu.Test[0]->MetaInfo) :
+                    Nothing(),
                 &updatedOutputOptions.UseBestModel,
-                &updatedParams
+                &updatedCatboostOptions
             );
 
             const TString trainingOptionsFileName = updatedOutputOptions.CreateTrainingOptionsFullPath();
             if (!trainingOptionsFileName.empty()) {
                 TOFStream trainingOptionsFile(trainingOptionsFileName);
-                trainingOptionsFile.Write(NJson::PrettifyJson(ToString(updatedParams)));
+                trainingOptionsFile.Write(NJson::PrettifyJson(ToString(updatedCatboostOptions)));
             }
 
             TLearnContext ctx(
-                updatedParams,
+                updatedCatboostOptions,
                 objectiveDescriptor,
                 evalMetricDescriptor,
                 updatedOutputOptions,
@@ -534,7 +530,7 @@ namespace {
                 localExecutor
             );
 
-            ctx.LearnProgress.ApproxDimension = GetApproxDimension(updatedParams, labelConverter);
+            ctx.LearnProgress.ApproxDimension = GetApproxDimension(updatedCatboostOptions, labelConverter);
             if (ctx.LearnProgress.ApproxDimension > 1) {
                 ctx.LearnProgress.LabelConverter = labelConverter;
             }
@@ -660,7 +656,7 @@ namespace {
         }
 
         void ModelBasedEval(
-            const NJson::TJsonValue& /*params*/,
+            const NCatboostOptions::TCatBoostOptions& /*catboostOptions*/,
             const NCatboostOptions::TOutputFilesOptions& /*outputOptions*/,
             TTrainingDataProviders /*trainingData*/,
             const TLabelConverter& /*labelConverter*/,
@@ -784,8 +780,6 @@ static void TrainModel(
         executor,
         &rand);
 
-    UpdateUndefinedClassNames(catBoostOptions.DataProcessingOptions.Get().ClassNames, &updatedTrainOptionsJson);
-
     CheckConsistency(trainingData);
 
     CreateDirIfNotExist(outputOptions.GetTrainDir());
@@ -798,7 +792,7 @@ static void TrainModel(
 
     modelTrainerHolder->TrainModel(
         TTrainModelInternalOptions(),
-        updatedTrainOptionsJson,
+        catBoostOptions,
         updatedOutputOptions,
         objectiveDescriptor,
         evalMetricDescriptor,
@@ -1048,14 +1042,12 @@ static void ModelBasedEval(
         executor,
         &rand);
 
-    UpdateUndefinedClassNames(catBoostOptions.DataProcessingOptions.Get().ClassNames, &updatedTrainOptionsJson);
-
     CheckConsistency(trainingData);
 
     CreateDirIfNotExist(outputOptions.GetTrainDir());
 
     modelTrainerHolder->ModelBasedEval(
-        updatedTrainOptionsJson,
+        catBoostOptions,
         outputOptions,
         std::move(trainingData),
         labelConverter,

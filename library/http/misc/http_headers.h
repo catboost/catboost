@@ -8,7 +8,7 @@
  * Source:
  * https://github.com/spring-projects/spring-framework/blob/816bbee8de584676250e2bc5dcff6da6cd81623f/spring-web/src/main/java/org/springframework/http/HttpHeaders.java
  */
-namespace HttpHeaders {
+namespace NHttpHeaders {
     constexpr TStringBuf ACCEPT = AsStringBuf("Accept");
     constexpr TStringBuf ACCEPT_CHARSET = AsStringBuf("Accept-Charset");
     constexpr TStringBuf ACCEPT_ENCODING = AsStringBuf("Accept-Encoding");

@@ -4,6 +4,7 @@ LIBRARY()
 
 SRCS(
     cross_validation.cpp
+    options_helper.cpp
     GLOBAL train_model.cpp
 )
 

@@ -5,7 +5,11 @@
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/metrics/metric.h>
 #include <catboost/libs/options/loss_description.h>
+#include <catboost/libs/options/plain_options_helper.h>
 #include <catboost/libs/target/data_providers.h>
+#include <catboost/libs/train_lib/options_helper.h>
+
+#include <library/json/json_value.h>
 
 #include <util/generic/noncopyable.h>
 
@@ -137,3 +141,9 @@ private:
     TVector<THolder<IMetric>> Metrics;
     TMetricsPlotCalcer MetricPlotCalcer;
 };
+
+NJson::TJsonValue GetTrainingOptions(
+    const NJson::TJsonValue& plainJsonParams,
+    const NCB::TDataMetaInfo& trainDataMetaInfo,
+    const TMaybe<NCB::TDataMetaInfo>& testDataMetaInfo
+);
