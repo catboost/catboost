@@ -12,7 +12,6 @@ PEERDIR(
     library/http/misc
     library/http/push_parser
     library/neh/asio
-    library/netliba/v6
     library/openssl/init
     library/openssl/method
     library/threading/atomic
@@ -29,8 +28,6 @@ SRCS(
     location.cpp
     multi.cpp
     multiclient.cpp
-    netliba.cpp
-    netliba_udp_http.cpp
     neh.cpp
     pipequeue.cpp
     rpc.cpp
@@ -42,6 +39,17 @@ SRCS(
     udp.cpp
     utils.cpp
 )
+
+IF(NOT OS_ANDROID)
+    PEERDIR(
+        library/netliba/v6
+    )
+
+    SRCS(
+        netliba.cpp
+        netliba_udp_http.cpp
+    )
+ENDIF()
 
 GENERATE_ENUM_SERIALIZATION(http_common.h)
 
