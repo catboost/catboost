@@ -133,7 +133,7 @@ static void UpdateLearningRate(ui32 learnObjectCount, bool useBestModel, NCatboo
         learningRate = Min(defaultLearningRate * customIterationConstant / defaultIterationConstant, 0.5);
         learningRate = Round(learningRate, /*precision=*/6);
 
-        CATBOOST_NOTICE_LOG << "Learning rate set to " << learningRate << Endl;
+        Cout << "Learning rate set to " << learningRate << Endl;
     }
 }
 
