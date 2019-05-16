@@ -12,7 +12,6 @@ import tempfile
 import shutil
 from enum import Enum
 from operator import itemgetter
-from graphviz import Digraph
 
 if platform.system() == 'Linux':
     try:
@@ -948,7 +947,6 @@ class _CatBoostBase(object):
         return self._object._base_eval_metrics(pool, metrics_description_list, ntree_start, ntree_end, eval_period, thread_count, result_dir, tmp_dir)
 
     def _calc_fstr(self, type, pool, thread_count, verbose, shap_mode):
-        """returns (fstr_values, feature_ids)."""
         return self._object._calc_fstr(type.name, pool, thread_count, verbose, shap_mode)
 
     def _calc_ostr(self, train_pool, test_pool, top_size, ostr_type, update_method, importance_values_sign, thread_count, verbose):
@@ -1831,23 +1829,36 @@ class CatBoost(_CatBoostBase):
             fstr, feature_names = self._calc_fstr(type, data, thread_count, verbose, shap_mode)
         if type in (EFstrType.PredictionValuesChange, EFstrType.LossFunctionChange):
             feature_importances = [value[0] for value in fstr]
-            if prettified:
-                feature_importances = sorted(zip(feature_names, feature_importances), key=itemgetter(1), reverse=True)
             attribute_name = "_prediction_values_change" if type == EFstrType.PredictionValuesChange else "_loss_value_change"
             setattr(
                 self,
                 attribute_name,
                 feature_importances
             )
-            return feature_importances
-        if type == EFstrType.ShapValues:
+
+            if prettified:
+                feature_importances = sorted(zip(feature_names, feature_importances), key=itemgetter(1), reverse=True)
+                columns = ['Feature Index', 'Importances']
+                return DataFrame(feature_importances, columns=columns)
+            else:
+                return np.array(feature_importances)
+        elif type == EFstrType.ShapValues:
             if isinstance(fstr[0][0], ARRAY_TYPES):
                 return np.array([np.array([np.array([
                     value for value in dimension]) for dimension in doc]) for doc in fstr])
             else:
-                return np.array([np.array([value for value in doc]) for doc in fstr])
+                result = [[value for value in doc] for doc in fstr]
+                if prettified:
+                    return DataFrame(result)
+                else:
+                    return np.array(result)
         elif type == EFstrType.Interaction:
-            return [[int(row[0]), int(row[1]), row[2]] for row in fstr]
+            result = [[int(row[0]), int(row[1]), row[2]] for row in fstr]
+            if prettified:
+                columns = ['First Feature Index', 'Second Feature Index', 'Interaction']
+                return DataFrame(result, columns=columns)
+            else:
+                return np.array(result)
 
     def get_object_importance(self, pool, train_pool, top_size=-1, ostr_type='Average', update_method='SinglePoint', importance_values_sign='All', thread_count=-1, verbose=False):
         """
@@ -2076,6 +2087,7 @@ class CatBoost(_CatBoostBase):
         }
 
     def plot_tree(self, tree_idx, pool):
+        from graphviz import Digraph
         graph = Digraph()
 
         splits = self.get_tree_splits(tree_idx, pool)

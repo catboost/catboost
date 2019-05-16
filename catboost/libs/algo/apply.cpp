@@ -1,9 +1,7 @@
 #include "apply.h"
-
-#include "features_data_helpers.h"
 #include "index_calcer.h"
+#include "features_data_helpers.h"
 
-#include <catboost/libs/cat_feature/cat_feature.h>
 #include <catboost/libs/data_new/data_provider.h>
 #include <catboost/libs/data_new/model_dataset_compatibility.h>
 #include <catboost/libs/eval_result/eval_helpers.h>
@@ -41,43 +39,27 @@ static void ApplyOnRawFeatures(
     const THashMap<ui32, ui32>& columnReorderMap,
     const TLocalExecutor::TExecRangeParams& blockParams,
     TVector<double>* approxesFlat,
-    TLocalExecutor* executor)
-{
-    const int approxesDimension = model.ObliviousTrees.ApproxDimension;
-    int consecutiveSubsetBegin = GetConsecutiveSubsetBegin(*rawObjectsData);
+    TLocalExecutor* executor
+) {
+    const int approxDimension = model.ObliviousTrees.ApproxDimension;
 
-    const auto getFeatureDataBeginPtr = [&](
-        ui32 flatFeatureIdx,
-        TVector<TMaybe<TExclusiveBundleIndex>>*,
-        TVector<TMaybe<TPackedBinaryIndex>>*
-    ) -> const float* {
-        return GetRawFeatureDataBeginPtr(
-            *rawObjectsData,
-            consecutiveSubsetBegin,
-            flatFeatureIdx);
-    };
     const auto applyOnBlock = [&](int blockId) {
         const int blockFirstIdx = blockParams.FirstId + blockId * blockParams.GetBlockSize();
         const int blockLastIdx = Min(blockParams.LastId, blockFirstIdx + blockParams.GetBlockSize());
         const int blockSize = blockLastIdx - blockFirstIdx;
 
-        TVector<TConstArrayRef<float>> repackedFeatures;
-        GetRepackedFeatures(
-            blockFirstIdx,
-            blockLastIdx,
-            model.ObliviousTrees.GetFlatFeatureVectorExpectedSize(),
-            columnReorderMap,
-            getFeatureDataBeginPtr,
-            *rawObjectsData->GetFeaturesLayout(),
-            &repackedFeatures);
+        TRawFeatureAccessor featureAccessor(
+            model, *rawObjectsData, columnReorderMap, blockFirstIdx, blockLastIdx);
 
-        model.CalcFlatTransposed(
-            repackedFeatures,
+        CalcGeneric(
+            model,
+            featureAccessor,
+            featureAccessor,
+            blockSize,
             begin,
             end,
-            MakeArrayRef(
-                approxesFlat->data() + blockFirstIdx * approxesDimension,
-                blockSize * approxesDimension));
+            MakeArrayRef(approxesFlat->data() + blockFirstIdx * approxDimension,blockSize * approxDimension)
+        );
     };
     if (executor) {
         executor->ExecRange(applyOnBlock, 0, blockParams.GetBlockCount(), TLocalExecutor::WAIT_COMPLETE);
@@ -94,75 +76,27 @@ static void ApplyOnQuantizedFeatures(
     const THashMap<ui32, ui32>& columnReorderMap,
     const TLocalExecutor::TExecRangeParams& blockParams,
     TVector<double>* approxesFlat,
-    TLocalExecutor* executor)
-{
-    const int approxesDimension = model.ObliviousTrees.ApproxDimension;
-    int consecutiveSubsetBegin = GetConsecutiveSubsetBegin(quantizedObjectsData);
-
-    auto floatBinsRemap = GetFloatFeaturesBordersRemap(
-        model,
-        *quantizedObjectsData.GetQuantizedFeaturesInfo().Get());
-
-    auto getFeatureDataBeginPtr =
-        [&](
-            ui32 featureIdx,
-            TVector<TMaybe<NCB::TExclusiveBundleIndex>>* bundledIndexes,
-            TVector<TMaybe<NCB::TPackedBinaryIndex>>* packedIndexes
-        ) -> const ui8* {
-            return GetFeatureDataBeginPtr(
-                quantizedObjectsData,
-                featureIdx,
-                consecutiveSubsetBegin,
-                bundledIndexes,
-                packedIndexes);
-        };
-
+    TLocalExecutor* executor
+) {
+    const int approxDimension = model.ObliviousTrees.ApproxDimension;
     const auto applyOnBlock = [&](int blockId) {
         const int blockFirstIdx = blockParams.FirstId + blockId * blockParams.GetBlockSize();
         const int blockLastIdx = Min(blockParams.LastId, blockFirstIdx + blockParams.GetBlockSize());
         const int blockSize = blockLastIdx - blockFirstIdx;
 
-        TVector<TConstArrayRef<ui8>> repackedFeatures;
-        TVector<TMaybe<TExclusiveBundleIndex>> bundledIndexes;
-        TVector<TMaybe<TPackedBinaryIndex>> packedIndexes;
-        GetRepackedFeatures(
-            blockFirstIdx,
-            blockLastIdx,
-            model.ObliviousTrees.GetFlatFeatureVectorExpectedSize(),
-            columnReorderMap,
-            getFeatureDataBeginPtr,
-            *quantizedObjectsData.GetFeaturesLayout(),
-            &repackedFeatures,
-            &bundledIndexes,
-            &packedIndexes);
+        TQuantizedFeatureAccessor quantizedFeatureAccessor(
+            model, quantizedObjectsData, columnReorderMap, blockFirstIdx, blockLastIdx);
 
         constexpr bool isQuantized = true;
         CalcGeneric<isQuantized>(
             model,
-            [&floatBinsRemap,
-             &quantizedObjectsData,
-             &repackedFeatures,
-             &bundledIndexes,
-             &packedIndexes](const TFloatFeature& floatFeature, size_t index) -> ui8 {
-                return QuantizedFeaturesFloatAccessor(
-                    floatBinsRemap,
-                    quantizedObjectsData.GetExclusiveFeatureBundlesMetaData(),
-                    repackedFeatures,
-                    bundledIndexes,
-                    packedIndexes,
-                    floatFeature,
-                    index);
-            },
-            [](const TCatFeature&, size_t) -> ui32 {
-                Y_ASSERT("Quantized datasets with categorical features are not currently supported");
-                return 0;
-            },
+            quantizedFeatureAccessor,
+            quantizedFeatureAccessor,
             blockSize,
             begin,
             end,
-            MakeArrayRef(
-                approxesFlat->data() + blockFirstIdx * approxesDimension,
-                blockSize * approxesDimension));
+            MakeArrayRef(approxesFlat->data() + blockFirstIdx * approxDimension, blockSize * approxDimension)
+        );
     };
     if (executor) {
         executor->ExecRange(applyOnBlock, 0, blockParams.GetBlockCount(), TLocalExecutor::WAIT_COMPLETE);
@@ -357,57 +291,6 @@ void TModelCalcerOnPool::ApplyModelMulti(
     flatApproxBuffer->clear();
 }
 
-class TFeatureAccessor {
-public:
-    TFeatureAccessor(
-        const TFullModel& model,
-        const TRawObjectsDataProvider& rawObjectsData,
-        const THashMap<ui32, ui32>& columnReorderMap,
-        int objectsBegin,
-        int objectsEnd
-    )
-        : RepackedFeaturesHolder(MakeAtomicShared<TVector<TConstArrayRef<float>>>())
-        , RepackedFeaturesRef(*RepackedFeaturesHolder)
-    {
-        const ui32 consecutiveSubsetBegin = GetConsecutiveSubsetBegin(rawObjectsData);
-        const auto& featuresLayout = *rawObjectsData.GetFeaturesLayout();
-        auto getFeatureDataBeginPtr = [consecutiveSubsetBegin, &rawObjectsData](
-            ui32 flatFeatureIdx,
-            TVector<TMaybe<NCB::TExclusiveBundleIndex>>*,
-            TVector<TMaybe<TPackedBinaryIndex>>*
-        ) -> const float* {
-            return GetRawFeatureDataBeginPtr(
-                rawObjectsData,
-                consecutiveSubsetBegin,
-                flatFeatureIdx);
-        };
-        GetRepackedFeatures(
-            objectsBegin,
-            objectsEnd,
-            model.ObliviousTrees.GetFlatFeatureVectorExpectedSize(),
-            columnReorderMap,
-            getFeatureDataBeginPtr,
-            featuresLayout,
-            &RepackedFeaturesRef);
-    }
-
-    Y_FORCE_INLINE float operator()(const TFloatFeature& floatFeature, size_t index) const {
-        Y_ASSERT(SafeIntegerCast<size_t>(floatFeature.FlatFeatureIndex) < RepackedFeaturesRef.size());
-        Y_ASSERT(SafeIntegerCast<size_t>(index) < RepackedFeaturesRef[floatFeature.FlatFeatureIndex].size());
-        return RepackedFeaturesRef[floatFeature.FlatFeatureIndex][index];
-    }
-
-    Y_FORCE_INLINE ui32 operator()(const TCatFeature& catFeature, size_t index) const {
-        Y_ASSERT(SafeIntegerCast<size_t>(catFeature.FlatFeatureIndex) < RepackedFeaturesRef.size());
-        Y_ASSERT(SafeIntegerCast<size_t>(index) < RepackedFeaturesRef[catFeature.FlatFeatureIndex].size());
-        return ConvertFloatCatFeatureToIntHash(RepackedFeaturesRef[catFeature.FlatFeatureIndex][index]);
-    };
-
-private:
-    TAtomicSharedPtr<TVector<TConstArrayRef<float>>> RepackedFeaturesHolder;
-    TVector<TConstArrayRef<float>>& RepackedFeaturesRef;
-};
-
 void TModelCalcerOnPool::InitForRawFeatures(
     const TFullModel& model,
     const TRawObjectsDataProvider& rawObjectsData,
@@ -419,7 +302,7 @@ void TModelCalcerOnPool::InitForRawFeatures(
         [&](int blockId) {
             const int blockFirstIdx = blockParams.FirstId + blockId * blockParams.GetBlockSize();
             const int blockLastIdx = Min(blockParams.LastId, blockFirstIdx + blockParams.GetBlockSize());
-            TFeatureAccessor featureAccessor(
+            TRawFeatureAccessor featureAccessor(
                 model, rawObjectsData, columnReorderMap, blockFirstIdx, blockLastIdx);
             ui64 docCount = ui64(blockLastIdx - blockFirstIdx);
             ThreadCalcers[blockId] = MakeHolder<TFeatureCachedTreeEvaluator>(
@@ -433,85 +316,6 @@ void TModelCalcerOnPool::InitForRawFeatures(
         NPar::TLocalExecutor::WAIT_COMPLETE
     );
 }
-
-class TQuantizedFeaturesAccessor{
-public:
-    TQuantizedFeaturesAccessor(
-        const TFullModel& model,
-        const TQuantizedForCPUObjectsDataProvider& quantizedObjectsData,
-        const THashMap<ui32, ui32>& columnReorderMap,
-        int objectsBegin,
-        int objectsEnd
-    )
-        : HeavyDataHolder(MakeAtomicShared<TQuantizedFeaturesAccessorData>())
-        , BundlesMetaData(quantizedObjectsData.GetExclusiveFeatureBundlesMetaData())
-        , FloatBinsRemapRef(HeavyDataHolder->FloatBinsRemap)
-        , RepackedFeaturesRef(HeavyDataHolder->RepackedFeatures)
-        , PackedIndexesRef(HeavyDataHolder->PackedIndexes)
-        , BundledIndexesRef(HeavyDataHolder->BundledIndexes)
-    {
-        const ui32 consecutiveSubsetBegin = GetConsecutiveSubsetBegin(quantizedObjectsData);
-        const auto& featuresLayout = *quantizedObjectsData.GetFeaturesLayout();
-        FloatBinsRemapRef = GetFloatFeaturesBordersRemap(
-            model, *quantizedObjectsData.GetQuantizedFeaturesInfo().Get());
-        GetRepackedFeatures(
-            objectsBegin,
-            objectsEnd,
-            model.ObliviousTrees.GetFlatFeatureVectorExpectedSize(),
-            columnReorderMap,
-            [&quantizedObjectsData, &consecutiveSubsetBegin](
-                ui32 featureIdx,
-                TVector<TMaybe<TExclusiveBundleIndex>>* bundledIndexes,
-                TVector<TMaybe<TPackedBinaryIndex>>* packedIndexes
-            ) -> const ui8* {
-                return GetFeatureDataBeginPtr(
-                    quantizedObjectsData,
-                    featureIdx,
-                    consecutiveSubsetBegin,
-                    bundledIndexes,
-                    packedIndexes);
-            },
-            featuresLayout,
-            &RepackedFeaturesRef,
-            &BundledIndexesRef,
-            &PackedIndexesRef
-        );
-    }
-
-    Y_FORCE_INLINE ui8 operator()(const TFloatFeature& floatFeature, size_t index) const {
-        return QuantizedFeaturesFloatAccessor(
-            FloatBinsRemapRef,
-            BundlesMetaData,
-            RepackedFeaturesRef,
-            BundledIndexesRef,
-            PackedIndexesRef,
-            floatFeature,
-            index
-        );
-    }
-
-    Y_FORCE_INLINE ui8 operator()(const TCatFeature&, size_t) const {
-        ythrow TCatBoostException()
-            << "Quantized datasets with categorical features are not currently supported";
-        return 0;
-    }
-
-private:
-    struct TQuantizedFeaturesAccessorData {
-        TVector<TVector<ui8>> FloatBinsRemap;
-        TVector<TConstArrayRef<ui8>> RepackedFeatures;
-        TVector<TMaybe<TPackedBinaryIndex>> PackedIndexes;
-        TVector<TMaybe<TExclusiveBundleIndex>> BundledIndexes;
-    };
-
-private:
-    TAtomicSharedPtr<TQuantizedFeaturesAccessorData> HeavyDataHolder;
-    TConstArrayRef<TExclusiveFeaturesBundle> BundlesMetaData;
-    TVector<TVector<ui8>>& FloatBinsRemapRef;
-    TVector<TConstArrayRef<ui8>>& RepackedFeaturesRef;
-    TVector<TMaybe<TPackedBinaryIndex>>& PackedIndexesRef;
-    TVector<TMaybe<TExclusiveBundleIndex>>& BundledIndexesRef;
-};
 
 void TModelCalcerOnPool::InitForQuantizedFeatures(
     const TFullModel& model,
@@ -528,7 +332,7 @@ void TModelCalcerOnPool::InitForQuantizedFeatures(
             ui64 docCount = ui64(blockLastIdx - blockFirstIdx);
             ThreadCalcers[blockId] = MakeHolder<TFeatureCachedTreeEvaluator>(
                 model,
-                TQuantizedFeaturesAccessor(
+                TQuantizedFeatureAccessor(
                     model, quantizedObjectsData, columnReorderMap, blockFirstIdx, blockLastIdx),
                 docCount
             );
@@ -589,7 +393,7 @@ TLeafIndexCalcerOnPool::TLeafIndexCalcerOnPool(
     CheckModelAndDatasetCompatibility(model, *objectsData, &columnReorderMap);
     const size_t docCount = objectsData->GetObjectCount();
     if (const auto *const rawObjectsData = dynamic_cast<const TRawObjectsDataProvider*>(objectsData.Get())) {
-        TFeatureAccessor featureAccessor(
+        TRawFeatureAccessor featureAccessor(
             model, *rawObjectsData, columnReorderMap, 0, SafeIntegerCast<int>(docCount));
         InnerLeafIndexCalcer = MakeLeafIndexCalcer(
             model, featureAccessor, featureAccessor, docCount, treeStart, treeEnd);
@@ -597,7 +401,7 @@ TLeafIndexCalcerOnPool::TLeafIndexCalcerOnPool(
         const auto *const quantizedObjectsData =
             dynamic_cast<const TQuantizedForCPUObjectsDataProvider*>(objectsData.Get()))
     {
-        TQuantizedFeaturesAccessor quantizedFeatureAccessor(
+        TQuantizedFeatureAccessor quantizedFeatureAccessor(
             model, *quantizedObjectsData, columnReorderMap, 0, SafeIntegerCast<int>(docCount));
         InnerLeafIndexCalcer = MakeLeafIndexCalcer(
                 model, quantizedFeatureAccessor, docCount, treeStart, treeEnd);
@@ -619,7 +423,7 @@ bool TLeafIndexCalcerOnPool::Next() {
 }
 
 template <bool IsQuantizedData, class TDataProvider, class TFeatureAccessorType =
-    typename std::conditional<IsQuantizedData, TQuantizedFeaturesAccessor, TFeatureAccessor>::type>
+    typename std::conditional<IsQuantizedData, TQuantizedFeatureAccessor, TRawFeatureAccessor>::type>
 static void CalcLeafIndexesMultiImpll(
     const TFullModel& model,
     const TDataProvider& objectsData,

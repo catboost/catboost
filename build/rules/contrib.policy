@@ -9,3 +9,8 @@ ALLOW contrib/deprecated/blackhole -> contrib/deprecated/blackhole
 ALLOW mds -> contrib/deprecated/blackhole
 ALLOW devtools/experimental/mds -> contrib/deprecated/blackhole
 DENY .* -> contrib/deprecated/blackhole
+
+ALLOW contrib/deprecated/folly -> contrib/deprecated/folly
+ALLOW mds -> contrib/deprecated/folly
+ALLOW devtools/experimental/mds -> contrib/deprecated/folly
+DENY .* -> contrib/deprecated/folly

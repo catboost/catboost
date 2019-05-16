@@ -108,21 +108,15 @@ private:
     TIntrusivePtr<Inner> Impl_;
 
 public:
-    template <EMemoryType Type>
-    explicit TCudaVec(ui64 size = 0)
-        : Impl_(new Inner(size, Type))
-    {
-    }
+
 
     TCudaVec(ui64 size, EMemoryType type)
         : Impl_(new Inner(size, type))
     {
     }
 
-    template <EMemoryType Type>
-    explicit TCudaVec(TConstArrayRef<T> data)
-        : TCudaVec(data.size(), Type)
-    {
+    explicit TCudaVec(TConstArrayRef<T> data, EMemoryType type)
+        : TCudaVec(data.size(), type) {
         Write(data);
     }
 

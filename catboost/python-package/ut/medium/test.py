@@ -8,6 +8,7 @@ import re
 import subprocess
 import sys
 import tempfile
+import json
 
 from catboost import (
     CatBoost,
@@ -22,6 +23,7 @@ from catboost import (
     train,)
 from catboost.eval.catboost_evaluation import CatboostEvaluation, EvalType
 from catboost.utils import eval_metric, create_cd, get_roc_curve, select_threshold
+from catboost.utils import DataMetaInfo, TargetStats, compute_training_options
 import os.path
 from pandas import read_table, DataFrame, Series, Categorical
 from six import PY3
@@ -1938,7 +1940,7 @@ def test_feature_importance(task_type):
 
     model = CatBoostClassifier(iterations=5, learning_rate=0.03, task_type=task_type, devices='0')
     model.fit(pool)
-    assert model.get_feature_importance() == model.get_feature_importance(type=EFstrType.PredictionValuesChange)
+    assert (model.get_feature_importance() == model.get_feature_importance(type=EFstrType.PredictionValuesChange)).all()
     failed = False
     try:
         model.get_feature_importance(type=EFstrType.LossFunctionChange)
@@ -1967,7 +1969,7 @@ def test_feature_importance_prettified(task_type):
     feature_importances = model.get_feature_importance(type=EFstrType.PredictionValuesChange, prettified=True)
     fimp_txt_path = test_output_path(FIMP_TXT_PATH)
     with open(fimp_txt_path, 'w') as ofile:
-        for f_id, f_imp in feature_importances:
+        for f_id, f_imp in feature_importances.values:
             ofile.write('{}\t{}\n'.format(f_id, f_imp))
     return local_canonical_file(fimp_txt_path)
 
@@ -4339,3 +4341,24 @@ def test_eval_features_with_file_header():
     comparison_results.to_csv(eval_results_file_name)
 
     return local_canonical_file(eval_results_file_name)
+
+
+def test_compute_options():
+    data_meta_info = DataMetaInfo(
+        object_count=100000,
+        max_cat_features_uniq_values_on_learn=0,
+        target_stats=TargetStats(min_value=0, max_value=1),
+        has_pairs=False
+    )
+
+    options = compute_training_options(
+        options={'thread_count': 1},
+        train_meta_info=data_meta_info,
+        test_meta_info=data_meta_info,
+    )
+
+    options_file_name = test_output_path('options.json')
+    with open(options_file_name, 'w') as f:
+        json.dump(options, f, indent=4, sort_keys=True)
+
+    return local_canonical_file(options_file_name)

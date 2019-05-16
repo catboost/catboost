@@ -167,8 +167,16 @@ cdef extern from "catboost/libs/data_new/features_layout.h" namespace "NCB":
 
 
 cdef extern from "catboost/libs/data_new/meta_info.h" namespace "NCB":
+    cdef cppclass TTargetStats:
+        float MinValue
+        float MaxValue
+
     cdef cppclass TDataMetaInfo:
+        ui64 ObjectCount
+
         TIntrusivePtr[TFeaturesLayout] FeaturesLayout
+        ui64 MaxCatFeaturesUniqValuesOnLearn
+        TMaybe[TTargetStats] TargetStats
 
         bool_t HasTarget
         ui32 BaselineCount
@@ -715,7 +723,7 @@ cdef extern from "catboost/libs/algo/apply.h":
         int end,
         int threadCount
     ) nogil except +ProcessException
-            
+
     cdef TVector[ui32] CalcLeafIndexesMulti(
         const TFullModel& model,
         TIntrusivePtr[TObjectsDataProvider] objectsData,
@@ -900,6 +908,13 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
         TVector[TVector[double]] ComputeScores()
         void AddPool(const TDataProvider& srcData)
 
+    cdef TJsonValue GetTrainingOptions(
+        const TJsonValue& plainOptions,
+        const TDataMetaInfo& trainDataMetaInfo,
+        const TMaybe[TDataMetaInfo]& trainDataMetaInfo
+    ) nogil except +ProcessException
+
+        
 cdef extern from "catboost/libs/quantized_pool_analysis/quantized_pool_analysis.h":
     cdef cppclass TBinarizedFloatFeatureStatistics:
         TVector[float] Borders
@@ -3283,3 +3298,43 @@ cpdef _get_gpu_device_count():
 
 cpdef _reset_trace_backend(file):
     ResetTraceBackend(to_arcadia_string(file))
+
+
+@cython.embedsignature(True)
+cdef class TargetStats:
+    cdef TTargetStats TargetStats
+
+    def __init__(self, float min_value, float max_value):
+        self.TargetStats.MinValue = min_value
+        self.TargetStats.MaxValue = max_value
+
+
+@cython.embedsignature(True)
+cdef class DataMetaInfo:
+    cdef TDataMetaInfo DataMetaInfo
+
+    def __init__(
+        self,
+        ui64 object_count,
+        ui64 max_cat_features_uniq_values_on_learn,
+        TargetStats target_stats,
+        bool_t has_pairs
+    ):
+        self.DataMetaInfo.ObjectCount = object_count
+        self.DataMetaInfo.MaxCatFeaturesUniqValuesOnLearn = max_cat_features_uniq_values_on_learn
+        if target_stats is not None:
+            self.DataMetaInfo.TargetStats = target_stats.TargetStats
+        self.DataMetaInfo.HasPairs = has_pairs
+
+
+@cython.embedsignature(True)
+cpdef compute_training_options(dict options, DataMetaInfo train_meta_info, DataMetaInfo test_meta_info=None):
+    cdef TMaybe[TDataMetaInfo] testMetaInfo
+    if test_meta_info is not None:
+        testMetaInfo = test_meta_info.DataMetaInfo
+    cdef TJsonValue trainingOptions = GetTrainingOptions(
+        _PreprocessParams(options).tree,
+        train_meta_info.DataMetaInfo,
+        testMetaInfo
+    )
+    return loads(to_native_str(ToString(trainingOptions)))

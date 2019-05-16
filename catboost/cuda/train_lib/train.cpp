@@ -20,11 +20,11 @@
 #include <catboost/libs/helpers/progress_helper.h>
 #include <catboost/libs/helpers/vector_helpers.h>
 #include <catboost/libs/logging/logging.h>
-#include <catboost/libs/options/defaults_helper.h>
 #include <catboost/libs/options/metric_options.h>
 #include <catboost/libs/options/system_options.h>
 #include <catboost/libs/quantization/grid_creator.h>
 #include <catboost/libs/quantization/utils.h>
+#include <catboost/libs/train_lib/options_helper.h>
 #include <catboost/libs/train_lib/train_model.h>
 
 #include <library/json/json_prettifier.h>
@@ -215,13 +215,8 @@ namespace NCatboostCuda {
             testPoolSize = testProvider->GetObjectCount();
         }
 
-        SetDataDependentDefaults(dataProvider.GetObjectCount(),
-                                 dataProvider.TargetData.Get()->GetTarget(),
-                                 testProvider ? testProvider->TargetData->GetTarget() : Nothing(),
-                                 dataProvider.ObjectsData->GetQuantizedFeaturesInfo()
-                                     ->CalcMaxCategoricalFeaturesUniqueValuesCountOnLearn(),
-                                 testPoolSize,
-                                 hasTestPairs,
+        SetDataDependentDefaults(dataProvider.MetaInfo,
+                                 testProvider ? TMaybe<NCB::TDataMetaInfo>(testProvider->MetaInfo) : Nothing(),
                                  &outputOptions.UseBestModel,
                                  &catBoostOptions);
 
@@ -311,7 +306,7 @@ namespace NCatboostCuda {
     public:
         void TrainModel(
             const TTrainModelInternalOptions& internalOptions,
-            const NJson::TJsonValue& params,
+            const NCatboostOptions::TCatBoostOptions& catboostOptions,
             const NCatboostOptions::TOutputFilesOptions& outputOptions,
             const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
             const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
@@ -324,20 +319,21 @@ namespace NCatboostCuda {
             TFullModel* model,
             const TVector<TEvalResult*>& evalResultPtrs,
             TMetricsAndTimeLeftHistory* metricsAndTimeHistory) const override {
+
             Y_UNUSED(objectiveDescriptor);
             Y_UNUSED(evalMetricDescriptor);
             Y_UNUSED(rand);
             CB_ENSURE(trainingData.Test.size() <= 1, "Multiple eval sets not supported for GPU");
             Y_VERIFY(evalResultPtrs.size() == trainingData.Test.size());
 
-            NCatboostOptions::TCatBoostOptions catBoostOptions(ETaskType::GPU);
-            catBoostOptions.Load(params);
+            NCatboostOptions::TCatBoostOptions updatedCatboostOptions = catboostOptions;
+            NCatboostOptions::TOutputFilesOptions updatedOutputOptions = outputOptions;
 
             bool saveFinalCtrsInModel = !internalOptions.CalcMetricsOnly &&
-                (outputOptions.GetFinalCtrComputationMode() == EFinalCtrComputationMode::Default) &&
+                (updatedOutputOptions.GetFinalCtrComputationMode() == EFinalCtrComputationMode::Default) &&
                 (trainingData.Learn->ObjectsData->GetQuantizedFeaturesInfo()
                     ->CalcMaxCategoricalFeaturesUniqueValuesCountOnLearn()
-                  > catBoostOptions.CatFeatureParams.Get().OneHotMaxSize.Get());
+                  > updatedCatboostOptions.CatFeatureParams.Get().OneHotMaxSize.Get());
 
             TTrainingForCPUDataProviders trainingDataForFinalCtrCalculation;
 
@@ -348,16 +344,15 @@ namespace NCatboostCuda {
 
             auto quantizedFeaturesInfo = trainingData.Learn->ObjectsData->GetQuantizedFeaturesInfo();
 
-            TBinarizedFeaturesManager featuresManager(catBoostOptions.CatFeatureParams,
+            TBinarizedFeaturesManager featuresManager(updatedCatboostOptions.CatFeatureParams,
                                                       featureEstimators,
                                                       quantizedFeaturesInfo);
 
-            NCatboostOptions::TOutputFilesOptions updatedOutputOptions = outputOptions;
 
             SetDataDependentDefaultsForGpu(
                 *trainingData.Learn,
                 !trainingData.Test.empty() ? trainingData.Test[0].Get() : nullptr,
-                catBoostOptions,
+                updatedCatboostOptions,
                 updatedOutputOptions,
                 featuresManager,
                 localExecutor);
@@ -365,7 +360,7 @@ namespace NCatboostCuda {
             const TString trainingOptionsFileName = updatedOutputOptions.CreateTrainingOptionsFullPath();
             if (!trainingOptionsFileName.empty()) {
                 TOFStream trainingOptionsFile(trainingOptionsFileName);
-                trainingOptionsFile.Write(NJson::PrettifyJson(ToString(catBoostOptions)));
+                trainingOptionsFile.Write(NJson::PrettifyJson(ToString(updatedCatboostOptions)));
             }
 
             NCB::TOnCpuGridBuilderFactory gridBuilderFactory;
@@ -374,18 +369,18 @@ namespace NCatboostCuda {
                     gridBuilderFactory,
                     *trainingData.Learn->TargetData->GetTarget())(featuresManager.GetTargetBinarizationDescription()));
 
-            TSetLogging inThisScope(catBoostOptions.LoggingLevel);
-            auto deviceRequestConfig = CreateDeviceRequestConfig(catBoostOptions);
+            TSetLogging inThisScope(updatedCatboostOptions.LoggingLevel);
+            auto deviceRequestConfig = CreateDeviceRequestConfig(updatedCatboostOptions);
             auto stopCudaManagerGuard = StartCudaManager(deviceRequestConfig,
-                                                         catBoostOptions.LoggingLevel);
+                                                         updatedCatboostOptions.LoggingLevel);
 
-            ui32 approxDimension = GetApproxDimension(catBoostOptions, labelConverter);
+            ui32 approxDimension = GetApproxDimension(updatedCatboostOptions, labelConverter);
 
             TVector<TVector<double>> rawValues(approxDimension);
 
             TGpuTrainResult gpuFormatModel = TrainModelImpl(
                 internalOptions,
-                catBoostOptions,
+                updatedCatboostOptions,
                 updatedOutputOptions,
                 *trainingData.Learn,
                 !trainingData.Test.empty() ? trainingData.Test[0].Get() : nullptr,
@@ -408,7 +403,7 @@ namespace NCatboostCuda {
             TPerfectHashedToHashedCatValuesMap perfectHashedToHashedCatValuesMap = quantizedFeaturesInfo->CalcPerfectHashedToHashedCatValuesMap(localExecutor);
 
             TClassificationTargetHelper classificationTargetHelper(labelConverter,
-                                                                   catBoostOptions.DataProcessingOptions);
+                                                                   updatedCatboostOptions.DataProcessingOptions);
 
             TMaybe<TFullModel> fullModel;
             TFullModel* modelPtr = nullptr;
@@ -445,7 +440,7 @@ namespace NCatboostCuda {
             auto targetClassifiers = CreateTargetClassifiers(featuresManager);
 
             TCoreModelToFullModelConverter coreModelToFullModelConverter(
-                catBoostOptions,
+                updatedCatboostOptions,
                 classificationTargetHelper,
                 /*ctrLeafCountLimit*/ Max<ui64>(),
                 /*storeAllSimpleCtrs*/ false,
@@ -472,29 +467,28 @@ namespace NCatboostCuda {
         }
 
         void ModelBasedEval(
-            const NJson::TJsonValue& params,
+            const NCatboostOptions::TCatBoostOptions& catboostOptions,
             const NCatboostOptions::TOutputFilesOptions& outputOptions,
             TTrainingDataProviders trainingData,
             const TLabelConverter& labelConverter,
             NPar::TLocalExecutor* localExecutor) const override {
+
             CB_ENSURE(trainingData.Test.size() == 1, "Model based evaluation requires exactly one eval set on GPU");
 
-            NCatboostOptions::TCatBoostOptions catBoostOptions(ETaskType::GPU);
-            catBoostOptions.Load(params);
+            NCatboostOptions::TCatBoostOptions updatedCatboostOptions = catboostOptions;
+            NCatboostOptions::TOutputFilesOptions updatedOutputOptions = outputOptions;
 
             auto quantizedFeaturesInfo = trainingData.Learn->ObjectsData->GetQuantizedFeaturesInfo();
 
             TFeatureEstimators estimators;
-            TBinarizedFeaturesManager featuresManager(catBoostOptions.CatFeatureParams,
+            TBinarizedFeaturesManager featuresManager(updatedCatboostOptions.CatFeatureParams,
                                                       estimators,
                                                       quantizedFeaturesInfo);
-
-            NCatboostOptions::TOutputFilesOptions updatedOutputOptions = outputOptions;
 
             SetDataDependentDefaultsForGpu(
                 *trainingData.Learn,
                 trainingData.Test[0].Get(),
-                catBoostOptions,
+                updatedCatboostOptions,
                 updatedOutputOptions,
                 featuresManager,
                 localExecutor);
@@ -505,15 +499,15 @@ namespace NCatboostCuda {
                     gridBuilderFactory,
                     *trainingData.Learn->TargetData->GetTarget())(featuresManager.GetTargetBinarizationDescription()));
 
-            TSetLogging inThisScope(catBoostOptions.LoggingLevel);
-            auto deviceRequestConfig = CreateDeviceRequestConfig(catBoostOptions);
+            TSetLogging inThisScope(updatedCatboostOptions.LoggingLevel);
+            auto deviceRequestConfig = CreateDeviceRequestConfig(updatedCatboostOptions);
             auto stopCudaManagerGuard = StartCudaManager(deviceRequestConfig,
-                                                         catBoostOptions.LoggingLevel);
+                                                         updatedCatboostOptions.LoggingLevel);
 
-            ui32 approxDimension = GetApproxDimension(catBoostOptions, labelConverter);
+            ui32 approxDimension = GetApproxDimension(updatedCatboostOptions, labelConverter);
 
             ModelBasedEvalImpl(
-                catBoostOptions,
+                updatedCatboostOptions,
                 updatedOutputOptions,
                 *trainingData.Learn,
                 *trainingData.Test[0].Get(),

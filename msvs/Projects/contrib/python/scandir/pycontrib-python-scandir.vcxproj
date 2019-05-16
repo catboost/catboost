@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{3801D285-214E-7AC0-0EC2-28446F46D262}</ProjectGUID>
+    <ProjectGUID>{659BFF29-3F80-CC93-FD3E-1AB88F02D68C}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>contrib-python-scandir</ProjectName>
+    <ProjectName>pycontrib-python-scandir</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>contrib-python-scandir</TargetName>
+    <TargetName>pycontrib-python-scandir</TargetName>
     <TargetExtention>.lib</TargetExtention>
     <OutDir>$(SolutionDir)$(Configuration)\contrib\python\scandir\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\3801D285-214E-7AC0-0EC2-28446F46D262\</IntDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\659BFF29-3F80-CC93-FD3E-1AB88F02D68C\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -82,7 +82,35 @@
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scandir\_scandir.reg.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scandir\ca2f2e36702c22c680b7955297.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scandir\dbde87a9e0714d176cb7b3bc4f.cpp"/>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\scandir\_ca2f2e36702c22c680b7955297.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scandir
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/brotli/include" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scandir/_ca2f2e36702c22c680b7955297.obj" "$(SolutionDir)$(Configuration)/contrib/python/scandir/_ca2f2e36702c22c680b7955297.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scandir
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/brotli/include" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scandir/_ca2f2e36702c22c680b7955297.obj" "$(SolutionDir)$(Configuration)/contrib/python/scandir/_ca2f2e36702c22c680b7955297.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/scandir/_ca2f2e36702c22c680b7955297.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\scandir\_ca2f2e36702c22c680b7955297.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scandir\_ca2f2e36702c22c680b7955297.obj;</Outputs>
+    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\scandir\_dbde87a9e0714d176cb7b3bc4f.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scandir
@@ -114,6 +142,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scandir
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scandir/ca2f2e36702c22c680b7955297.cpp" "_5b18c3e02f5a4983cbf225ded3=resfs/src/resfs/file/contrib/python/scandir/.dist-info/METADATA" "_cd5eccd89686a811555abd9153=resfs/file/contrib/python/scandir/.dist-info/METADATA" "_ac0ae29802527451592c60d8bf=resfs/src/resfs/file/contrib/python/scandir/.dist-info/top_level.txt" "_bdcc1e06979810bc2e164f30d1=resfs/file/contrib/python/scandir/.dist-info/top_level.txt"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scandir
+if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scandir/dbde87a9e0714d176cb7b3bc4f.cpp" "_c6c1091a8064d09c2fc88cdaa1=/py_modules/scandir" "_84a2250c544706e8d13ae952ea=resfs/src//py_modules/scandir" "_ce8e98252b8546b91b8894f930=/py_code/scandir"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
@@ -125,6 +157,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scandir
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scandir/ca2f2e36702c22c680b7955297.cpp" "_5b18c3e02f5a4983cbf225ded3=resfs/src/resfs/file/contrib/python/scandir/.dist-info/METADATA" "_cd5eccd89686a811555abd9153=resfs/file/contrib/python/scandir/.dist-info/METADATA" "_ac0ae29802527451592c60d8bf=resfs/src/resfs/file/contrib/python/scandir/.dist-info/top_level.txt" "_bdcc1e06979810bc2e164f30d1=resfs/file/contrib/python/scandir/.dist-info/top_level.txt"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scandir
+if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scandir/dbde87a9e0714d176cb7b3bc4f.cpp" "_c6c1091a8064d09c2fc88cdaa1=/py_modules/scandir" "_84a2250c544706e8d13ae952ea=resfs/src//py_modules/scandir" "_ce8e98252b8546b91b8894f930=/py_code/scandir"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
@@ -133,9 +169,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/scandir/dbde87a9e0714d176cb7b3bc4f.cpp	</Message>
+      <Message>$B/contrib/python/scandir/ca2f2e36702c22c680b7955297.cpp	$B/contrib/python/scandir/dbde87a9e0714d176cb7b3bc4f.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scandir\dbde87a9e0714d176cb7b3bc4f.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scandir\ca2f2e36702c22c680b7955297.cpp;$(SolutionDir)$(Configuration)\contrib\python\scandir\dbde87a9e0714d176cb7b3bc4f.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_py_reg.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -190,6 +226,33 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/scandir/scandir.py.yapyc	</Message>
       <AdditionalInputs>$(SolutionDir)..\build\scripts\py_compile.py;$(SolutionDir)..\contrib\python\scandir\scandir.py;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scandir\scandir.py.yapyc;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\scandir\.dist-info\METADATA">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scandir
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/scandir/_ca2f2e36702c22c680b7955297.yasm" "-" "contrib/python/scandir/.dist-info/METADATA" "_5b18c3e02f5a4983cbf225ded3.rodata" "$(SolutionDir)../contrib/python/scandir/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/scandir/_cd5eccd89686a811555abd9153.rodata" "-" "contrib/python/scandir/.dist-info/top_level.txt" "_ac0ae29802527451592c60d8bf.rodata" "$(SolutionDir)../contrib/python/scandir/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/scandir/_bdcc1e06979810bc2e164f30d1.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scandir
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/scandir/_ca2f2e36702c22c680b7955297.yasm" "-" "contrib/python/scandir/.dist-info/METADATA" "_5b18c3e02f5a4983cbf225ded3.rodata" "$(SolutionDir)../contrib/python/scandir/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/scandir/_cd5eccd89686a811555abd9153.rodata" "-" "contrib/python/scandir/.dist-info/top_level.txt" "_ac0ae29802527451592c60d8bf.rodata" "$(SolutionDir)../contrib/python/scandir/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/scandir/_bdcc1e06979810bc2e164f30d1.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/scandir/_ca2f2e36702c22c680b7955297.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\scandir\.dist-info\METADATA;$(SolutionDir)..\contrib\python\scandir\.dist-info\top_level.txt;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scandir\_ca2f2e36702c22c680b7955297.yasm;$(SolutionDir)$(Configuration)\contrib\python\scandir\_cd5eccd89686a811555abd9153.rodata;$(SolutionDir)$(Configuration)\contrib\python\scandir\_bdcc1e06979810bc2e164f30d1.rodata;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\python\scandir\scandir.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal

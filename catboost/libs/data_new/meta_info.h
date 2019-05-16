@@ -36,10 +36,19 @@ namespace NCB {
         TVector<TString> GenerateFeatureIds(const TMaybe<TVector<TString>>& header) const;
     };
 
+    struct TTargetStats {
+        float MinValue = 0;
+        float MaxValue = 0;
+    };
+
     struct TDataMetaInfo {
+        ui64 ObjectCount = 0;
+
         TFeaturesLayoutPtr FeaturesLayout;
+        ui64 MaxCatFeaturesUniqValuesOnLearn = 0;
 
         bool HasTarget = false;
+        TMaybe<TTargetStats> TargetStats;
 
         ui32 BaselineCount = 0;
 

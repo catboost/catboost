@@ -7,7 +7,7 @@
 
 # We want musl to resolve itself without these sysincls, but its test must have them
 # Also we disable this headers for some libraries, that want to build withoud libc at all
-- source_filter: "^(?!(contrib/libs/musl|contrib/libs/cxxsupp/builtins|contrib/tools/yasm)).*|^contrib/libs/musl-1.1.20/tests"
+- source_filter: "^(?!(contrib/libs/musl|contrib/libs/cxxsupp/builtins|contrib/libs/cxxsupp/libcxx/include/support|contrib/libs/libunwind|contrib/tools/yasm)).*|^contrib/libs/musl-1.1.20/tests"
   includes:
   # libc & stl common headers
   - complex.h:              contrib/libs/musl-1.1.20/include/complex.h

@@ -111,6 +111,17 @@ TStringBuf GetZone(const TStringBuf host) noexcept;
 Y_PURE_FUNCTION
 TStringBuf CutWWWPrefix(const TStringBuf url) noexcept;
 
+/**
+ * Cuts 'm.' prefix from url if and only if the url starts with it
+ * Example: 'm.some-domain.com' -> 'some-domain.com'.
+ * 'http://m.some-domain.com' is not changed
+ *
+ * @param[in] url   any URL
+ * @return          url without 'm.' or 'M.' prefix.
+ */
+Y_PURE_FUNCTION
+TStringBuf CutMPrefix(const TStringBuf url) noexcept;
+
 Y_PURE_FUNCTION
 TStringBuf GetDomain(const TStringBuf host) noexcept; // should not be used
 

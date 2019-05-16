@@ -10,6 +10,7 @@
 #include <util/generic/hash.h>
 #include <util/generic/strbuf.h>
 #include <util/generic/singleton.h>
+#include <util/system/platform.h>
 
 using namespace NNeh;
 
@@ -17,7 +18,9 @@ namespace {
     class TProtocolFactory: public IProtocolFactory, public THashMap<TStringBuf, IProtocol*> {
     public:
         inline TProtocolFactory() {
+#if !defined(_android_)
             Register(NetLibaProtocol());
+#endif
             Register(Http1Protocol());
             Register(Post1Protocol());
             Register(Full1Protocol());

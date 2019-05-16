@@ -4,6 +4,7 @@ RECURSE(
     blackhole
     boost
     boost/libs/test
+    folly
     glib
     glib/gio
     glibmm
@@ -24,6 +25,7 @@ RECURSE(
     mimepp
     pygtrie
     pygtrie/tests
+
 )
 
 

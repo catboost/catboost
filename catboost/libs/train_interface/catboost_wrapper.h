@@ -24,8 +24,8 @@ inline TEnsemble Train(const TDataSet& learn,
                        const TDataSet& test,
                        const std::string& paramsJson) {
     ResultHandle handle;
-    TrainCatBoost(learn,
-                  test,
+    TrainCatBoost(&learn,
+                  &test,
                   paramsJson.data(),
                   &handle);
 
@@ -47,12 +47,12 @@ inline TEnsemble Train(const TDataSet& learn,
         currentTree.Weights.resize((1 << depth));
 
         CopyTree(handle,
-            tree,
-            currentTree.Features.data(),
-            currentTree.Conditions.data(),
-            currentTree.Leaves.data(),
-            currentTree.Weights.data()
-            );
+                 tree,
+                 currentTree.Features.data(),
+                 currentTree.Conditions.data(),
+                 currentTree.Leaves.data(),
+                 currentTree.Weights.data()
+        );
     }
 
 

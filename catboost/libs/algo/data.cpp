@@ -203,6 +203,8 @@ namespace NCB {
             &trainingData->MetaInfo.HasPairs
         );
 
+        trainingData->UpdateMetaInfo();
+
         return trainingData;
     }
 

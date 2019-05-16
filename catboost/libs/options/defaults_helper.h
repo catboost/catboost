@@ -4,16 +4,7 @@
 #include "cat_feature_options.h"
 #include "catboost_options.h"
 
-#include <catboost/libs/helpers/maybe_data.h>
-#include <catboost/libs/helpers/vector_helpers.h>
-
-#include <util/system/types.h>
-#include <util/generic/ymath.h>
-#include <util/generic/maybe.h>
-
 const ui32 FoldPermutationBlockSizeNotSet = 0;
-
-double Round(double number, int precision);
 
 inline int DefaultFoldPermutationBlockSize(int docCount) {
     return Min(256, docCount / 1000 + 1);
@@ -43,76 +34,4 @@ inline void UpdateBoostingTypeOption(size_t learnSampleCount, NCatboostOptions::
     if (boostingTypeOption->NotSet() && learnSampleCount >= 50000) {
         *boostingTypeOption = EBoostingType::Plain;
     }
-}
-
-inline void UpdateUseBestModel(bool hasTest, bool hasTestConstTarget, bool hasTestPairs, NCatboostOptions::TOption<bool>* useBestModel) {
-    if (useBestModel->NotSet() && hasTest && (!hasTestConstTarget || hasTestPairs)) {
-        *useBestModel = true;
-    }
-    if (!hasTest && *useBestModel) {
-        CATBOOST_WARNING_LOG << "You should provide test set for use best model. use_best_model parameter swiched to false value." << Endl;
-        *useBestModel = false;
-    }
-}
-
-inline void UpdateLearningRate(ui32 learnObjectCount, bool useBestModel, NCatboostOptions::TCatBoostOptions* catBoostOptions) {
-    auto& learningRate = catBoostOptions->BoostingOptions->LearningRate;
-    const int iterationCount = catBoostOptions->BoostingOptions->IterationCount;
-    const bool doUpdateLearningRate = (
-        learningRate.NotSet() &&
-        IsBinaryClassOnlyMetric(catBoostOptions->LossFunctionDescription->GetLossFunction()) &&
-        catBoostOptions->ObliviousTreeOptions->LeavesEstimationMethod.NotSet() &&
-        catBoostOptions->ObliviousTreeOptions->LeavesEstimationIterations.NotSet() &&
-        catBoostOptions->ObliviousTreeOptions->L2Reg.NotSet()
-    );
-    if (doUpdateLearningRate) {
-        double a = 0, b = 0, c = 0, d = 0;
-        if (useBestModel) {
-            a = 0.105;
-            b = -3.276;
-            c = -0.428;
-            d = 0.911;
-        } else {
-            a = 0.283;
-            b = -6.044;
-            c = -0.891;
-            d = 2.620;
-        }
-        // TODO(nikitxskv): Don't forget to change formula when add l2-leaf-reg depending on weights.
-        const double customIterationConstant = exp(c * log(iterationCount) + d);
-        const double defaultIterationConstant = exp(c * log(1000) + d);
-        const double defaultLearningRate = exp(a * log(learnObjectCount) + b);
-        learningRate = Min(defaultLearningRate * customIterationConstant / defaultIterationConstant, 0.5);
-        learningRate = Round(learningRate, /*precision=*/6);
-
-        CATBOOST_NOTICE_LOG << "Learning rate set to " << learningRate << Endl;
-    }
-}
-
-void UpdateOneHotMaxSize(
-    ui32 maxCategoricalFeaturesUniqValuesOnLearn,
-    bool hasLearnTarget,
-    NCatboostOptions::TCatBoostOptions* catBoostOptions
-);
-
-void UpdateYetiRankEvalMetric(
-    NCB::TMaybeData<TConstArrayRef<float>> learnTarget,
-    NCB::TMaybeData<TConstArrayRef<float>> testTarget,
-    NCatboostOptions::TCatBoostOptions* catBoostOptions);
-
-inline void SetDataDependentDefaults(
-    ui32 learnPoolSize,
-    NCB::TMaybeData<TConstArrayRef<float>> learnTarget,
-    NCB::TMaybeData<TConstArrayRef<float>> testTarget,
-    ui32 maxCategoricalFeaturesUniqValuesOnLearn,
-    ui32 testPoolSize,
-    bool hasTestPairs,
-    NCatboostOptions::TOption<bool>* useBestModel,
-    NCatboostOptions::TCatBoostOptions* catBoostOptions
-) {
-    UpdateUseBestModel(testPoolSize, testTarget && IsConst(*testTarget), hasTestPairs, useBestModel);
-    UpdateBoostingTypeOption(learnPoolSize, &catBoostOptions->BoostingOptions->BoostingType);
-    UpdateLearningRate(learnPoolSize, useBestModel->Get(), catBoostOptions);
-    UpdateOneHotMaxSize(maxCategoricalFeaturesUniqValuesOnLearn, bool(learnTarget), catBoostOptions);
-    UpdateYetiRankEvalMetric(learnTarget, testTarget, catBoostOptions);
 }

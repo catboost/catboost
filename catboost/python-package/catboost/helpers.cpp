@@ -136,3 +136,19 @@ TVector<double> EvalMetricsForUtils(
     }
     return metricResults;
 }
+
+NJson::TJsonValue GetTrainingOptions(
+    const NJson::TJsonValue& plainJsonParams,
+    const NCB::TDataMetaInfo& trainDataMetaInfo,
+    const TMaybe<NCB::TDataMetaInfo>& testDataMetaInfo
+) {
+    NJson::TJsonValue trainOptionsJson;
+    NJson::TJsonValue outputFilesOptionsJson;
+    NCatboostOptions::PlainJsonToOptions(plainJsonParams, &trainOptionsJson, &outputFilesOptionsJson);
+    NCatboostOptions::TCatBoostOptions catboostOptions(NCatboostOptions::LoadOptions(trainOptionsJson));
+    NCatboostOptions::TOption<bool> useBestModelOption("use_best_model", false);
+    SetDataDependentDefaults(trainDataMetaInfo, testDataMetaInfo, &useBestModelOption, &catboostOptions);
+    NJson::TJsonValue catboostOptionsJson;
+    catboostOptions.Save(&catboostOptionsJson);
+    return catboostOptionsJson;
+}

@@ -10,6 +10,9 @@ _get_roc_curve = _catboost._get_roc_curve
 _select_threshold = _catboost._select_threshold
 
 compute_wx_test = _catboost.compute_wx_test
+TargetStats = _catboost.TargetStats
+DataMetaInfo = _catboost.DataMetaInfo
+compute_training_options = _catboost.compute_training_options
 
 
 @contextmanager
