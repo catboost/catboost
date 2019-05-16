@@ -167,12 +167,12 @@ def size_printer(display_name, size):
     return printer
 
 
-def fetch_url(url, unpack, resource_file_name, expected_md5=None, expected_sha1=None):
+def fetch_url(url, unpack, resource_file_name, expected_md5=None, expected_sha1=None, tries=10):
     logging.info('Downloading from url %s name %s and expected md5 %s', url, resource_file_name, expected_md5)
     tmp_file_name = uniq_string_generator()
 
     request = urllib2.Request(url, headers={'User-Agent': make_user_agent()})
-    req = retry.retry_func(lambda: urllib2.urlopen(request, timeout=30), tries=10, delay=5, backoff=1.57079)
+    req = retry.retry_func(lambda: urllib2.urlopen(request, timeout=30), tries=tries, delay=5, backoff=1.57079)
     logging.debug('Headers: %s', req.headers.headers)
     expected_file_size = int(req.headers['Content-Length'])
     real_md5 = hashlib.md5()
