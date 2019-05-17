@@ -12,11 +12,11 @@
         "uri": "file://test.test_class_names_CPU_/predictions.txt"
     },
     "test.test_class_weights[CPU]": {
-        "checksum": "6d9b3077e77a71c5798c7d1075356f78",
+        "checksum": "c1b930ec7205ba6c8e46d4cbed0dae08",
         "uri": "file://test.test_class_weights_CPU_/model.bin"
     },
     "test.test_classification_ctr[CPU]": {
-        "checksum": "b8f7828fcba976a78d2f1e8182e94ac6",
+        "checksum": "9b717ab8ef9c9643409655a43c09b7a1",
         "uri": "file://test.test_classification_ctr_CPU_/model.bin"
     },
     "test.test_compute_options": {
@@ -24,15 +24,15 @@
         "uri": "file://test.test_compute_options/options.json"
     },
     "test.test_convert_model_to_json[CPU-adult]": {
-        "checksum": "89aa1f7ac8b814975ed16be5350a2e6b",
+        "checksum": "176d2a397a9d82c3f0cfec0971813563",
         "uri": "file://test.test_convert_model_to_json_CPU-adult_/converted_model.bin"
     },
     "test.test_convert_model_to_json[CPU-higgs]": {
-        "checksum": "7f18994b3f41be785e828d650ab39cfa",
+        "checksum": "f33323556c2be44a9349c5cc2b2e823e",
         "uri": "file://test.test_convert_model_to_json_CPU-higgs_/converted_model.bin"
     },
     "test.test_copy_model": {
-        "checksum": "b87b98de9bc6857e77355182048440d8",
+        "checksum": "859921a03c441311dde2fd1cf90bf5cf",
         "uri": "file://test.test_copy_model/model.bin"
     },
     "test.test_coreml_cbm_import_export[CPU]": {
@@ -52,31 +52,31 @@
         "uri": "file://test.test_cpp_export_with_cat_features_CPU_/model.cpp"
     },
     "test.test_ctr_target_border_count[CPU]": {
-        "checksum": "2c34ed9eb8e38113281669681d4b3701",
+        "checksum": "a3c364684e3770637f8508fe6db884ac",
         "uri": "file://test.test_ctr_target_border_count_CPU_/model.bin"
     },
     "test.test_cv[CPU]": {
-        "checksum": "2754ce44cb0d69a74113022444774d4c",
+        "checksum": "f940290135371c2f1dd829570407eb0a",
         "uri": "file://test.test_cv_CPU_/catboost_training.json"
     },
     "test.test_cv_custom_loss[CPU]": {
-        "checksum": "609534e7f3412e7e95c67ddff93a9574",
+        "checksum": "76027d00513c2cd08e3df804e8e4d9b9",
         "uri": "file://test.test_cv_custom_loss_CPU_/catboost_training.json"
     },
     "test.test_cv_logging[CPU]": {
-        "checksum": "d2a8fd5aa6e8993a32576ef364521036",
+        "checksum": "75b76eaf7cde72aac277ec7250097a6e",
         "uri": "file://test.test_cv_logging_CPU_/catboost_training.json"
     },
     "test.test_cv_metric_period[CPU]": {
-        "checksum": "8ff204bbe054b37fa8ba8c34d518de64",
+        "checksum": "936acab4c0c8044266bab7f664672f5f",
         "uri": "file://test.test_cv_metric_period_CPU_/catboost_training.json"
     },
     "test.test_cv_overfitting_detector[CPU-with_metric_period=False]": {
-        "checksum": "389a5dfd57d33e2099286e7ded9260e0",
+        "checksum": "2708bffc8b67533b5078eba8448d6750",
         "uri": "file://test.test_cv_overfitting_detector_CPU-with_metric_period=False_/catboost_training.json"
     },
     "test.test_cv_overfitting_detector[CPU-with_metric_period=True]": {
-        "checksum": "4690c15180cce414330d77fb5ac613b3",
+        "checksum": "4e856adb1b534c61309238d503ab92cc",
         "uri": "file://test.test_cv_overfitting_detector_CPU-with_metric_period=True_/catboost_training.json"
     },
     "test.test_cv_pairs[CPU]": {
@@ -92,15 +92,15 @@
         "uri": "file://test.test_cv_query_CPU_/catboost_training.json"
     },
     "test.test_cv_skip_train[CPU]": {
-        "checksum": "646d2603a4aba661083918c59128b8fa",
+        "checksum": "c2fbabc138ab84eb28355d0500ff53b1",
         "uri": "file://test.test_cv_skip_train_CPU_/catboost_training.json"
     },
     "test.test_cv_skip_train_default[CPU]": {
-        "checksum": "caf38c70fe7bd8ed94d0f948d705c9b2",
+        "checksum": "8d9a92ae97b14865ab783a2aa8c15ea1",
         "uri": "file://test.test_cv_skip_train_default_CPU_/catboost_training.json"
     },
     "test.test_cv_with_not_binarized_target[CPU]": {
-        "checksum": "540d4774ae14efb659136fe04b1223ae",
+        "checksum": "8bf612944f18155e70c59dcd676dbed9",
         "uri": "file://test.test_cv_with_not_binarized_target_CPU_/catboost_training.json"
     },
     "test.test_dataframe_with_pandas_categorical_columns": {
@@ -324,7 +324,7 @@
         "uri": "file://test.test_fit_data_CPU_/predictions.npy"
     },
     "test.test_full_history[CPU]": {
-        "checksum": "ec3da601fac908aa045ec8b8e616d9b5",
+        "checksum": "0f3f2b40ae1e7e343f57bb91e5f4e3b4",
         "uri": "file://test.test_full_history_CPU_/model.bin"
     },
     "test.test_get_evals_result_without_eval_set": {
@@ -336,7 +336,7 @@
         "uri": "file://test.test_get_metric_evals_CPU_/evals.txt"
     },
     "test.test_ignored_features[CPU]": {
-        "checksum": "9944f4f1f599c213895b08ceda67c238",
+        "checksum": "235e26c3568205ea032943d63a212a46",
         "uri": "file://test.test_ignored_features_CPU_/model.bin"
     },
     "test.test_interaction_feature_importance[CPU]": {
@@ -348,11 +348,11 @@
         "uri": "file://test.test_learning_rate_auto_set_CPU_/catboost_training.json"
     },
     "test.test_learning_rate_auto_set_in_cv[CPU]": {
-        "checksum": "ab784b3b206b1ecd7d420602e8973826",
+        "checksum": "fbf4f280577bce5ca54d157ada2f10e0",
         "uri": "file://test.test_learning_rate_auto_set_in_cv_CPU_/catboost_training.json"
     },
     "test.test_metadata": {
-        "checksum": "03ac14166040eb6beba8b263598923da",
+        "checksum": "48278e9667d0e7a1044c601d47a247aa",
         "uri": "file://test.test_metadata/model.bin"
     },
     "test.test_multiclass[CPU]": {
@@ -376,7 +376,7 @@
         "uri": "file://test.test_multiclass_custom_class_labels_from_files_CPU_/predictions.txt"
     },
     "test.test_non_ones_weight[CPU]": {
-        "checksum": "f64211bdcb79ad43d67997918891522b",
+        "checksum": "0929aa4eb9699c598adcc0448360de9f",
         "uri": "file://test.test_non_ones_weight_CPU_/model.bin"
     },
     "test.test_ntree_limit[CPU]": {
@@ -388,23 +388,23 @@
         "uri": "file://test.test_object_importances_CPU_/object_importances.txt"
     },
     "test.test_od[CPU]": {
-        "checksum": "6e667a138cd6f9cc76a3971d858bb629",
+        "checksum": "5480b3857bdb2c8c9f16fc1c6b21cc4e",
         "uri": "file://test.test_od_CPU_/model.bin"
     },
     "test.test_ones_weight[CPU]": {
-        "checksum": "aefac8f37c3ec37a37b9b874319822e3",
+        "checksum": "683d4653d16a5a246ea02bcf55e8afa2",
         "uri": "file://test.test_ones_weight_CPU_/model.bin"
     },
     "test.test_onnx_export[binclass]": {
-        "checksum": "d1ce434e5a172bb14cefe97c15e0f2f9",
+        "checksum": "f5279292655d93fffee12a4a3453a315",
         "uri": "file://test.test_onnx_export_binclass_/model.onnx"
     },
     "test.test_onnx_export[multiclass]": {
-        "checksum": "117f2302b3caa5f787e88c8dacfbadd6",
+        "checksum": "121b0f70e53d64e03f3e0bc7eae4eff5",
         "uri": "file://test.test_onnx_export_multiclass_/model.onnx"
     },
     "test.test_onnx_export[regression]": {
-        "checksum": "60e4c5eeac0d3129cdf33d843e560242",
+        "checksum": "fc6bcef856e9f0a5fd3828ed376a13e0",
         "uri": "file://test.test_onnx_export_regression_/model.onnx"
     },
     "test.test_pairs_generation[CPU]": {
@@ -428,23 +428,23 @@
         "uri": "file://test.test_predict_class_raw_CPU_/predictions.npy"
     },
     "test.test_predict_regress[CPU]": {
-        "checksum": "c4ceab8415b1258298e2801ad9d22aa1",
+        "checksum": "98307e15804271360b90b39c26cd5c57",
         "uri": "file://test.test_predict_regress_CPU_/model.bin"
     },
     "test.test_predict_sklearn_class[CPU]": {
-        "checksum": "3f440dd4836615bf677250bc2e785ac1",
+        "checksum": "0efde8052fa1376a25668f3f3354f8de",
         "uri": "file://test.test_predict_sklearn_class_CPU_/model.bin"
     },
     "test.test_predict_sklearn_regress[CPU]": {
-        "checksum": "2ac026f08e7d398a6609438a2ceac9f7",
+        "checksum": "3b1197fa542f14c04d887175a41d1eeb",
         "uri": "file://test.test_predict_sklearn_regress_CPU_/model.bin"
     },
     "test.test_priors[CPU]": {
-        "checksum": "3ff8c4b19bb6a204f7d994a58d3f14f8",
+        "checksum": "37a22cb7a110c09c23d40f89657a4400",
         "uri": "file://test.test_priors_CPU_/model.bin"
     },
     "test.test_regression_ctr[CPU]": {
-        "checksum": "717e0bc38611db750c22fd93e73e41fd",
+        "checksum": "c61f8478fa2d28ce3d6a5dfa610f06b7",
         "uri": "file://test.test_regression_ctr_CPU_/model.bin"
     },
     "test.test_roc[CPU-iterations=20]": [
@@ -469,7 +469,7 @@
     ],
     "test.test_roc_cv[CPU]": [
         {
-            "checksum": "a1c1e805f2845d3328b85e6b54bd9349",
+            "checksum": "53255e4eec196005f98421ee822f0c5a",
             "uri": "file://test.test_roc_cv_CPU_/out_roc"
         }
     ],
@@ -532,7 +532,7 @@
         "uri": "file://test.test_verbose_int_CPU-True_/catboost_training.json"
     },
     "test.test_zero_baseline[CPU]": {
-        "checksum": "527ea31bf150ef226d417abee1bdbe22",
+        "checksum": "c59e4fbd41df9d4289da6348dbd022d8",
         "uri": "file://test.test_zero_baseline_CPU_/model.bin"
     }
 }

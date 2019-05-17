@@ -61,6 +61,7 @@ _configure_malloc = _catboost._configure_malloc
 CatBoostError = _catboost.CatBoostError
 _metric_description_or_str_to_str = _catboost._metric_description_or_str_to_str
 is_classification_objective = _catboost.is_classification_objective
+is_cv_stratified_objective = _catboost.is_cv_stratified_objective
 is_regression_objective = _catboost.is_regression_objective
 _PreprocessParams = _catboost._PreprocessParams
 _check_train_params = _catboost._check_train_params
@@ -3265,7 +3266,7 @@ def train(pool=None, params=None, dtrain=None, logging_level=None, verbose=None,
 
 def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=None,
        fold_count=None, nfold=None, inverted=False, partition_random_seed=0, seed=None,
-       shuffle=True, logging_level=None, stratified=False, as_pandas=True, metric_period=None,
+       shuffle=True, logging_level=None, stratified=None, as_pandas=True, metric_period=None,
        verbose=None, verbose_eval=None, plot=False, early_stopping_rounds=None,
        save_snapshot=None, snapshot_file=None, snapshot_interval=None, max_time_spent_on_fixed_cost_ratio=0.05,
        dev_max_iterations_batch_size=100000):
@@ -3322,8 +3323,8 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
             - 'Info'
             - 'Debug'
 
-    stratified : bool, optional (default=False)
-        Perform stratified sampling.
+    stratified : bool, optional (default=None)
+        Perform stratified sampling. True for classification and False otherwise.
 
     as_pandas : bool, optional (default=True)
         Return pd.DataFrame when pandas is installed.
@@ -3440,6 +3441,10 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
         fold_count = nfold
     else:
         assert nfold is None or nfold == fold_count
+
+    if stratified is None:
+        loss_function = params.get('loss_function', None)
+        stratified = isinstance(loss_function, STRING_TYPES) and is_cv_stratified_objective(loss_function)
 
     if 'cat_features' in params:
         cat_feature_indices_from_params = _get_cat_features_indices(params['cat_features'], pool.get_feature_names())

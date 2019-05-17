@@ -151,6 +151,15 @@ bool IsClassificationObjective(const TStringBuf lossDescription) {
     return IsClassificationObjective(lossType);
 }
 
+bool IsCvStratifiedObjective(const TStringBuf lossDescription) {
+    ELossFunction lossFunction = ParseLossType(lossDescription);
+    return (
+        lossFunction == ELossFunction::Logloss ||
+        lossFunction == ELossFunction::MultiClass ||
+        lossFunction == ELossFunction::MultiClassOneVsAll
+    );
+}
+
 bool IsRegressionObjective(ELossFunction lossFunction) {
     return (lossFunction == ELossFunction::MAE ||
             lossFunction == ELossFunction::MAPE ||

@@ -579,6 +579,7 @@ cdef extern from "catboost/libs/algo/tree_print.h":
 
 cdef extern from "catboost/libs/options/enum_helpers.h":
     cdef bool_t IsClassificationObjective(const TString& lossFunction) nogil except +ProcessException
+    cdef bool_t IsCvStratifiedObjective(const TString& lossFunction) nogil except +ProcessException
     cdef bool_t IsRegressionObjective(const TString& lossFunction) nogil except +ProcessException
 
 cdef extern from "catboost/libs/metrics/metric.h":
@@ -3237,6 +3238,10 @@ cpdef compute_wx_test(baseline, test):
 
 cpdef is_classification_objective(loss_name):
     return IsClassificationObjective(to_arcadia_string(loss_name))
+
+
+cpdef is_cv_stratified_objective(loss_name):
+    return IsCvStratifiedObjective(to_arcadia_string(loss_name))
 
 
 cpdef is_regression_objective(loss_name):
