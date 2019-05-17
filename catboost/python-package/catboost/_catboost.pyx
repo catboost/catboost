@@ -942,6 +942,37 @@ cdef _3d_vector_of_double_to_np_array(TVector[TVector[TVector[double]]]& vectors
                 result[i][j][k] = vectors[i][j][k]
     return result
 
+cdef _vector_of_uints_to_np_array(TVector[ui32]& vec):
+    result = np.empty(vec.size(), dtype=np.uint32)
+    for i in xrange(vec.size()):
+        result[i] = vec[i]
+    return result
+
+cdef _vector_of_uints_to_2d_np_array(TVector[ui32]& vec, int row_count, int column_count):
+    assert vec.size() == row_count * column_count
+    result = np.empty((row_count, column_count), dtype=np.uint32)
+    for row_num in xrange(row_count):
+        for col_num in xrange(column_count):
+            result[row_num][col_num] = vec[row_num * column_count + col_num]
+    return result
+
+cdef _vector_of_floats_to_np_array(TVector[float]& vec):
+    result = np.empty(vec.size(), dtype=_npfloat32)
+    for i in xrange(vec.size()):
+        result[i] = vec[i]
+    return result
+
+cdef _vector_of_size_t_to_np_array(TVector[size_t]& vec):
+    result = np.empty(vec.size(), dtype=np.uint32)
+    for i in xrange(vec.size()):
+        result[i] = vec[i]
+    return result
+
+cdef _vector_of_ui8_to_np_array(TVector[ui8]& vec):
+    result = np.empty(vec.size(), dtype=np.uint8)
+    for i in xrange(vec.size()):
+        result[i] = vec[i]
+    return result
 
 cdef class _FloatArrayWrapper:
     cdef const float* _arr
@@ -2692,14 +2723,14 @@ cdef class _CatBoost:
             PyPredictionType(predictionType).predictionType)
 
         return {
-            'Borders': res.Borders,
-            'BinarizedFeature': res.BinarizedFeature,
-            'MeanTarget': res.MeanTarget,
-            'MeanPrediction': res.MeanPrediction,
-            'ObjectsPerBin': res.ObjectsPerBin,
-            'Target': res.Target,
-            'Prediction': _vector_of_double_to_np_array(res.Prediction),
-            'PredictionsOnVaryingFeature': _vector_of_double_to_np_array(res.PredictionsOnVaryingFeature)
+            'borders': _vector_of_floats_to_np_array(res.Borders),
+            'binarized_feature': _vector_of_ui8_to_np_array(res.BinarizedFeature),
+            'mean_target': _vector_of_floats_to_np_array(res.MeanTarget),
+            'mean_prediction': _vector_of_floats_to_np_array(res.MeanPrediction),
+            'objects_per_bin': _vector_of_size_t_to_np_array(res.ObjectsPerBin),
+            'target': _vector_of_floats_to_np_array(res.Target),
+            'prediction': _vector_of_double_to_np_array(res.Prediction),
+            'predictions_on_varying_feature': _vector_of_double_to_np_array(res.PredictionsOnVaryingFeature)
         }
 
 

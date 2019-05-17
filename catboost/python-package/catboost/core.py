@@ -1938,7 +1938,8 @@ class CatBoost(_CatBoostBase):
             self._init_params[key] = value
         return self
 
-    def get_binarized_statistics(self, data, target, feature, prediction_type=None):
+    def get_binarized_statistics(self, data, target, feature, prediction_type=None, plot=False):4
+        data, _ = self._process_predict_input_data(data, "calc_leaf_indexes")
         data = Pool(data, target)
         if prediction_type is None:
             if isinstance(self, CatBoostClassifier):
@@ -1959,17 +1960,11 @@ class CatBoost(_CatBoostBase):
             raise CatBoostError('Unknown prediction type "{}"'.format(prediction_type))
 
         res = self._object._get_binarized_statistics(data, feature, prediction_type)
-        return {
-            'Borders': np.array(res['Borders'], dtype=np.float64),
-            'BinarizedFeature': res['BinarizedFeature'],
-            'MeanTarget': np.array(res['MeanTarget'], dtype=np.float64),
-            'MeanPrediction': np.array(res['MeanPrediction'], dtype=np.float64),
-            'ObjectsPerBin': np.array(res['ObjectsPerBin'], dtype=np.int32),
-            'Target': np.array(res['Target'], dtype=np.float64),
-            'Prediction': res['Prediction'],
-            'PredictionsOnVaryingFeature': res['PredictionsOnVaryingFeature']
-        }
 
+        if plot:
+            _plot_binarized_feature_statistics(res, feature)
+
+        return res
 
 
 class CatBoostClassifier(CatBoost):
@@ -3358,12 +3353,17 @@ def sum_models(models, weights=None, ctr_merge_policy='IntersectingCountersAvera
     return result
 
 
-def plot_binarized_feature_statistics(statistics, feature_num):
-    import plotly.graph_objs as go
+def _plot_binarized_feature_statistics(statistics, feature_num):
+    try:
+        import plotly.graph_objs as go
+        from plotly.offline import iplot
+    except ImportError as e:
+        warnings.warn("To draw binarized feature statistics you should install plotly.")
+        raise ImportError(str(e))
 
     trace_1 = go.Scatter(
-        x=statistics['Borders'],
-        y=statistics['MeanTarget'],
+        x=statistics['borders'],
+        y=statistics['mean_target'],
         mode='lines+markers',
         name='Mean target',
         yaxis='y1',
@@ -3371,8 +3371,8 @@ def plot_binarized_feature_statistics(statistics, feature_num):
     )
 
     trace_2 = go.Scatter(
-        x=statistics['Borders'],
-        y=statistics['MeanPrediction'],
+        x=statistics['borders'],
+        y=statistics['mean_prediction'],
         mode='lines+markers',
         name='Mean prediction',
         yaxis='y1',
@@ -3380,8 +3380,8 @@ def plot_binarized_feature_statistics(statistics, feature_num):
     )
 
     trace_3 = go.Scatter(
-        x=statistics['Borders'],
-        y=statistics['ObjectsPerBin'],
+        x=statistics['borders'],
+        y=statistics['objects_per_bin'],
         mode='markers',
         name='Objects per bin',
         yaxis='y2',
@@ -3389,8 +3389,8 @@ def plot_binarized_feature_statistics(statistics, feature_num):
     )
 
     trace_4 = go.Scatter(
-        x=statistics['Borders'],
-        y=statistics['PredictionsOnVaryingFeature'],
+        x=statistics['borders'],
+        y=statistics['predictions_on_varying_feature'],
         mode='lines+markers',
         name='Predictions for different feature values',
         yaxis='y3',
@@ -3425,4 +3425,4 @@ def plot_binarized_feature_statistics(statistics, feature_num):
     )
 
     fig = go.Figure(data=data, layout=layout)
-    return fig
+    iplot(fig)
