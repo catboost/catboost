@@ -8,20 +8,22 @@
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/model/formula_evaluator.h>
 #include <catboost/libs/target/data_providers.h>
+
 #include <util/generic/vector.h>
 
-struct TBinarizedFloatFeatureStatistics {
-    TVector<float> Borders;
-    TVector<ui8> BinarizedFeature;
-    TVector<float> MeanTarget;
-    TVector<float> MeanPrediction;
-    TVector<size_t> ObjectsPerBin;
-    TVector<float> Target;          // for debugging,
-    TVector<double> Prediction;     // will remove in further versions
-    TVector<double> PredictionsOnVaryingFeature;
-};
 
 namespace NCB {
+
+    struct TBinarizedFloatFeatureStatistics {
+        TVector<float> Borders;
+        TVector<ui8> BinarizedFeature;
+        TVector<float> MeanTarget;
+        TVector<float> MeanPrediction;
+        TVector<size_t> ObjectsPerBin;
+        TVector<float> Target;          // for debugging,
+        TVector<double> Prediction;     // will remove in further versions
+        TVector<double> PredictionsOnVaryingFeature;
+    };
 
     void GetPredictionsOnVaryingFeature(
         const TFullModel& model,
@@ -31,6 +33,7 @@ namespace NCB {
         TDataProvider& dataProvider,
         TVector<double>* predictions,
         NPar::TLocalExecutor* executor) {
+
         TRawDataProvider rawDataProvider(
             std::move(dataProvider.MetaInfo),
             std::move(dynamic_cast<TRawObjectsDataProvider*>(dataProvider.ObjectsData.Get())),
@@ -80,6 +83,7 @@ namespace NCB {
         TDataProvider& dataset,
         const size_t featureNum,
         const EPredictionType predictionType) {
+
         NPar::TLocalExecutor executor;
         TRestorableFastRng64 rand(0);
 
@@ -89,11 +93,11 @@ namespace NCB {
 
         TMaybeData<TConstArrayRef<float>> targetData = CreateModelCompatibleProcessedDataProvider(
                 dataset, {}, model, &rand, &executor).TargetData->GetTarget();
-        CB_ENSURE(targetData);
+        CB_ENSURE_INTERNAL(targetData, "No target found in pool");
         TVector<float> target(targetData.GetRef().begin(), targetData.GetRef().end());
 
         auto objectsPtr = dynamic_cast<TRawObjectsDataProvider*>(dataset.ObjectsData.Get());
-        CB_ENSURE(objectsPtr);
+        CB_ENSURE_INTERNAL(objectsPtr, "Zero pointer to raw objects");
         TRawObjectsDataProviderPtr rawObjectsDataProviderPtr(objectsPtr);
 
         TVector<ui32> ignoredFeatureNums;
@@ -130,9 +134,9 @@ namespace NCB {
             &executor);
 
         TMaybeData<const IQuantizedFloatValuesHolder*> feature = ptr->GetFloatFeature(featureNum);
-        CB_ENSURE(feature);
+        CB_ENSURE_INTERNAL(feature, "Float feature #" << featureNum << " not found");
         const TQuantizedFloatValuesHolder* values = dynamic_cast<const TQuantizedFloatValuesHolder*>(feature.GetRef());
-        CB_ENSURE(values);
+        CB_ENSURE_INTERNAL(values, "Cannot access values of float feature #" << featureNum);
         TArrayRef extractedValues = *(values->ExtractValues(&executor));
         TVector<ui8> binNums(extractedValues.begin(), extractedValues.end());
 

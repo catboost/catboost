@@ -1339,7 +1339,7 @@ class CatBoost(_CatBoostBase):
                          column_description, verbose_eval, metric_period, silent, early_stopping_rounds,
                          save_snapshot, snapshot_file, snapshot_interval)
 
-    def _process_predict_input_data(self, data, parent_method_name):
+    def _process_predict_input_data(self, data, parent_method_name, label=None):
         if not self.is_fitted() or self.tree_count_ is None:
             raise CatBoostError(("There is no trained model to use {}(). "
                                  "Use fit() to train model. Then use this method.").format(parent_method_name))
@@ -1347,6 +1347,7 @@ class CatBoost(_CatBoostBase):
         if not isinstance(data, Pool):
             data = Pool(
                 data=[data] if is_single_object else data,
+                label=label,
                 cat_features=self._get_cat_feature_indices() if not isinstance(data, FeaturesData) else None
             )
         return data, is_single_object
@@ -2060,9 +2061,9 @@ class CatBoost(_CatBoostBase):
             self._init_params[key] = value
         return self
 
-    def get_binarized_statistics(self, data, target, feature, prediction_type=None, plot=False):4
-        data, _ = self._process_predict_input_data(data, "calc_leaf_indexes")
-        data = Pool(data, target)
+    def get_binarized_statistics(self, data, target, feature, prediction_type=None, plot=False):
+        data, _ = self._process_predict_input_data(data, "get_binarized_statistics", target)
+
         if prediction_type is None:
             if isinstance(self, CatBoostClassifier):
                 prediction_type = prediction_type or 'Probability'

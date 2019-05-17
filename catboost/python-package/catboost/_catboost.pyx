@@ -916,7 +916,7 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
     ) nogil except +ProcessException
 
 
-cdef extern from "catboost/libs/quantized_pool_analysis/quantized_pool_analysis.h":
+cdef extern from "catboost/libs/quantized_pool_analysis/quantized_pool_analysis.h" namespace "NCB":
     cdef cppclass TBinarizedFloatFeatureStatistics:
         TVector[float] Borders
         TVector[ui8] BinarizedFeature
@@ -926,11 +926,12 @@ cdef extern from "catboost/libs/quantized_pool_analysis/quantized_pool_analysis.
         TVector[float] Target
         TVector[double] Prediction
         TVector[double] PredictionsOnVaryingFeature
+
     cdef TBinarizedFloatFeatureStatistics GetBinarizedStatistics(
         const TFullModel& model,
         TDataProvider& dataset,
         const size_t featureNum,
-        const EPredictionType predictionType)
+        const EPredictionType predictionType) nogil except +ProcessException
 
 
 cdef inline float _FloatOrNan(object obj) except *:
