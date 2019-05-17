@@ -9,9 +9,9 @@
     "detailed_profile" : false,
     "boosting_options" : {
         "fold_len_multiplier" : 2,
-        "data_partition" : "FeatureParallel",
+        "data_partition" : "DocParallel",
         "fold_permutation_block" : 64,
-        "boosting_type" : "Ordered",
+        "boosting_type" : "Plain",
         "iterations" : 10,
         "od_config" : {
             "wait_iterations" : 20,
@@ -79,7 +79,7 @@
         ],
         "counter_calc_method" : "SkipTest",
         "one_hot_max_size" : 2,
-        "max_ctr_complexity" : 4,
+        "max_ctr_complexity" : 1,
         "combinations_ctrs" : [
             {
                 "ctr_binarization" : {
@@ -152,7 +152,7 @@
         "max_leaves" : 64,
         "rsm" : 1,
         "random_strength" : 1,
-        "leaf_estimation_iterations" : 10,
+        "leaf_estimation_iterations" : 1,
         "score_function" : "Correlation",
         "max_ctr_complexity_for_borders_cache" : 1,
         "leaf_estimation_backtracking" : "AnyImprovement",

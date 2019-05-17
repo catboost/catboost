@@ -962,6 +962,8 @@ def test_overfit_detector_with_resume_from_snapshot(boosting_type, overfitting_d
         '-n', '8',
         '-w', '0.5',
         '--rsm', '1',
+        '--leaf-estimation-iterations', '10',
+        '--max-ctr-complexity', '4',
         '--snapshot-file', snapshot_path,
         '--od-type', overfitting_detector_type
     )
@@ -6597,6 +6599,9 @@ def test_gradient_walker():
         '-T', '4',
         '--eval-file', output_eval_path,
         '--use-best-model', 'false',
+        '--boosting-type', 'Ordered',
+        '--max-ctr-complexity', '4',
+        '--leaf-estimation-iterations', '10',
         '--leaf-estimation-backtracking', 'AnyImprovement',
     )
     yatest.common.execute(cmd)
@@ -6707,6 +6712,7 @@ def test_mvs_bootstrap_head_frac(boosting_type):
             '-w', '0.03',
             '-T', '6',
             '-r', '0',
+            '--leaf-estimation-iterations', '10',
             '--eval-file', eval_path,
         ]
         yatest.common.execute(cmd)

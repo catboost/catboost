@@ -3241,7 +3241,9 @@ def test_overfit_detector_with_resume_from_snapshot_and_metric_period(boosting_t
                 thread_count=4,
                 learning_rate=0.2,
                 od_type=overfitting_detector_type,
-                metric_period=metric_period
+                metric_period=metric_period,
+                leaf_estimation_iterations=10,
+                max_ctr_complexity=4,
             )
             if overfitting_detector_type == 'IncToDec':
                 model.set_params(od_wait=OD_WAIT, od_pval=0.5)
@@ -3395,6 +3397,9 @@ def test_use_last_testset_for_best_iteration():
         'iterations': 100,
         'loss_function': metric,
         'random_seed': 6,
+        'leaf_estimation_iterations': 10,
+        'max_ctr_complexity': 4,
+        'boosting_type': 'Ordered',
     }
 
     model = CatBoostClassifier(**args)
@@ -4346,6 +4351,7 @@ def test_eval_features_with_file_header():
 def test_compute_options():
     data_meta_info = DataMetaInfo(
         object_count=100000,
+        feature_count=10,
         max_cat_features_uniq_values_on_learn=0,
         target_stats=TargetStats(min_value=0, max_value=1),
         has_pairs=False

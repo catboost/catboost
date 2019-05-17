@@ -564,6 +564,10 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
     if (DataProcessingOptions->HasTimeFlag) {
         BoostingOptions->PermutationCount = 1;
     }
+
+    if (CatFeatureParams->MaxTensorComplexity.NotSet() && IsSmallIterationCount(BoostingOptions->IterationCount)) {
+        CatFeatureParams->MaxTensorComplexity = 1;
+    }
 }
 
 static TVector<ui32> GetIndices(const NJson::TJsonValue& catBoostJsonOptions, const TString& key, const TString& subKey) {

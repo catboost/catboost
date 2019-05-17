@@ -32,7 +32,7 @@ from libcpp.pair cimport pair
 from util.generic.array_ref cimport TArrayRef, TConstArrayRef
 from util.generic.hash cimport THashMap
 from util.generic.maybe cimport TMaybe
-from util.generic.ptr cimport THolder, TIntrusivePtr
+from util.generic.ptr cimport THolder, TIntrusivePtr, MakeHolder
 from util.generic.string cimport TString, TStringBuf
 from util.generic.vector cimport TVector
 from util.system.types cimport ui8, ui32, ui64, i64
@@ -150,12 +150,13 @@ cdef extern from "catboost/libs/data_new/features_layout.h" namespace "NCB":
 
     cdef cppclass TFeaturesLayout:
         TFeaturesLayout() except +ProcessException
+        TFeaturesLayout(const ui32 featureCount) except +ProcessException
         TFeaturesLayout(
             const ui32 featureCount,
             const TVector[ui32]& catFeatureIndices,
             const TVector[ui32]& textFeatureIndices,
             const TVector[TString]& featureId,
-        )  except +ProcessException
+        ) except +ProcessException
 
         TConstArrayRef[TFeatureMetaInfo] GetExternalFeaturesMetaInfo() except +ProcessException
         TVector[TString] GetExternalFeatureIds() except +ProcessException
@@ -3286,6 +3287,7 @@ cdef class DataMetaInfo:
     def __init__(
         self,
         ui64 object_count,
+        ui32 feature_count,
         ui64 max_cat_features_uniq_values_on_learn,
         TargetStats target_stats,
         bool_t has_pairs
@@ -3295,6 +3297,7 @@ cdef class DataMetaInfo:
         if target_stats is not None:
             self.DataMetaInfo.TargetStats = target_stats.TargetStats
         self.DataMetaInfo.HasPairs = has_pairs
+        self.DataMetaInfo.FeaturesLayout = MakeHolder[TFeaturesLayout](feature_count).Release()
 
 
 @cython.embedsignature(True)

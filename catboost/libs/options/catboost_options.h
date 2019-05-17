@@ -81,6 +81,10 @@ namespace NCatboostOptions {
     TCatBoostOptions LoadOptions(const NJson::TJsonValue& source);
 
     bool IsParamsCompatible(TStringBuf firstSerializedParams, TStringBuf secondSerializedParams);
+
+    constexpr bool IsSmallIterationCount(ui32 iterationCount) {
+        return iterationCount < 200;
+    }
 }
 
 using TCatboostOptions = NCatboostOptions::TCatBoostOptions;
