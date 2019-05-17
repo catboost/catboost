@@ -98,7 +98,7 @@ static void UpdateUseBestModel(bool hasTest, bool hasTestConstTarget, bool hasTe
         *useBestModel = true;
     }
     if (!hasTest && *useBestModel) {
-        CATBOOST_WARNING_LOG << "You should provide test set for use best model. use_best_model parameter swiched to false value." << Endl;
+        CATBOOST_WARNING_LOG << "You should provide test set for use best model. use_best_model parameter has been switched to false value." << Endl;
         *useBestModel = false;
     }
 }
