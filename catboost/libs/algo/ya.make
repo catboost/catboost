@@ -35,6 +35,7 @@ SRCS(
     rand_score.cpp
     score_bin.cpp
     score_calcer.cpp
+    short_vector_ops.cpp
     split.cpp
     target_classifier.cpp
     tensor_search_helpers.cpp

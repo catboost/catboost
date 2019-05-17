@@ -1,14 +1,19 @@
 #include "online_ctr.h"
-#include "index_hash_calcer.h"
+
 #include "fold.h"
+#include "index_hash_calcer.h"
 #include "learn_context.h"
 #include "score_calcer.h"
 #include "tree_print.h"
 
+#include <catboost/libs/helpers/array_subset.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/mem_usage.h>
 #include <catboost/libs/helpers/resource_constrained_executor.h>
+#include <catboost/libs/model/ctr_value_table.h>
 #include <catboost/libs/model/model.h>
+
+#include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/bitops.h>
 #include <util/generic/utility.h>
@@ -33,7 +38,8 @@ struct TCtrCalcer {
         return (T*)Storage.data();
     }
     static inline TArrayRef<TCtrMeanHistory> GetCtrMeanHistoryArr(size_t maxCount) {
-        return TArrayRef<TCtrMeanHistory>(FastTlsSingleton<TCtrCalcer>()->Alloc<TCtrMeanHistory>(maxCount), maxCount);
+        return TArrayRef<TCtrMeanHistory>(
+            FastTlsSingleton<TCtrCalcer>()->Alloc<TCtrMeanHistory>(maxCount), maxCount);
     }
     static inline TArrayRef<TCtrHistory> GetCtrHistoryArr(size_t maxCount) {
         return TArrayRef<TCtrHistory>(FastTlsSingleton<TCtrCalcer>()->Alloc<TCtrHistory>(maxCount), maxCount);
@@ -56,6 +62,7 @@ public:
     TBucketsView(size_t maxElem, size_t borderCount)
         : MaxElem(maxElem)
         , BorderCount(borderCount) {
+
         Data = FastTlsSingleton<TCtrCalcer>()->Alloc<int>(MaxElem * (BorderCount + 1));
         BucketData = Data + MaxElem;
     }
@@ -733,8 +740,7 @@ static ui64 EstimateCalcFinalCtrsCpuRamUsage(
 
 
     ui64 indexBucketsRamLimit = (sizeof(NCatboost::TBucket) *
-         NCatboost::TDenseIndexHashBuilder::GetProperBucketsCount(reindexHashAfterComputeSizeLimit)
-    );
+         NCatboost::TDenseIndexHashBuilder::GetProperBucketsCount(reindexHashAfterComputeSizeLimit));
 
     // CalcFinalCtrsImplstage 2
     ui64 buildingHashIndexRamLimit = reindexHashAfterComputeRamLimit + indexBucketsRamLimit;
@@ -759,7 +765,6 @@ static ui64 EstimateCalcFinalCtrsCpuRamUsage(
 
 void CalcFinalCtrsAndSaveToModel(
     ui64 cpuRamLimit,
-    NPar::TLocalExecutor& localExecutor,
     const THashMap<TFeatureCombination, TProjection>& featureCombinationToProjectionMap,
     const TDatasetDataForFinalCtrs& datasetDataForFinalCtrs,
     const NCB::TPerfectHashedToHashedCatValuesMap& perfectHashedToHashedCatValuesMap,
@@ -767,7 +772,8 @@ void CalcFinalCtrsAndSaveToModel(
     bool storeAllSimpleCtrs,
     ECounterCalc counterCalcMethod,
     const TVector<TModelCtrBase>& usedCtrBases,
-    std::function<void(TCtrValueTable&& table)>&& asyncCtrValueTableCallback) {
+    std::function<void(TCtrValueTable&& table)>&& asyncCtrValueTableCallback,
+    NPar::TLocalExecutor* localExecutor) {
 
     CATBOOST_DEBUG_LOG << "Started parallel calculation of " << usedCtrBases.size() << " unique ctrs" << Endl;
 
@@ -776,8 +782,7 @@ void CalcFinalCtrsAndSaveToModel(
     if (datasetDataForFinalCtrs.LearnPermutation) {
         permutedLearnFeaturesSubsetIndexing = Compose(
             datasetDataForFinalCtrs.Data.Learn->ObjectsData->GetFeaturesArraySubsetIndexing(),
-            **datasetDataForFinalCtrs.LearnPermutation
-        );
+            **datasetDataForFinalCtrs.LearnPermutation);
         learnFeaturesSubsetIndexing = &*permutedLearnFeaturesSubsetIndexing;
     } else {
         learnFeaturesSubsetIndexing =
@@ -790,11 +795,10 @@ void CalcFinalCtrsAndSaveToModel(
 
     {
         NCB::TResourceConstrainedExecutor finalCtrExecutor(
-            localExecutor,
+            *localExecutor,
             "CPU RAM",
             cpuRamLimit - Min(cpuRamLimit, cpuRamUsage),
-            true
-        );
+            true);
 
         const auto& layout = *datasetDataForFinalCtrs.Data.Learn->MetaInfo.FeaturesLayout;
 
@@ -810,11 +814,10 @@ void CalcFinalCtrsAndSaveToModel(
                 ctrLeafCountLimit,
                 storeAllSimpleCtrs,
                 counterCalcMethod,
-                &resTable
-            );
+                &resTable);
             resTable.ModelCtrBase = ctr;
             CATBOOST_DEBUG_LOG << "Finished CTR: " << ctr.CtrType << " "
-                                << BuildDescription(layout, ctr.Projection) << Endl;
+                << BuildDescription(layout, ctr.Projection) << Endl;
             return resTable;
         };
 

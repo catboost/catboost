@@ -1475,7 +1475,7 @@
         },
         "ymake": {
             "formula": {
-                "sandbox_id": [412040512],
+                "sandbox_id": [430339409],
                 "match": "ymake"
             },
             "executable": {
@@ -1511,7 +1511,7 @@
         },
         "arc": {
             "formula": {
-                "sandbox_id": [413571119],
+                "sandbox_id": [428782499],
                 "match": "arc"
             },
             "executable": {
@@ -1520,7 +1520,7 @@
         },
         "yo": {
             "formula": {
-                "sandbox_id": [401268832, 401268847],
+                "sandbox_id": [430422445, 430422496],
                 "match": "yo"
             },
             "executable": {
@@ -1529,7 +1529,7 @@
         },
         "tvmknife": {
             "formula": {
-                "sandbox_id": [394817777],
+                "sandbox_id": [426691166],
                 "match": "tvmknife"
             },
             "executable": {
@@ -1643,7 +1643,7 @@
         },
         "clang7": {
             "formula": {
-                "sandbox_id": [315520088, 290144580],
+                "sandbox_id": [426097867, 425919040],
                 "match": "CLANG"
             },
             "executable": {
@@ -1706,12 +1706,12 @@
                 "cc": ["bin", "clang"],
                 "llvm-cov": ["bin", "llvm-cov"],
                 "strip": ["bin", "arm-linux-androideabi-strip"],
-                "c++filt": ["bin", "arm-linux-androidabi-c++filt"],
+                "c++filt": ["bin", "arm-linux-androideabi-c++filt"],
                 "clang-format": ["bin", "clang-format"],
                 "clang-tidy": ["bin", "clang-tidy"],
                 "llvm-profdata": ["bin", "llvm-profdata"],
                 "llvm-symbolizer": ["bin", "llvm-symbolizer"],
-                "nm": ["bin", "arm-linux-androidabi-nm"]
+                "nm": ["bin", "arm-linux-androideabi-nm"]
             }
         },
         "clang6-android-armv8": {
@@ -1723,13 +1723,13 @@
                 "c++": ["bin", "clang++"],
                 "cc": ["bin", "clang"],
                 "llvm-cov": ["bin", "llvm-cov"],
-                "strip": ["bin", "aarch64-linux-androideabi-strip"],
-                "c++filt": ["bin", "aarch64-linux-androidabi-c++filt"],
+                "strip": ["bin", "aarch64-linux-android-strip"],
+                "c++filt": ["bin", "aarch64-linux-android-c++filt"],
                 "clang-format": ["bin", "clang-format"],
                 "clang-tidy": ["bin", "clang-tidy"],
                 "llvm-profdata": ["bin", "llvm-profdata"],
                 "llvm-symbolizer": ["bin", "llvm-symbolizer"],
-                "nm": ["bin", "aarch64-linux-androidabi-nm"]
+                "nm": ["bin", "aarch64-linux-android-nm"]
             }
         },
         "cuda": {
@@ -1908,7 +1908,7 @@
         },
         "samogonctl": {
             "formula": {
-                "sandbox_id": 410806334,
+                "sandbox_id": 421882980,
                 "match": "SAMOGONCTL"
             },
             "executable": {
@@ -1984,7 +1984,7 @@
         },
         "yp-util": {
             "formula": {
-                "sandbox_id":  [413413694],
+                "sandbox_id":  [430985072],
                 "match": "yp_util"
             },
             "executable": {
@@ -2002,7 +2002,7 @@
         },
         "dctl": {
             "formula": {
-                "sandbox_id":  [414346940],
+                "sandbox_id":  [429107236],
                 "match": "dctl"
             },
             "executable": {
@@ -2265,7 +2265,7 @@
         },
         "horadric":{
             "formula": {
-                "sandbox_id": 392844084,
+                "sandbox_id": 415739617,
                 "match": "horadric"
             },
             "executable": {
@@ -2292,7 +2292,7 @@
         },
         "python3": {
             "formula": {
-                "sandbox_id": 320165094,
+                "sandbox_id": 422563749,
                 "match": "python3"
             },
             "executable": {

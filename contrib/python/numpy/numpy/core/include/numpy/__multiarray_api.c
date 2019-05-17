@@ -304,5 +304,8 @@ void *PyArray_API[] = {
         (void *) PyArray_ArgPartition,
         (void *) PyArray_SelectkindConverter,
         (void *) PyDataMem_NEW_ZEROED,
-        (void *) PyArray_CheckAnyScalarExact
+        (void *) PyArray_CheckAnyScalarExact,
+        (void *) PyArray_MapIterArrayCopyIfOverlap,
+        (void *) PyArray_ResolveWritebackIfCopy,
+        (void *) PyArray_SetWritebackIfCopyBase
 };

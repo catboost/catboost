@@ -16,8 +16,8 @@ import shutil
 import itertools
 import functools
 
-import six
-from six.moves import http_client, urllib
+from setuptools.extern import six
+from setuptools.extern.six.moves import http_client, urllib
 
 from pkg_resources import iter_entry_points
 from .upload import upload
@@ -57,7 +57,6 @@ class upload_docs(upload):
         self.target_dir = None
 
     def finalize_options(self):
-        log.warn("Upload_docs command is deprecated. Use RTD instead.")
         upload.finalize_options(self)
         if self.upload_dir is None:
             if self.has_sphinx():
@@ -69,6 +68,8 @@ class upload_docs(upload):
         else:
             self.ensure_dirname('upload_dir')
             self.target_dir = self.upload_dir
+        if 'pypi.python.org' in self.repository:
+            log.warn("Upload_docs command is deprecated. Use RTD instead.")
         self.announce('Using upload directory %s' % self.target_dir)
 
     def create_zipfile(self, filename):

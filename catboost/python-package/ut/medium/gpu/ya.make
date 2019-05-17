@@ -23,7 +23,8 @@ TEST_SRCS(
 
 NO_CHECK_IMPORTS(widget.ipythonwidget)
 
-SIZE(MEDIUM)
+SIZE(LARGE)
+TAG(ya:fat)
 
 DATA(
     arcadia/catboost/pytest/data
@@ -31,7 +32,6 @@ DATA(
 )
 
 DEPENDS(
-    catboost/tools/limited_precision_json_diff
     catboost/tools/model_comparator
     catboost/python-package/catboost
     catboost/python-package/ut/medium/python_binary

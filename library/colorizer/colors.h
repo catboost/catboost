@@ -5,6 +5,7 @@
 #include <util/generic/string.h>
 #include <util/generic/strbuf.h>
 
+#include <cstdio>
 
 namespace NColorizer {
     /**

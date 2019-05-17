@@ -197,6 +197,7 @@ Y_UNIT_TEST_SUITE(TrainModelTests) {
                     metaInfo.FeaturesLayout = MakeIntrusive<TFeaturesLayout>(
                         numericFeatureCount,
                         TVector<ui32>{},
+                        TVector<ui32>{},
                         TVector<TString>{});
 
                     visitor->Start(metaInfo, objectCount, EObjectsOrder::Undefined, {});

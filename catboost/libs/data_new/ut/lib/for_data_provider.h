@@ -20,7 +20,7 @@
 namespace NCB {
     namespace NDataNewUT {
 
-    template <class TGroupIdData, class TSubgroupIdData, class TFloatFeature, class TCatFeature>
+    template <class TGroupIdData, class TSubgroupIdData, class TFloatFeature, class TCatFeature, class TTextFeature>
     struct TExpectedCommonObjectsData {
         EObjectsOrder Order = EObjectsOrder::Undefined;
 
@@ -31,6 +31,7 @@ namespace NCB {
 
         TVector<TMaybe<TVector<TFloatFeature>>> FloatFeatures;
         TVector<TMaybe<TVector<TCatFeature>>> CatFeatures;
+        TVector<TMaybe<TVector<TTextFeature>>> TextFeatures;
     };
 
     /*
@@ -39,12 +40,12 @@ namespace NCB {
      *  CatFeatures will be processed with CalcCatFeatureHash
      */
     struct TExpectedRawObjectsData
-        : public TExpectedCommonObjectsData<TStringBuf, TStringBuf, float, TStringBuf>
+        : public TExpectedCommonObjectsData<TStringBuf, TStringBuf, float, TStringBuf, TStringBuf>
     {};
 
     // TODO(akhropov): quantized pools might have more complicated features data types in the future
     struct TExpectedQuantizedObjectsData
-        : public TExpectedCommonObjectsData<TGroupId, TSubgroupId, ui8, ui32>
+        : public TExpectedCommonObjectsData<TGroupId, TSubgroupId, ui8, ui32, TNothing>
     {
         TQuantizedFeaturesInfoPtr QuantizedFeaturesInfo;
         ui32 MaxCategoricalFeaturesUniqValuesOnLearn = 0;

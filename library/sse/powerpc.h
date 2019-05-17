@@ -34,6 +34,17 @@ using __v16qi = __vector signed char;
 using __v16qu = __vector unsigned char;
 using __v4sf = __vector float;
 
+enum _mm_hint
+{
+  /* _MM_HINT_ET is _MM_HINT_T with set 3rd bit.  */
+  _MM_HINT_ET0 = 7,
+  _MM_HINT_ET1 = 6,
+  _MM_HINT_T0 = 3,
+  _MM_HINT_T1 = 2,
+  _MM_HINT_T2 = 1,
+  _MM_HINT_NTA = 0
+};
+
 #define _MM_SHUFFLE(a, b, c, d) ((signed char)(a * 64 + b * 16 + c * 4 + d))
 
 /// Functions that work with floats.
@@ -132,6 +143,10 @@ Y_FORCE_INLINE __m128 _mm_max_ps(__m128 a, __m128 b) {
     return (__m128)vec_max((vector float)a, (vector float)b);
 }
 
+Y_FORCE_INLINE __m128i _mm_max_epu8(__m128i a, __m128i b) {
+    return (__m128i)vec_max((__v16qu)a, (__v16qu)b);
+}
+
 Y_FORCE_INLINE __m128 _mm_min_ps(__m128 a, __m128 b) {
     return (__m128)vec_min((vector float)a, (vector float)b);
 }
@@ -140,8 +155,8 @@ Y_FORCE_INLINE __m128 _mm_and_ps(__m128 a, __m128 b) {
     return ((__m128)vec_and((__v4sf)a, (__v4sf)b));
 }
 
-Y_FORCE_INLINE __m128d _mm_and_pd(__m128d __A, __m128d __B) {
-    return vec_and((__v2df)__A, (__v2df)__B);
+Y_FORCE_INLINE __m128d _mm_and_pd(__m128d a, __m128d b) {
+    return vec_and((__v2df)a, (__v2df)b);
 }
 
 Y_FORCE_INLINE __m128 _mm_rsqrt_ps(__m128 a) {
@@ -249,6 +264,21 @@ Y_FORCE_INLINE __m128 _mm_shuffle_ps(__m128 a, __m128 b, long shuff) {
     t[0] = permute_selectors[element_selector_76];
 #endif
     return vec_perm((__v4sf)a, (__v4sf)b, (__vector unsigned char)t);
+}
+
+Y_FORCE_INLINE __m128d _mm_shuffle_pd(__m128d a, __m128d b, const int mask) {
+    __vector double result;
+    const int litmsk = mask & 0x3;
+
+    if (litmsk == 0)
+        result = vec_mergeh(a, b);
+    else if (litmsk == 1)
+        result = vec_xxpermdi(a, b, 2);
+    else if (litmsk == 2)
+        result = vec_xxpermdi(a, b, 1);
+    else
+        result = vec_mergel(a, b);
+    return result;
 }
 
 Y_FORCE_INLINE __m128i _mm_cvtps_epi32(__m128 a) {
@@ -360,6 +390,22 @@ Y_FORCE_INLINE __m128i _mm_shuffle_epi32(__m128i op1, long op2) {
 
 Y_FORCE_INLINE int _mm_extract_epi16(__m128i a, int imm) {
     return (unsigned short)((__v8hi)a)[imm & 7];
+}
+
+Y_FORCE_INLINE int _mm_extract_epi8(__m128i a, int imm) {
+    return (unsigned char)((__v16qi)a)[imm & 15];
+}
+
+Y_FORCE_INLINE int _mm_extract_epi32(__m128i a, int imm) {
+    return ((__v4si)a)[imm & 3];
+}
+
+Y_FORCE_INLINE long long _mm_extract_epi64(__m128i a, int imm) {
+    return ((__v2di)a)[imm & 1];
+}
+
+Y_FORCE_INLINE int _mm_extract_ps(__m128 a, int imm) {
+    return ((__v4si)a)[imm & 3];
 }
 
 Y_FORCE_INLINE __m128i _mm_slli_epi16(__m128i a, int count) {
@@ -477,7 +523,7 @@ Y_FORCE_INLINE __m128i _mm_srli_epi64(__m128i a, int count) {
     }
 }
 
-Y_FORCE_INLINE __m128i _mm_bsrli_si128(__m128i __A, const int __N) {
+Y_FORCE_INLINE __m128i _mm_bsrli_si128(__m128i a, const int __N) {
     __v16qu result;
     const __v16qu zeros = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
@@ -486,10 +532,10 @@ Y_FORCE_INLINE __m128i _mm_bsrli_si128(__m128i __A, const int __N) {
             /* Would like to use Vector Shift Left Double by Octet
      Immediate here to use the immediate form and avoid
      load of __N * 8 value into a separate VR.  */
-            result = vec_sld(zeros, (__v16qu)__A, (16 - __N));
+            result = vec_sld(zeros, (__v16qu)a, (16 - __N));
         else {
             __v16qu shift = vec_splats((unsigned char)(__N * 8));
-            result = vec_sro((__v16qu)__A, shift);
+            result = vec_sro((__v16qu)a, shift);
         }
     else
         result = zeros;
@@ -667,6 +713,10 @@ Y_FORCE_INLINE __m128i _mm_unpacklo_epi64(__m128i a, __m128i b) {
     return (__m128i)vec_mergeh((vector long long)a, (vector long long)b);
 }
 
+Y_FORCE_INLINE __m128i _mm_add_epi8(__m128i a, __m128i b) {
+    return (__m128i)((__v16qu)a + (__v16qu)b);
+}
+
 Y_FORCE_INLINE __m128i _mm_add_epi16(__m128i a, __m128i b) {
     return (__m128i)((__v8hu)a + (__v8hu)b);
 }
@@ -684,8 +734,8 @@ Y_FORCE_INLINE __m128i _mm_madd_epi16(__m128i a, __m128i b) {
     return (__m128i)vec_vmsumshm((__v8hi)a, (__v8hi)b, zero);
 }
 
-Y_FORCE_INLINE __m128i _mm_sub_epi8(__m128i __A, __m128i __B) {
-    return (__m128i)((__v16qu)__A - (__v16qu)__B);
+Y_FORCE_INLINE __m128i _mm_sub_epi8(__m128i a, __m128i b) {
+    return (__m128i)((__v16qu)a - (__v16qu)b);
 }
 
 Y_FORCE_INLINE __m128i _mm_sub_epi16(__m128i a, __m128i b) {
@@ -712,12 +762,24 @@ Y_FORCE_INLINE __m128i _mm_set_epi8(char q15, char q14, char q13, char q12, char
     return (__m128i)(__v16qi){q00, q01, q02, q03, q04, q05, q06, q07, q08, q09, q10, q11, q12, q13, q14, q15};
 };
 
+Y_FORCE_INLINE __m128i _mm_setr_epi8(char q15, char q14, char q13, char q12, char q11, char q10, char q09, char q08, char q07, char q06, char q05, char q04, char q03, char q02, char q01, char q00) {
+    return (__m128i)(__v16qi){q15, q14, q13, q12, q11, q10, q09, q08, q07, q06, q05, q04, q03, q02, q01, q00};
+};
+
 Y_FORCE_INLINE __m128i _mm_set_epi16(short q7, short q6, short q5, short q4, short q3, short q2, short q1, short q0) {
     return (__m128i)(__v8hi){q0, q1, q2, q3, q4, q5, q6, q7};
 }
 
+Y_FORCE_INLINE __m128i _mm_setr_epi16(short q7, short q6, short q5, short q4, short q3, short q2, short q1, short q0) {
+    return (__m128i)(__v8hi){q7, q6, q5, q4, q3, q2, q1, q0};
+}
+
 Y_FORCE_INLINE __m128i _mm_set_epi32(int q3, int q2, int q1, int q0) {
     return (__m128i)(__v4si){q0, q1, q2, q3};
+}
+
+Y_FORCE_INLINE __m128i _mm_setr_epi32(int q3, int q2, int q1, int q0) {
+    return (__m128i)(__v4si){q3, q2, q1, q0};
 }
 
 Y_FORCE_INLINE __m128i _mm_set1_epi8(char a) {
@@ -780,6 +842,10 @@ Y_FORCE_INLINE __m128i _mm_loadu_si128(const __m128i* p) {
     return (__m128i)(vec_vsx_ld(0, (signed int const*)p));
 }
 
+Y_FORCE_INLINE __m128i _mm_lddqu_si128(const __m128i* p) {
+    return _mm_loadu_si128(p);
+}
+
 Y_FORCE_INLINE __m128i _mm_loadl_epi64(const __m128i* a) {
 #ifdef __LITTLE_ENDIAN__
     const vector bool long long mask = {
@@ -793,6 +859,30 @@ Y_FORCE_INLINE __m128i _mm_loadl_epi64(const __m128i* a) {
 
 Y_FORCE_INLINE void _mm_storel_epi64(__m128i* a, __m128i b) {
     *(long long*)a = ((__v2di)b)[0];
+}
+
+Y_FORCE_INLINE double _mm_cvtsd_f64(__m128d a) {
+    return ((__v2df)a)[0];
+}
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wuninitialized"
+Y_FORCE_INLINE __m128d _mm_undefined_pd(void) {
+    __m128d ans = ans;
+    return ans;
+}
+#pragma GCC diagnostic pop
+
+Y_FORCE_INLINE __m128d _mm_loadh_pd(__m128d a, const double* b) {
+    __v2df result = (__v2df)a;
+    result[1] = *b;
+    return (__m128d)result;
+}
+
+Y_FORCE_INLINE __m128d _mm_loadl_pd(__m128d a, const double* b) {
+    __v2df result = (__v2df)a;
+    result[0] = *b;
+    return (__m128d)result;
 }
 
 Y_FORCE_INLINE __m128 _mm_castsi128_ps(__m128i a) {
@@ -835,15 +925,15 @@ Y_FORCE_INLINE __m128i _mm_cmplt_epi64(__m128i a, __m128i b) {
     return vec_cmplt((vector signed long long)a, (vector signed long long)b);
 }
 
-Y_FORCE_INLINE __m128i _mm_sad_epu8(__m128i __A, __m128i __B) {
+Y_FORCE_INLINE __m128i _mm_sad_epu8(__m128i A, __m128i B) {
     __v16qu a, b;
     __v16qu vmin, vmax, vabsdiff;
     __v4si vsum;
     const __v4su zero = {0, 0, 0, 0};
     __v4si result;
 
-    a = (__v16qu)__A;
-    b = (__v16qu)__B;
+    a = (__v16qu)A;
+    b = (__v16qu)B;
     vmin = vec_min(a, b);
     vmax = vec_max(a, b);
     vabsdiff = vec_sub(vmax, vmin);
@@ -861,38 +951,50 @@ Y_FORCE_INLINE __m128i _mm_sad_epu8(__m128i __A, __m128i __B) {
     return (__m128i)result;
 }
 
-Y_FORCE_INLINE __m128i _mm_subs_epi8(__m128i __A, __m128i __B) {
-    return (__m128i)vec_subs((__v16qi)__A, (__v16qi)__B);
+Y_FORCE_INLINE __m128i _mm_subs_epi8(__m128i a, __m128i b) {
+    return (__m128i)vec_subs((__v16qi)a, (__v16qi)b);
 }
 
-Y_FORCE_INLINE __m128i _mm_subs_epi16(__m128i __A, __m128i __B) {
-    return (__m128i)vec_subs((__v8hi)__A, (__v8hi)__B);
+Y_FORCE_INLINE __m128i _mm_subs_epi16(__m128i a, __m128i b) {
+    return (__m128i)vec_subs((__v8hi)a, (__v8hi)b);
 }
 
-Y_FORCE_INLINE __m128i _mm_subs_epu8(__m128i __A, __m128i __B) {
-    return (__m128i)vec_subs((__v16qu)__A, (__v16qu)__B);
+Y_FORCE_INLINE __m128i _mm_subs_epu8(__m128i a, __m128i b) {
+    return (__m128i)vec_subs((__v16qu)a, (__v16qu)b);
 }
 
-Y_FORCE_INLINE __m128i _mm_subs_epu16(__m128i __A, __m128i __B) {
-    return (__m128i)vec_subs((__v8hu)__A, (__v8hu)__B);
+Y_FORCE_INLINE __m128i _mm_subs_epu16(__m128i a, __m128i b) {
+    return (__m128i)vec_subs((__v8hu)a, (__v8hu)b);
 }
 
-Y_FORCE_INLINE __m128i _mm_adds_epi8(__m128i __A, __m128i __B) {
-    return (__m128i)vec_adds((__v16qi)__A, (__v16qi)__B);
+Y_FORCE_INLINE __m128i _mm_adds_epi8(__m128i a, __m128i b) {
+    return (__m128i)vec_adds((__v16qi)a, (__v16qi)b);
 }
 
-Y_FORCE_INLINE __m128i _mm_adds_epi16(__m128i __A, __m128i __B) {
-    return (__m128i)vec_adds((__v8hi)__A, (__v8hi)__B);
+Y_FORCE_INLINE __m128i _mm_adds_epi16(__m128i a, __m128i b) {
+    return (__m128i)vec_adds((__v8hi)a, (__v8hi)b);
 }
 
-Y_FORCE_INLINE __m128i _mm_adds_epu8(__m128i __A, __m128i __B) {
-    return (__m128i)vec_adds((__v16qu)__A, (__v16qu)__B);
+Y_FORCE_INLINE __m128i _mm_adds_epu8(__m128i a, __m128i b) {
+    return (__m128i)vec_adds((__v16qu)a, (__v16qu)b);
 }
 
-Y_FORCE_INLINE __m128i _mm_adds_epu16(__m128i __A, __m128i __B) {
-    return (__m128i)vec_adds((__v8hu)__A, (__v8hu)__B);
+Y_FORCE_INLINE __m128i _mm_adds_epu16(__m128i a, __m128i b) {
+    return (__m128i)vec_adds((__v8hu)a, (__v8hu)b);
 }
 
-Y_FORCE_INLINE __m128d _mm_castsi128_pd(__m128i __A) {
-    return (__m128d)__A;
+Y_FORCE_INLINE __m128d _mm_castsi128_pd(__m128i a) {
+    return (__m128d)a;
+}
+
+Y_FORCE_INLINE void _mm_prefetch(const void *p, enum _mm_hint) {
+    __builtin_prefetch(p);
+}
+
+Y_FORCE_INLINE __m128i _mm_hadd_epi16(__m128i a, __m128i b) {
+    const __v16qu p = {  0,  1,  4,  5,  8,  9, 12, 13, 16, 17, 20, 21, 24, 25, 28, 29 };
+    const __v16qu q = {  2,  3,  6,  7, 10, 11, 14, 15, 18, 19, 22, 23, 26, 27, 30, 31 };
+    __v8hi c = vec_perm((__v8hi)a, (__v8hi)b, p);
+    __v8hi d = vec_perm((__v8hi)a, (__v8hi)b, q);
+    return (__m128i)vec_add(c, d);
 }

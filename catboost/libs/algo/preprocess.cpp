@@ -3,7 +3,9 @@
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/permutation.h>
 #include <catboost/libs/helpers/progress_helper.h>
-#include <catboost/libs/options/defaults_helper.h>
+#include <catboost/libs/helpers/restorable_rng.h>
+#include <catboost/libs/options/catboost_options.h>
+#include <catboost/libs/options/output_file_options.h>
 #include <catboost/libs/loggers/catboost_logger_helpers.h>
 #include <catboost/libs/logging/logging.h>
 
@@ -16,9 +18,11 @@
 using namespace NCB;
 
 
-static void CheckTestBaseline(TMaybeData<TConstArrayRef<TConstArrayRef<float>>> trainBaseline,
-                              TMaybeData<TConstArrayRef<TConstArrayRef<float>>> testBaseline,
-                              size_t testIdx) {
+static void CheckTestBaseline(
+    TMaybeData<TConstArrayRef<TConstArrayRef<float>>> trainBaseline,
+    TMaybeData<TConstArrayRef<TConstArrayRef<float>>> testBaseline,
+    size_t testIdx) {
+
     size_t testDocs = testBaseline ? (*testBaseline)[0].size() : 0;
     if (trainBaseline) {
         CB_ENSURE(testBaseline, "Baseline for test is not provided");
@@ -43,36 +47,46 @@ void CheckConsistency(const TTrainingDataProviders& data) {
     }
 }
 
-void UpdateUndefinedRandomSeed(ETaskType taskType,
-                               const NCatboostOptions::TOutputFilesOptions& outputOptions,
-                               NJson::TJsonValue* updatedJsonParams,
-                               std::function<void(TIFStream*, TString&)> paramsLoader) {
-    const TString snapshotFilename = TOutputFiles::AlignFilePath(outputOptions.GetTrainDir(), outputOptions.GetSnapshotFilename(), /*namePrefix=*/"");
+void UpdateUndefinedRandomSeed(
+    ETaskType taskType,
+    const NCatboostOptions::TOutputFilesOptions& outputOptions,
+    NJson::TJsonValue* updatedJsonParams,
+    std::function<void(TIFStream*, TString&)> paramsLoader) {
+
+    const TString snapshotFilename = TOutputFiles::AlignFilePath(
+        outputOptions.GetTrainDir(),
+        outputOptions.GetSnapshotFilename(),
+        /*namePrefix=*/ ""
+    );
     if (outputOptions.SaveSnapshot() && NFs::Exists(snapshotFilename)) {
         TString serializedTrainParams;
         NJson::TJsonValue restoredJsonParams;
         try {
-            TProgressHelper(ToString(taskType)).CheckedLoad(snapshotFilename, [&](TIFStream* inputStream) {
-                paramsLoader(inputStream, serializedTrainParams);
-            });
+            TProgressHelper(ToString(taskType)).CheckedLoad(
+                snapshotFilename,
+                [&](TIFStream* inputStream) {
+                    paramsLoader(inputStream, serializedTrainParams);
+                }
+            );
             ReadJsonTree(serializedTrainParams, &restoredJsonParams);
             CB_ENSURE(restoredJsonParams.Has("random_seed"), "Snapshot is broken.");
         } catch (const TCatBoostException&) {
             throw;
         } catch (...) {
             CATBOOST_WARNING_LOG << "Can't load progress from snapshot file: " << snapshotFilename <<
-                    " Exception: " << CurrentExceptionMessage() << Endl;
+                " Exception: " << CurrentExceptionMessage() << Endl;
             return;
         }
 
-        if (!(*updatedJsonParams)["flat_params"].Has("random_seed") && !restoredJsonParams["flat_params"].Has("random_seed")) {
+        if (!(*updatedJsonParams)["flat_params"].Has("random_seed") &&
+            !restoredJsonParams["flat_params"].Has("random_seed"))
+        {
             (*updatedJsonParams)["random_seed"] = restoredJsonParams["random_seed"];
         }
     }
 }
 
-void UpdateUndefinedClassNames(const TVector<TString>& classNames,
-                               NJson::TJsonValue* updatedJsonParams) {
+void UpdateUndefinedClassNames(const TVector<TString>& classNames, NJson::TJsonValue* updatedJsonParams) {
     if (!updatedJsonParams->Has("data_processing_options")) {
         updatedJsonParams->InsertValue("data_processing_options", NJson::TJsonValue());
     }
@@ -86,9 +100,10 @@ void UpdateUndefinedClassNames(const TVector<TString>& classNames,
 }
 
 
-TDataProviderPtr ReorderByTimestampLearnDataIfNeeded(const NCatboostOptions::TCatBoostOptions& catBoostOptions,
-                                                     TDataProviderPtr learnData,
-                                                     NPar::TLocalExecutor* localExecutor) {
+TDataProviderPtr ReorderByTimestampLearnDataIfNeeded(
+    const NCatboostOptions::TCatBoostOptions& catBoostOptions,
+    TDataProviderPtr learnData,
+    NPar::TLocalExecutor* localExecutor) {
 
     if (catBoostOptions.DataProcessingOptions->HasTimeFlag &&
         learnData->MetaInfo.HasTimestamp &&
@@ -117,22 +132,18 @@ TDataProviderPtr ReorderByTimestampLearnDataIfNeeded(const NCatboostOptions::TCa
 }
 
 
-static bool NeedShuffle(const ui32 catFeatureCount,
-                        const ui32 docCount,
-                        const NCatboostOptions::TCatBoostOptions& catBoostOptions) {
+static bool NeedShuffle(ui32 catFeatureCount, const NCatboostOptions::TCatBoostOptions& catBoostOptions) {
     if (catBoostOptions.DataProcessingOptions->HasTimeFlag) {
         return false;
     }
+
     // TODO(akhropov): make it universal ?
     if (catBoostOptions.GetTaskType() == ETaskType::CPU) {
         return true;
     }
 
     if (catFeatureCount == 0) {
-        auto boostingType = catBoostOptions.BoostingOptions->BoostingType;
-        UpdateBoostingTypeOption(docCount,
-                                 &boostingType);
-        if (boostingType ==  EBoostingType::Ordered) {
+        if (catBoostOptions.BoostingOptions->BoostingType ==  EBoostingType::Ordered) {
             return true;
         } else {
             return false;
@@ -142,18 +153,16 @@ static bool NeedShuffle(const ui32 catFeatureCount,
     }
 }
 
-TDataProviderPtr ShuffleLearnDataIfNeeded(const NCatboostOptions::TCatBoostOptions& catBoostOptions,
-                                          TDataProviderPtr learnData,
-                                          NPar::TLocalExecutor* localExecutor,
-                                          TRestorableFastRng64* rand) {
+TTrainingDataProviderPtr ShuffleLearnDataIfNeeded(
+    const NCatboostOptions::TCatBoostOptions& catBoostOptions,
+    TTrainingDataProviderPtr learnData,
+    NPar::TLocalExecutor* localExecutor,
+    TRestorableFastRng64* rand) {
 
-    if (NeedShuffle(
-            learnData->MetaInfo.FeaturesLayout->GetCatFeatureCount(),
-            learnData->ObjectsData->GetObjectCount(),
-            catBoostOptions))
-    {
+    if (NeedShuffle(learnData->MetaInfo.FeaturesLayout->GetCatFeatureCount(), catBoostOptions)) {
         auto objectsGroupingSubset = NCB::Shuffle(learnData->ObjectsGrouping, 1, rand);
         return learnData->GetSubset(objectsGroupingSubset, localExecutor);
     }
+
     return learnData;
 }

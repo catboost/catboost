@@ -44,4 +44,12 @@ RECURSE(
     feature_estimator
     text_features
     text_features/ut
+    train_interface
 )
+
+# TODO(noxoomo): return when cuda 10 will be default
+#IF (HAVE_CUDA)
+#    RECURSE(
+    cuda_wrappers
+)
+#ENDIF()

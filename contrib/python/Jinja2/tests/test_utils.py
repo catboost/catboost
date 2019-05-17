@@ -54,7 +54,7 @@ class TestHelpers(object):
             pass
         assert object_type_repr(42) == 'int object'
         assert object_type_repr([]) == 'list object'
-        assert object_type_repr(X()) == 'test_utils.X object'
+        assert object_type_repr(X()) == '__tests__.test_utils.X object'
         assert object_type_repr(None) == 'None'
         assert object_type_repr(Ellipsis) == 'Ellipsis'
 

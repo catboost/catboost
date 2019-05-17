@@ -5,7 +5,7 @@
 #include <util/generic/xrange.h>
 #include <util/stream/file.h>
 #include <util/string/builder.h>
-#include <util/string/iterator.h>
+#include <util/string/split.h>
 #include <util/system/mem_info.h>
 
 #if defined(_linux_) || defined(_darwin_)

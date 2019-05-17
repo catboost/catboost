@@ -42,12 +42,28 @@ def on_go_process_srcs(unit):
         if not f.endswith('_test.go'):
             ymake.report_configure_error('file {} should not be listed in GO_TEST_SRCS() or GO_XTEST_SRCS() macros'.format(f))
 
+    resolved_go_files = []
+    for path in go_files + go_test_files + go_xtest_files:
+        if path.endswith(".go"):
+            resolved = unit.resolve_arc_path([path])
+            if resolved != path and not resolved.startswith("$S/vendor") and not resolved.startswith("$S/contrib"):
+                resolved_go_files.append(resolved)
+    if resolved_go_files:
+        basedirs = {}
+        for f in resolved_go_files:
+            basedir = os.path.dirname(f)
+            if basedir not in basedirs:
+                basedirs[basedir] = []
+            basedirs[basedir].append(f)
+        for basedir in basedirs:
+            unit.onadd_check(["gofmt"] + basedirs[basedir])
+
     go_std_root = unit.get('GOSTD') + os.path.sep
 
     proto_files = filter(lambda x: x.endswith('.proto'), go_files)
     if len(proto_files) > 0:
         for f in proto_files:
-            unit.ongo_proto_cmd(f)
+            unit.on_go_proto_cmd(f)
 
     in_files = filter(lambda x: x.endswith('.in'), go_files)
     if len(in_files) > 0:
@@ -57,7 +73,7 @@ def on_go_process_srcs(unit):
     if compare_versions('1.12', unit.get('GOSTD_VERSION')) >= 0:
         asm_files = filter(lambda x: x.endswith('.s'), go_files)
         if len(asm_files) > 0:
-            unit.ongo_compile_symabis(asm_files)
+            unit.on_go_compile_symabis(asm_files)
 
     s_files = filter(lambda x: x.endswith('.S'), go_files)
     c_files = filter(lambda x: x.endswith('.c'), go_files)
@@ -76,10 +92,10 @@ def on_go_process_srcs(unit):
         import_runtime_cgo = 'false' if import_path in [runtime_cgo_path, runtime_msan_path, runtime_race_path] else 'true'
         import_syscall = 'false' if import_path == runtime_cgo_path else 'true'
         args = [import_path] + cgo_files + ['FLAGS', '-import_runtime_cgo=' + import_runtime_cgo, '-import_syscall=' + import_syscall]
-        unit.ongo_compile_cgo1(args)
+        unit.on_go_compile_cgo1(args)
         args = [unit.get('GO_PACKAGE_VALUE') or unit.get('MODULE_TYPE') == 'PROGRAM' and 'main' or unit.get('REALPRJNAME')] + cgo_files
         if len(c_files) > 0:
             args += ['C_FILES'] + c_files
         if len(s_files) > 0:
             args += ['S_FILES'] + s_files
-        unit.ongo_compile_cgo2(args)
+        unit.on_go_compile_cgo2(args)

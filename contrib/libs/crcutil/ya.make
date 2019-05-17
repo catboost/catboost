@@ -15,11 +15,21 @@ IF (GCC AND USE_LTO)
 ENDIF ()
 
 IF (ARCH_I386 OR ARCH_X86_64)
-    IF (OS_LINUX OR OS_DARWIN OR OS_IOS OR OS_FREEBSD OR CYGWIN)
+    IF (OS_WINDOWS)
+        SRCS(multiword_64_64_cl_i386_mmx.cc)
+    ELSEIF(OS_ANDROID AND ARCH_I386)
+        # 32-bit Android has some problems with register allocation, so we fall back to default implementation
+    ELSE()
         IF (CLANG)
             CFLAGS(
                 -DCRCUTIL_USE_MM_CRC32=1
             )
+            IF (ARCH_I386)
+                # clang doesn't support this as optimization attribute and has problems with register allocation
+                SRC(multiword_64_64_gcc_i386_mmx.cc -fomit-frame-pointer)
+            ELSE()
+                SRCS(multiword_64_64_gcc_i386_mmx.cc)
+            ENDIF()
         ELSE()
             CFLAGS(
                 -mcrc32 -DCRCUTIL_USE_MM_CRC32=1
@@ -29,13 +39,6 @@ IF (ARCH_I386 OR ARCH_X86_64)
         SRCS(
             multiword_128_64_gcc_amd64_sse2.cc
             multiword_64_64_gcc_amd64_asm.cc
-            multiword_64_64_gcc_i386_mmx.cc
-        )
-    ENDIF()
-
-    IF (OS_WINDOWS)
-        SRCS(
-            multiword_64_64_cl_i386_mmx.cc
         )
     ENDIF()
 ENDIF ()

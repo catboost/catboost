@@ -189,6 +189,7 @@
 #define HAVE_CSQRTL 1
 #define HAVE_CTANL 1
 #define HAVE_CTANHL 1
+#define HAVE_XLOCALE_H 1
 #define NPY_RESTRICT __restrict__
 #define HAVE_LDOUBLE_INTEL_EXTENDED_16_BYTES_LE 1
 #ifndef __cplusplus

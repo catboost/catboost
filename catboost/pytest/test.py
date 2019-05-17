@@ -1,10 +1,9 @@
 import yatest.common
-from yatest.common import network, ExecutionTimeoutError, ExecutionError
+from yatest.common import ExecutionTimeoutError, ExecutionError
 import pytest
 import os
 import filecmp
 import numpy as np
-import time
 import timeit
 import json
 
@@ -20,6 +19,7 @@ from catboost_pytest_lib import (
     local_canonical_file,
     permute_dataset_columns,
     remove_time_from_json,
+    execute_dist_train,
 )
 
 CATBOOST_PATH = yatest.common.binary_path("catboost/app/catboost")
@@ -754,6 +754,30 @@ def test_yetirank_pairwise(dev_score_calc_obj_block_size):
     yatest.common.execute(cmd)
 
     return [local_canonical_file(output_eval_path)]
+
+
+@pytest.mark.parametrize('loss_function', ('YetiRank', 'YetiRankPairwise'))
+def test_yetirank_default_metric(loss_function):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    test_error_path = yatest.common.test_output_path('test_error.tsv')
+
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', loss_function,
+        '--has-header',
+        '-f', data_file('black_friday', 'train'),
+        '-t', data_file('black_friday', 'test'),
+        '--column-description', data_file('black_friday', 'cd'),
+        '--model-file', output_model_path,
+        '--boosting-type', 'Plain',
+        '-i', '5',
+        '-T', '4',
+        '--test-err-log', test_error_path,
+    )
+    yatest.common.execute(cmd)
+
+    return [local_canonical_file(test_error_path)]
 
 
 NAN_MODE = ['Min', 'Max']
@@ -2286,7 +2310,8 @@ def test_regularization(boosting_type, dev_score_calc_obj_block_size):
     return [local_canonical_file(output_eval_path)]
 
 
-REG_LOSS_FUNCTIONS = ['RMSE', 'MAE', 'Lq:q=1', 'Lq:q=1.5', 'Lq:q=3', 'Quantile', 'LogLinQuantile', 'Poisson', 'MAPE']
+REG_LOSS_FUNCTIONS = ['RMSE', 'MAE', 'Lq:q=1', 'Lq:q=1.5', 'Lq:q=3', 'Quantile', 'LogLinQuantile', 'Poisson', 'MAPE',
+                      'Huber:delta=1.0']
 
 
 @pytest.mark.parametrize('loss_function', REG_LOSS_FUNCTIONS)
@@ -4019,27 +4044,6 @@ def make_deterministic_train_cmd(loss_function, pool, train, test, cd, schema=''
     if dev_score_calc_obj_block_size:
         cmd += ('--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size)
     return cmd + other_options
-
-
-def execute_dist_train(cmd):
-    hosts_path = yatest.common.test_output_path('hosts.txt')
-    with network.PortManager() as pm:
-        port0 = pm.get_port()
-        port1 = pm.get_port()
-        with open(hosts_path, 'w') as hosts:
-            hosts.write('localhost:' + str(port0) + '\n')
-            hosts.write('localhost:' + str(port1) + '\n')
-
-        worker0 = yatest.common.execute((CATBOOST_PATH, 'run-worker', '--node-port', str(port0),), wait=False)
-        worker1 = yatest.common.execute((CATBOOST_PATH, 'run-worker', '--node-port', str(port1),), wait=False)
-        while pm.is_port_free(port0) or pm.is_port_free(port1):
-            time.sleep(1)
-
-        yatest.common.execute(
-            cmd + ('--node-type', 'Master', '--file-with-hosts', hosts_path,)
-        )
-        worker0.wait()
-        worker1.wait()
 
 
 def run_dist_train(cmd, output_file_switch='--eval-file'):
@@ -6005,25 +6009,6 @@ def test_extra_commas(metric):
             yatest.common.execute(cmd)
 
 
-def test_output_params():
-    output_options_path = 'training_options.json'
-    train_dir = 'catboost_info'
-    cmd = (
-        CATBOOST_PATH,
-        'fit',
-        '-f', data_file('adult', 'train_small'),
-        '-t', data_file('adult', 'test_small'),
-        '--column-description', data_file('adult', 'train.cd'),
-        '-i', '5',
-        '-T', '4',
-        '--train-dir', train_dir,
-        '--training-options-file', output_options_path,
-    )
-    yatest.common.execute(cmd)
-
-    return [local_canonical_file(os.path.join(train_dir, output_options_path))]
-
-
 def execute_fit_for_test_quantized_pool(loss_function, pool_path, test_path, cd_path, eval_path,
                                         border_count=128, other_options=()):
     model_path = yatest.common.test_output_path('model.bin')
@@ -6452,6 +6437,70 @@ def test_apply_on_different_pool_type():
     assert filecmp.cmp(output_eval_path, output_quantized_eval_path)
 
 
+def test_apply_output_column_by_idx():
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+
+    learn = data_file('black_friday', 'train')
+    test = data_file('black_friday', 'test')
+    cd = data_file('black_friday', 'cd')
+
+    cmd = (
+        CATBOOST_PATH, 'fit',
+        '--use-best-model', 'false',
+        '--loss-function', 'RMSE',
+        '--learn-set', learn,
+        '--test-set', test,
+        '--column-description', cd,
+        '-i', '10',
+        '-T', '4',
+        '--model-file', output_model_path,
+        '--has-header'
+    )
+    yatest.common.execute(cmd)
+
+    column_names = [
+        'User_ID',
+        'Product_ID',
+        'Gender',
+        'Age',
+        'Occupation',
+        'City_Category',
+        'Stay_In_Current_City_Years',
+        'Marital_Status',
+        'Product_Category_1',
+        'Product_Category_2',
+        'Product_Category_3',
+        'Purchase'
+    ]
+    output_columns = ','.join(['#{}:{}'.format(idx, name) for idx, name in enumerate(column_names)])
+    output_columns = 'RawFormulaVal,' + output_columns
+
+    cmd = (
+        CATBOOST_PATH, 'calc',
+        '--input-path', test,
+        '--column-description', cd,
+        '--model-file', output_model_path,
+        '--output-path', output_eval_path,
+        '--output-columns', output_columns,
+        '--has-header'
+    )
+    yatest.common.execute(cmd)
+
+    with open(output_eval_path, 'r') as f:
+        eval_lines = f.readlines()
+    with open(test, 'r') as f:
+        test_lines = f.readlines()
+
+    assert len(eval_lines) == len(test_lines)
+    for i in range(len(eval_lines)):
+        eval_line = eval_lines[i].split('\t')[1:]  # skip RawFormulaVal
+        test_line = test_lines[i].split('\t')
+
+        for eval_column, test_column in zip(eval_line, test_line):
+            assert eval_column == test_column
+
+
 @pytest.mark.parametrize(
     'dataset_name,loss_function,has_pairs,has_group_weights',
     [
@@ -6698,3 +6747,23 @@ def test_simple_ctr():
     ))
 
     return [local_canonical_file(output_eval_path)]
+
+
+def test_output_options():
+    output_options_path = 'training_options.json'
+    train_dir = 'catboost_info'
+
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'Logloss',
+        '-f', data_file('adult', 'train_small'),
+        '-t', data_file('adult', 'test_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '-i', '10',
+        '-T', '4',
+        '--train-dir', train_dir,
+        '--training-options-file', output_options_path,
+    )
+    yatest.common.execute(cmd)
+    return local_canonical_file(os.path.join(train_dir, output_options_path))

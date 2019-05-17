@@ -3,6 +3,8 @@
 #include <catboost/libs/data_new/load_data.h>
 #include <catboost/libs/quantization/grid_creator.h>
 #include <catboost/libs/algo/data.h>
+#include <catboost/libs/labels/label_converter.h>
+#include <catboost/libs/options/catboost_options.h>
 
 #include <catboost/libs/helpers/cpu_random.h>
 #include <util/stream/str.h>

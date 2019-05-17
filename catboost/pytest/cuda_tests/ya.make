@@ -14,12 +14,13 @@ DEPENDS(
     catboost/tools/limited_precision_dsv_diff
 )
 
-SIZE(MEDIUM)
+SIZE(LARGE)
+TAG(ya:fat)
 REQUIREMENTS(network:full)
 
 IF(AUTOCHECK)
     FORK_SUBTESTS()
-    SPLIT_FACTOR(20)
+    SPLIT_FACTOR(120)
 ENDIF()
 
 PEERDIR(

@@ -1,5 +1,4 @@
-#pragma once
-
+// from CPython
 #ifndef Py_OSDEFS_H
 #define Py_OSDEFS_H
 #ifdef __cplusplus

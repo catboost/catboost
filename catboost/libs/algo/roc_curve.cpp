@@ -1,9 +1,13 @@
 #include "roc_curve.h"
+
 #include "apply.h"
 
 #include <catboost/libs/eval_result/eval_helpers.h>
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/model/model.h>
 #include <catboost/libs/target/data_providers.h>
+
+#include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/array_ref.h>
@@ -103,7 +107,9 @@ void TRocCurve::BuildCurve(
         );
     }
 
-    Sort(probabilitiesWithTargets.begin(), probabilitiesWithTargets.end(),
+    Sort(
+        probabilitiesWithTargets.begin(),
+        probabilitiesWithTargets.end(),
         [](const TClassWithProbability& element1, const TClassWithProbability& element2) {
             return element1.Probability > element2.Probability;
         }
@@ -118,8 +124,9 @@ void TRocCurve::BuildCurve(
     for (size_t pointIdx = 0; pointIdx < allDocumentsCount - 1; ++pointIdx) {
         ++countTargetsIntermediate[probabilitiesWithTargets[pointIdx].ClassId];
 
-        double boundary = 0.5 * (probabilitiesWithTargets[pointIdx].Probability
-                               + probabilitiesWithTargets[pointIdx + 1].Probability);
+        double boundary
+            = 0.5 * (probabilitiesWithTargets[pointIdx].Probability
+                + probabilitiesWithTargets[pointIdx + 1].Probability);
 
         if (probabilitiesWithTargets[pointIdx + 1].Probability
             < (probabilitiesWithTargets[pointIdx].Probability - EPS))

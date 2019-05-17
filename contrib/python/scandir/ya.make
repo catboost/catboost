@@ -1,6 +1,8 @@
-LIBRARY()
+PY_LIBRARY()
 
-USE_PYTHON()
+VERSION(1.10)
+
+LICENSE(BSD)
 
 NO_WERROR()
 NO_WSHADOW()
@@ -20,6 +22,16 @@ PY_SRCS(
     scandir.py
 )
 
+RESOURCE_FILES(
+    PREFIX contrib/python/scandir/
+    .dist-info/METADATA
+    .dist-info/top_level.txt
+)
+
 NO_LINT()
 
 END()
+
+RECURSE_FOR_TESTS(
+    tests
+)

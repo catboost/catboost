@@ -2,13 +2,9 @@
 
 PY23_LIBRARY()
 
-VERSION(0.23)
+VERSION(1.1.1)
 
-LICENSE(
-    BSD3
-)
-
-NO_LINT()
+LICENSE(BSD3)
 
 PY_SRCS(
     TOP_LEVEL
@@ -18,4 +14,10 @@ PY_SRCS(
     markupsafe/_native.py
 )
 
+NO_LINT()
+
 END()
+
+RECURSE_FOR_TESTS(
+    tests
+)

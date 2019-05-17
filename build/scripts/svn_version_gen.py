@@ -49,6 +49,8 @@ def print_java_footer(result):
 
 def print_go_header(result):
     result.write('\n'.join([
+        '// +build arcadia',
+        '',
         'package buildinfo',
         '',
         'var buildinfo = map[string]string{',

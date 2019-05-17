@@ -613,6 +613,10 @@ public:
         return Ops_->SendV(Fd_, parts, count);
     }
 
+    inline void Close() {
+        Fd_.Close();
+    }
+
 private:
     TSocketHolder Fd_;
     TOps* Ops_;
@@ -884,6 +888,10 @@ ssize_t TSocket::Recv(void* buf, size_t len) {
 
 ssize_t TSocket::SendV(const TPart* parts, size_t count) {
     return Impl_->SendV(parts, count);
+}
+
+void TSocket::Close() {
+    Impl_->Close();
 }
 
 TSocketInput::TSocketInput(const TSocket& s) noexcept

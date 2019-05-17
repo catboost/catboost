@@ -227,7 +227,7 @@ class TerminalWriter(object):
             # i.e.    2 + 2*len(sepchar)*N + len(title) <= fullwidth
             #         2*len(sepchar)*N <= fullwidth - len(title) - 2
             #         N <= (fullwidth - len(title) - 2) // (2*len(sepchar))
-            N = (fullwidth - len(title) - 2) // (2*len(sepchar))
+            N = max((fullwidth - len(title) - 2) // (2*len(sepchar)), 1)
             fill = sepchar * N
             line = "%s %s %s" % (fill, title, fill)
         else:

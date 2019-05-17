@@ -6,7 +6,7 @@
 
 #include <util/generic/xrange.h>
 #include <util/string/cast.h>
-#include <util/string/iterator.h>
+#include <util/string/split.h>
 #include <util/system/byteorder.h>
 #include <util/system/unaligned_mem.h>
 

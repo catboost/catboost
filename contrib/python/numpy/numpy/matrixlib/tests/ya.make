@@ -11,10 +11,13 @@ PEERDIR(
 )
 
 TEST_SRCS(
-    test_regression.py
     test_defmatrix.py
-    test_numeric.py
+    test_interaction.py
+    test_masked_matrix.py
+    test_matrix_linalg.py
     test_multiarray.py
+    test_numeric.py
+    test_regression.py
 )
 
 END()

@@ -223,7 +223,7 @@ if _PY3:
         if isinstance(val, bytes):
             return _bytes_to_ascii(val)
         else:
-            return val.encode("unicode_escape").decode("ascii")
+            return val
 
 
 else:

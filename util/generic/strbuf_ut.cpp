@@ -315,7 +315,7 @@ Y_UNIT_TEST_SUITE(TStrBufTest) {
     template <class T>
     void PassByConstReference(const T& val) {
         // In https://st.yandex-team.ru/IGNIETFERRO-294 was assumed that `const char[]` types are compile time strings
-        // and that CharTraits::Length mmay not be called for them. Unfortunately that is not true, `char[]` types
+        // and that CharTraits::Length may not be called for them. Unfortunately that is not true, `char[]` types
         // are easily converted to `const char[]` if they are passed to a function accepting `const T&`.
         UNIT_ASSERT(TStringBuf(val).size() == 5);
     }

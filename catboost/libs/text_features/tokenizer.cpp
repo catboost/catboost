@@ -1,6 +1,6 @@
 #include "tokenizer.h"
 #include <util/generic/string.h>
-#include <util/string/iterator.h>
+#include <util/string/split.h>
 
 using namespace NCB;
 

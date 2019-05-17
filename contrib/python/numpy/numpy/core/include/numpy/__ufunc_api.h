@@ -87,6 +87,8 @@ NPY_NO_EXPORT  int PyUFunc_ValidateCasting \
        (PyUFuncObject *, NPY_CASTING, PyArrayObject **, PyArray_Descr **);
 NPY_NO_EXPORT  int PyUFunc_RegisterLoopForDescr \
        (PyUFuncObject *, PyArray_Descr *, PyUFuncGenericFunction, PyArray_Descr **, void *);
+NPY_NO_EXPORT  PyObject * PyUFunc_FromFuncAndDataAndSignatureAndIdentity \
+       (PyUFuncGenericFunction *, void **, char *, int, int, int, int, const char *, const char *, int, const char *, PyObject *);
 
 #else
 
@@ -228,15 +230,19 @@ static void **PyUFunc_API=NULL;
 #define PyUFunc_RegisterLoopForDescr \
         (*(int (*)(PyUFuncObject *, PyArray_Descr *, PyUFuncGenericFunction, PyArray_Descr **, void *)) \
          PyUFunc_API[41])
+#define PyUFunc_FromFuncAndDataAndSignatureAndIdentity \
+        (*(PyObject * (*)(PyUFuncGenericFunction *, void **, char *, int, int, int, int, const char *, const char *, int, const char *, PyObject *)) \
+         PyUFunc_API[42])
 
 static NPY_INLINE int
 _import_umath(void)
 {
-  PyObject *numpy = PyImport_ImportModule("numpy.core.umath");
+  PyObject *numpy = PyImport_ImportModule("numpy.core._multiarray_umath");
   PyObject *c_api = NULL;
 
   if (numpy == NULL) {
-      PyErr_SetString(PyExc_ImportError, "numpy.core.umath failed to import");
+      PyErr_SetString(PyExc_ImportError,
+                      "numpy.core._multiarray_umath failed to import");
       return -1;
   }
   c_api = PyObject_GetAttrString(numpy, "_UFUNC_API");

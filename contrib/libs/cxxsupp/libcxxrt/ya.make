@@ -8,7 +8,7 @@ LICENSE(
 
 PEERDIR(contrib/libs/cppdemangle)
 
-IF (CXX_UNWIND STREQUAL "glibcxx_dynamic")
+IF (CXX_UNWIND STREQUAL "glibcxx_dynamic" OR ARCH_PPC64LE)
     LDFLAGS(-lgcc_s)
 ELSE()
     PEERDIR(contrib/libs/libunwind_master)
@@ -29,6 +29,15 @@ NO_COMPILER_WARNINGS()
 
 IF (SANITIZER_TYPE STREQUAL undefined)
     NO_SANITIZE()
+ENDIF ()
+
+IF (MUSL)
+    ADDINCL(
+        contrib/libs/musl-1.1.20/arch/generic
+        contrib/libs/musl-1.1.20/arch/x86_64
+        contrib/libs/musl-1.1.20/extra
+        contrib/libs/musl-1.1.20/include
+    )
 ENDIF ()
 
 CXXFLAGS(

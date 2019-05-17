@@ -32,6 +32,8 @@ bool IsClassificationObjective(ELossFunction lossFunction);
 
 bool IsClassificationObjective(TStringBuf lossDescription);
 
+bool IsCvStratifiedObjective(TStringBuf lossDescription);
+
 bool IsRegressionObjective(ELossFunction lossFunction);
 
 bool IsRegressionObjective(TStringBuf lossDescription);
@@ -52,7 +54,7 @@ bool IsPairwiseScoring(ELossFunction lossFunction);
 
 bool IsGpuPlainDocParallelOnlyMode(ELossFunction lossFunction);
 
-bool ShouldGenerateYetiRankPairs(ELossFunction lossFunction);
+bool IsYetiRankLossFunction(ELossFunction lossFunction);
 
 bool IsPairLogit(ELossFunction lossFunction);
 

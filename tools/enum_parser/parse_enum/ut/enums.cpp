@@ -145,7 +145,7 @@ Y_UNIT_TEST_SUITE(TEnumGeneratorTest) {
         size_t size = 0;
         for (const EWithHeader value : GetEnumAllValues<EWithHeader>()) {
             size += 1;
-            UNIT_ASSERT_VALUES_EQUAL(allNames.has(value), true);
+            UNIT_ASSERT_VALUES_EQUAL(allNames.contains(value), true);
         }
         UNIT_ASSERT_VALUES_EQUAL(size, 3u);
     }
@@ -154,13 +154,13 @@ Y_UNIT_TEST_SUITE(TEnumGeneratorTest) {
         const auto& names = GetEnumNames<EWithHeader>();
         UNIT_ASSERT_VALUES_EQUAL(names.size(), 3u);
 
-        UNIT_ASSERT(names.has(HOne));
+        UNIT_ASSERT(names.contains(HOne));
         UNIT_ASSERT_VALUES_EQUAL(names.at(HOne), "one");
 
-        UNIT_ASSERT(names.has(HTwo));
+        UNIT_ASSERT(names.contains(HTwo));
         UNIT_ASSERT_VALUES_EQUAL(names.at(HTwo), "HTwo");
 
-        UNIT_ASSERT(names.has(HThree));
+        UNIT_ASSERT(names.contains(HThree));
         UNIT_ASSERT_VALUES_EQUAL(names.at(HThree), "HThree");
     }
 };

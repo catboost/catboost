@@ -1,5 +1,7 @@
 #include "approx_dimension.h"
 
+#include <catboost/libs/labels/label_converter.h>
+#include <catboost/libs/options/catboost_options.h>
 #include <catboost/libs/options/metric_options.h>
 
 

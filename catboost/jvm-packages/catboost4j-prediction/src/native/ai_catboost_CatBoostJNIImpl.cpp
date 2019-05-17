@@ -240,6 +240,24 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetTreeC
     Y_END_JNI_API_CALL();
 }
 
+JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetFeatureNames
+  (JNIEnv* jenv, jclass, jlong jhandle, jobjectArray jfeatureNames) {
+    Y_BEGIN_JNI_API_CALL();
+
+    const auto* const model = ToConstFullModelPtr(jhandle);
+    CB_ENSURE(model, "got nullptr model pointer");
+
+    TVector<TString> featureNames = GetModelUsedFeaturesNames(*model);
+    const size_t size = featureNames.size();
+
+    for (size_t i = 0; i < size; ++i) {
+        jstring jname = jenv->NewStringUTF(featureNames[i].c_str());
+        jenv->SetObjectArrayElement(jfeatureNames, i, jname);
+    }
+
+    Y_END_JNI_API_CALL();
+}
+
 static size_t GetArraySize(JNIEnv* const jenv, const jarray array) {
     if (jenv->IsSameObject(array, NULL) == JNI_TRUE) {
         return 0;

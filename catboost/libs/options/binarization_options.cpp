@@ -8,7 +8,7 @@
 #include <util/digest/multi.h>
 #include <util/generic/yexception.h>
 #include <util/system/types.h>
-#include <util/string/iterator.h>
+#include <util/string/split.h>
 
 
 NCatboostOptions::TBinarizationOptions::TBinarizationOptions(

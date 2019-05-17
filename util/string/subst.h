@@ -50,8 +50,7 @@ size_t SubstGlobal(TUtf32String& text, wchar32 what, wchar32 with, size_t from =
  * @return          Result string
  */
 template <class TStringType, class TPatternType>
-Y_WARN_UNUSED_RESULT TStringType SubstGlobalCopy(const TStringType& text, TPatternType what, TPatternType with, size_t from = 0) {
-    TStringType result = text;
+Y_WARN_UNUSED_RESULT TStringType SubstGlobalCopy(TStringType result, TPatternType what, TPatternType with, size_t from = 0) {
     SubstGlobal(result, what, with, from);
     return result;
 }

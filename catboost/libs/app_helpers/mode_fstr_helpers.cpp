@@ -134,7 +134,12 @@ void NCB::ModeFstrSingleHost(const NCB::TAnalyticalModeCommonParams& params) {
             CalcAndOutputInteraction(model, nullptr, &params.OutputPath.Path);
             break;
         case EFstrType::ShapValues:
-            CalcAndOutputShapValues(model, *poolLoader(), params.OutputPath.Path, params.Verbose, localExecutor.Get());
+            CalcAndOutputShapValues(model,
+                                    *poolLoader(),
+                                    params.OutputPath.Path,
+                                    params.Verbose,
+                                    EPreCalcShapValues::Auto,
+                                    localExecutor.Get());
             break;
         default:
             Y_ASSERT(false);

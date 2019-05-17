@@ -31,7 +31,8 @@ namespace NCB {
         Float,                      //32 bits per feature value
         QuantizedFloat,             //at most 8 bits per feature value. Contains grid
         HashedCategorical,          //values - 32 bit hashes of original strings
-        PerfectHashedCategorical,   //after perfect hashing.
+        PerfectHashedCategorical,   //after perfect hashing
+        StringText,                 //unoptimized text feature
     };
 
     using TFeaturesArraySubsetIndexing = TArraySubsetIndexing<ui32>;
@@ -65,6 +66,8 @@ namespace NCB {
                 case EFeatureValuesType::HashedCategorical:
                 case EFeatureValuesType::PerfectHashedCategorical:
                     return EFeatureType::Categorical;
+                case EFeatureValuesType::StringText:
+                    return EFeatureType::Text;
             }
             Y_FAIL("This place should be inaccessible");
             return EFeatureType::Float; // to keep compiler happy
@@ -130,6 +133,8 @@ namespace NCB {
     using TFloatValuesHolder = TArrayValuesHolder<float, EFeatureValuesType::Float>;
 
     using THashedCatValuesHolder = TArrayValuesHolder<ui32, EFeatureValuesType::HashedCategorical>;
+
+    using TStringTextValuesHolder = TArrayValuesHolder<TString, EFeatureValuesType::StringText>;
 
 
     /*******************************************************************************************************

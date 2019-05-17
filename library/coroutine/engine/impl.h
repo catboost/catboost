@@ -2,7 +2,12 @@
 
 //#define DEBUG_CONT
 
+#include "coro_events.h"
+#include "iostatus.h"
 #include "poller.h"
+#include "sockmap.h"
+
+#include <library/containers/intrusive_rb_tree/rb_tree.h>
 
 #include <util/system/mutex.h>
 #include <util/system/error.h>
@@ -18,7 +23,6 @@
 #include <util/generic/ptr.h>
 #include <util/generic/buffer.h>
 #include <util/generic/vector.h>
-#include <library/containers/intrusive_rb_tree/rb_tree.h>
 #include <util/generic/utility.h>
 #include <util/generic/intrlist.h>
 #include <util/generic/yexception.h>
@@ -32,9 +36,12 @@ class TContEvent;
 class TContExecutor;
 class TContPollEvent;
 
+namespace NCoro {
+    class IScheduleCallback;
+}
+
 typedef void (*TContFunc)(TCont*, void*);
 
-#include "iostatus.h"
 
 #if defined(_win_)
 #define IOV_MAX 16
@@ -626,8 +633,6 @@ private:
     TIoWait IoWait_;
 };
 
-#include "sockmap.h"
-
 template <class T>
 class TBigArray {
     struct TValue: public T, public TObjectFromPool<TValue> {
@@ -794,8 +799,17 @@ class TContExecutor {
     };
 
 public:
-    TContExecutor(size_t stackSize, THolder<IPollerFace> poller = IPollerFace::Default());
-    TContExecutor(TContRepPool* pool, THolder<IPollerFace> poller = IPollerFace::Default());
+    TContExecutor(
+        size_t stackSize,
+        THolder<IPollerFace> poller = IPollerFace::Default(),
+        NCoro::IScheduleCallback* = nullptr
+    );
+
+    TContExecutor(
+        TContRepPool* pool,
+        THolder<IPollerFace> poller = IPollerFace::Default(),
+        NCoro::IScheduleCallback* = nullptr
+    );
 
     ~TContExecutor();
 
@@ -990,7 +1004,8 @@ private:
     THolder<TContRepPool> MyPool_;
     TContRepPool& Pool_;
     TExceptionSafeContext SchedContext_;
-    TContRep* Current_;
+    TContRep* Current_ = nullptr;
+    NCoro::IScheduleCallback* const CallbackPtr_ = nullptr;
     typedef TContPoller::TEvents TEvents;
     TEvents Events_;
     bool FailOnError_;
@@ -1089,11 +1104,6 @@ inline void TCont::ReScheduleAndSwitch() noexcept {
 }
 
 #define EWAKEDUP 34567
-
-#include "events.h"
-#include "mutex.h"
-#include "condvar.h"
-#include "sockpool.h"
 
 #if !defined(FROM_IMPL_CPP)
 #undef Y_CORO_DBGOUT

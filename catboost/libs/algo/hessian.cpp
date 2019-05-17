@@ -50,7 +50,7 @@ void TDiagonalHessian::SolveNewtonEquation(
     Y_ASSERT(hessian.ApproxDimension == negativeDer.ysize());
     const int approxDimension = hessian.ApproxDimension;
     res->resize(approxDimension);
-    for(int dim = 0; dim < approxDimension; ++dim) {
+    for (int dim = 0; dim < approxDimension; ++dim) {
         (*res)[dim] = negativeDer[dim] / (hessian.Data[dim] - l2Regularizer);
     }
 }
@@ -67,7 +67,7 @@ int TDiagonalHessian::CalcInternalDer2DataSize(int approxDimension) {
 
 void THessianInfo::AddDer2(const THessianInfo& hessian) {
     Y_ASSERT(HessianType == hessian.HessianType && Data.ysize() == hessian.Data.ysize());
-    for(int dim = 0; dim < Data.ysize(); ++dim) {
+    for (int dim = 0; dim < Data.ysize(); ++dim) {
         Data[dim] += hessian.Data[dim];
     }
 }

@@ -41,6 +41,7 @@ TEST_SRCS(
     ios_wrapper.py
     java_pack_to_file.py
     link_dyn_lib.py
+    link_exe.py
     link_fat_obj.py
     link_lib.py
     llvm_opt_wrapper.py

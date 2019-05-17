@@ -267,6 +267,10 @@ namespace {
             Signal();
         }
 
+        virtual size_t QueueSize() override {
+            return JQ_.Size();
+        }
+
     private:
         void Signal() {
             //TODO:try optimize - hack with skipping signaling if not have waiters (reduce mutex usage)
@@ -345,6 +349,10 @@ namespace {
 
         ~TMultiClientAutoShutdown() override {
             MC_->Shutdown();
+        }
+
+        virtual size_t QueueSize() override {
+            return MC_->QueueSize();
         }
 
     private:

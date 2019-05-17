@@ -16,7 +16,7 @@ namespace NMalloc {
     };
 
     extern volatile bool IsAllocatorCorrupted;
-    void AbortFromCorruptedAllocator();
+    void AbortFromCorruptedAllocator(const char* errorMessage = nullptr);
 
     // this function should be implemented by malloc implementations
     TMallocInfo MallocInfo();

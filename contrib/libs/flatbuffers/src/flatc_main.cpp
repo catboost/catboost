@@ -55,6 +55,10 @@ int main(int argc, const char *argv[]) {
       nullptr, flatbuffers::IDLOptions::kJava,
       "Generate Java classes for tables/structs",
       flatbuffers::GeneralMakeRule },
+    { flatbuffers::GeneratePython, "-p", "--python", "Python", true, nullptr,
+      flatbuffers::IDLOptions::kPython,
+      "Generate Python files for tables/structs",
+      flatbuffers::GeneralMakeRule },
 // NB(eeight) disable unsupported languages
 #if 0
     { flatbuffers::GenerateJS, "-s", "--js", "JavaScript", true, nullptr,
@@ -69,10 +73,6 @@ int main(int argc, const char *argv[]) {
     { flatbuffers::GenerateGeneral, "-n", "--csharp", "C#", true, nullptr,
       flatbuffers::IDLOptions::kCSharp,
       "Generate C# classes for tables/structs", flatbuffers::GeneralMakeRule },
-    { flatbuffers::GeneratePython, "-p", "--python", "Python", true, nullptr,
-      flatbuffers::IDLOptions::kPython,
-      "Generate Python files for tables/structs",
-      flatbuffers::GeneralMakeRule },
     { flatbuffers::GenerateLobster, nullptr, "--lobster", "Lobster", true, nullptr,
       flatbuffers::IDLOptions::kLobster,
       "Generate Lobster files for tables/structs",
