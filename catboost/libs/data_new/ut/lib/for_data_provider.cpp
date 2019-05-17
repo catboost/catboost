@@ -152,6 +152,16 @@ namespace NCB {
                 );
             }
         }
+
+        CompareFeatures<EFeatureType::Text, TStringBuf, TStringTextValuesHolder>(
+            *objectsData.GetFeaturesLayout(),
+            /*getFeatureFunc*/ [&](ui32 textFeatureIdx) {return objectsData.GetTextFeature(textFeatureIdx);},
+            /*getExpectedFeatureFunc*/ [&](ui32 textFeatureIdx) -> TMaybe<TVector<TStringBuf>>
+                {return *expectedData.Objects.TextFeatures[textFeatureIdx];},
+            /*areEqualFunc*/ [&](const TVector<TStringBuf>& lhs, const TStringTextValuesHolder& rhs) {
+                return Equal<TStringBuf>(lhs, rhs.GetArrayData());
+            }
+        );
     }
 
     void CompareObjectsData(

@@ -2,7 +2,7 @@
 
 #include <library/streams/factory/factory.h>
 
-#include <util/string/iterator.h>
+#include <util/string/split.h>
 
 using namespace NTextProcessing::NDictionary;
 using NTextProcessing::NDictionary::EUnknownTokenPolicy;
@@ -17,7 +17,7 @@ void TBpeDictionary::Load(const TString& dictionaryPath, const TString& bpePath)
     while (bpeInput->ReadLine(line)) {
         TBpeUnit unit;
         TString _;
-        StringSplitter(line).SplitLimited('\t', 4).CollectInto(&unit.Left, &unit.Right, &unit.Count, &_);
+        StringSplitter(line).Split('\t').Limit(4).CollectInto(&unit.Left, &unit.Right, &unit.Count, &_);
         BpeUnits.push_back(unit);
     }
     InitBpeTokens();

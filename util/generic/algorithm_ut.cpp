@@ -393,6 +393,20 @@ Y_UNIT_TEST_SUITE(TAlgorithm) {
         UNIT_ASSERT_VALUES_EQUAL(IsSorted(v2.begin(), v2.end(), TGreater<int>()), false);
     }
 
+    Y_UNIT_TEST(IsSortedByTest) {
+        TVector<int> v0;
+        UNIT_ASSERT_VALUES_EQUAL(IsSortedBy(v0.begin(), v0.end(), std::negate<int>()), true);
+
+        TVector<int> v1 = {1};
+        UNIT_ASSERT_VALUES_EQUAL(IsSortedBy(v1.begin(), v1.end(), std::negate<int>()), true);
+
+        TVector<int> v2 = {8, 7, 6, 6, 5, 5, 5, 4, 3, 2, 1};
+        UNIT_ASSERT_VALUES_EQUAL(IsSortedBy(v2.begin(), v2.end(), std::negate<int>()), true);
+
+        TVector<int> v3 = {1, 2, 1};
+        UNIT_ASSERT_VALUES_EQUAL(IsSortedBy(v3.begin(), v3.end(), std::negate<int>()), false);
+    }
+
     Y_UNIT_TEST(SortTestTwoIterators) {
         TVector<int> collection = {10, 2, 7};
         Sort(collection.begin(), collection.end());

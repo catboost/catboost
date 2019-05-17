@@ -703,4 +703,129 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
             Test(testCase);
         }
     }
+
+    Y_UNIT_TEST(ReadDatasetWithTextColumns) {
+        TVector<TTestCase> testCases;
+
+        {
+            TTestCase oneTextFeatureTestCase;
+            TSrcData srcData;
+            srcData.CdFileData = AsStringBuf(
+                "0\tTarget\n"
+                "1\tText\ttext0\n"
+            );
+            srcData.DsvFileData = AsStringBuf(
+                "0.12\tWhat\n"
+                "0.22\tnoise\n"
+                "0.34\tannoys\n"
+                "0.23\tan oyster\n"
+                "0.99\t\n"
+                "0.01\tmost\n"
+                "0.02\t?\n"
+            );
+            srcData.DsvFileHasHeader = false;
+            srcData.ObjectsOrder = EObjectsOrder::Undefined;
+            oneTextFeatureTestCase.SrcData = std::move(srcData);
+
+            TExpectedRawData expectedData;
+
+            TDataColumnsMetaInfo dataColumnsMetaInfo;
+            dataColumnsMetaInfo.Columns = {
+                {EColumn::Label, ""},
+                {EColumn::Text, "text0"},
+            };
+
+            TVector<TString> featureId = {"text0"};
+
+            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, false, /* baselineColumn */ Nothing(), &featureId);
+            expectedData.Objects.Order = EObjectsOrder::Undefined;
+
+            expectedData.Objects.TextFeatures = {
+                TVector<TStringBuf>{"What", "noise", "annoys", "an oyster", "", "most", "?"},
+            };
+
+            expectedData.ObjectsGrouping = TObjectsGrouping(7);
+            expectedData.Target.Target =
+                TVector<TString>{"0.12", "0.22", "0.34", "0.23", "0.99", "0.01", "0.02"};
+            expectedData.Target.Weights = TWeights<float>(7);
+            expectedData.Target.GroupWeights = TWeights<float>(7);
+
+            oneTextFeatureTestCase.ExpectedData = std::move(expectedData);
+
+            testCases.push_back(std::move(oneTextFeatureTestCase));
+        }
+        {
+            TTestCase textFloatAndCatFeaturesTestCase;
+            TSrcData srcData;
+            srcData.CdFileData = AsStringBuf(
+                "0\tTarget\n"
+                "1\tText\tName\n"
+                "2\tCateg\tCountry\n"
+                "3\tNum\tAge\n"
+                "4\tText\tFavouriteMusic\n"
+                "5\tCateg\tGender\n"
+            );
+            srcData.DsvFileData = AsStringBuf(
+                "0.12\tSpiderman\tUSA\t18\tjazz\tMale\n"
+                "0.22\tWonderwoman\tEngland\t20\tsoul\tFemale\n"
+                "0.34\tBatman\tUSA\t35\tclassical\tMale\n"
+                "0.23\tCow\tRussia\t5\tNaN\t-\n"
+                "0.99\tFaramir\tGondor\t500\tfolk\tMale\n"
+                "0.01\tPotter\t,.?!#$\t5\tblues\tMale\n"
+                "0.02\tCollins\tEngland\t50\t-\tMale\n"
+            );
+            srcData.DsvFileHasHeader = false;
+            srcData.ObjectsOrder = EObjectsOrder::Undefined;
+            textFloatAndCatFeaturesTestCase.SrcData = std::move(srcData);
+
+            TExpectedRawData expectedData;
+
+            TDataColumnsMetaInfo dataColumnsMetaInfo;
+            dataColumnsMetaInfo.Columns = {
+                {EColumn::Label, ""},
+                {EColumn::Text, "Name"},
+                {EColumn::Categ, "Country"},
+                {EColumn::Num, "Age"},
+                {EColumn::Text, "FavouriteMusic"},
+                {EColumn::Categ, "Gender"},
+            };
+
+            TVector<TString> featureId = {
+                "Name",
+                "Country",
+                "Age",
+                "FavouriteMusic",
+                "Gender"
+            };
+
+            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, false, /* baselineColumn */ Nothing(), &featureId);
+            expectedData.Objects.Order = EObjectsOrder::Undefined;
+
+            expectedData.Objects.FloatFeatures = {
+                TVector<float>{18.f, 20.f, 35.f, 5.f, 500.f, 5.f, 50.f},
+            };
+            expectedData.Objects.CatFeatures = {
+                TVector<TStringBuf>{"USA", "England", "USA", "Russia", "Gondor", ",.?!#$", "England"},
+                TVector<TStringBuf>{"Male", "Female", "Male", "-", "Male", "Male", "Male"},
+            };
+            expectedData.Objects.TextFeatures = {
+                TVector<TStringBuf>{"Spiderman", "Wonderwoman", "Batman", "Cow", "Faramir", "Potter", "Collins"},
+                TVector<TStringBuf>{"jazz", "soul", "classical", "NaN", "folk", "blues", "-"},
+            };
+
+            expectedData.ObjectsGrouping = TObjectsGrouping(7);
+            expectedData.Target.Target =
+                TVector<TString>{"0.12", "0.22", "0.34", "0.23", "0.99", "0.01", "0.02"};
+            expectedData.Target.Weights = TWeights<float>(7);
+            expectedData.Target.GroupWeights = TWeights<float>(7);
+
+            textFloatAndCatFeaturesTestCase.ExpectedData = std::move(expectedData);
+
+            testCases.push_back(std::move(textFloatAndCatFeaturesTestCase));
+        }
+
+        for (const auto& testCase : testCases) {
+            Test(testCase);
+        }
+    }
 }

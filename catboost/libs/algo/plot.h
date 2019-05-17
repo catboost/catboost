@@ -4,9 +4,6 @@
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/metrics/metric.h>
 #include <catboost/libs/metrics/metric_holder.h>
-#include <catboost/libs/model/model.h>
-
-#include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/fwd.h>
 #include <util/generic/ptr.h>
@@ -17,17 +14,25 @@
 #include <util/system/types.h>
 
 
+struct TFullModel;
+
+namespace NPar {
+    class TLocalExecutor;
+}
+
+
 class TMetricsPlotCalcer {
 public:
     TMetricsPlotCalcer(
         const TFullModel& model,
         const TVector<THolder<IMetric>>& metrics,
-        NPar::TLocalExecutor& executor,
         const TString& tmpDir,
         ui32 first,
         ui32 last,
         ui32 step,
-        ui32 processIterationStep = -1);
+        ui32 processIterationStep, // = -1
+        NPar::TLocalExecutor* executor
+    );
 
     void SetDeleteTmpDirOnExit(bool flag) {
         DeleteTmpDirOnExitFlag = flag;
@@ -51,7 +56,12 @@ public:
 
     void ComputeNonAdditiveMetrics(const TVector<NCB::TProcessedDataProvider>& datasetParts);
 
-    TMetricsPlotCalcer& SaveResult(const TString& resultDir, const TString& metricsFile, bool saveMetrics, bool saveStats);
+    TMetricsPlotCalcer& SaveResult(
+        const TString& resultDir,
+        const TString& metricsFile,
+        bool saveMetrics,
+        bool saveStats
+    );
     TVector<TVector<double>> GetMetricsScore();
 
     void ClearTempFiles() {
@@ -73,8 +83,7 @@ private:
     );
 
     template <class TOutput>
-    void WritePartialStats(TOutput* output, const char sep) const
-    {
+    void WritePartialStats(TOutput* output, const char sep) const {
         for (ui32 i = 0; i < Iterations.size(); ++i) {
             (*output) << Iterations[i] << sep;
 
@@ -89,8 +98,7 @@ private:
     }
 
     template <class TOutput>
-    void WriteHeaderForPartialStats(TOutput* output, const char sep) const
-    {
+    void WriteHeaderForPartialStats(TOutput* output, const char sep) const {
         // TODO(annaveronika): same name as in metrics file.
         // TODO(annaveronika): create logger that outputs partial stats.
         // TODO(annaveronika): loss before first iteration should have iteration index -1.
@@ -114,7 +122,11 @@ private:
         ui32 plotLineIndex
     );
 
-    void Append(const TVector<TVector<double>>& approx, TVector<TVector<double>>* dst, int dstStartDoc = 0);
+    void Append(
+        const TVector<TVector<double>>& approx,
+        int dstStartDoc /*= 0*/,
+        TVector<TVector<double>>* dst
+    );
 
     void EnsureCorrectParams() {
         CB_ENSURE(First < Last, "First iteration should be less than last");
@@ -148,20 +160,19 @@ private:
         return *writer;
     }
 
-private:
-
-    struct TNonAdditiveMetricData {
-        TVector<TString> ApproxFiles;
-        TVector<float> Target;
-        TVector<float> Weights;
-    };
-
     TString GetApproxFileName(ui32 plotLineIndex);
 
     void SaveApproxToFile(ui32 plotLineIndex, const TVector<TVector<double>>& approx);
 
     TVector<TVector<double>> LoadApprox(ui32 plotLineIndex);
     void DeleteApprox(ui32 plotLineIndex);
+
+private:
+    struct TNonAdditiveMetricData {
+        TVector<TString> ApproxFiles;
+        TVector<float> Target;
+        TVector<float> Weights;
+    };
 
 private:
     const TFullModel& Model;
@@ -198,7 +209,7 @@ TMetricsPlotCalcer CreateMetricCalcer(
     int end,
     int evalPeriod,
     int processedIterationsStep,
-    NPar::TLocalExecutor& executor,
     const TString& tmpDir,
-    const TVector<THolder<IMetric>>& metrics
+    const TVector<THolder<IMetric>>& metrics,
+    NPar::TLocalExecutor* executor
 );

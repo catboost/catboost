@@ -4,6 +4,8 @@
 
 #include <library/unittest/registar.h>
 
+#include <util/system/atomic.h>
+#include <util/system/atomic_ops.h>
 #include <util/thread/pool.h>
 
 class TCondVarTest: public TTestBase {
@@ -26,12 +28,12 @@ class TCondVarTest: public TTestBase {
         TCondVar condVar1;
         TCondVar condVar2;
 
-        volatile bool stopWaiting;
+        TAtomic stopWaiting;
 
-        volatile size_t in;
-        volatile size_t out;
+        TAtomic in;
+        TAtomic out;
 
-        volatile size_t waited;
+        TAtomic waited;
 
         bool failed;
     };
@@ -63,13 +65,32 @@ class TCondVarTest: public TTestBase {
 
             if (Id_ < 2) {
                 TGuard<TMutex> guard(Data_.mutex);
-                while (!Data_.stopWaiting) {
+                while (!AtomicGet(Data_.stopWaiting)) {
                     bool res = Data_.condVar1.WaitT(Data_.mutex, TDuration::Seconds(1));
                     FAIL_ASSERT(res == true);
                 }
             } else {
                 usleep(100000);
-                Data_.stopWaiting = true;
+                AtomicSet(Data_.stopWaiting, true);
+
+                TGuard<TMutex> guard(Data_.mutex);
+                Data_.condVar1.Signal();
+                Data_.condVar1.Signal();
+            }
+        }
+
+        void RunBasicsWithPredicate() {
+            Y_ASSERT(TotalIds_ == 3);
+
+            if (Id_ < 2) {
+                TGuard<TMutex> guard(Data_.mutex);
+                const auto res = Data_.condVar1.WaitT(Data_.mutex, TDuration::Seconds(1), [&] {
+                    return AtomicGet(Data_.stopWaiting);
+                });
+                FAIL_ASSERT(res == true);
+            } else {
+                usleep(100000);
+                AtomicSet(Data_.stopWaiting, true);
 
                 TGuard<TMutex> guard(Data_.mutex);
                 Data_.condVar1.Signal();
@@ -80,27 +101,57 @@ class TCondVarTest: public TTestBase {
         void RunSyncronize() {
             for (size_t i = 0; i < 10; ++i) {
                 TGuard<TMutex> guard(Data_.mutex);
-                ++Data_.in;
-                if (Data_.in == TotalIds_) {
-                    Data_.out = 0;
+                AtomicIncrement(Data_.in);
+                if (AtomicGet(Data_.in) == TotalIds_) {
+                    AtomicSet(Data_.out, 0);
                     Data_.condVar1.BroadCast();
                 } else {
-                    ++Data_.waited;
-                    while (Data_.in < TotalIds_) {
+                    AtomicIncrement(Data_.waited);
+                    while (AtomicGet(Data_.in) < TotalIds_) {
                         bool res = Data_.condVar1.WaitT(Data_.mutex, TDuration::Seconds(1));
                         FAIL_ASSERT(res == true);
                     }
                 }
 
-                ++Data_.out;
-                if (Data_.out == TotalIds_) {
-                    Data_.in = 0;
+                AtomicIncrement(Data_.out);
+                if (AtomicGet(Data_.out) == TotalIds_) {
+                    AtomicSet(Data_.in, 0);
                     Data_.condVar2.BroadCast();
                 } else {
-                    while (Data_.out < TotalIds_) {
+                    while (AtomicGet(Data_.out) < TotalIds_) {
                         bool res = Data_.condVar2.WaitT(Data_.mutex, TDuration::Seconds(1));
                         FAIL_ASSERT(res == true);
                     }
+                }
+            }
+
+            FAIL_ASSERT(AtomicGet(Data_.waited) == (TotalIds_ - 1) * 10);
+        }
+
+        void RunSyncronizeWithPredicate() {
+            for (size_t i = 0; i < 10; ++i) {
+                TGuard<TMutex> guard(Data_.mutex);
+                AtomicIncrement(Data_.in);
+                if (AtomicGet(Data_.in) == TotalIds_) {
+                    AtomicSet(Data_.out, 0);
+                    Data_.condVar1.BroadCast();
+                } else {
+                    AtomicIncrement(Data_.waited);
+                    const auto res = Data_.condVar1.WaitT(Data_.mutex, TDuration::Seconds(1), [&] {
+                        return AtomicGet(Data_.in) >= TotalIds_;
+                    });
+                    FAIL_ASSERT(res == true);
+                }
+
+                AtomicIncrement(Data_.out);
+                if (AtomicGet(Data_.out) == TotalIds_) {
+                    AtomicSet(Data_.in, 0);
+                    Data_.condVar2.BroadCast();
+                } else {
+                    const auto res = Data_.condVar2.WaitT(Data_.mutex, TDuration::Seconds(1), [&] {
+                        return AtomicGet(Data_.out) >= TotalIds_;
+                    });
+                    FAIL_ASSERT(res == true);
                 }
             }
 
@@ -111,7 +162,7 @@ class TCondVarTest: public TTestBase {
     private:
         PFunc Func_;
         size_t Id_;
-        size_t TotalIds_;
+        TAtomicBase TotalIds_;
         TSharedData& Data_;
     };
 
@@ -130,8 +181,16 @@ private:
         RUN_CYCLE(RunBasics, 3);
     }
 
+    inline void TestBasicsWithPredicate() {
+        RUN_CYCLE(RunBasicsWithPredicate, 3);
+    }
+
     inline void TestSyncronize() {
         RUN_CYCLE(RunSyncronize, 6);
+    }
+
+    inline void TestSyncronizeWithPredicate() {
+        RUN_CYCLE(RunSyncronizeWithPredicate, 6);
     }
 #undef RUN_CYCLE
     TSharedData Data_;

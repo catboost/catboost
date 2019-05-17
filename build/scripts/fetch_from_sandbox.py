@@ -156,11 +156,15 @@ def fetch(resource_id, custom_fetcher):
         yield lambda: download_by_skynet(resource_info, resource_file_name)
         if custom_fetcher:
             yield lambda: fetch_via_script(custom_fetcher, resource_id)
+
+        # Don't try too hard here: we will get back to proxy later on
+        yield lambda: fetch_from.fetch_url(proxy_link, False, resource_file_name, expected_md5, tries=2)
         for x in get_storage_links():
-            yield lambda: fetch_from.fetch_url(x, False, resource_file_name, expected_md5)
-            yield lambda: fetch_from.fetch_url(proxy_link, False, resource_file_name, expected_md5)
+            # Don't spend too much time connecting single host
+            yield lambda: fetch_from.fetch_url(x, False, resource_file_name, expected_md5, tries=1)
             if mds_link is not None:
-                yield lambda: fetch_from.fetch_url(mds_link, True, resource_file_name, expected_md5)
+                # Don't try too hard here: we will get back to MDS later on
+                yield lambda: fetch_from.fetch_url(mds_link, True, resource_file_name, expected_md5, tries=2)
         yield lambda: fetch_from.fetch_url(proxy_link, False, resource_file_name, expected_md5)
         if mds_link is not None:
             yield lambda: fetch_from.fetch_url(mds_link, True, resource_file_name, expected_md5)

@@ -10,6 +10,7 @@
 
 #include <library/binsaver/bin_saver.h>
 
+
 struct TBucketPairWeightStatistics {
     double SmallerBorderWeightSum = 0.0; // The weight sum of pair elements with smaller border.
     double GreaterBorderRightWeightSum = 0.0; // The weight sum of pair elements with greater border.

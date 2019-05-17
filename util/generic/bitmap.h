@@ -5,6 +5,7 @@
 #include "bitops.h"
 #include "typetraits.h"
 #include "algorithm.h"
+#include "utility.h"
 
 #include <util/system/yassert.h>
 #include <util/system/defaults.h>
@@ -258,6 +259,7 @@ namespace NBitMapPrivate {
         // Returns true if the resulting storage capacity is enough to fit the requested size
         Y_FORCE_INLINE bool ExpandSize(size_t size, bool keepData = true) {
             if (size > Size) {
+                size = Max(size, Size * 2);
                 TArrayHolder<TChunk> newData(new TChunk[size]);
                 if (keepData) {
                     for (size_t i = 0; i < Size; ++i) {

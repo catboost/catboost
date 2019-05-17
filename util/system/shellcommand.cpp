@@ -1,8 +1,8 @@
 #include "shellcommand.h"
-#include "file.h"
 #include "user.h"
 #include "nice.h"
 #include "sigset.h"
+#include "atomic.h"
 
 #include <util/folder/dirut.h>
 #include <util/generic/algorithm.h>
@@ -168,7 +168,7 @@ private:
     TString Command;
     TList<TString> Arguments;
     TString WorkDir;
-    TShellCommand::ECommandStatus ExecutionStatus;
+    TAtomic ExecutionStatus;  // TShellCommand::ECommandStatus
     TMaybe<int> ExitCode;
     IInputStream* InputStream;
     IOutputStream* OutputStream;
@@ -178,6 +178,7 @@ private:
     TString InternalError;
     TThread* WatchThread;
     TMutex TerminateMutex;
+    TFileHandle InputHandle;
     /// @todo: store const TShellCommandOptions, no need for so many vars
     bool TerminateFlag;
     bool ClearSignalMask;
@@ -189,6 +190,7 @@ private:
     bool DetachSession;
     bool CloseStreams;
     TAtomic ShouldCloseInput;
+    TShellCommandOptions::EHandleMode InputMode;
     bool InheritOutput;
     bool InheritError;
     TShellCommandOptions::TUserOptions User;
@@ -221,17 +223,6 @@ private:
             if (ErrorPipeFd[1].IsOpen()) {
                 ErrorPipeFd[1].Close();
             }
-#if defined(_unix_)
-            // not really needed, io is done via poll
-            if (OutputPipeFd[0].IsOpen()) {
-                SetNonBlock(OutputPipeFd[0]);
-            }
-            if (ErrorPipeFd[0].IsOpen()) {
-                SetNonBlock(ErrorPipeFd[0]);
-            }
-            if (InputPipeFd[1].IsOpen())
-                SetNonBlock(InputPipeFd[1]);
-#endif
             if (InputPipeFd[1].IsOpen())
                 InputPipeFd[0].Close();
         }
@@ -279,6 +270,7 @@ public:
         , DetachSession(options.DetachSession)
         , CloseStreams(options.CloseStreams)
         , ShouldCloseInput(options.ShouldCloseInput)
+        , InputMode(options.InputMode)
         , InheritOutput(options.InheritOutput)
         , InheritError(options.InheritError)
         , User(options.User)
@@ -304,35 +296,35 @@ public:
     }
 
     inline void AppendArgument(const TStringBuf argument) {
-        if (ExecutionStatus == SHELL_RUNNING) {
+        if (AtomicGet(ExecutionStatus) == SHELL_RUNNING) {
             ythrow yexception() << "You cannot change command parameters while process is running";
         }
         Arguments.push_back(argument.ToString());
     }
 
     inline const TString& GetOutput() const {
-        if (ExecutionStatus == SHELL_RUNNING) {
+        if (AtomicGet(ExecutionStatus) == SHELL_RUNNING) {
             ythrow yexception() << "You cannot retrieve output while process is running.";
         }
         return CollectedOutput;
     }
 
     inline const TString& GetError() const {
-        if (ExecutionStatus == SHELL_RUNNING) {
+        if (AtomicGet(ExecutionStatus) == SHELL_RUNNING) {
             ythrow yexception() << "You cannot retrieve output while process is running.";
         }
         return CollectedError;
     }
 
     inline const TString& GetInternalError() const {
-        if (ExecutionStatus != SHELL_INTERNAL_ERROR) {
+        if (AtomicGet(ExecutionStatus) != SHELL_INTERNAL_ERROR) {
             ythrow yexception() << "Internal error hasn't occured so can't be retrieved.";
         }
         return InternalError;
     }
 
     inline ECommandStatus GetStatus() const {
-        return ExecutionStatus;
+        return static_cast<ECommandStatus>(AtomicGet(ExecutionStatus));
     }
 
     inline TMaybe<int> GetExitCode() const {
@@ -347,11 +339,15 @@ public:
 #endif
     }
 
+    inline TFileHandle& GetInputHandle() {
+        return InputHandle;
+    }
+
     // start child process
     void Run();
 
     inline void Terminate() {
-        if (!!Pid && (ExecutionStatus == SHELL_RUNNING)) {
+        if (!!Pid && (AtomicGet(ExecutionStatus) == SHELL_RUNNING)) {
             bool ok =
 #if defined(_unix_)
                 kill(DetachSession ? -1 * Pid : Pid, SIGTERM) == 0;
@@ -481,9 +477,10 @@ void TShellCommand::TImpl::StartProcess(TShellCommand::TImpl::TPipes& pipes) {
             ythrow TSystemError() << "cannot set handle info";
         }
     }
-    if (InputStream)
+    if (InputMode != TShellCommandOptions::HANDLE_INHERIT) {
         if (!SetHandleInformation(pipes.InputPipeFd[0], HANDLE_FLAG_INHERIT, HANDLE_FLAG_INHERIT))
             ythrow TSystemError() << "cannot set handle info";
+    }
 
     // A sockets do not work as std streams for some reason
     if (!InheritOutput) {
@@ -496,7 +493,7 @@ void TShellCommand::TImpl::StartProcess(TShellCommand::TImpl::TPipes& pipes) {
     } else {
         startup_info.hStdError = GetStdHandle(STD_ERROR_HANDLE);
     }
-    if (InputStream)
+    if (InputMode != TShellCommandOptions::HANDLE_INHERIT)
         startup_info.hStdInput = pipes.InputPipeFd[0];
     else
         // Don't leave hStdInput unfilled, otherwise any attempt to retrieve the operating-system file handle
@@ -565,7 +562,7 @@ void TShellCommand::TImpl::StartProcess(TShellCommand::TImpl::TPipes& pipes) {
     }
 
     if (!res) {
-        ExecutionStatus = SHELL_ERROR;
+        AtomicSet(ExecutionStatus, SHELL_ERROR);
         /// @todo: write to error stream if set
         TStringOutput out(CollectedError);
         out << "Process was not created: " << LastSystemErrorText() << " command text was: '" << GetAString(cmdcopy.Data()) << "'";
@@ -638,7 +635,7 @@ void TShellCommand::TImpl::OnFork(TPipes& pipes, sigset_t oldmask, char* const* 
         TFileHandle sIn(0);
         TFileHandle sOut(1);
         TFileHandle sErr(2);
-        if (InputStream) {
+        if (InputMode != TShellCommandOptions::HANDLE_INHERIT) {
             pipes.InputPipeFd[1].Close();
             TFileHandle sInNew(pipes.InputPipeFd[0]);
             sIn.LinkTo(sInNew);
@@ -677,6 +674,7 @@ void TShellCommand::TImpl::OnFork(TPipes& pipes, sigset_t oldmask, char* const* 
         }
 
         if (Nice) {
+            // Don't verify Nice() call - it does not work properly with WSL https://github.com/Microsoft/WSL/issues/1838
             ::Nice(Nice);
         }
 
@@ -698,7 +696,7 @@ void TShellCommand::TImpl::OnFork(TPipes& pipes, sigset_t oldmask, char* const* 
 #endif
 
 void TShellCommand::TImpl::Run() {
-    Y_ENSURE(ExecutionStatus != SHELL_RUNNING, AsStringBuf("Process is already running"));
+    Y_ENSURE(AtomicGet(ExecutionStatus) != SHELL_RUNNING, AsStringBuf("Process is already running"));
     // Prepare I/O streams
     CollectedOutput.clear();
     CollectedError.clear();
@@ -710,11 +708,11 @@ void TShellCommand::TImpl::Run() {
     if (!InheritError) {
         TRealPipeHandle::Pipe(pipes.ErrorPipeFd[0], pipes.ErrorPipeFd[1]);
     }
-    if (InputStream) {
+    if (InputMode != TShellCommandOptions::HANDLE_INHERIT) {
         TRealPipeHandle::Pipe(pipes.InputPipeFd[0], pipes.InputPipeFd[1]);
     }
 
-    ExecutionStatus = SHELL_RUNNING;
+    AtomicSet(ExecutionStatus, SHELL_RUNNING);
 
 #if defined(_unix_)
     // block all signals to avoid signal handler race after fork()
@@ -761,7 +759,7 @@ void TShellCommand::TImpl::Run() {
 
     pid_t pid = fork();
     if (pid == -1) {
-        ExecutionStatus = SHELL_ERROR;
+        AtomicSet(ExecutionStatus, SHELL_ERROR);
         /// @todo check if pipes are still open
         ythrow TSystemError() << "Cannot fork";
     } else if (pid == 0) { // child
@@ -782,8 +780,13 @@ void TShellCommand::TImpl::Run() {
 #endif
     pipes.PrepareParents();
 
-    if (ExecutionStatus != SHELL_RUNNING)
+    if (AtomicGet(ExecutionStatus) != SHELL_RUNNING)
         return;
+
+    if (InputMode == TShellCommandOptions::HANDLE_PIPE) {
+        TFileHandle inputHandle(pipes.InputPipeFd[1].Release());
+        InputHandle.Swap(inputHandle);
+    }
 
     TProcessInfo* processInfo = new TProcessInfo(this,
                                                  pipes.InputPipeFd[1].Release(), pipes.OutputPipeFd[0].Release(), pipes.ErrorPipeFd[0].Release());
@@ -794,6 +797,7 @@ void TShellCommand::TImpl::Run() {
     } else {
         Communicate(processInfo);
     }
+
     pipes.ReleaseParents(); // not needed
 }
 
@@ -809,6 +813,19 @@ void TShellCommand::TImpl::Communicate(TProcessInfo* pi) {
         errorHolder.Reset(error = new TStringOutput(pi->Parent->CollectedError));
 
     IInputStream*& input = pi->Parent->InputStream;
+
+#if defined(_unix_)
+    // not really needed, io is done via poll
+    if (pi->OutputFd.IsOpen()) {
+        SetNonBlock(pi->OutputFd);
+    }
+    if (pi->ErrorFd.IsOpen()) {
+        SetNonBlock(pi->ErrorFd);
+    }
+    if (pi->InputFd.IsOpen()) {
+        SetNonBlock(pi->InputFd);
+    }
+#endif
 
     try {
 #if defined(_win_)
@@ -997,13 +1014,13 @@ void TShellCommand::TImpl::Communicate(TProcessInfo* pi) {
 #endif
         pi->Parent->ExitCode = processExitCode;
         if (cleanExit) {
-            pi->Parent->ExecutionStatus = SHELL_FINISHED;
+            AtomicSet(pi->Parent->ExecutionStatus, SHELL_FINISHED);
         } else {
-            pi->Parent->ExecutionStatus = SHELL_ERROR;
+            AtomicSet(pi->Parent->ExecutionStatus, SHELL_ERROR);
         }
     } catch (const yexception& e) {
         // Some error in watch occured, set result to error
-        pi->Parent->ExecutionStatus = SHELL_INTERNAL_ERROR;
+        AtomicSet(pi->Parent->ExecutionStatus, SHELL_INTERNAL_ERROR);
         pi->Parent->InternalError = e.what();
         if (input)
             pi->InputFd.Close();
@@ -1054,6 +1071,10 @@ TMaybe<int> TShellCommand::GetExitCode() const {
 
 TProcessId TShellCommand::GetPid() const {
     return Impl->GetPid();
+}
+
+TFileHandle& TShellCommand::GetInputHandle() {
+    return Impl->GetInputHandle();
 }
 
 TShellCommand& TShellCommand::Run() {

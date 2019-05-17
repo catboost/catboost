@@ -5,29 +5,18 @@
 #include <util/system/defaults.h>
 
 template <class TConsumer, class TDelim, typename TChr>
-static inline void DoSplit3(TConsumer& c, TDelim& d, const TFixedString<TChr> str, int) {
+static inline void DoSplit2(TConsumer& c, TDelim& d, const TFixedString<TChr> str, int) {
     SplitString(str.Start, str.Start + str.Length, d, c);
 }
 
 template <class TConsumer, class TDelim, typename TChr>
 static inline void DoSplit1(TConsumer& cc, TDelim& d, const TFixedString<TChr> str, int opts) {
-    if (opts & KEEP_DELIMITERS) {
-        TKeepDelimiters<TConsumer> kc(&cc);
-
-        DoSplit2(kc, d, str, opts);
-    } else {
-        DoSplit2(cc, d, str, opts);
-    }
-}
-
-template <class TConsumer, class TDelim, typename TChr>
-static inline void DoSplit2(TConsumer& cc, TDelim& d, const TFixedString<TChr> str, int opts) {
     if (opts & KEEP_EMPTY_TOKENS) {
-        DoSplit3(cc, d, str, opts);
+        DoSplit2(cc, d, str, opts);
     } else {
         TSkipEmptyTokens<TConsumer> sc(&cc);
 
-        DoSplit3(sc, d, str, opts);
+        DoSplit2(sc, d, str, opts);
     }
 }
 

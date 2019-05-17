@@ -1,11 +1,9 @@
 
 
 RECURSE(
-    appdirs
     atomicwrites
     attrs
     dateutil
-    dateutil/tests
     enum34
     funcsigs
     graphviz
@@ -13,13 +11,11 @@ RECURSE(
     MarkupSafe
     more-itertools
     numpy
-    packaging
     pandas
     pandas/matplotlib
     pathlib2
     pluggy
     py
-    pyparsing
     pytest
     pytz
     pytz/tests

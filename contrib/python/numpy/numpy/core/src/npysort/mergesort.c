@@ -2641,6 +2641,11 @@ mergesort_string(void *start, npy_intp num, void *varr)
     npy_char *pl, *pr, *pw, *vp;
     int err = 0;
 
+    /* Items that have zero size don't make sense to sort */
+    if (elsize == 0) {
+        return 0;
+    }
+
     pl = start;
     pr = pl + num*len;
     pw = malloc((num/2) * elsize);
@@ -2716,6 +2721,11 @@ amergesort_string(void *v, npy_intp *tosort, npy_intp num, void *varr)
     size_t len = elsize / sizeof(npy_char);
     npy_intp *pl, *pr, *pw;
 
+    /* Items that have zero size don't make sense to sort */
+    if (elsize == 0) {
+        return 0;
+    }
+
     pl = tosort;
     pr = pl + num;
     pw = malloc((num/2) * sizeof(npy_intp));
@@ -2784,6 +2794,11 @@ mergesort_unicode(void *start, npy_intp num, void *varr)
     size_t len = elsize / sizeof(npy_ucs4);
     npy_ucs4 *pl, *pr, *pw, *vp;
     int err = 0;
+
+    /* Items that have zero size don't make sense to sort */
+    if (elsize == 0) {
+        return 0;
+    }
 
     pl = start;
     pr = pl + num*len;
@@ -2859,6 +2874,11 @@ amergesort_unicode(void *v, npy_intp *tosort, npy_intp num, void *varr)
     size_t elsize = PyArray_ITEMSIZE(arr);
     size_t len = elsize / sizeof(npy_ucs4);
     npy_intp *pl, *pr, *pw;
+
+    /* Items that have zero size don't make sense to sort */
+    if (elsize == 0) {
+        return 0;
+    }
 
     pl = tosort;
     pr = pl + num;
@@ -2936,9 +2956,17 @@ npy_mergesort(void *start, npy_intp num, void *varr)
     PyArray_CompareFunc *cmp = PyArray_DESCR(arr)->f->compare;
     char *pl = start;
     char *pr = pl + num*elsize;
-    char *pw = malloc((num >> 1) *elsize);
-    char *vp = malloc(elsize);
+    char *pw;
+    char *vp;
     int err = -NPY_ENOMEM;
+
+    /* Items that have zero size don't make sense to sort */
+    if (elsize == 0) {
+        return 0;
+    }
+
+    pw = malloc((num >> 1) *elsize);
+    vp = malloc(elsize);
 
     if (pw != NULL && vp != NULL) {
         npy_mergesort0(pl, pr, pw, vp, elsize, cmp, arr);
@@ -3005,6 +3033,11 @@ npy_amergesort(void *v, npy_intp *tosort, npy_intp num, void *varr)
     npy_intp elsize = PyArray_ITEMSIZE(arr);
     PyArray_CompareFunc *cmp = PyArray_DESCR(arr)->f->compare;
     npy_intp *pl, *pr, *pw;
+
+    /* Items that have zero size don't make sense to sort */
+    if (elsize == 0) {
+        return 0;
+    }
 
     pl = tosort;
     pr = pl + num;

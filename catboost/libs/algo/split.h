@@ -21,6 +21,9 @@
 #include <tuple>
 
 
+class TLearnContext;
+
+
 struct TCtr {
     TProjection Projection;
     ui8 CtrIdx = 0;
@@ -290,8 +293,6 @@ inline bool UseForCalcScores(const NCB::TExclusiveBundlePart& exclusiveBundlePar
     return true;
 }
 
-
-class TLearnContext;
 
 // TODO(kirillovs): this structure has doppelganger (TBinarySplit) in cuda code, merge them later
 struct TSplit : public TSplitCandidate {

@@ -1,5 +1,6 @@
-#include "calc_score_cache.h"
 #include "learn_context.h"
+
+#include "calc_score_cache.h"
 #include "error_functions.h"
 #include "online_ctr.h"
 
@@ -10,17 +11,17 @@
 
 #include <library/digest/crc32c/crc32c.h>
 #include <library/digest/md5/md5.h>
+#include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/guid.h>
 #include <util/generic/xrange.h>
 #include <util/folder/path.h>
-#include <util/system/fs.h>
 #include <util/stream/file.h>
+#include <util/system/fs.h>
 
 
 using namespace NCB;
-
 
 
 TLearnContext::~TLearnContext() {
@@ -30,13 +31,7 @@ TLearnContext::~TLearnContext() {
 }
 
 void TLearnContext::OutputMeta() {
-    auto losses = CreateMetrics(
-            Params.LossFunctionDescription,
-            Params.MetricOptions,
-            EvalMetricDescriptor,
-            LearnProgress.ApproxDimension
-    );
-
+    auto losses = CreateMetrics(Params.MetricOptions, EvalMetricDescriptor, LearnProgress.ApproxDimension);
     CreateMetaFile(Files, OutputOptions, GetConstPointers(losses), Params.BoostingOptions->IterationCount);
 }
 
@@ -127,7 +122,7 @@ void TLearnContext::InitContext(const TTrainingForCPUDataProviders& data) {
                     LearnProgress.ApproxDimension,
                     storeExpApproxes,
                     hasPairwiseWeights,
-                    Rand,
+                    &Rand,
                     LocalExecutor
                 )
             );
@@ -144,7 +139,7 @@ void TLearnContext::InitContext(const TTrainingForCPUDataProviders& data) {
                     boostingOptions.FoldLenMultiplier,
                     storeExpApproxes,
                     hasPairwiseWeights,
-                    Rand,
+                    &Rand,
                     LocalExecutor
                 )
             );
@@ -161,11 +156,12 @@ void TLearnContext::InitContext(const TTrainingForCPUDataProviders& data) {
         *data.Learn,
         CtrsHelper.GetTargetClassifiers(),
         isAverageFoldPermuted,
-        /*permuteBlockSize=*/ (Params.SystemOptions->IsSingleHost() ? foldPermutationBlockSize : learnSampleCount),
+        /*permuteBlockSize=*/
+            (Params.SystemOptions->IsSingleHost() ? foldPermutationBlockSize : learnSampleCount),
         LearnProgress.ApproxDimension,
         storeExpApproxes,
         hasPairwiseWeights,
-        Rand,
+        &Rand,
         LocalExecutor
     );
 
@@ -191,16 +187,23 @@ void TLearnContext::InitContext(const TTrainingForCPUDataProviders& data) {
     }
 
     const ui32 maxBodyTailCount = Max(1, GetMaxBodyTailCount(LearnProgress.Folds));
-    UseTreeLevelCachingFlag = NeedToUseTreeLevelCaching(Params, maxBodyTailCount, LearnProgress.ApproxDimension);
+    UseTreeLevelCachingFlag = NeedToUseTreeLevelCaching(
+        Params,
+        maxBodyTailCount,
+        LearnProgress.ApproxDimension
+    );
 }
 
 void TLearnContext::SaveProgress() {
     if (!OutputOptions.SaveSnapshot()) {
         return;
     }
-    TProgressHelper(ToString(ETaskType::CPU)).Write(Files.SnapshotFile, [&](IOutputStream* out) {
-        ::SaveMany(out, Rand, LearnProgress, Profile.DumpProfileInfo());
-    });
+    TProgressHelper(ToString(ETaskType::CPU)).Write(
+        Files.SnapshotFile,
+        [&](IOutputStream* out) {
+            ::SaveMany(out, Rand, LearnProgress, Profile.DumpProfileInfo());
+        }
+    );
 }
 
 bool TLearnContext::TryLoadProgress() {
@@ -208,35 +211,39 @@ bool TLearnContext::TryLoadProgress() {
         return false;
     }
     try {
-        TProgressHelper(ToString(ETaskType::CPU)).CheckedLoad(Files.SnapshotFile, [&](TIFStream* in)
-        {
-            // use progress copy to avoid partial deserialization of corrupted progress file
-            TLearnProgress learnProgressRestored = LearnProgress;
-            TProfileInfoData ProfileRestored;
+        TProgressHelper(ToString(ETaskType::CPU)).CheckedLoad(
+            Files.SnapshotFile,
+            [&](TIFStream* in) {
+                // use progress copy to avoid partial deserialization of corrupted progress file
+                TLearnProgress learnProgressRestored = LearnProgress;
+                TProfileInfoData ProfileRestored;
 
-            // fail here does nothing with real LearnProgress
-            ::LoadMany(in, Rand, learnProgressRestored, ProfileRestored);
+                // fail here does nothing with real LearnProgress
+                ::LoadMany(in, Rand, learnProgressRestored, ProfileRestored);
 
-            const bool paramsCompatible = NCatboostOptions::IsParamsCompatible(
-                learnProgressRestored.SerializedTrainParams,
-                LearnProgress.SerializedTrainParams);
-            CATBOOST_DEBUG_LOG
-                << LabeledOutput(learnProgressRestored.SerializedTrainParams) << ' '
-                << LabeledOutput(LearnProgress.SerializedTrainParams) << Endl;
-            CB_ENSURE(paramsCompatible, "Saved model's params are different from current model's params");
+                const bool paramsCompatible = NCatboostOptions::IsParamsCompatible(
+                    learnProgressRestored.SerializedTrainParams,
+                    LearnProgress.SerializedTrainParams
+                );
+                CATBOOST_DEBUG_LOG
+                    << LabeledOutput(learnProgressRestored.SerializedTrainParams) << ' '
+                    << LabeledOutput(LearnProgress.SerializedTrainParams) << Endl;
+                CB_ENSURE(paramsCompatible, "Saved model's params are different from current model's params");
 
-            const bool poolCompatible = (learnProgressRestored.PoolCheckSum == LearnProgress.PoolCheckSum);
-            CB_ENSURE(
-                poolCompatible,
-                "Current pool differs from the original pool "
-                LabeledOutput(learnProgressRestored.PoolCheckSum, LearnProgress.PoolCheckSum));
+                const bool poolCompatible = (learnProgressRestored.PoolCheckSum == LearnProgress.PoolCheckSum);
+                CB_ENSURE(
+                    poolCompatible,
+                    "Current pool differs from the original pool "
+                    LabeledOutput(learnProgressRestored.PoolCheckSum, LearnProgress.PoolCheckSum)
+                );
 
-            LearnProgress = std::move(learnProgressRestored);
-            Profile.InitProfileInfo(std::move(ProfileRestored));
-            LearnProgress.SerializedTrainParams = ToString(Params); // substitute real
-            CATBOOST_INFO_LOG << "Loaded progress file containing " << LearnProgress.TreeStruct.size()
-                << " trees" << Endl;
-        });
+                LearnProgress = std::move(learnProgressRestored);
+                Profile.InitProfileInfo(std::move(ProfileRestored));
+                LearnProgress.SerializedTrainParams = ToString(Params); // substitute real
+                CATBOOST_INFO_LOG << "Loaded progress file containing " << LearnProgress.TreeStruct.size()
+                    << " trees" << Endl;
+            }
+        );
         return true;
     } catch(const TCatBoostException&) {
         throw;

@@ -1,17 +1,20 @@
 #include "index_calcer.h"
 
 #include "features_data_helpers.h"
-#include "score_calcer.h"
+#include "fold.h"
 #include "online_ctr.h"
+#include "score_calcer.h"
+#include "split.h"
 #include "tree_print.h"
 
 #include <catboost/libs/cat_feature/cat_feature.h>
 #include <catboost/libs/data_new/model_dataset_compatibility.h>
-#include <catboost/libs/model/model.h>
-#include <catboost/libs/model/formula_evaluator.h>
 #include <catboost/libs/helpers/dense_hash.h>
+#include <catboost/libs/model/formula_evaluator.h>
+#include <catboost/libs/model/model.h>
 
 #include <library/containers/stack_vector/stack_vec.h>
+#include <library/threading/local_executor/local_executor.h>
 
 #include <functional>
 
@@ -34,6 +37,7 @@ static inline ui16 GetFeatureSplitIdx(const TSplit& split) {
 static inline const TVariant<const ui8*, const ui16*> GetFloatHistogram(
     const TSplit& split,
     const TQuantizedForCPUObjectsDataProvider& objectsDataProvider) {
+
     const auto* featureColumnHolder = *objectsDataProvider.GetNonPackedFloatFeature((ui32)split.FeatureIdx);
     if (featureColumnHolder->GetBitsPerKey() == 8) {
         return *featureColumnHolder->GetArrayData<ui8>().GetSrc();
@@ -45,10 +49,12 @@ static inline const TVariant<const ui8*, const ui16*> GetFloatHistogram(
 static inline const ui32* GetRemappedCatFeatures(
     const TSplit& split,
     const TQuantizedForCPUObjectsDataProvider& objectsDataProvider) {
-    return *(*objectsDataProvider.GetNonPackedCatFeature((ui32)split.FeatureIdx))->GetArrayData<ui32>().GetSrc();
+
+    return *(*objectsDataProvider.GetNonPackedCatFeature((ui32)split.FeatureIdx))
+        ->GetArrayData<ui32>().GetSrc();
 }
 
-template <typename TCount, typename TCmpOp, int vectorWidth>
+template <typename TCount, typename TCmpOp, int VectorWidth>
 inline void BuildIndicesKernel(
     const ui32* permutation,
     const TCount* histogram,
@@ -56,7 +62,7 @@ inline void BuildIndicesKernel(
     int level,
     TIndexType* indices) {
 
-    Y_ASSERT(vectorWidth == 4);
+    Y_ASSERT(VectorWidth == 4);
     const ui32 perm0 = permutation[0];
     const ui32 perm1 = permutation[1];
     const ui32 perm2 = permutation[2];
@@ -165,8 +171,7 @@ inline void OfflineCtrBlock(
             default:
                 CB_ENSURE_INTERNAL(
                     false,
-                    "unsupported Bundle SizeInBytes = " << bundleSubset.MetaData->SizeInBytes
-                );
+                    "unsupported Bundle SizeInBytes = " << bundleSubset.MetaData->SizeInBytes);
         }
     } else {
         OfflineCtrBlock(
@@ -348,8 +353,7 @@ static void BuildIndicesForDataset(
         permutationStorage.yresize(featuresArraySubsetIndexing.Size());
         featuresArraySubsetIndexing.ParallelForEach(
             [&](ui32 idx, ui32 srcIdx) { permutationStorage[idx] = srcIdx; },
-            localExecutor
-        );
+            localExecutor);
         permutation = permutationStorage.data();
     }
 
@@ -427,8 +431,7 @@ static void BuildIndicesForDataset(
                     blockParams,
                     [&](int doc) {
                         indices[doc] += GetCtrSplit(split, doc + docOffset, splitOnlineCtr) * splitWeight;
-                    }
-                )(blockIdx);
+                    })(blockIdx);
             } else {
                 Y_ASSERT(split.Type == ESplitType::OneHotFeature);
 
@@ -517,44 +520,10 @@ static void BinarizeRawFeatures(
     result->resize(model.ObliviousTrees.GetEffectiveBinaryFeaturesBucketsCount() * docCount);
     TVector<ui32> transposedHash(docCount * model.GetUsedCatFeaturesCount());
     TVector<float> ctrs(model.ObliviousTrees.GetUsedModelCtrs().size() * docCount);
+    TRawFeatureAccessor featureAccessor(model, rawObjectsData, columnReorderMap, start, end);
 
-    const ui32 consecutiveSubsetBegin = GetConsecutiveSubsetBegin(rawObjectsData);
-    const auto& featuresLayout = *rawObjectsData.GetFeaturesLayout();
-
-    auto getFeatureDataBeginPtr =
-        [&](
-            ui32 flatFeatureIdx,
-            TVector<TMaybe<NCB::TExclusiveBundleIndex>>*,
-            TVector<TMaybe<NCB::TPackedBinaryIndex>>*
-        ) -> const float* {
-            return GetRawFeatureDataBeginPtr(
-                rawObjectsData,
-                consecutiveSubsetBegin,
-                flatFeatureIdx);
-        };
-
-    TVector<TConstArrayRef<float>> repackedFeatures;
-    GetRepackedFeatures(
-        start,
-        end,
-        model.ObliviousTrees.GetFlatFeatureVectorExpectedSize(),
-        columnReorderMap,
-        getFeatureDataBeginPtr,
-        featuresLayout,
-        &repackedFeatures);
-
-    BinarizeFeatures(model,
-        [&repackedFeatures](const TFloatFeature& floatFeature, size_t index) -> float {
-            return repackedFeatures[floatFeature.FlatFeatureIndex][index];
-        },
-        [&repackedFeatures](const TCatFeature& catFeature, size_t index) -> ui32 {
-            return ConvertFloatCatFeatureToIntHash(repackedFeatures[catFeature.FlatFeatureIndex][index]);
-        },
-        0,
-        docCount,
-        *result,
-        transposedHash,
-        ctrs);
+    BinarizeFeatures(
+        model, featureAccessor, featureAccessor, 0, docCount, *result, transposedHash, ctrs);
 }
 
 static void AssignFeatureBins(
@@ -568,67 +537,18 @@ static void AssignFeatureBins(
     CheckModelAndDatasetCompatibility(model, quantizedObjectsData, &columnReorderMap);
     auto docCount = end - start;
     result->resize(model.ObliviousTrees.GetEffectiveBinaryFeaturesBucketsCount() * docCount);
-    auto floatBinsRemap = GetFloatFeaturesBordersRemap(
-        model,
-        *quantizedObjectsData.GetQuantizedFeaturesInfo().Get());
-    const ui32 consecutiveSubsetBegin = NCB::GetConsecutiveSubsetBegin(quantizedObjectsData);
+    TQuantizedFeatureAccessor quantizedFeatureAccessor(
+        model, quantizedObjectsData, columnReorderMap, start, end);
 
-    auto getFeatureDataBeginPtr =
-        [&](
-            ui32 featureIdx,
-            TVector<TMaybe<NCB::TExclusiveBundleIndex>>* bundledIndexes,
-            TVector<TMaybe<NCB::TPackedBinaryIndex>>* packedIndexes
-        ) -> const ui8* {
-            return GetFeatureDataBeginPtr(
-                quantizedObjectsData,
-                featureIdx,
-                consecutiveSubsetBegin,
-                bundledIndexes,
-                packedIndexes);
-        };
-
-    TVector<TConstArrayRef<ui8>> repackedBinFeatures;
-    TVector<TMaybe<TExclusiveBundleIndex>> bundledIndexes;
-    TVector<TMaybe<TPackedBinaryIndex>> packedIndexes;
-    GetRepackedFeatures(
-        start,
-        end,
-        model.ObliviousTrees.GetFlatFeatureVectorExpectedSize(),
-        columnReorderMap,
-        getFeatureDataBeginPtr,
-        *quantizedObjectsData.GetFeaturesLayout().Get(),
-        &repackedBinFeatures,
-        &bundledIndexes,
-        &packedIndexes);
-
-    AssignFeatureBins(
-        model,
-        [&floatBinsRemap,
-         &quantizedObjectsData,
-         &repackedBinFeatures,
-         &bundledIndexes,
-         &packedIndexes] (const TFloatFeature& floatFeature, size_t index) -> ui8 {
-            return QuantizedFeaturesFloatAccessor(
-                floatBinsRemap,
-                quantizedObjectsData.GetExclusiveFeatureBundlesMetaData(),
-                repackedBinFeatures,
-                bundledIndexes,
-                packedIndexes,
-                floatFeature,
-                index);
-        },
-        nullptr,
-        0,
-        end - start,
-        *result);
+    AssignFeatureBins(model, quantizedFeatureAccessor, quantizedFeatureAccessor, 0, end - start, *result);
 }
 
 TVector<ui8> GetModelCompatibleQuantizedFeatures(
     const TFullModel& model,
     const NCB::TObjectsDataProvider& objectsData,
     size_t start,
-    size_t end)
-{
+    size_t end) {
+
     TVector<ui8> result;
     if (const auto* const rawObjectsData = dynamic_cast<const TRawObjectsDataProvider*>(&objectsData)) {
         BinarizeRawFeatures(model, *rawObjectsData, start, end, &result);
@@ -645,8 +565,8 @@ TVector<ui8> GetModelCompatibleQuantizedFeatures(
 
 TVector<ui8> GetModelCompatibleQuantizedFeatures(
     const TFullModel& model,
-    const NCB::TObjectsDataProvider& objectsData)
-{
+    const NCB::TObjectsDataProvider& objectsData) {
+
     return GetModelCompatibleQuantizedFeatures(model, objectsData, /*start*/0, objectsData.GetObjectCount());
 }
 
@@ -676,30 +596,3 @@ TVector<TIndexType> BuildIndicesForBinTree(
     return indexesVec;
 }
 
-const ui8* GetFeatureDataBeginPtr(
-    const NCB::TQuantizedForCPUObjectsDataProvider& quantizedObjectsData,
-    ui32 featureIdx,
-    int consecutiveSubsetBegin,
-    TVector<TMaybe<NCB::TExclusiveBundleIndex>>* bundledIdx,
-    TVector<TMaybe<NCB::TPackedBinaryIndex>>* packedIdx) {
-
-    auto floatFeatureIdx = TFloatFeatureIdx(featureIdx);
-
-    (*bundledIdx)[featureIdx] = quantizedObjectsData.GetFloatFeatureToExclusiveBundleIndex(floatFeatureIdx);
-    (*packedIdx)[featureIdx] = quantizedObjectsData.GetFloatFeatureToPackedBinaryIndex(floatFeatureIdx);
-
-    if ((*bundledIdx)[featureIdx].Defined()) {
-        return quantizedObjectsData.GetExclusiveFeaturesBundle(
-            (*bundledIdx)[featureIdx]->BundleIdx
-        ).SrcData.data();
-    } else if ((*packedIdx)[featureIdx].Defined()) {
-        return (**quantizedObjectsData.GetBinaryFeaturesPack(
-            (*packedIdx)[featureIdx]->PackIdx
-        ).GetSrc()).data();
-    } else {
-        return GetQuantizedForCpuFloatFeatureDataBeginPtr(
-            quantizedObjectsData,
-            consecutiveSubsetBegin,
-            featureIdx);
-    }
-}

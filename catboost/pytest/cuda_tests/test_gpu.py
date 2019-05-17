@@ -2256,6 +2256,32 @@ def test_apply_with_grow_policy(grow_policy):
     assert(compare_evals_with_precision(test_eval_path, calc_eval_path, skip_last_column_in_fit=False))
 
 
+@pytest.mark.parametrize('loss_function', ('YetiRank', 'YetiRankPairwise'))
+def test_yetirank_default_metric(loss_function):
+    test_error_path = yatest.common.test_output_path('test_error.tsv')
+
+    train_file = data_file('black_friday', 'train')
+    test_file = data_file('black_friday', 'test')
+    cd_file = data_file('black_friday', 'cd')
+
+    params = [
+        '--loss-function', loss_function,
+        '--has-header',
+        '-f', train_file,
+        '-t', test_file,
+        '--column-description', cd_file,
+        '--boosting-type', 'Plain',
+        '-i', '10',
+        '-T', '4',
+        '--test-err-log', test_error_path,
+    ]
+
+    fit_catboost_gpu(params)
+
+    diff_precision = 2e-3 if loss_function == 'YetiRankPairwise' else 1e-5
+    return [local_canonical_file(test_error_path, diff_tool=diff_tool(diff_precision))]
+
+
 def is_valid_gpu_params(boosting_type, grow_policy, score_function, loss_func):
     correlation_scores = ['Correlation', 'NewtonCorrelation']
     second_order_scores = ['NewtonL2', 'NewtonCorrelation']
@@ -2272,7 +2298,11 @@ def is_valid_gpu_params(boosting_type, grow_policy, score_function, loss_func):
     return is_correct
 
 
-def template_test_grow_policies(boosting_type, grow_policy, score_function, loss_func):
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE + ['Default'])
+@pytest.mark.parametrize('grow_policy', GROW_POLICIES)
+@pytest.mark.parametrize('score_function', SCORE_FUNCTIONS)
+@pytest.mark.parametrize('loss_func', ['RMSE', 'Logloss', 'MultiClass', 'YetiRank'])
+def test_grow_policies(boosting_type, grow_policy, score_function, loss_func):
     learn_error_path = yatest.common.test_output_path('learn_error.tsv')
     test_error_path = yatest.common.test_output_path('test_error.tsv')
     model_path = yatest.common.test_output_path('model.bin')
@@ -2336,29 +2366,19 @@ def template_test_grow_policies(boosting_type, grow_policy, score_function, loss
             local_canonical_file(test_error_path, diff_tool=diff_tool())]
 
 
-@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE + ['Default'])
-@pytest.mark.parametrize('grow_policy', GROW_POLICIES)
-@pytest.mark.parametrize('score_function', SCORE_FUNCTIONS)
-def test_grow_policies_regression(boosting_type, grow_policy, score_function):
-    return template_test_grow_policies(boosting_type, grow_policy, score_function, 'RMSE')
+def test_output_options():
+    output_options_path = 'training_options.json'
+    train_dir = 'catboost_info'
 
-
-@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE + ['Default'])
-@pytest.mark.parametrize('grow_policy', GROW_POLICIES)
-@pytest.mark.parametrize('score_function', SCORE_FUNCTIONS)
-def test_grow_policies_classification(boosting_type, grow_policy, score_function):
-    return template_test_grow_policies(boosting_type, grow_policy, score_function, 'Logloss')
-
-
-@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE + ['Default'])
-@pytest.mark.parametrize('grow_policy', GROW_POLICIES)
-@pytest.mark.parametrize('score_function', SCORE_FUNCTIONS)
-def test_grow_policies_multiclass(boosting_type, grow_policy, score_function):
-    return template_test_grow_policies(boosting_type, grow_policy, score_function, 'MultiClass')
-
-
-@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE + ['Default'])
-@pytest.mark.parametrize('grow_policy', GROW_POLICIES)
-@pytest.mark.parametrize('score_function', SCORE_FUNCTIONS)
-def test_grow_policies_ranking(boosting_type, grow_policy, score_function):
-    return template_test_grow_policies(boosting_type, grow_policy, score_function, 'YetiRank')
+    params = (
+        '--loss-function', 'Logloss',
+        '-f', data_file('adult', 'train_small'),
+        '-t', data_file('adult', 'test_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '-i', '10',
+        '-T', '4',
+        '--train-dir', train_dir,
+        '--training-options-file', output_options_path,
+    )
+    fit_catboost_gpu(params)
+    return local_canonical_file(os.path.join(train_dir, output_options_path))

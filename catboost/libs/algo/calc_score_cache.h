@@ -7,16 +7,22 @@
 
 #include <catboost/libs/data_new/columns.h>
 #include <catboost/libs/index_range/index_range.h>
-#include <catboost/libs/helpers/restorable_rng.h>
 #include <catboost/libs/options/restrictions.h>
-#include <catboost/libs/options/oblivious_tree_options.h>
 
 #include <util/generic/array_ref.h>
 #include <util/generic/ptr.h>
 #include <util/memory/pool.h>
-#include <util/system/info.h>
 #include <util/system/atomic.h>
+#include <util/system/info.h>
 #include <util/system/spinlock.h>
+
+
+struct TRestorableFastRng64;
+
+namespace NCatboostOptions {
+    class TObliviousTreeLearnerOptions;
+}
+
 
 bool IsSamplingPerTree(const NCatboostOptions::TObliviousTreeLearnerOptions& fitParams);
 
@@ -169,9 +175,12 @@ public:
     struct TVectorSlicing {
         struct TSlice {
             static const constexpr int InvalidOffset = -1;
-            int Offset = InvalidOffset;
             static const constexpr int InvalidSize = -1;
+
+            int Offset = InvalidOffset;
             int Size = InvalidSize;
+
+        public:
             TSlice Clip(int newSize) const {
                 TSlice clippedSlice;
                 clippedSlice.Offset = Offset;
@@ -250,12 +259,15 @@ public:
     const NCB::IIndexRangesGenerator<int>& GetCalcStatsIndexRanges() const;
 
 private:
+    using TSlice = TVectorSlicing::TSlice;
+
+private:
     inline void ClearBodyTail() {
         for (auto& bodyTail : BodyTailArr) {
             bodyTail.BodyFinish = bodyTail.TailFinish = 0;
         }
     }
-    using TSlice = TVectorSlicing::TSlice;
+
     template <typename TFoldType>
     void SelectBlockFromFold(const TFoldType& fold, TSlice srcBlock, TSlice dstBlock);
     void SetSmallestSideControl(

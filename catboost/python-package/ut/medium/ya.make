@@ -3,13 +3,20 @@
 PYTEST()
 
 SIZE(MEDIUM)
-REQUIREMENTS(network:full)
+
+IF(AUTOCHECK)
+    REQUIREMENTS(cpu:4 network:full)
+ELSE()
+    REQUIREMENTS(cpu:2 network:full)
+ENDIF()
 
 FORK_SUBTESTS()
+SPLIT_FACTOR(40)
 
 NO_CHECK_IMPORTS(widget.ipythonwidget)
 
 PEERDIR(
+    contrib/python/graphviz
     contrib/python/pandas
     contrib/python/numpy
     contrib/python/six
@@ -30,7 +37,6 @@ DATA(
 )
 
 DEPENDS(
-    catboost/tools/limited_precision_json_diff
     catboost/tools/model_comparator
     catboost/python-package/catboost/no_cuda
     catboost/python-package/ut/medium/python_binary

@@ -10,7 +10,7 @@
 #include <util/generic/hash.h>
 #include <util/generic/vector.h>
 #include <util/generic/xrange.h>
-#include <util/string/iterator.h>
+#include <util/string/split.h>
 
 #include <array>
 
@@ -380,7 +380,7 @@ namespace NTextProcessing::NDictionary {
             TVector<ui64>* idToCount
         ) {
             TVector<TStringBuf> splittedLine;
-            StringSplitter(line).SplitLimited('\t', 3).Collect(&splittedLine);
+            StringSplitter(line).Split('\t').Limit(3).Collect(&splittedLine);
 
             auto& key = sortedInternalIds->emplace_back();
             ui32 gramIndex = 0;

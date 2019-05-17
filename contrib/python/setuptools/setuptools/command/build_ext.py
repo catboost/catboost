@@ -10,11 +10,14 @@ from distutils.errors import DistutilsError
 from distutils import log
 
 from setuptools.extension import Library
-import six
+from setuptools.extern import six
 
 try:
     # Attempt to use Cython for building extensions, if available
     from Cython.Distutils.build_ext import build_ext as _build_ext
+    # Additionally, assert that the compiler module will load
+    # also. Ref #1229.
+    __import__('Cython.Compiler.Main')
 except ImportError:
     _build_ext = _du_build_ext
 
@@ -109,7 +112,7 @@ class build_ext(_build_ext):
                 and get_abi3_suffix()
             )
             if use_abi3:
-                so_ext = _get_config_var_837('EXT_SUFFIX')
+                so_ext = get_config_var('EXT_SUFFIX')
                 filename = filename[:-len(so_ext)]
                 filename = filename + get_abi3_suffix()
             if isinstance(ext, Library):
@@ -316,13 +319,3 @@ else:
         self.create_static_lib(
             objects, basename, output_dir, debug, target_lang
         )
-
-
-def _get_config_var_837(name):
-    """
-    In https://github.com/pypa/setuptools/pull/837, we discovered
-    Python 3.3.0 exposes the extension suffix under the name 'SO'.
-    """
-    if sys.version_info < (3, 3, 1):
-        name = 'SO'
-    return get_config_var(name)

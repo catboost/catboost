@@ -28,8 +28,6 @@ RECURSE(
     nayuki_md5
     onnx
     openssl
-    openssl/1.0.2
-    openssl/1.0.2/apps
     openssl/apps
     openssl/dynamic
     protobuf
@@ -101,12 +99,6 @@ IF (OS_WINDOWS AND USE_UWP)
 ENDIF()
 
 IF (OS_ANDROID)
-    RECURSE(
-    
-)
-ENDIF()
-
-IF (ARCH_PPC64LE)
     RECURSE(
     
 )

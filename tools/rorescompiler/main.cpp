@@ -4,7 +4,7 @@
 #include <util/stream/output.h>
 #include <util/stream/file.h>
 #include <util/string/vector.h>
-#include <util/string/iterator.h>
+#include <util/string/split.h>
 
 
 using namespace NResource;
@@ -27,7 +27,7 @@ int main(int argc, char** argv) {
     out << "#include <library/resource/registry.h>\n\n";
 
     while (*argv) {
-        TVector<TString> items = StringSplitter(TString(*(argv))).SplitByStringLimited("=", 2).ToList<TString>();
+        TVector<TString> items = StringSplitter(TString(*(argv))).Split('=').Limit(2).ToList<TString>();
         GenOne(items[0], items[1], out);
         argv++;
     }

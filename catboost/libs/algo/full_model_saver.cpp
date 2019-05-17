@@ -2,17 +2,20 @@
 
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/vector_helpers.h>
+#include <catboost/libs/model/ctr_value_table.h>
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/model/static_ctr_provider.h>
+#include <catboost/libs/options/catboost_options.h>
 #include <catboost/libs/options/enum_helpers.h>
 #include <catboost/libs/options/system_options.h>
+#include <catboost/libs/target/classification_target_helper.h>
 
 #include <library/svnversion/svnversion.h>
 #include <library/threading/local_executor/local_executor.h>
 
+#include <util/datetime/base.h>
 #include <util/generic/algorithm.h>
 #include <util/generic/guid.h>
-#include <util/datetime/base.h>
 #include <util/generic/hash_set.h>
 #include <util/generic/ptr.h>
 #include <util/generic/xrange.h>
@@ -34,18 +37,27 @@ namespace NCB {
         targetClassesCount->resize(ctrCount);
 
         for (ui32 ctrIdx = 0; ctrIdx < ctrCount; ++ctrIdx) {
-            NPar::ParallelFor(localExecutor, 0, (ui32)sampleCount, [&](int sample) {
-                (*learnTargetClasses)[ctrIdx][sample] = targetClassifiers[ctrIdx].GetTargetClass(targets[sample]);
-            });
+            NPar::ParallelFor(
+                localExecutor,
+                0,
+                (ui32)sampleCount,
+                [&](int sample) {
+                    (*learnTargetClasses)[ctrIdx][sample]
+                        = targetClassifiers[ctrIdx].GetTargetClass(targets[sample]);
+                }
+            );
 
             (*targetClassesCount)[ctrIdx] = targetClassifiers[ctrIdx].GetClassesCount();
         }
     }
 
     static bool NeedTargetClasses(const TFullModel& coreModel) {
-        return AnyOf(coreModel.ObliviousTrees.GetUsedModelCtrs(), [](const TModelCtr& modelCtr) {
-            return NeedTargetClassifier(modelCtr.Base.CtrType);
-        });
+        return AnyOf(
+            coreModel.ObliviousTrees.GetUsedModelCtrs(),
+            [](const TModelCtr& modelCtr) {
+                return NeedTargetClassifier(modelCtr.Base.CtrType);
+            }
+        );
     }
 
 
@@ -204,7 +216,9 @@ namespace NCB {
             AnyOf(
                 formats,
                 [](EModelType format) {
-                    return format == EModelType::Python || format == EModelType::Cpp || format == EModelType::Json;
+                    return format == EModelType::Python ||
+                        format == EModelType::Cpp ||
+                        format == EModelType::Json;
                 }
             ),
             &fullModel
@@ -226,7 +240,15 @@ namespace NCB {
         }
 
         for (const auto& format: formats) {
-            ExportModel(fullModel, fullModelPath, format, "", addFileFormatExtension, &featureIds, &catFeaturesHashToString);
+            ExportModel(
+                fullModel,
+                fullModelPath,
+                format,
+                "",
+                addFileFormatExtension,
+                &featureIds,
+                &catFeaturesHashToString
+            );
         }
     }
 
@@ -328,7 +350,6 @@ namespace NCB {
 
         CalcFinalCtrsAndSaveToModel(
             CpuRamLimit,
-            localExecutor,
             featureCombinationToProjectionMap,
             datasetDataForFinalCtrs,
             *PerfectHashedToHashedCatValuesMap,
@@ -336,7 +357,8 @@ namespace NCB {
             StoreAllSimpleCtrs,
             Options.CatFeatureParams.Get().CounterCalcMethod,
             ctrBases,
-            std::move(asyncCtrValueTableCallback)
+            std::move(asyncCtrValueTableCallback),
+            &localExecutor
         );
     };
 }

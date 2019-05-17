@@ -1,15 +1,22 @@
 #pragma once
 
 #include <catboost/libs/data_new/data_provider.h>
-#include <catboost/libs/helpers/restorable_rng.h>
-#include <catboost/libs/labels/label_converter.h>
-#include <catboost/libs/options/catboost_options.h>
-
-#include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/maybe.h>
 #include <util/generic/strbuf.h>
 #include <util/generic/string.h>
+
+
+class TLabelConverter;
+struct TRestorableFastRng64;
+
+namespace NCatboostOptions {
+    class TCatBoostOptions;
+}
+
+namespace NPar {
+    class TLocalExecutor;
+}
 
 
 namespace NCB {

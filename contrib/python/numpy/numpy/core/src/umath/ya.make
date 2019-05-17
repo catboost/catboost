@@ -15,29 +15,37 @@ CFLAGS(
     -D_FILE_OFFSET_BITS=64
     -D_LARGEFILE64_SOURCE=1
     -D_LARGEFILE_SOURCE=1
+    -DNPY_INTERNAL_BUILD=1
 )
 
 ADDINCL(
     contrib/python/numpy/numpy/core/include
     contrib/python/numpy/numpy/core/include/numpy
+    contrib/python/numpy/numpy/core/src/common
     contrib/python/numpy/numpy/core/src/multiarray
-    contrib/python/numpy/numpy/core/src/private
+    contrib/python/numpy/numpy/core/src/npymath
 )
 
 SRCS(
+    _operand_flag_tests.c
+    _rational_tests.c
+    _struct_ufunc_tests.c
+    _umath_tests.c
+    cpuid.c
+    extobj.c
     loops.c
-    operand_flag_tests.c
+    matmul.c
+    override.c
     reduction.c
     scalarmath.c
-    struct_ufunc_test.c
-    test_rational.c
     ufunc_object.c
     ufunc_type_resolution.c
-    umath_tests.c
     umathmodule.c
 )
 
-PY_REGISTER(numpy.core.umath=umath)
-PY_REGISTER(numpy.core.umath_tests=umath_tests)
+PY_REGISTER(numpy.core._operand_flag_tests=_operand_flag_tests)
+PY_REGISTER(numpy.core._rational_tests=_rational_tests)
+PY_REGISTER(numpy.core._struct_ufunc_tests=_struct_ufunc_tests)
+PY_REGISTER(numpy.core._umath_tests=_umath_tests)
 
 END()

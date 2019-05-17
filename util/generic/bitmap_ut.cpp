@@ -397,7 +397,7 @@ Y_UNIT_TEST_SUITE(TBitMapTest) {
 
         bitmap.Clear().Set(62).LShift(129);
         UNIT_ASSERT_EQUAL(bitmap, TDynBitMap().Set(191));
-        UNIT_ASSERT_EQUAL(bitmap.Size(), 192);
+        UNIT_ASSERT_EQUAL(bitmap.Size(), 256);
     }
 
     Y_UNIT_TEST(TestFixedSanity) {

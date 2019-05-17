@@ -11,8 +11,8 @@ PEERDIR(
 )
 
 TEST_SRCS(
-    test_regression.py
     test_random.py
+    test_regression.py
 )
 
 END()

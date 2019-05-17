@@ -28,8 +28,7 @@ namespace NCatboostCuda {
         : CatboostOptions(catBoostOptions)
         , OutputOptions(outputFilesOptions)
         , OutputFiles(outputFilesOptions, "")
-        , Metrics(CreateGpuMetrics(catBoostOptions.LossFunctionDescription,
-                                   catBoostOptions.MetricOptions, cpuApproxDim))
+        , Metrics(CreateGpuMetrics(catBoostOptions.MetricOptions, cpuApproxDim))
         , ErrorTracker(CreateErrorTracker(catBoostOptions.BoostingOptions->OverfittingDetector, Metrics.at(0)->GetCpuMetric(), hasTest))
         , BestModelMinTreesTracker(CreateErrorTracker(catBoostOptions.BoostingOptions->OverfittingDetector, Metrics.at(0)->GetCpuMetric(), hasTest))
         , OnEndIterationCallback(onEndIterationCallback)

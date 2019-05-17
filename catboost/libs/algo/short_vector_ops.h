@@ -1,9 +1,12 @@
 #pragma once
 
+#include <library/sse/sse.h>
+
 #include <util/generic/xrange.h>
 
 #include <array>
 #include <type_traits>
+
 
 namespace NSimdOps {
     constexpr size_t Size = 2;
@@ -52,8 +55,7 @@ namespace NGenericSimdOps {
     }
 }
 
-#ifdef _sse2_
-#include <emmintrin.h>
+#ifdef ARCADIA_SSE
 namespace NSse2SimdOps {
     static_assert(std::is_same<NSimdOps::TValueType, double>::value, "NSimdOps::TValueType must be double");
     static_assert(NSimdOps::Size == 2, "NSimdOps::Size must be 2");
@@ -81,7 +83,7 @@ namespace NSse2SimdOps {
 }
 #endif
 
-#ifdef _sse2_
+#ifdef ARCADIA_SSE
 namespace NSimdOps {
     using NSse2SimdOps::MakeZeros;
     using NSse2SimdOps::HorizontalAdd;

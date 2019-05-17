@@ -41,7 +41,6 @@ namespace NCB {
     void ValidateColumnOutput(
         const TVector<TString>& outputColumns,
         const TDataProvider& pool,
-        bool isPartOfFullTestSet=false,
         bool CV_mode=false);
 
     TIntrusivePtr<IPoolColumnsPrinter> CreatePoolColumnPrinter(
@@ -56,7 +55,6 @@ namespace NCB {
         const TVector<TString>& outputColumns,
         const TExternalLabelsHelper& visibleLabelsHelper,
         const TDataProvider& pool,
-        bool isPartOfTestSet, // pool is a part of test set, can't output testSetPath columns
         IOutputStream* outputStream,
         TIntrusivePtr<IPoolColumnsPrinter> poolColumnsPrinter,
         std::pair<int, int> testFileWhichOf,
@@ -70,7 +68,6 @@ namespace NCB {
         const TVector<TString>& outputColumns,
         const TExternalLabelsHelper& visibleLabelsHelper,
         const TDataProvider& pool,
-        bool isPartOfTestSet, // pool is a part of test set, can't output testSetPath columns
         IOutputStream* outputStream,
         const NCB::TPathWithScheme& testSetPath,
         std::pair<int, int> testFileWhichOf,

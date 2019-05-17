@@ -1,29 +1,33 @@
 #pragma once
 
-#include "online_ctr.h"
-#include "fold.h"
-#include "ctr_helper.h"
-#include "split.h"
 #include "calc_score_cache.h"
+#include "ctr_helper.h"
 #include "custom_objective_descriptor.h"
+#include "fold.h"
+#include "online_ctr.h"
+#include "split.h"
 
 #include <catboost/libs/data_new/data_provider.h>
 #include <catboost/libs/data_new/features_layout.h>
 #include <catboost/libs/helpers/restorable_rng.h>
 #include <catboost/libs/labels/label_converter.h>
-#include <catboost/libs/loggers/logger.h>
 #include <catboost/libs/loggers/catboost_logger_helpers.h>
+#include <catboost/libs/loggers/logger.h>
 #include <catboost/libs/logging/logging.h>
 #include <catboost/libs/logging/profile_info.h>
 #include <catboost/libs/options/catboost_options.h>
 
 #include <library/json/json_reader.h>
-#include <library/threading/local_executor/local_executor.h>
 
 #include <library/par/par.h>
 
 #include <util/generic/noncopyable.h>
 #include <util/generic/hash_set.h>
+
+
+namespace NPar {
+    class TLocalExecutor;
+}
 
 
 struct TLearnProgress {

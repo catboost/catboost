@@ -69,9 +69,15 @@ namespace NCB {
         // needed because of default init in Cython and because of BinSaver
         TFeaturesLayout() = default;
         explicit TFeaturesLayout(const ui32 featureCount);
+        TFeaturesLayout( // TODO(d-kruchinin) Temporary fix while DataProvider interface is not private
+            const ui32 featureCount,
+            const TVector<ui32>& catFeatureIndices,
+            const TVector<TString>& featureId)
+            : TFeaturesLayout(featureCount, catFeatureIndices, {}, featureId) {}
         TFeaturesLayout(
             const ui32 featureCount,
             const TVector<ui32>& catFeatureIndices,
+            const TVector<ui32>& textFeatureIndices,
             const TVector<TString>& featureId);
         TFeaturesLayout(
             const TVector<TFloatFeature>& floatFeatures,
@@ -126,6 +132,8 @@ namespace NCB {
 
         ui32 GetCatFeatureCount() const;
 
+        ui32 GetTextFeatureCount() const;
+
         ui32 GetExternalFeatureCount() const;
 
         ui32 GetFeatureCount(EFeatureType type) const;
@@ -149,6 +157,8 @@ namespace NCB {
 
         TConstArrayRef<ui32> GetCatFeatureInternalIdxToExternalIdx() const;
 
+        TConstArrayRef<ui32> GetTextFeatureInternalIdxToExternalIdx() const;
+
         bool HasAvailableAndNotIgnoredFeatures() const;
 
     private:
@@ -156,6 +166,7 @@ namespace NCB {
         TVector<ui32> FeatureExternalIdxToInternalIdx;
         TVector<ui32> CatFeatureInternalIdxToExternalIdx;
         TVector<ui32> FloatFeatureInternalIdxToExternalIdx;
+        TVector<ui32> TextFeatureInternalIdxToExternalIdx;
     };
 
     using TFeaturesLayoutPtr = TIntrusivePtr<TFeaturesLayout>;

@@ -35,6 +35,9 @@ comment):
 #define INIT_ERROR return NULL
 #else
 #define INIT_ERROR return
+// Because on PyPy, Py_FileSystemDefaultEncoding is (was) defined to be NULL
+// (see PyPy Bitbucket issue #2669)
+#define FS_ENCODING (Py_FileSystemDefaultEncoding ? Py_FileSystemDefaultEncoding : "UTF-8")
 #endif
 
 #if PY_MAJOR_VERSION < 3 || PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION <= 2
@@ -45,6 +48,11 @@ comment):
     PyUnicode_AsUnicode(unicode); *(addr_length) = PyUnicode_GetSize(unicode)
 #endif
 
+// Because on PyPy not working without
+#if PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION > 2 && defined(PYPY_VERSION_NUM)
+#define _Py_IDENTIFIER(name) static char * PyId_##name = #name;
+#define _PyObject_GetAttrId(obj, pyid_name) PyObject_GetAttrString((obj), *(pyid_name))
+#endif
 
 /* SECTION: Helper utilities from posixmodule.c, fileutils.h, etc */
 
@@ -85,11 +93,12 @@ comment):
 #endif
 
 // _Py_stat_struct is already defined in fileutils.h on Python 3.5+
-#if PY_MAJOR_VERSION < 3 || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 5)
+// But not in PyPy
+#if PY_MAJOR_VERSION < 3 || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 5) || defined(PYPY_VERSION_NUM)
 #ifdef MS_WINDOWS
 struct _Py_stat_struct {
     unsigned long st_dev;
-    __int64 st_ino;
+    unsigned __int64 st_ino;
     unsigned short st_mode;
     int st_nlink;
     int st_uid;
@@ -173,7 +182,7 @@ _Py_attribute_data_to_stat(BY_HANDLE_FILE_INFORMATION *info, ULONG reparse_tag,
     FILE_TIME_to_time_t_nsec(&info->ftLastWriteTime, &result->st_mtime, &result->st_mtime_nsec);
     FILE_TIME_to_time_t_nsec(&info->ftLastAccessTime, &result->st_atime, &result->st_atime_nsec);
     result->st_nlink = info->nNumberOfLinks;
-    result->st_ino = (((__int64)info->nFileIndexHigh)<<32) + info->nFileIndexLow;
+    result->st_ino = (((unsigned __int64)info->nFileIndexHigh)<<32) + info->nFileIndexLow;
     if (reparse_tag == IO_REPARSE_TAG_SYMLINK) {
         /* first clear the S_IFMT bits */
         result->st_mode ^= (result->st_mode & S_IFMT);
@@ -556,9 +565,9 @@ _pystat_fromstructstat(STRUCT_STAT *st)
     PyStructSequence_SET_ITEM(v, 0, PyLong_FromLong((long)st->st_mode));
 #ifdef HAVE_LARGEFILE_SUPPORT
     PyStructSequence_SET_ITEM(v, 1,
-                              PyLong_FromLongLong((PY_LONG_LONG)st->st_ino));
+                              PyLong_FromUnsignedLongLong(st->st_ino));
 #else
-    PyStructSequence_SET_ITEM(v, 1, PyLong_FromLong((long)st->st_ino));
+    PyStructSequence_SET_ITEM(v, 1, PyLong_FromUnsignedLong((unsigned long)st->st_ino));
 #endif
 #ifdef MS_WINDOWS
     PyStructSequence_SET_ITEM(v, 2, PyLong_FromUnsignedLong(st->st_dev));
@@ -672,9 +681,10 @@ static PyStructSequence_Field stat_result_fields[] = {
     {"st_uid",     "user ID of owner"},
     {"st_gid",     "group ID of owner"},
     {"st_size",    "total size, in bytes"},
-    {"st_atime",   "integer time of last access"},
-    {"st_mtime",   "integer time of last modification"},
-    {"st_ctime",   "integer time of last change"},
+    /* The NULL is replaced with PyStructSequence_UnnamedField later. */
+    {NULL,         "integer time of last access"},
+    {NULL,         "integer time of last modification"},
+    {NULL,         "integer time of last change"},
     {"st_atime",   "time of last access"},
     {"st_mtime",   "time of last modification"},
     {"st_ctime",   "time of last change"},
@@ -812,7 +822,7 @@ path_converter(PyObject *o, void *p) {
         if (!PyUnicode_FSConverter(unicode, &bytes))
             bytes = NULL;
 #else
-        bytes = PyUnicode_AsEncodedString(unicode, Py_FileSystemDefaultEncoding, "strict");
+        bytes = PyUnicode_AsEncodedString(unicode, FS_ENCODING, "strict");
 #endif
         Py_DECREF(unicode);
 #endif
@@ -907,7 +917,7 @@ typedef struct {
     PyObject *lstat;
 #ifdef MS_WINDOWS
     struct _Py_stat_struct win32_lstat;
-    __int64 win32_file_index;
+    unsigned __int64 win32_file_index;
     int got_file_index;
 #if PY_MAJOR_VERSION < 3
     int name_path_bytes;
@@ -997,7 +1007,7 @@ DirEntry_fetch_stat(DirEntry *self, int follow_symlinks)
         bytes = self->path;
         Py_INCREF(bytes);
     } else {
-        bytes = PyUnicode_AsEncodedString(self->path, Py_FileSystemDefaultEncoding, "strict");
+        bytes = PyUnicode_AsEncodedString(self->path, FS_ENCODING, "strict");
         if (!bytes)
             return NULL;
     }
@@ -1197,12 +1207,12 @@ DirEntry_inode(DirEntry *self)
         self->win32_file_index = stat.st_ino;
         self->got_file_index = 1;
     }
-    return PyLong_FromLongLong((PY_LONG_LONG)self->win32_file_index);
+    return PyLong_FromUnsignedLongLong(self->win32_file_index);
 #else /* POSIX */
 #ifdef HAVE_LARGEFILE_SUPPORT
-    return PyLong_FromLongLong((PY_LONG_LONG)self->d_ino);
+    return PyLong_FromUnsignedLongLong(self->d_ino);
 #else
-    return PyLong_FromLong((long)self->d_ino);
+    return PyLong_FromUnsignedLong((unsigned long)self->d_ino);
 #endif
 #endif
 }
@@ -1481,9 +1491,9 @@ DirEntry_from_posix_info(path_t *path, char *name, Py_ssize_t name_len,
         entry->path = PyUnicode_DecodeFSDefault(joined_path);
 #else
         entry->name = PyUnicode_Decode(name, name_len,
-                                       Py_FileSystemDefaultEncoding, "strict");
+                                       FS_ENCODING, "strict");
         entry->path = PyUnicode_Decode(joined_path, strlen(joined_path),
-                                       Py_FileSystemDefaultEncoding, "strict");
+                                       FS_ENCODING, "strict");
 #endif
     }
     else {
@@ -1803,6 +1813,9 @@ init_scandir(void)
     if (!billion)
         INIT_ERROR;
 
+    stat_result_desc.fields[7].name = PyStructSequence_UnnamedField;
+    stat_result_desc.fields[8].name = PyStructSequence_UnnamedField;
+    stat_result_desc.fields[9].name = PyStructSequence_UnnamedField;
     PyStructSequence_InitType(&StatResultType, &stat_result_desc);
     structseq_new = StatResultType.tp_new;
     StatResultType.tp_new = statresult_new;
@@ -1811,6 +1824,8 @@ init_scandir(void)
         INIT_ERROR;
     if (PyType_Ready(&DirEntryType) < 0)
         INIT_ERROR;
+
+    PyModule_AddObject(module, "DirEntry", (PyObject *)&DirEntryType);
 
 #if PY_MAJOR_VERSION >= 3
     return module;

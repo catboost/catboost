@@ -8,6 +8,7 @@ import re
 import subprocess
 import sys
 import tempfile
+import json
 
 from catboost import (
     CatBoost,
@@ -22,6 +23,7 @@ from catboost import (
     train,)
 from catboost.eval.catboost_evaluation import CatboostEvaluation, EvalType
 from catboost.utils import eval_metric, create_cd, get_roc_curve, select_threshold
+from catboost.utils import DataMetaInfo, TargetStats, compute_training_options
 import os.path
 from pandas import read_table, DataFrame, Series, Categorical
 from six import PY3
@@ -100,6 +102,8 @@ CAT_FEATURES = [0, 1, 2, 4, 6, 8, 9, 10, 11, 12, 16]
 
 
 model_diff_tool = binary_path("catboost/tools/model_comparator/model_comparator")
+
+np.set_printoptions(legacy='1.13')
 
 
 class LogStdout:
@@ -1906,6 +1910,23 @@ def test_cv_with_cat_features_param(param_type):
         cv(pool, params_with_wrong_cat_features)
 
 
+def test_cv_with_save_snapshot(task_type):
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    with pytest.raises(CatBoostError):
+        cv(
+            pool,
+            {
+                "iterations": 20,
+                "learning_rate": 0.03,
+                "loss_function": "Logloss",
+                "eval_metric": "AUC",
+                "task_type": task_type,
+                "save_snapshot": True
+            },
+            dev_max_iterations_batch_size=6
+        )
+
+
 def test_feature_importance(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     pool_querywise = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
@@ -1919,7 +1940,7 @@ def test_feature_importance(task_type):
 
     model = CatBoostClassifier(iterations=5, learning_rate=0.03, task_type=task_type, devices='0')
     model.fit(pool)
-    assert model.get_feature_importance() == model.get_feature_importance(type=EFstrType.PredictionValuesChange)
+    assert (model.get_feature_importance() == model.get_feature_importance(type=EFstrType.PredictionValuesChange)).all()
     failed = False
     try:
         model.get_feature_importance(type=EFstrType.LossFunctionChange)
@@ -1948,7 +1969,7 @@ def test_feature_importance_prettified(task_type):
     feature_importances = model.get_feature_importance(type=EFstrType.PredictionValuesChange, prettified=True)
     fimp_txt_path = test_output_path(FIMP_TXT_PATH)
     with open(fimp_txt_path, 'w') as ofile:
-        for f_id, f_imp in feature_importances:
+        for f_id, f_imp in feature_importances.values:
             ofile.write('{}\t{}\n'.format(f_id, f_imp))
     return local_canonical_file(fimp_txt_path)
 
@@ -1969,6 +1990,18 @@ def test_shap_feature_importance(task_type):
     fimp_npy_path = test_output_path(FIMP_NPY_PATH)
     np.save(fimp_npy_path, np.array(model.get_feature_importance(type=EFstrType.ShapValues, data=pool)))
     return local_canonical_file(fimp_npy_path)
+
+
+def test_shap_feature_importance_modes(task_type):
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(iterations=5, task_type=task_type)
+    model.fit(pool)
+    modes = ["Auto", "UsePreCalc", "NoPreCalc"]
+    shaps_for_modes = []
+    for mode in modes:
+        shaps_for_modes.append(model.get_feature_importance(type=EFstrType.ShapValues, data=pool, shap_mode=mode))
+    for i in range(len(modes) - 1):
+        assert np.all(np.abs(shaps_for_modes[i] - shaps_for_modes[i-1]) < 1e-9)
 
 
 def test_od(task_type):
@@ -3018,26 +3051,16 @@ def test_str_eval_metrics_in_eval_features():
     assert first_result.get_results()['MAE'] == second_result.get_results()['MAE']
 
 
-@pytest.mark.parametrize("test_case",
-                         ["dataset_and_metrics",
-                          "no_dataset_and_no_metrics",
-                          pytest.param("dataset_and_no_metrics", marks=pytest.mark.xfail)])
-def test_compare(test_case):
+def test_compare():
     dataset = np.array([[1, 4, 5, 6], [4, 5, 6, 7], [30, 40, 50, 60], [20, 15, 85, 60]])
     train_labels = [1.2, 3.4, 9.5, 24.5]
-    model = CatBoostRegressor(learning_rate=1, depth=6, loss_function='RMSE', train_dir="catboost_info1")
+    model = CatBoostRegressor(learning_rate=1, depth=6, loss_function='RMSE')
     model.fit(dataset, train_labels)
-    model2 = CatBoostRegressor(learning_rate=0.1, depth=1, loss_function='MAE', train_dir="catboost_info2")
+    model2 = CatBoostRegressor(learning_rate=0.1, depth=1, loss_function='MAE')
     model2.fit(dataset, train_labels)
 
-    kwargs = {"second_model": model2}   # "no_dataset_and_no_metrics" case
-    if test_case == "dataset_and_no_metrics":
-        kwargs.update({"data": Pool(dataset, label=train_labels)})
-    elif test_case == "dataset_and_metrics":
-        kwargs.update({"data": Pool(dataset, label=train_labels), "metrics": ["RMSE"]})
-
     try:
-        model.compare(**kwargs)
+        model.compare(model2, Pool(dataset, label=train_labels), ["RMSE"])
     except ImportError as ie:
         pytest.xfail(str(ie)) if str(ie) == "No module named widget" \
             else pytest.fail(str(ie))
@@ -4275,6 +4298,17 @@ def test_eval_features(task_type, eval_type, problem):
     return canonical_files
 
 
+def test_metric_period_with_vertbose_true():
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoost(dict(iterations=16, metric_period=4))
+
+    tmpfile = test_output_path('tmpfile')
+    with LogStdout(open(tmpfile, 'w')):
+        model.fit(pool, verbose=True)
+
+    assert(_count_lines(tmpfile) == 5)
+
+
 def test_eval_features_with_file_header():
     learn_params = {
         'iterations': 20,
@@ -4307,3 +4341,24 @@ def test_eval_features_with_file_header():
     comparison_results.to_csv(eval_results_file_name)
 
     return local_canonical_file(eval_results_file_name)
+
+
+def test_compute_options():
+    data_meta_info = DataMetaInfo(
+        object_count=100000,
+        max_cat_features_uniq_values_on_learn=0,
+        target_stats=TargetStats(min_value=0, max_value=1),
+        has_pairs=False
+    )
+
+    options = compute_training_options(
+        options={'thread_count': 1},
+        train_meta_info=data_meta_info,
+        test_meta_info=data_meta_info,
+    )
+
+    options_file_name = test_output_path('options.json')
+    with open(options_file_name, 'w') as f:
+        json.dump(options, f, indent=4, sort_keys=True)
+
+    return local_canonical_file(options_file_name)

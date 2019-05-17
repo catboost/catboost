@@ -431,6 +431,11 @@ def onadd_check(unit, *args):
         flat_args[1] = allowed_levels[check_level]
         script_rel_path = "java.style"
         test_timeout = '120'
+    elif check_type == "gofmt":
+        script_rel_path = check_type
+        go_files = flat_args[1:]
+        if go_files:
+            test_dir = os.path.dirname(go_files[0]).lstrip("$S/")
     else:
         script_rel_path = check_type
 

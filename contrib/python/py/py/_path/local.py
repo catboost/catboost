@@ -18,6 +18,11 @@ if sys.version_info > (3,0):
 else:
     map_as_list = map
 
+ALLOW_IMPORTLIB_MODE = sys.version_info > (3,5)
+if ALLOW_IMPORTLIB_MODE:
+    import importlib
+
+
 class Stat(object):
     def __getattr__(self, name):
         return getattr(self._osstatresult, "st_" + name)
@@ -574,14 +579,17 @@ class LocalPath(FSBase):
 
     @contextmanager
     def as_cwd(self):
-        """ return context manager which changes to current dir during the
-        managed "with" context. On __enter__ it returns the old dir.
+        """
+        Return a context manager, which changes to the path's dir during the
+        managed "with" context.
+        On __enter__ it returns the old dir, which might be ``None``.
         """
         old = self.chdir()
         try:
             yield old
         finally:
-            old.chdir()
+            if old is not None:
+                old.chdir()
 
     def realpath(self):
         """ return a new path which contains no symbolic links."""
@@ -647,9 +655,34 @@ class LocalPath(FSBase):
         If ensuresyspath=="append" the root dir will be appended
         if it isn't already contained in sys.path.
         if ensuresyspath is False no modification of syspath happens.
+
+        Special value of ensuresyspath=="importlib" is intended
+        purely for using in pytest, it is capable only of importing
+        separate .py files outside packages, e.g. for test suite
+        without any __init__.py file. It effectively allows having
+        same-named test modules in different places and offers
+        mild opt-in via this option. Note that it works only in
+        recent versions of python.
         """
         if not self.check():
             raise py.error.ENOENT(self)
+
+        if ensuresyspath == 'importlib':
+            if modname is None:
+                modname = self.purebasename
+            if not ALLOW_IMPORTLIB_MODE:
+                raise ImportError(
+                    "Can't use importlib due to old version of Python")
+            spec = importlib.util.spec_from_file_location(
+                modname, str(self))
+            if spec is None:
+                raise ImportError(
+                    "Can't find module %s at location %s" %
+                    (modname, str(self))
+                )
+            mod = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(mod)
+            return mod
 
         pkgpath = None
         if modname is None:

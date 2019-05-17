@@ -384,8 +384,8 @@ def pytest_collection_modifyitems(items, config):
         items_by_classes = {}
         res = []
         for item in items:
-            if "()" in item.nodeid and not split_by_tests:
-                class_name = item.nodeid.split("()", 1)[0]
+            if item.nodeid.count("::") == 2 and not split_by_tests:
+                class_name = item.nodeid.rsplit("::", 1)[0]
                 if class_name not in items_by_classes:
                     items_by_classes[class_name] = []
                     res.append(items_by_classes[class_name])

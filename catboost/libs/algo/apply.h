@@ -1,7 +1,6 @@
 #pragma once
 
 #include <catboost/libs/data_new/objects.h>
-#include <catboost/libs/model/model.h>
 #include <catboost/libs/model/formula_evaluator.h>
 #include <catboost/libs/options/enums.h>
 
@@ -10,12 +9,16 @@
 #include <util/generic/ptr.h>
 #include <util/generic/vector.h>
 
+
+struct TFullModel;
+
 namespace NCB {
     template <class TTObjectsDataProvider>
     class TDataProviderTemplate;
 
     using TDataProvider = TDataProviderTemplate<TObjectsDataProvider>;
 }
+
 
 TVector<TVector<double>> ApplyModelMulti(
     const TFullModel& model,
@@ -83,13 +86,13 @@ private:
     void InitForRawFeatures(
         const TFullModel& model,
         const NCB::TRawObjectsDataProvider& rawObjectsData,
-        const THashMap<ui32, ui32> &columnReorderMap,
+        const THashMap<ui32, ui32>& columnReorderMap,
         const NPar::TLocalExecutor::TExecRangeParams& blockParams,
         NPar::TLocalExecutor* executor);
     void InitForQuantizedFeatures(
         const TFullModel& model,
         const NCB::TQuantizedForCPUObjectsDataProvider& quantizedObjectsData,
-        const THashMap<ui32, ui32> &columnReorderMap,
+        const THashMap<ui32, ui32>& columnReorderMap,
         const NPar::TLocalExecutor::TExecRangeParams& blockParams,
         NPar::TLocalExecutor* executor);
 
@@ -100,3 +103,35 @@ private:
     NPar::TLocalExecutor::TExecRangeParams BlockParams;
     TVector<THolder<TFeatureCachedTreeEvaluator>> ThreadCalcers;
 };
+
+
+class TLeafIndexCalcerOnPool {
+public:
+    TLeafIndexCalcerOnPool(
+        const TFullModel& model,
+        NCB::TObjectsDataProviderPtr objectsData,
+        int treeStart,
+        int treeEnd);
+
+    bool Next();
+    bool CanGet() const;
+    TVector<TCalcerIndexType> Get() const;
+
+private:
+    THolder<ILeafIndexCalcer> InnerLeafIndexCalcer;
+};
+
+TVector<ui32> CalcLeafIndexesMulti(
+    const TFullModel& model,
+    NCB::TObjectsDataProviderPtr objectsData,
+    int treeStart = 0,
+    int treeEnd = 0,
+    NPar::TLocalExecutor* executor = nullptr);
+
+TVector<ui32> CalcLeafIndexesMulti(
+    const TFullModel& model,
+    NCB::TObjectsDataProviderPtr objectsData,
+    bool verbose = false,
+    int treeStart = 0,
+    int treeEnd = 0,
+    int threadCount = 1);

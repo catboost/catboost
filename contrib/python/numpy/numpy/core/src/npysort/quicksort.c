@@ -25,15 +25,36 @@
  */
 
 /*
- * Quick sort is usually the fastest, but the worst case scenario can
- * be slower than the merge and heap sorts.  The merge sort requires
- * extra memory and so for large arrays may not be useful.
+ * Quick sort is usually the fastest, but the worst case scenario is O(N^2) so
+ * the code switches to the O(NlogN) worst case heapsort if not enough progress
+ * is made on the large side of the two quicksort partitions. This improves the
+ * worst case while still retaining the speed of quicksort for the common case.
+ * This is variant known as introsort.
  *
- * The merge sort is *stable*, meaning that equal components
- * are unmoved from their entry versions, so it can be used to
- * implement lexigraphic sorting on multiple keys.
  *
- * The heap sort is included for completeness.
+ * def introsort(lower, higher, recursion_limit=log2(higher - lower + 1) * 2):
+ *   # sort remainder with heapsort if we are not making enough progress
+ *   # we arbitrarily choose 2 * log(n) as the cutoff point
+ *   if recursion_limit < 0:
+ *       heapsort(lower, higher)
+ *       return
+ *
+ *   if lower < higher:
+ *      pivot_pos = partition(lower, higher)
+ *      # recurse into smaller first and leave larger on stack
+ *      # this limits the required stack space
+ *      if (pivot_pos - lower > higher - pivot_pos):
+ *          quicksort(pivot_pos + 1, higher, recursion_limit - 1)
+ *          quicksort(lower, pivot_pos, recursion_limit - 1)
+ *      else:
+ *          quicksort(lower, pivot_pos, recursion_limit - 1)
+ *          quicksort(pivot_pos + 1, higher, recursion_limit - 1)
+ *
+ *
+ * the below code implements this converted to an iteration and as an
+ * additional minor optimization skips the recursion depth checking on the
+ * smaller partition as it is always less than half of the remaining data and
+ * will thus terminate fast enough
  */
 
 #define NPY_NO_DEPRECATED_API NPY_API_VERSION
@@ -43,7 +64,11 @@
 #include <stdlib.h>
 
 #define NOT_USED NPY_UNUSED(unused)
-#define PYA_QS_STACK 100
+/*
+ * pushing largest partition has upper bound of log2(n) space
+ * we store two pointers each time
+ */
+#define PYA_QS_STACK (NPY_BITSOF_INTP * 2)
 #define SMALL_QUICKSORT 15
 #define SMALL_MERGESORT 20
 #define SMALL_STRING 16
@@ -56,7 +81,7 @@
  */
 
 
-#line 62
+#line 87
 
 int
 quicksort_bool(void *start, npy_intp num, void *NOT_USED)
@@ -67,8 +92,15 @@ quicksort_bool(void *start, npy_intp num, void *NOT_USED)
     npy_bool *stack[PYA_QS_STACK];
     npy_bool **sptr = stack;
     npy_bool *pm, *pi, *pj, *pk;
+    int depth[PYA_QS_STACK];
+    int * psdepth = depth;
+    int cdepth = npy_get_msb(num) * 2;
 
     for (;;) {
+        if (NPY_UNLIKELY(cdepth < 0)) {
+            heapsort_bool(pl, pr - pl + 1, NULL);
+            goto stack_pop;
+        }
         while ((pr - pl) > SMALL_QUICKSORT) {
             /* quicksort partition */
             pm = pl + ((pr - pl) >> 1);
@@ -100,6 +132,7 @@ quicksort_bool(void *start, npy_intp num, void *NOT_USED)
                 *sptr++ = pi - 1;
                 pl = pi + 1;
             }
+            *psdepth++ = --cdepth;
         }
 
         /* insertion sort */
@@ -112,11 +145,13 @@ quicksort_bool(void *start, npy_intp num, void *NOT_USED)
             }
             *pj = vp;
         }
+stack_pop:
         if (sptr == stack) {
             break;
         }
         pr = *(--sptr);
         pl = *(--sptr);
+        cdepth = *(--psdepth);
     }
 
     return 0;
@@ -133,8 +168,15 @@ aquicksort_bool(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
     npy_intp *stack[PYA_QS_STACK];
     npy_intp **sptr = stack;
     npy_intp *pm, *pi, *pj, *pk, vi;
+    int depth[PYA_QS_STACK];
+    int * psdepth = depth;
+    int cdepth = npy_get_msb(num) * 2;
 
     for (;;) {
+        if (NPY_UNLIKELY(cdepth < 0)) {
+            aheapsort_bool(vv, pl, pr - pl + 1, NULL);
+            goto stack_pop;
+        }
         while ((pr - pl) > SMALL_QUICKSORT) {
             /* quicksort partition */
             pm = pl + ((pr - pl) >> 1);
@@ -166,6 +208,7 @@ aquicksort_bool(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
                 *sptr++ = pi - 1;
                 pl = pi + 1;
             }
+            *psdepth++ = --cdepth;
         }
 
         /* insertion sort */
@@ -179,18 +222,20 @@ aquicksort_bool(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
             }
             *pj = vi;
         }
+stack_pop:
         if (sptr == stack) {
             break;
         }
         pr = *(--sptr);
         pl = *(--sptr);
+        cdepth = *(--psdepth);
     }
 
     return 0;
 }
 
 
-#line 62
+#line 87
 
 int
 quicksort_byte(void *start, npy_intp num, void *NOT_USED)
@@ -201,8 +246,15 @@ quicksort_byte(void *start, npy_intp num, void *NOT_USED)
     npy_byte *stack[PYA_QS_STACK];
     npy_byte **sptr = stack;
     npy_byte *pm, *pi, *pj, *pk;
+    int depth[PYA_QS_STACK];
+    int * psdepth = depth;
+    int cdepth = npy_get_msb(num) * 2;
 
     for (;;) {
+        if (NPY_UNLIKELY(cdepth < 0)) {
+            heapsort_byte(pl, pr - pl + 1, NULL);
+            goto stack_pop;
+        }
         while ((pr - pl) > SMALL_QUICKSORT) {
             /* quicksort partition */
             pm = pl + ((pr - pl) >> 1);
@@ -234,6 +286,7 @@ quicksort_byte(void *start, npy_intp num, void *NOT_USED)
                 *sptr++ = pi - 1;
                 pl = pi + 1;
             }
+            *psdepth++ = --cdepth;
         }
 
         /* insertion sort */
@@ -246,11 +299,13 @@ quicksort_byte(void *start, npy_intp num, void *NOT_USED)
             }
             *pj = vp;
         }
+stack_pop:
         if (sptr == stack) {
             break;
         }
         pr = *(--sptr);
         pl = *(--sptr);
+        cdepth = *(--psdepth);
     }
 
     return 0;
@@ -267,8 +322,15 @@ aquicksort_byte(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
     npy_intp *stack[PYA_QS_STACK];
     npy_intp **sptr = stack;
     npy_intp *pm, *pi, *pj, *pk, vi;
+    int depth[PYA_QS_STACK];
+    int * psdepth = depth;
+    int cdepth = npy_get_msb(num) * 2;
 
     for (;;) {
+        if (NPY_UNLIKELY(cdepth < 0)) {
+            aheapsort_byte(vv, pl, pr - pl + 1, NULL);
+            goto stack_pop;
+        }
         while ((pr - pl) > SMALL_QUICKSORT) {
             /* quicksort partition */
             pm = pl + ((pr - pl) >> 1);
@@ -300,6 +362,7 @@ aquicksort_byte(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
                 *sptr++ = pi - 1;
                 pl = pi + 1;
             }
+            *psdepth++ = --cdepth;
         }
 
         /* insertion sort */
@@ -313,18 +376,20 @@ aquicksort_byte(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
             }
             *pj = vi;
         }
+stack_pop:
         if (sptr == stack) {
             break;
         }
         pr = *(--sptr);
         pl = *(--sptr);
+        cdepth = *(--psdepth);
     }
 
     return 0;
 }
 
 
-#line 62
+#line 87
 
 int
 quicksort_ubyte(void *start, npy_intp num, void *NOT_USED)
@@ -335,8 +400,15 @@ quicksort_ubyte(void *start, npy_intp num, void *NOT_USED)
     npy_ubyte *stack[PYA_QS_STACK];
     npy_ubyte **sptr = stack;
     npy_ubyte *pm, *pi, *pj, *pk;
+    int depth[PYA_QS_STACK];
+    int * psdepth = depth;
+    int cdepth = npy_get_msb(num) * 2;
 
     for (;;) {
+        if (NPY_UNLIKELY(cdepth < 0)) {
+            heapsort_ubyte(pl, pr - pl + 1, NULL);
+            goto stack_pop;
+        }
         while ((pr - pl) > SMALL_QUICKSORT) {
             /* quicksort partition */
             pm = pl + ((pr - pl) >> 1);
@@ -368,6 +440,7 @@ quicksort_ubyte(void *start, npy_intp num, void *NOT_USED)
                 *sptr++ = pi - 1;
                 pl = pi + 1;
             }
+            *psdepth++ = --cdepth;
         }
 
         /* insertion sort */
@@ -380,11 +453,13 @@ quicksort_ubyte(void *start, npy_intp num, void *NOT_USED)
             }
             *pj = vp;
         }
+stack_pop:
         if (sptr == stack) {
             break;
         }
         pr = *(--sptr);
         pl = *(--sptr);
+        cdepth = *(--psdepth);
     }
 
     return 0;
@@ -401,8 +476,15 @@ aquicksort_ubyte(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
     npy_intp *stack[PYA_QS_STACK];
     npy_intp **sptr = stack;
     npy_intp *pm, *pi, *pj, *pk, vi;
+    int depth[PYA_QS_STACK];
+    int * psdepth = depth;
+    int cdepth = npy_get_msb(num) * 2;
 
     for (;;) {
+        if (NPY_UNLIKELY(cdepth < 0)) {
+            aheapsort_ubyte(vv, pl, pr - pl + 1, NULL);
+            goto stack_pop;
+        }
         while ((pr - pl) > SMALL_QUICKSORT) {
             /* quicksort partition */
             pm = pl + ((pr - pl) >> 1);
@@ -434,6 +516,7 @@ aquicksort_ubyte(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
                 *sptr++ = pi - 1;
                 pl = pi + 1;
             }
+            *psdepth++ = --cdepth;
         }
 
         /* insertion sort */
@@ -447,18 +530,20 @@ aquicksort_ubyte(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
             }
             *pj = vi;
         }
+stack_pop:
         if (sptr == stack) {
             break;
         }
         pr = *(--sptr);
         pl = *(--sptr);
+        cdepth = *(--psdepth);
     }
 
     return 0;
 }
 
 
-#line 62
+#line 87
 
 int
 quicksort_short(void *start, npy_intp num, void *NOT_USED)
@@ -469,8 +554,15 @@ quicksort_short(void *start, npy_intp num, void *NOT_USED)
     npy_short *stack[PYA_QS_STACK];
     npy_short **sptr = stack;
     npy_short *pm, *pi, *pj, *pk;
+    int depth[PYA_QS_STACK];
+    int * psdepth = depth;
+    int cdepth = npy_get_msb(num) * 2;
 
     for (;;) {
+        if (NPY_UNLIKELY(cdepth < 0)) {
+            heapsort_short(pl, pr - pl + 1, NULL);
+            goto stack_pop;
+        }
         while ((pr - pl) > SMALL_QUICKSORT) {
             /* quicksort partition */
             pm = pl + ((pr - pl) >> 1);
@@ -502,6 +594,7 @@ quicksort_short(void *start, npy_intp num, void *NOT_USED)
                 *sptr++ = pi - 1;
                 pl = pi + 1;
             }
+            *psdepth++ = --cdepth;
         }
 
         /* insertion sort */
@@ -514,11 +607,13 @@ quicksort_short(void *start, npy_intp num, void *NOT_USED)
             }
             *pj = vp;
         }
+stack_pop:
         if (sptr == stack) {
             break;
         }
         pr = *(--sptr);
         pl = *(--sptr);
+        cdepth = *(--psdepth);
     }
 
     return 0;
@@ -535,8 +630,15 @@ aquicksort_short(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
     npy_intp *stack[PYA_QS_STACK];
     npy_intp **sptr = stack;
     npy_intp *pm, *pi, *pj, *pk, vi;
+    int depth[PYA_QS_STACK];
+    int * psdepth = depth;
+    int cdepth = npy_get_msb(num) * 2;
 
     for (;;) {
+        if (NPY_UNLIKELY(cdepth < 0)) {
+            aheapsort_short(vv, pl, pr - pl + 1, NULL);
+            goto stack_pop;
+        }
         while ((pr - pl) > SMALL_QUICKSORT) {
             /* quicksort partition */
             pm = pl + ((pr - pl) >> 1);
@@ -568,6 +670,7 @@ aquicksort_short(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
                 *sptr++ = pi - 1;
                 pl = pi + 1;
             }
+            *psdepth++ = --cdepth;
         }
 
         /* insertion sort */
@@ -581,18 +684,20 @@ aquicksort_short(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
             }
             *pj = vi;
         }
+stack_pop:
         if (sptr == stack) {
             break;
         }
         pr = *(--sptr);
         pl = *(--sptr);
+        cdepth = *(--psdepth);
     }
 
     return 0;
 }
 
 
-#line 62
+#line 87
 
 int
 quicksort_ushort(void *start, npy_intp num, void *NOT_USED)
@@ -603,8 +708,15 @@ quicksort_ushort(void *start, npy_intp num, void *NOT_USED)
     npy_ushort *stack[PYA_QS_STACK];
     npy_ushort **sptr = stack;
     npy_ushort *pm, *pi, *pj, *pk;
+    int depth[PYA_QS_STACK];
+    int * psdepth = depth;
+    int cdepth = npy_get_msb(num) * 2;
 
     for (;;) {
+        if (NPY_UNLIKELY(cdepth < 0)) {
+            heapsort_ushort(pl, pr - pl + 1, NULL);
+            goto stack_pop;
+        }
         while ((pr - pl) > SMALL_QUICKSORT) {
             /* quicksort partition */
             pm = pl + ((pr - pl) >> 1);
@@ -636,6 +748,7 @@ quicksort_ushort(void *start, npy_intp num, void *NOT_USED)
                 *sptr++ = pi - 1;
                 pl = pi + 1;
             }
+            *psdepth++ = --cdepth;
         }
 
         /* insertion sort */
@@ -648,11 +761,13 @@ quicksort_ushort(void *start, npy_intp num, void *NOT_USED)
             }
             *pj = vp;
         }
+stack_pop:
         if (sptr == stack) {
             break;
         }
         pr = *(--sptr);
         pl = *(--sptr);
+        cdepth = *(--psdepth);
     }
 
     return 0;
@@ -669,8 +784,15 @@ aquicksort_ushort(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
     npy_intp *stack[PYA_QS_STACK];
     npy_intp **sptr = stack;
     npy_intp *pm, *pi, *pj, *pk, vi;
+    int depth[PYA_QS_STACK];
+    int * psdepth = depth;
+    int cdepth = npy_get_msb(num) * 2;
 
     for (;;) {
+        if (NPY_UNLIKELY(cdepth < 0)) {
+            aheapsort_ushort(vv, pl, pr - pl + 1, NULL);
+            goto stack_pop;
+        }
         while ((pr - pl) > SMALL_QUICKSORT) {
             /* quicksort partition */
             pm = pl + ((pr - pl) >> 1);
@@ -702,6 +824,7 @@ aquicksort_ushort(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
                 *sptr++ = pi - 1;
                 pl = pi + 1;
             }
+            *psdepth++ = --cdepth;
         }
 
         /* insertion sort */
@@ -715,18 +838,20 @@ aquicksort_ushort(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
             }
             *pj = vi;
         }
+stack_pop:
         if (sptr == stack) {
             break;
         }
         pr = *(--sptr);
         pl = *(--sptr);
+        cdepth = *(--psdepth);
     }
 
     return 0;
 }
 
 
-#line 62
+#line 87
 
 int
 quicksort_int(void *start, npy_intp num, void *NOT_USED)
@@ -737,8 +862,15 @@ quicksort_int(void *start, npy_intp num, void *NOT_USED)
     npy_int *stack[PYA_QS_STACK];
     npy_int **sptr = stack;
     npy_int *pm, *pi, *pj, *pk;
+    int depth[PYA_QS_STACK];
+    int * psdepth = depth;
+    int cdepth = npy_get_msb(num) * 2;
 
     for (;;) {
+        if (NPY_UNLIKELY(cdepth < 0)) {
+            heapsort_int(pl, pr - pl + 1, NULL);
+            goto stack_pop;
+        }
         while ((pr - pl) > SMALL_QUICKSORT) {
             /* quicksort partition */
             pm = pl + ((pr - pl) >> 1);
@@ -770,6 +902,7 @@ quicksort_int(void *start, npy_intp num, void *NOT_USED)
                 *sptr++ = pi - 1;
                 pl = pi + 1;
             }
+            *psdepth++ = --cdepth;
         }
 
         /* insertion sort */
@@ -782,11 +915,13 @@ quicksort_int(void *start, npy_intp num, void *NOT_USED)
             }
             *pj = vp;
         }
+stack_pop:
         if (sptr == stack) {
             break;
         }
         pr = *(--sptr);
         pl = *(--sptr);
+        cdepth = *(--psdepth);
     }
 
     return 0;
@@ -803,8 +938,15 @@ aquicksort_int(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
     npy_intp *stack[PYA_QS_STACK];
     npy_intp **sptr = stack;
     npy_intp *pm, *pi, *pj, *pk, vi;
+    int depth[PYA_QS_STACK];
+    int * psdepth = depth;
+    int cdepth = npy_get_msb(num) * 2;
 
     for (;;) {
+        if (NPY_UNLIKELY(cdepth < 0)) {
+            aheapsort_int(vv, pl, pr - pl + 1, NULL);
+            goto stack_pop;
+        }
         while ((pr - pl) > SMALL_QUICKSORT) {
             /* quicksort partition */
             pm = pl + ((pr - pl) >> 1);
@@ -836,6 +978,7 @@ aquicksort_int(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
                 *sptr++ = pi - 1;
                 pl = pi + 1;
             }
+            *psdepth++ = --cdepth;
         }
 
         /* insertion sort */
@@ -849,18 +992,20 @@ aquicksort_int(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
             }
             *pj = vi;
         }
+stack_pop:
         if (sptr == stack) {
             break;
         }
         pr = *(--sptr);
         pl = *(--sptr);
+        cdepth = *(--psdepth);
     }
 
     return 0;
 }
 
 
-#line 62
+#line 87
 
 int
 quicksort_uint(void *start, npy_intp num, void *NOT_USED)
@@ -871,8 +1016,15 @@ quicksort_uint(void *start, npy_intp num, void *NOT_USED)
     npy_uint *stack[PYA_QS_STACK];
     npy_uint **sptr = stack;
     npy_uint *pm, *pi, *pj, *pk;
+    int depth[PYA_QS_STACK];
+    int * psdepth = depth;
+    int cdepth = npy_get_msb(num) * 2;
 
     for (;;) {
+        if (NPY_UNLIKELY(cdepth < 0)) {
+            heapsort_uint(pl, pr - pl + 1, NULL);
+            goto stack_pop;
+        }
         while ((pr - pl) > SMALL_QUICKSORT) {
             /* quicksort partition */
             pm = pl + ((pr - pl) >> 1);
@@ -904,6 +1056,7 @@ quicksort_uint(void *start, npy_intp num, void *NOT_USED)
                 *sptr++ = pi - 1;
                 pl = pi + 1;
             }
+            *psdepth++ = --cdepth;
         }
 
         /* insertion sort */
@@ -916,11 +1069,13 @@ quicksort_uint(void *start, npy_intp num, void *NOT_USED)
             }
             *pj = vp;
         }
+stack_pop:
         if (sptr == stack) {
             break;
         }
         pr = *(--sptr);
         pl = *(--sptr);
+        cdepth = *(--psdepth);
     }
 
     return 0;
@@ -937,8 +1092,15 @@ aquicksort_uint(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
     npy_intp *stack[PYA_QS_STACK];
     npy_intp **sptr = stack;
     npy_intp *pm, *pi, *pj, *pk, vi;
+    int depth[PYA_QS_STACK];
+    int * psdepth = depth;
+    int cdepth = npy_get_msb(num) * 2;
 
     for (;;) {
+        if (NPY_UNLIKELY(cdepth < 0)) {
+            aheapsort_uint(vv, pl, pr - pl + 1, NULL);
+            goto stack_pop;
+        }
         while ((pr - pl) > SMALL_QUICKSORT) {
             /* quicksort partition */
             pm = pl + ((pr - pl) >> 1);
@@ -970,6 +1132,7 @@ aquicksort_uint(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
                 *sptr++ = pi - 1;
                 pl = pi + 1;
             }
+            *psdepth++ = --cdepth;
         }
 
         /* insertion sort */
@@ -983,18 +1146,20 @@ aquicksort_uint(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
             }
             *pj = vi;
         }
+stack_pop:
         if (sptr == stack) {
             break;
         }
         pr = *(--sptr);
         pl = *(--sptr);
+        cdepth = *(--psdepth);
     }
 
     return 0;
 }
 
 
-#line 62
+#line 87
 
 int
 quicksort_long(void *start, npy_intp num, void *NOT_USED)
@@ -1005,8 +1170,15 @@ quicksort_long(void *start, npy_intp num, void *NOT_USED)
     npy_long *stack[PYA_QS_STACK];
     npy_long **sptr = stack;
     npy_long *pm, *pi, *pj, *pk;
+    int depth[PYA_QS_STACK];
+    int * psdepth = depth;
+    int cdepth = npy_get_msb(num) * 2;
 
     for (;;) {
+        if (NPY_UNLIKELY(cdepth < 0)) {
+            heapsort_long(pl, pr - pl + 1, NULL);
+            goto stack_pop;
+        }
         while ((pr - pl) > SMALL_QUICKSORT) {
             /* quicksort partition */
             pm = pl + ((pr - pl) >> 1);
@@ -1038,6 +1210,7 @@ quicksort_long(void *start, npy_intp num, void *NOT_USED)
                 *sptr++ = pi - 1;
                 pl = pi + 1;
             }
+            *psdepth++ = --cdepth;
         }
 
         /* insertion sort */
@@ -1050,11 +1223,13 @@ quicksort_long(void *start, npy_intp num, void *NOT_USED)
             }
             *pj = vp;
         }
+stack_pop:
         if (sptr == stack) {
             break;
         }
         pr = *(--sptr);
         pl = *(--sptr);
+        cdepth = *(--psdepth);
     }
 
     return 0;
@@ -1071,8 +1246,15 @@ aquicksort_long(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
     npy_intp *stack[PYA_QS_STACK];
     npy_intp **sptr = stack;
     npy_intp *pm, *pi, *pj, *pk, vi;
+    int depth[PYA_QS_STACK];
+    int * psdepth = depth;
+    int cdepth = npy_get_msb(num) * 2;
 
     for (;;) {
+        if (NPY_UNLIKELY(cdepth < 0)) {
+            aheapsort_long(vv, pl, pr - pl + 1, NULL);
+            goto stack_pop;
+        }
         while ((pr - pl) > SMALL_QUICKSORT) {
             /* quicksort partition */
             pm = pl + ((pr - pl) >> 1);
@@ -1104,6 +1286,7 @@ aquicksort_long(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
                 *sptr++ = pi - 1;
                 pl = pi + 1;
             }
+            *psdepth++ = --cdepth;
         }
 
         /* insertion sort */
@@ -1117,18 +1300,20 @@ aquicksort_long(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
             }
             *pj = vi;
         }
+stack_pop:
         if (sptr == stack) {
             break;
         }
         pr = *(--sptr);
         pl = *(--sptr);
+        cdepth = *(--psdepth);
     }
 
     return 0;
 }
 
 
-#line 62
+#line 87
 
 int
 quicksort_ulong(void *start, npy_intp num, void *NOT_USED)
@@ -1139,8 +1324,15 @@ quicksort_ulong(void *start, npy_intp num, void *NOT_USED)
     npy_ulong *stack[PYA_QS_STACK];
     npy_ulong **sptr = stack;
     npy_ulong *pm, *pi, *pj, *pk;
+    int depth[PYA_QS_STACK];
+    int * psdepth = depth;
+    int cdepth = npy_get_msb(num) * 2;
 
     for (;;) {
+        if (NPY_UNLIKELY(cdepth < 0)) {
+            heapsort_ulong(pl, pr - pl + 1, NULL);
+            goto stack_pop;
+        }
         while ((pr - pl) > SMALL_QUICKSORT) {
             /* quicksort partition */
             pm = pl + ((pr - pl) >> 1);
@@ -1172,6 +1364,7 @@ quicksort_ulong(void *start, npy_intp num, void *NOT_USED)
                 *sptr++ = pi - 1;
                 pl = pi + 1;
             }
+            *psdepth++ = --cdepth;
         }
 
         /* insertion sort */
@@ -1184,11 +1377,13 @@ quicksort_ulong(void *start, npy_intp num, void *NOT_USED)
             }
             *pj = vp;
         }
+stack_pop:
         if (sptr == stack) {
             break;
         }
         pr = *(--sptr);
         pl = *(--sptr);
+        cdepth = *(--psdepth);
     }
 
     return 0;
@@ -1205,8 +1400,15 @@ aquicksort_ulong(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
     npy_intp *stack[PYA_QS_STACK];
     npy_intp **sptr = stack;
     npy_intp *pm, *pi, *pj, *pk, vi;
+    int depth[PYA_QS_STACK];
+    int * psdepth = depth;
+    int cdepth = npy_get_msb(num) * 2;
 
     for (;;) {
+        if (NPY_UNLIKELY(cdepth < 0)) {
+            aheapsort_ulong(vv, pl, pr - pl + 1, NULL);
+            goto stack_pop;
+        }
         while ((pr - pl) > SMALL_QUICKSORT) {
             /* quicksort partition */
             pm = pl + ((pr - pl) >> 1);
@@ -1238,6 +1440,7 @@ aquicksort_ulong(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
                 *sptr++ = pi - 1;
                 pl = pi + 1;
             }
+            *psdepth++ = --cdepth;
         }
 
         /* insertion sort */
@@ -1251,18 +1454,20 @@ aquicksort_ulong(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
             }
             *pj = vi;
         }
+stack_pop:
         if (sptr == stack) {
             break;
         }
         pr = *(--sptr);
         pl = *(--sptr);
+        cdepth = *(--psdepth);
     }
 
     return 0;
 }
 
 
-#line 62
+#line 87
 
 int
 quicksort_longlong(void *start, npy_intp num, void *NOT_USED)
@@ -1273,8 +1478,15 @@ quicksort_longlong(void *start, npy_intp num, void *NOT_USED)
     npy_longlong *stack[PYA_QS_STACK];
     npy_longlong **sptr = stack;
     npy_longlong *pm, *pi, *pj, *pk;
+    int depth[PYA_QS_STACK];
+    int * psdepth = depth;
+    int cdepth = npy_get_msb(num) * 2;
 
     for (;;) {
+        if (NPY_UNLIKELY(cdepth < 0)) {
+            heapsort_longlong(pl, pr - pl + 1, NULL);
+            goto stack_pop;
+        }
         while ((pr - pl) > SMALL_QUICKSORT) {
             /* quicksort partition */
             pm = pl + ((pr - pl) >> 1);
@@ -1306,6 +1518,7 @@ quicksort_longlong(void *start, npy_intp num, void *NOT_USED)
                 *sptr++ = pi - 1;
                 pl = pi + 1;
             }
+            *psdepth++ = --cdepth;
         }
 
         /* insertion sort */
@@ -1318,11 +1531,13 @@ quicksort_longlong(void *start, npy_intp num, void *NOT_USED)
             }
             *pj = vp;
         }
+stack_pop:
         if (sptr == stack) {
             break;
         }
         pr = *(--sptr);
         pl = *(--sptr);
+        cdepth = *(--psdepth);
     }
 
     return 0;
@@ -1339,8 +1554,15 @@ aquicksort_longlong(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
     npy_intp *stack[PYA_QS_STACK];
     npy_intp **sptr = stack;
     npy_intp *pm, *pi, *pj, *pk, vi;
+    int depth[PYA_QS_STACK];
+    int * psdepth = depth;
+    int cdepth = npy_get_msb(num) * 2;
 
     for (;;) {
+        if (NPY_UNLIKELY(cdepth < 0)) {
+            aheapsort_longlong(vv, pl, pr - pl + 1, NULL);
+            goto stack_pop;
+        }
         while ((pr - pl) > SMALL_QUICKSORT) {
             /* quicksort partition */
             pm = pl + ((pr - pl) >> 1);
@@ -1372,6 +1594,7 @@ aquicksort_longlong(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
                 *sptr++ = pi - 1;
                 pl = pi + 1;
             }
+            *psdepth++ = --cdepth;
         }
 
         /* insertion sort */
@@ -1385,18 +1608,20 @@ aquicksort_longlong(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
             }
             *pj = vi;
         }
+stack_pop:
         if (sptr == stack) {
             break;
         }
         pr = *(--sptr);
         pl = *(--sptr);
+        cdepth = *(--psdepth);
     }
 
     return 0;
 }
 
 
-#line 62
+#line 87
 
 int
 quicksort_ulonglong(void *start, npy_intp num, void *NOT_USED)
@@ -1407,8 +1632,15 @@ quicksort_ulonglong(void *start, npy_intp num, void *NOT_USED)
     npy_ulonglong *stack[PYA_QS_STACK];
     npy_ulonglong **sptr = stack;
     npy_ulonglong *pm, *pi, *pj, *pk;
+    int depth[PYA_QS_STACK];
+    int * psdepth = depth;
+    int cdepth = npy_get_msb(num) * 2;
 
     for (;;) {
+        if (NPY_UNLIKELY(cdepth < 0)) {
+            heapsort_ulonglong(pl, pr - pl + 1, NULL);
+            goto stack_pop;
+        }
         while ((pr - pl) > SMALL_QUICKSORT) {
             /* quicksort partition */
             pm = pl + ((pr - pl) >> 1);
@@ -1440,6 +1672,7 @@ quicksort_ulonglong(void *start, npy_intp num, void *NOT_USED)
                 *sptr++ = pi - 1;
                 pl = pi + 1;
             }
+            *psdepth++ = --cdepth;
         }
 
         /* insertion sort */
@@ -1452,11 +1685,13 @@ quicksort_ulonglong(void *start, npy_intp num, void *NOT_USED)
             }
             *pj = vp;
         }
+stack_pop:
         if (sptr == stack) {
             break;
         }
         pr = *(--sptr);
         pl = *(--sptr);
+        cdepth = *(--psdepth);
     }
 
     return 0;
@@ -1473,8 +1708,15 @@ aquicksort_ulonglong(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
     npy_intp *stack[PYA_QS_STACK];
     npy_intp **sptr = stack;
     npy_intp *pm, *pi, *pj, *pk, vi;
+    int depth[PYA_QS_STACK];
+    int * psdepth = depth;
+    int cdepth = npy_get_msb(num) * 2;
 
     for (;;) {
+        if (NPY_UNLIKELY(cdepth < 0)) {
+            aheapsort_ulonglong(vv, pl, pr - pl + 1, NULL);
+            goto stack_pop;
+        }
         while ((pr - pl) > SMALL_QUICKSORT) {
             /* quicksort partition */
             pm = pl + ((pr - pl) >> 1);
@@ -1506,6 +1748,7 @@ aquicksort_ulonglong(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
                 *sptr++ = pi - 1;
                 pl = pi + 1;
             }
+            *psdepth++ = --cdepth;
         }
 
         /* insertion sort */
@@ -1519,18 +1762,20 @@ aquicksort_ulonglong(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
             }
             *pj = vi;
         }
+stack_pop:
         if (sptr == stack) {
             break;
         }
         pr = *(--sptr);
         pl = *(--sptr);
+        cdepth = *(--psdepth);
     }
 
     return 0;
 }
 
 
-#line 62
+#line 87
 
 int
 quicksort_half(void *start, npy_intp num, void *NOT_USED)
@@ -1541,8 +1786,15 @@ quicksort_half(void *start, npy_intp num, void *NOT_USED)
     npy_ushort *stack[PYA_QS_STACK];
     npy_ushort **sptr = stack;
     npy_ushort *pm, *pi, *pj, *pk;
+    int depth[PYA_QS_STACK];
+    int * psdepth = depth;
+    int cdepth = npy_get_msb(num) * 2;
 
     for (;;) {
+        if (NPY_UNLIKELY(cdepth < 0)) {
+            heapsort_half(pl, pr - pl + 1, NULL);
+            goto stack_pop;
+        }
         while ((pr - pl) > SMALL_QUICKSORT) {
             /* quicksort partition */
             pm = pl + ((pr - pl) >> 1);
@@ -1574,6 +1826,7 @@ quicksort_half(void *start, npy_intp num, void *NOT_USED)
                 *sptr++ = pi - 1;
                 pl = pi + 1;
             }
+            *psdepth++ = --cdepth;
         }
 
         /* insertion sort */
@@ -1586,11 +1839,13 @@ quicksort_half(void *start, npy_intp num, void *NOT_USED)
             }
             *pj = vp;
         }
+stack_pop:
         if (sptr == stack) {
             break;
         }
         pr = *(--sptr);
         pl = *(--sptr);
+        cdepth = *(--psdepth);
     }
 
     return 0;
@@ -1607,8 +1862,15 @@ aquicksort_half(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
     npy_intp *stack[PYA_QS_STACK];
     npy_intp **sptr = stack;
     npy_intp *pm, *pi, *pj, *pk, vi;
+    int depth[PYA_QS_STACK];
+    int * psdepth = depth;
+    int cdepth = npy_get_msb(num) * 2;
 
     for (;;) {
+        if (NPY_UNLIKELY(cdepth < 0)) {
+            aheapsort_half(vv, pl, pr - pl + 1, NULL);
+            goto stack_pop;
+        }
         while ((pr - pl) > SMALL_QUICKSORT) {
             /* quicksort partition */
             pm = pl + ((pr - pl) >> 1);
@@ -1640,6 +1902,7 @@ aquicksort_half(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
                 *sptr++ = pi - 1;
                 pl = pi + 1;
             }
+            *psdepth++ = --cdepth;
         }
 
         /* insertion sort */
@@ -1653,18 +1916,20 @@ aquicksort_half(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
             }
             *pj = vi;
         }
+stack_pop:
         if (sptr == stack) {
             break;
         }
         pr = *(--sptr);
         pl = *(--sptr);
+        cdepth = *(--psdepth);
     }
 
     return 0;
 }
 
 
-#line 62
+#line 87
 
 int
 quicksort_float(void *start, npy_intp num, void *NOT_USED)
@@ -1675,8 +1940,15 @@ quicksort_float(void *start, npy_intp num, void *NOT_USED)
     npy_float *stack[PYA_QS_STACK];
     npy_float **sptr = stack;
     npy_float *pm, *pi, *pj, *pk;
+    int depth[PYA_QS_STACK];
+    int * psdepth = depth;
+    int cdepth = npy_get_msb(num) * 2;
 
     for (;;) {
+        if (NPY_UNLIKELY(cdepth < 0)) {
+            heapsort_float(pl, pr - pl + 1, NULL);
+            goto stack_pop;
+        }
         while ((pr - pl) > SMALL_QUICKSORT) {
             /* quicksort partition */
             pm = pl + ((pr - pl) >> 1);
@@ -1708,6 +1980,7 @@ quicksort_float(void *start, npy_intp num, void *NOT_USED)
                 *sptr++ = pi - 1;
                 pl = pi + 1;
             }
+            *psdepth++ = --cdepth;
         }
 
         /* insertion sort */
@@ -1720,11 +1993,13 @@ quicksort_float(void *start, npy_intp num, void *NOT_USED)
             }
             *pj = vp;
         }
+stack_pop:
         if (sptr == stack) {
             break;
         }
         pr = *(--sptr);
         pl = *(--sptr);
+        cdepth = *(--psdepth);
     }
 
     return 0;
@@ -1741,8 +2016,15 @@ aquicksort_float(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
     npy_intp *stack[PYA_QS_STACK];
     npy_intp **sptr = stack;
     npy_intp *pm, *pi, *pj, *pk, vi;
+    int depth[PYA_QS_STACK];
+    int * psdepth = depth;
+    int cdepth = npy_get_msb(num) * 2;
 
     for (;;) {
+        if (NPY_UNLIKELY(cdepth < 0)) {
+            aheapsort_float(vv, pl, pr - pl + 1, NULL);
+            goto stack_pop;
+        }
         while ((pr - pl) > SMALL_QUICKSORT) {
             /* quicksort partition */
             pm = pl + ((pr - pl) >> 1);
@@ -1774,6 +2056,7 @@ aquicksort_float(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
                 *sptr++ = pi - 1;
                 pl = pi + 1;
             }
+            *psdepth++ = --cdepth;
         }
 
         /* insertion sort */
@@ -1787,18 +2070,20 @@ aquicksort_float(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
             }
             *pj = vi;
         }
+stack_pop:
         if (sptr == stack) {
             break;
         }
         pr = *(--sptr);
         pl = *(--sptr);
+        cdepth = *(--psdepth);
     }
 
     return 0;
 }
 
 
-#line 62
+#line 87
 
 int
 quicksort_double(void *start, npy_intp num, void *NOT_USED)
@@ -1809,8 +2094,15 @@ quicksort_double(void *start, npy_intp num, void *NOT_USED)
     npy_double *stack[PYA_QS_STACK];
     npy_double **sptr = stack;
     npy_double *pm, *pi, *pj, *pk;
+    int depth[PYA_QS_STACK];
+    int * psdepth = depth;
+    int cdepth = npy_get_msb(num) * 2;
 
     for (;;) {
+        if (NPY_UNLIKELY(cdepth < 0)) {
+            heapsort_double(pl, pr - pl + 1, NULL);
+            goto stack_pop;
+        }
         while ((pr - pl) > SMALL_QUICKSORT) {
             /* quicksort partition */
             pm = pl + ((pr - pl) >> 1);
@@ -1842,6 +2134,7 @@ quicksort_double(void *start, npy_intp num, void *NOT_USED)
                 *sptr++ = pi - 1;
                 pl = pi + 1;
             }
+            *psdepth++ = --cdepth;
         }
 
         /* insertion sort */
@@ -1854,11 +2147,13 @@ quicksort_double(void *start, npy_intp num, void *NOT_USED)
             }
             *pj = vp;
         }
+stack_pop:
         if (sptr == stack) {
             break;
         }
         pr = *(--sptr);
         pl = *(--sptr);
+        cdepth = *(--psdepth);
     }
 
     return 0;
@@ -1875,8 +2170,15 @@ aquicksort_double(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
     npy_intp *stack[PYA_QS_STACK];
     npy_intp **sptr = stack;
     npy_intp *pm, *pi, *pj, *pk, vi;
+    int depth[PYA_QS_STACK];
+    int * psdepth = depth;
+    int cdepth = npy_get_msb(num) * 2;
 
     for (;;) {
+        if (NPY_UNLIKELY(cdepth < 0)) {
+            aheapsort_double(vv, pl, pr - pl + 1, NULL);
+            goto stack_pop;
+        }
         while ((pr - pl) > SMALL_QUICKSORT) {
             /* quicksort partition */
             pm = pl + ((pr - pl) >> 1);
@@ -1908,6 +2210,7 @@ aquicksort_double(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
                 *sptr++ = pi - 1;
                 pl = pi + 1;
             }
+            *psdepth++ = --cdepth;
         }
 
         /* insertion sort */
@@ -1921,18 +2224,20 @@ aquicksort_double(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
             }
             *pj = vi;
         }
+stack_pop:
         if (sptr == stack) {
             break;
         }
         pr = *(--sptr);
         pl = *(--sptr);
+        cdepth = *(--psdepth);
     }
 
     return 0;
 }
 
 
-#line 62
+#line 87
 
 int
 quicksort_longdouble(void *start, npy_intp num, void *NOT_USED)
@@ -1943,8 +2248,15 @@ quicksort_longdouble(void *start, npy_intp num, void *NOT_USED)
     npy_longdouble *stack[PYA_QS_STACK];
     npy_longdouble **sptr = stack;
     npy_longdouble *pm, *pi, *pj, *pk;
+    int depth[PYA_QS_STACK];
+    int * psdepth = depth;
+    int cdepth = npy_get_msb(num) * 2;
 
     for (;;) {
+        if (NPY_UNLIKELY(cdepth < 0)) {
+            heapsort_longdouble(pl, pr - pl + 1, NULL);
+            goto stack_pop;
+        }
         while ((pr - pl) > SMALL_QUICKSORT) {
             /* quicksort partition */
             pm = pl + ((pr - pl) >> 1);
@@ -1976,6 +2288,7 @@ quicksort_longdouble(void *start, npy_intp num, void *NOT_USED)
                 *sptr++ = pi - 1;
                 pl = pi + 1;
             }
+            *psdepth++ = --cdepth;
         }
 
         /* insertion sort */
@@ -1988,11 +2301,13 @@ quicksort_longdouble(void *start, npy_intp num, void *NOT_USED)
             }
             *pj = vp;
         }
+stack_pop:
         if (sptr == stack) {
             break;
         }
         pr = *(--sptr);
         pl = *(--sptr);
+        cdepth = *(--psdepth);
     }
 
     return 0;
@@ -2009,8 +2324,15 @@ aquicksort_longdouble(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
     npy_intp *stack[PYA_QS_STACK];
     npy_intp **sptr = stack;
     npy_intp *pm, *pi, *pj, *pk, vi;
+    int depth[PYA_QS_STACK];
+    int * psdepth = depth;
+    int cdepth = npy_get_msb(num) * 2;
 
     for (;;) {
+        if (NPY_UNLIKELY(cdepth < 0)) {
+            aheapsort_longdouble(vv, pl, pr - pl + 1, NULL);
+            goto stack_pop;
+        }
         while ((pr - pl) > SMALL_QUICKSORT) {
             /* quicksort partition */
             pm = pl + ((pr - pl) >> 1);
@@ -2042,6 +2364,7 @@ aquicksort_longdouble(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
                 *sptr++ = pi - 1;
                 pl = pi + 1;
             }
+            *psdepth++ = --cdepth;
         }
 
         /* insertion sort */
@@ -2055,18 +2378,20 @@ aquicksort_longdouble(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
             }
             *pj = vi;
         }
+stack_pop:
         if (sptr == stack) {
             break;
         }
         pr = *(--sptr);
         pl = *(--sptr);
+        cdepth = *(--psdepth);
     }
 
     return 0;
 }
 
 
-#line 62
+#line 87
 
 int
 quicksort_cfloat(void *start, npy_intp num, void *NOT_USED)
@@ -2077,8 +2402,15 @@ quicksort_cfloat(void *start, npy_intp num, void *NOT_USED)
     npy_cfloat *stack[PYA_QS_STACK];
     npy_cfloat **sptr = stack;
     npy_cfloat *pm, *pi, *pj, *pk;
+    int depth[PYA_QS_STACK];
+    int * psdepth = depth;
+    int cdepth = npy_get_msb(num) * 2;
 
     for (;;) {
+        if (NPY_UNLIKELY(cdepth < 0)) {
+            heapsort_cfloat(pl, pr - pl + 1, NULL);
+            goto stack_pop;
+        }
         while ((pr - pl) > SMALL_QUICKSORT) {
             /* quicksort partition */
             pm = pl + ((pr - pl) >> 1);
@@ -2110,6 +2442,7 @@ quicksort_cfloat(void *start, npy_intp num, void *NOT_USED)
                 *sptr++ = pi - 1;
                 pl = pi + 1;
             }
+            *psdepth++ = --cdepth;
         }
 
         /* insertion sort */
@@ -2122,11 +2455,13 @@ quicksort_cfloat(void *start, npy_intp num, void *NOT_USED)
             }
             *pj = vp;
         }
+stack_pop:
         if (sptr == stack) {
             break;
         }
         pr = *(--sptr);
         pl = *(--sptr);
+        cdepth = *(--psdepth);
     }
 
     return 0;
@@ -2143,8 +2478,15 @@ aquicksort_cfloat(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
     npy_intp *stack[PYA_QS_STACK];
     npy_intp **sptr = stack;
     npy_intp *pm, *pi, *pj, *pk, vi;
+    int depth[PYA_QS_STACK];
+    int * psdepth = depth;
+    int cdepth = npy_get_msb(num) * 2;
 
     for (;;) {
+        if (NPY_UNLIKELY(cdepth < 0)) {
+            aheapsort_cfloat(vv, pl, pr - pl + 1, NULL);
+            goto stack_pop;
+        }
         while ((pr - pl) > SMALL_QUICKSORT) {
             /* quicksort partition */
             pm = pl + ((pr - pl) >> 1);
@@ -2176,6 +2518,7 @@ aquicksort_cfloat(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
                 *sptr++ = pi - 1;
                 pl = pi + 1;
             }
+            *psdepth++ = --cdepth;
         }
 
         /* insertion sort */
@@ -2189,18 +2532,20 @@ aquicksort_cfloat(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
             }
             *pj = vi;
         }
+stack_pop:
         if (sptr == stack) {
             break;
         }
         pr = *(--sptr);
         pl = *(--sptr);
+        cdepth = *(--psdepth);
     }
 
     return 0;
 }
 
 
-#line 62
+#line 87
 
 int
 quicksort_cdouble(void *start, npy_intp num, void *NOT_USED)
@@ -2211,8 +2556,15 @@ quicksort_cdouble(void *start, npy_intp num, void *NOT_USED)
     npy_cdouble *stack[PYA_QS_STACK];
     npy_cdouble **sptr = stack;
     npy_cdouble *pm, *pi, *pj, *pk;
+    int depth[PYA_QS_STACK];
+    int * psdepth = depth;
+    int cdepth = npy_get_msb(num) * 2;
 
     for (;;) {
+        if (NPY_UNLIKELY(cdepth < 0)) {
+            heapsort_cdouble(pl, pr - pl + 1, NULL);
+            goto stack_pop;
+        }
         while ((pr - pl) > SMALL_QUICKSORT) {
             /* quicksort partition */
             pm = pl + ((pr - pl) >> 1);
@@ -2244,6 +2596,7 @@ quicksort_cdouble(void *start, npy_intp num, void *NOT_USED)
                 *sptr++ = pi - 1;
                 pl = pi + 1;
             }
+            *psdepth++ = --cdepth;
         }
 
         /* insertion sort */
@@ -2256,11 +2609,13 @@ quicksort_cdouble(void *start, npy_intp num, void *NOT_USED)
             }
             *pj = vp;
         }
+stack_pop:
         if (sptr == stack) {
             break;
         }
         pr = *(--sptr);
         pl = *(--sptr);
+        cdepth = *(--psdepth);
     }
 
     return 0;
@@ -2277,8 +2632,15 @@ aquicksort_cdouble(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
     npy_intp *stack[PYA_QS_STACK];
     npy_intp **sptr = stack;
     npy_intp *pm, *pi, *pj, *pk, vi;
+    int depth[PYA_QS_STACK];
+    int * psdepth = depth;
+    int cdepth = npy_get_msb(num) * 2;
 
     for (;;) {
+        if (NPY_UNLIKELY(cdepth < 0)) {
+            aheapsort_cdouble(vv, pl, pr - pl + 1, NULL);
+            goto stack_pop;
+        }
         while ((pr - pl) > SMALL_QUICKSORT) {
             /* quicksort partition */
             pm = pl + ((pr - pl) >> 1);
@@ -2310,6 +2672,7 @@ aquicksort_cdouble(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
                 *sptr++ = pi - 1;
                 pl = pi + 1;
             }
+            *psdepth++ = --cdepth;
         }
 
         /* insertion sort */
@@ -2323,18 +2686,20 @@ aquicksort_cdouble(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
             }
             *pj = vi;
         }
+stack_pop:
         if (sptr == stack) {
             break;
         }
         pr = *(--sptr);
         pl = *(--sptr);
+        cdepth = *(--psdepth);
     }
 
     return 0;
 }
 
 
-#line 62
+#line 87
 
 int
 quicksort_clongdouble(void *start, npy_intp num, void *NOT_USED)
@@ -2345,8 +2710,15 @@ quicksort_clongdouble(void *start, npy_intp num, void *NOT_USED)
     npy_clongdouble *stack[PYA_QS_STACK];
     npy_clongdouble **sptr = stack;
     npy_clongdouble *pm, *pi, *pj, *pk;
+    int depth[PYA_QS_STACK];
+    int * psdepth = depth;
+    int cdepth = npy_get_msb(num) * 2;
 
     for (;;) {
+        if (NPY_UNLIKELY(cdepth < 0)) {
+            heapsort_clongdouble(pl, pr - pl + 1, NULL);
+            goto stack_pop;
+        }
         while ((pr - pl) > SMALL_QUICKSORT) {
             /* quicksort partition */
             pm = pl + ((pr - pl) >> 1);
@@ -2378,6 +2750,7 @@ quicksort_clongdouble(void *start, npy_intp num, void *NOT_USED)
                 *sptr++ = pi - 1;
                 pl = pi + 1;
             }
+            *psdepth++ = --cdepth;
         }
 
         /* insertion sort */
@@ -2390,11 +2763,13 @@ quicksort_clongdouble(void *start, npy_intp num, void *NOT_USED)
             }
             *pj = vp;
         }
+stack_pop:
         if (sptr == stack) {
             break;
         }
         pr = *(--sptr);
         pl = *(--sptr);
+        cdepth = *(--psdepth);
     }
 
     return 0;
@@ -2411,8 +2786,15 @@ aquicksort_clongdouble(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
     npy_intp *stack[PYA_QS_STACK];
     npy_intp **sptr = stack;
     npy_intp *pm, *pi, *pj, *pk, vi;
+    int depth[PYA_QS_STACK];
+    int * psdepth = depth;
+    int cdepth = npy_get_msb(num) * 2;
 
     for (;;) {
+        if (NPY_UNLIKELY(cdepth < 0)) {
+            aheapsort_clongdouble(vv, pl, pr - pl + 1, NULL);
+            goto stack_pop;
+        }
         while ((pr - pl) > SMALL_QUICKSORT) {
             /* quicksort partition */
             pm = pl + ((pr - pl) >> 1);
@@ -2444,6 +2826,7 @@ aquicksort_clongdouble(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
                 *sptr++ = pi - 1;
                 pl = pi + 1;
             }
+            *psdepth++ = --cdepth;
         }
 
         /* insertion sort */
@@ -2457,18 +2840,20 @@ aquicksort_clongdouble(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
             }
             *pj = vi;
         }
+stack_pop:
         if (sptr == stack) {
             break;
         }
         pr = *(--sptr);
         pl = *(--sptr);
+        cdepth = *(--psdepth);
     }
 
     return 0;
 }
 
 
-#line 62
+#line 87
 
 int
 quicksort_datetime(void *start, npy_intp num, void *NOT_USED)
@@ -2479,8 +2864,15 @@ quicksort_datetime(void *start, npy_intp num, void *NOT_USED)
     npy_datetime *stack[PYA_QS_STACK];
     npy_datetime **sptr = stack;
     npy_datetime *pm, *pi, *pj, *pk;
+    int depth[PYA_QS_STACK];
+    int * psdepth = depth;
+    int cdepth = npy_get_msb(num) * 2;
 
     for (;;) {
+        if (NPY_UNLIKELY(cdepth < 0)) {
+            heapsort_datetime(pl, pr - pl + 1, NULL);
+            goto stack_pop;
+        }
         while ((pr - pl) > SMALL_QUICKSORT) {
             /* quicksort partition */
             pm = pl + ((pr - pl) >> 1);
@@ -2512,6 +2904,7 @@ quicksort_datetime(void *start, npy_intp num, void *NOT_USED)
                 *sptr++ = pi - 1;
                 pl = pi + 1;
             }
+            *psdepth++ = --cdepth;
         }
 
         /* insertion sort */
@@ -2524,11 +2917,13 @@ quicksort_datetime(void *start, npy_intp num, void *NOT_USED)
             }
             *pj = vp;
         }
+stack_pop:
         if (sptr == stack) {
             break;
         }
         pr = *(--sptr);
         pl = *(--sptr);
+        cdepth = *(--psdepth);
     }
 
     return 0;
@@ -2545,8 +2940,15 @@ aquicksort_datetime(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
     npy_intp *stack[PYA_QS_STACK];
     npy_intp **sptr = stack;
     npy_intp *pm, *pi, *pj, *pk, vi;
+    int depth[PYA_QS_STACK];
+    int * psdepth = depth;
+    int cdepth = npy_get_msb(num) * 2;
 
     for (;;) {
+        if (NPY_UNLIKELY(cdepth < 0)) {
+            aheapsort_datetime(vv, pl, pr - pl + 1, NULL);
+            goto stack_pop;
+        }
         while ((pr - pl) > SMALL_QUICKSORT) {
             /* quicksort partition */
             pm = pl + ((pr - pl) >> 1);
@@ -2578,6 +2980,7 @@ aquicksort_datetime(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
                 *sptr++ = pi - 1;
                 pl = pi + 1;
             }
+            *psdepth++ = --cdepth;
         }
 
         /* insertion sort */
@@ -2591,18 +2994,20 @@ aquicksort_datetime(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
             }
             *pj = vi;
         }
+stack_pop:
         if (sptr == stack) {
             break;
         }
         pr = *(--sptr);
         pl = *(--sptr);
+        cdepth = *(--psdepth);
     }
 
     return 0;
 }
 
 
-#line 62
+#line 87
 
 int
 quicksort_timedelta(void *start, npy_intp num, void *NOT_USED)
@@ -2613,8 +3018,15 @@ quicksort_timedelta(void *start, npy_intp num, void *NOT_USED)
     npy_timedelta *stack[PYA_QS_STACK];
     npy_timedelta **sptr = stack;
     npy_timedelta *pm, *pi, *pj, *pk;
+    int depth[PYA_QS_STACK];
+    int * psdepth = depth;
+    int cdepth = npy_get_msb(num) * 2;
 
     for (;;) {
+        if (NPY_UNLIKELY(cdepth < 0)) {
+            heapsort_timedelta(pl, pr - pl + 1, NULL);
+            goto stack_pop;
+        }
         while ((pr - pl) > SMALL_QUICKSORT) {
             /* quicksort partition */
             pm = pl + ((pr - pl) >> 1);
@@ -2646,6 +3058,7 @@ quicksort_timedelta(void *start, npy_intp num, void *NOT_USED)
                 *sptr++ = pi - 1;
                 pl = pi + 1;
             }
+            *psdepth++ = --cdepth;
         }
 
         /* insertion sort */
@@ -2658,11 +3071,13 @@ quicksort_timedelta(void *start, npy_intp num, void *NOT_USED)
             }
             *pj = vp;
         }
+stack_pop:
         if (sptr == stack) {
             break;
         }
         pr = *(--sptr);
         pl = *(--sptr);
+        cdepth = *(--psdepth);
     }
 
     return 0;
@@ -2679,8 +3094,15 @@ aquicksort_timedelta(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
     npy_intp *stack[PYA_QS_STACK];
     npy_intp **sptr = stack;
     npy_intp *pm, *pi, *pj, *pk, vi;
+    int depth[PYA_QS_STACK];
+    int * psdepth = depth;
+    int cdepth = npy_get_msb(num) * 2;
 
     for (;;) {
+        if (NPY_UNLIKELY(cdepth < 0)) {
+            aheapsort_timedelta(vv, pl, pr - pl + 1, NULL);
+            goto stack_pop;
+        }
         while ((pr - pl) > SMALL_QUICKSORT) {
             /* quicksort partition */
             pm = pl + ((pr - pl) >> 1);
@@ -2712,6 +3134,7 @@ aquicksort_timedelta(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
                 *sptr++ = pi - 1;
                 pl = pi + 1;
             }
+            *psdepth++ = --cdepth;
         }
 
         /* insertion sort */
@@ -2725,11 +3148,13 @@ aquicksort_timedelta(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
             }
             *pj = vi;
         }
+stack_pop:
         if (sptr == stack) {
             break;
         }
         pr = *(--sptr);
         pl = *(--sptr);
+        cdepth = *(--psdepth);
     }
 
     return 0;
@@ -2745,23 +3170,36 @@ aquicksort_timedelta(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
  */
 
 
-#line 210
+#line 255
 
 int
 quicksort_string(void *start, npy_intp num, void *varr)
 {
     PyArrayObject *arr = varr;
     const size_t len = PyArray_ITEMSIZE(arr)/sizeof(npy_char);
-    npy_char *vp = malloc(PyArray_ITEMSIZE(arr));
+    npy_char *vp;
     npy_char *pl = start;
     npy_char *pr = pl + (num - 1)*len;
     npy_char *stack[PYA_QS_STACK], **sptr = stack, *pm, *pi, *pj, *pk;
+    int depth[PYA_QS_STACK];
+    int * psdepth = depth;
+    int cdepth = npy_get_msb(num) * 2;
 
+    /* Items that have zero size don't make sense to sort */
+    if (len == 0) {
+        return 0;
+    }
+
+    vp = malloc(PyArray_ITEMSIZE(arr));
     if (vp == NULL) {
         return -NPY_ENOMEM;
     }
 
     for (;;) {
+        if (NPY_UNLIKELY(cdepth < 0)) {
+            heapsort_string(pl, (pr - pl) / len + 1, varr);
+            goto stack_pop;
+        }
         while ((size_t)(pr - pl) > SMALL_QUICKSORT*len) {
             /* quicksort partition */
             pm = pl + (((pr - pl)/len) >> 1)*len;
@@ -2793,6 +3231,7 @@ quicksort_string(void *start, npy_intp num, void *varr)
                 *sptr++ = pi - len;
                 pl = pi + len;
             }
+            *psdepth++ = --cdepth;
         }
 
         /* insertion sort */
@@ -2807,11 +3246,13 @@ quicksort_string(void *start, npy_intp num, void *varr)
             }
             STRING_COPY(pj, vp, len);
         }
+stack_pop:
         if (sptr == stack) {
             break;
         }
         pr = *(--sptr);
         pl = *(--sptr);
+        cdepth = *(--psdepth);
     }
 
     free(vp);
@@ -2831,8 +3272,20 @@ aquicksort_string(void *vv, npy_intp* tosort, npy_intp num, void *varr)
     npy_intp *stack[PYA_QS_STACK];
     npy_intp **sptr=stack;
     npy_intp *pm, *pi, *pj, *pk, vi;
+    int depth[PYA_QS_STACK];
+    int * psdepth = depth;
+    int cdepth = npy_get_msb(num) * 2;
+
+    /* Items that have zero size don't make sense to sort */
+    if (len == 0) {
+        return 0;
+    }
 
     for (;;) {
+        if (NPY_UNLIKELY(cdepth < 0)) {
+            aheapsort_string(vv, pl, pr - pl + 1, varr);
+            goto stack_pop;
+        }
         while ((pr - pl) > SMALL_QUICKSORT) {
             /* quicksort partition */
             pm = pl + ((pr - pl) >> 1);
@@ -2864,6 +3317,7 @@ aquicksort_string(void *vv, npy_intp* tosort, npy_intp num, void *varr)
                 *sptr++ = pi - 1;
                 pl = pi + 1;
             }
+            *psdepth++ = --cdepth;
         }
 
         /* insertion sort */
@@ -2877,34 +3331,49 @@ aquicksort_string(void *vv, npy_intp* tosort, npy_intp num, void *varr)
             }
             *pj = vi;
         }
+stack_pop:
         if (sptr == stack) {
             break;
         }
         pr = *(--sptr);
         pl = *(--sptr);
+        cdepth = *(--psdepth);
     }
 
     return 0;
 }
 
 
-#line 210
+#line 255
 
 int
 quicksort_unicode(void *start, npy_intp num, void *varr)
 {
     PyArrayObject *arr = varr;
     const size_t len = PyArray_ITEMSIZE(arr)/sizeof(npy_ucs4);
-    npy_ucs4 *vp = malloc(PyArray_ITEMSIZE(arr));
+    npy_ucs4 *vp;
     npy_ucs4 *pl = start;
     npy_ucs4 *pr = pl + (num - 1)*len;
     npy_ucs4 *stack[PYA_QS_STACK], **sptr = stack, *pm, *pi, *pj, *pk;
+    int depth[PYA_QS_STACK];
+    int * psdepth = depth;
+    int cdepth = npy_get_msb(num) * 2;
 
+    /* Items that have zero size don't make sense to sort */
+    if (len == 0) {
+        return 0;
+    }
+
+    vp = malloc(PyArray_ITEMSIZE(arr));
     if (vp == NULL) {
         return -NPY_ENOMEM;
     }
 
     for (;;) {
+        if (NPY_UNLIKELY(cdepth < 0)) {
+            heapsort_unicode(pl, (pr - pl) / len + 1, varr);
+            goto stack_pop;
+        }
         while ((size_t)(pr - pl) > SMALL_QUICKSORT*len) {
             /* quicksort partition */
             pm = pl + (((pr - pl)/len) >> 1)*len;
@@ -2936,6 +3405,7 @@ quicksort_unicode(void *start, npy_intp num, void *varr)
                 *sptr++ = pi - len;
                 pl = pi + len;
             }
+            *psdepth++ = --cdepth;
         }
 
         /* insertion sort */
@@ -2950,11 +3420,13 @@ quicksort_unicode(void *start, npy_intp num, void *varr)
             }
             UNICODE_COPY(pj, vp, len);
         }
+stack_pop:
         if (sptr == stack) {
             break;
         }
         pr = *(--sptr);
         pl = *(--sptr);
+        cdepth = *(--psdepth);
     }
 
     free(vp);
@@ -2974,8 +3446,20 @@ aquicksort_unicode(void *vv, npy_intp* tosort, npy_intp num, void *varr)
     npy_intp *stack[PYA_QS_STACK];
     npy_intp **sptr=stack;
     npy_intp *pm, *pi, *pj, *pk, vi;
+    int depth[PYA_QS_STACK];
+    int * psdepth = depth;
+    int cdepth = npy_get_msb(num) * 2;
+
+    /* Items that have zero size don't make sense to sort */
+    if (len == 0) {
+        return 0;
+    }
 
     for (;;) {
+        if (NPY_UNLIKELY(cdepth < 0)) {
+            aheapsort_unicode(vv, pl, pr - pl + 1, varr);
+            goto stack_pop;
+        }
         while ((pr - pl) > SMALL_QUICKSORT) {
             /* quicksort partition */
             pm = pl + ((pr - pl) >> 1);
@@ -3007,6 +3491,7 @@ aquicksort_unicode(void *vv, npy_intp* tosort, npy_intp num, void *varr)
                 *sptr++ = pi - 1;
                 pl = pi + 1;
             }
+            *psdepth++ = --cdepth;
         }
 
         /* insertion sort */
@@ -3020,11 +3505,13 @@ aquicksort_unicode(void *vv, npy_intp* tosort, npy_intp num, void *varr)
             }
             *pj = vi;
         }
+stack_pop:
         if (sptr == stack) {
             break;
         }
         pr = *(--sptr);
         pl = *(--sptr);
+        cdepth = *(--psdepth);
     }
 
     return 0;
@@ -3046,18 +3533,31 @@ npy_quicksort(void *start, npy_intp num, void *varr)
     PyArrayObject *arr = varr;
     npy_intp elsize = PyArray_ITEMSIZE(arr);
     PyArray_CompareFunc *cmp = PyArray_DESCR(arr)->f->compare;
-    char *vp = malloc(elsize);
+    char *vp;
     char *pl = start;
     char *pr = pl + (num - 1)*elsize;
     char *stack[PYA_QS_STACK];
     char **sptr = stack;
     char *pm, *pi, *pj, *pk;
+    int depth[PYA_QS_STACK];
+    int * psdepth = depth;
+    int cdepth = npy_get_msb(num) * 2;
 
+    /* Items that have zero size don't make sense to sort */
+    if (elsize == 0) {
+        return 0;
+    }
+
+    vp = malloc(elsize);
     if (vp == NULL) {
         return -NPY_ENOMEM;
     }
 
     for (;;) {
+        if (NPY_UNLIKELY(cdepth < 0)) {
+            npy_heapsort(pl, (pr - pl) / elsize + 1, varr);
+            goto stack_pop;
+        }
         while(pr - pl > SMALL_QUICKSORT*elsize) {
             /* quicksort partition */
             pm = pl + (((pr - pl) / elsize) >> 1) * elsize;
@@ -3074,13 +3574,17 @@ npy_quicksort(void *start, npy_intp num, void *varr)
             pi = pl;
             pj = pr - elsize;
             GENERIC_SWAP(pm, pj, elsize);
+            /*
+             * Generic comparisons may be buggy, so don't rely on the sentinels
+             * to keep the pointers from going out of bounds.
+             */
             for (;;) {
                 do {
                     pi += elsize;
-                } while (cmp(pi, vp, arr) < 0);
+                } while (cmp(pi, vp, arr) < 0 && pi < pj);
                 do {
                     pj -= elsize;
-                } while (cmp(vp, pj, arr) < 0);
+                } while (cmp(vp, pj, arr) < 0 && pi < pj);
                 if (pi >= pj) {
                     break;
                 }
@@ -3099,6 +3603,7 @@ npy_quicksort(void *start, npy_intp num, void *varr)
                 *sptr++ = pi - elsize;
                 pl = pi + elsize;
             }
+            *psdepth++ = --cdepth;
         }
 
         /* insertion sort */
@@ -3113,11 +3618,13 @@ npy_quicksort(void *start, npy_intp num, void *varr)
             }
             GENERIC_COPY(pj, vp, elsize);
         }
+stack_pop:
         if (sptr == stack) {
             break;
         }
         pr = *(--sptr);
         pl = *(--sptr);
+        cdepth = *(--psdepth);
     }
 
     free(vp);
@@ -3138,8 +3645,20 @@ npy_aquicksort(void *vv, npy_intp* tosort, npy_intp num, void *varr)
     npy_intp *stack[PYA_QS_STACK];
     npy_intp **sptr = stack;
     npy_intp *pm, *pi, *pj, *pk, vi;
+    int depth[PYA_QS_STACK];
+    int * psdepth = depth;
+    int cdepth = npy_get_msb(num) * 2;
+
+    /* Items that have zero size don't make sense to sort */
+    if (elsize == 0) {
+        return 0;
+    }
 
     for (;;) {
+        if (NPY_UNLIKELY(cdepth < 0)) {
+            npy_aheapsort(vv, pl, pr - pl + 1, varr);
+            goto stack_pop;
+        }
         while ((pr - pl) > SMALL_QUICKSORT) {
             /* quicksort partition */
             pm = pl + ((pr - pl) >> 1);
@@ -3159,10 +3678,10 @@ npy_aquicksort(void *vv, npy_intp* tosort, npy_intp num, void *varr)
             for (;;) {
                 do {
                     ++pi;
-                } while (cmp(v + (*pi)*elsize, vp, arr) < 0);
+                } while (cmp(v + (*pi)*elsize, vp, arr) < 0 && pi < pj);
                 do {
                     --pj;
-                } while (cmp(vp, v + (*pj)*elsize, arr) < 0);
+                } while (cmp(vp, v + (*pj)*elsize, arr) < 0 && pi < pj);
                 if (pi >= pj) {
                     break;
                 }
@@ -3181,6 +3700,7 @@ npy_aquicksort(void *vv, npy_intp* tosort, npy_intp num, void *varr)
                 *sptr++ = pi - 1;
                 pl = pi + 1;
             }
+            *psdepth++ = --cdepth;
         }
 
         /* insertion sort */
@@ -3194,11 +3714,13 @@ npy_aquicksort(void *vv, npy_intp* tosort, npy_intp num, void *varr)
             }
             *pj = vi;
         }
+stack_pop:
         if (sptr == stack) {
             break;
         }
         pr = *(--sptr);
         pl = *(--sptr);
+        cdepth = *(--psdepth);
     }
 
     return 0;

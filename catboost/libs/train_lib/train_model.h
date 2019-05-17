@@ -9,6 +9,7 @@
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/options/load_options.h>
 #include <catboost/libs/options/output_file_options.h>
+#include <catboost/libs/options/catboost_options.h>
 #include <catboost/libs/feature_estimator/feature_estimator.h>
 
 #include <library/json/json_value.h>
@@ -40,7 +41,7 @@ class IModelTrainer {
 public:
     virtual void TrainModel(
         const TTrainModelInternalOptions& internalOptions,
-        const NJson::TJsonValue& jsonParams,
+        const NCatboostOptions::TCatBoostOptions& catboostOptions,
         const NCatboostOptions::TOutputFilesOptions& outputOptions,
         const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
         const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
@@ -56,7 +57,7 @@ public:
     ) const = 0;
 
     virtual void ModelBasedEval(
-        const NJson::TJsonValue& params,
+        const NCatboostOptions::TCatBoostOptions& catboostOptions,
         const NCatboostOptions::TOutputFilesOptions& outputOptions,
         NCB::TTrainingDataProviders trainingData,
         const TLabelConverter& labelConverter,
@@ -88,7 +89,5 @@ void TrainModel(
     const TVector<TEvalResult*>& evalResultPtrs,
     TMetricsAndTimeLeftHistory* metricsAndTimeHistory = nullptr);
 
-/// Used by cross validation, hence one test dataset.
-void TrainOneIteration(const NCB::TTrainingForCPUDataProviders& data, TLearnContext* ctx);
 
 using TTrainerFactory = NObjectFactory::TParametrizedObjectFactory<IModelTrainer, ETaskType>;

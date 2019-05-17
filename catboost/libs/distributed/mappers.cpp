@@ -41,7 +41,7 @@ namespace NCatboostDistributed {
             trainData->ApproxDimension,
             localData.StoreExpApprox,
             UsesPairsForCalculation(localData.Params.LossFunctionDescription->GetLossFunction()),
-            *localData.Rand,
+            localData.Rand.Get(),
             &NPar::LocalExecutor());
         Y_ASSERT(localData.Progress.AveragingFold.BodyTailArr.ysize() == 1);
 
@@ -157,6 +157,7 @@ namespace NCatboostDistributed {
             &localData.SampledDocs,
             &NPar::LocalExecutor(),
             localData.Rand.Get());
+        localData.FlatPairs = UnpackPairsFromQueries(localData.Progress.AveragingFold.LearnQueriesInfo);
     }
 
     template <typename TMapFunc, typename TInputType, typename TOutputType>
@@ -260,9 +261,8 @@ namespace NCatboostDistributed {
     ) const {
         NPar::TCtxPtr<TTrainData> trainData(ctx, SHARED_ID_TRAIN_DATA, hostId);
         auto& localData = TLocalTensorSearchData::GetRef();
-        const auto pairs = UnpackPairsFromQueries(localData.Progress.AveragingFold.LearnQueriesInfo);
         auto calcPairwiseStats = [&](const TCandidateInfo& candidate, TPairwiseStats* pairwiseStats) {
-            CalcPairwiseStats(trainData, pairs, candidate, pairwiseStats);
+            CalcPairwiseStats(trainData, localData.FlatPairs, candidate, pairwiseStats);
         };
         MapCandidateList(calcPairwiseStats, candidateList->Data, &bucketStats->Data);
     }
@@ -276,9 +276,8 @@ namespace NCatboostDistributed {
     ) const {
         NPar::TCtxPtr<TTrainData> trainData(ctx, SHARED_ID_TRAIN_DATA, hostId);
         auto& localData = TLocalTensorSearchData::GetRef();
-        const auto pairs = UnpackPairsFromQueries(localData.Progress.AveragingFold.LearnQueriesInfo);
         auto calcPairwiseStats = [&](const TCandidateInfo& candidate, TPairwiseStats* pairwiseStats) {
-            CalcPairwiseStats(trainData, pairs, candidate, pairwiseStats);
+            CalcPairwiseStats(trainData, localData.FlatPairs, candidate, pairwiseStats);
         };
         MapVector(calcPairwiseStats, candidate->Candidates, bucketStats);
     }
@@ -626,7 +625,6 @@ namespace NCatboostDistributed {
     ) const {
         const auto& localData = TLocalTensorSearchData::GetRef();
         const auto errors = CreateMetrics(
-            localData.Params.LossFunctionDescription,
             localData.Params.MetricOptions,
             /*evalMetricDescriptor*/Nothing(),
             localData.Progress.ApproxDimension);

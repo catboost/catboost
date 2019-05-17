@@ -1,12 +1,16 @@
 #pragma once
 
 #include <catboost/libs/data_new/data_provider.h>
-#include <catboost/libs/model/model.h>
-
-#include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/fwd.h>
 #include <util/generic/vector.h>
+
+
+struct TFullModel;
+
+namespace NPar {
+    class TLocalExecutor;
+}
 
 
 struct TRocPoint {

@@ -1,6 +1,6 @@
 #include "cross_validation.h"
-
 #include "train_model.h"
+#include "options_helper.h"
 
 #include <catboost/libs/algo/approx_dimension.h>
 #include <catboost/libs/algo/calc_score_cache.h>
@@ -19,7 +19,6 @@
 #include <catboost/libs/logging/profile_info.h>
 #include <catboost/libs/metrics/metric.h>
 #include <catboost/libs/model/features.h>
-#include <catboost/libs/options/defaults_helper.h>
 #include <catboost/libs/options/enum_helpers.h>
 #include <catboost/libs/options/output_file_options.h>
 #include <catboost/libs/options/plain_options_helper.h>
@@ -193,7 +192,7 @@ public:
     }
 
     void TrainBatch(
-        const NJson::TJsonValue& trainOptionsJson,
+        const NCatboostOptions::TCatBoostOptions& catboostOption,
         const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
         const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
         const TLabelConverter& labelConverter,
@@ -224,7 +223,7 @@ public:
 
         modelTrainer->TrainModel(
             internalOptions,
-            trainOptionsJson,
+            catboostOption,
             OutputOptions,
             objectiveDescriptor,
             evalMetricDescriptor,
@@ -307,7 +306,7 @@ public:
 static void UpdatePermutationBlockSize(
     ETaskType taskType,
     TConstArrayRef<TTrainingDataProviders> foldsData,
-    NJson::TJsonValue* updatedTrainOptionsJson
+    NCatboostOptions::TCatBoostOptions* catboostOptions
 ) {
     if (taskType == ETaskType::GPU) {
         return;
@@ -324,7 +323,7 @@ static void UpdatePermutationBlockSize(
     );
 
     if (isAnyFoldHasNonConsecutiveLearnFeaturesData) {
-        (*updatedTrainOptionsJson)["boosting_options"]["fold_permutation_block"] = 1;
+        catboostOptions->BoostingOptions->PermutationBlockSize = 1;
     }
 }
 
@@ -346,6 +345,8 @@ void CrossValidate(
     NCatboostOptions::TOutputFilesOptions outputFileOptions;
     outputFileOptions.Load(outputJsonParams);
 
+    // TODO(akhropov): implement snapshots in CV. MLTOOLS-3439.
+    CB_ENSURE(!outputFileOptions.SaveSnapshot(), "Saving snapshots in Cross-validation is not supported yet");
 
     const ui32 allDataObjectCount = data->ObjectsData->GetObjectCount();
 
@@ -384,29 +385,16 @@ void CrossValidate(
         &localExecutor,
         &rand);
 
-    const ui32 oneFoldSize = allDataObjectCount / cvParams.FoldCount;
-    const ui32 cvTrainSize = cvParams.Inverted ? oneFoldSize : oneFoldSize * (cvParams.FoldCount - 1);
-    SetDataDependentDefaults(
-        cvTrainSize,
-        /*hasLearnTarget*/trainingData->MetaInfo.HasTarget,
-        trainingData->ObjectsData->GetQuantizedFeaturesInfo()
-            ->CalcMaxCategoricalFeaturesUniqueValuesCountOnLearn(),
-        /*testPoolSize=*/allDataObjectCount - cvTrainSize,
-        /*hasTestLabels=*/trainingData->MetaInfo.HasTarget,
-        /*hasTestPairs*/trainingData->MetaInfo.HasPairs,
-        &outputFileOptions.UseBestModel,
-        &catBoostOptions
-    );
+    UpdateYetiRankEvalMetric(trainingData->MetaInfo.TargetStats, Nothing(), &catBoostOptions);
 
     NJson::TJsonValue updatedTrainOptionsJson = jsonParams;
-    UpdateUndefinedClassNames(catBoostOptions.DataProcessingOptions.Get().ClassNames, &updatedTrainOptionsJson);
-
     // disable overfitting detector on folds training, it will work on average values
-    updatedTrainOptionsJson["boosting_options"]["od_config"]["type"]
-        = ToString(EOverfittingDetectorType::None);
+    const auto overfittingDetectorOptions = catBoostOptions.BoostingOptions->OverfittingDetector;
+    catBoostOptions.BoostingOptions->OverfittingDetector->OverfittingDetectorType = EOverfittingDetectorType::None;
 
     // internal training output shouldn't interfere with main stdout
-    updatedTrainOptionsJson["logging_level"] = "Silent";
+    const auto loggingLevel = catBoostOptions.LoggingLevel;
+    catBoostOptions.LoggingLevel = ELoggingLevel::Silent;
 
     const ETaskType taskType = catBoostOptions.GetTaskType();
 
@@ -424,13 +412,12 @@ void CrossValidate(
         modelTrainerHolder = TTrainerFactory::Construct(ETaskType::CPU);
     }
 
-    TSetLogging inThisScope(catBoostOptions.LoggingLevel);
+    TSetLogging inThisScope(loggingLevel);
 
     ui32 approxDimension = GetApproxDimension(catBoostOptions, labelConverter);
 
 
     TVector<THolder<IMetric>> metrics = CreateMetrics(
-        catBoostOptions.LossFunctionDescription,
         catBoostOptions.MetricOptions,
         evalMetricDescriptor,
         approxDimension
@@ -461,7 +448,7 @@ void CrossValidate(
     /* ensure that all folds have the same permutation block size because some of them might be consecutive
        and some might not
     */
-    UpdatePermutationBlockSize(taskType, foldsData, &updatedTrainOptionsJson);
+    UpdatePermutationBlockSize(taskType, foldsData, &catBoostOptions);
 
     TVector<TFoldContext> foldContexts;
 
@@ -479,7 +466,7 @@ void CrossValidate(
     metrics.front()->GetBestValue(&bestValueType, &bestPossibleValue);
 
     TErrorTracker errorTracker = CreateErrorTracker(
-        catBoostOptions.BoostingOptions->OverfittingDetector,
+        overfittingDetectorOptions,
         bestPossibleValue,
         bestValueType,
         /* hasTest */ true);
@@ -562,7 +549,7 @@ void CrossValidate(
             THPTimer timer;
 
             foldContexts[foldIdx].TrainBatch(
-                updatedTrainOptionsJson,
+                catBoostOptions,
                 objectiveDescriptor,
                 evalMetricDescriptor,
                 labelConverter,
@@ -572,7 +559,7 @@ void CrossValidate(
                 cvParams.DevMaxIterationsBatchSize,
                 globalMaxIteration,
                 errorTracker.IsActive(),
-                catBoostOptions.LoggingLevel,
+                loggingLevel,
                 modelTrainerHolder.Get(),
                 &localExecutor,
                 &batchEndIteration);

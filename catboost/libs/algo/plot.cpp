@@ -5,7 +5,10 @@
 #include <catboost/libs/loggers/catboost_logger_helpers.h>
 #include <catboost/libs/loggers/logger.h>
 #include <catboost/libs/logging/logging.h>
+#include <catboost/libs/model/model.h>
 #include <catboost/libs/options/json_helper.h>
+
+#include <library/threading/local_executor/local_executor.h>
 
 #include <util/folder/path.h>
 #include <util/generic/array_ref.h>
@@ -27,14 +30,14 @@ using namespace NCB;
 TMetricsPlotCalcer::TMetricsPlotCalcer(
     const TFullModel& model,
     const TVector<THolder<IMetric>>& metrics,
-    NPar::TLocalExecutor& executor,
     const TString& tmpDir,
     ui32 first,
     ui32 last,
     ui32 step,
-    ui32 processIterationStep)
+    ui32 processIterationStep,
+    NPar::TLocalExecutor* executor)
     : Model(model)
-    , Executor(executor)
+    , Executor(*executor)
     , First(first)
     , Last(last)
     , Step(step)
@@ -58,7 +61,8 @@ TMetricsPlotCalcer::TMetricsPlotCalcer(
         else {
             NonAdditiveMetrics.push_back(metric.Get());
             NonAdditiveMetricsIndices.push_back(metricIndex);
-            CB_ENSURE(metric->GetErrorType() == EErrorType::PerObjectError,
+            CB_ENSURE(
+                metric->GetErrorType() == EErrorType::PerObjectError,
                 "Error: we don't support non-additive querywise and pairwise metrics currenty");
         }
     }
@@ -81,39 +85,60 @@ void TMetricsPlotCalcer::ComputeAdditiveMetric(
         if (metric.GetErrorType() == EErrorType::PerObjectError) {
             metricResult = metric.Eval(approx, target, weights, queriesInfo, 0, docCount, Executor);
         } else {
-            CB_ENSURE(metric.GetErrorType() == EErrorType::QuerywiseError || metric.GetErrorType() == EErrorType::PairwiseError);
+            CB_ENSURE(
+                metric.GetErrorType() == EErrorType::QuerywiseError ||
+                metric.GetErrorType() == EErrorType::PairwiseError);
             metricResult = metric.Eval(approx, target, weights, queriesInfo, 0, queryCount, Executor);
         }
         AdditiveMetricPlots[metricId][plotLineIndex].Add(metricResult);
     }
 }
 
-void TMetricsPlotCalcer::Append(const TVector<TVector<double>>& approx, TVector<TVector<double>>* dst, int dstStartDoc) {
+void TMetricsPlotCalcer::Append(
+    const TVector<TVector<double>>& approx,
+    int dstStartDoc,
+    TVector<TVector<double>>* dst
+) {
     const ui32 docCount = approx[0].size();
 
     for (ui32 dim = 0; dim < approx.size(); ++dim) {
-        NPar::ParallelFor(Executor, 0, docCount, [&](int i) {
-            (*dst)[dim][dstStartDoc + i] += approx[dim][i];
-        });
+        NPar::ParallelFor(
+            Executor,
+            0,
+            docCount,
+            [&](int i) {
+                (*dst)[dim][dstStartDoc + i] += approx[dim][i];
+            });
     };
 }
 
-TMetricsPlotCalcer& TMetricsPlotCalcer::ProceedDataSetForAdditiveMetrics(const TProcessedDataProvider& processedData) {
+TMetricsPlotCalcer& TMetricsPlotCalcer::ProceedDataSetForAdditiveMetrics(
+    const TProcessedDataProvider& processedData
+) {
     ProceedDataSet(processedData, 0, Iterations.ysize(), /*isAdditiveMetrics=*/true);
     return *this;
 }
 
-TMetricsPlotCalcer& TMetricsPlotCalcer::ProceedDataSetForNonAdditiveMetrics(const TProcessedDataProvider& processedData) {
+TMetricsPlotCalcer& TMetricsPlotCalcer::ProceedDataSetForNonAdditiveMetrics(
+    const TProcessedDataProvider& processedData
+) {
     if (ProcessedIterationsCount == 0) {
-        const ui32 newPoolSize = NonAdditiveMetricsData.Target.size() + processedData.ObjectsData->GetObjectCount();
+        const ui32 newPoolSize
+            = NonAdditiveMetricsData.Target.size() + processedData.ObjectsData->GetObjectCount();
         NonAdditiveMetricsData.Target.reserve(newPoolSize);
         NonAdditiveMetricsData.Weights.reserve(newPoolSize);
 
         const auto target = *processedData.TargetData->GetTarget();
-        NonAdditiveMetricsData.Target.insert(NonAdditiveMetricsData.Target.end(), target.begin(), target.end());
+        NonAdditiveMetricsData.Target.insert(
+            NonAdditiveMetricsData.Target.end(),
+            target.begin(),
+            target.end());
 
         const auto weights = GetWeights(*processedData.TargetData);
-        NonAdditiveMetricsData.Weights.insert(NonAdditiveMetricsData.Weights.end(), weights.begin(), weights.end());
+        NonAdditiveMetricsData.Weights.insert(
+            NonAdditiveMetricsData.Weights.end(),
+            weights.begin(),
+            weights.end());
     }
     ui32 begin = ProcessedIterationsCount;
     ui32 end = Min<ui32>(ProcessedIterationsCount + ProcessedIterationsStep, Iterations.size());
@@ -170,8 +195,7 @@ static void InitApproxBuffer(
                 datasetParts[datasetPartIdx].TargetData->GetBaseline().Defined() == hasBaseline,
                 "Inconsistent baseline specification between dataset parts: part 0 has "
                 << (hasBaseline ? "" : "no ") << " baseline, but part " << datasetPartIdx << " has"
-                << (hasBaseline ? " not" : "")
-            );
+                << (hasBaseline ? " not" : ""));
         }
     }
 
@@ -228,8 +252,13 @@ TMetricsPlotCalcer& TMetricsPlotCalcer::ProceedDataSet(
 
     for (ui32 iterationIndex = beginIterationIndex; iterationIndex < endIterationIndex; ++iterationIndex) {
         end = Iterations[iterationIndex] + 1;
-        modelCalcerOnPool.ApplyModelMulti(EPredictionType::InternalRawFormulaVal, begin, end, &FlatApproxBuffer, &NextApproxBuffer);
-        Append(NextApproxBuffer, &CurApproxBuffer);
+        modelCalcerOnPool.ApplyModelMulti(
+            EPredictionType::InternalRawFormulaVal,
+            begin,
+            end,
+            &FlatApproxBuffer,
+            &NextApproxBuffer);
+        Append(NextApproxBuffer, 0, &CurApproxBuffer);
 
         if (isAdditiveMetrics) {
             ComputeAdditiveMetric(
@@ -255,7 +284,14 @@ void TMetricsPlotCalcer::ComputeNonAdditiveMetrics(ui32 begin, ui32 end) {
     for (ui32 idx = begin; idx < end; ++idx) {
         auto approx = LoadApprox(idx);
         for (ui32 metricId = 0; metricId < NonAdditiveMetrics.size(); ++metricId) {
-            NonAdditiveMetricPlots[metricId][idx] = NonAdditiveMetrics[metricId]->Eval(approx, target, weights, {}, 0, target.size(), Executor);
+            NonAdditiveMetricPlots[metricId][idx] = NonAdditiveMetrics[metricId]->Eval(
+                approx,
+                target,
+                weights,
+                {},
+                0,
+                target.size(),
+                Executor);
         }
         if (idx != 0) {
             DeleteApprox(idx - 1);
@@ -304,8 +340,7 @@ void TMetricsPlotCalcer::ComputeNonAdditiveMetrics(const TVector<TProcessedDataP
         Model.ObliviousTrees.ApproxDimension,
         datasetParts,
         /*initBaselineIfAvailable*/ true,
-        &curApprox
-    );
+        &curApprox);
 
     int begin = 0;
     TVector<TModelCalcerOnPool> modelCalcers;
@@ -318,12 +353,24 @@ void TMetricsPlotCalcer::ComputeNonAdditiveMetrics(const TVector<TProcessedDataP
         int end = Iterations[iterationIndex] + 1;
         for (int poolPartIdx = 0; poolPartIdx < modelCalcers.ysize(); ++poolPartIdx) {
             auto& calcer = modelCalcers[poolPartIdx];
-            calcer.ApplyModelMulti(EPredictionType::InternalRawFormulaVal, begin, end, &FlatApproxBuffer, &NextApproxBuffer);
-            Append(NextApproxBuffer, &curApprox, startDocIdx[poolPartIdx]);
+            calcer.ApplyModelMulti(
+                EPredictionType::InternalRawFormulaVal,
+                begin,
+                end,
+                &FlatApproxBuffer,
+                &NextApproxBuffer);
+            Append(NextApproxBuffer, startDocIdx[poolPartIdx], &curApprox);
         }
 
         for (ui32 metricId = 0; metricId < NonAdditiveMetrics.size(); ++metricId) {
-            NonAdditiveMetricPlots[metricId][iterationIndex] = NonAdditiveMetrics[metricId]->Eval(curApprox, allTargets, allWeights, {}, 0, allTargets.size(), Executor);
+            NonAdditiveMetricPlots[metricId][iterationIndex] = NonAdditiveMetrics[metricId]->Eval(
+                curApprox,
+                allTargets,
+                allWeights,
+                {},
+                0,
+                allTargets.size(),
+                Executor);
         }
         begin = end;
     }
@@ -350,8 +397,7 @@ TString TMetricsPlotCalcer::GetApproxFileName(ui32 plotLineIndex) {
     return NonAdditiveMetricsData.ApproxFiles[plotLineIndex];
 }
 
-void TMetricsPlotCalcer::SaveApproxToFile(ui32 plotLineIndex,
-                                          const TVector<TVector<double>>& approx) {
+void TMetricsPlotCalcer::SaveApproxToFile(ui32 plotLineIndex, const TVector<TVector<double>>& approx) {
     auto fileName = GetApproxFileName(plotLineIndex);
     ui32 docCount = approx[0].size();
     TFile file(fileName, EOpenModeFlag::ForAppend | EOpenModeFlag::OpenAlways);
@@ -388,11 +434,13 @@ TMetricsPlotCalcer CreateMetricCalcer(
     int end,
     int evalPeriod,
     int processedIterationsStep,
-    NPar::TLocalExecutor& executor,
     const TString& tmpDir,
-    const TVector<THolder<IMetric>>& metrics
+    const TVector<THolder<IMetric>>& metrics,
+    NPar::TLocalExecutor* executor
 ) {
-    if (model.ModelInfo.contains("params") && ReadTJsonValue(model.ModelInfo.at("params")).Has("loss_function")) {
+    if (model.ModelInfo.contains("params") &&
+        ReadTJsonValue(model.ModelInfo.at("params")).Has("loss_function"))
+    {
         CheckMetrics(metrics, ReadLossFunction(model.ModelInfo.at("params")));
     }
 
@@ -406,19 +454,31 @@ TMetricsPlotCalcer CreateMetricCalcer(
         evalPeriod = end - begin;
     }
 
-    TMetricsPlotCalcer plotCalcer(model, metrics, executor, tmpDir, begin, end, evalPeriod, processedIterationsStep);
+    TMetricsPlotCalcer plotCalcer(
+        model,
+        metrics,
+        tmpDir,
+        begin,
+        end,
+        evalPeriod,
+        processedIterationsStep,
+        executor);
 
     return plotCalcer;
 }
 
 TVector<TVector<double>> TMetricsPlotCalcer::GetMetricsScore() {
-    TVector<TVector<double>> metricsScore(AdditiveMetrics.size() + NonAdditiveMetrics.size(), TVector<double>(Iterations.size()));
+    TVector<TVector<double>> metricsScore(
+        AdditiveMetrics.size() + NonAdditiveMetrics.size(),
+        TVector<double>(Iterations.size()));
     for (ui32 i = 0; i < Iterations.size(); ++i) {
         for (ui32 metricId = 0; metricId < AdditiveMetrics.size(); ++metricId) {
-            metricsScore[AdditiveMetricsIndices[metricId]][i] = AdditiveMetrics[metricId]->GetFinalError(AdditiveMetricPlots[metricId][i]);
+            metricsScore[AdditiveMetricsIndices[metricId]][i] = AdditiveMetrics[metricId]->GetFinalError(
+                AdditiveMetricPlots[metricId][i]);
         }
         for (ui32 metricId = 0; metricId < NonAdditiveMetrics.size(); ++metricId) {
-            metricsScore[NonAdditiveMetricsIndices[metricId]][i] = NonAdditiveMetrics[metricId]->GetFinalError(NonAdditiveMetricPlots[metricId][i]);
+            metricsScore[NonAdditiveMetricsIndices[metricId]][i] = NonAdditiveMetrics[metricId]->GetFinalError(
+                NonAdditiveMetricPlots[metricId][i]);
         }
     }
     return metricsScore;
@@ -436,17 +496,35 @@ static TLogger CreateLogger(
 ) {
     TLogger logger(iterationBegin, iterationEnd - 1, iterationPeriod);
     if (saveMetrics) {
-        logger.AddBackend(token, TIntrusivePtr<ILoggingBackend>(new TErrorFileLoggingBackend(JoinFsPaths(resultDir, metricsFile))));
+        logger.AddBackend(
+            token,
+            TIntrusivePtr<ILoggingBackend>(new TErrorFileLoggingBackend(JoinFsPaths(resultDir, metricsFile))));
     }
-    logger.AddBackend(token, TIntrusivePtr<ILoggingBackend>(new TTensorBoardLoggingBackend(JoinFsPaths(resultDir, token))));
+    logger.AddBackend(
+        token,
+        TIntrusivePtr<ILoggingBackend>(new TTensorBoardLoggingBackend(JoinFsPaths(resultDir, token))));
 
     const int iterationsCount = ceil((iterationEnd - iterationBegin) / (iterationPeriod + 0.0));
-    auto metaJson = GetJsonMeta(iterationsCount, /*optionalExperimentName=*/"", metrics, /*learnSetNames=*/{}, {token}, ELaunchMode::Eval);
-    logger.AddBackend(token, TIntrusivePtr<ILoggingBackend>(new TJsonLoggingBackend(JoinFsPaths(resultDir, "catboost_training.json"), metaJson)));
+    auto metaJson = GetJsonMeta(
+        iterationsCount,
+        /*optionalExperimentName=*/ "",
+        metrics,
+        /*learnSetNames=*/ {},
+        { token },
+        ELaunchMode::Eval);
+    logger.AddBackend(
+        token,
+        TIntrusivePtr<ILoggingBackend>(
+            new TJsonLoggingBackend(JoinFsPaths(resultDir, "catboost_training.json"), metaJson)));
     return logger;
 }
 
-TMetricsPlotCalcer& TMetricsPlotCalcer::SaveResult(const TString& resultDir, const TString& metricsFile, bool saveMetrics, bool saveStats) {
+TMetricsPlotCalcer& TMetricsPlotCalcer::SaveResult(
+    const TString& resultDir,
+    const TString& metricsFile,
+    bool saveMetrics,
+    bool saveStats
+) {
     TFsPath trainDirPath(resultDir);
     if (!resultDir.empty() && !trainDirPath.Exists()) {
         trainDirPath.MkDirs();
@@ -458,7 +536,6 @@ TMetricsPlotCalcer& TMetricsPlotCalcer::SaveResult(const TString& resultDir, con
         WriteHeaderForPartialStats(&statsStream, sep);
         WritePartialStats(&statsStream, sep);
     }
-
 
     TVector<const IMetric*> metrics(AdditiveMetrics.size() + NonAdditiveMetrics.size());
     for (ui32 metricId = 0; metricId < AdditiveMetrics.size(); ++metricId) {
@@ -475,7 +552,9 @@ TMetricsPlotCalcer& TMetricsPlotCalcer::SaveResult(const TString& resultDir, con
     for (int iteration = 0; iteration < results[0].ysize(); ++iteration) {
         TOneInterationLogger oneIterLogger(logger);
         for (int metricIdx = 0; metricIdx < results.ysize(); ++metricIdx) {
-            oneIterLogger.OutputMetric(token, TMetricEvalResult(metrics[metricIdx]->GetDescription(), results[metricIdx][iteration], false));
+            oneIterLogger.OutputMetric(
+                token,
+                TMetricEvalResult(metrics[metricIdx]->GetDescription(), results[metricIdx][iteration], false));
         }
     }
     return *this;
