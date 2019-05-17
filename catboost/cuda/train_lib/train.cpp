@@ -205,21 +205,8 @@ namespace NCatboostCuda {
     static void SetDataDependentDefaultsForGpu(const NCB::TTrainingDataProvider& dataProvider,
                                                const NCB::TTrainingDataProvider* testProvider,
                                                NCatboostOptions::TCatBoostOptions& catBoostOptions,
-                                               NCatboostOptions::TOutputFilesOptions& outputOptions,
                                                TBinarizedFeaturesManager& featuresManager,
                                                NPar::TLocalExecutor* localExecutor) {
-        bool hasTestPairs = false;
-        ui32 testPoolSize = 0;
-        if (testProvider) {
-            hasTestPairs = testProvider->MetaInfo.HasPairs;
-            testPoolSize = testProvider->GetObjectCount();
-        }
-
-        SetDataDependentDefaults(dataProvider.MetaInfo,
-                                 testProvider ? TMaybe<NCB::TDataMetaInfo>(testProvider->MetaInfo) : Nothing(),
-                                 &outputOptions.UseBestModel,
-                                 &catBoostOptions);
-
         UpdateGpuSpecificDefaults(catBoostOptions, featuresManager);
         EstimatePriors(dataProvider, featuresManager, catBoostOptions.CatFeatureParams, localExecutor);
         UpdateDataPartitionType(featuresManager, catBoostOptions);
@@ -326,11 +313,10 @@ namespace NCatboostCuda {
             CB_ENSURE(trainingData.Test.size() <= 1, "Multiple eval sets not supported for GPU");
             Y_VERIFY(evalResultPtrs.size() == trainingData.Test.size());
 
-            NCatboostOptions::TCatBoostOptions updatedCatboostOptions = catboostOptions;
-            NCatboostOptions::TOutputFilesOptions updatedOutputOptions = outputOptions;
+            NCatboostOptions::TCatBoostOptions updatedCatboostOptions(catboostOptions);
 
             bool saveFinalCtrsInModel = !internalOptions.CalcMetricsOnly &&
-                (updatedOutputOptions.GetFinalCtrComputationMode() == EFinalCtrComputationMode::Default) &&
+                (outputOptions.GetFinalCtrComputationMode() == EFinalCtrComputationMode::Default) &&
                 (trainingData.Learn->ObjectsData->GetQuantizedFeaturesInfo()
                     ->CalcMaxCategoricalFeaturesUniqueValuesCountOnLearn()
                   > updatedCatboostOptions.CatFeatureParams.Get().OneHotMaxSize.Get());
@@ -353,11 +339,10 @@ namespace NCatboostCuda {
                 *trainingData.Learn,
                 !trainingData.Test.empty() ? trainingData.Test[0].Get() : nullptr,
                 updatedCatboostOptions,
-                updatedOutputOptions,
                 featuresManager,
                 localExecutor);
 
-            const TString trainingOptionsFileName = updatedOutputOptions.CreateTrainingOptionsFullPath();
+            const TString& trainingOptionsFileName = outputOptions.CreateTrainingOptionsFullPath();
             if (!trainingOptionsFileName.empty()) {
                 TOFStream trainingOptionsFile(trainingOptionsFileName);
                 trainingOptionsFile.Write(NJson::PrettifyJson(ToString(updatedCatboostOptions)));
@@ -381,7 +366,7 @@ namespace NCatboostCuda {
             TGpuTrainResult gpuFormatModel = TrainModelImpl(
                 internalOptions,
                 updatedCatboostOptions,
-                updatedOutputOptions,
+                outputOptions,
                 *trainingData.Learn,
                 !trainingData.Test.empty() ? trainingData.Test[0].Get() : nullptr,
                 featureEstimators,
@@ -460,9 +445,9 @@ namespace NCatboostCuda {
                 coreModelToFullModelConverter.Do(true, model);
             } else {
                 coreModelToFullModelConverter.Do(
-                    updatedOutputOptions.CreateResultModelFullPath(),
-                    updatedOutputOptions.GetModelFormats(),
-                    updatedOutputOptions.AddFileFormatExtension());
+                    outputOptions.CreateResultModelFullPath(),
+                    outputOptions.GetModelFormats(),
+                    outputOptions.AddFileFormatExtension());
             }
         }
 
@@ -475,8 +460,7 @@ namespace NCatboostCuda {
 
             CB_ENSURE(trainingData.Test.size() == 1, "Model based evaluation requires exactly one eval set on GPU");
 
-            NCatboostOptions::TCatBoostOptions updatedCatboostOptions = catboostOptions;
-            NCatboostOptions::TOutputFilesOptions updatedOutputOptions = outputOptions;
+            NCatboostOptions::TCatBoostOptions updatedCatboostOptions(catboostOptions);
 
             auto quantizedFeaturesInfo = trainingData.Learn->ObjectsData->GetQuantizedFeaturesInfo();
 
@@ -489,7 +473,6 @@ namespace NCatboostCuda {
                 *trainingData.Learn,
                 trainingData.Test[0].Get(),
                 updatedCatboostOptions,
-                updatedOutputOptions,
                 featuresManager,
                 localExecutor);
 
@@ -508,7 +491,7 @@ namespace NCatboostCuda {
 
             ModelBasedEvalImpl(
                 updatedCatboostOptions,
-                updatedOutputOptions,
+                outputOptions,
                 *trainingData.Learn,
                 *trainingData.Test[0].Get(),
                 featuresManager,

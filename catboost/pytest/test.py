@@ -771,7 +771,7 @@ def test_yetirank_default_metric(loss_function):
         '--column-description', data_file('black_friday', 'cd'),
         '--model-file', output_model_path,
         '--boosting-type', 'Plain',
-        '-i', '10',
+        '-i', '5',
         '-T', '4',
         '--test-err-log', test_error_path,
     )

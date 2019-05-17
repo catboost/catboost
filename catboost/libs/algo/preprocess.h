@@ -47,9 +47,9 @@ NCB::TDataProviderPtr ReorderByTimestampLearnDataIfNeeded(
     NPar::TLocalExecutor* localExecutor
 );
 
-NCB::TDataProviderPtr ShuffleLearnDataIfNeeded(
+NCB::TTrainingDataProviderPtr ShuffleLearnDataIfNeeded(
     const NCatboostOptions::TCatBoostOptions& catBoostOptions,
-    NCB::TDataProviderPtr learnData,
+    NCB::TTrainingDataProviderPtr learnData,
     NPar::TLocalExecutor* localExecutor,
     TRestorableFastRng64* rand
 );

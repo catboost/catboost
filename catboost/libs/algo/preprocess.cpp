@@ -5,7 +5,6 @@
 #include <catboost/libs/helpers/progress_helper.h>
 #include <catboost/libs/helpers/restorable_rng.h>
 #include <catboost/libs/options/catboost_options.h>
-#include <catboost/libs/options/defaults_helper.h>
 #include <catboost/libs/options/output_file_options.h>
 #include <catboost/libs/loggers/catboost_logger_helpers.h>
 #include <catboost/libs/logging/logging.h>
@@ -133,23 +132,18 @@ TDataProviderPtr ReorderByTimestampLearnDataIfNeeded(
 }
 
 
-static bool NeedShuffle(
-    const ui32 catFeatureCount,
-    const ui32 docCount,
-    const NCatboostOptions::TCatBoostOptions& catBoostOptions) {
-
+static bool NeedShuffle(ui32 catFeatureCount, const NCatboostOptions::TCatBoostOptions& catBoostOptions) {
     if (catBoostOptions.DataProcessingOptions->HasTimeFlag) {
         return false;
     }
+
     // TODO(akhropov): make it universal ?
     if (catBoostOptions.GetTaskType() == ETaskType::CPU) {
         return true;
     }
 
     if (catFeatureCount == 0) {
-        auto boostingType = catBoostOptions.BoostingOptions->BoostingType;
-        UpdateBoostingTypeOption(docCount, &boostingType);
-        if (boostingType ==  EBoostingType::Ordered) {
+        if (catBoostOptions.BoostingOptions->BoostingType ==  EBoostingType::Ordered) {
             return true;
         } else {
             return false;
@@ -159,19 +153,16 @@ static bool NeedShuffle(
     }
 }
 
-TDataProviderPtr ShuffleLearnDataIfNeeded(
+TTrainingDataProviderPtr ShuffleLearnDataIfNeeded(
     const NCatboostOptions::TCatBoostOptions& catBoostOptions,
-    TDataProviderPtr learnData,
+    TTrainingDataProviderPtr learnData,
     NPar::TLocalExecutor* localExecutor,
     TRestorableFastRng64* rand) {
 
-    if (NeedShuffle(
-            learnData->MetaInfo.FeaturesLayout->GetCatFeatureCount(),
-            learnData->ObjectsData->GetObjectCount(),
-            catBoostOptions))
-    {
+    if (NeedShuffle(learnData->MetaInfo.FeaturesLayout->GetCatFeatureCount(), catBoostOptions)) {
         auto objectsGroupingSubset = NCB::Shuffle(learnData->ObjectsGrouping, 1, rand);
         return learnData->GetSubset(objectsGroupingSubset, localExecutor);
     }
+
     return learnData;
 }

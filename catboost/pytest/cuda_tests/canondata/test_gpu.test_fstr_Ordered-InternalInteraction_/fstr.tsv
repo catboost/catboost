@@ -1,99 +1,98 @@
-0.9218453052	8	5
-0.6288166866	8	{6, 9, 8} prior_num=1 prior_denom=1 targetborder=0 type=Borders
+1.584253869	10	5
+0.9248279203	8	5
+0.629547731	8	{6, 9, 8} prior_num=1 prior_denom=1 targetborder=0 type=Borders
 0.6113389339	8	{6, 3, 8} prior_num=0 prior_denom=1 targetborder=0 type=FeatureFreq
-0.6069458425	10	5
-0.518499516	8	{9, 15, 8, 12} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders
+0.5486643659	{6, 10} prior_num=1 prior_denom=1 targetborder=0 type=Borders	16
+0.5387382908	10	16
+0.5142961964	8	{9, 15, 8, 12} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders
 0.4933491554	8	{9, 3, 8} prior_num=0 prior_denom=1 targetborder=0 type=FeatureFreq
-0.4904661328	10	{9, 10, 10, 12} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders
 0.4500264321	{6} prior_num=1 prior_denom=1 targetborder=0 type=Borders	{6, 3, 8} prior_num=0 prior_denom=1 targetborder=0 type=FeatureFreq
-0.449954411	10	{6, 9, 10} prior_num=0 prior_denom=1 targetborder=0 type=FeatureFreq
-0.4464753084	8	{6, 9, 8} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders
-0.4365326427	8	{9, 3, 8} prior_num=0 prior_denom=1 targetborder=0 type=FeatureFreq
-0.4192694332	{9, 10, 10, 12} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders	5
-0.3824158795	5	{6, 9, 8} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders
-0.3655442223	15	{9, 15, 8, 12} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders
-0.3554994781	{6, 10} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders	{6, 9, 10} prior_num=0 prior_denom=1 targetborder=0 type=FeatureFreq
-0.3478359245	{9, 8} prior_num=1 prior_denom=1 targetborder=0 type=Borders	{6, 9, 8} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders
-0.3303390089	{9} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{6, 9, 8} prior_num=1 prior_denom=1 targetborder=0 type=Borders
-0.3262504954	{6, 10} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders	{9} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders
-0.3183109909	8	{6, 9, 3, 8} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders
-0.3183109909	8	{6, 9, 3, 8} prior_num=0 prior_denom=1 targetborder=0 type=FeatureFreq
-0.3138187677	{6, 9, 3, 8} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders	{6, 9, 3, 8} prior_num=0 prior_denom=1 targetborder=0 type=FeatureFreq
-0.3137492873	{9} prior_num=1 prior_denom=1 targetborder=0 type=Borders	{6, 9, 8} prior_num=1 prior_denom=1 targetborder=0 type=Borders
-0.3102499321	5	{9, 8} prior_num=1 prior_denom=1 targetborder=0 type=Borders
+0.4479489475	8	{6, 9, 8} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders
+0.4384173015	{6} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{6, 10} prior_num=1 prior_denom=1 targetborder=0 type=Borders
+0.4368962832	8	{9, 3, 8} prior_num=0 prior_denom=1 targetborder=0 type=FeatureFreq
+0.3821624666	5	{6, 9, 8} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders
+0.3645026423	15	{9, 15, 8, 12} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders
+0.3537129331	10	{6, 13, 14, 15, 4, 10} prior_num=0 prior_denom=1 targetborder=0 type=Borders
+0.3533759192	{9, 8} prior_num=1 prior_denom=1 targetborder=0 type=Borders	{6, 9, 8} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders
+0.3295284482	{9} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{6, 9, 8} prior_num=1 prior_denom=1 targetborder=0 type=Borders
+0.3238559058	{9} prior_num=1 prior_denom=1 targetborder=0 type=Borders	{6, 9, 8} prior_num=1 prior_denom=1 targetborder=0 type=Borders
+0.3180008866	{6, 9, 3, 8} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders	{6, 9, 3, 8} prior_num=0 prior_denom=1 targetborder=0 type=FeatureFreq
+0.316288624	8	{6, 9, 3, 8} prior_num=0 prior_denom=1 targetborder=0 type=FeatureFreq
+0.316288624	8	{6, 9, 3, 8} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders
+0.3147358075	5	{9, 8} prior_num=1 prior_denom=1 targetborder=0 type=Borders
+0.3106508385	4	13
 0.302537797	{6} prior_num=1 prior_denom=1 targetborder=0 type=Borders	{6} prior_num=0 prior_denom=1 targetborder=0 type=Borders
-0.2880836762	15	{6, 9, 8} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders
-0.2853162643	10	{9, 10} prior_num=0 prior_denom=1 targetborder=0 type=FeatureFreq
-0.2834153865	3	{6} prior_num=0 prior_denom=1 targetborder=0 type=Borders
+0.2952503581	10	14
+0.2852536943	3	{6} prior_num=0 prior_denom=1 targetborder=0 type=Borders
+0.2841502111	4	14
+0.2827003151	15	{6, 9, 8} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders
+0.2720524697	10	{9} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders
 0.2586863171	{6} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{6, 3, 8} prior_num=0 prior_denom=1 targetborder=0 type=FeatureFreq
+0.2364582252	14	13
 0.2354140636	{6} prior_num=1 prior_denom=1 targetborder=0 type=Borders	8
-0.215974668	{6, 10} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders	{9} prior_num=1 prior_denom=1 targetborder=0 type=Borders
+0.2256876361	4	{6, 13, 14, 15, 4, 10} prior_num=0 prior_denom=1 targetborder=0 type=Borders
+0.2074933881	5	{6, 10} prior_num=1 prior_denom=1 targetborder=0 type=Borders
+0.2056600759	{6} prior_num=0 prior_denom=1 targetborder=0 type=Borders	16
 0.2022154424	{6} prior_num=1 prior_denom=1 targetborder=0 type=Borders	{9, 3, 8} prior_num=0 prior_denom=1 targetborder=0 type=FeatureFreq
-0.1998890527	{6} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{9, 3, 8} prior_num=0 prior_denom=1 targetborder=0 type=FeatureFreq
+0.1973932274	{9, 3, 8} prior_num=0 prior_denom=1 targetborder=0 type=FeatureFreq	{6, 9, 3, 8} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders
+0.1973932274	{9, 3, 8} prior_num=0 prior_denom=1 targetborder=0 type=FeatureFreq	{6, 9, 3, 8} prior_num=0 prior_denom=1 targetborder=0 type=FeatureFreq
 0.196517583	3	{9, 8} prior_num=0 prior_denom=1 targetborder=0 type=FeatureFreq
-0.196438482	8	{9} prior_num=0 prior_denom=1 targetborder=0 type=Borders
-0.1955971159	{9, 3, 8} prior_num=0 prior_denom=1 targetborder=0 type=FeatureFreq	{6, 9, 3, 8} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders
-0.1955971159	{9, 3, 8} prior_num=0 prior_denom=1 targetborder=0 type=FeatureFreq	{6, 9, 3, 8} prior_num=0 prior_denom=1 targetborder=0 type=FeatureFreq
 0.1950882431	3	{6, 3, 8} prior_num=0 prior_denom=1 targetborder=0 type=FeatureFreq
-0.1948360205	{6} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{6, 9, 3, 8} prior_num=0 prior_denom=1 targetborder=0 type=FeatureFreq
-0.1948360205	{6} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{6, 9, 3, 8} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders
-0.1897865869	5	{6, 8} prior_num=0 prior_denom=1 targetborder=0 type=FeatureFreq
-0.1813853388	4	13
-0.1797379404	12	10
-0.1734505612	3	8
-0.1700730696	{9, 8} prior_num=1 prior_denom=1 targetborder=0 type=Borders	15
-0.1697412175	8	12
-0.1675374266	10	{9} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders
-0.167024001	{6, 15, 4} prior_num=0 prior_denom=1 targetborder=0 type=FeatureFreq	{6, 9, 15, 4} prior_num=0 prior_denom=1 targetborder=0 type=FeatureFreq
-0.1588097326	8	{9} prior_num=1 prior_denom=1 targetborder=0 type=Borders
-0.1541084577	4	14
-0.1531715561	{9} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders	{9} prior_num=1 prior_denom=1 targetborder=0 type=Borders
-0.1477839388	3	{9, 3, 8} prior_num=0 prior_denom=1 targetborder=0 type=FeatureFreq
+0.1947152866	8	{9} prior_num=0 prior_denom=1 targetborder=0 type=Borders
+0.1941588931	{6} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{9, 3, 8} prior_num=0 prior_denom=1 targetborder=0 type=FeatureFreq
+0.1875694338	15	13
+0.1870071702	{6} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{6, 9, 3, 8} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders
+0.1870071702	{6} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{6, 9, 3, 8} prior_num=0 prior_denom=1 targetborder=0 type=FeatureFreq
+0.18484833	5	{6, 8} prior_num=0 prior_denom=1 targetborder=0 type=FeatureFreq
+0.1779956501	13	{6, 13, 14, 15, 4, 10} prior_num=0 prior_denom=1 targetborder=0 type=Borders
+0.174452614	12	10
+0.1729821218	8	12
+0.1715012621	3	8
+0.1704423055	{9, 8} prior_num=1 prior_denom=1 targetborder=0 type=Borders	15
+0.1598118367	{6, 10} prior_num=1 prior_denom=1 targetborder=0 type=Borders	{9} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders
+0.1595567139	8	{9} prior_num=1 prior_denom=1 targetborder=0 type=Borders
+0.1540099606	10	{6, 10, 10, 12} prior_num=0 prior_denom=1 targetborder=0 type=Borders
+0.1497451328	3	{9, 3, 8} prior_num=0 prior_denom=1 targetborder=0 type=FeatureFreq
 0.1461002361	{9, 3, 8} prior_num=0 prior_denom=1 targetborder=0 type=FeatureFreq	{6} prior_num=0 prior_denom=1 targetborder=0 type=Borders
-0.1430472545	12	{9} prior_num=1 prior_denom=1 targetborder=0 type=Borders
-0.1411662567	{6, 10} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders	{9, 10} prior_num=0 prior_denom=1 targetborder=0 type=FeatureFreq
-0.1362024839	15	13
-0.1287716497	{9} prior_num=1 prior_denom=1 targetborder=0 type=Borders	{6, 9, 10} prior_num=0 prior_denom=1 targetborder=0 type=FeatureFreq
+0.1425954476	12	{9} prior_num=1 prior_denom=1 targetborder=0 type=Borders
+0.1381854881	10	13
+0.1365724318	{6, 10, 10, 12} prior_num=0 prior_denom=1 targetborder=0 type=Borders	5
 0.1227725707	8	{9, 8} prior_num=0 prior_denom=1 targetborder=0 type=FeatureFreq
-0.1184784546	{6, 8} prior_num=0 prior_denom=1 targetborder=0 type=FeatureFreq	{6, 9, 8} prior_num=1 prior_denom=1 targetborder=0 type=Borders
-0.1149998158	5	15
-0.1142345062	12	{9, 10, 10, 12} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders
-0.1137604658	{9} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders	{6, 9, 10} prior_num=0 prior_denom=1 targetborder=0 type=FeatureFreq
-0.1122212093	8	{6} prior_num=0 prior_denom=1 targetborder=0 type=Borders
+0.1130416729	5	15
+0.1122131217	8	{6} prior_num=0 prior_denom=1 targetborder=0 type=Borders
+0.1116571529	{6, 8} prior_num=0 prior_denom=1 targetborder=0 type=FeatureFreq	{6, 9, 8} prior_num=1 prior_denom=1 targetborder=0 type=Borders
 0.1108420137	{9, 3, 8} prior_num=0 prior_denom=1 targetborder=0 type=FeatureFreq	{6, 3, 8} prior_num=0 prior_denom=1 targetborder=0 type=FeatureFreq
-0.1096865977	{6, 15, 4} prior_num=0 prior_denom=1 targetborder=0 type=FeatureFreq	14
-0.1096865977	14	{6, 9, 15, 4} prior_num=0 prior_denom=1 targetborder=0 type=FeatureFreq
-0.1072261017	10	{6, 10} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders
-0.10498751	14	13
-0.1041956618	8	{9, 8} prior_num=1 prior_denom=1 targetborder=0 type=Borders
 0.1040742807	3	12
 0.1037148144	3	{6} prior_num=1 prior_denom=1 targetborder=0 type=Borders
-0.1012200788	5	{9} prior_num=1 prior_denom=1 targetborder=0 type=Borders
-0.1005727556	{9, 10} prior_num=0 prior_denom=1 targetborder=0 type=FeatureFreq	{9} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders
-0.09677105444	4	{6, 15, 4} prior_num=0 prior_denom=1 targetborder=0 type=FeatureFreq
-0.09677105444	4	{6, 9, 15, 4} prior_num=0 prior_denom=1 targetborder=0 type=FeatureFreq
-0.09642070485	12	5
-0.09582515061	{9} prior_num=1 prior_denom=1 targetborder=0 type=Borders	15
-0.08556157164	{9, 10} prior_num=0 prior_denom=1 targetborder=0 type=FeatureFreq	{9} prior_num=1 prior_denom=1 targetborder=0 type=Borders
-0.07972089201	8	{6, 8} prior_num=0 prior_denom=1 targetborder=0 type=FeatureFreq
-0.07927171513	12	{9, 15, 8, 12} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders
-0.07844527066	8	15
+0.1026062313	15	{6, 13, 14, 15, 4, 10} prior_num=0 prior_denom=1 targetborder=0 type=Borders
+0.1003198996	8	{9, 8} prior_num=1 prior_denom=1 targetborder=0 type=Borders
+0.09727416653	5	{9} prior_num=1 prior_denom=1 targetborder=0 type=Borders
+0.09313204885	15	{9} prior_num=1 prior_denom=1 targetborder=0 type=Borders
+0.0904935021	10	4
+0.08765606768	12	{6, 10, 10, 12} prior_num=0 prior_denom=1 targetborder=0 type=Borders
+0.08045886457	8	15
+0.07849769387	{6} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{9} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders
+0.07766683679	8	{6, 8} prior_num=0 prior_denom=1 targetborder=0 type=FeatureFreq
 0.07709846459	3	{9, 3, 8} prior_num=0 prior_denom=1 targetborder=0 type=FeatureFreq
-0.07617284916	{9, 10} prior_num=0 prior_denom=1 targetborder=0 type=FeatureFreq	{6, 9, 10} prior_num=0 prior_denom=1 targetborder=0 type=FeatureFreq
-0.0749402605	12	15
-0.07334531471	5	{6, 9, 8} prior_num=1 prior_denom=1 targetborder=0 type=Borders
-0.05482247658	{6, 8} prior_num=0 prior_denom=1 targetborder=0 type=FeatureFreq	{9} prior_num=0 prior_denom=1 targetborder=0 type=Borders
-0.05215870775	{9} prior_num=1 prior_denom=1 targetborder=0 type=Borders	{9} prior_num=0 prior_denom=1 targetborder=0 type=Borders
-0.05158819957	15	{6, 9, 15, 4} prior_num=0 prior_denom=1 targetborder=0 type=FeatureFreq
-0.05158819957	15	{6, 15, 4} prior_num=0 prior_denom=1 targetborder=0 type=FeatureFreq
-0.04765010672	{6, 15, 4} prior_num=0 prior_denom=1 targetborder=0 type=FeatureFreq	13
-0.04765010672	13	{6, 9, 15, 4} prior_num=0 prior_denom=1 targetborder=0 type=FeatureFreq
-0.03274944983	5	{9} prior_num=0 prior_denom=1 targetborder=0 type=Borders
-0.02956228703	3	{6, 9, 3, 8} prior_num=0 prior_denom=1 targetborder=0 type=FeatureFreq
-0.02956228703	3	{6, 9, 3, 8} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders
-0.02701434866	{9} prior_num=1 prior_denom=1 targetborder=0 type=Borders	{6, 8} prior_num=0 prior_denom=1 targetborder=0 type=FeatureFreq
+0.07525352016	12	{9, 15, 8, 12} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders
+0.07509273384	12	5
+0.07344180997	5	16
+0.0731722042	12	15
+0.07239180338	5	{6, 9, 8} prior_num=1 prior_denom=1 targetborder=0 type=Borders
+0.06776056718	10	{6, 10} prior_num=1 prior_denom=1 targetborder=0 type=Borders
+0.06541115697	5	{9} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders
+0.04929434601	{6, 8} prior_num=0 prior_denom=1 targetborder=0 type=FeatureFreq	{9} prior_num=0 prior_denom=1 targetborder=0 type=Borders
+0.04636868276	15	4
+0.04487135541	{9} prior_num=0 prior_denom=1 targetborder=0 type=Borders	{9} prior_num=1 prior_denom=1 targetborder=0 type=Borders
+0.04414365627	15	14
+0.03631587978	{6} prior_num=0 prior_denom=1 targetborder=0 type=Borders	10
+0.03338610474	5	{9} prior_num=0 prior_denom=1 targetborder=0 type=Borders
+0.02913747355	3	{6, 9, 3, 8} prior_num=0 prior_denom=1 targetborder=0 type=FeatureFreq
+0.02913747355	3	{6, 9, 3, 8} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders
+0.02406109311	10	15
+0.02282071393	{6, 8} prior_num=0 prior_denom=1 targetborder=0 type=FeatureFreq	{9} prior_num=1 prior_denom=1 targetborder=0 type=Borders
+0.0209307801	14	{6, 13, 14, 15, 4, 10} prior_num=0 prior_denom=1 targetborder=0 type=Borders
+0.01672798116	{9} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders	16
+0.01492520701	{6} prior_num=0 prior_denom=1 targetborder=0 type=Borders	5
 0.009844910353	{9, 8} prior_num=0 prior_denom=1 targetborder=0 type=FeatureFreq	12
-0.009123832453	15	4
-0.006425024942	10	{9} prior_num=1 prior_denom=1 targetborder=0 type=Borders
-0.00574920373	15	14
-0.002121046185	{9} prior_num=1 prior_denom=1 targetborder=0 type=Borders	{9, 15, 8, 12} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders
+0.007418658584	{9} prior_num=1 prior_denom=1 targetborder=0 type=Borders	{9, 15, 8, 12} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders

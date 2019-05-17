@@ -257,49 +257,49 @@
     ],
     "test.test_allow_writing_files_and_used_ram_limit[calc_block=5000000-1Kb-Ordered]": [
         {
-            "checksum": "f0c4eada33e824ac06ebc6d57e72b9df",
+            "checksum": "7672071810ebf3466397f09330722fea",
             "uri": "file://test.test_allow_writing_files_and_used_ram_limit_calc_block=5000000-1Kb-Ordered_/test.eval"
         }
     ],
     "test.test_allow_writing_files_and_used_ram_limit[calc_block=5000000-1Kb-Plain]": [
         {
-            "checksum": "789cffaacb7c4e6aeca10f915248ce37",
+            "checksum": "39f417e3884d82a63b077e1cf98804fa",
             "uri": "file://test.test_allow_writing_files_and_used_ram_limit_calc_block=5000000-1Kb-Plain_/test.eval"
         }
     ],
     "test.test_allow_writing_files_and_used_ram_limit[calc_block=5000000-4Gb-Ordered]": [
         {
-            "checksum": "da3e20a6767801329b5b0c73d5d5de6f",
+            "checksum": "bf6456dcfb90e8cb5bf072be3236e183",
             "uri": "file://test.test_allow_writing_files_and_used_ram_limit_calc_block=5000000-4Gb-Ordered_/test.eval"
         }
     ],
     "test.test_allow_writing_files_and_used_ram_limit[calc_block=5000000-4Gb-Plain]": [
         {
-            "checksum": "2c5ae2a7efd172b0d53caf01a424b49d",
+            "checksum": "3e14b18d85c707e7fa0f403ddc862679",
             "uri": "file://test.test_allow_writing_files_and_used_ram_limit_calc_block=5000000-4Gb-Plain_/test.eval"
         }
     ],
     "test.test_allow_writing_files_and_used_ram_limit[calc_block=600-1Kb-Ordered]": [
         {
-            "checksum": "f0c4eada33e824ac06ebc6d57e72b9df",
+            "checksum": "7672071810ebf3466397f09330722fea",
             "uri": "file://test.test_allow_writing_files_and_used_ram_limit_calc_block=600-1Kb-Ordered_/test.eval"
         }
     ],
     "test.test_allow_writing_files_and_used_ram_limit[calc_block=600-1Kb-Plain]": [
         {
-            "checksum": "789cffaacb7c4e6aeca10f915248ce37",
+            "checksum": "39f417e3884d82a63b077e1cf98804fa",
             "uri": "file://test.test_allow_writing_files_and_used_ram_limit_calc_block=600-1Kb-Plain_/test.eval"
         }
     ],
     "test.test_allow_writing_files_and_used_ram_limit[calc_block=600-4Gb-Ordered]": [
         {
-            "checksum": "da3e20a6767801329b5b0c73d5d5de6f",
+            "checksum": "bf6456dcfb90e8cb5bf072be3236e183",
             "uri": "file://test.test_allow_writing_files_and_used_ram_limit_calc_block=600-4Gb-Ordered_/test.eval"
         }
     ],
     "test.test_allow_writing_files_and_used_ram_limit[calc_block=600-4Gb-Plain]": [
         {
-            "checksum": "2c5ae2a7efd172b0d53caf01a424b49d",
+            "checksum": "3e14b18d85c707e7fa0f403ddc862679",
             "uri": "file://test.test_allow_writing_files_and_used_ram_limit_calc_block=600-4Gb-Plain_/test.eval"
         }
     ],
@@ -661,7 +661,7 @@
     ],
     "test.test_ctr_leaf_count_limit[calc_block=5000000-Ordered]": [
         {
-            "checksum": "34201aec3cf2911d7815d7ebe8e83c8d",
+            "checksum": "e6557f718f00e2dd739c4e4a43a81702",
             "uri": "file://test.test_ctr_leaf_count_limit_calc_block=5000000-Ordered_/test.eval"
         }
     ],
@@ -673,7 +673,7 @@
     ],
     "test.test_ctr_leaf_count_limit[calc_block=60-Ordered]": [
         {
-            "checksum": "34201aec3cf2911d7815d7ebe8e83c8d",
+            "checksum": "e6557f718f00e2dd739c4e4a43a81702",
             "uri": "file://test.test_ctr_leaf_count_limit_calc_block=60-Ordered_/test.eval"
         }
     ],
@@ -1637,13 +1637,13 @@
     ],
     "test.test_eval_metrics[PairAccuracy-1]": [
         {
-            "checksum": "f6a61596a583270b946f4fbe6583dada",
+            "checksum": "aa2d773cb13856f321617332ad1f6d88",
             "uri": "file://test.test_eval_metrics_PairAccuracy-1_/output.tsv"
         }
     ],
     "test.test_eval_metrics[PairAccuracy-2]": [
         {
-            "checksum": "6752e8fdee1097a655ae3d1da5093edf",
+            "checksum": "d075b861f1e745792e3dfdb8f53ba047",
             "uri": "file://test.test_eval_metrics_PairAccuracy-2_/output.tsv"
         }
     ],
@@ -2176,43 +2176,43 @@
         }
     ],
     "test.test_fstr[Ordered-Interaction]": {
-        "checksum": "05320d0e8c288b83a065907ff631c834",
+        "checksum": "ef7d29ac04d8909722f6b51f6d1a20d4",
         "uri": "file://test.test_fstr_Ordered-Interaction_/fstr.tsv"
     },
     "test.test_fstr[Ordered-InternalFeatureImportance]": {
-        "checksum": "bed152ba305a102bb779a6a0436c7b2b",
+        "checksum": "f94fed2a7154f871a27b0eb41243b065",
         "uri": "file://test.test_fstr_Ordered-InternalFeatureImportance_/fstr.tsv"
     },
     "test.test_fstr[Ordered-InternalInteraction]": {
-        "checksum": "2f0d2e8ad4f58571b9fb54b38eabe2a5",
+        "checksum": "0882c14492dae1a97f8ba68752563468",
         "uri": "file://test.test_fstr_Ordered-InternalInteraction_/fstr.tsv"
     },
     "test.test_fstr[Ordered-PredictionValuesChange]": {
-        "checksum": "7b02b0ea4bcb77890c2fd8e8a7eddc61",
+        "checksum": "9a829e7fab8022a9739578e1e18e4525",
         "uri": "file://test.test_fstr_Ordered-PredictionValuesChange_/fstr.tsv"
     },
     "test.test_fstr[Ordered-ShapValues]": {
-        "checksum": "58b62a43f862f7693272ca2bd7604002",
+        "checksum": "c246d865eca30629ac3a0c8eb218419e",
         "uri": "file://test.test_fstr_Ordered-ShapValues_/fstr.tsv"
     },
     "test.test_fstr[Plain-Interaction]": {
-        "checksum": "b9800521e8c73660eb6d2d429fde62c4",
+        "checksum": "3345f3490b4db15d4ec4be90aba0a25e",
         "uri": "file://test.test_fstr_Plain-Interaction_/fstr.tsv"
     },
     "test.test_fstr[Plain-InternalFeatureImportance]": {
-        "checksum": "dbeddd2cd15031966274d706e1986919",
+        "checksum": "e48c3f755aed36aad0e305da228aae78",
         "uri": "file://test.test_fstr_Plain-InternalFeatureImportance_/fstr.tsv"
     },
     "test.test_fstr[Plain-InternalInteraction]": {
-        "checksum": "9c34d716600bcbf58255a9d39d560c20",
+        "checksum": "f6292dd91639446a9d6d3b8fa553cd12",
         "uri": "file://test.test_fstr_Plain-InternalInteraction_/fstr.tsv"
     },
     "test.test_fstr[Plain-PredictionValuesChange]": {
-        "checksum": "7b9d422505b14e14027427721794de54",
+        "checksum": "5a79812336e3ee6c50d768edc6bf53b5",
         "uri": "file://test.test_fstr_Plain-PredictionValuesChange_/fstr.tsv"
     },
     "test.test_fstr[Plain-ShapValues]": {
-        "checksum": "9eee3209635126d9663c98517a3dc8d8",
+        "checksum": "ef69e5af82c8319ca0a9e44b9cf31c79",
         "uri": "file://test.test_fstr_Plain-ShapValues_/fstr.tsv"
     },
     "test.test_gradient[calc_block=5000000-Ordered]": [
@@ -2283,51 +2283,51 @@
     ],
     "test.test_groupwise_with_cat_features[loss_function=PairLogit,eval_metric=PairAccuracy,boosting_type=Plain]": [
         {
-            "checksum": "2a23016f46ab84a806feb41dc8db32f1",
+            "checksum": "f0a17c836aa41b0050d8e459566ef3ef",
             "uri": "file://test.test_groupwise_with_cat_features_loss_function=PairLogit_eval_metric=PairAccuracy_boosting_type=Plain_/learn_error.tsv"
         },
         {
-            "checksum": "dc53325fa527d9ef62928813aeb3bdc3",
+            "checksum": "72cb05765dc672072c5fbc9b24fe2fe7",
             "uri": "file://test.test_groupwise_with_cat_features_loss_function=PairLogit_eval_metric=PairAccuracy_boosting_type=Plain_/test_error.tsv"
         }
     ],
     "test.test_groupwise_with_cat_features[loss_function=PairLogitPairwise,eval_metric=NDCG,boosting_type=Plain]": [
         {
-            "checksum": "b3e6470ea6a958c772d6af191fd8b2df",
+            "checksum": "90cdcf1a46f569f8d298482dce45701e",
             "uri": "file://test.test_groupwise_with_cat_features_loss_function=PairLogitPairwise_eval_metric=NDCG_boosting_type=Plain_/learn_error.tsv"
         },
         {
-            "checksum": "b47375789460fa5ab1a55efa586eadba",
+            "checksum": "a26d8e0f03b8d44a2c7a60c1e8e42df8",
             "uri": "file://test.test_groupwise_with_cat_features_loss_function=PairLogitPairwise_eval_metric=NDCG_boosting_type=Plain_/test_error.tsv"
         }
     ],
     "test.test_groupwise_with_cat_features[loss_function=PairLogitPairwise,eval_metric=PairAccuracy,boosting_type=Plain]": [
         {
-            "checksum": "79cb9823af17b92ac2e4934a28f1011a",
+            "checksum": "1d8639d51eaabd0037b18228a0de6b2b",
             "uri": "file://test.test_groupwise_with_cat_features_loss_function=PairLogitPairwise_eval_metric=PairAccuracy_boosting_type=Plain_/learn_error.tsv"
         },
         {
-            "checksum": "e156c035fee842d067861401a4da369b",
+            "checksum": "d15a08766ae6e7d78b9ceb45e96b2b91",
             "uri": "file://test.test_groupwise_with_cat_features_loss_function=PairLogitPairwise_eval_metric=PairAccuracy_boosting_type=Plain_/test_error.tsv"
         }
     ],
     "test.test_groupwise_with_cat_features[loss_function=QueryRMSE,eval_metric=NDCG,boosting_type=Ordered]": [
         {
-            "checksum": "72f2c3ffa06faa00310708dbf585e5f6",
+            "checksum": "75d11d707a7ba4eeab735e0de7b74575",
             "uri": "file://test.test_groupwise_with_cat_features_loss_function=QueryRMSE_eval_metric=NDCG_boosting_type=Ordered_/learn_error.tsv"
         },
         {
-            "checksum": "bc9d308a7adc8b2006a389048ae47dc7",
+            "checksum": "e79c1411212e8ebfc4ab8bf63267593d",
             "uri": "file://test.test_groupwise_with_cat_features_loss_function=QueryRMSE_eval_metric=NDCG_boosting_type=Ordered_/test_error.tsv"
         }
     ],
     "test.test_groupwise_with_cat_features[loss_function=QueryRMSE,eval_metric=NDCG,boosting_type=Plain]": [
         {
-            "checksum": "669ebc7d7a4e869c8678e42c7ced4577",
+            "checksum": "edfc7eb66292f42d1ff0941f25d8297a",
             "uri": "file://test.test_groupwise_with_cat_features_loss_function=QueryRMSE_eval_metric=NDCG_boosting_type=Plain_/learn_error.tsv"
         },
         {
-            "checksum": "fbcc55c5dda9a5ce5ebe028922deb85b",
+            "checksum": "229a39ab5995e448a7bad1b6eff4ad50",
             "uri": "file://test.test_groupwise_with_cat_features_loss_function=QueryRMSE_eval_metric=NDCG_boosting_type=Plain_/test_error.tsv"
         }
     ],
@@ -2337,7 +2337,7 @@
             "uri": "file://test.test_groupwise_with_cat_features_loss_function=YetiRankPairwise_eval_metric=NDCG_boosting_type=Plain_/learn_error.tsv"
         },
         {
-            "checksum": "aa2638ec0023b148b71244fbdcdcae09",
+            "checksum": "6293342b83074a538168541dfda487ce",
             "uri": "file://test.test_groupwise_with_cat_features_loss_function=YetiRankPairwise_eval_metric=NDCG_boosting_type=Plain_/test_error.tsv"
         }
     ],
@@ -2845,13 +2845,13 @@
     ],
     "test.test_mvs_bootstrap_head_frac[Ordered]": [
         {
-            "checksum": "dfa6d9b76e917028058134f7eaafffdd",
+            "checksum": "f436706e797fba62521980dfbd19205c",
             "uri": "file://test.test_mvs_bootstrap_head_frac_Ordered_/test.eval"
         }
     ],
     "test.test_mvs_bootstrap_head_frac[Plain]": [
         {
-            "checksum": "482ed1dfe495a1e0f500381212418789",
+            "checksum": "c2e11131585fa99803c1d59e5eb3c153",
             "uri": "file://test.test_mvs_bootstrap_head_frac_Plain_/test.eval"
         }
     ],
@@ -3017,25 +3017,25 @@
     ],
     "test.test_one_hot[calc_block=5000000-Ordered]": [
         {
-            "checksum": "80e2e8294e60fcba7e741a711720ca22",
+            "checksum": "3884f847d91a1c9924a215ef8a528f86",
             "uri": "file://test.test_one_hot_calc_block=5000000-Ordered_/test.eval"
         }
     ],
     "test.test_one_hot[calc_block=5000000-Plain]": [
         {
-            "checksum": "ceca5af55e059a4b3d8aad1821a0332e",
+            "checksum": "7eb94854e48523c56e380ca63f606108",
             "uri": "file://test.test_one_hot_calc_block=5000000-Plain_/test.eval"
         }
     ],
     "test.test_one_hot[calc_block=60-Ordered]": [
         {
-            "checksum": "80e2e8294e60fcba7e741a711720ca22",
+            "checksum": "3884f847d91a1c9924a215ef8a528f86",
             "uri": "file://test.test_one_hot_calc_block=60-Ordered_/test.eval"
         }
     ],
     "test.test_one_hot[calc_block=60-Plain]": [
         {
-            "checksum": "ceca5af55e059a4b3d8aad1821a0332e",
+            "checksum": "7eb94854e48523c56e380ca63f606108",
             "uri": "file://test.test_one_hot_calc_block=60-Plain_/test.eval"
         }
     ],
@@ -3233,15 +3233,15 @@
     ],
     "test.test_pairs_generation_with_max_pairs": [
         {
-            "checksum": "579a8cb0e328eb714faa6b47c68dbf80",
+            "checksum": "5c80f5af558fa3d0259a9eb90e0396aa",
             "uri": "file://test.test_pairs_generation_with_max_pairs/learn_error.tsv"
         },
         {
-            "checksum": "038038e646706427b4c9a4003a1b3a7e",
+            "checksum": "ad7bd130dcac1ea5775b5a586a0ac5a2",
             "uri": "file://test.test_pairs_generation_with_max_pairs/test_error.tsv"
         },
         {
-            "checksum": "0c85c6aa11b059c8e41f14d8f795ef94",
+            "checksum": "543195af8815687e5a147bd380c7c778",
             "uri": "file://test.test_pairs_generation_with_max_pairs/test.eval"
         }
     ],
@@ -3457,25 +3457,25 @@
     ],
     "test.test_permutation_block[calc_block=5000000-Ordered]": [
         {
-            "checksum": "3955da4f483b4ada6617ffe68018216b",
+            "checksum": "9b4c2f3df38415c9aa57efbb8cc451bc",
             "uri": "file://test.test_permutation_block_calc_block=5000000-Ordered_/test.eval"
         }
     ],
     "test.test_permutation_block[calc_block=5000000-Plain]": [
         {
-            "checksum": "8e5682352fcb99ce4371bb77b3eed76a",
+            "checksum": "59af7beffb6ad91f49b4e69181604ade",
             "uri": "file://test.test_permutation_block_calc_block=5000000-Plain_/test.eval"
         }
     ],
     "test.test_permutation_block[calc_block=60-Ordered]": [
         {
-            "checksum": "3955da4f483b4ada6617ffe68018216b",
+            "checksum": "9b4c2f3df38415c9aa57efbb8cc451bc",
             "uri": "file://test.test_permutation_block_calc_block=60-Ordered_/test.eval"
         }
     ],
     "test.test_permutation_block[calc_block=60-Plain]": [
         {
-            "checksum": "8e5682352fcb99ce4371bb77b3eed76a",
+            "checksum": "59af7beffb6ad91f49b4e69181604ade",
             "uri": "file://test.test_permutation_block_calc_block=60-Plain_/test.eval"
         }
     ],
@@ -3855,43 +3855,43 @@
     ],
     "test.test_quantized_adult_pool[Ordered-CrossEntropy]": [
         {
-            "checksum": "35fe91b6940a64e932959c55f29cc6f6",
+            "checksum": "dd404576fcf5be0e784de883825eaa56",
             "uri": "file://test.test_quantized_adult_pool_Ordered-CrossEntropy_/test.eval"
         }
     ],
     "test.test_quantized_adult_pool[Ordered-LogLinQuantile]": [
         {
-            "checksum": "a3bb377138c7905627c2b967bb27f27a",
+            "checksum": "3cc23341002522c71ec28ba3b4da8370",
             "uri": "file://test.test_quantized_adult_pool_Ordered-LogLinQuantile_/test.eval"
         }
     ],
     "test.test_quantized_adult_pool[Ordered-Logloss]": [
         {
-            "checksum": "35fe91b6940a64e932959c55f29cc6f6",
+            "checksum": "dd404576fcf5be0e784de883825eaa56",
             "uri": "file://test.test_quantized_adult_pool_Ordered-Logloss_/test.eval"
         }
     ],
     "test.test_quantized_adult_pool[Ordered-MAE]": [
         {
-            "checksum": "3f2e2ff107067d6f2c1f50fd9bb2589b",
+            "checksum": "2eaac8900436d2758f8b8adb444376cd",
             "uri": "file://test.test_quantized_adult_pool_Ordered-MAE_/test.eval"
         }
     ],
     "test.test_quantized_adult_pool[Ordered-Poisson]": [
         {
-            "checksum": "589662201f21cf48a1131e347eb29377",
+            "checksum": "d7958b5eebf311a3cc6837539c9324a5",
             "uri": "file://test.test_quantized_adult_pool_Ordered-Poisson_/test.eval"
         }
     ],
     "test.test_quantized_adult_pool[Ordered-Quantile]": [
         {
-            "checksum": "3f2e2ff107067d6f2c1f50fd9bb2589b",
+            "checksum": "2eaac8900436d2758f8b8adb444376cd",
             "uri": "file://test.test_quantized_adult_pool_Ordered-Quantile_/test.eval"
         }
     ],
     "test.test_quantized_adult_pool[Ordered-RMSE]": [
         {
-            "checksum": "f9e78a7840c6eb401d36b40b1c8ca9d6",
+            "checksum": "0061cb8968d87c9d4c54e4317f24aedf",
             "uri": "file://test.test_quantized_adult_pool_Ordered-RMSE_/test.eval"
         }
     ],
@@ -4863,7 +4863,7 @@
     ],
     "test.test_without_cat_features[calc_block=60-Ordered]": [
         {
-            "checksum": "7571cd8fde58c745cce85db2c4507a3c",
+            "checksum": "7f07684424150ce9875ab3da636af110",
             "uri": "file://test.test_without_cat_features_calc_block=60-Ordered_/test.eval"
         }
     ],
@@ -4899,13 +4899,13 @@
     ],
     "test.test_yetirank_default_metric[YetiRankPairwise]": [
         {
-            "checksum": "f33c3e2800f69e44a5dab88b02977fa7",
+            "checksum": "9ff6769ee7e7512c4bc333e3bf86b3c6",
             "uri": "file://test.test_yetirank_default_metric_YetiRankPairwise_/test_error.tsv"
         }
     ],
     "test.test_yetirank_default_metric[YetiRank]": [
         {
-            "checksum": "b64dc49ffbe9ee4ff151ca16c1f7291b",
+            "checksum": "5013fe01efeea0da51d13447187eda64",
             "uri": "file://test.test_yetirank_default_metric_YetiRank_/test_error.tsv"
         }
     ],

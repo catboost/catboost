@@ -502,35 +502,23 @@ namespace {
             const auto& quantizedFeaturesInfo
                 = *trainingDataForCpu.Learn->ObjectsData->GetQuantizedFeaturesInfo();
 
-            NCatboostOptions::TCatBoostOptions updatedCatboostOptions(catboostOptions);
-            NCatboostOptions::TOutputFilesOptions updatedOutputOptions = outputOptions;
-
-            SetDataDependentDefaults(
-                trainingDataForCpu.Learn->MetaInfo,
-                trainingDataForCpu.Test.size() > 0 ?
-                    TMaybe<NCB::TDataMetaInfo>(trainingDataForCpu.Test[0]->MetaInfo) :
-                    Nothing(),
-                &updatedOutputOptions.UseBestModel,
-                &updatedCatboostOptions
-            );
-
-            const TString trainingOptionsFileName = updatedOutputOptions.CreateTrainingOptionsFullPath();
+            const TString trainingOptionsFileName = outputOptions.CreateTrainingOptionsFullPath();
             if (!trainingOptionsFileName.empty()) {
                 TOFStream trainingOptionsFile(trainingOptionsFileName);
-                trainingOptionsFile.Write(NJson::PrettifyJson(ToString(updatedCatboostOptions)));
+                trainingOptionsFile.Write(NJson::PrettifyJson(ToString(catboostOptions)));
             }
 
             TLearnContext ctx(
-                updatedCatboostOptions,
+                catboostOptions,
                 objectiveDescriptor,
                 evalMetricDescriptor,
-                updatedOutputOptions,
+                outputOptions,
                 trainingDataForCpu.Learn->MetaInfo.FeaturesLayout,
                 rand,
                 localExecutor
             );
 
-            ctx.LearnProgress.ApproxDimension = GetApproxDimension(updatedCatboostOptions, labelConverter);
+            ctx.LearnProgress.ApproxDimension = GetApproxDimension(catboostOptions, labelConverter);
             if (ctx.LearnProgress.ApproxDimension > 1) {
                 ctx.LearnProgress.LabelConverter = labelConverter;
             }
@@ -695,7 +683,7 @@ static void TrainModel(
         "Multiple eval sets not supported for GPU"
     );
 
-    NCatboostOptions::TOutputFilesOptions updatedOutputOptions = outputOptions;
+    NCatboostOptions::TOutputFilesOptions updatedOutputOptions(outputOptions);
     if (outputModelPath) {
         updatedOutputOptions.ResultModelPath = outputModelPath;
     }
@@ -761,7 +749,6 @@ static void TrainModel(
 
     TRestorableFastRng64 rand(catBoostOptions.RandomSeed.Get());
 
-    pools.Learn = ShuffleLearnDataIfNeeded(catBoostOptions, pools.Learn, executor, &rand);
     TLabelConverter labelConverter;
 
     TFeatureEstimators featureEstimators;
@@ -782,6 +769,15 @@ static void TrainModel(
 
     CheckConsistency(trainingData);
 
+    SetDataDependentDefaults(
+        trainingData.Learn->MetaInfo,
+        trainingData.Test.size() > 0 ?
+            TMaybe<NCB::TDataMetaInfo>(trainingData.Test[0]->MetaInfo) :
+            Nothing(),
+        &updatedOutputOptions.UseBestModel,
+        &catBoostOptions
+    );
+
     CreateDirIfNotExist(outputOptions.GetTrainDir());
 
     if (outputOptions.NeedSaveBorders()) {
@@ -789,6 +785,8 @@ static void TrainModel(
             outputOptions.CreateOutputBordersFullPath(),
             *trainingData.Learn->ObjectsData->GetQuantizedFeaturesInfo());
     }
+
+    trainingData.Learn = ShuffleLearnDataIfNeeded(catBoostOptions, trainingData.Learn, executor, &rand);
 
     modelTrainerHolder->TrainModel(
         TTrainModelInternalOptions(),
@@ -1027,8 +1025,6 @@ static void ModelBasedEval(
 
     TRestorableFastRng64 rand(catBoostOptions.RandomSeed.Get());
 
-    pools.Learn = ShuffleLearnDataIfNeeded(catBoostOptions, pools.Learn, executor, &rand);
-
     TLabelConverter labelConverter;
 
     TTrainingDataProviders trainingData = GetTrainingData(
@@ -1044,11 +1040,23 @@ static void ModelBasedEval(
 
     CheckConsistency(trainingData);
 
-    CreateDirIfNotExist(outputOptions.GetTrainDir());
+    NCatboostOptions::TOutputFilesOptions updatedOutputOptions(outputOptions);
+    SetDataDependentDefaults(
+        trainingData.Learn->MetaInfo,
+        trainingData.Test.size() > 0 ?
+            TMaybe<NCB::TDataMetaInfo>(trainingData.Test[0]->MetaInfo) :
+            Nothing(),
+        &updatedOutputOptions.UseBestModel,
+        &catBoostOptions
+    );
+
+    CreateDirIfNotExist(updatedOutputOptions.GetTrainDir());
+
+    trainingData.Learn = ShuffleLearnDataIfNeeded(catBoostOptions, trainingData.Learn, executor, &rand);
 
     modelTrainerHolder->ModelBasedEval(
         catBoostOptions,
-        outputOptions,
+        updatedOutputOptions,
         std::move(trainingData),
         labelConverter,
         executor);

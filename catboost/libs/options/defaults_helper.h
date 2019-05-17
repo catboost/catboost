@@ -29,9 +29,3 @@ inline void UpdateCtrsTargetBordersOption(ELossFunction lossFunction, ui32 appro
         }
     );
 }
-
-inline void UpdateBoostingTypeOption(size_t learnSampleCount, NCatboostOptions::TOption<EBoostingType>* boostingTypeOption) {
-    if (boostingTypeOption->NotSet() && learnSampleCount >= 50000) {
-        *boostingTypeOption = EBoostingType::Plain;
-    }
-}
