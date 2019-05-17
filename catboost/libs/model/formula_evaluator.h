@@ -508,9 +508,6 @@ inline void CalcLeafIndexesGeneric(
 ) {
     Y_ASSERT(treeEnd >= treeStart);
     const size_t treeCount = treeEnd - treeStart;
-    if (model.ObliviousTrees.GetFirstLeafOffsets().size() < treeEnd) {
-        model.ObliviousTrees.UpdateRuntimeData();
-    }
     Y_ASSERT(model.ObliviousTrees.GetFirstLeafOffsets().size() >= treeEnd);
     CB_ENSURE(treeLeafIndexes.size() == docCount * treeCount,
               "`treeLeafIndexes` size is insufficient: "
