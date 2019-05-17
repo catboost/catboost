@@ -4,10 +4,11 @@
 
 #include <util/stream/file.h>
 
-template <class T, EMemoryType Type>
-inline void Dump(TCudaVec<T>& arr, TString name) {
-    TVector<T> tmp(arr.Size());
-    arr.Read(tmp);
+template <class T>
+inline void Dump(TArrayRef<T>& arr, TString name) {
+    using T_ = std::remove_const_t<T>;
+    TVector<T_> tmp(arr.size());
+    MemoryCopy<T_>(arr, tmp);
     TOFStream out(name);
     for (auto val : tmp) {
         out << val << Endl;
@@ -15,16 +16,12 @@ inline void Dump(TCudaVec<T>& arr, TString name) {
 }
 
 template <class T>
-inline void DumpRef(TArrayRef<T>& arr, TString name) {
-    TVector<T> tmp(arr.size());
-    MemoryCopy<T>(MakeConstArrayRef(arr), tmp);
+inline void Dump(TCudaVec<T>& arr, TString name) {
+    TVector<std::remove_const_t<T>> tmp(arr.Size());
+    arr.Read(tmp);
     TOFStream out(name);
-    bool hasNan = false;
     for (auto val : tmp) {
         out << val << Endl;
-        if (!std::isfinite(val)) {
-            hasNan = true;
-        }
     }
-    CB_ENSURE(!hasNan);
 }
+

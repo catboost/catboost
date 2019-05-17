@@ -123,12 +123,21 @@ public:
     TCudaVec() {
     }
 
+    explicit TCudaVec(std::initializer_list<T> data, EMemoryType type)
+    : TCudaVec(data.size(), type) {
+        TVector<T> tmp(std::move(data));
+        Write(tmp);
+    }
+
     template <EMemoryType Type>
     static TCudaVec Copy(const TCudaVec<T>& from) {
         TCudaVec result(from.Size(), Type);
         result.Write(from);
         return result;
     }
+
+
+
 
     EMemoryType MemoryType() const {
         CB_ENSURE(Impl_);

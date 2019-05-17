@@ -19,5 +19,10 @@ namespace NKernel {
         return cudaMemsetAsync(reinterpret_cast<char*>(data.data()), 255, data.size() * sizeof(T), stream);
     }
 
+    template <class T>
+    inline cudaError_t ClearMemory(TArrayRef<T> data, cudaStream_t stream) {
+        return cudaMemsetAsync(reinterpret_cast<char*>(data.data()), 0, data.size() * sizeof(T), stream);
+    }
+
 
 }
