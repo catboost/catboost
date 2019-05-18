@@ -223,7 +223,11 @@ namespace NPrivate {
 
 }
 
-/// generate arithmetic progression that starts at start with certain step and stop at finish (not including)
+/**
+ * generate arithmetic progression that starts at start with certain step and stop at finish (not including)
+ *
+ * @param step must be non-zero
+ */
 template <typename T>
 constexpr ::NPrivate::TSteppedXRange<T> xrange(T start, T finish, decltype(T() - T()) step) noexcept {
     return {start, finish, step};
