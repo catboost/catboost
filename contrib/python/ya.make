@@ -8,7 +8,6 @@ RECURSE(
     funcsigs
     graphviz
     Jinja2
-    Jinja2/examples
     MarkupSafe
     more-itertools
     numpy

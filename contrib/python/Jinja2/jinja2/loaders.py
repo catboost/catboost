@@ -220,15 +220,8 @@ class PackageLoader(BaseLoader):
     def __init__(self, package_name, package_path='templates',
                  encoding='utf-8'):
         from pkg_resources import DefaultProvider, ResourceManager, \
-                                  get_provider, ResProvider
-        if getattr(sys, 'is_standalone_binary', False):
-            provider = get_provider(package_name)
-            prefix = 'resfs/file/' + provider.module_path
-            if not prefix.endswith('/'):
-                prefix += '/'
-            provider = ResProvider(prefix)
-        else:
-            provider = get_provider(package_name)
+                                  get_provider
+        provider = get_provider(package_name)
         self.encoding = encoding
         self.manager = ResourceManager()
         self.filesystem_bound = isinstance(provider, DefaultProvider)

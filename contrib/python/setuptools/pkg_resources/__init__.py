@@ -3222,6 +3222,9 @@ class ResProvider(EmptyProvider):
     def __init__(self, prefix):
         self.egg_info = self.module_path = prefix
 
+    def _fn(self, base, resource_name):
+        return base + resource_name
+
     def _has(self, path):
         return resource.find(path) is not None
 
@@ -3230,9 +3233,6 @@ class ResProvider(EmptyProvider):
         if r is None:
             raise KeyError(path)
         return r
-
-    def _fn(self, base, resource_name):
-        return base + resource_name
 
 
 class ResDistribution(DistInfoDistribution):
