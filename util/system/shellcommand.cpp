@@ -691,7 +691,7 @@ void TShellCommand::TImpl::OnFork(TPipes& pipes, sigset_t oldmask, char* const* 
              << "unknown error" << Endl;
     }
 
-    exit(-1);
+    _exit(-1);
 }
 #endif
 
