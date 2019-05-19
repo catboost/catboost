@@ -183,8 +183,8 @@ ieee0(Void)
 /* code from Eric Grosse */
 #include <stdlib.h>
 #include <stdio.h>
-#include "/usr/include/sigfpe.h"	/* full pathname for lcc -N */
-#include "/usr/include/sys/fpu.h"
+#error #include "/usr/include/sigfpe.h"	/* full pathname for lcc -N */
+#error #include "/usr/include/sys/fpu.h"
 
  static void
 #ifdef KR_headers

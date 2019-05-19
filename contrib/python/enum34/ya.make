@@ -1,6 +1,6 @@
 
 
-PY_LIBRARY() # Backport from Python 3.
+PY23_LIBRARY() # Backport from Python 3.
 
 LICENSE(
     BSD

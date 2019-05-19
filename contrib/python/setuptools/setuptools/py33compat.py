@@ -2,13 +2,20 @@ import dis
 import array
 import collections
 
-import six
+try:
+    import html
+except ImportError:
+    html = None
 
+from setuptools.extern import six
+from setuptools.extern.six.moves import html_parser
+
+__metaclass__ = type
 
 OpArg = collections.namedtuple('OpArg', 'opcode arg')
 
 
-class Bytecode_compat(object):
+class Bytecode_compat:
     def __init__(self, code):
         self.code = code
 
@@ -43,3 +50,6 @@ class Bytecode_compat(object):
 
 
 Bytecode = getattr(dis, 'Bytecode', Bytecode_compat)
+
+
+unescape = getattr(html, 'unescape', html_parser.HTMLParser().unescape)

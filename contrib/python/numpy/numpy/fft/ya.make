@@ -9,7 +9,7 @@ LICENSE(
 ADDINCL(
     contrib/python/numpy/numpy/core/include
     contrib/python/numpy/numpy/core/include/numpy
-    contrib/python/numpy/numpy/core/src/private
+    contrib/python/numpy/numpy/core/src/common
 )
 
 CFLAGS(

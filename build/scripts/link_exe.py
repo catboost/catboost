@@ -13,25 +13,16 @@ def get_leaks_suppressions(cmd):
 
 
 def gen_default_suppressions(inputs, output):
-     parts = []
-     for filename in inputs:
-         with open(filename) as src:
+    parts = []
+    for filename in inputs:
+        with open(filename) as src:
             parts.append(src.read().strip() + "\n")
-     supp_str = "\n".join(parts).replace("\n", "\\n")
+    supp_str = "\n".join(parts).replace("\n", "\\n")
 
-     with open(output, "wb") as dst:
-         dst.write('extern "C" const char *__lsan_default_suppressions() {\n')
-         dst.write('    return "{}";\n'.format(supp_str))
-         dst.write('}\n')
-
-
-def compile_file(src, dst, cmd):
-    cmd = list(cmd)
-    cmd = [a for a in cmd if not a.endswith((".a", ".o", ".obj"))]
-    output_pos = cmd.index("-o")
-    cmd[output_pos + 1] = dst
-    cmd += ["-c", src, "-Wno-unused-command-line-argument"]
-    return subprocess.call(cmd, shell=False, stderr=sys.stderr, stdout=sys.stdout)
+    with open(output, "wb") as dst:
+        dst.write('extern "C" const char *__lsan_default_suppressions() {\n')
+        dst.write('    return "{}";\n'.format(supp_str))
+        dst.write('}\n')
 
 
 if __name__ == '__main__':
@@ -42,8 +33,5 @@ if __name__ == '__main__':
     else:
         src_file = "lsan_default_suppressions.cpp"
         gen_default_suppressions(supp, src_file)
-        obj_file = src_file + ".o"
-        rc = compile_file(src_file, obj_file, cmd)
-        if rc == 0:
-            rc = subprocess.call(cmd + [obj_file], shell=False, stderr=sys.stderr, stdout=sys.stdout)
+        rc = subprocess.call(cmd + [src_file], shell=False, stderr=sys.stderr, stdout=sys.stdout)
     sys.exit(rc)

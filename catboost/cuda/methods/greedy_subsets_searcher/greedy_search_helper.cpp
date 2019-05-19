@@ -304,7 +304,7 @@ namespace NCatboostCuda {
 
     void TGreedySearchHelper::SelectLeavesToSplit(const TPointsSubsets& subsets,
                                                   TVector<ui32>* leavesToSplit) {
-        if (Options.Policy == EGrowingPolicy::Lossguide) {
+        if (Options.Policy == EGrowPolicy::Lossguide) {
             TMaybe<ui32> leafToSplit = FindBestLeafToSplit(subsets);
 
             for (ui32 leaf = 0; leaf < subsets.Leaves.size(); ++leaf) {
@@ -312,7 +312,7 @@ namespace NCatboostCuda {
                     leavesToSplit->push_back(leaf);
                 }
             }
-        } else if (Options.Policy == EGrowingPolicy::Region) {
+        } else if (Options.Policy == EGrowPolicy::Region) {
             if (subsets.Leaves.size() > 1) {
                 //split one of last leaf always
                 ui32 maxDepth = FindMaxDepth(subsets.Leaves);
@@ -341,7 +341,7 @@ namespace NCatboostCuda {
                 leavesToSplit->push_back(0);
             }
         } else {
-            CB_ENSURE(Options.Policy == EGrowingPolicy::ObliviousTree || Options.Policy == EGrowingPolicy::Levelwise);
+            CB_ENSURE(Options.Policy == EGrowPolicy::SymmetricTree || Options.Policy == EGrowPolicy::Depthwise);
 
             for (ui32 leaf = 0; leaf < subsets.Leaves.size(); ++leaf) {
                 if (subsets.Leaves[leaf].BestSplit.Defined() && subsets.Leaves[leaf].BestSplit.Score < 0) {
@@ -380,15 +380,18 @@ namespace NCatboostCuda {
 
         TVector<ui32> leavesToVisit;
         SelectLeavesToVisit(*subsets, &leavesToVisit);
+        if (leavesToVisit.empty()) {
+            return;
+        }
         ui32 numScoreBlocks = 1;
         switch (Options.Policy) {
-            case EGrowingPolicy::ObliviousTree: {
+            case EGrowPolicy::SymmetricTree: {
                 numScoreBlocks = 1;
                 break;
             }
-            case EGrowingPolicy::Region:
-            case EGrowingPolicy::Lossguide:
-            case EGrowingPolicy::Levelwise: {
+            case EGrowPolicy::Region:
+            case EGrowPolicy::Lossguide:
+            case EGrowPolicy::Depthwise: {
                 numScoreBlocks = static_cast<ui32>(leavesToVisit.size());
                 break;
             }
@@ -406,7 +409,7 @@ namespace NCatboostCuda {
         TMirrorBuffer<double> reducedStats;
         AllReduceThroughMaster(subsets->CurrentPartStats(), reducedStats);
 
-        if (Options.Policy == EGrowingPolicy::ObliviousTree) {
+        if (Options.Policy == EGrowPolicy::SymmetricTree) {
             TMirrorBuffer<ui32> restLeafIds;
             auto leafIds = TMirrorBuffer<ui32>::Create(NCudaLib::TMirrorMapping(leavesToVisit.size()));
             leafIds.Write(leavesToVisit);
@@ -428,7 +431,7 @@ namespace NCatboostCuda {
                                    false,
                                    ScoreStdDev,
                                    Random.NextUniformL());
-        } else if (Options.Policy == EGrowingPolicy::Levelwise) {
+        } else if (Options.Policy == EGrowPolicy::Depthwise) {
             auto leafIds = TMirrorBuffer<ui32>::Create(NCudaLib::TMirrorMapping(leavesToVisit.size()));
             leafIds.Write(leavesToVisit);
 
@@ -536,14 +539,14 @@ namespace NCatboostCuda {
                             &leavesToSplit);
 
         if (!leavesToSplit.empty()) {
-            if (IsObliviousSplit() || Options.Policy == EGrowingPolicy::Region) {
+            if (IsObliviousSplit() || Options.Policy == EGrowPolicy::Region) {
                 auto& bestSplit = subsets.Leaves[leavesToSplit.back()].BestSplit;
                 TBinarySplit split = ToSplit(FeaturesManager, subsets.Leaves[leavesToSplit.back()].BestSplit);
                 const ui32 depth = subsets.Leaves.back().Path.GetDepth();
                 PrintBestScore(FeaturesManager, split, bestSplit.Score, depth);
             } else {
                 ui32 iteration = subsets.Leaves.size();
-                if (Options.Policy == EGrowingPolicy::Levelwise) {
+                if (Options.Policy == EGrowPolicy::Depthwise) {
                     ui32 iteration = 0;
                     for (auto& leaf : subsets.Leaves) {
                         iteration = Max(iteration, leaf.Path.GetDepth());
@@ -633,7 +636,7 @@ namespace NCatboostCuda {
 
     bool TGreedySearchHelper::IsTerminalLeaf(const TPointsSubsets& subsets, ui32 leafId) {
         auto& leaf = subsets.Leaves.at(leafId);
-        const bool checkLeafSize = Options.Policy != EGrowingPolicy::ObliviousTree;
+        const bool checkLeafSize = Options.Policy != EGrowPolicy::SymmetricTree;
         const bool flag = (checkLeafSize && leaf.Size <= Options.MinLeafSize) || leaf.Path.GetDepth() >= Options.MaxDepth;
         return flag;
     }

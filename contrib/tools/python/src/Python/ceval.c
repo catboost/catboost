@@ -824,7 +824,11 @@ PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)
     PyObject *consts;
 #if defined(Py_DEBUG) || defined(LLTRACE)
     /* Make it easier to find out where we are with a debugger */
+#ifdef __GNUC__
+    char *filename __attribute__((unused));
+#else
     char *filename;
+#endif
 #endif
 
 /* Tuple access macros */
@@ -1288,7 +1292,7 @@ PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)
             FAST_DISPATCH();
         }
 
-       
+
         TARGET_NOARG(DUP_TOP)
         {
             v = TOP();
@@ -1835,7 +1839,7 @@ PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)
         }
 
 
-     
+
         TARGET_WITH_IMPL_NOARG(SLICE, _slice)
         TARGET_WITH_IMPL_NOARG(SLICE_1, _slice)
         TARGET_WITH_IMPL_NOARG(SLICE_2, _slice)
@@ -1860,7 +1864,7 @@ PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)
             break;
         }
 
-     
+
         TARGET_WITH_IMPL_NOARG(STORE_SLICE, _store_slice)
         TARGET_WITH_IMPL_NOARG(STORE_SLICE_1, _store_slice)
         TARGET_WITH_IMPL_NOARG(STORE_SLICE_2, _store_slice)
@@ -4750,8 +4754,7 @@ _PyEval_SliceIndexNotNone(PyObject *v, Py_ssize_t *pi)
 
 
 #undef ISINDEX
-#define ISINDEX(x) ((x) == NULL || \
-                    PyInt_Check(x) || PyLong_Check(x) || PyIndex_Check(x))
+#define ISINDEX(x) ((x) == NULL || _PyAnyInt_Check(x) || PyIndex_Check(x))
 
 static PyObject *
 apply_slice(PyObject *u, PyObject *v, PyObject *w) /* return u[v:w] */
@@ -5244,7 +5247,7 @@ getarray(long a[256])
             Py_DECREF(l);
             return NULL;
         }
-        PyList_SetItem(l, i, x);
+        PyList_SET_ITEM(l, i, x);
     }
     for (i = 0; i < 256; i++)
         a[i] = 0;
@@ -5266,7 +5269,7 @@ _Py_GetDXProfile(PyObject *self, PyObject *args)
             Py_DECREF(l);
             return NULL;
         }
-        PyList_SetItem(l, i, x);
+        PyList_SET_ITEM(l, i, x);
     }
     return l;
 #endif

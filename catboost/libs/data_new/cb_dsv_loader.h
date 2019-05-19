@@ -29,6 +29,12 @@ namespace NCB {
             };
         }
 
+        decltype(auto) GetReadBaselineFunc() {
+            return [this](TString *line) -> bool {
+                return BaselineReader.ReadLine(line);
+            };
+        }
+
     public:
         explicit TCBDsvDataLoader(TDatasetLoaderPullArgs&& args);
 
@@ -39,11 +45,11 @@ namespace NCB {
         }
 
         void Do(IRawObjectsOrderDataVisitor* visitor) override {
-            TBase::Do(GetReadFunc(), visitor);
+            TBase::Do(GetReadFunc(), GetReadBaselineFunc(), visitor);
         }
 
         bool DoBlock(IRawObjectsOrderDataVisitor* visitor) override {
-            return TBase::DoBlock(GetReadFunc(), visitor);
+            return TBase::DoBlock(GetReadFunc(), GetReadBaselineFunc(), visitor);
         }
 
         TVector<TColumn> CreateColumnsDescription(ui32 columnsCount);
@@ -71,6 +77,7 @@ namespace NCB {
         TVector<bool> FeatureIgnored; // init in process
         char FieldDelimiter;
         THolder<NCB::ILineDataReader> LineDataReader;
+        TBaselineReader BaselineReader;
     };
 
 }

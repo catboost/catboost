@@ -23,6 +23,7 @@ class TSockTest: public TTestBase {
 #endif
     UNIT_TEST(TestNetworkResolutionError);
     UNIT_TEST(TestBrokenPipe);
+    UNIT_TEST(TestClose);
     UNIT_TEST(TestReusePortAvailCheck);
     UNIT_TEST_SUITE_END();
 
@@ -32,6 +33,7 @@ public:
     void TestConnectionRefused();
     void TestNetworkResolutionError();
     void TestBrokenPipe();
+    void TestClose();
     void TestReusePortAvailCheck();
 };
 
@@ -123,6 +125,25 @@ void TSockTest::TestBrokenPipe() {
     };
     sent = sender.SendV(parts, 2);
     UNIT_ASSERT(sent < 0);
+}
+
+void TSockTest::TestClose() {
+    SOCKET socks[2];
+
+    UNIT_ASSERT_EQUAL(SocketPair(socks), 0)
+    TSocket receiver(socks[1]);
+
+    UNIT_ASSERT_EQUAL(static_cast<SOCKET>(receiver), socks[1]);
+
+#if defined _linux_
+    UNIT_ASSERT_GE(fcntl(socks[1], F_GETFD), 0);
+    receiver.Close();
+    UNIT_ASSERT_EQUAL(fcntl(socks[1], F_GETFD), -1);
+#else
+    receiver.Close();
+#endif
+
+    UNIT_ASSERT_EQUAL(static_cast<SOCKET>(receiver), INVALID_SOCKET);
 }
 
 void TSockTest::TestReusePortAvailCheck() {

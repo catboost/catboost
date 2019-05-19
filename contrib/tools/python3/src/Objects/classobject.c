@@ -1,6 +1,8 @@
 /* Class object implementation (dead now except for methods) */
 
 #include "Python.h"
+#include "internal/mem.h"
+#include "internal/pystate.h"
 #include "structmember.h"
 
 #define TP_DESCR_GET(t) ((t)->tp_descr_get)
@@ -75,8 +77,6 @@ method_reduce(PyMethodObject *im)
 {
     PyObject *self = PyMethod_GET_SELF(im);
     PyObject *func = PyMethod_GET_FUNCTION(im);
-    PyObject *builtins;
-    PyObject *getattr;
     PyObject *funcname;
     _Py_IDENTIFIER(getattr);
 
@@ -84,9 +84,8 @@ method_reduce(PyMethodObject *im)
     if (funcname == NULL) {
         return NULL;
     }
-    builtins = PyEval_GetBuiltins();
-    getattr = _PyDict_GetItemId(builtins, &PyId_getattr);
-    return Py_BuildValue("O(ON)", getattr, self, funcname);
+    return Py_BuildValue("N(ON)", _PyEval_GetBuiltinId(&PyId_getattr),
+                         self, funcname);
 }
 
 static PyMethodDef method_methods[] = {
@@ -244,21 +243,14 @@ method_repr(PyMethodObject *a)
 {
     PyObject *self = a->im_self;
     PyObject *func = a->im_func;
-    PyObject *funcname = NULL, *result = NULL;
+    PyObject *funcname, *result;
     const char *defname = "?";
 
-    funcname = _PyObject_GetAttrId(func, &PyId___qualname__);
-    if (funcname == NULL) {
-        if (!PyErr_ExceptionMatches(PyExc_AttributeError))
-            return NULL;
-        PyErr_Clear();
-
-        funcname = _PyObject_GetAttrId(func, &PyId___name__);
-        if (funcname == NULL) {
-            if (!PyErr_ExceptionMatches(PyExc_AttributeError))
-                return NULL;
-            PyErr_Clear();
-        }
+    if (_PyObject_LookupAttrId(func, &PyId___qualname__, &funcname) < 0 ||
+        (funcname == NULL &&
+         _PyObject_LookupAttrId(func, &PyId___name__, &funcname) < 0))
+    {
+        return NULL;
     }
 
     if (funcname != NULL && !PyUnicode_Check(funcname)) {
@@ -540,21 +532,18 @@ static PyObject *
 instancemethod_repr(PyObject *self)
 {
     PyObject *func = PyInstanceMethod_Function(self);
-    PyObject *funcname = NULL , *result = NULL;
-    char *defname = "?";
+    PyObject *funcname, *result;
+    const char *defname = "?";
 
     if (func == NULL) {
         PyErr_BadInternalCall();
         return NULL;
     }
 
-    funcname = _PyObject_GetAttrId(func, &PyId___name__);
-    if (funcname == NULL) {
-        if (!PyErr_ExceptionMatches(PyExc_AttributeError))
-            return NULL;
-        PyErr_Clear();
+    if (_PyObject_LookupAttrId(func, &PyId___name__, &funcname) < 0) {
+        return NULL;
     }
-    else if (!PyUnicode_Check(funcname)) {
+    if (funcname != NULL && !PyUnicode_Check(funcname)) {
         Py_DECREF(funcname);
         funcname = NULL;
     }

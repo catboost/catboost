@@ -61,7 +61,7 @@ Y_UNIT_TEST_SUITE(Columns) {
         TVector<ui8> expectedSubset{0xEF, 0xCD, 0xBE, 0xDE, 0x06};
         TVector<bool> visitedIndices(subsetIndexing.Size(), false);
 
-        quantizedFloatValuesHolder.GetArrayData().ForEach(
+        quantizedFloatValuesHolder.ForEach(
             [&](ui32 idx, ui8 value) {
                 UNIT_ASSERT_EQUAL(expectedSubset[idx], value);
                 UNIT_ASSERT(!visitedIndices[idx]);

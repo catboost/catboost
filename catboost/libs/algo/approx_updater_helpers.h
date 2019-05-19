@@ -1,10 +1,9 @@
 #pragma once
 
-#include "learn_context.h"
-
-#include <catboost/libs/options/catboost_options.h>
 #include <catboost/libs/data_new/data_provider.h>
 #include <catboost/libs/data_types/query.h>
+#include <catboost/libs/options/catboost_options.h>
+#include <catboost/libs/options/restrictions.h>
 
 #include <library/fast_exp/fast_exp.h>
 #include <library/fast_log/fast_log.h>
@@ -16,6 +15,9 @@
 #include <util/generic/ymath.h>
 #include <util/system/types.h>
 #include <util/system/yassert.h>
+
+
+struct TLearnProgress;
 
 
 template <bool StoreExpApprox>
@@ -67,7 +69,11 @@ static inline bool IsStoreExpApprox(ELossFunction lossFunction) {
     );
 }
 
-inline void CalcPairwiseWeights(const TVector<TQueryInfo>& queriesInfo, int queriesCount, TVector<float>* pairwiseWeights) {
+inline void CalcPairwiseWeights(
+    const TVector<TQueryInfo>& queriesInfo,
+    int queriesCount,
+    TVector<float>* pairwiseWeights
+) {
     Fill(pairwiseWeights->begin(), pairwiseWeights->end(), 0);
     for (int queryIndex = 0; queryIndex < queriesCount; ++queryIndex) {
         const auto& queryInfo = queriesInfo[queryIndex];
@@ -90,10 +96,16 @@ inline void UpdateApprox(
     Y_ASSERT(delta.size() == approx->size());
     for (size_t dimensionIdx : xrange(delta.size())) {
         TConstArrayRef<double> deltaDim(delta[dimensionIdx]);
-        TArrayRef<double> approxDim((*approx)[dimensionIdx]); // deltaDim.size() < approxDim.size(), if delta is leaf values
-        NPar::ParallelFor(*localExecutor, 0, approxDim.size(), [=, &updateFunc](int idx) {
-            updateFunc(deltaDim, approxDim, idx);
-        });
+
+        // deltaDim.size() < approxDim.size(), if delta is leaf values
+        TArrayRef<double> approxDim((*approx)[dimensionIdx]);
+        NPar::ParallelFor(
+            *localExecutor,
+            0,
+            approxDim.size(),
+            [=, &updateFunc](int idx) {
+                updateFunc(deltaDim, approxDim, idx);
+            });
     }
 }
 
@@ -109,7 +121,8 @@ inline void CopyApprox(
             row.yresize(rowSize);
         }
     }
-    const auto copyFunc = [] (TConstArrayRef<double> src, TArrayRef<double> dst, size_t idx) { dst[idx] = src[idx]; };
+    const auto copyFunc
+        = [] (TConstArrayRef<double> src, TArrayRef<double> dst, size_t idx) { dst[idx] = src[idx]; };
     UpdateApprox(copyFunc, src, dst, localExecutor);
 }
 

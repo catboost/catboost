@@ -15,3 +15,9 @@ Streaming
 =========
 Use `stream.h` to obtain simple streams over block codecs (buffer data, compress them by blocks,
 write to the resulting stream).
+
+Using codec plugins
+===================
+If you don't want your code to bloat from unused codecs, you can use the small version of the
+library: `library/blockcodecs/core`. In that case, you need to manually set `PEERDIR()`s to
+needed codecs (i.e. `PEERDIR(library/blockcodecs/codecs/lzma)`).

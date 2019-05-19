@@ -7,7 +7,7 @@
     version of six so we don't have to depend on a specific version
     of it.
 
-    :copy right: Copy right 2013 by the Jinja team, see AUTHORS.
+    :copyright: Copyright 2013 by the Jinja team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 import sys

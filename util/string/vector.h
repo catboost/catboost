@@ -1,6 +1,7 @@
 #pragma once
 
 #include "cast.h"
+#include "split.h"
 
 #include <util/generic/map.h>
 #include <util/generic/strbuf.h>
@@ -9,10 +10,9 @@
 #include <util/system/yassert.h>
 
 #define KEEP_EMPTY_TOKENS 0x01
-#define KEEP_DELIMITERS 0x02
 
 //
-// NOTE: Check util/string/iterator.h to get more convenient split string interface.
+// NOTE: Check StringSplitter below to get more convenient split string interface.
 
 namespace NPrivate {
 
@@ -40,33 +40,12 @@ namespace NPrivate {
     };
 }
 
-template <typename S, typename C>
-std::enable_if_t<std::is_same<C, typename S::value_type>::value>
-SplitString(TVector<S>* res, const C* ptr, const C* delimiter,
-            size_t maxFields = 0, int options = 0) {
-    ::NPrivate::SplitStringImpl(res, ptr, delimiter, maxFields, options);
-}
-
-template <typename S, typename C>
-std::enable_if_t<std::is_same<C, typename S::value_type>::value>
-SplitString(TVector<S>* res, const C* ptr, size_t len, const C* delimiter,
-            size_t maxFields = 0, int options = 0) {
-    ::NPrivate::SplitStringImpl(res, ptr, len, delimiter, maxFields, options);
-}
-
-template <typename S, typename C>
-std::enable_if_t<std::is_same<C, typename S::value_type>::value>
-SplitString(TVector<S>* res, const S& str, const C* delimiter,
-            size_t maxFields = 0, int options = 0) {
-    ::NPrivate::SplitStringImpl(res, str.data(), str.size(), delimiter, maxFields, options);
-}
-
 template <typename C>
 TVector<typename ::NPrivate::TStringDeducer<C>::type>
 SplitString(const C* ptr, const C* delimiter,
             size_t maxFields = 0, int options = 0) {
     TVector<typename ::NPrivate::TStringDeducer<C>::type> res;
-    SplitString(&res, ptr, delimiter, maxFields, options);
+    ::NPrivate::SplitStringImpl(&res, ptr, delimiter, maxFields, options);
     return res;
 }
 
@@ -75,7 +54,7 @@ TVector<typename ::NPrivate::TStringDeducer<C>::type>
 SplitString(const C* ptr, size_t len, const C* delimiter,
             size_t maxFields = 0, int options = 0) {
     TVector<typename ::NPrivate::TStringDeducer<C>::type> res;
-    SplitString(&res, ptr, len, delimiter, maxFields, options);
+    ::NPrivate::SplitStringImpl(&res, ptr, len, delimiter, maxFields, options);
     return res;
 }
 

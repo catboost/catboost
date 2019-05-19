@@ -1,5 +1,8 @@
 #pragma once
 
+#include "impl.h"
+#include "events.h"
+
 class TContMutex {
 public:
     inline TContMutex() noexcept

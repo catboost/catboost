@@ -2,7 +2,7 @@ import os
 from distutils import log
 import itertools
 
-from six.moves import map
+from setuptools.extern.six.moves import map
 
 
 flatten = itertools.chain.from_iterable

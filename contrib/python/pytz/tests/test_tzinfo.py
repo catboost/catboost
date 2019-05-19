@@ -20,15 +20,15 @@ if __name__ == '__main__':
     # the paths already
     sys.path.insert(0, os.path.abspath(os.path.join(os.pardir, os.pardir)))
 
-import pytz
-from pytz import reference
-from pytz.tzfile import _byte_string
-from pytz.tzinfo import DstTzInfo, StaticTzInfo
+import pytz  # noqa
+from pytz import reference  # noqa
+from pytz.tzfile import _byte_string  # noqa
+from pytz.tzinfo import DstTzInfo, StaticTzInfo  # noqa
 
 # I test for expected version to ensure the correct version of pytz is
 # actually being tested.
-EXPECTED_VERSION = '2018.9'
-EXPECTED_OLSON_VERSION = '2018i'
+EXPECTED_VERSION = '2019.1'
+EXPECTED_OLSON_VERSION = '2019a'
 
 fmt = '%Y-%m-%d %H:%M:%S %Z%z'
 
@@ -756,6 +756,18 @@ class CommonTimezonesTestCase(unittest.TestCase):
         self.assertTrue('Europe/Belfast' in pytz.all_timezones_set)
         self.assertFalse('Europe/Belfast' in pytz.common_timezones)
         self.assertFalse('Europe/Belfast' in pytz.common_timezones_set)
+
+
+class ZoneCaseInsensitivityTestCase(unittest.TestCase):
+    def test_lower_case_timezone_constructor_arg(self):
+        for tz in pytz.all_timezones_set:
+            from_lower = pytz.timezone(tz.lower())
+            from_passed = pytz.timezone(tz)
+            self.assertEqual(from_lower,
+                             from_passed,
+                             "arg '%s' and arg '%s' produce different "
+                             "timezone objects" % (
+                                 from_lower, from_passed))
 
 
 class BaseTzInfoTestCase:

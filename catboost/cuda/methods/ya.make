@@ -51,7 +51,6 @@ SRCS(
     pointwise_score_calcer.cpp
     GLOBAL pointwise_kernels.cpp
     GLOBAL pairwise_kernels.cpp
-    dynamic_boosting.cpp
     feature_parallel_pointwise_oblivious_tree.cpp
     oblivious_tree_structure_searcher.cpp
     oblivious_tree_doc_parallel_structure_searcher.cpp

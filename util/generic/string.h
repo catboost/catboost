@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <cstring>
 #include <stlfwd>
+#include <string_view>
 
 #include <util/system/compat.h>
 #include <util/system/yassert.h>
@@ -37,11 +38,15 @@ namespace NDetail {
 
         enum : size_t {
             Overhead = sizeof(TData) + sizeof(TCharType), // + null terminated symbol
-            MaxSize = (std::numeric_limits<size_t>::max() - Overhead) / sizeof(TCharType)
+            MaxSize = (std::numeric_limits<size_t>::max() / 2 + 1 - Overhead) / sizeof(TCharType)
         };
 
-        static constexpr size_t CalcAllocationSize(const size_t len) noexcept {
-            return len * sizeof(TCharType) + Overhead;
+        static constexpr size_t CalcAllocationSizeAndCapacity(size_t& len) noexcept {
+            // buffer should be multiple to 2^n to fit allocator's memory block size
+            size_t alignedSize = FastClp2(len * sizeof(TCharType) + Overhead);
+            // calc capacity
+            len = (alignedSize - Overhead) / sizeof(TCharType);
+            return alignedSize;
         }
 
         static TData* GetData(TCharType* p) {
@@ -203,10 +208,15 @@ public:
         return s ? TTraits::GetLength(s) : 0;
     }
 
+    template <class TCharTraits>
+    inline constexpr operator std::basic_string_view<TCharType, TCharTraits>() const {
+        return std::basic_string_view<TCharType>(data(), size());
+    }
+
     // TODO: DROP! this one provides an implicit TStringBuf -> std::string conversion!
-    template <class T, class A>
-    inline operator std::basic_string<TCharType, T, A>() const {
-        return std::basic_string<TCharType, T, A>(Ptr(), Len());
+    template <class TCharTraits, class Allocator>
+    inline operator std::basic_string<TCharType, TCharTraits, Allocator>() const {
+        return std::basic_string<TCharType, TCharTraits, Allocator>(Ptr(), Len());
     }
 
     /**
@@ -497,7 +507,7 @@ public:
     }
 
     inline TCharType operator[](size_t pos) const noexcept {
-        Y_ASSERT(pos < this->Size());
+        Y_ASSERT(pos < this->size());
 
         return Ptr()[pos];
     }

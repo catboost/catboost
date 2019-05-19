@@ -52,7 +52,7 @@ Y_UNIT_TEST_SUITE(TBrotliTestSuite) {
     Y_UNIT_TEST(TestIncompleteStream) {
         TString manyAs(64 * 1024, 'a');
         auto compressed = Compress(manyAs);
-        TString truncated(compressed.Data(), compressed.Size() - 1);
+        TString truncated(compressed.data(), compressed.size() - 1);
         UNIT_CHECK_GENERATED_EXCEPTION(Decompress(truncated), std::exception);
     }
 

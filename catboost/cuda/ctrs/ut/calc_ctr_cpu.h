@@ -2,6 +2,7 @@
 
 #include <util/generic/array_ref.h>
 #include <util/generic/vector.h>
+#include <util/generic/hash.h>
 #include <library/containers/2d_array/2d_array.h>
 
 namespace NCatboostCuda {
@@ -13,6 +14,20 @@ namespace NCatboostCuda {
     struct TCatCtrStat {
         TVector<double> FirstClass;
         double Total = 0;
+
+        TCatCtrStat& operator+=(const TCatCtrStat& other) {
+            if (FirstClass.size() < other.FirstClass.size()) {
+                FirstClass.resize(other.FirstClass.size());
+            }
+            if (!other.FirstClass.empty()) {
+                Y_VERIFY(other.FirstClass.size() == FirstClass.size());
+                for (ui64 i = 0; i < FirstClass.size(); ++i) {
+                    FirstClass[i] += other.FirstClass[i];
+                }
+                Total += other.Total;
+            }
+            return *this;
+        }
     };
 
     struct TCpuTargetClassCtrCalcer {
@@ -35,11 +50,13 @@ namespace NCatboostCuda {
         const TVector<ui32>& Bins;
         TConstArrayRef<float> Weights;
 
-        template <class T>
+        template <class T, class TGid>
         TArray2D<float> Calc(const TVector<ui32>& cpuIndices,
+                             TConstArrayRef<TGid> groupIds,
                              TVector<T>& classes,
                              ui32 numClasses) {
             TVector<TCatCtrStat> cpuStat(UniqueValues);
+            THashMap<ui32, TCatCtrStat> currentGroup;
 
             TArray2D<float> ctrs(numClasses, cpuIndices.size());
             ctrs.FillZero();
@@ -54,14 +71,24 @@ namespace NCatboostCuda {
                 const ui32 clazz = classes[idx];
 
                 cpuStat[bin].FirstClass.resize(numClasses);
+                currentGroup[bin].FirstClass.resize(numClasses);
 
                 for (ui32 cls = 0; cls < numClasses; ++cls) {
                     auto ctr = (cpuStat[bin].FirstClass[cls] + prior) / (cpuStat[bin].Total + denumPrior);
                     ctrs[i][cls] = ctr;
                 }
 
-                cpuStat[bin].FirstClass[clazz] += Weights[idx];
-                cpuStat[bin].Total += Weights[idx];
+                currentGroup[bin].FirstClass[clazz] += Weights[idx];
+                currentGroup[bin].Total += Weights[idx];
+
+                auto groupId = groupIds[cpuIndices[i]];
+                auto nextGroupId = (i + 1) < cpuIndices.size() ? groupIds[cpuIndices[i + 1]] : groupIds.size() + 10000;
+                if (groupId != nextGroupId) {
+                    for (const auto& [b, ctr] : currentGroup) {
+                        cpuStat[b] += ctr;
+                    }
+                    currentGroup.clear();
+                }
             }
             return ctrs;
         }

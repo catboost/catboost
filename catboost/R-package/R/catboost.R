@@ -42,7 +42,7 @@ NULL
 #' Used in the calculation of final values of trees.
 #' @param feature_names A list of names for each feature in the dataset.
 #' @param thread_count The number of threads to use while reading the data. Optimizes reading time. This parameter doesn't affect results.
-#' If -1, then the number of threads is set to the number of cores.
+#' If -1, then the number of threads is set to the number of CPU cores.
 #'
 #' @return catboost.Pool
 #'
@@ -284,7 +284,7 @@ catboost.save_pool <- function(data, label = NULL, weight = NULL, baseline = NUL
 
 #' Dimensions of catboost.Pool
 #'
-#' Returns a vector of row numbers and columns column numbers in an catboost.Pool.
+#' Returns a vector of row numbers and column numbers in an catboost.Pool.
 #' @param x The input dataset.
 #'
 #' Default value: Required argument
@@ -390,7 +390,7 @@ print.catboost.Pool <- function(x, ...) {
 #' \itemize{
 #'   \item Common parameters
 #'   \itemize{
-#'     \item fold_permutation_block_size
+#'     \item fold_permutation_block
 #'
 #'       Objects in the dataset are grouped in blocks before the random permutations.
 #'       This parameter defines the size of the blocks.
@@ -450,6 +450,8 @@ print.catboost.Pool <- function(x, ...) {
 #'       \itemize{
 #'         \item 'Logloss'
 #'         \item 'CrossEntropy'
+#'         \item 'MultiClass'
+#'         \item 'MultiClassOneVsAll'
 #'         \item 'RMSE'
 #'         \item 'MAE'
 #'         \item 'Quantile'
@@ -457,10 +459,13 @@ print.catboost.Pool <- function(x, ...) {
 #'         \item 'MAPE'
 #'         \item 'Poisson'
 #'         \item 'Lq'
-#'         \item 'QueryRMSE'
-#'         \item 'MultiClass'
-#'         \item 'MultiClassOneVsAll'
 #'         \item 'PairLogit'
+#'         \item 'PairLogitPairwise'
+#'         \item 'YetiRank'
+#'         \item 'YetiRankPairwise'
+#'         \item 'QueryCrossEntropy'
+#'         \item 'QueryRMSE'
+#'         \item 'QuerySoftMax'
 #'       }
 #'
 #'       Supported parameters:
@@ -479,7 +484,7 @@ print.catboost.Pool <- function(x, ...) {
 #'
 #'       Loss function (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/loss-functions-docpage/#loss-functions})
 #'       values to output during training.
-#'       These functions are not optimized and are displayed for informational purposes only.
+#'       These functions are not used for optimization and are displayed for informational purposes only.
 #'
 #'       Format:
 #'
@@ -489,26 +494,49 @@ print.catboost.Pool <- function(x, ...) {
 #'       \itemize{
 #'         \item 'Logloss'
 #'         \item 'CrossEntropy'
-#'         \item 'RMSE'
-#'         \item 'MAE'
-#'         \item 'Quantile'
-#'         \item 'LogLinQuantile'
-#'         \item 'MAPE'
-#'         \item 'Poisson'
-#'         \item 'Lq'
-#'         \item 'QueryRMSE'
-#'         \item 'MultiClass'
-#'         \item 'MultiClassOneVsAll'
-#'         \item 'PairLogit'
-#'         \item 'R2'
-#'         \item 'AUC'
-#'         \item 'Accuracy'
 #'         \item 'Precision'
 #'         \item 'Recall'
 #'         \item 'F1'
-#'         \item 'TotalF1'
+#'         \item 'BalancedAccuracy'
+#'         \item 'BalancedErrorRate'
 #'         \item 'MCC'
+#'         \item 'Accuracy'
+#'         \item 'CtrFactor'
+#'         \item 'AUC'
+#'         \item 'BrierScore'
+#'         \item 'HingeLoss'
+#'         \item 'HammingLoss'
+#'         \item 'ZeroOneLoss'
+#'         \item 'Kappa'
+#'         \item 'WKappa'
+#'         \item 'LogLikelihoodOfPrediction'
+#'         \item 'MultiClass'
+#'         \item 'MultiClassOneVsAll'
+#'         \item 'TotalF1'
+#'         \item 'MAE'
+#'         \item 'MAPE'
+#'         \item 'Poisson'
+#'         \item 'Quantile'
+#'         \item 'RMSE'
+#'         \item 'LogLinQuantile'
+#'         \item 'Lq'
+#'         \item 'NumErrors'
+#'         \item 'SMAPE'
+#'         \item 'R2'
+#'         \item 'MSLE'
+#'         \item 'MedianAbsoluteError'
+#'         \item 'PairLogit'
+#'         \item 'PairLogitPairwise'
 #'         \item 'PairAccuracy'
+#'         \item 'QueryCrossEntropy'
+#'         \item 'QueryRMSE'
+#'         \item 'QuerySoftMax'
+#'         \item 'PFound'
+#'         \item 'NDCG'
+#'         \item 'AverageGain'
+#'         \item 'PrecisionAt'
+#'         \item 'RecallAt'
+#'         \item 'MAP'
 #'       }
 #'
 #'       Supported parameters:
@@ -535,26 +563,49 @@ print.catboost.Pool <- function(x, ...) {
 #'       \itemize{
 #'         \item 'Logloss'
 #'         \item 'CrossEntropy'
-#'         \item 'RMSE'
-#'         \item 'MAE'
-#'         \item 'Quantile'
-#'         \item 'LogLinQuantile'
-#'         \item 'MAPE'
-#'         \item 'Poisson'
-#'         \item 'Lq'
-#'         \item 'QueryRMSE'
-#'         \item 'MultiClass'
-#'         \item 'MultiClassOneVsAll'
-#'         \item 'PairLogit'
-#'         \item 'R2'
-#'         \item 'AUC'
-#'         \item 'Accuracy'
 #'         \item 'Precision'
 #'         \item 'Recall'
 #'         \item 'F1'
-#'         \item 'TotalF1'
+#'         \item 'BalancedAccuracy'
+#'         \item 'BalancedErrorRate'
 #'         \item 'MCC'
+#'         \item 'Accuracy'
+#'         \item 'CtrFactor'
+#'         \item 'AUC'
+#'         \item 'BrierScore'
+#'         \item 'HingeLoss'
+#'         \item 'HammingLoss'
+#'         \item 'ZeroOneLoss'
+#'         \item 'Kappa'
+#'         \item 'WKappa'
+#'         \item 'LogLikelihoodOfPrediction'
+#'         \item 'MultiClass'
+#'         \item 'MultiClassOneVsAll'
+#'         \item 'TotalF1'
+#'         \item 'MAE'
+#'         \item 'MAPE'
+#'         \item 'Poisson'
+#'         \item 'Quantile'
+#'         \item 'RMSE'
+#'         \item 'LogLinQuantile'
+#'         \item 'Lq'
+#'         \item 'NumErrors'
+#'         \item 'SMAPE'
+#'         \item 'R2'
+#'         \item 'MSLE'
+#'         \item 'MedianAbsoluteError'
+#'         \item 'PairLogit'
+#'         \item 'PairLogitPairwise'
 #'         \item 'PairAccuracy'
+#'         \item 'QueryCrossEntropy'
+#'         \item 'QueryRMSE'
+#'         \item 'QuerySoftMax'
+#'         \item 'PFound'
+#'         \item 'NDCG'
+#'         \item 'AverageGain'
+#'         \item 'PrecisionAt'
+#'         \item 'RecallAt'
+#'         \item 'MAP'
 #'       }
 #'
 #'       Format:
@@ -580,7 +631,7 @@ print.catboost.Pool <- function(x, ...) {
 #'
 #'       Default value:
 #'
-#'       500
+#'       1000
 #'
 #'     \item border
 #'
@@ -608,7 +659,7 @@ print.catboost.Pool <- function(x, ...) {
 #'
 #'       Depth of the tree.
 #'
-#'       The value can be any integer up to 32. It is recommended to use values in the range [1; 10].
+#'       The value can be any integer up to 16. It is recommended to use values in the range [1; 10].
 #'
 #'       Default value:
 #'
@@ -639,11 +690,11 @@ print.catboost.Pool <- function(x, ...) {
 #'
 #'       Default value:
 #'
-#'       A new random value is selected on each run
+#'       0
 #'
 #'    \item nan_mode
 #'
-#'       Way to process nan-values.
+#'       Way to process missing values.
 #'
 #'       Possible values:
 #'       \itemize{
@@ -714,6 +765,58 @@ print.catboost.Pool <- function(x, ...) {
 #'
 #'       Default value depends on the selected loss function
 #'
+#'     \item grow_policy
+#'
+#'       GPU only. The tree growing policy. It describes how to perform greedy tree construction.
+#'
+#'       Possible values:
+#'       \itemize{
+#'         \item SymmetricTree
+#'         \item Lossguide
+#'         \item Depthwise
+#'       }
+#'
+#'       Default value:
+#'
+#'       SymmetricTree
+#'
+#'     \item min_data_in_leaf
+#'
+#'       GPU only.
+#'       The minimum training samples count in leaf.
+#'       CatBoost will not search for new splits in leaves with samples count less than min_data_in_leaf.
+#'       This parameter is used only for Depthwise and Lossguide growing policies.
+#'
+#'       Default value:
+#'
+#'       1
+#'
+#'     \item max_leaves
+#'
+#'       GPU only. The maximum leaf count in resulting tree. Used only for Lossguide growing policy.
+#'       This parameter is used only for Lossguide growing policy.
+#'
+#'       Default value:
+#'
+#'       31
+#'
+#'     \item score_function
+#'       GPU only. Score that is used during tree construction to select the next tree split.
+#'
+#'       Possible values:
+#'       \itemize{
+#'         \item L2
+#'         \item Correlation
+#'         \item NewtonL2
+#'         \item NewtonCorrelation
+#'       }
+#'
+#'       Default value:
+#'
+#'       Correlation
+#'
+#'       For growing policy Lossguide default is NewtonL2.
+#'
 #'     \item l2_leaf_reg
 #'
 #'       L2 regularization coefficient. Used for leaf value calculation.
@@ -737,13 +840,12 @@ print.catboost.Pool <- function(x, ...) {
 #'
 #'     \item has_time
 #'
-#'       Use the order of objects in the input data (do not perform random permutations during the
-#'       Transforming categorical features to numerical features (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/algorithm-main-stages_cat-to-numberic-docpage/#algorithm-main-stages_cat-to-numberic})
-#'       and Choosing the tree structure (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/algorithm-main-stages_choose-tree-structure-docpage/#algorithm-main-stages_choose-tree-structure}) stages).
-#'
+#'       Use the order of objects in the input data 
+#'       (do not perform a random permutation of the dataset at the preprocessing stage)
+#' 
 #'       Default value:
 #'
-#'       FALSE (not used; generate random permutations)
+#'       FALSE (not used; permute input dataset)
 #'
 #'     \item allow_const_label
 #'
@@ -843,8 +945,12 @@ print.catboost.Pool <- function(x, ...) {
 #'       \itemize{
 #'         \item 'Bayesian'
 #'         \item 'Bernoulli'
+#'         \item 'Poisson'
+#'         \item 'MVS'
 #'         \item 'No'
 #'       }
+#' 
+#'       Poisson bootstrap is supported only on GPU.
 #'
 #'       Default value:
 #'
@@ -1107,7 +1213,8 @@ print.catboost.Pool <- function(x, ...) {
 #'
 #'       Default value:
 #'
-#'       32
+#'       254 for training on CPU or 128 for training on GPU
+#' 
 #'     \item feature_border_type
 #'
 #'       The binarization mode (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/binarization-docpage/#binarization})
@@ -1137,7 +1244,7 @@ print.catboost.Pool <- function(x, ...) {
 #'
 #'       Default value:
 #'
-#'       The number of cores.
+#'       The number of CPU cores.
 #'   }
 #'   \item Output settings
 #'   \itemize{
@@ -1196,7 +1303,7 @@ print.catboost.Pool <- function(x, ...) {
 #'
 #'   \item snapshot_interval
 #'
-#'       Interval beetween saving snapshots (seconds)
+#'       Interval between saving snapshots (seconds)
 #'
 #'       Default value:
 #'
@@ -1241,7 +1348,25 @@ print.catboost.Pool <- function(x, ...) {
 #'       Default value:
 #'
 #'       5000000
+#' 
+#'   \item dev_efb_max_buckets
 #'
+#'       CPU only. Maximum bucket count in exclusive features bundle. Should be in an integer between 0 and 65536. 
+#'       Used only for learning speed tuning.
+#'       
+#'       Default value:
+#'
+#'       1024
+#' 
+#'   \item efb_max_conflict_fraction
+#' 
+#'      CPU only. Maximum allowed fraction of conflicting non-default values for features in exclusive features bundle.
+#'      Should be a real value in [0, 1) interval.
+#' 
+#'      Default value:
+#' 
+#'      0.0
+#' 
 #'    \item leaf_estimation_backtracking
 #'
 #'        Type of backtracking during gradient descent.
@@ -1310,11 +1435,11 @@ catboost.train <- function(learn_pool, test_pool = NULL, params = list()) {
 
 #' Cross-validate model.
 #'
-#' @param pool Data to cross-validatte
+#' @param pool Data to cross-validate on
 #' @param params Parameters for catboost.train
 #' @param fold_count Folds count.
 #' @param inverted Train on the test fold and evaluate the model on the training folds.
-#' @param partition_random_seed The random seed used for splittng pool into folds.
+#' @param partition_random_seed The random seed used for splitting pool into folds.
 #' @param shuffle Shuffle the dataset objects before splitting into folds.
 #' @param stratified Perform stratified sampling.
 #' @param early_stopping_rounds Activates Iter overfitting detector with od_wait set to early_stopping_rounds.
@@ -1412,13 +1537,13 @@ catboost.save_model <- function(model, model_path) {
 #' }
 #'
 #' Default value: 'RawFormulaVal'
-#' @param ntree_start Model is applyed on the interval [ntree_start, ntree_end) (zero-based indexing).
+#' @param ntree_start Model is applied on the interval [ntree_start, ntree_end) (zero-based indexing).
 #'
 #' Default value: 0
-#' @param ntree_end Model is applyed on the interval [ntree_start, ntree_end) (zero-based indexing).
+#' @param ntree_end Model is applied on the interval [ntree_start, ntree_end) (zero-based indexing).
 #'
 #' Default value: 0 (if value equals to 0 this parameter is ignored and ntree_end equal to tree_count)
-#' @param thread_count The number of threads to use when applying the model. If -1, then the number of threads is set to the number of cores.
+#' @param thread_count The number of threads to use when applying the model. If -1, then the number of threads is set to the number of CPU cores.
 #'
 #' Allows you to optimize the speed of execution. This parameter doesn't affect results.
 #'
@@ -1472,16 +1597,16 @@ catboost.predict <- function(model, pool,
 #' }
 #'
 #' Default value: 'RawFormulaVal'
-#' @param ntree_start Model is applyed on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
+#' @param ntree_start Model is applied on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
 #'
 #' Default value: 0
-#' @param ntree_end Model is applyed on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
+#' @param ntree_end Model is applied on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
 #'
 #' Default value: 0 (if value equals to 0 this parameter is ignored and ntree_end equal to tree_count)
-#' @param eval_period Model is applyed on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
+#' @param eval_period Model is applied on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
 #'
 #' Default value: 1
-#' @param thread_count The number of threads to use when applying the model. If -1, then the number of threads is set to the number of cores.
+#' @param thread_count The number of threads to use when applying the model. If -1, then the number of threads is set to the number of CPU cores.
 #'
 #' Allows you to optimize the speed of execution. This parameter doesn't affect results.
 #'
@@ -1564,7 +1689,7 @@ catboost.staged_predict <- function(model, pool, verbose = FALSE, prediction_typ
 #' }
 #'
 #' Default value: 'FeatureImportance'
-#' @param thread_count The number of threads to use when applying the model. If -1, then the number of threads is set to the number of cores.
+#' @param thread_count The number of threads to use when applying the model. If -1, then the number of threads is set to the number of CPU cores.
 #'
 #' Allows you to optimize the speed of execution. This parameter doesn't affect results.
 #'
@@ -1616,7 +1741,7 @@ catboost.get_feature_importance <- function(model, pool = NULL, type = "FeatureI
 #' @param pool The pool for which you want to evaluate the object importances.
 #'
 #' Default value: Required argument
-#' @param train_pool The pool on which the model was trained.
+#' @param train_pool The pool on which the model has been trained.
 #'
 #' Default value: Required argument
 #' @param top_size Method returns the result of the top_size most important train objects. If -1, then the top size is not limited.
@@ -1647,7 +1772,7 @@ catboost.get_feature_importance <- function(model, pool = NULL, type = "FeatureI
 #' }
 #'
 #' Default value: 'SinglePoint'
-#' @param thread_count The number of threads to use when applying the model. If -1, then the number of threads is set to the number of cores.
+#' @param thread_count The number of threads to use when applying the model. If -1, then the number of threads is set to the number of CPU cores.
 #'
 #' Allows you to optimize the speed of execution. This parameter doesn't affect results.
 #'

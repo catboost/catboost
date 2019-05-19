@@ -1,23 +1,34 @@
 #pragma once
 
-#include "target_classifier.h"
-#include "projection.h"
 #include "custom_objective_descriptor.h"
+#include "projection.h"
+#include "target_classifier.h"
 
-#include <catboost/libs/data_new/features_layout.h>
 #include <catboost/libs/data_new/util.h>
-#include <catboost/libs/options/cat_feature_options.h>
 
 #include <util/generic/array_ref.h>
+#include <util/generic/map.h>
 
 
-//TODO(kirillovs, noxoomo): remove dirty hack. targetClassifier id = 0 is fake classifier for counter cause almost all catboost code needs target classes
+namespace NCatboostOptions {
+    class TCatFeatureParams;
+}
+
+namespace NCB {
+    class TFeaturesLayout;
+}
+
+
+/* TODO(kirillovs, noxoomo): remove dirty hack. targetClassifier id = 0 is fake classifier for counter
+ * cause almost all catboost code needs target classes
+ */
 struct TCtrInfo {
     ECtrType Type;
     ui32 BorderCount = 0;
     ui32 TargetClassifierIdx = -1;
     TVector<float> Priors;
 
+public:
     Y_SAVELOAD_DEFINE(Type, BorderCount, TargetClassifierIdx, Priors);
 };
 
@@ -32,12 +43,13 @@ inline int GetTargetBorderCount(const TCtrInfo& ctrInfo, ui32 targetClassesCount
 
 class TCtrHelper {
 public:
-    void InitCtrHelper(const NCatboostOptions::TCatFeatureParams& catFeatureParams,
-                       const NCB::TFeaturesLayout& layout,
-                       NCB::TMaybeData<TConstArrayRef<float>> target,
-                       ELossFunction loss,
-                       const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
-                       bool allowConstLabel);
+    void InitCtrHelper(
+        const NCatboostOptions::TCatFeatureParams& catFeatureParams,
+        const NCB::TFeaturesLayout& layout,
+        NCB::TMaybeData<TConstArrayRef<float>> target,
+        ELossFunction loss,
+        const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
+        bool allowConstLabel);
 
     const TVector<TCtrInfo>& GetCtrInfo(const TProjection& projection) const {
         if (projection.IsSingleCatFeature()) {

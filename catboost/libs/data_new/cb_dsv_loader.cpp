@@ -1,5 +1,5 @@
+#include "baseline.h"
 #include "cb_dsv_loader.h"
-#include "dsv_parser.h"
 
 #include <catboost/libs/column_description/cd_parser.h>
 #include <catboost/libs/data_util/exists_checker.h>
@@ -11,7 +11,6 @@
 #include <util/generic/strbuf.h>
 #include <util/generic/vector.h>
 #include <util/stream/file.h>
-#include <util/string/iterator.h>
 #include <util/string/split.h>
 #include <util/system/types.h>
 
@@ -32,11 +31,14 @@ namespace NCB {
         : TAsyncProcDataLoaderBase<TString>(std::move(args.CommonArgs))
         , FieldDelimiter(Args.PoolFormat.Delimiter)
         , LineDataReader(std::move(args.Reader))
+        , BaselineReader(Args.BaselineFilePath, args.CommonArgs.ClassNames)
     {
         CB_ENSURE(!Args.PairsFilePath.Inited() || CheckExists(Args.PairsFilePath),
                   "TCBDsvDataLoader:PairsFilePath does not exist");
         CB_ENSURE(!Args.GroupWeightsFilePath.Inited() || CheckExists(Args.GroupWeightsFilePath),
                   "TCBDsvDataLoader:GroupWeightsFilePath does not exist");
+        CB_ENSURE(!Args.BaselineFilePath.Inited() || CheckExists(Args.BaselineFilePath),
+                  "TCBDsvDataLoader:BaselineFilePathFilePath does not exist");
 
         TMaybe<TString> header = LineDataReader->GetHeader();
         TMaybe<TVector<TString>> headerColumns;
@@ -55,7 +57,9 @@ namespace NCB {
             std::move(columnsDescription),
             Args.GroupWeightsFilePath.Inited(),
             Args.PairsFilePath.Inited(),
-            &featureIds
+            BaselineReader.GetBaselineCount(),
+            &featureIds,
+            args.CommonArgs.ClassNames
         );
 
         AsyncRowProcessor.AddFirstLine(std::move(firstLine));
@@ -63,6 +67,9 @@ namespace NCB {
         ProcessIgnoredFeaturesList(Args.IgnoredFeatures, &DataMetaInfo, &FeatureIgnored);
 
         AsyncRowProcessor.ReadBlockAsync(GetReadFunc());
+        if (BaselineReader.Inited()) {
+            AsyncBaselineRowProcessor.ReadBlockAsync(GetReadBaselineFunc());
+        }
     }
 
     TVector<TColumn> TCBDsvDataLoader::CreateColumnsDescription(ui32 columnsCount) {
@@ -81,31 +88,150 @@ namespace NCB {
     void TCBDsvDataLoader::ProcessBlock(IRawObjectsOrderDataVisitor* visitor) {
         visitor->StartNextBlock(AsyncRowProcessor.GetParseBufferSize());
 
-        auto parseBlock = [&](TString& line, int inBlockIdx) {
-            const auto* const featuresLayout = DataMetaInfo.FeaturesLayout.Get();
+        auto& columnsDescription = DataMetaInfo.ColumnsInfo->Columns;
+
+        auto parseBlock = [&](TString& line, int lineIdx) {
+            const auto& featuresLayout = *DataMetaInfo.FeaturesLayout;
+
+            ui32 featureId = 0;
+            ui32 baselineIdx = 0;
 
             TVector<float> floatFeatures;
-            floatFeatures.yresize(featuresLayout->GetFloatFeatureCount());
+            floatFeatures.yresize(featuresLayout.GetFloatFeatureCount());
 
             TVector<ui32> catFeatures;
-            catFeatures.yresize(featuresLayout->GetCatFeatureCount());
+            catFeatures.yresize(featuresLayout.GetCatFeatureCount());
 
-            TDsvLineParser parser(
-                FieldDelimiter,
-                DataMetaInfo.ColumnsInfo->Columns,
-                FeatureIgnored,
-                featuresLayout,
-                floatFeatures,
-                catFeatures,
-                visitor);
+            TVector<TString> textFeatures;
+            textFeatures.yresize(featuresLayout.GetTextFeatureCount());
 
-            if (const auto errCtx = parser.Parse(line, inBlockIdx)) {
-                const auto lineIdx = AsyncRowProcessor.GetLinesProcessed() + inBlockIdx + 1;
-                ythrow TDsvLineParser::MakeException(errCtx.GetRef()) << "; " << LabeledOutput(lineIdx);
+            size_t tokenCount = 0;
+            TVector<TStringBuf> tokens = StringSplitter(line).Split(FieldDelimiter);
+            try {
+                for (const auto& token : tokens) {
+                    try {
+                        switch (columnsDescription[tokenCount].Type) {
+                            case EColumn::Categ: {
+                                if (!FeatureIgnored[featureId]) {
+                                    const ui32 catFeatureIdx = featuresLayout.GetInternalFeatureIdx(featureId);
+                                    catFeatures[catFeatureIdx] = visitor->GetCatFeatureValue(featureId, token);
+                                }
+                                ++featureId;
+                                break;
+                            }
+                            case EColumn::Num: {
+                                if (!FeatureIgnored[featureId]) {
+                                    if (!TryParseFloatFeatureValue(
+                                            token,
+                                            &floatFeatures[featuresLayout.GetInternalFeatureIdx(featureId)]
+                                         ))
+                                    {
+                                        CB_ENSURE(
+                                            false,
+                                            "Factor " << featureId << " cannot be parsed as float."
+                                            " Try correcting column description file."
+                                        );
+                                    }
+                                }
+                                ++featureId;
+                                break;
+                            }
+                            case EColumn::Text: {
+                                if (!FeatureIgnored[featureId]) {
+                                    const ui32 textFeatureIdx = featuresLayout.GetInternalFeatureIdx(featureId);
+                                    textFeatures[textFeatureIdx] = TString(token);
+                                }
+                                ++featureId;
+                                break;
+                            }
+                            case EColumn::Label: {
+                                CB_ENSURE(token.length() != 0, "empty values not supported for Label");
+                                visitor->AddTarget(lineIdx, TString(token));
+                                break;
+                            }
+                            case EColumn::Weight: {
+                                CB_ENSURE(token.length() != 0, "empty values not supported for weight");
+                                visitor->AddWeight(lineIdx, FromString<float>(token));
+                                break;
+                            }
+                            case EColumn::Auxiliary: {
+                                break;
+                            }
+                            case EColumn::GroupId: {
+                                CB_ENSURE(token.length() != 0, "empty values not supported for GroupId");
+                                visitor->AddGroupId(lineIdx, CalcGroupIdFor(token));
+                                break;
+                            }
+                            case EColumn::GroupWeight: {
+                                CB_ENSURE(token.length() != 0, "empty values not supported for GroupWeight");
+                                visitor->AddGroupWeight(lineIdx, FromString<float>(token));
+                                break;
+                            }
+                            case EColumn::SubgroupId: {
+                                CB_ENSURE(token.length() != 0, "empty values not supported for SubgroupId");
+                                visitor->AddSubgroupId(lineIdx, CalcSubgroupIdFor(token));
+                                break;
+                            }
+                            case EColumn::Baseline: {
+                                CB_ENSURE(token.length() != 0, "empty values not supported for Baseline");
+                                visitor->AddBaseline(lineIdx, baselineIdx, FromString<float>(token));
+                                ++baselineIdx;
+                                break;
+                            }
+                            case EColumn::SampleId: {
+                                break;
+                            }
+                            case EColumn::Timestamp: {
+                                CB_ENSURE(token.length() != 0, "empty values not supported for Timestamp");
+                                visitor->AddTimestamp(lineIdx, FromString<ui64>(token));
+                                break;
+                            }
+                            default: {
+                                CB_ENSURE(false, "wrong column type");
+                            }
+                        }
+                    } catch (yexception& e) {
+                        throw TCatBoostException() << "Column " << tokenCount << " (type "
+                            << columnsDescription[tokenCount].Type << ", value = \"" << token
+                            << "\"): " << e.what();
+                    }
+                    ++tokenCount;
+                }
+                if (!floatFeatures.empty()) {
+                    visitor->AddAllFloatFeatures(lineIdx, floatFeatures);
+                }
+                if (!catFeatures.empty()) {
+                    visitor->AddAllCatFeatures(lineIdx, catFeatures);
+                }
+                if (!textFeatures.empty()) {
+                    visitor->AddAllTextFeatures(lineIdx, textFeatures);
+                }
+                CB_ENSURE(
+                    tokenCount == columnsDescription.size(),
+                    "wrong columns number: expected " << columnsDescription.ysize()
+                    << ", found " << tokenCount
+                );
+            } catch (yexception& e) {
+                throw TCatBoostException() << "Error in dsv data. Line " <<
+                    AsyncRowProcessor.GetLinesProcessed() + lineIdx + 1 << ": " << e.what();
             }
         };
 
         AsyncRowProcessor.ProcessBlock(parseBlock);
+
+        if (BaselineReader.Inited()) {
+            auto parseBaselineBlock = [&](TString &line, int inBlockIdx) {
+
+                auto addBaselineFunc = [&visitor, inBlockIdx](ui32 baselineIdx, float baseline) {
+                    visitor->AddBaseline(inBlockIdx, baselineIdx, baseline);
+                };
+                const auto lineIdx = AsyncBaselineRowProcessor.GetLinesProcessed() + inBlockIdx + 1;
+
+                BaselineReader.Parse(addBaselineFunc, line, lineIdx);
+            };
+
+            AsyncBaselineRowProcessor.ProcessBlock(parseBaselineBlock);
+        }
     }
 
     namespace {

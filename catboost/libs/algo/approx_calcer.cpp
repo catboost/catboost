@@ -2,20 +2,25 @@
 #include "approx_calcer_helpers.h"
 #include "approx_calcer_multi.h"
 #include "approx_calcer_querywise.h"
+#include "error_functions.h"
 #include "fold.h"
-#include "score_calcer.h"
 #include "index_calcer.h"
 #include "learn_context.h"
-#include "error_functions.h"
-#include "yetirank_helpers.h"
 #include "pairwise_leaves_calculation.h"
+#include "score_calcer.h"
+#include "split.h"
+#include "yetirank_helpers.h"
 
 #include <catboost/libs/data_new/data_provider.h>
 #include <catboost/libs/logging/logging.h>
 #include <catboost/libs/logging/profile_info.h>
+#include <catboost/libs/options/catboost_options.h>
 #include <catboost/libs/options/enum_helpers.h>
 
+#include <library/threading/local_executor/local_executor.h>
+
 #include <util/generic/ymath.h>
+
 
 template <bool StoreExpApprox, int VectorWidth>
 inline void UpdateApproxKernel(const double* leafDeltas, const TIndexType* indices, double* deltasDimension) {
@@ -76,13 +81,35 @@ void UpdateApproxDeltas(
     blockParams.SetBlockSize(1000);
 
     if (storeExpApprox) {
-        localExecutor->ExecRange([=] (int blockIdx) {
-            UpdateApproxBlock</*StoreExpApprox*/ true>(blockParams, leafDeltasData, indicesData, blockIdx, deltasDimensionData);
-        }, 0, blockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
+        localExecutor->ExecRange(
+            [=] (int blockIdx) {
+                UpdateApproxBlock</*StoreExpApprox*/ true>(
+                    blockParams,
+                    leafDeltasData,
+                    indicesData,
+                    blockIdx,
+                    deltasDimensionData
+                );
+            },
+            0,
+            blockParams.GetBlockCount(),
+            NPar::TLocalExecutor::WAIT_COMPLETE
+        );
     } else {
-        localExecutor->ExecRange([=] (int blockIdx) {
-            UpdateApproxBlock</*StoreExpApprox*/ false>(blockParams, leafDeltasData, indicesData, blockIdx, deltasDimensionData);
-        }, 0, blockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
+        localExecutor->ExecRange(
+            [=] (int blockIdx) {
+                UpdateApproxBlock</*StoreExpApprox*/ false>(
+                    blockParams,
+                    leafDeltasData,
+                    indicesData,
+                    blockIdx,
+                    deltasDimensionData
+                );
+            },
+            0,
+            blockParams.GetBlockCount(),
+            NPar::TLocalExecutor::WAIT_COMPLETE
+        );
     }
 }
 
@@ -99,19 +126,25 @@ static void CalcApproxDers(
 ) {
     NPar::TLocalExecutor::TExecRangeParams blockParams(sampleStart, sampleFinish);
     blockParams.SetBlockSize(APPROX_BLOCK_SIZE);
-    ctx->LocalExecutor->ExecRange([&](int blockId) {
-        const int blockOffset = sampleStart + blockId * blockParams.GetBlockSize(); // espetrov: OK for small datasets
-        error.CalcDersRange(
-            blockOffset,
-            Min(blockParams.GetBlockSize(), sampleFinish - blockOffset),
-            /*calcThirdDer=*/false,
-            approxes.data(),
-            approxesDelta.data(),
-            targets.data(),
-            weights.data(),
-            approxDers.data() - sampleStart
-        );
-    }, 0, blockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
+    ctx->LocalExecutor->ExecRangeWithThrow(
+        [&](int blockId) {
+            // espetrov: OK for small datasets
+            const int blockOffset = sampleStart + blockId * blockParams.GetBlockSize();
+            error.CalcDersRange(
+                blockOffset,
+                Min(blockParams.GetBlockSize(), sampleFinish - blockOffset),
+                /*calcThirdDer=*/false,
+                approxes.data(),
+                approxesDelta.data(),
+                targets.data(),
+                weights.data(),
+                approxDers.data() - sampleStart
+            );
+        },
+        0,
+        blockParams.GetBlockCount(),
+        NPar::TLocalExecutor::WAIT_COMPLETE
+    );
 }
 
 template <bool UseWeights>
@@ -151,42 +184,73 @@ static void CalcLeafDers(
     blockParams.SetBlockCount(CB_THREAD_LIMIT);
 
     const int leafCount = leafDers.size();
-    TVector<TVector<TDers>> blockBucketDers(blockParams.GetBlockCount(), TVector<TDers>(leafCount, TDers{/*Der1*/0.0, /*Der2*/0.0, /*Der3*/0.0}));
+    TVector<TVector<TDers>> blockBucketDers(
+        blockParams.GetBlockCount(),
+        TVector<TDers>(leafCount, TDers{/*Der1*/0.0, /*Der2*/0.0, /*Der3*/0.0})
+    );
     TVector<TDers>* blockBucketDersData = blockBucketDers.data();
     // TODO(espetrov): Do not calculate sumWeights for Newton.
-    // TODO(espetrov): Calculate sumWeights only on first iteration for Gradient, because on next iteration it is the same.
+    // TODO(espetrov): Calculate sumWeights only on first iteration for Gradient, because on next iteration it
+    //  is the same.
     // Check speedup on flights dataset.
     TVector<TVector<double>> blockBucketSumWeights(blockParams.GetBlockCount(), TVector<double>(leafCount, 0));
     TVector<double>* blockBucketSumWeightsData = blockBucketSumWeights.data();
-    localExecutor->ExecRange([=, &error](int blockId) {
-        constexpr int innerBlockSize = APPROX_BLOCK_SIZE;
-        const auto approxDers = MakeArrayRef(weightedDers.data() + innerBlockSize * blockId, innerBlockSize);
-
-        const int blockStart = blockId * blockParams.GetBlockSize();
-        const int nextBlockStart = Min(sampleCount, blockStart + blockParams.GetBlockSize());
-
-        const auto bucketDers = MakeArrayRef(blockBucketDersData[blockId].data(), leafCount);
-        const auto bucketSumWeights = MakeArrayRef(blockBucketSumWeightsData[blockId].data(), leafCount);
-
-        for (int innerBlockStart = blockStart; innerBlockStart < nextBlockStart; innerBlockStart += innerBlockSize) {
-            const int innerCount = Min(nextBlockStart - innerBlockStart, innerBlockSize);
-            error.CalcDersRange(
-                innerBlockStart,
-                innerCount,
-                /*calcThirdDer=*/false,
-                approxes.data(),
-                approxesDelta.data(),
-                targets.data(),
-                weights.data(),
-                approxDers.data() - innerBlockStart
+    localExecutor->ExecRangeWithThrow(
+        [=, &error](int blockId) {
+            constexpr int innerBlockSize = APPROX_BLOCK_SIZE;
+            const auto approxDers = MakeArrayRef(
+                weightedDers.data() + innerBlockSize * blockId,
+                innerBlockSize
             );
-            if (weights.empty()) {
-                CalcLeafDersImpl<false>(innerBlockStart, innerCount, indices, weights, approxDers, bucketDers, bucketSumWeights);
-            } else {
-                CalcLeafDersImpl<true>(innerBlockStart, innerCount, indices, weights, approxDers, bucketDers, bucketSumWeights);
+
+            const int blockStart = blockId * blockParams.GetBlockSize();
+            const int nextBlockStart = Min(sampleCount, blockStart + blockParams.GetBlockSize());
+
+            const auto bucketDers = MakeArrayRef(blockBucketDersData[blockId].data(), leafCount);
+            const auto bucketSumWeights = MakeArrayRef(blockBucketSumWeightsData[blockId].data(), leafCount);
+
+            for (int innerBlockStart = blockStart;
+                 innerBlockStart < nextBlockStart;
+                 innerBlockStart += innerBlockSize
+            ) {
+                const int innerCount = Min(nextBlockStart - innerBlockStart, innerBlockSize);
+                error.CalcDersRange(
+                    innerBlockStart,
+                    innerCount,
+                    /*calcThirdDer=*/false,
+                    approxes.data(),
+                    approxesDelta.data(),
+                    targets.data(),
+                    weights.data(),
+                    approxDers.data() - innerBlockStart
+                );
+                if (weights.empty()) {
+                    CalcLeafDersImpl<false>(
+                        innerBlockStart,
+                        innerCount,
+                        indices,
+                        weights,
+                        approxDers,
+                        bucketDers,
+                        bucketSumWeights
+                    );
+                } else {
+                    CalcLeafDersImpl<true>(
+                        innerBlockStart,
+                        innerCount,
+                        indices,
+                        weights,
+                        approxDers,
+                        bucketDers,
+                        bucketSumWeights
+                    );
+                }
             }
-        }
-    }, 0, blockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
+        },
+        0,
+        blockParams.GetBlockCount(),
+        NPar::TLocalExecutor::WAIT_COMPLETE
+    );
 
     if (estimationMethod == ELeavesEstimation::Newton) {
         for (int leafId = 0; leafId < leafCount; ++leafId) {
@@ -252,16 +316,33 @@ void CalcLeafDersSimple(
             *scratchDers
         );
     } else {
-        Y_ASSERT(error.GetErrorType() == EErrorType::QuerywiseError || error.GetErrorType() == EErrorType::PairwiseError);
+        Y_ASSERT(
+            error.GetErrorType() == EErrorType::QuerywiseError ||
+            error.GetErrorType() == EErrorType::PairwiseError
+        );
 
         TVector<TQueryInfo> recalculatedQueriesInfo;
         TVector<float> recalculatedPairwiseWeights;
-        const bool shouldGenerateYetiRankPairs = ShouldGenerateYetiRankPairs(params.LossFunctionDescription->GetLossFunction());
+        const bool shouldGenerateYetiRankPairs = IsYetiRankLossFunction(
+            params.LossFunctionDescription->GetLossFunction()
+        );
         if (shouldGenerateYetiRankPairs) {
-            YetiRankRecalculation(fold, bt, params, randomSeed, localExecutor, &recalculatedQueriesInfo, &recalculatedPairwiseWeights);
+            YetiRankRecalculation(
+                fold,
+                bt,
+                params,
+                randomSeed,
+                localExecutor,
+                &recalculatedQueriesInfo,
+                &recalculatedPairwiseWeights
+            );
         }
-        const TVector<TQueryInfo>& queriesInfo = shouldGenerateYetiRankPairs ? recalculatedQueriesInfo : fold.LearnQueriesInfo;
-        const TVector<float>& weights = bt.PairwiseWeights.empty() ? fold.GetLearnWeights() : shouldGenerateYetiRankPairs ? recalculatedPairwiseWeights : bt.PairwiseWeights;
+        const TVector<TQueryInfo>& queriesInfo
+            = shouldGenerateYetiRankPairs ? recalculatedQueriesInfo : fold.LearnQueriesInfo;
+        const TVector<float>& weights
+            = bt.PairwiseWeights.empty() ?
+                fold.GetLearnWeights() :
+                shouldGenerateYetiRankPairs ? recalculatedPairwiseWeights : bt.PairwiseWeights;
 
         CalculateDersForQueries(
             approxes,
@@ -273,6 +354,7 @@ void CalcLeafDersSimple(
             /*queryStartIndex=*/0,
             queryCount,
             *scratchDers,
+            randomSeed,
             localExecutor
         );
         AddLeafDersForQueries(
@@ -289,7 +371,13 @@ void CalcLeafDersSimple(
         );
         if (IsPairwiseScoring(params.LossFunctionDescription->GetLossFunction())) {
             const int leafCount = leafDers->ysize();
-            *pairwiseBuckets = ComputePairwiseWeightSums(queriesInfo, leafCount, queryCount, indices, localExecutor);
+            *pairwiseBuckets = ComputePairwiseWeightSums(
+                queriesInfo,
+                leafCount,
+                queryCount,
+                indices,
+                localExecutor
+            );
         }
     }
 }
@@ -310,7 +398,12 @@ void CalcLeafDeltasSimple(
         for (int leaf = 0; leaf < leafCount; ++leaf) {
             derSums[leaf] = leafDers[leaf].SumDer;
         }
-        *leafDeltas = CalculatePairwiseLeafValues(pairwiseWeightSums, derSums, l2Regularizer, pairwiseNonDiagReg);
+        *leafDeltas = CalculatePairwiseLeafValues(
+            pairwiseWeightSums,
+            derSums,
+            l2Regularizer,
+            pairwiseNonDiagReg
+        );
         return;
     }
 
@@ -318,12 +411,22 @@ void CalcLeafDeltasSimple(
     const ELeavesEstimation estimationMethod = params.ObliviousTreeOptions->LeavesEstimationMethod;
     if (estimationMethod == ELeavesEstimation::Newton) {
         for (int leaf = 0; leaf < leafCount; ++leaf) {
-            (*leafDeltas)[leaf] = CalcMethodDelta<ELeavesEstimation::Newton>(leafDers[leaf], l2Regularizer, sumAllWeights, allDocCount);
+            (*leafDeltas)[leaf] = CalcMethodDelta<ELeavesEstimation::Newton>(
+                leafDers[leaf],
+                l2Regularizer,
+                sumAllWeights,
+                allDocCount
+            );
         }
     } else {
         Y_ASSERT(estimationMethod == ELeavesEstimation::Gradient);
         for (int leaf = 0; leaf < leafCount; ++leaf) {
-            (*leafDeltas)[leaf] = CalcMethodDelta<ELeavesEstimation::Gradient>(leafDers[leaf], l2Regularizer, sumAllWeights, allDocCount);
+            (*leafDeltas)[leaf] = CalcMethodDelta<ELeavesEstimation::Gradient>(
+                leafDers[leaf],
+                l2Regularizer,
+                sumAllWeights,
+                allDocCount
+            );
         }
     }
 }
@@ -362,21 +465,53 @@ static void UpdateApproxDeltasHistoricallyImpl(
     Y_ASSERT(estimationMethod == ELeavesEstimation::Gradient || estimationMethod == ELeavesEstimation::Newton);
     switch (encodeParams(estimationMethod, useExpApprox, !weights.empty())) {
         case encodeParams(ELeavesEstimation::Gradient, false, false):
-            return impl(std::integral_constant<ELeavesEstimation, ELeavesEstimation::Gradient>(), std::false_type(), std::false_type());
+            return impl(
+                std::integral_constant<ELeavesEstimation, ELeavesEstimation::Gradient>(),
+                std::false_type(),
+                std::false_type()
+            );
         case encodeParams(ELeavesEstimation::Gradient, false, true):
-            return impl(std::integral_constant<ELeavesEstimation, ELeavesEstimation::Gradient>(), std::false_type(), std::true_type());
+            return impl(
+                std::integral_constant<ELeavesEstimation, ELeavesEstimation::Gradient>(),
+                std::false_type(),
+                std::true_type()
+            );
         case encodeParams(ELeavesEstimation::Gradient, true, false):
-            return impl(std::integral_constant<ELeavesEstimation, ELeavesEstimation::Gradient>(), std::true_type(), std::false_type());
+            return impl(
+                std::integral_constant<ELeavesEstimation, ELeavesEstimation::Gradient>(),
+                std::true_type(),
+                std::false_type()
+            );
         case encodeParams(ELeavesEstimation::Gradient, true, true):
-            return impl(std::integral_constant<ELeavesEstimation, ELeavesEstimation::Gradient>(), std::true_type(), std::true_type());
+            return impl(
+                std::integral_constant<ELeavesEstimation, ELeavesEstimation::Gradient>(),
+                std::true_type(),
+                std::true_type()
+            );
         case encodeParams(ELeavesEstimation::Newton, false, false):
-            return impl(std::integral_constant<ELeavesEstimation, ELeavesEstimation::Newton>(), std::false_type(), std::false_type());
+            return impl(
+                std::integral_constant<ELeavesEstimation, ELeavesEstimation::Newton>(),
+                std::false_type(),
+                std::false_type()
+            );
         case encodeParams(ELeavesEstimation::Newton, false, true):
-            return impl(std::integral_constant<ELeavesEstimation, ELeavesEstimation::Newton>(), std::false_type(), std::true_type());
+            return impl(
+                std::integral_constant<ELeavesEstimation, ELeavesEstimation::Newton>(),
+                std::false_type(),
+                std::true_type()
+            );
         case encodeParams(ELeavesEstimation::Newton, true, false):
-            return impl(std::integral_constant<ELeavesEstimation, ELeavesEstimation::Newton>(), std::true_type(), std::false_type());
+            return impl(
+                std::integral_constant<ELeavesEstimation, ELeavesEstimation::Newton>(),
+                std::true_type(),
+                std::false_type()
+            );
         case encodeParams(ELeavesEstimation::Newton, true, true):
-            return impl(std::integral_constant<ELeavesEstimation, ELeavesEstimation::Newton>(), std::true_type(), std::true_type());
+            return impl(
+                std::integral_constant<ELeavesEstimation, ELeavesEstimation::Newton>(),
+                std::true_type(),
+                std::true_type()
+            );
     }
     Y_ASSERT(false);
 }
@@ -398,23 +533,75 @@ static void UpdateApproxDeltasHistorically(
 ) {
     TVector<TQueryInfo> recalculatedQueriesInfo;
     TVector<float> recalculatedPairwiseWeights;
-    const bool shouldGenerateYetiRankPairs = ShouldGenerateYetiRankPairs(params.LossFunctionDescription->GetLossFunction());
+    const bool shouldGenerateYetiRankPairs = IsYetiRankLossFunction(
+        params.LossFunctionDescription->GetLossFunction()
+    );
     if (shouldGenerateYetiRankPairs) {
-        YetiRankRecalculation(fold, bt, params, randomSeed, localExecutor, &recalculatedQueriesInfo, &recalculatedPairwiseWeights);
+        YetiRankRecalculation(
+            fold,
+            bt,
+            params,
+            randomSeed,
+            localExecutor,
+            &recalculatedQueriesInfo,
+            &recalculatedPairwiseWeights
+        );
     }
-    const TVector<TQueryInfo>& queriesInfo = shouldGenerateYetiRankPairs ? recalculatedQueriesInfo : fold.LearnQueriesInfo;
-    const TVector<float>& weights = bt.PairwiseWeights.empty() ? fold.GetLearnWeights() : shouldGenerateYetiRankPairs ? recalculatedPairwiseWeights : bt.PairwiseWeights;
+    const TVector<TQueryInfo>& queriesInfo
+        = shouldGenerateYetiRankPairs ? recalculatedQueriesInfo : fold.LearnQueriesInfo;
+    const TVector<float>& weights
+        = bt.PairwiseWeights.empty() ?
+            fold.GetLearnWeights() :
+            shouldGenerateYetiRankPairs ? recalculatedPairwiseWeights : bt.PairwiseWeights;
 
     if (error.GetErrorType() == EErrorType::PerObjectError) {
-        CalcApproxDers(bt.Approx[0], *approxDeltas, fold.LearnTarget, weights, error, bt.BodyFinish, bt.TailFinish, approxDers, ctx);
+        CalcApproxDers(
+            bt.Approx[0],
+            *approxDeltas,
+            fold.LearnTarget,
+            weights,
+            error,
+            bt.BodyFinish,
+            bt.TailFinish,
+            approxDers,
+            ctx
+        );
     } else {
-        Y_ASSERT(error.GetErrorType() == EErrorType::QuerywiseError || error.GetErrorType() == EErrorType::PairwiseError);
-        CalculateDersForQueries(bt.Approx[0], *approxDeltas, fold.LearnTarget, weights, queriesInfo, error, bt.BodyQueryFinish, bt.TailQueryFinish, approxDers, localExecutor);
+        Y_ASSERT(
+            error.GetErrorType() == EErrorType::QuerywiseError ||
+            error.GetErrorType() == EErrorType::PairwiseError
+        );
+        CalculateDersForQueries(
+            bt.Approx[0],
+            *approxDeltas,
+            fold.LearnTarget,
+            weights,
+            queriesInfo,
+            error,
+            bt.BodyQueryFinish,
+            bt.TailQueryFinish,
+            approxDers,
+            randomSeed,
+            localExecutor
+        );
     }
     const auto estimationMethod = ctx->Params.ObliviousTreeOptions->LeavesEstimationMethod;
     const auto start = bt.BodyFinish;
     const auto count = bt.TailFinish - bt.BodyFinish;
-    UpdateApproxDeltasHistoricallyImpl(start, count, indices, weights, approxDers, iterationIdx, l2Regularizer, bt.BodySumWeight, estimationMethod, error.GetIsExpApprox(), *leafDers, *approxDeltas);
+    UpdateApproxDeltasHistoricallyImpl(
+        start,
+        count,
+        indices,
+        weights,
+        approxDers,
+        iterationIdx,
+        l2Regularizer,
+        bt.BodySumWeight,
+        estimationMethod,
+        error.GetIsExpApprox(),
+        *leafDers,
+        *approxDeltas
+    );
 }
 
 template <typename TLeafUpdater, typename TApproxUpdater, typename TLossCalcer, typename TApproxCopier>
@@ -443,7 +630,10 @@ void GradientWalker(
     }
     TVector<TVector<double>> startPoint; // iteration scratch space
     double lossValue = calculateLoss(*point);
-    for (int iterationIdx = 0, bucketHistoryIdx = 0; iterationIdx < iterationCount; ++iterationIdx, ++bucketHistoryIdx) {
+    for (int iterationIdx = 0, bucketHistoryIdx = 0;
+         iterationIdx < iterationCount;
+         ++iterationIdx, ++bucketHistoryIdx)
+    {
         calculateStep(bucketHistoryIdx, *point, &step);
         copyPoint(*point, &startPoint);
         double scale = 1.0;
@@ -489,7 +679,9 @@ static void CalcApproxDeltaSimple(
 ) {
     const int scratchSize = Max(
         !ctx->Params.BoostingOptions->ApproxOnFullHistory ? 0 : bt.TailFinish - bt.BodyFinish,
-        error.GetErrorType() == EErrorType::PerObjectError ? APPROX_BLOCK_SIZE * CB_THREAD_LIMIT : bt.BodyFinish
+        error.GetErrorType() == EErrorType::PerObjectError ?
+            APPROX_BLOCK_SIZE * CB_THREAD_LIMIT :
+            bt.BodyFinish
     );
     TVector<TDers> weightedDers;
     weightedDers.yresize(scratchSize); // iteration scratch space
@@ -499,32 +691,95 @@ static void CalcApproxDeltaSimple(
     const auto estimationMethod = treeLearnerOptions.LeavesEstimationMethod;
     TVector<TSum> leafDers(leafCount, TSum()); // iteration scratch space
     TArray2D<double> pairwiseBuckets; // iteration scratch space
-    const auto leafUpdaterFunc = [&] (int bucketHistoryIdx, const TVector<TVector<double>>& approxDeltas, TVector<TVector<double>>* leafDeltas) {
+    const auto leafUpdaterFunc = [&] (
+        int bucketHistoryIdx,
+        const TVector<TVector<double>>& approxDeltas,
+        TVector<TVector<double>>* leafDeltas
+    ) {
         for (auto& leafDer : leafDers) {
             leafDer.SetZeroDers();
         }
-        CalcLeafDersSimple(indices, fold, bt, bt.Approx[0], approxDeltas[0], error, bt.BodyFinish, bt.BodyQueryFinish, bucketHistoryIdx, estimationMethod, ctx->Params, randomSeed, ctx->LocalExecutor, &leafDers, &pairwiseBuckets, &weightedDers);
-        CalcLeafDeltasSimple(leafDers, pairwiseBuckets, ctx->Params, bt.BodySumWeight, bt.BodyFinish, &(*leafDeltas)[0]);
+        CalcLeafDersSimple(
+            indices,
+            fold,
+            bt,
+            bt.Approx[0],
+            approxDeltas[0],
+            error,
+            bt.BodyFinish,
+            bt.BodyQueryFinish,
+            bucketHistoryIdx,
+            estimationMethod,
+            ctx->Params,
+            randomSeed,
+            ctx->LocalExecutor,
+            &leafDers,
+            &pairwiseBuckets,
+            &weightedDers
+        );
+        CalcLeafDeltasSimple(
+            leafDers,
+            pairwiseBuckets,
+            ctx->Params,
+            bt.BodySumWeight,
+            bt.BodyFinish,
+            &(*leafDeltas)[0]
+        );
     };
 
     const float l2Regularizer = treeLearnerOptions.L2Reg;
-    const auto approxUpdaterFunc = [&] (int bucketHistoryIdx, const TVector<TVector<double>>& leafDeltas, TVector<TVector<double>>* approxDeltas) {
+    const auto approxUpdaterFunc = [&] (
+        int bucketHistoryIdx,
+        const TVector<TVector<double>>& leafDeltas,
+        TVector<TVector<double>>* approxDeltas
+    ) {
         auto localLeafValues = leafDeltas;
         if (!ctx->Params.BoostingOptions->ApproxOnFullHistory) {
-            UpdateApproxDeltas(error.GetIsExpApprox(), indices, bt.TailFinish, ctx->LocalExecutor, &localLeafValues[0], &(*approxDeltas)[0]);
+            UpdateApproxDeltas(
+                error.GetIsExpApprox(),
+                indices,
+                bt.TailFinish,
+                ctx->LocalExecutor,
+                &localLeafValues[0],
+                &(*approxDeltas)[0]
+            );
         } else {
             Y_ASSERT(!IsPairwiseScoring(ctx->Params.LossFunctionDescription->GetLossFunction()));
-            UpdateApproxDeltas(error.GetIsExpApprox(), indices, bt.BodyFinish, ctx->LocalExecutor, &localLeafValues[0], &(*approxDeltas)[0]);
-            UpdateApproxDeltasHistorically(indices, fold, bt, error, bucketHistoryIdx, l2Regularizer, ctx->Params, randomSeed, ctx->LocalExecutor, ctx, &leafDers, &(*approxDeltas)[0], weightedDers);
+            UpdateApproxDeltas(
+                error.GetIsExpApprox(),
+                indices,
+                bt.BodyFinish,
+                ctx->LocalExecutor,
+                &localLeafValues[0],
+                &(*approxDeltas)[0]
+            );
+            UpdateApproxDeltasHistorically(
+                indices,
+                fold,
+                bt,
+                error,
+                bucketHistoryIdx,
+                l2Regularizer,
+                ctx->Params,
+                randomSeed,
+                ctx->LocalExecutor,
+                ctx,
+                &leafDers,
+                &(*approxDeltas)[0],
+                weightedDers
+            );
         }
     };
 
     const int dimensionCount = ctx->LearnProgress.ApproxDimension;
-    const bool isTrivialWalker = gradientIterations == 1 || ctx->Params.ObliviousTreeOptions->LeavesEstimationBacktrackingType == ELeavesEstimationStepBacktracking::No;
+    const bool isTrivialWalker
+        = gradientIterations == 1 ||
+            (ctx->Params.ObliviousTreeOptions->LeavesEstimationBacktrackingType ==
+                ELeavesEstimationStepBacktracking::No);
     TVector<THolder<IMetric>> lossFunction;
     double directionSign = 0;
     if (!isTrivialWalker) {
-        lossFunction = CreateMetricFromDescription(ctx->Params.LossFunctionDescription, dimensionCount);
+        lossFunction = CreateMetricFromDescription(ctx->Params.MetricOptions.Get().ObjectiveMetric, dimensionCount);
         directionSign = GetDirectionSign(lossFunction[0]);
     }
     const auto lossCalcerFunc = [&] (const TVector<TVector<double>>& approxDeltas) {
@@ -538,7 +793,8 @@ static void CalcApproxDeltaSimple(
             fold.GetLearnWeights(),
             bodyTailQueryInfo,
             lossFunction[0],
-            ctx->LocalExecutor);
+            ctx->LocalExecutor
+        );
         return directionSign * lossFunction[0]->GetFinalError(additiveStats);
     };
 
@@ -580,28 +836,73 @@ static void CalcLeafValuesSimple(
     auto& localExecutor = *ctx->LocalExecutor;
     const TFold::TBodyTail& bt = fold.BodyTailArr[0];
 
-    TVector<TVector<double>> approxes(1, TVector<double>(bt.Approx[0].begin(), bt.Approx[0].begin() + fold.GetLearnSampleCount())); // iteration scratch space
+    TVector<TVector<double>> approxes(
+        1,
+        TVector<double>(bt.Approx[0].begin(), bt.Approx[0].begin() + fold.GetLearnSampleCount())
+    ); // iteration scratch space
     TVector<TSum> leafDers(leafCount, TSum()); // iteration scratch space
     TArray2D<double> pairwiseBuckets; // iteration scratch space
-    const auto leafUpdaterFunc = [&] (int bucketHistoryIdx, const TVector<TVector<double>>& approxes, TVector<TVector<double>>* leafDeltas) {
+    const auto leafUpdaterFunc = [&] (
+        int bucketHistoryIdx,
+        const TVector<TVector<double>>& approxes,
+        TVector<TVector<double>>* leafDeltas
+    ) {
         for (auto& leafDer : leafDers) {
             leafDer.SetZeroDers();
         }
-        CalcLeafDersSimple(indices, fold, bt, approxes[0], /*approxDeltas*/ {}, error, fold.GetLearnSampleCount(), queryCount, bucketHistoryIdx, estimationMethod, ctx->Params, ctx->Rand.GenRand(), &localExecutor, &leafDers, &pairwiseBuckets, &weightedDers);
-        CalcLeafDeltasSimple(leafDers, pairwiseBuckets, ctx->Params, fold.GetSumWeight(), fold.GetLearnSampleCount(), &(*leafDeltas)[0]);
+        CalcLeafDersSimple(
+            indices,
+            fold,
+            bt,
+            approxes[0],
+            /*approxDeltas*/ {},
+            error,
+            fold.GetLearnSampleCount(),
+            queryCount,
+            bucketHistoryIdx,
+            estimationMethod,
+            ctx->Params,
+            ctx->Rand.GenRand(),
+            &localExecutor,
+            &leafDers,
+            &pairwiseBuckets,
+            &weightedDers
+        );
+        CalcLeafDeltasSimple(
+            leafDers,
+            pairwiseBuckets,
+            ctx->Params,
+            fold.GetSumWeight(),
+            fold.GetLearnSampleCount(),
+            &(*leafDeltas)[0]
+        );
     };
 
-    const auto approxUpdaterFunc = [&] (int /*bucketHistoryIdx*/, const TVector<TVector<double>>& leafDeltas, TVector<TVector<double>>* approxes) {
+    const auto approxUpdaterFunc = [&] (
+        int /*bucketHistoryIdx*/,
+        const TVector<TVector<double>>& leafDeltas,
+        TVector<TVector<double>>* approxes
+    ) {
         auto localLeafValues = leafDeltas;
-        UpdateApproxDeltas(error.GetIsExpApprox(), indices, fold.GetLearnSampleCount(), &localExecutor, &localLeafValues[0], &(*approxes)[0]);
+        UpdateApproxDeltas(
+            error.GetIsExpApprox(),
+            indices,
+            fold.GetLearnSampleCount(),
+            &localExecutor,
+            &localLeafValues[0],
+            &(*approxes)[0]
+        );
     };
 
     const int dimensionCount = ctx->LearnProgress.ApproxDimension;
-    const bool isTrivialWalker = gradientIterations == 1 || ctx->Params.ObliviousTreeOptions->LeavesEstimationBacktrackingType == ELeavesEstimationStepBacktracking::No;
+    const bool isTrivialWalker
+        = gradientIterations == 1 ||
+            (ctx->Params.ObliviousTreeOptions->LeavesEstimationBacktrackingType ==
+                ELeavesEstimationStepBacktracking::No);
     TVector<THolder<IMetric>> lossFunction;
     double directionSign = 0;
     if (!isTrivialWalker) {
-        lossFunction = CreateMetricFromDescription(ctx->Params.LossFunctionDescription, dimensionCount);
+        lossFunction = CreateMetricFromDescription(ctx->Params.MetricOptions->ObjectiveMetric, dimensionCount);
         directionSign = GetDirectionSign(lossFunction[0]);
     }
     const auto lossCalcerFunc = [&] (const TVector<TVector<double>>& approx) {
@@ -613,7 +914,8 @@ static void CalcLeafValuesSimple(
             fold.GetLearnWeights(),
             fold.LearnQueriesInfo,
             lossFunction[0],
-            &localExecutor);
+            &localExecutor
+        );
         return directionSign * lossFunction[0]->GetFinalError(additiveStats);
     };
 
@@ -674,21 +976,45 @@ void CalcApproxForLeafStruct(
         randomSeeds = GenRandUI64Vector(fold.BodyTailArr.ysize(), randomSeed);
     }
     approxesDelta->resize(fold.BodyTailArr.ysize());
-    ctx->LocalExecutor->ExecRange([&](int bodyTailId) {
-        const TFold::TBodyTail& bt = fold.BodyTailArr[bodyTailId];
-        TVector<TVector<double>>& approxDeltas = (*approxesDelta)[bodyTailId];
-        const double initValue = GetNeutralApprox(error.GetIsExpApprox());
-        if (approxDeltas.empty()) {
-            approxDeltas.assign(approxDimension, TVector<double>(bt.TailFinish, initValue));
-        } else {
-            for (auto& deltaDimension : approxDeltas) {
-                Fill(deltaDimension.begin(), deltaDimension.end(), initValue);
+    ctx->LocalExecutor->ExecRangeWithThrow(
+        [&](int bodyTailId) {
+            const TFold::TBodyTail& bt = fold.BodyTailArr[bodyTailId];
+            TVector<TVector<double>>& approxDeltas = (*approxesDelta)[bodyTailId];
+            const double initValue = GetNeutralApprox(error.GetIsExpApprox());
+            if (approxDeltas.empty()) {
+                approxDeltas.assign(approxDimension, TVector<double>(bt.TailFinish, initValue));
+            } else {
+                for (auto& deltaDimension : approxDeltas) {
+                    Fill(deltaDimension.begin(), deltaDimension.end(), initValue);
+                }
             }
-        }
-        if (approxDimension == 1) {
-            CalcApproxDeltaSimple(fold, bt, leafCount, error, indices, randomSeeds[bodyTailId], ctx, &approxDeltas, /*sumLeafDeltas*/ nullptr);
-        } else {
-            CalcApproxDeltaMulti(fold, bt, leafCount, error, indices, ctx, &approxDeltas, /*sumLeafDeltas*/ nullptr);
-        }
-    }, 0, fold.BodyTailArr.ysize(), NPar::TLocalExecutor::WAIT_COMPLETE);
+            if (approxDimension == 1) {
+                CalcApproxDeltaSimple(
+                    fold,
+                    bt,
+                    leafCount,
+                    error,
+                    indices,
+                    randomSeeds[bodyTailId],
+                    ctx,
+                    &approxDeltas,
+                    /*sumLeafDeltas*/ nullptr
+                );
+            } else {
+                CalcApproxDeltaMulti(
+                    fold,
+                    bt,
+                    leafCount,
+                    error,
+                    indices,
+                    ctx,
+                    &approxDeltas,
+                    /*sumLeafDeltas*/ nullptr
+                );
+            }
+        },
+        0,
+        fold.BodyTailArr.ysize(),
+        NPar::TLocalExecutor::WAIT_COMPLETE
+    );
 }

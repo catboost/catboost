@@ -184,146 +184,60 @@ namespace NCB {
         TVector<TConstArrayRef<float>> BaselineView; // [approxIdx][objectIdx]
     };
 
+    /*
+     * Processed target data is stored in hash maps to enable multiple variants of some data type to be
+     * available for different purposes
+     * (for example, it might be possible to compute metrics on several Targets simultaneously
+     *  or use compute metrics with different Weights)
+     *
+     * Data is stored with empty string key ("") by default.
+     *
+     * Data is stored in shared pointers (TIntrusivePtr is also a variant)
+     * because it can be shared between different keys
+     */
+    struct TProcessedTargetData {
+    public:
+        THashMap<TString, ui32> TargetsClassCount;
+        THashMap<TString, TSharedVector<float>> Targets;
+        THashMap<TString, TSharedWeights<float>> Weights;
+        THashMap<TString, TVector<TSharedVector<float>>> Baselines;
+        THashMap<TString, TSharedVector<TQueryInfo>> GroupInfos;
 
-    enum class ETargetType : ui32 {
-        BinClass,
-        MultiClass,
-        Regression,
-        GroupwiseRanking,
-        GroupPairwiseRanking,
-        Simple,
-        UserDefined
+    public:
+        bool operator==(const TProcessedTargetData& rhs) const;
+
+        void Check(const TObjectsGrouping& objectsGrouping) const;
+
+        void Load(IBinSaver* binSaver);
+        void Save(IBinSaver* binSaver) const;
     };
 
 
-    struct TTargetDataSpecification {
-    public:
-        ETargetType Type;
-
-        // more details about target data if needed, used to lookup proper target in TTargetDataProviders
-        TString Description;
-
-    public:
-        // for BinSaver
-        TTargetDataSpecification() = default;
-
-        explicit TTargetDataSpecification(ETargetType type, const TString& description = TString())
-            : Type(type)
-            , Description(description)
-        {}
-
-        bool operator==(const TTargetDataSpecification& rhs) const {
-            return (Type == rhs.Type) && (Description == rhs.Description);
+    template <class TData, class TMapType>
+    inline TMaybeData<TData> GetDataFromMap(const TMapType& map, const typename TMapType::key_type& key) {
+        const auto dataPtr = MapFindPtr(map, key);
+        if (dataPtr) {
+            return **dataPtr;
         }
-
-        SAVELOAD(Type, Description);
-    };
-
-}
-
-template <>
-struct THash<NCB::TTargetDataSpecification> {
-    inline size_t operator()(const NCB::TTargetDataSpecification& targetDataSpecification) const {
-        return MultiHash(targetDataSpecification.Type, targetDataSpecification.Description);
+        return Nothing();
     }
-};
-
-
-namespace NCB {
-
-    template <class TKey, class TSharedDataPtr>
-    using TTargetSingleTypeDataCache = THashMap<TKey, TSharedDataPtr>;
-
-    /*
-     * data is stored in shared pointers (TIntrusivePtr is also a variant)
-     * because it can be shared between several targets data providers
-     *
-     * for subset creation efficiency we had to somewhat violate incapsulation and store all shared data
-     * in mapping cache in order to create subsets only once for each shared data
-     *
-     * Subset creation works in 3 stages:
-     *
-     *   1) all data gathered from all data providers to keys in TSubsetTargetDataCache using calling
-     *       TTargetDataProvider::GetSourceDataForSubsetCreation
-     *   2) subsets for all cached data are created in parallel
-     *   3) all target data providers create subsets from cached subset mapping in TSubsetTargetDataCache
-     *       in TTargetDataProvider::GetSubset
-     *
-     *   GetSubsets below is the function that does all these stages
-     */
-
-    template <class TSharedDataPtr>
-    using TSrcToSubsetDataCache = TTargetSingleTypeDataCache<TSharedDataPtr, TSharedDataPtr>;
-
-    struct TSubsetTargetDataCache {
-        TSrcToSubsetDataCache<TSharedVector<float>> Targets;
-        TSrcToSubsetDataCache<TSharedWeights<float>> Weights;
-
-        // multidim baselines are stored as separate pointers for simplicity
-        TSrcToSubsetDataCache<TSharedVector<float>> Baselines;
-        TSrcToSubsetDataCache<TSharedVector<TQueryInfo>> GroupInfos;
-    };
-
-
-    /*
-     * Serialization using IBinSaver works as following (somewhat similar to subset creation):
-     *
-     * Save:
-     *  1) Collect mapping of unique data ids to data itself in TSerializationTargetDataCache.
-     *     Target data providers serialize with these data ids instead of actual data
-     *     to a temporary binSaver stream.
-     *  2) Save data in TSerializationTargetDataCache. Save binSaver stream with data providers
-     *     descriptions (created at stage 1) with ids after it.
-     *
-     *  Load:
-     *  1) Load data in TSerializationTargetDataCache.
-     *  2) Read data with data providers
-     *     descriptions with ids, create actual data providers, initializing with actual shared data loaded
-     *     from cache at stage 1.
-     *
-     */
-
-    // key value 0 is special - means this field is optional while serializing
-    template <class TSharedDataPtr>
-    using TSerializationTargetSingleTypeDataCache =
-        TTargetSingleTypeDataCache<ui64, TSharedDataPtr>;
-
-    struct TSerializationTargetDataCache {
-        TSerializationTargetSingleTypeDataCache<TSharedVector<float>> Targets;
-        TSerializationTargetSingleTypeDataCache<TSharedWeights<float>> Weights;
-
-        // multidim baselines are stored as separate pointers for simplicity
-        TSerializationTargetSingleTypeDataCache<TSharedVector<float>> Baselines;
-        TSerializationTargetSingleTypeDataCache<TSharedVector<TQueryInfo>> GroupInfos;
-
-    public:
-        SAVELOAD_WITH_SHARED(Targets, Weights, Baselines, GroupInfos)
-    };
 
 
     class TTargetDataProvider : public TThrRefBase {
     public:
-        TTargetDataProvider(TTargetDataSpecification&& specification, TObjectsGroupingPtr objectsGrouping)
-            : Specification(std::move(specification))
-            , ObjectsGrouping(std::move(objectsGrouping))
-        {}
-
-        bool operator==(const TTargetDataProvider& rhs) const {
-            return (Specification == rhs.Specification) && (*ObjectsGrouping == *rhs.ObjectsGrouping);
-        }
-
-        const TTargetDataSpecification& GetSpecification() const {
-            return Specification;
-        }
-
-        virtual void GetSourceDataForSubsetCreation(
-            TSubsetTargetDataCache* subsetTargetDataCache
-        ) const = 0;
-
-        virtual TIntrusivePtr<TTargetDataProvider> GetSubset(
+        TTargetDataProvider(
             TObjectsGroupingPtr objectsGrouping,
-            const TSubsetTargetDataCache& subsetTargetDataCache
-        ) const = 0;
+            TProcessedTargetData&& processedTargetData,
+
+            // skipCheck can be used to avoid repeated checking if we already know that data has been checked
+            bool skipCheck = false);
+
+        bool operator==(const TTargetDataProvider& rhs) const;
+
+        TIntrusivePtr<TTargetDataProvider> GetSubset(
+            const TObjectsGroupingSubset& objectsGroupingSubset,
+            NPar::TLocalExecutor* localExecutor
+        ) const;
 
 
         // just for convenience
@@ -335,27 +249,54 @@ namespace NCB {
             return ObjectsGrouping;
         }
 
+
+        // if Target with name does not contain classes returns Nothing()
+        TMaybeData<ui32> GetTargetClassCount(const TString& name = "") const {
+            auto* classCount = MapFindPtr(Data.TargetsClassCount, name);
+            return classCount ? TMaybeData<ui32>(*classCount) : Nothing();
+        }
+
+        // after preprocessing - enumerating labels if necessary, etc.
+        TMaybeData<TConstArrayRef<float>> GetTarget(const TString& name = "") const { // [objectIdx]
+            return GetDataFromMap<TConstArrayRef<float>>(Data.Targets, name);
+        }
+
+        // after preprocessing - adjusted for classes, group etc. weights
+        TMaybeData<TWeights<float>> GetWeights(const TString& name = "") const { // [objectIdx]
+            return GetDataFromMap<TWeights<float>>(Data.Weights, name);
+        }
+
+        TMaybeData<TBaselineArrayRef> GetBaseline(const TString& name = "") const { // [approxIdx][objectIdx]
+            const auto dataPtr = MapFindPtr(BaselineViews, name);
+            if (dataPtr) {
+                return TBaselineArrayRef(*dataPtr);
+            }
+            return Nothing();
+        }
+
+        TMaybeData<TConstArrayRef<TQueryInfo>> GetGroupInfo(const TString& name = "") const { // [objectIdx]
+            return GetDataFromMap<TConstArrayRef<TQueryInfo>>(Data.GroupInfos, name);
+        }
+
+
     protected:
         friend class TTargetSerialization;
 
     protected:
-        virtual void SaveWithCache(
-            IBinSaver* binSaver,
-            TSerializationTargetDataCache* cache
-        ) const = 0;
-
-        void SaveCommon(IBinSaver* binSaver) const {
-            SaveMulti(binSaver, Specification);
+        void SaveDataNonSharedPart(IBinSaver* binSaver) const {
+            Data.Save(binSaver);
         }
 
-    protected:
-        TTargetDataSpecification Specification;
+    private:
         TObjectsGroupingPtr ObjectsGrouping;
+        TProcessedTargetData Data;
+
+        // for returning from GetBaseline
+        // [approxIdx][objectIdx], can be empty
+        THashMap<TString, TVector<TConstArrayRef<float>>> BaselineViews;
     };
 
     using TTargetDataProviderPtr = TIntrusivePtr<TTargetDataProvider>;
-
-    using TTargetDataProviders = THashMap<TTargetDataSpecification, TTargetDataProviderPtr>;
 
 
     void GetGroupInfosSubset(
@@ -365,436 +306,27 @@ namespace NCB {
         TVector<TQueryInfo>* dstSubset
     );
 
-    TTargetDataProviders GetSubsets(
-        const TTargetDataProviders& srcTargetDataProviders,
-        const TObjectsGroupingSubset& objectsGroupingSubset,
-        NPar::TLocalExecutor* localExecutor
-    );
-
-
-    // skipCheck can be used to avoid repeated checking if we already know that data has been checked
-
-    class TBinClassTarget : public TTargetDataProvider {
-    public:
-        TBinClassTarget(
-            const TString& description,
-            TObjectsGroupingPtr objectsGrouping,
-            TSharedVector<float> target,
-            TSharedWeights<float> weights,
-            TSharedVector<float> baseline, // сan be nullptr if baseline not available
-            bool skipCheck = false
-        );
-
-        bool operator==(const TBinClassTarget& rhs) const {
-            return ((const TTargetDataProvider&)(*this) == (const TTargetDataProvider&)rhs) &&
-                (*Target == *rhs.Target) && (*Weights == *rhs.Weights) && (*Baseline == *rhs.Baseline);
-        }
-
-        void GetSourceDataForSubsetCreation(TSubsetTargetDataCache* subsetTargetDataCache) const override;
-
-        TTargetDataProviderPtr GetSubset(
-            TObjectsGroupingPtr objectsGrouping,
-            const TSubsetTargetDataCache& subsetTargetDataCache
-        ) const override;
-
-
-        // after preprocessing - enumerating labels if necessary, etc.
-        TMaybeData<TConstArrayRef<float>> GetTarget() const { // [objectIdx]
-            return Target ? TMaybeData<TConstArrayRef<float>>(*Target) : Nothing();
-        }
-
-        // after preprocessing - adjusted for classes, group etc. weights
-        const TWeights<float>& GetWeights() const { // [objectIdx]
-            return *Weights;
-        }
-
-        TMaybeData<TConstArrayRef<float>> GetBaseline() const { // [objectIdx], can be empty
-            return Baseline ? TMaybeData<TConstArrayRef<float>>(*Baseline) : Nothing();
-        }
-
-    protected:
-        friend class TTargetSerialization;
-
-    protected:
-        void SaveWithCache(IBinSaver* binSaver, TSerializationTargetDataCache* cache) const override;
-
-        static TBinClassTarget Load(
-            const TString& description,
-            TObjectsGroupingPtr objectsGrouping,
-            const TSerializationTargetDataCache& cache,
-            IBinSaver* binSaver
-        );
-
-    protected:
-        TSharedVector<float> Target; // [objectIdx]
-        TSharedWeights<float> Weights; // [objectIdx]
-        TSharedVector<float> Baseline; // [objectIdx], can be nullptr (means no Baseline)
-    };
-
-    class TMultiClassTarget : public TTargetDataProvider {
-    public:
-        TMultiClassTarget(
-            const TString& description,
-            TObjectsGroupingPtr objectsGrouping,
-            ui32 classCount,
-            TSharedVector<float> target,
-            TSharedWeights<float> weights,
-            TVector<TSharedVector<float>>&& baseline,  // сan be empty if baseline not available
-            bool skipCheck = false
-        );
-
-        bool operator==(const TMultiClassTarget& rhs) const {
-            return ((const TTargetDataProvider&)(*this) == (const TTargetDataProvider&)rhs) &&
-                (*Target == *rhs.Target) && (*Weights == *rhs.Weights) && (BaselineView == rhs.BaselineView);
-        }
-
-        void GetSourceDataForSubsetCreation(TSubsetTargetDataCache* subsetTargetDataCache) const override;
-
-        TTargetDataProviderPtr GetSubset(
-            TObjectsGroupingPtr objectsGrouping,
-            const TSubsetTargetDataCache& subsetTargetDataCache
-        ) const override;
-
-        ui32 GetClassCount() const {
-            return ClassCount;
-        }
-
-        // after preprocessing - enumerating labels if necessary, etc.
-        TMaybeData<TConstArrayRef<float>> GetTarget() const { // [objectIdx]
-            return Target ? TMaybeData<TConstArrayRef<float>>(*Target) : Nothing();
-        }
-
-        // after preprocessing - adjusted for classes, group etc. weights
-        const TWeights<float>& GetWeights() const { // [objectIdx]
-            return *Weights;
-        }
-
-        // [approxIdx][objectIdx], can be empty
-        TMaybeData<TBaselineArrayRef> GetBaseline() const {
-            return !BaselineView.empty() ? TMaybeData<TBaselineArrayRef>(BaselineView) : Nothing();
-        }
-
-    protected:
-        friend class TTargetSerialization;
-
-    protected:
-        void SaveWithCache(IBinSaver* binSaver, TSerializationTargetDataCache* cache) const override;
-
-        static TMultiClassTarget Load(
-            const TString& description,
-            TObjectsGroupingPtr objectsGrouping,
-            const TSerializationTargetDataCache& cache,
-            IBinSaver* binSaver
-        );
-
-    protected:
-        ui32 ClassCount;
-        TSharedVector<float> Target; // [objectIdx]
-        TSharedWeights<float> Weights; // [objectIdx]
-        TVector<TSharedVector<float>> Baseline; // [approxIdx][objectIdx], can be empty
-
-        // for returning from GetBaseline
-        TVector<TConstArrayRef<float>> BaselineView; // [approxIdx][objectIdx], can be empty
-    };
-
-    class TRegressionTarget : public TTargetDataProvider {
-    public:
-        TRegressionTarget(
-            const TString& description,
-            TObjectsGroupingPtr objectsGrouping,
-            TSharedVector<float> target,
-            TSharedWeights<float> weights,
-            TSharedVector<float> baseline,  // сan be nullptr if baseline not available
-            bool skipCheck = false
-        );
-
-        bool operator==(const TRegressionTarget& rhs) const {
-            return ((const TTargetDataProvider&)(*this) == (const TTargetDataProvider&)rhs) &&
-                (*Target == *rhs.Target) && (*Weights == *rhs.Weights) && (*Baseline == *rhs.Baseline);
-        }
-
-        void GetSourceDataForSubsetCreation(TSubsetTargetDataCache* subsetTargetDataCache) const override;
-
-        TTargetDataProviderPtr GetSubset(
-            TObjectsGroupingPtr objectsGrouping,
-            const TSubsetTargetDataCache& subsetTargetDataCache
-        ) const override;
-
-
-        TMaybeData<TConstArrayRef<float>> GetTarget() const { // [objectIdx]
-            return Target ? TMaybeData<TConstArrayRef<float>>(*Target) : Nothing();
-        }
-
-        // after preprocessing - adjusted for group etc. weights
-        const TWeights<float>& GetWeights() const { // [objectIdx]
-            return *Weights;
-        }
-
-        TMaybeData<TConstArrayRef<float>> GetBaseline() const { // [objectIdx], can be empty
-            return Baseline ? TMaybeData<TConstArrayRef<float>>(*Baseline) : Nothing();
-        }
-
-    protected:
-        friend class TTargetSerialization;
-
-    protected:
-        void SaveWithCache(IBinSaver* binSaver, TSerializationTargetDataCache* cache) const override;
-
-        static TRegressionTarget Load(
-            const TString& description,
-            TObjectsGroupingPtr objectsGrouping,
-            const TSerializationTargetDataCache& cache,
-            IBinSaver* binSaver
-        );
-
-    protected:
-        TSharedVector<float> Target; // [objectIdx], can be nullptr
-        TSharedWeights<float> Weights; // [objectIdx]
-        TSharedVector<float> Baseline; // [objectIdx], can be nullptr (means no Baseline)
-    };
-
-
-    class TGroupwiseRankingTarget : public TTargetDataProvider {
-    public:
-        TGroupwiseRankingTarget(
-            const TString& description,
-            TObjectsGroupingPtr objectsGrouping,
-            TSharedVector<float> target,
-            TSharedWeights<float> weights,
-            TSharedVector<float> baseline,  // сan be nullptr if baseline not available
-            TSharedVector<TQueryInfo> groupInfo,
-            bool skipCheck = false
-        );
-
-        bool operator==(const TGroupwiseRankingTarget& rhs) const {
-            return ((const TTargetDataProvider&)(*this) == (const TTargetDataProvider&)rhs) &&
-                (*Target == *rhs.Target) && (*Weights == *rhs.Weights) && (*Baseline == *rhs.Baseline) &&
-                (*GroupInfo == *rhs.GroupInfo);
-        }
-
-        void GetSourceDataForSubsetCreation(TSubsetTargetDataCache* subsetTargetDataCache) const override;
-
-        TTargetDataProviderPtr GetSubset(
-            TObjectsGroupingPtr objectsGrouping,
-            const TSubsetTargetDataCache& subsetTargetDataCache
-        ) const override;
-
-
-        TMaybeData<TConstArrayRef<float>> GetTarget() const { // [objectIdx]
-            return Target ? TMaybeData<TConstArrayRef<float>>(*Target) : Nothing();
-        }
-
-        // after preprocessing - adjusted for group etc. weights
-        const TWeights<float>& GetWeights() const { // [objectIdx]
-            return *Weights;
-        }
-
-        TMaybeData<TConstArrayRef<float>> GetBaseline() const { // [objectIdx], can be empty
-            return Baseline ? TMaybeData<TConstArrayRef<float>>(*Baseline) : Nothing();
-        }
-
-        TConstArrayRef<TQueryInfo> GetGroupInfo() const {
-            return *GroupInfo;
-        }
-
-    protected:
-        friend class TTargetSerialization;
-
-    protected:
-        void SaveWithCache(IBinSaver* binSaver, TSerializationTargetDataCache* cache) const override;
-
-        static TGroupwiseRankingTarget Load(
-            const TString& description,
-            TObjectsGroupingPtr objectsGrouping,
-            const TSerializationTargetDataCache& cache,
-            IBinSaver* binSaver
-        );
-
-    protected:
-        TSharedVector<float> Target; // [objectIdx], can be nullptr
-        TSharedWeights<float> Weights; // [objectIdx]
-        TSharedVector<float> Baseline; // [objectIdx], can be nullptr (means no Baseline)
-        TSharedVector<TQueryInfo> GroupInfo;
-    };
-
-    class TGroupPairwiseRankingTarget : public TTargetDataProvider {
-    public:
-        TGroupPairwiseRankingTarget(
-            const TString& description,
-            TObjectsGroupingPtr objectsGrouping,
-            TSharedVector<float> baseline,  // сan be nullptr if baseline not available
-            TSharedVector<TQueryInfo> groupInfo,
-            bool skipCheck = false
-        );
-
-        bool operator==(const TGroupPairwiseRankingTarget& rhs) const {
-            return ((const TTargetDataProvider&)(*this) == (const TTargetDataProvider&)rhs) &&
-                (*Baseline == *rhs.Baseline) && (*GroupInfo == *rhs.GroupInfo);
-        }
-
-        void GetSourceDataForSubsetCreation(TSubsetTargetDataCache* subsetTargetDataCache) const override;
-
-        TTargetDataProviderPtr GetSubset(
-            TObjectsGroupingPtr objectsGrouping,
-            const TSubsetTargetDataCache& subsetTargetDataCache
-        ) const override;
-
-
-        TMaybeData<TConstArrayRef<float>> GetBaseline() const { // [objectIdx], can be empty
-            return Baseline ? TMaybeData<TConstArrayRef<float>>(*Baseline) : Nothing();
-        }
-
-        TConstArrayRef<TQueryInfo> GetGroupInfo() const {
-            return *GroupInfo;
-        }
-
-    protected:
-        friend class TTargetSerialization;
-
-    protected:
-        void SaveWithCache(IBinSaver* binSaver, TSerializationTargetDataCache* cache) const override;
-
-        static TGroupPairwiseRankingTarget Load(
-            const TString& description,
-            TObjectsGroupingPtr objectsGrouping,
-            const TSerializationTargetDataCache& cache,
-            IBinSaver* binSaver
-        );
-
-    protected:
-        TSharedVector<float> Baseline; // [objectIdx], can be nullptr (means no Baseline)
-        TSharedVector<TQueryInfo> GroupInfo;
-    };
-
-
-    class TSimpleTarget : public TTargetDataProvider {
-    public:
-        TSimpleTarget(
-            const TString& description,
-            TObjectsGroupingPtr objectsGrouping,
-            TSharedVector<float> target,
-            bool skipCheck = false
-        );
-
-        bool operator==(const TSimpleTarget& rhs) const {
-            return ((const TTargetDataProvider&)(*this) == (const TTargetDataProvider&)rhs) &&
-                (*Target == *rhs.Target);
-        }
-
-        void GetSourceDataForSubsetCreation(TSubsetTargetDataCache* subsetTargetDataCache) const override;
-
-        TTargetDataProviderPtr GetSubset(
-            TObjectsGroupingPtr objectsGrouping,
-            const TSubsetTargetDataCache& subsetTargetDataCache
-        ) const override;
-
-
-        TMaybeData<TConstArrayRef<float>> GetTarget() const { // [objectIdx]
-            return Target ? TMaybeData<TConstArrayRef<float>>(*Target) : Nothing();
-        }
-
-    protected:
-        friend class TTargetSerialization;
-
-    protected:
-        void SaveWithCache(IBinSaver* binSaver, TSerializationTargetDataCache* cache) const override;
-
-        static TSimpleTarget Load(
-            const TString& description,
-            TObjectsGroupingPtr objectsGrouping,
-            const TSerializationTargetDataCache& cache,
-            IBinSaver* binSaver
-        );
-
-    protected:
-        TSharedVector<float> Target; // [objectIdx], can be nullptr
-    };
-
-    // TODO(akhropov): remove when custom objective type can be properly specified. MLTOOLS-3022.
-    class TUserDefinedTarget : public TTargetDataProvider {
-    public:
-        TUserDefinedTarget(
-            const TString& description,
-            TObjectsGroupingPtr objectsGrouping,
-            TSharedVector<float> target,
-            TSharedWeights<float> weights,
-            bool skipCheck = false
-        );
-
-        bool operator==(const TUserDefinedTarget& rhs) const {
-            return ((const TTargetDataProvider&)(*this) == (const TTargetDataProvider&)rhs) &&
-                (*Target == *rhs.Target) && (*Weights == *rhs.Weights);
-        }
-
-        void GetSourceDataForSubsetCreation(TSubsetTargetDataCache* subsetTargetDataCache) const override;
-
-        TTargetDataProviderPtr GetSubset(
-            TObjectsGroupingPtr objectsGrouping,
-            const TSubsetTargetDataCache& subsetTargetDataCache
-        ) const override;
-
-
-        TMaybeData<TConstArrayRef<float>> GetTarget() const { // [objectIdx]
-            return Target ? TMaybeData<TConstArrayRef<float>>(*Target) : Nothing();
-        }
-
-        // after preprocessing - adjusted for group etc. weights
-        const TWeights<float>& GetWeights() const { // [objectIdx]
-            return *Weights;
-        }
-
-    protected:
-        friend class TTargetSerialization;
-
-    protected:
-        void SaveWithCache(IBinSaver* binSaver, TSerializationTargetDataCache* cache) const override;
-
-        static TUserDefinedTarget Load(
-            const TString& description,
-            TObjectsGroupingPtr objectsGrouping,
-            const TSerializationTargetDataCache& cache,
-            IBinSaver* binSaver
-        );
-
-    protected:
-        TSharedVector<float> Target; // [objectIdx], can be nullptr
-        TSharedWeights<float> Weights; // [objectIdx]
-    };
-
-
-    /* temporary compatibility helpers for support of old single TDataProvider/TDataset interface
-     * it is assumed that we can get target, weights, baseline, groupInfo data from any targetDataProvider
-     *  - they all contain the same data, just filtered by target-specific data types
-     *
-     *  This situation will change in the future:
-     *    TODO(akhropov): proper support of multiple targets - MLTOOLS-2337
+    /* temporary compatibility helper for support of old single TDataProvider/TDataset interface
+     * will return empty result if weights are trivial
      */
-
-    TMaybeData<TConstArrayRef<float>> GetMaybeTarget(const TTargetDataProviders& targetDataProviders);
-
-    /* will fail if only GroupPairwiseRanking targets are in targetDataProviders
-     * this case has to be handled for now (e.g. by always adding non-GroupPairwiseRanking provider)
-     */
-    TConstArrayRef<float> GetTarget(const TTargetDataProviders& targetDataProviders);
-
-    // will return empty result if weights are trivial
-    TConstArrayRef<float> GetWeights(const TTargetDataProviders& targetDataProviders);
-
-    // will return empty vector if there's no baseline data
-    TVector<TConstArrayRef<float>> GetBaseline(const TTargetDataProviders& targetDataProviders);
-
-    TConstArrayRef<TQueryInfo> GetGroupInfo(const TTargetDataProviders& targetDataProviders);
+    inline TConstArrayRef<float> GetWeights(const TTargetDataProvider& targetDataProvider) {
+        auto maybeWeights = targetDataProvider.GetWeights();
+        if (!maybeWeights || maybeWeights->IsTrivial()) {
+            return TConstArrayRef<float>();
+        }
+        return maybeWeights->GetNonTrivialData();
+    }
 
 
-    // needed to make friends with TTargetDataProvider s
+    // needed to make friends with TTargetDataProvider
     class TTargetSerialization {
     public:
         static void Load(
             TObjectsGroupingPtr objectsGrouping,
             IBinSaver* binSaver,
-            TTargetDataProviders* targetDataProviders
+            TTargetDataProviderPtr* targetDataProvider
         );
 
-        static void SaveNonSharedPart(const TTargetDataProviders& targetDataProviders, IBinSaver* binSaver);
+        static void SaveNonSharedPart(const TTargetDataProvider& targetDataProvider, IBinSaver* binSaver);
     };
 }

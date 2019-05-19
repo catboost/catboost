@@ -29,7 +29,7 @@ namespace NCatboostCuda {
                 Permutation.FillOrder(objectsOrder);
                 auto samplesGrouping = MakeHolder<TQueriesGrouping>(objectsOrder,
                                                                     *dataProvider.ObjectsGrouping,
-                                                                    NCB::GetGroupInfo(dataProvider.TargetData),
+                                                                    *dataProvider.TargetData->GetGroupInfo(),
                                                                     dataProvider.MetaInfo.HasPairs);
                 if (dataProvider.MetaInfo.HasSubgroupIds) {
                     auto permutedGids = permutation.Gather(*dataProvider.ObjectsData->GetSubgroupIds());

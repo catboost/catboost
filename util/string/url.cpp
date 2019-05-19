@@ -195,7 +195,7 @@ bool TryGetSchemeHostAndPort(const TStringBuf url, TStringBuf& scheme, TStringBu
 
     TStringBuf portStr;
     TStringBuf hostAndPort = GetHostAndPort(url.Tail(schemeSize));
-    if (hostAndPort.TrySplit(':', host, portStr)) {
+    if (hostAndPort && hostAndPort.back() != ']' && hostAndPort.TryRSplit(':', host, portStr)) {
         // URL has port
         if (!TryFromString(portStr, port)) {
             return false;
@@ -264,6 +264,13 @@ TStringBuf CutWWWPrefix(const TStringBuf url) noexcept {
     return url;
 }
 
+TStringBuf CutMPrefix(const TStringBuf url) noexcept {
+    if (url.size() >= 2 && url[1] == '.' && (url[0] == 'm' || url[0] == 'M')) {
+        return url.substr(2);
+    }
+    return url;
+}
+
 static inline bool IsSchemeChar(char c) noexcept {
     return IsAsciiAlnum(c); //what about '+' ?..
 }
@@ -316,7 +323,7 @@ static inline int Unescape(char* str) {
 }
 
 size_t NormalizeUrlName(char* dest, const TStringBuf source, size_t dest_size) {
-    if (source.Empty() || source[0] == '?')
+    if (source.empty() || source[0] == '?')
         return strlcpy(dest, "/", dest_size);
     size_t len = Min(dest_size - 1, source.length());
     memcpy(dest, source.data(), len);

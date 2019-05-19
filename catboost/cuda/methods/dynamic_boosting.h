@@ -36,12 +36,13 @@ namespace NCatboostCuda {
     private:
         TBinarizedFeaturesManager& FeaturesManager;
         const NCB::TTrainingDataProvider* DataProvider = nullptr;
+        const NCB::TFeatureEstimators* Estimators;
         const NCB::TTrainingDataProvider* TestDataProvider = nullptr;
         TBoostingProgressTracker* ProgressTracker = nullptr;
 
         EGpuCatFeaturesStorage CatFeaturesStorage;
         TGpuAwareRandom& Random;
-        TWeakLearner& Weak;
+        const NCatboostOptions::TCatBoostOptions& CatBoostOptions;
         const NCatboostOptions::TBoostingOptions& Config;
         const NCatboostOptions::TLossDescription& TargetOptions;
 
@@ -120,6 +121,7 @@ namespace NCatboostCuda {
 
             TFeatureParallelDataSetHoldersBuilder dataSetsHolderBuilder(FeaturesManager,
                                                                         *DataProvider,
+                                                                        *Estimators,
                                                                         TestDataProvider,
                                                                         permutationBlockSize,
                                                                         CatFeaturesStorage
@@ -242,6 +244,7 @@ namespace NCatboostCuda {
                 }
             };
 
+            auto weak = MakeWeakLearner<TWeakLearner>(FeaturesManager, CatBoostOptions);
             while (!progressTracker->ShouldStop()) {
                 CheckInterrupted(); // check after long-lasting operation
                 auto iterationTimeGuard = profiler.Profile("Boosting iteration");
@@ -266,7 +269,7 @@ namespace NCatboostCuda {
 
                         using TWeakTarget = typename TTargetAtPointTrait<TObjective>::Type;
 
-                        auto optimizer = Weak.template CreateStructureSearcher<TWeakTarget, TFeatureParallelDataSet>(
+                        auto optimizer = weak.template CreateStructureSearcher<TWeakTarget, TFeatureParallelDataSet>(
                             *iterationCacheHolderPtr,
                             taskDataSet);
 
@@ -312,21 +315,21 @@ namespace NCatboostCuda {
 
                         //should be first for learn-estimation-permutation cache-hit
                         if (dataSet.HasTestDataSet()) {
-                            Weak.CacheStructure(*iterationCacheHolderPtr,
+                            weak.CacheStructure(*iterationCacheHolderPtr,
                                                 weakModelStructure,
                                                 dataSet.GetTestDataSet());
                         }
 
                         {
                             const auto& estimationDataSet = dataSet.GetDataSetForPermutation(estimationPermutation);
-                            Weak.CacheStructure(*iterationCacheHolderPtr,
+                            weak.CacheStructure(*iterationCacheHolderPtr,
                                                 weakModelStructure,
                                                 estimationDataSet);
                         }
 
                         for (ui32 i = 0; i < learnPermutationCount; ++i) {
                             auto& ds = dataSet.GetDataSetForPermutation(i);
-                            Weak.CacheStructure(*iterationCacheHolderPtr,
+                            weak.CacheStructure(*iterationCacheHolderPtr,
                                                 weakModelStructure,
                                                 ds);
                         }
@@ -346,7 +349,7 @@ namespace NCatboostCuda {
                     {
                         auto estimateModelsGuard = profiler.Profile("Estimate models");
 
-                        auto estimator = Weak.CreateEstimator();
+                        auto estimator = weak.CreateEstimator();
 
                         for (ui32 permutation = 0; permutation < learnPermutationCount; ++permutation) {
                             auto& folds = permutationFolds[permutation];
@@ -392,7 +395,7 @@ namespace NCatboostCuda {
                     {
                         auto appendModelTime = profiler.Profile("Append models time");
 
-                        auto addModelValue = Weak.template CreateAddModelValue<TFeatureParallelDataSet>(
+                        auto addModelValue = weak.template CreateAddModelValue<TFeatureParallelDataSet>(
                             weakModelStructure,
                             *iterationCacheHolderPtr);
 
@@ -460,26 +463,28 @@ namespace NCatboostCuda {
             if (bestTestCursor) {
                 TVector<TVector<double>> cpuApprox;
                 ReadApproxInCpuFormat(*bestTestCursor, TargetOptions.GetLossFunction() == ELossFunction::MultiClass, &cpuApprox);
-                progressTracker->SetBestTestCursor(cpuApprox);
+                progressTracker->SetBestTestCursor(std::move(cpuApprox));
+            }
+            if (dataSet.HasTestDataSet()) {
+                TVector<TVector<double>> cpuApprox;
+                ReadApproxInCpuFormat(*testCursor, TargetOptions.GetLossFunction() == ELossFunction::MultiClass, &cpuApprox);
+                progressTracker->SetFinalTestCursor(std::move(cpuApprox));
             }
             CATBOOST_INFO_LOG << "Total time " << (Now() - startTimeBoosting).SecondsFloat() << Endl;
         }
 
     public:
         TDynamicBoosting(TBinarizedFeaturesManager& binarizedFeaturesManager,
-                         const NCatboostOptions::TBoostingOptions& config,
-                         const NCatboostOptions::TModelBasedEvalOptions& /*featureEvalConfig*/,
-                         const NCatboostOptions::TLossDescription& targetOptions,
+                         const NCatboostOptions::TCatBoostOptions& catBoostOptions,
                          EGpuCatFeaturesStorage catFeaturesStorage,
                          TGpuAwareRandom& random,
-                         TWeakLearner& weak,
                          NPar::TLocalExecutor* localExecutor)
             : FeaturesManager(binarizedFeaturesManager)
             , CatFeaturesStorage(catFeaturesStorage)
             , Random(random)
-            , Weak(weak)
-            , Config(config)
-            , TargetOptions(targetOptions)
+            , CatBoostOptions(catBoostOptions)
+            , Config(catBoostOptions.BoostingOptions)
+            , TargetOptions(catBoostOptions.LossFunctionDescription)
             , LocalExecutor(localExecutor)
         {
         }
@@ -487,8 +492,10 @@ namespace NCatboostCuda {
         virtual ~TDynamicBoosting() = default;
 
         TDynamicBoosting& SetDataProvider(const NCB::TTrainingDataProvider& learnData,
+                                          const NCB::TFeatureEstimators& estimators,
                                           const NCB::TTrainingDataProvider* testData = nullptr) {
             DataProvider = &learnData;
+            Estimators = &estimators;
             TestDataProvider = testData;
             return *this;
         }
@@ -524,7 +531,7 @@ namespace NCatboostCuda {
                 state->TestTarget = CreateTarget(state->DataSets.GetTestDataSet());
                 state->TestCursor = TMirrorBuffer<float>::CopyMapping(state->DataSets.GetTestDataSet().GetTarget().GetTargets());
                 if (TestDataProvider->MetaInfo.BaselineCount > 0) {
-                    state->TestCursor.Write(GetBaseline(TestDataProvider->TargetData)[0]);
+                    state->TestCursor.Write((*TestDataProvider->TargetData->GetBaseline())[0]);
                 } else {
                     FillBuffer(state->TestCursor, 0.0f);
                 }
@@ -542,7 +549,7 @@ namespace NCatboostCuda {
                 const auto& permutation = state->DataSets.GetPermutation(i);
                 TVector<float> baseline;
                 if (DataProvider->MetaInfo.BaselineCount > 0) {
-                    baseline = permutation.Gather(GetBaseline(DataProvider->TargetData)[0]);
+                    baseline = permutation.Gather((*DataProvider->TargetData->GetBaseline())[0]);
                 } else {
                     baseline.resize(DataProvider->GetObjectCount(), 0.0f);
                 }
@@ -564,7 +571,7 @@ namespace NCatboostCuda {
                 const auto& permutation = state->DataSets.GetPermutation(estimationPermutation);
                 TVector<float> baseline;
                 if (DataProvider->MetaInfo.BaselineCount > 0) {
-                    baseline = permutation.Gather(GetBaseline(DataProvider->TargetData)[0]);
+                    baseline = permutation.Gather((*DataProvider->TargetData->GetBaseline())[0]);
                 } else {
                     baseline.resize(DataProvider->GetObjectCount(), 0.0f);
                 }

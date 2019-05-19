@@ -332,7 +332,7 @@ weakref___init__(PyObject *self, PyObject *args, PyObject *kwargs)
 {
     PyObject *tmp;
 
-    if (!_PyArg_NoKeywords("ref()", kwargs))
+    if (!_PyArg_NoKeywords("ref", kwargs))
         return -1;
 
     if (parse_weakref_init_args("__init__", args, kwargs, &tmp, &tmp))
@@ -463,7 +463,7 @@ proxy_checkref(PyWeakReference *proxy)
 
 WRAP_BINARY(proxy_getattr, PyObject_GetAttr)
 WRAP_UNARY(proxy_str, PyObject_Str)
-WRAP_TERNARY(proxy_call, PyEval_CallObjectWithKeywords)
+WRAP_TERNARY(proxy_call, PyObject_Call)
 
 static PyObject *
 proxy_repr(PyWeakReference *proxy)

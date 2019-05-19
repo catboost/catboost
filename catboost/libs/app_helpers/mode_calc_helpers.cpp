@@ -10,7 +10,7 @@
 #include <catboost/libs/logging/logging.h>
 
 #include <util/string/cast.h>
-#include <util/string/iterator.h>
+#include <util/string/split.h>
 
 #include <util/generic/utility.h>
 #include <util/generic/xrange.h>
@@ -132,9 +132,11 @@ void NCB::CalcModelSingleHost(
     const NCB::TAnalyticalModeCommonParams& params,
     size_t iterationsLimit,
     size_t evalPeriod,
-    const TFullModel& model ) {
+    TFullModel&& model) {
 
     CB_ENSURE(params.OutputPath.Scheme == "dsv" || params.OutputPath.Scheme == "stream", "Local model evaluation supports only \"dsv\"  and \"stream\" output file schemas.");
+    NCatboostOptions::ValidatePoolParams(params.InputPath, params.DsvPoolFormatParams);
+
     TSetLogging logging(params.OutputPath.Scheme == "dsv" ? ELoggingLevel::Info : ELoggingLevel::Silent);
     THolder<IOutputStream> outputStream;
     if (params.OutputPath.Scheme == "dsv") {
@@ -158,7 +160,7 @@ void NCB::CalcModelSingleHost(
     const int blockSize = Max<int>(32, static_cast<int>(10000. / (static_cast<double>(iterationsLimit) / evalPeriod) / model.ObliviousTrees.ApproxDimension));
     ReadAndProceedPoolInBlocks(params, blockSize, [&](const NCB::TDataProviderPtr datasetPart) {
         if (IsFirstBlock) {
-            ValidateColumnOutput(params.OutputColumnsIds, *datasetPart, true);
+            ValidateColumnOutput(params.OutputColumnsIds, *datasetPart);
         }
         auto approx = Apply(model, *datasetPart, 0, iterationsLimit, evalPeriod, &executor);
         auto visibleLabelsHelper = BuildLabelsHelper<TExternalLabelsHelper>(model);
@@ -172,7 +174,6 @@ void NCB::CalcModelSingleHost(
             params.OutputColumnsIds,
             visibleLabelsHelper,
             *datasetPart,
-            true,
             outputStream.Get(),
             // TODO: src file columns output is incompatible with block processing
             poolColumnsPrinter,

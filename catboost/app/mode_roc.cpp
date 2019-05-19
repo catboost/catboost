@@ -10,7 +10,7 @@
 #include <util/generic/hash.h>
 #include <util/generic/utility.h>
 #include <util/string/cast.h>
-#include <util/string/iterator.h>
+#include <util/string/split.h>
 #include <util/system/info.h>
 
 

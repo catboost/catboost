@@ -380,7 +380,7 @@ namespace NEnumSerializationRuntime {
                 return Ref.empty();
             }
 
-            bool has(const TEnumType key) const {
+            bool contains(const TEnumType key) const {
                 return Ref.contains(this->CastToRepresentationType(key));
             }
 

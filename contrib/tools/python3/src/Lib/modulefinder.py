@@ -7,7 +7,6 @@ import marshal
 import os
 import sys
 import types
-import struct
 import warnings
 with warnings.catch_warnings():
     warnings.simplefilter('ignore', DeprecationWarning)
@@ -288,11 +287,12 @@ class ModuleFinder:
             co = compile(fp.read()+'\n', pathname, 'exec')
         elif type == imp.PY_COMPILED:
             try:
-                marshal_data = importlib._bootstrap_external._validate_bytecode_header(fp.read())
+                data = fp.read()
+                importlib._bootstrap_external._classify_pyc(data, fqname, {})
             except ImportError as exc:
                 self.msgout(2, "raise ImportError: " + str(exc), pathname)
                 raise
-            co = marshal.loads(marshal_data)
+            co = marshal.loads(memoryview(data)[16:])
         else:
             co = None
         m = self.add_module(fqname)

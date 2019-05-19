@@ -15,7 +15,7 @@ class FactorUtils(object):
             return {}
 
         list_factors = []
-        eval_factor_units = string_factors.split(':')
+        eval_factor_units = string_factors.split(';')
         for eval_factor_unit in eval_factor_units:
             try:
                 factor = int(eval_factor_unit)
@@ -50,7 +50,7 @@ class FactorUtils(object):
             parts.append('{}-{}'.format(begin, factors_list[end]))
         else:
             parts.append(str(begin))
-        return ':'.join(parts)
+        return ';'.join(parts)
 
     @staticmethod
     def compress_string_factors(string_factors):
@@ -87,7 +87,7 @@ class FactorUtils(object):
             return "None"
         grouped_factors = FactorUtils.group_factors_by_range(factors_set)
 
-        return ':'.join([FactorUtils.single_range_to_string(min(x), max(x)) for x in grouped_factors])
+        return ';'.join([FactorUtils.single_range_to_string(min(x), max(x)) for x in grouped_factors])
 
     @staticmethod
     def create_label(all_eval_features, removed_features, label_mode):

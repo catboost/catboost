@@ -1,11 +1,13 @@
 #include "onnx.h"
 
+#include <contrib/libs/onnx/onnx/common/constants.h>
 #include <contrib/libs/protobuf/util/message_differencer.h>
 
 #include <util/stream/file.h>
 #include <util/stream/output.h>
 
 #include <util/generic/is_in.h>
+#include <util/generic/xrange.h>
 #include <util/system/compiler.h>
 
 #include <vector>
@@ -17,11 +19,34 @@ namespace NCB {
         TMaybe<onnx::ModelProto> model = MakeMaybe<onnx::ModelProto>();
 
         TIFStream in{TString(filePath)};
-        if (model->ParseFromIstream(&in)) {
-            return model;
+        if (!model->ParseFromIstream(&in)) {
+            return Nothing();
         }
 
-        return Nothing();
+        if (!model->has_ir_version()) {
+            return Nothing();
+        }
+
+        const auto& opset_import = model->opset_import();
+        bool onnxMlDomainOpsetFound = false;
+        for (auto i : xrange(opset_import.size())) {
+            if (opset_import[i].domain() == onnx::AI_ONNX_ML_DOMAIN) {
+                onnxMlDomainOpsetFound = true;
+                break;
+            }
+        }
+        if (!onnxMlDomainOpsetFound) {
+            return Nothing();
+        }
+
+        if (!model->has_domain()) {
+            return Nothing();
+        }
+        if (!model->has_graph()) {
+            return Nothing();
+        }
+
+        return model;
     }
 
     class TOnnxModelIgnoreFields : public google::protobuf::util::MessageDifferencer::IgnoreCriteria {

@@ -29,6 +29,7 @@ namespace NCB {
         void UpdatePerfectHashAndMaybeQuantize(
             const TCatFeatureIdx catFeatureIdx,
             TMaybeOwningConstArraySubset<ui32, ui32> hashedCatArraySubset,
+            bool mapMostFrequentValueTo0,
             TMaybe<TArrayRef<ui32>*> dstBins
         );
 

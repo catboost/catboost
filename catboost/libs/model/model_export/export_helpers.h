@@ -118,9 +118,6 @@ namespace NCatboostModelExportHelpers {
         return OutputArrayInitializer([&values] (size_t i) { return values[i]; }, values.size());
     }
 
-    template <>
-    TString OutputArrayInitializer(const TVector<unsigned char>& values);
-
     int GetBinaryFeatureCount(const TFullModel& model);
 
     TString OutputBorderCounts(const TFullModel& model);

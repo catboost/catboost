@@ -1,5 +1,6 @@
 #include "cat_feature_options.h"
 #include "loss_description.h"
+#include "binarization_options.h"
 #include "plain_options_helper.h"
 
 #include <catboost/libs/logging/logging.h>
@@ -13,6 +14,7 @@
 #include <util/system/compiler.h>
 
 using NCatboostOptions::ParseCtrDescription;
+using NCatboostOptions::ParsePerFeatureBinarization;
 using NCatboostOptions::ParsePerFeatureCtrDescription;
 
 static Y_NO_INLINE void CopyCtrDescription(
@@ -62,6 +64,29 @@ static Y_NO_INLINE void CopyPerFeatureCtrDescription(
     }
 
     seenKeys->insert(TString(srcKey));
+}
+
+static Y_NO_INLINE void CopyPerFloatFeatureBinarization(
+    const NJson::TJsonValue& options,
+    const TStringBuf key,
+    NJson::TJsonValue* dst,
+    TSet<TString>* seenKeys)
+{
+    if (!options.Has(key)) {
+        return;
+    }
+
+    NJson::TJsonValue& perFeatureBinarizationMap = (*dst)[key];
+    perFeatureBinarizationMap.SetType(NJson::JSON_MAP);
+    const NJson::TJsonValue& binarizationDescription = options[key];
+    CB_ENSURE(binarizationDescription.IsArray());
+
+    for (const auto& onePerFeatureCtrConfig : binarizationDescription.GetArraySafe()) {
+        auto perFeatureBinarization = ParsePerFeatureBinarization(onePerFeatureCtrConfig.GetStringSafe());
+        perFeatureBinarizationMap[perFeatureBinarization.first] = perFeatureBinarization.second;
+    }
+
+    seenKeys->insert(TString(key));
 }
 
 static Y_NO_INLINE void CopyOption(
@@ -248,11 +273,13 @@ void NCatboostOptions::PlainJsonToOptions(
     CopyOption(plainOptions, "bayesian_matrix_reg", &treeOptions, &seenKeys);
     CopyOption(plainOptions, "model_size_reg", &treeOptions, &seenKeys);
     CopyOption(plainOptions, "dev_score_calc_obj_block_size", &treeOptions, &seenKeys);
+    CopyOption(plainOptions, "dev_efb_max_buckets", &treeOptions, &seenKeys);
+    CopyOption(plainOptions, "efb_max_conflict_fraction", &treeOptions, &seenKeys);
     CopyOption(plainOptions, "random_strength", &treeOptions, &seenKeys);
     CopyOption(plainOptions, "leaf_estimation_method", &treeOptions, &seenKeys);
-    CopyOption(plainOptions, "growing_policy", &treeOptions, &seenKeys);
-    CopyOption(plainOptions, "max_leaves_count", &treeOptions, &seenKeys);
-    CopyOption(plainOptions, "min_samples_in_leaf", &treeOptions, &seenKeys);
+    CopyOption(plainOptions, "grow_policy", &treeOptions, &seenKeys);
+    CopyOption(plainOptions, "max_leaves", &treeOptions, &seenKeys);
+    CopyOption(plainOptions, "min_data_in_leaf", &treeOptions, &seenKeys);
     CopyOption(plainOptions, "score_function", &treeOptions, &seenKeys);
     CopyOption(plainOptions, "fold_size_loss_normalization", &treeOptions, &seenKeys);
     CopyOption(plainOptions, "add_ridge_penalty_to_loss_function", &treeOptions, &seenKeys);
@@ -303,6 +330,7 @@ void NCatboostOptions::PlainJsonToOptions(
     CopyOption(plainOptions, "store_all_simple_ctr", &ctrOptions, &seenKeys);
     CopyOption(plainOptions, "one_hot_max_size", &ctrOptions, &seenKeys);
     CopyOption(plainOptions, "ctr_leaf_count_limit", &ctrOptions, &seenKeys);
+    CopyOption(plainOptions, "ctr_history_unit", &ctrOptions, &seenKeys);
 
     //data processing
     auto& dataProcessingOptions = trainOptions["data_processing_options"];
@@ -322,6 +350,7 @@ void NCatboostOptions::PlainJsonToOptions(
     CopyOption(plainOptions, "border_count", &floatFeaturesBinarization, &seenKeys);
     CopyOptionWithNewKey(plainOptions, "feature_border_type", "border_type", &floatFeaturesBinarization, &seenKeys);
     CopyOption(plainOptions, "nan_mode", &floatFeaturesBinarization, &seenKeys);
+    CopyPerFloatFeatureBinarization(plainOptions, "per_float_feature_binarization", &dataProcessingOptions, &seenKeys);
 
     //system
     auto& systemOptions = trainOptions["system_options"];

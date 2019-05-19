@@ -22,13 +22,13 @@ namespace NCatboostCuda {
         options.ScoreFunction = config.ScoreFunction;
         options.BootstrapOptions = config.BootstrapConfig;
         options.MaxDepth = config.MaxDepth;
-        options.MinLeafSize = config.MinSamplesInLeaf;
+        options.MinLeafSize = config.MinDataInLeaf;
         options.L2Reg = config.L2Reg;
-        options.Policy = config.GrowingPolicy;
-        if (config.GrowingPolicy == EGrowingPolicy::Region) {
+        options.Policy = config.GrowPolicy;
+        if (config.GrowPolicy == EGrowPolicy::Region) {
             options.MaxLeaves = config.MaxDepth + 1;
         } else {
-            options.MaxLeaves = config.MaxLeavesCount;
+            options.MaxLeaves = config.MaxLeaves;
         }
 
         options.RandomStrength = config.RandomStrength;

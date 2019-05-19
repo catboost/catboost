@@ -24,6 +24,7 @@ message TPoolMetainfo {
     map<uint32, EColumnType> ColumnIndexToType      = 1;
     map<uint32, string> ColumnIndexToName           = 7;
     optional uint64 DocumentCount                   = 2;
+    optional uint64 MaxDocsInChunk                  = 8;
     repeated uint32 IgnoredColumnIndices            = 3;
     optional uint32 StringDocIdFakeColumnIndex      = 4; // Index of additional DocId column with actual DocId values
     optional uint32 StringGroupIdFakeColumnIndex    = 5; // Index of additional GroupId column with actual GroupId values

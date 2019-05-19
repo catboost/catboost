@@ -2,10 +2,13 @@
 
 #include <catboost/libs/data_types/pair.h>
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/helpers/maybe_data.h>
 
 #include <util/generic/array_ref.h>
+#include <util/generic/mapfindptr.h>
 #include <util/generic/maybe.h>
 #include <util/generic/strbuf.h>
+#include <util/generic/string.h>
 
 #include <util/system/types.h>
 
@@ -28,26 +31,6 @@ namespace NCB {
             (internalCheck ? NCB::INTERNAL_ERROR_MSG : TStringBuf()) << dataName << " data size ("
             << dataSize << ") is not equal to " << expectedSizeName << " (" << expectedSize << ')'
         );
-    }
-
-
-    struct TPolicyUnavailableData {
-        static void OnEmpty() {
-            CB_ENSURE_INTERNAL(false, "Attempt to access unavailable data");
-        }
-    };
-
-    template <class T>
-    using TMaybeData = TMaybe<T, TPolicyUnavailableData>;
-
-    template <class T, class TPtr>
-    TMaybeData<T*> MakeMaybeData(const TPtr& ptr) {
-        return ptr ? TMaybeData<T*>(ptr.Get()) : Nothing();
-    }
-
-    template <class T>
-    TMaybeData<T*> MakeMaybeData(T* ptr) {
-        return ptr ? TMaybeData<T*>(ptr) : Nothing();
     }
 
     // pairs are a special case because there's no guaranteed order for now, so compare them as multisets
@@ -86,6 +69,5 @@ namespace NCB {
             dataRef = Nothing();
         }
     }
-
 
 }

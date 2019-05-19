@@ -9,7 +9,7 @@ import tarfile
 def extract_kindexes(kindexes):
     for kindex in kindexes:
         with tarfile.TarFile(kindex) as tf:
-            for fname in [i for i in tf.getnames() if i.endswith('.kindex')]:
+            for fname in [i for i in tf.getnames() if i.endswith('.kzip')]:
                 tf.extract(fname)
                 yield fname
 

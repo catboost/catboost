@@ -5,8 +5,6 @@
 #include "utility.h"
 #include "typetraits.h"
 
-#include <string_view>
-
 template <typename TChar, typename TTraits>
 class TBasicStringBuf: public TFixedString<TChar, TTraits>, public TStringBase<TBasicStringBuf<TChar, TTraits>, TChar, TTraits> {
     using TdSelf = TBasicStringBuf;
@@ -47,7 +45,7 @@ public:
     }
 
     template <typename TCharTraits>
-    inline TBasicStringBuf(std::basic_string_view<TChar, TCharTraits> view) noexcept
+    constexpr TBasicStringBuf(std::basic_string_view<TChar, TCharTraits> view) noexcept
         : TBaseStr(view.data(), view.size())
     {
     }
@@ -71,11 +69,6 @@ public:
     inline TBasicStringBuf(const TBaseStr& src, size_t pos) noexcept
         : TBasicStringBuf(src, pos, TBase::npos)
     {
-    }
-
-    template<typename TCharTraits>
-    /* implicit */ operator std::basic_string_view<TChar, TCharTraits>() const noexcept {
-        return {data(), length()};
     }
 
 public: // required by TStringBase

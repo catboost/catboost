@@ -43,7 +43,7 @@ namespace NLastGetopt {
         const TOptParseResult* r = FindOptParseResult(opt, includeDefault);
         if (!r || r->Empty()) {
             try {
-                ythrow TUsageException() << "option " << opt->ToShortString() << " is unspecified";
+                throw TUsageException() << "option " << opt->ToShortString() << " is unspecified";
             } catch (...) {
                 HandleError();
                 // unreachable

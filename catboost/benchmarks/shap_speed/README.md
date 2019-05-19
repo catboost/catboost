@@ -18,6 +18,8 @@ XGBoost and LightGBM:
 
 As we're interested on the large scale datasets the most important values there are TreesCount and DocsCount. The factor of TreesCount * DocsCount in Catboost (TreeDepth + AverageFeaturesCount) is much smaller than in other libraries (LeavesCount * TreeDepth^2) such as XGBoost and LightGBM. So the larger the dataset is, the larger performance gain is achieved with Catboost.
 
+For small datasets (when LeavesCount > DocsCount, usecase: we're trying to find SHAP values for a particular document) we use a direct algorithm like in XGBoost. One can specify this behavior using shap_mode option in get_feature_importance.
+
 **Experiment infrastructure**: 
 
 * GPU: Titan X Pascal (used only for training)

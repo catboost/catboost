@@ -46,8 +46,10 @@ internationalized, to the local language and cultural habits.
 #   find this format documented anywhere.
 
 
-import locale, copy, io, os, re, struct, sys
-from errno import ENOENT
+import locale
+import os
+import re
+import sys
 
 
 __all__ = ['NullTranslations', 'GNUTranslations', 'Catalog',
@@ -164,6 +166,10 @@ def _as_int(n):
     except TypeError:
         raise TypeError('Plural value must be an integer, got %s' %
                         (n.__class__.__name__,)) from None
+    import warnings
+    warnings.warn('Plural value must be an integer, got %s' %
+                  (n.__class__.__name__,),
+                  DeprecationWarning, 4)
     return n
 
 def c2py(plural):
@@ -333,7 +339,9 @@ class GNUTranslations(NullTranslations):
 
     def _parse(self, fp):
         """Override this method to support alternative .mo formats."""
-        unpack = struct.unpack
+        # Delay struct import for speeding up gettext import when .mo files
+        # are not used.
+        from struct import unpack
         filename = getattr(fp, 'name', '')
         # Parse the .mo file header, which consists of 5 little endian 32
         # bit words.
@@ -511,7 +519,9 @@ def translation(domain, localedir=None, languages=None,
     if not mofiles:
         if fallback:
             return NullTranslations()
-        raise OSError(ENOENT, 'No translation file found for domain', domain)
+        from errno import ENOENT
+        raise FileNotFoundError(ENOENT,
+                                'No translation file found for domain', domain)
     # Avoid opening, reading, and parsing the .mo file after it's been done
     # once.
     result = None
@@ -524,6 +534,9 @@ def translation(domain, localedir=None, languages=None,
         # Copy the translation object to allow setting fallbacks and
         # output charset. All other instance data is shared with the
         # cached object.
+        # Delay copy import for speeding up gettext import when .mo files
+        # are not used.
+        import copy
         t = copy.copy(t)
         if codeset:
             t.set_output_charset(codeset)

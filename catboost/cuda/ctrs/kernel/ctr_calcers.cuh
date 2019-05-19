@@ -45,4 +45,29 @@ namespace NKernel {
                    float* dst,
                    TCudaStream stream);
 
+    void ApplyGroupwiseCtrFix(ui32 size,
+                              const ui32* fixIndices,
+                              float* ctr,
+                              TCudaStream stream);
+
+    void CreateFixedIndices(const ui32* bins,
+                            const ui32* binIndices,
+                            ui32 mask, const ui32* indicesWithMask,
+                            ui32 size,
+                            ui32* fixedIndices,
+                            TCudaStream stream);
+
+    void FillBinIndices(ui32 mask, const ui32* indices,
+                        const ui32* bins,
+                        ui32 size,
+                        ui32* binIndices,
+                        TCudaStream stream);
+
+    void MakeGroupStarts(ui32 mask,
+                         const ui32* indices,
+                         const ui32* groupIds,
+                         ui32 size,
+                         ui32* flags,
+                         TCudaStream stream);
+
 }

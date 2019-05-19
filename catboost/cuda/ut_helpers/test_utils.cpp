@@ -2,7 +2,9 @@
 
 #include <catboost/libs/data_new/load_data.h>
 #include <catboost/libs/quantization/grid_creator.h>
-#include <catboost/libs/train_lib/data.h>
+#include <catboost/libs/algo/data.h>
+#include <catboost/libs/labels/label_converter.h>
+#include <catboost/libs/options/catboost_options.h>
 
 #include <catboost/libs/helpers/cpu_random.h>
 #include <util/stream/str.h>
@@ -135,6 +137,7 @@ void LoadTrainingData(NCB::TPathWithScheme poolPath,
                       NCB::TPathWithScheme cdFilePath,
                       const NCatboostOptions::TBinarizationOptions& floatFeaturesBinarization,
                       const NCatboostOptions::TCatFeatureParams& catFeatureParams,
+                      const NCB::TFeatureEstimators& estimators,
                       NCB::TTrainingDataProviderPtr* trainingData,
                       THolder<NCatboostCuda::TBinarizedFeaturesManager>* featuresManager) {
     NCB::TDataProviderPtr dataProvider;
@@ -145,11 +148,13 @@ void LoadTrainingData(NCB::TPathWithScheme poolPath,
         dataProvider = NCB::ReadDataset(poolPath,
                                         NCB::TPathWithScheme(),
                                         NCB::TPathWithScheme(),
+                                        NCB::TPathWithScheme(),
                                         dsvPoolFormatParams,
                                         {},
                                         NCB::EObjectsOrder::Ordered,
                                         16,
-                                        true);
+                                        true,
+                                        /*classNames*/ Nothing());
     }
 
     NCatboostOptions::TCatBoostOptions catBoostOptions(ETaskType::GPU);
@@ -178,8 +183,9 @@ void LoadTrainingData(NCB::TPathWithScheme poolPath,
 
     *featuresManager = MakeHolder<NCatboostCuda::TBinarizedFeaturesManager>(
         catFeatureParams,
+        estimators,
         (*trainingData)->ObjectsData->GetQuantizedFeaturesInfo());
 
     NCB::TOnCpuGridBuilderFactory gridBuilderFactory;
-    (*featuresManager)->SetTargetBorders(NCB::TBordersBuilder(gridBuilderFactory, NCB::GetTarget((*trainingData)->TargetData))((*featuresManager)->GetTargetBinarizationDescription()));
+    (*featuresManager)->SetTargetBorders(NCB::TBordersBuilder(gridBuilderFactory, *(*trainingData)->TargetData->GetTarget())((*featuresManager)->GetTargetBinarizationDescription()));
 }

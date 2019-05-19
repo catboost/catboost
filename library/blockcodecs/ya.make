@@ -3,19 +3,19 @@ LIBRARY()
 
 
 PEERDIR(
-    contrib/libs/fastlz
-    contrib/libs/libbz2
-    contrib/libs/lz4
-    contrib/libs/lz4/generated
-    contrib/libs/lzmasdk
-    contrib/libs/snappy
-    contrib/libs/zlib
-    contrib/libs/zstd06
-    contrib/libs/zstd
+    library/blockcodecs/core
+    library/blockcodecs/codecs/brotli
+    library/blockcodecs/codecs/bzip
+    library/blockcodecs/codecs/fastlz
+    library/blockcodecs/codecs/legacy_zstd06
+    library/blockcodecs/codecs/lz4
+    library/blockcodecs/codecs/lzma
+    library/blockcodecs/codecs/snappy
+    library/blockcodecs/codecs/zlib
+    library/blockcodecs/codecs/zstd
 )
 
 SRCS(
-    legacy_zstd06.cpp
     codecs.cpp
     stream.cpp
 )

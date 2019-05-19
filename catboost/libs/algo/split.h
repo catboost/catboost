@@ -2,6 +2,7 @@
 
 #include "projection.h"
 
+#include <catboost/libs/data_new/exclusive_feature_bundling.h>
 #include <catboost/libs/data_new/packed_binary_features.h>
 #include <catboost/libs/data_new/quantized_features_info.h>
 #include <catboost/libs/model/split.h>
@@ -18,6 +19,9 @@
 
 #include <limits>
 #include <tuple>
+
+
+class TLearnContext;
 
 
 struct TCtr {
@@ -104,63 +108,101 @@ struct THash<TSplitCandidate> {
 };
 
 
-struct TBinarySplitsPack {
+struct TBinarySplitsPackRef {
     ui32 PackIdx = std::numeric_limits<ui32>::max();
 
 public:
-    bool operator==(const TBinarySplitsPack& other) const {
+    bool operator==(const TBinarySplitsPackRef& other) const {
         return PackIdx == other.PackIdx;
     }
+};
+
+
+struct TExclusiveFeaturesBundleRef {
+    ui32 BundleIdx = std::numeric_limits<ui32>::max();
+
+public:
+    bool operator==(const TExclusiveFeaturesBundleRef& other) const {
+        return BundleIdx == other.BundleIdx;
+    }
+};
+
+
+enum class ESplitEnsembleType {
+    OneFeature,
+    BinarySplits,
+    ExclusiveBundle
 };
 
 
 // could have been a TVariant but SAVELOAD is easier this way
 struct TSplitEnsemble {
     // variant switch
-    bool IsBinarySplitsPack;
+    ESplitEnsembleType Type;
 
     // variant members
     TSplitCandidate SplitCandidate;
-    TBinarySplitsPack BinarySplitsPack;
+    TBinarySplitsPackRef BinarySplitsPackRef;
+    TExclusiveFeaturesBundleRef ExclusiveFeaturesBundleRef;
 
     static constexpr size_t BinarySplitsPackHash = 118223;
+    static constexpr size_t ExclusiveBundleHash = 981490;
 
 public:
     TSplitEnsemble()
-        : IsBinarySplitsPack(false)
+        : Type(ESplitEnsembleType::OneFeature)
     {}
 
     explicit TSplitEnsemble(TSplitCandidate&& splitCandidate)
-        : IsBinarySplitsPack(false)
+        : Type(ESplitEnsembleType::OneFeature)
         , SplitCandidate(std::move(splitCandidate))
     {}
 
     /* move is not really needed for such a simple structure but do it in the same way as splitCandidate for
      * consistency
      */
-    explicit TSplitEnsemble(TBinarySplitsPack&& binarySplitsPack)
-        : IsBinarySplitsPack(true)
-        , BinarySplitsPack(std::move(binarySplitsPack))
+    explicit TSplitEnsemble(TBinarySplitsPackRef&& binarySplitsPackRef)
+        : Type(ESplitEnsembleType::BinarySplits)
+        , BinarySplitsPackRef(std::move(binarySplitsPackRef))
+    {}
+
+    /* move is not really needed for such a simple structure but do it in the same way as splitCandidate for
+     * consistency
+     */
+    explicit TSplitEnsemble(TExclusiveFeaturesBundleRef&& exclusiveFeaturesBundleRef)
+        : Type(ESplitEnsembleType::ExclusiveBundle)
+        , ExclusiveFeaturesBundleRef(std::move(exclusiveFeaturesBundleRef))
     {}
 
     bool operator==(const TSplitEnsemble& other) const {
-        if (IsBinarySplitsPack) {
-            return other.IsBinarySplitsPack && (BinarySplitsPack == other.BinarySplitsPack);
+        switch (Type) {
+            case ESplitEnsembleType::OneFeature:
+                return (other.Type == ESplitEnsembleType::OneFeature)
+                    && (SplitCandidate == other.SplitCandidate);
+            case ESplitEnsembleType::BinarySplits:
+                return (other.Type == ESplitEnsembleType::BinarySplits) &&
+                    (BinarySplitsPackRef == other.BinarySplitsPackRef);
+            case ESplitEnsembleType::ExclusiveBundle:
+                return (other.Type == ESplitEnsembleType::ExclusiveBundle) &&
+                    (ExclusiveFeaturesBundleRef == other.ExclusiveFeaturesBundleRef);
         }
-        return !other.IsBinarySplitsPack && (SplitCandidate == other.SplitCandidate);
     }
 
-    SAVELOAD(IsBinarySplitsPack, SplitCandidate, BinarySplitsPack);
+    SAVELOAD(Type, SplitCandidate, BinarySplitsPackRef, ExclusiveFeaturesBundleRef);
 
     size_t GetHash() const {
-        if (IsBinarySplitsPack) {
-            return MultiHash(BinarySplitsPackHash, BinarySplitsPack.PackIdx);
+        switch (Type) {
+            case ESplitEnsembleType::OneFeature:
+                return SplitCandidate.GetHash();;
+            case ESplitEnsembleType::BinarySplits:
+                return MultiHash(BinarySplitsPackHash, BinarySplitsPackRef.PackIdx);
+            case ESplitEnsembleType::ExclusiveBundle:
+                return MultiHash(ExclusiveBundleHash, ExclusiveFeaturesBundleRef.BundleIdx);
         }
-        return SplitCandidate.GetHash();
     }
 
     bool IsSplitOfType(ESplitType type) const {
-        return !IsBinarySplitsPack && (SplitCandidate.Type == type);
+        return (Type == ESplitEnsembleType::OneFeature) && (SplitCandidate.Type == type);
     }
 };
 
@@ -173,38 +215,65 @@ struct THash<TSplitEnsemble> {
 
 
 struct TSplitEnsembleSpec {
-    bool IsBinarySplitsPack;
-    ESplitType SplitType; // not used if IsBinarySplitsPack == true
+    ESplitEnsembleType Type;
+
+    ESplitType OneSplitType; // used only if Type == OneFeature
+    NCB::TExclusiveFeaturesBundle ExclusiveFeaturesBundle; // used only if Type == ExclusiveBundle
 
 public:
     explicit TSplitEnsembleSpec(
-        bool isBinarySplitsPack = false,
-        ESplitType splitType = ESplitType::FloatFeature
+        ESplitEnsembleType type = ESplitEnsembleType::OneFeature,
+        ESplitType oneSplitType = ESplitType::FloatFeature,
+        const NCB::TExclusiveFeaturesBundle& exclusiveFeaturesBundle = NCB::TExclusiveFeaturesBundle()
     )
-        : IsBinarySplitsPack(isBinarySplitsPack)
-        , SplitType(splitType)
+        : Type(type)
+        , OneSplitType(oneSplitType)
+        , ExclusiveFeaturesBundle(exclusiveFeaturesBundle)
     {}
 
-    explicit TSplitEnsembleSpec(const TSplitEnsemble& splitEnsemble)
-        : IsBinarySplitsPack(splitEnsemble.IsBinarySplitsPack)
-        , SplitType(splitEnsemble.SplitCandidate.Type)
-    {}
+    TSplitEnsembleSpec(
+        const TSplitEnsemble& splitEnsemble,
+        TConstArrayRef<NCB::TExclusiveFeaturesBundle> exclusiveFeaturesBundles
+    )
+        : Type(splitEnsemble.Type)
+        , OneSplitType(splitEnsemble.SplitCandidate.Type)
+    {
+        if (Type == ESplitEnsembleType::ExclusiveBundle) {
+            ExclusiveFeaturesBundle
+                = exclusiveFeaturesBundles[splitEnsemble.ExclusiveFeaturesBundleRef.BundleIdx];
+        }
+    }
 
-    SAVELOAD(IsBinarySplitsPack, SplitType);
+    SAVELOAD(Type, OneSplitType, ExclusiveFeaturesBundle);
 
     bool operator==(const TSplitEnsembleSpec& other) const {
-        if (IsBinarySplitsPack) {
-            return other.IsBinarySplitsPack;
+        switch (Type) {
+            case ESplitEnsembleType::OneFeature:
+                return (other.Type == ESplitEnsembleType::OneFeature) && (OneSplitType == other.OneSplitType);
+            case ESplitEnsembleType::BinarySplits:
+                return other.Type == ESplitEnsembleType::BinarySplits;
+            case ESplitEnsembleType::ExclusiveBundle:
+                return (other.Type == ESplitEnsembleType::ExclusiveBundle) &&
+                    (ExclusiveFeaturesBundle == other.ExclusiveFeaturesBundle);
         }
-        return !other.IsBinarySplitsPack && (SplitType == other.SplitType);
     }
 
     static TSplitEnsembleSpec OneSplit(ESplitType splitType) {
-        return TSplitEnsembleSpec(false, splitType);
+        return TSplitEnsembleSpec(ESplitEnsembleType::OneFeature, splitType);
     }
 
     static TSplitEnsembleSpec BinarySplitsPack() {
-        return TSplitEnsembleSpec(true, ESplitType::FloatFeature);
+        return TSplitEnsembleSpec(ESplitEnsembleType::BinarySplits);
+    }
+
+    static TSplitEnsembleSpec ExclusiveFeatureBundle(
+        const NCB::TExclusiveFeaturesBundle& exclusiveFeaturesBundle
+    ) {
+        return TSplitEnsembleSpec(
+            ESplitEnsembleType::ExclusiveBundle,
+            ESplitType::FloatFeature, // dummy value
+            exclusiveFeaturesBundle
+        );
     }
 };
 
@@ -212,11 +281,18 @@ public:
 int GetBucketCount(
     const TSplitEnsemble& splitEnsemble,
     const NCB::TQuantizedFeaturesInfo& quantizedFeaturesInfo,
-    size_t packedBinaryFeaturesCount
+    size_t packedBinaryFeaturesCount,
+    TConstArrayRef<NCB::TExclusiveFeaturesBundle> exclusiveFeaturesBundles
 );
 
 
-class TLearnContext;
+inline bool UseForCalcScores(const NCB::TExclusiveBundlePart& exclusiveBundlePart, ui32 oneHotMaxSize) {
+    if (exclusiveBundlePart.FeatureType == EFeatureType::Categorical) {
+        return (exclusiveBundlePart.Bounds.GetSize() + 1) <= oneHotMaxSize;
+    }
+    return true;
+}
+
 
 // TODO(kirillovs): this structure has doppelganger (TBinarySplit) in cuda code, merge them later
 struct TSplit : public TSplitCandidate {

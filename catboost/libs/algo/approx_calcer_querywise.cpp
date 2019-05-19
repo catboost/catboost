@@ -1,9 +1,12 @@
 #include "approx_calcer_querywise.h"
 
-#include <catboost/libs/index_range/index_range.h>
 #include <catboost/libs/helpers/map_merge.h>
+#include <catboost/libs/index_range/index_range.h>
+
+#include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/cast.h>
+
 
 void CalculateDersForQueries(
     const TVector<double>& approxes,
@@ -15,23 +18,58 @@ void CalculateDersForQueries(
     int queryStartIndex,
     int queryEndIndex,
     TArrayRef<TDers> approxDers,
+    ui64 randomSeed,
     NPar::TLocalExecutor* localExecutor
 ) {
     if (!approxesDelta.empty()) {
         TVector<double> fullApproxes;
         fullApproxes.yresize(approxes.ysize());
         if (error.GetIsExpApprox()) {
-            NPar::ParallelFor(*localExecutor, queriesInfo[queryStartIndex].Begin, queriesInfo[queryEndIndex - 1].End, [&](ui32 docId) {
-                fullApproxes[docId] = UpdateApprox</*StoreExpApprox*/true>(approxes[docId], approxesDelta[docId]);
-            });
+            NPar::ParallelFor(
+                *localExecutor,
+                queriesInfo[queryStartIndex].Begin,
+                queriesInfo[queryEndIndex - 1].End,
+                [&](ui32 docId) {
+                    fullApproxes[docId] = UpdateApprox</*StoreExpApprox*/true>(
+                        approxes[docId],
+                        approxesDelta[docId]
+                    );
+                });
         } else {
-            NPar::ParallelFor(*localExecutor, queriesInfo[queryStartIndex].Begin, queriesInfo[queryEndIndex - 1].End, [&](ui32 docId) {
-                fullApproxes[docId] = UpdateApprox</*StoreExpApprox*/false>(approxes[docId], approxesDelta[docId]);
-            });
+            NPar::ParallelFor(
+                *localExecutor,
+                queriesInfo[queryStartIndex].Begin,
+                queriesInfo[queryEndIndex - 1].End,
+                [&](ui32 docId) {
+                    fullApproxes[docId] = UpdateApprox</*StoreExpApprox*/false>(
+                        approxes[docId],
+                        approxesDelta[docId]
+                    );
+                });
         }
-        error.CalcDersForQueries(queryStartIndex, queryEndIndex, fullApproxes, targets, weights, queriesInfo, approxDers, localExecutor);
+        error.CalcDersForQueries(
+            queryStartIndex,
+            queryEndIndex,
+            fullApproxes,
+            targets,
+            weights,
+            queriesInfo,
+            approxDers,
+            randomSeed,
+            localExecutor
+        );
     } else {
-        error.CalcDersForQueries(queryStartIndex, queryEndIndex, approxes, targets, weights, queriesInfo, approxDers, localExecutor);
+        error.CalcDersForQueries(
+            queryStartIndex,
+            queryEndIndex,
+            approxes,
+            targets,
+            weights,
+            queriesInfo,
+            approxDers,
+            randomSeed,
+            localExecutor
+        );
     }
 }
 
@@ -96,7 +134,9 @@ void AddLeafDersForQueries(
     };
     const size_t begin = queriesInfo[queryStartIndex].Begin;
     const size_t end = queriesInfo[queryEndIndex - 1].End;
-    NCB::TSimpleIndexRangesGenerator<int> rangeGenerator({IntegerCast<int>(begin), IntegerCast<int>(end)}, CeilDiv(IntegerCast<int>(end) - IntegerCast<int>(begin), CB_THREAD_LIMIT));
+    NCB::TSimpleIndexRangesGenerator<int> rangeGenerator(
+        { IntegerCast<int>(begin), IntegerCast<int>(end) },
+        CeilDiv(IntegerCast<int>(end) - IntegerCast<int>(begin), CB_THREAD_LIMIT));
     TBucketStats bucketStats;
     NCB::MapMerge(localExecutor, rangeGenerator, mapDocuments, mergeBuckets, &bucketStats);
 

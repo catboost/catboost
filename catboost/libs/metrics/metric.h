@@ -256,6 +256,8 @@ THolder<IMetric> MakeNdcgMetric(int topSize = -1, ENdcgMetricType type = ENdcgMe
 
 THolder<IMetric> MakeQuerySoftMaxMetric();
 
+THolder<IMetric> MakeStochasticFilterMetric();
+
 THolder<IMetric> MakeBinClassAucMetric(double border = GetDefaultClassificationBorder());
 THolder<IMetric> MakeMultiClassAucMetric(int positiveClass);
 
@@ -327,7 +329,6 @@ TVector<THolder<IMetric>> CreateMetrics(
     int approxDim);
 
 TVector<THolder<IMetric>> CreateMetrics(
-    const NCatboostOptions::TOption<NCatboostOptions::TLossDescription>& lossFunctionOption,
     const NCatboostOptions::TOption<NCatboostOptions::TMetricOptions>& evalMetricOptions,
     const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
     int approxDimension);

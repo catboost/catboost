@@ -1,6 +1,6 @@
 
 
-# TODO(yazevnul): replace with `FLAT_LIBRARY()` when devtools will finally create one
+# TODO(): replace with `FLAT_LIBRARY()` when devtools will finally create one
 LIBRARY()
 
 SRCS(

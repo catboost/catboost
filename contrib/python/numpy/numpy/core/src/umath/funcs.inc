@@ -18,6 +18,7 @@
 
 #define NPY_NO_DEPRECATED_API NPY_API_VERSION
 #include "npy_pycompat.h"
+#include "npy_import.h"
 
 
 /*
@@ -65,7 +66,7 @@ npy_ObjectPower(PyObject *x, PyObject *y)
     return PyNumber_Power(x, y, Py_None);
 }
 
-#line 62
+#line 63
 static PyObject *
 npy_ObjectMax(PyObject *i1, PyObject *i2)
 {
@@ -86,7 +87,7 @@ npy_ObjectMax(PyObject *i1, PyObject *i2)
     return result;
 }
 
-#line 62
+#line 63
 static PyObject *
 npy_ObjectMin(PyObject *i1, PyObject *i2)
 {
@@ -117,7 +118,7 @@ npy_ObjectLogicalOr(PyObject *i1, PyObject *i2)
         return i2;
     }
     else if (i2 == NULL) {
-        Py_INCREF(i2);
+        Py_INCREF(i1);
         return i1;
     }
     else {
@@ -186,6 +187,73 @@ npy_ObjectLogicalNot(PyObject *i1)
     }
 }
 
+static PyObject *
+npy_ObjectGCD(PyObject *i1, PyObject *i2)
+{
+    PyObject *gcd = NULL;
+
+    /* use math.gcd if available, and valid on the provided types */
+#if PY_VERSION_HEX >= 0x03050000
+    {
+        static PyObject *math_gcd_func = NULL;
+
+        npy_cache_import("math", "gcd", &math_gcd_func);
+        if (math_gcd_func == NULL) {
+            return NULL;
+        }
+        gcd = PyObject_CallFunction(math_gcd_func, "OO", i1, i2);
+        if (gcd != NULL) {
+            return gcd;
+        }
+        /* silence errors, and fall back on pure-python gcd */
+        PyErr_Clear();
+    }
+#endif
+
+    /* otherwise, use our internal one, written in python */
+    {
+        static PyObject *internal_gcd_func = NULL;
+
+        npy_cache_import("numpy.core._internal", "_gcd", &internal_gcd_func);
+        if (internal_gcd_func == NULL) {
+            return NULL;
+        }
+        gcd = PyObject_CallFunction(internal_gcd_func, "OO", i1, i2);
+        if (gcd == NULL) {
+            return NULL;
+        }
+        /* _gcd has some unusual behaviour regarding sign */
+        return PyNumber_Absolute(gcd);
+    }
+}
+
+static PyObject *
+npy_ObjectLCM(PyObject *i1, PyObject *i2)
+{
+    /* lcm(a, b) = abs(a // gcd(a, b) * b) */
+
+    PyObject *gcd = npy_ObjectGCD(i1, i2);
+    PyObject *tmp;
+    if(gcd == NULL) {
+        return NULL;
+    }
+    /* Floor divide preserves integer types - we know the division will have
+     * no remainder
+     */
+    tmp = PyNumber_FloorDivide(i1, gcd);
+    if(tmp == NULL) {
+        return NULL;
+    }
+
+    tmp = PyNumber_Multiply(tmp, i2);
+    if(tmp == NULL) {
+        return NULL;
+    }
+
+    /* even though we fix gcd to be positive, we need to do it again here */
+    return PyNumber_Absolute(tmp);
+}
+
 /*
  *****************************************************************************
  **                           COMPLEX FUNCTIONS                             **
@@ -200,13 +268,21 @@ npy_ObjectLogicalNot(PyObject *i1)
  * extension that makes use of the UFUNC API
  */
 
-#line 181
+#line 249
 
 static void
 nc_negf(npy_cfloat *a, npy_cfloat *r)
 {
     r->real = -a->real;
     r->imag = -a->imag;
+    return;
+}
+
+static void
+nc_posf(npy_cfloat *a, npy_cfloat *r)
+{
+    r->real = +a->real;
+    r->imag = +a->imag;
     return;
 }
 
@@ -377,13 +453,21 @@ nc_tanhf(npy_cfloat *x, npy_cfloat *r)
 }
 
 
-#line 181
+#line 249
 
 static void
 nc_neg(npy_cdouble *a, npy_cdouble *r)
 {
     r->real = -a->real;
     r->imag = -a->imag;
+    return;
+}
+
+static void
+nc_pos(npy_cdouble *a, npy_cdouble *r)
+{
+    r->real = +a->real;
+    r->imag = +a->imag;
     return;
 }
 
@@ -554,13 +638,21 @@ nc_tanh(npy_cdouble *x, npy_cdouble *r)
 }
 
 
-#line 181
+#line 249
 
 static void
 nc_negl(npy_clongdouble *a, npy_clongdouble *r)
 {
     r->real = -a->real;
     r->imag = -a->imag;
+    return;
+}
+
+static void
+nc_posl(npy_clongdouble *a, npy_clongdouble *r)
+{
+    r->real = +a->real;
+    r->imag = +a->imag;
     return;
 }
 

@@ -5,13 +5,33 @@ PY23_LIBRARY()
 NO_PYTHON_INCLUDES()
 
 IF (USE_ARCADIA_PYTHON)
-    ADDINCL(GLOBAL contrib/libs/python/Include)
+    PEERDIR(
+        contrib/libs/python/Include
+        library/python/symbols/module
+        library/python/symbols/libc
+    )
+
+    IF (NOT OS_WINDOWS)
+        PEERDIR(
+        )
+    ENDIF()
+
+    IF (MUSL)
+        PEERDIR(
+            library/python/symbols/python
+        )
+    ENDIF()
+
     IF (MODULE_TAG STREQUAL "PY2")
-        CFLAGS(GLOBAL -DUSE_PYTHON2)
-        PEERDIR(contrib/tools/python/lib)
+        PEERDIR(
+            contrib/tools/python/lib
+            library/python/runtime
+        )
     ELSE()
-        CFLAGS(GLOBAL -DUSE_PYTHON3)
-        PEERDIR(contrib/tools/python3/lib)
+        PEERDIR(
+            contrib/tools/python3/lib
+            library/python/runtime_py3
+        )
     ENDIF()
 ELSE()
     IF (USE_SYSTEM_PYTHON)
@@ -21,3 +41,7 @@ ELSE()
     ENDIF()
 ENDIF()
 END()
+
+RECURSE(
+    Include
+)

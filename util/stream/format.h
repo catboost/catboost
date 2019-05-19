@@ -144,7 +144,7 @@ namespace NFormatPrivate {
 
     template <typename Char, size_t Base>
     IOutputStream& operator<<(IOutputStream& os, const TBaseText<Char, Base>& text) {
-        for (size_t i = 0; i < text.Text.Size(); ++i) {
+        for (size_t i = 0; i < text.Text.size(); ++i) {
             if (i != 0) {
                 os << ' ';
             }

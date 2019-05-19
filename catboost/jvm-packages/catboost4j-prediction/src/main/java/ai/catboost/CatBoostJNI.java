@@ -56,6 +56,12 @@ class CatBoostJNI {
         CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelGetTreeCount(handle, treeCount));
     }
 
+    final void catBoostModelGetFeatureNames(
+            final long handle,
+            @NotNull String[] featureNames) throws CatBoostError {
+        CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelGetFeatureNames(handle, featureNames));
+    }
+
     final void catBoostModelPredict(
             final long handle,
             final @Nullable float[] numericFeatures,

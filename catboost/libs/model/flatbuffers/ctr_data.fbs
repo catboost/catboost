@@ -15,6 +15,7 @@ enum ECtrType : byte {
 table TModelCtrBase {
     FeatureCombination:TFeatureCombination;
     CtrType: ECtrType;
+    TargetBorderClassifierIdx:int = 0;
 }
 //
 table TModelCtr {

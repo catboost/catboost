@@ -450,7 +450,7 @@ class _TimeOp(_Op):
         elif (isinstance(values, pd.Series) and
               (is_timedelta64_dtype(values) or is_datetime64_dtype(values))):
             supplied_dtype = values.dtype
-        inferred_type = supplied_dtype or lib.infer_dtype(values)
+        inferred_type = lib.infer_dtype(values)
         if (inferred_type in ('datetime64', 'datetime', 'date', 'time') or
                 is_datetimetz(inferred_type)):
             # if we have a other of timedelta, but use pd.NaT here we

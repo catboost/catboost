@@ -1,6 +1,7 @@
 /* List object implementation */
 
 #include "Python.h"
+#include "internal/pystate.h"
 #include "accu.h"
 
 #ifdef STDC_HEADERS
@@ -8,6 +9,13 @@
 #else
 #include <sys/types.h>          /* For size_t */
 #endif
+
+/*[clinic input]
+class list "PyListObject *" "&PyList_Type"
+[clinic start generated code]*/
+/*[clinic end generated code: output=da39a3ee5e6b4b0d input=f9b222678f9f71e0]*/
+
+#include "clinic/listobject.c.h"
 
 /* Ensure ob_item has room for at least newsize elements, and set
  * ob_size to newsize.  If newsize > ob_size on entry, the content
@@ -26,7 +34,7 @@ static int
 list_resize(PyListObject *self, Py_ssize_t newsize)
 {
     PyObject **items;
-    size_t new_allocated;
+    size_t new_allocated, num_allocated_bytes;
     Py_ssize_t allocated = self->allocated;
 
     /* Bypass realloc() when a previous overallocation is large enough
@@ -45,24 +53,19 @@ list_resize(PyListObject *self, Py_ssize_t newsize)
      * sequence of appends() in the presence of a poorly-performing
      * system realloc().
      * The growth pattern is:  0, 4, 8, 16, 25, 35, 46, 58, 72, 88, ...
+     * Note: new_allocated won't overflow because the largest possible value
+     *       is PY_SSIZE_T_MAX * (9 / 8) + 6 which always fits in a size_t.
      */
-    new_allocated = (newsize >> 3) + (newsize < 9 ? 3 : 6);
-
-    /* check for integer overflow */
-    if (new_allocated > SIZE_MAX - newsize) {
+    new_allocated = (size_t)newsize + (newsize >> 3) + (newsize < 9 ? 3 : 6);
+    if (new_allocated > (size_t)PY_SSIZE_T_MAX / sizeof(PyObject *)) {
         PyErr_NoMemory();
         return -1;
-    } else {
-        new_allocated += newsize;
     }
 
     if (newsize == 0)
         new_allocated = 0;
-    items = self->ob_item;
-    if (new_allocated <= (SIZE_MAX / sizeof(PyObject *)))
-        PyMem_RESIZE(items, PyObject *, new_allocated);
-    else
-        items = NULL;
+    num_allocated_bytes = new_allocated * sizeof(PyObject *);
+    items = (PyObject **)PyMem_Realloc(self->ob_item, num_allocated_bytes);
     if (items == NULL) {
         PyErr_NoMemory();
         return -1;
@@ -82,15 +85,10 @@ static size_t count_reuse = 0;
 static void
 show_alloc(void)
 {
-    PyObject *xoptions, *value;
-    _Py_IDENTIFIER(showalloccount);
-
-    xoptions = PySys_GetXOptions();
-    if (xoptions == NULL)
+    PyInterpreterState *interp = PyThreadState_GET()->interp;
+    if (!interp->core_config.show_alloc_count) {
         return;
-    value = _PyDict_GetItemId(xoptions, &PyId_showalloccount);
-    if (value != Py_True)
-        return;
+    }
 
     fprintf(stderr, "List allocations: %" PY_FORMAT_SIZE_T "d\n",
         count_alloc);
@@ -366,10 +364,7 @@ list_repr(PyListObject *v)
                 goto error;
         }
 
-        if (Py_EnterRecursiveCall(" while getting the repr of a list"))
-            goto error;
         s = PyObject_Repr(v->ob_item[i]);
-        Py_LeaveRecursiveCall();
         if (s == NULL)
             goto error;
 
@@ -547,7 +542,7 @@ list_repeat(PyListObject *a, Py_ssize_t n)
 }
 
 static int
-list_clear(PyListObject *a)
+_list_clear(PyListObject *a)
 {
     Py_ssize_t i;
     PyObject **item = a->ob_item;
@@ -629,7 +624,7 @@ list_ass_slice(PyListObject *a, Py_ssize_t ilow, Py_ssize_t ihigh, PyObject *v)
     d = n - norig;
     if (Py_SIZE(a) + d == 0) {
         Py_XDECREF(v_as_SF);
-        return list_clear(a);
+        return _list_clear(a);
     }
     item = a->ob_item;
     /* recycle the items that we are about to remove */
@@ -705,7 +700,7 @@ list_inplace_repeat(PyListObject *self, Py_ssize_t n)
     }
 
     if (n < 1) {
-        (void)list_clear(self);
+        (void)_list_clear(self);
         Py_INCREF(self);
         return (PyObject *)self;
     }
@@ -745,45 +740,86 @@ list_ass_item(PyListObject *a, Py_ssize_t i, PyObject *v)
     return 0;
 }
 
+/*[clinic input]
+list.insert
+
+    index: Py_ssize_t
+    object: object
+    /
+
+Insert object before index.
+[clinic start generated code]*/
+
 static PyObject *
-listinsert(PyListObject *self, PyObject *args)
+list_insert_impl(PyListObject *self, Py_ssize_t index, PyObject *object)
+/*[clinic end generated code: output=7f35e32f60c8cb78 input=858514cf894c7eab]*/
 {
-    Py_ssize_t i;
-    PyObject *v;
-    if (!PyArg_ParseTuple(args, "nO:insert", &i, &v))
-        return NULL;
-    if (ins1(self, i, v) == 0)
+    if (ins1(self, index, object) == 0)
         Py_RETURN_NONE;
     return NULL;
 }
 
+/*[clinic input]
+list.clear
+
+Remove all items from list.
+[clinic start generated code]*/
+
 static PyObject *
-listclear(PyListObject *self)
+list_clear_impl(PyListObject *self)
+/*[clinic end generated code: output=67a1896c01f74362 input=ca3c1646856742f6]*/
 {
-    list_clear(self);
+    _list_clear(self);
     Py_RETURN_NONE;
 }
 
+/*[clinic input]
+list.copy
+
+Return a shallow copy of the list.
+[clinic start generated code]*/
+
 static PyObject *
-listcopy(PyListObject *self)
+list_copy_impl(PyListObject *self)
+/*[clinic end generated code: output=ec6b72d6209d418e input=6453ab159e84771f]*/
 {
     return list_slice(self, 0, Py_SIZE(self));
 }
 
+/*[clinic input]
+list.append
+
+     object: object
+     /
+
+Append object to the end of the list.
+[clinic start generated code]*/
+
 static PyObject *
-listappend(PyListObject *self, PyObject *v)
+list_append(PyListObject *self, PyObject *object)
+/*[clinic end generated code: output=7c096003a29c0eae input=43a3fe48a7066e91]*/
 {
-    if (app1(self, v) == 0)
+    if (app1(self, object) == 0)
         Py_RETURN_NONE;
     return NULL;
 }
 
+/*[clinic input]
+list.extend
+
+     iterable: object
+     /
+
+Extend list by appending elements from the iterable.
+[clinic start generated code]*/
+
 static PyObject *
-listextend(PyListObject *self, PyObject *b)
+list_extend(PyListObject *self, PyObject *iterable)
+/*[clinic end generated code: output=630fb3bca0c8e789 input=9ec5ba3a81be3a4d]*/
 {
     PyObject *it;      /* iter(v) */
     Py_ssize_t m;                  /* size of self */
-    Py_ssize_t n;                  /* guess for size of b */
+    Py_ssize_t n;                  /* guess for size of iterable */
     Py_ssize_t mn;                 /* m + n */
     Py_ssize_t i;
     PyObject *(*iternext)(PyObject *);
@@ -792,46 +828,50 @@ listextend(PyListObject *self, PyObject *b)
        1) lists and tuples which can use PySequence_Fast ops
        2) extending self to self requires making a copy first
     */
-    if (PyList_CheckExact(b) || PyTuple_CheckExact(b) || (PyObject *)self == b) {
+    if (PyList_CheckExact(iterable) || PyTuple_CheckExact(iterable) ||
+                (PyObject *)self == iterable) {
         PyObject **src, **dest;
-        b = PySequence_Fast(b, "argument must be iterable");
-        if (!b)
+        iterable = PySequence_Fast(iterable, "argument must be iterable");
+        if (!iterable)
             return NULL;
-        n = PySequence_Fast_GET_SIZE(b);
+        n = PySequence_Fast_GET_SIZE(iterable);
         if (n == 0) {
-            /* short circuit when b is empty */
-            Py_DECREF(b);
+            /* short circuit when iterable is empty */
+            Py_DECREF(iterable);
             Py_RETURN_NONE;
         }
         m = Py_SIZE(self);
+        /* It should not be possible to allocate a list large enough to cause
+        an overflow on any relevant platform */
+        assert(m < PY_SSIZE_T_MAX - n);
         if (list_resize(self, m + n) < 0) {
-            Py_DECREF(b);
+            Py_DECREF(iterable);
             return NULL;
         }
-        /* note that we may still have self == b here for the
+        /* note that we may still have self == iterable here for the
          * situation a.extend(a), but the following code works
          * in that case too.  Just make sure to resize self
          * before calling PySequence_Fast_ITEMS.
          */
-        /* populate the end of self with b's items */
-        src = PySequence_Fast_ITEMS(b);
+        /* populate the end of self with iterable's items */
+        src = PySequence_Fast_ITEMS(iterable);
         dest = self->ob_item + m;
         for (i = 0; i < n; i++) {
             PyObject *o = src[i];
             Py_INCREF(o);
             dest[i] = o;
         }
-        Py_DECREF(b);
+        Py_DECREF(iterable);
         Py_RETURN_NONE;
     }
 
-    it = PyObject_GetIter(b);
+    it = PyObject_GetIter(iterable);
     if (it == NULL)
         return NULL;
     iternext = *it->ob_type->tp_iternext;
 
     /* Guess a result list size. */
-    n = PyObject_LengthHint(b, 8);
+    n = PyObject_LengthHint(iterable, 8);
     if (n < 0) {
         Py_DECREF(it);
         return NULL;
@@ -892,9 +932,9 @@ listextend(PyListObject *self, PyObject *b)
 }
 
 PyObject *
-_PyList_Extend(PyListObject *self, PyObject *b)
+_PyList_Extend(PyListObject *self, PyObject *iterable)
 {
-    return listextend(self, b);
+    return list_extend(self, iterable);
 }
 
 static PyObject *
@@ -902,7 +942,7 @@ list_inplace_concat(PyListObject *self, PyObject *other)
 {
     PyObject *result;
 
-    result = listextend(self, other);
+    result = list_extend(self, other);
     if (result == NULL)
         return result;
     Py_DECREF(result);
@@ -910,29 +950,37 @@ list_inplace_concat(PyListObject *self, PyObject *other)
     return (PyObject *)self;
 }
 
+/*[clinic input]
+list.pop
+
+    index: Py_ssize_t = -1
+    /
+
+Remove and return item at index (default last).
+
+Raises IndexError if list is empty or index is out of range.
+[clinic start generated code]*/
+
 static PyObject *
-listpop(PyListObject *self, PyObject *args)
+list_pop_impl(PyListObject *self, Py_ssize_t index)
+/*[clinic end generated code: output=6bd69dcb3f17eca8 input=b83675976f329e6f]*/
 {
-    Py_ssize_t i = -1;
     PyObject *v;
     int status;
-
-    if (!PyArg_ParseTuple(args, "|n:pop", &i))
-        return NULL;
 
     if (Py_SIZE(self) == 0) {
         /* Special-case most common failure cause */
         PyErr_SetString(PyExc_IndexError, "pop from empty list");
         return NULL;
     }
-    if (i < 0)
-        i += Py_SIZE(self);
-    if (i < 0 || i >= Py_SIZE(self)) {
+    if (index < 0)
+        index += Py_SIZE(self);
+    if (index < 0 || index >= Py_SIZE(self)) {
         PyErr_SetString(PyExc_IndexError, "pop index out of range");
         return NULL;
     }
-    v = self->ob_item[i];
-    if (i == Py_SIZE(self) - 1) {
+    v = self->ob_item[index];
+    if (index == Py_SIZE(self) - 1) {
         status = list_resize(self, Py_SIZE(self) - 1);
         if (status >= 0)
             return v; /* and v now owns the reference the list had */
@@ -940,7 +988,7 @@ listpop(PyListObject *self, PyObject *args)
             return NULL;
     }
     Py_INCREF(v);
-    status = list_ass_slice(self, i, i+1, (PyObject *)NULL);
+    status = list_ass_slice(self, index, index+1, (PyObject *)NULL);
     if (status < 0) {
         Py_DECREF(v);
         return NULL;
@@ -1033,11 +1081,12 @@ sortslice_advance(sortslice *slice, Py_ssize_t n)
         slice->values += n;
 }
 
-/* Comparison function: PyObject_RichCompareBool with Py_LT.
+/* Comparison function: ms->key_compare, which is set at run-time in
+ * listsort_impl to optimize for various special cases.
  * Returns -1 on error, 1 if x < y, 0 if x >= y.
  */
 
-#define ISLT(X, Y) (PyObject_RichCompareBool(X, Y, Py_LT))
+#define ISLT(X, Y) (*(ms->key_compare))(X, Y, ms)
 
 /* Compare X to Y via "<".  Goto "fail" if the comparison raises an
    error.  Else "k" is set to true iff X<Y, and an "if (k)" block is
@@ -1045,6 +1094,75 @@ sortslice_advance(sortslice *slice, Py_ssize_t n)
 */
 #define IFLT(X, Y) if ((k = ISLT(X, Y)) < 0) goto fail;  \
            if (k)
+
+/* The maximum number of entries in a MergeState's pending-runs stack.
+ * This is enough to sort arrays of size up to about
+ *     32 * phi ** MAX_MERGE_PENDING
+ * where phi ~= 1.618.  85 is ridiculouslylarge enough, good for an array
+ * with 2**64 elements.
+ */
+#define MAX_MERGE_PENDING 85
+
+/* When we get into galloping mode, we stay there until both runs win less
+ * often than MIN_GALLOP consecutive times.  See listsort.txt for more info.
+ */
+#define MIN_GALLOP 7
+
+/* Avoid malloc for small temp arrays. */
+#define MERGESTATE_TEMP_SIZE 256
+
+/* One MergeState exists on the stack per invocation of mergesort.  It's just
+ * a convenient way to pass state around among the helper functions.
+ */
+struct s_slice {
+    sortslice base;
+    Py_ssize_t len;
+};
+
+typedef struct s_MergeState MergeState;
+struct s_MergeState {
+    /* This controls when we get *into* galloping mode.  It's initialized
+     * to MIN_GALLOP.  merge_lo and merge_hi tend to nudge it higher for
+     * random data, and lower for highly structured data.
+     */
+    Py_ssize_t min_gallop;
+
+    /* 'a' is temp storage to help with merges.  It contains room for
+     * alloced entries.
+     */
+    sortslice a;        /* may point to temparray below */
+    Py_ssize_t alloced;
+
+    /* A stack of n pending runs yet to be merged.  Run #i starts at
+     * address base[i] and extends for len[i] elements.  It's always
+     * true (so long as the indices are in bounds) that
+     *
+     *     pending[i].base + pending[i].len == pending[i+1].base
+     *
+     * so we could cut the storage for this, but it's a minor amount,
+     * and keeping all the info explicit simplifies the code.
+     */
+    int n;
+    struct s_slice pending[MAX_MERGE_PENDING];
+
+    /* 'a' points to this when possible, rather than muck with malloc. */
+    PyObject *temparray[MERGESTATE_TEMP_SIZE];
+
+    /* This is the function we will use to compare two keys,
+     * even when none of our special cases apply and we have to use
+     * safe_object_compare. */
+    int (*key_compare)(PyObject *, PyObject *, MergeState *);
+
+    /* This function is used by unsafe_object_compare to optimize comparisons
+     * when we know our list is type-homogeneous but we can't assume anything else.
+     * In the pre-sort check it is set equal to key->ob_type->tp_richcompare */
+    PyObject *(*key_richcompare)(PyObject *, PyObject *, int);
+
+    /* This function is used by unsafe_tuple_compare to compare the first elements
+     * of tuples. It may be set to safe_object_compare, but the idea is that hopefully
+     * we can assume more, and use one of the special-case compares. */
+    int (*tuple_elem_compare)(PyObject *, PyObject *, MergeState *);
+};
 
 /* binarysort is the best method for sorting small arrays: it does
    few compares, but can do data movement quadratic in the number of
@@ -1058,7 +1176,7 @@ sortslice_advance(sortslice *slice, Py_ssize_t n)
    the input (nothing is lost or duplicated).
 */
 static int
-binarysort(sortslice lo, PyObject **hi, PyObject **start)
+binarysort(MergeState *ms, sortslice lo, PyObject **hi, PyObject **start)
 {
     Py_ssize_t k;
     PyObject **l, **p, **r;
@@ -1132,7 +1250,7 @@ elements to get out of order).
 Returns -1 in case of error.
 */
 static Py_ssize_t
-count_run(PyObject **lo, PyObject **hi, int *descending)
+count_run(MergeState *ms, PyObject **lo, PyObject **hi, int *descending)
 {
     Py_ssize_t k;
     Py_ssize_t n;
@@ -1187,7 +1305,7 @@ key, and the last n-k should follow key.
 Returns -1 on error.  See listsort.txt for info on the method.
 */
 static Py_ssize_t
-gallop_left(PyObject *key, PyObject **a, Py_ssize_t n, Py_ssize_t hint)
+gallop_left(MergeState *ms, PyObject *key, PyObject **a, Py_ssize_t n, Py_ssize_t hint)
 {
     Py_ssize_t ofs;
     Py_ssize_t lastofs;
@@ -1278,7 +1396,7 @@ we're sticking to "<" comparisons that it's much harder to follow if
 written as one routine with yet another "left or right?" flag.
 */
 static Py_ssize_t
-gallop_right(PyObject *key, PyObject **a, Py_ssize_t n, Py_ssize_t hint)
+gallop_right(MergeState *ms, PyObject *key, PyObject **a, Py_ssize_t n, Py_ssize_t hint)
 {
     Py_ssize_t ofs;
     Py_ssize_t lastofs;
@@ -1354,59 +1472,6 @@ fail:
     return -1;
 }
 
-/* The maximum number of entries in a MergeState's pending-runs stack.
- * This is enough to sort arrays of size up to about
- *     32 * phi ** MAX_MERGE_PENDING
- * where phi ~= 1.618.  85 is ridiculouslylarge enough, good for an array
- * with 2**64 elements.
- */
-#define MAX_MERGE_PENDING 85
-
-/* When we get into galloping mode, we stay there until both runs win less
- * often than MIN_GALLOP consecutive times.  See listsort.txt for more info.
- */
-#define MIN_GALLOP 7
-
-/* Avoid malloc for small temp arrays. */
-#define MERGESTATE_TEMP_SIZE 256
-
-/* One MergeState exists on the stack per invocation of mergesort.  It's just
- * a convenient way to pass state around among the helper functions.
- */
-struct s_slice {
-    sortslice base;
-    Py_ssize_t len;
-};
-
-typedef struct s_MergeState {
-    /* This controls when we get *into* galloping mode.  It's initialized
-     * to MIN_GALLOP.  merge_lo and merge_hi tend to nudge it higher for
-     * random data, and lower for highly structured data.
-     */
-    Py_ssize_t min_gallop;
-
-    /* 'a' is temp storage to help with merges.  It contains room for
-     * alloced entries.
-     */
-    sortslice a;        /* may point to temparray below */
-    Py_ssize_t alloced;
-
-    /* A stack of n pending runs yet to be merged.  Run #i starts at
-     * address base[i] and extends for len[i] elements.  It's always
-     * true (so long as the indices are in bounds) that
-     *
-     *     pending[i].base + pending[i].len == pending[i+1].base
-     *
-     * so we could cut the storage for this, but it's a minor amount,
-     * and keeping all the info explicit simplifies the code.
-     */
-    int n;
-    struct s_slice pending[MAX_MERGE_PENDING];
-
-    /* 'a' points to this when possible, rather than muck with malloc. */
-    PyObject *temparray[MERGESTATE_TEMP_SIZE];
-} MergeState;
-
 /* Conceptually a MergeState's constructor. */
 static void
 merge_init(MergeState *ms, Py_ssize_t list_size, int has_keyfunc)
@@ -1466,11 +1531,11 @@ merge_getmem(MergeState *ms, Py_ssize_t need)
      * we don't care what's in the block.
      */
     merge_freemem(ms);
-    if ((size_t)need > PY_SSIZE_T_MAX / sizeof(PyObject*) / multiplier) {
+    if ((size_t)need > PY_SSIZE_T_MAX / sizeof(PyObject *) / multiplier) {
         PyErr_NoMemory();
         return -1;
     }
-    ms->a.keys = (PyObject**)PyMem_Malloc(multiplier * need
+    ms->a.keys = (PyObject **)PyMem_Malloc(multiplier * need
                                           * sizeof(PyObject *));
     if (ms->a.keys != NULL) {
         ms->alloced = need;
@@ -1559,7 +1624,7 @@ merge_lo(MergeState *ms, sortslice ssa, Py_ssize_t na,
             assert(na > 1 && nb > 0);
             min_gallop -= min_gallop > 1;
             ms->min_gallop = min_gallop;
-            k = gallop_right(ssb.keys[0], ssa.keys, na, 0);
+            k = gallop_right(ms, ssb.keys[0], ssa.keys, na, 0);
             acount = k;
             if (k) {
                 if (k < 0)
@@ -1582,7 +1647,7 @@ merge_lo(MergeState *ms, sortslice ssa, Py_ssize_t na,
             if (nb == 0)
                 goto Succeed;
 
-            k = gallop_left(ssa.keys[0], ssb.keys, nb, 0);
+            k = gallop_left(ms, ssa.keys[0], ssb.keys, nb, 0);
             bcount = k;
             if (k) {
                 if (k < 0)
@@ -1697,7 +1762,7 @@ merge_hi(MergeState *ms, sortslice ssa, Py_ssize_t na,
             assert(na > 0 && nb > 1);
             min_gallop -= min_gallop > 1;
             ms->min_gallop = min_gallop;
-            k = gallop_right(ssb.keys[0], basea.keys, na, na-1);
+            k = gallop_right(ms, ssb.keys[0], basea.keys, na, na-1);
             if (k < 0)
                 goto Fail;
             k = na - k;
@@ -1715,7 +1780,7 @@ merge_hi(MergeState *ms, sortslice ssa, Py_ssize_t na,
             if (nb == 1)
                 goto CopyA;
 
-            k = gallop_left(ssa.keys[0], baseb.keys, nb, nb-1);
+            k = gallop_left(ms, ssa.keys[0], baseb.keys, nb, nb-1);
             if (k < 0)
                 goto Fail;
             k = nb - k;
@@ -1792,7 +1857,7 @@ merge_at(MergeState *ms, Py_ssize_t i)
     /* Where does b start in a?  Elements in a before that can be
      * ignored (already in place).
      */
-    k = gallop_right(*ssb.keys, ssa.keys, na, 0);
+    k = gallop_right(ms, *ssb.keys, ssa.keys, na, 0);
     if (k < 0)
         return -1;
     sortslice_advance(&ssa, k);
@@ -1803,7 +1868,7 @@ merge_at(MergeState *ms, Py_ssize_t i)
     /* Where does a end in b?  Elements in b after that can be
      * ignored (already in place).
      */
-    nb = gallop_left(ssa.keys[na-1], ssb.keys, nb, nb-1);
+    nb = gallop_left(ms, ssa.keys[na-1], ssb.keys, nb, nb-1);
     if (nb <= 0)
         return nb;
 
@@ -1842,8 +1907,8 @@ merge_collapse(MergeState *ms)
                 return -1;
         }
         else if (p[n].len <= p[n+1].len) {
-                 if (merge_at(ms, n) < 0)
-                        return -1;
+            if (merge_at(ms, n) < 0)
+                return -1;
         }
         else
             break;
@@ -1903,13 +1968,189 @@ reverse_sortslice(sortslice *s, Py_ssize_t n)
         reverse_slice(s->values, &s->values[n]);
 }
 
+/* Here we define custom comparison functions to optimize for the cases one commonly
+ * encounters in practice: homogeneous lists, often of one of the basic types. */
+
+/* This struct holds the comparison function and helper functions
+ * selected in the pre-sort check. */
+
+/* These are the special case compare functions.
+ * ms->key_compare will always point to one of these: */
+
+/* Heterogeneous compare: default, always safe to fall back on. */
+static int
+safe_object_compare(PyObject *v, PyObject *w, MergeState *ms)
+{
+    /* No assumptions necessary! */
+    return PyObject_RichCompareBool(v, w, Py_LT);
+}
+
+/* Homogeneous compare: safe for any two compareable objects of the same type.
+ * (ms->key_richcompare is set to ob_type->tp_richcompare in the
+ *  pre-sort check.)
+ */
+static int
+unsafe_object_compare(PyObject *v, PyObject *w, MergeState *ms)
+{
+    PyObject *res_obj; int res;
+
+    /* No assumptions, because we check first: */
+    if (v->ob_type->tp_richcompare != ms->key_richcompare)
+        return PyObject_RichCompareBool(v, w, Py_LT);
+
+    assert(ms->key_richcompare != NULL);
+    res_obj = (*(ms->key_richcompare))(v, w, Py_LT);
+
+    if (res_obj == Py_NotImplemented) {
+        Py_DECREF(res_obj);
+        return PyObject_RichCompareBool(v, w, Py_LT);
+    }
+    if (res_obj == NULL)
+        return -1;
+
+    if (PyBool_Check(res_obj)) {
+        res = (res_obj == Py_True);
+    }
+    else {
+        res = PyObject_IsTrue(res_obj);
+    }
+    Py_DECREF(res_obj);
+
+    /* Note that we can't assert
+     *     res == PyObject_RichCompareBool(v, w, Py_LT);
+     * because of evil compare functions like this:
+     *     lambda a, b:  int(random.random() * 3) - 1)
+     * (which is actually in test_sort.py) */
+    return res;
+}
+
+/* Latin string compare: safe for any two latin (one byte per char) strings. */
+static int
+unsafe_latin_compare(PyObject *v, PyObject *w, MergeState *ms)
+{
+    Py_ssize_t len;
+    int res;
+
+    /* Modified from Objects/unicodeobject.c:unicode_compare, assuming: */
+    assert(v->ob_type == w->ob_type);
+    assert(v->ob_type == &PyUnicode_Type);
+    assert(PyUnicode_KIND(v) == PyUnicode_KIND(w));
+    assert(PyUnicode_KIND(v) == PyUnicode_1BYTE_KIND);
+
+    len = Py_MIN(PyUnicode_GET_LENGTH(v), PyUnicode_GET_LENGTH(w));
+    res = memcmp(PyUnicode_DATA(v), PyUnicode_DATA(w), len);
+
+    res = (res != 0 ?
+           res < 0 :
+           PyUnicode_GET_LENGTH(v) < PyUnicode_GET_LENGTH(w));
+
+    assert(res == PyObject_RichCompareBool(v, w, Py_LT));;
+    return res;
+}
+
+/* Bounded int compare: compare any two longs that fit in a single machine word. */
+static int
+unsafe_long_compare(PyObject *v, PyObject *w, MergeState *ms)
+{
+    PyLongObject *vl, *wl; sdigit v0, w0; int res;
+
+    /* Modified from Objects/longobject.c:long_compare, assuming: */
+    assert(v->ob_type == w->ob_type);
+    assert(v->ob_type == &PyLong_Type);
+    assert(Py_ABS(Py_SIZE(v)) <= 1);
+    assert(Py_ABS(Py_SIZE(w)) <= 1);
+
+    vl = (PyLongObject*)v;
+    wl = (PyLongObject*)w;
+
+    v0 = Py_SIZE(vl) == 0 ? 0 : (sdigit)vl->ob_digit[0];
+    w0 = Py_SIZE(wl) == 0 ? 0 : (sdigit)wl->ob_digit[0];
+
+    if (Py_SIZE(vl) < 0)
+        v0 = -v0;
+    if (Py_SIZE(wl) < 0)
+        w0 = -w0;
+
+    res = v0 < w0;
+    assert(res == PyObject_RichCompareBool(v, w, Py_LT));
+    return res;
+}
+
+/* Float compare: compare any two floats. */
+static int
+unsafe_float_compare(PyObject *v, PyObject *w, MergeState *ms)
+{
+    int res;
+
+    /* Modified from Objects/floatobject.c:float_richcompare, assuming: */
+    assert(v->ob_type == w->ob_type);
+    assert(v->ob_type == &PyFloat_Type);
+
+    res = PyFloat_AS_DOUBLE(v) < PyFloat_AS_DOUBLE(w);
+    assert(res == PyObject_RichCompareBool(v, w, Py_LT));
+    return res;
+}
+
+/* Tuple compare: compare *any* two tuples, using
+ * ms->tuple_elem_compare to compare the first elements, which is set
+ * using the same pre-sort check as we use for ms->key_compare,
+ * but run on the list [x[0] for x in L]. This allows us to optimize compares
+ * on two levels (as long as [x[0] for x in L] is type-homogeneous.) The idea is
+ * that most tuple compares don't involve x[1:]. */
+static int
+unsafe_tuple_compare(PyObject *v, PyObject *w, MergeState *ms)
+{
+    PyTupleObject *vt, *wt;
+    Py_ssize_t i, vlen, wlen;
+    int k;
+
+    /* Modified from Objects/tupleobject.c:tuplerichcompare, assuming: */
+    assert(v->ob_type == w->ob_type);
+    assert(v->ob_type == &PyTuple_Type);
+    assert(Py_SIZE(v) > 0);
+    assert(Py_SIZE(w) > 0);
+
+    vt = (PyTupleObject *)v;
+    wt = (PyTupleObject *)w;
+
+    vlen = Py_SIZE(vt);
+    wlen = Py_SIZE(wt);
+
+    for (i = 0; i < vlen && i < wlen; i++) {
+        k = PyObject_RichCompareBool(vt->ob_item[i], wt->ob_item[i], Py_EQ);
+        if (k < 0)
+            return -1;
+        if (!k)
+            break;
+    }
+
+    if (i >= vlen || i >= wlen)
+        return vlen < wlen;
+
+    if (i == 0)
+        return ms->tuple_elem_compare(vt->ob_item[i], wt->ob_item[i], ms);
+    else
+        return PyObject_RichCompareBool(vt->ob_item[i], wt->ob_item[i], Py_LT);
+}
+
 /* An adaptive, stable, natural mergesort.  See listsort.txt.
  * Returns Py_None on success, NULL on error.  Even in case of error, the
  * list will be some permutation of its input state (nothing is lost or
  * duplicated).
  */
+/*[clinic input]
+list.sort
+
+    *
+    key as keyfunc: object = None
+    reverse: bool(accept={int}) = False
+
+Stable sort *IN PLACE*.
+[clinic start generated code]*/
+
 static PyObject *
-listsort(PyListObject *self, PyObject *args, PyObject *kwds)
+list_sort_impl(PyListObject *self, PyObject *keyfunc, int reverse)
+/*[clinic end generated code: output=57b9f9c5e23fbe42 input=b0fcf743982c5b90]*/
 {
     MergeState ms;
     Py_ssize_t nremaining;
@@ -1919,24 +2160,11 @@ listsort(PyListObject *self, PyObject *args, PyObject *kwds)
     PyObject **saved_ob_item;
     PyObject **final_ob_item;
     PyObject *result = NULL;            /* guilty until proved innocent */
-    int reverse = 0;
-    PyObject *keyfunc = NULL;
     Py_ssize_t i;
-    static char *kwlist[] = {"key", "reverse", 0};
     PyObject **keys;
 
     assert(self != NULL);
-    assert (PyList_Check(self));
-    if (args != NULL) {
-        if (!PyArg_ParseTupleAndKeywords(args, kwds, "|Oi:sort",
-            kwlist, &keyfunc, &reverse))
-            return NULL;
-        if (Py_SIZE(args) > 0) {
-            PyErr_SetString(PyExc_TypeError,
-                "must use keyword argument for key function");
-            return NULL;
-        }
-    }
+    assert(PyList_Check(self));
     if (keyfunc == Py_None)
         keyfunc = NULL;
 
@@ -1985,6 +2213,93 @@ listsort(PyListObject *self, PyObject *args, PyObject *kwds)
         lo.values = saved_ob_item;
     }
 
+
+    /* The pre-sort check: here's where we decide which compare function to use.
+     * How much optimization is safe? We test for homogeneity with respect to
+     * several properties that are expensive to check at compare-time, and
+     * set ms appropriately. */
+    if (saved_ob_size > 1) {
+        /* Assume the first element is representative of the whole list. */
+        int keys_are_in_tuples = (lo.keys[0]->ob_type == &PyTuple_Type &&
+                                  Py_SIZE(lo.keys[0]) > 0);
+
+        PyTypeObject* key_type = (keys_are_in_tuples ?
+                                  PyTuple_GET_ITEM(lo.keys[0], 0)->ob_type :
+                                  lo.keys[0]->ob_type);
+
+        int keys_are_all_same_type = 1;
+        int strings_are_latin = 1;
+        int ints_are_bounded = 1;
+
+        /* Prove that assumption by checking every key. */
+        for (i=0; i < saved_ob_size; i++) {
+
+            if (keys_are_in_tuples &&
+                !(lo.keys[i]->ob_type == &PyTuple_Type && Py_SIZE(lo.keys[i]) != 0)) {
+                keys_are_in_tuples = 0;
+                keys_are_all_same_type = 0;
+                break;
+            }
+
+            /* Note: for lists of tuples, key is the first element of the tuple
+             * lo.keys[i], not lo.keys[i] itself! We verify type-homogeneity
+             * for lists of tuples in the if-statement directly above. */
+            PyObject *key = (keys_are_in_tuples ?
+                             PyTuple_GET_ITEM(lo.keys[i], 0) :
+                             lo.keys[i]);
+
+            if (key->ob_type != key_type) {
+                keys_are_all_same_type = 0;
+                break;
+            }
+
+            if (key_type == &PyLong_Type) {
+                if (ints_are_bounded && Py_ABS(Py_SIZE(key)) > 1)
+                    ints_are_bounded = 0;
+            }
+            else if (key_type == &PyUnicode_Type){
+                if (strings_are_latin &&
+                    PyUnicode_KIND(key) != PyUnicode_1BYTE_KIND)
+                strings_are_latin = 0;
+            }
+        }
+
+        /* Choose the best compare, given what we now know about the keys. */
+        if (keys_are_all_same_type) {
+
+            if (key_type == &PyUnicode_Type && strings_are_latin) {
+                ms.key_compare = unsafe_latin_compare;
+            }
+            else if (key_type == &PyLong_Type && ints_are_bounded) {
+                ms.key_compare = unsafe_long_compare;
+            }
+            else if (key_type == &PyFloat_Type) {
+                ms.key_compare = unsafe_float_compare;
+            }
+            else if ((ms.key_richcompare = key_type->tp_richcompare) != NULL) {
+                ms.key_compare = unsafe_object_compare;
+            }
+            else {
+                ms.key_compare = safe_object_compare;
+            }
+        }
+        else {
+            ms.key_compare = safe_object_compare;
+        }
+
+        if (keys_are_in_tuples) {
+            /* Make sure we're not dealing with tuples of tuples
+             * (remember: here, key_type refers list [key[0] for key in keys]) */
+            if (key_type == &PyTuple_Type)
+                ms.tuple_elem_compare = safe_object_compare;
+            else
+                ms.tuple_elem_compare = ms.key_compare;
+
+            ms.key_compare = unsafe_tuple_compare;
+        }
+    }
+    /* End of pre-sort check: ms is now set properly! */
+
     merge_init(&ms, saved_ob_size, keys != NULL);
 
     nremaining = saved_ob_size;
@@ -2008,7 +2323,7 @@ listsort(PyListObject *self, PyObject *args, PyObject *kwds)
         Py_ssize_t n;
 
         /* Identify next run. */
-        n = count_run(lo.keys, lo.keys + nremaining, &descending);
+        n = count_run(&ms, lo.keys, lo.keys + nremaining, &descending);
         if (n < 0)
             goto fail;
         if (descending)
@@ -2017,7 +2332,7 @@ listsort(PyListObject *self, PyObject *args, PyObject *kwds)
         if (n < minrun) {
             const Py_ssize_t force = nremaining <= minrun ?
                               nremaining : minrun;
-            if (binarysort(lo, lo.keys + force, lo.keys + n) < 0)
+            if (binarysort(&ms, lo, lo.keys + force, lo.keys + n) < 0)
                 goto fail;
             n = force;
         }
@@ -2072,7 +2387,7 @@ keyfunc_fail:
     self->ob_item = saved_ob_item;
     self->allocated = saved_allocated;
     if (final_ob_item != NULL) {
-        /* we cannot use list_clear() for this because it does not
+        /* we cannot use _list_clear() for this because it does not
            guarantee that the list is really empty when it returns */
         while (--i >= 0) {
             Py_XDECREF(final_ob_item[i]);
@@ -2092,15 +2407,22 @@ PyList_Sort(PyObject *v)
         PyErr_BadInternalCall();
         return -1;
     }
-    v = listsort((PyListObject *)v, (PyObject *)NULL, (PyObject *)NULL);
+    v = list_sort_impl((PyListObject *)v, NULL, 0);
     if (v == NULL)
         return -1;
     Py_DECREF(v);
     return 0;
 }
 
+/*[clinic input]
+list.reverse
+
+Reverse *IN PLACE*.
+[clinic start generated code]*/
+
 static PyObject *
-listreverse(PyListObject *self)
+list_reverse_impl(PyListObject *self)
+/*[clinic end generated code: output=482544fc451abea9 input=eefd4c3ae1bc9887]*/
 {
     if (Py_SIZE(self) > 1)
         reverse_slice(self->ob_item, self->ob_item + Py_SIZE(self));
@@ -2146,16 +2468,26 @@ PyList_AsTuple(PyObject *v)
     return w;
 }
 
-static PyObject *
-listindex(PyListObject *self, PyObject *args)
-{
-    Py_ssize_t i, start=0, stop=Py_SIZE(self);
-    PyObject *v;
+/*[clinic input]
+list.index
 
-    if (!PyArg_ParseTuple(args, "O|O&O&:index", &v,
-                                _PyEval_SliceIndexNotNone, &start,
-                                _PyEval_SliceIndexNotNone, &stop))
-        return NULL;
+    value: object
+    start: slice_index(accept={int}) = 0
+    stop: slice_index(accept={int}, c_default="PY_SSIZE_T_MAX") = sys.maxsize
+    /
+
+Return first index of value.
+
+Raises ValueError if the value is not present.
+[clinic start generated code]*/
+
+static PyObject *
+list_index_impl(PyListObject *self, PyObject *value, Py_ssize_t start,
+                Py_ssize_t stop)
+/*[clinic end generated code: output=ec51b88787e4e481 input=40ec5826303a0eb1]*/
+{
+    Py_ssize_t i;
+
     if (start < 0) {
         start += Py_SIZE(self);
         if (start < 0)
@@ -2167,24 +2499,34 @@ listindex(PyListObject *self, PyObject *args)
             stop = 0;
     }
     for (i = start; i < stop && i < Py_SIZE(self); i++) {
-        int cmp = PyObject_RichCompareBool(self->ob_item[i], v, Py_EQ);
+        int cmp = PyObject_RichCompareBool(self->ob_item[i], value, Py_EQ);
         if (cmp > 0)
             return PyLong_FromSsize_t(i);
         else if (cmp < 0)
             return NULL;
     }
-    PyErr_Format(PyExc_ValueError, "%R is not in list", v);
+    PyErr_Format(PyExc_ValueError, "%R is not in list", value);
     return NULL;
 }
 
+/*[clinic input]
+list.count
+
+     value: object
+     /
+
+Return number of occurrences of value.
+[clinic start generated code]*/
+
 static PyObject *
-listcount(PyListObject *self, PyObject *v)
+list_count(PyListObject *self, PyObject *value)
+/*[clinic end generated code: output=b1f5d284205ae714 input=3bdc3a5e6f749565]*/
 {
     Py_ssize_t count = 0;
     Py_ssize_t i;
 
     for (i = 0; i < Py_SIZE(self); i++) {
-        int cmp = PyObject_RichCompareBool(self->ob_item[i], v, Py_EQ);
+        int cmp = PyObject_RichCompareBool(self->ob_item[i], value, Py_EQ);
         if (cmp > 0)
             count++;
         else if (cmp < 0)
@@ -2193,13 +2535,25 @@ listcount(PyListObject *self, PyObject *v)
     return PyLong_FromSsize_t(count);
 }
 
+/*[clinic input]
+list.remove
+
+     value: object
+     /
+
+Remove first occurrence of value.
+
+Raises ValueError if the value is not present.
+[clinic start generated code]*/
+
 static PyObject *
-listremove(PyListObject *self, PyObject *v)
+list_remove(PyListObject *self, PyObject *value)
+/*[clinic end generated code: output=f087e1951a5e30d1 input=2dc2ba5bb2fb1f82]*/
 {
     Py_ssize_t i;
 
     for (i = 0; i < Py_SIZE(self); i++) {
-        int cmp = PyObject_RichCompareBool(self->ob_item[i], v, Py_EQ);
+        int cmp = PyObject_RichCompareBool(self->ob_item[i], value, Py_EQ);
         if (cmp > 0) {
             if (list_ass_slice(self, i, i+1,
                                (PyObject *)NULL) == 0)
@@ -2237,13 +2591,10 @@ list_richcompare(PyObject *v, PyObject *w, int op)
 
     if (Py_SIZE(vl) != Py_SIZE(wl) && (op == Py_EQ || op == Py_NE)) {
         /* Shortcut: if the lengths differ, the lists differ */
-        PyObject *res;
         if (op == Py_EQ)
-            res = Py_False;
+            Py_RETURN_FALSE;
         else
-            res = Py_True;
-        Py_INCREF(res);
-        return res;
+            Py_RETURN_TRUE;
     }
 
     /* Search for the first index where items are different */
@@ -2258,50 +2609,37 @@ list_richcompare(PyObject *v, PyObject *w, int op)
 
     if (i >= Py_SIZE(vl) || i >= Py_SIZE(wl)) {
         /* No more items to compare -- compare sizes */
-        Py_ssize_t vs = Py_SIZE(vl);
-        Py_ssize_t ws = Py_SIZE(wl);
-        int cmp;
-        PyObject *res;
-        switch (op) {
-        case Py_LT: cmp = vs <  ws; break;
-        case Py_LE: cmp = vs <= ws; break;
-        case Py_EQ: cmp = vs == ws; break;
-        case Py_NE: cmp = vs != ws; break;
-        case Py_GT: cmp = vs >  ws; break;
-        case Py_GE: cmp = vs >= ws; break;
-        default: return NULL; /* cannot happen */
-        }
-        if (cmp)
-            res = Py_True;
-        else
-            res = Py_False;
-        Py_INCREF(res);
-        return res;
+        Py_RETURN_RICHCOMPARE(Py_SIZE(vl), Py_SIZE(wl), op);
     }
 
     /* We have an item that differs -- shortcuts for EQ/NE */
     if (op == Py_EQ) {
-        Py_INCREF(Py_False);
-        return Py_False;
+        Py_RETURN_FALSE;
     }
     if (op == Py_NE) {
-        Py_INCREF(Py_True);
-        return Py_True;
+        Py_RETURN_TRUE;
     }
 
     /* Compare the final item again using the proper operator */
     return PyObject_RichCompare(vl->ob_item[i], wl->ob_item[i], op);
 }
 
+/*[clinic input]
+list.__init__
+
+    iterable: object(c_default="NULL") = ()
+    /
+
+Built-in mutable sequence.
+
+If no argument is given, the constructor creates a new empty list.
+The argument must be an iterable if specified.
+[clinic start generated code]*/
+
 static int
-list_init(PyListObject *self, PyObject *args, PyObject *kw)
+list___init___impl(PyListObject *self, PyObject *iterable)
+/*[clinic end generated code: output=0f3c21379d01de48 input=b3f3fe7206af8f6b]*/
 {
-    PyObject *arg = NULL;
-    static char *kwlist[] = {"sequence", 0};
-
-    if (!PyArg_ParseTupleAndKeywords(args, kw, "|O:list", kwlist, &arg))
-        return -1;
-
     /* Verify list invariants established by PyType_GenericAlloc() */
     assert(0 <= Py_SIZE(self));
     assert(Py_SIZE(self) <= self->allocated || self->allocated == -1);
@@ -2310,10 +2648,10 @@ list_init(PyListObject *self, PyObject *args, PyObject *kw)
 
     /* Empty previous contents */
     if (self->ob_item != NULL) {
-        (void)list_clear(self);
+        (void)_list_clear(self);
     }
-    if (arg != NULL) {
-        PyObject *rv = listextend(self, arg);
+    if (iterable != NULL) {
+        PyObject *rv = list_extend(self, iterable);
         if (rv == NULL)
             return -1;
         Py_DECREF(rv);
@@ -2321,8 +2659,15 @@ list_init(PyListObject *self, PyObject *args, PyObject *kw)
     return 0;
 }
 
+/*[clinic input]
+list.__sizeof__
+
+Return the size of the list in memory, in bytes.
+[clinic start generated code]*/
+
 static PyObject *
-list_sizeof(PyListObject *self)
+list___sizeof___impl(PyListObject *self)
+/*[clinic end generated code: output=3417541f95f9a53e input=b8030a5d5ce8a187]*/
 {
     Py_ssize_t res;
 
@@ -2331,57 +2676,23 @@ list_sizeof(PyListObject *self)
 }
 
 static PyObject *list_iter(PyObject *seq);
-static PyObject *list_reversed(PyListObject* seq, PyObject* unused);
-
-PyDoc_STRVAR(getitem_doc,
-"x.__getitem__(y) <==> x[y]");
-PyDoc_STRVAR(reversed_doc,
-"L.__reversed__() -- return a reverse iterator over the list");
-PyDoc_STRVAR(sizeof_doc,
-"L.__sizeof__() -- size of L in memory, in bytes");
-PyDoc_STRVAR(clear_doc,
-"L.clear() -> None -- remove all items from L");
-PyDoc_STRVAR(copy_doc,
-"L.copy() -> list -- a shallow copy of L");
-PyDoc_STRVAR(append_doc,
-"L.append(object) -> None -- append object to end");
-PyDoc_STRVAR(extend_doc,
-"L.extend(iterable) -> None -- extend list by appending elements from the iterable");
-PyDoc_STRVAR(insert_doc,
-"L.insert(index, object) -- insert object before index");
-PyDoc_STRVAR(pop_doc,
-"L.pop([index]) -> item -- remove and return item at index (default last).\n"
-"Raises IndexError if list is empty or index is out of range.");
-PyDoc_STRVAR(remove_doc,
-"L.remove(value) -> None -- remove first occurrence of value.\n"
-"Raises ValueError if the value is not present.");
-PyDoc_STRVAR(index_doc,
-"L.index(value, [start, [stop]]) -> integer -- return first index of value.\n"
-"Raises ValueError if the value is not present.");
-PyDoc_STRVAR(count_doc,
-"L.count(value) -> integer -- return number of occurrences of value");
-PyDoc_STRVAR(reverse_doc,
-"L.reverse() -- reverse *IN PLACE*");
-PyDoc_STRVAR(sort_doc,
-"L.sort(key=None, reverse=False) -> None -- stable sort *IN PLACE*");
-
 static PyObject *list_subscript(PyListObject*, PyObject*);
 
 static PyMethodDef list_methods[] = {
-    {"__getitem__", (PyCFunction)list_subscript, METH_O|METH_COEXIST, getitem_doc},
-    {"__reversed__",(PyCFunction)list_reversed, METH_NOARGS, reversed_doc},
-    {"__sizeof__",  (PyCFunction)list_sizeof, METH_NOARGS, sizeof_doc},
-    {"clear",           (PyCFunction)listclear,   METH_NOARGS, clear_doc},
-    {"copy",            (PyCFunction)listcopy,   METH_NOARGS, copy_doc},
-    {"append",          (PyCFunction)listappend,  METH_O, append_doc},
-    {"insert",          (PyCFunction)listinsert,  METH_VARARGS, insert_doc},
-    {"extend",          (PyCFunction)listextend,  METH_O, extend_doc},
-    {"pop",             (PyCFunction)listpop,     METH_VARARGS, pop_doc},
-    {"remove",          (PyCFunction)listremove,  METH_O, remove_doc},
-    {"index",           (PyCFunction)listindex,   METH_VARARGS, index_doc},
-    {"count",           (PyCFunction)listcount,   METH_O, count_doc},
-    {"reverse",         (PyCFunction)listreverse, METH_NOARGS, reverse_doc},
-    {"sort",            (PyCFunction)listsort,    METH_VARARGS | METH_KEYWORDS, sort_doc},
+    {"__getitem__", (PyCFunction)list_subscript, METH_O|METH_COEXIST, "x.__getitem__(y) <==> x[y]"},
+    LIST___REVERSED___METHODDEF
+    LIST___SIZEOF___METHODDEF
+    LIST_CLEAR_METHODDEF
+    LIST_COPY_METHODDEF
+    LIST_APPEND_METHODDEF
+    LIST_INSERT_METHODDEF
+    LIST_EXTEND_METHODDEF
+    LIST_POP_METHODDEF
+    LIST_REMOVE_METHODDEF
+    LIST_INDEX_METHODDEF
+    LIST_COUNT_METHODDEF
+    LIST_REVERSE_METHODDEF
+    LIST_SORT_METHODDEF
     {NULL,              NULL}           /* sentinel */
 };
 
@@ -2397,10 +2708,6 @@ static PySequenceMethods list_as_sequence = {
     (binaryfunc)list_inplace_concat,            /* sq_inplace_concat */
     (ssizeargfunc)list_inplace_repeat,          /* sq_inplace_repeat */
 };
-
-PyDoc_STRVAR(list_doc,
-"list() -> new empty list\n"
-"list(iterable) -> new list initialized from iterable's items");
 
 static PyObject *
 list_subscript(PyListObject* self, PyObject* item)
@@ -2645,10 +2952,10 @@ PyTypeObject PyList_Type = {
     0,                                          /* tp_setattro */
     0,                                          /* tp_as_buffer */
     Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC |
-        Py_TPFLAGS_BASETYPE | Py_TPFLAGS_LIST_SUBCLASS,         /* tp_flags */
-    list_doc,                                   /* tp_doc */
+        Py_TPFLAGS_BASETYPE | Py_TPFLAGS_LIST_SUBCLASS, /* tp_flags */
+    list___init____doc__,                       /* tp_doc */
     (traverseproc)list_traverse,                /* tp_traverse */
-    (inquiry)list_clear,                        /* tp_clear */
+    (inquiry)_list_clear,                       /* tp_clear */
     list_richcompare,                           /* tp_richcompare */
     0,                                          /* tp_weaklistoffset */
     list_iter,                                  /* tp_iter */
@@ -2661,12 +2968,11 @@ PyTypeObject PyList_Type = {
     0,                                          /* tp_descr_get */
     0,                                          /* tp_descr_set */
     0,                                          /* tp_dictoffset */
-    (initproc)list_init,                        /* tp_init */
+    (initproc)list___init__,                    /* tp_init */
     PyType_GenericAlloc,                        /* tp_alloc */
     PyType_GenericNew,                          /* tp_new */
     PyObject_GC_Del,                            /* tp_free */
 };
-
 
 /*********************** List Iterator **************************/
 
@@ -2676,7 +2982,6 @@ typedef struct {
     PyListObject *it_seq; /* Set to NULL when iterator is exhausted */
 } listiterobject;
 
-static PyObject *list_iter(PyObject *);
 static void listiter_dealloc(listiterobject *);
 static int listiter_traverse(listiterobject *, visitproc, void *);
 static PyObject *listiter_next(listiterobject *);
@@ -2830,7 +3135,6 @@ typedef struct {
     PyListObject *it_seq; /* Set to NULL when iterator is exhausted */
 } listreviterobject;
 
-static PyObject *list_reversed(PyListObject *, PyObject *);
 static void listreviter_dealloc(listreviterobject *);
 static int listreviter_traverse(listreviterobject *, visitproc, void *);
 static PyObject *listreviter_next(listreviterobject *);
@@ -2878,18 +3182,25 @@ PyTypeObject PyListRevIter_Type = {
     0,
 };
 
+/*[clinic input]
+list.__reversed__
+
+Return a reverse iterator over the list.
+[clinic start generated code]*/
+
 static PyObject *
-list_reversed(PyListObject *seq, PyObject *unused)
+list___reversed___impl(PyListObject *self)
+/*[clinic end generated code: output=b166f073208c888c input=eadb6e17f8a6a280]*/
 {
     listreviterobject *it;
 
     it = PyObject_GC_New(listreviterobject, &PyListRevIter_Type);
     if (it == NULL)
         return NULL;
-    assert(PyList_Check(seq));
-    it->it_index = PyList_GET_SIZE(seq) - 1;
-    Py_INCREF(seq);
-    it->it_seq = seq;
+    assert(PyList_Check(self));
+    it->it_index = PyList_GET_SIZE(self) - 1;
+    Py_INCREF(self);
+    it->it_seq = self;
     PyObject_GC_Track(it);
     return (PyObject *)it;
 }

@@ -1,8 +1,9 @@
 #pragma once
 
 #include <catboost/cuda/data/binarizations_manager.h>
-#include <catboost/cuda/models/oblivious_model.h>
 #include <catboost/cuda/models/additive_model.h>
+#include <catboost/cuda/models/non_symmetric_tree.h>
+#include <catboost/cuda/models/oblivious_model.h>
 
 #include <catboost/libs/algo/projection.h>
 #include <catboost/libs/data_new/quantized_features_info.h>
@@ -20,6 +21,8 @@ namespace NCatboostCuda {
 
         TFullModel Convert(const TAdditiveModel<TObliviousTreeModel>& src,
                            THashMap<TFeatureCombination, TProjection>* featureCombinationToProjection) const;
+        TFullModel Convert(const TAdditiveModel<TNonSymmetricTree>& src,
+                           THashMap<TFeatureCombination, TProjection>* featureCombinationToProjection) const;
 
     private:
         TModelSplit CreateFloatSplit(const TBinarySplit& split) const;
@@ -35,8 +38,8 @@ namespace NCatboostCuda {
         TModelSplit CreateCtrSplit(const TBinarySplit& split,
                                    THashMap<TFeatureCombination, TProjection>* featureCombinationToProjection) const;
 
-        TVector<TModelSplit> ConvertStructure(const TObliviousTreeStructure& structure,
-                                              THashMap<TFeatureCombination, TProjection>* featureCombinationToProjection) const;
+        TVector<TModelSplit> ConvertSplits(const TVector<TBinarySplit>& splits,
+                                           THashMap<TFeatureCombination, TProjection>* featureCombinationToProjection) const;
 
     private:
         const TBinarizedFeaturesManager& FeaturesManager;
@@ -51,11 +54,12 @@ namespace NCatboostCuda {
 
     TVector<TTargetClassifier> CreateTargetClassifiers(const TBinarizedFeaturesManager& featuresManager);
 
+    template <typename TModel>
     inline TFullModel ConvertToCoreModel(const TBinarizedFeaturesManager& manager,
                                          const NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
                                          const NCB::TPerfectHashedToHashedCatValuesMap& perfectHashedToHashedCatValuesMap,
                                          const NCB::TClassificationTargetHelper& targetHelper,
-                                         const TAdditiveModel<TObliviousTreeModel>& treeModel,
+                                         const TAdditiveModel<TModel>& treeModel,
                                          THashMap<TFeatureCombination, TProjection>* featureCombinationToProjection) {
         TModelConverter converter(manager,
                                   quantizedFeaturesInfo,

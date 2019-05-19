@@ -1,10 +1,25 @@
 ALLOW vendor/ -> .*
 
+# in-process redis server for tests
+ALLOW .* -> vendor/github.com/alicebob/miniredis
+
 # AWS client libraries
 ALLOW .* -> vendor/github.com/aws/aws-sdk-go          
 
+# TOML parser/encoder with reflection
+ALLOW .* -> vendor/github.com/BurntSushi/toml
+
 # helpers for data sizes (kilobytes, petabytes), human readable sizes, parsing
 ALLOW .* -> vendor/github.com/c2h5oh/datasize         
+
+# etcd client
+ALLOW .* -> vendor/github.com/coreos/etcd
+
+# mocking for database/sql
+ALLOW .* -> vendor/github.com/DATA-DOG/go-sqlmock    
+
+# Cucumber-like BDD for Go
+ALLOW .* -> vendor/github.com/DATA-DOG/godog
 
 # pretty printer for GO
 ALLOW .* -> vendor/github.com/davecgh/go-spew/spew    
@@ -12,11 +27,21 @@ ALLOW .* -> vendor/github.com/davecgh/go-spew/spew
 # implementation of JSON Web Tokens (JWT)
 ALLOW .* -> vendor/github.com/dgrijalva/jwt-go        
 
+# Docker API client
+ALLOW .* -> vendor/github.com/docker/docker/client
+ALLOW .* -> vendor/github.com/docker/docker/api
+
 # cross-platform file system notifications
 ALLOW .* -> vendor/github.com/fsnotify/fsnotify       
 
 # lightweight, idiomatic and composable router
 ALLOW .* -> vendor/github.com/go-chi/chi              
+
+# a pure Go MySQL driver
+ALLOW .* -> vendor/github.com/go-sql-driver/mysql
+
+# thread-safe file locking library
+ALLOW .* -> vendor/github.com/gofrs/flock
 
 # a pure Go implementation of Universally Unique Identifiers
 ALLOW .* -> vendor/github.com/gofrs/uuid              
@@ -32,6 +57,9 @@ ALLOW .* -> vendor/github.com/golang/snappy
 
 # API for sentry
 ALLOW .* -> vendor/github.com/getsentry/raven-go      
+
+# configuration library
+ALLOW .* -> vendor/github.com/heetch/confita
 
 # PostgreSQL driver and toolkit for Go
 ALLOW .* -> vendor/github.com/jackc/pgx               
@@ -66,11 +94,20 @@ ALLOW .* -> vendor/github.com/mitchellh/copystructure
 # decoding generic map values to structures and vice versa
 ALLOW .* -> vendor/github.com/mitchellh/mapstructure  
 
+# A well tested and comprehensive Golang statistics library package with no dependencies
+ALLOW .* -> vendor/github.com/montanaflynn/stats
+
 # runtime dependencies of go-swagger
 ALLOW .* -> vendor/github.com/go-openapi              
 
 # redis client
 ALLOW .* -> vendor/github.com/go-redis/redis          
+
+# library for accessing the GitHub API v3
+ALLOW .* -> vendor/github.com/google/go-github/v25/github
+
+# fast JSON serializer for golang. relies on code generation.
+ALLOW .* -> vendor/github.com/mailru/easyjson
 
 # lz4 compression codec
 ALLOW .* -> vendor/github.com/pierrec/lz4             
@@ -80,6 +117,14 @@ ALLOW .* -> vendor/github.com/pkg/errors
 
 # library for HTML DOM manipulations and searching nodes by CSS selectors
 ALLOW .* -> vendor/github.com/PuerkitoBio/goquery     
+
+# prometheus client
+ALLOW .* -> vendor/github.com/prometheus/client_golang
+ALLOW .* -> vendor/github.com/prometheus/client_model
+ALLOW .* -> vendor/github.com/prometheus/common
+
+# ZooKeeper client
+ALLOW .* -> vendor/github.com/samuel/go-zookeeper
 
 # text diffing and patching
 ALLOW .* -> vendor/github.com/sergi/go-diff
@@ -98,6 +143,10 @@ ALLOW .* -> vendor/github.com/spf13/pflag
 
 # a toolkit with common test assertions and mocks
 ALLOW .* -> vendor/github.com/stretchr/testify        
+
+# very fast json parser and encoder.
+# uses dynamic message structure, suitable for cases where json structure is not known in advance.
+ALLOW .* -> vendor/github.com/valyala/fastjson
 
 # xxhash32 and xxhash64 hash functions
 ALLOW .* -> vendor/github.com/OneOfOne/xxhash
@@ -135,10 +184,51 @@ ALLOW .* -> vendor/gopkg.in/resty.v1
 # YAML support for Go
 ALLOW .* -> vendor/gopkg.in/yaml.v2
 
+# Go generated proto packages
+ALLOW .* -> vendor/google.golang.org/genproto
+
 # Google RPC
 ALLOW .* -> vendor/google.golang.org/grpc
 
+# Usefull GRPC interceptors
+ALLOW .* -> vendor/github.com/grpc-ecosystem/go-grpc-middleware
+
 # Job Scheduling Package
-ALLOW .* -> vendor/github.com/jasonlvhit/gocron       
+ALLOW .* -> vendor/github.com/jasonlvhit/gocron
+
+# The MongoDB supported driver for Go
+ALLOW .* -> vendor/go.mongodb.org/mongo-driver
+
+# Package for comparing Go values in tests
+ALLOW .* -> vendor/github.com/google/go-cmp
+
+# CORS is a net/http handler implementing Cross Origin Resource Sharing W3 specification
+ALLOW .* -> vendor/github.com/rs/cors
+
+# generation tool and serialization library for MessagePack
+ALLOW .* -> vendor/github.com/tinylib/msgp
+
+# Generate fancy REST API from grpc api
+ALLOW .* -> vendor/github.com/grpc-ecosystem/grpc-gateway
+
+# tus: the open protocol for resumable file uploads
+ALLOW .* -> vendor/github.com/tus/tusd
+
+# 
+# Temporary exceptions.
+#
+
+# MIGRATION-289. responsible: nekto0n@. deadline: 30.06.2019
+ALLOW infra/nanny2 -> vendor/github.com/golang/glog
+
+#
+# Permanent exceptions.
+#
+
+# CONTRIB-865. Jaeger YT plugin. responsible: prime@
+ALLOW yt/jaeger/plugin -> vendor/github.com/jaegertracing/jaeger
+ALLOW yt/jaeger/plugin -> vendor/github.com/uber/jaeger-lib
+ALLOW yt/jaeger/plugin -> vendor/github.com/spf13/viper
+
 
 DENY .* -> vendor/

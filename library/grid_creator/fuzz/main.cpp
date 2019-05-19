@@ -1,5 +1,7 @@
 #include <library/grid_creator/binarization.h>
 
+#include <util/generic/algorithm.h>
+#include <util/generic/ymath.h>
 #include <util/generic/hash_set.h>
 #include <util/generic/vector.h>
 #include <util/system/types.h>
@@ -9,8 +11,8 @@ namespace {
     struct TBestSplitInput {
         TVector<float> Values;
         int MaxBordersCount = 0;
-        EBorderSelectionType GridType= EBorderSelectionType::Median;
-        bool NanValueIsInfinity = false;
+        EBorderSelectionType GridType = EBorderSelectionType::Median;
+        bool FilterNans = false;
     };
 
     enum : int {
@@ -27,6 +29,7 @@ static bool TryParse(const int data, EBorderSelectionType* const borderSelection
     const auto isValid =
         data == (int)EBorderSelectionType::Median
         || data == (int)EBorderSelectionType::GreedyLogSum
+        || data == (int)EBorderSelectionType::GreedyMinEntropy
         || data == (int)EBorderSelectionType::UniformAndQuantiles
         || data == (int)EBorderSelectionType::MinEntropy
         || data == (int)EBorderSelectionType::MaxLogSum
@@ -68,7 +71,7 @@ static bool TryParse(const ui8* data, size_t size, TBestSplitInput* const input)
         return false;
     }
 
-    input->NanValueIsInfinity = static_cast<bool>(*data);
+    input->FilterNans = static_cast<bool>(*data);
     data += 1;
     size -= 1;
 
@@ -87,7 +90,9 @@ static bool TryParse(const ui8* data, size_t size, TBestSplitInput* const input)
 
     input->Values.resize(valuesSize);
     std::memcpy(input->Values.data(), data, (valuesSize / sizeof(float)) * sizeof(float));
-
+    if (!input->FilterNans) {
+        std::replace_if(input->Values.begin(), input->Values.end(), IsNan, 0);
+    }
     return true;
 }
 
@@ -97,6 +102,6 @@ extern "C" int LLVMFuzzerTestOneInput(const ui8* const data, const size_t size) 
         return 0;
     }
 
-    BestSplit(input.Values, input.MaxBordersCount, input.GridType, input.NanValueIsInfinity);
+    BestSplit(input.Values, input.MaxBordersCount, input.GridType, input.FilterNans);
     return 0;
 }

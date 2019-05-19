@@ -1607,7 +1607,7 @@ namespace {
                         }
 
                         if (THttp2Options::ErrorDetailsAsResponseBody) {
-                            Answer << AsStringBuf("\r\nContent-Length:") << theDescr.Size() << "\r\n\r\n" << theDescr;
+                            Answer << AsStringBuf("\r\nContent-Length:") << theDescr.size() << "\r\n\r\n" << theDescr;
                         } else {
                             Answer << AsStringBuf("\r\n"
                                                 "Content-Length:0\r\n\r\n");

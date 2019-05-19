@@ -57,12 +57,38 @@ struct TRepackedBin {
     ui8 SplitIdx = 0;
 };
 
+
+// If selected diff is 0 we are in the last node in path
+struct TNonSymmetricTreeStepNode {
+    static constexpr ui16 InvalidDiff = Max<ui16>();
+    static constexpr ui16 TerminalMarker = 0;
+
+    ui16 LeftSubtreeDiff = InvalidDiff;
+    ui16 RightSubtreeDiff = InvalidDiff;
+
+    static TNonSymmetricTreeStepNode TerminalNodeSteps() {
+        return TNonSymmetricTreeStepNode{0, 0};
+    }
+
+    TNonSymmetricTreeStepNode& operator=(const NCatBoostFbs::TNonSymmetricTreeStepNode* stepNode) {
+        LeftSubtreeDiff = stepNode->LeftSubtreeDiff();
+        RightSubtreeDiff = stepNode->RightSubtreeDiff();
+        return *this;
+    }
+
+    bool operator==(const TNonSymmetricTreeStepNode& other) const {
+        return std::tie(LeftSubtreeDiff, RightSubtreeDiff)
+            == std::tie(other.LeftSubtreeDiff, other.RightSubtreeDiff);
+    }
+};
+
+// TODO(kirillovs): rename to TModelTrees after adding non symmetric trees support
 struct TObliviousTrees {
 public:
     /**
-     * This structure stores model metadata. Should be kept up to date
+     * This structure stores model runtime data. Should be kept up to date
      */
-    struct TMetaData {
+    struct TRuntimeData {
         size_t UsedFloatFeaturesCount = 0;
         size_t UsedCatFeaturesCount = 0;
         size_t MinimalSufficientFloatFeaturesVectorSize = 0;
@@ -77,16 +103,13 @@ public:
         TVector<TModelSplit> BinFeatures;
 
         /**
-        * This vector containes ui32 that contains such information:
+        * This vector contains ui32 that contains such information:
         * |     ui16     |   ui8   |   ui8  |
         * | featureIndex | xorMask |splitIdx| (e.g. featureIndex << 16 + xorMask << 8 + splitIdx )
         *
         * We use this layout to speed up model apply - we only need to store one byte for each float, ctr or
         *  one hot feature.
-        * TODO(kirillovs): Currently we don't support models with more than 255 splits for a feature, but this
-        *  will be fixed soon.
         */
-
 
         static_assert(sizeof(TRepackedBin) == 4, "");
 
@@ -110,6 +133,15 @@ public:
 
     //! Offset of first split in TreeSplits array
     TVector<int> TreeStartOffsets;
+
+    //! Steps in a non-symmetric tree.
+    //! If at least one diff in a step node is zero, it's a terminal node and has a value.
+    //! If both diffs are zero, the corresponding split condition (in the RepackedBins vector) may be invalid.
+    TVector<TNonSymmetricTreeStepNode> NonSymmetricStepNodes;
+
+    //! Holds a value index (in the LeafValues vector) for each terminal node in a non-symmetric tree.
+    //! For multiclass models holds indexes for 0-class.
+    TVector<ui32> NonSymmetricNodeIdToLeafId;
 
     //! Leaf values layout: [treeIndex][leafId * ApproxDimension + dimension]
     TVector<double> LeafValues;
@@ -145,6 +177,8 @@ public:
             TreeSplits,
             TreeSizes,
             TreeStartOffsets,
+            NonSymmetricStepNodes,
+            NonSymmetricNodeIdToLeafId,
             LeafValues,
             CatFeatures,
             FloatFeatures,
@@ -155,6 +189,8 @@ public:
             other.TreeSplits,
             other.TreeSizes,
             other.TreeStartOffsets,
+            other.NonSymmetricStepNodes,
+            other.NonSymmetricNodeIdToLeafId,
             other.LeafValues,
             other.CatFeatures,
             other.FloatFeatures,
@@ -165,6 +201,12 @@ public:
     bool operator!=(const TObliviousTrees& other) const {
         return !(*this == other);
     }
+
+    bool IsOblivious() const {
+        return NonSymmetricStepNodes.empty() && NonSymmetricNodeIdToLeafId.empty();
+    }
+
+    void ConvertObliviousToAsymmetric();
 
     /**
      * Method for oblivious trees serialization with repeated parts caching
@@ -193,29 +235,48 @@ public:
         if (fbObj->LeafValues()) {
             LeafValues.assign(fbObj->LeafValues()->begin(), fbObj->LeafValues()->end());
         }
-        if (fbObj->LeafWeights() && fbObj->LeafWeights()->size() > 0) {
-            LeafWeights.resize(TreeSizes.size());
-            CB_ENSURE(fbObj->LeafWeights()->size() * ApproxDimension == LeafValues.size(), "Bad leaf weights count: " << fbObj->LeafWeights()->size());
-            auto leafValIter = fbObj->LeafWeights()->begin();
-            for (size_t treeId = 0; treeId < TreeSizes.size(); ++treeId) {
-                const auto treeLeafCout = (1 << TreeSizes[treeId]);
-                LeafWeights[treeId].assign(leafValIter, leafValIter + treeLeafCout);
-                leafValIter += treeLeafCout;
-            }
+        if (fbObj->NonSymmetricStepNodes()) {
+            NonSymmetricStepNodes.resize(fbObj->NonSymmetricStepNodes()->size());
+            std::copy(
+                fbObj->NonSymmetricStepNodes()->begin(),
+                fbObj->NonSymmetricStepNodes()->end(),
+                NonSymmetricStepNodes.begin()
+            );
+        }
+        if (fbObj->NonSymmetricNodeIdToLeafId()) {
+            NonSymmetricNodeIdToLeafId.assign(
+                fbObj->NonSymmetricNodeIdToLeafId()->begin(), fbObj->NonSymmetricNodeIdToLeafId()->end()
+            );
         }
 
-#define FEATURES_ARRAY_DESERIALIZER(var) \
+#define FBS_ARRAY_DESERIALIZER(var) \
         if (fbObj->var()) {\
             var.resize(fbObj->var()->size());\
             for (size_t i = 0; i < fbObj->var()->size(); ++i) {\
                 var[i].FBDeserialize(fbObj->var()->Get(i));\
             }\
         }
-        FEATURES_ARRAY_DESERIALIZER(CatFeatures)
-        FEATURES_ARRAY_DESERIALIZER(FloatFeatures)
-        FEATURES_ARRAY_DESERIALIZER(OneHotFeatures)
-        FEATURES_ARRAY_DESERIALIZER(CtrFeatures)
-#undef FEATURES_ARRAY_DESERIALIZER
+        FBS_ARRAY_DESERIALIZER(CatFeatures)
+        FBS_ARRAY_DESERIALIZER(FloatFeatures)
+        FBS_ARRAY_DESERIALIZER(OneHotFeatures)
+        FBS_ARRAY_DESERIALIZER(CtrFeatures)
+#undef FBS_ARRAY_DESERIALIZER
+        if (fbObj->LeafWeights() && fbObj->LeafWeights()->size() > 0) {
+            if (IsOblivious()) {
+                LeafWeights.resize(TreeSizes.size());
+                CB_ENSURE(fbObj->LeafWeights()->size() * ApproxDimension == LeafValues.size(),
+                          "Bad leaf weights count: " << fbObj->LeafWeights()->size());
+                auto leafValIter = fbObj->LeafWeights()->begin();
+                for (size_t treeId = 0; treeId < TreeSizes.size(); ++treeId) {
+                    const auto treeLeafCout = (1 << TreeSizes[treeId]);
+                    LeafWeights[treeId].assign(leafValIter, leafValIter + treeLeafCout);
+                    leafValIter += treeLeafCout;
+                }
+            } else {
+                LeafWeights.resize(1);
+                LeafWeights[0].assign(fbObj->LeafWeights()->begin(), fbObj->LeafWeights()->end());
+            }
+        }
     }
 
     /**
@@ -224,14 +285,14 @@ public:
      * @param binSplits
      */
     void AddBinTree(const TVector<int>& binSplits) {
-        Y_ASSERT(TreeSplits.size() == TreeSizes.size() && TreeSizes.size() == TreeStartOffsets.size());
+        Y_ASSERT(TreeSizes.size() == TreeStartOffsets.size() && (TreeSplits.empty() == TreeSizes.empty()));
         TreeSplits.insert(TreeSplits.end(), binSplits.begin(), binSplits.end());
-        TreeSizes.push_back(binSplits.ysize());
         if (TreeStartOffsets.empty()) {
             TreeStartOffsets.push_back(0);
         } else {
-            TreeStartOffsets.push_back(TreeStartOffsets.back() + binSplits.ysize());
+            TreeStartOffsets.push_back(TreeStartOffsets.back() + TreeSizes.back());
         }
+        TreeSizes.push_back(binSplits.ysize());
     }
 
     size_t GetTreeCount() const {
@@ -251,41 +312,41 @@ public:
      void DropUnusedFeatures();
 
     /**
-     * Internal usage only. Updates metadata UsedModelCtrs and BinFeatures vectors to contain all features
-     *  currently used in model.
+     * Internal usage only. Updates UsedModelCtrs and BinFeatures vectors in RuntimeData to contain all
+     *  features currently used in model.
      * Should be called after any modifications.
      */
-    void UpdateMetadata() const;
+    void UpdateRuntimeData() const;
     /**
      * List of all CTRs in model
      * @return
      */
     const TVector<TModelCtr>& GetUsedModelCtrs() const {
-        CB_ENSURE(MetaData.Defined(), "metadata should be initialized");
-        return MetaData->UsedModelCtrs;
+        CB_ENSURE(RuntimeData.Defined(), "runtime data should be initialized");
+        return RuntimeData->UsedModelCtrs;
     }
     /**
      * List all binary features corresponding to binary feature indexes in trees
      * @return
      */
     const TVector<TModelSplit>& GetBinFeatures() const {
-        CB_ENSURE(MetaData.Defined(), "metadata should be initialized");
-        return MetaData->BinFeatures;
+        CB_ENSURE(RuntimeData.Defined(), "runtime data should be initialized");
+        return RuntimeData->BinFeatures;
     }
 
     const TVector<TRepackedBin>& GetRepackedBins() const {
-        CB_ENSURE(MetaData.Defined(), "metadata should be initialized");
-        return MetaData->RepackedBins;
+        CB_ENSURE(RuntimeData.Defined(), "runtime data should be initialized");
+        return RuntimeData->RepackedBins;
     }
 
     const TVector<size_t>& GetFirstLeafOffsets() const {
-        CB_ENSURE(MetaData.Defined(), "metadata should be initialized");
-        return MetaData->TreeFirstLeafOffsets;
+        CB_ENSURE(RuntimeData.Defined(), "runtime data should be initialized");
+        return RuntimeData->TreeFirstLeafOffsets;
     }
 
     const double* GetFirstLeafPtrForTree(size_t treeIdx) const {
-        CB_ENSURE(MetaData.Defined(), "metadata should be initialized");
-        return &LeafValues[MetaData->TreeFirstLeafOffsets[treeIdx]];
+        CB_ENSURE(RuntimeData.Defined(), "runtime data should be initialized");
+        return &LeafValues[RuntimeData->TreeFirstLeafOffsets[treeIdx]];
     }
 
     /**
@@ -309,13 +370,13 @@ public:
     }
 
     size_t GetMinimalSufficientFloatFeaturesVectorSize() const {
-        CB_ENSURE(MetaData.Defined(), "metadata should be initialized");
-        return MetaData->MinimalSufficientFloatFeaturesVectorSize;
+        CB_ENSURE(RuntimeData.Defined(), "runtime data should be initialized");
+        return RuntimeData->MinimalSufficientFloatFeaturesVectorSize;
     }
 
     size_t GetUsedFloatFeaturesCount() const {
-        CB_ENSURE(MetaData.Defined(), "metadata should be initialized");
-        return MetaData->UsedFloatFeaturesCount;
+        CB_ENSURE(RuntimeData.Defined(), "runtime data should be initialized");
+        return RuntimeData->UsedFloatFeaturesCount;
     }
 
     size_t GetNumCatFeatures() const {
@@ -327,13 +388,13 @@ public:
     }
 
     size_t GetMinimalSufficientCatFeaturesVectorSize() const {
-        CB_ENSURE(MetaData.Defined(), "metadata should be initialized");
-        return MetaData->MinimalSufficientCatFeaturesVectorSize;
+        CB_ENSURE(RuntimeData.Defined(), "runtime data should be initialized");
+        return RuntimeData->MinimalSufficientCatFeaturesVectorSize;
     }
 
     size_t GetUsedCatFeaturesCount() const {
-        CB_ENSURE(MetaData.Defined(), "metadata should be initialized");
-        return MetaData->UsedCatFeaturesCount;
+        CB_ENSURE(RuntimeData.Defined(), "runtime data should be initialized");
+        return RuntimeData->UsedCatFeaturesCount;
     }
 
     size_t GetBinaryFeaturesFullCount() const {
@@ -341,8 +402,8 @@ public:
     }
 
     ui32 GetEffectiveBinaryFeaturesBucketsCount() const {
-        CB_ENSURE(MetaData.Defined(), "metadata should be initialized");
-        return MetaData->EffectiveBinFeaturesBucketCount;
+        CB_ENSURE(RuntimeData.Defined(), "runtime data should be initialized");
+        return RuntimeData->EffectiveBinFeaturesBucketCount;
     }
 
     size_t GetFlatFeatureVectorExpectedSize() const {
@@ -353,7 +414,7 @@ public:
     }
 
 private:
-    mutable TMaybe<TMetaData> MetaData;
+    mutable TMaybe<TRuntimeData> RuntimeData;
 };
 
 /*!
@@ -459,6 +520,13 @@ public:
      */
     size_t GetNumCatFeatures() const {
         return ObliviousTrees.GetNumCatFeatures();
+    }
+
+    /**
+     * Check whether model trees are oblivious
+     */
+    bool IsOblivious() const {
+        return ObliviousTrees.IsOblivious();
     }
 
     /**
@@ -630,7 +698,7 @@ public:
     }
 
     /**
-     * Evaluate raw formula predictions for objects. Uses model trees for interval [treeStart, treeEnd)
+     * Evaluate raw formula predictions for objects. Uses model trees from interval [treeStart, treeEnd)
      * @param floatFeatures
      * @param catFeatures vector of vector of TStringBuf with categorical features strings
      * @param treeStart
@@ -674,11 +742,71 @@ public:
     }
 
     /**
+     * Evaluate indexes of leafs at which object are mapped by trees from interval [treeStart, treeEnd).
+     * @param floatFeatures
+     * @param catFeatures vector of TStringBuf with categorical features strings
+     * @param treeStart
+     * @param treeEnd
+     * @return indexes; size should be equal to (treeEnd - treeStart).
+     */
+    void CalcLeafIndexesSingle(
+        TConstArrayRef<float> floatFeatures,
+        TConstArrayRef<TStringBuf> catFeatures,
+        size_t treeStart,
+        size_t treeEnd,
+        TArrayRef<ui32> indexes) const;
+
+    /**
+     * Evaluate indexes of leafs at which object are mapped by all trees of the model.
+     * @param floatFeatures
+     * @param catFeatures vector of TStringBuf with categorical features strings
+     * @return indexes; size should be equal to number of trees in the model.
+     */
+    void CalcLeafIndexesSingle(
+        TConstArrayRef<float> floatFeatures,
+        TConstArrayRef<TStringBuf> catFeatures,
+        TArrayRef<ui32> indexes
+    ) const {
+        CalcLeafIndexesSingle(floatFeatures, catFeatures, 0, ObliviousTrees.TreeSizes.size(), indexes);
+    }
+
+    /**
+     * Evaluate indexes of leafs at which objects are mapped by trees from interval [treeStart, treeEnd).
+     * @param floatFeatures
+     * @param catFeatures vector of vector of TStringBuf with categorical features strings
+     * @param treeStart
+     * @param treeEnd
+     * @return indexes; indexation is [objectIndex * (treeEnd -  treeStrart) + treeIndex]
+     */
+    void CalcLeafIndexes(
+        TConstArrayRef<TConstArrayRef<float>> floatFeatures,
+        TConstArrayRef<TVector<TStringBuf>> catFeatures,
+        size_t treeStart,
+        size_t treeEnd,
+        TArrayRef<ui32> indexes
+    ) const;
+
+    /**
+     * Evaluate indexes of leafs at which objects are mapped by all trees of the model.
+     * @param floatFeatures
+     * @param catFeatures vector of vector of TStringBuf with categorical features strings
+     * @return indexes; indexation is [objectIndex * treeCount + treeIndex]
+     */
+    void CalcLeafIndexes(
+        TConstArrayRef<TConstArrayRef<float>> floatFeatures,
+        TConstArrayRef<TVector<TStringBuf>> catFeatures,
+        TArrayRef<ui32> indexes
+    ) const {
+        CalcLeafIndexes(floatFeatures, catFeatures, 0, ObliviousTrees.TreeSizes.size(), indexes);
+    }
+
+    /**
      * Internal usage only.
-     * Updates indexes in CTR provider and recalculates metadata in Oblivious trees after model modifications.
+     * Updates indexes in CTR provider and recalculates runtime data in Oblivious trees after model
+     *  modifications.
      */
     void UpdateDynamicData() {
-        ObliviousTrees.UpdateMetadata();
+        ObliviousTrees.UpdateRuntimeData();
         if (CtrProvider) {
             CtrProvider->SetupBinFeatureIndexes(
                 ObliviousTrees.FloatFeatures,
@@ -745,3 +873,7 @@ TFullModel SumModels(
     const TVector<const TFullModel*> modelVector,
     const TVector<double>& weights,
     ECtrTableMergePolicy ctrMergePolicy = ECtrTableMergePolicy::IntersectingCountersAverage);
+
+void SaveModelBorders(
+    const TString& file,
+    const TFullModel& model);

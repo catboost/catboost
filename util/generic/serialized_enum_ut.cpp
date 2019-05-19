@@ -96,8 +96,8 @@ Y_UNIT_TEST_SUITE(TestSerializedEnum) {
         UNIT_ASSERT_EQUAL(view.begin()->first, ETestEnum::Zero);
         UNIT_ASSERT_VALUES_EQUAL(view.begin()->second, 1u);
 
-        UNIT_ASSERT_VALUES_EQUAL(view.has(ETestEnum::Fake), false);
-        UNIT_ASSERT_VALUES_EQUAL(view.has(ETestEnum::Four), true);
+        UNIT_ASSERT_VALUES_EQUAL(view.contains(ETestEnum::Fake), false);
+        UNIT_ASSERT_VALUES_EQUAL(view.contains(ETestEnum::Four), true);
 
         UNIT_ASSERT_EXCEPTION(view.at(ETestEnum::Fake), std::out_of_range);
         UNIT_ASSERT_NO_EXCEPTION(view.at(ETestEnum::Eleven));

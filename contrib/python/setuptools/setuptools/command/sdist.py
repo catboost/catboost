@@ -5,7 +5,7 @@ import sys
 import io
 import contextlib
 
-import six
+from setuptools.extern import six
 
 from .py36compat import sdist_add_defaults
 
@@ -37,7 +37,8 @@ class sdist(sdist_add_defaults, orig.sdist):
 
     negative_opt = {}
 
-    READMES = 'README', 'README.rst', 'README.txt'
+    README_EXTENSIONS = ['', '.rst', '.txt', '.md']
+    READMES = tuple('README{0}'.format(ext) for ext in README_EXTENSIONS)
 
     def run(self):
         self.run_command('egg_info')
@@ -49,13 +50,6 @@ class sdist(sdist_add_defaults, orig.sdist):
         # Run sub commands
         for cmd_name in self.get_sub_commands():
             self.run_command(cmd_name)
-
-        # Call check_metadata only if no 'check' command
-        # (distutils <= 2.6)
-        import distutils.command
-
-        if 'check' not in distutils.command.__all__:
-            self.check_metadata()
 
         self.make_distribution()
 
@@ -204,3 +198,24 @@ class sdist(sdist_add_defaults, orig.sdist):
                 continue
             self.filelist.append(line)
         manifest.close()
+
+    def check_license(self):
+        """Checks if license_file' is configured and adds it to
+        'self.filelist' if the value contains a valid path.
+        """
+
+        opts = self.distribution.get_option_dict('metadata')
+
+        # ignore the source of the value
+        _, license_file = opts.get('license_file', (None, None))
+
+        if license_file is None:
+            log.debug("'license_file' option was not specified")
+            return
+
+        if not os.path.exists(license_file):
+            log.warn("warning: Failed to find the configured license file '%s'",
+                    license_file)
+            return
+
+        self.filelist.append(license_file)

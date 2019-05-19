@@ -210,7 +210,7 @@
 #include <util/generic/va_args.h>
 #include <util/generic/refcount.h>
 #include <util/generic/list.h>
-#include <util/generic/region.h>
+#include <util/generic/array_ref.h>
 #include <util/generic/noncopyable.h>
 #include <util/generic/strbuf.h>
 #include <util/generic/lazy_value.h>
@@ -253,7 +253,6 @@
 #include <util/string/scan.h>
 #include <util/string/type.h>
 #include <util/string/join.h>
-#include <util/string/iterator.h>
 #include <util/string/vector.h>
 #include <util/string/kmp.h>
 #include <util/string/split.h>

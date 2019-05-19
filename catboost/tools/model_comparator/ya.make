@@ -2,9 +2,11 @@ PROGRAM()
 
 
 
+CFLAGS(-DONNX_ML=1 -DONNX_NAMESPACE=onnx)
+
 PEERDIR(
     catboost/libs/model
-    contrib/libs/onnx/proto
+    contrib/libs/onnx
     contrib/libs/protobuf
     library/getopt/small
 )

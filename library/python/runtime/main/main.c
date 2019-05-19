@@ -20,7 +20,7 @@ void unsetenv(const char* name) {
 }
 #endif
 
-int main(int argc, char** argv) {
+static int pymain(int argc, char** argv) {
     const char* entry_point = getenv(env_entry_point);
     if (entry_point && !strcmp(entry_point, ":main")) {
         unsetenv(env_entry_point);
@@ -35,4 +35,10 @@ int main(int argc, char** argv) {
         "__res.importer.run_main()\n");
     Py_Finalize();
     return rc == 0 ? 0 : 1;
+}
+
+int (*mainptr)(int argc, char** argv) = pymain;
+
+int main(int argc, char** argv) {
+    return mainptr(argc, argv);
 }

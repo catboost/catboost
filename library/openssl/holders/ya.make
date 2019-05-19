@@ -4,7 +4,6 @@ LIBRARY()
 
 PEERDIR(
     contrib/libs/openssl
-    library/openssl/compat # Remove after OpenSSL upgrade
 )
 
 SRCS(

@@ -17,13 +17,11 @@
 */
 
 #define _UMATHMODULE
+#define _MULTIARRAYMODULE
 #define NPY_NO_DEPRECATED_API NPY_API_VERSION
 
 #include "Python.h"
 #include "npy_config.h"
-#define PY_ARRAY_UNIQUE_SYMBOL _npy_umathmodule_ARRAY_API
-#define NO_IMPORT_ARRAY
-
 #include "numpy/arrayobject.h"
 #include "numpy/ufuncobject.h"
 #include "numpy/arrayscalars.h"
@@ -32,6 +30,9 @@
 
 #include "numpy/halffloat.h"
 #include "templ_common.h"
+
+#include "binop_override.h"
+#include "npy_longdouble.h"
 
 /* Basic operations:
  *
@@ -48,7 +49,7 @@
  *
  */
 
-#line 45
+#line 46
 static void
 byte_ctype_add(npy_byte a, npy_byte b, npy_byte *out) {
     *out = a + b;
@@ -68,7 +69,7 @@ byte_ctype_subtract(npy_byte a, npy_byte b, npy_byte *out) {
     return;
 }
 
-#line 45
+#line 46
 static void
 short_ctype_add(npy_short a, npy_short b, npy_short *out) {
     *out = a + b;
@@ -88,7 +89,7 @@ short_ctype_subtract(npy_short a, npy_short b, npy_short *out) {
     return;
 }
 
-#line 45
+#line 46
 static void
 int_ctype_add(npy_int a, npy_int b, npy_int *out) {
     *out = a + b;
@@ -108,7 +109,7 @@ int_ctype_subtract(npy_int a, npy_int b, npy_int *out) {
     return;
 }
 
-#line 45
+#line 46
 static void
 long_ctype_add(npy_long a, npy_long b, npy_long *out) {
     *out = a + b;
@@ -128,7 +129,7 @@ long_ctype_subtract(npy_long a, npy_long b, npy_long *out) {
     return;
 }
 
-#line 45
+#line 46
 static void
 longlong_ctype_add(npy_longlong a, npy_longlong b, npy_longlong *out) {
     *out = a + b;
@@ -149,7 +150,7 @@ longlong_ctype_subtract(npy_longlong a, npy_longlong b, npy_longlong *out) {
 }
 
 
-#line 69
+#line 70
 static void
 ubyte_ctype_add(npy_ubyte a, npy_ubyte b, npy_ubyte *out) {
     *out = a + b;
@@ -169,7 +170,7 @@ ubyte_ctype_subtract(npy_ubyte a, npy_ubyte b, npy_ubyte *out) {
     return;
 }
 
-#line 69
+#line 70
 static void
 ushort_ctype_add(npy_ushort a, npy_ushort b, npy_ushort *out) {
     *out = a + b;
@@ -189,7 +190,7 @@ ushort_ctype_subtract(npy_ushort a, npy_ushort b, npy_ushort *out) {
     return;
 }
 
-#line 69
+#line 70
 static void
 uint_ctype_add(npy_uint a, npy_uint b, npy_uint *out) {
     *out = a + b;
@@ -209,7 +210,7 @@ uint_ctype_subtract(npy_uint a, npy_uint b, npy_uint *out) {
     return;
 }
 
-#line 69
+#line 70
 static void
 ulong_ctype_add(npy_ulong a, npy_ulong b, npy_ulong *out) {
     *out = a + b;
@@ -229,7 +230,7 @@ ulong_ctype_subtract(npy_ulong a, npy_ulong b, npy_ulong *out) {
     return;
 }
 
-#line 69
+#line 70
 static void
 ulonglong_ctype_add(npy_ulonglong a, npy_ulonglong b, npy_ulonglong *out) {
     *out = a + b;
@@ -254,7 +255,7 @@ ulonglong_ctype_subtract(npy_ulonglong a, npy_ulonglong b, npy_ulonglong *out) {
 #define NPY_SIZEOF_BYTE 1
 #endif
 
-#line 107
+#line 108
 #if NPY_SIZEOF_INT > NPY_SIZEOF_BYTE
 static void
 byte_ctype_multiply(npy_byte a, npy_byte b, npy_byte *out) {
@@ -271,7 +272,7 @@ byte_ctype_multiply(npy_byte a, npy_byte b, npy_byte *out) {
 }
 #endif
 
-#line 107
+#line 108
 #if NPY_SIZEOF_INT > NPY_SIZEOF_BYTE
 static void
 ubyte_ctype_multiply(npy_ubyte a, npy_ubyte b, npy_ubyte *out) {
@@ -288,7 +289,7 @@ ubyte_ctype_multiply(npy_ubyte a, npy_ubyte b, npy_ubyte *out) {
 }
 #endif
 
-#line 107
+#line 108
 #if NPY_SIZEOF_INT > NPY_SIZEOF_SHORT
 static void
 short_ctype_multiply(npy_short a, npy_short b, npy_short *out) {
@@ -305,7 +306,7 @@ short_ctype_multiply(npy_short a, npy_short b, npy_short *out) {
 }
 #endif
 
-#line 107
+#line 108
 #if NPY_SIZEOF_INT > NPY_SIZEOF_SHORT
 static void
 ushort_ctype_multiply(npy_ushort a, npy_ushort b, npy_ushort *out) {
@@ -322,7 +323,7 @@ ushort_ctype_multiply(npy_ushort a, npy_ushort b, npy_ushort *out) {
 }
 #endif
 
-#line 107
+#line 108
 #if NPY_SIZEOF_LONGLONG > NPY_SIZEOF_INT
 static void
 int_ctype_multiply(npy_int a, npy_int b, npy_int *out) {
@@ -339,7 +340,7 @@ int_ctype_multiply(npy_int a, npy_int b, npy_int *out) {
 }
 #endif
 
-#line 107
+#line 108
 #if NPY_SIZEOF_LONGLONG > NPY_SIZEOF_INT
 static void
 uint_ctype_multiply(npy_uint a, npy_uint b, npy_uint *out) {
@@ -356,7 +357,7 @@ uint_ctype_multiply(npy_uint a, npy_uint b, npy_uint *out) {
 }
 #endif
 
-#line 107
+#line 108
 #if NPY_SIZEOF_LONGLONG > NPY_SIZEOF_LONG
 static void
 long_ctype_multiply(npy_long a, npy_long b, npy_long *out) {
@@ -373,7 +374,7 @@ long_ctype_multiply(npy_long a, npy_long b, npy_long *out) {
 }
 #endif
 
-#line 107
+#line 108
 #if NPY_SIZEOF_LONGLONG > NPY_SIZEOF_LONG
 static void
 ulong_ctype_multiply(npy_ulong a, npy_ulong b, npy_ulong *out) {
@@ -391,7 +392,7 @@ ulong_ctype_multiply(npy_ulong a, npy_ulong b, npy_ulong *out) {
 #endif
 
 
-#line 132
+#line 133
 #if NPY_SIZEOF_LONGLONG == NPY_SIZEOF_INT
 static void
 int_ctype_multiply(npy_int a, npy_int b, npy_int *out) {
@@ -402,7 +403,7 @@ int_ctype_multiply(npy_int a, npy_int b, npy_int *out) {
 }
 #endif
 
-#line 132
+#line 133
 #if NPY_SIZEOF_LONGLONG == NPY_SIZEOF_INT
 static void
 uint_ctype_multiply(npy_uint a, npy_uint b, npy_uint *out) {
@@ -413,7 +414,7 @@ uint_ctype_multiply(npy_uint a, npy_uint b, npy_uint *out) {
 }
 #endif
 
-#line 132
+#line 133
 #if NPY_SIZEOF_LONGLONG == NPY_SIZEOF_LONG
 static void
 long_ctype_multiply(npy_long a, npy_long b, npy_long *out) {
@@ -424,7 +425,7 @@ long_ctype_multiply(npy_long a, npy_long b, npy_long *out) {
 }
 #endif
 
-#line 132
+#line 133
 #if NPY_SIZEOF_LONGLONG == NPY_SIZEOF_LONG
 static void
 ulong_ctype_multiply(npy_ulong a, npy_ulong b, npy_ulong *out) {
@@ -435,7 +436,7 @@ ulong_ctype_multiply(npy_ulong a, npy_ulong b, npy_ulong *out) {
 }
 #endif
 
-#line 132
+#line 133
 #if NPY_SIZEOF_LONGLONG == NPY_SIZEOF_LONGLONG
 static void
 longlong_ctype_multiply(npy_longlong a, npy_longlong b, npy_longlong *out) {
@@ -446,7 +447,7 @@ longlong_ctype_multiply(npy_longlong a, npy_longlong b, npy_longlong *out) {
 }
 #endif
 
-#line 132
+#line 133
 #if NPY_SIZEOF_LONGLONG == NPY_SIZEOF_LONGLONG
 static void
 ulonglong_ctype_multiply(npy_ulonglong a, npy_ulonglong b, npy_ulonglong *out) {
@@ -458,7 +459,7 @@ ulonglong_ctype_multiply(npy_ulonglong a, npy_ulonglong b, npy_ulonglong *out) {
 #endif
 
 
-#line 151
+#line 152
 static void
 byte_ctype_divide(npy_byte a, npy_byte b, npy_byte *out) {
     if (b == 0) {
@@ -508,7 +509,7 @@ byte_ctype_remainder(npy_byte a, npy_byte b, npy_byte *out) {
 #endif
 }
 
-#line 151
+#line 152
 static void
 ubyte_ctype_divide(npy_ubyte a, npy_ubyte b, npy_ubyte *out) {
     if (b == 0) {
@@ -558,7 +559,7 @@ ubyte_ctype_remainder(npy_ubyte a, npy_ubyte b, npy_ubyte *out) {
 #endif
 }
 
-#line 151
+#line 152
 static void
 short_ctype_divide(npy_short a, npy_short b, npy_short *out) {
     if (b == 0) {
@@ -608,7 +609,7 @@ short_ctype_remainder(npy_short a, npy_short b, npy_short *out) {
 #endif
 }
 
-#line 151
+#line 152
 static void
 ushort_ctype_divide(npy_ushort a, npy_ushort b, npy_ushort *out) {
     if (b == 0) {
@@ -658,7 +659,7 @@ ushort_ctype_remainder(npy_ushort a, npy_ushort b, npy_ushort *out) {
 #endif
 }
 
-#line 151
+#line 152
 static void
 int_ctype_divide(npy_int a, npy_int b, npy_int *out) {
     if (b == 0) {
@@ -708,7 +709,7 @@ int_ctype_remainder(npy_int a, npy_int b, npy_int *out) {
 #endif
 }
 
-#line 151
+#line 152
 static void
 uint_ctype_divide(npy_uint a, npy_uint b, npy_uint *out) {
     if (b == 0) {
@@ -758,7 +759,7 @@ uint_ctype_remainder(npy_uint a, npy_uint b, npy_uint *out) {
 #endif
 }
 
-#line 151
+#line 152
 static void
 long_ctype_divide(npy_long a, npy_long b, npy_long *out) {
     if (b == 0) {
@@ -808,7 +809,7 @@ long_ctype_remainder(npy_long a, npy_long b, npy_long *out) {
 #endif
 }
 
-#line 151
+#line 152
 static void
 ulong_ctype_divide(npy_ulong a, npy_ulong b, npy_ulong *out) {
     if (b == 0) {
@@ -858,7 +859,7 @@ ulong_ctype_remainder(npy_ulong a, npy_ulong b, npy_ulong *out) {
 #endif
 }
 
-#line 151
+#line 152
 static void
 longlong_ctype_divide(npy_longlong a, npy_longlong b, npy_longlong *out) {
     if (b == 0) {
@@ -908,7 +909,7 @@ longlong_ctype_remainder(npy_longlong a, npy_longlong b, npy_longlong *out) {
 #endif
 }
 
-#line 151
+#line 152
 static void
 ulonglong_ctype_divide(npy_ulonglong a, npy_ulonglong b, npy_ulonglong *out) {
     if (b == 0) {
@@ -959,306 +960,306 @@ ulonglong_ctype_remainder(npy_ulonglong a, npy_ulonglong b, npy_ulonglong *out) 
 }
 
 
-#line 207
+#line 208
 #define byte_ctype_true_divide(a, b, out)     \
     *(out) = ((npy_float) (a)) / ((npy_float) (b));
 
-#line 207
+#line 208
 #define ubyte_ctype_true_divide(a, b, out)     \
     *(out) = ((npy_float) (a)) / ((npy_float) (b));
 
-#line 207
+#line 208
 #define short_ctype_true_divide(a, b, out)     \
     *(out) = ((npy_float) (a)) / ((npy_float) (b));
 
-#line 207
+#line 208
 #define ushort_ctype_true_divide(a, b, out)     \
     *(out) = ((npy_float) (a)) / ((npy_float) (b));
 
-#line 207
+#line 208
 #define int_ctype_true_divide(a, b, out)     \
     *(out) = ((npy_double) (a)) / ((npy_double) (b));
 
-#line 207
+#line 208
 #define uint_ctype_true_divide(a, b, out)     \
     *(out) = ((npy_double) (a)) / ((npy_double) (b));
 
-#line 207
+#line 208
 #define long_ctype_true_divide(a, b, out)     \
     *(out) = ((npy_double) (a)) / ((npy_double) (b));
 
-#line 207
+#line 208
 #define ulong_ctype_true_divide(a, b, out)     \
     *(out) = ((npy_double) (a)) / ((npy_double) (b));
 
-#line 207
+#line 208
 #define longlong_ctype_true_divide(a, b, out)     \
     *(out) = ((npy_double) (a)) / ((npy_double) (b));
 
-#line 207
+#line 208
 #define ulonglong_ctype_true_divide(a, b, out)     \
     *(out) = ((npy_double) (a)) / ((npy_double) (b));
 
 
 /* b will always be positive in this call */
-#line 221
+#line 222
 static void
 byte_ctype_power(npy_byte a, npy_byte b, npy_byte *out) {
-    npy_byte temp, ix, mult;
-    /* code from Python's intobject.c, with overflow checking removed. */
-    temp = a;
-    ix = 1;
-    while (b > 0) {
-        if (b & 1) {
-            byte_ctype_multiply(ix, temp, &mult);
-            ix = mult;
-            if (temp == 0) {
-                break;
-            }
-        }
-        b >>= 1;        /* Shift exponent down by 1 bit */
-        if (b==0) {
-            break;
-        }
-        /* Square the value of temp */
-        byte_ctype_multiply(temp, temp, &mult);
-        temp = mult;
+    npy_byte tmp;
+
+    if (b == 0) {
+        *out = 1;
+        return;
     }
-    *out = ix;
+    if (a == 1) {
+        *out = 1;
+        return;
+    }
+
+    tmp = b & 1 ? a : 1;
+    b >>= 1;
+    while (b > 0) {
+        a *= a;
+        if (b & 1) {
+            tmp *= a;
+        }
+        b >>= 1;
+    }
+    *out = tmp;
 }
 
-#line 221
+#line 222
 static void
 ubyte_ctype_power(npy_ubyte a, npy_ubyte b, npy_ubyte *out) {
-    npy_ubyte temp, ix, mult;
-    /* code from Python's intobject.c, with overflow checking removed. */
-    temp = a;
-    ix = 1;
-    while (b > 0) {
-        if (b & 1) {
-            ubyte_ctype_multiply(ix, temp, &mult);
-            ix = mult;
-            if (temp == 0) {
-                break;
-            }
-        }
-        b >>= 1;        /* Shift exponent down by 1 bit */
-        if (b==0) {
-            break;
-        }
-        /* Square the value of temp */
-        ubyte_ctype_multiply(temp, temp, &mult);
-        temp = mult;
+    npy_ubyte tmp;
+
+    if (b == 0) {
+        *out = 1;
+        return;
     }
-    *out = ix;
+    if (a == 1) {
+        *out = 1;
+        return;
+    }
+
+    tmp = b & 1 ? a : 1;
+    b >>= 1;
+    while (b > 0) {
+        a *= a;
+        if (b & 1) {
+            tmp *= a;
+        }
+        b >>= 1;
+    }
+    *out = tmp;
 }
 
-#line 221
+#line 222
 static void
 short_ctype_power(npy_short a, npy_short b, npy_short *out) {
-    npy_short temp, ix, mult;
-    /* code from Python's intobject.c, with overflow checking removed. */
-    temp = a;
-    ix = 1;
-    while (b > 0) {
-        if (b & 1) {
-            short_ctype_multiply(ix, temp, &mult);
-            ix = mult;
-            if (temp == 0) {
-                break;
-            }
-        }
-        b >>= 1;        /* Shift exponent down by 1 bit */
-        if (b==0) {
-            break;
-        }
-        /* Square the value of temp */
-        short_ctype_multiply(temp, temp, &mult);
-        temp = mult;
+    npy_short tmp;
+
+    if (b == 0) {
+        *out = 1;
+        return;
     }
-    *out = ix;
+    if (a == 1) {
+        *out = 1;
+        return;
+    }
+
+    tmp = b & 1 ? a : 1;
+    b >>= 1;
+    while (b > 0) {
+        a *= a;
+        if (b & 1) {
+            tmp *= a;
+        }
+        b >>= 1;
+    }
+    *out = tmp;
 }
 
-#line 221
+#line 222
 static void
 ushort_ctype_power(npy_ushort a, npy_ushort b, npy_ushort *out) {
-    npy_ushort temp, ix, mult;
-    /* code from Python's intobject.c, with overflow checking removed. */
-    temp = a;
-    ix = 1;
-    while (b > 0) {
-        if (b & 1) {
-            ushort_ctype_multiply(ix, temp, &mult);
-            ix = mult;
-            if (temp == 0) {
-                break;
-            }
-        }
-        b >>= 1;        /* Shift exponent down by 1 bit */
-        if (b==0) {
-            break;
-        }
-        /* Square the value of temp */
-        ushort_ctype_multiply(temp, temp, &mult);
-        temp = mult;
+    npy_ushort tmp;
+
+    if (b == 0) {
+        *out = 1;
+        return;
     }
-    *out = ix;
+    if (a == 1) {
+        *out = 1;
+        return;
+    }
+
+    tmp = b & 1 ? a : 1;
+    b >>= 1;
+    while (b > 0) {
+        a *= a;
+        if (b & 1) {
+            tmp *= a;
+        }
+        b >>= 1;
+    }
+    *out = tmp;
 }
 
-#line 221
+#line 222
 static void
 int_ctype_power(npy_int a, npy_int b, npy_int *out) {
-    npy_int temp, ix, mult;
-    /* code from Python's intobject.c, with overflow checking removed. */
-    temp = a;
-    ix = 1;
-    while (b > 0) {
-        if (b & 1) {
-            int_ctype_multiply(ix, temp, &mult);
-            ix = mult;
-            if (temp == 0) {
-                break;
-            }
-        }
-        b >>= 1;        /* Shift exponent down by 1 bit */
-        if (b==0) {
-            break;
-        }
-        /* Square the value of temp */
-        int_ctype_multiply(temp, temp, &mult);
-        temp = mult;
+    npy_int tmp;
+
+    if (b == 0) {
+        *out = 1;
+        return;
     }
-    *out = ix;
+    if (a == 1) {
+        *out = 1;
+        return;
+    }
+
+    tmp = b & 1 ? a : 1;
+    b >>= 1;
+    while (b > 0) {
+        a *= a;
+        if (b & 1) {
+            tmp *= a;
+        }
+        b >>= 1;
+    }
+    *out = tmp;
 }
 
-#line 221
+#line 222
 static void
 uint_ctype_power(npy_uint a, npy_uint b, npy_uint *out) {
-    npy_uint temp, ix, mult;
-    /* code from Python's intobject.c, with overflow checking removed. */
-    temp = a;
-    ix = 1;
-    while (b > 0) {
-        if (b & 1) {
-            uint_ctype_multiply(ix, temp, &mult);
-            ix = mult;
-            if (temp == 0) {
-                break;
-            }
-        }
-        b >>= 1;        /* Shift exponent down by 1 bit */
-        if (b==0) {
-            break;
-        }
-        /* Square the value of temp */
-        uint_ctype_multiply(temp, temp, &mult);
-        temp = mult;
+    npy_uint tmp;
+
+    if (b == 0) {
+        *out = 1;
+        return;
     }
-    *out = ix;
+    if (a == 1) {
+        *out = 1;
+        return;
+    }
+
+    tmp = b & 1 ? a : 1;
+    b >>= 1;
+    while (b > 0) {
+        a *= a;
+        if (b & 1) {
+            tmp *= a;
+        }
+        b >>= 1;
+    }
+    *out = tmp;
 }
 
-#line 221
+#line 222
 static void
 long_ctype_power(npy_long a, npy_long b, npy_long *out) {
-    npy_long temp, ix, mult;
-    /* code from Python's intobject.c, with overflow checking removed. */
-    temp = a;
-    ix = 1;
-    while (b > 0) {
-        if (b & 1) {
-            long_ctype_multiply(ix, temp, &mult);
-            ix = mult;
-            if (temp == 0) {
-                break;
-            }
-        }
-        b >>= 1;        /* Shift exponent down by 1 bit */
-        if (b==0) {
-            break;
-        }
-        /* Square the value of temp */
-        long_ctype_multiply(temp, temp, &mult);
-        temp = mult;
+    npy_long tmp;
+
+    if (b == 0) {
+        *out = 1;
+        return;
     }
-    *out = ix;
+    if (a == 1) {
+        *out = 1;
+        return;
+    }
+
+    tmp = b & 1 ? a : 1;
+    b >>= 1;
+    while (b > 0) {
+        a *= a;
+        if (b & 1) {
+            tmp *= a;
+        }
+        b >>= 1;
+    }
+    *out = tmp;
 }
 
-#line 221
+#line 222
 static void
 ulong_ctype_power(npy_ulong a, npy_ulong b, npy_ulong *out) {
-    npy_ulong temp, ix, mult;
-    /* code from Python's intobject.c, with overflow checking removed. */
-    temp = a;
-    ix = 1;
-    while (b > 0) {
-        if (b & 1) {
-            ulong_ctype_multiply(ix, temp, &mult);
-            ix = mult;
-            if (temp == 0) {
-                break;
-            }
-        }
-        b >>= 1;        /* Shift exponent down by 1 bit */
-        if (b==0) {
-            break;
-        }
-        /* Square the value of temp */
-        ulong_ctype_multiply(temp, temp, &mult);
-        temp = mult;
+    npy_ulong tmp;
+
+    if (b == 0) {
+        *out = 1;
+        return;
     }
-    *out = ix;
+    if (a == 1) {
+        *out = 1;
+        return;
+    }
+
+    tmp = b & 1 ? a : 1;
+    b >>= 1;
+    while (b > 0) {
+        a *= a;
+        if (b & 1) {
+            tmp *= a;
+        }
+        b >>= 1;
+    }
+    *out = tmp;
 }
 
-#line 221
+#line 222
 static void
 longlong_ctype_power(npy_longlong a, npy_longlong b, npy_longlong *out) {
-    npy_longlong temp, ix, mult;
-    /* code from Python's intobject.c, with overflow checking removed. */
-    temp = a;
-    ix = 1;
-    while (b > 0) {
-        if (b & 1) {
-            longlong_ctype_multiply(ix, temp, &mult);
-            ix = mult;
-            if (temp == 0) {
-                break;
-            }
-        }
-        b >>= 1;        /* Shift exponent down by 1 bit */
-        if (b==0) {
-            break;
-        }
-        /* Square the value of temp */
-        longlong_ctype_multiply(temp, temp, &mult);
-        temp = mult;
+    npy_longlong tmp;
+
+    if (b == 0) {
+        *out = 1;
+        return;
     }
-    *out = ix;
+    if (a == 1) {
+        *out = 1;
+        return;
+    }
+
+    tmp = b & 1 ? a : 1;
+    b >>= 1;
+    while (b > 0) {
+        a *= a;
+        if (b & 1) {
+            tmp *= a;
+        }
+        b >>= 1;
+    }
+    *out = tmp;
 }
 
-#line 221
+#line 222
 static void
 ulonglong_ctype_power(npy_ulonglong a, npy_ulonglong b, npy_ulonglong *out) {
-    npy_ulonglong temp, ix, mult;
-    /* code from Python's intobject.c, with overflow checking removed. */
-    temp = a;
-    ix = 1;
-    while (b > 0) {
-        if (b & 1) {
-            ulonglong_ctype_multiply(ix, temp, &mult);
-            ix = mult;
-            if (temp == 0) {
-                break;
-            }
-        }
-        b >>= 1;        /* Shift exponent down by 1 bit */
-        if (b==0) {
-            break;
-        }
-        /* Square the value of temp */
-        ulonglong_ctype_multiply(temp, temp, &mult);
-        temp = mult;
+    npy_ulonglong tmp;
+
+    if (b == 0) {
+        *out = 1;
+        return;
     }
-    *out = ix;
+    if (a == 1) {
+        *out = 1;
+        return;
+    }
+
+    tmp = b & 1 ? a : 1;
+    b >>= 1;
+    while (b > 0) {
+        a *= a;
+        if (b & 1) {
+            tmp *= a;
+        }
+        b >>= 1;
+    }
+    *out = tmp;
 }
 
 
@@ -1266,290 +1267,290 @@ ulonglong_ctype_power(npy_ulonglong a, npy_ulonglong b, npy_ulonglong *out) {
 
 /* QUESTION:  Should we check for overflow / underflow in (l,r)shift? */
 
-#line 257
+#line 258
 
-#line 262
+#line 263
 
 #define byte_ctype_and(arg1, arg2, out) *(out) = (arg1) & (arg2)
 
 
-#line 262
+#line 263
 
 #define byte_ctype_xor(arg1, arg2, out) *(out) = (arg1) ^ (arg2)
 
 
-#line 262
+#line 263
 
 #define byte_ctype_or(arg1, arg2, out) *(out) = (arg1) | (arg2)
 
 
-#line 262
+#line 263
 
 #define byte_ctype_lshift(arg1, arg2, out) *(out) = (arg1) << (arg2)
 
 
-#line 262
+#line 263
 
 #define byte_ctype_rshift(arg1, arg2, out) *(out) = (arg1) >> (arg2)
 
 
 
 
-#line 257
+#line 258
 
-#line 262
+#line 263
 
 #define ubyte_ctype_and(arg1, arg2, out) *(out) = (arg1) & (arg2)
 
 
-#line 262
+#line 263
 
 #define ubyte_ctype_xor(arg1, arg2, out) *(out) = (arg1) ^ (arg2)
 
 
-#line 262
+#line 263
 
 #define ubyte_ctype_or(arg1, arg2, out) *(out) = (arg1) | (arg2)
 
 
-#line 262
+#line 263
 
 #define ubyte_ctype_lshift(arg1, arg2, out) *(out) = (arg1) << (arg2)
 
 
-#line 262
+#line 263
 
 #define ubyte_ctype_rshift(arg1, arg2, out) *(out) = (arg1) >> (arg2)
 
 
 
 
-#line 257
+#line 258
 
-#line 262
+#line 263
 
 #define short_ctype_and(arg1, arg2, out) *(out) = (arg1) & (arg2)
 
 
-#line 262
+#line 263
 
 #define short_ctype_xor(arg1, arg2, out) *(out) = (arg1) ^ (arg2)
 
 
-#line 262
+#line 263
 
 #define short_ctype_or(arg1, arg2, out) *(out) = (arg1) | (arg2)
 
 
-#line 262
+#line 263
 
 #define short_ctype_lshift(arg1, arg2, out) *(out) = (arg1) << (arg2)
 
 
-#line 262
+#line 263
 
 #define short_ctype_rshift(arg1, arg2, out) *(out) = (arg1) >> (arg2)
 
 
 
 
-#line 257
+#line 258
 
-#line 262
+#line 263
 
 #define ushort_ctype_and(arg1, arg2, out) *(out) = (arg1) & (arg2)
 
 
-#line 262
+#line 263
 
 #define ushort_ctype_xor(arg1, arg2, out) *(out) = (arg1) ^ (arg2)
 
 
-#line 262
+#line 263
 
 #define ushort_ctype_or(arg1, arg2, out) *(out) = (arg1) | (arg2)
 
 
-#line 262
+#line 263
 
 #define ushort_ctype_lshift(arg1, arg2, out) *(out) = (arg1) << (arg2)
 
 
-#line 262
+#line 263
 
 #define ushort_ctype_rshift(arg1, arg2, out) *(out) = (arg1) >> (arg2)
 
 
 
 
-#line 257
+#line 258
 
-#line 262
+#line 263
 
 #define int_ctype_and(arg1, arg2, out) *(out) = (arg1) & (arg2)
 
 
-#line 262
+#line 263
 
 #define int_ctype_xor(arg1, arg2, out) *(out) = (arg1) ^ (arg2)
 
 
-#line 262
+#line 263
 
 #define int_ctype_or(arg1, arg2, out) *(out) = (arg1) | (arg2)
 
 
-#line 262
+#line 263
 
 #define int_ctype_lshift(arg1, arg2, out) *(out) = (arg1) << (arg2)
 
 
-#line 262
+#line 263
 
 #define int_ctype_rshift(arg1, arg2, out) *(out) = (arg1) >> (arg2)
 
 
 
 
-#line 257
+#line 258
 
-#line 262
+#line 263
 
 #define uint_ctype_and(arg1, arg2, out) *(out) = (arg1) & (arg2)
 
 
-#line 262
+#line 263
 
 #define uint_ctype_xor(arg1, arg2, out) *(out) = (arg1) ^ (arg2)
 
 
-#line 262
+#line 263
 
 #define uint_ctype_or(arg1, arg2, out) *(out) = (arg1) | (arg2)
 
 
-#line 262
+#line 263
 
 #define uint_ctype_lshift(arg1, arg2, out) *(out) = (arg1) << (arg2)
 
 
-#line 262
+#line 263
 
 #define uint_ctype_rshift(arg1, arg2, out) *(out) = (arg1) >> (arg2)
 
 
 
 
-#line 257
+#line 258
 
-#line 262
+#line 263
 
 #define long_ctype_and(arg1, arg2, out) *(out) = (arg1) & (arg2)
 
 
-#line 262
+#line 263
 
 #define long_ctype_xor(arg1, arg2, out) *(out) = (arg1) ^ (arg2)
 
 
-#line 262
+#line 263
 
 #define long_ctype_or(arg1, arg2, out) *(out) = (arg1) | (arg2)
 
 
-#line 262
+#line 263
 
 #define long_ctype_lshift(arg1, arg2, out) *(out) = (arg1) << (arg2)
 
 
-#line 262
+#line 263
 
 #define long_ctype_rshift(arg1, arg2, out) *(out) = (arg1) >> (arg2)
 
 
 
 
-#line 257
+#line 258
 
-#line 262
+#line 263
 
 #define ulong_ctype_and(arg1, arg2, out) *(out) = (arg1) & (arg2)
 
 
-#line 262
+#line 263
 
 #define ulong_ctype_xor(arg1, arg2, out) *(out) = (arg1) ^ (arg2)
 
 
-#line 262
+#line 263
 
 #define ulong_ctype_or(arg1, arg2, out) *(out) = (arg1) | (arg2)
 
 
-#line 262
+#line 263
 
 #define ulong_ctype_lshift(arg1, arg2, out) *(out) = (arg1) << (arg2)
 
 
-#line 262
+#line 263
 
 #define ulong_ctype_rshift(arg1, arg2, out) *(out) = (arg1) >> (arg2)
 
 
 
 
-#line 257
+#line 258
 
-#line 262
+#line 263
 
 #define longlong_ctype_and(arg1, arg2, out) *(out) = (arg1) & (arg2)
 
 
-#line 262
+#line 263
 
 #define longlong_ctype_xor(arg1, arg2, out) *(out) = (arg1) ^ (arg2)
 
 
-#line 262
+#line 263
 
 #define longlong_ctype_or(arg1, arg2, out) *(out) = (arg1) | (arg2)
 
 
-#line 262
+#line 263
 
 #define longlong_ctype_lshift(arg1, arg2, out) *(out) = (arg1) << (arg2)
 
 
-#line 262
+#line 263
 
 #define longlong_ctype_rshift(arg1, arg2, out) *(out) = (arg1) >> (arg2)
 
 
 
 
-#line 257
+#line 258
 
-#line 262
+#line 263
 
 #define ulonglong_ctype_and(arg1, arg2, out) *(out) = (arg1) & (arg2)
 
 
-#line 262
+#line 263
 
 #define ulonglong_ctype_xor(arg1, arg2, out) *(out) = (arg1) ^ (arg2)
 
 
-#line 262
+#line 263
 
 #define ulonglong_ctype_or(arg1, arg2, out) *(out) = (arg1) | (arg2)
 
 
-#line 262
+#line 263
 
 #define ulonglong_ctype_lshift(arg1, arg2, out) *(out) = (arg1) << (arg2)
 
 
-#line 262
+#line 263
 
 #define ulonglong_ctype_rshift(arg1, arg2, out) *(out) = (arg1) >> (arg2)
 
@@ -1557,10 +1558,7 @@ ulonglong_ctype_power(npy_ulonglong a, npy_ulonglong b, npy_ulonglong *out) {
 
 
 
-#line 274
-static npy_float (*_basic_float_sqrt)(npy_float);
-static npy_float (*_basic_float_fmod)(npy_float, npy_float);
-
+#line 275
 #define float_ctype_add(a, b, outp) *(outp) = (a) + (b)
 #define float_ctype_subtract(a, b, outp) *(outp) = (a) - (b)
 #define float_ctype_multiply(a, b, outp) *(outp) = (a) * (b)
@@ -1589,10 +1587,7 @@ float_ctype_divmod(npy_float a, npy_float b, npy_float *out1, npy_float *out2) {
 
 
 
-#line 274
-static npy_double (*_basic_double_sqrt)(npy_double);
-static npy_double (*_basic_double_fmod)(npy_double, npy_double);
-
+#line 275
 #define double_ctype_add(a, b, outp) *(outp) = (a) + (b)
 #define double_ctype_subtract(a, b, outp) *(outp) = (a) - (b)
 #define double_ctype_multiply(a, b, outp) *(outp) = (a) * (b)
@@ -1621,10 +1616,7 @@ double_ctype_divmod(npy_double a, npy_double b, npy_double *out1, npy_double *ou
 
 
 
-#line 274
-static npy_longdouble (*_basic_longdouble_sqrt)(npy_longdouble);
-static npy_longdouble (*_basic_longdouble_fmod)(npy_longdouble, npy_longdouble);
-
+#line 275
 #define longdouble_ctype_add(a, b, outp) *(outp) = (a) + (b)
 #define longdouble_ctype_subtract(a, b, outp) *(outp) = (a) - (b)
 #define longdouble_ctype_multiply(a, b, outp) *(outp) = (a) * (b)
@@ -1653,9 +1645,6 @@ longdouble_ctype_divmod(npy_longdouble a, npy_longdouble b, npy_longdouble *out1
 
 
 
-
-static npy_half (*_basic_half_sqrt)(npy_half);
-static npy_half (*_basic_half_fmod)(npy_half, npy_half);
 
 #define half_ctype_add(a, b, outp) *(outp) = \
         npy_float_to_half(npy_half_to_float(a) + npy_half_to_float(b))
@@ -1687,7 +1676,7 @@ half_ctype_divmod(npy_half a, npy_half b, npy_half *out1, npy_half *out2) {
     *out1 = npy_half_divmod(a, b, out2);
 }
 
-#line 345
+#line 340
 #define cfloat_ctype_add(a, b, outp) do{        \
     (outp)->real = (a).real + (b).real;         \
     (outp)->imag = (a).imag + (b).imag;         \
@@ -1739,7 +1728,7 @@ half_ctype_divmod(npy_half a, npy_half b, npy_half *out1, npy_half *out2) {
     (outp)->imag = 0;                                   \
     } while(0)
 
-#line 345
+#line 340
 #define cdouble_ctype_add(a, b, outp) do{        \
     (outp)->real = (a).real + (b).real;         \
     (outp)->imag = (a).imag + (b).imag;         \
@@ -1791,7 +1780,7 @@ half_ctype_divmod(npy_half a, npy_half b, npy_half *out1, npy_half *out2) {
     (outp)->imag = 0;                                   \
     } while(0)
 
-#line 345
+#line 340
 #define clongdouble_ctype_add(a, b, outp) do{        \
     (outp)->real = (a).real + (b).real;         \
     (outp)->imag = (a).imag + (b).imag;         \
@@ -1846,79 +1835,79 @@ half_ctype_divmod(npy_half a, npy_half b, npy_half *out1, npy_half *out2) {
 
 
 
-#line 403
+#line 398
 #define byte_ctype_divmod(a, b, out, out2) {  \
     byte_ctype_floor_divide(a, b, out);       \
     byte_ctype_remainder(a, b, out2);         \
     }
 
-#line 403
+#line 398
 #define ubyte_ctype_divmod(a, b, out, out2) {  \
     ubyte_ctype_floor_divide(a, b, out);       \
     ubyte_ctype_remainder(a, b, out2);         \
     }
 
-#line 403
+#line 398
 #define short_ctype_divmod(a, b, out, out2) {  \
     short_ctype_floor_divide(a, b, out);       \
     short_ctype_remainder(a, b, out2);         \
     }
 
-#line 403
+#line 398
 #define ushort_ctype_divmod(a, b, out, out2) {  \
     ushort_ctype_floor_divide(a, b, out);       \
     ushort_ctype_remainder(a, b, out2);         \
     }
 
-#line 403
+#line 398
 #define int_ctype_divmod(a, b, out, out2) {  \
     int_ctype_floor_divide(a, b, out);       \
     int_ctype_remainder(a, b, out2);         \
     }
 
-#line 403
+#line 398
 #define uint_ctype_divmod(a, b, out, out2) {  \
     uint_ctype_floor_divide(a, b, out);       \
     uint_ctype_remainder(a, b, out2);         \
     }
 
-#line 403
+#line 398
 #define long_ctype_divmod(a, b, out, out2) {  \
     long_ctype_floor_divide(a, b, out);       \
     long_ctype_remainder(a, b, out2);         \
     }
 
-#line 403
+#line 398
 #define ulong_ctype_divmod(a, b, out, out2) {  \
     ulong_ctype_floor_divide(a, b, out);       \
     ulong_ctype_remainder(a, b, out2);         \
     }
 
-#line 403
+#line 398
 #define longlong_ctype_divmod(a, b, out, out2) {  \
     longlong_ctype_floor_divide(a, b, out);       \
     longlong_ctype_remainder(a, b, out2);         \
     }
 
-#line 403
+#line 398
 #define ulonglong_ctype_divmod(a, b, out, out2) {  \
     ulonglong_ctype_floor_divide(a, b, out);       \
     ulonglong_ctype_remainder(a, b, out2);         \
     }
 
-#line 403
+#line 398
 #define cfloat_ctype_divmod(a, b, out, out2) {  \
     cfloat_ctype_floor_divide(a, b, out);       \
     cfloat_ctype_remainder(a, b, out2);         \
     }
 
-#line 403
+#line 398
 #define cdouble_ctype_divmod(a, b, out, out2) {  \
     cdouble_ctype_floor_divide(a, b, out);       \
     cdouble_ctype_remainder(a, b, out2);         \
     }
 
-#line 403
+#line 398
 #define clongdouble_ctype_divmod(a, b, out, out2) {  \
     clongdouble_ctype_floor_divide(a, b, out);       \
     clongdouble_ctype_remainder(a, b, out2);         \
@@ -1926,7 +1915,7 @@ half_ctype_divmod(npy_half a, npy_half b, npy_half *out1, npy_half *out2) {
 
 
 
-#line 414
+#line 409
 static npy_float (*_basic_float_pow)(npy_float a, npy_float b);
 
 static void
@@ -1935,7 +1924,7 @@ float_ctype_power(npy_float a, npy_float b, npy_float *out)
     *out = _basic_float_pow(a, b);
 }
 
-#line 414
+#line 409
 static npy_double (*_basic_double_pow)(npy_double a, npy_double b);
 
 static void
@@ -1944,7 +1933,7 @@ double_ctype_power(npy_double a, npy_double b, npy_double *out)
     *out = _basic_double_pow(a, b);
 }
 
-#line 414
+#line 409
 static npy_longdouble (*_basic_longdouble_pow)(npy_longdouble a, npy_longdouble b);
 
 static void
@@ -1962,7 +1951,7 @@ half_ctype_power(npy_half a, npy_half b, npy_half *out)
     *out = npy_float_to_half(outf);
 }
 
-#line 440
+#line 435
 static void
 byte_ctype_negative(npy_byte a, npy_byte *out)
 {
@@ -1972,7 +1961,7 @@ byte_ctype_negative(npy_byte a, npy_byte *out)
     *out = -a;
 }
 
-#line 440
+#line 435
 static void
 ubyte_ctype_negative(npy_ubyte a, npy_ubyte *out)
 {
@@ -1982,7 +1971,7 @@ ubyte_ctype_negative(npy_ubyte a, npy_ubyte *out)
     *out = -a;
 }
 
-#line 440
+#line 435
 static void
 short_ctype_negative(npy_short a, npy_short *out)
 {
@@ -1992,7 +1981,7 @@ short_ctype_negative(npy_short a, npy_short *out)
     *out = -a;
 }
 
-#line 440
+#line 435
 static void
 ushort_ctype_negative(npy_ushort a, npy_ushort *out)
 {
@@ -2002,7 +1991,7 @@ ushort_ctype_negative(npy_ushort a, npy_ushort *out)
     *out = -a;
 }
 
-#line 440
+#line 435
 static void
 int_ctype_negative(npy_int a, npy_int *out)
 {
@@ -2012,7 +2001,7 @@ int_ctype_negative(npy_int a, npy_int *out)
     *out = -a;
 }
 
-#line 440
+#line 435
 static void
 uint_ctype_negative(npy_uint a, npy_uint *out)
 {
@@ -2022,7 +2011,7 @@ uint_ctype_negative(npy_uint a, npy_uint *out)
     *out = -a;
 }
 
-#line 440
+#line 435
 static void
 long_ctype_negative(npy_long a, npy_long *out)
 {
@@ -2032,7 +2021,7 @@ long_ctype_negative(npy_long a, npy_long *out)
     *out = -a;
 }
 
-#line 440
+#line 435
 static void
 ulong_ctype_negative(npy_ulong a, npy_ulong *out)
 {
@@ -2042,7 +2031,7 @@ ulong_ctype_negative(npy_ulong a, npy_ulong *out)
     *out = -a;
 }
 
-#line 440
+#line 435
 static void
 longlong_ctype_negative(npy_longlong a, npy_longlong *out)
 {
@@ -2052,7 +2041,7 @@ longlong_ctype_negative(npy_longlong a, npy_longlong *out)
     *out = -a;
 }
 
-#line 440
+#line 435
 static void
 ulonglong_ctype_negative(npy_ulonglong a, npy_ulonglong *out)
 {
@@ -2062,7 +2051,7 @@ ulonglong_ctype_negative(npy_ulonglong a, npy_ulonglong *out)
     *out = -a;
 }
 
-#line 440
+#line 435
 static void
 float_ctype_negative(npy_float a, npy_float *out)
 {
@@ -2072,7 +2061,7 @@ float_ctype_negative(npy_float a, npy_float *out)
     *out = -a;
 }
 
-#line 440
+#line 435
 static void
 double_ctype_negative(npy_double a, npy_double *out)
 {
@@ -2082,7 +2071,7 @@ double_ctype_negative(npy_double a, npy_double *out)
     *out = -a;
 }
 
-#line 440
+#line 435
 static void
 longdouble_ctype_negative(npy_longdouble a, npy_longdouble *out)
 {
@@ -2100,7 +2089,7 @@ half_ctype_negative(npy_half a, npy_half *out)
 }
 
 
-#line 461
+#line 456
 static void
 cfloat_ctype_negative(npy_cfloat a, npy_cfloat *out)
 {
@@ -2108,7 +2097,7 @@ cfloat_ctype_negative(npy_cfloat a, npy_cfloat *out)
     out->imag = -a.imag;
 }
 
-#line 461
+#line 456
 static void
 cdouble_ctype_negative(npy_cdouble a, npy_cdouble *out)
 {
@@ -2116,7 +2105,7 @@ cdouble_ctype_negative(npy_cdouble a, npy_cdouble *out)
     out->imag = -a.imag;
 }
 
-#line 461
+#line 456
 static void
 clongdouble_ctype_negative(npy_clongdouble a, npy_clongdouble *out)
 {
@@ -2125,98 +2114,98 @@ clongdouble_ctype_negative(npy_clongdouble a, npy_clongdouble *out)
 }
 
 
-#line 477
+#line 472
 static void
 byte_ctype_positive(npy_byte a, npy_byte *out)
 {
     *out = a;
 }
 
-#line 477
+#line 472
 static void
 ubyte_ctype_positive(npy_ubyte a, npy_ubyte *out)
 {
     *out = a;
 }
 
-#line 477
+#line 472
 static void
 short_ctype_positive(npy_short a, npy_short *out)
 {
     *out = a;
 }
 
-#line 477
+#line 472
 static void
 ushort_ctype_positive(npy_ushort a, npy_ushort *out)
 {
     *out = a;
 }
 
-#line 477
+#line 472
 static void
 int_ctype_positive(npy_int a, npy_int *out)
 {
     *out = a;
 }
 
-#line 477
+#line 472
 static void
 uint_ctype_positive(npy_uint a, npy_uint *out)
 {
     *out = a;
 }
 
-#line 477
+#line 472
 static void
 long_ctype_positive(npy_long a, npy_long *out)
 {
     *out = a;
 }
 
-#line 477
+#line 472
 static void
 ulong_ctype_positive(npy_ulong a, npy_ulong *out)
 {
     *out = a;
 }
 
-#line 477
+#line 472
 static void
 longlong_ctype_positive(npy_longlong a, npy_longlong *out)
 {
     *out = a;
 }
 
-#line 477
+#line 472
 static void
 ulonglong_ctype_positive(npy_ulonglong a, npy_ulonglong *out)
 {
     *out = a;
 }
 
-#line 477
+#line 472
 static void
 half_ctype_positive(npy_half a, npy_half *out)
 {
     *out = a;
 }
 
-#line 477
+#line 472
 static void
 float_ctype_positive(npy_float a, npy_float *out)
 {
     *out = a;
 }
 
-#line 477
+#line 472
 static void
 double_ctype_positive(npy_double a, npy_double *out)
 {
     *out = a;
 }
 
-#line 477
+#line 472
 static void
 longdouble_ctype_positive(npy_longdouble a, npy_longdouble *out)
 {
@@ -2229,7 +2218,7 @@ longdouble_ctype_positive(npy_longdouble a, npy_longdouble *out)
  * the data area of the power ufunc in umathmodule.
  */
 
-#line 493
+#line 488
 static void
 cfloat_ctype_positive(npy_cfloat a, npy_cfloat *out)
 {
@@ -2245,7 +2234,7 @@ cfloat_ctype_power(npy_cfloat a, npy_cfloat b, npy_cfloat *out)
     _basic_cfloat_pow(&a, &b, out);
 }
 
-#line 493
+#line 488
 static void
 cdouble_ctype_positive(npy_cdouble a, npy_cdouble *out)
 {
@@ -2261,7 +2250,7 @@ cdouble_ctype_power(npy_cdouble a, npy_cdouble b, npy_cdouble *out)
     _basic_cdouble_pow(&a, &b, out);
 }
 
-#line 493
+#line 488
 static void
 clongdouble_ctype_positive(npy_clongdouble a, npy_clongdouble *out)
 {
@@ -2279,62 +2268,62 @@ clongdouble_ctype_power(npy_clongdouble a, npy_clongdouble b, npy_clongdouble *o
 
 
 
-#line 513
+#line 508
 
 #define ubyte_ctype_absolute ubyte_ctype_positive
 
 
-#line 513
+#line 508
 
 #define ushort_ctype_absolute ushort_ctype_positive
 
 
-#line 513
+#line 508
 
 #define uint_ctype_absolute uint_ctype_positive
 
 
-#line 513
+#line 508
 
 #define ulong_ctype_absolute ulong_ctype_positive
 
 
-#line 513
+#line 508
 
 #define ulonglong_ctype_absolute ulonglong_ctype_positive
 
 
 
 
-#line 523
+#line 518
 static void
 byte_ctype_absolute(npy_byte a, npy_byte *out)
 {
     *out = (a < 0 ? -a : a);
 }
 
-#line 523
+#line 518
 static void
 short_ctype_absolute(npy_short a, npy_short *out)
 {
     *out = (a < 0 ? -a : a);
 }
 
-#line 523
+#line 518
 static void
 int_ctype_absolute(npy_int a, npy_int *out)
 {
     *out = (a < 0 ? -a : a);
 }
 
-#line 523
+#line 518
 static void
 long_ctype_absolute(npy_long a, npy_long *out)
 {
     *out = (a < 0 ? -a : a);
 }
 
-#line 523
+#line 518
 static void
 longlong_ctype_absolute(npy_longlong a, npy_longlong *out)
 {
@@ -2342,21 +2331,21 @@ longlong_ctype_absolute(npy_longlong a, npy_longlong *out)
 }
 
 
-#line 535
+#line 530
 static void
 float_ctype_absolute(npy_float a, npy_float *out)
 {
     *out = npy_fabsf(a);
 }
 
-#line 535
+#line 530
 static void
 double_ctype_absolute(npy_double a, npy_double *out)
 {
     *out = npy_fabs(a);
 }
 
-#line 535
+#line 530
 static void
 longdouble_ctype_absolute(npy_longdouble a, npy_longdouble *out)
 {
@@ -2370,74 +2359,74 @@ half_ctype_absolute(npy_half a, npy_half *out)
     *out = a&0x7fffu;
 }
 
-#line 554
+#line 549
 static void
 cfloat_ctype_absolute(npy_cfloat a, npy_float *out)
 {
-    *out = _basic_float_sqrt(a.real*a.real + a.imag*a.imag);
+    *out = npy_cabsf(a);
 }
 
-#line 554
+#line 549
 static void
 cdouble_ctype_absolute(npy_cdouble a, npy_double *out)
 {
-    *out = _basic_double_sqrt(a.real*a.real + a.imag*a.imag);
+    *out = npy_cabs(a);
 }
 
-#line 554
+#line 549
 static void
 clongdouble_ctype_absolute(npy_clongdouble a, npy_longdouble *out)
 {
-    *out = _basic_longdouble_sqrt(a.real*a.real + a.imag*a.imag);
+    *out = npy_cabsl(a);
 }
 
 
-#line 565
+#line 560
 
 #define byte_ctype_invert(a, out) *(out) = ~a;
 
 
-#line 565
+#line 560
 
 #define ubyte_ctype_invert(a, out) *(out) = ~a;
 
 
-#line 565
+#line 560
 
 #define short_ctype_invert(a, out) *(out) = ~a;
 
 
-#line 565
+#line 560
 
 #define ushort_ctype_invert(a, out) *(out) = ~a;
 
 
-#line 565
+#line 560
 
 #define int_ctype_invert(a, out) *(out) = ~a;
 
 
-#line 565
+#line 560
 
 #define uint_ctype_invert(a, out) *(out) = ~a;
 
 
-#line 565
+#line 560
 
 #define long_ctype_invert(a, out) *(out) = ~a;
 
 
-#line 565
+#line 560
 
 #define ulong_ctype_invert(a, out) *(out) = ~a;
 
 
-#line 565
+#line 560
 
 #define longlong_ctype_invert(a, out) *(out) = ~a;
 
 
-#line 565
+#line 560
 
 #define ulonglong_ctype_invert(a, out) *(out) = ~a;
 
@@ -2460,7 +2449,7 @@ clongdouble_ctype_absolute(npy_clongdouble a, npy_longdouble *out)
  * 6) Construct and return the output scalar.
  */
 
-#line 605
+#line 600
 
 static int
 _byte_convert_to_ctype(PyObject *a, npy_byte *arg1)
@@ -2501,7 +2490,7 @@ _byte_convert_to_ctype(PyObject *a, npy_byte *arg1)
 }
 
 
-#line 605
+#line 600
 
 static int
 _ubyte_convert_to_ctype(PyObject *a, npy_ubyte *arg1)
@@ -2542,7 +2531,7 @@ _ubyte_convert_to_ctype(PyObject *a, npy_ubyte *arg1)
 }
 
 
-#line 605
+#line 600
 
 static int
 _short_convert_to_ctype(PyObject *a, npy_short *arg1)
@@ -2583,7 +2572,7 @@ _short_convert_to_ctype(PyObject *a, npy_short *arg1)
 }
 
 
-#line 605
+#line 600
 
 static int
 _ushort_convert_to_ctype(PyObject *a, npy_ushort *arg1)
@@ -2624,7 +2613,7 @@ _ushort_convert_to_ctype(PyObject *a, npy_ushort *arg1)
 }
 
 
-#line 605
+#line 600
 
 static int
 _int_convert_to_ctype(PyObject *a, npy_int *arg1)
@@ -2665,7 +2654,7 @@ _int_convert_to_ctype(PyObject *a, npy_int *arg1)
 }
 
 
-#line 605
+#line 600
 
 static int
 _uint_convert_to_ctype(PyObject *a, npy_uint *arg1)
@@ -2706,7 +2695,7 @@ _uint_convert_to_ctype(PyObject *a, npy_uint *arg1)
 }
 
 
-#line 605
+#line 600
 
 static int
 _long_convert_to_ctype(PyObject *a, npy_long *arg1)
@@ -2747,7 +2736,7 @@ _long_convert_to_ctype(PyObject *a, npy_long *arg1)
 }
 
 
-#line 605
+#line 600
 
 static int
 _ulong_convert_to_ctype(PyObject *a, npy_ulong *arg1)
@@ -2788,7 +2777,7 @@ _ulong_convert_to_ctype(PyObject *a, npy_ulong *arg1)
 }
 
 
-#line 605
+#line 600
 
 static int
 _longlong_convert_to_ctype(PyObject *a, npy_longlong *arg1)
@@ -2829,7 +2818,7 @@ _longlong_convert_to_ctype(PyObject *a, npy_longlong *arg1)
 }
 
 
-#line 605
+#line 600
 
 static int
 _ulonglong_convert_to_ctype(PyObject *a, npy_ulonglong *arg1)
@@ -2870,7 +2859,7 @@ _ulonglong_convert_to_ctype(PyObject *a, npy_ulonglong *arg1)
 }
 
 
-#line 605
+#line 600
 
 static int
 _half_convert_to_ctype(PyObject *a, npy_half *arg1)
@@ -2911,7 +2900,7 @@ _half_convert_to_ctype(PyObject *a, npy_half *arg1)
 }
 
 
-#line 605
+#line 600
 
 static int
 _float_convert_to_ctype(PyObject *a, npy_float *arg1)
@@ -2952,7 +2941,7 @@ _float_convert_to_ctype(PyObject *a, npy_float *arg1)
 }
 
 
-#line 605
+#line 600
 
 static int
 _longdouble_convert_to_ctype(PyObject *a, npy_longdouble *arg1)
@@ -2993,7 +2982,7 @@ _longdouble_convert_to_ctype(PyObject *a, npy_longdouble *arg1)
 }
 
 
-#line 605
+#line 600
 
 static int
 _cfloat_convert_to_ctype(PyObject *a, npy_cfloat *arg1)
@@ -3034,7 +3023,7 @@ _cfloat_convert_to_ctype(PyObject *a, npy_cfloat *arg1)
 }
 
 
-#line 605
+#line 600
 
 static int
 _cdouble_convert_to_ctype(PyObject *a, npy_cdouble *arg1)
@@ -3075,7 +3064,7 @@ _cdouble_convert_to_ctype(PyObject *a, npy_cdouble *arg1)
 }
 
 
-#line 605
+#line 600
 
 static int
 _clongdouble_convert_to_ctype(PyObject *a, npy_clongdouble *arg1)
@@ -3120,7 +3109,7 @@ _clongdouble_convert_to_ctype(PyObject *a, npy_clongdouble *arg1)
 
 /* Same as above but added exact checks against known python types for speed */
 
-#line 657
+#line 652
 
 static int
 _double_convert_to_ctype(PyObject *a, npy_double *arg1)
@@ -3168,7 +3157,7 @@ _double_convert_to_ctype(PyObject *a, npy_double *arg1)
 
 
 
-#line 712
+#line 707
 static int
 _byte_convert2_to_ctypes(PyObject *a, npy_byte *arg1,
                            PyObject *b, npy_byte *arg2)
@@ -3185,7 +3174,7 @@ _byte_convert2_to_ctypes(PyObject *a, npy_byte *arg1,
     return 0;
 }
 
-#line 712
+#line 707
 static int
 _ubyte_convert2_to_ctypes(PyObject *a, npy_ubyte *arg1,
                            PyObject *b, npy_ubyte *arg2)
@@ -3202,7 +3191,7 @@ _ubyte_convert2_to_ctypes(PyObject *a, npy_ubyte *arg1,
     return 0;
 }
 
-#line 712
+#line 707
 static int
 _short_convert2_to_ctypes(PyObject *a, npy_short *arg1,
                            PyObject *b, npy_short *arg2)
@@ -3219,7 +3208,7 @@ _short_convert2_to_ctypes(PyObject *a, npy_short *arg1,
     return 0;
 }
 
-#line 712
+#line 707
 static int
 _ushort_convert2_to_ctypes(PyObject *a, npy_ushort *arg1,
                            PyObject *b, npy_ushort *arg2)
@@ -3236,7 +3225,7 @@ _ushort_convert2_to_ctypes(PyObject *a, npy_ushort *arg1,
     return 0;
 }
 
-#line 712
+#line 707
 static int
 _int_convert2_to_ctypes(PyObject *a, npy_int *arg1,
                            PyObject *b, npy_int *arg2)
@@ -3253,7 +3242,7 @@ _int_convert2_to_ctypes(PyObject *a, npy_int *arg1,
     return 0;
 }
 
-#line 712
+#line 707
 static int
 _uint_convert2_to_ctypes(PyObject *a, npy_uint *arg1,
                            PyObject *b, npy_uint *arg2)
@@ -3270,7 +3259,7 @@ _uint_convert2_to_ctypes(PyObject *a, npy_uint *arg1,
     return 0;
 }
 
-#line 712
+#line 707
 static int
 _long_convert2_to_ctypes(PyObject *a, npy_long *arg1,
                            PyObject *b, npy_long *arg2)
@@ -3287,7 +3276,7 @@ _long_convert2_to_ctypes(PyObject *a, npy_long *arg1,
     return 0;
 }
 
-#line 712
+#line 707
 static int
 _ulong_convert2_to_ctypes(PyObject *a, npy_ulong *arg1,
                            PyObject *b, npy_ulong *arg2)
@@ -3304,7 +3293,7 @@ _ulong_convert2_to_ctypes(PyObject *a, npy_ulong *arg1,
     return 0;
 }
 
-#line 712
+#line 707
 static int
 _longlong_convert2_to_ctypes(PyObject *a, npy_longlong *arg1,
                            PyObject *b, npy_longlong *arg2)
@@ -3321,7 +3310,7 @@ _longlong_convert2_to_ctypes(PyObject *a, npy_longlong *arg1,
     return 0;
 }
 
-#line 712
+#line 707
 static int
 _ulonglong_convert2_to_ctypes(PyObject *a, npy_ulonglong *arg1,
                            PyObject *b, npy_ulonglong *arg2)
@@ -3338,7 +3327,7 @@ _ulonglong_convert2_to_ctypes(PyObject *a, npy_ulonglong *arg1,
     return 0;
 }
 
-#line 712
+#line 707
 static int
 _half_convert2_to_ctypes(PyObject *a, npy_half *arg1,
                            PyObject *b, npy_half *arg2)
@@ -3355,7 +3344,7 @@ _half_convert2_to_ctypes(PyObject *a, npy_half *arg1,
     return 0;
 }
 
-#line 712
+#line 707
 static int
 _float_convert2_to_ctypes(PyObject *a, npy_float *arg1,
                            PyObject *b, npy_float *arg2)
@@ -3372,7 +3361,7 @@ _float_convert2_to_ctypes(PyObject *a, npy_float *arg1,
     return 0;
 }
 
-#line 712
+#line 707
 static int
 _double_convert2_to_ctypes(PyObject *a, npy_double *arg1,
                            PyObject *b, npy_double *arg2)
@@ -3389,7 +3378,7 @@ _double_convert2_to_ctypes(PyObject *a, npy_double *arg1,
     return 0;
 }
 
-#line 712
+#line 707
 static int
 _cfloat_convert2_to_ctypes(PyObject *a, npy_cfloat *arg1,
                            PyObject *b, npy_cfloat *arg2)
@@ -3406,7 +3395,7 @@ _cfloat_convert2_to_ctypes(PyObject *a, npy_cfloat *arg1,
     return 0;
 }
 
-#line 712
+#line 707
 static int
 _cdouble_convert2_to_ctypes(PyObject *a, npy_cdouble *arg1,
                            PyObject *b, npy_cdouble *arg2)
@@ -3424,7 +3413,7 @@ _cdouble_convert2_to_ctypes(PyObject *a, npy_cdouble *arg1,
 }
 
 
-#line 733
+#line 728
 
 static int
 _longdouble_convert2_to_ctypes(PyObject *a, npy_longdouble *arg1,
@@ -3446,7 +3435,7 @@ _longdouble_convert2_to_ctypes(PyObject *a, npy_longdouble *arg1,
 }
 
 
-#line 733
+#line 728
 
 static int
 _clongdouble_convert2_to_ctypes(PyObject *a, npy_clongdouble *arg1,
@@ -3474,7 +3463,7 @@ _clongdouble_convert2_to_ctypes(PyObject *a, npy_clongdouble *arg1,
 #define CODEGEN_SKIP_divide_FLAG
 #endif
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_add_FLAG)
 
@@ -3502,6 +3491,8 @@ byte_add(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_add, byte_add);
+
     switch(_byte_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -3524,7 +3515,7 @@ byte_add(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -3539,7 +3530,7 @@ byte_add(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -3589,7 +3580,7 @@ byte_add(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_add_FLAG)
 
@@ -3617,6 +3608,8 @@ ubyte_add(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_add, ubyte_add);
+
     switch(_ubyte_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -3639,7 +3632,7 @@ ubyte_add(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -3654,7 +3647,7 @@ ubyte_add(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -3704,7 +3697,7 @@ ubyte_add(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_add_FLAG)
 
@@ -3732,6 +3725,8 @@ short_add(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_add, short_add);
+
     switch(_short_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -3754,7 +3749,7 @@ short_add(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -3769,7 +3764,7 @@ short_add(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -3819,7 +3814,7 @@ short_add(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_add_FLAG)
 
@@ -3847,6 +3842,8 @@ ushort_add(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_add, ushort_add);
+
     switch(_ushort_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -3869,7 +3866,7 @@ ushort_add(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -3884,7 +3881,7 @@ ushort_add(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -3934,7 +3931,7 @@ ushort_add(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_add_FLAG)
 
@@ -3962,6 +3959,8 @@ int_add(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_add, int_add);
+
     switch(_int_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -3984,7 +3983,7 @@ int_add(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -3999,7 +3998,7 @@ int_add(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -4049,7 +4048,7 @@ int_add(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_add_FLAG)
 
@@ -4077,6 +4076,8 @@ uint_add(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_add, uint_add);
+
     switch(_uint_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -4099,7 +4100,7 @@ uint_add(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -4114,7 +4115,7 @@ uint_add(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -4164,7 +4165,7 @@ uint_add(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_add_FLAG)
 
@@ -4192,6 +4193,8 @@ long_add(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_add, long_add);
+
     switch(_long_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -4214,7 +4217,7 @@ long_add(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -4229,7 +4232,7 @@ long_add(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -4279,7 +4282,7 @@ long_add(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_add_FLAG)
 
@@ -4307,6 +4310,8 @@ ulong_add(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_add, ulong_add);
+
     switch(_ulong_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -4329,7 +4334,7 @@ ulong_add(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -4344,7 +4349,7 @@ ulong_add(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -4394,7 +4399,7 @@ ulong_add(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_add_FLAG)
 
@@ -4422,6 +4427,8 @@ longlong_add(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_add, longlong_add);
+
     switch(_longlong_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -4444,7 +4451,7 @@ longlong_add(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -4459,7 +4466,7 @@ longlong_add(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -4509,7 +4516,7 @@ longlong_add(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_add_FLAG)
 
@@ -4537,6 +4544,8 @@ ulonglong_add(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_add, ulonglong_add);
+
     switch(_ulonglong_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -4559,7 +4568,7 @@ ulonglong_add(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -4574,7 +4583,7 @@ ulonglong_add(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -4624,7 +4633,7 @@ ulonglong_add(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_subtract_FLAG)
 
@@ -4652,6 +4661,8 @@ byte_subtract(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_subtract, byte_subtract);
+
     switch(_byte_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -4674,7 +4685,7 @@ byte_subtract(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -4689,7 +4700,7 @@ byte_subtract(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -4739,7 +4750,7 @@ byte_subtract(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_subtract_FLAG)
 
@@ -4767,6 +4778,8 @@ ubyte_subtract(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_subtract, ubyte_subtract);
+
     switch(_ubyte_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -4789,7 +4802,7 @@ ubyte_subtract(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -4804,7 +4817,7 @@ ubyte_subtract(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -4854,7 +4867,7 @@ ubyte_subtract(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_subtract_FLAG)
 
@@ -4882,6 +4895,8 @@ short_subtract(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_subtract, short_subtract);
+
     switch(_short_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -4904,7 +4919,7 @@ short_subtract(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -4919,7 +4934,7 @@ short_subtract(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -4969,7 +4984,7 @@ short_subtract(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_subtract_FLAG)
 
@@ -4997,6 +5012,8 @@ ushort_subtract(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_subtract, ushort_subtract);
+
     switch(_ushort_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -5019,7 +5036,7 @@ ushort_subtract(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -5034,7 +5051,7 @@ ushort_subtract(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -5084,7 +5101,7 @@ ushort_subtract(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_subtract_FLAG)
 
@@ -5112,6 +5129,8 @@ int_subtract(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_subtract, int_subtract);
+
     switch(_int_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -5134,7 +5153,7 @@ int_subtract(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -5149,7 +5168,7 @@ int_subtract(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -5199,7 +5218,7 @@ int_subtract(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_subtract_FLAG)
 
@@ -5227,6 +5246,8 @@ uint_subtract(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_subtract, uint_subtract);
+
     switch(_uint_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -5249,7 +5270,7 @@ uint_subtract(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -5264,7 +5285,7 @@ uint_subtract(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -5314,7 +5335,7 @@ uint_subtract(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_subtract_FLAG)
 
@@ -5342,6 +5363,8 @@ long_subtract(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_subtract, long_subtract);
+
     switch(_long_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -5364,7 +5387,7 @@ long_subtract(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -5379,7 +5402,7 @@ long_subtract(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -5429,7 +5452,7 @@ long_subtract(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_subtract_FLAG)
 
@@ -5457,6 +5480,8 @@ ulong_subtract(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_subtract, ulong_subtract);
+
     switch(_ulong_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -5479,7 +5504,7 @@ ulong_subtract(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -5494,7 +5519,7 @@ ulong_subtract(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -5544,7 +5569,7 @@ ulong_subtract(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_subtract_FLAG)
 
@@ -5572,6 +5597,8 @@ longlong_subtract(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_subtract, longlong_subtract);
+
     switch(_longlong_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -5594,7 +5621,7 @@ longlong_subtract(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -5609,7 +5636,7 @@ longlong_subtract(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -5659,7 +5686,7 @@ longlong_subtract(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_subtract_FLAG)
 
@@ -5687,6 +5714,8 @@ ulonglong_subtract(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_subtract, ulonglong_subtract);
+
     switch(_ulonglong_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -5709,7 +5738,7 @@ ulonglong_subtract(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -5724,7 +5753,7 @@ ulonglong_subtract(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -5774,7 +5803,7 @@ ulonglong_subtract(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_multiply_FLAG)
 
@@ -5802,6 +5831,8 @@ byte_multiply(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_multiply, byte_multiply);
+
     switch(_byte_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -5824,7 +5855,7 @@ byte_multiply(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -5839,7 +5870,7 @@ byte_multiply(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -5889,7 +5920,7 @@ byte_multiply(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_multiply_FLAG)
 
@@ -5917,6 +5948,8 @@ ubyte_multiply(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_multiply, ubyte_multiply);
+
     switch(_ubyte_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -5939,7 +5972,7 @@ ubyte_multiply(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -5954,7 +5987,7 @@ ubyte_multiply(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -6004,7 +6037,7 @@ ubyte_multiply(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_multiply_FLAG)
 
@@ -6032,6 +6065,8 @@ short_multiply(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_multiply, short_multiply);
+
     switch(_short_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -6054,7 +6089,7 @@ short_multiply(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -6069,7 +6104,7 @@ short_multiply(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -6119,7 +6154,7 @@ short_multiply(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_multiply_FLAG)
 
@@ -6147,6 +6182,8 @@ ushort_multiply(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_multiply, ushort_multiply);
+
     switch(_ushort_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -6169,7 +6206,7 @@ ushort_multiply(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -6184,7 +6221,7 @@ ushort_multiply(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -6234,7 +6271,7 @@ ushort_multiply(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_multiply_FLAG)
 
@@ -6262,6 +6299,8 @@ int_multiply(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_multiply, int_multiply);
+
     switch(_int_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -6284,7 +6323,7 @@ int_multiply(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -6299,7 +6338,7 @@ int_multiply(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -6349,7 +6388,7 @@ int_multiply(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_multiply_FLAG)
 
@@ -6377,6 +6416,8 @@ uint_multiply(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_multiply, uint_multiply);
+
     switch(_uint_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -6399,7 +6440,7 @@ uint_multiply(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -6414,7 +6455,7 @@ uint_multiply(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -6464,7 +6505,7 @@ uint_multiply(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_multiply_FLAG)
 
@@ -6492,6 +6533,8 @@ long_multiply(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_multiply, long_multiply);
+
     switch(_long_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -6514,7 +6557,7 @@ long_multiply(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -6529,7 +6572,7 @@ long_multiply(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -6579,7 +6622,7 @@ long_multiply(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_multiply_FLAG)
 
@@ -6607,6 +6650,8 @@ ulong_multiply(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_multiply, ulong_multiply);
+
     switch(_ulong_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -6629,7 +6674,7 @@ ulong_multiply(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -6644,7 +6689,7 @@ ulong_multiply(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -6694,7 +6739,7 @@ ulong_multiply(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_multiply_FLAG)
 
@@ -6722,6 +6767,8 @@ longlong_multiply(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_multiply, longlong_multiply);
+
     switch(_longlong_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -6744,7 +6791,7 @@ longlong_multiply(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -6759,7 +6806,7 @@ longlong_multiply(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -6809,7 +6856,7 @@ longlong_multiply(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_multiply_FLAG)
 
@@ -6837,6 +6884,8 @@ ulonglong_multiply(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_multiply, ulonglong_multiply);
+
     switch(_ulonglong_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -6859,7 +6908,7 @@ ulonglong_multiply(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -6874,7 +6923,7 @@ ulonglong_multiply(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -6924,7 +6973,7 @@ ulonglong_multiply(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_divide_FLAG)
 
@@ -6952,6 +7001,8 @@ byte_divide(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_divide, byte_divide);
+
     switch(_byte_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -6974,7 +7025,7 @@ byte_divide(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -6989,7 +7040,7 @@ byte_divide(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -7039,7 +7090,7 @@ byte_divide(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_divide_FLAG)
 
@@ -7067,6 +7118,8 @@ ubyte_divide(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_divide, ubyte_divide);
+
     switch(_ubyte_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -7089,7 +7142,7 @@ ubyte_divide(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -7104,7 +7157,7 @@ ubyte_divide(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -7154,7 +7207,7 @@ ubyte_divide(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_divide_FLAG)
 
@@ -7182,6 +7235,8 @@ short_divide(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_divide, short_divide);
+
     switch(_short_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -7204,7 +7259,7 @@ short_divide(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -7219,7 +7274,7 @@ short_divide(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -7269,7 +7324,7 @@ short_divide(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_divide_FLAG)
 
@@ -7297,6 +7352,8 @@ ushort_divide(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_divide, ushort_divide);
+
     switch(_ushort_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -7319,7 +7376,7 @@ ushort_divide(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -7334,7 +7391,7 @@ ushort_divide(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -7384,7 +7441,7 @@ ushort_divide(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_divide_FLAG)
 
@@ -7412,6 +7469,8 @@ int_divide(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_divide, int_divide);
+
     switch(_int_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -7434,7 +7493,7 @@ int_divide(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -7449,7 +7508,7 @@ int_divide(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -7499,7 +7558,7 @@ int_divide(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_divide_FLAG)
 
@@ -7527,6 +7586,8 @@ uint_divide(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_divide, uint_divide);
+
     switch(_uint_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -7549,7 +7610,7 @@ uint_divide(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -7564,7 +7625,7 @@ uint_divide(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -7614,7 +7675,7 @@ uint_divide(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_divide_FLAG)
 
@@ -7642,6 +7703,8 @@ long_divide(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_divide, long_divide);
+
     switch(_long_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -7664,7 +7727,7 @@ long_divide(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -7679,7 +7742,7 @@ long_divide(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -7729,7 +7792,7 @@ long_divide(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_divide_FLAG)
 
@@ -7757,6 +7820,8 @@ ulong_divide(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_divide, ulong_divide);
+
     switch(_ulong_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -7779,7 +7844,7 @@ ulong_divide(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -7794,7 +7859,7 @@ ulong_divide(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -7844,7 +7909,7 @@ ulong_divide(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_divide_FLAG)
 
@@ -7872,6 +7937,8 @@ longlong_divide(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_divide, longlong_divide);
+
     switch(_longlong_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -7894,7 +7961,7 @@ longlong_divide(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -7909,7 +7976,7 @@ longlong_divide(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -7959,7 +8026,7 @@ longlong_divide(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_divide_FLAG)
 
@@ -7987,6 +8054,8 @@ ulonglong_divide(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_divide, ulonglong_divide);
+
     switch(_ulonglong_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -8009,7 +8078,7 @@ ulonglong_divide(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -8024,7 +8093,7 @@ ulonglong_divide(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -8074,7 +8143,7 @@ ulonglong_divide(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_remainder_FLAG)
 
@@ -8102,6 +8171,8 @@ byte_remainder(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_remainder, byte_remainder);
+
     switch(_byte_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -8124,7 +8195,7 @@ byte_remainder(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -8139,7 +8210,7 @@ byte_remainder(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -8189,7 +8260,7 @@ byte_remainder(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_remainder_FLAG)
 
@@ -8217,6 +8288,8 @@ ubyte_remainder(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_remainder, ubyte_remainder);
+
     switch(_ubyte_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -8239,7 +8312,7 @@ ubyte_remainder(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -8254,7 +8327,7 @@ ubyte_remainder(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -8304,7 +8377,7 @@ ubyte_remainder(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_remainder_FLAG)
 
@@ -8332,6 +8405,8 @@ short_remainder(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_remainder, short_remainder);
+
     switch(_short_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -8354,7 +8429,7 @@ short_remainder(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -8369,7 +8444,7 @@ short_remainder(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -8419,7 +8494,7 @@ short_remainder(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_remainder_FLAG)
 
@@ -8447,6 +8522,8 @@ ushort_remainder(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_remainder, ushort_remainder);
+
     switch(_ushort_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -8469,7 +8546,7 @@ ushort_remainder(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -8484,7 +8561,7 @@ ushort_remainder(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -8534,7 +8611,7 @@ ushort_remainder(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_remainder_FLAG)
 
@@ -8562,6 +8639,8 @@ int_remainder(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_remainder, int_remainder);
+
     switch(_int_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -8584,7 +8663,7 @@ int_remainder(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -8599,7 +8678,7 @@ int_remainder(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -8649,7 +8728,7 @@ int_remainder(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_remainder_FLAG)
 
@@ -8677,6 +8756,8 @@ uint_remainder(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_remainder, uint_remainder);
+
     switch(_uint_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -8699,7 +8780,7 @@ uint_remainder(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -8714,7 +8795,7 @@ uint_remainder(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -8764,7 +8845,7 @@ uint_remainder(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_remainder_FLAG)
 
@@ -8792,6 +8873,8 @@ long_remainder(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_remainder, long_remainder);
+
     switch(_long_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -8814,7 +8897,7 @@ long_remainder(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -8829,7 +8912,7 @@ long_remainder(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -8879,7 +8962,7 @@ long_remainder(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_remainder_FLAG)
 
@@ -8907,6 +8990,8 @@ ulong_remainder(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_remainder, ulong_remainder);
+
     switch(_ulong_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -8929,7 +9014,7 @@ ulong_remainder(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -8944,7 +9029,7 @@ ulong_remainder(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -8994,7 +9079,7 @@ ulong_remainder(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_remainder_FLAG)
 
@@ -9022,6 +9107,8 @@ longlong_remainder(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_remainder, longlong_remainder);
+
     switch(_longlong_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -9044,7 +9131,7 @@ longlong_remainder(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -9059,7 +9146,7 @@ longlong_remainder(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -9109,7 +9196,7 @@ longlong_remainder(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_remainder_FLAG)
 
@@ -9137,6 +9224,8 @@ ulonglong_remainder(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_remainder, ulonglong_remainder);
+
     switch(_ulonglong_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -9159,7 +9248,7 @@ ulonglong_remainder(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -9174,7 +9263,7 @@ ulonglong_remainder(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -9224,7 +9313,7 @@ ulonglong_remainder(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_divmod_FLAG)
 
@@ -9252,6 +9341,8 @@ byte_divmod(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_divmod, byte_divmod);
+
     switch(_byte_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -9274,7 +9365,7 @@ byte_divmod(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -9289,7 +9380,7 @@ byte_divmod(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -9339,7 +9430,7 @@ byte_divmod(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_divmod_FLAG)
 
@@ -9367,6 +9458,8 @@ ubyte_divmod(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_divmod, ubyte_divmod);
+
     switch(_ubyte_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -9389,7 +9482,7 @@ ubyte_divmod(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -9404,7 +9497,7 @@ ubyte_divmod(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -9454,7 +9547,7 @@ ubyte_divmod(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_divmod_FLAG)
 
@@ -9482,6 +9575,8 @@ short_divmod(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_divmod, short_divmod);
+
     switch(_short_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -9504,7 +9599,7 @@ short_divmod(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -9519,7 +9614,7 @@ short_divmod(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -9569,7 +9664,7 @@ short_divmod(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_divmod_FLAG)
 
@@ -9597,6 +9692,8 @@ ushort_divmod(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_divmod, ushort_divmod);
+
     switch(_ushort_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -9619,7 +9716,7 @@ ushort_divmod(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -9634,7 +9731,7 @@ ushort_divmod(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -9684,7 +9781,7 @@ ushort_divmod(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_divmod_FLAG)
 
@@ -9712,6 +9809,8 @@ int_divmod(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_divmod, int_divmod);
+
     switch(_int_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -9734,7 +9833,7 @@ int_divmod(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -9749,7 +9848,7 @@ int_divmod(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -9799,7 +9898,7 @@ int_divmod(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_divmod_FLAG)
 
@@ -9827,6 +9926,8 @@ uint_divmod(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_divmod, uint_divmod);
+
     switch(_uint_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -9849,7 +9950,7 @@ uint_divmod(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -9864,7 +9965,7 @@ uint_divmod(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -9914,7 +10015,7 @@ uint_divmod(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_divmod_FLAG)
 
@@ -9942,6 +10043,8 @@ long_divmod(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_divmod, long_divmod);
+
     switch(_long_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -9964,7 +10067,7 @@ long_divmod(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -9979,7 +10082,7 @@ long_divmod(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -10029,7 +10132,7 @@ long_divmod(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_divmod_FLAG)
 
@@ -10057,6 +10160,8 @@ ulong_divmod(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_divmod, ulong_divmod);
+
     switch(_ulong_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -10079,7 +10184,7 @@ ulong_divmod(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -10094,7 +10199,7 @@ ulong_divmod(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -10144,7 +10249,7 @@ ulong_divmod(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_divmod_FLAG)
 
@@ -10172,6 +10277,8 @@ longlong_divmod(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_divmod, longlong_divmod);
+
     switch(_longlong_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -10194,7 +10301,7 @@ longlong_divmod(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -10209,7 +10316,7 @@ longlong_divmod(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -10259,7 +10366,7 @@ longlong_divmod(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_divmod_FLAG)
 
@@ -10287,6 +10394,8 @@ ulonglong_divmod(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_divmod, ulonglong_divmod);
+
     switch(_ulonglong_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -10309,7 +10418,7 @@ ulonglong_divmod(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -10324,7 +10433,7 @@ ulonglong_divmod(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -10374,7 +10483,7 @@ ulonglong_divmod(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_floor_divide_FLAG)
 
@@ -10402,6 +10511,8 @@ byte_floor_divide(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_floor_divide, byte_floor_divide);
+
     switch(_byte_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -10424,7 +10535,7 @@ byte_floor_divide(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -10439,7 +10550,7 @@ byte_floor_divide(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -10489,7 +10600,7 @@ byte_floor_divide(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_floor_divide_FLAG)
 
@@ -10517,6 +10628,8 @@ ubyte_floor_divide(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_floor_divide, ubyte_floor_divide);
+
     switch(_ubyte_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -10539,7 +10652,7 @@ ubyte_floor_divide(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -10554,7 +10667,7 @@ ubyte_floor_divide(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -10604,7 +10717,7 @@ ubyte_floor_divide(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_floor_divide_FLAG)
 
@@ -10632,6 +10745,8 @@ short_floor_divide(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_floor_divide, short_floor_divide);
+
     switch(_short_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -10654,7 +10769,7 @@ short_floor_divide(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -10669,7 +10784,7 @@ short_floor_divide(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -10719,7 +10834,7 @@ short_floor_divide(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_floor_divide_FLAG)
 
@@ -10747,6 +10862,8 @@ ushort_floor_divide(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_floor_divide, ushort_floor_divide);
+
     switch(_ushort_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -10769,7 +10886,7 @@ ushort_floor_divide(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -10784,7 +10901,7 @@ ushort_floor_divide(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -10834,7 +10951,7 @@ ushort_floor_divide(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_floor_divide_FLAG)
 
@@ -10862,6 +10979,8 @@ int_floor_divide(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_floor_divide, int_floor_divide);
+
     switch(_int_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -10884,7 +11003,7 @@ int_floor_divide(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -10899,7 +11018,7 @@ int_floor_divide(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -10949,7 +11068,7 @@ int_floor_divide(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_floor_divide_FLAG)
 
@@ -10977,6 +11096,8 @@ uint_floor_divide(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_floor_divide, uint_floor_divide);
+
     switch(_uint_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -10999,7 +11120,7 @@ uint_floor_divide(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -11014,7 +11135,7 @@ uint_floor_divide(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -11064,7 +11185,7 @@ uint_floor_divide(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_floor_divide_FLAG)
 
@@ -11092,6 +11213,8 @@ long_floor_divide(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_floor_divide, long_floor_divide);
+
     switch(_long_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -11114,7 +11237,7 @@ long_floor_divide(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -11129,7 +11252,7 @@ long_floor_divide(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -11179,7 +11302,7 @@ long_floor_divide(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_floor_divide_FLAG)
 
@@ -11207,6 +11330,8 @@ ulong_floor_divide(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_floor_divide, ulong_floor_divide);
+
     switch(_ulong_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -11229,7 +11354,7 @@ ulong_floor_divide(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -11244,7 +11369,7 @@ ulong_floor_divide(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -11294,7 +11419,7 @@ ulong_floor_divide(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_floor_divide_FLAG)
 
@@ -11322,6 +11447,8 @@ longlong_floor_divide(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_floor_divide, longlong_floor_divide);
+
     switch(_longlong_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -11344,7 +11471,7 @@ longlong_floor_divide(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -11359,7 +11486,7 @@ longlong_floor_divide(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -11409,7 +11536,7 @@ longlong_floor_divide(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_floor_divide_FLAG)
 
@@ -11437,6 +11564,8 @@ ulonglong_floor_divide(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_floor_divide, ulonglong_floor_divide);
+
     switch(_ulonglong_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -11459,7 +11588,7 @@ ulonglong_floor_divide(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -11474,7 +11603,7 @@ ulonglong_floor_divide(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -11524,7 +11653,7 @@ ulonglong_floor_divide(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_lshift_FLAG)
 
@@ -11552,6 +11681,8 @@ byte_lshift(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_lshift, byte_lshift);
+
     switch(_byte_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -11574,7 +11705,7 @@ byte_lshift(PyObject *a, PyObject *b)
     }
 
 #if 0
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -11589,7 +11720,7 @@ byte_lshift(PyObject *a, PyObject *b)
 
 #if 0
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -11639,7 +11770,7 @@ byte_lshift(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_lshift_FLAG)
 
@@ -11667,6 +11798,8 @@ ubyte_lshift(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_lshift, ubyte_lshift);
+
     switch(_ubyte_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -11689,7 +11822,7 @@ ubyte_lshift(PyObject *a, PyObject *b)
     }
 
 #if 0
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -11704,7 +11837,7 @@ ubyte_lshift(PyObject *a, PyObject *b)
 
 #if 0
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -11754,7 +11887,7 @@ ubyte_lshift(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_lshift_FLAG)
 
@@ -11782,6 +11915,8 @@ short_lshift(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_lshift, short_lshift);
+
     switch(_short_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -11804,7 +11939,7 @@ short_lshift(PyObject *a, PyObject *b)
     }
 
 #if 0
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -11819,7 +11954,7 @@ short_lshift(PyObject *a, PyObject *b)
 
 #if 0
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -11869,7 +12004,7 @@ short_lshift(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_lshift_FLAG)
 
@@ -11897,6 +12032,8 @@ ushort_lshift(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_lshift, ushort_lshift);
+
     switch(_ushort_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -11919,7 +12056,7 @@ ushort_lshift(PyObject *a, PyObject *b)
     }
 
 #if 0
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -11934,7 +12071,7 @@ ushort_lshift(PyObject *a, PyObject *b)
 
 #if 0
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -11984,7 +12121,7 @@ ushort_lshift(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_lshift_FLAG)
 
@@ -12012,6 +12149,8 @@ int_lshift(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_lshift, int_lshift);
+
     switch(_int_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -12034,7 +12173,7 @@ int_lshift(PyObject *a, PyObject *b)
     }
 
 #if 0
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -12049,7 +12188,7 @@ int_lshift(PyObject *a, PyObject *b)
 
 #if 0
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -12099,7 +12238,7 @@ int_lshift(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_lshift_FLAG)
 
@@ -12127,6 +12266,8 @@ uint_lshift(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_lshift, uint_lshift);
+
     switch(_uint_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -12149,7 +12290,7 @@ uint_lshift(PyObject *a, PyObject *b)
     }
 
 #if 0
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -12164,7 +12305,7 @@ uint_lshift(PyObject *a, PyObject *b)
 
 #if 0
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -12214,7 +12355,7 @@ uint_lshift(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_lshift_FLAG)
 
@@ -12242,6 +12383,8 @@ long_lshift(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_lshift, long_lshift);
+
     switch(_long_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -12264,7 +12407,7 @@ long_lshift(PyObject *a, PyObject *b)
     }
 
 #if 0
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -12279,7 +12422,7 @@ long_lshift(PyObject *a, PyObject *b)
 
 #if 0
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -12329,7 +12472,7 @@ long_lshift(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_lshift_FLAG)
 
@@ -12357,6 +12500,8 @@ ulong_lshift(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_lshift, ulong_lshift);
+
     switch(_ulong_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -12379,7 +12524,7 @@ ulong_lshift(PyObject *a, PyObject *b)
     }
 
 #if 0
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -12394,7 +12539,7 @@ ulong_lshift(PyObject *a, PyObject *b)
 
 #if 0
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -12444,7 +12589,7 @@ ulong_lshift(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_lshift_FLAG)
 
@@ -12472,6 +12617,8 @@ longlong_lshift(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_lshift, longlong_lshift);
+
     switch(_longlong_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -12494,7 +12641,7 @@ longlong_lshift(PyObject *a, PyObject *b)
     }
 
 #if 0
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -12509,7 +12656,7 @@ longlong_lshift(PyObject *a, PyObject *b)
 
 #if 0
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -12559,7 +12706,7 @@ longlong_lshift(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_lshift_FLAG)
 
@@ -12587,6 +12734,8 @@ ulonglong_lshift(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_lshift, ulonglong_lshift);
+
     switch(_ulonglong_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -12609,7 +12758,7 @@ ulonglong_lshift(PyObject *a, PyObject *b)
     }
 
 #if 0
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -12624,7 +12773,7 @@ ulonglong_lshift(PyObject *a, PyObject *b)
 
 #if 0
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -12674,7 +12823,7 @@ ulonglong_lshift(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_rshift_FLAG)
 
@@ -12702,6 +12851,8 @@ byte_rshift(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_rshift, byte_rshift);
+
     switch(_byte_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -12724,7 +12875,7 @@ byte_rshift(PyObject *a, PyObject *b)
     }
 
 #if 0
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -12739,7 +12890,7 @@ byte_rshift(PyObject *a, PyObject *b)
 
 #if 0
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -12789,7 +12940,7 @@ byte_rshift(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_rshift_FLAG)
 
@@ -12817,6 +12968,8 @@ ubyte_rshift(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_rshift, ubyte_rshift);
+
     switch(_ubyte_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -12839,7 +12992,7 @@ ubyte_rshift(PyObject *a, PyObject *b)
     }
 
 #if 0
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -12854,7 +13007,7 @@ ubyte_rshift(PyObject *a, PyObject *b)
 
 #if 0
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -12904,7 +13057,7 @@ ubyte_rshift(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_rshift_FLAG)
 
@@ -12932,6 +13085,8 @@ short_rshift(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_rshift, short_rshift);
+
     switch(_short_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -12954,7 +13109,7 @@ short_rshift(PyObject *a, PyObject *b)
     }
 
 #if 0
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -12969,7 +13124,7 @@ short_rshift(PyObject *a, PyObject *b)
 
 #if 0
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -13019,7 +13174,7 @@ short_rshift(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_rshift_FLAG)
 
@@ -13047,6 +13202,8 @@ ushort_rshift(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_rshift, ushort_rshift);
+
     switch(_ushort_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -13069,7 +13226,7 @@ ushort_rshift(PyObject *a, PyObject *b)
     }
 
 #if 0
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -13084,7 +13241,7 @@ ushort_rshift(PyObject *a, PyObject *b)
 
 #if 0
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -13134,7 +13291,7 @@ ushort_rshift(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_rshift_FLAG)
 
@@ -13162,6 +13319,8 @@ int_rshift(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_rshift, int_rshift);
+
     switch(_int_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -13184,7 +13343,7 @@ int_rshift(PyObject *a, PyObject *b)
     }
 
 #if 0
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -13199,7 +13358,7 @@ int_rshift(PyObject *a, PyObject *b)
 
 #if 0
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -13249,7 +13408,7 @@ int_rshift(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_rshift_FLAG)
 
@@ -13277,6 +13436,8 @@ uint_rshift(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_rshift, uint_rshift);
+
     switch(_uint_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -13299,7 +13460,7 @@ uint_rshift(PyObject *a, PyObject *b)
     }
 
 #if 0
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -13314,7 +13475,7 @@ uint_rshift(PyObject *a, PyObject *b)
 
 #if 0
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -13364,7 +13525,7 @@ uint_rshift(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_rshift_FLAG)
 
@@ -13392,6 +13553,8 @@ long_rshift(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_rshift, long_rshift);
+
     switch(_long_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -13414,7 +13577,7 @@ long_rshift(PyObject *a, PyObject *b)
     }
 
 #if 0
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -13429,7 +13592,7 @@ long_rshift(PyObject *a, PyObject *b)
 
 #if 0
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -13479,7 +13642,7 @@ long_rshift(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_rshift_FLAG)
 
@@ -13507,6 +13670,8 @@ ulong_rshift(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_rshift, ulong_rshift);
+
     switch(_ulong_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -13529,7 +13694,7 @@ ulong_rshift(PyObject *a, PyObject *b)
     }
 
 #if 0
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -13544,7 +13709,7 @@ ulong_rshift(PyObject *a, PyObject *b)
 
 #if 0
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -13594,7 +13759,7 @@ ulong_rshift(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_rshift_FLAG)
 
@@ -13622,6 +13787,8 @@ longlong_rshift(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_rshift, longlong_rshift);
+
     switch(_longlong_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -13644,7 +13811,7 @@ longlong_rshift(PyObject *a, PyObject *b)
     }
 
 #if 0
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -13659,7 +13826,7 @@ longlong_rshift(PyObject *a, PyObject *b)
 
 #if 0
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -13709,7 +13876,7 @@ longlong_rshift(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_rshift_FLAG)
 
@@ -13737,6 +13904,8 @@ ulonglong_rshift(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_rshift, ulonglong_rshift);
+
     switch(_ulonglong_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -13759,7 +13928,7 @@ ulonglong_rshift(PyObject *a, PyObject *b)
     }
 
 #if 0
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -13774,7 +13943,7 @@ ulonglong_rshift(PyObject *a, PyObject *b)
 
 #if 0
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -13824,7 +13993,7 @@ ulonglong_rshift(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_and_FLAG)
 
@@ -13852,6 +14021,8 @@ byte_and(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_and, byte_and);
+
     switch(_byte_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -13874,7 +14045,7 @@ byte_and(PyObject *a, PyObject *b)
     }
 
 #if 0
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -13889,7 +14060,7 @@ byte_and(PyObject *a, PyObject *b)
 
 #if 0
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -13939,7 +14110,7 @@ byte_and(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_and_FLAG)
 
@@ -13967,6 +14138,8 @@ ubyte_and(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_and, ubyte_and);
+
     switch(_ubyte_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -13989,7 +14162,7 @@ ubyte_and(PyObject *a, PyObject *b)
     }
 
 #if 0
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -14004,7 +14177,7 @@ ubyte_and(PyObject *a, PyObject *b)
 
 #if 0
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -14054,7 +14227,7 @@ ubyte_and(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_and_FLAG)
 
@@ -14082,6 +14255,8 @@ short_and(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_and, short_and);
+
     switch(_short_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -14104,7 +14279,7 @@ short_and(PyObject *a, PyObject *b)
     }
 
 #if 0
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -14119,7 +14294,7 @@ short_and(PyObject *a, PyObject *b)
 
 #if 0
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -14169,7 +14344,7 @@ short_and(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_and_FLAG)
 
@@ -14197,6 +14372,8 @@ ushort_and(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_and, ushort_and);
+
     switch(_ushort_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -14219,7 +14396,7 @@ ushort_and(PyObject *a, PyObject *b)
     }
 
 #if 0
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -14234,7 +14411,7 @@ ushort_and(PyObject *a, PyObject *b)
 
 #if 0
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -14284,7 +14461,7 @@ ushort_and(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_and_FLAG)
 
@@ -14312,6 +14489,8 @@ int_and(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_and, int_and);
+
     switch(_int_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -14334,7 +14513,7 @@ int_and(PyObject *a, PyObject *b)
     }
 
 #if 0
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -14349,7 +14528,7 @@ int_and(PyObject *a, PyObject *b)
 
 #if 0
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -14399,7 +14578,7 @@ int_and(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_and_FLAG)
 
@@ -14427,6 +14606,8 @@ uint_and(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_and, uint_and);
+
     switch(_uint_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -14449,7 +14630,7 @@ uint_and(PyObject *a, PyObject *b)
     }
 
 #if 0
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -14464,7 +14645,7 @@ uint_and(PyObject *a, PyObject *b)
 
 #if 0
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -14514,7 +14695,7 @@ uint_and(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_and_FLAG)
 
@@ -14542,6 +14723,8 @@ long_and(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_and, long_and);
+
     switch(_long_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -14564,7 +14747,7 @@ long_and(PyObject *a, PyObject *b)
     }
 
 #if 0
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -14579,7 +14762,7 @@ long_and(PyObject *a, PyObject *b)
 
 #if 0
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -14629,7 +14812,7 @@ long_and(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_and_FLAG)
 
@@ -14657,6 +14840,8 @@ ulong_and(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_and, ulong_and);
+
     switch(_ulong_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -14679,7 +14864,7 @@ ulong_and(PyObject *a, PyObject *b)
     }
 
 #if 0
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -14694,7 +14879,7 @@ ulong_and(PyObject *a, PyObject *b)
 
 #if 0
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -14744,7 +14929,7 @@ ulong_and(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_and_FLAG)
 
@@ -14772,6 +14957,8 @@ longlong_and(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_and, longlong_and);
+
     switch(_longlong_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -14794,7 +14981,7 @@ longlong_and(PyObject *a, PyObject *b)
     }
 
 #if 0
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -14809,7 +14996,7 @@ longlong_and(PyObject *a, PyObject *b)
 
 #if 0
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -14859,7 +15046,7 @@ longlong_and(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_and_FLAG)
 
@@ -14887,6 +15074,8 @@ ulonglong_and(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_and, ulonglong_and);
+
     switch(_ulonglong_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -14909,7 +15098,7 @@ ulonglong_and(PyObject *a, PyObject *b)
     }
 
 #if 0
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -14924,7 +15113,7 @@ ulonglong_and(PyObject *a, PyObject *b)
 
 #if 0
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -14974,7 +15163,7 @@ ulonglong_and(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_or_FLAG)
 
@@ -15002,6 +15191,8 @@ byte_or(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_or, byte_or);
+
     switch(_byte_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -15024,7 +15215,7 @@ byte_or(PyObject *a, PyObject *b)
     }
 
 #if 0
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -15039,7 +15230,7 @@ byte_or(PyObject *a, PyObject *b)
 
 #if 0
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -15089,7 +15280,7 @@ byte_or(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_or_FLAG)
 
@@ -15117,6 +15308,8 @@ ubyte_or(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_or, ubyte_or);
+
     switch(_ubyte_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -15139,7 +15332,7 @@ ubyte_or(PyObject *a, PyObject *b)
     }
 
 #if 0
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -15154,7 +15347,7 @@ ubyte_or(PyObject *a, PyObject *b)
 
 #if 0
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -15204,7 +15397,7 @@ ubyte_or(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_or_FLAG)
 
@@ -15232,6 +15425,8 @@ short_or(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_or, short_or);
+
     switch(_short_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -15254,7 +15449,7 @@ short_or(PyObject *a, PyObject *b)
     }
 
 #if 0
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -15269,7 +15464,7 @@ short_or(PyObject *a, PyObject *b)
 
 #if 0
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -15319,7 +15514,7 @@ short_or(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_or_FLAG)
 
@@ -15347,6 +15542,8 @@ ushort_or(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_or, ushort_or);
+
     switch(_ushort_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -15369,7 +15566,7 @@ ushort_or(PyObject *a, PyObject *b)
     }
 
 #if 0
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -15384,7 +15581,7 @@ ushort_or(PyObject *a, PyObject *b)
 
 #if 0
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -15434,7 +15631,7 @@ ushort_or(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_or_FLAG)
 
@@ -15462,6 +15659,8 @@ int_or(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_or, int_or);
+
     switch(_int_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -15484,7 +15683,7 @@ int_or(PyObject *a, PyObject *b)
     }
 
 #if 0
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -15499,7 +15698,7 @@ int_or(PyObject *a, PyObject *b)
 
 #if 0
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -15549,7 +15748,7 @@ int_or(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_or_FLAG)
 
@@ -15577,6 +15776,8 @@ uint_or(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_or, uint_or);
+
     switch(_uint_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -15599,7 +15800,7 @@ uint_or(PyObject *a, PyObject *b)
     }
 
 #if 0
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -15614,7 +15815,7 @@ uint_or(PyObject *a, PyObject *b)
 
 #if 0
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -15664,7 +15865,7 @@ uint_or(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_or_FLAG)
 
@@ -15692,6 +15893,8 @@ long_or(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_or, long_or);
+
     switch(_long_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -15714,7 +15917,7 @@ long_or(PyObject *a, PyObject *b)
     }
 
 #if 0
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -15729,7 +15932,7 @@ long_or(PyObject *a, PyObject *b)
 
 #if 0
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -15779,7 +15982,7 @@ long_or(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_or_FLAG)
 
@@ -15807,6 +16010,8 @@ ulong_or(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_or, ulong_or);
+
     switch(_ulong_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -15829,7 +16034,7 @@ ulong_or(PyObject *a, PyObject *b)
     }
 
 #if 0
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -15844,7 +16049,7 @@ ulong_or(PyObject *a, PyObject *b)
 
 #if 0
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -15894,7 +16099,7 @@ ulong_or(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_or_FLAG)
 
@@ -15922,6 +16127,8 @@ longlong_or(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_or, longlong_or);
+
     switch(_longlong_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -15944,7 +16151,7 @@ longlong_or(PyObject *a, PyObject *b)
     }
 
 #if 0
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -15959,7 +16166,7 @@ longlong_or(PyObject *a, PyObject *b)
 
 #if 0
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -16009,7 +16216,7 @@ longlong_or(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_or_FLAG)
 
@@ -16037,6 +16244,8 @@ ulonglong_or(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_or, ulonglong_or);
+
     switch(_ulonglong_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -16059,7 +16268,7 @@ ulonglong_or(PyObject *a, PyObject *b)
     }
 
 #if 0
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -16074,7 +16283,7 @@ ulonglong_or(PyObject *a, PyObject *b)
 
 #if 0
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -16124,7 +16333,7 @@ ulonglong_or(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_xor_FLAG)
 
@@ -16152,6 +16361,8 @@ byte_xor(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_xor, byte_xor);
+
     switch(_byte_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -16174,7 +16385,7 @@ byte_xor(PyObject *a, PyObject *b)
     }
 
 #if 0
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -16189,7 +16400,7 @@ byte_xor(PyObject *a, PyObject *b)
 
 #if 0
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -16239,7 +16450,7 @@ byte_xor(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_xor_FLAG)
 
@@ -16267,6 +16478,8 @@ ubyte_xor(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_xor, ubyte_xor);
+
     switch(_ubyte_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -16289,7 +16502,7 @@ ubyte_xor(PyObject *a, PyObject *b)
     }
 
 #if 0
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -16304,7 +16517,7 @@ ubyte_xor(PyObject *a, PyObject *b)
 
 #if 0
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -16354,7 +16567,7 @@ ubyte_xor(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_xor_FLAG)
 
@@ -16382,6 +16595,8 @@ short_xor(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_xor, short_xor);
+
     switch(_short_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -16404,7 +16619,7 @@ short_xor(PyObject *a, PyObject *b)
     }
 
 #if 0
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -16419,7 +16634,7 @@ short_xor(PyObject *a, PyObject *b)
 
 #if 0
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -16469,7 +16684,7 @@ short_xor(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_xor_FLAG)
 
@@ -16497,6 +16712,8 @@ ushort_xor(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_xor, ushort_xor);
+
     switch(_ushort_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -16519,7 +16736,7 @@ ushort_xor(PyObject *a, PyObject *b)
     }
 
 #if 0
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -16534,7 +16751,7 @@ ushort_xor(PyObject *a, PyObject *b)
 
 #if 0
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -16584,7 +16801,7 @@ ushort_xor(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_xor_FLAG)
 
@@ -16612,6 +16829,8 @@ int_xor(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_xor, int_xor);
+
     switch(_int_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -16634,7 +16853,7 @@ int_xor(PyObject *a, PyObject *b)
     }
 
 #if 0
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -16649,7 +16868,7 @@ int_xor(PyObject *a, PyObject *b)
 
 #if 0
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -16699,7 +16918,7 @@ int_xor(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_xor_FLAG)
 
@@ -16727,6 +16946,8 @@ uint_xor(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_xor, uint_xor);
+
     switch(_uint_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -16749,7 +16970,7 @@ uint_xor(PyObject *a, PyObject *b)
     }
 
 #if 0
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -16764,7 +16985,7 @@ uint_xor(PyObject *a, PyObject *b)
 
 #if 0
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -16814,7 +17035,7 @@ uint_xor(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_xor_FLAG)
 
@@ -16842,6 +17063,8 @@ long_xor(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_xor, long_xor);
+
     switch(_long_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -16864,7 +17087,7 @@ long_xor(PyObject *a, PyObject *b)
     }
 
 #if 0
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -16879,7 +17102,7 @@ long_xor(PyObject *a, PyObject *b)
 
 #if 0
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -16929,7 +17152,7 @@ long_xor(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_xor_FLAG)
 
@@ -16957,6 +17180,8 @@ ulong_xor(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_xor, ulong_xor);
+
     switch(_ulong_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -16979,7 +17204,7 @@ ulong_xor(PyObject *a, PyObject *b)
     }
 
 #if 0
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -16994,7 +17219,7 @@ ulong_xor(PyObject *a, PyObject *b)
 
 #if 0
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -17044,7 +17269,7 @@ ulong_xor(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_xor_FLAG)
 
@@ -17072,6 +17297,8 @@ longlong_xor(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_xor, longlong_xor);
+
     switch(_longlong_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -17094,7 +17321,7 @@ longlong_xor(PyObject *a, PyObject *b)
     }
 
 #if 0
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -17109,7 +17336,7 @@ longlong_xor(PyObject *a, PyObject *b)
 
 #if 0
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -17159,7 +17386,7 @@ longlong_xor(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_xor_FLAG)
 
@@ -17187,6 +17414,8 @@ ulonglong_xor(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_xor, ulonglong_xor);
+
     switch(_ulonglong_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -17209,7 +17438,7 @@ ulonglong_xor(PyObject *a, PyObject *b)
     }
 
 #if 0
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -17224,7 +17453,7 @@ ulonglong_xor(PyObject *a, PyObject *b)
 
 #if 0
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -17274,7 +17503,7 @@ ulonglong_xor(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_true_divide_FLAG)
 
@@ -17302,6 +17531,8 @@ byte_true_divide(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_true_divide, byte_true_divide);
+
     switch(_byte_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -17324,7 +17555,7 @@ byte_true_divide(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -17339,7 +17570,7 @@ byte_true_divide(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -17389,7 +17620,7 @@ byte_true_divide(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_true_divide_FLAG)
 
@@ -17417,6 +17648,8 @@ ubyte_true_divide(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_true_divide, ubyte_true_divide);
+
     switch(_ubyte_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -17439,7 +17672,7 @@ ubyte_true_divide(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -17454,7 +17687,7 @@ ubyte_true_divide(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -17504,7 +17737,7 @@ ubyte_true_divide(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_true_divide_FLAG)
 
@@ -17532,6 +17765,8 @@ short_true_divide(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_true_divide, short_true_divide);
+
     switch(_short_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -17554,7 +17789,7 @@ short_true_divide(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -17569,7 +17804,7 @@ short_true_divide(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -17619,7 +17854,7 @@ short_true_divide(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_true_divide_FLAG)
 
@@ -17647,6 +17882,8 @@ ushort_true_divide(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_true_divide, ushort_true_divide);
+
     switch(_ushort_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -17669,7 +17906,7 @@ ushort_true_divide(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -17684,7 +17921,7 @@ ushort_true_divide(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -17734,7 +17971,7 @@ ushort_true_divide(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_true_divide_FLAG)
 
@@ -17762,6 +17999,8 @@ int_true_divide(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_true_divide, int_true_divide);
+
     switch(_int_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -17784,7 +18023,7 @@ int_true_divide(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -17799,7 +18038,7 @@ int_true_divide(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -17849,7 +18088,7 @@ int_true_divide(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_true_divide_FLAG)
 
@@ -17877,6 +18116,8 @@ uint_true_divide(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_true_divide, uint_true_divide);
+
     switch(_uint_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -17899,7 +18140,7 @@ uint_true_divide(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -17914,7 +18155,7 @@ uint_true_divide(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -17964,7 +18205,7 @@ uint_true_divide(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_true_divide_FLAG)
 
@@ -17992,6 +18233,8 @@ long_true_divide(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_true_divide, long_true_divide);
+
     switch(_long_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -18014,7 +18257,7 @@ long_true_divide(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -18029,7 +18272,7 @@ long_true_divide(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -18079,7 +18322,7 @@ long_true_divide(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_true_divide_FLAG)
 
@@ -18107,6 +18350,8 @@ ulong_true_divide(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_true_divide, ulong_true_divide);
+
     switch(_ulong_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -18129,7 +18374,7 @@ ulong_true_divide(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -18144,7 +18389,7 @@ ulong_true_divide(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -18194,7 +18439,7 @@ ulong_true_divide(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_true_divide_FLAG)
 
@@ -18222,6 +18467,8 @@ longlong_true_divide(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_true_divide, longlong_true_divide);
+
     switch(_longlong_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -18244,7 +18491,7 @@ longlong_true_divide(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -18259,7 +18506,7 @@ longlong_true_divide(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -18309,7 +18556,7 @@ longlong_true_divide(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_true_divide_FLAG)
 
@@ -18337,6 +18584,8 @@ ulonglong_true_divide(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_true_divide, ulonglong_true_divide);
+
     switch(_ulonglong_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -18359,7 +18608,7 @@ ulonglong_true_divide(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -18374,7 +18623,7 @@ ulonglong_true_divide(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -18424,7 +18673,7 @@ ulonglong_true_divide(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_add_FLAG)
 
@@ -18452,6 +18701,8 @@ half_add(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_add, half_add);
+
     switch(_half_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -18474,7 +18725,7 @@ half_add(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -18489,7 +18740,7 @@ half_add(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -18539,7 +18790,7 @@ half_add(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_add_FLAG)
 
@@ -18567,6 +18818,8 @@ float_add(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_add, float_add);
+
     switch(_float_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -18589,7 +18842,7 @@ float_add(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -18604,7 +18857,7 @@ float_add(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -18654,7 +18907,7 @@ float_add(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_add_FLAG)
 
@@ -18682,6 +18935,8 @@ double_add(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_add, double_add);
+
     switch(_double_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -18704,7 +18959,7 @@ double_add(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -18719,7 +18974,7 @@ double_add(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -18769,7 +19024,7 @@ double_add(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_add_FLAG)
 
@@ -18797,6 +19052,8 @@ longdouble_add(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_add, longdouble_add);
+
     switch(_longdouble_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -18819,7 +19076,7 @@ longdouble_add(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -18834,7 +19091,7 @@ longdouble_add(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -18884,7 +19141,7 @@ longdouble_add(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_add_FLAG)
 
@@ -18912,6 +19169,8 @@ cfloat_add(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_add, cfloat_add);
+
     switch(_cfloat_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -18934,7 +19193,7 @@ cfloat_add(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -18949,7 +19208,7 @@ cfloat_add(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -18999,7 +19258,7 @@ cfloat_add(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_add_FLAG)
 
@@ -19027,6 +19286,8 @@ cdouble_add(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_add, cdouble_add);
+
     switch(_cdouble_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -19049,7 +19310,7 @@ cdouble_add(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -19064,7 +19325,7 @@ cdouble_add(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -19114,7 +19375,7 @@ cdouble_add(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_add_FLAG)
 
@@ -19142,6 +19403,8 @@ clongdouble_add(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_add, clongdouble_add);
+
     switch(_clongdouble_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -19164,7 +19427,7 @@ clongdouble_add(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -19179,7 +19442,7 @@ clongdouble_add(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -19229,7 +19492,7 @@ clongdouble_add(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_subtract_FLAG)
 
@@ -19257,6 +19520,8 @@ half_subtract(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_subtract, half_subtract);
+
     switch(_half_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -19279,7 +19544,7 @@ half_subtract(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -19294,7 +19559,7 @@ half_subtract(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -19344,7 +19609,7 @@ half_subtract(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_subtract_FLAG)
 
@@ -19372,6 +19637,8 @@ float_subtract(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_subtract, float_subtract);
+
     switch(_float_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -19394,7 +19661,7 @@ float_subtract(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -19409,7 +19676,7 @@ float_subtract(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -19459,7 +19726,7 @@ float_subtract(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_subtract_FLAG)
 
@@ -19487,6 +19754,8 @@ double_subtract(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_subtract, double_subtract);
+
     switch(_double_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -19509,7 +19778,7 @@ double_subtract(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -19524,7 +19793,7 @@ double_subtract(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -19574,7 +19843,7 @@ double_subtract(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_subtract_FLAG)
 
@@ -19602,6 +19871,8 @@ longdouble_subtract(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_subtract, longdouble_subtract);
+
     switch(_longdouble_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -19624,7 +19895,7 @@ longdouble_subtract(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -19639,7 +19910,7 @@ longdouble_subtract(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -19689,7 +19960,7 @@ longdouble_subtract(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_subtract_FLAG)
 
@@ -19717,6 +19988,8 @@ cfloat_subtract(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_subtract, cfloat_subtract);
+
     switch(_cfloat_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -19739,7 +20012,7 @@ cfloat_subtract(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -19754,7 +20027,7 @@ cfloat_subtract(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -19804,7 +20077,7 @@ cfloat_subtract(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_subtract_FLAG)
 
@@ -19832,6 +20105,8 @@ cdouble_subtract(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_subtract, cdouble_subtract);
+
     switch(_cdouble_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -19854,7 +20129,7 @@ cdouble_subtract(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -19869,7 +20144,7 @@ cdouble_subtract(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -19919,7 +20194,7 @@ cdouble_subtract(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_subtract_FLAG)
 
@@ -19947,6 +20222,8 @@ clongdouble_subtract(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_subtract, clongdouble_subtract);
+
     switch(_clongdouble_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -19969,7 +20246,7 @@ clongdouble_subtract(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -19984,7 +20261,7 @@ clongdouble_subtract(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -20034,7 +20311,7 @@ clongdouble_subtract(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_multiply_FLAG)
 
@@ -20062,6 +20339,8 @@ half_multiply(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_multiply, half_multiply);
+
     switch(_half_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -20084,7 +20363,7 @@ half_multiply(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -20099,7 +20378,7 @@ half_multiply(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -20149,7 +20428,7 @@ half_multiply(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_multiply_FLAG)
 
@@ -20177,6 +20456,8 @@ float_multiply(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_multiply, float_multiply);
+
     switch(_float_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -20199,7 +20480,7 @@ float_multiply(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -20214,7 +20495,7 @@ float_multiply(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -20264,7 +20545,7 @@ float_multiply(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_multiply_FLAG)
 
@@ -20292,6 +20573,8 @@ double_multiply(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_multiply, double_multiply);
+
     switch(_double_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -20314,7 +20597,7 @@ double_multiply(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -20329,7 +20612,7 @@ double_multiply(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -20379,7 +20662,7 @@ double_multiply(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_multiply_FLAG)
 
@@ -20407,6 +20690,8 @@ longdouble_multiply(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_multiply, longdouble_multiply);
+
     switch(_longdouble_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -20429,7 +20714,7 @@ longdouble_multiply(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -20444,7 +20729,7 @@ longdouble_multiply(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -20494,7 +20779,7 @@ longdouble_multiply(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_multiply_FLAG)
 
@@ -20522,6 +20807,8 @@ cfloat_multiply(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_multiply, cfloat_multiply);
+
     switch(_cfloat_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -20544,7 +20831,7 @@ cfloat_multiply(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -20559,7 +20846,7 @@ cfloat_multiply(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -20609,7 +20896,7 @@ cfloat_multiply(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_multiply_FLAG)
 
@@ -20637,6 +20924,8 @@ cdouble_multiply(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_multiply, cdouble_multiply);
+
     switch(_cdouble_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -20659,7 +20948,7 @@ cdouble_multiply(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -20674,7 +20963,7 @@ cdouble_multiply(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -20724,7 +21013,7 @@ cdouble_multiply(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_multiply_FLAG)
 
@@ -20752,6 +21041,8 @@ clongdouble_multiply(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_multiply, clongdouble_multiply);
+
     switch(_clongdouble_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -20774,7 +21065,7 @@ clongdouble_multiply(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -20789,7 +21080,7 @@ clongdouble_multiply(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -20839,7 +21130,7 @@ clongdouble_multiply(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_divide_FLAG)
 
@@ -20867,6 +21158,8 @@ half_divide(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_divide, half_divide);
+
     switch(_half_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -20889,7 +21182,7 @@ half_divide(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -20904,7 +21197,7 @@ half_divide(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -20954,7 +21247,7 @@ half_divide(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_divide_FLAG)
 
@@ -20982,6 +21275,8 @@ float_divide(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_divide, float_divide);
+
     switch(_float_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -21004,7 +21299,7 @@ float_divide(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -21019,7 +21314,7 @@ float_divide(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -21069,7 +21364,7 @@ float_divide(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_divide_FLAG)
 
@@ -21097,6 +21392,8 @@ double_divide(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_divide, double_divide);
+
     switch(_double_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -21119,7 +21416,7 @@ double_divide(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -21134,7 +21431,7 @@ double_divide(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -21184,7 +21481,7 @@ double_divide(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_divide_FLAG)
 
@@ -21212,6 +21509,8 @@ longdouble_divide(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_divide, longdouble_divide);
+
     switch(_longdouble_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -21234,7 +21533,7 @@ longdouble_divide(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -21249,7 +21548,7 @@ longdouble_divide(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -21299,7 +21598,7 @@ longdouble_divide(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_divide_FLAG)
 
@@ -21327,6 +21626,8 @@ cfloat_divide(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_divide, cfloat_divide);
+
     switch(_cfloat_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -21349,7 +21650,7 @@ cfloat_divide(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -21364,7 +21665,7 @@ cfloat_divide(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -21414,7 +21715,7 @@ cfloat_divide(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_divide_FLAG)
 
@@ -21442,6 +21743,8 @@ cdouble_divide(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_divide, cdouble_divide);
+
     switch(_cdouble_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -21464,7 +21767,7 @@ cdouble_divide(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -21479,7 +21782,7 @@ cdouble_divide(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -21529,7 +21832,7 @@ cdouble_divide(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_divide_FLAG)
 
@@ -21557,6 +21860,8 @@ clongdouble_divide(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_divide, clongdouble_divide);
+
     switch(_clongdouble_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -21579,7 +21884,7 @@ clongdouble_divide(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -21594,7 +21899,7 @@ clongdouble_divide(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -21644,7 +21949,7 @@ clongdouble_divide(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_floor_divide_FLAG)
 
@@ -21672,6 +21977,8 @@ half_floor_divide(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_floor_divide, half_floor_divide);
+
     switch(_half_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -21694,7 +22001,7 @@ half_floor_divide(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -21709,7 +22016,7 @@ half_floor_divide(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -21759,7 +22066,7 @@ half_floor_divide(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_floor_divide_FLAG)
 
@@ -21787,6 +22094,8 @@ float_floor_divide(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_floor_divide, float_floor_divide);
+
     switch(_float_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -21809,7 +22118,7 @@ float_floor_divide(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -21824,7 +22133,7 @@ float_floor_divide(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -21874,7 +22183,7 @@ float_floor_divide(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_floor_divide_FLAG)
 
@@ -21902,6 +22211,8 @@ double_floor_divide(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_floor_divide, double_floor_divide);
+
     switch(_double_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -21924,7 +22235,7 @@ double_floor_divide(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -21939,7 +22250,7 @@ double_floor_divide(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -21989,7 +22300,7 @@ double_floor_divide(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_floor_divide_FLAG)
 
@@ -22017,6 +22328,8 @@ longdouble_floor_divide(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_floor_divide, longdouble_floor_divide);
+
     switch(_longdouble_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -22039,7 +22352,7 @@ longdouble_floor_divide(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -22054,7 +22367,7 @@ longdouble_floor_divide(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -22104,7 +22417,7 @@ longdouble_floor_divide(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_floor_divide_FLAG)
 
@@ -22132,6 +22445,8 @@ cfloat_floor_divide(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_floor_divide, cfloat_floor_divide);
+
     switch(_cfloat_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -22154,7 +22469,7 @@ cfloat_floor_divide(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -22169,7 +22484,7 @@ cfloat_floor_divide(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -22219,7 +22534,7 @@ cfloat_floor_divide(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_floor_divide_FLAG)
 
@@ -22247,6 +22562,8 @@ cdouble_floor_divide(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_floor_divide, cdouble_floor_divide);
+
     switch(_cdouble_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -22269,7 +22586,7 @@ cdouble_floor_divide(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -22284,7 +22601,7 @@ cdouble_floor_divide(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -22334,7 +22651,7 @@ cdouble_floor_divide(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_floor_divide_FLAG)
 
@@ -22362,6 +22679,8 @@ clongdouble_floor_divide(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_floor_divide, clongdouble_floor_divide);
+
     switch(_clongdouble_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -22384,7 +22703,7 @@ clongdouble_floor_divide(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -22399,7 +22718,7 @@ clongdouble_floor_divide(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -22449,7 +22768,7 @@ clongdouble_floor_divide(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_true_divide_FLAG)
 
@@ -22477,6 +22796,8 @@ half_true_divide(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_true_divide, half_true_divide);
+
     switch(_half_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -22499,7 +22820,7 @@ half_true_divide(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -22514,7 +22835,7 @@ half_true_divide(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -22564,7 +22885,7 @@ half_true_divide(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_true_divide_FLAG)
 
@@ -22592,6 +22913,8 @@ float_true_divide(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_true_divide, float_true_divide);
+
     switch(_float_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -22614,7 +22937,7 @@ float_true_divide(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -22629,7 +22952,7 @@ float_true_divide(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -22679,7 +23002,7 @@ float_true_divide(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_true_divide_FLAG)
 
@@ -22707,6 +23030,8 @@ double_true_divide(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_true_divide, double_true_divide);
+
     switch(_double_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -22729,7 +23054,7 @@ double_true_divide(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -22744,7 +23069,7 @@ double_true_divide(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -22794,7 +23119,7 @@ double_true_divide(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_true_divide_FLAG)
 
@@ -22822,6 +23147,8 @@ longdouble_true_divide(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_true_divide, longdouble_true_divide);
+
     switch(_longdouble_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -22844,7 +23171,7 @@ longdouble_true_divide(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -22859,7 +23186,7 @@ longdouble_true_divide(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -22909,7 +23236,7 @@ longdouble_true_divide(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_true_divide_FLAG)
 
@@ -22937,6 +23264,8 @@ cfloat_true_divide(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_true_divide, cfloat_true_divide);
+
     switch(_cfloat_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -22959,7 +23288,7 @@ cfloat_true_divide(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -22974,7 +23303,7 @@ cfloat_true_divide(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -23024,7 +23353,7 @@ cfloat_true_divide(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_true_divide_FLAG)
 
@@ -23052,6 +23381,8 @@ cdouble_true_divide(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_true_divide, cdouble_true_divide);
+
     switch(_cdouble_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -23074,7 +23405,7 @@ cdouble_true_divide(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -23089,7 +23420,7 @@ cdouble_true_divide(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -23139,7 +23470,7 @@ cdouble_true_divide(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_true_divide_FLAG)
 
@@ -23167,6 +23498,8 @@ clongdouble_true_divide(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_true_divide, clongdouble_true_divide);
+
     switch(_clongdouble_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -23189,7 +23522,7 @@ clongdouble_true_divide(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -23204,7 +23537,7 @@ clongdouble_true_divide(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -23254,7 +23587,7 @@ clongdouble_true_divide(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_divmod_FLAG)
 
@@ -23282,6 +23615,8 @@ half_divmod(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_divmod, half_divmod);
+
     switch(_half_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -23304,7 +23639,7 @@ half_divmod(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -23319,7 +23654,7 @@ half_divmod(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -23369,7 +23704,7 @@ half_divmod(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_divmod_FLAG)
 
@@ -23397,6 +23732,8 @@ float_divmod(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_divmod, float_divmod);
+
     switch(_float_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -23419,7 +23756,7 @@ float_divmod(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -23434,7 +23771,7 @@ float_divmod(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -23484,7 +23821,7 @@ float_divmod(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_divmod_FLAG)
 
@@ -23512,6 +23849,8 @@ double_divmod(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_divmod, double_divmod);
+
     switch(_double_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -23534,7 +23873,7 @@ double_divmod(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -23549,7 +23888,7 @@ double_divmod(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -23599,7 +23938,7 @@ double_divmod(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_divmod_FLAG)
 
@@ -23627,6 +23966,8 @@ longdouble_divmod(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_divmod, longdouble_divmod);
+
     switch(_longdouble_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -23649,7 +23990,7 @@ longdouble_divmod(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -23664,7 +24005,7 @@ longdouble_divmod(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -23714,7 +24055,7 @@ longdouble_divmod(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_remainder_FLAG)
 
@@ -23742,6 +24083,8 @@ half_remainder(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_remainder, half_remainder);
+
     switch(_half_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -23764,7 +24107,7 @@ half_remainder(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -23779,7 +24122,7 @@ half_remainder(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -23829,7 +24172,7 @@ half_remainder(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_remainder_FLAG)
 
@@ -23857,6 +24200,8 @@ float_remainder(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_remainder, float_remainder);
+
     switch(_float_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -23879,7 +24224,7 @@ float_remainder(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -23894,7 +24239,7 @@ float_remainder(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -23944,7 +24289,7 @@ float_remainder(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_remainder_FLAG)
 
@@ -23972,6 +24317,8 @@ double_remainder(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_remainder, double_remainder);
+
     switch(_double_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -23994,7 +24341,7 @@ double_remainder(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -24009,7 +24356,7 @@ double_remainder(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -24059,7 +24406,7 @@ double_remainder(PyObject *a, PyObject *b)
 #endif
 
 
-#line 803
+#line 798
 
 #if !defined(CODEGEN_SKIP_remainder_FLAG)
 
@@ -24087,6 +24434,8 @@ longdouble_remainder(PyObject *a, PyObject *b)
     int first;
 #endif
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_remainder, longdouble_remainder);
+
     switch(_longdouble_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
@@ -24109,7 +24458,7 @@ longdouble_remainder(PyObject *a, PyObject *b)
     }
 
 #if 1
-    PyUFunc_clearfperr();
+    npy_clear_floatstatus_barrier((char*)&out);
 #endif
 
     /*
@@ -24124,7 +24473,7 @@ longdouble_remainder(PyObject *a, PyObject *b)
 
 #if 1
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -24183,7 +24532,7 @@ longdouble_remainder(PyObject *a, PyObject *b)
 
 #if 0
 static PyObject *
-byte_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
+byte_power(PyObject *a, PyObject *b, PyObject *modulo)
 {
     PyObject *ret;
     npy_byte arg1, arg2;
@@ -24191,19 +24540,22 @@ byte_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
     int first;
     npy_byte out = {0, 0};
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_power, byte_power);
+
     switch(_byte_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
         case -1:
             /* can't cast both safely mixed-types? */
-            return PyArray_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyArray_Type.tp_as_number->nb_power(a,b,modulo);
         case -2:
             /* use default handling */
             if (PyErr_Occurred()) {
                 return NULL;
             }
-            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,modulo);
         case -3:
+        default:
             /*
              * special case for longdouble and clongdouble
              * because they have a recursive getitem in their dtype
@@ -24212,7 +24564,13 @@ byte_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
             return Py_NotImplemented;
     }
 
-    PyUFunc_clearfperr();
+    if (modulo != Py_None) {
+        /* modular exponentiation is not implemented (gh-8804) */
+        Py_INCREF(Py_NotImplemented);
+        return Py_NotImplemented;
+    }
+
+    npy_clear_floatstatus_barrier((char*)&out);
 
     /*
      * here we do the actual calculation with arg1 and arg2
@@ -24227,7 +24585,7 @@ byte_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
     }
 
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -24256,28 +24614,27 @@ byte_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
 #elif 1
 
 static PyObject *
-byte_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
+byte_power(PyObject *a, PyObject *b, PyObject *modulo)
 {
     PyObject *ret;
-    npy_byte arg1, arg2;
-    int retstatus;
-    int first;
-    npy_byte out = 0;
-    npy_float out1 = 0;
+    npy_byte arg1, arg2, out;
+
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_power, byte_power);
 
     switch(_byte_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
         case -1:
             /* can't cast both safely mixed-types? */
-            return PyArray_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyArray_Type.tp_as_number->nb_power(a,b,modulo);
         case -2:
             /* use default handling */
             if (PyErr_Occurred()) {
                 return NULL;
             }
-            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,modulo);
         case -3:
+        default:
             /*
              * special case for longdouble and clongdouble
              * because they have a recursive getitem in their dtype
@@ -24286,55 +24643,30 @@ byte_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
             return Py_NotImplemented;
     }
 
-    PyUFunc_clearfperr();
+    if (modulo != Py_None) {
+        /* modular exponentiation is not implemented (gh-8804) */
+        Py_INCREF(Py_NotImplemented);
+        return Py_NotImplemented;
+    }
+
+    npy_clear_floatstatus_barrier((char*)&out);
 
     /*
      * here we do the actual calculation with arg1 and arg2
      * as a function call.
      */
-    if (_IS_ZERO(arg2)) {
-        out1 = out = 1;
-    }
-    else if (arg2 < 0) {
-        byte_ctype_power(arg1, -arg2, &out);
-        out1 = (npy_float) (1.0 / out);
-    }
-    else {
-        byte_ctype_power(arg1, arg2, &out);
-    }
-
-    /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
-    if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("byte_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
-            return NULL;
-        }
-        first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
-    }
-
     if (arg2 < 0) {
-        ret = PyArrayScalar_New(Float);
-        if (ret == NULL) {
-            return NULL;
-        }
-        PyArrayScalar_ASSIGN(ret, Float, out1);
+        PyErr_SetString(PyExc_ValueError,
+                "Integers to negative integer powers are not allowed.");
+        return NULL;
     }
-    else {
-        ret = PyArrayScalar_New(Byte);
-        if (ret == NULL) {
-            return NULL;
-        }
-        PyArrayScalar_ASSIGN(ret, Byte, out);
+    byte_ctype_power(arg1, arg2, &out);
+
+    ret = PyArrayScalar_New(Byte);
+    if (ret == NULL) {
+        return NULL;
     }
+    PyArrayScalar_ASSIGN(ret, Byte, out);
 
     return ret;
 }
@@ -24342,7 +24674,7 @@ byte_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
 #else
 
 static PyObject *
-byte_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
+byte_power(PyObject *a, PyObject *b, PyObject *modulo)
 {
     PyObject *ret;
     npy_byte arg1, arg2;
@@ -24350,19 +24682,23 @@ byte_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
     int first;
 
     npy_byte out = 0;
+
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_power, byte_power);
+
     switch(_byte_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
         case -1:
             /* can't cast both safely mixed-types? */
-            return PyArray_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyArray_Type.tp_as_number->nb_power(a,b,modulo);
         case -2:
             /* use default handling */
             if (PyErr_Occurred()) {
                 return NULL;
             }
-            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,modulo);
         case -3:
+        default:
             /*
              * special case for longdouble and clongdouble
              * because they have a recursive getitem in their dtype
@@ -24371,7 +24707,13 @@ byte_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
             return Py_NotImplemented;
     }
 
-    PyUFunc_clearfperr();
+    if (modulo != Py_None) {
+        /* modular exponentiation is not implemented (gh-8804) */
+        Py_INCREF(Py_NotImplemented);
+        return Py_NotImplemented;
+    }
+
+    npy_clear_floatstatus_barrier((char*)&out);
 
     /*
      * here we do the actual calculation with arg1 and arg2
@@ -24385,7 +24727,7 @@ byte_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
     }
 
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -24418,7 +24760,7 @@ byte_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
 
 #if 0
 static PyObject *
-ubyte_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
+ubyte_power(PyObject *a, PyObject *b, PyObject *modulo)
 {
     PyObject *ret;
     npy_ubyte arg1, arg2;
@@ -24426,19 +24768,22 @@ ubyte_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
     int first;
     npy_ubyte out = {0, 0};
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_power, ubyte_power);
+
     switch(_ubyte_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
         case -1:
             /* can't cast both safely mixed-types? */
-            return PyArray_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyArray_Type.tp_as_number->nb_power(a,b,modulo);
         case -2:
             /* use default handling */
             if (PyErr_Occurred()) {
                 return NULL;
             }
-            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,modulo);
         case -3:
+        default:
             /*
              * special case for longdouble and clongdouble
              * because they have a recursive getitem in their dtype
@@ -24447,7 +24792,13 @@ ubyte_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
             return Py_NotImplemented;
     }
 
-    PyUFunc_clearfperr();
+    if (modulo != Py_None) {
+        /* modular exponentiation is not implemented (gh-8804) */
+        Py_INCREF(Py_NotImplemented);
+        return Py_NotImplemented;
+    }
+
+    npy_clear_floatstatus_barrier((char*)&out);
 
     /*
      * here we do the actual calculation with arg1 and arg2
@@ -24462,7 +24813,7 @@ ubyte_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
     }
 
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -24491,28 +24842,27 @@ ubyte_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
 #elif 0
 
 static PyObject *
-ubyte_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
+ubyte_power(PyObject *a, PyObject *b, PyObject *modulo)
 {
     PyObject *ret;
-    npy_ubyte arg1, arg2;
-    int retstatus;
-    int first;
-    npy_ubyte out = 0;
-    npy_float out1 = 0;
+    npy_ubyte arg1, arg2, out;
+
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_power, ubyte_power);
 
     switch(_ubyte_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
         case -1:
             /* can't cast both safely mixed-types? */
-            return PyArray_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyArray_Type.tp_as_number->nb_power(a,b,modulo);
         case -2:
             /* use default handling */
             if (PyErr_Occurred()) {
                 return NULL;
             }
-            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,modulo);
         case -3:
+        default:
             /*
              * special case for longdouble and clongdouble
              * because they have a recursive getitem in their dtype
@@ -24521,55 +24871,30 @@ ubyte_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
             return Py_NotImplemented;
     }
 
-    PyUFunc_clearfperr();
+    if (modulo != Py_None) {
+        /* modular exponentiation is not implemented (gh-8804) */
+        Py_INCREF(Py_NotImplemented);
+        return Py_NotImplemented;
+    }
+
+    npy_clear_floatstatus_barrier((char*)&out);
 
     /*
      * here we do the actual calculation with arg1 and arg2
      * as a function call.
      */
-    if (_IS_ZERO(arg2)) {
-        out1 = out = 1;
-    }
-    else if (arg2 < 0) {
-        ubyte_ctype_power(arg1, -arg2, &out);
-        out1 = (npy_float) (1.0 / out);
-    }
-    else {
-        ubyte_ctype_power(arg1, arg2, &out);
-    }
-
-    /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
-    if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("ubyte_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
-            return NULL;
-        }
-        first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
-    }
-
     if (arg2 < 0) {
-        ret = PyArrayScalar_New(Float);
-        if (ret == NULL) {
-            return NULL;
-        }
-        PyArrayScalar_ASSIGN(ret, Float, out1);
+        PyErr_SetString(PyExc_ValueError,
+                "Integers to negative integer powers are not allowed.");
+        return NULL;
     }
-    else {
-        ret = PyArrayScalar_New(UByte);
-        if (ret == NULL) {
-            return NULL;
-        }
-        PyArrayScalar_ASSIGN(ret, UByte, out);
+    ubyte_ctype_power(arg1, arg2, &out);
+
+    ret = PyArrayScalar_New(UByte);
+    if (ret == NULL) {
+        return NULL;
     }
+    PyArrayScalar_ASSIGN(ret, UByte, out);
 
     return ret;
 }
@@ -24577,7 +24902,7 @@ ubyte_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
 #else
 
 static PyObject *
-ubyte_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
+ubyte_power(PyObject *a, PyObject *b, PyObject *modulo)
 {
     PyObject *ret;
     npy_ubyte arg1, arg2;
@@ -24585,19 +24910,23 @@ ubyte_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
     int first;
 
     npy_ubyte out = 0;
+
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_power, ubyte_power);
+
     switch(_ubyte_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
         case -1:
             /* can't cast both safely mixed-types? */
-            return PyArray_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyArray_Type.tp_as_number->nb_power(a,b,modulo);
         case -2:
             /* use default handling */
             if (PyErr_Occurred()) {
                 return NULL;
             }
-            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,modulo);
         case -3:
+        default:
             /*
              * special case for longdouble and clongdouble
              * because they have a recursive getitem in their dtype
@@ -24606,7 +24935,13 @@ ubyte_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
             return Py_NotImplemented;
     }
 
-    PyUFunc_clearfperr();
+    if (modulo != Py_None) {
+        /* modular exponentiation is not implemented (gh-8804) */
+        Py_INCREF(Py_NotImplemented);
+        return Py_NotImplemented;
+    }
+
+    npy_clear_floatstatus_barrier((char*)&out);
 
     /*
      * here we do the actual calculation with arg1 and arg2
@@ -24620,7 +24955,7 @@ ubyte_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
     }
 
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -24653,7 +24988,7 @@ ubyte_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
 
 #if 0
 static PyObject *
-short_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
+short_power(PyObject *a, PyObject *b, PyObject *modulo)
 {
     PyObject *ret;
     npy_short arg1, arg2;
@@ -24661,19 +24996,22 @@ short_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
     int first;
     npy_short out = {0, 0};
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_power, short_power);
+
     switch(_short_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
         case -1:
             /* can't cast both safely mixed-types? */
-            return PyArray_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyArray_Type.tp_as_number->nb_power(a,b,modulo);
         case -2:
             /* use default handling */
             if (PyErr_Occurred()) {
                 return NULL;
             }
-            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,modulo);
         case -3:
+        default:
             /*
              * special case for longdouble and clongdouble
              * because they have a recursive getitem in their dtype
@@ -24682,7 +25020,13 @@ short_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
             return Py_NotImplemented;
     }
 
-    PyUFunc_clearfperr();
+    if (modulo != Py_None) {
+        /* modular exponentiation is not implemented (gh-8804) */
+        Py_INCREF(Py_NotImplemented);
+        return Py_NotImplemented;
+    }
+
+    npy_clear_floatstatus_barrier((char*)&out);
 
     /*
      * here we do the actual calculation with arg1 and arg2
@@ -24697,7 +25041,7 @@ short_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
     }
 
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -24726,28 +25070,27 @@ short_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
 #elif 1
 
 static PyObject *
-short_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
+short_power(PyObject *a, PyObject *b, PyObject *modulo)
 {
     PyObject *ret;
-    npy_short arg1, arg2;
-    int retstatus;
-    int first;
-    npy_short out = 0;
-    npy_float out1 = 0;
+    npy_short arg1, arg2, out;
+
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_power, short_power);
 
     switch(_short_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
         case -1:
             /* can't cast both safely mixed-types? */
-            return PyArray_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyArray_Type.tp_as_number->nb_power(a,b,modulo);
         case -2:
             /* use default handling */
             if (PyErr_Occurred()) {
                 return NULL;
             }
-            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,modulo);
         case -3:
+        default:
             /*
              * special case for longdouble and clongdouble
              * because they have a recursive getitem in their dtype
@@ -24756,55 +25099,30 @@ short_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
             return Py_NotImplemented;
     }
 
-    PyUFunc_clearfperr();
+    if (modulo != Py_None) {
+        /* modular exponentiation is not implemented (gh-8804) */
+        Py_INCREF(Py_NotImplemented);
+        return Py_NotImplemented;
+    }
+
+    npy_clear_floatstatus_barrier((char*)&out);
 
     /*
      * here we do the actual calculation with arg1 and arg2
      * as a function call.
      */
-    if (_IS_ZERO(arg2)) {
-        out1 = out = 1;
-    }
-    else if (arg2 < 0) {
-        short_ctype_power(arg1, -arg2, &out);
-        out1 = (npy_float) (1.0 / out);
-    }
-    else {
-        short_ctype_power(arg1, arg2, &out);
-    }
-
-    /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
-    if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("short_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
-            return NULL;
-        }
-        first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
-    }
-
     if (arg2 < 0) {
-        ret = PyArrayScalar_New(Float);
-        if (ret == NULL) {
-            return NULL;
-        }
-        PyArrayScalar_ASSIGN(ret, Float, out1);
+        PyErr_SetString(PyExc_ValueError,
+                "Integers to negative integer powers are not allowed.");
+        return NULL;
     }
-    else {
-        ret = PyArrayScalar_New(Short);
-        if (ret == NULL) {
-            return NULL;
-        }
-        PyArrayScalar_ASSIGN(ret, Short, out);
+    short_ctype_power(arg1, arg2, &out);
+
+    ret = PyArrayScalar_New(Short);
+    if (ret == NULL) {
+        return NULL;
     }
+    PyArrayScalar_ASSIGN(ret, Short, out);
 
     return ret;
 }
@@ -24812,7 +25130,7 @@ short_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
 #else
 
 static PyObject *
-short_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
+short_power(PyObject *a, PyObject *b, PyObject *modulo)
 {
     PyObject *ret;
     npy_short arg1, arg2;
@@ -24820,19 +25138,23 @@ short_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
     int first;
 
     npy_short out = 0;
+
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_power, short_power);
+
     switch(_short_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
         case -1:
             /* can't cast both safely mixed-types? */
-            return PyArray_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyArray_Type.tp_as_number->nb_power(a,b,modulo);
         case -2:
             /* use default handling */
             if (PyErr_Occurred()) {
                 return NULL;
             }
-            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,modulo);
         case -3:
+        default:
             /*
              * special case for longdouble and clongdouble
              * because they have a recursive getitem in their dtype
@@ -24841,7 +25163,13 @@ short_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
             return Py_NotImplemented;
     }
 
-    PyUFunc_clearfperr();
+    if (modulo != Py_None) {
+        /* modular exponentiation is not implemented (gh-8804) */
+        Py_INCREF(Py_NotImplemented);
+        return Py_NotImplemented;
+    }
+
+    npy_clear_floatstatus_barrier((char*)&out);
 
     /*
      * here we do the actual calculation with arg1 and arg2
@@ -24855,7 +25183,7 @@ short_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
     }
 
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -24888,7 +25216,7 @@ short_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
 
 #if 0
 static PyObject *
-ushort_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
+ushort_power(PyObject *a, PyObject *b, PyObject *modulo)
 {
     PyObject *ret;
     npy_ushort arg1, arg2;
@@ -24896,19 +25224,22 @@ ushort_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
     int first;
     npy_ushort out = {0, 0};
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_power, ushort_power);
+
     switch(_ushort_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
         case -1:
             /* can't cast both safely mixed-types? */
-            return PyArray_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyArray_Type.tp_as_number->nb_power(a,b,modulo);
         case -2:
             /* use default handling */
             if (PyErr_Occurred()) {
                 return NULL;
             }
-            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,modulo);
         case -3:
+        default:
             /*
              * special case for longdouble and clongdouble
              * because they have a recursive getitem in their dtype
@@ -24917,7 +25248,13 @@ ushort_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
             return Py_NotImplemented;
     }
 
-    PyUFunc_clearfperr();
+    if (modulo != Py_None) {
+        /* modular exponentiation is not implemented (gh-8804) */
+        Py_INCREF(Py_NotImplemented);
+        return Py_NotImplemented;
+    }
+
+    npy_clear_floatstatus_barrier((char*)&out);
 
     /*
      * here we do the actual calculation with arg1 and arg2
@@ -24932,7 +25269,7 @@ ushort_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
     }
 
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -24961,28 +25298,27 @@ ushort_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
 #elif 0
 
 static PyObject *
-ushort_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
+ushort_power(PyObject *a, PyObject *b, PyObject *modulo)
 {
     PyObject *ret;
-    npy_ushort arg1, arg2;
-    int retstatus;
-    int first;
-    npy_ushort out = 0;
-    npy_float out1 = 0;
+    npy_ushort arg1, arg2, out;
+
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_power, ushort_power);
 
     switch(_ushort_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
         case -1:
             /* can't cast both safely mixed-types? */
-            return PyArray_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyArray_Type.tp_as_number->nb_power(a,b,modulo);
         case -2:
             /* use default handling */
             if (PyErr_Occurred()) {
                 return NULL;
             }
-            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,modulo);
         case -3:
+        default:
             /*
              * special case for longdouble and clongdouble
              * because they have a recursive getitem in their dtype
@@ -24991,55 +25327,30 @@ ushort_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
             return Py_NotImplemented;
     }
 
-    PyUFunc_clearfperr();
+    if (modulo != Py_None) {
+        /* modular exponentiation is not implemented (gh-8804) */
+        Py_INCREF(Py_NotImplemented);
+        return Py_NotImplemented;
+    }
+
+    npy_clear_floatstatus_barrier((char*)&out);
 
     /*
      * here we do the actual calculation with arg1 and arg2
      * as a function call.
      */
-    if (_IS_ZERO(arg2)) {
-        out1 = out = 1;
-    }
-    else if (arg2 < 0) {
-        ushort_ctype_power(arg1, -arg2, &out);
-        out1 = (npy_float) (1.0 / out);
-    }
-    else {
-        ushort_ctype_power(arg1, arg2, &out);
-    }
-
-    /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
-    if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("ushort_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
-            return NULL;
-        }
-        first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
-    }
-
     if (arg2 < 0) {
-        ret = PyArrayScalar_New(Float);
-        if (ret == NULL) {
-            return NULL;
-        }
-        PyArrayScalar_ASSIGN(ret, Float, out1);
+        PyErr_SetString(PyExc_ValueError,
+                "Integers to negative integer powers are not allowed.");
+        return NULL;
     }
-    else {
-        ret = PyArrayScalar_New(UShort);
-        if (ret == NULL) {
-            return NULL;
-        }
-        PyArrayScalar_ASSIGN(ret, UShort, out);
+    ushort_ctype_power(arg1, arg2, &out);
+
+    ret = PyArrayScalar_New(UShort);
+    if (ret == NULL) {
+        return NULL;
     }
+    PyArrayScalar_ASSIGN(ret, UShort, out);
 
     return ret;
 }
@@ -25047,7 +25358,7 @@ ushort_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
 #else
 
 static PyObject *
-ushort_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
+ushort_power(PyObject *a, PyObject *b, PyObject *modulo)
 {
     PyObject *ret;
     npy_ushort arg1, arg2;
@@ -25055,19 +25366,23 @@ ushort_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
     int first;
 
     npy_ushort out = 0;
+
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_power, ushort_power);
+
     switch(_ushort_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
         case -1:
             /* can't cast both safely mixed-types? */
-            return PyArray_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyArray_Type.tp_as_number->nb_power(a,b,modulo);
         case -2:
             /* use default handling */
             if (PyErr_Occurred()) {
                 return NULL;
             }
-            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,modulo);
         case -3:
+        default:
             /*
              * special case for longdouble and clongdouble
              * because they have a recursive getitem in their dtype
@@ -25076,7 +25391,13 @@ ushort_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
             return Py_NotImplemented;
     }
 
-    PyUFunc_clearfperr();
+    if (modulo != Py_None) {
+        /* modular exponentiation is not implemented (gh-8804) */
+        Py_INCREF(Py_NotImplemented);
+        return Py_NotImplemented;
+    }
+
+    npy_clear_floatstatus_barrier((char*)&out);
 
     /*
      * here we do the actual calculation with arg1 and arg2
@@ -25090,7 +25411,7 @@ ushort_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
     }
 
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -25123,7 +25444,7 @@ ushort_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
 
 #if 0
 static PyObject *
-int_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
+int_power(PyObject *a, PyObject *b, PyObject *modulo)
 {
     PyObject *ret;
     npy_int arg1, arg2;
@@ -25131,19 +25452,22 @@ int_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
     int first;
     npy_int out = {0, 0};
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_power, int_power);
+
     switch(_int_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
         case -1:
             /* can't cast both safely mixed-types? */
-            return PyArray_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyArray_Type.tp_as_number->nb_power(a,b,modulo);
         case -2:
             /* use default handling */
             if (PyErr_Occurred()) {
                 return NULL;
             }
-            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,modulo);
         case -3:
+        default:
             /*
              * special case for longdouble and clongdouble
              * because they have a recursive getitem in their dtype
@@ -25152,7 +25476,13 @@ int_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
             return Py_NotImplemented;
     }
 
-    PyUFunc_clearfperr();
+    if (modulo != Py_None) {
+        /* modular exponentiation is not implemented (gh-8804) */
+        Py_INCREF(Py_NotImplemented);
+        return Py_NotImplemented;
+    }
+
+    npy_clear_floatstatus_barrier((char*)&out);
 
     /*
      * here we do the actual calculation with arg1 and arg2
@@ -25167,7 +25497,7 @@ int_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
     }
 
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -25196,28 +25526,27 @@ int_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
 #elif 1
 
 static PyObject *
-int_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
+int_power(PyObject *a, PyObject *b, PyObject *modulo)
 {
     PyObject *ret;
-    npy_int arg1, arg2;
-    int retstatus;
-    int first;
-    npy_int out = 0;
-    npy_double out1 = 0;
+    npy_int arg1, arg2, out;
+
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_power, int_power);
 
     switch(_int_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
         case -1:
             /* can't cast both safely mixed-types? */
-            return PyArray_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyArray_Type.tp_as_number->nb_power(a,b,modulo);
         case -2:
             /* use default handling */
             if (PyErr_Occurred()) {
                 return NULL;
             }
-            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,modulo);
         case -3:
+        default:
             /*
              * special case for longdouble and clongdouble
              * because they have a recursive getitem in their dtype
@@ -25226,55 +25555,30 @@ int_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
             return Py_NotImplemented;
     }
 
-    PyUFunc_clearfperr();
+    if (modulo != Py_None) {
+        /* modular exponentiation is not implemented (gh-8804) */
+        Py_INCREF(Py_NotImplemented);
+        return Py_NotImplemented;
+    }
+
+    npy_clear_floatstatus_barrier((char*)&out);
 
     /*
      * here we do the actual calculation with arg1 and arg2
      * as a function call.
      */
-    if (_IS_ZERO(arg2)) {
-        out1 = out = 1;
-    }
-    else if (arg2 < 0) {
-        int_ctype_power(arg1, -arg2, &out);
-        out1 = (npy_double) (1.0 / out);
-    }
-    else {
-        int_ctype_power(arg1, arg2, &out);
-    }
-
-    /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
-    if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("int_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
-            return NULL;
-        }
-        first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
-    }
-
     if (arg2 < 0) {
-        ret = PyArrayScalar_New(Double);
-        if (ret == NULL) {
-            return NULL;
-        }
-        PyArrayScalar_ASSIGN(ret, Double, out1);
+        PyErr_SetString(PyExc_ValueError,
+                "Integers to negative integer powers are not allowed.");
+        return NULL;
     }
-    else {
-        ret = PyArrayScalar_New(Int);
-        if (ret == NULL) {
-            return NULL;
-        }
-        PyArrayScalar_ASSIGN(ret, Int, out);
+    int_ctype_power(arg1, arg2, &out);
+
+    ret = PyArrayScalar_New(Int);
+    if (ret == NULL) {
+        return NULL;
     }
+    PyArrayScalar_ASSIGN(ret, Int, out);
 
     return ret;
 }
@@ -25282,7 +25586,7 @@ int_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
 #else
 
 static PyObject *
-int_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
+int_power(PyObject *a, PyObject *b, PyObject *modulo)
 {
     PyObject *ret;
     npy_int arg1, arg2;
@@ -25290,19 +25594,23 @@ int_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
     int first;
 
     npy_int out = 0;
+
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_power, int_power);
+
     switch(_int_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
         case -1:
             /* can't cast both safely mixed-types? */
-            return PyArray_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyArray_Type.tp_as_number->nb_power(a,b,modulo);
         case -2:
             /* use default handling */
             if (PyErr_Occurred()) {
                 return NULL;
             }
-            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,modulo);
         case -3:
+        default:
             /*
              * special case for longdouble and clongdouble
              * because they have a recursive getitem in their dtype
@@ -25311,7 +25619,13 @@ int_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
             return Py_NotImplemented;
     }
 
-    PyUFunc_clearfperr();
+    if (modulo != Py_None) {
+        /* modular exponentiation is not implemented (gh-8804) */
+        Py_INCREF(Py_NotImplemented);
+        return Py_NotImplemented;
+    }
+
+    npy_clear_floatstatus_barrier((char*)&out);
 
     /*
      * here we do the actual calculation with arg1 and arg2
@@ -25325,7 +25639,7 @@ int_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
     }
 
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -25358,7 +25672,7 @@ int_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
 
 #if 0
 static PyObject *
-uint_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
+uint_power(PyObject *a, PyObject *b, PyObject *modulo)
 {
     PyObject *ret;
     npy_uint arg1, arg2;
@@ -25366,19 +25680,22 @@ uint_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
     int first;
     npy_uint out = {0, 0};
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_power, uint_power);
+
     switch(_uint_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
         case -1:
             /* can't cast both safely mixed-types? */
-            return PyArray_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyArray_Type.tp_as_number->nb_power(a,b,modulo);
         case -2:
             /* use default handling */
             if (PyErr_Occurred()) {
                 return NULL;
             }
-            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,modulo);
         case -3:
+        default:
             /*
              * special case for longdouble and clongdouble
              * because they have a recursive getitem in their dtype
@@ -25387,7 +25704,13 @@ uint_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
             return Py_NotImplemented;
     }
 
-    PyUFunc_clearfperr();
+    if (modulo != Py_None) {
+        /* modular exponentiation is not implemented (gh-8804) */
+        Py_INCREF(Py_NotImplemented);
+        return Py_NotImplemented;
+    }
+
+    npy_clear_floatstatus_barrier((char*)&out);
 
     /*
      * here we do the actual calculation with arg1 and arg2
@@ -25402,7 +25725,7 @@ uint_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
     }
 
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -25431,28 +25754,27 @@ uint_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
 #elif 0
 
 static PyObject *
-uint_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
+uint_power(PyObject *a, PyObject *b, PyObject *modulo)
 {
     PyObject *ret;
-    npy_uint arg1, arg2;
-    int retstatus;
-    int first;
-    npy_uint out = 0;
-    npy_double out1 = 0;
+    npy_uint arg1, arg2, out;
+
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_power, uint_power);
 
     switch(_uint_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
         case -1:
             /* can't cast both safely mixed-types? */
-            return PyArray_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyArray_Type.tp_as_number->nb_power(a,b,modulo);
         case -2:
             /* use default handling */
             if (PyErr_Occurred()) {
                 return NULL;
             }
-            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,modulo);
         case -3:
+        default:
             /*
              * special case for longdouble and clongdouble
              * because they have a recursive getitem in their dtype
@@ -25461,55 +25783,30 @@ uint_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
             return Py_NotImplemented;
     }
 
-    PyUFunc_clearfperr();
+    if (modulo != Py_None) {
+        /* modular exponentiation is not implemented (gh-8804) */
+        Py_INCREF(Py_NotImplemented);
+        return Py_NotImplemented;
+    }
+
+    npy_clear_floatstatus_barrier((char*)&out);
 
     /*
      * here we do the actual calculation with arg1 and arg2
      * as a function call.
      */
-    if (_IS_ZERO(arg2)) {
-        out1 = out = 1;
-    }
-    else if (arg2 < 0) {
-        uint_ctype_power(arg1, -arg2, &out);
-        out1 = (npy_double) (1.0 / out);
-    }
-    else {
-        uint_ctype_power(arg1, arg2, &out);
-    }
-
-    /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
-    if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("uint_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
-            return NULL;
-        }
-        first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
-    }
-
     if (arg2 < 0) {
-        ret = PyArrayScalar_New(Double);
-        if (ret == NULL) {
-            return NULL;
-        }
-        PyArrayScalar_ASSIGN(ret, Double, out1);
+        PyErr_SetString(PyExc_ValueError,
+                "Integers to negative integer powers are not allowed.");
+        return NULL;
     }
-    else {
-        ret = PyArrayScalar_New(UInt);
-        if (ret == NULL) {
-            return NULL;
-        }
-        PyArrayScalar_ASSIGN(ret, UInt, out);
+    uint_ctype_power(arg1, arg2, &out);
+
+    ret = PyArrayScalar_New(UInt);
+    if (ret == NULL) {
+        return NULL;
     }
+    PyArrayScalar_ASSIGN(ret, UInt, out);
 
     return ret;
 }
@@ -25517,7 +25814,7 @@ uint_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
 #else
 
 static PyObject *
-uint_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
+uint_power(PyObject *a, PyObject *b, PyObject *modulo)
 {
     PyObject *ret;
     npy_uint arg1, arg2;
@@ -25525,19 +25822,23 @@ uint_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
     int first;
 
     npy_uint out = 0;
+
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_power, uint_power);
+
     switch(_uint_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
         case -1:
             /* can't cast both safely mixed-types? */
-            return PyArray_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyArray_Type.tp_as_number->nb_power(a,b,modulo);
         case -2:
             /* use default handling */
             if (PyErr_Occurred()) {
                 return NULL;
             }
-            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,modulo);
         case -3:
+        default:
             /*
              * special case for longdouble and clongdouble
              * because they have a recursive getitem in their dtype
@@ -25546,7 +25847,13 @@ uint_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
             return Py_NotImplemented;
     }
 
-    PyUFunc_clearfperr();
+    if (modulo != Py_None) {
+        /* modular exponentiation is not implemented (gh-8804) */
+        Py_INCREF(Py_NotImplemented);
+        return Py_NotImplemented;
+    }
+
+    npy_clear_floatstatus_barrier((char*)&out);
 
     /*
      * here we do the actual calculation with arg1 and arg2
@@ -25560,7 +25867,7 @@ uint_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
     }
 
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -25593,7 +25900,7 @@ uint_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
 
 #if 0
 static PyObject *
-long_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
+long_power(PyObject *a, PyObject *b, PyObject *modulo)
 {
     PyObject *ret;
     npy_long arg1, arg2;
@@ -25601,19 +25908,22 @@ long_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
     int first;
     npy_long out = {0, 0};
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_power, long_power);
+
     switch(_long_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
         case -1:
             /* can't cast both safely mixed-types? */
-            return PyArray_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyArray_Type.tp_as_number->nb_power(a,b,modulo);
         case -2:
             /* use default handling */
             if (PyErr_Occurred()) {
                 return NULL;
             }
-            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,modulo);
         case -3:
+        default:
             /*
              * special case for longdouble and clongdouble
              * because they have a recursive getitem in their dtype
@@ -25622,7 +25932,13 @@ long_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
             return Py_NotImplemented;
     }
 
-    PyUFunc_clearfperr();
+    if (modulo != Py_None) {
+        /* modular exponentiation is not implemented (gh-8804) */
+        Py_INCREF(Py_NotImplemented);
+        return Py_NotImplemented;
+    }
+
+    npy_clear_floatstatus_barrier((char*)&out);
 
     /*
      * here we do the actual calculation with arg1 and arg2
@@ -25637,7 +25953,7 @@ long_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
     }
 
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -25666,28 +25982,27 @@ long_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
 #elif 1
 
 static PyObject *
-long_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
+long_power(PyObject *a, PyObject *b, PyObject *modulo)
 {
     PyObject *ret;
-    npy_long arg1, arg2;
-    int retstatus;
-    int first;
-    npy_long out = 0;
-    npy_double out1 = 0;
+    npy_long arg1, arg2, out;
+
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_power, long_power);
 
     switch(_long_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
         case -1:
             /* can't cast both safely mixed-types? */
-            return PyArray_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyArray_Type.tp_as_number->nb_power(a,b,modulo);
         case -2:
             /* use default handling */
             if (PyErr_Occurred()) {
                 return NULL;
             }
-            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,modulo);
         case -3:
+        default:
             /*
              * special case for longdouble and clongdouble
              * because they have a recursive getitem in their dtype
@@ -25696,55 +26011,30 @@ long_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
             return Py_NotImplemented;
     }
 
-    PyUFunc_clearfperr();
+    if (modulo != Py_None) {
+        /* modular exponentiation is not implemented (gh-8804) */
+        Py_INCREF(Py_NotImplemented);
+        return Py_NotImplemented;
+    }
+
+    npy_clear_floatstatus_barrier((char*)&out);
 
     /*
      * here we do the actual calculation with arg1 and arg2
      * as a function call.
      */
-    if (_IS_ZERO(arg2)) {
-        out1 = out = 1;
-    }
-    else if (arg2 < 0) {
-        long_ctype_power(arg1, -arg2, &out);
-        out1 = (npy_double) (1.0 / out);
-    }
-    else {
-        long_ctype_power(arg1, arg2, &out);
-    }
-
-    /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
-    if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("long_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
-            return NULL;
-        }
-        first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
-    }
-
     if (arg2 < 0) {
-        ret = PyArrayScalar_New(Double);
-        if (ret == NULL) {
-            return NULL;
-        }
-        PyArrayScalar_ASSIGN(ret, Double, out1);
+        PyErr_SetString(PyExc_ValueError,
+                "Integers to negative integer powers are not allowed.");
+        return NULL;
     }
-    else {
-        ret = PyArrayScalar_New(Long);
-        if (ret == NULL) {
-            return NULL;
-        }
-        PyArrayScalar_ASSIGN(ret, Long, out);
+    long_ctype_power(arg1, arg2, &out);
+
+    ret = PyArrayScalar_New(Long);
+    if (ret == NULL) {
+        return NULL;
     }
+    PyArrayScalar_ASSIGN(ret, Long, out);
 
     return ret;
 }
@@ -25752,7 +26042,7 @@ long_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
 #else
 
 static PyObject *
-long_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
+long_power(PyObject *a, PyObject *b, PyObject *modulo)
 {
     PyObject *ret;
     npy_long arg1, arg2;
@@ -25760,19 +26050,23 @@ long_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
     int first;
 
     npy_long out = 0;
+
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_power, long_power);
+
     switch(_long_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
         case -1:
             /* can't cast both safely mixed-types? */
-            return PyArray_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyArray_Type.tp_as_number->nb_power(a,b,modulo);
         case -2:
             /* use default handling */
             if (PyErr_Occurred()) {
                 return NULL;
             }
-            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,modulo);
         case -3:
+        default:
             /*
              * special case for longdouble and clongdouble
              * because they have a recursive getitem in their dtype
@@ -25781,7 +26075,13 @@ long_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
             return Py_NotImplemented;
     }
 
-    PyUFunc_clearfperr();
+    if (modulo != Py_None) {
+        /* modular exponentiation is not implemented (gh-8804) */
+        Py_INCREF(Py_NotImplemented);
+        return Py_NotImplemented;
+    }
+
+    npy_clear_floatstatus_barrier((char*)&out);
 
     /*
      * here we do the actual calculation with arg1 and arg2
@@ -25795,7 +26095,7 @@ long_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
     }
 
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -25828,7 +26128,7 @@ long_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
 
 #if 0
 static PyObject *
-ulong_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
+ulong_power(PyObject *a, PyObject *b, PyObject *modulo)
 {
     PyObject *ret;
     npy_ulong arg1, arg2;
@@ -25836,19 +26136,22 @@ ulong_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
     int first;
     npy_ulong out = {0, 0};
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_power, ulong_power);
+
     switch(_ulong_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
         case -1:
             /* can't cast both safely mixed-types? */
-            return PyArray_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyArray_Type.tp_as_number->nb_power(a,b,modulo);
         case -2:
             /* use default handling */
             if (PyErr_Occurred()) {
                 return NULL;
             }
-            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,modulo);
         case -3:
+        default:
             /*
              * special case for longdouble and clongdouble
              * because they have a recursive getitem in their dtype
@@ -25857,7 +26160,13 @@ ulong_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
             return Py_NotImplemented;
     }
 
-    PyUFunc_clearfperr();
+    if (modulo != Py_None) {
+        /* modular exponentiation is not implemented (gh-8804) */
+        Py_INCREF(Py_NotImplemented);
+        return Py_NotImplemented;
+    }
+
+    npy_clear_floatstatus_barrier((char*)&out);
 
     /*
      * here we do the actual calculation with arg1 and arg2
@@ -25872,7 +26181,7 @@ ulong_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
     }
 
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -25901,28 +26210,27 @@ ulong_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
 #elif 0
 
 static PyObject *
-ulong_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
+ulong_power(PyObject *a, PyObject *b, PyObject *modulo)
 {
     PyObject *ret;
-    npy_ulong arg1, arg2;
-    int retstatus;
-    int first;
-    npy_ulong out = 0;
-    npy_double out1 = 0;
+    npy_ulong arg1, arg2, out;
+
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_power, ulong_power);
 
     switch(_ulong_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
         case -1:
             /* can't cast both safely mixed-types? */
-            return PyArray_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyArray_Type.tp_as_number->nb_power(a,b,modulo);
         case -2:
             /* use default handling */
             if (PyErr_Occurred()) {
                 return NULL;
             }
-            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,modulo);
         case -3:
+        default:
             /*
              * special case for longdouble and clongdouble
              * because they have a recursive getitem in their dtype
@@ -25931,55 +26239,30 @@ ulong_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
             return Py_NotImplemented;
     }
 
-    PyUFunc_clearfperr();
+    if (modulo != Py_None) {
+        /* modular exponentiation is not implemented (gh-8804) */
+        Py_INCREF(Py_NotImplemented);
+        return Py_NotImplemented;
+    }
+
+    npy_clear_floatstatus_barrier((char*)&out);
 
     /*
      * here we do the actual calculation with arg1 and arg2
      * as a function call.
      */
-    if (_IS_ZERO(arg2)) {
-        out1 = out = 1;
-    }
-    else if (arg2 < 0) {
-        ulong_ctype_power(arg1, -arg2, &out);
-        out1 = (npy_double) (1.0 / out);
-    }
-    else {
-        ulong_ctype_power(arg1, arg2, &out);
-    }
-
-    /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
-    if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("ulong_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
-            return NULL;
-        }
-        first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
-    }
-
     if (arg2 < 0) {
-        ret = PyArrayScalar_New(Double);
-        if (ret == NULL) {
-            return NULL;
-        }
-        PyArrayScalar_ASSIGN(ret, Double, out1);
+        PyErr_SetString(PyExc_ValueError,
+                "Integers to negative integer powers are not allowed.");
+        return NULL;
     }
-    else {
-        ret = PyArrayScalar_New(ULong);
-        if (ret == NULL) {
-            return NULL;
-        }
-        PyArrayScalar_ASSIGN(ret, ULong, out);
+    ulong_ctype_power(arg1, arg2, &out);
+
+    ret = PyArrayScalar_New(ULong);
+    if (ret == NULL) {
+        return NULL;
     }
+    PyArrayScalar_ASSIGN(ret, ULong, out);
 
     return ret;
 }
@@ -25987,7 +26270,7 @@ ulong_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
 #else
 
 static PyObject *
-ulong_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
+ulong_power(PyObject *a, PyObject *b, PyObject *modulo)
 {
     PyObject *ret;
     npy_ulong arg1, arg2;
@@ -25995,19 +26278,23 @@ ulong_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
     int first;
 
     npy_ulong out = 0;
+
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_power, ulong_power);
+
     switch(_ulong_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
         case -1:
             /* can't cast both safely mixed-types? */
-            return PyArray_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyArray_Type.tp_as_number->nb_power(a,b,modulo);
         case -2:
             /* use default handling */
             if (PyErr_Occurred()) {
                 return NULL;
             }
-            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,modulo);
         case -3:
+        default:
             /*
              * special case for longdouble and clongdouble
              * because they have a recursive getitem in their dtype
@@ -26016,7 +26303,13 @@ ulong_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
             return Py_NotImplemented;
     }
 
-    PyUFunc_clearfperr();
+    if (modulo != Py_None) {
+        /* modular exponentiation is not implemented (gh-8804) */
+        Py_INCREF(Py_NotImplemented);
+        return Py_NotImplemented;
+    }
+
+    npy_clear_floatstatus_barrier((char*)&out);
 
     /*
      * here we do the actual calculation with arg1 and arg2
@@ -26030,7 +26323,7 @@ ulong_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
     }
 
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -26063,7 +26356,7 @@ ulong_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
 
 #if 0
 static PyObject *
-longlong_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
+longlong_power(PyObject *a, PyObject *b, PyObject *modulo)
 {
     PyObject *ret;
     npy_longlong arg1, arg2;
@@ -26071,19 +26364,22 @@ longlong_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
     int first;
     npy_longlong out = {0, 0};
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_power, longlong_power);
+
     switch(_longlong_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
         case -1:
             /* can't cast both safely mixed-types? */
-            return PyArray_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyArray_Type.tp_as_number->nb_power(a,b,modulo);
         case -2:
             /* use default handling */
             if (PyErr_Occurred()) {
                 return NULL;
             }
-            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,modulo);
         case -3:
+        default:
             /*
              * special case for longdouble and clongdouble
              * because they have a recursive getitem in their dtype
@@ -26092,7 +26388,13 @@ longlong_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
             return Py_NotImplemented;
     }
 
-    PyUFunc_clearfperr();
+    if (modulo != Py_None) {
+        /* modular exponentiation is not implemented (gh-8804) */
+        Py_INCREF(Py_NotImplemented);
+        return Py_NotImplemented;
+    }
+
+    npy_clear_floatstatus_barrier((char*)&out);
 
     /*
      * here we do the actual calculation with arg1 and arg2
@@ -26107,7 +26409,7 @@ longlong_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
     }
 
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -26136,28 +26438,27 @@ longlong_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
 #elif 1
 
 static PyObject *
-longlong_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
+longlong_power(PyObject *a, PyObject *b, PyObject *modulo)
 {
     PyObject *ret;
-    npy_longlong arg1, arg2;
-    int retstatus;
-    int first;
-    npy_longlong out = 0;
-    npy_double out1 = 0;
+    npy_longlong arg1, arg2, out;
+
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_power, longlong_power);
 
     switch(_longlong_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
         case -1:
             /* can't cast both safely mixed-types? */
-            return PyArray_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyArray_Type.tp_as_number->nb_power(a,b,modulo);
         case -2:
             /* use default handling */
             if (PyErr_Occurred()) {
                 return NULL;
             }
-            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,modulo);
         case -3:
+        default:
             /*
              * special case for longdouble and clongdouble
              * because they have a recursive getitem in their dtype
@@ -26166,55 +26467,30 @@ longlong_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
             return Py_NotImplemented;
     }
 
-    PyUFunc_clearfperr();
+    if (modulo != Py_None) {
+        /* modular exponentiation is not implemented (gh-8804) */
+        Py_INCREF(Py_NotImplemented);
+        return Py_NotImplemented;
+    }
+
+    npy_clear_floatstatus_barrier((char*)&out);
 
     /*
      * here we do the actual calculation with arg1 and arg2
      * as a function call.
      */
-    if (_IS_ZERO(arg2)) {
-        out1 = out = 1;
-    }
-    else if (arg2 < 0) {
-        longlong_ctype_power(arg1, -arg2, &out);
-        out1 = (npy_double) (1.0 / out);
-    }
-    else {
-        longlong_ctype_power(arg1, arg2, &out);
-    }
-
-    /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
-    if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("longlong_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
-            return NULL;
-        }
-        first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
-    }
-
     if (arg2 < 0) {
-        ret = PyArrayScalar_New(Double);
-        if (ret == NULL) {
-            return NULL;
-        }
-        PyArrayScalar_ASSIGN(ret, Double, out1);
+        PyErr_SetString(PyExc_ValueError,
+                "Integers to negative integer powers are not allowed.");
+        return NULL;
     }
-    else {
-        ret = PyArrayScalar_New(LongLong);
-        if (ret == NULL) {
-            return NULL;
-        }
-        PyArrayScalar_ASSIGN(ret, LongLong, out);
+    longlong_ctype_power(arg1, arg2, &out);
+
+    ret = PyArrayScalar_New(LongLong);
+    if (ret == NULL) {
+        return NULL;
     }
+    PyArrayScalar_ASSIGN(ret, LongLong, out);
 
     return ret;
 }
@@ -26222,7 +26498,7 @@ longlong_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
 #else
 
 static PyObject *
-longlong_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
+longlong_power(PyObject *a, PyObject *b, PyObject *modulo)
 {
     PyObject *ret;
     npy_longlong arg1, arg2;
@@ -26230,19 +26506,23 @@ longlong_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
     int first;
 
     npy_longlong out = 0;
+
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_power, longlong_power);
+
     switch(_longlong_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
         case -1:
             /* can't cast both safely mixed-types? */
-            return PyArray_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyArray_Type.tp_as_number->nb_power(a,b,modulo);
         case -2:
             /* use default handling */
             if (PyErr_Occurred()) {
                 return NULL;
             }
-            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,modulo);
         case -3:
+        default:
             /*
              * special case for longdouble and clongdouble
              * because they have a recursive getitem in their dtype
@@ -26251,7 +26531,13 @@ longlong_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
             return Py_NotImplemented;
     }
 
-    PyUFunc_clearfperr();
+    if (modulo != Py_None) {
+        /* modular exponentiation is not implemented (gh-8804) */
+        Py_INCREF(Py_NotImplemented);
+        return Py_NotImplemented;
+    }
+
+    npy_clear_floatstatus_barrier((char*)&out);
 
     /*
      * here we do the actual calculation with arg1 and arg2
@@ -26265,7 +26551,7 @@ longlong_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
     }
 
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -26298,7 +26584,7 @@ longlong_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
 
 #if 0
 static PyObject *
-ulonglong_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
+ulonglong_power(PyObject *a, PyObject *b, PyObject *modulo)
 {
     PyObject *ret;
     npy_ulonglong arg1, arg2;
@@ -26306,19 +26592,22 @@ ulonglong_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
     int first;
     npy_ulonglong out = {0, 0};
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_power, ulonglong_power);
+
     switch(_ulonglong_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
         case -1:
             /* can't cast both safely mixed-types? */
-            return PyArray_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyArray_Type.tp_as_number->nb_power(a,b,modulo);
         case -2:
             /* use default handling */
             if (PyErr_Occurred()) {
                 return NULL;
             }
-            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,modulo);
         case -3:
+        default:
             /*
              * special case for longdouble and clongdouble
              * because they have a recursive getitem in their dtype
@@ -26327,7 +26616,13 @@ ulonglong_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
             return Py_NotImplemented;
     }
 
-    PyUFunc_clearfperr();
+    if (modulo != Py_None) {
+        /* modular exponentiation is not implemented (gh-8804) */
+        Py_INCREF(Py_NotImplemented);
+        return Py_NotImplemented;
+    }
+
+    npy_clear_floatstatus_barrier((char*)&out);
 
     /*
      * here we do the actual calculation with arg1 and arg2
@@ -26342,7 +26637,7 @@ ulonglong_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
     }
 
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -26371,28 +26666,27 @@ ulonglong_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
 #elif 0
 
 static PyObject *
-ulonglong_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
+ulonglong_power(PyObject *a, PyObject *b, PyObject *modulo)
 {
     PyObject *ret;
-    npy_ulonglong arg1, arg2;
-    int retstatus;
-    int first;
-    npy_ulonglong out = 0;
-    npy_double out1 = 0;
+    npy_ulonglong arg1, arg2, out;
+
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_power, ulonglong_power);
 
     switch(_ulonglong_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
         case -1:
             /* can't cast both safely mixed-types? */
-            return PyArray_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyArray_Type.tp_as_number->nb_power(a,b,modulo);
         case -2:
             /* use default handling */
             if (PyErr_Occurred()) {
                 return NULL;
             }
-            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,modulo);
         case -3:
+        default:
             /*
              * special case for longdouble and clongdouble
              * because they have a recursive getitem in their dtype
@@ -26401,55 +26695,30 @@ ulonglong_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
             return Py_NotImplemented;
     }
 
-    PyUFunc_clearfperr();
+    if (modulo != Py_None) {
+        /* modular exponentiation is not implemented (gh-8804) */
+        Py_INCREF(Py_NotImplemented);
+        return Py_NotImplemented;
+    }
+
+    npy_clear_floatstatus_barrier((char*)&out);
 
     /*
      * here we do the actual calculation with arg1 and arg2
      * as a function call.
      */
-    if (_IS_ZERO(arg2)) {
-        out1 = out = 1;
-    }
-    else if (arg2 < 0) {
-        ulonglong_ctype_power(arg1, -arg2, &out);
-        out1 = (npy_double) (1.0 / out);
-    }
-    else {
-        ulonglong_ctype_power(arg1, arg2, &out);
-    }
-
-    /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
-    if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("ulonglong_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
-            return NULL;
-        }
-        first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
-    }
-
     if (arg2 < 0) {
-        ret = PyArrayScalar_New(Double);
-        if (ret == NULL) {
-            return NULL;
-        }
-        PyArrayScalar_ASSIGN(ret, Double, out1);
+        PyErr_SetString(PyExc_ValueError,
+                "Integers to negative integer powers are not allowed.");
+        return NULL;
     }
-    else {
-        ret = PyArrayScalar_New(ULongLong);
-        if (ret == NULL) {
-            return NULL;
-        }
-        PyArrayScalar_ASSIGN(ret, ULongLong, out);
+    ulonglong_ctype_power(arg1, arg2, &out);
+
+    ret = PyArrayScalar_New(ULongLong);
+    if (ret == NULL) {
+        return NULL;
     }
+    PyArrayScalar_ASSIGN(ret, ULongLong, out);
 
     return ret;
 }
@@ -26457,7 +26726,7 @@ ulonglong_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
 #else
 
 static PyObject *
-ulonglong_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
+ulonglong_power(PyObject *a, PyObject *b, PyObject *modulo)
 {
     PyObject *ret;
     npy_ulonglong arg1, arg2;
@@ -26465,19 +26734,23 @@ ulonglong_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
     int first;
 
     npy_ulonglong out = 0;
+
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_power, ulonglong_power);
+
     switch(_ulonglong_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
         case -1:
             /* can't cast both safely mixed-types? */
-            return PyArray_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyArray_Type.tp_as_number->nb_power(a,b,modulo);
         case -2:
             /* use default handling */
             if (PyErr_Occurred()) {
                 return NULL;
             }
-            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,modulo);
         case -3:
+        default:
             /*
              * special case for longdouble and clongdouble
              * because they have a recursive getitem in their dtype
@@ -26486,7 +26759,13 @@ ulonglong_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
             return Py_NotImplemented;
     }
 
-    PyUFunc_clearfperr();
+    if (modulo != Py_None) {
+        /* modular exponentiation is not implemented (gh-8804) */
+        Py_INCREF(Py_NotImplemented);
+        return Py_NotImplemented;
+    }
+
+    npy_clear_floatstatus_barrier((char*)&out);
 
     /*
      * here we do the actual calculation with arg1 and arg2
@@ -26500,7 +26779,7 @@ ulonglong_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
     }
 
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -26533,7 +26812,7 @@ ulonglong_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
 
 #if 0
 static PyObject *
-half_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
+half_power(PyObject *a, PyObject *b, PyObject *modulo)
 {
     PyObject *ret;
     npy_half arg1, arg2;
@@ -26541,19 +26820,22 @@ half_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
     int first;
     npy_half out = {NPY_HALF_ZERO, NPY_HALF_ZERO};
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_power, half_power);
+
     switch(_half_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
         case -1:
             /* can't cast both safely mixed-types? */
-            return PyArray_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyArray_Type.tp_as_number->nb_power(a,b,modulo);
         case -2:
             /* use default handling */
             if (PyErr_Occurred()) {
                 return NULL;
             }
-            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,modulo);
         case -3:
+        default:
             /*
              * special case for longdouble and clongdouble
              * because they have a recursive getitem in their dtype
@@ -26562,7 +26844,13 @@ half_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
             return Py_NotImplemented;
     }
 
-    PyUFunc_clearfperr();
+    if (modulo != Py_None) {
+        /* modular exponentiation is not implemented (gh-8804) */
+        Py_INCREF(Py_NotImplemented);
+        return Py_NotImplemented;
+    }
+
+    npy_clear_floatstatus_barrier((char*)&out);
 
     /*
      * here we do the actual calculation with arg1 and arg2
@@ -26577,7 +26865,7 @@ half_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
     }
 
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -26606,28 +26894,27 @@ half_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
 #elif 0
 
 static PyObject *
-half_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
+half_power(PyObject *a, PyObject *b, PyObject *modulo)
 {
     PyObject *ret;
-    npy_half arg1, arg2;
-    int retstatus;
-    int first;
-    npy_half out = NPY_HALF_ZERO;
-    npy_half out1 = NPY_HALF_ZERO;
+    npy_half arg1, arg2, out;
+
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_power, half_power);
 
     switch(_half_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
         case -1:
             /* can't cast both safely mixed-types? */
-            return PyArray_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyArray_Type.tp_as_number->nb_power(a,b,modulo);
         case -2:
             /* use default handling */
             if (PyErr_Occurred()) {
                 return NULL;
             }
-            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,modulo);
         case -3:
+        default:
             /*
              * special case for longdouble and clongdouble
              * because they have a recursive getitem in their dtype
@@ -26636,55 +26923,30 @@ half_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
             return Py_NotImplemented;
     }
 
-    PyUFunc_clearfperr();
+    if (modulo != Py_None) {
+        /* modular exponentiation is not implemented (gh-8804) */
+        Py_INCREF(Py_NotImplemented);
+        return Py_NotImplemented;
+    }
+
+    npy_clear_floatstatus_barrier((char*)&out);
 
     /*
      * here we do the actual calculation with arg1 and arg2
      * as a function call.
      */
-    if (npy_half_iszero(arg2)) {
-        out1 = out = NPY_HALF_ONE;
-    }
-    else if (arg2 < 0) {
-        half_ctype_power(arg1, -arg2, &out);
-        out1 = (npy_half) (1.0 / out);
-    }
-    else {
-        half_ctype_power(arg1, arg2, &out);
-    }
-
-    /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
-    if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("half_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
-            return NULL;
-        }
-        first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
-    }
-
     if (arg2 < 0) {
-        ret = PyArrayScalar_New(Half);
-        if (ret == NULL) {
-            return NULL;
-        }
-        PyArrayScalar_ASSIGN(ret, Half, out1);
+        PyErr_SetString(PyExc_ValueError,
+                "Integers to negative integer powers are not allowed.");
+        return NULL;
     }
-    else {
-        ret = PyArrayScalar_New(Half);
-        if (ret == NULL) {
-            return NULL;
-        }
-        PyArrayScalar_ASSIGN(ret, Half, out);
+    half_ctype_power(arg1, arg2, &out);
+
+    ret = PyArrayScalar_New(Half);
+    if (ret == NULL) {
+        return NULL;
     }
+    PyArrayScalar_ASSIGN(ret, Half, out);
 
     return ret;
 }
@@ -26692,7 +26954,7 @@ half_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
 #else
 
 static PyObject *
-half_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
+half_power(PyObject *a, PyObject *b, PyObject *modulo)
 {
     PyObject *ret;
     npy_half arg1, arg2;
@@ -26700,19 +26962,23 @@ half_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
     int first;
 
     npy_half out = NPY_HALF_ZERO;
+
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_power, half_power);
+
     switch(_half_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
         case -1:
             /* can't cast both safely mixed-types? */
-            return PyArray_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyArray_Type.tp_as_number->nb_power(a,b,modulo);
         case -2:
             /* use default handling */
             if (PyErr_Occurred()) {
                 return NULL;
             }
-            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,modulo);
         case -3:
+        default:
             /*
              * special case for longdouble and clongdouble
              * because they have a recursive getitem in their dtype
@@ -26721,7 +26987,13 @@ half_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
             return Py_NotImplemented;
     }
 
-    PyUFunc_clearfperr();
+    if (modulo != Py_None) {
+        /* modular exponentiation is not implemented (gh-8804) */
+        Py_INCREF(Py_NotImplemented);
+        return Py_NotImplemented;
+    }
+
+    npy_clear_floatstatus_barrier((char*)&out);
 
     /*
      * here we do the actual calculation with arg1 and arg2
@@ -26735,7 +27007,7 @@ half_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
     }
 
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -26768,7 +27040,7 @@ half_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
 
 #if 0
 static PyObject *
-float_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
+float_power(PyObject *a, PyObject *b, PyObject *modulo)
 {
     PyObject *ret;
     npy_float arg1, arg2;
@@ -26776,19 +27048,22 @@ float_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
     int first;
     npy_float out = {0, 0};
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_power, float_power);
+
     switch(_float_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
         case -1:
             /* can't cast both safely mixed-types? */
-            return PyArray_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyArray_Type.tp_as_number->nb_power(a,b,modulo);
         case -2:
             /* use default handling */
             if (PyErr_Occurred()) {
                 return NULL;
             }
-            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,modulo);
         case -3:
+        default:
             /*
              * special case for longdouble and clongdouble
              * because they have a recursive getitem in their dtype
@@ -26797,7 +27072,13 @@ float_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
             return Py_NotImplemented;
     }
 
-    PyUFunc_clearfperr();
+    if (modulo != Py_None) {
+        /* modular exponentiation is not implemented (gh-8804) */
+        Py_INCREF(Py_NotImplemented);
+        return Py_NotImplemented;
+    }
+
+    npy_clear_floatstatus_barrier((char*)&out);
 
     /*
      * here we do the actual calculation with arg1 and arg2
@@ -26812,7 +27093,7 @@ float_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
     }
 
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -26841,28 +27122,27 @@ float_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
 #elif 0
 
 static PyObject *
-float_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
+float_power(PyObject *a, PyObject *b, PyObject *modulo)
 {
     PyObject *ret;
-    npy_float arg1, arg2;
-    int retstatus;
-    int first;
-    npy_float out = 0;
-    npy_float out1 = 0;
+    npy_float arg1, arg2, out;
+
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_power, float_power);
 
     switch(_float_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
         case -1:
             /* can't cast both safely mixed-types? */
-            return PyArray_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyArray_Type.tp_as_number->nb_power(a,b,modulo);
         case -2:
             /* use default handling */
             if (PyErr_Occurred()) {
                 return NULL;
             }
-            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,modulo);
         case -3:
+        default:
             /*
              * special case for longdouble and clongdouble
              * because they have a recursive getitem in their dtype
@@ -26871,55 +27151,30 @@ float_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
             return Py_NotImplemented;
     }
 
-    PyUFunc_clearfperr();
+    if (modulo != Py_None) {
+        /* modular exponentiation is not implemented (gh-8804) */
+        Py_INCREF(Py_NotImplemented);
+        return Py_NotImplemented;
+    }
+
+    npy_clear_floatstatus_barrier((char*)&out);
 
     /*
      * here we do the actual calculation with arg1 and arg2
      * as a function call.
      */
-    if (_IS_ZERO(arg2)) {
-        out1 = out = 1;
-    }
-    else if (arg2 < 0) {
-        float_ctype_power(arg1, -arg2, &out);
-        out1 = (npy_float) (1.0 / out);
-    }
-    else {
-        float_ctype_power(arg1, arg2, &out);
-    }
-
-    /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
-    if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("float_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
-            return NULL;
-        }
-        first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
-    }
-
     if (arg2 < 0) {
-        ret = PyArrayScalar_New(Float);
-        if (ret == NULL) {
-            return NULL;
-        }
-        PyArrayScalar_ASSIGN(ret, Float, out1);
+        PyErr_SetString(PyExc_ValueError,
+                "Integers to negative integer powers are not allowed.");
+        return NULL;
     }
-    else {
-        ret = PyArrayScalar_New(Float);
-        if (ret == NULL) {
-            return NULL;
-        }
-        PyArrayScalar_ASSIGN(ret, Float, out);
+    float_ctype_power(arg1, arg2, &out);
+
+    ret = PyArrayScalar_New(Float);
+    if (ret == NULL) {
+        return NULL;
     }
+    PyArrayScalar_ASSIGN(ret, Float, out);
 
     return ret;
 }
@@ -26927,7 +27182,7 @@ float_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
 #else
 
 static PyObject *
-float_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
+float_power(PyObject *a, PyObject *b, PyObject *modulo)
 {
     PyObject *ret;
     npy_float arg1, arg2;
@@ -26935,19 +27190,23 @@ float_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
     int first;
 
     npy_float out = 0;
+
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_power, float_power);
+
     switch(_float_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
         case -1:
             /* can't cast both safely mixed-types? */
-            return PyArray_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyArray_Type.tp_as_number->nb_power(a,b,modulo);
         case -2:
             /* use default handling */
             if (PyErr_Occurred()) {
                 return NULL;
             }
-            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,modulo);
         case -3:
+        default:
             /*
              * special case for longdouble and clongdouble
              * because they have a recursive getitem in their dtype
@@ -26956,7 +27215,13 @@ float_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
             return Py_NotImplemented;
     }
 
-    PyUFunc_clearfperr();
+    if (modulo != Py_None) {
+        /* modular exponentiation is not implemented (gh-8804) */
+        Py_INCREF(Py_NotImplemented);
+        return Py_NotImplemented;
+    }
+
+    npy_clear_floatstatus_barrier((char*)&out);
 
     /*
      * here we do the actual calculation with arg1 and arg2
@@ -26970,7 +27235,7 @@ float_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
     }
 
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -27003,7 +27268,7 @@ float_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
 
 #if 0
 static PyObject *
-double_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
+double_power(PyObject *a, PyObject *b, PyObject *modulo)
 {
     PyObject *ret;
     npy_double arg1, arg2;
@@ -27011,19 +27276,22 @@ double_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
     int first;
     npy_double out = {0, 0};
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_power, double_power);
+
     switch(_double_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
         case -1:
             /* can't cast both safely mixed-types? */
-            return PyArray_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyArray_Type.tp_as_number->nb_power(a,b,modulo);
         case -2:
             /* use default handling */
             if (PyErr_Occurred()) {
                 return NULL;
             }
-            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,modulo);
         case -3:
+        default:
             /*
              * special case for longdouble and clongdouble
              * because they have a recursive getitem in their dtype
@@ -27032,7 +27300,13 @@ double_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
             return Py_NotImplemented;
     }
 
-    PyUFunc_clearfperr();
+    if (modulo != Py_None) {
+        /* modular exponentiation is not implemented (gh-8804) */
+        Py_INCREF(Py_NotImplemented);
+        return Py_NotImplemented;
+    }
+
+    npy_clear_floatstatus_barrier((char*)&out);
 
     /*
      * here we do the actual calculation with arg1 and arg2
@@ -27047,7 +27321,7 @@ double_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
     }
 
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -27076,28 +27350,27 @@ double_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
 #elif 0
 
 static PyObject *
-double_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
+double_power(PyObject *a, PyObject *b, PyObject *modulo)
 {
     PyObject *ret;
-    npy_double arg1, arg2;
-    int retstatus;
-    int first;
-    npy_double out = 0;
-    npy_double out1 = 0;
+    npy_double arg1, arg2, out;
+
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_power, double_power);
 
     switch(_double_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
         case -1:
             /* can't cast both safely mixed-types? */
-            return PyArray_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyArray_Type.tp_as_number->nb_power(a,b,modulo);
         case -2:
             /* use default handling */
             if (PyErr_Occurred()) {
                 return NULL;
             }
-            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,modulo);
         case -3:
+        default:
             /*
              * special case for longdouble and clongdouble
              * because they have a recursive getitem in their dtype
@@ -27106,55 +27379,30 @@ double_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
             return Py_NotImplemented;
     }
 
-    PyUFunc_clearfperr();
+    if (modulo != Py_None) {
+        /* modular exponentiation is not implemented (gh-8804) */
+        Py_INCREF(Py_NotImplemented);
+        return Py_NotImplemented;
+    }
+
+    npy_clear_floatstatus_barrier((char*)&out);
 
     /*
      * here we do the actual calculation with arg1 and arg2
      * as a function call.
      */
-    if (_IS_ZERO(arg2)) {
-        out1 = out = 1;
-    }
-    else if (arg2 < 0) {
-        double_ctype_power(arg1, -arg2, &out);
-        out1 = (npy_double) (1.0 / out);
-    }
-    else {
-        double_ctype_power(arg1, arg2, &out);
-    }
-
-    /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
-    if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("double_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
-            return NULL;
-        }
-        first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
-    }
-
     if (arg2 < 0) {
-        ret = PyArrayScalar_New(Double);
-        if (ret == NULL) {
-            return NULL;
-        }
-        PyArrayScalar_ASSIGN(ret, Double, out1);
+        PyErr_SetString(PyExc_ValueError,
+                "Integers to negative integer powers are not allowed.");
+        return NULL;
     }
-    else {
-        ret = PyArrayScalar_New(Double);
-        if (ret == NULL) {
-            return NULL;
-        }
-        PyArrayScalar_ASSIGN(ret, Double, out);
+    double_ctype_power(arg1, arg2, &out);
+
+    ret = PyArrayScalar_New(Double);
+    if (ret == NULL) {
+        return NULL;
     }
+    PyArrayScalar_ASSIGN(ret, Double, out);
 
     return ret;
 }
@@ -27162,7 +27410,7 @@ double_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
 #else
 
 static PyObject *
-double_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
+double_power(PyObject *a, PyObject *b, PyObject *modulo)
 {
     PyObject *ret;
     npy_double arg1, arg2;
@@ -27170,19 +27418,23 @@ double_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
     int first;
 
     npy_double out = 0;
+
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_power, double_power);
+
     switch(_double_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
         case -1:
             /* can't cast both safely mixed-types? */
-            return PyArray_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyArray_Type.tp_as_number->nb_power(a,b,modulo);
         case -2:
             /* use default handling */
             if (PyErr_Occurred()) {
                 return NULL;
             }
-            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,modulo);
         case -3:
+        default:
             /*
              * special case for longdouble and clongdouble
              * because they have a recursive getitem in their dtype
@@ -27191,7 +27443,13 @@ double_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
             return Py_NotImplemented;
     }
 
-    PyUFunc_clearfperr();
+    if (modulo != Py_None) {
+        /* modular exponentiation is not implemented (gh-8804) */
+        Py_INCREF(Py_NotImplemented);
+        return Py_NotImplemented;
+    }
+
+    npy_clear_floatstatus_barrier((char*)&out);
 
     /*
      * here we do the actual calculation with arg1 and arg2
@@ -27205,7 +27463,7 @@ double_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
     }
 
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -27238,7 +27496,7 @@ double_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
 
 #if 0
 static PyObject *
-longdouble_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
+longdouble_power(PyObject *a, PyObject *b, PyObject *modulo)
 {
     PyObject *ret;
     npy_longdouble arg1, arg2;
@@ -27246,19 +27504,22 @@ longdouble_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
     int first;
     npy_longdouble out = {0, 0};
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_power, longdouble_power);
+
     switch(_longdouble_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
         case -1:
             /* can't cast both safely mixed-types? */
-            return PyArray_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyArray_Type.tp_as_number->nb_power(a,b,modulo);
         case -2:
             /* use default handling */
             if (PyErr_Occurred()) {
                 return NULL;
             }
-            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,modulo);
         case -3:
+        default:
             /*
              * special case for longdouble and clongdouble
              * because they have a recursive getitem in their dtype
@@ -27267,7 +27528,13 @@ longdouble_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
             return Py_NotImplemented;
     }
 
-    PyUFunc_clearfperr();
+    if (modulo != Py_None) {
+        /* modular exponentiation is not implemented (gh-8804) */
+        Py_INCREF(Py_NotImplemented);
+        return Py_NotImplemented;
+    }
+
+    npy_clear_floatstatus_barrier((char*)&out);
 
     /*
      * here we do the actual calculation with arg1 and arg2
@@ -27282,7 +27549,7 @@ longdouble_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
     }
 
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -27311,28 +27578,27 @@ longdouble_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
 #elif 0
 
 static PyObject *
-longdouble_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
+longdouble_power(PyObject *a, PyObject *b, PyObject *modulo)
 {
     PyObject *ret;
-    npy_longdouble arg1, arg2;
-    int retstatus;
-    int first;
-    npy_longdouble out = 0;
-    npy_longdouble out1 = 0;
+    npy_longdouble arg1, arg2, out;
+
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_power, longdouble_power);
 
     switch(_longdouble_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
         case -1:
             /* can't cast both safely mixed-types? */
-            return PyArray_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyArray_Type.tp_as_number->nb_power(a,b,modulo);
         case -2:
             /* use default handling */
             if (PyErr_Occurred()) {
                 return NULL;
             }
-            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,modulo);
         case -3:
+        default:
             /*
              * special case for longdouble and clongdouble
              * because they have a recursive getitem in their dtype
@@ -27341,55 +27607,30 @@ longdouble_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
             return Py_NotImplemented;
     }
 
-    PyUFunc_clearfperr();
+    if (modulo != Py_None) {
+        /* modular exponentiation is not implemented (gh-8804) */
+        Py_INCREF(Py_NotImplemented);
+        return Py_NotImplemented;
+    }
+
+    npy_clear_floatstatus_barrier((char*)&out);
 
     /*
      * here we do the actual calculation with arg1 and arg2
      * as a function call.
      */
-    if (_IS_ZERO(arg2)) {
-        out1 = out = 1;
-    }
-    else if (arg2 < 0) {
-        longdouble_ctype_power(arg1, -arg2, &out);
-        out1 = (npy_longdouble) (1.0 / out);
-    }
-    else {
-        longdouble_ctype_power(arg1, arg2, &out);
-    }
-
-    /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
-    if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("longdouble_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
-            return NULL;
-        }
-        first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
-    }
-
     if (arg2 < 0) {
-        ret = PyArrayScalar_New(LongDouble);
-        if (ret == NULL) {
-            return NULL;
-        }
-        PyArrayScalar_ASSIGN(ret, LongDouble, out1);
+        PyErr_SetString(PyExc_ValueError,
+                "Integers to negative integer powers are not allowed.");
+        return NULL;
     }
-    else {
-        ret = PyArrayScalar_New(LongDouble);
-        if (ret == NULL) {
-            return NULL;
-        }
-        PyArrayScalar_ASSIGN(ret, LongDouble, out);
+    longdouble_ctype_power(arg1, arg2, &out);
+
+    ret = PyArrayScalar_New(LongDouble);
+    if (ret == NULL) {
+        return NULL;
     }
+    PyArrayScalar_ASSIGN(ret, LongDouble, out);
 
     return ret;
 }
@@ -27397,7 +27638,7 @@ longdouble_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
 #else
 
 static PyObject *
-longdouble_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
+longdouble_power(PyObject *a, PyObject *b, PyObject *modulo)
 {
     PyObject *ret;
     npy_longdouble arg1, arg2;
@@ -27405,19 +27646,23 @@ longdouble_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
     int first;
 
     npy_longdouble out = 0;
+
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_power, longdouble_power);
+
     switch(_longdouble_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
         case -1:
             /* can't cast both safely mixed-types? */
-            return PyArray_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyArray_Type.tp_as_number->nb_power(a,b,modulo);
         case -2:
             /* use default handling */
             if (PyErr_Occurred()) {
                 return NULL;
             }
-            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,modulo);
         case -3:
+        default:
             /*
              * special case for longdouble and clongdouble
              * because they have a recursive getitem in their dtype
@@ -27426,7 +27671,13 @@ longdouble_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
             return Py_NotImplemented;
     }
 
-    PyUFunc_clearfperr();
+    if (modulo != Py_None) {
+        /* modular exponentiation is not implemented (gh-8804) */
+        Py_INCREF(Py_NotImplemented);
+        return Py_NotImplemented;
+    }
+
+    npy_clear_floatstatus_barrier((char*)&out);
 
     /*
      * here we do the actual calculation with arg1 and arg2
@@ -27440,7 +27691,7 @@ longdouble_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
     }
 
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -27473,7 +27724,7 @@ longdouble_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
 
 #if 1
 static PyObject *
-cfloat_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
+cfloat_power(PyObject *a, PyObject *b, PyObject *modulo)
 {
     PyObject *ret;
     npy_cfloat arg1, arg2;
@@ -27481,19 +27732,22 @@ cfloat_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
     int first;
     npy_cfloat out = {0, 0};
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_power, cfloat_power);
+
     switch(_cfloat_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
         case -1:
             /* can't cast both safely mixed-types? */
-            return PyArray_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyArray_Type.tp_as_number->nb_power(a,b,modulo);
         case -2:
             /* use default handling */
             if (PyErr_Occurred()) {
                 return NULL;
             }
-            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,modulo);
         case -3:
+        default:
             /*
              * special case for longdouble and clongdouble
              * because they have a recursive getitem in their dtype
@@ -27502,7 +27756,13 @@ cfloat_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
             return Py_NotImplemented;
     }
 
-    PyUFunc_clearfperr();
+    if (modulo != Py_None) {
+        /* modular exponentiation is not implemented (gh-8804) */
+        Py_INCREF(Py_NotImplemented);
+        return Py_NotImplemented;
+    }
+
+    npy_clear_floatstatus_barrier((char*)&out);
 
     /*
      * here we do the actual calculation with arg1 and arg2
@@ -27517,7 +27777,7 @@ cfloat_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
     }
 
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -27546,28 +27806,27 @@ cfloat_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
 #elif 0
 
 static PyObject *
-cfloat_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
+cfloat_power(PyObject *a, PyObject *b, PyObject *modulo)
 {
     PyObject *ret;
-    npy_cfloat arg1, arg2;
-    int retstatus;
-    int first;
-    npy_cfloat out = 0;
-    npy_cfloat out1 = 0;
+    npy_cfloat arg1, arg2, out;
+
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_power, cfloat_power);
 
     switch(_cfloat_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
         case -1:
             /* can't cast both safely mixed-types? */
-            return PyArray_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyArray_Type.tp_as_number->nb_power(a,b,modulo);
         case -2:
             /* use default handling */
             if (PyErr_Occurred()) {
                 return NULL;
             }
-            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,modulo);
         case -3:
+        default:
             /*
              * special case for longdouble and clongdouble
              * because they have a recursive getitem in their dtype
@@ -27576,55 +27835,30 @@ cfloat_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
             return Py_NotImplemented;
     }
 
-    PyUFunc_clearfperr();
+    if (modulo != Py_None) {
+        /* modular exponentiation is not implemented (gh-8804) */
+        Py_INCREF(Py_NotImplemented);
+        return Py_NotImplemented;
+    }
+
+    npy_clear_floatstatus_barrier((char*)&out);
 
     /*
      * here we do the actual calculation with arg1 and arg2
      * as a function call.
      */
-    if (_IS_ZERO(arg2)) {
-        out1 = out = 1;
-    }
-    else if (arg2 < 0) {
-        cfloat_ctype_power(arg1, -arg2, &out);
-        out1 = (npy_cfloat) (1.0 / out);
-    }
-    else {
-        cfloat_ctype_power(arg1, arg2, &out);
-    }
-
-    /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
-    if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("cfloat_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
-            return NULL;
-        }
-        first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
-    }
-
     if (arg2 < 0) {
-        ret = PyArrayScalar_New(CFloat);
-        if (ret == NULL) {
-            return NULL;
-        }
-        PyArrayScalar_ASSIGN(ret, CFloat, out1);
+        PyErr_SetString(PyExc_ValueError,
+                "Integers to negative integer powers are not allowed.");
+        return NULL;
     }
-    else {
-        ret = PyArrayScalar_New(CFloat);
-        if (ret == NULL) {
-            return NULL;
-        }
-        PyArrayScalar_ASSIGN(ret, CFloat, out);
+    cfloat_ctype_power(arg1, arg2, &out);
+
+    ret = PyArrayScalar_New(CFloat);
+    if (ret == NULL) {
+        return NULL;
     }
+    PyArrayScalar_ASSIGN(ret, CFloat, out);
 
     return ret;
 }
@@ -27632,7 +27866,7 @@ cfloat_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
 #else
 
 static PyObject *
-cfloat_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
+cfloat_power(PyObject *a, PyObject *b, PyObject *modulo)
 {
     PyObject *ret;
     npy_cfloat arg1, arg2;
@@ -27640,19 +27874,23 @@ cfloat_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
     int first;
 
     npy_cfloat out = 0;
+
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_power, cfloat_power);
+
     switch(_cfloat_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
         case -1:
             /* can't cast both safely mixed-types? */
-            return PyArray_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyArray_Type.tp_as_number->nb_power(a,b,modulo);
         case -2:
             /* use default handling */
             if (PyErr_Occurred()) {
                 return NULL;
             }
-            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,modulo);
         case -3:
+        default:
             /*
              * special case for longdouble and clongdouble
              * because they have a recursive getitem in their dtype
@@ -27661,7 +27899,13 @@ cfloat_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
             return Py_NotImplemented;
     }
 
-    PyUFunc_clearfperr();
+    if (modulo != Py_None) {
+        /* modular exponentiation is not implemented (gh-8804) */
+        Py_INCREF(Py_NotImplemented);
+        return Py_NotImplemented;
+    }
+
+    npy_clear_floatstatus_barrier((char*)&out);
 
     /*
      * here we do the actual calculation with arg1 and arg2
@@ -27675,7 +27919,7 @@ cfloat_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
     }
 
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -27708,7 +27952,7 @@ cfloat_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
 
 #if 1
 static PyObject *
-cdouble_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
+cdouble_power(PyObject *a, PyObject *b, PyObject *modulo)
 {
     PyObject *ret;
     npy_cdouble arg1, arg2;
@@ -27716,19 +27960,22 @@ cdouble_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
     int first;
     npy_cdouble out = {0, 0};
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_power, cdouble_power);
+
     switch(_cdouble_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
         case -1:
             /* can't cast both safely mixed-types? */
-            return PyArray_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyArray_Type.tp_as_number->nb_power(a,b,modulo);
         case -2:
             /* use default handling */
             if (PyErr_Occurred()) {
                 return NULL;
             }
-            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,modulo);
         case -3:
+        default:
             /*
              * special case for longdouble and clongdouble
              * because they have a recursive getitem in their dtype
@@ -27737,7 +27984,13 @@ cdouble_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
             return Py_NotImplemented;
     }
 
-    PyUFunc_clearfperr();
+    if (modulo != Py_None) {
+        /* modular exponentiation is not implemented (gh-8804) */
+        Py_INCREF(Py_NotImplemented);
+        return Py_NotImplemented;
+    }
+
+    npy_clear_floatstatus_barrier((char*)&out);
 
     /*
      * here we do the actual calculation with arg1 and arg2
@@ -27752,7 +28005,7 @@ cdouble_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
     }
 
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -27781,28 +28034,27 @@ cdouble_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
 #elif 0
 
 static PyObject *
-cdouble_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
+cdouble_power(PyObject *a, PyObject *b, PyObject *modulo)
 {
     PyObject *ret;
-    npy_cdouble arg1, arg2;
-    int retstatus;
-    int first;
-    npy_cdouble out = 0;
-    npy_cdouble out1 = 0;
+    npy_cdouble arg1, arg2, out;
+
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_power, cdouble_power);
 
     switch(_cdouble_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
         case -1:
             /* can't cast both safely mixed-types? */
-            return PyArray_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyArray_Type.tp_as_number->nb_power(a,b,modulo);
         case -2:
             /* use default handling */
             if (PyErr_Occurred()) {
                 return NULL;
             }
-            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,modulo);
         case -3:
+        default:
             /*
              * special case for longdouble and clongdouble
              * because they have a recursive getitem in their dtype
@@ -27811,55 +28063,30 @@ cdouble_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
             return Py_NotImplemented;
     }
 
-    PyUFunc_clearfperr();
+    if (modulo != Py_None) {
+        /* modular exponentiation is not implemented (gh-8804) */
+        Py_INCREF(Py_NotImplemented);
+        return Py_NotImplemented;
+    }
+
+    npy_clear_floatstatus_barrier((char*)&out);
 
     /*
      * here we do the actual calculation with arg1 and arg2
      * as a function call.
      */
-    if (_IS_ZERO(arg2)) {
-        out1 = out = 1;
-    }
-    else if (arg2 < 0) {
-        cdouble_ctype_power(arg1, -arg2, &out);
-        out1 = (npy_cdouble) (1.0 / out);
-    }
-    else {
-        cdouble_ctype_power(arg1, arg2, &out);
-    }
-
-    /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
-    if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("cdouble_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
-            return NULL;
-        }
-        first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
-    }
-
     if (arg2 < 0) {
-        ret = PyArrayScalar_New(CDouble);
-        if (ret == NULL) {
-            return NULL;
-        }
-        PyArrayScalar_ASSIGN(ret, CDouble, out1);
+        PyErr_SetString(PyExc_ValueError,
+                "Integers to negative integer powers are not allowed.");
+        return NULL;
     }
-    else {
-        ret = PyArrayScalar_New(CDouble);
-        if (ret == NULL) {
-            return NULL;
-        }
-        PyArrayScalar_ASSIGN(ret, CDouble, out);
+    cdouble_ctype_power(arg1, arg2, &out);
+
+    ret = PyArrayScalar_New(CDouble);
+    if (ret == NULL) {
+        return NULL;
     }
+    PyArrayScalar_ASSIGN(ret, CDouble, out);
 
     return ret;
 }
@@ -27867,7 +28094,7 @@ cdouble_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
 #else
 
 static PyObject *
-cdouble_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
+cdouble_power(PyObject *a, PyObject *b, PyObject *modulo)
 {
     PyObject *ret;
     npy_cdouble arg1, arg2;
@@ -27875,19 +28102,23 @@ cdouble_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
     int first;
 
     npy_cdouble out = 0;
+
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_power, cdouble_power);
+
     switch(_cdouble_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
         case -1:
             /* can't cast both safely mixed-types? */
-            return PyArray_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyArray_Type.tp_as_number->nb_power(a,b,modulo);
         case -2:
             /* use default handling */
             if (PyErr_Occurred()) {
                 return NULL;
             }
-            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,modulo);
         case -3:
+        default:
             /*
              * special case for longdouble and clongdouble
              * because they have a recursive getitem in their dtype
@@ -27896,7 +28127,13 @@ cdouble_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
             return Py_NotImplemented;
     }
 
-    PyUFunc_clearfperr();
+    if (modulo != Py_None) {
+        /* modular exponentiation is not implemented (gh-8804) */
+        Py_INCREF(Py_NotImplemented);
+        return Py_NotImplemented;
+    }
+
+    npy_clear_floatstatus_barrier((char*)&out);
 
     /*
      * here we do the actual calculation with arg1 and arg2
@@ -27910,7 +28147,7 @@ cdouble_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
     }
 
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -27943,7 +28180,7 @@ cdouble_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
 
 #if 1
 static PyObject *
-clongdouble_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
+clongdouble_power(PyObject *a, PyObject *b, PyObject *modulo)
 {
     PyObject *ret;
     npy_clongdouble arg1, arg2;
@@ -27951,19 +28188,22 @@ clongdouble_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
     int first;
     npy_clongdouble out = {0, 0};
 
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_power, clongdouble_power);
+
     switch(_clongdouble_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
         case -1:
             /* can't cast both safely mixed-types? */
-            return PyArray_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyArray_Type.tp_as_number->nb_power(a,b,modulo);
         case -2:
             /* use default handling */
             if (PyErr_Occurred()) {
                 return NULL;
             }
-            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,modulo);
         case -3:
+        default:
             /*
              * special case for longdouble and clongdouble
              * because they have a recursive getitem in their dtype
@@ -27972,7 +28212,13 @@ clongdouble_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
             return Py_NotImplemented;
     }
 
-    PyUFunc_clearfperr();
+    if (modulo != Py_None) {
+        /* modular exponentiation is not implemented (gh-8804) */
+        Py_INCREF(Py_NotImplemented);
+        return Py_NotImplemented;
+    }
+
+    npy_clear_floatstatus_barrier((char*)&out);
 
     /*
      * here we do the actual calculation with arg1 and arg2
@@ -27987,7 +28233,7 @@ clongdouble_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
     }
 
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -28016,28 +28262,27 @@ clongdouble_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
 #elif 0
 
 static PyObject *
-clongdouble_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
+clongdouble_power(PyObject *a, PyObject *b, PyObject *modulo)
 {
     PyObject *ret;
-    npy_clongdouble arg1, arg2;
-    int retstatus;
-    int first;
-    npy_clongdouble out = 0;
-    npy_clongdouble out1 = 0;
+    npy_clongdouble arg1, arg2, out;
+
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_power, clongdouble_power);
 
     switch(_clongdouble_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
         case -1:
             /* can't cast both safely mixed-types? */
-            return PyArray_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyArray_Type.tp_as_number->nb_power(a,b,modulo);
         case -2:
             /* use default handling */
             if (PyErr_Occurred()) {
                 return NULL;
             }
-            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,modulo);
         case -3:
+        default:
             /*
              * special case for longdouble and clongdouble
              * because they have a recursive getitem in their dtype
@@ -28046,55 +28291,30 @@ clongdouble_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
             return Py_NotImplemented;
     }
 
-    PyUFunc_clearfperr();
+    if (modulo != Py_None) {
+        /* modular exponentiation is not implemented (gh-8804) */
+        Py_INCREF(Py_NotImplemented);
+        return Py_NotImplemented;
+    }
+
+    npy_clear_floatstatus_barrier((char*)&out);
 
     /*
      * here we do the actual calculation with arg1 and arg2
      * as a function call.
      */
-    if (_IS_ZERO(arg2)) {
-        out1 = out = 1;
-    }
-    else if (arg2 < 0) {
-        clongdouble_ctype_power(arg1, -arg2, &out);
-        out1 = (npy_clongdouble) (1.0 / out);
-    }
-    else {
-        clongdouble_ctype_power(arg1, arg2, &out);
-    }
-
-    /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
-    if (retstatus) {
-        int bufsize, errmask;
-        PyObject *errobj;
-
-        if (PyUFunc_GetPyValues("clongdouble_scalars", &bufsize, &errmask,
-                                &errobj) < 0) {
-            return NULL;
-        }
-        first = 1;
-        if (PyUFunc_handlefperr(errmask, errobj, retstatus, &first)) {
-            Py_XDECREF(errobj);
-            return NULL;
-        }
-        Py_XDECREF(errobj);
-    }
-
     if (arg2 < 0) {
-        ret = PyArrayScalar_New(CLongDouble);
-        if (ret == NULL) {
-            return NULL;
-        }
-        PyArrayScalar_ASSIGN(ret, CLongDouble, out1);
+        PyErr_SetString(PyExc_ValueError,
+                "Integers to negative integer powers are not allowed.");
+        return NULL;
     }
-    else {
-        ret = PyArrayScalar_New(CLongDouble);
-        if (ret == NULL) {
-            return NULL;
-        }
-        PyArrayScalar_ASSIGN(ret, CLongDouble, out);
+    clongdouble_ctype_power(arg1, arg2, &out);
+
+    ret = PyArrayScalar_New(CLongDouble);
+    if (ret == NULL) {
+        return NULL;
     }
+    PyArrayScalar_ASSIGN(ret, CLongDouble, out);
 
     return ret;
 }
@@ -28102,7 +28322,7 @@ clongdouble_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
 #else
 
 static PyObject *
-clongdouble_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
+clongdouble_power(PyObject *a, PyObject *b, PyObject *modulo)
 {
     PyObject *ret;
     npy_clongdouble arg1, arg2;
@@ -28110,19 +28330,23 @@ clongdouble_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
     int first;
 
     npy_clongdouble out = 0;
+
+    BINOP_GIVE_UP_IF_NEEDED(a, b, nb_power, clongdouble_power);
+
     switch(_clongdouble_convert2_to_ctypes(a, &arg1, b, &arg2)) {
         case 0:
             break;
         case -1:
             /* can't cast both safely mixed-types? */
-            return PyArray_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyArray_Type.tp_as_number->nb_power(a,b,modulo);
         case -2:
             /* use default handling */
             if (PyErr_Occurred()) {
                 return NULL;
             }
-            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,NULL);
+            return PyGenericArrType_Type.tp_as_number->nb_power(a,b,modulo);
         case -3:
+        default:
             /*
              * special case for longdouble and clongdouble
              * because they have a recursive getitem in their dtype
@@ -28131,7 +28355,13 @@ clongdouble_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
             return Py_NotImplemented;
     }
 
-    PyUFunc_clearfperr();
+    if (modulo != Py_None) {
+        /* modular exponentiation is not implemented (gh-8804) */
+        Py_INCREF(Py_NotImplemented);
+        return Py_NotImplemented;
+    }
+
+    npy_clear_floatstatus_barrier((char*)&out);
 
     /*
      * here we do the actual calculation with arg1 and arg2
@@ -28145,7 +28375,7 @@ clongdouble_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
     }
 
     /* Check status flag.  If it is set, then look up what to do */
-    retstatus = PyUFunc_getfperr();
+    retstatus = npy_get_floatstatus_barrier((char*)&out);
     if (retstatus) {
         int bufsize, errmask;
         PyObject *errobj;
@@ -28177,42 +28407,42 @@ clongdouble_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
 #undef _IS_ZERO
 
 
-#line 1195
+#line 1188
 
-#line 1201
+#line 1194
 
 #define cfloat_divmod NULL
 
 
-#line 1201
+#line 1194
 
 #define cfloat_remainder NULL
 
 
 
 
-#line 1195
+#line 1188
 
-#line 1201
+#line 1194
 
 #define cdouble_divmod NULL
 
 
-#line 1201
+#line 1194
 
 #define cdouble_remainder NULL
 
 
 
 
-#line 1195
+#line 1188
 
-#line 1201
+#line 1194
 
 #define clongdouble_divmod NULL
 
 
-#line 1201
+#line 1194
 
 #define clongdouble_remainder NULL
 
@@ -28220,203 +28450,203 @@ clongdouble_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
 
 
 
-#line 1213
+#line 1206
 
-#line 1219
+#line 1212
 
 #define half_lshift NULL
 
 
-#line 1219
+#line 1212
 
 #define half_rshift NULL
 
 
-#line 1219
+#line 1212
 
 #define half_and NULL
 
 
-#line 1219
+#line 1212
 
 #define half_or NULL
 
 
-#line 1219
+#line 1212
 
 #define half_xor NULL
 
 
 
 
-#line 1213
+#line 1206
 
-#line 1219
+#line 1212
 
 #define float_lshift NULL
 
 
-#line 1219
+#line 1212
 
 #define float_rshift NULL
 
 
-#line 1219
+#line 1212
 
 #define float_and NULL
 
 
-#line 1219
+#line 1212
 
 #define float_or NULL
 
 
-#line 1219
+#line 1212
 
 #define float_xor NULL
 
 
 
 
-#line 1213
+#line 1206
 
-#line 1219
+#line 1212
 
 #define double_lshift NULL
 
 
-#line 1219
+#line 1212
 
 #define double_rshift NULL
 
 
-#line 1219
+#line 1212
 
 #define double_and NULL
 
 
-#line 1219
+#line 1212
 
 #define double_or NULL
 
 
-#line 1219
+#line 1212
 
 #define double_xor NULL
 
 
 
 
-#line 1213
+#line 1206
 
-#line 1219
+#line 1212
 
 #define longdouble_lshift NULL
 
 
-#line 1219
+#line 1212
 
 #define longdouble_rshift NULL
 
 
-#line 1219
+#line 1212
 
 #define longdouble_and NULL
 
 
-#line 1219
+#line 1212
 
 #define longdouble_or NULL
 
 
-#line 1219
+#line 1212
 
 #define longdouble_xor NULL
 
 
 
 
-#line 1213
+#line 1206
 
-#line 1219
+#line 1212
 
 #define cfloat_lshift NULL
 
 
-#line 1219
+#line 1212
 
 #define cfloat_rshift NULL
 
 
-#line 1219
+#line 1212
 
 #define cfloat_and NULL
 
 
-#line 1219
+#line 1212
 
 #define cfloat_or NULL
 
 
-#line 1219
+#line 1212
 
 #define cfloat_xor NULL
 
 
 
 
-#line 1213
+#line 1206
 
-#line 1219
+#line 1212
 
 #define cdouble_lshift NULL
 
 
-#line 1219
+#line 1212
 
 #define cdouble_rshift NULL
 
 
-#line 1219
+#line 1212
 
 #define cdouble_and NULL
 
 
-#line 1219
+#line 1212
 
 #define cdouble_or NULL
 
 
-#line 1219
+#line 1212
 
 #define cdouble_xor NULL
 
 
 
 
-#line 1213
+#line 1206
 
-#line 1219
+#line 1212
 
 #define clongdouble_lshift NULL
 
 
-#line 1219
+#line 1212
 
 #define clongdouble_rshift NULL
 
 
-#line 1219
+#line 1212
 
 #define clongdouble_and NULL
 
 
-#line 1219
+#line 1212
 
 #define clongdouble_or NULL
 
 
-#line 1219
+#line 1212
 
 #define clongdouble_xor NULL
 
@@ -28424,7 +28654,7 @@ clongdouble_power(PyObject *a, PyObject *b, PyObject *NPY_UNUSED(c))
 
 
 
-#line 1269
+#line 1262
 static PyObject *
 byte_negative(PyObject *a)
 {
@@ -28460,7 +28690,7 @@ byte_negative(PyObject *a)
     return ret;
 }
 
-#line 1269
+#line 1262
 static PyObject *
 ubyte_negative(PyObject *a)
 {
@@ -28496,7 +28726,7 @@ ubyte_negative(PyObject *a)
     return ret;
 }
 
-#line 1269
+#line 1262
 static PyObject *
 short_negative(PyObject *a)
 {
@@ -28532,7 +28762,7 @@ short_negative(PyObject *a)
     return ret;
 }
 
-#line 1269
+#line 1262
 static PyObject *
 ushort_negative(PyObject *a)
 {
@@ -28568,7 +28798,7 @@ ushort_negative(PyObject *a)
     return ret;
 }
 
-#line 1269
+#line 1262
 static PyObject *
 int_negative(PyObject *a)
 {
@@ -28604,7 +28834,7 @@ int_negative(PyObject *a)
     return ret;
 }
 
-#line 1269
+#line 1262
 static PyObject *
 uint_negative(PyObject *a)
 {
@@ -28640,7 +28870,7 @@ uint_negative(PyObject *a)
     return ret;
 }
 
-#line 1269
+#line 1262
 static PyObject *
 long_negative(PyObject *a)
 {
@@ -28676,7 +28906,7 @@ long_negative(PyObject *a)
     return ret;
 }
 
-#line 1269
+#line 1262
 static PyObject *
 ulong_negative(PyObject *a)
 {
@@ -28712,7 +28942,7 @@ ulong_negative(PyObject *a)
     return ret;
 }
 
-#line 1269
+#line 1262
 static PyObject *
 longlong_negative(PyObject *a)
 {
@@ -28748,7 +28978,7 @@ longlong_negative(PyObject *a)
     return ret;
 }
 
-#line 1269
+#line 1262
 static PyObject *
 ulonglong_negative(PyObject *a)
 {
@@ -28784,7 +29014,7 @@ ulonglong_negative(PyObject *a)
     return ret;
 }
 
-#line 1269
+#line 1262
 static PyObject *
 half_negative(PyObject *a)
 {
@@ -28820,7 +29050,7 @@ half_negative(PyObject *a)
     return ret;
 }
 
-#line 1269
+#line 1262
 static PyObject *
 float_negative(PyObject *a)
 {
@@ -28856,7 +29086,7 @@ float_negative(PyObject *a)
     return ret;
 }
 
-#line 1269
+#line 1262
 static PyObject *
 double_negative(PyObject *a)
 {
@@ -28892,7 +29122,7 @@ double_negative(PyObject *a)
     return ret;
 }
 
-#line 1269
+#line 1262
 static PyObject *
 longdouble_negative(PyObject *a)
 {
@@ -28928,7 +29158,7 @@ longdouble_negative(PyObject *a)
     return ret;
 }
 
-#line 1269
+#line 1262
 static PyObject *
 cfloat_negative(PyObject *a)
 {
@@ -28964,7 +29194,7 @@ cfloat_negative(PyObject *a)
     return ret;
 }
 
-#line 1269
+#line 1262
 static PyObject *
 cdouble_negative(PyObject *a)
 {
@@ -29000,7 +29230,7 @@ cdouble_negative(PyObject *a)
     return ret;
 }
 
-#line 1269
+#line 1262
 static PyObject *
 clongdouble_negative(PyObject *a)
 {
@@ -29036,7 +29266,7 @@ clongdouble_negative(PyObject *a)
     return ret;
 }
 
-#line 1269
+#line 1262
 static PyObject *
 byte_positive(PyObject *a)
 {
@@ -29072,7 +29302,7 @@ byte_positive(PyObject *a)
     return ret;
 }
 
-#line 1269
+#line 1262
 static PyObject *
 ubyte_positive(PyObject *a)
 {
@@ -29108,7 +29338,7 @@ ubyte_positive(PyObject *a)
     return ret;
 }
 
-#line 1269
+#line 1262
 static PyObject *
 short_positive(PyObject *a)
 {
@@ -29144,7 +29374,7 @@ short_positive(PyObject *a)
     return ret;
 }
 
-#line 1269
+#line 1262
 static PyObject *
 ushort_positive(PyObject *a)
 {
@@ -29180,7 +29410,7 @@ ushort_positive(PyObject *a)
     return ret;
 }
 
-#line 1269
+#line 1262
 static PyObject *
 int_positive(PyObject *a)
 {
@@ -29216,7 +29446,7 @@ int_positive(PyObject *a)
     return ret;
 }
 
-#line 1269
+#line 1262
 static PyObject *
 uint_positive(PyObject *a)
 {
@@ -29252,7 +29482,7 @@ uint_positive(PyObject *a)
     return ret;
 }
 
-#line 1269
+#line 1262
 static PyObject *
 long_positive(PyObject *a)
 {
@@ -29288,7 +29518,7 @@ long_positive(PyObject *a)
     return ret;
 }
 
-#line 1269
+#line 1262
 static PyObject *
 ulong_positive(PyObject *a)
 {
@@ -29324,7 +29554,7 @@ ulong_positive(PyObject *a)
     return ret;
 }
 
-#line 1269
+#line 1262
 static PyObject *
 longlong_positive(PyObject *a)
 {
@@ -29360,7 +29590,7 @@ longlong_positive(PyObject *a)
     return ret;
 }
 
-#line 1269
+#line 1262
 static PyObject *
 ulonglong_positive(PyObject *a)
 {
@@ -29396,7 +29626,7 @@ ulonglong_positive(PyObject *a)
     return ret;
 }
 
-#line 1269
+#line 1262
 static PyObject *
 half_positive(PyObject *a)
 {
@@ -29432,7 +29662,7 @@ half_positive(PyObject *a)
     return ret;
 }
 
-#line 1269
+#line 1262
 static PyObject *
 float_positive(PyObject *a)
 {
@@ -29468,7 +29698,7 @@ float_positive(PyObject *a)
     return ret;
 }
 
-#line 1269
+#line 1262
 static PyObject *
 double_positive(PyObject *a)
 {
@@ -29504,7 +29734,7 @@ double_positive(PyObject *a)
     return ret;
 }
 
-#line 1269
+#line 1262
 static PyObject *
 longdouble_positive(PyObject *a)
 {
@@ -29540,7 +29770,7 @@ longdouble_positive(PyObject *a)
     return ret;
 }
 
-#line 1269
+#line 1262
 static PyObject *
 cfloat_positive(PyObject *a)
 {
@@ -29576,7 +29806,7 @@ cfloat_positive(PyObject *a)
     return ret;
 }
 
-#line 1269
+#line 1262
 static PyObject *
 cdouble_positive(PyObject *a)
 {
@@ -29612,7 +29842,7 @@ cdouble_positive(PyObject *a)
     return ret;
 }
 
-#line 1269
+#line 1262
 static PyObject *
 clongdouble_positive(PyObject *a)
 {
@@ -29648,7 +29878,7 @@ clongdouble_positive(PyObject *a)
     return ret;
 }
 
-#line 1269
+#line 1262
 static PyObject *
 byte_absolute(PyObject *a)
 {
@@ -29684,7 +29914,7 @@ byte_absolute(PyObject *a)
     return ret;
 }
 
-#line 1269
+#line 1262
 static PyObject *
 ubyte_absolute(PyObject *a)
 {
@@ -29720,7 +29950,7 @@ ubyte_absolute(PyObject *a)
     return ret;
 }
 
-#line 1269
+#line 1262
 static PyObject *
 short_absolute(PyObject *a)
 {
@@ -29756,7 +29986,7 @@ short_absolute(PyObject *a)
     return ret;
 }
 
-#line 1269
+#line 1262
 static PyObject *
 ushort_absolute(PyObject *a)
 {
@@ -29792,7 +30022,7 @@ ushort_absolute(PyObject *a)
     return ret;
 }
 
-#line 1269
+#line 1262
 static PyObject *
 int_absolute(PyObject *a)
 {
@@ -29828,7 +30058,7 @@ int_absolute(PyObject *a)
     return ret;
 }
 
-#line 1269
+#line 1262
 static PyObject *
 uint_absolute(PyObject *a)
 {
@@ -29864,7 +30094,7 @@ uint_absolute(PyObject *a)
     return ret;
 }
 
-#line 1269
+#line 1262
 static PyObject *
 long_absolute(PyObject *a)
 {
@@ -29900,7 +30130,7 @@ long_absolute(PyObject *a)
     return ret;
 }
 
-#line 1269
+#line 1262
 static PyObject *
 ulong_absolute(PyObject *a)
 {
@@ -29936,7 +30166,7 @@ ulong_absolute(PyObject *a)
     return ret;
 }
 
-#line 1269
+#line 1262
 static PyObject *
 longlong_absolute(PyObject *a)
 {
@@ -29972,7 +30202,7 @@ longlong_absolute(PyObject *a)
     return ret;
 }
 
-#line 1269
+#line 1262
 static PyObject *
 ulonglong_absolute(PyObject *a)
 {
@@ -30008,7 +30238,7 @@ ulonglong_absolute(PyObject *a)
     return ret;
 }
 
-#line 1269
+#line 1262
 static PyObject *
 half_absolute(PyObject *a)
 {
@@ -30044,7 +30274,7 @@ half_absolute(PyObject *a)
     return ret;
 }
 
-#line 1269
+#line 1262
 static PyObject *
 float_absolute(PyObject *a)
 {
@@ -30080,7 +30310,7 @@ float_absolute(PyObject *a)
     return ret;
 }
 
-#line 1269
+#line 1262
 static PyObject *
 double_absolute(PyObject *a)
 {
@@ -30116,7 +30346,7 @@ double_absolute(PyObject *a)
     return ret;
 }
 
-#line 1269
+#line 1262
 static PyObject *
 longdouble_absolute(PyObject *a)
 {
@@ -30152,7 +30382,7 @@ longdouble_absolute(PyObject *a)
     return ret;
 }
 
-#line 1269
+#line 1262
 static PyObject *
 cfloat_absolute(PyObject *a)
 {
@@ -30188,7 +30418,7 @@ cfloat_absolute(PyObject *a)
     return ret;
 }
 
-#line 1269
+#line 1262
 static PyObject *
 cdouble_absolute(PyObject *a)
 {
@@ -30224,7 +30454,7 @@ cdouble_absolute(PyObject *a)
     return ret;
 }
 
-#line 1269
+#line 1262
 static PyObject *
 clongdouble_absolute(PyObject *a)
 {
@@ -30260,7 +30490,7 @@ clongdouble_absolute(PyObject *a)
     return ret;
 }
 
-#line 1269
+#line 1262
 static PyObject *
 byte_invert(PyObject *a)
 {
@@ -30296,7 +30526,7 @@ byte_invert(PyObject *a)
     return ret;
 }
 
-#line 1269
+#line 1262
 static PyObject *
 ubyte_invert(PyObject *a)
 {
@@ -30332,7 +30562,7 @@ ubyte_invert(PyObject *a)
     return ret;
 }
 
-#line 1269
+#line 1262
 static PyObject *
 short_invert(PyObject *a)
 {
@@ -30368,7 +30598,7 @@ short_invert(PyObject *a)
     return ret;
 }
 
-#line 1269
+#line 1262
 static PyObject *
 ushort_invert(PyObject *a)
 {
@@ -30404,7 +30634,7 @@ ushort_invert(PyObject *a)
     return ret;
 }
 
-#line 1269
+#line 1262
 static PyObject *
 int_invert(PyObject *a)
 {
@@ -30440,7 +30670,7 @@ int_invert(PyObject *a)
     return ret;
 }
 
-#line 1269
+#line 1262
 static PyObject *
 uint_invert(PyObject *a)
 {
@@ -30476,7 +30706,7 @@ uint_invert(PyObject *a)
     return ret;
 }
 
-#line 1269
+#line 1262
 static PyObject *
 long_invert(PyObject *a)
 {
@@ -30512,7 +30742,7 @@ long_invert(PyObject *a)
     return ret;
 }
 
-#line 1269
+#line 1262
 static PyObject *
 ulong_invert(PyObject *a)
 {
@@ -30548,7 +30778,7 @@ ulong_invert(PyObject *a)
     return ret;
 }
 
-#line 1269
+#line 1262
 static PyObject *
 longlong_invert(PyObject *a)
 {
@@ -30584,7 +30814,7 @@ longlong_invert(PyObject *a)
     return ret;
 }
 
-#line 1269
+#line 1262
 static PyObject *
 ulonglong_invert(PyObject *a)
 {
@@ -30621,37 +30851,37 @@ ulonglong_invert(PyObject *a)
 }
 
 
-#line 1309
+#line 1302
 
 #define half_invert NULL
 
 
-#line 1309
+#line 1302
 
 #define float_invert NULL
 
 
-#line 1309
+#line 1302
 
 #define double_invert NULL
 
 
-#line 1309
+#line 1302
 
 #define longdouble_invert NULL
 
 
-#line 1309
+#line 1302
 
 #define cfloat_invert NULL
 
 
-#line 1309
+#line 1302
 
 #define cdouble_invert NULL
 
 
-#line 1309
+#line 1302
 
 #define clongdouble_invert NULL
 
@@ -30664,7 +30894,7 @@ ulonglong_invert(PyObject *a)
 #endif
 
 #define _IS_NONZERO(x) (x != 0)
-#line 1334
+#line 1327
 static int
 NONZERO_NAME(byte_)(PyObject *a)
 {
@@ -30692,7 +30922,7 @@ NONZERO_NAME(byte_)(PyObject *a)
     return ret;
 }
 
-#line 1334
+#line 1327
 static int
 NONZERO_NAME(ubyte_)(PyObject *a)
 {
@@ -30720,7 +30950,7 @@ NONZERO_NAME(ubyte_)(PyObject *a)
     return ret;
 }
 
-#line 1334
+#line 1327
 static int
 NONZERO_NAME(short_)(PyObject *a)
 {
@@ -30748,7 +30978,7 @@ NONZERO_NAME(short_)(PyObject *a)
     return ret;
 }
 
-#line 1334
+#line 1327
 static int
 NONZERO_NAME(ushort_)(PyObject *a)
 {
@@ -30776,7 +31006,7 @@ NONZERO_NAME(ushort_)(PyObject *a)
     return ret;
 }
 
-#line 1334
+#line 1327
 static int
 NONZERO_NAME(int_)(PyObject *a)
 {
@@ -30804,7 +31034,7 @@ NONZERO_NAME(int_)(PyObject *a)
     return ret;
 }
 
-#line 1334
+#line 1327
 static int
 NONZERO_NAME(uint_)(PyObject *a)
 {
@@ -30832,7 +31062,7 @@ NONZERO_NAME(uint_)(PyObject *a)
     return ret;
 }
 
-#line 1334
+#line 1327
 static int
 NONZERO_NAME(long_)(PyObject *a)
 {
@@ -30860,7 +31090,7 @@ NONZERO_NAME(long_)(PyObject *a)
     return ret;
 }
 
-#line 1334
+#line 1327
 static int
 NONZERO_NAME(ulong_)(PyObject *a)
 {
@@ -30888,7 +31118,7 @@ NONZERO_NAME(ulong_)(PyObject *a)
     return ret;
 }
 
-#line 1334
+#line 1327
 static int
 NONZERO_NAME(longlong_)(PyObject *a)
 {
@@ -30916,7 +31146,7 @@ NONZERO_NAME(longlong_)(PyObject *a)
     return ret;
 }
 
-#line 1334
+#line 1327
 static int
 NONZERO_NAME(ulonglong_)(PyObject *a)
 {
@@ -30944,7 +31174,7 @@ NONZERO_NAME(ulonglong_)(PyObject *a)
     return ret;
 }
 
-#line 1334
+#line 1327
 static int
 NONZERO_NAME(half_)(PyObject *a)
 {
@@ -30972,7 +31202,7 @@ NONZERO_NAME(half_)(PyObject *a)
     return ret;
 }
 
-#line 1334
+#line 1327
 static int
 NONZERO_NAME(float_)(PyObject *a)
 {
@@ -31000,7 +31230,7 @@ NONZERO_NAME(float_)(PyObject *a)
     return ret;
 }
 
-#line 1334
+#line 1327
 static int
 NONZERO_NAME(double_)(PyObject *a)
 {
@@ -31028,7 +31258,7 @@ NONZERO_NAME(double_)(PyObject *a)
     return ret;
 }
 
-#line 1334
+#line 1327
 static int
 NONZERO_NAME(longdouble_)(PyObject *a)
 {
@@ -31056,7 +31286,7 @@ NONZERO_NAME(longdouble_)(PyObject *a)
     return ret;
 }
 
-#line 1334
+#line 1327
 static int
 NONZERO_NAME(cfloat_)(PyObject *a)
 {
@@ -31084,7 +31314,7 @@ NONZERO_NAME(cfloat_)(PyObject *a)
     return ret;
 }
 
-#line 1334
+#line 1327
 static int
 NONZERO_NAME(cdouble_)(PyObject *a)
 {
@@ -31112,7 +31342,7 @@ NONZERO_NAME(cdouble_)(PyObject *a)
     return ret;
 }
 
-#line 1334
+#line 1327
 static int
 NONZERO_NAME(clongdouble_)(PyObject *a)
 {
@@ -31159,1124 +31389,1073 @@ emit_complexwarning(void)
             "Casting complex values to real discards the imaginary part", 1);
 }
 
-#line 1402
+#line 1395
 static PyObject *
 byte_int(PyObject *obj)
 {
+    PyObject *long_result;
+
 #if 0
-    signed long x= (PyArrayScalar_VAL(obj, Byte).real);
-    int ret;
+    signed long x = (PyArrayScalar_VAL(obj, Byte).real);
 #else
-    signed long x= (PyArrayScalar_VAL(obj, Byte));
+    signed long x = (PyArrayScalar_VAL(obj, Byte));
 #endif
 
 #if 0
-    double ix;
-    modf(x, &ix);
-    x = ix;
-#endif
-
-#if 0
-    ret = emit_complexwarning();
-    if (ret < 0) {
+    if (emit_complexwarning() < 0) {
         return NULL;
     }
 #endif
 
-#if 0
-    if(x < LONG_MAX)
-        return PyInt_FromLong(x);
-#else
-    if(LONG_MIN < x && x < LONG_MAX)
-        return PyInt_FromLong(x);
+    long_result = PyLong_FromLong(x);
+    if (long_result == NULL){
+        return NULL;
+    }
+
+#ifndef NPY_PY3K
+    /* Invoke long.__int__ to try to downcast */
+    {
+        PyObject *before_downcast = long_result;
+        long_result = Py_TYPE(long_result)->tp_as_number->nb_int(long_result);
+        Py_DECREF(before_downcast);
+    }
 #endif
-    return PyLong_FromLong(x);
+
+    return long_result;
 }
 
-#line 1402
+#line 1395
 static PyObject *
 ubyte_int(PyObject *obj)
 {
+    PyObject *long_result;
+
 #if 0
-    unsigned long x= (PyArrayScalar_VAL(obj, UByte).real);
-    int ret;
+    unsigned long x = (PyArrayScalar_VAL(obj, UByte).real);
 #else
-    unsigned long x= (PyArrayScalar_VAL(obj, UByte));
+    unsigned long x = (PyArrayScalar_VAL(obj, UByte));
 #endif
 
 #if 0
-    double ix;
-    modf(x, &ix);
-    x = ix;
-#endif
-
-#if 0
-    ret = emit_complexwarning();
-    if (ret < 0) {
+    if (emit_complexwarning() < 0) {
         return NULL;
     }
 #endif
 
-#if 1
-    if(x < LONG_MAX)
-        return PyInt_FromLong(x);
-#else
-    if(LONG_MIN < x && x < LONG_MAX)
-        return PyInt_FromLong(x);
+    long_result = PyLong_FromUnsignedLong(x);
+    if (long_result == NULL){
+        return NULL;
+    }
+
+#ifndef NPY_PY3K
+    /* Invoke long.__int__ to try to downcast */
+    {
+        PyObject *before_downcast = long_result;
+        long_result = Py_TYPE(long_result)->tp_as_number->nb_int(long_result);
+        Py_DECREF(before_downcast);
+    }
 #endif
-    return PyLong_FromUnsignedLong(x);
+
+    return long_result;
 }
 
-#line 1402
+#line 1395
 static PyObject *
 short_int(PyObject *obj)
 {
+    PyObject *long_result;
+
 #if 0
-    signed long x= (PyArrayScalar_VAL(obj, Short).real);
-    int ret;
+    signed long x = (PyArrayScalar_VAL(obj, Short).real);
 #else
-    signed long x= (PyArrayScalar_VAL(obj, Short));
+    signed long x = (PyArrayScalar_VAL(obj, Short));
 #endif
 
 #if 0
-    double ix;
-    modf(x, &ix);
-    x = ix;
-#endif
-
-#if 0
-    ret = emit_complexwarning();
-    if (ret < 0) {
+    if (emit_complexwarning() < 0) {
         return NULL;
     }
 #endif
 
-#if 0
-    if(x < LONG_MAX)
-        return PyInt_FromLong(x);
-#else
-    if(LONG_MIN < x && x < LONG_MAX)
-        return PyInt_FromLong(x);
+    long_result = PyLong_FromLong(x);
+    if (long_result == NULL){
+        return NULL;
+    }
+
+#ifndef NPY_PY3K
+    /* Invoke long.__int__ to try to downcast */
+    {
+        PyObject *before_downcast = long_result;
+        long_result = Py_TYPE(long_result)->tp_as_number->nb_int(long_result);
+        Py_DECREF(before_downcast);
+    }
 #endif
-    return PyLong_FromLong(x);
+
+    return long_result;
 }
 
-#line 1402
+#line 1395
 static PyObject *
 ushort_int(PyObject *obj)
 {
+    PyObject *long_result;
+
 #if 0
-    unsigned long x= (PyArrayScalar_VAL(obj, UShort).real);
-    int ret;
+    unsigned long x = (PyArrayScalar_VAL(obj, UShort).real);
 #else
-    unsigned long x= (PyArrayScalar_VAL(obj, UShort));
+    unsigned long x = (PyArrayScalar_VAL(obj, UShort));
 #endif
 
 #if 0
-    double ix;
-    modf(x, &ix);
-    x = ix;
-#endif
-
-#if 0
-    ret = emit_complexwarning();
-    if (ret < 0) {
+    if (emit_complexwarning() < 0) {
         return NULL;
     }
 #endif
 
-#if 1
-    if(x < LONG_MAX)
-        return PyInt_FromLong(x);
-#else
-    if(LONG_MIN < x && x < LONG_MAX)
-        return PyInt_FromLong(x);
+    long_result = PyLong_FromUnsignedLong(x);
+    if (long_result == NULL){
+        return NULL;
+    }
+
+#ifndef NPY_PY3K
+    /* Invoke long.__int__ to try to downcast */
+    {
+        PyObject *before_downcast = long_result;
+        long_result = Py_TYPE(long_result)->tp_as_number->nb_int(long_result);
+        Py_DECREF(before_downcast);
+    }
 #endif
-    return PyLong_FromUnsignedLong(x);
+
+    return long_result;
 }
 
-#line 1402
+#line 1395
 static PyObject *
 int_int(PyObject *obj)
 {
+    PyObject *long_result;
+
 #if 0
-    signed long x= (PyArrayScalar_VAL(obj, Int).real);
-    int ret;
+    signed long x = (PyArrayScalar_VAL(obj, Int).real);
 #else
-    signed long x= (PyArrayScalar_VAL(obj, Int));
+    signed long x = (PyArrayScalar_VAL(obj, Int));
 #endif
 
 #if 0
-    double ix;
-    modf(x, &ix);
-    x = ix;
-#endif
-
-#if 0
-    ret = emit_complexwarning();
-    if (ret < 0) {
+    if (emit_complexwarning() < 0) {
         return NULL;
     }
 #endif
 
-#if 0
-    if(x < LONG_MAX)
-        return PyInt_FromLong(x);
-#else
-    if(LONG_MIN < x && x < LONG_MAX)
-        return PyInt_FromLong(x);
+    long_result = PyLong_FromLong(x);
+    if (long_result == NULL){
+        return NULL;
+    }
+
+#ifndef NPY_PY3K
+    /* Invoke long.__int__ to try to downcast */
+    {
+        PyObject *before_downcast = long_result;
+        long_result = Py_TYPE(long_result)->tp_as_number->nb_int(long_result);
+        Py_DECREF(before_downcast);
+    }
 #endif
-    return PyLong_FromLong(x);
+
+    return long_result;
 }
 
-#line 1402
+#line 1395
 static PyObject *
 uint_int(PyObject *obj)
 {
+    PyObject *long_result;
+
 #if 0
-    unsigned long x= (PyArrayScalar_VAL(obj, UInt).real);
-    int ret;
+    unsigned long x = (PyArrayScalar_VAL(obj, UInt).real);
 #else
-    unsigned long x= (PyArrayScalar_VAL(obj, UInt));
+    unsigned long x = (PyArrayScalar_VAL(obj, UInt));
 #endif
 
 #if 0
-    double ix;
-    modf(x, &ix);
-    x = ix;
-#endif
-
-#if 0
-    ret = emit_complexwarning();
-    if (ret < 0) {
+    if (emit_complexwarning() < 0) {
         return NULL;
     }
 #endif
 
-#if 1
-    if(x < LONG_MAX)
-        return PyInt_FromLong(x);
-#else
-    if(LONG_MIN < x && x < LONG_MAX)
-        return PyInt_FromLong(x);
+    long_result = PyLong_FromUnsignedLong(x);
+    if (long_result == NULL){
+        return NULL;
+    }
+
+#ifndef NPY_PY3K
+    /* Invoke long.__int__ to try to downcast */
+    {
+        PyObject *before_downcast = long_result;
+        long_result = Py_TYPE(long_result)->tp_as_number->nb_int(long_result);
+        Py_DECREF(before_downcast);
+    }
 #endif
-    return PyLong_FromUnsignedLong(x);
+
+    return long_result;
 }
 
-#line 1402
+#line 1395
 static PyObject *
 long_int(PyObject *obj)
 {
+    PyObject *long_result;
+
 #if 0
-    signed long x= (PyArrayScalar_VAL(obj, Long).real);
-    int ret;
+    signed long x = (PyArrayScalar_VAL(obj, Long).real);
 #else
-    signed long x= (PyArrayScalar_VAL(obj, Long));
+    signed long x = (PyArrayScalar_VAL(obj, Long));
 #endif
 
 #if 0
-    double ix;
-    modf(x, &ix);
-    x = ix;
-#endif
-
-#if 0
-    ret = emit_complexwarning();
-    if (ret < 0) {
+    if (emit_complexwarning() < 0) {
         return NULL;
     }
 #endif
 
-#if 0
-    if(x < LONG_MAX)
-        return PyInt_FromLong(x);
-#else
-    if(LONG_MIN < x && x < LONG_MAX)
-        return PyInt_FromLong(x);
+    long_result = PyLong_FromLong(x);
+    if (long_result == NULL){
+        return NULL;
+    }
+
+#ifndef NPY_PY3K
+    /* Invoke long.__int__ to try to downcast */
+    {
+        PyObject *before_downcast = long_result;
+        long_result = Py_TYPE(long_result)->tp_as_number->nb_int(long_result);
+        Py_DECREF(before_downcast);
+    }
 #endif
-    return PyLong_FromLong(x);
+
+    return long_result;
 }
 
-#line 1402
+#line 1395
 static PyObject *
 ulong_int(PyObject *obj)
 {
+    PyObject *long_result;
+
 #if 0
-    unsigned long x= (PyArrayScalar_VAL(obj, ULong).real);
-    int ret;
+    unsigned long x = (PyArrayScalar_VAL(obj, ULong).real);
 #else
-    unsigned long x= (PyArrayScalar_VAL(obj, ULong));
+    unsigned long x = (PyArrayScalar_VAL(obj, ULong));
 #endif
 
 #if 0
-    double ix;
-    modf(x, &ix);
-    x = ix;
-#endif
-
-#if 0
-    ret = emit_complexwarning();
-    if (ret < 0) {
+    if (emit_complexwarning() < 0) {
         return NULL;
     }
 #endif
 
-#if 1
-    if(x < LONG_MAX)
-        return PyInt_FromLong(x);
-#else
-    if(LONG_MIN < x && x < LONG_MAX)
-        return PyInt_FromLong(x);
+    long_result = PyLong_FromUnsignedLong(x);
+    if (long_result == NULL){
+        return NULL;
+    }
+
+#ifndef NPY_PY3K
+    /* Invoke long.__int__ to try to downcast */
+    {
+        PyObject *before_downcast = long_result;
+        long_result = Py_TYPE(long_result)->tp_as_number->nb_int(long_result);
+        Py_DECREF(before_downcast);
+    }
 #endif
-    return PyLong_FromUnsignedLong(x);
+
+    return long_result;
 }
 
-#line 1402
+#line 1395
 static PyObject *
 longlong_int(PyObject *obj)
 {
+    PyObject *long_result;
+
 #if 0
-    signed PY_LONG_LONG x= (PyArrayScalar_VAL(obj, LongLong).real);
-    int ret;
+    signed PY_LONG_LONG x = (PyArrayScalar_VAL(obj, LongLong).real);
 #else
-    signed PY_LONG_LONG x= (PyArrayScalar_VAL(obj, LongLong));
+    signed PY_LONG_LONG x = (PyArrayScalar_VAL(obj, LongLong));
 #endif
 
 #if 0
-    double ix;
-    modf(x, &ix);
-    x = ix;
-#endif
-
-#if 0
-    ret = emit_complexwarning();
-    if (ret < 0) {
+    if (emit_complexwarning() < 0) {
         return NULL;
     }
 #endif
 
-#if 0
-    if(x < LONG_MAX)
-        return PyInt_FromLong(x);
-#else
-    if(LONG_MIN < x && x < LONG_MAX)
-        return PyInt_FromLong(x);
+    long_result = PyLong_FromLongLong(x);
+    if (long_result == NULL){
+        return NULL;
+    }
+
+#ifndef NPY_PY3K
+    /* Invoke long.__int__ to try to downcast */
+    {
+        PyObject *before_downcast = long_result;
+        long_result = Py_TYPE(long_result)->tp_as_number->nb_int(long_result);
+        Py_DECREF(before_downcast);
+    }
 #endif
-    return PyLong_FromLongLong(x);
+
+    return long_result;
 }
 
-#line 1402
+#line 1395
 static PyObject *
 ulonglong_int(PyObject *obj)
 {
+    PyObject *long_result;
+
 #if 0
-    unsigned PY_LONG_LONG x= (PyArrayScalar_VAL(obj, ULongLong).real);
-    int ret;
+    unsigned PY_LONG_LONG x = (PyArrayScalar_VAL(obj, ULongLong).real);
 #else
-    unsigned PY_LONG_LONG x= (PyArrayScalar_VAL(obj, ULongLong));
+    unsigned PY_LONG_LONG x = (PyArrayScalar_VAL(obj, ULongLong));
 #endif
 
 #if 0
-    double ix;
-    modf(x, &ix);
-    x = ix;
-#endif
-
-#if 0
-    ret = emit_complexwarning();
-    if (ret < 0) {
+    if (emit_complexwarning() < 0) {
         return NULL;
     }
 #endif
 
-#if 1
-    if(x < LONG_MAX)
-        return PyInt_FromLong(x);
-#else
-    if(LONG_MIN < x && x < LONG_MAX)
-        return PyInt_FromLong(x);
+    long_result = PyLong_FromUnsignedLongLong(x);
+    if (long_result == NULL){
+        return NULL;
+    }
+
+#ifndef NPY_PY3K
+    /* Invoke long.__int__ to try to downcast */
+    {
+        PyObject *before_downcast = long_result;
+        long_result = Py_TYPE(long_result)->tp_as_number->nb_int(long_result);
+        Py_DECREF(before_downcast);
+    }
 #endif
-    return PyLong_FromUnsignedLongLong(x);
+
+    return long_result;
 }
 
-#line 1402
+#line 1395
 static PyObject *
 half_int(PyObject *obj)
 {
+    PyObject *long_result;
+
 #if 0
-     double x= npy_half_to_double(PyArrayScalar_VAL(obj, Half).real);
-    int ret;
+     double x = npy_half_to_double(PyArrayScalar_VAL(obj, Half).real);
 #else
-     double x= npy_half_to_double(PyArrayScalar_VAL(obj, Half));
-#endif
-
-#if 1
-    double ix;
-    modf(x, &ix);
-    x = ix;
+     double x = npy_half_to_double(PyArrayScalar_VAL(obj, Half));
 #endif
 
 #if 0
-    ret = emit_complexwarning();
-    if (ret < 0) {
+    if (emit_complexwarning() < 0) {
         return NULL;
     }
 #endif
 
-#if 0
-    if(x < LONG_MAX)
-        return PyInt_FromLong(x);
-#else
-    if(LONG_MIN < x && x < LONG_MAX)
-        return PyInt_FromLong(x);
+    long_result = PyLong_FromDouble(x);
+    if (long_result == NULL){
+        return NULL;
+    }
+
+#ifndef NPY_PY3K
+    /* Invoke long.__int__ to try to downcast */
+    {
+        PyObject *before_downcast = long_result;
+        long_result = Py_TYPE(long_result)->tp_as_number->nb_int(long_result);
+        Py_DECREF(before_downcast);
+    }
 #endif
-    return PyLong_FromDouble(x);
+
+    return long_result;
 }
 
-#line 1402
+#line 1395
 static PyObject *
 float_int(PyObject *obj)
 {
+    PyObject *long_result;
+
 #if 0
-     double x= (PyArrayScalar_VAL(obj, Float).real);
-    int ret;
+     double x = (PyArrayScalar_VAL(obj, Float).real);
 #else
-     double x= (PyArrayScalar_VAL(obj, Float));
-#endif
-
-#if 1
-    double ix;
-    modf(x, &ix);
-    x = ix;
+     double x = (PyArrayScalar_VAL(obj, Float));
 #endif
 
 #if 0
-    ret = emit_complexwarning();
-    if (ret < 0) {
+    if (emit_complexwarning() < 0) {
         return NULL;
     }
 #endif
 
-#if 0
-    if(x < LONG_MAX)
-        return PyInt_FromLong(x);
-#else
-    if(LONG_MIN < x && x < LONG_MAX)
-        return PyInt_FromLong(x);
+    long_result = PyLong_FromDouble(x);
+    if (long_result == NULL){
+        return NULL;
+    }
+
+#ifndef NPY_PY3K
+    /* Invoke long.__int__ to try to downcast */
+    {
+        PyObject *before_downcast = long_result;
+        long_result = Py_TYPE(long_result)->tp_as_number->nb_int(long_result);
+        Py_DECREF(before_downcast);
+    }
 #endif
-    return PyLong_FromDouble(x);
+
+    return long_result;
 }
 
-#line 1402
+#line 1395
 static PyObject *
 double_int(PyObject *obj)
 {
+    PyObject *long_result;
+
 #if 0
-     double x= (PyArrayScalar_VAL(obj, Double).real);
-    int ret;
+     double x = (PyArrayScalar_VAL(obj, Double).real);
 #else
-     double x= (PyArrayScalar_VAL(obj, Double));
-#endif
-
-#if 1
-    double ix;
-    modf(x, &ix);
-    x = ix;
+     double x = (PyArrayScalar_VAL(obj, Double));
 #endif
 
 #if 0
-    ret = emit_complexwarning();
-    if (ret < 0) {
+    if (emit_complexwarning() < 0) {
         return NULL;
     }
 #endif
 
-#if 0
-    if(x < LONG_MAX)
-        return PyInt_FromLong(x);
-#else
-    if(LONG_MIN < x && x < LONG_MAX)
-        return PyInt_FromLong(x);
+    long_result = PyLong_FromDouble(x);
+    if (long_result == NULL){
+        return NULL;
+    }
+
+#ifndef NPY_PY3K
+    /* Invoke long.__int__ to try to downcast */
+    {
+        PyObject *before_downcast = long_result;
+        long_result = Py_TYPE(long_result)->tp_as_number->nb_int(long_result);
+        Py_DECREF(before_downcast);
+    }
 #endif
-    return PyLong_FromDouble(x);
+
+    return long_result;
 }
 
-#line 1402
+#line 1395
 static PyObject *
 longdouble_int(PyObject *obj)
 {
+    PyObject *long_result;
+
 #if 0
-     double x= (PyArrayScalar_VAL(obj, LongDouble).real);
-    int ret;
+     npy_longdouble x = (PyArrayScalar_VAL(obj, LongDouble).real);
 #else
-     double x= (PyArrayScalar_VAL(obj, LongDouble));
-#endif
-
-#if 1
-    double ix;
-    modf(x, &ix);
-    x = ix;
+     npy_longdouble x = (PyArrayScalar_VAL(obj, LongDouble));
 #endif
 
 #if 0
-    ret = emit_complexwarning();
-    if (ret < 0) {
+    if (emit_complexwarning() < 0) {
         return NULL;
     }
 #endif
 
-#if 0
-    if(x < LONG_MAX)
-        return PyInt_FromLong(x);
-#else
-    if(LONG_MIN < x && x < LONG_MAX)
-        return PyInt_FromLong(x);
+    long_result = npy_longdouble_to_PyLong(x);
+    if (long_result == NULL){
+        return NULL;
+    }
+
+#ifndef NPY_PY3K
+    /* Invoke long.__int__ to try to downcast */
+    {
+        PyObject *before_downcast = long_result;
+        long_result = Py_TYPE(long_result)->tp_as_number->nb_int(long_result);
+        Py_DECREF(before_downcast);
+    }
 #endif
-    return PyLong_FromDouble(x);
+
+    return long_result;
 }
 
-#line 1402
+#line 1395
 static PyObject *
 cfloat_int(PyObject *obj)
 {
+    PyObject *long_result;
+
 #if 1
-     double x= (PyArrayScalar_VAL(obj, CFloat).real);
-    int ret;
+     double x = (PyArrayScalar_VAL(obj, CFloat).real);
 #else
-     double x= (PyArrayScalar_VAL(obj, CFloat));
+     double x = (PyArrayScalar_VAL(obj, CFloat));
 #endif
 
 #if 1
-    double ix;
-    modf(x, &ix);
-    x = ix;
-#endif
-
-#if 1
-    ret = emit_complexwarning();
-    if (ret < 0) {
+    if (emit_complexwarning() < 0) {
         return NULL;
     }
 #endif
 
-#if 0
-    if(x < LONG_MAX)
-        return PyInt_FromLong(x);
-#else
-    if(LONG_MIN < x && x < LONG_MAX)
-        return PyInt_FromLong(x);
+    long_result = PyLong_FromDouble(x);
+    if (long_result == NULL){
+        return NULL;
+    }
+
+#ifndef NPY_PY3K
+    /* Invoke long.__int__ to try to downcast */
+    {
+        PyObject *before_downcast = long_result;
+        long_result = Py_TYPE(long_result)->tp_as_number->nb_int(long_result);
+        Py_DECREF(before_downcast);
+    }
 #endif
-    return PyLong_FromDouble(x);
+
+    return long_result;
 }
 
-#line 1402
+#line 1395
 static PyObject *
 cdouble_int(PyObject *obj)
 {
+    PyObject *long_result;
+
 #if 1
-     double x= (PyArrayScalar_VAL(obj, CDouble).real);
-    int ret;
+     double x = (PyArrayScalar_VAL(obj, CDouble).real);
 #else
-     double x= (PyArrayScalar_VAL(obj, CDouble));
+     double x = (PyArrayScalar_VAL(obj, CDouble));
 #endif
 
 #if 1
-    double ix;
-    modf(x, &ix);
-    x = ix;
-#endif
-
-#if 1
-    ret = emit_complexwarning();
-    if (ret < 0) {
+    if (emit_complexwarning() < 0) {
         return NULL;
     }
 #endif
 
-#if 0
-    if(x < LONG_MAX)
-        return PyInt_FromLong(x);
-#else
-    if(LONG_MIN < x && x < LONG_MAX)
-        return PyInt_FromLong(x);
+    long_result = PyLong_FromDouble(x);
+    if (long_result == NULL){
+        return NULL;
+    }
+
+#ifndef NPY_PY3K
+    /* Invoke long.__int__ to try to downcast */
+    {
+        PyObject *before_downcast = long_result;
+        long_result = Py_TYPE(long_result)->tp_as_number->nb_int(long_result);
+        Py_DECREF(before_downcast);
+    }
 #endif
-    return PyLong_FromDouble(x);
+
+    return long_result;
 }
 
-#line 1402
+#line 1395
 static PyObject *
 clongdouble_int(PyObject *obj)
 {
+    PyObject *long_result;
+
 #if 1
-     double x= (PyArrayScalar_VAL(obj, CLongDouble).real);
-    int ret;
+     npy_longdouble x = (PyArrayScalar_VAL(obj, CLongDouble).real);
 #else
-     double x= (PyArrayScalar_VAL(obj, CLongDouble));
+     npy_longdouble x = (PyArrayScalar_VAL(obj, CLongDouble));
 #endif
 
 #if 1
-    double ix;
-    modf(x, &ix);
-    x = ix;
-#endif
-
-#if 1
-    ret = emit_complexwarning();
-    if (ret < 0) {
+    if (emit_complexwarning() < 0) {
         return NULL;
     }
 #endif
 
-#if 0
-    if(x < LONG_MAX)
-        return PyInt_FromLong(x);
-#else
-    if(LONG_MIN < x && x < LONG_MAX)
-        return PyInt_FromLong(x);
+    long_result = npy_longdouble_to_PyLong(x);
+    if (long_result == NULL){
+        return NULL;
+    }
+
+#ifndef NPY_PY3K
+    /* Invoke long.__int__ to try to downcast */
+    {
+        PyObject *before_downcast = long_result;
+        long_result = Py_TYPE(long_result)->tp_as_number->nb_int(long_result);
+        Py_DECREF(before_downcast);
+    }
 #endif
-    return PyLong_FromDouble(x);
+
+    return long_result;
 }
 
 
-#line 1452
+#line 1448
 static NPY_INLINE PyObject *
 byte_long(PyObject *obj)
 {
 #if 0
-    int ret;
-    ret = emit_complexwarning();
-    if (ret < 0) {
+    if (emit_complexwarning() < 0) {
         return NULL;
     }
-    return PyLong_FromLongLong(((PyArrayScalar_VAL(obj, Byte)).real));
+    return PyLong_FromLongLong((PyArrayScalar_VAL(obj, Byte).real));
 #else
     return PyLong_FromLongLong((PyArrayScalar_VAL(obj, Byte)));
 #endif
 }
 
-#line 1452
+#line 1448
 static NPY_INLINE PyObject *
 ubyte_long(PyObject *obj)
 {
 #if 0
-    int ret;
-    ret = emit_complexwarning();
-    if (ret < 0) {
+    if (emit_complexwarning() < 0) {
         return NULL;
     }
-    return PyLong_FromUnsignedLongLong(((PyArrayScalar_VAL(obj, UByte)).real));
+    return PyLong_FromUnsignedLongLong((PyArrayScalar_VAL(obj, UByte).real));
 #else
     return PyLong_FromUnsignedLongLong((PyArrayScalar_VAL(obj, UByte)));
 #endif
 }
 
-#line 1452
+#line 1448
 static NPY_INLINE PyObject *
 short_long(PyObject *obj)
 {
 #if 0
-    int ret;
-    ret = emit_complexwarning();
-    if (ret < 0) {
+    if (emit_complexwarning() < 0) {
         return NULL;
     }
-    return PyLong_FromLongLong(((PyArrayScalar_VAL(obj, Short)).real));
+    return PyLong_FromLongLong((PyArrayScalar_VAL(obj, Short).real));
 #else
     return PyLong_FromLongLong((PyArrayScalar_VAL(obj, Short)));
 #endif
 }
 
-#line 1452
+#line 1448
 static NPY_INLINE PyObject *
 ushort_long(PyObject *obj)
 {
 #if 0
-    int ret;
-    ret = emit_complexwarning();
-    if (ret < 0) {
+    if (emit_complexwarning() < 0) {
         return NULL;
     }
-    return PyLong_FromUnsignedLongLong(((PyArrayScalar_VAL(obj, UShort)).real));
+    return PyLong_FromUnsignedLongLong((PyArrayScalar_VAL(obj, UShort).real));
 #else
     return PyLong_FromUnsignedLongLong((PyArrayScalar_VAL(obj, UShort)));
 #endif
 }
 
-#line 1452
+#line 1448
 static NPY_INLINE PyObject *
 int_long(PyObject *obj)
 {
 #if 0
-    int ret;
-    ret = emit_complexwarning();
-    if (ret < 0) {
+    if (emit_complexwarning() < 0) {
         return NULL;
     }
-    return PyLong_FromLongLong(((PyArrayScalar_VAL(obj, Int)).real));
+    return PyLong_FromLongLong((PyArrayScalar_VAL(obj, Int).real));
 #else
     return PyLong_FromLongLong((PyArrayScalar_VAL(obj, Int)));
 #endif
 }
 
-#line 1452
+#line 1448
 static NPY_INLINE PyObject *
 uint_long(PyObject *obj)
 {
 #if 0
-    int ret;
-    ret = emit_complexwarning();
-    if (ret < 0) {
+    if (emit_complexwarning() < 0) {
         return NULL;
     }
-    return PyLong_FromUnsignedLongLong(((PyArrayScalar_VAL(obj, UInt)).real));
+    return PyLong_FromUnsignedLongLong((PyArrayScalar_VAL(obj, UInt).real));
 #else
     return PyLong_FromUnsignedLongLong((PyArrayScalar_VAL(obj, UInt)));
 #endif
 }
 
-#line 1452
+#line 1448
 static NPY_INLINE PyObject *
 long_long(PyObject *obj)
 {
 #if 0
-    int ret;
-    ret = emit_complexwarning();
-    if (ret < 0) {
+    if (emit_complexwarning() < 0) {
         return NULL;
     }
-    return PyLong_FromLongLong(((PyArrayScalar_VAL(obj, Long)).real));
+    return PyLong_FromLongLong((PyArrayScalar_VAL(obj, Long).real));
 #else
     return PyLong_FromLongLong((PyArrayScalar_VAL(obj, Long)));
 #endif
 }
 
-#line 1452
+#line 1448
 static NPY_INLINE PyObject *
 ulong_long(PyObject *obj)
 {
 #if 0
-    int ret;
-    ret = emit_complexwarning();
-    if (ret < 0) {
+    if (emit_complexwarning() < 0) {
         return NULL;
     }
-    return PyLong_FromUnsignedLongLong(((PyArrayScalar_VAL(obj, ULong)).real));
+    return PyLong_FromUnsignedLongLong((PyArrayScalar_VAL(obj, ULong).real));
 #else
     return PyLong_FromUnsignedLongLong((PyArrayScalar_VAL(obj, ULong)));
 #endif
 }
 
-#line 1452
+#line 1448
 static NPY_INLINE PyObject *
 longlong_long(PyObject *obj)
 {
 #if 0
-    int ret;
-    ret = emit_complexwarning();
-    if (ret < 0) {
+    if (emit_complexwarning() < 0) {
         return NULL;
     }
-    return PyLong_FromLongLong(((PyArrayScalar_VAL(obj, LongLong)).real));
+    return PyLong_FromLongLong((PyArrayScalar_VAL(obj, LongLong).real));
 #else
     return PyLong_FromLongLong((PyArrayScalar_VAL(obj, LongLong)));
 #endif
 }
 
-#line 1452
+#line 1448
 static NPY_INLINE PyObject *
 ulonglong_long(PyObject *obj)
 {
 #if 0
-    int ret;
-    ret = emit_complexwarning();
-    if (ret < 0) {
+    if (emit_complexwarning() < 0) {
         return NULL;
     }
-    return PyLong_FromUnsignedLongLong(((PyArrayScalar_VAL(obj, ULongLong)).real));
+    return PyLong_FromUnsignedLongLong((PyArrayScalar_VAL(obj, ULongLong).real));
 #else
     return PyLong_FromUnsignedLongLong((PyArrayScalar_VAL(obj, ULongLong)));
 #endif
 }
 
-#line 1452
+#line 1448
 static NPY_INLINE PyObject *
 half_long(PyObject *obj)
 {
 #if 0
-    int ret;
-    ret = emit_complexwarning();
-    if (ret < 0) {
+    if (emit_complexwarning() < 0) {
         return NULL;
     }
-    return PyLong_FromDouble(npy_half_to_double((PyArrayScalar_VAL(obj, Half)).real));
+    return PyLong_FromDouble(npy_half_to_double(PyArrayScalar_VAL(obj, Half).real));
 #else
     return PyLong_FromDouble(npy_half_to_double(PyArrayScalar_VAL(obj, Half)));
 #endif
 }
 
-#line 1452
+#line 1448
 static NPY_INLINE PyObject *
 float_long(PyObject *obj)
 {
 #if 0
-    int ret;
-    ret = emit_complexwarning();
-    if (ret < 0) {
+    if (emit_complexwarning() < 0) {
         return NULL;
     }
-    return PyLong_FromDouble(((PyArrayScalar_VAL(obj, Float)).real));
+    return PyLong_FromDouble((PyArrayScalar_VAL(obj, Float).real));
 #else
     return PyLong_FromDouble((PyArrayScalar_VAL(obj, Float)));
 #endif
 }
 
-#line 1452
+#line 1448
 static NPY_INLINE PyObject *
 double_long(PyObject *obj)
 {
 #if 0
-    int ret;
-    ret = emit_complexwarning();
-    if (ret < 0) {
+    if (emit_complexwarning() < 0) {
         return NULL;
     }
-    return PyLong_FromDouble(((PyArrayScalar_VAL(obj, Double)).real));
+    return PyLong_FromDouble((PyArrayScalar_VAL(obj, Double).real));
 #else
     return PyLong_FromDouble((PyArrayScalar_VAL(obj, Double)));
 #endif
 }
 
-#line 1452
+#line 1448
 static NPY_INLINE PyObject *
 longdouble_long(PyObject *obj)
 {
 #if 0
-    int ret;
-    ret = emit_complexwarning();
-    if (ret < 0) {
+    if (emit_complexwarning() < 0) {
         return NULL;
     }
-    return PyLong_FromDouble(((PyArrayScalar_VAL(obj, LongDouble)).real));
+    return npy_longdouble_to_PyLong((PyArrayScalar_VAL(obj, LongDouble).real));
 #else
-    return PyLong_FromDouble((PyArrayScalar_VAL(obj, LongDouble)));
+    return npy_longdouble_to_PyLong((PyArrayScalar_VAL(obj, LongDouble)));
 #endif
 }
 
-#line 1452
+#line 1448
 static NPY_INLINE PyObject *
 cfloat_long(PyObject *obj)
 {
 #if 1
-    int ret;
-    ret = emit_complexwarning();
-    if (ret < 0) {
+    if (emit_complexwarning() < 0) {
         return NULL;
     }
-    return PyLong_FromDouble(((PyArrayScalar_VAL(obj, CFloat)).real));
+    return PyLong_FromDouble((PyArrayScalar_VAL(obj, CFloat).real));
 #else
     return PyLong_FromDouble((PyArrayScalar_VAL(obj, CFloat)));
 #endif
 }
 
-#line 1452
+#line 1448
 static NPY_INLINE PyObject *
 cdouble_long(PyObject *obj)
 {
 #if 1
-    int ret;
-    ret = emit_complexwarning();
-    if (ret < 0) {
+    if (emit_complexwarning() < 0) {
         return NULL;
     }
-    return PyLong_FromDouble(((PyArrayScalar_VAL(obj, CDouble)).real));
+    return PyLong_FromDouble((PyArrayScalar_VAL(obj, CDouble).real));
 #else
     return PyLong_FromDouble((PyArrayScalar_VAL(obj, CDouble)));
 #endif
 }
 
-#line 1452
+#line 1448
 static NPY_INLINE PyObject *
 clongdouble_long(PyObject *obj)
 {
 #if 1
-    int ret;
-    ret = emit_complexwarning();
-    if (ret < 0) {
+    if (emit_complexwarning() < 0) {
         return NULL;
     }
-    return PyLong_FromDouble(((PyArrayScalar_VAL(obj, CLongDouble)).real));
+    return npy_longdouble_to_PyLong((PyArrayScalar_VAL(obj, CLongDouble).real));
 #else
-    return PyLong_FromDouble((PyArrayScalar_VAL(obj, CLongDouble)));
+    return npy_longdouble_to_PyLong((PyArrayScalar_VAL(obj, CLongDouble)));
 #endif
 }
 
-#line 1452
+#line 1448
 static NPY_INLINE PyObject *
 byte_float(PyObject *obj)
 {
 #if 0
-    int ret;
-    ret = emit_complexwarning();
-    if (ret < 0) {
+    if (emit_complexwarning() < 0) {
         return NULL;
     }
-    return PyFloat_FromDouble(((PyArrayScalar_VAL(obj, Byte)).real));
+    return PyFloat_FromDouble((PyArrayScalar_VAL(obj, Byte).real));
 #else
     return PyFloat_FromDouble((PyArrayScalar_VAL(obj, Byte)));
 #endif
 }
 
-#line 1452
+#line 1448
 static NPY_INLINE PyObject *
 ubyte_float(PyObject *obj)
 {
 #if 0
-    int ret;
-    ret = emit_complexwarning();
-    if (ret < 0) {
+    if (emit_complexwarning() < 0) {
         return NULL;
     }
-    return PyFloat_FromDouble(((PyArrayScalar_VAL(obj, UByte)).real));
+    return PyFloat_FromDouble((PyArrayScalar_VAL(obj, UByte).real));
 #else
     return PyFloat_FromDouble((PyArrayScalar_VAL(obj, UByte)));
 #endif
 }
 
-#line 1452
+#line 1448
 static NPY_INLINE PyObject *
 short_float(PyObject *obj)
 {
 #if 0
-    int ret;
-    ret = emit_complexwarning();
-    if (ret < 0) {
+    if (emit_complexwarning() < 0) {
         return NULL;
     }
-    return PyFloat_FromDouble(((PyArrayScalar_VAL(obj, Short)).real));
+    return PyFloat_FromDouble((PyArrayScalar_VAL(obj, Short).real));
 #else
     return PyFloat_FromDouble((PyArrayScalar_VAL(obj, Short)));
 #endif
 }
 
-#line 1452
+#line 1448
 static NPY_INLINE PyObject *
 ushort_float(PyObject *obj)
 {
 #if 0
-    int ret;
-    ret = emit_complexwarning();
-    if (ret < 0) {
+    if (emit_complexwarning() < 0) {
         return NULL;
     }
-    return PyFloat_FromDouble(((PyArrayScalar_VAL(obj, UShort)).real));
+    return PyFloat_FromDouble((PyArrayScalar_VAL(obj, UShort).real));
 #else
     return PyFloat_FromDouble((PyArrayScalar_VAL(obj, UShort)));
 #endif
 }
 
-#line 1452
+#line 1448
 static NPY_INLINE PyObject *
 int_float(PyObject *obj)
 {
 #if 0
-    int ret;
-    ret = emit_complexwarning();
-    if (ret < 0) {
+    if (emit_complexwarning() < 0) {
         return NULL;
     }
-    return PyFloat_FromDouble(((PyArrayScalar_VAL(obj, Int)).real));
+    return PyFloat_FromDouble((PyArrayScalar_VAL(obj, Int).real));
 #else
     return PyFloat_FromDouble((PyArrayScalar_VAL(obj, Int)));
 #endif
 }
 
-#line 1452
+#line 1448
 static NPY_INLINE PyObject *
 uint_float(PyObject *obj)
 {
 #if 0
-    int ret;
-    ret = emit_complexwarning();
-    if (ret < 0) {
+    if (emit_complexwarning() < 0) {
         return NULL;
     }
-    return PyFloat_FromDouble(((PyArrayScalar_VAL(obj, UInt)).real));
+    return PyFloat_FromDouble((PyArrayScalar_VAL(obj, UInt).real));
 #else
     return PyFloat_FromDouble((PyArrayScalar_VAL(obj, UInt)));
 #endif
 }
 
-#line 1452
+#line 1448
 static NPY_INLINE PyObject *
 long_float(PyObject *obj)
 {
 #if 0
-    int ret;
-    ret = emit_complexwarning();
-    if (ret < 0) {
+    if (emit_complexwarning() < 0) {
         return NULL;
     }
-    return PyFloat_FromDouble(((PyArrayScalar_VAL(obj, Long)).real));
+    return PyFloat_FromDouble((PyArrayScalar_VAL(obj, Long).real));
 #else
     return PyFloat_FromDouble((PyArrayScalar_VAL(obj, Long)));
 #endif
 }
 
-#line 1452
+#line 1448
 static NPY_INLINE PyObject *
 ulong_float(PyObject *obj)
 {
 #if 0
-    int ret;
-    ret = emit_complexwarning();
-    if (ret < 0) {
+    if (emit_complexwarning() < 0) {
         return NULL;
     }
-    return PyFloat_FromDouble(((PyArrayScalar_VAL(obj, ULong)).real));
+    return PyFloat_FromDouble((PyArrayScalar_VAL(obj, ULong).real));
 #else
     return PyFloat_FromDouble((PyArrayScalar_VAL(obj, ULong)));
 #endif
 }
 
-#line 1452
+#line 1448
 static NPY_INLINE PyObject *
 longlong_float(PyObject *obj)
 {
 #if 0
-    int ret;
-    ret = emit_complexwarning();
-    if (ret < 0) {
+    if (emit_complexwarning() < 0) {
         return NULL;
     }
-    return PyFloat_FromDouble(((PyArrayScalar_VAL(obj, LongLong)).real));
+    return PyFloat_FromDouble((PyArrayScalar_VAL(obj, LongLong).real));
 #else
     return PyFloat_FromDouble((PyArrayScalar_VAL(obj, LongLong)));
 #endif
 }
 
-#line 1452
+#line 1448
 static NPY_INLINE PyObject *
 ulonglong_float(PyObject *obj)
 {
 #if 0
-    int ret;
-    ret = emit_complexwarning();
-    if (ret < 0) {
+    if (emit_complexwarning() < 0) {
         return NULL;
     }
-    return PyFloat_FromDouble(((PyArrayScalar_VAL(obj, ULongLong)).real));
+    return PyFloat_FromDouble((PyArrayScalar_VAL(obj, ULongLong).real));
 #else
     return PyFloat_FromDouble((PyArrayScalar_VAL(obj, ULongLong)));
 #endif
 }
 
-#line 1452
+#line 1448
 static NPY_INLINE PyObject *
 half_float(PyObject *obj)
 {
 #if 0
-    int ret;
-    ret = emit_complexwarning();
-    if (ret < 0) {
+    if (emit_complexwarning() < 0) {
         return NULL;
     }
-    return PyFloat_FromDouble(npy_half_to_double((PyArrayScalar_VAL(obj, Half)).real));
+    return PyFloat_FromDouble(npy_half_to_double(PyArrayScalar_VAL(obj, Half).real));
 #else
     return PyFloat_FromDouble(npy_half_to_double(PyArrayScalar_VAL(obj, Half)));
 #endif
 }
 
-#line 1452
+#line 1448
 static NPY_INLINE PyObject *
 float_float(PyObject *obj)
 {
 #if 0
-    int ret;
-    ret = emit_complexwarning();
-    if (ret < 0) {
+    if (emit_complexwarning() < 0) {
         return NULL;
     }
-    return PyFloat_FromDouble(((PyArrayScalar_VAL(obj, Float)).real));
+    return PyFloat_FromDouble((PyArrayScalar_VAL(obj, Float).real));
 #else
     return PyFloat_FromDouble((PyArrayScalar_VAL(obj, Float)));
 #endif
 }
 
-#line 1452
+#line 1448
 static NPY_INLINE PyObject *
 double_float(PyObject *obj)
 {
 #if 0
-    int ret;
-    ret = emit_complexwarning();
-    if (ret < 0) {
+    if (emit_complexwarning() < 0) {
         return NULL;
     }
-    return PyFloat_FromDouble(((PyArrayScalar_VAL(obj, Double)).real));
+    return PyFloat_FromDouble((PyArrayScalar_VAL(obj, Double).real));
 #else
     return PyFloat_FromDouble((PyArrayScalar_VAL(obj, Double)));
 #endif
 }
 
-#line 1452
+#line 1448
 static NPY_INLINE PyObject *
 longdouble_float(PyObject *obj)
 {
 #if 0
-    int ret;
-    ret = emit_complexwarning();
-    if (ret < 0) {
+    if (emit_complexwarning() < 0) {
         return NULL;
     }
-    return PyFloat_FromDouble(((PyArrayScalar_VAL(obj, LongDouble)).real));
+    return PyFloat_FromDouble((PyArrayScalar_VAL(obj, LongDouble).real));
 #else
     return PyFloat_FromDouble((PyArrayScalar_VAL(obj, LongDouble)));
 #endif
 }
 
-#line 1452
+#line 1448
 static NPY_INLINE PyObject *
 cfloat_float(PyObject *obj)
 {
 #if 1
-    int ret;
-    ret = emit_complexwarning();
-    if (ret < 0) {
+    if (emit_complexwarning() < 0) {
         return NULL;
     }
-    return PyFloat_FromDouble(((PyArrayScalar_VAL(obj, CFloat)).real));
+    return PyFloat_FromDouble((PyArrayScalar_VAL(obj, CFloat).real));
 #else
     return PyFloat_FromDouble((PyArrayScalar_VAL(obj, CFloat)));
 #endif
 }
 
-#line 1452
+#line 1448
 static NPY_INLINE PyObject *
 cdouble_float(PyObject *obj)
 {
 #if 1
-    int ret;
-    ret = emit_complexwarning();
-    if (ret < 0) {
+    if (emit_complexwarning() < 0) {
         return NULL;
     }
-    return PyFloat_FromDouble(((PyArrayScalar_VAL(obj, CDouble)).real));
+    return PyFloat_FromDouble((PyArrayScalar_VAL(obj, CDouble).real));
 #else
     return PyFloat_FromDouble((PyArrayScalar_VAL(obj, CDouble)));
 #endif
 }
 
-#line 1452
+#line 1448
 static NPY_INLINE PyObject *
 clongdouble_float(PyObject *obj)
 {
 #if 1
-    int ret;
-    ret = emit_complexwarning();
-    if (ret < 0) {
+    if (emit_complexwarning() < 0) {
         return NULL;
     }
-    return PyFloat_FromDouble(((PyArrayScalar_VAL(obj, CLongDouble)).real));
+    return PyFloat_FromDouble((PyArrayScalar_VAL(obj, CLongDouble).real));
 #else
     return PyFloat_FromDouble((PyArrayScalar_VAL(obj, CLongDouble)));
 #endif
@@ -32285,7 +32464,7 @@ clongdouble_float(PyObject *obj)
 
 #if !defined(NPY_PY3K)
 
-#line 1480
+#line 1474
 static PyObject *
 byte_oct(PyObject *obj)
 {
@@ -32297,7 +32476,7 @@ byte_oct(PyObject *obj)
     return PyInt_Type.tp_as_number->nb_oct(pyint);
 }
 
-#line 1480
+#line 1474
 static PyObject *
 ubyte_oct(PyObject *obj)
 {
@@ -32309,7 +32488,7 @@ ubyte_oct(PyObject *obj)
     return PyInt_Type.tp_as_number->nb_oct(pyint);
 }
 
-#line 1480
+#line 1474
 static PyObject *
 short_oct(PyObject *obj)
 {
@@ -32321,7 +32500,7 @@ short_oct(PyObject *obj)
     return PyInt_Type.tp_as_number->nb_oct(pyint);
 }
 
-#line 1480
+#line 1474
 static PyObject *
 ushort_oct(PyObject *obj)
 {
@@ -32333,7 +32512,7 @@ ushort_oct(PyObject *obj)
     return PyInt_Type.tp_as_number->nb_oct(pyint);
 }
 
-#line 1480
+#line 1474
 static PyObject *
 int_oct(PyObject *obj)
 {
@@ -32345,7 +32524,7 @@ int_oct(PyObject *obj)
     return PyInt_Type.tp_as_number->nb_oct(pyint);
 }
 
-#line 1480
+#line 1474
 static PyObject *
 uint_oct(PyObject *obj)
 {
@@ -32357,7 +32536,7 @@ uint_oct(PyObject *obj)
     return PyLong_Type.tp_as_number->nb_oct(pyint);
 }
 
-#line 1480
+#line 1474
 static PyObject *
 long_oct(PyObject *obj)
 {
@@ -32369,7 +32548,7 @@ long_oct(PyObject *obj)
     return PyLong_Type.tp_as_number->nb_oct(pyint);
 }
 
-#line 1480
+#line 1474
 static PyObject *
 ulong_oct(PyObject *obj)
 {
@@ -32381,7 +32560,7 @@ ulong_oct(PyObject *obj)
     return PyLong_Type.tp_as_number->nb_oct(pyint);
 }
 
-#line 1480
+#line 1474
 static PyObject *
 longlong_oct(PyObject *obj)
 {
@@ -32393,7 +32572,7 @@ longlong_oct(PyObject *obj)
     return PyLong_Type.tp_as_number->nb_oct(pyint);
 }
 
-#line 1480
+#line 1474
 static PyObject *
 ulonglong_oct(PyObject *obj)
 {
@@ -32405,7 +32584,7 @@ ulonglong_oct(PyObject *obj)
     return PyLong_Type.tp_as_number->nb_oct(pyint);
 }
 
-#line 1480
+#line 1474
 static PyObject *
 half_oct(PyObject *obj)
 {
@@ -32417,7 +32596,7 @@ half_oct(PyObject *obj)
     return PyInt_Type.tp_as_number->nb_oct(pyint);
 }
 
-#line 1480
+#line 1474
 static PyObject *
 float_oct(PyObject *obj)
 {
@@ -32429,7 +32608,7 @@ float_oct(PyObject *obj)
     return PyInt_Type.tp_as_number->nb_oct(pyint);
 }
 
-#line 1480
+#line 1474
 static PyObject *
 double_oct(PyObject *obj)
 {
@@ -32441,7 +32620,7 @@ double_oct(PyObject *obj)
     return PyLong_Type.tp_as_number->nb_oct(pyint);
 }
 
-#line 1480
+#line 1474
 static PyObject *
 longdouble_oct(PyObject *obj)
 {
@@ -32453,7 +32632,7 @@ longdouble_oct(PyObject *obj)
     return PyLong_Type.tp_as_number->nb_oct(pyint);
 }
 
-#line 1480
+#line 1474
 static PyObject *
 cfloat_oct(PyObject *obj)
 {
@@ -32465,7 +32644,7 @@ cfloat_oct(PyObject *obj)
     return PyInt_Type.tp_as_number->nb_oct(pyint);
 }
 
-#line 1480
+#line 1474
 static PyObject *
 cdouble_oct(PyObject *obj)
 {
@@ -32477,7 +32656,7 @@ cdouble_oct(PyObject *obj)
     return PyLong_Type.tp_as_number->nb_oct(pyint);
 }
 
-#line 1480
+#line 1474
 static PyObject *
 clongdouble_oct(PyObject *obj)
 {
@@ -32489,7 +32668,7 @@ clongdouble_oct(PyObject *obj)
     return PyLong_Type.tp_as_number->nb_oct(pyint);
 }
 
-#line 1480
+#line 1474
 static PyObject *
 byte_hex(PyObject *obj)
 {
@@ -32501,7 +32680,7 @@ byte_hex(PyObject *obj)
     return PyInt_Type.tp_as_number->nb_hex(pyint);
 }
 
-#line 1480
+#line 1474
 static PyObject *
 ubyte_hex(PyObject *obj)
 {
@@ -32513,7 +32692,7 @@ ubyte_hex(PyObject *obj)
     return PyInt_Type.tp_as_number->nb_hex(pyint);
 }
 
-#line 1480
+#line 1474
 static PyObject *
 short_hex(PyObject *obj)
 {
@@ -32525,7 +32704,7 @@ short_hex(PyObject *obj)
     return PyInt_Type.tp_as_number->nb_hex(pyint);
 }
 
-#line 1480
+#line 1474
 static PyObject *
 ushort_hex(PyObject *obj)
 {
@@ -32537,7 +32716,7 @@ ushort_hex(PyObject *obj)
     return PyInt_Type.tp_as_number->nb_hex(pyint);
 }
 
-#line 1480
+#line 1474
 static PyObject *
 int_hex(PyObject *obj)
 {
@@ -32549,7 +32728,7 @@ int_hex(PyObject *obj)
     return PyInt_Type.tp_as_number->nb_hex(pyint);
 }
 
-#line 1480
+#line 1474
 static PyObject *
 uint_hex(PyObject *obj)
 {
@@ -32561,7 +32740,7 @@ uint_hex(PyObject *obj)
     return PyLong_Type.tp_as_number->nb_hex(pyint);
 }
 
-#line 1480
+#line 1474
 static PyObject *
 long_hex(PyObject *obj)
 {
@@ -32573,7 +32752,7 @@ long_hex(PyObject *obj)
     return PyLong_Type.tp_as_number->nb_hex(pyint);
 }
 
-#line 1480
+#line 1474
 static PyObject *
 ulong_hex(PyObject *obj)
 {
@@ -32585,7 +32764,7 @@ ulong_hex(PyObject *obj)
     return PyLong_Type.tp_as_number->nb_hex(pyint);
 }
 
-#line 1480
+#line 1474
 static PyObject *
 longlong_hex(PyObject *obj)
 {
@@ -32597,7 +32776,7 @@ longlong_hex(PyObject *obj)
     return PyLong_Type.tp_as_number->nb_hex(pyint);
 }
 
-#line 1480
+#line 1474
 static PyObject *
 ulonglong_hex(PyObject *obj)
 {
@@ -32609,7 +32788,7 @@ ulonglong_hex(PyObject *obj)
     return PyLong_Type.tp_as_number->nb_hex(pyint);
 }
 
-#line 1480
+#line 1474
 static PyObject *
 half_hex(PyObject *obj)
 {
@@ -32621,7 +32800,7 @@ half_hex(PyObject *obj)
     return PyInt_Type.tp_as_number->nb_hex(pyint);
 }
 
-#line 1480
+#line 1474
 static PyObject *
 float_hex(PyObject *obj)
 {
@@ -32633,7 +32812,7 @@ float_hex(PyObject *obj)
     return PyInt_Type.tp_as_number->nb_hex(pyint);
 }
 
-#line 1480
+#line 1474
 static PyObject *
 double_hex(PyObject *obj)
 {
@@ -32645,7 +32824,7 @@ double_hex(PyObject *obj)
     return PyLong_Type.tp_as_number->nb_hex(pyint);
 }
 
-#line 1480
+#line 1474
 static PyObject *
 longdouble_hex(PyObject *obj)
 {
@@ -32657,7 +32836,7 @@ longdouble_hex(PyObject *obj)
     return PyLong_Type.tp_as_number->nb_hex(pyint);
 }
 
-#line 1480
+#line 1474
 static PyObject *
 cfloat_hex(PyObject *obj)
 {
@@ -32669,7 +32848,7 @@ cfloat_hex(PyObject *obj)
     return PyInt_Type.tp_as_number->nb_hex(pyint);
 }
 
-#line 1480
+#line 1474
 static PyObject *
 cdouble_hex(PyObject *obj)
 {
@@ -32681,7 +32860,7 @@ cdouble_hex(PyObject *obj)
     return PyLong_Type.tp_as_number->nb_hex(pyint);
 }
 
-#line 1480
+#line 1474
 static PyObject *
 clongdouble_hex(PyObject *obj)
 {
@@ -32696,42 +32875,42 @@ clongdouble_hex(PyObject *obj)
 
 #endif
 
-#line 1500
+#line 1494
 #define def_cmp_le(arg1, arg2) (arg1 <= arg2)
 #define cmplx_cmp_le(arg1, arg2) ((arg1.real == arg2.real) ?        \
                                       arg1.imag <= arg2.imag :        \
                                       arg1.real <= arg2.real)
 #define def_half_cmp_le(arg1, arg2) npy_half_le(arg1, arg2)
 
-#line 1500
+#line 1494
 #define def_cmp_ge(arg1, arg2) (arg1 >= arg2)
 #define cmplx_cmp_ge(arg1, arg2) ((arg1.real == arg2.real) ?        \
                                       arg1.imag >= arg2.imag :        \
                                       arg1.real >= arg2.real)
 #define def_half_cmp_ge(arg1, arg2) npy_half_ge(arg1, arg2)
 
-#line 1500
+#line 1494
 #define def_cmp_lt(arg1, arg2) (arg1 < arg2)
 #define cmplx_cmp_lt(arg1, arg2) ((arg1.real == arg2.real) ?        \
                                       arg1.imag < arg2.imag :        \
                                       arg1.real < arg2.real)
 #define def_half_cmp_lt(arg1, arg2) npy_half_lt(arg1, arg2)
 
-#line 1500
+#line 1494
 #define def_cmp_gt(arg1, arg2) (arg1 > arg2)
 #define cmplx_cmp_gt(arg1, arg2) ((arg1.real == arg2.real) ?        \
                                       arg1.imag > arg2.imag :        \
                                       arg1.real > arg2.real)
 #define def_half_cmp_gt(arg1, arg2) npy_half_gt(arg1, arg2)
 
-#line 1500
+#line 1494
 #define def_cmp_eq(arg1, arg2) (arg1 == arg2)
 #define cmplx_cmp_eq(arg1, arg2) ((arg1.real == arg2.real) ?        \
                                       arg1.imag == arg2.imag :        \
                                       arg1.real == arg2.real)
 #define def_half_cmp_eq(arg1, arg2) npy_half_eq(arg1, arg2)
 
-#line 1500
+#line 1494
 #define def_cmp_ne(arg1, arg2) (arg1 != arg2)
 #define cmplx_cmp_ne(arg1, arg2) ((arg1.real == arg2.real) ?        \
                                       arg1.imag != arg2.imag :        \
@@ -32739,12 +32918,14 @@ clongdouble_hex(PyObject *obj)
 #define def_half_cmp_ne(arg1, arg2) npy_half_ne(arg1, arg2)
 
 
-#line 1514
+#line 1508
 static PyObject*
 byte_richcompare(PyObject *self, PyObject *other, int cmp_op)
 {
     npy_byte arg1, arg2;
     int out=0;
+
+    RICHCMP_GIVE_UP_IF_NEEDED(self, other);
 
     switch(_byte_convert2_to_ctypes(self, &arg1, other, &arg2)) {
     case 0:
@@ -32796,12 +32977,14 @@ byte_richcompare(PyObject *self, PyObject *other, int cmp_op)
     }
 }
 
-#line 1514
+#line 1508
 static PyObject*
 ubyte_richcompare(PyObject *self, PyObject *other, int cmp_op)
 {
     npy_ubyte arg1, arg2;
     int out=0;
+
+    RICHCMP_GIVE_UP_IF_NEEDED(self, other);
 
     switch(_ubyte_convert2_to_ctypes(self, &arg1, other, &arg2)) {
     case 0:
@@ -32853,12 +33036,14 @@ ubyte_richcompare(PyObject *self, PyObject *other, int cmp_op)
     }
 }
 
-#line 1514
+#line 1508
 static PyObject*
 short_richcompare(PyObject *self, PyObject *other, int cmp_op)
 {
     npy_short arg1, arg2;
     int out=0;
+
+    RICHCMP_GIVE_UP_IF_NEEDED(self, other);
 
     switch(_short_convert2_to_ctypes(self, &arg1, other, &arg2)) {
     case 0:
@@ -32910,12 +33095,14 @@ short_richcompare(PyObject *self, PyObject *other, int cmp_op)
     }
 }
 
-#line 1514
+#line 1508
 static PyObject*
 ushort_richcompare(PyObject *self, PyObject *other, int cmp_op)
 {
     npy_ushort arg1, arg2;
     int out=0;
+
+    RICHCMP_GIVE_UP_IF_NEEDED(self, other);
 
     switch(_ushort_convert2_to_ctypes(self, &arg1, other, &arg2)) {
     case 0:
@@ -32967,12 +33154,14 @@ ushort_richcompare(PyObject *self, PyObject *other, int cmp_op)
     }
 }
 
-#line 1514
+#line 1508
 static PyObject*
 int_richcompare(PyObject *self, PyObject *other, int cmp_op)
 {
     npy_int arg1, arg2;
     int out=0;
+
+    RICHCMP_GIVE_UP_IF_NEEDED(self, other);
 
     switch(_int_convert2_to_ctypes(self, &arg1, other, &arg2)) {
     case 0:
@@ -33024,12 +33213,14 @@ int_richcompare(PyObject *self, PyObject *other, int cmp_op)
     }
 }
 
-#line 1514
+#line 1508
 static PyObject*
 uint_richcompare(PyObject *self, PyObject *other, int cmp_op)
 {
     npy_uint arg1, arg2;
     int out=0;
+
+    RICHCMP_GIVE_UP_IF_NEEDED(self, other);
 
     switch(_uint_convert2_to_ctypes(self, &arg1, other, &arg2)) {
     case 0:
@@ -33081,12 +33272,14 @@ uint_richcompare(PyObject *self, PyObject *other, int cmp_op)
     }
 }
 
-#line 1514
+#line 1508
 static PyObject*
 long_richcompare(PyObject *self, PyObject *other, int cmp_op)
 {
     npy_long arg1, arg2;
     int out=0;
+
+    RICHCMP_GIVE_UP_IF_NEEDED(self, other);
 
     switch(_long_convert2_to_ctypes(self, &arg1, other, &arg2)) {
     case 0:
@@ -33138,12 +33331,14 @@ long_richcompare(PyObject *self, PyObject *other, int cmp_op)
     }
 }
 
-#line 1514
+#line 1508
 static PyObject*
 ulong_richcompare(PyObject *self, PyObject *other, int cmp_op)
 {
     npy_ulong arg1, arg2;
     int out=0;
+
+    RICHCMP_GIVE_UP_IF_NEEDED(self, other);
 
     switch(_ulong_convert2_to_ctypes(self, &arg1, other, &arg2)) {
     case 0:
@@ -33195,12 +33390,14 @@ ulong_richcompare(PyObject *self, PyObject *other, int cmp_op)
     }
 }
 
-#line 1514
+#line 1508
 static PyObject*
 longlong_richcompare(PyObject *self, PyObject *other, int cmp_op)
 {
     npy_longlong arg1, arg2;
     int out=0;
+
+    RICHCMP_GIVE_UP_IF_NEEDED(self, other);
 
     switch(_longlong_convert2_to_ctypes(self, &arg1, other, &arg2)) {
     case 0:
@@ -33252,12 +33449,14 @@ longlong_richcompare(PyObject *self, PyObject *other, int cmp_op)
     }
 }
 
-#line 1514
+#line 1508
 static PyObject*
 ulonglong_richcompare(PyObject *self, PyObject *other, int cmp_op)
 {
     npy_ulonglong arg1, arg2;
     int out=0;
+
+    RICHCMP_GIVE_UP_IF_NEEDED(self, other);
 
     switch(_ulonglong_convert2_to_ctypes(self, &arg1, other, &arg2)) {
     case 0:
@@ -33309,12 +33508,14 @@ ulonglong_richcompare(PyObject *self, PyObject *other, int cmp_op)
     }
 }
 
-#line 1514
+#line 1508
 static PyObject*
 half_richcompare(PyObject *self, PyObject *other, int cmp_op)
 {
     npy_half arg1, arg2;
     int out=0;
+
+    RICHCMP_GIVE_UP_IF_NEEDED(self, other);
 
     switch(_half_convert2_to_ctypes(self, &arg1, other, &arg2)) {
     case 0:
@@ -33366,12 +33567,14 @@ half_richcompare(PyObject *self, PyObject *other, int cmp_op)
     }
 }
 
-#line 1514
+#line 1508
 static PyObject*
 float_richcompare(PyObject *self, PyObject *other, int cmp_op)
 {
     npy_float arg1, arg2;
     int out=0;
+
+    RICHCMP_GIVE_UP_IF_NEEDED(self, other);
 
     switch(_float_convert2_to_ctypes(self, &arg1, other, &arg2)) {
     case 0:
@@ -33423,12 +33626,14 @@ float_richcompare(PyObject *self, PyObject *other, int cmp_op)
     }
 }
 
-#line 1514
+#line 1508
 static PyObject*
 double_richcompare(PyObject *self, PyObject *other, int cmp_op)
 {
     npy_double arg1, arg2;
     int out=0;
+
+    RICHCMP_GIVE_UP_IF_NEEDED(self, other);
 
     switch(_double_convert2_to_ctypes(self, &arg1, other, &arg2)) {
     case 0:
@@ -33480,12 +33685,14 @@ double_richcompare(PyObject *self, PyObject *other, int cmp_op)
     }
 }
 
-#line 1514
+#line 1508
 static PyObject*
 longdouble_richcompare(PyObject *self, PyObject *other, int cmp_op)
 {
     npy_longdouble arg1, arg2;
     int out=0;
+
+    RICHCMP_GIVE_UP_IF_NEEDED(self, other);
 
     switch(_longdouble_convert2_to_ctypes(self, &arg1, other, &arg2)) {
     case 0:
@@ -33537,12 +33744,14 @@ longdouble_richcompare(PyObject *self, PyObject *other, int cmp_op)
     }
 }
 
-#line 1514
+#line 1508
 static PyObject*
 cfloat_richcompare(PyObject *self, PyObject *other, int cmp_op)
 {
     npy_cfloat arg1, arg2;
     int out=0;
+
+    RICHCMP_GIVE_UP_IF_NEEDED(self, other);
 
     switch(_cfloat_convert2_to_ctypes(self, &arg1, other, &arg2)) {
     case 0:
@@ -33594,12 +33803,14 @@ cfloat_richcompare(PyObject *self, PyObject *other, int cmp_op)
     }
 }
 
-#line 1514
+#line 1508
 static PyObject*
 cdouble_richcompare(PyObject *self, PyObject *other, int cmp_op)
 {
     npy_cdouble arg1, arg2;
     int out=0;
+
+    RICHCMP_GIVE_UP_IF_NEEDED(self, other);
 
     switch(_cdouble_convert2_to_ctypes(self, &arg1, other, &arg2)) {
     case 0:
@@ -33651,12 +33862,14 @@ cdouble_richcompare(PyObject *self, PyObject *other, int cmp_op)
     }
 }
 
-#line 1514
+#line 1508
 static PyObject*
 clongdouble_richcompare(PyObject *self, PyObject *other, int cmp_op)
 {
     npy_clongdouble arg1, arg2;
     int out=0;
+
+    RICHCMP_GIVE_UP_IF_NEEDED(self, other);
 
     switch(_clongdouble_convert2_to_ctypes(self, &arg1, other, &arg2)) {
     case 0:
@@ -33709,14 +33922,12 @@ clongdouble_richcompare(PyObject *self, PyObject *other, int cmp_op)
 }
 
 
-
-#line 1578
+#line 1573
 static PyNumberMethods byte_as_number = {
     (binaryfunc)byte_add,                     /*nb_add*/
     (binaryfunc)byte_subtract,                /*nb_subtract*/
     (binaryfunc)byte_multiply,                /*nb_multiply*/
-#if defined(NPY_PY3K)
-#else
+#if !defined(NPY_PY3K)
     (binaryfunc)byte_divide,                  /*nb_divide*/
 #endif
     (binaryfunc)byte_remainder,               /*nb_remainder*/
@@ -33736,8 +33947,7 @@ static PyNumberMethods byte_as_number = {
     (binaryfunc)byte_and,                     /*nb_and*/
     (binaryfunc)byte_xor,                     /*nb_xor*/
     (binaryfunc)byte_or,                      /*nb_or*/
-#if defined(NPY_PY3K)
-#else
+#if !defined(NPY_PY3K)
     0,                                          /*nb_coerce*/
 #endif
     (unaryfunc)byte_int,                      /*nb_int*/
@@ -33747,16 +33957,14 @@ static PyNumberMethods byte_as_number = {
     (unaryfunc)byte_long,                     /*nb_long*/
 #endif
     (unaryfunc)byte_float,                    /*nb_float*/
-#if defined(NPY_PY3K)
-#else
+#if !defined(NPY_PY3K)
     (unaryfunc)byte_oct,                      /*nb_oct*/
     (unaryfunc)byte_hex,                      /*nb_hex*/
 #endif
     0,                                          /*inplace_add*/
     0,                                          /*inplace_subtract*/
     0,                                          /*inplace_multiply*/
-#if defined(NPY_PY3K)
-#else
+#if !defined(NPY_PY3K)
     0,                                          /*inplace_divide*/
 #endif
     0,                                          /*inplace_remainder*/
@@ -33771,15 +33979,18 @@ static PyNumberMethods byte_as_number = {
     0,                                          /*nb_inplace_floor_divide*/
     0,                                          /*nb_inplace_true_divide*/
     (unaryfunc)NULL,                            /*nb_index*/
+#if PY_VERSION_HEX >= 0x03050000
+    0,                                          /*nb_matrix_multiply*/
+    0,                                          /*nb_inplace_matrix_multiply*/
+#endif
 };
 
-#line 1578
+#line 1573
 static PyNumberMethods ubyte_as_number = {
     (binaryfunc)ubyte_add,                     /*nb_add*/
     (binaryfunc)ubyte_subtract,                /*nb_subtract*/
     (binaryfunc)ubyte_multiply,                /*nb_multiply*/
-#if defined(NPY_PY3K)
-#else
+#if !defined(NPY_PY3K)
     (binaryfunc)ubyte_divide,                  /*nb_divide*/
 #endif
     (binaryfunc)ubyte_remainder,               /*nb_remainder*/
@@ -33799,8 +34010,7 @@ static PyNumberMethods ubyte_as_number = {
     (binaryfunc)ubyte_and,                     /*nb_and*/
     (binaryfunc)ubyte_xor,                     /*nb_xor*/
     (binaryfunc)ubyte_or,                      /*nb_or*/
-#if defined(NPY_PY3K)
-#else
+#if !defined(NPY_PY3K)
     0,                                          /*nb_coerce*/
 #endif
     (unaryfunc)ubyte_int,                      /*nb_int*/
@@ -33810,16 +34020,14 @@ static PyNumberMethods ubyte_as_number = {
     (unaryfunc)ubyte_long,                     /*nb_long*/
 #endif
     (unaryfunc)ubyte_float,                    /*nb_float*/
-#if defined(NPY_PY3K)
-#else
+#if !defined(NPY_PY3K)
     (unaryfunc)ubyte_oct,                      /*nb_oct*/
     (unaryfunc)ubyte_hex,                      /*nb_hex*/
 #endif
     0,                                          /*inplace_add*/
     0,                                          /*inplace_subtract*/
     0,                                          /*inplace_multiply*/
-#if defined(NPY_PY3K)
-#else
+#if !defined(NPY_PY3K)
     0,                                          /*inplace_divide*/
 #endif
     0,                                          /*inplace_remainder*/
@@ -33834,15 +34042,18 @@ static PyNumberMethods ubyte_as_number = {
     0,                                          /*nb_inplace_floor_divide*/
     0,                                          /*nb_inplace_true_divide*/
     (unaryfunc)NULL,                            /*nb_index*/
+#if PY_VERSION_HEX >= 0x03050000
+    0,                                          /*nb_matrix_multiply*/
+    0,                                          /*nb_inplace_matrix_multiply*/
+#endif
 };
 
-#line 1578
+#line 1573
 static PyNumberMethods short_as_number = {
     (binaryfunc)short_add,                     /*nb_add*/
     (binaryfunc)short_subtract,                /*nb_subtract*/
     (binaryfunc)short_multiply,                /*nb_multiply*/
-#if defined(NPY_PY3K)
-#else
+#if !defined(NPY_PY3K)
     (binaryfunc)short_divide,                  /*nb_divide*/
 #endif
     (binaryfunc)short_remainder,               /*nb_remainder*/
@@ -33862,8 +34073,7 @@ static PyNumberMethods short_as_number = {
     (binaryfunc)short_and,                     /*nb_and*/
     (binaryfunc)short_xor,                     /*nb_xor*/
     (binaryfunc)short_or,                      /*nb_or*/
-#if defined(NPY_PY3K)
-#else
+#if !defined(NPY_PY3K)
     0,                                          /*nb_coerce*/
 #endif
     (unaryfunc)short_int,                      /*nb_int*/
@@ -33873,16 +34083,14 @@ static PyNumberMethods short_as_number = {
     (unaryfunc)short_long,                     /*nb_long*/
 #endif
     (unaryfunc)short_float,                    /*nb_float*/
-#if defined(NPY_PY3K)
-#else
+#if !defined(NPY_PY3K)
     (unaryfunc)short_oct,                      /*nb_oct*/
     (unaryfunc)short_hex,                      /*nb_hex*/
 #endif
     0,                                          /*inplace_add*/
     0,                                          /*inplace_subtract*/
     0,                                          /*inplace_multiply*/
-#if defined(NPY_PY3K)
-#else
+#if !defined(NPY_PY3K)
     0,                                          /*inplace_divide*/
 #endif
     0,                                          /*inplace_remainder*/
@@ -33897,15 +34105,18 @@ static PyNumberMethods short_as_number = {
     0,                                          /*nb_inplace_floor_divide*/
     0,                                          /*nb_inplace_true_divide*/
     (unaryfunc)NULL,                            /*nb_index*/
+#if PY_VERSION_HEX >= 0x03050000
+    0,                                          /*nb_matrix_multiply*/
+    0,                                          /*nb_inplace_matrix_multiply*/
+#endif
 };
 
-#line 1578
+#line 1573
 static PyNumberMethods ushort_as_number = {
     (binaryfunc)ushort_add,                     /*nb_add*/
     (binaryfunc)ushort_subtract,                /*nb_subtract*/
     (binaryfunc)ushort_multiply,                /*nb_multiply*/
-#if defined(NPY_PY3K)
-#else
+#if !defined(NPY_PY3K)
     (binaryfunc)ushort_divide,                  /*nb_divide*/
 #endif
     (binaryfunc)ushort_remainder,               /*nb_remainder*/
@@ -33925,8 +34136,7 @@ static PyNumberMethods ushort_as_number = {
     (binaryfunc)ushort_and,                     /*nb_and*/
     (binaryfunc)ushort_xor,                     /*nb_xor*/
     (binaryfunc)ushort_or,                      /*nb_or*/
-#if defined(NPY_PY3K)
-#else
+#if !defined(NPY_PY3K)
     0,                                          /*nb_coerce*/
 #endif
     (unaryfunc)ushort_int,                      /*nb_int*/
@@ -33936,16 +34146,14 @@ static PyNumberMethods ushort_as_number = {
     (unaryfunc)ushort_long,                     /*nb_long*/
 #endif
     (unaryfunc)ushort_float,                    /*nb_float*/
-#if defined(NPY_PY3K)
-#else
+#if !defined(NPY_PY3K)
     (unaryfunc)ushort_oct,                      /*nb_oct*/
     (unaryfunc)ushort_hex,                      /*nb_hex*/
 #endif
     0,                                          /*inplace_add*/
     0,                                          /*inplace_subtract*/
     0,                                          /*inplace_multiply*/
-#if defined(NPY_PY3K)
-#else
+#if !defined(NPY_PY3K)
     0,                                          /*inplace_divide*/
 #endif
     0,                                          /*inplace_remainder*/
@@ -33960,15 +34168,18 @@ static PyNumberMethods ushort_as_number = {
     0,                                          /*nb_inplace_floor_divide*/
     0,                                          /*nb_inplace_true_divide*/
     (unaryfunc)NULL,                            /*nb_index*/
+#if PY_VERSION_HEX >= 0x03050000
+    0,                                          /*nb_matrix_multiply*/
+    0,                                          /*nb_inplace_matrix_multiply*/
+#endif
 };
 
-#line 1578
+#line 1573
 static PyNumberMethods int_as_number = {
     (binaryfunc)int_add,                     /*nb_add*/
     (binaryfunc)int_subtract,                /*nb_subtract*/
     (binaryfunc)int_multiply,                /*nb_multiply*/
-#if defined(NPY_PY3K)
-#else
+#if !defined(NPY_PY3K)
     (binaryfunc)int_divide,                  /*nb_divide*/
 #endif
     (binaryfunc)int_remainder,               /*nb_remainder*/
@@ -33988,8 +34199,7 @@ static PyNumberMethods int_as_number = {
     (binaryfunc)int_and,                     /*nb_and*/
     (binaryfunc)int_xor,                     /*nb_xor*/
     (binaryfunc)int_or,                      /*nb_or*/
-#if defined(NPY_PY3K)
-#else
+#if !defined(NPY_PY3K)
     0,                                          /*nb_coerce*/
 #endif
     (unaryfunc)int_int,                      /*nb_int*/
@@ -33999,16 +34209,14 @@ static PyNumberMethods int_as_number = {
     (unaryfunc)int_long,                     /*nb_long*/
 #endif
     (unaryfunc)int_float,                    /*nb_float*/
-#if defined(NPY_PY3K)
-#else
+#if !defined(NPY_PY3K)
     (unaryfunc)int_oct,                      /*nb_oct*/
     (unaryfunc)int_hex,                      /*nb_hex*/
 #endif
     0,                                          /*inplace_add*/
     0,                                          /*inplace_subtract*/
     0,                                          /*inplace_multiply*/
-#if defined(NPY_PY3K)
-#else
+#if !defined(NPY_PY3K)
     0,                                          /*inplace_divide*/
 #endif
     0,                                          /*inplace_remainder*/
@@ -34023,15 +34231,18 @@ static PyNumberMethods int_as_number = {
     0,                                          /*nb_inplace_floor_divide*/
     0,                                          /*nb_inplace_true_divide*/
     (unaryfunc)NULL,                            /*nb_index*/
+#if PY_VERSION_HEX >= 0x03050000
+    0,                                          /*nb_matrix_multiply*/
+    0,                                          /*nb_inplace_matrix_multiply*/
+#endif
 };
 
-#line 1578
+#line 1573
 static PyNumberMethods uint_as_number = {
     (binaryfunc)uint_add,                     /*nb_add*/
     (binaryfunc)uint_subtract,                /*nb_subtract*/
     (binaryfunc)uint_multiply,                /*nb_multiply*/
-#if defined(NPY_PY3K)
-#else
+#if !defined(NPY_PY3K)
     (binaryfunc)uint_divide,                  /*nb_divide*/
 #endif
     (binaryfunc)uint_remainder,               /*nb_remainder*/
@@ -34051,8 +34262,7 @@ static PyNumberMethods uint_as_number = {
     (binaryfunc)uint_and,                     /*nb_and*/
     (binaryfunc)uint_xor,                     /*nb_xor*/
     (binaryfunc)uint_or,                      /*nb_or*/
-#if defined(NPY_PY3K)
-#else
+#if !defined(NPY_PY3K)
     0,                                          /*nb_coerce*/
 #endif
     (unaryfunc)uint_int,                      /*nb_int*/
@@ -34062,16 +34272,14 @@ static PyNumberMethods uint_as_number = {
     (unaryfunc)uint_long,                     /*nb_long*/
 #endif
     (unaryfunc)uint_float,                    /*nb_float*/
-#if defined(NPY_PY3K)
-#else
+#if !defined(NPY_PY3K)
     (unaryfunc)uint_oct,                      /*nb_oct*/
     (unaryfunc)uint_hex,                      /*nb_hex*/
 #endif
     0,                                          /*inplace_add*/
     0,                                          /*inplace_subtract*/
     0,                                          /*inplace_multiply*/
-#if defined(NPY_PY3K)
-#else
+#if !defined(NPY_PY3K)
     0,                                          /*inplace_divide*/
 #endif
     0,                                          /*inplace_remainder*/
@@ -34086,15 +34294,18 @@ static PyNumberMethods uint_as_number = {
     0,                                          /*nb_inplace_floor_divide*/
     0,                                          /*nb_inplace_true_divide*/
     (unaryfunc)NULL,                            /*nb_index*/
+#if PY_VERSION_HEX >= 0x03050000
+    0,                                          /*nb_matrix_multiply*/
+    0,                                          /*nb_inplace_matrix_multiply*/
+#endif
 };
 
-#line 1578
+#line 1573
 static PyNumberMethods long_as_number = {
     (binaryfunc)long_add,                     /*nb_add*/
     (binaryfunc)long_subtract,                /*nb_subtract*/
     (binaryfunc)long_multiply,                /*nb_multiply*/
-#if defined(NPY_PY3K)
-#else
+#if !defined(NPY_PY3K)
     (binaryfunc)long_divide,                  /*nb_divide*/
 #endif
     (binaryfunc)long_remainder,               /*nb_remainder*/
@@ -34114,8 +34325,7 @@ static PyNumberMethods long_as_number = {
     (binaryfunc)long_and,                     /*nb_and*/
     (binaryfunc)long_xor,                     /*nb_xor*/
     (binaryfunc)long_or,                      /*nb_or*/
-#if defined(NPY_PY3K)
-#else
+#if !defined(NPY_PY3K)
     0,                                          /*nb_coerce*/
 #endif
     (unaryfunc)long_int,                      /*nb_int*/
@@ -34125,16 +34335,14 @@ static PyNumberMethods long_as_number = {
     (unaryfunc)long_long,                     /*nb_long*/
 #endif
     (unaryfunc)long_float,                    /*nb_float*/
-#if defined(NPY_PY3K)
-#else
+#if !defined(NPY_PY3K)
     (unaryfunc)long_oct,                      /*nb_oct*/
     (unaryfunc)long_hex,                      /*nb_hex*/
 #endif
     0,                                          /*inplace_add*/
     0,                                          /*inplace_subtract*/
     0,                                          /*inplace_multiply*/
-#if defined(NPY_PY3K)
-#else
+#if !defined(NPY_PY3K)
     0,                                          /*inplace_divide*/
 #endif
     0,                                          /*inplace_remainder*/
@@ -34149,15 +34357,18 @@ static PyNumberMethods long_as_number = {
     0,                                          /*nb_inplace_floor_divide*/
     0,                                          /*nb_inplace_true_divide*/
     (unaryfunc)NULL,                            /*nb_index*/
+#if PY_VERSION_HEX >= 0x03050000
+    0,                                          /*nb_matrix_multiply*/
+    0,                                          /*nb_inplace_matrix_multiply*/
+#endif
 };
 
-#line 1578
+#line 1573
 static PyNumberMethods ulong_as_number = {
     (binaryfunc)ulong_add,                     /*nb_add*/
     (binaryfunc)ulong_subtract,                /*nb_subtract*/
     (binaryfunc)ulong_multiply,                /*nb_multiply*/
-#if defined(NPY_PY3K)
-#else
+#if !defined(NPY_PY3K)
     (binaryfunc)ulong_divide,                  /*nb_divide*/
 #endif
     (binaryfunc)ulong_remainder,               /*nb_remainder*/
@@ -34177,8 +34388,7 @@ static PyNumberMethods ulong_as_number = {
     (binaryfunc)ulong_and,                     /*nb_and*/
     (binaryfunc)ulong_xor,                     /*nb_xor*/
     (binaryfunc)ulong_or,                      /*nb_or*/
-#if defined(NPY_PY3K)
-#else
+#if !defined(NPY_PY3K)
     0,                                          /*nb_coerce*/
 #endif
     (unaryfunc)ulong_int,                      /*nb_int*/
@@ -34188,16 +34398,14 @@ static PyNumberMethods ulong_as_number = {
     (unaryfunc)ulong_long,                     /*nb_long*/
 #endif
     (unaryfunc)ulong_float,                    /*nb_float*/
-#if defined(NPY_PY3K)
-#else
+#if !defined(NPY_PY3K)
     (unaryfunc)ulong_oct,                      /*nb_oct*/
     (unaryfunc)ulong_hex,                      /*nb_hex*/
 #endif
     0,                                          /*inplace_add*/
     0,                                          /*inplace_subtract*/
     0,                                          /*inplace_multiply*/
-#if defined(NPY_PY3K)
-#else
+#if !defined(NPY_PY3K)
     0,                                          /*inplace_divide*/
 #endif
     0,                                          /*inplace_remainder*/
@@ -34212,15 +34420,18 @@ static PyNumberMethods ulong_as_number = {
     0,                                          /*nb_inplace_floor_divide*/
     0,                                          /*nb_inplace_true_divide*/
     (unaryfunc)NULL,                            /*nb_index*/
+#if PY_VERSION_HEX >= 0x03050000
+    0,                                          /*nb_matrix_multiply*/
+    0,                                          /*nb_inplace_matrix_multiply*/
+#endif
 };
 
-#line 1578
+#line 1573
 static PyNumberMethods longlong_as_number = {
     (binaryfunc)longlong_add,                     /*nb_add*/
     (binaryfunc)longlong_subtract,                /*nb_subtract*/
     (binaryfunc)longlong_multiply,                /*nb_multiply*/
-#if defined(NPY_PY3K)
-#else
+#if !defined(NPY_PY3K)
     (binaryfunc)longlong_divide,                  /*nb_divide*/
 #endif
     (binaryfunc)longlong_remainder,               /*nb_remainder*/
@@ -34240,8 +34451,7 @@ static PyNumberMethods longlong_as_number = {
     (binaryfunc)longlong_and,                     /*nb_and*/
     (binaryfunc)longlong_xor,                     /*nb_xor*/
     (binaryfunc)longlong_or,                      /*nb_or*/
-#if defined(NPY_PY3K)
-#else
+#if !defined(NPY_PY3K)
     0,                                          /*nb_coerce*/
 #endif
     (unaryfunc)longlong_int,                      /*nb_int*/
@@ -34251,16 +34461,14 @@ static PyNumberMethods longlong_as_number = {
     (unaryfunc)longlong_long,                     /*nb_long*/
 #endif
     (unaryfunc)longlong_float,                    /*nb_float*/
-#if defined(NPY_PY3K)
-#else
+#if !defined(NPY_PY3K)
     (unaryfunc)longlong_oct,                      /*nb_oct*/
     (unaryfunc)longlong_hex,                      /*nb_hex*/
 #endif
     0,                                          /*inplace_add*/
     0,                                          /*inplace_subtract*/
     0,                                          /*inplace_multiply*/
-#if defined(NPY_PY3K)
-#else
+#if !defined(NPY_PY3K)
     0,                                          /*inplace_divide*/
 #endif
     0,                                          /*inplace_remainder*/
@@ -34275,15 +34483,18 @@ static PyNumberMethods longlong_as_number = {
     0,                                          /*nb_inplace_floor_divide*/
     0,                                          /*nb_inplace_true_divide*/
     (unaryfunc)NULL,                            /*nb_index*/
+#if PY_VERSION_HEX >= 0x03050000
+    0,                                          /*nb_matrix_multiply*/
+    0,                                          /*nb_inplace_matrix_multiply*/
+#endif
 };
 
-#line 1578
+#line 1573
 static PyNumberMethods ulonglong_as_number = {
     (binaryfunc)ulonglong_add,                     /*nb_add*/
     (binaryfunc)ulonglong_subtract,                /*nb_subtract*/
     (binaryfunc)ulonglong_multiply,                /*nb_multiply*/
-#if defined(NPY_PY3K)
-#else
+#if !defined(NPY_PY3K)
     (binaryfunc)ulonglong_divide,                  /*nb_divide*/
 #endif
     (binaryfunc)ulonglong_remainder,               /*nb_remainder*/
@@ -34303,8 +34514,7 @@ static PyNumberMethods ulonglong_as_number = {
     (binaryfunc)ulonglong_and,                     /*nb_and*/
     (binaryfunc)ulonglong_xor,                     /*nb_xor*/
     (binaryfunc)ulonglong_or,                      /*nb_or*/
-#if defined(NPY_PY3K)
-#else
+#if !defined(NPY_PY3K)
     0,                                          /*nb_coerce*/
 #endif
     (unaryfunc)ulonglong_int,                      /*nb_int*/
@@ -34314,16 +34524,14 @@ static PyNumberMethods ulonglong_as_number = {
     (unaryfunc)ulonglong_long,                     /*nb_long*/
 #endif
     (unaryfunc)ulonglong_float,                    /*nb_float*/
-#if defined(NPY_PY3K)
-#else
+#if !defined(NPY_PY3K)
     (unaryfunc)ulonglong_oct,                      /*nb_oct*/
     (unaryfunc)ulonglong_hex,                      /*nb_hex*/
 #endif
     0,                                          /*inplace_add*/
     0,                                          /*inplace_subtract*/
     0,                                          /*inplace_multiply*/
-#if defined(NPY_PY3K)
-#else
+#if !defined(NPY_PY3K)
     0,                                          /*inplace_divide*/
 #endif
     0,                                          /*inplace_remainder*/
@@ -34338,15 +34546,18 @@ static PyNumberMethods ulonglong_as_number = {
     0,                                          /*nb_inplace_floor_divide*/
     0,                                          /*nb_inplace_true_divide*/
     (unaryfunc)NULL,                            /*nb_index*/
+#if PY_VERSION_HEX >= 0x03050000
+    0,                                          /*nb_matrix_multiply*/
+    0,                                          /*nb_inplace_matrix_multiply*/
+#endif
 };
 
-#line 1578
+#line 1573
 static PyNumberMethods half_as_number = {
     (binaryfunc)half_add,                     /*nb_add*/
     (binaryfunc)half_subtract,                /*nb_subtract*/
     (binaryfunc)half_multiply,                /*nb_multiply*/
-#if defined(NPY_PY3K)
-#else
+#if !defined(NPY_PY3K)
     (binaryfunc)half_divide,                  /*nb_divide*/
 #endif
     (binaryfunc)half_remainder,               /*nb_remainder*/
@@ -34366,8 +34577,7 @@ static PyNumberMethods half_as_number = {
     (binaryfunc)half_and,                     /*nb_and*/
     (binaryfunc)half_xor,                     /*nb_xor*/
     (binaryfunc)half_or,                      /*nb_or*/
-#if defined(NPY_PY3K)
-#else
+#if !defined(NPY_PY3K)
     0,                                          /*nb_coerce*/
 #endif
     (unaryfunc)half_int,                      /*nb_int*/
@@ -34377,16 +34587,14 @@ static PyNumberMethods half_as_number = {
     (unaryfunc)half_long,                     /*nb_long*/
 #endif
     (unaryfunc)half_float,                    /*nb_float*/
-#if defined(NPY_PY3K)
-#else
+#if !defined(NPY_PY3K)
     (unaryfunc)half_oct,                      /*nb_oct*/
     (unaryfunc)half_hex,                      /*nb_hex*/
 #endif
     0,                                          /*inplace_add*/
     0,                                          /*inplace_subtract*/
     0,                                          /*inplace_multiply*/
-#if defined(NPY_PY3K)
-#else
+#if !defined(NPY_PY3K)
     0,                                          /*inplace_divide*/
 #endif
     0,                                          /*inplace_remainder*/
@@ -34401,15 +34609,18 @@ static PyNumberMethods half_as_number = {
     0,                                          /*nb_inplace_floor_divide*/
     0,                                          /*nb_inplace_true_divide*/
     (unaryfunc)NULL,                            /*nb_index*/
+#if PY_VERSION_HEX >= 0x03050000
+    0,                                          /*nb_matrix_multiply*/
+    0,                                          /*nb_inplace_matrix_multiply*/
+#endif
 };
 
-#line 1578
+#line 1573
 static PyNumberMethods float_as_number = {
     (binaryfunc)float_add,                     /*nb_add*/
     (binaryfunc)float_subtract,                /*nb_subtract*/
     (binaryfunc)float_multiply,                /*nb_multiply*/
-#if defined(NPY_PY3K)
-#else
+#if !defined(NPY_PY3K)
     (binaryfunc)float_divide,                  /*nb_divide*/
 #endif
     (binaryfunc)float_remainder,               /*nb_remainder*/
@@ -34429,8 +34640,7 @@ static PyNumberMethods float_as_number = {
     (binaryfunc)float_and,                     /*nb_and*/
     (binaryfunc)float_xor,                     /*nb_xor*/
     (binaryfunc)float_or,                      /*nb_or*/
-#if defined(NPY_PY3K)
-#else
+#if !defined(NPY_PY3K)
     0,                                          /*nb_coerce*/
 #endif
     (unaryfunc)float_int,                      /*nb_int*/
@@ -34440,16 +34650,14 @@ static PyNumberMethods float_as_number = {
     (unaryfunc)float_long,                     /*nb_long*/
 #endif
     (unaryfunc)float_float,                    /*nb_float*/
-#if defined(NPY_PY3K)
-#else
+#if !defined(NPY_PY3K)
     (unaryfunc)float_oct,                      /*nb_oct*/
     (unaryfunc)float_hex,                      /*nb_hex*/
 #endif
     0,                                          /*inplace_add*/
     0,                                          /*inplace_subtract*/
     0,                                          /*inplace_multiply*/
-#if defined(NPY_PY3K)
-#else
+#if !defined(NPY_PY3K)
     0,                                          /*inplace_divide*/
 #endif
     0,                                          /*inplace_remainder*/
@@ -34464,15 +34672,18 @@ static PyNumberMethods float_as_number = {
     0,                                          /*nb_inplace_floor_divide*/
     0,                                          /*nb_inplace_true_divide*/
     (unaryfunc)NULL,                            /*nb_index*/
+#if PY_VERSION_HEX >= 0x03050000
+    0,                                          /*nb_matrix_multiply*/
+    0,                                          /*nb_inplace_matrix_multiply*/
+#endif
 };
 
-#line 1578
+#line 1573
 static PyNumberMethods double_as_number = {
     (binaryfunc)double_add,                     /*nb_add*/
     (binaryfunc)double_subtract,                /*nb_subtract*/
     (binaryfunc)double_multiply,                /*nb_multiply*/
-#if defined(NPY_PY3K)
-#else
+#if !defined(NPY_PY3K)
     (binaryfunc)double_divide,                  /*nb_divide*/
 #endif
     (binaryfunc)double_remainder,               /*nb_remainder*/
@@ -34492,8 +34703,7 @@ static PyNumberMethods double_as_number = {
     (binaryfunc)double_and,                     /*nb_and*/
     (binaryfunc)double_xor,                     /*nb_xor*/
     (binaryfunc)double_or,                      /*nb_or*/
-#if defined(NPY_PY3K)
-#else
+#if !defined(NPY_PY3K)
     0,                                          /*nb_coerce*/
 #endif
     (unaryfunc)double_int,                      /*nb_int*/
@@ -34503,16 +34713,14 @@ static PyNumberMethods double_as_number = {
     (unaryfunc)double_long,                     /*nb_long*/
 #endif
     (unaryfunc)double_float,                    /*nb_float*/
-#if defined(NPY_PY3K)
-#else
+#if !defined(NPY_PY3K)
     (unaryfunc)double_oct,                      /*nb_oct*/
     (unaryfunc)double_hex,                      /*nb_hex*/
 #endif
     0,                                          /*inplace_add*/
     0,                                          /*inplace_subtract*/
     0,                                          /*inplace_multiply*/
-#if defined(NPY_PY3K)
-#else
+#if !defined(NPY_PY3K)
     0,                                          /*inplace_divide*/
 #endif
     0,                                          /*inplace_remainder*/
@@ -34527,15 +34735,18 @@ static PyNumberMethods double_as_number = {
     0,                                          /*nb_inplace_floor_divide*/
     0,                                          /*nb_inplace_true_divide*/
     (unaryfunc)NULL,                            /*nb_index*/
+#if PY_VERSION_HEX >= 0x03050000
+    0,                                          /*nb_matrix_multiply*/
+    0,                                          /*nb_inplace_matrix_multiply*/
+#endif
 };
 
-#line 1578
+#line 1573
 static PyNumberMethods longdouble_as_number = {
     (binaryfunc)longdouble_add,                     /*nb_add*/
     (binaryfunc)longdouble_subtract,                /*nb_subtract*/
     (binaryfunc)longdouble_multiply,                /*nb_multiply*/
-#if defined(NPY_PY3K)
-#else
+#if !defined(NPY_PY3K)
     (binaryfunc)longdouble_divide,                  /*nb_divide*/
 #endif
     (binaryfunc)longdouble_remainder,               /*nb_remainder*/
@@ -34555,8 +34766,7 @@ static PyNumberMethods longdouble_as_number = {
     (binaryfunc)longdouble_and,                     /*nb_and*/
     (binaryfunc)longdouble_xor,                     /*nb_xor*/
     (binaryfunc)longdouble_or,                      /*nb_or*/
-#if defined(NPY_PY3K)
-#else
+#if !defined(NPY_PY3K)
     0,                                          /*nb_coerce*/
 #endif
     (unaryfunc)longdouble_int,                      /*nb_int*/
@@ -34566,16 +34776,14 @@ static PyNumberMethods longdouble_as_number = {
     (unaryfunc)longdouble_long,                     /*nb_long*/
 #endif
     (unaryfunc)longdouble_float,                    /*nb_float*/
-#if defined(NPY_PY3K)
-#else
+#if !defined(NPY_PY3K)
     (unaryfunc)longdouble_oct,                      /*nb_oct*/
     (unaryfunc)longdouble_hex,                      /*nb_hex*/
 #endif
     0,                                          /*inplace_add*/
     0,                                          /*inplace_subtract*/
     0,                                          /*inplace_multiply*/
-#if defined(NPY_PY3K)
-#else
+#if !defined(NPY_PY3K)
     0,                                          /*inplace_divide*/
 #endif
     0,                                          /*inplace_remainder*/
@@ -34590,15 +34798,18 @@ static PyNumberMethods longdouble_as_number = {
     0,                                          /*nb_inplace_floor_divide*/
     0,                                          /*nb_inplace_true_divide*/
     (unaryfunc)NULL,                            /*nb_index*/
+#if PY_VERSION_HEX >= 0x03050000
+    0,                                          /*nb_matrix_multiply*/
+    0,                                          /*nb_inplace_matrix_multiply*/
+#endif
 };
 
-#line 1578
+#line 1573
 static PyNumberMethods cfloat_as_number = {
     (binaryfunc)cfloat_add,                     /*nb_add*/
     (binaryfunc)cfloat_subtract,                /*nb_subtract*/
     (binaryfunc)cfloat_multiply,                /*nb_multiply*/
-#if defined(NPY_PY3K)
-#else
+#if !defined(NPY_PY3K)
     (binaryfunc)cfloat_divide,                  /*nb_divide*/
 #endif
     (binaryfunc)cfloat_remainder,               /*nb_remainder*/
@@ -34618,8 +34829,7 @@ static PyNumberMethods cfloat_as_number = {
     (binaryfunc)cfloat_and,                     /*nb_and*/
     (binaryfunc)cfloat_xor,                     /*nb_xor*/
     (binaryfunc)cfloat_or,                      /*nb_or*/
-#if defined(NPY_PY3K)
-#else
+#if !defined(NPY_PY3K)
     0,                                          /*nb_coerce*/
 #endif
     (unaryfunc)cfloat_int,                      /*nb_int*/
@@ -34629,16 +34839,14 @@ static PyNumberMethods cfloat_as_number = {
     (unaryfunc)cfloat_long,                     /*nb_long*/
 #endif
     (unaryfunc)cfloat_float,                    /*nb_float*/
-#if defined(NPY_PY3K)
-#else
+#if !defined(NPY_PY3K)
     (unaryfunc)cfloat_oct,                      /*nb_oct*/
     (unaryfunc)cfloat_hex,                      /*nb_hex*/
 #endif
     0,                                          /*inplace_add*/
     0,                                          /*inplace_subtract*/
     0,                                          /*inplace_multiply*/
-#if defined(NPY_PY3K)
-#else
+#if !defined(NPY_PY3K)
     0,                                          /*inplace_divide*/
 #endif
     0,                                          /*inplace_remainder*/
@@ -34653,15 +34861,18 @@ static PyNumberMethods cfloat_as_number = {
     0,                                          /*nb_inplace_floor_divide*/
     0,                                          /*nb_inplace_true_divide*/
     (unaryfunc)NULL,                            /*nb_index*/
+#if PY_VERSION_HEX >= 0x03050000
+    0,                                          /*nb_matrix_multiply*/
+    0,                                          /*nb_inplace_matrix_multiply*/
+#endif
 };
 
-#line 1578
+#line 1573
 static PyNumberMethods cdouble_as_number = {
     (binaryfunc)cdouble_add,                     /*nb_add*/
     (binaryfunc)cdouble_subtract,                /*nb_subtract*/
     (binaryfunc)cdouble_multiply,                /*nb_multiply*/
-#if defined(NPY_PY3K)
-#else
+#if !defined(NPY_PY3K)
     (binaryfunc)cdouble_divide,                  /*nb_divide*/
 #endif
     (binaryfunc)cdouble_remainder,               /*nb_remainder*/
@@ -34681,8 +34892,7 @@ static PyNumberMethods cdouble_as_number = {
     (binaryfunc)cdouble_and,                     /*nb_and*/
     (binaryfunc)cdouble_xor,                     /*nb_xor*/
     (binaryfunc)cdouble_or,                      /*nb_or*/
-#if defined(NPY_PY3K)
-#else
+#if !defined(NPY_PY3K)
     0,                                          /*nb_coerce*/
 #endif
     (unaryfunc)cdouble_int,                      /*nb_int*/
@@ -34692,16 +34902,14 @@ static PyNumberMethods cdouble_as_number = {
     (unaryfunc)cdouble_long,                     /*nb_long*/
 #endif
     (unaryfunc)cdouble_float,                    /*nb_float*/
-#if defined(NPY_PY3K)
-#else
+#if !defined(NPY_PY3K)
     (unaryfunc)cdouble_oct,                      /*nb_oct*/
     (unaryfunc)cdouble_hex,                      /*nb_hex*/
 #endif
     0,                                          /*inplace_add*/
     0,                                          /*inplace_subtract*/
     0,                                          /*inplace_multiply*/
-#if defined(NPY_PY3K)
-#else
+#if !defined(NPY_PY3K)
     0,                                          /*inplace_divide*/
 #endif
     0,                                          /*inplace_remainder*/
@@ -34716,15 +34924,18 @@ static PyNumberMethods cdouble_as_number = {
     0,                                          /*nb_inplace_floor_divide*/
     0,                                          /*nb_inplace_true_divide*/
     (unaryfunc)NULL,                            /*nb_index*/
+#if PY_VERSION_HEX >= 0x03050000
+    0,                                          /*nb_matrix_multiply*/
+    0,                                          /*nb_inplace_matrix_multiply*/
+#endif
 };
 
-#line 1578
+#line 1573
 static PyNumberMethods clongdouble_as_number = {
     (binaryfunc)clongdouble_add,                     /*nb_add*/
     (binaryfunc)clongdouble_subtract,                /*nb_subtract*/
     (binaryfunc)clongdouble_multiply,                /*nb_multiply*/
-#if defined(NPY_PY3K)
-#else
+#if !defined(NPY_PY3K)
     (binaryfunc)clongdouble_divide,                  /*nb_divide*/
 #endif
     (binaryfunc)clongdouble_remainder,               /*nb_remainder*/
@@ -34744,8 +34955,7 @@ static PyNumberMethods clongdouble_as_number = {
     (binaryfunc)clongdouble_and,                     /*nb_and*/
     (binaryfunc)clongdouble_xor,                     /*nb_xor*/
     (binaryfunc)clongdouble_or,                      /*nb_or*/
-#if defined(NPY_PY3K)
-#else
+#if !defined(NPY_PY3K)
     0,                                          /*nb_coerce*/
 #endif
     (unaryfunc)clongdouble_int,                      /*nb_int*/
@@ -34755,16 +34965,14 @@ static PyNumberMethods clongdouble_as_number = {
     (unaryfunc)clongdouble_long,                     /*nb_long*/
 #endif
     (unaryfunc)clongdouble_float,                    /*nb_float*/
-#if defined(NPY_PY3K)
-#else
+#if !defined(NPY_PY3K)
     (unaryfunc)clongdouble_oct,                      /*nb_oct*/
     (unaryfunc)clongdouble_hex,                      /*nb_hex*/
 #endif
     0,                                          /*inplace_add*/
     0,                                          /*inplace_subtract*/
     0,                                          /*inplace_multiply*/
-#if defined(NPY_PY3K)
-#else
+#if !defined(NPY_PY3K)
     0,                                          /*inplace_divide*/
 #endif
     0,                                          /*inplace_remainder*/
@@ -34779,93 +34987,97 @@ static PyNumberMethods clongdouble_as_number = {
     0,                                          /*nb_inplace_floor_divide*/
     0,                                          /*nb_inplace_true_divide*/
     (unaryfunc)NULL,                            /*nb_index*/
+#if PY_VERSION_HEX >= 0x03050000
+    0,                                          /*nb_matrix_multiply*/
+    0,                                          /*nb_inplace_matrix_multiply*/
+#endif
 };
 
 
 NPY_NO_EXPORT void
 add_scalarmath(void)
 {
-    #line 1654
+    #line 1649
     byte_as_number.nb_index = PyByteArrType_Type.tp_as_number->nb_index;
     PyByteArrType_Type.tp_as_number = &(byte_as_number);
     PyByteArrType_Type.tp_richcompare = byte_richcompare;
     
-#line 1654
+#line 1649
     ubyte_as_number.nb_index = PyUByteArrType_Type.tp_as_number->nb_index;
     PyUByteArrType_Type.tp_as_number = &(ubyte_as_number);
     PyUByteArrType_Type.tp_richcompare = ubyte_richcompare;
     
-#line 1654
+#line 1649
     short_as_number.nb_index = PyShortArrType_Type.tp_as_number->nb_index;
     PyShortArrType_Type.tp_as_number = &(short_as_number);
     PyShortArrType_Type.tp_richcompare = short_richcompare;
     
-#line 1654
+#line 1649
     ushort_as_number.nb_index = PyUShortArrType_Type.tp_as_number->nb_index;
     PyUShortArrType_Type.tp_as_number = &(ushort_as_number);
     PyUShortArrType_Type.tp_richcompare = ushort_richcompare;
     
-#line 1654
+#line 1649
     int_as_number.nb_index = PyIntArrType_Type.tp_as_number->nb_index;
     PyIntArrType_Type.tp_as_number = &(int_as_number);
     PyIntArrType_Type.tp_richcompare = int_richcompare;
     
-#line 1654
+#line 1649
     uint_as_number.nb_index = PyUIntArrType_Type.tp_as_number->nb_index;
     PyUIntArrType_Type.tp_as_number = &(uint_as_number);
     PyUIntArrType_Type.tp_richcompare = uint_richcompare;
     
-#line 1654
+#line 1649
     long_as_number.nb_index = PyLongArrType_Type.tp_as_number->nb_index;
     PyLongArrType_Type.tp_as_number = &(long_as_number);
     PyLongArrType_Type.tp_richcompare = long_richcompare;
     
-#line 1654
+#line 1649
     ulong_as_number.nb_index = PyULongArrType_Type.tp_as_number->nb_index;
     PyULongArrType_Type.tp_as_number = &(ulong_as_number);
     PyULongArrType_Type.tp_richcompare = ulong_richcompare;
     
-#line 1654
+#line 1649
     longlong_as_number.nb_index = PyLongLongArrType_Type.tp_as_number->nb_index;
     PyLongLongArrType_Type.tp_as_number = &(longlong_as_number);
     PyLongLongArrType_Type.tp_richcompare = longlong_richcompare;
     
-#line 1654
+#line 1649
     ulonglong_as_number.nb_index = PyULongLongArrType_Type.tp_as_number->nb_index;
     PyULongLongArrType_Type.tp_as_number = &(ulonglong_as_number);
     PyULongLongArrType_Type.tp_richcompare = ulonglong_richcompare;
     
-#line 1654
+#line 1649
     half_as_number.nb_index = PyHalfArrType_Type.tp_as_number->nb_index;
     PyHalfArrType_Type.tp_as_number = &(half_as_number);
     PyHalfArrType_Type.tp_richcompare = half_richcompare;
     
-#line 1654
+#line 1649
     float_as_number.nb_index = PyFloatArrType_Type.tp_as_number->nb_index;
     PyFloatArrType_Type.tp_as_number = &(float_as_number);
     PyFloatArrType_Type.tp_richcompare = float_richcompare;
     
-#line 1654
+#line 1649
     double_as_number.nb_index = PyDoubleArrType_Type.tp_as_number->nb_index;
     PyDoubleArrType_Type.tp_as_number = &(double_as_number);
     PyDoubleArrType_Type.tp_richcompare = double_richcompare;
     
-#line 1654
+#line 1649
     longdouble_as_number.nb_index = PyLongDoubleArrType_Type.tp_as_number->nb_index;
     PyLongDoubleArrType_Type.tp_as_number = &(longdouble_as_number);
     PyLongDoubleArrType_Type.tp_richcompare = longdouble_richcompare;
     
-#line 1654
+#line 1649
     cfloat_as_number.nb_index = PyCFloatArrType_Type.tp_as_number->nb_index;
     PyCFloatArrType_Type.tp_as_number = &(cfloat_as_number);
     PyCFloatArrType_Type.tp_richcompare = cfloat_richcompare;
     
-#line 1654
+#line 1649
     cdouble_as_number.nb_index = PyCDoubleArrType_Type.tp_as_number->nb_index;
     PyCDoubleArrType_Type.tp_as_number = &(cdouble_as_number);
     PyCDoubleArrType_Type.tp_richcompare = cdouble_richcompare;
     
-#line 1654
+#line 1649
     clongdouble_as_number.nb_index = PyCLongDoubleArrType_Type.tp_as_number->nb_index;
     PyCLongDoubleArrType_Type.tp_as_number = &(clongdouble_as_number);
     PyCLongDoubleArrType_Type.tp_richcompare = clongdouble_richcompare;
@@ -34904,48 +35116,6 @@ get_functions(PyObject * mm)
     _basic_clongdouble_pow = funcdata[j + 5];
     Py_DECREF(obj);
 
-    /* Get the sqrt functions */
-    obj = PyObject_GetAttrString(mm, "sqrt");
-    if (obj == NULL) {
-        goto fail;
-    }
-    funcdata = ((PyUFuncObject *)obj)->data;
-    signatures = ((PyUFuncObject *)obj)->types;
-    /*
-     * sqrt ufunc is specialized for double and float loops in
-     * generate_umath.py, the first to go into FLOAT/DOUBLE_sqrt
-     * they have the same signature as the scalar variants so we need to skip
-     * over them
-     */
-    i = 4;
-    j = 2;
-    while (signatures[i] != NPY_FLOAT) {
-        i += 2; j++;
-    }
-    _basic_half_sqrt = funcdata[j - 1];
-    _basic_float_sqrt = funcdata[j];
-    _basic_double_sqrt = funcdata[j + 1];
-    _basic_longdouble_sqrt = funcdata[j + 2];
-    Py_DECREF(obj);
-
-    /* Get the fmod functions */
-    obj = PyObject_GetAttrString(mm, "fmod");
-    if (obj == NULL) {
-        goto fail;
-    }
-    funcdata = ((PyUFuncObject *)obj)->data;
-    signatures = ((PyUFuncObject *)obj)->types;
-    i = 0;
-    j = 0;
-    while (signatures[i] != NPY_FLOAT) {
-        i += 3;
-        j++;
-    }
-    _basic_half_fmod = funcdata[j - 1];
-    _basic_float_fmod = funcdata[j];
-    _basic_double_fmod = funcdata[j + 1];
-    _basic_longdouble_fmod = funcdata[j + 2];
-    Py_DECREF(obj);
     return ret = 0;
 
  fail:

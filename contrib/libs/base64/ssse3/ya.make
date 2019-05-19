@@ -14,7 +14,7 @@ SRCS(
 )
 
 IF (ARCH_X86_64 OR ARCH_I386)
-    IF (OS_LINUX OR OS_DARWIN)
+    IF (OS_LINUX OR OS_DARWIN OR CLANG_CL)
         CONLYFLAGS(-mssse3 -std=c11)
     ELSE()
         IF (MSVC)

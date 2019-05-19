@@ -32,7 +32,7 @@ Y_UNIT_TEST_SUITE(mvs) {
         TMvsSampler sampler(SampleCount, 0.3);
 
         TRestorableFastRng64 rand(0);
-        sampler.GenSampleWeights(ff, boostingType, &rand, &executor);
+        sampler.GenSampleWeights(boostingType, &rand, &executor, &ff);
 
         for (ui32 j = 0; j < CB_THREAD_LIMIT; ++j) {
             for (ui32 i = 0; i < 20; ++i) {
@@ -72,7 +72,7 @@ Y_UNIT_TEST_SUITE(mvs) {
         TMvsSampler sampler(SampleCount, 0.99);
 
         TRestorableFastRng64 rand(0);
-        sampler.GenSampleWeights(ff, boostingType, &rand, &executor);
+        sampler.GenSampleWeights(boostingType, &rand, &executor, &ff);
 
         for (ui32 j = 0; j < CB_THREAD_LIMIT; ++j) {
             for (ui32 i = 0; i < 20; ++i) {

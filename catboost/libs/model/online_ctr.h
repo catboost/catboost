@@ -164,12 +164,12 @@ struct THash<TFeatureCombination> {
 struct TModelCtrBase {
     TFeatureCombination Projection;
     ECtrType CtrType = ECtrType::Borders;
-    int TargetBorderClassifierIdx = 0; // TODO(kirillovs): remove after @annaveronika implement map
+    int TargetBorderClassifierIdx = 0;
 
 public:
     bool operator==(const TModelCtrBase& other) const {
-        return std::tie(Projection, CtrType) ==
-               std::tie(other.Projection, other.CtrType);
+        return std::tie(Projection, CtrType, TargetBorderClassifierIdx) ==
+               std::tie(other.Projection, other.CtrType, other.TargetBorderClassifierIdx);
     }
 
     bool operator!=(const TModelCtrBase& other) const {
@@ -177,11 +177,11 @@ public:
     }
 
     bool operator<(const TModelCtrBase& other) const {
-        return std::tie(Projection, CtrType) <
-               std::tie(other.Projection, other.CtrType);
+        return std::tie(Projection, CtrType, TargetBorderClassifierIdx) <
+               std::tie(other.Projection, other.CtrType, other.TargetBorderClassifierIdx);
     }
 
-    Y_SAVELOAD_DEFINE(Projection, CtrType);
+    Y_SAVELOAD_DEFINE(Projection, CtrType, TargetBorderClassifierIdx);
 
     size_t GetHash() const {
         return MultiHash(Projection.GetHash(), CtrType, TargetBorderClassifierIdx);
@@ -195,6 +195,7 @@ public:
         }
         Projection.FBDeserialize(fbObj->FeatureCombination());
         CtrType = static_cast<ECtrType>(fbObj->CtrType());
+        TargetBorderClassifierIdx = fbObj->TargetBorderClassifierIdx();
     }
 };
 

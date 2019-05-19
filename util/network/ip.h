@@ -69,7 +69,7 @@ struct TIpAddress: public sockaddr_in {
     }
 
     inline TIpAddress(TStringBuf ip, TIpPort port) {
-        Set(ResolveHost(ip.Data(), ip.Size()), port);
+        Set(ResolveHost(ip.data(), ip.size()), port);
     }
 
     inline TIpAddress(const char* ip, TIpPort port) {

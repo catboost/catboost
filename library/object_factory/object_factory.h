@@ -113,7 +113,7 @@ namespace NObjectFactory {
             return keysStr;
         }
 
-        static TProduct* Construct(const TKey& key, const TKey& defKey = TKey()) {
+        static TProduct* Construct(const TKey& key, const TKey& defKey) {
             TProduct* result = Singleton<TObjectFactory<TProduct, TKey>>()->Create(key);
             if (!result && !!defKey) {
                 result = Singleton<TObjectFactory<TProduct, TKey>>()->Create(defKey);
@@ -121,11 +121,16 @@ namespace NObjectFactory {
             return result;
         }
 
+        static TProduct* Construct(const TKey& key) {
+            TProduct* result = Singleton<TObjectFactory<TProduct, TKey>>()->Create(key);
+            return result;
+        }
+
         static bool Has(const TKey& key) {
             return Singleton<TObjectFactory<TProduct, TKey>>()->HasImpl(key);
         }
 
-        static void GetRegisteredKeys(TSet<TString>& keys) {
+        static void GetRegisteredKeys(TSet<TKey>& keys) {
             return Singleton<TObjectFactory<TProduct, TKey>>()->GetKeys(keys);
         }
 

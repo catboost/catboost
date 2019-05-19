@@ -27,6 +27,26 @@ NCatboostCuda::TCtr NCatboostCuda::MigrateCtr(TBinarizedFeaturesManager& feature
     return newCtr;
 }
 
+
+template <>
+void Out<NCatboostCuda::TEstimatedFeature>(IOutputStream& out, const  NCatboostCuda::TEstimatedFeature& feature) {
+    out << "estimatorId=" << feature.EstimatorId.Id;
+    if (feature.EstimatorId.IsOnline) {
+        out << "(online)";
+    }
+    out << ", id=" << feature.FeatureId;
+}
+
+template <class TFeatInfo>
+inline void ValidateBorders(const TFeatInfo& featureInfo, const NCatboostCuda::TBinarizedFeaturesManager& manager, ui32 id) {
+    CB_ENSURE(featureInfo.Borders == manager.GetBorders(id),
+              "Error: progress borders should be consistent: featureId=" << featureInfo.Feature << " borders "
+                                                                         << Print(featureInfo.Borders) << " vs " << Print(manager.GetBorders(id)));
+
+}
+
+
+
 ui32 NCatboostCuda::UpdateFeatureId(TBinarizedFeaturesManager& featuresManager,
                                     const TModelFeaturesMap& map,
                                     const ui32 featureId) {
@@ -47,14 +67,17 @@ ui32 NCatboostCuda::UpdateFeatureId(TBinarizedFeaturesManager& featuresManager,
         }
     } else if (map.FloatFeatures.contains(featureId)) {
         auto& floatInfo = map.FloatFeatures.at(featureId);
-        const ui32 featureManagerId = featuresManager.GetFeatureManagerIdForFloatFeature(floatInfo.DataProviderId);
-        CB_ENSURE(floatInfo.Borders == featuresManager.GetBorders(featureManagerId),
-                  "Error: progress borders should be consistent: featureId=" << featureId << " borders "
-                  << Print(floatInfo.Borders) << " vs " << Print(featuresManager.GetBorders(featureManagerId)));
+        const ui32 featureManagerId = featuresManager.GetFeatureManagerIdForFloatFeature(floatInfo.Feature);
+        ValidateBorders(floatInfo, featuresManager, featureManagerId);
         return featureManagerId;
     } else if (map.CatFeaturesMap.contains(featureId)) {
         const ui32 dataProviderId = map.CatFeaturesMap.at(featureId);
         return featuresManager.GetFeatureManagerIdForCatFeature(dataProviderId);
+    } else if (map.CalculatedFeaturesMap.contains(featureId)) {
+        const auto& featureInfo = map.CalculatedFeaturesMap.at(featureId);
+        auto featureManagerId = featuresManager.GetId(featureInfo.Feature);
+        ValidateBorders(featureInfo, featuresManager, featureManagerId);
+        return featureManagerId;
     } else {
         ythrow yexception() << "Error: can't remap featureId #" << featureId;
     }

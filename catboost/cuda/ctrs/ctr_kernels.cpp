@@ -13,4 +13,9 @@ namespace NCudaLib {
     REGISTER_KERNEL(0xAEAA08, TComputeNonWeightedBinFreqCtrKernel);
     REGISTER_KERNEL(0xAEAA09, TGatherTrivialWeightsKernel);
     REGISTER_KERNEL(0xAEAA10, TWriteMaskKernel);
+
+    REGISTER_KERNEL(0xAEAA11, TFixGroupwiseCtrKernel);
+    REGISTER_KERNEL(0xAEAA12, TMakeGroupStartFlagsKernel);
+    REGISTER_KERNEL(0xAEAA13, TFillBinIndicesKernel);
+    REGISTER_KERNEL(0xAEAA14, TCreateFixedIndicesKernel);
 }

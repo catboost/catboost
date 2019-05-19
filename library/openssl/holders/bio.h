@@ -2,7 +2,6 @@
 
 #include <contrib/libs/openssl/include/openssl/bio.h>
 
-#include <library/openssl/compat/bio.h> // Remove after OpenSSL upgrade
 #include <library/openssl/holders/holder.h>
 
 namespace NOpenSSL {

@@ -40,15 +40,9 @@ namespace_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 static int
 namespace_init(_PyNamespaceObject *ns, PyObject *args, PyObject *kwds)
 {
-    // ignore args if it's NULL or empty
-    if (args != NULL) {
-        Py_ssize_t argcount = PyObject_Size(args);
-        if (argcount < 0)
-            return -1;
-        else if (argcount > 0) {
-            PyErr_Format(PyExc_TypeError, "no positional arguments expected");
-            return -1;
-        }
+    if (PyTuple_GET_SIZE(args) != 0) {
+        PyErr_Format(PyExc_TypeError, "no positional arguments expected");
+        return -1;
     }
     if (kwds == NULL) {
         return 0;
@@ -109,15 +103,15 @@ namespace_repr(PyObject *ns)
             PyObject *value, *item;
 
             value = PyDict_GetItem(d, key);
-            assert(value != NULL);
-
-            item = PyUnicode_FromFormat("%S=%R", key, value);
-            if (item == NULL) {
-                loop_error = 1;
-            }
-            else {
-                loop_error = PyList_Append(pairs, item);
-                Py_DECREF(item);
+            if (value != NULL) {
+                item = PyUnicode_FromFormat("%S=%R", key, value);
+                if (item == NULL) {
+                    loop_error = 1;
+                }
+                else {
+                    loop_error = PyList_Append(pairs, item);
+                    Py_DECREF(item);
+                }
             }
         }
 
@@ -207,7 +201,7 @@ SimpleNamespace(**kwargs)");
 PyTypeObject _PyNamespace_Type = {
     PyVarObject_HEAD_INIT(&PyType_Type, 0)
     "types.SimpleNamespace",                    /* tp_name */
-    sizeof(_PyNamespaceObject),                 /* tp_size */
+    sizeof(_PyNamespaceObject),                 /* tp_basicsize */
     0,                                          /* tp_itemsize */
     (destructor)namespace_dealloc,              /* tp_dealloc */
     0,                                          /* tp_print */

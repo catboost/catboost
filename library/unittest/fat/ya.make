@@ -16,6 +16,4 @@ TAG(
     ya:force_sandbox
 )
 
-TIMEOUT(120)
-
 END()

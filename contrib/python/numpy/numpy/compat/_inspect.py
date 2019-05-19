@@ -1,7 +1,7 @@
 """Subset of inspect module from upstream python
 
 We use this instead of upstream because upstream inspect is slow to import, and
-significanly contributes to numpy import times. Importing this copy has almost
+significantly contributes to numpy import times. Importing this copy has almost
 no overhead.
 
 """
@@ -184,9 +184,8 @@ def formatargvalues(args, varargs, varkw, locals,
     def convert(name, locals=locals,
                 formatarg=formatarg, formatvalue=formatvalue):
         return formatarg(name) + formatvalue(locals[name])
-    specs = []
-    for i in range(len(args)):
-        specs.append(strseq(args[i], convert, join))
+    specs = [strseq(arg, convert, join) for arg in args]
+
     if varargs:
         specs.append(formatvarargs(varargs) + formatvalue(locals[varargs]))
     if varkw:

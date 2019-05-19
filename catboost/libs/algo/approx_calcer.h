@@ -1,12 +1,24 @@
 #pragma once
 
+#include "error_functions.h"
 #include "fold.h"
 #include "online_predictor.h"
-#include "learn_context.h"
-#include "error_functions.h"
 
-#include <catboost/libs/options/catboost_options.h>
 #include <catboost/libs/options/enum_helpers.h>
+#include <catboost/libs/options/restrictions.h>
+
+
+class IDerCalcer;
+class TLearnContext;
+struct TSplitTree;
+
+namespace NCatboostOptions {
+    class TCatBoostOptions;
+}
+
+namespace NPar {
+    class TLocalExecutor;
+}
 
 
 void UpdateApproxDeltas(

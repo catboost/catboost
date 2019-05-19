@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "malloc.h"
 
@@ -27,7 +28,9 @@ namespace NMalloc {
     {
     }
 
-    void AbortFromCorruptedAllocator() {
+    void AbortFromCorruptedAllocator(const char* errorMessage) {
+        errorMessage = errorMessage ? errorMessage : "<unspecified>";
+        fprintf(stderr, "Allocator error: %s\n", errorMessage);
         IsAllocatorCorrupted = true;
         abort();
     }

@@ -10,8 +10,8 @@ import os
 
 class Experiment(object):
 
-    def __init__(self, learning_task='classification', bst_name=None, n_estimators=5000, hyperopt_evals=50, 
-                 compute_counters=True, counters_sort_col=None, holdout_size=0, 
+    def __init__(self, learning_task='classification', bst_name=None, n_estimators=5000, hyperopt_evals=50,
+                 compute_counters=True, counters_sort_col=None, holdout_size=0,
                  train_path=None, test_path=None, cd_path=None, output_folder_path='./'):
         self.learning_task, self.bst_name = learning_task, bst_name
         self.compute_counters = compute_counters
@@ -44,7 +44,7 @@ class Experiment(object):
 
     def read_data(self):
         cols = pd.read_csv(self.cd_path, sep='\t', header=None)
-        target_col = np.where(cols[1] == 'Target')[0][0]
+        target_col = cols[0][np.where(cols[1] == 'Target')[0][0]]
         cat_cols = cols[cols[1] == "Categ"][0].values
 
         X_train, y_train = self.read_file(self.train_path, target_col)
@@ -79,7 +79,7 @@ class Experiment(object):
     def split_and_preprocess(self, X_train, y_train, X_test, y_test, cat_cols, n_splits=5, random_state=0):
         if self.holdout_size > 0:
             print('Holdout is used for counters.')
-            X_train, X_hout, y_train, y_hout = train_test_split(X_train, y_train, 
+            X_train, X_hout, y_train, y_hout = train_test_split(X_train, y_train,
                                                                 test_size=self.holdout_size,
                                                                 random_state=random_state)
             cc = self.preprocess_cat_cols(X_hout, y_hout, cat_cols)
@@ -129,14 +129,14 @@ class Experiment(object):
         eval_time = time.time() - start_time
 
         cv_result = {'loss': mean_evals_results[best_n_estimators - 1],
-                     'best_n_estimators': best_n_estimators, 
+                     'best_n_estimators': best_n_estimators,
                      'eval_time': eval_time,
                      'status': STATUS_FAIL if np.isnan(mean_evals_results[best_n_estimators - 1]) else STATUS_OK,
                      'params': params.copy()}
         self.best_loss = min(self.best_loss, cv_result['loss'])
         self.hyperopt_eval_num += 1
         cv_result.update({'hyperopt_eval_num': self.hyperopt_eval_num, 'best_loss': self.best_loss})
-            
+
         if verbose:
             print '[{0}/{1}]\teval_time={2:.2f} sec\tcurrent_{3}={4:.6f}\tmin_{3}={5:.6f}'.format(
                         self.hyperopt_eval_num, self.hyperopt_evals, eval_time,
@@ -156,7 +156,7 @@ class Experiment(object):
         result = {'loss': evals_result[-1], 'bst': bst, 'n_estimators': n_estimators,
                   'eval_time': eval_time, 'status': STATUS_OK,  'params': params.copy(),
                   'preds': preds}
-        
+
         if custom_metric is not None:
             if type(custom_metric) is not dict:
                 raise TypeError("custom_metric argument should be dict")
@@ -173,7 +173,7 @@ class Experiment(object):
         self.trials = Trials()
         self.hyperopt_eval_num, self.best_loss = 0, np.inf
 
-        _ = fmin(fn=lambda params: self.run_cv(cv_pairs, params, verbose=verbose), 
+        _ = fmin(fn=lambda params: self.run_cv(cv_pairs, params, verbose=verbose),
                  space=self.space, algo=tpe.suggest, max_evals=max_evals, trials=self.trials, rseed=1)
 
         self.best_params = self.trials.best_trial['result']['params']
@@ -230,7 +230,7 @@ class Experiment(object):
         print 'Optimizing params...'
         cv_result = self.optimize_params(cv_pairs)
         self.print_result(cv_result, '\nBest result on cv')
-        
+
         print '\nTraining algorithm with the tuned parameters for different seed...'
         preds, test_losses, elementwise_losses = [], [], []
         for seed in range(5):

@@ -25,7 +25,7 @@ public:
         Map.Map(0, Map.Length());
         Begin = reinterpret_cast<char*>(Map.Ptr());
 
-        if (Map.Length() < static_cast<i64>(sizeof(Elf64_Ehdr)) || TStringBuf(Begin, Magic.Size()) != Magic) {
+        if (Map.Length() < static_cast<i64>(sizeof(Elf64_Ehdr)) || TStringBuf(Begin, Magic.size()) != Magic) {
             ythrow yexception() << path << " is not an ELF file";
         }
     }

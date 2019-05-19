@@ -3,6 +3,7 @@
 #include <catboost/cuda/cuda_util/gpu_random.h>
 #include <catboost/cuda/data/binarizations_manager.h>
 #include <catboost/cuda/models/additive_model.h>
+#include <catboost/cuda/models/non_symmetric_tree.h>
 #include <catboost/cuda/models/oblivious_model.h>
 
 #include <catboost/libs/data_new/data_provider.h>
@@ -18,15 +19,21 @@
 #include <util/generic/ptr.h>
 
 namespace NCatboostCuda {
+    using TGpuTrainResult = TVariant<
+        THolder<TAdditiveModel<TObliviousTreeModel>>,
+        THolder<TAdditiveModel<TNonSymmetricTree>>
+    >;
+
     class IGpuTrainer {
     public:
-        virtual THolder<TAdditiveModel<TObliviousTreeModel>> TrainModel(
+        virtual TGpuTrainResult TrainModel(
             TBinarizedFeaturesManager& featureManager,
             const TTrainModelInternalOptions& internalOptions,
             const NCatboostOptions::TCatBoostOptions& catBoostOptions,
             const NCatboostOptions::TOutputFilesOptions& outputOptions,
             const NCB::TTrainingDataProvider& learn,
             const NCB::TTrainingDataProvider* test,
+            const NCB::TFeatureEstimators& featureEstimators,
             TGpuAwareRandom& random,
             ui32 approxDimension,
             const TMaybe<TOnEndIterationCallback>& onEndIterationCallback,
@@ -49,16 +56,16 @@ namespace NCatboostCuda {
 
     struct TGpuTrainerFactoryKey {
         ELossFunction Loss;
-        EGrowingPolicy GrowingPolicy;
+        EGrowPolicy GrowPolicy;
 
-        TGpuTrainerFactoryKey(ELossFunction loss, EGrowingPolicy policy)
+        TGpuTrainerFactoryKey(ELossFunction loss, EGrowPolicy policy)
             : Loss(loss)
-            , GrowingPolicy(policy)
+            , GrowPolicy(policy)
         {
         }
 
         bool operator==(const TGpuTrainerFactoryKey& rhs) const {
-            return std::tie(Loss, GrowingPolicy) == std::tie(rhs.Loss, rhs.GrowingPolicy);
+            return std::tie(Loss, GrowPolicy) == std::tie(rhs.Loss, rhs.GrowPolicy);
         }
 
         bool operator!=(const TGpuTrainerFactoryKey& rhs) const {
@@ -66,7 +73,7 @@ namespace NCatboostCuda {
         }
 
         ui64 GetHash() const {
-            return MultiHash(Loss, GrowingPolicy);
+            return MultiHash(Loss, GrowPolicy);
         }
 
         bool operator<(const TGpuTrainerFactoryKey& key) const {
@@ -74,13 +81,13 @@ namespace NCatboostCuda {
         }
     };
 
-    inline TGpuTrainerFactoryKey GetTrainerFactoryKey(ELossFunction loss, EGrowingPolicy policy = EGrowingPolicy::ObliviousTree) {
+    inline TGpuTrainerFactoryKey GetTrainerFactoryKey(ELossFunction loss, EGrowPolicy policy = EGrowPolicy::SymmetricTree) {
         return TGpuTrainerFactoryKey(loss, policy);
     }
 
     inline TGpuTrainerFactoryKey GetTrainerFactoryKey(const NCatboostOptions::TCatBoostOptions& options) {
         return TGpuTrainerFactoryKey(options.LossFunctionDescription->GetLossFunction(),
-                                     options.ObliviousTreeOptions->GrowingPolicy);
+                                     options.ObliviousTreeOptions->GrowPolicy);
     }
 
     using TGpuTrainerFactory = NObjectFactory::TParametrizedObjectFactory<IGpuTrainer, TGpuTrainerFactoryKey>;

@@ -88,10 +88,13 @@ namespace NCatboostOptions {
 
         TOption<ui32> MaxTensorComplexity;
         TOption<ui32> OneHotMaxSize;
+        ui32 OneHotMaxSizeLimit;
         TOption<ECounterCalc> CounterCalcMethod;
 
         TCpuOnlyOption<bool> StoreAllSimpleCtrs;
         TCpuOnlyOption<ui64> CtrLeafCountLimit;
+
+        TGpuOnlyOption<ECtrHistoryUnit> CtrHistoryUnit;
     };
 
     bool CtrsNeedTargetData(const TCatFeatureParams& catFeatureParams);

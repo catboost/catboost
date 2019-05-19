@@ -4,7 +4,7 @@
 #include <util/network/sock.h>
 #include <util/random/random.h>
 #include <util/stream/file.h>
-#include <util/string/iterator.h>
+#include <util/string/split.h>
 #include <util/system/env.h>
 #include <util/system/file_lock.h>
 #include <util/system/fs.h>
@@ -201,7 +201,7 @@ private:
 
         TString givenRange = GetEnv("VALID_PORT_RANGE");
         if (givenRange.Contains(':')) {
-            auto res = StringSplitter(givenRange).SplitLimited(':', 2).ToList<TString>();
+            auto res = StringSplitter(givenRange).Split(':').Limit(2).ToList<TString>();
             const ui16 first_valid = FromString<ui16>(res.front());
             const ui16 last_valid = FromString<ui16>(res.back());
             ValidPortRanges.emplace_back(first_valid, last_valid);

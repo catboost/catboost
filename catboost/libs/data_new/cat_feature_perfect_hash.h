@@ -34,9 +34,28 @@ namespace NCB {
         ui32 checkSum = UpdateCheckSum(init, data.OnLearnOnly);
         return UpdateCheckSum(checkSum, data.OnAll);
     }
+
+    struct TValueWithCount {
+        ui32 Value = 0;
+        ui32 Count = 0;
+
+    public:
+        bool operator==(const TValueWithCount rhs) const {
+            return (Value == rhs.Value) && (Count == rhs.Count);
+        }
+    };
+
+    // for some reason TValueWithCount is not std::is_trivial
+    inline ui32 UpdateCheckSumImpl(ui32 init, const TValueWithCount& data) {
+        ui32 checkSum = UpdateCheckSum(init, data.Value);
+        return UpdateCheckSum(checkSum, data.Count);
+    }
+
+    using TCatFeaturePerfectHash = TMap<ui32, TValueWithCount>;
 }
 
 Y_DECLARE_PODTYPE(NCB::TCatFeatureUniqueValuesCounts);
+Y_DECLARE_PODTYPE(NCB::TValueWithCount);
 
 
 namespace NCB {
@@ -56,7 +75,10 @@ namespace NCB {
 
         bool operator==(const TCatFeaturesPerfectHash& rhs) const;
 
-        const TMap<ui32, ui32>& GetFeaturePerfectHash(const TCatFeatureIdx catFeatureIdx) const {
+        // *this contains a superset of mapping in rhs
+        bool IsSupersetOf(const TCatFeaturesPerfectHash& rhs) const;
+
+        const TCatFeaturePerfectHash& GetFeaturePerfectHash(const TCatFeatureIdx catFeatureIdx) const {
             CheckHasFeature(catFeatureIdx);
             if (!HasHashInRam) {
                 Load();
@@ -65,7 +87,7 @@ namespace NCB {
         }
 
         // for testing or setting from external sources
-        void UpdateFeaturePerfectHash(const TCatFeatureIdx catFeatureIdx, TMap<ui32, ui32>&& perfectHash);
+        void UpdateFeaturePerfectHash(const TCatFeatureIdx catFeatureIdx, TCatFeaturePerfectHash&& perfectHash);
 
         TCatFeatureUniqueValuesCounts GetUniqueValuesCounts(const TCatFeatureIdx catFeatureIdx) const {
             CheckHasFeature(catFeatureIdx);
@@ -84,7 +106,7 @@ namespace NCB {
         void FreeRamIfPossible() const {
             if (AllowWriteFiles) {
                 Save();
-                TVector<TMap<ui32, ui32>> empty;
+                TVector<TCatFeaturePerfectHash> empty;
                 FeaturesPerfectHash.swap(empty);
                 HasHashInRam = false;
             }
@@ -125,7 +147,7 @@ namespace NCB {
     private:
         TTempFile StorageTempFile;
         TVector<TCatFeatureUniqueValuesCounts> CatFeatureUniqValuesCountsVector; // [catFeatureIdx]
-        mutable TVector<TMap<ui32, ui32>> FeaturesPerfectHash; // [catFeatureIdx]
+        mutable TVector<TCatFeaturePerfectHash> FeaturesPerfectHash; // [catFeatureIdx]
         mutable bool HasHashInRam = true;
         bool AllowWriteFiles;
     };
