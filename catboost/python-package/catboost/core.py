@@ -2061,7 +2061,7 @@ class CatBoost(_CatBoostBase):
             self._init_params[key] = value
         return self
 
-    def get_binarized_statistics(self, data, target, feature, prediction_type=None, plot=False):
+    def get_binarized_statistics(self, data, target, feature, prediction_type=None, cat_feature_values=[], plot=False):
         data, _ = self._process_predict_input_data(data, "get_binarized_statistics", target)
 
         if prediction_type is None:
@@ -2082,7 +2082,18 @@ class CatBoost(_CatBoostBase):
         if prediction_type not in ['Class', 'Probability', 'RawFormulaVal']:
             raise CatBoostError('Unknown prediction type "{}"'.format(prediction_type))
 
-        res = self._object._get_binarized_statistics(data, feature, prediction_type)
+        feature_type, feature_internal_index = self._object._get_feature_type_and_internal_index(feature)
+        if feature_type == 'float':
+            res = self._object._get_binarized_float_statistics(data, feature_internal_index, prediction_type)
+
+        elif feature_type == 'categorical':
+            res = self._object._get_binarized_one_hot_statistics(data, feature_internal_index, prediction_type)
+            val_to_hash = dict()
+            for val in cat_feature_values:
+                val_to_hash[val] = self._object._calc_cat_feature_perfect_hash(bytes(val, 'utf-8'), feature_internal_index)
+            hash_to_val = {hash: val for val, hash in val_to_hash.items()}
+            res['cat_values'] = [hash_to_val[i] for i in sorted(hash_to_val.keys())]
+            res['val_to_hash'] = val_to_hash
 
         if plot:
             _plot_binarized_feature_statistics(res, feature)
@@ -3522,8 +3533,17 @@ def _plot_binarized_feature_statistics(statistics, feature_num):
         warnings.warn("To draw binarized feature statistics you should install plotly.")
         raise ImportError(str(e))
 
+    if 'borders' in statistics.keys():
+        x_data = statistics['borders']
+        x_title = 'Bins'
+    elif 'cat_values' in statistics.keys():
+        x_data = statistics['cat_values']
+        x_title = 'Cat values'
+    else:
+        raise CatBoostError('Expected field "borders" or "cat_values" in binarized feature statistics')
+
     trace_1 = go.Scatter(
-        x=statistics['borders'],
+        x=x_data,
         y=statistics['mean_target'],
         mode='lines+markers',
         name='Mean target',
@@ -3532,7 +3552,7 @@ def _plot_binarized_feature_statistics(statistics, feature_num):
     )
 
     trace_2 = go.Scatter(
-        x=statistics['borders'],
+        x=x_data,
         y=statistics['mean_prediction'],
         mode='lines+markers',
         name='Mean prediction',
@@ -3541,7 +3561,7 @@ def _plot_binarized_feature_statistics(statistics, feature_num):
     )
 
     trace_3 = go.Scatter(
-        x=statistics['borders'],
+        x=x_data,
         y=statistics['objects_per_bin'],
         mode='markers',
         name='Objects per bin',
@@ -3550,7 +3570,7 @@ def _plot_binarized_feature_statistics(statistics, feature_num):
     )
 
     trace_4 = go.Scatter(
-        x=statistics['borders'],
+        x=x_data,
         y=statistics['predictions_on_varying_feature'],
         mode='lines+markers',
         name='Predictions for different feature values',
@@ -3580,7 +3600,7 @@ def _plot_binarized_feature_statistics(statistics, feature_num):
             'anchor': 'x'
         },
         xaxis={
-            'title': 'Bins',
+            'title': x_title,
             'domain': [0.1, 0.9]
         }
     )

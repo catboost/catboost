@@ -927,11 +927,41 @@ cdef extern from "catboost/libs/quantized_pool_analysis/quantized_pool_analysis.
         TVector[double] Prediction
         TVector[double] PredictionsOnVaryingFeature
 
-    cdef TBinarizedFloatFeatureStatistics GetBinarizedStatistics(
+    cdef cppclass TBinarizedOneHotFeatureStatistics:
+        TVector[int] BinarizedFeature
+        TVector[float] MeanTarget
+        TVector[float] MeanPrediction
+        TVector[size_t] ObjectsPerBin
+        TVector[int] Values
+        TVector[TString] StringValues
+        TVector[ui32] FeatureValues
+        TVector[double] PredictionsOnVaryingFeature
+
+
+    cdef cppclass TFeatureTypeAndInternalIndex:
+        EFeatureType Type
+        int Index
+
+    cdef TBinarizedFloatFeatureStatistics GetBinarizedFloatFeatureStatistics(
         const TFullModel& model,
         TDataProvider& dataset,
         const size_t featureNum,
         const EPredictionType predictionType) nogil except +ProcessException
+
+    cdef TBinarizedOneHotFeatureStatistics GetBinarizedOneHotFeatureStatistics(
+        const TFullModel& model,
+        TDataProvider& dataset,
+        const size_t featureNum,
+        const EPredictionType predictionType) nogil except +ProcessException
+
+    cdef ui32 GetCatFeaturePerfectHash(
+        const TFullModel& model,
+        const TStringBuf& value,
+        const size_t featureNum) nogil except +ProcessException
+
+    cdef TFeatureTypeAndInternalIndex GetFeatureTypeAndInternalIndex(
+        const TFullModel& model,
+        const int flatFeatureIndex) nogil except +ProcessException
 
 
 cdef inline float _FloatOrNan(object obj) except *:
@@ -2825,8 +2855,8 @@ cdef class _CatBoost:
 
         return leaf_values_list
 
-    cpdef _get_binarized_statistics(self, _PoolBase pool, size_t featureNum, predictionType):
-        cdef TBinarizedFloatFeatureStatistics res = GetBinarizedStatistics(
+    cpdef _get_binarized_float_statistics(self, _PoolBase pool, size_t featureNum, predictionType):
+        cdef TBinarizedFloatFeatureStatistics res = GetBinarizedFloatFeatureStatistics(
             dereference(self.__model),
             dereference(pool.__pool.Get()),
             featureNum,
@@ -2842,6 +2872,38 @@ cdef class _CatBoost:
             'prediction': _vector_of_double_to_np_array(res.Prediction),
             'predictions_on_varying_feature': _vector_of_double_to_np_array(res.PredictionsOnVaryingFeature)
         }
+
+    cpdef _get_binarized_one_hot_statistics(self, _PoolBase pool, size_t featureNum, predictionType):
+        cdef TBinarizedOneHotFeatureStatistics res = GetBinarizedOneHotFeatureStatistics(
+            dereference(self.__model),
+            dereference(pool.__pool.Get()),
+            featureNum,
+            PyPredictionType(predictionType).predictionType
+        )
+
+        return {
+            'binarized_feature': res.BinarizedFeature,
+            'mean_target': _vector_of_floats_to_np_array(res.MeanTarget),
+            'mean_prediction': _vector_of_floats_to_np_array(res.MeanPrediction),
+            'objects_per_bin': _vector_of_size_t_to_np_array(res.ObjectsPerBin),
+            'values': res.Values,
+            'string_values': res.StringValues,
+            'feature_values': res.FeatureValues,
+            'predictions_on_varying_feature': _vector_of_double_to_np_array(res.PredictionsOnVaryingFeature)
+        }
+
+    cpdef _calc_cat_feature_perfect_hash(self, TStringBuf value, size_t featureNum):
+        return GetCatFeaturePerfectHash(dereference(self.__model), value, featureNum)
+
+    cpdef _get_feature_type_and_internal_index(self, int flatFeatureIndex):
+        cdef TFeatureTypeAndInternalIndex typeAndIndex = GetFeatureTypeAndInternalIndex(
+            dereference(self.__model), flatFeatureIndex)
+        if typeAndIndex.Type == EFeatureType_Float:
+            return 'float', typeAndIndex.Index
+        elif typeAndIndex.Type == EFeatureType_Categorical:
+            return 'categorical', typeAndIndex.Index
+        else:
+            return 'unknown', -1
 
 
 cdef class _MetadataHashProxy:
