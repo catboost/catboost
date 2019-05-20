@@ -2061,7 +2061,52 @@ class CatBoost(_CatBoostBase):
             self._init_params[key] = value
         return self
 
-    def get_binarized_statistics(self, data, target, feature, prediction_type=None, cat_feature_values=[], plot=False):
+    def get_binarized_statistics(self, data, target, feature, prediction_type=None,
+                                 cat_feature_values=None, plot=False):
+        """
+        Get statistics for the feature using the model, dataset and target.
+
+        For float features takes model's borders and computes
+        1) Mean target value across every bin;
+        2) Mean model prediction across every bin;
+        3) The number of objects in dataset which fall into each bin;
+        4) Predictions on varying feature. For every object, varies the feature value so
+        that it equals borders[0], borders[1], ... and counts model predictions. After that,
+        plots the average plot over all objects.
+
+        For categorical features (only one-hot supported) does the same, but takes feature values
+        provided in cat_feature_values instead of borders.
+
+        Parameters
+        ----------
+        data: numpy.array or pandas.DataFrame
+            Data to compute statistics on
+        target: numpy.array or pandas.Series
+            Target corresponding to data
+        feature: int or string
+            Feature index or name in pd.DataFrame
+        prediction_type: str
+            Prediction type used for counting mean_prediction: 'Class', 'Probability' or 'RawFormulaVal'.
+            If not specified, is derived from the model.
+        cat_feature_values: list or numpy.array or pandas.Series
+            Categorical feature values you need to get statistics on. Needed only for
+            statistics of a categorical feature.
+        plot: bool
+            Plot statistics.
+
+        Returns
+        -------
+        dict:
+            Python dict with binarized feature statistics. For float feature, includes
+                'borders' -- borders for the specified feature in model
+                'binarized_feature' -- numbers of bins where feature values fall
+                'mean_target' -- mean value of target over each bin
+                'mean_prediction' -- mean value of model prediction over each bin
+                'objects_per_bin' -- number of objects per bin
+                'predictions_on_varying_feature' -- averaged over dataset predictions for
+                varying feature (see above)
+            For one-hot feature, returns the same, but with 'cat_feature_values' instead of 'borders'
+        """
         data, _ = self._process_predict_input_data(data, "get_binarized_statistics", target)
 
         if prediction_type is None:
@@ -2080,8 +2125,13 @@ class CatBoost(_CatBoostBase):
         feature_type, feature_internal_index = self._object._get_feature_type_and_internal_index(feature)
         if feature_type == 'float':
             res = self._object._get_binarized_float_statistics(data, feature_internal_index, prediction_type)
-
         elif feature_type == 'categorical':
+            if not isinstance(cat_feature_values, list) and \
+                not isinstance(cat_feature_values, np.array) and \
+                not isinstance(cat_feature_values, [pd.Series]):
+                raise CatBoostError("Feature #{} is categorical. "
+                                    "Please provide values for which you need statistics in cat_feature_values"
+                                    .format(feature))
             res = self._object._get_binarized_one_hot_statistics(data, feature_internal_index, prediction_type)
             val_to_hash = dict()
             for val in cat_feature_values:
