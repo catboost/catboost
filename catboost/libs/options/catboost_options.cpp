@@ -78,6 +78,13 @@ void NCatboostOptions::TCatBoostOptions::SetLeavesEstimationDefault() {
             defaultEstimationMethod = ELeavesEstimation::Gradient;
             break;
         }
+        case ELossFunction::Expectile: {
+            CB_ENSURE(lossFunctionConfig.GetLossParams().contains("alpha"), "Param alpha is mandatory for expectile loss");
+            defaultNewtonIterations = 5;
+            defaultGradientIterations = 10;
+            defaultEstimationMethod = ELeavesEstimation::Newton;
+            break;            
+        }
         case ELossFunction::PairLogit: {
             defaultEstimationMethod = ELeavesEstimation::Newton;
             defaultNewtonIterations = 10;

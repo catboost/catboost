@@ -209,7 +209,8 @@ namespace NCatboostCuda {
                 case ELossFunction::Lq:
                 case ELossFunction::NumErrors:
                 case ELossFunction::MAPE:
-                case ELossFunction::Poisson: {
+                case ELossFunction::Poisson:
+                case ELossFunction::Expectile: {
                     float alpha = 0.5;
                     auto tmp = TVec::Create(cursor.GetMapping().RepeatOnAllDevices(1));
                     //TODO(noxoomo): make param dispatch on device side
@@ -495,7 +496,8 @@ namespace NCatboostCuda {
             case ELossFunction::Accuracy:
             case ELossFunction::ZeroOneLoss:
             case ELossFunction::NumErrors:
-            case ELossFunction::Poisson: {
+            case ELossFunction::Poisson:
+            case ELossFunction::Expectile: {
                 result.push_back(new TGpuPointwiseMetric(metricDescription, approxDim));
                 break;
             }
