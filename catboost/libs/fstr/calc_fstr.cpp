@@ -200,8 +200,7 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectAverageChange(
         leavesStatisticsOnPool = CollectLeavesStatistics(*dataset, model, localExecutor);
     } else {
         if (dataset) {
-            CATBOOST_NOTICE_LOG << "Dataset is provided, but " << EFstrType::PredictionValuesChange <<
-            " feature importance don't use it, since non-empty LeafWeights in model." << Endl;
+            CATBOOST_NOTICE_LOG << "Dataset is provided, but not used, because importance values are cached in the model." << Endl;
         }
     }
 
@@ -707,7 +706,7 @@ TVector<TVector<double>> GetFeatureImportances(
         }
         case EFstrType::Interaction:
             if (dataset) {
-                CATBOOST_NOTICE_LOG << "Dataset is provided, but " << fstrType << " feature importance don't use it." << Endl;
+                CATBOOST_NOTICE_LOG << "Dataset is provided, but not used, because importance values are cached in the model." << Endl;
             }
             return CalcInteraction(model);
         case EFstrType::ShapValues: {
