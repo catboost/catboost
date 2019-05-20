@@ -169,6 +169,13 @@ TString CGIEscapeRet(const TStringBuf url) {
     return to;
 }
 
+TString& AppendCgiEscaped(const TStringBuf value, TString& to) {
+    const size_t origLength = to.length();
+    to.ReserveAndResize(origLength + CgiEscapeBufLen(value.size()));
+    to.resize(CGIEscape(to.begin() + origLength, value.data(), value.size()) - to.data());
+    return to;
+}
+
 // More general version of CGIEscape. The optional safe parameter specifies
 // additional characters that should not be quoted — its default value is '/'.
 

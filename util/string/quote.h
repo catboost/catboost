@@ -15,6 +15,7 @@ inline char* CGIEscape(char* to, const TStringBuf from) {
 }
 void CGIEscape(TString& url);
 TString CGIEscapeRet(const TStringBuf url);
+TString& AppendCgiEscaped(const TStringBuf value, TString& to);
 
 inline TStringBuf CgiEscapeBuf(char* to, const TStringBuf from) {
     return TStringBuf(to, CGIEscape(to, from.data(), from.size()));
