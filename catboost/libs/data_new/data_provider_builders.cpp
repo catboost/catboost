@@ -33,20 +33,6 @@
 
 namespace NCB {
 
-    // hack to extract private data from inside providers
-    class TRawBuilderDataHelper {
-    public:
-        static TRawBuilderData Extract(TRawDataProvider&& rawDataProvider) {
-            TRawBuilderData data;
-            data.MetaInfo = std::move(rawDataProvider.MetaInfo);
-            data.TargetData = std::move(rawDataProvider.RawTargetData.Data);
-            data.CommonObjectsData = std::move(rawDataProvider.ObjectsData->CommonData);
-            data.ObjectsData = std::move(rawDataProvider.ObjectsData->Data);
-            return data;
-        }
-    };
-
-
     class TRawObjectsOrderDataProviderBuilder : public IDataProviderBuilder,
                                                 public IRawObjectsOrderDataVisitor
     {
