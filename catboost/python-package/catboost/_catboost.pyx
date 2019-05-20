@@ -923,8 +923,6 @@ cdef extern from "catboost/libs/quantized_pool_analysis/quantized_pool_analysis.
         TVector[float] MeanTarget
         TVector[float] MeanPrediction
         TVector[size_t] ObjectsPerBin
-        TVector[float] Target
-        TVector[double] Prediction
         TVector[double] PredictionsOnVaryingFeature
 
     cdef cppclass TBinarizedOneHotFeatureStatistics:
@@ -932,11 +930,7 @@ cdef extern from "catboost/libs/quantized_pool_analysis/quantized_pool_analysis.
         TVector[float] MeanTarget
         TVector[float] MeanPrediction
         TVector[size_t] ObjectsPerBin
-        TVector[int] Values
-        TVector[TString] StringValues
-        TVector[ui32] FeatureValues
         TVector[double] PredictionsOnVaryingFeature
-
 
     cdef cppclass TFeatureTypeAndInternalIndex:
         EFeatureType Type
@@ -1027,6 +1021,12 @@ cdef _3d_vector_of_double_to_np_array(TVector[TVector[TVector[double]]]& vectors
 
 cdef _vector_of_uints_to_np_array(TVector[ui32]& vec):
     result = np.empty(vec.size(), dtype=np.uint32)
+    for i in xrange(vec.size()):
+        result[i] = vec[i]
+    return result
+
+cdef _vector_of_ints_to_np_array(TVector[int]& vec):
+    result = np.empty(vec.size(), dtype=np.int)
     for i in xrange(vec.size()):
         result[i] = vec[i]
     return result
@@ -2868,8 +2868,6 @@ cdef class _CatBoost:
             'mean_target': _vector_of_floats_to_np_array(res.MeanTarget),
             'mean_prediction': _vector_of_floats_to_np_array(res.MeanPrediction),
             'objects_per_bin': _vector_of_size_t_to_np_array(res.ObjectsPerBin),
-            'target': _vector_of_floats_to_np_array(res.Target),
-            'prediction': _vector_of_double_to_np_array(res.Prediction),
             'predictions_on_varying_feature': _vector_of_double_to_np_array(res.PredictionsOnVaryingFeature)
         }
 
@@ -2882,13 +2880,10 @@ cdef class _CatBoost:
         )
 
         return {
-            'binarized_feature': res.BinarizedFeature,
+            'binarized_feature': _vector_of_ints_to_np_array(res.BinarizedFeature),
             'mean_target': _vector_of_floats_to_np_array(res.MeanTarget),
             'mean_prediction': _vector_of_floats_to_np_array(res.MeanPrediction),
             'objects_per_bin': _vector_of_size_t_to_np_array(res.ObjectsPerBin),
-            'values': res.Values,
-            'string_values': res.StringValues,
-            'feature_values': res.FeatureValues,
             'predictions_on_varying_feature': _vector_of_double_to_np_array(res.PredictionsOnVaryingFeature)
         }
 

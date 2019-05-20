@@ -2065,12 +2065,7 @@ class CatBoost(_CatBoostBase):
         data, _ = self._process_predict_input_data(data, "get_binarized_statistics", target)
 
         if prediction_type is None:
-            if isinstance(self, CatBoostClassifier):
-                prediction_type = prediction_type or 'Probability'
-            elif isinstance(self, CatBoostRegressor):
-                prediction_type = prediction_type or 'RawFormulaVal'
-            else:
-                prediction_type = prediction_type or 'RawFormulaVal'
+            prediction_type = 'Probability' if isinstance(self, CatBoostClassifier) else 'RawFormulaVal'
 
         if not isinstance(feature, int):
             if self.feature_names_ is None or feature not in self.feature_names_:
@@ -2093,7 +2088,6 @@ class CatBoost(_CatBoostBase):
                 val_to_hash[val] = self._object._calc_cat_feature_perfect_hash(bytes(val, 'utf-8'), feature_internal_index)
             hash_to_val = {hash: val for val, hash in val_to_hash.items()}
             res['cat_values'] = [hash_to_val[i] for i in sorted(hash_to_val.keys())]
-            res['val_to_hash'] = val_to_hash
 
         if plot:
             _plot_binarized_feature_statistics(res, feature)
