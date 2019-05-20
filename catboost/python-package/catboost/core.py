@@ -3584,22 +3584,31 @@ def _build_binarized_feature_statistics_fig(statistics, feature_num):
         raise ImportError(str(e))
 
     if 'borders' in statistics.keys():
-        x_data = statistics['borders']
-        x_title = 'Bins'
         order = np.arange(len(statistics['objects_per_bin']))
         x_order = order[:-1]
-        bar_width = np.concatenate(([1], x_data[x_order][1:] - x_data[x_order][:-1], [1])) / 2.
+        bar_width = 0.8
+        xaxis = go.layout.XAxis(
+            title='Bins',
+            tickmode='array',
+            tickvals=list(range(len(statistics['borders']))),
+            ticktext=[str(val) for val in statistics['borders']],
+            showticklabels=False
+        )
     elif 'cat_values' in statistics.keys():
-        x_data = statistics['cat_values']
-        x_title = 'Cat values'
         order = np.argsort(statistics['objects_per_bin'])[::-1]
         x_order = order
         bar_width = 0.2
+        xaxis = go.layout.XAxis(
+            title='Cat values',
+            tickmode='array',
+            tickvals=list(range(len(statistics['cat_values']))),
+            ticktext=[str(val) for val in statistics['cat_values']],
+            showticklabels=True
+        )
     else:
         raise CatBoostError('Expected field "borders" or "cat_values" in binarized feature statistics')
 
     trace_1 = go.Scatter(
-        x=x_data[x_order],
         y=statistics['mean_target'][order],
         mode='lines+markers',
         name='Mean target',
@@ -3608,7 +3617,6 @@ def _build_binarized_feature_statistics_fig(statistics, feature_num):
     )
 
     trace_2 = go.Scatter(
-        x=x_data[x_order],
         y=statistics['mean_prediction'][order],
         mode='lines+markers',
         name='Mean prediction',
@@ -3617,7 +3625,6 @@ def _build_binarized_feature_statistics_fig(statistics, feature_num):
     )
 
     trace_3 = go.Bar(
-        x=x_data[x_order],
         y=statistics['objects_per_bin'][order],
         width=bar_width,
         name='Objects per bin',
@@ -3629,7 +3636,6 @@ def _build_binarized_feature_statistics_fig(statistics, feature_num):
     )
 
     trace_4 = go.Scatter(
-        x=x_data[x_order],
         y=statistics['predictions_on_varying_feature'][x_order],
         mode='lines+markers',
         name='Predictions for different feature values',
@@ -3651,10 +3657,7 @@ def _build_binarized_feature_statistics_fig(statistics, feature_num):
             'side': 'right',
             'position': 1.0
         },
-        xaxis={
-            'title': x_title,
-            'domain': [0.1, 0.9]
-        }
+        xaxis=xaxis
     )
 
     fig = go.Figure(data=data, layout=layout)
