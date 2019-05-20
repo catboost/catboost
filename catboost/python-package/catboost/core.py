@@ -2065,13 +2065,18 @@ class CatBoost(_CatBoostBase):
                                  cat_feature_values=None, plot=False, thread_count=1):
         """
         Get statistics for the feature using the model, dataset and target.
+        To use this function, you should install plotly.
+
+        The catboost model has borders for the float features used in it. The borders divide
+        feature values into bins, and the model's prediction depends on the number of bin where
+        falls the feature value.
 
         For float features takes model's borders and computes
         1) Mean target value across every bin;
         2) Mean model prediction across every bin;
         3) The number of objects in dataset which fall into each bin;
         4) Predictions on varying feature. For every object, varies the feature value so
-        that it equals borders[0], borders[1], ... and counts model predictions. After that,
+        that it falls into bin #0, bin #1, ... and counts model predictions. After that,
         plots the average plot over all objects.
 
         For categorical features (only one-hot supported) does the same, but takes feature values
@@ -3571,11 +3576,9 @@ def sum_models(models, weights=None, ctr_merge_policy='IntersectingCountersAvera
     result._sum_models(models, weights, ctr_merge_policy)
     return result
 
-
-def _plot_binarized_feature_statistics(statistics, feature_num):
+def _build_binarized_feature_statistics_fig(statistics, feature_num):
     try:
         import plotly.graph_objs as go
-        from plotly.offline import iplot
     except ImportError as e:
         warnings.warn("To draw binarized feature statistics you should install plotly.")
         raise ImportError(str(e))
@@ -3583,15 +3586,15 @@ def _plot_binarized_feature_statistics(statistics, feature_num):
     if 'borders' in statistics.keys():
         x_data = statistics['borders']
         x_title = 'Bins'
-        objects_per_bin_line_type = 'markers'
         order = np.arange(len(statistics['objects_per_bin']))
         x_order = order[:-1]
+        bar_width = np.concatenate(([1], x_data[x_order][1:] - x_data[x_order][:-1], [1])) / 2.
     elif 'cat_values' in statistics.keys():
         x_data = statistics['cat_values']
         x_title = 'Cat values'
-        objects_per_bin_line_type = 'lines+markers'
         order = np.argsort(statistics['objects_per_bin'])[::-1]
         x_order = order
+        bar_width = 0.2
     else:
         raise CatBoostError('Expected field "borders" or "cat_values" in binarized feature statistics')
 
@@ -3613,13 +3616,16 @@ def _plot_binarized_feature_statistics(statistics, feature_num):
         xaxis='x'
     )
 
-    trace_3 = go.Scatter(
+    trace_3 = go.Bar(
         x=x_data[x_order],
         y=statistics['objects_per_bin'][order],
-        mode=objects_per_bin_line_type,
+        width=bar_width,
         name='Objects per bin',
         yaxis='y2',
-        xaxis='x'
+        xaxis='x',
+        marker={
+            'color': 'rgba(30, 150, 30, 0.4)'
+        }
     )
 
     trace_4 = go.Scatter(
@@ -3627,7 +3633,7 @@ def _plot_binarized_feature_statistics(statistics, feature_num):
         y=statistics['predictions_on_varying_feature'][x_order],
         mode='lines+markers',
         name='Predictions for different feature values',
-        yaxis='y3',
+        yaxis='y1',
         xaxis='x'
     )
 
@@ -3636,21 +3642,14 @@ def _plot_binarized_feature_statistics(statistics, feature_num):
     layout = go.Layout(
         title='Statistics for feature {}'.format(feature_num),
         yaxis={
-            'title': 'Mean prediction and target',
-            'side': 'left'
+            'title': 'Prediction and target',
+            'side': 'left',
+            'overlaying': 'y2'
         },
         yaxis2={
             'title': 'Objects per bin',
-            'overlaying': 'y',
             'side': 'right',
             'position': 1.0
-        },
-        yaxis3={
-            'title': 'Predictions for varying feature',
-            'overlaying': 'y',
-            'side': 'right',
-            'position': 1.0,
-            'anchor': 'x'
         },
         xaxis={
             'title': x_title,
@@ -3659,4 +3658,27 @@ def _plot_binarized_feature_statistics(statistics, feature_num):
     )
 
     fig = go.Figure(data=data, layout=layout)
+    return fig
+
+def _plot_binarized_feature_statistics(statistics, feature_num, max_cat_features_on_plot=20):
+    try:
+        from plotly.offline import iplot
+    except ImportError as e:
+        warnings.warn("To draw binarized feature statistics you should install plotly.")
+        raise ImportError(str(e))
+
+    if 'cat_values' in statistics.keys() and len(statistics['cat_values']) > max_cat_features_on_plot:
+        for begin in range(0, len(statistics['cat_values']), max_cat_features_on_plot):
+            sub_statistics = {
+                'borders': statistics['borders'][begin:begin+max_cat_features_on_plot],
+                'mean_target': statistics['mean_target'][begin:begin+max_cat_features_on_plot],
+                'mean_prediction': statistics['mean_prediction'][begin:begin+max_cat_features_on_plot],
+                'objects_per_bin': statistics['objects_per_bin'][begin:begin+max_cat_features_on_plot],
+                'predictions_on_varying_feature':
+                    statistics['predictions_on_varying_feature'][begin:begin+max_cat_features_on_plot]
+            }
+            fig = _build_binarized_feature_statistics_fig(statistics, feature_num)
+            iplot(fig)
+
+    fig = _build_binarized_feature_statistics_fig(statistics, feature_num)
     iplot(fig)

@@ -1,5 +1,4 @@
 #include "quantized_pool_analysis.h"
-#include "../options/enums.h"
 
 namespace NCB {
 
@@ -84,6 +83,8 @@ namespace NCB {
         const size_t featureNum,
         const EPredictionType predictionType,
         const int threadCount) {
+        CB_ENSURE_INTERNAL(!model.ObliviousTrees.FloatFeatures[featureNum].HasNans,
+            "Features with nan values not supported");
 
         NPar::TLocalExecutor executor;
         executor.RunAdditionalThreads(threadCount - 1);
