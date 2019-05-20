@@ -14,16 +14,8 @@
 
 namespace NCB {
 
-    struct TBinarizedFloatFeatureStatistics {
-        TVector<float> Borders;
-        TVector<ui8> BinarizedFeature;
-        TVector<float> MeanTarget;
-        TVector<float> MeanPrediction;
-        TVector<size_t> ObjectsPerBin;
-        TVector<double> PredictionsOnVaryingFeature;
-    };
-
-    struct TBinarizedOneHotFeatureStatistics{
+    struct TBinarizedFeatureStatistics {
+        TVector<float> Borders; // empty in case of one-hot features
         TVector<int> BinarizedFeature;
         TVector<float> MeanTarget;
         TVector<float> MeanPrediction;
@@ -36,17 +28,19 @@ namespace NCB {
         int Index;
     };
 
-    TBinarizedFloatFeatureStatistics GetBinarizedFloatFeatureStatistics(
+    TBinarizedFeatureStatistics GetBinarizedFloatFeatureStatistics(
         const TFullModel& model,
         TDataProvider& dataset,
         const size_t featureNum,
-        const EPredictionType predictionType);
+        const EPredictionType predictionType,
+        const int threadCount);
 
-    TBinarizedOneHotFeatureStatistics GetBinarizedOneHotFeatureStatistics(
+    TBinarizedFeatureStatistics GetBinarizedOneHotFeatureStatistics(
         const TFullModel& model,
         TDataProvider& dataset,
         const size_t featureNum,
-        const EPredictionType predictionType);
+        const EPredictionType predictionType,
+        const int threadCount);
 
     ui32 GetCatFeaturePerfectHash(
         const TFullModel& model,

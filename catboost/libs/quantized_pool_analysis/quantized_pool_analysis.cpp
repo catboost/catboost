@@ -1,4 +1,5 @@
 #include "quantized_pool_analysis.h"
+#include "../options/enums.h"
 
 namespace NCB {
 
@@ -8,6 +9,7 @@ namespace NCB {
         const size_t featureNum,
         const TVector<T>& featureValues,
         const EPredictionType predictionType,
+        const int threadCount,
         TDataProvider& dataProvider,
         TVector<double>* predictions,
         NPar::TLocalExecutor* executor) {
@@ -21,11 +23,11 @@ namespace NCB {
         TIntrusivePtr<TRawDataProvider> rawDataProviderPtr(&rawDataProvider);
         TRawBuilderData data = TRawBuilderDataHelper::Extract(std::move(*(rawDataProviderPtr.Get())));
         THolder<THolderType> initialHolder;
-        if constexpr (FeatureType == EFeatureType::Float) {
-            initialHolder = std::move(data.ObjectsData.FloatFeatures[featureNum]);
-        }
         if constexpr (FeatureType == EFeatureType::Categorical) {
             initialHolder = std::move(data.ObjectsData.CatFeatures[featureNum]);
+        } else {
+            CB_ENSURE_INTERNAL(FeatureType == EFeatureType::Float, "Unsupported FeatureType");
+            initialHolder = std::move(data.ObjectsData.FloatFeatures[featureNum]);
         }
 
         for (size_t numVal = 0; numVal < featureValues.size(); ++numVal) {
@@ -35,8 +37,8 @@ namespace NCB {
                     TMaybeOwningConstArrayHolder<ui32>::CreateOwning(TVector<ui32>(objectCount, featureValues[numVal])),
                     data.CommonObjectsData.SubsetIndexing.Get());
                 data.ObjectsData.CatFeatures[featureNum] = std::move(holder);
-            }
-            if constexpr (FeatureType == EFeatureType::Float) {
+            } else {
+                CB_ENSURE_INTERNAL(FeatureType == EFeatureType::Float, "Unsupported FeatureType");
                 THolder<TFloatValuesHolder> holder = MakeHolder<TFloatValuesHolder>(
                     featureNum,
                     TMaybeOwningConstArrayHolder<float>::CreateOwning(TVector<float>(objectCount, featureValues[numVal])),
@@ -50,14 +52,15 @@ namespace NCB {
                 false,
                 executor);
 
-            auto pred = ApplyModel(model, *(rawDataProviderPtr->ObjectsData), false, predictionType);
+            auto pred = ApplyModel(model, *(rawDataProviderPtr->ObjectsData), false, predictionType, 0, 0, threadCount);
             (*predictions)[numVal] = std::accumulate(pred.begin(), pred.end(), 0.) / static_cast<double>(pred.size());
             data = TRawBuilderDataHelper::Extract(std::move(*(rawDataProviderPtr.Get())));
         }
 
         if constexpr (FeatureType == EFeatureType::Categorical) {
             data.ObjectsData.CatFeatures[featureNum] = std::move(initialHolder);
-        } else if (FeatureType == EFeatureType::Float) {
+        } else {
+            CB_ENSURE_INTERNAL(FeatureType == EFeatureType::Float, "Unsupported FeatureType");
             data.ObjectsData.FloatFeatures[featureNum] = std::move(initialHolder);
         }
 
@@ -75,18 +78,20 @@ namespace NCB {
             std::move(rawDataProvider.RawTargetData));
     }
 
-    TBinarizedFloatFeatureStatistics GetBinarizedFloatFeatureStatistics(
+    TBinarizedFeatureStatistics GetBinarizedFloatFeatureStatistics(
         const TFullModel& model,
         TDataProvider& dataset,
         const size_t featureNum,
-        const EPredictionType predictionType) {
+        const EPredictionType predictionType,
+        const int threadCount) {
 
         NPar::TLocalExecutor executor;
+        executor.RunAdditionalThreads(threadCount - 1);
         TRestorableFastRng64 rand(0);
 
         TVector<float> borders = model.ObliviousTrees.FloatFeatures[featureNum].Borders;
         size_t bordersSize = borders.size();
-        TVector<double> prediction = ApplyModel(model, dataset, false, predictionType, 0, 0, 1);
+        TVector<double> prediction = ApplyModel(model, dataset, false, predictionType, 0, 0, threadCount);
 
         TMaybeData<TConstArrayRef<float>> targetData = CreateModelCompatibleProcessedDataProvider(
             dataset, {}, model, &rand, &executor).TargetData->GetTarget();
@@ -133,14 +138,14 @@ namespace NCB {
         const TQuantizedFloatValuesHolder* values = dynamic_cast<const TQuantizedFloatValuesHolder*>(feature.GetRef());
         CB_ENSURE_INTERNAL(values, "Cannot access values of float feature #" << featureNum);
         TArrayRef extractedValues = *(values->ExtractValues(&executor));
-        TVector<ui8> binNums(extractedValues.begin(), extractedValues.end());
+        TVector<int> binNums(extractedValues.begin(), extractedValues.end());
 
         size_t numBins = quantizedFeaturesInfo->GetBorders(TFloatFeatureIdx(featureNum)).size() + 1;
         TVector<float> meanTarget(numBins, 0.);
         TVector<float> meanPrediction(numBins, 0.);
         TVector<size_t> countObjectsPerBin(numBins, 0);
         for (size_t numObj = 0; numObj < binNums.size(); ++numObj) {
-            ui8 binNum = binNums[numObj];
+            int binNum = binNums[numObj];
             meanTarget[binNum] += target[numObj];
             meanPrediction[binNum] += prediction[numObj];
             countObjectsPerBin[binNum] += 1;
@@ -160,11 +165,12 @@ namespace NCB {
             featureNum,
             quantizedFeaturesInfo->GetBorders(TFloatFeatureIdx(featureNum)),
             predictionType,
+            threadCount,
             dataset,
             &predictionsOnVarying,
             &executor);
 
-        return TBinarizedFloatFeatureStatistics{
+        return TBinarizedFeatureStatistics{
             quantizedFeaturesInfo->GetBorders(TFloatFeatureIdx(featureNum)),
             binNums,
             meanTarget,
@@ -174,16 +180,18 @@ namespace NCB {
         };
     }
 
-    TBinarizedOneHotFeatureStatistics GetBinarizedOneHotFeatureStatistics(
+    TBinarizedFeatureStatistics GetBinarizedOneHotFeatureStatistics(
         const TFullModel& model,
         TDataProvider& dataset,
         const size_t featureNum,
-        const EPredictionType predictionType) {
+        const EPredictionType predictionType,
+        const int threadCount) {
 
         NPar::TLocalExecutor executor;
+        executor.RunAdditionalThreads(threadCount - 1);
         TRestorableFastRng64 rand(0);
 
-        TVector<double> prediction = ApplyModel(model, dataset, false, predictionType, 0, 0, 1);
+        TVector<double> prediction = ApplyModel(model, dataset, false, predictionType, 0, 0, threadCount);
 
         TMaybeData<TConstArrayRef<float>> targetData = CreateModelCompatibleProcessedDataProvider(
             dataset, {}, model, &rand, &executor).TargetData->GetTarget();
@@ -242,11 +250,13 @@ namespace NCB {
             featureNum,
             oneHotUniqueValues,
             predictionType,
+            threadCount,
             dataset,
             &predictionsOnVarying,
             &executor);
 
-        return TBinarizedOneHotFeatureStatistics{
+        return TBinarizedFeatureStatistics{
+            TVector<float>(),
             binNums,
             meanTarget,
             meanPrediction,
