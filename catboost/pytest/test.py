@@ -3453,7 +3453,7 @@ def test_apply_with_permuted_columns(ignored_features):
         '--column-description', permuted_cd_path,
         '-m', output_model_path,
         '--output-path', permuted_predict_path,
-        '--output-columns', 'DocId,RawFormulaVal,Label'
+        '--output-columns', 'SampleId,RawFormulaVal,Label'
     )
     yatest.common.execute(calc_cmd)
     assert filecmp.cmp(output_eval_path, permuted_predict_path)
@@ -3701,7 +3701,7 @@ def test_output_columns_format():
         '-i', '10',
         '-T', '4',
         '-m', model_path,
-        '--output-columns', 'DocId,RawFormulaVal,#2,Label',
+        '--output-columns', 'SampleId,RawFormulaVal,#2,Label',
         '--eval-file', output_eval_path
     )
     yatest.common.execute(cmd)
@@ -3715,7 +3715,7 @@ def test_output_columns_format():
         '--column-description', data_file('adult', 'train.cd'),
         '-m', model_path,
         '--output-path', formula_predict_path,
-        '--output-columns', 'DocId,RawFormulaVal'
+        '--output-columns', 'SampleId,RawFormulaVal'
     )
     yatest.common.execute(calc_cmd)
 
@@ -3769,7 +3769,7 @@ def test_weights_output():
         '-T', '4',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
-        '--output-columns', 'DocId,RawFormulaVal,Weight,Label',
+        '--output-columns', 'SampleId,RawFormulaVal,Weight,Label',
     )
     yatest.common.execute(cmd)
 
@@ -3793,7 +3793,7 @@ def test_baseline_output():
         '-T', '4',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
-        '--output-columns', 'DocId,RawFormulaVal,Baseline,Label',
+        '--output-columns', 'SampleId,RawFormulaVal,Baseline,Label',
     )
     yatest.common.execute(cmd)
 
@@ -3818,7 +3818,7 @@ def test_baseline_from_file_output():
         '-T', '4',
         '-m', output_model_path,
         '--eval-file', eval_0_path,
-        '--output-columns', 'DocId,RawFormulaVal',
+        '--output-columns', 'SampleId,RawFormulaVal',
     )
     yatest.common.execute(cmd)
 
@@ -3838,7 +3838,7 @@ def test_baseline_from_file_output():
         '-T', '4',
         '-m', output_model_path,
         '--eval-file', eval_1_path,
-        '--output-columns', 'DocId,RawFormulaVal',
+        '--output-columns', 'SampleId,RawFormulaVal',
     )
     yatest.common.execute(cmd)
 
@@ -3962,7 +3962,7 @@ def test_query_output():
         '-T', '4',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
-        '--output-columns', 'DocId,Label,RawFormulaVal,GroupId',
+        '--output-columns', 'SampleId,Label,RawFormulaVal,GroupId',
     )
     yatest.common.execute(cmd)
 
@@ -3984,7 +3984,7 @@ def test_subgroup_output():
         '-T', '4',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
-        '--output-columns', 'GroupId,SubgroupId,DocId,Label,RawFormulaVal',
+        '--output-columns', 'GroupId,SubgroupId,SampleId,Label,RawFormulaVal',
     )
     yatest.common.execute(cmd)
 
@@ -5297,14 +5297,14 @@ def test_apply_multiclass_labels_from_data(prediction_type):
     if prediction_type in ['Probability', 'RawFormulaVal']:
         with open(eval_path, "rt") as f:
             for line in f:
-                assert line[:-1] == 'DocId\t{}:Class=0.0\t{}:Class=7.0\t{}:Class=9999.0\t{}:Class=10000000.0'\
+                assert line[:-1] == 'SampleId\t{}:Class=0.0\t{}:Class=7.0\t{}:Class=9999.0\t{}:Class=10000000.0'\
                     .format(prediction_type, prediction_type, prediction_type, prediction_type)
                 break
     else:  # Class
         with open(eval_path, "rt") as f:
             for i, line in enumerate(f):
                 if not i:
-                    assert line[:-1] == 'DocId\tClass'
+                    assert line[:-1] == 'SampleId\tClass'
                 else:
                     assert float(line[:-1].split()[1]) in labels
 
@@ -5367,7 +5367,7 @@ def test_save_and_apply_multiclass_labels_from_classes_count(loss_function, pred
         with open(eval_path, "rt") as f:
             for i, line in enumerate(f):
                 if i == 0:
-                    assert line[:-1] == 'DocId\t{}:Class=0\t{}:Class=1\t{}:Class=2\t{}:Class=3' \
+                    assert line[:-1] == 'SampleId\t{}:Class=0\t{}:Class=1\t{}:Class=2\t{}:Class=3' \
                         .format(prediction_type, prediction_type, prediction_type, prediction_type)
                 else:
                     assert float(line[:-1].split()[1]) == float('-inf') and float(line[:-1].split()[4]) == float('-inf')  # fictitious approxes must be negative infinity
@@ -5376,7 +5376,7 @@ def test_save_and_apply_multiclass_labels_from_classes_count(loss_function, pred
         with open(eval_path, "rt") as f:
             for i, line in enumerate(f):
                 if i == 0:
-                    assert line[:-1] == 'DocId\t{}:Class=0\t{}:Class=1\t{}:Class=2\t{}:Class=3' \
+                    assert line[:-1] == 'SampleId\t{}:Class=0\t{}:Class=1\t{}:Class=2\t{}:Class=3' \
                         .format(prediction_type, prediction_type, prediction_type, prediction_type)
                 else:
                     assert abs(float(line[:-1].split()[1])) < 1e-307 \
@@ -5386,7 +5386,7 @@ def test_save_and_apply_multiclass_labels_from_classes_count(loss_function, pred
         with open(eval_path, "rt") as f:
             for i, line in enumerate(f):
                 if i == 0:
-                    assert line[:-1] == 'DocId\tClass'
+                    assert line[:-1] == 'SampleId\tClass'
                 else:
                     assert float(line[:-1].split()[1]) in [1, 2]  # probability of 0,3 classes appearance must be zero
 
@@ -5448,7 +5448,7 @@ def test_set_class_names_implicitly():
     with open(eval_path, "rt") as f:
         for i, line in enumerate(f):
             if not i:
-                assert line[:-1] == 'DocId\t{}:Class=19.2\t{}:Class=7.\t{}:Class=8.0\t{}:Class=a\t{}:Class=bc\tClass' \
+                assert line[:-1] == 'SampleId\t{}:Class=19.2\t{}:Class=7.\t{}:Class=8.0\t{}:Class=a\t{}:Class=bc\tClass' \
                     .format(*(['RawFormulaVal'] * 5))
             else:
                 label = line[:-1].split()[-1]

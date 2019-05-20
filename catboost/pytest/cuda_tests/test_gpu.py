@@ -2029,7 +2029,7 @@ def test_save_and_apply_multiclass_labels_from_classes_count(loss_function, pred
         with open(eval_path, "rt") as f:
             for i, line in enumerate(f):
                 if i == 0:
-                    assert line[:-1] == 'DocId\t{}:Class=0\t{}:Class=1\t{}:Class=2\t{}:Class=3' \
+                    assert line[:-1] == 'SampleId\t{}:Class=0\t{}:Class=1\t{}:Class=2\t{}:Class=3' \
                         .format(prediction_type, prediction_type, prediction_type, prediction_type)
                 else:
                     assert float(line[:-1].split()[1]) == float('-inf') and float(line[:-1].split()[4]) == float('-inf')  # fictitious approxes must be negative infinity
@@ -2038,7 +2038,7 @@ def test_save_and_apply_multiclass_labels_from_classes_count(loss_function, pred
         with open(eval_path, "rt") as f:
             for i, line in enumerate(f):
                 if i == 0:
-                    assert line[:-1] == 'DocId\t{}:Class=0\t{}:Class=1\t{}:Class=2\t{}:Class=3' \
+                    assert line[:-1] == 'SampleId\t{}:Class=0\t{}:Class=1\t{}:Class=2\t{}:Class=3' \
                         .format(prediction_type, prediction_type, prediction_type, prediction_type)
                 else:
                     assert abs(float(line[:-1].split()[1])) < 1e-307 \
@@ -2048,7 +2048,7 @@ def test_save_and_apply_multiclass_labels_from_classes_count(loss_function, pred
         with open(eval_path, "rt") as f:
             for i, line in enumerate(f):
                 if i == 0:
-                    assert line[:-1] == 'DocId\tClass'
+                    assert line[:-1] == 'SampleId\tClass'
                 else:
                     assert float(line[:-1].split()[1]) in [1, 2]  # probability of 0,3 classes appearance must be zero
 

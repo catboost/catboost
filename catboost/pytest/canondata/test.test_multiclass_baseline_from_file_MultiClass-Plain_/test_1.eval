@@ -1,4 +1,4 @@
-DocId	RawFormulaVal:Class=0.	RawFormulaVal:Class=0.25	RawFormulaVal:Class=0.5	RawFormulaVal:Class=0.75	Class	Label
+SampleId	RawFormulaVal:Class=0.	RawFormulaVal:Class=0.25	RawFormulaVal:Class=0.5	RawFormulaVal:Class=0.75	Class	Label
 0	0.504767555	-0.09185036143	-0.200307781	-0.2126094088	0.	0.
 1	0.2397188171	-0.07945321945	0.02902105232	-0.1892866462	0.	0.5
 2	0.3148793582	-0.03719785176	-0.02624357777	-0.2514379361	0.	0.5

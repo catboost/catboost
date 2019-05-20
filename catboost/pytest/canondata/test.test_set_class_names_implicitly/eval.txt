@@ -1,4 +1,4 @@
-DocId	RawFormulaVal:Class=19.2	RawFormulaVal:Class=7.	RawFormulaVal:Class=8.0	RawFormulaVal:Class=a	RawFormulaVal:Class=bc	Class
+SampleId	RawFormulaVal:Class=19.2	RawFormulaVal:Class=7.	RawFormulaVal:Class=8.0	RawFormulaVal:Class=a	RawFormulaVal:Class=bc	Class
 0	-0.03206793454	0.03409904986	0.01615785974	0.003010155235	-0.0211991303	7.
 1	0.01290704748	-0.05074943802	-0.01243040461	0.02555120767	0.02472158748	a
 2	-0.02895531121	-0.01604899504	0.0146253426	0.03112842039	-0.0007494567367	a
