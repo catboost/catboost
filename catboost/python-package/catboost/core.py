@@ -2126,9 +2126,7 @@ class CatBoost(_CatBoostBase):
         if feature_type == 'float':
             res = self._object._get_binarized_float_statistics(data, feature_internal_index, prediction_type)
         elif feature_type == 'categorical':
-            if not isinstance(cat_feature_values, list) and \
-                not isinstance(cat_feature_values, np.array) and \
-                not isinstance(cat_feature_values, [pd.Series]):
+            if not isinstance(cat_feature_values, ARRAY_TYPES):
                 raise CatBoostError("Feature #{} is categorical. "
                                     "Please provide values for which you need statistics in cat_feature_values"
                                     .format(feature))
@@ -3572,6 +3570,7 @@ def sum_models(models, weights=None, ctr_merge_policy='IntersectingCountersAvera
 def _plot_binarized_feature_statistics(statistics, feature_num):
     try:
         import plotly.graph_objs as go
+        import plotly.io as pio
         from plotly.offline import iplot
     except ImportError as e:
         warnings.warn("To draw binarized feature statistics you should install plotly.")

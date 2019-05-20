@@ -6767,3 +6767,32 @@ def test_output_options():
     )
     yatest.common.execute(cmd)
     return local_canonical_file(os.path.join(train_dir, output_options_path))
+
+def test_binarized_statistics():
+    import catboost
+    import numpy as np
+    from catboost.datasets import titanic
+    X, _ = titanic()
+    y = X.Survived
+    X.drop(['PassengerId', 'Survived', 'Name', 'Parch', 'Ticket', 'Cabin', 'Embarked'],
+           axis=1, inplace=True)
+
+    model = catboost.CatBoostClassifier(
+        iterations=50,
+        cat_features=['Pclass', 'Sex', 'SibSp'],
+        one_hot_max_size=300)
+    model.fit(X, y, silent=True)
+
+    feature_num = 'Fare'
+    res = model.get_binarized_statistics(X, y, feature_num, plot=False)
+    def mean_per_bin(res, feature_num, data):
+        return np.array([data[np.digitize(X.loc[:, feature_num], res['borders']) == bin_num].mean()
+                         for bin_num in range(len(res['borders']) + 1)])
+
+    assert(np.alltrue(np.array(res['binarized_feature']) == np.digitize(X.loc[:, feature_num], res['borders'])))
+    assert(res['objects_per_bin'].sum() == X.shape[0])
+    assert(np.alltrue(np.unique(np.digitize(X.loc[:, feature_num], res['borders']), return_counts=True)[1] == \
+                      res['objects_per_bin']))
+    assert(np.allclose(res['mean_prediction'],
+                       mean_per_bin(res, feature_num, model.predict_proba(X)[:, 1]),
+                       atol=1e-4))
