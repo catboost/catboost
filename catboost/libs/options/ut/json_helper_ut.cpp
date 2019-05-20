@@ -3,6 +3,7 @@
 #include <catboost/libs/options/option.h>
 #include <catboost/libs/options/json_helper.h>
 #include <catboost/libs/options/enums.h>
+#include <catboost/libs/options/plain_options_helper.h>
 
 Y_UNIT_TEST_SUITE(TJsonHelperTest) {
     using namespace NCatboostOptions;
@@ -133,4 +134,62 @@ Y_UNIT_TEST_SUITE(TJsonHelperTest) {
         SaveFields(&tree2, option1, option2);
         UNIT_ASSERT_VALUES_EQUAL(ToString<NJson::TJsonValue>(tree2), "{\"option_1\":102}");
     }
+        Y_UNIT_TEST(TestPlainAndReversePlainSerialization) {
+            TStringBuf jsonPlain = ""
+                                   "{\n"
+                                   "  \"iterations\": 100,\n"
+                                   "  \"learning_rate\": 0.1,\n"
+                                   "  \"depth\": 3,\n"
+                                   "  \"verbose\": 0\n"
+                                   "}"
+                                   "";
+
+            NJson::TJsonValue plainOptions;
+            NJson::ReadJsonTree(jsonPlain, &plainOptions);
+
+            int refIterations = 100;
+            double refLearningRate = 0.1;
+            int refDepth = 3;
+            int refVerbose = 0;
+
+            int parsedIterations = 7;
+            double parsedLearningRate = 10.9;
+            int parsedDepth = 10000;
+            int parsedVerbose = 99;
+
+            NJson::TJsonValue trainOptionsJson;
+            NJson::TJsonValue outputFilesOptionsJson;
+            NCatboostOptions::PlainJsonToOptions(plainOptions, &trainOptionsJson, &outputFilesOptionsJson);
+
+            TJsonFieldHelper<int>::Read(trainOptionsJson["boosting_options"]["iterations"], &parsedIterations);
+            TJsonFieldHelper<double>::Read(trainOptionsJson["boosting_options"]["learning_rate"], &parsedLearningRate);
+            TJsonFieldHelper<int>::Read(trainOptionsJson["tree_learner_options"]["depth"], &parsedDepth);
+            TJsonFieldHelper<int>::Read(outputFilesOptionsJson["verbose"], &parsedVerbose);
+
+            // plainOptions to trainOptionsJson and outputFilesOptionsJson using PlainJsonToOptions
+            UNIT_ASSERT_VALUES_EQUAL(parsedIterations, refIterations);
+            UNIT_ASSERT_VALUES_EQUAL(parsedLearningRate, refLearningRate);
+            UNIT_ASSERT_VALUES_EQUAL(parsedDepth, refDepth);
+            UNIT_ASSERT_VALUES_EQUAL(parsedVerbose, refVerbose);
+
+            // now test reverse transformation
+            NJson::TJsonValue reversePlainOptions;
+            NCatboostOptions::OptionsToPlainJson(trainOptionsJson, outputFilesOptionsJson, &reversePlainOptions);
+
+            int reverseParsedIterations = 7;
+            double reverseParsedLearningRate = 10.9;
+            int reverseParsedDepth = 10000;
+            int reverseParsedVerbose = 99;
+
+            TJsonFieldHelper<int>::Read(reversePlainOptions["iterations"], &reverseParsedIterations);
+            TJsonFieldHelper<double>::Read(reversePlainOptions["learning_rate"], &reverseParsedLearningRate);
+            TJsonFieldHelper<int>::Read(reversePlainOptions["depth"], &reverseParsedDepth);
+            TJsonFieldHelper<int>::Read(reversePlainOptions["verbose"], &reverseParsedVerbose);
+
+            // plainOptions == reversePlainOptions
+            UNIT_ASSERT_VALUES_EQUAL(reverseParsedIterations, refIterations);
+            UNIT_ASSERT_VALUES_EQUAL(reverseParsedLearningRate, refLearningRate);
+            UNIT_ASSERT_VALUES_EQUAL(reverseParsedDepth, refDepth);
+            UNIT_ASSERT_VALUES_EQUAL(reverseParsedVerbose, refVerbose);
+        }
 }

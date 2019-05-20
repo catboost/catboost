@@ -389,3 +389,92 @@ void NCatboostOptions::PlainJsonToOptions(
 
     trainOptions["flat_params"] = plainOptions;
 }
+
+void NCatboostOptions::OptionsToPlainJson(
+        const NJson::TJsonValue& options,
+        const NJson::TJsonValue& outputOptions,
+        NJson::TJsonValue* plainOptions)
+{
+    TSet<TString> seenKeys;
+
+    NJson::TJsonValue& plainOptionsJson = *plainOptions;
+    plainOptionsJson.SetType(NJson::JSON_MAP);
+
+    CopyOption(outputOptions, "verbose", &plainOptionsJson, &seenKeys);
+    CopyOption(outputOptions, "use_best_model", &plainOptionsJson, &seenKeys);
+
+    //boosting options
+    const char* const boostingOptionsKey = "boosting_options";
+    const NJson::TJsonValue& boostingOptionsRef = options[boostingOptionsKey];
+
+    CopyOption(boostingOptionsRef, "iterations", &plainOptionsJson, &seenKeys);
+    CopyOption(boostingOptionsRef, "learning_rate", &plainOptionsJson, &seenKeys);
+    CopyOption(boostingOptionsRef, "fold_len_multiplier", &plainOptionsJson, &seenKeys);
+    CopyOption(boostingOptionsRef, "approx_on_full_history", &plainOptionsJson, &seenKeys);
+    CopyOption(boostingOptionsRef, "fold_permutation_block", &plainOptionsJson, &seenKeys);
+    CopyOption(boostingOptionsRef, "min_fold_size", &plainOptionsJson, &seenKeys);
+    CopyOption(boostingOptionsRef, "permutation_count", &plainOptionsJson, &seenKeys);
+    CopyOption(boostingOptionsRef, "boosting_type", &plainOptionsJson, &seenKeys);
+    CopyOption(boostingOptionsRef, "data_partition", &plainOptionsJson, &seenKeys);
+
+    auto& odConfig = boostingOptionsRef["od_config"];
+    CopyOption(odConfig, "stop_pvalue", &plainOptionsJson, &seenKeys);
+    CopyOption(odConfig, "wait_iterations", &plainOptionsJson, &seenKeys);
+    CopyOptionWithNewKey(odConfig, "type", "od_type", &plainOptionsJson, &seenKeys);
+
+    auto& treeOptions = options["tree_learner_options"];
+    CopyOption(treeOptions, "rsm", &plainOptionsJson, &seenKeys);
+    CopyOption(treeOptions, "leaf_estimation_iterations", &plainOptionsJson, &seenKeys);
+    CopyOption(treeOptions, "leaf_estimation_backtracking", &plainOptionsJson, &seenKeys);
+    CopyOption(treeOptions, "depth", &plainOptionsJson, &seenKeys);
+    CopyOption(treeOptions, "l2_leaf_reg", &plainOptionsJson, &seenKeys);
+    CopyOption(treeOptions, "bayesian_matrix_reg", &plainOptionsJson, &seenKeys);
+    CopyOption(treeOptions, "model_size_reg", &plainOptionsJson, &seenKeys);
+    CopyOption(treeOptions, "dev_score_calc_obj_block_size", &plainOptionsJson, &seenKeys);
+    CopyOption(treeOptions, "dev_efb_max_buckets", &plainOptionsJson, &seenKeys);
+    CopyOption(treeOptions, "efb_max_conflict_fraction", &plainOptionsJson, &seenKeys);
+    CopyOption(treeOptions, "random_strength", &plainOptionsJson, &seenKeys);
+    CopyOption(treeOptions, "leaf_estimation_method", &plainOptionsJson, &seenKeys);
+    CopyOption(treeOptions, "grow_policy", &plainOptionsJson, &seenKeys);
+    CopyOption(treeOptions, "max_leaves", &plainOptionsJson, &seenKeys);
+    CopyOption(treeOptions, "min_data_in_leaf", &plainOptionsJson, &seenKeys);
+    CopyOption(treeOptions, "score_function", &plainOptionsJson, &seenKeys);
+    CopyOption(treeOptions, "fold_size_loss_normalization", &plainOptionsJson, &seenKeys);
+    CopyOption(treeOptions, "add_ridge_penalty_to_loss_function", &plainOptionsJson, &seenKeys);
+    CopyOption(treeOptions, "sampling_frequency", &plainOptionsJson, &seenKeys);
+    CopyOption(treeOptions, "dev_max_ctr_complexity_for_border_cache", &plainOptionsJson, &seenKeys);
+    CopyOption(treeOptions, "observations_to_bootstrap", &plainOptionsJson, &seenKeys);
+
+    auto& bootstrapOptions = treeOptions["bootstrap"];
+    CopyOptionWithNewKey(bootstrapOptions, "type", "bootstrap_type", &plainOptionsJson, &seenKeys);
+    CopyOption(bootstrapOptions, "bagging_temperature", &plainOptionsJson, &seenKeys);
+    CopyOption(bootstrapOptions, "subsample", &plainOptionsJson, &seenKeys);
+    CopyOption(bootstrapOptions, "mvs_head_fraction", &plainOptionsJson, &seenKeys);
+
+    //feature evaluation options
+    auto& modelBasedEvalOptions = options["model_based_eval_options"];
+
+    CopyOption(modelBasedEvalOptions, "features_to_evaluate", &plainOptionsJson, &seenKeys);
+    CopyOption(modelBasedEvalOptions, "offset", &plainOptionsJson, &seenKeys);
+    CopyOption(modelBasedEvalOptions, "experiment_count", &plainOptionsJson, &seenKeys);
+    CopyOption(modelBasedEvalOptions, "experiment_size", &plainOptionsJson, &seenKeys);
+    CopyOption(modelBasedEvalOptions, "baseline_model_snapshot", &plainOptionsJson, &seenKeys);
+
+    //data processing
+    auto& dataProcessingOptions = options["data_processing_options"];
+
+    CopyOption(dataProcessingOptions, "ignored_features", &plainOptionsJson, &seenKeys);
+    CopyOption(dataProcessingOptions, "has_time", &plainOptionsJson, &seenKeys);
+    CopyOption(dataProcessingOptions, "allow_const_label", &plainOptionsJson, &seenKeys);
+    CopyOption(dataProcessingOptions, "classes_count", &plainOptionsJson, &seenKeys);
+    CopyOption(dataProcessingOptions, "class_names", &plainOptionsJson, &seenKeys);
+    CopyOption(dataProcessingOptions, "class_weights", &plainOptionsJson, &seenKeys);
+    CopyOption(dataProcessingOptions, "gpu_cat_features_storage", &plainOptionsJson, &seenKeys);
+
+    //rest
+    CopyOption(options, "random_seed", &plainOptionsJson, &seenKeys);
+    CopyOption(options, "logging_level", &plainOptionsJson, &seenKeys);
+    CopyOption(options, "detailed_profile", &plainOptionsJson, &seenKeys);
+    CopyOption(options, "task_type", &plainOptionsJson, &seenKeys);
+    CopyOption(options, "metadata", &plainOptionsJson, &seenKeys);
+}
