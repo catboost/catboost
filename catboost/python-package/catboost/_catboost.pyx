@@ -1164,7 +1164,7 @@ cdef EModelType string_to_model_type(model_type_str) except *:
 cdef EFstrType string_to_fstr_type(fstr_type_str) except *:
     cdef EFstrType fstr_type
     if not TryFromString[EFstrType](to_arcadia_string(fstr_type_str), fstr_type):
-        raise CatBoostError("Unknown fstr type {}.".format(fstr_type_str))
+        raise CatBoostError("Unknown type {}.".format(fstr_type_str))
     return fstr_type
 
 cdef EPreCalcShapValues string_to_shap_mode(shap_mode_str) except *:
@@ -2492,7 +2492,7 @@ cdef class _CatBoost:
 
         if not self.__metrics_history.TestMetricsHistory.empty():
             test_count = 0
-            for i in range(iteration_count):                
+            for i in range(iteration_count):
                 test_count = max(test_count, self.__metrics_history.TestMetricsHistory[i].size())
             for iteration_num in range(iteration_count):
                 for test_index in range(self.__metrics_history.TestMetricsHistory[iteration_num].size()):
@@ -2824,8 +2824,8 @@ cdef class _CatBoost:
         assert new_leaf_values.dtype == np.float64, "leaf values should have type np.float64 (double)."
         assert len(new_leaf_values.shape) == 1, "leaf values should be a 1d-vector."
         assert new_leaf_values.shape[0] == self.__model.ObliviousTrees.LeafValues.size(), (
-            "count of leaf values should be equal to the leaf count.")            
-        for i in xrange(self.__model.ObliviousTrees.LeafValues.size()):    
+            "count of leaf values should be equal to the leaf count.")
+        for i in xrange(self.__model.ObliviousTrees.LeafValues.size()):
             self.__model.ObliviousTrees.LeafValues[i] = new_leaf_values[i]
 
 

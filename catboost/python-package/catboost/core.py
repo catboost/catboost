@@ -1737,7 +1737,7 @@ class CatBoost(_CatBoostBase):
         else:
             return np.array(getattr(self, "_prediction_values_change", None))
 
-    def get_feature_importance(self, data=None, type=EFstrType.FeatureImportance, prettified=False, thread_count=-1, verbose=False, fstr_type=None, shap_mode="Auto"):
+    def get_feature_importance(self, data=None, type=EFstrType.FeatureImportance, prettified=False, thread_count=-1, verbose=False, shap_mode="Auto"):
         """
         Parameters
         ----------
@@ -1772,8 +1772,6 @@ class CatBoost(_CatBoostBase):
             If False, then evaluation is not logged. If True, then each possible iteration is logged.
             If a positive integer, then it stands for the size of batch N. After processing each batch, print progress
             and remaining time.
-
-        fstr_type : string, deprecated, use type instead
 
         shap_mode : string, optional (default="Auto")
             used only for ShapValues type
@@ -1812,10 +1810,6 @@ class CatBoost(_CatBoostBase):
         verbose = int(verbose)
         if verbose < 0:
             raise CatBoostError('verbose should be non-negative.')
-
-        if fstr_type is not None:
-            type = fstr_type
-            warnings.warn("'fstr_type' parameter will be deprecated soon, use 'type' parameter instead")
 
         type = enum_from_enum_or_str(EFstrType, type)
         if type == EFstrType.FeatureImportance:

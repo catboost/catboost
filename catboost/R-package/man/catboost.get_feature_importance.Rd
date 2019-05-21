@@ -5,7 +5,7 @@
 \title{Calculate the feature importances}
 \usage{
 catboost.get_feature_importance(model, pool = NULL,
-  type = "FeatureImportance", thread_count = -1, fstr_type = NULL)
+  type = "FeatureImportance", thread_count = -1)
 }
 \arguments{
 \item{model}{The model obtained as the result of training.
@@ -52,7 +52,6 @@ Allows you to optimize the speed of execution. This parameter doesn't affect res
 
 Default value: -1}
 
-\item{fstr_type}{Deprecated parameter, use 'type' instead.}
 }
 \description{
 Calculate the feature importances (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/fstr-docpage/#fstr})
