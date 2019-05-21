@@ -2117,7 +2117,7 @@ class CatBoost(_CatBoostBase):
 
         if prediction_type is None:
             prediction_type = 'Probability' if self.get_param('loss_function') in ['CrossEntropy', 'Logloss'] \
-                                            else 'RawFormulaVal'
+                else 'RawFormulaVal'
 
         if not isinstance(feature, int):
             if self.feature_names_ is None or feature not in self.feature_names_:
@@ -3576,6 +3576,7 @@ def sum_models(models, weights=None, ctr_merge_policy='IntersectingCountersAvera
     result._sum_models(models, weights, ctr_merge_policy)
     return result
 
+
 def _build_binarized_feature_statistics_fig(statistics, feature_num):
     try:
         import plotly.graph_objs as go
@@ -3590,8 +3591,11 @@ def _build_binarized_feature_statistics_fig(statistics, feature_num):
         xaxis = go.layout.XAxis(
             title='Bins',
             tickmode='array',
-            tickvals=list(range(len(statistics['borders']))),
-            ticktext=[str(val) for val in statistics['borders']],
+            tickvals=list(range(len(statistics['borders']) + 1)),
+            ticktext=['(-inf, {:.4f}]'.format(statistics['borders'][0])] + \
+                     ['({:.4f}, {:.4f}]'.format(val_1, val_2)
+                      for val_1, val_2 in zip(statistics['borders'][:-1], statistics['borders'][1:])] + \
+                     ['({:.4f}, +inf)'.format(statistics['borders'][-1])],
             showticklabels=False
         )
     elif 'cat_values' in statistics.keys():
@@ -3663,6 +3667,7 @@ def _build_binarized_feature_statistics_fig(statistics, feature_num):
     fig = go.Figure(data=data, layout=layout)
     return fig
 
+
 def _plot_binarized_feature_statistics(statistics, feature_num, max_cat_features_on_plot=20):
     try:
         from plotly.offline import iplot
@@ -3680,7 +3685,7 @@ def _plot_binarized_feature_statistics(statistics, feature_num, max_cat_features
                 'predictions_on_varying_feature':
                     statistics['predictions_on_varying_feature'][begin:begin+max_cat_features_on_plot]
             }
-            fig = _build_binarized_feature_statistics_fig(statistics, feature_num)
+            fig = _build_binarized_feature_statistics_fig(sub_statistics, feature_num)
             iplot(fig)
 
     fig = _build_binarized_feature_statistics_fig(statistics, feature_num)
