@@ -646,6 +646,7 @@ def test_logloss_with_not_binarized_target(boosting_type):
         '-i': '10',
         '-w': '0.03',
         '-T': '4',
+        '--target-border': '0.5',
         '-m': output_model_path,
     }
     fit_catboost_gpu(params)
@@ -670,6 +671,7 @@ def test_fold_len_mult():
         '-w': '0.03',
         '-T': '4',
         '--fold-len-multiplier': 1.2,
+        '--target-border': '0.5',
         '-m': output_model_path,
     }
     fit_catboost_gpu(params)
@@ -694,6 +696,7 @@ def test_random_strength():
         '-w': '0.03',
         '-T': '4',
         '--random-strength': 122,
+        '--target-border': '0.5',
         '-m': output_model_path,
     }
     fit_catboost_gpu(params)
@@ -2095,6 +2098,7 @@ def test_eval_result_on_different_pool_type():
             '--cd', data_file('querywise', 'train.cd'),
             '-i', '10',
             '-T', '4',
+            '--target-border', '0.5',
             '--eval-file', eval_path,
         )
 
