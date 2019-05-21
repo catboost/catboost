@@ -3592,9 +3592,9 @@ def _build_binarized_feature_statistics_fig(statistics, feature_num):
             title='Bins',
             tickmode='array',
             tickvals=list(range(len(statistics['borders']) + 1)),
-            ticktext=['(-inf, {:.4f}]'.format(statistics['borders'][0])] + \
+            ticktext=['(-inf, {:.4f}]'.format(statistics['borders'][0])] +
                      ['({:.4f}, {:.4f}]'.format(val_1, val_2)
-                      for val_1, val_2 in zip(statistics['borders'][:-1], statistics['borders'][1:])] + \
+                      for val_1, val_2 in zip(statistics['borders'][:-1], statistics['borders'][1:])] +
                      ['({:.4f}, +inf)'.format(statistics['borders'][-1])],
             showticklabels=False
         )
