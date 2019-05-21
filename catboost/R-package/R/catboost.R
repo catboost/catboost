@@ -1742,7 +1742,7 @@ catboost.get_feature_importance <- function(model, pool = NULL, type = "FeatureI
 #' @param top_size Method returns the result of the top_size most important train objects. If -1, then the top size is not limited.
 #'
 #' Default value: -1
-#' @param ostr_type The ostr type.
+#' @param type.
 #'
 #' Possible values:
 #' \itemize{
@@ -1772,6 +1772,7 @@ catboost.get_feature_importance <- function(model, pool = NULL, type = "FeatureI
 #' Allows you to optimize the speed of execution. This parameter doesn't affect results.
 #'
 #' Default value: -1
+#' @param ostr_type Deprecated parameter, use 'type' instead.
 #' @export
 #' @seealso \url{https://tech.yandex.com/catboost/doc/dg/concepts/}
 catboost.get_object_importance <- function(
@@ -1779,9 +1780,10 @@ catboost.get_object_importance <- function(
     pool,
     train_pool,
     top_size = -1,
-    ostr_type = "Average",
+    type = "Average",
     update_method = "SinglePoint",
-    thread_count = -1
+    thread_count = -1,
+    ostr_type = NULL
 ) {
     if (class(model) != "catboost.Model")
         stop("Expected catboost.Model, got: ", class(model))
@@ -1793,7 +1795,11 @@ catboost.get_object_importance <- function(
         stop("top_size should be positive integer or -1.")
     if (is.null.handle(model$handle))
         model$handle <- .Call("CatBoostDeserializeModel_R", model$raw)
-    importances <- .Call("CatBoostEvaluateObjectImportances_R", model$handle, pool, train_pool, top_size, ostr_type, update_method, thread_count)
+    if (!is.null(ostr_type)) {
+        type <- ostr_type
+        warning("ostr_type option is deprecated, use type instead")
+    }
+    importances <- .Call("CatBoostEvaluateObjectImportances_R", model$handle, pool, train_pool, top_size, type, update_method, thread_count)
     indices <- head(importances, length(importances) / 2)
     scores <- tail(importances, length(importances) / 2)
     column_count <- nrow(train_pool)

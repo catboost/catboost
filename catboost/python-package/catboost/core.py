@@ -1872,7 +1872,9 @@ class CatBoost(_CatBoostBase):
             else:
                 return np.array(result)
 
-    def get_object_importance(self, pool, train_pool, top_size=-1, ostr_type='Average', update_method='SinglePoint', importance_values_sign='All', thread_count=-1, verbose=False):
+    def get_object_importance(
+            self, pool, train_pool, top_size=-1, type='Average', update_method='SinglePoint',
+            importance_values_sign='All', thread_count=-1, verbose=False, ostr_type=None):
         """
         This is the implementation of the LeafInfluence algorithm from the following paper:
         https://arxiv.org/pdf/1802.06640.pdf
@@ -1889,7 +1891,7 @@ class CatBoost(_CatBoostBase):
             Method returns the result of the top_size most important train objects.
             If -1, then the top size is not limited.
 
-        ostr_type : string, optional (default='Average')
+        type : string, optional (default='Average')
             Possible values:
                 - Average (Method returns the mean train objects scores for all input objects)
                 - PerObject (Method returns the train objects scores for every input object)
@@ -1917,6 +1919,8 @@ class CatBoost(_CatBoostBase):
             If a positive integer, then it stands for the size of batch N. After processing each batch, print progress
             and remaining time.
 
+        ostr_type : string, deprecated, use type instead
+
         Returns
         -------
         object_importances : tuple of two arrays (indices and scores) of shape = [top_size]
@@ -1931,8 +1935,12 @@ class CatBoost(_CatBoostBase):
         if verbose < 0:
             raise CatBoostError('verbose should be non-negative.')
 
+        if ostr_type is not None:
+            type = ostr_type
+            warnings.warn("'ostr_type' parameter will be deprecated soon, use 'type' parameter instead")
+
         with log_fixup():
-            result = self._calc_ostr(train_pool, pool, top_size, ostr_type, update_method, importance_values_sign, thread_count, verbose)
+            result = self._calc_ostr(train_pool, pool, top_size, type, update_method, importance_values_sign, thread_count, verbose)
         return result
 
     def shrink(self, ntree_end, ntree_start=0):
