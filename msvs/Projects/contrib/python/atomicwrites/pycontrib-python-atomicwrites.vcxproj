@@ -78,7 +78,35 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\atomicwrites\edaffac4ea5f65752cb052bd8e.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\atomicwrites\ef32498f6c3475d545fe314265.cpp"/>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\atomicwrites\_edaffac4ea5f65752cb052bd8e.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\atomicwrites
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/brotli/include" "-o" "$(SolutionDir)$(Configuration)/contrib/python/atomicwrites/_edaffac4ea5f65752cb052bd8e.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/atomicwrites/_edaffac4ea5f65752cb052bd8e.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\atomicwrites
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/brotli/include" "-o" "$(SolutionDir)$(Configuration)/contrib/python/atomicwrites/_edaffac4ea5f65752cb052bd8e.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/atomicwrites/_edaffac4ea5f65752cb052bd8e.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/atomicwrites/_edaffac4ea5f65752cb052bd8e.py2.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\atomicwrites\_edaffac4ea5f65752cb052bd8e.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\atomicwrites\_edaffac4ea5f65752cb052bd8e.py2.obj;</Outputs>
+    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\atomicwrites\_ef32498f6c3475d545fe314265.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\atomicwrites
@@ -110,6 +138,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\atomicwrites
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/atomicwrites/edaffac4ea5f65752cb052bd8e.cpp" "_7324ef2f59db193a3abd16d315=resfs/src/resfs/file/contrib/python/atomicwrites/.dist-info/METADATA" "_58c9226dfb3977b4307d27f4b7=resfs/file/contrib/python/atomicwrites/.dist-info/METADATA" "_5e72e6c5781ec8558accd39d9b=resfs/src/resfs/file/contrib/python/atomicwrites/.dist-info/top_level.txt" "_fa45e572a11e55788173e47a21=resfs/file/contrib/python/atomicwrites/.dist-info/top_level.txt"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\atomicwrites
+if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/atomicwrites/ef32498f6c3475d545fe314265.cpp" "_55a10324bd8ef6eda68994974f=/py_modules/atomicwrites.__init__" "_221c524c3159fb7bc980dd2b1c=resfs/src//py_modules/atomicwrites.__init__" "_5e932f621877d3db35c5732626=/py_code/atomicwrites.__init__"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
@@ -121,6 +153,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\atomicwrites
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/atomicwrites/edaffac4ea5f65752cb052bd8e.cpp" "_7324ef2f59db193a3abd16d315=resfs/src/resfs/file/contrib/python/atomicwrites/.dist-info/METADATA" "_58c9226dfb3977b4307d27f4b7=resfs/file/contrib/python/atomicwrites/.dist-info/METADATA" "_5e72e6c5781ec8558accd39d9b=resfs/src/resfs/file/contrib/python/atomicwrites/.dist-info/top_level.txt" "_fa45e572a11e55788173e47a21=resfs/file/contrib/python/atomicwrites/.dist-info/top_level.txt"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\atomicwrites
+if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/atomicwrites/ef32498f6c3475d545fe314265.cpp" "_55a10324bd8ef6eda68994974f=/py_modules/atomicwrites.__init__" "_221c524c3159fb7bc980dd2b1c=resfs/src//py_modules/atomicwrites.__init__" "_5e932f621877d3db35c5732626=/py_code/atomicwrites.__init__"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
@@ -129,9 +165,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/atomicwrites/ef32498f6c3475d545fe314265.cpp	</Message>
+      <Message>$B/contrib/python/atomicwrites/edaffac4ea5f65752cb052bd8e.cpp	$B/contrib/python/atomicwrites/ef32498f6c3475d545fe314265.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\atomicwrites\ef32498f6c3475d545fe314265.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\atomicwrites\edaffac4ea5f65752cb052bd8e.cpp;$(SolutionDir)$(Configuration)\contrib\python\atomicwrites\ef32498f6c3475d545fe314265.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -159,6 +195,33 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/atomicwrites/atomicwrites/__init__.py.yapyc	</Message>
       <AdditionalInputs>$(SolutionDir)..\build\scripts\py_compile.py;$(SolutionDir)..\contrib\python\atomicwrites\atomicwrites\__init__.py;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\atomicwrites\atomicwrites\__init__.py.yapyc;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\atomicwrites\.dist-info\METADATA">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\atomicwrites
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/atomicwrites/_edaffac4ea5f65752cb052bd8e.yasm" "-" "contrib/python/atomicwrites/.dist-info/METADATA" "_7324ef2f59db193a3abd16d315.rodata" "$(SolutionDir)../contrib/python/atomicwrites/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/atomicwrites/_58c9226dfb3977b4307d27f4b7.rodata" "-" "contrib/python/atomicwrites/.dist-info/top_level.txt" "_5e72e6c5781ec8558accd39d9b.rodata" "$(SolutionDir)../contrib/python/atomicwrites/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/atomicwrites/_fa45e572a11e55788173e47a21.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\atomicwrites
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/atomicwrites/_edaffac4ea5f65752cb052bd8e.yasm" "-" "contrib/python/atomicwrites/.dist-info/METADATA" "_7324ef2f59db193a3abd16d315.rodata" "$(SolutionDir)../contrib/python/atomicwrites/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/atomicwrites/_58c9226dfb3977b4307d27f4b7.rodata" "-" "contrib/python/atomicwrites/.dist-info/top_level.txt" "_5e72e6c5781ec8558accd39d9b.rodata" "$(SolutionDir)../contrib/python/atomicwrites/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/atomicwrites/_fa45e572a11e55788173e47a21.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/atomicwrites/_edaffac4ea5f65752cb052bd8e.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\atomicwrites\.dist-info\METADATA;$(SolutionDir)..\contrib\python\atomicwrites\.dist-info\top_level.txt;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\atomicwrites\_edaffac4ea5f65752cb052bd8e.yasm;$(SolutionDir)$(Configuration)\contrib\python\atomicwrites\_58c9226dfb3977b4307d27f4b7.rodata;$(SolutionDir)$(Configuration)\contrib\python\atomicwrites\_fa45e572a11e55788173e47a21.rodata;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\python\atomicwrites\atomicwrites\__init__.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
