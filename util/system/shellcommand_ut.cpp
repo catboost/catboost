@@ -11,6 +11,7 @@
 
 #include <util/folder/dirut.h>
 #include <util/random/random.h>
+#include <util/stream/file.h>
 #include <util/stream/str.h>
 #include <util/stream/mem.h>
 #include <util/string/strip.h>
@@ -76,6 +77,18 @@ Y_UNIT_TEST_SUITE(TShellCommandTest) {
         cmd.Run();
         UNIT_ASSERT_VALUES_EQUAL(cmd.GetError(), "");
         UNIT_ASSERT_VALUES_EQUAL(cmd.GetOutput(), "hello" NL);
+        UNIT_ASSERT(TShellCommand::SHELL_FINISHED == cmd.GetStatus());
+        UNIT_ASSERT(cmd.GetExitCode().Defined() && 0 == cmd.GetExitCode());
+    }
+
+    Y_UNIT_TEST(TestOnlyNecessaryQuotes) {
+        TShellCommandOptions options;
+        options.SetQuoteArguments(true);
+        TShellCommand cmd("echo");
+        cmd << "hey" << "hello&world";
+        cmd.Run();
+        UNIT_ASSERT_VALUES_EQUAL(cmd.GetError(), "");
+        UNIT_ASSERT_VALUES_EQUAL(cmd.GetOutput(), "hey hello&world" NL);
         UNIT_ASSERT(TShellCommand::SHELL_FINISHED == cmd.GetStatus());
         UNIT_ASSERT(cmd.GetExitCode().Defined() && 0 == cmd.GetExitCode());
     }
@@ -400,5 +413,23 @@ Y_UNIT_TEST_SUITE(TShellCommandTest) {
         cmd.Run().Wait();
 
         UNIT_ASSERT_VALUES_EQUAL(stream.Str(), input + NL);
+    }
+    Y_UNIT_TEST(TestPipeInput) {
+        TShellCommandOptions options;
+        options.SetAsync(true);
+        options.PipeInput();
+
+        TShellCommand cmd(catCommand, options);
+        cmd.Run();
+
+        {
+            TFile file(cmd.GetInputHandle().Release());
+            TUnbufferedFileOutput fo(file);
+            fo << "hello" << Endl;
+        }
+
+        cmd.Wait();
+        UNIT_ASSERT_VALUES_EQUAL(cmd.GetOutput(), "hello" NL);
+        UNIT_ASSERT_VALUES_EQUAL(cmd.GetError().size(), 0u);
     }
 }

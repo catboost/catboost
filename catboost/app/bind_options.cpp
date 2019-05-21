@@ -1,6 +1,7 @@
 #include "bind_options.h"
 
 #include <catboost/libs/column_description/column.h>
+#include <catboost/libs/data_new/baseline.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/logging/logging.h>
 #include <catboost/libs/options/analytical_mode_params.h>
@@ -20,7 +21,6 @@
 #include <util/generic/strbuf.h>
 #include <util/generic/vector.h>
 #include <util/string/cast.h>
-#include <util/string/iterator.h>
 #include <util/string/join.h>
 #include <util/string/split.h>
 #include <util/stream/file.h>
@@ -126,6 +126,18 @@ inline static void BindPoolLoadParams(NLastGetopt::TOpts* parser, NCatboostOptio
             loadParamsPtr->TestGroupWeightsFilePath = TPathWithScheme(str, "file");
         });
 
+    parser->AddLongOption("learn-baseline", "path to learn baseline")
+        .RequiredArgument("[SCHEME://]PATH")
+        .Handler1T<TStringBuf>([loadParamsPtr](const TStringBuf& str) {
+            loadParamsPtr->BaselineFilePath = TPathWithScheme(str, "file");
+        });
+
+    parser->AddLongOption("test-baseline", "path to test baseline")
+        .RequiredArgument("[SCHEME://]PATH")
+        .Handler1T<TStringBuf>([loadParamsPtr](const TStringBuf& str) {
+            loadParamsPtr->TestBaselineFilePath = TPathWithScheme(str, "file");
+        });
+
     const auto cvDescription = TString::Join(
         "Cross validation type. Should be one of: ",
         GetEnumAllNames<ECrossValidation>(),
@@ -168,8 +180,9 @@ static void BindMetricParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* p
         .AddLongOption("loss-function", lossFunctionDescription)
         .RequiredArgument("string")
         .Handler1T<TString>([plainJsonPtr, allObjectives](const auto& value) {
-            const auto enum_ = FromString<ELossFunction>(TStringBuf(value).Before(':'));
-            CB_ENSURE(IsIn(allObjectives, enum_), "objective is not allowed");
+            const auto& lossFunctionName = ToString(TStringBuf(value).Before(':'));
+            const auto enum_ = FromString<ELossFunction>(lossFunctionName);
+            CB_ENSURE(IsIn(allObjectives, enum_), lossFunctionName + " objective is not known");
             (*plainJsonPtr)["loss_function"] = value;
         });
 
@@ -534,22 +547,22 @@ static void BindTreeParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* pla
         });
 
 
-    parser.AddLongOption("growing-policy", "Tree growing policy")
-            .RequiredArgument("Type (ObliviousTree, Region,…)")
-            .Handler1T<TString>([plainJsonPtr](const TString& policy) {
-                (*plainJsonPtr)["growing_policy"] = policy;
-            });
-
-    parser.AddLongOption("max-leaves-count", "Max leaves count")
-        .RequiredArgument("INT")
-        .Handler1T<ui32>([plainJsonPtr](const ui32 maxLeavesCount) {
-            (*plainJsonPtr)["max_leaves_count"] = maxLeavesCount;
+    parser.AddLongOption("grow-policy", "Tree growing policy. Must be one of: " + GetEnumAllNames<EGrowPolicy>())
+        .RequiredArgument("type")
+        .Handler1T<TString>([plainJsonPtr](const TString& policy) {
+            (*plainJsonPtr)["grow_policy"] = policy;
         });
 
-    parser.AddLongOption("min-samples-in-leaf", "Minimum number of samples in leaf")
+    parser.AddLongOption("max-leaves", "Maximum number of leaves per tree")
+        .RequiredArgument("INT")
+        .Handler1T<ui32>([plainJsonPtr](const ui32 maxLeaves) {
+            (*plainJsonPtr)["max_leaves"] = maxLeaves;
+        });
+
+    parser.AddLongOption("min-data-in-leaf", "Minimum number of samples in leaf")
         .RequiredArgument("Double")
         .Handler1T<double>([plainJsonPtr](double minSamples) {
-            (*plainJsonPtr)["min_samples_in_leaf"] = minSamples;
+            (*plainJsonPtr)["min_data_in_leaf"] = minSamples;
         });
 
     parser.AddLongOption("l2-leaf-reg", "Regularization value. Should be >= 0")
@@ -579,6 +592,23 @@ static void BindTreeParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* pla
             .RequiredArgument("INT")
             .Handler1T<int>([plainJsonPtr](int size) {
                 (*plainJsonPtr)["dev_score_calc_obj_block_size"] = size;
+            });
+
+    parser.AddLongOption("dev-efb-max-buckets",
+                         "CPU only. Maximum bucket count in exclusive features bundle. "
+                         "Should be in an integer between 0 and 65536. "
+                         "Used only for learning speed tuning.")
+            .RequiredArgument("INT")
+            .Handler1T<int>([plainJsonPtr](int maxBuckets) {
+                (*plainJsonPtr)["dev_efb_max_buckets"] = maxBuckets;
+            });
+
+    parser.AddLongOption("efb-max-conflict-fraction",
+                         "CPU only. Maximum allowed fraction of conflicting non-default values for features in exclusive features bundle."
+                         "Should be a real value in [0, 1) interval.")
+            .RequiredArgument("float")
+            .Handler1T<float>([plainJsonPtr](float fraction) {
+                (*plainJsonPtr)["efb_max_conflict_fraction"] = fraction;
             });
 
     parser.AddLongOption("random-strength")
@@ -772,6 +802,12 @@ static void BindCatFeatureParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValu
             (*plainJsonPtr).InsertValue("ctr_leaf_count_limit", maxLeafCount);
         });
 
+    parser.AddLongOption("ctr-history-unit", counterCalcMethodHelp)
+        .RequiredArgument("Policy")
+        .Handler1T<ECtrHistoryUnit>([plainJsonPtr](const auto unit) {
+            (*plainJsonPtr).InsertValue("ctr_history_unit", ToString(unit));
+        });
+
     parser.AddLongOption("store-all-simple-ctr",
                          "Do not limit simple ctr leaves count to topN, store all values from learn set")
         .NoArgument()
@@ -925,6 +961,15 @@ static void BindBinarizationParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonVa
         .Handler1T<int>([plainJsonPtr](int count) {
             (*plainJsonPtr)["border_count"] = count;
         });
+    parser.AddLongOption("per-float-feature-binarization")
+      .RequiredArgument("DESC[;DESC...]")
+      .Help("Semicolon separated list of float binarization descriptions. Float binarization description should be written in format FeatureId[:border_count=BorderCount][:nan_mode=BorderType][:border_type=border_selection_method]")
+      .Handler1T<TString>([plainJsonPtr](const TString& ctrDescriptionLine) {
+          for (const auto& oneCtrConfig : StringSplitter(ctrDescriptionLine).Split(';').SkipEmpty()) {
+              (*plainJsonPtr)["per_float_feature_binarization"].AppendValue(oneCtrConfig.Token());
+          }
+          CB_ENSURE(!(*plainJsonPtr)["per_float_feature_binarization"].GetArray().empty(), "Empty perf float feature binarization settings " << ctrDescriptionLine);
+      });
 
     const auto featureBorderTypeHelp = TString::Join(
         "Must be one of: ",

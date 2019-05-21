@@ -115,11 +115,19 @@ public:
     /// после окончания транзакции.
     void EnableKeepAlive(bool enable);
 
+    /// Устанавливает режим, при котором тело HTTP-запроса/ответа преобразуется в соответствии
+    /// с заголовками Content-Encoding и Transfer-Encoding (включен по умолчанию)
+    void EnableBodyEncoding(bool enable);
+
     /// Проверяет, производится ли выдача ответов в упакованном виде.
     bool IsCompressionEnabled() const noexcept;
 
     /// Проверяет, не завершается ли соединение с сервером после окончания транзакции.
     bool IsKeepAliveEnabled() const noexcept;
+
+    /// Проверяет, преобразуется ли тело HTTP-запроса/ответа в соответствии
+    /// с заголовками Content-Encoding и Transfer-Encoding
+    bool IsBodyEncodingEnabled() const noexcept;
 
     /*
      * is this connection can be really keep-alive

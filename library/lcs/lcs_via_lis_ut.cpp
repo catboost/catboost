@@ -42,7 +42,7 @@ private:
         const char* comment = Sprintf("%s & %s = %s", s1.data(), s2.data(), reflcs.data()).c_str();
 
         UNIT_ASSERT_VALUES_EQUAL_C(Length(s1, s2), len, comment);
-        UNIT_ASSERT_VALUES_EQUAL_C(lcs.Size(), len, comment);
+        UNIT_ASSERT_VALUES_EQUAL_C(lcs.size(), len, comment);
         UNIT_ASSERT_VALUES_EQUAL_C(NLCS::MeasureLCS<char>(s1, s2), len, comment);
         UNIT_ASSERT_VALUES_EQUAL_C(reflcs, TStringBuf(lcs), comment);
     }

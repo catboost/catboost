@@ -7,7 +7,8 @@ flatbuffers::Offset<NCatBoostFbs::TModelCtrBase> TModelCtrBase::FBSerialize(
     return NCatBoostFbs::CreateTModelCtrBase(
         serializer.FlatbufBuilder,
         featureCombinationOffset,
-        static_cast<NCatBoostFbs::ECtrType>(CtrType)
+        static_cast<NCatBoostFbs::ECtrType>(CtrType),
+        TargetBorderClassifierIdx
     );
 }
 

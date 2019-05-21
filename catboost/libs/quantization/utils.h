@@ -56,8 +56,31 @@ namespace NCB {
         }
     }
 
+    template <typename TQuantizedBin>
+    inline TQuantizedBin Quantize(ui32 featureIdx,
+                                  bool allowNans,
+                                  ENanMode nanMode,
+                                  TConstArrayRef<float> borders,
+                                  float srcValue) {
 
-    template <class TArrayLike>
+        if (IsNan(srcValue)) {
+            CB_ENSURE(
+                allowNans,
+                "There are NaNs in test dataset (feature number "
+                << featureIdx << ") but there were no NaNs in learn dataset"
+            );
+            return (nanMode == ENanMode::Max) ? borders.size() : 0;
+        } else {
+            size_t i = 0;
+            while (i < borders.size() && srcValue > borders[i]) {
+                ++i;
+            }
+            return static_cast<TQuantizedBin>(i);
+        }
+    }
+
+
+    template <class TArrayLike, typename TQuantizedBin>
     void Quantize(TArraySubset<TArrayLike, ui32> srcFeatureData,
                   bool allowNans,
                   ENanMode nanMode,
@@ -65,26 +88,16 @@ namespace NCB {
 
                   // if nanMode != ENanMode::Forbidden borders must include -min_float or +max_float
                   TConstArrayRef<float> borders,
-                  NPar::TLocalExecutor* localExecutor,
-                  TArrayRef<ui8>* quantizedData) {
+                  TArrayRef<TQuantizedBin> quantizedData,
+                  NPar::TLocalExecutor* localExecutor) {
 
-        auto quantizedDataValue = *quantizedData;
         srcFeatureData.ParallelForEach(
-            [=, &quantizedDataValue] (ui32 idx, float srcValue) {
-                if (IsNan(srcValue)) {
-                    CB_ENSURE(
-                        allowNans,
-                        "There are NaNs in test dataset (feature number "
-                        << featureIdx << ") but there were no NaNs in learn dataset"
-                    );
-                    quantizedDataValue[idx] = (nanMode == ENanMode::Max) ? borders.size() : 0;
-                } else {
-                    size_t i = 0;
-                    while (i < borders.size() && srcValue > borders[i]) {
-                        ++i;
-                    }
-                    quantizedDataValue[idx] = (ui8)i;
-                }
+            [=] (ui32 idx, float srcValue) {
+                quantizedData[idx] = Quantize<TQuantizedBin>(featureIdx,
+                                                             allowNans,
+                                                             nanMode,
+                                                             borders,
+                                                             srcValue);
             },
             localExecutor,
             BINARIZATION_BLOCK_SIZE
@@ -116,9 +129,9 @@ namespace NCB {
         static_assert(std::is_unsigned<TBinType>::value, "TBinType must be an unsigned integer");
 
         TVector<TBinType> result;
-        result.yresize(values.Size());
+        result.yresize(values.size());
 
-        NPar::TLocalExecutor::TExecRangeParams params(0, (int)values.Size());
+        NPar::TLocalExecutor::TExecRangeParams params(0, (int)values.size());
         params.SetBlockSize(BINARIZATION_BLOCK_SIZE);
 
         NPar::LocalExecutor().ExecRange([&](int blockIdx) {
@@ -133,6 +146,14 @@ namespace NCB {
 
     inline ui32 GetBinCount(TConstArrayRef<float> borders, ENanMode nanMode) {
         return (ui32)borders.size() + 1 + (nanMode != ENanMode::Forbidden);
+    }
+
+    inline ui8 CalHistogramWidthForBorders(size_t bordersCount) {
+        Y_ASSERT(bordersCount < 65536);
+        if (bordersCount < 255) {
+            return 8;
+        }
+        return 16;
     }
 
 }

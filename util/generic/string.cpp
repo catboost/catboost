@@ -28,15 +28,15 @@ namespace NDetail {
             return TDataTraits::GetNull();
         }
 
-        const size_t bufLen = Max(FastClp2(newLen), newLen);
-
-        if (bufLen >= TDataTraits::MaxSize) {
+        if (Y_UNLIKELY(newLen >= TDataTraits::MaxSize)) {
             ThrowLengthError("Allocate() will fail");
         }
 
-        const size_t dataSize = TDataTraits::CalcAllocationSize(bufLen);
+        size_t bufLen = newLen;
+        const size_t dataSize = TDataTraits::CalcAllocationSizeAndCapacity(bufLen);
+        Y_ASSERT(bufLen >= newLen);
 
-        TData* ret = (TData*)(oldData == nullptr ? y_allocate(dataSize) : y_reallocate(oldData, dataSize));
+        auto ret = reinterpret_cast<TData*>(oldData == nullptr ? y_allocate(dataSize) : y_reallocate(oldData, dataSize));
 
         ret->Refs = 1;
         ret->BufLen = bufLen;

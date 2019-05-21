@@ -1,11 +1,11 @@
 @echo on
 
-set WIN_COMMON_FLAGS=-DOS_SDK=local -DCUDA_ROOT="%CUDA_PATH%" -DUSE_ARCADIA_CUDA_HOST_COMPILER=no --host-platform-flag USE_ARCADIA_CUDA_HOST_COMPILER=no
+set WIN_COMMON_FLAGS=-k -DOS_SDK=local -DCUDA_ROOT="%CUDA_PATH%" -DUSE_ARCADIA_CUDA_HOST_COMPILER=no --host-platform-flag USE_ARCADIA_CUDA_HOST_COMPILER=no -DCUDA_HOST_COMPILER="C:/VC_FOR_CUDA/VC/Tools/MSVC/14.13.26128/bin/Hostx64/x64/cl.exe"
 
 call "%VS_VARS_PATH%\vcvars64.bat" -vcvars_ver=14.16
 if %errorlevel% neq 0 exit /b %errorlevel%
 
-c:\Python27\python.exe ya make -r %WIN_COMMON_FLAGS% -DHAVE_CUDA=yes -o . catboost\app
+c:\Python27\python.exe ya make -r -DNO_DEBUGINFO %WIN_COMMON_FLAGS% -DHAVE_CUDA=yes -o . catboost\app
 if %errorlevel% neq 0 exit /b %errorlevel%
 
 cd catboost\python-package
@@ -34,7 +34,7 @@ if %errorlevel% neq 0 exit /b %errorlevel%
 echo Building R-package
 
 cd ..\..
-call ya.bat make -r -T %WIN_COMMON_FLAGS% -o . .\catboost\R-package\src\
+call ya.bat make -r -DNO_DEBUGINFO -T %WIN_COMMON_FLAGS% -o . .\catboost\R-package\src\
 if %errorlevel% neq 0 exit /b %errorlevel%
 cd catboost\R-package
 if %errorlevel% neq 0 exit /b %errorlevel%

@@ -5,6 +5,10 @@
 
 #include <util/generic/fwd.h>
 
+struct TDers;
+class THessianInfo;
+
+
 struct TCustomObjectiveDescriptor {
     using TCalcDersRangePtr = void (*)(
         int count,
@@ -21,6 +25,7 @@ struct TCustomObjectiveDescriptor {
         THessianInfo* der2,
         void* customData);
 
+public:
     void* CustomData = nullptr;
     TCalcDersRangePtr CalcDersRange = nullptr;
     TCalcDersMultiPtr CalcDersMulti = nullptr;

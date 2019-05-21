@@ -4,6 +4,7 @@
 #include <util/stream/output.h>
 #include <util/stream/str.h>
 #include <util/system/error.h>
+#include <util/system/compiler.h>
 
 #if defined(_unix_)
 #include <pthread.h>
@@ -16,7 +17,7 @@
 using namespace NNeh;
 
 size_t NNeh::RealStackSize(size_t len) noexcept {
-#if defined(NDEBUG)
+#if defined(NDEBUG) && !defined(_san_enabled_)
     return len;
 #else
     return Max<size_t>(len, 64000);

@@ -10,6 +10,11 @@ def get_file():
 
 
 def onmetaqueryfiles(unit, *args):
+    """
+        @usage: METAQUERYFILES(filenames...)
+
+        Deprecated
+    """
     f = get_file()
     f.write('####\n')
     f.write('unit-name: {}\n'.format(unit.name()))

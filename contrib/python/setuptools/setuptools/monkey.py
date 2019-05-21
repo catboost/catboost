@@ -7,10 +7,10 @@ import distutils.filelist
 import platform
 import types
 import functools
+from importlib import import_module
 import inspect
 
-from .py26compat import import_module
-import six
+from setuptools.extern import six
 
 import setuptools
 
@@ -19,6 +19,20 @@ __all__ = []
 Everything is private. Contact the project team
 if you think you need this functionality.
 """
+
+
+def _get_mro(cls):
+    """
+    Returns the bases classes for cls sorted by the MRO.
+
+    Works around an issue on Jython where inspect.getmro will not return all
+    base classes if multiple classes share the same name. Instead, this
+    function will return a tuple containing the class itself, and the contents
+    of cls.__bases__. See https://github.com/pypa/setuptools/issues/1024.
+    """
+    if platform.python_implementation() == "Jython":
+        return (cls,) + cls.__bases__
+    return inspect.getmro(cls)
 
 
 def get_unpatched(item):
@@ -38,7 +52,7 @@ def get_unpatched_class(cls):
     """
     external_bases = (
         cls
-        for cls in inspect.getmro(cls)
+        for cls in _get_mro(cls)
         if not cls.__module__.startswith('setuptools')
     )
     base = next(external_bases)
@@ -61,8 +75,6 @@ def patch_all():
     needs_warehouse = (
         sys.version_info < (2, 7, 13)
         or
-        (3, 0) < sys.version_info < (3, 3, 7)
-        or
         (3, 4) < sys.version_info < (3, 4, 6)
         or
         (3, 5) < sys.version_info <= (3, 5, 3)
@@ -72,8 +84,7 @@ def patch_all():
         warehouse = 'https://upload.pypi.org/legacy/'
         distutils.config.PyPIRCCommand.DEFAULT_REPOSITORY = warehouse
 
-    _patch_distribution_metadata_write_pkg_file()
-    _patch_distribution_metadata_write_pkg_info()
+    _patch_distribution_metadata()
 
     # Install Distribution throughout the distutils
     for module in distutils.dist, distutils.core, distutils.cmd:
@@ -90,26 +101,11 @@ def patch_all():
     patch_for_msvc_specialized_compiler()
 
 
-def _patch_distribution_metadata_write_pkg_file():
-    """Patch write_pkg_file to also write Requires-Python/Requires-External"""
-    distutils.dist.DistributionMetadata.write_pkg_file = (
-        setuptools.dist.write_pkg_file
-    )
-
-
-def _patch_distribution_metadata_write_pkg_info():
-    """
-    Workaround issue #197 - Python 3 prior to 3.2.2 uses an environment-local
-    encoding to save the pkg_info. Monkey-patch its write_pkg_info method to
-    correct this undesirable behavior.
-    """
-    environment_local = (3,) <= sys.version_info[:3] < (3, 2, 2)
-    if not environment_local:
-        return
-
-    distutils.dist.DistributionMetadata.write_pkg_info = (
-        setuptools.dist.write_pkg_info
-    )
+def _patch_distribution_metadata():
+    """Patch write_pkg_file and read_pkg_file for higher metadata standards"""
+    for attr in ('write_pkg_file', 'read_pkg_file', 'get_metadata_version'):
+        new_val = getattr(setuptools.dist, attr)
+        setattr(distutils.dist.DistributionMetadata, attr, new_val)
 
 
 def patch_func(replacement, target_mod, func_name):

@@ -15,7 +15,7 @@ namespace {
             TFullModel model;
             ReadModelAndUpdateParams(&params, &iterationsLimit, &evalPeriod, &model);
 
-            NCB::CalcModelSingleHost(params, iterationsLimit, evalPeriod, model);
+            NCB::CalcModelSingleHost(params, iterationsLimit, evalPeriod, std::move(model));
 
             return 0;
         }

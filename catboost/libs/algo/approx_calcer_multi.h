@@ -1,9 +1,14 @@
 #pragma once
 
-#include "index_calcer.h"
-#include "online_predictor.h"
 #include "approx_updater_helpers.h"
 #include "error_functions.h"
+#include "fold.h"
+#include "index_calcer.h"
+#include "online_predictor.h"
+
+
+class TLearnContext;
+
 
 void UpdateApproxDeltasMulti(
     bool storeExpApprox,
@@ -63,11 +68,20 @@ void UpdateBucketsMulti(
     THessianInfo bufferDer2(approxDimension, error.GetHessianType());
     for (int z = 0; z < sampleCount; ++z) {
         for (int dim = 0; dim < approxDimension; ++dim) {
-            curApprox[dim] = approx.empty() ? resArr[dim][z] : UpdateApprox(error.GetIsExpApprox(), approx[dim][z], resArr[dim][z]);
+            curApprox[dim] = approx.empty() ?
+                resArr[dim][z] :
+                UpdateApprox(error.GetIsExpApprox(), approx[dim][z], resArr[dim][z]);
         }
         TSumMulti& bucket = (*buckets)[indices[z]];
-        AddSampleToBucket(error, curApprox, target[z], weight.empty() ? 1 : weight[z], iteration,
-                          &bufferDer, &bufferDer2, &bucket);
+        AddSampleToBucket(
+            error,
+            curApprox,
+            target[z],
+            weight.empty() ? 1 : weight[z],
+            iteration,
+            &bufferDer,
+            &bufferDer2,
+            &bucket);
     }
 }
 

@@ -13,18 +13,13 @@ namespace NCatboostCuda {
     inline TBoosting MakeBoosting(
         const NCatboostOptions::TCatBoostOptions& catBoostOptions,
         TBinarizedFeaturesManager* featureManager,
-        typename TBoosting::TWeakLearner* weak,
         TGpuAwareRandom* random,
         NPar::TLocalExecutor* localExecutor
     ) {
-        const auto& boostingOptions = catBoostOptions.BoostingOptions.Get();
         TBoosting boosting(*featureManager,
-                           boostingOptions,
-                           catBoostOptions.ModelBasedEvalOptions,
-                           catBoostOptions.LossFunctionDescription,
+                           catBoostOptions,
                            catBoostOptions.DataProcessingOptions->GpuCatFeaturesStorage,
                            *random,
-                           *weak,
                            localExecutor);
         return boosting;
     }
@@ -61,19 +56,16 @@ namespace NCatboostCuda {
                                                                          const NCatboostOptions::TOutputFilesOptions& outputOptions,
                                                                          const NCB::TTrainingDataProvider& learn,
                                                                          const NCB::TTrainingDataProvider* test,
+                                                                         const NCB::TFeatureEstimators& featureEstimators,
                                                                          TGpuAwareRandom& random,
                                                                          ui32 approxDimension,
                                                                          const TMaybe<TOnEndIterationCallback>& onEndIterationCallback,
                                                                          NPar::TLocalExecutor* localExecutor,
                                                                          TVector<TVector<double>>* testMultiApprox, // [dim][docIdx]
                                                                          TMetricsAndTimeLeftHistory* metricsAndTimeHistory) {
-        using TWeakLearner = typename TBoosting::TWeakLearner;
+        auto boosting = MakeBoosting<TBoosting>(catBoostOptions, &featureManager, &random, localExecutor);
 
-        auto weak = MakeWeakLearner<TWeakLearner>(featureManager, catBoostOptions);
-
-        auto boosting = MakeBoosting<TBoosting>(catBoostOptions, &featureManager, &weak, &random, localExecutor);
-
-        boosting.SetDataProvider(learn, test);
+        boosting.SetDataProvider(learn, featureEstimators, test);
 
         auto progressTracker = MakeBoostingProgressTracker(internalOptions, catBoostOptions, outputOptions, test, approxDimension, onEndIterationCallback);
 
@@ -85,8 +77,11 @@ namespace NCatboostCuda {
             const auto& errorTracker = progressTracker.GetErrorTracker();
             CATBOOST_NOTICE_LOG << "bestTest = " << errorTracker.GetBestError() << Endl;
             CATBOOST_NOTICE_LOG << "bestIteration = " << errorTracker.GetBestIteration() << Endl;
-
-            *testMultiApprox = progressTracker.GetBestTestCursor();
+            if (outputOptions.ShrinkModelToBestIteration()) {
+                *testMultiApprox = progressTracker.GetBestTestCursor();
+            } else {
+                *testMultiApprox = progressTracker.GetFinalTestCursor();
+            }
         }
 
         if (outputOptions.ShrinkModelToBestIteration()) {
@@ -116,13 +111,11 @@ namespace NCatboostCuda {
                                TGpuAwareRandom& random,
                                ui32 approxDimension,
                                NPar::TLocalExecutor* localExecutor) {
-        using TWeakLearner = typename TBoosting::TWeakLearner;
+        auto boosting = MakeBoosting<TBoosting>(catBoostOptions, &featureManager, &random, localExecutor);
 
-        auto weak = MakeWeakLearner<TWeakLearner>(featureManager, catBoostOptions);
-
-        auto boosting = MakeBoosting<TBoosting>(catBoostOptions, &featureManager, &weak, &random, localExecutor);
-
-        boosting.SetDataProvider(learn, &test);
+        //TODO(noxoomo): support estimators in MBE
+        NCB::TFeatureEstimators estimators;
+        boosting.SetDataProvider(learn, estimators, &test);
 
         auto progressTracker = MakeBoostingProgressTracker(TTrainModelInternalOptions(), catBoostOptions, outputOptions, &test, approxDimension, Nothing());
 

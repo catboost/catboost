@@ -23,6 +23,8 @@ namespace NCB {
     struct TDatasetLoaderCommonArgs {
         TPathWithScheme PairsFilePath;
         TPathWithScheme GroupWeightsFilePath;
+        TPathWithScheme BaselineFilePath;
+        const TVector<TString>& ClassNames;
         TDsvFormatOptions PoolFormat;
         THolder<ICdProvider> CdProvider;
         TVector<ui32> IgnoredFeatures;
@@ -132,6 +134,12 @@ namespace NCB {
         ui32 objectCount,
         IDatasetVisitor* visitor
     );
+    void SetBaseline(
+        const TPathWithScheme& baselinePath,
+        ui32 objectCount,
+        const TVector<TString>& classNames,
+        IDatasetVisitor* visitor
+    );
 
     /*
      * Some common functionality for IRawObjectsOrderDatasetLoader classes than utilize async row processing.
@@ -156,20 +164,22 @@ namespace NCB {
         explicit TAsyncProcDataLoaderBase(TDatasetLoaderCommonArgs&& args)
             : Args(std::move(args))
             , AsyncRowProcessor(Args.LocalExecutor, Args.BlockSize)
+            , AsyncBaselineRowProcessor(Args.LocalExecutor, Args.BlockSize)
         {}
 
     protected:
-        template <class TReadDataFunc>
-        void Do(TReadDataFunc readFunc, IRawObjectsOrderDataVisitor* visitor) {
+        template <class TReadDataFunc, class TReadBaselineFunc>
+        void Do(TReadDataFunc readFunc, TReadBaselineFunc readBaselineFunc, IRawObjectsOrderDataVisitor* visitor) {
             StartBuilder(false, GetObjectCount(), 0, visitor);
             while (AsyncRowProcessor.ReadBlock(readFunc)) {
+                CB_ENSURE(!Args.BaselineFilePath.Inited() || AsyncBaselineRowProcessor.ReadBlock(readBaselineFunc), "Failed to read baseline");
                 ProcessBlock(visitor);
             }
             FinalizeBuilder(false, visitor);
         }
 
-        template <class TReadDataFunc>
-        bool DoBlock(TReadDataFunc readFunc, IRawObjectsOrderDataVisitor* visitor) {
+        template <class TReadDataFunc, class TReadBaselineFunc>
+        bool DoBlock(TReadDataFunc readFunc, TReadBaselineFunc readBaselineFunc, IRawObjectsOrderDataVisitor* visitor) {
             CB_ENSURE(!Args.PairsFilePath.Inited(),
                       "TAsyncProcDataLoaderBase::DoBlock does not support pairs data");
             CB_ENSURE(!Args.GroupWeightsFilePath.Inited(),
@@ -177,6 +187,8 @@ namespace NCB {
 
             if (!AsyncRowProcessor.ReadBlock(readFunc))
                 return false;
+
+            CB_ENSURE(!Args.BaselineFilePath.Inited() || AsyncBaselineRowProcessor.ReadBlock(readBaselineFunc), "Failed to read baseline");
 
             StartBuilder(true,
                          AsyncRowProcessor.GetParseBufferSize(),
@@ -210,6 +222,7 @@ namespace NCB {
     protected:
         TDatasetLoaderCommonArgs Args;
         NCB::TAsyncRowProcessor<TData> AsyncRowProcessor;
+        NCB::TAsyncRowProcessor<TString> AsyncBaselineRowProcessor;
 
         TVector<TString> FeatureIds;
         TDataMetaInfo DataMetaInfo;

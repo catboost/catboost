@@ -648,11 +648,13 @@ Y_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
 
         NCB::TTrainingDataProviderPtr dataProvider;
         THolder<TBinarizedFeaturesManager> featuresManager;
+        NCB::TFeatureEstimators estimators;
 
         LoadTrainingData(NCB::TPathWithScheme("dsv://test-pool.txt"),
                          NCB::TPathWithScheme("dsv://test-pool.txt.cd"),
                          floatBinarization,
                          catFeatureParams,
+                         estimators,
                          &dataProvider,
                          &featuresManager);
 
@@ -671,8 +673,10 @@ Y_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
             catFeatureParams.AddTreeCtrDescription(freqCtr);
         }
 
+
         TFeatureParallelDataSetHoldersBuilder dataSetsHolderBuilder(*featuresManager,
                                                                     *dataProvider,
+                                                                    estimators,
                                                                     nullptr,
                                                                     1);
 
@@ -694,11 +698,13 @@ Y_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
 
         NCB::TTrainingDataProviderPtr dataProvider;
         THolder<TBinarizedFeaturesManager> featuresManager;
+        NCB::TFeatureEstimators estimators;
 
         LoadTrainingData(NCB::TPathWithScheme("dsv://test-pool.txt"),
                          NCB::TPathWithScheme("dsv://test-pool.txt.cd"),
                          floatBinarization,
                          catFeatureParams,
+                         estimators,
                          &dataProvider,
                          &featuresManager);
 
@@ -719,6 +725,7 @@ Y_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
 
         TDocParallelDataSetBuilder dataSetsHolderBuilder(*featuresManager,
                                                          *dataProvider,
+                                                         estimators,
                                                          nullptr);
 
         auto dataSet = dataSetsHolderBuilder.BuildDataSet(permutationCount, &NPar::LocalExecutor());

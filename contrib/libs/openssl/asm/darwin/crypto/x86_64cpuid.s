@@ -5,7 +5,7 @@
 	.quad	_OPENSSL_cpuid_setup
 
 .private_extern	_OPENSSL_ia32cap_P
-.lcomm	_OPENSSL_ia32cap_P,16,2
+.comm	_OPENSSL_ia32cap_P,16,2
 
 .text	
 
@@ -37,10 +37,12 @@ _OPENSSL_rdtsc:
 
 .p2align	4
 _OPENSSL_ia32_cpuid:
+
 	movq	%rbx,%r8
 
+
 	xorl	%eax,%eax
-	movl	%eax,8(%rdi)
+	movq	%rax,8(%rdi)
 	cpuid
 	movl	%eax,%r11d
 
@@ -108,25 +110,29 @@ L$intel:
 	shrl	$14,%r10d
 	andl	$0xfff,%r10d
 
-	cmpl	$7,%r11d
-	jb	L$nocacheinfo
-
-	movl	$7,%eax
-	xorl	%ecx,%ecx
-	cpuid
-	movl	%ebx,8(%rdi)
-
 L$nocacheinfo:
 	movl	$1,%eax
 	cpuid
+	movd	%eax,%xmm0
 	andl	$0xbfefffff,%edx
 	cmpl	$0,%r9d
 	jne	L$notintel
 	orl	$0x40000000,%edx
 	andb	$15,%ah
 	cmpb	$15,%ah
-	jne	L$notintel
+	jne	L$notP4
 	orl	$0x00100000,%edx
+L$notP4:
+	cmpb	$6,%ah
+	jne	L$notintel
+	andl	$0x0fff0ff0,%eax
+	cmpl	$0x00050670,%eax
+	je	L$knights
+	cmpl	$0x00080650,%eax
+	jne	L$notintel
+L$knights:
+	andl	$0xfbffffff,%ecx
+
 L$notintel:
 	btl	$28,%edx
 	jnc	L$generic
@@ -145,23 +151,55 @@ L$generic:
 	orl	%ecx,%r9d
 
 	movl	%edx,%r10d
+
+	cmpl	$7,%r11d
+	jb	L$no_extended_info
+	movl	$7,%eax
+	xorl	%ecx,%ecx
+	cpuid
+	btl	$26,%r9d
+	jc	L$notknights
+	andl	$0xfff7ffff,%ebx
+L$notknights:
+	movd	%xmm0,%eax
+	andl	$0x0fff0ff0,%eax
+	cmpl	$0x00050650,%eax
+	jne	L$notskylakex
+	andl	$0xfffeffff,%ebx
+
+L$notskylakex:
+	movl	%ebx,8(%rdi)
+	movl	%ecx,12(%rdi)
+L$no_extended_info:
+
 	btl	$27,%r9d
 	jnc	L$clear_avx
 	xorl	%ecx,%ecx
 .byte	0x0f,0x01,0xd0
+	andl	$0xe6,%eax
+	cmpl	$0xe6,%eax
+	je	L$done
+	andl	$0x3fdeffff,8(%rdi)
+
+
+
+
 	andl	$6,%eax
 	cmpl	$6,%eax
 	je	L$done
 L$clear_avx:
 	movl	$0xefffe7ff,%eax
 	andl	%eax,%r9d
-	andl	$0xffffffdf,8(%rdi)
+	movl	$0x3fdeffdf,%eax
+	andl	%eax,8(%rdi)
 L$done:
 	shlq	$32,%r9
 	movl	%r10d,%eax
 	movq	%r8,%rbx
+
 	orq	%r9,%rax
 	.byte	0xf3,0xc3
+
 
 
 .globl	_OPENSSL_cleanse
@@ -198,6 +236,40 @@ L$aligned:
 	jne	L$ittle
 	.byte	0xf3,0xc3
 
+
+.globl	_CRYPTO_memcmp
+
+.p2align	4
+_CRYPTO_memcmp:
+	xorq	%rax,%rax
+	xorq	%r10,%r10
+	cmpq	$0,%rdx
+	je	L$no_data
+	cmpq	$16,%rdx
+	jne	L$oop_cmp
+	movq	(%rdi),%r10
+	movq	8(%rdi),%r11
+	movq	$1,%rdx
+	xorq	(%rsi),%r10
+	xorq	8(%rsi),%r11
+	orq	%r11,%r10
+	cmovnzq	%rdx,%rax
+	.byte	0xf3,0xc3
+
+.p2align	4
+L$oop_cmp:
+	movb	(%rdi),%r10b
+	leaq	1(%rdi),%rdi
+	xorb	(%rsi),%r10b
+	leaq	1(%rsi),%rsi
+	orb	%r10b,%al
+	decq	%rdx
+	jnz	L$oop_cmp
+	negq	%rax
+	shrq	$63,%rax
+L$no_data:
+	.byte	0xf3,0xc3
+
 .globl	_OPENSSL_wipe_cpu
 
 .p2align	4
@@ -229,32 +301,164 @@ _OPENSSL_wipe_cpu:
 	leaq	8(%rsp),%rax
 	.byte	0xf3,0xc3
 
-.globl	_OPENSSL_ia32_rdrand
+.globl	_OPENSSL_instrument_bus
 
 .p2align	4
-_OPENSSL_ia32_rdrand:
-	movl	$8,%ecx
-L$oop_rdrand:
-.byte	72,15,199,240
-	jc	L$break_rdrand
-	loop	L$oop_rdrand
-L$break_rdrand:
-	cmpq	$0,%rax
-	cmoveq	%rcx,%rax
+_OPENSSL_instrument_bus:
+	movq	%rdi,%r10
+	movq	%rsi,%rcx
+	movq	%rsi,%r11
+
+	rdtsc
+	movl	%eax,%r8d
+	movl	$0,%r9d
+	clflush	(%r10)
+.byte	0xf0
+	addl	%r9d,(%r10)
+	jmp	L$oop
+.p2align	4
+L$oop:	rdtsc
+	movl	%eax,%edx
+	subl	%r8d,%eax
+	movl	%edx,%r8d
+	movl	%eax,%r9d
+	clflush	(%r10)
+.byte	0xf0
+	addl	%eax,(%r10)
+	leaq	4(%r10),%r10
+	subq	$1,%rcx
+	jnz	L$oop
+
+	movq	%r11,%rax
 	.byte	0xf3,0xc3
 
 
-.globl	_OPENSSL_ia32_rdseed
+.globl	_OPENSSL_instrument_bus2
 
 .p2align	4
-_OPENSSL_ia32_rdseed:
-	movl	$8,%ecx
-L$oop_rdseed:
-.byte	72,15,199,248
-	jc	L$break_rdseed
-	loop	L$oop_rdseed
-L$break_rdseed:
-	cmpq	$0,%rax
-	cmoveq	%rcx,%rax
+_OPENSSL_instrument_bus2:
+	movq	%rdi,%r10
+	movq	%rsi,%rcx
+	movq	%rdx,%r11
+	movq	%rcx,8(%rsp)
+
+	rdtsc
+	movl	%eax,%r8d
+	movl	$0,%r9d
+
+	clflush	(%r10)
+.byte	0xf0
+	addl	%r9d,(%r10)
+
+	rdtsc
+	movl	%eax,%edx
+	subl	%r8d,%eax
+	movl	%edx,%r8d
+	movl	%eax,%r9d
+L$oop2:
+	clflush	(%r10)
+.byte	0xf0
+	addl	%eax,(%r10)
+
+	subq	$1,%r11
+	jz	L$done2
+
+	rdtsc
+	movl	%eax,%edx
+	subl	%r8d,%eax
+	movl	%edx,%r8d
+	cmpl	%r9d,%eax
+	movl	%eax,%r9d
+	movl	$0,%edx
+	setne	%dl
+	subq	%rdx,%rcx
+	leaq	(%r10,%rdx,4),%r10
+	jnz	L$oop2
+
+L$done2:
+	movq	8(%rsp),%rax
+	subq	%rcx,%rax
+	.byte	0xf3,0xc3
+
+.globl	_OPENSSL_ia32_rdrand_bytes
+
+.p2align	4
+_OPENSSL_ia32_rdrand_bytes:
+	xorq	%rax,%rax
+	cmpq	$0,%rsi
+	je	L$done_rdrand_bytes
+
+	movq	$8,%r11
+L$oop_rdrand_bytes:
+.byte	73,15,199,242
+	jc	L$break_rdrand_bytes
+	decq	%r11
+	jnz	L$oop_rdrand_bytes
+	jmp	L$done_rdrand_bytes
+
+.p2align	4
+L$break_rdrand_bytes:
+	cmpq	$8,%rsi
+	jb	L$tail_rdrand_bytes
+	movq	%r10,(%rdi)
+	leaq	8(%rdi),%rdi
+	addq	$8,%rax
+	subq	$8,%rsi
+	jz	L$done_rdrand_bytes
+	movq	$8,%r11
+	jmp	L$oop_rdrand_bytes
+
+.p2align	4
+L$tail_rdrand_bytes:
+	movb	%r10b,(%rdi)
+	leaq	1(%rdi),%rdi
+	incq	%rax
+	shrq	$8,%r10
+	decq	%rsi
+	jnz	L$tail_rdrand_bytes
+
+L$done_rdrand_bytes:
+	xorq	%r10,%r10
+	.byte	0xf3,0xc3
+
+.globl	_OPENSSL_ia32_rdseed_bytes
+
+.p2align	4
+_OPENSSL_ia32_rdseed_bytes:
+	xorq	%rax,%rax
+	cmpq	$0,%rsi
+	je	L$done_rdseed_bytes
+
+	movq	$8,%r11
+L$oop_rdseed_bytes:
+.byte	73,15,199,250
+	jc	L$break_rdseed_bytes
+	decq	%r11
+	jnz	L$oop_rdseed_bytes
+	jmp	L$done_rdseed_bytes
+
+.p2align	4
+L$break_rdseed_bytes:
+	cmpq	$8,%rsi
+	jb	L$tail_rdseed_bytes
+	movq	%r10,(%rdi)
+	leaq	8(%rdi),%rdi
+	addq	$8,%rax
+	subq	$8,%rsi
+	jz	L$done_rdseed_bytes
+	movq	$8,%r11
+	jmp	L$oop_rdseed_bytes
+
+.p2align	4
+L$tail_rdseed_bytes:
+	movb	%r10b,(%rdi)
+	leaq	1(%rdi),%rdi
+	incq	%rax
+	shrq	$8,%r10
+	decq	%rsi
+	jnz	L$tail_rdseed_bytes
+
+L$done_rdseed_bytes:
+	xorq	%r10,%r10
 	.byte	0xf3,0xc3
 

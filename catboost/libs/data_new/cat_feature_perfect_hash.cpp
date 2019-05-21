@@ -1,11 +1,18 @@
 #include "cat_feature_perfect_hash.h"
 
+#include <util/generic/xrange.h>
 #include <util/stream/output.h>
 
 
 template <>
 void Out<NCB::TCatFeatureUniqueValuesCounts>(IOutputStream& out, NCB::TCatFeatureUniqueValuesCounts counts) {
     out << counts.OnLearnOnly << ',' << counts.OnAll;
+}
+
+
+template <>
+void Out<NCB::TValueWithCount>(IOutputStream& out, NCB::TValueWithCount valueWithCount) {
+    out << "Value="<< valueWithCount.Value << ",Count=" << valueWithCount.Count;
 }
 
 
@@ -25,10 +32,55 @@ namespace NCB {
         return FeaturesPerfectHash == rhs.FeaturesPerfectHash;
     }
 
+    bool TCatFeaturesPerfectHash::IsSupersetOf(const TCatFeaturesPerfectHash& rhs) const {
+        if (this == &rhs) { // shortcut
+            return true;
+        }
+
+        const size_t rhsSize = rhs.CatFeatureUniqValuesCountsVector.size();
+        if (rhsSize > CatFeatureUniqValuesCountsVector.size()) {
+            return false;
+        }
+
+        for (auto catFeatureIdx : xrange(rhsSize)) {
+            const auto& counts = CatFeatureUniqValuesCountsVector[catFeatureIdx];
+            const auto& rhsCounts = rhs.CatFeatureUniqValuesCountsVector[catFeatureIdx];
+            if (rhsCounts.OnLearnOnly != counts.OnLearnOnly) {
+                return false;
+            }
+            if (rhsCounts.OnAll > counts.OnAll) {
+                return false;
+            }
+        }
+
+        if (!HasHashInRam) {
+            Load();
+        }
+        if (!rhs.HasHashInRam) {
+            rhs.Load();
+        }
+
+        // count differences are ok
+        for (auto catFeatureIdx : xrange(rhsSize)) {
+            const auto& featurePerfectHash = FeaturesPerfectHash[catFeatureIdx];
+
+            for (const auto& [hashedCatValue, valueWithCount] : rhs.FeaturesPerfectHash[catFeatureIdx]) {
+                const auto it = featurePerfectHash.find(hashedCatValue);
+                if (it == featurePerfectHash.end()) {
+                    return false;
+                } else if (valueWithCount.Value != it->second.Value) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
 
     void TCatFeaturesPerfectHash::UpdateFeaturePerfectHash(
         const TCatFeatureIdx catFeatureIdx,
-        TMap<ui32, ui32>&& perfectHash
+        TCatFeaturePerfectHash&& perfectHash
     ) {
         CheckHasFeature(catFeatureIdx);
 

@@ -615,9 +615,9 @@ Y_UNIT_TEST_SUITE(TTargetDataProvider) {
 
     // subsets are fixed: first is always FullSubset, second is always TIndexedSubset<ui32>{2, 3}
     // TComparisonFunc must accept two TTargetDataProviders and check their equality
-    void TestGetSubsets(
-        const TVector<TTargetDataProviders>& targetsVector,
-        const TVector<TTargetDataProviders>& expectedSecondSubsets,
+    void TestGetSubset(
+        const TVector<TTargetDataProviderPtr>& targetsVector,
+        const TVector<TTargetDataProviderPtr>& expectedSecondSubsets,
 
         // nondefault values used for checking TObjectsGroupingSubset with permutations inside group
         TMaybe<TObjectsGroupingSubset> secondObjectsGroupingSubset = Nothing()
@@ -632,7 +632,7 @@ Y_UNIT_TEST_SUITE(TTargetDataProvider) {
         using TExpectedMapIndex = std::pair<size_t, size_t>;
 
         // (targetVector idx, subsetVector idx) -> expectedResult
-        THashMap<TExpectedMapIndex, TTargetDataProviders> expectedResults;
+        THashMap<TExpectedMapIndex, TTargetDataProviderPtr> expectedResults;
 
         for (auto targetVectorIdx : xrange(targetsVector.size())) {
             expectedResults[TExpectedMapIndex(targetVectorIdx, 0)] = targetsVector[targetVectorIdx];
@@ -648,7 +648,7 @@ Y_UNIT_TEST_SUITE(TTargetDataProvider) {
                         /* get object grouping from the first element of targetsVector[targetVectorIdx],
                             they all should be equal in all vector elements
                         */
-                        targetsVector[targetVectorIdx].begin()->second->GetObjectsGrouping(),
+                        targetsVector[targetVectorIdx]->GetObjectsGrouping(),
                         TArraySubsetIndexing<ui32>(subsetVector[subsetIdx]),
                         subsetOrdersVector[subsetIdx]
                     );
@@ -656,92 +656,82 @@ Y_UNIT_TEST_SUITE(TTargetDataProvider) {
                 NPar::TLocalExecutor localExecutor;
                 localExecutor.RunAdditionalThreads(2);
 
-                TTargetDataProviders subsetTargets = GetSubsets(
-                    targetsVector[targetVectorIdx],
+                TTargetDataProviderPtr subsetTarget = targetsVector[targetVectorIdx]->GetSubset(
                     objectsGroupingSubset,
                     &localExecutor
                 );
 
-                TTargetDataProviders expectedSubsetTargets =
+                TTargetDataProviderPtr expectedSubsetTarget =
                     expectedResults[TExpectedMapIndex(targetVectorIdx, subsetIdx)];
 
-                CompareTargetDataProviders(subsetTargets, expectedSubsetTargets);
+                UNIT_ASSERT_EQUAL(*subsetTarget, *expectedSubsetTarget);
             }
         }
     }
 
-    template <class TTarget>
-    void TestGetSubset(
-        const TVector<TTarget>& targetVector,
-        const TVector<TTarget>& expectedSecondSubsets,
 
-        // nondefault values used for checking TObjectsGroupingSubset with permutations inside group
-        TMaybe<TObjectsGroupingSubset> secondObjectsGroupingSubset = Nothing()
-    ) {
-        // converts to TestGetSubsets format
-        TVector<TTargetDataProviders> targetVector2;
-        TVector<TTargetDataProviders> expectedSecondSubsets2;
-        for (auto i : xrange(targetVector.size())) {
-            targetVector2.emplace_back(
-                TTargetDataProviders{
-                    {targetVector[i].GetSpecification(), MakeIntrusive<TTarget>(targetVector[i])}
-                }
+    Y_UNIT_TEST(BinClass_GetSubset) {
+        TVector<TTargetDataProviderPtr> targetVector;
+        TVector<TTargetDataProviderPtr> expectedSecondSubsets;
+
+        {
+            TProcessedTargetData data;
+            data.TargetsClassCount.emplace("", 2);
+            data.Targets.emplace("", ShareVector<float>({0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f}));
+            data.Weights.emplace("", Share(TWeights<float>(6)));
+
+            targetVector.push_back(
+                MakeIntrusive<TTargetDataProvider>(
+                    MakeIntrusive<TObjectsGrouping>(ui32(6)),
+                    std::move(data)
+                )
             );
-            expectedSecondSubsets2.emplace_back(
-                TTargetDataProviders{
-                    {
-                        expectedSecondSubsets[i].GetSpecification(),
-                        MakeIntrusive<TTarget>(expectedSecondSubsets[i])
-                    }
-                }
+        }
+        {
+            TProcessedTargetData data;
+            data.TargetsClassCount.emplace("", 2);
+            data.Targets.emplace("", ShareVector<float>({1.0f, 0.0f}));
+            data.Weights.emplace("", Share(TWeights<float>(2)));
+
+            expectedSecondSubsets.push_back(
+                MakeIntrusive<TTargetDataProvider>(
+                    MakeIntrusive<TObjectsGrouping>(ui32(2)),
+                    std::move(data)
+                )
             );
         }
 
-        TestGetSubsets(targetVector2, expectedSecondSubsets2, std::move(secondObjectsGroupingSubset));
-    }
-
-
-    Y_UNIT_TEST(TBinClassTarget_GetSubset) {
-        TVector<TBinClassTarget> targetVector;
-        TVector<TBinClassTarget> expectedSecondSubsets;
-
-        targetVector.push_back(
-            TBinClassTarget(
+        {
+            TProcessedTargetData data;
+            data.TargetsClassCount.emplace("", 2);
+            data.Targets.emplace("", ShareVector<float>({0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f}));
+            data.Weights.emplace("", Share(TWeights<float>({1.0f, 1.0f, 2.0f, 3.0f, 0.0f, 1.0f})));
+            data.Baselines.emplace(
                 "",
-                MakeIntrusive<TObjectsGrouping>(ui32(6)),
-                /*target*/ ShareVector<float>({0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f}),
-                /*weights*/ Share(TWeights<float>(6)),
-                /*baseline*/ nullptr
-            )
-        );
-        expectedSecondSubsets.push_back(
-            TBinClassTarget(
-                "",
-                MakeIntrusive<TObjectsGrouping>(ui32(2)),
-                /*target*/ ShareVector<float>({1.0f, 0.0f}),
-                /*weights*/ Share(TWeights<float>(2)),
-                /*baseline*/ nullptr
-            )
-        );
+                TVector<TSharedVector<float>>(1, ShareVector<float>({0.0f, 0.1f, 0.3f, 0.2f, 0.35f, 0.8f}))
+            );
 
-        targetVector.push_back(
-            TBinClassTarget(
-                "",
-                MakeIntrusive<TObjectsGrouping>(ui32(6)),
-                /*target*/ ShareVector<float>({0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f}),
-                /*weights*/ Share(TWeights<float>({1.0f, 1.0f, 2.0f, 3.0f, 0.0f, 1.0f})),
-                /*baseline*/ ShareVector<float>({0.0f, 0.1f, 0.3f, 0.2f, 0.35f, 0.8f})
-            )
-        );
-        expectedSecondSubsets.push_back(
-            TBinClassTarget(
-                "",
-                MakeIntrusive<TObjectsGrouping>(ui32(2)),
-                /*target*/ ShareVector<float>( {1.0f, 0.0f} ),
-                /*weights*/ Share( TWeights<float>({2.0f, 3.0f}) ),
-                /*baseline*/ ShareVector<float>( {0.3f, 0.2f} )
-            )
-        );
+            targetVector.push_back(
+                MakeIntrusive<TTargetDataProvider>(
+                    MakeIntrusive<TObjectsGrouping>(ui32(6)),
+                    std::move(data)
+                )
+            );
+        }
+        {
+            TProcessedTargetData data;
+            data.TargetsClassCount.emplace("", 2);
+            data.Targets.emplace("", ShareVector<float>({1.0f, 0.0f}));
+            data.Weights.emplace("", Share(TWeights<float>({2.0f, 3.0f})));
+            data.Baselines.emplace("", TVector<TSharedVector<float>>(1, ShareVector<float>({0.3f, 0.2f})));
+
+            expectedSecondSubsets.push_back(
+                MakeIntrusive<TTargetDataProvider>(
+                    MakeIntrusive<TObjectsGrouping>(ui32(2)),
+                    std::move(data)
+                )
+            );
+        }
 
         TestGetSubset(
             targetVector,
@@ -750,105 +740,49 @@ Y_UNIT_TEST_SUITE(TTargetDataProvider) {
     }
 
     Y_UNIT_TEST(TMultiClassTarget_GetSubset) {
-        TVector<TMultiClassTarget> targetVector;
-        TVector<TMultiClassTarget> expectedSecondSubsets;
+        TVector<TTargetDataProviderPtr> targetVector;
+        TVector<TTargetDataProviderPtr> expectedSecondSubsets;
 
-        targetVector.push_back(
-            TMultiClassTarget(
+        {
+            TProcessedTargetData data;
+            data.TargetsClassCount.emplace("", 2);
+            data.Targets.emplace("", ShareVector<float>({0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f}));
+            data.Weights.emplace("", Share(TWeights<float>({1.0f, 1.0f, 2.0f, 3.0f, 0.0f, 1.0f})));
+            data.Baselines.emplace(
                 "",
-                MakeIntrusive<TObjectsGrouping>(ui32(6)),
-                /*classCount*/ui32(2),
-                /*target*/ ShareVector<float>({0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f}),
-                /*weights*/ Share(TWeights<float>(6)),
-                /*baseline*/ {},
-                /*isForGpu*/ false
-            )
-        );
-        expectedSecondSubsets.push_back(
-            TMultiClassTarget(
-                "",
-                MakeIntrusive<TObjectsGrouping>(ui32(2)),
-                /*classCount*/ui32(2),
-                /*target*/ ShareVector<float>({1.0f, 0.0f}),
-                /*weights*/ Share(TWeights<float>(2)),
-                /*baseline*/ {},
-                /*isForGpu*/ false
-            )
-        );
-
-        targetVector.push_back(
-            TMultiClassTarget(
-                "",
-                MakeIntrusive<TObjectsGrouping>(ui32(6)),
-                /*classCount*/ ui32(2),
-                /*target*/ ShareVector<float>({0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f}),
-                /*weights*/ Share(TWeights<float>({1.0f, 1.0f, 2.0f, 3.0f, 0.0f, 1.0f})),
-                /*baseline*/ {
+                TVector<TSharedVector<float>>{
                     ShareVector<float>({0.0f, 0.1f, 0.3f, 0.2f, 0.35f, 0.8f}),
                     ShareVector<float>({1.0f, 2.1f, 1.3f, 2.2f, 3.3f, 4.7f})
-                },
-                /*isForGpu*/ false
-            )
-        );
-        expectedSecondSubsets.push_back(
-            TMultiClassTarget(
-                "",
-                MakeIntrusive<TObjectsGrouping>(ui32(2)),
-                /*classCount*/ ui32(2),
-                /*target*/ ShareVector<float>({1.0f, 0.0f}),
-                /*weights*/ Share(TWeights<float>({2.0f, 3.0f})),
-                /*baseline*/ {ShareVector<float>({0.3f, 0.2f}), ShareVector<float>({1.3f, 2.2f})},
-                /*isForGpu*/ false
-            )
-        );
+                }
+            );
 
-        TestGetSubset(
-            targetVector,
-            expectedSecondSubsets
-        );
-    }
+            targetVector.push_back(
+                MakeIntrusive<TTargetDataProvider>(
+                    MakeIntrusive<TObjectsGrouping>(ui32(6)),
+                    std::move(data)
+                )
+            );
+        }
+        {
+            TProcessedTargetData data;
+            data.TargetsClassCount.emplace("", 2);
+            data.Targets.emplace("", ShareVector<float>({1.0f, 0.0f}));
+            data.Weights.emplace("", Share(TWeights<float>({2.0f, 3.0f})));
+            data.Baselines.emplace(
+                "",
+                TVector<TSharedVector<float>>{
+                    ShareVector<float>({0.3f, 0.2f}),
+                    ShareVector<float>({1.3f, 2.2f})
+                }
+            );
 
-    Y_UNIT_TEST(TRegressionTarget_GetSubset) {
-        TVector<TRegressionTarget> targetVector;
-        TVector<TRegressionTarget> expectedSecondSubsets;
-
-        targetVector.push_back(
-            TRegressionTarget(
-                "",
-                MakeIntrusive<TObjectsGrouping>(ui32(6)),
-                /*target*/ ShareVector<float>({0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f}),
-                /*weights*/ Share(TWeights<float>(6)),
-                /*baseline*/ nullptr
-            )
-        );
-        expectedSecondSubsets.push_back(
-            TRegressionTarget(
-                "",
-                MakeIntrusive<TObjectsGrouping>(ui32(2)),
-                /*target*/ ShareVector<float>({1.0f, 0.0f}),
-                /*weights*/ Share(TWeights<float>(2)),
-                /*baseline*/ nullptr
-            )
-        );
-
-        targetVector.push_back(
-            TRegressionTarget(
-                "",
-                MakeIntrusive<TObjectsGrouping>(ui32(6)),
-                /*target*/ ShareVector<float>({0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f}),
-                /*weights*/ Share(TWeights<float>({1.0f, 1.0f, 2.0f, 3.0f, 0.0f, 1.0f})),
-                /*baseline*/ ShareVector<float>({0.0f, 0.1f, 0.3f, 0.2f, 0.35f, 0.8f})
-            )
-        );
-        expectedSecondSubsets.push_back(
-            TRegressionTarget(
-                "",
-                MakeIntrusive<TObjectsGrouping>(ui32(2)),
-                /*target*/ ShareVector<float>({1.0f, 0.0f}),
-                /*weights*/ Share(TWeights<float>({2.0f, 3.0f})),
-                /*baseline*/ ShareVector<float>({0.3f, 0.2f})
-            )
-        );
+            expectedSecondSubsets.push_back(
+                MakeIntrusive<TTargetDataProvider>(
+                    MakeIntrusive<TObjectsGrouping>(ui32(2)),
+                    std::move(data)
+                )
+            );
+        }
 
         TestGetSubset(
             targetVector,
@@ -857,19 +791,20 @@ Y_UNIT_TEST_SUITE(TTargetDataProvider) {
     }
 
     Y_UNIT_TEST(TGroupwiseRankingTarget_GetSubset) {
-        TVector<TGroupwiseRankingTarget> targetVector;
-        TVector<TGroupwiseRankingTarget> expectedSecondSubsets;
+        TVector<TTargetDataProviderPtr> targetVector;
+        TVector<TTargetDataProviderPtr> expectedSecondSubsets;
 
-        targetVector.push_back(
-            TGroupwiseRankingTarget(
+        {
+            TProcessedTargetData data;
+
+            data.Targets.emplace(
                 "",
-                MakeIntrusive<TObjectsGrouping>(
-                    TVector<TGroupBounds>{{0, 1}, {1, 2}, {2, 3}, {3, 6}, {6, 7}, {7, 9}}
-                ),
-                /*target*/ ShareVector<float>({0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.5f, 0.8f}),
-                /*weight*/ Share(TWeights<float>(9)),
-                /*baseline*/ nullptr,
-                /*groupInfo*/ ShareVector<TQueryInfo>(
+                ShareVector<float>({0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.5f, 0.8f})
+            );
+            data.Weights.emplace("", Share(TWeights<float>(9)));
+            data.GroupInfos.emplace(
+                "",
+                ShareVector<TQueryInfo>(
                     {
                         TQueryInfo(0, 1),
                         TQueryInfo(1, 2),
@@ -879,18 +814,31 @@ Y_UNIT_TEST_SUITE(TTargetDataProvider) {
                         TQueryInfo(7, 9)
                     }
                 )
-            )
-        );
-        expectedSecondSubsets.push_back(
-            TGroupwiseRankingTarget(
-                "",
-                MakeIntrusive<TObjectsGrouping>(TVector<TGroupBounds>{{0, 1}, {1, 4}}),
-                /*target*/ ShareVector<float>({1.0f, 0.0f, 1.0f, 0.0f}),
-                /*weight*/ Share(TWeights<float>(4)),
-                /*baseline*/ nullptr,
-                /*groupInfo*/ ShareVector<TQueryInfo>({TQueryInfo(0, 1), TQueryInfo(1, 4)})
-            )
-        );
+            );
+
+            targetVector.push_back(
+                MakeIntrusive<TTargetDataProvider>(
+                    MakeIntrusive<TObjectsGrouping>(
+                        TVector<TGroupBounds>{{0, 1}, {1, 2}, {2, 3}, {3, 6}, {6, 7}, {7, 9}}
+                    ),
+                    std::move(data)
+                )
+            );
+        }
+        {
+            TProcessedTargetData data;
+
+            data.Targets.emplace("", ShareVector<float>({1.0f, 0.0f, 1.0f, 0.0f}));
+            data.Weights.emplace("", Share(TWeights<float>(4)));
+            data.GroupInfos.emplace("", ShareVector<TQueryInfo>({TQueryInfo(0, 1), TQueryInfo(1, 4)}));
+
+            expectedSecondSubsets.push_back(
+                MakeIntrusive<TTargetDataProvider>(
+                    MakeIntrusive<TObjectsGrouping>(TVector<TGroupBounds>{{0, 1}, {1, 4}}),
+                    std::move(data)
+                )
+            );
+        }
 
         {
             TVector<TQueryInfo> groupInfo(6);
@@ -925,19 +873,30 @@ Y_UNIT_TEST_SUITE(TTargetDataProvider) {
             groupInfo[5].Weight = 0.0f;
             groupInfo[5].SubgroupId = {10};
 
+            TProcessedTargetData data;
+            data.Targets.emplace(
+                "",
+                ShareVector<float>({0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.5f, 0.8f})
+            );
+            data.Weights.emplace(
+                "",
+                Share(TWeights<float>({1.0f, 1.0f, 2.0f, 3.0f, 0.0f, 1.0f, 0.8f, 0.9f, 0.1f}))
+            );
+            data.Baselines.emplace(
+                "",
+                TVector<TSharedVector<float>>(
+                    1,
+                    ShareVector<float>({0.0f, 0.1f, 0.3f, 0.2f, 0.35f, 0.8f, 0.12f, 0.67f, 0.87f})
+                )
+            );
+            data.GroupInfos.emplace("", ShareVector<TQueryInfo>(std::move(groupInfo)));
 
             targetVector.push_back(
-                TGroupwiseRankingTarget(
-                    "",
+                MakeIntrusive<TTargetDataProvider>(
                     MakeIntrusive<TObjectsGrouping>(
                         TVector<TGroupBounds>{{0, 1}, {1, 3}, {3, 5}, {5, 6}, {6, 8}, {8, 9}}
                     ),
-                    /*target*/ ShareVector<float>({0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.5f, 0.8f}),
-                    /*weight*/ Share(TWeights<float>({1.0f, 1.0f, 2.0f, 3.0f, 0.0f, 1.0f, 0.8f, 0.9f, 0.1f})),
-                    /*baseline*/ ShareVector<float>(
-                        {0.0f, 0.1f, 0.3f, 0.2f, 0.35f, 0.8f, 0.12f, 0.67f, 0.87f}
-                    ),
-                    ShareVector<TQueryInfo>(std::move(groupInfo))
+                    std::move(data)
                 )
             );
         }
@@ -954,14 +913,19 @@ Y_UNIT_TEST_SUITE(TTargetDataProvider) {
             groupInfo[1].Weight = 1.0f;
             groupInfo[1].SubgroupId = {7};
 
+            TProcessedTargetData data;
+            data.Targets.emplace("", ShareVector<float>({0.0f, 1.0f, 0.0f}));
+            data.Weights.emplace("", Share(TWeights<float>({3.0f, 0.0f, 1.0f})));
+            data.Baselines.emplace(
+                "",
+                TVector<TSharedVector<float>>(1, ShareVector<float>({0.2f, 0.35f, 0.8f}))
+            );
+            data.GroupInfos.emplace("", ShareVector<TQueryInfo>(std::move(groupInfo)));
+
             expectedSecondSubsets.push_back(
-                TGroupwiseRankingTarget(
-                    "",
+                MakeIntrusive<TTargetDataProvider>(
                     MakeIntrusive<TObjectsGrouping>(TVector<TGroupBounds>{{0, 2}, {2, 3}}),
-                    /*target*/ ShareVector<float>({0.0f, 1.0f, 0.0f}),
-                    /*weight*/ Share(TWeights<float>({3.0f, 0.0f, 1.0f})),
-                    /*baseline*/ ShareVector<float>({0.2f, 0.35f, 0.8f}),
-                    ShareVector<TQueryInfo>(std::move(groupInfo))
+                    std::move(data)
                 )
             );
         }
@@ -973,8 +937,8 @@ Y_UNIT_TEST_SUITE(TTargetDataProvider) {
     }
 
     Y_UNIT_TEST(TGroupPairwiseRankingTarget_GetSubset) {
-        TVector<TGroupPairwiseRankingTarget> targetVector;
-        TVector<TGroupPairwiseRankingTarget> expectedSecondSubsets;
+        TVector<TTargetDataProviderPtr> targetVector;
+        TVector<TTargetDataProviderPtr> expectedSecondSubsets;
 
         {
             TVector<TQueryInfo> groupInfo(6);
@@ -1019,17 +983,24 @@ Y_UNIT_TEST_SUITE(TTargetDataProvider) {
             groupInfo[5].Weight = 1.3f;
             groupInfo[5].SubgroupId = {0, 0};
 
+            TProcessedTargetData data;
+            data.Baselines.emplace(
+                "",
+                TVector<TSharedVector<float>>(
+                    1,
+                    ShareVector<float>(
+                        {0.0f, 0.1f, 0.3f, 0.2f, 0.35f, 0.8f, 0.12f, 0.67f, 0.87f, 0.0f, 1.0f}
+                    )
+                )
+            );
+            data.GroupInfos.emplace("", ShareVector<TQueryInfo>(std::move(groupInfo)));
 
             targetVector.push_back(
-                TGroupPairwiseRankingTarget(
-                    "",
+                MakeIntrusive<TTargetDataProvider>(
                     MakeIntrusive<TObjectsGrouping>(
                         TVector<TGroupBounds>{{0, 1}, {1, 2}, {2, 6}, {6, 7}, {7, 9}, {9, 11}}
                     ),
-                    /*baseline*/ ShareVector<float>(
-                        {0.0f, 0.1f, 0.3f, 0.2f, 0.35f, 0.8f, 0.12f, 0.67f, 0.87f, 0.0f, 1.0f}
-                    ),
-                    ShareVector<TQueryInfo>(std::move(groupInfo))
+                    std::move(data)
                 )
             );
         }
@@ -1053,12 +1024,20 @@ Y_UNIT_TEST_SUITE(TTargetDataProvider) {
             groupInfo[1].Weight = 2.0f;
             groupInfo[1].SubgroupId = {0};
 
+            TProcessedTargetData data;
+            data.Baselines.emplace(
+                "",
+                TVector<TSharedVector<float>>(
+                    1,
+                    ShareVector<float>({0.3f, 0.2f, 0.35f, 0.8f, 0.12f})
+                )
+            );
+            data.GroupInfos.emplace("", ShareVector<TQueryInfo>(std::move(groupInfo)));
+
             expectedSecondSubsets.push_back(
-                TGroupPairwiseRankingTarget(
-                    "",
+                MakeIntrusive<TTargetDataProvider>(
                     MakeIntrusive<TObjectsGrouping>(TVector<TGroupBounds>{{0, 4}, {4, 5}}),
-                    /*baseline*/ ShareVector<float>({0.3f, 0.2f, 0.35f, 0.8f, 0.12f}),
-                    ShareVector<TQueryInfo>(std::move(groupInfo))
+                    std::move(data)
                 )
             );
         }
@@ -1070,8 +1049,8 @@ Y_UNIT_TEST_SUITE(TTargetDataProvider) {
     }
 
     Y_UNIT_TEST(TGroupPairwiseRankingTarget_GetSubsetWithShuffle) {
-        TVector<TGroupPairwiseRankingTarget> targetVector;
-        TVector<TGroupPairwiseRankingTarget> expectedSecondSubsets;
+        TVector<TTargetDataProviderPtr> targetVector;
+        TVector<TTargetDataProviderPtr> expectedSecondSubsets;
 
         {
             TVector<TQueryInfo> groupInfo(6);
@@ -1117,20 +1096,27 @@ Y_UNIT_TEST_SUITE(TTargetDataProvider) {
             groupInfo[5].SubgroupId = {0, 0};
 
 
+            TProcessedTargetData data;
+            data.Baselines.emplace(
+                "",
+                TVector<TSharedVector<float>>(
+                    1,
+                    ShareVector<float>(
+                        {0.0f, 0.1f, 0.3f, 0.2f, 0.35f, 0.8f, 0.12f, 0.67f, 0.87f, 0.0f, 1.0f}
+                    )
+                )
+            );
+            data.GroupInfos.emplace("", ShareVector<TQueryInfo>(std::move(groupInfo)));
+
             targetVector.push_back(
-                TGroupPairwiseRankingTarget(
-                    "",
+                MakeIntrusive<TTargetDataProvider>(
                     MakeIntrusive<TObjectsGrouping>(
                         TVector<TGroupBounds>{{0, 1}, {1, 2}, {2, 6}, {6, 7}, {7, 9}, {9, 11}}
                     ),
-                    /*baseline*/ ShareVector<float>(
-                        {0.0f, 0.1f, 0.3f, 0.2f, 0.35f, 0.8f, 0.12f, 0.67f, 0.87f, 0.0f, 1.0f}
-                    ),
-                    ShareVector<TQueryInfo>(std::move(groupInfo))
+                    std::move(data)
                 )
             );
         }
-
         {
             TVector<TQueryInfo> groupInfo(6);
 
@@ -1175,16 +1161,22 @@ Y_UNIT_TEST_SUITE(TTargetDataProvider) {
             groupInfo[5].SubgroupId = {1};
 
 
+            TProcessedTargetData data;
+            data.Baselines.emplace(
+                "",
+                TVector<TSharedVector<float>>(
+                    1,
+                    ShareVector<float>({0.8f, 0.3f, 0.2f, 0.35f, 0.87f, 0.67f, 0.0f, 1.0f, 0.0f, 0.12f, 0.1f})
+                )
+            );
+            data.GroupInfos.emplace("", ShareVector<TQueryInfo>(std::move(groupInfo)));
+
             expectedSecondSubsets.push_back(
-                TGroupPairwiseRankingTarget(
-                    "",
+                MakeIntrusive<TTargetDataProvider>(
                     MakeIntrusive<TObjectsGrouping>(
                         TVector<TGroupBounds>{{0, 4}, {4, 6}, {6, 8}, {8, 9}, {9, 10}, {10, 11}}
                     ),
-                    /*baseline*/ ShareVector<float>(
-                        {0.8f, 0.3f, 0.2f, 0.35f, 0.87f, 0.67f, 0.0f, 1.0f, 0.0f, 0.12f, 0.1f}
-                    ),
-                    ShareVector<TQueryInfo>(std::move(groupInfo))
+                    std::move(data)
                 )
             );
         }
@@ -1194,541 +1186,8 @@ Y_UNIT_TEST_SUITE(TTargetDataProvider) {
         TestGetSubset(
             targetVector,
             expectedSecondSubsets,
-            Shuffle(targetVector.back().GetObjectsGrouping(), 1, &rand)
+            Shuffle(targetVector.back()->GetObjectsGrouping(), 1, &rand)
         );
-    }
-
-    Y_UNIT_TEST(TSimpleTarget_GetSubset) {
-        TVector<TSimpleTarget> targetVector;
-        TVector<TSimpleTarget> expectedSecondSubsets;
-
-        targetVector.push_back(
-            TSimpleTarget(
-                "",
-                MakeIntrusive<TObjectsGrouping>(ui32(6)),
-                /*target*/ ShareVector<float>({0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f})
-            )
-        );
-        expectedSecondSubsets.push_back(
-            TSimpleTarget(
-                "",
-                MakeIntrusive<TObjectsGrouping>(ui32(2)),
-                /*target*/ ShareVector<float>({1.0f, 0.0f})
-            )
-        );
-
-        targetVector.push_back(
-            TSimpleTarget(
-                "",
-                MakeIntrusive<TObjectsGrouping>(ui32(6)),
-                /*target*/ ShareVector<float>({0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f})
-            )
-        );
-        expectedSecondSubsets.push_back(
-            TSimpleTarget(
-                "",
-                MakeIntrusive<TObjectsGrouping>(ui32(2)),
-                /*target*/ ShareVector<float>({1.0f, 0.0f})
-            )
-        );
-
-        TestGetSubset(
-            targetVector,
-            expectedSecondSubsets
-        );
-    }
-
-
-    Y_UNIT_TEST(TUserDefinedTarget_GetSubset) {
-        TVector<TUserDefinedTarget> targetVector;
-        TVector<TUserDefinedTarget> expectedSecondSubsets;
-
-        targetVector.push_back(
-            TUserDefinedTarget(
-                "",
-                MakeIntrusive<TObjectsGrouping>(ui32(6)),
-                /*target*/ ShareVector<float>({0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f}),
-                /*weights*/ Share(TWeights<float>(6))
-            )
-        );
-        expectedSecondSubsets.push_back(
-            TUserDefinedTarget(
-                "",
-                MakeIntrusive<TObjectsGrouping>(ui32(2)),
-                /*target*/ ShareVector<float>({1.0f, 0.0f}),
-                /*weights*/ Share(TWeights<float>(2))
-            )
-        );
-
-        targetVector.push_back(
-            TUserDefinedTarget(
-                "",
-                MakeIntrusive<TObjectsGrouping>(ui32(6)),
-                /*target*/ ShareVector<float>({0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f}),
-                /*weights*/ Share(TWeights<float>({1.0f, 1.0f, 2.0f, 3.0f, 0.0f, 1.0f}))
-            )
-        );
-        expectedSecondSubsets.push_back(
-            TUserDefinedTarget(
-                "",
-                MakeIntrusive<TObjectsGrouping>(ui32(2)),
-                /*target*/ ShareVector<float>({1.0f, 0.0f}),
-                /*weights*/ Share(TWeights<float>({2.0f, 3.0f}))
-            )
-        );
-
-        TestGetSubset(
-            targetVector,
-            expectedSecondSubsets
-        );
-    }
-
-
-    TWeights<float> CreateWeights() {
-        return TWeights<float>({1.0f, 1.0f, 2.0f, 3.0f, 0.0f, 1.0f, 0.98f, 0.11f, 0.43f, 0.24f, 0.2f});
-    }
-
-    TVector<float> CreateTarget() {
-        return {0.12f, 1.9f, 2.1f, 0.22f, 1.1f, 1.12f, 0.32f, 0.5f, 0.8f, 0.9f, 0.22f};
-    }
-
-    TVector<TVector<float>> CreateBaseline() {
-        return {
-            {0.0f, 0.1f, 0.3f, 0.2f, 0.35f, 0.8f, 0.12f, 0.67f, 0.87f, 0.33f, 0.92f},
-            {1.0f, 1.2f, 2.3f, 0.25f, 0.65f, 0.82f, 0.0f, 0.11f, 0.82f, 0.29f, 0.1f}
-        };
-    }
-
-    TVector<TQueryInfo> CreateGroupInfo() {
-        TVector<TQueryInfo> groupInfo(6);
-
-        groupInfo[0].Begin = 0;
-        groupInfo[0].End = 1;
-        groupInfo[0].Weight = 2.0f;
-        groupInfo[0].SubgroupId = {0};
-
-        groupInfo[1].Begin = 1;
-        groupInfo[1].End = 2;
-        groupInfo[1].Weight = 1.0f;
-        groupInfo[1].SubgroupId = {1};
-
-        groupInfo[2].Begin = 2;
-        groupInfo[2].End = 6;
-        groupInfo[2].Weight = 3.0f;
-        groupInfo[2].SubgroupId = {2, 2, 3, 3};
-        groupInfo[2].Competitors = {
-            { TCompetitor(1, 1.0f) },
-            { TCompetitor(2, 1.0f), TCompetitor(3, 3.0f) },
-            { TCompetitor(1, 2.0f) },
-            {}
-        };
-
-        groupInfo[3].Begin = 6;
-        groupInfo[3].End = 7;
-        groupInfo[3].Weight = 2.0f;
-        groupInfo[3].SubgroupId = {0};
-
-        groupInfo[4].Begin = 7;
-        groupInfo[4].End = 9;
-        groupInfo[4].Weight = 2.2f;
-        groupInfo[4].SubgroupId = {0, 1};
-        groupInfo[4].Competitors = {
-            { TCompetitor(1, 1.0f) },
-            {}
-        };
-
-        groupInfo[5].Begin = 9;
-        groupInfo[5].End = 11;
-        groupInfo[5].Weight = 1.3f;
-        groupInfo[5].SubgroupId = {0, 0};
-
-        return groupInfo;
-    }
-
-
-    void CreateTargetDataProviders(
-        TTargetDataProviders* targetDataProviders,
-        TTargetDataProviders* expectedSubsetTargetDataProviders
-    ) {
-        TObjectsGroupingPtr objectsGrouping = MakeIntrusive<TObjectsGrouping>(
-            TVector<TGroupBounds>{{0, 1}, {1, 2}, {2, 6}, {6, 7}, {7, 9}, {9, 11}}
-        );
-        TObjectsGroupingPtr expectedSubsetObjectsGrouping = MakeIntrusive<TObjectsGrouping>(
-            TVector<TGroupBounds>{{0, 4}, {4, 5}}
-        );
-
-        TSharedWeights<float> weights = Share(CreateWeights());
-        TSharedWeights<float> expectedSubsetWeights = Share(TWeights<float>({2.0f, 3.0f, 0.0f, 1.0f, 0.98f}));
-
-        TSharedVector<float> targets = ShareVector<float>(CreateTarget());
-        TSharedVector<float> expectedSubsetTargets = ShareVector<float>({2.1f, 0.22f, 1.1f, 1.12f, 0.32f});
-
-        auto baselinesSrc = CreateBaseline();
-        TVector<TSharedVector<float>> baselines = {
-            ShareVector(TVector<float>(baselinesSrc[0])),
-            ShareVector(TVector<float>(baselinesSrc[1]))
-        };
-
-        TVector<TSharedVector<float>> expectedSubsetBaselines = {
-            ShareVector<float>({0.3f, 0.2f, 0.35f, 0.8f, 0.12f}),
-            ShareVector<float>({2.3f, 0.25f, 0.65f, 0.82f, 0.0f})
-        };
-
-        TSharedVector<TQueryInfo> sharedGroupInfo = ShareVector<TQueryInfo>(CreateGroupInfo());
-
-
-        TVector<TQueryInfo> expectedSubsetGroupInfo(2);
-
-        expectedSubsetGroupInfo[0].Begin = 0;
-        expectedSubsetGroupInfo[0].End = 4;
-        expectedSubsetGroupInfo[0].Weight = 3.0f;
-        expectedSubsetGroupInfo[0].SubgroupId = {2, 2, 3, 3};
-        expectedSubsetGroupInfo[0].Competitors = {
-            { TCompetitor(1, 1.0f) },
-            { TCompetitor(2, 1.0f), TCompetitor(3, 3.0f) },
-            { TCompetitor(1, 2.0f) },
-            {}
-        };
-
-        expectedSubsetGroupInfo[1].Begin = 4;
-        expectedSubsetGroupInfo[1].End = 5;
-        expectedSubsetGroupInfo[1].Weight = 2.0f;
-        expectedSubsetGroupInfo[1].SubgroupId = {0};
-
-        TSharedVector<TQueryInfo> expectedSubsetSharedGroupInfo = ShareVector<TQueryInfo>(
-            std::move(expectedSubsetGroupInfo)
-        );
-
-
-        targetDataProviders->emplace(
-            TTargetDataSpecification(ETargetType::BinClass),
-            MakeIntrusive<TBinClassTarget>(
-                "",
-                objectsGrouping,
-                targets,
-                weights,
-                baselines[0]
-            )
-        );
-        expectedSubsetTargetDataProviders->emplace(
-            TTargetDataSpecification(ETargetType::BinClass),
-            MakeIntrusive<TBinClassTarget>(
-                "",
-                expectedSubsetObjectsGrouping,
-                expectedSubsetTargets,
-                expectedSubsetWeights,
-                expectedSubsetBaselines[0]
-            )
-        );
-
-        targetDataProviders->emplace(
-            TTargetDataSpecification(ETargetType::MultiClass),
-            MakeIntrusive<TMultiClassTarget>(
-                "",
-                objectsGrouping,
-                /*classCount*/ ui32(2),
-                targets,
-                weights,
-                TVector<TSharedVector<float>>(baselines),
-                /*isForGpu*/ false
-            )
-        );
-        expectedSubsetTargetDataProviders->emplace(
-            TTargetDataSpecification(ETargetType::MultiClass),
-            MakeIntrusive<TMultiClassTarget>(
-                "",
-                expectedSubsetObjectsGrouping,
-                /*classCount*/ ui32(2),
-                expectedSubsetTargets,
-                expectedSubsetWeights,
-                TVector<TSharedVector<float>>(expectedSubsetBaselines),
-                /*isForGpu*/ false
-            )
-        );
-
-        targetDataProviders->emplace(
-            TTargetDataSpecification(ETargetType::Regression),
-            MakeIntrusive<TRegressionTarget>(
-                "",
-                objectsGrouping,
-                targets,
-                weights,
-                baselines[0]
-            )
-        );
-        expectedSubsetTargetDataProviders->emplace(
-            TTargetDataSpecification(ETargetType::Regression),
-            MakeIntrusive<TRegressionTarget>(
-                "",
-                expectedSubsetObjectsGrouping,
-                expectedSubsetTargets,
-                expectedSubsetWeights,
-                expectedSubsetBaselines[0]
-            )
-        );
-
-        targetDataProviders->emplace(
-            TTargetDataSpecification(ETargetType::GroupwiseRanking),
-            MakeIntrusive<TGroupwiseRankingTarget>(
-                "",
-                objectsGrouping,
-                targets,
-                weights,
-                baselines[1], // take 2nd baseline just for diversity with BinClassTarget
-                sharedGroupInfo
-            )
-        );
-        expectedSubsetTargetDataProviders->emplace(
-            TTargetDataSpecification(ETargetType::GroupwiseRanking),
-            MakeIntrusive<TGroupwiseRankingTarget>(
-                "",
-                expectedSubsetObjectsGrouping,
-                expectedSubsetTargets,
-                expectedSubsetWeights,
-                expectedSubsetBaselines[1],
-                expectedSubsetSharedGroupInfo
-            )
-        );
-
-        targetDataProviders->emplace(
-            TTargetDataSpecification(ETargetType::GroupPairwiseRanking),
-            MakeIntrusive<TGroupPairwiseRankingTarget>(
-                "",
-                objectsGrouping,
-                baselines[0],
-                sharedGroupInfo
-            )
-        );
-        expectedSubsetTargetDataProviders->emplace(
-            TTargetDataSpecification(ETargetType::GroupPairwiseRanking),
-            MakeIntrusive<TGroupPairwiseRankingTarget>(
-                "",
-                expectedSubsetObjectsGrouping,
-                expectedSubsetBaselines[0],
-                expectedSubsetSharedGroupInfo
-            )
-        );
-
-        targetDataProviders->emplace(
-            TTargetDataSpecification(ETargetType::Simple),
-            MakeIntrusive<TSimpleTarget>(
-                "",
-                objectsGrouping,
-                targets
-            )
-        );
-        expectedSubsetTargetDataProviders->emplace(
-            TTargetDataSpecification(ETargetType::Simple),
-            MakeIntrusive<TSimpleTarget>(
-                "",
-                expectedSubsetObjectsGrouping,
-                expectedSubsetTargets
-            )
-        );
-
-        targetDataProviders->emplace(
-            TTargetDataSpecification(ETargetType::UserDefined),
-            MakeIntrusive<TUserDefinedTarget>(
-                "",
-                objectsGrouping,
-                targets,
-                weights
-            )
-        );
-        expectedSubsetTargetDataProviders->emplace(
-            TTargetDataSpecification(ETargetType::UserDefined),
-            MakeIntrusive<TUserDefinedTarget>(
-                "",
-                expectedSubsetObjectsGrouping,
-                expectedSubsetTargets,
-                expectedSubsetWeights
-            )
-        );
-    }
-
-
-    Y_UNIT_TEST(GetSubsets) {
-        TTargetDataProviders targetDataProviders;
-        TTargetDataProviders expectedSubsetTargetDataProviders;
-
-        CreateTargetDataProviders(&targetDataProviders, &expectedSubsetTargetDataProviders);
-
-        TestGetSubsets({targetDataProviders}, {expectedSubsetTargetDataProviders});
-    }
-
-
-    void CompareCompatibilityWeights(
-        TConstArrayRef<float> oldWeights,
-        const TWeights<float>& expectedWeights)
-    {
-        if (expectedWeights.IsTrivial()) {
-            UNIT_ASSERT(oldWeights.empty());
-        } else {
-            UNIT_ASSERT_EQUAL(oldWeights, expectedWeights.GetNonTrivialData());
-        }
-    }
-
-
-    Y_UNIT_TEST(TTargetDataProvidersCompatibilityFunctions) {
-        TTargetDataProviders targetDataProviders;
-        TTargetDataProviders expectedSubsetTargetDataProviders; // in fact unused here
-
-        CreateTargetDataProviders(&targetDataProviders, &expectedSubsetTargetDataProviders);
-
-        // get subsets that are compatible with compatibility functions
-
-#define COMPARE_COMPATIBILITY_FIELD(targetDataProviders, FIELD) \
-            UNIT_ASSERT(Equal(Get##FIELD(targetDataProviders), Create##FIELD()));
-
-
-        {
-            TTargetDataProviders onlyBinClass;
-            onlyBinClass.emplace(
-                TTargetDataSpecification(ETargetType::BinClass),
-                targetDataProviders[TTargetDataSpecification(ETargetType::BinClass)]
-            );
-
-            COMPARE_COMPATIBILITY_FIELD(onlyBinClass, Target);
-            CompareCompatibilityWeights(GetWeights(onlyBinClass), CreateWeights());
-            UNIT_ASSERT_EQUAL(
-                GetBaseline(onlyBinClass), TVector<TConstArrayRef<float>>{CreateBaseline()[0]}
-            );
-            UNIT_ASSERT_EQUAL(GetGroupInfo(onlyBinClass), TConstArrayRef<TQueryInfo>());
-        }
-
-        {
-            TTargetDataProviders onlyMultiClass;
-            onlyMultiClass.emplace(
-                TTargetDataSpecification(ETargetType::MultiClass),
-                targetDataProviders[TTargetDataSpecification(ETargetType::MultiClass)]
-            );
-
-            COMPARE_COMPATIBILITY_FIELD(onlyMultiClass, Target);
-            CompareCompatibilityWeights(GetWeights(onlyMultiClass), CreateWeights());
-
-            auto expectedBaseline = CreateBaseline();
-            UNIT_ASSERT_EQUAL(
-                GetBaseline(onlyMultiClass),
-                (TVector<TConstArrayRef<float>>{expectedBaseline[0], expectedBaseline[1]})
-            );
-            UNIT_ASSERT_EQUAL(GetGroupInfo(onlyMultiClass), TConstArrayRef<TQueryInfo>());
-        }
-
-        {
-            TTargetDataProviders onlyRegression;
-            onlyRegression.emplace(
-                TTargetDataSpecification(ETargetType::Regression),
-                targetDataProviders[TTargetDataSpecification(ETargetType::Regression)]
-            );
-
-            COMPARE_COMPATIBILITY_FIELD(onlyRegression, Target);
-            CompareCompatibilityWeights(GetWeights(onlyRegression), CreateWeights());
-
-            UNIT_ASSERT_EQUAL(
-                GetBaseline(onlyRegression), TVector<TConstArrayRef<float>>{CreateBaseline()[0]}
-            );
-            UNIT_ASSERT_EQUAL(GetGroupInfo(onlyRegression), TConstArrayRef<TQueryInfo>());
-        }
-
-        {
-            TTargetDataProviders onlyGroupwiseRanking;
-            onlyGroupwiseRanking.emplace(
-                TTargetDataSpecification(ETargetType::GroupwiseRanking),
-                targetDataProviders[TTargetDataSpecification(ETargetType::GroupwiseRanking)]
-            );
-
-            COMPARE_COMPATIBILITY_FIELD(onlyGroupwiseRanking, Target);
-            CompareCompatibilityWeights(GetWeights(onlyGroupwiseRanking), CreateWeights());
-
-            UNIT_ASSERT_EQUAL(
-                GetBaseline(onlyGroupwiseRanking), TVector<TConstArrayRef<float>>{CreateBaseline()[1]}
-            );
-            COMPARE_COMPATIBILITY_FIELD(onlyGroupwiseRanking, GroupInfo);
-        }
-
-        {
-            TTargetDataProviders onlyGroupPairwiseRanking;
-            onlyGroupPairwiseRanking.emplace(
-                TTargetDataSpecification(ETargetType::GroupPairwiseRanking),
-                targetDataProviders[TTargetDataSpecification(ETargetType::GroupPairwiseRanking)]
-            );
-
-            UNIT_ASSERT_EXCEPTION(GetTarget(onlyGroupPairwiseRanking), TCatBoostException);
-            UNIT_ASSERT_EQUAL(GetWeights(onlyGroupPairwiseRanking), TConstArrayRef<float>());
-
-            UNIT_ASSERT_EQUAL(
-                GetBaseline(onlyGroupPairwiseRanking), TVector<TConstArrayRef<float>>{CreateBaseline()[0]}
-            );
-            COMPARE_COMPATIBILITY_FIELD(onlyGroupPairwiseRanking, GroupInfo);
-        }
-
-        {
-            TTargetDataProviders onlySimple;
-            onlySimple.emplace(
-                TTargetDataSpecification(ETargetType::Simple),
-                targetDataProviders[TTargetDataSpecification(ETargetType::Simple)]
-            );
-
-            COMPARE_COMPATIBILITY_FIELD(onlySimple, Target);
-            UNIT_ASSERT_EQUAL(GetWeights(onlySimple), TConstArrayRef<float>());
-            UNIT_ASSERT_EQUAL(GetBaseline(onlySimple), TVector<TConstArrayRef<float>>());
-            UNIT_ASSERT_EQUAL(GetGroupInfo(onlySimple), TConstArrayRef<TQueryInfo>());
-        }
-
-        {
-            TTargetDataProviders onlyUserDefined;
-            onlyUserDefined.emplace(
-                TTargetDataSpecification(ETargetType::UserDefined),
-                targetDataProviders[TTargetDataSpecification(ETargetType::UserDefined)]
-            );
-
-            COMPARE_COMPATIBILITY_FIELD(onlyUserDefined, Target);
-            CompareCompatibilityWeights(GetWeights(onlyUserDefined),  CreateWeights());
-            UNIT_ASSERT_EQUAL(GetBaseline(onlyUserDefined), TVector<TConstArrayRef<float>>());
-            UNIT_ASSERT_EQUAL(GetGroupInfo(onlyUserDefined), TConstArrayRef<TQueryInfo>());
-        }
-
-        {
-            // regression and grouppairwise should work together
-
-            TTargetDataProviders regressionAndGroupPairwise;
-            regressionAndGroupPairwise.emplace(
-                TTargetDataSpecification(ETargetType::Regression),
-                targetDataProviders[TTargetDataSpecification(ETargetType::Regression)]
-            );
-            regressionAndGroupPairwise.emplace(
-                TTargetDataSpecification(ETargetType::GroupPairwiseRanking),
-                targetDataProviders[TTargetDataSpecification(ETargetType::GroupPairwiseRanking)]
-            );
-
-            COMPARE_COMPATIBILITY_FIELD(regressionAndGroupPairwise, Target);
-            CompareCompatibilityWeights(GetWeights(regressionAndGroupPairwise), CreateWeights());
-
-            UNIT_ASSERT_EQUAL(
-                GetBaseline(regressionAndGroupPairwise), TVector<TConstArrayRef<float>>{CreateBaseline()[0]}
-            );
-            COMPARE_COMPATIBILITY_FIELD(regressionAndGroupPairwise, GroupInfo);
-        }
-
-        {
-            // bad mix of single and multiclass
-
-            TTargetDataProviders badMix;
-            badMix.emplace(
-                TTargetDataSpecification(ETargetType::BinClass),
-                targetDataProviders[TTargetDataSpecification(ETargetType::BinClass)]
-            );
-            badMix.emplace(
-                TTargetDataSpecification(ETargetType::MultiClass),
-                targetDataProviders[TTargetDataSpecification(ETargetType::MultiClass)]
-            );
-
-            UNIT_ASSERT_EXCEPTION(GetBaseline(badMix), TCatBoostException);
-        }
-
-
-#undef COMPARE_COMPATIBILITY_FIELD
-
     }
 }
 

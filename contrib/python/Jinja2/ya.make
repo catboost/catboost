@@ -2,7 +2,7 @@ PY23_LIBRARY(Jinja2)
 
 
 
-VERSION(2.10)
+VERSION(2.10.1)
 
 PEERDIR(
     contrib/python/MarkupSafe

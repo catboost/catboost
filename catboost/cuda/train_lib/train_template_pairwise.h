@@ -6,12 +6,13 @@
 
 namespace NCatboostCuda {
     template <template <class TMapping> class TTargetTemplate>
-    THolder<TAdditiveModel<TObliviousTreeModel>> TrainPairwise(TBinarizedFeaturesManager& featureManager,
+    TGpuTrainResult TrainPairwise(TBinarizedFeaturesManager& featureManager,
                                                                const TTrainModelInternalOptions& internalOptions,
                                                                const NCatboostOptions::TCatBoostOptions& catBoostOptions,
                                                                const NCatboostOptions::TOutputFilesOptions& outputOptions,
                                                                const NCB::TTrainingDataProvider& learn,
                                                                const NCB::TTrainingDataProvider* test,
+                                                               const NCB::TFeatureEstimators& featureEstimators,
                                                                TGpuAwareRandom& random,
                                                                ui32 approxDimension,
                                                                const TMaybe<TOnEndIterationCallback>& onEndIterationCallback,
@@ -30,6 +31,7 @@ namespace NCatboostCuda {
                                            outputOptions,
                                            learn,
                                            test,
+                                           featureEstimators,
                                            random,
                                            approxDimension,
                                            onEndIterationCallback,
@@ -68,12 +70,13 @@ namespace NCatboostCuda {
 
     template <template <class> class TTargetTemplate>
     class TPairwiseGpuTrainer: public IGpuTrainer {
-        virtual THolder<TAdditiveModel<TObliviousTreeModel>> TrainModel(TBinarizedFeaturesManager& featuresManager,
+        virtual TGpuTrainResult TrainModel(TBinarizedFeaturesManager& featuresManager,
                                                                         const TTrainModelInternalOptions& internalOptions,
                                                                         const NCatboostOptions::TCatBoostOptions& catBoostOptions,
                                                                         const NCatboostOptions::TOutputFilesOptions& outputOptions,
                                                                         const NCB::TTrainingDataProvider& learn,
                                                                         const NCB::TTrainingDataProvider* test,
+                                                                        const NCB::TFeatureEstimators& featureEstimators,
                                                                         TGpuAwareRandom& random,
                                                                         ui32 approxDimension,
                                                                         const TMaybe<TOnEndIterationCallback>& onEndIterationCallback,
@@ -86,6 +89,7 @@ namespace NCatboostCuda {
                                                   outputOptions,
                                                   learn,
                                                   test,
+                                                  featureEstimators,
                                                   random,
                                                   approxDimension,
                                                   onEndIterationCallback,

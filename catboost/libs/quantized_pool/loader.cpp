@@ -1,10 +1,8 @@
-#include "pool.h"
+#include "loader.h"
 #include "quantized.h"
-#include "serialization.h"
 
 #include <catboost/idl/pool/flat/quantized_chunk_t.fbs.h>
 #include <catboost/libs/column_description/column.h>
-#include <catboost/libs/data_new/loader.h>
 #include <catboost/libs/data_new/meta_info.h>
 #include <catboost/libs/data_new/unaligned_mem.h>
 #include <catboost/libs/data_util/exists_checker.h>
@@ -39,73 +37,12 @@ using NCB::TPathWithScheme;
 using NCB::TQuantizedPool;
 using NCB::TUnalignedArrayBuf;
 
-namespace {
-    class TCBQuantizedDataLoader : public IQuantizedFeaturesDatasetLoader {
-    public:
-        explicit TCBQuantizedDataLoader(TDatasetLoaderPullArgs&& args);
-
-        void Do(IQuantizedFeaturesDataVisitor* visitor) override;
-
-    private:
-        void AddChunk(
-            const TQuantizedPool::TChunkDescription& chunk,
-            EColumn columnType,
-            const size_t* flatFeatureIdx,
-            const size_t* baselineIdx,
-            IQuantizedFeaturesDataVisitor* visitor) const;
-
-        void AddQuantizedFeatureChunk(
-            const TQuantizedPool::TChunkDescription& chunk,
-            const size_t flatFeatureIdx,
-            IQuantizedFeaturesDataVisitor* visitor) const;
-
-        static TLoadQuantizedPoolParameters GetLoadParameters() {
-            return {/*LockMemory*/ false, /*Precharge*/ false};
-        }
-
-    private:
-        ui32 ObjectCount;
-        TVector<bool> IsFeatureIgnored;
-        TQuantizedPool QuantizedPool;
-        TPathWithScheme PairsPath;
-        TPathWithScheme GroupWeightsPath;
-        TDataMetaInfo DataMetaInfo;
-        EObjectsOrder ObjectsOrder;
-    };
-}
-
-static TDataMetaInfo MaybeAddArtificialFeatures(
-    const TDataMetaInfo& src,
-    const NCB::TPoolQuantizationSchema& schema)
-{
-    TDataMetaInfo metaInfo = src;
-    metaInfo.FeaturesLayout = MakeIntrusive<NCB::TFeaturesLayout>(
-        src.FeaturesLayout->GetExternalFeatureCount(),
-        TVector<ui32>(
-            src.FeaturesLayout->GetCatFeatureInternalIdxToExternalIdx().begin(),
-            src.FeaturesLayout->GetCatFeatureInternalIdxToExternalIdx().end()),
-        src.FeaturesLayout->GetExternalFeatureIds(),
-        &schema);
-
-    const auto srcFeaturesMetaInfo = src.FeaturesLayout->GetExternalFeaturesMetaInfo();
-    for (size_t i = 0; i < srcFeaturesMetaInfo.size(); ++i) {
-        if (srcFeaturesMetaInfo[i].IsIgnored) {
-            metaInfo.FeaturesLayout->IgnoreExternalFeature(i);
-        }
-    }
-
-    // TODO(yazevnul): do we need to modify `res.ColumnsInfo`? It has almoust a year old TODO
-    // in it (see r3649186) and technically we are not working with DSV pool we are working
-    // with quantized pool.
-
-    return metaInfo;
-}
-
-TCBQuantizedDataLoader::TCBQuantizedDataLoader(TDatasetLoaderPullArgs&& args)
+NCB::TCBQuantizedDataLoader::TCBQuantizedDataLoader(TDatasetLoaderPullArgs&& args)
     : ObjectCount(0) // inited later
-    , QuantizedPool(std::forward<TQuantizedPool>(LoadQuantizedPool(args.PoolPath.Path, GetLoadParameters())))
+    , QuantizedPool(std::forward<TQuantizedPool>(LoadQuantizedPool(args.PoolPath, GetLoadParameters())))
     , PairsPath(args.CommonArgs.PairsFilePath)
     , GroupWeightsPath(args.CommonArgs.GroupWeightsFilePath)
+    , BaselinePath(args.CommonArgs.BaselineFilePath)
     , ObjectsOrder(args.CommonArgs.ObjectsOrder)
 {
     CB_ENSURE(QuantizedPool.DocumentCount > 0, "Pool is empty");
@@ -120,6 +57,8 @@ TCBQuantizedDataLoader::TCBQuantizedDataLoader(TDatasetLoaderPullArgs&& args)
         "TCBQuantizedDataLoader:PairsFilePath does not exist");
     CB_ENSURE(!GroupWeightsPath.Inited() || CheckExists(GroupWeightsPath),
         "TCBQuantizedDataLoader:GroupWeightsFilePath does not exist");
+    CB_ENSURE(!BaselinePath.Inited() || CheckExists(BaselinePath),
+        "TCBQuantizedDataLoader:BaselineFilePath does not exist");
 
     DataMetaInfo = GetDataMetaInfo(QuantizedPool, GroupWeightsPath.Inited(), PairsPath.Inited());
 
@@ -134,10 +73,6 @@ TCBQuantizedDataLoader::TCBQuantizedDataLoader(TDatasetLoaderPullArgs&& args)
     );
 
     ProcessIgnoredFeaturesList(allIgnoredFeatures, &DataMetaInfo, &IsFeatureIgnored);
-
-    DataMetaInfo = MaybeAddArtificialFeatures(
-        DataMetaInfo,
-        QuantizationSchemaFromProto(QuantizedPool.QuantizationSchema));
 }
 
 namespace {
@@ -147,9 +82,9 @@ namespace {
         ui32 LocalIndex = 0;
     };
 
-    class TSequantialChunkEvictor {
+    class TSequentialChunkEvictor {
     public:
-        explicit TSequantialChunkEvictor(ui64 minSizeInBytesToEvict);
+        explicit TSequentialChunkEvictor(ui64 minSizeInBytesToEvict);
 
         void Push(const TChunkRef& chunk);
         void MaybeEvict(bool force = false) noexcept;
@@ -162,11 +97,11 @@ namespace {
     };
 }
 
-TSequantialChunkEvictor::TSequantialChunkEvictor(const ui64 minSizeInBytesToEvict)
+TSequentialChunkEvictor::TSequentialChunkEvictor(const ui64 minSizeInBytesToEvict)
     : MinSizeInBytesToEvict_(minSizeInBytesToEvict) {
 }
 
-void TSequantialChunkEvictor::Push(const TChunkRef& chunk) {
+void TSequentialChunkEvictor::Push(const TChunkRef& chunk) {
     Y_DEFER { Evicted_ = false; };
 
     const auto* const data = reinterpret_cast<const ui8*>(chunk.Description->Chunk->Quants()->data());
@@ -187,7 +122,7 @@ void TSequantialChunkEvictor::Push(const TChunkRef& chunk) {
     }
 }
 
-void TSequantialChunkEvictor::MaybeEvict(const bool force) noexcept {
+void TSequentialChunkEvictor::MaybeEvict(const bool force) noexcept {
     if (Evicted_ || !force && Size_ < MinSizeInBytesToEvict_) {
         return;
     }
@@ -248,24 +183,7 @@ static void AssignUnaligned(const TConstArrayRef<ui8> unaligned, TVector<U>* dst
     }
 }
 
-template <typename T>
-static void FillArtificialFeatures(
-    const TConstArrayRef<ui8> quants,
-    const NCB::TQuantizedFeatureIndexRemapper remapper,
-    TVector<TVector<ui8>>* const artificialFeatures)
-{
-    TUnalignedMemoryIterator<T> it(quants.data(), quants.size());
-    for (size_t i = 0, iEnd = quants.size() / sizeof(T); i < iEnd; ++i, (void)it.Next()) {
-        const auto originalBinIdx = it.Cur();
-        const size_t artificialFeatureIdx = originalBinIdx / remapper.GetBinsPerArtificialFeature();
-        const auto artificialBinIdx = static_cast<ui8>(originalBinIdx % remapper.GetBinsPerArtificialFeature());
-        for (size_t j = 0, jEnd = artificialFeatures->size(); j < jEnd; ++j) {
-            (*artificialFeatures)[j][i] = i == artificialFeatureIdx ? artificialBinIdx : 255;
-        }
-    }
-}
-
-void TCBQuantizedDataLoader::AddQuantizedFeatureChunk(
+void NCB::TCBQuantizedDataLoader::AddQuantizedFeatureChunk(
     const TQuantizedPool::TChunkDescription& chunk,
     const size_t flatFeatureIdx,
     IQuantizedFeaturesDataVisitor* const visitor) const
@@ -274,57 +192,14 @@ void TCBQuantizedDataLoader::AddQuantizedFeatureChunk(
         reinterpret_cast<const ui8*>(chunk.Chunk->Quants()->data()),
         chunk.Chunk->Quants()->size());
 
-    const auto remapper = DataMetaInfo.FeaturesLayout->GetQuantizedFeatureIndexRemapper(flatFeatureIdx);
-    if (!remapper.HasArtificialFeatures()) {
-        visitor->AddFloatFeaturePart(
-            flatFeatureIdx,
-            chunk.DocumentOffset,
-            TMaybeOwningConstArrayHolder<ui8>::CreateNonOwning(quants));
-        return;
-    }
-
-    const auto documentCount = chunk.Chunk->Quants()->size()
-        / static_cast<size_t>(chunk.Chunk->BitsPerDocument() / CHAR_BIT) ;
-    TVector<TVector<ui8>> artificialFeatures(remapper.GetArtificialFeatureCount() + 1);
-    for (auto& artificialFeature : artificialFeatures) {
-        artificialFeature.yresize(documentCount);
-    }
-
-    switch (const auto bitsPerDocument = chunk.Chunk->BitsPerDocument()) {
-        case NCB::NIdl::EBitsPerDocumentFeature_BPDF_8:
-            ythrow TCatBoostException() << "should not be here (there must be no artificial features)";
-        case NCB::NIdl::EBitsPerDocumentFeature_BPDF_16:
-            FillArtificialFeatures<ui16>(quants, remapper, &artificialFeatures);
-            break;
-        case NCB::NIdl::EBitsPerDocumentFeature_BPDF_32:
-            FillArtificialFeatures<ui32>(quants, remapper, &artificialFeatures);
-            break;
-        case NCB::NIdl::EBitsPerDocumentFeature_BPDF_64:
-            FillArtificialFeatures<ui64>(quants, remapper, &artificialFeatures);
-            break;
-        case NCB::NIdl::EBitsPerDocumentFeature_BPDF_1:
-        case NCB::NIdl::EBitsPerDocumentFeature_BPDF_2:
-        case NCB::NIdl::EBitsPerDocumentFeature_BPDF_4:
-            ythrow TCatBoostException() << LabeledOutput((int)bitsPerDocument) << " is not supported";
-        case NCB::NIdl::EBitsPerDocumentFeature_BPDF_UKNOWN:
-            ythrow TCatBoostException() << "got invalid value for bits perDocument";
-    }
-
     visitor->AddFloatFeaturePart(
         flatFeatureIdx,
         chunk.DocumentOffset,
-        TMaybeOwningConstArrayHolder<ui8>::CreateNonOwning(MakeArrayRef(artificialFeatures[0])));
-
-    for (ui32 i = 0, iEnd = remapper.GetArtificialFeatureCount(); i < iEnd; ++i) {
-        const auto artificialFeatureIdx = remapper.GetIdxOffset() + i;
-        visitor->AddFloatFeaturePart(
-            artificialFeatureIdx,
-            chunk.DocumentOffset,
-            TMaybeOwningConstArrayHolder<ui8>::CreateNonOwning(MakeArrayRef(artificialFeatures[i + 1])));
-    }
+        chunk.Chunk->BitsPerDocument(),
+        TMaybeOwningConstArrayHolder<ui8>::CreateNonOwning(quants));
 }
 
-void TCBQuantizedDataLoader::AddChunk(
+void NCB::TCBQuantizedDataLoader::AddChunk(
     const TQuantizedPool::TChunkDescription& chunk,
     const EColumn columnType,
     const size_t* const flatFeatureIdx,
@@ -366,6 +241,7 @@ void TCBQuantizedDataLoader::AddChunk(
         case EColumn::Categ:
             // TODO(yazevnul): categorical feature quantization on YT is still in progress
         case EColumn::Auxiliary:
+        case EColumn::Text:
             // Should not be present in quantized pool
         case EColumn::Timestamp:
             // Not supported by quantized pools right now
@@ -378,7 +254,7 @@ void TCBQuantizedDataLoader::AddChunk(
     }
 }
 
-void TCBQuantizedDataLoader::Do(IQuantizedFeaturesDataVisitor* visitor) {
+void NCB::TCBQuantizedDataLoader::Do(IQuantizedFeaturesDataVisitor* visitor) {
     visitor->Start(
         DataMetaInfo,
         ObjectCount,
@@ -390,9 +266,11 @@ void TCBQuantizedDataLoader::Do(IQuantizedFeaturesDataVisitor* visitor) {
     const auto columnIdxToBaselineIdx = GetColumnIndexToBaselineIndexMap(QuantizedPool);
     const auto chunkRefs = GatherAndSortChunks(QuantizedPool);
 
-    TSequantialChunkEvictor evictor(1ULL << 24);
+    TSequentialChunkEvictor evictor(1ULL << 24);
     for (const auto chunkRef : chunkRefs) {
-        evictor.Push(chunkRef);
+        if (QuantizedPool.ColumnsDump.empty()) { // reading from mapped file
+            evictor.Push(chunkRef);
+        }
         Y_DEFER { evictor.MaybeEvict(); };
 
         const auto columnIdx = chunkRef.ColumnIndex;
@@ -434,11 +312,12 @@ void TCBQuantizedDataLoader::Do(IQuantizedFeaturesDataVisitor* visitor) {
     QuantizedPool = TQuantizedPool(); // release memory
     SetGroupWeights(GroupWeightsPath, ObjectCount, visitor);
     SetPairs(PairsPath, ObjectCount, visitor);
+    SetBaseline(BaselinePath, ObjectCount, DataMetaInfo.ClassNames, visitor);
     visitor->Finish();
 }
 
 namespace {
     TExistsCheckerFactory::TRegistrator<TFSExistsChecker> FSQuantizedExistsCheckerReg("quantized");
-    TDatasetLoaderFactory::TRegistrator<TCBQuantizedDataLoader> CBQuantizedDataLoaderReg("quantized");
+    TDatasetLoaderFactory::TRegistrator<NCB::TCBQuantizedDataLoader> CBQuantizedDataLoaderReg("quantized");
 }
 

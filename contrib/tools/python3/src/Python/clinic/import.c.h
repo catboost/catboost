@@ -75,20 +75,20 @@ PyDoc_STRVAR(_imp__fix_co_filename__doc__,
 "    File path to use.");
 
 #define _IMP__FIX_CO_FILENAME_METHODDEF    \
-    {"_fix_co_filename", (PyCFunction)_imp__fix_co_filename, METH_VARARGS, _imp__fix_co_filename__doc__},
+    {"_fix_co_filename", (PyCFunction)_imp__fix_co_filename, METH_FASTCALL, _imp__fix_co_filename__doc__},
 
 static PyObject *
 _imp__fix_co_filename_impl(PyObject *module, PyCodeObject *code,
                            PyObject *path);
 
 static PyObject *
-_imp__fix_co_filename(PyObject *module, PyObject *args)
+_imp__fix_co_filename(PyObject *module, PyObject *const *args, Py_ssize_t nargs)
 {
     PyObject *return_value = NULL;
     PyCodeObject *code;
     PyObject *path;
 
-    if (!PyArg_ParseTuple(args, "O!U:_fix_co_filename",
+    if (!_PyArg_ParseStack(args, nargs, "O!U:_fix_co_filename",
         &PyCode_Type, &code, &path)) {
         goto exit;
     }
@@ -269,19 +269,19 @@ PyDoc_STRVAR(_imp_create_dynamic__doc__,
 "Create an extension module.");
 
 #define _IMP_CREATE_DYNAMIC_METHODDEF    \
-    {"create_dynamic", (PyCFunction)_imp_create_dynamic, METH_VARARGS, _imp_create_dynamic__doc__},
+    {"create_dynamic", (PyCFunction)_imp_create_dynamic, METH_FASTCALL, _imp_create_dynamic__doc__},
 
 static PyObject *
 _imp_create_dynamic_impl(PyObject *module, PyObject *spec, PyObject *file);
 
 static PyObject *
-_imp_create_dynamic(PyObject *module, PyObject *args)
+_imp_create_dynamic(PyObject *module, PyObject *const *args, Py_ssize_t nargs)
 {
     PyObject *return_value = NULL;
     PyObject *spec;
     PyObject *file = NULL;
 
-    if (!PyArg_UnpackTuple(args, "create_dynamic",
+    if (!_PyArg_UnpackStack(args, nargs, "create_dynamic",
         1, 2,
         &spec, &file)) {
         goto exit;
@@ -354,6 +354,41 @@ exit:
     return return_value;
 }
 
+PyDoc_STRVAR(_imp_source_hash__doc__,
+"source_hash($module, /, key, source)\n"
+"--\n"
+"\n");
+
+#define _IMP_SOURCE_HASH_METHODDEF    \
+    {"source_hash", (PyCFunction)_imp_source_hash, METH_FASTCALL|METH_KEYWORDS, _imp_source_hash__doc__},
+
+static PyObject *
+_imp_source_hash_impl(PyObject *module, long key, Py_buffer *source);
+
+static PyObject *
+_imp_source_hash(PyObject *module, PyObject *const *args, Py_ssize_t nargs, PyObject *kwnames)
+{
+    PyObject *return_value = NULL;
+    static const char * const _keywords[] = {"key", "source", NULL};
+    static _PyArg_Parser _parser = {"ly*:source_hash", _keywords, 0};
+    long key;
+    Py_buffer source = {NULL, NULL};
+
+    if (!_PyArg_ParseStackAndKeywords(args, nargs, kwnames, &_parser,
+        &key, &source)) {
+        goto exit;
+    }
+    return_value = _imp_source_hash_impl(module, key, &source);
+
+exit:
+    /* Cleanup for source */
+    if (source.obj) {
+       PyBuffer_Release(&source);
+    }
+
+    return return_value;
+}
+
 #ifndef _IMP_CREATE_DYNAMIC_METHODDEF
     #define _IMP_CREATE_DYNAMIC_METHODDEF
 #endif /* !defined(_IMP_CREATE_DYNAMIC_METHODDEF) */
@@ -361,4 +396,4 @@ exit:
 #ifndef _IMP_EXEC_DYNAMIC_METHODDEF
     #define _IMP_EXEC_DYNAMIC_METHODDEF
 #endif /* !defined(_IMP_EXEC_DYNAMIC_METHODDEF) */
-/*[clinic end generated code: output=d24d7f73702a907f input=a9049054013a1b77]*/
+/*[clinic end generated code: output=f0660cd1de6b3a73 input=a9049054013a1b77]*/

@@ -36,10 +36,19 @@ namespace NCB {
         TVector<TString> GenerateFeatureIds(const TMaybe<TVector<TString>>& header) const;
     };
 
+    struct TTargetStats {
+        float MinValue = 0;
+        float MaxValue = 0;
+    };
+
     struct TDataMetaInfo {
+        ui64 ObjectCount = 0;
+
         TFeaturesLayoutPtr FeaturesLayout;
+        ui64 MaxCatFeaturesUniqValuesOnLearn = 0;
 
         bool HasTarget = false;
+        TMaybe<TTargetStats> TargetStats;
 
         ui32 BaselineCount = 0;
 
@@ -49,6 +58,9 @@ namespace NCB {
         bool HasWeights = false;
         bool HasTimestamp = false;
         bool HasPairs = false;
+
+        // can be set if baseline file header contains such information
+        TVector<TString> ClassNames = {};
 
         // set only for dsv format pools
         // TODO(akhropov): temporary, serialization details shouldn't be here
@@ -61,9 +73,11 @@ namespace NCB {
             TMaybe<TDataColumnsMetaInfo>&& columnsInfo,
             bool hasAdditionalGroupWeight,
             bool hasPairs,
+            TMaybe<ui32> additionalBaselineCount = Nothing(),
 
             // if specified - prefer these to Id in columnsInfo.Columns, otherwise take names
-            TMaybe<const TVector<TString>*> featureNames = Nothing()
+            TMaybe<const TVector<TString>*> featureNames = Nothing(),
+            const TVector<TString>& classNames = {}
         );
 
         bool operator==(const TDataMetaInfo& rhs) const;

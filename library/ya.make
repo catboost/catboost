@@ -73,10 +73,13 @@ RECURSE(
     object_factory/ut
     openssl
     par
+    pop_count
+    pop_count/benchmark
+    pop_count/ut
     python
     resource
     resource/ut
-    sse2neon
+    sse
     statistics
     statistics/ut
     streams
@@ -91,6 +94,8 @@ RECURSE(
     unittest/main
     unittest/ut
     yson
+    text_processing/dictionary/ut
+    text_processing/dictionary
 )
 
 IF (OS_LINUX)
@@ -105,7 +110,7 @@ IF (OS_WINDOWS)
 )
 ELSE()
     RECURSE(
-    sse2neon/ut
+    sse/ut
 )
 ENDIF()
 

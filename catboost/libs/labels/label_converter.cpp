@@ -158,6 +158,6 @@ int GetClassesCount(int classesCount, const TVector<TString>& classNames) {
     }
 
     CB_ENSURE(classesCount == classNames.ysize(),
-              "classes-count must be equal to size of class-names if both are specified.");
+              "classes-count " << classesCount << " must be equal to size of class-names " << classNames.ysize() << "if both are specified.");
     return classesCount;
 }

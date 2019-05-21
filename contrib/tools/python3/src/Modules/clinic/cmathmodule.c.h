@@ -641,19 +641,19 @@ PyDoc_STRVAR(cmath_log__doc__,
 "If the base not specified, returns the natural logarithm (base e) of z.");
 
 #define CMATH_LOG_METHODDEF    \
-    {"log", (PyCFunction)cmath_log, METH_VARARGS, cmath_log__doc__},
+    {"log", (PyCFunction)cmath_log, METH_FASTCALL, cmath_log__doc__},
 
 static PyObject *
 cmath_log_impl(PyObject *module, Py_complex x, PyObject *y_obj);
 
 static PyObject *
-cmath_log(PyObject *module, PyObject *args)
+cmath_log(PyObject *module, PyObject *const *args, Py_ssize_t nargs)
 {
     PyObject *return_value = NULL;
     Py_complex x;
     PyObject *y_obj = NULL;
 
-    if (!PyArg_ParseTuple(args, "D|O:log",
+    if (!_PyArg_ParseStack(args, nargs, "D|O:log",
         &x, &y_obj)) {
         goto exit;
     }
@@ -726,19 +726,19 @@ PyDoc_STRVAR(cmath_rect__doc__,
 "Convert from polar coordinates to rectangular coordinates.");
 
 #define CMATH_RECT_METHODDEF    \
-    {"rect", (PyCFunction)cmath_rect, METH_VARARGS, cmath_rect__doc__},
+    {"rect", (PyCFunction)cmath_rect, METH_FASTCALL, cmath_rect__doc__},
 
 static PyObject *
 cmath_rect_impl(PyObject *module, double r, double phi);
 
 static PyObject *
-cmath_rect(PyObject *module, PyObject *args)
+cmath_rect(PyObject *module, PyObject *const *args, Py_ssize_t nargs)
 {
     PyObject *return_value = NULL;
     double r;
     double phi;
 
-    if (!PyArg_ParseTuple(args, "dd:rect",
+    if (!_PyArg_ParseStack(args, nargs, "dd:rect",
         &r, &phi)) {
         goto exit;
     }
@@ -851,14 +851,14 @@ PyDoc_STRVAR(cmath_isclose__doc__,
 "not close to anything, even itself. inf and -inf are only close to themselves.");
 
 #define CMATH_ISCLOSE_METHODDEF    \
-    {"isclose", (PyCFunction)cmath_isclose, METH_FASTCALL, cmath_isclose__doc__},
+    {"isclose", (PyCFunction)cmath_isclose, METH_FASTCALL|METH_KEYWORDS, cmath_isclose__doc__},
 
 static int
 cmath_isclose_impl(PyObject *module, Py_complex a, Py_complex b,
                    double rel_tol, double abs_tol);
 
 static PyObject *
-cmath_isclose(PyObject *module, PyObject **args, Py_ssize_t nargs, PyObject *kwnames)
+cmath_isclose(PyObject *module, PyObject *const *args, Py_ssize_t nargs, PyObject *kwnames)
 {
     PyObject *return_value = NULL;
     static const char * const _keywords[] = {"a", "b", "rel_tol", "abs_tol", NULL};
@@ -869,7 +869,7 @@ cmath_isclose(PyObject *module, PyObject **args, Py_ssize_t nargs, PyObject *kwn
     double abs_tol = 0.0;
     int _return_value;
 
-    if (!_PyArg_ParseStack(args, nargs, kwnames, &_parser,
+    if (!_PyArg_ParseStackAndKeywords(args, nargs, kwnames, &_parser,
         &a, &b, &rel_tol, &abs_tol)) {
         goto exit;
     }
@@ -882,4 +882,4 @@ cmath_isclose(PyObject *module, PyObject **args, Py_ssize_t nargs, PyObject *kwn
 exit:
     return return_value;
 }
-/*[clinic end generated code: output=978f59702b41655f input=a9049054013a1b77]*/
+/*[clinic end generated code: output=dd93c3a6aeb42ebb input=a9049054013a1b77]*/

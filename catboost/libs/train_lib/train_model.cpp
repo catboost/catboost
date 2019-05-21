@@ -1,13 +1,13 @@
 #include "train_model.h"
-
-#include "approx_dimension.h"
+#include "options_helper.h"
 #include "cross_validation.h"
-#include "data.h"
-#include "preprocess.h"
 
+#include <catboost/libs/algo/approx_dimension.h>
+#include <catboost/libs/algo/data.h>
 #include <catboost/libs/algo/full_model_saver.h>
 #include <catboost/libs/algo/helpers.h>
 #include <catboost/libs/algo/learn_context.h>
+#include <catboost/libs/algo/preprocess.h>
 #include <catboost/libs/algo/train.h>
 #include <catboost/libs/algo/tree_print.h>
 #include <catboost/libs/data_new/borders_io.h>
@@ -47,6 +47,16 @@
 
 using namespace NCB;
 
+static void CreateDirIfNotExist(const TString& path) {
+    TFsPath trainDirPath(path);
+    try {
+        if (!path.empty() && !trainDirPath.Exists()) {
+            trainDirPath.MkDir();
+        }
+    } catch (...) {
+        ythrow TCatBoostException() << "Can't create working dir: " << path;
+    }
+}
 
 static void ShrinkModel(int itCount, const TCtrHelper& ctrsHelper, TLearnProgress* progress) {
     progress->LeafValues.resize(itCount);
@@ -66,6 +76,7 @@ static void ShrinkModel(int itCount, const TCtrHelper& ctrsHelper, TLearnProgres
 static TDataProviders LoadPools(
     const NCatboostOptions::TPoolLoadParams& loadOptions,
     EObjectsOrder objectsOrder,
+    TVector<TString>* classNames,
     NPar::TLocalExecutor* const executor,
     TProfileInfo* profile
 ) {
@@ -76,7 +87,7 @@ static TDataProviders LoadPools(
         "Test files are not supported in cross-validation mode"
     );
 
-    auto pools = NCB::ReadTrainDatasets(loadOptions, objectsOrder, !cvMode, executor, profile);
+    auto pools = NCB::ReadTrainDatasets(loadOptions, objectsOrder, !cvMode, classNames, executor, profile);
 
     if (cvMode) {
         if (cvParams.Shuffle && (pools.Learn->ObjectsData->GetOrder() != EObjectsOrder::RandomShuffled)) {
@@ -138,7 +149,6 @@ static void InitializeAndCheckMetricData(
     const int approxDimension = ctx.LearnProgress.ApproxDimension;
     auto& metrics = metricsData->Metrics;
     metrics = CreateMetrics(
-        ctx.Params.LossFunctionDescription,
         ctx.Params.MetricOptions,
         ctx.EvalMetricDescriptor,
         approxDimension
@@ -457,11 +467,12 @@ namespace {
 
         void TrainModel(
             const TTrainModelInternalOptions& internalOptions,
-            const NJson::TJsonValue& jsonParams,
+            const NCatboostOptions::TCatBoostOptions& catboostOptions,
             const NCatboostOptions::TOutputFilesOptions& outputOptions,
             const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
             const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
             const TMaybe<TOnEndIterationCallback>& onEndIterationCallback,
+            TFeatureEstimators featureEstimators,
             TTrainingDataProviders trainingData,
             const TLabelConverter& labelConverter,
             NPar::TLocalExecutor* localExecutor,
@@ -470,6 +481,7 @@ namespace {
             const TVector<TEvalResult*>& evalResultPtrs,
             TMetricsAndTimeLeftHistory* metricsAndTimeHistory
         ) const override {
+            CB_ENSURE(featureEstimators.Empty(), "Feature calcers are not supported in CPU training yet");
             TTrainingForCPUDataProviders trainingDataForCpu
                 = trainingData.Cast<TQuantizedForCPUObjectsDataProvider>();
 
@@ -490,34 +502,23 @@ namespace {
             const auto& quantizedFeaturesInfo
                 = *trainingDataForCpu.Learn->ObjectsData->GetQuantizedFeaturesInfo();
 
-            NCatboostOptions::TCatBoostOptions updatedParams(NCatboostOptions::LoadOptions(jsonParams));
-            NCatboostOptions::TOutputFilesOptions updatedOutputOptions = outputOptions;
-
-            SetDataDependentDefaults(
-                trainingDataForCpu.Learn->GetObjectCount(),
-                /*hasLearnTarget*/ trainingDataForCpu.Learn->MetaInfo.HasTarget,
-                quantizedFeaturesInfo.CalcMaxCategoricalFeaturesUniqueValuesCountOnLearn(),
-                /*testPoolSize*/ trainingDataForCpu.GetTestSampleCount(),
-                /*hasTestLabels*/ trainingDataForCpu.Test.size() > 0 &&
-                    trainingDataForCpu.Test[0]->MetaInfo.HasTarget &&
-                    IsConst(GetTarget(trainingDataForCpu.Test[0]->TargetData)),
-                /*hasTestPairs*/ trainingDataForCpu.Test.size() > 0 &&
-                    trainingDataForCpu.Test[0]->TargetData.contains(TTargetDataSpecification(ETargetType::GroupPairwiseRanking)),
-                &updatedOutputOptions.UseBestModel,
-                &updatedParams
-            );
+            const TString trainingOptionsFileName = outputOptions.CreateTrainingOptionsFullPath();
+            if (!trainingOptionsFileName.empty()) {
+                TOFStream trainingOptionsFile(trainingOptionsFileName);
+                trainingOptionsFile.Write(NJson::PrettifyJson(ToString(catboostOptions)));
+            }
 
             TLearnContext ctx(
-                updatedParams,
+                catboostOptions,
                 objectiveDescriptor,
                 evalMetricDescriptor,
-                updatedOutputOptions,
+                outputOptions,
                 trainingDataForCpu.Learn->MetaInfo.FeaturesLayout,
                 rand,
                 localExecutor
             );
 
-            ctx.LearnProgress.ApproxDimension = GetApproxDimension(updatedParams, labelConverter);
+            ctx.LearnProgress.ApproxDimension = GetApproxDimension(catboostOptions, labelConverter);
             if (ctx.LearnProgress.ApproxDimension > 1) {
                 ctx.LearnProgress.LabelConverter = labelConverter;
             }
@@ -555,12 +556,6 @@ namespace {
 
             if (metricsAndTimeHistory) {
                 *metricsAndTimeHistory = ctx.LearnProgress.MetricsAndTimeHistory;
-            }
-
-            const TString trainingOptionsFileName = ctx.OutputOptions.CreateTrainingOptionsFullPath();
-            if (!trainingOptionsFileName.empty()) {
-                TOFStream trainingOptionsFile(trainingOptionsFileName);
-                trainingOptionsFile.Write(NJson::PrettifyJson(ToString(ctx.Params)));
             }
 
             if (internalOptions.CalcMetricsOnly) {
@@ -649,7 +644,7 @@ namespace {
         }
 
         void ModelBasedEval(
-            const NJson::TJsonValue& /*params*/,
+            const NCatboostOptions::TCatBoostOptions& /*catboostOptions*/,
             const NCatboostOptions::TOutputFilesOptions& /*outputOptions*/,
             TTrainingDataProviders /*trainingData*/,
             const TLabelConverter& /*labelConverter*/,
@@ -688,7 +683,7 @@ static void TrainModel(
         "Multiple eval sets not supported for GPU"
     );
 
-    NCatboostOptions::TOutputFilesOptions updatedOutputOptions = outputOptions;
+    NCatboostOptions::TOutputFilesOptions updatedOutputOptions(outputOptions);
     if (outputModelPath) {
         updatedOutputOptions.ResultModelPath = outputModelPath;
     }
@@ -726,6 +721,7 @@ static void TrainModel(
             *learnFeaturesLayout,
             catBoostOptions.DataProcessingOptions.Get().IgnoredFeatures.Get(),
             catBoostOptions.DataProcessingOptions->FloatFeaturesBinarization.Get(),
+            catBoostOptions.DataProcessingOptions->PerFloatFeatureBinarization.Get(),
             /*allowNansInTestOnly*/true,
             outputOptions.AllowWriteFiles()
         );
@@ -753,9 +749,12 @@ static void TrainModel(
 
     TRestorableFastRng64 rand(catBoostOptions.RandomSeed.Get());
 
-    pools.Learn = ShuffleLearnDataIfNeeded(catBoostOptions, pools.Learn, executor, &rand);
-
     TLabelConverter labelConverter;
+
+    TFeatureEstimators featureEstimators;
+    //here we could add featureEstimators that will depend on non-quantinized data
+    //and share data with pools, otherwise float feature would be dropped
+
 
     TTrainingDataProviders trainingData = GetTrainingData(
         std::move(pools),
@@ -768,29 +767,35 @@ static void TrainModel(
         executor,
         &rand);
 
-    UpdateUndefinedClassNames(catBoostOptions.DataProcessingOptions, &updatedTrainOptionsJson);
-
     CheckConsistency(trainingData);
 
+    SetDataDependentDefaults(
+        trainingData.Learn->MetaInfo,
+        trainingData.Test.size() > 0 ?
+            TMaybe<NCB::TDataMetaInfo>(trainingData.Test[0]->MetaInfo) :
+            Nothing(),
+        &updatedOutputOptions.UseBestModel,
+        &catBoostOptions
+    );
+
+    CreateDirIfNotExist(outputOptions.GetTrainDir());
+
     if (outputOptions.NeedSaveBorders()) {
-        if (outputOptions.GetTrainDir()) {
-            TFsPath dirPath(outputOptions.GetTrainDir());
-            if (!dirPath.Exists()) {
-                dirPath.MkDirs();
-            }
-        }
         SaveBordersAndNanModesToFileInMatrixnetFormat(
             outputOptions.CreateOutputBordersFullPath(),
             *trainingData.Learn->ObjectsData->GetQuantizedFeaturesInfo());
     }
 
+    trainingData.Learn = ShuffleLearnDataIfNeeded(catBoostOptions, trainingData.Learn, executor, &rand);
+
     modelTrainerHolder->TrainModel(
         TTrainModelInternalOptions(),
-        updatedTrainOptionsJson,
+        catBoostOptions,
         updatedOutputOptions,
         objectiveDescriptor,
         evalMetricDescriptor,
         Nothing(),
+        featureEstimators,
         std::move(trainingData),
         labelConverter,
         executor,
@@ -821,10 +826,12 @@ void TrainModel(
     NPar::TLocalExecutor executor;
     executor.RunAdditionalThreads(catBoostOptions.SystemOptions.Get().NumThreads.Get() - 1);
 
+    TVector<TString> classNames = catBoostOptions.DataProcessingOptions->ClassNames;
     TDataProviders pools = LoadPools(
         loadOptions,
         catBoostOptions.DataProcessingOptions->HasTimeFlag.Get() ?
             EObjectsOrder::Ordered : EObjectsOrder::Undefined,
+        &classNames,
         &executor,
         &profile);
 
@@ -843,7 +850,6 @@ void TrainModel(
             ValidateColumnOutput(
                 outputColumns,
                 testPool,
-                false,
                 loadOptions.CvParams.FoldCount > 0
             );
         }
@@ -851,13 +857,14 @@ void TrainModel(
     TVector<TEvalResult> evalResults(pools.Test.ysize());
 
     NJson::TJsonValue updatedTrainJson = trainJson;
-    UpdateUndefinedClassNames(catBoostOptions.DataProcessingOptions, &updatedTrainJson);
+    UpdateUndefinedClassNames(classNames, &updatedTrainJson);
 
     // create here to possibly load borders
     auto quantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
         *pools.Learn->MetaInfo.FeaturesLayout,
         catBoostOptions.DataProcessingOptions->IgnoredFeatures.Get(),
         catBoostOptions.DataProcessingOptions->FloatFeaturesBinarization.Get(),
+        catBoostOptions.DataProcessingOptions->PerFloatFeatureBinarization.Get(),
         /*allowNansInTestOnly*/true,
         outputOptions.AllowWriteFiles()
     );
@@ -869,7 +876,12 @@ void TrainModel(
 
     const auto fstrRegularFileName = outputOptions.CreateFstrRegularFullPath();
     const auto fstrInternalFileName = outputOptions.CreateFstrIternalFullPath();
-    const bool needFstr = !fstrInternalFileName.empty() || !fstrRegularFileName.empty();
+    EGrowPolicy growPolicy = catBoostOptions.ObliviousTreeOptions.Get().GrowPolicy.GetUnchecked();  // GpuOnlyOption
+    bool needFstr = !fstrInternalFileName.empty() || !fstrRegularFileName.empty();
+    if (needFstr && ShouldSkipFstrGrowPolicy(growPolicy)) {
+        needFstr = false;
+        CATBOOST_INFO_LOG << "Skip fstr for " << growPolicy << " growPolicy" << Endl;
+    }
     bool needPoolAfterTrain = !evalOutputFileName.empty() || (needFstr && outputOptions.GetFstrType() == EFstrType::LossFunctionChange);
     if (needFstr && outputOptions.GetFstrType() == EFstrType::FeatureImportance && updatedTrainJson.Has("loss_function")) {
         NCatboostOptions::TLossDescription modelLossDescription;
@@ -913,7 +925,6 @@ void TrainModel(
                 outputColumns,
                 visibleLabelsHelper,
                 testPool,
-                false,
                 &fileStream,
                 testSetPath,
                 {testIdx, pools.Test.ysize()},
@@ -945,12 +956,6 @@ void TrainModel(
             &fstrRegularFileName,
             &fstrInternalFileName,
             outputOptions.GetFstrType());
-    }
-
-    const TString trainingOptionsFileName = outputOptions.CreateTrainingOptionsFullPath();
-    if (!trainingOptionsFileName.empty()) {
-        TOFStream trainingOptionsFile(trainingOptionsFileName);
-        trainingOptionsFile.Write(NJson::PrettifyJson(ToString(catBoostOptions)));
     }
 
     CATBOOST_INFO_LOG << runTimer.Passed() / 60 << " min passed" << Endl;
@@ -992,6 +997,7 @@ static void ModelBasedEval(
             *learnFeaturesLayout,
             catBoostOptions.DataProcessingOptions.Get().IgnoredFeatures.Get(),
             catBoostOptions.DataProcessingOptions->FloatFeaturesBinarization.Get(),
+            catBoostOptions.DataProcessingOptions->PerFloatFeatureBinarization.Get(),
             /*allowNansInTestOnly*/true,
             outputOptions.AllowWriteFiles()
         );
@@ -1019,8 +1025,6 @@ static void ModelBasedEval(
 
     TRestorableFastRng64 rand(catBoostOptions.RandomSeed.Get());
 
-    pools.Learn = ShuffleLearnDataIfNeeded(catBoostOptions, pools.Learn, executor, &rand);
-
     TLabelConverter labelConverter;
 
     TTrainingDataProviders trainingData = GetTrainingData(
@@ -1034,13 +1038,25 @@ static void ModelBasedEval(
         executor,
         &rand);
 
-    UpdateUndefinedClassNames(catBoostOptions.DataProcessingOptions, &updatedTrainOptionsJson);
-
     CheckConsistency(trainingData);
 
+    NCatboostOptions::TOutputFilesOptions updatedOutputOptions(outputOptions);
+    SetDataDependentDefaults(
+        trainingData.Learn->MetaInfo,
+        trainingData.Test.size() > 0 ?
+            TMaybe<NCB::TDataMetaInfo>(trainingData.Test[0]->MetaInfo) :
+            Nothing(),
+        &updatedOutputOptions.UseBestModel,
+        &catBoostOptions
+    );
+
+    CreateDirIfNotExist(updatedOutputOptions.GetTrainDir());
+
+    trainingData.Learn = ShuffleLearnDataIfNeeded(catBoostOptions, trainingData.Learn, executor, &rand);
+
     modelTrainerHolder->ModelBasedEval(
-        updatedTrainOptionsJson,
-        outputOptions,
+        catBoostOptions,
+        updatedOutputOptions,
         std::move(trainingData),
         labelConverter,
         executor);
@@ -1066,10 +1082,13 @@ void ModelBasedEval(
     NPar::TLocalExecutor executor;
     executor.RunAdditionalThreads(catBoostOptions.SystemOptions.Get().NumThreads.Get() - 1);
 
+    TVector<TString> classNames = catBoostOptions.DataProcessingOptions->ClassNames;
+
     TDataProviders pools = LoadPools(
         loadOptions,
         catBoostOptions.DataProcessingOptions->HasTimeFlag.Get() ?
             EObjectsOrder::Ordered : EObjectsOrder::Undefined,
+        &classNames,
         &executor,
         &profile);
 
@@ -1078,6 +1097,7 @@ void ModelBasedEval(
         *pools.Learn->MetaInfo.FeaturesLayout,
         catBoostOptions.DataProcessingOptions->IgnoredFeatures.Get(),
         catBoostOptions.DataProcessingOptions->FloatFeaturesBinarization.Get(),
+        catBoostOptions.DataProcessingOptions->PerFloatFeatureBinarization.Get(),
         /*allowNansInTestOnly*/true,
         outputOptions.AllowWriteFiles()
     );
@@ -1088,7 +1108,7 @@ void ModelBasedEval(
     }
 
     NJson::TJsonValue updatedTrainJson = trainJson;
-    UpdateUndefinedClassNames(catBoostOptions.DataProcessingOptions, &updatedTrainJson);
+    UpdateUndefinedClassNames(classNames, &updatedTrainJson);
 
     ModelBasedEval(
         updatedTrainJson,
@@ -1130,7 +1150,7 @@ void TrainModel(
 
     NPar::TLocalExecutor executor;
     executor.RunAdditionalThreads(
-        NCatboostOptions::LoadOptions(trainOptionsJson).SystemOptions.Get().NumThreads.Get() - 1);
+        NCatboostOptions::GetThreadCount(trainOptionsJson) - 1);
 
     TrainModel(
         trainOptionsJson,

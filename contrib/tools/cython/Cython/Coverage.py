@@ -103,8 +103,9 @@ class Plugin(CoveragePlugin):
         else:
             c_file, _ = self._find_source_files(filename)
             if not c_file:
-                if standalone():
-                    raise AssertionError(filename)
+                # XXX This is a bug. Uncomment after https://st.yandex-team.ru/DEVTOOLS-5367
+                # if standalone():
+                #     raise AssertionError(filename)
                 return None  # unknown file
             rel_file_path, code = self._parse_lines(c_file, filename)
             if code is None:
@@ -180,11 +181,11 @@ class Plugin(CoveragePlugin):
                 iter_files = run_import_hook.resfs_files
 
             for c_file in iter_files():
-                if c_file.endswith('.pyx.c') or c_file.endswith('.pyx.cpp'):
+                if os.path.splitext(c_file)[1] in C_FILE_EXTENSIONS:
                     self._parse_lines(c_file, source_file)
                     if source_file in self._c_files_map:
                         return
-            raise AssertionError(source_file)
+            raise AssertionError((source_file, os.environ.get('PYTHON_COVERAGE_CYTHON_BUILD_ROOT')))
 
         if not os.path.isdir(dir_path):
             return
@@ -430,10 +431,13 @@ if standalone():
                 import run_import_hook
                 return run_import_hook.resfs_src(filename, resfs_file=True)
 
-        for suffix in ['.pyx.c', '.pyx.cpp']:
+        for suffix in ['.pyx.c', '.pyx.cpp'] + C_FILE_EXTENSIONS:
             if exists(base_path + suffix):
                 return base_path + suffix
-        sys.stderr.write("Failed to find c source: {} (skipping module)".format(base_path))
+
+        # XXX File might be included from another pyx file without mentioning in the ya.make file
+        # See https://st.yandex-team.ru/DEVTOOLS-5367 for more info
+        # TODO We need to look at the map in the resources to specify which file has included base_path
         return None
 
 

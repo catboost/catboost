@@ -157,7 +157,7 @@ public:
      *                                  to be null-terminated.
      */
     inline const char* Data() const noexcept {
-        return Ptr()->Data();
+        return Ptr()->data();
     }
 
     /**
@@ -167,7 +167,7 @@ public:
      *                                  available for reading.
      */
     inline size_t Size() const noexcept {
-        return Ptr()->Size();
+        return Ptr()->size();
     }
 
     /**

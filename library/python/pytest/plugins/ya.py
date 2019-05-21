@@ -39,6 +39,12 @@ _pytest.main.EXIT_NOTESTSCOLLECTED = 0
 SHUTDOWN_REQUESTED = False
 
 
+def to_str(s):
+    if isinstance(s, six.text_type):
+        return s.encode('utf8')
+    return s
+
+
 def configure_pdb_on_demand():
     import signal
 
@@ -378,8 +384,8 @@ def pytest_collection_modifyitems(items, config):
         items_by_classes = {}
         res = []
         for item in items:
-            if "()" in item.nodeid and not split_by_tests:
-                class_name = item.nodeid.split("()", 1)[0]
+            if item.nodeid.count("::") == 2 and not split_by_tests:
+                class_name = item.nodeid.rsplit("::", 1)[0]
                 if class_name not in items_by_classes:
                     items_by_classes[class_name] = []
                     res.append(items_by_classes[class_name])
@@ -647,7 +653,7 @@ class TestItem(object):
         if isinstance(entry, _pytest.reports.BaseReport):
             self._error = get_formatted_error(entry)
         else:
-            self._error = "[[{}]]{}".format(marker, entry)
+            self._error = "[[{}]]{}".format(to_str(marker), to_str(entry))
 
     @property
     def duration(self):
@@ -764,9 +770,7 @@ class TraceReportGenerator(object):
             'value': value,
             'name': name
         }
-        data = json.dumps(event, ensure_ascii=False)
-        if isinstance(data, six.text_type):
-            data = data.encode("utf8")
+        data = to_str(json.dumps(event, ensure_ascii=False))
         self.File.write(data + b'\n')
         self.File.flush()
 

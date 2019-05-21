@@ -68,6 +68,7 @@ enum HttpCodes {
     HTTP_BANDWIDTH_LIMIT_EXCEEDED = 509,
     HTTP_NOT_EXTENDED = 510,
     HTTP_NETWORK_AUTHENTICATION_REQUIRED = 511,
+    HTTP_UNASSIGNED_512 = 512,
 
     HTTP_CODE_MAX
 };
@@ -79,7 +80,7 @@ inline TStringBuf HttpCodeStr(int code) noexcept {
 }
 
 inline bool IsHttpCode(int code) noexcept {
-    return HttpCodeStrEx(code).Data() != HttpCodeStrEx(0).Data();
+    return HttpCodeStrEx(code).data() != HttpCodeStrEx(0).data();
 }
 
 inline bool IsUserError(int code) noexcept {

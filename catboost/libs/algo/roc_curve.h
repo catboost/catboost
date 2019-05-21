@@ -1,12 +1,16 @@
 #pragma once
 
 #include <catboost/libs/data_new/data_provider.h>
-#include <catboost/libs/model/model.h>
-
-#include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/fwd.h>
 #include <util/generic/vector.h>
+
+
+struct TFullModel;
+
+namespace NPar {
+    class TLocalExecutor;
+}
 
 
 struct TRocPoint {
@@ -29,6 +33,9 @@ public:
 };
 
 struct TRocCurve {
+    constexpr static double EPS = 1e-13; // for comparisons of probabilities and coordinates
+
+public:
     TRocCurve(const TFullModel& model, const TVector<NCB::TDataProviderPtr>& datasets, int threadCount = 1);
 
     TRocCurve(
@@ -60,6 +67,8 @@ private:
         const TVector<TConstArrayRef<float>>& labels, // [poolId][docId]
         NPar::TLocalExecutor* localExecutor
     );
+
+    static TRocPoint IntersectSegments(const TRocPoint& leftEnds, const TRocPoint& rightEnds);
 
     void AddPoint(double newBoundary, double newFnr, double newFpr);
 };

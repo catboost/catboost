@@ -57,6 +57,7 @@ namespace NCB {
         TVector<size_t> IgnoredColumnIndices;
 
         TVector<TBlob> Blobs;
+        TVector<ui8> ColumnsDump; // non-mapped storage
     };
 
     struct TQuantizedPoolDigest {

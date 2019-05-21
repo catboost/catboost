@@ -17,6 +17,9 @@ TVector<TVector<double>> CollectLeavesStatistics(
     const NCB::TDataProvider& dataset,
     const TFullModel& model,
     NPar::TLocalExecutor* localExecutor) {
+    //TODO(eermishkina): support non symmetric trees
+    CB_ENSURE_INTERNAL(model.IsOblivious(), "Is not supported for non symmetric trees");
+
     TConstArrayRef<float> weights;
 
     if (const auto* modelInfoParams = MapFindPtr(model.ModelInfo, "params")) {
@@ -31,7 +34,7 @@ TVector<TVector<double>> CollectLeavesStatistics(
                 &rand,
                 localExecutor);
 
-            weights = GetWeights(processedData.TargetData);
+            weights = GetWeights(*processedData.TargetData);
         }
     }
 

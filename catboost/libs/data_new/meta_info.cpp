@@ -36,12 +36,15 @@ TDataMetaInfo::TDataMetaInfo(
     TMaybe<TDataColumnsMetaInfo>&& columnsInfo,
     bool hasAdditionalGroupWeight,
     bool hasPairs,
-    TMaybe<const TVector<TString>*> featureNames
+    TMaybe<ui32> additionalBaselineCount,
+    TMaybe<const TVector<TString>*> featureNames,
+    const TVector<TString>& classNames
 )
-    : ColumnsInfo(std::move(columnsInfo))
+    : ClassNames(classNames)
+    , ColumnsInfo(std::move(columnsInfo))
 {
     HasTarget = ColumnsInfo->CountColumns(EColumn::Label);
-    BaselineCount = ColumnsInfo->CountColumns(EColumn::Baseline);
+    BaselineCount = additionalBaselineCount ? *additionalBaselineCount : ColumnsInfo->CountColumns(EColumn::Baseline);
     HasWeights = ColumnsInfo->CountColumns(EColumn::Weight) != 0;
     HasGroupId = ColumnsInfo->CountColumns(EColumn::GroupId) != 0;
     HasGroupWeight = ColumnsInfo->CountColumns(EColumn::GroupWeight) != 0 || hasAdditionalGroupWeight;
@@ -56,6 +59,7 @@ TDataMetaInfo::TDataMetaInfo(
     }
 
     TVector<ui32> catFeatureIndices;
+    TVector<ui32> textFeatureIndices;
 
     ui32 featureIdx = 0;
     for (const auto& column : ColumnsInfo->Columns) {
@@ -65,6 +69,8 @@ TDataMetaInfo::TDataMetaInfo(
             }
             if (column.Type == EColumn::Categ) {
                 catFeatureIndices.push_back(featureIdx);
+            } else if (column.Type == EColumn::Text) {
+                textFeatureIndices.push_back(featureIdx);
             }
             ++featureIdx;
         }
@@ -73,8 +79,8 @@ TDataMetaInfo::TDataMetaInfo(
     FeaturesLayout = MakeIntrusive<TFeaturesLayout>(
         featureIdx,
         std::move(catFeatureIndices),
-        finalFeatureNames,
-        nullptr);
+        std::move(textFeatureIndices),
+        finalFeatureNames);
 
     ColumnsInfo->Validate();
     Validate();
@@ -102,6 +108,7 @@ bool TDataMetaInfo::operator==(const TDataMetaInfo& rhs) const {
         HasWeights,
         HasTimestamp,
         HasPairs,
+        ClassNames,
         ColumnsInfo
     ) == std::tie(
         rhs.HasTarget,
@@ -112,6 +119,7 @@ bool TDataMetaInfo::operator==(const TDataMetaInfo& rhs) const {
         rhs.HasWeights,
         rhs.HasTimestamp,
         rhs.HasPairs,
+        ClassNames,
         rhs.ColumnsInfo
     );
 }
@@ -120,6 +128,8 @@ void TDataMetaInfo::Validate() const {
     CB_ENSURE(GetFeatureCount() > 0, "Pool should have at least one factor");
     CB_ENSURE(!HasGroupWeight || (HasGroupWeight && HasGroupId),
         "You should provide GroupId when providing GroupWeight.");
+    CB_ENSURE(ClassNames.empty() || BaselineCount == 0 || BaselineCount == ClassNames.size(),
+        "Baseline columns count " << BaselineCount << " and class names count "  << ClassNames.size() << " are not equal");
 }
 
 TVector<TString> TDataColumnsMetaInfo::GenerateFeatureIds(const TMaybe<TVector<TString>>& header) const {
@@ -127,13 +137,13 @@ TVector<TString> TDataColumnsMetaInfo::GenerateFeatureIds(const TMaybe<TVector<T
     // TODO: this convoluted logic is for compatibility
     if (!AllOf(Columns.begin(), Columns.end(), [](const TColumn& column) { return column.Id.empty(); })) {
         for (auto column : Columns) {
-            if (column.Type == EColumn::Categ || column.Type == EColumn::Num) {
+            if (IsFactorColumn(column.Type)) {
                 featureIds.push_back(column.Id);
             }
         }
     } else if (header.Defined()) {
         for (auto i : xrange(header->size())) {
-            if (Columns[i].Type == EColumn::Categ || Columns[i].Type == EColumn::Num) {
+            if (IsFactorColumn(Columns[i].Type)) {
                 featureIds.push_back((*header)[i]);
             }
         }
@@ -152,6 +162,7 @@ void NCB::AddWithShared(IBinSaver* binSaver, TDataMetaInfo* data) {
         data->HasWeights,
         data->HasTimestamp,
         data->HasPairs,
+        data->ClassNames,
         data->ColumnsInfo
     );
 }

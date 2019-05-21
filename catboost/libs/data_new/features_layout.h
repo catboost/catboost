@@ -17,10 +17,6 @@
 #include <util/system/yassert.h>
 
 namespace NCB {
-    struct TPoolQuantizationSchema;
-}
-
-namespace NCB {
 
     struct TFeatureMetaInfo {
         EFeatureType Type;
@@ -68,54 +64,21 @@ struct TDumper<NCB::TFeatureMetaInfo> {
 
 
 namespace NCB {
-
-    class TQuantizedFeatureIndexRemapper {
-    public:
-        TQuantizedFeatureIndexRemapper() = default;
-        explicit TQuantizedFeatureIndexRemapper(ui32 indexOffset, ui32 binCount);
-
-        SAVELOAD(IndexOffset_, BinCount_)
-
-        ui32 GetIdxOffset() const {
-            return IndexOffset_;
-        }
-
-        ui32 GetBinsPerArtificialFeature() const {
-            // Leave one extra bin for "missing" artificial feature
-            return 255;
-        }
-
-        ui32 GetRemappedIdx(ui32 binIdx) const {
-            return IndexOffset_ + binIdx / GetBinsPerArtificialFeature();
-        }
-
-        ui32 GetArtificialFeatureCount() const {
-            if (BinCount_) {
-                return CeilDiv<ui32>(BinCount_, GetBinsPerArtificialFeature()) - 1;
-            }
-
-            return 0;
-        }
-
-        bool HasArtificialFeatures() const {
-            return GetArtificialFeatureCount() > 0;
-        }
-
-    private:
-        ui32 IndexOffset_ = 0;
-        ui32 BinCount_ = 0;
-    };
-
     class TFeaturesLayout final : public TAtomicRefCount<TFeaturesLayout> {
     public:
         // needed because of default init in Cython and because of BinSaver
         TFeaturesLayout() = default;
         explicit TFeaturesLayout(const ui32 featureCount);
+        TFeaturesLayout( // TODO(d-kruchinin) Temporary fix while DataProvider interface is not private
+            const ui32 featureCount,
+            const TVector<ui32>& catFeatureIndices,
+            const TVector<TString>& featureId)
+            : TFeaturesLayout(featureCount, catFeatureIndices, {}, featureId) {}
         TFeaturesLayout(
             const ui32 featureCount,
             const TVector<ui32>& catFeatureIndices,
-            const TVector<TString>& featureId,
-            const NCB::TPoolQuantizationSchema* quantizationSchema);
+            const TVector<ui32>& textFeatureIndices,
+            const TVector<TString>& featureId);
         TFeaturesLayout(
             const TVector<TFloatFeature>& floatFeatures,
             const TVector<TCatFeature>& catFeatures);
@@ -127,6 +90,11 @@ namespace NCB {
             FeatureExternalIdxToInternalIdx,
             CatFeatureInternalIdxToExternalIdx,
             FloatFeatureInternalIdxToExternalIdx)
+
+        /* *this contains a superset of features in rhs
+         * for now comparison is strict - w/o reordering by name
+         */
+        bool IsSupersetOf(const TFeaturesLayout& rhs) const;
 
         const TFeatureMetaInfo& GetInternalFeatureMetaInfo(
             ui32 internalFeatureIdx,
@@ -164,6 +132,8 @@ namespace NCB {
 
         ui32 GetCatFeatureCount() const;
 
+        ui32 GetTextFeatureCount() const;
+
         ui32 GetExternalFeatureCount() const;
 
         ui32 GetFeatureCount(EFeatureType type) const;
@@ -187,17 +157,16 @@ namespace NCB {
 
         TConstArrayRef<ui32> GetCatFeatureInternalIdxToExternalIdx() const;
 
+        TConstArrayRef<ui32> GetTextFeatureInternalIdxToExternalIdx() const;
+
         bool HasAvailableAndNotIgnoredFeatures() const;
 
-        TQuantizedFeatureIndexRemapper GetQuantizedFeatureIndexRemapper(
-            ui32 externalFeatureIdx) const;
-
     private:
-        TVector<TQuantizedFeatureIndexRemapper> ExternalIdxRemappers;
         TVector<TFeatureMetaInfo> ExternalIdxToMetaInfo;
         TVector<ui32> FeatureExternalIdxToInternalIdx;
         TVector<ui32> CatFeatureInternalIdxToExternalIdx;
         TVector<ui32> FloatFeatureInternalIdxToExternalIdx;
+        TVector<ui32> TextFeatureInternalIdxToExternalIdx;
     };
 
     using TFeaturesLayoutPtr = TIntrusivePtr<TFeaturesLayout>;

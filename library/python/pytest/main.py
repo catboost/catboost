@@ -1,5 +1,7 @@
 import sys
 
+import __res
+
 
 def main():
     profile = None
@@ -30,6 +32,19 @@ def main():
         if name.startswith(prefix) and not name.endswith('.conftest')
     ]
 
+    doctest_packages = (__res.find("PY_DOCTEST_PACKAGES") or "").split()
+
+    def is_doctest_module(name):
+        for package in doctest_packages:
+            if name == package or name.startswith(package + "."):
+                return True
+        return False
+
+    doctest_modules = [
+        name for name in sys.extra_modules
+        if is_doctest_module(name)
+    ]
+
     def remove_user_site(paths):
         site_paths = ('site-packages', 'site-python')
 
@@ -48,7 +63,7 @@ def main():
 
     sys.path = remove_user_site(sys.path)
     rc = pytest.main(plugins=[
-        collection.CollectionPlugin(test_modules),
+        collection.CollectionPlugin(test_modules, doctest_modules),
         ya,
         conftests,
     ])

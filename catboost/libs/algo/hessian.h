@@ -3,9 +3,9 @@
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/options/enums.h>
 
-#include <util/generic/vector.h>
-
 #include <library/binsaver/bin_saver.h>
+
+#include <util/generic/vector.h>
 
 
 class THessianInfo;
@@ -15,10 +15,12 @@ public:
     THessian() = delete;
 
     /// (Hessian - L2) x optimalDirection = -Gradient
-    static void SolveNewtonEquation(const THessianInfo& /*hessian*/,
-                                    const TVector<double>& /*negativeDer*/,
-                                    const float /*l2Regularizer*/,
-                                    TVector<double>* /*res*/) {
+    static void SolveNewtonEquation(
+        const THessianInfo& /*hessian*/,
+        const TVector<double>& /*negativeDer*/,
+        const float /*l2Regularizer*/,
+        TVector<double>* /*res*/)
+    {
         CB_ENSURE(false, "Not implemented");
     }
 
@@ -29,24 +31,25 @@ public:
 
 class TSymmetricHessian : public THessian {
 public:
-    static void SolveNewtonEquation(const THessianInfo& /*hessian*/,
-                                    const TVector<double>& /*negativeDer*/,
-                                    const float /*l2Regularizer*/,
-                                    TVector<double>* /*res*/);
+    static void SolveNewtonEquation(
+        const THessianInfo& /*hessian*/,
+        const TVector<double>& /*negativeDer*/,
+        const float /*l2Regularizer*/,
+        TVector<double>* /*res*/);
 
     static int CalcInternalDer2DataSize(int /*approxDimension*/);
 };
 
 class TDiagonalHessian : public THessian {
 public:
-    static void SolveNewtonEquation(const THessianInfo& /*hessian*/,
-                                    const TVector<double>& /*negativeDer*/,
-                                    const float /*l2Regularizer*/,
-                                    TVector<double>* /*res*/);
+    static void SolveNewtonEquation(
+        const THessianInfo& /*hessian*/,
+        const TVector<double>& /*negativeDer*/,
+        const float /*l2Regularizer*/,
+        TVector<double>* /*res*/);
 
     static int CalcInternalDer2DataSize(int /*approxDimension*/);
 };
-
 
 
 static int CalcInternalDer2DataSize(EHessianType hessianType, int approxDimension) {
@@ -59,28 +62,31 @@ static int CalcInternalDer2DataSize(EHessianType hessianType, int approxDimensio
 }
 
 
-void SolveNewtonEquation(const THessianInfo& /*hessian*/,
-                         const TVector<double>& /*negativeDer*/,
-                         const float /*l2Regularizer*/,
-                         TVector<double>* /*res*/);
+void SolveNewtonEquation(
+    const THessianInfo& /*hessian*/,
+    const TVector<double>& /*negativeDer*/,
+    const float /*l2Regularizer*/,
+    TVector<double>* /*res*/);
 
 
 class THessianInfo {
 public:
     explicit THessianInfo(int approxDimension, EHessianType hessianType)
-    : ApproxDimension(approxDimension)
-    , HessianType(hessianType)
-    , Data(CalcInternalDer2DataSize(hessianType, approxDimension))
+        : ApproxDimension(approxDimension)
+        , HessianType(hessianType)
+        , Data(CalcInternalDer2DataSize(hessianType, approxDimension))
     {}
 
     THessianInfo() = default;
 
-
-    void AddDer2(const THessianInfo& hessian);
     bool operator==(const THessianInfo& other) const;
 
+    SAVELOAD(HessianType, ApproxDimension, Data);
+
+    void AddDer2(const THessianInfo& hessian);
+
+public:
     int ApproxDimension;
     EHessianType HessianType;
     TVector<double> Data;
-    SAVELOAD(HessianType, ApproxDimension, Data);
 };

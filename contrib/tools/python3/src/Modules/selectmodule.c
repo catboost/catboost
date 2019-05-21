@@ -279,6 +279,10 @@ select_select(PyObject *self, PyObject *args)
         if (tvp) {
             timeout = deadline - _PyTime_GetMonotonicClock();
             if (timeout < 0) {
+                /* bpo-35310: lists were unmodified -- clear them explicitly */
+                FD_ZERO(&ifdset);
+                FD_ZERO(&ofdset);
+                FD_ZERO(&efdset);
                 n = 0;
                 break;
             }
@@ -353,7 +357,7 @@ update_ufd_array(pollObject *self)
     PyObject *key, *value;
     struct pollfd *old_ufds = self->ufds;
 
-    self->ufd_len = PyDict_Size(self->dict);
+    self->ufd_len = PyDict_GET_SIZE(self->dict);
     PyMem_RESIZE(self->ufds, struct pollfd, self->ufd_len);
     if (self->ufds == NULL) {
         self->ufds = old_ufds;
@@ -431,8 +435,7 @@ poll_register(pollObject *self, PyObject *args)
 
     self->ufd_uptodate = 0;
 
-    Py_INCREF(Py_None);
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 PyDoc_STRVAR(poll_modify_doc,
@@ -479,8 +482,7 @@ poll_modify(pollObject *self, PyObject *args)
 
     self->ufd_uptodate = 0;
 
-    Py_INCREF(Py_None);
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 
@@ -513,8 +515,7 @@ poll_unregister(pollObject *self, PyObject *o)
     Py_DECREF(key);
     self->ufd_uptodate = 0;
 
-    Py_INCREF(Py_None);
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 PyDoc_STRVAR(poll_poll_doc,
@@ -651,10 +652,7 @@ poll_poll(pollObject *self, PyObject *args)
             goto error;
         }
         PyTuple_SET_ITEM(value, 1, num);
-        if ((PyList_SetItem(result_list, j, value)) == -1) {
-            Py_DECREF(value);
-            goto error;
-        }
+        PyList_SET_ITEM(result_list, j, value);
         i++;
     }
     return result_list;
@@ -778,7 +776,7 @@ static int devpoll_flush(devpollObject *self)
         ** the wild.
         ** See http://bugs.python.org/issue6397.
         */
-        PyErr_Format(PyExc_IOError, "failed to write all pollfds. "
+        PyErr_Format(PyExc_OSError, "failed to write all pollfds. "
                 "Please, report at http://bugs.python.org/. "
                 "Data to report: Size tried: %d, actual size written: %d.",
                 size, n);
@@ -958,7 +956,7 @@ devpoll_poll(devpollObject *self, PyObject *args)
     } while (1);
 
     if (poll_result < 0) {
-        PyErr_SetFromErrno(PyExc_IOError);
+        PyErr_SetFromErrno(PyExc_OSError);
         return NULL;
     }
 
@@ -980,10 +978,7 @@ devpoll_poll(devpollObject *self, PyObject *args)
         Py_DECREF(num2);
         if (value == NULL)
             goto error;
-        if ((PyList_SetItem(result_list, i, value)) == -1) {
-            Py_DECREF(value);
-            goto error;
-        }
+        PyList_SET_ITEM(result_list, i, value);
     }
 
     return result_list;
@@ -1026,7 +1021,7 @@ Close the devpoll file descriptor. Further operations on the devpoll\n\
 object will raise an exception.");
 
 static PyObject*
-devpoll_get_closed(devpollObject *self)
+devpoll_get_closed(devpollObject *self, void *Py_UNUSED(ignored))
 {
     if (self->fd_devpoll < 0)
         Py_RETURN_TRUE;
@@ -1259,7 +1254,7 @@ pyepoll_internal_close(pyEpoll_Object *self)
 }
 
 static PyObject *
-newPyEpoll_Object(PyTypeObject *type, int sizehint, int flags, SOCKET fd)
+newPyEpoll_Object(PyTypeObject *type, int sizehint, SOCKET fd)
 {
     pyEpoll_Object *self;
 
@@ -1271,12 +1266,10 @@ newPyEpoll_Object(PyTypeObject *type, int sizehint, int flags, SOCKET fd)
     if (fd == -1) {
         Py_BEGIN_ALLOW_THREADS
 #ifdef HAVE_EPOLL_CREATE1
-        flags |= EPOLL_CLOEXEC;
-        if (flags)
-            self->epfd = epoll_create1(flags);
-        else
-#endif
+        self->epfd = epoll_create1(EPOLL_CLOEXEC);
+#else
         self->epfd = epoll_create(sizehint);
+#endif
         Py_END_ALLOW_THREADS
     }
     else {
@@ -1302,18 +1295,27 @@ newPyEpoll_Object(PyTypeObject *type, int sizehint, int flags, SOCKET fd)
 static PyObject *
 pyepoll_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
-    int flags = 0, sizehint = FD_SETSIZE - 1;
+    int flags = 0, sizehint = -1;
     static char *kwlist[] = {"sizehint", "flags", NULL};
 
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "|ii:epoll", kwlist,
                                      &sizehint, &flags))
         return NULL;
-    if (sizehint < 0) {
-        PyErr_SetString(PyExc_ValueError, "negative sizehint");
+    if (sizehint == -1) {
+        sizehint = FD_SETSIZE - 1;
+    }
+    else if (sizehint <= 0) {
+        PyErr_SetString(PyExc_ValueError, "sizehint must be positive or -1");
         return NULL;
     }
 
-    return newPyEpoll_Object(type, sizehint, flags, -1);
+#ifdef HAVE_EPOLL_CREATE1
+    if (flags && flags != EPOLL_CLOEXEC) {
+        PyErr_SetString(PyExc_OSError, "invalid flags");
+        return NULL;
+    }
+#endif
+    return newPyEpoll_Object(type, sizehint, -1);
 }
 
 
@@ -1342,7 +1344,7 @@ Close the epoll control file descriptor. Further operations on the epoll\n\
 object will raise an exception.");
 
 static PyObject*
-pyepoll_get_closed(pyEpoll_Object *self)
+pyepoll_get_closed(pyEpoll_Object *self, void *Py_UNUSED(ignored))
 {
     if (self->epfd < 0)
         Py_RETURN_TRUE;
@@ -1371,7 +1373,7 @@ pyepoll_fromfd(PyObject *cls, PyObject *args)
     if (!PyArg_ParseTuple(args, "i:fromfd", &fd))
         return NULL;
 
-    return newPyEpoll_Object((PyTypeObject*)cls, FD_SETSIZE - 1, 0, fd);
+    return newPyEpoll_Object((PyTypeObject*)cls, FD_SETSIZE - 1, fd);
 }
 
 PyDoc_STRVAR(pyepoll_fromfd_doc,
@@ -1930,27 +1932,7 @@ kqueue_event_richcompare(kqueue_event_Object *s, kqueue_event_Object *o,
            : 0;
 #undef CMP
 
-    switch (op) {
-    case Py_EQ:
-        result = (result == 0);
-        break;
-    case Py_NE:
-        result = (result != 0);
-        break;
-    case Py_LE:
-        result = (result <= 0);
-        break;
-    case Py_GE:
-        result = (result >= 0);
-        break;
-    case Py_LT:
-        result = (result < 0);
-        break;
-    case Py_GT:
-        result = (result > 0);
-        break;
-    }
-    return PyBool_FromLong((long)result);
+    Py_RETURN_RICHCOMPARE(result, 0, op);
 }
 
 static PyTypeObject kqueue_event_Type = {
@@ -2053,8 +2035,8 @@ newKqueue_Object(PyTypeObject *type, SOCKET fd)
 static PyObject *
 kqueue_queue_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
-    if ((args != NULL && PyObject_Size(args)) ||
-                    (kwds != NULL && PyObject_Size(kwds))) {
+    if (PyTuple_GET_SIZE(args) ||
+                    (kwds != NULL && PyDict_GET_SIZE(kwds))) {
         PyErr_SetString(PyExc_ValueError,
                         "select.kqueue doesn't accept arguments");
         return NULL;
@@ -2088,7 +2070,7 @@ Close the kqueue control file descriptor. Further operations on the kqueue\n\
 object will raise an exception.");
 
 static PyObject*
-kqueue_queue_get_closed(kqueue_queue_Object *self)
+kqueue_queue_get_closed(kqueue_queue_Object *self, void *Py_UNUSED(ignored))
 {
     if (self->kqfd < 0)
         Py_RETURN_TRUE;

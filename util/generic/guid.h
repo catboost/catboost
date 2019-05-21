@@ -13,7 +13,7 @@
  *
  * See https://clubs.at.yandex-team.ru/stackoverflow/10238/10240
  * and https://st.yandex-team.ru/IGNIETFERRO-768 for details.
- **/
+ */
 struct TGUID {
     ui32 dw[4] = {};
 

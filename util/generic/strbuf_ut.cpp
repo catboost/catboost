@@ -20,21 +20,33 @@ Y_UNIT_TEST_SUITE(TStrBufTest) {
         std::string_view helloWorld("Hello, World!");
         TStringBuf fromStringView(helloWorld);
         UNIT_ASSERT_EQUAL(fromStringView.data(), helloWorld.data());
+        UNIT_ASSERT_EQUAL(fromStringView.size(), helloWorld.size());
 
         std::string_view fromStringBuf = fromStringView;
         UNIT_ASSERT_EQUAL(helloWorld.data(), fromStringBuf.data());
+        UNIT_ASSERT_EQUAL(helloWorld.size(), fromStringBuf.size());
     }
 
     Y_UNIT_TEST(TestConstExpr) {
         static constexpr TStringBuf str1("qwe\0rty", 7);
-        static constexpr TStringBuf str2(str1.Data(), str1.size());
+        static constexpr TStringBuf str2(str1.data(), str1.size());
         static constexpr TStringBuf str3 = AsStringBuf("qwe\0rty");
 
-        UNIT_ASSERT_VALUES_EQUAL(str1.Size(), 7);
+        UNIT_ASSERT_VALUES_EQUAL(str1.size(), 7);
 
         UNIT_ASSERT_VALUES_EQUAL(str1, str2);
         UNIT_ASSERT_VALUES_EQUAL(str2, str3);
         UNIT_ASSERT_VALUES_EQUAL(str1, str3);
+
+        static constexpr std::string_view view1(str1);
+        UNIT_ASSERT_VALUES_EQUAL(str1, view1);
+        static_assert(str1.data() == view1.data());
+        static_assert(str1.size() == view1.size());
+
+        static constexpr TStringBuf str4(view1);
+        UNIT_ASSERT_VALUES_EQUAL(str1, str4);
+        static_assert(str1.data() == str4.data());
+        static_assert(str1.size() == str4.size());
     }
 
     Y_UNIT_TEST(TestAfter) {
@@ -124,8 +136,8 @@ Y_UNIT_TEST_SUITE(TStrBufTest) {
     }
 
     Y_UNIT_TEST(TestEmpty) {
-        UNIT_ASSERT(TStringBuf().Empty());
-        UNIT_ASSERT(!AsStringBuf("q").Empty());
+        UNIT_ASSERT(TStringBuf().empty());
+        UNIT_ASSERT(!AsStringBuf("q").empty());
     }
 
     Y_UNIT_TEST(TestShift) {
@@ -134,7 +146,7 @@ Y_UNIT_TEST_SUITE(TStrBufTest) {
 
         str = qw;
         str.Chop(10);
-        UNIT_ASSERT(str.Empty());
+        UNIT_ASSERT(str.empty());
 
         str = qw;
         UNIT_ASSERT_EQUAL(str.SubStr(2), AsStringBuf("erty"));
@@ -160,7 +172,7 @@ Y_UNIT_TEST_SUITE(TStrBufTest) {
         rt = qw;
         lt = rt.NextTok('r');
         TStringBuf ty = rt.NextTok('r'); // no 'r' in "ty"
-        UNIT_ASSERT_EQUAL(rt.Size(), 0);
+        UNIT_ASSERT_EQUAL(rt.size(), 0);
         UNIT_ASSERT_EQUAL(ty, AsStringBuf("ty"));
     }
 
@@ -303,7 +315,7 @@ Y_UNIT_TEST_SUITE(TStrBufTest) {
     template <class T>
     void PassByConstReference(const T& val) {
         // In https://st.yandex-team.ru/IGNIETFERRO-294 was assumed that `const char[]` types are compile time strings
-        // and that CharTraits::Length mmay not be called for them. Unfortunately that is not true, `char[]` types
+        // and that CharTraits::Length may not be called for them. Unfortunately that is not true, `char[]` types
         // are easily converted to `const char[]` if they are passed to a function accepting `const T&`.
         UNIT_ASSERT(TStringBuf(val).size() == 5);
     }

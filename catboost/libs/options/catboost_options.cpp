@@ -6,6 +6,7 @@
 #include <util/generic/algorithm.h>
 #include <util/generic/set.h>
 #include <util/string/cast.h>
+#include <util/system/info.h>
 
 template <>
 void Out<NCatboostOptions::TCatBoostOptions>(IOutputStream& out, const NCatboostOptions::TCatBoostOptions& options) {
@@ -131,6 +132,18 @@ void NCatboostOptions::TCatBoostOptions::SetLeavesEstimationDefault() {
             defaultL2Reg = 1;
             break;
         }
+        case ELossFunction::Huber: {
+            defaultEstimationMethod = ELeavesEstimation::Newton;
+            defaultNewtonIterations = 1;
+            defaultGradientIterations = 1;
+            break;
+        }
+        case ELossFunction::StochasticFilter: {
+            defaultEstimationMethod = ELeavesEstimation::Gradient;
+            defaultGradientIterations = 100;
+            // doesn't have Newton
+            break;
+        }
         case ELossFunction::UserPerObjMetric:
         case ELossFunction::UserQuerywiseMetric:
         case ELossFunction::PythonUserDefinedPerObject: {
@@ -190,6 +203,10 @@ void NCatboostOptions::TCatBoostOptions::SetLeavesEstimationDefault() {
 
     if (lossFunctionConfig.GetLossFunction() == ELossFunction::QueryCrossEntropy) {
         CB_ENSURE(treeConfig.LeavesEstimationMethod != ELeavesEstimation::Gradient, "Gradient leaf estimation is not supported for QueryCrossEntropy");
+    }
+
+    if (lossFunctionConfig.GetLossFunction() == ELossFunction::StochasticFilter) {
+        CB_ENSURE(treeConfig.LeavesEstimationMethod != ELeavesEstimation::Newton, "Newton leaf estimation is not supported for StochasticFilter");
     }
 }
 
@@ -254,6 +271,12 @@ static Y_NO_INLINE void SetDefaultBinarizationsIfNeeded(
 void NCatboostOptions::TCatBoostOptions::SetCtrDefaults() {
     TCatFeatureParams& catFeatureParams = CatFeatureParams.Get();
     ELossFunction lossFunction = LossFunctionDescription->GetLossFunction();
+
+     if (IsGroupwiseMetric(lossFunction)) {
+        if (TaskType == ETaskType::GPU) {
+            catFeatureParams.CtrHistoryUnit.SetDefault(ECtrHistoryUnit::Group);
+        }
+    }
 
     TVector<TCtrDescription> defaultSimpleCtrs;
     TVector<TCtrDescription> defaultTreeCtrs;
@@ -357,22 +380,18 @@ void NCatboostOptions::TCatBoostOptions::ValidateCtr(const TCtrDescription& ctr,
 }
 
 void NCatboostOptions::TCatBoostOptions::Validate() const {
-    SystemOptions.Get().Validate();
-    BoostingOptions.Get().Validate();
-    ObliviousTreeOptions.Get().Validate();
-
     ELossFunction lossFunction = LossFunctionDescription->GetLossFunction();
     {
         const ui32 classesCount = DataProcessingOptions->ClassesCount;
-        if (classesCount != 0 ) {
-            CB_ENSURE(IsMultiClassMetric(lossFunction), "classes_count parameter takes effect only with MultiClass/MultiClassOneVsAll loss functions");
+        if (classesCount != 0) {
+            CB_ENSURE(IsMultiClassOnlyMetric(lossFunction), "classes_count parameter takes effect only with MultiClass/MultiClassOneVsAll loss functions");
             CB_ENSURE(classesCount > 1, "classes-count should be at least 2");
         }
         const auto& classWeights = DataProcessingOptions->ClassWeights.Get();
         if (!classWeights.empty()) {
-            CB_ENSURE(lossFunction == ELossFunction::Logloss || IsMultiClassMetric(lossFunction),
+            CB_ENSURE(lossFunction == ELossFunction::Logloss || IsMultiClassOnlyMetric(lossFunction),
                       "class weights takes effect only with Logloss, MultiClass and MultiClassOneVsAll loss functions");
-            CB_ENSURE(IsMultiClassMetric(lossFunction) || (classWeights.size() == 2),
+            CB_ENSURE(IsMultiClassOnlyMetric(lossFunction) || (classWeights.size() == 2),
                       "if loss-function is Logloss, then class weights should be given for 0 and 1 classes");
             CB_ENSURE(classesCount == 0 || classesCount == classWeights.size(), "class weights should be specified for each class in range 0, ... , classes_count - 1");
         }
@@ -404,14 +423,14 @@ void NCatboostOptions::TCatBoostOptions::Validate() const {
     {
         CB_ENSURE(leavesEstimation != ELeavesEstimation::Newton,
                   "Newton leave estimation method is not supported for " << lossFunction << " loss function");
-        CB_ENSURE(ObliviousTreeOptions->LeavesEstimationIterations == 1U,
-                  "gradient_iterations should equals 1 for this mode");
     }
 
     CB_ENSURE(!(IsPlainOnlyModeLoss(lossFunction) && (BoostingOptions->BoostingType == EBoostingType::Ordered)),
         "Boosting type should be Plain for loss functions " << lossFunction);
 
     if (GetTaskType() == ETaskType::CPU) {
+        CB_ENSURE(lossFunction != ELossFunction::QueryCrossEntropy,
+                  ELossFunction::QueryCrossEntropy << " loss function is not supported for CPU learning");
         CB_ENSURE(!(IsPairwiseScoring(lossFunction) && leavesEstimation == ELeavesEstimation::Newton),
                   "This leaf estimation method is not supported for querywise error for CPU learning");
         CB_ENSURE(
@@ -471,28 +490,70 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
             break;
         }
     }
+
+    switch (LossFunctionDescription->GetLossFunction()) {
+        case ELossFunction::YetiRank:
+        case ELossFunction::YetiRankPairwise: {
+            NCatboostOptions::TLossDescription lossDescription;
+            lossDescription.Load(LossDescriptionToJson("PFound"));
+            MetricOptions->ObjectiveMetric.Set(lossDescription);
+            break;
+        }
+        case ELossFunction::PairLogit:
+        case ELossFunction::PairLogitPairwise: {
+            NCatboostOptions::TLossDescription lossDescription;
+            lossDescription.Load(LossDescriptionToJson("PairLogit"));
+            MetricOptions->ObjectiveMetric.Set(lossDescription);
+            break;
+        }
+        default: {
+            MetricOptions->ObjectiveMetric.Set(LossFunctionDescription.Get());
+            break;
+        }
+    }
+
     if (TaskType == ETaskType::GPU) {
-        if (IsGpuPlainDocParallelOnlyMode(LossFunctionDescription->GetLossFunction())) {
+        if (IsGpuPlainDocParallelOnlyMode(LossFunctionDescription->GetLossFunction()) ||
+            ObliviousTreeOptions->GrowPolicy != EGrowPolicy::SymmetricTree) {
             //lets check correctness first
             BoostingOptions->DataPartitionType.SetDefault(EDataPartitionType::DocParallel);
             BoostingOptions->BoostingType.SetDefault(EBoostingType::Plain);
-            CB_ENSURE(BoostingOptions->DataPartitionType == EDataPartitionType::DocParallel, "Loss " << LossFunctionDescription->GetLossFunction() << " on GPU is implemented in doc-parallel mode only");
-            CB_ENSURE(BoostingOptions->BoostingType == EBoostingType::Plain, "Loss " << LossFunctionDescription->GetLossFunction() << " on GPU can't be used for ordered boosting");
+
+            TString option;
+            if (IsGpuPlainDocParallelOnlyMode(LossFunctionDescription->GetLossFunction())) {
+                option = "loss " + ToString(LossFunctionDescription->GetLossFunction());
+            } else {
+                option = "grow policy " + ToString(ObliviousTreeOptions->GrowPolicy.Get());
+            }
+
+            CB_ENSURE(BoostingOptions->DataPartitionType == EDataPartitionType::DocParallel,
+                    "On GPU " << option << " is implemented in doc-parallel mode only");
+            CB_ENSURE(BoostingOptions->BoostingType == EBoostingType::Plain,
+                    "On GPU " << option << " can't be used with ordered boosting");
+
             //now ensure automatic estimations won't override this
             BoostingOptions->BoostingType = EBoostingType::Plain;
             BoostingOptions->DataPartitionType = EDataPartitionType::DocParallel;
         }
 
-        if (ObliviousTreeOptions->GrowingPolicy == EGrowingPolicy::Lossguide) {
-            ObliviousTreeOptions->MaxDepth.SetDefault(16);
+        if (IsPlainOnlyModeScoreFunction(ObliviousTreeOptions->ScoreFunction)) {
+            BoostingOptions->BoostingType.SetDefault(EBoostingType::Plain);
+            CB_ENSURE(BoostingOptions->BoostingType == EBoostingType::Plain,
+                    "Score function " << ObliviousTreeOptions->ScoreFunction.Get() << " can't be used with ordered boosting");
+            BoostingOptions->BoostingType = EBoostingType::Plain;
         }
-        if (ObliviousTreeOptions->MaxLeavesCount.IsDefault() && ObliviousTreeOptions->GrowingPolicy != EGrowingPolicy::Lossguide) {
-            const ui32 maxLeaves = 1u << ObliviousTreeOptions->MaxDepth.Get();
-            ObliviousTreeOptions->MaxLeavesCount.SetDefault(maxLeaves);
 
-            if (ObliviousTreeOptions->GrowingPolicy != EGrowingPolicy::Lossguide) {
-                CB_ENSURE(ObliviousTreeOptions->MaxLeavesCount == maxLeaves,
-                          "max_leaves_count options works only with lossguide tree growing");
+        if (ObliviousTreeOptions->GrowPolicy == EGrowPolicy::Lossguide) {
+            ObliviousTreeOptions->MaxDepth.SetDefault(16);
+            ObliviousTreeOptions->ScoreFunction.SetDefault(EScoreFunction::NewtonL2);
+        }
+        if (ObliviousTreeOptions->MaxLeaves.IsDefault() && ObliviousTreeOptions->GrowPolicy != EGrowPolicy::Lossguide) {
+            const ui32 maxLeaves = 1u << ObliviousTreeOptions->MaxDepth.Get();
+            ObliviousTreeOptions->MaxLeaves.SetDefault(maxLeaves);
+
+            if (ObliviousTreeOptions->GrowPolicy != EGrowPolicy::Lossguide) {
+                CB_ENSURE(ObliviousTreeOptions->MaxLeaves == maxLeaves,
+                          "max_leaves option works only with lossguide tree growing");
             }
         }
     }
@@ -502,6 +563,10 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
 
     if (DataProcessingOptions->HasTimeFlag) {
         BoostingOptions->PermutationCount = 1;
+    }
+
+    if (CatFeatureParams->MaxTensorComplexity.NotSet() && IsSmallIterationCount(BoostingOptions->IterationCount)) {
+        CatFeatureParams->MaxTensorComplexity = 1;
     }
 }
 
@@ -546,6 +611,12 @@ ETaskType NCatboostOptions::GetTaskType(const NJson::TJsonValue& source) {
     TOption<ETaskType> taskType("task_type", ETaskType::CPU);
     TJsonFieldHelper<decltype(taskType)>::Read(source, &taskType);
     return taskType.Get();
+}
+
+ui32 NCatboostOptions::GetThreadCount(const NJson::TJsonValue& source) {
+    TOption<ui32> threadCount("thread_count", NSystemInfo::CachedNumberOfCpus());
+    TJsonFieldHelper<decltype(threadCount)>::Read(source["system_options"], &threadCount);
+    return threadCount.Get();
 }
 
 NCatboostOptions::TCatBoostOptions NCatboostOptions::LoadOptions(const NJson::TJsonValue& source) {

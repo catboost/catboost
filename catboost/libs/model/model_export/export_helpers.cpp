@@ -3,12 +3,18 @@
 #include <util/string/builder.h>
 #include <util/string/cast.h>
 
-namespace NCatboostModelExportHelpers {
-    template <>
-    TString OutputArrayInitializer(const TVector<unsigned char>& values) {
-        return OutputArrayInitializer([&values] (size_t i) { return (int)values[i]; }, values.size());
+static TString FloatToStringWithSuffix(float value, bool addFloatingSuffix) {
+    TString str = FloatToString(value, PREC_NDIGITS, 9);
+    if (addFloatingSuffix) {
+        if (int value; TryFromString<int>(str, value)) {
+            str.append('.');
+        }
+        str.append("f");
     }
+    return str;
+}
 
+namespace NCatboostModelExportHelpers {
     int GetBinaryFeatureCount(const TFullModel& model) {
         int binaryFeatureCount = 0;
         for (const auto& floatFeature : model.ObliviousTrees.FloatFeatures) {
@@ -31,7 +37,7 @@ namespace NCatboostModelExportHelpers {
             if (!floatFeature.UsedInModel()) {
                 continue;
             }
-            outString << OutputArrayInitializer([&floatFeature, addFloatingSuffix] (size_t i) { return FloatToString(floatFeature.Borders[i], PREC_NDIGITS, 9) + (addFloatingSuffix ? "f" : ""); }, floatFeature.Borders.size()) << comma;
+            outString << OutputArrayInitializer([&floatFeature, addFloatingSuffix] (size_t i) { return FloatToStringWithSuffix(floatFeature.Borders[i], addFloatingSuffix); }, floatFeature.Borders.size()) << comma;
         }
         return outString;
     }

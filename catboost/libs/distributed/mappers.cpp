@@ -41,13 +41,13 @@ namespace NCatboostDistributed {
             trainData->ApproxDimension,
             localData.StoreExpApprox,
             UsesPairsForCalculation(localData.Params.LossFunctionDescription->GetLossFunction()),
-            *localData.Rand,
+            localData.Rand.Get(),
             &NPar::LocalExecutor());
         Y_ASSERT(localData.Progress.AveragingFold.BodyTailArr.ysize() == 1);
 
-        auto baseline = GetBaseline(trainData->TrainData->TargetData);
-        if (!baseline.empty()) {
-            AssignRank2<float>(baseline, &localData.Progress.AvrgApprox);
+        auto maybeBaseline = trainData->TrainData->TargetData->GetBaseline();
+        if (maybeBaseline) {
+            AssignRank2<float>(*maybeBaseline, &localData.Progress.AvrgApprox);
         } else {
             localData.Progress.AvrgApprox.resize(
                 trainData->ApproxDimension,
@@ -102,9 +102,9 @@ namespace NCatboostDistributed {
         const auto& leafValues = valuedForest->Data.second;
         Y_ASSERT(forest.size() == leafValues.size());
 
-        auto baseline = GetBaseline(trainData->TrainData->TargetData);
-        if (!baseline.empty()) {
-            AssignRank2<float>(baseline, &localData.Progress.AvrgApprox);
+        auto maybeBaseline = trainData->TrainData->TargetData->GetBaseline();
+        if (maybeBaseline) {
+            AssignRank2<float>(*maybeBaseline, &localData.Progress.AvrgApprox);
         }
 
         const ui32 learnSampleCount = trainData->TrainData->GetObjectCount();
@@ -157,6 +157,7 @@ namespace NCatboostDistributed {
             &localData.SampledDocs,
             &NPar::LocalExecutor(),
             localData.Rand.Get());
+        localData.FlatPairs = UnpackPairsFromQueries(localData.Progress.AveragingFold.LearnQueriesInfo);
     }
 
     template <typename TMapFunc, typename TInputType, typename TOutputType>
@@ -260,9 +261,8 @@ namespace NCatboostDistributed {
     ) const {
         NPar::TCtxPtr<TTrainData> trainData(ctx, SHARED_ID_TRAIN_DATA, hostId);
         auto& localData = TLocalTensorSearchData::GetRef();
-        const auto pairs = UnpackPairsFromQueries(localData.Progress.AveragingFold.LearnQueriesInfo);
         auto calcPairwiseStats = [&](const TCandidateInfo& candidate, TPairwiseStats* pairwiseStats) {
-            CalcPairwiseStats(trainData, pairs, candidate, pairwiseStats);
+            CalcPairwiseStats(trainData, localData.FlatPairs, candidate, pairwiseStats);
         };
         MapCandidateList(calcPairwiseStats, candidateList->Data, &bucketStats->Data);
     }
@@ -276,9 +276,8 @@ namespace NCatboostDistributed {
     ) const {
         NPar::TCtxPtr<TTrainData> trainData(ctx, SHARED_ID_TRAIN_DATA, hostId);
         auto& localData = TLocalTensorSearchData::GetRef();
-        const auto pairs = UnpackPairsFromQueries(localData.Progress.AveragingFold.LearnQueriesInfo);
         auto calcPairwiseStats = [&](const TCandidateInfo& candidate, TPairwiseStats* pairwiseStats) {
-            CalcPairwiseStats(trainData, pairs, candidate, pairwiseStats);
+            CalcPairwiseStats(trainData, localData.FlatPairs, candidate, pairwiseStats);
         };
         MapVector(calcPairwiseStats, candidate->Candidates, bucketStats);
     }
@@ -316,6 +315,7 @@ namespace NCatboostDistributed {
                     bucketCount,
                     localData.Params.ObliviousTreeOptions->L2Reg,
                     localData.Params.ObliviousTreeOptions->PairwiseNonDiagReg,
+                    localData.Params.CatFeatureParams->OneHotMaxSize,
                     &scoreBins);
                 *candidateScores = GetScores(scoreBins);
             };
@@ -625,7 +625,6 @@ namespace NCatboostDistributed {
     ) const {
         const auto& localData = TLocalTensorSearchData::GetRef();
         const auto errors = CreateMetrics(
-            localData.Params.LossFunctionDescription,
             localData.Params.MetricOptions,
             /*evalMetricDescriptor*/Nothing(),
             localData.Progress.ApproxDimension);
@@ -636,9 +635,9 @@ namespace NCatboostDistributed {
                 const TString metricDescription = errors[errorIdx]->GetDescription();
                 (*additiveStats)[metricDescription] = EvalErrors(
                     localData.Progress.AvrgApprox,
-                    GetTarget(trainData->TrainData->TargetData),
-                    GetWeights(trainData->TrainData->TargetData),
-                    GetGroupInfo(trainData->TrainData->TargetData),
+                    *trainData->TrainData->TargetData->GetTarget(),
+                    GetWeights(*trainData->TrainData->TargetData),
+                    trainData->TrainData->TargetData->GetGroupInfo().GetOrElse(TConstArrayRef<TQueryInfo>()),
                     errors[errorIdx],
                     &NPar::LocalExecutor());
             }
@@ -658,7 +657,7 @@ namespace NCatboostDistributed {
             leafCount,
             localData.Indices,
             localData.Progress.AveragingFold.GetLearnPermutationArray(),
-            GetWeights(trainData->TrainData->TargetData));
+            GetWeights(*trainData->TrainData->TargetData));
     }
 
 } // NCatboostDistributed

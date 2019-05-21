@@ -35,7 +35,7 @@ Y_UNIT_TEST_SUITE(BinBuilderTest) {
             : FeaturesManager(featuresManager)
             , DataProvider(dataProvider)
         {
-            BinarizedTarget = NCB::BinarizeLine<ui8>(GetTarget(dataProvider.TargetData), ENanMode::Forbidden, featuresManager.GetTargetBorders());
+            BinarizedTarget = NCB::BinarizeLine<ui8>(*dataProvider.TargetData->GetTarget(), ENanMode::Forbidden, featuresManager.GetTargetBorders());
             NumClasses = 0;
             {
                 std::array<bool, 255> seen;
@@ -133,7 +133,7 @@ Y_UNIT_TEST_SUITE(BinBuilderTest) {
 
                 TCpuTargetClassCtrCalcer calcer(treeSplit.UniqueCount,
                                                 treeSplit.Bins,
-                                                GetWeights(DataProvider.TargetData),
+                                                GetWeights(*DataProvider.TargetData),
                                                 ctr.Configuration.Prior[0], ctr.Configuration.Prior[1]);
 
                 TVector<ui32> featureBins;
@@ -141,7 +141,7 @@ Y_UNIT_TEST_SUITE(BinBuilderTest) {
                     auto freqCtr = calcer.ComputeFreqCtr();
                     featureBins = NCB::BinarizeLine<ui32>(freqCtr, ENanMode::Forbidden, borders);
                 } else if (ctr.Configuration.Type == ECtrType::Buckets) {
-                    auto floatCtr = calcer.Calc(Indices, BinarizedTarget, NumClasses);
+                    auto floatCtr = calcer.Calc(Indices, TConstArrayRef<ui32>(Indices), BinarizedTarget, NumClasses);
                     TVector<float> values;
                     for (ui32 i = 0; i < treeSplit.Bins.size(); ++i) {
                         values.push_back(floatCtr[i][ctr.Configuration.ParamId]);
@@ -209,16 +209,19 @@ Y_UNIT_TEST_SUITE(BinBuilderTest) {
 
         NCB::TTrainingDataProviderPtr dataProvider;
         THolder<TBinarizedFeaturesManager> featuresManager;
-
+        NCB::TFeatureEstimators estimators;
         LoadTrainingData(NCB::TPathWithScheme("dsv://test-pool.txt"),
                          NCB::TPathWithScheme("dsv://test-pool.txt.cd"),
                          NCatboostOptions::TBinarizationOptions(),
                          NCatboostOptions::TCatFeatureParams(ETaskType::GPU),
+                         estimators,
                          &dataProvider,
                          &featuresManager);
 
         TFeatureParallelDataSetHoldersBuilder dataSetsHolderBuilder(*featuresManager,
-                                                                    *dataProvider);
+                                                                    *dataProvider,
+                                                                    estimators
+                                                                    );
 
         auto dataSet = dataSetsHolderBuilder.BuildDataSet(permutationCount, &NPar::LocalExecutor());
 

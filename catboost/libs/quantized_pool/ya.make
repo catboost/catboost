@@ -18,10 +18,12 @@ PEERDIR(
     catboost/libs/data_new
     catboost/libs/data_util
     catboost/libs/helpers
+    catboost/libs/index_range
     catboost/libs/logging
     catboost/libs/quantization_schema
     catboost/libs/validate_fb
     contrib/libs/flatbuffers
+    library/object_factory
 )
 
 GENERATE_ENUM_SERIALIZATION(print.h)

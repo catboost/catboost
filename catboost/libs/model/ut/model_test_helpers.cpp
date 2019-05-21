@@ -1,11 +1,13 @@
 #include "model_test_helpers.h"
 
 #include <catboost/libs/data_new/data_provider_builders.h>
+#include <catboost/libs/model/model_build_helper.h>
 #include <catboost/libs/data_new/load_data.h>
 #include <catboost/libs/data_new/ut/lib/for_loader.h>
 #include <catboost/libs/train_lib/train_model.h>
 
 #include <util/string/builder.h>
+#include <util/folder/tempdir.h>
 
 
 using namespace NCB;
@@ -25,8 +27,8 @@ TFullModel TrainFloatCatboostModel(int iterations, int seed) {
             metaInfo.FeaturesLayout = MakeIntrusive<TFeaturesLayout>(
                 factorCount,
                 TVector<ui32>{},
-                TVector<TString>{},
-                nullptr);
+                TVector<ui32>{},
+                TVector<TString>{});
 
             visitor->Start(metaInfo, docCount, EObjectsOrder::Undefined, {});
 
@@ -101,15 +103,214 @@ TDataProviderPtr GetAdultPool() {
 
     TVector<THolder<TTempFile>> srcDataFiles;
     SaveSrcData(srcData, &readDatasetMainParams, &srcDataFiles);
+    TVector<TString> classNames;
 
     return ReadDataset(
         readDatasetMainParams.PoolPath,
+        TPathWithScheme(),
         TPathWithScheme(),
         TPathWithScheme(),
         readDatasetMainParams.DsvPoolFormatParams,
         /*ignoredFeatures*/ {},
         EObjectsOrder::Undefined,
         /*threadCount*/ 16,
-        /*verbose*/true
+        /*verbose*/true,
+        &classNames
     );
+}
+
+TFullModel SimpleFloatModel(size_t treeCount) {
+    TFullModel model;
+    model.ObliviousTrees.FloatFeatures = {
+        TFloatFeature{
+            false, 0, 0,
+            {}, // bin splits 0, 1
+            ""
+        },
+        TFloatFeature{
+            false, 1, 1,
+            {0.5f}, // bin split 2
+            ""
+        },
+        TFloatFeature{
+            false, 2, 2,
+            {0.5f}, // bin split 3
+            ""
+        }
+    };
+    for (auto i : xrange(301)) {
+        model.ObliviousTrees.FloatFeatures[0].Borders.push_back(-298.0f + i);
+    }
+    {
+        double tenPower = 1.0;
+        for (size_t treeIndex = 0; treeIndex < treeCount; ++treeIndex) {
+            TVector<int> tree = {300, 301, 302};
+            model.ObliviousTrees.AddBinTree(tree);
+            for (int leafIndex = 0; leafIndex < 8; ++leafIndex) {
+                model.ObliviousTrees.LeafValues.push_back(leafIndex * tenPower);
+            }
+            tenPower *= 10.0;
+        }
+    }
+    model.UpdateDynamicData();
+    return model;
+}
+
+TFullModel SimpleDeepTreeModel(size_t treeDepth) {
+    TFullModel model;
+    for (size_t featureIndex : xrange(treeDepth)) {
+        const auto feature = TFloatFeature(false, featureIndex, featureIndex, {0.5f}, "");
+        model.ObliviousTrees.FloatFeatures.push_back(feature);
+    }
+    for (size_t val : xrange(1 << treeDepth)) {
+        model.ObliviousTrees.LeafValues.push_back(val);
+    }
+    TVector<int> tree = xrange(treeDepth);
+    model.ObliviousTrees.AddBinTree(tree);
+    model.UpdateDynamicData();
+    return model;
+}
+
+TFullModel SimpleAsymmetricModel() {
+    TVector<TFloatFeature> floatFeatures {
+        TFloatFeature{
+            false, 0, 0,
+            {},
+            ""
+        },
+        TFloatFeature{
+            false, 1, 1,
+            {},
+            ""
+        },
+        TFloatFeature{
+            false, 2, 2,
+            {},
+            ""
+        }
+    };
+
+    TNonSymmetricTreeModelBuilder builder(floatFeatures, TVector<TCatFeature>{}, 1);
+
+    THolder<TNonSymmetricTreeNode> treeHead = MakeHolder<TNonSymmetricTreeNode>();
+    treeHead->SplitCondition = TModelSplit(TFloatSplit(0, 0.5));
+
+    treeHead->Left = MakeHolder<TNonSymmetricTreeNode>();
+    treeHead->Left->SplitCondition = TModelSplit(TFloatSplit(1, 0.5));
+
+    treeHead->Left->Left = MakeHolder<TNonSymmetricTreeNode>();
+    treeHead->Left->Left->Value = 1.0;
+
+
+    treeHead->Left->Right = MakeHolder<TNonSymmetricTreeNode>();
+    treeHead->Left->Right->Value = 2.0;
+
+    treeHead->Right = MakeHolder<TNonSymmetricTreeNode>();
+    treeHead->Right->Value = 3.0;
+
+    builder.AddTree(std::move(treeHead));
+    treeHead = MakeHolder<TNonSymmetricTreeNode>();
+    treeHead->SplitCondition = TModelSplit(TFloatSplit(2, 0.5));
+    treeHead->Left = MakeHolder<TNonSymmetricTreeNode>();
+    treeHead->Left->Value = 0.0;
+    treeHead->Right = MakeHolder<TNonSymmetricTreeNode>();
+    treeHead->Right->Value = 10.0;
+    builder.AddTree(std::move(treeHead));
+
+    treeHead = MakeHolder<TNonSymmetricTreeNode>();
+    treeHead->SplitCondition = TModelSplit(TFloatSplit(0, 0.5));
+    treeHead->Left = MakeHolder<TNonSymmetricTreeNode>();
+    treeHead->Left->Value = 100.0;
+
+    treeHead->Right = MakeHolder<TNonSymmetricTreeNode>();
+    treeHead->Right->SplitCondition = TModelSplit(TFloatSplit(1, 0.5));
+
+    treeHead->Right->Left = MakeHolder<TNonSymmetricTreeNode>();
+    treeHead->Right->Left->Value = 200.0;
+
+
+    treeHead->Right->Right = MakeHolder<TNonSymmetricTreeNode>();
+    treeHead->Right->Right->Value = 300.0;
+
+    builder.AddTree(std::move(treeHead));
+
+    TFullModel model;
+    model.ObliviousTrees = builder.Build();
+    return model;
+}
+
+TFullModel TrainCatOnlyModel() {
+    TTempDir trainDir;
+
+    TDataProviders dataProviders;
+    dataProviders.Learn = CreateDataProvider(
+        [&] (IRawFeaturesOrderDataVisitor* visitor) {
+            TDataMetaInfo metaInfo;
+            metaInfo.HasTarget = true;
+            metaInfo.FeaturesLayout = MakeIntrusive<TFeaturesLayout>(
+                (ui32)3,
+                TVector<ui32>{0, 1, 2},
+                TVector<ui32>{},
+                TVector<TString>{});
+
+            visitor->Start(metaInfo, 3, EObjectsOrder::Undefined, {});
+
+            visitor->AddCatFeature(0, TConstArrayRef<TStringBuf>{"a", "b", "c"});
+            visitor->AddCatFeature(1, TConstArrayRef<TStringBuf>{"d", "e", "f"});
+            visitor->AddCatFeature(2, TConstArrayRef<TStringBuf>{"g", "h", "k"});
+
+            visitor->AddTarget({1.0f, 0.0f, 0.2f});
+
+            visitor->Finish();
+        }
+    );
+    dataProviders.Test.push_back(dataProviders.Learn);
+
+    TFullModel model;
+    TEvalResult evalResult;
+    NJson::TJsonValue params;
+    params.InsertValue("iterations", 5);
+    params.InsertValue("random_seed", 1);
+    params.InsertValue("train_dir", trainDir.Name());
+    TrainModel(
+        params,
+        nullptr,
+        {},
+        {},
+        std::move(dataProviders),
+        "",
+        &model,
+        {&evalResult}
+    );
+
+    return model;
+}
+
+TFullModel MultiValueFloatModel() {
+    TFullModel model;
+    model.ObliviousTrees.FloatFeatures = {
+        TFloatFeature{
+            false, 0, 0,
+            {0.5f}, // bin split 0
+            ""
+        },
+        TFloatFeature{
+            false, 1, 1,
+            {0.5f}, // bin split 1
+            ""
+        }
+    };
+    {
+        TVector<int> tree = {0, 1};
+        model.ObliviousTrees.AddBinTree(tree);
+        model.ObliviousTrees.LeafValues = {
+            00., 10., 20.,
+            01., 11., 21.,
+            02., 12., 22.,
+            03., 13., 23.
+        };
+        model.ObliviousTrees.ApproxDimension = 3;
+    }
+    model.UpdateDynamicData();
+    return model;
 }

@@ -41,9 +41,11 @@ namespace {
                 Dataset = NCB::ReadDataset(Params.InputPath,
                                            Params.PairsFilePath,
                                            /*groupWeightsFilePath=*/NCB::TPathWithScheme(),
+                                           /*baselineFilePath=*/ NCB::TPathWithScheme(),
                                            Params.DsvPoolFormatParams,
                                            /*ignoredFeatures*/ {},
                                            NCB::EObjectsOrder::Undefined,
+                                           /*classNames*/ Nothing(),
                                            LocalExecutor.Get());
             }
             return Dataset;
@@ -85,6 +87,8 @@ void NCB::PrepareFstrModeParamsParser(
 }
 
 void NCB::ModeFstrSingleHost(const NCB::TAnalyticalModeCommonParams& params) {
+
+    NCatboostOptions::ValidatePoolParams(params.InputPath, params.DsvPoolFormatParams);
 
     TFullModel model = ReadModel(params.ModelFileName, params.ModelFormat);
     if (model.HasCategoricalFeatures()) {
@@ -130,7 +134,12 @@ void NCB::ModeFstrSingleHost(const NCB::TAnalyticalModeCommonParams& params) {
             CalcAndOutputInteraction(model, nullptr, &params.OutputPath.Path);
             break;
         case EFstrType::ShapValues:
-            CalcAndOutputShapValues(model, *poolLoader(), params.OutputPath.Path, params.Verbose, localExecutor.Get());
+            CalcAndOutputShapValues(model,
+                                    *poolLoader(),
+                                    params.OutputPath.Path,
+                                    params.Verbose,
+                                    EPreCalcShapValues::Auto,
+                                    localExecutor.Get());
             break;
         default:
             Y_ASSERT(false);

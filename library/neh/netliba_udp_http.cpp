@@ -288,12 +288,12 @@ namespace NNehNetliba {
                 data.size(), MAX_PACKET_SIZE);
 
             TAutoPtr<TRopeDataPacket> ms = new TRopeDataPacket;
-            if (data.Size() > MIN_SHARED_MEM_PACKET && IsLocal(addr)) {
+            if (data.size() > MIN_SHARED_MEM_PACKET && IsLocal(addr)) {
                 TIntrusivePtr<TSharedMemory> shm = new TSharedMemory;
-                if (shm->Create(data.Size())) {
+                if (shm->Create(data.size())) {
                     ms->Write((char)PKT_LOCAL_REQUEST);
                     ms->WriteStroka(url);
-                    memcpy(shm->GetPtr(), data.begin(), data.Size());
+                    memcpy(shm->GetPtr(), data.begin(), data.size());
                     ms->AttachSharedData(shm);
                 }
             }
@@ -307,8 +307,8 @@ namespace NNehNetliba {
                     }
                 };
                 TStrokaStorage* ss = new TStrokaStorage(data);
-                ms->Write((int)ss->Size());
-                ms->AddBlock(ss, ss->begin(), ss->Size());
+                ms->Write((int)ss->size());
+                ms->AddBlock(ss, ss->begin(), ss->size());
             }
 
             SendReqList_.Enqueue(new TSendRequest(addr, &ms, reqId, EventCollector_));

@@ -8,7 +8,7 @@ import posixpath
 import contextlib
 from distutils.errors import DistutilsError
 
-from pkg_resources import ensure_directory, ContextualZipFile
+from pkg_resources import ensure_directory
 
 __all__ = [
     "unpack_archive", "unpack_zipfile", "unpack_tarfile", "default_filter",
@@ -98,7 +98,7 @@ def unpack_zipfile(filename, extract_dir, progress_filter=default_filter):
     if not zipfile.is_zipfile(filename):
         raise UnrecognizedFormat("%s is not a zip file" % (filename,))
 
-    with ContextualZipFile(filename) as z:
+    with zipfile.ZipFile(filename) as z:
         for info in z.infolist():
             name = info.filename
 

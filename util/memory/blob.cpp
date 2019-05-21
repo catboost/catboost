@@ -19,23 +19,6 @@ enum EMappingMode {
     LockedMapping
 };
 
-class TNullBlobBase: public TBlob::TBase {
-public:
-    ~TNullBlobBase() override = default;
-
-    void Ref() noexcept override {
-    }
-
-    void UnRef() noexcept override {
-    }
-
-    static TNullBlobBase* CommonBase() noexcept;
-};
-
-TNullBlobBase* TNullBlobBase::CommonBase() noexcept {
-    return SingletonWithPriority<TNullBlobBase, 0>();
-}
-
 template <class TCounter>
 class TDynamicBlobBase: public TBlob::TBase,
                          public TRefCounted<TDynamicBlobBase<TCounter>, TCounter>,
@@ -166,11 +149,6 @@ private:
     EMappingMode Mode_;
 };
 
-TBlob::TBlob() noexcept
-    : S_(nullptr, 0, TNullBlobBase::CommonBase())
-{
-}
-
 TBlob TBlob::SubBlob(size_t len) const {
     /*
      * may be slightly optimized
@@ -215,7 +193,7 @@ TBlob TBlob::Copy(const void* data, size_t length) {
 }
 
 TBlob TBlob::NoCopy(const void* data, size_t length) {
-    return TBlob(data, length, TNullBlobBase::CommonBase());
+    return TBlob(data, length, nullptr);
 }
 
 template <class TCounter>

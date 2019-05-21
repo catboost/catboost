@@ -7,7 +7,12 @@ NCatboostOptions::TDataProcessingOptions::TDataProcessingOptions(ETaskType type)
       , HasTimeFlag("has_time", false)
       , AllowConstLabel("allow_const_label", false)
       , FloatFeaturesBinarization("float_features_binarization", TBinarizationOptions(
-            EBorderSelectionType::GreedyLogSum, type == ETaskType::GPU ? 128 : 254, ENanMode::Min))
+          EBorderSelectionType::GreedyLogSum,
+          type == ETaskType::GPU ? 128 : 254,
+          ENanMode::Min,
+          type
+      ))
+      , PerFloatFeatureBinarization("per_float_feature_binarization", TMap<ui32, TBinarizationOptions>())
       , ClassesCount("classes_count", 0)
       , ClassWeights("class_weights", TVector<float>())
       , ClassNames("class_names", TVector<TString>())
@@ -17,8 +22,9 @@ NCatboostOptions::TDataProcessingOptions::TDataProcessingOptions(ETaskType type)
 }
 
 void NCatboostOptions::TDataProcessingOptions::Load(const NJson::TJsonValue& options) {
-    CheckedLoad(options, &IgnoredFeatures, &HasTimeFlag, &AllowConstLabel, &FloatFeaturesBinarization, &ClassesCount, &ClassWeights, &ClassNames, &GpuCatFeaturesStorage);
-    CB_ENSURE(FloatFeaturesBinarization->BorderCount <= GetMaxBinCount(), "Error: catboost doesn't support binarization with >= 256 levels");
+    CheckedLoad(options, &IgnoredFeatures, &HasTimeFlag, &AllowConstLabel, &FloatFeaturesBinarization, &PerFloatFeatureBinarization, &ClassesCount, &ClassWeights, &ClassNames, &GpuCatFeaturesStorage);
+    SetPerFeatureMissingSettingToCommonValues();
+
 }
 
 void NCatboostOptions::TDataProcessingOptions::Save(NJson::TJsonValue* options) const {
@@ -34,4 +40,23 @@ bool NCatboostOptions::TDataProcessingOptions::operator==(const TDataProcessingO
 
 bool NCatboostOptions::TDataProcessingOptions::operator!=(const TDataProcessingOptions& rhs) const {
     return !(rhs == *this);
+}
+
+void NCatboostOptions::TDataProcessingOptions::SetPerFeatureMissingSettingToCommonValues() {
+    if (!PerFloatFeatureBinarization.IsSet()) {
+        return;
+    }
+    const auto& commonSettings = FloatFeaturesBinarization.Get();
+    for (auto& [id, binarizationOption] : PerFloatFeatureBinarization.Get()) {
+        Y_UNUSED(id);
+        if (!binarizationOption.BorderCount.IsSet() && commonSettings.BorderCount.IsSet()) {
+            binarizationOption.BorderCount = commonSettings.BorderCount;
+        }
+        if (!binarizationOption.BorderSelectionType.IsSet() && commonSettings.BorderSelectionType.IsSet()) {
+            binarizationOption.BorderSelectionType = commonSettings.BorderSelectionType;
+        }
+        if (!binarizationOption.NanMode.IsSet() && commonSettings.NanMode.IsSet()) {
+            binarizationOption.NanMode = commonSettings.NanMode;
+        }
+    }
 }

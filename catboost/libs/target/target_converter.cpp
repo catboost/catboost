@@ -24,13 +24,13 @@ namespace NCB {
         , OutputClassNames(outputClassNames)
     {
         if (TargetPolicy == EConvertTargetPolicy::MakeClassNames) {
-            CB_ENSURE_INTERNAL(IsClassTarget, "Make class names is valid only for class targets");
+            CB_ENSURE_INTERNAL(IsClassTarget, "Make class names is valid only for classification objectives.");
             CB_ENSURE(outputClassNames != nullptr,
                       "Cannot initialize target converter with null class names pointer and MakeClassNames target policy.");
         }
 
         if (TargetPolicy == EConvertTargetPolicy::UseClassNames) {
-            CB_ENSURE_INTERNAL(IsClassTarget, "Use class names is valid only for class targets");
+            CB_ENSURE_INTERNAL(IsClassTarget, "Use class names is valid only for classification objectives.");
             CB_ENSURE(!InputClassNames.empty(), "Cannot use empty class names for pool reading.");
             int id = 0;
             for (const auto& name : InputClassNames) {

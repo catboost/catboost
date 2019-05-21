@@ -2,6 +2,7 @@
 Internal hook annotation, representation and calling machinery.
 """
 import inspect
+import sys
 import warnings
 from .callers import _legacymulticall, _multicall
 
@@ -135,6 +136,9 @@ else:
         return inspect.getargspec(func)
 
 
+_PYPY3 = hasattr(sys, "pypy_version_info") and sys.version_info.major == 3
+
+
 def varnames(func):
     """Return tuple of positional and keywrord argument names for a function,
     method, class or callable.
@@ -172,13 +176,14 @@ def varnames(func):
         defaults = ()
 
     # strip any implicit instance arg
+    # pypy3 uses "obj" instead of "self" for default dunder methods
+    implicit_names = ("self",) if not _PYPY3 else ("self", "obj")
     if args:
         if inspect.ismethod(func) or (
-            "." in getattr(func, "__qualname__", ()) and args[0] == "self"
+            "." in getattr(func, "__qualname__", ()) and args[0] in implicit_names
         ):
             args = args[1:]
 
-    assert "self" not in args  # best naming practises check?
     try:
         cache["_varnames"] = args, defaults
     except TypeError:

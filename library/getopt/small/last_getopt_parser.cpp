@@ -11,7 +11,7 @@ namespace NLastGetopt {
         Opts_ = opts;
 
         if (argc < 1)
-            ythrow TUsageException() << "argv must have at least one argument";
+            throw TUsageException() << "argv must have at least one argument";
 
         Argc_ = argc;
         Argv_ = argv;
@@ -66,11 +66,11 @@ namespace NLastGetopt {
         Y_ASSERT(!Stopped_);
 
         if (Opts_->FreeArgsMin_ == Opts_->FreeArgsMax_ && Argc_ - Pos_ != Opts_->FreeArgsMin_)
-            ythrow TUsageException() << "required exactly " << Opts_->FreeArgsMin_ << " free args";
+            throw TUsageException() << "required exactly " << Opts_->FreeArgsMin_ << " free args";
         else if (Argc_ - Pos_ < Opts_->FreeArgsMin_)
-            ythrow TUsageException() << "required at least " << Opts_->FreeArgsMin_ << " free args";
+            throw TUsageException() << "required at least " << Opts_->FreeArgsMin_ << " free args";
         else if (Argc_ - Pos_ > Opts_->FreeArgsMax_)
-            ythrow TUsageException() << "required at most " << Opts_->FreeArgsMax_ << " free args";
+            throw TUsageException() << "required at most " << Opts_->FreeArgsMax_ << " free args";
 
         return false;
     }
@@ -83,7 +83,7 @@ namespace NLastGetopt {
         Y_ASSERT(EIO_NONE != IsOpt(arg));
 
         if (!Opts_->AllowUnknownCharOptions_)
-            ythrow TUsageException() << "unknown option '" << EscapeC(arg[sop])
+            throw TUsageException() << "unknown option '" << EscapeC(arg[sop])
                                      << "' in '" << arg << "'";
 
         TempCurrentOpt_.Reset(new TOpt);
@@ -152,13 +152,13 @@ namespace NLastGetopt {
                 } else if (Opts_->AllowUnknownLongOptions_) {
                     return false;
                 } else {
-                    ythrow TUsageException() << "unknown option '" << optionName
+                    throw TUsageException() << "unknown option '" << optionName
                                              << "' in '" << Argv_[pos] << "'";
                 }
             }
             if (arg.IsInited()) {
                 if (option->GetHasArg() == NO_ARGUMENT)
-                    ythrow TUsageException() << "option " << optionName << " must have no arg";
+                    throw TUsageException() << "option " << optionName << " must have no arg";
                 return Commit(option, arg, pos + 1, 0);
             }
             ++pos;
@@ -175,7 +175,7 @@ namespace NLastGetopt {
         }
         if (pos == Argc_) {
             if (opt->GetHasArg() == REQUIRED_ARGUMENT)
-                ythrow TUsageException() << "option " << opt->ToShortString() << " must have arg";
+                throw TUsageException() << "option " << opt->ToShortString() << " must have arg";
             return Commit(opt, nullptr, pos, 0);
         }
         const TStringBuf arg(Argv_[pos]);

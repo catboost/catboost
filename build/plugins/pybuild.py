@@ -1,7 +1,6 @@
 import os
 import ymake
 from _common import stripext, rootrel_arc_src, tobuilddir, listid, resolve_to_ymake_path, generate_chunks
-from pyx import PyxParser
 
 
 def is_arc_src(src, unit):
@@ -59,7 +58,7 @@ def parse_pyx_includes(filename, path, source_root, seen=None):
 
     with open(abs_path, 'rb') as f:
         # Don't parse cimports and etc - irrelevant for cython, it's linker work
-        includes, _, _ = PyxParser.parse_includes(f.readlines(), perm_includes=False, direct_includes_only=True)
+        includes = ymake.parse_cython_includes(f.read())
 
     abs_dirname = os.path.dirname(abs_path)
     # All includes are relative to the file which include
@@ -120,6 +119,8 @@ def py_program(unit, py3):
 
 def onpy_srcs(unit, *args):
     """
+        @usage PY_SRCS({| CYTHON_C} { | TOP_LEVEL | NAMESPACE ns} Files...)
+
         PY_SRCS() - is rule to build extended versions of Python interpreters and containing all application code in its executable file. It can be used to collect only the executables but not shared libraries, and, in particular, not to collect the modules that are imported using import directive.
         The main disadvantage is the lack of IDE support; There is also no readline yet.
         The application can be collect from any of the sources from which the C library, and with the help of PY_SRCS .py , .pyx,.proto and .swg files.
@@ -130,29 +131,23 @@ def onpy_srcs(unit, *args):
 
         Example of library declaration with PY_SRCS():
         PY_LIBRARY(mymodule)
-        PY_SRCS({| CYTHON_C} { | TOP_LEVEL | NAMESPACE ns} a.py sub/dir/b.py e.proto sub/dir/f.proto c.pyx sub/dir/d.pyx g.swg sub/dir/h.swg)
+        PY_SRCS(a.py sub/dir/b.py e.proto sub/dir/f.proto c.pyx sub/dir/d.pyx g.swg sub/dir/h.swg)
         END()
 
-        Documentation: https://wiki.yandex-team.ru/devtools/commandsandvars/py_srcs/
+        PY_REGISTER honors Python2 and Python3 differences and adjusts itself to Python version of a current module
+        Documentation: https://wiki.yandex-team.ru/arcadia/python/pysrcs/#modulipylibrarypy3libraryimakrospysrcs
     """
     # Each file arg must either be a path, or "${...}/buildpath=modname", where
     # "${...}/buildpath" part will be used as a file source in a future macro,
     # and "modname" will be used as a module name.
 
+    upath = unit.path()[3:]
     py3 = is_py3(unit)
+    with_py = not unit.get('PYBUILD_NO_PY')
+    with_pyc = not unit.get('PYBUILD_NO_PYC')
 
-    if py3:
-        if '/contrib/tools/python3/src/Lib' not in unit.path():
-            unit.onpeerdir(['contrib/libs/python'])
-
-            if '/library/python/runtime_py3' not in unit.path():
-                unit.onpeerdir(['library/python/runtime_py3'])
-    else:
-        if '/contrib/tools/python/src/Lib' not in unit.path():
-            unit.onpeerdir(['contrib/libs/python'])
-
-        if '/library/python/runtime' not in unit.path():
-            unit.onpeerdir(['library/python/runtime'])
+    if not upath.startswith('contrib/tools/python') and not upath.startswith('library/python/runtime') and unit.get('NO_PYTHON_INCLS') != 'yes':
+        unit.onpeerdir(['contrib/libs/python'])
 
     is_program = unit.get('MODULE_TYPE') == 'PROGRAM'
     if is_program:
@@ -162,7 +157,7 @@ def onpy_srcs(unit, *args):
     if py_namespace_value == ".":
         ns = ""
     else:
-        ns = (unit.get('PY_NAMESPACE_VALUE') or unit.path()[3:].replace('/', '.')) + '.'
+        ns = (unit.get('PY_NAMESPACE_VALUE') or upath.replace('/', '.')) + '.'
 
     cython_coverage = unit.get('CYTHON_COVERAGE') == 'yes'
     cythonize_py = False
@@ -279,39 +274,52 @@ def onpy_srcs(unit, *args):
         files2res = set()
 
         if cython_coverage:
-            def process_pyx(filename, path, out_suffix):
+            def process_pyx(filename, path, out_suffix, noext):
                 # skip generated files
                 if not is_arc_src(path, unit):
                     return
                 # source file
                 files2res.add((filename, path))
                 # generated
-                files2res.add((filename + out_suffix, path + out_suffix))
+                if noext:
+                    files2res.add((os.path.splitext(filename)[0] + out_suffix, os.path.splitext(path)[0] + out_suffix))
+                else:
+                    files2res.add((filename + out_suffix, path + out_suffix))
                 # used includes
                 for entry in parse_pyx_includes(filename, path, unit.resolve('$S')):
                     files2res.add(entry)
         else:
-            def process_pyx(filename, path, out_suffix):
+            def process_pyx(filename, path, out_suffix, noext):
                 pass
 
-        for pyxs, cython, out_suffix in [
-            (pyxs_c, unit.onbuildwith_cython_c, ".c"),
-            (pyxs_c_h, unit.onbuildwith_cython_c_h, ".c"),
-            (pyxs_c_api_h, unit.onbuildwith_cython_c_api_h, ".c"),
-            (pyxs_cpp, unit.onbuildwith_cython_cpp, ".cpp"),
+        for pyxs, cython, out_suffix, noext in [
+            (pyxs_c, unit.on_buildwith_cython_c_dep, ".c", False),
+            (pyxs_c_h, unit.on_buildwith_cython_c_h, ".c", True),
+            (pyxs_c_api_h, unit.on_buildwith_cython_c_api_h, ".c", True),
+            (pyxs_cpp, unit.on_buildwith_cython_cpp_dep, ".cpp", False),
         ]:
             for path, mod in pyxs:
                 filename = rootrel_arc_src(path, unit)
-                cython([
-                    path,
+                cython_args = [path]
+
+                dep = path
+                if path.endswith('.py'):
+                    pxd = '/'.join(mod.split('.')) + '.pxd'
+                    if unit.resolve_arc_path(pxd):
+                        dep = pxd
+                cython_args.append(dep)
+
+                cython_args += [
                     '--module-name', mod,
                     '--init-suffix', mangle(mod),
                     '--source-root', '${ARCADIA_ROOT}',
                     # set arcadia root relative __file__ for generated modules
                     '-X', 'set_initial_path={}'.format(filename),
-                ] + cython_includes + cython_directives)
+                ] + cython_includes + cython_directives
+
+                cython(cython_args)
                 py_register(unit, mod, py3)
-                process_pyx(filename, path, out_suffix)
+                process_pyx(filename, path, out_suffix, noext)
 
         if files2res:
             # Compile original and generated sources into target for proper cython coverage calculation
@@ -327,40 +335,42 @@ def onpy_srcs(unit, *args):
 
         if py3:
             for path, mod in pys:
-                root_rel_path = rootrel_arc_src(path, unit)
-                unit.onpy3_compile_bytecode([root_rel_path + '-', path])
                 dest = 'py/' + mod.replace('.', '/') + '.py'
-                res += [
-                    'DEST', dest, path,
-                    'DEST', dest + '.yapyc3', path + '.yapyc3'
-                ]
+                if with_py:
+                    res += ['DEST', dest, path]
+                if with_pyc:
+                    root_rel_path = rootrel_arc_src(path, unit)
+                    unit.on_py3_compile_bytecode([root_rel_path + '-', path])
+                    res += ['DEST', dest + '.yapyc3', path + '.yapyc3']
 
             unit.onresource_files(res)
             #add_python_lint_checks(unit, [path for path, mod in pys])
         else:
             for path, mod in pys:
                 root_rel_path = rootrel_arc_src(path, unit)
-                src = unit.resolve_arc_path(path) or path
-                dst = tobuilddir(src) + '.yapyc'
-                unit.onpy_compile_bytecode([root_rel_path + '-', src])
-                key = '/py_modules/' + mod
-                res += [
-                    path, key,
-                    '-', 'resfs/src/{}={}'.format(key, root_rel_path),
-                    dst, '/py_code/' + mod,
-                ]
+                if with_py:
+                    key = '/py_modules/' + mod
+                    res += [
+                        path, key,
+                        '-', 'resfs/src/{}={}'.format(key, root_rel_path),
+                    ]
+                if with_pyc:
+                    src = unit.resolve_arc_path(path) or path
+                    dst = tobuilddir(src) + '.yapyc'
+                    unit.on_py_compile_bytecode([root_rel_path + '-', src])
+                    res += [dst, '/py_code/' + mod]
 
             unit.onresource(res)
             add_python_lint_checks(unit, [path for path, mod in pys])
 
     if protos:
-        if '/contrib/libs/protobuf/python/google_lib' not in unit.path():
+        if not upath.startswith('contrib/libs/protobuf/python/google_lib'):
             unit.onpeerdir(['contrib/libs/protobuf/python/google_lib'])
 
         unit.onpeerdir(unit.get("PY_PROTO_DEPS").split())
 
         proto_paths = [path for path, mod in protos]
-        unit.ongenerate_py_protos_internal(proto_paths)
+        unit.on_generate_py_protos_internal(proto_paths)
         unit.onpy_srcs([
             pb2_arg(py_suf, path, mod, unit)
             for path, mod in protos
@@ -383,10 +393,10 @@ def onpy_srcs(unit, *args):
                     unit.onjoin_srcs_global(['join_' + listid(pb_cc_outs_chunk) + '.cpp'] + pb_cc_outs_chunk)
 
     if evs:
-        if '/contrib/libs/protobuf/python/google_lib' not in unit.path():
+        if not upath.startswith('contrib/libs/protobuf/python/google_lib'):
             unit.onpeerdir(['contrib/libs/protobuf/python/google_lib'])
 
-        unit.ongenerate_py_evs_internal([path for path, mod in evs])
+        unit.on_generate_py_evs_internal([path for path, mod in evs])
         unit.onpy_srcs([ev_arg(path, mod, unit) for path, mod in evs])
 
         if optimize_proto:
@@ -404,7 +414,7 @@ def onpy_srcs(unit, *args):
         prefix = unit.get('MODULE_PREFIX')
         project = unit.get('REALPRJNAME')
         py_register(unit, prefix + project, py3)
-        path = '${ARCADIA_BUILD_ROOT}/' + '{}/{}.py'.format(unit.path()[3:], project)
+        path = '${ARCADIA_BUILD_ROOT}/' + '{}/{}.py'.format(upath, project)
         arg = '{}={}'.format(path, ns + project.replace('/', '.'))
         unit.onpy_srcs([arg])
 
@@ -422,6 +432,17 @@ def ontest_srcs(unit, *args):
         unit.onpy_srcs(["NAMESPACE", "__tests__"] + list(args))
 
 
+def onpy_doctests(unit, *args):
+    """
+    @usage PY_DOCTEST(Packages...)
+
+    Add to the test doctests for specified Python packages
+    The packages should be part of a test (listed as sources of the test or its PEERDIRs).
+    """
+    if unit.get('PY3TEST_BIN' if is_py3(unit) else 'PYTEST_BIN') != 'no':
+        unit.onresource(['-', 'PY_DOCTEST_PACKAGES="{}"'.format(' '.join(args))])
+
+
 def py_register(unit, func, py3):
     if py3:
         unit.on_py3_register([func])
@@ -431,10 +452,19 @@ def py_register(unit, func, py3):
 
 def onpy_register(unit, *args):
     """
-    Python knows about which built-ins can be imported, due to their registration in the Assembly or at the start of the interpreter.
+    @usage: PY_REGISTER([package.]module_name[=module_name])
 
+    Python knows about which built-ins can be imported, due to their registration in the Assembly or at the start of the interpreter.
     All modules from the sources listed in PY_SRCS() are registered automatically.
     To register the modules from the sources in the SRCS(), you need to use PY_REGISTER().
+
+    PY_REGISTER(module_name) initializes module globally via call to initmodule_name()
+    PY_REGISTER(package.module_name) initializes module in the specified package using package-specific initialization using init7package11module_name
+    PY_REGISTER(package.module_name=module_name) redeclares global initialization of a module to use
+    package-specific initialization within package CFLAGS(-Dinitmodule_name=init7package11module_name)
+
+    PY_REGISTER honors Python2 and Python3 differences and adjusts itself to Python version of a current module
+    Documentation: https://wiki.yandex-team.ru/arcadia/python/pysrcs/#makrospyregister
     """
 
     py3 = is_py3(unit)
@@ -460,11 +490,11 @@ def py_main(unit, arg):
 
 def onpy_main(unit, arg):
     """
-        @usage: PY_MAIN(pkg.mod[:func])
+        @usage: PY_MAIN(package.module[:func])
 
-        Specifies the function from which to start executing a python program
+        Specifies the module or function from which to start executing a python program
 
-        Documentation: https://wiki.yandex-team.ru/devtools/commandsandvars/py_srcs/
+        Documentation: https://wiki.yandex-team.ru/arcadia/python/pysrcs/#modulipyprogrampy3programimakrospymain
     """
     if ':' not in arg:
         arg += ':main'

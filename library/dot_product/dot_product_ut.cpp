@@ -2,6 +2,7 @@
 
 #include <library/unittest/registar.h>
 
+#include <library/sse/sse.h>
 #include <util/generic/vector.h>
 #include <util/random/fast.h>
 
@@ -174,7 +175,7 @@ Y_UNIT_TEST_SUITE(TDocProductTestSuite) {
         for (ui32 i = 0; i < 30; ++i)
             UNIT_ASSERT_VALUES_EQUAL(DotProduct(a.data(), b.data(), a.size()), res);
 
-#ifdef _sse_
+#ifdef ARCADIA_SSE
         UNIT_ASSERT_VALUES_EQUAL(ToString(res), "250.502");
 #endif
     }
@@ -190,7 +191,7 @@ Y_UNIT_TEST_SUITE(TDocProductTestSuite) {
         for (ui32 i = 0; i < 30; ++i)
             UNIT_ASSERT_VALUES_EQUAL(DotProduct(a.data(), b.data(), a.size()), res);
 
-#ifdef _sse_
+#ifdef ARCADIA_SSE
         UNIT_ASSERT_VALUES_EQUAL(ToString(res), "235.7826026");
 #endif
     }

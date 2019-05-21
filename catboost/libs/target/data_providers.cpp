@@ -98,6 +98,7 @@ namespace NCB {
         TStringBuf datasetName,
         bool isLearnData,
         bool allowConstLabel,
+        bool needCheckTarget,
         TConstArrayRef<NCatboostOptions::TLossDescription> metricDescriptions)
     {
         if (!maybeConvertedTarget) {
@@ -109,14 +110,16 @@ namespace NCB {
             return;
         }
 
-        for (auto objectIdx : xrange(convertedTarget.size())) {
-            const float value = convertedTarget[objectIdx];
-            if (!IsSafeTarget(value)) {
-                CATBOOST_WARNING_LOG
-                    << "Got unsafe target "
-                    << LabeledOutput(value)
-                    << " at object #" << objectIdx << " of dataset " << datasetName << Endl;
-                break;
+        if (needCheckTarget) {
+            for (auto objectIdx : xrange(convertedTarget.size())) {
+                const float value = convertedTarget[objectIdx];
+                if (!IsSafeTarget(value)) {
+                    CATBOOST_WARNING_LOG
+                        << "Got unsafe target "
+                        << LabeledOutput(value)
+                        << " at object #" << objectIdx << " of dataset " << datasetName << Endl;
+                    break;
+                }
             }
         }
 
@@ -225,14 +228,17 @@ namespace NCB {
         return result;
     }
 
-    TSharedVector<float> MakeOneBaseline(TMaybeData<TBaselineArrayRef> baselines) {
+    TVector<TSharedVector<float>> MakeOneBaseline(TMaybeData<TBaselineArrayRef> baselines) {
         if (!baselines) {
-            return nullptr;
+            return {};
         }
 
         CheckDataSize(baselines->size(), (size_t)1, "baselines", false, "expected dimension");
 
-        return MakeAtomicShared<TVector<float>>((*baselines)[0].begin(), (*baselines)[0].end());
+        return TVector<TSharedVector<float>>(
+            1,
+            MakeAtomicShared<TVector<float>>((*baselines)[0].begin(), (*baselines)[0].end())
+        );
     }
 
     TVector<TPair> GeneratePairs(
@@ -343,7 +349,7 @@ namespace NCB {
     }
 
 
-    TTargetDataProviders CreateTargetDataProviders(
+    TTargetDataProviderPtr CreateTargetDataProvider(
         const TRawTargetDataProvider& rawData,
         TMaybeData<TConstArrayRef<TSubgroupId>> subgroupIds,
         bool isForGpu,
@@ -360,7 +366,8 @@ namespace NCB {
         TVector<TString>* classNames,
         TMaybe<TLabelConverter*> labelConverter, // needed only for multiclass
         TRestorableFastRng64* rand, // for possible pairs generation
-        NPar::TLocalExecutor* localExecutor) {
+        NPar::TLocalExecutor* localExecutor,
+        bool* hasPairs) {
 
         if (isLearnData) {
             CB_ENSURE(rawData.GetObjectCount() > 0, "Train dataset is empty");
@@ -384,12 +391,10 @@ namespace NCB {
             "mainLossFunction is not in metricDescriptions"
         );
 
-        bool hasClassificationMetrics = isAnyOfMetrics(IsClassificationMetric);
-        bool hasBinClassOnlyMetrics = hasClassificationMetrics && isAnyOfMetrics(IsBinaryClassOnlyMetric);
-        bool hasMultiClassOnlyMetrics = hasClassificationMetrics && isAnyOfMetrics(
-            [](ELossFunction lossFunction) {
-                return IsMultiClassMetric(lossFunction) && !IsBinaryClassMetric(lossFunction);
-            });
+        bool hasClassificationOnlyMetrics = isAnyOfMetrics(IsClassificationOnlyMetric);
+        bool hasBinClassOnlyMetrics = isAnyOfMetrics(IsBinaryClassOnlyMetric);
+        bool hasMultiClassOnlyMetrics = isAnyOfMetrics(IsMultiClassOnlyMetric);
+        bool hasGroupwiseMetrics = isAnyOfMetrics(IsGroupwiseMetric);
         bool hasUserDefinedMetrics = isAnyOfMetrics(IsUserDefined);
 
         CB_ENSURE(
@@ -398,12 +403,8 @@ namespace NCB {
             " specified"
         );
 
-        bool hasMultiClassMetrics = hasClassificationMetrics && isAnyOfMetrics(IsMultiClassMetric);
+        bool multiClassTargetData = false;
 
-
-        bool maybeMultiClassTargetData = false;
-
-        bool knownMultiDimensionalModel = false;
         if (knownModelApproxDimension) {
             if (*knownModelApproxDimension == 1) {
                 CB_ENSURE(
@@ -412,28 +413,33 @@ namespace NCB {
                 );
             } else {
                 for (const auto& metricDescription : metricDescriptions) {
+                    auto metricLossFunction = metricDescription.GetLossFunction();
                     CB_ENSURE(
-                        IsMultiClassMetric(metricDescription.GetLossFunction()),
-                        "Non-Multiclassification metric (" << metricDescription.GetLossFunction()
+                        IsMultiClassCompatibleMetric(metricLossFunction),
+                        "Non-Multiclassification compatible metric (" << metricLossFunction
                         << ") specified for a multidimensional model"
                     );
                 }
-                knownMultiDimensionalModel = true;
                 if (!knownClassCount) { // because there might be missing classes in train
                     knownClassCount = *knownModelApproxDimension;
                 }
-                maybeMultiClassTargetData = true;
+                multiClassTargetData = true;
             }
-        } else {
-            maybeMultiClassTargetData = hasMultiClassMetrics && !hasBinClassOnlyMetrics;
+        } else if (hasMultiClassOnlyMetrics ||
+            (knownClassCount > 2) ||
+            (classWeights.size() > 2) ||
+            (classNames->size() > 2))
+        {
+            multiClassTargetData = true;
         }
+
 
         ui32 classCountInData = 0;
 
         auto maybeConvertedTarget = ConvertTarget(
             rawData.GetTarget(),
-            hasClassificationMetrics,
-            maybeMultiClassTargetData,
+            hasClassificationOnlyMetrics || multiClassTargetData,
+            multiClassTargetData,
             knownClassCount == 0,
             classNames,
             localExecutor,
@@ -441,6 +447,11 @@ namespace NCB {
 
         if (needTargetDataForCtrs) {
             CB_ENSURE(maybeConvertedTarget, "CTR features require Target data");
+        }
+        if ((mainLossFunction && IsUserDefined((*mainLossFunction)->GetLossFunction())) ||
+            hasUserDefinedMetrics)
+        {
+            CB_ENSURE(maybeConvertedTarget, "User defined objective/metrics require Target data");
         }
 
         // TODO(akhropov): make GPU also support absence of Target data
@@ -465,28 +476,24 @@ namespace NCB {
         } else if (hasMultiClassOnlyMetrics) {
             createMultiClassTarget = true;
         } else {
-            if (hasClassificationMetrics) {
-                if (knownMultiDimensionalModel || (classCount > 2)) {
-                    createMultiClassTarget = true;
-                } else {
-                    createBinClassTarget = true;
-                }
+            if (multiClassTargetData || (classCount > 2)) {
+                createMultiClassTarget = true;
+            } else if (classCount == 2) {
+                createBinClassTarget = true;
             }
         }
+        bool createClassTarget = createBinClassTarget || createMultiClassTarget;
 
+        TProcessedTargetData processedTargetData;
 
         /*
          * TODO(akhropov)
          * until target data provider selection supported by metrics use common data for all target
          *  data providers. MLTOOLS-2337.
          */
-        TSharedWeights<float> adjustedWeights;
-        TSharedVector<float> oneBaseline;
-        TSharedVector<TQueryInfo> groupInfos;
 
-        TTargetDataProviders result;
-
-        if (createBinClassTarget) { // binclass
+        // Targets
+        if (createBinClassTarget) {
             CB_ENSURE(
                 metricsThatRequireTargetCanBeSkipped || rawData.GetTarget(),
                 "Binary classification loss/metrics require label data"
@@ -497,17 +504,6 @@ namespace NCB {
                 " probability nor 2-class labels"
             );
 
-            adjustedWeights = MakeClassificationWeights(
-                rawData.GetWeights(),
-                rawData.GetGroupWeights(),
-                (ui32)2,
-                isForGpu,
-                maybeConvertedTarget,
-                rawData.GetTarget() ? classWeights : TConstArrayRef<float>(),
-                localExecutor);
-
-            oneBaseline = MakeOneBaseline(rawData.GetBaseline());
-
             if (rawData.GetTarget() &&
                 mainLossFunction &&
                 ((*mainLossFunction)->GetLossFunction() == ELossFunction::Logloss))
@@ -516,27 +512,11 @@ namespace NCB {
                     *maybeConvertedTarget,
                     NCatboostOptions::GetLogLossBorder(**mainLossFunction),
                     &*maybeConvertedTarget);
-
-                TTargetDataSpecification specification(ETargetType::BinClass, "Binary");
-                result.emplace(
-                    specification,
-                    MakeIntrusive<TBinClassTarget>(
-                        specification.Description,
-                        rawData.GetObjectsGrouping(),
-                        maybeConvertedTarget,
-                        adjustedWeights,
-                        oneBaseline));
             }
 
-            TTargetDataSpecification specification(ETargetType::BinClass);
-            result.emplace(
-                specification,
-                MakeIntrusive<TBinClassTarget>(
-                    specification.Description,
-                    rawData.GetObjectsGrouping(),
-                    maybeConvertedTarget,
-                    adjustedWeights,
-                    oneBaseline));
+            if (maybeConvertedTarget) {
+                processedTargetData.TargetsClassCount.emplace("", 2);
+            }
         }
 
         if (createMultiClassTarget) {
@@ -549,41 +529,14 @@ namespace NCB {
                 "Multiclass metric/loss specified but target data does not have more than one different labels"
             );
 
-            adjustedWeights = MakeClassificationWeights(
-                rawData.GetWeights(),
-                rawData.GetGroupWeights(),
-                (ui32)classCount,
-                isForGpu,
-                maybeConvertedTarget,
-                rawData.GetTarget() ? classWeights : TConstArrayRef<float>(),
-                localExecutor);
-
             if (!(*labelConverter)->IsInitialized()) {
                 (*labelConverter)->Initialize(*maybeConvertedTarget, classCount);
             }
             PrepareTargetCompressed(**labelConverter, &*maybeConvertedTarget);
 
-            TTargetDataSpecification specification(ETargetType::MultiClass);
-            result.emplace(
-                specification,
-                MakeIntrusive<TMultiClassTarget>(
-                    specification.Description,
-                    rawData.GetObjectsGrouping(),
-                    (ui32)(**labelConverter).GetApproxDimension(),
-                    maybeConvertedTarget,
-                    adjustedWeights,
-                    MakeBaselines(rawData.GetBaseline(), (ui32)classCount)
-                )
-            );
-        }
-
-        if (!adjustedWeights) {
-            adjustedWeights = MakeWeights(
-                rawData.GetWeights(),
-                rawData.GetGroupWeights(),
-                isForGpu,
-                localExecutor
-            );
+            if (maybeConvertedTarget) {
+                processedTargetData.TargetsClassCount.emplace("", (**labelConverter).GetApproxDimension());
+            }
         }
 
         if (isAnyOfMetrics(IsRegressionMetric)) {
@@ -591,139 +544,128 @@ namespace NCB {
                 metricsThatRequireTargetCanBeSkipped || rawData.GetTarget(),
                 "Regression loss/metrics require target data"
             );
-
-            if (!oneBaseline) {
-                oneBaseline = MakeOneBaseline(rawData.GetBaseline());
-            }
-
-            TTargetDataSpecification specification(ETargetType::Regression);
-            result.emplace(
-                specification,
-                MakeIntrusive<TRegressionTarget>(
-                    specification.Description,
-                    rawData.GetObjectsGrouping(),
-                    maybeConvertedTarget,
-                    adjustedWeights,
-                    oneBaseline));
         }
 
-        auto makeGroupInfos = [&]() {
-            if (!groupInfos) {
-                TConstArrayRef<TPair> pairs = rawData.GetPairs();
+        if (maybeConvertedTarget) {
+            processedTargetData.Targets.emplace("", maybeConvertedTarget);
+        }
 
-                TVector<TPair> generatedPairs;
 
-                if (pairs.empty() && isAnyOfMetrics(IsPairwiseMetric)) {
-                    CB_ENSURE(rawData.GetTarget(), "Pool labels are not provided. Cannot generate pairs.");
+        // Weights
+        {
+            if (!rawData.GetWeights().IsTrivial() && isAnyOfMetrics(UsesPairsForCalculation)) {
+                CATBOOST_WARNING_LOG << "Pairwise losses don't support object weights." << '\n';
+            }
 
-                    generatedPairs = GeneratePairs(
-                        *rawData.GetObjectsGrouping(),
-                        *maybeConvertedTarget,
-                        metricDescriptions,
-                        rand);
+            if (createClassTarget) {
+                processedTargetData.Weights.emplace(
+                    "",
+                    MakeClassificationWeights(
+                        rawData.GetWeights(),
+                        rawData.GetGroupWeights(),
+                        createMultiClassTarget ? classCount : ui32(2),
+                        isForGpu,
+                        maybeConvertedTarget,
+                        rawData.GetTarget() ? classWeights : TConstArrayRef<float>(),
+                        localExecutor
+                    )
+                );
+            } else {
+                processedTargetData.Weights.emplace(
+                    "",
+                    MakeWeights(
+                        rawData.GetWeights(),
+                        rawData.GetGroupWeights(),
+                        isForGpu,
+                        localExecutor
+                    )
+                );
+            }
+        }
 
-                    pairs = generatedPairs;
+
+        // Baseline
+        {
+            auto maybeBaseline = rawData.GetBaseline();
+            if (maybeBaseline) {
+                if (createMultiClassTarget) {
+                    processedTargetData.Baselines.emplace(
+                        "",
+                        MakeBaselines(rawData.GetBaseline(), (ui32)classCount));
+                } else {
+                    processedTargetData.Baselines.emplace("", MakeOneBaseline(maybeBaseline));
                 }
+            }
+        }
 
-                groupInfos = MakeGroupInfos(
+        *hasPairs = false;
+
+        // GroupInfos
+        // TODO(akhropov): always create group data if it is available (for compatibility)
+        if (hasGroupwiseMetrics ||
+            (!rawData.GetObjectsGrouping()->IsTrivial() && (maybeConvertedTarget || hasUserDefinedMetrics)))
+        {
+            bool hasGroupNonPairwiseDataMetrics = isAnyOfMetrics(
+                [](ELossFunction lossFunction) {
+                    return IsGroupwiseMetric(lossFunction) && !IsPairwiseMetric(lossFunction);
+                });
+
+            if (hasGroupNonPairwiseDataMetrics ||
+                (!rawData.GetObjectsGrouping()->IsTrivial() && (maybeConvertedTarget || hasUserDefinedMetrics)))
+            {
+                CB_ENSURE(
+                    metricsThatRequireTargetCanBeSkipped || maybeConvertedTarget,
+                    (hasGroupNonPairwiseDataMetrics ? "Groupwise" : "User defined")
+                    << " loss/metrics require target data"
+                );
+            }
+
+            TConstArrayRef<TPair> pairs = rawData.GetPairs();
+
+            TVector<TPair> generatedPairs;
+
+            if (pairs.empty() && isAnyOfMetrics(IsPairwiseMetric)) {
+                CB_ENSURE(rawData.GetTarget(), "Pool labels are not provided. Cannot generate pairs.");
+
+                generatedPairs = GeneratePairs(
+                    *rawData.GetObjectsGrouping(),
+                    *maybeConvertedTarget,
+                    metricDescriptions,
+                    rand);
+
+                pairs = generatedPairs;
+            }
+
+            if (!pairs.empty()) {
+                *hasPairs = true;
+            }
+
+            processedTargetData.GroupInfos.emplace(
+                "",
+                MakeGroupInfos(
                     *rawData.GetObjectsGrouping(),
                     subgroupIds,
                     rawData.GetGroupWeights(),
-                    pairs);
-            }
-        };
-
-
-        if (!rawData.GetWeights().IsTrivial() && isAnyOfMetrics(UsesPairsForCalculation)) {
-            CATBOOST_WARNING_LOG << "Pairwise losses don't support object weights." << '\n';
-        }
-
-
-        bool hasGroupNonPairwiseDataMetrics = isAnyOfMetrics(
-            [](ELossFunction lossFunction) {
-                return IsGroupwiseMetric(lossFunction) && !IsPairwiseMetric(lossFunction);
-            });
-
-        // TODO(akhropov): always create group data if it is available (for compatibility)
-        if (hasGroupNonPairwiseDataMetrics ||
-            (!rawData.GetObjectsGrouping()->IsTrivial() && (maybeConvertedTarget || hasUserDefinedMetrics)))
-        {
-            CB_ENSURE(
-                metricsThatRequireTargetCanBeSkipped || maybeConvertedTarget,
-                (hasGroupNonPairwiseDataMetrics ? "Groupwise" : "User defined")
-                << " loss/metrics require target data"
+                    pairs
+                )
             );
-
-            if (!oneBaseline) {
-                oneBaseline = MakeOneBaseline(rawData.GetBaseline());
-            }
-
-            makeGroupInfos();
-
-            TTargetDataSpecification specification(ETargetType::GroupwiseRanking);
-            result.emplace(
-                specification,
-                MakeIntrusive<TGroupwiseRankingTarget>(
-                    specification.Description,
-                    rawData.GetObjectsGrouping(),
-                    maybeConvertedTarget,
-                    adjustedWeights,
-                    oneBaseline,
-                    groupInfos));
         }
 
-        if (isAnyOfMetrics(IsPairwiseMetric)) {
-            if (!oneBaseline) {
-                oneBaseline = MakeOneBaseline(rawData.GetBaseline());
-            }
 
-            makeGroupInfos();
-
-            TTargetDataSpecification specification(ETargetType::GroupPairwiseRanking);
-            result.emplace(
-                specification,
-                MakeIntrusive<TGroupPairwiseRankingTarget>(
-                    specification.Description,
-                    rawData.GetObjectsGrouping(),
-                    oneBaseline,
-                    groupInfos));
-        }
-
-        // TODO(akhropov): always create target data if it is available (for compatibility)
-        if (needTargetDataForCtrs || maybeConvertedTarget) {
-            TTargetDataSpecification specification(ETargetType::Simple);
-            result.emplace(
-                specification,
-                MakeIntrusive<TSimpleTarget>(
-                    specification.Description,
-                    rawData.GetObjectsGrouping(),
-                    maybeConvertedTarget));
-        }
-
-        if ((mainLossFunction && IsUserDefined((*mainLossFunction)->GetLossFunction())) ||
-            hasUserDefinedMetrics)
-        {
-            CB_ENSURE(maybeConvertedTarget, "User defined objective/metrics require Target data");
-
-            TTargetDataSpecification specification(ETargetType::UserDefined);
-            result.emplace(
-                specification,
-                MakeIntrusive<TUserDefinedTarget>(
-                    specification.Description,
-                    rawData.GetObjectsGrouping(),
-                    maybeConvertedTarget,
-                    adjustedWeights));
-        }
-
+        const bool needCheckTarget = !mainLossFunction || !IsRegressionObjective((*mainLossFunction)->GetLossFunction());
         // TODO(akhropov): Will be split by target type. MLTOOLS-2337.
         CheckPreprocessedTarget(
             maybeConvertedTarget,
             datasetName,
             isLearnData,
             allowConstLabel,
+            needCheckTarget,
             metricDescriptions);
 
-        return result;
+        return MakeIntrusive<TTargetDataProvider>(
+            rawData.GetObjectsGrouping(),
+            std::move(processedTargetData)
+        );
     }
 
 
@@ -817,7 +759,7 @@ namespace NCB {
         result.MetaInfo = srcData.MetaInfo;
         result.ObjectsGrouping = srcData.ObjectsGrouping;
         result.ObjectsData = srcData.ObjectsData;
-        result.TargetData = CreateTargetDataProviders(
+        result.TargetData = CreateTargetDataProvider(
             srcData.RawTargetData,
             srcData.ObjectsData->GetSubgroupIds(),
             /*isForGpu*/ false,
@@ -834,13 +776,9 @@ namespace NCB {
             &classNames,
             &labelConverter,
             rand,
-            localExecutor
+            localExecutor,
+            &result.MetaInfo.HasPairs
         );
-
-        // in case pairs were generated
-        if (result.TargetData.contains(TTargetDataSpecification(ETargetType::GroupPairwiseRanking))) {
-            result.MetaInfo.HasPairs = true;
-        }
 
         return result;
     }

@@ -15,3 +15,9 @@ bool NeedTarget(ECtrType ctr);
 bool NeedTargetClassifier(ECtrType ctr);
 
 bool IsPermutationDependentCtrType(ECtrType ctr);
+
+
+enum class ECtrHistoryUnit {
+    Group,
+    Sample
+};

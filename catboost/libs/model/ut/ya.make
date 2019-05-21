@@ -2,7 +2,10 @@ UNITTEST(model_ut)
 
 
 
+SIZE(MEDIUM)
+
 SRCS(
+    model_export_helpers_ut.cpp
     formula_evaluator_ut.cpp
     json_model_export_ut.cpp
     leaf_weights_ut.cpp

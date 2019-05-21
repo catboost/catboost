@@ -5,8 +5,15 @@
 #include "error_functions.h"
 
 #include <catboost/libs/data_types/query.h>
+#include <catboost/libs/options/restrictions.h>
 
-#include <library/threading/local_executor/local_executor.h>
+
+class IDerCalcer;
+
+namespace NPar {
+    class TLocalExecutor;
+}
+
 
 void CalculateDersForQueries(
     const TVector<double>& approxes,
@@ -18,6 +25,7 @@ void CalculateDersForQueries(
     int queryStartIndex,
     int queryEndIndex,
     TArrayRef<TDers> approxDers,
+    ui64 randomSeed,
     NPar::TLocalExecutor* localExecutor
 );
 

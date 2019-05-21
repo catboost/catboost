@@ -1,4 +1,8 @@
 def onlj_archive(unit, *args):
+    """
+        @usage: LJ_ARCHIVE(NAME Name LuaFiles...)
+        Precompile .lua files using LuaJIT and archive both sources and results using sources names as keys
+    """
     def iter_luas(l):
         for a in l:
             if a.endswith('.lua'):
@@ -7,7 +11,7 @@ def onlj_archive(unit, *args):
     def iter_objs(l):
         for a in l:
             s = a[:-3] + 'raw'
-            unit.onluajit_objdump(['OUT', s, a])
+            unit.on_luajit_objdump(['OUT', s, a])
             yield s
 
     luas = list(iter_luas(args))
@@ -17,6 +21,10 @@ def onlj_archive(unit, *args):
     unit.onarchive_by_keys(['DONTCOMPRESS', 'NAME', 'LuaSources.inc', 'KEYS', ':'.join(luas)] + luas)
 
 def onlj_21_archive(unit, *args):
+    """
+        @usage: LJ_21_ARCHIVE(NAME Name LuaFiles...) # deprecated
+        Precompile .lua files using LuaJIT 2.1 and archive both sources and results using sources names as keys
+    """
     def iter_luas(l):
         for a in l:
             if a.endswith('.lua'):
@@ -25,7 +33,7 @@ def onlj_21_archive(unit, *args):
     def iter_objs(l):
         for a in l:
             s = a[:-3] + 'raw'
-            unit.onluajit_21_objdump(['OUT', s, a])
+            unit.on_luajit_21_objdump(['OUT', s, a])
             yield s
 
     luas = list(iter_luas(args))

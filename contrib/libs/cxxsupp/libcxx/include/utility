@@ -893,7 +893,9 @@ using __make_integer_sequence = __make_integer_seq<integer_sequence, _Tp, _Ep>;
 
 #else
 
-template <class _Tp, class _T> struct __integer_sequence_convert {};
+template <class _Tp, class _T> struct __integer_sequence_convert {
+    using type = integer_sequence<_Tp>;
+};
 
 template<class _Tp, class _Tp2, _Tp... _Values>
 struct __integer_sequence_convert<_Tp, __integer_sequence<_Tp2, _Values...>> {

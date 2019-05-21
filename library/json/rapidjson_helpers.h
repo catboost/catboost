@@ -79,7 +79,7 @@ namespace NJson {
 
     struct TStringBufStreamWrapper : TReadOnlyStreamBase {
         Ch Peek() const {
-            return Pos < Data.Size() ? Data[Pos] : 0;
+            return Pos < Data.size() ? Data[Pos] : 0;
         }
 
         Ch Take() {

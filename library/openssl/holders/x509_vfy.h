@@ -2,7 +2,6 @@
 
 #include <contrib/libs/openssl/include/openssl/x509_vfy.h>
 
-#include <library/openssl/compat/x509_vfy.h> // Remove after OpenSSL upgrade
 #include <library/openssl/holders/holder.h>
 
 namespace NOpenSSL {

@@ -601,6 +601,7 @@ public:
         , ComprSchemas_(nullptr)
         , ComprSchemasLen_(0)
         , KeepAliveEnabled_(false)
+        , BodyEncodingEnabled_(true)
         , Finished_(false)
     {
     }
@@ -688,12 +689,20 @@ public:
         KeepAliveEnabled_ = enable;
     }
 
+    inline void EnableBodyEncoding(bool enable) {
+        BodyEncodingEnabled_ = enable;
+    }
+
     inline bool IsCompressionEnabled() const noexcept {
         return ComprSchemas_ && ComprSchemasLen_;
     }
 
     inline bool IsKeepAliveEnabled() const noexcept {
         return KeepAliveEnabled_;
+    }
+
+    inline bool IsBodyEncodingEnabled() const noexcept {
+        return BodyEncodingEnabled_;
     }
 
     inline bool CanBeKeepAlive() const noexcept {
@@ -912,13 +921,13 @@ private:
             chunked = true;
         }
 
-        if (chunked) {
+        if (IsBodyEncodingEnabled() && chunked) {
             Output_ = Streams_.Add(new TChunkedOutput(Output_));
         }
 
         Output_ = Streams_.Add(new TTeeOutput(Output_, &SizeCalculator_));
 
-        if (encoder) {
+        if (IsBodyEncodingEnabled() && encoder) {
             Output_ = Streams_.Add((*encoder)(Output_));
         }
     }
@@ -950,6 +959,8 @@ private:
     size_t ComprSchemasLen_;
 
     bool KeepAliveEnabled_;
+
+    bool BodyEncodingEnabled_;
 
     bool Finished_;
 
@@ -1007,8 +1018,16 @@ void THttpOutput::EnableKeepAlive(bool enable) {
     Impl_->EnableKeepAlive(enable);
 }
 
+void THttpOutput::EnableBodyEncoding(bool enable) {
+    Impl_->EnableBodyEncoding(enable);
+}
+
 bool THttpOutput::IsKeepAliveEnabled() const noexcept {
     return Impl_->IsKeepAliveEnabled();
+}
+
+bool THttpOutput::IsBodyEncodingEnabled() const noexcept {
+    return Impl_->IsBodyEncodingEnabled();
 }
 
 bool THttpOutput::IsCompressionEnabled() const noexcept {

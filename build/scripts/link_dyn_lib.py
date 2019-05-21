@@ -109,7 +109,10 @@ def fix_windows_param(ex):
         return ['/DEF:{}'.format(def_file.name)]
 
 
-def fix_cmd(arch, c):
+musl_libs = '-lc', '-lcrypt', '-ldl', '-lm', '-lpthread', '-lrt', '-lutil'
+
+
+def fix_cmd(arch, musl, c):
     if arch == 'WINDOWS':
         prefix = '/DEF:'
         f = fix_windows_param
@@ -121,6 +124,9 @@ def fix_cmd(arch, c):
             f = lambda x: fix_gnu_param(arch, x)
 
     def do_fix(p):
+        if musl and p in musl_libs:
+            return []
+
         if p.startswith(prefix) and p.endswith('.exports'):
             fname = p[len(prefix):]
 
@@ -141,6 +147,7 @@ def parse_args():
     parser.add_option('--target')
     parser.add_option('--soname')
     parser.add_option('--fix-elf')
+    parser.add_option('--musl', action='store_true')
     return parser.parse_args()
 
 
@@ -150,7 +157,7 @@ if __name__ == '__main__':
     assert opts.arch
     assert opts.target
 
-    cmd = fix_cmd(opts.arch, args)
+    cmd = fix_cmd(opts.arch, opts.musl, args)
     proc = subprocess.Popen(cmd, shell=False, stderr=sys.stderr, stdout=sys.stdout)
     proc.communicate()
 
@@ -187,7 +194,7 @@ C++ geobase5::hardcoded_service
 """
     filename = write_temp_file(export_file_content)
     args = ['-Wl,--version-script={}'.format(filename)]
-    assert fix_cmd('DARWIN', args) == [
+    assert fix_cmd('DARWIN', False, args) == [
         '-Wl,-exported_symbol,__ZN8geobase57details11lookup_impl*',
         '-Wl,-exported_symbol,__ZTIN8geobase57details11lookup_impl*',
         '-Wl,-exported_symbol,__ZTSN8geobase57details11lookup_impl*',

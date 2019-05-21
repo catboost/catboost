@@ -23,6 +23,14 @@ public class CatBoostModelTest {
         }
     }
 
+    static void assertEqualArrays(@NotNull String[] expected, @NotNull String[] actual) {
+        TestCase.assertEquals(expected.length, actual.length);
+
+        for (int i = 0; i < expected.length; ++i) {
+            TestCase.assertEquals("at " + String.valueOf(i), expected[i], actual[i]);
+        }
+    }
+
     static void assertEqual(@NotNull CatBoostPredictions expected, @NotNull CatBoostPredictions actual) {
         TestCase.assertEquals(expected.getObjectCount(), actual.getObjectCount());
         TestCase.assertEquals(expected.getPredictionDimension(), actual.getPredictionDimension());
@@ -159,6 +167,10 @@ public class CatBoostModelTest {
             TestCase.assertEquals(5, model.getTreeCount());
             TestCase.assertEquals(3, model.getUsedNumericFeatureCount());
             TestCase.assertEquals(0, model.getUsedCategoricFeatureCount());
+
+            final String[] expected = new String[]{"0", "1", "2"};
+            String[] actual = model.getFeatureNames();
+            assertEqualArrays(expected, actual);
         }
     }
 

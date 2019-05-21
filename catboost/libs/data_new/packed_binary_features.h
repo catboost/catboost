@@ -118,7 +118,7 @@ namespace NCB {
 
         int objectCount = SafeIntegerCast<int>(srcFeature.size());
         NPar::TLocalExecutor::TExecRangeParams rangeParams(0, objectCount);
-        rangeParams.SetBlockCount(localExecutor->GetThreadCount());
+        rangeParams.SetBlockCount(localExecutor->GetThreadCount() + 1);
 
         localExecutor->ExecRangeWithThrow(
             [&](int i) {

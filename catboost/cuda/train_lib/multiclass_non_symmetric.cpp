@@ -3,9 +3,9 @@
 
 namespace NCatboostCuda {
     using TMultiClassTrainer = TGpuTrainer<TMultiClassificationTargets, TNonSymmetricTree>;
-    TGpuTrainerFactory::TRegistrator<TMultiClassTrainer> MulticlassLossguideRegistrator(GetTrainerFactoryKey(ELossFunction::MultiClass, EGrowingPolicy::Lossguide));
-    TGpuTrainerFactory::TRegistrator<TMultiClassTrainer> MulticlassOneVsAllLossguideRegistrator(GetTrainerFactoryKey(ELossFunction::MultiClassOneVsAll, EGrowingPolicy::Lossguide));
+    TGpuTrainerFactory::TRegistrator<TMultiClassTrainer> MulticlassLossguideRegistrator(GetTrainerFactoryKey(ELossFunction::MultiClass, EGrowPolicy::Lossguide));
+    TGpuTrainerFactory::TRegistrator<TMultiClassTrainer> MulticlassOneVsAllLossguideRegistrator(GetTrainerFactoryKey(ELossFunction::MultiClassOneVsAll, EGrowPolicy::Lossguide));
 
-    TGpuTrainerFactory::TRegistrator<TMultiClassTrainer> MulticlassLevelwiseRegistrator(GetTrainerFactoryKey(ELossFunction::MultiClass, EGrowingPolicy::Levelwise));
-    TGpuTrainerFactory::TRegistrator<TMultiClassTrainer> MulticlassOneVsAllLevelwiseRegistrator(GetTrainerFactoryKey(ELossFunction::MultiClassOneVsAll, EGrowingPolicy::Levelwise));
+    TGpuTrainerFactory::TRegistrator<TMultiClassTrainer> MulticlassDepthwiseRegistrator(GetTrainerFactoryKey(ELossFunction::MultiClass, EGrowPolicy::Depthwise));
+    TGpuTrainerFactory::TRegistrator<TMultiClassTrainer> MulticlassOneVsAllDepthwiseRegistrator(GetTrainerFactoryKey(ELossFunction::MultiClassOneVsAll, EGrowPolicy::Depthwise));
 }

@@ -23,7 +23,7 @@ def __boot():
                 break
         else:
             try:
-                import imp  # Avoid import loop in Python >= 3.3
+                import imp  # Avoid import loop in Python 3
                 stream, path, descr = imp.find_module('site', [item])
             except ImportError:
                 continue

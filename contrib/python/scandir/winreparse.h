@@ -1,5 +1,3 @@
-#pragma once
-
 #ifndef Py_WINREPARSE_H
 #define Py_WINREPARSE_H
 

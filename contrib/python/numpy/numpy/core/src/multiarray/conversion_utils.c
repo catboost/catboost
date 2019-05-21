@@ -4,19 +4,19 @@
 
 #define NPY_NO_DEPRECATED_API NPY_API_VERSION
 #define _MULTIARRAYMODULE
-
 #include "numpy/arrayobject.h"
 #include "numpy/arrayscalars.h"
 #include "numpy/arrayobject.h"
 
 #include "npy_config.h"
 #include "npy_pycompat.h"
-#include "npy_import.h"
 
 #include "common.h"
 #include "arraytypes.h"
 
 #include "conversion_utils.h"
+#include "alloc.h"
+#include "buffer.h"
 
 static int
 PyArray_PyIntAsInt_ErrMsg(PyObject *o, const char * msg) NPY_GCC_NONNULL(2);
@@ -47,8 +47,7 @@ PyArray_Converter(PyObject *object, PyObject **address)
         return NPY_SUCCEED;
     }
     else {
-        *address = PyArray_FromAny(object, NULL, 0, 0,
-                                NPY_ARRAY_CARRAY, NULL);
+        *address = PyArray_FROM_OF(object, NPY_ARRAY_CARRAY);
         if (*address == NULL) {
             return NPY_FAIL;
         }
@@ -122,7 +121,7 @@ PyArray_IntpConverter(PyObject *obj, PyArray_Dims *seq)
         return NPY_FAIL;
     }
     if (len > 0) {
-        seq->ptr = PyDimMem_NEW(len);
+        seq->ptr = npy_alloc_cache_dim(len);
         if (seq->ptr == NULL) {
             PyErr_NoMemory();
             return NPY_FAIL;
@@ -131,7 +130,7 @@ PyArray_IntpConverter(PyObject *obj, PyArray_Dims *seq)
     seq->len = len;
     nd = PyArray_IntpFromIndexSequence(obj, (npy_intp *)seq->ptr, len);
     if (nd == -1 || nd != len) {
-        PyDimMem_FREE(seq->ptr);
+        npy_free_cache_dim_obj(*seq);
         seq->ptr = NULL;
         return NPY_FAIL;
     }
@@ -167,10 +166,12 @@ PyArray_BufferConverter(PyObject *obj, PyArray_Chunk *buf)
     }
 
 #if defined(NPY_PY3K)
-    if (PyObject_GetBuffer(obj, &view, PyBUF_ANY_CONTIGUOUS|PyBUF_WRITABLE) != 0) {
+    if (PyObject_GetBuffer(obj, &view,
+                PyBUF_ANY_CONTIGUOUS|PyBUF_WRITABLE|PyBUF_SIMPLE) != 0) {
         PyErr_Clear();
         buf->flags &= ~NPY_ARRAY_WRITEABLE;
-        if (PyObject_GetBuffer(obj, &view, PyBUF_ANY_CONTIGUOUS) != 0) {
+        if (PyObject_GetBuffer(obj, &view,
+                PyBUF_ANY_CONTIGUOUS|PyBUF_SIMPLE) != 0) {
             return NPY_FAIL;
         }
     }
@@ -179,10 +180,13 @@ PyArray_BufferConverter(PyObject *obj, PyArray_Chunk *buf)
     buf->len = (npy_intp) view.len;
 
     /*
-     * XXX: PyObject_AsWriteBuffer does also this, but it is unsafe, as there is
-     * no strict guarantee that the buffer sticks around after being released.
+     * In Python 3 both of the deprecated functions PyObject_AsWriteBuffer and
+     * PyObject_AsReadBuffer that this code replaces release the buffer. It is
+     * up to the object that supplies the buffer to guarantee that the buffer
+     * sticks around after the release.
      */
     PyBuffer_Release(&view);
+    _dealloc_cached_buffer_info(obj);
 
     /* Point to the base of the buffer object if present */
     if (PyMemoryView_Check(obj)) {
@@ -261,17 +265,10 @@ PyArray_ConvertMultiAxis(PyObject *axis_in, int ndim, npy_bool *out_axis_flags)
             PyObject *tmp = PyTuple_GET_ITEM(axis_in, i);
             int axis = PyArray_PyIntAsInt_ErrMsg(tmp,
                           "integers are required for the axis tuple elements");
-            int axis_orig = axis;
             if (error_converting(axis)) {
                 return NPY_FAIL;
             }
-            if (axis < 0) {
-                axis += ndim;
-            }
-            if (axis < 0 || axis >= ndim) {
-                PyErr_Format(PyExc_ValueError,
-                        "'axis' entry %d is out of bounds [-%d, %d)",
-                        axis_orig, ndim, ndim);
+            if (check_and_adjust_axis(&axis, ndim) < 0) {
                 return NPY_FAIL;
             }
             if (out_axis_flags[axis]) {
@@ -286,19 +283,15 @@ PyArray_ConvertMultiAxis(PyObject *axis_in, int ndim, npy_bool *out_axis_flags)
     }
     /* Try to interpret axis as an integer */
     else {
-        int axis, axis_orig;
+        int axis;
 
         memset(out_axis_flags, 0, ndim);
 
         axis = PyArray_PyIntAsInt_ErrMsg(axis_in,
                                    "an integer is required for the axis");
-        axis_orig = axis;
 
         if (error_converting(axis)) {
             return NPY_FAIL;
-        }
-        if (axis < 0) {
-            axis += ndim;
         }
         /*
          * Special case letting axis={-1,0} slip through for scalars,
@@ -308,10 +301,7 @@ PyArray_ConvertMultiAxis(PyObject *axis_in, int ndim, npy_bool *out_axis_flags)
             return NPY_SUCCEED;
         }
 
-        if (axis < 0 || axis >= ndim) {
-            PyErr_Format(PyExc_ValueError,
-                    "'axis' entry %d is out of bounds [-%d, %d)",
-                    axis_orig, ndim, ndim);
+        if (check_and_adjust_axis(&axis, ndim) < 0) {
             return NPY_FAIL;
         }
 
@@ -431,6 +421,10 @@ PyArray_SortkindConverter(PyObject *obj, NPY_SORTKIND *sortkind)
     else if (str[0] == 'm' || str[0] == 'M') {
         *sortkind = NPY_MERGESORT;
     }
+    else if (str[0] == 's' || str[0] == 'S') {
+        /* mergesort is the only stable sorting method in numpy */
+        *sortkind = NPY_MERGESORT;
+    }
     else {
         PyErr_Format(PyExc_ValueError,
                      "%s is an unrecognized kind of sort",
@@ -537,6 +531,13 @@ PyArray_OrderConverter(PyObject *object, NPY_ORDER *val)
         PyObject *tmp;
         int ret;
         tmp = PyUnicode_AsASCIIString(object);
+        if (tmp == NULL) {
+            PyErr_SetString(PyExc_ValueError, "Invalid unicode string passed in "
+                                              "for the array ordering. "
+                                              "Please pass in 'C', 'F', 'A' "
+                                              "or 'K' instead");
+            return NPY_FAIL;
+        }
         ret = PyArray_OrderConverter(tmp, val);
         Py_DECREF(tmp);
         return ret;
@@ -799,26 +800,15 @@ PyArray_PyIntAsIntp_ErrMsg(PyObject *o, const char * msg)
     long long_value = -1;
 #endif
     PyObject *obj, *err;
-    static PyObject *VisibleDeprecation = NULL;
 
-    npy_cache_import(
-        "numpy", "VisibleDeprecationWarning", &VisibleDeprecation);
-
-    if (!o) {
+    /*
+     * Be a bit stricter and not allow bools.
+     * np.bool_ is also disallowed as Boolean arrays do not currently
+     * support index.
+     */
+    if (!o || PyBool_Check(o) || PyArray_IsScalar(o, Bool)) {
         PyErr_SetString(PyExc_TypeError, msg);
         return -1;
-    }
-
-    /* Be a bit stricter and not allow bools, np.bool_ is handled later */
-    if (PyBool_Check(o)) {
-        /* 2013-04-13, 1.8 */
-        if (PyErr_WarnEx(
-                VisibleDeprecation,
-                "using a boolean instead of an integer"
-                " will result in an error in the future",
-                1) < 0) {
-            return -1;
-        }
     }
 
     /*
@@ -846,90 +836,22 @@ PyArray_PyIntAsIntp_ErrMsg(PyObject *o, const char * msg)
         return (npy_intp)long_value;
     }
 
-    /* Disallow numpy.bool_. Boolean arrays do not currently support index. */
-    if (PyArray_IsScalar(o, Bool)) {
-        /* 2013-06-09, 1.8 */
-        if (PyErr_WarnEx(
-                VisibleDeprecation,
-                "using a boolean instead of an integer"
-                " will result in an error in the future",
-                1) < 0) {
-            return -1;
-        }
-    }
-
     /*
      * The most general case. PyNumber_Index(o) covers everything
      * including arrays. In principle it may be possible to replace
      * the whole function by PyIndex_AsSSize_t after deprecation.
      */
     obj = PyNumber_Index(o);
-    if (obj) {
-#if (NPY_SIZEOF_LONG < NPY_SIZEOF_INTP)
-        long_value = PyLong_AsLongLong(obj);
-#else
-        long_value = PyLong_AsLong(obj);
-#endif
-        Py_DECREF(obj);
-        goto finish;
-    }
-    else {
-        /*
-         * Set the TypeError like PyNumber_Index(o) would after trying
-         * the general case.
-         */
-        PyErr_Clear();
-    }
-
-    /*
-     * For backward compatibility check the number C-Api number protcol
-     * This should be removed up the finish label after deprecation.
-     */
-    if (Py_TYPE(o)->tp_as_number != NULL &&
-        Py_TYPE(o)->tp_as_number->nb_int != NULL) {
-        obj = Py_TYPE(o)->tp_as_number->nb_int(o);
-        if (obj == NULL) {
-            return -1;
-        }
- #if (NPY_SIZEOF_LONG < NPY_SIZEOF_INTP)
-        long_value = PyLong_AsLongLong(obj);
- #else
-        long_value = PyLong_AsLong(obj);
- #endif
-        Py_DECREF(obj);
-    }
-#if !defined(NPY_PY3K)
-    else if (Py_TYPE(o)->tp_as_number != NULL &&
-             Py_TYPE(o)->tp_as_number->nb_long != NULL) {
-        obj = Py_TYPE(o)->tp_as_number->nb_long(o);
-        if (obj == NULL) {
-            return -1;
-        }
-  #if (NPY_SIZEOF_LONG < NPY_SIZEOF_INTP)
-        long_value = PyLong_AsLongLong(obj);
-  #else
-        long_value = PyLong_AsLong(obj);
-  #endif
-        Py_DECREF(obj);
-    }
-#endif
-    else {
-        PyErr_SetString(PyExc_TypeError, msg);
+    if (obj == NULL) {
         return -1;
     }
-    /* Give a deprecation warning, unless there was already an error */
-    if (!error_converting(long_value)) {
-        /* 2013-04-13, 1.8 */
-        if (PyErr_WarnEx(
-                VisibleDeprecation,
-                "using a non-integer number instead of an integer"
-                " will result in an error in the future",
-                1) < 0) {
-            return -1;
-        }
-    }
+#if (NPY_SIZEOF_LONG < NPY_SIZEOF_INTP)
+    long_value = PyLong_AsLongLong(obj);
+#else
+    long_value = PyLong_AsLong(obj);
+#endif
+    Py_DECREF(obj);
 
- finish:
     if (error_converting(long_value)) {
         err = PyErr_Occurred();
         /* Only replace TypeError's here, which are the normal errors. */
@@ -938,9 +860,9 @@ PyArray_PyIntAsIntp_ErrMsg(PyObject *o, const char * msg)
         }
         return -1;
     }
-
     goto overflow_check; /* silence unused warning */
- overflow_check:
+
+overflow_check:
 #if (NPY_SIZEOF_LONG < NPY_SIZEOF_INTP)
   #if (NPY_SIZEOF_LONGLONG > NPY_SIZEOF_INTP)
     if ((long_value < NPY_MIN_INTP) || (long_value > NPY_MAX_INTP)) {

@@ -44,6 +44,10 @@ namespace NCatboostCuda {
             return BestTestCursor;
         }
 
+        const TVector<TVector<double>>& GetFinalTestCursor() const {
+            return FinalTestCursor;
+        }
+
         bool NeedBestTestCursor() const {
             return HasTest;
         }
@@ -62,8 +66,12 @@ namespace NCatboostCuda {
             return static_cast<size_t>(ErrorTracker.GetBestIteration()) == GetCurrentIteration();
         }
 
-        void SetBestTestCursor(const TVector<TVector<double>>& bestTestCursor) {
-            BestTestCursor = bestTestCursor;
+        void SetBestTestCursor(TVector<TVector<double>>&& bestTestCursor) {
+            BestTestCursor = std::move(bestTestCursor);
+        }
+
+        void SetFinalTestCursor(TVector<TVector<double>>&& testCursor) {
+            FinalTestCursor = std::move(testCursor);
         }
 
         void MaybeRestoreFromSnapshot(std::function<void(IInputStream*)> loader);
@@ -100,7 +108,7 @@ namespace NCatboostCuda {
             const auto& errorTracker = GetErrorTracker();
             const auto& bestModelTracker = GetBestModelMinTreesTracker();
             const ui32 bestIter = static_cast<const ui32>(bestModelTracker.GetBestIteration());
-            if (0 < bestIter + 1 && bestIter + 1 < GetCurrentIteration()) {
+            if (0 < bestIter + 1 && bestIter < GetCurrentIteration()) {
                 CATBOOST_NOTICE_LOG << "Shrink model to first " << bestIter + 1 << " iterations.";
                 if (bestIter > static_cast<const ui32>(errorTracker.GetBestIteration())) {
                     CATBOOST_NOTICE_LOG << " (min iterations for best model = " << OutputOptions.BestModelMinTrees << ")";
@@ -169,6 +177,7 @@ namespace NCatboostCuda {
         TVector<bool> IsSkipOnTrainFlags;
         TVector<bool> IsSkipOnTestFlags;
         TVector<TVector<double>> BestTestCursor;
+        TVector<TVector<double>> FinalTestCursor;
         bool CalcEvalMetricOnEveryIteration;
 
         size_t Iteration = 0;

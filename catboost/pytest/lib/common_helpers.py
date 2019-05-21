@@ -1,17 +1,22 @@
+import csv
 import json
 import os
 import random
 import shutil
 
+from copy import deepcopy
 import numpy as np
 
 __all__ = [
-    'binary_path',
-    'test_output_path',
-    'remove_time_from_json',
     'DelayedTee',
+    'binary_path',
+    'compare_evals',
+    'compare_evals_with_precision',
+    'compare_metrics_with_diff',
+    'generate_random_labeled_set',
     'permute_dataset_columns',
-    'generate_random_labeled_set'
+    'remove_time_from_json',
+    'test_output_path',
 ]
 
 try:
@@ -90,3 +95,73 @@ def generate_random_labeled_set(nrows, nvals, labels, seed=20181219, prng=None):
     feature = prng.random_sample([nrows, nvals])
     return np.concatenate([label, feature], axis=1)
 
+
+BY_CLASS_METRICS = ['AUC', 'Precision', 'Recall', 'F1']
+
+
+def compare_metrics_with_diff(custom_metric, fit_eval, calc_eval, eps=1e-7):
+    csv_fit = csv.reader(open(fit_eval, "r"), dialect='excel-tab')
+    csv_calc = csv.reader(open(calc_eval, "r"), dialect='excel-tab')
+
+    head_fit = next(csv_fit)
+    head_calc = next(csv_calc)
+
+    if isinstance(custom_metric, basestring):
+        custom_metric = [custom_metric]
+
+    for metric_name in deepcopy(custom_metric):
+        if metric_name in BY_CLASS_METRICS:
+            custom_metric.remove(metric_name)
+
+            for fit_metric_name in head_fit:
+                if fit_metric_name[:len(metric_name)] == metric_name:
+                    custom_metric.append(fit_metric_name)
+
+    col_idx_fit = {}
+    col_idx_calc = {}
+
+    for metric_name in custom_metric:
+        col_idx_fit[metric_name] = head_fit.index(metric_name)
+        col_idx_calc[metric_name] = head_calc.index(metric_name)
+
+    while True:
+        try:
+            line_fit = next(csv_fit)
+            line_calc = next(csv_calc)
+            for metric_name in custom_metric:
+                fit_value = float(line_fit[col_idx_fit[metric_name]])
+                calc_value = float(line_calc[col_idx_calc[metric_name]])
+                max_abs = max(abs(fit_value), abs(calc_value))
+                err = abs(fit_value - calc_value) / max_abs if max_abs > 0 else 0
+                if err > eps:
+                    raise Exception('{}, iter {}: fit vs calc = {} vs {}, err = {} > eps = {}'.format(
+                        metric_name, line_fit[0], fit_value, calc_value, err, eps))
+        except StopIteration:
+            break
+
+
+def compare_evals(fit_eval, calc_eval):
+    csv_fit = csv.reader(open(fit_eval, "r"), dialect='excel-tab')
+    csv_calc = csv.reader(open(calc_eval, "r"), dialect='excel-tab')
+    while True:
+        try:
+            line_fit = next(csv_fit)
+            line_calc = next(csv_calc)
+            if line_fit[:-1] != line_calc:
+                return False
+        except StopIteration:
+            break
+    return True
+
+
+def compare_evals_with_precision(fit_eval, calc_eval, rtol=1e-6, skip_last_column_in_fit=True):
+    array_fit = np.loadtxt(fit_eval, delimiter='\t', skiprows=1, ndmin=2)
+    array_calc = np.loadtxt(calc_eval, delimiter='\t', skiprows=1, ndmin=2)
+    header_fit = open(fit_eval, "r").readline().split()
+    header_calc = open(calc_eval, "r").readline().split()
+    if skip_last_column_in_fit:
+        array_fit = np.delete(array_fit, np.s_[-1], 1)
+        header_fit = header_fit[:-1]
+    if header_fit != header_calc:
+        return False
+    return np.all(np.isclose(array_fit, array_calc, rtol=rtol))

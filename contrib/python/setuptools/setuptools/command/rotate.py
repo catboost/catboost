@@ -4,7 +4,7 @@ from distutils.errors import DistutilsOptionError
 import os
 import shutil
 
-import six
+from setuptools.extern import six
 
 from setuptools import Command
 

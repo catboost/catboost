@@ -10,15 +10,18 @@
 
 #include <library/binsaver/bin_saver.h>
 
+
 struct TBucketPairWeightStatistics {
     double SmallerBorderWeightSum = 0.0; // The weight sum of pair elements with smaller border.
     double GreaterBorderRightWeightSum = 0.0; // The weight sum of pair elements with greater border.
+
+public:
+    SAVELOAD(SmallerBorderWeightSum, GreaterBorderRightWeightSum);
 
     void Add(const TBucketPairWeightStatistics& rhs) {
         SmallerBorderWeightSum += rhs.SmallerBorderWeightSum;
         GreaterBorderRightWeightSum += rhs.GreaterBorderRightWeightSum;
     }
-    SAVELOAD(SmallerBorderWeightSum, GreaterBorderRightWeightSum);
 };
 
 
@@ -26,15 +29,18 @@ struct TPairwiseStats {
     TVector<TVector<double>> DerSums; // [leafCount][bucketCount]
 
     /* statsCount is
-     *  For SplitCandidates:  bucketCount
-     *  For Binary packs:     binaryFeaturesCount * 2 (binIdx)
+     *  For SplitCandidates:         bucketCount
+     *  For Binary packs:            binaryFeaturesCount * 2 (binIdx)
+     *  For ExclusiveFeaturesBundle: bucketCount for all used features
      */
     TArray2D<TVector<TBucketPairWeightStatistics>> PairWeightStatistics; // [leafCount][leafCount][statsCount]
 
     TSplitEnsembleSpec SplitEnsembleSpec;
 
-    void Add(const TPairwiseStats& rhs);
+public:
     SAVELOAD(DerSums, PairWeightStatistics, SplitEnsembleSpec);
+
+    void Add(const TPairwiseStats& rhs);
 };
 
 
@@ -138,11 +144,82 @@ inline TArray2D<TVector<TBucketPairWeightStatistics>> ComputePairWeightStatistic
     return weightSums;
 }
 
+
+// TGetExclusiveFeaturesBundleValue is of type TBundle(ui32 docId)
+template <class TGetExclusiveFeaturesBundleValue>
+inline TArray2D<TVector<TBucketPairWeightStatistics>> ComputePairWeightStatisticsForExclusiveFeaturesBundle(
+    ui32 oneHotMaxSize,
+    const TFlatPairsInfo& pairs,
+    int leafCount,
+    const TVector<TIndexType>& leafIndices,
+    const NCB::TExclusiveFeaturesBundle& exclusiveFeaturesBundle,
+    TGetExclusiveFeaturesBundleValue getExclusiveFeaturesBundleValue,
+    NCB::TIndexRange<int> pairIndexRange
+) {
+    size_t totalBucketCount = 0;
+    TVector<bool> calcStatsForBundlePart; // don't calc for cat features that are not one hot
+    calcStatsForBundlePart.yresize(exclusiveFeaturesBundle.Parts.size());
+
+    for (auto bundlePartIdx : xrange(exclusiveFeaturesBundle.Parts.size())) {
+        const auto& bundlePart = exclusiveFeaturesBundle.Parts[bundlePartIdx];
+        if (UseForCalcScores(bundlePart, oneHotMaxSize)) {
+            totalBucketCount += bundlePart.Bounds.GetSize() + 1;
+            calcStatsForBundlePart[bundlePartIdx] = true;
+        } else {
+            calcStatsForBundlePart[bundlePartIdx] = false;
+        }
+    }
+
+    TArray2D<TVector<TBucketPairWeightStatistics>> weightSums(leafCount, leafCount);
+    weightSums.FillEvery(TVector<TBucketPairWeightStatistics>(totalBucketCount));
+    for (size_t pairIdx : pairIndexRange.Iter()) {
+        const auto winnerIdx = pairs[pairIdx].WinnerId;
+        const auto loserIdx = pairs[pairIdx].LoserId;
+        if (winnerIdx == loserIdx) {
+            continue;
+        }
+        const ui32 winnerBundleValue = getExclusiveFeaturesBundleValue(winnerIdx);
+        const auto winnerLeafId = leafIndices[winnerIdx];
+        const ui32 loserBundleValue = getExclusiveFeaturesBundleValue(loserIdx);
+        const auto loserLeafId = leafIndices[loserIdx];
+        const float weight = pairs[pairIdx].Weight;
+
+        ui32 bucketOffset = 0;
+        for (auto bundlePartIdx : xrange(exclusiveFeaturesBundle.Parts.size())) {
+            if (!calcStatsForBundlePart[bundlePartIdx]) {
+                continue;
+            }
+
+            NCB::TBoundsInBundle boundsInBundle = exclusiveFeaturesBundle.Parts[bundlePartIdx].Bounds;
+
+            auto winnerBucketId = NCB::GetBinFromBundle<ui32>(winnerBundleValue, boundsInBundle);
+            auto loserBucketId = NCB::GetBinFromBundle<ui32>(loserBundleValue, boundsInBundle);
+
+            if (winnerBucketId > loserBucketId) {
+                weightSums[loserLeafId][winnerLeafId][bucketOffset + loserBucketId].SmallerBorderWeightSum
+                    -= weight;
+                weightSums[loserLeafId][winnerLeafId][bucketOffset + winnerBucketId].GreaterBorderRightWeightSum
+                    -= weight;
+            } else {
+                weightSums[winnerLeafId][loserLeafId][bucketOffset + winnerBucketId].SmallerBorderWeightSum
+                    -= weight;
+                weightSums[winnerLeafId][loserLeafId][bucketOffset + loserBucketId].GreaterBorderRightWeightSum
+                    -= weight;
+            }
+
+            bucketOffset += boundsInBundle.GetSize() + 1;
+        }
+    }
+
+    return weightSums;
+}
+
 void CalculatePairwiseScore(
     const TPairwiseStats& pairwiseStats,
     int bucketCount,
     float l2DiagReg,
     float pairwiseBucketWeightPriorReg,
+    ui32 oneHotMaxSize,
     TVector<TScoreBin>* scoreBins
 );
 

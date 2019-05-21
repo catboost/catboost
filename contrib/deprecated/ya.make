@@ -1,13 +1,16 @@
 
 
 RECURSE(
+    blackhole
     boost
     boost/libs/test
+    folly
     glib
     glib/gio
     glibmm
     jsoncpp
     libahocorasick
+    libcds
     libcouchbase
     libctpp
     libffi
@@ -22,6 +25,7 @@ RECURSE(
     mimepp
     pygtrie
     pygtrie/tests
+
 )
 
 

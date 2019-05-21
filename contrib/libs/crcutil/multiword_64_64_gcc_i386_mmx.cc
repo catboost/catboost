@@ -95,7 +95,7 @@ template<> uint64 GenericCrc<uint64, uint64, uint64, 4>::CrcMultiwordI386Mmx(
   const uint64 *table_word = &this->crc_word_[0][0];
 
   asm(
-    "sub $2*4*8 - 1, %[end]\n"
+    "subl $2*4*8 - 1, %[end]\n"
     "cmpl  %[src], %[end]\n"
     "jbe 2f\n"
 
@@ -201,7 +201,7 @@ template<> uint64 GenericCrc<uint64, uint64, uint64, 4>::CrcMultiwordI386Mmx(
     "2:\n"
     "movl %[table_word], %[table]\n"
 
-    "add $2*4*8 - 8, %[end]\n"
+    "addl $2*4*8 - 8, %[end]\n"
     "cmpl %[src], %[end]\n"
     "jbe 4f\n"
     "3:\n"
@@ -211,7 +211,7 @@ template<> uint64 GenericCrc<uint64, uint64, uint64, 4>::CrcMultiwordI386Mmx(
     "cmpl %[src], %[end]\n"
     "ja 3b\n"
     "4:\n"
-    "add $7, %[end]\n"
+    "addl $7, %[end]\n"
 
     "cmpl %[src], %[end]\n"
     "jbe 6f\n"

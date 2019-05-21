@@ -1,4 +1,4 @@
-IF (PYTHON_CONFIG MATCHES "python3")
+IF (PYTHON_CONFIG MATCHES "python3" OR USE_SYSTEM_PYTHON MATCHES "3.")
     EXPORTS_SCRIPT(catboost3.exports)
 ELSE()
     EXPORTS_SCRIPT(catboost.exports)
@@ -9,6 +9,8 @@ PYTHON_ADDINCL()
 # add only headers for dynamic linking
 ADDINCL(
     contrib/python/numpy/numpy/core/include
+    contrib/python/numpy/numpy/core/src/common
+    contrib/python/numpy/numpy/core/src/npymath
 )
 
 PEERDIR(

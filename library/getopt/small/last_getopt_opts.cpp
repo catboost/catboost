@@ -3,6 +3,7 @@
 #include <library/colorizer/colors.h>
 
 #include <util/stream/format.h>
+#include <util/charset/utf8.h>
 
 #include <stdlib.h>
 
@@ -10,6 +11,41 @@ namespace NLastGetoptPrivate {
     TString& VersionString() {
         static TString data;
         return data;
+    }
+}
+
+namespace {
+    TString Wrap(ui32 width, TStringBuf text) {
+        TString res;
+        auto os = TStringOutput(res);
+
+        TVector<TStringBuf> words;
+        StringSplitter(text).SplitBySet("\n ").SkipEmpty().Collect(&words);
+
+        size_t lenSoFar = 0;
+        for (TStringBuf word: words) {
+            if (word.empty()) {
+                continue;
+            }
+
+            size_t wordLen = 0;
+            if (!GetNumberOfUTF8Chars(word.data(), word.size(), wordLen)) {
+                wordLen = word.size();  // not a utf8 string -- just use its binary size
+            }
+
+            if (lenSoFar && lenSoFar + wordLen > width) {
+                os << "\n";
+                lenSoFar = 0;
+            }
+            if (lenSoFar) {
+                os << " ";
+                lenSoFar += 1;
+            }
+            os << word;
+            lenSoFar += wordLen;
+        }
+
+        return res;
     }
 }
 
@@ -223,7 +259,7 @@ namespace NLastGetopt {
     const TString& TOpts::GetFreeArgTitle(size_t pos) const {
         if (FreeArgSpecs_.contains(pos)) {
             const TString& title = FreeArgSpecs_.at(pos).Title;
-            if (!title.Empty())
+            if (!title.empty())
                 return title;
         }
         return DefaultFreeArgSpec.Title;
@@ -232,14 +268,14 @@ namespace NLastGetopt {
     const TString& TOpts::GetFreeArgHelp(size_t pos) const {
         if (FreeArgSpecs_.contains(pos)) {
             const TString& help = FreeArgSpecs_.at(pos).Help;
-            if (!help.Empty())
+            if (!help.empty())
                 return help;
         }
         return DefaultFreeArgSpec.Help;
     }
 
-    void TOpts::SetFreeArgTitle(size_t pos, const TString& title, const TString& help) {
-        FreeArgSpecs_[pos] = TFreeArgSpec(title, help);
+    void TOpts::SetFreeArgTitle(size_t pos, const TString& title, const TString& help, bool optional) {
+        FreeArgSpecs_[pos] = TFreeArgSpec(title, help, optional);
     }
 
     void TOpts::SetFreeArgDefaultTitle(const TString& title, const TString& help) {
@@ -271,7 +307,7 @@ namespace NLastGetopt {
 
         static const TString metavarDef("VAL");
         const TString& title = option->GetArgTitle();
-        const TString& metavar = title.Empty() ? metavarDef : title;
+        const TString& metavar = title.empty() ? metavarDef : title;
 
         if (option->GetHasArg() == OPTIONAL_ARGUMENT) {
             result << " [" << metavar;
@@ -299,19 +335,27 @@ namespace NLastGetopt {
         }
         os << "[OPTIONS]";
 
-        for (ui32 i = 0; i < FreeArgsMin_; ++i)
-            os << ' ' << GetFreeArgTitle(i);
+        ui32 numDescribedFlags = FreeArgSpecs_.empty() ? 0 : FreeArgSpecs_.rbegin()->first + 1;
+        ui32 numArgsToShow = Max(FreeArgsMin_, FreeArgsMax_ == Max<ui32>() ? numDescribedFlags : FreeArgsMax_);
 
-        if (FreeArgsMax_ > FreeArgsMin_) {
-            if (FreeArgsMax_ == Max<ui32>()) {
-                // print all described args
-                for (ui32 i = FreeArgsMin_; i < FreeArgSpecs_.size(); ++i)
-                    os << " [" << GetFreeArgTitle(i) << "]";
-                os << " [" << DefaultFreeArgSpec.Title << "]...";
-            } else {
-                for (ui32 i = FreeArgsMin_; i < FreeArgsMax_; ++i)
-                    os << " [" << GetFreeArgTitle(i) << "]";
-            }
+        for (ui32 i = 0, nonOptionalFlagsPrinted = 0; i < numArgsToShow; ++i) {
+            bool isOptional = nonOptionalFlagsPrinted >= FreeArgsMin_ || FreeArgSpecs_.Value(i, TFreeArgSpec()).Optional;
+
+            nonOptionalFlagsPrinted += !isOptional;
+
+            os << " ";
+
+            if (isOptional)
+                os << "[";
+
+            os << GetFreeArgTitle(i);
+
+            if (isOptional)
+                os << "]";
+        }
+
+        if (FreeArgsMax_ == Max<ui32>()) {
+            os << " [" << DefaultFreeArgSpec.Title << "]...";
         }
 
         os << Endl;
@@ -381,10 +425,17 @@ namespace NLastGetopt {
                 }
 
                 bool multiLineHelp = false;
+                ui32 lestLineLength = 0;
                 if (!opt->GetHelp().empty()) {
+                    TString help = opt->GetHelp();
+                    if (Wrap_) {
+                        help = Wrap(Wrap_, help);
+                    }
+
                     TVector<TStringBuf> helpLines;
-                    Split(opt->GetHelp(), "\n", helpLines);
+                    StringSplitter(help).Split('\n').SkipEmpty().Collect(&helpLines);
                     multiLineHelp = (helpLines.size() > 1);
+                    lestLineLength = helpLines.back().size();
                     os << helpLines[0];
                     for (size_t j = 1; j < helpLines.size(); ++j) {
                         if (helpLines[j].empty())
@@ -395,18 +446,32 @@ namespace NLastGetopt {
 
                 if (opt->HasDefaultValue()) {
                     TString quotedDef = QuoteForHelp(opt->GetDefaultValue());
-                    if (multiLineHelp)
+                    if (!opt->GetHelp().empty() && Wrap_) {
+                        if (lestLineLength + 12 + quotedDef.size() > Wrap_) {
+                            os << Endl << SPad << leftPadding << " ";
+                        } else {
+                            os << " ";
+                        }
+                        os << "(default: " << colors.CyanColor() << quotedDef << colors.OldColor() << ")";
+                    } else if (!opt->GetHelp().empty() && multiLineHelp) {
                         os << Endl << SPad << leftPadding << " Default: " << colors.CyanColor() << quotedDef << colors.OldColor();
-                    else if (opt->GetHelp().empty())
+                    } else if (opt->GetHelp().empty()){
                         os << "Default: " << colors.CyanColor() << quotedDef << colors.OldColor();
-                    else
+                    } else {
                         os << " (default: " << colors.CyanColor() << quotedDef << colors.OldColor() << ")";
+                    }
                 }
 
                 os << Endl;
             }
         }
+
         PrintFreeArgsDesc(os, colors);
+
+        if (Examples) {
+            os << Endl << colors.BoldColor() << "Examples" << colors.OldColor() << ":" << Endl << Examples << Endl;
+        }
+
         osIn << os.Str();
     }
 
@@ -445,7 +510,7 @@ namespace NLastGetopt {
             const TString& help = GetFreeArgHelp(i);
             os << "  " << colors.GreenColor() << RightPad(GetFreeArgTitle(i), leftFreeWidth, ' ') << colors.OldColor();
 
-            if (!help.Empty())
+            if (!help.empty())
                 os << "  " << help;
 
             os << Endl;

@@ -132,6 +132,8 @@ namespace NCatboostDistributed {
 
         NCatboostOptions::TCatBoostOptions Params;
 
+        TFlatPairsInfo FlatPairs;
+
     public:
         TLocalTensorSearchData()
             : Params(ETaskType::CPU)

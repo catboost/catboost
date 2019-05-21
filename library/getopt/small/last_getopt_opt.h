@@ -455,8 +455,13 @@ namespace NLastGetopt {
         // Appends FromString<T>(arg) to *target for each argument
         template <typename T>
         TOpt& AppendTo(TVector<T>* target) {
-            void (TVector<T>::*functionPointer)(const T&) = &TVector<T>::push_back;
-            return Handler1T<T>(std::bind(functionPointer, target, std::placeholders::_1));
+            return Handler1T<T>([target](auto&& value) { target->push_back(std::move(value)); });
+        }
+
+        // Appends FromString<T>(arg) to *target for each argument
+        template <typename T>
+        TOpt& InsertTo(THashSet<T>* target) {
+            return Handler1T<T>([target](auto&& value) { target->insert(std::move(value)); });
         }
 
         // Emplaces TString arg to *target for each argument
@@ -494,15 +499,17 @@ namespace NLastGetopt {
      */
     struct TFreeArgSpec {
         TFreeArgSpec() = default;
-        TFreeArgSpec(const TString& title, const TString& help = TString(), const TOpt* namedAlias = nullptr)
+        TFreeArgSpec(const TString& title, const TString& help = TString(), bool optional = false, const TOpt* namedAlias = nullptr)
             : Title(title)
             , Help(help)
+            , Optional(optional)
             , NamedAlias(namedAlias)
         {
         }
 
         TString Title;
         TString Help;
+        bool Optional = false;
         const TOpt* NamedAlias = nullptr; //unimplemented yet
     };
 

@@ -11,12 +11,13 @@ PEERDIR(
 )
 
 TEST_SRCS(
+    test_core.py
+    test_deprecations.py
+    test_extras.py
+    test_mrecords.py
     test_old_ma.py
     test_regression.py
     test_subclassing.py
-    test_core.py
-    test_extras.py
-    test_mrecords.py
 )
 
 END()

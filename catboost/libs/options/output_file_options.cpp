@@ -41,8 +41,8 @@ bool NCatboostOptions::TryGetModelTypeFromExtension(const TStringBuf modelExtens
 
 EModelType NCatboostOptions::DefineModelFormat(TStringBuf modelPath) {
     EModelType modelType;
-    TVector<TString> tokens;
-    if (Split(TString(modelPath), ".", tokens) > 1) {
+    TVector<TString> tokens = StringSplitter(modelPath).Split('.').SkipEmpty().ToList<TString>();
+    if (tokens.size() > 1) {
         if (NCatboostOptions::TryGetModelTypeFromExtension(tokens.back(), modelType)) {
             return modelType;
         }
@@ -280,7 +280,7 @@ void NCatboostOptions::TOutputFilesOptions::Load(const NJson::TJsonValue& option
             &FstrRegularFileName, &FstrInternalFileName, &FstrType, &TrainingOptionsFileName, &MetricPeriod,
             &VerbosePeriod, &PredictionTypes, &OutputBordersFileName, &RocOutputPath
             );
-    if (!VerbosePeriod.IsSet()) {
+    if (!VerbosePeriod.IsSet() || VerbosePeriod.Get() == 1) {
         VerbosePeriod.Set(MetricPeriod.Get());
     }
     Validate();
@@ -312,8 +312,11 @@ void NCatboostOptions::TOutputFilesOptions::Validate() const {
         CB_ENSURE(!SaveSnapshotFlag.Get(),
                 "allow_writing_files is set to False, and save_snapshot is set to True.");
     }
-    CB_ENSURE(GetMetricPeriod() != 0 && (GetVerbosePeriod() % GetMetricPeriod() == 0),
-            "verbose should be a multiple of metric_period, got " << GetVerbosePeriod() << " vs " << GetMetricPeriod());
+    CB_ENSURE(GetVerbosePeriod() >= 0, "Verbose period should be nonnegative.");
+    CB_ENSURE(GetMetricPeriod() > 0, "Metric period should be positive.");
+    CB_ENSURE(GetVerbosePeriod() % GetMetricPeriod() == 0,
+        "verbose should be a multiple of metric_period, got " <<
+        GetVerbosePeriod() << " vs " << GetMetricPeriod());
 }
 
 TString NCatboostOptions::TOutputFilesOptions::GetFullPath(const TString& fileName) const {
@@ -323,7 +326,7 @@ TString NCatboostOptions::TOutputFilesOptions::GetFullPath(const TString& fileNa
 
     TFsPath filePath(fileName);
     const TString& trainDirStr = TrainDir.Get();
-    if (trainDirStr.Empty() || filePath.IsAbsolute()) {
+    if (trainDirStr.empty() || filePath.IsAbsolute()) {
         return fileName;
     } else {
         return JoinFsPaths(trainDirStr, filePath);

@@ -20,8 +20,6 @@
 #undef SendMessage
 #undef DeleteFile
 #undef OPTIONAL
-#undef S_OK
-#undef S_FALSE
 #undef GetUserName
 #undef CreateMutex
 #undef GetObject

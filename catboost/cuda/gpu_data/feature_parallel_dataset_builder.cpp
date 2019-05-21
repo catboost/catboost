@@ -38,7 +38,7 @@ namespace NCatboostCuda {
 
         dataSetsHolder.PermutationDataSets.resize(permutationCount);
 
-        const auto learnWeights = NCB::GetWeights(DataProvider.TargetData);
+        const auto learnWeights = NCB::GetWeights(*DataProvider.TargetData);
 
         const bool isTrivialLearnWeights = AreEqualTo(learnWeights, 1.0f);
         {
@@ -54,7 +54,7 @@ namespace NCatboostCuda {
                 dataSetsHolder.DirectTarget = ctrsTarget.WeightedTarget.SliceView(ctrsTarget.LearnSlice);
             } else {
                 dataSetsHolder.DirectTarget.Reset(learnMapping);
-                dataSetsHolder.DirectTarget.Write(GetTarget(DataProvider.TargetData));
+                dataSetsHolder.DirectTarget.Write(*DataProvider.TargetData->GetTarget());
             }
         }
 
@@ -200,8 +200,26 @@ namespace NCatboostCuda {
                                                            testDataSetId);
             ctrsWriter.Write(permutationIndependent);
         }
+        {
+            TEstimatorsExecutor estimatorsExecutor(FeaturesManager,
+                                                   Estimators,
+                                                   dataSetsHolder.PermutationDataSets[0]->CtrsEstimationPermutation,
+                                                   localExecutor
+            );
 
-        if (permutationDependent.size()) {
+            TMaybe<ui32> testId;
+            if (LinkedTest) {
+                testId = testDataSetId;
+            }
+            TEstimatedFeaturesWriter<TFeatureParallelLayout> writer(FeaturesManager,
+                                                                    compressedIndexBuilder,
+                                                                    estimatorsExecutor,
+                                                                    permutationIndependentCompressedDataSetId,
+                                                                    testId);
+            writer.Write(permutationIndependent);
+        }
+
+        if (!permutationDependent.empty()) {
             for (ui32 permutationId = 0; permutationId < permutationCount; ++permutationId) {
                 auto& ds = *dataSetsHolder.PermutationDataSets[permutationId];
                 //link common datasets
@@ -209,12 +227,12 @@ namespace NCatboostCuda {
                     ds.PermutationIndependentFeatures = permutationIndependentCompressedDataSetId;
                 }
 
-                {
-                    const NCB::TTrainingDataProvider* linkedTest = permutationId == 0 ? LinkedTest : nullptr;
-                    const TMirrorBuffer<const ui32>* testIndices = (permutationId == 0 && linkedTest)
-                                                                       ? &dataSetsHolder.TestDataSet->GetTarget().GetIndices()
-                                                                       : nullptr;
+                const NCB::TTrainingDataProvider* linkedTest = permutationId == 0 ? LinkedTest : nullptr;
+                const TMirrorBuffer<const ui32>* testIndices = (permutationId == 0 && linkedTest)
+                                                               ? &dataSetsHolder.TestDataSet->GetTarget().GetIndices()
+                                                               : nullptr;
 
+                {
                     TBatchedBinarizedCtrsCalcer ctrsCalcer(FeaturesManager,
                                                            ctrsTarget,
                                                            DataProvider,
@@ -230,7 +248,26 @@ namespace NCatboostCuda {
                                                                    testDataSetId);
                     ctrsWriter.Write(permutationDependent);
                 }
-                CATBOOST_INFO_LOG << "Ctr computation for permutation #" << permutationId << " is finished" << Endl;
+                CATBOOST_DEBUG_LOG << "Ctr computation for permutation #" << permutationId << " is finished" << Endl;
+                {
+                    TEstimatorsExecutor estimatorsExecutor(FeaturesManager,
+                                                           Estimators,
+                                                           dataSetsHolder.PermutationDataSets[permutationId]->CtrsEstimationPermutation,
+                                                           localExecutor
+                    );
+
+                    TMaybe<ui32> testId;
+                    if (LinkedTest && permutationId == 0) {
+                        testId = testDataSetId;
+                    }
+                    TEstimatedFeaturesWriter<TFeatureParallelLayout> writer(FeaturesManager,
+                                                                            compressedIndexBuilder,
+                                                                            estimatorsExecutor,
+                                                                            ds.PermutationDependentFeatures,
+                                                                            testId);
+                    writer.Write(permutationDependent);
+                    CATBOOST_DEBUG_LOG << "Feature estimators for permutation #" << permutationId << " is finished" << Endl;
+                }
             }
         }
         compressedIndexBuilder.Finish();
@@ -248,9 +285,9 @@ namespace NCatboostCuda {
         TMirrorBuffer<ui32> inverseIndices = indices.CopyView();
 
         auto targets = TMirrorBuffer<float>::CopyMapping(indices);
-        targets.Write(GetTarget(LinkedTest->TargetData));
+        targets.Write(*LinkedTest->TargetData->GetTarget());
         auto weights = TMirrorBuffer<float>::CopyMapping(indices);
-        weights.Write(GetWeights(LinkedTest->TargetData));
+        weights.Write(GetWeights(*LinkedTest->TargetData));
 
         dataSetsHolder.TestDataSet.Reset(new TFeatureParallelDataSet(*LinkedTest,
                                                                      dataSetsHolder.CompressedIndex,

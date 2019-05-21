@@ -1,6 +1,7 @@
 #include "user.h"
 #include "platform.h"
 #include "defaults.h"
+#include "env.h"
 
 #include <util/generic/yexception.h>
 
@@ -13,6 +14,12 @@
 #endif
 
 TString GetUsername() {
+    for (const auto& var : {"LOGNAME", "USER", "LNAME", "USERNAME"}) {
+        TString val = GetEnv(var);
+        if (val)
+            return val;
+    }
+
     TTempBuf nameBuf;
     for (;;) {
 #if defined(_win_)

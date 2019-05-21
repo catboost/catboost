@@ -13,11 +13,22 @@ namespace NCatboostCuda {
         TCudaBuffer<ui8, TMapping> BinarizedTarget;
         TCudaBuffer<float, TMapping> Weights;
 
+        TCudaBuffer<const ui32, TMapping> GroupIds;
+
         //zero for test, 1 for learn
         bool IsTrivialWeights() const {
             return true;
         }
 
+        bool HasGroupIds() const {
+            return GroupIds.GetObjectsSlice().Size();
+        }
+
+
+        //nullptr if GroupIds are empty
+        const TCudaBuffer<const ui32, TMapping>* GroupIdsOrNullPtr() const {
+            return HasGroupIds() ? &GroupIds : nullptr;
+        }
         float TotalWeight;
 
         TSlice LearnSlice;
@@ -39,6 +50,7 @@ namespace NCatboostCuda {
             , SortedByBinsIndices(sortedByBinIndices.ConstCopyView())
             , Stream(stream)
         {
+
         }
 
         void UseFullDataForCatFeatureStats(bool flag) {
@@ -50,9 +62,9 @@ namespace NCatboostCuda {
             SortedByBinsIndices = sortedByBinIndices.ConstCopyView();
             if (HistoryCalcer) {
                 if (CtrTargets.IsTrivialWeights()) {
-                    HistoryCalcer->Reset(sortedByBinIndices, static_cast<ui32>(CtrTargets.LearnSlice.Size()));
+                    HistoryCalcer->Reset(sortedByBinIndices, static_cast<ui32>(CtrTargets.LearnSlice.Size()), CtrTargets.GroupIdsOrNullPtr());
                 } else {
-                    HistoryCalcer->Reset(GetWeights(), sortedByBinIndices);
+                    HistoryCalcer->Reset(GetWeights(), sortedByBinIndices, CtrTargets.GroupIdsOrNullPtr());
                 }
             }
         }
@@ -69,11 +81,13 @@ namespace NCatboostCuda {
                 if (CtrTargets.IsTrivialWeights()) {
                     HistoryCalcer.Reset(new THistoryBasedCtrCalcer<TMapping>(SortedByBinsIndices,
                                                                              CtrTargets.LearnSlice.Size(),
+                                                                             CtrTargets.GroupIdsOrNullPtr(),
                                                                              mask,
                                                                              Stream));
                 } else {
                     HistoryCalcer.Reset(new THistoryBasedCtrCalcer<TMapping>(weights,
                                                                              SortedByBinsIndices,
+                                                                             CtrTargets.GroupIdsOrNullPtr(),
                                                                              mask,
                                                                              Stream));
                 }
@@ -148,6 +162,8 @@ namespace NCatboostCuda {
     private:
         const TCtrTargets<TMapping>& CtrTargets;
         TCudaBuffer<const ui32, TMapping> SortedByBinsIndices;
+
+
         THolder<THistoryBasedCtrCalcer<TMapping>> HistoryCalcer;
         bool ComputeCatFeatureStatOnFullData = false;
         ui32 Stream = 0;

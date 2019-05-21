@@ -94,7 +94,7 @@ NCB::TDataMetaInfo GetDataMetaInfo(
         dataColumnsMetaInfo.Columns[columnIndex].Id = pool.ColumnNames[localIndex];
     }
 
-    NCB::TDataMetaInfo metaInfo(std::move(dataColumnsMetaInfo), hasAdditionalGroupWeight, hasPairs);
+    NCB::TDataMetaInfo metaInfo(std::move(dataColumnsMetaInfo), hasAdditionalGroupWeight, hasPairs, Nothing(), Nothing());
     metaInfo.Validate();
     return metaInfo;
 }

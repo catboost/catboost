@@ -25,7 +25,8 @@ enum class ESamplingUnit {
 
 enum class EFeatureType {
     Float,
-    Categorical
+    Categorical,
+    Text
 };
 
 enum EErrorType {
@@ -80,10 +81,10 @@ enum class EBootstrapType {
     No
 };
 
-enum class EGrowingPolicy {
-    ObliviousTree,
+enum class EGrowPolicy {
+    SymmetricTree,
     Lossguide,
-    Levelwise,
+    Depthwise,
     Region
 };
 
@@ -135,6 +136,7 @@ enum class ELossFunction {
     QueryRMSE,
     QuerySoftMax,
     QueryCrossEntropy,
+    StochasticFilter,
 
     /* user defined errors */
 
@@ -208,6 +210,12 @@ enum class EFstrType {
     ShapValues
 };
 
+enum class EPreCalcShapValues {
+    Auto,
+    UsePreCalc,
+    NoPreCalc
+};
+
 enum class EObservationsToBootstrap {
     LearnAndTest,
     TestOnly
@@ -275,4 +283,17 @@ enum class EMetricBestValue {
     Min,
     FixedValue,
     Undefined
+};
+
+enum class EFeatureCalculatorType {
+//Examples
+//    LinearModel,
+//    TfIdf,
+//    NGrams
+    BoW,
+    NaiveBayes,
+    BM25,
+    CosDistanceWithClassCenter,
+    GaussianHomoscedasticModel,
+    GaussianHeteroscedasticiModel
 };

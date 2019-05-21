@@ -26,6 +26,7 @@ PEERDIR(
     library/containers/2d_array
     library/json/writer
     contrib/python/enum34
+    contrib/python/graphviz
     contrib/python/numpy
     contrib/python/pandas
 )

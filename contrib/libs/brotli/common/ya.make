@@ -15,6 +15,7 @@ ADDINCL(
 
 SRCS(
     dictionary.c
+    transform.c
 )
 
 END()

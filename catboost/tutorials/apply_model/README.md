@@ -14,3 +14,6 @@
 
 * [Apply CatBoost model from Java](catboost4j_prediction_tutorial/train_model.ipynb)
     * Explore how to apply CatBoost model from Java application. If you just want to look at code snippets you can go directly to [CatBoost4jPredictionTutorial.java](catboost4j_prediction_tutorial/src/main/java/CatBoost4jPredictionTutorial.java)
+
+* [Apply CatBoost model from Rust](catboost_rust_prediction_tutorial/train_model.ipynb)
+    * Explore how to apply CatBoost model from Rust application. If you just want to look at code snippets you can go directly to [main.rs](catboost_rust_prediction_tutorial/src/main.rs)

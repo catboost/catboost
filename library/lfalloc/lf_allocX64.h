@@ -257,7 +257,7 @@ static volatile int freeChunkCount;
 static void AddFreeChunk(uintptr_t chunkId) {
     chunkSizeIdx[chunkId] = -1;
     if (Y_UNLIKELY(freeChunkCount == FREE_CHUNK_ARR_BUF))
-        NMalloc::AbortFromCorruptedAllocator(); // free chunks arrray overflowed
+        NMalloc::AbortFromCorruptedAllocator("free chunks arrray overflowed");
     freeChunkArr[freeChunkCount++] = chunkId;
 }
 
@@ -299,7 +299,7 @@ enum EMMapMode {
 #ifndef _MSC_VER
 inline void VerifyMmapResult(void* result) {
     if (Y_UNLIKELY(result == MAP_FAILED))
-        NMalloc::AbortFromCorruptedAllocator(); // negative size requested? or just out of mem
+        NMalloc::AbortFromCorruptedAllocator("negative size requested? or just out of mem");
 }
 #endif
 
@@ -332,8 +332,7 @@ static char* AllocWithMMapLinuxImpl(uintptr_t sz, EMMapMode mode) {
         char* nextAllocPtr = prevAllocPtr + sz;
         if (uintptr_t(nextAllocPtr - (char*)nullptr) >= areaFinish) {
             if (Y_UNLIKELY(wrapped)) {
-                // virtual memory is over fragmented
-                NMalloc::AbortFromCorruptedAllocator();
+                NMalloc::AbortFromCorruptedAllocator("virtual memory is over fragmented");
             }
             // wrap after all area is used
             DoCas(areaPtr, areaStart, prevAllocPtr);
@@ -364,15 +363,15 @@ static char* AllocWithMMap(uintptr_t sz, EMMapMode mode) {
 #ifdef _MSC_VER
     char* largeBlock = (char*)VirtualAlloc(0, sz, MEM_RESERVE, PAGE_READWRITE);
     if (Y_UNLIKELY(largeBlock == nullptr))
-        NMalloc::AbortFromCorruptedAllocator(); // out of memory
+        NMalloc::AbortFromCorruptedAllocator("out of memory");
     if (Y_UNLIKELY(uintptr_t(((char*)largeBlock - ALLOC_START) + sz) >= N_MAX_WORKSET_SIZE))
-        NMalloc::AbortFromCorruptedAllocator(); // out of working set, something has broken
+        NMalloc::AbortFromCorruptedAllocator("out of working set, something has broken");
 #else
 #if defined(_freebsd_) || !defined(_64_)
     char* largeBlock = (char*)mmap(0, sz, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON, -1, 0);
     VerifyMmapResult(largeBlock);
     if (Y_UNLIKELY(uintptr_t(((char*)largeBlock - ALLOC_START) + sz) >= N_MAX_WORKSET_SIZE))
-        NMalloc::AbortFromCorruptedAllocator(); // out of working set, something has broken
+        NMalloc::AbortFromCorruptedAllocator("out of working set, something has broken");
 #else
     char* largeBlock = AllocWithMMapLinuxImpl(sz, mode);
     if (TransparentHugePages) {
@@ -449,7 +448,7 @@ static void* LargeBlockAlloc(size_t _nSize, ELFAllocCounter counter) {
 #ifdef _MSC_VER
     char* pRes = (char*)VirtualAlloc(0, (pgCount + 1) * 4096ll, MEM_COMMIT, PAGE_READWRITE);
     if (Y_UNLIKELY(pRes == 0)) {
-        NMalloc::AbortFromCorruptedAllocator(); // out of memory
+        NMalloc::AbortFromCorruptedAllocator("out of memory");
     }
 #else
 
@@ -696,7 +695,7 @@ static bool DefragmentMem() {
     int* nFreeCount = (int*)SystemAlloc(N_CHUNKS * sizeof(int));
     if (Y_UNLIKELY(!nFreeCount)) {
         //__debugbreak();
-        NMalloc::AbortFromCorruptedAllocator();
+        NMalloc::AbortFromCorruptedAllocator("debugbreak");
     }
     memset(nFreeCount, 0, N_CHUNKS * sizeof(int));
 
@@ -1461,7 +1460,7 @@ static Y_FORCE_INLINE void* LFAllocImpl(size_t _nSize) {
         if (count == 0) {
             count = LFAllocNoCacheMultiple(nSizeIdx, buf);
             if (count == 0) {
-                NMalloc::AbortFromCorruptedAllocator(); // no way LFAllocNoCacheMultiple() can fail
+                NMalloc::AbortFromCorruptedAllocator("no way LFAllocNoCacheMultiple() can fail");
             }
         }
         char** dstBuf = thr->FreePtrs[nSizeIdx] + freePtrIdx - 1;
@@ -1802,12 +1801,11 @@ static Y_FORCE_INLINE void* LFVAlloc(size_t size) {
 
 static Y_FORCE_INLINE int LFPosixMemalign(void** memptr, size_t alignment, size_t size) {
     if (Y_UNLIKELY(alignment > 4096)) {
+        const char* error = "Larger alignment are not guaranteed with this implementation\n";
 #ifdef _win_
-        OutputDebugStringA("Larger alignment are not guaranteed with this implementation\n");
-#else
-        fprintf(stderr, "Larger alignment are not guaranteed with this implementation\n");
+        OutputDebugStringA(error);
 #endif
-        NMalloc::AbortFromCorruptedAllocator();
+        NMalloc::AbortFromCorruptedAllocator(error);
     }
     size_t bigsize = size;
     if (bigsize <= alignment) {

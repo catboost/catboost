@@ -17,6 +17,8 @@ TVector<TTreeStatistics> ITreeStatisticsEvaluator::EvaluateTreeStatistics(
     const NCB::TProcessedDataProvider& processedData,
     int logPeriod
 ) {
+    //TODO(eermishkina): support non symmetric trees
+    CB_ENSURE_INTERNAL(model.IsOblivious(), "Is supported only for symmetric trees");
 
     NJson::TJsonValue paramsJson = ReadTJsonValue(model.ModelInfo.at("params"));
     const ELossFunction lossFunction = FromString<ELossFunction>(paramsJson["loss_function"]["type"].GetString());
@@ -52,14 +54,14 @@ TVector<TTreeStatistics> ITreeStatisticsEvaluator::EvaluateTreeStatistics(
         TVector<TVector<double>> formulaNumeratorMultiplier(leavesEstimationIterations);
         TVector<double> localApproxes(approxes);
 
-        TConstArrayRef<float> weights = GetWeights(processedData.TargetData);
+        TConstArrayRef<float> weights = GetWeights(*processedData.TargetData);
 
         for (ui32 it = 0; it < leavesEstimationIterations; ++it) {
             EvaluateDerivatives(
                 lossFunction,
                 leafEstimationMethod,
                 localApproxes,
-                GetTarget(processedData.TargetData),
+                *processedData.TargetData->GetTarget(),
                 &FirstDerivatives,
                 &SecondDerivatives,
                 &ThirdDerivatives

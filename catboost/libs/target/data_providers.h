@@ -15,7 +15,7 @@
 
 namespace NCB {
 
-    TTargetDataProviders CreateTargetDataProviders(
+    TTargetDataProviderPtr CreateTargetDataProvider(
         const TRawTargetDataProvider& rawData,
         TMaybeData<TConstArrayRef<TSubgroupId>> subgroupIds,
         bool isForGpu,
@@ -37,7 +37,8 @@ namespace NCB {
         TVector<TString>* classNames, // inout parameter
         TMaybe<TLabelConverter*> labelConverter, // needed only for multiclass
         TRestorableFastRng64* rand, // for possible pairs generation
-        NPar::TLocalExecutor* localExecutor);
+        NPar::TLocalExecutor* localExecutor,
+        bool* hasPairs);
 
 
     TProcessedDataProvider CreateModelCompatibleProcessedDataProvider(

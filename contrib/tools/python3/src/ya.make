@@ -11,6 +11,7 @@ PEERDIR(
     ADDINCL contrib/libs/sqlite3
     ADDINCL contrib/libs/zlib
     contrib/deprecated/libffi
+    contrib/tools/python3/src/Modules
 )
 
 ADDINCL(
@@ -41,44 +42,11 @@ ELSEIF (OS_WINDOWS)
 ENDIF()
 
 NO_COMPILER_WARNINGS()
+
 NO_UTIL()
 
 SRCS(
-    Modules/_asynciomodule.c
-    Modules/_bisectmodule.c
-    Modules/_blake2/blake2b_impl.c
-    Modules/_blake2/blake2module.c
-    Modules/_blake2/blake2s_impl.c
-    Modules/_bz2module.c
-    Modules/_codecsmodule.c
-    Modules/_collectionsmodule.c
-    Modules/_csv.c
-    Modules/_ctypes/_ctypes.c
-    Modules/_ctypes/callbacks.c
-    Modules/_ctypes/callproc.c
-    Modules/_ctypes/cfield.c
-    Modules/_ctypes/malloc_closure.c
-    Modules/_ctypes/stgdict.c
-    Modules/_datetimemodule.c
-    Modules/_decimal/_decimal.c
-    Modules/_decimal/libmpdec/basearith.c
-    Modules/_decimal/libmpdec/constants.c
-    Modules/_decimal/libmpdec/context.c
-    Modules/_decimal/libmpdec/convolute.c
-    Modules/_decimal/libmpdec/crt.c
-    Modules/_decimal/libmpdec/difradix2.c
-    Modules/_decimal/libmpdec/fnt.c
-    Modules/_decimal/libmpdec/fourstep.c
-    Modules/_decimal/libmpdec/io.c
-    Modules/_decimal/libmpdec/memory.c
-    Modules/_decimal/libmpdec/mpdecimal.c
-    Modules/_decimal/libmpdec/numbertheory.c
-    Modules/_decimal/libmpdec/sixstep.c
-    Modules/_decimal/libmpdec/transpose.c
-    Modules/_elementtree.c
     Modules/_functoolsmodule.c
-    Modules/_hashopenssl.c
-    Modules/_heapqmodule.c
     Modules/_io/_iomodule.c
     Modules/_io/bufferedio.c
     Modules/_io/bytesio.c
@@ -87,78 +55,22 @@ SRCS(
     Modules/_io/stringio.c
     Modules/_io/textio.c
     Modules/_io/winconsoleio.c
-    Modules/_json.c
-    Modules/_localemodule.c
-    Modules/_lsprof.c
-    Modules/_math.c
-    Modules/_multiprocessing/multiprocessing.c
-    Modules/_multiprocessing/semaphore.c
-    Modules/_opcode.c
-    Modules/_operator.c
-    Modules/_pickle.c
-    Modules/_randommodule.c
-    Modules/_sha3/sha3module.c
-    Modules/_sqlite/cache.c
-    Modules/_sqlite/connection.c
-    Modules/_sqlite/cursor.c
-    Modules/_sqlite/microprotocols.c
-    Modules/_sqlite/module.c
-    Modules/_sqlite/prepare_protocol.c
-    Modules/_sqlite/row.c
-    Modules/_sqlite/statement.c
-    Modules/_sqlite/util.c
-    Modules/_sre.c
-    Modules/_ssl.c
-    Modules/_stat.c
-    Modules/_struct.c
     Modules/_threadmodule.c
-    Modules/_tracemalloc.c
-    Modules/_weakref.c
-    Modules/arraymodule.c
-    Modules/atexitmodule.c
-    Modules/audioop.c
-    Modules/binascii.c
-    Modules/cjkcodecs/_codecs_cn.c
-    Modules/cjkcodecs/_codecs_hk.c
-    Modules/cjkcodecs/_codecs_iso2022.c
-    Modules/cjkcodecs/_codecs_jp.c
-    Modules/cjkcodecs/_codecs_kr.c
-    Modules/cjkcodecs/_codecs_tw.c
-    Modules/cjkcodecs/multibytecodec.c
-    Modules/cmathmodule.c
     Modules/config.c
-    Modules/errnomodule.c
-    Modules/faulthandler.c
-    Modules/fpetestmodule.c
     Modules/gcmodule.c
-    Modules/getbuildinfo.c
-    Modules/hashtable.c
-    Modules/itertoolsmodule.c
     Modules/main.c
-    Modules/mathmodule.c
-    Modules/md5module.c
     Modules/mmapmodule.c
-    Modules/parsermodule.c
     Modules/posixmodule.c
-    Modules/pyexpat.c
-    Modules/rotatingtree.c
-    Modules/selectmodule.c
-    Modules/sha1module.c
-    Modules/sha256module.c
-    Modules/sha512module.c
     Modules/signalmodule.c
-    Modules/socketmodule.c
-    Modules/symtablemodule.c
     Modules/timemodule.c
-    Modules/unicodedata.c
     Modules/zipimport.c
-    Modules/zlibmodule.c
     Objects/abstract.c
     Objects/accu.c
     Objects/boolobject.c
     Objects/bytearrayobject.c
     Objects/bytes_methods.c
     Objects/bytesobject.c
+    Objects/call.c
     Objects/capsule.c
     Objects/cellobject.c
     Objects/classobject.c
@@ -210,10 +122,14 @@ SRCS(
     Python/_warnings.c
     Python/asdl.c
     Python/ast.c
+    Python/ast_opt.c
+    Python/ast_unparse.c
     Python/bltinmodule.c
+    Python/bootstrap_hash.c
     Python/ceval.c
     Python/codecs.c
     Python/compile.c
+    Python/context.c
     Python/dtoa.c
     Python/dynamic_annotations.c
     Python/errors.c
@@ -229,12 +145,14 @@ SRCS(
     Python/getplatform.c
     Python/getversion.c
     Python/graminit.c
+    Python/hamt.c
     Python/import.c
     Python/importdl.c
     Python/marshal.c
     Python/modsupport.c
     Python/mysnprintf.c
     Python/mystrtoul.c
+    Python/pathconfig.c
     Python/peephole.c
     Python/pyarena.c
     Python/pyctype.c
@@ -248,7 +166,6 @@ SRCS(
     Python/pystrtod.c
     Python/pythonrun.c
     Python/pytime.c
-    Python/random.c
     Python/structmember.c
     Python/symtable.c
     Python/sysmodule.c
@@ -269,32 +186,13 @@ ENDIF()
 
 IF (OS_WINDOWS)
     SRCS(
-        Modules/_winapi.c
-        Modules/overlapped.c
         Python/dynload_win.c
     )
 ELSE()
     SRCS(
-        Modules/_posixsubprocess.c
-        Modules/fcntlmodule.c
         Modules/getpath.c
-        Modules/grpmodule.c
-        Modules/pwdmodule.c
-        Modules/resource.c
-        Modules/syslogmodule.c
-        Modules/termios.c
         Python/dynload_shlib.c
     )
-    IF (OS_LINUX)
-        SRCS(
-            Modules/spwdmodule.c
-        )
-    ELSEIF (OS_DARWIN)
-        SRCS(
-            Modules/_ctypes/darwin/dlfcn_simple.c
-            Modules/_scproxy.c
-        )
-    ENDIF()
 ENDIF()
 
 END()

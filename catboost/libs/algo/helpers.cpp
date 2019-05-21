@@ -1,5 +1,8 @@
 #include "helpers.h"
 
+#include "learn_context.h"
+
+#include <catboost/libs/data_new/quantized_features_info.h>
 #include <catboost/libs/distributed/master.h>
 #include <catboost/libs/logging/logging.h>
 
@@ -92,9 +95,9 @@ void CalcErrors(
             if (ctx->Params.SystemOptions->IsSingleHost()) {
                 const auto& targetData = trainingDataProviders.Learn->TargetData;
 
-                auto target = GetMaybeTarget(targetData).GetOrElse(TConstArrayRef<float>());
-                auto weights = GetWeights(targetData);
-                auto queryInfo = GetGroupInfo(targetData);
+                auto target = targetData->GetTarget().GetOrElse(TConstArrayRef<float>());
+                auto weights = GetWeights(*targetData);
+                auto queryInfo = targetData->GetGroupInfo().GetOrElse(TConstArrayRef<TQueryInfo>());
 
                 TVector<bool> skipMetricOnTrain = GetSkipMetricOnTrain(errors);
                 for (int i = 0; i < errors.ysize(); ++i) {
@@ -107,7 +110,10 @@ void CalcErrors(
                             errors[i],
                             ctx->LocalExecutor
                         );
-                        ctx->LearnProgress.MetricsAndTimeHistory.AddLearnError(*errors[i].Get(), errors[i]->GetFinalError(additiveStats));
+                        ctx->LearnProgress.MetricsAndTimeHistory.AddLearnError(
+                            *errors[i].Get(),
+                            errors[i]->GetFinalError(additiveStats)
+                        );
                     }
                 }
             } else {
@@ -132,10 +138,10 @@ void CalcErrors(
             }
             const auto& targetData = testDataPtr->TargetData;
 
-            auto maybeTarget = GetMaybeTarget(targetData);
+            auto maybeTarget = targetData->GetTarget();
             auto target = maybeTarget.GetOrElse(TConstArrayRef<float>());
-            auto weights = GetWeights(targetData);
-            auto queryInfo = GetGroupInfo(targetData);
+            auto weights = GetWeights(*targetData);
+            auto queryInfo = targetData->GetGroupInfo().GetOrElse(TConstArrayRef<TQueryInfo>());;
 
             const auto& testApprox = ctx->LearnProgress.TestApprox[testIdx];
             for (int i = 0; i < errors.ysize(); ++i) {
@@ -155,10 +161,12 @@ void CalcErrors(
                     ctx->LocalExecutor
                 );
                 bool updateBestIteration = (i == 0) && (testIdx == trainingDataProviders.Test.size() - 1);
-                ctx->LearnProgress.MetricsAndTimeHistory.AddTestError(testIdx,
-                                                                      *errors[i].Get(),
-                                                                      errors[i]->GetFinalError(additiveStats),
-                                                                      updateBestIteration);
+                ctx->LearnProgress.MetricsAndTimeHistory.AddTestError(
+                    testIdx,
+                    *errors[i].Get(),
+                    errors[i]->GetFinalError(additiveStats),
+                    updateBestIteration
+                );
             }
         }
     }

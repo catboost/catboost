@@ -17,6 +17,7 @@ typedef struct {
     PyObject *tgtkey;
     PyObject *currkey;
     PyObject *currvalue;
+    const void *currgrouper;  /* borrowed reference */
 } groupbyobject;
 
 static PyTypeObject groupby_type;
@@ -104,6 +105,7 @@ groupby_next(groupbyobject *gbo)
 {
     PyObject *r, *grouper;
 
+    gbo->currgrouper = NULL;
     /* skip to next iteration group */
     for (;;) {
         if (gbo->currkey == NULL)
@@ -267,6 +269,7 @@ _grouper_create(groupbyobject *parent, PyObject *tgtkey)
     Py_INCREF(parent);
     igo->tgtkey = tgtkey;
     Py_INCREF(tgtkey);
+    parent->currgrouper = igo;  /* borrowed reference */
 
     PyObject_GC_Track(igo);
     return (PyObject *)igo;
@@ -296,6 +299,8 @@ _grouper_next(_grouperobject *igo)
     PyObject *r;
     int rcmp;
 
+    if (gbo->currgrouper != igo)
+        return NULL;
     if (gbo->currvalue == NULL) {
         if (groupby_step(gbo) < 0)
             return NULL;
@@ -317,6 +322,9 @@ _grouper_next(_grouperobject *igo)
 static PyObject *
 _grouper_reduce(_grouperobject *lz)
 {
+    if (((groupbyobject *)lz->parent)->currgrouper != lz) {
+        return Py_BuildValue("N(())", _PyObject_GetBuiltin("iter"));
+    }
     return Py_BuildValue("O(OO)", Py_TYPE(lz), lz->parent, lz->tgtkey);
 }
 
@@ -802,7 +810,7 @@ static PyObject *
 tee(PyObject *self, PyObject *args)
 {
     Py_ssize_t i, n=2;
-    PyObject *it, *iterable, *copyable, *result;
+    PyObject *it, *iterable, *copyable, *copyfunc, *result;
     _Py_IDENTIFIER(__copy__);
 
     if (!PyArg_ParseTuple(args, "O|n", &iterable, &n))
@@ -821,25 +829,41 @@ tee(PyObject *self, PyObject *args)
         Py_DECREF(result);
         return NULL;
     }
-    if (!_PyObject_HasAttrId(it, &PyId___copy__)) {
+
+    if (_PyObject_LookupAttrId(it, &PyId___copy__, &copyfunc) < 0) {
+        Py_DECREF(it);
+        Py_DECREF(result);
+        return NULL;
+    }
+    if (copyfunc != NULL) {
+        copyable = it;
+    }
+    else {
         copyable = tee_fromiterable(it);
         Py_DECREF(it);
         if (copyable == NULL) {
             Py_DECREF(result);
             return NULL;
         }
-    } else
-        copyable = it;
-    PyTuple_SET_ITEM(result, 0, copyable);
-    for (i=1 ; i<n ; i++) {
+        copyfunc = _PyObject_GetAttrId(copyable, &PyId___copy__);
+        if (copyfunc == NULL) {
+            Py_DECREF(copyable);
+            Py_DECREF(result);
+            return NULL;
+        }
+    }
 
-        copyable = _PyObject_CallMethodId(copyable, &PyId___copy__, NULL);
+    PyTuple_SET_ITEM(result, 0, copyable);
+    for (i = 1; i < n; i++) {
+        copyable = _PyObject_CallNoArg(copyfunc);
         if (copyable == NULL) {
+            Py_DECREF(copyfunc);
             Py_DECREF(result);
             return NULL;
         }
         PyTuple_SET_ITEM(result, i, copyable);
     }
+    Py_DECREF(copyfunc);
     return result;
 }
 
@@ -867,7 +891,7 @@ cycle_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     PyObject *saved;
     cycleobject *lz;
 
-    if (type == &cycle_type && !_PyArg_NoKeywords("cycle()", kwds))
+    if (type == &cycle_type && !_PyArg_NoKeywords("cycle", kwds))
         return NULL;
 
     if (!PyArg_UnpackTuple(args, "cycle", 1, 1, &iterable))
@@ -938,11 +962,11 @@ cycle_next(cycleobject *lz)
             return NULL;
         Py_CLEAR(lz->it);
     }
-    if (Py_SIZE(lz->saved) == 0)
+    if (PyList_GET_SIZE(lz->saved) == 0)
         return NULL;
     item = PyList_GET_ITEM(lz->saved, lz->index);
     lz->index++;
-    if (lz->index >= Py_SIZE(lz->saved))
+    if (lz->index >= PyList_GET_SIZE(lz->saved))
         lz->index = 0;
     Py_INCREF(item);
     return item;
@@ -1068,7 +1092,7 @@ dropwhile_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     PyObject *it;
     dropwhileobject *lz;
 
-    if (type == &dropwhile_type && !_PyArg_NoKeywords("dropwhile()", kwds))
+    if (type == &dropwhile_type && !_PyArg_NoKeywords("dropwhile", kwds))
         return NULL;
 
     if (!PyArg_UnpackTuple(args, "dropwhile", 2, 2, &func, &seq))
@@ -1236,7 +1260,7 @@ takewhile_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     PyObject *it;
     takewhileobject *lz;
 
-    if (type == &takewhile_type && !_PyArg_NoKeywords("takewhile()", kwds))
+    if (type == &takewhile_type && !_PyArg_NoKeywords("takewhile", kwds))
         return NULL;
 
     if (!PyArg_UnpackTuple(args, "takewhile", 2, 2, &func, &seq))
@@ -1404,7 +1428,7 @@ islice_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     Py_ssize_t numargs;
     isliceobject *lz;
 
-    if (type == &islice_type && !_PyArg_NoKeywords("islice()", kwds))
+    if (type == &islice_type && !_PyArg_NoKeywords("islice", kwds))
         return NULL;
 
     if (!PyArg_UnpackTuple(args, "islice", 2, 4, &seq, &a1, &a2, &a3))
@@ -1413,7 +1437,7 @@ islice_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     numargs = PyTuple_Size(args);
     if (numargs == 2) {
         if (a1 != Py_None) {
-            stop = PyLong_AsSsize_t(a1);
+            stop = PyNumber_AsSsize_t(a1, PyExc_OverflowError);
             if (stop == -1) {
                 if (PyErr_Occurred())
                     PyErr_Clear();
@@ -1425,11 +1449,11 @@ islice_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
         }
     } else {
         if (a1 != Py_None)
-            start = PyLong_AsSsize_t(a1);
+            start = PyNumber_AsSsize_t(a1, PyExc_OverflowError);
         if (start == -1 && PyErr_Occurred())
             PyErr_Clear();
         if (a2 != Py_None) {
-            stop = PyLong_AsSsize_t(a2);
+            stop = PyNumber_AsSsize_t(a2, PyExc_OverflowError);
             if (stop == -1) {
                 if (PyErr_Occurred())
                     PyErr_Clear();
@@ -1449,7 +1473,7 @@ islice_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
     if (a3 != NULL) {
         if (a3 != Py_None)
-            step = PyLong_AsSsize_t(a3);
+            step = PyNumber_AsSsize_t(a3, PyExc_OverflowError);
         if (step == -1 && PyErr_Occurred())
             PyErr_Clear();
     }
@@ -1658,7 +1682,7 @@ starmap_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     PyObject *it;
     starmapobject *lz;
 
-    if (type == &starmap_type && !_PyArg_NoKeywords("starmap()", kwds))
+    if (type == &starmap_type && !_PyArg_NoKeywords("starmap", kwds))
         return NULL;
 
     if (!PyArg_UnpackTuple(args, "starmap", 2, 2, &func, &seq))
@@ -1816,7 +1840,7 @@ chain_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
     PyObject *source;
 
-    if (type == &chain_type && !_PyArg_NoKeywords("chain()", kwds))
+    if (type == &chain_type && !_PyArg_NoKeywords("chain", kwds))
         return NULL;
 
     source = PyObject_GetIter(args);
@@ -3765,7 +3789,7 @@ filterfalse_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     filterfalseobject *lz;
 
     if (type == &filterfalse_type &&
-        !_PyArg_NoKeywords("filterfalse()", kwds))
+        !_PyArg_NoKeywords("filterfalse", kwds))
         return NULL;
 
     if (!PyArg_UnpackTuple(args, "filterfalse", 2, 2, &func, &seq))
@@ -3965,24 +3989,16 @@ count_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
                 fast_mode = 0;
             }
         }
-        Py_INCREF(long_cnt);
     } else {
         cnt = 0;
-        long_cnt = PyLong_FromLong(0);
-        if (long_cnt == NULL) {
-            return NULL;
-        }
+        long_cnt = _PyLong_Zero;
     }
+    Py_INCREF(long_cnt);
 
     /* If not specified, step defaults to 1 */
-    if (long_step == NULL) {
-        long_step = PyLong_FromLong(1);
-        if (long_step == NULL) {
-            Py_DECREF(long_cnt);
-            return NULL;
-        }
-    } else
-        Py_INCREF(long_step);
+    if (long_step == NULL)
+        long_step = _PyLong_One;
+    Py_INCREF(long_step);
 
     assert(long_cnt != NULL && long_step != NULL);
 
@@ -4071,7 +4087,8 @@ static PyObject *
 count_repr(countobject *lz)
 {
     if (lz->cnt != PY_SSIZE_T_MAX)
-        return PyUnicode_FromFormat("count(%zd)", lz->cnt);
+        return PyUnicode_FromFormat("%s(%zd)",
+                                    _PyType_Name(Py_TYPE(lz)), lz->cnt);
 
     if (PyLong_Check(lz->long_step)) {
         long step = PyLong_AsLong(lz->long_step);
@@ -4080,11 +4097,14 @@ count_repr(countobject *lz)
         }
         if (step == 1) {
             /* Don't display step when it is an integer equal to 1 */
-            return PyUnicode_FromFormat("count(%R)", lz->long_cnt);
+            return PyUnicode_FromFormat("%s(%R)",
+                                        _PyType_Name(Py_TYPE(lz)),
+                                        lz->long_cnt);
         }
     }
-    return PyUnicode_FromFormat("count(%R, %R)",
-                                                            lz->long_cnt, lz->long_step);
+    return PyUnicode_FromFormat("%s(%R, %R)",
+                                _PyType_Name(Py_TYPE(lz)),
+                                lz->long_cnt, lz->long_step);
 }
 
 static PyObject *
@@ -4180,7 +4200,7 @@ repeat_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
         return NULL;
 
     if (kwds != NULL)
-        n_kwds = PyDict_Size(kwds);
+        n_kwds = PyDict_GET_SIZE(kwds);
     /* Does user supply times argument? */
     if ((PyTuple_Size(args) + n_kwds == 2) && cnt < 0)
         cnt = 0;
@@ -4224,9 +4244,12 @@ static PyObject *
 repeat_repr(repeatobject *ro)
 {
     if (ro->cnt == -1)
-        return PyUnicode_FromFormat("repeat(%R)", ro->element);
+        return PyUnicode_FromFormat("%s(%R)",
+                                    _PyType_Name(Py_TYPE(ro)), ro->element);
     else
-        return PyUnicode_FromFormat("repeat(%R, %zd)", ro->element, ro->cnt);
+        return PyUnicode_FromFormat("%s(%R, %zd)",
+                                    _PyType_Name(Py_TYPE(ro)), ro->element,
+                                    ro->cnt);
 }
 
 static PyObject *
@@ -4329,11 +4352,11 @@ zip_longest_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     PyObject *ittuple;  /* tuple of iterators */
     PyObject *result;
     PyObject *fillvalue = Py_None;
-    Py_ssize_t tuplesize = PySequence_Length(args);
+    Py_ssize_t tuplesize;
 
-    if (kwds != NULL && PyDict_CheckExact(kwds) && PyDict_Size(kwds) > 0) {
+    if (kwds != NULL && PyDict_CheckExact(kwds) && PyDict_GET_SIZE(kwds) > 0) {
         fillvalue = PyDict_GetItemString(kwds, "fillvalue");
-        if (fillvalue == NULL  ||  PyDict_Size(kwds) > 1) {
+        if (fillvalue == NULL || PyDict_GET_SIZE(kwds) > 1) {
             PyErr_SetString(PyExc_TypeError,
                 "zip_longest() got an unexpected keyword argument");
             return NULL;
@@ -4342,6 +4365,7 @@ zip_longest_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
     /* args must be a tuple */
     assert(PyTuple_Check(args));
+    tuplesize = PyTuple_GET_SIZE(args);
 
     /* obtain iterators */
     ittuple = PyTuple_New(tuplesize);
@@ -4633,7 +4657,7 @@ PyInit_itertools(void)
 {
     int i;
     PyObject *m;
-    char *name;
+    const char *name;
     PyTypeObject *typelist[] = {
         &accumulate_type,
         &combinations_type,
@@ -4666,10 +4690,9 @@ PyInit_itertools(void)
     for (i=0 ; typelist[i] != NULL ; i++) {
         if (PyType_Ready(typelist[i]) < 0)
             return NULL;
-        name = strchr(typelist[i]->tp_name, '.');
-        assert (name != NULL);
+        name = _PyType_Name(typelist[i]);
         Py_INCREF(typelist[i]);
-        PyModule_AddObject(m, name+1, (PyObject *)typelist[i]);
+        PyModule_AddObject(m, name, (PyObject *)typelist[i]);
     }
 
     return m;

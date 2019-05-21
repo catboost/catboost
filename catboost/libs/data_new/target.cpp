@@ -43,15 +43,22 @@ static void CheckOneBaseline(TConstArrayRef<float> baseline, size_t idx, ui32 ob
     );
 }
 
-static void CheckMaybeEmptyBaseline(TSharedVector<float> baseline, ui32 objectCount) {
-    if (baseline) {
-        CheckOneBaseline(*baseline, 0, objectCount);
+
+static void CheckBaseline(
+    const TVector<TSharedVector<float>>& baseline,
+    ui32 objectCount,
+    TMaybe<ui32> classCount
+) {
+    if (baseline.size() == 1) {
+        CB_ENSURE_INTERNAL(
+            !classCount || (*classCount == 2),
+            "One-dimensional baseline with multiple classes"
+        );
+    } else {
+        CB_ENSURE_INTERNAL(classCount, "Multidimensional baseline for non-multiclassification");
+        CheckDataSize(baseline.size(), (size_t)*classCount, "Baseline", true, "class count");
     }
-}
 
-
-static void CheckBaseline(const TVector<TSharedVector<float>>& baseline, ui32 objectCount, ui32 classCount) {
-    CheckDataSize(baseline.size(), (size_t)classCount, "Baseline", true, "class count");
     for (auto i : xrange(baseline.size())) {
         CheckOneBaseline(*(baseline[i]), i, objectCount);
     }
@@ -423,14 +430,289 @@ void TRawTargetDataProvider::AssignWeights(TConstArrayRef<float> src, TWeights<f
 }
 
 
-template <>
-void Out<NCB::TTargetDataSpecification>(
-    IOutputStream& out,
-    const NCB::TTargetDataSpecification& targetDataSpecification
-) {
-    out << '(' << targetDataSpecification.Type << ',' << targetDataSpecification.Description << ')';
+template <class TKey, class TSharedDataPtr>
+using TTargetSingleTypeDataCache = THashMap<TKey, TSharedDataPtr>;
+
+/*
+ * Serialization using IBinSaver works as following (somewhat similar to subset creation):
+ *
+ * Save:
+ *  1) Collect mapping of unique data ids to data itself in TSerializationTargetDataCache.
+ *     Serialize TTargetDataProvider with these data ids instead of actual data
+ *     to a temporary binSaver stream.
+ *  2) Save data in TSerializationTargetDataCache. Save binSaver stream with data provider
+ *     description (created at stage 1) with ids after it.
+ *
+ *  Load:
+ *  1) Load data in TSerializationTargetDataCache.
+ *  2) Read data with data provider
+ *     description with ids, create actual TTargetDataProvider, initializing with actual shared data loaded
+ *     from cache at stage 1.
+ *
+ */
+
+// key value 0 is special - means this field is optional while serializing
+template <class TSharedDataPtr>
+using TSerializationTargetSingleTypeDataCache =
+    TTargetSingleTypeDataCache<ui64, TSharedDataPtr>;
+
+struct TSerializationTargetDataCache {
+    TSerializationTargetSingleTypeDataCache<TSharedVector<float>> Targets;
+    TSerializationTargetSingleTypeDataCache<TSharedWeights<float>> Weights;
+
+    // multidim baselines are stored as separate pointers for simplicity
+    TSerializationTargetSingleTypeDataCache<TSharedVector<float>> Baselines;
+    TSerializationTargetSingleTypeDataCache<TSharedVector<TQueryInfo>> GroupInfos;
+
+public:
+    SAVELOAD_WITH_SHARED(Targets, Weights, Baselines, GroupInfos)
+};
+
+
+bool TProcessedTargetData::operator==(const TProcessedTargetData& rhs) const {
+    auto compareHashMaps = [&] (const auto& lhs, const auto& rhs, const auto& dataComparator) {
+        if (lhs.size() != rhs.size()) {
+            return false;
+        }
+
+        for (const auto& [name, lhsData] : lhs) {
+            auto rhsDataPtr = MapFindPtr(rhs, name);
+            if (!rhsDataPtr) {
+                return false;
+            }
+            if (!dataComparator(lhsData, *rhsDataPtr)) {
+                return false;
+            }
+        }
+        return true;
+    };
+
+    if (!compareHashMaps(
+            TargetsClassCount,
+            rhs.TargetsClassCount,
+            [](const auto& lhs, const auto& rhs) { return lhs == rhs; }))
+    {
+        return false;
+    }
+
+    if (!compareHashMaps(
+            Targets,
+            rhs.Targets,
+            [](const auto& lhs, const auto& rhs) { return *lhs == *rhs; }))
+    {
+        return false;
+    }
+
+    if (!compareHashMaps(
+            Weights,
+            rhs.Weights,
+            [](const auto& lhs, const auto& rhs) { return *lhs == *rhs; }))
+    {
+        return false;
+    }
+
+    if (!compareHashMaps(
+            Baselines,
+            rhs.Baselines,
+            [](const TVector<TSharedVector<float>>& lhs, const TVector<TSharedVector<float>>& rhs) {
+                if (lhs.size() != rhs.size()) {
+                    return false;
+                }
+                for (auto i : xrange(lhs.size())) {
+                    if (*(lhs[i]) != *(rhs[i])) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+        ))
+    {
+        return false;
+    }
+
+    if (!compareHashMaps(
+            GroupInfos,
+            rhs.GroupInfos,
+            [](const auto& lhs, const auto& rhs) { return *lhs == *rhs; }))
+    {
+        return false;
+    }
+
+    return true;
 }
 
+
+void TProcessedTargetData::Check(const TObjectsGrouping& objectsGrouping) const {
+    const ui32 objectCount = objectsGrouping.GetObjectCount();
+
+    for (const auto& [name, classCount] : TargetsClassCount) {
+        CB_ENSURE_INTERNAL(classCount > 0, "Class count for target " << name << " must be non-0");
+        CB_ENSURE_INTERNAL(Targets.contains(name), "No data in Targets with name " << name);
+    }
+
+    for (const auto& [name, targetsData] : Targets) {
+        CheckDataSize(targetsData->size(), (size_t)objectCount, "Target " + name);
+    }
+    for (const auto& [name, weightsData] : Weights) {
+        CheckDataSize(weightsData->GetSize(), objectCount, "Weights " + name);
+    }
+    for (const auto& [name, baselineData] : Baselines) {
+        try {
+            CB_ENSURE_INTERNAL(!baselineData.empty(), "empty");
+            auto* classCount = MapFindPtr(TargetsClassCount, name);
+            CheckBaseline(baselineData, objectCount, classCount ? TMaybe<ui32>(*classCount) : Nothing());
+        } catch (TCatBoostException& e) {
+            throw TCatBoostException() << "Baseline data " << name << ": " << e.what();
+        }
+    }
+    for (const auto& [name, groupInfosData] : GroupInfos) {
+        CheckGroupInfo(*groupInfosData, objectsGrouping, false);
+    }
+}
+
+
+template <class TSharedDataPtr>
+static void LoadWithCache(
+    const TSerializationTargetSingleTypeDataCache<TSharedDataPtr>& cachePart,
+    IBinSaver* binSaver,
+    THashMap<TString, TSharedDataPtr>* data
+) {
+    ui32 dataCount = 0;
+    LoadMulti(binSaver, &dataCount);
+    for (ui32 dataIdx : xrange(dataCount)) {
+        Y_UNUSED(dataIdx);
+
+        TString name;
+        ui64 id;
+        LoadMulti(binSaver, &name, &id);
+        data->emplace(name, cachePart.at(id));
+    }
+}
+
+void TProcessedTargetData::Load(IBinSaver* binSaver) {
+    TSerializationTargetDataCache cache;
+    LoadMulti(binSaver, &cache);
+
+    LoadMulti(binSaver, &TargetsClassCount);
+    LoadWithCache(cache.Targets, binSaver, &Targets);
+    LoadWithCache(cache.Weights, binSaver, &Weights);
+
+    ui32 baselineCount = 0;
+    LoadMulti(binSaver, &baselineCount);
+    for (ui32 baselineIdx : xrange(baselineCount)) {
+        Y_UNUSED(baselineIdx);
+
+        TString name;
+        ui32 dimensionCount;
+        LoadMulti(binSaver, &name, &dimensionCount);
+
+        TVector<TSharedVector<float>> baseline;
+        baseline.reserve(dimensionCount);
+        for (ui32 dimensionIdx : xrange(dimensionCount)) {
+            Y_UNUSED(dimensionIdx);
+
+            ui64 id;
+            LoadMulti(binSaver, &id);
+            baseline.push_back(cache.Baselines.at(id));
+        }
+
+        Baselines.emplace(name, std::move(baseline));
+    }
+
+    LoadWithCache(cache.GroupInfos, binSaver, &GroupInfos);
+}
+
+
+template <class TSharedDataPtr>
+inline void AddToCacheAndSaveId(
+    const TSharedDataPtr sharedData,
+    IBinSaver* binSaver,
+    TSerializationTargetSingleTypeDataCache<TSharedDataPtr>* cache
+) {
+    const ui64 id = reinterpret_cast<ui64>(sharedData.Get());
+    SaveMulti(binSaver, id);
+    if (id) {
+        cache->emplace(id, sharedData);
+    }
+}
+
+template <class TSharedDataPtr>
+static void SaveWithCache(
+    const THashMap<TString, TSharedDataPtr>& data,
+    IBinSaver* binSaver,
+    TSerializationTargetSingleTypeDataCache<TSharedDataPtr>* cachePart
+) {
+    SaveMulti(binSaver, SafeIntegerCast<ui32>(data.size()));
+    for (const auto& [name, dataPart] : data) {
+        SaveMulti(binSaver, name);
+        AddToCacheAndSaveId(dataPart, binSaver, cachePart);
+    }
+}
+
+void TProcessedTargetData::Save(IBinSaver* binSaver) const {
+    TSerializationTargetDataCache cache;
+
+    /* For serialization we have get serialized target data with ids first before cache is filled
+     * For deserialization we get cache filled first and then create target data from it
+     *  so we need to change the order of these parts while saving
+     */
+    TBuffer serializedTargetDataWithIds;
+
+    {
+        TBufferOutput out(serializedTargetDataWithIds);
+        TYaStreamOutput out2(out);
+        IBinSaver targetDataWithIdsBinSaver(out2, false);
+
+        SaveMulti(&targetDataWithIdsBinSaver, TargetsClassCount);
+        SaveWithCache(Targets, &targetDataWithIdsBinSaver, &cache.Targets);
+        SaveWithCache(Weights, &targetDataWithIdsBinSaver, &cache.Weights);
+
+        {
+            SaveMulti(&targetDataWithIdsBinSaver, SafeIntegerCast<ui32>(Baselines.size()));
+            for (const auto& [name, dataPart] : Baselines) {
+                const ui32 dimensionCount = dataPart.size();
+                SaveMulti(&targetDataWithIdsBinSaver, name, dimensionCount);
+                for (const auto& oneBaseline : dataPart) {
+                    AddToCacheAndSaveId(oneBaseline, &targetDataWithIdsBinSaver, &cache.Baselines);
+                }
+            }
+        }
+
+        SaveWithCache(GroupInfos, &targetDataWithIdsBinSaver, &cache.GroupInfos);
+    }
+
+    SaveMulti(binSaver, cache);
+
+    SaveRawData(
+        TConstArrayRef<ui8>((ui8*)serializedTargetDataWithIds.Data(), serializedTargetDataWithIds.Size()),
+        binSaver
+    );
+}
+
+
+TTargetDataProvider::TTargetDataProvider(
+    TObjectsGroupingPtr objectsGrouping,
+    TProcessedTargetData&& processedTargetData,
+    bool skipCheck
+) {
+    if (!skipCheck) {
+        processedTargetData.Check(*objectsGrouping);
+    }
+    ObjectsGrouping = std::move(objectsGrouping);
+    Data = std::move(processedTargetData);
+
+    for (const auto& [name, baselineData] : Data.Baselines) {
+        TVector<TConstArrayRef<float>> baselineView(baselineData.size());
+        for (auto i : xrange(baselineData.size())) {
+            baselineView[i] = *(baselineData[i]);
+        }
+        BaselineViews.emplace(name, std::move(baselineView));
+    }
+}
+
+bool TTargetDataProvider::operator==(const TTargetDataProvider& rhs) const {
+    return (*ObjectsGrouping == *rhs.ObjectsGrouping) && (Data == rhs.Data);
+}
 
 
 void GetObjectsFloatDataSubsetImpl(
@@ -552,6 +834,32 @@ void GetGroupInfosSubsetImpl(
 }
 
 
+/*
+ * Subsets are created only once for each shared data for efficiency
+ *
+ * Subset creation works in 3 stages:
+ *
+ *   1) all data gathered from maps in TTargetDataProvider to keys in TSubsetTargetDataCache
+ *   2) subsets for all cached data are created in parallel
+ *   3) data maps in subset TTargetDataProvider are assigned from TSubsetTargetDataCache
+ *      with the same keys as in source TTargetDataProvider
+ *
+ * TTargetDataProvider::GetSubset below does all these stages
+ */
+
+template <class TSharedDataPtr>
+using TSrcToSubsetDataCache = TTargetSingleTypeDataCache<TSharedDataPtr, TSharedDataPtr>;
+
+struct TSubsetTargetDataCache {
+    TSrcToSubsetDataCache<TSharedVector<float>> Targets;
+    TSrcToSubsetDataCache<TSharedWeights<float>> Weights;
+
+    // multidim baselines are stored as separate pointers for simplicity
+    TSrcToSubsetDataCache<TSharedVector<float>> Baselines;
+    TSrcToSubsetDataCache<TSharedVector<TQueryInfo>> GroupInfos;
+};
+
+
 // arguments are (srcPtr, objectsGroupingSubset, localExecutor, dstSubsetPtr)
 template <class TSharedDataPtr>
 using TGetSubsetFunction = std::function<
@@ -646,817 +954,78 @@ static void FillSubsetTargetDataCache(
 }
 
 
-TTargetDataProviders NCB::GetSubsets(
-    const TTargetDataProviders& srcTargetDataProviders,
+TIntrusivePtr<TTargetDataProvider> TTargetDataProvider::GetSubset(
     const TObjectsGroupingSubset& objectsGroupingSubset,
     NPar::TLocalExecutor* localExecutor
-) {
+) const {
     TSubsetTargetDataCache subsetTargetDataCache;
 
-    for (const auto& specAndDataProvider : srcTargetDataProviders) {
-        specAndDataProvider.second->GetSourceDataForSubsetCreation(&subsetTargetDataCache);
+    for (const auto& [name, targetsData] : Data.Targets) {
+        subsetTargetDataCache.Targets.emplace(targetsData, TSharedVector<float>());
+    }
+    for (const auto& [name, weightsData] : Data.Weights) {
+        subsetTargetDataCache.Weights.emplace(weightsData, TSharedWeights<float>());
+    }
+    for (const auto& [name, baselineData] : Data.Baselines) {
+        for (const auto& oneBaseline : baselineData) {
+            subsetTargetDataCache.Baselines.emplace(oneBaseline, TSharedVector<float>());
+        }
+    }
+    for (const auto& [name, groupInfosData] : Data.GroupInfos) {
+        subsetTargetDataCache.GroupInfos.emplace(groupInfosData, TSharedVector<TQueryInfo>());
     }
 
 
     FillSubsetTargetDataCache(objectsGroupingSubset, localExecutor, &subsetTargetDataCache);
 
 
-    TObjectsGroupingPtr objectsGrouping = objectsGroupingSubset.GetSubsetGrouping();
+    TProcessedTargetData subsetData;
 
-    TTargetDataProviders result;
+    subsetData.TargetsClassCount = Data.TargetsClassCount;
 
-    for (const auto& specAndDataProvider : srcTargetDataProviders) {
-        result.emplace(
-            specAndDataProvider.first,
-            specAndDataProvider.second->GetSubset(objectsGrouping, subsetTargetDataCache)
-        );
+    for (const auto& [name, targetsData] : Data.Targets) {
+        subsetData.Targets.emplace(name, subsetTargetDataCache.Targets.at(targetsData));
+    }
+    for (const auto& [name, weightsData] : Data.Weights) {
+        subsetData.Weights.emplace(name, subsetTargetDataCache.Weights.at(weightsData));
+    }
+    for (const auto& [name, baselineData] : Data.Baselines) {
+        TVector<TSharedVector<float>> subsetBaselineData;
+
+        for (const auto& oneBaseline : baselineData) {
+            subsetBaselineData.emplace_back(subsetTargetDataCache.Baselines.at(oneBaseline));
+        }
+
+        subsetData.Baselines.emplace(name, std::move(subsetBaselineData));
+    }
+    for (const auto& [name, groupInfosData] : Data.GroupInfos) {
+        subsetData.GroupInfos.emplace(name, subsetTargetDataCache.GroupInfos.at(groupInfosData));
     }
 
-    return result;
+
+    return MakeIntrusive<TTargetDataProvider>(
+        objectsGroupingSubset.GetSubsetGrouping(),
+        std::move(subsetData)
+    );
 }
 
 
 void TTargetSerialization::Load(
     TObjectsGroupingPtr objectsGrouping,
     IBinSaver* binSaver,
-    TTargetDataProviders* targetDataProviders
+    TTargetDataProviderPtr* targetDataProvider
 ) {
-    TSerializationTargetDataCache cache;
-    LoadMulti(binSaver, &cache);
-
-    IBinSaver::TStoredSize targetsCount = 0;
-    LoadMulti(binSaver, &targetsCount);
-
-    targetDataProviders->clear();
-    for (auto i : xrange(targetsCount)) {
-        Y_UNUSED(i);
-
-        TTargetDataSpecification specification;
-        LoadMulti(binSaver, &specification);
-
-        switch (specification.Type) {
-#define CREATE_TARGET_TYPE(type) \
-            case ETargetType::type: \
-                targetDataProviders->emplace( \
-                    specification, \
-                    MakeIntrusive<T##type##Target>( \
-                        T##type##Target::Load(specification.Description, objectsGrouping, cache, binSaver) \
-                    ) \
-                ); \
-                break;
-
-            CREATE_TARGET_TYPE(BinClass)
-            CREATE_TARGET_TYPE(MultiClass)
-            CREATE_TARGET_TYPE(Regression)
-            CREATE_TARGET_TYPE(GroupwiseRanking)
-            CREATE_TARGET_TYPE(GroupPairwiseRanking)
-            CREATE_TARGET_TYPE(Simple)
-            CREATE_TARGET_TYPE(UserDefined)
-
-#undef CREATE_TARGET_TYPE
-
-        }
-
-    }
+    TProcessedTargetData processedTargetData;
+    processedTargetData.Load(binSaver);
+    *targetDataProvider = MakeIntrusive<TTargetDataProvider>(objectsGrouping, std::move(processedTargetData));
 }
+
 
 void TTargetSerialization::SaveNonSharedPart(
-    const TTargetDataProviders& targetDataProviders,
+    const TTargetDataProvider& targetDataProvider,
     IBinSaver* binSaver
 ) {
-    TSerializationTargetDataCache cache;
-
-    /* For serialization we have get serialized target data with ids first before cache is filled
-     * For deserialization we get cache filled first and then create target data from it
-     *  so we need to change the order of these parts while saving
-     */
-    TBuffer serializedTargetDataWithIds;
-
-    {
-        TBufferOutput out(serializedTargetDataWithIds);
-        TYaStreamOutput out2(out);
-        IBinSaver targetDataWithIdsBinSaver(out2, false);
-
-        SaveMulti(
-            &targetDataWithIdsBinSaver,
-            SafeIntegerCast<IBinSaver::TStoredSize>(targetDataProviders.size())
-        );
-        for (const auto& [specification, targetDataProvider] : targetDataProviders) {
-            targetDataProvider->SaveWithCache(&targetDataWithIdsBinSaver, &cache);
-        }
-    }
-
-    SaveMulti(binSaver, cache);
-
-    SaveRawData(
-        TConstArrayRef<ui8>((ui8*)serializedTargetDataWithIds.Data(), serializedTargetDataWithIds.Size()),
-        binSaver
-    );
+    targetDataProvider.SaveDataNonSharedPart(binSaver);
 }
-
-
-TBinClassTarget::TBinClassTarget(
-    const TString& description,
-    TObjectsGroupingPtr objectsGrouping,
-    TSharedVector<float> target,
-    TSharedWeights<float> weights,
-    TSharedVector<float> baseline,
-    bool skipCheck
-)
-    : TTargetDataProvider(
-        TTargetDataSpecification(ETargetType::BinClass, description),
-        std::move(objectsGrouping)
-      )
-{
-    if (!skipCheck) {
-        if (target) {
-            CheckDataSize(target->size(), (size_t)GetObjectCount(), "target");
-        }
-        CheckDataSize(weights->GetSize(), GetObjectCount(), "weights");
-        CheckMaybeEmptyBaseline(baseline, GetObjectCount());
-    }
-    Target = std::move(target);
-    Weights = std::move(weights);
-    Baseline = std::move(baseline);
-}
-
-
-void TBinClassTarget::GetSourceDataForSubsetCreation(TSubsetTargetDataCache* subsetTargetDataCache) const {
-    if (Target) {
-        subsetTargetDataCache->Targets.emplace(Target, TSharedVector<float>());
-    }
-    subsetTargetDataCache->Weights.emplace(Weights, TSharedWeights<float>());
-    if (Baseline) {
-        subsetTargetDataCache->Baselines.emplace(Baseline, TSharedVector<float>());
-    }
-}
-
-TTargetDataProviderPtr TBinClassTarget::GetSubset(
-    TObjectsGroupingPtr objectsGrouping,
-    const TSubsetTargetDataCache& subsetTargetDataCache
-) const {
-    return MakeIntrusive<TBinClassTarget>(
-        GetSpecification().Description,
-        std::move(objectsGrouping),
-        Target ? subsetTargetDataCache.Targets.at(Target) : Target,
-        subsetTargetDataCache.Weights.at(Weights),
-
-        // reuse empty vector
-        Baseline ? subsetTargetDataCache.Baselines.at(Baseline) : Baseline,
-        true
-    );
-}
-
-template <class TSharedDataPtr>
-inline void AddToCacheAndSaveId(
-    const TSharedDataPtr sharedData,
-    IBinSaver* binSaver,
-    TSerializationTargetSingleTypeDataCache<TSharedDataPtr>* cache
-) {
-    const ui64 id = reinterpret_cast<ui64>(sharedData.Get());
-    SaveMulti(binSaver, id);
-    if (id) {
-        cache->emplace(id, sharedData);
-    }
-}
-
-// returns default TSharedDataPtr() if id == 0
-template <class TSharedDataPtr>
-inline TSharedDataPtr LoadById(
-    const TSerializationTargetSingleTypeDataCache<TSharedDataPtr>& cache,
-    IBinSaver* binSaver
-) {
-    ui64 id = 0;
-    LoadMulti(binSaver, &id);
-    if (id) {
-        return cache.at(id);
-    } else {
-        return TSharedDataPtr();
-    }
-}
-
-
-void TBinClassTarget::SaveWithCache(
-    IBinSaver* binSaver,
-    TSerializationTargetDataCache* cache
-) const {
-    SaveCommon(binSaver);
-    AddToCacheAndSaveId(Target, binSaver, &(cache->Targets));
-    AddToCacheAndSaveId(Weights, binSaver, &(cache->Weights));
-    AddToCacheAndSaveId(Baseline, binSaver, &(cache->Baselines));
-}
-
-TBinClassTarget TBinClassTarget::Load(
-    const TString& description,
-    TObjectsGroupingPtr objectsGrouping,
-    const TSerializationTargetDataCache& cache,
-    IBinSaver* binSaver
-) {
-    auto target = LoadById(cache.Targets, binSaver);
-    auto weights = LoadById(cache.Weights, binSaver);
-    auto baseline = LoadById(cache.Baselines, binSaver);
-
-    return TBinClassTarget(description, objectsGrouping, target, weights, baseline, true);
-}
-
-
-TMultiClassTarget::TMultiClassTarget(
-    const TString& description,
-    TObjectsGroupingPtr objectsGrouping,
-    ui32 classCount,
-    TSharedVector<float> target,
-    TSharedWeights<float> weights,
-    TVector<TSharedVector<float>>&& baseline,
-    bool skipCheck
-)
-    : TTargetDataProvider(
-        TTargetDataSpecification(ETargetType::MultiClass, description),
-        std::move(objectsGrouping)
-      )
-    , ClassCount(classCount)
-{
-    if (!skipCheck) {
-        CB_ENSURE(
-            classCount >= 2,
-            "MultiClass target data must have at least two classes (got " << classCount <<")"
-        );
-        if (target) {
-            CheckDataSize(target->size(), (size_t)GetObjectCount(), "target");
-        }
-        CheckDataSize(weights->GetSize(), GetObjectCount(), "weights");
-        CheckBaseline(baseline, GetObjectCount(), classCount);
-    }
-    Target = std::move(target);
-    Weights = std::move(weights);
-    Baseline = std::move(baseline);
-
-    BaselineView.resize(Baseline.size());
-    for (auto i : xrange(Baseline.size())) {
-        BaselineView[i] = *(Baseline[i]);
-    }
-}
-
-
-
-void TMultiClassTarget::GetSourceDataForSubsetCreation(TSubsetTargetDataCache* subsetTargetDataCache) const {
-    if (Target) {
-        subsetTargetDataCache->Targets.emplace(Target, TSharedVector<float>());
-    }
-    subsetTargetDataCache->Weights.emplace(Weights, TSharedWeights<float>());
-    for (const auto& oneBaseline : Baseline) {
-        subsetTargetDataCache->Baselines.emplace(oneBaseline, TSharedVector<float>());
-    }
-}
-
-
-TTargetDataProviderPtr TMultiClassTarget::GetSubset(
-    TObjectsGroupingPtr objectsGrouping,
-    const TSubsetTargetDataCache& subsetTargetDataCache
-) const {
-    TVector<TSharedVector<float>> subsetBaseline;
-    for (const auto& oneBaseline : Baseline) {
-        subsetBaseline.emplace_back(subsetTargetDataCache.Baselines.at(oneBaseline));
-    }
-
-    return MakeIntrusive<TMultiClassTarget>(
-        GetSpecification().Description,
-        std::move(objectsGrouping),
-        ClassCount,
-        Target ? subsetTargetDataCache.Targets.at(Target) : Target,
-        subsetTargetDataCache.Weights.at(Weights),
-        std::move(subsetBaseline),
-        true
-    );
-}
-
-
-void TMultiClassTarget::SaveWithCache(
-    IBinSaver* binSaver,
-    TSerializationTargetDataCache* cache
-) const {
-    SaveCommon(binSaver);
-    SaveMulti(binSaver, ClassCount);
-    AddToCacheAndSaveId(Target, binSaver, &(cache->Targets));
-    AddToCacheAndSaveId(Weights, binSaver, &(cache->Weights));
-
-    SaveMulti(binSaver, SafeIntegerCast<IBinSaver::TStoredSize>(Baseline.size()));
-    for (const auto& oneBaseline : Baseline) {
-        AddToCacheAndSaveId(oneBaseline, binSaver, &(cache->Baselines));
-    }
-}
-
-TMultiClassTarget TMultiClassTarget::Load(
-    const TString& description,
-    TObjectsGroupingPtr objectsGrouping,
-    const TSerializationTargetDataCache& cache,
-    IBinSaver* binSaver
-) {
-    ui32 classCount = 0;
-    LoadMulti(binSaver, &classCount);
-    auto target = LoadById(cache.Targets, binSaver);
-    auto weights = LoadById(cache.Weights, binSaver);
-
-    IBinSaver::TStoredSize baselineCount = 0;
-    LoadMulti(binSaver, &baselineCount);
-    TVector<TSharedVector<float>> baseline;
-    for (auto i : xrange(baselineCount)) {
-        Y_UNUSED(i);
-        baseline.emplace_back(LoadById(cache.Baselines, binSaver));
-    }
-
-    return TMultiClassTarget(
-        description,
-        objectsGrouping,
-        classCount,
-        target,
-        weights,
-        std::move(baseline),
-        true
-    );
-}
-
-
-TRegressionTarget::TRegressionTarget(
-    const TString& description,
-    TObjectsGroupingPtr objectsGrouping,
-    TSharedVector<float> target,
-    TSharedWeights<float> weights,
-    TSharedVector<float> baseline,
-    bool skipCheck
-)
-    : TTargetDataProvider(
-        TTargetDataSpecification(ETargetType::Regression, description),
-        std::move(objectsGrouping)
-      )
-{
-    if (!skipCheck) {
-        if (target) {
-            CheckDataSize(target->size(), (size_t)GetObjectCount(), "target");
-        }
-        CheckDataSize(weights->GetSize(), GetObjectCount(), "weights");
-        CheckMaybeEmptyBaseline(baseline, GetObjectCount());
-    }
-    Target = std::move(target);
-    Weights = std::move(weights);
-    Baseline = std::move(baseline);
-}
-
-void TRegressionTarget::GetSourceDataForSubsetCreation(TSubsetTargetDataCache* subsetTargetDataCache) const {
-    if (Target) {
-        subsetTargetDataCache->Targets.emplace(Target, TSharedVector<float>());
-    }
-    subsetTargetDataCache->Weights.emplace(Weights, TSharedWeights<float>());
-    if (Baseline) {
-        subsetTargetDataCache->Baselines.emplace(Baseline, TSharedVector<float>());
-    }
-}
-
-TTargetDataProviderPtr TRegressionTarget::GetSubset(
-    TObjectsGroupingPtr objectsGrouping,
-    const TSubsetTargetDataCache& subsetTargetDataCache
-) const {
-    return MakeIntrusive<TRegressionTarget>(
-        GetSpecification().Description,
-        std::move(objectsGrouping),
-        Target ? subsetTargetDataCache.Targets.at(Target) : Target,
-        subsetTargetDataCache.Weights.at(Weights),
-
-        // reuse empty vector
-        Baseline ? subsetTargetDataCache.Baselines.at(Baseline) : Baseline,
-        true
-    );
-}
-
-
-void TRegressionTarget::SaveWithCache(
-    IBinSaver* binSaver,
-    TSerializationTargetDataCache* cache
-) const {
-    SaveCommon(binSaver);
-    AddToCacheAndSaveId(Target, binSaver, &(cache->Targets));
-    AddToCacheAndSaveId(Weights, binSaver, &(cache->Weights));
-    AddToCacheAndSaveId(Baseline, binSaver, &(cache->Baselines));
-}
-
-TRegressionTarget TRegressionTarget::Load(
-    const TString& description,
-    TObjectsGroupingPtr objectsGrouping,
-    const TSerializationTargetDataCache& cache,
-    IBinSaver* binSaver
-) {
-    auto target = LoadById(cache.Targets, binSaver);
-    auto weights = LoadById(cache.Weights, binSaver);
-    auto baseline = LoadById(cache.Baselines, binSaver);
-
-    return TRegressionTarget(description, objectsGrouping, target, weights, baseline, true);
-}
-
-
-TGroupwiseRankingTarget::TGroupwiseRankingTarget(
-    const TString& description,
-    TObjectsGroupingPtr objectsGrouping,
-    TSharedVector<float> target,
-    TSharedWeights<float> weights,
-    TSharedVector<float> baseline,
-    TSharedVector<TQueryInfo> groupInfo,
-    bool skipCheck
-)
-    : TTargetDataProvider(
-        TTargetDataSpecification(ETargetType::GroupwiseRanking, description),
-        std::move(objectsGrouping)
-      )
-{
-    if (!skipCheck) {
-        if (target) {
-            CheckDataSize(target->size(), (size_t)GetObjectCount(), "target");
-        }
-        CheckDataSize(weights->GetSize(), GetObjectCount(), "weights");
-        CheckMaybeEmptyBaseline(baseline, GetObjectCount());
-        CheckGroupInfo(*groupInfo, *ObjectsGrouping, false);
-    }
-    Target = std::move(target);
-    Weights = std::move(weights);
-    Baseline = std::move(baseline);
-    GroupInfo = std::move(groupInfo);
-}
-
-void TGroupwiseRankingTarget::GetSourceDataForSubsetCreation(TSubsetTargetDataCache* subsetTargetDataCache) const {
-    if (Target) {
-        subsetTargetDataCache->Targets.emplace(Target, TSharedVector<float>());
-    }
-    subsetTargetDataCache->Weights.emplace(Weights, TSharedWeights<float>());
-    if (Baseline) {
-        subsetTargetDataCache->Baselines.emplace(Baseline, TSharedVector<float>());
-    }
-    subsetTargetDataCache->GroupInfos.emplace(GroupInfo, TSharedVector<TQueryInfo>());
-}
-
-TTargetDataProviderPtr TGroupwiseRankingTarget::GetSubset(
-    TObjectsGroupingPtr objectsGrouping,
-    const TSubsetTargetDataCache& subsetTargetDataCache
-) const {
-    return MakeIntrusive<TGroupwiseRankingTarget>(
-        GetSpecification().Description,
-        std::move(objectsGrouping),
-        Target ? subsetTargetDataCache.Targets.at(Target) : Target,
-        subsetTargetDataCache.Weights.at(Weights),
-
-        // reuse empty vector
-        Baseline ? subsetTargetDataCache.Baselines.at(Baseline) : Baseline,
-        subsetTargetDataCache.GroupInfos.at(GroupInfo),
-        true
-    );
-}
-
-void TGroupwiseRankingTarget::SaveWithCache(
-    IBinSaver* binSaver,
-    TSerializationTargetDataCache* cache
-) const {
-    SaveCommon(binSaver);
-    AddToCacheAndSaveId(Target, binSaver, &(cache->Targets));
-    AddToCacheAndSaveId(Weights, binSaver, &(cache->Weights));
-    AddToCacheAndSaveId(Baseline, binSaver, &(cache->Baselines));
-    AddToCacheAndSaveId(GroupInfo, binSaver, &(cache->GroupInfos));
-}
-
-TGroupwiseRankingTarget TGroupwiseRankingTarget::Load(
-    const TString& description,
-    TObjectsGroupingPtr objectsGrouping,
-    const TSerializationTargetDataCache& cache,
-    IBinSaver* binSaver
-) {
-    auto target = LoadById(cache.Targets, binSaver);
-    auto weights = LoadById(cache.Weights, binSaver);
-    auto baseline = LoadById(cache.Baselines, binSaver);
-    auto groupInfo = LoadById(cache.GroupInfos, binSaver);
-
-    return TGroupwiseRankingTarget(description, objectsGrouping, target, weights, baseline, groupInfo, true);
-}
-
-
-TGroupPairwiseRankingTarget::TGroupPairwiseRankingTarget(
-    const TString& description,
-    TObjectsGroupingPtr objectsGrouping,
-    TSharedVector<float> baseline,
-    TSharedVector<TQueryInfo> groupInfo,
-    bool skipCheck
-)
-    : TTargetDataProvider(
-        TTargetDataSpecification(ETargetType::GroupPairwiseRanking, description),
-        std::move(objectsGrouping)
-      )
-{
-    if (!skipCheck) {
-        CheckMaybeEmptyBaseline(baseline, GetObjectCount());
-        CheckGroupInfo(*groupInfo, *ObjectsGrouping, true);
-    }
-    Baseline = std::move(baseline);
-    GroupInfo = std::move(groupInfo);
-}
-
-
-void TGroupPairwiseRankingTarget::GetSourceDataForSubsetCreation(TSubsetTargetDataCache* subsetTargetDataCache) const {
-    if (Baseline) {
-        subsetTargetDataCache->Baselines.emplace(Baseline, TSharedVector<float>());
-    }
-    subsetTargetDataCache->GroupInfos.emplace(GroupInfo, TSharedVector<TQueryInfo>());
-}
-
-TTargetDataProviderPtr TGroupPairwiseRankingTarget::GetSubset(
-    TObjectsGroupingPtr objectsGrouping,
-    const TSubsetTargetDataCache& subsetTargetDataCache
-) const {
-    return MakeIntrusive<TGroupPairwiseRankingTarget>(
-        GetSpecification().Description,
-        std::move(objectsGrouping),
-
-        // reuse empty vector
-        Baseline ? subsetTargetDataCache.Baselines.at(Baseline) : Baseline,
-        subsetTargetDataCache.GroupInfos.at(GroupInfo),
-        true
-    );
-}
-
-
-void TGroupPairwiseRankingTarget::SaveWithCache(
-    IBinSaver* binSaver,
-    TSerializationTargetDataCache* cache
-) const {
-    SaveCommon(binSaver);
-    AddToCacheAndSaveId(Baseline, binSaver, &(cache->Baselines));
-    AddToCacheAndSaveId(GroupInfo, binSaver, &(cache->GroupInfos));
-}
-
-TGroupPairwiseRankingTarget TGroupPairwiseRankingTarget::Load(
-    const TString& description,
-    TObjectsGroupingPtr objectsGrouping,
-    const TSerializationTargetDataCache& cache,
-    IBinSaver* binSaver
-) {
-    auto baseline = LoadById(cache.Baselines, binSaver);
-    auto groupInfo = LoadById(cache.GroupInfos, binSaver);
-
-    return TGroupPairwiseRankingTarget(
-        description,
-        objectsGrouping,
-        baseline,
-        groupInfo,
-        true
-    );
-}
-
-
-TSimpleTarget::TSimpleTarget(
-    const TString& description,
-    TObjectsGroupingPtr objectsGrouping,
-    TSharedVector<float> target,
-    bool skipCheck
-)
-    : TTargetDataProvider(
-        TTargetDataSpecification(ETargetType::Simple, description),
-        std::move(objectsGrouping)
-      )
-{
-    if (!skipCheck) {
-        if (target) {
-            CheckDataSize(target->size(), (size_t)GetObjectCount(), "target");
-        }
-    }
-    Target = std::move(target);
-}
-
-void TSimpleTarget::GetSourceDataForSubsetCreation(TSubsetTargetDataCache* subsetTargetDataCache) const {
-    if (Target) {
-        subsetTargetDataCache->Targets.emplace(Target, TSharedVector<float>());
-    }
-}
-
-TTargetDataProviderPtr TSimpleTarget::GetSubset(
-    TObjectsGroupingPtr objectsGrouping,
-    const TSubsetTargetDataCache& subsetTargetDataCache
-) const {
-    return MakeIntrusive<TSimpleTarget>(
-        GetSpecification().Description,
-        std::move(objectsGrouping),
-        Target ? subsetTargetDataCache.Targets.at(Target) : Target,
-        true
-    );
-}
-
-
-void TSimpleTarget::SaveWithCache(
-    IBinSaver* binSaver,
-    TSerializationTargetDataCache* cache
-) const {
-    SaveCommon(binSaver);
-    AddToCacheAndSaveId(Target, binSaver, &(cache->Targets));
-}
-
-TSimpleTarget TSimpleTarget::Load(
-    const TString& description,
-    TObjectsGroupingPtr objectsGrouping,
-    const TSerializationTargetDataCache& cache,
-    IBinSaver* binSaver
-) {
-    auto target = LoadById(cache.Targets, binSaver);
-    return TSimpleTarget(description, objectsGrouping, target, true);
-}
-
-
-TUserDefinedTarget::TUserDefinedTarget(
-    const TString& description,
-    TObjectsGroupingPtr objectsGrouping,
-    TSharedVector<float> target,
-    TSharedWeights<float> weights,
-    bool skipCheck
-)
-    : TTargetDataProvider(
-        TTargetDataSpecification(ETargetType::UserDefined, description),
-        std::move(objectsGrouping)
-      )
-{
-    if (!skipCheck) {
-        if (target) {
-            CheckDataSize(target->size(), (size_t)GetObjectCount(), "target");
-        }
-        CheckDataSize(weights->GetSize(), GetObjectCount(), "weights");
-    }
-    Target = std::move(target);
-    Weights = std::move(weights);
-}
-
-void TUserDefinedTarget::GetSourceDataForSubsetCreation(
-    TSubsetTargetDataCache* subsetTargetDataCache
-) const {
-    if (Target) {
-        subsetTargetDataCache->Targets.emplace(Target, TSharedVector<float>());
-    }
-    subsetTargetDataCache->Weights.emplace(Weights, TSharedWeights<float>());
-}
-
-TTargetDataProviderPtr TUserDefinedTarget::GetSubset(
-    TObjectsGroupingPtr objectsGrouping,
-    const TSubsetTargetDataCache& subsetTargetDataCache
-) const {
-    return MakeIntrusive<TUserDefinedTarget>(
-        GetSpecification().Description,
-        std::move(objectsGrouping),
-        Target ? subsetTargetDataCache.Targets.at(Target) : Target,
-        subsetTargetDataCache.Weights.at(Weights),
-        true
-    );
-}
-
-void TUserDefinedTarget::SaveWithCache(
-    IBinSaver* binSaver,
-    TSerializationTargetDataCache* cache
-) const {
-    SaveCommon(binSaver);
-    AddToCacheAndSaveId(Target, binSaver, &(cache->Targets));
-    AddToCacheAndSaveId(Weights, binSaver, &(cache->Weights));
-}
-
-TUserDefinedTarget TUserDefinedTarget::Load(
-    const TString& description,
-    TObjectsGroupingPtr objectsGrouping,
-    const TSerializationTargetDataCache& cache,
-    IBinSaver* binSaver
-) {
-    auto target = LoadById(cache.Targets, binSaver);
-    auto weights = LoadById(cache.Weights, binSaver);
-
-    return TUserDefinedTarget(description, objectsGrouping, target, weights, true);
-}
-
-
-TMaybeData<TConstArrayRef<float>> NCB::GetMaybeTarget(const TTargetDataProviders& targetDataProviders) {
-    for (const auto& specAndDataProvider : targetDataProviders) {
-        switch (specAndDataProvider.first.Type) {
-
-#define GET_FIELD_FROM_TYPE(targetType) \
-            case ETargetType::targetType: \
-                return dynamic_cast<T##targetType##Target&>(*specAndDataProvider.second).GetTarget();
-
-            GET_FIELD_FROM_TYPE(BinClass);
-            GET_FIELD_FROM_TYPE(MultiClass);
-            GET_FIELD_FROM_TYPE(Regression);
-            GET_FIELD_FROM_TYPE(GroupwiseRanking);
-            GET_FIELD_FROM_TYPE(Simple);
-            GET_FIELD_FROM_TYPE(UserDefined);
-
-#undef GET_FIELD_FROM_TYPE
-
-            default:
-                ;
-        }
-    }
-
-    return Nothing();
-}
-
-TConstArrayRef<float> NCB::GetTarget(const TTargetDataProviders& targetDataProviders) {
-    auto maybeTarget = GetMaybeTarget(targetDataProviders);
-    CB_ENSURE_INTERNAL(maybeTarget, "no Target data in targetDataProviders");
-    return *maybeTarget;
-}
-
-TConstArrayRef<float> NCB::GetWeights(const TTargetDataProviders& targetDataProviders) {
-    for (const auto& specAndDataProvider : targetDataProviders) {
-        switch (specAndDataProvider.first.Type) {
-
-#define GET_FIELD_FROM_TYPE(targetType) \
-            case ETargetType::targetType: { \
-                auto& weights = \
-                    dynamic_cast<T##targetType##Target&>(*specAndDataProvider.second).GetWeights(); \
-                return weights.IsTrivial() ? TConstArrayRef<float>() : weights.GetNonTrivialData(); \
-            }
-
-            GET_FIELD_FROM_TYPE(BinClass);
-            GET_FIELD_FROM_TYPE(MultiClass);
-            GET_FIELD_FROM_TYPE(Regression);
-            GET_FIELD_FROM_TYPE(GroupwiseRanking);
-            GET_FIELD_FROM_TYPE(UserDefined);
-
-#undef GET_FIELD_FROM_TYPE
-
-            default:
-                ;
-        }
-    }
-    return {};
-}
-
-TVector<TConstArrayRef<float>> NCB::GetBaseline(const TTargetDataProviders& targetDataProviders) {
-    // only one of nonMultiClassBaseline or multiClassBaseline can be non-empty
-
-    TVector<TConstArrayRef<float>> nonMultiClassBaseline;
-    TVector<TConstArrayRef<float>> multiClassBaseline;
-
-    for (const auto& specAndDataProvider : targetDataProviders) {
-        switch (specAndDataProvider.first.Type) {
-
-#define GET_ONE_BASELINE_FROM_TYPE(targetType) \
-            case ETargetType::targetType: { \
-                    if (nonMultiClassBaseline.empty()) {\
-                        auto baseline = \
-                            dynamic_cast<T##targetType##Target&>(*specAndDataProvider.second).GetBaseline(); \
-                        if (baseline) { \
-                            nonMultiClassBaseline.push_back(*baseline); \
-                        } \
-                    } \
-                } \
-                break;
-
-            GET_ONE_BASELINE_FROM_TYPE(BinClass);
-
-            case ETargetType::MultiClass: {
-                    auto baselineView =
-                        dynamic_cast<TMultiClassTarget&>(*specAndDataProvider.second).GetBaseline();
-                    if (baselineView) {
-                        Assign(*baselineView, &multiClassBaseline);
-                    }
-                }
-                break;
-
-            GET_ONE_BASELINE_FROM_TYPE(Regression);
-            GET_ONE_BASELINE_FROM_TYPE(GroupwiseRanking);
-            GET_ONE_BASELINE_FROM_TYPE(GroupPairwiseRanking);
-
-#undef GET_ONE_BASELINE_FROM_TYPE
-
-            default:
-                ;
-        }
-    }
-    CB_ENSURE_INTERNAL(
-        nonMultiClassBaseline.empty() || multiClassBaseline.empty(),
-        "Old GetBaseline is compatible with at most one non-empty baseline type "
-        " - either non-multiclass or multiclass"
-    );
-    return !multiClassBaseline.empty() ? multiClassBaseline : nonMultiClassBaseline;
-}
-
-TConstArrayRef<TQueryInfo> NCB::GetGroupInfo(const TTargetDataProviders& targetDataProviders) {
-    // prefer resultWithGroups if available
-    TConstArrayRef<TQueryInfo> result;
-    TConstArrayRef<TQueryInfo> resultWithGroups;
-
-    for (const auto& specAndDataProvider : targetDataProviders) {
-        switch (specAndDataProvider.first.Type) {
-            case ETargetType::GroupPairwiseRanking:
-                resultWithGroups
-                    = dynamic_cast<TGroupPairwiseRankingTarget&>(*specAndDataProvider.second).GetGroupInfo();
-                break;
-            case ETargetType::GroupwiseRanking:
-                result = dynamic_cast<TGroupwiseRankingTarget&>(*specAndDataProvider.second).GetGroupInfo();
-                break;
-            default:
-                ;
-        }
-    }
-    return !resultWithGroups.empty() ? resultWithGroups : result;
-}
-
-
 
 

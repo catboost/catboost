@@ -7,6 +7,7 @@ IF(OS_LINUX)
 PEERDIR(
     library/unittest
     catboost/cuda/ctrs
+    catboost/cuda/data
 )
 
 SRCS(
