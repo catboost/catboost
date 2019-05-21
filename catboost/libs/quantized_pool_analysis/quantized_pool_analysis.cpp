@@ -19,8 +19,10 @@ namespace NCB {
             dataProvider.ObjectsGrouping,
             std::move(dataProvider.RawTargetData));
         size_t objectCount = rawDataProvider.GetObjectCount();
+        
         TIntrusivePtr<TRawDataProvider> rawDataProviderPtr(&rawDataProvider);
-        TRawBuilderData data = TRawBuilderDataHelper::Extract(std::move(*(rawDataProviderPtr.Get())));
+        TRawBuilderData data = TRawBuilderDataHelper::Extract(std::move(*(rawDataProviderPtr.Release())));
+
         THolder<THolderType> initialHolder;
         if constexpr (FeatureType == EFeatureType::Categorical) {
             initialHolder = std::move(data.ObjectsData.CatFeatures[featureNum]);
@@ -53,7 +55,7 @@ namespace NCB {
 
             auto pred = ApplyModel(model, *(rawDataProviderPtr->ObjectsData), false, predictionType, 0, 0, threadCount);
             (*predictions)[numVal] = std::accumulate(pred.begin(), pred.end(), 0.) / static_cast<double>(pred.size());
-            data = TRawBuilderDataHelper::Extract(std::move(*(rawDataProviderPtr.Get())));
+            data = TRawBuilderDataHelper::Extract(std::move(*(rawDataProviderPtr.Release())));
         }
 
         if constexpr (FeatureType == EFeatureType::Categorical) {
@@ -68,7 +70,7 @@ namespace NCB {
             std::move(data),
             false,
             executor);
-        rawDataProvider = *(rawDataProviderPtr.Get());
+        rawDataProvider = *(rawDataProviderPtr.Release());
 
         dataProvider = TDataProvider(
             std::move(rawDataProvider.MetaInfo),
@@ -94,10 +96,11 @@ namespace NCB {
         size_t bordersSize = borders.size();
         TVector<double> prediction = ApplyModel(model, dataset, false, predictionType, 0, 0, threadCount);
 
-        TMaybeData<TConstArrayRef<float>> targetData = CreateModelCompatibleProcessedDataProvider(
-            dataset, {}, model, &rand, &executor).TargetData->GetTarget();
-        CB_ENSURE_INTERNAL(targetData, "No target found in pool");
-        TVector<float> target(targetData.GetRef().begin(), targetData.GetRef().end());
+        TProcessedDataProvider processedDataProvider = CreateModelCompatibleProcessedDataProvider(
+            dataset, {}, model, &rand, &executor);
+        TVector<float> target(
+            processedDataProvider.TargetData->GetTarget().GetRef().begin(),
+            processedDataProvider.TargetData->GetTarget().GetRef().end());
 
         auto objectsPtr = dynamic_cast<TRawObjectsDataProvider*>(dataset.ObjectsData.Get());
         CB_ENSURE_INTERNAL(objectsPtr, "Zero pointer to raw objects");
@@ -138,13 +141,14 @@ namespace NCB {
         CB_ENSURE_INTERNAL(feature, "Float feature #" << featureNum << " not found");
         const TQuantizedFloatValuesHolder* values = dynamic_cast<const TQuantizedFloatValuesHolder*>(feature.GetRef());
         CB_ENSURE_INTERNAL(values, "Cannot access values of float feature #" << featureNum);
-        TArrayRef extractedValues = *(values->ExtractValues(&executor));
-        TVector<int> binNums(extractedValues.begin(), extractedValues.end());
+        TMaybeOwningArrayHolder<ui8> extractedValues = values->ExtractValues(&executor);
+        TVector<int> binNums((*extractedValues).begin(), (*extractedValues).end());
 
         size_t numBins = quantizedFeaturesInfo->GetBorders(TFloatFeatureIdx(featureNum)).size() + 1;
         TVector<float> meanTarget(numBins, 0.);
         TVector<float> meanPrediction(numBins, 0.);
         TVector<size_t> countObjectsPerBin(numBins, 0);
+
         for (size_t numObj = 0; numObj < binNums.size(); ++numObj) {
             int binNum = binNums[numObj];
             meanTarget[binNum] += target[numObj];
@@ -194,23 +198,23 @@ namespace NCB {
 
         TVector<double> prediction = ApplyModel(model, dataset, false, predictionType, 0, 0, threadCount);
 
-        TMaybeData<TConstArrayRef<float>> targetData = CreateModelCompatibleProcessedDataProvider(
-            dataset, {}, model, &rand, &executor).TargetData->GetTarget();
-        CB_ENSURE_INTERNAL(targetData, "No target found in pool");
-        TVector<float> target(targetData.GetRef().begin(), targetData.GetRef().end());
+        TProcessedDataProvider processedDataProvider = CreateModelCompatibleProcessedDataProvider(
+            dataset, {}, model, &rand, &executor);
+        TVector<float> target(
+            processedDataProvider.TargetData->GetTarget().GetRef().begin(),
+            processedDataProvider.TargetData->GetTarget().GetRef().end());
 
         auto objectsPtr = dynamic_cast<TRawObjectsDataProvider*>(dataset.ObjectsData.Get());
         CB_ENSURE_INTERNAL(objectsPtr, "Zero pointer to raw objects");
         TRawObjectsDataProviderPtr rawObjectsDataProviderPtr(objectsPtr);
 
         TVector<int> oneHotUniqueValues = model.ObliviousTrees.OneHotFeatures[featureNum].Values;
-        TVector<TString> stringValues = model.ObliviousTrees.OneHotFeatures[featureNum].StringValues;
-        stringValues.push_back("test_value");
-        stringValues.push_back(model.ObliviousTrees.CatFeatures[featureNum].FeatureId);
 
         TMaybeData<const THashedCatValuesHolder*> catFeatureMaybe = \
             rawObjectsDataProviderPtr->GetCatFeature(featureNum);
+        CB_ENSURE_INTERNAL(catFeatureMaybe, "Categorical feature #" << featureNum << " not found");
         const THashedCatValuesHolder* catFeatureHolder = catFeatureMaybe.GetRef();
+        CB_ENSURE_INTERNAL(catFeatureHolder, "Cannot access values of categorical feature #" << featureNum);
         TArrayRef<const ui32> featureValuesRef = *(*(catFeatureHolder->GetArrayData().GetSrc()));
         TVector<ui32> featureValues(featureValuesRef.begin(), featureValuesRef.end());
 
