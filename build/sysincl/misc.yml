@@ -33,6 +33,7 @@
 - source_filter: "^contrib/libs/lftp"
   includes:
     - alloca.h:      contrib/libs/lftp/alloca.h
+    - error.h:       contrib/libs/lftp/lib/error.h
     - fnmatch.h:     contrib/libs/lftp/lib/fnmatch.h
     - regex.h:       contrib/libs/lftp/lib/regex.h
     - sys/socket.h:  contrib/libs/lftp/lib/sys/socket.h
@@ -50,8 +51,10 @@
 # Some more sysincl/addincl clashes.
 - source_filter: "^contrib/tools/bison/(bison|gnulib|m4)/src"
   includes:
+    - error.h:       contrib/tools/bison/gnulib/src/error.h
     - fcntl.h:       contrib/tools/bison/gnulib/platform/posix/fcntl.h
     - getopt.h:      contrib/tools/bison/gnulib/platform/posix/getopt.h
+    - obstack.h:     contrib/tools/bison/gnulib/src/obstack.h
     - regex.h:       contrib/tools/bison/gnulib/src/regex.h
 - source_filter: "^contrib/tools/make"
   includes:
@@ -67,6 +70,30 @@
   includes:
     - unwind.h:      contrib/libs/libunwind/include/unwind.h
 
+- source_filter: "^contrib/libs/clickhouse/contrib/cppkafka"
+  includes:
+    - error.h:       contrib/libs/clickhouse/contrib/cppkafka/include/cppkafka/error.h
+
+- source_filter: "^contrib/libs/libevent"
+  includes:
+    - sys/queue.h:   contrib/libs/libevent/compat/sys/queue.h
+
+- source_filter: "^contrib/libs/(libmnl|libnetfilter_log)"
+  includes:
+    - linux/netlink.h: contrib/libs/libmnl/include/linux/netlink.h
+
+- source_filter: "^contrib/libs/musl-1.1.20"
+  includes:
+    - bits/fenv.h:   contrib/libs/musl-1.1.20/arch/x86_64/bits/fenv.h
+
+- source_filter: "^contrib/libs/unixodbc"
+  includes:
+    - argz.h:        contrib/libs/unixodbc/libltdl/argz.h
+
+- source_filter: "^contrib/libs/zbar"
+  includes:
+    - error.h:       contrib/libs/zbar/zbar/error.h
+
 # deprecated contrib with ADDINCL to libintl
 - source_filter: "^contrib/deprecated/glib/glib"
   includes:
@@ -80,8 +107,3 @@
 - source_filter: "^contrib/deprecated/boost/boost/asio/detail"
   includes:
   - __config
-
-# temporary here, will be moved to linux header list
-- source_filter: "^contrib/libs/musl"
-  includes:
-    - linux/soundcard.h
