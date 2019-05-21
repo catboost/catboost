@@ -493,10 +493,12 @@ cdef extern from "catboost/libs/model/model.h":
 
     cdef cppclass TObliviousTrees:
         int ApproxDimension
+        TVector[double] LeafValues
         TVector[TVector[double]] LeafWeights
         TVector[TCatFeature] CatFeatures
         TVector[TFloatFeature] FloatFeatures
         void DropUnusedFeatures() except +ProcessException
+        TVector[ui32] GetTreeLeafCounts() except +ProcessException
 
     cdef cppclass TFullModel:
         TObliviousTrees ObliviousTrees
@@ -2799,6 +2801,32 @@ cdef class _CatBoost:
             leaf_values_list.append(value)
 
         return leaf_values_list
+
+    cpdef _get_leaf_values(self):
+        return _vector_of_double_to_np_array(self.__model.ObliviousTrees.LeafValues)
+
+    cpdef _get_leaf_weights(self):
+        result = np.empty(self.__model.ObliviousTrees.LeafValues.size(), dtype=_npfloat64)
+        cdef size_t curr_index = 0
+        for i in xrange(self.__model.ObliviousTrees.LeafWeights.size()):
+            for val in self.__model.ObliviousTrees.LeafWeights[i]:
+                result[curr_index] = val
+                curr_index += 1
+        assert curr_index == 0 or curr_index == self.__model.ObliviousTrees.LeafValues.size(), (
+            "wrong number of leaf weights")
+        return result
+
+    cpdef _get_tree_leaf_counts(self):
+        return _vector_of_uints_to_np_array(self.__model.ObliviousTrees.GetTreeLeafCounts())
+
+    cpdef _set_leaf_values(self, new_leaf_values):
+        assert isinstance(new_leaf_values, np.ndarray), "expected numpy.ndarray."
+        assert new_leaf_values.dtype == np.float64, "leaf values should have type np.float64 (double)."
+        assert len(new_leaf_values.shape) == 1, "leaf values should be a 1d-vector."
+        assert new_leaf_values.shape[0] == self.__model.ObliviousTrees.LeafValues.size(), (
+            "count of leaf values should be equal to the leaf count.")            
+        for i in xrange(self.__model.ObliviousTrees.LeafValues.size()):    
+            self.__model.ObliviousTrees.LeafValues[i] = new_leaf_values[i]
 
 
 cdef class _MetadataHashProxy:
