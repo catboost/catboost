@@ -124,6 +124,11 @@ def onjava_module(unit, *args):
         for p in dm_paths:
             unit.onpeerdir(p)
 
+    if not data['EXTERNAL_JAR']:
+        data['GENERATE_VCS_JAVA_INFO_NODEP'] = extract_macro_calls(unit, 'GENERATE_VCS_JAVA_INFO_NODEP', args_delim)
+        # FORCE_VCS_INFO_UPDATE is responsible for setting special value of VCS_INFO_DISABLE_CACHE
+        data['VCS_INFO_DISABLE_CACHE'] = extract_macro_calls(unit, 'FORCE_VCS_INFO_UPDATE', args_delim)
+
     for java_srcs_args in data['JAVA_SRCS']:
         external = None
 
