@@ -327,3 +327,7 @@ bool IsPlainOnlyModeScoreFunction(EScoreFunction scoreFunction) {
         scoreFunction != EScoreFunction::NewtonCorrelation
     );
 }
+
+bool ShouldBinarizeLabel(ELossFunction lossFunction) {
+    return lossFunction == ELossFunction::Logloss;
+}

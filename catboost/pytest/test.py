@@ -1516,6 +1516,7 @@ def test_logloss_with_not_binarized_target(boosting_type, dev_score_calc_obj_blo
         '-w', '0.03',
         '-T', '4',
         '-m', output_model_path,
+        '--target-border', '0.5',
         '--eval-file', output_eval_path
     )
     yatest.common.execute(cmd)
@@ -2060,6 +2061,10 @@ def test_fstr_feature_importance_default_value(boosting_type, ranking_parameters
         '--model-file', model_path,
         '--loss-function', ranking_parameters['loss-function']
     )
+
+    if ranking_parameters['loss-function'] == 'Logloss':
+        cmd += ('--target-border', '0.5')
+
     yatest.common.execute(
         cmd + ('--fstr-file', fstr_path_0,
                '--fstr-type', 'FeatureImportance')
@@ -2573,6 +2578,10 @@ def test_custom_loss_for_classification(loss_function, boosting_type):
         '--learn-err-log', learn_error_path,
         '--test-err-log', test_error_path,
     )
+
+    if loss_function == 'Logloss':
+        cmd += ('--target-border', '0.5')
+
     yatest.common.execute(cmd)
     return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
 
@@ -5230,6 +5239,10 @@ def test_save_multiclass_labels_from_data(loss_function):
         '-m', model_path,
         '--use-best-model', 'false',
     )
+
+    if loss_function == 'Logloss':
+        cmd += ('--target-border', '0.5')
+
     yatest.common.execute(cmd)
 
     py_catboost = catboost.CatBoost()
@@ -6362,6 +6375,7 @@ def test_quantized_with_one_thread(boosting_type):
         '-w', '0.03',
         '-T', '1',
         '-m', output_model_path,
+        '--target-border', '0.5',
     )
     print(cmd)
     yatest.common.execute(cmd)
@@ -6382,6 +6396,7 @@ def test_eval_result_on_different_pool_type():
             '--cd', data_file('querywise', 'train.cd'),
             '-i', '10',
             '-T', '4',
+            '--target-border', '0.5',
             '--eval-file', eval_path,
         )
 
@@ -6416,6 +6431,7 @@ def test_apply_on_different_pool_type():
         '--column-description', cd_file,
         '-i', '10',
         '-T', '4',
+        '--target-border', '0.5',
         '--model-file', output_model_path,
     )
     yatest.common.execute(cmd)
@@ -6773,3 +6789,23 @@ def test_output_options():
     )
     yatest.common.execute(cmd)
     return local_canonical_file(os.path.join(train_dir, output_options_path))
+
+
+def test_target_border():
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'Logloss',
+        '-f', data_file('querywise', 'train'),
+        '-t', data_file('querywise', 'test'),
+        '--column-description', data_file('querywise', 'train.cd'),
+        '-i', '20',
+        '-T', '4',
+        '--eval-file', output_eval_path,
+        '--use-best-model', 'false',
+        '--target-border', '0.3'
+    )
+    yatest.common.execute(cmd)
+
+    return [local_canonical_file(output_eval_path)]

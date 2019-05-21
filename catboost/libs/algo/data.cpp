@@ -191,6 +191,7 @@ namespace NCB {
             GetMetricDescriptions(*params),
             &params->LossFunctionDescription.Get(),
             dataProcessingOptions.AllowConstLabel.Get(),
+            dataProcessingOptions.TargetBorder,
             /*metricsThatRequireTargetCanBeSkipped*/ !isLearnData,
             /*needTargetDataForCtrs*/ needTargetDataForCtrs,
             /*knownModelApproxDimension*/ Nothing(),

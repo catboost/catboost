@@ -6,6 +6,7 @@ NCatboostOptions::TDataProcessingOptions::TDataProcessingOptions(ETaskType type)
     : IgnoredFeatures("ignored_features", TVector<ui32>())
       , HasTimeFlag("has_time", false)
       , AllowConstLabel("allow_const_label", false)
+      , TargetBorder("target_border", Nothing())
       , FloatFeaturesBinarization("float_features_binarization", TBinarizationOptions(
           EBorderSelectionType::GreedyLogSum,
           type == ETaskType::GPU ? 128 : 254,
@@ -22,20 +23,30 @@ NCatboostOptions::TDataProcessingOptions::TDataProcessingOptions(ETaskType type)
 }
 
 void NCatboostOptions::TDataProcessingOptions::Load(const NJson::TJsonValue& options) {
-    CheckedLoad(options, &IgnoredFeatures, &HasTimeFlag, &AllowConstLabel, &FloatFeaturesBinarization, &PerFloatFeatureBinarization, &ClassesCount, &ClassWeights, &ClassNames, &GpuCatFeaturesStorage);
-    SetPerFeatureMissingSettingToCommonValues();
+    CheckedLoad(
+        options, &IgnoredFeatures, &HasTimeFlag, &AllowConstLabel, &TargetBorder, &FloatFeaturesBinarization,
+        &PerFloatFeatureBinarization, &ClassesCount, &ClassWeights, &ClassNames, &GpuCatFeaturesStorage
+    );
 
+    SetPerFeatureMissingSettingToCommonValues();
 }
 
 void NCatboostOptions::TDataProcessingOptions::Save(NJson::TJsonValue* options) const {
-    SaveFields(options, IgnoredFeatures, HasTimeFlag, AllowConstLabel, FloatFeaturesBinarization, ClassesCount, ClassWeights, ClassNames, GpuCatFeaturesStorage);
+    SaveFields(
+        options, IgnoredFeatures, HasTimeFlag, AllowConstLabel, TargetBorder, FloatFeaturesBinarization,
+        ClassesCount, ClassWeights, ClassNames, GpuCatFeaturesStorage
+    );
 }
 
 bool NCatboostOptions::TDataProcessingOptions::operator==(const TDataProcessingOptions& rhs) const {
-    return std::tie(IgnoredFeatures, HasTimeFlag, AllowConstLabel, FloatFeaturesBinarization, ClassesCount, ClassWeights,
-            ClassNames, GpuCatFeaturesStorage) ==
-        std::tie(rhs.IgnoredFeatures, rhs.HasTimeFlag, rhs.AllowConstLabel, rhs.FloatFeaturesBinarization, rhs.ClassesCount,
-                rhs.ClassWeights, rhs.ClassNames, rhs.GpuCatFeaturesStorage);
+    return std::tie(
+        IgnoredFeatures, HasTimeFlag, AllowConstLabel, TargetBorder, FloatFeaturesBinarization, ClassesCount,
+        ClassWeights, ClassNames, GpuCatFeaturesStorage
+    ) == std::tie(
+        rhs.IgnoredFeatures, rhs.HasTimeFlag, rhs.AllowConstLabel, rhs.TargetBorder,
+        rhs.FloatFeaturesBinarization, rhs.ClassesCount, rhs.ClassWeights, rhs.ClassNames,
+        rhs.GpuCatFeaturesStorage
+    );
 }
 
 bool NCatboostOptions::TDataProcessingOptions::operator!=(const TDataProcessingOptions& rhs) const {

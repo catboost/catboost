@@ -69,3 +69,5 @@ bool IsUserDefined(ELossFunction lossFunction);
 bool ShouldSkipFstrGrowPolicy(EGrowPolicy growPolicy);
 
 bool IsPlainOnlyModeScoreFunction(EScoreFunction scoreFunction);
+
+bool ShouldBinarizeLabel(ELossFunction lossFunction);

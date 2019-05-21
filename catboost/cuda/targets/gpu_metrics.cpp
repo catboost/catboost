@@ -174,7 +174,7 @@ namespace NCatboostCuda {
             switch (metricType) {
                 case ELossFunction::Logloss:
                 case ELossFunction::CrossEntropy: {
-                    float border = GetDefaultClassificationBorder();
+                    float border = GetDefaultTargetBorder();
                     bool useBorder = false;
                     auto tmp = TVec::Create(cursor.GetMapping().RepeatOnAllDevices(1));
                     if (metricType == ELossFunction::Logloss) {
@@ -549,7 +549,7 @@ namespace NCatboostCuda {
             }
 
             case ELossFunction::HammingLoss: {
-                double border = GetDefaultClassificationBorder();
+                double border = GetDefaultTargetBorder();
                 const auto& params = metricDescription.GetLossParams();
                 if (params.contains("border")) {
                     border = FromString<float>(params.at("border"));

@@ -643,7 +643,7 @@ def test_predict_sklearn_regress(task_type):
 
 def test_predict_sklearn_class(task_type):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    model = CatBoostClassifier(iterations=2, learning_rate=0.03, loss_function='Logloss:border=0.5', task_type=task_type, devices='0')
+    model = CatBoostClassifier(iterations=2, learning_rate=0.03, loss_function='Logloss', task_type=task_type, devices='0')
     model.fit(train_pool)
     assert(model.is_fitted())
     output_model_path = test_output_path(OUTPUT_MODEL_PATH)
@@ -2077,7 +2077,13 @@ def test_cv_with_not_binarized_target(task_type):
     pool = Pool(train_file, column_description=cd)
     cv(
         pool,
-        {"iterations": 10, "learning_rate": 0.03, "loss_function": "Logloss", "task_type": task_type},
+        {
+            "iterations": 10,
+            "learning_rate": 0.03,
+            "loss_function": "Logloss",
+            "task_type": task_type,
+            "target_border": 0.5
+        },
         dev_max_iterations_batch_size=6
     )
     return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
@@ -2425,7 +2431,7 @@ def test_metadata():
     model = CatBoostClassifier(
         iterations=2,
         learning_rate=0.03,
-        loss_function='Logloss:border=0.5',
+        loss_function='Logloss',
         metadata={"type": "AAA", "postprocess": "BBB"}
     )
     model.fit(train_pool)
@@ -3807,9 +3813,9 @@ def test_no_yatest_common():
 def test_keep_metric_params_precision():
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)
-    model = CatBoostClassifier(iterations=10)
+    model = CatBoostRegressor(iterations=10)
     model.fit(train_pool)
-    metrics = ['Logloss:border=0.7']
+    metrics = ['Quantile:alpha=0.6']
     metrics_evals = model.eval_metrics(test_pool, metrics)
     for metric in metrics:
         assert metric in metrics_evals

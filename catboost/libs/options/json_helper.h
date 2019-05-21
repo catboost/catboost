@@ -8,6 +8,7 @@
 #include <util/generic/string.h>
 #include <util/generic/set.h>
 #include <util/generic/map.h>
+#include <util/generic/maybe.h>
 #include <util/string/cast.h>
 #include <util/system/compiler.h>
 
@@ -163,6 +164,29 @@ namespace NCatboostOptions {
             }
             CB_ENSURE(dst, "Error: can't write to nullptr");
             TJsonFieldHelper<T>::Write(src.Get(), &(*dst)[src.GetName()]);
+        }
+    };
+
+    template <class T>
+    class TJsonFieldHelper<TMaybe<T>, false> {
+    public:
+        static Y_NO_INLINE void Read(const NJson::TJsonValue& src, TMaybe<T>* dst) {
+            if (src.IsNull()) {
+                *dst = Nothing();
+            } else {
+                T value;
+                TJsonFieldHelper<T>::Read(src, &value);
+                *dst = value;
+            }
+        }
+
+        static Y_NO_INLINE void Write(const TMaybe<T>& src, NJson::TJsonValue* dst) {
+            CB_ENSURE(dst, "Error: can't write to nullptr");
+            if (!src) {
+                *dst = NJson::TJsonValue(NJson::EJsonValueType::JSON_NULL);
+            } else {
+                TJsonFieldHelper<T>::Write(src.GetRef(), dst);
+            }
         }
     };
 

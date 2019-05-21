@@ -83,7 +83,7 @@ void NCatboostOptions::TCatBoostOptions::SetLeavesEstimationDefault() {
             defaultNewtonIterations = 5;
             defaultGradientIterations = 10;
             defaultEstimationMethod = ELeavesEstimation::Newton;
-            break;            
+            break;
         }
         case ELossFunction::PairLogit: {
             defaultEstimationMethod = ELeavesEstimation::Newton;
@@ -461,6 +461,17 @@ void NCatboostOptions::TCatBoostOptions::Validate() const {
         CB_ENSURE(keyValue.second.IsString(), "only string to string metadata dictionary supported");
     }
     CB_ENSURE(!Metadata.Get().Has("params"), "\"params\" key in metadata prohibited");
+
+    // Delete it when MLTOOLS-3572 is implemented.
+    if (ShouldBinarizeLabel(LossFunctionDescription->LossFunction.Get())) {
+        const TString message = "Metric parameter 'border' isn't supported when target is binarized.";
+        CB_ENSURE(!LossFunctionDescription->LossParams->contains("border"), message);
+        CB_ENSURE(!MetricOptions->EvalMetric->LossParams->contains("border"), message);
+        CB_ENSURE(!MetricOptions->ObjectiveMetric->LossParams->contains("border"), message);
+        for (const auto& metric : MetricOptions->CustomMetrics.Get()) {
+            CB_ENSURE(!metric.LossParams->contains("border"), message);
+        }
+    }
 }
 
 void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {

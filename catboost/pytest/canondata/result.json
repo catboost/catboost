@@ -3068,7 +3068,7 @@
         "uri": "file://test.test_output_columns_format/test.eval"
     },
     "test.test_output_options": {
-        "checksum": "32e8d608491a09851354dd087dc01bf8",
+        "checksum": "8efde7d2484df76ffa756f0b4eb1eef6",
         "uri": "file://test.test_output_options/training_options.json"
     },
     "test.test_overfit_detector_inc_to_dec[Ordered]": [
@@ -4655,6 +4655,12 @@
         "checksum": "45d89ec50b9c6516302e475758c49206",
         "uri": "file://test.test_subsample_per_tree_level_calc_block=60-Plain_/test.eval"
     },
+    "test.test_target_border": [
+        {
+            "checksum": "90a7f3837654e7d5e26f03e55d14b04c",
+            "uri": "file://test.test_target_border/test.eval"
+        }
+    ],
     "test.test_time[Ordered]": [
         {
             "checksum": "81cfa9858add66fa1349c348ad1746a6",

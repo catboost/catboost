@@ -20,7 +20,7 @@
         "uri": "file://test.test_classification_ctr_CPU_/model.bin"
     },
     "test.test_compute_options": {
-        "checksum": "b18f1cc90c4675afc62a5728c0c60142",
+        "checksum": "f5992822c3d7eb4b59830c002bbdaef7",
         "uri": "file://test.test_compute_options/options.json"
     },
     "test.test_convert_model_to_json[CPU-adult]": {
@@ -352,7 +352,7 @@
         "uri": "file://test.test_learning_rate_auto_set_in_cv_CPU_/catboost_training.json"
     },
     "test.test_metadata": {
-        "checksum": "097259ffb198ce48bd406e9695593d29",
+        "checksum": "d6dcf63df1c41abe3117c24af95a0d60",
         "uri": "file://test.test_metadata/model.bin"
     },
     "test.test_multiclass[CPU]": {
@@ -432,7 +432,7 @@
         "uri": "file://test.test_predict_regress_CPU_/model.bin"
     },
     "test.test_predict_sklearn_class[CPU]": {
-        "checksum": "d8178ece19b3830c60cb3c6d721df867",
+        "checksum": "73713fd37ae31c227cdee1ab8eb44312",
         "uri": "file://test.test_predict_sklearn_class_CPU_/model.bin"
     },
     "test.test_predict_sklearn_regress[CPU]": {

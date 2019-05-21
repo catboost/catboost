@@ -124,17 +124,18 @@
     },
     "logging_level" : "Verbose",
     "data_processing_options" : {
-        "classes_count" : 0,
+        "has_time" : false,
         "allow_const_label" : false,
         "class_names" : [ ],
-        "has_time" : false,
-        "ignored_features" : [ ],
         "class_weights" : [ ],
+        "target_border" : null,
         "float_features_binarization" : {
             "border_count" : 254,
             "nan_mode" : "Min",
             "border_type" : "GreedyLogSum"
-        }
+        },
+        "classes_count" : 0,
+        "ignored_features" : [ ]
     },
     "loss_function" : {
         "type" : "Logloss",
