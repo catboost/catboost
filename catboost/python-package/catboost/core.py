@@ -2061,8 +2061,9 @@ class CatBoost(_CatBoostBase):
             self._init_params[key] = value
         return self
 
-    def get_binarized_statistics(self, data, target, feature, prediction_type=None,
-                                 cat_feature_values=None, plot=False, thread_count=1):
+    def get_feature_statistics(self, data, target, feature, prediction_type=None,
+                               cat_feature_values=None, plot=False, max_cat_features_on_plot=10,
+                               thread_count=-1):
         """
         Get statistics for the feature using the model, dataset and target.
         To use this function, you should install plotly.
@@ -2098,6 +2099,10 @@ class CatBoost(_CatBoostBase):
             statistics of a categorical feature.
         plot: bool
             Plot statistics.
+        max_cat_features_on_plot: int
+            If categorical feature takes more than max_cat_features_on_plot different unique values,
+            output result on several plots, not more than max_cat_features_on_plot feature values on each.
+            Used only if plot=True.
         thread_count: int
             Number of threads to use for getting statistics.
         Returns
@@ -2148,7 +2153,7 @@ class CatBoost(_CatBoostBase):
             res.pop('borders', None)
 
         if plot:
-            _plot_binarized_feature_statistics(res, feature)
+            _plot_feature_statistics(res, feature, max_cat_features_on_plot)
 
         return res
 
@@ -3668,7 +3673,7 @@ def _build_binarized_feature_statistics_fig(statistics, feature_num):
     return fig
 
 
-def _plot_binarized_feature_statistics(statistics, feature_num, max_cat_features_on_plot=20):
+def _plot_feature_statistics(statistics, feature_num, max_cat_features_on_plot=10):
     try:
         from plotly.offline import iplot
     except ImportError as e:

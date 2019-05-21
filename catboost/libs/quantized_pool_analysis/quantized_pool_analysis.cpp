@@ -19,7 +19,7 @@ namespace NCB {
             dataProvider.ObjectsGrouping,
             std::move(dataProvider.RawTargetData));
         size_t objectCount = rawDataProvider.GetObjectCount();
-        
+
         TIntrusivePtr<TRawDataProvider> rawDataProviderPtr(&rawDataProvider);
         TRawBuilderData data = TRawBuilderDataHelper::Extract(std::move(*(rawDataProviderPtr.Release())));
 

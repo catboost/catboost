@@ -4364,7 +4364,7 @@ def test_compute_options():
     return local_canonical_file(options_file_name)
 
 
-def test_binarized_statistics():
+def test_feature_statistics():
     import numpy as np
 
     n_features = 3
@@ -4376,7 +4376,7 @@ def test_binarized_statistics():
     model.fit(X, y, silent=True)
 
     feature_num = 0
-    res = model.get_binarized_statistics(X, y, feature_num, plot=True)
+    res = model.get_feature_statistics(X, y, feature_num, plot=False)
 
     def mean_per_bin(res, feature_num, data):
         return np.array([data[np.digitize(X[:, feature_num], res['borders']) == bin_num].mean()
