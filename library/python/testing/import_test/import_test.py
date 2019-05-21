@@ -23,6 +23,8 @@ def check_imports(no_check=None, extra=[], skip_func=None):
         'click._winconsole',
         'common.*',  # sandbox.common
 
+        'dask.*',
+
         'flaky.flaky_pytest_plugin',
 
         'flask.ext.__init__',
@@ -137,6 +139,8 @@ def check_imports(no_check=None, extra=[], skip_func=None):
         "pandas.util.clipboard",
 
         "parsel.unified",
+        'partd.pandas',
+        'partd.zmq',
 
         "ptpython.contrib.asyncssh_repl",
         "ptpython.ipython",
