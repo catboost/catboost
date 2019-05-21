@@ -646,6 +646,7 @@ def test_logloss_with_not_binarized_target(boosting_type):
         '-i': '10',
         '-w': '0.03',
         '-T': '4',
+        '--target-border': '0.5',
         '-m': output_model_path,
     }
     fit_catboost_gpu(params)
@@ -670,6 +671,7 @@ def test_fold_len_mult():
         '-w': '0.03',
         '-T': '4',
         '--fold-len-multiplier': 1.2,
+        '--target-border': '0.5',
         '-m': output_model_path,
     }
     fit_catboost_gpu(params)
@@ -694,6 +696,7 @@ def test_random_strength():
         '-w': '0.03',
         '-T': '4',
         '--random-strength': 122,
+        '--target-border': '0.5',
         '-m': output_model_path,
     }
     fit_catboost_gpu(params)
@@ -2029,7 +2032,7 @@ def test_save_and_apply_multiclass_labels_from_classes_count(loss_function, pred
         with open(eval_path, "rt") as f:
             for i, line in enumerate(f):
                 if i == 0:
-                    assert line[:-1] == 'DocId\t{}:Class=0\t{}:Class=1\t{}:Class=2\t{}:Class=3' \
+                    assert line[:-1] == 'SampleId\t{}:Class=0\t{}:Class=1\t{}:Class=2\t{}:Class=3' \
                         .format(prediction_type, prediction_type, prediction_type, prediction_type)
                 else:
                     assert float(line[:-1].split()[1]) == float('-inf') and float(line[:-1].split()[4]) == float('-inf')  # fictitious approxes must be negative infinity
@@ -2038,7 +2041,7 @@ def test_save_and_apply_multiclass_labels_from_classes_count(loss_function, pred
         with open(eval_path, "rt") as f:
             for i, line in enumerate(f):
                 if i == 0:
-                    assert line[:-1] == 'DocId\t{}:Class=0\t{}:Class=1\t{}:Class=2\t{}:Class=3' \
+                    assert line[:-1] == 'SampleId\t{}:Class=0\t{}:Class=1\t{}:Class=2\t{}:Class=3' \
                         .format(prediction_type, prediction_type, prediction_type, prediction_type)
                 else:
                     assert abs(float(line[:-1].split()[1])) < 1e-307 \
@@ -2048,7 +2051,7 @@ def test_save_and_apply_multiclass_labels_from_classes_count(loss_function, pred
         with open(eval_path, "rt") as f:
             for i, line in enumerate(f):
                 if i == 0:
-                    assert line[:-1] == 'DocId\tClass'
+                    assert line[:-1] == 'SampleId\tClass'
                 else:
                     assert float(line[:-1].split()[1]) in [1, 2]  # probability of 0,3 classes appearance must be zero
 
@@ -2095,6 +2098,7 @@ def test_eval_result_on_different_pool_type():
             '--cd', data_file('querywise', 'train.cd'),
             '-i', '10',
             '-T', '4',
+            '--target-border', '0.5',
             '--eval-file', eval_path,
         )
 

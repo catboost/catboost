@@ -486,6 +486,24 @@ void TObliviousTrees::ConvertObliviousToAsymmetric() {
     UpdateRuntimeData();
 }
 
+TVector<ui32> TObliviousTrees::GetTreeLeafCounts() const {
+    const auto& firstLeafOfsets = GetFirstLeafOffsets();
+    Y_ASSERT(IsSorted(firstLeafOfsets.begin(), firstLeafOfsets.end()));
+    TVector<ui32> treeLeafCounts;
+    treeLeafCounts.reserve(GetTreeCount());
+    for (size_t treeNum = 0; treeNum < GetTreeCount(); ++treeNum) {
+        const size_t currTreeLeafValuesEnd = (
+            treeNum + 1 < GetTreeCount()
+            ? firstLeafOfsets[treeNum + 1]
+            : LeafValues.size()
+        );
+        const size_t currTreeLeafValuesCount = currTreeLeafValuesEnd - firstLeafOfsets[treeNum];
+        Y_ASSERT(currTreeLeafValuesCount % ApproxDimension == 0);
+        treeLeafCounts.push_back(currTreeLeafValuesCount / ApproxDimension);
+    }
+    return treeLeafCounts;
+}
+
 void TFullModel::CalcFlat(
     TConstArrayRef<TConstArrayRef<float>> features,
     size_t treeStart,

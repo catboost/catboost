@@ -277,6 +277,10 @@ public:
         , Environment(options.Environment)
         , Nice(options.Nice)
     {
+        if (InputStream) {
+            // TODO change usages to call SetInputStream instead of directly assigning to InputStream
+            InputMode = TShellCommandOptions::HANDLE_STREAM;
+        }
     }
 
     inline ~TImpl() {
@@ -691,7 +695,7 @@ void TShellCommand::TImpl::OnFork(TPipes& pipes, sigset_t oldmask, char* const* 
              << "unknown error" << Endl;
     }
 
-    exit(-1);
+    _exit(-1);
 }
 #endif
 

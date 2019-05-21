@@ -11,9 +11,9 @@ class catboost_model(object):
         [2]
     ]
     tree_depth = [1, 1, 1, 1, 1]
-    tree_split_border = [1, 1, 255, 1, 1]
-    tree_split_feature_index = [0, 0, 1, 0, 0]
-    tree_split_xor_mask = [0, 0, 254, 0, 0]
+    tree_split_border = [255, 255, 1, 1, 1]
+    tree_split_feature_index = [1, 1, 0, 0, 0]
+    tree_split_xor_mask = [254, 254, 0, 0, 0]
     cat_features_index = [0]
     one_hot_cat_feature_index = [0]
     one_hot_hash_values = [

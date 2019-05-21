@@ -102,9 +102,14 @@ static void UpdateUseBestModel(bool hasTest, bool hasTestConstTarget, bool hasTe
     }
 }
 
-static void UpdateBoostingTypeOption(size_t learnSampleCount, NCatboostOptions::TOption<EBoostingType>* boostingTypeOption) {
-    if (boostingTypeOption->NotSet() && learnSampleCount >= 50000) {
-        *boostingTypeOption = EBoostingType::Plain;
+static void UpdateBoostingTypeOption(size_t learnSampleCount, NCatboostOptions::TCatBoostOptions* catBoostOptions) {
+    auto& boostingTypeOption = catBoostOptions->BoostingOptions->BoostingType;
+    if (
+        boostingTypeOption.NotSet() &&
+        (learnSampleCount >= 50000 || catBoostOptions->BoostingOptions->IterationCount < 500) &&
+        !(catBoostOptions->GetTaskType() == ETaskType::CPU && catBoostOptions->BoostingOptions->ApproxOnFullHistory.Get())
+    ) {
+        boostingTypeOption = EBoostingType::Plain;
     }
 }
 
@@ -142,6 +147,21 @@ static void UpdateLearningRate(ui32 learnObjectCount, bool useBestModel, NCatboo
     }
 }
 
+static void UpdateLeavesEstimationIterations(
+    const NCB::TDataMetaInfo& trainDataMetaInfo,
+    NCatboostOptions::TCatBoostOptions* catBoostOptions
+) {
+    auto& leavesEstimationIterations = catBoostOptions->ObliviousTreeOptions->LeavesEstimationIterations;
+    const bool hasFeaturesLayout = !!trainDataMetaInfo.FeaturesLayout;
+    if (
+        leavesEstimationIterations.NotSet() &&
+        IsSmallIterationCount(catBoostOptions->BoostingOptions->IterationCount) &&
+        hasFeaturesLayout && trainDataMetaInfo.FeaturesLayout->GetExternalFeaturesMetaInfo().size() < 20
+    ) {
+        leavesEstimationIterations = 1;
+    }
+}
+
 static bool IsConstTarget(const NCB::TDataMetaInfo& dataMetaInfo) {
     return dataMetaInfo.TargetStats.Defined() && dataMetaInfo.TargetStats->MinValue == dataMetaInfo.TargetStats->MaxValue;
 }
@@ -157,7 +177,7 @@ void SetDataDependentDefaults(
     const bool isConstTestTarget = testDataMetaInfo.Defined() && IsConstTarget(*testDataMetaInfo);
     const bool hasTestPairs = testDataMetaInfo.Defined() && testDataMetaInfo->HasPairs;
     UpdateUseBestModel(testPoolSize, isConstTestTarget, hasTestPairs, useBestModel);
-    UpdateBoostingTypeOption(learnPoolSize, &catBoostOptions->BoostingOptions->BoostingType);
+    UpdateBoostingTypeOption(learnPoolSize, catBoostOptions);
     UpdateLearningRate(learnPoolSize, useBestModel->Get(), catBoostOptions);
     UpdateOneHotMaxSize(
         trainDataMetaInfo.MaxCatFeaturesUniqValuesOnLearn,
@@ -169,4 +189,5 @@ void SetDataDependentDefaults(
         testDataMetaInfo.Defined() ? testDataMetaInfo->TargetStats : Nothing(),
         catBoostOptions
     );
+    UpdateLeavesEstimationIterations(trainDataMetaInfo, catBoostOptions);
 }

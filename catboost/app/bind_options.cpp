@@ -847,6 +847,12 @@ static void BindDataProcessingParams(NLastGetopt::TOpts* parserPtr, NJson::TJson
             (*plainJsonPtr)["allow_const_label"] = true;
         });
 
+    parser.AddLongOption("target-border", "Border for target binarization")
+        .RequiredArgument("float")
+        .Handler1T<float>([plainJsonPtr](float targetBorder) {
+            (*plainJsonPtr)["target_border"] = targetBorder;
+        });
+
     parser.AddLongOption("classes-count", "number of classes")
         .RequiredArgument("int")
         .Handler1T<int>([plainJsonPtr](const int classesCount) {

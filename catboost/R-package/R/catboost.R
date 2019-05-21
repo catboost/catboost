@@ -840,9 +840,9 @@ print.catboost.Pool <- function(x, ...) {
 #'
 #'     \item has_time
 #'
-#'       Use the order of objects in the input data 
+#'       Use the order of objects in the input data
 #'       (do not perform a random permutation of the dataset at the preprocessing stage)
-#' 
+#'
 #'       Default value:
 #'
 #'       FALSE (not used; permute input dataset)
@@ -949,7 +949,7 @@ print.catboost.Pool <- function(x, ...) {
 #'         \item 'MVS'
 #'         \item 'No'
 #'       }
-#' 
+#'
 #'       Poisson bootstrap is supported only on GPU.
 #'
 #'       Default value:
@@ -1214,7 +1214,7 @@ print.catboost.Pool <- function(x, ...) {
 #'       Default value:
 #'
 #'       254 for training on CPU or 128 for training on GPU
-#' 
+#'
 #'     \item feature_border_type
 #'
 #'       The binarization mode (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/binarization-docpage/#binarization})
@@ -1348,25 +1348,25 @@ print.catboost.Pool <- function(x, ...) {
 #'       Default value:
 #'
 #'       5000000
-#' 
+#'
 #'   \item dev_efb_max_buckets
 #'
-#'       CPU only. Maximum bucket count in exclusive features bundle. Should be in an integer between 0 and 65536. 
+#'       CPU only. Maximum bucket count in exclusive features bundle. Should be in an integer between 0 and 65536.
 #'       Used only for learning speed tuning.
-#'       
+#'
 #'       Default value:
 #'
 #'       1024
-#' 
+#'
 #'   \item efb_max_conflict_fraction
-#' 
+#'
 #'      CPU only. Maximum allowed fraction of conflicting non-default values for features in exclusive features bundle.
 #'      Should be a real value in [0, 1) interval.
-#' 
+#'
 #'      Default value:
-#' 
+#'
 #'      0.0
-#' 
+#'
 #'    \item leaf_estimation_backtracking
 #'
 #'        Type of backtracking during gradient descent.
@@ -1694,14 +1694,9 @@ catboost.staged_predict <- function(model, pool, verbose = FALSE, prediction_typ
 #' Allows you to optimize the speed of execution. This parameter doesn't affect results.
 #'
 #' Default value: -1
-#' @param fstr_type Deprecated parameter, use 'type' instead.
 #' @export
 #' @seealso \url{https://tech.yandex.com/catboost/doc/dg/features/feature-importances-calculation-docpage}
-catboost.get_feature_importance <- function(model, pool = NULL, type = "FeatureImportance", thread_count = -1, fstr_type = NULL) {
-    if (!is.null(fstr_type)) {
-        type <- fstr_type
-        warning("fstr_type option is deprecated, use type instead")
-    }
+catboost.get_feature_importance <- function(model, pool = NULL, type = "FeatureImportance", thread_count = -1) {
     if (class(model) != "catboost.Model")
         stop("Expected catboost.Model, got: ", class(model))
     if (!is.null(pool) && class(pool) != "catboost.Pool")
@@ -1747,7 +1742,7 @@ catboost.get_feature_importance <- function(model, pool = NULL, type = "FeatureI
 #' @param top_size Method returns the result of the top_size most important train objects. If -1, then the top size is not limited.
 #'
 #' Default value: -1
-#' @param ostr_type The ostr type.
+#' @param type.
 #'
 #' Possible values:
 #' \itemize{
@@ -1777,6 +1772,7 @@ catboost.get_feature_importance <- function(model, pool = NULL, type = "FeatureI
 #' Allows you to optimize the speed of execution. This parameter doesn't affect results.
 #'
 #' Default value: -1
+#' @param ostr_type Deprecated parameter, use 'type' instead.
 #' @export
 #' @seealso \url{https://tech.yandex.com/catboost/doc/dg/concepts/}
 catboost.get_object_importance <- function(
@@ -1784,9 +1780,10 @@ catboost.get_object_importance <- function(
     pool,
     train_pool,
     top_size = -1,
-    ostr_type = "Average",
+    type = "Average",
     update_method = "SinglePoint",
-    thread_count = -1
+    thread_count = -1,
+    ostr_type = NULL
 ) {
     if (class(model) != "catboost.Model")
         stop("Expected catboost.Model, got: ", class(model))
@@ -1798,7 +1795,11 @@ catboost.get_object_importance <- function(
         stop("top_size should be positive integer or -1.")
     if (is.null.handle(model$handle))
         model$handle <- .Call("CatBoostDeserializeModel_R", model$raw)
-    importances <- .Call("CatBoostEvaluateObjectImportances_R", model$handle, pool, train_pool, top_size, ostr_type, update_method, thread_count)
+    if (!is.null(ostr_type)) {
+        type <- ostr_type
+        warning("ostr_type option is deprecated, use type instead")
+    }
+    importances <- .Call("CatBoostEvaluateObjectImportances_R", model$handle, pool, train_pool, top_size, type, update_method, thread_count)
     indices <- head(importances, length(importances) / 2)
     scores <- tail(importances, length(importances) / 2)
     column_count <- nrow(train_pool)

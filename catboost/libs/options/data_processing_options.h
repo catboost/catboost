@@ -8,6 +8,7 @@
 #include <library/grid_creator/binarization.h>
 
 #include <util/generic/map.h>
+#include <util/generic/maybe.h>
 #include <util/generic/vector.h>
 #include <util/system/types.h>
 
@@ -29,6 +30,7 @@ namespace NCatboostOptions {
         TOption<TVector<ui32>> IgnoredFeatures;
         TOption<bool> HasTimeFlag;
         TOption<bool> AllowConstLabel;
+        TOption<TMaybe<float>> TargetBorder;
         TOption<TBinarizationOptions> FloatFeaturesBinarization;
         TOption<TMap<ui32, TBinarizationOptions>> PerFloatFeatureBinarization;
         TOption<ui32> ClassesCount;
@@ -38,4 +40,8 @@ namespace NCatboostOptions {
     private:
         void SetPerFeatureMissingSettingToCommonValues();
     };
+
+    constexpr float GetDefaultTargetBorder() {
+        return 0.5;
+    }
 }

@@ -44,7 +44,7 @@ def main():
     assert out_dir_temp, 'Param "{0}" not found'.format(OUT_DIR_ARG)
 
     retcode = subprocess.call(args)
-    assert not retcode, 'Protoc failed'
+    assert not retcode, 'Protoc failed for command {}'.format(' '.join(args))
 
     for root_temp, dirs, files in os.walk(out_dir_temp):
         sub_dir = path.relpath(root_temp, out_dir_temp)

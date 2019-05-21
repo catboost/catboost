@@ -98,6 +98,7 @@ namespace NCB {
         TStringBuf datasetName,
         bool isLearnData,
         bool allowConstLabel,
+        TMaybe<float> targetBorder,
         bool needCheckTarget,
         TConstArrayRef<NCatboostOptions::TLossDescription> metricDescriptions)
     {
@@ -128,7 +129,9 @@ namespace NCB {
                 convertedTarget,
                 metricDescription,
                 isLearnData,
-                allowConstLabel);
+                allowConstLabel,
+                targetBorder
+            );
         }
     }
 
@@ -358,6 +361,7 @@ namespace NCB {
         TConstArrayRef<NCatboostOptions::TLossDescription> metricDescriptions,
         TMaybe<NCatboostOptions::TLossDescription*> mainLossFunction,
         bool allowConstLabel,
+        TMaybe<float> targetBorder,
         bool metricsThatRequireTargetCanBeSkipped,
         bool needTargetDataForCtrs,
         TMaybe<ui32> knownModelApproxDimension,
@@ -504,14 +508,28 @@ namespace NCB {
                 " probability nor 2-class labels"
             );
 
-            if (rawData.GetTarget() &&
+            if (
+                rawData.GetTarget() &&
                 mainLossFunction &&
-                ((*mainLossFunction)->GetLossFunction() == ELossFunction::Logloss))
-            {
-                PrepareTargetBinary(
-                    *maybeConvertedTarget,
-                    NCatboostOptions::GetLogLossBorder(**mainLossFunction),
-                    &*maybeConvertedTarget);
+                ShouldBinarizeLabel((*mainLossFunction)->GetLossFunction())
+            ) {
+                if (!targetBorder) {
+                    THashSet<float> uniqueValues;
+                    for (auto target : *maybeConvertedTarget) {
+                        if (uniqueValues.size() < 3) {
+                            uniqueValues.insert(target);
+                        } else {
+                            break;
+                        }
+                    }
+                    CB_ENSURE_INTERNAL(!uniqueValues.empty(), "Target vector is empty, nothing to binarize.");
+                    CB_ENSURE(uniqueValues.size() < 3, "You should specify target border parameter for target binarization.");
+                    const auto firstValue = *uniqueValues.begin();
+                    const auto secondValue = uniqueValues.size() == 1 ? firstValue : *(++uniqueValues.begin());
+                    targetBorder = (firstValue + secondValue) / 2;
+                }
+
+                PrepareTargetBinary(*maybeConvertedTarget, *targetBorder, &*maybeConvertedTarget);
             }
 
             if (maybeConvertedTarget) {
@@ -659,6 +677,7 @@ namespace NCB {
             datasetName,
             isLearnData,
             allowConstLabel,
+            targetBorder,
             needCheckTarget,
             metricDescriptions);
 
@@ -768,6 +787,7 @@ namespace NCB {
             updatedMetricsDescriptions,
             /*mainLossFunction*/ Nothing(),
             /*allowConstLabel*/ true,
+            /*targetBorder*/ Nothing(),
             /*metricsThatRequireTargetCanBeSkipped*/ false,
             /*needTargetDataForCtrs*/ false,
             (ui32)model.ObliviousTrees.ApproxDimension,

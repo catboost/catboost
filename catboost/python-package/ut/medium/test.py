@@ -643,7 +643,7 @@ def test_predict_sklearn_regress(task_type):
 
 def test_predict_sklearn_class(task_type):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    model = CatBoostClassifier(iterations=2, learning_rate=0.03, loss_function='Logloss:border=0.5', task_type=task_type, devices='0')
+    model = CatBoostClassifier(iterations=2, learning_rate=0.03, loss_function='Logloss', task_type=task_type, devices='0')
     model.fit(train_pool)
     assert(model.is_fitted())
     output_model_path = test_output_path(OUTPUT_MODEL_PATH)
@@ -2077,7 +2077,13 @@ def test_cv_with_not_binarized_target(task_type):
     pool = Pool(train_file, column_description=cd)
     cv(
         pool,
-        {"iterations": 10, "learning_rate": 0.03, "loss_function": "Logloss", "task_type": task_type},
+        {
+            "iterations": 10,
+            "learning_rate": 0.03,
+            "loss_function": "Logloss",
+            "task_type": task_type,
+            "target_border": 0.5
+        },
         dev_max_iterations_batch_size=6
     )
     return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
@@ -2425,7 +2431,7 @@ def test_metadata():
     model = CatBoostClassifier(
         iterations=2,
         learning_rate=0.03,
-        loss_function='Logloss:border=0.5',
+        loss_function='Logloss',
         metadata={"type": "AAA", "postprocess": "BBB"}
     )
     model.fit(train_pool)
@@ -3241,7 +3247,9 @@ def test_overfit_detector_with_resume_from_snapshot_and_metric_period(boosting_t
                 thread_count=4,
                 learning_rate=0.2,
                 od_type=overfitting_detector_type,
-                metric_period=metric_period
+                metric_period=metric_period,
+                leaf_estimation_iterations=10,
+                max_ctr_complexity=4,
             )
             if overfitting_detector_type == 'IncToDec':
                 model.set_params(od_wait=OD_WAIT, od_pval=0.5)
@@ -3395,6 +3403,9 @@ def test_use_last_testset_for_best_iteration():
         'iterations': 100,
         'loss_function': metric,
         'random_seed': 6,
+        'leaf_estimation_iterations': 10,
+        'max_ctr_complexity': 4,
+        'boosting_type': 'Ordered',
     }
 
     model = CatBoostClassifier(**args)
@@ -3802,9 +3813,9 @@ def test_no_yatest_common():
 def test_keep_metric_params_precision():
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)
-    model = CatBoostClassifier(iterations=10)
+    model = CatBoostRegressor(iterations=10)
     model.fit(train_pool)
-    metrics = ['Logloss:border=0.7']
+    metrics = ['Quantile:alpha=0.6']
     metrics_evals = model.eval_metrics(test_pool, metrics)
     for metric in metrics:
         assert metric in metrics_evals
@@ -4346,6 +4357,7 @@ def test_eval_features_with_file_header():
 def test_compute_options():
     data_meta_info = DataMetaInfo(
         object_count=100000,
+        feature_count=10,
         max_cat_features_uniq_values_on_learn=0,
         target_stats=TargetStats(min_value=0, max_value=1),
         has_pairs=False

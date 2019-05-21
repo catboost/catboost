@@ -1,5 +1,5 @@
-Problem: {problem description}
-catboost version: {version}
-Operating System: {OS}
-CPU: {CPU}
-# GPU: {GPU}
+Problem:
+catboost version:
+Operating System:
+CPU:
+# GPU:

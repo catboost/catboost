@@ -29,6 +29,7 @@ namespace NCB {
          */
         TMaybe<NCatboostOptions::TLossDescription*> mainLossFuncion,
         bool allowConstLabel,
+        TMaybe<float> targetBorder,
         bool metricsThatRequireTargetCanBeSkipped,
         bool needTargetDataForCtrs,
         TMaybe<ui32> knownModelApproxDimension,

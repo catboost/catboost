@@ -32,7 +32,7 @@ from libcpp.pair cimport pair
 from util.generic.array_ref cimport TArrayRef, TConstArrayRef
 from util.generic.hash cimport THashMap
 from util.generic.maybe cimport TMaybe
-from util.generic.ptr cimport THolder, TIntrusivePtr
+from util.generic.ptr cimport THolder, TIntrusivePtr, MakeHolder
 from util.generic.string cimport TString, TStringBuf
 from util.generic.vector cimport TVector
 from util.system.types cimport ui8, ui32, ui64, i64
@@ -150,12 +150,13 @@ cdef extern from "catboost/libs/data_new/features_layout.h" namespace "NCB":
 
     cdef cppclass TFeaturesLayout:
         TFeaturesLayout() except +ProcessException
+        TFeaturesLayout(const ui32 featureCount) except +ProcessException
         TFeaturesLayout(
             const ui32 featureCount,
             const TVector[ui32]& catFeatureIndices,
             const TVector[ui32]& textFeatureIndices,
             const TVector[TString]& featureId,
-        )  except +ProcessException
+        ) except +ProcessException
 
         TConstArrayRef[TFeatureMetaInfo] GetExternalFeaturesMetaInfo() except +ProcessException
         TVector[TString] GetExternalFeatureIds() except +ProcessException
@@ -492,10 +493,12 @@ cdef extern from "catboost/libs/model/model.h":
 
     cdef cppclass TObliviousTrees:
         int ApproxDimension
+        TVector[double] LeafValues
         TVector[TVector[double]] LeafWeights
         TVector[TCatFeature] CatFeatures
         TVector[TFloatFeature] FloatFeatures
         void DropUnusedFeatures() except +ProcessException
+        TVector[ui32] GetTreeLeafCounts() except +ProcessException
 
     cdef cppclass TFullModel:
         TObliviousTrees ObliviousTrees
@@ -1216,7 +1219,7 @@ cdef EModelType string_to_model_type(model_type_str) except *:
 cdef EFstrType string_to_fstr_type(fstr_type_str) except *:
     cdef EFstrType fstr_type
     if not TryFromString[EFstrType](to_arcadia_string(fstr_type_str), fstr_type):
-        raise CatBoostError("Unknown fstr type {}.".format(fstr_type_str))
+        raise CatBoostError("Unknown type {}.".format(fstr_type_str))
     return fstr_type
 
 cdef EPreCalcShapValues string_to_shap_mode(shap_mode_str) except *:
@@ -2537,15 +2540,22 @@ cdef class _CatBoost:
 
     cpdef _get_metrics_evals(self):
         metrics_evals = defaultdict(functools.partial(defaultdict, list))
-        num_iterations = self.__metrics_history.LearnMetricsHistory.size()
-        for iter in range(num_iterations):
-            for metric, value in self.__metrics_history.LearnMetricsHistory[iter]:
+        iteration_count = self.__metrics_history.LearnMetricsHistory.size()
+        for iteration_num in range(iteration_count):
+            for metric, value in self.__metrics_history.LearnMetricsHistory[iteration_num]:
                 metrics_evals["learn"][to_native_str(metric)].append(value)
-            if not self.__metrics_history.TestMetricsHistory.empty():
-                num_tests = self.__metrics_history.TestMetricsHistory[iter].size()
-                for test in range(num_tests):
-                    for metric, value in self.__metrics_history.TestMetricsHistory[iter][test]:
-                        metrics_evals["validation_" + str(test)][to_native_str(metric)].append(value)
+
+        if not self.__metrics_history.TestMetricsHistory.empty():
+            test_count = 0
+            for i in range(iteration_count):
+                test_count = max(test_count, self.__metrics_history.TestMetricsHistory[i].size())
+            for iteration_num in range(iteration_count):
+                for test_index in range(self.__metrics_history.TestMetricsHistory[iteration_num].size()):
+                    eval_set_name = "validation"
+                    if test_count > 1:
+                        eval_set_name += "_" + str(test_index)
+                    for metric, value in self.__metrics_history.TestMetricsHistory[iteration_num][test_index]:
+                        metrics_evals[eval_set_name][to_native_str(metric)].append(value)
         return {k: dict(v) for k, v in iteritems(metrics_evals)}
 
     cpdef _get_best_score(self):
@@ -2556,9 +2566,12 @@ cdef class _CatBoost:
         for metric, best_error in self.__metrics_history.LearnBestError:
             best_scores["learn"][to_native_str(metric)] = best_error
         for testIdx in range(self.__metrics_history.TestBestError.size()):
-            best_scores["validation_" + str(testIdx)] = {}
+            eval_set_name = "validation"
+            if self.__metrics_history.TestBestError.size() > 1:
+                eval_set_name += "_" + str(testIdx)
+            best_scores[eval_set_name] = {}
             for metric, best_error in self.__metrics_history.TestBestError[testIdx]:
-                best_scores["validation_" + str(testIdx)][to_native_str(metric)] = best_error
+                best_scores[eval_set_name][to_native_str(metric)] = best_error
         return best_scores
 
     cpdef _get_best_iteration(self):
@@ -2888,6 +2901,32 @@ cdef class _CatBoost:
             return 'categorical', typeAndIndex.Index
         else:
             return 'unknown', -1
+
+    cpdef _get_leaf_values(self):
+        return _vector_of_double_to_np_array(self.__model.ObliviousTrees.LeafValues)
+
+    cpdef _get_leaf_weights(self):
+        result = np.empty(self.__model.ObliviousTrees.LeafValues.size(), dtype=_npfloat64)
+        cdef size_t curr_index = 0
+        for i in xrange(self.__model.ObliviousTrees.LeafWeights.size()):
+            for val in self.__model.ObliviousTrees.LeafWeights[i]:
+                result[curr_index] = val
+                curr_index += 1
+        assert curr_index == 0 or curr_index == self.__model.ObliviousTrees.LeafValues.size(), (
+            "wrong number of leaf weights")
+        return result
+
+    cpdef _get_tree_leaf_counts(self):
+        return _vector_of_uints_to_np_array(self.__model.ObliviousTrees.GetTreeLeafCounts())
+
+    cpdef _set_leaf_values(self, new_leaf_values):
+        assert isinstance(new_leaf_values, np.ndarray), "expected numpy.ndarray."
+        assert new_leaf_values.dtype == np.float64, "leaf values should have type np.float64 (double)."
+        assert len(new_leaf_values.shape) == 1, "leaf values should be a 1d-vector."
+        assert new_leaf_values.shape[0] == self.__model.ObliviousTrees.LeafValues.size(), (
+            "count of leaf values should be equal to the leaf count.")
+        for i in xrange(self.__model.ObliviousTrees.LeafValues.size()):
+            self.__model.ObliviousTrees.LeafValues[i] = new_leaf_values[i]
 
 
 cdef class _MetadataHashProxy:
@@ -3386,6 +3425,7 @@ cdef class DataMetaInfo:
     def __init__(
         self,
         ui64 object_count,
+        ui32 feature_count,
         ui64 max_cat_features_uniq_values_on_learn,
         TargetStats target_stats,
         bool_t has_pairs
@@ -3395,6 +3435,7 @@ cdef class DataMetaInfo:
         if target_stats is not None:
             self.DataMetaInfo.TargetStats = target_stats.TargetStats
         self.DataMetaInfo.HasPairs = has_pairs
+        self.DataMetaInfo.FeaturesLayout = MakeHolder[TFeaturesLayout](feature_count).Release()
 
 
 @cython.embedsignature(True)

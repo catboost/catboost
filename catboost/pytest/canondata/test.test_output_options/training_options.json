@@ -4,7 +4,7 @@
         "approx_on_full_history" : false,
         "fold_len_multiplier" : 2,
         "fold_permutation_block" : 0,
-        "boosting_type" : "Ordered",
+        "boosting_type" : "Plain",
         "iterations" : 10,
         "od_config" : {
             "wait_iterations" : 20,
@@ -73,7 +73,7 @@
         ],
         "counter_calc_method" : "SkipTest",
         "one_hot_max_size" : 2,
-        "max_ctr_complexity" : 4,
+        "max_ctr_complexity" : 1,
         "combinations_ctrs" : [
             {
                 "ctr_binarization" : {
@@ -124,17 +124,18 @@
     },
     "logging_level" : "Verbose",
     "data_processing_options" : {
-        "classes_count" : 0,
+        "has_time" : false,
         "allow_const_label" : false,
         "class_names" : [ ],
-        "has_time" : false,
-        "ignored_features" : [ ],
         "class_weights" : [ ],
+        "target_border" : null,
         "float_features_binarization" : {
             "border_count" : 254,
             "nan_mode" : "Min",
             "border_type" : "GreedyLogSum"
-        }
+        },
+        "classes_count" : 0,
+        "ignored_features" : [ ]
     },
     "loss_function" : {
         "type" : "Logloss",
@@ -143,7 +144,7 @@
     "tree_learner_options" : {
         "rsm" : 1,
         "random_strength" : 1,
-        "leaf_estimation_iterations" : 10,
+        "leaf_estimation_iterations" : 1,
         "dev_efb_max_buckets" : 1024,
         "dev_score_calc_obj_block_size" : 5000000,
         "leaf_estimation_backtracking" : "AnyImprovement",

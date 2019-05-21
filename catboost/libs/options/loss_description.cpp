@@ -1,4 +1,5 @@
 #include "loss_description.h"
+#include "data_processing_options.h"
 #include "json_helper.h"
 
 #include <util/string/builder.h>
@@ -31,6 +32,7 @@ TMap<TString, TString> ParseLossParams(const TStringBuf lossDescription) {
             params[keyValue[0]] = keyValue[1];
         }
     }
+
     return params;
 }
 
@@ -71,7 +73,7 @@ double NCatboostOptions::GetLogLossBorder(const TLossDescription& lossFunctionCo
     if (lossParams.contains("border")) {
         return FromString<float>(lossParams.at("border"));
     }
-    return 0.5;
+    return GetDefaultTargetBorder();
 }
 
 double NCatboostOptions::GetAlpha(const TMap<TString, TString>& lossParams) {

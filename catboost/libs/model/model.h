@@ -413,6 +413,8 @@ public:
         );
     }
 
+    TVector<ui32> GetTreeLeafCounts() const;
+
 private:
     mutable TMaybe<TRuntimeData> RuntimeData;
 };
