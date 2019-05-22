@@ -955,6 +955,11 @@ cdef extern from "catboost/libs/quantized_pool_analysis/quantized_pool_analysis.
         const TFullModel& model,
         const int flatFeatureIndex) nogil except +ProcessException
 
+    cdef TVector[TString] GetCatFeatureValues(
+        const TFullModel& model,
+        const TDataProvider& dataset,
+        const int flatFeatureIndex) nogil except +ProcessException
+
 
 cdef inline float _FloatOrNan(object obj) except *:
     try:
@@ -2888,7 +2893,6 @@ cdef class _CatBoost:
             'predictions_on_varying_feature': _vector_of_double_to_np_array(res.PredictionsOnVaryingFeature)
         }
 
-
     cpdef _calc_cat_feature_perfect_hash(self, TStringBuf value, size_t featureNum):
         return GetCatFeaturePerfectHash(dereference(self.__model), value, featureNum)
 
@@ -2901,6 +2905,13 @@ cdef class _CatBoost:
             return 'categorical', typeAndIndex.Index
         else:
             return 'unknown', -1
+
+    cpdef _get_cat_feature_values(self, _PoolBase pool, size_t flatFeatureIndex):
+        cdef TVector[TString] values = GetCatFeatureValues(
+            dereference(self.__model),
+            dereference(pool.__pool.Get()),
+            flatFeatureIndex)
+        return values
 
     cpdef _get_leaf_values(self):
         return _vector_of_double_to_np_array(self.__model.ObliviousTrees.LeafValues)

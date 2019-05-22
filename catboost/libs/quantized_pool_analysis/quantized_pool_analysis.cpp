@@ -295,4 +295,28 @@ namespace NCB {
         CB_ENSURE(false, "Unsupported feature type");
     }
 
+    TVector<TString> GetCatFeatureValues(
+        const TFullModel& model,
+        const TDataProvider& dataset,
+        const size_t flatFeatureIndex) {
+
+        auto typeAndIndex = GetFeatureTypeAndInternalIndex(model, flatFeatureIndex);
+        CB_ENSURE_INTERNAL(typeAndIndex.Type == EFeatureType::Categorical,
+            "Cannot get values of non-categorical feature #" << flatFeatureIndex);
+
+        const auto& oneHotUniqueValues = model.ObliviousTrees.OneHotFeatures[typeAndIndex.Index].Values;
+        const auto& hashToString = dataset.ObjectsData->GetCatFeaturesHashToString(typeAndIndex.Index);
+
+        TVector<TString> stringValues;
+        for (auto val : oneHotUniqueValues) {
+            auto it = hashToString.find(static_cast<ui32>(val));
+            if (it == hashToString.end()) {
+                continue;
+            }
+            stringValues.push_back((*it).second);
+        }
+
+        return stringValues;
+    }
+
 }

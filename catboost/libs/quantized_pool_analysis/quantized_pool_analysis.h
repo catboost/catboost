@@ -49,4 +49,9 @@ namespace NCB {
 
     TFeatureTypeAndInternalIndex GetFeatureTypeAndInternalIndex(const TFullModel& model, const int flatFeatureIndex);
 
+    TVector<TString> GetCatFeatureValues(
+        const TFullModel& model,
+        const TDataProvider& dataset,
+        const size_t flatFeatureIndex);
+
 }

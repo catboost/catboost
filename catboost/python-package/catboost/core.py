@@ -2153,6 +2153,10 @@ class CatBoost(_CatBoostBase):
             res = self._object._get_binarized_statistics(data, feature_internal_index,
                                                          prediction_type, feature_type, thread_count)
         elif feature_type == 'categorical':
+            if cat_feature_values is None:
+                cat_feature_values = self._object._get_cat_feature_values(data, feature)
+                cat_feature_values = [val.decode() for val in cat_feature_values]
+
             if not isinstance(cat_feature_values, ARRAY_TYPES):
                 raise CatBoostError("Feature #{} is categorical. "
                                     "Please provide values for which you need statistics in cat_feature_values"
