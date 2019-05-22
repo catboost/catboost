@@ -2268,6 +2268,8 @@ class CatBoostClassifier(CatBoost):
         (do not perform a random permutation of the dataset at the preprocessing stage).
     allow_const_label : bool, [default=False]
         To allow the constant label value in dataset.
+    target_border: float, [default=None]
+        Border for target binarization.
     classes_count : int, [default=None]
         The upper limit for the numeric class label.
         Defines the number of classes for multiclassification.
@@ -2466,6 +2468,7 @@ class CatBoostClassifier(CatBoost):
         max_ctr_complexity=None,
         has_time=None,
         allow_const_label=None,
+        target_border=None,
         classes_count=None,
         class_weights=None,
         class_names=None,
@@ -2900,6 +2903,7 @@ class CatBoostRegressor(CatBoost):
         max_ctr_complexity=None,
         has_time=None,
         allow_const_label=None,
+        target_border=None,
         one_hot_max_size=None,
         random_strength=None,
         name=None,
