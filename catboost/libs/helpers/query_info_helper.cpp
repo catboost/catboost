@@ -113,8 +113,23 @@ void UpdateQueriesPairs(
     UpdateQueriesPairs(pairs, 0, pairs.size(), invertedPermutation, queryInfo);
 }
 
-TFlatPairsInfo UnpackPairsFromQueries(const TConstArrayRef<TQueryInfo> queries) {
+TFlatPairsInfo UnpackPairsFromQueries(TConstArrayRef<TQueryInfo> queries) {
+    size_t pairsCount = 0;
+    for (const auto& query : queries) {
+        if (query.Competitors.empty()) {
+            continue;
+        }
+
+        const ui32 begin = query.Begin;
+        const ui32 end = query.End;
+        for (ui32 winnerId = begin; winnerId < end; ++winnerId) {
+            pairsCount += query.Competitors[winnerId - begin].size();
+        }
+    }
+
     TFlatPairsInfo pairs;
+    pairs.reserve(pairsCount);
+
     for (const auto& query : queries) {
         if (query.Competitors.empty()) {
             continue;

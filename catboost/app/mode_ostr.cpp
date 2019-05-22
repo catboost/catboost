@@ -74,6 +74,7 @@ int mode_ostr(int argc, const char* argv[]) {
                                                        params.DsvPoolFormatParams,
                                                        /*ignoredFeatures*/ {},
                                                        EObjectsOrder::Undefined,
+                                                       TDatasetSubset::MakeColumns(),
                                                        /*classNames=*/Nothing(),
                                                        &localExecutor);
 
@@ -84,6 +85,7 @@ int mode_ostr(int argc, const char* argv[]) {
                                                       params.DsvPoolFormatParams,
                                                       /*ignoredFeatures*/ {},
                                                       EObjectsOrder::Undefined,
+                                                      TDatasetSubset::MakeColumns(),
                                                       /*classNames=*/Nothing(),
                                                       &localExecutor);
 

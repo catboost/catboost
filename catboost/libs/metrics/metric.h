@@ -372,7 +372,7 @@ inline bool IsMaxOptimal(const IMetric& metric) {
 void CheckPreprocessedTarget(
     TConstArrayRef<float> target,
     const NCatboostOptions::TLossDescription& lossDesciption,
-    bool isLearnData,
+    bool isNonEmptyAndNonConst,
     bool allowConstLabel
 );
 

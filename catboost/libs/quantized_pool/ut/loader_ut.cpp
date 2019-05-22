@@ -202,6 +202,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
             NCatboostOptions::TDsvPoolFormatParams(),
             testCase.SrcData.IgnoredFeatures,
             testCase.SrcData.ObjectsOrder,
+            TDatasetSubset::MakeColumns(),
             &readDatasetMainParams.ClassNames,
             &localExecutor
         );

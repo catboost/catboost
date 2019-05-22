@@ -11,6 +11,7 @@ namespace NCB {
 
     struct IExistsChecker {
         virtual bool Exists(const TPathWithScheme& pathWithScheme) const = 0;
+        virtual bool IsSharedFs() const = 0;
         virtual ~IExistsChecker() = default;
     };
 
@@ -22,9 +23,14 @@ namespace NCB {
      */
     bool CheckExists(const TPathWithScheme& pathWithScheme);
 
+    bool IsSharedFs(const TPathWithScheme& pathWithScheme);
+
     struct TFSExistsChecker : public IExistsChecker {
         bool Exists(const TPathWithScheme& pathWithScheme) const override {
             return NFs::Exists(pathWithScheme.Path);
+        }
+        bool IsSharedFs() const override {
+            return false;
         }
     };
 

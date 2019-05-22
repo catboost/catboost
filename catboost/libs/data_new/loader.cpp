@@ -44,10 +44,13 @@ namespace NCB {
             (*ignoredFeaturesMask)[ignoredFeatureFlatIdx] = true;
         }
         CB_ENSURE(featureCount > ignoredFeaturesInDataCount, "All features are requested to be ignored");
+        CB_ENSURE_INTERNAL(featureCount >= ignoredFeaturesInDataCount,
+            "Too many ignored features: feature count is " << featureCount
+            << " ignored features count is " << ignoredFeaturesInDataCount);
     }
 
 
-    static TVector<TPair> ReadPairs(const TPathWithScheme& filePath, ui64 docCount) {
+    static TVector<TPair> ReadPairs(const TPathWithScheme& filePath, ui64 docCount, TDatasetSubset loadSubset) {
         THolder<ILineDataReader> reader = GetLineDataReader(filePath);
 
         TVector<TPair> pairs;
@@ -70,11 +73,14 @@ namespace NCB {
                         "Invalid " << description << " index: cannot parse as nonnegative index ("
                         << tokens[tokenIdx] << ')'
                     );
-                    CB_ENSURE(
-                        *id < docCount,
-                        "Invalid " << description << " index (" << *id << "): not less than number of samples"
-                        " (" << docCount << ')'
-                    );
+                    *id -= loadSubset.Range.Begin;
+                    if (*id < loadSubset.GetSize()) {
+                        CB_ENSURE(
+                            *id < docCount,
+                            "Invalid " << description << " index (" << *id << "): not less than number of samples"
+                            " (" << docCount << ')'
+                        );
+                    }
                     ++tokenIdx;
                 };
                 parseIdFunc(AsStringBuf("Winner"), &pair.WinnerId);
@@ -87,7 +93,15 @@ namespace NCB {
                         "Invalid weight: cannot parse as float (" << tokens[2] << ')'
                     );
                 }
-                pairs.push_back(std::move(pair));
+                if (pair.WinnerId < loadSubset.GetSize() && pair.LoserId < loadSubset.GetSize()) {
+                    pairs.push_back(std::move(pair));
+                } else {
+                    CB_ENSURE(
+                        pair.WinnerId >= loadSubset.GetSize() && pair.LoserId >= loadSubset.GetSize(),
+                        "Load subset [" << loadSubset.Range.Begin << ", " << loadSubset.Range.End << ") must contain loser "
+                        << pair.LoserId + loadSubset.Range.Begin << " and winner " << pair.WinnerId + loadSubset.Range.Begin
+                    );
+                }
             } catch (const TCatBoostException& e) {
                 throw TCatBoostException() << "Incorrect file with pairs. Invalid line number #" << lineNumber
                     << ": " << e.what();
@@ -97,7 +111,7 @@ namespace NCB {
         return pairs;
     }
 
-    static TVector<TVector<float>> ReadBaseline(const TPathWithScheme& filePath, ui64 docCount, const TVector<TString>& classNames) {
+    static TVector<TVector<float>> ReadBaseline(const TPathWithScheme& filePath, ui64 docCount, TDatasetSubset loadSubset, const TVector<TString>& classNames) {
         TBaselineReader reader(filePath, classNames);
 
         TString line;
@@ -107,26 +121,45 @@ namespace NCB {
         TVector<TVector<float>> baseline;
         ResizeRank2(tokenIndexes.size(), docCount, baseline);
         ui32 lineNumber = 0;
-        auto addBaselineFunc = [&baseline, &lineNumber](ui32 approxIdx, float value) {
-            baseline[approxIdx][lineNumber] = value;
+        auto addBaselineFunc = [&baseline, &lineNumber, &loadSubset](ui32 approxIdx, float value) {
+            baseline[approxIdx][lineNumber - loadSubset.Range.Begin] = value;
         };
 
         for (; reader.ReadLine(&line); lineNumber++) {
-            reader.Parse(addBaselineFunc, line, lineNumber);
+            if (lineNumber < loadSubset.Range.Begin) {
+                continue;
+            }
+            if (lineNumber >= loadSubset.Range.End) {
+                break;
+            }
+            reader.Parse(addBaselineFunc, line, lineNumber - loadSubset.Range.Begin);
         }
-        CB_ENSURE(lineNumber == docCount, "Baseline file has " << lineNumber << "lines, need " << docCount);
+        CB_ENSURE(lineNumber - loadSubset.Range.Begin == docCount,
+            "Expected " << docCount << " lines in baseline file starting at offset " << loadSubset.Range.Begin
+            << " got " << lineNumber - loadSubset.Range.Begin);
         return baseline;
+    }
+
+    namespace {
+        enum class EReadLocation {
+            BeforeSubset,
+            InSubset,
+            AfterSubset
+        };
     }
 
     static TVector<float> ReadGroupWeights(
         const TPathWithScheme& filePath,
         TConstArrayRef<TGroupId> groupIds,
-        ui64 docCount
+        ui64 docCount,
+        TDatasetSubset loadSubset
     ) {
+        Y_UNUSED(loadSubset);
         CB_ENSURE(groupIds.size() == docCount, "GroupId count should correspond to object count.");
         TVector<float> groupWeights;
         groupWeights.reserve(docCount);
         ui64 groupIdCursor = 0;
+        EReadLocation readLocation = EReadLocation::BeforeSubset;
         THolder<ILineDataReader> reader = GetLineDataReader(filePath);
         TString line;
         for (size_t lineNumber = 0; reader->ReadLine(&line); lineNumber++) {
@@ -142,37 +175,52 @@ namespace NCB {
                     "Invalid group weight: cannot parse as float (" << tokens[1] << ')'
                 );
 
-                ui64 groupSize = 0;
-                CB_ENSURE(
-                    groupId == groupIds[groupIdCursor],
-                    "GroupId from the file with group weights does not match GroupId from the dataset; "
-                    LabeledOutput(groupId, groupIds[groupIdCursor], groupIdCursor));
-                while (groupIdCursor < docCount && groupId == groupIds[groupIdCursor]) {
-                    ++groupSize;
-                    ++groupIdCursor;
+                if (readLocation == EReadLocation::BeforeSubset) {
+                    if (groupId != groupIds[groupIdCursor]) {
+                        continue;
+                    }
+                    readLocation = EReadLocation::InSubset;
                 }
-                groupWeights.insert(groupWeights.end(), groupSize, groupWeight);
+                if (readLocation == EReadLocation::InSubset) {
+                    if (groupIdCursor < docCount) {
+                        ui64 groupSize = 0;
+                        CB_ENSURE(
+                            groupId == groupIds[groupIdCursor],
+                            "GroupId from the file with group weights does not match GroupId from the dataset; "
+                            LabeledOutput(groupId, groupIds[groupIdCursor], groupIdCursor));
+                        while (groupIdCursor < docCount && groupId == groupIds[groupIdCursor]) {
+                            ++groupSize;
+                            ++groupIdCursor;
+                        }
+                        groupWeights.insert(groupWeights.end(), groupSize, groupWeight);
+                    } else {
+                        readLocation = EReadLocation::AfterSubset;
+                    }
+                }
             } catch (const TCatBoostException& e) {
                 throw TCatBoostException() << "Incorrect file with group weights. Invalid line number #"
                     << lineNumber << ": " << e.what();
             }
         }
+        CB_ENSURE(readLocation != EReadLocation::BeforeSubset,
+            "Requested group ids are absent or non-consecutive in group weights file.");
         CB_ENSURE(groupWeights.size() == docCount,
             "Group weights file should have as many weights as the objects in the dataset.");
 
         return groupWeights;
     }
 
-    void SetPairs(const TPathWithScheme& pairsPath, ui32 objectCount, IDatasetVisitor* visitor) {
+    void SetPairs(const TPathWithScheme& pairsPath, ui32 objectCount, TDatasetSubset loadSubset, IDatasetVisitor* visitor) {
         DumpMemUsage("After data read");
         if (pairsPath.Inited()) {
-            visitor->SetPairs(ReadPairs(pairsPath, objectCount));
+            visitor->SetPairs(ReadPairs(pairsPath, objectCount, loadSubset));
         }
     }
 
     void SetGroupWeights(
         const TPathWithScheme& groupWeightsPath,
         ui32 objectCount,
+        TDatasetSubset loadSubset,
         IDatasetVisitor* visitor
     ) {
         DumpMemUsage("After data read");
@@ -182,7 +230,8 @@ namespace NCB {
             TVector<float> groupWeights = ReadGroupWeights(
                 groupWeightsPath,
                 *maybeGroupIds,
-                objectCount
+                objectCount,
+                loadSubset
             );
             visitor->SetGroupWeights(std::move(groupWeights));
         }
@@ -191,12 +240,13 @@ namespace NCB {
     void SetBaseline(
         const TPathWithScheme& baselinePath,
         ui32 objectCount,
+        TDatasetSubset loadSubset,
         const TVector<TString>& classNames,
         IDatasetVisitor* visitor
     ) {
         DumpMemUsage("After data read");
         if (baselinePath.Inited()) {
-            visitor->SetBaseline(ReadBaseline(baselinePath, objectCount, classNames));
+            visitor->SetBaseline(ReadBaseline(baselinePath, objectCount, loadSubset, classNames));
         }
     }
 

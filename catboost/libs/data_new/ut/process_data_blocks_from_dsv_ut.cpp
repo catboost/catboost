@@ -25,6 +25,7 @@ inline void ReadAndProceedPoolInBlocks(
     TConsumer&& poolConsumer,
     NPar::TLocalExecutor* localExecutor) {
 
+    const auto loadSubset = TDatasetSubset::MakeColumns();
     auto datasetLoader = GetProcessor<IDatasetLoader>(
         dsvFilePath, // for choosing processor
 
@@ -42,6 +43,7 @@ inline void ReadAndProceedPoolInBlocks(
                 /*ignoredFeatures*/ {},
                 EObjectsOrder::Undefined,
                 blockSize,
+                loadSubset,
                 localExecutor
             }
         }
@@ -50,6 +52,7 @@ inline void ReadAndProceedPoolInBlocks(
     THolder<IDataProviderBuilder> dataProviderBuilder = CreateDataProviderBuilder(
         datasetLoader->GetVisitorType(),
         TDataProviderBuilderOptions{},
+        loadSubset,
         localExecutor
     );
     CB_ENSURE_INTERNAL(

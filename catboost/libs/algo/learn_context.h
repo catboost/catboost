@@ -19,8 +19,6 @@
 
 #include <library/json/json_reader.h>
 
-#include <library/par/par.h>
-
 #include <util/generic/noncopyable.h>
 #include <util/generic/hash_set.h>
 
@@ -42,7 +40,7 @@ struct TLearnProgress {
 
     int ApproxDimension = 1;
     TLabelConverter LabelConverter;
-    EHessianType HessianType;
+    EHessianType HessianType = EHessianType::Symmetric;
     bool EnableSaveLoadApprox = true;
 
     TString SerializedTrainParams; // TODO(kirillovs): do something with this field
@@ -110,8 +108,6 @@ public:
         , Rand(Params.RandomSeed)
         , OutputOptions(outputOptions)
         , Files(outputOptions, fileNamesPrefix)
-        , RootEnvironment(nullptr)
-        , SharedTrainData(nullptr)
         , Profile((int)Params.BoostingOptions->IterationCount)
         , LearnAndTestDataPackingAreCompatible(false)
         , UseTreeLevelCachingFlag(false) {
@@ -141,8 +137,6 @@ public:
     TCalcScoreFold SmallestSplitSideDocs;
     TCalcScoreFold SampledDocs;
     TBucketStatsCache PrevTreeLevelStats;
-    TObj<NPar::IRootEnvironment> RootEnvironment;
-    TObj<NPar::IEnvironment> SharedTrainData;
     TProfileInfo Profile;
 
     bool LearnAndTestDataPackingAreCompatible;

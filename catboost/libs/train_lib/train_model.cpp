@@ -12,6 +12,7 @@
 #include <catboost/libs/algo/tree_print.h>
 #include <catboost/libs/data_new/borders_io.h>
 #include <catboost/libs/data_new/load_data.h>
+#include <catboost/libs/data_util/exists_checker.h>
 #include <catboost/libs/distributed/master.h>
 #include <catboost/libs/distributed/worker.h>
 #include <catboost/libs/fstr/output_fstr.h>
@@ -76,6 +77,7 @@ static void ShrinkModel(int itCount, const TCtrHelper& ctrsHelper, TLearnProgres
 static TDataProviders LoadPools(
     const NCatboostOptions::TPoolLoadParams& loadOptions,
     EObjectsOrder objectsOrder,
+    TDatasetSubset trainDatasetSubset,
     TVector<TString>* classNames,
     NPar::TLocalExecutor* const executor,
     TProfileInfo* profile
@@ -87,7 +89,7 @@ static TDataProviders LoadPools(
         "Test files are not supported in cross-validation mode"
     );
 
-    auto pools = NCB::ReadTrainDatasets(loadOptions, objectsOrder, !cvMode, classNames, executor, profile);
+    auto pools = NCB::ReadTrainDatasets(loadOptions, objectsOrder, !cvMode, trainDatasetSubset, classNames, executor, profile);
 
     if (cvMode) {
         if (cvParams.Shuffle && (pools.Learn->ObjectsData->GetOrder() != EObjectsOrder::RandomShuffled)) {
@@ -534,10 +536,9 @@ namespace {
 
             const auto& systemOptions = ctx.Params.SystemOptions;
             if (!systemOptions->IsSingleHost()) { // send target, weights, baseline (if present), binarized features to workers and ask them to create plain folds
-                InitializeMaster(&ctx);
                 CB_ENSURE(IsPlainMode(ctx.Params.BoostingOptions->BoostingType), "Distributed training requires plain boosting");
                 CB_ENSURE(!ctx.Layout->GetCatFeatureCount(), "Distributed training doesn't support categorical features");
-                MapBuildPlainFold(trainingDataForCpu.Learn, &ctx);
+                MapBuildPlainFold(&ctx);
             }
             TVector<TVector<double>> oneRawValues(ctx.LearnProgress.ApproxDimension);
             TVector<TVector<TVector<double>>> rawValues(trainingDataForCpu.Test.size(), oneRawValues);
@@ -657,6 +658,12 @@ namespace {
 
 TTrainerFactory::TRegistrator<TCPUModelTrainer> CPURegistrator(ETaskType::CPU);
 
+static bool IsDistributedShared(
+    const NCatboostOptions::TPoolLoadParams* loadOptions,
+    const NCatboostOptions::TCatBoostOptions& catBoostOptions
+) {
+    return catBoostOptions.SystemOptions->IsMaster() && loadOptions != nullptr && IsSharedFs(loadOptions->LearnSetPath);
+}
 
 static void TrainModel(
     const NJson::TJsonValue& trainOptionsJson,
@@ -665,6 +672,7 @@ static void TrainModel(
     const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
     const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
     TDataProviders pools,
+    const NCatboostOptions::TPoolLoadParams* poolLoadOptions,
     const TString& outputModelPath,
     TFullModel* modelPtr,
     const TVector<TEvalResult*>& evalResultPtrs,
@@ -758,16 +766,31 @@ static void TrainModel(
     //and share data with pools, otherwise float feature would be dropped
 
 
+    const bool isQuantizedLearn = dynamic_cast<TQuantizedObjectsDataProvider*>(pools.Learn->ObjectsData.Get());
     TTrainingDataProviders trainingData = GetTrainingData(
         std::move(pools),
         /* borders */ Nothing(), // borders are already loaded to quantizedFeaturesInfo
-        /*ensureConsecutiveLearnFeaturesDataForCpu*/ true,
+        /*ensureConsecutiveLearnFeaturesDataForCpu*/ !IsDistributedShared(poolLoadOptions, catBoostOptions),
         outputOptions.AllowWriteFiles(),
         quantizedFeaturesInfo,
         &catBoostOptions,
         &labelConverter,
         executor,
         &rand);
+    if (catBoostOptions.SystemOptions->IsMaster()) {
+        InitializeMaster(catBoostOptions.SystemOptions);
+        if (isQuantizedLearn && IsSharedFs(poolLoadOptions->LearnSetPath)) {
+            SetTrainDataFromQuantizedPool(
+                *poolLoadOptions,
+                catBoostOptions,
+                *trainingData.Learn->ObjectsGrouping,
+                *quantizedFeaturesInfo->GetFeaturesLayout(),
+                &rand
+            );
+        } else {
+            SetTrainDataFromMaster(trainingData.Cast<TQuantizedForCPUObjectsDataProvider>().Learn, executor);
+        }
+    }
 
     CheckConsistency(trainingData);
 
@@ -827,10 +850,13 @@ void TrainModel(
     executor.RunAdditionalThreads(catBoostOptions.SystemOptions.Get().NumThreads.Get() - 1);
 
     TVector<TString> classNames = catBoostOptions.DataProcessingOptions->ClassNames;
+    const auto objectsOrder = catBoostOptions.DataProcessingOptions->HasTimeFlag.Get() ?
+        EObjectsOrder::Ordered : EObjectsOrder::Undefined;
+    const bool hasFeatures = !IsDistributedShared(&loadOptions, catBoostOptions);
     TDataProviders pools = LoadPools(
         loadOptions,
-        catBoostOptions.DataProcessingOptions->HasTimeFlag.Get() ?
-            EObjectsOrder::Ordered : EObjectsOrder::Undefined,
+        objectsOrder,
+        TDatasetSubset::MakeColumns(hasFeatures),
         &classNames,
         &executor,
         &profile);
@@ -895,6 +921,7 @@ void TrainModel(
         Nothing(),
         Nothing(),
         needPoolAfterTrain ? pools : std::move(pools),
+        &loadOptions,
         "",
         nullptr,
         GetMutablePointers(evalResults),
@@ -1088,6 +1115,7 @@ void ModelBasedEval(
         loadOptions,
         catBoostOptions.DataProcessingOptions->HasTimeFlag.Get() ?
             EObjectsOrder::Ordered : EObjectsOrder::Undefined,
+        TDatasetSubset::MakeColumns(),
         &classNames,
         &executor,
         &profile);
@@ -1144,6 +1172,7 @@ void TrainModel(
     NJson::TJsonValue trainOptionsJson;
     NJson::TJsonValue outputFilesOptionsJson;
     NCatboostOptions::PlainJsonToOptions(plainJsonParams, &trainOptionsJson, &outputFilesOptionsJson);
+    CB_ENSURE(!plainJsonParams.Has("node_type") || plainJsonParams["node_type"] == "SingleHost", "CatBoost Python module does not support distributed training");
 
     NCatboostOptions::TOutputFilesOptions outputOptions;
     outputOptions.Load(outputFilesOptionsJson);
@@ -1159,6 +1188,7 @@ void TrainModel(
         objectiveDescriptor,
         evalMetricDescriptor,
         std::move(pools),
+        /*poolLoadOptions*/nullptr,
         outputModelPath,
         model,
         evalResultPtrs,

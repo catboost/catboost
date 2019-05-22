@@ -1,6 +1,7 @@
 #pragma once
 
 #include "data_provider.h"
+#include "loader.h"
 #include "quantized_features_info.h"
 #include "visitor.h"
 
@@ -36,6 +37,7 @@ namespace NCB {
     THolder<IDataProviderBuilder> CreateDataProviderBuilder(
         EDatasetVisitorType visitorType,
         const TDataProviderBuilderOptions& options,
+        TDatasetSubset loadSubset,
         NPar::TLocalExecutor* localExecutor
     );
 
@@ -50,6 +52,7 @@ namespace NCB {
             DataProviderBuilder = CreateDataProviderBuilder(
                 visitorType,
                 options,
+                TDatasetSubset::MakeColumns(),
                 &NPar::LocalExecutor()
             );
             CB_ENSURE_INTERNAL(

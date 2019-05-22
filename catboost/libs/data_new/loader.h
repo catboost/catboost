@@ -8,6 +8,7 @@
 #include <catboost/libs/data_util/line_data_reader.h>
 #include <catboost/libs/data_util/path_with_scheme.h>
 #include <catboost/libs/data_types/pair.h>
+#include <catboost/libs/index_range/index_range.h>
 #include <catboost/libs/options/load_options.h>
 #include <catboost/libs/column_description/cd_parser.h>
 
@@ -17,8 +18,25 @@
 #include <util/generic/strbuf.h>
 #include <util/generic/string.h>
 #include <util/generic/vector.h>
+#include <util/generic/ylimits.h>
 
 namespace NCB {
+
+    struct TDatasetSubset {
+        bool HasFeatures = true;
+        TIndexRange<ui32> Range = {0, Max<ui32>()};
+
+    public:
+        ui32 GetSize() const { return Range.GetSize(); }
+
+        static TDatasetSubset MakeRange(ui32 start, ui32 end) {
+            return {true, {start, end}};
+        }
+
+        static TDatasetSubset MakeColumns(bool hasFeatures = true) {
+            return {hasFeatures, {0u, Max<ui32>()}};
+        }
+    };
 
     struct TDatasetLoaderCommonArgs {
         TPathWithScheme PairsFilePath;
@@ -30,6 +48,7 @@ namespace NCB {
         TVector<ui32> IgnoredFeatures;
         EObjectsOrder ObjectsOrder;
         ui32 BlockSize;
+        TDatasetSubset DatasetSubset;
         NPar::TLocalExecutor* LocalExecutor;
     };
 
@@ -128,15 +147,22 @@ namespace NCB {
     );
 
 
-    void SetPairs(const TPathWithScheme& pairsPath, ui32 objectCount, IDatasetVisitor* visitor);
+    /*
+     * Set pairs/group weights/baseline from loadSubset.Range of data
+     * Indices of objects passed to visitor methods are indices from the beginning of the subset (not indices in the whole dataset).
+     * objectCount parameter represents the number of objects in the subset.
+     */
+    void SetPairs(const TPathWithScheme& pairsPath, ui32 objectCount, TDatasetSubset loadSubset, IDatasetVisitor* visitor);
     void SetGroupWeights(
         const TPathWithScheme& groupWeightsPath,
         ui32 objectCount,
+        TDatasetSubset loadSubset,
         IDatasetVisitor* visitor
     );
     void SetBaseline(
         const TPathWithScheme& baselinePath,
         ui32 objectCount,
+        TDatasetSubset loadSubset,
         const TVector<TString>& classNames,
         IDatasetVisitor* visitor
     );
@@ -211,8 +237,8 @@ namespace NCB {
 
         virtual void FinalizeBuilder(bool inBlock, IRawObjectsOrderDataVisitor* visitor) {
             if (!inBlock) {
-                SetGroupWeights(Args.GroupWeightsFilePath, GetObjectCount(), visitor);
-                SetPairs(Args.PairsFilePath, GetObjectCount(), visitor);
+                SetGroupWeights(Args.GroupWeightsFilePath, GetObjectCount(), Args.DatasetSubset, visitor);
+                SetPairs(Args.PairsFilePath, GetObjectCount(), Args.DatasetSubset, visitor);
             }
             visitor->Finish();
         }

@@ -19,7 +19,7 @@ namespace NCB {
         const TRawTargetDataProvider& rawData,
         TMaybeData<TConstArrayRef<TSubgroupId>> subgroupIds,
         bool isForGpu,
-        bool isLearnData,
+        bool isNonEmptyAndNonConst,
         TStringBuf datasetName,
         TConstArrayRef<NCatboostOptions::TLossDescription> metricDescriptions, // must be non-empty
 

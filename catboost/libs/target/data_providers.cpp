@@ -96,7 +96,7 @@ namespace NCB {
     static void CheckPreprocessedTarget(
         const TSharedVector<float>& maybeConvertedTarget,
         TStringBuf datasetName,
-        bool isLearnData,
+        bool isNonEmptyAndNonConst,
         bool allowConstLabel,
         bool needCheckTarget,
         TConstArrayRef<NCatboostOptions::TLossDescription> metricDescriptions)
@@ -127,7 +127,7 @@ namespace NCB {
             ::CheckPreprocessedTarget(
                 convertedTarget,
                 metricDescription,
-                isLearnData,
+                isNonEmptyAndNonConst,
                 allowConstLabel
             );
         }
@@ -354,7 +354,7 @@ namespace NCB {
         const TRawTargetDataProvider& rawData,
         TMaybeData<TConstArrayRef<TSubgroupId>> subgroupIds,
         bool isForGpu,
-        bool isLearnData,
+        bool isNonEmptyAndNonConst,
         TStringBuf datasetName,
         TConstArrayRef<NCatboostOptions::TLossDescription> metricDescriptions,
         TMaybe<NCatboostOptions::TLossDescription*> mainLossFunction,
@@ -371,7 +371,7 @@ namespace NCB {
         NPar::TLocalExecutor* localExecutor,
         bool* hasPairs) {
 
-        if (isLearnData) {
+        if (isNonEmptyAndNonConst) {
             CB_ENSURE(rawData.GetObjectCount() > 0, "Train dataset is empty");
         }
 
@@ -675,7 +675,7 @@ namespace NCB {
         CheckPreprocessedTarget(
             maybeConvertedTarget,
             datasetName,
-            isLearnData,
+            isNonEmptyAndNonConst,
             allowConstLabel,
             needCheckTarget,
             metricDescriptions);

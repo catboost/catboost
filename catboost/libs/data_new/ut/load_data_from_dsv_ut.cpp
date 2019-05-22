@@ -47,6 +47,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
             readDatasetMainParams.DsvPoolFormatParams,
             testCase.SrcData.IgnoredFeatures,
             testCase.SrcData.ObjectsOrder,
+            TDatasetSubset::MakeColumns(),
             /*classNames*/Nothing(),
             &localExecutor
         );
