@@ -361,7 +361,6 @@ namespace NCB {
         TConstArrayRef<NCatboostOptions::TLossDescription> metricDescriptions,
         TMaybe<NCatboostOptions::TLossDescription*> mainLossFunction,
         bool allowConstLabel,
-        TMaybe<float> targetBorder,
         bool metricsThatRequireTargetCanBeSkipped,
         bool needTargetDataForCtrs,
         TMaybe<ui32> knownModelApproxDimension,
@@ -369,6 +368,7 @@ namespace NCB {
         TConstArrayRef<float> classWeights, // [classIdx], empty if not specified
         TVector<TString>* classNames,
         TMaybe<TLabelConverter*> labelConverter, // needed only for multiclass
+        TMaybe<float>* targetBorder,
         TRestorableFastRng64* rand, // for possible pairs generation
         NPar::TLocalExecutor* localExecutor,
         bool* hasPairs) {
@@ -513,7 +513,7 @@ namespace NCB {
                 mainLossFunction &&
                 ShouldBinarizeLabel((*mainLossFunction)->GetLossFunction())
             ) {
-                if (!targetBorder) {
+                if (!(*targetBorder)) {
                     THashSet<float> uniqueValues;
                     for (auto target : *maybeConvertedTarget) {
                         if (uniqueValues.size() < 3) {
@@ -526,10 +526,11 @@ namespace NCB {
                     CB_ENSURE(uniqueValues.size() < 3, "You should specify target border parameter for target binarization.");
                     const auto firstValue = *uniqueValues.begin();
                     const auto secondValue = uniqueValues.size() == 1 ? firstValue : *(++uniqueValues.begin());
-                    targetBorder = (firstValue + secondValue) / 2;
+                    *targetBorder = (firstValue + secondValue) / 2;
+                    CATBOOST_DEBUG_LOG << "Target border set to " << *targetBorder << Endl;
                 }
 
-                PrepareTargetBinary(*maybeConvertedTarget, *targetBorder, &*maybeConvertedTarget);
+                PrepareTargetBinary(*maybeConvertedTarget, **targetBorder, &*maybeConvertedTarget);
             }
 
             if (maybeConvertedTarget) {
@@ -677,7 +678,7 @@ namespace NCB {
             datasetName,
             isLearnData,
             allowConstLabel,
-            targetBorder,
+            *targetBorder,
             needCheckTarget,
             metricDescriptions);
 
@@ -774,6 +775,8 @@ namespace NCB {
             }
         }
 
+        TMaybe<float> targetBorder = Nothing();
+
         TProcessedDataProvider result;
         result.MetaInfo = srcData.MetaInfo;
         result.ObjectsGrouping = srcData.ObjectsGrouping;
@@ -787,7 +790,6 @@ namespace NCB {
             updatedMetricsDescriptions,
             /*mainLossFunction*/ Nothing(),
             /*allowConstLabel*/ true,
-            /*targetBorder*/ Nothing(),
             /*metricsThatRequireTargetCanBeSkipped*/ false,
             /*needTargetDataForCtrs*/ false,
             (ui32)model.ObliviousTrees.ApproxDimension,
@@ -795,6 +797,7 @@ namespace NCB {
             classWeights,
             &classNames,
             &labelConverter,
+            &targetBorder,
             rand,
             localExecutor,
             &result.MetaInfo.HasPairs

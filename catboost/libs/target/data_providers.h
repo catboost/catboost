@@ -29,7 +29,6 @@ namespace NCB {
          */
         TMaybe<NCatboostOptions::TLossDescription*> mainLossFuncion,
         bool allowConstLabel,
-        TMaybe<float> targetBorder,
         bool metricsThatRequireTargetCanBeSkipped,
         bool needTargetDataForCtrs,
         TMaybe<ui32> knownModelApproxDimension,
@@ -37,6 +36,7 @@ namespace NCB {
         TConstArrayRef<float> classWeights, // [classIdx], empty if not specified
         TVector<TString>* classNames, // inout parameter
         TMaybe<TLabelConverter*> labelConverter, // needed only for multiclass
+        TMaybe<float>* targetBorder,
         TRestorableFastRng64* rand, // for possible pairs generation
         NPar::TLocalExecutor* localExecutor,
         bool* hasPairs);
