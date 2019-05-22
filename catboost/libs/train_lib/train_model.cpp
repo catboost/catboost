@@ -606,6 +606,7 @@ namespace {
             {
                 NCB::TCoreModelToFullModelConverter coreModelToFullModelConverter(
                     ctx.Params,
+                    outputOptions,
                     classificationTargetHelper,
                     ctx.Params.CatFeatureParams->CtrLeafCountLimit,
                     ctx.Params.CatFeatureParams->StoreAllSimpleCtrs,

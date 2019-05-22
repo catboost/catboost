@@ -147,3 +147,6 @@ NJson::TJsonValue GetTrainingOptions(
     const NCB::TDataMetaInfo& trainDataMetaInfo,
     const TMaybe<NCB::TDataMetaInfo>& testDataMetaInfo
 );
+
+NJson::TJsonValue GetPlainJsonWithAllOptions(const TFullModel& model);
+

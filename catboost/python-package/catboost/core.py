@@ -1008,6 +1008,9 @@ class _CatBoostBase(object):
                 params[key] = value
         return params
 
+    def _get_plain_params(self):
+        return self._object._get_plain_params()
+
     def _is_classification_objective(self, loss_function):
         return isinstance(loss_function, str) and is_classification_objective(loss_function)
 
@@ -2033,6 +2036,21 @@ class CatBoost(_CatBoostBase):
             return deepcopy(params)
         else:
             return params
+
+    def get_all_params(self, deep=True):
+        """
+        Get all params (specified by user and default params) that were set in training from CatBoost model.
+        Full parameters documentation could be found here: https://catboost.ai/docs/concepts/python-reference_parameters-list.html
+
+        Parameters
+        ----------
+        deep (bool):
+            Return deep copy of params dict or not
+        """
+        plain_params = self._get_plain_params()
+        if deep:
+            return deepcopy(plain_params)
+        return plain_params
 
     def save_borders(self, fname):
         """

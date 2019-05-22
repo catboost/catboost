@@ -24,6 +24,7 @@ struct TFullModel;
 
 namespace NCatboostOptions {
     class TCatBoostOptions;
+    class TOutputFilesOptions;
 }
 
 namespace NCB {
@@ -44,6 +45,7 @@ namespace NCB {
     public:
         TCoreModelToFullModelConverter(
             const NCatboostOptions::TCatBoostOptions& options,
+            const NCatboostOptions::TOutputFilesOptions& outputOptions,
             const TClassificationTargetHelper& classificationTargetHelper,
             ui64 ctrLeafCountLimit,
             bool storeAllSimpleCtrs,
@@ -99,6 +101,8 @@ namespace NCB {
         bool StoreAllSimpleCtrs;
 
         const NCatboostOptions::TCatBoostOptions& Options;
+        const NCatboostOptions::TOutputFilesOptions& outputOptions;
+
         const TClassificationTargetHelper& ClassificationTargetHelper;
 
         TFullModel* CoreModel = nullptr;

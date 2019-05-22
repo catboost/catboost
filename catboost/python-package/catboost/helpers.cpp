@@ -5,6 +5,7 @@
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/interrupt.h>
 #include <catboost/libs/helpers/query_info_helper.h>
+#include <catboost/libs/options/plain_options_helper.h>
 
 extern "C" PyObject* PyCatboostExceptionType;
 
@@ -152,3 +153,13 @@ NJson::TJsonValue GetTrainingOptions(
     catboostOptions.Save(&catboostOptionsJson);
     return catboostOptionsJson;
 }
+
+NJson::TJsonValue GetPlainJsonWithAllOptions(const TFullModel& model)
+{
+    NJson::TJsonValue trainOptions = ReadTJsonValue(model.ModelInfo.at("params"));
+    NJson::TJsonValue outputOptions = ReadTJsonValue(model.ModelInfo.at("output_options"));
+    NJson::TJsonValue plainOptionsJson;
+    NCatboostOptions::ConvertOptionsToPlainJson(trainOptions, outputOptions, &plainOptionsJson);
+    return plainOptionsJson;
+}
+

@@ -127,6 +127,7 @@ namespace NCB {
 
     TCoreModelToFullModelConverter::TCoreModelToFullModelConverter(
         const NCatboostOptions::TCatBoostOptions& options,
+        const NCatboostOptions::TOutputFilesOptions& outputOptions,
         const TClassificationTargetHelper& classificationTargetHelper,
         ui64 ctrLeafCountLimit,
         bool storeAllSimpleCtrs,
@@ -138,6 +139,7 @@ namespace NCB {
         , CtrLeafCountLimit(ctrLeafCountLimit)
         , StoreAllSimpleCtrs(storeAllSimpleCtrs)
         , Options(options)
+        , outputOptions(outputOptions)
         , ClassificationTargetHelper(classificationTargetHelper)
     {}
 
@@ -266,6 +268,11 @@ namespace NCB {
             NJson::TJsonValue jsonOptions(NJson::EJsonValueType::JSON_MAP);
             Options.Save(&jsonOptions);
             dstModel->ModelInfo["params"] = ToString(jsonOptions);
+
+            NJson::TJsonValue jsonOutputOptions(NJson::EJsonValueType::JSON_MAP);
+            outputOptions.Save(&jsonOutputOptions);
+            dstModel->ModelInfo["output_options"] = ToString(jsonOutputOptions);
+
             for (const auto& keyValue : Options.Metadata.Get().GetMap()) {
                 dstModel->ModelInfo[keyValue.first] = keyValue.second.GetString();
             }

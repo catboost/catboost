@@ -140,56 +140,183 @@ Y_UNIT_TEST_SUITE(TJsonHelperTest) {
                                    "  \"iterations\": 100,\n"
                                    "  \"learning_rate\": 0.1,\n"
                                    "  \"depth\": 3,\n"
-                                   "  \"verbose\": 0\n"
+                                   "  \"verbose\": 0,\n"
+                                   "  \"fold_len_multiplier\": 2,\n"
+                                   "  \"approx_on_full_history\": false,\n"
+                                   "  \"fold_permutation_block\": 16,\n"
+
+                                   "  \"od_pval\": 0.001,\n"
+                                   "  \"od_wait\": 10,\n"
+                                   "  \"od_type\": \"IncToDec\",\n"
+
+                                   "  \"leaf_estimation_iterations\": 15,\n"
+                                   "  \"leaf_estimation_backtracking\": \"AnyImprovement\",\n"
+
+                                   "  \"bootstrap_type\": \"Bernoulli\",\n"
+                                   "  \"bagging_temperature\": 36.6,\n"
+
+
                                    "}"
                                    "";
 
             NJson::TJsonValue plainOptions;
             NJson::ReadJsonTree(jsonPlain, &plainOptions);
 
+            // reference variables
             int refIterations = 100;
             double refLearningRate = 0.1;
+            int refFoldLenMultiplier = 2;
+            bool refApproxOnFullHistory = false;
+            int refFoldPermutationBlock = 16;
+
+            double refOdPval = 0.001;
+            int refOdWait = 10;
+            TString refOdType = "IncToDec";
+
             int refDepth = 3;
+            int refLeafEstimationIterations = 15;
+            TString refLeafEstimationBacktracking = "AnyImprovement";
+
+            TString refBootstrapType = "Bernoulli";
+            double refBaggingTemperature = 36.6;
+
             int refVerbose = 0;
 
+            // parsed variables
             int parsedIterations = 7;
             double parsedLearningRate = 10.9;
+            int parsedFoldLenMultiplier = 8;
+            bool parsedApproxOnFullHistory = true;
+            int parsedFoldPermutationBlock = 33;
+
+            double parsedOdPval = 1.5;
+            int parsedOdWait = 1000;
+            TString parsedOdType = "Moscow";
+
             int parsedDepth = 10000;
+            int parsedLeafEstimationIterations = 1000;
+            TString parsedLeafEstimationBacktracking = "Minsk";
+
+            TString parsedBootstrapType = "Laplace";
+            double parsedBaggingTemperature = 39.0;
+
             int parsedVerbose = 99;
+
 
             NJson::TJsonValue trainOptionsJson;
             NJson::TJsonValue outputFilesOptionsJson;
             NCatboostOptions::PlainJsonToOptions(plainOptions, &trainOptionsJson, &outputFilesOptionsJson);
 
-            TJsonFieldHelper<int>::Read(trainOptionsJson["boosting_options"]["iterations"], &parsedIterations);
-            TJsonFieldHelper<double>::Read(trainOptionsJson["boosting_options"]["learning_rate"], &parsedLearningRate);
-            TJsonFieldHelper<int>::Read(trainOptionsJson["tree_learner_options"]["depth"], &parsedDepth);
+            // boosting options
+            auto& boosting_options = trainOptionsJson["boosting_options"];
+            TJsonFieldHelper<int>::Read(boosting_options["iterations"], &parsedIterations);
+            TJsonFieldHelper<double>::Read(boosting_options["learning_rate"], &parsedLearningRate);
+            TJsonFieldHelper<int>::Read(boosting_options["fold_len_multiplier"], &parsedFoldLenMultiplier);
+            TJsonFieldHelper<bool>::Read(boosting_options["approx_on_full_history"], &parsedApproxOnFullHistory);
+            TJsonFieldHelper<int>::Read(boosting_options["fold_permutation_block"], &parsedFoldPermutationBlock);
+
+            // od_config options
+            auto& odConfig = boosting_options["od_config"];
+            TJsonFieldHelper<double>::Read(odConfig["stop_pvalue"], &parsedOdPval);
+            TJsonFieldHelper<int>::Read(odConfig["wait_iterations"], &parsedOdWait);
+            TJsonFieldHelper<TString>::Read(odConfig["type"], &parsedOdType);
+
+            // tree_learner options
+            auto& treeOptions = trainOptionsJson["tree_learner_options"];
+            TJsonFieldHelper<int>::Read(treeOptions["depth"], &parsedDepth);
+            TJsonFieldHelper<int>::Read(treeOptions["leaf_estimation_iterations"], &parsedLeafEstimationIterations);
+            TJsonFieldHelper<TString>::Read(treeOptions["leaf_estimation_backtracking"], &parsedLeafEstimationBacktracking);
+
+            // bootstrap
+            auto& bootstrapOptions = treeOptions["bootstrap"];
+            TJsonFieldHelper<TString>::Read(bootstrapOptions["type"], &parsedBootstrapType);
+            TJsonFieldHelper<double>::Read(bootstrapOptions["bagging_temperature"], &parsedBaggingTemperature);
+
             TJsonFieldHelper<int>::Read(outputFilesOptionsJson["verbose"], &parsedVerbose);
+
 
             // plainOptions to trainOptionsJson and outputFilesOptionsJson using PlainJsonToOptions
             UNIT_ASSERT_VALUES_EQUAL(parsedIterations, refIterations);
             UNIT_ASSERT_VALUES_EQUAL(parsedLearningRate, refLearningRate);
+            UNIT_ASSERT_VALUES_EQUAL(parsedFoldLenMultiplier, refFoldLenMultiplier);
+            UNIT_ASSERT_VALUES_EQUAL(parsedApproxOnFullHistory, refApproxOnFullHistory);
+            UNIT_ASSERT_VALUES_EQUAL(parsedFoldPermutationBlock, refFoldPermutationBlock);
+
+            UNIT_ASSERT_VALUES_EQUAL(parsedOdPval, refOdPval);
+            UNIT_ASSERT_VALUES_EQUAL(parsedOdWait, refOdWait);
+            UNIT_ASSERT_VALUES_EQUAL(parsedOdType, refOdType);
+
             UNIT_ASSERT_VALUES_EQUAL(parsedDepth, refDepth);
+            UNIT_ASSERT_VALUES_EQUAL(parsedLeafEstimationIterations, refLeafEstimationIterations);
+            UNIT_ASSERT_VALUES_EQUAL(parsedLeafEstimationBacktracking, refLeafEstimationBacktracking);
+
+            UNIT_ASSERT_VALUES_EQUAL(parsedBootstrapType, refBootstrapType);
+            UNIT_ASSERT_VALUES_EQUAL(parsedBaggingTemperature,refBaggingTemperature);
+
             UNIT_ASSERT_VALUES_EQUAL(parsedVerbose, refVerbose);
+
 
             // now test reverse transformation
             NJson::TJsonValue reversePlainOptions;
-            NCatboostOptions::OptionsToPlainJson(trainOptionsJson, outputFilesOptionsJson, &reversePlainOptions);
+            NCatboostOptions::ConvertOptionsToPlainJson(trainOptionsJson, outputFilesOptionsJson, &reversePlainOptions);
 
             int reverseParsedIterations = 7;
             double reverseParsedLearningRate = 10.9;
+            int reverseParsedFoldLenMultiplier = 8;
+            bool reverseParsedApproxOnFullHistory = true;
+            int reverseParsedFoldPermutationBlock = 33;
+
+            double reverseParsedOdPval = 1.5;
+            int reverseParsedOdWait = 1000;
+            TString reverseParsedOdType = "Moscow";
+
             int reverseParsedDepth = 10000;
+            int reverseParsedLeafEstimationIterations = 1000;
+            TString reverseParsedLeafEstimationBacktracking = "Minsk";
+
+            TString reverseParsedBootstrapType = "Laplace";
+            double reverseParsedBaggingTemperature = 39.0;
+
             int reverseParsedVerbose = 99;
+
 
             TJsonFieldHelper<int>::Read(reversePlainOptions["iterations"], &reverseParsedIterations);
             TJsonFieldHelper<double>::Read(reversePlainOptions["learning_rate"], &reverseParsedLearningRate);
+            TJsonFieldHelper<int>::Read(reversePlainOptions["fold_len_multiplier"], &reverseParsedFoldLenMultiplier);
+            TJsonFieldHelper<bool>::Read(reversePlainOptions["approx_on_full_history"], &reverseParsedApproxOnFullHistory);
+            TJsonFieldHelper<int>::Read(reversePlainOptions["fold_permutation_block"], &reverseParsedFoldPermutationBlock);
+
+            TJsonFieldHelper<double>::Read(reversePlainOptions["od_pval"], &reverseParsedOdPval);
+            TJsonFieldHelper<int>::Read(reversePlainOptions["od_wait"], &reverseParsedOdWait);
+            TJsonFieldHelper<TString>::Read(reversePlainOptions["od_type"], &reverseParsedOdType);
+
             TJsonFieldHelper<int>::Read(reversePlainOptions["depth"], &reverseParsedDepth);
+            TJsonFieldHelper<int>::Read(reversePlainOptions["leaf_estimation_iterations"], &reverseParsedLeafEstimationIterations);
+            TJsonFieldHelper<TString>::Read(reversePlainOptions["leaf_estimation_backtracking"], &reverseParsedLeafEstimationBacktracking);
+
+            TJsonFieldHelper<TString>::Read(reversePlainOptions["bootstrap_type"], &reverseParsedBootstrapType);
+            TJsonFieldHelper<double>::Read(reversePlainOptions["bagging_temperature"], &reverseParsedBaggingTemperature);
+
             TJsonFieldHelper<int>::Read(reversePlainOptions["verbose"], &reverseParsedVerbose);
 
             // plainOptions == reversePlainOptions
             UNIT_ASSERT_VALUES_EQUAL(reverseParsedIterations, refIterations);
             UNIT_ASSERT_VALUES_EQUAL(reverseParsedLearningRate, refLearningRate);
+            UNIT_ASSERT_VALUES_EQUAL(reverseParsedFoldLenMultiplier, refFoldLenMultiplier);
+            UNIT_ASSERT_VALUES_EQUAL(reverseParsedApproxOnFullHistory, refApproxOnFullHistory);
+            UNIT_ASSERT_VALUES_EQUAL(reverseParsedFoldPermutationBlock, refFoldPermutationBlock);
+
+            UNIT_ASSERT_VALUES_EQUAL(reverseParsedOdPval, refOdPval);
+            UNIT_ASSERT_VALUES_EQUAL(reverseParsedOdWait, refOdWait);
+            UNIT_ASSERT_VALUES_EQUAL(reverseParsedOdType, refOdType);
+
             UNIT_ASSERT_VALUES_EQUAL(reverseParsedDepth, refDepth);
+            UNIT_ASSERT_VALUES_EQUAL(reverseParsedLeafEstimationIterations, refLeafEstimationIterations);
+            UNIT_ASSERT_VALUES_EQUAL(reverseParsedLeafEstimationBacktracking, refLeafEstimationBacktracking);
+
+            UNIT_ASSERT_VALUES_EQUAL(reverseParsedBootstrapType, refBootstrapType);
+            UNIT_ASSERT_VALUES_EQUAL(reverseParsedBaggingTemperature, refBaggingTemperature);
+
             UNIT_ASSERT_VALUES_EQUAL(reverseParsedVerbose, refVerbose);
         }
 }

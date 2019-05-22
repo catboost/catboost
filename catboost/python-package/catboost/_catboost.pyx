@@ -916,6 +916,10 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
         const TMaybe[TDataMetaInfo]& trainDataMetaInfo
     ) nogil except +ProcessException
 
+    cdef TJsonValue GetPlainJsonWithAllOptions(
+        TFullModel& model
+    ) nogil except +ProcessException
+
 
 cdef inline float _FloatOrNan(object obj) except *:
     try:
@@ -2721,6 +2725,14 @@ cdef class _CatBoost:
             flat_params = params_dict["flat_params"]
             params = {str(key): value for key, value in iteritems(flat_params)}
             return params
+        except Exception as e:
+            return {}
+
+    cpdef _get_plain_params(self):
+        cdef TJsonValue plainOptions
+        try:
+            plainOptions = GetPlainJsonWithAllOptions(dereference(self.__model))
+            return loads(to_native_str(ToString(plainOptions)))
         except Exception as e:
             return {}
 
