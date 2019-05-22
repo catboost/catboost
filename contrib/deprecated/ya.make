@@ -8,6 +8,7 @@ RECURSE(
     glib
     glib/gio
     glibmm
+    http-parser
     jsoncpp
     libahocorasick
     libcds
