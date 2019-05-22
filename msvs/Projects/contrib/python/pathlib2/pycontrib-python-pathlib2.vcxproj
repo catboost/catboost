@@ -78,7 +78,35 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pathlib2\4d09929bbbbe0e7f1f06c51c25.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pathlib2\e946fbdf55984e8ffc3bf68759.cpp"/>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pathlib2\_4d09929bbbbe0e7f1f06c51c25.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pathlib2
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/brotli/include" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pathlib2/_4d09929bbbbe0e7f1f06c51c25.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/pathlib2/_4d09929bbbbe0e7f1f06c51c25.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pathlib2
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/brotli/include" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pathlib2/_4d09929bbbbe0e7f1f06c51c25.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/pathlib2/_4d09929bbbbe0e7f1f06c51c25.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/pathlib2/_4d09929bbbbe0e7f1f06c51c25.py2.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pathlib2\_4d09929bbbbe0e7f1f06c51c25.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pathlib2\_4d09929bbbbe0e7f1f06c51c25.py2.obj;</Outputs>
+    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pathlib2\_e946fbdf55984e8ffc3bf68759.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pathlib2
@@ -110,6 +138,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pathlib2
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pathlib2/4d09929bbbbe0e7f1f06c51c25.cpp" "_01b7f679563a12f6084f321920=resfs/src/resfs/file/contrib/python/pathlib2/.dist-info/METADATA" "_978f110f17ba2806337ae67933=resfs/file/contrib/python/pathlib2/.dist-info/METADATA" "_e47aea3d269b64f468591328aa=resfs/src/resfs/file/contrib/python/pathlib2/.dist-info/top_level.txt" "_c563a824f84c716028805c6519=resfs/file/contrib/python/pathlib2/.dist-info/top_level.txt"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pathlib2
+if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pathlib2/e946fbdf55984e8ffc3bf68759.cpp" "_b1a6640c20c7915988256bfbd1=/py_modules/pathlib2.__init__" "_2a93fe9b5579bbc45ee932a4ce=resfs/src//py_modules/pathlib2.__init__" "_5d734d2be64bbc4aea781334a0=/py_code/pathlib2.__init__"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
@@ -121,6 +153,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pathlib2
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pathlib2/4d09929bbbbe0e7f1f06c51c25.cpp" "_01b7f679563a12f6084f321920=resfs/src/resfs/file/contrib/python/pathlib2/.dist-info/METADATA" "_978f110f17ba2806337ae67933=resfs/file/contrib/python/pathlib2/.dist-info/METADATA" "_e47aea3d269b64f468591328aa=resfs/src/resfs/file/contrib/python/pathlib2/.dist-info/top_level.txt" "_c563a824f84c716028805c6519=resfs/file/contrib/python/pathlib2/.dist-info/top_level.txt"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pathlib2
+if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pathlib2/e946fbdf55984e8ffc3bf68759.cpp" "_b1a6640c20c7915988256bfbd1=/py_modules/pathlib2.__init__" "_2a93fe9b5579bbc45ee932a4ce=resfs/src//py_modules/pathlib2.__init__" "_5d734d2be64bbc4aea781334a0=/py_code/pathlib2.__init__"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
@@ -129,9 +165,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/pathlib2/e946fbdf55984e8ffc3bf68759.cpp	</Message>
+      <Message>$B/contrib/python/pathlib2/4d09929bbbbe0e7f1f06c51c25.cpp	$B/contrib/python/pathlib2/e946fbdf55984e8ffc3bf68759.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pathlib2\e946fbdf55984e8ffc3bf68759.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pathlib2\4d09929bbbbe0e7f1f06c51c25.cpp;$(SolutionDir)$(Configuration)\contrib\python\pathlib2\e946fbdf55984e8ffc3bf68759.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -159,6 +195,33 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/pathlib2/pathlib2/__init__.py.yapyc	</Message>
       <AdditionalInputs>$(SolutionDir)..\build\scripts\py_compile.py;$(SolutionDir)..\contrib\python\pathlib2\pathlib2\__init__.py;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pathlib2\pathlib2\__init__.py.yapyc;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\pathlib2\.dist-info\METADATA">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pathlib2
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pathlib2/_4d09929bbbbe0e7f1f06c51c25.yasm" "-" "contrib/python/pathlib2/.dist-info/METADATA" "_01b7f679563a12f6084f321920.rodata" "$(SolutionDir)../contrib/python/pathlib2/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/pathlib2/_978f110f17ba2806337ae67933.rodata" "-" "contrib/python/pathlib2/.dist-info/top_level.txt" "_e47aea3d269b64f468591328aa.rodata" "$(SolutionDir)../contrib/python/pathlib2/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/pathlib2/_c563a824f84c716028805c6519.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pathlib2
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pathlib2/_4d09929bbbbe0e7f1f06c51c25.yasm" "-" "contrib/python/pathlib2/.dist-info/METADATA" "_01b7f679563a12f6084f321920.rodata" "$(SolutionDir)../contrib/python/pathlib2/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/pathlib2/_978f110f17ba2806337ae67933.rodata" "-" "contrib/python/pathlib2/.dist-info/top_level.txt" "_e47aea3d269b64f468591328aa.rodata" "$(SolutionDir)../contrib/python/pathlib2/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/pathlib2/_c563a824f84c716028805c6519.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/pathlib2/_4d09929bbbbe0e7f1f06c51c25.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\pathlib2\.dist-info\METADATA;$(SolutionDir)..\contrib\python\pathlib2\.dist-info\top_level.txt;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pathlib2\_4d09929bbbbe0e7f1f06c51c25.yasm;$(SolutionDir)$(Configuration)\contrib\python\pathlib2\_978f110f17ba2806337ae67933.rodata;$(SolutionDir)$(Configuration)\contrib\python\pathlib2\_c563a824f84c716028805c6519.rodata;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\python\pathlib2\pathlib2\__init__.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
