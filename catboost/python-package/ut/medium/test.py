@@ -4384,3 +4384,18 @@ def test_binclass_with_nontrivial_classes():
     y = [1, 2, 1]
     model.fit(X, y)
     return local_canonical_file(remove_time_from_json(catboost_training_path))
+
+
+def test_loss_function_auto_set():
+    X = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+    bin_y = [1, 2, 1]
+    multi_y = [1, 2, 3]
+
+    model = CatBoostClassifier(iterations=10).fit(X, bin_y)
+    assert model.get_param('loss_function') == 'Logloss'
+
+    model = CatBoostClassifier(iterations=10).fit(X, multi_y)
+    assert model.get_param('loss_function') == 'MultiClass'
+
+    model = CatBoostClassifier(iterations=10, target_border=1.5).fit(X, multi_y)
+    assert model.get_param('loss_function') == 'Logloss'
