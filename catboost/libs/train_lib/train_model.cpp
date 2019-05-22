@@ -749,6 +749,8 @@ static void TrainModel(
 
     TRestorableFastRng64 rand(catBoostOptions.RandomSeed.Get());
 
+    pools.Learn = ShuffleLearnDataIfNeeded(catBoostOptions, pools.Learn, executor, &rand);
+
     TLabelConverter labelConverter;
 
     TFeatureEstimators featureEstimators;
@@ -785,8 +787,6 @@ static void TrainModel(
             outputOptions.CreateOutputBordersFullPath(),
             *trainingData.Learn->ObjectsData->GetQuantizedFeaturesInfo());
     }
-
-    trainingData.Learn = ShuffleLearnDataIfNeeded(catBoostOptions, trainingData.Learn, executor, &rand);
 
     modelTrainerHolder->TrainModel(
         TTrainModelInternalOptions(),
@@ -1025,6 +1025,8 @@ static void ModelBasedEval(
 
     TRestorableFastRng64 rand(catBoostOptions.RandomSeed.Get());
 
+    pools.Learn = ShuffleLearnDataIfNeeded(catBoostOptions, pools.Learn, executor, &rand);
+
     TLabelConverter labelConverter;
 
     TTrainingDataProviders trainingData = GetTrainingData(
@@ -1051,8 +1053,6 @@ static void ModelBasedEval(
     );
 
     CreateDirIfNotExist(updatedOutputOptions.GetTrainDir());
-
-    trainingData.Learn = ShuffleLearnDataIfNeeded(catBoostOptions, trainingData.Learn, executor, &rand);
 
     modelTrainerHolder->ModelBasedEval(
         catBoostOptions,

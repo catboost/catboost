@@ -2,6 +2,7 @@
 
 #include <catboost/libs/helpers/vector_helpers.h>
 #include <catboost/libs/options/enum_helpers.h>
+#include <catboost/libs/options/defaults_helper.h>
 
 #include <util/system/types.h>
 #include <util/generic/ymath.h>
@@ -99,17 +100,6 @@ static void UpdateUseBestModel(bool hasTest, bool hasTestConstTarget, bool hasTe
     if (!hasTest && *useBestModel) {
         CATBOOST_WARNING_LOG << "You should provide test set for use best model. use_best_model parameter has been switched to false value." << Endl;
         *useBestModel = false;
-    }
-}
-
-static void UpdateBoostingTypeOption(size_t learnSampleCount, NCatboostOptions::TCatBoostOptions* catBoostOptions) {
-    auto& boostingTypeOption = catBoostOptions->BoostingOptions->BoostingType;
-    if (
-        boostingTypeOption.NotSet() &&
-        (learnSampleCount >= 50000 || catBoostOptions->BoostingOptions->IterationCount < 500) &&
-        !(catBoostOptions->GetTaskType() == ETaskType::CPU && catBoostOptions->BoostingOptions->ApproxOnFullHistory.Get())
-    ) {
-        boostingTypeOption = EBoostingType::Plain;
     }
 }
 
