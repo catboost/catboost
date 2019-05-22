@@ -21,6 +21,12 @@ IF (PYTHON2)
     )
 ENDIF()
 
+RESOURCE_FILES(
+    PREFIX contrib/python/pathlib2/
+    .dist-info/METADATA
+    .dist-info/top_level.txt
+)
+
 NO_LINT()
 
 END()
