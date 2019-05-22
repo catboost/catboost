@@ -7,6 +7,10 @@
         "checksum": "f3b03f3a9926e615fb1df2bade9be840",
         "uri": "file://test.test_allow_writing_files_and_used_ram_limit_CPU-2Gb_/predictions.npy"
     },
+    "test.test_binclass_with_nontrivial_classes": {
+        "checksum": "b27855da72858d6a8a2ddfebb408dbb4",
+        "uri": "file://test.test_binclass_with_nontrivial_classes/catboost_training.json"
+    },
     "test.test_class_names[CPU]": {
         "checksum": "1a420754cff0e12d57e5e869b2d2c5dc",
         "uri": "file://test.test_class_names_CPU_/predictions.txt"

@@ -98,7 +98,6 @@ namespace NCB {
         TStringBuf datasetName,
         bool isLearnData,
         bool allowConstLabel,
-        TMaybe<float> targetBorder,
         bool needCheckTarget,
         TConstArrayRef<NCatboostOptions::TLossDescription> metricDescriptions)
     {
@@ -129,8 +128,7 @@ namespace NCB {
                 convertedTarget,
                 metricDescription,
                 isLearnData,
-                allowConstLabel,
-                targetBorder
+                allowConstLabel
             );
         }
     }
@@ -523,7 +521,8 @@ namespace NCB {
                         }
                     }
                     CB_ENSURE_INTERNAL(!uniqueValues.empty(), "Target vector is empty, nothing to binarize.");
-                    CB_ENSURE(uniqueValues.size() < 3, "You should specify target border parameter for target binarization.");
+                    CB_ENSURE(uniqueValues.size() != 1, "Data has constant target, so it's impossible to binarize it.");
+                    CB_ENSURE(uniqueValues.size() == 2, "You should specify target border parameter for target binarization.");
                     const auto firstValue = *uniqueValues.begin();
                     const auto secondValue = uniqueValues.size() == 1 ? firstValue : *(++uniqueValues.begin());
                     *targetBorder = (firstValue + secondValue) / 2;
@@ -678,7 +677,6 @@ namespace NCB {
             datasetName,
             isLearnData,
             allowConstLabel,
-            *targetBorder,
             needCheckTarget,
             metricDescriptions);
 
