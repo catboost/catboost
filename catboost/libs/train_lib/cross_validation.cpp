@@ -370,6 +370,7 @@ void CrossValidate(
     }
 
     TLabelConverter labelConverter;
+    TMaybe<float> targetBorder = catBoostOptions.DataProcessingOptions->TargetBorder;
 
     TTrainingDataProviderPtr trainingData = GetTrainingData(
         std::move(data),
@@ -382,6 +383,7 @@ void CrossValidate(
         /*quantizedFeaturesInfo*/ nullptr,
         &catBoostOptions,
         &labelConverter,
+        &targetBorder,
         &localExecutor,
         &rand);
 

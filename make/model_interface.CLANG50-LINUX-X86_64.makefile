@@ -177,7 +177,7 @@ $(BUILD_ROOT)/contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/libunwind_master'
-	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name contrib-libs-libunwind_master -o contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a.mf -t LIBRARY -Ya,lics -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name contrib-libs-libunwind_master -o contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a.mf -t LIBRARY -Ya,lics Apache License 2.0 -Ya,peers
 	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a' '$(BUILD_ROOT)/contrib/libs/libunwind_master/src/libunwind.cpp.pic.o' '$(BUILD_ROOT)/contrib/libs/libunwind_master/src/Unwind-EHABI.cpp.pic.o' '$(BUILD_ROOT)/contrib/libs/libunwind_master/src/UnwindLevel1.c.pic.o' '$(BUILD_ROOT)/contrib/libs/libunwind_master/src/UnwindLevel1-gcc-ext.c.pic.o' '$(BUILD_ROOT)/contrib/libs/libunwind_master/src/Unwind-sjlj.c.pic.o' '$(BUILD_ROOT)/contrib/libs/libunwind_master/src/UnwindRegistersRestore.S.o' '$(BUILD_ROOT)/contrib/libs/libunwind_master/src/UnwindRegistersSave.S.o'
 
 $(BUILD_ROOT)/contrib/libs/libunwind_master/src/libunwind.cpp.pic.o\

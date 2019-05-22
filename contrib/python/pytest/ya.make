@@ -84,6 +84,13 @@ PY_SRCS(
     pytest.py
 )
 
+RESOURCE_FILES(
+    PREFIX contrib/python/pytest/
+    .dist-info/METADATA
+    .dist-info/entry_points.txt
+    .dist-info/top_level.txt
+)
+
 NO_LINT()
 
 END()

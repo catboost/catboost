@@ -4401,3 +4401,28 @@ def test_feature_statistics():
     assert(np.allclose(res['mean_prediction'],
                        mean_per_bin(res, feature_num, model.predict(X)),
                        atol=1e-4))
+
+    
+def test_binclass_with_nontrivial_classes():
+    catboost_training_path = test_output_path('catboost_training.json')
+    model = CatBoostClassifier(iterations=10, loss_function='Logloss')
+    model.set_params(json_log=catboost_training_path)
+    X = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+    y = [1, 2, 1]
+    model.fit(X, y)
+    return local_canonical_file(remove_time_from_json(catboost_training_path))
+
+
+def test_loss_function_auto_set():
+    X = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+    bin_y = [1, 2, 1]
+    multi_y = [1, 2, 3]
+
+    model = CatBoostClassifier(iterations=10).fit(X, bin_y)
+    assert model.get_param('loss_function') == 'Logloss'
+
+    model = CatBoostClassifier(iterations=10).fit(X, multi_y)
+    assert model.get_param('loss_function') == 'MultiClass'
+
+    model = CatBoostClassifier(iterations=10, target_border=1.5).fit(X, multi_y)
+    assert model.get_param('loss_function') == 'Logloss'

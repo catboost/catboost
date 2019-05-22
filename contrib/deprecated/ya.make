@@ -8,6 +8,7 @@ RECURSE(
     glib
     glib/gio
     glibmm
+    http-parser
     jsoncpp
     libahocorasick
     libcds
@@ -20,12 +21,12 @@ RECURSE(
     libtorrent/bindings/python
     libtorrent/test
     libxml++
-    sigc++
-    udns
     mimepp
     pygtrie
     pygtrie/tests
-
+    sigc++
+    udns
+    uriparser
 )
 
 

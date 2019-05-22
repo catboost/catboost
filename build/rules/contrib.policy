@@ -14,3 +14,13 @@ ALLOW contrib/deprecated/folly -> contrib/deprecated/folly
 ALLOW mds -> contrib/deprecated/folly
 ALLOW devtools/experimental/mds -> contrib/deprecated/folly
 DENY .* -> contrib/deprecated/folly
+
+ALLOW contrib/deprecated/http-parser -> contrib/deprecated/http-parser
+ALLOW mds -> contrib/deprecated/http-parser
+ALLOW devtools/experimental/mds -> contrib/deprecated/http-parser
+DENY .* -> contrib/deprecated/http-parser
+
+ALLOW contrib/deprecated/uriparser -> contrib/deprecated/uriparser
+ALLOW mds -> contrib/deprecated/uriparser
+ALLOW devtools/experimental/mds -> contrib/deprecated/uriparser
+DENY .* -> contrib/deprecated/uriparser

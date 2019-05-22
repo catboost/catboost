@@ -29,3 +29,14 @@ inline void UpdateCtrsTargetBordersOption(ELossFunction lossFunction, ui32 appro
         }
     );
 }
+
+inline void UpdateBoostingTypeOption(size_t learnSampleCount, NCatboostOptions::TCatBoostOptions* catBoostOptions) {
+    auto& boostingTypeOption = catBoostOptions->BoostingOptions->BoostingType;
+    if (
+        boostingTypeOption.NotSet() &&
+        (learnSampleCount >= 50000 || catBoostOptions->BoostingOptions->IterationCount < 500) &&
+        !(catBoostOptions->GetTaskType() == ETaskType::CPU && catBoostOptions->BoostingOptions->ApproxOnFullHistory.Get())
+    ) {
+        boostingTypeOption = EBoostingType::Plain;
+    }
+}

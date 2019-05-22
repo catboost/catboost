@@ -45,6 +45,7 @@ namespace {
                                            Params.DsvPoolFormatParams,
                                            /*ignoredFeatures*/ {},
                                            NCB::EObjectsOrder::Undefined,
+                                           NCB::TDatasetSubset::MakeColumns(),
                                            /*classNames*/ Nothing(),
                                            LocalExecutor.Get());
             }

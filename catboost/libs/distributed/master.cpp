@@ -1,10 +1,12 @@
 #include "master.h"
 #include "mappers.h"
 
+#include <catboost/libs/algo/data.h>
 #include <catboost/libs/algo/error_functions.h>
 #include <catboost/libs/algo/index_calcer.h>
 #include <catboost/libs/algo/score_bin.h>
 #include <catboost/libs/algo/score_calcer.h>
+#include <catboost/libs/data_new/load_data.h>
 
 #include <library/par/par_settings.h>
 
@@ -14,41 +16,90 @@
 using namespace NCatboostDistributed;
 using namespace NCB;
 
+struct TMasterEnvironment {
+    TObj<NPar::IRootEnvironment> RootEnvironment = nullptr;
+    TObj<NPar::IEnvironment> SharedTrainData = nullptr;
 
-void InitializeMaster(TLearnContext* ctx) {
-    Y_ASSERT(ctx->Params.SystemOptions->IsMaster());
-    const auto& systemOptions = ctx->Params.SystemOptions;
+    Y_DECLARE_SINGLETON_FRIEND();
+
+    inline static TMasterEnvironment& GetRef() {
+        return *Singleton<TMasterEnvironment>();
+    }
+};
+
+void InitializeMaster(const NCatboostOptions::TSystemOptions& systemOptions) {
+    Y_ASSERT(systemOptions.IsMaster());
     const ui32 unusedNodePort = NCatboostOptions::TSystemOptions::GetUnusedNodePort();
 
     // avoid Netliba
     NPar::TParNetworkSettings::GetRef().RequesterType = NPar::TParNetworkSettings::ERequesterType::NEH;
-    ctx->RootEnvironment = NPar::RunMaster(
-        systemOptions->NodePort,
-        systemOptions->NumThreads,
-        systemOptions->FileWithHosts->c_str(),
+    TMasterEnvironment::GetRef().RootEnvironment = NPar::RunMaster(
+        systemOptions.NodePort,
+        systemOptions.NumThreads,
+        systemOptions.FileWithHosts->c_str(),
         unusedNodePort,
         unusedNodePort);
-    const int workerCount = ctx->RootEnvironment->GetSlaveCount();
-    const auto& workerMapping = ctx->RootEnvironment->MakeHostIdMapping(workerCount);
-    ctx->SharedTrainData = ctx->RootEnvironment->CreateEnvironment(SHARED_ID_TRAIN_DATA, workerMapping);
+    const int workerCount = TMasterEnvironment::GetRef().RootEnvironment->GetSlaveCount();
+    const auto& workerMapping = TMasterEnvironment::GetRef().RootEnvironment->MakeHostIdMapping(workerCount);
+    TMasterEnvironment::GetRef().SharedTrainData = TMasterEnvironment::GetRef().RootEnvironment->CreateEnvironment(SHARED_ID_TRAIN_DATA, workerMapping);
 }
 
 void FinalizeMaster(TLearnContext* ctx) {
     Y_ASSERT(ctx->Params.SystemOptions->IsMaster());
-    if (ctx->RootEnvironment != nullptr) {
-        ctx->RootEnvironment->Stop();
+    if (TMasterEnvironment::GetRef().RootEnvironment != nullptr) {
+        TMasterEnvironment::GetRef().RootEnvironment->Stop();
     }
 }
 
-void MapBuildPlainFold(NCB::TTrainingForCPUDataProviderPtr trainData, TLearnContext* ctx) {
-    Y_ASSERT(ctx->Params.SystemOptions->IsMaster());
-    const auto& plainFold = ctx->LearnProgress.Folds[0];
-    Y_ASSERT(plainFold.PermutationBlockSize == plainFold.GetLearnSampleCount());
-    const int workerCount = ctx->RootEnvironment->GetSlaveCount();
-    TVector<TArraySubsetIndexing<ui32>> workerParts = Split(*trainData->ObjectsGrouping, (ui32)workerCount);
+void SetTrainDataFromQuantizedPool(
+    const NCatboostOptions::TPoolLoadParams& poolLoadOptions,
+    const NCatboostOptions::TCatBoostOptions& catBoostOptions,
+    const NCB::TObjectsGrouping& objectsGrouping,
+    const NCB::TFeaturesLayout& featuresLayout,
+    TRestorableFastRng64* rand
+) {
+    const int workerCount = TMasterEnvironment::GetRef().RootEnvironment->GetSlaveCount();
+    for (int workerIdx : xrange(workerCount)) {
+        TMasterEnvironment::GetRef().SharedTrainData->DeleteContextRawData(workerIdx);
+    }
+    NJson::TJsonValue trainParams;
+    catBoostOptions.Save(&trainParams);
+    const auto objectsOrder = catBoostOptions.DataProcessingOptions->HasTimeFlag.Get() ?
+        EObjectsOrder::Ordered : EObjectsOrder::Undefined;
+    ApplyMapper<TDatasetLoader>(
+        workerCount,
+        TMasterEnvironment::GetRef().SharedTrainData,
+        MakeEnvelope(TDatasetLoaderParams{
+            poolLoadOptions,
+            ToString(trainParams),
+            objectsOrder,
+            objectsGrouping,
+            featuresLayout,
+            rand->GenRand()
+        })
+    );
+}
 
-    const ui64 randomSeed = ctx->Rand.GenRand();
-    const auto& targetClassifiers = ctx->CtrsHelper.GetTargetClassifiers();
+void SetTrainDataFromMaster(NCB::TTrainingForCPUDataProviderPtr trainData, NPar::TLocalExecutor* localExecutor) {
+    const int workerCount = TMasterEnvironment::GetRef().RootEnvironment->GetSlaveCount();
+    auto workerParts = Split(*trainData->ObjectsGrouping, (ui32)workerCount);
+    for (int workerIdx = 0; workerIdx < workerCount; ++workerIdx) {
+        TMasterEnvironment::GetRef().SharedTrainData->SetContextData(
+            workerIdx,
+            new NCatboostDistributed::TTrainData(
+                trainData->GetSubset(
+                    NCB::GetSubset(
+                        trainData->ObjectsGrouping,
+                        std::move(workerParts[workerIdx]),
+                        EObjectsOrder::Ordered),
+                    localExecutor)),
+            NPar::DELETE_RAW_DATA); // only workers
+    }
+}
+
+void MapBuildPlainFold(TLearnContext* ctx) {
+    Y_ASSERT(ctx->Params.SystemOptions->IsMaster());
+
     NJson::TJsonValue jsonParams;
     ctx->Params.Save(&jsonParams);
     const auto& metricOptions = ctx->Params.MetricOptions;
@@ -62,45 +113,41 @@ void MapBuildPlainFold(NCB::TTrainingForCPUDataProviderPtr trainData, TLearnCont
                 .InsertValue("hints", "skip_train~true");
         }
     }
-    const TString stringParams = ToString(jsonParams);
-    for (int workerIdx = 0; workerIdx < workerCount; ++workerIdx) {
-        ctx->SharedTrainData->SetContextData(
-            workerIdx,
-            new NCatboostDistributed::TTrainData(
-                trainData->GetSubset(
-                    NCB::GetSubset(
-                        trainData->ObjectsGrouping,
-                        std::move(workerParts[workerIdx]),
-                        EObjectsOrder::Ordered),
-                    ctx->LocalExecutor),
-                targetClassifiers,
-                randomSeed,
-                ctx->LearnProgress.ApproxDimension,
-                stringParams,
-                plainFold.GetLearnSampleCount(),
-                plainFold.GetSumWeight(),
-                ctx->LearnProgress.HessianType),
-            NPar::DELETE_RAW_DATA); // only workers
-    }
-    ApplyMapper<TPlainFoldBuilder>(workerCount, ctx->SharedTrainData);
+    const auto& plainFold = ctx->LearnProgress.Folds[0];
+    Y_ASSERT(plainFold.PermutationBlockSize == plainFold.GetLearnSampleCount() ||
+        plainFold.PermutationBlockSize == 1);
+    const int workerCount = TMasterEnvironment::GetRef().RootEnvironment->GetSlaveCount();
+    ApplyMapper<TPlainFoldBuilder>(
+        workerCount,
+        TMasterEnvironment::GetRef().SharedTrainData,
+        MakeEnvelope(TPlainFoldBuilderParams({
+            ctx->CtrsHelper.GetTargetClassifiers(),
+            ctx->Rand.GenRand(),
+            ctx->LearnProgress.ApproxDimension,
+            ToString(jsonParams),
+            plainFold.GetLearnSampleCount(),
+            plainFold.GetSumWeight(),
+            ctx->LearnProgress.HessianType
+        }))
+    );
 }
 
 void MapRestoreApproxFromTreeStruct(TLearnContext* ctx) {
     Y_ASSERT(ctx->Params.SystemOptions->IsMaster());
     ApplyMapper<TApproxReconstructor>(
-        ctx->RootEnvironment->GetSlaveCount(),
-        ctx->SharedTrainData,
+        TMasterEnvironment::GetRef().RootEnvironment->GetSlaveCount(),
+        TMasterEnvironment::GetRef().SharedTrainData,
         MakeEnvelope(std::make_pair(ctx->LearnProgress.TreeStruct, ctx->LearnProgress.LeafValues)));
 }
 
 void MapTensorSearchStart(TLearnContext* ctx) {
     Y_ASSERT(ctx->Params.SystemOptions->IsMaster());
-    ApplyMapper<TTensorSearchStarter>(ctx->RootEnvironment->GetSlaveCount(), ctx->SharedTrainData);
+    ApplyMapper<TTensorSearchStarter>(TMasterEnvironment::GetRef().RootEnvironment->GetSlaveCount(), TMasterEnvironment::GetRef().SharedTrainData);
 }
 
 void MapBootstrap(TLearnContext* ctx) {
     Y_ASSERT(ctx->Params.SystemOptions->IsMaster());
-    ApplyMapper<TBootstrapMaker>(ctx->RootEnvironment->GetSlaveCount(), ctx->SharedTrainData);
+    ApplyMapper<TBootstrapMaker>(TMasterEnvironment::GetRef().RootEnvironment->GetSlaveCount(), TMasterEnvironment::GetRef().SharedTrainData);
 }
 
 template <typename TScoreCalcMapper, typename TGetScore>
@@ -114,10 +161,10 @@ void MapGenericCalcScore(
 
     auto& candidateList = candidatesContext->CandidateList;
 
-    const int workerCount = ctx->RootEnvironment->GetSlaveCount();
+    const int workerCount = TMasterEnvironment::GetRef().RootEnvironment->GetSlaveCount();
     auto allStatsFromAllWorkers = ApplyMapper<TScoreCalcMapper>(
         workerCount,
-        ctx->SharedTrainData,
+        TMasterEnvironment::GetRef().SharedTrainData,
         MakeEnvelope(candidateList));
     const int candidateCount = candidateList.ysize();
     const ui64 randSeed = ctx->Rand.GenRand();
@@ -179,7 +226,7 @@ void MapGenericRemoteCalcScore(
     NPar::TJobDescription job;
     NPar::Map(&job, new TBinCalcMapper(), &candidateList);
     NPar::RemoteMap(&job, new TScoreCalcMapper);
-    NPar::TJobExecutor exec(&job, ctx->SharedTrainData);
+    NPar::TJobExecutor exec(&job, TMasterEnvironment::GetRef().SharedTrainData);
     TVector<typename TScoreCalcMapper::TOutput> allScores;
     exec.GetRemoteMapResults(&allScores);
     // set best split for each candidate
@@ -227,15 +274,15 @@ void MapRemoteCalcScore(
 
 void MapSetIndices(const TSplit& bestSplit, TLearnContext* ctx) {
     Y_ASSERT(ctx->Params.SystemOptions->IsMaster());
-    const int workerCount = ctx->RootEnvironment->GetSlaveCount();
-    ApplyMapper<TLeafIndexSetter>(workerCount, ctx->SharedTrainData, MakeEnvelope(bestSplit));
+    const int workerCount = TMasterEnvironment::GetRef().RootEnvironment->GetSlaveCount();
+    ApplyMapper<TLeafIndexSetter>(workerCount, TMasterEnvironment::GetRef().SharedTrainData, MakeEnvelope(bestSplit));
 }
 
 int MapGetRedundantSplitIdx(TLearnContext* ctx) {
     Y_ASSERT(ctx->Params.SystemOptions->IsMaster());
-    const int workerCount = ctx->RootEnvironment->GetSlaveCount();
+    const int workerCount = TMasterEnvironment::GetRef().RootEnvironment->GetSlaveCount();
     TVector<TEmptyLeafFinder::TOutput> isLeafEmptyFromAllWorkers
-        = ApplyMapper<TEmptyLeafFinder>(workerCount, ctx->SharedTrainData); // poll workers
+        = ApplyMapper<TEmptyLeafFinder>(workerCount, TMasterEnvironment::GetRef().SharedTrainData); // poll workers
     for (int workerIdx = 1; workerIdx < workerCount; ++workerIdx) {
         for (int leafIdx = 0; leafIdx < isLeafEmptyFromAllWorkers[0].Data.ysize(); ++leafIdx) {
             isLeafEmptyFromAllWorkers[0].Data[leafIdx] &= isLeafEmptyFromAllWorkers[workerIdx].Data[leafIdx];
@@ -246,10 +293,10 @@ int MapGetRedundantSplitIdx(TLearnContext* ctx) {
 
 void MapCalcErrors(TLearnContext* ctx) {
     Y_ASSERT(ctx->Params.SystemOptions->IsMaster());
-    const size_t workerCount = ctx->RootEnvironment->GetSlaveCount();
+    const size_t workerCount = TMasterEnvironment::GetRef().RootEnvironment->GetSlaveCount();
 
     // poll workers
-    auto additiveStatsFromAllWorkers = ApplyMapper<TErrorCalcer>(workerCount, ctx->SharedTrainData);
+    auto additiveStatsFromAllWorkers = ApplyMapper<TErrorCalcer>(workerCount, TMasterEnvironment::GetRef().SharedTrainData);
     Y_ASSERT(additiveStatsFromAllWorkers.size() == workerCount);
 
     auto& additiveStats = additiveStatsFromAllWorkers[0];
@@ -296,8 +343,8 @@ void MapSetApproxes(
     using TDeltaUpdater = typename TApproxDefs::TDeltaUpdater;
 
     Y_ASSERT(ctx->Params.SystemOptions->IsMaster());
-    const int workerCount = ctx->RootEnvironment->GetSlaveCount();
-    ApplyMapper<TCalcApproxStarter>(workerCount, ctx->SharedTrainData, MakeEnvelope(splitTree));
+    const int workerCount = TMasterEnvironment::GetRef().RootEnvironment->GetSlaveCount();
+    ApplyMapper<TCalcApproxStarter>(workerCount, TMasterEnvironment::GetRef().SharedTrainData, MakeEnvelope(splitTree));
     const int gradientIterations = ctx->Params.ObliviousTreeOptions->LeavesEstimationIterations;
     const int approxDimension = ctx->LearnProgress.ApproxDimension;
     const int leafCount = splitTree.GetLeafCount();
@@ -310,7 +357,7 @@ void MapSetApproxes(
 
         TPairwiseBuckets pairwiseBuckets;
         TApproxDefs::SetPairwiseBucketsSize(leafCount, &pairwiseBuckets);
-        const auto bucketsFromAllWorkers = ApplyMapper<TBucketUpdater>(workerCount, ctx->SharedTrainData);
+        const auto bucketsFromAllWorkers = ApplyMapper<TBucketUpdater>(workerCount, TMasterEnvironment::GetRef().SharedTrainData);
         // reduce across workers
         for (int workerIdx = 0; workerIdx < workerCount; ++workerIdx) {
             const auto& workerBuckets = bucketsFromAllWorkers[workerIdx].Data.first;
@@ -331,11 +378,11 @@ void MapSetApproxes(
         const auto leafValues = TApproxDefs::CalcLeafValues(buckets, pairwiseBuckets, *ctx);
         AddElementwise(leafValues, averageLeafValues);
         // calc model and update approx deltas on workers
-        ApplyMapper<TDeltaUpdater>(workerCount, ctx->SharedTrainData, leafValues);
+        ApplyMapper<TDeltaUpdater>(workerCount, TMasterEnvironment::GetRef().SharedTrainData, leafValues);
     }
 
     // [workerIdx][dimIdx][leafIdx]
-    const auto leafWeightsFromAllWorkers = ApplyMapper<TLeafWeightsGetter>(workerCount, ctx->SharedTrainData);
+    const auto leafWeightsFromAllWorkers = ApplyMapper<TLeafWeightsGetter>(workerCount, TMasterEnvironment::GetRef().SharedTrainData);
     sumLeafWeights->resize(leafCount);
     for (const auto& workerLeafWeights : leafWeightsFromAllWorkers) {
         AddElementwise(workerLeafWeights, sumLeafWeights);
@@ -348,7 +395,7 @@ void MapSetApproxes(
         averageLeafValues);
 
     // update learn approx and average approx
-    ApplyMapper<TApproxUpdater>(workerCount, ctx->SharedTrainData, *averageLeafValues);
+    ApplyMapper<TApproxUpdater>(workerCount, TMasterEnvironment::GetRef().SharedTrainData, *averageLeafValues);
     // update test
     const auto indices = BuildIndices(
         /*unused fold*/{ },
@@ -465,5 +512,5 @@ void MapSetApproxesMulti(
 void MapSetDerivatives(TLearnContext* ctx) {
     using namespace NCatboostDistributed;
     Y_ASSERT(ctx->Params.SystemOptions->IsMaster());
-    ApplyMapper<TDerivativeSetter>(ctx->RootEnvironment->GetSlaveCount(), ctx->SharedTrainData);
+    ApplyMapper<TDerivativeSetter>(TMasterEnvironment::GetRef().RootEnvironment->GetSlaveCount(), TMasterEnvironment::GetRef().SharedTrainData);
 }

@@ -31,6 +31,7 @@ inline void ReadAndProceedPoolInBlocks(const NCB::TAnalyticalModeCommonParams& p
                 /*ignoredFeatures*/ {},
                 NCB::EObjectsOrder::Undefined,
                 blockSize,
+                NCB::TDatasetSubset::MakeColumns(),
                 localExecutor
             }
         }
@@ -39,6 +40,7 @@ inline void ReadAndProceedPoolInBlocks(const NCB::TAnalyticalModeCommonParams& p
     THolder<NCB::IDataProviderBuilder> dataProviderBuilder = NCB::CreateDataProviderBuilder(
         datasetLoader->GetVisitorType(),
         NCB::TDataProviderBuilderOptions{},
+        NCB::TDatasetSubset::MakeColumns(),
         localExecutor
     );
     CB_ENSURE_INTERNAL(

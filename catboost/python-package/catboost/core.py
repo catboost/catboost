@@ -2369,6 +2369,8 @@ class CatBoostClassifier(CatBoost):
         (do not perform a random permutation of the dataset at the preprocessing stage).
     allow_const_label : bool, [default=False]
         To allow the constant label value in dataset.
+    target_border: float, [default=None]
+        Border for target binarization.
     classes_count : int, [default=None]
         The upper limit for the numeric class label.
         Defines the number of classes for multiclassification.
@@ -2541,7 +2543,7 @@ class CatBoostClassifier(CatBoost):
         l2_leaf_reg=None,
         model_size_reg=None,
         rsm=None,
-        loss_function='Logloss',
+        loss_function=None,
         border_count=None,
         feature_border_type=None,
         input_borders=None,
@@ -2567,6 +2569,7 @@ class CatBoostClassifier(CatBoost):
         max_ctr_complexity=None,
         has_time=None,
         allow_const_label=None,
+        target_border=None,
         classes_count=None,
         class_weights=None,
         class_names=None,
@@ -2719,6 +2722,9 @@ class CatBoostClassifier(CatBoost):
         _process_synonyms(params)
         if 'loss_function' in params:
             self._check_is_classification_objective(params['loss_function'])
+        else:
+            is_multiclass_task = len(np.unique(y)) > 2 and 'target_border' not in params
+            self.set_params(loss_function='MultiClass' if is_multiclass_task else 'Logloss')
 
         self._fit(X, y, cat_features, None, sample_weight, None, None, None, None, baseline, use_best_model,
                   eval_set, verbose, logging_level, plot, column_description, verbose_eval, metric_period,
@@ -3001,6 +3007,7 @@ class CatBoostRegressor(CatBoost):
         max_ctr_complexity=None,
         has_time=None,
         allow_const_label=None,
+        target_border=None,
         one_hot_max_size=None,
         random_strength=None,
         name=None,

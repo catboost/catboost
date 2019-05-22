@@ -2,7 +2,7 @@ PY23_LIBRARY()
 
 
 
-VERSION(1.2.1)
+VERSION(1.3.0)
 
 LICENSE(MIT)
 
@@ -13,4 +13,14 @@ PY_SRCS(
     atomicwrites/__init__.py
 )
 
+RESOURCE_FILES(
+    PREFIX contrib/python/atomicwrites/
+    .dist-info/METADATA
+    .dist-info/top_level.txt
+)
+
 END()
+
+RECURSE_FOR_TESTS(
+    tests
+)
