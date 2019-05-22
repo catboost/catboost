@@ -1662,7 +1662,7 @@
         },
         "clang6-android-x86": {
             "formula": {
-                "sandbox_id": [286141541, 286158872],
+                "sandbox_id": [433940193, 434453505],
                 "match": "NDK"
             },
             "executable": {
@@ -1680,7 +1680,7 @@
         },
         "clang6-android-x86_64": {
             "formula": {
-                "sandbox_id": [369520747, 369520872],
+                "sandbox_id": [433941670, 434454714],
                 "match": "NDK"
             },
             "executable": {
@@ -1698,7 +1698,7 @@
         },
         "clang6-android-armv7": {
             "formula": {
-                "sandbox_id": [286133126, 286142875],
+                "sandbox_id": [433939456, 434452850],
                 "match": "NDK"
             },
             "executable": {
@@ -1716,7 +1716,7 @@
         },
         "clang6-android-armv8": {
             "formula": {
-                "sandbox_id": [286132568, 286142227],
+                "sandbox_id": [433940899, 434454082],
                 "match": "NDK"
             },
             "executable": {
