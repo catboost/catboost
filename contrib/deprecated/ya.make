@@ -20,12 +20,12 @@ RECURSE(
     libtorrent/bindings/python
     libtorrent/test
     libxml++
-    sigc++
-    udns
     mimepp
     pygtrie
     pygtrie/tests
-
+    sigc++
+    udns
+    uriparser
 )
 
 
