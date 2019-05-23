@@ -2689,6 +2689,42 @@
             "uri": "file://test_gpu.test_meta_Plain-RMSE_/meta.tsv"
         }
     ],
+    "test_gpu.test_model_based_eval[adult]": [
+        {
+            "checksum": "c6cca5a110557da6036a27f7b69779f8",
+            "uri": "file://test_gpu.test_model_based_eval_adult_/test_error.log"
+        },
+        {
+            "checksum": "8f83ae787346e2757d4b0a33dcfdecff",
+            "uri": "file://test_gpu.test_model_based_eval_adult_/test_error.log.1"
+        },
+        {
+            "checksum": "c3a293762e7a3fe24502ec1b48143dd9",
+            "uri": "file://test_gpu.test_model_based_eval_adult_/test_error.log.2"
+        },
+        {
+            "checksum": "9160c0c00cc6a7683c0d3f5f7f5cac60",
+            "uri": "file://test_gpu.test_model_based_eval_adult_/test_error.log.3"
+        }
+    ],
+    "test_gpu.test_model_based_eval[querywise]": [
+        {
+            "checksum": "3a9b398ed476f80dbf74f3acc4e57e9c",
+            "uri": "file://test_gpu.test_model_based_eval_querywise_/test_error.log"
+        },
+        {
+            "checksum": "41e3493047f282bb40fc6aa8a947656e",
+            "uri": "file://test_gpu.test_model_based_eval_querywise_/test_error.log.1"
+        },
+        {
+            "checksum": "e148e751f0149afb136fefd4b198e8a7",
+            "uri": "file://test_gpu.test_model_based_eval_querywise_/test_error.log.2"
+        },
+        {
+            "checksum": "fc63842be547e04a8558e523e54e50d2",
+            "uri": "file://test_gpu.test_model_based_eval_querywise_/test_error.log.3"
+        }
+    ],
     "test_gpu.test_multi_leaf_estimation_method[Gradient]": [
         {
             "checksum": "08a5fad27a086078d0930eb9dfe71524",

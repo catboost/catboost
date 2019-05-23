@@ -64,6 +64,12 @@ public:
         Ref();
     }
 
+    TBlob(TBlob&& r) noexcept
+        : TBlob()
+    {
+        this->Swap(r);
+    }
+
     inline TBlob(const void* data, size_t length, TBase* base) noexcept
         : S_(data, length, base)
     {

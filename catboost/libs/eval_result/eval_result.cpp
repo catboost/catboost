@@ -147,9 +147,9 @@ namespace NCB {
     ) {
         TIntrusivePtr<IPoolColumnsPrinter> poolColumnsPrinter;
         if (testSetPath.Inited()) {
-            if (testSetPath.Scheme == "quantized") {
+            if (testSetPath.Scheme.Contains("quantized")) {
                 poolColumnsPrinter = TIntrusivePtr<IPoolColumnsPrinter>(new TQuantizedPoolColumnsPrinter(testSetPath));
-            } else if (testSetPath.Scheme == "dsv" || testSetPath.Scheme == "yt-dsv") {
+            } else if (testSetPath.Scheme.Contains("dsv")) {
                 poolColumnsPrinter = TIntrusivePtr<IPoolColumnsPrinter>(new TDSVPoolColumnsPrinter(testSetPath, testSetFormat, columnsMetaInfo));
             }
         }

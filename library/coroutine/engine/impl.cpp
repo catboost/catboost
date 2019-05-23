@@ -1,10 +1,9 @@
-#define FROM_IMPL_CPP
-
 #include "coro_events.h"
 #include "impl.h"
 
 #include <util/generic/yexception.h>
 #include <util/stream/output.h>
+#include <util/system/protect.h>
 #include <util/system/yassert.h>
 
 template <>
@@ -20,15 +19,10 @@ void Out<TContRep>(IOutputStream& out, const TContRep& c) {
 TContRep::TContRep(TContStackAllocator* alloc)
     : real(alloc->Allocate())
     , full((char*)real->Data(), real->Length())
-#if defined(STACK_GROW_DOWN)
     , stack(full.data(), EffectiveStackLength(full.size()))
     , cont(stack.end(), Align(sizeof(TCont)))
     , machine(cont.end(), Align(sizeof(TExceptionSafeContext)))
-#else
-#error todo
-#endif
-{
-}
+{}
 
 void TContRep::DoRun() {
     try {
@@ -64,30 +58,12 @@ void TContRep::Destruct() noexcept {
     MachinePtr()->~TExceptionSafeContext();
 }
 
-#if defined(_unix_)
-#include <sys/mman.h>
-#endif
-
 void TProtectedContStackAllocator::Protect(void* ptr, size_t len) noexcept {
-#if defined(_unix_) && !defined(_cygwin_)
-    if (mprotect(ptr, len, PROT_NONE)) {
-        Y_FAIL("failed to mprotect (protect): %s", LastSystemErrorText());
-    }
-#else
-    Y_UNUSED(ptr);
-    Y_UNUSED(len);
-#endif
+    ProtectMemory(ptr, len, PM_NONE);
 }
 
 void TProtectedContStackAllocator::UnProtect(void* ptr, size_t len) noexcept {
-#if defined(_unix_) && !defined(_cygwin_)
-    if (mprotect(ptr, len, PROT_READ | PROT_WRITE)) {
-        Y_FAIL("failed to mprotect (unprotect): %s", LastSystemErrorText());
-    }
-#else
-    Y_UNUSED(ptr);
-    Y_UNUSED(len);
-#endif
+    ProtectMemory(ptr, len, PM_READ | PM_WRITE);
 }
 
 void TContExecutor::WaitForIO() {
