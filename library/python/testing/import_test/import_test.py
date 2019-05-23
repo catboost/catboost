@@ -164,6 +164,10 @@ def check_imports(no_check=None, extra=[], skip_func=None):
 
         "sklearn.utils.*",
 
+        "skimage.io._plugins.*",
+        "skimage.measure.mc_meta.visual_test",
+
+
         "subvertpy.ra_svn",  # can only be imported after subvertpy.ra
         "superfcgi.*",
 
