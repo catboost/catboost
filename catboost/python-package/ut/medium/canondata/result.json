@@ -44,7 +44,7 @@
         "uri": "file://test.test_coreml_import_export_CPU_/model.mlmodel"
     },
     "test.test_coreml_import_export_one_hot_features[CPU]": {
-        "checksum": "9e3e79ebb4f713568da1d1daefa81318",
+        "checksum": "ac4dd24546afc2d904b19540bb2e68be",
         "uri": "file://test.test_coreml_import_export_one_hot_features_CPU_/model.mlmodel"
     },
     "test.test_cpp_export_no_cat_features[CPU]": {

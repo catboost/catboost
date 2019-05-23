@@ -18,8 +18,8 @@ void NCatboost::NCoreML::ConfigureTrees(const TFullModel& model, TreeEnsemblePar
     size_t currentSplitIndex = 0;
     auto currentTreeFirstLeafPtr = model.ObliviousTrees.LeafValues.data();
 
-    size_t catFeaturesCount  = model.ObliviousTrees.CatFeatures.size();
-    size_t floatFeaturesCount  = model.ObliviousTrees.FloatFeatures.size();
+    size_t catFeaturesCount = model.ObliviousTrees.CatFeatures.size();
+    size_t floatFeaturesCount = model.ObliviousTrees.FloatFeatures.size();
     TVector<THashMap<int, double>> splitCategoricalValues(catFeaturesCount);
     TVector<int> categoricalFlatIndexes(catFeaturesCount);
     TVector<int> floatFlatIndexes(floatFeaturesCount);
@@ -139,16 +139,16 @@ void NCatboost::NCoreML::ConfigureCategoricalMappings(const TFullModel& model,
         auto* contained = container->Add();
 
         CoreML::Specification::Model mappingModel;
+        mappingModel.set_specificationversion(1);
         auto mapping = mappingModel.mutable_categoricalmapping();
 
         auto valuesCount = oneHotFeature.Values.size();
-
         for (size_t j = 0; j < valuesCount; j++) {
             ui32 oneHotValue = ui32(oneHotFeature.Values[j]);
             categoricalMapping.insert(std::make_pair(catFeaturesHashToString->find(oneHotValue)->second, j));
         }
 
-        mapping->set_int64value(valuesCount);
+        mapping->set_int64value(i64(valuesCount));
         auto* stringtoint64map = mapping->mutable_stringtoint64map();
         auto* map = stringtoint64map->mutable_map();
         map->insert(categoricalMapping.begin(), categoricalMapping.end());
@@ -167,7 +167,7 @@ void NCatboost::NCoreML::ConfigureCategoricalMappings(const TFullModel& model,
 
         auto mappedCategoricalFeatureType = new FeatureType();
         mappedCategoricalFeatureType->set_isoptional(false);
-        mappedCategoricalFeatureType->set_allocated_doubletype(new DoubleFeatureType());
+        mappedCategoricalFeatureType->set_allocated_int64type(new Int64FeatureType());
         mappedCategoricalFeature->set_allocated_type(mappedCategoricalFeatureType);
 
         *contained = mappingModel;
@@ -240,7 +240,7 @@ void NCatboost::NCoreML::ConfigureTreeModelIO(const TFullModel& model, const NJs
 
         auto featureType = new FeatureType();
         featureType->set_isoptional(false);
-        featureType->set_allocated_doubletype(new DoubleFeatureType());
+        featureType->set_allocated_int64type(new Int64FeatureType());
         feature->set_allocated_type(featureType);
     }
 
@@ -326,6 +326,7 @@ void ProcessOneTree(const TVector<const TreeEnsembleParameters::TreeNode*>& tree
                 if (splits->ysize() <= nodeLayerIds[nodeId]) {
                     splits->resize(nodeLayerIds[nodeId] + 1);
                     auto& split = splits->at(nodeLayerIds[nodeId]);
+                    // FloatFeature is not per-type index as it should be and the field is used temporarily as FlatFeatureIndex
                     split.FloatFeature.FloatFeature = node->branchfeatureindex();
                     split.FloatFeature.Split = node->branchfeaturevalue();
                     split.Type = ESplitType::FloatFeature;
@@ -338,7 +339,9 @@ void ProcessOneTree(const TVector<const TreeEnsembleParameters::TreeNode*>& tree
                 if (splits->ysize() <= nodeLayerIds[nodeId]) {
                     splits->resize(nodeLayerIds[nodeId] + 1);
                     auto& split = splits->at(nodeLayerIds[nodeId]);
+                    // CatFeatureIdx is not per-type index as it should be and the field is used temporarily as FlatFeatureIndex
                     split.OneHotFeature.CatFeatureIdx = node->branchfeatureindex();
+                    // Value is not hashed value as it should be and the field is used temporarily as an index in the OneHotFeature Values array with hashed values
                     split.OneHotFeature.Value = (int)node->branchfeaturevalue();
                     split.Type = ESplitType::OneHotFeature;
                 } else {
@@ -358,6 +361,7 @@ void ProcessOneTree(const TVector<const TreeEnsembleParameters::TreeNode*>& tree
 void NCatboost::NCoreML::ConvertCoreMLToCatboostModel(const Model& coreMLModel, TFullModel* fullModel) {
     CB_ENSURE(coreMLModel.specificationversion() == 1, "expected specificationVersion == 1");
     TreeEnsembleRegressor regressor;
+    // key: flatFeatureIndex, value: inverted categorical mapping from index (0, 1, ...) of category to category's name 
     THashMap<int, THashMap<int, TString>> categoricalMappings;
 
     if (coreMLModel.has_pipeline()) {
@@ -372,13 +376,14 @@ void NCatboost::NCoreML::ConvertCoreMLToCatboostModel(const Model& coreMLModel, 
             CB_ENSURE(model.has_categoricalmapping(), "expected categorical mappings in pipeline");
 
             auto& mapping = model.categoricalmapping().stringtoint64map().map();
+            // names of catFeatures are stored in description as "feature_" + std::to_string(flatFeatureIndex)
             int featureName = std::stoi(model.description().input(0).name().substr(8));
-            THashMap<int, TString> invertMapping;
+            THashMap<int, TString> invertedMapping;
 
             for (auto& key_value: mapping) {
-                invertMapping.insert(std::pair<int, TString>(key_value.second, key_value.first));
+                invertedMapping.insert(std::pair<int, TString>(key_value.second, key_value.first));
             }
-            categoricalMappings.insert(std::pair<int, THashMap<int, TString>>(featureName, std::move(invertMapping)));
+            categoricalMappings.insert(std::pair<int, THashMap<int, TString>>(featureName, std::move(invertedMapping)));
         }
     } else {
         CB_ENSURE(coreMLModel.has_treeensembleregressor(), "expected treeensembleregressor model");
