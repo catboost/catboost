@@ -47,6 +47,10 @@
         "checksum": "5ec004a1e02c22d1b5c41082bc49066b",
         "uri": "file://test.test_coreml_import_export_CPU_/model.mlmodel"
     },
+    "test.test_coreml_import_export_one_hot_features[CPU]": {
+        "checksum": "ac4dd24546afc2d904b19540bb2e68be",
+        "uri": "file://test.test_coreml_import_export_one_hot_features_CPU_/model.mlmodel"
+    },
     "test.test_cpp_export_no_cat_features[CPU]": {
         "checksum": "4a8ef8553a6b083ea4c90cdac0234721",
         "uri": "file://test.test_cpp_export_no_cat_features_CPU_/model.cpp"
