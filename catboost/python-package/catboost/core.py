@@ -3722,6 +3722,6 @@ def _plot_feature_statistics(statistics, feature_num, max_cat_features_on_plot):
             }
             fig = _build_binarized_feature_statistics_fig(sub_statistics, feature_num)
             iplot(fig)
-
-    fig = _build_binarized_feature_statistics_fig(statistics, feature_num)
-    iplot(fig)
+    else:
+        fig = _build_binarized_feature_statistics_fig(statistics, feature_num)
+        iplot(fig)
