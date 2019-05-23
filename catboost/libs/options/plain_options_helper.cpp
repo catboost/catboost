@@ -1,5 +1,5 @@
-#include "cat_feature_options.h"
 #include "loss_description.h"
+#include "cat_feature_options.h"
 #include "binarization_options.h"
 #include "plain_options_helper.h"
 
@@ -294,7 +294,6 @@ void NCatboostOptions::PlainJsonToOptions(
     CopyOption(plainOptions, "bagging_temperature", &bootstrapOptions, &seenKeys);
     CopyOption(plainOptions, "subsample", &bootstrapOptions, &seenKeys);
     CopyOption(plainOptions, "mvs_head_fraction", &bootstrapOptions, &seenKeys);
-    CopyOption(plainOptions, "sampling_unit", &bootstrapOptions, &seenKeys);
 
     //feature evaluation options
     auto& modelBasedEvalOptions = trainOptions["model_based_eval_options"];
