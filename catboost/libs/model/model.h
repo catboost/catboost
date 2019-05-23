@@ -803,6 +803,12 @@ public:
     }
 
     /**
+     * Get the name of optimized objective used to train the model.
+     * @return the name, or empty string if the model does not have this information
+     */
+    TString GetLossFunctionName() const;
+
+    /**
      * Internal usage only.
      * Updates indexes in CTR provider and recalculates runtime data in Oblivious trees after model
      *  modifications.

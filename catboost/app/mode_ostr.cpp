@@ -30,9 +30,11 @@ struct TObjectImportancesParams {
     void BindParserOpts(NLastGetopt::TOpts& parser) {
         NCB::BindModelFileParams(&parser, &ModelFileName, &ModelFormat);
         parser.AddLongOption('f', "learn-set", "learn set path")
+            .Required()
             .StoreResult(&LearnSetPath)
             .RequiredArgument("PATH");
         parser.AddLongOption('t', "test-set", "test set path")
+            .Required()
             .StoreResult(&TestSetPath)
             .RequiredArgument("PATH");
         BindDsvPoolFormatParams(&parser, &DsvPoolFormatParams);
@@ -89,7 +91,8 @@ int mode_ostr(int argc, const char* argv[]) {
                                                       /*classNames=*/Nothing(),
                                                       &localExecutor);
 
-
+    CB_ENSURE(model.ModelInfo.contains("params"), "Need model with params to calculate object importances");
+    CB_ENSURE(model.GetLossFunctionName(), "Optimized objective must be known to calculate object importances. It is not present in the model.");
     TDStrResult results = GetDocumentImportances(
         model,
         *trainPool,
