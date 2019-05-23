@@ -2911,7 +2911,8 @@ cdef class _CatBoost:
             dereference(self.__model),
             dereference(pool.__pool.Get()),
             flatFeatureIndex)
-        return values
+        res = {to_native_str(val) for val in values}
+        return res
 
     cpdef _get_leaf_values(self):
         return _vector_of_double_to_np_array(self.__model.ObliviousTrees.LeafValues)

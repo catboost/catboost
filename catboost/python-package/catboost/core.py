@@ -2149,13 +2149,18 @@ class CatBoost(_CatBoostBase):
             raise CatBoostError('Unknown prediction type "{}"'.format(prediction_type))
 
         feature_type, feature_internal_index = self._object._get_feature_type_and_internal_index(feature)
-        if feature_type == 'float':
-            res = self._object._get_binarized_statistics(data, feature_internal_index,
-                                                         prediction_type, feature_type, thread_count)
-        elif feature_type == 'categorical':
+        res = self._object._get_binarized_statistics(
+            data,
+            feature_internal_index,
+            prediction_type,
+            feature_type,
+            thread_count
+        )
+
+        if feature_type == 'categorical':
             if cat_feature_values is None:
                 cat_feature_values = self._object._get_cat_feature_values(data, feature)
-                cat_feature_values = [val.decode() for val in cat_feature_values]
+                cat_feature_values = [val for val in cat_feature_values]
 
             if not isinstance(cat_feature_values, ARRAY_TYPES):
                 raise CatBoostError("Feature #{} is categorical. "
@@ -3691,7 +3696,7 @@ def _build_binarized_feature_statistics_fig(statistics, feature_num):
     return fig
 
 
-def _plot_feature_statistics(statistics, feature_num, max_cat_features_on_plot=10):
+def _plot_feature_statistics(statistics, feature_num, max_cat_features_on_plot):
     try:
         from plotly.offline import iplot
     except ImportError as e:

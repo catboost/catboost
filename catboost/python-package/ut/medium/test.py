@@ -4377,8 +4377,6 @@ def test_compute_options():
 
 
 def test_feature_statistics():
-    import numpy as np
-
     n_features = 3
     n_samples = 500
     np.random.seed(42)
