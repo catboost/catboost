@@ -135,14 +135,15 @@ void NCatboost::NCoreML::ConfigureCategoricalMappings(const TFullModel& model,
 
     for (const auto& oneHotFeature : model.ObliviousTrees.OneHotFeatures) {
         int flatFeatureIndex = categoricalFlatIndexes[oneHotFeature.CatFeatureIndex];
-        THashMap<TString, long> categoricalMapping;
+        THashMap<TString, int> categoricalMapping;
         auto* contained = container->Add();
 
         CoreML::Specification::Model mappingModel;
+        mappingModel.set_specificationversion(1);
+
         auto mapping = mappingModel.mutable_categoricalmapping();
 
         auto valuesCount = oneHotFeature.Values.size();
-
         for (size_t j = 0; j < valuesCount; j++) {
             ui32 oneHotValue = ui32(oneHotFeature.Values[j]);
             categoricalMapping.insert(std::make_pair(catFeaturesHashToString->find(oneHotValue)->second, j));
@@ -167,7 +168,7 @@ void NCatboost::NCoreML::ConfigureCategoricalMappings(const TFullModel& model,
 
         auto mappedCategoricalFeatureType = new FeatureType();
         mappedCategoricalFeatureType->set_isoptional(false);
-        mappedCategoricalFeatureType->set_allocated_doubletype(new DoubleFeatureType());
+        mappedCategoricalFeatureType->set_allocated_int64type(new Int64FeatureType());
         mappedCategoricalFeature->set_allocated_type(mappedCategoricalFeatureType);
 
         *contained = mappingModel;
@@ -233,14 +234,14 @@ void NCatboost::NCoreML::ConfigureTreeModelIO(const TFullModel& model, const NJs
     }
 
     for (const auto& oneHotFeature : model.ObliviousTrees.OneHotFeatures) {
-        auto feature = description->add_input();
         int flatFeatureIndex = categoricalFlatIndexes[oneHotFeature.CatFeatureIndex];
+        auto feature = description->add_input();
 
         feature->set_name(("mapped_feature_" + std::to_string(flatFeatureIndex)).c_str());
 
         auto featureType = new FeatureType();
         featureType->set_isoptional(false);
-        featureType->set_allocated_doubletype(new DoubleFeatureType());
+        featureType->set_allocated_int64type(new Int64FeatureType());
         feature->set_allocated_type(featureType);
     }
 
