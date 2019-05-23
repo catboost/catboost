@@ -74,10 +74,13 @@ __all__ = [
     'split_at',
     'split_after',
     'split_before',
+    'split_into',
     'spy',
     'stagger',
     'strip',
+    'substrings',
     'unique_to_each',
+    'unzip',
     'windowed',
     'with_iter',
     'zip_offset',
@@ -439,12 +442,12 @@ def ilen(iterable):
     This consumes the iterable, so handle with care.
 
     """
-    # maxlen=1 only stores the last item in the deque
-    d = deque(enumerate(iterable, 1), maxlen=1)
-    # since we started enumerate at 1,
-    # the first item of the last pair will be the length of the iterable
-    # (assuming there were items)
-    return d[0][0] if d else 0
+    # This approach was selected because benchmarks showed it's likely the
+    # fastest of the known implementations at the time of writing.
+    # See GitHub tracker: #236, #230.
+    counter = count()
+    deque(zip(iterable, counter), maxlen=0)
+    return next(counter)
 
 
 def iterate(func, start):
@@ -692,6 +695,32 @@ def windowed(seq, n, fillvalue=None, step=1):
         for _ in range(step - i):
             append(fillvalue)
         yield tuple(window)
+
+
+def substrings(iterable, join_func=None):
+    """Yield all of the substrings of *iterable*.
+
+        >>> [''.join(s) for s in substrings('more')]
+        ['m', 'o', 'r', 'e', 'mo', 'or', 're', 'mor', 'ore', 'more']
+
+    Note that non-string iterables can also be subdivided.
+
+        >>> list(substrings([0, 1, 2]))
+        [(0,), (1,), (2,), (0, 1), (1, 2), (0, 1, 2)]
+
+    """
+    # The length-1 substrings
+    seq = []
+    for item in iter(iterable):
+        seq.append(item)
+        yield (item,)
+    seq = tuple(seq)
+    item_count = len(seq)
+
+    # And the rest
+    for n in range(2, item_count + 1):
+        for i in range(item_count - n + 1):
+            yield seq[i:i + n]
 
 
 class bucket(object):
@@ -1042,6 +1071,51 @@ def split_after(iterable, pred):
         yield buf
 
 
+def split_into(iterable, sizes):
+    """Yield a list of sequential items from *iterable* of length 'n' for each
+    integer 'n' in *sizes*.
+
+        >>> list(split_into([1,2,3,4,5,6], [1,2,3]))
+        [[1], [2, 3], [4, 5, 6]]
+
+    If the sum of *sizes* is smaller than the length of *iterable*, then the
+    remaining items of *iterable* will not be returned.
+
+        >>> list(split_into([1,2,3,4,5,6], [2,3]))
+        [[1, 2], [3, 4, 5]]
+
+    If the sum of *sizes* is larger than the length of *iterable*, fewer items
+    will be returned in the iteration that overruns *iterable* and further
+    lists will be empty:
+
+        >>> list(split_into([1,2,3,4], [1,2,3,4]))
+        [[1], [2, 3], [4], []]
+
+    When a ``None`` object is encountered in *sizes*, the returned list will
+    contain items up to the end of *iterable* the same way that itertools.slice
+    does:
+
+        >>> list(split_into([1,2,3,4,5,6,7,8,9,0], [2,3,None]))
+        [[1, 2], [3, 4, 5], [6, 7, 8, 9, 0]]
+
+    :func:`split_into` can be useful for grouping a series of items where the
+    sizes of the groups are not uniform. An example would be where in a row
+    from a table, multiple columns represent elements of the same feature
+    (e.g. a point represented by x,y,z) but, the format is not the same for
+    all columns.
+    """
+    # convert the iterable argument into an iterator so its contents can
+    # be consumed by islice in case it is a generator
+    it = iter(iterable)
+
+    for size in sizes:
+        if size is None:
+            yield list(it)
+            return
+        else:
+            yield list(islice(it, size))
+
+
 def padded(iterable, fillvalue=None, n=None, next_multiple=False):
     """Yield the elements from *iterable*, followed by *fillvalue*, such that
     at least *n* items are emitted.
@@ -1146,7 +1220,7 @@ def zip_offset(*iterables, **kwargs):
         [('0', 'b'), ('1', 'c'), ('2', 'd'), ('3', 'e')]
 
     This can be used as a lightweight alternative to SciPy or pandas to analyze
-    data sets in which somes series have a lead or lag relationship.
+    data sets in which some series have a lead or lag relationship.
 
     By default, the sequence will end when the shortest iterable is exhausted.
     To continue until the longest iterable is exhausted, set *longest* to
@@ -1197,7 +1271,7 @@ def sort_together(iterables, key_list=(0,), reverse=False):
         [(1, 2, 3, 4), ('d', 'c', 'b', 'a')]
 
     Set a different key list to sort according to another iterable.
-    Specifying mutliple keys dictates how ties are broken::
+    Specifying multiple keys dictates how ties are broken::
 
         >>> iterables = [(3, 1, 2), (0, 1, 0), ('c', 'b', 'a')]
         >>> sort_together(iterables, key_list=(1, 2))
@@ -1212,6 +1286,54 @@ def sort_together(iterables, key_list=(0,), reverse=False):
     return list(zip(*sorted(zip(*iterables),
                             key=itemgetter(*key_list),
                             reverse=reverse)))
+
+
+def unzip(iterable):
+    """The inverse of :func:`zip`, this function disaggregates the elements
+    of the zipped *iterable*.
+
+    The ``i``-th iterable contains the ``i``-th element from each element
+    of the zipped iterable. The first element is used to to determine the
+    length of the remaining elements.
+
+        >>> iterable = [('a', 1), ('b', 2), ('c', 3), ('d', 4)]
+        >>> letters, numbers = unzip(iterable)
+        >>> list(letters)
+        ['a', 'b', 'c', 'd']
+        >>> list(numbers)
+        [1, 2, 3, 4]
+
+    This is similar to using ``zip(*iterable)``, but it avoids reading
+    *iterable* into memory. Note, however, that this function uses
+    :func:`itertools.tee` and thus may require significant storage.
+
+    """
+    head, iterable = spy(iter(iterable))
+    if not head:
+        # empty iterable, e.g. zip([], [], [])
+        return ()
+    # spy returns a one-length iterable as head
+    head = head[0]
+    iterables = tee(iterable, len(head))
+
+    def itemgetter(i):
+        def getter(obj):
+            try:
+                return obj[i]
+            except IndexError:
+                # basically if we have an iterable like
+                # iter([(1, 2, 3), (4, 5), (6,)])
+                # the second unzipped iterable would fail at the third tuple
+                # since it would try to access tup[1]
+                # same with the third unzipped iterable and the second tuple
+                # to support these "improperly zipped" iterables,
+                # we create a custom itemgetter
+                # which just stops the unzipped iterables
+                # at first length mismatch
+                raise StopIteration
+        return getter
+
+    return tuple(map(itemgetter(i), it) for i, it in enumerate(iterables))
 
 
 def divide(n, iterable):
@@ -1788,7 +1910,7 @@ def difference(iterable, func=sub):
 class SequenceView(Sequence):
     """Return a read-only view of the sequence object *target*.
 
-    :class:`SequenceView` objects are analagous to Python's built-in
+    :class:`SequenceView` objects are analogous to Python's built-in
     "dictionary view" types. They provide a dynamic view of a sequence's items,
     meaning that when the sequence updates, so does the view.
 

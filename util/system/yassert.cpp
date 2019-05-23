@@ -5,6 +5,7 @@
 #include "spinlock.h"
 #include "src_root.h"
 
+#include <util/datetime/base.h>
 #include <util/generic/singleton.h>
 #include <util/generic/string.h>
 #include <util/stream/output.h>
@@ -37,12 +38,14 @@ void ::NPrivate::Panic(const TStaticBuf& file, int line, const char* function, c
         vsprintf(errorMsg, format[0] == ' ' ? format + 1 : format, args);
         va_end(args);
 
+        const TString now = TInstant::Now().ToStringLocal();
+
         TString r;
         TStringOutput o(r);
         if (expr) {
-            o << "VERIFY failed: " << errorMsg << Endl;
+            o << "VERIFY failed (" << now << "): " << errorMsg << Endl;
         } else {
-            o << "FAIL: " << errorMsg << Endl;
+            o << "FAIL (" << now << "): " << errorMsg << Endl;
         }
         o << "  " << file.As<TStringBuf>() << ":" << line << Endl;
         if (expr) {

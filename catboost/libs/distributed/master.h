@@ -17,18 +17,15 @@ void MapBootstrap(TLearnContext* ctx);
 void MapCalcScore(
     double scoreStDev,
     int depth,
-    TConstArrayRef<NCB::TBinaryFeaturesPack> perPackMasks,
-    TCandidateList* candidateList,
+    TCandidatesContext* candidatesContext,
     TLearnContext* ctx);
 void MapRemoteCalcScore(
     double scoreStDev,
-    TConstArrayRef<NCB::TBinaryFeaturesPack> perPackMasks,
-    TCandidateList* candidateList,
+    TCandidatesContext* candidatesContext,
     TLearnContext* ctx);
 void MapRemotePairwiseCalcScore(
     double scoreStDev,
-    TConstArrayRef<NCB::TBinaryFeaturesPack> perPackMasks,
-    TCandidateList* candidateList,
+    TCandidatesContext* candidatesContext,
     TLearnContext* ctx);
 void MapSetIndices(const TSplit& bestSplit, TLearnContext* ctx);
 int MapGetRedundantSplitIdx(TLearnContext* ctx);

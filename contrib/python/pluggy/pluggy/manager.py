@@ -53,6 +53,7 @@ class PluginManager(object):
                 "Support for the `implprefix` arg is now deprecated and will "
                 "be removed in an upcoming release. Please use HookimplMarker.",
                 DeprecationWarning,
+                stacklevel=2,
             )
         self._implprefix = implprefix
         self._inner_hookexec = lambda hook, methods, kwargs: hook.multicall(
@@ -250,16 +251,22 @@ class PluginManager(object):
                                 % (name, hookimpl.plugin),
                             )
 
-    def load_setuptools_entrypoints(self, entrypoint_name):
-        """ Load modules from querying the specified setuptools entrypoint name.
-        Return the number of loaded plugins. """
+    def load_setuptools_entrypoints(self, group, name=None):
+        """ Load modules from querying the specified setuptools ``group``.
+
+        :param str group: entry point group to load plugins
+        :param str name: if given, loads only plugins with the given ``name``.
+        :rtype: int
+        :return: return the number of loaded plugins by this call.
+        """
         from pkg_resources import (
             iter_entry_points,
             DistributionNotFound,
             VersionConflict,
         )
 
-        for ep in iter_entry_points(entrypoint_name):
+        count = 0
+        for ep in iter_entry_points(group, name=name):
             # is the plugin registered or blocked?
             if self.get_plugin(ep.name) or self.is_blocked(ep.name):
                 continue
@@ -274,7 +281,8 @@ class PluginManager(object):
                 )
             self.register(plugin, name=ep.name)
             self._plugin_distinfo.append((plugin, ep.dist))
-        return len(self._plugin_distinfo)
+            count += 1
+        return count
 
     def list_plugin_distinfo(self):
         """ return list of distinfo/plugin tuples for all setuptools registered

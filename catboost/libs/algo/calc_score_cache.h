@@ -7,16 +7,22 @@
 
 #include <catboost/libs/data_new/columns.h>
 #include <catboost/libs/index_range/index_range.h>
-#include <catboost/libs/helpers/restorable_rng.h>
 #include <catboost/libs/options/restrictions.h>
-#include <catboost/libs/options/oblivious_tree_options.h>
 
 #include <util/generic/array_ref.h>
 #include <util/generic/ptr.h>
 #include <util/memory/pool.h>
-#include <util/system/info.h>
 #include <util/system/atomic.h>
+#include <util/system/info.h>
 #include <util/system/spinlock.h>
+
+
+struct TRestorableFastRng64;
+
+namespace NCatboostOptions {
+    class TObliviousTreeLearnerOptions;
+}
+
 
 bool IsSamplingPerTree(const NCatboostOptions::TObliviousTreeLearnerOptions& fitParams);
 
@@ -44,7 +50,9 @@ static inline const TData* GetDataPtr(const TVector<TData, TAlloc>& data, size_t
     return GetDataPtr(TConstArrayRef<TData>(data), offset);
 }
 
-static inline float GetBernoulliSampleRate(const NCatboostOptions::TOption<NCatboostOptions::TBootstrapConfig>& samplingConfig) {
+static inline float GetBernoulliSampleRate(
+    const NCatboostOptions::TOption<NCatboostOptions::TBootstrapConfig>& samplingConfig
+) {
     if (samplingConfig->GetBootstrapType() == EBootstrapType::Bernoulli) {
         return samplingConfig->GetTakenFraction();
     }
@@ -65,6 +73,9 @@ struct TBucketStats {
     double SumDelta;
     double Count;
 
+public:
+    SAVELOAD(SumWeightedDelta, SumWeight, SumDelta, Count);
+
     inline void Add(const TBucketStats& other) {
         SumWeightedDelta += other.SumWeightedDelta;
         SumDelta += other.SumDelta;
@@ -78,10 +89,12 @@ struct TBucketStats {
         SumWeight -= other.SumWeight;
         Count -= other.Count;
     }
-    SAVELOAD(SumWeightedDelta, SumWeight, SumDelta, Count);
 };
 
-static_assert(std::is_pod<TBucketStats>::value, "TBucketStats must be pod to avoid memory initialization in yresize");
+static_assert(
+    std::is_pod<TBucketStats>::value,
+    "TBucketStats must be pod to avoid memory initialization in yresize"
+);
 
 inline static int CountNonCtrBuckets(
     const NCB::TQuantizedFeaturesInfo& quantizedFeaturesInfo,
@@ -106,8 +119,8 @@ inline static int CountNonCtrBuckets(
     return nonCtrBucketCount;
 }
 
-struct TBucketStatsCache {
-    THashMap<TSplitEnsemble, THolder<TVector<TBucketStats, TPoolAllocator>>> Stats;
+class TBucketStatsCache {
+public:
     inline void Create(const TVector<TFold>& folds, int bucketCount, int depth) {
         ApproxDimension = folds[0].GetApproxDimension();
         MaxBodyTailCount = GetMaxBodyTailCount(folds);
@@ -117,12 +130,22 @@ struct TBucketStatsCache {
         }
         MemoryPool = new TMemoryPool(InitialSize);
     }
-    TVector<TBucketStats, TPoolAllocator>& GetStats(const TSplitEnsemble& splitEnsemble, int statsCount, bool* areStatsDirty);
+    TVector<TBucketStats, TPoolAllocator>& GetStats(
+        const TSplitEnsemble& splitEnsemble,
+        int statsCount,
+        bool* areStatsDirty
+    );
     void GarbageCollect();
-    static TVector<TBucketStats> GetStatsInUse(int segmentCount,
+    static TVector<TBucketStats> GetStatsInUse(
+        int segmentCount,
         int segmentSize,
         int statsCount,
-        const TVector<TBucketStats, TPoolAllocator>& cachedStats);
+        const TVector<TBucketStats, TPoolAllocator>& cachedStats
+    );
+
+public:
+    THashMap<TSplitEnsemble, THolder<TVector<TBucketStats, TPoolAllocator>>> Stats;
+
 private:
     THolder<TMemoryPool> MemoryPool;
     TAdaptiveLock Lock;
@@ -131,7 +154,8 @@ private:
     int ApproxDimension = 0;
 };
 
-struct TCalcScoreFold {
+class TCalcScoreFold {
+public:
     template <typename TDataType>
     class TUnsizedVector : public TVector<TDataType> {
         size_t size() = delete;
@@ -149,12 +173,14 @@ struct TCalcScoreFold {
     };
 
     struct TVectorSlicing {
-        int Total;
         struct TSlice {
             static const constexpr int InvalidOffset = -1;
-            int Offset = InvalidOffset;
             static const constexpr int InvalidSize = -1;
+
+            int Offset = InvalidOffset;
             int Size = InvalidSize;
+
+        public:
             TSlice Clip(int newSize) const {
                 TSlice clippedSlice;
                 clippedSlice.Offset = Offset;
@@ -175,10 +201,18 @@ struct TCalcScoreFold {
                 return MakeArrayRef(GetDataPtr(data, clippedSlice.Offset), clippedSlice.Size);
             }
         };
-        TUnsizedVector<TSlice> Slices;
-        void Create(const NPar::TLocalExecutor::TExecRangeParams& docBlockParams);
-        void CreateByControl(const NPar::TLocalExecutor::TExecRangeParams& docBlockParams, const TUnsizedVector<bool>& control, NPar::TLocalExecutor* localExecutor);
 
+    public:
+        int Total;
+        TUnsizedVector<TSlice> Slices;
+
+    public:
+        void Create(const NPar::TLocalExecutor::TExecRangeParams& docBlockParams);
+        void CreateByControl(
+            const NPar::TLocalExecutor::TExecRangeParams& docBlockParams,
+            const TUnsizedVector<bool>& control,
+            NPar::TLocalExecutor* localExecutor
+        );
         void CreateByQueriesInfo(
             const TVector<TQueryInfo>& srcQueriesInfo,
             const NPar::TLocalExecutor::TExecRangeParams& queryBlockParams
@@ -192,6 +226,80 @@ struct TCalcScoreFold {
             TVector<TQueryInfo>* dstQueriesInfo
         );
     };
+
+public:
+    void Create(
+        const TVector<TFold>& folds,
+        bool isPairwiseScoring,
+        int defaultCalcStatsObjBlockSize,
+        float sampleRate = 1.0f
+    );
+    void SelectSmallestSplitSide(
+        int curDepth,
+        const TCalcScoreFold& fold,
+        NPar::TLocalExecutor* localExecutor
+    );
+    void Sample(
+        const TFold& fold,
+        ESamplingUnit samplingUnit,
+        const TVector<TIndexType>& indices,
+        TRestorableFastRng64* rand,
+        NPar::TLocalExecutor* localExecutor,
+        bool isCoinFlipping = true
+    );
+    void UpdateIndices(const TVector<TIndexType>& indices, NPar::TLocalExecutor* localExecutor);
+    int GetDocCount() const;
+    int GetBodyTailCount() const;
+    int GetApproxDimension() const;
+    const TVector<float>& GetLearnWeights() const { return LearnWeights; }
+
+    bool HasQueryInfo() const;
+
+    // for data with queries - query indices, object indices otherwise
+    const NCB::IIndexRangesGenerator<int>& GetCalcStatsIndexRanges() const;
+
+private:
+    using TSlice = TVectorSlicing::TSlice;
+
+private:
+    inline void ClearBodyTail() {
+        for (auto& bodyTail : BodyTailArr) {
+            bodyTail.BodyFinish = bodyTail.TailFinish = 0;
+        }
+    }
+
+    template <typename TFoldType>
+    void SelectBlockFromFold(const TFoldType& fold, TSlice srcBlock, TSlice dstBlock);
+    void SetSmallestSideControl(
+        int curDepth,
+        int docCount,
+        const TUnsizedVector<TIndexType>& indices,
+        NPar::TLocalExecutor* localExecutor
+    );
+    void SetSampledControl(
+        int docCount,
+        ESamplingUnit samplingUnit,
+        const TVector<TQueryInfo>& queriesInfo,
+        TRestorableFastRng64* rand
+    );
+    void SetControlNoZeroWeighted(int docCount, const float* sampleWeights, ESamplingUnit samplingUnit);
+
+    void CreateBlocksAndUpdateQueriesInfoByControl(
+        NPar::TLocalExecutor* localExecutor,
+        int srcDocCount,
+        const TVector<TQueryInfo>& srcQueriesInfo,
+        int* blockCount,
+        TVectorSlicing* srcBlocks,
+        TVectorSlicing* dstBlocks,
+        TVector<TQueryInfo>* dstQueriesInfo
+    );
+
+    void SetPermutationBlockSizeAndCalcStatsRanges(
+        int nonCtrDataPermutationBlockSize,
+        int ctrDataPermutationBlockSize
+    );
+
+public:
     TUnsizedVector<TIndexType> Indices;
 
     /* indexing in features buckets arrays, always TIndexedSubset
@@ -214,46 +322,7 @@ struct TCalcScoreFold {
     int NonCtrDataPermutationBlockSize = FoldPermutationBlockSizeNotSet;
     int CtrDataPermutationBlockSize = FoldPermutationBlockSizeNotSet;
 
-
-    void Create(const TVector<TFold>& folds, bool isPairwiseScoring, int defaultCalcStatsObjBlockSize, float sampleRate = 1.0f);
-    void SelectSmallestSplitSide(int curDepth, const TCalcScoreFold& fold, NPar::TLocalExecutor* localExecutor);
-    void Sample(const TFold& fold, ESamplingUnit samplingUnit, const TVector<TIndexType>& indices, TRestorableFastRng64* rand, NPar::TLocalExecutor* localExecutor, bool isCoinFlipping = true);
-    void UpdateIndices(const TVector<TIndexType>& indices, NPar::TLocalExecutor* localExecutor);
-    int GetDocCount() const;
-    int GetBodyTailCount() const;
-    int GetApproxDimension() const;
-    const TVector<float>& GetLearnWeights() const { return LearnWeights; }
-
-    bool HasQueryInfo() const;
-
-    // for data with queries - query indices, object indices otherwise
-    const NCB::IIndexRangesGenerator<int>& GetCalcStatsIndexRanges() const;
-
 private:
-    inline void ClearBodyTail() {
-        for (auto& bodyTail : BodyTailArr) {
-            bodyTail.BodyFinish = bodyTail.TailFinish = 0;
-        }
-    }
-    using TSlice = TVectorSlicing::TSlice;
-    template <typename TFoldType>
-    void SelectBlockFromFold(const TFoldType& fold, TSlice srcBlock, TSlice dstBlock);
-    void SetSmallestSideControl(int curDepth, int docCount, const TUnsizedVector<TIndexType>& indices, NPar::TLocalExecutor* localExecutor);
-    void SetSampledControl(int docCount, ESamplingUnit samplingUnit, const TVector<TQueryInfo>& queriesInfo, TRestorableFastRng64* rand);
-    void SetControlNoZeroWeighted(int docCount, const float* sampleWeights, ESamplingUnit samplingUnit);
-
-    void CreateBlocksAndUpdateQueriesInfoByControl(
-        NPar::TLocalExecutor* localExecutor,
-        int srcDocCount,
-        const TVector<TQueryInfo>& srcQueriesInfo,
-        int* blockCount,
-        TVectorSlicing* srcBlocks,
-        TVectorSlicing* dstBlocks,
-        TVector<TQueryInfo>* dstQueriesInfo
-    );
-
-    void SetPermutationBlockSizeAndCalcStatsRanges(int nonCtrDataPermutationBlockSize, int ctrDataPermutationBlockSize);
-
     TUnsizedVector<bool> Control;
     int DocCount;
     int BodyTailCount;
@@ -274,8 +343,9 @@ struct TStats3D {
 
     TSplitEnsembleSpec SplitEnsembleSpec;
 
-    void Add(const TStats3D& stats3D);
-
+public:
     SAVELOAD(Stats, BucketCount, MaxLeafCount, SplitEnsembleSpec);
+
+    void Add(const TStats3D& stats3D);
 };
 

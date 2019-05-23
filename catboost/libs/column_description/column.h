@@ -18,15 +18,29 @@ enum class EColumn {
     SubgroupId,
     Timestamp,
     Sparse,
-    Prediction
+    Prediction,
+    Text
 };
 
 inline bool IsFactorColumn(EColumn column) {
-    return column == EColumn::Num || column == EColumn::Categ || column == EColumn::Sparse;
+    return column == EColumn::Num || column == EColumn::Categ || column == EColumn::Sparse || column == EColumn::Text;
+}
+
+inline bool CanBeOutputByColumnType(EColumn column) {
+    return column == EColumn::Label ||
+           column == EColumn::Baseline ||
+           column == EColumn::Weight ||
+           column == EColumn::SampleId ||
+           column == EColumn::GroupId ||
+           column == EColumn::GroupWeight ||
+           column == EColumn::SubgroupId ||
+           column == EColumn::Timestamp ||
+           column == EColumn::Prediction;
 }
 
 TStringBuf ToCanonicalColumnName(TStringBuf columnName);
 
+void ParseOutputColumnByIndex(const TString& outputColumn, ui32* columnNumber, TString* name);
 
 struct TColumn {
     EColumn Type;

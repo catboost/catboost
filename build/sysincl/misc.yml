@@ -1,0 +1,87 @@
+# We have lots of ADDINCLs to contrib/libs/libiconv all around the repo
+# so we need to add it to sysincl for consistent resolving.
+# We can go the other way here and remove iconv.h from all sysincl configs
+# and try to fix all places where we really need iconv.h from libc
+# Btw: seems that this ADDINCL should be made global and removed from projects
+# that use this header
+- includes:
+    - iconv.h:       contrib/libs/libiconv/iconv.h
+
+# libunistring has its own libc header wrappers that are added to ADDINCL and
+# need to be added here for consistensy between ADDINCL and sysincl resolving.
+# Btw: we don't parse include_next, so we might lose real dependency to musl,
+# but sysincl resolving will save us here, as it will resolve to both of them.
+- source_filter: "^contrib/libs/libunistring"
+  includes:
+    - alloca.h:      contrib/libs/libunistring/alloca.h
+    - iconv.h:       contrib/libs/libiconv/include/iconv.h
+    - langinfo.h:    contrib/libs/libunistring/langinfo.h
+    - limits.h:      contrib/libs/libunistring/limits.h
+    - math.h:        contrib/libs/libunistring/math.h
+    - stdlib.h:      contrib/libs/libunistring/stdlib.h
+    - string.h:      contrib/libs/libunistring/string.h
+    - sys/types.h:   contrib/libs/libunistring/sys/types.h
+    - unistd.h:      contrib/libs/libunistring/unistd.h
+    - wchar.h:       contrib/libs/libunistring/wchar.h
+    - wctype.h:      contrib/libs/libunistring/wctype.h
+
+# Same as libunistring - lftp has own libc header wrappers/replacements.
+# However here we have GLOBAL ADDINCL to contrib/libs/lftp{,/trio,/lib}
+# that can poison resolving in PEERDIRing projects.
+# Fortunately lftp is used only in contrib/tools/lftp.
+# Probably we should add PEERDIR restriction rule to it.
+- source_filter: "^contrib/libs/lftp"
+  includes:
+    - alloca.h:      contrib/libs/lftp/alloca.h
+    - fnmatch.h:     contrib/libs/lftp/lib/fnmatch.h
+    - regex.h:       contrib/libs/lftp/lib/regex.h
+    - sys/socket.h:  contrib/libs/lftp/lib/sys/socket.h
+    - sys/stat.h:    contrib/libs/lftp/lib/sys/stat.h
+    - sys/time.h:    contrib/libs/lftp/lib/sys/time.h
+
+# Another sysincl/addincl clash. Here we also have GLOBAL ADDINCL that will
+# produce sysincl/addincl mismatch configure errors when someone writes
+# #include <math.h> and enables USE_ARCADIA_LIBM. Now we have no instances of this.
+- source_filter: "^contrib/libs/libm/.*\\.c"
+  includes:
+    - complex.h:     contrib/libs/libm/include/complex.h
+    - math.h:        contrib/libs/libm/include/math.h
+
+# Some more sysincl/addincl clashes.
+- source_filter: "^contrib/tools/bison/(bison|gnulib|m4)/src"
+  includes:
+    - fcntl.h:       contrib/tools/bison/gnulib/platform/posix/fcntl.h
+    - getopt.h:      contrib/tools/bison/gnulib/platform/posix/getopt.h
+    - regex.h:       contrib/tools/bison/gnulib/src/regex.h
+- source_filter: "^contrib/tools/make"
+  includes:
+    - fnmatch.h:     contrib/tools/make/glob/fnmatch.h
+    - glob.h:        contrib/tools/make/glob/glob.h
+- source_filter: "^contrib/tools/tre"
+  includes:
+    - regex.h:       contrib/tools/tre/lib/regex.h
+- source_filter: "^contrib/libs/libunwind_master"
+  includes:
+    - unwind.h:      contrib/libs/libunwind_master/include/unwind.h
+- source_filter: "^contrib/libs/libunwind/"
+  includes:
+    - unwind.h:      contrib/libs/libunwind/include/unwind.h
+
+# deprecated contrib with ADDINCL to libintl
+- source_filter: "^contrib/deprecated/glib/glib"
+  includes:
+    - libintl.h:     contrib/deprecated/libintl/libintl.h
+
+# unused legacy include in boost
+- source_filter: "^contrib/deprecated/boost"
+  includes:
+    - fstream.h
+
+- source_filter: "^contrib/deprecated/boost/boost/asio/detail"
+  includes:
+  - __config
+
+# temporary here, will be moved to linux header list
+- source_filter: "^contrib/libs/musl"
+  includes:
+    - linux/soundcard.h

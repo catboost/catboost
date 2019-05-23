@@ -4,13 +4,13 @@
 namespace NCatboostCuda {
     using TQuerywiseTrainer = TGpuTrainer<TQuerywiseTargetsImpl, TNonSymmetricTree>;
 
-    TGpuTrainerFactory::TRegistrator<TQuerywiseTrainer> QrmseRegistrator(GetTrainerFactoryKey(ELossFunction::QueryRMSE, EGrowingPolicy::Lossguide));
-    TGpuTrainerFactory::TRegistrator<TQuerywiseTrainer> QsoftmaxRegistrator(GetTrainerFactoryKey(ELossFunction::QuerySoftMax, EGrowingPolicy::Lossguide));
-    TGpuTrainerFactory::TRegistrator<TQuerywiseTrainer> PairLogitRegistrator(GetTrainerFactoryKey(ELossFunction::PairLogit, EGrowingPolicy::Lossguide));
-    TGpuTrainerFactory::TRegistrator<TQuerywiseTrainer> YetiRankRegistrator(GetTrainerFactoryKey(ELossFunction::YetiRank, EGrowingPolicy::Lossguide));
+    TGpuTrainerFactory::TRegistrator<TQuerywiseTrainer> QrmseRegistrator(GetTrainerFactoryKey(ELossFunction::QueryRMSE, EGrowPolicy::Lossguide));
+    TGpuTrainerFactory::TRegistrator<TQuerywiseTrainer> QsoftmaxRegistrator(GetTrainerFactoryKey(ELossFunction::QuerySoftMax, EGrowPolicy::Lossguide));
+    TGpuTrainerFactory::TRegistrator<TQuerywiseTrainer> PairLogitRegistrator(GetTrainerFactoryKey(ELossFunction::PairLogit, EGrowPolicy::Lossguide));
+    TGpuTrainerFactory::TRegistrator<TQuerywiseTrainer> YetiRankRegistrator(GetTrainerFactoryKey(ELossFunction::YetiRank, EGrowPolicy::Lossguide));
 
-    TGpuTrainerFactory::TRegistrator<TQuerywiseTrainer> QrmseLevelwiseRegistrator(GetTrainerFactoryKey(ELossFunction::QueryRMSE, EGrowingPolicy::Levelwise));
-    TGpuTrainerFactory::TRegistrator<TQuerywiseTrainer> QsoftmaxLevelwiseRegistrator(GetTrainerFactoryKey(ELossFunction::QuerySoftMax, EGrowingPolicy::Levelwise));
-    TGpuTrainerFactory::TRegistrator<TQuerywiseTrainer> PairLogitLevelwiseRegistrator(GetTrainerFactoryKey(ELossFunction::PairLogit, EGrowingPolicy::Levelwise));
-    TGpuTrainerFactory::TRegistrator<TQuerywiseTrainer> YetiRankLevelwiseRegistrator(GetTrainerFactoryKey(ELossFunction::YetiRank, EGrowingPolicy::Levelwise));
+    TGpuTrainerFactory::TRegistrator<TQuerywiseTrainer> QrmseDepthwiseRegistrator(GetTrainerFactoryKey(ELossFunction::QueryRMSE, EGrowPolicy::Depthwise));
+    TGpuTrainerFactory::TRegistrator<TQuerywiseTrainer> QsoftmaxDepthwiseRegistrator(GetTrainerFactoryKey(ELossFunction::QuerySoftMax, EGrowPolicy::Depthwise));
+    TGpuTrainerFactory::TRegistrator<TQuerywiseTrainer> PairLogitDepthwiseRegistrator(GetTrainerFactoryKey(ELossFunction::PairLogit, EGrowPolicy::Depthwise));
+    TGpuTrainerFactory::TRegistrator<TQuerywiseTrainer> YetiRankDepthwiseRegistrator(GetTrainerFactoryKey(ELossFunction::YetiRank, EGrowPolicy::Depthwise));
 }

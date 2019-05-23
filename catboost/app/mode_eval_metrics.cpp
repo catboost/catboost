@@ -15,7 +15,7 @@
 #include <library/getopt/small/last_getopt_opts.h>
 
 #include <util/folder/tempdir.h>
-#include <util/string/iterator.h>
+#include <util/string/split.h>
 #include <util/system/compiler.h>
 
 
@@ -125,6 +125,8 @@ int mode_eval_metrics(int argc, const char* argv[]) {
     }
     TSetLoggingVerboseOrSilent inThisScope(verbose);
 
+    NCatboostOptions::ValidatePoolParams(params.InputPath, params.DsvPoolFormatParams);
+
     TFullModel model = ReadModel(params.ModelFileName, params.ModelFormat);
     CB_ENSURE(model.GetUsedCatFeaturesCount() == 0 || params.DsvPoolFormatParams.CdFilePath.Inited(),
               "Model has categorical features. Specify column_description file with correct categorical features.");
@@ -151,9 +153,9 @@ int mode_eval_metrics(int argc, const char* argv[]) {
         plotParams.EndIteration,
         plotParams.Step,
         /*processedIterationsStep=*/50, // TODO(nikitxskv): Make auto estimation of this parameter based on the free RAM and pool size.
-        executor,
         plotParams.TmpDir,
-        metrics
+        metrics,
+        &executor
     );
 
     TVector<TProcessedDataProvider> datasetParts;

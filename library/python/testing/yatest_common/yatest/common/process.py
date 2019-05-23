@@ -37,7 +37,7 @@ def truncate(s, size):
     elif len(s) <= size:
         return s
     else:
-        return "..." + s[-(size - 3):]
+        return (b'...' if isinstance(s, bytes) else '...') + s[-(size - 3):]
 
 
 def get_command_name(command):

@@ -1,14 +1,23 @@
 #include "ctr_helper.h"
-#include "target_classifier.h"
-#include <catboost/libs/options/defaults_helper.h>
-#include <catboost/libs/model/target_classifier.h>
 
-inline TCtrInfo MakeCtrInfo(const NCatboostOptions::TCtrDescription& description,
-                            THashMap<NCatboostOptions::TBinarizationOptions, ui32>* targetClassifiers) {
+#include "target_classifier.h"
+
+#include <catboost/libs/data_new/features_layout.h>
+#include <catboost/libs/model/target_classifier.h>
+#include <catboost/libs/options/cat_feature_options.h>
+#include <catboost/libs/options/defaults_helper.h>
+
+
+inline TCtrInfo MakeCtrInfo(
+    const NCatboostOptions::TCtrDescription& description,
+    THashMap<NCatboostOptions::TBinarizationOptions, ui32>* targetClassifiers) {
+
     TCtrInfo ctrInfo;
     ctrInfo.Type = description.Type;
     ctrInfo.BorderCount = description.GetCtrBinarization().BorderCount;
-    CB_ENSURE(description.GetCtrBinarization().BorderSelectionType.Get() == EBorderSelectionType::Uniform, "Error: CPU supports only uniform binarization for CTRS");
+    CB_ENSURE(
+        description.GetCtrBinarization().BorderSelectionType.Get() == EBorderSelectionType::Uniform,
+        "Error: CPU supports only uniform binarization for CTRS");
 
     if (NeedTargetClassifier(ctrInfo.Type)) {
         const auto& targetBinarization = description.TargetBinarization.Get();
@@ -21,7 +30,9 @@ inline TCtrInfo MakeCtrInfo(const NCatboostOptions::TCtrDescription& description
         ctrInfo.TargetClassifierIdx = 0;
     }
     for (const auto& prior : description.GetPriors()) {
-        CB_ENSURE(prior.size() <= 2, "Error: too many prior parameters. Expect 1 or 2, got " << prior.size() << " for ctr type " << description.Type);
+        CB_ENSURE(
+            prior.size() <= 2,
+            "Error: too many prior parameters. Expect 1 or 2, got " << prior.size() << " for ctr type " << description.Type);
         CB_ENSURE(prior.size() != 0, "Error: no prior parameter found for ctr type " << description.Type);
         const auto num = prior[0];
         const auto denom = prior.size() > 1 ? prior[1] : 1.0;
@@ -31,12 +42,14 @@ inline TCtrInfo MakeCtrInfo(const NCatboostOptions::TCtrDescription& description
     return ctrInfo;
 }
 
-void TCtrHelper::InitCtrHelper(const NCatboostOptions::TCatFeatureParams& catFeatureParams,
-                      const NCB::TFeaturesLayout& layout,
-                      NCB::TMaybeData<TConstArrayRef<float>> target,
-                      ELossFunction loss,
-                      const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
-                      bool allowConstLabel) {
+void TCtrHelper::InitCtrHelper(
+    const NCatboostOptions::TCatFeatureParams& catFeatureParams,
+    const NCB::TFeaturesLayout& layout,
+    NCB::TMaybeData<TConstArrayRef<float>> target,
+    ELossFunction loss,
+    const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
+    bool allowConstLabel) {
+
     using TCtrsDescription = TVector<NCatboostOptions::TCtrDescription>;
     const TCtrsDescription& treeCtrs = catFeatureParams.CombinationCtrs;
     const TCtrsDescription& simpleCtrs = catFeatureParams.SimpleCtrs;
@@ -53,12 +66,16 @@ void TCtrHelper::InitCtrHelper(const NCatboostOptions::TCatFeatureParams& catFea
         int feature = perFeatureCtr.first;
         const auto& descriptions = perFeatureCtr.second;
 
-        CB_ENSURE(layout.IsCorrectExternalFeatureIdx(feature),
-                  "Feature " + ToString(feature) + " in per-feature-priors does not exist");
-        CB_ENSURE(layout.GetExternalFeatureType(feature) == EFeatureType::Categorical,
-                  "Feature " + ToString(feature) + " in per-feature-priors is not categorical");
+        CB_ENSURE(
+            layout.IsCorrectExternalFeatureIdx(feature),
+            "Feature " + ToString(feature) + " in per-feature-priors does not exist");
+        CB_ENSURE(
+            layout.GetExternalFeatureType(feature) == EFeatureType::Categorical,
+            "Feature " + ToString(feature) + " in per-feature-priors is not categorical");
         int featureIdx = layout.GetInternalFeatureIdx(feature);
-        CB_ENSURE(!PerFeatureCtrs.contains(featureIdx), "Error: duplicate per feature ctr descriptions (feature #" << feature << ")");
+        CB_ENSURE(
+            !PerFeatureCtrs.contains(featureIdx),
+            "Error: duplicate per feature ctr descriptions (feature #" << feature << ")");
         for (auto description : descriptions) {
             PerFeatureCtrs[featureIdx].push_back(MakeCtrInfo(description, &targetClassifierIds));
         }
@@ -80,12 +97,13 @@ void TCtrHelper::InitCtrHelper(const NCatboostOptions::TCatFeatureParams& catFea
         if (binarizationOption.BorderCount.Get() == 0) {
             TargetClassifiers[id] = TTargetClassifier();
         } else {
-            TargetClassifiers[id] = BuildTargetClassifier(*target,
-                                                          loss,
-                                                          objectiveDescriptor,
-                                                          binarizationOption.BorderCount,
-                                                          binarizationOption.BorderSelectionType,
-                                                          allowConstLabel);
+            TargetClassifiers[id] = BuildTargetClassifier(
+                *target,
+                loss,
+                objectiveDescriptor,
+                binarizationOption.BorderCount,
+                binarizationOption.BorderSelectionType,
+                allowConstLabel);
         }
     }
 }

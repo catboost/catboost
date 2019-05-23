@@ -473,7 +473,7 @@ namespace NCatboostCuda {
     static TVector<THolder<IGpuMetric>> CreateGpuMetricFromDescription(ELossFunction targetObjective, const NCatboostOptions::TLossDescription& metricDescription, ui32 approxDim) {
         TVector<THolder<IGpuMetric>> result;
         const auto numClasses = approxDim == 1 ? 2 : approxDim;
-        const bool isMulticlass = IsMultiClassMetric(targetObjective);
+        const bool isMulticlass = IsMultiClassOnlyMetric(targetObjective);
         if (isMulticlass) {
             CB_ENSURE(approxDim > 1, "Error: multiclass approx is > 1");
         } else {
@@ -610,20 +610,19 @@ namespace NCatboostCuda {
         return result;
     }
 
-    TVector<THolder<IGpuMetric>> CreateGpuMetrics(const NCatboostOptions::TOption<NCatboostOptions::TLossDescription>& lossFunctionOption,
-                                                  const NCatboostOptions::TOption<NCatboostOptions::TMetricOptions>& evalMetricOptions,
+    TVector<THolder<IGpuMetric>> CreateGpuMetrics(const NCatboostOptions::TOption<NCatboostOptions::TMetricOptions>& metricOptions,
                                                   ui32 cpuApproxDim) {
         TVector<THolder<IGpuMetric>> metrics;
         THashSet<TString> usedDescriptions;
 
-        if (evalMetricOptions->EvalMetric.IsSet()) {
-            if (evalMetricOptions->EvalMetric->GetLossFunction() == ELossFunction::PythonUserDefinedPerObject) {
+        if (metricOptions->EvalMetric.IsSet()) {
+            if (metricOptions->EvalMetric->GetLossFunction() == ELossFunction::PythonUserDefinedPerObject) {
                 CB_ENSURE(false, "Error: GPU doesn't support custom metrics");
             } else {
-                TVector<THolder<IGpuMetric>> createdMetrics = CreateGpuMetricFromDescription(lossFunctionOption->GetLossFunction(),
-                                                                                             evalMetricOptions->EvalMetric,
+                TVector<THolder<IGpuMetric>> createdMetrics = CreateGpuMetricFromDescription(metricOptions->ObjectiveMetric->GetLossFunction(),
+                                                                                             metricOptions->EvalMetric,
                                                                                              cpuApproxDim);
-                CB_ENSURE(createdMetrics.size() == 1, "Eval metric should have a single value. Metric " << ToString(evalMetricOptions->EvalMetric->GetLossFunction()) << " provides a value for each class, thus it cannot be used as "
+                CB_ENSURE(createdMetrics.size() == 1, "Eval metric should have a single value. Metric " << ToString(metricOptions->EvalMetric->GetLossFunction()) << " provides a value for each class, thus it cannot be used as "
                                                                                                         << "a single value to select best iteration or to detect overfitting. "
                                                                                                         << "If you just want to look on the values of this metric use custom_metric parameter.");
                 metrics.push_back(std::move(createdMetrics.front()));
@@ -631,10 +630,10 @@ namespace NCatboostCuda {
             }
         }
 
-        CB_ENSURE(lossFunctionOption->GetLossFunction() != ELossFunction::PythonUserDefinedPerObject, "Error: GPU doesn't support user-defined loss");
+        CB_ENSURE(metricOptions->ObjectiveMetric->GetLossFunction() != ELossFunction::PythonUserDefinedPerObject, "Error: GPU doesn't support user-defined loss");
 
-        for (auto&& metric : CreateGpuMetricFromDescription(lossFunctionOption->GetLossFunction(),
-                                                            lossFunctionOption, cpuApproxDim)) {
+        for (auto&& metric : CreateGpuMetricFromDescription(metricOptions->ObjectiveMetric->GetLossFunction(),
+                                                            metricOptions->ObjectiveMetric, cpuApproxDim)) {
             const TString& description = metric->GetCpuMetric().GetDescription();
             if (!usedDescriptions.contains(description)) {
                 usedDescriptions.insert(description);
@@ -642,8 +641,8 @@ namespace NCatboostCuda {
             }
         }
 
-        for (const auto& description : evalMetricOptions->CustomMetrics.Get()) {
-            for (auto&& metric : CreateGpuMetricFromDescription(lossFunctionOption->GetLossFunction(),
+        for (const auto& description : metricOptions->CustomMetrics.Get()) {
+            for (auto&& metric : CreateGpuMetricFromDescription(metricOptions->ObjectiveMetric->GetLossFunction(),
                                                                 description, cpuApproxDim)) {
                 const TString& description = metric->GetCpuMetric().GetDescription();
                 if (!usedDescriptions.contains(description)) {

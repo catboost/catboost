@@ -25,6 +25,7 @@ namespace NCatboostOptions {
         bool operator!=(const TMetricOptions& rhs) const;
 
         TOption<TLossDescription> EvalMetric;
+        TOption<TLossDescription> ObjectiveMetric;
         TOption<TVector<TLossDescription>> CustomMetrics;
     };
 }
@@ -35,7 +36,7 @@ bool IsValidForObjectiveOrEvalMetric(
     std::function<bool(ELossFunction)> predicate);
 
 
-bool IsMultiClass(
+bool IsMultiClassOnly(
     const ELossFunction lossFunction,
     const NCatboostOptions::TMetricOptions& metricOptions);
 

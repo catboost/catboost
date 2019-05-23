@@ -137,7 +137,7 @@ namespace NPrivate {
 
             constexpr TIterator(T value, const TSteppedXRange& parent) noexcept
                 : Value_(value)
-                , Parent_(parent)
+                , Parent_(&parent)
             {
             }
 
@@ -154,7 +154,7 @@ namespace NPrivate {
             }
 
             TIterator& operator++() noexcept {
-                Value_ += Parent_.Step_;
+                Value_ += Parent_->Step_;
                 return *this;
             }
 
@@ -164,7 +164,7 @@ namespace NPrivate {
 
             template <typename IntType>
             constexpr TIterator operator+(const IntType& b) const noexcept {
-                return TIterator(Value_ + b * Parent_.Step_, Parent_);
+                return TIterator(Value_ + b * Parent_->Step_, *Parent_);
             }
 
             template <typename IntType>
@@ -175,12 +175,12 @@ namespace NPrivate {
 
             template <typename IntType>
             constexpr TIterator operator-(const IntType& b) const noexcept {
-                return TIterator(Value_ - b * Parent_.Step_, Parent_);
+                return TIterator(Value_ - b * Parent_->Step_, Parent_);
             }
 
         private:
             T Value_;
-            const TSteppedXRange& Parent_;
+            const TSteppedXRange* Parent_;
         };
 
         using value_type = T;
@@ -223,7 +223,11 @@ namespace NPrivate {
 
 }
 
-/// generate arithmetic progression that starts at start with certain step and stop at finish (not including)
+/**
+ * generate arithmetic progression that starts at start with certain step and stop at finish (not including)
+ *
+ * @param step must be non-zero
+ */
 template <typename T>
 constexpr ::NPrivate::TSteppedXRange<T> xrange(T start, T finish, decltype(T() - T()) step) noexcept {
     return {start, finish, step};

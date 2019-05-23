@@ -34,7 +34,7 @@ void ReadNum(TStringBuf& src, TStringBuf& dst) {
 }
 
 int NumericStrCmp(TStringBuf s1, TStringBuf s2) {
-    while (!s1.Empty() || !s2.Empty()) {
+    while (!s1.empty() || !s2.empty()) {
         char c1 = *s1.data();
         char c2 = *s2.data();
 

@@ -105,6 +105,7 @@ namespace NCB {
 
             FloatFeaturesStorage.PrepareForInitialization(*metaInfo.FeaturesLayout, ObjectCount, prevTailSize);
             CatFeaturesStorage.PrepareForInitialization(*metaInfo.FeaturesLayout, ObjectCount, prevTailSize);
+            TextFeaturesStorage.PrepareForInitialization(*metaInfo.FeaturesLayout, ObjectCount, prevTailSize);
 
             if (metaInfo.HasWeights) {
                 PrepareForInitialization(ObjectCount, prevTailSize, &WeightsBuffer);
@@ -186,6 +187,24 @@ namespace NCB {
             }
         }
 
+        void AddTextFeature(ui32 localObjectIdx, ui32 flatFeatureIdx, const TString& feature) override {
+            auto textFeatureIdx = GetInternalFeatureIdx<EFeatureType::Text>(flatFeatureIdx);
+            TextFeaturesStorage.Set(
+                textFeatureIdx,
+                Cursor + localObjectIdx,
+                feature
+            );
+        }
+        void AddAllTextFeatures(ui32 localObjectIdx, TConstArrayRef<TString> features) override {
+            auto objectIdx = Cursor + localObjectIdx;
+            for (auto perTypeFeatureIdx : xrange(features.size())) {
+                TextFeaturesStorage.Set(
+                    TTextFeatureIdx(perTypeFeatureIdx),
+                    objectIdx,
+                    features[perTypeFeatureIdx]
+                );
+            }
+        }
 
         // TRawTargetData
 
@@ -213,6 +232,11 @@ namespace NCB {
         void SetGroupWeights(TVector<float>&& groupWeights) override {
             CheckDataSize(groupWeights.size(), (size_t)ObjectCount, "groupWeights");
             GroupWeightsBuffer = std::move(groupWeights);
+        }
+
+        // separate method because they can be loaded from a separate data source
+        void SetBaseline(TVector<TVector<float>>&& baseline) override {
+            Data.TargetData.Baseline = std::move(baseline);
         }
 
         void SetPairs(TVector<TPair>&& pairs) override {
@@ -300,6 +324,12 @@ namespace NCB {
                     }
                 }
             }
+
+            TextFeaturesStorage.GetResult(
+                *Data.MetaInfo.FeaturesLayout,
+                Data.CommonObjectsData.SubsetIndexing.Get(),
+                &Data.ObjectsData.TextFeatures
+            );
 
             ResultTaken = true;
 
@@ -511,6 +541,7 @@ namespace NCB {
 
         TFeaturesStorage<EFeatureType::Float, float> FloatFeaturesStorage;
         TFeaturesStorage<EFeatureType::Categorical, ui32> CatFeaturesStorage;
+        TFeaturesStorage<EFeatureType::Text, TString> TextFeaturesStorage;
 
         std::array<THashPart, CB_THREAD_LIMIT> HashMapParts;
 
@@ -617,6 +648,14 @@ namespace NCB {
             );
         }
 
+        void AddTextFeature(ui32 flatFeatureIdx, TMaybeOwningConstArrayHolder<TString> features) override {
+            auto textFeatureIdx = GetInternalFeatureIdx<EFeatureType::Text>(flatFeatureIdx);
+            Data.ObjectsData.TextFeatures[*textFeatureIdx] = MakeHolder<TStringTextValuesHolder>(
+                flatFeatureIdx,
+                std::move(features),
+                Data.CommonObjectsData.SubsetIndexing.Get()
+            );
+        }
 
         // TRawTargetData
 
@@ -652,6 +691,11 @@ namespace NCB {
         void SetGroupWeights(TVector<float>&& groupWeights) override {
             CheckDataSize(groupWeights.size(), (size_t)ObjectCount, "groupWeights");
             Data.TargetData.GroupWeights = TWeights<float>(std::move(groupWeights), "GroupWeights");
+        }
+
+        // separate method because they can be loaded from a separate data source
+        void SetBaseline(TVector<TVector<float>>&& baseline) override {
+            Data.TargetData.Baseline = std::move(baseline);
         }
 
         void SetPairs(TVector<TPair>&& pairs) override {
@@ -795,7 +839,8 @@ namespace NCB {
                     EBorderSelectionType::GreedyLogSum, // default value
                     SafeIntegerCast<ui32>(poolQuantizationSchema.Borders[0].size()),
                     ENanMode::Forbidden // default value
-                )
+                ),
+                TMap<ui32, NCatboostOptions::TBinarizationOptions>()
             );
 
             FillQuantizedFeaturesInfo(
@@ -803,8 +848,14 @@ namespace NCB {
                 Data.ObjectsData.Data.QuantizedFeaturesInfo.Get()
             );
 
+            Data.ObjectsData.ExclusiveFeatureBundlesData = TExclusiveFeatureBundlesData(
+                *Data.ObjectsData.Data.QuantizedFeaturesInfo,
+                TVector<TExclusiveFeaturesBundle>() // TODO(akhropov): bundle quantized data
+            );
+
             Data.ObjectsData.PackedBinaryFeaturesData = TPackedBinaryFeaturesData(
                 *Data.ObjectsData.Data.QuantizedFeaturesInfo,
+                Data.ObjectsData.ExclusiveFeatureBundlesData,
 
                 // packed binary features are present only in TQuantizedForCPUObjectsDataProvider
                 /*dontPack*/ !Options.CpuCompatibleFormat
@@ -818,7 +869,7 @@ namespace NCB {
             FloatFeaturesStorage.PrepareForInitialization(
                 *metaInfo.FeaturesLayout,
                 objectCount,
-                poolQuantizationSchema,
+                Data.ObjectsData.Data.QuantizedFeaturesInfo,
                 BinaryFeaturesStorage,
                 Data.ObjectsData.PackedBinaryFeaturesData.FloatFeatureToPackedBinaryIndex
             );
@@ -860,11 +911,13 @@ namespace NCB {
         void AddFloatFeaturePart(
             ui32 flatFeatureIdx,
             ui32 objectOffset,
+            ui8 bitsPerDocumentFeature,
             TMaybeOwningConstArrayHolder<ui8> featuresPart // per-feature data size depends on BitsPerKey
         ) override {
             FloatFeaturesStorage.Set(
                 GetInternalFeatureIdx<EFeatureType::Float>(flatFeatureIdx),
                 objectOffset,
+                bitsPerDocumentFeature,
                 *featuresPart,
                 LocalExecutor
             );
@@ -918,6 +971,11 @@ namespace NCB {
         void SetGroupWeights(TVector<float>&& groupWeights) override {
             CheckDataSize(groupWeights.size(), (size_t)ObjectCount, "groupWeights");
             GroupWeightsBuffer = std::move(groupWeights);
+        }
+
+        // separate method because they can be loaded from a separate data source
+        void SetBaseline(TVector<TVector<float>>&& baseline) override {
+            Data.TargetData.Baseline = std::move(baseline);
         }
 
         void SetPairs(TVector<TPair>&& pairs) override {
@@ -1029,31 +1087,10 @@ namespace NCB {
 
                 const auto typedFeatureIdx = featuresLayout.GetInternalFeatureIdx<EFeatureType::Float>(
                     flatFeatureIdx);
-                const auto remapper = featuresLayout.GetQuantizedFeatureIndexRemapper(flatFeatureIdx);
 
-                if (!remapper.HasArtificialFeatures()) {
-                    info->SetBorders(typedFeatureIdx, TVector<float>(schema.Borders[i]));
-                    info->SetNanMode(typedFeatureIdx, nanMode);
-                    continue;
-                }
+                info->SetBorders(typedFeatureIdx, TVector<float>(schema.Borders[i]));
+                info->SetNanMode(typedFeatureIdx, nanMode);
 
-                const auto bordersPerArtificialFeature = remapper.GetBinsPerArtificialFeature() - 1;
-                info->SetBorders(typedFeatureIdx, Slice(schema.Borders[i], 0, bordersPerArtificialFeature));
-                if (ENanMode::Min == nanMode) {
-                    info->SetNanMode(typedFeatureIdx, ENanMode::Min);
-                } else {
-                    info->SetNanMode(typedFeatureIdx, nanMode);
-                }
-
-                for (ui32 j = 0, jEnd = remapper.GetArtificialFeatureCount(); j < jEnd; ++j) {
-                    const auto typedArtificialFeatureIdx =
-                        featuresLayout.GetInternalFeatureIdx<EFeatureType::Float>(remapper.GetIdxOffset() + j);
-                    info->SetBorders(typedArtificialFeatureIdx, Slice(
-                            schema.Borders[i],
-                            (i + 1) * bordersPerArtificialFeature,
-                            bordersPerArtificialFeature));
-                    info->SetNanMode(typedArtificialFeatureIdx, ENanMode::Max);
-                }
             }
         }
 
@@ -1142,11 +1179,10 @@ namespace NCB {
             void PrepareForInitialization(
                 const TFeaturesLayout& featuresLayout,
                 ui32 objectCount,
-                const TPoolQuantizationSchema& quantizationSchema,
+                const TQuantizedFeaturesInfoPtr& quantizedFeaturesInfoPtr,
                 TBinaryFeaturesStorage& binaryStorage,
                 TConstArrayRef<TMaybe<TPackedBinaryIndex>> featureIdxToPackedBinaryIndex
             ) {
-                Y_UNUSED(quantizationSchema);
                 const size_t perTypeFeatureCount = (size_t)featuresLayout.GetFeatureCount(FeatureType);
                 Storage.resize(perTypeFeatureCount);
                 DstView.resize(perTypeFeatureCount);
@@ -1165,8 +1201,8 @@ namespace NCB {
                         flatFeatureIdx);
 
                     IsAvailable[typedFeatureIdx.Idx] = true;
-
-                    IndexHelpers[typedFeatureIdx.Idx] = TIndexHelper<ui64>(8);
+                    ui8 bitsPerFeature = CalHistogramWidthForBorders(quantizedFeaturesInfoPtr->GetBorders(typedFeatureIdx).size());
+                    IndexHelpers[typedFeatureIdx.Idx] = TIndexHelper<ui64>(bitsPerFeature);
                 }
 
                 for (auto perTypeFeatureIdx : xrange(perTypeFeatureCount)) {
@@ -1207,6 +1243,7 @@ namespace NCB {
             void Set(
                 TFeatureIdx<FeatureType> perTypeFeatureIdx,
                 ui32 objectOffset,
+                ui8 bitsPerDocumentFeature,
                 TConstArrayRef<ui8> featuresPart,
                 NPar::TLocalExecutor* localExecutor
             ) {
@@ -1228,10 +1265,18 @@ namespace NCB {
                         &dstSlice
                     );
                 } else {
+                    CB_ENSURE_INTERNAL(
+                        bitsPerDocumentFeature == 8 || bitsPerDocumentFeature == 16 || bitsPerDocumentFeature == 32,
+                        "Only 8, 16 or 32 bits per document supported, got: " << bitsPerDocumentFeature);
+                    CB_ENSURE_INTERNAL(IndexHelpers[*perTypeFeatureIdx].GetBitsPerKey() == bitsPerDocumentFeature,
+                        "BitsPerKey should be equal to bitsPerDocumentFeature");
+
+                    const auto bytesPerDocument = bitsPerDocumentFeature / (sizeof(ui8) * CHAR_BIT);
+
                     const auto dstCapacityInBytes =
                         DstView[*perTypeFeatureIdx].size() *
                         sizeof(decltype(*DstView[*perTypeFeatureIdx].data()));
-                    const auto objectOffsetInBytes = objectOffset * sizeof(ui8);
+                    const auto objectOffsetInBytes = objectOffset * bytesPerDocument;
 
                     CB_ENSURE_INTERNAL(
                         objectOffsetInBytes < dstCapacityInBytes,

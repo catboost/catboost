@@ -112,7 +112,6 @@ JOIN_SRCS(
     generic/ptr.cpp
     generic/queue.cpp
     generic/refcount.cpp
-    generic/region.cpp
     generic/serialized_enum.cpp
     generic/set.cpp
     generic/singleton.cpp
@@ -128,7 +127,6 @@ JOIN_SRCS(
     generic/utility.cpp
     generic/va_args.cpp
     generic/vector.cpp
-    generic/vector_ops.cpp
     generic/xrange.cpp
     generic/yexception.cpp
     generic/ylimits.cpp
@@ -223,7 +221,6 @@ JOIN_SRCS(
     string/cstriter.cpp
     string/escape.cpp
     string/hex.cpp
-    string/iterator.cpp
     string/join.cpp
     string/kmp.cpp
     string/pcdata.cpp

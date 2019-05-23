@@ -454,7 +454,7 @@ namespace NYT {
                         ythrow TYsonException() << "Incorrect %-literal prefix: '" << ch << "'";
                 }
 
-                for (size_t i = 0; i < expectedString.Size(); ++i) {
+                for (size_t i = 0; i < expectedString.size(); ++i) {
                     if (expectedString[i] != ch) {
                         ythrow TYsonException()
                             << "Incorrect %-literal prefix "
@@ -570,7 +570,7 @@ namespace NYT {
                 Buffer_.push_back(TBaseStream::template GetChar<AllowFinish>());
                 TBaseStream::Advance(1);
                 if (Buffer_[0] == trueString[0]) {
-                    for (size_t i = 1; i < trueString.Size(); ++i) {
+                    for (size_t i = 1; i < trueString.size(); ++i) {
                         Buffer_.push_back(TBaseStream::template GetChar<AllowFinish>());
                         TBaseStream::Advance(1);
                         if (Buffer_.back() != trueString[i]) {
@@ -579,7 +579,7 @@ namespace NYT {
                     }
                     return true;
                 } else if (Buffer_[0] == falseString[0]) {
-                    for (size_t i = 1; i < falseString.Size(); ++i) {
+                    for (size_t i = 1; i < falseString.size(); ++i) {
                         Buffer_.push_back(TBaseStream::template GetChar<AllowFinish>());
                         TBaseStream::Advance(1);
                         if (Buffer_.back() != falseString[i]) {

@@ -273,7 +273,7 @@ int Opt2::AutoUsage(const char* free_arg_names) {
             nreq ? " [-" : "", nreq_str, nreq ? "]" : "",
             free_arg_names && *free_arg_names ? " " : "", free_arg_names);
     for (auto& spec : Specs) {
-        const char* hlp = !spec.HelpUsage.Empty() ? spec.HelpUsage.data() : spec.HasArg ? "<arg>" : "";
+        const char* hlp = !spec.HelpUsage.empty() ? spec.HelpUsage.data() : spec.HasArg ? "<arg>" : "";
         if (!spec.HasArg || spec.IsRequired)
             fprintf(where, "  -%c %s\n", spec.opt, hlp);
         else if (!spec.IsNumeric)

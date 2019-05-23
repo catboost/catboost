@@ -74,6 +74,7 @@
 #include "openssl/ssl.h"
 #include "openssl/err.h"
 #include "openssl/rand.h"
+#include "openssl/dh.h"
 
 /* SSL error object */
 static PyObject *PySSLErrorObject;
@@ -1222,6 +1223,10 @@ _get_crl_dp(X509 *certificate) {
         STACK_OF(GENERAL_NAME) *gns;
 
         dp = sk_DIST_POINT_value(dps, i);
+        if (dp->distpoint == NULL) {
+            /* Ignore empty DP value, CVE-2019-5010 */
+            continue;
+        }
         gns = dp->distpoint->name.fullname;
 
         for (j=0; j < sk_GENERAL_NAME_num(gns); j++) {
@@ -2176,6 +2181,7 @@ context_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     int proto_version = PY_SSL_VERSION_TLS;
     long options;
     SSL_CTX *ctx = NULL;
+    int result;
 
     if (!PyArg_ParseTupleAndKeywords(
         args, kwds, "i:_SSLContext", kwlist,
@@ -2240,7 +2246,37 @@ context_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
         options |= SSL_OP_NO_SSLv2;
     if (proto_version != PY_SSL_VERSION_SSL3)
         options |= SSL_OP_NO_SSLv3;
+    /* Minimal security flags for server and client side context.
+     * Client sockets ignore server-side parameters. */
+#ifdef SSL_OP_NO_COMPRESSION
+    options |= SSL_OP_NO_COMPRESSION;
+#endif
+#ifdef SSL_OP_CIPHER_SERVER_PREFERENCE
+    options |= SSL_OP_CIPHER_SERVER_PREFERENCE;
+#endif
+#ifdef SSL_OP_SINGLE_DH_USE
+    options |= SSL_OP_SINGLE_DH_USE;
+#endif
+#ifdef SSL_OP_SINGLE_ECDH_USE
+    options |= SSL_OP_SINGLE_ECDH_USE;
+#endif
     SSL_CTX_set_options(self->ctx, options);
+
+    /* A bare minimum cipher list without completly broken cipher suites.
+     * It's far from perfect but gives users a better head start. */
+    if (proto_version != PY_SSL_VERSION_SSL2) {
+        result = SSL_CTX_set_cipher_list(ctx, "HIGH:!aNULL:!eNULL:!MD5");
+    } else {
+        /* SSLv2 needs MD5 */
+        result = SSL_CTX_set_cipher_list(ctx, "HIGH:!aNULL:!eNULL");
+    }
+    if (result == 0) {
+        Py_DECREF(self);
+        ERR_clear_error();
+        PyErr_SetString(PySSLErrorObject,
+                        "No cipher can be selected.");
+        return NULL;
+    }
 
 #if !defined(OPENSSL_NO_ECDH) && !defined(OPENSSL_VERSION_1_1)
     /* Allow automatic ECDH curve selection (on OpenSSL 1.0.2+), or use
@@ -4374,6 +4410,10 @@ init_ssl(void)
 #ifdef SSL_OP_NO_COMPRESSION
     PyModule_AddIntConstant(m, "OP_NO_COMPRESSION",
                             SSL_OP_NO_COMPRESSION);
+#endif
+#ifdef SSL_OP_ENABLE_MIDDLEBOX_COMPAT
+    PyModule_AddIntConstant(m, "OP_ENABLE_MIDDLEBOX_COMPAT",
+                            SSL_OP_ENABLE_MIDDLEBOX_COMPAT);
 #endif
 
 #if HAVE_SNI

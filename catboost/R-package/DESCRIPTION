@@ -1,14 +1,14 @@
 Package: catboost
 Title: Gradient Boosting on Decision Trees
-Version: 0.12.2
+Version: 0.14.2
 RoxygenNote: 6.1.1
 Imports: jsonlite
 License: Apache License (== 2.0)
-Description: Open-source gradient boosting on decision trees with categorical 
+Description: Open-source gradient boosting on decision trees with categorical
   features support out of the box.
 Authors@R: c(
-    person("Nikita", "Dmitriev", email = "nikitxskv@yandex-team.ru", role = c("aut", "cre")),
-    person("Andrey", "Gulin", email = "gulin@yandex-team.ru", role = "aut", 
+    person("Nikita", "Dmitriev", email = "nikitxskv@yandex-team.ru", role = "aut"),
+    person("Andrey", "Gulin", email = "gulin@yandex-team.ru", role = "aut",
       comment = "Chief researcher, author of the algorithm and of the first implementation"),
     person("Anna Veronika", "Dorogush", email = "annaveronika@yandex-team.ru", role = "aut"),
     person("Stanislav", "Kirillov", email = "kizill@yandex-team.ru", role = "aut"),
@@ -22,29 +22,30 @@ Authors@R: c(
     person("Dmitry", "Schelchkov", role = "aut"),
     person("Vasily", "Ershov", email = "noxoomo@yandex-team.ru", role = "aut",
       comment = "GPU implementation"),
-    person("Vyacheslav", "Murashkin", email = "a4tunado@yandex-team.ru", role = "aut", 
+    person("Vyacheslav", "Murashkin", email = "a4tunado@yandex-team.ru", role = "aut",
       comment = "R Package"),
     person("Roman", "Nefyodov", role = "aut", comment = "R Package"),
-    person("Anastasia", "Bezzubtseva", email = "nstbezz@yandex-team.ru", role = "aut", 
+    person("Anastasia", "Bezzubtseva", email = "nstbezz@yandex-team.ru", role = "aut",
       comment = "R Package"),
-    person("Alexey", "Gorchakov", email = "algorc@yandex-team.ru", role = "aut", 
+    person("Alexey", "Gorchakov", email = "algorc@yandex-team.ru", role = "aut",
       comment = "R Package"),
     person("Ivan", "Karev", role = "aut", comment = "Visualisation"),
     person("Sergey", "Berezhnoy", role = "aut", comment = "Visualisation"),
     person("Roman", "Rybalchenko", role = "aut", comment = "Visualisation"),
-    person("Valeriy", "Babushkin", email = "VENHEADs@yandex-team.ru", role = "aut", 
+    person("Valeriy", "Babushkin", email = "VENHEADs@yandex-team.ru", role = "aut",
       comment = "Tutorials"),
-    person("Mikhail", "Pershin", email = "pershinmr@yandex-team.ru", role = "aut", 
+    person("Mikhail", "Pershin", email = "pershinmr@yandex-team.ru", role = "aut",
       comment = "Tutorials"),
-    person("Emil", "Kayumov", email = "emilkayumov@yandex-team.ru", role = "aut", 
+    person("Emil", "Kayumov", email = "emilkayumov@yandex-team.ru", role = "aut",
       comment = "Tutorials"),
     person("Evgeny", "Eltyshev", role = "aut", comment = "Tutorials"),
     person("Alexander", "Baranov", role = "aut", comment = "CoreML support"),
     person("CatBoost DevTeam", role = "cph"),
     person("WLOG Solutions", role = "ctb",
-      comment = "R package preparation for CRAN submission")
+      comment = "R package preparation for CRAN submission"),
+    person("Dmitry", "Baksheev", email = "dbakshee@yandex-team.ru", role = c("aut", "cre"))
     )
-Maintainer: Nikita Dmitriev <nikitxskv@yandex-team.ru>
+Maintainer: Dmitry Baksheev <dbakshee@yandex-team.ru>
 URL: https://catboost.ai/, https://github.com/catboost/catboost
 BugReports: https://github.com/catboost/catboost/issues
 Suggests: caret, testthat, dplyr, e1071

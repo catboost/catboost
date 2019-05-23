@@ -74,19 +74,19 @@ PyDoc_STRVAR(signal_signal__doc__,
 "the first is the signal number, the second is the interrupted stack frame.");
 
 #define SIGNAL_SIGNAL_METHODDEF    \
-    {"signal", (PyCFunction)signal_signal, METH_VARARGS, signal_signal__doc__},
+    {"signal", (PyCFunction)signal_signal, METH_FASTCALL, signal_signal__doc__},
 
 static PyObject *
 signal_signal_impl(PyObject *module, int signalnum, PyObject *handler);
 
 static PyObject *
-signal_signal(PyObject *module, PyObject *args)
+signal_signal(PyObject *module, PyObject *const *args, Py_ssize_t nargs)
 {
     PyObject *return_value = NULL;
     int signalnum;
     PyObject *handler;
 
-    if (!PyArg_ParseTuple(args, "iO:signal",
+    if (!_PyArg_ParseStack(args, nargs, "iO:signal",
         &signalnum, &handler)) {
         goto exit;
     }
@@ -141,19 +141,19 @@ PyDoc_STRVAR(signal_siginterrupt__doc__,
 "signal sig, else system calls will be interrupted.");
 
 #define SIGNAL_SIGINTERRUPT_METHODDEF    \
-    {"siginterrupt", (PyCFunction)signal_siginterrupt, METH_VARARGS, signal_siginterrupt__doc__},
+    {"siginterrupt", (PyCFunction)signal_siginterrupt, METH_FASTCALL, signal_siginterrupt__doc__},
 
 static PyObject *
 signal_siginterrupt_impl(PyObject *module, int signalnum, int flag);
 
 static PyObject *
-signal_siginterrupt(PyObject *module, PyObject *args)
+signal_siginterrupt(PyObject *module, PyObject *const *args, Py_ssize_t nargs)
 {
     PyObject *return_value = NULL;
     int signalnum;
     int flag;
 
-    if (!PyArg_ParseTuple(args, "ii:siginterrupt",
+    if (!_PyArg_ParseStack(args, nargs, "ii:siginterrupt",
         &signalnum, &flag)) {
         goto exit;
     }
@@ -179,21 +179,21 @@ PyDoc_STRVAR(signal_setitimer__doc__,
 "Returns old values as a tuple: (delay, interval).");
 
 #define SIGNAL_SETITIMER_METHODDEF    \
-    {"setitimer", (PyCFunction)signal_setitimer, METH_VARARGS, signal_setitimer__doc__},
+    {"setitimer", (PyCFunction)signal_setitimer, METH_FASTCALL, signal_setitimer__doc__},
 
 static PyObject *
-signal_setitimer_impl(PyObject *module, int which, double seconds,
-                      double interval);
+signal_setitimer_impl(PyObject *module, int which, PyObject *seconds,
+                      PyObject *interval);
 
 static PyObject *
-signal_setitimer(PyObject *module, PyObject *args)
+signal_setitimer(PyObject *module, PyObject *const *args, Py_ssize_t nargs)
 {
     PyObject *return_value = NULL;
     int which;
-    double seconds;
-    double interval = 0.0;
+    PyObject *seconds;
+    PyObject *interval = NULL;
 
-    if (!PyArg_ParseTuple(args, "id|d:setitimer",
+    if (!_PyArg_ParseStack(args, nargs, "iO|O:setitimer",
         &which, &seconds, &interval)) {
         goto exit;
     }
@@ -245,19 +245,19 @@ PyDoc_STRVAR(signal_pthread_sigmask__doc__,
 "Fetch and/or change the signal mask of the calling thread.");
 
 #define SIGNAL_PTHREAD_SIGMASK_METHODDEF    \
-    {"pthread_sigmask", (PyCFunction)signal_pthread_sigmask, METH_VARARGS, signal_pthread_sigmask__doc__},
+    {"pthread_sigmask", (PyCFunction)signal_pthread_sigmask, METH_FASTCALL, signal_pthread_sigmask__doc__},
 
 static PyObject *
 signal_pthread_sigmask_impl(PyObject *module, int how, PyObject *mask);
 
 static PyObject *
-signal_pthread_sigmask(PyObject *module, PyObject *args)
+signal_pthread_sigmask(PyObject *module, PyObject *const *args, Py_ssize_t nargs)
 {
     PyObject *return_value = NULL;
     int how;
     PyObject *mask;
 
-    if (!PyArg_ParseTuple(args, "iO:pthread_sigmask",
+    if (!_PyArg_ParseStack(args, nargs, "iO:pthread_sigmask",
         &how, &mask)) {
         goto exit;
     }
@@ -337,20 +337,20 @@ PyDoc_STRVAR(signal_sigtimedwait__doc__,
 "The timeout is specified in seconds, with floating point numbers allowed.");
 
 #define SIGNAL_SIGTIMEDWAIT_METHODDEF    \
-    {"sigtimedwait", (PyCFunction)signal_sigtimedwait, METH_VARARGS, signal_sigtimedwait__doc__},
+    {"sigtimedwait", (PyCFunction)signal_sigtimedwait, METH_FASTCALL, signal_sigtimedwait__doc__},
 
 static PyObject *
 signal_sigtimedwait_impl(PyObject *module, PyObject *sigset,
                          PyObject *timeout_obj);
 
 static PyObject *
-signal_sigtimedwait(PyObject *module, PyObject *args)
+signal_sigtimedwait(PyObject *module, PyObject *const *args, Py_ssize_t nargs)
 {
     PyObject *return_value = NULL;
     PyObject *sigset;
     PyObject *timeout_obj;
 
-    if (!PyArg_UnpackTuple(args, "sigtimedwait",
+    if (!_PyArg_UnpackStack(args, nargs, "sigtimedwait",
         2, 2,
         &sigset, &timeout_obj)) {
         goto exit;
@@ -363,7 +363,7 @@ exit:
 
 #endif /* defined(HAVE_SIGTIMEDWAIT) */
 
-#if (defined(HAVE_PTHREAD_KILL) && defined(WITH_THREAD))
+#if defined(HAVE_PTHREAD_KILL)
 
 PyDoc_STRVAR(signal_pthread_kill__doc__,
 "pthread_kill($module, thread_id, signalnum, /)\n"
@@ -372,19 +372,20 @@ PyDoc_STRVAR(signal_pthread_kill__doc__,
 "Send a signal to a thread.");
 
 #define SIGNAL_PTHREAD_KILL_METHODDEF    \
-    {"pthread_kill", (PyCFunction)signal_pthread_kill, METH_VARARGS, signal_pthread_kill__doc__},
+    {"pthread_kill", (PyCFunction)signal_pthread_kill, METH_FASTCALL, signal_pthread_kill__doc__},
 
 static PyObject *
-signal_pthread_kill_impl(PyObject *module, long thread_id, int signalnum);
+signal_pthread_kill_impl(PyObject *module, unsigned long thread_id,
+                         int signalnum);
 
 static PyObject *
-signal_pthread_kill(PyObject *module, PyObject *args)
+signal_pthread_kill(PyObject *module, PyObject *const *args, Py_ssize_t nargs)
 {
     PyObject *return_value = NULL;
-    long thread_id;
+    unsigned long thread_id;
     int signalnum;
 
-    if (!PyArg_ParseTuple(args, "li:pthread_kill",
+    if (!_PyArg_ParseStack(args, nargs, "ki:pthread_kill",
         &thread_id, &signalnum)) {
         goto exit;
     }
@@ -394,7 +395,7 @@ exit:
     return return_value;
 }
 
-#endif /* (defined(HAVE_PTHREAD_KILL) && defined(WITH_THREAD)) */
+#endif /* defined(HAVE_PTHREAD_KILL) */
 
 #ifndef SIGNAL_ALARM_METHODDEF
     #define SIGNAL_ALARM_METHODDEF
@@ -439,4 +440,4 @@ exit:
 #ifndef SIGNAL_PTHREAD_KILL_METHODDEF
     #define SIGNAL_PTHREAD_KILL_METHODDEF
 #endif /* !defined(SIGNAL_PTHREAD_KILL_METHODDEF) */
-/*[clinic end generated code: output=c6990ef0d0ba72b6 input=a9049054013a1b77]*/
+/*[clinic end generated code: output=36132f4189381fe0 input=a9049054013a1b77]*/

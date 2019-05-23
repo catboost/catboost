@@ -10,15 +10,7 @@ class TStack: public std::stack<T, S> {
     using TBase = std::stack<T, S>;
 
 public:
-    inline TStack()
-        : TBase()
-    {
-    }
-
-    explicit TStack(const S& s)
-        : TBase(s)
-    {
-    }
+    using TBase::TBase;
 
     inline explicit operator bool() const noexcept {
         return !this->empty();

@@ -56,7 +56,13 @@ int mode_ostr(int argc, const char* argv[]) {
     parser.SetFreeArgsNum(0);
     NLastGetopt::TOptsParseResult parserResult{&parser, argc, argv};
 
+    NCatboostOptions::ValidatePoolParams(params.LearnSetPath, params.DsvPoolFormatParams);
+    NCatboostOptions::ValidatePoolParams(params.TestSetPath, params.DsvPoolFormatParams);
+
     TFullModel model = ReadModel(params.ModelFileName, params.ModelFormat);
+
+    //TODO(eermishkina): support non symmetric trees
+    CB_ENSURE(model.IsOblivious(), "Object importance is supported only for symmetric trees");
 
     NPar::TLocalExecutor localExecutor;
     localExecutor.RunAdditionalThreads(params.ThreadCount - 1);
@@ -64,17 +70,21 @@ int mode_ostr(int argc, const char* argv[]) {
     NCB::TDataProviderPtr trainPool = NCB::ReadDataset(params.LearnSetPath,
                                                        /*pairsFilePath=*/NCB::TPathWithScheme(),
                                                        /*groupWeightsFilePath=*/NCB::TPathWithScheme(),
+                                                       /*baselineFilePath=*/NCB::TPathWithScheme(),
                                                        params.DsvPoolFormatParams,
                                                        /*ignoredFeatures*/ {},
                                                        EObjectsOrder::Undefined,
+                                                       /*classNames=*/Nothing(),
                                                        &localExecutor);
 
     NCB::TDataProviderPtr testPool = NCB::ReadDataset(params.TestSetPath,
                                                       /*pairsFilePath=*/NCB::TPathWithScheme(),
                                                       /*groupWeightsFilePath=*/NCB::TPathWithScheme(),
+                                                      /*baselineFilePath=*/NCB::TPathWithScheme(),
                                                       params.DsvPoolFormatParams,
                                                       /*ignoredFeatures*/ {},
                                                       EObjectsOrder::Undefined,
+                                                      /*classNames=*/Nothing(),
                                                       &localExecutor);
 
 

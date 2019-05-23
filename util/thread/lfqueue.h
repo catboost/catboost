@@ -59,7 +59,7 @@ class TLockFreeQueue: public TNonCopyable {
 
     static void EraseList(TListNode* n) {
         while (n) {
-            TListNode* keepNext = n->Next;
+            TListNode* keepNext = AtomicGet(n->Next);
             delete n;
             n = keepNext;
         }
@@ -146,7 +146,7 @@ class TLockFreeQueue: public TNonCopyable {
             while (ptr) {
                 if (ptr == PrevFirst) {
                     // short cut, we have copied this part already
-                    Tail->Next = newCopy;
+                    AtomicSet(Tail->Next, newCopy);
                     newCopy = Copy;
                     Copy = nullptr; // do not destroy prev try
                     if (!newTail)
@@ -155,7 +155,7 @@ class TLockFreeQueue: public TNonCopyable {
                 }
                 TListNode* newElem = new TListNode(ptr->Data, newCopy);
                 newCopy = newElem;
-                ptr = ptr->Next;
+                ptr = AtomicGet(ptr->Next);
                 if (!newTail)
                     newTail = newElem;
             }
@@ -173,11 +173,11 @@ class TLockFreeQueue: public TNonCopyable {
         for (;;) {
             TRootNode* curRoot = AtomicGet(JobQueue);
             AtomicSet(newRoot->PushQueue, head);
-            tail->Next = AtomicGet(curRoot->PushQueue);
+            AtomicSet(tail->Next, AtomicGet(curRoot->PushQueue));
             AtomicSet(newRoot->PopQueue, AtomicGet(curRoot->PopQueue));
             newRoot->CopyCounter(curRoot);
 
-            for (TListNode* node = head;; node = node->Next) {
+            for (TListNode* node = head;; node = AtomicGet(node->Next)) {
                 newRoot->IncCount(node->Data);
                 if (node == tail)
                     break;
@@ -194,7 +194,7 @@ class TLockFreeQueue: public TNonCopyable {
     static void FillCollection(TListNode* lst, TCollection* res) {
         while (lst) {
             res->emplace_back(std::move(lst->Data));
-            lst = lst->Next;
+            lst = AtomicGet(lst->Next);
         }
     }
 
@@ -211,7 +211,7 @@ class TLockFreeQueue: public TNonCopyable {
         do {
             TListNode* newElem = new TListNode(std::move(lst->Data), newCopy);
             newCopy = newElem;
-            lst = lst->Next;
+            lst = AtomicGet(lst->Next);
         } while (lst);
 
         FillCollection(newCopy, res);
@@ -280,13 +280,13 @@ public:
                     newRoot = new TRootNode;
 
                 AtomicSet(newRoot->PushQueue, AtomicGet(curRoot->PushQueue));
-                AtomicSet(newRoot->PopQueue, tail->Next);
+                AtomicSet(newRoot->PopQueue, AtomicGet(tail->Next));
                 newRoot->CopyCounter(curRoot);
                 newRoot->DecCount(tail->Data);
                 Y_ASSERT(AtomicGet(curRoot->PopQueue) == tail);
                 if (AtomicCas(&JobQueue, newRoot, curRoot)) {
                     *data = std::move(tail->Data);
-                    tail->Next = nullptr;
+                    AtomicSet(tail->Next, nullptr);
                     AsyncUnref(curRoot, tail);
                     return true;
                 }

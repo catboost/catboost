@@ -142,7 +142,7 @@ nasm_preproc_create(const char *in_filename, yasm_symtab *symtab,
     if (strcmp(in_filename, "-") != 0) {
         f = fopen(in_filename, "r");
         if (!f)
-            yasm__fatal( N_("Could not open input file") );
+            yasm__fatal_missing_input_file( N_("Could not open input file"), in_filename );
     }
     else
         f = stdin;

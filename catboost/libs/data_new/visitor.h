@@ -39,6 +39,9 @@ namespace NCB {
         // separate method because they can be loaded from a separate data source
         virtual void SetGroupWeights(TVector<float>&& groupWeights) = 0;
 
+        // separate method because they can be loaded from a separate data source
+        virtual void SetBaseline(TVector<TVector<float>>&& baseline) = 0;
+
         virtual void SetPairs(TVector<TPair>&& pairs) = 0;
 
         // less effective version for Cython
@@ -55,7 +58,6 @@ namespace NCB {
          * processing, so this should be fixed: TODO(akhropov): MLTOOLS-2358.
          */
         virtual TMaybeData<TConstArrayRef<TGroupId>> GetGroupIds() const = 0;
-
     };
 
 
@@ -93,6 +95,8 @@ namespace NCB {
         virtual void AddCatFeature(ui32 localObjectIdx, ui32 flatFeatureIdx, TStringBuf feature) = 0;
         virtual void AddAllCatFeatures(ui32 localObjectIdx, TConstArrayRef<ui32> features) = 0;
 
+        virtual void AddTextFeature(ui32 localObjectIdx, ui32 flatFeatureIdx, const TString& feature) = 0;
+        virtual void AddAllTextFeatures(ui32 localObjectIdx, TConstArrayRef<TString> features) = 0;
 
         // TRawTargetData
 
@@ -146,6 +150,7 @@ namespace NCB {
         // shared ownership is passed to IRawFeaturesOrderDataVisitor
         virtual void AddCatFeature(ui32 flatFeatureIdx, TMaybeOwningConstArrayHolder<ui32> features) = 0;
 
+        virtual void AddTextFeature(ui32 flatFeatureIdx, TMaybeOwningConstArrayHolder<TString> feature) = 0;
 
         // TRawTargetData
 
@@ -196,6 +201,7 @@ namespace NCB {
         virtual void AddFloatFeaturePart(
             ui32 flatFeatureIdx,
             ui32 objectOffset,
+            ui8 bitsPerDocumentFeature,
             TMaybeOwningConstArrayHolder<ui8> featuresPart // per-object data size depends on BitsPerKey
         ) = 0;
 

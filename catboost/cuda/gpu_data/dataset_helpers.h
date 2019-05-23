@@ -4,6 +4,7 @@
 #include "ctr_helper.h"
 #include "batch_binarized_ctr_calcer.h"
 #include "compressed_index_builder.h"
+#include "estimated_features_calcer.h"
 #include <catboost/libs/data_new/data_provider.h>
 #include <catboost/libs/helpers/interrupt.h>
 #include <catboost/libs/quantization/utils.h>
@@ -11,7 +12,6 @@
 #include <catboost/cuda/data/data_utils.h>
 
 #include <library/threading/local_executor/local_executor.h>
-
 #include <util/generic/fwd.h>
 
 namespace NCatboostCuda {
@@ -217,10 +217,106 @@ namespace NCatboostCuda {
         ui32 TestDataSetId = -1;
     };
 
+
+
+    template <class TLayoutPolicy = TFeatureParallelLayout>
+    class TEstimatedFeaturesWriter {
+    public:
+
+        TEstimatedFeaturesWriter(TBinarizedFeaturesManager& featuresManager,
+                                 TSharedCompressedIndexBuilder<TLayoutPolicy>& indexBuilder,
+                                 TEstimatorsExecutor& featuresCalcer,
+                                 ui32 dataSetId,
+                                 TMaybe<ui32> testSetId = Nothing())
+            : FeaturesManager(featuresManager)
+              , IndexBuilder(indexBuilder)
+              , EstimatorsExecutor(featuresCalcer)
+              , DataSetId(dataSetId)
+              , TestDataSetId(testSetId) {
+        }
+
+        void Write(const TVector<ui32>& featureIds) {
+            THashSet<ui32> featuresToEstimate = TakeFeaturesToEstimate(featureIds);
+
+            if (!featuresToEstimate.empty()) {
+                auto estimators = GetEstimators(featuresToEstimate);
+
+                auto binarizedWriter = [&](
+                    ui32 dataSetId,
+                    TConstArrayRef<ui8> binarizedFeature,
+                    TEstimatedFeature feature,
+                    ui8 binCount
+                ) {
+                    const auto featureId = FeaturesManager.GetId(feature);
+                    if (featuresToEstimate.contains(featureId)) {
+                        IndexBuilder.template Write<ui8>(dataSetId,
+                                                         featureId,
+                                                         binCount,
+                                                         binarizedFeature);
+                    }
+                    CheckInterrupted(); // check after long-lasting operation
+                };
+
+                TEstimatorsExecutor::TBinarizedFeatureVisitor learnWriter = std::bind(binarizedWriter,
+                    DataSetId,
+                    std::placeholders::_1,
+                    std::placeholders::_2,
+                    std::placeholders::_3);
+
+                TMaybe<TEstimatorsExecutor::TBinarizedFeatureVisitor> testWriter;
+                if (TestDataSetId) {
+                    testWriter = std::bind(binarizedWriter,
+                                           *TestDataSetId,
+                                           std::placeholders::_1,
+                                           std::placeholders::_2,
+                                           std::placeholders::_3);
+                }
+                EstimatorsExecutor.ExecEstimators(estimators, learnWriter, testWriter);
+            }
+        }
+
+    private:
+        THashSet<ui32> TakeFeaturesToEstimate(const TVector<ui32>& featureIds) {
+            THashSet<ui32> result;
+            for (const auto& feature : featureIds) {
+                if (FeaturesManager.IsEstimatedFeature(feature)) {
+                    result.insert(feature);
+                } else {
+                    continue;
+                }
+            }
+            return result;
+        }
+
+        TVector<TEstimatorId> GetEstimators(const THashSet<ui32>& features) {
+            THashSet<TEstimatorId> estimators;
+            for (const auto& feature : features) {
+                TEstimatorId id = FeaturesManager.GetEstimatedFeature(feature).EstimatorId;
+                estimators.insert(id);
+            }
+            TVector<TEstimatorId> result;
+            result.insert(result.end(), estimators.begin(), estimators.end());
+            return result;
+        }
+
+    private:
+        TBinarizedFeaturesManager& FeaturesManager;
+        TSharedCompressedIndexBuilder<TLayoutPolicy>& IndexBuilder;
+        TEstimatorsExecutor& EstimatorsExecutor;
+        ui32 DataSetId = -1;
+        TMaybe<ui32> TestDataSetId;
+    };
+
+
     extern template class TFloatAndOneHotFeaturesWriter<TFeatureParallelLayout>;
     extern template class TFloatAndOneHotFeaturesWriter<TDocParallelLayout>;
 
     extern template class TCtrsWriter<TFeatureParallelLayout>;
     extern template class TCtrsWriter<TDocParallelLayout>;
+
+    extern template class TEstimatedFeaturesWriter<TFeatureParallelLayout>;
+    extern template class TEstimatedFeaturesWriter<TDocParallelLayout>;
+
+
 
 }

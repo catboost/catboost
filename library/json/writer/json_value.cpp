@@ -161,12 +161,7 @@ namespace NJson {
         Value.Double = value;
     }
 
-    TJsonValue::TJsonValue(const TString& value) {
-        SetType(JSON_STRING);
-        Value.String = value;
-    }
-
-    TJsonValue::TJsonValue(TString&& value) {
+    TJsonValue::TJsonValue(TString value) {
         SetType(JSON_STRING);
         Value.String = std::move(value);
     }

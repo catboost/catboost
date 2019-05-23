@@ -19,7 +19,7 @@ TString GetGuidAsString(const TGUID& g) {
     char buf[50];
     TMemoryOutput mo(buf, sizeof(buf));
 
-    mo << Hex(g.dw[0], nullptr) << '-' << Hex(g.dw[1], nullptr) << '-' << Hex(g.dw[2], nullptr) << '-' << Hex(g.dw[3], nullptr);
+    mo << Hex(g.dw[0], 0) << '-' << Hex(g.dw[1], 0) << '-' << Hex(g.dw[2], 0) << '-' << Hex(g.dw[3], 0);
 
     char* e = mo.Buf();
 

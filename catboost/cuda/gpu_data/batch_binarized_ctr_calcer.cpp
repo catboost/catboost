@@ -1,5 +1,6 @@
 #include "batch_binarized_ctr_calcer.h"
 
+#include "gpu_binarization_helpers.h"
 #include <catboost/libs/quantization/grid_creator.h>
 #include <catboost/libs/quantization/utils.h>
 
@@ -32,6 +33,7 @@ void NCatboostCuda::TBatchedBinarizedCtrsCalcer::ComputeBinarizedCtrs(const TVec
     }
 
     TAdaptiveLock lock;
+    TGpuBordersBuilder bordersBuilder(FeaturesManager);
 
     NCudaLib::RunPerDeviceSubtasks([&](ui32 devId) {
         auto ctrSingleDevTargetView = DeviceView(CtrTargets, devId);
@@ -55,43 +57,11 @@ void NCatboostCuda::TBatchedBinarizedCtrsCalcer::ComputeBinarizedCtrs(const TVec
                 const ui32 featureId = FeaturesManager.GetId(ctr);
                 auto binarizationDescription = FeaturesManager.GetBinarizationDescription(ctr);
 
-                TVector<float> borders;
-                bool hasBorders = false;
+                TVector<float> borders = bordersBuilder.GetOrComputeBorders(featureId,
+                    binarizationDescription,
+                    floatCtr.SliceView(CtrTargets.LearnSlice),
+                    stream);
 
-                with_lock (lock) {
-                    if (FeaturesManager.HasBorders(featureId)) {
-                        borders = FeaturesManager.GetBorders(featureId);
-                        hasBorders = true;
-                    }
-                }
-
-                if (!hasBorders) {
-                    NCB::TOnCpuGridBuilderFactory gridBuilderFactory;
-                    TSingleBuffer<float> sortedFeature = TSingleBuffer<float>::CopyMapping(floatCtr);
-                    sortedFeature.Copy(floatCtr, stream);
-                    RadixSort(sortedFeature, false, stream);
-                    TVector<float> sortedFeatureCpu;
-                    sortedFeature.Read(sortedFeatureCpu,
-                                       stream);
-
-                    borders = gridBuilderFactory
-                                  .Create(binarizationDescription.BorderSelectionType)
-                                  ->BuildBorders(sortedFeatureCpu,
-                                                 binarizationDescription.BorderCount);
-
-                    //hack to work with constant ctr's
-                    if (borders.size() == 0) {
-                        borders.push_back(0.5);
-                    }
-
-                    with_lock (lock) {
-                        if (FeaturesManager.HasBorders(featureId)) {
-                            borders = FeaturesManager.GetBorders(featureId);
-                        } else {
-                            FeaturesManager.SetBorders(featureId, borders);
-                        }
-                    }
-                }
 
                 TVector<float> ctrValues;
                 floatCtr

@@ -138,13 +138,12 @@ namespace NCatboostCuda {
     private:
         void Init(const NCatboostOptions::TLossDescription& targetOptions,
                   const NCB::TTrainingDataProvider& dataProvider) {
-            auto* multiClassTarget = MapFindPtr(dataProvider.TargetData,
-                                                NCB::TTargetDataSpecification(NCB::ETargetType::MultiClass));
-            CB_ENSURE_INTERNAL(multiClassTarget, "dataProvider.TargetData must contain multiclass target");
+            auto targetClassCount = dataProvider.TargetData->GetTargetClassCount();
+            CB_ENSURE_INTERNAL(targetClassCount,
+                               "dataProvider.TargetData must contain class count for target");
+            NumClasses = *targetClassCount;
 
-            NumClasses = dynamic_cast<const NCB::TMultiClassTarget&>(**multiClassTarget).GetClassCount();
-
-            TConstArrayRef<float> target = NCB::GetTarget(dataProvider.TargetData);
+            TConstArrayRef<float> target = *dataProvider.TargetData->GetTarget();
             TVector<float> tmp(target.begin(), target.end());
             SortUnique(tmp);
             Y_VERIFY(NumClasses >= tmp.size());

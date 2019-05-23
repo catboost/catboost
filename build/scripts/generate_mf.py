@@ -69,10 +69,11 @@ def generate_mf():
     build_root = options.build_root
     file_name = os.path.join(build_root, options.output)
 
-    for rel_filename in peers:
-        with open(os.path.join(build_root, rel_filename + '.mf')) as peer_file:
-            peer_meta = json.load(peer_file)
-            meta['dependencies'].append(peer_meta)
+    if options.type != 'LIBRARY':
+        for rel_filename in peers:
+            with open(os.path.join(build_root, rel_filename + '.mf')) as peer_file:
+                peer_meta = json.load(peer_file)
+                meta['dependencies'].append(peer_meta)
 
     with open(file_name, 'w') as mf_file:
         json.dump(meta, mf_file, indent=4)

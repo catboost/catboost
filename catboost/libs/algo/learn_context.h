@@ -1,29 +1,33 @@
 #pragma once
 
-#include "online_ctr.h"
-#include "fold.h"
-#include "ctr_helper.h"
-#include "split.h"
 #include "calc_score_cache.h"
+#include "ctr_helper.h"
 #include "custom_objective_descriptor.h"
+#include "fold.h"
+#include "online_ctr.h"
+#include "split.h"
 
 #include <catboost/libs/data_new/data_provider.h>
 #include <catboost/libs/data_new/features_layout.h>
 #include <catboost/libs/helpers/restorable_rng.h>
 #include <catboost/libs/labels/label_converter.h>
-#include <catboost/libs/loggers/logger.h>
 #include <catboost/libs/loggers/catboost_logger_helpers.h>
+#include <catboost/libs/loggers/logger.h>
 #include <catboost/libs/logging/logging.h>
 #include <catboost/libs/logging/profile_info.h>
 #include <catboost/libs/options/catboost_options.h>
 
 #include <library/json/json_reader.h>
-#include <library/threading/local_executor/local_executor.h>
 
 #include <library/par/par.h>
 
 #include <util/generic/noncopyable.h>
 #include <util/generic/hash_set.h>
+
+
+namespace NPar {
+    class TLocalExecutor;
+}
 
 
 struct TLearnProgress {
@@ -53,17 +57,20 @@ struct TLearnProgress {
 
     ui32 PoolCheckSum = 0;
 
+public:
     void Save(IOutputStream* s) const;
     void Load(IInputStream* s);
 };
 
 class TCommonContext : public TNonCopyable {
 public:
-    TCommonContext(const NCatboostOptions::TCatBoostOptions& params,
-                   const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
-                   const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
-                   NCB::TFeaturesLayoutPtr layout,
-                   NPar::TLocalExecutor* localExecutor)
+    TCommonContext(
+        const NCatboostOptions::TCatBoostOptions& params,
+        const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
+        const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
+        NCB::TFeaturesLayoutPtr layout,
+        NPar::TLocalExecutor* localExecutor
+    )
         : Params(params)
         , ObjectiveDescriptor(objectiveDescriptor)
         , EvalMetricDescriptor(evalMetricDescriptor)
@@ -89,14 +96,16 @@ public:
 /************************************************************************/
 class TLearnContext : public TCommonContext {
 public:
-    TLearnContext(const NCatboostOptions::TCatBoostOptions& params,
-                  const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
-                  const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
-                  const NCatboostOptions::TOutputFilesOptions& outputOptions,
-                  NCB::TFeaturesLayoutPtr layout,
-                  TMaybe<const TRestorableFastRng64*> initRand,
-                  NPar::TLocalExecutor* localExecutor,
-                  const TString& fileNamesPrefix = "")
+    TLearnContext(
+        const NCatboostOptions::TCatBoostOptions& params,
+        const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
+        const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
+        const NCatboostOptions::TOutputFilesOptions& outputOptions,
+        NCB::TFeaturesLayoutPtr layout,
+        TMaybe<const TRestorableFastRng64*> initRand,
+        NPar::TLocalExecutor* localExecutor,
+        const TString& fileNamesPrefix = ""
+    )
         : TCommonContext(params, objectiveDescriptor, evalMetricDescriptor, std::move(layout), localExecutor)
         , Rand(Params.RandomSeed)
         , OutputOptions(outputOptions)
@@ -104,7 +113,9 @@ public:
         , RootEnvironment(nullptr)
         , SharedTrainData(nullptr)
         , Profile((int)Params.BoostingOptions->IterationCount)
+        , LearnAndTestDataPackingAreCompatible(false)
         , UseTreeLevelCachingFlag(false) {
+
         LearnProgress.SerializedTrainParams = ToString(Params);
         ETaskType taskType = Params.GetTaskType();
         CB_ENSURE(taskType == ETaskType::CPU, "Error: expect learn on CPU task type, got " << taskType);
@@ -133,6 +144,8 @@ public:
     TObj<NPar::IRootEnvironment> RootEnvironment;
     TObj<NPar::IEnvironment> SharedTrainData;
     TProfileInfo Profile;
+
+    bool LearnAndTestDataPackingAreCompatible;
 
 private:
     bool UseTreeLevelCachingFlag;

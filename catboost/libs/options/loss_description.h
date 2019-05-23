@@ -51,9 +51,15 @@ namespace NCatboostOptions {
 
     double GetLqParam(const TLossDescription& lossFunctionConfig);
 
+    double GetHuberParam(const TLossDescription& lossFunctionConfig);
+
     double GetQuerySoftMaxLambdaReg(const TLossDescription& lossFunctionConfig);
 
     ui32 GetMaxPairCount(const TLossDescription& lossFunctionConfig);
+
+    double GetStochasticFilterSigma(const TLossDescription& lossDescription);
+
+    int GetStochasticFilterNumEstimations(const TLossDescription& lossDescription);
 
     TLossDescription ParseLossDescription(TStringBuf stringLossDescription);
 }

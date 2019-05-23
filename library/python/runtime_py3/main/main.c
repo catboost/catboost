@@ -4,6 +4,8 @@
 #include <string.h>
 #include <locale.h>
 
+void Py_InitArgcArgv(int argc, wchar_t **argv);
+
 static const char* env_entry_point = "Y_PYTHON_ENTRY_POINT";
 
 #ifdef _MSC_VER
@@ -68,7 +70,7 @@ static int RunModule(const char *modname)
     return 0;
 }
 
-int main(int argc, char** argv) {
+static int pymain(int argc, char** argv) {
     int i, sts = 1;
     char* oldloc = NULL;
     wchar_t** argv_copy = NULL;
@@ -112,6 +114,7 @@ int main(int argc, char** argv) {
         return Py_Main(argc, argv_copy);
     }
 
+    Py_InitArgcArgv(argc, argv_copy);
     if (argc >= 1)
         Py_SetProgramName(argv_copy[0]);
     Py_Initialize();
@@ -198,4 +201,10 @@ error:
     }
     PyMem_RawFree(oldloc);
     return sts;
+}
+
+int (*mainptr)(int argc, char** argv) = pymain;
+
+int main(int argc, char** argv) {
+    return mainptr(argc, argv);
 }

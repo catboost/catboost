@@ -28,11 +28,11 @@ namespace NStackArray {
         inline TStackArray(void* data, size_t len)
             : TArrayRef<T>((T*)data, len)
         {
-            NRangeOps::InitializeRange(this->Begin(), this->End());
+            NRangeOps::InitializeRange(this->begin(), this->end());
         }
 
         inline ~TStackArray() {
-            NRangeOps::DestroyRange(this->Begin(), this->End());
+            NRangeOps::DestroyRange(this->begin(), this->end());
         }
     };
 }

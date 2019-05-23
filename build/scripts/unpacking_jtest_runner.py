@@ -1,7 +1,10 @@
-import subprocess
-import os
+import io
+import json
 import optparse
-
+import os
+import subprocess
+import time
+import zipfile
 
 # This script changes test run classpath by unpacking tests.jar -> tests-dir. The goal
 # is to launch tests with the same classpath as maven does.
@@ -10,6 +13,7 @@ import optparse
 def parse_args():
     parser = optparse.OptionParser()
     parser.disable_interspersed_args()
+    parser.add_option('--trace-file')
     parser.add_option('--jar-binary')
     parser.add_option('--tests-jar-path')
     return parser.parse_args()
@@ -42,6 +46,27 @@ def fix_cmd(cmd):
     return cmd
 
 
+def dump_event(etype, data, filename):
+    event = {
+        'timestamp': time.time(),
+        'value': data,
+        'name': etype,
+    }
+
+    with io.open(filename, 'a', encoding='utf8') as afile:
+        afile.write(unicode(json.dumps(event) + '\n'))
+
+
+def dump_suite_event(data, filename):
+    return dump_event('suite-event', data, filename)
+
+
+def extract_jars(dest, archive):
+    os.makedirs(dest)
+    with zipfile.ZipFile(archive) as zf:
+        zf.extractall(dest)
+
+
 def main():
     opts, args = parse_args()
 
@@ -51,8 +76,17 @@ def main():
     except Exception:
         dest = os.path.abspath('test-classes')
 
-    os.makedirs(dest)
-    subprocess.check_output([opts.jar_binary, 'xf', opts.tests_jar_path], cwd=dest)
+    s = time.time()
+
+    extract_jars(dest, opts.tests_jar_path)
+
+    if (opts.trace_file):
+        metrics = {
+            'metrics': {
+                'suite_jtest_extract_jars_(seconds)': int(time.time() - s),
+            }
+        }
+        dump_suite_event(metrics, opts.trace_file)
 
     # fix java classpath
     i = args.index('-classpath')

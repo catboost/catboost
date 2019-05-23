@@ -114,6 +114,9 @@ extern /*@exits@*/ void (*yasm_fatal) (const char *message, va_list va);
 YASM_LIB_DECL
 /*@exits@*/ void yasm__fatal(const char *message, ...);
 
+YASM_LIB_DECL
+/*@exits@*/ void yasm__fatal_missing_input_file(const char *message, const char *filename);
+
 /** Unconditionally clear the error indicator, freeing any associated data.
  * Has no effect if the error indicator is not set.
  */

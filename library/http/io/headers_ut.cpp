@@ -51,6 +51,7 @@ class THttpHeadersTest: public TTestBase {
     UNIT_TEST(TestAddOrReplaceOperation1Arg);
     UNIT_TEST(TestAddOrReplaceOperation2Args);
     UNIT_TEST(TestAddHeaderTemplateness);
+    UNIT_TEST(TestFindHeader);
     UNIT_TEST_SUITE_END();
 
 private:
@@ -62,6 +63,7 @@ public:
     void TestAddOrReplaceOperation1Arg();
     void TestAddOrReplaceOperation2Args();
     void TestAddHeaderTemplateness();
+    void TestFindHeader();
 
 private:
     static void AddHeaderImpl1Arg(THttpHeaders& headers, TCharFixedString name, TCharFixedString value) {
@@ -156,4 +158,12 @@ void THttpHeadersTest::TestAddHeaderTemplateness() {
     h2.Add("h4", "v4");
 
     UNIT_ASSERT(h1 == h2);
+}
+
+void THttpHeadersTest::TestFindHeader() {
+    THttpHeaders sut;
+    sut.AddHeader("NaMe", "Value");
+
+    UNIT_ASSERT(sut.FindHeader("name"));
+    UNIT_ASSERT(sut.FindHeader("name")->Value() == "Value");
 }

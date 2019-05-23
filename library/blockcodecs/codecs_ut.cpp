@@ -4,6 +4,7 @@
 #include <library/unittest/registar.h>
 
 #include <util/stream/str.h>
+#include <util/string/join.h>
 #include <util/digest/multi.h>
 
 Y_UNIT_TEST_SUITE(TBlockCodecsTest) {
@@ -288,5 +289,39 @@ Y_UNIT_TEST_SUITE(TBlockCodecsTest) {
 
         // restore status quo
         SetMaxPossibleDecompressedLength(Max<size_t>());
+    }
+
+    Y_UNIT_TEST(TestListAllCodecs) {
+        static const TString ALL_CODECS =
+            "brotli_1,brotli_10,brotli_11,brotli_2,brotli_3,brotli_4,brotli_5,brotli_6,brotli_7,brotli_8,brotli_9,"
+
+            "bzip2,bzip2-1,bzip2-2,bzip2-3,bzip2-4,bzip2-5,bzip2-6,bzip2-7,bzip2-8,bzip2-9,"
+
+            "fastlz,fastlz-0,fastlz-1,fastlz-2,"
+
+            "lz4,lz4-fast-fast,lz4-fast-safe,lz4-fast10-fast,lz4-fast10-safe,lz4-fast11-fast,lz4-fast11-safe,"
+            "lz4-fast12-fast,lz4-fast12-safe,lz4-fast13-fast,lz4-fast13-safe,lz4-fast14-fast,lz4-fast14-safe,"
+            "lz4-fast15-fast,lz4-fast15-safe,lz4-fast16-fast,lz4-fast16-safe,lz4-fast17-fast,lz4-fast17-safe,"
+            "lz4-fast18-fast,lz4-fast18-safe,lz4-fast19-fast,lz4-fast19-safe,lz4-fast20-fast,lz4-fast20-safe,"
+            "lz4-hc-fast,lz4-hc-safe,lz4fast,lz4hc,"
+
+            "lzma,lzma-0,lzma-1,lzma-2,lzma-3,lzma-4,lzma-5,lzma-6,lzma-7,lzma-8,lzma-9,"
+
+            "null,"
+
+            "snappy,"
+
+            "zlib,zlib-0,zlib-1,zlib-2,zlib-3,zlib-4,zlib-5,zlib-6,zlib-7,zlib-8,zlib-9,"
+
+            "zstd06_1,zstd06_10,zstd06_11,zstd06_12,zstd06_13,zstd06_14,zstd06_15,zstd06_16,zstd06_17,zstd06_18,"
+            "zstd06_19,zstd06_2,zstd06_20,zstd06_21,zstd06_22,zstd06_3,zstd06_4,zstd06_5,zstd06_6,zstd06_7,zstd06_8,"
+            "zstd06_9,"
+
+            "zstd08_1,zstd08_10,zstd08_11,zstd08_12,zstd08_13,zstd08_14,zstd08_15,zstd08_16,zstd08_17,zstd08_18,"
+            "zstd08_19,zstd08_2,zstd08_20,zstd08_21,zstd08_22,zstd08_3,zstd08_4,zstd08_5,zstd08_6,zstd08_7,zstd08_8,"
+            "zstd08_9,zstd_1,zstd_10,zstd_11,zstd_12,zstd_13,zstd_14,zstd_15,zstd_16,zstd_17,zstd_18,zstd_19,zstd_2,"
+            "zstd_20,zstd_21,zstd_22,zstd_3,zstd_4,zstd_5,zstd_6,zstd_7,zstd_8,zstd_9";
+
+        UNIT_ASSERT_VALUES_EQUAL(ALL_CODECS, JoinSeq(",", ListAllCodecs()));
     }
 }

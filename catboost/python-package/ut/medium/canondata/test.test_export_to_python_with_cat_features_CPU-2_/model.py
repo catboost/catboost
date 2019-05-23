@@ -1,34 +1,203 @@
+### Types to hold CTR's data
+
+class catboost_model_ctr(object):
+    def __init__(self, base_hash, base_ctr_type, target_border_idx, prior_num, prior_denom, shift, scale):
+        self.base_hash = base_hash
+        self.base_ctr_type = base_ctr_type
+        self.target_border_idx = target_border_idx
+        self.prior_num = prior_num
+        self.prior_denom = prior_denom
+        self.shift = shift
+        self.scale = scale
+
+    def calc(self, count_in_class, total_count):
+        ctr = (count_in_class + self.prior_num) / float(total_count + self.prior_denom)
+        return (ctr + self.shift) * self.scale
+
+
+class catboost_bin_feature_index_value(object):
+    def __init__(self, bin_index, check_value_equal, value):
+        self.bin_index = bin_index
+        self.check_value_equal = check_value_equal
+        self.value = value
+
+
+class catboost_ctr_mean_history(object):
+    def __init__(self, sum, count):
+        self.sum = sum
+        self.count = count
+
+
+class catboost_ctr_value_table(object):
+    def __init__(self, index_hash_viewer, target_classes_count, counter_denominator, ctr_mean_history, ctr_total):
+        self.index_hash_viewer = index_hash_viewer
+        self.target_classes_count = target_classes_count
+        self.counter_denominator = counter_denominator
+        self.ctr_mean_history = ctr_mean_history
+        self.ctr_total = ctr_total
+
+    def resolve_hash_index(self, hash):
+        try:
+            return self.index_hash_viewer[hash]
+        except KeyError:
+            return None
+
+
+class catboost_ctr_data(object):
+    def __init__(self, learn_ctrs):
+        self.learn_ctrs = learn_ctrs
+
+
+class catboost_projection(object):
+    def __init__(self, transposed_cat_feature_indexes, binarized_indexes):
+        self.transposed_cat_feature_indexes = transposed_cat_feature_indexes
+        self.binarized_indexes = binarized_indexes
+
+
+class catboost_compressed_model_ctr(object):
+    def __init__(self, projection, model_ctrs):
+        self.projection = projection
+        self.model_ctrs = model_ctrs
+
+
+class catboost_model_ctrs_container(object):
+    def __init__(self, used_model_ctrs_count, compressed_model_ctrs, ctr_data):
+        self.used_model_ctrs_count = used_model_ctrs_count
+        self.compressed_model_ctrs = compressed_model_ctrs
+        self.ctr_data = ctr_data
+
+
 ###  Model data
 class catboost_model(object):
     float_features_index = [
-        0, 2, 4,
+        0, 3, 4,
     ]
     float_feature_count = 6
     cat_feature_count = 11
-    binary_feature_count = 4
+    binary_feature_count = 5
     tree_count = 2
     float_feature_borders = [
-        [36.5, 51.5],
-        [14.5],
-        [1881.5, 2189.5],
+        [25],
+        [1087, 7493, 11356, 17537.5],
+        [1862],
     ]
-    tree_depth = [2, 5]
-    tree_split_border = [1, 2, 1, 1, 1, 2, 255]
-    tree_split_feature_index = [2, 2, 2, 1, 0, 0, 3]
-    tree_split_xor_mask = [0, 0, 0, 0, 0, 0, 254]
+    tree_depth = [3, 6]
+    tree_split_border = [1, 3, 1, 1, 1, 1, 2, 1, 4]
+    tree_split_feature_index = [2, 1, 1, 3, 2, 4, 1, 0, 1]
+    tree_split_xor_mask = [0, 0, 0, 0, 0, 0, 0, 0, 0]
     cat_features_index = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-    one_hot_cat_feature_index = [9]
+    one_hot_cat_feature_index = []
     one_hot_hash_values = [
-        [-2114564283]
     ]
     ctr_feature_borders = [
+        [12.999999],
+        [14.999999]
     ]
 
     ## Aggregated array of leaf values for trees. Each tree is represented by a separate line:
     leaf_values = [
-        0.02339999947696924, 0.00599999986588955, 0, 0,
-        0.02467631196266134, -4.499999798834327e-05, 0, 0, 0.01067962477404065, 0, -0.0001754999921545387, 0.005963999867498875, 0, 0, 0, 0, 0.01563574966424331, 0, 0, 0, 0.02591746097304156, 0, 0, 0, 0.01456124968433753, 0, 0, 0, 0, 0, 0, 0, 0.01831124960051849, 0, 0, 0
+        0.0247826081417177, 0.007499999832361937, 0, 0, 0.004285714189921106, 0, 0, 0,
+        0.007314130275453562, 0, 0, 0, 0.01462826055090712, 0.02507701808726935, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.01478395709301162, 0, 0.004157142767097268, 0, 0.01860609784453417, 0.02659683736528569, 0, 0.007443749834876508, -2.571428456476758e-05, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
     ]
+    model_ctrs = catboost_model_ctrs_container(
+        used_model_ctrs_count = 2,
+        compressed_model_ctrs = [
+            catboost_compressed_model_ctr(
+                projection = catboost_projection(
+                    transposed_cat_feature_indexes = [7],
+                    binarized_indexes = []
+                ),
+                model_ctrs = [
+                    catboost_model_ctr(base_hash = 14216163332699387103, base_ctr_type = "Borders", target_border_idx = 0, prior_num = 0.5, prior_denom = 1, shift = -0, scale = 15),
+                    catboost_model_ctr(base_hash = 14216163332699387103, base_ctr_type = "Borders", target_border_idx = 0, prior_num = 1, prior_denom = 1, shift = -0, scale = 15)
+                ]
+            )
+        ],
+        ctr_data = catboost_ctr_data(
+            learn_ctrs = {
+                14216163332699387103 :
+                catboost_ctr_value_table(
+                    index_hash_viewer = {3607388709394294015 : 5, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18356215166324018775 : 0, 18365206492781874408 : 4, 18446744073709551615 : 0, 18446744073709551615 : 0, 14559146096844143499 : 1, 18446744073709551615 : 0, 18446744073709551615 : 0, 11416626865500250542 : 3, 5549384008678792175 : 2},
+                    target_classes_count = 2,
+                    counter_denominator = 0,
+                    ctr_mean_history = [catboost_ctr_mean_history(sum = 0, count = 14), catboost_ctr_mean_history(sum = 0, count = 22), catboost_ctr_mean_history(sum = 0, count = 22), catboost_ctr_mean_history(sum = 2.66247e-44, count = 17), catboost_ctr_mean_history(sum = 2.8026e-45, count = 3), catboost_ctr_mean_history(sum = 1.4013e-45, count = 1)],
+                    ctr_total = [0, 14, 0, 22, 0, 22, 19, 17, 2, 3, 1, 1]
+                )
+            }
+        )
+    )
+
+
+### Routines to compute CTRs
+
+def calc_hash(a, b):
+    max_int = 0xffFFffFFffFFffFF
+    MAGIC_MULT = 0x4906ba494954cb65
+    return (MAGIC_MULT * ((a + MAGIC_MULT * b) & max_int)) & max_int
+
+
+def calc_hashes(binarized_features, hashed_cat_features, transposed_cat_feature_indexes, binarized_feature_indexes):
+    result = 0
+    for cat_feature_index in transposed_cat_feature_indexes:
+        result = calc_hash(result, hashed_cat_features[cat_feature_index])
+    for bin_feature_index in binarized_feature_indexes:
+        binary_feature = binarized_features[bin_feature_index.bin_index]
+        if not(bin_feature_index.check_value_equal):
+            result = calc_hash(result, 1 if (binary_feature >= bin_feature_index.value) else 0)
+        else:
+            result = calc_hash(result, 1 if (binary_feature == bin_feature_index.value) else 0)
+    return result
+
+
+def calc_ctrs(model_ctrs, binarized_features, hashed_cat_features, result):
+    ctr_hash = 0
+    result_index = 0
+
+    for i in range(len(model_ctrs.compressed_model_ctrs)):
+        proj = model_ctrs.compressed_model_ctrs[i].projection
+        ctr_hash = calc_hashes(binarized_features, hashed_cat_features, proj.transposed_cat_feature_indexes, proj.binarized_indexes)
+        for j in range(len(model_ctrs.compressed_model_ctrs[i].model_ctrs)):
+            ctr = model_ctrs.compressed_model_ctrs[i].model_ctrs[j]
+            learn_ctr = model_ctrs.ctr_data.learn_ctrs[ctr.base_hash]
+            ctr_type = ctr.base_ctr_type
+            bucket = learn_ctr.resolve_hash_index(ctr_hash)
+            if bucket is None:
+                result[result_index] = ctr.calc(0, 0)
+            else:
+                if ctr_type == "BinarizedTargetMeanValue" or ctr_type == "FloatTargetMeanValue":
+                    ctr_mean_history = learn_ctr.ctr_mean_history[bucket]
+                    result[result_index] = ctr.calc(ctr_mean_history.sum, ctr_mean_history.count)
+                elif ctr_type == "Counter" or ctr_type == "FeatureFreq":
+                    ctr_total = learn_ctr.ctr_total
+                    denominator = learn_ctr.counter_denominator
+                    result[result_index] = ctr.calc(ctr_total[bucket], denominator)
+                elif ctr_type == "Buckets":
+                    ctr_history = learn_ctr.ctr_total
+                    target_classes_count = learn_ctr.target_classes_count
+                    total_count = 0
+                    good_count = ctr_history[bucket * target_classes_count + ctr.target_border_idx];
+                    for class_id in range(target_classes_count):
+                        total_count += ctr_history[bucket * target_classes_count + class_id]
+                    result[result_index] = ctr.calc(good_count, total_count)
+                else:
+                    ctr_history = learn_ctr.ctr_total;
+                    target_classes_count = learn_ctr.target_classes_count;
+
+                    if target_classes_count > 2:
+                        good_count = 0
+                        total_count = 0
+                        for class_id in range(ctr.target_border_idx + 1):
+                            total_count += ctr_history[bucket * target_classes_count + class_id]
+                        for class_id in range(ctr.target_border_idx + 1, target_classes_count):
+                            good_count += ctr_history[bucket * target_classes_count + class_id]
+                        total_count += good_count;
+                        result[result_index] = ctr.calc(good_count, total_count);
+                    else:
+                        result[result_index] = ctr.calc(ctr_history[bucket * 2 + 1], ctr_history[bucket * 2] + ctr_history[bucket * 2 + 1])
+            result_index += 1
+
+
+
 cat_features_hashes = {
     "Female": -2114564283,
     "Protective-serv": -2075156126,

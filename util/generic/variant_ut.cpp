@@ -256,8 +256,8 @@ Y_UNIT_TEST_SUITE(TVariantTest) {
         {
             TVariant<S, TString, int> v(TVariantTypeTag<TString>{});
             UNIT_ASSERT(HoldsAlternative<TString>(v));
-            UNIT_ASSERT(Get<TString>(v).Empty());
-            UNIT_ASSERT(Get<1>(v).Empty());
+            UNIT_ASSERT(Get<TString>(v).empty());
+            UNIT_ASSERT(Get<1>(v).empty());
             UNIT_ASSERT_EQUAL(1, v.index());
         }
         UNIT_ASSERT_EQUAL(0, S::CtorCalls);
@@ -286,8 +286,8 @@ Y_UNIT_TEST_SUITE(TVariantTest) {
         {
             TVariant<TString, double, S, int> v(TVariantIndexTag<0>{});
             UNIT_ASSERT(HoldsAlternative<TString>(v));
-            UNIT_ASSERT(Get<TString>(v).Empty());
-            UNIT_ASSERT(Get<0>(v).Empty());
+            UNIT_ASSERT(Get<TString>(v).empty());
+            UNIT_ASSERT(Get<0>(v).empty());
         }
         UNIT_ASSERT_EQUAL(0, S::CtorCalls);
         UNIT_ASSERT_EQUAL(0, S::DtorCalls);

@@ -14,8 +14,6 @@
 #include <contrib/libs/openssl/include/openssl/bio.h>
 #include <contrib/libs/openssl/include/openssl/x509v3.h>
 
-#include <library/openssl/compat/asn1.h> // Remove after OpenSSL upgrade
-#include <library/openssl/compat/bio.h> // Remove after OpenSSL upgrade
 #include <library/openssl/init/init.h>
 #include <library/openssl/method/io.h>
 #include <library/coroutine/listener/listen.h>
@@ -942,8 +940,6 @@ namespace NNeh {
                     return -1;
                 }
 
-                Cdbg << '[' << S_ << AsStringBuf("] TContBIO::Write(") << dlen << ')' << Endl;
-
                 while (true) {
                     auto done = Cont_->WriteI(S_, data, dlen);
                     if (done.Status() != EAGAIN) {
@@ -957,8 +953,6 @@ namespace NNeh {
                 if (Y_UNLIKELY(!Cont_)) {
                     return -1;
                 }
-
-                Cdbg << '[' << S_ << AsStringBuf("] TContBIO::Read(") << dlen << ')' << Endl;
 
                 if (!Canceled_) {
                     while (true) {

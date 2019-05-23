@@ -3,20 +3,21 @@
 
 NCatboostOptions::TMetricOptions::TMetricOptions()
     : EvalMetric("eval_metric", TLossDescription())
+    , ObjectiveMetric("objective_metric", TLossDescription())
     , CustomMetrics("custom_metrics", TVector<TLossDescription>()) {
 }
 
 void NCatboostOptions::TMetricOptions::Load(const NJson::TJsonValue& options) {
-    CheckedLoad(options, &EvalMetric, &CustomMetrics);
+    CheckedLoad(options, &EvalMetric, &ObjectiveMetric, &CustomMetrics);
     CB_ENSURE(EvalMetric.Get().GetLossFunction() != ELossFunction::CtrFactor, ToString(ELossFunction::CtrFactor) << " cannot be used for overfitting detection or selecting best iteration on validation");
 }
 
 void NCatboostOptions::TMetricOptions::Save(NJson::TJsonValue* options) const {
-    SaveFields(options, EvalMetric, CustomMetrics);
+    SaveFields(options, EvalMetric, ObjectiveMetric, CustomMetrics);
 }
 
 bool NCatboostOptions::TMetricOptions::operator==(const TMetricOptions& rhs) const {
-    return std::tie(EvalMetric, CustomMetrics) == std::tie(rhs.EvalMetric, rhs.CustomMetrics);
+    return std::tie(EvalMetric, ObjectiveMetric, CustomMetrics) == std::tie(rhs.EvalMetric, rhs.ObjectiveMetric, rhs.CustomMetrics);
 }
 
 bool NCatboostOptions::TMetricOptions::operator!=(const TMetricOptions& rhs) const {
@@ -35,11 +36,11 @@ bool IsValidForObjectiveOrEvalMetric(
 }
 
 
-bool IsMultiClass(
+bool IsMultiClassOnly(
     const ELossFunction lossFunction,
     const NCatboostOptions::TMetricOptions& metricOptions)
 {
-    return IsValidForObjectiveOrEvalMetric(lossFunction, metricOptions, IsMultiClassMetric);
+    return IsValidForObjectiveOrEvalMetric(lossFunction, metricOptions, IsMultiClassOnlyMetric);
 }
 
 

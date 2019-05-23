@@ -579,6 +579,11 @@ inline TDuration operator*(const TDuration& d, const T& t) noexcept {
     return TDuration::FromValue(d.GetValue() * t);
 }
 
+template <class T>
+inline TDuration operator*(const T& t, const TDuration& d) noexcept {
+    return d * t;
+}
+
 template <class T, std::enable_if_t<!std::is_same<TDuration, T>::value, int> = 0>
 constexpr TDuration operator/(const TDuration& d, const T& t) noexcept {
     return TDuration::FromValue(d.GetValue() / t);

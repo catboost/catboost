@@ -39,7 +39,7 @@ namespace NCB {
                 dst->size() == GetSize(),
                 "TUnalignedArrayBuf::WriteTo: Wrong destination array size; "
                 LabeledOutput(dst->size(), GetSize()));
-            memcpy(dst->Data(), Begin, SizeInBytes);
+            memcpy(dst->data(), Begin, SizeInBytes);
         }
 
         void WriteTo(TVector<T>* dst) const {

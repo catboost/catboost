@@ -4,6 +4,7 @@ LIBRARY()
 
 SRCS(
     array_subset.cpp
+    borders_io.cpp
     checksum.cpp
     clear_array.cpp
     compare.cpp
@@ -20,6 +21,7 @@ SRCS(
     map_merge.cpp
     math_utils.cpp
     matrix.cpp
+    maybe_data.cpp
     maybe_owning_array_holder.cpp
     mem_usage.cpp
     parallel_tasks.cpp
@@ -32,6 +34,7 @@ SRCS(
     restorable_rng.cpp
     serialization.cpp
     set.cpp
+    vec_list.cpp
     vector_helpers.cpp
     wx_test.cpp
 )

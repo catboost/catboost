@@ -14,19 +14,19 @@ PyDoc_STRVAR(crypt_crypt__doc__,
 "results for a given *word*.");
 
 #define CRYPT_CRYPT_METHODDEF    \
-    {"crypt", (PyCFunction)crypt_crypt, METH_VARARGS, crypt_crypt__doc__},
+    {"crypt", (PyCFunction)crypt_crypt, METH_FASTCALL, crypt_crypt__doc__},
 
 static PyObject *
 crypt_crypt_impl(PyObject *module, const char *word, const char *salt);
 
 static PyObject *
-crypt_crypt(PyObject *module, PyObject *args)
+crypt_crypt(PyObject *module, PyObject *const *args, Py_ssize_t nargs)
 {
     PyObject *return_value = NULL;
     const char *word;
     const char *salt;
 
-    if (!PyArg_ParseTuple(args, "ss:crypt",
+    if (!_PyArg_ParseStack(args, nargs, "ss:crypt",
         &word, &salt)) {
         goto exit;
     }
@@ -35,4 +35,4 @@ crypt_crypt(PyObject *module, PyObject *args)
 exit:
     return return_value;
 }
-/*[clinic end generated code: output=8dfc88264e662df4 input=a9049054013a1b77]*/
+/*[clinic end generated code: output=8d803e53466b1cd3 input=a9049054013a1b77]*/

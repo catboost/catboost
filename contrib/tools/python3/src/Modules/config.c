@@ -22,6 +22,7 @@ extern "C" {
 #endif
 
 
+extern PyObject* PyInit__abc(void); // _abc
 extern PyObject* PyInit__asyncio(void); // _asyncio
 extern PyObject* PyInit__bisect(void); // _bisect
 extern PyObject* PyInit__blake2(void); // _blake2
@@ -34,6 +35,7 @@ extern PyObject* PyInit__codecs_jp(void); // _codecs_jp
 extern PyObject* PyInit__codecs_kr(void); // _codecs_kr
 extern PyObject* PyInit__codecs_tw(void); // _codecs_tw
 extern PyObject* PyInit__collections(void); // _collections
+extern PyObject* PyInit__contextvars(void); // _contextvars
 extern PyObject* PyInit__csv(void); // _csv
 extern PyObject* PyInit__ctypes(void); // _ctypes
 extern PyObject* PyInit__datetime(void); // _datetime
@@ -42,6 +44,7 @@ extern PyObject* PyInit__elementtree(void); // _elementtree
 extern PyObject* PyInit__functools(void); // _functools
 extern PyObject* PyInit__hashlib(void); // _hashlib
 extern PyObject* PyInit__heapq(void); // _heapq
+extern PyObject* PyInit__imp(void); // _imp
 extern PyObject* PyInit__io(void); // _io
 extern PyObject* PyInit__json(void); // _json
 extern PyObject* PyInit__locale(void); // _locale
@@ -55,6 +58,7 @@ extern PyObject* PyInit__pickle(void); // _pickle
 #if !defined(_MSC_VER)
 extern PyObject* PyInit__posixsubprocess(void); // _posixsubprocess
 #endif
+extern PyObject* PyInit__queue(void); // _queue
 extern PyObject* PyInit__random(void); // _random
 extern PyObject* PyInit__sha1(void); // _sha1
 extern PyObject* PyInit__sha256(void); // _sha256
@@ -66,11 +70,13 @@ extern PyObject* PyInit__sqlite3(void); // _sqlite3
 extern PyObject* PyInit__sre(void); // _sre
 extern PyObject* PyInit__ssl(void); // _ssl
 extern PyObject* PyInit__stat(void); // _stat
+extern PyObject* PyInit__string(void); // _string
 extern PyObject* PyInit__struct(void); // _struct
 extern PyObject* PyInit__symtable(void); // _symtable
 extern PyObject* PyInit__thread(void); // _thread
 extern PyObject* PyInit__tracemalloc(void); // _tracemalloc
 extern PyObject* PyInit__weakref(void); // _weakref
+extern PyObject* PyInit__xxtestfuzz(void); // _xxtestfuzz
 extern PyObject* PyInit_array(void); // array
 extern PyObject* PyInit_atexit(void); // atexit
 extern PyObject* PyInit_audioop(void); // audioop
@@ -81,17 +87,17 @@ extern PyObject* PyInit_faulthandler(void); // faulthandler
 #if !defined(_MSC_VER)
 extern PyObject* PyInit_fcntl(void); // fcntl
 #endif
-extern PyObject* PyInit_fpetest(void); // fpetest
 #if !defined(_MSC_VER)
 extern PyObject* PyInit_grp(void); // grp
 #endif
 extern PyObject* PyInit_itertools(void); // itertools
 extern PyObject* PyInit_math(void); // math
 extern PyObject* PyInit_mmap(void); // mmap
-extern PyObject* PyInit_parser(void); // parser
 #if defined(_MSC_VER)
 extern PyObject* PyInit_nt(void); // nt
-#else
+#endif
+extern PyObject* PyInit_parser(void); // parser
+#if !defined(_MSC_VER)
 extern PyObject* PyInit_posix(void); // posix
 #endif
 #if !defined(_MSC_VER)
@@ -135,7 +141,7 @@ extern PyObject* PyInit_winsound(void); // winsound
 #endif
 
 extern PyObject* PyMarshal_Init(void);
-extern PyObject* PyInit_imp(void);
+extern PyObject* PyInit__imp(void);
 extern PyObject* PyInit_gc(void);
 extern PyObject* PyInit__ast(void);
 extern PyObject* _PyWarnings_Init(void);
@@ -143,6 +149,7 @@ extern PyObject* PyInit__string(void);
 
 struct _inittab _PyImport_Inittab[] = {
 
+    {"_abc", PyInit__abc},
     {"_asyncio", PyInit__asyncio},
     {"_bisect", PyInit__bisect},
     {"_blake2", PyInit__blake2},
@@ -155,6 +162,7 @@ struct _inittab _PyImport_Inittab[] = {
     {"_codecs_kr", PyInit__codecs_kr},
     {"_codecs_tw", PyInit__codecs_tw},
     {"_collections", PyInit__collections},
+    {"_contextvars", PyInit__contextvars},
     {"_csv", PyInit__csv},
     {"_ctypes", PyInit__ctypes},
     {"_datetime", PyInit__datetime},
@@ -163,6 +171,7 @@ struct _inittab _PyImport_Inittab[] = {
     {"_functools", PyInit__functools},
     {"_hashlib", PyInit__hashlib},
     {"_heapq", PyInit__heapq},
+    {"_imp", PyInit__imp},
     {"_io", PyInit__io},
     {"_json", PyInit__json},
     {"_locale", PyInit__locale},
@@ -176,6 +185,7 @@ struct _inittab _PyImport_Inittab[] = {
 #if !defined(_MSC_VER)
     {"_posixsubprocess", PyInit__posixsubprocess},
 #endif
+    {"_queue", PyInit__queue},
     {"_random", PyInit__random},
     {"_sha1", PyInit__sha1},
     {"_sha256", PyInit__sha256},
@@ -187,11 +197,13 @@ struct _inittab _PyImport_Inittab[] = {
     {"_sre", PyInit__sre},
     {"_ssl", PyInit__ssl},
     {"_stat", PyInit__stat},
+    {"_string", PyInit__string},
     {"_struct", PyInit__struct},
     {"_symtable", PyInit__symtable},
     {"_thread", PyInit__thread},
     {"_tracemalloc", PyInit__tracemalloc},
     {"_weakref", PyInit__weakref},
+    {"_xxtestfuzz", PyInit__xxtestfuzz},
     {"array", PyInit_array},
     {"atexit", PyInit_atexit},
     {"audioop", PyInit_audioop},
@@ -202,17 +214,17 @@ struct _inittab _PyImport_Inittab[] = {
 #if !defined(_MSC_VER)
     {"fcntl", PyInit_fcntl},
 #endif
-    {"fpetest", PyInit_fpetest},
 #if !defined(_MSC_VER)
     {"grp", PyInit_grp},
 #endif
     {"itertools", PyInit_itertools},
     {"math", PyInit_math},
     {"mmap", PyInit_mmap},
-    {"parser", PyInit_parser},
 #if defined(_MSC_VER)
     {"nt", PyInit_nt},
-#else
+#endif
+    {"parser", PyInit_parser},
+#if !defined(_MSC_VER)
     {"posix", PyInit_posix},
 #endif
 #if !defined(_MSC_VER)
@@ -259,7 +271,7 @@ struct _inittab _PyImport_Inittab[] = {
     {"marshal", PyMarshal_Init},
 
     /* This lives in import.c */
-    {"_imp", PyInit_imp},
+    {"_imp", PyInit__imp},
 
     /* This lives in Python/Python-ast.c */
     {"_ast", PyInit__ast},

@@ -1,10 +1,14 @@
 #include "pairwise_scoring.h"
+
 #include "pairwise_leaves_calculation.h"
+#include "short_vector_ops.h"
 
 #include <util/generic/xrange.h>
 #include <util/system/yassert.h>
 
-#include <emmintrin.h>
+
+using namespace NCB;
+
 
 void TPairwiseStats::Add(const TPairwiseStats& rhs) {
     Y_ASSERT(SplitEnsembleSpec == rhs.SplitEnsembleSpec);
@@ -43,39 +47,36 @@ void TPairwiseStats::Add(const TPairwiseStats& rhs) {
 }
 
 
-static inline double XmmHorizontalAdd(__m128d x) {
-    return _mm_cvtsd_f64(_mm_add_pd(x, _mm_shuffle_pd(x, x, /*swap halves*/ 0x1)));
-}
-
-static inline __m128d XmmFusedMultiplyAdd(const double* x, const double* y, __m128d z) {
-    return _mm_add_pd(_mm_mul_pd(_mm_loadu_pd(x), _mm_loadu_pd(y)), z);
-}
-
-static inline __m128d XmmGather(const double* first, const double* second) {
-    return _mm_loadh_pd(_mm_loadl_pd(_mm_undefined_pd(), first), second);
-}
-
-static double CalculateScore(const TVector<double>& avrg, const TVector<double>& sumDer, const TArray2D<double>& sumWeights) {
+static double CalculateScore(
+    const TVector<double>& avrg,
+    const TVector<double>& sumDer,
+    const TArray2D<double>& sumWeights
+) {
     const ui32 sumDerSize = sumDer.ysize();
     double score = 0;
     for (ui32 x = 0; x < sumDerSize; ++x) {
         const double* avrgData = avrg.data();
         const double* sumWeightsData = &sumWeights[x][0];
-        __m128d subScore0 = _mm_setzero_pd();
-        __m128d subScore2 = _mm_setzero_pd();
-        for (ui32 y = 0; y + 4 <= sumDerSize; y += 4) {
-            subScore0 = XmmFusedMultiplyAdd(avrgData + y + 0, sumWeightsData + y + 0, subScore0);
-            subScore2 = XmmFusedMultiplyAdd(avrgData + y + 2, sumWeightsData + y + 2, subScore2);
+        auto subScore0 = NSimdOps::MakeZeros();
+        auto subScore2 = NSimdOps::MakeZeros();
+        for (ui32 y = 0; y + 2 * NSimdOps::Size <= sumDerSize; y += 2 * NSimdOps::Size) {
+            subScore0 = NSimdOps::FusedMultiplyAdd(
+                avrgData + y + 0 * NSimdOps::Size,
+                sumWeightsData + y + 0 * NSimdOps::Size,
+                subScore0);
+            subScore2 = NSimdOps::FusedMultiplyAdd(
+                avrgData + y + 1 * NSimdOps::Size,
+                sumWeightsData + y + 1 * NSimdOps::Size,
+                subScore2);
         }
-        double subScore = XmmHorizontalAdd(subScore0) + XmmHorizontalAdd(subScore2);
-        for (ui32 y = sumDerSize & ~3u; y < sumDerSize; ++y) {
+        double subScore = NSimdOps::HorizontalAdd(subScore0) + NSimdOps::HorizontalAdd(subScore2);
+        for (ui32 y = sumDerSize - sumDerSize % (2 * NSimdOps::Size); y < sumDerSize; ++y) {
             subScore += avrgData[y] * sumWeightsData[y];
         }
         score += avrg[x] * (sumDer[x] - 0.5 * subScore);
     }
     return score;
 }
-
 
 
 inline static void UpdateWeightSumFromTotal(int y, int x, double total, TArray2D<double>* weightSum) {
@@ -122,6 +123,7 @@ void CalculatePairwiseScore(
     int bucketCount,
     float l2DiagReg,
     float pairwiseBucketWeightPriorReg,
+    ui32 oneHotMaxSize,
     TVector<TScoreBin>* scoreBins
 ) {
     const auto& derSums = pairwiseStats.DerSums;
@@ -131,121 +133,301 @@ void CalculatePairwiseScore(
 
     TArray2D<double> weightSum(2 * leafCount, 2 * leafCount);
 
-    if (pairwiseStats.SplitEnsembleSpec.IsBinarySplitsPack) {
-        const int binaryFeaturesCount = (int)GetValueBitCount(bucketCount - 1);
+    switch (pairwiseStats.SplitEnsembleSpec.Type) {
+        case ESplitEnsembleType::OneFeature:
+            {
+                scoreBins->yresize(bucketCount - 1);
 
-        scoreBins->yresize(binaryFeaturesCount);
+                TVector<double> derSum(2 * leafCount, 0.0);
+                weightSum.FillZero();
 
-        TVector<double> binDerSums;
-        binDerSums.yresize(2 * leafCount);
-
-        for (int binFeatureIdx = 0; binFeatureIdx < binaryFeaturesCount; ++binFeatureIdx) {
-            binDerSums.assign(2 * leafCount, 0.0);
-
-            for (int y = 0; y < leafCount; ++y) {
-                for (int bucketIdx = 0; bucketIdx < bucketCount; ++bucketIdx) {
-                    binDerSums[y * 2 + ((bucketIdx >> binFeatureIdx) & 1)] += derSums[y][bucketIdx];
-                }
-            }
-
-            weightSum.FillZero();
-
-            for (int y = 0; y < leafCount; ++y) {
-                const double weightDelta =
-                    (pairWeightStatistics[y][y][2 * binFeatureIdx].SmallerBorderWeightSum -
-                     pairWeightStatistics[y][y][2 * binFeatureIdx].GreaterBorderRightWeightSum);
-                weightSum[2 * y][2 * y + 1] += weightDelta;
-                weightSum[2 * y + 1][2 * y] += weightDelta;
-                weightSum[2 * y][2 * y] -= weightDelta;
-                weightSum[2 * y + 1][2 * y + 1] -= weightDelta;
-
-                for (int x = y + 1; x < leafCount; ++x) {
-                    const TBucketPairWeightStatistics* xyData = pairWeightStatistics[x][y].data();
-                    const TBucketPairWeightStatistics* yxData = pairWeightStatistics[y][x].data();
-
-                    double total =
-                        xyData[2 * binFeatureIdx].SmallerBorderWeightSum
-                        + yxData[2 * binFeatureIdx].SmallerBorderWeightSum
-                        + xyData[2 * binFeatureIdx + 1].SmallerBorderWeightSum
-                        + yxData[2 * binFeatureIdx + 1].SmallerBorderWeightSum;
-
-                    UpdateWeightSumFromTotal(y, x, total, &weightSum);
-
-                    const TBucketPairWeightStatistics& xy = xyData[2 * binFeatureIdx];
-                    const TBucketPairWeightStatistics& yx = yxData[2 * binFeatureIdx];
-
-                    UpdateWeightSumFromNonDiagStats(y, x, xy, yx, &weightSum);
-                }
-            }
-
-            const TVector<double> leafValues = CalculatePairwiseLeafValues(weightSum, binDerSums, l2DiagReg, pairwiseBucketWeightPriorReg);
-            (*scoreBins)[binFeatureIdx].D2 = 1.0;
-            (*scoreBins)[binFeatureIdx].DP = CalculateScore(leafValues, binDerSums, weightSum);
-        }
-    } else {
-        scoreBins->yresize(bucketCount - 1);
-
-        TVector<double> derSum(2 * leafCount, 0.0);
-        weightSum.FillZero();
-
-        for (int leafId = 0; leafId < leafCount; ++leafId) {
-            for (int bucketIdx = 0; bucketIdx < bucketCount; ++bucketIdx) {
-                derSum[2 * leafId + 1] += derSums[leafId][bucketIdx];
-            }
-        }
-
-        for (int y = 0; y < leafCount; ++y) {
-            for (int x = y + 1; x < leafCount; ++x) {
-                const TBucketPairWeightStatistics* xyData = pairWeightStatistics[x][y].data();
-                const TBucketPairWeightStatistics* yxData = pairWeightStatistics[y][x].data();
-                __m128d totalXY0 = _mm_setzero_pd();
-                __m128d totalXY2 = _mm_setzero_pd();
-                __m128d totalYX0 = _mm_setzero_pd();
-                __m128d totalYX2 = _mm_setzero_pd();
-                for (int bucketId = 0; bucketId + 4 <= bucketCount; bucketId += 4) {
-                    totalXY0 = _mm_add_pd(totalXY0, XmmGather(&xyData[bucketId + 0].SmallerBorderWeightSum, &xyData[bucketId + 1].SmallerBorderWeightSum));
-                    totalXY2 = _mm_add_pd(totalXY2, XmmGather(&xyData[bucketId + 2].SmallerBorderWeightSum, &xyData[bucketId + 3].SmallerBorderWeightSum));
-                    totalYX0 = _mm_add_pd(totalYX0, XmmGather(&yxData[bucketId + 0].SmallerBorderWeightSum, &yxData[bucketId + 1].SmallerBorderWeightSum));
-                    totalYX2 = _mm_add_pd(totalYX2, XmmGather(&yxData[bucketId + 2].SmallerBorderWeightSum, &yxData[bucketId + 3].SmallerBorderWeightSum));
-                }
-                double total = XmmHorizontalAdd(totalXY0) + XmmHorizontalAdd(totalXY2) + XmmHorizontalAdd(totalYX0) + XmmHorizontalAdd(totalYX2);
-                for (int bucketId = bucketCount & ~3u; bucketId < bucketCount; ++bucketId) {
-                    total += xyData[bucketId].SmallerBorderWeightSum + yxData[bucketId].SmallerBorderWeightSum;
+                for (int leafId = 0; leafId < leafCount; ++leafId) {
+                    for (int bucketIdx = 0; bucketIdx < bucketCount; ++bucketIdx) {
+                        derSum[2 * leafId + 1] += derSums[leafId][bucketIdx];
+                    }
                 }
 
-                UpdateWeightSumFromTotal(y, x, total, &weightSum);
-            }
-        }
+                for (int y = 0; y < leafCount; ++y) {
+                    for (int x = y + 1; x < leafCount; ++x) {
+                        const TBucketPairWeightStatistics* xyData = pairWeightStatistics[x][y].data();
+                        const TBucketPairWeightStatistics* yxData = pairWeightStatistics[y][x].data();
+                        auto totalXY0 = NSimdOps::MakeZeros();
+                        auto totalXY2 = NSimdOps::MakeZeros();
+                        auto totalYX0 = NSimdOps::MakeZeros();
+                        auto totalYX2 = NSimdOps::MakeZeros();
+                        for (int bucketId = 0;
+                             bucketId + 2 * static_cast<int>(NSimdOps::Size) <= bucketCount;
+                             bucketId += 2 * NSimdOps::Size)
+                        {
+                            totalXY0 = NSimdOps::ElementwiseAdd(
+                                totalXY0,
+                                NSimdOps::Gather(
+                                    &xyData[bucketId + 0].SmallerBorderWeightSum,
+                                    &xyData[bucketId + 1].SmallerBorderWeightSum));
+                            totalXY2 = NSimdOps::ElementwiseAdd(
+                                totalXY2,
+                                NSimdOps::Gather(
+                                    &xyData[bucketId + 2].SmallerBorderWeightSum,
+                                    &xyData[bucketId + 3].SmallerBorderWeightSum));
+                            totalYX0 = NSimdOps::ElementwiseAdd(
+                                totalYX0,
+                                NSimdOps::Gather(
+                                    &yxData[bucketId + 0].SmallerBorderWeightSum,
+                                    &yxData[bucketId + 1].SmallerBorderWeightSum));
+                            totalYX2 = NSimdOps::ElementwiseAdd(
+                                totalYX2,
+                                NSimdOps::Gather(
+                                    &yxData[bucketId + 2].SmallerBorderWeightSum,
+                                    &yxData[bucketId + 3].SmallerBorderWeightSum));
+                        }
+                        double total = NSimdOps::HorizontalAdd(totalXY0) + NSimdOps::HorizontalAdd(totalXY2)
+                            + NSimdOps::HorizontalAdd(totalYX0) + NSimdOps::HorizontalAdd(totalYX2);
+                        for (int bucketId = bucketCount - bucketCount % (2 * NSimdOps::Size);
+                             bucketId < bucketCount;
+                             ++bucketId)
+                        {
+                            total += xyData[bucketId].SmallerBorderWeightSum
+                                + yxData[bucketId].SmallerBorderWeightSum;
+                        }
 
-        Y_ASSERT(
-            pairwiseStats.SplitEnsembleSpec.SplitType == ESplitType::OnlineCtr ||
-            pairwiseStats.SplitEnsembleSpec.SplitType == ESplitType::FloatFeature);
+                        UpdateWeightSumFromTotal(y, x, total, &weightSum);
+                    }
+                }
 
-        for (int splitId = 0; splitId < bucketCount - 1; ++splitId) {
-            for (int y = 0; y < leafCount; ++y) {
-                const double derDelta = derSums[y][splitId];
-                derSum[2 * y] += derDelta;
-                derSum[2 * y + 1] -= derDelta;
+                Y_ASSERT(
+                    pairwiseStats.SplitEnsembleSpec.OneSplitType == ESplitType::OnlineCtr ||
+                    pairwiseStats.SplitEnsembleSpec.OneSplitType == ESplitType::FloatFeature);
 
-                const double weightDelta = (pairWeightStatistics[y][y][splitId].SmallerBorderWeightSum -
-                    pairWeightStatistics[y][y][splitId].GreaterBorderRightWeightSum);
-                weightSum[2 * y][2 * y + 1] += weightDelta;
-                weightSum[2 * y + 1][2 * y] += weightDelta;
-                weightSum[2 * y][2 * y] -= weightDelta;
-                weightSum[2 * y + 1][2 * y + 1] -= weightDelta;
+                for (int splitId = 0; splitId < bucketCount - 1; ++splitId) {
+                    for (int y = 0; y < leafCount; ++y) {
+                        const double derDelta = derSums[y][splitId];
+                        derSum[2 * y] += derDelta;
+                        derSum[2 * y + 1] -= derDelta;
 
-                for (int x = y + 1; x < leafCount; ++x) {
-                    const TBucketPairWeightStatistics& xy = pairWeightStatistics[x][y][splitId];
-                    const TBucketPairWeightStatistics& yx = pairWeightStatistics[y][x][splitId];
+                        const double weightDelta = (pairWeightStatistics[y][y][splitId].SmallerBorderWeightSum
+                            - pairWeightStatistics[y][y][splitId].GreaterBorderRightWeightSum);
+                        weightSum[2 * y][2 * y + 1] += weightDelta;
+                        weightSum[2 * y + 1][2 * y] += weightDelta;
+                        weightSum[2 * y][2 * y] -= weightDelta;
+                        weightSum[2 * y + 1][2 * y + 1] -= weightDelta;
 
-                    UpdateWeightSumFromNonDiagStats(y, x, xy, yx, &weightSum);
+                        for (int x = y + 1; x < leafCount; ++x) {
+                            const TBucketPairWeightStatistics& xy = pairWeightStatistics[x][y][splitId];
+                            const TBucketPairWeightStatistics& yx = pairWeightStatistics[y][x][splitId];
+
+                            UpdateWeightSumFromNonDiagStats(y, x, xy, yx, &weightSum);
+                        }
+                    }
+
+                    const TVector<double> leafValues = CalculatePairwiseLeafValues(
+                        weightSum,
+                        derSum,
+                        l2DiagReg,
+                        pairwiseBucketWeightPriorReg);
+                    (*scoreBins)[splitId].D2 = 1.0;
+                    (*scoreBins)[splitId].DP = CalculateScore(leafValues, derSum, weightSum);
                 }
             }
+            break;
+        case ESplitEnsembleType::BinarySplits:
+            {
+                const int binaryFeaturesCount = (int)GetValueBitCount(bucketCount - 1);
 
-            const TVector<double> leafValues = CalculatePairwiseLeafValues(weightSum, derSum, l2DiagReg, pairwiseBucketWeightPriorReg);
-            (*scoreBins)[splitId].D2 = 1.0;
-            (*scoreBins)[splitId].DP = CalculateScore(leafValues, derSum, weightSum);
-        }
+                scoreBins->yresize(binaryFeaturesCount);
+
+                TVector<double> binDerSums;
+                binDerSums.yresize(2 * leafCount);
+
+                for (int binFeatureIdx = 0; binFeatureIdx < binaryFeaturesCount; ++binFeatureIdx) {
+                    binDerSums.assign(2 * leafCount, 0.0);
+
+                    for (int y = 0; y < leafCount; ++y) {
+                        for (int bucketIdx = 0; bucketIdx < bucketCount; ++bucketIdx) {
+                            binDerSums[y * 2 + ((bucketIdx >> binFeatureIdx) & 1)] += derSums[y][bucketIdx];
+                        }
+                    }
+
+                    weightSum.FillZero();
+
+                    for (int y = 0; y < leafCount; ++y) {
+                        const double weightDelta =
+                            (pairWeightStatistics[y][y][2 * binFeatureIdx].SmallerBorderWeightSum
+                             - pairWeightStatistics[y][y][2 * binFeatureIdx].GreaterBorderRightWeightSum);
+                        weightSum[2 * y][2 * y + 1] += weightDelta;
+                        weightSum[2 * y + 1][2 * y] += weightDelta;
+                        weightSum[2 * y][2 * y] -= weightDelta;
+                        weightSum[2 * y + 1][2 * y + 1] -= weightDelta;
+
+                        for (int x = y + 1; x < leafCount; ++x) {
+                            const TBucketPairWeightStatistics* xyData = pairWeightStatistics[x][y].data();
+                            const TBucketPairWeightStatistics* yxData = pairWeightStatistics[y][x].data();
+
+                            double total =
+                                xyData[2 * binFeatureIdx].SmallerBorderWeightSum
+                                + yxData[2 * binFeatureIdx].SmallerBorderWeightSum
+                                + xyData[2 * binFeatureIdx + 1].SmallerBorderWeightSum
+                                + yxData[2 * binFeatureIdx + 1].SmallerBorderWeightSum;
+
+                            UpdateWeightSumFromTotal(y, x, total, &weightSum);
+
+                            const TBucketPairWeightStatistics& xy = xyData[2 * binFeatureIdx];
+                            const TBucketPairWeightStatistics& yx = yxData[2 * binFeatureIdx];
+
+                            UpdateWeightSumFromNonDiagStats(y, x, xy, yx, &weightSum);
+                        }
+                    }
+
+                    const TVector<double> leafValues = CalculatePairwiseLeafValues(
+                        weightSum,
+                        binDerSums,
+                        l2DiagReg,
+                        pairwiseBucketWeightPriorReg);
+                    (*scoreBins)[binFeatureIdx].D2 = 1.0;
+                    (*scoreBins)[binFeatureIdx].DP = CalculateScore(leafValues, binDerSums, weightSum);
+                }
+            }
+            break;
+        case ESplitEnsembleType::ExclusiveBundle:
+            {
+                scoreBins->yresize(
+                    CalcScoreBinCount(pairwiseStats.SplitEnsembleSpec, bucketCount, oneHotMaxSize)
+                );
+
+                TVector<double> derSum;
+                derSum.yresize(2 * leafCount);
+
+                const auto& exclusiveFeaturesBundle = pairwiseStats.SplitEnsembleSpec.ExclusiveFeaturesBundle;
+
+                TArray2D<double> derSumsForAllPositiveBucketsInPart(
+                    exclusiveFeaturesBundle.Parts.size(),
+                    leafCount); // [leafIdx][partIdx]
+                derSumsForAllPositiveBucketsInPart.FillZero();
+
+                TVector<double> derSumForAllBuckets; // [leafIdx]
+                derSumForAllBuckets.yresize(leafCount);
+
+                for (int leafId = 0; leafId < leafCount; ++leafId) {
+                    derSumForAllBuckets[leafId] = derSums[leafId][bucketCount - 1];
+                    for (auto bundlePartIdx : xrange(exclusiveFeaturesBundle.Parts.size())) {
+                        const auto& bundlePart = exclusiveFeaturesBundle.Parts[bundlePartIdx];
+                        auto& derSumForPart = derSumsForAllPositiveBucketsInPart[leafId][bundlePartIdx];
+                        for (auto bucketIdx : bundlePart.Bounds.Iter()) {
+                            derSumForPart += derSums[leafId][bucketIdx];
+                        }
+                        derSumForAllBuckets[leafId] += derSumForPart;
+                    }
+                }
+
+                size_t srcBucketOffset = 0;
+                size_t dstBinOffset = 0;
+                for (auto bundlePartIdx : xrange(exclusiveFeaturesBundle.Parts.size())) {
+                    const auto& bundlePart = exclusiveFeaturesBundle.Parts[bundlePartIdx];
+                    if (!UseForCalcScores(bundlePart, oneHotMaxSize)) {
+                        continue;
+                    }
+
+                    for (int y = 0; y < leafCount; ++y) {
+                        derSum[2 * y] = derSumForAllBuckets[y]
+                            - derSumsForAllPositiveBucketsInPart[y][bundlePartIdx];
+                        derSum[2 * y + 1] = derSumsForAllPositiveBucketsInPart[y][bundlePartIdx];
+                    }
+
+                    weightSum.FillZero();
+
+                    TBoundsInBundle boundsInBundle = bundlePart.Bounds;
+                    auto bucketBegin = srcBucketOffset;
+                    auto bucketEnd = srcBucketOffset + boundsInBundle.GetSize() + 1;
+
+                    for (int y = 0; y < leafCount; ++y) {
+                        for (int x = y + 1; x < leafCount; ++x) {
+                            const TBucketPairWeightStatistics* xyData = pairWeightStatistics[x][y].data();
+                            const TBucketPairWeightStatistics* yxData = pairWeightStatistics[y][x].data();
+                            auto totalXY0 = NSimdOps::MakeZeros();
+                            auto totalXY2 = NSimdOps::MakeZeros();
+                            auto totalYX0 = NSimdOps::MakeZeros();
+                            auto totalYX2 = NSimdOps::MakeZeros();
+
+                            auto bucketId = bucketBegin;
+                            for (;
+                                 bucketId + 2 * NSimdOps::Size <= bucketEnd;
+                                 bucketId += 2 * NSimdOps::Size)
+                            {
+                                totalXY0 = NSimdOps::ElementwiseAdd(
+                                    totalXY0,
+                                    NSimdOps::Gather(
+                                        &xyData[bucketId + 0].SmallerBorderWeightSum,
+                                        &xyData[bucketId + 1].SmallerBorderWeightSum));
+                                totalXY2 = NSimdOps::ElementwiseAdd(
+                                    totalXY2,
+                                    NSimdOps::Gather(
+                                        &xyData[bucketId + 2].SmallerBorderWeightSum,
+                                        &xyData[bucketId + 3].SmallerBorderWeightSum));
+                                totalYX0 = NSimdOps::ElementwiseAdd(
+                                    totalYX0,
+                                    NSimdOps::Gather(
+                                        &yxData[bucketId + 0].SmallerBorderWeightSum,
+                                        &yxData[bucketId + 1].SmallerBorderWeightSum));
+                                totalYX2 = NSimdOps::ElementwiseAdd(
+                                    totalYX2,
+                                    NSimdOps::Gather(
+                                        &yxData[bucketId + 2].SmallerBorderWeightSum,
+                                        &yxData[bucketId + 3].SmallerBorderWeightSum));
+                            }
+                            double total = NSimdOps::HorizontalAdd(totalXY0)
+                                + NSimdOps::HorizontalAdd(totalXY2)
+                                + NSimdOps::HorizontalAdd(totalYX0)
+                                + NSimdOps::HorizontalAdd(totalYX2);
+                            for (; bucketId < bucketEnd; ++bucketId) {
+                                total += xyData[bucketId].SmallerBorderWeightSum
+                                    + yxData[bucketId].SmallerBorderWeightSum;
+                            }
+
+                            UpdateWeightSumFromTotal(y, x, total, &weightSum);
+                        }
+                    }
+
+                    for (ui32 splitId = 0; splitId < boundsInBundle.GetSize(); ++splitId) {
+                        auto bucketId = srcBucketOffset + splitId;
+                        for (int y = 0; y < leafCount; ++y) {
+                            if (splitId > 0) {
+                                const double derDelta = derSums[y][bundlePart.Bounds.Begin + splitId - 1];
+                                derSum[2 * y] += derDelta;
+                                derSum[2 * y + 1] -= derDelta;
+                            }
+
+                            const double weightDelta =
+                                (pairWeightStatistics[y][y][bucketId].SmallerBorderWeightSum
+                                 - pairWeightStatistics[y][y][bucketId].GreaterBorderRightWeightSum);
+                            weightSum[2 * y][2 * y + 1] += weightDelta;
+                            weightSum[2 * y + 1][2 * y] += weightDelta;
+                            weightSum[2 * y][2 * y] -= weightDelta;
+                            weightSum[2 * y + 1][2 * y + 1] -= weightDelta;
+
+                            for (int x = y + 1; x < leafCount; ++x) {
+                                const TBucketPairWeightStatistics& xy = pairWeightStatistics[x][y][bucketId];
+                                const TBucketPairWeightStatistics& yx = pairWeightStatistics[y][x][bucketId];
+
+                                UpdateWeightSumFromNonDiagStats(y, x, xy, yx, &weightSum);
+                            }
+                        }
+
+                        const TVector<double> leafValues = CalculatePairwiseLeafValues(
+                            weightSum,
+                            derSum,
+                            l2DiagReg,
+                            pairwiseBucketWeightPriorReg);
+                        (*scoreBins)[dstBinOffset + splitId].D2 = 1.0;
+                        (*scoreBins)[dstBinOffset + splitId].DP = CalculateScore(
+                            leafValues,
+                            derSum,
+                            weightSum);
+                    }
+
+                    srcBucketOffset = bucketEnd;
+                    dstBinOffset += boundsInBundle.GetSize();
+                }
+            }
+            break;
     }
 }
 

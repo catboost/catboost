@@ -304,6 +304,7 @@ Y_UNIT_TEST_SUITE(TFsPathTests) {
         UNIT_ASSERT_EQUAL(TFsPath("/a/b/c/d").RelativePath(TFsPath("/a/b/e/f")), TFsPath("../../c/d"));
         UNIT_ASSERT_EQUAL(TFsPath("/").RelativePath(TFsPath("/")), TFsPath());
         UNIT_ASSERT_EQUAL(TFsPath(".").RelativePath(TFsPath(".")), TFsPath());
+        UNIT_ASSERT_EQUAL(TFsPath("/a/c").RelativePath(TFsPath("/a/b/../c")), TFsPath());
         UNIT_ASSERT_EQUAL(TFsPath("a/.././b").RelativePath(TFsPath("b/c")), TFsPath(".."));
         try {
             TFsPath("a/b/c").RelativePath(TFsPath("d/e"));

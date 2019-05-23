@@ -8,6 +8,11 @@ table TKeyValue {
 }
 //
 
+struct TNonSymmetricTreeStepNode {
+    LeftSubtreeDiff: uint16;
+    RightSubtreeDiff: uint16;
+}
+
 table TObliviousTrees {
     ApproxDimension:int;
     TreeSplits:[int];
@@ -21,6 +26,9 @@ table TObliviousTrees {
 
     LeafValues:[double];
     LeafWeights:[double];
+
+    NonSymmetricStepNodes:[TNonSymmetricTreeStepNode];
+    NonSymmetricNodeIdToLeafId:[uint32];
 }
 
 table TModelCore {

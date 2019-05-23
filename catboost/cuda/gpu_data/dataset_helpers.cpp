@@ -1,14 +1,13 @@
 #include "dataset_helpers.h"
 #include "feature_layout_doc_parallel.h"
 #include "feature_layout_feature_parallel.h"
-
 #include <util/generic/maybe.h>
 
 THolder<NCatboostCuda::TCtrTargets<NCudaLib::TMirrorMapping>> NCatboostCuda::BuildCtrTarget(const NCatboostCuda::TBinarizedFeaturesManager& featuresManager,
                                                                                             const NCB::TTrainingDataProvider& dataProvider,
                                                                                             const NCB::TTrainingDataProvider* test) {
-    TVector<float> joinedTarget = Join(GetTarget(dataProvider.TargetData),
-                                       test ? MakeMaybe(GetTarget(test->TargetData)) : Nothing());
+    TVector<float> joinedTarget = Join(*dataProvider.TargetData->GetTarget(),
+                                       test ? MakeMaybe(*test->TargetData->GetTarget()) : Nothing());
 
     THolder<TCtrTargets<NCudaLib::TMirrorMapping>> ctrsTargetPtr;
     ctrsTargetPtr = new TCtrTargets<NCudaLib::TMirrorMapping>;
@@ -42,6 +41,32 @@ THolder<NCatboostCuda::TCtrTargets<NCudaLib::TMirrorMapping>> NCatboostCuda::Bui
     ctrsTarget.Weights.Write(ctrWeights);
 
     CB_ENSURE(ctrsTarget.IsTrivialWeights());
+
+    if (!dataProvider.ObjectsGrouping->IsTrivial() && featuresManager.GetCatFeatureOptions().CtrHistoryUnit == ECtrHistoryUnit::Group) {
+        const ui64 groupCountLearn = dataProvider.ObjectsGrouping->GetGroupCount();
+        TVector<ui32> groupIds;
+        groupIds.reserve(joinedTarget.size());
+
+        for (ui32 groupId = 0; groupId < groupCountLearn; ++groupId) {
+            ui32 groupSize = dataProvider.ObjectsGrouping->GetGroup(groupId).GetSize();
+            for (ui32 j  = 0; j < groupSize; ++j) {
+                groupIds.push_back(groupId);
+            }
+        }
+        const ui64 groupCountTest = test ? test->ObjectsGrouping->GetGroupCount() : 0;
+
+        for (ui32 groupId = 0; groupId < groupCountTest; ++groupId) {
+            ui32 groupSize = test->ObjectsGrouping->GetGroup(groupId).GetSize();
+            for (ui32 j = 0; j < groupSize; ++j) {
+                groupIds.push_back(groupId + groupCountLearn);
+            }
+        }
+
+
+        auto tmp = TMirrorBuffer<ui32>::Create(NCudaLib::TMirrorMapping(groupIds.size()));
+        tmp.Write(groupIds);
+        ctrsTarget.GroupIds = tmp.ConstCopyView();
+    }
     return ctrsTargetPtr;
 }
 
@@ -98,6 +123,9 @@ TVector<ui32> NCatboostCuda::GetLearnFeatureIds(NCatboostCuda::TBinarizedFeature
         }
     }
     featureIdsSet.insert(combinationCtrIds.begin(), combinationCtrIds.end());
+
+    auto estimatedFeatures = featuresManager.GetEstimatedFeatureIds();
+    featureIdsSet.insert(estimatedFeatures.begin(), estimatedFeatures.end());
     return TVector<ui32>(featureIdsSet.begin(), featureIdsSet.end());
 }
 
@@ -129,7 +157,10 @@ namespace NCatboostCuda {
         permutationDependent->clear();
         permutationIndependent->clear();
         for (const auto& feature : features) {
-            const bool needPermutationFlag = featuresManager.IsCtr(feature) && featuresManager.IsPermutationDependent(featuresManager.GetCtr(feature));
+            const bool permutationDependentCtr = featuresManager.IsCtr(feature) && featuresManager.IsPermutationDependent(featuresManager.GetCtr(feature));
+            const bool onlineEstimatedFeature = featuresManager.IsEstimatedFeature(feature) && featuresManager.GetEstimatedFeature(feature).EstimatorId.IsOnline;
+
+            const bool needPermutationFlag = permutationDependentCtr || onlineEstimatedFeature;
             if (needPermutationFlag) {
                 permutationDependent->push_back(feature);
             } else {
@@ -143,4 +174,9 @@ namespace NCatboostCuda {
 
     template class TCtrsWriter<TFeatureParallelLayout>;
     template class TCtrsWriter<TDocParallelLayout>;
+
+    template class TEstimatedFeaturesWriter<TFeatureParallelLayout>;
+    template class TEstimatedFeaturesWriter<TDocParallelLayout>;
+
+
 }

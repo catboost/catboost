@@ -38,13 +38,16 @@ namespace NCatboostOptions {
         // changing this parameter can affect results due to numerical accuracy differences
         TCpuOnlyOption<ui32> DevScoreCalcObjBlockSize;
 
+        TCpuOnlyOption<ui32> DevExclusiveFeaturesBundleMaxBuckets;
+        TCpuOnlyOption<float> ExclusiveFeaturesBundleMaxConflictFraction;
+
         TGpuOnlyOption<EObservationsToBootstrap> ObservationsToBootstrap;
         TGpuOnlyOption<bool> FoldSizeLossNormalization;
         TGpuOnlyOption<bool> AddRidgeToTargetFunctionFlag;
         TGpuOnlyOption<EScoreFunction> ScoreFunction;
         TGpuOnlyOption<ui32> MaxCtrComplexityForBordersCaching;
-        TGpuOnlyOption<EGrowingPolicy> GrowingPolicy;
-        TGpuOnlyOption<ui32> MaxLeavesCount;
-        TGpuOnlyOption<double> MinSamplesInLeaf;
+        TGpuOnlyOption<EGrowPolicy> GrowPolicy;
+        TGpuOnlyOption<ui32> MaxLeaves;
+        TGpuOnlyOption<double> MinDataInLeaf;
     };
 }

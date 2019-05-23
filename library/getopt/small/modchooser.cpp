@@ -6,6 +6,8 @@
 #include <util/stream/format.h>
 #include <util/generic/yexception.h>
 #include <util/generic/ptr.h>
+#include <util/string/builder.h>
+#include <util/string/join.h>
 #include "last_getopt.h"
 
 class PtrWrapper: public TMainClassV {
@@ -108,13 +110,21 @@ void TModChooser::AddMode(const TString& mode, TMainClassV* main, const TString&
         ythrow yexception() << "TMode '" << mode << "' already exists in TModChooser.";
     }
 
-    Modes[mode] = TMode(mode, main, description);
-    UnsortedModes.push_back(Modes[mode]);
+    Modes[mode] = UnsortedModes.emplace_back(new TMode(mode, main, description)).Get();
     return;
 }
 
 void TModChooser::AddGroupModeDescription(const TString& description) {
-    UnsortedModes.push_back(TMode(nullptr, nullptr, description.data()));
+    UnsortedModes.push_back(new TMode(nullptr, nullptr, description.data()));
+}
+
+void TModChooser::AddAlias(const TString& alias, const TString& mode) {
+    if (!Modes.FindPtr(mode)) {
+        ythrow yexception() << "TMode '" << mode << "' not found in TModChooser.";
+    }
+
+    Modes[mode]->Aliases.push_back(alias);
+    Modes[alias] = Modes[mode];
 }
 
 void TModChooser::SetDescription(const TString& descr) {
@@ -176,35 +186,76 @@ int TModChooser::Run(const TVector<TString>& argv) const {
 
     TVector<TString> nargv;
     nargv.reserve(argv.size() - 1);
-    nargv.push_back(argv[0] + TString(" ") + argv[1]);
+    nargv.push_back(argv[0] + TString(" ") + modeIter->second->Name);
 
     for (size_t i = 2; i < argv.size(); ++i) {
         nargv.push_back(argv[i]);
     }
-    return (*modeIter->second.Main)(nargv);
+    return (*modeIter->second->Main)(nargv);
+}
+
+size_t TModChooser::TMode::CalculateFullNameLen() const {
+    size_t len = Name.size();
+    if (Aliases) {
+        len += 2;
+        for (auto& alias : Aliases) {
+            len += alias.size() + 1;
+        }
+    }
+    return len;
+}
+
+TString TModChooser::TMode::FormatFullName(size_t pad) const {
+    TStringBuilder name;
+    if (Aliases) {
+        name << "{";
+    }
+
+    name << NColorizer::StdErr().GreenColor();
+    name << Name;
+    name << NColorizer::StdErr().OldColor();
+
+    if (Aliases) {
+        for (const auto& alias : Aliases) {
+            name << "|" << NColorizer::StdErr().GreenColor() << alias << NColorizer::StdErr().OldColor();
+        }
+        name << "}";
+    }
+
+    auto len = CalculateFullNameLen();
+    if (pad > len) {
+        name << TString(" ") * (pad - len);
+    }
+
+    return name;
 }
 
 void TModChooser::PrintHelp(const TString& progName) const {
-    Cerr << Description << Endl;
+    Cerr << Description << Endl << Endl;
     Cerr << NColorizer::StdErr().BoldColor() << "Usage" << NColorizer::StdErr().OldColor() << ": " << progName << " MODE [MODE_OPTIONS]" << Endl;
     Cerr << Endl;
     Cerr << NColorizer::StdErr().BoldColor() << "Modes" << NColorizer::StdErr().OldColor() << ":" << Endl;
     size_t maxModeLen = 0;
-    for (const auto& mode : Modes)
-        if (mode.first.size() > maxModeLen)
-            maxModeLen = mode.first.size();
+    for (const auto& [name, mode] : Modes) {
+        if (name != mode->Name)
+            continue;  // this is an alias
+        maxModeLen = Max(maxModeLen, mode->CalculateFullNameLen());
+    }
 
     if (ShowSeparated) {
         for (const auto& unsortedMode : UnsortedModes)
-            if (unsortedMode.Name.size()) {
-                Cerr << "  " << NColorizer::StdErr().GreenColor() << RightPad(unsortedMode.Name, maxModeLen + 2, ' ') << NColorizer::StdErr().OldColor() << "  " << unsortedMode.Description << Endl;
+            if (unsortedMode->Name.size()) {
+                Cerr << "  " << unsortedMode->FormatFullName(maxModeLen + 4) << unsortedMode->Description << Endl;
             } else {
                 Cerr << SeparationString << Endl;
-                Cerr << unsortedMode.Description << Endl;
+                Cerr << unsortedMode->Description << Endl;
             }
     } else {
-        for (const auto& mode : Modes)
-            Cerr << "  " << NColorizer::StdErr().GreenColor() << RightPad(mode.first, maxModeLen + 2, ' ') << NColorizer::StdErr().OldColor() << "  " << mode.second.Description << Endl;
+        for (const auto& mode : Modes) {
+            if (mode.first != mode.second->Name)
+                continue;  // this is an alias
+            Cerr << "  " << mode.second->FormatFullName(maxModeLen + 4) << mode.second->Description << Endl;
+        }
     }
 
     Cerr << Endl;
@@ -214,6 +265,5 @@ void TModChooser::PrintHelp(const TString& progName) const {
     if (!SvnRevisionOptionDisabled) {
         Cerr << "To print svn revision type --svnrevision" << Endl;
     }
-    Cerr << Endl;
     return;
 }

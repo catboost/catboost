@@ -59,6 +59,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
 
         TStringBuf PairsFileData;
         TStringBuf GroupWeightsFileData;
+        TStringBuf BaselineFileData;
 
         TVector<size_t> IgnoredColumnIndices; // saved in quantized pool
 
@@ -76,6 +77,8 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
         TPathWithScheme PoolPath;
         TPathWithScheme PairsFilePath; // can be uninited
         TPathWithScheme GroupWeightsFilePath; // can be uninited
+        TPathWithScheme BaselineFilePath; // can be uninited
+        TVector<TString> ClassNames;
     };
 
     template <class T>
@@ -172,6 +175,11 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
             &(readDatasetMainParams->GroupWeightsFilePath),
             srcDataFiles
         );
+        SaveDataToTempFile(
+            srcData.BaselineFileData,
+            &(readDatasetMainParams->BaselineFilePath),
+            srcDataFiles
+        );
     }
 
 
@@ -190,9 +198,11 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
             readDatasetMainParams.PoolPath,
             readDatasetMainParams.PairsFilePath, // can be uninited
             readDatasetMainParams.GroupWeightsFilePath, // can be uninited
+            readDatasetMainParams.BaselineFilePath, // can be uninited
             NCatboostOptions::TDsvPoolFormatParams(),
             testCase.SrcData.IgnoredFeatures,
             testCase.SrcData.ObjectsOrder,
+            &readDatasetMainParams.ClassNames,
             &localExecutor
         );
 
@@ -231,7 +241,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
                 {EColumn::Label, ""}
             };
 
-            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, false);
+            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, false, /* additionalBaselineCount */ Nothing(), Nothing());
             expectedData.Objects.FloatFeatures = {
                 TVector<ui8>{1, 3, 0, 1, 2},
                 TVector<ui8>{2, 3, 0, 3, 1}
@@ -245,8 +255,13 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
             expectedData.Objects.QuantizedFeaturesInfo->SetBorders(TFloatFeatureIdx(1), {0.25f, 0.5f, 0.75f});
             expectedData.Objects.QuantizedFeaturesInfo->SetNanMode(TFloatFeatureIdx(0), ENanMode::Forbidden);
             expectedData.Objects.QuantizedFeaturesInfo->SetNanMode(TFloatFeatureIdx(1), ENanMode::Min);
+            expectedData.Objects.ExclusiveFeatureBundlesData = TExclusiveFeatureBundlesData(
+                *expectedData.Objects.QuantizedFeaturesInfo,
+                TVector<TExclusiveFeaturesBundle>()
+            );
             expectedData.Objects.PackedBinaryFeaturesData = TPackedBinaryFeaturesData(
-                *expectedData.Objects.QuantizedFeaturesInfo
+                *expectedData.Objects.QuantizedFeaturesInfo,
+                expectedData.Objects.ExclusiveFeatureBundlesData
             );
 
             expectedData.ObjectsGrouping = TObjectsGrouping(5);
@@ -330,7 +345,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
 
             TVector<TString> featureId = {"f0", "f1", "f2"};
 
-            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, false, &featureId);
+            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, false, /* additionalBaselineCount */ Nothing(), &featureId);
             expectedData.Objects.Order = EObjectsOrder::Ordered;
             expectedData.Objects.GroupIds = {2, 2, 0, 11, 11, 11};
             expectedData.Objects.SubgroupIds = {1, 22, 9, 12, 22, 45};
@@ -360,8 +375,13 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
             expectedData.Objects.QuantizedFeaturesInfo->SetNanMode(TFloatFeatureIdx(0), ENanMode::Forbidden);
             expectedData.Objects.QuantizedFeaturesInfo->SetNanMode(TFloatFeatureIdx(1), ENanMode::Min);
             expectedData.Objects.QuantizedFeaturesInfo->SetNanMode(TFloatFeatureIdx(2), ENanMode::Forbidden);
+            expectedData.Objects.ExclusiveFeatureBundlesData = TExclusiveFeatureBundlesData(
+                *expectedData.Objects.QuantizedFeaturesInfo,
+                TVector<TExclusiveFeaturesBundle>()
+            );
             expectedData.Objects.PackedBinaryFeaturesData = TPackedBinaryFeaturesData(
-                *expectedData.Objects.QuantizedFeaturesInfo
+                *expectedData.Objects.QuantizedFeaturesInfo,
+                expectedData.Objects.ExclusiveFeatureBundlesData
             );
 
             expectedData.ObjectsGrouping = TObjectsGrouping(
@@ -437,7 +457,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
 
             TVector<TString> featureId = {"f0", "f1", "f2"};
 
-            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, true, &featureId);
+            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, true, /* additionalBaselineCount */ Nothing(), &featureId);
             expectedData.Objects.GroupIds = {2, 2, 0, 11, 11, 11};
             expectedData.Objects.SubgroupIds = {1, 22, 9, 12, 22, 45};
 
@@ -466,8 +486,13 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
             expectedData.Objects.QuantizedFeaturesInfo->SetNanMode(TFloatFeatureIdx(0), ENanMode::Forbidden);
             expectedData.Objects.QuantizedFeaturesInfo->SetNanMode(TFloatFeatureIdx(1), ENanMode::Min);
             expectedData.Objects.QuantizedFeaturesInfo->SetNanMode(TFloatFeatureIdx(2), ENanMode::Forbidden);
+            expectedData.Objects.ExclusiveFeatureBundlesData = TExclusiveFeatureBundlesData(
+                *expectedData.Objects.QuantizedFeaturesInfo,
+                TVector<TExclusiveFeaturesBundle>()
+            );
             expectedData.Objects.PackedBinaryFeaturesData = TPackedBinaryFeaturesData(
-                *expectedData.Objects.QuantizedFeaturesInfo
+                *expectedData.Objects.QuantizedFeaturesInfo,
+                expectedData.Objects.ExclusiveFeatureBundlesData
             );
 
             expectedData.ObjectsGrouping = TObjectsGrouping(
@@ -550,7 +575,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
 
             TVector<TString> featureId = {"f0", "f1", "f2"};
 
-            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), true, false, &featureId);
+            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), true, false, /* additionalBaselineCount */ Nothing(), &featureId);
             expectedData.Objects.GroupIds = {
                 CalcGroupIdFor("query0"),
                 CalcGroupIdFor("query0"),
@@ -585,8 +610,13 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
             expectedData.Objects.QuantizedFeaturesInfo->SetNanMode(TFloatFeatureIdx(0), ENanMode::Forbidden);
             expectedData.Objects.QuantizedFeaturesInfo->SetNanMode(TFloatFeatureIdx(1), ENanMode::Min);
             expectedData.Objects.QuantizedFeaturesInfo->SetNanMode(TFloatFeatureIdx(2), ENanMode::Forbidden);
+            expectedData.Objects.ExclusiveFeatureBundlesData = TExclusiveFeatureBundlesData(
+                *expectedData.Objects.QuantizedFeaturesInfo,
+                TVector<TExclusiveFeaturesBundle>()
+            );
             expectedData.Objects.PackedBinaryFeaturesData = TPackedBinaryFeaturesData(
-                *expectedData.Objects.QuantizedFeaturesInfo
+                *expectedData.Objects.QuantizedFeaturesInfo,
+                expectedData.Objects.ExclusiveFeatureBundlesData
             );
 
             expectedData.ObjectsGrouping = TObjectsGrouping(
@@ -661,7 +691,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
 
             TVector<TString> featureId = {"f0", "f1", "f2", "f3"};
 
-            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, false, &featureId);
+            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, false, /* additionalBaselineCount */ Nothing(), &featureId);
             auto& featuresLayout = *expectedData.MetaInfo.FeaturesLayout;
             featuresLayout.IgnoreExternalFeature(1);
             featuresLayout.IgnoreExternalFeature(3);
@@ -691,8 +721,13 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
 
             expectedData.Objects.QuantizedFeaturesInfo->SetNanMode(TFloatFeatureIdx(0), ENanMode::Forbidden);
             expectedData.Objects.QuantizedFeaturesInfo->SetNanMode(TFloatFeatureIdx(2), ENanMode::Forbidden);
+            expectedData.Objects.ExclusiveFeatureBundlesData = TExclusiveFeatureBundlesData(
+                *expectedData.Objects.QuantizedFeaturesInfo,
+                TVector<TExclusiveFeaturesBundle>()
+            );
             expectedData.Objects.PackedBinaryFeaturesData = TPackedBinaryFeaturesData(
-                *expectedData.Objects.QuantizedFeaturesInfo
+                *expectedData.Objects.QuantizedFeaturesInfo,
+                expectedData.Objects.ExclusiveFeatureBundlesData
             );
 
             expectedData.ObjectsGrouping = TObjectsGrouping(
@@ -824,7 +859,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
             dataColumnsMetaInfo.Columns.push_back({EColumn::Num, featureId.back()});
         }
 
-        expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, false, &featureId);
+        expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, false, /* additionalBaselineCount */ Nothing(), &featureId);
         expectedData.Objects.QuantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
             *expectedData.MetaInfo.FeaturesLayout,
             TConstArrayRef<ui32>(),
@@ -842,8 +877,13 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
                 srcData.PoolQuantizationSchema.NanModes[i]
             );
         }
+        expectedData.Objects.ExclusiveFeatureBundlesData = TExclusiveFeatureBundlesData(
+            *expectedData.Objects.QuantizedFeaturesInfo,
+            TVector<TExclusiveFeaturesBundle>()
+        );
         expectedData.Objects.PackedBinaryFeaturesData = TPackedBinaryFeaturesData(
-            *expectedData.Objects.QuantizedFeaturesInfo
+            *expectedData.Objects.QuantizedFeaturesInfo,
+            expectedData.Objects.ExclusiveFeatureBundlesData
         );
 
         TVector<TGroupBounds> groupsBounds;

@@ -1,6 +1,7 @@
 #include "http_common.h"
 
 #include "location.h"
+#include "http_headers.h"
 
 #include <util/stream/str.h>
 #include <util/stream/length.h>
@@ -94,26 +95,10 @@ namespace {
         @todo ensure headers right formatted (now receive from perl report bad format headers)
      */
     void SafeWriteHeaders(IOutputStream& out, TStringBuf hdrs) {
-        TStringBuf msgHdr;
-        while (hdrs.ReadLine(msgHdr)) {
+        for (TStringBuf msgHdr : NNeh::NHttp::SplitHeaders(hdrs)) {
             if (!!msgHdr && !AsciiHasPrefixIgnoreCase(msgHdr, AsStringBuf("Content-Length"))) {
                 out << msgHdr << AsStringBuf("\r\n");
             }
-        }
-    }
-
-    void WriteHeaderHost(IOutputStream& out, const TStringBuf& host, const TStringBuf& port) {
-        out << AsStringBuf("Host: ") << host;
-        if (!!port) {
-            out << AsStringBuf(":") << port;
-        }
-        out << AsStringBuf("\r\n");
-    }
-
-    void WriteHeaderHostIfNot(IOutputStream& out, const TStringBuf& host, const TStringBuf& port, const TStringBuf& headers) {
-        const auto hostPos = headers.find(AsStringBuf("Host:"));
-        if (hostPos == TString::npos || (hostPos != 0 && headers[hostPos - 1] != '\n')) {
-            WriteHeaderHost(out, host, port);
         }
     }
 
@@ -140,7 +125,7 @@ namespace {
         WriteUrl(urlParams, out);
         out << AsStringBuf(" HTTP/1.1\r\n");
 
-        WriteHeaderHostIfNot(out, loc.Host, loc.Port, headers);
+        NNeh::NHttp::WriteHostHeaderIfNot(out, loc.Host, loc.Port, headers);
         SafeWriteHeaders(out, headers);
         if (!IsEmpty(content)) {
             if (!!contentType && headers.find(AsStringBuf("Content-Type:")) == TString::npos) {
@@ -155,12 +140,12 @@ namespace {
         return out.Str();
     }
 
-    bool NeedGetRequestFor(const NNeh::TParsedLocation& loc) {
-        return loc.Scheme == schemeHttp2 || loc.Scheme == schemeHttp || loc.Scheme == schemeHttps;
+    bool NeedGetRequestFor(TStringBuf scheme) {
+        return scheme == schemeHttp2 || scheme == schemeHttp || scheme == schemeHttps;
     }
 
-    bool NeedPostRequestFor(const NNeh::TParsedLocation& loc) {
-        return loc.Scheme == schemePost2 || loc.Scheme == schemePost || loc.Scheme == schemePosts;
+    bool NeedPostRequestFor(TStringBuf scheme) {
+        return scheme == schemePost2 || scheme == schemePost || scheme == schemePosts;
     }
 
     inline ERequestType ChooseReqType(ERequestType userReqType, ERequestType defaultReqType) {
@@ -180,7 +165,7 @@ namespace NNeh {
             if (content.size()) {
                 //content MUST be placed inside POST requests
                 if (!IsEmpty(urlParams)) {
-                    if (NeedGetRequestFor(loc)) {
+                    if (NeedGetRequestFor(loc.Scheme)) {
                         msg.Data = BuildRequest(loc, urlParams, headers, content, contentType, ChooseReqType(reqType, ERequestType::Post), reqFlags);
                     } else {
                         // cannot place in first header line potentially unsafe data from POST message
@@ -189,16 +174,16 @@ namespace NNeh {
                         return false;
                     }
                 } else {
-                    if (NeedGetRequestFor(loc) || NeedPostRequestFor(loc)) {
+                    if (NeedGetRequestFor(loc.Scheme) || NeedPostRequestFor(loc.Scheme)) {
                         msg.Data = BuildRequest(loc, urlParams, headers, content, contentType, ChooseReqType(reqType, ERequestType::Post), reqFlags);
                     } else {
                         return false;
                     }
                 }
             } else {
-                if (NeedGetRequestFor(loc)) {
+                if (NeedGetRequestFor(loc.Scheme)) {
                     msg.Data = BuildRequest(loc, urlParams, headers, "", "", ChooseReqType(reqType, ERequestType::Get), reqFlags);
-                } else if (NeedPostRequestFor(loc)) {
+                } else if (NeedPostRequestFor(loc.Scheme)) {
                     msg.Data = BuildRequest(loc, TString(), headers, urlParams, contentType, ChooseReqType(reqType, ERequestType::Post), reqFlags);
                 } else {
                     return false;
@@ -223,6 +208,9 @@ namespace NNeh {
             return MakeFullRequestImpl(msg, urlParts, headers, content, contentType, reqType, reqFlags);
         }
 
+        bool IsHttpScheme(TStringBuf scheme) {
+            return NeedGetRequestFor(scheme) || NeedPostRequestFor(scheme);
+        }
     }
 }
 

@@ -1,3 +1,100 @@
+# Release 0.14.2
+
+## New features
+- Add `has_header` parameter to [`CatboostEvaluation`](https://github.com/catboost/catboost/blob/2f35e0366c0bb6c1b44be89fda0a02fe12f84513/catboost/python-package/catboost/eval/catboost_evaluation.py#L30) class.
+
+## Breaking changes
+- Change output feature indices separator (`:` to `;`) in the `CatboostEvaluation` class.
+
+# Release 0.14.1
+
+## Breaking changes
+- Changed default value for `--counter-calc-method` option to `SkipTest`
+
+## New features:
+- Add guid to trained models. You can access it in Python using [`get_metadata`](https://catboost.ai/docs/concepts/python-reference_catboost_metadata.html) function, for example `print catboost_model.get_metadata()['model_guid']`
+
+## Bug fixes and other changes:
+- Compatibility with glibc 2.12
+- Improved embedded documentation
+- Improved warning and error messages
+
+# Release 0.14.0
+
+## New features:
+
+- GPU training now supports several tree learning strategies, selectable with `grow_policy` parameter. Possible values:
+  - `SymmetricTree` -- The tree is built level by level until `max_depth` is reached. On each iteration, all leaves from the last tree level will be split with the same condition. The resulting tree structure will always be symmetric.
+  - `Depthwise` -- The tree is built level by level until `max_depth` is reached. On each iteration, all non-terminal leaves from the last tree level will be split. Each leaf is split by condition with the best loss improvement.
+  - `Lossguide` -- The tree is built leaf by leaf until `max_leaves` limit is reached. On each iteration, non-terminal leaf with best loss improvement will be split.
+  > **Note:** grow policies `Depthwise` and `Lossguide` currently support only training and prediction modes. They do not support model analysis (like feature importances and SHAP values) and saving to different model formats like CoreML, ONNX, and JSON.
+  - The new grow policies support several new parameters:
+    `max_leaves` -- Maximum leaf count in the resulting tree, default 31. Used only for `Lossguide` grow policy. __Warning:__ It is not recommended to set this parameter greater than 64, as this can significantly slow down training.
+    `min_data_in_leaf` -- Minimum number of training samples per leaf, default 1. CatBoost will not search for new splits in leaves with sample count less than  `min_data_in_leaf`. This option is available for `Lossguide` and `Depthwise` grow policies only.
+  > **Note:** the new types of trees will be at least 10x slower in prediction than default symmetric trees.
+
+- GPU training also supports several score functions, that might give your model a boost in quality. Use parameter `score_function` to experiment with them.
+
+- Now you can use quantization with more than 255 borders and `one_hot_max_size` > 255 in CPU training.
+
+## New features in Python package:
+- It is now possible to use `save_borders()` function to write borders to a file after training.
+- Functions `predict`, `predict_proba`, `staged_predict`, and `staged_predict_proba` now support applying a model to a single object, in addition to usual data matrices.
+
+## Speedups:
+- Impressive speedups for sparse datsets. Will depend on the dataset, but will be at least 2--3 times for sparse data.
+
+## Breaking changes:
+- Python-package class attributes don't raise exceptions now. Attributes return `None` if not initialized.
+- Starting from 0.13 we have new feature importances for ranking modes. The new algorithm for feature importances shows how much features contribute to the optimized loss function. They are also signed as opposed to feature importances for not ranking modes which are non negative. This importances are expensive to calculate, thus we decided to not calculate them by default during training starting from 0.14. You need to calculate them after training.
+
+# Release 0.13.1
+
+## Changes:
+- Fixed a bug in shap values that was introduced in v0.13
+
+# Release 0.13
+
+## Speedups:
+- Impressive speedup of CPU training for datasets with predominantly binary features (up to 5-6x).
+- Speedup prediction and shap values array casting on large pools (issue [#684](https://github.com/catboost/catboost/issues/684)).
+
+## New features:
+- We've introduced a new type of feature importances - `LossFunctionChange`.
+  This type of feature importances works well in all the modes, but is especially good for ranking. It is more expensive to calculate, thus we have not made it default. But you can look at it by selecting the type of feature importance.
+- Now we support online statistics for categorical features in `QuerySoftMax` mode on GPU.
+- We now support feature names in `cat_features`, PR [#679](https://github.com/catboost/catboost/pull/679) by [@infected-mushroom](https://github.com/infected-mushroom) - thanks a lot [@infected-mushroom](https://github.com/infected-mushroom)!
+- We've intoduced new sampling_type `MVS`, which speeds up CPU training if you use it.
+- Added `classes_` attribute in python.
+- Added support for input/output borders files in python package. Thank you [@necnec](https://github.com/necnec) for your PR [#656](https://github.com/catboost/catboost/pull/656)!
+- One more new option for working with categorical features is `ctr_target_border_count`.
+  This option can be used if your initial target values are not binary and you do regression or ranking. It is equal to 1 by default, but you can try increasing it.
+- Added new option `sampling_unit` that allows to switch sampling from individual objects to entire groups.
+- More strings are interpreted as missing values for numerical features (mostly similar to pandas' [read_csv](https://pandas.pydata.org/pandas-docs/stable/generated/pandas.read_csv.html)).
+- Allow `skip_train` property for loss functions in cv method. Contributed by GitHub user [@RakitinDen](https://github.com/RakitinDen), PR [#662](https://github.com/catboost/catboost/pull/662), many thanks.
+- We've improved classification mode on CPU, there will be less cases when the training diverges.
+  You can also try to experiment with new `leaf_estimation_backtracking` parameter.
+- Added new compare method for visualization, PR [#652](https://github.com/catboost/catboost/pull/652). Thanks [@Drakon5999](https://github.com/Drakon5999) for your contribution!
+- Implemented `__eq__` method for `CatBoost*` python classes (PR [#654](https://github.com/catboost/catboost/pull/654)). Thanks [@daskol](https://github.com/daskol) for your contribution!
+- It is now possible to output evaluation results directly to `stdout` or `stderr` in command-line CatBoost in [`calc` mode](https://catboost.ai/docs/concepts/cli-reference_calc-model.html) by specifying `stream://stdout` or `stream://stderr` in `--output-path` parameter argument. (PR [#646](https://github.com/catboost/catboost/pull/646)). Thanks [@towelenee](https://github.com/towelenee) for your contribution!
+- New loss function - [Huber](https://en.wikipedia.org/wiki/Huber_loss). Can be used as both an objective and a metric for regression. (PR [#649](https://github.com/catboost/catboost/pull/649)). Thanks [@atsky](https://github.com/atsky) for your contribution!
+
+## Changes:
+- Changed defaults for `one_hot_max_size` training parameter for groupwise loss function training.
+- `SampleId` is the new main name for former `DocId` column in input data format (`DocId` is still supported for compatibility). Contributed by GitHub user [@daskol](https://github.com/daskol), PR [#655](https://github.com/catboost/catboost/pull/655), many thanks.
+- Improved CLI interface for cross-validation: replaced `-X/-Y` options with `--cv`, PR [#644](https://github.com/catboost/catboost/pull/644). Thanks [@tswr](https://github.com/tswr) for your pr!
+- `eval_metrics` : `eval_period` is now clipped by total number of trees in the specified interval. PR [#653](https://github.com/catboost/catboost/pull/653). Thanks [@AntPon](https://github.com/AntPon) for your contribution!
+
+## R package:
+- Thanks to [@ws171913](https://github.com/ws171913) we made necessary changes to prepare catboost for CRAN integration, PR [#715](https://github.com/catboost/catboost/pull/715). This is in progress now.
+- R interface for cross-validation contributed by GitHub user [@brsoyanvn](https://github.com/brsoyanvn), PR [#561](https://github.com/catboost/catboost/pull/561) -- many thanks [@brsoyanvn](https://github.com/brsoyanvn)!
+
+## Educational materials:
+- We've added new tutorial for [GPU training on Google Colaboratory](https://github.com/catboost/tutorials/blob/master/tools/google_colaboratory_cpu_vs_gpu_tutorial.ipynb).
+
+We have also done a list of fixes and data check improvements.
+Thanks [@brazhenko](https://github.com/brazhenko), [@Danyago98](https://github.com/Danyago98), [@infected-mushroom](https://github.com/infected-mushroom) for your contributions.
+
 # Release 0.12.2
 ## Changes:
 * Fixed loading of `epsilon` dataset into memory

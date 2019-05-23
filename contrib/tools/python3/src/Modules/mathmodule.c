@@ -55,6 +55,14 @@ raised for division by zero and mod by zero.
 #include "Python.h"
 #include "_math.h"
 
+#include "clinic/mathmodule.c.h"
+
+/*[clinic input]
+module math
+[clinic start generated code]*/
+/*[clinic end generated code: output=da39a3ee5e6b4b0d input=76bc7002685dd942]*/
+
+
 /*
    sin(pi*x), giving accurate results for all finite x (especially x
    integral or close to an integer).  This is here for use in the
@@ -63,11 +71,13 @@ raised for division by zero and mod by zero.
 */
 
 static const double pi = 3.141592653589793238462643383279502884197;
-static const double sqrtpi = 1.772453850905516027298167483341145182798;
 static const double logpi = 1.144729885849400174143427351353058711647;
+#if !defined(HAVE_ERF) || !defined(HAVE_ERFC)
+static const double sqrtpi = 1.772453850905516027298167483341145182798;
+#endif /* !defined(HAVE_ERF) || !defined(HAVE_ERFC) */
 
 static double
-sinpi(double x)
+m_sinpi(double x)
 {
     double y, r;
     int n;
@@ -95,8 +105,7 @@ sinpi(double x)
         r = sin(pi*(y-2.0));
         break;
     default:
-        assert(0);  /* should never get here */
-        r = -1.23e200; /* silence gcc warning */
+        Py_UNREACHABLE();
     }
     return copysign(1.0, x)*r;
 }
@@ -296,7 +305,7 @@ m_tgamma(double x)
        integer. */
     if (absx > 200.0) {
         if (x < 0.0) {
-            return 0.0/sinpi(x);
+            return 0.0/m_sinpi(x);
         }
         else {
             errno = ERANGE;
@@ -320,7 +329,7 @@ m_tgamma(double x)
     }
     z = z * lanczos_g / y;
     if (x < 0.0) {
-        r = -pi / sinpi(absx) / absx * exp(y) / lanczos_sum(absx);
+        r = -pi / m_sinpi(absx) / absx * exp(y) / lanczos_sum(absx);
         r -= z * r;
         if (absx < 140.0) {
             r /= pow(y, absx - 0.5);
@@ -356,7 +365,8 @@ m_tgamma(double x)
 static double
 m_lgamma(double x)
 {
-    double r, absx;
+    double r;
+    double absx;
 
     /* special cases */
     if (!Py_IS_FINITE(x)) {
@@ -390,11 +400,13 @@ m_lgamma(double x)
     r += (absx - 0.5) * (log(absx + lanczos_g - 0.5) - 1);
     if (x < 0.0)
         /* Use reflection formula to get value for negative x. */
-        r = logpi - log(fabs(sinpi(absx))) - log(absx) - r;
+        r = logpi - log(fabs(m_sinpi(absx))) - log(absx) - r;
     if (Py_IS_INFINITY(r))
         errno = ERANGE;
     return r;
 }
+
+#if !defined(HAVE_ERF) || !defined(HAVE_ERFC)
 
 /*
    Implementations of the error function erf(x) and the complementary error
@@ -505,11 +517,16 @@ m_erfc_contfrac(double x)
     return result;
 }
 
+#endif /* !defined(HAVE_ERF) || !defined(HAVE_ERFC) */
+
 /* Error function erf(x), for general x */
 
 static double
 m_erf(double x)
 {
+#ifdef HAVE_ERF
+    return erf(x);
+#else
     double absx, cf;
 
     if (Py_IS_NAN(x))
@@ -521,6 +538,7 @@ m_erf(double x)
         cf = m_erfc_contfrac(absx);
         return x > 0.0 ? 1.0 - cf : cf - 1.0;
     }
+#endif
 }
 
 /* Complementary error function erfc(x), for general x. */
@@ -528,6 +546,9 @@ m_erf(double x)
 static double
 m_erfc(double x)
 {
+#ifdef HAVE_ERFC
+    return erfc(x);
+#else
     double absx, cf;
 
     if (Py_IS_NAN(x))
@@ -539,6 +560,7 @@ m_erfc(double x)
         cf = m_erfc_contfrac(absx);
         return x > 0.0 ? cf : 2.0 - cf;
     }
+#endif
 }
 
 /*
@@ -576,6 +598,102 @@ m_atan2(double y, double x)
     }
     return atan2(y, x);
 }
+
+
+/* IEEE 754-style remainder operation: x - n*y where n*y is the nearest
+   multiple of y to x, taking n even in the case of a tie. Assuming an IEEE 754
+   binary floating-point format, the result is always exact. */
+
+static double
+m_remainder(double x, double y)
+{
+    /* Deal with most common case first. */
+    if (Py_IS_FINITE(x) && Py_IS_FINITE(y)) {
+        double absx, absy, c, m, r;
+
+        if (y == 0.0) {
+            return Py_NAN;
+        }
+
+        absx = fabs(x);
+        absy = fabs(y);
+        m = fmod(absx, absy);
+
+        /*
+           Warning: some subtlety here. What we *want* to know at this point is
+           whether the remainder m is less than, equal to, or greater than half
+           of absy. However, we can't do that comparison directly because we
+           can't be sure that 0.5*absy is representable (the mutiplication
+           might incur precision loss due to underflow). So instead we compare
+           m with the complement c = absy - m: m < 0.5*absy if and only if m <
+           c, and so on. The catch is that absy - m might also not be
+           representable, but it turns out that it doesn't matter:
+
+           - if m > 0.5*absy then absy - m is exactly representable, by
+             Sterbenz's lemma, so m > c
+           - if m == 0.5*absy then again absy - m is exactly representable
+             and m == c
+           - if m < 0.5*absy then either (i) 0.5*absy is exactly representable,
+             in which case 0.5*absy < absy - m, so 0.5*absy <= c and hence m <
+             c, or (ii) absy is tiny, either subnormal or in the lowest normal
+             binade. Then absy - m is exactly representable and again m < c.
+        */
+
+        c = absy - m;
+        if (m < c) {
+            r = m;
+        }
+        else if (m > c) {
+            r = -c;
+        }
+        else {
+            /*
+               Here absx is exactly halfway between two multiples of absy,
+               and we need to choose the even multiple. x now has the form
+
+                   absx = n * absy + m
+
+               for some integer n (recalling that m = 0.5*absy at this point).
+               If n is even we want to return m; if n is odd, we need to
+               return -m.
+
+               So
+
+                   0.5 * (absx - m) = (n/2) * absy
+
+               and now reducing modulo absy gives us:
+
+                                                  | m, if n is odd
+                   fmod(0.5 * (absx - m), absy) = |
+                                                  | 0, if n is even
+
+               Now m - 2.0 * fmod(...) gives the desired result: m
+               if n is even, -m if m is odd.
+
+               Note that all steps in fmod(0.5 * (absx - m), absy)
+               will be computed exactly, with no rounding error
+               introduced.
+            */
+            assert(m == c);
+            r = m - 2.0 * fmod(0.5 * (absx - m), absy);
+        }
+        return copysign(1.0, x) * r;
+    }
+
+    /* Special values. */
+    if (Py_IS_NAN(x)) {
+        return x;
+    }
+    if (Py_IS_NAN(y)) {
+        return y;
+    }
+    if (Py_IS_INFINITY(x)) {
+        return Py_NAN;
+    }
+    assert(Py_IS_INFINITY(y));
+    return x;
+}
+
 
 /*
     Various platforms (Solaris, OpenBSD) do nonstandard things for log(0),
@@ -684,13 +802,21 @@ m_log10(double x)
 }
 
 
-static PyObject *
-math_gcd(PyObject *self, PyObject *args)
-{
-    PyObject *a, *b, *g;
+/*[clinic input]
+math.gcd
 
-    if (!PyArg_ParseTuple(args, "OO:gcd", &a, &b))
-        return NULL;
+    x as a: object
+    y as b: object
+    /
+
+greatest common divisor of x and y
+[clinic start generated code]*/
+
+static PyObject *
+math_gcd_impl(PyObject *module, PyObject *a, PyObject *b)
+/*[clinic end generated code: output=7b2e0c151bd7a5d8 input=c2691e57fb2a98fa]*/
+{
+    PyObject *g;
 
     a = PyNumber_Index(a);
     if (a == NULL)
@@ -705,10 +831,6 @@ math_gcd(PyObject *self, PyObject *args)
     Py_DECREF(b);
     return g;
 }
-
-PyDoc_STRVAR(math_gcd_doc,
-"gcd(x, y) -> int\n\
-greatest common divisor of x and y");
 
 
 /* Call is_error when errno != 0, and where x is the result libm
@@ -753,7 +875,7 @@ is_error(double x)
 
 /*
    math_1 is used to wrap a libm function f that takes a double
-   arguments and returns a double.
+   argument and returns a double.
 
    The error reporting follows these rules, which are designed to do
    the right thing on C89/C99 platforms and IEEE 754/non IEEE 754
@@ -926,22 +1048,43 @@ math_2(PyObject *args, double (*func) (double, double), const char *funcname)
     PyDoc_STRVAR(math_##funcname##_doc, docstring);
 
 FUNC1(acos, acos, 0,
-      "acos(x)\n\nReturn the arc cosine (measured in radians) of x.")
+      "acos($module, x, /)\n--\n\n"
+      "Return the arc cosine (measured in radians) of x.")
 FUNC1(acosh, m_acosh, 0,
-      "acosh(x)\n\nReturn the inverse hyperbolic cosine of x.")
+      "acosh($module, x, /)\n--\n\n"
+      "Return the inverse hyperbolic cosine of x.")
 FUNC1(asin, asin, 0,
-      "asin(x)\n\nReturn the arc sine (measured in radians) of x.")
+      "asin($module, x, /)\n--\n\n"
+      "Return the arc sine (measured in radians) of x.")
 FUNC1(asinh, m_asinh, 0,
-      "asinh(x)\n\nReturn the inverse hyperbolic sine of x.")
+      "asinh($module, x, /)\n--\n\n"
+      "Return the inverse hyperbolic sine of x.")
 FUNC1(atan, atan, 0,
-      "atan(x)\n\nReturn the arc tangent (measured in radians) of x.")
+      "atan($module, x, /)\n--\n\n"
+      "Return the arc tangent (measured in radians) of x.")
 FUNC2(atan2, m_atan2,
-      "atan2(y, x)\n\nReturn the arc tangent (measured in radians) of y/x.\n"
+      "atan2($module, y, x, /)\n--\n\n"
+      "Return the arc tangent (measured in radians) of y/x.\n\n"
       "Unlike atan(y/x), the signs of both x and y are considered.")
 FUNC1(atanh, m_atanh, 0,
-      "atanh(x)\n\nReturn the inverse hyperbolic tangent of x.")
+      "atanh($module, x, /)\n--\n\n"
+      "Return the inverse hyperbolic tangent of x.")
 
-static PyObject * math_ceil(PyObject *self, PyObject *number) {
+/*[clinic input]
+math.ceil
+
+    x as number: object
+    /
+
+Return the ceiling of x as an Integral.
+
+This is the smallest integer >= x.
+[clinic start generated code]*/
+
+static PyObject *
+math_ceil(PyObject *module, PyObject *number)
+/*[clinic end generated code: output=6c3b8a78bc201c67 input=2725352806399cab]*/
+{
     _Py_IDENTIFIER(__ceil__);
     PyObject *method, *result;
 
@@ -951,37 +1094,55 @@ static PyObject * math_ceil(PyObject *self, PyObject *number) {
             return NULL;
         return math_1_to_int(number, ceil, 0);
     }
-    result = PyObject_CallFunctionObjArgs(method, NULL);
+    result = _PyObject_CallNoArg(method);
     Py_DECREF(method);
     return result;
 }
 
-PyDoc_STRVAR(math_ceil_doc,
-             "ceil(x)\n\nReturn the ceiling of x as an Integral.\n"
-             "This is the smallest integer >= x.");
-
 FUNC2(copysign, copysign,
-      "copysign(x, y)\n\nReturn a float with the magnitude (absolute value) "
-      "of x but the sign \nof y. On platforms that support signed zeros, "
-      "copysign(1.0, -0.0) \nreturns -1.0.\n")
+      "copysign($module, x, y, /)\n--\n\n"
+       "Return a float with the magnitude (absolute value) of x but the sign of y.\n\n"
+      "On platforms that support signed zeros, copysign(1.0, -0.0)\n"
+      "returns -1.0.\n")
 FUNC1(cos, cos, 0,
-      "cos(x)\n\nReturn the cosine of x (measured in radians).")
+      "cos($module, x, /)\n--\n\n"
+      "Return the cosine of x (measured in radians).")
 FUNC1(cosh, cosh, 1,
-      "cosh(x)\n\nReturn the hyperbolic cosine of x.")
+      "cosh($module, x, /)\n--\n\n"
+      "Return the hyperbolic cosine of x.")
 FUNC1A(erf, m_erf,
-       "erf(x)\n\nError function at x.")
+       "erf($module, x, /)\n--\n\n"
+       "Error function at x.")
 FUNC1A(erfc, m_erfc,
-       "erfc(x)\n\nComplementary error function at x.")
+       "erfc($module, x, /)\n--\n\n"
+       "Complementary error function at x.")
 FUNC1(exp, exp, 1,
-      "exp(x)\n\nReturn e raised to the power of x.")
+      "exp($module, x, /)\n--\n\n"
+      "Return e raised to the power of x.")
 FUNC1(expm1, m_expm1, 1,
-      "expm1(x)\n\nReturn exp(x)-1.\n"
+      "expm1($module, x, /)\n--\n\n"
+      "Return exp(x)-1.\n\n"
       "This function avoids the loss of precision involved in the direct "
       "evaluation of exp(x)-1 for small x.")
 FUNC1(fabs, fabs, 0,
-      "fabs(x)\n\nReturn the absolute value of the float x.")
+      "fabs($module, x, /)\n--\n\n"
+      "Return the absolute value of the float x.")
 
-static PyObject * math_floor(PyObject *self, PyObject *number) {
+/*[clinic input]
+math.floor
+
+    x as number: object
+    /
+
+Return the floor of x as an Integral.
+
+This is the largest integer <= x.
+[clinic start generated code]*/
+
+static PyObject *
+math_floor(PyObject *module, PyObject *number)
+/*[clinic end generated code: output=c6a65c4884884b8a input=63af6b5d7ebcc3d6]*/
+{
     _Py_IDENTIFIER(__floor__);
     PyObject *method, *result;
 
@@ -991,32 +1152,42 @@ static PyObject * math_floor(PyObject *self, PyObject *number) {
             return NULL;
         return math_1_to_int(number, floor, 0);
     }
-    result = PyObject_CallFunctionObjArgs(method, NULL);
+    result = _PyObject_CallNoArg(method);
     Py_DECREF(method);
     return result;
 }
 
-PyDoc_STRVAR(math_floor_doc,
-             "floor(x)\n\nReturn the floor of x as an Integral.\n"
-             "This is the largest integer <= x.");
-
 FUNC1A(gamma, m_tgamma,
-      "gamma(x)\n\nGamma function at x.")
+      "gamma($module, x, /)\n--\n\n"
+      "Gamma function at x.")
 FUNC1A(lgamma, m_lgamma,
-      "lgamma(x)\n\nNatural logarithm of absolute value of Gamma function at x.")
+      "lgamma($module, x, /)\n--\n\n"
+      "Natural logarithm of absolute value of Gamma function at x.")
 FUNC1(log1p, m_log1p, 0,
-      "log1p(x)\n\nReturn the natural logarithm of 1+x (base e).\n"
+      "log1p($module, x, /)\n--\n\n"
+      "Return the natural logarithm of 1+x (base e).\n\n"
       "The result is computed in a way which is accurate for x near zero.")
+FUNC2(remainder, m_remainder,
+      "remainder($module, x, y, /)\n--\n\n"
+      "Difference between x and the closest integer multiple of y.\n\n"
+      "Return x - n*y where n*y is the closest integer multiple of y.\n"
+      "In the case where x is exactly halfway between two multiples of\n"
+      "y, the nearest even value of n is used. The result is always exact.")
 FUNC1(sin, sin, 0,
-      "sin(x)\n\nReturn the sine of x (measured in radians).")
+      "sin($module, x, /)\n--\n\n"
+      "Return the sine of x (measured in radians).")
 FUNC1(sinh, sinh, 1,
-      "sinh(x)\n\nReturn the hyperbolic sine of x.")
+      "sinh($module, x, /)\n--\n\n"
+      "Return the hyperbolic sine of x.")
 FUNC1(sqrt, sqrt, 0,
-      "sqrt(x)\n\nReturn the square root of x.")
+      "sqrt($module, x, /)\n--\n\n"
+      "Return the square root of x.")
 FUNC1(tan, tan, 0,
-      "tan(x)\n\nReturn the tangent of x (measured in radians).")
+      "tan($module, x, /)\n--\n\n"
+      "Return the tangent of x (measured in radians).")
 FUNC1(tanh, tanh, 0,
-      "tanh(x)\n\nReturn the hyperbolic tangent of x.")
+      "tanh($module, x, /)\n--\n\n"
+      "Return the hyperbolic tangent of x.")
 
 /* Precision summation function as msum() by Raymond Hettinger in
    <http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/393090>,
@@ -1114,8 +1285,20 @@ _fsum_realloc(double **p_ptr, Py_ssize_t  n,
    Depends on IEEE 754 arithmetic guarantees and half-even rounding.
 */
 
-static PyObject*
-math_fsum(PyObject *self, PyObject *seq)
+/*[clinic input]
+math.fsum
+
+    seq: object
+    /
+
+Return an accurate floating point sum of values in the iterable seq.
+
+Assumes IEEE-754 floating point arithmetic.
+[clinic start generated code]*/
+
+static PyObject *
+math_fsum(PyObject *module, PyObject *seq)
+/*[clinic end generated code: output=ba5c672b87fe34fc input=c51b7d8caf6f6e82]*/
 {
     PyObject *item, *iter, *sum = NULL;
     Py_ssize_t i, j, n = 0, m = NUM_PARTIALS;
@@ -1234,10 +1417,6 @@ _fsum_error:
 
 #undef NUM_PARTIALS
 
-PyDoc_STRVAR(math_fsum_doc,
-"fsum(iterable)\n\n\
-Return an accurate floating point sum of values in the iterable.\n\
-Assumes IEEE-754 floating point arithmetic.");
 
 /* Return the smallest integer k such that n < 2**k, or 0 if n == 0.
  * Equivalent to floor(lg(x))+1.  Also equivalent to: bitwidth_of_type -
@@ -1447,6 +1626,7 @@ factorial_odd_part(unsigned long n)
     return NULL;
 }
 
+
 /* Lookup table for small factorial values */
 
 static const unsigned long SmallFactorials[] = {
@@ -1459,8 +1639,20 @@ static const unsigned long SmallFactorials[] = {
 #endif
 };
 
+/*[clinic input]
+math.factorial
+
+    x as arg: object
+    /
+
+Find x!.
+
+Raise a ValueError if x is negative or non-integral.
+[clinic start generated code]*/
+
 static PyObject *
-math_factorial(PyObject *self, PyObject *arg)
+math_factorial(PyObject *module, PyObject *arg)
+/*[clinic end generated code: output=6686f26fae00e9ca input=6d1c8105c0d91fb4]*/
 {
     long x;
     int overflow;
@@ -1518,47 +1710,61 @@ math_factorial(PyObject *self, PyObject *arg)
     return result;
 }
 
-PyDoc_STRVAR(math_factorial_doc,
-"factorial(x) -> Integral\n"
-"\n"
-"Find x!. Raise a ValueError if x is negative or non-integral.");
+
+/*[clinic input]
+math.trunc
+
+    x: object
+    /
+
+Truncates the Real x to the nearest Integral toward 0.
+
+Uses the __trunc__ magic method.
+[clinic start generated code]*/
 
 static PyObject *
-math_trunc(PyObject *self, PyObject *number)
+math_trunc(PyObject *module, PyObject *x)
+/*[clinic end generated code: output=34b9697b707e1031 input=2168b34e0a09134d]*/
 {
     _Py_IDENTIFIER(__trunc__);
     PyObject *trunc, *result;
 
-    if (Py_TYPE(number)->tp_dict == NULL) {
-        if (PyType_Ready(Py_TYPE(number)) < 0)
+    if (Py_TYPE(x)->tp_dict == NULL) {
+        if (PyType_Ready(Py_TYPE(x)) < 0)
             return NULL;
     }
 
-    trunc = _PyObject_LookupSpecial(number, &PyId___trunc__);
+    trunc = _PyObject_LookupSpecial(x, &PyId___trunc__);
     if (trunc == NULL) {
         if (!PyErr_Occurred())
             PyErr_Format(PyExc_TypeError,
                          "type %.100s doesn't define __trunc__ method",
-                         Py_TYPE(number)->tp_name);
+                         Py_TYPE(x)->tp_name);
         return NULL;
     }
-    result = PyObject_CallFunctionObjArgs(trunc, NULL);
+    result = _PyObject_CallNoArg(trunc);
     Py_DECREF(trunc);
     return result;
 }
 
-PyDoc_STRVAR(math_trunc_doc,
-"trunc(x:Real) -> Integral\n"
-"\n"
-"Truncates x to the nearest Integral toward 0. Uses the __trunc__ magic method.");
+
+/*[clinic input]
+math.frexp
+
+    x: double
+    /
+
+Return the mantissa and exponent of x, as pair (m, e).
+
+m is a float and e is an int, such that x = m * 2.**e.
+If x is 0, m and e are both 0.  Else 0.5 <= abs(m) < 1.0.
+[clinic start generated code]*/
 
 static PyObject *
-math_frexp(PyObject *self, PyObject *arg)
+math_frexp_impl(PyObject *module, double x)
+/*[clinic end generated code: output=03e30d252a15ad4a input=96251c9e208bc6e9]*/
 {
     int i;
-    double x = PyFloat_AsDouble(arg);
-    if (x == -1.0 && PyErr_Occurred())
-        return NULL;
     /* deal with special cases directly, to sidestep platform
        differences */
     if (Py_IS_NAN(x) || Py_IS_INFINITY(x) || !x) {
@@ -1572,27 +1778,31 @@ math_frexp(PyObject *self, PyObject *arg)
     return Py_BuildValue("(di)", x, i);
 }
 
-PyDoc_STRVAR(math_frexp_doc,
-"frexp(x)\n"
-"\n"
-"Return the mantissa and exponent of x, as pair (m, e).\n"
-"m is a float and e is an int, such that x = m * 2.**e.\n"
-"If x is 0, m and e are both 0.  Else 0.5 <= abs(m) < 1.0.");
+
+/*[clinic input]
+math.ldexp
+
+    x: double
+    i: object
+    /
+
+Return x * (2**i).
+
+This is essentially the inverse of frexp().
+[clinic start generated code]*/
 
 static PyObject *
-math_ldexp(PyObject *self, PyObject *args)
+math_ldexp_impl(PyObject *module, double x, PyObject *i)
+/*[clinic end generated code: output=b6892f3c2df9cc6a input=17d5970c1a40a8c1]*/
 {
-    double x, r;
-    PyObject *oexp;
+    double r;
     long exp;
     int overflow;
-    if (! PyArg_ParseTuple(args, "dO:ldexp", &x, &oexp))
-        return NULL;
 
-    if (PyLong_Check(oexp)) {
+    if (PyLong_Check(i)) {
         /* on overflow, replace exponent with either LONG_MAX
            or LONG_MIN, depending on the sign. */
-        exp = PyLong_AsLongAndOverflow(oexp, &overflow);
+        exp = PyLong_AsLongAndOverflow(i, &overflow);
         if (exp == -1 && PyErr_Occurred())
             return NULL;
         if (overflow)
@@ -1630,16 +1840,23 @@ math_ldexp(PyObject *self, PyObject *args)
     return PyFloat_FromDouble(r);
 }
 
-PyDoc_STRVAR(math_ldexp_doc,
-"ldexp(x, i)\n\n\
-Return x * (2**i).");
+
+/*[clinic input]
+math.modf
+
+    x: double
+    /
+
+Return the fractional and integer parts of x.
+
+Both results carry the sign of x and are floats.
+[clinic start generated code]*/
 
 static PyObject *
-math_modf(PyObject *self, PyObject *arg)
+math_modf_impl(PyObject *module, double x)
+/*[clinic end generated code: output=90cee0260014c3c0 input=b4cfb6786afd9035]*/
 {
-    double y, x = PyFloat_AsDouble(arg);
-    if (x == -1.0 && PyErr_Occurred())
-        return NULL;
+    double y;
     /* some platforms don't do the right thing for NaNs and
        infinities, so we take care of special cases directly. */
     if (!Py_IS_FINITE(x)) {
@@ -1656,11 +1873,6 @@ math_modf(PyObject *self, PyObject *arg)
     return Py_BuildValue("(dd)", x, y);
 }
 
-PyDoc_STRVAR(math_modf_doc,
-"modf(x)\n"
-"\n"
-"Return the fractional and integer parts of x.  Both results carry the sign\n"
-"of x and are floats.");
 
 /* A decent logarithm is easy to compute even for huge ints, but libm can't
    do that by itself -- loghelper can.  func is log or log10, and name is
@@ -1709,18 +1921,30 @@ loghelper(PyObject* arg, double (*func)(double), const char *funcname)
     return math_1(arg, func, 0);
 }
 
+
+/*[clinic input]
+math.log
+
+    x:    object
+    [
+    base: object(c_default="NULL") = math.e
+    ]
+    /
+
+Return the logarithm of x to the given base.
+
+If the base not specified, returns the natural logarithm (base e) of x.
+[clinic start generated code]*/
+
 static PyObject *
-math_log(PyObject *self, PyObject *args)
+math_log_impl(PyObject *module, PyObject *x, int group_right_1,
+              PyObject *base)
+/*[clinic end generated code: output=7b5a39e526b73fc9 input=0f62d5726cbfebbd]*/
 {
-    PyObject *arg;
-    PyObject *base = NULL;
     PyObject *num, *den;
     PyObject *ans;
 
-    if (!PyArg_UnpackTuple(args, "log", 1, 2, &arg, &base))
-        return NULL;
-
-    num = loghelper(arg, m_log, "log");
+    num = loghelper(x, m_log, "log");
     if (num == NULL || base == NULL)
         return num;
 
@@ -1736,40 +1960,58 @@ math_log(PyObject *self, PyObject *args)
     return ans;
 }
 
-PyDoc_STRVAR(math_log_doc,
-"log(x[, base])\n\n\
-Return the logarithm of x to the given base.\n\
-If the base not specified, returns the natural logarithm (base e) of x.");
+
+/*[clinic input]
+math.log2
+
+    x: object
+    /
+
+Return the base 2 logarithm of x.
+[clinic start generated code]*/
 
 static PyObject *
-math_log2(PyObject *self, PyObject *arg)
+math_log2(PyObject *module, PyObject *x)
+/*[clinic end generated code: output=5425899a4d5d6acb input=08321262bae4f39b]*/
 {
-    return loghelper(arg, m_log2, "log2");
+    return loghelper(x, m_log2, "log2");
 }
 
-PyDoc_STRVAR(math_log2_doc,
-"log2(x)\n\nReturn the base 2 logarithm of x.");
+
+/*[clinic input]
+math.log10
+
+    x: object
+    /
+
+Return the base 10 logarithm of x.
+[clinic start generated code]*/
 
 static PyObject *
-math_log10(PyObject *self, PyObject *arg)
+math_log10(PyObject *module, PyObject *x)
+/*[clinic end generated code: output=be72a64617df9c6f input=b2469d02c6469e53]*/
 {
-    return loghelper(arg, m_log10, "log10");
+    return loghelper(x, m_log10, "log10");
 }
 
-PyDoc_STRVAR(math_log10_doc,
-"log10(x)\n\nReturn the base 10 logarithm of x.");
+
+/*[clinic input]
+math.fmod
+
+    x: double
+    y: double
+    /
+
+Return fmod(x, y), according to platform C.
+
+x % y may differ.
+[clinic start generated code]*/
 
 static PyObject *
-math_fmod(PyObject *self, PyObject *args)
+math_fmod_impl(PyObject *module, double x, double y)
+/*[clinic end generated code: output=7559d794343a27b5 input=4f84caa8cfc26a03]*/
 {
-    PyObject *ox, *oy;
-    double r, x, y;
-    if (! PyArg_UnpackTuple(args, "fmod", 2, 2, &ox, &oy))
-        return NULL;
-    x = PyFloat_AsDouble(ox);
-    y = PyFloat_AsDouble(oy);
-    if ((x == -1.0 || y == -1.0) && PyErr_Occurred())
-        return NULL;
+    double r;
     /* fmod(x, +/-Inf) returns x for finite x. */
     if (Py_IS_INFINITY(y) && Py_IS_FINITE(x))
         return PyFloat_FromDouble(x);
@@ -1789,21 +2031,22 @@ math_fmod(PyObject *self, PyObject *args)
         return PyFloat_FromDouble(r);
 }
 
-PyDoc_STRVAR(math_fmod_doc,
-"fmod(x, y)\n\nReturn fmod(x, y), according to platform C."
-"  x % y may differ.");
+
+/*[clinic input]
+math.hypot
+
+    x: double
+    y: double
+    /
+
+Return the Euclidean distance, sqrt(x*x + y*y).
+[clinic start generated code]*/
 
 static PyObject *
-math_hypot(PyObject *self, PyObject *args)
+math_hypot_impl(PyObject *module, double x, double y)
+/*[clinic end generated code: output=b7686e5be468ef87 input=7f8eea70406474aa]*/
 {
-    PyObject *ox, *oy;
-    double r, x, y;
-    if (! PyArg_UnpackTuple(args, "hypot", 2, 2, &ox, &oy))
-        return NULL;
-    x = PyFloat_AsDouble(ox);
-    y = PyFloat_AsDouble(oy);
-    if ((x == -1.0 || y == -1.0) && PyErr_Occurred())
-        return NULL;
+    double r;
     /* hypot(x, +/-Inf) returns Inf, even if x is a NaN. */
     if (Py_IS_INFINITY(x))
         return PyFloat_FromDouble(fabs(x));
@@ -1831,8 +2074,6 @@ math_hypot(PyObject *self, PyObject *args)
         return PyFloat_FromDouble(r);
 }
 
-PyDoc_STRVAR(math_hypot_doc,
-"hypot(x, y)\n\nReturn the Euclidean distance, sqrt(x*x + y*y).");
 
 /* pow can't use math_2, but needs its own wrapper: the problem is
    that an infinite result can arise either as a result of overflow
@@ -1840,19 +2081,22 @@ PyDoc_STRVAR(math_hypot_doc,
    e.g. 0.**-5. (for which ValueError needs to be raised.)
 */
 
-static PyObject *
-math_pow(PyObject *self, PyObject *args)
-{
-    PyObject *ox, *oy;
-    double r, x, y;
-    int odd_y;
+/*[clinic input]
+math.pow
 
-    if (! PyArg_UnpackTuple(args, "pow", 2, 2, &ox, &oy))
-        return NULL;
-    x = PyFloat_AsDouble(ox);
-    y = PyFloat_AsDouble(oy);
-    if ((x == -1.0 || y == -1.0) && PyErr_Occurred())
-        return NULL;
+    x: double
+    y: double
+    /
+
+Return x**y (x to the power of y).
+[clinic start generated code]*/
+
+static PyObject *
+math_pow_impl(PyObject *module, double x, double y)
+/*[clinic end generated code: output=fff93e65abccd6b0 input=c26f1f6075088bfd]*/
+{
+    double r;
+    int odd_y;
 
     /* deal directly with IEEE specials, to cope with problems on various
        platforms whose semantics don't exactly match C99 */
@@ -1918,107 +2162,139 @@ math_pow(PyObject *self, PyObject *args)
         return PyFloat_FromDouble(r);
 }
 
-PyDoc_STRVAR(math_pow_doc,
-"pow(x, y)\n\nReturn x**y (x to the power of y).");
 
 static const double degToRad = Py_MATH_PI / 180.0;
 static const double radToDeg = 180.0 / Py_MATH_PI;
 
+/*[clinic input]
+math.degrees
+
+    x: double
+    /
+
+Convert angle x from radians to degrees.
+[clinic start generated code]*/
+
 static PyObject *
-math_degrees(PyObject *self, PyObject *arg)
+math_degrees_impl(PyObject *module, double x)
+/*[clinic end generated code: output=7fea78b294acd12f input=81e016555d6e3660]*/
 {
-    double x = PyFloat_AsDouble(arg);
-    if (x == -1.0 && PyErr_Occurred())
-        return NULL;
     return PyFloat_FromDouble(x * radToDeg);
 }
 
-PyDoc_STRVAR(math_degrees_doc,
-"degrees(x)\n\n\
-Convert angle x from radians to degrees.");
+
+/*[clinic input]
+math.radians
+
+    x: double
+    /
+
+Convert angle x from degrees to radians.
+[clinic start generated code]*/
 
 static PyObject *
-math_radians(PyObject *self, PyObject *arg)
+math_radians_impl(PyObject *module, double x)
+/*[clinic end generated code: output=34daa47caf9b1590 input=91626fc489fe3d63]*/
 {
-    double x = PyFloat_AsDouble(arg);
-    if (x == -1.0 && PyErr_Occurred())
-        return NULL;
     return PyFloat_FromDouble(x * degToRad);
 }
 
-PyDoc_STRVAR(math_radians_doc,
-"radians(x)\n\n\
-Convert angle x from degrees to radians.");
+
+/*[clinic input]
+math.isfinite
+
+    x: double
+    /
+
+Return True if x is neither an infinity nor a NaN, and False otherwise.
+[clinic start generated code]*/
 
 static PyObject *
-math_isfinite(PyObject *self, PyObject *arg)
+math_isfinite_impl(PyObject *module, double x)
+/*[clinic end generated code: output=8ba1f396440c9901 input=46967d254812e54a]*/
 {
-    double x = PyFloat_AsDouble(arg);
-    if (x == -1.0 && PyErr_Occurred())
-        return NULL;
     return PyBool_FromLong((long)Py_IS_FINITE(x));
 }
 
-PyDoc_STRVAR(math_isfinite_doc,
-"isfinite(x) -> bool\n\n\
-Return True if x is neither an infinity nor a NaN, and False otherwise.");
+
+/*[clinic input]
+math.isnan
+
+    x: double
+    /
+
+Return True if x is a NaN (not a number), and False otherwise.
+[clinic start generated code]*/
 
 static PyObject *
-math_isnan(PyObject *self, PyObject *arg)
+math_isnan_impl(PyObject *module, double x)
+/*[clinic end generated code: output=f537b4d6df878c3e input=935891e66083f46a]*/
 {
-    double x = PyFloat_AsDouble(arg);
-    if (x == -1.0 && PyErr_Occurred())
-        return NULL;
     return PyBool_FromLong((long)Py_IS_NAN(x));
 }
 
-PyDoc_STRVAR(math_isnan_doc,
-"isnan(x) -> bool\n\n\
-Return True if x is a NaN (not a number), and False otherwise.");
+
+/*[clinic input]
+math.isinf
+
+    x: double
+    /
+
+Return True if x is a positive or negative infinity, and False otherwise.
+[clinic start generated code]*/
 
 static PyObject *
-math_isinf(PyObject *self, PyObject *arg)
+math_isinf_impl(PyObject *module, double x)
+/*[clinic end generated code: output=9f00cbec4de7b06b input=32630e4212cf961f]*/
 {
-    double x = PyFloat_AsDouble(arg);
-    if (x == -1.0 && PyErr_Occurred())
-        return NULL;
     return PyBool_FromLong((long)Py_IS_INFINITY(x));
 }
 
-PyDoc_STRVAR(math_isinf_doc,
-"isinf(x) -> bool\n\n\
-Return True if x is a positive or negative infinity, and False otherwise.");
 
-static PyObject *
-math_isclose(PyObject *self, PyObject *args, PyObject *kwargs)
+/*[clinic input]
+math.isclose -> bool
+
+    a: double
+    b: double
+    *
+    rel_tol: double = 1e-09
+        maximum difference for being considered "close", relative to the
+        magnitude of the input values
+    abs_tol: double = 0.0
+        maximum difference for being considered "close", regardless of the
+        magnitude of the input values
+
+Determine whether two floating point numbers are close in value.
+
+Return True if a is close in value to b, and False otherwise.
+
+For the values to be considered close, the difference between them
+must be smaller than at least one of the tolerances.
+
+-inf, inf and NaN behave similarly to the IEEE 754 Standard.  That
+is, NaN is not close to anything, even itself.  inf and -inf are
+only close to themselves.
+[clinic start generated code]*/
+
+static int
+math_isclose_impl(PyObject *module, double a, double b, double rel_tol,
+                  double abs_tol)
+/*[clinic end generated code: output=b73070207511952d input=f28671871ea5bfba]*/
 {
-    double a, b;
-    double rel_tol = 1e-9;
-    double abs_tol = 0.0;
     double diff = 0.0;
-    long result = 0;
-
-    static char *keywords[] = {"a", "b", "rel_tol", "abs_tol", NULL};
-
-
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "dd|$dd:isclose",
-                                     keywords,
-                                     &a, &b, &rel_tol, &abs_tol
-                                     ))
-        return NULL;
 
     /* sanity check on the inputs */
     if (rel_tol < 0.0 || abs_tol < 0.0 ) {
         PyErr_SetString(PyExc_ValueError,
                         "tolerances must be non-negative");
-        return NULL;
+        return -1;
     }
 
     if ( a == b ) {
         /* short circuit exact equality -- needed to catch two infinities of
            the same sign. And perhaps speeds things up a bit sometimes.
         */
-        Py_RETURN_TRUE;
+        return 1;
     }
 
     /* This catches the case of two infinities of opposite sign, or
@@ -2029,7 +2305,7 @@ math_isclose(PyObject *self, PyObject *args, PyObject *kwargs)
     */
 
     if (Py_IS_INFINITY(a) || Py_IS_INFINITY(b)) {
-        Py_RETURN_FALSE;
+        return 0;
     }
 
     /* now do the regular computation
@@ -2038,33 +2314,11 @@ math_isclose(PyObject *self, PyObject *args, PyObject *kwargs)
 
     diff = fabs(b - a);
 
-    result = (((diff <= fabs(rel_tol * b)) ||
-               (diff <= fabs(rel_tol * a))) ||
-              (diff <= abs_tol));
-
-    return PyBool_FromLong(result);
+    return (((diff <= fabs(rel_tol * b)) ||
+             (diff <= fabs(rel_tol * a))) ||
+            (diff <= abs_tol));
 }
 
-PyDoc_STRVAR(math_isclose_doc,
-"isclose(a, b, *, rel_tol=1e-09, abs_tol=0.0) -> bool\n"
-"\n"
-"Determine whether two floating point numbers are close in value.\n"
-"\n"
-"   rel_tol\n"
-"       maximum difference for being considered \"close\", relative to the\n"
-"       magnitude of the input values\n"
-"    abs_tol\n"
-"       maximum difference for being considered \"close\", regardless of the\n"
-"       magnitude of the input values\n"
-"\n"
-"Return True if a is close in value to b, and False otherwise.\n"
-"\n"
-"For the values to be considered close, the difference between them\n"
-"must be smaller than at least one of the tolerances.\n"
-"\n"
-"-inf, inf and NaN behave similarly to the IEEE 754 Standard.  That\n"
-"is, NaN is not close to anything, even itself.  inf and -inf are\n"
-"only close to themselves.");
 
 static PyMethodDef math_methods[] = {
     {"acos",            math_acos,      METH_O,         math_acos_doc},
@@ -2074,44 +2328,44 @@ static PyMethodDef math_methods[] = {
     {"atan",            math_atan,      METH_O,         math_atan_doc},
     {"atan2",           math_atan2,     METH_VARARGS,   math_atan2_doc},
     {"atanh",           math_atanh,     METH_O,         math_atanh_doc},
-    {"ceil",            math_ceil,      METH_O,         math_ceil_doc},
+    MATH_CEIL_METHODDEF
     {"copysign",        math_copysign,  METH_VARARGS,   math_copysign_doc},
     {"cos",             math_cos,       METH_O,         math_cos_doc},
     {"cosh",            math_cosh,      METH_O,         math_cosh_doc},
-    {"degrees",         math_degrees,   METH_O,         math_degrees_doc},
+    MATH_DEGREES_METHODDEF
     {"erf",             math_erf,       METH_O,         math_erf_doc},
     {"erfc",            math_erfc,      METH_O,         math_erfc_doc},
     {"exp",             math_exp,       METH_O,         math_exp_doc},
     {"expm1",           math_expm1,     METH_O,         math_expm1_doc},
     {"fabs",            math_fabs,      METH_O,         math_fabs_doc},
-    {"factorial",       math_factorial, METH_O,         math_factorial_doc},
-    {"floor",           math_floor,     METH_O,         math_floor_doc},
-    {"fmod",            math_fmod,      METH_VARARGS,   math_fmod_doc},
-    {"frexp",           math_frexp,     METH_O,         math_frexp_doc},
-    {"fsum",            math_fsum,      METH_O,         math_fsum_doc},
+    MATH_FACTORIAL_METHODDEF
+    MATH_FLOOR_METHODDEF
+    MATH_FMOD_METHODDEF
+    MATH_FREXP_METHODDEF
+    MATH_FSUM_METHODDEF
     {"gamma",           math_gamma,     METH_O,         math_gamma_doc},
-    {"gcd",             math_gcd,       METH_VARARGS,   math_gcd_doc},
-    {"hypot",           math_hypot,     METH_VARARGS,   math_hypot_doc},
-    {"isclose", (PyCFunction) math_isclose, METH_VARARGS | METH_KEYWORDS,
-    math_isclose_doc},
-    {"isfinite",        math_isfinite,  METH_O,         math_isfinite_doc},
-    {"isinf",           math_isinf,     METH_O,         math_isinf_doc},
-    {"isnan",           math_isnan,     METH_O,         math_isnan_doc},
-    {"ldexp",           math_ldexp,     METH_VARARGS,   math_ldexp_doc},
+    MATH_GCD_METHODDEF
+    MATH_HYPOT_METHODDEF
+    MATH_ISCLOSE_METHODDEF
+    MATH_ISFINITE_METHODDEF
+    MATH_ISINF_METHODDEF
+    MATH_ISNAN_METHODDEF
+    MATH_LDEXP_METHODDEF
     {"lgamma",          math_lgamma,    METH_O,         math_lgamma_doc},
-    {"log",             math_log,       METH_VARARGS,   math_log_doc},
+    MATH_LOG_METHODDEF
     {"log1p",           math_log1p,     METH_O,         math_log1p_doc},
-    {"log10",           math_log10,     METH_O,         math_log10_doc},
-    {"log2",            math_log2,      METH_O,         math_log2_doc},
-    {"modf",            math_modf,      METH_O,         math_modf_doc},
-    {"pow",             math_pow,       METH_VARARGS,   math_pow_doc},
-    {"radians",         math_radians,   METH_O,         math_radians_doc},
+    MATH_LOG10_METHODDEF
+    MATH_LOG2_METHODDEF
+    MATH_MODF_METHODDEF
+    MATH_POW_METHODDEF
+    MATH_RADIANS_METHODDEF
+    {"remainder",       math_remainder, METH_VARARGS,   math_remainder_doc},
     {"sin",             math_sin,       METH_O,         math_sin_doc},
     {"sinh",            math_sinh,      METH_O,         math_sinh_doc},
     {"sqrt",            math_sqrt,      METH_O,         math_sqrt_doc},
     {"tan",             math_tan,       METH_O,         math_tan_doc},
     {"tanh",            math_tanh,      METH_O,         math_tanh_doc},
-    {"trunc",           math_trunc,     METH_O,         math_trunc_doc},
+    MATH_TRUNC_METHODDEF
     {NULL,              NULL}           /* sentinel */
 };
 

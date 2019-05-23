@@ -7,9 +7,9 @@
 
 TConstArrayRef<ELossFunction> GetAllObjectives();
 
-bool IsSingleDimensionalError(ELossFunction lossFunction);
+bool IsSingleDimensionalCompatibleError(ELossFunction lossFunction);
 
-bool IsMultiDimensionalError(ELossFunction lossFunction);
+bool IsMultiDimensionalCompatibleError(ELossFunction lossFunction);
 
 bool IsForCrossEntropyOptimization(ELossFunction lossFunction);
 
@@ -19,24 +19,26 @@ bool IsForAbsoluteValueOptimization(ELossFunction lossFunction);
 
 bool IsOnlyForCrossEntropyOptimization(ELossFunction lossFunction);
 
-bool IsBinaryClassMetric(ELossFunction lossFunction);
+bool IsClassificationOnlyMetric(ELossFunction lossFunction);
+
+bool IsBinaryClassCompatibleMetric(ELossFunction lossFunction);
+bool IsMultiClassCompatibleMetric(ELossFunction lossFunction);
 
 // some metrics are both binclass and multiclass (e.g. HingeLoss)
 bool IsBinaryClassOnlyMetric(ELossFunction lossFunction);
-
-bool IsClassificationMetric(ELossFunction lossFunction);
+bool IsMultiClassOnlyMetric(ELossFunction lossFunction);
 
 bool IsClassificationObjective(ELossFunction lossFunction);
 
 bool IsClassificationObjective(TStringBuf lossDescription);
+
+bool IsCvStratifiedObjective(TStringBuf lossDescription);
 
 bool IsRegressionObjective(ELossFunction lossFunction);
 
 bool IsRegressionObjective(TStringBuf lossDescription);
 
 bool IsRegressionMetric(ELossFunction lossFunction);
-
-bool IsMultiClassMetric(ELossFunction lossFunction);
 
 bool IsGroupwiseMetric(ELossFunction lossFunction);
 
@@ -52,7 +54,7 @@ bool IsPairwiseScoring(ELossFunction lossFunction);
 
 bool IsGpuPlainDocParallelOnlyMode(ELossFunction lossFunction);
 
-bool ShouldGenerateYetiRankPairs(ELossFunction lossFunction);
+bool IsYetiRankLossFunction(ELossFunction lossFunction);
 
 bool IsPairLogit(ELossFunction lossFunction);
 
@@ -64,3 +66,6 @@ bool ShouldSkipCalcOnTrainByDefault(ELossFunction lossFunction);
 
 bool IsUserDefined(ELossFunction lossFunction);
 
+bool ShouldSkipFstrGrowPolicy(EGrowPolicy growPolicy);
+
+bool IsPlainOnlyModeScoreFunction(EScoreFunction scoreFunction);

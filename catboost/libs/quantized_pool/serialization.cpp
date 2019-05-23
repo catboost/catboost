@@ -1,5 +1,6 @@
 #include "serialization.h"
 #include "pool.h"
+#include "loader.h"
 
 #include <catboost/idl/pool/flat/quantized_chunk_t.fbs.h>
 #include <catboost/idl/pool/proto/metainfo.pb.h>
@@ -201,6 +202,7 @@ static TPoolMetainfo MakePoolMetainfo(
             case EColumn::Timestamp:
             case EColumn::Prediction:
             case EColumn::Auxiliary:
+            case EColumn::Text:
                 ythrow TCatBoostException() << "unexpected column type in quantized pool";
         }
 
@@ -326,7 +328,7 @@ static T RoundUpTo(const T value, const T multiple) {
     return value + (multiple - value % multiple);
 }
 
-static void AddPoolMetainfo(const TPoolMetainfo& metainfo, NCB::TQuantizedPool* const pool) {
+void NCB::AddPoolMetainfo(const TPoolMetainfo& metainfo, NCB::TQuantizedPool* const pool) {
     pool->DocumentCount = metainfo.GetDocumentCount();
     pool->IgnoredColumnIndices.assign(
         metainfo.GetIgnoredColumnIndices().begin(),
@@ -458,7 +460,44 @@ static TEpilogOffsets ReadEpilogOffsets(const TConstArrayRef<char> blob) {
     return offsets;
 }
 
-static void CollectChunks(const TConstArrayRef<char> blob, NCB::TQuantizedPool& pool) {
+namespace {
+    class TFileQuantizedPoolLoader : public NCB::IQuantizedPoolLoader {
+    public:
+        explicit TFileQuantizedPoolLoader(const NCB::TPathWithScheme& pathWithScheme)
+            : PathWithScheme(pathWithScheme)
+        {}
+        NCB::TQuantizedPool LoadQuantizedPool(
+            NCB::TLoadQuantizedPoolParameters params,
+            NCB::TLoadSubset loadSubset) override;
+    private:
+        NCB::TPathWithScheme PathWithScheme;
+    };
+}
+
+NCB::TQuantizedPool TFileQuantizedPoolLoader::LoadQuantizedPool(
+    NCB::TLoadQuantizedPoolParameters params,
+    NCB::TLoadSubset loadSubset
+) {
+    CB_ENSURE_INTERNAL(
+        loadSubset.Range == NCB::TLoadSubset().Range &&
+        loadSubset.SkipFeatures == NCB::TLoadSubset().SkipFeatures,
+        "Scheme quantized supports only default load subset"
+    );
+
+    NCB::TQuantizedPool pool;
+
+    pool.Blobs.push_back(params.LockMemory
+        ? TBlob::LockedFromFile(TString(PathWithScheme.Path))
+        : TBlob::FromFile(TString(PathWithScheme.Path)));
+
+    // TODO(yazevnul): optionally precharge pool
+
+    const TConstArrayRef<char> blob{
+        pool.Blobs.back().AsCharPtr(),
+        pool.Blobs.back().Size()};
+
+    ValidatePoolPart(blob);
+
     const auto chunksOffsetByReading = [blob] {
         TMemoryInput slave(blob.data(), blob.size());
         TCountingInput input(&slave);
@@ -572,27 +611,18 @@ static void CollectChunks(const TConstArrayRef<char> blob, NCB::TQuantizedPool& 
             pool.Chunks.push_back(std::move(stringColumnChunks[stringColumnId]));
         }
     }
-}
-
-NCB::TQuantizedPool NCB::LoadQuantizedPool(
-    const TStringBuf path,
-    const TLoadQuantizedPoolParameters& params) {
-
-    TQuantizedPool pool;
-    pool.Blobs.push_back(params.LockMemory
-        ? TBlob::LockedFromFile(TString(path))
-        : TBlob::FromFile(TString(path)));
-
-    // TODO(yazevnul): optionally precharge pool
-
-    const TConstArrayRef<char> blobView{
-        pool.Blobs.back().AsCharPtr(),
-        pool.Blobs.back().Size()};
-
-    ValidatePoolPart(blobView);
-    CollectChunks(blobView, pool);
 
     return pool;
+}
+
+NCB::TQuantizedPoolLoaderFactory::TRegistrator<TFileQuantizedPoolLoader> FileQuantizedPoolLoaderReg("quantized");
+
+NCB::TQuantizedPool NCB::LoadQuantizedPool(
+    const NCB::TPathWithScheme& pathWithScheme,
+    const TLoadQuantizedPoolParameters& params
+) {
+    const auto poolLoader = GetProcessor<IQuantizedPoolLoader, const TPathWithScheme&>(pathWithScheme, pathWithScheme);
+    return poolLoader->LoadQuantizedPool(params, /*loadSubset*/{});
 }
 
 static NCB::TQuantizedPoolDigest GetQuantizedPoolDigest(

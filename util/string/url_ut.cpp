@@ -103,6 +103,11 @@ Y_UNIT_TEST_SUITE(TUtilUrlTest) {
         UNIT_ASSERT_VALUES_EQUAL("", CutWWWPrefix("WwW."));
         UNIT_ASSERT_VALUES_EQUAL("www", CutWWWPrefix("www"));
         UNIT_ASSERT_VALUES_EQUAL("ya.ru", CutWWWPrefix("www.ya.ru"));
+
+        UNIT_ASSERT_VALUES_EQUAL("", CutMPrefix("m."));
+        UNIT_ASSERT_VALUES_EQUAL("", CutMPrefix("M."));
+        UNIT_ASSERT_VALUES_EQUAL("m", CutMPrefix("m"));
+        UNIT_ASSERT_VALUES_EQUAL("ya.ru", CutMPrefix("m.ya.ru"));
     }
 
     Y_UNIT_TEST(TestSplitUrlToHostAndPath) {
@@ -165,6 +170,30 @@ Y_UNIT_TEST_SUITE(TUtilUrlTest) {
             UNIT_ASSERT_VALUES_EQUAL(scheme, "https://");
             UNIT_ASSERT_VALUES_EQUAL(host, "ya.ru");
             UNIT_ASSERT_VALUES_EQUAL(port, 443);
+        }
+        { // ipv6
+            TStringBuf scheme("unknown"), host("unknown");
+            ui16 port = 0;
+            GetSchemeHostAndPort("https://[1080:0:0:0:8:800:200C:417A]:443/bebe", scheme, host, port);
+            UNIT_ASSERT_VALUES_EQUAL(scheme, "https://");
+            UNIT_ASSERT_VALUES_EQUAL(host, "[1080:0:0:0:8:800:200C:417A]");
+            UNIT_ASSERT_VALUES_EQUAL(port, 443);
+        }
+        { // ipv6
+            TStringBuf scheme("unknown"), host("unknown");
+            ui16 port = 0;
+            GetSchemeHostAndPort("[::1]/bebe", scheme, host, port);
+            UNIT_ASSERT_VALUES_EQUAL(scheme, "unknown");
+            UNIT_ASSERT_VALUES_EQUAL(host, "[::1]");
+            UNIT_ASSERT_VALUES_EQUAL(port, 0);
+        }
+        { // ipv6
+            TStringBuf scheme("unknown"), host("unknown");
+            ui16 port = 0;
+            GetSchemeHostAndPort("unknown:///bebe", scheme, host, port);
+            UNIT_ASSERT_VALUES_EQUAL(scheme, "unknown://");
+            UNIT_ASSERT_VALUES_EQUAL(host, "");
+            UNIT_ASSERT_VALUES_EQUAL(port, 0);
         }
         // port overflow
         auto testCase = []() {

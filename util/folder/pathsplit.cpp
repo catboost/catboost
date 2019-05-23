@@ -135,14 +135,14 @@ TString JoinPaths(const TPathSplit& p1, const TPathSplit& p2) {
 }
 
 TStringBuf CutExtension(const TStringBuf fileName) {
-    if (fileName.Empty()) {
+    if (fileName.empty()) {
         return fileName;
     }
 
     TStringBuf name;
     TStringBuf extension;
     fileName.RSplit('.', name, extension);
-    if (name.Empty()) {
+    if (name.empty()) {
         // dot at a start or not found
         return name;
     } else {

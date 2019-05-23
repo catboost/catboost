@@ -130,17 +130,19 @@ TVector<TFeatureInteraction> CalcFeatureInteraction(
 
 TVector<TVector<double>> CalcInteraction(const TFullModel& model);
 TVector<TVector<double>> GetFeatureImportances(
-    const TString& type,
+    const EFstrType type,
     const TFullModel& model,
     const NCB::TDataProviderPtr dataset, // can be nullptr
     int threadCount,
+    EPreCalcShapValues mode,
     int logPeriod = 0);
 
 TVector<TVector<TVector<double>>> GetFeatureImportancesMulti(
-    const TString& type,
+    const EFstrType type,
     const TFullModel& model,
     const NCB::TDataProviderPtr dataset,
     int threadCount,
+    EPreCalcShapValues mode,
     int logPeriod = 0);
 
 
@@ -154,25 +156,9 @@ TVector<TString> GetMaybeGeneratedModelFeatureIds(
     const TFullModel& model,
     const NCB::TDataProviderPtr dataset); // can be nullptr
 
-bool TryGetLossDescription(const TFullModel& model, NCatboostOptions::TLossDescription& lossDescription);
-inline static EFstrType GetFeatureImportanceType(
+bool IsGroupwiseLearnedModel(const TFullModel& model);
+
+EFstrType GetFeatureImportanceType(
     const TFullModel& model,
     bool haveDataset,
-    EFstrType type)
-{
-    if (type == EFstrType::FeatureImportance) {
-        NCatboostOptions::TLossDescription lossDescription;
-        CB_ENSURE(TryGetLossDescription(model, lossDescription));
-        if (IsGroupwiseMetric(lossDescription.LossFunction)) {
-            if (haveDataset) {
-                return EFstrType::LossFunctionChange;
-            } else {
-                CATBOOST_WARNING_LOG << "Can't calculate LossFunctionChange feature importance without dataset for ranking metric,"
-                                        "will use PredictionValuesChange feature importance" << Endl;
-            }
-        };
-        return EFstrType::PredictionValuesChange;
-    } else {
-        return type;
-    }
-}
+    EFstrType type);

@@ -3,10 +3,8 @@ LIBRARY()
 
 
 SRCS(
-    approx_dimension.cpp
     cross_validation.cpp
-    data.cpp
-    preprocess.cpp
+    options_helper.cpp
     GLOBAL train_model.cpp
 )
 

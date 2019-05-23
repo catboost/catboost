@@ -4,7 +4,7 @@ A Guide to Masked Arrays in NumPy
 
 .. Contents::
 
-See http://www.scipy.org/scipy/numpy/wiki/MaskedArray
+See http://www.scipy.org/scipy/numpy/wiki/MaskedArray (dead link)
 for updates of this document.
 
 
@@ -18,7 +18,7 @@ that could store some additional information along with numerical values,
 while keeping the possibility for missing data (picture storing a series
 of dates along with measurements, what would later become the `TimeSeries
 Scikit <http://projects.scipy.org/scipy/scikits/wiki/TimeSeries>`__
-.
+(dead link).
 
 I started to implement such a class, but then quickly realized that
 any additional information disappeared when processing these subarrays
@@ -63,7 +63,7 @@ Main differences
  * *put*, *putmask* and *take* now mimic the ndarray methods, to avoid unpleasant surprises. Moreover, *put* and *putmask* both update the mask when needed.  * if *a* is a masked array, *bool(a)* raises a *ValueError*, as it does with ndarrays.
  * in the same way, the comparison of two masked arrays is a masked array, not a boolean
  * *filled(a)* returns an array of the same subclass as *a._data*, and no test is performed on whether it is contiguous or not.
- * the mask is always printed, even if it's *nomask*, which makes things easie (for me at least) to remember that a masked array is used.
+ * the mask is always printed, even if it's *nomask*, which makes things easy (for me at least) to remember that a masked array is used.
  * *cumsum* works as if the *_data* array was filled with 0. The mask is preserved, but not updated.
  * *cumprod* works as if the *_data* array was filled with 1. The mask is preserved, but not updated.
 
@@ -104,9 +104,9 @@ array(data =
  [False False True False False],
       fill_value=?)
 >>> old_ma.getmask(x) == new_ma.getmask(x)
-array([True, True, True, True, True], dtype=bool)
+array([True, True, True, True, True])
 >>> old_ma.getmask(y) == new_ma.getmask(y)
-array([True, True, False, True, True], dtype=bool)
+array([True, True, False, True, True])
 >>> old_ma.getmask(y)
 False
 
@@ -115,7 +115,7 @@ Using maskedarray with matplotlib
 ---------------------------------
 
 Starting with matplotlib 0.91.2, the masked array importing will work with
-the the maskedarray branch) as well as with earlier versions.
+the maskedarray branch) as well as with earlier versions.
 
 By default matplotlib still uses numpy.ma, but there is an rcParams setting
 that you can use to select maskedarray instead.  In the matplotlibrc file

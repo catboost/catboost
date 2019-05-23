@@ -13,7 +13,6 @@ There's also a pattern matching implementation here.
 __author__ = "Guido van Rossum <guido@python.org>"
 
 import sys
-import warnings
 from io import StringIO
 
 HUGE = 0x7FFFFFFF  # maximum repeat count, default max
@@ -272,7 +271,8 @@ class Node(Base):
         for child in self.children:
             yield from child.pre_order()
 
-    def _prefix_getter(self):
+    @property
+    def prefix(self):
         """
         The whitespace and comments preceding this node in the input.
         """
@@ -280,11 +280,10 @@ class Node(Base):
             return ""
         return self.children[0].prefix
 
-    def _prefix_setter(self, prefix):
+    @prefix.setter
+    def prefix(self, prefix):
         if self.children:
             self.children[0].prefix = prefix
-
-    prefix = property(_prefix_getter, _prefix_setter)
 
     def set_child(self, i, child):
         """
@@ -381,17 +380,17 @@ class Leaf(Base):
         """Return a pre-order iterator for the tree."""
         yield self
 
-    def _prefix_getter(self):
+    @property
+    def prefix(self):
         """
         The whitespace and comments preceding this token in the input.
         """
         return self._prefix
 
-    def _prefix_setter(self, prefix):
+    @prefix.setter
+    def prefix(self, prefix):
         self.changed()
         self._prefix = prefix
-
-    prefix = property(_prefix_getter, _prefix_setter)
 
 def convert(gr, raw_node):
     """

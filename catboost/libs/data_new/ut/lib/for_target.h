@@ -15,20 +15,6 @@ namespace NCB {
         return MakeIntrusive<TWeights<float>>(std::move(data));
     }
 
-
-    void CompareTargets(const TBinClassTarget& lhs, const TBinClassTarget& rhs);
-
-    void CompareTargets(const TMultiClassTarget& lhs, const TMultiClassTarget& rhs);
-
-    void CompareTargets(const TRegressionTarget& lhs, const TRegressionTarget& rhs);
-
-    void CompareTargets(const TGroupwiseRankingTarget& lhs, const TGroupwiseRankingTarget& rhs);
-
-    void CompareTargets(const TGroupPairwiseRankingTarget& lhs, const TGroupPairwiseRankingTarget& rhs);
-
-
-    void CompareTargetDataProviders(const TTargetDataProviders& lhs, const TTargetDataProviders& rhs);
-
     }
 
 }

@@ -5,7 +5,7 @@
 #include <util/charset/utf8.h>
 #include <util/generic/maybe.h>
 #include <util/string/cast.h>
-#include <util/string/iterator.h>
+#include <util/string/split.h>
 
 namespace {
     struct TCtrParam {
@@ -226,32 +226,32 @@ NCatboostOptions::TCatFeatureParams::TCatFeatureParams(ETaskType taskType)
     , TargetBinarization("target_binarization", TBinarizationOptions(EBorderSelectionType::MinEntropy, 1))
     , MaxTensorComplexity("max_ctr_complexity", 4)
     , OneHotMaxSize("one_hot_max_size", 2)
-    , CounterCalcMethod("counter_calc_method", ECounterCalc::Full)
+    , OneHotMaxSizeLimit(GetMaxBinCount(taskType))
+    , CounterCalcMethod("counter_calc_method", ECounterCalc::SkipTest)
     , StoreAllSimpleCtrs("store_all_simple_ctr", false, taskType)
     , CtrLeafCountLimit("ctr_leaf_count_limit", Max<ui64>(), taskType)
-
-{
+    , CtrHistoryUnit("ctr_history_unit", ECtrHistoryUnit::Sample, taskType) {
     TargetBinarization.Get().DisableNanModeOption();
 }
 
 void NCatboostOptions::TCatFeatureParams::Load(const NJson::TJsonValue& options) {
     CheckedLoad(options,
             &SimpleCtrs, &CombinationCtrs, &PerFeatureCtrs, &TargetBinarization, &MaxTensorComplexity, &OneHotMaxSize, &CounterCalcMethod,
-            &StoreAllSimpleCtrs, &CtrLeafCountLimit);
+            &StoreAllSimpleCtrs, &CtrLeafCountLimit, &CtrHistoryUnit);
     Validate();
 }
 
 void NCatboostOptions::TCatFeatureParams::Save(NJson::TJsonValue* options) const {
     SaveFields(options,
             SimpleCtrs, CombinationCtrs, PerFeatureCtrs, TargetBinarization, MaxTensorComplexity, OneHotMaxSize, CounterCalcMethod,
-            StoreAllSimpleCtrs, CtrLeafCountLimit);
+            StoreAllSimpleCtrs, CtrLeafCountLimit, CtrHistoryUnit);
 }
 
 bool NCatboostOptions::TCatFeatureParams::operator==(const TCatFeatureParams& rhs) const {
     return std::tie(SimpleCtrs, CombinationCtrs, PerFeatureCtrs, TargetBinarization, MaxTensorComplexity, OneHotMaxSize, CounterCalcMethod,
-            StoreAllSimpleCtrs, CtrLeafCountLimit) ==
+            StoreAllSimpleCtrs, CtrLeafCountLimit, CtrHistoryUnit) ==
         std::tie(rhs.SimpleCtrs, rhs.CombinationCtrs, rhs.PerFeatureCtrs, rhs.TargetBinarization, rhs.MaxTensorComplexity, rhs.OneHotMaxSize,
-                rhs.CounterCalcMethod, rhs.StoreAllSimpleCtrs, rhs.CtrLeafCountLimit);
+                rhs.CounterCalcMethod, rhs.StoreAllSimpleCtrs, rhs.CtrLeafCountLimit, rhs.CtrHistoryUnit);
 }
 
 bool NCatboostOptions::TCatFeatureParams::operator!=(const TCatFeatureParams& rhs) const {
@@ -259,11 +259,11 @@ bool NCatboostOptions::TCatFeatureParams::operator!=(const TCatFeatureParams& rh
 }
 
 void NCatboostOptions::TCatFeatureParams::Validate() const {
-    CB_ENSURE(OneHotMaxSize.Get() <= GetMaxBinCount(),
-            "Error in one_hot_max_size: maximum value of one-hot-encoding is 255");
+    CB_ENSURE(OneHotMaxSize.Get() <= OneHotMaxSizeLimit,
+            "Error in one_hot_max_size: maximum value of one-hot-encoding is " << OneHotMaxSizeLimit);
     const ui32 ctrComplexityLimit = GetMaxTreeDepth();
     CB_ENSURE(MaxTensorComplexity.Get() < ctrComplexityLimit,
-            "Error: max ctr complexity should be less then " << ctrComplexityLimit);
+            "Error: max ctr complexity should be less than " << ctrComplexityLimit);
     if (!CtrLeafCountLimit.IsUnimplementedForCurrentTask()) {
         CB_ENSURE(CtrLeafCountLimit.Get() > 0,
                 "Error: ctr_leaf_count_limit must be positive");

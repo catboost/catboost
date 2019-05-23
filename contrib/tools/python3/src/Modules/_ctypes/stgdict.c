@@ -49,6 +49,21 @@ PyCStgDict_dealloc(StgDictObject *self)
     PyDict_Type.tp_dealloc((PyObject *)self);
 }
 
+static PyObject *
+PyCStgDict_sizeof(StgDictObject *self, void *unused)
+{
+    Py_ssize_t res;
+
+    res = _PyDict_SizeOf((PyDictObject *)self);
+    res += sizeof(StgDictObject) - sizeof(PyDictObject);
+    if (self->format)
+        res += strlen(self->format) + 1;
+    res += self->ndim * sizeof(Py_ssize_t);
+    if (self->ffi_type_pointer.elements)
+        res += (self->length + 1) * sizeof(ffi_type *);
+    return PyLong_FromSsize_t(res);
+}
+
 int
 PyCStgDict_clone(StgDictObject *dst, StgDictObject *src)
 {
@@ -107,6 +122,11 @@ PyCStgDict_clone(StgDictObject *dst, StgDictObject *src)
     return 0;
 }
 
+static struct PyMethodDef PyCStgDict_methods[] = {
+    {"__sizeof__", (PyCFunction)PyCStgDict_sizeof, METH_NOARGS},
+    {NULL, NULL}                /* sentinel */
+};
+
 PyTypeObject PyCStgDict_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     "StgDict",
@@ -135,7 +155,7 @@ PyTypeObject PyCStgDict_Type = {
     0,                                          /* tp_weaklistoffset */
     0,                                          /* tp_iter */
     0,                                          /* tp_iternext */
-    0,                                          /* tp_methods */
+    PyCStgDict_methods,                         /* tp_methods */
     0,                                          /* tp_members */
     0,                                          /* tp_getset */
     0,                                          /* tp_base */
@@ -229,7 +249,7 @@ MakeFields(PyObject *type, CFieldObject *descr,
             }
             continue;
         }
-        new_descr = (CFieldObject *)PyObject_CallObject((PyObject *)&PyCField_Type, NULL);
+        new_descr = (CFieldObject *)_PyObject_CallNoArg((PyObject *)&PyCField_Type);
         if (new_descr == NULL) {
             Py_DECREF(fdescr);
             Py_DECREF(fieldlist);
@@ -310,7 +330,7 @@ MakeAnonFields(PyObject *type)
 }
 
 /*
-  Retrive the (optional) _pack_ attribute from a type, the _fields_ attribute,
+  Retrieve the (optional) _pack_ attribute from a type, the _fields_ attribute,
   and create an StgDictObject.  Used for Structure and Union subclasses.
 */
 int
@@ -428,7 +448,7 @@ PyCStructUnionType_update_stgdict(PyObject *type, PyObject *fields, int isStruct
         stgdict->format = _ctypes_alloc_format_string(NULL, "T{");
     } else {
         /* PEP3118 doesn't support union, or packed structures (well,
-           only standard packing, but we dont support the pep for
+           only standard packing, but we don't support the pep for
            that). Use 'B' for bytes. */
         stgdict->format = _ctypes_alloc_format_string(NULL, "B");
     }
@@ -497,8 +517,8 @@ PyCStructUnionType_update_stgdict(PyObject *type, PyObject *fields, int isStruct
             bitsize = 0;
 
         if (isStruct && !isPacked) {
-            char *fieldfmt = dict->format ? dict->format : "B";
-            char *fieldname = PyUnicode_AsUTF8(name);
+            const char *fieldfmt = dict->format ? dict->format : "B";
+            const char *fieldname = PyUnicode_AsUTF8(name);
             char *ptr;
             Py_ssize_t len;
             char *buf;

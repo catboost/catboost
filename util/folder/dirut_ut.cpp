@@ -18,7 +18,7 @@ Y_UNIT_TEST(TestRealLocation) {
 
     TTempDir tempDir;
     TString base = RealPath(tempDir());
-    UNIT_ASSERT(!base.Empty());
+    UNIT_ASSERT(!base.empty());
 
     if (base.back() == GetDirectorySeparator()) {
         base.pop_back();

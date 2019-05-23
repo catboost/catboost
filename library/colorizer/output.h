@@ -2,6 +2,9 @@
 
 #include "colors.h"
 
+// Note: this is an old interface for printing colors to stream.
+// Consider printing elements of `EAnsiCode` directly.
+
 namespace NColorizer {
     typedef TStringBuf (TColors::*TColorFunc)() const;
 

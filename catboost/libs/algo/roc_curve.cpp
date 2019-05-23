@@ -1,9 +1,13 @@
 #include "roc_curve.h"
+
 #include "apply.h"
 
 #include <catboost/libs/eval_result/eval_helpers.h>
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/model/model.h>
 #include <catboost/libs/target/data_providers.h>
+
+#include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/array_ref.h>
@@ -32,12 +36,19 @@ namespace {
     };
 }
 
-static TRocPoint IntersectSegments(const TRocPoint& leftEnds, const TRocPoint& rightEnds) {
+TRocPoint TRocCurve::IntersectSegments(const TRocPoint& leftEnds, const TRocPoint& rightEnds) {
     double x1 = leftEnds.Boundary, x2 = rightEnds.Boundary;
     double y11 = leftEnds.FalseNegativeRate, y21 = rightEnds.FalseNegativeRate;
     double y12 = leftEnds.FalsePositiveRate, y22 = rightEnds.FalsePositiveRate;
     double x = x1 + (x1 - x2) * (y11 - y12) / ((y21 - y22) - (y11 - y12));
-    double y = y11 + (x1 - x) * (y21 - y11) / (x1 - x2);
+    double y;
+    if ((y22 - y12) < EPS) {
+        y = 0.5 * (y12 + y22);
+    } else if ((y11 - y21) < EPS) {
+        y = 0.5 * (y11 + y21);
+    } else {
+        y = y11 + (x1 - x) * (y21 - y11) / (x1 - x2);
+    }
     return TRocPoint(x, y, y);
 }
 
@@ -96,7 +107,9 @@ void TRocCurve::BuildCurve(
         );
     }
 
-    Sort(probabilitiesWithTargets.begin(), probabilitiesWithTargets.end(),
+    Sort(
+        probabilitiesWithTargets.begin(),
+        probabilitiesWithTargets.end(),
         [](const TClassWithProbability& element1, const TClassWithProbability& element2) {
             return element1.Probability > element2.Probability;
         }
@@ -111,12 +124,13 @@ void TRocCurve::BuildCurve(
     for (size_t pointIdx = 0; pointIdx < allDocumentsCount - 1; ++pointIdx) {
         ++countTargetsIntermediate[probabilitiesWithTargets[pointIdx].ClassId];
 
-        double boundary = 0.5 * (probabilitiesWithTargets[pointIdx].Probability
-                               + probabilitiesWithTargets[pointIdx + 1].Probability);
+        double boundary
+            = 0.5 * (probabilitiesWithTargets[pointIdx].Probability
+                + probabilitiesWithTargets[pointIdx + 1].Probability);
 
-        if (probabilitiesWithTargets[pointIdx].Probability !=
-            probabilitiesWithTargets[pointIdx + 1].Probability) {
-
+        if (probabilitiesWithTargets[pointIdx + 1].Probability
+            < (probabilitiesWithTargets[pointIdx].Probability - EPS))
+        {
             double newFnr = double(countTargets[1] - countTargetsIntermediate[1]) / countTargets[1];
             double newFpr = double(countTargetsIntermediate[0]) / countTargets[0];
 
@@ -144,7 +158,7 @@ TRocCurve::TRocCurve(const TFullModel& model, const TVector<TDataProviderPtr>& d
     TVector<TConstArrayRef<float>> labels(datasets.size());
 
     // need to save owners of labels data
-    TVector<TTargetDataProviders> targetDataParts(datasets.size());
+    TVector<TTargetDataProviderPtr> targetDataParts(datasets.size());
 
     NCatboostOptions::TLossDescription logLoss;
     logLoss.LossFunction.Set(ELossFunction::Logloss);
@@ -175,7 +189,7 @@ TRocCurve::TRocCurve(const TFullModel& model, const TVector<TDataProviderPtr>& d
 
             targetDataParts[i] = std::move(processedData.TargetData);
 
-            labels[i] = GetTarget(targetDataParts[i]);
+            labels[i] = *(targetDataParts[i]->GetTarget());
         },
         0,
         SafeIntegerCast<int>(datasets.size()),

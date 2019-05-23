@@ -3,6 +3,7 @@ __all__ = [
     'easy_install', 'egg_info', 'install', 'install_lib', 'rotate', 'saveopts',
     'sdist', 'setopt', 'test', 'install_egg_info', 'install_scripts',
     'register', 'bdist_wininst', 'upload_docs', 'upload', 'build_clib',
+    'dist_info',
 ]
 
 from distutils.command.bdist import bdist

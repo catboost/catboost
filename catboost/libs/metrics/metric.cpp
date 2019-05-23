@@ -25,7 +25,7 @@
 #include <util/generic/ymath.h>
 #include <util/string/builder.h>
 #include <util/string/cast.h>
-#include <util/string/iterator.h>
+#include <util/string/split.h>
 #include <util/string/printf.h>
 #include <util/system/yassert.h>
 
@@ -202,14 +202,14 @@ TMetricHolder TCrossEntropyMetric::EvalSingleThread(
                     expApprox *= approxDelta[i];
                     nonExpApprox += FastLogf(approxDelta[i]);
                 }
-                holder.Stats[0] += w * ((1 - prob) * nonExpApprox + FastLogf(1 + 1 / expApprox));
+                holder.Stats[0] += w * (IsFinite(expApprox) ? FastLogf(1 + expApprox) - prob * nonExpApprox : (1 - prob) * nonExpApprox);
             } else {
                 double nonExpApprox = approx[i];
                 if (hasDelta) {
                     nonExpApprox += approxDelta[i];
                 }
                 const double expApprox = exp(nonExpApprox);
-                holder.Stats[0] += w * ((1 - prob) * nonExpApprox + log(1 + 1 / expApprox));
+                holder.Stats[0] += w * (IsFinite(expApprox) ? log(1 + expApprox) - prob * nonExpApprox : (1 - prob) * nonExpApprox);
             }
             holder.Stats[1] += w;
         }
@@ -2472,8 +2472,8 @@ double TKappaMetric::GetFinalError(const TMetricHolder& error) const {
 /* WKappa */
 
 namespace {
-    struct TWKappaMatric: public TAdditiveMetric<TWKappaMatric> {
-        explicit TWKappaMatric(int classCount = 2, double border = GetDefaultClassificationBorder())
+    struct TWKappaMetric: public TAdditiveMetric<TWKappaMetric> {
+        explicit TWKappaMetric(int classCount = 2, double border = GetDefaultClassificationBorder())
             : Border(border)
             , ClassCount(classCount) {
             UseWeights.MakeIgnored();
@@ -2501,14 +2501,14 @@ namespace {
 }
 
 THolder<IMetric> MakeBinClassWKappaMetric(double border) {
-    return MakeHolder<TWKappaMatric>(2, border);
+    return MakeHolder<TWKappaMetric>(2, border);
 }
 
 THolder<IMetric> MakeMultiClassWKappaMetric(int classCount) {
-    return MakeHolder<TWKappaMatric>(classCount);
+    return MakeHolder<TWKappaMetric>(classCount);
 }
 
-TMetricHolder TWKappaMatric::EvalSingleThread(
+TMetricHolder TWKappaMetric::EvalSingleThread(
     const TVector<TVector<double>>& approx,
     const TVector<TVector<double>>& approxDelta,
     bool isExpApprox,
@@ -2523,15 +2523,15 @@ TMetricHolder TWKappaMatric::EvalSingleThread(
     return CalcKappaMatrix(approx, target, begin, end, Border);
 }
 
-TString TWKappaMatric::GetDescription() const {
+TString TWKappaMetric::GetDescription() const {
     return BuildDescription(ELossFunction::WKappa, "%.3g", MakeBorderParam(Border));
 }
 
-void TWKappaMatric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TWKappaMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
     *valueType = EMetricBestValue::Max;
 }
 
-double TWKappaMatric::GetFinalError(const TMetricHolder& error) const {
+double TWKappaMetric::GetFinalError(const TMetricHolder& error) const {
     return CalcKappa(error, ClassCount, EKappaMetricType::Weighted);
 }
 
@@ -3468,7 +3468,11 @@ TMetricHolder TCustomMetric::Eval(
 ) const {
     auto weight = UseWeights ? weightIn : TConstArrayRef<float>{};
     TMetricHolder result = Descriptor.EvalFunc(approx, target, weight, begin, end, Descriptor.CustomData);
-    CB_ENSURE(result.Stats.ysize() == 2, "Custom metric evaluate() returned incorrect value");
+    CB_ENSURE(
+        result.Stats.ysize() == 2,
+        "Custom metric evaluate() returned incorrect value."\
+        " Expected tuple of size 2, got tuple of size " << result.Stats.ysize() << "."
+    );
     return result;
 }
 
@@ -3608,6 +3612,43 @@ THolder<IMetric> MakeUserDefinedQuerywiseMetric(const TMap<TString, TString>& pa
     return MakeHolder<TUserDefinedQuerywiseMetric>(params);
 }
 
+TUserDefinedQuerywiseMetric::TUserDefinedQuerywiseMetric(const TMap<TString, TString>& params)
+    : Alpha(0.0)
+{
+    if (params.contains("alpha")) {
+        Alpha = FromString<float>(params.at("alpha"));
+    }
+    UseWeights.MakeIgnored();
+}
+
+TMetricHolder TUserDefinedQuerywiseMetric::EvalSingleThread(
+        const TVector<TVector<double>>& /*approx*/,
+        const TVector<TVector<double>>& approxDelta,
+        bool isExpApprox,
+        TConstArrayRef<float> /*target*/,
+        TConstArrayRef<float> /*weight*/,
+        TConstArrayRef<TQueryInfo> /*queriesInfo*/,
+        int /*queryStartIndex*/,
+        int /*queryEndIndex*/
+) const {
+    Y_ASSERT(approxDelta.empty());
+    Y_ASSERT(!isExpApprox);
+    CB_ENSURE(false, "Not implemented for TUserDefinedQuerywiseMetric metric.");
+    return TMetricHolder(2);
+}
+
+EErrorType TUserDefinedQuerywiseMetric::GetErrorType() const {
+    return EErrorType::QuerywiseError;
+}
+
+TString TUserDefinedQuerywiseMetric::GetDescription() const {
+    return "TUserDefinedQuerywiseMetric";
+}
+
+void TUserDefinedQuerywiseMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+    *valueType = EMetricBestValue::Min;
+}
+
 /* Huber loss */
 
 namespace {
@@ -3681,43 +3722,78 @@ void THuberLossMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
     *valueType = EMetricBestValue::Min;
 }
 
+/* StochasticFilter */
 
-TUserDefinedQuerywiseMetric::TUserDefinedQuerywiseMetric(const TMap<TString, TString>& params)
-        : Alpha(0.0)
-{
-    if (params.contains("alpha")) {
-        Alpha = FromString<float>(params.at("alpha"));
-    }
+namespace {
+    class TStochasticFilter : public TAdditiveMetric<TStochasticFilter> {
+    public:
+        explicit TStochasticFilter();
+
+        TMetricHolder EvalSingleThread(
+                const TVector<TVector<double>>& approx,
+                const TVector<TVector<double>>& approxDelta,
+                bool isExpApprox,
+                TConstArrayRef<float> target,
+                TConstArrayRef<float> weight,
+                TConstArrayRef<TQueryInfo> queriesInfo,
+                int begin,
+                int end
+        ) const;
+
+        EErrorType GetErrorType() const override;
+        TString GetDescription() const override;
+        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+    };
+}
+
+THolder<IMetric> MakeStochasticFilterMetric() {
+    return MakeHolder<TStochasticFilter>();
+}
+
+TStochasticFilter::TStochasticFilter() {
     UseWeights.MakeIgnored();
 }
 
-TMetricHolder TUserDefinedQuerywiseMetric::EvalSingleThread(
-    const TVector<TVector<double>>& /*approx*/,
-    const TVector<TVector<double>>& approxDelta,
-    bool isExpApprox,
-    TConstArrayRef<float> /*target*/,
-    TConstArrayRef<float> /*weight*/,
-    TConstArrayRef<TQueryInfo> /*queriesInfo*/,
-    int /*queryStartIndex*/,
-    int /*queryEndIndex*/
+TMetricHolder TStochasticFilter::EvalSingleThread(
+        const TVector<TVector<double>>& approx,
+        const TVector<TVector<double>>& approxDelta,
+        bool isExpApprox,
+        TConstArrayRef<float> target,
+        TConstArrayRef<float> weight,
+        TConstArrayRef<TQueryInfo> queriesInfo,
+        int queryBegin,
+        int queryEnd
 ) const {
-    Y_ASSERT(approxDelta.empty());
     Y_ASSERT(!isExpApprox);
-    CB_ENSURE(false, "Not implemented for TUserDefinedQuerywiseMetric metric.");
+    Y_ASSERT(weight.empty());
+
     TMetricHolder metric(2);
+    for(int queryIndex = queryBegin; queryIndex < queryEnd; ++queryIndex) {
+        const int begin = queriesInfo[queryIndex].Begin;
+        const int end = queriesInfo[queryIndex].End;
+        int pos = 0;
+        for (int i = begin; i < end; ++i) {
+            const double currentApprox = approxDelta.empty() ? approx[0][i] : approx[0][i] + approxDelta[0][i];
+            if (currentApprox >= 0.0) {
+                pos += 1;
+                metric.Stats[0] += target[i] / pos;
+            }
+        }
+    }
+    metric.Stats[1] = queryEnd - queryBegin;
     return metric;
 }
 
-EErrorType TUserDefinedQuerywiseMetric::GetErrorType() const {
+EErrorType TStochasticFilter::GetErrorType() const {
     return EErrorType::QuerywiseError;
 }
 
-TString TUserDefinedQuerywiseMetric::GetDescription() const {
-    return "TUserDefinedQuerywiseMetric";
+TString TStochasticFilter::GetDescription() const {
+    return BuildDescription(ELossFunction::StochasticFilter, UseWeights);
 }
 
-void TUserDefinedQuerywiseMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
-    *valueType = EMetricBestValue::Min;
+void TStochasticFilter::GetBestValue(EMetricBestValue* valueType, float*) const {
+    *valueType = EMetricBestValue::Max;
 }
 
 /* AverageGain */
@@ -3956,11 +4032,6 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
             validParams = {"max_pairs"};
             break;
 
-        case ELossFunction::PairLogitPairwise:
-            result.push_back(MakePairLogitMetric());
-            validParams = {"max_pairs"};
-            break;
-
         case ELossFunction::QueryRMSE:
             result.push_back(MakeQueryRMSEMetric());
             break;
@@ -3968,18 +4039,6 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
         case ELossFunction::QuerySoftMax:
             result.emplace_back(new TQuerySoftMaxMetric());
             validParams = {"lambda"};
-            break;
-
-        case ELossFunction::YetiRank:
-            result.push_back(MakePFoundMetric());
-            validParams = {"decay", "permutations"};
-            CB_ENSURE(!params.contains("permutations") || FromString<int>(params.at("permutations")) > 0, "Metric " << metric << " expects permutations > 0");
-            break;
-
-        case ELossFunction::YetiRankPairwise:
-            result.push_back(MakePFoundMetric());
-            validParams = {"decay", "permutations"};
-            CB_ENSURE(!params.contains("permutations") || FromString<int>(params.at("permutations")) > 0, "Metric " << metric << " expects permutations > 0");
             break;
 
         case ELossFunction::PFound: {
@@ -4191,8 +4250,13 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
             validParams={"delta"};
             result.push_back(MakeHuberLossMetric(FromString<float>(params.at("delta"))));
             break;
+        case ELossFunction::StochasticFilter: {
+            validParams={"sigma", "num_estimations"};
+            result.push_back(MakeStochasticFilterMetric());
+            break;
+        }
         default:
-            CB_ENSURE(false, "Unsupported loss_function: " << metric);
+            CB_ENSURE(false, "Unsupported metric: " << metric);
             return TVector<THolder<IMetric>>();
     }
 
@@ -4266,7 +4330,6 @@ TVector<THolder<IMetric>> CreateMetrics(
 
 
 TVector<THolder<IMetric>> CreateMetrics(
-        const NCatboostOptions::TOption<NCatboostOptions::TLossDescription>& lossFunctionOption,
         const NCatboostOptions::TOption<NCatboostOptions::TMetricOptions>& evalMetricOptions,
         const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
         int approxDimension
@@ -4289,8 +4352,10 @@ TVector<THolder<IMetric>> CreateMetrics(
         usedDescriptions.insert(errors.back()->GetDescription());
     }
 
-    if (lossFunctionOption->GetLossFunction() != ELossFunction::PythonUserDefinedPerObject) {
-        TVector<THolder<IMetric>> createdMetrics = CreateMetricFromDescription(lossFunctionOption, approxDimension);
+    if (evalMetricOptions.Get().ObjectiveMetric->GetLossFunction() != ELossFunction::PythonUserDefinedPerObject) {
+        TVector<THolder<IMetric>> createdMetrics = CreateMetricFromDescription(
+            evalMetricOptions.Get().ObjectiveMetric,
+            approxDimension);
         for (auto& metric : createdMetrics) {
             if (!usedDescriptions.contains(metric->GetDescription())) {
                 usedDescriptions.insert(metric->GetDescription());
@@ -4549,14 +4614,14 @@ inline void CheckMetric(const ELossFunction metric, const ELossFunction modelLos
         return;
     }
 
-    if (IsMultiDimensionalError(metric) && !IsSingleDimensionalError(metric)) {
-        CB_ENSURE(IsMultiDimensionalError(modelLoss),
+    if (IsMultiClassOnlyMetric(metric)) {
+        CB_ENSURE(IsMultiClassOnlyMetric(modelLoss),
             "Cannot use strict multiclassification and not multiclassification metrics together: "
             << "If you din't train multiclassification, use binary classification, regression or ranking metrics instead.");
     }
 
-    if (IsMultiDimensionalError(modelLoss) && !IsSingleDimensionalError(modelLoss)) {
-        CB_ENSURE(IsMultiDimensionalError(metric),
+    if (IsMultiClassOnlyMetric(modelLoss)) {
+        CB_ENSURE(IsMultiDimensionalCompatibleError(metric),
             "Cannot use strict multiclassification and not multiclassification metrics together: "
             << "If you trained multiclassification, use multiclassification metrics.");
     }
@@ -4608,7 +4673,7 @@ void CheckPreprocessedTarget(
         auto targetBounds = CalcMinMax(target);
         CB_ENSURE((targetBounds.Min != targetBounds.Max) || allowConstLabel, "All train targets are equal");
     }
-    if (lossFunction == ELossFunction::CrossEntropy) {
+    if (lossFunction == ELossFunction::CrossEntropy || lossFunction == ELossFunction::PFound) {
         auto targetBounds = CalcMinMax(target);
         CB_ENSURE(targetBounds.Min >= 0, "Min target less than 0: " + ToString(targetBounds.Min));
         CB_ENSURE(targetBounds.Max <= 1, "Max target greater than 1: " + ToString(targetBounds.Max));
@@ -4619,7 +4684,7 @@ void CheckPreprocessedTarget(
         CB_ENSURE(minTarget >= 0, "Min target less than 0: " + ToString(minTarget));
     }
 
-    if (IsMultiClassMetric(lossFunction) && !IsBinaryClassMetric(lossFunction)) {
+    if (IsMultiClassOnlyMetric(lossFunction)) {
         CB_ENSURE(AllOf(target, [](float x) { return int(x) == x && x >= 0; }),
                   "metric/loss-function " << lossFunction << " is a Multiclassification metric, "
                   " each target label should be a nonnegative integer");

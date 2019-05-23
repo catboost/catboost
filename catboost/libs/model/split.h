@@ -7,8 +7,8 @@
 #include <util/str_stl.h>
 #include <util/ysaveload.h>
 
-
-inline bool IsTrueHistogram(ui8 bucket, ui8 splitIdx) {
+template<typename TBucketType>
+inline bool IsTrueHistogram(TBucketType bucket, TBucketType splitIdx) {
     return bucket > splitIdx;
 }
 

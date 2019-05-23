@@ -19,6 +19,7 @@ def check_imports(no_check=None, extra=[], skip_func=None):
 
         'boto.*',
 
+        'celery.backends.database.*',  # needs optional dependency sqlalchemy
         'click._winconsole',
         'common.*',  # sandbox.common
 
@@ -35,6 +36,7 @@ def check_imports(no_check=None, extra=[], skip_func=None):
         'gensim.similarities.index',
 
         'kernel.*',  # skynet/kernel
+        'kombu.transport.sqlalchemy.*',
         'IPython.*',
         'lxml.cssselect',
         'lxml.html.ElementSoup',
@@ -70,7 +72,7 @@ def check_imports(no_check=None, extra=[], skip_func=None):
         "numpy.testing.__init__",
         "numpy.ma.version",
         "numpy.matrixlib.__init__",
-        "numpy.testing.noseclasses",
+        "numpy.testing.*",
         "numpy.__init__",
         "numpy.core.code_generators.generate_numpy_api",
         "numpy.doc.basics",
@@ -87,6 +89,12 @@ def check_imports(no_check=None, extra=[], skip_func=None):
         "psutil._psutil_sunos",
         "psutil._psutil_windows",
 
+        "trollius.py33_winapi",
+        "trollius.windows_events",
+        "trollius.windows_utils",
+        "trollius.test_utils",
+        "trollius.test_support",
+
         "PIL.ImageCms",
         "PIL.ImageGL",
         "PIL.ImageGrab",
@@ -97,6 +105,12 @@ def check_imports(no_check=None, extra=[], skip_func=None):
 
         "dateutil.tzwin",
         "dateutil.tz.win",
+
+        "django.contrib.*",
+        "django.core.management.commands.*",
+        "django.db.backends.*",
+        "django.db.migrations.*",
+        "django.template.backends.jinja2",
 
         "matplotlib.backends.*",
         "matplotlib.sphinxext.*",
@@ -156,6 +170,8 @@ def check_imports(no_check=None, extra=[], skip_func=None):
 
         "uwsgidecorators",
 
+        "vcr.stubs.*",
+
         "watchdog.*",
         "werkzeug.*",
         "ws4py.*",
@@ -180,6 +196,8 @@ def check_imports(no_check=None, extra=[], skip_func=None):
 
         "catboost.widget.*",
         "kubiki.geobase",
+
+        "hypothesis.extra.*",
 
     ] + list(no_check or [])
 

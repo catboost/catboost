@@ -240,11 +240,11 @@ Y_UNIT_TEST_SUITE(THttpParser) {
             {
                 TStringOutput output(content);
                 TZLibCompress compress(&output, ZLib::Raw);
-                compress.Write(testBody.Data(), testBody.Size());
+                compress.Write(testBody.data(), testBody.size());
             }
 
             TString msg = MakeEncodedRequest("deflate", content);
-            UNIT_ASSERT(p.Parse(msg.Data(), msg.Size()));
+            UNIT_ASSERT(p.Parse(msg.data(), msg.size()));
             UNIT_ASSERT_VALUES_EQUAL(p.DecodedContent(), testBody);
         }
     }
@@ -276,14 +276,14 @@ Y_UNIT_TEST_SUITE(THttpParser) {
         THttpOutput httpOut(&out, &i);
         httpOut.EnableCompression(true);
         httpOut << "HTTP/1.1 200 OK\r\n";
-        httpOut << "Content-Length: " << content.Size() << "\r\n\r\n";
+        httpOut << "Content-Length: " << content.size() << "\r\n\r\n";
         httpOut << content;
         httpOut.Finish();
         // check that compression works
         UNIT_ASSERT(!result.Contains(content));
 
         THttpParser p;
-        UNIT_ASSERT(p.Parse(result.Data(), result.Size()));
+        UNIT_ASSERT(p.Parse(result.data(), result.size()));
         UNIT_ASSERT_VALUES_EQUAL(p.RetCode(), 200);
         UNIT_ASSERT(p.Headers().HasHeader("Content-Encoding"));
         UNIT_ASSERT_VALUES_EQUAL(p.DecodedContent(), content);

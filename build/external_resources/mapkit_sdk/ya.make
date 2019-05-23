@@ -11,8 +11,8 @@ IF (GCC OR CLANG)
 ENDIF()
 
 IF (OS_LINUX)
-    # Qt + protobuf 2.6.1 + GL headers + GLES2
-    DECLARE_EXTERNAL_RESOURCE(MAPKIT_SDK sbr:649684872)
+    # Qt 5.6.1 + protobuf 3.6.1 + GL headers + GLES2
+    DECLARE_EXTERNAL_RESOURCE(MAPKIT_SDK sbr:897945809)
     CFLAGS(
         GLOBAL "-I$MAPKIT_SDK_RESOURCE_GLOBAL/mapkit_sdk/include"
         GLOBAL "-I$MAPKIT_SDK_RESOURCE_GLOBAL/mapkit_sdk/local/linux.x86-64/include"
@@ -22,8 +22,8 @@ IF (OS_LINUX)
         "-L$MAPKIT_SDK_RESOURCE_GLOBAL/mapkit_sdk/lib/x86_64-linux-gnu"
     )
 ELSEIF (OS_ANDROID)
-    # protobuf 2.6.1
-    DECLARE_EXTERNAL_RESOURCE(MAPKIT_SDK sbr:549833385)
+    # protobuf 3.6.1
+    DECLARE_EXTERNAL_RESOURCE(MAPKIT_SDK sbr:881642915)
     CFLAGS(
         GLOBAL "-I$MAPKIT_SDK_RESOURCE_GLOBAL/mapkit_sdk/include"
     )
@@ -31,13 +31,17 @@ ELSEIF (OS_ANDROID)
         LDFLAGS_FIXED(
             "-L$MAPKIT_SDK_RESOURCE_GLOBAL/mapkit_sdk/local/android.armeabi-v7a/lib"
         )
-    ELSEIF(ARCH_I386)
-        CFLAGS(
-            GLOBAL "-I$MAPKIT_SDK_RESOURCE_GLOBAL/mapkit_sdk/arch-x86/usr/include"
+    ELSEIF (ARCH_ARM64)
+        LDFLAGS_FIXED(
+            "-L$MAPKIT_SDK_RESOURCE_GLOBAL/mapkit_sdk/local/android.arm64-v8a/lib"
         )
+    ELSEIF(ARCH_I386)
         LDFLAGS_FIXED(
             "-L$MAPKIT_SDK_RESOURCE_GLOBAL/mapkit_sdk/local/android.x86/lib"
-            "-L$MAPKIT_SDK_RESOURCE_GLOBAL/mapkit_sdk/arch-x86/usr/lib"
+        )
+    ELSEIF (ARCH_X86_64)
+        LDFLAGS_FIXED(
+            "-L$MAPKIT_SDK_RESOURCE_GLOBAL/mapkit_sdk/local/android.x86_64/lib"
         )
     ELSE()
         MESSAGE(FATAL_ERROR Unsupported platform)

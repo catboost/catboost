@@ -3,15 +3,16 @@ LIBRARY()
 
 
 SRCS(
-    GLOBAL cb_dsv_loader.cpp
     async_row_processor.cpp
+    baseline.cpp
     borders_io.cpp
     cat_feature_perfect_hash.cpp
     cat_feature_perfect_hash_helper.cpp
+    GLOBAL cb_dsv_loader.cpp
     columns.cpp
     data_provider.cpp
     data_provider_builders.cpp
-    dsv_parser.cpp
+    exclusive_feature_bundling.cpp
     external_columns.cpp
     feature_index.cpp
     features_layout.cpp
@@ -35,6 +36,7 @@ SRCS(
 PEERDIR(
     library/dbg_output
     library/object_factory
+    library/pop_count
     library/threading/future
     library/threading/local_executor
 
@@ -43,6 +45,7 @@ PEERDIR(
     catboost/libs/data_types
     catboost/libs/data_util
     catboost/libs/helpers
+    catboost/libs/index_range
     catboost/libs/logging
     catboost/libs/model
     catboost/libs/options
@@ -50,7 +53,7 @@ PEERDIR(
     catboost/libs/quantization_schema
 )
 
-GENERATE_ENUM_SERIALIZATION(dsv_parser.h)
+GENERATE_ENUM_SERIALIZATION(baseline.h)
 GENERATE_ENUM_SERIALIZATION(order.h)
 GENERATE_ENUM_SERIALIZATION(target.h)
 GENERATE_ENUM_SERIALIZATION(visitor.h)

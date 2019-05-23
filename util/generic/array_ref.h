@@ -1,12 +1,10 @@
 #pragma once
 
-#include "vector_ops.h"
-
-#include <util/generic/fwd.h>
-#include <util/generic/utility.h>
+#include <util/generic/yexception.h>
 
 #include <algorithm>
 #include <initializer_list>
+#include <iterator>
 
 /**
  * `TArrayRef` works pretty much like `std::span` with dynamic extent, presenting
@@ -27,8 +25,16 @@
  * - `const TArrayRef<const T>` is a const reference to const data (like `const T* const`).
  */
 template <class T>
-class TArrayRef: public NVectorOps::TVectorOps<T, TArrayRef<T>> {
+class TArrayRef {
 public:
+    using iterator = T*;
+    using const_iterator = const T*;
+    using reference = T&;
+    using const_reference = const T&;
+    using value_type = T;
+    using reverse_iterator = std::reverse_iterator<iterator>;
+    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+
     constexpr inline TArrayRef() noexcept
         : T_(nullptr)
         , S_(0)
@@ -69,39 +75,79 @@ public:
 
     template <class TT, typename = std::enable_if_t<std::is_same<std::remove_const_t<T>, std::remove_const_t<TT>>::value>>
     bool operator==(const TArrayRef<TT>& other) const noexcept {
-        return Size() == other.Size() && std::equal(this->Begin(), this->End(), other.Begin());
+        return (S_ == other.size()) && std::equal(begin(), end(), other.begin());
     }
 
-    inline ~TArrayRef() = default;
-
-    // TODO: drop
-    constexpr inline T* Data() const noexcept {
+    constexpr inline T* data() const noexcept {
         return T_;
     }
 
-    // TODO: drop
-    constexpr inline size_t Size() const noexcept {
+    constexpr inline size_t size() const noexcept {
         return S_;
     }
 
-    // TODO: drop
-    inline void Swap(TArrayRef& a) noexcept {
-        ::DoSwap(T_, a.T_);
-        ::DoSwap(S_, a.S_);
+    inline bool empty() const noexcept {
+        return (S_ == 0);
     }
 
-    /* STL compatibility. */
-
-    constexpr inline T* data() const noexcept {
-        return Data();
+    inline iterator begin() const noexcept {
+        return T_;
     }
 
-    constexpr inline size_t size() const noexcept {
-        return Size();
+    inline iterator end() const noexcept {
+        return (T_ + S_);
     }
 
-    inline void swap(TArrayRef& a) noexcept {
-        Swap(a);
+    inline const_iterator cbegin() const noexcept {
+        return T_;
+    }
+
+    inline const_iterator cend() const noexcept {
+        return (T_ + S_);
+    }
+
+    inline reverse_iterator rbegin() const noexcept {
+        return reverse_iterator(T_ + S_);
+    }
+
+    inline reverse_iterator rend() const noexcept {
+        return reverse_iterator(T_);
+    }
+
+    inline const_reverse_iterator crbegin() const noexcept {
+        return const_reverse_iterator(T_ + S_);
+    }
+
+    inline const_reverse_iterator crend() const noexcept {
+        return const_reverse_iterator(T_);
+    }
+
+    inline reference front() const noexcept {
+        return *T_;
+    }
+
+    inline reference back() const noexcept {
+        Y_ASSERT(S_ > 0);
+
+        return *(end() - 1);
+    }
+
+    inline reference operator[](size_t n) const noexcept {
+        Y_ASSERT(n < S_);
+
+        return *(T_ + n);
+    }
+
+    inline reference at(size_t n) const {
+        if (n >= S_) {
+            ThrowRangeError("array ref range error");
+        }
+
+        return (*this)[n];
+    }
+
+    inline explicit operator bool() const noexcept {
+        return (S_ > 0);
     }
 
     TArrayRef<T> Slice(size_t offset) const {
@@ -110,9 +156,32 @@ public:
     }
 
     TArrayRef<T> Slice(size_t offset, size_t size) const {
-        Y_ASSERT(offset + size <= this->size());
+        Y_ASSERT(offset + size <= S_);
 
-        return TArrayRef<T>(data() + offset, data() + offset + size);
+        return TArrayRef<T>(T_ + offset, size);
+    }
+
+    /* FIXME:
+     * This method is placed here for backward compatibility only and should be removed.
+     * Keep in mind that it's behavior is different from Slice():
+     *      SubRegion() never throws. It returns empty TArrayRef in case of invalid input.
+     *
+     * DEPRECATED. DO NOT USE.
+     */
+    TArrayRef<T> SubRegion(size_t offset, size_t size) const {
+        if (size == 0 || offset >= S_) {
+            return TArrayRef();
+        }
+
+        if (size > S_ - offset) {
+            size = S_ - offset;
+        }
+
+        return TArrayRef(T_ + offset, size);
+    }
+
+    inline yssize_t ysize() const noexcept {
+        return static_cast<yssize_t>(this->size());
     }
 
 private:

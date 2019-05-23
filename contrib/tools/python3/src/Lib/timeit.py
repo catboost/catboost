@@ -9,18 +9,16 @@ the Python Cookbook, published by O'Reilly.
 Library usage: see the Timer class.
 
 Command line usage:
-    python timeit.py [-n N] [-r N] [-s S] [-t] [-c] [-p] [-h] [--] [statement]
+    python timeit.py [-n N] [-r N] [-s S] [-p] [-h] [--] [statement]
 
 Options:
   -n/--number N: how many times to execute 'statement' (default: see below)
-  -r/--repeat N: how many times to repeat the timer (default 3)
+  -r/--repeat N: how many times to repeat the timer (default 5)
   -s/--setup S: statement to be executed once initially (default 'pass').
                 Execution time of this setup statement is NOT timed.
   -p/--process: use time.process_time() (default is time.perf_counter())
-  -t/--time: use time.time() (deprecated)
-  -c/--clock: use time.clock() (deprecated)
   -v/--verbose: print raw timing results; repeat for more digits precision
-  -u/--unit: set the output time unit (usec, msec, or sec)
+  -u/--unit: set the output time unit (nsec, usec, msec, or sec)
   -h/--help: print this usage message and exit
   --: separate options from statement, use when statement starts with -
   statement: statement to be timed (default 'pass')
@@ -59,7 +57,7 @@ __all__ = ["Timer", "timeit", "repeat", "default_timer"]
 
 dummy_src_name = "<timeit-src>"
 default_number = 1000000
-default_repeat = 3
+default_repeat = 5
 default_timer = time.perf_counter
 
 _globals = globals
@@ -186,7 +184,7 @@ class Timer:
 
         This is a convenience function that calls the timeit()
         repeatedly, returning a list of results.  The first argument
-        specifies how many times to call timeit(), defaulting to 3;
+        specifies how many times to call timeit(), defaulting to 5;
         the second argument specifies the timer argument, defaulting
         to one million.
 
@@ -210,22 +208,23 @@ class Timer:
     def autorange(self, callback=None):
         """Return the number of loops and time taken so that total time >= 0.2.
 
-        Calls the timeit method with *number* set to successive powers of
-        ten (10, 100, 1000, ...) up to a maximum of one billion, until
-        the time taken is at least 0.2 second, or the maximum is reached.
-        Returns ``(number, time_taken)``.
+        Calls the timeit method with increasing numbers from the sequence
+        1, 2, 5, 10, 20, 50, ... until the time taken is at least 0.2
+        second.  Returns (number, time_taken).
 
         If *callback* is given and is not None, it will be called after
         each trial with two arguments: ``callback(number, time_taken)``.
         """
-        for i in range(1, 10):
-            number = 10**i
-            time_taken = self.timeit(number)
-            if callback:
-                callback(number, time_taken)
-            if time_taken >= 0.2:
-                break
-        return (number, time_taken)
+        i = 1
+        while True:
+            for j in 1, 2, 5:
+                number = i * j
+                time_taken = self.timeit(number)
+                if callback:
+                    callback(number, time_taken)
+                if time_taken >= 0.2:
+                    return (number, time_taken)
+            i *= 10
 
 def timeit(stmt="pass", setup="pass", timer=default_timer,
            number=default_number, globals=None):
@@ -266,6 +265,7 @@ def main(args=None, *, _wrap_timer=None):
         print(err)
         print("use -h/--help for command line help")
         return 2
+
     timer = default_timer
     stmt = "\n".join(args) or "pass"
     number = 0 # auto-determine
@@ -273,7 +273,7 @@ def main(args=None, *, _wrap_timer=None):
     repeat = default_repeat
     verbose = 0
     time_unit = None
-    units = {"usec": 1, "msec": 1e3, "sec": 1e6}
+    units = {"nsec": 1e-9, "usec": 1e-6, "msec": 1e-3, "sec": 1.0}
     precision = 3
     for o, a in opts:
         if o in ("-n", "--number"):
@@ -284,17 +284,13 @@ def main(args=None, *, _wrap_timer=None):
             if a in units:
                 time_unit = a
             else:
-                print("Unrecognized unit. Please select usec, msec, or sec.",
+                print("Unrecognized unit. Please select nsec, usec, msec, or sec.",
                     file=sys.stderr)
                 return 2
         if o in ("-r", "--repeat"):
             repeat = int(a)
             if repeat <= 0:
                 repeat = 1
-        if o in ("-t", "--time"):
-            timer = time.time
-        if o in ("-c", "--clock"):
-            timer = time.clock
         if o in ("-p", "--process"):
             timer = time.process_time
         if o in ("-v", "--verbose"):
@@ -305,6 +301,7 @@ def main(args=None, *, _wrap_timer=None):
             print(__doc__, end=' ')
             return 0
     setup = "\n".join(setup) or "pass"
+
     # Include the current directory, so that local imports work (sys.path
     # contains the directory of this script, rather than the current
     # directory)
@@ -312,50 +309,65 @@ def main(args=None, *, _wrap_timer=None):
     sys.path.insert(0, os.curdir)
     if _wrap_timer is not None:
         timer = _wrap_timer(timer)
+
     t = Timer(stmt, setup, timer)
     if number == 0:
         # determine number so that 0.2 <= total time < 2.0
         callback = None
         if verbose:
             def callback(number, time_taken):
-                msg = "{num} loops -> {secs:.{prec}g} secs"
-                print(msg.format(num=number, secs=time_taken, prec=precision))
+                msg = "{num} loop{s} -> {secs:.{prec}g} secs"
+                plural = (number != 1)
+                print(msg.format(num=number, s='s' if plural else '',
+                                  secs=time_taken, prec=precision))
         try:
             number, _ = t.autorange(callback)
         except:
             t.print_exc()
             return 1
+
+        if verbose:
+            print()
+
     try:
-        r = t.repeat(repeat, number)
+        raw_timings = t.repeat(repeat, number)
     except:
         t.print_exc()
         return 1
-    best = min(r)
+
+    def format_time(dt):
+        unit = time_unit
+
+        if unit is not None:
+            scale = units[unit]
+        else:
+            scales = [(scale, unit) for unit, scale in units.items()]
+            scales.sort(reverse=True)
+            for scale, unit in scales:
+                if dt >= scale:
+                    break
+
+        return "%.*g %s" % (precision, dt / scale, unit)
+
     if verbose:
-        print("raw times:", " ".join(["%.*g" % (precision, x) for x in r]))
-    print("%d loops," % number, end=' ')
-    usec = best * 1e6 / number
-    if time_unit is not None:
-        scale = units[time_unit]
-    else:
-        scales = [(scale, unit) for unit, scale in units.items()]
-        scales.sort(reverse=True)
-        for scale, time_unit in scales:
-            if usec >= scale:
-                break
-    print("best of %d: %.*g %s per loop" % (repeat, precision,
-                                            usec/scale, time_unit))
-    best = min(r)
-    usec = best * 1e6 / number
-    worst = max(r)
+        print("raw times: %s" % ", ".join(map(format_time, raw_timings)))
+        print()
+    timings = [dt / number for dt in raw_timings]
+
+    best = min(timings)
+    print("%d loop%s, best of %d: %s per loop"
+          % (number, 's' if number != 1 else '',
+             repeat, format_time(best)))
+
+    best = min(timings)
+    worst = max(timings)
     if worst >= best * 4:
-        usec = worst * 1e6 / number
         import warnings
-        warnings.warn_explicit(
-            "The test results are likely unreliable. The worst\n"
-            "time (%.*g %s) was more than four times slower than the best time." %
-            (precision, usec/scale, time_unit),
-             UserWarning, '', 0)
+        warnings.warn_explicit("The test results are likely unreliable. "
+                               "The worst time (%s) was more than four times "
+                               "slower than the best time (%s)."
+                               % (format_time(worst), format_time(best)),
+                               UserWarning, '', 0)
     return None
 
 if __name__ == "__main__":

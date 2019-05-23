@@ -7,13 +7,13 @@ Y_UNIT_TEST_SUITE(THexCodingTest) {
     void TestImpl(const TString& data) {
         TString encoded;
         TStringOutput encodedOut(encoded);
-        HexEncode(data.Data(), data.Size(), encodedOut);
+        HexEncode(data.data(), data.size(), encodedOut);
 
-        UNIT_ASSERT_EQUAL(encoded.Size(), data.Size() * 2);
+        UNIT_ASSERT_EQUAL(encoded.size(), data.size() * 2);
 
         TString decoded;
         TStringOutput decodedOut(decoded);
-        HexDecode(encoded.Data(), encoded.Size(), decodedOut);
+        HexDecode(encoded.data(), encoded.size(), decodedOut);
 
         UNIT_ASSERT_EQUAL(decoded, data);
     }

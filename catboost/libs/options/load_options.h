@@ -34,6 +34,10 @@ namespace NCatboostOptions {
         NCB::TPathWithScheme GroupWeightsFilePath;
         NCB::TPathWithScheme TestGroupWeightsFilePath;
 
+        NCB::TPathWithScheme BaselineFilePath;
+        NCB::TPathWithScheme TestBaselineFilePath;
+        TVector<TString> ClassNames;
+
         TVector<ui32> IgnoredFeatures;
         TString BordersFile;
 
@@ -42,4 +46,9 @@ namespace NCatboostOptions {
         void Validate() const;
         void Validate(TMaybe<ETaskType> taskType) const;
     };
+
+    void ValidatePoolParams(
+        const NCB::TPathWithScheme& poolPath,
+        const TDsvPoolFormatParams& poolFormatParams
+    );
 }

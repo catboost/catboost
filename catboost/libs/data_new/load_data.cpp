@@ -1,3 +1,4 @@
+#include "baseline.h"
 #include "load_data.h"
 
 #include "cb_dsv_loader.h"
@@ -17,11 +18,17 @@ namespace NCB {
         const TPathWithScheme& poolPath,
         const TPathWithScheme& pairsFilePath, // can be uninited
         const TPathWithScheme& groupWeightsFilePath, // can be uninited
+        const TPathWithScheme& baselineFilePath, // can be uninited
         const NCatboostOptions::TDsvPoolFormatParams& dsvPoolFormatParams,
         const TVector<ui32>& ignoredFeatures,
         EObjectsOrder objectsOrder,
+        TMaybe<TVector<TString>*> classNames,
         NPar::TLocalExecutor* localExecutor
     ) {
+        CB_ENSURE_INTERNAL(!baselineFilePath.Inited() || classNames, "ClassNames must be specified if baseline file is specified");
+        if (classNames) {
+            UpdateClassNamesFromBaselineFile(baselineFilePath, *classNames);
+        }
         auto datasetLoader = GetProcessor<IDatasetLoader>(
             poolPath, // for choosing processor
 
@@ -32,6 +39,8 @@ namespace NCB {
                 TDatasetLoaderCommonArgs {
                     pairsFilePath,
                     groupWeightsFilePath,
+                    baselineFilePath,
+                    classNames ? **classNames : TVector<TString>(),
                     dsvPoolFormatParams.Format,
                     MakeCdProviderFromFile(dsvPoolFormatParams.CdFilePath),
                     ignoredFeatures,
@@ -61,11 +70,13 @@ namespace NCB {
         const TPathWithScheme& poolPath,
         const TPathWithScheme& pairsFilePath, // can be uninited
         const TPathWithScheme& groupWeightsFilePath, // can be uninited
+        const TPathWithScheme& baselineFilePath, // can be uninited
         const NCatboostOptions::TDsvPoolFormatParams& dsvPoolFormatParams,
         const TVector<ui32>& ignoredFeatures,
         EObjectsOrder objectsOrder,
         int threadCount,
-        bool verbose
+        bool verbose,
+        TMaybe<TVector<TString>*> classNames
     ) {
         NPar::TLocalExecutor localExecutor;
         localExecutor.RunAdditionalThreads(threadCount - 1);
@@ -76,9 +87,11 @@ namespace NCB {
             poolPath,
             pairsFilePath,
             groupWeightsFilePath,
+            baselineFilePath,
             dsvPoolFormatParams,
             ignoredFeatures,
             objectsOrder,
+            classNames,
             &localExecutor
         );
 
@@ -90,10 +103,12 @@ namespace NCB {
         THolder<ILineDataReader> poolReader,
         const TPathWithScheme& pairsFilePath, // can be uninited
         const TPathWithScheme& groupWeightsFilePath, // can be uninited
+        const TPathWithScheme& baselineFilePath, // can be uninited
         const NCB::TDsvFormatOptions& poolFormat,
         const TVector<TColumn>& columnsDescription, // TODO(smirnovpavel): TVector<EColumn>
         const TVector<ui32>& ignoredFeatures,
         EObjectsOrder objectsOrder,
+        TMaybe<TVector<TString>*> classNames,
         NPar::TLocalExecutor* localExecutor
     ) {
         THolder<IDataProviderBuilder> dataProviderBuilder = CreateDataProviderBuilder(
@@ -113,6 +128,8 @@ namespace NCB {
                 TDatasetLoaderCommonArgs {
                     pairsFilePath,
                     groupWeightsFilePath,
+                    baselineFilePath,
+                    classNames ? **classNames : TVector<TString>(),
                     poolFormat,
                     MakeCdProviderFromArray(columnsDescription),
                     ignoredFeatures,
@@ -130,6 +147,7 @@ namespace NCB {
         const NCatboostOptions::TPoolLoadParams& loadOptions,
         EObjectsOrder objectsOrder,
         bool readTestData,
+        TMaybe<TVector<TString>*> classNames,
         NPar::TLocalExecutor* const executor,
         TProfileInfo* const profile
     ) {
@@ -144,9 +162,11 @@ namespace NCB {
                 loadOptions.LearnSetPath,
                 loadOptions.PairsFilePath,
                 loadOptions.GroupWeightsFilePath,
+                loadOptions.BaselineFilePath,
                 loadOptions.DsvPoolFormatParams,
                 loadOptions.IgnoredFeatures,
                 objectsOrder,
+                classNames,
                 executor
             );
             CATBOOST_DEBUG_LOG << "Loading features time: " << (Now() - start).Seconds() << Endl;
@@ -163,15 +183,19 @@ namespace NCB {
                 const NCB::TPathWithScheme& testPairsFilePath =
                         testIdx == 0 ? loadOptions.TestPairsFilePath : NCB::TPathWithScheme();
                 const NCB::TPathWithScheme& testGroupWeightsFilePath =
-                        testIdx == 0 ? loadOptions.TestGroupWeightsFilePath : NCB::TPathWithScheme();
+                    testIdx == 0 ? loadOptions.TestGroupWeightsFilePath : NCB::TPathWithScheme();
+                const NCB::TPathWithScheme& testBaselineFilePath =
+                    testIdx == 0 ? loadOptions.TestBaselineFilePath : NCB::TPathWithScheme();
 
                 TDataProviderPtr testDataProvider = ReadDataset(
                     testSetPath,
                     testPairsFilePath,
                     testGroupWeightsFilePath,
+                    testBaselineFilePath,
                     loadOptions.DsvPoolFormatParams,
                     loadOptions.IgnoredFeatures,
                     objectsOrder,
+                    classNames,
                     executor
                 );
                 dataProviders.Test.push_back(std::move(testDataProvider));

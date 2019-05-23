@@ -236,7 +236,7 @@ TString CGIUnescapeRet(const TStringBuf from) {
 }
 
 char* UrlUnescape(char* to, TStringBuf from) {
-    while (!from.Empty()) {
+    while (!from.empty()) {
         char ch = from[0];
         from.Skip(1);
         if ('%' == ch && 2 <= from.length())

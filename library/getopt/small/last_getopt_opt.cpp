@@ -54,7 +54,7 @@ namespace NLastGetopt {
     TOpt& TOpt::AddShortName(unsigned char c) {
         ;
         if (!IsAllowedShortName(c))
-            ythrow TUsageException() << "option char '" << c << "' is not allowed";
+            throw TUsageException() << "option char '" << c << "' is not allowed";
         Chars_.push_back(c);
         return *this;
     }
@@ -75,7 +75,7 @@ namespace NLastGetopt {
         ;
         unsigned char c = 0;
         if (!IsAllowedLongName(name, &c))
-            ythrow TUsageException() << "option char '" << c
+            throw TUsageException() << "option char '" << c
                                      << "' in long '" << name << "' is not allowed";
         LongNames_.push_back(name);
         return *this;

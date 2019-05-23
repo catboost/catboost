@@ -25,7 +25,7 @@ Y_UNIT_TEST_SUITE(BinarizationsTests) {
                       const TDataPermutation& ctrsPermutation,
                       const NCB::TTrainingDataProvider& dataProvider,
                       const TDataPermutation* onGpuPermutation = nullptr) {
-        auto binarizedTarget = NCB::BinarizeLine<ui8>(GetTarget(dataProvider.TargetData),
+        auto binarizedTarget = NCB::BinarizeLine<ui8>(*dataProvider.TargetData->GetTarget(),
                                                       ENanMode::Forbidden,
                                                       featuresManager.GetTargetBorders());
         ui32 numClasses = 0;
@@ -105,7 +105,7 @@ Y_UNIT_TEST_SUITE(BinarizationsTests) {
 
                     TCpuTargetClassCtrCalcer calcer(dataProvider.ObjectsData->GetQuantizedFeaturesInfo()->GetUniqueValuesCounts(catFeatureIdx).OnAll,
                                                     catFeatureBins,
-                                                    GetWeights(dataProvider.TargetData),
+                                                    GetWeights(*dataProvider.TargetData),
                                                     ctr.Configuration.Prior[0],
                                                     ctr.Configuration.Prior[1]);
 
@@ -116,6 +116,7 @@ Y_UNIT_TEST_SUITE(BinarizationsTests) {
                     } else if (ctr.Configuration.Type == ECtrType::Buckets) {
                         if (!ctrsCache.contains(featureId)) {
                             ctrsCache[featureId] = calcer.Calc(ctrsEstimationPermutation,
+                                                               TConstArrayRef<ui32>(ctrsEstimationPermutation),
                                                                binarizedTarget,
                                                                numClasses);
                         }
@@ -193,11 +194,13 @@ Y_UNIT_TEST_SUITE(BinarizationsTests) {
 
         NCB::TTrainingDataProviderPtr dataProvider;
         THolder<TBinarizedFeaturesManager> binarizedFeaturesManager;
+        NCB::TFeatureEstimators estimators;
 
         LoadTrainingData(NCB::TPathWithScheme("dsv://test-pool.txt"),
                          NCB::TPathWithScheme("dsv://test-pool.txt.cd"),
                          binarizationOptions,
                          catFeatureParams,
+                         estimators,
                          &dataProvider,
                          &binarizedFeaturesManager);
 
@@ -269,8 +272,8 @@ Y_UNIT_TEST_SUITE(BinarizationsTests) {
     void CheckCtrTargets(const TCtrTargets<TMapping>& targets,
                          const TVector<ui32>& binarizedTargetRef,
                          const NCB::TTrainingDataProvider& dataProvider) {
-        auto dataProviderTargets = GetTarget(dataProvider.TargetData);
-        auto dataProviderWeights = GetWeights(dataProvider.TargetData);
+        auto dataProviderTargets = *dataProvider.TargetData->GetTarget();
+        auto dataProviderWeights = GetWeights(*dataProvider.TargetData);
 
         TVector<float> targetsCpu;
         targets.WeightedTarget.Read(targetsCpu);
@@ -349,17 +352,19 @@ Y_UNIT_TEST_SUITE(BinarizationsTests) {
 
         NCB::TTrainingDataProviderPtr dataProvider;
         THolder<TBinarizedFeaturesManager> featuresManager;
+        NCB::TFeatureEstimators estimators;
 
         LoadTrainingData(NCB::TPathWithScheme("dsv://test-pool.txt"),
                          NCB::TPathWithScheme("dsv://test-pool.txt.cd"),
                          floatBinarization,
                          catFeatureParams,
+                         estimators,
                          &dataProvider,
                          &featuresManager);
 
         NCB::TOnCpuGridBuilderFactory gridBuilderFactory;
 
-        const auto dataProviderTarget = GetTarget(dataProvider->TargetData);
+        const auto dataProviderTarget = *dataProvider->TargetData->GetTarget();
 
         {
             featuresManager->SetTargetBorders(NCB::TBordersBuilder(gridBuilderFactory,
@@ -374,7 +379,9 @@ Y_UNIT_TEST_SUITE(BinarizationsTests) {
         UNIT_ASSERT_VALUES_EQUAL(pool.NumSamples, dataProvider->GetObjectCount());
 
         TFeatureParallelDataSetHoldersBuilder dataSetsHolderBuilder(*featuresManager,
-                                                                    *dataProvider);
+                                                                    *dataProvider,
+                                                                    estimators
+                                                                    );
         auto dataSet = dataSetsHolderBuilder.BuildDataSet(permutationCount, &NPar::LocalExecutor());
 
         {
@@ -440,17 +447,20 @@ Y_UNIT_TEST_SUITE(BinarizationsTests) {
         THolder<TBinarizedFeaturesManager> featuresManager;
 
         NCB::TOnCpuGridBuilderFactory gridBuilderFactory;
+        NCB::TFeatureEstimators estimators;
+
 
         LoadTrainingData(NCB::TPathWithScheme("dsv://test-pool.txt"),
                          NCB::TPathWithScheme("dsv://test-pool.txt.cd"),
                          floatBinarization,
                          catFeatureParams,
+                         estimators,
                          &dataProvider,
                          &featuresManager);
 
         {
             featuresManager->SetTargetBorders(NCB::TBordersBuilder(gridBuilderFactory,
-                                                                   GetTarget(dataProvider->TargetData))(floatBinarization));
+                                                                   *dataProvider->TargetData->GetTarget())(floatBinarization));
 
             const auto& targetBorders = featuresManager->GetTargetBorders();
             UNIT_ASSERT_VALUES_EQUAL(targetBorders.size(), 4);
@@ -462,7 +472,8 @@ Y_UNIT_TEST_SUITE(BinarizationsTests) {
         UNIT_ASSERT_VALUES_EQUAL(pool.NumSamples, dataProvider->GetObjectCount());
 
         TDocParallelDataSetBuilder dataSetsHolderBuilder(*featuresManager,
-                                                         *dataProvider);
+                                                         *dataProvider,
+                                                         estimators);
 
         TDocParallelDataSetsHolder dataSet = dataSetsHolderBuilder.BuildDataSet(permutationCount, &NPar::LocalExecutor());
         const TDataPermutation& loadBalancingPermutation = dataSet.GetLoadBalancingPermutation();

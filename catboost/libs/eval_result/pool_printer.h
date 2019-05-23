@@ -61,6 +61,7 @@ namespace NCB {
             ui32 CurrentOffset = 0;
             ui64 CurrentDocId = 0;
             TString CurrentToken = "";
+            TVector<ui32> CorrectChunkOrder;
         };
 
         const TString GetStringColumnToken(ui64 docId, EColumn columnType);

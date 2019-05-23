@@ -4,17 +4,19 @@ Implements the Distutils 'sdist' command (create a source distribution)."""
 
 import os
 import sys
-from types import *
 from glob import glob
 from warnings import warn
 
 from distutils.core import Command
-from distutils import dir_util, dep_util, file_util, archive_util
+from distutils import dir_util
+from distutils import file_util
+from distutils import archive_util
 from distutils.text_file import TextFile
-from distutils.errors import *
 from distutils.filelist import FileList
 from distutils import log
 from distutils.util import convert_path
+from distutils.errors import DistutilsTemplateError, DistutilsOptionError
+
 
 def show_formats():
     """Print all possible values for the 'formats' option (used by
@@ -29,6 +31,7 @@ def show_formats():
     formats.sort()
     FancyGetopt(formats).print_help(
         "List of available source distribution formats:")
+
 
 class sdist(Command):
 
@@ -92,6 +95,8 @@ class sdist(Command):
                     'no-prune': 'prune' }
 
     sub_commands = [('check', checking_metadata)]
+
+    READMES = ('README', 'README.txt', 'README.rst')
 
     def initialize_options(self):
         # 'template' and 'manifest' are, respectively, the names of
@@ -216,13 +221,39 @@ class sdist(Command):
         Warns if (README or README.txt) or setup.py are missing; everything
         else is optional.
         """
-        standards = [('README', 'README.txt'), self.distribution.script_name]
+        self._add_defaults_standards()
+        self._add_defaults_optional()
+        self._add_defaults_python()
+        self._add_defaults_data_files()
+        self._add_defaults_ext()
+        self._add_defaults_c_libs()
+        self._add_defaults_scripts()
+
+    @staticmethod
+    def _cs_path_exists(fspath):
+        """
+        Case-sensitive path existence check
+
+        >>> sdist._cs_path_exists(__file__)
+        True
+        >>> sdist._cs_path_exists(__file__.upper())
+        False
+        """
+        if not os.path.exists(fspath):
+            return False
+        # make absolute so we always have a directory
+        abspath = os.path.abspath(fspath)
+        directory, filename = os.path.split(abspath)
+        return filename in os.listdir(directory)
+
+    def _add_defaults_standards(self):
+        standards = [self.READMES, self.distribution.script_name]
         for fn in standards:
             if isinstance(fn, tuple):
                 alts = fn
                 got_it = False
                 for fn in alts:
-                    if os.path.exists(fn):
+                    if self._cs_path_exists(fn):
                         got_it = True
                         self.filelist.append(fn)
                         break
@@ -231,16 +262,18 @@ class sdist(Command):
                     self.warn("standard file not found: should have one of " +
                               ', '.join(alts))
             else:
-                if os.path.exists(fn):
+                if self._cs_path_exists(fn):
                     self.filelist.append(fn)
                 else:
                     self.warn("standard file '%s' not found" % fn)
 
+    def _add_defaults_optional(self):
         optional = ['test/test*.py', 'setup.cfg']
         for pattern in optional:
             files = filter(os.path.isfile, glob(pattern))
             self.filelist.extend(files)
 
+    def _add_defaults_python(self):
         # build_py is used to get:
         #  - python modules
         #  - files defined in package_data
@@ -256,28 +289,34 @@ class sdist(Command):
             for filename in filenames:
                 self.filelist.append(os.path.join(src_dir, filename))
 
+    def _add_defaults_data_files(self):
         # getting distribution.data_files
         if self.distribution.has_data_files():
             for item in self.distribution.data_files:
-                if isinstance(item, str): # plain file
+                if isinstance(item, str):
+                    # plain file
                     item = convert_path(item)
                     if os.path.isfile(item):
                         self.filelist.append(item)
-                else:    # a (dirname, filenames) tuple
+                else:
+                    # a (dirname, filenames) tuple
                     dirname, filenames = item
                     for f in filenames:
                         f = convert_path(f)
                         if os.path.isfile(f):
                             self.filelist.append(f)
 
+    def _add_defaults_ext(self):
         if self.distribution.has_ext_modules():
             build_ext = self.get_finalized_command('build_ext')
             self.filelist.extend(build_ext.get_source_files())
 
+    def _add_defaults_c_libs(self):
         if self.distribution.has_c_libraries():
             build_clib = self.get_finalized_command('build_clib')
             self.filelist.extend(build_clib.get_source_files())
 
+    def _add_defaults_scripts(self):
         if self.distribution.has_scripts():
             build_scripts = self.get_finalized_command('build_scripts')
             self.filelist.extend(build_scripts.get_source_files())

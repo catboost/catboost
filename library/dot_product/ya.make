@@ -8,7 +8,7 @@ SRCS(
 )
 
 PEERDIR(
-    library/sse2neon
+    library/sse
 )
 
 END()

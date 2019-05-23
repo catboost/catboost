@@ -6,7 +6,7 @@ LICENSE(
     BSD3
 )
 
-VERSION(1.11.1)
+VERSION(1.16.3)
 
 NO_COMPILER_WARNINGS()
 
@@ -26,9 +26,10 @@ ADDINCL(
     GLOBAL contrib/python/numpy/numpy/core/include
     contrib/python/numpy/numpy/core/include/numpy
     contrib/python/numpy/numpy/core/src
+    contrib/python/numpy/numpy/core/src/common
+    contrib/python/numpy/numpy/core/src/multiarray
     contrib/python/numpy/numpy/core/src/npymath
     contrib/python/numpy/numpy/core/src/npysort
-    contrib/python/numpy/numpy/core/src/private
 )
 
 CFLAGS(
@@ -44,33 +45,47 @@ PY_SRCS(
     TOP_LEVEL
     numpy/__config__.py
     numpy/__init__.py
-    numpy/_import_tools.py
-    numpy/add_newdocs.py
+    numpy/_distributor_init.py
+    numpy/_globals.py
+    numpy/_pytesttester.py
     numpy/compat/__init__.py
     numpy/compat/_inspect.py
     numpy/compat/py3k.py
     numpy/core/__init__.py
+    numpy/core/_add_newdocs.py
+    numpy/core/_aliased_types.py
+    numpy/core/_dtype.py
+    numpy/core/_dtype_ctypes.py
     numpy/core/_internal.py
     numpy/core/_methods.py
+    numpy/core/_string_helpers.py
+    numpy/core/_type_aliases.py
     numpy/core/arrayprint.py
     numpy/core/code_generators/generate_numpy_api.py
     numpy/core/cversions.py
     numpy/core/defchararray.py
+    numpy/core/einsumfunc.py
     numpy/core/fromnumeric.py
     numpy/core/function_base.py
     numpy/core/getlimits.py
     numpy/core/info.py
     numpy/core/machar.py
     numpy/core/memmap.py
+    numpy/core/multiarray.py
     numpy/core/numeric.py
     numpy/core/numerictypes.py
+    numpy/core/overrides.py
     numpy/core/records.py
+    numpy/core/setup.py
     numpy/core/setup_common.py
     numpy/core/shape_base.py
+    numpy/core/umath.py
+    numpy/core/umath_tests.py
     numpy/ctypeslib.py
     numpy/distutils/__config__.py
     numpy/distutils/__init__.py
     numpy/distutils/__version__.py
+    numpy/distutils/_shell_utils.py
     numpy/distutils/ccompiler.py
     numpy/distutils/command/__init__.py
     numpy/distutils/command/autodist.py
@@ -94,12 +109,12 @@ PY_SRCS(
     numpy/distutils/conv_template.py
     numpy/distutils/core.py
     numpy/distutils/cpuinfo.py
-    numpy/distutils/environment.py
     numpy/distutils/exec_command.py
     numpy/distutils/extension.py
     numpy/distutils/fcompiler/__init__.py
     numpy/distutils/fcompiler/absoft.py
     numpy/distutils/fcompiler/compaq.py
+    numpy/distutils/fcompiler/environment.py
     numpy/distutils/fcompiler/g95.py
     numpy/distutils/fcompiler/gnu.py
     numpy/distutils/fcompiler/hpux.py
@@ -152,8 +167,10 @@ PY_SRCS(
     numpy/lib/financial.py
     numpy/lib/format.py
     numpy/lib/function_base.py
+    numpy/lib/histograms.py
     numpy/lib/index_tricks.py
     numpy/lib/info.py
+    numpy/lib/mixins.py
     numpy/lib/nanfunctions.py
     numpy/lib/npyio.py
     numpy/lib/polynomial.py
@@ -189,6 +206,12 @@ PY_SRCS(
     numpy/random/__init__.py
     numpy/random/info.py
     numpy/testing/__init__.py
+    numpy/testing/_private/__init__.py
+    numpy/testing/_private/decorators.py
+    numpy/testing/_private/noseclasses.py
+    numpy/testing/_private/nosetester.py
+    numpy/testing/_private/parameterized.py
+    numpy/testing/_private/utils.py
     numpy/testing/decorators.py
     numpy/testing/noseclasses.py
     numpy/testing/nosetester.py
@@ -197,8 +220,22 @@ PY_SRCS(
     numpy/version.py
 )
 
+IF (NOT MSVC)
+    SRCS(
+        numpy/core/src/common/python_xerbla.c
+    )
+ENDIF()
+
+
 SRCS(
     numpy/core/src/dummymodule.c
+    numpy/core/src/common/npy_longdouble.c
+    numpy/core/src/common/mem_overlap.c
+    numpy/core/src/common/ucsnarrow.c
+    numpy/core/src/common/array_assign.c
+    numpy/core/src/common/cblasfuncs.c
+    numpy/core/src/common/ufunc_override.c
+    numpy/core/src/common/numpyos.c
     numpy/core/src/npymath/halffloat.c
     numpy/core/src/npymath/ieee754.c
     numpy/core/src/npymath/npy_math.c
@@ -208,7 +245,6 @@ SRCS(
     numpy/core/src/npysort/mergesort.c
     numpy/core/src/npysort/quicksort.c
     numpy/core/src/npysort/selection.c
-    numpy/core/src/private/mem_overlap.c
 )
 
 END()

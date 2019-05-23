@@ -15,12 +15,13 @@ namespace NCatboostCuda {
         */
         template <template <class TMapping> class TTargetTemplate, class TModel = TObliviousTreeModel>
         class TGpuTrainer: public IGpuTrainer {
-            virtual THolder<TAdditiveModel<TObliviousTreeModel>> TrainModel(TBinarizedFeaturesManager& featuresManager,
+            virtual TGpuTrainResult TrainModel(TBinarizedFeaturesManager& featuresManager,
                                                                             const TTrainModelInternalOptions& internalOptions,
                                                                             const NCatboostOptions::TCatBoostOptions& catBoostOptions,
                                                                             const NCatboostOptions::TOutputFilesOptions& outputOptions,
                                                                             const NCB::TTrainingDataProvider& learn,
                                                                             const NCB::TTrainingDataProvider* test,
+                                                                            const NCB::TFeatureEstimators& featureEstimators,
                                                                             TGpuAwareRandom& random,
                                                                             ui32 approxDimension,
                                                                             const TMaybe<TOnEndIterationCallback>& onEndIterationCallback,
@@ -36,13 +37,18 @@ namespace NCatboostCuda {
                                                         outputOptions,
                                                         learn,
                                                         test,
+                                                        featureEstimators,
                                                         random,
                                                         approxDimension,
                                                         onEndIterationCallback,
                                                         localExecutor,
                                                         testMultiApprox,
                                                         metricsAndTimeHistory);
-                return MakeObliviousModel<TModel>(std::move(resultModel), localExecutor);
+                if constexpr (std::is_same<TModel, TObliviousTreeModel>::value || std::is_same<TModel, TNonSymmetricTree>::value) {
+                    return resultModel;
+                } else {
+                    return MakeObliviousModel<TModel>(std::move(resultModel), localExecutor);
+                }
             };
 
             virtual void ModelBasedEval(TBinarizedFeaturesManager& featuresManager,
@@ -69,7 +75,7 @@ namespace NCatboostCuda {
     }
 
     inline TGpuTrainerFactoryKey GetTrainerFactoryKeyForRegion(ELossFunction loss) {
-        return GetTrainerFactoryKey(loss, EGrowingPolicy::Region);
+        return GetTrainerFactoryKey(loss, EGrowPolicy::Region);
     }
 
 }

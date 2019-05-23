@@ -29,6 +29,7 @@ SRCS(
     compress_fragment_two_pass.c
     dictionary_hash.c
     encode.c
+    encoder_dict.c
     entropy_encode.c
     histogram.c
     literal_cost.c

@@ -21,6 +21,8 @@
 template <class TStorageType>
 class TIndexHelper {
 public:
+    TIndexHelper() = default;
+
     explicit TIndexHelper(ui32 bitsPerKey)
         : BitsPerKey(bitsPerKey)
     {
@@ -61,13 +63,15 @@ public:
     }
 
 private:
-    ui32 BitsPerKey;
-    ui32 EntriesPerType;
+    ui32 BitsPerKey = Max<ui32>();
+    ui32 EntriesPerType = 0;
 };
 
 
 class TCompressedArray {
 public:
+    TCompressedArray() = default;
+
     TCompressedArray(ui64 size, ui32 bitsPerKey, NCB::TMaybeOwningArrayHolder<ui64> storage)
         : Size(size)
         , IndexHelper(bitsPerKey)
@@ -124,7 +128,7 @@ public:
     }
 
 private:
-    ui64 Size;
+    ui64 Size = 0;
     TIndexHelper<ui64> IndexHelper;
     NCB::TMaybeOwningArrayHolder<ui64> Storage;
 };
