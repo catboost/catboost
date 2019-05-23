@@ -40,6 +40,7 @@ def check_imports(no_check=None, extra=[], skip_func=None):
         'kernel.*',  # skynet/kernel
         'kombu.transport.sqlalchemy.*',
         'IPython.*',
+        'ipykernel.pylab.backend_inline',
         'lxml.cssselect',
         'lxml.html.ElementSoup',
         'lxml.html.diff',
