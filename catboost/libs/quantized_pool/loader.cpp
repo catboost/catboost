@@ -39,11 +39,12 @@ using NCB::TUnalignedArrayBuf;
 
 NCB::TCBQuantizedDataLoader::TCBQuantizedDataLoader(TDatasetLoaderPullArgs&& args)
     : ObjectCount(0) // inited later
-    , QuantizedPool(std::forward<TQuantizedPool>(LoadQuantizedPool(args.PoolPath, GetLoadParameters())))
+    , QuantizedPool(std::forward<TQuantizedPool>(LoadQuantizedPool(args.PoolPath, GetLoadParameters(args.CommonArgs.DatasetSubset))))
     , PairsPath(args.CommonArgs.PairsFilePath)
     , GroupWeightsPath(args.CommonArgs.GroupWeightsFilePath)
     , BaselinePath(args.CommonArgs.BaselineFilePath)
     , ObjectsOrder(args.CommonArgs.ObjectsOrder)
+    , DatasetSubset(args.CommonArgs.DatasetSubset)
 {
     CB_ENSURE(QuantizedPool.DocumentCount > 0, "Pool is empty");
     CB_ENSURE(
@@ -51,7 +52,7 @@ NCB::TCBQuantizedDataLoader::TCBQuantizedDataLoader(TDatasetLoaderPullArgs&& arg
         "CatBoost does not support datasets with more than " << Max<ui32>() << " objects"
     );
     // validity of cast checked above
-    ObjectCount = (ui32)QuantizedPool.DocumentCount;
+    ObjectCount = Min<ui32>(QuantizedPool.DocumentCount, DatasetSubset.Range.End) - DatasetSubset.Range.Begin;
 
     CB_ENSURE(!PairsPath.Inited() || CheckExists(PairsPath),
         "TCBQuantizedDataLoader:PairsFilePath does not exist");
@@ -65,13 +66,16 @@ NCB::TCBQuantizedDataLoader::TCBQuantizedDataLoader(TDatasetLoaderPullArgs&& arg
     CB_ENSURE(DataMetaInfo.GetFeatureCount() > 0, "Pool should have at least one factor");
 
     TVector<ui32> allIgnoredFeatures = args.CommonArgs.IgnoredFeatures;
+    CATBOOST_DEBUG_LOG << "allIgnoredFeatures.size() " << allIgnoredFeatures.size() << Endl;
     TVector<ui32> ignoredFeaturesFromPool = GetIgnoredFlatIndices(QuantizedPool);
+    CATBOOST_DEBUG_LOG << "ignoredFeaturesFromPool.size() " << ignoredFeaturesFromPool.size() << Endl;
     allIgnoredFeatures.insert(
         allIgnoredFeatures.end(),
         ignoredFeaturesFromPool.begin(),
         ignoredFeaturesFromPool.end()
     );
 
+    CATBOOST_DEBUG_LOG << "allIgnoredFeatures.size() " << allIgnoredFeatures.size() << Endl;
     ProcessIgnoredFeaturesList(allIgnoredFeatures, &DataMetaInfo, &IsFeatureIgnored);
 }
 
@@ -188,13 +192,15 @@ void NCB::TCBQuantizedDataLoader::AddQuantizedFeatureChunk(
     const size_t flatFeatureIdx,
     IQuantizedFeaturesDataVisitor* const visitor) const
 {
-    const auto quants = MakeArrayRef(
-        reinterpret_cast<const ui8*>(chunk.Chunk->Quants()->data()),
-        chunk.Chunk->Quants()->size());
+    const auto quants = ClipByDatasetSubset(chunk);
+
+    if (quants.empty()) {
+        return;
+    }
 
     visitor->AddFloatFeaturePart(
         flatFeatureIdx,
-        chunk.DocumentOffset,
+        GetDatasetOffset(chunk),
         chunk.Chunk->BitsPerDocument(),
         TMaybeOwningConstArrayHolder<ui8>::CreateNonOwning(quants));
 }
@@ -206,9 +212,11 @@ void NCB::TCBQuantizedDataLoader::AddChunk(
     const size_t* const baselineIdx,
     IQuantizedFeaturesDataVisitor* const visitor) const
 {
-    const auto quants = MakeArrayRef(
-        reinterpret_cast<const ui8*>(chunk.Chunk->Quants()->data()),
-        chunk.Chunk->Quants()->size());
+    const auto quants = ClipByDatasetSubset(chunk);
+
+    if (quants.empty()) {
+        return;
+    }
 
     switch (columnType) {
         case EColumn::Num: {
@@ -216,25 +224,25 @@ void NCB::TCBQuantizedDataLoader::AddChunk(
             break;
         } case EColumn::Label: {
             // TODO(akhropov): will be raw strings as was decided for new data formats for MLTOOLS-140.
-            visitor->AddTargetPart(chunk.DocumentOffset, TUnalignedArrayBuf<float>(quants));
+            visitor->AddTargetPart(GetDatasetOffset(chunk), TUnalignedArrayBuf<float>(quants));
             break;
         } case EColumn::Baseline: {
             // TODO(akhropov): switch to storing floats - MLTOOLS-2394
             TVector<float> tmp;
             AssignUnaligned<double>(quants, &tmp);
-            visitor->AddBaselinePart(chunk.DocumentOffset, *baselineIdx, TUnalignedArrayBuf<float>(tmp.data(), tmp.size() * sizeof(float)));
+            visitor->AddBaselinePart(GetDatasetOffset(chunk), *baselineIdx, TUnalignedArrayBuf<float>(tmp.data(), tmp.size() * sizeof(float)));
             break;
         } case EColumn::Weight: {
-            visitor->AddWeightPart(chunk.DocumentOffset, TUnalignedArrayBuf<float>(quants));
+            visitor->AddWeightPart(GetDatasetOffset(chunk), TUnalignedArrayBuf<float>(quants));
             break;
         } case EColumn::GroupWeight: {
-            visitor->AddGroupWeightPart(chunk.DocumentOffset, TUnalignedArrayBuf<float>(quants));
+            visitor->AddGroupWeightPart(GetDatasetOffset(chunk), TUnalignedArrayBuf<float>(quants));
             break;
         } case EColumn::GroupId: {
-            visitor->AddGroupIdPart(chunk.DocumentOffset, TUnalignedArrayBuf<ui64>(quants));
+            visitor->AddGroupIdPart(GetDatasetOffset(chunk), TUnalignedArrayBuf<ui64>(quants));
             break;
         } case EColumn::SubgroupId: {
-            visitor->AddSubgroupIdPart(chunk.DocumentOffset, TUnalignedArrayBuf<ui32>(quants));
+            visitor->AddSubgroupIdPart(GetDatasetOffset(chunk), TUnalignedArrayBuf<ui32>(quants));
             break;
         } case EColumn::SampleId:
             // Are skipped in a caller
@@ -254,6 +262,45 @@ void NCB::TCBQuantizedDataLoader::AddChunk(
     }
 }
 
+TConstArrayRef<ui8> NCB::TCBQuantizedDataLoader::ClipByDatasetSubset(const TQuantizedPool::TChunkDescription& chunk) const {
+    const auto valueBytes = static_cast<size_t>(chunk.Chunk->BitsPerDocument() / CHAR_BIT);
+    CB_ENSURE(valueBytes > 0, "Cannot read quantized pool with less than " << CHAR_BIT << " bits per value");
+    const auto documentCount = chunk.Chunk->Quants()->size() / valueBytes;
+    const auto chunkStart = chunk.DocumentOffset;
+    const auto chunkEnd = chunkStart + documentCount;
+    const auto loadStart = DatasetSubset.Range.Begin;
+    const auto loadEnd = DatasetSubset.Range.End;
+    if (loadStart <= chunkStart && chunkStart < loadEnd) {
+        const auto* clippedStart = reinterpret_cast<const ui8*>(chunk.Chunk->Quants()->data());
+        const auto clippedSize = Min(chunkEnd - chunkStart, loadEnd - chunkStart) * valueBytes;
+        return MakeArrayRef(clippedStart, clippedSize);
+    } else if (chunkStart < loadStart && loadStart < chunkEnd) {
+        const auto* clippedStart = reinterpret_cast<const ui8*>(chunk.Chunk->Quants()->data()) + (loadStart - chunkStart) * valueBytes;
+        const auto clippedSize = Min<ui64>(chunkEnd - loadStart, loadEnd - loadStart) * valueBytes;
+        return MakeArrayRef(clippedStart, clippedSize);
+    } else {
+        CATBOOST_DEBUG_LOG << "All documents in chunk [" << chunkStart << ", " << chunkEnd << ") "
+            "are outside load region [" << loadStart << ", " << loadEnd << ")" << Endl;
+        return {};
+    }
+}
+
+ui32 NCB::TCBQuantizedDataLoader::GetDatasetOffset(const TQuantizedPool::TChunkDescription& chunk) const {
+    const auto documentCount = chunk.Chunk->Quants()->size()
+         / static_cast<size_t>(chunk.Chunk->BitsPerDocument() / CHAR_BIT);
+    const auto chunkStart = chunk.DocumentOffset;
+    const auto chunkEnd = chunkStart + documentCount;
+    const auto loadStart = DatasetSubset.Range.Begin;
+    const auto loadEnd = DatasetSubset.Range.End;
+    if (loadStart <= chunkStart && chunkStart < loadEnd) {
+        return chunkStart - loadStart;
+    } else if (chunkStart < loadStart && loadStart < chunkEnd) {
+        return 0;
+    } else {
+        CB_ENSURE(false, "All documents in chunk [" << chunkStart << ", " << chunkEnd << ") are outside load region [" << loadStart << ", " << loadEnd << ")");
+    }
+}
+
 void NCB::TCBQuantizedDataLoader::Do(IQuantizedFeaturesDataVisitor* visitor) {
     visitor->Start(
         DataMetaInfo,
@@ -267,8 +314,9 @@ void NCB::TCBQuantizedDataLoader::Do(IQuantizedFeaturesDataVisitor* visitor) {
     const auto chunkRefs = GatherAndSortChunks(QuantizedPool);
 
     TSequentialChunkEvictor evictor(1ULL << 24);
+    CATBOOST_DEBUG_LOG << "Number of chunks to process " << chunkRefs.size() << Endl;
     for (const auto chunkRef : chunkRefs) {
-        if (QuantizedPool.ColumnsDump.empty()) { // reading from mapped file
+        if (QuantizedPool.ChunkStorage.empty()) { // reading from mapped file
             evictor.Push(chunkRef);
         }
         Y_DEFER { evictor.MaybeEvict(); };
@@ -297,6 +345,9 @@ void NCB::TCBQuantizedDataLoader::Do(IQuantizedFeaturesDataVisitor* visitor) {
             columnType == EColumn::GroupId || columnType == EColumn::SubgroupId,
             "Expected Num, Baseline, Label, Categ, Weight, GroupWeight, GroupId, or Subgroupid; got "
             LabeledOutput(columnType, columnIdx));
+        if (!DatasetSubset.HasFeatures) {
+            CB_ENSURE(columnType != EColumn::Num && columnType != EColumn::Categ, "CollectChunks collected a feature chunk despite HasFeatures = false");
+        }
 
         const auto* const flatFeatureIdx = columnIdxToFlatIdx.FindPtr(columnIdx);
         if (flatFeatureIdx && IsFeatureIgnored[*flatFeatureIdx]) {
@@ -310,9 +361,9 @@ void NCB::TCBQuantizedDataLoader::Do(IQuantizedFeaturesDataVisitor* visitor) {
     evictor.MaybeEvict(true);
 
     QuantizedPool = TQuantizedPool(); // release memory
-    SetGroupWeights(GroupWeightsPath, ObjectCount, visitor);
-    SetPairs(PairsPath, ObjectCount, visitor);
-    SetBaseline(BaselinePath, ObjectCount, DataMetaInfo.ClassNames, visitor);
+    SetGroupWeights(GroupWeightsPath, ObjectCount, DatasetSubset, visitor);
+    SetPairs(PairsPath, ObjectCount, DatasetSubset, visitor);
+    SetBaseline(BaselinePath, ObjectCount, DatasetSubset, DataMetaInfo.ClassNames, visitor);
     visitor->Finish();
 }
 

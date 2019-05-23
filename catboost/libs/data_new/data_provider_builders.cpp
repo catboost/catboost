@@ -784,10 +784,12 @@ namespace NCB {
     public:
         TQuantizedFeaturesDataProviderBuilder(
             const TDataProviderBuilderOptions& options,
+            TDatasetSubset loadSubset,
             NPar::TLocalExecutor* localExecutor
         )
             : ObjectCount(0)
             , Options(options)
+            , DatasetSubset(loadSubset)
             , LocalExecutor(localExecutor)
             , InProcess(false)
             , ResultTaken(false)
@@ -852,13 +854,15 @@ namespace NCB {
 
             PrepareBinaryFeaturesStorage();
 
-            FloatFeaturesStorage.PrepareForInitialization(
-                *metaInfo.FeaturesLayout,
-                objectCount,
-                Data.ObjectsData.Data.QuantizedFeaturesInfo,
-                BinaryFeaturesStorage,
-                Data.ObjectsData.PackedBinaryFeaturesData.FloatFeatureToPackedBinaryIndex
-            );
+            if (DatasetSubset.HasFeatures) {
+                FloatFeaturesStorage.PrepareForInitialization(
+                    *metaInfo.FeaturesLayout,
+                    objectCount,
+                    Data.ObjectsData.Data.QuantizedFeaturesInfo,
+                    BinaryFeaturesStorage,
+                    Data.ObjectsData.PackedBinaryFeaturesData.FloatFeatureToPackedBinaryIndex
+                );
+            }
 
             if (metaInfo.HasWeights) {
                 WeightsBuffer.yresize(objectCount);
@@ -1003,13 +1007,15 @@ namespace NCB {
 
             GetBinaryFeaturesDataResult();
 
-            FloatFeaturesStorage.GetResult(
-                ObjectCount,
-                *Data.MetaInfo.FeaturesLayout,
-                Data.CommonObjectsData.SubsetIndexing.Get(),
-                Data.ObjectsData.PackedBinaryFeaturesData.SrcData,
-                &Data.ObjectsData.Data.FloatFeatures
-            );
+            if (DatasetSubset.HasFeatures) {
+                FloatFeaturesStorage.GetResult(
+                    ObjectCount,
+                    *Data.MetaInfo.FeaturesLayout,
+                    Data.CommonObjectsData.SubsetIndexing.Get(),
+                    Data.ObjectsData.PackedBinaryFeaturesData.SrcData,
+                    &Data.ObjectsData.Data.FloatFeatures
+                );
+            }
 
             ResultTaken = true;
 
@@ -1017,7 +1023,7 @@ namespace NCB {
                 return MakeDataProvider<TQuantizedForCPUObjectsDataProvider>(
                     /*objectsGrouping*/ Nothing(), // will init from data
                     std::move(Data),
-                    Options.SkipCheck,
+                    Options.SkipCheck || !DatasetSubset.HasFeatures,
                     LocalExecutor
                 )->CastMoveTo<TObjectsDataProvider>();
             } else {
@@ -1362,6 +1368,7 @@ namespace NCB {
         TBinaryFeaturesStorage BinaryFeaturesStorage;
 
         TDataProviderBuilderOptions Options;
+        TDatasetSubset DatasetSubset;
 
         NPar::TLocalExecutor* LocalExecutor;
 
@@ -1373,6 +1380,7 @@ namespace NCB {
     THolder<IDataProviderBuilder> CreateDataProviderBuilder(
         EDatasetVisitorType visitorType,
         const TDataProviderBuilderOptions& options,
+        TDatasetSubset loadSubset,
         NPar::TLocalExecutor* localExecutor
     ) {
         switch (visitorType) {
@@ -1381,7 +1389,7 @@ namespace NCB {
             case EDatasetVisitorType::RawFeaturesOrder:
                 return MakeHolder<TRawFeaturesOrderDataProviderBuilder>(options, localExecutor);
             case EDatasetVisitorType::QuantizedFeatures:
-                return MakeHolder<TQuantizedFeaturesDataProviderBuilder>(options, localExecutor);
+                return MakeHolder<TQuantizedFeaturesDataProviderBuilder>(options, loadSubset, localExecutor);
             default:
                 return nullptr;
         }

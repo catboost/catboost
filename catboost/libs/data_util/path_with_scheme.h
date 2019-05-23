@@ -2,6 +2,7 @@
 
 #include <catboost/libs/helpers/exception.h>
 
+#include <library/binsaver/bin_saver.h>
 #include <library/object_factory/object_factory.h>
 
 #include <util/generic/ptr.h>
@@ -33,6 +34,8 @@ namespace NCB {
             }
             CB_ENSURE(!Path.empty(), "Empty path part for path with scheme: " << pathWithScheme);
         }
+
+        SAVELOAD(Scheme, Path);
 
         bool Inited() const {
             return !Path.empty();

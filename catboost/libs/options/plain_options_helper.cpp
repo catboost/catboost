@@ -1,5 +1,5 @@
-#include "cat_feature_options.h"
 #include "loss_description.h"
+#include "cat_feature_options.h"
 #include "binarization_options.h"
 #include "plain_options_helper.h"
 

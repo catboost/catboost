@@ -108,24 +108,6 @@ def open_resource(name):
     return open(filename, 'rb')
 
 
-if getattr(sys, 'is_standalone_binary', False) and not os.environ.get('PYTZ_TZDATADIR', None):
-    def open_resource(name):
-        """Open a resource from the zoneinfo for reading.
-
-        Uses compiled-in timezone files
-        """
-        import __res
-        try:
-            from cStringIO import StringIO as Stream
-        except ImportError:
-            from io import BytesIO as Stream
-        res_name = '/pytz_data/zoneinfo/' + name.lstrip('/')
-        res_buf = __res.find(res_name)
-        if res_buf is None:
-            raise IOError("No such resource: " + res_name)
-        return Stream(res_buf)
-
-
 def resource_exists(name):
     """Return true if the given resource exists"""
     try:

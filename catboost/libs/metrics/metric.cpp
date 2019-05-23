@@ -4754,18 +4754,11 @@ void CheckMetrics(const TVector<THolder<IMetric>>& metrics, const ELossFunction 
 void CheckPreprocessedTarget(
     TConstArrayRef<float> target,
     const NCatboostOptions::TLossDescription& lossDesciption,
-    bool isLearnData,
-    bool allowConstLabel,
-    TMaybe<float> targetBorder
+    bool isNonEmptyAndNonConst,
+    bool allowConstLabel
 ) {
     ELossFunction lossFunction = lossDesciption.GetLossFunction();
-    if (isLearnData && ShouldBinarizeLabel(lossFunction) && targetBorder) {
-        auto targetBounds = CalcMinMax(target);
-        CB_ENSURE(targetBounds.Min <= *targetBorder, "All train targets are greater than border " << *targetBorder);
-        CB_ENSURE(targetBounds.Max > *targetBorder,
-                  "All train targets are smaller than or equal to border " << *targetBorder);
-    }
-    if (isLearnData && (lossFunction != ELossFunction::PairLogit)) {
+    if (isNonEmptyAndNonConst && (lossFunction != ELossFunction::PairLogit)) {
         auto targetBounds = CalcMinMax(target);
         CB_ENSURE((targetBounds.Min != targetBounds.Max) || allowConstLabel, "All train targets are equal");
     }

@@ -2386,3 +2386,56 @@ def test_output_options():
     )
     fit_catboost_gpu(params)
     return local_canonical_file(os.path.join(train_dir, output_options_path))
+
+
+def model_based_eval_catboost_gpu(params):
+    cmd = [CATBOOST_PATH, 'model-based-eval', '--task-type', 'GPU']
+    append_params_to_cmdline(cmd, params)
+    execute(cmd)
+
+
+@pytest.mark.parametrize(
+    'dataset',
+    [{'base': 'querywise', 'cd': 'train.cd'}, {'base': 'adult', 'train': 'train_small', 'test': 'test_small', 'cd': 'train.cd'}],
+    ids=['querywise', 'adult']
+)
+def test_model_based_eval(dataset):
+    test_err_log = 'test_error.log'
+
+    def get_table_path(table):
+        return data_file(dataset['base'], dataset.get(table, table))
+
+    def get_params():
+        return (
+            '--data-partition', 'DocParallel',
+            '--permutations', '1',
+            '--loss-function', 'RMSE',
+            '-f', get_table_path('train'),
+            '-t', get_table_path('test'),
+            '--cd', get_table_path('cd'),
+            '-i', '100',
+            '-T', '4',
+            '--test-err-log', test_err_log,
+        )
+
+    fit_catboost_gpu(
+        get_params() + (
+            '--snapshot-file', 'baseline_model_snapshot',
+            '-I', '10:11:12:13:15:20:31',
+        ))
+
+    model_based_eval_catboost_gpu(
+        get_params() + (
+            '--baseline-model-snapshot', 'baseline_model_snapshot',
+            '--features-to-evaluate', '10,11,12,13;15,20,31',
+            '--offset', '20',
+            '--experiment-size', '10',
+            '--experiment-count', '2',
+        ))
+
+    return [
+        local_canonical_file(os.path.join('feature_set0_fold0', test_err_log), diff_tool=diff_tool()),
+        local_canonical_file(os.path.join('feature_set0_fold1', test_err_log), diff_tool=diff_tool()),
+        local_canonical_file(os.path.join('feature_set1_fold0', test_err_log), diff_tool=diff_tool()),
+        local_canonical_file(os.path.join('feature_set1_fold1', test_err_log), diff_tool=diff_tool())
+    ]

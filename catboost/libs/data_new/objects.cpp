@@ -741,6 +741,10 @@ static ui32 CalcFeatureValuesCheckSum(
     TVector<ui32> checkSums(featuresLayout.GetFeatureCount(FeatureType), 0);
     ParallelFor(*localExecutor, 0, featuresLayout.GetFeatureCount(FeatureType), [&] (ui32 perTypeFeatureIdx) {
         if (featuresLayout.GetInternalFeatureMetaInfo(perTypeFeatureIdx, FeatureType).IsAvailable) {
+            // TODO(espetrov,akhropov): remove workaround below MLTOOLS-3604
+            if (featuresData[perTypeFeatureIdx].Get() == nullptr) {
+                return;
+            }
             auto compressedValuesFeatureData = dynamic_cast<const TCompressedValuesHolderImpl<IColumn>*>(
                 featuresData[perTypeFeatureIdx].Get()
             );

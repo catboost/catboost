@@ -786,7 +786,7 @@ public:
 
 public:
     TUserDefinedQuerywiseError(const TMap<TString, TString>& params, bool isExpApprox)
-        : IDerCalcer(isExpApprox, EErrorType::QuerywiseError)
+        : IDerCalcer(isExpApprox, /*maxDerivativeOrder*/ 2, EErrorType::QuerywiseError)
         , Alpha(GetNumericParameter(params, "alpha"))
     {
         CB_ENSURE(isExpApprox == false, "Approx format does not match");

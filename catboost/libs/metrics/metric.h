@@ -372,9 +372,8 @@ inline bool IsMaxOptimal(const IMetric& metric) {
 void CheckPreprocessedTarget(
     TConstArrayRef<float> target,
     const NCatboostOptions::TLossDescription& lossDesciption,
-    bool isLearnData,
-    bool allowConstLabel,
-    TMaybe<float> targetBorder
+    bool isNonEmptyAndNonConst,
+    bool allowConstLabel
 );
 
 void CheckMetrics(const TVector<THolder<IMetric>>& metrics, const ELossFunction modelLoss);

@@ -18,6 +18,7 @@
     - langinfo.h:    contrib/libs/libunistring/langinfo.h
     - limits.h:      contrib/libs/libunistring/limits.h
     - math.h:        contrib/libs/libunistring/math.h
+    - minmax.h:      contrib/libs/libunistring/minmax.h
     - stdlib.h:      contrib/libs/libunistring/stdlib.h
     - string.h:      contrib/libs/libunistring/string.h
     - sys/types.h:   contrib/libs/libunistring/sys/types.h
@@ -94,16 +95,47 @@
   includes:
     - error.h:       contrib/libs/zbar/zbar/error.h
 
+- source_filter: "^contrib/libs/curl"
+  includes:
+    - share.h:       contrib/libs/curl/lib/share.h
+
+- source_filter: "^contrib/libs/gdal"
+  includes:
+    - io.h:          contrib/libs/gdal/ogr/ogrsf_frmts/cad/libopencad/dwg/io.h
+
+- source_filter: "^contrib/libs/zeromq"
+  includes:
+    - Mstcpip.h:     contrib/libs/zeromq/missing_includes/Mstcpip.h
+
 # deprecated contrib with ADDINCL to libintl
 - source_filter: "^contrib/deprecated/glib/glib"
   includes:
     - libintl.h:     contrib/deprecated/libintl/libintl.h
+
+- source_filter: "^contrib/libs/poco/Data/ODBC"
+  includes:
+    - sql.h:         contrib/libs/unixodbc/include/sql.h
+    - sqlext.h:      contrib/libs/unixodbc/include/sqlext.h
+    - sqltypes.h:    contrib/libs/unixodbc/include/sqltypes.h
+    - sqlucode.h:    contrib/libs/unixodbc/include/sqlucode.h
 
 # unused legacy include in boost
 - source_filter: "^contrib/deprecated/boost"
   includes:
     - fstream.h
 
+# libc++ internal implementation details
 - source_filter: "^contrib/deprecated/boost/boost/asio/detail"
   includes:
   - __config
+
+# windows sdk includes that we do not want to apply for whole arcadia
+- source_filter: "^contrib"
+  includes:
+    - process.h
+- source_filter: "^contrib/tools/tpce-benchmark"
+  includes:
+    - sql.h
+    - sqlext.h
+    - sqltypes.h
+    - sqlucode.h

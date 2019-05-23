@@ -12,6 +12,7 @@ PEERDIR(
     catboost/libs/algo
     catboost/libs/data_new
     catboost/libs/helpers
+    catboost/libs/index_range
     catboost/libs/metrics
     catboost/libs/options
     library/binsaver

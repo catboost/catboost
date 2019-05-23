@@ -12,8 +12,9 @@
 #include <catboost/libs/cat_feature/cat_feature.h>
 #include <catboost/libs/helpers/borders_io.h>
 #include <catboost/libs/logging/logging.h>
-#include <catboost/libs/options/json_helper.h>
 #include <catboost/libs/options/check_train_options.h>
+#include <catboost/libs/options/json_helper.h>
+#include <catboost/libs/options/loss_description.h>
 #include <catboost/libs/options/output_file_options.h>
 
 #include <contrib/libs/coreml/TreeEnsemble.pb.h>
@@ -858,6 +859,22 @@ void TFullModel::Load(IInputStream* s) {
         CtrProvider->Load(s);
     }
     UpdateDynamicData();
+}
+
+TString TFullModel::GetLossFunctionName() const {
+    NCatboostOptions::TLossDescription lossDescription;
+    if (ModelInfo.contains("loss_function")) {
+        lossDescription.Load(ReadTJsonValue(ModelInfo.at("loss_function")));
+        return ToString(lossDescription.GetLossFunction());
+    }
+    if (ModelInfo.contains("params")) {
+        const auto& params = ReadTJsonValue(ModelInfo.at("params"));
+        if (params.Has("loss_function")) {
+            lossDescription.Load(params["loss_function"]);
+            return ToString(lossDescription.GetLossFunction());
+        }
+    }
+    return {};
 }
 
 TVector<TString> GetModelUsedFeaturesNames(const TFullModel& model) {
