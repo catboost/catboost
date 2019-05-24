@@ -402,6 +402,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\quantized_pool\catboost-libs-quantized_pool.vcxproj">
       <Project>{5B6277B4-44BD-6F15-42A1-2BEB2252ED53}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\quantized_pool_analysis\catboost-libs-quantized_pool_analysis.vcxproj">
+      <Project>{4C63CD0F-B8A4-4282-7B4F-E1CD186E6A2D}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\target\catboost-libs-target.vcxproj">
       <Project>{5B13F9C8-8762-C986-5C05-19D08B360E04}</Project>
     </ProjectReference>
