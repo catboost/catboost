@@ -4,10 +4,13 @@ RECURSE(
     blackhole
     boost
     boost/libs/test
+    coreapi
+    coreschema
     folly
     glib
     glib/gio
     glibmm
+    itypes
     http-parser
     jsoncpp
     libahocorasick
