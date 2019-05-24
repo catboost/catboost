@@ -632,8 +632,10 @@ namespace NKernel {
         numBlocks.x  =  (leafSize + blockSize * N -  1) / (blockSize * N);
         numBlocks.y  =  1;
         numBlocks.z  =  1;
-
-        SplitAndMakeSequenceInSingleLeafImpl<N, blockSize><<<numBlocks, blockSize, 0, stream>>>(compressedIndex, loadIndices, parts, leafId, splitFeature, splitBin, splitFlags, indices);
+        if (numBlocks.x) {
+            SplitAndMakeSequenceInSingleLeafImpl<N, blockSize> << < numBlocks, blockSize, 0, stream >>
+                > (compressedIndex, loadIndices, parts, leafId, splitFeature, splitBin, splitFlags, indices);
+        }
     }
 
 
