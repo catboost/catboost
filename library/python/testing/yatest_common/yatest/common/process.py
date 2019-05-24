@@ -400,7 +400,7 @@ def execute(
 
         if isinstance(stream, six.string_types):
             # User filename is supplied: open file for writing
-            return open(stream, 'wb+'), False
+            return open(stream, 'wb+'), stream.startswith('/dev/')
 
         # Open file or PIPE sentinel is supplied
         is_pipe = stream == subprocess.PIPE
