@@ -113,7 +113,7 @@ void MapBuildPlainFold(TLearnContext* ctx) {
                 .InsertValue("hints", "skip_train~true");
         }
     }
-    const auto& plainFold = ctx->LearnProgress.Folds[0];
+    const auto& plainFold = ctx->LearnProgress->Folds[0];
     Y_ASSERT(plainFold.PermutationBlockSize == plainFold.GetLearnSampleCount() ||
         plainFold.PermutationBlockSize == 1);
     const int workerCount = TMasterEnvironment::GetRef().RootEnvironment->GetSlaveCount();
@@ -122,12 +122,12 @@ void MapBuildPlainFold(TLearnContext* ctx) {
         TMasterEnvironment::GetRef().SharedTrainData,
         MakeEnvelope(TPlainFoldBuilderParams({
             ctx->CtrsHelper.GetTargetClassifiers(),
-            ctx->Rand.GenRand(),
-            ctx->LearnProgress.ApproxDimension,
+            ctx->LearnProgress->Rand.GenRand(),
+            ctx->LearnProgress->ApproxDimension,
             ToString(jsonParams),
             plainFold.GetLearnSampleCount(),
             plainFold.GetSumWeight(),
-            ctx->LearnProgress.HessianType
+            ctx->LearnProgress->HessianType
         }))
     );
 }
@@ -137,7 +137,7 @@ void MapRestoreApproxFromTreeStruct(TLearnContext* ctx) {
     ApplyMapper<TApproxReconstructor>(
         TMasterEnvironment::GetRef().RootEnvironment->GetSlaveCount(),
         TMasterEnvironment::GetRef().SharedTrainData,
-        MakeEnvelope(std::make_pair(ctx->LearnProgress.TreeStruct, ctx->LearnProgress.LeafValues)));
+        MakeEnvelope(std::make_pair(ctx->LearnProgress->TreeStruct, ctx->LearnProgress->LeafValues)));
 }
 
 void MapTensorSearchStart(TLearnContext* ctx) {
@@ -167,7 +167,7 @@ void MapGenericCalcScore(
         TMasterEnvironment::GetRef().SharedTrainData,
         MakeEnvelope(candidateList));
     const int candidateCount = candidateList.ysize();
-    const ui64 randSeed = ctx->Rand.GenRand();
+    const ui64 randSeed = ctx->LearnProgress->Rand.GenRand();
     // set best split for each candidate
     NPar::ParallelFor(
         *ctx->LocalExecutor,
@@ -198,7 +198,7 @@ void MapCalcScore(
     TCandidatesContext* candidatesContext,
     TLearnContext* ctx) {
 
-    const auto& plainFold = ctx->LearnProgress.Folds[0];
+    const auto& plainFold = ctx->LearnProgress->Folds[0];
     const auto getScore = [&] (const TStats3D& stats3D, const TCandidateInfo& splitInfo) {
         Y_UNUSED(splitInfo);
 
@@ -232,7 +232,7 @@ void MapGenericRemoteCalcScore(
     // set best split for each candidate
     const int candidateCount = candidateList.ysize();
     Y_ASSERT(candidateCount == allScores.ysize());
-    const ui64 randSeed = ctx->Rand.GenRand();
+    const ui64 randSeed = ctx->LearnProgress->Rand.GenRand();
     ctx->LocalExecutor->ExecRange(
         [&] (int candidateIdx) {
             auto& candidates = candidateList[candidateIdx].Candidates;
@@ -311,7 +311,7 @@ void MapCalcErrors(TLearnContext* ctx) {
     const auto metrics = CreateMetrics(
         ctx->Params.MetricOptions,
         ctx->EvalMetricDescriptor,
-        ctx->LearnProgress.ApproxDimension
+        ctx->LearnProgress->ApproxDimension
     );
     const auto skipMetricOnTrain = GetSkipMetricOnTrain(metrics);
     Y_VERIFY(
@@ -320,7 +320,7 @@ void MapCalcErrors(TLearnContext* ctx) {
     for (int metricIdx = 0; metricIdx < metrics.ysize(); ++metricIdx) {
         if (!skipMetricOnTrain[metricIdx] && metrics[metricIdx]->IsAdditiveMetric()) {
             const auto description = metrics[metricIdx]->GetDescription();
-            ctx->LearnProgress.MetricsAndTimeHistory.AddLearnError(
+            ctx->LearnProgress->MetricsAndTimeHistory.AddLearnError(
                 *metrics[metricIdx].Get(),
                 metrics[metricIdx]->GetFinalError(additiveStats[description]));
         }
@@ -346,7 +346,7 @@ void MapSetApproxes(
     const int workerCount = TMasterEnvironment::GetRef().RootEnvironment->GetSlaveCount();
     ApplyMapper<TCalcApproxStarter>(workerCount, TMasterEnvironment::GetRef().SharedTrainData, MakeEnvelope(splitTree));
     const int gradientIterations = ctx->Params.ObliviousTreeOptions->LeavesEstimationIterations;
-    const int approxDimension = ctx->LearnProgress.ApproxDimension;
+    const int approxDimension = ctx->LearnProgress->ApproxDimension;
     const int leafCount = splitTree.GetLeafCount();
     TVector<TSum> buckets(leafCount, TSum(approxDimension, error.GetHessianType()));
     averageLeafValues->resize(approxDimension, TVector<double>(leafCount));
@@ -409,7 +409,7 @@ void MapSetApproxes(
         indices,
         *averageLeafValues,
         testData,
-        &ctx->LearnProgress,
+        ctx->LearnProgress.Get(),
         ctx->LocalExecutor);
 }
 
@@ -438,8 +438,8 @@ public:
 
         const size_t leafCount = buckets.size();
         TVector<TVector<double>> leafValues(/*dimensionCount*/ 1, TVector<double>(leafCount));
-        const size_t allDocCount = ctx.LearnProgress.Folds[0].GetLearnSampleCount();
-        const double sumAllWeights = ctx.LearnProgress.Folds[0].GetSumWeight();
+        const size_t allDocCount = ctx.LearnProgress->Folds[0].GetLearnSampleCount();
+        const double sumAllWeights = ctx.LearnProgress->Folds[0].GetSumWeight();
         CalcLeafDeltasSimple(buckets, pairwiseBuckets, ctx.Params, sumAllWeights, allDocCount, &leafValues[0]);
         return leafValues;
     }
@@ -458,13 +458,13 @@ public:
         const TPairwiseBuckets& /*pairwiseBuckets*/,
         const TLearnContext& ctx) {
 
-        const int dimensionCount = ctx.LearnProgress.ApproxDimension;
+        const int dimensionCount = ctx.LearnProgress->ApproxDimension;
         const size_t leafCount = buckets.size();
         TVector<TVector<double>> leafValues(dimensionCount, TVector<double>(leafCount));
         const auto estimationMethod = ctx.Params.ObliviousTreeOptions->LeavesEstimationMethod;
         const float l2Regularizer = ctx.Params.ObliviousTreeOptions->L2Reg;
-        const size_t allDocCount = ctx.LearnProgress.Folds[0].GetLearnSampleCount();
-        const double sumAllWeights = ctx.LearnProgress.Folds[0].GetSumWeight();
+        const size_t allDocCount = ctx.LearnProgress->Folds[0].GetLearnSampleCount();
+        const double sumAllWeights = ctx.LearnProgress->Folds[0].GetSumWeight();
         if (estimationMethod == ELeavesEstimation::Newton) {
         CalcMixedModelMulti(
             CalcDeltaNewtonMulti,

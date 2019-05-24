@@ -4440,3 +4440,128 @@ def test_loss_function_auto_set():
 
     model = CatBoostClassifier(iterations=10, target_border=1.5).fit(X, multi_y)
     assert model.get_param('loss_function') == 'Logloss'
+
+
+PROBLEM_TYPES = ['binclass', 'multiclass', 'regression', 'ranking']
+
+
+def get_params_for_problem_type(problem_type):
+    if problem_type == 'binclass':
+        return {
+            'loss_function': 'Logloss',
+            'train_path': TRAIN_FILE,
+            'test_path': TEST_FILE,
+            'cd_path': CD_FILE,
+            'boosting_types': BOOSTING_TYPE
+        }
+    elif problem_type == 'multiclass':
+        return {
+            'loss_function': 'MultiClass',
+            'train_path': CLOUDNESS_TRAIN_FILE,
+            'test_path': CLOUDNESS_TEST_FILE,
+            'cd_path': CLOUDNESS_CD_FILE,
+            'boosting_types': BOOSTING_TYPE
+        }
+    elif problem_type == 'regression':
+        return {
+            'loss_function': 'RMSE',
+            'train_path': TRAIN_FILE,
+            'test_path': TEST_FILE,
+            'cd_path': CD_FILE,
+            'boosting_types': BOOSTING_TYPE
+        }
+    elif problem_type == 'ranking':
+        return {
+            'loss_function': 'YetiRankPairwise',
+            'train_path': QUERYWISE_TRAIN_FILE,
+            'test_path': QUERYWISE_TEST_FILE,
+            'cd_path': QUERYWISE_CD_FILE,
+            'boosting_types': ['Plain']
+        }
+    else:
+        raise Exception('Unsupported problem_type: %s' % problem_type)
+
+
+@pytest.mark.parametrize('problem_type', PROBLEM_TYPES, ids=['problem_type=%s' % pt for pt in PROBLEM_TYPES])
+def test_continue_learning_with_same_params(problem_type):
+    params = get_params_for_problem_type(problem_type)
+
+    train_pool = Pool(params['train_path'], column_description=params['cd_path'])
+
+    for boosting_type in params['boosting_types']:
+        train_params = {
+            'task_type': 'CPU',  # TODO(akhropov): GPU support
+            'loss_function': params['loss_function'],
+            'boosting_type': boosting_type,
+            'learning_rate': 0.3  # fixed, because automatic value depends on number of iterations
+        }
+
+        iterations_list = [5, 7, 10]
+        total_iterations = sum(iterations_list)
+
+        def train_model(iterations, init_model=None):
+            local_params = train_params
+            local_params['iterations'] = iterations
+            model = CatBoost(local_params)
+            model.fit(train_pool, init_model=init_model)
+            return model
+
+        total_model = train_model(total_iterations)
+
+        incremental_model = None
+        for iterations in iterations_list:
+            incremental_model = train_model(iterations, incremental_model)
+
+        assert total_model == incremental_model
+
+
+PARAM_SETS = ['iterations,learning_rate', 'iterations,depth,rsm']
+
+
+@pytest.mark.parametrize('problem_type', PROBLEM_TYPES, ids=['problem_type=%s' % pt for pt in PROBLEM_TYPES])
+@pytest.mark.parametrize('param_set', PARAM_SETS, ids=['param_set=%s' % pt for pt in PARAM_SETS])
+def test_continue_learning_with_changing_params(problem_type, param_set):
+    params = get_params_for_problem_type(problem_type)
+
+    train_pool = Pool(params['train_path'], column_description=params['cd_path'])
+    test_pool = Pool(params['test_path'], column_description=params['cd_path'])
+
+    if param_set == 'iterations,learning_rate':
+        updated_params_list = [
+            {'iterations': 5, 'learning_rate': 0.3},
+            {'iterations': 2, 'learning_rate': 0.1},
+            {'iterations': 3, 'learning_rate': 0.2},
+        ]
+    elif param_set == 'iterations,depth,rsm':
+        updated_params_list = [
+            {'iterations': 2, 'depth': 3, 'rsm': 1.0},
+            {'iterations': 4, 'depth': 7, 'rsm': 0.2},
+            {'iterations': 3, 'depth': 6, 'rsm': 0.5},
+        ]
+
+    canonical_files = []
+
+    for boosting_type in params['boosting_types']:
+        train_params = {
+            'task_type': 'CPU',  # TODO(akhropov): GPU support
+            'loss_function': params['loss_function'],
+            'boosting_type': boosting_type,
+        }
+
+        def train_model(updated_params, init_model=None):
+            local_params = train_params
+            local_params.update(updated_params)
+            model = CatBoost(local_params)
+            model.fit(train_pool, init_model=init_model)
+            return model
+
+        model = None
+        for updated_params in updated_params_list:
+            model = train_model(updated_params, model)
+
+        pred = model.predict(test_pool)
+        preds_path = test_output_path('predictions_for_boosting_type_%s.txt' % boosting_type)
+        np.savetxt(preds_path, np.array(pred), fmt='%.8f')
+        canonical_files.append(local_canonical_file(preds_path))
+
+    return canonical_files

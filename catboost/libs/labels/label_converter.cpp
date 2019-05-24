@@ -31,6 +31,19 @@ static THashMap<float, int> CalcLabelToClassMap(TVector<float> targets, int clas
     return labels;
 }
 
+bool TLabelConverter::operator==(const TLabelConverter& rhs) const {
+    if (Initialized != rhs.Initialized) {
+        return false;
+    }
+    if (!Initialized) {
+        return true;
+    }
+
+    return (LabelToClass == rhs.LabelToClass) &&
+        (ClassToLabel == rhs.ClassToLabel) &&
+        (ClassesCount == rhs.ClassesCount);
+}
+
 void TLabelConverter::Initialize(int approxDimension) {
     CB_ENSURE(!Initialized, "Can't initialize initialized object of TLabelConverter");
 

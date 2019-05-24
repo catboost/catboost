@@ -472,6 +472,10 @@ cdef extern from "catboost/libs/algo/hessian.h":
     cdef cppclass THessianInfo:
         TVector[double] Data
 
+cdef extern from "catboost/libs/algo/learn_context.h":
+    cdef cppclass TLearnProgress:
+        pass
+
 
 cdef extern from "catboost/libs/model/ctr_provider.h":
     cdef cppclass ECtrTableMergePolicy:
@@ -657,10 +661,13 @@ cdef extern from "catboost/libs/train_lib/train_model.h":
         const TMaybe[TCustomObjectiveDescriptor]& objectiveDescriptor,
         const TMaybe[TCustomMetricDescriptor]& evalMetricDescriptor,
         TDataProviders pools,
+        TMaybe[TFullModel*] initModel,
+        THolder[TLearnProgress]* initLearnProgress,
         const TString& outputModelPath,
-        TFullModel* model,
+        TFullModel* dstModel,
         const TVector[TEvalResult*]& testApproxes,
-        TMetricsAndTimeLeftHistory* metricsAndTimeHistory
+        TMetricsAndTimeLeftHistory* metricsAndTimeHistory,
+        THolder[TLearnProgress]* dstLearnProgress
     ) nogil except +ProcessException
 
 cdef extern from "catboost/libs/train_lib/cross_validation.h":
@@ -2444,6 +2451,7 @@ cdef class _CatBoost:
     cdef TFullModel* __model
     cdef TVector[TEvalResult*] __test_evals
     cdef TMetricsAndTimeLeftHistory __metrics_history
+    cdef THolder[TLearnProgress] __cached_learn_progress
 
     def __cinit__(self):
         self.__model = new TFullModel()
@@ -2470,7 +2478,7 @@ cdef class _CatBoost:
         for i in range(self.__test_evals.size()):
             dereference(self.__test_evals[i]).ClearRawValues()
 
-    cpdef _train(self, _PoolBase train_pool, test_pools, dict params, allow_clear_pool):
+    cpdef _train(self, _PoolBase train_pool, test_pools, dict params, allow_clear_pool, maybe_init_model):
         _input_borders = params.pop("input_borders", None)
         prep_params = _PreprocessParams(params)
         cdef int thread_count = params.get("thread_count", 1)
@@ -2480,14 +2488,29 @@ cdef class _CatBoost:
         cdef TVector[ui32] ignored_features
         cdef TQuantizedFeaturesInfoPtr quantizedFeaturesInfo
         cdef TString input_borders_str
+        cdef _CatBoost init_model
+        cdef TMaybe[TFullModel*] init_model_param
+        cdef THolder[TLearnProgress]* init_learn_progress_param
+        cdef THolder[TLearnProgress]* dst_learn_progress_param
+
+        task_type = params.get('task_type', 'CPU')
+
         if isinstance(test_pools, list):
-            if params.get('task_type', 'CPU') == 'GPU' and len(test_pools) > 1:
+            if task_type == 'GPU' and len(test_pools) > 1:
                 raise CatBoostError('Multiple eval sets are not supported on GPU')
             for test_pool in test_pools:
                 dataProviders.Test.push_back(test_pool.__pool)
         else:
             test_pool = test_pools
             dataProviders.Test.push_back(test_pool.__pool)
+        if maybe_init_model is not None:
+            if not isinstance(maybe_init_model, _CatBoost):
+                raise CatBoostError('init_model is not an instance of _CatBoost class')
+            init_model = maybe_init_model
+            init_model_param = init_model.__model
+            init_learn_progress_param = &(init_model.__cached_learn_progress)
+        else:
+            init_learn_progress_param = <THolder[TLearnProgress]*>nullptr
         self._reserve_test_evals(dataProviders.Test.size())
         self._clear_test_evals()
 
@@ -2503,6 +2526,11 @@ cdef class _CatBoost:
                     input_borders_str,
                     quantizedFeaturesInfo.Get())
 
+        if task_type == 'CPU':
+            dst_learn_progress_param = &self.__cached_learn_progress
+        else:
+            dst_learn_progress_param = <THolder[TLearnProgress]*>nullptr
+
         with nogil:
             SetPythonInterruptHandler()
             try:
@@ -2512,10 +2540,13 @@ cdef class _CatBoost:
                     prep_params.customObjectiveDescriptor,
                     prep_params.customMetricDescriptor,
                     dataProviders,
+                    init_model_param,
+                    init_learn_progress_param,
                     TString(<const char*>""),
                     self.__model,
                     self.__test_evals,
-                    &self.__metrics_history
+                    &self.__metrics_history,
+                    dst_learn_progress_param
                 )
             finally:
                 ResetPythonInterruptHandler()

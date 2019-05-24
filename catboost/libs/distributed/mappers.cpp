@@ -154,43 +154,46 @@ namespace NCatboostDistributed {
 
         const auto& trainParams = localData.Params;
 
-        localData.StoreExpApprox = IsStoreExpApprox(
-            trainParams.LossFunctionDescription->GetLossFunction());
+        NCB::TTrainingForCPUDataProviders trainingDataProviders;
+        trainingDataProviders.Learn = GetTrainData(trainData);
 
-        localData.Progress.ApproxDimension = params->Data.ApproxDimension;
-        localData.Progress.AveragingFold = TFold::BuildPlainFold(
-            *GetTrainData(trainData),
-            params->Data.TargetClassifiers,
-            /*shuffle*/false,
-            GetTrainData(trainData)->GetObjectCount(),
+        const TFoldsCreationParams foldsCreationParams(
+            trainParams,
+            *trainingDataProviders.Learn->ObjectsData,
+            /*isForWorkerLocalData*/ true);
+
+        localData.Progress = MakeHolder<TLearnProgress>(
+            /*isForWorkerLocalData*/ true,
+            /*isSingleHost*/ false,
+            trainingDataProviders,
             params->Data.ApproxDimension,
-            localData.StoreExpApprox,
-            UsesPairsForCalculation(trainParams.LossFunctionDescription->GetLossFunction()),
-            localData.Rand.Get(),
+            TLabelConverter(), // unused in case of localData
+            params->Data.RandomSeed + hostId,
+            /*initRand*/ localData.Rand.Get(),
+            foldsCreationParams,
+            /*datasetsCanContainBaseline*/ true,
+            params->Data.TargetClassifiers,
+            /*featuresCheckSum*/ 0, // unused in case of localData
+            /*foldCreationParamsCheckSum*/ 0,
+            /*initModel*/ Nothing(),
+            /*initModelApplyCompatiblePools*/ NCB::TDataProviders(),
             &NPar::LocalExecutor());
-        Y_ASSERT(localData.Progress.AveragingFold.BodyTailArr.ysize() == 1);
+        Y_ASSERT(localData.Progress->AveragingFold.BodyTailArr.ysize() == 1);
 
         localData.HessianType = params->Data.HessianType;
 
-        auto maybeBaseline = GetTrainData(trainData)->TargetData->GetBaseline();
-        if (maybeBaseline) {
-            AssignRank2<float>(*maybeBaseline, &localData.Progress.AvrgApprox);
-        } else {
-            localData.Progress.AvrgApprox.resize(
-                params->Data.ApproxDimension,
-                TVector<double>(GetTrainData(trainData)->GetObjectCount()));
-        }
+        localData.StoreExpApprox = foldsCreationParams.StoreExpApproxes;
 
         localData.UseTreeLevelCaching = NeedToUseTreeLevelCaching(
             trainParams,
             /*maxBodyTailCount=*/1,
-            localData.Progress.AveragingFold.GetApproxDimension());
+            localData.Progress->AveragingFold.GetApproxDimension());
 
         const bool isPairwiseScoring = IsPairwiseScoring(
             trainParams.LossFunctionDescription->GetLossFunction());
         const int defaultCalcStatsObjBlockSize =
             static_cast<int>(trainParams.ObliviousTreeOptions->DevScoreCalcObjBlockSize);
-        auto& plainFold = localData.Progress.AveragingFold;
+        auto& plainFold = localData.Progress->AveragingFold;
         localData.SampledDocs.Create(
             { plainFold },
             isPairwiseScoring,
@@ -231,13 +234,13 @@ namespace NCatboostDistributed {
 
         auto maybeBaseline = GetTrainData(trainData)->TargetData->GetBaseline();
         if (maybeBaseline) {
-            AssignRank2<float>(*maybeBaseline, &localData.Progress.AvrgApprox);
+            AssignRank2<float>(*maybeBaseline, &localData.Progress->AvrgApprox);
         }
 
         const ui32 learnSampleCount = GetTrainData(trainData)->GetObjectCount();
         const bool storeExpApprox = IsStoreExpApprox(
             localData.Params.LossFunctionDescription->GetLossFunction());
-        const auto& avrgFold = localData.Progress.AveragingFold;
+        const auto& avrgFold = localData.Progress->AveragingFold;
         for (size_t treeIdx : xrange(forest.size())) {
             const auto leafIndices = BuildIndices(
                 avrgFold,
@@ -251,7 +254,7 @@ namespace NCatboostDistributed {
                 leafIndices,
                 leafValues[treeIdx], /*testData*/
                 { },
-                &localData.Progress,
+                localData.Progress.Get(),
                 &NPar::LocalExecutor());
         }
     }
@@ -280,11 +283,11 @@ namespace NCatboostDistributed {
         Bootstrap(
             localData.Params,
             localData.Indices,
-            &localData.Progress.AveragingFold,
+            &localData.Progress->AveragingFold,
             &localData.SampledDocs,
             &NPar::LocalExecutor(),
-            localData.Rand.Get());
-        localData.FlatPairs = UnpackPairsFromQueries(localData.Progress.AveragingFold.LearnQueriesInfo);
+            &localData.Progress->Rand);
+        localData.FlatPairs = UnpackPairsFromQueries(localData.Progress->AveragingFold.LearnQueriesInfo);
     }
 
     template <typename TMapFunc, typename TInputType, typename TOutputType>
@@ -327,7 +330,7 @@ namespace NCatboostDistributed {
         auto& localData = TLocalTensorSearchData::GetRef();
         CalcStatsAndScores(
             *GetTrainData(trainData)->ObjectsData,
-            localData.Progress.AveragingFold.GetAllCtrs(),
+            localData.Progress->AveragingFold.GetAllCtrs(),
             localData.SampledDocs,
             localData.SmallestSplitSideDocs,
             /*initialFold*/nullptr,
@@ -351,7 +354,7 @@ namespace NCatboostDistributed {
         auto& localData = TLocalTensorSearchData::GetRef();
         CalcStatsAndScores(
             *GetTrainData(trainData)->ObjectsData,
-            localData.Progress.AveragingFold.GetAllCtrs(),
+            localData.Progress->AveragingFold.GetAllCtrs(),
             localData.SampledDocs,
             localData.SmallestSplitSideDocs,
             /*initialFold*/nullptr,
@@ -513,7 +516,7 @@ namespace NCatboostDistributed {
             bestSplit->Data,
             *GetTrainData(trainData)->ObjectsData,
             localData.Depth + 1,
-            localData.Progress.AveragingFold,
+            localData.Progress->AveragingFold,
             &localData.Indices,
             &NPar::LocalExecutor());
         if (IsSamplingPerTree(localData.Params.ObliviousTreeOptions)) {
@@ -545,7 +548,7 @@ namespace NCatboostDistributed {
         TOutput* sums
     ) const {
         auto& localData = TLocalTensorSearchData::GetRef();
-        const int approxDimension = localData.Progress.ApproxDimension;
+        const int approxDimension = localData.Progress->ApproxDimension;
         Y_ASSERT(approxDimension == 1);
         const auto error = BuildError(localData.Params, /*custom objective*/Nothing());
         const auto estimationMethod = localData.Params.ObliviousTreeOptions->LeavesEstimationMethod;
@@ -553,7 +556,7 @@ namespace NCatboostDistributed {
             error->GetErrorType() == EErrorType::PerObjectError ?
                 APPROX_BLOCK_SIZE * CB_THREAD_LIMIT :
                 // plain boosting ==> not approx on full history
-                localData.Progress.AveragingFold.BodyTailArr[0].BodyFinish;
+                localData.Progress->AveragingFold.BodyTailArr[0].BodyFinish;
         TVector<TDers> weightedDers;
         weightedDers.yresize(scratchSize);
 
@@ -562,17 +565,17 @@ namespace NCatboostDistributed {
         }
         CalcLeafDersSimple(
             localData.Indices,
-            localData.Progress.AveragingFold,
-            localData.Progress.AveragingFold.BodyTailArr[0],
-            localData.Progress.AveragingFold.BodyTailArr[0].Approx[0],
+            localData.Progress->AveragingFold,
+            localData.Progress->AveragingFold.BodyTailArr[0],
+            localData.Progress->AveragingFold.BodyTailArr[0].Approx[0],
             localData.ApproxDeltas[0],
             *error,
-            localData.Progress.AveragingFold.BodyTailArr[0].BodyFinish,
-            localData.Progress.AveragingFold.BodyTailArr[0].BodyQueryFinish,
+            localData.Progress->AveragingFold.BodyTailArr[0].BodyFinish,
+            localData.Progress->AveragingFold.BodyTailArr[0].BodyQueryFinish,
             localData.GradientIteration,
             estimationMethod,
             localData.Params,
-            localData.Rand->GenRand(),
+            localData.Progress->Rand.GenRand(),
             &NPar::LocalExecutor(),
             &localData.Buckets,
             &localData.PairwiseBuckets,
@@ -589,16 +592,16 @@ namespace NCatboostDistributed {
         auto& localData = TLocalTensorSearchData::GetRef();
         NPar::TCtxPtr<TTrainData> trainData(ctx, SHARED_ID_TRAIN_DATA, hostId);
         localData.Indices = BuildIndices(
-            localData.Progress.AveragingFold,
+            localData.Progress->AveragingFold,
             splitTree->Data,
             GetTrainData(trainData),
             /*testDataPtrs*/{ },
             &NPar::LocalExecutor());
-        const int approxDimension = localData.Progress.ApproxDimension;
+        const int approxDimension = localData.Progress->ApproxDimension;
         if (localData.ApproxDeltas.empty()) {
             localData.ApproxDeltas.resize(approxDimension); // 1D or nD
             for (auto& dimensionDelta : localData.ApproxDeltas) {
-                dimensionDelta.yresize(localData.Progress.AveragingFold.BodyTailArr[0].TailFinish);
+                dimensionDelta.yresize(localData.Progress->AveragingFold.BodyTailArr[0].TailFinish);
             }
         }
         for (auto& dimensionDelta : localData.ApproxDeltas) {
@@ -626,7 +629,7 @@ namespace NCatboostDistributed {
         UpdateApproxDeltas(
             localData.StoreExpApprox,
             localData.Indices,
-            localData.Progress.AveragingFold.BodyTailArr[0].TailFinish,
+            localData.Progress->AveragingFold.BodyTailArr[0].TailFinish,
             &NPar::LocalExecutor(),
             &(*leafValues)[0],
             &localData.ApproxDeltas[0]);
@@ -645,15 +648,15 @@ namespace NCatboostDistributed {
                 { localData.ApproxDeltas },
                 localData.Params.BoostingOptions->LearningRate,
                 &NPar::LocalExecutor(),
-                &localData.Progress.AveragingFold);
+                &localData.Progress->AveragingFold);
         } else {
             UpdateBodyTailApprox</*StoreExpApprox*/false>(
                 { localData.ApproxDeltas },
                 localData.Params.BoostingOptions->LearningRate,
                 &NPar::LocalExecutor(),
-                &localData.Progress.AveragingFold);
+                &localData.Progress->AveragingFold);
         }
-        TConstArrayRef<ui32> learnPermutationRef(localData.Progress.AveragingFold.GetLearnPermutationArray());
+        TConstArrayRef<ui32> learnPermutationRef(localData.Progress->AveragingFold.GetLearnPermutationArray());
         TConstArrayRef<TIndexType> indicesRef(localData.Indices);
         const auto updateAvrgApprox =
             [=](TConstArrayRef<double> delta, TArrayRef<double> approx, size_t idx) {
@@ -662,7 +665,7 @@ namespace NCatboostDistributed {
         UpdateApprox(
             updateAvrgApprox,
             *averageLeafValues,
-            &localData.Progress.AvrgApprox,
+            &localData.Progress->AvrgApprox,
             &NPar::LocalExecutor());
     }
 
@@ -673,14 +676,14 @@ namespace NCatboostDistributed {
         TOutput* /*unused*/
     ) const {
         auto& localData = TLocalTensorSearchData::GetRef();
-        Y_ASSERT(localData.Progress.AveragingFold.BodyTailArr.ysize() == 1);
+        Y_ASSERT(localData.Progress->AveragingFold.BodyTailArr.ysize() == 1);
         const auto error = BuildError(localData.Params, /*custom objective*/Nothing());
         CalcWeightedDerivatives(
             *error,
             /*bodyTailIdx*/0,
             localData.Params,
-            localData.Rand->GenRand(),
-            &localData.Progress.AveragingFold,
+            localData.Progress->Rand.GenRand(),
+            &localData.Progress->AveragingFold,
             &NPar::LocalExecutor());
     }
 
@@ -691,7 +694,7 @@ namespace NCatboostDistributed {
         TOutput* sums
     ) const {
         auto& localData = TLocalTensorSearchData::GetRef();
-        const int approxDimension = localData.Progress.ApproxDimension;
+        const int approxDimension = localData.Progress->ApproxDimension;
         Y_ASSERT(approxDimension > 1);
         const auto error = BuildError(localData.Params, /*custom objective*/Nothing());
         const auto estimationMethod = localData.Params.ObliviousTreeOptions->LeavesEstimationMethod;
@@ -703,12 +706,12 @@ namespace NCatboostDistributed {
             UpdateBucketsMulti(
                 AddSampleToBucketNewtonMulti,
                 localData.Indices,
-                localData.Progress.AveragingFold.LearnTarget,
-                localData.Progress.AveragingFold.GetLearnWeights(),
-                localData.Progress.AveragingFold.BodyTailArr[0].Approx,
+                localData.Progress->AveragingFold.LearnTarget,
+                localData.Progress->AveragingFold.GetLearnWeights(),
+                localData.Progress->AveragingFold.BodyTailArr[0].Approx,
                 localData.ApproxDeltas,
                 *error,
-                localData.Progress.AveragingFold.BodyTailArr[0].BodyFinish,
+                localData.Progress->AveragingFold.BodyTailArr[0].BodyFinish,
                 localData.GradientIteration,
                 &localData.MultiBuckets);
         } else {
@@ -716,12 +719,12 @@ namespace NCatboostDistributed {
             UpdateBucketsMulti(
                 AddSampleToBucketGradientMulti,
                 localData.Indices,
-                localData.Progress.AveragingFold.LearnTarget,
-                localData.Progress.AveragingFold.GetLearnWeights(),
-                localData.Progress.AveragingFold.BodyTailArr[0].Approx,
+                localData.Progress->AveragingFold.LearnTarget,
+                localData.Progress->AveragingFold.GetLearnWeights(),
+                localData.Progress->AveragingFold.BodyTailArr[0].Approx,
                 localData.ApproxDeltas,
                 *error,
-                localData.Progress.AveragingFold.BodyTailArr[0].BodyFinish,
+                localData.Progress->AveragingFold.BodyTailArr[0].BodyFinish,
                 localData.GradientIteration,
                 &localData.MultiBuckets);
         }
@@ -738,7 +741,7 @@ namespace NCatboostDistributed {
         UpdateApproxDeltasMulti(
             localData.StoreExpApprox,
             localData.Indices,
-            localData.Progress.AveragingFold.BodyTailArr[0].BodyFinish,
+            localData.Progress->AveragingFold.BodyTailArr[0].BodyFinish,
             leafValues,
             &localData.ApproxDeltas);
         ++localData.GradientIteration; // gradient iteration completed
@@ -754,14 +757,14 @@ namespace NCatboostDistributed {
         const auto errors = CreateMetrics(
             localData.Params.MetricOptions,
             /*evalMetricDescriptor*/Nothing(),
-            localData.Progress.ApproxDimension);
+            localData.Progress->ApproxDimension);
         const auto skipMetricOnTrain = GetSkipMetricOnTrain(errors);
         NPar::TCtxPtr<TTrainData> trainData(ctx, SHARED_ID_TRAIN_DATA, hostId);
         for (int errorIdx = 0; errorIdx < errors.ysize(); ++errorIdx) {
             if (!skipMetricOnTrain[errorIdx] && errors[errorIdx]->IsAdditiveMetric()) {
                 const TString metricDescription = errors[errorIdx]->GetDescription();
                 (*additiveStats)[metricDescription] = EvalErrors(
-                    localData.Progress.AvrgApprox,
+                    localData.Progress->AvrgApprox,
                     *GetTrainData(trainData)->TargetData->GetTarget(),
                     GetWeights(*GetTrainData(trainData)->TargetData),
                     GetTrainData(trainData)->TargetData->GetGroupInfo().GetOrElse(TConstArrayRef<TQueryInfo>()),
@@ -783,7 +786,7 @@ namespace NCatboostDistributed {
         *leafWeights = SumLeafWeights(
             leafCount,
             localData.Indices,
-            localData.Progress.AveragingFold.GetLearnPermutationArray(),
+            localData.Progress->AveragingFold.GetLearnPermutationArray(),
             GetWeights(*GetTrainData(trainData)->TargetData));
     }
 

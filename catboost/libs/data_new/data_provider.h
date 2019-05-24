@@ -481,6 +481,14 @@ namespace NCB {
             }
             return newData;
         }
+
+        ui32 CalcFeaturesCheckSum(NPar::TLocalExecutor* localExecutor) const {
+            ui32 checkSum = Learn->ObjectsData->CalcFeaturesCheckSum(localExecutor);
+            for (const auto& testData : Test) {
+                checkSum += testData->ObjectsData->CalcFeaturesCheckSum(localExecutor);
+            }
+            return checkSum;
+        }
     };
 
     using TTrainingDataProviders = TTrainingDataProvidersTemplate<TQuantizedObjectsDataProvider>;

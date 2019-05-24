@@ -27,6 +27,78 @@
         "checksum": "f5992822c3d7eb4b59830c002bbdaef7",
         "uri": "file://test.test_compute_options/options.json"
     },
+    "test.test_continue_learning_with_changing_params[param_set=iterations,depth,rsm-problem_type=binclass]": [
+        {
+            "checksum": "1336effae234b2e4bf22de2e4b25a474",
+            "uri": "file://test.test_continue_learning_with_changing_params_param_set=iterations_depth_rsm-problem_type=binclass_/predictions_for_boosting_type_Ordered.txt"
+        },
+        {
+            "checksum": "366177676b2eb70dea3ea11e5db4a376",
+            "uri": "file://test.test_continue_learning_with_changing_params_param_set=iterations_depth_rsm-problem_type=binclass_/predictions_for_boosting_type_Plain.txt"
+        }
+    ],
+    "test.test_continue_learning_with_changing_params[param_set=iterations,depth,rsm-problem_type=multiclass]": [
+        {
+            "checksum": "f72cb5542148af6893744ff1d7311a02",
+            "uri": "file://test.test_continue_learning_with_changing_params_param_set=iterations_depth_rsm-problem_type=multiclass_/predictions_for_boosting_type_Ordered.txt"
+        },
+        {
+            "checksum": "94080c8056262e0d1dc4e1f24b904615",
+            "uri": "file://test.test_continue_learning_with_changing_params_param_set=iterations_depth_rsm-problem_type=multiclass_/predictions_for_boosting_type_Plain.txt"
+        }
+    ],
+    "test.test_continue_learning_with_changing_params[param_set=iterations,depth,rsm-problem_type=ranking]": [
+        {
+            "checksum": "ed398edc0a69e8464fad77b9adcfe0bf",
+            "uri": "file://test.test_continue_learning_with_changing_params_param_set=iterations_depth_rsm-problem_type=ranking_/predictions_for_boosting_type_Plain.txt"
+        }
+    ],
+    "test.test_continue_learning_with_changing_params[param_set=iterations,depth,rsm-problem_type=regression]": [
+        {
+            "checksum": "b95e826904e76a4630ab8cfcc4cc43e9",
+            "uri": "file://test.test_continue_learning_with_changing_params_param_set=iterations_depth_rsm-problem_type=regression_/predictions_for_boosting_type_Ordered.txt"
+        },
+        {
+            "checksum": "9c34690d5a2a2b1f15b33f2c41171abf",
+            "uri": "file://test.test_continue_learning_with_changing_params_param_set=iterations_depth_rsm-problem_type=regression_/predictions_for_boosting_type_Plain.txt"
+        }
+    ],
+    "test.test_continue_learning_with_changing_params[param_set=iterations,learning_rate-problem_type=binclass]": [
+        {
+            "checksum": "36d66852937f36c3ec1bc8ecc034a7ce",
+            "uri": "file://test.test_continue_learning_with_changing_params_param_set=iterations_learning_rate-problem_type=binclass_/predictions_for_boosting_type_Ordered.txt"
+        },
+        {
+            "checksum": "de9c1d6fa579dc040c998d7c8efbddc4",
+            "uri": "file://test.test_continue_learning_with_changing_params_param_set=iterations_learning_rate-problem_type=binclass_/predictions_for_boosting_type_Plain.txt"
+        }
+    ],
+    "test.test_continue_learning_with_changing_params[param_set=iterations,learning_rate-problem_type=multiclass]": [
+        {
+            "checksum": "8a32be31158f5e84d6033eaa0c24f043",
+            "uri": "file://test.test_continue_learning_with_changing_params_param_set=iterations_learning_rate-problem_type=multiclass_/predictions_for_boosting_type_Ordered.txt"
+        },
+        {
+            "checksum": "152779b44c041708ee7ae902f141a113",
+            "uri": "file://test.test_continue_learning_with_changing_params_param_set=iterations_learning_rate-problem_type=multiclass_/predictions_for_boosting_type_Plain.txt"
+        }
+    ],
+    "test.test_continue_learning_with_changing_params[param_set=iterations,learning_rate-problem_type=ranking]": [
+        {
+            "checksum": "91d24bc8ad0b683c96a5ff60cf8cc8c3",
+            "uri": "file://test.test_continue_learning_with_changing_params_param_set=iterations_learning_rate-problem_type=ranking_/predictions_for_boosting_type_Plain.txt"
+        }
+    ],
+    "test.test_continue_learning_with_changing_params[param_set=iterations,learning_rate-problem_type=regression]": [
+        {
+            "checksum": "450e566cb9f1eaab19d5d585a075c829",
+            "uri": "file://test.test_continue_learning_with_changing_params_param_set=iterations_learning_rate-problem_type=regression_/predictions_for_boosting_type_Ordered.txt"
+        },
+        {
+            "checksum": "d4ec2dc400bd647522045ef21a9a47b3",
+            "uri": "file://test.test_continue_learning_with_changing_params_param_set=iterations_learning_rate-problem_type=regression_/predictions_for_boosting_type_Plain.txt"
+        }
+    ],
     "test.test_convert_model_to_json[CPU-adult]": {
         "checksum": "c102e4677611039c76544cc05f96951f",
         "uri": "file://test.test_convert_model_to_json_CPU-adult_/converted_model.bin"

@@ -129,7 +129,7 @@ namespace NCatboostDistributed {
         THolder<TRestorableFastRng64> Rand;
 
         // data used by CalcScore, SetPermutedIndices, CalcApprox, CalcWeightedDerivatives
-        TLearnProgress Progress;
+        THolder<TLearnProgress> Progress;
         int Depth;
         TVector<TIndexType> Indices;
 

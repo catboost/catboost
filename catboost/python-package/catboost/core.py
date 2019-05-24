@@ -890,8 +890,8 @@ class _CatBoostBase(object):
         setattr(self, '_learning_rate', self._object._get_learning_rate())
         setattr(self, '_tree_count', self._object._get_tree_count())
 
-    def _train(self, train_pool, test_pool, params, allow_clear_pool):
-        self._object._train(train_pool, test_pool, params, allow_clear_pool)
+    def _train(self, train_pool, test_pool, params, allow_clear_pool, init_model):
+        self._object._train(train_pool, test_pool, params, allow_clear_pool, init_model._object if init_model else None)
         self._set_trained_model_attributes()
 
     def _set_test_evals(self, test_evals):
@@ -1055,18 +1055,6 @@ class _CatBoostBase(object):
     def get_tree_leaf_values(self, tree_idx, leaves_num):
         return self._object._get_tree_leaf_values(tree_idx, leaves_num)
 
-    def get_leaf_values(self):
-        return self._object._get_leaf_values()
-
-    def get_leaf_weights(self):
-        return self._object._get_leaf_weights()
-
-    def get_tree_leaf_counts(self):
-        return self._object._get_tree_leaf_counts()
-
-    def set_leaf_values(self, new_leaf_values):
-        self._object._set_leaf_values(new_leaf_values)
-
 
 def _check_param_types(params):
     if not isinstance(params, (Mapping, MutableMapping)):
@@ -1129,7 +1117,7 @@ class CatBoost(_CatBoostBase):
     def _fit(self, X, y, cat_features, pairs, sample_weight, group_id, group_weight, subgroup_id,
              pairs_weight, baseline, use_best_model, eval_set, verbose, logging_level, plot,
              column_description, verbose_eval, metric_period, silent, early_stopping_rounds,
-             save_snapshot, snapshot_file, snapshot_interval):
+             save_snapshot, snapshot_file, snapshot_interval, init_model):
 
         if X is None:
             raise CatBoostError("X must not be None")
@@ -1229,8 +1217,14 @@ class CatBoost(_CatBoostBase):
         if self.get_param('use_best_model') and eval_total_row_count == 0:
             raise CatBoostError("To employ param {'use_best_model': True} provide non-empty 'eval_set'.")
 
+        if (init_model is not None) and isinstance(init_model, STRING_TYPES):
+            try:
+                init_model = CatBoost().load_model(init_model)
+            except Exception as e:
+                raise CatBoostError("Error while loading init_model: {}".format(e))
+
         with log_fixup(), plot_wrapper(plot, [_get_train_dir(self.get_params())]):
-            self._train(train_pool, eval_sets, params, allow_clear_pool)
+            self._train(train_pool, eval_sets, params, allow_clear_pool, init_model)
 
         if (not self._object._has_leaf_weights_in_model()) and allow_clear_pool:
             train_pool = _build_train_pool(X, y, cat_features, pairs, sample_weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, column_description)
@@ -1245,7 +1239,7 @@ class CatBoost(_CatBoostBase):
             group_weight=None, subgroup_id=None, pairs_weight=None, baseline=None, use_best_model=None,
             eval_set=None, verbose=None, logging_level=None, plot=False, column_description=None,
             verbose_eval=None, metric_period=None, silent=None, early_stopping_rounds=None,
-            save_snapshot=None, snapshot_file=None, snapshot_interval=None):
+            save_snapshot=None, snapshot_file=None, snapshot_interval=None, init_model=None):
         """
         Fit the CatBoost model.
 
@@ -1342,6 +1336,10 @@ class CatBoost(_CatBoostBase):
         snapshot_interval: int, [default=600]
             Interval between saving snapshots (seconds)
 
+        init_model : CatBoost class or string, [default=None]
+            Continue training starting from the existing model.
+            If this parameter is a string, load initial model from the path specified by this string.
+
         Returns
         -------
         model : CatBoost
@@ -1349,7 +1347,7 @@ class CatBoost(_CatBoostBase):
         return self._fit(X, y, cat_features, pairs, sample_weight, group_id, group_weight, subgroup_id,
                          pairs_weight, baseline, use_best_model, eval_set, verbose, logging_level, plot,
                          column_description, verbose_eval, metric_period, silent, early_stopping_rounds,
-                         save_snapshot, snapshot_file, snapshot_interval)
+                         save_snapshot, snapshot_file, snapshot_interval, init_model)
 
     def _process_predict_input_data(self, data, parent_method_name, label=None):
         if not self.is_fitted() or self.tree_count_ is None:
@@ -2648,7 +2646,7 @@ class CatBoostClassifier(CatBoost):
     def fit(self, X, y=None, cat_features=None, sample_weight=None, baseline=None, use_best_model=None,
             eval_set=None, verbose=None, logging_level=None, plot=False, column_description=None,
             verbose_eval=None, metric_period=None, silent=None, early_stopping_rounds=None,
-            save_snapshot=None, snapshot_file=None, snapshot_interval=None):
+            save_snapshot=None, snapshot_file=None, snapshot_interval=None, init_model=None):
         """
         Fit the CatBoostClassifier model.
 
@@ -2716,6 +2714,10 @@ class CatBoostClassifier(CatBoost):
         snapshot_interval: int, [default=600]
             Interval between saving snapshots (seconds)
 
+        init_model : CatBoost class or string, [default=None]
+            Continue training starting from the existing model.
+            If this parameter is a string, load initial model from the path specified by this string.
+
         Returns
         -------
         model : CatBoost
@@ -2731,7 +2733,7 @@ class CatBoostClassifier(CatBoost):
 
         self._fit(X, y, cat_features, None, sample_weight, None, None, None, None, baseline, use_best_model,
                   eval_set, verbose, logging_level, plot, column_description, verbose_eval, metric_period,
-                  silent, early_stopping_rounds, save_snapshot, snapshot_file, snapshot_interval)
+                  silent, early_stopping_rounds, save_snapshot, snapshot_file, snapshot_interval, init_model)
         return self
 
     def predict(self, data, prediction_type='Class', ntree_start=0, ntree_end=0, thread_count=-1, verbose=None):
@@ -3077,7 +3079,7 @@ class CatBoostRegressor(CatBoost):
     def fit(self, X, y=None, cat_features=None, sample_weight=None, baseline=None, use_best_model=None,
             eval_set=None, verbose=None, logging_level=None, plot=False, column_description=None,
             verbose_eval=None, metric_period=None, silent=None, early_stopping_rounds=None,
-            save_snapshot=None, snapshot_file=None, snapshot_interval=None):
+            save_snapshot=None, snapshot_file=None, snapshot_interval=None, init_model=None):
         """
         Fit the CatBoost model.
 
@@ -3146,6 +3148,10 @@ class CatBoostRegressor(CatBoost):
         snapshot_interval: int, [default=600]
             Interval between saving snapshots (seconds)
 
+        init_model : CatBoost class or string, [default=None]
+            Continue training starting from the existing model.
+            If this parameter is a string, load initial model from the path specified by this string.
+
         Returns
         -------
         model : CatBoost
@@ -3159,7 +3165,7 @@ class CatBoostRegressor(CatBoost):
         return self._fit(X, y, cat_features, None, sample_weight, None, None, None, None, baseline,
                          use_best_model, eval_set, verbose, logging_level, plot, column_description,
                          verbose_eval, metric_period, silent, early_stopping_rounds,
-                         save_snapshot, snapshot_file, snapshot_interval)
+                         save_snapshot, snapshot_file, snapshot_interval, init_model)
 
     def predict(self, data, ntree_start=0, ntree_end=0, thread_count=-1, verbose=None):
         """
@@ -3280,7 +3286,8 @@ class CatBoostRegressor(CatBoost):
 
 def train(pool=None, params=None, dtrain=None, logging_level=None, verbose=None, iterations=None,
           num_boost_round=None, evals=None, eval_set=None, plot=None, verbose_eval=None, metric_period=None,
-          early_stopping_rounds=None, save_snapshot=None, snapshot_file=None, snapshot_interval=None):
+          early_stopping_rounds=None, save_snapshot=None, snapshot_file=None, snapshot_interval=None,
+          init_model=None):
     """
     Train CatBoost model.
 
@@ -3346,6 +3353,10 @@ def train(pool=None, params=None, dtrain=None, logging_level=None, verbose=None,
     snapshot_interval: int, [default=600]
         Interval between saving snapshots (seconds)
 
+    init_model : CatBoost class or string, [default=None]
+        Continue training starting from the existing model.
+        If this parameter is a string, load initial model from the path specified by this string.
+
     Returns
     -------
     model : CatBoost class
@@ -3390,7 +3401,7 @@ def train(pool=None, params=None, dtrain=None, logging_level=None, verbose=None,
     model.fit(X=pool, eval_set=eval_set, logging_level=logging_level, plot=plot, verbose=verbose,
               verbose_eval=verbose_eval, metric_period=metric_period,
               early_stopping_rounds=early_stopping_rounds, save_snapshot=save_snapshot,
-              snapshot_file=snapshot_file, snapshot_interval=snapshot_interval)
+              snapshot_file=snapshot_file, snapshot_interval=snapshot_interval, init_model=init_model)
     return model
 
 

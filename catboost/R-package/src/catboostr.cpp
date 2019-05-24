@@ -390,6 +390,8 @@ SEXP CatBoostFit_R(SEXP learnPoolParam, SEXP testPoolParam, SEXP fitParamsAsJson
             Nothing(),
             Nothing(),
             pools,
+            /*initModel*/ Nothing(),
+            /*initLearnProgress*/ nullptr,
             "",
             modelPtr.get(),
             {&evalResult}
@@ -403,6 +405,8 @@ SEXP CatBoostFit_R(SEXP learnPoolParam, SEXP testPoolParam, SEXP fitParamsAsJson
             Nothing(),
             Nothing(),
             pools,
+            /*initModel*/ Nothing(),
+            /*initLearnProgress*/ nullptr,
             "",
             modelPtr.get(),
             {}

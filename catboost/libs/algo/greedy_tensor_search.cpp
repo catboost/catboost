@@ -248,7 +248,8 @@ static void SelectCandidatesAndCleanupStatsFromPrevTree(
 
         switch (splitEnsemble.Type) {
             case ESplitEnsembleType::OneFeature:
-                addCandSubListToResult = ctx->Rand.GenRandReal1() <= ctx->Params.ObliviousTreeOptions->Rsm;
+                addCandSubListToResult
+                    = ctx->LearnProgress->Rand.GenRandReal1() <= ctx->Params.ObliviousTreeOptions->Rsm;
                 break;
             case ESplitEnsembleType::BinarySplits:
                 {
@@ -257,7 +258,8 @@ static void SelectCandidatesAndCleanupStatsFromPrevTree(
                     for (size_t idxInPack : xrange(sizeof(TBinaryFeaturesPack) * CHAR_BIT)) {
                         if ((perPackMask >> idxInPack) & 1) {
                             const bool addToCandidates
-                                = ctx->Rand.GenRandReal1() <= ctx->Params.ObliviousTreeOptions->Rsm;
+                                = ctx->LearnProgress->Rand.GenRandReal1()
+                                    <= ctx->Params.ObliviousTreeOptions->Rsm;
                             if (!addToCandidates) {
                                 MarkFeatureAsExcluded(
                                     TPackedBinaryIndex(packIdx, idxInPack),
@@ -277,7 +279,7 @@ static void SelectCandidatesAndCleanupStatsFromPrevTree(
                     filteredFeaturesInBundle.reserve(selectedFeaturesInBundle.size());
                     for (auto inBundleIdx : selectedFeaturesInBundle) {
                         const bool addToCandidates
-                            = ctx->Rand.GenRandReal1() <= ctx->Params.ObliviousTreeOptions->Rsm;
+                            = ctx->LearnProgress->Rand.GenRandReal1() <= ctx->Params.ObliviousTreeOptions->Rsm;
                         if (addToCandidates) {
                             filteredFeaturesInBundle.push_back(inBundleIdx);
                         }
@@ -375,7 +377,7 @@ static void AddSimpleCtrs(
             TProjection proj;
             proj.AddCatFeature((int)*catFeatureIdx);
 
-            if (ctx->Rand.GenRandReal1() > ctx->Params.ObliviousTreeOptions->Rsm) {
+            if (ctx->LearnProgress->Rand.GenRandReal1() > ctx->Params.ObliviousTreeOptions->Rsm) {
                 if (ctx->UseTreeLevelCaching()) {
                     DropStatsForProjection(*fold, *ctx, proj, statsFromPrevTree);
                 }
@@ -421,7 +423,7 @@ static void AddTreeCtrs(
             [&](TCatFeatureIdx catFeatureIdx) {
                 const bool isOneHot =
                     (quantizedFeaturesInfo.GetUniqueValuesCounts(catFeatureIdx).OnLearnOnly <= oneHotMaxSize);
-                if (isOneHot || (ctx->Rand.GenRandReal1() > ctx->Params.ObliviousTreeOptions->Rsm)) {
+                if (isOneHot || (ctx->LearnProgress->Rand.GenRandReal1() > ctx->Params.ObliviousTreeOptions->Rsm)) {
                     return;
                 }
 
@@ -621,7 +623,7 @@ void GreedyTensorSearch(
         if (!ctx->Params.SystemOptions->IsSingleHost()) {
             MapBootstrap(ctx);
         } else {
-            Bootstrap(ctx->Params, indices, fold, &ctx->SampledDocs, ctx->LocalExecutor, &ctx->Rand);
+            Bootstrap(ctx->Params, indices, fold, &ctx->SampledDocs, ctx->LocalExecutor, &ctx->LearnProgress->Rand);
         }
         if (ctx->UseTreeLevelCaching()) {
             ctx->PrevTreeLevelStats.GarbageCollect();
@@ -668,7 +670,13 @@ void GreedyTensorSearch(
             if (!ctx->Params.SystemOptions->IsSingleHost()) {
                 MapBootstrap(ctx);
             } else {
-                Bootstrap(ctx->Params, indices, fold, &ctx->SampledDocs, ctx->LocalExecutor, &ctx->Rand);
+                Bootstrap(
+                    ctx->Params,
+                    indices,
+                    fold,
+                    &ctx->SampledDocs,
+                    ctx->LocalExecutor,
+                    &ctx->LearnProgress->Rand);
             }
         }
         profile.AddOperation(TStringBuilder() << "Bootstrap, depth " << curDepth);
@@ -684,7 +692,7 @@ void GreedyTensorSearch(
                 MapRemoteCalcScore(scoreStDev, &candidatesContext, ctx);
             }
         } else {
-            const ui64 randSeed = ctx->Rand.GenRand();
+            const ui64 randSeed = ctx->LearnProgress->Rand.GenRand();
             CalcBestScore(
                 data,
                 currentSplitTree.GetDepth(),
@@ -714,7 +722,7 @@ void GreedyTensorSearch(
         double bestScore = MINIMAL_SCORE;
         for (const auto& subList : candidatesContext.CandidateList) {
             for (const auto& candidate : subList.Candidates) {
-                double score = candidate.BestScore.GetInstance(ctx->Rand);
+                double score = candidate.BestScore.GetInstance(ctx->LearnProgress->Rand);
                 // CATBOOST_INFO_LOG << BuildDescription(ctx->Layout, candidate.SplitCandidate) << " = "
                 //     << score << "\t";
 
@@ -724,7 +732,7 @@ void GreedyTensorSearch(
                     ECtrType ctrType =
                         ctx->CtrsHelper.GetCtrInfo(projection)[splitEnsemble.SplitCandidate.Ctr.CtrIdx].Type;
 
-                    if (!ctx->LearnProgress.UsedCtrSplits.contains(std::make_pair(ctrType, projection)) &&
+                    if (!ctx->LearnProgress->UsedCtrSplits.contains(std::make_pair(ctrType, projection)) &&
                         score != MINIMAL_SCORE)
                     {
                         score *= pow(
@@ -750,7 +758,7 @@ void GreedyTensorSearch(
             const auto& ctr = bestSplitEnsemble.SplitCandidate.Ctr;
 
             ECtrType ctrType = ctx->CtrsHelper.GetCtrInfo(ctr.Projection)[ctr.CtrIdx].Type;
-            ctx->LearnProgress.UsedCtrSplits.insert(std::make_pair(ctrType, ctr.Projection));
+            ctx->LearnProgress->UsedCtrSplits.insert(std::make_pair(ctrType, ctr.Projection));
         }
         TSplit bestSplit = bestSplitCandidate->GetBestSplit(
             *data.Learn->ObjectsData,
