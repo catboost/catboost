@@ -919,6 +919,48 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
     ) nogil except +ProcessException
 
 
+cdef extern from "catboost/libs/quantized_pool_analysis/quantized_pool_analysis.h" namespace "NCB":
+    cdef cppclass TBinarizedFeatureStatistics:
+        TVector[float] Borders
+        TVector[int] BinarizedFeature
+        TVector[float] MeanTarget
+        TVector[float] MeanPrediction
+        TVector[size_t] ObjectsPerBin
+        TVector[double] PredictionsOnVaryingFeature
+
+    cdef cppclass TFeatureTypeAndInternalIndex:
+        EFeatureType Type
+        int Index
+
+    cdef TBinarizedFeatureStatistics GetBinarizedFloatFeatureStatistics(
+        const TFullModel& model,
+        TDataProvider& dataset,
+        const size_t featureNum,
+        const EPredictionType predictionType,
+        const int threadCount) nogil except +ProcessException
+
+    cdef TBinarizedFeatureStatistics GetBinarizedOneHotFeatureStatistics(
+        const TFullModel& model,
+        TDataProvider& dataset,
+        const size_t featureNum,
+        const EPredictionType predictionType,
+        const int threadCount) nogil except +ProcessException
+
+    cdef ui32 GetCatFeaturePerfectHash(
+        const TFullModel& model,
+        const TStringBuf& value,
+        const size_t featureNum) nogil except +ProcessException
+
+    cdef TFeatureTypeAndInternalIndex GetFeatureTypeAndInternalIndex(
+        const TFullModel& model,
+        const int flatFeatureIndex) nogil except +ProcessException
+
+    cdef TVector[TString] GetCatFeatureValues(
+        const TFullModel& model,
+        const TDataProvider& dataset,
+        const int flatFeatureIndex) nogil except +ProcessException
+
+
 cdef inline float _FloatOrNan(object obj) except *:
     try:
         return float(obj)
@@ -986,12 +1028,30 @@ cdef _vector_of_uints_to_np_array(TVector[ui32]& vec):
         result[i] = vec[i]
     return result
 
+cdef _vector_of_ints_to_np_array(TVector[int]& vec):
+    result = np.empty(vec.size(), dtype=np.int)
+    for i in xrange(vec.size()):
+        result[i] = vec[i]
+    return result
+
 cdef _vector_of_uints_to_2d_np_array(TVector[ui32]& vec, int row_count, int column_count):
     assert vec.size() == row_count * column_count
     result = np.empty((row_count, column_count), dtype=np.uint32)
     for row_num in xrange(row_count):
         for col_num in xrange(column_count):
             result[row_num][col_num] = vec[row_num * column_count + col_num]
+    return result
+
+cdef _vector_of_floats_to_np_array(TVector[float]& vec):
+    result = np.empty(vec.size(), dtype=_npfloat32)
+    for i in xrange(vec.size()):
+        result[i] = vec[i]
+    return result
+
+cdef _vector_of_size_t_to_np_array(TVector[size_t]& vec):
+    result = np.empty(vec.size(), dtype=np.uint32)
+    for i in xrange(vec.size()):
+        result[i] = vec[i]
     return result
 
 cdef class _FloatArrayWrapper:
@@ -2801,6 +2861,58 @@ cdef class _CatBoost:
             leaf_values_list.append(value)
 
         return leaf_values_list
+
+    cpdef _get_binarized_statistics(self, _PoolBase pool, size_t featureNum, predictionType, feature_type, int thread_count):
+        thread_count = UpdateThreadCount(thread_count)
+        cdef TBinarizedFeatureStatistics res
+        if feature_type == 'float':
+            res = GetBinarizedFloatFeatureStatistics(
+                dereference(self.__model),
+                dereference(pool.__pool.Get()),
+                featureNum,
+                PyPredictionType(predictionType).predictionType,
+                thread_count
+            )
+        elif feature_type == 'categorical':
+            res = GetBinarizedOneHotFeatureStatistics(
+                dereference(self.__model),
+                dereference(pool.__pool.Get()),
+                featureNum,
+                PyPredictionType(predictionType).predictionType,
+                thread_count
+            )
+        else:
+            raise CatBoostError('Unsupported feature type {}'.format(feature_type))
+
+        return {
+            'borders': _vector_of_floats_to_np_array(res.Borders),
+            'binarized_feature': _vector_of_ints_to_np_array(res.BinarizedFeature),
+            'mean_target': _vector_of_floats_to_np_array(res.MeanTarget),
+            'mean_prediction': _vector_of_floats_to_np_array(res.MeanPrediction),
+            'objects_per_bin': _vector_of_size_t_to_np_array(res.ObjectsPerBin),
+            'predictions_on_varying_feature': _vector_of_double_to_np_array(res.PredictionsOnVaryingFeature)
+        }
+
+    cpdef _calc_cat_feature_perfect_hash(self, TStringBuf value, size_t featureNum):
+        return GetCatFeaturePerfectHash(dereference(self.__model), value, featureNum)
+
+    cpdef _get_feature_type_and_internal_index(self, int flatFeatureIndex):
+        cdef TFeatureTypeAndInternalIndex typeAndIndex = GetFeatureTypeAndInternalIndex(
+            dereference(self.__model), flatFeatureIndex)
+        if typeAndIndex.Type == EFeatureType_Float:
+            return 'float', typeAndIndex.Index
+        elif typeAndIndex.Type == EFeatureType_Categorical:
+            return 'categorical', typeAndIndex.Index
+        else:
+            return 'unknown', -1
+
+    cpdef _get_cat_feature_values(self, _PoolBase pool, size_t flatFeatureIndex):
+        cdef TVector[TString] values = GetCatFeatureValues(
+            dereference(self.__model),
+            dereference(pool.__pool.Get()),
+            flatFeatureIndex)
+        res = {to_native_str(val) for val in values}
+        return res
 
     cpdef _get_leaf_values(self):
         return _vector_of_double_to_np_array(self.__model.ObliviousTrees.LeafValues)

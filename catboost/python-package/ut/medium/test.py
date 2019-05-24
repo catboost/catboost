@@ -4392,6 +4392,31 @@ def test_compute_options():
     return local_canonical_file(options_file_name)
 
 
+def test_feature_statistics():
+    n_features = 3
+    n_samples = 500
+    np.random.seed(42)
+    X = np.random.rand(n_samples, n_features)
+    y = np.random.rand(n_samples)
+    model = CatBoostRegressor(iterations=200)
+    model.fit(X, y, silent=True)
+
+    feature_num = 0
+    res = model.get_feature_statistics(X, y, feature_num, plot=False)
+
+    def mean_per_bin(res, feature_num, data):
+        return np.array([data[np.digitize(X[:, feature_num], res['borders']) == bin_num].mean()
+                         for bin_num in range(len(res['borders']) + 1)])
+
+    assert(np.alltrue(np.array(res['binarized_feature']) == np.digitize(X[:, feature_num], res['borders'])))
+    assert(res['objects_per_bin'].sum() == X.shape[0])
+    assert(np.alltrue(np.unique(np.digitize(X[:, feature_num], res['borders']), return_counts=True)[1] ==
+                      res['objects_per_bin']))
+    assert(np.allclose(res['mean_prediction'],
+                       mean_per_bin(res, feature_num, model.predict(X)),
+                       atol=1e-4))
+
+
 def test_binclass_with_nontrivial_classes():
     catboost_training_path = test_output_path('catboost_training.json')
     model = CatBoostClassifier(iterations=10, loss_function='Logloss')

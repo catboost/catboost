@@ -1351,7 +1351,7 @@ class CatBoost(_CatBoostBase):
                          column_description, verbose_eval, metric_period, silent, early_stopping_rounds,
                          save_snapshot, snapshot_file, snapshot_interval)
 
-    def _process_predict_input_data(self, data, parent_method_name):
+    def _process_predict_input_data(self, data, parent_method_name, label=None):
         if not self.is_fitted() or self.tree_count_ is None:
             raise CatBoostError(("There is no trained model to use {}(). "
                                  "Use fit() to train model. Then use this method.").format(parent_method_name))
@@ -1359,6 +1359,7 @@ class CatBoost(_CatBoostBase):
         if not isinstance(data, Pool):
             data = Pool(
                 data=[data] if is_single_object else data,
+                label=label,
                 cat_features=self._get_cat_feature_indices() if not isinstance(data, FeaturesData) else None
             )
         return data, is_single_object
@@ -2073,6 +2074,111 @@ class CatBoost(_CatBoostBase):
         for key, value in iteritems(params):
             self._init_params[key] = value
         return self
+
+    def get_feature_statistics(self, data, target, feature, prediction_type=None,
+                               cat_feature_values=None, plot=False, max_cat_features_on_plot=10,
+                               thread_count=-1):
+        """
+        Get statistics for the feature using the model, dataset and target.
+        To use this function, you should install plotly.
+
+        The catboost model has borders for the float features used in it. The borders divide
+        feature values into bins, and the model's prediction depends on the number of bin where
+        falls the feature value.
+
+        For float features takes model's borders and computes
+        1) Mean target value across every bin;
+        2) Mean model prediction across every bin;
+        3) The number of objects in dataset which fall into each bin;
+        4) Predictions on varying feature. For every object, varies the feature value so
+        that it falls into bin #0, bin #1, ... and counts model predictions. After that,
+        plots the average plot over all objects.
+
+        For categorical features (only one-hot supported) does the same, but takes feature values
+        provided in cat_feature_values instead of borders.
+
+        Parameters
+        ----------
+        data: numpy.array or pandas.DataFrame
+            Data to compute statistics on
+        target: numpy.array or pandas.Series
+            Target corresponding to data
+        feature: int or string
+            Feature index or name in pd.DataFrame
+        prediction_type: str
+            Prediction type used for counting mean_prediction: 'Class', 'Probability' or 'RawFormulaVal'.
+            If not specified, is derived from the model.
+        cat_feature_values: list or numpy.array or pandas.Series
+            Categorical feature values you need to get statistics on. Needed only for
+            statistics of a categorical feature.
+        plot: bool
+            Plot statistics.
+        max_cat_features_on_plot: int
+            If categorical feature takes more than max_cat_features_on_plot different unique values,
+            output result on several plots, not more than max_cat_features_on_plot feature values on each.
+            Used only if plot=True.
+        thread_count: int
+            Number of threads to use for getting statistics.
+        Returns
+        -------
+        dict:
+            Python dict with binarized feature statistics. For float feature, includes
+                'borders' -- borders for the specified feature in model
+                'binarized_feature' -- numbers of bins where feature values fall
+                'mean_target' -- mean value of target over each bin
+                'mean_prediction' -- mean value of model prediction over each bin
+                'objects_per_bin' -- number of objects per bin
+                'predictions_on_varying_feature' -- averaged over dataset predictions for
+                varying feature (see above)
+            For one-hot feature, returns the same, but with 'cat_feature_values' instead of 'borders'
+        """
+        data, _ = self._process_predict_input_data(data, "get_binarized_statistics", target)
+
+        if prediction_type is None:
+            prediction_type = 'Probability' if self.get_param('loss_function') in ['CrossEntropy', 'Logloss'] \
+                else 'RawFormulaVal'
+
+        if not isinstance(feature, int):
+            if self.feature_names_ is None or feature not in self.feature_names_:
+                raise CatBoostError('No feature named "{}" in model'.format(feature))
+            if feature not in data.get_feature_names():
+                raise CatBoostError('No feature named "{}" in dataset'.format(feature))
+            feature = self.feature_names_.index(feature)
+
+        if prediction_type not in ['Class', 'Probability', 'RawFormulaVal']:
+            raise CatBoostError('Unknown prediction type "{}"'.format(prediction_type))
+
+        feature_type, feature_internal_index = self._object._get_feature_type_and_internal_index(feature)
+        res = self._object._get_binarized_statistics(
+            data,
+            feature_internal_index,
+            prediction_type,
+            feature_type,
+            thread_count
+        )
+
+        if feature_type == 'categorical':
+            if cat_feature_values is None:
+                cat_feature_values = self._object._get_cat_feature_values(data, feature)
+                cat_feature_values = [val for val in cat_feature_values]
+
+            if not isinstance(cat_feature_values, ARRAY_TYPES):
+                raise CatBoostError("Feature #{} is categorical. "
+                                    "Please provide values for which you need statistics in cat_feature_values"
+                                    .format(feature))
+            res = self._object._get_binarized_statistics(data, feature_internal_index,
+                                                         prediction_type, feature_type, thread_count)
+            val_to_hash = dict()
+            for val in cat_feature_values:
+                val_to_hash[val] = self._object._calc_cat_feature_perfect_hash(bytes(val, 'utf-8'), feature_internal_index)
+            hash_to_val = {hash: val for val, hash in val_to_hash.items()}
+            res['cat_values'] = np.array([hash_to_val[i] for i in sorted(hash_to_val.keys())])
+            res.pop('borders', None)
+
+        if plot:
+            _plot_feature_statistics(res, feature, max_cat_features_on_plot)
+
+        return res
 
     def plot_tree(self, tree_idx, pool):
         from graphviz import Digraph
@@ -3504,3 +3610,118 @@ def sum_models(models, weights=None, ctr_merge_policy='IntersectingCountersAvera
     result = CatBoost()
     result._sum_models(models, weights, ctr_merge_policy)
     return result
+
+
+def _build_binarized_feature_statistics_fig(statistics, feature_num):
+    try:
+        import plotly.graph_objs as go
+    except ImportError as e:
+        warnings.warn("To draw binarized feature statistics you should install plotly.")
+        raise ImportError(str(e))
+
+    if 'borders' in statistics.keys():
+        order = np.arange(len(statistics['objects_per_bin']))
+        x_order = order[:-1]
+        bar_width = 0.8
+        xaxis = go.layout.XAxis(
+            title='Bins',
+            tickmode='array',
+            tickvals=list(range(len(statistics['borders']) + 1)),
+            ticktext=['(-inf, {:.4f}]'.format(statistics['borders'][0])] +
+                     ['({:.4f}, {:.4f}]'.format(val_1, val_2)
+                      for val_1, val_2 in zip(statistics['borders'][:-1], statistics['borders'][1:])] +
+                     ['({:.4f}, +inf)'.format(statistics['borders'][-1])],
+            showticklabels=False
+        )
+    elif 'cat_values' in statistics.keys():
+        order = np.argsort(statistics['objects_per_bin'])[::-1]
+        x_order = order
+        bar_width = 0.2
+        xaxis = go.layout.XAxis(
+            title='Cat values',
+            tickmode='array',
+            tickvals=list(range(len(statistics['cat_values']))),
+            ticktext=[str(val) for val in statistics['cat_values']],
+            showticklabels=True
+        )
+    else:
+        raise CatBoostError('Expected field "borders" or "cat_values" in binarized feature statistics')
+
+    trace_1 = go.Scatter(
+        y=statistics['mean_target'][order],
+        mode='lines+markers',
+        name='Mean target',
+        yaxis='y1',
+        xaxis='x'
+    )
+
+    trace_2 = go.Scatter(
+        y=statistics['mean_prediction'][order],
+        mode='lines+markers',
+        name='Mean prediction',
+        yaxis='y1',
+        xaxis='x'
+    )
+
+    trace_3 = go.Bar(
+        y=statistics['objects_per_bin'][order],
+        width=bar_width,
+        name='Objects per bin',
+        yaxis='y2',
+        xaxis='x',
+        marker={
+            'color': 'rgba(30, 150, 30, 0.4)'
+        }
+    )
+
+    trace_4 = go.Scatter(
+        y=statistics['predictions_on_varying_feature'][x_order],
+        mode='lines+markers',
+        name='Predictions for different feature values',
+        yaxis='y1',
+        xaxis='x'
+    )
+
+    data = [trace_1, trace_2, trace_3, trace_4]
+
+    layout = go.Layout(
+        title='Statistics for feature {}'.format(feature_num),
+        yaxis={
+            'title': 'Prediction and target',
+            'side': 'left',
+            'overlaying': 'y2'
+        },
+        yaxis2={
+            'title': 'Objects per bin',
+            'side': 'right',
+            'position': 1.0
+        },
+        xaxis=xaxis
+    )
+
+    fig = go.Figure(data=data, layout=layout)
+    return fig
+
+
+def _plot_feature_statistics(statistics, feature_num, max_cat_features_on_plot):
+    try:
+        from plotly.offline import iplot
+    except ImportError as e:
+        warnings.warn("To draw binarized feature statistics you should install plotly.")
+        raise ImportError(str(e))
+
+    if 'cat_values' in statistics.keys() and len(statistics['cat_values']) > max_cat_features_on_plot:
+        for begin in range(0, len(statistics['cat_values']), max_cat_features_on_plot):
+            sub_statistics = {
+                'borders': statistics['borders'][begin:begin+max_cat_features_on_plot],
+                'mean_target': statistics['mean_target'][begin:begin+max_cat_features_on_plot],
+                'mean_prediction': statistics['mean_prediction'][begin:begin+max_cat_features_on_plot],
+                'objects_per_bin': statistics['objects_per_bin'][begin:begin+max_cat_features_on_plot],
+                'predictions_on_varying_feature':
+                    statistics['predictions_on_varying_feature'][begin:begin+max_cat_features_on_plot]
+            }
+            fig = _build_binarized_feature_statistics_fig(sub_statistics, feature_num)
+            iplot(fig)
+    else:
+        fig = _build_binarized_feature_statistics_fig(statistics, feature_num)
+        iplot(fig)
