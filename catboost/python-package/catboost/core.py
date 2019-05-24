@@ -2166,11 +2166,9 @@ class CatBoost(_CatBoostBase):
                 raise CatBoostError("Feature #{} is categorical. "
                                     "Please provide values for which you need statistics in cat_feature_values"
                                     .format(feature))
-            res = self._object._get_binarized_statistics(data, feature_internal_index,
-                                                         prediction_type, feature_type, thread_count)
             val_to_hash = dict()
             for val in cat_feature_values:
-                val_to_hash[val] = self._object._calc_cat_feature_perfect_hash(bytes(val, 'utf-8'), feature_internal_index)
+                val_to_hash[val] = self._object._calc_cat_feature_perfect_hash(val, feature_internal_index)
             hash_to_val = {hash: val for val, hash in val_to_hash.items()}
             res['cat_values'] = np.array([hash_to_val[i] for i in sorted(hash_to_val.keys())])
             res.pop('borders', None)
@@ -3641,7 +3639,7 @@ def _build_binarized_feature_statistics_fig(statistics, feature_num):
             title='Cat values',
             tickmode='array',
             tickvals=list(range(len(statistics['cat_values']))),
-            ticktext=[str(val) for val in statistics['cat_values']],
+            ticktext=statistics['cat_values'][order],
             showticklabels=True
         )
     else:
@@ -3706,6 +3704,8 @@ def _build_binarized_feature_statistics_fig(statistics, feature_num):
 def _plot_feature_statistics(statistics, feature_num, max_cat_features_on_plot):
     try:
         from plotly.offline import iplot
+        from plotly.offline import init_notebook_mode
+        init_notebook_mode(connected=True)
     except ImportError as e:
         warnings.warn("To draw binarized feature statistics you should install plotly.")
         raise ImportError(str(e))

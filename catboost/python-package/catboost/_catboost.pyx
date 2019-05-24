@@ -956,7 +956,6 @@ cdef extern from "catboost/libs/quantized_pool_analysis/quantized_pool_analysis.
         const int flatFeatureIndex) nogil except +ProcessException
 
     cdef TVector[TString] GetCatFeatureValues(
-        const TFullModel& model,
         const TDataProvider& dataset,
         const int flatFeatureIndex) nogil except +ProcessException
 
@@ -2893,8 +2892,8 @@ cdef class _CatBoost:
             'predictions_on_varying_feature': _vector_of_double_to_np_array(res.PredictionsOnVaryingFeature)
         }
 
-    cpdef _calc_cat_feature_perfect_hash(self, TStringBuf value, size_t featureNum):
-        return GetCatFeaturePerfectHash(dereference(self.__model), value, featureNum)
+    cpdef _calc_cat_feature_perfect_hash(self, value, size_t featureNum):
+        return GetCatFeaturePerfectHash(dereference(self.__model), to_arcadia_string(value), featureNum)
 
     cpdef _get_feature_type_and_internal_index(self, int flatFeatureIndex):
         cdef TFeatureTypeAndInternalIndex typeAndIndex = GetFeatureTypeAndInternalIndex(
@@ -2908,7 +2907,6 @@ cdef class _CatBoost:
 
     cpdef _get_cat_feature_values(self, _PoolBase pool, size_t flatFeatureIndex):
         cdef TVector[TString] values = GetCatFeatureValues(
-            dereference(self.__model),
             dereference(pool.__pool.Get()),
             flatFeatureIndex)
         res = {to_native_str(val) for val in values}
