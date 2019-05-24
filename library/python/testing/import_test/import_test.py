@@ -163,6 +163,7 @@ def check_imports(no_check=None, extra=[], skip_func=None):
         "raven.utils.testutils",
 
         "sklearn.utils.*",
+        "statsmodels.*",
 
         "skimage.io._plugins.*",
         "skimage.measure.mc_meta.visual_test",
