@@ -165,7 +165,7 @@ namespace {
         }
 
     private:
-        typedef TAutoPtr<TVal> TValRef;
+        using TValRef = THolder<TVal>;
         typename TVal::TPool P_;
         TSocketMap<TValRef> V_;
         TListType I_;
@@ -312,8 +312,8 @@ namespace {
         }
 
     private:
-        TAutoPtr<TPollPoller> P_;
-        TAutoPtr<TDefaultPoller> D_;
+        THolder<TPollPoller> P_;
+        THolder<TDefaultPoller> D_;
     };
 
     struct TUserPoller: public TString {

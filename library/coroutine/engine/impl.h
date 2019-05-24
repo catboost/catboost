@@ -543,16 +543,16 @@ struct TContRep : public TIntrusiveListItem<TContRep>, public ITrampoLine {
         return (TExceptionSafeContext*)machine.data();
     }
 
-    static size_t OverHead() noexcept {
+    static size_t Overhead() noexcept {
         return Align(sizeof(TCont)) + Align(sizeof(TExceptionSafeContext));
     }
 
     static size_t EffectiveStackLength(size_t alloced) noexcept {
-        return alloced - OverHead();
+        return alloced - Overhead();
     }
 
     static size_t ToAllocate(size_t stackLen) noexcept {
-        return Align(stackLen) + OverHead();
+        return Align(stackLen) + Overhead();
     }
 
     bool IAmRuning() const noexcept {
@@ -628,6 +628,7 @@ private:
     TIoWait IoWait_;
 };
 
+
 template <class T>
 class TBigArray {
     struct TValue: public T, public TObjectFromPool<TValue> {
@@ -652,10 +653,11 @@ public:
     }
 
 private:
-    typedef TAutoPtr<TValue> TRef;
+    using TRef = THolder<TValue>;
     typename TValue::TPool Pool_;
     TSocketMap<TRef> Lst_;
 };
+
 
 class TContPoller {
 public:
@@ -710,7 +712,7 @@ private:
 };
 
 class TContRepPool {
-    typedef TIntrusiveListWithAutoDelete<TContRep, TDelete> TFreeReps;
+    using TFreeReps = TIntrusiveListWithAutoDelete<TContRep, TDelete>;
 
 public:
     TContRepPool(TContStackAllocator* alloc)
@@ -750,7 +752,7 @@ public:
 
 private:
     THolder<TContStackAllocator> MyAlloc_;
-    TContStackAllocator* Alloc_;
+    TContStackAllocator* const Alloc_;
     TFreeReps Free_;
     ui64 Allocated_ = 0;
 };
@@ -773,7 +775,7 @@ class TContExecutor {
     friend class TContEvent;
     friend class TContPollEvent;
     friend class TContPollEventHolder;
-    typedef TIntrusiveList<TContRep> TContList;
+    using TContList = TIntrusiveList<TContRep>;
 
     struct TCancel {
         void operator()(TContRep* c) noexcept {
