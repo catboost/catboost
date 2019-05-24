@@ -472,6 +472,12 @@ void NCatboostOptions::TCatBoostOptions::Validate() const {
             CB_ENSURE(!metric.LossParams->contains("border"), message);
         }
     }
+
+    // Delete it when MLTOOLS-3612 is implemented.
+    CB_ENSURE(!LossFunctionDescription->LossParams->contains("use_weights"),
+        "Metric parameter 'use_weights' isn't supported for objective function. " <<
+        "If weights are present they will necessarily be used in optimization. " <<
+        "It cannot be disabled.");
 }
 
 void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
