@@ -484,7 +484,9 @@ def onpy_register(unit, *args):
 
 
 def py_main(unit, arg):
-    py_program(unit, is_py3(unit))
+    is_program = unit.get('MODULE_TYPE') == 'PROGRAM'
+    if is_program:
+        py_program(unit, is_py3(unit))
     unit.onresource(['-', 'PY_MAIN={}'.format(arg)])
 
 
