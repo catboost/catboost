@@ -81,6 +81,10 @@
         "tvmknife": { "description": "Tool for debugging and testing with TVM tickets" },
         "sandboxctl": { "description": "Tool to run tasks in Sandbox" },
         "golangci-lint": { "description": "Linters Runner for Go" },
+        "qemu": { "description": "QEMU x86_64 machine emulator and virtualizer" },
+        "qemu-i386": { "description": "QEMU i386 machine emulator and virtualizer" },
+        "qemu-img": { "description": "QEMU disk image utility" },
+        "qemu-nbd": { "description": "QEMU disk network block device server" },
         "yfm": { "description": "YFM-extended markdown processor for Cloud deploy" }
     },
     "toolchain": {
@@ -1443,6 +1447,17 @@
                 "version": "1.12.5"
             }
         },
+        "qemu": {
+            "tools": {
+                "qemu": { "bottle": "qemu", "executable": "qemu" },
+                "qemu-i386": { "bottle": "qemu", "executable": "qemu-i386" },
+                "qemu-img": { "bottle": "qemu", "executable": "qemu-img" },
+                "qemu-nbd": { "bottle": "qemu", "executable": "qemu-nbd" }
+            },
+            "platforms": [
+                {"host": {"os": "LINUX"}, "default": true}
+            ]
+        },
         "yfm": {
             "tools": {
                 "yfm": { "bottle": "yfm", "executable": "yfm" }
@@ -2355,6 +2370,18 @@
                 "go": ["bin", "go"],
                 "godoc": ["bin", "godoc"],
                 "gofmt": ["bin", "gofmt"]
+            }
+        },
+        "qemu": {
+            "formula": {
+                "sandbox_id": 435931020,
+                "match": "qemu"
+            },
+            "executable": {
+                "qemu": ["qemu", "bin", "qemu-system-x86_64"],
+                "qemu-i386": ["qemu", "bin", "qemu-system-i386"],
+                "qemu-img": ["qemu", "bin", "qemu-img"],
+                "qemu-nbd": ["qemu", "bin", "qemu-nbd"]
             }
         },
         "yfm": {
