@@ -1406,6 +1406,8 @@ class LD(Linker):
         self.ar = preset('AR') or self.tc.ar
         self.ar_plugin = self.tc.ar_plugin
 
+        self.musl = Setting('MUSL', convert=to_bool)
+
         if target.is_android:
             if self.ar is None:
                 tc_root = tc.name_marker if target.is_x86 or (tc.is_clang and tc.version_at_least(5, 0)) else '{}/clang'.format(tc.name_marker)
@@ -1432,14 +1434,16 @@ class LD(Linker):
 
         self.ld_flags = []
 
-        if target.is_linux:
+        if self.musl.value:
+            self.ld_flags.extend(['-Wl,--no-as-needed'])
+        elif target.is_linux:
             self.ld_flags.extend(['-ldl', '-lrt', '-Wl,--no-as-needed'])
-        if target.is_android:
+        elif target.is_android:
             self.ld_flags.extend(['-ldl', '-Wl,--no-as-needed'])
             if is_positive('USE_LTO'):
                 # https://github.com/android-ndk/ndk/issues/498
                 self.ld_flags.append('-Wl,-plugin-opt,-emulated-tls')
-        if target.is_macos:
+        elif target.is_macos:
             self.ld_flags.append('-Wl,-no_deduplicate')
             if not self.tc.is_clang:
                 self.ld_flags.append('-Wl,-no_compact_unwind')
@@ -1539,7 +1543,10 @@ class LD(Linker):
 
         emit('C_LIBRARY_PATH')
         emit('C_SYSTEM_LIBRARIES_INTERCEPT')
-        emit('C_SYSTEM_LIBRARIES', self.use_stdlib, self.thread_library, self.sys_lib, '-lc')
+        if self.musl.value:
+            emit('C_SYSTEM_LIBRARIES', '-nostdlib')
+        else:
+            emit('C_SYSTEM_LIBRARIES', self.use_stdlib, self.thread_library, self.sys_lib, '-lc')
 
         emit('START_WHOLE_ARCHIVE_VALUE', self.whole_archive)
         emit('END_WHOLE_ARCHIVE_VALUE', self.no_whole_archive)
@@ -1586,8 +1593,9 @@ class LD(Linker):
 
         # Program
 
+        emit('LINK_SCRIPT_EXE_FLAGS')
         emit('REAL_LINK_EXE',
-             '$YMAKE_PYTHON ${input:"build/scripts/link_exe.py"}',
+             '$YMAKE_PYTHON ${input:"build/scripts/link_exe.py"}', '$LINK_SCRIPT_EXE_FLAGS',
              '$GCCFILTER',
              '$CXX_COMPILER ${rootrel:SRCS_GLOBAL} $VCS_C_OBJ $AUTO_INPUT -o $TARGET', self.rdynamic, pie_flag, exe_flags,
              ld_env_style)
