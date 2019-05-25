@@ -239,6 +239,7 @@ def check_imports(no_check=None, extra=[], skip_func=None):
             "distutils.command.bdist_msi",
             "yaml.cyaml",
             "vh.ext.nirvana.nirvana_api_bridge",
+            "aiohttp.pytest_plugin",
         ]
 
     patterns = [re.escape(s).replace(r'\*', r'.*') for s in exceptions]
