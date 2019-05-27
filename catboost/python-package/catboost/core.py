@@ -1055,6 +1055,18 @@ class _CatBoostBase(object):
     def get_tree_leaf_values(self, tree_idx, leaves_num):
         return self._object._get_tree_leaf_values(tree_idx, leaves_num)
 
+    def get_leaf_values(self):
+        return self._object._get_leaf_values()
+
+    def get_leaf_weights(self):
+        return self._object._get_leaf_weights()
+
+    def get_tree_leaf_counts(self):
+        return self._object._get_tree_leaf_counts()
+
+    def set_leaf_values(self, new_leaf_values):
+        self._object._set_leaf_values(new_leaf_values)
+
 
 def _check_param_types(params):
     if not isinstance(params, (Mapping, MutableMapping)):
