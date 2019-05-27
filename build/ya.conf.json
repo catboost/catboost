@@ -188,6 +188,105 @@
                 "wine": "yes"
             }
         },
+        "msvc2019-i686": {
+            "name": "msvc2019",
+            "tools": {
+                "cc": { "bottle": "msvc2019", "executable": "msvc" },
+                "c++": { "bottle": "msvc2019", "executable": "msvc" }
+            },
+            "platforms": [{"host": {"os": "WIN"}, "target": {"os": "WIN", "arch": "i686"}}],
+            "params": {
+                "type": "msvc",
+                "match_root": "MSVC",
+                "werror_mode": "compiler_specific",
+                "c_compiler": "$(MSVC)/bin/Hostx64/x86/cl.exe",
+                "cxx_compiler": "$(MSVC)/bin/Hostx64/x86/cl.exe",
+                "version": "2019"
+            }
+        },
+        "msvc2019-x86_64": {
+            "name": "msvc2019",
+            "tools": {
+                "cc": { "bottle": "msvc2019", "executable": "msvc" },
+                "c++": { "bottle": "msvc2019", "executable": "msvc" }
+            },
+            "platforms": [{"host": {"os": "WIN"}}],
+            "params": {
+                "type": "msvc",
+                "match_root": "MSVC",
+                "werror_mode": "compiler_specific",
+                "c_compiler": "$(MSVC)/bin/Hostx64/x64/cl.exe",
+                "cxx_compiler": "$(MSVC)/bin/Hostx64/x64/cl.exe",
+                "version": "2019"
+            }
+        },
+        "msvc2019-arm": {
+            "name": "msvc2019",
+            "tools": {
+                "cc": { "bottle": "msvc2019", "executable": "msvc" },
+                "c++": { "bottle": "msvc2019", "executable": "msvc" }
+            },
+            "platforms": [{"host": {"os": "WIN"}, "target": {"os": "WIN", "arch": "arm"}}],
+            "params": {
+                "type": "msvc",
+                "match_root": "MSVC",
+                "werror_mode": "compiler_specific",
+                "c_compiler": "$(MSVC)/bin/Hostx64/arm/cl.exe",
+                "cxx_compiler": "$(MSVC)/bin/Hostx64/arm/cl.exe",
+                "version": "2019"
+            }
+        },
+        "wine-msvc2019-i686": {
+            "name": "msvc2019",
+            "tools": {
+                "cc": { "bottle": "msvc2019", "executable": "msvc" },
+                "c++": { "bottle": "msvc2019", "executable": "msvc" }
+            },
+            "platforms": [{"host": {"os": "LINUX"}, "target": {"os": "WIN", "arch": "i686"}}],
+            "params": {
+                "type": "msvc",
+                "match_root": "MSVC",
+                "werror_mode": "compiler_specific",
+                "c_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:571614508)/bin/wine64 -v140 c ${ARCADIA_ROOT} ${ARCADIA_BUILD_ROOT} $(MSVC)/bin/Hostx64/x86/cl.exe",
+                "cxx_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:571614508)/bin/wine64 -v140 cxx ${ARCADIA_ROOT} ${ARCADIA_BUILD_ROOT} $(MSVC)/bin/Hostx64/x86/cl.exe",
+                "version": "2019",
+                "wine": "yes"
+            }
+        },
+        "wine-msvc2019-x86_64": {
+            "name": "msvc2019",
+            "tools": {
+                "cc": { "bottle": "msvc2019", "executable": "msvc" },
+                "c++": { "bottle": "msvc2019", "executable": "msvc" }
+            },
+            "platforms": [{"host": {"os": "LINUX"}, "target": {"os": "WIN"}}],
+            "params": {
+                "type": "msvc",
+                "match_root": "MSVC",
+                "werror_mode": "compiler_specific",
+                "c_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:571614508)/bin/wine64 -v140 c ${ARCADIA_ROOT} ${ARCADIA_BUILD_ROOT} $(MSVC)/bin/Hostx64/x64/cl.exe",
+                "cxx_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:571614508)/bin/wine64 -v140 cxx ${ARCADIA_ROOT} ${ARCADIA_BUILD_ROOT} $(MSVC)/bin/Hostx64/x64/cl.exe",
+                "version": "2019",
+                "wine": "yes"
+            }
+        },
+        "wine-msvc2019-arm": {
+            "name": "msvc2019",
+            "tools": {
+                "cc": { "bottle": "msvc2019", "executable": "msvc" },
+                "c++": { "bottle": "msvc2019", "executable": "msvc" }
+            },
+            "platforms": [{"host": {"os": "LINUX"}, "target": {"os": "WIN", "arch": "arm"}}],
+            "params": {
+                "type": "msvc",
+                "match_root": "MSVC",
+                "werror_mode": "compiler_specific",
+                "c_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:571614508)/bin/wine64 -v140 c ${ARCADIA_ROOT} ${ARCADIA_BUILD_ROOT} $(MSVC)/bin/Hostx64/arm/cl.exe",
+                "cxx_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:571614508)/bin/wine64 -v140 cxx ${ARCADIA_ROOT} ${ARCADIA_BUILD_ROOT} $(MSVC)/bin/Hostx64/arm/cl.exe",
+                "version": "2019",
+                "wine": "yes"
+            }
+        },
         "ymake": {
             "tools": {
                 "ymake": { "bottle": "ymake", "executable": "ymake" }
@@ -1375,6 +1474,15 @@
             "formula": {
                 "sandbox_id": 374735561,
                 "match": "2017"
+            },
+            "executable": {
+                "msvc": ["bin", "Hostx64", "x64", "cl.exe"]
+            }
+        },
+        "msvc2019": {
+            "formula": {
+                "sandbox_id": "435947155",
+                "match": "Microsoft Visual C++"
             },
             "executable": {
                 "msvc": ["bin", "Hostx64", "x64", "cl.exe"]
