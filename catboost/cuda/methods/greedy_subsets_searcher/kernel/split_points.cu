@@ -656,17 +656,20 @@ namespace NKernel {
             const ui32* indicesSrc = context.TempIndices.Get() + part.Offset;
             ui32* indicesDst = context.Indices.Get() + part.Offset;
 
-            cudaError_t error = cub::DeviceRadixSort::SortPairs<bool, ui32>((void*)context.TempStorage.Get(),
-                                                                             context.TempStorageSizes[i],
-                                                                             flagsSrc,
-                                                                             flagsDst,
-                                                                             indicesSrc,
-                                                                             indicesDst,
-                                                                             (int)part.Size,
-                                                                             0,
-                                                                             1,
-                                                                             stream);
-            CUDA_SAFE_CALL(error);
+            if (part.Size) {
+                cudaError_t
+                error = cub::DeviceRadixSort::SortPairs < bool, ui32 > ((void*) context.TempStorage.Get(),
+                    context.TempStorageSizes[i],
+                    flagsSrc,
+                    flagsDst,
+                    indicesSrc,
+                    indicesDst,
+                    (int) part.Size,
+                    0,
+                    1,
+                    stream);
+                CUDA_SAFE_CALL(error);
+            }
         }
     }
 
