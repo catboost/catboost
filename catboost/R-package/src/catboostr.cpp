@@ -334,6 +334,15 @@ SEXP CatBoostPoolNumTrees_R(SEXP modelParam) {
     return CatBoostGetNumTrees_R(modelParam);
 }
 
+SEXP CatBoostIsOblivious_R(SEXP modelParam) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+    TFullModelHandle model = reinterpret_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
+    result = ScalarLogical(static_cast<int>(model->IsOblivious()));
+    R_API_END();
+    return result;
+}
+
 SEXP CatBoostPoolSlice_R(SEXP poolParam, SEXP sizeParam, SEXP offsetParam) {
     SEXP result = NULL;
     size_t size, offset;

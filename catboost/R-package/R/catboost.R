@@ -1427,7 +1427,10 @@ catboost.train <- function(learn_pool, test_pool = NULL, params = list()) {
     model <- list(handle = handle, raw = raw)
     class(model) <- "catboost.Model"
 
-    model$feature_importances <- catboost.get_feature_importance(model, learn_pool)
+    if (catboost._is_oblivious(model)) {
+        model$feature_importances <- catboost.get_feature_importance(model, learn_pool)
+    }
+
     model$tree_count <- catboost.ntrees(model)
     return(model)
 }
@@ -1835,6 +1838,7 @@ catboost.shrink <- function(model, ntree_end, ntree_start = 0) {
     return(status)
 }
 
+
 #' Drop unused features information from model
 #'
 #' @param model The model obtained as the result of training.
@@ -1855,6 +1859,7 @@ catboost.drop_unused_features <- function(model, ntree_end, ntree_start = 0) {
     return(status)
 }
 
+
 catboost.ntrees <- function(model) {
     if (class(model) != "catboost.Model")
         stop("Expected catboost.Model, got: ", class(model))
@@ -1862,6 +1867,16 @@ catboost.ntrees <- function(model) {
         model$handle <- .Call("CatBoostDeserializeModel_R", model$raw)
     num_trees <- .Call("CatBoostGetNumTrees_R", model$handle)
     return(num_trees)
+}
+
+
+catboost._is_oblivious <- function(model) {
+    if (class(model) != "catboost.Model")
+        stop("Expected catboost.Model, got: ", class(model))
+    if (is.null.handle(model$handle))
+        model$handle <- .Call("CatBoostDeserializeModel_R", model$raw)
+    is_oblivious <- .Call("CatBoostIsOblivious_R", model$handle)
+    return(is_oblivious)
 }
 
 
