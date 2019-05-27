@@ -4,38 +4,38 @@
 
 class TIOStatus {
 public:
-    inline TIOStatus(int status) noexcept
+    TIOStatus(int status) noexcept
         : Status_(status)
     {
     }
 
-    static inline TIOStatus Error(int status) noexcept {
+    static TIOStatus Error(int status) noexcept {
         return TIOStatus(status);
     }
 
-    static inline TIOStatus Error() noexcept {
+    static TIOStatus Error() noexcept {
         return TIOStatus(LastSystemError());
     }
 
-    static inline TIOStatus Success() noexcept {
+    static TIOStatus Success() noexcept {
         return TIOStatus(0);
     }
 
-    inline void Check() const {
+    void Check() const {
         if (Status_) {
             ythrow TSystemError(Status_) << "io error";
         }
     }
 
-    inline bool Failed() const noexcept {
+    bool Failed() const noexcept {
         return (bool)Status_;
     }
 
-    inline bool Succeed() const noexcept {
+    bool Succeed() const noexcept {
         return !Failed();
     }
 
-    inline int Status() const noexcept {
+    int Status() const noexcept {
         return Status_;
     }
 
@@ -43,42 +43,43 @@ private:
     int Status_;
 };
 
+
 class TContIOStatus {
 public:
-    inline TContIOStatus(size_t processed, TIOStatus status) noexcept
+    TContIOStatus(size_t processed, TIOStatus status) noexcept
         : Processed_(processed)
         , Status_(status)
     {
     }
 
-    static inline TContIOStatus Error(TIOStatus status) noexcept {
+    static TContIOStatus Error(TIOStatus status) noexcept {
         return TContIOStatus(0, status);
     }
 
-    static inline TContIOStatus Error() noexcept {
+    static TContIOStatus Error() noexcept {
         return TContIOStatus(0, TIOStatus::Error());
     }
 
-    static inline TContIOStatus Success(size_t processed) noexcept {
+    static TContIOStatus Success(size_t processed) noexcept {
         return TContIOStatus(processed, TIOStatus::Success());
     }
 
-    static inline TContIOStatus Eof() noexcept {
+    static TContIOStatus Eof() noexcept {
         return Success(0);
     }
 
-    inline ~TContIOStatus() {
+    ~TContIOStatus() {
     }
 
-    inline size_t Processed() const noexcept {
+    size_t Processed() const noexcept {
         return Processed_;
     }
 
-    inline int Status() const noexcept {
+    int Status() const noexcept {
         return Status_.Status();
     }
 
-    inline size_t Checked() const {
+    size_t Checked() const {
         Status_.Check();
 
         return Processed_;

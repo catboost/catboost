@@ -6,44 +6,44 @@
 
 class TContEvent {
 public:
-    inline TContEvent(TCont* current) noexcept
+    TContEvent(TCont* current) noexcept
         : Cont_(current)
         , Status_(0)
     {
     }
 
-    inline ~TContEvent() {
+    ~TContEvent() {
     }
 
-    inline int WaitD(TInstant deadline) {
+    int WaitD(TInstant deadline) {
         Status_ = 0;
         const int ret = Cont_->SleepD(deadline);
 
         return Status_ ? Status_ : ret;
     }
 
-    inline int WaitT(TDuration timeout) {
+    int WaitT(TDuration timeout) {
         return WaitD(timeout.ToDeadLine());
     }
 
-    inline int WaitI() {
+    int WaitI() {
         return WaitD(TInstant::Max());
     }
 
-    inline void Wake() noexcept {
+    void Wake() noexcept {
         SetStatus(EWAKEDUP);
         Cont_->ReSchedule();
     }
 
-    inline TCont* Cont() noexcept {
+    TCont* Cont() noexcept {
         return Cont_;
     }
 
-    inline int Status() const noexcept {
+    int Status() const noexcept {
         return Status_;
     }
 
-    inline void SetStatus(int status) noexcept {
+    void SetStatus(int status) noexcept {
         Status_ = status;
     }
 
@@ -55,24 +55,24 @@ private:
 class TContWaitQueue {
     class TWaiter: public TContEvent, public TIntrusiveListItem<TWaiter> {
     public:
-        inline TWaiter(TCont* current) noexcept
+        TWaiter(TCont* current) noexcept
             : TContEvent(current)
         {
         }
 
-        inline ~TWaiter() {
+        ~TWaiter() {
         }
     };
 
 public:
-    inline TContWaitQueue() noexcept {
+    TContWaitQueue() noexcept {
     }
 
-    inline ~TContWaitQueue() {
+    ~TContWaitQueue() {
         Y_ASSERT(Waiters_.Empty());
     }
 
-    inline int WaitD(TCont* current, TInstant deadline) {
+    int WaitD(TCont* current, TInstant deadline) {
         TWaiter waiter(current);
 
         Waiters_.PushBack(&waiter);
@@ -80,27 +80,27 @@ public:
         return waiter.WaitD(deadline);
     }
 
-    inline int WaitT(TCont* current, TDuration timeout) {
+    int WaitT(TCont* current, TDuration timeout) {
         return WaitD(current, timeout.ToDeadLine());
     }
 
-    inline int WaitI(TCont* current) {
+    int WaitI(TCont* current) {
         return WaitD(current, TInstant::Max());
     }
 
-    inline void Signal() noexcept {
+    void Signal() noexcept {
         if (!Waiters_.Empty()) {
             Waiters_.PopFront()->Wake();
         }
     }
 
-    inline void BroadCast() noexcept {
+    void BroadCast() noexcept {
         while (!Waiters_.Empty()) {
             Waiters_.PopFront()->Wake();
         }
     }
 
-    inline void BroadCast(size_t number) noexcept {
+    void BroadCast(size_t number) noexcept {
         for (size_t i = 0; i < number && !Waiters_.Empty(); ++i) {
             Waiters_.PopFront()->Wake();
         }
@@ -110,34 +110,35 @@ private:
     TIntrusiveList<TWaiter> Waiters_;
 };
 
+
 class TContSimpleEvent {
 public:
-    inline TContSimpleEvent(TContExecutor* e)
+    TContSimpleEvent(TContExecutor* e)
         : E_(e)
     {
     }
 
-    inline TContExecutor* Executor() const noexcept {
+    TContExecutor* Executor() const noexcept {
         return E_;
     }
 
-    inline void Signal() noexcept {
+    void Signal() noexcept {
         Q_.Signal();
     }
 
-    inline void BroadCast() noexcept {
+    void BroadCast() noexcept {
         Q_.BroadCast();
     }
 
-    inline int WaitD(TInstant deadLine) noexcept {
+    int WaitD(TInstant deadLine) noexcept {
         return Q_.WaitD(E_->Running()->ContPtr(), deadLine);
     }
 
-    inline int WaitT(TDuration timeout) noexcept {
+    int WaitT(TDuration timeout) noexcept {
         return WaitD(timeout.ToDeadLine());
     }
 
-    inline int WaitI() noexcept {
+    int WaitI() noexcept {
         return WaitD(TInstant::Max());
     }
 

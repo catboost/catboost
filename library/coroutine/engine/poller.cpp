@@ -8,27 +8,27 @@
 #include <util/string/cast.h>
 
 namespace {
-    typedef IPollerFace::TChange TChange;
-    typedef IPollerFace::TEvent TEvent;
-    typedef IPollerFace::TEvents TEvents;
+    using TChange = IPollerFace::TChange;
+    using TEvent = IPollerFace::TEvent;
+    using TEvents = IPollerFace::TEvents;
 
     template <class T>
     class TUnsafeBuf {
     public:
-        inline TUnsafeBuf() noexcept
+        TUnsafeBuf() noexcept
             : L_(0)
         {
         }
 
-        inline T* operator~() const noexcept {
+        T* operator~() const noexcept {
             return B_.Get();
         }
 
-        inline size_t operator+() const noexcept {
+        size_t operator+() const noexcept {
             return L_;
         }
 
-        inline void Reserve(size_t len) {
+        void Reserve(size_t len) {
             len = FastClp2(len);
 
             if (len > L_) {
@@ -41,6 +41,7 @@ namespace {
         TArrayHolder<T> B_;
         size_t L_;
     };
+
 
     template <class T>
     class TVirtualize: public IPollerFace {
@@ -57,24 +58,25 @@ namespace {
         T P_;
     };
 
+
     template <class T>
     class TPoller {
-        typedef typename T::TEvent TInternalEvent;
+        using TInternalEvent = typename T::TEvent;
 
     public:
-        inline TPoller() {
+        TPoller() {
             E_.Reserve(1);
         }
 
-        inline void Set(const TChange& c) {
+        void Set(const TChange& c) {
             P_.Set(c.Data, c.Fd, c.Flags);
         }
 
-        inline void Reserve(size_t size) {
+        void Reserve(size_t size) {
             E_.Reserve(size);
         }
 
-        inline void Wait(TEvents& events, TInstant deadLine) {
+        void Wait(TEvents& events, TInstant deadLine) {
             const size_t ret = P_.WaitD(~E_, +E_, deadLine);
 
             events.reserve(ret);
@@ -99,16 +101,21 @@ namespace {
         TUnsafeBuf<TInternalEvent> E_;
     };
 
+
     template <class T>
     class TIndexedArray {
-        struct TVal: public T, public TIntrusiveListItem<TVal>, public TObjectFromPool<TVal> {
+        struct TVal:
+            public T,
+            public TIntrusiveListItem<TVal>,
+            public TObjectFromPool<TVal>
+        {
             // NOTE Constructor must be user-defined (and not =default) here
             // because TVal objects are created in the UB-capable placement
             // TObjectFromPool::new operator that stores data in a memory
             // allocated for the object. Without user defined constructor
             // zero-initialization takes place in TVal() expression and the
             // data is overwritten.
-            inline TVal() {
+            TVal() {
             }
         };
 
@@ -118,32 +125,32 @@ namespace {
         typedef typename TListType::TIterator TIterator;
         typedef typename TListType::TConstIterator TConstIterator;
 
-        inline TIndexedArray()
+        TIndexedArray()
             : P_(TMemoryPool::TExpGrow::Instance(), TDefaultAllocator::Instance())
         {
         }
 
-        inline TIterator Begin() noexcept {
+        TIterator Begin() noexcept {
             return I_.Begin();
         }
 
-        inline TIterator End() noexcept {
+        TIterator End() noexcept {
             return I_.End();
         }
 
-        inline TConstIterator Begin() const noexcept {
+        TConstIterator Begin() const noexcept {
             return I_.Begin();
         }
 
-        inline TConstIterator End() const noexcept {
+        TConstIterator End() const noexcept {
             return I_.End();
         }
 
-        inline T& operator[](size_t i) {
+        T& operator[](size_t i) {
             return *Get(i);
         }
 
-        inline T* Get(size_t i) {
+        T* Get(size_t i) {
             TValRef& v = V_.Get(i);
 
             if (Y_UNLIKELY(!v)) {
@@ -156,11 +163,11 @@ namespace {
             return v.Get();
         }
 
-        inline void Erase(size_t i) noexcept {
+        void Erase(size_t i) noexcept {
             V_.Get(i).Destroy();
         }
 
-        inline size_t Size() const noexcept {
+        size_t Size() const noexcept {
             return I_.Size();
         }
 
@@ -170,6 +177,7 @@ namespace {
         TSocketMap<TValRef> V_;
         TListType I_;
     };
+
 
     static inline short PollFlags(ui16 flags) noexcept {
         short ret = 0;
@@ -185,14 +193,15 @@ namespace {
         return ret;
     }
 
+
     class TPollPoller {
     public:
-        inline size_t Size() const noexcept {
+        size_t Size() const noexcept {
             return S_.Size();
         }
 
         template <class T>
-        inline void Build(T& t) const {
+        void Build(T& t) const {
             for (TFds::TConstIterator it = S_.Begin(); it != S_.End(); ++it) {
                 t.Set(*it);
             }
@@ -200,7 +209,7 @@ namespace {
             t.Reserve(Size());
         }
 
-        inline void Set(const TChange& c) {
+        void Set(const TChange& c) {
             if (c.Flags) {
                 S_[c.Fd] = c;
             } else {
@@ -208,7 +217,7 @@ namespace {
             }
         }
 
-        inline void Wait(TEvents& events, TInstant deadLine) {
+        void Wait(TEvents& events, TInstant deadLine) {
             T_.clear();
             T_.reserve(Size());
 
@@ -280,15 +289,16 @@ namespace {
         TPollVec T_;
     };
 
+
     class TCombinedPoller {
         typedef TPoller<TPollerImpl<TWithoutLocking>> TDefaultPoller;
 
     public:
-        inline TCombinedPoller() {
+        TCombinedPoller() {
             P_.Reset(new TPollPoller());
         }
 
-        inline void Set(const TChange& c) {
+        void Set(const TChange& c) {
             if (!P_) {
                 D_->Set(c);
             } else {
@@ -296,7 +306,7 @@ namespace {
             }
         }
 
-        inline void Wait(TEvents& events, TInstant deadLine) {
+        void Wait(TEvents& events, TInstant deadLine) {
             if (!P_) {
                 D_->Wait(events, deadLine);
             } else {
@@ -317,7 +327,7 @@ namespace {
     };
 
     struct TUserPoller: public TString {
-        inline TUserPoller()
+        TUserPoller()
             : TString(GetEnv("USER_POLLER"))
         {
         }
