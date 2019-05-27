@@ -124,8 +124,8 @@ void OutputModelCoreML(
     auto regressor = treeModel.mutable_treeensembleregressor();
     auto ensemble = regressor->mutable_treeensemble();
 
-    bool createPipelineModel;
-    NCatboost::NCoreML::ConfigureTrees(model, ensemble, &createPipelineModel);
+    NCatboost::NCoreML::TPerTypeFeatureIdxToInputIndex perTypeFeatureIdxToInputIndex;
+    bool createPipelineModel = model.HasCategoricalFeatures();
 
     TString data;
     if (createPipelineModel) {
@@ -137,7 +137,10 @@ void OutputModelCoreML(
 
         auto* contained = container->Add();
         auto treeDescription = treeModel.mutable_description();
-        NCatboost::NCoreML::ConfigureTreeModelIO(model, userParameters, regressor, treeDescription);
+        NCatboost::NCoreML::ConfigureTreeModelIO(model, userParameters, regressor, treeDescription, &perTypeFeatureIdxToInputIndex);
+
+        NCatboost::NCoreML::ConfigureTrees(model, perTypeFeatureIdxToInputIndex, ensemble);
+
         *contained = treeModel;
 
         auto pipelineDescription = pipelineModel.mutable_description();
@@ -148,7 +151,10 @@ void OutputModelCoreML(
     } else {
         auto description = treeModel.mutable_description();
         NCatboost::NCoreML::ConfigureMetadata(model, userParameters, description);
-        NCatboost::NCoreML::ConfigureTreeModelIO(model, userParameters, regressor, description);
+        NCatboost::NCoreML::ConfigureTreeModelIO(model, userParameters, regressor, description, &perTypeFeatureIdxToInputIndex);
+
+        NCatboost::NCoreML::ConfigureTrees(model, perTypeFeatureIdxToInputIndex, ensemble);
+
         treeModel.SerializeToString(&data);
     }
 
