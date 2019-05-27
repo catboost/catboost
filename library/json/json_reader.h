@@ -62,7 +62,7 @@ namespace NJson {
 
     class TParserCallbacks: public TJsonCallbacks {
     public:
-        TParserCallbacks(TJsonValue& value, bool throwOnError = false);
+        TParserCallbacks(TJsonValue& value, bool throwOnError = false, bool notClosedBracketIsError = false);
         bool OnNull() override;
         bool OnBoolean(bool val) override;
         bool OnInteger(long long val) override;
@@ -74,11 +74,13 @@ namespace NJson {
         bool OnOpenMap() override;
         bool OnCloseMap() override;
         bool OnMapKey(const TStringBuf& val) override;
+        bool OnEnd() override;
 
     protected:
         TJsonValue& Value;
         TString Key;
         TVector<TJsonValue*> ValuesStack;
+        bool NotClosedBracketIsError;
 
         enum {
             START,
@@ -115,6 +117,6 @@ namespace NJson {
     };
 
     //// relaxed json, used in library/scheme
-    bool ReadJsonFastTree(TStringBuf in, TJsonValue* out, bool throwOnError = false);
-    TJsonValue ReadJsonFastTree(TStringBuf in);
+    bool ReadJsonFastTree(TStringBuf in, TJsonValue* out, bool throwOnError = false, bool notClosedBracketIsError = false);
+    TJsonValue ReadJsonFastTree(TStringBuf in, bool notClosedBracketIsError = false);
 }
