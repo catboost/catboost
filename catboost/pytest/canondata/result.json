@@ -3253,7 +3253,7 @@
     ],
     "test.test_pairwise_bayesian_bootstrap[calc_block=5000000-PairLogitPairwise-Group-1]": [
         {
-            "checksum": "2316cb40ea622b130e1cebb336227fdc",
+            "checksum": "664f2bde2b69334ced1eef11433bafd2",
             "uri": "file://test.test_pairwise_bayesian_bootstrap_calc_block=5000000-PairLogitPairwise-Group-1_/test.eval"
         }
     ],
@@ -3277,7 +3277,7 @@
     ],
     "test.test_pairwise_bayesian_bootstrap[calc_block=5000000-YetiRankPairwise-Group-1]": [
         {
-            "checksum": "b1d9229c81239f19ba58dd5912358678",
+            "checksum": "c9342632ea9440f2459de2121dd95e70",
             "uri": "file://test.test_pairwise_bayesian_bootstrap_calc_block=5000000-YetiRankPairwise-Group-1_/test.eval"
         }
     ],
@@ -3301,7 +3301,7 @@
     ],
     "test.test_pairwise_bayesian_bootstrap[calc_block=60-PairLogitPairwise-Group-1]": [
         {
-            "checksum": "2316cb40ea622b130e1cebb336227fdc",
+            "checksum": "664f2bde2b69334ced1eef11433bafd2",
             "uri": "file://test.test_pairwise_bayesian_bootstrap_calc_block=60-PairLogitPairwise-Group-1_/test.eval"
         }
     ],
@@ -3325,7 +3325,7 @@
     ],
     "test.test_pairwise_bayesian_bootstrap[calc_block=60-YetiRankPairwise-Group-1]": [
         {
-            "checksum": "b1d9229c81239f19ba58dd5912358678",
+            "checksum": "245e9f26ff91fe25c1deefa9ce9cb64a",
             "uri": "file://test.test_pairwise_bayesian_bootstrap_calc_block=60-YetiRankPairwise-Group-1_/test.eval"
         }
     ],
@@ -3343,7 +3343,7 @@
     ],
     "test.test_pairwise_bernoulli_bootstrap[calc_block=5000000-PairLogitPairwise-Group-0.5]": [
         {
-            "checksum": "e5f6299d8ed3878364a6c7d2a29b8e36",
+            "checksum": "d7917d0a4e8b1b2dcb20b33201ed6585",
             "uri": "file://test.test_pairwise_bernoulli_bootstrap_calc_block=5000000-PairLogitPairwise-Group-0.5_/test.eval"
         }
     ],
@@ -3367,7 +3367,7 @@
     ],
     "test.test_pairwise_bernoulli_bootstrap[calc_block=5000000-YetiRankPairwise-Group-0.5]": [
         {
-            "checksum": "1e722956071b52a095118154899c2e12",
+            "checksum": "3887c475a026e981772d0b7a806d0fe8",
             "uri": "file://test.test_pairwise_bernoulli_bootstrap_calc_block=5000000-YetiRankPairwise-Group-0.5_/test.eval"
         }
     ],
@@ -3391,7 +3391,7 @@
     ],
     "test.test_pairwise_bernoulli_bootstrap[calc_block=60-PairLogitPairwise-Group-0.5]": [
         {
-            "checksum": "e5f6299d8ed3878364a6c7d2a29b8e36",
+            "checksum": "d7917d0a4e8b1b2dcb20b33201ed6585",
             "uri": "file://test.test_pairwise_bernoulli_bootstrap_calc_block=60-PairLogitPairwise-Group-0.5_/test.eval"
         }
     ],
@@ -3415,7 +3415,7 @@
     ],
     "test.test_pairwise_bernoulli_bootstrap[calc_block=60-YetiRankPairwise-Group-0.5]": [
         {
-            "checksum": "1e722956071b52a095118154899c2e12",
+            "checksum": "3887c475a026e981772d0b7a806d0fe8",
             "uri": "file://test.test_pairwise_bernoulli_bootstrap_calc_block=60-YetiRankPairwise-Group-0.5_/test.eval"
         }
     ],
@@ -4049,7 +4049,7 @@
     ],
     "test.test_querywise_bayesian_bootstrap[calc_block=5000000-Group-1]": [
         {
-            "checksum": "c73550697164538c516aeefc752bdba4",
+            "checksum": "ca76eb347ef57e5c8eb31e325d79e6ce",
             "uri": "file://test.test_querywise_bayesian_bootstrap_calc_block=5000000-Group-1_/test.eval"
         }
     ],
@@ -4073,7 +4073,7 @@
     ],
     "test.test_querywise_bayesian_bootstrap[calc_block=60-Group-1]": [
         {
-            "checksum": "c73550697164538c516aeefc752bdba4",
+            "checksum": "ca76eb347ef57e5c8eb31e325d79e6ce",
             "uri": "file://test.test_querywise_bayesian_bootstrap_calc_block=60-Group-1_/test.eval"
         }
     ],
@@ -4091,7 +4091,7 @@
     ],
     "test.test_querywise_bernoulli_bootstrap[calc_block=5000000-Group-0.5]": [
         {
-            "checksum": "6b1d26887ce81dd2fe86bc89d677aa2e",
+            "checksum": "7ab2ec7fec441d27c53801831746076b",
             "uri": "file://test.test_querywise_bernoulli_bootstrap_calc_block=5000000-Group-0.5_/test.eval"
         }
     ],
@@ -4115,7 +4115,7 @@
     ],
     "test.test_querywise_bernoulli_bootstrap[calc_block=60-Group-0.5]": [
         {
-            "checksum": "6b1d26887ce81dd2fe86bc89d677aa2e",
+            "checksum": "7ab2ec7fec441d27c53801831746076b",
             "uri": "file://test.test_querywise_bernoulli_bootstrap_calc_block=60-Group-0.5_/test.eval"
         }
     ],

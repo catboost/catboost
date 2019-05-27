@@ -5897,6 +5897,9 @@ LOSS_FUNCTIONS_WITH_PAIRWISE_SCORRING = ['YetiRankPairwise', 'PairLogitPairwise'
     ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
 )
 def test_pairwise_bayesian_bootstrap(bagging_temperature, sampling_unit, loss_function, dev_score_calc_obj_block_size):
+    if loss_function == 'YetiRankPairwise' and sampling_unit == 'Group' and bagging_temperature == '1':
+        return pytest.xfail(reason='MLTOOLS-1801')
+
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
     cmd = (
