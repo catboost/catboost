@@ -181,26 +181,6 @@ private:
     size_t Count_;
 };
 
-class TInterruptibleEvent {
-public:
-    TInterruptibleEvent(TCont* cont) noexcept
-        : Cont_(cont)
-    {
-    }
-
-    bool Interrupted() const noexcept {
-        return Interrupted_;
-    }
-
-    void Interrupt() noexcept;
-
-    template <typename F>
-    TContIOStatus Wait(F&& f);
-
-private:
-    TCont* Cont_ = nullptr;
-    bool Interrupted_ = false;
-};
 
 class TCont {
     struct TJoinWait: public TIntrusiveListItem<TJoinWait> {
@@ -1099,18 +1079,4 @@ inline void TCont::ReScheduleAndSwitch() noexcept {
     Y_VERIFY(!Dead_, "%s", Y_CORO_PRINTF(this));
     ReSchedule();
     SwitchToScheduler();
-}
-
-template <typename F>
-TContIOStatus TInterruptibleEvent::Wait(F&& f) {
-    if (Interrupted_) {
-        return TContIOStatus(0, EWAKEDUP);
-    }
-
-    auto ret = f(Cont_);
-    if (ret.Status() == EINPROGRESS && Interrupted_) {
-        return TContIOStatus(0, EWAKEDUP);
-    }
-
-    return ret;
 }

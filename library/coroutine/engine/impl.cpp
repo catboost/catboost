@@ -477,12 +477,3 @@ TFdEvent* TContPollEventHolder::TriggeredEvent() noexcept {
 
     return ret;
 }
-
-void TInterruptibleEvent::Interrupt() noexcept {
-    if (!Interrupted_) {
-        Interrupted_ = true;
-        if (!Cont_->Scheduled()) {
-            Cont_->ReSchedule();
-        }
-    }
-}
