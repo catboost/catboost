@@ -197,6 +197,12 @@ namespace NCudaLib {
                 //different PCI root complex devices
                 if (tempBuffer != nullptr) {
                     TCudaStream helperStream = NCudaLib::GetStreamsProvider().RequestStream();
+                    {
+                        auto event = NCudaLib::CudaEventProvider().Create();
+                        event->Record(stream);
+                        event->StreamWait(helperStream);
+                    }
+
                     const ui64 blockSize = LocalBufferSize / 2;
                     bool needSync = false;
 
@@ -210,13 +216,19 @@ namespace NCudaLib {
                                 const TCudaStream* currentStream = (iter % 2 == 0) ? &stream : &helperStream;
                                 const ui64 tempBufferOffset = (iter % 2 == 0) ? 0 : blockSize;
                                 const ui64 size = Min<ui64>(blockSize, dst.Size() - offset);
-
-                                CopyMemoryAsync(src.Get() + offset, tempBuffer + tempBufferOffset, size, *currentStream);
-                                NKernel::ReduceBinary(dst.Get() + offset, dst.Get() + offset, tempBuffer + tempBufferOffset,
-                                                      size,
-                                                      currentStream->GetStream());
+                                if (size) {
+                                    CopyMemoryAsync(src.Get() + offset,
+                                                    tempBuffer + tempBufferOffset,
+                                                    size,
+                                                    *currentStream);
+                                    NKernel::ReduceBinary(dst.Get() + offset,
+                                                          dst.Get() + offset,
+                                                          tempBuffer + tempBufferOffset,
+                                                          size,
+                                                          currentStream->GetStream());
+                                }
                             }
-                            needSync |= dst.Size() > blockSize;
+                            needSync |= dst.Size() >= blockSize;
                         }
                     }
 
