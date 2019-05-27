@@ -114,6 +114,10 @@ def onjava_module(unit, *args):
         data['UBERJAR_PREFIX'] = extract_macro_calls(unit, 'UBERJAR_PREFIX_VALUE', args_delim)
         data['UBERJAR_HIDE_EXCLUDE'] = extract_macro_calls(unit, 'UBERJAR_HIDE_EXCLUDE_VALUE', args_delim)
         data['UBERJAR_PATH_EXCLUDE'] = extract_macro_calls(unit, 'UBERJAR_PATH_EXCLUDE_VALUE', args_delim)
+        data['UBERJAR_MANIFEST_TRANSFORMER_MAIN'] = extract_macro_calls(unit, 'UBERJAR_MANIFEST_TRANSFORMER_MAIN_VALUE', args_delim)
+        data['UBERJAR_MANIFEST_TRANSFORMER_ATTRIBUTE'] = extract_macro_calls(unit, 'UBERJAR_MANIFEST_TRANSFORMER_ATTRIBUTE_VALUE', args_delim)
+        data['UBERJAR_APPENDING_TRANSFORMER'] = extract_macro_calls(unit, 'UBERJAR_APPENDING_TRANSFORMER_VALUE', args_delim)
+        data['UBERJAR_SERVICES_RESOURCE_TRANSFORMER'] = extract_macro_calls(unit, 'UBERJAR_SERVICES_RESOURCE_TRANSFORMER_VALUE', args_delim)
 
     if unit.get('WITH_JDK_VALUE') == 'yes':
         if unit.get('MODULE_TYPE') != 'JAVA_PROGRAM':
