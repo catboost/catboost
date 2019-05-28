@@ -1581,7 +1581,7 @@ class LD(Linker):
         arch_flag = '--arch={arch}'.format(arch=self.target.os_compat)
         soname_flag = '-Wl,{option},$SONAME'.format(option=self.soname_option)
         shared_flag = '-shared'
-        exec_shared_flag = '-pie'
+        exec_shared_flag = '-pie' if self.target.is_linux else ''
 
         ld_env_style = '${cwd:ARCADIA_BUILD_ROOT} $TOOLCHAIN_ENV ${kv;hide:"p LD"} ${kv;hide:"pc light-blue"} ${kv;hide:"show_out"}'
 
