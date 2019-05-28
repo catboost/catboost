@@ -54,7 +54,9 @@ allocate_reduce_result(PyArrayObject *arr, npy_bool *axis_flags,
 
     /* Build the new strides and shape */
     stride = dtype->elsize;
-    memcpy(shape, arr_shape, ndim * sizeof(shape[0]));
+    if (ndim) {
+        memcpy(shape, arr_shape, ndim * sizeof(shape[0]));
+    }
     for (idim = ndim-1; idim >= 0; --idim) {
         npy_intp i_perm = strideperm[idim].perm;
         if (axis_flags[i_perm]) {

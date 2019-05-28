@@ -10,6 +10,7 @@ C CatBoostGetModelParams_R
 C CatBoostGetNumTrees_R
 C CatBoostHashStrings_R
 C CatBoostIsNullHandle_R
+C CatBoostIsOblivious_R
 C CatBoostOutputModel_R
 C CatBoostPoolNumCol_R
 C CatBoostPoolNumRow_R

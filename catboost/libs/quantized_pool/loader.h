@@ -30,8 +30,11 @@ namespace NCB {
             const size_t flatFeatureIdx,
             IQuantizedFeaturesDataVisitor* visitor) const;
 
-        static TLoadQuantizedPoolParameters GetLoadParameters() {
-            return {/*LockMemory*/ false, /*Precharge*/ false};
+        TConstArrayRef<ui8> ClipByDatasetSubset(const TQuantizedPool::TChunkDescription& chunk) const;
+        ui32 GetDatasetOffset(const TQuantizedPool::TChunkDescription& chunk) const;
+
+        static TLoadQuantizedPoolParameters GetLoadParameters(NCB::TDatasetSubset loadSubset) {
+            return {/*LockMemory*/ false, /*Precharge*/ false, loadSubset};
         }
 
     private:
@@ -43,18 +46,12 @@ namespace NCB {
         TPathWithScheme BaselinePath;
         TDataMetaInfo DataMetaInfo;
         EObjectsOrder ObjectsOrder;
-    };
-
-    struct TLoadSubset {
-        TIndexRange<ui32> Range = {0, Max<ui32>()};
-        bool SkipFeatures = false;
+        TDatasetSubset DatasetSubset;
     };
 
     struct IQuantizedPoolLoader {
         virtual ~IQuantizedPoolLoader() = default;
-        virtual TQuantizedPool LoadQuantizedPool(
-            TLoadQuantizedPoolParameters params,
-            TLoadSubset loadSubset) = 0;
+        virtual TQuantizedPool LoadQuantizedPool(TLoadQuantizedPoolParameters params) = 0;
     };
 
     using TQuantizedPoolLoaderFactory =

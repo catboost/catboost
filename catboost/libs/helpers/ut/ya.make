@@ -12,6 +12,7 @@ SRCS(
     map_merge_ut.cpp
     math_utils_ut.cpp
     maybe_owning_array_holder_ut.cpp
+    permutation_ut.cpp
     resource_constrained_executor_ut.cpp
     resource_holder_ut.cpp
     serialization_ut.cpp

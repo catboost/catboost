@@ -30,6 +30,7 @@ PEERDIR(
     catboost/libs/metrics
     catboost/libs/model
     catboost/libs/options
+    catboost/libs/quantized_pool_analysis
     catboost/libs/target
     library/containers/2d_array
     library/json/writer

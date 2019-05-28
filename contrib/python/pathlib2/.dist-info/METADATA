@@ -1,0 +1,75 @@
+Metadata-Version: 2.0
+Name: pathlib2
+Version: 2.3.3
+Summary: Object-oriented filesystem paths
+Home-page: https://pypi.python.org/pypi/pathlib2/
+Author: Matthias C. M. Troffaes
+Author-email: matthias.troffaes@gmail.com
+License: MIT
+Download-URL: https://pypi.python.org/pypi/pathlib2/
+Platform: UNKNOWN
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 2
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 2.6
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3.4
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Topic :: Software Development :: Libraries
+Classifier: Topic :: System :: Filesystems
+Requires-Dist: six
+Requires-Dist: scandir; python_version<"3.5"
+
+The `old pathlib <https://bitbucket.org/pitrou/pathlib>`_
+module on bitbucket is in bugfix-only mode.
+The goal of pathlib2 is to provide a backport of
+`standard pathlib <http://docs.python.org/dev/library/pathlib.html>`_
+module which tracks the standard library module,
+so all the newest features of the standard pathlib can be
+used also on older Python versions.
+
+Download
+--------
+
+Standalone releases are available on PyPI:
+http://pypi.python.org/pypi/pathlib2/
+
+Development
+-----------
+
+The main development takes place in the Python standard library: see
+the `Python developer's guide <http://docs.python.org/devguide/>`_.
+In particular, new features should be submitted to the
+`Python bug tracker <http://bugs.python.org/>`_.
+
+Issues that occur in this backport, but that do not occur not in the
+standard Python pathlib module can be submitted on
+the `pathlib2 bug tracker <https://github.com/mcmtroffaes/pathlib2/issues>`_.
+
+Documentation
+-------------
+
+Refer to the
+`standard pathlib <http://docs.python.org/dev/library/pathlib.html>`_
+documentation.
+
+.. |travis| image:: https://travis-ci.org/mcmtroffaes/pathlib2.png?branch=develop
+    :target: https://travis-ci.org/mcmtroffaes/pathlib2
+    :alt: travis-ci
+
+.. |appveyor| image:: https://ci.appveyor.com/api/projects/status/baddx3rpet2wyi2c?svg=true
+    :target: https://ci.appveyor.com/project/mcmtroffaes/pathlib2
+    :alt: appveyor
+
+.. |codecov| image:: https://codecov.io/gh/mcmtroffaes/pathlib2/branch/develop/graph/badge.svg
+    :target: https://codecov.io/gh/mcmtroffaes/pathlib2
+    :alt: codecov
+
+
+

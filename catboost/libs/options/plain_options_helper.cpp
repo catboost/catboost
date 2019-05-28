@@ -1,5 +1,5 @@
-#include "cat_feature_options.h"
 #include "loss_description.h"
+#include "cat_feature_options.h"
 #include "binarization_options.h"
 #include "plain_options_helper.h"
 
@@ -294,6 +294,7 @@ void NCatboostOptions::PlainJsonToOptions(
     CopyOption(plainOptions, "bagging_temperature", &bootstrapOptions, &seenKeys);
     CopyOption(plainOptions, "subsample", &bootstrapOptions, &seenKeys);
     CopyOption(plainOptions, "mvs_head_fraction", &bootstrapOptions, &seenKeys);
+    CopyOption(plainOptions, "sampling_unit", &bootstrapOptions, &seenKeys);
 
     //feature evaluation options
     auto& modelBasedEvalOptions = trainOptions["model_based_eval_options"];
@@ -339,6 +340,7 @@ void NCatboostOptions::PlainJsonToOptions(
     CopyOption(plainOptions, "ignored_features", &dataProcessingOptions, &seenKeys);
     CopyOption(plainOptions, "has_time", &dataProcessingOptions, &seenKeys);
     CopyOption(plainOptions, "allow_const_label", &dataProcessingOptions, &seenKeys);
+    CopyOption(plainOptions, "target_border", &dataProcessingOptions, &seenKeys);
     CopyOption(plainOptions, "classes_count", &dataProcessingOptions, &seenKeys);
     CopyOption(plainOptions, "class_names", &dataProcessingOptions, &seenKeys);
     CopyOption(plainOptions, "class_weights", &dataProcessingOptions, &seenKeys);
@@ -376,15 +378,13 @@ void NCatboostOptions::PlainJsonToOptions(
     CopyOption(plainOptions, "metadata", &trainOptions, &seenKeys);
 
     for (const auto& [optionName, optionValue] : plainOptions.GetMap()) {
-        if (seenKeys.contains(optionName)) {
-            break;
+        if (!seenKeys.contains(optionName)) {
+            const TString message = TStringBuilder()
+                    //TODO(kirillovs): this cast fixes structured binding problem in msvc 14.12 compilator
+                << "Unknown option {" << static_cast<const TString&>(optionName) << '}'
+                << " with value \"" << EscapeC(optionValue.GetStringRobust()) << '"';
+            ythrow TCatBoostException() << message;
         }
-
-        const TString message = TStringBuilder()
-                //TODO(kirillovs): this cast fixes structured binding problem in msvc 14.12 compilator
-            << "Unknown option {" << static_cast<const TString&>(optionName) << '}'
-            << " with value \"" << EscapeC(optionValue.GetStringRobust()) << '"';
-        ythrow TCatBoostException() << message;
     }
 
     trainOptions["flat_params"] = plainOptions;

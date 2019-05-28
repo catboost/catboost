@@ -23,6 +23,8 @@ def check_imports(no_check=None, extra=[], skip_func=None):
         'click._winconsole',
         'common.*',  # sandbox.common
 
+        'dask.*',
+
         'flaky.flaky_pytest_plugin',
 
         'flask.ext.__init__',
@@ -38,6 +40,7 @@ def check_imports(no_check=None, extra=[], skip_func=None):
         'kernel.*',  # skynet/kernel
         'kombu.transport.sqlalchemy.*',
         'IPython.*',
+        'ipykernel.pylab.backend_inline',
         'lxml.cssselect',
         'lxml.html.ElementSoup',
         'lxml.html.diff',
@@ -137,6 +140,8 @@ def check_imports(no_check=None, extra=[], skip_func=None):
         "pandas.util.clipboard",
 
         "parsel.unified",
+        'partd.pandas',
+        'partd.zmq',
 
         "ptpython.contrib.asyncssh_repl",
         "ptpython.ipython",
@@ -158,6 +163,11 @@ def check_imports(no_check=None, extra=[], skip_func=None):
         "raven.utils.testutils",
 
         "sklearn.utils.*",
+        "statsmodels.*",
+
+        "skimage.io._plugins.*",
+        "skimage.measure.mc_meta.visual_test",
+
 
         "subvertpy.ra_svn",  # can only be imported after subvertpy.ra
         "superfcgi.*",
@@ -229,6 +239,7 @@ def check_imports(no_check=None, extra=[], skip_func=None):
             "distutils.command.bdist_msi",
             "yaml.cyaml",
             "vh.ext.nirvana.nirvana_api_bridge",
+            "aiohttp.pytest_plugin",
         ]
 
     patterns = [re.escape(s).replace(r'\*', r'.*') for s in exceptions]

@@ -890,8 +890,8 @@ class _CatBoostBase(object):
         setattr(self, '_learning_rate', self._object._get_learning_rate())
         setattr(self, '_tree_count', self._object._get_tree_count())
 
-    def _train(self, train_pool, test_pool, params, allow_clear_pool):
-        self._object._train(train_pool, test_pool, params, allow_clear_pool)
+    def _train(self, train_pool, test_pool, params, allow_clear_pool, init_model):
+        self._object._train(train_pool, test_pool, params, allow_clear_pool, init_model._object if init_model else None)
         self._set_trained_model_attributes()
 
     def _set_test_evals(self, test_evals):
@@ -1055,6 +1055,18 @@ class _CatBoostBase(object):
     def get_tree_leaf_values(self, tree_idx, leaves_num):
         return self._object._get_tree_leaf_values(tree_idx, leaves_num)
 
+    def get_leaf_values(self):
+        return self._object._get_leaf_values()
+
+    def get_leaf_weights(self):
+        return self._object._get_leaf_weights()
+
+    def get_tree_leaf_counts(self):
+        return self._object._get_tree_leaf_counts()
+
+    def set_leaf_values(self, new_leaf_values):
+        self._object._set_leaf_values(new_leaf_values)
+
 
 def _check_param_types(params):
     if not isinstance(params, (Mapping, MutableMapping)):
@@ -1117,7 +1129,7 @@ class CatBoost(_CatBoostBase):
     def _fit(self, X, y, cat_features, pairs, sample_weight, group_id, group_weight, subgroup_id,
              pairs_weight, baseline, use_best_model, eval_set, verbose, logging_level, plot,
              column_description, verbose_eval, metric_period, silent, early_stopping_rounds,
-             save_snapshot, snapshot_file, snapshot_interval):
+             save_snapshot, snapshot_file, snapshot_interval, init_model):
 
         if X is None:
             raise CatBoostError("X must not be None")
@@ -1217,8 +1229,14 @@ class CatBoost(_CatBoostBase):
         if self.get_param('use_best_model') and eval_total_row_count == 0:
             raise CatBoostError("To employ param {'use_best_model': True} provide non-empty 'eval_set'.")
 
+        if (init_model is not None) and isinstance(init_model, STRING_TYPES):
+            try:
+                init_model = CatBoost().load_model(init_model)
+            except Exception as e:
+                raise CatBoostError("Error while loading init_model: {}".format(e))
+
         with log_fixup(), plot_wrapper(plot, [_get_train_dir(self.get_params())]):
-            self._train(train_pool, eval_sets, params, allow_clear_pool)
+            self._train(train_pool, eval_sets, params, allow_clear_pool, init_model)
 
         if (not self._object._has_leaf_weights_in_model()) and allow_clear_pool:
             train_pool = _build_train_pool(X, y, cat_features, pairs, sample_weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, column_description)
@@ -1233,7 +1251,7 @@ class CatBoost(_CatBoostBase):
             group_weight=None, subgroup_id=None, pairs_weight=None, baseline=None, use_best_model=None,
             eval_set=None, verbose=None, logging_level=None, plot=False, column_description=None,
             verbose_eval=None, metric_period=None, silent=None, early_stopping_rounds=None,
-            save_snapshot=None, snapshot_file=None, snapshot_interval=None):
+            save_snapshot=None, snapshot_file=None, snapshot_interval=None, init_model=None):
         """
         Fit the CatBoost model.
 
@@ -1330,6 +1348,10 @@ class CatBoost(_CatBoostBase):
         snapshot_interval: int, [default=600]
             Interval between saving snapshots (seconds)
 
+        init_model : CatBoost class or string, [default=None]
+            Continue training starting from the existing model.
+            If this parameter is a string, load initial model from the path specified by this string.
+
         Returns
         -------
         model : CatBoost
@@ -1337,9 +1359,9 @@ class CatBoost(_CatBoostBase):
         return self._fit(X, y, cat_features, pairs, sample_weight, group_id, group_weight, subgroup_id,
                          pairs_weight, baseline, use_best_model, eval_set, verbose, logging_level, plot,
                          column_description, verbose_eval, metric_period, silent, early_stopping_rounds,
-                         save_snapshot, snapshot_file, snapshot_interval)
+                         save_snapshot, snapshot_file, snapshot_interval, init_model)
 
-    def _process_predict_input_data(self, data, parent_method_name):
+    def _process_predict_input_data(self, data, parent_method_name, label=None):
         if not self.is_fitted() or self.tree_count_ is None:
             raise CatBoostError(("There is no trained model to use {}(). "
                                  "Use fit() to train model. Then use this method.").format(parent_method_name))
@@ -1347,6 +1369,7 @@ class CatBoost(_CatBoostBase):
         if not isinstance(data, Pool):
             data = Pool(
                 data=[data] if is_single_object else data,
+                label=label,
                 cat_features=self._get_cat_feature_indices() if not isinstance(data, FeaturesData) else None
             )
         return data, is_single_object
@@ -1725,7 +1748,7 @@ class CatBoost(_CatBoostBase):
         else:
             return np.array(getattr(self, "_prediction_values_change", None))
 
-    def get_feature_importance(self, data=None, type=EFstrType.FeatureImportance, prettified=False, thread_count=-1, verbose=False, fstr_type=None, shap_mode="Auto"):
+    def get_feature_importance(self, data=None, type=EFstrType.FeatureImportance, prettified=False, thread_count=-1, verbose=False, shap_mode="Auto"):
         """
         Parameters
         ----------
@@ -1760,8 +1783,6 @@ class CatBoost(_CatBoostBase):
             If False, then evaluation is not logged. If True, then each possible iteration is logged.
             If a positive integer, then it stands for the size of batch N. After processing each batch, print progress
             and remaining time.
-
-        fstr_type : string, deprecated, use type instead
 
         shap_mode : string, optional (default="Auto")
             used only for ShapValues type
@@ -1800,10 +1821,6 @@ class CatBoost(_CatBoostBase):
         verbose = int(verbose)
         if verbose < 0:
             raise CatBoostError('verbose should be non-negative.')
-
-        if fstr_type is not None:
-            type = fstr_type
-            warnings.warn("'fstr_type' parameter will be deprecated soon, use 'type' parameter instead")
 
         type = enum_from_enum_or_str(EFstrType, type)
         if type == EFstrType.FeatureImportance:
@@ -1866,7 +1883,9 @@ class CatBoost(_CatBoostBase):
             else:
                 return np.array(result)
 
-    def get_object_importance(self, pool, train_pool, top_size=-1, ostr_type='Average', update_method='SinglePoint', importance_values_sign='All', thread_count=-1, verbose=False):
+    def get_object_importance(
+            self, pool, train_pool, top_size=-1, type='Average', update_method='SinglePoint',
+            importance_values_sign='All', thread_count=-1, verbose=False, ostr_type=None):
         """
         This is the implementation of the LeafInfluence algorithm from the following paper:
         https://arxiv.org/pdf/1802.06640.pdf
@@ -1883,7 +1902,7 @@ class CatBoost(_CatBoostBase):
             Method returns the result of the top_size most important train objects.
             If -1, then the top size is not limited.
 
-        ostr_type : string, optional (default='Average')
+        type : string, optional (default='Average')
             Possible values:
                 - Average (Method returns the mean train objects scores for all input objects)
                 - PerObject (Method returns the train objects scores for every input object)
@@ -1911,6 +1930,8 @@ class CatBoost(_CatBoostBase):
             If a positive integer, then it stands for the size of batch N. After processing each batch, print progress
             and remaining time.
 
+        ostr_type : string, deprecated, use type instead
+
         Returns
         -------
         object_importances : tuple of two arrays (indices and scores) of shape = [top_size]
@@ -1925,8 +1946,12 @@ class CatBoost(_CatBoostBase):
         if verbose < 0:
             raise CatBoostError('verbose should be non-negative.')
 
+        if ostr_type is not None:
+            type = ostr_type
+            warnings.warn("'ostr_type' parameter will be deprecated soon, use 'type' parameter instead")
+
         with log_fixup():
-            result = self._calc_ostr(train_pool, pool, top_size, ostr_type, update_method, importance_values_sign, thread_count, verbose)
+            result = self._calc_ostr(train_pool, pool, top_size, type, update_method, importance_values_sign, thread_count, verbose)
         return result
 
     def shrink(self, ntree_end, ntree_start=0):
@@ -2059,6 +2084,109 @@ class CatBoost(_CatBoostBase):
         for key, value in iteritems(params):
             self._init_params[key] = value
         return self
+
+    def get_feature_statistics(self, data, target, feature, prediction_type=None,
+                               cat_feature_values=None, plot=False, max_cat_features_on_plot=10,
+                               thread_count=-1):
+        """
+        Get statistics for the feature using the model, dataset and target.
+        To use this function, you should install plotly.
+
+        The catboost model has borders for the float features used in it. The borders divide
+        feature values into bins, and the model's prediction depends on the number of bin where
+        falls the feature value.
+
+        For float features takes model's borders and computes
+        1) Mean target value across every bin;
+        2) Mean model prediction across every bin;
+        3) The number of objects in dataset which fall into each bin;
+        4) Predictions on varying feature. For every object, varies the feature value so
+        that it falls into bin #0, bin #1, ... and counts model predictions. After that,
+        plots the average plot over all objects.
+
+        For categorical features (only one-hot supported) does the same, but takes feature values
+        provided in cat_feature_values instead of borders.
+
+        Parameters
+        ----------
+        data: numpy.array or pandas.DataFrame
+            Data to compute statistics on
+        target: numpy.array or pandas.Series
+            Target corresponding to data
+        feature: int or string
+            Feature index or name in pd.DataFrame
+        prediction_type: str
+            Prediction type used for counting mean_prediction: 'Class', 'Probability' or 'RawFormulaVal'.
+            If not specified, is derived from the model.
+        cat_feature_values: list or numpy.array or pandas.Series
+            Categorical feature values you need to get statistics on. Needed only for
+            statistics of a categorical feature.
+        plot: bool
+            Plot statistics.
+        max_cat_features_on_plot: int
+            If categorical feature takes more than max_cat_features_on_plot different unique values,
+            output result on several plots, not more than max_cat_features_on_plot feature values on each.
+            Used only if plot=True.
+        thread_count: int
+            Number of threads to use for getting statistics.
+        Returns
+        -------
+        dict:
+            Python dict with binarized feature statistics. For float feature, includes
+                'borders' -- borders for the specified feature in model
+                'binarized_feature' -- numbers of bins where feature values fall
+                'mean_target' -- mean value of target over each bin
+                'mean_prediction' -- mean value of model prediction over each bin
+                'objects_per_bin' -- number of objects per bin
+                'predictions_on_varying_feature' -- averaged over dataset predictions for
+                varying feature (see above)
+            For one-hot feature, returns the same, but with 'cat_feature_values' instead of 'borders'
+        """
+        data, _ = self._process_predict_input_data(data, "get_binarized_statistics", target)
+
+        if prediction_type is None:
+            prediction_type = 'Probability' if self.get_param('loss_function') in ['CrossEntropy', 'Logloss'] \
+                else 'RawFormulaVal'
+
+        if not isinstance(feature, int):
+            if self.feature_names_ is None or feature not in self.feature_names_:
+                raise CatBoostError('No feature named "{}" in model'.format(feature))
+            if feature not in data.get_feature_names():
+                raise CatBoostError('No feature named "{}" in dataset'.format(feature))
+            feature = self.feature_names_.index(feature)
+
+        if prediction_type not in ['Class', 'Probability', 'RawFormulaVal']:
+            raise CatBoostError('Unknown prediction type "{}"'.format(prediction_type))
+
+        feature_type, feature_internal_index = self._object._get_feature_type_and_internal_index(feature)
+        res = self._object._get_binarized_statistics(
+            data,
+            feature_internal_index,
+            prediction_type,
+            feature_type,
+            thread_count
+        )
+
+        if feature_type == 'categorical':
+            if cat_feature_values is None:
+                cat_feature_values = self._object._get_cat_feature_values(data, feature)
+                cat_feature_values = [val for val in cat_feature_values]
+
+            if not isinstance(cat_feature_values, ARRAY_TYPES):
+                raise CatBoostError("Feature #{} is categorical. "
+                                    "Please provide values for which you need statistics in cat_feature_values"
+                                    .format(feature))
+            val_to_hash = dict()
+            for val in cat_feature_values:
+                val_to_hash[val] = self._object._calc_cat_feature_perfect_hash(val, feature_internal_index)
+            hash_to_val = {hash: val for val, hash in val_to_hash.items()}
+            res['cat_values'] = np.array([hash_to_val[i] for i in sorted(hash_to_val.keys())])
+            res.pop('borders', None)
+
+        if plot:
+            _plot_feature_statistics(res, feature, max_cat_features_on_plot)
+
+        return res
 
     def plot_tree(self, tree_idx, pool):
         from graphviz import Digraph
@@ -2254,6 +2382,8 @@ class CatBoostClassifier(CatBoost):
         (do not perform a random permutation of the dataset at the preprocessing stage).
     allow_const_label : bool, [default=False]
         To allow the constant label value in dataset.
+    target_border: float, [default=None]
+        Border for target binarization.
     classes_count : int, [default=None]
         The upper limit for the numeric class label.
         Defines the number of classes for multiclassification.
@@ -2426,7 +2556,7 @@ class CatBoostClassifier(CatBoost):
         l2_leaf_reg=None,
         model_size_reg=None,
         rsm=None,
-        loss_function='Logloss',
+        loss_function=None,
         border_count=None,
         feature_border_type=None,
         input_borders=None,
@@ -2452,6 +2582,7 @@ class CatBoostClassifier(CatBoost):
         max_ctr_complexity=None,
         has_time=None,
         allow_const_label=None,
+        target_border=None,
         classes_count=None,
         class_weights=None,
         class_names=None,
@@ -2527,7 +2658,7 @@ class CatBoostClassifier(CatBoost):
     def fit(self, X, y=None, cat_features=None, sample_weight=None, baseline=None, use_best_model=None,
             eval_set=None, verbose=None, logging_level=None, plot=False, column_description=None,
             verbose_eval=None, metric_period=None, silent=None, early_stopping_rounds=None,
-            save_snapshot=None, snapshot_file=None, snapshot_interval=None):
+            save_snapshot=None, snapshot_file=None, snapshot_interval=None, init_model=None):
         """
         Fit the CatBoostClassifier model.
 
@@ -2595,6 +2726,10 @@ class CatBoostClassifier(CatBoost):
         snapshot_interval: int, [default=600]
             Interval between saving snapshots (seconds)
 
+        init_model : CatBoost class or string, [default=None]
+            Continue training starting from the existing model.
+            If this parameter is a string, load initial model from the path specified by this string.
+
         Returns
         -------
         model : CatBoost
@@ -2604,10 +2739,13 @@ class CatBoostClassifier(CatBoost):
         _process_synonyms(params)
         if 'loss_function' in params:
             self._check_is_classification_objective(params['loss_function'])
+        else:
+            is_multiclass_task = len(np.unique(y)) > 2 and 'target_border' not in params
+            self.set_params(loss_function='MultiClass' if is_multiclass_task else 'Logloss')
 
         self._fit(X, y, cat_features, None, sample_weight, None, None, None, None, baseline, use_best_model,
                   eval_set, verbose, logging_level, plot, column_description, verbose_eval, metric_period,
-                  silent, early_stopping_rounds, save_snapshot, snapshot_file, snapshot_interval)
+                  silent, early_stopping_rounds, save_snapshot, snapshot_file, snapshot_interval, init_model)
         return self
 
     def predict(self, data, prediction_type='Class', ntree_start=0, ntree_end=0, thread_count=-1, verbose=None):
@@ -2886,6 +3024,7 @@ class CatBoostRegressor(CatBoost):
         max_ctr_complexity=None,
         has_time=None,
         allow_const_label=None,
+        target_border=None,
         one_hot_max_size=None,
         random_strength=None,
         name=None,
@@ -2952,7 +3091,7 @@ class CatBoostRegressor(CatBoost):
     def fit(self, X, y=None, cat_features=None, sample_weight=None, baseline=None, use_best_model=None,
             eval_set=None, verbose=None, logging_level=None, plot=False, column_description=None,
             verbose_eval=None, metric_period=None, silent=None, early_stopping_rounds=None,
-            save_snapshot=None, snapshot_file=None, snapshot_interval=None):
+            save_snapshot=None, snapshot_file=None, snapshot_interval=None, init_model=None):
         """
         Fit the CatBoost model.
 
@@ -3021,6 +3160,10 @@ class CatBoostRegressor(CatBoost):
         snapshot_interval: int, [default=600]
             Interval between saving snapshots (seconds)
 
+        init_model : CatBoost class or string, [default=None]
+            Continue training starting from the existing model.
+            If this parameter is a string, load initial model from the path specified by this string.
+
         Returns
         -------
         model : CatBoost
@@ -3034,7 +3177,7 @@ class CatBoostRegressor(CatBoost):
         return self._fit(X, y, cat_features, None, sample_weight, None, None, None, None, baseline,
                          use_best_model, eval_set, verbose, logging_level, plot, column_description,
                          verbose_eval, metric_period, silent, early_stopping_rounds,
-                         save_snapshot, snapshot_file, snapshot_interval)
+                         save_snapshot, snapshot_file, snapshot_interval, init_model)
 
     def predict(self, data, ntree_start=0, ntree_end=0, thread_count=-1, verbose=None):
         """
@@ -3155,7 +3298,8 @@ class CatBoostRegressor(CatBoost):
 
 def train(pool=None, params=None, dtrain=None, logging_level=None, verbose=None, iterations=None,
           num_boost_round=None, evals=None, eval_set=None, plot=None, verbose_eval=None, metric_period=None,
-          early_stopping_rounds=None, save_snapshot=None, snapshot_file=None, snapshot_interval=None):
+          early_stopping_rounds=None, save_snapshot=None, snapshot_file=None, snapshot_interval=None,
+          init_model=None):
     """
     Train CatBoost model.
 
@@ -3221,6 +3365,10 @@ def train(pool=None, params=None, dtrain=None, logging_level=None, verbose=None,
     snapshot_interval: int, [default=600]
         Interval between saving snapshots (seconds)
 
+    init_model : CatBoost class or string, [default=None]
+        Continue training starting from the existing model.
+        If this parameter is a string, load initial model from the path specified by this string.
+
     Returns
     -------
     model : CatBoost class
@@ -3265,7 +3413,7 @@ def train(pool=None, params=None, dtrain=None, logging_level=None, verbose=None,
     model.fit(X=pool, eval_set=eval_set, logging_level=logging_level, plot=plot, verbose=verbose,
               verbose_eval=verbose_eval, metric_period=metric_period,
               early_stopping_rounds=early_stopping_rounds, save_snapshot=save_snapshot,
-              snapshot_file=snapshot_file, snapshot_interval=snapshot_interval)
+              snapshot_file=snapshot_file, snapshot_interval=snapshot_interval, init_model=init_model)
     return model
 
 
@@ -3483,3 +3631,120 @@ def sum_models(models, weights=None, ctr_merge_policy='IntersectingCountersAvera
     result = CatBoost()
     result._sum_models(models, weights, ctr_merge_policy)
     return result
+
+
+def _build_binarized_feature_statistics_fig(statistics, feature_num):
+    try:
+        import plotly.graph_objs as go
+    except ImportError as e:
+        warnings.warn("To draw binarized feature statistics you should install plotly.")
+        raise ImportError(str(e))
+
+    if 'borders' in statistics.keys():
+        order = np.arange(len(statistics['objects_per_bin']))
+        x_order = order[:-1]
+        bar_width = 0.8
+        xaxis = go.layout.XAxis(
+            title='Bins',
+            tickmode='array',
+            tickvals=list(range(len(statistics['borders']) + 1)),
+            ticktext=['(-inf, {:.4f}]'.format(statistics['borders'][0])] +
+                     ['({:.4f}, {:.4f}]'.format(val_1, val_2)
+                      for val_1, val_2 in zip(statistics['borders'][:-1], statistics['borders'][1:])] +
+                     ['({:.4f}, +inf)'.format(statistics['borders'][-1])],
+            showticklabels=False
+        )
+    elif 'cat_values' in statistics.keys():
+        order = np.argsort(statistics['objects_per_bin'])[::-1]
+        x_order = order
+        bar_width = 0.2
+        xaxis = go.layout.XAxis(
+            title='Cat values',
+            tickmode='array',
+            tickvals=list(range(len(statistics['cat_values']))),
+            ticktext=statistics['cat_values'][order],
+            showticklabels=True
+        )
+    else:
+        raise CatBoostError('Expected field "borders" or "cat_values" in binarized feature statistics')
+
+    trace_1 = go.Scatter(
+        y=statistics['mean_target'][order],
+        mode='lines+markers',
+        name='Mean target',
+        yaxis='y1',
+        xaxis='x'
+    )
+
+    trace_2 = go.Scatter(
+        y=statistics['mean_prediction'][order],
+        mode='lines+markers',
+        name='Mean prediction',
+        yaxis='y1',
+        xaxis='x'
+    )
+
+    trace_3 = go.Bar(
+        y=statistics['objects_per_bin'][order],
+        width=bar_width,
+        name='Objects per bin',
+        yaxis='y2',
+        xaxis='x',
+        marker={
+            'color': 'rgba(30, 150, 30, 0.4)'
+        }
+    )
+
+    trace_4 = go.Scatter(
+        y=statistics['predictions_on_varying_feature'][x_order],
+        mode='lines+markers',
+        name='Predictions for different feature values',
+        yaxis='y1',
+        xaxis='x'
+    )
+
+    data = [trace_1, trace_2, trace_3, trace_4]
+
+    layout = go.Layout(
+        title='Statistics for feature {}'.format(feature_num),
+        yaxis={
+            'title': 'Prediction and target',
+            'side': 'left',
+            'overlaying': 'y2'
+        },
+        yaxis2={
+            'title': 'Objects per bin',
+            'side': 'right',
+            'position': 1.0
+        },
+        xaxis=xaxis
+    )
+
+    fig = go.Figure(data=data, layout=layout)
+    return fig
+
+
+def _plot_feature_statistics(statistics, feature_num, max_cat_features_on_plot):
+    try:
+        from plotly.offline import iplot
+        from plotly.offline import init_notebook_mode
+        init_notebook_mode(connected=True)
+    except ImportError as e:
+        warnings.warn("To draw binarized feature statistics you should install plotly.")
+        raise ImportError(str(e))
+
+    if 'cat_values' in statistics.keys() and len(statistics['cat_values']) > max_cat_features_on_plot:
+        for begin in range(0, len(statistics['cat_values']), max_cat_features_on_plot):
+            sub_statistics = {
+                'borders': statistics['borders'][begin:begin+max_cat_features_on_plot],
+                'mean_target': statistics['mean_target'][begin:begin+max_cat_features_on_plot],
+                'mean_prediction': statistics['mean_prediction'][begin:begin+max_cat_features_on_plot],
+                'objects_per_bin': statistics['objects_per_bin'][begin:begin+max_cat_features_on_plot],
+                'predictions_on_varying_feature':
+                    statistics['predictions_on_varying_feature'][begin:begin+max_cat_features_on_plot]
+            }
+            fig = _build_binarized_feature_statistics_fig(sub_statistics, feature_num)
+            iplot(fig)
+    else:
+        fig = _build_binarized_feature_statistics_fig(statistics, feature_num)
+        iplot(fig)

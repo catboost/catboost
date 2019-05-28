@@ -1,10 +1,9 @@
-#define FROM_IMPL_CPP
-
-#include "coro_events.h"
+#include "schedule_callback.h"
 #include "impl.h"
 
 #include <util/generic/yexception.h>
 #include <util/stream/output.h>
+#include <util/system/protect.h>
 #include <util/system/yassert.h>
 
 template <>
@@ -20,15 +19,10 @@ void Out<TContRep>(IOutputStream& out, const TContRep& c) {
 TContRep::TContRep(TContStackAllocator* alloc)
     : real(alloc->Allocate())
     , full((char*)real->Data(), real->Length())
-#if defined(STACK_GROW_DOWN)
     , stack(full.data(), EffectiveStackLength(full.size()))
     , cont(stack.end(), Align(sizeof(TCont)))
     , machine(cont.end(), Align(sizeof(TExceptionSafeContext)))
-#else
-#error todo
-#endif
-{
-}
+{}
 
 void TContRep::DoRun() {
     try {
@@ -64,30 +58,12 @@ void TContRep::Destruct() noexcept {
     MachinePtr()->~TExceptionSafeContext();
 }
 
-#if defined(_unix_)
-#include <sys/mman.h>
-#endif
-
 void TProtectedContStackAllocator::Protect(void* ptr, size_t len) noexcept {
-#if defined(_unix_) && !defined(_cygwin_)
-    if (mprotect(ptr, len, PROT_NONE)) {
-        Y_FAIL("failed to mprotect (protect): %s", LastSystemErrorText());
-    }
-#else
-    Y_UNUSED(ptr);
-    Y_UNUSED(len);
-#endif
+    ProtectMemory(ptr, len, PM_NONE);
 }
 
 void TProtectedContStackAllocator::UnProtect(void* ptr, size_t len) noexcept {
-#if defined(_unix_) && !defined(_cygwin_)
-    if (mprotect(ptr, len, PROT_READ | PROT_WRITE)) {
-        Y_FAIL("failed to mprotect (unprotect): %s", LastSystemErrorText());
-    }
-#else
-    Y_UNUSED(ptr);
-    Y_UNUSED(len);
-#endif
+    ProtectMemory(ptr, len, PM_READ | PM_WRITE);
 }
 
 void TContExecutor::WaitForIO() {
@@ -402,6 +378,74 @@ int TCont::Connect(TSocketHolder& s, const TNetworkAddress& addr, TInstant deadL
     return ret;
 }
 
+void TCont::Die() noexcept {
+    Y_CORO_DBGOUT(Y_CORO_PRINT(this) << " die");
+    Y_VERIFY(!Dead_, "%s", Y_CORO_PRINTF(this));
+    Dead_ = true;
+}
+
+bool TCont::Join(TCont* c, TInstant deadLine) noexcept {
+    Y_CORO_DBGOUT(Y_CORO_PRINT(this) << " join " << Y_CORO_PRINT(c));
+    Y_VERIFY(!Dead_, "%s", Y_CORO_PRINTF(this));
+    Y_VERIFY(!c->Dead_, "%s -> %s", Y_CORO_PRINTF(this), Y_CORO_PRINTF(c));
+    TJoinWait ev(this);
+
+    c->Waiters_.PushBack(&ev);
+
+    do {
+        if (SleepD(deadLine) == ETIMEDOUT || Cancelled()) {
+            if (!ev.Empty()) {
+                c->Cancel();
+
+                do {
+                    SwitchToScheduler();
+                } while (!ev.Empty());
+            }
+
+            return false;
+        }
+    } while (!ev.Empty());
+
+    return true;
+}
+
+void TCont::WakeAllWaiters() noexcept {
+    Y_CORO_DBGOUT(Y_CORO_PRINT(this) << " wake all waiters");
+    Y_VERIFY(!Dead_, "%s", Y_CORO_PRINTF(this));
+    while (!Waiters_.Empty()) {
+        Waiters_.PopFront()->Wake();
+    }
+}
+
+int TCont::MsgPeek(SOCKET s) noexcept {
+    char c;
+    return recv(s, &c, 1, MSG_PEEK);
+}
+
+int TCont::SleepD(TInstant deadline) noexcept {
+    Y_CORO_DBGOUT(Y_CORO_PRINT(this) << " do sleep");
+    Y_VERIFY(!Dead_, "%s", Y_CORO_PRINTF(this));
+
+    TTimerEvent event(this, deadline);
+
+    return ExecuteEvent(&event);
+}
+
+int TCont::PollD(SOCKET fd, int what, TInstant deadline) noexcept {
+    Y_CORO_DBGOUT(Y_CORO_PRINT(this) << " prepare poll");
+    Y_VERIFY(!Dead_, "%s", Y_CORO_PRINTF(this));
+
+    TFdEvent event(this, fd, (ui16)what, deadline);
+
+    return ExecuteEvent(&event);
+}
+
+void TCont::Yield() noexcept {
+    if (SleepD(TInstant::Zero())) {
+        ReScheduleAndSwitch();
+    }
+}
+
 TContExecutor::TContExecutor(size_t stackSize, THolder<IPollerFace> poller, NCoro::IScheduleCallback* callback)
     : Poller_(std::move(poller))
     , MyPool_(new TContRepPool(stackSize))
@@ -500,13 +544,4 @@ TFdEvent* TContPollEventHolder::TriggeredEvent() noexcept {
     }
 
     return ret;
-}
-
-void TInterruptibleEvent::Interrupt() noexcept {
-    if (!Interrupted_) {
-        Interrupted_ = true;
-        if (!Cont_->Scheduled()) {
-            Cont_->ReSchedule();
-        }
-    }
 }

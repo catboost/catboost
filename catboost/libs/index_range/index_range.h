@@ -5,6 +5,8 @@
 #include <util/generic/ymath.h>
 #include <util/system/yassert.h>
 
+#include <library/binsaver/bin_saver.h>
+
 // TODO(akhropov): move back to libs/helpers when circular dependencies with libs/data_types are resolved
 
 namespace NCB {
@@ -63,6 +65,8 @@ namespace NCB {
                 End = Max(End, rhs.End);
             }
         }
+
+        SAVELOAD(Begin, End);
     };
 
     template <class TSize>

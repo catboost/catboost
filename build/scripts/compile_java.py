@@ -12,6 +12,7 @@ def parse_args(args):
     parser = optparse.OptionParser()
     parser.add_option('--javac-bin')
     parser.add_option('--jar-bin')
+    parser.add_option('--vcs-mf')
     parser.add_option('--package-prefix')
     parser.add_option('--jar-output')
     parser.add_option('--srcs-jar-output')
@@ -68,7 +69,10 @@ def main():
             with zipfile.ZipFile(s) as zf:
                 zf.extractall(classes_dir)
 
-    sp.check_call([opts.jar_bin, 'cfM', opts.jar_output, os.curdir], cwd=classes_dir)
+    if opts.vcs_mf:
+        sp.check_call([opts.jar_bin, 'cfm', opts.jar_output, opts.vcs_mf, os.curdir], cwd=classes_dir)
+    else:
+        sp.check_call([opts.jar_bin, 'cfM', opts.jar_output, os.curdir], cwd=classes_dir)
 
     if opts.srcs_jar_output:
         for s in jsrcs:
@@ -81,7 +85,10 @@ def main():
 
                 shutil.copyfile(s, d)
 
-        sp.check_call([opts.jar_bin, 'cfM', opts.srcs_jar_output, os.curdir], cwd=sources_dir)
+        if opts.vcs_mf:
+            sp.check_call([opts.jar_bin, 'cfm', opts.srcs_jar_output, opts.vcs_mf, os.curdir], cwd=sources_dir)
+        else:
+            sp.check_call([opts.jar_bin, 'cfM', opts.srcs_jar_output, os.curdir], cwd=sources_dir)
 
 
 if __name__ == '__main__':

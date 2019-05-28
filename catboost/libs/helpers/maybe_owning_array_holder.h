@@ -30,6 +30,14 @@ namespace NCB {
             return TMaybeOwningArrayHolder(vectorHolder->Data, std::move(vectorHolder));
         }
 
+        template <class T2>
+        static TMaybeOwningArrayHolder CreateOwningReinterpretCast(TMaybeOwningArrayHolder<T2>& data) {
+            auto arrayRef = *data;
+            return TMaybeOwningArrayHolder(
+                TArrayRef<T>((T*)arrayRef.begin(), (T*)arrayRef.end()),
+                data.GetResourceHolder());
+        }
+
         TArrayRef<T> operator*() {
             return ArrayRef;
         }
@@ -44,6 +52,10 @@ namespace NCB {
 
         const T& operator[] (size_t idx) const {
             return ArrayRef[idx];
+        }
+
+        TIntrusivePtr<IResourceHolder> GetResourceHolder() const {
+            return ResourceHolder;
         }
 
     private:

@@ -163,9 +163,13 @@ static ui32 EstimateUpToIteration(
 struct TFoldContext {
     TString NamesPrefix;
 
+    ETaskType TaskType;
+
     THolder<TTempDir> TempDir; // THolder because of bugs with move semantics of TTempDir
     NCatboostOptions::TOutputFilesOptions OutputOptions; // with modified Overfitting params, TrainDir
     TTrainingDataProviders TrainingData;
+
+    THolder<TLearnProgress> LearnProgress;
 
     TVector<TVector<double>> MetricValuesOnTrain; // [iter][metricIdx]
     TVector<TVector<double>> MetricValuesOnTest;  // [iter][metricIdx]
@@ -177,10 +181,12 @@ struct TFoldContext {
 public:
     TFoldContext(
         size_t foldIdx,
+        ETaskType taskType,
         const NJson::TJsonValue& commonOutputJsonParams,
         TTrainingDataProviders&& trainingData,
         ui64 randomSeed)
         : NamesPrefix("fold_" + ToString(foldIdx) + "_")
+        , TaskType(taskType)
         , TempDir(MakeHolder<TTempDir>())
         , TrainingData(std::move(trainingData))
         , Rand(randomSeed)
@@ -188,6 +194,9 @@ public:
         NJson::TJsonValue outputJsonParams = commonOutputJsonParams;
         outputJsonParams["train_dir"] = TempDir->Name();
         outputJsonParams["use_best_model"] = false;
+
+        // TODO(akhropov): proper snapshots for CV. MLTOOLS-3439.
+        outputJsonParams["save_snapshot"] = false;
         OutputOptions.Load(outputJsonParams);
     }
 
@@ -220,6 +229,7 @@ public:
 
         THPTimer trainTimer;
         NCB::TFeatureEstimators featureEstimators;
+        THolder<TLearnProgress> dstLearnProgress;
 
         modelTrainer->TrainModel(
             internalOptions,
@@ -293,12 +303,17 @@ public:
             featureEstimators,
             TrainingData,
             labelConverter,
+            /*initModel*/ Nothing(),
+            std::move(LearnProgress),
+            /*initModelApplyCompatiblePools*/ TDataProviders(),
             localExecutor,
             /*rand*/ Nothing(),
             /*model*/ nullptr,
             TVector<TEvalResult*>{&LastUpdateEvalResult},
-            /*metricsAndTimeHistory*/nullptr
+            /*metricsAndTimeHistory*/nullptr,
+            (TaskType == ETaskType::CPU) ? &dstLearnProgress : nullptr
         );
+        LearnProgress = std::move(dstLearnProgress);
     }
 };
 
@@ -370,6 +385,7 @@ void CrossValidate(
     }
 
     TLabelConverter labelConverter;
+    TMaybe<float> targetBorder = catBoostOptions.DataProcessingOptions->TargetBorder;
 
     TTrainingDataProviderPtr trainingData = GetTrainingData(
         std::move(data),
@@ -382,6 +398,7 @@ void CrossValidate(
         /*quantizedFeaturesInfo*/ nullptr,
         &catBoostOptions,
         &labelConverter,
+        &targetBorder,
         &localExecutor,
         &rand);
 
@@ -455,6 +472,7 @@ void CrossValidate(
     for (auto foldIdx : xrange((size_t)cvParams.FoldCount)) {
         foldContexts.emplace_back(
             foldIdx,
+            taskType,
             outputJsonParams,
             std::move(foldsData[foldIdx]),
             catBoostOptions.RandomSeed);

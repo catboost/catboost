@@ -111,10 +111,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)..\library\coroutine\engine\poller.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\library\coroutine\engine\poller.h_serialized.cpp;</Outputs>
     </CustomBuild>
-    <ClInclude Include="$(SolutionDir)..\library\coroutine\engine\coro_events.h"/>
     <ClInclude Include="$(SolutionDir)..\library\coroutine\engine\events.h"/>
     <ClInclude Include="$(SolutionDir)..\library\coroutine\engine\impl.h"/>
     <ClInclude Include="$(SolutionDir)..\library\coroutine\engine\iostatus.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\coroutine\engine\schedule_callback.h"/>
     <ClInclude Include="$(SolutionDir)..\library\coroutine\engine\sockmap.h"/>
     <ClInclude Include="$(SolutionDir)..\library\coroutine\engine\sockpool.h"/>
     <ClInclude Include="$(SolutionDir)..\library\coroutine\engine\stack.h"/>

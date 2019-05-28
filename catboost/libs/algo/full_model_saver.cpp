@@ -224,32 +224,7 @@ namespace NCB {
             &fullModel
         );
 
-        const auto& featuresLayout = *LearnObjectsData->GetFeaturesLayout();
-        TVector<TString> featureIds = featuresLayout.GetExternalFeatureIds();
-
-        THashMap<ui32, TString> catFeaturesHashToString;
-        bool haveAvailableCatFeatures = false;
-        featuresLayout.IterateOverAvailableFeatures<EFeatureType::Categorical>(
-            [&] (TCatFeatureIdx catFeatureIdx) {
-                Y_UNUSED(catFeatureIdx);
-                haveAvailableCatFeatures = true;
-            }
-        );
-        if (haveAvailableCatFeatures) {
-            catFeaturesHashToString = MergeCatFeaturesHashToString(*LearnObjectsData);
-        }
-
-        for (const auto& format: formats) {
-            ExportModel(
-                fullModel,
-                fullModelPath,
-                format,
-                "",
-                addFileFormatExtension,
-                &featureIds,
-                &catFeaturesHashToString
-            );
-        }
+        ExportFullModel(fullModel, fullModelPath, LearnObjectsData.Get(), formats, addFileFormatExtension);
     }
 
     void TCoreModelToFullModelConverter::DoImpl(bool requiresStaticCtrProvider, TFullModel* dstModel) {
@@ -361,4 +336,50 @@ namespace NCB {
             &localExecutor
         );
     };
+
+    void ExportFullModel(
+        const TFullModel& fullModel,
+        const TString& fullModelPath,
+        const TMaybe<const TObjectsDataProvider*> allLearnObjectsData,
+        TConstArrayRef<EModelType> formats,
+        bool addFileFormatExtension
+    ) {
+        TFeaturesLayout featuresLayout(
+            fullModel.ObliviousTrees.FloatFeatures,
+            fullModel.ObliviousTrees.CatFeatures
+        );
+        TVector<TString> featureIds = featuresLayout.GetExternalFeatureIds();
+
+        THashMap<ui32, TString> catFeaturesHashToString;
+        if (fullModel.GetUsedCatFeaturesCount()) {
+            const bool anyExportFormatRequiresCatFeaturesHashToString = AnyOf(
+                formats,
+                [] (EModelType format) {
+                    return format == EModelType::Python ||
+                        format == EModelType::Cpp ||
+                        format == EModelType::Json;
+                }
+            );
+            if (anyExportFormatRequiresCatFeaturesHashToString) {
+                CB_ENSURE(
+                    allLearnObjectsData,
+                    "Some of the specified model export formats require all categorical features values data"
+                    " which is not available (probably due to the training continuation on a different dataset)"
+                );
+                catFeaturesHashToString = MergeCatFeaturesHashToString(**allLearnObjectsData);
+            }
+        }
+
+        for (const auto& format: formats) {
+            ExportModel(
+                fullModel,
+                fullModelPath,
+                format,
+                "",
+                addFileFormatExtension,
+                &featureIds,
+                &catFeaturesHashToString
+            );
+        }
+    }
 }

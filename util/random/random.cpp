@@ -42,6 +42,11 @@ namespace {
             : TMersenne<T>(TProcStream().S())
         {
         }
+
+        inline TRndGen(T seed)
+            : TMersenne<T>(seed)
+        {
+        }
     };
 
     template <class T>
@@ -114,4 +119,9 @@ long double RandomNumber<long double>() {
 void ResetRandomState() {
     *GetRndGen<ui32>() = TRndGen<ui32>();
     *GetRndGen<ui64>() = TRndGen<ui64>();
+}
+
+void SetRandomSeed(int seed) {
+    *GetRndGen<ui32>() = TRndGen<ui32>(seed);
+    *GetRndGen<ui64>() = TRndGen<ui64>(seed);
 }

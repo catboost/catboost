@@ -1,4 +1,4 @@
-DocId	Class
+SampleId	Class
 0	7.0
 1	9999.0
 2	9999.0

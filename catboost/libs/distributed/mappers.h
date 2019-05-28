@@ -12,9 +12,13 @@
 
 namespace NCatboostDistributed {
 
-    class TPlainFoldBuilder: public NPar::TMapReduceCmd<TUnusedInitializedParam, TUnusedInitializedParam> {
+    class TDatasetLoader: public NPar::TMapReduceCmd<TEnvelope<TDatasetLoaderParams>, TUnusedInitializedParam> {
+        OBJECT_NOCOPY_METHODS(TDatasetLoader);
+        void DoMap(NPar::IUserContext* ctx, int hostId, TInput* params, TOutput* /*unused*/) const final;
+    };
+    class TPlainFoldBuilder: public NPar::TMapReduceCmd<TEnvelope<TPlainFoldBuilderParams>, TUnusedInitializedParam> {
         OBJECT_NOCOPY_METHODS(TPlainFoldBuilder);
-        void DoMap(NPar::IUserContext* ctx, int hostId, TInput* /*unused*/, TOutput* /*unused*/) const final;
+        void DoMap(NPar::IUserContext* ctx, int hostId, TInput* params, TOutput* /*unused*/) const final;
     };
     class TApproxReconstructor
         : public NPar::TMapReduceCmd<

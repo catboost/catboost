@@ -22,6 +22,7 @@ namespace NCB {
         const NCatboostOptions::TDsvPoolFormatParams& dsvPoolFormatParams,
         const TVector<ui32>& ignoredFeatures,
         EObjectsOrder objectsOrder,
+        TDatasetSubset loadSubset,
         TMaybe<TVector<TString>*> classNames,
         NPar::TLocalExecutor* localExecutor
     ) {
@@ -46,6 +47,7 @@ namespace NCB {
                     ignoredFeatures,
                     objectsOrder,
                     10000, // TODO: make it a named constant
+                    loadSubset,
                     localExecutor
                 }
             }
@@ -54,6 +56,7 @@ namespace NCB {
         THolder<IDataProviderBuilder> dataProviderBuilder = CreateDataProviderBuilder(
             datasetLoader->GetVisitorType(),
             TDataProviderBuilderOptions{},
+            loadSubset,
             localExecutor
         );
         CB_ENSURE_INTERNAL(
@@ -91,6 +94,7 @@ namespace NCB {
             dsvPoolFormatParams,
             ignoredFeatures,
             objectsOrder,
+            TDatasetSubset::MakeColumns(),
             classNames,
             &localExecutor
         );
@@ -111,9 +115,11 @@ namespace NCB {
         TMaybe<TVector<TString>*> classNames,
         NPar::TLocalExecutor* localExecutor
     ) {
+        const auto loadSubset = TDatasetSubset::MakeColumns();
         THolder<IDataProviderBuilder> dataProviderBuilder = CreateDataProviderBuilder(
             EDatasetVisitorType::RawObjectsOrder,
             TDataProviderBuilderOptions{},
+            loadSubset,
             localExecutor
         );
         CB_ENSURE_INTERNAL(
@@ -135,6 +141,7 @@ namespace NCB {
                     ignoredFeatures,
                     objectsOrder,
                     10000, // TODO: make it a named constant
+                    loadSubset,
                     localExecutor
                 }
             }
@@ -147,6 +154,7 @@ namespace NCB {
         const NCatboostOptions::TPoolLoadParams& loadOptions,
         EObjectsOrder objectsOrder,
         bool readTestData,
+        TDatasetSubset trainDatasetSubset,
         TMaybe<TVector<TString>*> classNames,
         NPar::TLocalExecutor* const executor,
         TProfileInfo* const profile
@@ -166,6 +174,7 @@ namespace NCB {
                 loadOptions.DsvPoolFormatParams,
                 loadOptions.IgnoredFeatures,
                 objectsOrder,
+                trainDatasetSubset,
                 classNames,
                 executor
             );
@@ -195,6 +204,7 @@ namespace NCB {
                     loadOptions.DsvPoolFormatParams,
                     loadOptions.IgnoredFeatures,
                     objectsOrder,
+                    TDatasetSubset::MakeColumns(),
                     classNames,
                     executor
                 );

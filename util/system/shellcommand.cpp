@@ -277,6 +277,10 @@ public:
         , Environment(options.Environment)
         , Nice(options.Nice)
     {
+        if (InputStream) {
+            // TODO change usages to call SetInputStream instead of directly assigning to InputStream
+            InputMode = TShellCommandOptions::HANDLE_STREAM;
+        }
     }
 
     inline ~TImpl() {

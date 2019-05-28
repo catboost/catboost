@@ -12,6 +12,8 @@ class TLabelConverter {
 public:
     TLabelConverter() : Initialized(false) {};
 
+    bool operator==(const TLabelConverter& rhs) const;
+
     void Initialize(int approxDimension);
     void Initialize(const TString& multiclassLabelParams);
     void Initialize(TConstArrayRef<float> targets, int classesCount);

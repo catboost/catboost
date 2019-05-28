@@ -632,8 +632,10 @@ namespace NKernel {
         numBlocks.x  =  (leafSize + blockSize * N -  1) / (blockSize * N);
         numBlocks.y  =  1;
         numBlocks.z  =  1;
-
-        SplitAndMakeSequenceInSingleLeafImpl<N, blockSize><<<numBlocks, blockSize, 0, stream>>>(compressedIndex, loadIndices, parts, leafId, splitFeature, splitBin, splitFlags, indices);
+        if (numBlocks.x) {
+            SplitAndMakeSequenceInSingleLeafImpl<N, blockSize> << < numBlocks, blockSize, 0, stream >>
+                > (compressedIndex, loadIndices, parts, leafId, splitFeature, splitBin, splitFlags, indices);
+        }
     }
 
 
@@ -654,17 +656,20 @@ namespace NKernel {
             const ui32* indicesSrc = context.TempIndices.Get() + part.Offset;
             ui32* indicesDst = context.Indices.Get() + part.Offset;
 
-            cudaError_t error = cub::DeviceRadixSort::SortPairs<bool, ui32>((void*)context.TempStorage.Get(),
-                                                                             context.TempStorageSizes[i],
-                                                                             flagsSrc,
-                                                                             flagsDst,
-                                                                             indicesSrc,
-                                                                             indicesDst,
-                                                                             (int)part.Size,
-                                                                             0,
-                                                                             1,
-                                                                             stream);
-            CUDA_SAFE_CALL(error);
+            if (part.Size) {
+                cudaError_t
+                error = cub::DeviceRadixSort::SortPairs < bool, ui32 > ((void*) context.TempStorage.Get(),
+                    context.TempStorageSizes[i],
+                    flagsSrc,
+                    flagsDst,
+                    indicesSrc,
+                    indicesDst,
+                    (int) part.Size,
+                    0,
+                    1,
+                    stream);
+                CUDA_SAFE_CALL(error);
+            }
         }
     }
 

@@ -472,6 +472,10 @@ cdef extern from "catboost/libs/algo/hessian.h":
     cdef cppclass THessianInfo:
         TVector[double] Data
 
+cdef extern from "catboost/libs/algo/learn_context.h":
+    cdef cppclass TLearnProgress:
+        pass
+
 
 cdef extern from "catboost/libs/model/ctr_provider.h":
     cdef cppclass ECtrTableMergePolicy:
@@ -493,10 +497,12 @@ cdef extern from "catboost/libs/model/model.h":
 
     cdef cppclass TObliviousTrees:
         int ApproxDimension
+        TVector[double] LeafValues
         TVector[TVector[double]] LeafWeights
         TVector[TCatFeature] CatFeatures
         TVector[TFloatFeature] FloatFeatures
         void DropUnusedFeatures() except +ProcessException
+        TVector[ui32] GetTreeLeafCounts() except +ProcessException
 
     cdef cppclass TFullModel:
         TObliviousTrees ObliviousTrees
@@ -655,10 +661,13 @@ cdef extern from "catboost/libs/train_lib/train_model.h":
         const TMaybe[TCustomObjectiveDescriptor]& objectiveDescriptor,
         const TMaybe[TCustomMetricDescriptor]& evalMetricDescriptor,
         TDataProviders pools,
+        TMaybe[TFullModel*] initModel,
+        THolder[TLearnProgress]* initLearnProgress,
         const TString& outputModelPath,
-        TFullModel* model,
+        TFullModel* dstModel,
         const TVector[TEvalResult*]& testApproxes,
-        TMetricsAndTimeLeftHistory* metricsAndTimeHistory
+        TMetricsAndTimeLeftHistory* metricsAndTimeHistory,
+        THolder[TLearnProgress]* dstLearnProgress
     ) nogil except +ProcessException
 
 cdef extern from "catboost/libs/train_lib/cross_validation.h":
@@ -917,6 +926,47 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
     ) nogil except +ProcessException
 
 
+cdef extern from "catboost/libs/quantized_pool_analysis/quantized_pool_analysis.h" namespace "NCB":
+    cdef cppclass TBinarizedFeatureStatistics:
+        TVector[float] Borders
+        TVector[int] BinarizedFeature
+        TVector[float] MeanTarget
+        TVector[float] MeanPrediction
+        TVector[size_t] ObjectsPerBin
+        TVector[double] PredictionsOnVaryingFeature
+
+    cdef cppclass TFeatureTypeAndInternalIndex:
+        EFeatureType Type
+        int Index
+
+    cdef TBinarizedFeatureStatistics GetBinarizedFloatFeatureStatistics(
+        const TFullModel& model,
+        TDataProvider& dataset,
+        const size_t featureNum,
+        const EPredictionType predictionType,
+        const int threadCount) nogil except +ProcessException
+
+    cdef TBinarizedFeatureStatistics GetBinarizedOneHotFeatureStatistics(
+        const TFullModel& model,
+        TDataProvider& dataset,
+        const size_t featureNum,
+        const EPredictionType predictionType,
+        const int threadCount) nogil except +ProcessException
+
+    cdef ui32 GetCatFeaturePerfectHash(
+        const TFullModel& model,
+        const TStringBuf& value,
+        const size_t featureNum) nogil except +ProcessException
+
+    cdef TFeatureTypeAndInternalIndex GetFeatureTypeAndInternalIndex(
+        const TFullModel& model,
+        const int flatFeatureIndex) nogil except +ProcessException
+
+    cdef TVector[TString] GetCatFeatureValues(
+        const TDataProvider& dataset,
+        const int flatFeatureIndex) nogil except +ProcessException
+
+
 cdef inline float _FloatOrNan(object obj) except *:
     try:
         return float(obj)
@@ -984,12 +1034,30 @@ cdef _vector_of_uints_to_np_array(TVector[ui32]& vec):
         result[i] = vec[i]
     return result
 
+cdef _vector_of_ints_to_np_array(TVector[int]& vec):
+    result = np.empty(vec.size(), dtype=np.int)
+    for i in xrange(vec.size()):
+        result[i] = vec[i]
+    return result
+
 cdef _vector_of_uints_to_2d_np_array(TVector[ui32]& vec, int row_count, int column_count):
     assert vec.size() == row_count * column_count
     result = np.empty((row_count, column_count), dtype=np.uint32)
     for row_num in xrange(row_count):
         for col_num in xrange(column_count):
             result[row_num][col_num] = vec[row_num * column_count + col_num]
+    return result
+
+cdef _vector_of_floats_to_np_array(TVector[float]& vec):
+    result = np.empty(vec.size(), dtype=_npfloat32)
+    for i in xrange(vec.size()):
+        result[i] = vec[i]
+    return result
+
+cdef _vector_of_size_t_to_np_array(TVector[size_t]& vec):
+    result = np.empty(vec.size(), dtype=np.uint32)
+    for i in xrange(vec.size()):
+        result[i] = vec[i]
     return result
 
 cdef class _FloatArrayWrapper:
@@ -1162,7 +1230,7 @@ cdef EModelType string_to_model_type(model_type_str) except *:
 cdef EFstrType string_to_fstr_type(fstr_type_str) except *:
     cdef EFstrType fstr_type
     if not TryFromString[EFstrType](to_arcadia_string(fstr_type_str), fstr_type):
-        raise CatBoostError("Unknown fstr type {}.".format(fstr_type_str))
+        raise CatBoostError("Unknown type {}.".format(fstr_type_str))
     return fstr_type
 
 cdef EPreCalcShapValues string_to_shap_mode(shap_mode_str) except *:
@@ -2383,6 +2451,7 @@ cdef class _CatBoost:
     cdef TFullModel* __model
     cdef TVector[TEvalResult*] __test_evals
     cdef TMetricsAndTimeLeftHistory __metrics_history
+    cdef THolder[TLearnProgress] __cached_learn_progress
 
     def __cinit__(self):
         self.__model = new TFullModel()
@@ -2409,7 +2478,7 @@ cdef class _CatBoost:
         for i in range(self.__test_evals.size()):
             dereference(self.__test_evals[i]).ClearRawValues()
 
-    cpdef _train(self, _PoolBase train_pool, test_pools, dict params, allow_clear_pool):
+    cpdef _train(self, _PoolBase train_pool, test_pools, dict params, allow_clear_pool, maybe_init_model):
         _input_borders = params.pop("input_borders", None)
         prep_params = _PreprocessParams(params)
         cdef int thread_count = params.get("thread_count", 1)
@@ -2419,14 +2488,29 @@ cdef class _CatBoost:
         cdef TVector[ui32] ignored_features
         cdef TQuantizedFeaturesInfoPtr quantizedFeaturesInfo
         cdef TString input_borders_str
+        cdef _CatBoost init_model
+        cdef TMaybe[TFullModel*] init_model_param
+        cdef THolder[TLearnProgress]* init_learn_progress_param
+        cdef THolder[TLearnProgress]* dst_learn_progress_param
+
+        task_type = params.get('task_type', 'CPU')
+
         if isinstance(test_pools, list):
-            if params.get('task_type', 'CPU') == 'GPU' and len(test_pools) > 1:
+            if task_type == 'GPU' and len(test_pools) > 1:
                 raise CatBoostError('Multiple eval sets are not supported on GPU')
             for test_pool in test_pools:
                 dataProviders.Test.push_back(test_pool.__pool)
         else:
             test_pool = test_pools
             dataProviders.Test.push_back(test_pool.__pool)
+        if maybe_init_model is not None:
+            if not isinstance(maybe_init_model, _CatBoost):
+                raise CatBoostError('init_model is not an instance of _CatBoost class')
+            init_model = maybe_init_model
+            init_model_param = init_model.__model
+            init_learn_progress_param = &(init_model.__cached_learn_progress)
+        else:
+            init_learn_progress_param = <THolder[TLearnProgress]*>nullptr
         self._reserve_test_evals(dataProviders.Test.size())
         self._clear_test_evals()
 
@@ -2442,6 +2526,11 @@ cdef class _CatBoost:
                     input_borders_str,
                     quantizedFeaturesInfo.Get())
 
+        if task_type == 'CPU':
+            dst_learn_progress_param = &self.__cached_learn_progress
+        else:
+            dst_learn_progress_param = <THolder[TLearnProgress]*>nullptr
+
         with nogil:
             SetPythonInterruptHandler()
             try:
@@ -2451,10 +2540,13 @@ cdef class _CatBoost:
                     prep_params.customObjectiveDescriptor,
                     prep_params.customMetricDescriptor,
                     dataProviders,
+                    init_model_param,
+                    init_learn_progress_param,
                     TString(<const char*>""),
                     self.__model,
                     self.__test_evals,
-                    &self.__metrics_history
+                    &self.__metrics_history,
+                    dst_learn_progress_param
                 )
             finally:
                 ResetPythonInterruptHandler()
@@ -2483,15 +2575,22 @@ cdef class _CatBoost:
 
     cpdef _get_metrics_evals(self):
         metrics_evals = defaultdict(functools.partial(defaultdict, list))
-        num_iterations = self.__metrics_history.LearnMetricsHistory.size()
-        for iter in range(num_iterations):
-            for metric, value in self.__metrics_history.LearnMetricsHistory[iter]:
+        iteration_count = self.__metrics_history.LearnMetricsHistory.size()
+        for iteration_num in range(iteration_count):
+            for metric, value in self.__metrics_history.LearnMetricsHistory[iteration_num]:
                 metrics_evals["learn"][to_native_str(metric)].append(value)
-            if not self.__metrics_history.TestMetricsHistory.empty():
-                num_tests = self.__metrics_history.TestMetricsHistory[iter].size()
-                for test in range(num_tests):
-                    for metric, value in self.__metrics_history.TestMetricsHistory[iter][test]:
-                        metrics_evals["validation_" + str(test)][to_native_str(metric)].append(value)
+
+        if not self.__metrics_history.TestMetricsHistory.empty():
+            test_count = 0
+            for i in range(iteration_count):
+                test_count = max(test_count, self.__metrics_history.TestMetricsHistory[i].size())
+            for iteration_num in range(iteration_count):
+                for test_index in range(self.__metrics_history.TestMetricsHistory[iteration_num].size()):
+                    eval_set_name = "validation"
+                    if test_count > 1:
+                        eval_set_name += "_" + str(test_index)
+                    for metric, value in self.__metrics_history.TestMetricsHistory[iteration_num][test_index]:
+                        metrics_evals[eval_set_name][to_native_str(metric)].append(value)
         return {k: dict(v) for k, v in iteritems(metrics_evals)}
 
     cpdef _get_best_score(self):
@@ -2502,9 +2601,12 @@ cdef class _CatBoost:
         for metric, best_error in self.__metrics_history.LearnBestError:
             best_scores["learn"][to_native_str(metric)] = best_error
         for testIdx in range(self.__metrics_history.TestBestError.size()):
-            best_scores["validation_" + str(testIdx)] = {}
+            eval_set_name = "validation"
+            if self.__metrics_history.TestBestError.size() > 1:
+                eval_set_name += "_" + str(testIdx)
+            best_scores[eval_set_name] = {}
             for metric, best_error in self.__metrics_history.TestBestError[testIdx]:
-                best_scores["validation_" + str(testIdx)][to_native_str(metric)] = best_error
+                best_scores[eval_set_name][to_native_str(metric)] = best_error
         return best_scores
 
     cpdef _get_best_iteration(self):
@@ -2789,6 +2891,83 @@ cdef class _CatBoost:
             leaf_values_list.append(value)
 
         return leaf_values_list
+
+    cpdef _get_binarized_statistics(self, _PoolBase pool, size_t featureNum, predictionType, feature_type, int thread_count):
+        thread_count = UpdateThreadCount(thread_count)
+        cdef TBinarizedFeatureStatistics res
+        if feature_type == 'float':
+            res = GetBinarizedFloatFeatureStatistics(
+                dereference(self.__model),
+                dereference(pool.__pool.Get()),
+                featureNum,
+                PyPredictionType(predictionType).predictionType,
+                thread_count
+            )
+        elif feature_type == 'categorical':
+            res = GetBinarizedOneHotFeatureStatistics(
+                dereference(self.__model),
+                dereference(pool.__pool.Get()),
+                featureNum,
+                PyPredictionType(predictionType).predictionType,
+                thread_count
+            )
+        else:
+            raise CatBoostError('Unsupported feature type {}'.format(feature_type))
+
+        return {
+            'borders': _vector_of_floats_to_np_array(res.Borders),
+            'binarized_feature': _vector_of_ints_to_np_array(res.BinarizedFeature),
+            'mean_target': _vector_of_floats_to_np_array(res.MeanTarget),
+            'mean_prediction': _vector_of_floats_to_np_array(res.MeanPrediction),
+            'objects_per_bin': _vector_of_size_t_to_np_array(res.ObjectsPerBin),
+            'predictions_on_varying_feature': _vector_of_double_to_np_array(res.PredictionsOnVaryingFeature)
+        }
+
+    cpdef _calc_cat_feature_perfect_hash(self, value, size_t featureNum):
+        return GetCatFeaturePerfectHash(dereference(self.__model), to_arcadia_string(value), featureNum)
+
+    cpdef _get_feature_type_and_internal_index(self, int flatFeatureIndex):
+        cdef TFeatureTypeAndInternalIndex typeAndIndex = GetFeatureTypeAndInternalIndex(
+            dereference(self.__model), flatFeatureIndex)
+        if typeAndIndex.Type == EFeatureType_Float:
+            return 'float', typeAndIndex.Index
+        elif typeAndIndex.Type == EFeatureType_Categorical:
+            return 'categorical', typeAndIndex.Index
+        else:
+            return 'unknown', -1
+
+    cpdef _get_cat_feature_values(self, _PoolBase pool, size_t flatFeatureIndex):
+        cdef TVector[TString] values = GetCatFeatureValues(
+            dereference(pool.__pool.Get()),
+            flatFeatureIndex)
+        res = {to_native_str(val) for val in values}
+        return res
+
+    cpdef _get_leaf_values(self):
+        return _vector_of_double_to_np_array(self.__model.ObliviousTrees.LeafValues)
+
+    cpdef _get_leaf_weights(self):
+        result = np.empty(self.__model.ObliviousTrees.LeafValues.size(), dtype=_npfloat64)
+        cdef size_t curr_index = 0
+        for i in xrange(self.__model.ObliviousTrees.LeafWeights.size()):
+            for val in self.__model.ObliviousTrees.LeafWeights[i]:
+                result[curr_index] = val
+                curr_index += 1
+        assert curr_index == 0 or curr_index == self.__model.ObliviousTrees.LeafValues.size(), (
+            "wrong number of leaf weights")
+        return result
+
+    cpdef _get_tree_leaf_counts(self):
+        return _vector_of_uints_to_np_array(self.__model.ObliviousTrees.GetTreeLeafCounts())
+
+    cpdef _set_leaf_values(self, new_leaf_values):
+        assert isinstance(new_leaf_values, np.ndarray), "expected numpy.ndarray."
+        assert new_leaf_values.dtype == np.float64, "leaf values should have type np.float64 (double)."
+        assert len(new_leaf_values.shape) == 1, "leaf values should be a 1d-vector."
+        assert new_leaf_values.shape[0] == self.__model.ObliviousTrees.LeafValues.size(), (
+            "count of leaf values should be equal to the leaf count.")
+        for i in xrange(self.__model.ObliviousTrees.LeafValues.size()):
+            self.__model.ObliviousTrees.LeafValues[i] = new_leaf_values[i]
 
 
 cdef class _MetadataHashProxy:

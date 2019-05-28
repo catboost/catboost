@@ -5,12 +5,13 @@
 #include <util/generic/ptr.h>
 #include <util/system/valgrind.h>
 #include <util/system/context.h>
+#include <util/system/info.h>
 
 class TContStackAllocator {
 public:
     class TStackType {
     public:
-        inline TStackType() noexcept {
+        TStackType() noexcept {
         }
 
         virtual ~TStackType() {
@@ -23,23 +24,23 @@ public:
         virtual void* Data() noexcept = 0;
         virtual size_t Length() const noexcept = 0;
 
-        inline void RegisterStackInValgrind() noexcept {
+        void RegisterStackInValgrind() noexcept {
 #if defined(WITH_VALGRIND)
             StackId_ = VALGRIND_STACK_REGISTER(Data(), (char*)Data() + Length());
 #endif
         }
 
-        inline void UnRegisterStackInValgrind() noexcept {
+        void UnRegisterStackInValgrind() noexcept {
 #if defined(WITH_VALGRIND)
             VALGRIND_STACK_DEREGISTER(StackId_);
 #endif
         }
 
-        inline void InsertStackOverflowProtector() noexcept {
+        void InsertStackOverflowCanary() noexcept {
             MagicNumberLocation() = MAGIC_NUMBER;
         }
 
-        inline void VerifyNoStackOverflow() noexcept {
+        void VerifyNoStackOverflow() noexcept {
             if (Y_UNLIKELY(MagicNumberLocation() != MAGIC_NUMBER)) {
                 FailStackOverflow();
             }
@@ -48,14 +49,8 @@ public:
     private:
         [[noreturn]] static void FailStackOverflow();
 
-        inline ui32& MagicNumberLocation() noexcept {
-#if STACK_GROW_DOWN == 1
+        ui32& MagicNumberLocation() noexcept {
             return *((ui32*)Data());
-#elif STACK_GROW_DOWN == 0
-            return *(((ui32*)(((char*)Data()) + Length())) - 1);
-#else
-#error "unknown"
-#endif
         }
 
 #if defined(WITH_VALGRIND)
@@ -67,28 +62,26 @@ public:
     };
 
     struct TRelease {
-        static inline void Destroy(TStackType* s) noexcept {
+        static void Destroy(TStackType* s) noexcept {
             s->VerifyNoStackOverflow();
-
             s->UnRegisterStackInValgrind();
-
             s->Release();
         }
     };
 
-    typedef TAutoPtr<TStackType, TRelease> TStackPtr;
+    using TStackPtr = THolder<TStackType, TRelease>;
 
-    inline TContStackAllocator() noexcept {
+    TContStackAllocator() noexcept {
     }
 
     virtual ~TContStackAllocator() {
     }
 
     virtual TStackPtr Allocate() {
-        TStackPtr ret(DoAllocate());
+        TStackPtr ret = DoAllocate();
 
         // cheap operation, inserting even in release mode
-        ret->InsertStackOverflowProtector();
+        ret->InsertStackOverflowCanary();
 
         ret->RegisterStackInValgrind();
 
@@ -99,22 +92,22 @@ private:
     virtual TStackType* DoAllocate() = 0;
 };
 
+
 class TGenericContStackAllocatorBase: public TContStackAllocator {
-    typedef IAllocator::TBlock TBlock;
+    using TBlock = IAllocator::TBlock;
 
     class TGenericStack: public TStackType {
     public:
-        inline TGenericStack(TGenericContStackAllocatorBase* parent, const TBlock& block) noexcept
+        TGenericStack(TGenericContStackAllocatorBase* parent, const TBlock& block) noexcept
             : Parent_(parent)
             , Block_(block)
-        {
-        }
+        {}
 
         ~TGenericStack() override {
         }
 
         void Release() noexcept override {
-            TGenericContStackAllocatorBase* parent(Parent_);
+            TGenericContStackAllocatorBase* parent = Parent_;
             const TBlock block(Block_);
             this->~TGenericStack();
             parent->Alloc_->Release(block);
@@ -134,18 +127,16 @@ class TGenericContStackAllocatorBase: public TContStackAllocator {
     };
 
 public:
-    inline TGenericContStackAllocatorBase(IAllocator* alloc, size_t len) noexcept
+    TGenericContStackAllocatorBase(IAllocator* alloc, size_t len) noexcept
         : Alloc_(alloc)
         , Len_(len)
-    {
-    }
+    {}
 
     ~TGenericContStackAllocatorBase() override {
     }
 
     TStackType* DoAllocate() override {
         TBlock block = Alloc_->Allocate(Len_ + sizeof(TGenericStack));
-
         return new (block.Data) TGenericStack(this, block);
     }
 
@@ -154,67 +145,71 @@ private:
     const size_t Len_;
 };
 
+
 class TProtectedContStackAllocator: public TContStackAllocator {
-    static inline size_t PageSize() noexcept {
-        return 4096;
-    }
+    static const size_t PageSize_ = 4096;
 
     static void Protect(void* ptr, size_t len) noexcept;
     static void UnProtect(void* ptr, size_t len) noexcept;
 
     class TProtectedStack: public TStackType {
     public:
-        inline TProtectedStack(TStackType* slave) noexcept
-            : Slave_(slave)
+        TProtectedStack(TStackType* slave) noexcept
+            : Substack_(slave)
         {
-            Y_ASSERT(Length() % PageSize() == 0);
+            Y_ASSERT(Length() % PageSize_ == 0);
 
-            Protect((char*)AlignedData(), PageSize());
-            Protect((char*)Data() + Length(), PageSize());
+            Protect((char*)AlignedData(), PageSize_);
+            Protect((char*)Data() + Length(), PageSize_);
         }
 
         ~TProtectedStack() override {
-            UnProtect((char*)AlignedData(), PageSize());
-            UnProtect((char*)Data() + Length(), PageSize());
+            UnProtect((char*)AlignedData(), PageSize_);
+            UnProtect((char*)Data() + Length(), PageSize_);
 
-            Slave_->Release();
+            Substack_->Release();
         }
 
         void Release() noexcept override {
             delete this;
         }
 
-        inline void* AlignedData() noexcept {
-            return AlignUp(Slave_->Data(), PageSize());
+        void* AlignedData() noexcept {
+            return AlignUp(Substack_->Data(), PageSize_);
         }
 
         void* Data() noexcept override {
-            return (char*)AlignedData() + PageSize();
+            return (char*)AlignedData() + PageSize_;
         }
 
         size_t Length() const noexcept override {
-            return Slave_->Length() - 3 * PageSize();
+            return Substack_->Length() - 3 * PageSize_;
         }
 
     private:
-        TStackType* Slave_;
+        TStackType* Substack_;
     };
 
 public:
-    inline TProtectedContStackAllocator(IAllocator* alloc, size_t len) noexcept
-        : Alloc_(alloc, AlignUp(len, PageSize()) + 3 * PageSize())
+    TProtectedContStackAllocator(IAllocator* alloc, size_t len) noexcept
+        : Alloc_(alloc, AlignUp(len, PageSize_) + 3 * PageSize_)
     {
+        if (NSystemInfo::GetPageSize() > PageSize_) {
+            Enabled_ = false;
+        }
     }
 
     ~TProtectedContStackAllocator() override {
     }
 
     TStackType* DoAllocate() override {
-        return new TProtectedStack(Alloc_.DoAllocate());
+        auto* subStack = Alloc_.DoAllocate();
+        return Enabled_ ? new TProtectedStack(subStack) : subStack;
     }
 
 private:
     TGenericContStackAllocatorBase Alloc_;
+    bool Enabled_ = true;
 };
 
 #if defined(NDEBUG) && !defined(_san_enabled_)
@@ -225,7 +220,7 @@ using TGenericContStackAllocator = TProtectedContStackAllocator;
 
 class THeapStackAllocator: public TGenericContStackAllocator {
 public:
-    inline THeapStackAllocator(size_t len)
+    THeapStackAllocator(size_t len)
         : TGenericContStackAllocator(TDefaultAllocator::Instance(), len)
     {
     }

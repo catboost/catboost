@@ -23,3 +23,8 @@ T RandomNumber(T max);
  * Re-initialize random state - useful after forking in multi-process programs.
  */
 void ResetRandomState();
+
+/*
+ * Set random SEED
+ */
+void SetRandomSeed(int seed);

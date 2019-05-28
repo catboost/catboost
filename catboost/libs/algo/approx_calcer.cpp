@@ -71,7 +71,7 @@ void UpdateApproxDeltas(
     TVector<double>* leafDeltas,
     TVector<double>* deltasDimension
 ) {
-    ExpApproxIf(storeExpApprox, leafDeltas);
+    ExpApproxIf(storeExpApprox, *leafDeltas);
 
     double* deltasDimensionData = deltasDimension->data();
     const TIndexType* indicesData = indices.data();
@@ -771,7 +771,7 @@ static void CalcApproxDeltaSimple(
         }
     };
 
-    const int dimensionCount = ctx->LearnProgress.ApproxDimension;
+    const int dimensionCount = ctx->LearnProgress->ApproxDimension;
     const bool isTrivialWalker
         = gradientIterations == 1 ||
             (ctx->Params.ObliviousTreeOptions->LeavesEstimationBacktrackingType ==
@@ -862,7 +862,7 @@ static void CalcLeafValuesSimple(
             bucketHistoryIdx,
             estimationMethod,
             ctx->Params,
-            ctx->Rand.GenRand(),
+            ctx->LearnProgress->Rand.GenRand(),
             &localExecutor,
             &leafDers,
             &pairwiseBuckets,
@@ -894,7 +894,7 @@ static void CalcLeafValuesSimple(
         );
     };
 
-    const int dimensionCount = ctx->LearnProgress.ApproxDimension;
+    const int dimensionCount = ctx->LearnProgress->ApproxDimension;
     const bool isTrivialWalker
         = gradientIterations == 1 ||
             (ctx->Params.ObliviousTreeOptions->LeavesEstimationBacktrackingType ==
@@ -948,7 +948,7 @@ void CalcLeafValues(
     TVector<TIndexType>* indices
 ) {
     *indices = BuildIndices(fold, tree, data.Learn, data.Test, ctx->LocalExecutor);
-    const int approxDimension = ctx->LearnProgress.AveragingFold.GetApproxDimension();
+    const int approxDimension = ctx->LearnProgress->AveragingFold.GetApproxDimension();
     Y_VERIFY(fold.GetLearnSampleCount() == data.Learn->GetObjectCount());
     const int leafCount = tree.GetLeafCount();
     if (approxDimension == 1) {
@@ -969,7 +969,7 @@ void CalcApproxForLeafStruct(
     TVector<TVector<TVector<double>>>* approxesDelta // [bodyTailId][approxDim][docIdxInPermuted]
 ) {
     const TVector<TIndexType> indices = BuildIndices(fold, tree, data.Learn, data.Test, ctx->LocalExecutor);
-    const int approxDimension = ctx->LearnProgress.ApproxDimension;
+    const int approxDimension = ctx->LearnProgress->ApproxDimension;
     const int leafCount = tree.GetLeafCount();
     TVector<ui64> randomSeeds;
     if (approxDimension == 1) {

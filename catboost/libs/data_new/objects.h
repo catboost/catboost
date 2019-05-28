@@ -183,6 +183,7 @@ namespace NCB {
     };
 
     using TObjectsDataProviderPtr = TIntrusivePtr<TObjectsDataProvider>;
+    using TObjectsDataProviderConstPtr = TIntrusiveConstPtr<TObjectsDataProvider>;
 
 
     // for use while building and storing this part in TRawObjectsDataProvider
@@ -253,6 +254,14 @@ namespace NCB {
             NPar::TLocalExecutor* localExecutor
         ) const override;
 
+        // needed for effective application of models
+        TIntrusiveConstPtr<TRawObjectsDataProvider> GetWithPermutedConsecutiveArrayFeaturesData(
+            NPar::TLocalExecutor* localExecutor,
+
+            // if result is already in the same order as this return Nothing()
+            TMaybe<TVector<ui32>>* srcArrayPermutation
+        ) const;
+
         // needed for low-level optimizations in CPU applying code
         const TFeaturesArraySubsetIndexing& GetFeaturesArraySubsetIndexing() const {
             return *CommonData.SubsetIndexing;
@@ -309,6 +318,8 @@ namespace NCB {
         TVector<THolder<IQuantizedCatValuesHolder>> CatFeatures; // [catFeatureIdx]
 
         TQuantizedFeaturesInfoPtr QuantizedFeaturesInfo;
+
+        mutable TMaybe<ui32> CachedFeaturesCheckSum;
 
     public:
         bool operator==(const TQuantizedObjectsData& rhs) const;
@@ -375,6 +386,11 @@ namespace NCB {
             NPar::TLocalExecutor* localExecutor
         ) const override;
 
+        TIntrusiveConstPtr<TQuantizedObjectsDataProvider> GetWithPermutedConsecutiveArrayFeaturesData(
+            NPar::TLocalExecutor* localExecutor,
+            TMaybe<TVector<ui32>>* srcArrayPermutation
+        ) const;
+
         /* can return nullptr if this feature is unavailable
          * (ignored or this data provider contains only subset of features)
          */
@@ -402,6 +418,8 @@ namespace NCB {
         void SaveDataNonSharedPart(IBinSaver* binSaver) const {
             Data.SaveNonSharedPart(binSaver);
         }
+
+        bool AllFeaturesDataIsCompressedArrays() const;
 
     protected:
         TQuantizedObjectsData Data;

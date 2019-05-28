@@ -9,7 +9,7 @@ try:
 except ImportError:
     fcntl = None
 
-__version__ = '1.2.1'
+__version__ = '1.3.0'
 
 
 PY2 = sys.version_info[0] == 2
@@ -165,11 +165,13 @@ class AtomicWriter(object):
                 except Exception:
                     pass
 
-    def get_fileobject(self, dir=None, **kwargs):
+    def get_fileobject(self, suffix="", prefix=tempfile.template, dir=None,
+                       **kwargs):
         '''Return the temporary file to use.'''
         if dir is None:
             dir = os.path.normpath(os.path.dirname(self._path))
-        descriptor, name = tempfile.mkstemp(dir=dir)
+        descriptor, name = tempfile.mkstemp(suffix=suffix, prefix=prefix,
+                                            dir=dir)
         # io.open() will take either the descriptor or the name, but we need
         # the name later for commit()/replace_atomic() and couldn't find a way
         # to get the filename from the descriptor.

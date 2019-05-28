@@ -120,7 +120,8 @@
             "nan_mode": "Min"
         }, 
         "has_time": false, 
-        "ignored_features": []
+        "ignored_features": [], 
+        "target_border": null
     }, 
     "detailed_profile": false, 
     "flat_params": {

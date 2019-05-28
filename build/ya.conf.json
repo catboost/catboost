@@ -71,16 +71,20 @@
         "graphs_difference": { "description": "Run graphs_difference tool", "visible": false },
         "contexts_difference": { "description": "Run contexts_difference tool", "visible": false },
         "crypta": { "description": "Run Crypta client" },
-        "go_1.12.1": { "description": "Run go tool (1.12.1)" },
-        "godoc_1.12.1": { "description": "Run godoc tool (1.12.1)" },
-        "gofmt_1.12.1": { "description": "Run gofmt tool (1.12.1)" },
-        "go": { "description": "Run go tool (1.12.4)" },
-        "godoc": { "description": "Run godoc tool (1.12.4)" },
-        "gofmt": { "description": "Run gofmt tool (1.12.4)" },
+        "go_1.12.4": { "description": "Run go tool (1.12.4)" },
+        "godoc_1.12.4": { "description": "Run godoc tool (1.12.4)" },
+        "gofmt_1.12.4": { "description": "Run gofmt tool (1.12.4)" },
+        "go": { "description": "Run go tool (1.12.5)" },
+        "godoc": { "description": "Run godoc tool (1.12.5)" },
+        "gofmt": { "description": "Run gofmt tool (1.12.5)" },
         "yo": { "description": "Tool for managing vendor/ directory" },
         "tvmknife": { "description": "Tool for debugging and testing with TVM tickets" },
         "sandboxctl": { "description": "Tool to run tasks in Sandbox" },
         "golangci-lint": { "description": "Linters Runner for Go" },
+        "qemu": { "description": "QEMU x86_64 machine emulator and virtualizer" },
+        "qemu-i386": { "description": "QEMU i386 machine emulator and virtualizer" },
+        "qemu-img": { "description": "QEMU disk image utility" },
+        "qemu-nbd": { "description": "QEMU disk network block device server" },
         "yfm": { "description": "YFM-extended markdown processor for Cloud deploy" }
     },
     "toolchain": {
@@ -184,11 +188,11 @@
                 "wine": "yes"
             }
         },
-        "msvc2017-i686-next": {
-            "name": "msvc2017next",
+        "msvc2019-i686": {
+            "name": "msvc2019",
             "tools": {
-                "cc": { "bottle": "msvc2017next", "executable": "msvc" },
-                "c++": { "bottle": "msvc2017next", "executable": "msvc" }
+                "cc": { "bottle": "msvc2019", "executable": "msvc" },
+                "c++": { "bottle": "msvc2019", "executable": "msvc" }
             },
             "platforms": [{"host": {"os": "WIN"}, "target": {"os": "WIN", "arch": "i686"}}],
             "params": {
@@ -197,14 +201,14 @@
                 "werror_mode": "compiler_specific",
                 "c_compiler": "$(MSVC)/bin/Hostx64/x86/cl.exe",
                 "cxx_compiler": "$(MSVC)/bin/Hostx64/x86/cl.exe",
-                "version": "2017"
+                "version": "2019"
             }
         },
-        "msvc2017-x86_64-next": {
-            "name": "msvc2017next",
+        "msvc2019-x86_64": {
+            "name": "msvc2019",
             "tools": {
-                "cc": { "bottle": "msvc2017next", "executable": "msvc" },
-                "c++": { "bottle": "msvc2017next", "executable": "msvc" }
+                "cc": { "bottle": "msvc2019", "executable": "msvc" },
+                "c++": { "bottle": "msvc2019", "executable": "msvc" }
             },
             "platforms": [{"host": {"os": "WIN"}}],
             "params": {
@@ -213,14 +217,14 @@
                 "werror_mode": "compiler_specific",
                 "c_compiler": "$(MSVC)/bin/Hostx64/x64/cl.exe",
                 "cxx_compiler": "$(MSVC)/bin/Hostx64/x64/cl.exe",
-                "version": "2017"
+                "version": "2019"
             }
         },
-        "msvc2017-arm-next": {
-            "name": "msvc2017next",
+        "msvc2019-arm": {
+            "name": "msvc2019",
             "tools": {
-                "cc": { "bottle": "msvc2017next", "executable": "msvc" },
-                "c++": { "bottle": "msvc2017next", "executable": "msvc" }
+                "cc": { "bottle": "msvc2019", "executable": "msvc" },
+                "c++": { "bottle": "msvc2019", "executable": "msvc" }
             },
             "platforms": [{"host": {"os": "WIN"}, "target": {"os": "WIN", "arch": "arm"}}],
             "params": {
@@ -229,14 +233,14 @@
                 "werror_mode": "compiler_specific",
                 "c_compiler": "$(MSVC)/bin/Hostx64/arm/cl.exe",
                 "cxx_compiler": "$(MSVC)/bin/Hostx64/arm/cl.exe",
-                "version": "2017"
+                "version": "2019"
             }
         },
-        "wine-msvc2017-i686-next": {
-            "name": "msvc2017next",
+        "wine-msvc2019-i686": {
+            "name": "msvc2019",
             "tools": {
-                "cc": { "bottle": "msvc2017next", "executable": "msvc" },
-                "c++": { "bottle": "msvc2017next", "executable": "msvc" }
+                "cc": { "bottle": "msvc2019", "executable": "msvc" },
+                "c++": { "bottle": "msvc2019", "executable": "msvc" }
             },
             "platforms": [{"host": {"os": "LINUX"}, "target": {"os": "WIN", "arch": "i686"}}],
             "params": {
@@ -245,15 +249,15 @@
                 "werror_mode": "compiler_specific",
                 "c_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:571614508)/bin/wine64 -v140 c ${ARCADIA_ROOT} ${ARCADIA_BUILD_ROOT} $(MSVC)/bin/Hostx64/x86/cl.exe",
                 "cxx_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:571614508)/bin/wine64 -v140 cxx ${ARCADIA_ROOT} ${ARCADIA_BUILD_ROOT} $(MSVC)/bin/Hostx64/x86/cl.exe",
-                "version": "2017",
+                "version": "2019",
                 "wine": "yes"
             }
         },
-        "wine-msvc2017-x86_64-next": {
-            "name": "msvc2017next",
+        "wine-msvc2019-x86_64": {
+            "name": "msvc2019",
             "tools": {
-                "cc": { "bottle": "msvc2017next", "executable": "msvc" },
-                "c++": { "bottle": "msvc2017next", "executable": "msvc" }
+                "cc": { "bottle": "msvc2019", "executable": "msvc" },
+                "c++": { "bottle": "msvc2019", "executable": "msvc" }
             },
             "platforms": [{"host": {"os": "LINUX"}, "target": {"os": "WIN"}}],
             "params": {
@@ -262,15 +266,15 @@
                 "werror_mode": "compiler_specific",
                 "c_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:571614508)/bin/wine64 -v140 c ${ARCADIA_ROOT} ${ARCADIA_BUILD_ROOT} $(MSVC)/bin/Hostx64/x64/cl.exe",
                 "cxx_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:571614508)/bin/wine64 -v140 cxx ${ARCADIA_ROOT} ${ARCADIA_BUILD_ROOT} $(MSVC)/bin/Hostx64/x64/cl.exe",
-                "version": "2017",
+                "version": "2019",
                 "wine": "yes"
             }
         },
-        "wine-msvc2017-arm-next": {
-            "name": "msvc2017next",
+        "wine-msvc2019-arm": {
+            "name": "msvc2019",
             "tools": {
-                "cc": { "bottle": "msvc2017next", "executable": "msvc" },
-                "c++": { "bottle": "msvc2017next", "executable": "msvc" }
+                "cc": { "bottle": "msvc2019", "executable": "msvc" },
+                "c++": { "bottle": "msvc2019", "executable": "msvc" }
             },
             "platforms": [{"host": {"os": "LINUX"}, "target": {"os": "WIN", "arch": "arm"}}],
             "params": {
@@ -279,7 +283,7 @@
                 "werror_mode": "compiler_specific",
                 "c_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:571614508)/bin/wine64 -v140 c ${ARCADIA_ROOT} ${ARCADIA_BUILD_ROOT} $(MSVC)/bin/Hostx64/arm/cl.exe",
                 "cxx_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:571614508)/bin/wine64 -v140 cxx ${ARCADIA_ROOT} ${ARCADIA_BUILD_ROOT} $(MSVC)/bin/Hostx64/arm/cl.exe",
-                "version": "2017",
+                "version": "2019",
                 "wine": "yes"
             }
         },
@@ -1409,29 +1413,12 @@
                 {"host": {"os": "DARWIN"}, "default": true}
             ]
         },
-        "golang_1_12_1": {
-            "tools": {
-                "golang_1.12.1": {"bottle": "golang_1.12.1",  "executable": "golang_1.12.1"},
-                "go_1.12.1": {"bottle": "golang_1.12.1",  "executable": "go_1.12.1"},
-                "godoc_1.12.1": {"bottle": "golang_1.12.1",  "executable": "godoc_1.12.1"},
-                "gofmt_1.12.1": {"bottle": "golang_1.12.1",  "executable": "gofmt_1.12.1"}
-            },
-            "platforms": [
-                {"host": {"os": "LINUX"}, "default": true},
-                {"host": {"os": "DARWIN"}, "default": true},
-                {"host": {"os": "WIN"}, "default": true}
-            ],
-            "params": {
-                "type": "golang",
-                "version": "1.12.1"
-            }
-        },
         "golang_1_12_4": {
             "tools": {
-                "golang": {"bottle": "golang_1.12.4",  "executable": "golang"},
-                "go": {"bottle": "golang_1.12.4",  "executable": "go"},
-                "godoc": {"bottle": "golang_1.12.4",  "executable": "godoc"},
-                "gofmt": {"bottle": "golang_1.12.4",  "executable": "gofmt"}
+                "golang_1.12.4": {"bottle": "golang_1.12.4",  "executable": "golang_1.12.4"},
+                "go_1.12.4": {"bottle": "golang_1.12.4",  "executable": "go_1.12.4"},
+                "godoc_1.12.4": {"bottle": "golang_1.12.4",  "executable": "godoc_1.12.4"},
+                "gofmt_1.12.4": {"bottle": "golang_1.12.4",  "executable": "gofmt_1.12.4"}
             },
             "platforms": [
                 {"host": {"os": "LINUX"}, "default": true},
@@ -1442,6 +1429,34 @@
                 "type": "golang",
                 "version": "1.12.4"
             }
+        },
+        "golang_1_12_5": {
+            "tools": {
+                "golang": {"bottle": "golang_1.12.5",  "executable": "golang"},
+                "go": {"bottle": "golang_1.12.5",  "executable": "go"},
+                "godoc": {"bottle": "golang_1.12.5",  "executable": "godoc"},
+                "gofmt": {"bottle": "golang_1.12.5",  "executable": "gofmt"}
+            },
+            "platforms": [
+                {"host": {"os": "LINUX"}, "default": true},
+                {"host": {"os": "DARWIN"}, "default": true},
+                {"host": {"os": "WIN"}, "default": true}
+            ],
+            "params": {
+                "type": "golang",
+                "version": "1.12.5"
+            }
+        },
+        "qemu": {
+            "tools": {
+                "qemu": { "bottle": "qemu", "executable": "qemu" },
+                "qemu-i386": { "bottle": "qemu", "executable": "qemu-i386" },
+                "qemu-img": { "bottle": "qemu", "executable": "qemu-img" },
+                "qemu-nbd": { "bottle": "qemu", "executable": "qemu-nbd" }
+            },
+            "platforms": [
+                {"host": {"os": "LINUX"}, "default": true}
+            ]
         },
         "yfm": {
             "tools": {
@@ -1464,10 +1479,10 @@
                 "msvc": ["bin", "Hostx64", "x64", "cl.exe"]
             }
         },
-        "msvc2017next": {
+        "msvc2019": {
             "formula": {
-                "sandbox_id": 374735561,
-                "match": "2017"
+                "sandbox_id": "435947155",
+                "match": "Microsoft Visual C++"
             },
             "executable": {
                 "msvc": ["bin", "Hostx64", "x64", "cl.exe"]
@@ -1475,7 +1490,7 @@
         },
         "ymake": {
             "formula": {
-                "sandbox_id": [430339409],
+                "sandbox_id": [436488986],
                 "match": "ymake"
             },
             "executable": {
@@ -1511,7 +1526,7 @@
         },
         "arc": {
             "formula": {
-                "sandbox_id": [428782499],
+                "sandbox_id": [436916524],
                 "match": "arc"
             },
             "executable": {
@@ -1556,7 +1571,7 @@
         },
         "hg": {
             "formula": {
-                "sandbox_id": [384697982, 384698485, 402625890],
+                "sandbox_id": [384697982, 384698485, 433333071],
                 "match": "Hg"
             },
             "executable": {
@@ -1643,7 +1658,7 @@
         },
         "clang7": {
             "formula": {
-                "sandbox_id": [426097867, 425919040],
+                "sandbox_id": [433792615, 425919040],
                 "match": "CLANG"
             },
             "executable": {
@@ -1662,7 +1677,7 @@
         },
         "clang6-android-x86": {
             "formula": {
-                "sandbox_id": [286141541, 286158872],
+                "sandbox_id": [433940193, 434453505],
                 "match": "NDK"
             },
             "executable": {
@@ -1680,7 +1695,7 @@
         },
         "clang6-android-x86_64": {
             "formula": {
-                "sandbox_id": [369520747, 369520872],
+                "sandbox_id": [433941670, 434454714],
                 "match": "NDK"
             },
             "executable": {
@@ -1698,7 +1713,7 @@
         },
         "clang6-android-armv7": {
             "formula": {
-                "sandbox_id": [286133126, 286142875],
+                "sandbox_id": [433939456, 434452850],
                 "match": "NDK"
             },
             "executable": {
@@ -1716,7 +1731,7 @@
         },
         "clang6-android-armv8": {
             "formula": {
-                "sandbox_id": [286132568, 286142227],
+                "sandbox_id": [433940899, 434454082],
                 "match": "NDK"
             },
             "executable": {
@@ -2002,7 +2017,7 @@
         },
         "dctl": {
             "formula": {
-                "sandbox_id":  [429107236],
+                "sandbox_id":  [435298698],
                 "match": "dctl"
             },
             "executable": {
@@ -2335,26 +2350,38 @@
                 "crypta": ["crypta"]
             }
         },
-        "golang_1.12.1": {
-            "formula": {
-                "sandbox_id": [395556923, 395557858, 395559432],
-                "match": "GOLANG"
-            },
-            "executable": {
-                "go_1.12.1": ["bin", "go"],
-                "godoc_1.12.1": ["bin", "godoc"],
-                "gofmt_1.12.1": ["bin", "gofmt"]
-            }
-        },
         "golang_1.12.4": {
             "formula": {
                 "sandbox_id": [412009563, 412010042, 412010635],
                 "match": "GOLANG"
             },
             "executable": {
+                "go_1.12.4": ["bin", "go"],
+                "godoc_1.12.4": ["bin", "godoc"],
+                "gofmt_1.12.4": ["bin", "gofmt"]
+            }
+        },
+        "golang_1.12.5": {
+            "formula": {
+                "sandbox_id": [433848019, 433848953, 433849700],
+                "match": "GOLANG"
+            },
+            "executable": {
                 "go": ["bin", "go"],
                 "godoc": ["bin", "godoc"],
                 "gofmt": ["bin", "gofmt"]
+            }
+        },
+        "qemu": {
+            "formula": {
+                "sandbox_id": 435931020,
+                "match": "qemu"
+            },
+            "executable": {
+                "qemu": ["qemu", "bin", "qemu-system-x86_64"],
+                "qemu-i386": ["qemu", "bin", "qemu-system-i386"],
+                "qemu-img": ["qemu", "bin", "qemu-img"],
+                "qemu-nbd": ["qemu", "bin", "qemu-nbd"]
             }
         },
         "yfm": {

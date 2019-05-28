@@ -83,6 +83,8 @@ static TEvaluateDerivativesFunc GetEvaluateDerivativesFunc(ELossFunction lossFun
         case ELossFunction::MAE:
         case ELossFunction::Quantile:
             return EvaluateDerivativesForError<TQuantileError>;
+        case ELossFunction::Expectile:
+            return EvaluateDerivativesForError<TExpectileError>;
         case ELossFunction::LogLinQuantile:
             return EvaluateDerivativesForError<TLogLinQuantileError>;
         case ELossFunction::MAPE:

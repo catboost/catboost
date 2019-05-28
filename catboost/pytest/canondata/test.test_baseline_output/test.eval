@@ -1,4 +1,4 @@
-DocId	RawFormulaVal	Baseline	Label
+SampleId	RawFormulaVal	Baseline	Label
 0	1.028202528	0.795482	1
 1	1.299992275	0.982951	1
 2	0.7823006456	0.462416	1

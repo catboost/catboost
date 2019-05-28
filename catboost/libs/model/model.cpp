@@ -12,8 +12,9 @@
 #include <catboost/libs/cat_feature/cat_feature.h>
 #include <catboost/libs/helpers/borders_io.h>
 #include <catboost/libs/logging/logging.h>
-#include <catboost/libs/options/json_helper.h>
 #include <catboost/libs/options/check_train_options.h>
+#include <catboost/libs/options/json_helper.h>
+#include <catboost/libs/options/loss_description.h>
 #include <catboost/libs/options/output_file_options.h>
 
 #include <contrib/libs/coreml/TreeEnsemble.pb.h>
@@ -123,8 +124,8 @@ void OutputModelCoreML(
     auto regressor = treeModel.mutable_treeensembleregressor();
     auto ensemble = regressor->mutable_treeensemble();
 
-    bool createPipelineModel;
-    NCatboost::NCoreML::ConfigureTrees(model, ensemble, &createPipelineModel);
+    NCatboost::NCoreML::TPerTypeFeatureIdxToInputIndex perTypeFeatureIdxToInputIndex;
+    bool createPipelineModel = model.HasCategoricalFeatures();
 
     TString data;
     if (createPipelineModel) {
@@ -136,7 +137,10 @@ void OutputModelCoreML(
 
         auto* contained = container->Add();
         auto treeDescription = treeModel.mutable_description();
-        NCatboost::NCoreML::ConfigureTreeModelIO(model, userParameters, regressor, treeDescription);
+        NCatboost::NCoreML::ConfigureTreeModelIO(model, userParameters, regressor, treeDescription, &perTypeFeatureIdxToInputIndex);
+
+        NCatboost::NCoreML::ConfigureTrees(model, perTypeFeatureIdxToInputIndex, ensemble);
+
         *contained = treeModel;
 
         auto pipelineDescription = pipelineModel.mutable_description();
@@ -147,7 +151,10 @@ void OutputModelCoreML(
     } else {
         auto description = treeModel.mutable_description();
         NCatboost::NCoreML::ConfigureMetadata(model, userParameters, description);
-        NCatboost::NCoreML::ConfigureTreeModelIO(model, userParameters, regressor, description);
+        NCatboost::NCoreML::ConfigureTreeModelIO(model, userParameters, regressor, description, &perTypeFeatureIdxToInputIndex);
+
+        NCatboost::NCoreML::ConfigureTrees(model, perTypeFeatureIdxToInputIndex, ensemble);
+
         treeModel.SerializeToString(&data);
     }
 
@@ -508,6 +515,24 @@ void TObliviousTrees::ConvertObliviousToAsymmetric() {
     UpdateRuntimeData();
 }
 
+TVector<ui32> TObliviousTrees::GetTreeLeafCounts() const {
+    const auto& firstLeafOfsets = GetFirstLeafOffsets();
+    Y_ASSERT(IsSorted(firstLeafOfsets.begin(), firstLeafOfsets.end()));
+    TVector<ui32> treeLeafCounts;
+    treeLeafCounts.reserve(GetTreeCount());
+    for (size_t treeNum = 0; treeNum < GetTreeCount(); ++treeNum) {
+        const size_t currTreeLeafValuesEnd = (
+            treeNum + 1 < GetTreeCount()
+            ? firstLeafOfsets[treeNum + 1]
+            : LeafValues.size()
+        );
+        const size_t currTreeLeafValuesCount = currTreeLeafValuesEnd - firstLeafOfsets[treeNum];
+        Y_ASSERT(currTreeLeafValuesCount % ApproxDimension == 0);
+        treeLeafCounts.push_back(currTreeLeafValuesCount / ApproxDimension);
+    }
+    return treeLeafCounts;
+}
+
 void TFullModel::CalcFlat(
     TConstArrayRef<TConstArrayRef<float>> features,
     size_t treeStart,
@@ -862,6 +887,22 @@ void TFullModel::Load(IInputStream* s) {
         CtrProvider->Load(s);
     }
     UpdateDynamicData();
+}
+
+TString TFullModel::GetLossFunctionName() const {
+    NCatboostOptions::TLossDescription lossDescription;
+    if (ModelInfo.contains("loss_function")) {
+        lossDescription.Load(ReadTJsonValue(ModelInfo.at("loss_function")));
+        return ToString(lossDescription.GetLossFunction());
+    }
+    if (ModelInfo.contains("params")) {
+        const auto& params = ReadTJsonValue(ModelInfo.at("params"));
+        if (params.Has("loss_function")) {
+            lossDescription.Load(params["loss_function"]);
+            return ToString(lossDescription.GetLossFunction());
+        }
+    }
+    return {};
 }
 
 TVector<TString> GetModelUsedFeaturesNames(const TFullModel& model) {

@@ -51,6 +51,7 @@ namespace NCB {
         TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
         NCatboostOptions::TCatBoostOptions* params,
         TLabelConverter* labelConverter,
+        TMaybe<float>* targetBorder,
         NPar::TLocalExecutor* localExecutor,
         TRestorableFastRng64* rand) {
 
@@ -198,6 +199,7 @@ namespace NCB {
             dataProcessingOptions.ClassWeights.Get(),
             &dataProcessingOptions.ClassNames.Get(),
             labelConverter,
+            targetBorder,
             rand,
             localExecutor,
             &trainingData->MetaInfo.HasPairs
@@ -242,6 +244,7 @@ namespace NCB {
 
         TTrainingDataProviders trainingData;
 
+        TMaybe<float> targetBorder = params->DataProcessingOptions->TargetBorder;
         trainingData.Learn = GetTrainingData(
             std::move(srcData.Learn),
             /*isLearnData*/ true,
@@ -253,6 +256,7 @@ namespace NCB {
             quantizedFeaturesInfo,
             params,
             labelConverter,
+            &targetBorder,
             localExecutor,
             rand
         );
@@ -272,6 +276,7 @@ namespace NCB {
                     quantizedFeaturesInfo,
                     params,
                     labelConverter,
+                    &targetBorder,
                     localExecutor,
                     rand
                 )

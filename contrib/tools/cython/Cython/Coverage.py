@@ -103,9 +103,8 @@ class Plugin(CoveragePlugin):
         else:
             c_file, _ = self._find_source_files(filename)
             if not c_file:
-                # XXX This is a bug. Uncomment after https://st.yandex-team.ru/DEVTOOLS-5367
-                # if standalone():
-                #     raise AssertionError(filename)
+                if standalone():
+                    raise AssertionError(filename)
                 return None  # unknown file
             rel_file_path, code = self._parse_lines(c_file, filename)
             if code is None:
@@ -409,6 +408,10 @@ class OpenFile(object):
 # ======================= Redefine some methods ===============================
 
 if standalone():
+    import json
+
+    CYTHON_INCLUDE_MAP = {'undef': True}
+
 
     def _find_c_source(base_path):
         '''
@@ -431,13 +434,23 @@ if standalone():
                 import run_import_hook
                 return run_import_hook.resfs_src(filename, resfs_file=True)
 
+        if os.environ.get('PYTHON_COVERAGE_CYTHON_INCLUDE_MAP'):
+            if CYTHON_INCLUDE_MAP.get('undef'):
+                with open(os.environ['PYTHON_COVERAGE_CYTHON_INCLUDE_MAP']) as afile:
+                    data = json.load(afile)
+                    data = {os.path.splitext(k)[0]: v for k, v in data.iteritems()}
+
+                CYTHON_INCLUDE_MAP.clear()
+                CYTHON_INCLUDE_MAP.update(data)
+
+            if base_path in CYTHON_INCLUDE_MAP:
+                # target file was included and should be sought inside another pyx file
+                base_path = CYTHON_INCLUDE_MAP[base_path]
+
         for suffix in ['.pyx.c', '.pyx.cpp'] + C_FILE_EXTENSIONS:
             if exists(base_path + suffix):
                 return base_path + suffix
 
-        # XXX File might be included from another pyx file without mentioning in the ya.make file
-        # See https://st.yandex-team.ru/DEVTOOLS-5367 for more info
-        # TODO We need to look at the map in the resources to specify which file has included base_path
         return None
 
 

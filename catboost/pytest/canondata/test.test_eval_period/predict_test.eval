@@ -1,4 +1,4 @@
-DocId	RawFormulaVal:TreesCount=[0,2)	RawFormulaVal:TreesCount=[2,4)	RawFormulaVal:TreesCount=[4,6)	RawFormulaVal:TreesCount=[6,8)	RawFormulaVal:TreesCount=[8,10)
+SampleId	RawFormulaVal:TreesCount=[0,2)	RawFormulaVal:TreesCount=[2,4)	RawFormulaVal:TreesCount=[4,6)	RawFormulaVal:TreesCount=[6,8)	RawFormulaVal:TreesCount=[8,10)
 0	0.05137944551	0.0965148303	0.1381501331	0.1785244518	0.2227428894
 1	0.04985962623	0.09468690812	0.1381846098	0.1785589285	0.2227773661
 2	0.05137944551	0.0965148303	0.1412002559	0.1858702758	0.2285909354

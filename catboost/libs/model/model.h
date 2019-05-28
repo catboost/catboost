@@ -413,6 +413,8 @@ public:
         );
     }
 
+    TVector<ui32> GetTreeLeafCounts() const;
+
 private:
     mutable TMaybe<TRuntimeData> RuntimeData;
 };
@@ -799,6 +801,12 @@ public:
     ) const {
         CalcLeafIndexes(floatFeatures, catFeatures, 0, ObliviousTrees.TreeSizes.size(), indexes);
     }
+
+    /**
+     * Get the name of optimized objective used to train the model.
+     * @return the name, or empty string if the model does not have this information
+     */
+    TString GetLossFunctionName() const;
 
     /**
      * Internal usage only.

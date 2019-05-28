@@ -37,29 +37,6 @@ static double SelectTailSize(ui32 oldSize, double multiplier) {
     return ceil(oldSize * multiplier);
 }
 
-static void InitFromBaseline(
-    const ui32 beginIdx,
-    const ui32 endIdx,
-    TConstArrayRef<TConstArrayRef<float>> baseline,
-    TConstArrayRef<ui32> learnPermutation,
-    bool storeExpApproxes,
-    TVector<TVector<double>>* approx
-) {
-    const ui32 learnSampleCount = learnPermutation.size();
-    const int approxDimension = approx->ysize();
-    for (int dim = 0; dim < approxDimension; ++dim) {
-        TVector<double> tempBaseline(baseline[dim].begin(), baseline[dim].end());
-        ExpApproxIf(storeExpApproxes, &tempBaseline);
-        for (ui32 docId = beginIdx; docId < endIdx; ++docId) {
-            ui32 initialIdx = docId;
-            if (docId < learnSampleCount) {
-                initialIdx = learnPermutation[docId];
-            }
-            (*approx)[dim][docId] = tempBaseline[initialIdx];
-        }
-    }
-}
-
 
 static void InitPermutationData(
     const NCB::TTrainingForCPUDataProvider& learnData,
@@ -191,7 +168,7 @@ TFold TFold::BuildDynamicFold(
 
         bt.Approx.resize(approxDimension, TVector<double>(bt.TailFinish, GetNeutralApprox(storeExpApproxes)));
         if (baseline) {
-            InitFromBaseline(
+            InitApproxFromBaseline(
                 leftPartLen,
                 bt.TailFinish,
                 *baseline,
@@ -283,7 +260,7 @@ TFold TFold::BuildPlainFold(
 
     TMaybeData<TConstArrayRef<TConstArrayRef<float>>> baseline = learnData.TargetData->GetBaseline();
     if (baseline) {
-        InitFromBaseline(
+        InitApproxFromBaseline(
             0,
             learnSampleCount,
             *baseline,

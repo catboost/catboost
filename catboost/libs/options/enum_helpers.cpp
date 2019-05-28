@@ -9,13 +9,15 @@
 
 TConstArrayRef<ELossFunction> GetAllObjectives() {
     static TVector<ELossFunction> allObjectives = {
-        ELossFunction::Logloss, ELossFunction::CrossEntropy, ELossFunction::RMSE,
-        ELossFunction::MAE, ELossFunction::Quantile, ELossFunction::LogLinQuantile,
+        ELossFunction::Logloss, ELossFunction::CrossEntropy, ELossFunction::RMSE, ELossFunction::MAE,
+        ELossFunction::Quantile, ELossFunction::LogLinQuantile, ELossFunction::Expectile,
         ELossFunction::MAPE, ELossFunction::Poisson, ELossFunction::MultiClass,
-        ELossFunction::MultiClassOneVsAll, ELossFunction::PairLogit,
-        ELossFunction::PairLogitPairwise, ELossFunction::YetiRank, ELossFunction::YetiRankPairwise,
-        ELossFunction::QueryRMSE, ELossFunction::QuerySoftMax, ELossFunction::QueryCrossEntropy,
-        ELossFunction::Lq, ELossFunction::Huber, ELossFunction::StochasticFilter};
+        ELossFunction::MultiClassOneVsAll, ELossFunction::PairLogit, ELossFunction::PairLogitPairwise,
+        ELossFunction::YetiRank, ELossFunction::YetiRankPairwise, ELossFunction::QueryRMSE,
+        ELossFunction::QuerySoftMax, ELossFunction::QueryCrossEntropy, ELossFunction::Lq,
+        ELossFunction::Huber, ELossFunction::StochasticFilter, ELossFunction::UserPerObjMetric,
+        ELossFunction::UserQuerywiseMetric
+    };
     return allObjectives;
 }
 
@@ -165,6 +167,7 @@ bool IsRegressionObjective(ELossFunction lossFunction) {
             lossFunction == ELossFunction::MAPE ||
             lossFunction == ELossFunction::Poisson ||
             lossFunction == ELossFunction::Quantile ||
+            lossFunction == ELossFunction::Expectile ||
             lossFunction == ELossFunction::RMSE ||
             lossFunction == ELossFunction::LogLinQuantile ||
             lossFunction == ELossFunction::Lq ||
@@ -324,4 +327,8 @@ bool IsPlainOnlyModeScoreFunction(EScoreFunction scoreFunction) {
         scoreFunction != EScoreFunction::Correlation &&
         scoreFunction != EScoreFunction::NewtonCorrelation
     );
+}
+
+bool ShouldBinarizeLabel(ELossFunction lossFunction) {
+    return lossFunction == ELossFunction::Logloss;
 }

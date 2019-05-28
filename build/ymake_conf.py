@@ -1406,6 +1406,8 @@ class LD(Linker):
         self.ar = preset('AR') or self.tc.ar
         self.ar_plugin = self.tc.ar_plugin
 
+        self.musl = Setting('MUSL', convert=to_bool)
+
         if target.is_android:
             if self.ar is None:
                 tc_root = tc.name_marker if target.is_x86 or (tc.is_clang and tc.version_at_least(5, 0)) else '{}/clang'.format(tc.name_marker)
@@ -1432,14 +1434,16 @@ class LD(Linker):
 
         self.ld_flags = []
 
-        if target.is_linux:
+        if self.musl.value:
+            self.ld_flags.extend(['-Wl,--no-as-needed'])
+        elif target.is_linux:
             self.ld_flags.extend(['-ldl', '-lrt', '-Wl,--no-as-needed'])
-        if target.is_android:
+        elif target.is_android:
             self.ld_flags.extend(['-ldl', '-Wl,--no-as-needed'])
             if is_positive('USE_LTO'):
                 # https://github.com/android-ndk/ndk/issues/498
                 self.ld_flags.append('-Wl,-plugin-opt,-emulated-tls')
-        if target.is_macos:
+        elif target.is_macos:
             self.ld_flags.append('-Wl,-no_deduplicate')
             if not self.tc.is_clang:
                 self.ld_flags.append('-Wl,-no_compact_unwind')
@@ -1539,7 +1543,10 @@ class LD(Linker):
 
         emit('C_LIBRARY_PATH')
         emit('C_SYSTEM_LIBRARIES_INTERCEPT')
-        emit('C_SYSTEM_LIBRARIES', self.use_stdlib, self.thread_library, self.sys_lib, '-lc')
+        if self.musl.value:
+            emit('C_SYSTEM_LIBRARIES', '-nostdlib')
+        else:
+            emit('C_SYSTEM_LIBRARIES', self.use_stdlib, self.thread_library, self.sys_lib, '-lc')
 
         emit('START_WHOLE_ARCHIVE_VALUE', self.whole_archive)
         emit('END_WHOLE_ARCHIVE_VALUE', self.no_whole_archive)
@@ -1572,7 +1579,9 @@ class LD(Linker):
 
         pie_flag = '-pie' if self.link_pie_executables else None
         arch_flag = '--arch={arch}'.format(arch=self.target.os_compat)
-        shared_flag = '-shared -Wl,{option},$SONAME'.format(option=self.soname_option)
+        soname_flag = '-Wl,{option},$SONAME'.format(option=self.soname_option)
+        shared_flag = '-shared'
+        exec_shared_flag = '-pie'
 
         ld_env_style = '${cwd:ARCADIA_BUILD_ROOT} $TOOLCHAIN_ENV ${kv;hide:"p LD"} ${kv;hide:"pc light-blue"} ${kv;hide:"show_out"}'
 
@@ -1584,10 +1593,18 @@ class LD(Linker):
 
         # Program
 
+        emit('LINK_SCRIPT_EXE_FLAGS')
         emit('REAL_LINK_EXE',
-             '$YMAKE_PYTHON ${input:"build/scripts/link_exe.py"}',
+             '$YMAKE_PYTHON ${input:"build/scripts/link_exe.py"}', '$LINK_SCRIPT_EXE_FLAGS',
              '$GCCFILTER',
              '$CXX_COMPILER ${rootrel:SRCS_GLOBAL} $VCS_C_OBJ $AUTO_INPUT -o $TARGET', self.rdynamic, pie_flag, exe_flags,
+             ld_env_style)
+
+        # Executable Shared Library
+
+        emit('REAL_LINK_EXEC_DYN_LIB',
+             '$YMAKE_PYTHON ${input:"build/scripts/link_dyn_lib.py"} --target $TARGET', arch_flag, '$LINK_DYN_LIB_FLAGS',
+             '$CXX_COMPILER ${rootrel:SRCS_GLOBAL} $VCS_C_OBJ $AUTO_INPUT -o $TARGET', exec_shared_flag, soname_flag, exe_flags,
              ld_env_style)
 
         # Shared Library
@@ -1595,7 +1612,7 @@ class LD(Linker):
         emit('LINK_DYN_LIB_FLAGS')
         emit('REAL_LINK_DYN_LIB',
              '$YMAKE_PYTHON ${input:"build/scripts/link_dyn_lib.py"} --target $TARGET', arch_flag, '$LINK_DYN_LIB_FLAGS',
-             '$CXX_COMPILER ${rootrel:SRCS_GLOBAL} $VCS_C_OBJ $AUTO_INPUT -o $TARGET', shared_flag, exe_flags,
+             '$CXX_COMPILER ${rootrel:SRCS_GLOBAL} $VCS_C_OBJ $AUTO_INPUT -o $TARGET', shared_flag, soname_flag, exe_flags,
              ld_env_style)
 
         if self.dwarf_command is None:
@@ -1604,6 +1621,7 @@ class LD(Linker):
             emit('DWARF_COMMAND', self.dwarf_command, ld_env_style)
         emit('LINK_EXE', '$GENERATE_MF && $GENERATE_VCS_C_INFO_NODEP && $REAL_LINK_EXE && $DWARF_COMMAND')
         emit('LINK_DYN_LIB', '$GENERATE_MF && $GENERATE_VCS_C_INFO_NODEP && $REAL_LINK_DYN_LIB && $DWARF_COMMAND')
+        emit('LINK_EXEC_DYN_LIB', '$GENERATE_MF && $GENERATE_VCS_C_INFO_NODEP && $REAL_LINK_EXEC_DYN_LIB && $DWARF_COMMAND')
         emit('SWIG_DLL_JAR_CMD', '$GENERATE_MF && $GENERATE_VCS_C_INFO_NODEP && $REAL_SWIG_DLL_JAR_CMD && $DWARF_COMMAND')
 
         archiver = '$YMAKE_PYTHON ${input:"build/scripts/link_lib.py"} ${quo:AR_TOOL} $AR_TYPE $ARCADIA_BUILD_ROOT %s' % (self.ar_plugin or 'None')
@@ -2134,6 +2152,11 @@ class MSVCLinker(MSVC, Linker):
 
             LINK_DYN_LIB=${GENERATE_MF} && $GENERATE_VCS_C_INFO_NODEP && ${TOOLCHAIN_ENV} ${cwd:ARCADIA_BUILD_ROOT} ${LINK_WRAPPER} ${LINK_WRAPPER_DYNLIB} ${LINK_EXE_CMD} \
             /DLL /OUT:${qe;rootrel:TARGET} ${LINK_EXTRA_OUTPUT} ${EXPORTS_VALUE} \
+            ${qe;rootrel:SRCS_GLOBAL} $VCS_C_OBJ ${qe;rootrel:AUTO_INPUT} ${qe;rootrel:PEERS} \
+            $LINK_EXE_FLAGS $LINK_STDLIBS $LDFLAGS $LDFLAGS_GLOBAL $OBJADDE ${hide;kv:"soe"} ${hide;kv:"p LD"} ${hide;kv:"pc blue"}
+
+            LINK_EXEC_DYN_LIB=${GENERATE_MF} && $GENERATE_VCS_C_INFO_NODEP && ${TOOLCHAIN_ENV} ${cwd:ARCADIA_BUILD_ROOT} ${LINK_WRAPPER} ${LINK_WRAPPER_DYNLIB} ${LINK_EXE_CMD} \
+            /OUT:${qe;rootrel:TARGET} ${LINK_EXTRA_OUTPUT} ${EXPORTS_VALUE} \
             ${qe;rootrel:SRCS_GLOBAL} $VCS_C_OBJ ${qe;rootrel:AUTO_INPUT} ${qe;rootrel:PEERS} \
             $LINK_EXE_FLAGS $LINK_STDLIBS $LDFLAGS $LDFLAGS_GLOBAL $OBJADDE ${hide;kv:"soe"} ${hide;kv:"p LD"} ${hide;kv:"pc blue"}
 

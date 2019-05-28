@@ -5,32 +5,23 @@
 #include <catboost/libs/cat_feature/cat_feature.h>
 
 #include <util/generic/bitops.h>
+#include <util/generic/cast.h>
 #include <util/generic/set.h>
 #include <util/generic/vector.h>
+#include <util/generic/xrange.h>
 
 #include <utility>
 
 using namespace CoreML::Specification;
 
-void NCatboost::NCoreML::ConfigureTrees(const TFullModel& model, TreeEnsembleParameters* ensemble, bool* createMappingModel) {
+void NCatboost::NCoreML::ConfigureTrees(const TFullModel& model, const TPerTypeFeatureIdxToInputIndex& perTypeFeatureIdxToInputIndex, TreeEnsembleParameters* ensemble) {
     const auto classesCount = static_cast<size_t>(model.ObliviousTrees.ApproxDimension);
     auto& binFeatures = model.ObliviousTrees.GetBinFeatures();
     size_t currentSplitIndex = 0;
     auto currentTreeFirstLeafPtr = model.ObliviousTrees.LeafValues.data();
 
     size_t catFeaturesCount = model.ObliviousTrees.CatFeatures.size();
-    size_t floatFeaturesCount = model.ObliviousTrees.FloatFeatures.size();
     TVector<THashMap<int, double>> splitCategoricalValues(catFeaturesCount);
-    TVector<int> categoricalFlatIndexes(catFeaturesCount);
-    TVector<int> floatFlatIndexes(floatFeaturesCount);
-
-    for (const auto& catFeature: model.ObliviousTrees.CatFeatures) {
-        categoricalFlatIndexes[catFeature.FeatureIndex] = catFeature.FlatFeatureIndex;
-    }
-
-    for (const auto& floatFeature: model.ObliviousTrees.FloatFeatures) {
-        floatFlatIndexes[floatFeature.FeatureIndex] = floatFeature.FlatFeatureIndex;
-    }
 
     for (const auto& oneHotFeature: model.ObliviousTrees.OneHotFeatures) {
         THashMap<int, double> valuesMapping;
@@ -76,24 +67,23 @@ void NCatboost::NCoreML::ConfigureTrees(const TFullModel& model, TreeEnsemblePar
             CB_ENSURE(featureType == ESplitType::FloatFeature || featureType == ESplitType::OneHotFeature,
                       "model with only float features or one hot encoded features supported");
 
-            int featureId = -1;
+            int inputFeatureIndex = -1;
             float branchValueCat;
             float branchValueFloat;
             auto branchParameter = TreeEnsembleParameters::TreeNode::BranchOnValueGreaterThan;
             if (featureType == ESplitType::FloatFeature) {
                 int floatFeatureId = binFeature.FloatFeature.FloatFeature;
                 branchValueFloat = binFeature.FloatFeature.Split;
-                featureId = floatFlatIndexes[floatFeatureId];
+                inputFeatureIndex = perTypeFeatureIdxToInputIndex.ForFloatFeatures.at(floatFeatureId);
             } else {
                 int catFeatureId = binFeature.OneHotFeature.CatFeatureIdx;
                 branchValueCat = splitCategoricalValues[catFeatureId][binFeature.OneHotFeature.Value];
                 branchParameter = TreeEnsembleParameters::TreeNode::BranchOnValueEqual;
-                featureId = categoricalFlatIndexes[catFeatureId];
+                inputFeatureIndex = perTypeFeatureIdxToInputIndex.ForCatFeatures.at(catFeatureId);
             }
 
             auto nodesInLayerCount = std::pow(2, layer);
             TVector<TreeEnsembleParameters::TreeNode*> currentLayer(nodesInLayerCount);
-            *createMappingModel = false;
 
             for (size_t nodeIdx = 0; nodeIdx < nodesInLayerCount; ++nodeIdx) {
                 auto branchNode = ensemble->add_nodes();
@@ -103,12 +93,11 @@ void NCatboost::NCoreML::ConfigureTrees(const TFullModel& model, TreeEnsemblePar
                 ++lastNodeId;
 
                 branchNode->set_nodebehavior(branchParameter);
-                branchNode->set_branchfeatureindex(featureId);
+                branchNode->set_branchfeatureindex(inputFeatureIndex);
                 if (featureType == ESplitType::FloatFeature) {
                     branchNode->set_branchfeaturevalue(branchValueFloat);
                 } else {
                     branchNode->set_branchfeaturevalue(branchValueCat);
-                    *createMappingModel = true;
                 }
 
                 branchNode->set_falsechildnodeid(
@@ -133,7 +122,9 @@ void NCatboost::NCoreML::ConfigureCategoricalMappings(const TFullModel& model,
         categoricalFlatIndexes[catFeature.FeatureIndex] = catFeature.FlatFeatureIndex;
     }
 
-    for (const auto& oneHotFeature : model.ObliviousTrees.OneHotFeatures) {
+    for (auto oneHotFeatureIdx : xrange(model.ObliviousTrees.OneHotFeatures.size())) {
+        const auto& oneHotFeature = model.ObliviousTrees.OneHotFeatures[oneHotFeatureIdx];
+
         int flatFeatureIndex = categoricalFlatIndexes[oneHotFeature.CatFeatureIndex];
         THashMap<TString, long> categoricalMapping;
         auto* contained = container->Add();
@@ -174,8 +165,16 @@ void NCatboost::NCoreML::ConfigureCategoricalMappings(const TFullModel& model,
     }
 }
 
-void NCatboost::NCoreML::ConfigureFloatInput(const TFullModel& model, CoreML::Specification::ModelDescription* description) {
-    for (const auto& floatFeature : model.ObliviousTrees.FloatFeatures) {
+void NCatboost::NCoreML::ConfigureFloatInput(
+    const TFullModel& model,
+    CoreML::Specification::ModelDescription* description,
+    THashMap<int, int>* perTypeFeatureIdxToInputIndex) {
+    for (auto floatFeatureIdx : xrange(model.ObliviousTrees.FloatFeatures.size())) {
+        const auto& floatFeature = model.ObliviousTrees.FloatFeatures[floatFeatureIdx];
+        if (perTypeFeatureIdxToInputIndex) {
+            (*perTypeFeatureIdxToInputIndex)[floatFeature.FeatureIndex] = description->input().size();
+        }
+
         auto feature = description->add_input();
         feature->set_name(("feature_" + std::to_string(floatFeature.FlatFeatureIndex)).c_str());
 
@@ -186,7 +185,8 @@ void NCatboost::NCoreML::ConfigureFloatInput(const TFullModel& model, CoreML::Sp
     }
 }
 
-void NCatboost::NCoreML::ConfigurePipelineModelIO(const TFullModel& model, CoreML::Specification::ModelDescription* description) {
+void NCatboost::NCoreML::ConfigurePipelineModelIO(const TFullModel& model,
+                                                  CoreML::Specification::ModelDescription* description) {
     ConfigureFloatInput(model, description);
 
     size_t catFeaturesCount  = model.ObliviousTrees.CatFeatures.size();
@@ -196,6 +196,7 @@ void NCatboost::NCoreML::ConfigurePipelineModelIO(const TFullModel& model, CoreM
     }
 
     for (const auto& oneHotFeature : model.ObliviousTrees.OneHotFeatures) {
+
         auto feature = description->add_input();
         int flatFeatureIndex = categoricalFlatIndexes[oneHotFeature.CatFeatureIndex];
 
@@ -223,8 +224,14 @@ void NCatboost::NCoreML::ConfigurePipelineModelIO(const TFullModel& model, CoreM
     featureType->set_allocated_multiarraytype(outputArray);
 }
 
-void NCatboost::NCoreML::ConfigureTreeModelIO(const TFullModel& model, const NJson::TJsonValue& userParameters, TreeEnsembleRegressor* regressor, ModelDescription* description) {
-    ConfigureFloatInput(model, description);
+void NCatboost::NCoreML::ConfigureTreeModelIO(
+    const TFullModel& model,
+    const NJson::TJsonValue& userParameters,
+    TreeEnsembleRegressor* regressor,
+    ModelDescription* description,
+    TPerTypeFeatureIdxToInputIndex* perTypeFeatureIdxToInputIndex) {
+
+    ConfigureFloatInput(model, description, &(perTypeFeatureIdxToInputIndex->ForFloatFeatures));
 
     size_t catFeaturesCount  = model.ObliviousTrees.CatFeatures.size();
     TVector<int> categoricalFlatIndexes(catFeaturesCount);
@@ -233,6 +240,8 @@ void NCatboost::NCoreML::ConfigureTreeModelIO(const TFullModel& model, const NJs
     }
 
     for (const auto& oneHotFeature : model.ObliviousTrees.OneHotFeatures) {
+        (*perTypeFeatureIdxToInputIndex).ForCatFeatures[oneHotFeature.CatFeatureIndex] = description->input().size();
+
         auto feature = description->add_input();
         int flatFeatureIndex = categoricalFlatIndexes[oneHotFeature.CatFeatureIndex];
 
@@ -297,8 +306,21 @@ void NCatboost::NCoreML::ConfigureMetadata(const TFullModel& model, const NJson:
 
 namespace {
 
+struct TFeaturesMetaData {
+    TVector<TFloatFeature> FloatFeatures;
+    TVector<TCatFeature> CategoricalFeatures;
+    TVector<int> InputIndexToPerTypeIndex;
+    THashMap<int, int> FlatFeatureIndexToPerTypeIndex;
+
+    // key: catFeatureIndex, value: inverted categorical mapping from index (0, 1, ...) of category's hash value
+    TVector<THashMap<int, int>> CategoricalMappings;
+};
+
 void ProcessOneTree(const TVector<const TreeEnsembleParameters::TreeNode*>& tree, size_t approxDimension,
-                    TVector<TModelSplit>* splits, TVector<TVector<double>>* leafValues) {
+                    const TFeaturesMetaData& featuresMetaData,
+                    TVector<TSet<double>>* floatFeatureBorders,
+                    TVector<TModelSplit>* splits,
+                    TVector<TVector<double>>* leafValues) {
     TVector<int> nodeLayerIds(tree.size(), -1);
     leafValues->resize(approxDimension);
     for (size_t nodeId = 0; nodeId < tree.size(); ++nodeId) {
@@ -326,28 +348,27 @@ void ProcessOneTree(const TVector<const TreeEnsembleParameters::TreeNode*>& tree
                 if (splits->ysize() <= nodeLayerIds[nodeId]) {
                     splits->resize(nodeLayerIds[nodeId] + 1);
                     auto& split = splits->at(nodeLayerIds[nodeId]);
-                    // FloatFeature is not per-type index as it should be and the field is used temporarily as FlatFeatureIndex
-                    split.FloatFeature.FloatFeature = node->branchfeatureindex();
+                    split.FloatFeature.FloatFeature = featuresMetaData.InputIndexToPerTypeIndex.at(node->branchfeatureindex());
                     split.FloatFeature.Split = node->branchfeaturevalue();
                     split.Type = ESplitType::FloatFeature;
+
+                    (*floatFeatureBorders)[split.FloatFeature.FloatFeature].insert(split.FloatFeature.Split);
                 } else {
                     auto& floatSplit = splits->at(nodeLayerIds[nodeId]).FloatFeature;
-                    CB_ENSURE(floatSplit.FloatFeature == (int)node->branchfeatureindex());
+                    CB_ENSURE(floatSplit.FloatFeature == featuresMetaData.InputIndexToPerTypeIndex.at(node->branchfeatureindex()));
                     CB_ENSURE(floatSplit.Split == node->branchfeaturevalue());
                 }
             } else {
                 if (splits->ysize() <= nodeLayerIds[nodeId]) {
                     splits->resize(nodeLayerIds[nodeId] + 1);
                     auto& split = splits->at(nodeLayerIds[nodeId]);
-                    // CatFeatureIdx is not per-type index as it should be and the field is used temporarily as FlatFeatureIndex
-                    split.OneHotFeature.CatFeatureIdx = node->branchfeatureindex();
-                    // Value is not hashed value as it should be and the field is used temporarily as an index in the OneHotFeature Values array with hashed values
-                    split.OneHotFeature.Value = (int)node->branchfeaturevalue();
+                    split.OneHotFeature.CatFeatureIdx = featuresMetaData.InputIndexToPerTypeIndex.at(node->branchfeatureindex());
+                    split.OneHotFeature.Value = featuresMetaData.CategoricalMappings[split.OneHotFeature.CatFeatureIdx].at((int)node->branchfeaturevalue());
                     split.Type = ESplitType::OneHotFeature;
                 } else {
                     auto& oneHotSplit = splits->at(nodeLayerIds[nodeId]).OneHotFeature;
-                    CB_ENSURE(oneHotSplit.CatFeatureIdx == (int)node->branchfeatureindex());
-                    CB_ENSURE(oneHotSplit.Value == (int)node->branchfeaturevalue());
+                    CB_ENSURE(oneHotSplit.CatFeatureIdx == featuresMetaData.InputIndexToPerTypeIndex.at(node->branchfeatureindex()));
+                    CB_ENSURE(oneHotSplit.Value == featuresMetaData.CategoricalMappings[oneHotSplit.CatFeatureIdx].at((int)node->branchfeaturevalue()));
                 }
             }
         }
@@ -360,9 +381,36 @@ void ProcessOneTree(const TVector<const TreeEnsembleParameters::TreeNode*>& tree
 
 void NCatboost::NCoreML::ConvertCoreMLToCatboostModel(const Model& coreMLModel, TFullModel* fullModel) {
     CB_ENSURE(coreMLModel.specificationversion() == 1, "expected specificationVersion == 1");
+
+    TFeaturesMetaData featuresMetaData;
+
+    const auto& input = coreMLModel.description().input();
+    for (auto inputIdx : xrange(input.size())) {
+        const auto& featureDescription = input.Get(inputIdx);
+        // names of catFeatures are stored in description as "feature_" + std::to_string(flatFeatureIndex)
+        int flatFeatureIdx = std::stoi(featureDescription.name().substr(8));
+        if (featureDescription.type().has_stringtype()) {
+            TCatFeature catFeature;
+            catFeature.FeatureIndex = SafeIntegerCast<int>(featuresMetaData.CategoricalFeatures.size());
+            featuresMetaData.InputIndexToPerTypeIndex.push_back(catFeature.FeatureIndex);
+            featuresMetaData.FlatFeatureIndexToPerTypeIndex[flatFeatureIdx] = catFeature.FeatureIndex;
+            catFeature.FlatFeatureIndex = flatFeatureIdx;
+            catFeature.FeatureId = featureDescription.name();
+            featuresMetaData.CategoricalFeatures.push_back(std::move(catFeature));
+        } else {
+            CB_ENSURE_INTERNAL(featureDescription.type().has_doubletype(), "bad CoreML feature type");
+
+            TFloatFeature floatFeature;
+            floatFeature.FeatureIndex = SafeIntegerCast<int>(featuresMetaData.FloatFeatures.size());
+            featuresMetaData.InputIndexToPerTypeIndex.push_back(floatFeature.FeatureIndex);
+            featuresMetaData.FlatFeatureIndexToPerTypeIndex[flatFeatureIdx] = floatFeature.FeatureIndex;
+            floatFeature.FlatFeatureIndex = flatFeatureIdx;
+            floatFeature.FeatureId = featureDescription.name();
+            featuresMetaData.FloatFeatures.push_back(std::move(floatFeature));
+        }
+    }
+
     TreeEnsembleRegressor regressor;
-    // key: flatFeatureIndex, value: inverted categorical mapping from index (0, 1, ...) of category to category's name 
-    THashMap<int, THashMap<int, TString>> categoricalMappings;
 
     if (coreMLModel.has_pipeline()) {
         auto& models = coreMLModel.pipeline().models();
@@ -377,13 +425,17 @@ void NCatboost::NCoreML::ConvertCoreMLToCatboostModel(const Model& coreMLModel, 
 
             auto& mapping = model.categoricalmapping().stringtoint64map().map();
             // names of catFeatures are stored in description as "feature_" + std::to_string(flatFeatureIndex)
-            int featureName = std::stoi(model.description().input(0).name().substr(8));
-            THashMap<int, TString> invertedMapping;
+            int flatFeatureIdx = std::stoi(model.description().input(0).name().substr(8));
+            THashMap<int, int> invertedMapping;
 
             for (auto& key_value: mapping) {
-                invertedMapping.insert(std::pair<int, TString>(key_value.second, key_value.first));
+                invertedMapping.insert(std::pair<int, int>(key_value.second, CalcCatFeatureHashInt(key_value.first)));
             }
-            categoricalMappings.insert(std::pair<int, THashMap<int, TString>>(featureName, std::move(invertedMapping)));
+            int catFeatureIdx = featuresMetaData.FlatFeatureIndexToPerTypeIndex.at(flatFeatureIdx);
+            if (catFeatureIdx >= SafeIntegerCast<int>(featuresMetaData.CategoricalMappings.size())) {
+                featuresMetaData.CategoricalMappings.resize(catFeatureIdx + 1);
+            }
+            featuresMetaData.CategoricalMappings[catFeatureIdx] = std::move(invertedMapping);
         }
     } else {
         CB_ENSURE(coreMLModel.has_treeensembleregressor(), "expected treeensembleregressor model");
@@ -407,75 +459,24 @@ void NCatboost::NCoreML::ConvertCoreMLToCatboostModel(const Model& coreMLModel, 
         treeNodes[node.treeid()].push_back(&node);
     }
 
+    TVector<TSet<double>> floatFeatureBorders(featuresMetaData.FloatFeatures.size()); // [floatFeatureIdx]
+
     for (const auto& tree : treeNodes) {
         CB_ENSURE(!tree.empty(), "incorrect coreml model: empty tree");
         auto& treeSplits = treesSplits.emplace_back();
         auto& leaves = leafValues.emplace_back();
-        ProcessOneTree(tree, approxDimension, &treeSplits, &leaves);
-    }
-    TVector<TFloatFeature> floatFeatures;
-    TVector<TCatFeature> categoricalFeatures;
-    THashMap<int, int> fromFlatToFeatureIndex;
-    {
-        TSet<TModelSplit> splitsSet;
-        for (auto& tree : treesSplits) {
-            splitsSet.insert(tree.begin(), tree.end());
-        }
-
-        THashMap<int, TFloatFeature> floatFeaturesMap;
-        TSet<int> catFeaturesSet;
-        TVector<int> floatFlatIndexes;
-        for (auto& split: splitsSet) {
-            if (split.Type == ESplitType::FloatFeature) {
-                int flatIndex = split.FloatFeature.FloatFeature;
-                if (floatFeaturesMap.find(flatIndex) == floatFeaturesMap.end()) {
-                    TFloatFeature floatFeature;
-                    floatFeature.FlatFeatureIndex = flatIndex;
-                    floatFeature.Borders.push_back(split.FloatFeature.Split);
-                    floatFeaturesMap.insert(std::pair<int, TFloatFeature>(flatIndex, floatFeature));
-                    floatFlatIndexes.push_back(flatIndex);
-                } else {
-                    floatFeaturesMap.find(flatIndex)->second.Borders.push_back(split.FloatFeature.Split);
-                }
-            } else {
-                int flatIndex = split.OneHotFeature.CatFeatureIdx;
-                catFeaturesSet.insert(flatIndex);
-            }
-        }
-
-        TVector<int> catFlatIndexes(catFeaturesSet.begin(), catFeaturesSet.end());
-        std::sort(floatFlatIndexes.begin(), floatFlatIndexes.end());
-        std::sort(catFlatIndexes.begin(), catFlatIndexes.end());
-
-        for (size_t i = 0; i < floatFlatIndexes.size(); i++) {
-            auto floatFeature = floatFeaturesMap.find(floatFlatIndexes[i])->second;
-            floatFeature.FeatureIndex = i;
-            floatFeatures.push_back(floatFeature);
-            fromFlatToFeatureIndex.insert(std::pair<int, int>(floatFeature.FlatFeatureIndex, i));
-        }
-
-        for (size_t i = 0; i < catFlatIndexes.size(); i++) {
-            TCatFeature catFeature;
-            catFeature.FeatureIndex = i;
-            catFeature.FlatFeatureIndex = catFlatIndexes[i];
-            categoricalFeatures.push_back(catFeature);
-            fromFlatToFeatureIndex.insert(std::pair<int, int>(catFeature.FlatFeatureIndex, i));
-        }
+        ProcessOneTree(tree, approxDimension, featuresMetaData, &floatFeatureBorders, &treeSplits, &leaves);
     }
 
-    TObliviousTreeBuilder treeBuilder(floatFeatures, categoricalFeatures, approxDimension);
+    for (auto floatFeatureIdx : xrange(featuresMetaData.FloatFeatures.size())) {
+        featuresMetaData.FloatFeatures[floatFeatureIdx].Borders.assign(
+            floatFeatureBorders[floatFeatureIdx].begin(),
+            floatFeatureBorders[floatFeatureIdx].end());
+    }
+
+
+    TObliviousTreeBuilder treeBuilder(featuresMetaData.FloatFeatures, featuresMetaData.CategoricalFeatures, approxDimension);
     for (size_t i = 0; i < treesSplits.size(); ++i) {
-        for (size_t j = 0; j < treesSplits[i].size(); j++) {
-            if (treesSplits[i][j].Type == ESplitType::FloatFeature) {
-                treesSplits[i][j].FloatFeature.FloatFeature = fromFlatToFeatureIndex.find(
-                        treesSplits[i][j].FloatFeature.FloatFeature)->second;
-            } else {
-                int catFeatureIdx = treesSplits[i][j].OneHotFeature.CatFeatureIdx;
-                TString stringValue = categoricalMappings.find(catFeatureIdx)->second.find(treesSplits[i][j].OneHotFeature.Value)->second;
-                treesSplits[i][j].OneHotFeature.Value = CalcCatFeatureHash(stringValue);
-                treesSplits[i][j].OneHotFeature.CatFeatureIdx = fromFlatToFeatureIndex.find(catFeatureIdx)->second;
-            }
-        }
         treeBuilder.AddTree(treesSplits[i], leafValues[i]);
     }
 

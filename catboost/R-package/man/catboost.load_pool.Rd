@@ -56,7 +56,7 @@ Used in the calculation of final values of trees.}
 \item{feature_names}{A list of names for each feature in the dataset.}
 
 \item{thread_count}{The number of threads to use while reading the data. Optimizes reading time. This parameter doesn't affect results.
-If -1, then the number of threads is set to the number of cores.}
+If -1, then the number of threads is set to the number of CPU cores.}
 }
 \value{
 catboost.Pool
