@@ -286,6 +286,7 @@ void NCatboostOptions::PlainJsonToOptions(
     CopyOption(plainOptions, "sampling_frequency", &treeOptions, &seenKeys);
     CopyOption(plainOptions, "dev_max_ctr_complexity_for_border_cache", &treeOptions, &seenKeys);
     CopyOption(plainOptions, "observations_to_bootstrap", &treeOptions, &seenKeys);
+    CopyOption(plainOptions, "monotone_constraints", &treeOptions, &seenKeys);
 
     auto& bootstrapOptions = treeOptions["bootstrap"];
     bootstrapOptions.SetType(NJson::JSON_MAP);

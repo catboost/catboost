@@ -1087,6 +1087,15 @@ def _check_param_types(params):
             params['custom_metric'] = [params['custom_metric']]
         if not isinstance(params['custom_metric'], Sequence):
             raise CatBoostError("Invalid `custom_metric` type={} : must be string or list of strings.".format(type(params['custom_metric'])))
+    if 'monotone_constraints' in params:
+        param = params['monotone_constraints']
+        if isinstance(param, STRING_TYPES):
+            try:
+                params['monotone_constraints'] = list(map(int, param[1: -1].split(',')))
+            except ValueError:
+                raise CatBoostError("Invalid `monotone_constraints` string format")
+        if not isinstance(param, Sequence):
+            raise CatBoostError("Invalid `monotone_constraints` type={} : must be string or list of integers.".format(type(params['monotone_constraints'])))
 
 
 def _params_type_cast(params):
@@ -3078,7 +3087,8 @@ class CatBoostRegressor(CatBoost):
         max_leaves=None,
         score_function=None,
         leaf_estimation_backtracking=None,
-        ctr_history_unit=None
+        ctr_history_unit=None,
+        monotone_constraints=None
     ):
         params = {}
         not_params = ["not_params", "self", "params", "__class__"]

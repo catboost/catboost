@@ -6812,3 +6812,16 @@ def test_target_border():
     yatest.common.execute(cmd)
 
     return [local_canonical_file(output_eval_path)]
+
+
+def test_monotonic_constraint():
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '-f', data_file('adult', 'train_small'),
+        '-t', data_file('adult', 'test_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '--monotone-constraints', '(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1)'
+    )
+    yatest.common.execute(cmd)
+    return

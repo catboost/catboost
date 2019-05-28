@@ -156,6 +156,7 @@
             "bagging_temperature" : 1,
             "type" : "Bayesian"
         },
+        "monotone_constraints" : [ ],
         "efb_max_conflict_fraction" : 0,
         "l2_leaf_reg" : 3,
         "depth" : 6

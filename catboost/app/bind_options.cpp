@@ -728,6 +728,20 @@ static void BindTreeParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* pla
         .Handler1T<TString>([plainJsonPtr](const TString& type) {
             (*plainJsonPtr)["observations_to_bootstrap"] = type;
         });
+
+     parser
+        .AddLongOption("monotone-constraints")
+        .RequiredArgument("String")
+        .Help("Monotone constraints for all features.")
+        .Handler1T<TString>([plainJsonPtr](TString monotonic) {
+            if (!monotonic.empty()) {
+                monotonic.erase(monotonic.begin());
+                monotonic.pop_back();
+                for (const auto& oneFeatureMonotonic : StringSplitter(monotonic).Split(',').SkipEmpty()) {
+                    (*plainJsonPtr)["monotone_constraints"].AppendValue(FromString<int>(oneFeatureMonotonic.Token()));
+                }
+            }
+        });
 }
 
 static void BindCatFeatureParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* plainJsonPtr) {

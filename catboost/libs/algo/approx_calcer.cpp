@@ -431,6 +431,136 @@ void CalcLeafDeltasSimple(
     }
 }
 
+namespace NMonotoneBuilder {
+    void BuildMonotonicLag(
+        const TVector<int>& monotonicConstraint,
+        TVector<ui32>& monotonicLag,
+        TVector<ui32>& nonMonotonicLag
+    ) {
+        for (ui32 i = 0; i < monotonicConstraint.size(); ++i) {
+            if (monotonicConstraint[i] != 0) {
+                monotonicLag.push_back(i);
+            } else {
+                nonMonotonicLag.push_back(i);
+            }
+        }
+    }
+
+    ui32 BuildMask(const TVector<int>& monotonicConstraint) {
+        ui32 mask = 0;
+        for (ui32 i = 0; i < monotonicConstraint.size(); ++i) {
+            if (monotonicConstraint[i] == -1) {
+                mask += (1 << i);
+            }
+        }
+        return mask;
+    }
+
+    ui32 MutateIntWLag(const TVector<ui32>& lag, const ui32 number) {
+        ui32 result = 0;
+        for (ui32 i = 0; i < lag.size(); ++i) {
+            result += ((number >> i) & 1) << lag[i];
+        }
+        return result;
+    }
+
+    TVector<ui32> Indexer(
+        const TVector<int>& monotonicConstraint,
+        const ui32 seriesNo
+    ) {
+        TVector<ui32> monotonicLag;
+        TVector<ui32> nonMonotonicLag;
+        NMonotoneBuilder::BuildMonotonicLag(monotonicConstraint, monotonicLag, nonMonotonicLag);
+
+        ui32 splitTreeSample = NMonotoneBuilder::MutateIntWLag(nonMonotonicLag, seriesNo);
+
+        ui32 mask = NMonotoneBuilder::BuildMask(monotonicConstraint);
+
+        TVector<ui32> result(1 << monotonicLag.size());
+        for (ui32 i = 0; i < result.size(); ++i) {
+            result[i] = NMonotoneBuilder::MutateIntWLag(monotonicLag, i) ^ mask + splitTreeSample;
+        }
+        return result;
+    }
+
+    void CheckMonotonic(const TVector<ui32>& indexOrder, const TVector<double>* leafDeltas) {
+        for (ui32 i = 0; i + 1 < indexOrder.size(); ++i) {
+            if ((*leafDeltas)[indexOrder[i]] > (*leafDeltas)[indexOrder[i + 1]]) {
+                assert("Wrong monotonic after monotonizer!");
+            }
+        }
+    }
+}
+
+
+void CalcMonotonicDeltasSimple(
+    const TVector<TSum> &leafDers,
+    const TVector<int> &treeMonotoneConstraints,
+    TVector<double> *leafDeltas
+) {
+    const ui32 leafCount = leafDers.ysize();
+    TVector<double> leafWeights(leafCount, 0);
+    TVector<double> leafValues(leafCount, 0);
+    for (ui32 i = 0; i < leafCount; ++i) {
+        leafWeights[i] = leafDers[i].SumWeights;
+        leafValues[i] = (*leafDeltas)[i];
+    }
+
+    int nonMonotonicFeatureCount = 0;
+    for (ui32 i = 0; i < treeMonotoneConstraints.size(); ++i) {
+        if (treeMonotoneConstraints[i] == 0) {
+            nonMonotonicFeatureCount += 1;
+        }
+    }
+
+    const ui32 subTreeCount = (1 << nonMonotonicFeatureCount);
+    for (ui32 subTreeIndex=0; subTreeIndex < subTreeCount; ++subTreeIndex) {
+        TVector<ui32> indexOrder = NMonotoneBuilder::Indexer(treeMonotoneConstraints, subTreeIndex);
+        IsotonicRegretionLinearOrder(leafValues, leafWeights, indexOrder, leafDeltas);
+        NMonotoneBuilder::CheckMonotonic(indexOrder, leafDeltas);
+    }
+}
+
+void IsotonicRegretionLinearOrder(
+    const TVector<double>& values,
+    const TVector<double>& weight,
+    const TVector<ui32>& indexOrder,
+    TVector<double>* solution
+) {
+
+    const int size = indexOrder.size();
+
+    TVector<double> activeValues(size, 0);
+    TVector<double> activeWeight(size, 0);
+    TVector<int> activeIndices(size + 1, 0);
+
+    activeValues[0] = values[indexOrder[0]];
+    activeWeight[0] = weight[indexOrder[0]];
+    int current = 0;
+    activeIndices[0] = -1;
+    activeIndices[1] = 0;
+
+    for (int i = 1; i < size; ++i) {
+        current += 1;
+        activeValues[current] = values[indexOrder[i]];
+        activeWeight[current] = weight[indexOrder[i]];
+        while (current > 0 && activeValues[current] < activeValues[current - 1]) {
+            activeValues[current - 1] = (
+                activeValues[current - 1] * activeWeight[current - 1] + activeValues[current] * activeWeight[current]
+            ) / (activeWeight[current - 1] + activeWeight[current]);
+            activeWeight[current - 1] = activeWeight[current - 1] + activeWeight[current];
+            current -= 1;
+        }
+        activeIndices[current + 1] = i;
+    }
+
+    for (int i = 0; i <= current; ++i) {
+        for (int l = activeIndices[i] + 1; l <= activeIndices[i + 1]; ++l) {
+            (*solution)[indexOrder[l]] = activeValues[i];
+        }
+    }
+}
+
 static void UpdateApproxDeltasHistoricallyImpl(
     int rowStart,
     int rowCount,
@@ -822,7 +952,8 @@ static void CalcLeafValuesSimple(
     const TFold& fold,
     const TVector<TIndexType>& indices,
     TLearnContext* ctx,
-    TVector<TVector<double>>* sumLeafDeltas
+    TVector<TVector<double>>* sumLeafDeltas,
+    TVector<int>& treeMonotoneConstraints
 ) {
     const int scratchSize = error.GetErrorType() == EErrorType::PerObjectError
         ? APPROX_BLOCK_SIZE * CB_THREAD_LIMIT
@@ -876,6 +1007,10 @@ static void CalcLeafValuesSimple(
             fold.GetLearnSampleCount(),
             &(*leafDeltas)[0]
         );
+
+        if (!ctx->Params.ObliviousTreeOptions->MonotoneConstraints.Get().empty()) {
+            CalcMonotonicDeltasSimple(leafDers, treeMonotoneConstraints, &(*leafDeltas)[0]);
+        }
     };
 
     const auto approxUpdaterFunc = [&] (
@@ -951,8 +1086,21 @@ void CalcLeafValues(
     const int approxDimension = ctx->LearnProgress->AveragingFold.GetApproxDimension();
     Y_VERIFY(fold.GetLearnSampleCount() == data.Learn->GetObjectCount());
     const int leafCount = tree.GetLeafCount();
+
+    TVector<int> treeMonotoneConstraints(tree.GetDepth(), 0);
+    if (!ctx->Params.ObliviousTreeOptions->MonotoneConstraints.Get().empty()) {
+        for (int i = 0; i < tree.GetDepth(); ++i) {
+            int splitFeatureId = tree.Splits[i].FeatureIdx;
+            if (splitFeatureId == -1) {
+                treeMonotoneConstraints[i] = 0;
+            } else {
+                treeMonotoneConstraints[i] = ctx->Params.ObliviousTreeOptions->MonotoneConstraints.Get()[splitFeatureId];
+            }
+        }
+    }
+
     if (approxDimension == 1) {
-        CalcLeafValuesSimple(leafCount, error, fold, *indices, ctx, leafDeltas);
+        CalcLeafValuesSimple(leafCount, error, fold, *indices, ctx, leafDeltas, treeMonotoneConstraints);
     } else {
         CalcLeafValuesMulti(leafCount, error, fold, *indices, ctx, leafDeltas);
     }
