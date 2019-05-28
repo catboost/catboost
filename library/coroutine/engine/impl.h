@@ -2,7 +2,7 @@
 
 //#define DEBUG_CONT
 
-#include "coro_events.h"
+#include "schedule_callback.h"
 #include "iostatus.h"
 #include "poller.h"
 #include "sockmap.h"
@@ -113,8 +113,6 @@ private:
     int Status_;
 };
 
-template <class T>
-inline int ExecuteEvent(T* event) noexcept;
 
 class IPollEvent: public TIntrusiveListItem<IPollEvent> {
 public:
@@ -200,9 +198,6 @@ class TCont {
     friend class TContExecutor;
     friend class TContPollEvent;
 
-    template <class T>
-    friend inline int ExecuteEvent(T* event) noexcept;
-
 public:
     TCont(TContExecutor* executor, TContRep* rep, TContFunc func, void* arg, const char* name)
         : Executor_(executor)
@@ -216,14 +211,6 @@ public:
     ~TCont() {
         Executor_ = nullptr;
         Rep_ = nullptr;
-    }
-
-    void SwitchTo(TCont* next) noexcept {
-        Y_CORO_DBGOUT(Y_CORO_PRINT(this) << " switch to " << Y_CORO_PRINT(next));
-        Y_VERIFY(!Dead_, "%s", Y_CORO_PRINTF(this));
-        Y_VERIFY(!next->Dead_, "%s -> %s", Y_CORO_PRINTF(this), Y_CORO_PRINTF(next));
-
-        Context()->SwitchTo(next->Context());
     }
 
     TExceptionSafeContext* Context() noexcept {
@@ -256,11 +243,7 @@ public:
 
     void PrintMe(IOutputStream& out) const noexcept;
 
-    void Yield() noexcept {
-        if (SleepD(TInstant::Zero())) {
-            ReScheduleAndSwitch();
-        }
-    }
+    void Yield() noexcept;
 
     inline void ReScheduleAndSwitch() noexcept;
 
@@ -274,14 +257,7 @@ public:
         return SelectD(fds, what, nfds, outfd, TInstant::Max());
     }
 
-    int PollD(SOCKET fd, int what, TInstant deadline) noexcept {
-        Y_CORO_DBGOUT(Y_CORO_PRINT(this) << " prepare poll");
-        Y_VERIFY(!Dead_, "%s", Y_CORO_PRINTF(this));
-
-        TFdEvent event(this, fd, (ui16)what, deadline);
-
-        return ExecuteEvent(&event);
-    }
+    int PollD(SOCKET fd, int what, TInstant deadline) noexcept;
 
     int PollT(SOCKET fd, int what, TDuration timeout) noexcept {
         return PollD(fd, what, timeout.ToDeadLine());
@@ -292,14 +268,7 @@ public:
     }
 
     /// @return ETIMEDOUT on success
-    int SleepD(TInstant deadline) noexcept {
-        Y_CORO_DBGOUT(Y_CORO_PRINT(this) << " do sleep");
-        Y_VERIFY(!Dead_, "%s", Y_CORO_PRINTF(this));
-
-        TTimerEvent event(this, deadline);
-
-        return ExecuteEvent(&event);
-    }
+    int SleepD(TInstant deadline) noexcept;
 
     int SleepT(TDuration timeout) noexcept {
         return SleepD(timeout.ToDeadLine());
@@ -411,10 +380,7 @@ public:
         return MsgPeek(s) > 0;
     }
 
-    static int MsgPeek(SOCKET s) noexcept {
-        char c;
-        return recv(s, &c, 1, MSG_PEEK);
-    }
+    static int MsgPeek(SOCKET s) noexcept;
 
     inline bool IAmRunning() const noexcept;
 
@@ -430,46 +396,16 @@ public:
         return Scheduled_;
     }
 
-    void WakeAllWaiters() noexcept {
-        Y_CORO_DBGOUT(Y_CORO_PRINT(this) << " wake all waiters");
-        Y_VERIFY(!Dead_, "%s", Y_CORO_PRINTF(this));
-        while (!Waiters_.Empty()) {
-            Waiters_.PopFront()->Wake();
-        }
-    }
+    void WakeAllWaiters() noexcept;
 
-    bool Join(TCont* c, TInstant deadLine = TInstant::Max()) noexcept {
-        Y_CORO_DBGOUT(Y_CORO_PRINT(this) << " join " << Y_CORO_PRINT(c));
-        Y_VERIFY(!Dead_, "%s", Y_CORO_PRINTF(this));
-        Y_VERIFY(!c->Dead_, "%s -> %s", Y_CORO_PRINTF(this), Y_CORO_PRINTF(c));
-        TJoinWait ev(this);
-
-        c->Waiters_.PushBack(&ev);
-
-        do {
-            if (SleepD(deadLine) == ETIMEDOUT || Cancelled()) {
-                if (!ev.Empty()) {
-                    c->Cancel();
-
-                    do {
-                        SwitchToScheduler();
-                    } while (!ev.Empty());
-                }
-
-                return false;
-            }
-        } while (!ev.Empty());
-
-        return true;
-    }
+    bool Join(TCont* c, TInstant deadLine = TInstant::Max()) noexcept;
 
     inline void ReSchedule() noexcept;
 
-    void Die() noexcept {
-        Y_CORO_DBGOUT(Y_CORO_PRINT(this) << " die");
-        Y_VERIFY(!Dead_, "%s", Y_CORO_PRINTF(this));
-        Dead_ = true;
-    }
+    template <class T>
+    inline int ExecuteEvent(T* event) noexcept;
+
+    void Die() noexcept;
 
     bool Dead() const noexcept {
         return Dead_;
@@ -989,32 +925,26 @@ private:
     bool FailOnError_;
 };
 
-template <class T>
-inline int ExecuteEvent(T* event) noexcept {
-    TCont* c = event->Cont();
 
-    if (c->Cancelled()) {
+template <class T>
+inline int TCont::ExecuteEvent(T* event) noexcept {
+    if (Cancelled()) {
         return ECANCELED;
     }
 
-    /*
-     * schedule wait
-     */
-    c->Executor()->ScheduleIoWait(event);
+    Executor()->ScheduleIoWait(event);
+    SwitchToScheduler();
 
-    /*
-     * go to scheduler
-     */
-    c->SwitchToScheduler();
-    /*
-     * wait complete
-     */
-
-    if (c->Cancelled()) {
+    if (Cancelled()) {
         return ECANCELED;
     }
 
     return event->Status();
+}
+
+template <class T>
+inline int ExecuteEvent(T* event) noexcept {
+    return event->Cont()->ExecuteEvent(event);
 }
 
 inline void TFdEvent::RemoveFromIOWait() noexcept {
