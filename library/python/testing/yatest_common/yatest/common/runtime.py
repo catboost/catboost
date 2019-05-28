@@ -1,8 +1,12 @@
 import os
 import functools
 import json
+import threading
 
 import six
+
+
+_lock = threading.Lock()
 
 
 def _get_ya_config():
@@ -201,9 +205,12 @@ def global_resources():
 
 def _register_core(name, binary_path, core_path, bt_path, pbt_path):
     config = _get_ya_config()
-    config.test_cores_count += 1
+
+    with _lock:
+        config.test_cores_count += 1
+        count_str = '' if config.test_cores_count == 1 else str(config.test_cores_count)
+
     log_entry = config.test_logs[config.current_item_nodeid]
-    count_str = '' if config.test_cores_count == 1 else str(config.test_cores_count)
     if binary_path:
         log_entry['{} binary{}'.format(name, count_str)] = binary_path
     if core_path:
