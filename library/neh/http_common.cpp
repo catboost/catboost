@@ -95,8 +95,10 @@ namespace {
         @todo ensure headers right formatted (now receive from perl report bad format headers)
      */
     void SafeWriteHeaders(IOutputStream& out, TStringBuf hdrs) {
-        for (TStringBuf msgHdr : NNeh::NHttp::SplitHeaders(hdrs)) {
-            if (!!msgHdr && !AsciiHasPrefixIgnoreCase(msgHdr, AsStringBuf("Content-Length"))) {
+        NNeh::NHttp::THeaderSplitter splitter(hdrs);
+        TStringBuf msgHdr;
+        while (splitter.Next(msgHdr)) {
+            if (!AsciiHasPrefixIgnoreCase(msgHdr, AsStringBuf("Content-Length"))) {
                 out << msgHdr << AsStringBuf("\r\n");
             }
         }

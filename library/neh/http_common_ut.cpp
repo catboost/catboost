@@ -361,11 +361,14 @@ Y_UNIT_TEST_SUITE(THttpCommon) {
     }
 
     Y_UNIT_TEST(TSplitHeaders) {
-        TString headers = "Host: yandex.ru\r\nContent-Length: 18\r\nX-Header: v:5";
-        TVector<TString> expected = {"Host: yandex.ru", "Content-Length: 18", "X-Header: v:5"};
+        TString headers = "Host: yandex.ru\r\nContent-Length: 18\r\nX-Header: v:5\n\r\nX-Header2: yyy\nX-Header3: zzz";
+        TVector<TString> expected = {"Host: yandex.ru", "Content-Length: 18", "X-Header: v:5", "X-Header2: yyy", "X-Header3: zzz"};
 
         size_t i = 0;
-        for (TStringBuf header : NNeh::NHttp::SplitHeaders(headers)) {
+        NNeh::NHttp::THeaderSplitter splitter{headers};
+
+        TStringBuf header;
+        while (splitter.Next(header)) {
             UNIT_ASSERT_VALUES_EQUAL(header, expected[i++]);
         };
 
