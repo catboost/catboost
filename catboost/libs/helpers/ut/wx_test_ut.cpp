@@ -76,12 +76,12 @@ TWxTestResult OldWxTest(const TVector<double>& baseline,
 }
 
 Y_UNIT_TEST_SUITE(WxTest) {
-    TVector<double>& GenerateVector(size_t n, TRestorableFastRng64& rng) {
-        auto res = new TVector<double>();
+    TVector<double> GenerateVector(size_t n, TRestorableFastRng64& rng) {
+        TVector<double> res;
         for (size_t i = 0; i < n; ++i) {
-            res->push_back(rng.GenRandReal1());
+            res.push_back(rng.GenRandReal1());
         }
-        return *res;
+        return res;
     }
 
     void Compare(TWxTestResult& result1, TWxTestResult& result2) {
