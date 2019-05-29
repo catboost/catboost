@@ -306,6 +306,7 @@ void NCatboostOptions::PlainJsonToOptions(
     CopyOption(plainOptions, "experiment_count", &modelBasedEvalOptions, &seenKeys);
     CopyOption(plainOptions, "experiment_size", &modelBasedEvalOptions, &seenKeys);
     CopyOption(plainOptions, "baseline_model_snapshot", &modelBasedEvalOptions, &seenKeys);
+    CopyOption(plainOptions, "use_evaluated_features_in_baseline_model", &modelBasedEvalOptions, &seenKeys);
 
     //cat-features
     auto& ctrOptions = trainOptions["cat_feature_params"];

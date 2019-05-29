@@ -30,5 +30,6 @@ namespace NCatboostOptions {
         TOption<int> Offset;
         TOption<int> ExperimentCount;
         TOption<int> ExperimentSize;
+        TOption<bool> UseEvaluatedFeaturesInBaselineModel;
     };
 }

@@ -2705,6 +2705,22 @@
         {
             "checksum": "9160c0c00cc6a7683c0d3f5f7f5cac60",
             "uri": "file://test_gpu.test_model_based_eval_adult_/test_error.log.3"
+        },
+        {
+            "checksum": "e49ea3c84146bebcad3decf4d25aa52e",
+            "uri": "file://test_gpu.test_model_based_eval_adult_/test_error.log.4"
+        },
+        {
+            "checksum": "34942093132d5d915161618e66b89e03",
+            "uri": "file://test_gpu.test_model_based_eval_adult_/test_error.log.5"
+        },
+        {
+            "checksum": "6321469e86a76198c8f55ed7e0595a3d",
+            "uri": "file://test_gpu.test_model_based_eval_adult_/test_error.log.6"
+        },
+        {
+            "checksum": "44f7030b3f514f2d81f6d79f91248406",
+            "uri": "file://test_gpu.test_model_based_eval_adult_/test_error.log.7"
         }
     ],
     "test_gpu.test_model_based_eval[querywise]": [
@@ -2723,6 +2739,22 @@
         {
             "checksum": "fc63842be547e04a8558e523e54e50d2",
             "uri": "file://test_gpu.test_model_based_eval_querywise_/test_error.log.3"
+        },
+        {
+            "checksum": "2c4ed1b3b61ae9f748df7e0ec0ec5a08",
+            "uri": "file://test_gpu.test_model_based_eval_querywise_/test_error.log.4"
+        },
+        {
+            "checksum": "5191075f67c52ab7fb234546b5706ec2",
+            "uri": "file://test_gpu.test_model_based_eval_querywise_/test_error.log.5"
+        },
+        {
+            "checksum": "3229fec92d945edcf2b7797601ef4a2e",
+            "uri": "file://test_gpu.test_model_based_eval_querywise_/test_error.log.6"
+        },
+        {
+            "checksum": "4cb0fa1d0282533aa92952ec46b98995",
+            "uri": "file://test_gpu.test_model_based_eval_querywise_/test_error.log.7"
         }
     ],
     "test_gpu.test_multi_leaf_estimation_method[Gradient]": [

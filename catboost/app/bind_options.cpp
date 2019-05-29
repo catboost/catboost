@@ -515,6 +515,13 @@ static void BindModelBasedEvalParams(NLastGetopt::TOpts* parserPtr, NJson::TJson
         .Handler1T<int>([plainJsonPtr](int experimentSize) {
             (*plainJsonPtr)["experiment_size"] = experimentSize;
         });
+    parser
+        .AddLongOption("use-evaluated-features-in-baseline-model")
+        .NoArgument()
+        .Help("Use all evaluated features in baseline model rather than zero out them.")
+        .Handler0([plainJsonPtr]() {
+            (*plainJsonPtr)["use_evaluated_features_in_baseline_model"] = true;
+        });
 }
 
 static void BindTreeParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* plainJsonPtr) {

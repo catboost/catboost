@@ -2422,6 +2422,7 @@ def test_model_based_eval(dataset):
         get_params() + (
             '--snapshot-file', 'baseline_model_snapshot',
             '-I', '10:11:12:13:15:20:31',
+            '--train-dir', 'zero_out_tested',
         ))
 
     model_based_eval_catboost_gpu(
@@ -2431,11 +2432,33 @@ def test_model_based_eval(dataset):
             '--offset', '20',
             '--experiment-size', '10',
             '--experiment-count', '2',
+            '--train-dir', 'zero_out_tested',
+        ))
+
+    fit_catboost_gpu(
+        get_params() + (
+            '--snapshot-file', 'baseline_model_snapshot',
+            '--train-dir', 'use_tested',
+        ))
+
+    model_based_eval_catboost_gpu(
+        get_params() + (
+            '--baseline-model-snapshot', 'baseline_model_snapshot',
+            '--features-to-evaluate', '10,11,12,13;15,20,31',
+            '--offset', '20',
+            '--experiment-size', '10',
+            '--experiment-count', '2',
+            '--use-evaluated-features-in-baseline-model',
+            '--train-dir', 'use_tested',
         ))
 
     return [
-        local_canonical_file(os.path.join('feature_set0_fold0', test_err_log), diff_tool=diff_tool()),
-        local_canonical_file(os.path.join('feature_set0_fold1', test_err_log), diff_tool=diff_tool()),
-        local_canonical_file(os.path.join('feature_set1_fold0', test_err_log), diff_tool=diff_tool()),
-        local_canonical_file(os.path.join('feature_set1_fold1', test_err_log), diff_tool=diff_tool())
+        local_canonical_file(os.path.join('zero_out_tested', 'feature_set0_fold0', test_err_log), diff_tool=diff_tool()),
+        local_canonical_file(os.path.join('zero_out_tested', 'feature_set0_fold1', test_err_log), diff_tool=diff_tool()),
+        local_canonical_file(os.path.join('zero_out_tested', 'feature_set1_fold0', test_err_log), diff_tool=diff_tool()),
+        local_canonical_file(os.path.join('zero_out_tested', 'feature_set1_fold1', test_err_log), diff_tool=diff_tool()),
+        local_canonical_file(os.path.join('use_tested', 'feature_set0_fold0', test_err_log), diff_tool=diff_tool()),
+        local_canonical_file(os.path.join('use_tested', 'feature_set0_fold1', test_err_log), diff_tool=diff_tool()),
+        local_canonical_file(os.path.join('use_tested', 'feature_set1_fold0', test_err_log), diff_tool=diff_tool()),
+        local_canonical_file(os.path.join('use_tested', 'feature_set1_fold1', test_err_log), diff_tool=diff_tool())
     ]

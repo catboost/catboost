@@ -650,12 +650,27 @@ NCatboostOptions::TCatBoostOptions NCatboostOptions::LoadOptions(const NJson::TJ
     return options;
 }
 
+static bool IsFullBaseline(const NJson::TJsonValue& source) {
+    NCatboostOptions::TOption<bool> isFullBaseline(
+        "use_evaluated_features_in_baseline_model",
+        false
+    );
+    NCatboostOptions::TJsonFieldHelper<decltype(isFullBaseline)>::Read(
+        source["model_based_eval_options"],
+        &isFullBaseline
+    );
+    return isFullBaseline.Get();
+}
+
 static TSet<ui32> GetMaybeIgnoredFeatures(const NJson::TJsonValue& params) {
     const auto ignoredFeatures = GetOptionIgnoredFeatures(params);
     const auto featuresToEvaluate = GetOptionFeaturesToEvaluate(params);
     TSet<ui32> result;
     result.insert(ignoredFeatures.begin(), ignoredFeatures.end());
-    result.insert(featuresToEvaluate.begin(), featuresToEvaluate.end());
+    const bool isFullBaseline = IsFullBaseline(params);
+    if (!isFullBaseline) {
+        result.insert(featuresToEvaluate.begin(), featuresToEvaluate.end());
+    }
     return result;
 }
 
