@@ -23,6 +23,8 @@ namespace NCatboostOptions {
     NJson::TJsonValue ParseCtrDescriptions(TStringBuf description);
     std::pair<ui32, NJson::TJsonValue> ParsePerFeatureCtrDescription(TStringBuf description);
     NJson::TJsonValue ParsePerFeatureCtrs(TStringBuf description);
+    TString RemapAndConcatenateCtrOptions(const NJson::TJsonValue& options);
+
 
     TVector<TPrior> GetDefaultPriors(ECtrType ctrType);
 

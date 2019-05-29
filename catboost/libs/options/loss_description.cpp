@@ -5,6 +5,9 @@
 #include <util/string/cast.h>
 #include <util/string/split.h>
 #include <util/string/vector.h>
+#include <util/string/strip.h>
+#include <util/string/subst.h>
+
 
 
 ELossFunction ParseLossType(const TStringBuf lossDescription) {
@@ -266,3 +269,21 @@ NJson::TJsonValue LossDescriptionToJson(const TStringBuf lossDescription) {
     }
     return descriptionJson;
 }
+
+TString RemapLossOrMetricsOptions(const NJson::TJsonValue& options) {
+    TString ParamType = StripString(ToString(options["type"]), EqualsStripAdapter('"'));
+    if (!options["params"].GetMap().empty()) {
+        ParamType = ParamType + ":";
+    }
+    for (auto& elem : options["params"].GetMap()) {
+        const TString& param_name = elem.first;
+        const TString& param_value = StripString(ToString(elem.second), EqualsStripAdapter('"'));
+        ParamType = ParamType + param_name + "=" + param_value + ";";
+    }
+
+    // delete the last ";" symbol
+    SubstGlobal(ParamType, ";", "", ParamType.size() - 1);
+    return ParamType;
+}
+
+

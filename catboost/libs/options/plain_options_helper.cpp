@@ -11,11 +11,16 @@
 #include <util/string/builder.h>
 #include <util/string/cast.h>
 #include <util/string/escape.h>
+#include <util/string/strip.h>
+#include <util/string/subst.h>
 #include <util/system/compiler.h>
+
 
 using NCatboostOptions::ParseCtrDescription;
 using NCatboostOptions::ParsePerFeatureBinarization;
 using NCatboostOptions::ParsePerFeatureCtrDescription;
+using NCatboostOptions::RemapAndConcatenateCtrOptions;
+
 
 static Y_NO_INLINE void CopyCtrDescription(
     const NJson::TJsonValue& options,
@@ -41,6 +46,27 @@ static Y_NO_INLINE void CopyCtrDescription(
 
     seenKeys->insert(TString(srcKey));
 }
+
+static Y_NO_INLINE void ConcatenateCtrDescription(
+        const NJson::TJsonValue& options,
+        const TStringBuf srcKey,
+        const TStringBuf dstKey,
+        NJson::TJsonValue* const dst,
+        TSet<TString>* const seenKeys
+) {
+    if (!options.Has(srcKey)) {
+        return;
+    }
+
+    auto& arr = (*dst)[dstKey] = NJson::TJsonValue(NJson::JSON_ARRAY);
+    const NJson::TJsonValue& ctrDescriptions = options[srcKey];
+    for (const auto& elem: ctrDescriptions.GetArraySafe()) {
+        const auto& ctr_options_concatenated = RemapAndConcatenateCtrOptions(elem);
+        arr.AppendValue(ctr_options_concatenated);
+    }
+    seenKeys->insert(TString(srcKey));
+}
+
 
 static Y_NO_INLINE void CopyPerFeatureCtrDescription(
     const NJson::TJsonValue& options,
@@ -148,6 +174,7 @@ static bool HasLossFunctionSomeWhereInPlainOptions(
     return hasLossFunction;
 }
 
+
 // TODO(yazevnul): split catboost/app into catboost/app/lib and catboost/app so we can write
 // unittests for cmdline invocation.
 static void ValidatePlainOptionsConsistency(const NJson::TJsonValue& plainOptions) {
@@ -169,6 +196,30 @@ static void ValidatePlainOptionsConsistency(const NJson::TJsonValue& plainOption
         ythrow TCatBoostException()
             << ELossFunction::MultiClass << " and "
             << ELossFunction::MultiClassOneVsAll << " are incompatible";
+    }
+}
+
+static Y_NO_INLINE void RemapPerFeatureCtrDescription(
+        const NJson::TJsonValue& options,
+        const TStringBuf srcKey,
+        const TStringBuf dstKey,
+        NJson::TJsonValue* const dst)
+{
+    auto& result = (*dst)[dstKey] = NJson::TJsonValue(NJson::JSON_ARRAY);
+    for (const auto& elem : options[srcKey].GetMap()) {
+        TString CatFeatureIndex = elem.first;
+        auto& CtrDict = elem.second[0];
+        const auto& ctr_options_concatenated = RemapAndConcatenateCtrOptions(CtrDict);
+        result.AppendValue(CatFeatureIndex + ":" + ctr_options_concatenated);
+    }
+}
+
+static Y_NO_INLINE void DeleteSeenOption(
+        NJson::TJsonValue* options,
+        const TStringBuf key)
+{
+    if (options->Has(key)) {
+        options->EraseValue(key);
     }
 }
 
@@ -401,69 +452,30 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
     NJson::TJsonValue& plainOptionsJson = *plainOptions;
     plainOptionsJson.SetType(NJson::JSON_MAP);
 
-    // loss reverse mapping is not implemented yet
-//    auto& lossFunctionRef = trainOptions["loss_function"];
-//    lossFunctionRef.SetType(NJson::JSON_MAP);
-//    if (plainOptions.Has("loss_function")) {
-//        lossFunctionRef = LossDescriptionToJson(plainOptions["loss_function"].GetStringSafe());
-//        seenKeys.insert("loss_function");
-//    }
-//
-//    trainOptions["metrics"].SetType(NJson::JSON_MAP);
-//
-//    if (plainOptions.Has("eval_metric")) {
-//        trainOptions["metrics"]["eval_metric"] = LossDescriptionToJson(plainOptions["eval_metric"].GetStringSafe());
-//        seenKeys.insert("eval_metric");
-//    }
-//
-//    if (plainOptions.Has("custom_metric") || plainOptions.Has("custom_loss")) {
-//        const NJson::TJsonValue& metrics = plainOptions.Has("custom_metric") ? plainOptions["custom_metric"] : plainOptions["custom_loss"];
-//        if (metrics.IsArray()) {
-//            for (const auto& metric : metrics.GetArraySafe()) {
-//                trainOptions["metrics"]["custom_metrics"].AppendValue(LossDescriptionToJson(metric.GetStringSafe()));
-//            }
-//        } else {
-//            trainOptions["metrics"]["custom_metrics"].AppendValue(LossDescriptionToJson(metrics.GetStringSafe()));
-//        }
-//        seenKeys.insert(plainOptions.Has("custom_metric") ? "custom_metric" : "custom_loss");
-//    }
+    NJson::TJsonValue OptionsCopy(options);
 
+    plainOptionsJson["loss_function"] = RemapLossOrMetricsOptions(options["loss_function"]);
+    DeleteSeenOption(&OptionsCopy, "loss_function");
 
-//    outputOptions
-//    keys from commented lines will be used for assert
-//    CopyOption(plainOptions, "train_dir", &outputFilesJson, &seenKeys);
-//    CopyOption(plainOptions, "name", &outputFilesJson, &seenKeys);
-//    CopyOption(plainOptions, "meta", &outputFilesJson, &seenKeys);
-//    CopyOption(plainOptions, "json_log", &outputFilesJson, &seenKeys);
-//    CopyOption(plainOptions, "profile_log", &outputFilesJson, &seenKeys);
-//    CopyOption(plainOptions, "learn_error_log", &outputFilesJson, &seenKeys);
-//    CopyOption(plainOptions, "test_error_log", &outputFilesJson, &seenKeys);
-//    CopyOption(plainOptions, "time_left_log", &outputFilesJson, &seenKeys);
-//    CopyOption(plainOptions, "result_model_file", &outputFilesJson, &seenKeys);
-//    CopyOption(plainOptions, "snapshot_file", &outputFilesJson, &seenKeys);
-//    CopyOption(plainOptions, "save_snapshot", &outputFilesJson, &seenKeys);
-//    CopyOption(plainOptions, "snapshot_interval", &outputFilesJson, &seenKeys);
+    plainOptionsJson["eval_metric"] = RemapLossOrMetricsOptions(options["metrics"]["eval_metric"]);
+    DeleteSeenOption(&OptionsCopy["metrics"], "eval_metric");
+
+    auto& result = plainOptionsJson["custom_metric"] = NJson::TJsonValue(NJson::JSON_ARRAY);
+    for (auto& metric : options["metrics"]["custom_metrics"].GetArray()) {
+        result.AppendValue(RemapLossOrMetricsOptions(metric));
+    }
+    DeleteSeenOption(&OptionsCopy["metrics"], "custom_metrics");
+    DeleteSeenOption(&OptionsCopy["metrics"], "objective_metric");
+
+    CB_ENSURE(OptionsCopy["metrics"].GetMapSafe().empty(), "some loss or metrics keys missed");
+
+    // outputOptions
     CopyOption(outputOptions, "verbose", &plainOptionsJson, &seenKeys);
-//    CopyOption(plainOptions, "metric_period", &outputFilesJson, &seenKeys);
-//    CopyOption(plainOptions, "prediction_type", &outputFilesJson, &seenKeys);
-//    CopyOption(plainOptions, "output_columns", &outputFilesJson, &seenKeys);
-//    CopyOption(plainOptions, "allow_writing_files", &outputFilesJson, &seenKeys);
-//    CopyOption(plainOptions, "final_ctr_computation_mode", &outputFilesJson, &seenKeys);
     CopyOption(outputOptions, "use_best_model", &plainOptionsJson, &seenKeys);
-//    CopyOption(plainOptions, "best_model_min_trees", &outputFilesJson, &seenKeys);
-//    CopyOption(plainOptions, "eval_file_name", &outputFilesJson, &seenKeys);
-//    CopyOption(plainOptions, "fstr_regular_file", &outputFilesJson, &seenKeys);
-//    CopyOption(plainOptions, "fstr_internal_file", &outputFilesJson, &seenKeys);
-//    CopyOption(plainOptions, "fstr_type", &outputFilesJson, &seenKeys);
-//    CopyOption(plainOptions, "training_options_file", &outputFilesJson, &seenKeys);
-//    CopyOption(plainOptions, "model_format",  &outputFilesJson, &seenKeys);
-//    CopyOption(plainOptions, "output_borders",  &outputFilesJson, &seenKeys);
-//    CopyOption(plainOptions, "roc_file",  &outputFilesJson, &seenKeys);
 
     //boosting options
     const char* const boostingOptionsKey = "boosting_options";
     const NJson::TJsonValue& boostingOptionsRef = options[boostingOptionsKey];
-
     CopyOption(boostingOptionsRef, "iterations", &plainOptionsJson, &seenKeys);
     CopyOption(boostingOptionsRef, "learning_rate", &plainOptionsJson, &seenKeys);
     CopyOption(boostingOptionsRef, "fold_len_multiplier", &plainOptionsJson, &seenKeys);
@@ -475,12 +487,13 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
     CopyOption(boostingOptionsRef, "data_partition", &plainOptionsJson, &seenKeys);
 
     auto& odConfig = boostingOptionsRef["od_config"];
+
     CopyOptionWithNewKey(odConfig, "stop_pvalue", "od_pval", &plainOptionsJson, &seenKeys);
     CopyOptionWithNewKey(odConfig, "wait_iterations", "od_wait", &plainOptionsJson, &seenKeys);
     CopyOptionWithNewKey(odConfig, "type", "od_type", &plainOptionsJson, &seenKeys);
 
-    // commented dev_* options will be used for assert
     auto& treeOptions = options["tree_learner_options"];
+
     CopyOption(treeOptions, "rsm", &plainOptionsJson, &seenKeys);
     CopyOption(treeOptions, "leaf_estimation_iterations", &plainOptionsJson, &seenKeys);
     CopyOption(treeOptions, "leaf_estimation_backtracking", &plainOptionsJson, &seenKeys);
@@ -488,8 +501,6 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
     CopyOption(treeOptions, "l2_leaf_reg", &plainOptionsJson, &seenKeys);
     CopyOption(treeOptions, "bayesian_matrix_reg", &plainOptionsJson, &seenKeys);
     CopyOption(treeOptions, "model_size_reg", &plainOptionsJson, &seenKeys);
-//    CopyOption(plainOptions, "dev_score_calc_obj_block_size", &treeOptions, &seenKeys);
-//    CopyOption(plainOptions, "dev_efb_max_buckets", &treeOptions, &seenKeys);
     CopyOption(treeOptions, "efb_max_conflict_fraction", &plainOptionsJson, &seenKeys);
     CopyOption(treeOptions, "random_strength", &plainOptionsJson, &seenKeys);
     CopyOption(treeOptions, "leaf_estimation_method", &plainOptionsJson, &seenKeys);
@@ -500,41 +511,24 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
     CopyOption(treeOptions, "fold_size_loss_normalization", &plainOptionsJson, &seenKeys);
     CopyOption(treeOptions, "add_ridge_penalty_to_loss_function", &plainOptionsJson, &seenKeys);
     CopyOption(treeOptions, "sampling_frequency", &plainOptionsJson, &seenKeys);
-//    CopyOption(plainOptions, "dev_max_ctr_complexity_for_border_cache", &treeOptions, &seenKeys);
     CopyOption(treeOptions, "observations_to_bootstrap", &plainOptionsJson, &seenKeys);
 
-
     auto& bootstrapOptions = treeOptions["bootstrap"];
+
     CopyOptionWithNewKey(bootstrapOptions, "type", "bootstrap_type", &plainOptionsJson, &seenKeys);
     CopyOption(bootstrapOptions, "bagging_temperature", &plainOptionsJson, &seenKeys);
     CopyOption(bootstrapOptions, "subsample", &plainOptionsJson, &seenKeys);
     CopyOption(bootstrapOptions, "mvs_head_fraction", &plainOptionsJson, &seenKeys);
 
-    // feature evaluation options
-    // Anna said delete eval options
-    // keys will be used for assert
-//    auto& modelBasedEvalOptions = options["model_based_eval_options"];
-//    CopyOption(modelBasedEvalOptions, "features_to_evaluate", &plainOptionsJson, &seenKeys);
-//    CopyOption(modelBasedEvalOptions, "offset", &plainOptionsJson, &seenKeys);
-//    CopyOption(modelBasedEvalOptions, "experiment_count", &plainOptionsJson, &seenKeys);
-//    CopyOption(modelBasedEvalOptions, "experiment_size", &plainOptionsJson, &seenKeys);
-//    CopyOption(modelBasedEvalOptions, "baseline_model_snapshot", &plainOptionsJson, &seenKeys);
-
-
     //cat-features
     auto& ctrOptions = options["cat_feature_params"];
 
-    // not implemented yet
-//    if (plainOptions.Has("ctr_description")) {
-//        CATBOOST_WARNING_LOG << "ctr_description option is deprecated and will be removed soon. Tree/Simple ctr option will override this" << Endl;
-//        CopyCtrDescription(plainOptions, "ctr_description", "simple_ctrs", &ctrOptions, &seenKeys);
-//        CopyCtrDescription(plainOptions, "ctr_description", "combinations_ctrs", &ctrOptions, &seenKeys);
-//    }
-//    CopyCtrDescription(plainOptions, "simple_ctr", "simple_ctrs", &ctrOptions, &seenKeys);
-//    CopyCtrDescription(plainOptions, "combinations_ctr", "combinations_ctrs", &ctrOptions, &seenKeys);
-//    CopyPerFeatureCtrDescription(plainOptions, "per_feature_ctr", "per_feature_ctrs", &ctrOptions, &seenKeys);
+    ConcatenateCtrDescription(ctrOptions, "simple_ctrs", "simple_ctr", &plainOptionsJson, &seenKeys);
+    ConcatenateCtrDescription(ctrOptions, "combinations_ctrs", "combinations_ctr", &plainOptionsJson, &seenKeys);
+    RemapPerFeatureCtrDescription(ctrOptions, "per_feature_ctrs", "per_feature_ctr", &plainOptionsJson);
 
     auto& ctrTargetBinarization = ctrOptions["target_binarization"];
+
     CopyOptionWithNewKey(ctrTargetBinarization, "border_count", "ctr_target_border_count", &plainOptionsJson, &seenKeys);
     CopyOption(ctrOptions, "max_ctr_complexity", &plainOptionsJson, &seenKeys);
     CopyOption(ctrOptions, "simple_ctr_description", &plainOptionsJson, &seenKeys);
@@ -545,7 +539,6 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
     CopyOption(ctrOptions, "one_hot_max_size", &plainOptionsJson, &seenKeys);
     CopyOption(ctrOptions, "ctr_leaf_count_limit", &plainOptionsJson, &seenKeys);
     CopyOption(ctrOptions, "ctr_history_unit", &plainOptionsJson, &seenKeys);
-
 
     //data processing
     auto& dataProcessingOptions = options["data_processing_options"];
@@ -563,15 +556,11 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
     CopyOption(floatFeaturesBinarization, "border_count", &plainOptionsJson, &seenKeys);
     CopyOptionWithNewKey(floatFeaturesBinarization, "border_type", "feature_border_type", &plainOptionsJson, &seenKeys);
     CopyOption(floatFeaturesBinarization, "nan_mode", &plainOptionsJson, &seenKeys);
-//    not implemented yet
-//    CopyPerFloatFeatureBinarization(dataProcessingOptions, "per_float_feature_binarization", &plainOptionsJson, &seenKeys);
-
 
     //system
     auto& systemOptions = options["system_options"];
+
     CopyOption(systemOptions, "thread_count", &plainOptionsJson, &seenKeys);
-//    deprecated, key will be used for assert
-//    CopyOptionWithNewKey(systemOptions, "device_config", "devices", &plainOptionsJson, &seenKeys);
     CopyOption(systemOptions, "devices", &plainOptionsJson, &seenKeys);
     CopyOption(systemOptions, "used_ram_limit", &plainOptionsJson, &seenKeys);
     CopyOption(systemOptions, "gpu_ram_part", &plainOptionsJson, &seenKeys);
