@@ -1,4 +1,6 @@
 from setuptools import setup, find_packages
+import sys
+
 
 PACKAGE = 'catboost'
 
@@ -17,6 +19,16 @@ def version():
     execfile('./catboost/version.py', globals)
     return globals['VERSION']
 
+install_requires=[
+    'graphviz',
+    'six',
+    'numpy >= 1.11.1',
+    'pandas >= 0.19.1'
+],
+
+if sys.version_info < (3, 4):
+    install_requires.append('enum34')
+
 setup(
     name=PACKAGE,
     version=version(),
@@ -26,11 +38,5 @@ setup(
     license="Apache License, Version 2.0",
 
     packages=find_packages(),
-    install_requires=[
-        'enum34',
-        'graphviz',
-        'six',
-        'numpy >= 1.11.1',
-        'pandas >= 0.19.1'
-    ],
+    install_requires=install_requires,
 )
