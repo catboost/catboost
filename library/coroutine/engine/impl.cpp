@@ -1,9 +1,8 @@
-#include "schedule_callback.h"
 #include "impl.h"
+#include "schedule_callback.h"
 
 #include <util/generic/yexception.h>
 #include <util/stream/output.h>
-#include <util/system/protect.h>
 #include <util/system/yassert.h>
 
 template <>
@@ -58,14 +57,6 @@ void TContRep::Destruct() noexcept {
     MachinePtr()->~TExceptionSafeContext();
 }
 
-void TProtectedContStackAllocator::Protect(void* ptr, size_t len) noexcept {
-    ProtectMemory(ptr, len, PM_NONE);
-}
-
-void TProtectedContStackAllocator::UnProtect(void* ptr, size_t len) noexcept {
-    ProtectMemory(ptr, len, PM_READ | PM_WRITE);
-}
-
 void TContExecutor::WaitForIO() {
     Y_CORO_DBGOUT("scheduler: WaitForIO R,RN,WQ=" << Ready_.Size() << "," << ReadyNext_.Size() << "," << !WaitQueue_.Empty());
 
@@ -91,19 +82,19 @@ void TContExecutor::WaitForIO() {
            << Ready_.Size() << "," << ReadyNext_.Size() << "," << !WaitQueue_.Empty());
 }
 
-void TContExecutor::ProcessEvents(){
+void TContExecutor::ProcessEvents() {
     for (auto event : Events_) {
-        TPollEventList* lst = (TPollEventList*)event.Data;
+        auto* lst = (NCoro::TPollEventList*)event.Data;
         const int status = event.Status;
 
         if (status) {
-            for (TPollEventList::TIterator it = lst->Begin(); it != lst->End();) {
+            for (auto it = lst->Begin(); it != lst->End();) {
                 (it++)->OnPollEvent(status);
             }
         } else {
             const ui16 filter = event.Filter;
 
-            for (TPollEventList::TIterator it = lst->Begin(); it != lst->End();) {
+            for (auto it = lst->Begin(); it != lst->End();) {
                 if (it->What() & filter) {
                     (it++)->OnPollEvent(0);
                 } else {
@@ -136,7 +127,7 @@ int TCont::SelectD(SOCKET fds[], int what[], size_t nfds, SOCKET* outfd, TInstan
 
     TTempBuf memoryBuf(nfds * sizeof(TFdEvent));
     void* memory = memoryBuf.Data();
-    TContPollEventHolder holder(memory, this, fds, what, nfds, deadline);
+    NCoro::TContPollEventHolder holder(memory, this, fds, what, nfds, deadline);
     holder.ScheduleIoWait(Executor());
 
     SwitchToScheduler();
@@ -498,50 +489,4 @@ void TContExecutor::RunScheduler() noexcept {
     }
 
     Y_CORO_DBGOUT("scheduler: stopped");
-}
-
-TContPollEventHolder::TContPollEventHolder(void* memory, TCont* rep, SOCKET fds[], int what[], size_t nfds, TInstant deadline)
-    : Events_((TFdEvent*)memory)
-    , Count_(nfds)
-{
-    for (size_t i = 0; i < Count_; ++i) {
-        new (&(Events_[i])) TFdEvent(rep, fds[i], (ui16)what[i], deadline);
-    }
-}
-
-TContPollEventHolder::~TContPollEventHolder() {
-    for (size_t i = 0; i < Count_; ++i) {
-        Events_[i].~TFdEvent();
-    }
-}
-
-void TContPollEventHolder::ScheduleIoWait(TContExecutor* executor) {
-    for (size_t i = 0; i < Count_; ++i) {
-        executor->ScheduleIoWait(&(Events_[i]));
-    }
-}
-
-TFdEvent* TContPollEventHolder::TriggeredEvent() noexcept {
-    TFdEvent* ret = nullptr;
-    int status = EINPROGRESS;
-
-    for (size_t i = 0; i < Count_; ++i) {
-        TFdEvent& ev = Events_[i];
-
-        switch (ev.Status()) {
-            case EINPROGRESS:
-                break;
-
-            case ETIMEDOUT:
-                if (status != EINPROGRESS) {
-                    break;
-                } // else fallthrough
-
-            default:
-                status = ev.Status();
-                ret = &ev;
-        }
-    }
-
-    return ret;
 }

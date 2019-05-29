@@ -9,6 +9,7 @@ PEERDIR(
 )
 
 SRCS(
+    cont_poller.cpp
     impl.cpp
     iostatus.cpp
     poller.cpp

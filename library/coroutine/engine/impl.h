@@ -5,7 +5,7 @@
 #include "schedule_callback.h"
 #include "iostatus.h"
 #include "poller.h"
-#include "sockmap.h"
+#include "cont_poller.h"
 #include "stack.h"
 
 #include <library/containers/intrusive_rb_tree/rb_tree.h>
@@ -66,118 +66,6 @@ typedef void (*TContFunc)(TCont*, void*);
 #else
 #   define Y_CORO_DBGOUT(x)
 #endif
-
-struct TContPollEventCompare {
-    template <class T>
-    static inline bool Compare(const T& l, const T& r) noexcept {
-        return l.DeadLine() < r.DeadLine() || (l.DeadLine() == r.DeadLine() && &l < &r);
-    }
-};
-
-class TContPollEvent: public TRbTreeItem<TContPollEvent, TContPollEventCompare> {
-public:
-    TContPollEvent(TCont* cont, TInstant deadLine) noexcept
-        : Cont_(cont)
-        , DeadLine_(deadLine)
-        , Status_(EINPROGRESS)
-    {
-    }
-
-    int Status() const noexcept {
-        return Status_;
-    }
-
-    void SetStatus(int status) noexcept {
-        Status_ = status;
-    }
-
-    TCont* Cont() noexcept {
-        return Cont_;
-    }
-
-    TInstant DeadLine() const noexcept {
-        return DeadLine_;
-    }
-
-    void Wake(int status) noexcept {
-        SetStatus(status);
-        Wake();
-    }
-
-private:
-    inline void Wake() noexcept;
-
-private:
-    TCont* Cont_;
-    TInstant DeadLine_;
-    int Status_;
-};
-
-
-class IPollEvent: public TIntrusiveListItem<IPollEvent> {
-public:
-    IPollEvent(SOCKET fd, ui16 what) noexcept
-        : Fd_(fd)
-        , What_(what)
-    {
-    }
-
-    virtual ~IPollEvent() {}
-
-    SOCKET Fd() const noexcept {
-        return Fd_;
-    }
-
-    int What() const noexcept {
-        return What_;
-    }
-
-    virtual void OnPollEvent(int status) noexcept = 0;
-
-private:
-    SOCKET Fd_;
-    ui16 What_;
-};
-
-class TFdEvent final: public TContPollEvent, public IPollEvent {
-public:
-    TFdEvent(TCont* cont, SOCKET fd, ui16 what, TInstant deadLine) noexcept
-        : TContPollEvent(cont, deadLine)
-        , IPollEvent(fd, what)
-    {
-    }
-
-    ~TFdEvent() {
-        RemoveFromIOWait();
-    }
-
-    inline void RemoveFromIOWait() noexcept;
-
-    void OnPollEvent(int status) noexcept override {
-        Wake(status);
-    }
-};
-
-class TTimerEvent: public TContPollEvent {
-public:
-    TTimerEvent(TCont* cont, TInstant deadLine) noexcept
-        : TContPollEvent(cont, deadLine)
-    {
-    }
-};
-
-class TContPollEventHolder {
-public:
-    TContPollEventHolder(void* memory, TCont* rep, SOCKET fds[], int what[], size_t nfds, TInstant deadline);
-    ~TContPollEventHolder();
-
-    void ScheduleIoWait(TContExecutor* executor);
-    TFdEvent* TriggeredEvent() noexcept;
-
-private:
-    TFdEvent* Events_;
-    size_t Count_;
-};
 
 
 class TCont {
@@ -483,33 +371,22 @@ struct TContRep : public TIntrusiveListItem<TContRep>, public ITrampoLine {
     TArrayRef<char> machine;
 };
 
-struct TPollEventList: public TIntrusiveList<IPollEvent> {
-    ui16 Flags() const noexcept {
-        ui16 ret = 0;
-
-        for (TConstIterator it = Begin(); it != End(); ++it) {
-            ret |= it->What();
-        }
-
-        return ret;
-    }
-};
 
 class TEventWaitQueue {
     struct TCancel {
-        void operator()(TContPollEvent* e) noexcept {
+        void operator()(NCoro::TContPollEvent* e) noexcept {
             e->Cont()->Cancel();
         }
 
-        void operator()(TContPollEvent& e) noexcept {
+        void operator()(NCoro::TContPollEvent& e) noexcept {
             operator()(&e);
         }
     };
 
-    typedef TRbTree<TContPollEvent, TContPollEventCompare> TIoWait;
+    typedef TRbTree<NCoro::TContPollEvent, NCoro::TContPollEventCompare> TIoWait;
 
 public:
-    void Register(TContPollEvent* event) {
+    void Register(NCoro::TContPollEvent* event) {
         IoWait_.Insert(event);
         event->Cont()->Rep()->Unlink();
     }
@@ -542,89 +419,6 @@ public:
 
 private:
     TIoWait IoWait_;
-};
-
-
-template <class T>
-class TBigArray {
-    struct TValue: public T, public TObjectFromPool<TValue> {
-        TValue() {
-        }
-    };
-
-public:
-    TBigArray()
-        : Pool_(TMemoryPool::TExpGrow::Instance(), TDefaultAllocator::Instance())
-    {
-    }
-
-    T* Get(size_t index) {
-        TRef& ret = Lst_.Get(index);
-
-        if (!ret) {
-            ret = new (&Pool_) TValue();
-        }
-
-        return ret.Get();
-    }
-
-private:
-    using TRef = THolder<TValue>;
-    typename TValue::TPool Pool_;
-    TSocketMap<TRef> Lst_;
-};
-
-
-class TContPoller {
-public:
-    typedef IPollerFace::TEvent TEvent;
-    typedef IPollerFace::TEvents TEvents;
-
-    TContPoller()
-        : P_(IPollerFace::Default())
-    {
-    }
-
-    explicit TContPoller(THolder<IPollerFace> poller)
-        : P_(std::move(poller))
-    {}
-
-    void Schedule(IPollEvent* event) {
-        TPollEventList* lst = List(event->Fd());
-        const ui16 oldFlags = lst->Flags();
-        lst->PushFront(event);
-        const ui16 newFlags = lst->Flags();
-
-        if (newFlags != oldFlags) {
-            P_->Set(lst, event->Fd(), newFlags);
-        }
-    }
-
-    void Remove(IPollEvent* event) noexcept {
-        TPollEventList* lst = List(event->Fd());
-        const ui16 oldFlags = lst->Flags();
-        event->Unlink();
-        const ui16 newFlags = lst->Flags();
-
-        if (newFlags != oldFlags) {
-            P_->Set(lst, event->Fd(), newFlags);
-        }
-    }
-
-    void Wait(TEvents& events, TInstant deadLine) {
-        events.clear();
-
-        P_->Wait(events, deadLine);
-    }
-
-private:
-    TPollEventList* List(size_t fd) {
-        return Lists_.Get(fd);
-    }
-
-private:
-    TBigArray<TPollEventList> Lists_;
-    THolder<IPollerFace> P_;
 };
 
 
@@ -673,6 +467,7 @@ private:
     TFreeReps Free_;
     ui64 Allocated_ = 0;
 };
+
 
 template <class Functor>
 static void ContHelperFunc(TCont* cont, void* arg) {
@@ -774,7 +569,7 @@ public:
         return cont;
     }
 
-    TContPoller* Poller() noexcept {
+    NCoro::TContPoller* Poller() noexcept {
         return &Poller_;
     }
 
@@ -914,13 +709,13 @@ private:
     TContList Ready_;
     TContList ReadyNext_;
     TEventWaitQueue WaitQueue_;
-    TContPoller Poller_;
+    NCoro::TContPoller Poller_;
     THolder<TContRepPool> MyPool_;
     TContRepPool& Pool_;
     TExceptionSafeContext SchedContext_;
     TContRep* Current_ = nullptr;
     NCoro::IScheduleCallback* const CallbackPtr_ = nullptr;
-    typedef TContPoller::TEvents TEvents;
+    using TEvents = NCoro::TContPoller::TEvents;
     TEvents Events_;
     bool FailOnError_;
 };
@@ -947,14 +742,6 @@ inline int ExecuteEvent(T* event) noexcept {
     return event->Cont()->ExecuteEvent(event);
 }
 
-inline void TFdEvent::RemoveFromIOWait() noexcept {
-    Cont()->Executor()->Poller()->Remove(this);
-}
-
-inline void TContPollEvent::Wake() noexcept {
-    UnLink();
-    Cont()->ReSchedule();
-}
 
 inline void TCont::Exit() {
     Y_CORO_DBGOUT(Y_CORO_PRINT(this) << " exit");

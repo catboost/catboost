@@ -6,8 +6,6 @@
 #include <library/neh/lfqueue.h>
 #include <library/neh/pipequeue.h>
 
-#include <library/coroutine/engine/poller.h>
-#include <library/coroutine/engine/sockmap.h>
 #include <library/dns/cache.h>
 
 #include <util/generic/hash_set.h>
@@ -62,9 +60,16 @@ namespace NAsio {
         T* volatile T_[sizeof(size_t) * 8];
     };
 
+    struct TOperationCompare {
+        template <class T>
+        static inline bool Compare(const T& l, const T& r) noexcept {
+            return l.DeadLine() < r.DeadLine() || (l.DeadLine() == r.DeadLine() && &l < &r);
+        }
+    };
+
     //async operation, execute in contex TIOService()::Run() thread-executor
     //usualy used for call functors/callbacks
-    class TOperation: public TRbTreeItem<TOperation, TContPollEventCompare>, public IHandlingContext {
+    class TOperation: public TRbTreeItem<TOperation, TOperationCompare>, public IHandlingContext {
     public:
         TOperation(TInstant deadline = TInstant::Max())
             : D_(deadline)
@@ -729,7 +734,7 @@ namespace NAsio {
             }
 
         private:
-            typedef TRbTree<TOperation, TContPollEventCompare> TDeadlines;
+            typedef TRbTree<TOperation, TOperationCompare> TDeadlines;
             TDeadlines Deadlines_;
             TIOService::TImpl& Srv_;
         };
