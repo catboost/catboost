@@ -136,7 +136,7 @@ void NCatboost::NCoreML::ConfigureCategoricalMappings(const TFullModel& model,
         auto valuesCount = oneHotFeature.Values.size();
         for (size_t j = 0; j < valuesCount; j++) {
             ui32 oneHotValue = ui32(oneHotFeature.Values[j]);
-            categoricalMapping.insert(std::make_pair(catFeaturesHashToString->find(oneHotValue)->second, j));
+            categoricalMapping.insert(std::make_pair(catFeaturesHashToString->at(oneHotValue), j));
         }
 
         mapping->set_int64value(i64(valuesCount));
