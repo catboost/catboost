@@ -2795,6 +2795,9 @@ cdef class _CatBoost:
         if pool:
             cat_features_hash_to_string = MergeCatFeaturesHashToString(pool.__pool.Get()[0].ObjectsData.Get()[0])
 
+        if format == "coreml" and not pool:
+            raise CatBoostError("Pool parameter should be specified for export to coreml format")
+
         ExportModel(
             dereference(self.__model),
             to_arcadia_string(output_file),
