@@ -285,6 +285,24 @@ Y_UNIT_TEST_SUITE(THttpCommon) {
                             msg.Data);
     }
 
+    Y_UNIT_TEST(TMakeFullRequestBrokenHeaderSplitter) {
+        /// Test for preserving behaviour.
+        NNeh::TMessage msg = NNeh::TMessage::FromString("http://localhost:3380/ntables");
+        const TString headers =
+            "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\n"
+            "Accept-Encoding: identity\n\r\n";
+        const TVector<TString> urlParts = {TString("text=query"), TString("lr=213")};
+
+        UNIT_ASSERT(NNeh::NHttp::MakeFullRequest(msg, urlParts, headers, "", ""));
+        UNIT_ASSERT_EQUAL_C(msg.Data,
+                            "GET /ntables?text=query&lr=213 HTTP/1.1\r\n"
+                            "Host: localhost:3380\r\n"
+                            "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\r\n"
+                            "Accept-Encoding: identity\r\n"
+                            "\r\n",
+                            msg.Data);
+    }
+
     Y_UNIT_TEST(TMakeFullRequestPut1) {
         /// Test for preserving behaviour.
         using NNeh::NHttp::ERequestType;
