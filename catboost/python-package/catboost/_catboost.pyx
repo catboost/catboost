@@ -515,6 +515,7 @@ cdef extern from "catboost/libs/model/model.h":
         size_t GetTreeCount() nogil except +ProcessException
         void Truncate(size_t begin, size_t end) except +ProcessException
         bool_t IsOblivious() except +ProcessException
+        TString GetLossFunctionName() except +ProcessException
 
     cdef cppclass EModelType:
         pass
@@ -588,6 +589,7 @@ cdef extern from "catboost/libs/options/enum_helpers.h":
     cdef bool_t IsClassificationObjective(const TString& lossFunction) nogil except +ProcessException
     cdef bool_t IsCvStratifiedObjective(const TString& lossFunction) nogil except +ProcessException
     cdef bool_t IsRegressionObjective(const TString& lossFunction) nogil except +ProcessException
+    cdef bool_t IsGroupwiseMetric(const TString& metricName) nogil except +ProcessException
 
 cdef extern from "catboost/libs/metrics/metric.h":
     cdef cppclass TCustomMetricDescriptor:
@@ -832,8 +834,6 @@ cdef extern from "catboost/libs/fstr/calc_fstr.h":
         const TFullModel& model,
         const TDataProviderPtr dataset
     ) nogil except +ProcessException
-
-    bool_t IsGroupwiseLearnedModel(const TFullModel& model) nogil except +ProcessException
 
 
 cdef extern from "catboost/libs/documents_importance/docs_importance.h":
@@ -2706,8 +2706,8 @@ cdef class _CatBoost:
         cdef TVector[TString] metric_names = GetMetricNames(dereference(self.__model), metricDescriptions)
         return metrics, [to_native_str(name) for name in metric_names]
 
-    cpdef bool_t _is_groupwise_learned_model(self):
-        return IsGroupwiseLearnedModel(dereference(self.__model))
+    cpdef _get_loss_function_name(self):
+        return self.__model.GetLossFunctionName()
 
     cpdef _calc_fstr(self, type_name, _PoolBase pool, int thread_count, int verbose, shap_mode_name):
         thread_count = UpdateThreadCount(thread_count);
@@ -3426,6 +3426,10 @@ cpdef is_cv_stratified_objective(loss_name):
 
 cpdef is_regression_objective(loss_name):
     return IsRegressionObjective(to_arcadia_string(loss_name))
+
+
+cpdef is_groupwise_metric(metric_name):
+    return IsGroupwiseMetric(to_arcadia_string(metric_name))
 
 
 cpdef _check_train_params(dict params):

@@ -2068,7 +2068,7 @@ def test_fstr_feature_importance_default_value(boosting_type, ranking_parameters
     yatest.common.execute(
         cmd + ('--fstr-file', fstr_path_0,
                '--fstr-type', 'FeatureImportance')
-        )
+    )
     yatest.common.execute(
         cmd + ('--fstr-file', fstr_path_1,
                '--fstr-type', ranking_parameters['fstr-type'])
@@ -4179,7 +4179,7 @@ def test_dist_train_quantized_groupid(dev_score_calc_obj_block_size, pairs_file,
         schema='quantized://',
         dev_score_calc_obj_block_size=dev_score_calc_obj_block_size,
         other_options=('-x', '128', '--feature-border-type', 'GreedyLogSum',
-            '--learn-pairs', data_file('querywise', pairs_file)))))]
+                       '--learn-pairs', data_file('querywise', pairs_file)))))]
 
 
 @pytest.mark.parametrize(
@@ -4197,7 +4197,7 @@ def test_dist_train_quantized_group_weights(dev_score_calc_obj_block_size):
         schema='quantized://',
         dev_score_calc_obj_block_size=dev_score_calc_obj_block_size,
         other_options=('-x', '128', '--feature-border-type', 'GreedyLogSum',
-            '--learn-group-weights', data_file('querywise', 'train.group_weights')))))]
+                       '--learn-group-weights', data_file('querywise', 'train.group_weights')))))]
 
 
 @pytest.mark.parametrize(
@@ -4216,8 +4216,8 @@ def test_dist_train_quantized_baseline(dev_score_calc_obj_block_size):
         test_schema='quantized://',
         dev_score_calc_obj_block_size=dev_score_calc_obj_block_size,
         other_options=('-x', '128', '--feature-border-type', 'GreedyLogSum',
-                        '--test-baseline', data_file('higgs', 'test_baseline'),
-                        '--learn-baseline', data_file('higgs', 'train_baseline')))))]
+                       '--test-baseline', data_file('higgs', 'test_baseline'),
+                       '--learn-baseline', data_file('higgs', 'train_baseline')))))]
 
 
 @pytest.mark.parametrize(
@@ -6825,3 +6825,80 @@ def test_monotonic_constraint():
     )
     yatest.common.execute(cmd)
     return
+
+
+class TestModelWithoutParams(object):
+
+    @pytest.fixture(
+        params=[
+            ('cut-info', 'RMSE'),
+            ('cut-params', 'RMSE'),
+            ('cut-info', 'QueryRMSE'),
+            ('cut-params', 'QueryRMSE'),
+        ],
+        ids=lambda param: '-'.join(param),
+    )
+    def model_etc(self, request):
+        cut, loss = request.param
+        model_json = yatest.common.test_output_path('model.json')
+        learn_set = data_file('querywise', 'train')
+        test_set = data_file('querywise', 'test')
+        cd = data_file('querywise', 'train.cd')
+        cmd = (
+            CATBOOST_PATH, 'fit',
+            '--loss-function', loss,
+            '--learn-set', learn_set,
+            '--test-set', test_set,
+            '--column-description', cd,
+            '--iterations', '10',
+            '--model-file', model_json,
+            '--model-format', 'Json',
+            '--use-best-model', 'false'
+        )
+        yatest.common.execute(cmd)
+        model = json.load(open(model_json))
+        if cut == 'cut-info':
+            model.pop('model_info')
+        if cut == 'cut-params':
+            model['model_info'].pop('params')
+        json.dump(model, open(model_json, 'wt'))
+        return model_json, learn_set, test_set, cd
+
+    def test_ostr(self, model_etc):
+        model_json, train_set, test_set, cd = model_etc
+        ostr_result = yatest.common.test_output_path('result.txt')
+        ostr_cmd = (
+            CATBOOST_PATH, 'ostr',
+            '--learn-set', train_set,
+            '--test-set', test_set,
+            '--column-description', cd,
+            '--model-file', model_json,
+            '--model-format', 'Json',
+            '--output-path', ostr_result,
+        )
+        with pytest.raises(yatest.common.ExecutionError):
+            yatest.common.execute(ostr_cmd)
+
+    @pytest.mark.parametrize('should_fail,fstr_type', [
+        (False, 'FeatureImportance'),
+        (False, 'PredictionValuesChange'),
+        (True, 'LossFunctionChange'),
+        (False, 'ShapValues'),
+    ])
+    def test_fstr(self, model_etc, fstr_type, should_fail):
+        model_json, train_set, _, cd = model_etc
+        fstr_result = yatest.common.test_output_path('result.txt')
+        fstr_cmd = (
+            CATBOOST_PATH, 'fstr',
+            '--input-path', train_set,
+            '--column-description', cd,
+            '--model-file', model_json,
+            '--model-format', 'Json',
+            '--output-path', fstr_result,
+            '--fstr-type', fstr_type,
+        )
+        if should_fail:
+            with pytest.raises(yatest.common.ExecutionError):
+                yatest.common.execute(fstr_cmd)
+        else:
+            yatest.common.execute(fstr_cmd)

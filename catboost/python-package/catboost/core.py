@@ -68,6 +68,7 @@ _metric_description_or_str_to_str = _catboost._metric_description_or_str_to_str
 is_classification_objective = _catboost.is_classification_objective
 is_cv_stratified_objective = _catboost.is_cv_stratified_objective
 is_regression_objective = _catboost.is_regression_objective
+is_groupwise_metric = _catboost.is_groupwise_metric
 _PreprocessParams = _catboost._PreprocessParams
 _check_train_params = _catboost._check_train_params
 _MetadataHashProxy = _catboost._MetadataHashProxy
@@ -1249,8 +1250,13 @@ class CatBoost(_CatBoostBase):
 
         if (not self._object._has_leaf_weights_in_model()) and allow_clear_pool:
             train_pool = _build_train_pool(X, y, cat_features, pairs, sample_weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, column_description)
-        if self._object._is_oblivious() and not self._object._is_groupwise_learned_model():
-            self.get_feature_importance(type=EFstrType.PredictionValuesChange)
+        if self._object._is_oblivious():
+            # Have property feature_importance possibly set
+            loss = self._object._get_loss_function_name()
+            if loss and is_groupwise_metric(loss):
+                pass  # too expensive
+            else:
+                self.get_feature_importance(type=EFstrType.PredictionValuesChange)
 
         if 'loss_function' in params and self._is_classification_objective(params['loss_function']):
             setattr(self, "_classes", np.unique(train_pool.get_label()))
@@ -1752,8 +1758,9 @@ class CatBoost(_CatBoostBase):
 
     @property
     def feature_importances_(self):
-        if self._object._is_groupwise_learned_model():
-            return np.array(getattr(self, "_loss_function_change", None))
+        loss = self._object._get_loss_function_name()
+        if loss and is_groupwise_metric(loss):
+            return np.array(getattr(self, "_loss_value_change", None))
         else:
             return np.array(getattr(self, "_prediction_values_change", None))
 
@@ -1833,7 +1840,8 @@ class CatBoost(_CatBoostBase):
 
         type = enum_from_enum_or_str(EFstrType, type)
         if type == EFstrType.FeatureImportance:
-            if self._object._is_groupwise_learned_model():
+            loss = self._object._get_loss_function_name()
+            if loss and is_groupwise_metric(loss):
                 type = EFstrType.LossFunctionChange
             else:
                 type = EFstrType.PredictionValuesChange

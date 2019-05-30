@@ -189,6 +189,10 @@ bool IsRegressionMetric(ELossFunction lossFunction) {
     );
 }
 
+bool IsGroupwiseMetric(TStringBuf metricName) {
+    ELossFunction lossFunction = ParseLossType(metricName);
+    return IsGroupwiseMetric(lossFunction);
+}
 
 bool IsGroupwiseMetric(ELossFunction lossFunction) {
     return (

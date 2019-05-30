@@ -774,7 +774,7 @@ def test_coreml_import_export_one_hot_features(task_type):
     model = CatBoost(params={'loss_function': 'RMSE', 'iterations': 2, 'task_type': task_type, 'devices': '0', 'one_hot_max_size': 4})
     model.fit(train_pool)
     output_coreml_model_path = test_output_path(OUTPUT_COREML_MODEL_PATH)
-    model.save_model(output_coreml_model_path, format="coreml",  pool=train_pool)
+    model.save_model(output_coreml_model_path, format="coreml", pool=train_pool)
     pred = model.predict(train_pool)
     coreml_loaded_model = CatBoostRegressor()
     coreml_loaded_model.load_model(output_coreml_model_path, format="coreml")
@@ -2017,7 +2017,7 @@ def test_shap_feature_importance_modes(task_type):
     for mode in modes:
         shaps_for_modes.append(model.get_feature_importance(type=EFstrType.ShapValues, data=pool, shap_mode=mode))
     for i in range(len(modes) - 1):
-        assert np.all(np.abs(shaps_for_modes[i] - shaps_for_modes[i-1]) < 1e-9)
+        assert np.all(np.abs(shaps_for_modes[i] - shaps_for_modes[i - 1]) < 1e-9)
 
 
 def test_od(task_type):
@@ -4056,10 +4056,10 @@ def test_output_border_file_regressor(task_type):
         'learning_rate': 0.3
     }
     model1 = CatBoostRegressor(border_count=32,
-                                output_borders=OUTPUT_BORDERS_FILE,
-                                **args)
+                               output_borders=OUTPUT_BORDERS_FILE,
+                               **args)
     model2 = CatBoostRegressor(input_borders=os.path.join('catboost_info', OUTPUT_BORDERS_FILE),
-                                **args)
+                               **args)
 
     model3 = CatBoostRegressor(**args)
     model4 = CatBoostRegressor(border_count=2, **args)
@@ -4089,8 +4089,8 @@ def test_save_border_file():
         'learning_rate': 0.3
     }
     model = CatBoostClassifier(border_count=32,
-                                output_borders=output_borders_file,
-                                **args)
+                               output_borders=output_borders_file,
+                               **args)
 
     model.fit(train_pool)
     model.save_borders(save_borders_file)
@@ -4325,7 +4325,7 @@ def test_eval_features(task_type, eval_type, problem):
     return canonical_files
 
 
-def test_metric_period_with_vertbose_true():
+def test_metric_period_with_verbose_true():
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoost(dict(iterations=16, metric_period=4))
 
@@ -4565,3 +4565,74 @@ def test_continue_learning_with_changing_params(problem_type, param_set):
         canonical_files.append(local_canonical_file(preds_path))
 
     return canonical_files
+
+
+class TestModelWithoutParams(object):
+
+    @pytest.fixture(
+        params=[
+            ('cut-info', 'RMSE'),
+            ('cut-params', 'RMSE'),
+            ('cut-info', 'QueryRMSE'),
+            ('cut-params', 'QueryRMSE'),
+        ],
+        ids=lambda param: '-'.join(param),
+    )
+    def model_etc(self, request):
+        cut, loss = request.param
+        model_json = test_output_path('model.json')
+        train_pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
+        test_pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
+        model = CatBoost(dict(iterations=16, loss_function=loss))
+        model.fit(train_pool, verbose=True)
+        model.save_model(model_json, format='json')
+        data = json.load(open(model_json))
+        if cut == 'cut-info':
+            data.pop('model_info')
+        if cut == 'cut-params':
+            data['model_info'].pop('params')
+        json.dump(data, open(model_json, 'wt'))
+        model.load_model(model_json, format='json')
+        return model, train_pool, test_pool
+
+    def test_ostr(self, model_etc):
+        model, train_pool, test_pool = model_etc
+        with pytest.raises(CatBoostError):
+            model.get_object_importance(test_pool, train_pool, top_size=10)
+
+    @pytest.mark.parametrize('should_fail,fstr_type', [
+        (False, 'FeatureImportance'),
+        (False, 'PredictionValuesChange'),
+        (True, 'LossFunctionChange'),
+        (False, 'ShapValues'),
+    ])
+    def test_fstr(self, model_etc, fstr_type, should_fail):
+        model, train_pool, test_pool = model_etc
+        if should_fail:
+            with pytest.raises(CatBoostError):
+                model.get_feature_importance(type=fstr_type, data=train_pool)
+        else:
+            model.get_feature_importance(type=fstr_type, data=train_pool)
+
+    @pytest.fixture(params=['not-trained', 'collapsed'])
+    def model_no_trees(self, request):
+        train_pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
+        test_pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
+        model = CatBoost(dict(iterations=16, loss_function='RMSE'))
+        if request.param == 'collapsed':
+            model.fit(train_pool, verbose=True)
+            model.shrink(0, 0)
+        else:
+            pass  # not-trained
+        return model, train_pool, test_pool
+
+    @pytest.mark.parametrize('fstr_type', ['FeatureImportance', 'PredictionValuesChange'])
+    def test_fstr_no_trees(self, model_no_trees, fstr_type):
+        model, train_pool, test_pool = model_no_trees
+        with pytest.raises(CatBoostError):
+            model.get_feature_importance(type=fstr_type, data=train_pool)
+
+    def test_ostr_no_trees(self, model_no_trees):
+        model, train_pool, test_pool = model_no_trees
+        with pytest.raises(CatBoostError):
+            model.get_object_importance(test_pool, train_pool, top_size=10)

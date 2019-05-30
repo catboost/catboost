@@ -42,6 +42,8 @@ bool IsRegressionMetric(ELossFunction lossFunction);
 
 bool IsGroupwiseMetric(ELossFunction lossFunction);
 
+bool IsGroupwiseMetric(TStringBuf metricName);
+
 bool IsPairwiseMetric(ELossFunction lossFunction);
 
 bool UsesPairsForCalculation(ELossFunction lossFunction);
