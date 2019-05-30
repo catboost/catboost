@@ -30,6 +30,7 @@ ALLOW .* -> vendor/github.com/dgrijalva/jwt-go
 # Docker API client
 ALLOW .* -> vendor/github.com/docker/docker/client
 ALLOW .* -> vendor/github.com/docker/docker/api
+ALLOW .* -> vendor/github.com/docker/go-connections
 
 # cross-platform file system notifications
 ALLOW .* -> vendor/github.com/fsnotify/fsnotify       
