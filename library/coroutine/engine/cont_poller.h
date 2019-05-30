@@ -187,21 +187,6 @@ namespace NCoro {
         TBigArray<TPollEventList> Lists_;
         THolder<IPollerFace> P_;
     };
-
-
-    class TContPollEventHolder {
-    public:
-        TContPollEventHolder(void* memory, TCont* rep, SOCKET fds[], int what[], size_t nfds, TInstant deadline);
-        ~TContPollEventHolder();
-
-        void ScheduleIoWait(TContExecutor* executor) noexcept;
-
-        TFdEvent* TriggeredEvent() noexcept;
-
-    private:
-        TFdEvent* Events_;
-        size_t Count_;
-    };
 }
 
 class TFdEvent final:

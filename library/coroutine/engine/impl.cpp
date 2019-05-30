@@ -4,6 +4,8 @@
 #include <util/generic/yexception.h>
 #include <util/stream/output.h>
 #include <util/system/yassert.h>
+#include <util/generic/scope.h>
+#include <util/generic/xrange.h>
 
 template <>
 void Out<TCont>(IOutputStream& out, const TCont& c) {
@@ -125,25 +127,47 @@ int TCont::SelectD(SOCKET fds[], int what[], size_t nfds, SOCKET* outfd, TInstan
         return 0;
     }
 
-    TTempBuf memoryBuf(nfds * sizeof(TFdEvent));
-    void* memory = memoryBuf.Data();
-    NCoro::TContPollEventHolder holder(memory, this, fds, what, nfds, deadline);
-    holder.ScheduleIoWait(Executor());
+    TTempArray<TFdEvent> events(nfds);
 
-    SwitchToScheduler();
+    for (auto i : xrange(nfds)) {
+        new (events.Data() + i) TFdEvent(this, fds[i], (ui16)what[i], deadline);
+    }
+
+    Y_DEFER {
+        for (auto i : xrange(nfds)) {
+            (events.Data() + i)->~TFdEvent();
+        }
+    };
+
+    ExecuteEvents(events.Data(), events.Data() + nfds);
 
     if (Cancelled()) {
         return ECANCELED;
     }
 
-    TFdEvent* ev = holder.TriggeredEvent();
+    TFdEvent* ret = nullptr;
+    int status = EINPROGRESS;
 
-    if (ev) {
-        if (outfd) {
-            *outfd = ev->Fd();
+    for (auto i : xrange(nfds)) {
+        auto& ev = *(events.Data() + i);
+        switch (ev.Status()) {
+        case EINPROGRESS:
+            break;
+        case ETIMEDOUT:
+            if (status != EINPROGRESS) {
+                break;
+            } // else fallthrough
+        default:
+            status = ev.Status();
+            ret = &ev;
         }
+    }
 
-        return ev->Status();
+    if (ret) {
+        if (outfd) {
+            *outfd = ret->Fd();
+        }
+        return ret->Status();
     }
 
     return EINPROGRESS;

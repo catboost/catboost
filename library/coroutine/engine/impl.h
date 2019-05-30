@@ -293,6 +293,9 @@ public:
     template <class T>
     inline int ExecuteEvent(T* event) noexcept;
 
+    template <class TIt>
+    inline void ExecuteEvents(TIt beg, TIt en) noexcept;
+
     void Die() noexcept;
 
     bool Dead() const noexcept {
@@ -735,6 +738,14 @@ inline int TCont::ExecuteEvent(T* event) noexcept {
     }
 
     return event->Status();
+}
+
+template <class TIt>
+inline void TCont::ExecuteEvents(TIt beg, TIt end) noexcept {
+    for (auto it = beg; it != end; ++it) {
+        Executor()->ScheduleIoWait(&*it);
+    }
+    SwitchToScheduler();
 }
 
 template <class T>
