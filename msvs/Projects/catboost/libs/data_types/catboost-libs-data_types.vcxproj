@@ -82,6 +82,7 @@
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_types\groupid.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_types\pair.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_types\query.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\data_types\text.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
