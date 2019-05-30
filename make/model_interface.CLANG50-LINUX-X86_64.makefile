@@ -4438,10 +4438,10 @@ $(BUILD_ROOT)/contrib/libs/crcutil/libcontrib-libs-crcutil.a.mf\
 
 $(BUILD_ROOT)/contrib/libs/crcutil/libcontrib-libs-crcutil.a\
         ::\
+        $(BUILD_ROOT)/contrib/libs/crcutil/crc32c_sse4.cc.pic.o\
         $(BUILD_ROOT)/contrib/libs/crcutil/multiword_64_64_gcc_i386_mmx.cc.pic.o\
         $(BUILD_ROOT)/contrib/libs/crcutil/multiword_128_64_gcc_amd64_sse2.cc.pic.o\
         $(BUILD_ROOT)/contrib/libs/crcutil/multiword_64_64_gcc_amd64_asm.cc.pic.o\
-        $(BUILD_ROOT)/contrib/libs/crcutil/crc32c_sse4.cc.pic.o\
         $(BUILD_ROOT)/contrib/libs/crcutil/interface.cc.pic.o\
         $(BUILD_ROOT)/contrib/libs/crcutil/multiword_64_64_intrinsic_i386_mmx.cc.pic.o\
         $(SOURCE_ROOT)/build/scripts/generate_mf.py\
@@ -4449,7 +4449,14 @@ $(BUILD_ROOT)/contrib/libs/crcutil/libcontrib-libs-crcutil.a\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/crcutil'
 	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name contrib-libs-crcutil -o contrib/libs/crcutil/libcontrib-libs-crcutil.a.mf -t LIBRARY -Ya,lics APACHE2 -Ya,peers
-	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/crcutil/libcontrib-libs-crcutil.a' '$(BUILD_ROOT)/contrib/libs/crcutil/multiword_64_64_gcc_i386_mmx.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/crcutil/multiword_128_64_gcc_amd64_sse2.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/crcutil/multiword_64_64_gcc_amd64_asm.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/crcutil/crc32c_sse4.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/crcutil/interface.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/crcutil/multiword_64_64_intrinsic_i386_mmx.cc.pic.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/crcutil/libcontrib-libs-crcutil.a' '$(BUILD_ROOT)/contrib/libs/crcutil/crc32c_sse4.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/crcutil/multiword_64_64_gcc_i386_mmx.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/crcutil/multiword_128_64_gcc_amd64_sse2.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/crcutil/multiword_64_64_gcc_amd64_asm.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/crcutil/interface.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/crcutil/multiword_64_64_intrinsic_i386_mmx.cc.pic.o'
+
+$(BUILD_ROOT)/contrib/libs/crcutil/crc32c_sse4.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/crcutil/crc32c_sse4.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/crcutil'
+	${CXX} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/crcutil/crc32c_sse4.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/crcutil/crc32c_sse4.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -DCRCUTIL_USE_MM_CRC32=1 -nostdinc++ -msse2 -msse3 -mssse3 -std=c++1z -Wno-register -DCATBOOST_OPENSOURCE=yes -nostdinc++ -msse4.1 -msse4.2 -mpopcnt
 
 $(BUILD_ROOT)/contrib/libs/crcutil/multiword_64_64_gcc_i386_mmx.cc.pic.o\
         ::\
@@ -4471,13 +4478,6 @@ $(BUILD_ROOT)/contrib/libs/crcutil/multiword_64_64_gcc_amd64_asm.cc.pic.o\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/crcutil'
 	${CXX} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/crcutil/multiword_64_64_gcc_amd64_asm.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/crcutil/multiword_64_64_gcc_amd64_asm.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -DCRCUTIL_USE_MM_CRC32=1 -nostdinc++ -msse2 -msse3 -mssse3 -std=c++1z -Wno-register -DCATBOOST_OPENSOURCE=yes -nostdinc++
-
-$(BUILD_ROOT)/contrib/libs/crcutil/crc32c_sse4.cc.pic.o\
-        ::\
-        $(SOURCE_ROOT)/contrib/libs/crcutil/crc32c_sse4.cc\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/crcutil'
-	${CXX} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/crcutil/crc32c_sse4.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/crcutil/crc32c_sse4.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -DCRCUTIL_USE_MM_CRC32=1 -nostdinc++ -msse2 -msse3 -mssse3 -std=c++1z -Wno-register -DCATBOOST_OPENSOURCE=yes -nostdinc++
 
 $(BUILD_ROOT)/contrib/libs/crcutil/interface.cc.pic.o\
         ::\
@@ -12065,10 +12065,10 @@ clean\
 	rm -f '$(BUILD_ROOT)/library/dbg_output/dumpers.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/library/dbg_output/engine.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/contrib/libs/crcutil/libcontrib-libs-crcutil.a' '$(BUILD_ROOT)/contrib/libs/crcutil/libcontrib-libs-crcutil.a.mf'
+	rm -f '$(BUILD_ROOT)/contrib/libs/crcutil/crc32c_sse4.cc.pic.o'
 	rm -f '$(BUILD_ROOT)/contrib/libs/crcutil/multiword_64_64_gcc_i386_mmx.cc.pic.o'
 	rm -f '$(BUILD_ROOT)/contrib/libs/crcutil/multiword_128_64_gcc_amd64_sse2.cc.pic.o'
 	rm -f '$(BUILD_ROOT)/contrib/libs/crcutil/multiword_64_64_gcc_amd64_asm.cc.pic.o'
-	rm -f '$(BUILD_ROOT)/contrib/libs/crcutil/crc32c_sse4.cc.pic.o'
 	rm -f '$(BUILD_ROOT)/contrib/libs/crcutil/interface.cc.pic.o'
 	rm -f '$(BUILD_ROOT)/contrib/libs/crcutil/multiword_64_64_intrinsic_i386_mmx.cc.pic.o'
 	rm -f '$(BUILD_ROOT)/library/digest/crc32c/liblibrary-digest-crc32c.a' '$(BUILD_ROOT)/library/digest/crc32c/liblibrary-digest-crc32c.a.mf'
