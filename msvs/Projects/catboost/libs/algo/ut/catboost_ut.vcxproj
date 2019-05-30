@@ -78,6 +78,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\ut\monotonic_constraints_ut.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\ut\mvs_gen_weights_ut.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\ut\pairwise_leaves_calculation_ut.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\ut\pairwise_scoring_ut.cpp"/>
