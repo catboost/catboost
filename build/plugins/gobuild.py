@@ -25,6 +25,11 @@ def compare_versions(version1, version2):
     return 1 if v1 < v2 else -1
 
 
+def go_package_name(unit):
+    # TODO(prime@): this seems wrong. This code detects wrong package name when used from GO_TEST module.
+    return unit.get('GO_PACKAGE_VALUE') or unit.get('MODULE_TYPE') == 'PROGRAM' and 'main' or unit.get('REALPRJNAME')
+
+
 def on_go_process_srcs(unit):
     """
         _GO_PROCESS_SRCS() macro processes only 'CGO' files. All remaining *.go files
@@ -93,9 +98,42 @@ def on_go_process_srcs(unit):
         import_syscall = 'false' if import_path == runtime_cgo_path else 'true'
         args = [import_path] + cgo_files + ['FLAGS', '-import_runtime_cgo=' + import_runtime_cgo, '-import_syscall=' + import_syscall]
         unit.on_go_compile_cgo1(args)
-        args = [unit.get('GO_PACKAGE_VALUE') or unit.get('MODULE_TYPE') == 'PROGRAM' and 'main' or unit.get('REALPRJNAME')] + cgo_files
+        args = [go_package_name(unit)] + cgo_files
         if len(c_files) > 0:
             args += ['C_FILES'] + c_files
         if len(s_files) > 0:
             args += ['S_FILES'] + s_files
         unit.on_go_compile_cgo2(args)
+
+
+def on_go_resource(unit, *args):
+    args = list(args)
+    files = args[::2]
+    keys = args[1::2]
+    resource_go = os.path.join("resource.res.go")
+
+    unit.onpeerdir(["library/go/core/resource"])
+
+    if len(files) != len(keys):
+        ymake.report_configure_error("last file {} is missing resource key".format(files[-1]))
+
+    for i, (key, filename) in enumerate(zip(keys, files)):
+        if not key:
+            ymake.report_configure_error("file key must be non empty")
+            return
+
+        if filename == "-" and "=" not in key:
+            ymake.report_configure_error("key \"{}\" must contain = sign".format(key))
+            return
+
+        # quote key, to avoid automatic substitution of filename by absolute
+        # path in RUN_PROGRAM
+        args[2*i+1] = "notafile" + args[2*i+1]
+
+    files.remove("-")
+    unit.onrun_program([
+        "library/go/core/resource/cc",
+        "-package", go_package_name(unit),
+        "-o", resource_go] + list(args) + [
+        "IN"] + files + [
+        "OUT", resource_go])
