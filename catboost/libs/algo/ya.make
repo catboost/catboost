@@ -45,6 +45,7 @@ SRCS(
     pairwise_leaves_calculation.cpp
     pairwise_scoring.cpp
     roc_curve.cpp
+    monotonic_constraint_utils.cpp
 )
 
 PEERDIR(

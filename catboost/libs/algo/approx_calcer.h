@@ -80,15 +80,3 @@ void CalcApproxForLeafStruct(
     TLearnContext* ctx,
     TVector<TVector<TVector<double>>>* approxesDelta // [bodyTailId][approxDim][docIdxInPermuted]
 );
-
-void CalcMonotonicDeltasSimple(
-    const TVector<TSum> &leafDers,
-    const TVector<int> &treeMonotoneConstraints,
-    TVector<double> *leafDeltas);
-
-void IsotonicRegretionLinearOrder(
-    const TVector<double>& values,
-    const TVector<double>& weight,
-    const TVector<ui32>& indexOrder,
-    TVector<double>* solution
-);
