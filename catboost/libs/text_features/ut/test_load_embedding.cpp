@@ -1,11 +1,12 @@
-#include <library/unittest/registar.h>
-#include <util/generic/guid.h>
-#include <util/random/fast.h>
 #include <catboost/libs/text_features/dictionary.h>
 #include <catboost/libs/text_features/embedding_loader.h>
 #include <catboost/libs/text_features/embedding.h>
 #include <catboost/libs/text_features/embedding_online_features.h>
+#include <catboost/libs/text_features/text_column_builder.h>
 #include <library/text_processing/dictionary/dictionary_builder.h>
+#include <library/unittest/registar.h>
+#include <util/generic/guid.h>
+#include <util/random/fast.h>
 #include <util/stream/file.h>
 using namespace std;
 using namespace NCB;

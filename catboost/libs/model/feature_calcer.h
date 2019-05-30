@@ -11,7 +11,7 @@ namespace NCB {
     class IFeatureCalcer : public TThrRefBase {
     public:
 
-        virtual EFeatureCalculatorType Type() const = 0;
+        virtual EFeatureEstimatorType Type() const = 0;
 
         virtual size_t FeatureCount() const = 0;
 

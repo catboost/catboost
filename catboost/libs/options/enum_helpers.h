@@ -68,6 +68,8 @@ bool ShouldSkipCalcOnTrainByDefault(ELossFunction lossFunction);
 
 bool IsUserDefined(ELossFunction lossFunction);
 
+bool IsEmbeddingFeatureEstimator(EFeatureEstimatorType estimatorType);
+
 bool ShouldSkipFstrGrowPolicy(EGrowPolicy growPolicy);
 
 bool IsPlainOnlyModeScoreFunction(EScoreFunction scoreFunction);

@@ -1,10 +1,12 @@
 #pragma once
 
 #include "text_dataset.h"
-#include "text_dataset_builder.h"
+
+#include <library/threading/local_executor/local_executor.h>
+
 #include <util/system/types.h>
 #include <util/generic/ptr.h>
-#include <library/threading/local_executor/local_executor.h>
+
 
 namespace NCB {
 

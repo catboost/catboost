@@ -5,28 +5,28 @@
 #include "embedding.h"
 #include "embedding_online_features.h"
 #include "embedding_loader.h"
-#include <library/containers/dense_hash/dense_hash.h>
-#include <util/generic/hash_set.h>
+
+#include <catboost/libs/options/enum_helpers.h>
+
 #include <util/generic/set.h>
 
-using namespace NCB;
 
+using namespace NCB;
 
 namespace {
     //TODO(noxoomo): we could fuse estimation in one pass for naive bayes and bm25
     template <class TEstimatorImpl>
-    class TBaseEstimator : public IOnlineFeatureEstimator {
+    class TBaseEstimator: public IOnlineFeatureEstimator {
     public:
         TBaseEstimator(
             TTextClassificationTargetPtr target,
             TTextDataSetPtr learnTexts,
             TVector<TTextDataSetPtr> testTexts)
             : Target(std::move(target))
-              , LearnTexts(std::move(learnTexts))
-              , TestTexts(std::move(testTexts)) {
-
+            , LearnTexts(std::move(learnTexts))
+            , TestTexts(std::move(testTexts))
+        {
         }
-
 
         void ComputeFeatures(
             TCalculatedFeatureVisitor learnVisitor,
@@ -65,7 +65,7 @@ namespace {
                 const ui64 samplesCount = ds.SamplesCount();
                 TVector<TVector<float>> learnFeatures(featuresCount, TVector<float>(samplesCount));
 
-                for (ui64 line  : learnPermutation) {
+                for (ui64 line : learnPermutation) {
                     auto textFeatures = estimator.CalcFeaturesAndAddText(target.Classes[line], ds.GetText(line));
                     for (ui32 f = 0; f < featuresCount; ++f) {
                         learnFeatures[f][line] = static_cast<float>(textFeatures[f]);
@@ -81,8 +81,8 @@ namespace {
                 Calc(estimator, GetTests(), testVisitors);
             }
         }
-    protected:
 
+    protected:
         void Calc(const TEstimatorImpl& estimator,
                   TConstArrayRef<TTextDataSetPtr> dataSets,
                   TConstArrayRef<TCalculatedFeatureVisitor> visitors) const {
@@ -107,7 +107,6 @@ namespace {
         virtual TEstimatorImpl CreateEstimator() const = 0;
 
         virtual ui64 GetFeaturesCount() const = 0;
-
 
         const TTextClassificationTarget& GetTarget() const {
             return *Target;
@@ -134,26 +133,27 @@ namespace {
         TConstArrayRef<TTextDataSetPtr> GetTests() const {
             return TestTexts;
         }
+
     private:
         TTextClassificationTargetPtr Target;
         TTextDataSetPtr LearnTexts;
         TVector<TTextDataSetPtr> TestTexts;
     };
 
-    class TNaiveBayesEstimator final : public TBaseEstimator<TMultinomialOnlineNaiveBayes> {
+    class TNaiveBayesEstimator final: public TBaseEstimator<TMultinomialOnlineNaiveBayes> {
     public:
         TNaiveBayesEstimator(
             TTextClassificationTargetPtr target,
             TTextDataSetPtr learnTexts,
             TVector<TTextDataSetPtr> testText)
-            : TBaseEstimator(target, learnTexts, std::move(testText)) {
-
+            : TBaseEstimator(target, learnTexts, std::move(testText))
+        {
         }
 
         TEstimatedFeaturesMeta FeaturesMeta() const override {
             TEstimatedFeaturesMeta meta;
             meta.FeaturesCount = GetFeaturesCount();
-            meta.Type.resize(meta.FeaturesCount, EFeatureCalculatorType::NaiveBayes);
+            meta.Type.resize(meta.FeaturesCount, EFeatureEstimatorType::NaiveBayes);
             return meta;
         }
 
@@ -165,26 +165,24 @@ namespace {
         TMultinomialOnlineNaiveBayes CreateEstimator() const {
             return TMultinomialOnlineNaiveBayes(GetTarget().NumClasses);
         }
-
     };
 
-    class TBM25Estimator final : public TBaseEstimator<TOnlineBM25> {
+    class TBM25Estimator final: public TBaseEstimator<TOnlineBM25> {
     public:
         TBM25Estimator(
             TTextClassificationTargetPtr target,
             TTextDataSetPtr learnTexts,
             TVector<TTextDataSetPtr> testText)
-            : TBaseEstimator(std::move(target), std::move(learnTexts), std::move(testText)) {
-
+            : TBaseEstimator(std::move(target), std::move(learnTexts), std::move(testText))
+        {
         }
 
         TEstimatedFeaturesMeta FeaturesMeta() const override {
             TEstimatedFeaturesMeta meta;
             meta.FeaturesCount = GetFeaturesCount();
-            meta.Type.resize(meta.FeaturesCount, EFeatureCalculatorType::BM25);
+            meta.Type.resize(meta.FeaturesCount, EFeatureEstimatorType::BM25);
             return meta;
         }
-
 
     protected:
         TOnlineBM25 CreateEstimator() const {
@@ -195,19 +193,18 @@ namespace {
         }
     };
 
-
-    class TEmbeddingOnlineFeaturesEstimator final : public TBaseEstimator<TEmbeddingOnlineFeatures> {
+    class TEmbeddingOnlineFeaturesEstimator final: public TBaseEstimator<TEmbeddingOnlineFeatures> {
     public:
         TEmbeddingOnlineFeaturesEstimator(
             TEmbeddingPtr embedding,
             TTextClassificationTargetPtr target,
             TTextDataSetPtr learnTexts,
             TVector<TTextDataSetPtr> testText,
-            TSet<EFeatureCalculatorType> enabledTypes)
+            TSet<EFeatureEstimatorType> enabledTypes)
             : TBaseEstimator(std::move(target), std::move(learnTexts), std::move(testText))
             , Embedding(embedding)
-            , EnabledTypes(enabledTypes){
-
+            , EnabledTypes(enabledTypes)
+        {
         }
 
         TEstimatedFeaturesMeta FeaturesMeta() const override {
@@ -215,14 +212,14 @@ namespace {
             meta.FeaturesCount = GetFeaturesCount();
 
             for (ui32 classIdx = 0; classIdx < GetTarget().NumClasses; ++classIdx) {
-                if (EnabledTypes.contains(EFeatureCalculatorType::CosDistanceWithClassCenter)) {
-                    meta.Type.push_back(EFeatureCalculatorType::CosDistanceWithClassCenter);
+                if (EnabledTypes.contains(EFeatureEstimatorType::CosDistanceWithClassCenter)) {
+                    meta.Type.push_back(EFeatureEstimatorType::CosDistanceWithClassCenter);
                 }
-                if (EnabledTypes.contains(EFeatureCalculatorType::GaussianHomoscedasticModel)) {
-                    meta.Type.push_back(EFeatureCalculatorType::GaussianHomoscedasticModel);
+                if (EnabledTypes.contains(EFeatureEstimatorType::GaussianHomoscedasticModel)) {
+                    meta.Type.push_back(EFeatureEstimatorType::GaussianHomoscedasticModel);
                 }
-                if (EnabledTypes.contains(EFeatureCalculatorType::GaussianHeteroscedasticiModel)) {
-                    meta.Type.push_back(EFeatureCalculatorType::GaussianHeteroscedasticiModel);
+                if (EnabledTypes.contains(EFeatureEstimatorType::GaussianHeteroscedasticModel)) {
+                    meta.Type.push_back(EFeatureEstimatorType::GaussianHeteroscedasticModel);
                 }
             }
             return meta;
@@ -238,36 +235,35 @@ namespace {
 
     private:
         TEmbeddingPtr Embedding;
-        TSet<EFeatureCalculatorType> EnabledTypes;
+        TSet<EFeatureEstimatorType> EnabledTypes;
     };
 }
 
-
 TVector<TOnlineFeatureEstimatorPtr> NCB::CreateEstimators(
-    TConstArrayRef<EFeatureCalculatorType> type,
+    TConstArrayRef<EFeatureEstimatorType> type,
     TEmbeddingPtr embedding,
     TTextClassificationTargetPtr target,
     TTextDataSetPtr learnTexts,
     TVector<TTextDataSetPtr> testText) {
-    TSet<EFeatureCalculatorType> typesSet(type.begin(), type.end());
+    TSet<EFeatureEstimatorType> typesSet(type.begin(), type.end());
 
     TVector<TOnlineFeatureEstimatorPtr> estimators;
 
-    if (typesSet.contains(EFeatureCalculatorType::NaiveBayes)) {
+    if (typesSet.contains(EFeatureEstimatorType::NaiveBayes)) {
         estimators.push_back(new TNaiveBayesEstimator(target, learnTexts, testText));
     }
-    if (typesSet.contains(EFeatureCalculatorType::BM25)) {
+    if (typesSet.contains(EFeatureEstimatorType::BM25)) {
         estimators.push_back(new TBM25Estimator(target, learnTexts, testText));
     }
-    TSet<EFeatureCalculatorType> embeddingCalculators = { EFeatureCalculatorType::GaussianHomoscedasticModel,
-                                                          EFeatureCalculatorType::GaussianHeteroscedasticiModel,
-                                                          EFeatureCalculatorType::CosDistanceWithClassCenter};
+    TSet<EFeatureEstimatorType> embeddingEstimators = {EFeatureEstimatorType::GaussianHomoscedasticModel,
+                                                         EFeatureEstimatorType::GaussianHeteroscedasticModel,
+                                                         EFeatureEstimatorType::CosDistanceWithClassCenter};
 
-    TSet<EFeatureCalculatorType> enabledEmbeddingCalculators;
+    TSet<EFeatureEstimatorType> enabledEmbeddingCalculators;
     SetIntersection(
         typesSet.begin(), typesSet.end(),
-        embeddingCalculators.begin(), embeddingCalculators.end(),
-        std::inserter(enabledEmbeddingCalculators,enabledEmbeddingCalculators.end()));
+        embeddingEstimators.begin(), embeddingEstimators.end(),
+        std::inserter(enabledEmbeddingCalculators, enabledEmbeddingCalculators.end()));
 
     if (!enabledEmbeddingCalculators.empty()) {
         estimators.push_back(new TEmbeddingOnlineFeaturesEstimator(embedding, target, learnTexts, testText, enabledEmbeddingCalculators));
@@ -275,16 +271,15 @@ TVector<TOnlineFeatureEstimatorPtr> NCB::CreateEstimators(
     return estimators;
 }
 
-
 TVector<TFeatureEstimatorPtr> NCB::CreateEstimators(
-    TConstArrayRef<EFeatureCalculatorType> types,
+    TConstArrayRef<EFeatureEstimatorType> types,
     TEmbeddingPtr embedding,
     TTextDataSetPtr learnTexts,
     TVector<TTextDataSetPtr> testText) {
     Y_UNUSED(embedding);
-    TSet<EFeatureCalculatorType> typesSet(types.begin(), types.end());
+    TSet<EFeatureEstimatorType> typesSet(types.begin(), types.end());
     TVector<TFeatureEstimatorPtr> estimators;
-    if (typesSet.contains(EFeatureCalculatorType::BoW)) {
+    if (typesSet.contains(EFeatureEstimatorType::BoW)) {
         estimators.push_back(new TBagOfWordsEstimator(learnTexts, testText));
     }
     return estimators;

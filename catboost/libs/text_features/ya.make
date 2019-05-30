@@ -10,7 +10,7 @@ SRCS(
     estimators.cpp
     naive_bayesian.cpp
     bm25.cpp
-    text_dataset_builder.cpp
+    text_column_builder.cpp
     text_dataset.cpp
     tokenizer.cpp
     bow.cpp
@@ -19,7 +19,7 @@ SRCS(
 PEERDIR(
     catboost/libs/helpers
     catboost/libs/model
-    catboost/libs/data_new
+    catboost/libs/data_types
     catboost/libs/feature_estimator
     catboost/libs/options
     contrib/libs/clapack

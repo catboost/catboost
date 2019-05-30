@@ -12,9 +12,11 @@
 #include <catboost/libs/options/catboost_options.h>
 #include <catboost/libs/options/system_options.h>
 #include <catboost/libs/target/data_providers.h>
+#include <catboost/libs/text_features/estimators.h>
 
 #include <library/threading/local_executor/local_executor.h>
 
+#include <util/generic/algorithm.h>
 #include <util/string/builder.h>
 
 
@@ -137,6 +139,7 @@ namespace NCB {
                     params->DataProcessingOptions->IgnoredFeatures.Get(),
                     params->DataProcessingOptions->FloatFeaturesBinarization.Get(),
                     params->DataProcessingOptions->PerFloatFeatureBinarization.Get(),
+                    params->DataProcessingOptions->TextProcessing.Get(),
                     /*allowNansInTestOnly*/true
                 );
 
@@ -230,6 +233,61 @@ namespace NCB {
         }
     }
 
+    static TTextDataSetPtr CreateTextDataSet(const TQuantizedObjectsDataProvider& dataProvider, TTextFeatureIdx textFeatureIdx) {
+        auto dictionary = dataProvider.GetQuantizedFeaturesInfo()->GetDictionary(textFeatureIdx);
+        auto text = *(*dataProvider.GetTextFeature(textFeatureIdx.Idx).Get())->GetArrayData().GetSrc();
+        return MakeIntrusive<TTextDataSet>(text, dictionary);
+    }
+
+    static TTextClassificationTargetPtr CreateTextClassificationTarget(const TTargetDataProvider& targetDataProvider) {
+
+        const ui32 numClasses = *targetDataProvider.GetTargetClassCount();
+        TConstArrayRef<float> target = *targetDataProvider.GetTarget();
+        TVector<ui32> classes;
+        classes.resize(target.size());
+
+        for (ui32 i = 0; i < target.size(); i++) {
+            classes[i] = static_cast<ui32>(target[i]);
+        }
+        return MakeIntrusive<TTextClassificationTarget>(std::move(classes), numClasses);
+    }
+
+    static TFeatureEstimators CreateEstimators(
+        TConstArrayRef<EFeatureEstimatorType> estimatorsTypes,
+        TTrainingDataProviders pools) {
+
+        TFeatureEstimators estimators;
+        CB_ENSURE(
+            !AnyOf(estimatorsTypes, IsEmbeddingFeatureEstimator),
+            "Embedding features cannot be calculated yet"
+        );
+
+        auto learnTarget = CreateTextClassificationTarget(*pools.Learn->TargetData);
+        pools.Learn->MetaInfo.FeaturesLayout->IterateOverAvailableFeatures<EFeatureType::Text>(
+            [&estimators, &estimatorsTypes, &pools, &learnTarget](TTextFeatureIdx textFeatureIdx){
+                auto learnTexts = CreateTextDataSet(*pools.Learn->ObjectsData, textFeatureIdx);
+
+                TVector<TTextDataSetPtr> testTexts;
+                for (const auto& testDataProvider : pools.Test) {
+                    testTexts.emplace_back(CreateTextDataSet(*testDataProvider->ObjectsData, textFeatureIdx));
+                }
+
+                TEmbeddingPtr embedding;
+                auto offlineEstimators = CreateEstimators(estimatorsTypes, embedding, learnTexts, testTexts);
+                for (auto&& estimator : offlineEstimators) {
+                    estimators.FeatureEstimators.emplace_back(std::move(estimator));
+                }
+
+                auto onlineEstimators = CreateEstimators(estimatorsTypes, embedding, learnTarget, learnTexts, testTexts);
+                for (auto&& estimator : onlineEstimators) {
+                    estimators.OnlineFeatureEstimators.emplace_back(std::move(estimator));
+                }
+            }
+        );
+
+        return estimators;
+    }
+
 
     TTrainingDataProviders GetTrainingData(
         TDataProviders srcData,
@@ -284,6 +342,14 @@ namespace NCB {
         }
 
 
+        if (trainingData.Learn->MetaInfo.FeaturesLayout->GetTextFeatureCount() > 0 &&
+            params->TextFeatureOptions->FeatureEstimators->size() > 0) {
+            CB_ENSURE(
+                IsClassificationObjective(params->LossFunctionDescription->LossFunction),
+                "Computation of online text features is supported only for classification task"
+            );
+            trainingData.FeatureEstimators = CreateEstimators(params->TextFeatureOptions->FeatureEstimators.Get(), trainingData);
+        }
 
         if (params->MetricOptions->EvalMetric.IsSet() && (srcData.Test.size() > 0)) {
             CheckCompatibilityWithEvalMetric(

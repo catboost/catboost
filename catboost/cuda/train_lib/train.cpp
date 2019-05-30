@@ -298,7 +298,6 @@ namespace NCatboostCuda {
             const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
             const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
             const TMaybe<TOnEndIterationCallback>& onEndIterationCallback,
-            TFeatureEstimators featureEstimators,
             TTrainingDataProviders trainingData,
             const TLabelConverter& labelConverter,
             TMaybe<TFullModel*> initModel,
@@ -338,7 +337,7 @@ namespace NCatboostCuda {
             auto quantizedFeaturesInfo = trainingData.Learn->ObjectsData->GetQuantizedFeaturesInfo();
 
             TBinarizedFeaturesManager featuresManager(updatedCatboostOptions.CatFeatureParams,
-                                                      featureEstimators,
+                                                      trainingData.FeatureEstimators,
                                                       quantizedFeaturesInfo);
 
 
@@ -376,7 +375,7 @@ namespace NCatboostCuda {
                 outputOptions,
                 *trainingData.Learn,
                 !trainingData.Test.empty() ? trainingData.Test[0].Get() : nullptr,
-                featureEstimators,
+                trainingData.FeatureEstimators,
                 featuresManager,
                 approxDimension,
                 onEndIterationCallback,

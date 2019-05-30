@@ -319,6 +319,12 @@ bool IsUserDefined(ELossFunction lossFunction) {
     }
 }
 
+bool IsEmbeddingFeatureEstimator(EFeatureEstimatorType estimatorType) {
+    return estimatorType == EFeatureEstimatorType::CosDistanceWithClassCenter ||
+            estimatorType == EFeatureEstimatorType::GaussianHomoscedasticModel ||
+            estimatorType == EFeatureEstimatorType::GaussianHeteroscedasticModel;
+}
+
 bool ShouldSkipFstrGrowPolicy(EGrowPolicy growPolicy) {
     return (
         growPolicy == EGrowPolicy::Depthwise ||

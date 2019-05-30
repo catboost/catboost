@@ -63,10 +63,29 @@ namespace NCB {
     }
 
     TQuantizedFeaturesInfo::TQuantizedFeaturesInfo(
+        const NCB::TFeaturesLayout &featuresLayout,
+        TConstArrayRef<ui32> ignoredFeatures,
+        NCatboostOptions::TBinarizationOptions commonFloatFeaturesBinarization,
+        TMap<ui32, NCatboostOptions::TBinarizationOptions> perFloatFeaturebinarization,
+        bool floatFeaturesAllowNansInTestOnly,
+        bool allowWriteFiles)
+        : TQuantizedFeaturesInfo(
+            featuresLayout,
+            ignoredFeatures,
+            commonFloatFeaturesBinarization,
+            perFloatFeaturebinarization,
+            NCatboostOptions::TTextProcessingOptionCollection(),
+            floatFeaturesAllowNansInTestOnly,
+            allowWriteFiles
+        )
+    {}
+
+    TQuantizedFeaturesInfo::TQuantizedFeaturesInfo(
         const TFeaturesLayout& featuresLayout,
         TConstArrayRef<ui32> ignoredFeatures,
         NCatboostOptions::TBinarizationOptions commonFloatFeaturesBinarization,
         TMap<ui32, NCatboostOptions::TBinarizationOptions> perFloatFeaturebinarization,
+        NCatboostOptions::TTextProcessingOptionCollection textFeaturesProcessing,
         bool floatFeaturesAllowNansInTestOnly,
         bool allowWriteFiles)
         : FeaturesLayout(MakeIntrusive<TFeaturesLayout>(featuresLayout))
@@ -77,6 +96,7 @@ namespace NCB {
             featuresLayout.GetCatFeatureCount(),
             TString::Join("cat_feature_index.", CreateGuidAsString(), ".tmp"),
             allowWriteFiles)
+        , TextFeaturesProcessing(std::move(textFeaturesProcessing))
     {
         FeaturesLayout->IgnoreExternalFeatures(ignoredFeatures);
     }

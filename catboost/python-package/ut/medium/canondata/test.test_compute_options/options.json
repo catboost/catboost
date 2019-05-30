@@ -121,7 +121,11 @@
         }, 
         "has_time": false, 
         "ignored_features": [], 
-        "target_border": null
+        "per_float_feature_binarization": {}, 
+        "target_border": null, 
+        "text_processing": {
+            "per_feature_text_processing": {}
+        }
     }, 
     "detailed_profile": false, 
     "flat_params": {
@@ -154,6 +158,12 @@
         "used_ram_limit": ""
     }, 
     "task_type": "CPU", 
+    "text_feature_options": {
+        "text_feature_estimators": [
+            "BoW", 
+            "NaiveBayes"
+        ]
+    }, 
     "tree_learner_options": {
         "bayesian_matrix_reg": 0.1000000015, 
         "bootstrap": {

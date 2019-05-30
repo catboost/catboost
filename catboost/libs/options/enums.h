@@ -286,7 +286,7 @@ enum class EMetricBestValue {
     Undefined
 };
 
-enum class EFeatureCalculatorType {
+enum class EFeatureEstimatorType {
 //Examples
 //    LinearModel,
 //    TfIdf,
@@ -296,5 +296,10 @@ enum class EFeatureCalculatorType {
     BM25,
     CosDistanceWithClassCenter,
     GaussianHomoscedasticModel,
-    GaussianHeteroscedasticiModel
+    GaussianHeteroscedasticModel
+};
+
+enum class ETokenizerType {
+    Naive,
+    UserDefined
 };

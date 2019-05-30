@@ -31,6 +31,14 @@ SCORE_FUNCTIONS = [
     'SolarL2', 'LOOL2'
 ]
 
+TEXT_FEATURE_ESTIMATORS = [
+    'BoW',
+    'NaiveBayes',
+    'BM25',
+    'BoW,NaiveBayes',
+    'BoW,NaiveBayes,BM25'
+]
+
 
 def generate_random_labeled_set(nrows, nvals, labels, seed=20181219, prng=None):
     if prng is None:
@@ -2462,3 +2470,100 @@ def test_model_based_eval(dataset):
         local_canonical_file(os.path.join('use_tested', 'feature_set1_fold0', test_err_log), diff_tool=diff_tool()),
         local_canonical_file(os.path.join('use_tested', 'feature_set1_fold1', test_err_log), diff_tool=diff_tool())
     ]
+
+
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+@pytest.mark.parametrize('feature_estimators', TEXT_FEATURE_ESTIMATORS)
+def test_fit_binclass_with_text_features(boosting_type, feature_estimators):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    learn_error_path = yatest.common.test_output_path('learn.tsv')
+    test_error_path = yatest.common.test_output_path('test.tsv')
+
+    pool_name = 'rotten_tomatoes'
+    params = {
+        '--loss-function': 'Logloss',
+        '--eval-metric': 'AUC',
+        '-f': data_file(pool_name, 'train'),
+        '-t': data_file(pool_name, 'test'),
+        '--text-feature-estimators': feature_estimators,
+        '--column-description': data_file(pool_name, 'cd_binclass'),
+        '--boosting-type': boosting_type,
+        '-i': '20',
+        '-T': '4',
+        '-m': output_model_path,
+        '--learn-err-log': learn_error_path,
+        '--test-err-log': test_error_path,
+        '--use-best-model': 'false',
+    }
+    fit_catboost_gpu(params)
+
+    return [local_canonical_file(learn_error_path, diff_tool=diff_tool()),
+            local_canonical_file(test_error_path, diff_tool=diff_tool())]
+
+
+@pytest.mark.parametrize('feature_estimators', TEXT_FEATURE_ESTIMATORS)
+@pytest.mark.parametrize('loss_function', MULTICLASS_LOSSES)
+def test_fit_multiclass_with_text_features(feature_estimators, loss_function):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    learn_error_path = yatest.common.test_output_path('learn.tsv')
+    test_error_path = yatest.common.test_output_path('test.tsv')
+
+    pool_name = 'rotten_tomatoes'
+    params = {
+        '--loss-function': loss_function,
+        '--eval-metric': 'Accuracy',
+        '-f': data_file(pool_name, 'train'),
+        '-t': data_file(pool_name, 'test'),
+        '--text-feature-estimators': feature_estimators,
+        '--column-description': data_file(pool_name, 'cd'),
+        '--boosting-type': 'Plain',
+        '-i': '20',
+        '-T': '4',
+        '-m': output_model_path,
+        '--learn-err-log': learn_error_path,
+        '--test-err-log': test_error_path,
+        '--use-best-model': 'false',
+    }
+    fit_catboost_gpu(params)
+
+    return [local_canonical_file(learn_error_path, diff_tool=diff_tool()),
+            local_canonical_file(test_error_path, diff_tool=diff_tool())]
+
+
+TEXT_PROCESSING_OPTIONS = [
+    "min_token_occurence=2:token_level_type=Word",
+    "min_token_occurence=5:token_level_type=Word",
+    "min_token_occurence=10",
+    "min_token_occurence=5:gram_order=1:token_level_type=Letter",
+    "min_token_occurence=5:gram_order=2:token_level_type=Letter",
+    "min_token_occurence=5:gram_order=3:token_level_type=Letter",
+]
+
+
+@pytest.mark.parametrize('text_processing', TEXT_PROCESSING_OPTIONS)
+@pytest.mark.parametrize('loss_function', MULTICLASS_LOSSES)
+def test_text_processing_options(text_processing, loss_function):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    learn_error_path = yatest.common.test_output_path('learn.tsv')
+    test_error_path = yatest.common.test_output_path('test.tsv')
+
+    pool_name = 'rotten_tomatoes'
+    params = {
+        '--loss-function': loss_function,
+        '--eval-metric': 'Accuracy',
+        '-f': data_file(pool_name, 'train'),
+        '-t': data_file(pool_name, 'test'),
+        '--column-description': data_file(pool_name, 'cd'),
+        '--text-processing': '2:' + text_processing + ';7:' + text_processing,
+        '--boosting-type': 'Plain',
+        '-i': '20',
+        '-T': '4',
+        '-m': output_model_path,
+        '--learn-err-log': learn_error_path,
+        '--test-err-log': test_error_path,
+        '--use-best-model': 'false',
+    }
+    fit_catboost_gpu(params)
+
+    return [local_canonical_file(learn_error_path, diff_tool=diff_tool()),
+            local_canonical_file(test_error_path, diff_tool=diff_tool())]

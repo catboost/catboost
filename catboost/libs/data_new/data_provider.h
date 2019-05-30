@@ -7,6 +7,7 @@
 
 #include <catboost/libs/helpers/parallel_tasks.h>
 #include <catboost/libs/helpers/serialization.h>
+#include <catboost/libs/feature_estimator/feature_estimator.h>
 
 #include <library/binsaver/bin_saver.h>
 #include <library/dbg_output/dump.h>
@@ -452,6 +453,7 @@ namespace NCB {
 
         TTrainingDataProviderTemplatePtr Learn;
         TVector<TTrainingDataProviderTemplatePtr> Test;
+        TFeatureEstimators FeatureEstimators;
 
     public:
         SAVELOAD_WITH_SHARED(Learn, Test)

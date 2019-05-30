@@ -42,6 +42,7 @@ PEERDIR(
     library/json
     library/logger
     library/svnversion
+    library/text_processing/dictionary
 )
 
 IF(HAVE_CUDA)
