@@ -1,7 +1,5 @@
 #pragma once
 
-//#define DEBUG_CONT
-
 #include "schedule_callback.h"
 #include "iostatus.h"
 #include "poller.h"
@@ -51,22 +49,12 @@ typedef void (*TContFunc)(TCont*, void*);
 
 
 #if defined(_win_)
-#define IOV_MAX 16
+#   define IOV_MAX 16
 #endif
 
 #if defined(_bionic_)
-#define IOV_MAX 1024
+#   define IOV_MAX 1024
 #endif
-
-#define Y_CORO_PRINT(p) Hex(size_t(p)) << " (" << p->Name() << ")"
-#define Y_CORO_PRINTF(p) (TStringBuilder() << Y_CORO_PRINT(p)).c_str()
-
-#if defined(DEBUG_CONT)
-#   define Y_CORO_DBGOUT(x) Cdbg << x << Endl
-#else
-#   define Y_CORO_DBGOUT(x)
-#endif
-
 
 class TCont {
     struct TJoinWait: public TIntrusiveListItem<TJoinWait> {
@@ -275,12 +263,10 @@ public:
     inline void Cancel() noexcept;
 
     bool Cancelled() const noexcept {
-        Y_VERIFY(!Dead_, "%s", Y_CORO_PRINTF(this));
         return Cancelled_;
     }
 
     bool Scheduled() const noexcept {
-        Y_VERIFY(!Dead_, "%s", Y_CORO_PRINTF(this));
         return Scheduled_;
     }
 
@@ -295,12 +281,6 @@ public:
 
     template <class TIt>
     inline void ExecuteEvents(TIt beg, TIt en) noexcept;
-
-    void Die() noexcept;
-
-    bool Dead() const noexcept {
-        return Dead_;
-    }
 
 public:
     static ssize_t DoRead(SOCKET fd, char* buf, size_t len) noexcept;
@@ -326,7 +306,6 @@ private:
     TIntrusiveList<TJoinWait> Waiters_;
     bool Cancelled_ = false;
     bool Scheduled_ = false;
-    bool Dead_ = false;
 };
 
 
@@ -616,17 +595,11 @@ public:
     }
 
     void ScheduleIoWait(TFdEvent* event) {
-        Y_CORO_DBGOUT(Y_CORO_PRINT(event->Cont()) << " schedule iowait");
-        Y_VERIFY(!event->Cont()->Dead(), "%s", Y_CORO_PRINTF(event->Cont()));
-
         WaitQueue_.Register(event);
         Poller_.Schedule(event);
     }
 
     void ScheduleIoWait(TTimerEvent* event) noexcept {
-        Y_CORO_DBGOUT(Y_CORO_PRINT(event->Cont()) << " schedule timer");
-        Y_VERIFY(!event->Cont()->Dead(), "%s", Y_CORO_PRINTF(event->Cont()));
-
         WaitQueue_.Register(event);
     }
 
@@ -641,20 +614,12 @@ private:
     }
 
     void Release(TContRep* cont) noexcept {
-        Y_CORO_DBGOUT(Y_CORO_PRINT(cont->ContPtr()) << " release");
-        Y_VERIFY(cont->ContPtr()->Dead(), "%s", Y_CORO_PRINTF(cont->ContPtr()));
-
         cont->Unlink();
         cont->Destruct();
-
         Pool_.Release(cont);
     }
 
     void Exit(TContRep* cont) noexcept {
-        Y_CORO_DBGOUT(Y_CORO_PRINT(cont->ContPtr()) << " exit(rep)");
-        Y_VERIFY(!cont->ContPtr()->Dead(), "%s", Y_CORO_PRINTF(cont->ContPtr()));
-
-        cont->ContPtr()->Die();
         ScheduleToDelete(cont);
         cont->ContPtr()->SwitchToScheduler();
 
@@ -664,42 +629,28 @@ private:
     void RunScheduler() noexcept;
 
     void ScheduleToDelete(TContRep* cont) noexcept {
-        Y_CORO_DBGOUT(Y_CORO_PRINT(cont->ContPtr()) << " schedule to delete");
-        Y_VERIFY(cont->ContPtr()->Dead(), "%s", Y_CORO_PRINTF(cont->ContPtr()));
-
         ToDelete_.PushBack(cont);
     }
 
     void ScheduleExecution(TContRep* cont) noexcept {
-        Y_CORO_DBGOUT(Y_CORO_PRINT(cont->ContPtr()) << " schedule execution");
-        Y_VERIFY(!cont->ContPtr()->Dead(), "%s", Y_CORO_PRINTF(cont->ContPtr()));
-
         cont->ContPtr()->Scheduled_ = true;
         ReadyNext_.PushBack(cont);
     }
 
     void ScheduleExecutionNow(TContRep* cont) noexcept {
-        Y_CORO_DBGOUT(Y_CORO_PRINT(cont->ContPtr()) << " schedule execution now");
-        Y_VERIFY(!cont->ContPtr()->Dead(), "%s", Y_CORO_PRINTF(cont->ContPtr()));
-
         cont->ContPtr()->Scheduled_ = true;
         Ready_.PushBack(cont);
     }
 
     void Activate(TContRep* cont) noexcept {
-        Y_CORO_DBGOUT("scheduler: activate " << Y_CORO_PRINT(cont->ContPtr()));
-        Y_VERIFY(!cont->ContPtr()->Dead(), "%s", Y_CORO_PRINTF(cont->ContPtr()));
-
         Current_ = cont;
         TCont* contPtr = cont->ContPtr();
         contPtr->Scheduled_ = false;
-        Y_CORO_DBGOUT("scheduler: switch to " << Y_CORO_PRINT(cont->ContPtr()));
         SchedContext_.SwitchTo(contPtr->Context());
     }
 
     void DeleteScheduled() noexcept {
         TReleaseAll functor;
-
         ToDelete_.ForEach(functor);
     }
 
@@ -755,39 +706,26 @@ inline int ExecuteEvent(T* event) noexcept {
 
 
 inline void TCont::Exit() {
-    Y_CORO_DBGOUT(Y_CORO_PRINT(this) << " exit");
-    Y_VERIFY(!Dead_, "%s", Y_CORO_PRINTF(this));
     Executor()->Exit(Rep());
 }
 
 inline bool TCont::IAmRunning() const noexcept {
-    Y_VERIFY(!Dead_, "%s", Y_CORO_PRINTF(this));
     return Rep() == Executor()->Running();
 }
 
 inline void TCont::Cancel() noexcept {
-    Y_CORO_DBGOUT(Y_CORO_PRINT(this) << " cancel");
-    Y_VERIFY(!Dead_, "%s", Y_CORO_PRINTF(this));
-
     if (Cancelled()) {
         return;
     }
 
-    Y_CORO_DBGOUT(Y_CORO_PRINT(this) << " do cancel");
-
     Cancelled_ = true;
 
     if (!IAmRunning()) {
-        Y_CORO_DBGOUT(Y_CORO_PRINT(this) << " do cancel from " << Y_CORO_PRINT(Executor()->Running()->ContPtr()));
-
         ReSchedule();
     }
 }
 
 inline void TCont::ReSchedule() noexcept {
-    Y_CORO_DBGOUT(Y_CORO_PRINT(this) << " reschedule");
-    Y_VERIFY(!Dead_, "%s", Y_CORO_PRINTF(this));
-
     if (Cancelled()) {
         // Legacy code may expect a Cancelled coroutine to be scheduled without delay.
         Executor()->ScheduleExecutionNow(Rep());
@@ -797,14 +735,10 @@ inline void TCont::ReSchedule() noexcept {
 }
 
 inline void TCont::SwitchToScheduler() noexcept {
-    Y_CORO_DBGOUT(Y_CORO_PRINT(this) << " switch to scheduler");
-
     Context()->SwitchTo(Executor()->SchedCont());
 }
 
 inline void TCont::ReScheduleAndSwitch() noexcept {
-    Y_CORO_DBGOUT(Y_CORO_PRINT(this) << " reschedule and switch");
-    Y_VERIFY(!Dead_, "%s", Y_CORO_PRINTF(this));
     ReSchedule();
     SwitchToScheduler();
 }
