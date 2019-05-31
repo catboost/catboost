@@ -1,3 +1,4 @@
 - includes:
   - mach/mach_types.h
+  - mach/processor_info.h
   - os/lock.h
