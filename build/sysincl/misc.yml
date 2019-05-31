@@ -40,6 +40,7 @@
     - sys/socket.h:  contrib/libs/lftp/lib/sys/socket.h
     - sys/stat.h:    contrib/libs/lftp/lib/sys/stat.h
     - sys/time.h:    contrib/libs/lftp/lib/sys/time.h
+    - util.h
 
 # Another sysincl/addincl clash. Here we also have GLOBAL ADDINCL that will
 # produce sysincl/addincl mismatch configure errors when someone writes
@@ -139,3 +140,17 @@
     - sqlext.h
     - sqltypes.h
     - sqlucode.h
+
+# osx sdk includes that we do not want to apply for whole arcadia
+- source_filter: "^contrib/tools/python|yt/19_4/yt/core/misc/proc.cpp"
+  includes:
+    - util.h
+
+- source_filter: "^contrib/libs/libmemcached"
+  includes:
+    - sasl/sasl.h
+    - sasl/saslutil.h
+
+- source_filter: "^contrib/(libs/(apr|llvm)|python/uwsgi)"
+  includes:
+    - uuid/uuid.h
