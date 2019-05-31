@@ -81,37 +81,26 @@ void UpdateApproxDeltas(
     NPar::TLocalExecutor::TExecRangeParams blockParams(0, docCount);
     blockParams.SetBlockSize(1000);
 
-    if (storeExpApprox) {
-        localExecutor->ExecRange(
-            [=] (int blockIdx) {
-                UpdateApproxBlock</*StoreExpApprox*/ true>(
-                    blockParams,
-                    leafDeltasData,
-                    indicesData,
-                    blockIdx,
-                    deltasDimensionData
-                );
-            },
-            0,
-            blockParams.GetBlockCount(),
-            NPar::TLocalExecutor::WAIT_COMPLETE
-        );
-    } else {
-        localExecutor->ExecRange(
-            [=] (int blockIdx) {
-                UpdateApproxBlock</*StoreExpApprox*/ false>(
-                    blockParams,
-                    leafDeltasData,
-                    indicesData,
-                    blockIdx,
-                    deltasDimensionData
-                );
-            },
-            0,
-            blockParams.GetBlockCount(),
-            NPar::TLocalExecutor::WAIT_COMPLETE
-        );
-    }
+    const auto GetUpdateApproxBlockLambda = [&] (auto boolConst) -> std::function<void(int)> {
+        return [=] (int blockIdx) {
+            UpdateApproxBlock</*StoreExpApprox*/ boolConst.value>(
+                blockParams,
+                leafDeltasData,
+                indicesData,
+                blockIdx,
+                deltasDimensionData
+            );
+        };
+    };
+    const auto updateApproxBlockLambda = (storeExpApprox ?
+        GetUpdateApproxBlockLambda(std::true_type()) : GetUpdateApproxBlockLambda(std::false_type())
+    );
+    localExecutor->ExecRange(
+        updateApproxBlockLambda,
+        0,
+        blockParams.GetBlockCount(),
+        NPar::TLocalExecutor::WAIT_COMPLETE
+    );
 }
 
 static void CalcApproxDers(
