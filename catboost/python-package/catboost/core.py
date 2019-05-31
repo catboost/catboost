@@ -1050,22 +1050,52 @@ class _CatBoostBase(object):
     def best_iteration_(self):
         return self.get_best_iteration()
 
-    def get_tree_splits(self, tree_idx, pool):
+    def _get_tree_splits(self, tree_idx, pool):
         return self._object._get_tree_splits(tree_idx, pool)
 
-    def get_tree_leaf_values(self, tree_idx, leaves_num):
+    def _get_tree_leaf_values(self, tree_idx, leaves_num):
         return self._object._get_tree_leaf_values(tree_idx, leaves_num)
 
+    def get_tree_leaf_counts(self):
+        '''
+        Returns
+        -------
+        tree_leaf_counts : 1d-array of numpy.uint32 of size tree_count_.
+        tree_leaf_counts[i] equals to the number of leafs in i-th tree of the ensemble.
+        '''
+        return self._object._get_tree_leaf_counts()
+
     def get_leaf_values(self):
+        '''
+        Returns
+        -------
+        leaf_values : 1d-array of leaf values for all trees.
+        Value corresponding to j-th leaf of i-th tree is at position
+        sum(get_tree_leaf_counts()[:i]) + j (leaf and tree indexing starts from zero).
+        '''
         return self._object._get_leaf_values()
 
     def get_leaf_weights(self):
+        '''
+        Returns
+        -------
+        leaf_weights : 1d-array of leaf weights for all trees.
+        Weight of j-th leaf of i-th tree is at position
+        sum(get_tree_leaf_counts()[:i]) + j (leaf and tree indexing starts from zero).
+        '''
         return self._object._get_leaf_weights()
 
-    def get_tree_leaf_counts(self):
-        return self._object._get_tree_leaf_counts()
-
     def set_leaf_values(self, new_leaf_values):
+        '''
+        Sets values at tree leafs of ensemble equal to new_leaf_values.
+
+        Parameters
+        ----------
+        new_leaf_values : 1d-array with new leaf values for all trees.
+        It's size should be equal to sum(get_tree_leaf_counts()).
+        Value corresponding to j-th leaf of i-th tree should be at position
+        sum(get_tree_leaf_counts()[:i]) + j (leaf and tree indexing starts from zero).
+        '''
         self._object._set_leaf_values(new_leaf_values)
 
 
@@ -2209,8 +2239,8 @@ class CatBoost(_CatBoostBase):
         from graphviz import Digraph
         graph = Digraph()
 
-        splits = self.get_tree_splits(tree_idx, pool)
-        leaf_values = self.get_tree_leaf_values(tree_idx, 1 << len(splits))
+        splits = self._get_tree_splits(tree_idx, pool)
+        leaf_values = self._get_tree_leaf_values(tree_idx, 1 << len(splits))
 
         layer_size = 1
         current_size = 0
