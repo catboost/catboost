@@ -155,6 +155,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\containers\2d_array\library-containers-2d_array.vcxproj">
       <Project>{57275066-CBBF-3FD5-137B-685E648981E5}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\containers\dense_hash\library-containers-dense_hash.vcxproj">
+      <Project>{45F2062A-3F31-B7B8-9501-F0C86DB74515}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\containers\paged_vector\library-containers-paged_vector.vcxproj">
       <Project>{F2373D22-DBF0-B7E4-B028-8BF674973AED}</Project>
     </ProjectReference>

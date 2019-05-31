@@ -79,6 +79,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_types\pair.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data_types\text.cpp"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_types\groupid.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_types\pair.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_types\query.h"/>
@@ -107,6 +108,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\containers\2d_array\library-containers-2d_array.vcxproj">
       <Project>{57275066-CBBF-3FD5-137B-685E648981E5}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\containers\dense_hash\library-containers-dense_hash.vcxproj">
+      <Project>{45F2062A-3F31-B7B8-9501-F0C86DB74515}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\util\charset\util-charset.vcxproj">
       <Project>{44174C28-7454-8F7D-C06B-E2E8E0B4BF9E}</Project>

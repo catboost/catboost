@@ -162,6 +162,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\containers\2d_array\library-containers-2d_array.vcxproj">
       <Project>{57275066-CBBF-3FD5-137B-685E648981E5}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\containers\dense_hash\library-containers-dense_hash.vcxproj">
+      <Project>{45F2062A-3F31-B7B8-9501-F0C86DB74515}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\containers\flat_hash\lib\containers-flat_hash-lib.vcxproj">
       <Project>{F197135F-A8DC-82F1-30DC-370483845AFC}</Project>
     </ProjectReference>
