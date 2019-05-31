@@ -81,6 +81,7 @@
     <ClCompile Include="$(SolutionDir)..\library\coroutine\engine\cont_poller.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\coroutine\engine\impl.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\coroutine\engine\iostatus.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\coroutine\engine\network.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\coroutine\engine\poller.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\library\coroutine\engine\poller.h_serialized.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\coroutine\engine\sockpool.cpp"/>
@@ -116,6 +117,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\library\coroutine\engine\events.h"/>
     <ClInclude Include="$(SolutionDir)..\library\coroutine\engine\impl.h"/>
     <ClInclude Include="$(SolutionDir)..\library\coroutine\engine\iostatus.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\coroutine\engine\network.h"/>
     <ClInclude Include="$(SolutionDir)..\library\coroutine\engine\schedule_callback.h"/>
     <ClInclude Include="$(SolutionDir)..\library\coroutine\engine\sockmap.h"/>
     <ClInclude Include="$(SolutionDir)..\library\coroutine\engine\sockpool.h"/>

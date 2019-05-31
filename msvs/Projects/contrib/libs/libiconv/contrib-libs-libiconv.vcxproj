@@ -1,0 +1,315 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build" ToolsVersion="4.0">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGUID>{FB573A92-1A17-A7FA-A4F8-9667FF35EA51}</ProjectGUID>
+    <Keyword>Win32Proj</Keyword>
+    <Platform>x64</Platform>
+    <ProjectName>contrib-libs-libiconv</ProjectName>
+    <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.default.props"/>
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>Multibyte</CharacterSet>
+    <PlatformToolset>v141</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props"/>
+  <ImportGroup Label="ArcadiaProps"/>
+  <ImportGroup Label="ExtensionSettings"/>
+  <ImportGroup Label="PropertySheets"/>
+  <PropertyGroup Label="UserMacros"/>
+  <PropertyGroup>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
+    <TargetName>contrib-libs-libiconv</TargetName>
+    <TargetExtention>.lib</TargetExtention>
+    <OutDir>$(SolutionDir)$(Configuration)\contrib\libs\libiconv\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\FB573A92-1A17-A7FA-A4F8-9667FF35EA51\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">EnableFastChecks</BasicRuntimeChecks>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DisableSpecificWarnings>4267;4244</DisableSpecificWarnings>
+      <ErrorReporting>Prompt</ErrorReporting>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Disabled</InlineFunctionExpansion>
+      <InlineFunctionExpansion Condition="'$(Configuration)|$(Platform)'=='Release|x64'">AnySuitable</InlineFunctionExpansion>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Disabled</Optimization>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">MaxSpeed</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">MultiThreadedDebug</RuntimeLibrary>
+      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Release|x64'">MultiThreaded</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <UseFullPaths>true</UseFullPaths>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /DFAKEID=5020880 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1    /wd4456 /wd4457 /std:c++17 -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /DFAKEID=5020880 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1    /wd4456 /wd4457 /std:c++17 -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">TurnOffAllWarnings</WarningLevel>
+      <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
+      <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
+      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  </AdditionalOptions>
+      <SubSystem Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Console</SubSystem>
+      <GenerateDebugInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">DebugFastLink</GenerateDebugInformation>
+      <RandomizedBaseAddress Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</RandomizedBaseAddress>
+      <SubSystem Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Console</SubSystem>
+      <GenerateDebugInformation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Debug</GenerateDebugInformation>
+      <RandomizedBaseAddress Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</RandomizedBaseAddress>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\libiconv\genaliases.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\libiconv\genaliases2.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\libiconv\iconv.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\aliases.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\aliases2.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\aliases_aix.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\aliases_aix_sysaix.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\aliases_dos.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\aliases_extra.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\aliases_osf1.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\aliases_osf1_sysosf1.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\aliases_sysaix.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\aliases_syshpux.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\aliases_sysosf1.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\aliases_syssolaris.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\armscii_8.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\ascii.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\atarist.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\big5.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\big5_2003.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\big5hkscs1999.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\big5hkscs2001.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\big5hkscs2004.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\c99.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\canonical.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\canonical_aix.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\canonical_aix_sysaix.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\canonical_dos.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\canonical_extra.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\canonical_local.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\canonical_local_sysaix.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\canonical_local_syshpux.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\canonical_local_sysosf1.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\canonical_local_syssolaris.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\canonical_osf1.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\canonical_osf1_sysosf1.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\canonical_sysaix.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\canonical_syshpux.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\canonical_sysosf1.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\canonical_syssolaris.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\ces_big5.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\ces_gbk.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\cjk_variants.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\cns11643.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\cns11643_1.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\cns11643_15.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\cns11643_2.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\cns11643_3.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\cns11643_4.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\cns11643_4a.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\cns11643_4b.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\cns11643_5.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\cns11643_6.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\cns11643_7.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\cns11643_inv.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\config.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\converters.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\cp1046.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\cp1124.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\cp1125.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\cp1129.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\cp1131.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\cp1133.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\cp1161.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\cp1162.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\cp1163.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\cp1250.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\cp1251.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\cp1252.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\cp1253.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\cp1254.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\cp1255.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\cp1256.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\cp1257.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\cp1258.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\cp437.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\cp737.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\cp775.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\cp850.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\cp852.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\cp853.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\cp855.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\cp856.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\cp857.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\cp858.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\cp860.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\cp861.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\cp862.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\cp863.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\cp864.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\cp865.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\cp866.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\cp869.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\cp874.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\cp922.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\cp932.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\cp932ext.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\cp936.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\cp936ext.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\cp943.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\cp949.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\cp950.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\cp950ext.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\dec_hanyu.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\dec_kanji.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\euc_cn.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\euc_jisx0213.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\euc_jp.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\euc_kr.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\euc_tw.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\flags.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\flushwc.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\gb18030.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\gb18030ext.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\gb18030uni.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\gb2312.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\gbk.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\gbkext1.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\gbkext2.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\gbkext_inv.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\georgian_academy.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\georgian_ps.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\hkscs1999.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\hkscs2001.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\hkscs2004.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\hp_roman8.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\hz.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\iconv.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\iconv_open1.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\iconv_open2.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\iso2022_cn.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\iso2022_cnext.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\iso2022_jp.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\iso2022_jp1.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\iso2022_jp2.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\iso2022_jp3.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\iso2022_kr.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\iso646_cn.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\iso646_jp.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\iso8859_1.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\iso8859_10.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\iso8859_11.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\iso8859_13.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\iso8859_14.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\iso8859_15.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\iso8859_16.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\iso8859_2.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\iso8859_3.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\iso8859_4.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\iso8859_5.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\iso8859_6.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\iso8859_7.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\iso8859_8.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\iso8859_9.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\isoir165.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\isoir165ext.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\java.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\jisx0201.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\jisx0208.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\jisx0212.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\jisx0213.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\johab.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\johab_hangul.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\koi8_r.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\koi8_ru.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\koi8_t.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\koi8_u.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\ksc5601.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\localcharset.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\loop_unicode.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\loop_wchar.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\loops.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\mac_arabic.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\mac_centraleurope.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\mac_croatian.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\mac_cyrillic.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\mac_greek.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\mac_hebrew.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\mac_iceland.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\mac_roman.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\mac_romania.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\mac_thai.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\mac_turkish.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\mac_ukraine.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\mulelao.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\nextstep.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\pt154.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\riscos1.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\rk1048.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\shift_jisx0213.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\sjis.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\tcvn.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\tds565.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\tis620.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\translit.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\ucs2.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\ucs2be.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\ucs2internal.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\ucs2le.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\ucs2swapped.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\ucs4.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\ucs4be.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\ucs4internal.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\ucs4le.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\ucs4swapped.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\uhc_1.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\uhc_2.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\utf16.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\utf16be.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\utf16le.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\utf32.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\utf32be.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\utf32le.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\utf7.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\utf8.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\vietcomb.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\libiconv\viscii.h"/>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
+  <ImportGroup Label="ExtensionTargets"/>
+  <ItemGroup>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\contrib-libs-cxxsupp.vcxproj">
+      <Project>{8D7C41B0-2344-C558-29D8-570B39498A2F}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\libcxx\libs-cxxsupp-libcxx.vcxproj">
+      <Project>{671FE333-6D0D-E7E3-0E1D-D4CB43CF879D}</Project>
+    </ProjectReference>
+  </ItemGroup>
+</Project>

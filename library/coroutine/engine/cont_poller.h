@@ -21,10 +21,6 @@ namespace NCoro {
 
     class IPollEvent;
 
-    void Reshedule(TCont* cont) noexcept;
-
-    void RemoveFromPoller(TCont* cont, IPollEvent* event) noexcept;
-
 
     struct TContPollEventCompare {
         template <class T>
@@ -68,10 +64,7 @@ namespace NCoro {
         }
 
     private:
-        void Wake() noexcept {
-            UnLink();
-            Reshedule(Cont_);
-        }
+        void Wake() noexcept;
 
     private:
         TCont* Cont_;
@@ -203,9 +196,7 @@ public:
         RemoveFromIOWait();
     }
 
-    void RemoveFromIOWait() noexcept {
-        RemoveFromPoller(Cont(), this);
-    }
+    void RemoveFromIOWait() noexcept;
 
     void OnPollEvent(int status) noexcept override {
         Wake(status);
@@ -219,3 +210,7 @@ public:
         : TContPollEvent(cont, deadLine)
     {}
 };
+
+int ExecuteEvent(TFdEvent* event) noexcept;
+
+int ExecuteEvent(TTimerEvent* event) noexcept;

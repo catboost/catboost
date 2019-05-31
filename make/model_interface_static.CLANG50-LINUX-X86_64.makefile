@@ -4846,12 +4846,13 @@ $(BUILD_ROOT)/catboost/libs/helpers/libcatboost-libs-helpers.a\
         $(BUILD_ROOT)/catboost/libs/helpers/vec_list.cpp.pic.o\
         $(BUILD_ROOT)/catboost/libs/helpers/vector_helpers.cpp.pic.o\
         $(BUILD_ROOT)/catboost/libs/helpers/wx_test.cpp.pic.o\
+        $(BUILD_ROOT)/catboost/libs/helpers/xml_output.cpp.pic.o\
         $(SOURCE_ROOT)/build/scripts/generate_mf.py\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/helpers'
 	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name catboost-libs-helpers -o catboost/libs/helpers/libcatboost-libs-helpers.a.mf -t LIBRARY -Ya,lics -Ya,peers
-	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/catboost/libs/helpers/libcatboost-libs-helpers.a' '$(BUILD_ROOT)/catboost/libs/helpers/array_subset.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/borders_io.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/checksum.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/clear_array.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/compare.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/compression.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/cpu_random.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/dbg_output.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/dense_hash.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/dense_hash_view.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/element_range.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/exception.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/hash.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/int_cast.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/interrupt.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/map_merge.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/math_utils.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/matrix.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/maybe_data.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/maybe_owning_array_holder.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/mem_usage.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/parallel_tasks.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/power_hash.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/progress_helper.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/permutation.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/query_info_helper.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/resource_constrained_executor.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/resource_holder.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/restorable_rng.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/serialization.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/set.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/vec_list.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/vector_helpers.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/wx_test.cpp.pic.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/catboost/libs/helpers/libcatboost-libs-helpers.a' '$(BUILD_ROOT)/catboost/libs/helpers/array_subset.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/borders_io.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/checksum.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/clear_array.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/compare.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/compression.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/cpu_random.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/dbg_output.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/dense_hash.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/dense_hash_view.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/element_range.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/exception.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/hash.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/int_cast.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/interrupt.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/map_merge.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/math_utils.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/matrix.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/maybe_data.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/maybe_owning_array_holder.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/mem_usage.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/parallel_tasks.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/power_hash.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/progress_helper.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/permutation.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/query_info_helper.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/resource_constrained_executor.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/resource_holder.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/restorable_rng.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/serialization.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/set.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/vec_list.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/vector_helpers.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/wx_test.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/helpers/xml_output.cpp.pic.o'
 
 $(BUILD_ROOT)/catboost/libs/helpers/array_subset.cpp.pic.o\
         ::\
@@ -5090,6 +5091,13 @@ $(BUILD_ROOT)/catboost/libs/helpers/wx_test.cpp.pic.o\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/helpers'
 	${CXX} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/helpers/wx_test.cpp.pic.o' '$(SOURCE_ROOT)/catboost/libs/helpers/wx_test.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -nostdinc++ -msse2 -msse3 -mssse3 -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/catboost/libs/helpers/xml_output.cpp.pic.o\
+        ::\
+        $(SOURCE_ROOT)/catboost/libs/helpers/xml_output.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/catboost/libs/helpers'
+	${CXX} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/helpers/xml_output.cpp.pic.o' '$(SOURCE_ROOT)/catboost/libs/helpers/xml_output.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -nostdinc++ -msse2 -msse3 -mssse3 -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
 
 $(BUILD_ROOT)/catboost/libs/ctr_description/libcatboost-libs-ctr_description.a.mf\
         ::\
@@ -11331,6 +11339,7 @@ $(BUILD_ROOT)/catboost/libs/model/libcatboost-libs-model.a\
         $(BUILD_ROOT)/catboost/libs/model/model.cpp.pic.o\
         $(BUILD_ROOT)/catboost/libs/model/online_ctr.cpp.pic.o\
         $(BUILD_ROOT)/catboost/libs/model/onnx_helpers.cpp.pic.o\
+        $(BUILD_ROOT)/catboost/libs/model/pmml_helpers.cpp.pic.o\
         $(BUILD_ROOT)/catboost/libs/model/static_ctr_provider.cpp.pic.o\
         $(BUILD_ROOT)/catboost/libs/model/formula_evaluator.cpp.pic.o\
         $(BUILD_ROOT)/catboost/libs/model/model_build_helper.cpp.pic.o\
@@ -11342,7 +11351,7 @@ $(BUILD_ROOT)/catboost/libs/model/libcatboost-libs-model.a\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/model'
 	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name catboost-libs-model -o catboost/libs/model/libcatboost-libs-model.a.mf -t LIBRARY -Ya,lics -Ya,peers
-	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/catboost/libs/model/libcatboost-libs-model.a' '$(BUILD_ROOT)/catboost/libs/model/coreml_helpers.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/ctr_data.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/ctr_provider.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/ctr_value_table.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/features.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/json_model_helpers.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/model.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/online_ctr.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/onnx_helpers.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/static_ctr_provider.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/formula_evaluator.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/model_build_helper.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/feature_calcer.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/ctr_provider.h_serialized.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/split.h_serialized.cpp.pic.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/catboost/libs/model/libcatboost-libs-model.a' '$(BUILD_ROOT)/catboost/libs/model/coreml_helpers.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/ctr_data.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/ctr_provider.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/ctr_value_table.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/features.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/json_model_helpers.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/model.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/online_ctr.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/onnx_helpers.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/pmml_helpers.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/static_ctr_provider.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/formula_evaluator.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/model_build_helper.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/feature_calcer.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/ctr_provider.h_serialized.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/split.h_serialized.cpp.pic.o'
 
 $(BUILD_ROOT)/catboost/libs/model/coreml_helpers.cpp.pic.o\
         ::\
@@ -11467,6 +11476,16 @@ $(BUILD_ROOT)/catboost/libs/model/onnx_helpers.cpp.pic.o\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/model'
 	${CXX} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/onnx_helpers.cpp.pic.o' '$(SOURCE_ROOT)/catboost/libs/model/onnx_helpers.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/brotli/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx -nostdinc++ -msse2 -msse3 -mssse3 -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/catboost/libs/model/pmml_helpers.cpp.pic.o\
+        ::\
+        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/features.fbs.h\
+        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/ctr_data.fbs.h\
+        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/model.fbs.h\
+        $(SOURCE_ROOT)/catboost/libs/model/pmml_helpers.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/catboost/libs/model'
+	${CXX} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/pmml_helpers.cpp.pic.o' '$(SOURCE_ROOT)/catboost/libs/model/pmml_helpers.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/brotli/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx -nostdinc++ -msse2 -msse3 -mssse3 -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
 
 $(BUILD_ROOT)/catboost/libs/model/static_ctr_provider.cpp.pic.o\
         ::\
@@ -12127,6 +12146,7 @@ clean\
 	rm -f '$(BUILD_ROOT)/catboost/libs/helpers/vec_list.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/catboost/libs/helpers/vector_helpers.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/catboost/libs/helpers/wx_test.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/helpers/xml_output.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/catboost/libs/ctr_description/libcatboost-libs-ctr_description.a' '$(BUILD_ROOT)/catboost/libs/ctr_description/libcatboost-libs-ctr_description.a.mf'
 	rm -f '$(BUILD_ROOT)/catboost/libs/ctr_description/ctr_type.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/catboost/libs/ctr_description/ctr_type.h_serialized.cpp.pic.o'
@@ -12839,6 +12859,7 @@ clean\
 	rm -f '$(BUILD_ROOT)/catboost/libs/model/model.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/catboost/libs/model/online_ctr.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/catboost/libs/model/onnx_helpers.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/model/pmml_helpers.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/catboost/libs/model/static_ctr_provider.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/catboost/libs/model/formula_evaluator.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/catboost/libs/model/model_build_helper.cpp.pic.o'

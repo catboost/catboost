@@ -99,260 +99,6 @@ void TCont::PrintMe(IOutputStream& out) const noexcept {
         << ")";
 }
 
-int TCont::SelectD(SOCKET fds[], int what[], size_t nfds, SOCKET* outfd, TInstant deadline) {
-    if (Cancelled()) {
-        return ECANCELED;
-    }
-
-    if (nfds == 0) {
-        return 0;
-    }
-
-    TTempArray<TFdEvent> events(nfds);
-
-    for (auto i : xrange(nfds)) {
-        new (events.Data() + i) TFdEvent(this, fds[i], (ui16)what[i], deadline);
-    }
-
-    Y_DEFER {
-        for (auto i : xrange(nfds)) {
-            (events.Data() + i)->~TFdEvent();
-        }
-    };
-
-    ExecuteEvents(events.Data(), events.Data() + nfds);
-
-    if (Cancelled()) {
-        return ECANCELED;
-    }
-
-    TFdEvent* ret = nullptr;
-    int status = EINPROGRESS;
-
-    for (auto i : xrange(nfds)) {
-        auto& ev = *(events.Data() + i);
-        switch (ev.Status()) {
-        case EINPROGRESS:
-            break;
-        case ETIMEDOUT:
-            if (status != EINPROGRESS) {
-                break;
-            } // else fallthrough
-        default:
-            status = ev.Status();
-            ret = &ev;
-        }
-    }
-
-    if (ret) {
-        if (outfd) {
-            *outfd = ret->Fd();
-        }
-        return ret->Status();
-    }
-
-    return EINPROGRESS;
-}
-
-TContIOStatus TCont::ReadVectorD(SOCKET fd, TContIOVector* vec, TInstant deadline) noexcept {
-    while (true) {
-        ssize_t res = DoReadVector(fd, vec);
-
-        if (res >= 0) {
-            return TContIOStatus::Success((size_t)res);
-        }
-
-        {
-            const int err = LastSystemError();
-
-            if (!IsBlocked(err)) {
-                return TContIOStatus::Error(err);
-            }
-        }
-
-        if ((res = PollD(fd, CONT_POLL_READ, deadline)) != 0) {
-            return TContIOStatus::Error((int)res);
-        }
-    }
-}
-
-TContIOStatus TCont::ReadD(SOCKET fd, void* buf, size_t len, TInstant deadline) noexcept {
-    IOutputStream::TPart part(buf, len);
-    TContIOVector vec(&part, 1);
-    return ReadVectorD(fd, &vec, deadline);
-}
-
-TContIOStatus TCont::WriteVectorD(SOCKET fd, TContIOVector* vec, TInstant deadline) noexcept {
-    size_t written = 0;
-
-    while (!vec->Complete()) {
-        ssize_t res = DoWriteVector(fd, vec);
-
-        if (res >= 0) {
-            written += res;
-
-            vec->Proceed((size_t)res);
-        } else {
-            {
-                const int err = LastSystemError();
-
-                if (!IsBlocked(err)) {
-                    return TContIOStatus(written, err);
-                }
-            }
-
-            if ((res = PollD(fd, CONT_POLL_WRITE, deadline)) != 0) {
-                return TContIOStatus(written, (int)res);
-            }
-        }
-    }
-
-    return TContIOStatus::Success(written);
-}
-
-TContIOStatus TCont::WriteD(SOCKET fd, const void* buf, size_t len, TInstant deadline) noexcept {
-    size_t written = 0;
-
-    while (len) {
-        ssize_t res = DoWrite(fd, (const char*)buf, len);
-
-        if (res >= 0) {
-            written += res;
-            buf = (const char*)buf + res;
-            len -= res;
-        } else {
-            {
-                const int err = LastSystemError();
-
-                if (!IsBlocked(err)) {
-                    return TContIOStatus(written, err);
-                }
-            }
-
-            if ((res = PollD(fd, CONT_POLL_WRITE, deadline)) != 0) {
-                return TContIOStatus(written, (int)res);
-            }
-        }
-    }
-
-    return TContIOStatus::Success(written);
-}
-
-int TCont::ConnectD(SOCKET s, const struct sockaddr* name, socklen_t namelen, TInstant deadline) noexcept {
-    if (connect(s, name, namelen)) {
-        const int err = LastSystemError();
-
-        if (!IsBlocked(err) && err != EINPROGRESS) {
-            return err;
-        }
-
-        int ret = PollD(s, CONT_POLL_WRITE, deadline);
-
-        if (ret) {
-            return ret;
-        }
-
-        // check if we really connected
-        // FIXME: Unportable ??
-        int serr = 0;
-        socklen_t slen = sizeof(serr);
-
-        ret = getsockopt(s, SOL_SOCKET, SO_ERROR, (char*)&serr, &slen);
-
-        if (ret) {
-            return LastSystemError();
-        }
-
-        if (serr) {
-            return serr;
-        }
-    }
-
-    return 0;
-}
-
-int TCont::AcceptD(SOCKET s, struct sockaddr* addr, socklen_t* addrlen, TInstant deadline) noexcept {
-    SOCKET ret;
-
-    while ((ret = Accept4(s, addr, addrlen)) == INVALID_SOCKET) {
-        int err = LastSystemError();
-
-        if (!IsBlocked(err)) {
-            return -err;
-        }
-
-        err = PollD(s, CONT_POLL_READ, deadline);
-
-        if (err) {
-            return -err;
-        }
-    }
-
-    return (int)ret;
-}
-
-ssize_t TCont::DoRead(SOCKET fd, char* buf, size_t len) noexcept {
-#if defined(_win_)
-    if (IsSocket(fd)) {
-        return recv(fd, buf, (int)len, 0);
-    }
-
-    return _read((int)fd, buf, (int)len);
-#else
-    return read(fd, buf, len);
-#endif
-}
-
-ssize_t TCont::DoReadVector(SOCKET fd, TContIOVector* vec) noexcept {
-    return readv(fd, (const iovec*)vec->Parts(), Min(IOV_MAX, (int)vec->Count()));
-}
-
-ssize_t TCont::DoWrite(SOCKET fd, const char* buf, size_t len) noexcept {
-#if defined(_win_)
-    if (IsSocket(fd)) {
-        return send(fd, buf, (int)len, 0);
-    }
-
-    return _write((int)fd, buf, (int)len);
-#else
-    return write(fd, buf, len);
-#endif
-}
-
-ssize_t TCont::DoWriteVector(SOCKET fd, TContIOVector* vec) noexcept {
-    return writev(fd, (const iovec*)vec->Parts(), Min(IOV_MAX, (int)vec->Count()));
-}
-
-int TCont::Connect(TSocketHolder& s, const struct addrinfo& ai, TInstant deadLine) noexcept {
-    TSocketHolder res(Socket(ai));
-
-    if (res.Closed()) {
-        return LastSystemError();
-    }
-
-    const int ret = ConnectD(res, ai.ai_addr, (socklen_t)ai.ai_addrlen, deadLine);
-
-    if (!ret) {
-        s.Swap(res);
-    }
-
-    return ret;
-}
-
-int TCont::Connect(TSocketHolder& s, const TNetworkAddress& addr, TInstant deadLine) noexcept {
-    int ret = EHOSTUNREACH;
-
-    for (TNetworkAddress::TIterator it = addr.Begin(); it != addr.End(); ++it) {
-        ret = Connect(s, *it, deadLine);
-
-        if (ret == 0 || ret == ETIMEDOUT) {
-            return ret;
-        }
-    }
-
-    return ret;
-}
-
 bool TCont::Join(TCont* c, TInstant deadLine) noexcept {
     TJoinWait ev(this);
     c->Waiters_.PushBack(&ev);
@@ -363,7 +109,7 @@ bool TCont::Join(TCont* c, TInstant deadLine) noexcept {
                 c->Cancel();
 
                 do {
-                    SwitchToScheduler();
+                    _SwitchToScheduler();
                 } while (!ev.Empty());
             }
 
@@ -380,19 +126,8 @@ void TCont::WakeAllWaiters() noexcept {
     }
 }
 
-int TCont::MsgPeek(SOCKET s) noexcept {
-    char c;
-    return recv(s, &c, 1, MSG_PEEK);
-}
-
 int TCont::SleepD(TInstant deadline) noexcept {
     TTimerEvent event(this, deadline);
-
-    return ExecuteEvent(&event);
-}
-
-int TCont::PollD(SOCKET fd, int what, TInstant deadline) noexcept {
-    TFdEvent event(this, fd, (ui16)what, deadline);
 
     return ExecuteEvent(&event);
 }
@@ -402,6 +137,45 @@ void TCont::Yield() noexcept {
         ReScheduleAndSwitch();
     }
 }
+
+void TCont::ReScheduleAndSwitch() noexcept {
+    ReSchedule();
+    _SwitchToScheduler();
+}
+
+void TCont::Exit() {
+    Executor()->Exit(Rep());
+}
+
+bool TCont::IAmRunning() const noexcept {
+    return Rep() == Executor()->Running();
+}
+
+void TCont::Cancel() noexcept {
+    if (Cancelled()) {
+        return;
+    }
+
+    Cancelled_ = true;
+
+    if (!IAmRunning()) {
+        ReSchedule();
+    }
+}
+
+void TCont::ReSchedule() noexcept {
+    if (Cancelled()) {
+        // Legacy code may expect a Cancelled coroutine to be scheduled without delay.
+        Executor()->ScheduleExecutionNow(Rep());
+    } else {
+        Executor()->ScheduleExecution(Rep());
+    }
+}
+
+void TCont::_SwitchToScheduler() noexcept {
+    Context()->SwitchTo(Executor()->SchedCont());
+}
+
 
 TContExecutor::TContExecutor(size_t stackSize, THolder<IPollerFace> poller, NCoro::IScheduleCallback* callback)
     : Poller_(std::move(poller))

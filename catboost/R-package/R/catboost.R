@@ -1697,9 +1697,13 @@ catboost.staged_predict <- function(model, pool, verbose = FALSE, prediction_typ
 #' Allows you to optimize the speed of execution. This parameter doesn't affect results.
 #'
 #' Default value: -1
+#' @param fstr_type Deprecated parameter, use 'type' instead.
 #' @export
 #' @seealso \url{https://tech.yandex.com/catboost/doc/dg/features/feature-importances-calculation-docpage}
-catboost.get_feature_importance <- function(model, pool = NULL, type = "FeatureImportance", thread_count = -1) {
+catboost.get_feature_importance <- function(model, pool = NULL, type = "FeatureImportance", thread_count = -1, fstr_type = NULL) {
+    if (!is.null(fstr_type)) {
+        type <- fstr_type
+    }
     if (class(model) != "catboost.Model")
         stop("Expected catboost.Model, got: ", class(model))
     if (!is.null(pool) && class(pool) != "catboost.Pool")
