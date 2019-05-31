@@ -2200,12 +2200,15 @@ class CatBoost(_CatBoostBase):
                 raise CatBoostError('No feature named "{}" in model'.format(feature))
             if feature not in data.get_feature_names():
                 raise CatBoostError('No feature named "{}" in dataset'.format(feature))
-            feature = self.feature_names_.index(feature)
+            feature_num = self.feature_names_.index(feature)
+        else:
+            feature_num = feature
+            feature = self.feature_names_[feature_num]
 
         if prediction_type not in ['Class', 'Probability', 'RawFormulaVal']:
             raise CatBoostError('Unknown prediction type "{}"'.format(prediction_type))
 
-        feature_type, feature_internal_index = self._object._get_feature_type_and_internal_index(feature)
+        feature_type, feature_internal_index = self._object._get_feature_type_and_internal_index(feature_num)
         res = self._object._get_binarized_statistics(
             data,
             feature_internal_index,
@@ -2216,11 +2219,11 @@ class CatBoost(_CatBoostBase):
 
         if feature_type == 'categorical':
             if cat_feature_values is None:
-                cat_feature_values = self._object._get_cat_feature_values(data, feature)
+                cat_feature_values = self._object._get_cat_feature_values(data, feature_num)
                 cat_feature_values = [val for val in cat_feature_values]
 
             if not isinstance(cat_feature_values, ARRAY_TYPES):
-                raise CatBoostError("Feature #{} is categorical. "
+                raise CatBoostError("Feature '{}' is categorical. "
                                     "Please provide values for which you need statistics in cat_feature_values"
                                     .format(feature))
             val_to_hash = dict()
@@ -3681,7 +3684,7 @@ def sum_models(models, weights=None, ctr_merge_policy='IntersectingCountersAvera
     return result
 
 
-def _build_binarized_feature_statistics_fig(statistics, feature_num):
+def _build_binarized_feature_statistics_fig(statistics, feature):
     try:
         import plotly.graph_objs as go
     except ImportError as e:
@@ -3754,7 +3757,7 @@ def _build_binarized_feature_statistics_fig(statistics, feature_num):
     data = [trace_1, trace_2, trace_3, trace_4]
 
     layout = go.Layout(
-        title='Statistics for feature {}'.format(feature_num),
+        title="Statistics for feature '{}'".format(feature),
         yaxis={
             'title': 'Prediction and target',
             'side': 'left',
@@ -3772,7 +3775,7 @@ def _build_binarized_feature_statistics_fig(statistics, feature_num):
     return fig
 
 
-def _plot_feature_statistics(statistics, feature_num, max_cat_features_on_plot):
+def _plot_feature_statistics(statistics, feature, max_cat_features_on_plot):
     try:
         from plotly.offline import iplot
         from plotly.offline import init_notebook_mode
@@ -3791,8 +3794,8 @@ def _plot_feature_statistics(statistics, feature_num, max_cat_features_on_plot):
                 'predictions_on_varying_feature':
                     statistics['predictions_on_varying_feature'][begin:begin+max_cat_features_on_plot]
             }
-            fig = _build_binarized_feature_statistics_fig(sub_statistics, feature_num)
+            fig = _build_binarized_feature_statistics_fig(sub_statistics, feature)
             iplot(fig)
     else:
-        fig = _build_binarized_feature_statistics_fig(statistics, feature_num)
+        fig = _build_binarized_feature_statistics_fig(statistics, feature)
         iplot(fig)
