@@ -137,10 +137,16 @@ Y_UNIT_TEST_SUITE(TJsonHelperTest) {
         Y_UNIT_TEST(TestPlainAndReversePlainSerialization) {
             TStringBuf jsonPlain = ""
                                    "{\n"
+                                   "  \"loss_function\": \"Logloss\",\n"
+                                   "  \"custom_metric\": \"CrossEntropy\",\n"
+                                   "  \"eval_metric\": \"RMSE\",\n"
+
+                                   "  \"use_best_model\": true,\n"
+                                   "  \"verbose\": 0,\n"
+
                                    "  \"iterations\": 100,\n"
                                    "  \"learning_rate\": 0.1,\n"
                                    "  \"depth\": 3,\n"
-                                   "  \"verbose\": 0,\n"
                                    "  \"fold_len_multiplier\": 2,\n"
                                    "  \"approx_on_full_history\": false,\n"
                                    "  \"fold_permutation_block\": 16,\n"
@@ -180,8 +186,6 @@ Y_UNIT_TEST_SUITE(TJsonHelperTest) {
             TString refBootstrapType = "Bernoulli";
             double refBaggingTemperature = 36.6;
 
-            int refVerbose = 0;
-
             // parsed variables
             int parsedIterations = 7;
             double parsedLearningRate = 10.9;
@@ -199,8 +203,6 @@ Y_UNIT_TEST_SUITE(TJsonHelperTest) {
 
             TString parsedBootstrapType = "Laplace";
             double parsedBaggingTemperature = 39.0;
-
-            int parsedVerbose = 99;
 
 
             NJson::TJsonValue trainOptionsJson;
@@ -232,8 +234,6 @@ Y_UNIT_TEST_SUITE(TJsonHelperTest) {
             TJsonFieldHelper<TString>::Read(bootstrapOptions["type"], &parsedBootstrapType);
             TJsonFieldHelper<double>::Read(bootstrapOptions["bagging_temperature"], &parsedBaggingTemperature);
 
-            TJsonFieldHelper<int>::Read(outputFilesOptionsJson["verbose"], &parsedVerbose);
-
 
             // plainOptions to trainOptionsJson and outputFilesOptionsJson using PlainJsonToOptions
             UNIT_ASSERT_VALUES_EQUAL(parsedIterations, refIterations);
@@ -252,8 +252,6 @@ Y_UNIT_TEST_SUITE(TJsonHelperTest) {
 
             UNIT_ASSERT_VALUES_EQUAL(parsedBootstrapType, refBootstrapType);
             UNIT_ASSERT_VALUES_EQUAL(parsedBaggingTemperature,refBaggingTemperature);
-
-            UNIT_ASSERT_VALUES_EQUAL(parsedVerbose, refVerbose);
 
 
             // now test reverse transformation
@@ -277,8 +275,6 @@ Y_UNIT_TEST_SUITE(TJsonHelperTest) {
             TString reverseParsedBootstrapType = "Laplace";
             double reverseParsedBaggingTemperature = 39.0;
 
-            int reverseParsedVerbose = 99;
-
 
             TJsonFieldHelper<int>::Read(reversePlainOptions["iterations"], &reverseParsedIterations);
             TJsonFieldHelper<double>::Read(reversePlainOptions["learning_rate"], &reverseParsedLearningRate);
@@ -297,7 +293,6 @@ Y_UNIT_TEST_SUITE(TJsonHelperTest) {
             TJsonFieldHelper<TString>::Read(reversePlainOptions["bootstrap_type"], &reverseParsedBootstrapType);
             TJsonFieldHelper<double>::Read(reversePlainOptions["bagging_temperature"], &reverseParsedBaggingTemperature);
 
-            TJsonFieldHelper<int>::Read(reversePlainOptions["verbose"], &reverseParsedVerbose);
 
             // plainOptions == reversePlainOptions
             UNIT_ASSERT_VALUES_EQUAL(reverseParsedIterations, refIterations);
@@ -316,7 +311,5 @@ Y_UNIT_TEST_SUITE(TJsonHelperTest) {
 
             UNIT_ASSERT_VALUES_EQUAL(reverseParsedBootstrapType, refBootstrapType);
             UNIT_ASSERT_VALUES_EQUAL(reverseParsedBaggingTemperature, refBaggingTemperature);
-
-            UNIT_ASSERT_VALUES_EQUAL(reverseParsedVerbose, refVerbose);
         }
 }

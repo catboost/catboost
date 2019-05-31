@@ -327,47 +327,47 @@ bool NCatboostOptions::CtrsNeedTargetData(const NCatboostOptions::TCatFeaturePar
     return ctrsNeedTargetData;
 }
 
-TString NCatboostOptions::RemapAndConcatenateCtrOptions(const NJson::TJsonValue& options)
+TString NCatboostOptions::BuildCtrOptionsDescription(const NJson::TJsonValue& options)
 {
-    TString ctr_type_string_concat = ToString(options["ctr_type"]);
-    ctr_type_string_concat = StripString(ctr_type_string_concat, EqualsStripAdapter('"'));
+    TString ctrTypeStringConcat = ToString(options["ctr_type"]);
+    ctrTypeStringConcat = StripString(ctrTypeStringConcat, EqualsStripAdapter('"'));
 
     if (options["ctr_binarization"].Has("border_count")) {
         auto ctr_border_count = ToString(options["ctr_binarization"]["border_count"]);
-        ctr_type_string_concat = ctr_type_string_concat + ":CtrBorderCount=" + ctr_border_count;
+        ctrTypeStringConcat = ctrTypeStringConcat + ":CtrBorderCount=" + ctr_border_count;
     }
 
     if (options["ctr_binarization"].Has("border_type")) {
         auto ctr_border_type_stripped = StripString(ToString(options["ctr_binarization"]["border_type"]),
                                                     EqualsStripAdapter('"'));
-        ctr_type_string_concat =
-                ctr_type_string_concat + ":CtrBorderType=" + ctr_border_type_stripped;
+        ctrTypeStringConcat =
+                ctrTypeStringConcat + ":CtrBorderType=" + ctr_border_type_stripped;
     }
 
     if (options["target_binarization"].Has("border_count")) {
         auto target_border_count = ToString(options["target_binarization"]["border_count"]);
-        ctr_type_string_concat = ctr_type_string_concat + ":TargetBorderCount=" + target_border_count;
+        ctrTypeStringConcat = ctrTypeStringConcat + ":TargetBorderCount=" + target_border_count;
     }
 
     if (options["target_binarization"].Has("border_type")) {
         auto target_border_type_stripped = StripString(ToString(options["target_binarization"]["border_type"]),
                                                        EqualsStripAdapter('"'));
-        ctr_type_string_concat =
-                ctr_type_string_concat + ":TargetBorderType=" + target_border_type_stripped;
+        ctrTypeStringConcat =
+                ctrTypeStringConcat + ":TargetBorderType=" + target_border_type_stripped;
     }
 
     const NJson::TJsonValue& priorDescriptions = options["priors"];
     if (priorDescriptions.IsArray()) {
-        for (const auto &prior : priorDescriptions.GetArraySafe()) {
+        for (const auto& prior : priorDescriptions.GetArraySafe()) {
             auto numerator = ToString(prior[0]);
 
             // for GPU
             if (prior.Has(1)) {
                 numerator  = numerator + "/" + ToString(prior[1]);
             }
-            ctr_type_string_concat = ctr_type_string_concat + ":Prior=" + numerator;
+            ctrTypeStringConcat = ctrTypeStringConcat + ":Prior=" + numerator;
         }
     }
-    return ctr_type_string_concat;
+    return ctrTypeStringConcat;
 }
 

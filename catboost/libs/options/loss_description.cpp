@@ -270,12 +270,12 @@ NJson::TJsonValue LossDescriptionToJson(const TStringBuf lossDescription) {
     return descriptionJson;
 }
 
-TString RemapLossOrMetricsOptions(const NJson::TJsonValue& options) {
-    TString ParamType = StripString(ToString(options["type"]), EqualsStripAdapter('"'));
-    if (!options["params"].GetMap().empty()) {
+TString BuildMetricOptionDescription(const NJson::TJsonValue& lossOptions) {
+    TString ParamType = StripString(ToString(lossOptions["type"]), EqualsStripAdapter('"'));
+    if (!lossOptions["params"].GetMap().empty()) {
         ParamType = ParamType + ":";
     }
-    for (auto& elem : options["params"].GetMap()) {
+    for (const auto& elem : lossOptions["params"].GetMap()) {
         const TString& param_name = elem.first;
         const TString& param_value = StripString(ToString(elem.second), EqualsStripAdapter('"'));
         ParamType = ParamType + param_name + "=" + param_value + ";";
