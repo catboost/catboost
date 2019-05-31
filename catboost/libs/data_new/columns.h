@@ -4,10 +4,10 @@
 #include "features_layout.h"
 #include "packed_binary_features.h"
 
+#include <catboost/libs/data_types/text.h>
 #include <catboost/libs/helpers/array_subset.h>
 #include <catboost/libs/helpers/compression.h>
 #include <catboost/libs/helpers/maybe_owning_array_holder.h>
-#include <catboost/libs/text_features/text_dataset.h>
 
 #include <library/threading/local_executor/local_executor.h>
 

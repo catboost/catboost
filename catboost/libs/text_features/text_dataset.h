@@ -3,11 +3,14 @@
 #include "dictionary.h"
 
 #include <catboost/libs/data_types/text.h>
+#include <catboost/libs/helpers/maybe_owning_array_holder.h>
 
 #include <util/generic/ptr.h>
 
 
 namespace NCB {
+    using TTextColumn = TMaybeOwningConstArrayHolder<TText>;
+
     class TTextDataSet : public TThrRefBase {
     public:
         TTextDataSet(TTextColumn texts, TDictionaryPtr dictionary)
@@ -37,11 +40,12 @@ namespace NCB {
     };
 
     struct TTextClassificationTarget : public TThrRefBase {
-        TTextClassificationTarget(TVector<ui32> classes, ui32 numClasses)
+        TTextClassificationTarget(TVector<ui32>&& classes, ui32 numClasses)
         : Classes(std::move(classes))
         , NumClasses(numClasses)
         {}
 
+    public:
         TVector<ui32> Classes;
         ui32 NumClasses;
     };

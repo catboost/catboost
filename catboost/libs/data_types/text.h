@@ -1,6 +1,5 @@
 #pragma once
 
-#include <catboost/libs/helpers/maybe_owning_array_holder.h>
 #include <library/containers/dense_hash/dense_hash.h>
 
 
@@ -54,7 +53,5 @@ namespace NCB {
             return !(*this == rhs);
         }
     };
-
-    using TTextColumn = TMaybeOwningConstArrayHolder<TText>;
 
 }

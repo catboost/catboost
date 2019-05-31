@@ -92,11 +92,11 @@ static Y_NO_INLINE void CopyPerFloatFeatureBinarization(
 }
 
 static Y_NO_INLINE void CopyPerFeatureTextProcessing(
-        const NJson::TJsonValue& options,
-        const TStringBuf key,
-        const TStringBuf dstKey,
-        NJson::TJsonValue* dst,
-        TSet<TString>* seenKeys)
+    const NJson::TJsonValue& options,
+    const TStringBuf key,
+    const TStringBuf dstKey,
+    NJson::TJsonValue* dst,
+    TSet<TString>* seenKeys)
 {
     if (!options.Has(key)) {
         return;
