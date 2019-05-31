@@ -1,3 +1,9 @@
+# Release 0.15.1
+
+## Bug fixes
+- restored parameter `fstr_type` in Python and R interfaces
+
+
 # Release 0.15
 
 ## Breaking changes
