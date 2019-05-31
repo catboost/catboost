@@ -429,12 +429,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\libf2c\contrib-libs-libf2c.vcxproj">
       <Project>ACC03840-E215-DC54-B209-59FA03988A57</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\libiconv\contrib-libs-libiconv.vcxproj">
-      <Project>FB573A92-1A17-A7FA-A4F8-9667FF35EA51</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\libxml\contrib-libs-libxml.vcxproj">
-      <Project>6CB8716D-94AE-F54E-FA62-DD8F53C3EACE</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\lz4\generated\libs-lz4-generated.vcxproj">
       <Project>B1939F66-2680-431C-0803-80E79529B7E9</Project>
     </ProjectReference>
@@ -671,9 +665,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\build_info\library-build_info.vcxproj">
       <Project>F14974DD-FCD1-9883-1B38-7294F1EC7341</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\charset\library-charset.vcxproj">
-      <Project>B3678B1A-1762-57F8-4B99-451E2F9DA9F1</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\chromium_trace\library-chromium_trace.vcxproj">
       <Project>9541389A-C448-428A-BEEE-604F1A02F5EA</Project>
@@ -921,9 +912,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\string_utils\relaxed_escaper\library-string_utils-relaxed_escaper.vcxproj">
       <Project>91423FEC-8B3D-547B-2674-3740D83114B5</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\string_utils\ztstrbuf\library-string_utils-ztstrbuf.vcxproj">
-      <Project>0CFFC6E4-F8B3-39F9-648C-BB92778F0461</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\svnversion\library-svnversion.vcxproj">
       <Project>EB1297E8-310F-2F45-45A8-54D412024564</Project>
     </ProjectReference>
@@ -956,12 +944,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\unittest\main\library-unittest-main.vcxproj">
       <Project>28DC724D-5FFA-AB4B-E6C3-DF0F40AC4B6A</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\xml\document\library-xml-document.vcxproj">
-      <Project>B933EC13-585B-2F53-2579-B45356A98156</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\xml\init\library-xml-init.vcxproj">
-      <Project>A1258109-45EF-A8E0-A517-F08DBA394299</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\yson\library-yson.vcxproj">
       <Project>2779E1A2-0D5A-216D-65BF-CE9DF81108EF</Project>

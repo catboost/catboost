@@ -91,7 +91,6 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\model\model_build_helper.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\model\online_ctr.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\model\onnx_helpers.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\model\pmml_helpers.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\model\split.h_serialized.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\model\static_ctr_provider.cpp"/>
     <CustomBuild Include="$(SolutionDir)..\catboost\libs\model\ctr_provider.h">
@@ -161,7 +160,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\model\model_build_helper.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\model\online_ctr.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\model\onnx_helpers.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\libs\model\pmml_helpers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\model\static_ctr_provider.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\model\target_classifier.h"/>
   </ItemGroup>
