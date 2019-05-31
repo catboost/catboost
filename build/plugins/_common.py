@@ -1,3 +1,4 @@
+import os
 import sys
 import hashlib
 import base64
@@ -133,6 +134,15 @@ def make_tuples(arg_list):
             yield (x, [])
 
     return list(tpl())
+
+
+def resolve_src(unit, src):
+    u = unit.path()
+    return os.path.join(u, os.path.relpath(src, unit.resolve(u)))
+
+
+def resolve_includes(unit, src, paths):
+    return unit.resolve_include([src] + paths) if paths else []
 
 
 def rootrel_arc_src(src, unit):
