@@ -78,13 +78,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\funcsigs\56d280102d92096a4ae0336039.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\funcsigs\4ccd8b43f9b2a5c3d636fde4b0.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\funcsigs\75d72c639ecc9d73894e9c865a.cpp"/>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\funcsigs\_56d280102d92096a4ae0336039.yasm">
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\funcsigs\_4ccd8b43f9b2a5c3d636fde4b0.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\funcsigs
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/brotli/include" "-o" "$(SolutionDir)$(Configuration)/contrib/python/funcsigs/_56d280102d92096a4ae0336039.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/funcsigs/_56d280102d92096a4ae0336039.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/brotli/include" "-o" "$(SolutionDir)$(Configuration)/contrib/python/funcsigs/_4ccd8b43f9b2a5c3d636fde4b0.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/funcsigs/_4ccd8b43f9b2a5c3d636fde4b0.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -95,7 +95,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\funcsigs
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/brotli/include" "-o" "$(SolutionDir)$(Configuration)/contrib/python/funcsigs/_56d280102d92096a4ae0336039.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/funcsigs/_56d280102d92096a4ae0336039.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/brotli/include" "-o" "$(SolutionDir)$(Configuration)/contrib/python/funcsigs/_4ccd8b43f9b2a5c3d636fde4b0.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/funcsigs/_4ccd8b43f9b2a5c3d636fde4b0.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -103,9 +103,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/funcsigs/_56d280102d92096a4ae0336039.py2.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\funcsigs\_56d280102d92096a4ae0336039.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\funcsigs\_56d280102d92096a4ae0336039.py2.obj;</Outputs>
+      <Message>$B/contrib/python/funcsigs/_4ccd8b43f9b2a5c3d636fde4b0.py2.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\funcsigs\_4ccd8b43f9b2a5c3d636fde4b0.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\funcsigs\_4ccd8b43f9b2a5c3d636fde4b0.py2.obj;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\funcsigs\_75d72c639ecc9d73894e9c865a.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -138,7 +138,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\funcsigs
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/funcsigs/56d280102d92096a4ae0336039.cpp" "_6edbe9634933d264cf5a2d387e=/fs/contrib/python/funcsigs/.dist-info/METADATA"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/funcsigs/4ccd8b43f9b2a5c3d636fde4b0.cpp" "_c81664802f1e00d7f88a8a327b=resfs/src/resfs/file/contrib/python/funcsigs/.dist-info/METADATA" "_44d86cfe8d7b386f757a9b174f=resfs/file/contrib/python/funcsigs/.dist-info/METADATA"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\funcsigs
 if %errorlevel% neq 0 goto :cmEnd
@@ -153,7 +153,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\funcsigs
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/funcsigs/56d280102d92096a4ae0336039.cpp" "_6edbe9634933d264cf5a2d387e=/fs/contrib/python/funcsigs/.dist-info/METADATA"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/funcsigs/4ccd8b43f9b2a5c3d636fde4b0.cpp" "_c81664802f1e00d7f88a8a327b=resfs/src/resfs/file/contrib/python/funcsigs/.dist-info/METADATA" "_44d86cfe8d7b386f757a9b174f=resfs/file/contrib/python/funcsigs/.dist-info/METADATA"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\funcsigs
 if %errorlevel% neq 0 goto :cmEnd
@@ -165,9 +165,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/funcsigs/56d280102d92096a4ae0336039.cpp	$B/contrib/python/funcsigs/75d72c639ecc9d73894e9c865a.cpp	</Message>
+      <Message>$B/contrib/python/funcsigs/4ccd8b43f9b2a5c3d636fde4b0.cpp	$B/contrib/python/funcsigs/75d72c639ecc9d73894e9c865a.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\funcsigs\56d280102d92096a4ae0336039.cpp;$(SolutionDir)$(Configuration)\contrib\python\funcsigs\75d72c639ecc9d73894e9c865a.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\funcsigs\4ccd8b43f9b2a5c3d636fde4b0.cpp;$(SolutionDir)$(Configuration)\contrib\python\funcsigs\75d72c639ecc9d73894e9c865a.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -208,7 +208,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\funcsigs
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/funcsigs/_56d280102d92096a4ae0336039.yasm" "$(SolutionDir)../contrib/python/funcsigs/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/funcsigs/_6edbe9634933d264cf5a2d387e.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/funcsigs/_4ccd8b43f9b2a5c3d636fde4b0.yasm" "-" "contrib/python/funcsigs/.dist-info/METADATA" "_c81664802f1e00d7f88a8a327b.rodata" "$(SolutionDir)../contrib/python/funcsigs/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/funcsigs/_44d86cfe8d7b386f757a9b174f.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -219,7 +219,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\funcsigs
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/funcsigs/_56d280102d92096a4ae0336039.yasm" "$(SolutionDir)../contrib/python/funcsigs/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/funcsigs/_6edbe9634933d264cf5a2d387e.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/funcsigs/_4ccd8b43f9b2a5c3d636fde4b0.yasm" "-" "contrib/python/funcsigs/.dist-info/METADATA" "_c81664802f1e00d7f88a8a327b.rodata" "$(SolutionDir)../contrib/python/funcsigs/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/funcsigs/_44d86cfe8d7b386f757a9b174f.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -227,9 +227,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/funcsigs/_56d280102d92096a4ae0336039.yasm	</Message>
+      <Message>$B/contrib/python/funcsigs/_4ccd8b43f9b2a5c3d636fde4b0.yasm	</Message>
       <AdditionalInputs>$(SolutionDir)..\contrib\python\funcsigs\.dist-info\METADATA;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\funcsigs\_56d280102d92096a4ae0336039.yasm;$(SolutionDir)$(Configuration)\contrib\python\funcsigs\_6edbe9634933d264cf5a2d387e.rodata;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\funcsigs\_4ccd8b43f9b2a5c3d636fde4b0.yasm;$(SolutionDir)$(Configuration)\contrib\python\funcsigs\_44d86cfe8d7b386f757a9b174f.rodata;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\python\funcsigs\funcsigs\__init__.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
