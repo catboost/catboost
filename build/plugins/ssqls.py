@@ -1,10 +1,12 @@
+from os.path import splitext
+
 import _import_wrapper as iw
-from _common import resolve_src, resolve_includes
+from _common import resolve_includes
 
 
 class SSQLSParser(object):
     def __init__(self, path, unit):
-        s = resolve_src(unit, path)
+        s = unit.resolve_arc_path(path)
         assert s.startswith('$S/') and s.endswith('.ssqls'), s
         h = '$B/' + s[3:-6] + '.h'
 
@@ -20,11 +22,12 @@ class SSQLSParser(object):
 
     @staticmethod
     def parse_doc(doc):
-        nodes = doc.findall('include')
-        headers = [e.text.strip('<>""') for e in nodes]
-        nodes += doc.findall('ancestors/ancestor')
-        xmls = filter(None, (e.get('path') for e in nodes))
-        return xmls, headers
+        paths = lambda nodes: filter(None, (e.get('path') for e in nodes))
+        includes = doc.findall('include')
+        ancestors = paths(doc.findall('ancestors/ancestor'))
+        headers = [e.text.strip('<>""') for e in includes]
+        headers += [splitext(s)[0] + '.h' for s in ancestors]
+        return paths(includes) + ancestors, headers
 
     def includes(self):
         return self._includes

@@ -255,7 +255,8 @@ enum class EModelType {
     Cpp            /* "Cpp", "CPP", "cpp" */,
     Python         /* "Python", "python" */,
     Json           /* "Json", "json"       */,
-    Onnx           /* "Onnx", "onnx" */
+    Onnx           /* "Onnx", "onnx" */,
+    Pmml           /* "PMML", "pmml" */
 };
 
 enum class EFinalCtrComputationMode {

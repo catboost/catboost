@@ -37,6 +37,7 @@ SRCS(
     vec_list.cpp
     vector_helpers.cpp
     wx_test.cpp
+    xml_output.cpp
 )
 
 PEERDIR(
