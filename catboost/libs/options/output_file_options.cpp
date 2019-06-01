@@ -19,6 +19,8 @@ TString NCatboostOptions::GetModelExtensionFromType(const EModelType modelType) 
             return "py";
         case EModelType::Onnx:
             return "onnx";
+        case EModelType::Pmml:
+            return "pmml";
     }
 }
 

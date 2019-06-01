@@ -18,6 +18,7 @@ SRCS(
     serialization_ut.cpp
     vec_list_ut.cpp
     wx_test_ut.cpp
+    xml_output_ut.cpp
 )
 
 PEERDIR(

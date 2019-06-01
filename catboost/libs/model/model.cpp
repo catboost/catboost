@@ -7,6 +7,7 @@
 #include "model_build_helper.h"
 #include "model_export/model_exporter.h"
 #include "onnx_helpers.h"
+#include "pmml_helpers.h"
 #include "static_ctr_provider.h"
 
 #include <catboost/libs/cat_feature/cat_feature.h>
@@ -239,6 +240,15 @@ void ExportModel(
                 NJson::ReadJsonTree(&is, &params);
 
                 OutputModelOnnx(model, modelFileName, params);
+            }
+            break;
+        case EModelType::Pmml:
+            {
+                TStringInput is(userParametersJson);
+                NJson::TJsonValue params;
+                NJson::ReadJsonTree(&is, &params);
+
+                NCatboost::NPmml::OutputModel(model, modelFileName, params, catFeaturesHashToString);
             }
             break;
         default:

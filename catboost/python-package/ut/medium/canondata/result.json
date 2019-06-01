@@ -495,6 +495,14 @@
         "checksum": "5e10a1972628cf512834809c68c8ce4c",
         "uri": "file://test.test_pairs_generation_with_max_pairs_CPU_/catboost_training.json"
     },
+    "test.test_pmml_export[binclass]": {
+        "checksum": "4ad2935431be9a6939b097700a7b7dcd",
+        "uri": "file://test.test_pmml_export_binclass_/model.pmml"
+    },
+    "test.test_pmml_export[regression]": {
+        "checksum": "a9b14fcc9db9b9bb1218d1817e8ca055",
+        "uri": "file://test.test_pmml_export_regression_/model.pmml"
+    },
     "test.test_predict_class[CPU]": {
         "checksum": "f3cff6f18740dca9111980032ef5b716",
         "uri": "file://test.test_predict_class_CPU_/predictions.npy"

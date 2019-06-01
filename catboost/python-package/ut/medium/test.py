@@ -94,6 +94,7 @@ OUTPUT_CPP_MODEL_PATH = 'model.cpp'
 OUTPUT_PYTHON_MODEL_PATH = 'model.py'
 OUTPUT_JSON_MODEL_PATH = 'model.json'
 OUTPUT_ONNX_MODEL_PATH = 'model.onnx'
+OUTPUT_PMML_MODEL_PATH = 'model.pmml'
 PREDS_PATH = 'predictions.npy'
 PREDS_TXT_PATH = 'predictions.txt'
 FIMP_NPY_PATH = 'feature_importance.npy'
@@ -917,6 +918,56 @@ def test_onnx_export(problem_type):
         }
     )
     return compare_canonical_models(output_onnx_model_path)
+
+
+@pytest.mark.parametrize('problem_type', ['binclass', 'multiclass', 'regression'])
+def test_pmml_export(problem_type):
+    if problem_type == 'binclass':
+        loss_function = 'Logloss'
+        train_path = TRAIN_FILE
+        cd_path = CD_FILE
+    elif problem_type == 'multiclass':
+        loss_function = 'MultiClass'
+        train_path = CLOUDNESS_TRAIN_FILE
+        cd_path = CLOUDNESS_CD_FILE
+    elif problem_type == 'regression':
+        loss_function = 'RMSE'
+        train_path = TRAIN_FILE
+        cd_path = CD_FILE
+    else:
+        raise Exception('Unsupported problem_type: %s' % problem_type)
+
+    train_pool = Pool(train_path, column_description=cd_path)
+
+    model = CatBoost(
+        {
+            'task_type': 'CPU',  # TODO(akhropov): GPU results are unstable, difficult to compare models
+            'loss_function': loss_function,
+            'iterations': 5,
+            'depth': 4,
+            'one_hot_max_size': 255
+        }
+    )
+
+    model.fit(train_pool)
+
+    output_pmml_model_path = test_output_path(OUTPUT_PMML_MODEL_PATH)
+
+    if problem_type == "multiclass":
+        with pytest.raises(CatBoostError):
+            model.save_model(output_pmml_model_path, format="pmml")
+    else:
+        model.save_model(
+            output_pmml_model_path,
+            format="pmml",
+            export_parameters={
+                'pmml_copyright': '(c) catboost team',
+                'pmml_description': 'CatBoostModel_for_%s' % problem_type,
+                'pmml_model_version': '1'
+            },
+            pool=train_pool
+        )
+        return compare_canonical_models(output_pmml_model_path)
 
 
 def test_predict_class(task_type):

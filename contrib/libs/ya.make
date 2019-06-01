@@ -35,6 +35,7 @@ RECURSE(
     protobuf/python
     protobuf/python/test
     protobuf/ut
+    pugixml
     python
     python/ut
     snappy
