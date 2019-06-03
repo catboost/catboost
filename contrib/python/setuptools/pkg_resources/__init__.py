@@ -3223,7 +3223,7 @@ class ResProvider(EmptyProvider):
         if hasattr(prefix, '__file__'):
             key = prefix.__file__.rsplit('/', 1)[0]
             self.egg_info = self.module_path = 'resfs/file/{}/'.format(key)
-            self.fallback = NullProvider(prefix)
+            self.fallback = DefaultProvider(prefix)
         else:
             self.egg_info = self.module_path = prefix
             self.fallback = None
