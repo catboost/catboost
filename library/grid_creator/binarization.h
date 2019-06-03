@@ -35,13 +35,13 @@ size_t CalcMemoryForFindBestSplit(
 namespace NSplitSelection {
     class IBinarizer {
     public:
+        virtual ~IBinarizer() = default;
+
         // featureValues vector might be changed!
         virtual THashSet<float> BestSplit(
             TVector<float>& features,
             int maxBordersCount,
             bool featuresAreSorted = false) const = 0;
-
-        virtual ~IBinarizer() = default;
     };
 
     THolder<IBinarizer> MakeBinarizer(EBorderSelectionType borderSelectionType);
