@@ -759,7 +759,8 @@ TVector<float> NCB::TRawObjectsDataProvider::GetFeatureDataOldFormat(ui32 flatFe
 
 bool NCB::TQuantizedObjectsData::operator==(const NCB::TQuantizedObjectsData& rhs) const {
     return AreFeaturesValuesEqual(FloatFeatures, rhs.FloatFeatures) &&
-        AreFeaturesValuesEqual(CatFeatures, rhs.CatFeatures);
+        AreFeaturesValuesEqual(CatFeatures, rhs.CatFeatures) &&
+        AreFeaturesValuesEqual(TextFeatures, rhs.TextFeatures);
 }
 
 
@@ -775,6 +776,10 @@ void NCB::TQuantizedObjectsData::PrepareForInitialization(
     CatFeatures.clear();
     const ui32 catFeatureCount = metaInfo.FeaturesLayout->GetCatFeatureCount();
     CatFeatures.resize(catFeatureCount);
+
+    TextFeatures.clear();
+    const ui32 textFeatureCount = metaInfo.FeaturesLayout->GetTextFeatureCount();
+    TextFeatures.resize(textFeatureCount);
 
     if (!QuantizedFeaturesInfo) {
         QuantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
@@ -805,6 +810,7 @@ void NCB::TQuantizedObjectsData::Check(
 
     CheckDataSizes(objectCount, featuresLayout, EFeatureType::Float, FloatFeatures);
     CheckDataSizes(objectCount, featuresLayout, EFeatureType::Categorical, CatFeatures);
+    CheckDataSizes(objectCount, featuresLayout, EFeatureType::Text, TextFeatures);
 }
 
 
@@ -839,6 +845,11 @@ TQuantizedObjectsData NCB::TQuantizedObjectsData::GetSubset(
         CatFeatures,
         subsetComposition,
         &subsetData.CatFeatures
+    );
+    CreateSubsetFeatures(
+        TextFeatures,
+        subsetComposition,
+        &subsetData.TextFeatures
     );
     subsetData.QuantizedFeaturesInfo = QuantizedFeaturesInfo;
 

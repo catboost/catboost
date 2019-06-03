@@ -189,6 +189,10 @@ bool IsRegressionMetric(ELossFunction lossFunction) {
     );
 }
 
+bool IsGroupwiseMetric(TStringBuf metricName) {
+    ELossFunction lossFunction = ParseLossType(metricName);
+    return IsGroupwiseMetric(lossFunction);
+}
 
 bool IsGroupwiseMetric(ELossFunction lossFunction) {
     return (
@@ -313,6 +317,12 @@ bool IsUserDefined(ELossFunction lossFunction) {
         default:
             return false;
     }
+}
+
+bool IsEmbeddingFeatureEstimator(EFeatureEstimatorType estimatorType) {
+    return estimatorType == EFeatureEstimatorType::CosDistanceWithClassCenter ||
+            estimatorType == EFeatureEstimatorType::GaussianHomoscedasticModel ||
+            estimatorType == EFeatureEstimatorType::GaussianHeteroscedasticModel;
 }
 
 bool ShouldSkipFstrGrowPolicy(EGrowPolicy growPolicy) {

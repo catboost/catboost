@@ -1526,7 +1526,7 @@
         },
         "arc": {
             "formula": {
-                "sandbox_id": [436916524],
+                "sandbox_id": [437920410],
                 "match": "arc"
             },
             "executable": {
@@ -1535,7 +1535,7 @@
         },
         "yo": {
             "formula": {
-                "sandbox_id": [430422445, 430422496],
+                "sandbox_id": [439603159, 439603162],
                 "match": "yo"
             },
             "executable": {
@@ -1544,7 +1544,7 @@
         },
         "tvmknife": {
             "formula": {
-                "sandbox_id": [426691166],
+                "sandbox_id": [440269656],
                 "match": "tvmknife"
             },
             "executable": {
@@ -1923,7 +1923,7 @@
         },
         "samogonctl": {
             "formula": {
-                "sandbox_id": 421882980,
+                "sandbox_id": 438053038,
                 "match": "SAMOGONCTL"
             },
             "executable": {
@@ -2017,7 +2017,7 @@
         },
         "dctl": {
             "formula": {
-                "sandbox_id":  [435298698],
+                "sandbox_id":  [437945251],
                 "match": "dctl"
             },
             "executable": {
@@ -2386,7 +2386,7 @@
         },
         "yfm": {
             "formula": {
-                "sandbox_id": [407397469, 407398241, 407398546],
+                "sandbox_id": 440317482,
                 "match": "YFM"
 
             },

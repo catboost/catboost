@@ -3,9 +3,14 @@
 #include <library/streams/factory/factory.h>
 
 #include <util/string/split.h>
+#include <util/generic/queue.h>
+#include <util/generic/hash_set.h>
 
 using namespace NTextProcessing::NDictionary;
 using NTextProcessing::NDictionary::EUnknownTokenPolicy;
+using TUnit = std::pair<TTokenId, TTokenId>;
+using TTokenToUnit = std::pair<TTokenId, TUnit>;
+using TUnitQueue = TPriorityQueue<TTokenToUnit, TVector<TTokenToUnit>, std::greater<TTokenToUnit>>;
 
 void TBpeDictionary::Load(const TString& dictionaryPath, const TString& bpePath) {
     auto dictInput = OpenInput(dictionaryPath);
@@ -30,6 +35,57 @@ void TBpeDictionary::Save(const TString& dictionaryPath, const TString& bpePath)
     Save(bpeDictionaryOutput.Get());
 }
 
+static void AddUnit(
+    const TUnit& unit,
+    const THashMap<std::pair<TTokenId, TTokenId>, TTokenId>& sourceTokenIdsToTokenId,
+    THashMap<TUnit, int>* unitCounts,
+    TUnitQueue* minIds) {
+
+    int countOfNewUnits = ++(*unitCounts)[unit];
+    if (countOfNewUnits == 1) {
+        auto unitIdIter = sourceTokenIdsToTokenId.find(unit);
+        if (unitIdIter != sourceTokenIdsToTokenId.end()) {
+            minIds->emplace(unitIdIter->second, unit);
+        }
+    }
+}
+
+static void UpdatePrevUnit(
+    const TVector<TTokenId>& tokenIds,
+    int idxStartInOld,
+    int idxStartInNew,
+    TTokenId changedToken,
+    const THashMap<std::pair<TTokenId, TTokenId>, TTokenId>& sourceTokenIdsToTokenId,
+    THashMap<TUnit, int>* unitCounts,
+    TUnitQueue* minIds) {
+    if (idxStartInNew == 0) {
+        return;
+    }
+    TUnit oldPrevUnit{tokenIds[idxStartInNew - 1], tokenIds[idxStartInOld]};
+    (*unitCounts)[oldPrevUnit]--;
+
+    TUnit newPrevUnit{tokenIds[idxStartInNew - 1], changedToken};
+    AddUnit(newPrevUnit, sourceTokenIdsToTokenId, unitCounts, minIds);
+}
+
+static void UpdateNextUnit(
+    const TVector<TTokenId>& tokenIds,
+    int idxStartInOld,
+    TTokenId changedToken,
+    const THashMap<std::pair<TTokenId, TTokenId>, TTokenId>& sourceTokenIdsToTokenId,
+    THashMap<TUnit, int>* unitCounts,
+    TUnitQueue* minIds) {
+
+    if (idxStartInOld + 2 >= tokenIds.ysize()) {
+        return;
+    }
+    TUnit oldNextUnit{tokenIds[idxStartInOld + 1], tokenIds[idxStartInOld + 2]};
+    (*unitCounts)[oldNextUnit]--;
+
+    TUnit newNextUnit{changedToken, tokenIds[idxStartInOld + 2]};
+    AddUnit(newNextUnit, sourceTokenIdsToTokenId, unitCounts, minIds);
+}
+
 // TODO(annaveronika): more efficient apply.
 template <typename TStringVector>
 static void ApplyImpl(
@@ -37,35 +93,48 @@ static void ApplyImpl(
     TVector<TTokenId>* tokenIds,
     const TDictionary* alphabet,
     const THashMap<std::pair<TTokenId, TTokenId>, TTokenId>& sourceTokenIdsToTokenId,
-    TTokenId minUnusedTokenId,
     EUnknownTokenPolicy unknownTokenPolicy
 ) {
-
     tokenIds->clear();
     alphabet->Apply(tokens, tokenIds, unknownTokenPolicy);
 
-    while (tokenIds->size() > 1) {
-        auto minTokenWithMerge = minUnusedTokenId;
-        std::pair<TTokenId, TTokenId> bestUnit;
-        for (size_t i = 0; i + 1 < tokenIds->size(); ++i) {
-            auto unit = std::pair<TTokenId, TTokenId>((*tokenIds)[i], (*tokenIds)[i + 1]);
-            auto it = sourceTokenIdsToTokenId.find(unit);
-            if (it == sourceTokenIdsToTokenId.end()) {
-                continue;
-            }
-            if (it->second < minTokenWithMerge) {
-                minTokenWithMerge = it->second;
-                bestUnit = unit;
-            }
+    TPriorityQueue<TTokenToUnit, TVector<TTokenToUnit>, std::greater<TTokenToUnit>> minIds;
+    THashMap<TUnit, int> unitCounts;
+
+    for (size_t i = 0; i + 1 < tokenIds->size(); ++i) {
+        auto unit = TUnit((*tokenIds)[i], (*tokenIds)[i + 1]);
+        auto it = sourceTokenIdsToTokenId.find(unit);
+        if (it == sourceTokenIdsToTokenId.end()) {
+            continue;
         }
-        if (minTokenWithMerge == minUnusedTokenId) {
-            break;
+        auto unitId = it->second;
+        auto unitInCounts = unitCounts.find(unit);
+        if (unitInCounts == unitCounts.end()) {
+            minIds.push({unitId, unit});
+            unitCounts[unit]++;
+        } else {
+            unitInCounts->second++;
+        }
+    }
+
+    while (!minIds.empty()) {
+        auto bestIdWithUnit = minIds.top();
+        auto bestId = bestIdWithUnit.first;
+        auto bestUnit = bestIdWithUnit.second;
+
+        minIds.pop();
+        if (unitCounts[bestUnit] == 0) {
+            continue;
         }
 
         size_t i = 0, j = 0;
         while (i < tokenIds->size()) {
             if (i + 1 < tokenIds->size() && bestUnit.first == (*tokenIds)[i] && bestUnit.second == (*tokenIds)[i + 1]) {
-                (*tokenIds)[j] = minTokenWithMerge;
+                UpdatePrevUnit(*tokenIds, i, j, bestId, sourceTokenIdsToTokenId, &unitCounts, &minIds);
+                UpdateNextUnit(*tokenIds, i, bestId, sourceTokenIdsToTokenId, &unitCounts, &minIds);
+
+                (*tokenIds)[j] = bestId;
+                unitCounts[bestUnit]--;
                 i += 2;
             } else {
                 (*tokenIds)[j] = (*tokenIds)[i];
@@ -91,7 +160,6 @@ void TBpeDictionary::Apply(
         tokensIds,
         Alphabet.Get(),
         SourceTokenIdsToTokenId,
-        GetMinUnusedTokenId(),
         unknownTokenPolicy
     );
 }
@@ -106,7 +174,6 @@ void TBpeDictionary::Apply(
         tokensIds,
         Alphabet.Get(),
         SourceTokenIdsToTokenId,
-        GetMinUnusedTokenId(),
         unknownTokenPolicy
     );
 }

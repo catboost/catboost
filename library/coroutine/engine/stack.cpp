@@ -1,13 +1,22 @@
 #include "stack.h"
 
 #include <util/system/defaults.h>
+#include <util/system/protect.h>
 
 #include <stdlib.h>
 #include <stdio.h>
 
 #ifndef _win_
-#include <unistd.h>
+#   include <unistd.h>
 #endif
+
+void TProtectedContStackAllocator::Protect(void* ptr, size_t len) noexcept {
+    ProtectMemory(ptr, len, PM_NONE);
+}
+
+void TProtectedContStackAllocator::UnProtect(void* ptr, size_t len) noexcept {
+    ProtectMemory(ptr, len, PM_READ | PM_WRITE);
+}
 
 void TContStackAllocator::TStackType::FailStackOverflow() {
     // Not using FAIL or Cerr, because we should crash

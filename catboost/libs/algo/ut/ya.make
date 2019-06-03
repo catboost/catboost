@@ -8,6 +8,7 @@ SRCS(
     pairwise_scoring_ut.cpp
     mvs_gen_weights_ut.cpp
     short_vector_ops_ut.cpp
+    monotonic_constraints_ut.cpp
 )
 
 PEERDIR(

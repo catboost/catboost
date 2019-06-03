@@ -2,6 +2,7 @@
 #include "cat_feature_options.h"
 #include "binarization_options.h"
 #include "plain_options_helper.h"
+#include "text_feature_options.h"
 
 #include <catboost/libs/logging/logging.h>
 
@@ -16,6 +17,7 @@
 using NCatboostOptions::ParseCtrDescription;
 using NCatboostOptions::ParsePerFeatureBinarization;
 using NCatboostOptions::ParsePerFeatureCtrDescription;
+using NCatboostOptions::ParsePerTextFeatureProcessing;
 
 static Y_NO_INLINE void CopyCtrDescription(
     const NJson::TJsonValue& options,
@@ -84,6 +86,30 @@ static Y_NO_INLINE void CopyPerFloatFeatureBinarization(
     for (const auto& onePerFeatureCtrConfig : binarizationDescription.GetArraySafe()) {
         auto perFeatureBinarization = ParsePerFeatureBinarization(onePerFeatureCtrConfig.GetStringSafe());
         perFeatureBinarizationMap[perFeatureBinarization.first] = perFeatureBinarization.second;
+    }
+
+    seenKeys->insert(TString(key));
+}
+
+static Y_NO_INLINE void CopyPerFeatureTextProcessing(
+    const NJson::TJsonValue& options,
+    const TStringBuf key,
+    const TStringBuf dstKey,
+    NJson::TJsonValue* dst,
+    TSet<TString>* seenKeys)
+{
+    if (!options.Has(key)) {
+        return;
+    }
+
+    NJson::TJsonValue& perFeatureProcessingMap = (*dst)[dstKey];
+    perFeatureProcessingMap.SetType(NJson::JSON_MAP);
+    const NJson::TJsonValue& textProcessingDescription = options[key];
+    CB_ENSURE(textProcessingDescription.IsArray());
+
+    for (const auto& onePerFeatureConfig : textProcessingDescription.GetArraySafe()) {
+        const auto [featureId, processingOptions] = ParsePerTextFeatureProcessing(onePerFeatureConfig.GetStringSafe());
+        perFeatureProcessingMap[featureId] = processingOptions;
     }
 
     seenKeys->insert(TString(key));
@@ -286,6 +312,7 @@ void NCatboostOptions::PlainJsonToOptions(
     CopyOption(plainOptions, "sampling_frequency", &treeOptions, &seenKeys);
     CopyOption(plainOptions, "dev_max_ctr_complexity_for_border_cache", &treeOptions, &seenKeys);
     CopyOption(plainOptions, "observations_to_bootstrap", &treeOptions, &seenKeys);
+    CopyOption(plainOptions, "monotone_constraints", &treeOptions, &seenKeys);
 
     auto& bootstrapOptions = treeOptions["bootstrap"];
     bootstrapOptions.SetType(NJson::JSON_MAP);
@@ -305,6 +332,7 @@ void NCatboostOptions::PlainJsonToOptions(
     CopyOption(plainOptions, "experiment_count", &modelBasedEvalOptions, &seenKeys);
     CopyOption(plainOptions, "experiment_size", &modelBasedEvalOptions, &seenKeys);
     CopyOption(plainOptions, "baseline_model_snapshot", &modelBasedEvalOptions, &seenKeys);
+    CopyOption(plainOptions, "use_evaluated_features_in_baseline_model", &modelBasedEvalOptions, &seenKeys);
 
     //cat-features
     auto& ctrOptions = trainOptions["cat_feature_params"];
@@ -318,6 +346,10 @@ void NCatboostOptions::PlainJsonToOptions(
     CopyCtrDescription(plainOptions, "simple_ctr", "simple_ctrs", &ctrOptions, &seenKeys);
     CopyCtrDescription(plainOptions, "combinations_ctr", "combinations_ctrs", &ctrOptions, &seenKeys);
     CopyPerFeatureCtrDescription(plainOptions, "per_feature_ctr", "per_feature_ctrs", &ctrOptions, &seenKeys);
+
+    auto& textFeatureOptions = trainOptions["text_feature_options"];
+    textFeatureOptions.SetType(NJson::JSON_MAP);
+    CopyOption(plainOptions, "text_feature_estimators", &textFeatureOptions, &seenKeys);
 
     auto& ctrTargetBinarization = ctrOptions["target_binarization"];
     ctrTargetBinarization.SetType(NJson::JSON_MAP);
@@ -353,6 +385,9 @@ void NCatboostOptions::PlainJsonToOptions(
     CopyOptionWithNewKey(plainOptions, "feature_border_type", "border_type", &floatFeaturesBinarization, &seenKeys);
     CopyOption(plainOptions, "nan_mode", &floatFeaturesBinarization, &seenKeys);
     CopyPerFloatFeatureBinarization(plainOptions, "per_float_feature_binarization", &dataProcessingOptions, &seenKeys);
+
+    auto& textProcessingOptions = dataProcessingOptions["text_processing"];
+    CopyPerFeatureTextProcessing(plainOptions, "text_processing", "per_feature_text_processing", &textProcessingOptions, &seenKeys);
 
     //system
     auto& systemOptions = trainOptions["system_options"];

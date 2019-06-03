@@ -68,6 +68,7 @@ _metric_description_or_str_to_str = _catboost._metric_description_or_str_to_str
 is_classification_objective = _catboost.is_classification_objective
 is_cv_stratified_objective = _catboost.is_cv_stratified_objective
 is_regression_objective = _catboost.is_regression_objective
+is_groupwise_metric = _catboost.is_groupwise_metric
 _PreprocessParams = _catboost._PreprocessParams
 _check_train_params = _catboost._check_train_params
 _MetadataHashProxy = _catboost._MetadataHashProxy
@@ -1049,22 +1050,52 @@ class _CatBoostBase(object):
     def best_iteration_(self):
         return self.get_best_iteration()
 
-    def get_tree_splits(self, tree_idx, pool):
+    def _get_tree_splits(self, tree_idx, pool):
         return self._object._get_tree_splits(tree_idx, pool)
 
-    def get_tree_leaf_values(self, tree_idx, leaves_num):
+    def _get_tree_leaf_values(self, tree_idx, leaves_num):
         return self._object._get_tree_leaf_values(tree_idx, leaves_num)
 
+    def get_tree_leaf_counts(self):
+        '''
+        Returns
+        -------
+        tree_leaf_counts : 1d-array of numpy.uint32 of size tree_count_.
+        tree_leaf_counts[i] equals to the number of leafs in i-th tree of the ensemble.
+        '''
+        return self._object._get_tree_leaf_counts()
+
     def get_leaf_values(self):
+        '''
+        Returns
+        -------
+        leaf_values : 1d-array of leaf values for all trees.
+        Value corresponding to j-th leaf of i-th tree is at position
+        sum(get_tree_leaf_counts()[:i]) + j (leaf and tree indexing starts from zero).
+        '''
         return self._object._get_leaf_values()
 
     def get_leaf_weights(self):
+        '''
+        Returns
+        -------
+        leaf_weights : 1d-array of leaf weights for all trees.
+        Weight of j-th leaf of i-th tree is at position
+        sum(get_tree_leaf_counts()[:i]) + j (leaf and tree indexing starts from zero).
+        '''
         return self._object._get_leaf_weights()
 
-    def get_tree_leaf_counts(self):
-        return self._object._get_tree_leaf_counts()
-
     def set_leaf_values(self, new_leaf_values):
+        '''
+        Sets values at tree leafs of ensemble equal to new_leaf_values.
+
+        Parameters
+        ----------
+        new_leaf_values : 1d-array with new leaf values for all trees.
+        It's size should be equal to sum(get_tree_leaf_counts()).
+        Value corresponding to j-th leaf of i-th tree should be at position
+        sum(get_tree_leaf_counts()[:i]) + j (leaf and tree indexing starts from zero).
+        '''
         self._object._set_leaf_values(new_leaf_values)
 
 
@@ -1087,6 +1118,15 @@ def _check_param_types(params):
             params['custom_metric'] = [params['custom_metric']]
         if not isinstance(params['custom_metric'], Sequence):
             raise CatBoostError("Invalid `custom_metric` type={} : must be string or list of strings.".format(type(params['custom_metric'])))
+    if 'monotone_constraints' in params:
+        param = params['monotone_constraints']
+        if isinstance(param, STRING_TYPES):
+            try:
+                params['monotone_constraints'] = list(map(int, param[1: -1].split(',')))
+            except ValueError:
+                raise CatBoostError("Invalid `monotone_constraints` string format")
+        if not isinstance(param, Sequence):
+            raise CatBoostError("Invalid `monotone_constraints` type={} : must be string or list of integers.".format(type(params['monotone_constraints'])))
 
 
 def _params_type_cast(params):
@@ -1240,8 +1280,13 @@ class CatBoost(_CatBoostBase):
 
         if (not self._object._has_leaf_weights_in_model()) and allow_clear_pool:
             train_pool = _build_train_pool(X, y, cat_features, pairs, sample_weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, column_description)
-        if self._object._is_oblivious() and not self._object._is_groupwise_learned_model():
-            self.get_feature_importance(type=EFstrType.PredictionValuesChange)
+        if self._object._is_oblivious():
+            # Have property feature_importance possibly set
+            loss = self._object._get_loss_function_name()
+            if loss and is_groupwise_metric(loss):
+                pass  # too expensive
+            else:
+                self.get_feature_importance(type=EFstrType.PredictionValuesChange)
 
         if 'loss_function' in params and self._is_classification_objective(params['loss_function']):
             setattr(self, "_classes", np.unique(train_pool.get_label()))
@@ -1743,12 +1788,13 @@ class CatBoost(_CatBoostBase):
 
     @property
     def feature_importances_(self):
-        if self._object._is_groupwise_learned_model():
-            return np.array(getattr(self, "_loss_function_change", None))
+        loss = self._object._get_loss_function_name()
+        if loss and is_groupwise_metric(loss):
+            return np.array(getattr(self, "_loss_value_change", None))
         else:
             return np.array(getattr(self, "_prediction_values_change", None))
 
-    def get_feature_importance(self, data=None, type=EFstrType.FeatureImportance, prettified=False, thread_count=-1, verbose=False, shap_mode="Auto"):
+    def get_feature_importance(self, data=None, type=EFstrType.FeatureImportance, prettified=False, thread_count=-1, verbose=False, fstr_type=None, shap_mode="Auto"):
         """
         Parameters
         ----------
@@ -1783,6 +1829,8 @@ class CatBoost(_CatBoostBase):
             If False, then evaluation is not logged. If True, then each possible iteration is logged.
             If a positive integer, then it stands for the size of batch N. After processing each batch, print progress
             and remaining time.
+
+        fstr_type : string, deprecated, use type instead
 
         shap_mode : string, optional (default="Auto")
             used only for ShapValues type
@@ -1822,9 +1870,13 @@ class CatBoost(_CatBoostBase):
         if verbose < 0:
             raise CatBoostError('verbose should be non-negative.')
 
+        if fstr_type is not None:
+            type = fstr_type
+
         type = enum_from_enum_or_str(EFstrType, type)
         if type == EFstrType.FeatureImportance:
-            if self._object._is_groupwise_learned_model():
+            loss = self._object._get_loss_function_name()
+            if loss and is_groupwise_metric(loss):
                 type = EFstrType.LossFunctionChange
             else:
                 type = EFstrType.PredictionValuesChange
@@ -2153,12 +2205,15 @@ class CatBoost(_CatBoostBase):
                 raise CatBoostError('No feature named "{}" in model'.format(feature))
             if feature not in data.get_feature_names():
                 raise CatBoostError('No feature named "{}" in dataset'.format(feature))
-            feature = self.feature_names_.index(feature)
+            feature_num = self.feature_names_.index(feature)
+        else:
+            feature_num = feature
+            feature = self.feature_names_[feature_num]
 
         if prediction_type not in ['Class', 'Probability', 'RawFormulaVal']:
             raise CatBoostError('Unknown prediction type "{}"'.format(prediction_type))
 
-        feature_type, feature_internal_index = self._object._get_feature_type_and_internal_index(feature)
+        feature_type, feature_internal_index = self._object._get_feature_type_and_internal_index(feature_num)
         res = self._object._get_binarized_statistics(
             data,
             feature_internal_index,
@@ -2169,11 +2224,11 @@ class CatBoost(_CatBoostBase):
 
         if feature_type == 'categorical':
             if cat_feature_values is None:
-                cat_feature_values = self._object._get_cat_feature_values(data, feature)
+                cat_feature_values = self._object._get_cat_feature_values(data, feature_num)
                 cat_feature_values = [val for val in cat_feature_values]
 
             if not isinstance(cat_feature_values, ARRAY_TYPES):
-                raise CatBoostError("Feature #{} is categorical. "
+                raise CatBoostError("Feature '{}' is categorical. "
                                     "Please provide values for which you need statistics in cat_feature_values"
                                     .format(feature))
             val_to_hash = dict()
@@ -2192,8 +2247,8 @@ class CatBoost(_CatBoostBase):
         from graphviz import Digraph
         graph = Digraph()
 
-        splits = self.get_tree_splits(tree_idx, pool)
-        leaf_values = self.get_tree_leaf_values(tree_idx, 1 << len(splits))
+        splits = self._get_tree_splits(tree_idx, pool)
+        leaf_values = self._get_tree_leaf_values(tree_idx, 1 << len(splits))
 
         layer_size = 1
         current_size = 0
@@ -3078,7 +3133,8 @@ class CatBoostRegressor(CatBoost):
         max_leaves=None,
         score_function=None,
         leaf_estimation_backtracking=None,
-        ctr_history_unit=None
+        ctr_history_unit=None,
+        monotone_constraints=None
     ):
         params = {}
         not_params = ["not_params", "self", "params", "__class__"]
@@ -3633,7 +3689,7 @@ def sum_models(models, weights=None, ctr_merge_policy='IntersectingCountersAvera
     return result
 
 
-def _build_binarized_feature_statistics_fig(statistics, feature_num):
+def _build_binarized_feature_statistics_fig(statistics, feature):
     try:
         import plotly.graph_objs as go
     except ImportError as e:
@@ -3706,7 +3762,7 @@ def _build_binarized_feature_statistics_fig(statistics, feature_num):
     data = [trace_1, trace_2, trace_3, trace_4]
 
     layout = go.Layout(
-        title='Statistics for feature {}'.format(feature_num),
+        title="Statistics for feature '{}'".format(feature),
         yaxis={
             'title': 'Prediction and target',
             'side': 'left',
@@ -3724,7 +3780,7 @@ def _build_binarized_feature_statistics_fig(statistics, feature_num):
     return fig
 
 
-def _plot_feature_statistics(statistics, feature_num, max_cat_features_on_plot):
+def _plot_feature_statistics(statistics, feature, max_cat_features_on_plot):
     try:
         from plotly.offline import iplot
         from plotly.offline import init_notebook_mode
@@ -3743,8 +3799,8 @@ def _plot_feature_statistics(statistics, feature_num, max_cat_features_on_plot):
                 'predictions_on_varying_feature':
                     statistics['predictions_on_varying_feature'][begin:begin+max_cat_features_on_plot]
             }
-            fig = _build_binarized_feature_statistics_fig(sub_statistics, feature_num)
+            fig = _build_binarized_feature_statistics_fig(sub_statistics, feature)
             iplot(fig)
     else:
-        fig = _build_binarized_feature_statistics_fig(statistics, feature_num)
+        fig = _build_binarized_feature_statistics_fig(statistics, feature)
         iplot(fig)

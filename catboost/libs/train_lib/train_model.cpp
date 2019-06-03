@@ -474,7 +474,6 @@ namespace {
             const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
             const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
             const TMaybe<TOnEndIterationCallback>& onEndIterationCallback,
-            TFeatureEstimators featureEstimators,
             TTrainingDataProviders trainingData,
             const TLabelConverter& labelConverter,
             TMaybe<TFullModel*> initModel,
@@ -487,7 +486,7 @@ namespace {
             TMetricsAndTimeLeftHistory* metricsAndTimeHistory,
             THolder<TLearnProgress>* dstLearnProgress
         ) const override {
-            CB_ENSURE(featureEstimators.Empty(), "Feature calcers are not supported in CPU training yet");
+            CB_ENSURE(trainingData.FeatureEstimators.Empty(), "Feature calcers are not supported in CPU training yet");
             TTrainingForCPUDataProviders trainingDataForCpu
                 = trainingData.Cast<TQuantizedForCPUObjectsDataProvider>();
 
@@ -756,6 +755,7 @@ static void TrainModel(
             catBoostOptions.DataProcessingOptions.Get().IgnoredFeatures.Get(),
             catBoostOptions.DataProcessingOptions->FloatFeaturesBinarization.Get(),
             catBoostOptions.DataProcessingOptions->PerFloatFeatureBinarization.Get(),
+            catBoostOptions.DataProcessingOptions->TextProcessing.Get(),
             /*allowNansInTestOnly*/true,
             outputOptions.AllowWriteFiles()
         );
@@ -789,10 +789,6 @@ static void TrainModel(
     pools.Learn = ShuffleLearnDataIfNeeded(catBoostOptions, pools.Learn, executor, &rand);
 
     TLabelConverter labelConverter;
-
-    TFeatureEstimators featureEstimators;
-    //here we could add featureEstimators that will depend on non-quantinized data
-    //and share data with pools, otherwise float feature would be dropped
 
     const bool needInitModelApplyCompatiblePools = initModel.Defined();
 
@@ -849,7 +845,6 @@ static void TrainModel(
         objectiveDescriptor,
         evalMetricDescriptor,
         /*onEndIterationCallback*/ Nothing(),
-        featureEstimators,
         std::move(trainingData),
         labelConverter,
         std::move(initModel),
@@ -926,6 +921,7 @@ void TrainModel(
         catBoostOptions.DataProcessingOptions->IgnoredFeatures.Get(),
         catBoostOptions.DataProcessingOptions->FloatFeaturesBinarization.Get(),
         catBoostOptions.DataProcessingOptions->PerFloatFeatureBinarization.Get(),
+        catBoostOptions.DataProcessingOptions->TextProcessing.Get(),
         /*allowNansInTestOnly*/true,
         outputOptions.AllowWriteFiles()
     );
@@ -1063,6 +1059,7 @@ static void ModelBasedEval(
             catBoostOptions.DataProcessingOptions.Get().IgnoredFeatures.Get(),
             catBoostOptions.DataProcessingOptions->FloatFeaturesBinarization.Get(),
             catBoostOptions.DataProcessingOptions->PerFloatFeatureBinarization.Get(),
+            catBoostOptions.DataProcessingOptions->TextProcessing.Get(),
             /*allowNansInTestOnly*/true,
             outputOptions.AllowWriteFiles()
         );
@@ -1165,6 +1162,7 @@ void ModelBasedEval(
         catBoostOptions.DataProcessingOptions->IgnoredFeatures.Get(),
         catBoostOptions.DataProcessingOptions->FloatFeaturesBinarization.Get(),
         catBoostOptions.DataProcessingOptions->PerFloatFeatureBinarization.Get(),
+        catBoostOptions.DataProcessingOptions->TextProcessing.Get(),
         /*allowNansInTestOnly*/true,
         outputOptions.AllowWriteFiles()
     );

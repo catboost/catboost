@@ -6,18 +6,30 @@
 
 #include <errno.h>
 
-TFileLock::TFileLock(const TString& filename)
+namespace {
+    int GetMode(const EFileLockType type) {
+        switch (type) {
+            case EFileLockType::Exclusive:
+                return LOCK_EX;
+            case EFileLockType::Shared:
+                return LOCK_SH;
+        }
+    }
+}
+
+TFileLock::TFileLock(const TString& filename, const EFileLockType type)
     : TFile(filename, OpenAlways | RdWr)
+    , Type(type)
 {
 }
 
 void TFileLock::Acquire() {
-    Flock(LOCK_EX);
+    Flock(GetMode(Type));
 }
 
 bool TFileLock::TryAcquire() {
     try {
-        Flock(LOCK_EX | LOCK_NB);
+        Flock(GetMode(Type) | LOCK_NB);
         return true;
     } catch (const TSystemError& e) {
         if (e.Status() != EWOULDBLOCK) {

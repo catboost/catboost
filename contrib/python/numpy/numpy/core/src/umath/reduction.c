@@ -327,7 +327,9 @@ PyArray_InitializeReduceResult(
      */
     shape = PyArray_SHAPE(op_view);
     nreduce_axes = 0;
-    memcpy(shape_orig, shape, ndim * sizeof(npy_intp));
+    if (ndim) {
+        memcpy(shape_orig, shape, ndim * sizeof(npy_intp));
+    }
     for (idim = 0; idim < ndim; ++idim) {
         if (axis_flags[idim]) {
             if (shape[idim] == 0) {

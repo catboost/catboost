@@ -49,6 +49,7 @@ PEERDIR(
     catboost/libs/logging
     catboost/libs/model
     catboost/libs/options
+    catboost/libs/text_features
     catboost/libs/quantization
     catboost/libs/quantization_schema
 )

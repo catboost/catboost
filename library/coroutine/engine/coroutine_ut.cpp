@@ -1,5 +1,6 @@
 #include "impl.h"
 #include "condvar.h"
+#include "network.h"
 
 #include <library/unittest/registar.h>
 
@@ -291,7 +292,7 @@ namespace NCoroTestJoin {
 
         inline void operator()(TCont* c) {
             char buf = 0;
-            Result = c->ReadD(Sock, &buf, sizeof(buf), Deadline).Status();
+            Result = NCoro::ReadD(c, Sock, &buf, sizeof(buf), Deadline).Status();
         }
     };
 
@@ -577,7 +578,7 @@ namespace NCoroTestFastPathWake {
 
             TTempBuf tmp;
             // Wait for the event from io
-            auto res = cont->ReadD(state.In.GetHandle(), tmp.Data(), 1, TDuration::Seconds(10).ToDeadLine());
+            auto res = NCoro::ReadD(cont, state.In.GetHandle(), tmp.Data(), 1, TDuration::Seconds(10).ToDeadLine());
             UNIT_ASSERT_VALUES_EQUAL(res.Checked(), 0);
             state.IoSleepRunning = false;
         } catch (const NUnitTest::TAssertException& ex) {

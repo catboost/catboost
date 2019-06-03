@@ -121,7 +121,11 @@
         }, 
         "has_time": false, 
         "ignored_features": [], 
-        "target_border": null
+        "per_float_feature_binarization": {}, 
+        "target_border": null, 
+        "text_processing": {
+            "per_feature_text_processing": {}
+        }
     }, 
     "detailed_profile": false, 
     "flat_params": {
@@ -154,6 +158,12 @@
         "used_ram_limit": ""
     }, 
     "task_type": "CPU", 
+    "text_feature_options": {
+        "text_feature_estimators": [
+            "BoW", 
+            "NaiveBayes"
+        ]
+    }, 
     "tree_learner_options": {
         "bayesian_matrix_reg": 0.1000000015, 
         "bootstrap": {
@@ -169,6 +179,7 @@
         "leaf_estimation_iterations": 1, 
         "leaf_estimation_method": "Newton", 
         "model_size_reg": 0.5, 
+        "monotone_constraints": [], 
         "random_strength": 1, 
         "rsm": 1, 
         "sampling_frequency": "PerTree"

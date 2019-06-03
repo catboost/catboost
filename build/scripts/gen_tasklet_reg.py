@@ -1,7 +1,7 @@
 import argparse
 
-TEMPLATE = '''
-{includes}
+TEMPLATE = '''\
+{includes}\
 #include <tasklet/runtime/lib/cpp_wrapper.h>
 #include <tasklet/runtime/lib/python_wrapper.h>
 #include <tasklet/runtime/lib/registry.h>
@@ -32,14 +32,14 @@ def parse_args():
 if __name__ == '__main__':
     args = parse_args()
 
-    includes = "\n".join(
-        "#include <{}>".format(include)
+    includes = "".join(
+        "#include <{}>\n".format(include)
         for include in args.includes
     )
 
     if args.py:
         wrapper = PY_WRAPPER.format(impl=args.py)
-    elif args.cpp:
+    else:
         wrapper = CPP_WRAPPER.format(impl=args.cpp)
 
     code = TEMPLATE.format(

@@ -275,8 +275,7 @@ namespace {
 
                         {
                             TContIOVector iovec(parts.data(), parts.size());
-
-                            c->WriteVectorI(S, &iovec);
+                            NCoro::WriteVectorI(c, S, &iovec);
                         }
 
                         parts.Clear();
@@ -454,8 +453,8 @@ namespace {
                     }
 
                     inline void DoSendCycle(TCont* c) {
-                        if (int ret = c->Connect(S, P->RI->Addr)) {
-                            throw TSystemError(ret) << "can't connect";
+                        if (int ret = NCoro::ConnectI(c, S, P->RI->Addr)) {
+                            ythrow TSystemError(ret) << "can't connect";
                         }
                         SetNoDelay(S, true);
                         Executor()->Create<TLink, &TLink::RecvCycle>(this, "recv");
@@ -473,8 +472,7 @@ namespace {
 
                             {
                                 TContIOVector vec(parts.data(), parts.size());
-
-                                c->WriteVectorI(S, &vec);
+                                NCoro::WriteVectorI(c, S, &vec);
                             }
 
                             reqs.clear();

@@ -377,7 +377,7 @@ namespace NCB {
 
         CB_ENSURE(!metricDescriptions.empty(), "No metrics specified");
 
-        auto isAnyOfMetrics = [&](auto&& predicate) {
+        auto isAnyOfMetrics = [&](bool predicate(ELossFunction)) {
             return AnyOf(
                 metricDescriptions,
                 [&](const NCatboostOptions::TLossDescription& metricDescription) -> bool {

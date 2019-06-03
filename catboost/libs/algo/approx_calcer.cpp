@@ -10,6 +10,7 @@
 #include "score_calcer.h"
 #include "split.h"
 #include "yetirank_helpers.h"
+#include "monotonic_constraint_utils.h"
 
 #include <catboost/libs/data_new/data_provider.h>
 #include <catboost/libs/logging/logging.h>
@@ -80,37 +81,26 @@ void UpdateApproxDeltas(
     NPar::TLocalExecutor::TExecRangeParams blockParams(0, docCount);
     blockParams.SetBlockSize(1000);
 
-    if (storeExpApprox) {
-        localExecutor->ExecRange(
-            [=] (int blockIdx) {
-                UpdateApproxBlock</*StoreExpApprox*/ true>(
-                    blockParams,
-                    leafDeltasData,
-                    indicesData,
-                    blockIdx,
-                    deltasDimensionData
-                );
-            },
-            0,
-            blockParams.GetBlockCount(),
-            NPar::TLocalExecutor::WAIT_COMPLETE
-        );
-    } else {
-        localExecutor->ExecRange(
-            [=] (int blockIdx) {
-                UpdateApproxBlock</*StoreExpApprox*/ false>(
-                    blockParams,
-                    leafDeltasData,
-                    indicesData,
-                    blockIdx,
-                    deltasDimensionData
-                );
-            },
-            0,
-            blockParams.GetBlockCount(),
-            NPar::TLocalExecutor::WAIT_COMPLETE
-        );
-    }
+    const auto GetUpdateApproxBlockLambda = [&] (auto boolConst) -> std::function<void(int)> {
+        return [=] (int blockIdx) {
+            UpdateApproxBlock</*StoreExpApprox*/ boolConst.value>(
+                blockParams,
+                leafDeltasData,
+                indicesData,
+                blockIdx,
+                deltasDimensionData
+            );
+        };
+    };
+    const auto updateApproxBlockLambda = (storeExpApprox ?
+        GetUpdateApproxBlockLambda(std::true_type()) : GetUpdateApproxBlockLambda(std::false_type())
+    );
+    localExecutor->ExecRange(
+        updateApproxBlockLambda,
+        0,
+        blockParams.GetBlockCount(),
+        NPar::TLocalExecutor::WAIT_COMPLETE
+    );
 }
 
 static void CalcApproxDers(
@@ -428,6 +418,35 @@ void CalcLeafDeltasSimple(
                 allDocCount
             );
         }
+    }
+}
+
+static void CalcMonotonicDeltasSimple(
+    const TVector<TSum> &leafDers,
+    const TVector<int> &treeMonotoneConstraints,
+    TVector<double> *leafDeltas
+) {
+    const ui32 leafCount = leafDers.ysize();
+    TVector<double> leafWeights(leafCount, 0);
+    TVector<double> leafValues(leafCount, 0);
+    for (ui32 i = 0; i < leafCount; ++i) {
+        leafWeights[i] = leafDers[i].SumWeights;
+        leafValues[i] = (*leafDeltas)[i];
+    }
+
+    int nonMonotonicFeatureCount = 0;
+    for (ui32 i = 0; i < treeMonotoneConstraints.size(); ++i) {
+        if (treeMonotoneConstraints[i] == 0) {
+            nonMonotonicFeatureCount += 1;
+        }
+    }
+
+    const ui32 subTreeCount = (1 << nonMonotonicFeatureCount);
+    for (ui32 subTreeIndex=0; subTreeIndex < subTreeCount; ++subTreeIndex) {
+        TVector<ui32> indexOrder = BuildLinearOrderOnLeafsOfMonotonicSubtree(
+            treeMonotoneConstraints, subTreeIndex);
+        CalcOneDimensionalIsotonicRegression(leafValues, leafWeights, indexOrder, leafDeltas);
+        Y_VERIFY_DEBUG(CheckMonotonicity(indexOrder, *leafDeltas));
     }
 }
 
@@ -822,7 +841,8 @@ static void CalcLeafValuesSimple(
     const TFold& fold,
     const TVector<TIndexType>& indices,
     TLearnContext* ctx,
-    TVector<TVector<double>>* sumLeafDeltas
+    TVector<TVector<double>>* sumLeafDeltas,
+    TVector<int>& treeMonotoneConstraints
 ) {
     const int scratchSize = error.GetErrorType() == EErrorType::PerObjectError
         ? APPROX_BLOCK_SIZE * CB_THREAD_LIMIT
@@ -876,6 +896,10 @@ static void CalcLeafValuesSimple(
             fold.GetLearnSampleCount(),
             &(*leafDeltas)[0]
         );
+
+        if (!ctx->Params.ObliviousTreeOptions->MonotoneConstraints.Get().empty()) {
+            CalcMonotonicDeltasSimple(leafDers, treeMonotoneConstraints, &(*leafDeltas)[0]);
+        }
     };
 
     const auto approxUpdaterFunc = [&] (
@@ -951,8 +975,21 @@ void CalcLeafValues(
     const int approxDimension = ctx->LearnProgress->AveragingFold.GetApproxDimension();
     Y_VERIFY(fold.GetLearnSampleCount() == data.Learn->GetObjectCount());
     const int leafCount = tree.GetLeafCount();
+
+    TVector<int> treeMonotoneConstraints(tree.GetDepth(), 0);
+    if (!ctx->Params.ObliviousTreeOptions->MonotoneConstraints.Get().empty()) {
+        for (int i = 0; i < tree.GetDepth(); ++i) {
+            int splitFeatureId = tree.Splits[i].FeatureIdx;
+            if (splitFeatureId == -1) {
+                treeMonotoneConstraints[i] = 0;
+            } else {
+                treeMonotoneConstraints[i] = ctx->Params.ObliviousTreeOptions->MonotoneConstraints.Get()[splitFeatureId];
+            }
+        }
+    }
+
     if (approxDimension == 1) {
-        CalcLeafValuesSimple(leafCount, error, fold, *indices, ctx, leafDeltas);
+        CalcLeafValuesSimple(leafCount, error, fold, *indices, ctx, leafDeltas, treeMonotoneConstraints);
     } else {
         CalcLeafValuesMulti(leafCount, error, fold, *indices, ctx, leafDeltas);
     }

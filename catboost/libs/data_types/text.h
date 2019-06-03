@@ -1,22 +1,19 @@
 #pragma once
 
-#include <util/system/types.h>
+#include <library/containers/dense_hash/dense_hash.h>
+
 
 namespace NCB {
 
     struct TTokenId {
         ui32 Id;
+        static constexpr ui32 ILLEGAL_TOKEN_ID = Max<ui32>();
 
         TTokenId()
-            : Id(static_cast<ui32>(-1)) {
-
-        }
+            : Id(ILLEGAL_TOKEN_ID) {}
 
         TTokenId(ui32 id)
-            : Id(id) {
-
-        }
-
+            : Id(id) {}
 
         operator ui32() const {
             return Id;
@@ -25,6 +22,7 @@ namespace NCB {
         bool operator==(const TTokenId& rhs) const {
             return Id == rhs.Id;
         }
+
         bool operator!=(const TTokenId& rhs) const {
             return !(rhs == *this);
         }
@@ -32,27 +30,28 @@ namespace NCB {
         bool operator<(const TTokenId& rhs) const {
             return Id < rhs.Id;
         }
+
         bool operator>(const TTokenId& rhs) const {
             return rhs < *this;
         }
+
         bool operator<=(const TTokenId& rhs) const {
             return !(rhs < *this);
         }
+
         bool operator>=(const TTokenId& rhs) const {
             return !(*this < rhs);
         }
     };
 
-    using TText = TDenseHash<TTokenId, ui32>;
+    class TText : public TDenseHash<TTokenId, ui32> {
+        using TBase = TDenseHash<TTokenId, ui32>;
+    public:
+        TText() : TBase() {}
+
+        bool operator!=(const TText& rhs) const {
+            return !(*this == rhs);
+        }
+    };
+
 }
-
-
-
-
-template <>
-struct THash<NCB::TTokenId> {
-    inline size_t operator()(NCB::TTokenId id) const {
-        return THash<ui32>()(id.Id);
-    }
-};
-

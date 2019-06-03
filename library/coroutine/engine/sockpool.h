@@ -1,6 +1,7 @@
 #pragma once
 
 #include "impl.h"
+#include "network.h"
 
 #include <util/network/address.h>
 #include <util/network/socket.h>
@@ -64,7 +65,7 @@ class TPooledSocket {
         }
 
         bool IsOpen() const noexcept {
-            return IsInGoodState() && TCont::SocketNotClosedByOtherSide(Fd_);
+            return IsInGoodState() && IsNotSocketClosedByOtherSide(Fd_);
         }
 
         void Touch() noexcept {
@@ -235,11 +236,11 @@ public:
     }
 
     void DoWrite(const void* buf, size_t len) override {
-        Cont_->WriteI(Fd_, buf, len).Checked();
+        NCoro::WriteI(Cont_, Fd_, buf, len).Checked();
     }
 
     size_t DoRead(void* buf, size_t len) override {
-        return Cont_->ReadI(Fd_, buf, len).Checked();
+        return NCoro::ReadI(Cont_, Fd_, buf, len).Checked();
     }
 
     SOCKET Fd() const noexcept {

@@ -1,6 +1,7 @@
 #include "listen.h"
 
 #include <library/coroutine/engine/impl.h>
+#include <library/coroutine/engine/network.h>
 
 #include <util/network/ip.h>
 #include <util/network/address.h>
@@ -129,7 +130,7 @@ private:
             while (!C_->Cancelled()) {
                 try {
                     TOpaqueAddr remote;
-                    const int res = C_->AcceptI(ListenSocket_, remote.MutableAddr(), remote.LenPtr());
+                    const int res = NCoro::AcceptI(C_, ListenSocket_, remote.MutableAddr(), remote.LenPtr());
 
                     if (res < 0) {
                         const int err = -res;
@@ -276,14 +277,16 @@ TContListener::TContListener(ICallBack* cb, TContExecutor* e, const TOptions& op
 TContListener::~TContListener() {
 }
 
-#define CHECK_IMPL                                         \
-    while (!Impl_) {                                       \
-        ythrow yexception() << AsStringBuf("not running"); \
+namespace {
+    template <class T>
+    static inline T&& CheckImpl(T&& impl) {
+        Y_ENSURE_EX(impl, yexception() << "not running");
+        return std::forward<T>(impl);
     }
+}
 
 void TContListener::Listen(const IRemoteAddr& addr) {
-    CHECK_IMPL;
-    Impl_->Listen(addr);
+    CheckImpl(Impl_)->Listen(addr);
 }
 
 void TContListener::Listen(const TIpAddress& addr) {
@@ -297,13 +300,11 @@ void TContListener::Listen(const TNetworkAddress& addr) {
 }
 
 void TContListener::Listen() {
-    CHECK_IMPL;
-    Impl_->Listen();
+    CheckImpl(Impl_)->Listen();
 }
 
 void TContListener::Bind(const IRemoteAddr& addr) {
-    CHECK_IMPL;
-    Impl_->Bind(addr);
+    CheckImpl(Impl_)->Bind(addr);
 }
 
 void TContListener::Bind(const TIpAddress& addr) {
@@ -311,8 +312,7 @@ void TContListener::Bind(const TIpAddress& addr) {
 }
 
 void TContListener::Bind(const TNetworkAddress& addr) {
-    CHECK_IMPL;
-    Impl_->Bind(addr);
+    CheckImpl(Impl_)->Bind(addr);
 }
 
 void TContListener::Stop() noexcept {
@@ -320,8 +320,7 @@ void TContListener::Stop() noexcept {
 }
 
 void TContListener::StopListenAddr(const IRemoteAddr& addr) {
-    CHECK_IMPL;
-    Impl_->StopListenAddr(addr);
+    CheckImpl(Impl_)->StopListenAddr(addr);
 }
 
 void TContListener::StopListenAddr(const TIpAddress& addr) {
@@ -333,8 +332,6 @@ void TContListener::StopListenAddr(const TNetworkAddress& addr) {
         StopListenAddr(TAddrInfo(&*it));
     }
 }
-
-#undef CHECK_IMPL
 
 void TContListener::ICallBack::OnAcceptFull(const TAcceptFull& params) {
     const TSa remote(params.Remote->Addr());

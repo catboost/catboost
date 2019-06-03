@@ -11,6 +11,7 @@
 #include "data_processing_options.h"
 #include "cat_feature_options.h"
 #include "metric_options.h"
+#include "text_feature_options.h"
 
 #include <util/system/types.h>
 #include <util/system/datetime.h>
@@ -44,6 +45,7 @@ namespace NCatboostOptions {
         TOption<TDataProcessingOptions> DataProcessingOptions;
         TOption<TLossDescription> LossFunctionDescription;
         TOption<TCatFeatureParams> CatFeatureParams;
+        TOption<TTextFeatureOptions> TextFeatureOptions;
         TOption<NJson::TJsonValue> FlatParams;
         TOption<NJson::TJsonValue> Metadata;
 

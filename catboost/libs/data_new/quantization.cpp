@@ -10,6 +10,7 @@
 #include <catboost/libs/helpers/mem_usage.h>
 #include <catboost/libs/helpers/resource_constrained_executor.h>
 #include <catboost/libs/logging/logging.h>
+#include <catboost/libs/text_features/text_column_builder.h>
 #include <catboost/libs/quantization/utils.h>
 #include <catboost/libs/quantization_schema/quantize.h>
 
@@ -1045,6 +1046,36 @@ namespace NCB {
     }
 
 
+    static void ProcessTextFeature(
+        TTextFeatureIdx textFeatureIdx,
+        const TStringTextValuesHolder& srcFeature,
+        const TFeaturesArraySubsetIndexing* dstSubsetIndexing,
+        TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
+        THolder<TTokenizedTextValuesHolder>* dstQuantizedFeature
+    ) {
+        TMaybeOwningConstArraySubset<TString, ui32> srcFeatureData = srcFeature.GetArrayData();
+        const auto &textProcessingOptions = quantizedFeaturesInfo->GetTextFeatureProcessing(srcFeature.GetId());
+        const TTokenizerPtr tokenizer = CreateTokenizer(textProcessingOptions.TokenizerType);
+
+        if (!quantizedFeaturesInfo->HasDictionary(textFeatureIdx)) {
+            TDictionaryPtr dictionary = CreateDictionary(TIterableTextFeature(srcFeatureData), textProcessingOptions, tokenizer);
+            quantizedFeaturesInfo->SetDictionary(textFeatureIdx, dictionary);
+        }
+
+        const TDictionaryPtr dictionary = quantizedFeaturesInfo->GetDictionary(textFeatureIdx);
+        TTextColumnBuilder textColumnBuilder(tokenizer, dictionary, srcFeatureData.Size());
+        srcFeatureData.ForEach([&](ui32 index, TStringBuf phrase) {
+            textColumnBuilder.AddText(index, phrase);
+        });
+
+        *dstQuantizedFeature = MakeHolder<TTokenizedTextValuesHolder>(
+            srcFeature.GetId(),
+            textColumnBuilder.Build(),
+            dstSubsetIndexing
+        );
+    }
+
+
     static bool IsFloatFeatureToBeBinarized(
         const TQuantizationOptions& options,
         TQuantizedFeaturesInfo& quantizedFeaturesInfo, // non const because of GetRWMutex
@@ -1116,16 +1147,6 @@ namespace NCB {
 
             auto featuresLayout = quantizedFeaturesInfo->GetFeaturesLayout();
 
-            // TODO(d-kruchinin): support text features in QuantizedDataProvider
-            const auto& srcFeaturesLayout = srcObjectsCommonData.FeaturesLayout;
-            for (ui32 i: xrange(srcFeaturesLayout->GetTextFeatureCount())) {
-                const TFeatureMetaInfo& featureMetaInfo = srcFeaturesLayout->GetInternalFeatureMetaInfo(i, EFeatureType::Text);
-                CB_ENSURE_INTERNAL(
-                    !featureMetaInfo.IsAvailable || featureMetaInfo.IsIgnored,
-                    "Text features shouldn't present in dataProvider for quantization"
-                );
-            }
-
             CheckCompatibleForApply(
                 *featuresLayout,
                 *(srcObjectsCommonData.FeaturesLayout),
@@ -1171,6 +1192,9 @@ namespace NCB {
                     catFeatureCount
                 );
                 data->ObjectsData.ExclusiveFeatureBundlesData.CatFeatureToBundlePart.resize(catFeatureCount);
+
+                auto textFeatureCount = featuresLayout->GetTextFeatureCount();
+                data->ObjectsData.Data.TextFeatures.resize(textFeatureCount);
 
                 subsetIndexing = MakeAtomicShared<TArraySubsetIndexing<ui32>>(
                     TFullSubset<ui32>(objectsGrouping->GetObjectCount())
@@ -1286,6 +1310,22 @@ namespace NCB {
                                         }
                                     }
                                 }
+                            );
+                        }
+                    );
+
+
+                    // tokenize text features
+                    featuresLayout->IterateOverAvailableFeatures<EFeatureType::Text>(
+                        [&] (TTextFeatureIdx textFeatureIdx) {
+                            auto& srcTextFeatureHolder = rawDataProvider->ObjectsData->Data.TextFeatures[*textFeatureIdx];
+
+                            ProcessTextFeature(
+                                textFeatureIdx,
+                                *srcTextFeatureHolder,
+                                subsetIndexing.Get(),
+                                quantizedFeaturesInfo,
+                                &(data->ObjectsData.Data.TextFeatures[*textFeatureIdx])
                             );
                         }
                     );
@@ -1484,8 +1524,7 @@ namespace NCB {
 
     TQuantizedDataProviders Quantize(
         const TQuantizationOptions& options,
-        const NCatboostOptions::TBinarizationOptions floatFeaturesBinarization,
-        const TMap<ui32, NCatboostOptions::TBinarizationOptions> perFloatFeatureBinarization,
+        const NCatboostOptions::TDataProcessingOptions& dataProcessingOptions,
         bool floatFeaturesAllowNansInTestOnly,
         TConstArrayRef<ui32> ignoredFeatures,
         TRawDataProviders rawDataProviders,
@@ -1496,8 +1535,9 @@ namespace NCB {
         auto quantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
             *rawDataProviders.Learn->MetaInfo.FeaturesLayout,
             ignoredFeatures,
-            floatFeaturesBinarization,
-            perFloatFeatureBinarization,
+            dataProcessingOptions.FloatFeaturesBinarization.Get(),
+            dataProcessingOptions.PerFloatFeatureBinarization.Get(),
+            dataProcessingOptions.TextProcessing.Get(),
             floatFeaturesAllowNansInTestOnly,
             options.AllowWriteFiles
         );

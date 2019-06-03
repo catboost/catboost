@@ -101,6 +101,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\index_calcer.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\index_hash_calcer.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\learn_context.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\monotonic_constraint_utils.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\mvs.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\online_ctr.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\online_predictor.cpp"/>
@@ -143,6 +144,7 @@
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\index_calcer.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\index_hash_calcer.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\learn_context.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\monotonic_constraint_utils.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\mvs.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\online_ctr.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\online_predictor.h"/>
@@ -192,6 +194,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\eval_result\catboost-libs-eval_result.vcxproj">
       <Project>{4721D1FD-2700-CA2E-7C39-1340CCD203BE}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\feature_estimator\catboost-libs-feature_estimator.vcxproj">
+      <Project>{0E2E4DB1-7B74-0856-9AE8-A5C39471561D}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\helpers\catboost-libs-helpers.vcxproj">
       <Project>{1ED2E5C8-4D20-BC86-8EEB-C69117E1D3FA}</Project>
@@ -243,6 +248,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\target\catboost-libs-target.vcxproj">
       <Project>{5B13F9C8-8762-C986-5C05-19D08B360E04}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\text_features\catboost-libs-text_features.vcxproj">
+      <Project>{1DC2329C-D17B-1F04-445F-BD55E24DB60E}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\validate_fb\catboost-libs-validate_fb.vcxproj">
       <Project>{5C82988B-62A7-7DFB-0935-AAAD43162232}</Project>
@@ -400,6 +408,12 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\containers\dense_hash\library-containers-dense_hash.vcxproj">
       <Project>{45F2062A-3F31-B7B8-9501-F0C86DB74515}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\containers\flat_hash\lib\containers-flat_hash-lib.vcxproj">
+      <Project>{F197135F-A8DC-82F1-30DC-370483845AFC}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\containers\flat_hash\library-containers-flat_hash.vcxproj">
+      <Project>{5FD588BE-C0D3-668F-80A4-E122B11CEE84}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\containers\stack_vector\library-containers-stack_vector.vcxproj">
       <Project>{16887906-E366-16EA-B53A-A081633E4AB5}</Project>
     </ProjectReference>
@@ -471,6 +485,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\svnversion\library-svnversion.vcxproj">
       <Project>{EB1297E8-310F-2F45-45A8-54D412024564}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\text_processing\dictionary\library-text_processing-dictionary.vcxproj">
+      <Project>{20E66110-58A2-0F4C-801A-002FF362F425}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\threading\future\library-threading-future.vcxproj">
       <Project>{CF2582C4-C4A1-875F-6897-27B28FB8018A}</Project>
