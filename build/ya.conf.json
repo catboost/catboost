@@ -1822,8 +1822,8 @@
         },
         "idea_style_config": {
             "formula": {
-                "sandbox_id": [395733790],
-                "match": "idea codestyle config"
+                "sandbox_id": [441758406],
+                "match": "idea_codestyle_config"
             }
         },
         "error_prone": {
