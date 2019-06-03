@@ -16,6 +16,7 @@
   - bfd.h
   - bits/fenv.h
   - bits/libc-lock.h
+  - bits/types.h
   - error.h
   - execinfo.h
   - fpu_control.h

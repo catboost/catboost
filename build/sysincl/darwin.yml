@@ -48,8 +48,6 @@
   - histedit.h
   - krb5.h
   - launch.h
-  - lber.h
-  - ldap.h
   - libkern/OSAtomic.h
   - libkern/OSByteOrder.h
   - libkern/OSCacheControl.h
