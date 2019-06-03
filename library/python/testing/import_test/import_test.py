@@ -209,6 +209,8 @@ def check_imports(no_check=None, extra=[], skip_func=None):
 
         "hypothesis.extra.*",
 
+        "jsonrpc.backend.*",
+
     ] + list(no_check or [])
 
     if sys.version_info.major == 3:
