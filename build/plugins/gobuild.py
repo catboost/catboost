@@ -1,3 +1,4 @@
+import base64
 import os
 from _common import rootrel_arc_src
 import ymake
@@ -6,6 +7,7 @@ import ymake
 runtime_cgo_path = os.path.join('runtime', 'cgo')
 runtime_msan_path = os.path.join('runtime', 'msan')
 runtime_race_path = os.path.join('runtime', 'race')
+arc_project_prefix = 'a.yandex-team.ru/'
 
 
 def get_appended_values(unit, key):
@@ -37,8 +39,8 @@ def on_go_process_srcs(unit):
         GO module (GO_LIBRARY, GO_PROGRAM)
     """
 
-    go_files = get_appended_values(unit, 'GO_SRCS_VALUE')
-    for f in go_files:
+    srcs_files = get_appended_values(unit, 'GO_SRCS_VALUE')
+    for f in srcs_files:
         if f.endswith('_test.go'):
             ymake.report_configure_error('file {} must be listed in GO_TEST_SRCS() or GO_XTEST_SRCS() macros'.format(f))
     go_test_files = get_appended_values(unit, 'GO_TEST_SRCS_VALUE')
@@ -47,8 +49,25 @@ def on_go_process_srcs(unit):
         if not f.endswith('_test.go'):
             ymake.report_configure_error('file {} should not be listed in GO_TEST_SRCS() or GO_XTEST_SRCS() macros'.format(f))
 
+    if unit.get('GO_TEST_MODULE') and unit.get('GO_TEST_COVER'):
+        temp_srcs_files = []
+        cover_info = []
+        for f in srcs_files:
+            if f.endswith('.go') and not f.endswith('_test.go'):
+                cover_var = 'GoCover_' + base64.b32encode(f).rstrip('=')
+                cover_file = unit.resolve_arc_path(f)
+                unit.on_go_gen_cover_go([cover_file, cover_var])
+                if cover_file.startswith('$S/'):
+                    cover_file = arc_project_prefix + cover_file[3:]
+                cover_info.append('{}:{}'.format(cover_var, cover_file))
+            else:
+                temp_srcs_files.append(f)
+        srcs_files = temp_srcs_files
+        unit.set(['GO_SRCS_VALUE', ' '.join(srcs_files)])
+        unit.set(['GO_COVER_INFO_VALUE', ' '.join(cover_info)])
+
     resolved_go_files = []
-    for path in go_files + go_test_files + go_xtest_files:
+    for path in srcs_files + go_test_files + go_xtest_files:
         if path.endswith(".go"):
             resolved = unit.resolve_arc_path([path])
             if resolved != path and not resolved.startswith("$S/vendor") and not resolved.startswith("$S/contrib"):
@@ -65,23 +84,23 @@ def on_go_process_srcs(unit):
 
     go_std_root = unit.get('GOSTD') + os.path.sep
 
-    proto_files = filter(lambda x: x.endswith('.proto'), go_files)
+    proto_files = filter(lambda x: x.endswith('.proto'), srcs_files)
     if len(proto_files) > 0:
         for f in proto_files:
             unit.on_go_proto_cmd(f)
 
-    in_files = filter(lambda x: x.endswith('.in'), go_files)
+    in_files = filter(lambda x: x.endswith('.in'), srcs_files)
     if len(in_files) > 0:
         for f in in_files:
             unit.onsrc(f)
 
     if compare_versions('1.12', unit.get('GOSTD_VERSION')) >= 0:
-        asm_files = filter(lambda x: x.endswith('.s'), go_files)
+        asm_files = filter(lambda x: x.endswith('.s'), srcs_files)
         if len(asm_files) > 0:
             unit.on_go_compile_symabis(asm_files)
 
-    s_files = filter(lambda x: x.endswith('.S'), go_files)
-    c_files = filter(lambda x: x.endswith('.c'), go_files)
+    s_files = filter(lambda x: x.endswith('.S'), srcs_files)
+    c_files = filter(lambda x: x.endswith('.c'), srcs_files)
     if len(c_files) + len(s_files) > 0:
         cgo_flags = get_appended_values(unit, 'CGO_CFLAGS_VALUE')
         for f in c_files + s_files:
