@@ -596,6 +596,48 @@
                 "version": "2017"
             }
         },
+        "clang8": {
+            "tools": {
+                "c++": { "bottle": "clang8", "executable": "c++" },
+                "c++filt": { "bottle": "clang8", "executable": "c++filt" },
+                "cc": { "bottle": "clang8", "executable": "cc" },
+                "clang-format": { "bottle": "clang8", "executable": "clang-format" },
+                "clang-tidy": { "bottle": "clang8", "executable": "clang-tidy" },
+                "gcov": { "bottle": "clang8", "executable": "gcov" },
+                "llvm-cov": { "bottle": "clang8", "executable": "llvm-cov" },
+                "llvm-profdata": { "bottle": "clang8", "executable": "llvm-profdata" },
+                "llvm-symbolizer": { "bottle": "clang8", "executable": "llvm-symbolizer" },
+                "nm": { "bottle": "clang8", "executable": "llvm-nm" },
+                "strip": { "bottle": "clang8", "executable": "llvm-strip" }
+            },
+            "platforms": [
+                {"host": {"os": "LINUX"}, "target": {"os": "LINUX", "arch": "x86_64"}},
+                {"host": {"os": "LINUX"}, "target": {"os": "LINUX", "arch": "aarch64"}},
+                {"host": {"os": "LINUX"}, "target": {"os": "LINUX", "arch": "ppc64le"}},
+                {"host": {"os": "LINUX"}, "target": {"os": "DARWIN", "arch": "x86_64"}},
+                {"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "i386"}},
+                {"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "x86_64"}},
+                {"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "armv7"}},
+                {"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "arm64"}},
+                {"host": {"os": "DARWIN"}, "target": {"os": "LINUX", "arch": "x86_64"}},
+                {"host": {"os": "DARWIN"}, "target": {"os": "LINUX", "arch": "aarch64"}},
+                {"host": {"os": "DARWIN"}, "target": {"os": "LINUX", "arch": "ppc64le"}},
+                {"host": {"os": "DARWIN"}, "target": {"os": "DARWIN", "arch": "x86_64"}},
+                {"host": {"os": "DARWIN"}, "target": {"os": "IOS", "arch": "i386"}},
+                {"host": {"os": "DARWIN"}, "target": {"os": "IOS", "arch": "x86_64"}},
+                {"host": {"os": "DARWIN"}, "target": {"os": "IOS", "arch": "armv7"}},
+                {"host": {"os": "DARWIN"}, "target": {"os": "IOS", "arch": "arm64"}}
+            ],
+            "params": {
+                "type": "clang",
+                "match_root": "CLANG",
+                "werror_mode": "all",
+                "c_compiler": "$(CLANG)/bin/clang",
+                "cxx_compiler": "$(CLANG)/bin/clang++",
+                "llvm-symbolizer": "$(CLANG)/bin/llvm-symbolizer",
+                "gcc_version": "8.0"
+            }
+        },
         "clang6-android-x86": {
             "name": "clang6",
             "tools": {
@@ -1659,6 +1701,25 @@
         "clang7": {
             "formula": {
                 "sandbox_id": [433792615, 425919040],
+                "match": "CLANG"
+            },
+            "executable": {
+                "c++": ["bin", "clang++"],
+                "c++filt": ["bin", "c++filt"],
+                "cc": ["bin", "clang"],
+                "clang-format": ["bin", "clang-format"],
+                "clang-tidy": ["bin", "clang-tidy"],
+                "gcov": ["bin", "llvm-gcov"],
+                "llvm-cov": ["bin", "llvm-cov"],
+                "llvm-profdata": ["bin", "llvm-profdata"],
+                "llvm-symbolizer": ["bin", "llvm-symbolizer"],
+                "llvm-nm": ["bin", "llvm-nm"],
+                "llvm-strip": ["bin", "llvm-strip"]
+            }
+        },
+        "clang8": {
+            "formula": {
+                "sandbox_id": [439450490, 441588173],
                 "match": "CLANG"
             },
             "executable": {
