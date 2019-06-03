@@ -3220,19 +3220,34 @@ from library.python import resource
 
 class ResProvider(EmptyProvider):
     def __init__(self, prefix):
-        self.egg_info = self.module_path = prefix
+        if hasattr(prefix, '__file__'):
+            key = prefix.__file__.rsplit('/', 1)[0]
+            self.egg_info = self.module_path = 'resfs/file/{}/'.format(key)
+            self.fallback = NullProvider(prefix)
+        else:
+            self.egg_info = self.module_path = prefix
+            self.fallback = None
 
     def _fn(self, base, resource_name):
         return base + resource_name
 
     def _has(self, path):
-        return resource.find(path) is not None
+        result = resource.find(path) is not None
+        if result:
+            return True
+        elif self.fallback:
+            return self.fallback._has(path)
+        else:
+            return False
 
     def _get(self, path):
-        r = resource.find(path)
-        if r is None:
+        result = resource.find(path)
+        if result:
+            return result
+        elif self.fallback:
+            return self.fallback._get(path)
+        else:
             raise KeyError(path)
-        return r
 
 
 class ResDistribution(DistInfoDistribution):
@@ -3252,6 +3267,7 @@ def find_in_res(importer, path_item, only=False):
 
 
 register_finder(ResourceImporter, find_in_res)
+register_loader_type(ResourceImporter, ResProvider)
 
 
 # Silence the PEP440Warning by default, so that end users don't get hit by it
