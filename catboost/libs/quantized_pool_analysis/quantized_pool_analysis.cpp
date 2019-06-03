@@ -102,6 +102,10 @@ namespace NCB {
             processedDataProvider.TargetData->GetTarget().GetRef().begin(),
             processedDataProvider.TargetData->GetTarget().GetRef().end());
 
+        if (bordersSize == 0) {
+            return {};
+        }
+
         auto objectsPtr = dynamic_cast<TRawObjectsDataProvider*>(dataset.ObjectsData.Get());
         CB_ENSURE_INTERNAL(objectsPtr, "Zero pointer to raw objects");
         TRawObjectsDataProviderPtr rawObjectsDataProviderPtr(objectsPtr);
@@ -208,6 +212,10 @@ namespace NCB {
         CB_ENSURE_INTERNAL(objectsPtr, "Zero pointer to raw objects");
         TRawObjectsDataProviderPtr rawObjectsDataProviderPtr(objectsPtr);
 
+        if (model.ObliviousTrees.OneHotFeatures.empty()) {
+            return {};
+        }
+
         TVector<int> oneHotUniqueValues = model.ObliviousTrees.OneHotFeatures[featureNum].Values;
 
         TMaybeData<const THashedCatValuesHolder*> catFeatureMaybe = \
@@ -276,6 +284,10 @@ namespace NCB {
             const size_t featureNum) {
 
         int hash = static_cast<int>(CalcCatFeatureHash(value));
+        if (model.ObliviousTrees.OneHotFeatures.empty()) {
+            return 0;
+        }
+
         const TVector<int>& oneHotUniqueValues = model.ObliviousTrees.OneHotFeatures[featureNum].Values;
         auto it = std::find(oneHotUniqueValues.begin(), oneHotUniqueValues.end(), hash);
         return it - oneHotUniqueValues.begin();

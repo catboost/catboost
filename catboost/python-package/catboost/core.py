@@ -3694,6 +3694,23 @@ def sum_models(models, weights=None, ctr_merge_policy='IntersectingCountersAvera
     return result
 
 
+def _get_feature_statistics_layout(go, feature, xaxis):
+    return go.Layout(
+        title="Statistics for feature '{}'".format(feature),
+        yaxis={
+            'title': 'Prediction and target',
+            'side': 'left',
+            'overlaying': 'y2'
+        },
+        yaxis2={
+            'title': 'Objects per bin',
+            'side': 'right',
+            'position': 1.0
+        },
+        xaxis=xaxis
+    )
+
+
 def _build_binarized_feature_statistics_fig(statistics, feature):
     try:
         import plotly.graph_objs as go
@@ -3702,6 +3719,11 @@ def _build_binarized_feature_statistics_fig(statistics, feature):
         raise ImportError(str(e))
 
     if 'borders' in statistics.keys():
+        if len(statistics['borders']) == 0:
+            xaxis = go.layout.XAxis(title='Bins', tickvals=[0])
+            return go.Figure(data=[],
+                             layout=_get_feature_statistics_layout(go, feature, xaxis))
+
         order = np.arange(len(statistics['objects_per_bin']))
         x_order = order[:-1]
         bar_width = 0.8
@@ -3765,23 +3787,9 @@ def _build_binarized_feature_statistics_fig(statistics, feature):
     )
 
     data = [trace_1, trace_2, trace_3, trace_4]
-
-    layout = go.Layout(
-        title="Statistics for feature '{}'".format(feature),
-        yaxis={
-            'title': 'Prediction and target',
-            'side': 'left',
-            'overlaying': 'y2'
-        },
-        yaxis2={
-            'title': 'Objects per bin',
-            'side': 'right',
-            'position': 1.0
-        },
-        xaxis=xaxis
-    )
-
+    layout = _get_feature_statistics_layout(go, feature, xaxis)
     fig = go.Figure(data=data, layout=layout)
+
     return fig
 
 
