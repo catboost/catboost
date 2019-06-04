@@ -16,29 +16,29 @@ using NTextProcessing::NDictionary::ETokenLevelType;
 using NTextProcessing::NDictionary::TTokenId;
 using NTextProcessing::NDictionary::EUnknownTokenPolicy;
 
-static auto GetApplyToAllDictsFunc(TDictionaryBuilder dictionaryBuilder, TBlob* blob, TVector<THolder<IDictionary>>* dicts) {
+static auto GetApplyToAllDictsFunc(TDictionaryBuilder dictionaryBuilder, TBlob* blob, TVector<TIntrusivePtr<IDictionary>>* dicts) {
     auto dictionary = dictionaryBuilder.FinishBuilding();
     auto mmapDictionary = dictionary->CreateMMapDictionary();
 
     TStringStream stream;
     dictionary->Save(&stream);
-    auto restoredDictionary = MakeHolder<TDictionary>();
+    auto restoredDictionary = MakeIntrusive<TDictionary>();
     restoredDictionary->Load(&stream);
 
     mmapDictionary->Save(&stream);
-    auto restoredMmapDictionary = MakeHolder<TMMapDictionary>();
+    auto restoredMmapDictionary = MakeIntrusive<TMMapDictionary>();
     restoredMmapDictionary->Load(&stream);
 
     restoredMmapDictionary->Save(&stream);
     *blob = TBlob::FromStream(stream);
-    auto restoredFromMemoryMmapDictionary = MakeHolder<TMMapDictionary>();
+    auto restoredFromMemoryMmapDictionary = MakeIntrusive<TMMapDictionary>();
     restoredFromMemoryMmapDictionary->InitFromMemory(blob->Data(), blob->Size());
 
-    dicts->emplace_back(std::move(dictionary));
-    dicts->emplace_back(std::move(mmapDictionary));
-    dicts->emplace_back(std::move(restoredDictionary));
-    dicts->emplace_back(std::move(restoredMmapDictionary));
-    dicts->emplace_back(std::move(restoredFromMemoryMmapDictionary));
+    dicts->emplace_back(dictionary);
+    dicts->emplace_back(mmapDictionary);
+    dicts->emplace_back(restoredDictionary);
+    dicts->emplace_back(restoredMmapDictionary);
+    dicts->emplace_back(restoredFromMemoryMmapDictionary);
 
     return [=] (const std::function<void(IDictionary*)>& callback) {
         for (const auto& d : *dicts) {
@@ -63,7 +63,7 @@ Y_UNIT_TEST_SUITE(DictionaryTests) {
         TDictionaryBuilder dictionaryBuilder(dictionaryBuilderOptions, dictionaryOptions);
         dictionaryBuilder.Add(firstSentence);
 
-        TVector<THolder<IDictionary>> dicts;
+        TVector<TIntrusivePtr<IDictionary>> dicts;
         TBlob blob;
         auto checkForAll = GetApplyToAllDictsFunc(std::move(dictionaryBuilder), &blob, &dicts);
 
@@ -115,7 +115,7 @@ Y_UNIT_TEST_SUITE(DictionaryTests) {
             TDictionaryBuilder dictionaryBuilder(dictionaryBuilderOptions, dictionaryOptions);
             dictionaryBuilder.Add(tokens);
 
-            TVector<THolder<IDictionary>> dicts;
+            TVector<TIntrusivePtr<IDictionary>> dicts;
             TBlob blob;
             auto checkForAll = GetApplyToAllDictsFunc(std::move(dictionaryBuilder), &blob, &dicts);
 
@@ -142,7 +142,7 @@ Y_UNIT_TEST_SUITE(DictionaryTests) {
             TDictionaryBuilder dictionaryBuilder(dictionaryBuilderOptions, dictionaryOptions);
             dictionaryBuilder.Add(tokens);
 
-            TVector<THolder<IDictionary>> dicts;
+            TVector<TIntrusivePtr<IDictionary>> dicts;
             TBlob blob;
             auto checkForAll = GetApplyToAllDictsFunc(std::move(dictionaryBuilder), &blob, &dicts);
 
@@ -176,7 +176,7 @@ Y_UNIT_TEST_SUITE(DictionaryTests) {
         TDictionaryBuilder dictionaryBuilder(dictionaryBuilderOptions, dictionaryOptions);
         dictionaryBuilder.Add(tokens);
 
-        TVector<THolder<IDictionary>> dicts;
+        TVector<TIntrusivePtr<IDictionary>> dicts;
         TBlob blob;
         auto checkForAll = GetApplyToAllDictsFunc(std::move(dictionaryBuilder), &blob, &dicts);
 
@@ -204,7 +204,7 @@ Y_UNIT_TEST_SUITE(DictionaryTests) {
         TDictionaryBuilder dictionaryBuilder(dictionaryBuilderOptions, dictionaryOptions);
         dictionaryBuilder.Add(tokens);
 
-        TVector<THolder<IDictionary>> dicts;
+        TVector<TIntrusivePtr<IDictionary>> dicts;
         TBlob blob;
         auto checkForAll = GetApplyToAllDictsFunc(std::move(dictionaryBuilder), &blob, &dicts);
 

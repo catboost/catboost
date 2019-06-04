@@ -64,6 +64,6 @@ namespace NCB {
         textFeature.ForEach(tokenize);
         dictionaryBuilder.Add(tokens);
 
-        return dictionaryBuilder.FinishBuilding().Release();
+        return dictionaryBuilder.FinishBuilding();
     }
 }

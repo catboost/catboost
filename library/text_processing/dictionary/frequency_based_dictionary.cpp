@@ -113,6 +113,6 @@ void TDictionary::Load(IInputStream* stream) {
     DictionaryImpl->Load(stream, isNewFormat);
 }
 
-THolder<TMMapDictionary> TDictionary::CreateMMapDictionary() const {
+TIntrusivePtr<TMMapDictionary> TDictionary::CreateMMapDictionary() const {
     return DictionaryImpl->CreateMMapDictionary();
 }

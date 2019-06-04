@@ -45,7 +45,7 @@ namespace NTextProcessing::NDictionary {
         void Save(IOutputStream* stream) const override;
         void Load(IInputStream* stream);
 
-        THolder<TMMapDictionary> CreateMMapDictionary() const;
+        TIntrusivePtr<TMMapDictionary> CreateMMapDictionary() const;
 
     private:
         THolder<IDictionaryImpl> DictionaryImpl;

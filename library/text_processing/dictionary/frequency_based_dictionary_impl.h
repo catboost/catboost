@@ -59,7 +59,7 @@ namespace NTextProcessing::NDictionary {
         virtual void Save(IOutputStream* stream) const = 0;
         virtual void Load(IInputStream* stream, bool isNewFormat) = 0;
 
-        virtual THolder<TMMapDictionary> CreateMMapDictionary() const = 0;
+        virtual TIntrusivePtr<TMMapDictionary> CreateMMapDictionary() const = 0;
 
         virtual ~IDictionaryImpl() = default;
 
@@ -118,7 +118,7 @@ namespace NTextProcessing::NDictionary {
         void Save(IOutputStream* stream) const override;
         void Load(IInputStream* stream, bool isNewFormat) override;
 
-        THolder<TMMapDictionary> CreateMMapDictionary() const override;
+        TIntrusivePtr<TMMapDictionary> CreateMMapDictionary() const override;
 
     private:
         void InitializeSpecialTokenIds() {
@@ -365,7 +365,7 @@ namespace NTextProcessing::NDictionary {
             InitializeSpecialTokenIds();
         }
 
-        THolder<TMMapDictionary> CreateMMapDictionary() const override {
+        TIntrusivePtr<TMMapDictionary> CreateMMapDictionary() const override {
             TVector<TBucket> tokenToInternalIdBuckets;
             ui64 tokenToInternalIdBucketsSeed;
             BuildBuckets(
@@ -404,7 +404,7 @@ namespace NTextProcessing::NDictionary {
             TVector<ui8> dictionaryMetaInfoBuffer;
             BuildDictionaryMetaInfo(Size(), DictionaryOptions, &dictionaryMetaInfoBuffer);
 
-            return MakeHolder<TMMapDictionary>(MakeHolder<TMMapMultigramDictionaryImpl<GramOrder>>(
+            return MakeIntrusive<TMMapDictionary>(MakeHolder<TMMapMultigramDictionaryImpl<GramOrder>>(
                 std::move(dictionaryMetaInfoBuffer),
                 std::move(tokenToInternalIdBuckets),
                 tokenToInternalIdBucketsSeed,

@@ -6,8 +6,8 @@ using NTextProcessing::NDictionary::IDictionary;
 using NTextProcessing::NDictionary::TDictionary;
 using NTextProcessing::NDictionary::TTokenId;
 
-THolder<IDictionary> IDictionary::Load(IInputStream *stream) {
-    auto dictionary = MakeHolder<TDictionary>();
+TIntrusivePtr<IDictionary> IDictionary::Load(IInputStream *stream) {
+    auto dictionary = MakeIntrusive<TDictionary>();
     dictionary->Load(stream);
     return dictionary;
 }

@@ -110,7 +110,7 @@ namespace NTextProcessing::NDictionary {
          * TFileInput input("serialized_dictionary.txt");
          * const auto dictionary = IDictionary::Load(&input);
          * */
-        static THolder<IDictionary> Load(IInputStream* stream);
+        static TIntrusivePtr<IDictionary> Load(IInputStream* stream);
 
         virtual ~IDictionary() = default;
     };

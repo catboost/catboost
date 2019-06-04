@@ -36,7 +36,7 @@ namespace NTextProcessing::NDictionary {
         void Add(TConstArrayRef<TString> tokens, ui64 weight = 1);
         void Add(TConstArrayRef<TStringBuf> tokens, ui64 weight = 1);
 
-        THolder<TDictionary> FinishBuilding();
+        TIntrusivePtr<TDictionary> FinishBuilding();
 
     private:
         THolder<IDictionaryBuilderImpl> DictionaryBuilderImpl;

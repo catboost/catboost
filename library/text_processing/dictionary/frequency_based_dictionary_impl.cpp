@@ -218,7 +218,7 @@ void TUnigramDictionaryImpl::Load(IInputStream* stream, bool isNewFormat) {
     InitializeSpecialTokenIds();
 }
 
-THolder<TMMapDictionary> TUnigramDictionaryImpl::CreateMMapDictionary() const {
+TIntrusivePtr<TMMapDictionary> TUnigramDictionaryImpl::CreateMMapDictionary() const {
     TVector<TStringBuf> idToToken;
     if (IdToToken.empty()) {
         GetIdToTokenMapping(TokenToId, &idToToken);
@@ -244,7 +244,7 @@ THolder<TMMapDictionary> TUnigramDictionaryImpl::CreateMMapDictionary() const {
     TVector<ui8> dictionaryMetaInfoBuffer;
     BuildDictionaryMetaInfo(Size(), DictionaryOptions, &dictionaryMetaInfoBuffer);
 
-    return MakeHolder<TMMapDictionary>(MakeHolder<TMMapUnigramDictionaryImpl>(
+    return MakeIntrusive<TMMapDictionary>(MakeHolder<TMMapUnigramDictionaryImpl>(
         std::move(dictionaryMetaInfoBuffer),
         std::move(buckets),
         seed

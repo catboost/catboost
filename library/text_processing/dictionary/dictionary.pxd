@@ -1,6 +1,6 @@
 from util.generic.array_ref cimport TArrayRef, TConstArrayRef
 from libcpp cimport bool as bool_t
-from util.generic.ptr cimport THolder
+from util.generic.ptr cimport TIntrusivePtr
 from util.generic.vector cimport TVector
 from util.generic.string cimport TString, TStringBuf
 from util.system.types cimport i32, ui32, ui64
@@ -79,7 +79,7 @@ cdef extern from "library/text_processing/dictionary/dictionary.h" namespace "NT
         TTokenId GetMinUnusedTokenId() except +
 
         @staticmethod
-        THolder[IDictionary] Load(IInputStream* stream) except +
+        TIntrusivePtr[IDictionary] Load(IInputStream* stream) except +
         void Save(IOutputStream* stream) except +
 
 
@@ -124,4 +124,4 @@ cdef extern from "library/text_processing/dictionary/dictionary_builder.h" names
             i32 threadCount) except +
 
         void Add(...) except +
-        THolder[TDictionary] FinishBuilding() except +
+        TIntrusivePtr[TDictionary] FinishBuilding() except +
