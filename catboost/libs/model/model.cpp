@@ -87,6 +87,7 @@ TFullModel ReadModel(IInputStream* modelStream, EModelType format) {
         Load(modelStream, model);
     } else if (format == EModelType::Json) {
         NJson::TJsonValue jsonModel = NJson::ReadJsonTree(modelStream);
+        CB_ENSURE(jsonModel.IsDefined(), "Json model deserialization failed");
         ConvertJsonToCatboostModel(jsonModel, &model);
     } else {
         CoreML::Specification::Model coreMLModel;
