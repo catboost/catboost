@@ -1,5 +1,4 @@
 #include "frequency_based_dictionary.h"
-
 #include "frequency_based_dictionary_impl.h"
 #include "util.h"
 
@@ -112,4 +111,8 @@ void TDictionary::Load(IInputStream* stream) {
     }
 
     DictionaryImpl->Load(stream, isNewFormat);
+}
+
+THolder<TMMapDictionary> TDictionary::CreateMMapDictionary() const {
+    return DictionaryImpl->CreateMMapDictionary();
 }

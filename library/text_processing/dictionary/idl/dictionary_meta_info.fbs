@@ -1,0 +1,34 @@
+namespace NTextProcessingFbs;
+
+enum ETokenLevelType : byte {
+    Word,
+    Letter
+}
+
+enum EEndOfWordTokenPolicy : byte {
+    Skip,
+    Insert
+}
+
+enum EEndOfSentenceTokenPolicy : byte {
+    Skip,
+    Insert
+}
+
+table TDictionaryOptions {
+    TokenLevelType:ETokenLevelType = Word;
+    GramOrder:int = 1;
+    SkipStep:int = 0;
+    StartTokenId:int = 0;
+    EndOfWordTokenPolicy:EEndOfWordTokenPolicy = Insert;
+    EndOfSentenceTokenPolicy:EEndOfSentenceTokenPolicy = Skip;
+}
+
+table TDictionaryMetaInfo {
+    DictionarySize:int = 0;
+    DictionaryOptions:TDictionaryOptions;
+    UnknownTokenId:int = 0;
+    EndOfSentenceTokenId:int = 0;
+}
+
+root_type TDictionaryMetaInfo;

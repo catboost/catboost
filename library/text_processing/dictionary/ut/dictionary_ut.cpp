@@ -1,15 +1,51 @@
 #include <library/text_processing/dictionary/dictionary_builder.h>
+#include <library/text_processing/dictionary/frequency_based_dictionary.h>
 
 #include <library/threading/local_executor/local_executor.h>
 #include <library/unittest/registar.h>
 
+#include <util/memory/blob.h>
+
 using NTextProcessing::NDictionary::IDictionary;
+using NTextProcessing::NDictionary::TDictionary;
+using NTextProcessing::NDictionary::TMMapDictionary;
 using NTextProcessing::NDictionary::TDictionaryOptions;
 using NTextProcessing::NDictionary::TDictionaryBuilderOptions;
 using NTextProcessing::NDictionary::TDictionaryBuilder;
 using NTextProcessing::NDictionary::ETokenLevelType;
 using NTextProcessing::NDictionary::TTokenId;
 using NTextProcessing::NDictionary::EUnknownTokenPolicy;
+
+static auto GetApplyToAllDictsFunc(TDictionaryBuilder dictionaryBuilder, TBlob* blob, TVector<THolder<IDictionary>>* dicts) {
+    auto dictionary = dictionaryBuilder.FinishBuilding();
+    auto mmapDictionary = dictionary->CreateMMapDictionary();
+
+    TStringStream stream;
+    dictionary->Save(&stream);
+    auto restoredDictionary = MakeHolder<TDictionary>();
+    restoredDictionary->Load(&stream);
+
+    mmapDictionary->Save(&stream);
+    auto restoredMmapDictionary = MakeHolder<TMMapDictionary>();
+    restoredMmapDictionary->Load(&stream);
+
+    restoredMmapDictionary->Save(&stream);
+    *blob = TBlob::FromStream(stream);
+    auto restoredFromMemoryMmapDictionary = MakeHolder<TMMapDictionary>();
+    restoredFromMemoryMmapDictionary->InitFromMemory(blob->Data(), blob->Size());
+
+    dicts->emplace_back(std::move(dictionary));
+    dicts->emplace_back(std::move(mmapDictionary));
+    dicts->emplace_back(std::move(restoredDictionary));
+    dicts->emplace_back(std::move(restoredMmapDictionary));
+    dicts->emplace_back(std::move(restoredFromMemoryMmapDictionary));
+
+    return [=] (const std::function<void(IDictionary*)>& callback) {
+        for (const auto& d : *dicts) {
+            callback(d.Get());
+        }
+    };
+}
 
 Y_UNIT_TEST_SUITE(DictionaryTests) {
 
@@ -26,23 +62,41 @@ Y_UNIT_TEST_SUITE(DictionaryTests) {
 
         TDictionaryBuilder dictionaryBuilder(dictionaryBuilderOptions, dictionaryOptions);
         dictionaryBuilder.Add(firstSentence);
-        const auto dictionary = dictionaryBuilder.FinishBuilding();
-        UNIT_ASSERT_VALUES_EQUAL(dictionary->Size(), 3);
 
-        UNIT_ASSERT_VALUES_EQUAL(dictionary->Apply(secondSentence[1]), dictionary->GetUnknownTokenId());
+        TVector<THolder<IDictionary>> dicts;
+        TBlob blob;
+        auto checkForAll = GetApplyToAllDictsFunc(std::move(dictionaryBuilder), &blob, &dicts);
+
+        checkForAll([](IDictionary* d){
+            UNIT_ASSERT_VALUES_EQUAL(d->Size(), 3);
+        });
+
+        const auto unknownTokenId = dicts[0]->GetUnknownTokenId();
+        checkForAll([&](IDictionary* d){
+            UNIT_ASSERT_VALUES_EQUAL(d->Apply(secondSentence[1]), unknownTokenId);
+        });
 
         TVector<TTokenId> tokenIdsWithOutUnknownTokens;
-        dictionary->Apply(secondSentence, &tokenIdsWithOutUnknownTokens, EUnknownTokenPolicy::Skip);
-        UNIT_ASSERT_VALUES_EQUAL(tokenIdsWithOutUnknownTokens.size(), 2);
+        dicts[0]->Apply(secondSentence, &tokenIdsWithOutUnknownTokens, EUnknownTokenPolicy::Skip);
+        checkForAll([&](IDictionary* d){
+            TVector<TTokenId> tokenIds;
+            d->Apply(secondSentence, &tokenIds, EUnknownTokenPolicy::Skip);
+            UNIT_ASSERT_VALUES_EQUAL(tokenIds.size(), 2);
+            UNIT_ASSERT_VALUES_EQUAL(tokenIdsWithOutUnknownTokens, tokenIds);
+        });
 
         TVector<TTokenId> tokenIdsWithUnknownTokens;
-        dictionary->Apply(secondSentence, &tokenIdsWithUnknownTokens, EUnknownTokenPolicy::Insert);
-        UNIT_ASSERT_VALUES_EQUAL(tokenIdsWithUnknownTokens.size(), 4);
-
-        UNIT_ASSERT_VALUES_EQUAL(tokenIdsWithUnknownTokens[0], dictionary->Apply(firstSentence[0]));
-        UNIT_ASSERT_VALUES_EQUAL(tokenIdsWithUnknownTokens[1], dictionary->GetUnknownTokenId());
-        UNIT_ASSERT_VALUES_EQUAL(tokenIdsWithUnknownTokens[2], dictionary->Apply(firstSentence[1]));
-        UNIT_ASSERT_VALUES_EQUAL(tokenIdsWithUnknownTokens[3], dictionary->GetUnknownTokenId());
+        dicts[0]->Apply(secondSentence, &tokenIdsWithUnknownTokens, EUnknownTokenPolicy::Insert);
+        UNIT_ASSERT_VALUES_EQUAL(tokenIdsWithUnknownTokens[0], dicts[0]->Apply(firstSentence[0]));
+        UNIT_ASSERT_VALUES_EQUAL(tokenIdsWithUnknownTokens[1], dicts[0]->GetUnknownTokenId());
+        UNIT_ASSERT_VALUES_EQUAL(tokenIdsWithUnknownTokens[2], dicts[0]->Apply(firstSentence[1]));
+        UNIT_ASSERT_VALUES_EQUAL(tokenIdsWithUnknownTokens[3], dicts[0]->GetUnknownTokenId());
+        checkForAll([&](IDictionary* d){
+            TVector<TTokenId> tokenIds;
+            d->Apply(secondSentence, &tokenIds, EUnknownTokenPolicy::Insert);
+            UNIT_ASSERT_VALUES_EQUAL(tokenIds.size(), 4);
+            UNIT_ASSERT_VALUES_EQUAL(tokenIdsWithUnknownTokens, tokenIds);
+        });
 
     }
 
@@ -60,12 +114,24 @@ Y_UNIT_TEST_SUITE(DictionaryTests) {
 
             TDictionaryBuilder dictionaryBuilder(dictionaryBuilderOptions, dictionaryOptions);
             dictionaryBuilder.Add(tokens);
-            const auto dictionary = dictionaryBuilder.FinishBuilding();
-            UNIT_ASSERT_VALUES_EQUAL(dictionary->Size(), 2);
 
-            UNIT_ASSERT_VALUES_UNEQUAL(dictionary->Apply(tokens[0]), dictionary->GetUnknownTokenId());
-            UNIT_ASSERT_VALUES_UNEQUAL(dictionary->Apply(tokens[3]), dictionary->GetUnknownTokenId());
-            UNIT_ASSERT_VALUES_EQUAL(dictionary->Apply(tokens[5]), dictionary->GetUnknownTokenId());
+            TVector<THolder<IDictionary>> dicts;
+            TBlob blob;
+            auto checkForAll = GetApplyToAllDictsFunc(std::move(dictionaryBuilder), &blob, &dicts);
+
+            checkForAll([](IDictionary* d){
+                UNIT_ASSERT_VALUES_EQUAL(d->Size(), 2);
+            });
+
+            UNIT_ASSERT_VALUES_UNEQUAL(dicts[0]->Apply(tokens[0]), dicts[0]->GetUnknownTokenId());
+            UNIT_ASSERT_VALUES_UNEQUAL(dicts[0]->Apply(tokens[3]), dicts[0]->GetUnknownTokenId());
+            UNIT_ASSERT_VALUES_EQUAL(dicts[0]->Apply(tokens[5]), dicts[0]->GetUnknownTokenId());
+
+            checkForAll([&](IDictionary* d){
+                UNIT_ASSERT_VALUES_EQUAL(d->Apply(tokens[0]), dicts[0]->Apply(tokens[0]));
+                UNIT_ASSERT_VALUES_EQUAL(d->Apply(tokens[3]), dicts[0]->Apply(tokens[3]));
+                UNIT_ASSERT_VALUES_EQUAL(d->Apply(tokens[5]), dicts[0]->Apply(tokens[5]));
+            });
         }
 
         {
@@ -75,13 +141,26 @@ Y_UNIT_TEST_SUITE(DictionaryTests) {
 
             TDictionaryBuilder dictionaryBuilder(dictionaryBuilderOptions, dictionaryOptions);
             dictionaryBuilder.Add(tokens);
-            const auto dictionary = dictionaryBuilder.FinishBuilding();
-            UNIT_ASSERT_VALUES_EQUAL(dictionary->Size(), 1);
 
-            UNIT_ASSERT_VALUES_UNEQUAL(dictionary->Apply(tokens[0]), dictionary->GetUnknownTokenId());
-            UNIT_ASSERT_VALUES_EQUAL(dictionary->Apply(tokens[3]), dictionary->GetUnknownTokenId());
-            UNIT_ASSERT_VALUES_EQUAL(dictionary->Apply(tokens[5]), dictionary->GetUnknownTokenId());
+            TVector<THolder<IDictionary>> dicts;
+            TBlob blob;
+            auto checkForAll = GetApplyToAllDictsFunc(std::move(dictionaryBuilder), &blob, &dicts);
+
+            checkForAll([](IDictionary* d){
+                UNIT_ASSERT_VALUES_EQUAL(d->Size(), 1);
+            });
+
+            UNIT_ASSERT_VALUES_UNEQUAL(dicts[0]->Apply(tokens[0]), dicts[0]->GetUnknownTokenId());
+            UNIT_ASSERT_VALUES_EQUAL(dicts[0]->Apply(tokens[3]), dicts[0]->GetUnknownTokenId());
+            UNIT_ASSERT_VALUES_EQUAL(dicts[0]->Apply(tokens[5]), dicts[0]->GetUnknownTokenId());
+
+            checkForAll([&](IDictionary* d){
+                UNIT_ASSERT_VALUES_EQUAL(d->Apply(tokens[0]), dicts[0]->Apply(tokens[0]));
+                UNIT_ASSERT_VALUES_EQUAL(d->Apply(tokens[3]), dicts[0]->Apply(tokens[3]));
+                UNIT_ASSERT_VALUES_EQUAL(d->Apply(tokens[5]), dicts[0]->Apply(tokens[5]));
+            });
         }
+
     }
 
     Y_UNIT_TEST(DictionaryLetterTrigramTest) {
@@ -96,10 +175,19 @@ Y_UNIT_TEST_SUITE(DictionaryTests) {
 
         TDictionaryBuilder dictionaryBuilder(dictionaryBuilderOptions, dictionaryOptions);
         dictionaryBuilder.Add(tokens);
-        const auto dictionary = dictionaryBuilder.FinishBuilding();
 
-        UNIT_ASSERT_VALUES_UNEQUAL(dictionary->Apply("cat"), dictionary->GetUnknownTokenId());
-        UNIT_ASSERT_VALUES_EQUAL(dictionary->Apply("cot"), dictionary->GetUnknownTokenId());
+        TVector<THolder<IDictionary>> dicts;
+        TBlob blob;
+        auto checkForAll = GetApplyToAllDictsFunc(std::move(dictionaryBuilder), &blob, &dicts);
+
+        UNIT_ASSERT_VALUES_UNEQUAL(dicts[0]->Apply("cat"), dicts[0]->GetUnknownTokenId());
+        UNIT_ASSERT_VALUES_EQUAL(dicts[0]->Apply("cot"), dicts[0]->GetUnknownTokenId());
+
+        checkForAll([&](IDictionary* d){
+            UNIT_ASSERT_VALUES_EQUAL(d->Apply("cat"), dicts[0]->Apply("cat"));
+            UNIT_ASSERT_VALUES_EQUAL(d->Apply("cot"), dicts[0]->Apply("cot"));
+        });
+
     }
 
     Y_UNIT_TEST(DictionaryWordSkipBigramTest) {
@@ -115,17 +203,28 @@ Y_UNIT_TEST_SUITE(DictionaryTests) {
 
         TDictionaryBuilder dictionaryBuilder(dictionaryBuilderOptions, dictionaryOptions);
         dictionaryBuilder.Add(tokens);
-        const auto dictionary = dictionaryBuilder.FinishBuilding();
 
-        auto applyFunc = [&](const TVector<TString>& token) -> TTokenId {
+        TVector<THolder<IDictionary>> dicts;
+        TBlob blob;
+        auto checkForAll = GetApplyToAllDictsFunc(std::move(dictionaryBuilder), &blob, &dicts);
+
+        auto applyFunc = [](const TVector<TString>& token, IDictionary* dictionary) -> TTokenId {
             TVector<TTokenId> tokenIds;
             dictionary->Apply(token, &tokenIds, EUnknownTokenPolicy::Insert);
+            UNIT_ASSERT_VALUES_EQUAL(tokenIds.size(), 1);
             return tokenIds[0];
         };
 
-        UNIT_ASSERT_VALUES_UNEQUAL(applyFunc({"aaa", "", "a"}), dictionary->GetUnknownTokenId());
-        UNIT_ASSERT_VALUES_UNEQUAL(applyFunc({"a", "", "b"}), dictionary->GetUnknownTokenId());
-        UNIT_ASSERT_VALUES_EQUAL(applyFunc({"b", "", "c"}), dictionary->GetUnknownTokenId());
+        UNIT_ASSERT_VALUES_UNEQUAL(applyFunc({"aaa", "", "a"}, dicts[0].Get()), dicts[0]->GetUnknownTokenId());
+        UNIT_ASSERT_VALUES_UNEQUAL(applyFunc({"a", "", "b"}, dicts[0].Get()), dicts[0]->GetUnknownTokenId());
+        UNIT_ASSERT_VALUES_EQUAL(applyFunc({"b", "", "c"}, dicts[0].Get()), dicts[0]->GetUnknownTokenId());
+
+        checkForAll([&](IDictionary* d){
+            UNIT_ASSERT_VALUES_EQUAL(applyFunc({"aaa", "", "a"}, d), applyFunc({"aaa", "", "a"}, dicts[0].Get()));
+            UNIT_ASSERT_VALUES_EQUAL(applyFunc({"a", "", "b"}, d), applyFunc({"a", "", "b"}, dicts[0].Get()));
+            UNIT_ASSERT_VALUES_EQUAL(applyFunc({"b", "", "c"}, d), applyFunc({"b", "", "c"}, dicts[0].Get()));
+        });
+
     }
 
     Y_UNIT_TEST(DictionarySaveLoadTest) {
@@ -156,6 +255,7 @@ Y_UNIT_TEST_SUITE(DictionaryTests) {
         UNIT_ASSERT_VALUES_UNEQUAL(applyFunc({"aaa", "", "a"}), newDictionaryPtr->GetUnknownTokenId());
         UNIT_ASSERT_VALUES_UNEQUAL(applyFunc({"a", "", "b"}), newDictionaryPtr->GetUnknownTokenId());
         UNIT_ASSERT_VALUES_EQUAL(applyFunc({"b", "", "c"}), newDictionaryPtr->GetUnknownTokenId());
+
     }
 
     Y_UNIT_TEST(DictionaryTopTokensTest) {
@@ -184,6 +284,7 @@ Y_UNIT_TEST_SUITE(DictionaryTests) {
         UNIT_ASSERT_VALUES_EQUAL(newDictionaryPtr->GetTopTokens()[0], "c");
         UNIT_ASSERT_VALUES_EQUAL(newDictionaryPtr->GetTopTokens()[1], "a");
         UNIT_ASSERT_VALUES_EQUAL(newDictionaryPtr->GetTopTokens()[2], "b");
+
     }
 
     Y_UNIT_TEST(DictionaryClearStatsDataTest) {

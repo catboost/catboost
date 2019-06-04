@@ -1,19 +1,20 @@
 #pragma once
 
 #include "dictionary.h"
-#include "mmap_frequency_based_dictionary.h"
 #include "options.h"
+
+#include <util/memory/blob.h>
 
 namespace NTextProcessing::NDictionary {
 
-    class IDictionaryImpl;
+    class IMMapDictionaryImpl;
 
-    class TDictionary final : public IDictionary {
+    class TMMapDictionary final : public IDictionary {
     public:
-        TDictionary();
-        TDictionary(TDictionary&&);
-        ~TDictionary();
-        explicit TDictionary(THolder<IDictionaryImpl> dictionaryImpl);
+        TMMapDictionary();
+        TMMapDictionary(TMMapDictionary&&);
+        ~TMMapDictionary();
+        explicit TMMapDictionary(THolder<IMMapDictionaryImpl> dictionaryImpl);
 
         TTokenId Apply(const TStringBuf token) const override;
 
@@ -45,10 +46,10 @@ namespace NTextProcessing::NDictionary {
         void Save(IOutputStream* stream) const override;
         void Load(IInputStream* stream);
 
-        THolder<TMMapDictionary> CreateMMapDictionary() const;
+        void InitFromMemory(const void* data, size_t size);
 
     private:
-        THolder<IDictionaryImpl> DictionaryImpl;
+        THolder<IMMapDictionaryImpl> DictionaryImpl;
     };
 
 }
