@@ -107,9 +107,10 @@ namespace NCB {
 
             result += sizeof(float) * sampleSize; // for copying to srcFeatureValuesForBuildBorders
 
-            result += CalcMemoryForFindBestSplit(
+            result += NSplitSelection::CalcMemoryForFindBestSplit(
                 SafeIntegerCast<int>(floatFeatureBinarizationSettings.BorderCount.Get()),
                 (size_t)sampleSize,
+                /*defaultValue*/ Nothing(),
                 floatFeatureBinarizationSettings.BorderSelectionType
             );
         }
