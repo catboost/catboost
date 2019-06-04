@@ -18,7 +18,7 @@ namespace {
 }
 
 TFileLock::TFileLock(const TString& filename, const EFileLockType type)
-    : TFile(filename, OpenAlways | RdWr)
+    : TFile(filename, OpenAlways | RdOnly)
     , Type(type)
 {
 }
