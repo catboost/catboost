@@ -28,8 +28,16 @@ def compare_versions(version1, version2):
 
 
 def go_package_name(unit):
-    # TODO(prime@): this seems wrong. This code detects wrong package name when used from GO_TEST module.
-    return unit.get('GO_PACKAGE_VALUE') or unit.get('MODULE_TYPE') == 'PROGRAM' and 'main' or unit.get('REALPRJNAME')
+    name = unit.get('GO_PACKAGE_VALUE')
+    if not name:
+        name = unit.get('GO_TEST_IMPORT_PATH')
+        if name:
+            name = os.path.basename(os.path.normpath(name))
+        elif unit.get('MODULE_TYPE') == 'PROGRAM':
+            name = 'main'
+        else:
+            name = unit.get('REALPRJNAME')
+    return name
 
 
 def on_go_process_srcs(unit):
