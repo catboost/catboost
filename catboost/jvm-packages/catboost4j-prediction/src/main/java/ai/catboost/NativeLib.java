@@ -5,7 +5,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.validation.constraints.NotNull;
 import java.io.*;
-import java.lang.reflect.Field;
 
 /**
  * Shared library loader, this class is intended to be an extension point for users of this modele. If you want to
@@ -14,8 +13,6 @@ import java.lang.reflect.Field;
  */
 class NativeLib {
     private static final Logger logger = LoggerFactory.getLogger(NativeLib.class);
-
-    private static final String nativeLibDirectory = "../lib";
 
     static {
         try {
@@ -45,17 +42,11 @@ class NativeLib {
      * @throws IOException
      */
     private static void smartLoad(final @NotNull String libName) throws IOException {
-        addDirectoryToNativeLibSearchList(nativeLibDirectory);
         try {
-            System.loadLibrary(libName);
-        } catch (UnsatisfiedLinkError e) {
-            logger.debug(e.getMessage());
-            try {
-                loadNativeLibraryFromJar(libName);
-            } catch (IOException ioe) {
-                logger.error("failed to load native library from both default location and JAR");
-                throw ioe;
-            }
+            loadNativeLibraryFromJar(libName);
+        } catch (IOException ioe) {
+            logger.error("failed to load native library from both default location and JAR");
+            throw ioe;
         }
     }
 
@@ -133,39 +124,5 @@ class NativeLib {
         copyFileFromJar(pathWithinJar, libOnDisk.getPath());
 
         return libOnDisk.getAbsolutePath();
-    }
-
-    /**
-     * Add dirToAdd to java.library.path so that native libraries will be loaded automatically from dirToAdd
-     *
-     * @param dirToAdd directory with native libraries
-     * @throws IOException exception
-     */
-    private static void addDirectoryToNativeLibSearchList(final @NotNull String dirToAdd) throws IOException {
-        try {
-            // TODO(yazevnul): Java 10 is not happy about this monkey patching and shows warnings, maybe there is a
-            // different way to solve this problem?
-            Field userPathsField = ClassLoader.class.getDeclaredField("usr_paths");
-            userPathsField.setAccessible(true);
-
-            String[] paths = (String[])userPathsField.get(null);
-
-            for (String path : paths) {
-                if (path.equals(dirToAdd)) {
-                    return;
-                }
-            }
-
-            String[] newPaths = new String[paths.length + 1];
-            System.arraycopy(paths, 0, newPaths, 0, paths.length);
-            newPaths[newPaths.length - 1] = dirToAdd;
-            userPathsField.set(null, newPaths);
-        } catch (NoSuchFieldException e) {
-            logger.error(e.getMessage());
-            throw new IOException("Failed to get field handle for `usr_path`");
-        } catch (IllegalAccessException e) {
-            logger.error(e.getMessage());
-            throw new IOException("failed to set field handle for `usr_path`");
-        }
     }
 }
