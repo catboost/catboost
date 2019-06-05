@@ -3,3 +3,7 @@
   - sys/cdefs.h:   contrib/libs/musl-1.1.20/extra/sys/cdefs.h
   - sys/sysctl.h:  contrib/libs/musl-1.1.20/extra/sys/sysctl.h
   - xlocale.h:     contrib/libs/musl-1.1.20/extra/xlocale.h
+
+- source_filter: "^contrib/deprecated/boost"
+  includes:
+    - ../include/fenv.h: contrib/libs/musl-1.1.20/include/fenv.h
