@@ -1,3 +1,4 @@
+#include "frequency_based_dictionary_impl.h"
 #include "mmap_frequency_based_dictionary.h"
 #include "mmap_frequency_based_dictionary_impl.h"
 #include "util.h"
@@ -16,13 +17,19 @@
 using namespace NTextProcessing::NDictionary;
 
 TMMapDictionary::TMMapDictionary() = default;
-TMMapDictionary::TMMapDictionary(TMMapDictionary&&) = default;
-TMMapDictionary::~TMMapDictionary() = default;
 
-TMMapDictionary::TMMapDictionary(THolder<IMMapDictionaryImpl> dictionaryImpl)
-    : DictionaryImpl(std::move(dictionaryImpl))
+TMMapDictionary::TMMapDictionary(TIntrusivePtr<TDictionary> dictionary)
+    : DictionaryImpl(dictionary->DictionaryImpl->CreateMMapDictionaryImpl())
 {
 }
+
+TMMapDictionary::TMMapDictionary(const void* data, size_t size) {
+    InitFromMemory(data, size);
+}
+
+TMMapDictionary::TMMapDictionary(TMMapDictionary&&) = default;
+
+TMMapDictionary::~TMMapDictionary() = default;
 
 TTokenId TMMapDictionary::Apply(TStringBuf token) const {
     return DictionaryImpl->Apply(token);

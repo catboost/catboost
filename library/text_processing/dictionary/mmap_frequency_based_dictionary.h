@@ -1,6 +1,6 @@
 #pragma once
 
-#include "dictionary.h"
+#include "frequency_based_dictionary.h"
 #include "options.h"
 
 #include <util/memory/blob.h>
@@ -12,9 +12,11 @@ namespace NTextProcessing::NDictionary {
     class TMMapDictionary final : public IDictionary {
     public:
         TMMapDictionary();
+        explicit TMMapDictionary(TIntrusivePtr<TDictionary> dictionary);
+        TMMapDictionary(const void* data, size_t size);
+
         TMMapDictionary(TMMapDictionary&&);
         ~TMMapDictionary();
-        explicit TMMapDictionary(THolder<IMMapDictionaryImpl> dictionaryImpl);
 
         TTokenId Apply(const TStringBuf token) const override;
 

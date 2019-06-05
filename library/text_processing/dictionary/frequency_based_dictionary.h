@@ -1,7 +1,6 @@
 #pragma once
 
 #include "dictionary.h"
-#include "mmap_frequency_based_dictionary.h"
 #include "options.h"
 
 namespace NTextProcessing::NDictionary {
@@ -45,9 +44,9 @@ namespace NTextProcessing::NDictionary {
         void Save(IOutputStream* stream) const override;
         void Load(IInputStream* stream);
 
-        TIntrusivePtr<TMMapDictionary> CreateMMapDictionary() const;
-
     private:
+        friend class TMMapDictionary;
+
         THolder<IDictionaryImpl> DictionaryImpl;
     };
 

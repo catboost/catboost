@@ -1,5 +1,6 @@
 #include <library/text_processing/dictionary/dictionary_builder.h>
 #include <library/text_processing/dictionary/frequency_based_dictionary.h>
+#include <library/text_processing/dictionary/mmap_frequency_based_dictionary.h>
 
 #include <library/threading/local_executor/local_executor.h>
 #include <library/unittest/registar.h>
@@ -18,7 +19,7 @@ using NTextProcessing::NDictionary::EUnknownTokenPolicy;
 
 static auto GetApplyToAllDictsFunc(TDictionaryBuilder dictionaryBuilder, TBlob* blob, TVector<TIntrusivePtr<IDictionary>>* dicts) {
     auto dictionary = dictionaryBuilder.FinishBuilding();
-    auto mmapDictionary = dictionary->CreateMMapDictionary();
+    auto mmapDictionary = MakeIntrusive<TMMapDictionary>(dictionary);
 
     TStringStream stream;
     dictionary->Save(&stream);
@@ -31,8 +32,7 @@ static auto GetApplyToAllDictsFunc(TDictionaryBuilder dictionaryBuilder, TBlob* 
 
     restoredMmapDictionary->Save(&stream);
     *blob = TBlob::FromStream(stream);
-    auto restoredFromMemoryMmapDictionary = MakeIntrusive<TMMapDictionary>();
-    restoredFromMemoryMmapDictionary->InitFromMemory(blob->Data(), blob->Size());
+    auto restoredFromMemoryMmapDictionary = MakeIntrusive<TMMapDictionary>(blob->Data(), blob->Size());
 
     dicts->emplace_back(dictionary);
     dicts->emplace_back(mmapDictionary);
