@@ -2142,9 +2142,9 @@ class CatBoost(_CatBoostBase):
             self._init_params[key] = value
         return self
 
-    def get_feature_statistics(self, data, target, feature, prediction_type=None,
-                               cat_feature_values=None, plot=False, max_cat_features_on_plot=10,
-                               thread_count=-1):
+    def calc_feature_statistics(self, data, target, feature, prediction_type=None,
+                                cat_feature_values=None, plot=False, max_cat_features_on_plot=10,
+                                thread_count=-1):
         """
         Get statistics for the feature using the model, dataset and target.
         To use this function, you should install plotly.
@@ -3694,7 +3694,7 @@ def sum_models(models, weights=None, ctr_merge_policy='IntersectingCountersAvera
     return result
 
 
-def _get_feature_statistics_layout(go, feature, xaxis):
+def _calc_feature_statistics_layout(go, feature, xaxis):
     return go.Layout(
         title="Statistics for feature '{}'".format(feature),
         yaxis={
@@ -3722,7 +3722,7 @@ def _build_binarized_feature_statistics_fig(statistics, feature):
         if len(statistics['borders']) == 0:
             xaxis = go.layout.XAxis(title='Bins', tickvals=[0])
             return go.Figure(data=[],
-                             layout=_get_feature_statistics_layout(go, feature, xaxis))
+                             layout=_calc_feature_statistics_layout(go, feature, xaxis))
 
         order = np.arange(len(statistics['objects_per_bin']))
         x_order = order[:-1]
@@ -3787,7 +3787,7 @@ def _build_binarized_feature_statistics_fig(statistics, feature):
     )
 
     data = [trace_1, trace_2, trace_3, trace_4]
-    layout = _get_feature_statistics_layout(go, feature, xaxis)
+    layout = _calc_feature_statistics_layout(go, feature, xaxis)
     fig = go.Figure(data=data, layout=layout)
 
     return fig
