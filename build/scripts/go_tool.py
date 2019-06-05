@@ -66,6 +66,7 @@ def classify_srcs(srcs, args):
     args.asm_srcs = list(filter(lambda x: x.endswith('.s'), srcs))
     args.objects = list(filter(lambda x: x.endswith('.o') or x.endswith('.obj'), srcs))
     args.symabis = list(filter(lambda x: x.endswith('.symabis'), srcs))
+    args.sysos = list(filter(lambda x: x.endswith('.syso'), srcs))
 
 
 def create_import_config(peers, import_map={}, module_map={}):
@@ -114,9 +115,12 @@ def do_compile_go(args):
             cmd += ['-symabis'] + args.symabis
         if import_path in ('runtime', 'runtime/internal/atomic'):
             cmd.append('-allabis')
-    cmd += ['-pack', '-c=4']
+    compile_workers = '4'
     if args.compile_flags:
         cmd += args.compile_flags
+        if '-race' in args.compile_flags:
+            compile_workers = '1'
+    cmd += ['-pack', '-c={}'.format(compile_workers)]
     cmd += args.go_srcs
     call(cmd, args.build_root)
 
@@ -146,7 +150,7 @@ def do_link_lib(args):
     else:
         do_compile_go(args)
     if args.objects:
-        cmd = [args.go_pack, 'r', args.output] + args.objects
+        cmd = [args.go_pack, 'r', args.output] + args.objects + args.sysos
         call(cmd, args.build_root)
 
 
@@ -159,6 +163,8 @@ def do_link_exe(args):
     import_config_name = create_import_config(args.peers, args.import_map, args.module_map)
     if import_config_name:
         cmd += ['-importcfg', import_config_name]
+    if args.link_flags:
+        cmd += args.link_flags
     cmd += ['-buildmode=exe', '-extld={}'.format(args.extld)]
     extldflags = []
     if args.extldflags is not None:
@@ -172,8 +178,6 @@ def do_link_exe(args):
             extldflags.append('-Wl,--end-group')
     if len(extldflags) > 0:
         cmd.append('-extldflags=' + ' '.join(extldflags))
-    if args.link_flags:
-        cmd += args.link_flags
     cmd.append(compile_args.output)
     call(cmd, args.build_root)
 

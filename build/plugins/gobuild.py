@@ -8,6 +8,14 @@ runtime_cgo_path = os.path.join('runtime', 'cgo')
 runtime_msan_path = os.path.join('runtime', 'msan')
 runtime_race_path = os.path.join('runtime', 'race')
 arc_project_prefix = 'a.yandex-team.ru/'
+import_runtime_cgo_false = {
+    'norace': (runtime_cgo_path, runtime_msan_path, runtime_race_path),
+    'race': (runtime_cgo_path, runtime_msan_path),
+}
+import_syscall_false = {
+    'norace': (runtime_cgo_path),
+    'race': (runtime_cgo_path, runtime_race_path),
+}
 
 
 def get_appended_values(unit, key):
@@ -109,6 +117,7 @@ def on_go_process_srcs(unit):
 
     s_files = filter(lambda x: x.endswith('.S'), srcs_files)
     c_files = filter(lambda x: x.endswith('.c'), srcs_files)
+    syso_files = filter(lambda x: x.endswith('.syso'), srcs_files)
     if len(c_files) + len(s_files) > 0:
         cgo_flags = get_appended_values(unit, 'CGO_CFLAGS_VALUE')
         for f in c_files + s_files:
@@ -121,8 +130,9 @@ def on_go_process_srcs(unit):
             import_path = import_path[len(go_std_root):]
         if import_path != runtime_cgo_path:
             unit.onpeerdir(os.path.join(go_std_root, runtime_cgo_path))
-        import_runtime_cgo = 'false' if import_path in [runtime_cgo_path, runtime_msan_path, runtime_race_path] else 'true'
-        import_syscall = 'false' if import_path == runtime_cgo_path else 'true'
+        race_mode = 'race' if unit.enabled('RACE') else 'norace'
+        import_runtime_cgo = 'false' if import_path in import_runtime_cgo_false[race_mode] else 'true'
+        import_syscall = 'false' if import_path in import_syscall_false[race_mode] else 'true'
         args = [import_path] + cgo_files + ['FLAGS', '-import_runtime_cgo=' + import_runtime_cgo, '-import_syscall=' + import_syscall]
         unit.on_go_compile_cgo1(args)
         args = [go_package_name(unit)] + cgo_files
@@ -130,6 +140,8 @@ def on_go_process_srcs(unit):
             args += ['C_FILES'] + c_files
         if len(s_files) > 0:
             args += ['S_FILES'] + s_files
+        if len(syso_files) > 0:
+            args += ['OBJ_FILES'] + syso_files
         unit.on_go_compile_cgo2(args)
 
 
