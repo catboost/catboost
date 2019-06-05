@@ -339,11 +339,6 @@
   - mm_malloc.h
   - quadmath.h
   #endif
-  #if defined (__linux__)
-  - valgrind/callgrind.h
-  - valgrind/memcheck.h
-  - valgrind/valgrind.h
-  #endif
   #if defined(_MSC_VER)
   - armintr.h
   - arm_acle.h
@@ -471,20 +466,6 @@
   #endif
   #if defined(__sun__)
   - sys/isa_defs.h
-  #endif
-  #if defined(_CUDA_)
-  - cublas_v2.h
-  - cuda.h
-  - cuda_runtime.h
-  - cuda_runtime_api.h
-  - cusolverDn.h
-  - cudnn.h
-  - cupti.h
-  - curand.h
-  - cusparse.h
-  - cooperative_groups.h
-  - driver_types.h
-  - nvToolsExt.h
   #endif
   #if defined(__X11__)
   - X11/XKBlib.h
@@ -909,14 +890,6 @@
   #endif
   #if defined(__sgi)
   - sigfpe.h
-  #endif
-  #if defined(_CUDA_)
-  - cuda/include/cuComplex.h
-  - cuda/include/cublas_v2.h
-  - cuda/include/cuda.h
-  - cuda/include/cudnn.h
-  - cuda/include/cufft.h
-  - cuda/include/curand.h
   #endif
   #if defined(__MWERKS__)
   - nwfileio.h
