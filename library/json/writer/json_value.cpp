@@ -506,9 +506,6 @@ namespace NJson {
     }
 
     const TJsonValue::TArray& TJsonValue::GetArraySafe() const {
-//        if (ToString(GetType()) == TString("Array") && Type != JSON_ARRAY) {
-//            ythrow TJsonException() << "AAAAAAAAAAAAAAAA";
-//        }
         if (Type != JSON_ARRAY)
             ythrow TJsonException() << "Not an array";
 
