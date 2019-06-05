@@ -161,7 +161,6 @@ Y_UNIT_TEST_SUITE(TJsonHelperTest) {
                                    "  \"bootstrap_type\": \"Bernoulli\",\n"
                                    "  \"bagging_temperature\": 36.6,\n"
 
-
                                    "}"
                                    "";
 
@@ -185,6 +184,7 @@ Y_UNIT_TEST_SUITE(TJsonHelperTest) {
 
             TString refBootstrapType = "Bernoulli";
             double refBaggingTemperature = 36.6;
+
 
             // parsed variables
             int parsedIterations = 7;
@@ -235,6 +235,7 @@ Y_UNIT_TEST_SUITE(TJsonHelperTest) {
             TJsonFieldHelper<double>::Read(bootstrapOptions["bagging_temperature"], &parsedBaggingTemperature);
 
 
+
             // plainOptions to trainOptionsJson and outputFilesOptionsJson using PlainJsonToOptions
             UNIT_ASSERT_VALUES_EQUAL(parsedIterations, refIterations);
             UNIT_ASSERT_VALUES_EQUAL(parsedLearningRate, refLearningRate);
@@ -251,7 +252,7 @@ Y_UNIT_TEST_SUITE(TJsonHelperTest) {
             UNIT_ASSERT_VALUES_EQUAL(parsedLeafEstimationBacktracking, refLeafEstimationBacktracking);
 
             UNIT_ASSERT_VALUES_EQUAL(parsedBootstrapType, refBootstrapType);
-            UNIT_ASSERT_VALUES_EQUAL(parsedBaggingTemperature,refBaggingTemperature);
+            UNIT_ASSERT_VALUES_EQUAL(parsedBaggingTemperature, refBaggingTemperature);
 
 
             // now test reverse transformation
@@ -276,6 +277,8 @@ Y_UNIT_TEST_SUITE(TJsonHelperTest) {
             double reverseParsedBaggingTemperature = 39.0;
 
 
+
+
             TJsonFieldHelper<int>::Read(reversePlainOptions["iterations"], &reverseParsedIterations);
             TJsonFieldHelper<double>::Read(reversePlainOptions["learning_rate"], &reverseParsedLearningRate);
             TJsonFieldHelper<int>::Read(reversePlainOptions["fold_len_multiplier"], &reverseParsedFoldLenMultiplier);
@@ -292,7 +295,6 @@ Y_UNIT_TEST_SUITE(TJsonHelperTest) {
 
             TJsonFieldHelper<TString>::Read(reversePlainOptions["bootstrap_type"], &reverseParsedBootstrapType);
             TJsonFieldHelper<double>::Read(reversePlainOptions["bagging_temperature"], &reverseParsedBaggingTemperature);
-
 
             // plainOptions == reversePlainOptions
             UNIT_ASSERT_VALUES_EQUAL(reverseParsedIterations, refIterations);

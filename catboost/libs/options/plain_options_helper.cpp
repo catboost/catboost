@@ -22,6 +22,7 @@ using NCatboostOptions::ParsePerFeatureCtrDescription;
 using NCatboostOptions::BuildCtrOptionsDescription;
 
 
+
 static Y_NO_INLINE void CopyCtrDescription(
     const NJson::TJsonValue& options,
     const TStringBuf srcKey,
@@ -480,7 +481,6 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
         DeleteSeenOption(&OptionsCopy, "metrics");
     }
 
-
     // outputOptions
     DeleteSeenOption(&OutputOptionsCopy, "train_dir");
     DeleteSeenOption(&OutputOptionsCopy, "name");
@@ -553,14 +553,14 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
             auto &odConfig = boostingOptionsRef["od_config"];
             NJson::TJsonValue &OptionsCopyOdConfig = OptionsCopyBoosting["od_config"];
 
+            CopyOptionWithNewKey(odConfig, "type", "od_type", &plainOptionsJson, &seenKeys);
+            DeleteSeenOption(&OptionsCopyOdConfig, "type");
+
             CopyOptionWithNewKey(odConfig, "stop_pvalue", "od_pval", &plainOptionsJson, &seenKeys);
             DeleteSeenOption(&OptionsCopyOdConfig, "stop_pvalue");
 
             CopyOptionWithNewKey(odConfig, "wait_iterations", "od_wait", &plainOptionsJson, &seenKeys);
             DeleteSeenOption(&OptionsCopyOdConfig, "wait_iterations");
-
-            CopyOptionWithNewKey(odConfig, "type", "od_type", &plainOptionsJson, &seenKeys);
-            DeleteSeenOption(&OptionsCopyOdConfig, "type");
 
             CB_ENSURE(OptionsCopyOdConfig.GetMapSafe().empty(), "some keys in boosting od_config options missed");
             DeleteSeenOption(&OptionsCopyBoosting, "od_config");
@@ -633,7 +633,6 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
         CopyOption(treeOptions, "observations_to_bootstrap", &plainOptionsJson, &seenKeys);
         DeleteSeenOption(&OptionsCopyTree, "observations_to_bootstrap");
 
-
         // bootstrap
         if (treeOptions.Has("bootstrap")) {
             auto &bootstrapOptions = treeOptions["bootstrap"];
@@ -657,7 +656,6 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
         CB_ENSURE(OptionsCopyTree.GetMapSafe().empty(), "some tree_learner_options keys missed");
         DeleteSeenOption(&OptionsCopy, "tree_learner_options");
     }
-
 
     //feature evaluation options
     if (OptionsCopy.Has("model_based_eval_options")) {
@@ -734,9 +732,7 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
         auto &dataProcessingOptions = options["data_processing_options"];
         NJson::TJsonValue &OptionsCopyDataProcessing = OptionsCopy["data_processing_options"];
 
-        if (!dataProcessingOptions["ignored_features"].GetArray().empty()) {
-            CopyOption(dataProcessingOptions, "ignored_features", &plainOptionsJson, &seenKeys);
-        }
+        CopyOption(dataProcessingOptions, "ignored_features", &plainOptionsJson, &seenKeys);
         DeleteSeenOption(&OptionsCopyDataProcessing, "ignored_features");
 
         CopyOption(dataProcessingOptions, "has_time", &plainOptionsJson, &seenKeys);
@@ -751,9 +747,7 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
         CopyOption(dataProcessingOptions, "class_names", &plainOptionsJson, &seenKeys);
         DeleteSeenOption(&OptionsCopyDataProcessing, "class_names");
 
-        if (!dataProcessingOptions["class_weights"].GetArray().empty()) {
-            CopyOption(dataProcessingOptions, "class_weights", &plainOptionsJson, &seenKeys);
-        }
+        CopyOption(dataProcessingOptions, "class_weights", &plainOptionsJson, &seenKeys);
         DeleteSeenOption(&OptionsCopyDataProcessing, "class_weights");
 
         CopyOption(dataProcessingOptions, "gpu_cat_features_storage", &plainOptionsJson, &seenKeys);
@@ -814,7 +808,6 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
         DeleteSeenOption(&OptionsCopy, "system_options");
     }
 
-
     //rest
     CopyOption(options, "random_seed", &plainOptionsJson, &seenKeys);
     DeleteSeenOption(&OptionsCopy, "random_seed");
@@ -834,5 +827,39 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
     DeleteSeenOption(&OptionsCopy, "flat_params");
 
     CB_ENSURE(OptionsCopy.GetMapSafe().empty(), "some options keys missed");
+}
+
+void NCatboostOptions::DeleteEmptyKeysInPlainJson(
+        NJson::TJsonValue* plainOptionsJsonEfficient,
+        bool CatFeaturesArePresent) {
+
+    if ((*plainOptionsJsonEfficient)["od_type"].GetStringSafe() == ToString(EOverfittingDetectorType::None)) {
+        DeleteSeenOption(plainOptionsJsonEfficient, "od_type");
+        DeleteSeenOption(plainOptionsJsonEfficient, "od_wait");
+        DeleteSeenOption(plainOptionsJsonEfficient, "od_pval");
+    }
+
+    if (plainOptionsJsonEfficient->Has("node_type")) {
+        if ((*plainOptionsJsonEfficient)["node_type"].GetStringSafe() == ToString("SingleHost")) {
+            DeleteSeenOption(plainOptionsJsonEfficient, "node_port");
+            DeleteSeenOption(plainOptionsJsonEfficient, "file_with_hosts");
+        }
+    }
+
+    if (!CatFeaturesArePresent) {
+        DeleteSeenOption(plainOptionsJsonEfficient, "simple_ctrs");
+        DeleteSeenOption(plainOptionsJsonEfficient, "combinations_ctrs");
+        DeleteSeenOption(plainOptionsJsonEfficient, "per_feature_ctrs");
+        DeleteSeenOption(plainOptionsJsonEfficient, "target_binarization");
+        DeleteSeenOption(plainOptionsJsonEfficient, "max_ctr_complexity");
+        DeleteSeenOption(plainOptionsJsonEfficient, "simple_ctr_description");
+        DeleteSeenOption(plainOptionsJsonEfficient, "tree_ctr_description");
+        DeleteSeenOption(plainOptionsJsonEfficient, "per_feature_ctr_description");
+        DeleteSeenOption(plainOptionsJsonEfficient, "counter_calc_method");
+        DeleteSeenOption(plainOptionsJsonEfficient, "store_all_simple_ctr");
+        DeleteSeenOption(plainOptionsJsonEfficient, "one_hot_max_size");
+        DeleteSeenOption(plainOptionsJsonEfficient, "ctr_leaf_count_limit");
+        DeleteSeenOption(plainOptionsJsonEfficient, "ctr_history_unit");
+    }
 }
 

@@ -154,12 +154,14 @@ NJson::TJsonValue GetTrainingOptions(
     return catboostOptionsJson;
 }
 
-NJson::TJsonValue GetPlainJsonWithAllOptions(const TFullModel& model)
+NJson::TJsonValue GetPlainJsonWithAllOptions(const TFullModel& model, bool catFeaturesArePresent)
 {
     NJson::TJsonValue trainOptions = ReadTJsonValue(model.ModelInfo.at("params"));
     NJson::TJsonValue outputOptions = ReadTJsonValue(model.ModelInfo.at("output_options"));
     NJson::TJsonValue plainOptionsJson;
     NCatboostOptions::ConvertOptionsToPlainJson(trainOptions, outputOptions, &plainOptionsJson);
-    return plainOptionsJson;
+    NJson::TJsonValue plainOptionsJsonEfficient(plainOptionsJson);
+    NCatboostOptions::DeleteEmptyKeysInPlainJson(&plainOptionsJsonEfficient, catFeaturesArePresent);
+    return plainOptionsJsonEfficient;
 }
 

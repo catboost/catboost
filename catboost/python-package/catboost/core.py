@@ -1009,7 +1009,7 @@ class _CatBoostBase(object):
         return params
 
     def _get_plain_params(self):
-        return self._object._get_plain_params()
+        return self._object._get_plain_params(len(self._get_cat_feature_indices()) != 0)
 
     def _is_classification_objective(self, loss_function):
         return isinstance(loss_function, str) and is_classification_objective(loss_function)
