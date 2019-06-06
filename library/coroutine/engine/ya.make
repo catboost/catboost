@@ -15,7 +15,6 @@ SRCS(
     network.cpp
     poller.cpp
     sockpool.cpp
-    stack.cpp
 )
 
 END()

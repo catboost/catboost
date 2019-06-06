@@ -107,7 +107,7 @@ private:
                     SetDeferAccept(ListenSocket_);
                 }
 
-                C_ = Parent_->E_->Create<TOneSocketListener, &TOneSocketListener::Run>(this, "listen_job")->ContPtr();
+                C_ = Parent_->E_->Create<TOneSocketListener, &TOneSocketListener::Run>(this, "listen_job");
             }
         }
 
@@ -120,7 +120,7 @@ private:
                 C_->Cancel();
 
                 while (C_) {
-                    Parent_->E_->Running()->ContPtr()->Yield();
+                    Parent_->E_->Running()->Yield();
                 }
             }
         }

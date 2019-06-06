@@ -1,50 +1,197 @@
 #include "impl.h"
 #include "schedule_callback.h"
 
-#include <util/generic/yexception.h>
+#include <util/stream/format.h>
 #include <util/stream/output.h>
 #include <util/system/yassert.h>
-#include <util/generic/scope.h>
-#include <util/generic/xrange.h>
+#include <util/system/valgrind.h>
 
+#include <cstdlib>
 
-TContRep::TContRep(TContStackAllocator* alloc)
-    : real(alloc->Allocate())
-    , full((char*)real->Data(), real->Length())
-    , stack(full.data(), EffectiveStackLength(full.size()))
-    , cont(stack.end(), Align(sizeof(TCont)))
-    , machine(cont.end(), Align(sizeof(TExceptionSafeContext)))
-{}
+namespace NCoro {
+    ui32 RealCoroStackSize(ui32 coroStackSize) {
+#if defined(_asan_enabled_)
+        coroStackSize *= 4;
+#endif
+        return coroStackSize;
+    }
 
-void TContRep::DoRun() {
+    TMaybe<ui32> RealCoroStackSize(TMaybe<ui32> coroStackSize) {
+        if (coroStackSize) {
+            return RealCoroStackSize(*coroStackSize);
+        } else {
+            return Nothing();
+        }
+    }
+
+    namespace {
+        constexpr TStringBuf CANARY = AsStringBuf(
+            "4ef8f9c2f7eb6cb8af66f2e441f4250c0f819a30d07821895b53e6017f90fbcd");
+    }
+}
+
+TCont::TTrampoline::TTrampoline(ui32 stackSize, TContFunc f, TCont* cont, void* arg) noexcept
+    : Stack_((char*)malloc(stackSize))
+    , StackSize_(stackSize)
+    , Clo_{this, {
+        Stack_.Get() + NCoro::CANARY.size(),
+        StackSize_ - NCoro::CANARY.size()
+    }}
+    , Ctx_(Clo_)
+    , Func_(f)
+    , Cont_(cont)
+    , Arg_(arg)
+{
+    Y_VERIFY(Stack_, "out of memory");
+    StackId_ = VALGRIND_STACK_REGISTER(
+        Stack_.Get() + NCoro::CANARY.size(),
+        Stack_.Get() + StackSize_ - NCoro::CANARY.size()
+    );
+    memcpy(Stack_.Get(), NCoro::CANARY.data(), NCoro::CANARY.size());
+}
+
+TCont::TTrampoline::~TTrampoline() {
+    VALGRIND_STACK_DEREGISTER(StackId_);
+}
+
+void TCont::TTrampoline::SwitchTo(TExceptionSafeContext* ctx) noexcept {
+    Y_VERIFY(
+        TStringBuf(Stack_.Get(), NCoro::CANARY.size()) == NCoro::CANARY,
+        "Stack overflow"
+    );
+    Ctx_.SwitchTo(ctx);
+}
+
+void TCont::TTrampoline::DoRun() {
     try {
-        ContPtr()->Execute();
+        Func_(Cont_, Arg_);
     } catch (...) {
         Y_VERIFY(
-            !ContPtr()->Executor()->FailOnError(),
+            !Cont_->Executor_->FailOnError(),
             "uncaught exception %s", CurrentExceptionMessage().c_str()
         );
     }
 
-    ContPtr()->WakeAllWaiters();
-    ContPtr()->Executor()->Exit(this);
+    Cont_->WakeAllWaiters();
+    Cont_->Exit();
 }
 
-void TContRep::Construct(TContExecutor* executor, TContFunc func, void* arg, const char* name) {
-    TContClosure closure = {
-        this,
-        stack,
-    };
+TCont::TJoinWait::TJoinWait(TCont* c) noexcept
+    : Cont_(c)
+{}
 
-    THolder<TExceptionSafeContext, TDestructor> mc(new (MachinePtr()) TExceptionSafeContext(closure));
-
-    new (ContPtr()) TCont(executor, this, func, arg, name);
-    Y_UNUSED(mc.Release());
+void TCont::TJoinWait::Wake() noexcept {
+    Cont_->ReSchedule();
 }
 
-void TContRep::Destruct() noexcept {
-    ContPtr()->~TCont();
-    MachinePtr()->~TExceptionSafeContext();
+TCont::TCont(size_t stackSize, TContExecutor* executor, TContFunc func, void* arg, const char* name) noexcept
+    : Executor_(executor)
+    , Trampoline_(stackSize, func, this, arg)
+    , Name_(name)
+{}
+
+
+void TCont::PrintMe(IOutputStream& out) const noexcept {
+    out << "cont("
+        << "func = " << (size_t)(void*)Trampoline_.Func_ << ", "
+        << "arg = " << (size_t)(void*)Trampoline_.Arg_ << ", "
+        << "name = " << Name_ << ", "
+        << "addr = " << Hex((size_t)this)
+        << ")";
+}
+
+bool TCont::Join(TCont* c, TInstant deadLine) noexcept {
+    TJoinWait ev(this);
+    c->Waiters_.PushBack(&ev);
+
+    do {
+        if (SleepD(deadLine) == ETIMEDOUT || Cancelled()) {
+            if (!ev.Empty()) {
+                c->Cancel();
+
+                do {
+                    SwitchTo(Executor()->SchedContext());
+                } while (!ev.Empty());
+            }
+
+            return false;
+        }
+    } while (!ev.Empty());
+
+    return true;
+}
+
+void TCont::WakeAllWaiters() noexcept {
+    while (!Waiters_.Empty()) {
+        Waiters_.PopFront()->Wake();
+    }
+}
+
+int TCont::SleepD(TInstant deadline) noexcept {
+    TTimerEvent event(this, deadline);
+
+    return ExecuteEvent(&event);
+}
+
+void TCont::Yield() noexcept {
+    if (SleepD(TInstant::Zero())) {
+        ReScheduleAndSwitch();
+    }
+}
+
+void TCont::ReScheduleAndSwitch() noexcept {
+    ReSchedule();
+    SwitchTo(Executor()->SchedContext());
+}
+
+void TCont::Exit() {
+    Executor()->Exit(this);
+}
+
+bool TCont::IAmRunning() const noexcept {
+    return this == Executor()->Running();
+}
+
+void TCont::Cancel() noexcept {
+    if (Cancelled()) {
+        return;
+    }
+
+    Cancelled_ = true;
+
+    if (!IAmRunning()) {
+        ReSchedule();
+    }
+}
+
+void TCont::ReSchedule() noexcept {
+    if (Cancelled()) {
+        // Legacy code may expect a Cancelled coroutine to be scheduled without delay.
+        Executor()->ScheduleExecutionNow(this);
+    } else {
+        Executor()->ScheduleExecution(this);
+    }
+}
+
+
+TContExecutor::TContExecutor(ui32 defaultStackSize, THolder<IPollerFace> poller, NCoro::IScheduleCallback* callback)
+    : CallbackPtr_(callback)
+    , DefaultStackSize_(defaultStackSize)
+    , Poller_(std::move(poller))
+{}
+
+TContExecutor::~TContExecutor() {
+    Y_VERIFY(Allocated_ == 0, "leaked %u coroutines", (ui32)Allocated_);
+}
+
+void TContExecutor::Execute() noexcept {
+    auto nop = [](void*){};
+    Execute(nop);
+}
+
+void TContExecutor::Execute(TContFunc func, void* arg) noexcept {
+    Create(func, arg, "sys_main");
+    RunScheduler();
 }
 
 void TContExecutor::WaitForIO() {
@@ -90,113 +237,54 @@ void TContExecutor::ProcessEvents() {
     }
 }
 
-void TCont::PrintMe(IOutputStream& out) const noexcept {
-    out << "cont("
-        << "func = " << (size_t)(void*)Func_ << ", "
-        << "arg = " << (size_t)(void*)Arg_ << ", "
-        << "name = " << Name_ << ", "
-        << "addr = " << Hex((size_t)this)
-        << ")";
+void TContExecutor::Abort() noexcept {
+    WaitQueue_.Abort();
+    auto visitor = [](TCont* c) {
+        c->Cancel();
+    };
+    Ready_.ForEach(visitor);
+    ReadyNext_.ForEach(visitor);
 }
 
-bool TCont::Join(TCont* c, TInstant deadLine) noexcept {
-    TJoinWait ev(this);
-    c->Waiters_.PushBack(&ev);
-
-    do {
-        if (SleepD(deadLine) == ETIMEDOUT || Cancelled()) {
-            if (!ev.Empty()) {
-                c->Cancel();
-
-                do {
-                    _SwitchToScheduler();
-                } while (!ev.Empty());
-            }
-
-            return false;
-        }
-    } while (!ev.Empty());
-
-    return true;
-}
-
-void TCont::WakeAllWaiters() noexcept {
-    while (!Waiters_.Empty()) {
-        Waiters_.PopFront()->Wake();
+TCont* TContExecutor::Create(TContFunc func, void* arg, const char* name, TMaybe<ui32> stackSize) noexcept {
+    Allocated_ += 1;
+    if (!stackSize) {
+        stackSize = DefaultStackSize_;
     }
+    auto* cont = new TCont(*stackSize, this, func, arg, name);
+    ScheduleExecution(cont);
+    return cont;
 }
 
-int TCont::SleepD(TInstant deadline) noexcept {
-    TTimerEvent event(this, deadline);
-
-    return ExecuteEvent(&event);
+void TContExecutor::Release(TCont* cont) noexcept {
+    delete cont;
+    Allocated_ -= 1;
 }
 
-void TCont::Yield() noexcept {
-    if (SleepD(TInstant::Zero())) {
-        ReScheduleAndSwitch();
-    }
+void TContExecutor::ScheduleToDelete(TCont* cont) noexcept {
+    ToDelete_.PushBack(cont);
 }
 
-void TCont::ReScheduleAndSwitch() noexcept {
-    ReSchedule();
-    _SwitchToScheduler();
+void TContExecutor::ScheduleExecution(TCont* cont) noexcept {
+    cont->Scheduled_ = true;
+    ReadyNext_.PushBack(cont);
 }
 
-void TCont::Exit() {
-    Executor()->Exit(Rep());
+void TContExecutor::ScheduleExecutionNow(TCont* cont) noexcept {
+    cont->Scheduled_ = true;
+    Ready_.PushBack(cont);
 }
 
-bool TCont::IAmRunning() const noexcept {
-    return Rep() == Executor()->Running();
+void TContExecutor::Activate(TCont* cont) noexcept {
+    Current_ = cont;
+    cont->Scheduled_ = false;
+    SchedContext_.SwitchTo(cont->Context());
 }
 
-void TCont::Cancel() noexcept {
-    if (Cancelled()) {
-        return;
-    }
-
-    Cancelled_ = true;
-
-    if (!IAmRunning()) {
-        ReSchedule();
-    }
-}
-
-void TCont::ReSchedule() noexcept {
-    if (Cancelled()) {
-        // Legacy code may expect a Cancelled coroutine to be scheduled without delay.
-        Executor()->ScheduleExecutionNow(Rep());
-    } else {
-        Executor()->ScheduleExecution(Rep());
-    }
-}
-
-void TCont::_SwitchToScheduler() noexcept {
-    Context()->SwitchTo(Executor()->SchedCont());
-}
-
-
-TContExecutor::TContExecutor(size_t stackSize, THolder<IPollerFace> poller, NCoro::IScheduleCallback* callback)
-    : Poller_(std::move(poller))
-    , MyPool_(new TContRepPool(stackSize))
-    , Pool_(*MyPool_)
-    , Current_(nullptr)
-    , CallbackPtr_(callback)
-    , FailOnError_(false)
-{
-}
-
-TContExecutor::TContExecutor(TContRepPool* pool, THolder<IPollerFace> poller, NCoro::IScheduleCallback* callback)
-    : Poller_(std::move(poller))
-    , Pool_(*pool)
-    , Current_(nullptr)
-    , CallbackPtr_(callback)
-    , FailOnError_(false)
-{
-}
-
-TContExecutor::~TContExecutor() {
+void TContExecutor::DeleteScheduled() noexcept {
+    ToDelete_.ForEach([this](TCont* c) {
+        Release(c);
+    });
 }
 
 void TContExecutor::RunScheduler() noexcept {
@@ -208,10 +296,10 @@ void TContExecutor::RunScheduler() noexcept {
                 break;
             }
 
-            TContRep* cont = Ready_.PopFront();
+            TCont* cont = Ready_.PopFront();
 
             if (CallbackPtr_) {
-                CallbackPtr_->OnSchedule(*this, *cont->ContPtr());
+                CallbackPtr_->OnSchedule(*this, *cont);
             }
             Activate(cont);
             if (CallbackPtr_) {
@@ -226,12 +314,13 @@ void TContExecutor::RunScheduler() noexcept {
     }
 }
 
-template <>
-void Out<TCont>(IOutputStream& out, const TCont& c) {
-    c.PrintMe(out);
+void TContExecutor::Exit(TCont* cont) noexcept {
+    ScheduleToDelete(cont);
+    cont->SwitchTo(&SchedContext_);
+    Y_FAIL("can not return from exit");
 }
 
 template <>
-void Out<TContRep>(IOutputStream& out, const TContRep& c) {
-    c.ContPtr()->PrintMe(out);
+void Out<TCont>(IOutputStream& out, const TCont& c) {
+    c.PrintMe(out);
 }

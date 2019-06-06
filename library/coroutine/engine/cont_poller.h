@@ -180,6 +180,25 @@ namespace NCoro {
         TBigArray<TPollEventList> Lists_;
         THolder<IPollerFace> P_;
     };
+
+
+    class TEventWaitQueue {
+        using TIoWait = TRbTree<NCoro::TContPollEvent, NCoro::TContPollEventCompare>;
+
+    public:
+        void Register(NCoro::TContPollEvent* event);
+
+        bool Empty() const noexcept {
+            return IoWait_.Empty();
+        }
+
+        void Abort() noexcept;
+
+        TInstant WakeTimedout(TInstant now) noexcept;
+
+    private:
+        TIoWait IoWait_;
+    };
 }
 
 class TFdEvent final:

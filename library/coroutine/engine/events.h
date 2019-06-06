@@ -131,7 +131,7 @@ public:
     }
 
     int WaitD(TInstant deadLine) noexcept {
-        return Q_.WaitD(E_->Running()->ContPtr(), deadLine);
+        return Q_.WaitD(E_->Running(), deadLine);
     }
 
     int WaitT(TDuration timeout) noexcept {

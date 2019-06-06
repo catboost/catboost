@@ -12,7 +12,7 @@ namespace NCoro {
             }
 
             cont->Executor()->ScheduleIoWait(event);
-            cont->_SwitchToScheduler();
+            cont->SwitchTo(cont->Executor()->SchedContext());
 
             if (cont->Cancelled()) {
                 return ECANCELED;
@@ -25,6 +25,35 @@ namespace NCoro {
     void TContPollEvent::Wake() noexcept {
         UnLink();
         Cont()->ReSchedule();
+    }
+
+
+    TInstant TEventWaitQueue::WakeTimedout(TInstant now) noexcept {
+        TIoWait::TIterator it = IoWait_.Begin();
+
+        if (it != IoWait_.End()) {
+            if (it->DeadLine() > now) {
+                return it->DeadLine();
+            }
+
+            do {
+                (it++)->Wake(ETIMEDOUT);
+            } while (it != IoWait_.End() && it->DeadLine() <= now);
+        }
+
+        return now;
+    }
+
+    void TEventWaitQueue::Register(NCoro::TContPollEvent* event) {
+        IoWait_.Insert(event);
+        event->Cont()->Unlink();
+    }
+
+    void TEventWaitQueue::Abort() noexcept {
+        auto visitor = [](TContPollEvent& e) {
+            e.Cont()->Cancel();
+        };
+        IoWait_.ForEach(visitor);
     }
 }
 

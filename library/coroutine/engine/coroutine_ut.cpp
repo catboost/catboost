@@ -322,7 +322,7 @@ namespace NCoroTestJoin {
 
         {
             TSleepCont sc = {TInstant::Max(), 0};
-            TJoinCont jc = {TDuration::MilliSeconds(100).ToDeadLine(), e.Create(sc, "sc")->ContPtr(), true};
+            TJoinCont jc = {TDuration::MilliSeconds(100).ToDeadLine(), e.Create(sc, "sc"), true};
 
             e.Execute(jc);
 
@@ -332,7 +332,7 @@ namespace NCoroTestJoin {
 
         {
             TSleepCont sc = {TDuration::MilliSeconds(100).ToDeadLine(), 0};
-            TJoinCont jc = {TDuration::MilliSeconds(200).ToDeadLine(), e.Create(sc, "sc")->ContPtr(), false};
+            TJoinCont jc = {TDuration::MilliSeconds(200).ToDeadLine(), e.Create(sc, "sc"), false};
 
             e.Execute(jc);
 
@@ -342,7 +342,7 @@ namespace NCoroTestJoin {
 
         {
             TSleepCont sc = {TDuration::MilliSeconds(200).ToDeadLine(), 0};
-            TJoinCont jc = {TDuration::MilliSeconds(100).ToDeadLine(), e.Create(sc, "sc")->ContPtr(), true};
+            TJoinCont jc = {TDuration::MilliSeconds(100).ToDeadLine(), e.Create(sc, "sc"), true};
 
             e.Execute(jc);
 
@@ -352,7 +352,7 @@ namespace NCoroTestJoin {
 
         {
             TReadCont rc = {TInstant::Max(), in.GetHandle(), 0};
-            TJoinCont jc = {TDuration::MilliSeconds(100).ToDeadLine(), e.Create(rc, "rc")->ContPtr(), true};
+            TJoinCont jc = {TDuration::MilliSeconds(100).ToDeadLine(), e.Create(rc, "rc"), true};
 
             e.Execute(jc);
 
@@ -362,7 +362,7 @@ namespace NCoroTestJoin {
 
         {
             TReadCont rc = {TDuration::MilliSeconds(100).ToDeadLine(), in.GetHandle(), 0};
-            TJoinCont jc = {TDuration::MilliSeconds(200).ToDeadLine(), e.Create(rc, "rc")->ContPtr(), false};
+            TJoinCont jc = {TDuration::MilliSeconds(200).ToDeadLine(), e.Create(rc, "rc"), false};
 
             e.Execute(jc);
 
@@ -372,7 +372,7 @@ namespace NCoroTestJoin {
 
         {
             TReadCont rc = {TDuration::MilliSeconds(200).ToDeadLine(), in.GetHandle(), 0};
-            TJoinCont jc = {TDuration::MilliSeconds(100).ToDeadLine(), e.Create(rc, "rc")->ContPtr(), true};
+            TJoinCont jc = {TDuration::MilliSeconds(100).ToDeadLine(), e.Create(rc, "rc"), true};
 
             e.Execute(jc);
 
@@ -429,7 +429,7 @@ namespace NCoroJoinCancelExitRaceBug {
         // 05.{Ready:[Aux,Sub2]} > SwitchTo(Aux)
         // 09.{Ready:[],Deleted:[Sub2]} > Cancel(Sub2) > {Ready:[Sub2],Deleted:[Sub2]}
         // 10.{Ready:[Sub2],Deleted:[Sub2]} > SwitchTo(Sub2) > FAIL: can not return from exit
-        cont->Join(sub2->ContPtr());
+        cont->Join(sub2);
 
         state.Sub = nullptr;
     }
@@ -444,7 +444,7 @@ namespace NCoroJoinCancelExitRaceBug {
         cont->Executor()->Create(DoAux, &state, "Aux");
 
         // 03.{Ready:[Sub,Aux]} > SwitchTo(Sub)
-        cont->Join(sub->ContPtr());
+        cont->Join(sub);
     }
 }
 
@@ -521,11 +521,11 @@ namespace NCoroWaitWakeLivelockBug {
         TState state;
 
         for (auto& subState : state.Subs) {
-            subState.Cont = cont->Executor()->Create(DoSub, &subState, subState.Name.data())->ContPtr();
+            subState.Cont = cont->Executor()->Create(DoSub, &subState, subState.Name.data());
         }
 
         cont->Join(
-            cont->Executor()->Create(DoStop, &state, "Stop")->ContPtr()
+            cont->Executor()->Create(DoStop, &state, "Stop")
         );
 
         for (auto& subState : state.Subs) {
@@ -612,7 +612,7 @@ namespace NCoroTestFastPathWake {
 
             // These guys are to be woken up right away
             for (auto& subState : state.Subs) {
-                subState.Cont = cont->Executor()->Create(DoSub, &subState, subState.Name.data())->ContPtr();
+                subState.Cont = cont->Executor()->Create(DoSub, &subState, subState.Name.data());
             }
 
             // Give way
@@ -639,7 +639,7 @@ namespace NCoroTestFastPathWake {
             state.Out.Close();
 
             if (state.IoSleepRunning) {
-                cont->Join(sleeper->ContPtr());
+                cont->Join(sleeper);
             }
 
             // Check everything has ended sooner than the timeout
@@ -702,8 +702,8 @@ namespace NCoroTestLegacyCancelYieldRaceBug {
 
     static void DoMain(TCont* cont, void* argPtr) {
         TState& state = *(TState*)argPtr;
-        TContRep* sub =  cont->Executor()->Create(DoSub, argPtr, "Sub");
-        sub->ContPtr()->Cancel();
+        TCont* sub =  cont->Executor()->Create(DoSub, argPtr, "Sub");
+        sub->Cancel();
         cont->Yield();
         UNIT_ASSERT_EQUAL(state.SubState, EState::Finished);
     }
@@ -759,7 +759,7 @@ namespace NCoroTestJoinRescheduleBug {
     static void DoSubA(TCont* cont, void* argPtr) {
         TState& state = *(TState*)argPtr;
         state.SubAState = EState::Running;
-        TCont* subC = cont->Executor()->Create(DoSubC, argPtr, "SubC")->ContPtr();
+        TCont* subC = cont->Executor()->Create(DoSubC, argPtr, "SubC");
         while (state.SubBState != EState::Running && state.SubCState != EState::Running) {
             cont->Yield();
         }
@@ -771,9 +771,9 @@ namespace NCoroTestJoinRescheduleBug {
 
     static void DoMain(TCont* cont, void* argPtr) {
         TState& state = *(TState*)argPtr;
-        TCont* subA = cont->Executor()->Create(DoSubA, argPtr, "SubA")->ContPtr();
+        TCont* subA = cont->Executor()->Create(DoSubA, argPtr, "SubA");
         state.SubA = subA;
-        cont->Join(cont->Executor()->Create(DoSubB, argPtr, "SubB")->ContPtr());
+        cont->Join(cont->Executor()->Create(DoSubB, argPtr, "SubB"));
 
         if (state.SubA) {
             subA->Cancel();

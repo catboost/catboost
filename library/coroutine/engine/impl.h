@@ -1,33 +1,19 @@
 #pragma once
 
-#include "schedule_callback.h"
+#include "cont_poller.h"
 #include "iostatus.h"
 #include "poller.h"
-#include "cont_poller.h"
-#include "stack.h"
+#include "schedule_callback.h"
 
 #include <library/containers/intrusive_rb_tree/rb_tree.h>
 
-#include <util/system/mutex.h>
 #include <util/system/error.h>
 #include <util/system/context.h>
 #include <util/system/defaults.h>
-#include <util/system/valgrind.h>
-#include <util/network/iovec.h>
-#include <util/memory/tempbuf.h>
-#include <util/memory/smallobj.h>
-#include <util/memory/addstorage.h>
-#include <util/network/socket.h>
-#include <util/network/nonblock.h>
 #include <util/generic/ptr.h>
-#include <util/generic/buffer.h>
-#include <util/generic/vector.h>
-#include <util/generic/utility.h>
 #include <util/generic/intrlist.h>
-#include <util/generic/yexception.h>
 #include <util/datetime/base.h>
-#include <util/stream/format.h>
-#include <util/string/builder.h>
+#include <util/generic/maybe.h>
 
 #if !defined(STACK_GROW_DOWN)
 #   error "unsupported"
@@ -37,72 +23,80 @@
 
 class TCont;
 struct TContRep;
-class TContEvent;
 class TContExecutor;
 class TContPollEvent;
 
+/* TODO(velavokr): some minor improvements:
+ * 1) allow any std::function objects, not only TContFunc
+ * 2) allow name storage owning (for generated names backed by TString)
+ */
+
 namespace NCoro {
     class IScheduleCallback;
+
+    // accounts for asan stack space overhead
+    ui32 RealCoroStackSize(ui32 coroStackSize);
+    TMaybe<ui32> RealCoroStackSize(TMaybe<ui32> coroStackSize);
 }
 
 typedef void (*TContFunc)(TCont*, void*);
 
 
-class TCont {
-    struct TJoinWait: public TIntrusiveListItem<TJoinWait> {
-        TJoinWait(TCont* c) noexcept
-            : C(c)
-        {
-        }
+class TCont : private TIntrusiveListItem<TCont>, private ITrampoLine {
+    struct TTrampoline : public ITrampoLine, TNonCopyable {
+        TTrampoline(
+            ui32 stackSize,
+            TContFunc f,
+            TCont* cont,
+            void* arg
+        ) noexcept;
 
-        void Wake() noexcept {
-            C->ReSchedule();
-        }
+        ~TTrampoline();
 
-        TCont* C;
+        void SwitchTo(TExceptionSafeContext* ctx) noexcept;
+
+        void DoRun();
+
+    public:
+        const THolder<char, TFree> Stack_;
+        const ui32 StackSize_;
+        const TContClosure Clo_;
+        TExceptionSafeContext Ctx_;
+        TContFunc const Func_ = nullptr;
+        TCont* const Cont_;
+        size_t StackId_ = 0;
+        void* const Arg_;
     };
 
-    friend struct TContRep;
+    struct TJoinWait: public TIntrusiveListItem<TJoinWait> {
+        TJoinWait(TCont* c) noexcept;
+
+        void Wake() noexcept;
+
+    public:
+        TCont* Cont_;
+    };
+
     friend class TContExecutor;
-    friend class TContPollEvent;
+    friend class TIntrusiveListItem<TCont>;
+    friend class NCoro::TEventWaitQueue;
+
+private:
+    TCont(
+        size_t stackSize,
+        TContExecutor* executor,
+        TContFunc func,
+        void* arg,
+        const char* name
+    ) noexcept;
 
 public:
-    TCont(TContExecutor* executor, TContRep* rep, TContFunc func, void* arg, const char* name)
-        : Executor_(executor)
-        , Rep_(rep)
-        , Func_(func)
-        , Arg_(arg)
-        , Name_(name)
-    {
-    }
-
-    ~TCont() {
-        Executor_ = nullptr;
-        Rep_ = nullptr;
-    }
-
-    TExceptionSafeContext* Context() noexcept {
-        return (TExceptionSafeContext*)(((char*)(this)) + Align(sizeof(TCont)));
-    }
-
-    const TExceptionSafeContext* Context() const noexcept {
-        return const_cast<TCont*>(this)->Context();
-    }
-
     TContExecutor* Executor() noexcept {
         return Executor_;
     }
 
     const TContExecutor* Executor() const noexcept {
         return Executor_;
-    }
-
-    TContRep* Rep() noexcept {
-        return Rep_;
-    }
-
-    const TContRep* Rep() const noexcept {
-        return Rep_;
     }
 
     const char* Name() const noexcept {
@@ -126,8 +120,6 @@ public:
         return SleepD(TInstant::Max());
     }
 
-    void Exit();
-
     bool IAmRunning() const noexcept;
 
     void Cancel() noexcept;
@@ -146,167 +138,25 @@ public:
 
     void ReSchedule() noexcept;
 
-    void _SwitchToScheduler() noexcept;
+    void SwitchTo(TExceptionSafeContext* ctx) {
+        Trampoline_.SwitchTo(ctx);
+    }
 
 private:
+    void Exit();
 
-    void Execute() {
-        Y_ASSERT(Func_);
-
-        Func_(this, Arg_);
+    TExceptionSafeContext* Context() noexcept {
+        return &Trampoline_.Ctx_;
     }
 
 private:
     TContExecutor* Executor_ = nullptr;
-    TContRep* Rep_ = nullptr;
-    TContFunc Func_ = nullptr;
-    void* Arg_ = nullptr;
+    TTrampoline Trampoline_;
+
     const char* Name_ = nullptr;
     TIntrusiveList<TJoinWait> Waiters_;
     bool Cancelled_ = false;
     bool Scheduled_ = false;
-};
-
-
-struct TContRep : public TIntrusiveListItem<TContRep>, public ITrampoLine {
-    TContRep(TContStackAllocator* alloc);
-
-    void DoRun() override;
-
-    void Construct(TContExecutor* executor, TContFunc func, void* arg, const char* name);
-    void Destruct() noexcept;
-
-    TCont* ContPtr() noexcept {
-        return (TCont*)cont.data();
-    }
-
-    const TCont* ContPtr() const noexcept {
-        return (const TCont*)cont.data();
-    }
-
-    TExceptionSafeContext* MachinePtr() noexcept {
-        return (TExceptionSafeContext*)machine.data();
-    }
-
-    static size_t Overhead() noexcept {
-        return Align(sizeof(TCont)) + Align(sizeof(TExceptionSafeContext));
-    }
-
-    static size_t EffectiveStackLength(size_t alloced) noexcept {
-        return alloced - Overhead();
-    }
-
-    static size_t ToAllocate(size_t stackLen) noexcept {
-        return Align(stackLen) + Overhead();
-    }
-
-    bool IAmRuning() const noexcept {
-        return ContPtr()->IAmRunning();
-    }
-
-    TContStackAllocator::TStackPtr real;
-
-    TArrayRef<char> full;
-    TArrayRef<char> stack;
-    TArrayRef<char> cont;
-    TArrayRef<char> machine;
-};
-
-
-class TEventWaitQueue {
-    struct TCancel {
-        void operator()(NCoro::TContPollEvent* e) noexcept {
-            e->Cont()->Cancel();
-        }
-
-        void operator()(NCoro::TContPollEvent& e) noexcept {
-            operator()(&e);
-        }
-    };
-
-    typedef TRbTree<NCoro::TContPollEvent, NCoro::TContPollEventCompare> TIoWait;
-
-public:
-    void Register(NCoro::TContPollEvent* event) {
-        IoWait_.Insert(event);
-        event->Cont()->Rep()->Unlink();
-    }
-
-    bool Empty() const noexcept {
-        return IoWait_.Empty();
-    }
-
-    void Abort() noexcept {
-        TCancel visitor;
-
-        IoWait_.ForEach(visitor);
-    }
-
-    TInstant WakeTimedout(TInstant now) noexcept {
-        TIoWait::TIterator it = IoWait_.Begin();
-
-        if (it != IoWait_.End()) {
-            if (it->DeadLine() > now) {
-                return it->DeadLine();
-            }
-
-            do {
-                (it++)->Wake(ETIMEDOUT);
-            } while (it != IoWait_.End() && it->DeadLine() <= now);
-        }
-
-        return now;
-    }
-
-private:
-    TIoWait IoWait_;
-};
-
-
-class TContRepPool {
-    using TFreeReps = TIntrusiveListWithAutoDelete<TContRep, TDelete>;
-
-public:
-    TContRepPool(TContStackAllocator* alloc)
-        : Alloc_(alloc)
-    {
-    }
-
-    TContRepPool(size_t stackLen)
-        : MyAlloc_(new TDefaultStackAllocator(TContRep::ToAllocate(AlignUp<size_t>(stackLen, 2 * STACK_ALIGN))))
-        , Alloc_(MyAlloc_.Get())
-    {
-    }
-
-    ~TContRepPool() {
-        unsigned long long all = Allocated_;
-        Y_VERIFY(Allocated_ == 0, "leaked coroutines: %llu", all);
-    }
-
-    TContRep* Allocate() {
-        Allocated_ += 1;
-
-        if (Free_.Empty()) {
-            return new TContRep(Alloc_);
-        }
-
-        return Free_.PopFront();
-    }
-
-    void Release(TContRep* cont) noexcept {
-        Allocated_ -= 1;
-        Free_.PushFront(cont);
-    }
-
-    [[nodiscard]] size_t Allocated() const {
-        return Allocated_;
-    }
-
-private:
-    THolder<TContStackAllocator> MyAlloc_;
-    TContStackAllocator* const Alloc_;
-    TFreeReps Free_;
-    ui64 Allocated_ = 0;
 };
 
 
@@ -324,85 +174,57 @@ static void ContHelperMemberFunc(TCont* c, void* arg) {
 /// Note, coroutines are single-threaded, and all methods must be called from the single thread
 class TContExecutor {
     friend class TCont;
-    friend struct TContRep;
-    friend class TContEvent;
-    friend class TContPollEvent;
-    friend class TContPollEventHolder;
-    using TContList = TIntrusiveList<TContRep>;
+    using TContList = TIntrusiveList<TCont>;
 
 public:
     TContExecutor(
-        size_t stackSize,
-        THolder<IPollerFace> poller = IPollerFace::Default(),
-        NCoro::IScheduleCallback* = nullptr
-    );
-
-    TContExecutor(
-        TContRepPool* pool,
+        ui32 defaultStackSize,
         THolder<IPollerFace> poller = IPollerFace::Default(),
         NCoro::IScheduleCallback* = nullptr
     );
 
     ~TContExecutor();
 
-    /*
-     * assume we already create all necessary coroutines
-     */
-    void Execute() {
-        auto nop = [](void*){};
-        Execute(nop);
-    }
+    // if we already have a coroutine to run
+    void Execute() noexcept;
 
-    void Execute(TContFunc func, void* arg = nullptr) {
-        Create(func, arg, "sys_main");
-        RunScheduler();
-    }
+    void Execute(TContFunc func, void* arg = nullptr) noexcept;
 
     template <class Functor>
-    void Execute(Functor& f) {
+    void Execute(Functor& f) noexcept {
         Execute((TContFunc)ContHelperFunc<Functor>, (void*)&f);
     }
 
     template <typename T, void (T::*M)(TCont*)>
-    void Execute(T* obj) {
+    void Execute(T* obj) noexcept {
         Execute(ContHelperMemberFunc<T, M>, obj);
     }
 
-    TExceptionSafeContext* SchedCont() noexcept {
+    TExceptionSafeContext* SchedContext() noexcept {
         return &SchedContext_;
     }
 
     template <class Functor>
-    TContRep* Create(Functor& f, const char* name) {
-        return Create((TContFunc)ContHelperFunc<Functor>, (void*)&f, name);
+    TCont* Create(Functor& f, const char* name, TMaybe<ui32> stackSize = Nothing()) noexcept {
+        return Create((TContFunc)ContHelperFunc<Functor>, (void*)&f, name, stackSize);
     }
 
     template <typename T, void (T::*M)(TCont*)>
-    TContRep* Create(T* obj, const char* name) {
-        return Create(ContHelperMemberFunc<T, M>, obj, name);
+    TCont* Create(T* obj, const char* name, TMaybe<ui32> stackSize = Nothing()) noexcept {
+        return Create(ContHelperMemberFunc<T, M>, obj, name, stackSize);
     }
 
-    TContRep* Create(TContFunc func, void* arg, const char* name) {
-        TContRep* cont = CreateImpl(func, arg, name);
-
-        ScheduleExecution(cont);
-
-        return cont;
-    }
+    TCont* Create(TContFunc func, void* arg, const char* name, TMaybe<ui32> stackSize = Nothing()) noexcept;
 
     NCoro::TContPoller* Poller() noexcept {
         return &Poller_;
     }
 
-    TEventWaitQueue* WaitQueue() noexcept {
-        return &WaitQueue_;
-    }
-
-    TContRep* Running() noexcept {
+    TCont* Running() noexcept {
         return Current_;
     }
 
-    const TContRep* Running() const noexcept {
+    const TCont* Running() const noexcept {
         return Current_;
     }
 
@@ -411,21 +233,14 @@ public:
     }
 
     size_t TotalConts() const noexcept {
-        return Pool_.Allocated();
+        return Allocated_;
     }
 
     size_t TotalWaitingConts() const noexcept {
         return TotalConts() - TotalReadyConts();
     }
 
-    void Abort() noexcept {
-        WaitQueue_.Abort();
-        auto visitor = [](TContRep* c) {
-            c->ContPtr()->Cancel();
-        };
-        Ready_.ForEach(visitor);
-        ReadyNext_.ForEach(visitor);
-    }
+    void Abort() noexcept;
 
     void SetFailOnError(bool fail) noexcept {
         FailOnError_ = fail;
@@ -445,73 +260,40 @@ public:
     }
 
 private:
-    TContRep* CreateImpl(TContFunc func, void* arg, const char* name) {
-        TContRep* cont = Pool_.Allocate();
+    void Release(TCont* cont) noexcept;
 
-        cont->Construct(this, func, arg, name);
-        cont->Unlink();
-
-        return cont;
-    }
-
-    void Release(TContRep* cont) noexcept {
-        cont->Unlink();
-        cont->Destruct();
-        Pool_.Release(cont);
-    }
-
-    void Exit(TContRep* cont) noexcept {
-        ScheduleToDelete(cont);
-        cont->ContPtr()->_SwitchToScheduler();
-
-        Y_FAIL("can not return from exit");
-    }
+    void Exit(TCont* cont) noexcept;
 
     void RunScheduler() noexcept;
 
-    void ScheduleToDelete(TContRep* cont) noexcept {
-        ToDelete_.PushBack(cont);
-    }
+    void ScheduleToDelete(TCont* cont) noexcept;
 
-    void ScheduleExecution(TContRep* cont) noexcept {
-        cont->ContPtr()->Scheduled_ = true;
-        ReadyNext_.PushBack(cont);
-    }
+    void ScheduleExecution(TCont* cont) noexcept;
 
-    void ScheduleExecutionNow(TContRep* cont) noexcept {
-        cont->ContPtr()->Scheduled_ = true;
-        Ready_.PushBack(cont);
-    }
+    void ScheduleExecutionNow(TCont* cont) noexcept;
 
-    void Activate(TContRep* cont) noexcept {
-        Current_ = cont;
-        TCont* contPtr = cont->ContPtr();
-        contPtr->Scheduled_ = false;
-        SchedContext_.SwitchTo(contPtr->Context());
-    }
+    void Activate(TCont* cont) noexcept;
 
-    void DeleteScheduled() noexcept {
-        ToDelete_.ForEach([](TContRep* c) {
-            c->ContPtr()->Executor()->Release(c);
-        });
-    }
+    void DeleteScheduled() noexcept;
 
     void WaitForIO();
 
     void ProcessEvents();
 
 private:
+    NCoro::IScheduleCallback* const CallbackPtr_ = nullptr;
+    const ui32 DefaultStackSize_;
+
+    TExceptionSafeContext SchedContext_;
+
     TContList ToDelete_;
     TContList Ready_;
     TContList ReadyNext_;
-    TEventWaitQueue WaitQueue_;
+    NCoro::TEventWaitQueue WaitQueue_;
     NCoro::TContPoller Poller_;
-    THolder<TContRepPool> MyPool_;
-    TContRepPool& Pool_;
-    TExceptionSafeContext SchedContext_;
-    TContRep* Current_ = nullptr;
-    NCoro::IScheduleCallback* const CallbackPtr_ = nullptr;
-    using TEvents = NCoro::TContPoller::TEvents;
-    TEvents Events_;
-    bool FailOnError_;
+    NCoro::TContPoller::TEvents Events_;
+
+    size_t Allocated_ = 0;
+    TCont* Current_ = nullptr;
+    bool FailOnError_ = false;
 };

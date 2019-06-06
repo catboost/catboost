@@ -1819,7 +1819,7 @@ namespace NNeh {
                     THolder<TRead> read(new TRead(new TSslServerIOStream(SslCtx_, s), this, /* selfRemove */ true));
                     E_.Create(*read, "https-response");
                     Y_UNUSED(read.Release());
-                    E_.Running()->ContPtr()->Yield();
+                    E_.Running()->Yield();
                 } catch (...) {
                 }
             }
@@ -1830,7 +1830,7 @@ namespace NNeh {
                 } catch (const TSystemError& e) {
                     //crutch for prevent 100% busyloop (simple suspend listener/accepter)
                     if (e.Status() == EMFILE) {
-                        E_.Running()->ContPtr()->SleepT(TDuration::MilliSeconds(500));
+                        E_.Running()->SleepT(TDuration::MilliSeconds(500));
                     }
                 }
             }
