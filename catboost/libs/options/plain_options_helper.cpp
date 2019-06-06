@@ -515,7 +515,7 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
     // boosting options
     if (options.Has("boosting_options")) {
         const auto& boostingOptionsRef = options["boosting_options"];
-        NJson::TJsonValue& optionsCopyBoosting = optionsCopy["boosting_options"];
+        auto& optionsCopyBoosting = optionsCopy["boosting_options"];
 
         CopyOption(boostingOptionsRef, "iterations", &plainOptionsJson, &seenKeys);
         DeleteSeenOption(&optionsCopyBoosting, "iterations");
@@ -546,7 +546,7 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
 
         if (boostingOptionsRef.Has("od_config")) {
             const auto& odConfig = boostingOptionsRef["od_config"];
-            NJson::TJsonValue &optionsCopyOdConfig = optionsCopyBoosting["od_config"];
+            auto& optionsCopyOdConfig = optionsCopyBoosting["od_config"];
 
             CopyOptionWithNewKey(odConfig, "type", "od_type", &plainOptionsJson, &seenKeys);
             DeleteSeenOption(&optionsCopyOdConfig, "type");
@@ -566,7 +566,7 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
 
     if (options.Has("tree_learner_options")) {
         const auto& treeOptions = options["tree_learner_options"];
-        NJson::TJsonValue &optionsCopyTree = optionsCopy["tree_learner_options"];
+        auto& optionsCopyTree = optionsCopy["tree_learner_options"];
 
         CopyOption(treeOptions, "rsm", &plainOptionsJson, &seenKeys);
         DeleteSeenOption(&optionsCopyTree, "rsm");
@@ -631,7 +631,7 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
         // bootstrap
         if (treeOptions.Has("bootstrap")) {
             const auto& bootstrapOptions = treeOptions["bootstrap"];
-            NJson::TJsonValue &optionsCopyTreeBootstrap = optionsCopyTree["bootstrap"];
+            auto& optionsCopyTreeBootstrap = optionsCopyTree["bootstrap"];
 
             CopyOptionWithNewKey(bootstrapOptions, "type", "bootstrap_type", &plainOptionsJson, &seenKeys);
             DeleteSeenOption(&optionsCopyTreeBootstrap, "type");
@@ -654,7 +654,7 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
 
     //feature evaluation options
     if (optionsCopy.Has("model_based_eval_options")) {
-        NJson::TJsonValue& optionsCopyBasedEval = optionsCopy["model_based_eval_options"];
+        auto& optionsCopyBasedEval = optionsCopy["model_based_eval_options"];
 
         DeleteSeenOption(&optionsCopyBasedEval, "features_to_evaluate");
         DeleteSeenOption(&optionsCopyBasedEval, "offset");
@@ -669,7 +669,7 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
     //cat-features
     if (options.Has("cat_feature_params")) {
         const auto& ctrOptions = options["cat_feature_params"];
-        NJson::TJsonValue &optionsCopyCtr = optionsCopy["cat_feature_params"];
+        auto& optionsCopyCtr = optionsCopy["cat_feature_params"];
 
         ConcatenateCtrDescription(ctrOptions, "simple_ctrs", "simple_ctr", &plainOptionsJson, &seenKeys);
         DeleteSeenOption(&optionsCopyCtr, "simple_ctrs");
@@ -682,7 +682,7 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
 
         if (ctrOptions.Has("target_binarization")) {
             const auto& ctrTargetBinarization = ctrOptions["target_binarization"];
-            NJson::TJsonValue &optionsCopyCtrTargetBinarization = optionsCopyCtr["target_binarization"];
+            auto& optionsCopyCtrTargetBinarization = optionsCopyCtr["target_binarization"];
 
             CopyOptionWithNewKey(ctrTargetBinarization, "border_count", "ctr_target_border_count", &plainOptionsJson,
                                  &seenKeys);
@@ -724,7 +724,7 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
     //data processing
     if (options.Has("data_processing_options")) {
         const auto& dataProcessingOptions = options["data_processing_options"];
-        NJson::TJsonValue &optionsCopyDataProcessing = optionsCopy["data_processing_options"];
+        auto& optionsCopyDataProcessing = optionsCopy["data_processing_options"];
 
         CopyOption(dataProcessingOptions, "ignored_features", &plainOptionsJson, &seenKeys);
         DeleteSeenOption(&optionsCopyDataProcessing, "ignored_features");
@@ -749,7 +749,7 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
 
         if (dataProcessingOptions.Has("float_features_binarization")) {
             const auto& floatFeaturesBinarization = dataProcessingOptions["float_features_binarization"];
-            NJson::TJsonValue &optionsCopyDataProcessingFloatFeaturesBinarization = optionsCopyDataProcessing["float_features_binarization"];
+            auto& optionsCopyDataProcessingFloatFeaturesBinarization = optionsCopyDataProcessing["float_features_binarization"];
 
             CopyOption(floatFeaturesBinarization, "border_count", &plainOptionsJson, &seenKeys);
             DeleteSeenOption(&optionsCopyDataProcessingFloatFeaturesBinarization, "border_count");
@@ -772,7 +772,7 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
     //system
     if (options.Has("system_options")) {
         const auto& systemOptions = options["system_options"];
-        NJson::TJsonValue& optionsCopySystemOptions = optionsCopy["system_options"];
+        auto& optionsCopySystemOptions = optionsCopy["system_options"];
 
         CopyOption(systemOptions, "thread_count", &plainOptionsJson, &seenKeys);
         DeleteSeenOption(&optionsCopySystemOptions, "thread_count");
