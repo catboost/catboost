@@ -1,11 +1,15 @@
+from datetime import datetime, timedelta
 import warnings
 
-from pandas import DateOffset, DatetimeIndex, Series, Timestamp
-from pandas.compat import add_metaclass
-from datetime import datetime, timedelta
-from dateutil.relativedelta import MO, TU, WE, TH, FR, SA, SU  # noqa
-from pandas.tseries.offsets import Easter, Day
+from dateutil.relativedelta import FR, MO, SA, SU, TH, TU, WE  # noqa
 import numpy as np
+
+from pandas.compat import add_metaclass
+from pandas.errors import PerformanceWarning
+
+from pandas import DateOffset, Series, Timestamp, date_range
+
+from pandas.tseries.offsets import Day, Easter
 
 
 def next_monday(dt):
@@ -133,7 +137,7 @@ class Holiday(object):
             Name of the holiday , defaults to class name
         offset : array of pandas.tseries.offsets or
                 class from pandas.tseries.offsets
-            computes offset from  date
+            computes offset from date
         observance: function
             computes when holiday is given a pandas Timestamp
         days_of_week:
@@ -143,12 +147,11 @@ class Holiday(object):
         Examples
         --------
         >>> from pandas.tseries.holiday import Holiday, nearest_workday
-        >>> from pandas import DateOffset
         >>> from dateutil.relativedelta import MO
         >>> USMemorialDay = Holiday('MemorialDay', month=5, day=24,
-                                    offset=DateOffset(weekday=MO(1)))
+                                    offset=pd.DateOffset(weekday=MO(1)))
         >>> USLaborDay = Holiday('Labor Day', month=9, day=1,
-                            offset=DateOffset(weekday=MO(1)))
+                                offset=pd.DateOffset(weekday=MO(1)))
         >>> July3rd = Holiday('July 3rd', month=7, day=3,)
         >>> NewYears = Holiday('New Years Day', month=1,  day=1,
                                observance=nearest_workday),
@@ -174,16 +177,16 @@ class Holiday(object):
     def __repr__(self):
         info = ''
         if self.year is not None:
-            info += 'year=%s, ' % self.year
-        info += 'month=%s, day=%s, ' % (self.month, self.day)
+            info += 'year={year}, '.format(year=self.year)
+        info += 'month={mon}, day={day}, '.format(mon=self.month, day=self.day)
 
         if self.offset is not None:
-            info += 'offset=%s' % self.offset
+            info += 'offset={offset}'.format(offset=self.offset)
 
         if self.observance is not None:
-            info += 'observance=%s' % self.observance
+            info += 'observance={obs}'.format(obs=self.observance)
 
-        repr = 'Holiday: %s (%s)' % (self.name, info)
+        repr = 'Holiday: {name} ({info})'.format(name=self.name, info=info)
         return repr
 
     def dates(self, start_date, end_date, return_name=False):
@@ -251,9 +254,9 @@ class Holiday(object):
         reference_end_date = Timestamp(
             datetime(end_date.year + 1, self.month, self.day))
         # Don't process unnecessary holidays
-        dates = DatetimeIndex(start=reference_start_date,
-                              end=reference_end_date,
-                              freq=year_offset, tz=start_date.tz)
+        dates = date_range(start=reference_start_date,
+                           end=reference_end_date,
+                           freq=year_offset, tz=start_date.tz)
 
         return dates
 
@@ -282,9 +285,11 @@ class Holiday(object):
 
                 # if we are adding a non-vectorized value
                 # ignore the PerformanceWarnings:
-                with warnings.catch_warnings(record=True):
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore", PerformanceWarning)
                     dates += offset
         return dates
+
 
 holiday_calendars = {}
 
@@ -292,7 +297,7 @@ holiday_calendars = {}
 def register(cls):
     try:
         name = cls.name
-    except:
+    except AttributeError:
         name = cls.__name__
     holiday_calendars[name] = cls
 
@@ -364,7 +369,7 @@ class AbstractHolidayCalendar(object):
         ----------
         start : starting date, datetime-like, optional
         end : ending date, datetime-like, optional
-        return_names : bool, optional
+        return_name : bool, optional
             If True, return a series that has dates and holiday names.
             False will only return a DatetimeIndex of dates.
 
@@ -373,8 +378,8 @@ class AbstractHolidayCalendar(object):
             DatetimeIndex of holidays
         """
         if self.rules is None:
-            raise Exception('Holiday Calendar %s does not have any '
-                            'rules specified' % self.name)
+            raise Exception('Holiday Calendar {name} does not have any '
+                            'rules specified'.format(name=self.name))
 
         if start is None:
             start = AbstractHolidayCalendar.start_date
@@ -424,21 +429,21 @@ class AbstractHolidayCalendar(object):
         """
         try:
             other = other.rules
-        except:
+        except AttributeError:
             pass
 
         if not isinstance(other, list):
             other = [other]
-        other_holidays = dict((holiday.name, holiday) for holiday in other)
+        other_holidays = {holiday.name: holiday for holiday in other}
 
         try:
             base = base.rules
-        except:
+        except AttributeError:
             pass
 
         if not isinstance(base, list):
             base = [base]
-        base_holidays = dict([(holiday.name, holiday) for holiday in base])
+        base_holidays = {holiday.name: holiday for holiday in base}
 
         other_holidays.update(base_holidays)
         return list(other_holidays.values())
@@ -460,6 +465,7 @@ class AbstractHolidayCalendar(object):
             self.rules = holidays
         else:
             return holidays
+
 
 USMemorialDay = Holiday('MemorialDay', month=5, day=31,
                         offset=DateOffset(weekday=MO(-1)))

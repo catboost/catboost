@@ -427,7 +427,7 @@ template <class TSize>
 struct TDumper<NCB::TArraySubsetIndexing<TSize>> {
     template <class S>
     static inline void Dump(S& s, const NCB::TArraySubsetIndexing<TSize>& subset) {
-        subset.Visit(NCB::TDumperVisitor<S, TSize>(s));
+        Visit(NCB::TDumperVisitor<S, TSize>(s), subset);
     }
 };
 

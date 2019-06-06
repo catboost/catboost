@@ -448,14 +448,14 @@ Default value:
 Possible values:
       \itemize{
         \item L2
-        \item Correlation
+        \item Cosine
         \item NewtonL2
-        \item NewtonCorrelation
+        \item NewtonCosine
       }
 
 Default value:
 
-Correlation
+Cosine
 
 For growing policy Lossguide default is NewtonL2.
 

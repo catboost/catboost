@@ -79,4 +79,6 @@ TEST_SRCS(
     yndexer.py
 )
 
+NO_LINT()
+
 END()

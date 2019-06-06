@@ -268,10 +268,10 @@ bool IsPairLogit(ELossFunction lossFunction) {
 bool IsSecondOrderScoreFunction(EScoreFunction function) {
     switch (function) {
         case EScoreFunction::NewtonL2:
-        case EScoreFunction::NewtonCorrelation: {
+        case EScoreFunction::NewtonCosine: {
             return true;
         }
-        case EScoreFunction::Correlation:
+        case EScoreFunction::Cosine:
         case EScoreFunction::SolarL2:
         case EScoreFunction::LOOL2:
         case EScoreFunction::L2: {
@@ -334,8 +334,8 @@ bool ShouldSkipFstrGrowPolicy(EGrowPolicy growPolicy) {
 
 bool IsPlainOnlyModeScoreFunction(EScoreFunction scoreFunction) {
     return (
-        scoreFunction != EScoreFunction::Correlation &&
-        scoreFunction != EScoreFunction::NewtonCorrelation
+        scoreFunction != EScoreFunction::Cosine &&
+        scoreFunction != EScoreFunction::NewtonCosine
     );
 }
 

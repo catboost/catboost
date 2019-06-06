@@ -25,14 +25,15 @@
   - intrcheck.h
   - iterobject.h
   - listobject.h
-  - longobject.h
   - longintrepr.h
+  - longobject.h
   - methodobject.h
   - modsupport.h
   - moduleobject.h
   - object.h
   - objimpl.h
   - opcode.h
+  - patchlevel.h
   - pydebug.h
   - pyerrors.h
   - pyfpe.h

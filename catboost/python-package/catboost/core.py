@@ -2143,7 +2143,7 @@ class CatBoost(_CatBoostBase):
         return self
 
     def calc_feature_statistics(self, data, target, feature, prediction_type=None,
-                                cat_feature_values=None, plot=False, max_cat_features_on_plot=10,
+                                cat_feature_values=None, plot=True, max_cat_features_on_plot=10,
                                 thread_count=-1):
         """
         Get statistics for the feature using the model, dataset and target.
@@ -2564,7 +2564,7 @@ class CatBoostClassifier(CatBoost):
         GPU only. The maximum leaf count in resulting tree.
         This parameter is used only for Lossguide growing policy.
 
-    score_function : string, possible values L2, Correlation, NewtonL2, NewtonCorrelation, [default=Correlation]
+    score_function : string, possible values L2, Cosine, NewtonL2, NewtonCosine, [default=Cosine]
         For growing policy Lossguide default=NewtonL2.
         GPU only. Score that is used during tree construction to select the next tree split.
 

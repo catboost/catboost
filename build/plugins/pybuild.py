@@ -99,15 +99,15 @@ def is_generated(path, unit):
     return not unit.resolve(path).startswith('$S/')
 
 
-def add_python_lint_checks(unit, files):
+def add_python_lint_checks(unit, py_ver, files):
     if files and unit.get('LINT_LEVEL_VALUE') != "none":
         resolved_files = []
         for path in files:
             resolved = unit.resolve_arc_path([path])
             if resolved != path:  # path was resolved
                 resolved_files.append(resolved)
-        unit.onadd_check(["PEP8"] + resolved_files)
-        unit.onadd_check(["PYFLAKES"] + resolved_files)
+        unit.onadd_check(["PEP8_{}".format(py_ver)] + resolved_files)
+        unit.onadd_check(["PYFLAKES_{}".format(py_ver)] + resolved_files)
 
 
 def is_py3(unit):
@@ -365,7 +365,7 @@ def onpy_srcs(unit, *args):
                     res += ['DEST', dest + '.yapyc3', path + '.yapyc3']
 
             unit.onresource_files(res)
-            #add_python_lint_checks(unit, [path for path, mod in pys])
+            add_python_lint_checks(unit, 3, [path for path, mod in pys])
         else:
             for path, mod in pys:
                 root_rel_path = rootrel_arc_src(path, unit)
@@ -382,7 +382,7 @@ def onpy_srcs(unit, *args):
                     res += [dst, '/py_code/' + mod]
 
             unit.onresource(res)
-            add_python_lint_checks(unit, [path for path, mod in pys])
+            add_python_lint_checks(unit, 2, [path for path, mod in pys])
 
     if protos:
         if not upath.startswith('contrib/libs/protobuf/python/google_lib'):

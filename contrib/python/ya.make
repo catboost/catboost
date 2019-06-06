@@ -13,7 +13,6 @@ RECURSE(
     more-itertools
     numpy
     pandas
-    pandas/matplotlib
     pathlib2
     pluggy
     py

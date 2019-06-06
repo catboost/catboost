@@ -26,8 +26,8 @@ MULTICLASS_LOSSES = ['MultiClass', 'MultiClassOneVsAll']
 NONSYMMETRIC = ['Lossguide', 'Depthwise']
 GROW_POLICIES = ['SymmetricTree'] + NONSYMMETRIC
 SCORE_FUNCTIONS = [
-    'L2', 'Correlation',
-    'NewtonL2', 'NewtonCorrelation',
+    'L2', 'Cosine',
+    'NewtonL2', 'NewtonCosine',
     'SolarL2', 'LOOL2'
 ]
 
@@ -2295,8 +2295,8 @@ def test_yetirank_default_metric(loss_function):
 
 
 def is_valid_gpu_params(boosting_type, grow_policy, score_function, loss_func):
-    correlation_scores = ['Correlation', 'NewtonCorrelation']
-    second_order_scores = ['NewtonL2', 'NewtonCorrelation']
+    correlation_scores = ['Cosine', 'NewtonCosine']
+    second_order_scores = ['NewtonL2', 'NewtonCosine']
 
     is_correct = True
 

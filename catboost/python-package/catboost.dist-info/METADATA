@@ -12,9 +12,11 @@ Platform: Mac OSX
 Platform: Windows
 Platform: Unix
 Requires-Dist: graphviz
-Requires-Dist: six
+Requires-Dist: matplotlib
 Requires-Dist: numpy >=1.16.0
 Requires-Dist: pandas >=0.19.1
+Requires-Dist: plotly
+Requires-Dist: six
 {custom_requirements}
 Classifier: Development Status :: 5 - Production/Stable
 Classifier: Topic :: Scientific/Engineering :: Artificial Intelligence

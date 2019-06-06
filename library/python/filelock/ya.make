@@ -8,4 +8,6 @@ PEERDIR(
     library/python/windows
 )
 
+NO_LINT()
+
 END()

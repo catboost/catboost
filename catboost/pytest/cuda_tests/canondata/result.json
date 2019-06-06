@@ -411,31 +411,31 @@
     ],
     "test_gpu.test_cv_for_pairs[Plain]": [
         {
-            "checksum": "d4afd480ee56cb17a0a50733d70d11f5",
+            "checksum": "7a4223b57caaf3c7fe1a1b4a3023d579",
             "uri": "file://test_gpu.test_cv_for_pairs_Plain_/test.eval"
         }
     ],
     "test_gpu.test_cv_for_query[Ordered-inverted]": [
         {
-            "checksum": "8d801057dd4e099ae8b5fbe48dbf61ab",
+            "checksum": "cf1eda636a461d73c5d6c4598bfe238d",
             "uri": "file://test_gpu.test_cv_for_query_Ordered-inverted_/test.eval"
         }
     ],
     "test_gpu.test_cv_for_query[Ordered]": [
         {
-            "checksum": "a5156f6e5afb3ac329f4868a74f5c0be",
+            "checksum": "a8a4c83566be3db5630862fdbc3a1fb9",
             "uri": "file://test_gpu.test_cv_for_query_Ordered_/test.eval"
         }
     ],
     "test_gpu.test_cv_for_query[Plain-inverted]": [
         {
-            "checksum": "38c6d3a821e9bae45d2abdf413aa91f1",
+            "checksum": "0779025c1d7049c078512e1e54953b72",
             "uri": "file://test_gpu.test_cv_for_query_Plain-inverted_/test.eval"
         }
     ],
     "test_gpu.test_cv_for_query[Plain]": [
         {
-            "checksum": "ff122a297568d3b6be50381285ef4f19",
+            "checksum": "61652de1fee9684c3d571aee9dcc8e7a",
             "uri": "file://test_gpu.test_cv_for_query_Plain_/test.eval"
         }
     ],
@@ -1321,74 +1321,74 @@
             "uri": "file://test_gpu.test_groupwise_with_cat_features_loss_function=YetiRankPairwise_eval_metric=NDCG_boosting_type=Plain_/test.eval"
         }
     ],
-    "test_gpu.test_grow_policies[Logloss-Correlation-Depthwise-Default]": [
+    "test_gpu.test_grow_policies[Logloss-Cosine-Depthwise-Default]": [
         {
             "checksum": "ddf380b39595d2e485d851bb17165425",
-            "uri": "file://test_gpu.test_grow_policies_Logloss-Correlation-Depthwise-Default_/learn_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_Logloss-Cosine-Depthwise-Default_/learn_error.tsv"
         },
         {
             "checksum": "8ba899bb5f809d1cc803d326fb3f185c",
-            "uri": "file://test_gpu.test_grow_policies_Logloss-Correlation-Depthwise-Default_/test_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_Logloss-Cosine-Depthwise-Default_/test_error.tsv"
         }
     ],
-    "test_gpu.test_grow_policies[Logloss-Correlation-Depthwise-Plain]": [
+    "test_gpu.test_grow_policies[Logloss-Cosine-Depthwise-Plain]": [
         {
             "checksum": "ddf380b39595d2e485d851bb17165425",
-            "uri": "file://test_gpu.test_grow_policies_Logloss-Correlation-Depthwise-Plain_/learn_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_Logloss-Cosine-Depthwise-Plain_/learn_error.tsv"
         },
         {
             "checksum": "8ba899bb5f809d1cc803d326fb3f185c",
-            "uri": "file://test_gpu.test_grow_policies_Logloss-Correlation-Depthwise-Plain_/test_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_Logloss-Cosine-Depthwise-Plain_/test_error.tsv"
         }
     ],
-    "test_gpu.test_grow_policies[Logloss-Correlation-Lossguide-Default]": [
+    "test_gpu.test_grow_policies[Logloss-Cosine-Lossguide-Default]": [
         {
             "checksum": "b5619d483bee55a1b65b3883ec592286",
-            "uri": "file://test_gpu.test_grow_policies_Logloss-Correlation-Lossguide-Default_/learn_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_Logloss-Cosine-Lossguide-Default_/learn_error.tsv"
         },
         {
             "checksum": "7f912a60ef208bb1e50f6ec579202461",
-            "uri": "file://test_gpu.test_grow_policies_Logloss-Correlation-Lossguide-Default_/test_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_Logloss-Cosine-Lossguide-Default_/test_error.tsv"
         }
     ],
-    "test_gpu.test_grow_policies[Logloss-Correlation-Lossguide-Plain]": [
+    "test_gpu.test_grow_policies[Logloss-Cosine-Lossguide-Plain]": [
         {
             "checksum": "b5619d483bee55a1b65b3883ec592286",
-            "uri": "file://test_gpu.test_grow_policies_Logloss-Correlation-Lossguide-Plain_/learn_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_Logloss-Cosine-Lossguide-Plain_/learn_error.tsv"
         },
         {
             "checksum": "7f912a60ef208bb1e50f6ec579202461",
-            "uri": "file://test_gpu.test_grow_policies_Logloss-Correlation-Lossguide-Plain_/test_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_Logloss-Cosine-Lossguide-Plain_/test_error.tsv"
         }
     ],
-    "test_gpu.test_grow_policies[Logloss-Correlation-SymmetricTree-Default]": [
+    "test_gpu.test_grow_policies[Logloss-Cosine-SymmetricTree-Default]": [
         {
             "checksum": "f3aa1c81ae1076add37d381aaacc048a",
-            "uri": "file://test_gpu.test_grow_policies_Logloss-Correlation-SymmetricTree-Default_/learn_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_Logloss-Cosine-SymmetricTree-Default_/learn_error.tsv"
         },
         {
             "checksum": "51a4489c21954c1a23bd366963cae8ed",
-            "uri": "file://test_gpu.test_grow_policies_Logloss-Correlation-SymmetricTree-Default_/test_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_Logloss-Cosine-SymmetricTree-Default_/test_error.tsv"
         }
     ],
-    "test_gpu.test_grow_policies[Logloss-Correlation-SymmetricTree-Ordered]": [
+    "test_gpu.test_grow_policies[Logloss-Cosine-SymmetricTree-Ordered]": [
         {
             "checksum": "e729856fe69891f6e38a0af4ad90b33f",
-            "uri": "file://test_gpu.test_grow_policies_Logloss-Correlation-SymmetricTree-Ordered_/learn_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_Logloss-Cosine-SymmetricTree-Ordered_/learn_error.tsv"
         },
         {
             "checksum": "df460f51c46f588a7e8c4d961af2b34a",
-            "uri": "file://test_gpu.test_grow_policies_Logloss-Correlation-SymmetricTree-Ordered_/test_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_Logloss-Cosine-SymmetricTree-Ordered_/test_error.tsv"
         }
     ],
-    "test_gpu.test_grow_policies[Logloss-Correlation-SymmetricTree-Plain]": [
+    "test_gpu.test_grow_policies[Logloss-Cosine-SymmetricTree-Plain]": [
         {
             "checksum": "f3aa1c81ae1076add37d381aaacc048a",
-            "uri": "file://test_gpu.test_grow_policies_Logloss-Correlation-SymmetricTree-Plain_/learn_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_Logloss-Cosine-SymmetricTree-Plain_/learn_error.tsv"
         },
         {
             "checksum": "51a4489c21954c1a23bd366963cae8ed",
-            "uri": "file://test_gpu.test_grow_policies_Logloss-Correlation-SymmetricTree-Plain_/test_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_Logloss-Cosine-SymmetricTree-Plain_/test_error.tsv"
         }
     ],
     "test_gpu.test_grow_policies[Logloss-L2-Depthwise-Default]": [
@@ -1511,74 +1511,74 @@
             "uri": "file://test_gpu.test_grow_policies_Logloss-LOOL2-SymmetricTree-Plain_/test_error.tsv"
         }
     ],
-    "test_gpu.test_grow_policies[Logloss-NewtonCorrelation-Depthwise-Default]": [
+    "test_gpu.test_grow_policies[Logloss-NewtonCosine-Depthwise-Default]": [
         {
             "checksum": "065507e42c7752bc0fad35ccea7b3c59",
-            "uri": "file://test_gpu.test_grow_policies_Logloss-NewtonCorrelation-Depthwise-Default_/learn_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_Logloss-NewtonCosine-Depthwise-Default_/learn_error.tsv"
         },
         {
             "checksum": "862148e186f6ccd4d25573f870e76e56",
-            "uri": "file://test_gpu.test_grow_policies_Logloss-NewtonCorrelation-Depthwise-Default_/test_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_Logloss-NewtonCosine-Depthwise-Default_/test_error.tsv"
         }
     ],
-    "test_gpu.test_grow_policies[Logloss-NewtonCorrelation-Depthwise-Plain]": [
+    "test_gpu.test_grow_policies[Logloss-NewtonCosine-Depthwise-Plain]": [
         {
             "checksum": "065507e42c7752bc0fad35ccea7b3c59",
-            "uri": "file://test_gpu.test_grow_policies_Logloss-NewtonCorrelation-Depthwise-Plain_/learn_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_Logloss-NewtonCosine-Depthwise-Plain_/learn_error.tsv"
         },
         {
             "checksum": "862148e186f6ccd4d25573f870e76e56",
-            "uri": "file://test_gpu.test_grow_policies_Logloss-NewtonCorrelation-Depthwise-Plain_/test_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_Logloss-NewtonCosine-Depthwise-Plain_/test_error.tsv"
         }
     ],
-    "test_gpu.test_grow_policies[Logloss-NewtonCorrelation-Lossguide-Default]": [
+    "test_gpu.test_grow_policies[Logloss-NewtonCosine-Lossguide-Default]": [
         {
             "checksum": "a918816b672668c38c3676fc1c6372ba",
-            "uri": "file://test_gpu.test_grow_policies_Logloss-NewtonCorrelation-Lossguide-Default_/learn_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_Logloss-NewtonCosine-Lossguide-Default_/learn_error.tsv"
         },
         {
             "checksum": "58ebbf7d9c47efff6021d401b124a233",
-            "uri": "file://test_gpu.test_grow_policies_Logloss-NewtonCorrelation-Lossguide-Default_/test_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_Logloss-NewtonCosine-Lossguide-Default_/test_error.tsv"
         }
     ],
-    "test_gpu.test_grow_policies[Logloss-NewtonCorrelation-Lossguide-Plain]": [
+    "test_gpu.test_grow_policies[Logloss-NewtonCosine-Lossguide-Plain]": [
         {
             "checksum": "a918816b672668c38c3676fc1c6372ba",
-            "uri": "file://test_gpu.test_grow_policies_Logloss-NewtonCorrelation-Lossguide-Plain_/learn_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_Logloss-NewtonCosine-Lossguide-Plain_/learn_error.tsv"
         },
         {
             "checksum": "58ebbf7d9c47efff6021d401b124a233",
-            "uri": "file://test_gpu.test_grow_policies_Logloss-NewtonCorrelation-Lossguide-Plain_/test_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_Logloss-NewtonCosine-Lossguide-Plain_/test_error.tsv"
         }
     ],
-    "test_gpu.test_grow_policies[Logloss-NewtonCorrelation-SymmetricTree-Default]": [
+    "test_gpu.test_grow_policies[Logloss-NewtonCosine-SymmetricTree-Default]": [
         {
             "checksum": "01928c7ccd4ca8ec3bd29229bff8e823",
-            "uri": "file://test_gpu.test_grow_policies_Logloss-NewtonCorrelation-SymmetricTree-Default_/learn_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_Logloss-NewtonCosine-SymmetricTree-Default_/learn_error.tsv"
         },
         {
             "checksum": "c7329fc7620d7f5d802ef812d0ed5f2d",
-            "uri": "file://test_gpu.test_grow_policies_Logloss-NewtonCorrelation-SymmetricTree-Default_/test_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_Logloss-NewtonCosine-SymmetricTree-Default_/test_error.tsv"
         }
     ],
-    "test_gpu.test_grow_policies[Logloss-NewtonCorrelation-SymmetricTree-Ordered]": [
+    "test_gpu.test_grow_policies[Logloss-NewtonCosine-SymmetricTree-Ordered]": [
         {
             "checksum": "ecea8437744464d7cb53703b92f65f44",
-            "uri": "file://test_gpu.test_grow_policies_Logloss-NewtonCorrelation-SymmetricTree-Ordered_/learn_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_Logloss-NewtonCosine-SymmetricTree-Ordered_/learn_error.tsv"
         },
         {
             "checksum": "319d81437c969a194bb8756768f06e36",
-            "uri": "file://test_gpu.test_grow_policies_Logloss-NewtonCorrelation-SymmetricTree-Ordered_/test_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_Logloss-NewtonCosine-SymmetricTree-Ordered_/test_error.tsv"
         }
     ],
-    "test_gpu.test_grow_policies[Logloss-NewtonCorrelation-SymmetricTree-Plain]": [
+    "test_gpu.test_grow_policies[Logloss-NewtonCosine-SymmetricTree-Plain]": [
         {
             "checksum": "01928c7ccd4ca8ec3bd29229bff8e823",
-            "uri": "file://test_gpu.test_grow_policies_Logloss-NewtonCorrelation-SymmetricTree-Plain_/learn_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_Logloss-NewtonCosine-SymmetricTree-Plain_/learn_error.tsv"
         },
         {
             "checksum": "c7329fc7620d7f5d802ef812d0ed5f2d",
-            "uri": "file://test_gpu.test_grow_policies_Logloss-NewtonCorrelation-SymmetricTree-Plain_/test_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_Logloss-NewtonCosine-SymmetricTree-Plain_/test_error.tsv"
         }
     ],
     "test_gpu.test_grow_policies[Logloss-NewtonL2-Depthwise-Default]": [
@@ -1701,64 +1701,64 @@
             "uri": "file://test_gpu.test_grow_policies_Logloss-SolarL2-SymmetricTree-Plain_/test_error.tsv"
         }
     ],
-    "test_gpu.test_grow_policies[MultiClass-Correlation-Depthwise-Default]": [
+    "test_gpu.test_grow_policies[MultiClass-Cosine-Depthwise-Default]": [
         {
             "checksum": "22443dec47ee427c09a2edfea6981416",
-            "uri": "file://test_gpu.test_grow_policies_MultiClass-Correlation-Depthwise-Default_/learn_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_MultiClass-Cosine-Depthwise-Default_/learn_error.tsv"
         },
         {
             "checksum": "6912d6cb6430b778f8cd4758c99d25a7",
-            "uri": "file://test_gpu.test_grow_policies_MultiClass-Correlation-Depthwise-Default_/test_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_MultiClass-Cosine-Depthwise-Default_/test_error.tsv"
         }
     ],
-    "test_gpu.test_grow_policies[MultiClass-Correlation-Depthwise-Plain]": [
+    "test_gpu.test_grow_policies[MultiClass-Cosine-Depthwise-Plain]": [
         {
             "checksum": "22443dec47ee427c09a2edfea6981416",
-            "uri": "file://test_gpu.test_grow_policies_MultiClass-Correlation-Depthwise-Plain_/learn_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_MultiClass-Cosine-Depthwise-Plain_/learn_error.tsv"
         },
         {
             "checksum": "6912d6cb6430b778f8cd4758c99d25a7",
-            "uri": "file://test_gpu.test_grow_policies_MultiClass-Correlation-Depthwise-Plain_/test_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_MultiClass-Cosine-Depthwise-Plain_/test_error.tsv"
         }
     ],
-    "test_gpu.test_grow_policies[MultiClass-Correlation-Lossguide-Default]": [
+    "test_gpu.test_grow_policies[MultiClass-Cosine-Lossguide-Default]": [
         {
             "checksum": "4b03317cd49d97a0254cdc8df9bdd15e",
-            "uri": "file://test_gpu.test_grow_policies_MultiClass-Correlation-Lossguide-Default_/learn_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_MultiClass-Cosine-Lossguide-Default_/learn_error.tsv"
         },
         {
             "checksum": "adf07b15ece18ea1f7af3e5ebc9d9de0",
-            "uri": "file://test_gpu.test_grow_policies_MultiClass-Correlation-Lossguide-Default_/test_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_MultiClass-Cosine-Lossguide-Default_/test_error.tsv"
         }
     ],
-    "test_gpu.test_grow_policies[MultiClass-Correlation-Lossguide-Plain]": [
+    "test_gpu.test_grow_policies[MultiClass-Cosine-Lossguide-Plain]": [
         {
             "checksum": "4b03317cd49d97a0254cdc8df9bdd15e",
-            "uri": "file://test_gpu.test_grow_policies_MultiClass-Correlation-Lossguide-Plain_/learn_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_MultiClass-Cosine-Lossguide-Plain_/learn_error.tsv"
         },
         {
             "checksum": "adf07b15ece18ea1f7af3e5ebc9d9de0",
-            "uri": "file://test_gpu.test_grow_policies_MultiClass-Correlation-Lossguide-Plain_/test_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_MultiClass-Cosine-Lossguide-Plain_/test_error.tsv"
         }
     ],
-    "test_gpu.test_grow_policies[MultiClass-Correlation-SymmetricTree-Default]": [
+    "test_gpu.test_grow_policies[MultiClass-Cosine-SymmetricTree-Default]": [
         {
             "checksum": "d828f6ba47a816049abde3187d6c862f",
-            "uri": "file://test_gpu.test_grow_policies_MultiClass-Correlation-SymmetricTree-Default_/learn_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_MultiClass-Cosine-SymmetricTree-Default_/learn_error.tsv"
         },
         {
             "checksum": "3d9ecd1a67a058c42c68d54096fe8140",
-            "uri": "file://test_gpu.test_grow_policies_MultiClass-Correlation-SymmetricTree-Default_/test_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_MultiClass-Cosine-SymmetricTree-Default_/test_error.tsv"
         }
     ],
-    "test_gpu.test_grow_policies[MultiClass-Correlation-SymmetricTree-Plain]": [
+    "test_gpu.test_grow_policies[MultiClass-Cosine-SymmetricTree-Plain]": [
         {
             "checksum": "d828f6ba47a816049abde3187d6c862f",
-            "uri": "file://test_gpu.test_grow_policies_MultiClass-Correlation-SymmetricTree-Plain_/learn_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_MultiClass-Cosine-SymmetricTree-Plain_/learn_error.tsv"
         },
         {
             "checksum": "3d9ecd1a67a058c42c68d54096fe8140",
-            "uri": "file://test_gpu.test_grow_policies_MultiClass-Correlation-SymmetricTree-Plain_/test_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_MultiClass-Cosine-SymmetricTree-Plain_/test_error.tsv"
         }
     ],
     "test_gpu.test_grow_policies[MultiClass-L2-Depthwise-Default]": [
@@ -1941,74 +1941,74 @@
             "uri": "file://test_gpu.test_grow_policies_MultiClass-SolarL2-SymmetricTree-Plain_/test_error.tsv"
         }
     ],
-    "test_gpu.test_grow_policies[RMSE-Correlation-Depthwise-Default]": [
+    "test_gpu.test_grow_policies[RMSE-Cosine-Depthwise-Default]": [
         {
             "checksum": "be4e419e0556aac2950eea676ec45e92",
-            "uri": "file://test_gpu.test_grow_policies_RMSE-Correlation-Depthwise-Default_/learn_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_RMSE-Cosine-Depthwise-Default_/learn_error.tsv"
         },
         {
             "checksum": "73cb9da4ca9748c8348fe489a39dc10d",
-            "uri": "file://test_gpu.test_grow_policies_RMSE-Correlation-Depthwise-Default_/test_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_RMSE-Cosine-Depthwise-Default_/test_error.tsv"
         }
     ],
-    "test_gpu.test_grow_policies[RMSE-Correlation-Depthwise-Plain]": [
+    "test_gpu.test_grow_policies[RMSE-Cosine-Depthwise-Plain]": [
         {
             "checksum": "be4e419e0556aac2950eea676ec45e92",
-            "uri": "file://test_gpu.test_grow_policies_RMSE-Correlation-Depthwise-Plain_/learn_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_RMSE-Cosine-Depthwise-Plain_/learn_error.tsv"
         },
         {
             "checksum": "73cb9da4ca9748c8348fe489a39dc10d",
-            "uri": "file://test_gpu.test_grow_policies_RMSE-Correlation-Depthwise-Plain_/test_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_RMSE-Cosine-Depthwise-Plain_/test_error.tsv"
         }
     ],
-    "test_gpu.test_grow_policies[RMSE-Correlation-Lossguide-Default]": [
+    "test_gpu.test_grow_policies[RMSE-Cosine-Lossguide-Default]": [
         {
             "checksum": "1f27aea5aa8ab742d5f6442b34f8d0b1",
-            "uri": "file://test_gpu.test_grow_policies_RMSE-Correlation-Lossguide-Default_/learn_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_RMSE-Cosine-Lossguide-Default_/learn_error.tsv"
         },
         {
             "checksum": "1143f33dadaba8826f6fbd418dee823c",
-            "uri": "file://test_gpu.test_grow_policies_RMSE-Correlation-Lossguide-Default_/test_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_RMSE-Cosine-Lossguide-Default_/test_error.tsv"
         }
     ],
-    "test_gpu.test_grow_policies[RMSE-Correlation-Lossguide-Plain]": [
+    "test_gpu.test_grow_policies[RMSE-Cosine-Lossguide-Plain]": [
         {
             "checksum": "1f27aea5aa8ab742d5f6442b34f8d0b1",
-            "uri": "file://test_gpu.test_grow_policies_RMSE-Correlation-Lossguide-Plain_/learn_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_RMSE-Cosine-Lossguide-Plain_/learn_error.tsv"
         },
         {
             "checksum": "1143f33dadaba8826f6fbd418dee823c",
-            "uri": "file://test_gpu.test_grow_policies_RMSE-Correlation-Lossguide-Plain_/test_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_RMSE-Cosine-Lossguide-Plain_/test_error.tsv"
         }
     ],
-    "test_gpu.test_grow_policies[RMSE-Correlation-SymmetricTree-Default]": [
+    "test_gpu.test_grow_policies[RMSE-Cosine-SymmetricTree-Default]": [
         {
             "checksum": "8496c5ed79e80ab636e26640cdfc95f4",
-            "uri": "file://test_gpu.test_grow_policies_RMSE-Correlation-SymmetricTree-Default_/learn_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_RMSE-Cosine-SymmetricTree-Default_/learn_error.tsv"
         },
         {
             "checksum": "cc5cca8367580e5c1e5ab2cba94d2cf3",
-            "uri": "file://test_gpu.test_grow_policies_RMSE-Correlation-SymmetricTree-Default_/test_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_RMSE-Cosine-SymmetricTree-Default_/test_error.tsv"
         }
     ],
-    "test_gpu.test_grow_policies[RMSE-Correlation-SymmetricTree-Ordered]": [
+    "test_gpu.test_grow_policies[RMSE-Cosine-SymmetricTree-Ordered]": [
         {
             "checksum": "83d82958651b189307fef5d453e7bd19",
-            "uri": "file://test_gpu.test_grow_policies_RMSE-Correlation-SymmetricTree-Ordered_/learn_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_RMSE-Cosine-SymmetricTree-Ordered_/learn_error.tsv"
         },
         {
             "checksum": "c17842b74e512ebac6068f789cf80232",
-            "uri": "file://test_gpu.test_grow_policies_RMSE-Correlation-SymmetricTree-Ordered_/test_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_RMSE-Cosine-SymmetricTree-Ordered_/test_error.tsv"
         }
     ],
-    "test_gpu.test_grow_policies[RMSE-Correlation-SymmetricTree-Plain]": [
+    "test_gpu.test_grow_policies[RMSE-Cosine-SymmetricTree-Plain]": [
         {
             "checksum": "8496c5ed79e80ab636e26640cdfc95f4",
-            "uri": "file://test_gpu.test_grow_policies_RMSE-Correlation-SymmetricTree-Plain_/learn_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_RMSE-Cosine-SymmetricTree-Plain_/learn_error.tsv"
         },
         {
             "checksum": "cc5cca8367580e5c1e5ab2cba94d2cf3",
-            "uri": "file://test_gpu.test_grow_policies_RMSE-Correlation-SymmetricTree-Plain_/test_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_RMSE-Cosine-SymmetricTree-Plain_/test_error.tsv"
         }
     ],
     "test_gpu.test_grow_policies[RMSE-L2-Depthwise-Default]": [
@@ -2131,74 +2131,74 @@
             "uri": "file://test_gpu.test_grow_policies_RMSE-LOOL2-SymmetricTree-Plain_/test_error.tsv"
         }
     ],
-    "test_gpu.test_grow_policies[RMSE-NewtonCorrelation-Depthwise-Default]": [
+    "test_gpu.test_grow_policies[RMSE-NewtonCosine-Depthwise-Default]": [
         {
             "checksum": "be4e419e0556aac2950eea676ec45e92",
-            "uri": "file://test_gpu.test_grow_policies_RMSE-NewtonCorrelation-Depthwise-Default_/learn_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_RMSE-NewtonCosine-Depthwise-Default_/learn_error.tsv"
         },
         {
             "checksum": "73cb9da4ca9748c8348fe489a39dc10d",
-            "uri": "file://test_gpu.test_grow_policies_RMSE-NewtonCorrelation-Depthwise-Default_/test_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_RMSE-NewtonCosine-Depthwise-Default_/test_error.tsv"
         }
     ],
-    "test_gpu.test_grow_policies[RMSE-NewtonCorrelation-Depthwise-Plain]": [
+    "test_gpu.test_grow_policies[RMSE-NewtonCosine-Depthwise-Plain]": [
         {
             "checksum": "be4e419e0556aac2950eea676ec45e92",
-            "uri": "file://test_gpu.test_grow_policies_RMSE-NewtonCorrelation-Depthwise-Plain_/learn_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_RMSE-NewtonCosine-Depthwise-Plain_/learn_error.tsv"
         },
         {
             "checksum": "73cb9da4ca9748c8348fe489a39dc10d",
-            "uri": "file://test_gpu.test_grow_policies_RMSE-NewtonCorrelation-Depthwise-Plain_/test_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_RMSE-NewtonCosine-Depthwise-Plain_/test_error.tsv"
         }
     ],
-    "test_gpu.test_grow_policies[RMSE-NewtonCorrelation-Lossguide-Default]": [
+    "test_gpu.test_grow_policies[RMSE-NewtonCosine-Lossguide-Default]": [
         {
             "checksum": "1f27aea5aa8ab742d5f6442b34f8d0b1",
-            "uri": "file://test_gpu.test_grow_policies_RMSE-NewtonCorrelation-Lossguide-Default_/learn_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_RMSE-NewtonCosine-Lossguide-Default_/learn_error.tsv"
         },
         {
             "checksum": "1143f33dadaba8826f6fbd418dee823c",
-            "uri": "file://test_gpu.test_grow_policies_RMSE-NewtonCorrelation-Lossguide-Default_/test_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_RMSE-NewtonCosine-Lossguide-Default_/test_error.tsv"
         }
     ],
-    "test_gpu.test_grow_policies[RMSE-NewtonCorrelation-Lossguide-Plain]": [
+    "test_gpu.test_grow_policies[RMSE-NewtonCosine-Lossguide-Plain]": [
         {
             "checksum": "1f27aea5aa8ab742d5f6442b34f8d0b1",
-            "uri": "file://test_gpu.test_grow_policies_RMSE-NewtonCorrelation-Lossguide-Plain_/learn_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_RMSE-NewtonCosine-Lossguide-Plain_/learn_error.tsv"
         },
         {
             "checksum": "1143f33dadaba8826f6fbd418dee823c",
-            "uri": "file://test_gpu.test_grow_policies_RMSE-NewtonCorrelation-Lossguide-Plain_/test_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_RMSE-NewtonCosine-Lossguide-Plain_/test_error.tsv"
         }
     ],
-    "test_gpu.test_grow_policies[RMSE-NewtonCorrelation-SymmetricTree-Default]": [
+    "test_gpu.test_grow_policies[RMSE-NewtonCosine-SymmetricTree-Default]": [
         {
             "checksum": "8496c5ed79e80ab636e26640cdfc95f4",
-            "uri": "file://test_gpu.test_grow_policies_RMSE-NewtonCorrelation-SymmetricTree-Default_/learn_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_RMSE-NewtonCosine-SymmetricTree-Default_/learn_error.tsv"
         },
         {
             "checksum": "cc5cca8367580e5c1e5ab2cba94d2cf3",
-            "uri": "file://test_gpu.test_grow_policies_RMSE-NewtonCorrelation-SymmetricTree-Default_/test_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_RMSE-NewtonCosine-SymmetricTree-Default_/test_error.tsv"
         }
     ],
-    "test_gpu.test_grow_policies[RMSE-NewtonCorrelation-SymmetricTree-Ordered]": [
+    "test_gpu.test_grow_policies[RMSE-NewtonCosine-SymmetricTree-Ordered]": [
         {
             "checksum": "83d82958651b189307fef5d453e7bd19",
-            "uri": "file://test_gpu.test_grow_policies_RMSE-NewtonCorrelation-SymmetricTree-Ordered_/learn_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_RMSE-NewtonCosine-SymmetricTree-Ordered_/learn_error.tsv"
         },
         {
             "checksum": "c17842b74e512ebac6068f789cf80232",
-            "uri": "file://test_gpu.test_grow_policies_RMSE-NewtonCorrelation-SymmetricTree-Ordered_/test_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_RMSE-NewtonCosine-SymmetricTree-Ordered_/test_error.tsv"
         }
     ],
-    "test_gpu.test_grow_policies[RMSE-NewtonCorrelation-SymmetricTree-Plain]": [
+    "test_gpu.test_grow_policies[RMSE-NewtonCosine-SymmetricTree-Plain]": [
         {
             "checksum": "8496c5ed79e80ab636e26640cdfc95f4",
-            "uri": "file://test_gpu.test_grow_policies_RMSE-NewtonCorrelation-SymmetricTree-Plain_/learn_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_RMSE-NewtonCosine-SymmetricTree-Plain_/learn_error.tsv"
         },
         {
             "checksum": "cc5cca8367580e5c1e5ab2cba94d2cf3",
-            "uri": "file://test_gpu.test_grow_policies_RMSE-NewtonCorrelation-SymmetricTree-Plain_/test_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_RMSE-NewtonCosine-SymmetricTree-Plain_/test_error.tsv"
         }
     ],
     "test_gpu.test_grow_policies[RMSE-NewtonL2-Depthwise-Default]": [
@@ -2321,74 +2321,74 @@
             "uri": "file://test_gpu.test_grow_policies_RMSE-SolarL2-SymmetricTree-Plain_/test_error.tsv"
         }
     ],
-    "test_gpu.test_grow_policies[YetiRank-Correlation-Depthwise-Default]": [
+    "test_gpu.test_grow_policies[YetiRank-Cosine-Depthwise-Default]": [
         {
             "checksum": "4265e130852c1a312485a6f88c13ddaa",
-            "uri": "file://test_gpu.test_grow_policies_YetiRank-Correlation-Depthwise-Default_/learn_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_YetiRank-Cosine-Depthwise-Default_/learn_error.tsv"
         },
         {
             "checksum": "59b82b95e960502fae49477a9f307502",
-            "uri": "file://test_gpu.test_grow_policies_YetiRank-Correlation-Depthwise-Default_/test_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_YetiRank-Cosine-Depthwise-Default_/test_error.tsv"
         }
     ],
-    "test_gpu.test_grow_policies[YetiRank-Correlation-Depthwise-Plain]": [
+    "test_gpu.test_grow_policies[YetiRank-Cosine-Depthwise-Plain]": [
         {
             "checksum": "4265e130852c1a312485a6f88c13ddaa",
-            "uri": "file://test_gpu.test_grow_policies_YetiRank-Correlation-Depthwise-Plain_/learn_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_YetiRank-Cosine-Depthwise-Plain_/learn_error.tsv"
         },
         {
             "checksum": "59b82b95e960502fae49477a9f307502",
-            "uri": "file://test_gpu.test_grow_policies_YetiRank-Correlation-Depthwise-Plain_/test_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_YetiRank-Cosine-Depthwise-Plain_/test_error.tsv"
         }
     ],
-    "test_gpu.test_grow_policies[YetiRank-Correlation-Lossguide-Default]": [
+    "test_gpu.test_grow_policies[YetiRank-Cosine-Lossguide-Default]": [
         {
             "checksum": "4265e130852c1a312485a6f88c13ddaa",
-            "uri": "file://test_gpu.test_grow_policies_YetiRank-Correlation-Lossguide-Default_/learn_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_YetiRank-Cosine-Lossguide-Default_/learn_error.tsv"
         },
         {
             "checksum": "51d8d5733806e0e72cc98735d38706ad",
-            "uri": "file://test_gpu.test_grow_policies_YetiRank-Correlation-Lossguide-Default_/test_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_YetiRank-Cosine-Lossguide-Default_/test_error.tsv"
         }
     ],
-    "test_gpu.test_grow_policies[YetiRank-Correlation-Lossguide-Plain]": [
+    "test_gpu.test_grow_policies[YetiRank-Cosine-Lossguide-Plain]": [
         {
             "checksum": "4265e130852c1a312485a6f88c13ddaa",
-            "uri": "file://test_gpu.test_grow_policies_YetiRank-Correlation-Lossguide-Plain_/learn_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_YetiRank-Cosine-Lossguide-Plain_/learn_error.tsv"
         },
         {
             "checksum": "51d8d5733806e0e72cc98735d38706ad",
-            "uri": "file://test_gpu.test_grow_policies_YetiRank-Correlation-Lossguide-Plain_/test_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_YetiRank-Cosine-Lossguide-Plain_/test_error.tsv"
         }
     ],
-    "test_gpu.test_grow_policies[YetiRank-Correlation-SymmetricTree-Default]": [
+    "test_gpu.test_grow_policies[YetiRank-Cosine-SymmetricTree-Default]": [
         {
             "checksum": "4265e130852c1a312485a6f88c13ddaa",
-            "uri": "file://test_gpu.test_grow_policies_YetiRank-Correlation-SymmetricTree-Default_/learn_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_YetiRank-Cosine-SymmetricTree-Default_/learn_error.tsv"
         },
         {
             "checksum": "42950b249eb9f620effdac13c2e78c65",
-            "uri": "file://test_gpu.test_grow_policies_YetiRank-Correlation-SymmetricTree-Default_/test_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_YetiRank-Cosine-SymmetricTree-Default_/test_error.tsv"
         }
     ],
-    "test_gpu.test_grow_policies[YetiRank-Correlation-SymmetricTree-Ordered]": [
+    "test_gpu.test_grow_policies[YetiRank-Cosine-SymmetricTree-Ordered]": [
         {
             "checksum": "4265e130852c1a312485a6f88c13ddaa",
-            "uri": "file://test_gpu.test_grow_policies_YetiRank-Correlation-SymmetricTree-Ordered_/learn_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_YetiRank-Cosine-SymmetricTree-Ordered_/learn_error.tsv"
         },
         {
             "checksum": "e23212e34ec6b481642da93c12fbf1da",
-            "uri": "file://test_gpu.test_grow_policies_YetiRank-Correlation-SymmetricTree-Ordered_/test_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_YetiRank-Cosine-SymmetricTree-Ordered_/test_error.tsv"
         }
     ],
-    "test_gpu.test_grow_policies[YetiRank-Correlation-SymmetricTree-Plain]": [
+    "test_gpu.test_grow_policies[YetiRank-Cosine-SymmetricTree-Plain]": [
         {
             "checksum": "4265e130852c1a312485a6f88c13ddaa",
-            "uri": "file://test_gpu.test_grow_policies_YetiRank-Correlation-SymmetricTree-Plain_/learn_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_YetiRank-Cosine-SymmetricTree-Plain_/learn_error.tsv"
         },
         {
             "checksum": "42950b249eb9f620effdac13c2e78c65",
-            "uri": "file://test_gpu.test_grow_policies_YetiRank-Correlation-SymmetricTree-Plain_/test_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_YetiRank-Cosine-SymmetricTree-Plain_/test_error.tsv"
         }
     ],
     "test_gpu.test_grow_policies[YetiRank-L2-Depthwise-Default]": [
@@ -2511,74 +2511,74 @@
             "uri": "file://test_gpu.test_grow_policies_YetiRank-LOOL2-SymmetricTree-Plain_/test_error.tsv"
         }
     ],
-    "test_gpu.test_grow_policies[YetiRank-NewtonCorrelation-Depthwise-Default]": [
+    "test_gpu.test_grow_policies[YetiRank-NewtonCosine-Depthwise-Default]": [
         {
             "checksum": "4265e130852c1a312485a6f88c13ddaa",
-            "uri": "file://test_gpu.test_grow_policies_YetiRank-NewtonCorrelation-Depthwise-Default_/learn_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_YetiRank-NewtonCosine-Depthwise-Default_/learn_error.tsv"
         },
         {
             "checksum": "59b82b95e960502fae49477a9f307502",
-            "uri": "file://test_gpu.test_grow_policies_YetiRank-NewtonCorrelation-Depthwise-Default_/test_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_YetiRank-NewtonCosine-Depthwise-Default_/test_error.tsv"
         }
     ],
-    "test_gpu.test_grow_policies[YetiRank-NewtonCorrelation-Depthwise-Plain]": [
+    "test_gpu.test_grow_policies[YetiRank-NewtonCosine-Depthwise-Plain]": [
         {
             "checksum": "4265e130852c1a312485a6f88c13ddaa",
-            "uri": "file://test_gpu.test_grow_policies_YetiRank-NewtonCorrelation-Depthwise-Plain_/learn_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_YetiRank-NewtonCosine-Depthwise-Plain_/learn_error.tsv"
         },
         {
             "checksum": "59b82b95e960502fae49477a9f307502",
-            "uri": "file://test_gpu.test_grow_policies_YetiRank-NewtonCorrelation-Depthwise-Plain_/test_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_YetiRank-NewtonCosine-Depthwise-Plain_/test_error.tsv"
         }
     ],
-    "test_gpu.test_grow_policies[YetiRank-NewtonCorrelation-Lossguide-Default]": [
+    "test_gpu.test_grow_policies[YetiRank-NewtonCosine-Lossguide-Default]": [
         {
             "checksum": "4265e130852c1a312485a6f88c13ddaa",
-            "uri": "file://test_gpu.test_grow_policies_YetiRank-NewtonCorrelation-Lossguide-Default_/learn_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_YetiRank-NewtonCosine-Lossguide-Default_/learn_error.tsv"
         },
         {
             "checksum": "51d8d5733806e0e72cc98735d38706ad",
-            "uri": "file://test_gpu.test_grow_policies_YetiRank-NewtonCorrelation-Lossguide-Default_/test_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_YetiRank-NewtonCosine-Lossguide-Default_/test_error.tsv"
         }
     ],
-    "test_gpu.test_grow_policies[YetiRank-NewtonCorrelation-Lossguide-Plain]": [
+    "test_gpu.test_grow_policies[YetiRank-NewtonCosine-Lossguide-Plain]": [
         {
             "checksum": "4265e130852c1a312485a6f88c13ddaa",
-            "uri": "file://test_gpu.test_grow_policies_YetiRank-NewtonCorrelation-Lossguide-Plain_/learn_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_YetiRank-NewtonCosine-Lossguide-Plain_/learn_error.tsv"
         },
         {
             "checksum": "51d8d5733806e0e72cc98735d38706ad",
-            "uri": "file://test_gpu.test_grow_policies_YetiRank-NewtonCorrelation-Lossguide-Plain_/test_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_YetiRank-NewtonCosine-Lossguide-Plain_/test_error.tsv"
         }
     ],
-    "test_gpu.test_grow_policies[YetiRank-NewtonCorrelation-SymmetricTree-Default]": [
+    "test_gpu.test_grow_policies[YetiRank-NewtonCosine-SymmetricTree-Default]": [
         {
             "checksum": "4265e130852c1a312485a6f88c13ddaa",
-            "uri": "file://test_gpu.test_grow_policies_YetiRank-NewtonCorrelation-SymmetricTree-Default_/learn_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_YetiRank-NewtonCosine-SymmetricTree-Default_/learn_error.tsv"
         },
         {
             "checksum": "42950b249eb9f620effdac13c2e78c65",
-            "uri": "file://test_gpu.test_grow_policies_YetiRank-NewtonCorrelation-SymmetricTree-Default_/test_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_YetiRank-NewtonCosine-SymmetricTree-Default_/test_error.tsv"
         }
     ],
-    "test_gpu.test_grow_policies[YetiRank-NewtonCorrelation-SymmetricTree-Ordered]": [
+    "test_gpu.test_grow_policies[YetiRank-NewtonCosine-SymmetricTree-Ordered]": [
         {
             "checksum": "4265e130852c1a312485a6f88c13ddaa",
-            "uri": "file://test_gpu.test_grow_policies_YetiRank-NewtonCorrelation-SymmetricTree-Ordered_/learn_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_YetiRank-NewtonCosine-SymmetricTree-Ordered_/learn_error.tsv"
         },
         {
             "checksum": "e23212e34ec6b481642da93c12fbf1da",
-            "uri": "file://test_gpu.test_grow_policies_YetiRank-NewtonCorrelation-SymmetricTree-Ordered_/test_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_YetiRank-NewtonCosine-SymmetricTree-Ordered_/test_error.tsv"
         }
     ],
-    "test_gpu.test_grow_policies[YetiRank-NewtonCorrelation-SymmetricTree-Plain]": [
+    "test_gpu.test_grow_policies[YetiRank-NewtonCosine-SymmetricTree-Plain]": [
         {
             "checksum": "4265e130852c1a312485a6f88c13ddaa",
-            "uri": "file://test_gpu.test_grow_policies_YetiRank-NewtonCorrelation-SymmetricTree-Plain_/learn_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_YetiRank-NewtonCosine-SymmetricTree-Plain_/learn_error.tsv"
         },
         {
             "checksum": "42950b249eb9f620effdac13c2e78c65",
-            "uri": "file://test_gpu.test_grow_policies_YetiRank-NewtonCorrelation-SymmetricTree-Plain_/test_error.tsv"
+            "uri": "file://test_gpu.test_grow_policies_YetiRank-NewtonCosine-SymmetricTree-Plain_/test_error.tsv"
         }
     ],
     "test_gpu.test_grow_policies[YetiRank-NewtonL2-Depthwise-Default]": [

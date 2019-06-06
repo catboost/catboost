@@ -21,9 +21,11 @@ def version():
 
 install_requires=[
     'graphviz',
-    'six',
+    'matplotlib',
     'numpy >= 1.11.1',
-    'pandas >= 0.19.1'
+    'pandas >= 0.19.1',
+    'plotly',
+    'six',
 ],
 
 if sys.version_info < (3, 4):

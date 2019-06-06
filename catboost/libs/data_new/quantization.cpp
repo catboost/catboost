@@ -92,7 +92,7 @@ namespace NCB {
         const TQuantizedFeaturesInfo& quantizedFeaturesInfo,
         const TQuantizationOptions& options,
         bool doQuantization, // if false - only calc borders
-        bool clearSrcData
+        bool storeFeaturesDataAsExternalValuesHolder
     ) {
         ui64 result = 0;
 
@@ -115,7 +115,7 @@ namespace NCB {
             );
         }
 
-        if (doQuantization && (options.CpuCompatibleFormat || clearSrcData)) {
+        if (doQuantization && !storeFeaturesDataAsExternalValuesHolder) {
             // for storing quantized data
             // TODO(akhropov): support other bitsPerKey. MLTOOLS-2425
             result += sizeof(ui8) * objectCount;
@@ -860,8 +860,8 @@ namespace NCB {
         const TFloatValuesHolder& srcFeature,
         const TFeaturesArraySubsetIndexing* subsetForBuildBorders,
         const TQuantizationOptions& options,
-        bool clearSrcData,
         bool calcBordersAndNanModeOnly,
+        bool storeFeaturesDataAsExternalValuesHolder,
         const TFeaturesArraySubsetIndexing* dstSubsetIndexing,  // can be nullptr if generateBordersOnly
         NPar::TLocalExecutor* localExecutor,
         TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
@@ -907,7 +907,7 @@ namespace NCB {
         if (!calcBordersAndNanModeOnly && !borders.empty()) {
             TMaybeOwningConstArraySubset<float, ui32> srcFeatureData = srcFeature.GetArrayData();
 
-            if (!options.CpuCompatibleFormat && !clearSrcData) {
+            if (storeFeaturesDataAsExternalValuesHolder) {
                 // use GPU-only external columns
                 *dstQuantizedFeature = MakeHolder<TExternalFloatValuesHolder>(
                     srcFeature.GetId(),
@@ -955,8 +955,7 @@ namespace NCB {
 
     static ui64 EstimateMaxMemUsageForCatFeature(
         ui32 objectCount,
-        const TQuantizationOptions& options,
-        bool clearSrcData
+        bool storeFeaturesDataAsExternalValuesHolder
     ) {
         ui64 result = 0;
 
@@ -965,7 +964,7 @@ namespace NCB {
         // assuming worst-case that all values will be added to Features Perfect Hash as new.
         result += ESTIMATED_FEATURES_PERFECT_HASH_MAP_NODE_SIZE * objectCount;
 
-        if (options.CpuCompatibleFormat || clearSrcData) {
+        if (!storeFeaturesDataAsExternalValuesHolder) {
             // for storing quantized data
             // TODO(akhropov): support other bitsPerKey. MLTOOLS-2425
             result += sizeof(ui32) * objectCount;
@@ -978,9 +977,8 @@ namespace NCB {
     static void ProcessCatFeature(
         TCatFeatureIdx catFeatureIdx,
         const THashedCatValuesHolder& srcFeature,
-        const TQuantizationOptions& options,
-        bool clearSrcData,
         bool updatePerfectHashOnly,
+        bool storeFeaturesDataAsExternalValuesHolder,
         bool mapMostFrequentValueTo0,
         const TFeaturesArraySubsetIndexing* dstSubsetIndexing,
         TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
@@ -995,8 +993,7 @@ namespace NCB {
         TArrayRef<ui32> quantizedDataValue;
 
         // GPU-only external columns
-        const bool storeAsExternalValuesHolder = !options.CpuCompatibleFormat && !clearSrcData;
-        const bool quantizeData = !updatePerfectHashOnly && !storeAsExternalValuesHolder;
+        const bool quantizeData = !updatePerfectHashOnly && !storeFeaturesDataAsExternalValuesHolder;
 
         if (quantizeData) {
             quantizedDataStorage.yresize(indexHelper.CompressedSize(srcFeatureData.Size()));
@@ -1020,7 +1017,7 @@ namespace NCB {
         auto uniqueValuesCounts = quantizedFeaturesInfo->GetUniqueValuesCounts(catFeatureIdx);
         if (uniqueValuesCounts.OnLearnOnly > 1) {
             if (!updatePerfectHashOnly) {
-                if (storeAsExternalValuesHolder) {
+                if (storeFeaturesDataAsExternalValuesHolder) {
                     *dstQuantizedFeature = MakeHolder<TExternalCatValuesHolder>(
                         srcFeature.GetId(),
                         *srcFeatureData.GetSrc(),
@@ -1161,6 +1158,18 @@ namespace NCB {
             const bool bundleExclusiveFeatures =
                 options.CpuCompatibleFormat && options.BundleExclusiveFeaturesForCpu;
 
+            /*
+             * If these conditions are satisfied quantized features data is only needed for GPU
+             *  so it is possible not to store all quantized features bins in CPU RAM
+             *  but generate these quantized feature bin values from raw feature values on the fly
+             *  just before copying data to GPU memory.
+             *  Returned TQuantizedObjectsDataProvider will contain
+             *  TExternalFloatValuesHolders and TExternalCatValuesHolders in features data holders.
+             */
+            const bool storeFeaturesDataAsExternalValuesHolders = !options.CpuCompatibleFormat &&
+                !clearSrcObjectsData &&
+                !featuresLayout->GetTextFeatureCount();
+
             TObjectsGroupingPtr objectsGrouping = rawDataProvider->ObjectsGrouping;
 
             // already composed with rawDataProvider's Subset
@@ -1197,9 +1206,14 @@ namespace NCB {
                 auto textFeatureCount = featuresLayout->GetTextFeatureCount();
                 data->ObjectsData.Data.TextFeatures.resize(textFeatureCount);
 
-                subsetIndexing = MakeAtomicShared<TArraySubsetIndexing<ui32>>(
-                    TFullSubset<ui32>(objectsGrouping->GetObjectCount())
-                );
+                if (storeFeaturesDataAsExternalValuesHolders) {
+                    // external columns keep the same subset
+                    subsetIndexing = srcObjectsCommonData.SubsetIndexing;
+                } else {
+                    subsetIndexing = MakeAtomicShared<TArraySubsetIndexing<ui32>>(
+                        TFullSubset<ui32>(objectsGrouping->GetObjectCount())
+                    );
+                }
             }
 
             {
@@ -1218,7 +1232,7 @@ namespace NCB {
                     *quantizedFeaturesInfo,
                     options,
                     !calcBordersAndNanModeOnly,
-                    clearSrcObjectsData
+                    storeFeaturesDataAsExternalValuesHolders
                 );
 
                 const bool calcBordersAndNanModeOnlyInProcessFloatFeatures =
@@ -1240,8 +1254,8 @@ namespace NCB {
                                             subsetForBuildBorders.Get()
                                             : srcObjectsCommonData.SubsetIndexing.Get(),
                                         options,
-                                        clearSrcObjectsData,
                                         calcBordersAndNanModeOnlyInProcessFloatFeatures,
+                                        storeFeaturesDataAsExternalValuesHolders,
                                         subsetIndexing.Get(),
                                         localExecutor,
                                         quantizedFeaturesInfo,
@@ -1272,8 +1286,7 @@ namespace NCB {
                 if (!calcBordersAndNanModeOnly) {
                     const ui64 maxMemUsageForCatFeature = EstimateMaxMemUsageForCatFeature(
                         objectsGrouping->GetObjectCount(),
-                        options,
-                        clearSrcObjectsData
+                        storeFeaturesDataAsExternalValuesHolders
                     );
 
                     featuresLayout->IterateOverAvailableFeatures<EFeatureType::Categorical>(
@@ -1288,9 +1301,8 @@ namespace NCB {
                                         ProcessCatFeature(
                                             catFeatureIdx,
                                             *srcCatFeatureHolder,
-                                            options,
-                                            clearSrcObjectsData,
                                             /*updatePerfectHashOnly*/ bundleExclusiveFeatures,
+                                            storeFeaturesDataAsExternalValuesHolders,
                                             /*mapMostFrequentValueTo0*/ bundleExclusiveFeatures,
                                             subsetIndexing.Get(),
                                             quantizedFeaturesInfo,

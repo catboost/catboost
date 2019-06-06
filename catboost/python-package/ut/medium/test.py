@@ -4274,7 +4274,7 @@ def test_multiclass_grow_policy(task_type, grow_policy):
         devices='0',
         boosting_type='Plain',
         grow_policy=grow_policy,
-        score_function='Correlation'
+        score_function='Cosine'
     )
     classifier.fit(pool)
     output_model_path = test_output_path(OUTPUT_MODEL_PATH)

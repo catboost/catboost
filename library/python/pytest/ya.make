@@ -17,4 +17,6 @@ PEERDIR(
     contrib/python/dateutil
 )
 
+NO_LINT()
+
 END()

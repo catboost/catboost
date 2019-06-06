@@ -432,6 +432,8 @@ def iter_importers(fullname=""):
             yield importer
         path = sys.path
     for item in path:
+        if item is None:
+            continue
         yield get_importer(item)
     if '.' not in fullname:
         yield ImpImporter()

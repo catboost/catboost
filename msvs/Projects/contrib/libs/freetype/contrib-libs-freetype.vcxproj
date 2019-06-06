@@ -1,0 +1,407 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build" ToolsVersion="4.0">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGUID>{8278AC52-EAF3-9F61-AC3E-80DB8105528D}</ProjectGUID>
+    <Keyword>Win32Proj</Keyword>
+    <Platform>x64</Platform>
+    <ProjectName>contrib-libs-freetype</ProjectName>
+    <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.default.props"/>
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>Multibyte</CharacterSet>
+    <PlatformToolset>v141</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props"/>
+  <ImportGroup Label="ArcadiaProps"/>
+  <ImportGroup Label="ExtensionSettings"/>
+  <ImportGroup Label="PropertySheets"/>
+  <PropertyGroup Label="UserMacros"/>
+  <PropertyGroup>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
+    <TargetName>contrib-libs-freetype</TargetName>
+    <TargetExtention>.lib</TargetExtention>
+    <OutDir>$(SolutionDir)$(Configuration)\contrib\libs\freetype\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\8278AC52-EAF3-9F61-AC3E-80DB8105528D\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">EnableFastChecks</BasicRuntimeChecks>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DisableSpecificWarnings>4267;4244</DisableSpecificWarnings>
+      <ErrorReporting>Prompt</ErrorReporting>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Disabled</InlineFunctionExpansion>
+      <InlineFunctionExpansion Condition="'$(Configuration)|$(Platform)'=='Release|x64'">AnySuitable</InlineFunctionExpansion>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Disabled</Optimization>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">MaxSpeed</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">MultiThreadedDebug</RuntimeLibrary>
+      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Release|x64'">MultiThreaded</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <UseFullPaths>true</UseFullPaths>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /DFAKEID=5020880 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D FT2_BUILD_LIBRARY=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOGDI /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1    /wd4456 /wd4457 /std:c++17 -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /DFAKEID=5020880 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D FT2_BUILD_LIBRARY=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOGDI /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1    /wd4456 /wd4457 /std:c++17 -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">TurnOffAllWarnings</WarningLevel>
+      <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
+      <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
+      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/freetype/include;$(SolutionDir)../contrib/libs/freetype/include/freetype;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/double-conversion/include;$(SolutionDir)../contrib/libs/openssl/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  </AdditionalOptions>
+      <SubSystem Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Console</SubSystem>
+      <GenerateDebugInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">DebugFastLink</GenerateDebugInformation>
+      <RandomizedBaseAddress Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</RandomizedBaseAddress>
+      <SubSystem Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Console</SubSystem>
+      <GenerateDebugInformation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Debug</GenerateDebugInformation>
+      <RandomizedBaseAddress Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</RandomizedBaseAddress>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\freetype\src\autofit\autofit.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\freetype\src\base\ftapi.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\freetype\src\base\ftbase.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\freetype\src\base\ftbbox.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\freetype\src\base\ftbdf.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\freetype\src\base\ftbitmap.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\freetype\src\base\ftcid.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\freetype\src\base\ftdebug.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\freetype\src\base\ftfntfmt.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\freetype\src\base\ftfstype.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\freetype\src\base\ftgasp.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\freetype\src\base\ftglyph.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\freetype\src\base\ftgxval.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\freetype\src\base\ftinit.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\freetype\src\base\ftlcdfil.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\freetype\src\base\ftmm.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\freetype\src\base\ftotval.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\freetype\src\base\ftpatent.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\freetype\src\base\ftpfr.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\freetype\src\base\ftstroke.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\freetype\src\base\ftsynth.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\freetype\src\base\ftsystem.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\freetype\src\base\fttype1.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\freetype\src\base\ftwinfnt.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\freetype\src\bdf\bdf.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\freetype\src\bzip2\ftbzip2.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\freetype\src\cache\ftcache.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\freetype\src\cff\cff.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\freetype\src\cid\type1cid.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\freetype\src\gxvalid\gxvalid.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\freetype\src\gzip\ftgzip.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\freetype\src\lzw\ftlzw.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\freetype\src\otvalid\otvalid.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\freetype\src\pcf\pcf.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\freetype\src\pfr\pfr.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\freetype\src\psaux\psaux.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\freetype\src\pshinter\pshinter.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\freetype\src\psnames\psnames.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\freetype\src\raster\raster.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\freetype\src\sfnt\sfnt.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\freetype\src\smooth\smooth.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\freetype\src\truetype\truetype.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\freetype\src\type1\type1.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\freetype\src\type42\type42.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\freetype\src\winfonts\winfnt.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\include\freetype\config\ftheader.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\include\freetype\ftimage.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\include\ft2build.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\autofit\afblue.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\autofit\afcjk.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\autofit\afcover.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\autofit\afdummy.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\autofit\aferrors.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\autofit\afglobal.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\autofit\afhints.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\autofit\afindic.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\autofit\aflatin.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\autofit\aflatin2.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\autofit\afloader.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\autofit\afmodule.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\autofit\afpic.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\autofit\afranges.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\autofit\afscript.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\autofit\afstyles.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\autofit\aftypes.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\autofit\afwarp.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\autofit\afwrtsys.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\autofit\hbshim.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\base\basepic.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\base\ftbase.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\base\md5.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\bdf\bdf.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\bdf\bdfdrivr.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\bdf\bdferror.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\cache\ftccache.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\cache\ftccback.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\cache\ftcerror.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\cache\ftcglyph.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\cache\ftcimage.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\cache\ftcmanag.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\cache\ftcmru.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\cache\ftcsbits.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\cff\cf2arrst.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\cff\cf2blues.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\cff\cf2error.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\cff\cf2fixed.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\cff\cf2font.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\cff\cf2ft.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\cff\cf2glue.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\cff\cf2hints.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\cff\cf2intrp.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\cff\cf2read.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\cff\cf2stack.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\cff\cf2types.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\cff\cffcmap.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\cff\cffdrivr.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\cff\cfferrs.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\cff\cffgload.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\cff\cffload.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\cff\cffobjs.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\cff\cffparse.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\cff\cffpic.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\cff\cfftoken.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\cff\cfftypes.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\cid\ciderrs.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\cid\cidgload.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\cid\cidload.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\cid\cidobjs.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\cid\cidparse.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\cid\cidriver.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\cid\cidtoken.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\gxvalid\gxvalid.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\gxvalid\gxvcommn.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\gxvalid\gxverror.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\gxvalid\gxvfeat.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\gxvalid\gxvmod.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\gxvalid\gxvmort.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\gxvalid\gxvmorx.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\gzip\infblock.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\gzip\infcodes.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\gzip\inffixed.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\gzip\inftrees.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\gzip\infutil.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\gzip\zconf.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\gzip\zlib.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\gzip\zutil.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\lzw\ftzopen.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\otvalid\otvalid.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\otvalid\otvcommn.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\otvalid\otverror.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\otvalid\otvgpos.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\otvalid\otvmod.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\pcf\pcf.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\pcf\pcfdrivr.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\pcf\pcferror.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\pcf\pcfread.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\pcf\pcfutil.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\pfr\pfrcmap.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\pfr\pfrdrivr.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\pfr\pfrerror.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\pfr\pfrgload.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\pfr\pfrload.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\pfr\pfrobjs.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\pfr\pfrsbit.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\pfr\pfrtypes.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\psaux\afmparse.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\psaux\psauxerr.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\psaux\psauxmod.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\psaux\psconv.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\psaux\psobjs.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\psaux\t1cmap.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\psaux\t1decode.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\pshinter\pshalgo.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\pshinter\pshglob.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\pshinter\pshnterr.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\pshinter\pshpic.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\pshinter\pshrec.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\psnames\psmodule.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\psnames\psnamerr.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\psnames\pspic.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\psnames\pstables.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\raster\ftmisc.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\raster\ftraster.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\raster\ftrend1.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\raster\rasterrs.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\raster\rastpic.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\sfnt\pngshim.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\sfnt\sfdriver.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\sfnt\sferrors.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\sfnt\sfntpic.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\sfnt\sfobjs.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\sfnt\ttbdf.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\sfnt\ttcmap.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\sfnt\ttcmapc.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\sfnt\ttkern.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\sfnt\ttload.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\sfnt\ttmtx.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\sfnt\ttpost.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\sfnt\ttsbit.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\smooth\ftgrays.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\smooth\ftsmerrs.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\smooth\ftsmooth.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\smooth\ftspic.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\truetype\ttdriver.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\truetype\tterrors.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\truetype\ttgload.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\truetype\ttgxvar.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\truetype\ttinterp.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\truetype\ttobjs.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\truetype\ttpic.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\truetype\ttpload.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\truetype\ttsubpix.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\type1\t1afm.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\type1\t1driver.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\type1\t1errors.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\type1\t1gload.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\type1\t1load.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\type1\t1objs.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\type1\t1parse.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\type1\t1tokens.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\type42\t42drivr.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\type42\t42error.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\type42\t42objs.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\type42\t42parse.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\type42\t42types.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\winfonts\fnterrs.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\freetype\src\winfonts\winfnt.h"/>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
+  <ImportGroup Label="ExtensionTargets"/>
+  <ItemGroup>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\contrib-libs-cxxsupp.vcxproj">
+      <Project>{8D7C41B0-2344-C558-29D8-570B39498A2F}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\libcxx\libs-cxxsupp-libcxx.vcxproj">
+      <Project>{671FE333-6D0D-E7E3-0E1D-D4CB43CF879D}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\double-conversion\contrib-libs-double-conversion.vcxproj">
+      <Project>{1BA2A109-73A9-0A33-0C89-68ACB8229C74}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\openssl\contrib-libs-openssl.vcxproj">
+      <Project>{C09AB4D0-26FB-8670-4A3A-438A55553615}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\openssl\crypto\libs-openssl-crypto.vcxproj">
+      <Project>{0EED471E-D91D-9917-D1A8-550D2EBE46DB}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zlib\contrib-libs-zlib.vcxproj">
+      <Project>{E8A35EC0-40EE-2D96-1FB2-D065B804958D}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\util\charset\util-charset.vcxproj">
+      <Project>{44174C28-7454-8F7D-C06B-E2E8E0B4BF9E}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\util\yutil.vcxproj">
+      <Project>{1C91E826-1D2A-B4DB-C1D2-F89E49E9BDCD}</Project>
+    </ProjectReference>
+  </ItemGroup>
+</Project>

@@ -24,7 +24,7 @@ NCatboostOptions::TObliviousTreeLearnerOptions::TObliviousTreeLearnerOptions(ETa
       , ObservationsToBootstrap("observations_to_bootstrap", EObservationsToBootstrap::TestOnly, taskType) //it's specific for fold-based scheme, so here and not in bootstrap options
       , FoldSizeLossNormalization("fold_size_loss_normalization", false, taskType)
       , AddRidgeToTargetFunctionFlag("add_ridge_penalty_to_loss_function", false, taskType)
-      , ScoreFunction("score_function", EScoreFunction::Correlation, taskType)
+      , ScoreFunction("score_function", EScoreFunction::Cosine, taskType)
       , MaxCtrComplexityForBordersCaching("max_ctr_complexity_for_borders_cache", 1, taskType)
       , GrowPolicy("grow_policy", EGrowPolicy::SymmetricTree, taskType)
       , MaxLeaves("max_leaves", 31, taskType)

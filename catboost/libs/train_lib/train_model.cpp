@@ -163,15 +163,12 @@ static void InitializeAndCheckMetricData(
             CATBOOST_WARNING_LOG << "In distributed training, non-additive metrics are not evaluated on train dataset" << Endl;
         }
     }
-    const bool hasTest = data.GetTestSampleCount() > 0;
-    if (!hasTest && !ctx.Params.MetricOptions->CustomMetrics->empty()) {
-        CATBOOST_WARNING_LOG << "Warning: Custom metrics will not be evaluated because there are no test datasets" << Endl;
-    }
 
     CB_ENSURE(!metrics.empty(), "Eval metric is not defined");
 
     const bool lastTestDatasetHasTargetData = (data.Test.size() > 0) && data.Test.back()->MetaInfo.HasTarget;
 
+    const bool hasTest = data.GetTestSampleCount() > 0;
     if (hasTest && metrics[0]->NeedTarget() && !lastTestDatasetHasTargetData) {
         CATBOOST_WARNING_LOG << "Warning: Eval metric " << metrics[0]->GetDescription() <<
             " needs Target data, but test dataset does not have it so it won't be calculated" << Endl;

@@ -65,9 +65,9 @@ enum class ELeavesEstimation {
 
 enum class EScoreFunction {
     SolarL2,
-    Correlation,
+    Cosine,
     NewtonL2,
-    NewtonCorrelation,
+    NewtonCosine,
     LOOL2,
     SatL2,
     L2

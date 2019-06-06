@@ -125,6 +125,8 @@ def on_go_process_srcs(unit):
 
     cgo_files = get_appended_values(unit, 'CGO_SRCS_VALUE')
     if len(cgo_files) > 0:
+        if not unit.enabled('CGO_ENABLED'):
+            ymake.report_configure_error('trying to build with CGO (CGO_SRCS is non-empty) when CGO is disabled')
         import_path = rootrel_arc_src(unit.path(), unit)
         if import_path.startswith(go_std_root):
             import_path = import_path[len(go_std_root):]

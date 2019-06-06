@@ -4,40 +4,61 @@
 
 import numpy as np
 
-from pandas.core.algorithms import factorize, match, unique, value_counts
-from pandas.types.missing import isnull, notnull
-from pandas.core.categorical import Categorical
+from pandas.core.arrays.integer import (
+    Int8Dtype,
+    Int16Dtype,
+    Int32Dtype,
+    Int64Dtype,
+    UInt8Dtype,
+    UInt16Dtype,
+    UInt32Dtype,
+    UInt64Dtype,
+)
+from pandas.core.algorithms import factorize, unique, value_counts
+from pandas.core.dtypes.missing import isna, isnull, notna, notnull
+from pandas.core.dtypes.dtypes import (
+    CategoricalDtype,
+    PeriodDtype,
+    IntervalDtype,
+    DatetimeTZDtype,
+)
+from pandas.core.arrays import Categorical, array
 from pandas.core.groupby import Grouper
-from pandas.formats.format import set_eng_float_format
+from pandas.io.formats.format import set_eng_float_format
 from pandas.core.index import (Index, CategoricalIndex, Int64Index,
-                               RangeIndex, Float64Index, MultiIndex)
+                               UInt64Index, RangeIndex, Float64Index,
+                               MultiIndex, IntervalIndex,
+                               TimedeltaIndex, DatetimeIndex,
+                               PeriodIndex, NaT)
+from pandas.core.indexes.period import Period, period_range
+from pandas.core.indexes.timedeltas import Timedelta, timedelta_range
+from pandas.core.indexes.datetimes import Timestamp, date_range, bdate_range
+from pandas.core.indexes.interval import Interval, interval_range
 
-from pandas.core.series import Series, TimeSeries
+from pandas.core.series import Series
 from pandas.core.frame import DataFrame
-from pandas.core.panel import Panel, WidePanel
-from pandas.core.panel4d import Panel4D
-from pandas.core.groupby import groupby
-from pandas.core.reshape import (pivot_simple as pivot, get_dummies,
-                                 lreshape, wide_to_long)
+from pandas.core.panel import Panel
+
+# TODO: Remove import when statsmodels updates #18264
+from pandas.core.reshape.reshape import get_dummies
 
 from pandas.core.indexing import IndexSlice
+from pandas.core.tools.numeric import to_numeric
 from pandas.tseries.offsets import DateOffset
-from pandas.tseries.tools import to_datetime
-from pandas.tseries.index import (DatetimeIndex, Timestamp,
-                                  date_range, bdate_range)
-from pandas.tseries.tdi import TimedeltaIndex, Timedelta
-from pandas.tseries.period import Period, PeriodIndex
-
-# see gh-14094.
-from pandas.util.depr_module import _DeprecatedModule
-
-_removals = ['day', 'bday', 'businessDay', 'cday', 'customBusinessDay',
-             'customBusinessMonthEnd', 'customBusinessMonthBegin',
-             'monthEnd', 'yearEnd', 'yearBegin', 'bmonthEnd', 'bmonthBegin',
-             'cbmonthEnd', 'cbmonthBegin', 'bquarterEnd', 'quarterEnd',
-             'byearEnd', 'week']
-datetools = _DeprecatedModule(deprmod='pandas.core.datetools',
-                              removals=_removals)
+from pandas.core.tools.datetimes import to_datetime
+from pandas.core.tools.timedeltas import to_timedelta
 
 from pandas.core.config import (get_option, set_option, reset_option,
                                 describe_option, option_context, options)
+
+
+# Deprecation: xref gh-16747
+class TimeGrouper(object):
+
+    def __new__(cls, *args, **kwargs):
+        from pandas.core.resample import TimeGrouper
+        import warnings
+        warnings.warn("pd.TimeGrouper is deprecated and will be removed; "
+                      "Please use pd.Grouper(freq=...)",
+                      FutureWarning, stacklevel=2)
+        return TimeGrouper(*args, **kwargs)
