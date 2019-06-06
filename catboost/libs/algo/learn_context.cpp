@@ -403,14 +403,14 @@ bool TLearnContext::TryLoadProgress() {
                 CATBOOST_DEBUG_LOG
                     << LabeledOutput(learnProgressRestored->SerializedTrainParams) << ' '
                     << LabeledOutput(LearnProgress->SerializedTrainParams) << Endl;
-                CB_ENSURE(paramsCompatible, "Saved model's params are different from current model's params");
+                CB_ENSURE(paramsCompatible, "Current training params differ from the params saved in snapshot");
 
                 const bool poolCompatible
                     = (learnProgressRestored->LearnAndTestQuantizedFeaturesCheckSum
                        == LearnProgress->LearnAndTestQuantizedFeaturesCheckSum);
                 CB_ENSURE(
                     poolCompatible,
-                    "Current pool differs from the original pool "
+                    "Current learn and test datasets differ from the datasets used for snapshot"
                     LabeledOutput(
                         learnProgressRestored->LearnAndTestQuantizedFeaturesCheckSum,
                         LearnProgress->LearnAndTestQuantizedFeaturesCheckSum
@@ -425,8 +425,9 @@ bool TLearnContext::TryLoadProgress() {
             }
         );
         return true;
-    } catch(const TCatBoostException&) {
-        throw;
+    } catch(const TCatBoostException& e) {
+        ythrow TCatBoostException() << "Can't load progress from snapshot file: " << Files.SnapshotFile
+            << " : " << e.what();
     } catch (...) {
         CATBOOST_WARNING_LOG << "Can't load progress from snapshot file: " << Files.SnapshotFile
             << " exception: " << CurrentExceptionMessage() << Endl;
