@@ -85,7 +85,6 @@
     <ClCompile Include="$(SolutionDir)..\library\coroutine\engine\poller.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\library\coroutine\engine\poller.h_serialized.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\coroutine\engine\sockpool.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\coroutine\engine\stack.cpp"/>
     <CustomBuild Include="$(SolutionDir)..\library\coroutine\engine\poller.h">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\coroutine\engine
@@ -121,7 +120,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\library\coroutine\engine\schedule_callback.h"/>
     <ClInclude Include="$(SolutionDir)..\library\coroutine\engine\sockmap.h"/>
     <ClInclude Include="$(SolutionDir)..\library\coroutine\engine\sockpool.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\coroutine\engine\stack.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
