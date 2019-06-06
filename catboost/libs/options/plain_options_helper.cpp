@@ -22,7 +22,6 @@ using NCatboostOptions::ParsePerFeatureCtrDescription;
 using NCatboostOptions::BuildCtrOptionsDescription;
 
 
-
 static Y_NO_INLINE void CopyCtrDescription(
     const NJson::TJsonValue& options,
     const TStringBuf srcKey,
@@ -50,22 +49,22 @@ static Y_NO_INLINE void CopyCtrDescription(
 
 static Y_NO_INLINE void ConcatenateCtrDescription(
         const NJson::TJsonValue& options,
-        const TStringBuf srcKey,
-        const TStringBuf dstKey,
-        NJson::TJsonValue* const dst,
+        const TStringBuf sourceKey,
+        const TStringBuf destinationKey,
+        NJson::TJsonValue* const destination,
         TSet<TString>* const seenKeys
 ) {
-    if (!options.Has(srcKey)) {
+    if (!options.Has(sourceKey)) {
         return;
     }
 
-    auto& arr = (*dst)[dstKey] = NJson::TJsonValue(NJson::JSON_ARRAY);
-    const NJson::TJsonValue& ctrDescriptions = options[srcKey];
-    for (const auto& elem: ctrDescriptions.GetArraySafe()) {
-        const auto& ctr_options_concatenated = BuildCtrOptionsDescription(elem);
-        arr.AppendValue(ctr_options_concatenated);
+    auto& ctrOptionsArray = (*destination)[destinationKey] = NJson::TJsonValue(NJson::JSON_ARRAY);
+    const NJson::TJsonValue& ctrDescriptions = options[sourceKey];
+    for (const auto& element: ctrDescriptions.GetArraySafe()) {
+        const auto& ctrOptionsConcatenated = BuildCtrOptionsDescription(element);
+        ctrOptionsArray.AppendValue(ctrOptionsConcatenated);
     }
-    seenKeys->insert(TString(srcKey));
+    seenKeys->insert(TString(sourceKey));
 }
 
 
@@ -202,16 +201,16 @@ static void ValidatePlainOptionsConsistency(const NJson::TJsonValue& plainOption
 
 static Y_NO_INLINE void RemapPerFeatureCtrDescription(
         const NJson::TJsonValue& options,
-        const TStringBuf srcKey,
-        const TStringBuf dstKey,
-        NJson::TJsonValue* const dst)
+        const TStringBuf sourceKey,
+        const TStringBuf destinationKey,
+        NJson::TJsonValue* const destination)
 {
-    auto& result = (*dst)[dstKey] = NJson::TJsonValue(NJson::JSON_ARRAY);
-    for (const auto& elem : options[srcKey].GetMap()) {
-        TString CatFeatureIndex = elem.first;
-        auto& CtrDict = elem.second[0];
-        const auto& ctr_options_concatenated = BuildCtrOptionsDescription(CtrDict);
-        result.AppendValue(CatFeatureIndex + ":" + ctr_options_concatenated);
+    auto& result = (*destination)[destinationKey] = NJson::TJsonValue(NJson::JSON_ARRAY);
+    for (const auto& elem : options[sourceKey].GetMap()) {
+        TString catFeatureIndex = elem.first;
+        auto& ctrDict = elem.second[0];
+        const auto& ctrOptionsConcatenated = BuildCtrOptionsDescription(ctrDict);
+        result.AppendValue(catFeatureIndex + ":" + ctrOptionsConcatenated);
     }
 }
 
@@ -291,8 +290,7 @@ void NCatboostOptions::PlainJsonToOptions(
     CopyOption(plainOptions, "model_format",  &outputFilesJson, &seenKeys);
     CopyOption(plainOptions, "output_borders",  &outputFilesJson, &seenKeys);
     CopyOption(plainOptions, "roc_file",  &outputFilesJson, &seenKeys);
-
-
+    
     //boosting options
     const char* const boostingOptionsKey = "boosting_options";
     NJson::TJsonValue& boostingOptionsRef = trainOptions[boostingOptionsKey];
@@ -419,7 +417,6 @@ void NCatboostOptions::PlainJsonToOptions(
     CopyOption(plainOptions, "node_port", &systemOptions, &seenKeys);
     CopyOption(plainOptions, "file_with_hosts", &systemOptions, &seenKeys);
 
-
     //rest
     CopyOption(plainOptions, "random_seed", &trainOptions, &seenKeys);
     CopyOption(plainOptions, "logging_level", &trainOptions, &seenKeys);
@@ -438,9 +435,7 @@ void NCatboostOptions::PlainJsonToOptions(
             << " with value \"" << EscapeC(optionValue.GetStringRobust()) << '"';
         ythrow TCatBoostException() << message;
     }
-
     trainOptions["flat_params"] = plainOptions;
-
 }
 
 void NCatboostOptions::ConvertOptionsToPlainJson(
@@ -453,385 +448,384 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
     NJson::TJsonValue& plainOptionsJson = *plainOptions;
     plainOptionsJson.SetType(NJson::JSON_MAP);
 
-    NJson::TJsonValue OptionsCopy(options);
-    NJson::TJsonValue OutputOptionsCopy(outputOptions);
+    NJson::TJsonValue optionsCopy(options);
+    NJson::TJsonValue outputoptionsCopy(outputOptions);
 
     if (options.Has("loss_function")) {
         plainOptionsJson["loss_function"] = BuildMetricOptionDescription(options["loss_function"]);
-        DeleteSeenOption(&OptionsCopy, "loss_function");
+        DeleteSeenOption(&optionsCopy, "loss_function");
     }
 
     if (options.Has("metrics")) {
         if (options["metrics"].Has("eval_metric")) {
             plainOptionsJson["eval_metric"] = BuildMetricOptionDescription(options["metrics"]["eval_metric"]);
-            DeleteSeenOption(&OptionsCopy["metrics"], "eval_metric");
+            DeleteSeenOption(&optionsCopy["metrics"], "eval_metric");
         }
         if (options["metrics"].Has("custom_metrics")) {
-            auto &result = plainOptionsJson["custom_metric"] = NJson::TJsonValue(NJson::JSON_ARRAY);
-            for (auto &metric : options["metrics"]["custom_metrics"].GetArray()) {
+            auto& result = plainOptionsJson["custom_metric"] = NJson::TJsonValue(NJson::JSON_ARRAY);
+            for (auto& metric : options["metrics"]["custom_metrics"].GetArray()) {
                 result.AppendValue(BuildMetricOptionDescription(metric));
             }
-            DeleteSeenOption(&OptionsCopy["metrics"], "custom_metrics");
+            DeleteSeenOption(&optionsCopy["metrics"], "custom_metrics");
         }
         if (options["metrics"].Has("objective_metric")) {
             plainOptionsJson["objective_metric"] = BuildMetricOptionDescription(options["metrics"]["objective_metric"]);
-            DeleteSeenOption(&OptionsCopy["metrics"], "objective_metric");
+            DeleteSeenOption(&optionsCopy["metrics"], "objective_metric");
         }
-        CB_ENSURE(OptionsCopy["metrics"].GetMapSafe().empty(), "some loss or metrics keys missed");
-        DeleteSeenOption(&OptionsCopy, "metrics");
+        CB_ENSURE(optionsCopy["metrics"].GetMapSafe().empty(), "some loss or metrics keys missed");
+        DeleteSeenOption(&optionsCopy, "metrics");
     }
 
     // outputOptions
-    DeleteSeenOption(&OutputOptionsCopy, "train_dir");
-    DeleteSeenOption(&OutputOptionsCopy, "name");
-    DeleteSeenOption(&OutputOptionsCopy, "meta");
-    DeleteSeenOption(&OutputOptionsCopy, "json_log");
-    DeleteSeenOption(&OutputOptionsCopy, "profile_log");
-    DeleteSeenOption(&OutputOptionsCopy, "learn_error_log");
-    DeleteSeenOption(&OutputOptionsCopy, "test_error_log");
-    DeleteSeenOption(&OutputOptionsCopy, "time_left_log");
-    DeleteSeenOption(&OutputOptionsCopy, "result_model_file");
-    DeleteSeenOption(&OutputOptionsCopy, "snapshot_file");
-    DeleteSeenOption(&OutputOptionsCopy, "save_snapshot");
-    DeleteSeenOption(&OutputOptionsCopy, "snapshot_interval");
-    DeleteSeenOption(&OutputOptionsCopy, "verbose");
-    DeleteSeenOption(&OutputOptionsCopy, "metric_period");
-    DeleteSeenOption(&OutputOptionsCopy, "prediction_type");
-    DeleteSeenOption(&OutputOptionsCopy, "output_columns");
-    DeleteSeenOption(&OutputOptionsCopy, "allow_writing_files");
-    DeleteSeenOption(&OutputOptionsCopy, "final_ctr_computation_mode");
+    DeleteSeenOption(&outputoptionsCopy, "train_dir");
+    DeleteSeenOption(&outputoptionsCopy, "name");
+    DeleteSeenOption(&outputoptionsCopy, "meta");
+    DeleteSeenOption(&outputoptionsCopy, "json_log");
+    DeleteSeenOption(&outputoptionsCopy, "profile_log");
+    DeleteSeenOption(&outputoptionsCopy, "learn_error_log");
+    DeleteSeenOption(&outputoptionsCopy, "test_error_log");
+    DeleteSeenOption(&outputoptionsCopy, "time_left_log");
+    DeleteSeenOption(&outputoptionsCopy, "result_model_file");
+    DeleteSeenOption(&outputoptionsCopy, "snapshot_file");
+    DeleteSeenOption(&outputoptionsCopy, "save_snapshot");
+    DeleteSeenOption(&outputoptionsCopy, "snapshot_interval");
+    DeleteSeenOption(&outputoptionsCopy, "verbose");
+    DeleteSeenOption(&outputoptionsCopy, "metric_period");
+    DeleteSeenOption(&outputoptionsCopy, "prediction_type");
+    DeleteSeenOption(&outputoptionsCopy, "output_columns");
+    DeleteSeenOption(&outputoptionsCopy, "allow_writing_files");
+    DeleteSeenOption(&outputoptionsCopy, "final_ctr_computation_mode");
 
     CopyOption(outputOptions, "use_best_model", &plainOptionsJson, &seenKeys);
-    DeleteSeenOption(&OutputOptionsCopy, "use_best_model");
+    DeleteSeenOption(&outputoptionsCopy, "use_best_model");
 
     CopyOption(outputOptions, "best_model_min_trees", &plainOptionsJson, &seenKeys);
-    DeleteSeenOption(&OutputOptionsCopy, "best_model_min_trees");
+    DeleteSeenOption(&outputoptionsCopy, "best_model_min_trees");
 
-    DeleteSeenOption(&OutputOptionsCopy, "eval_file_name");
-    DeleteSeenOption(&OutputOptionsCopy, "fstr_regular_file");
-    DeleteSeenOption(&OutputOptionsCopy, "fstr_internal_file");
-    DeleteSeenOption(&OutputOptionsCopy, "fstr_type");
-    DeleteSeenOption(&OutputOptionsCopy, "training_options_file");
-    DeleteSeenOption(&OutputOptionsCopy, "model_format");
-    DeleteSeenOption(&OutputOptionsCopy, "output_borders");
-    DeleteSeenOption(&OutputOptionsCopy, "roc_file");
-    CB_ENSURE(OutputOptionsCopy.GetMapSafe().empty(), "some output_options keys missed");
+    DeleteSeenOption(&outputoptionsCopy, "eval_file_name");
+    DeleteSeenOption(&outputoptionsCopy, "fstr_regular_file");
+    DeleteSeenOption(&outputoptionsCopy, "fstr_internal_file");
+    DeleteSeenOption(&outputoptionsCopy, "fstr_type");
+    DeleteSeenOption(&outputoptionsCopy, "training_options_file");
+    DeleteSeenOption(&outputoptionsCopy, "model_format");
+    DeleteSeenOption(&outputoptionsCopy, "output_borders");
+    DeleteSeenOption(&outputoptionsCopy, "roc_file");
+    CB_ENSURE(outputoptionsCopy.GetMapSafe().empty(), "some output_options keys missed");
 
     // boosting options
     if (options.Has("boosting_options")) {
-        const NJson::TJsonValue& boostingOptionsRef = options["boosting_options"];
-        NJson::TJsonValue& OptionsCopyBoosting = OptionsCopy["boosting_options"];
+        const auto& boostingOptionsRef = options["boosting_options"];
+        NJson::TJsonValue& optionsCopyBoosting = optionsCopy["boosting_options"];
 
         CopyOption(boostingOptionsRef, "iterations", &plainOptionsJson, &seenKeys);
-        DeleteSeenOption(&OptionsCopyBoosting, "iterations");
+        DeleteSeenOption(&optionsCopyBoosting, "iterations");
 
         CopyOption(boostingOptionsRef, "learning_rate", &plainOptionsJson, &seenKeys);
-        DeleteSeenOption(&OptionsCopyBoosting, "learning_rate");
+        DeleteSeenOption(&optionsCopyBoosting, "learning_rate");
 
         CopyOption(boostingOptionsRef, "fold_len_multiplier", &plainOptionsJson, &seenKeys);
-        DeleteSeenOption(&OptionsCopyBoosting, "fold_len_multiplier");
+        DeleteSeenOption(&optionsCopyBoosting, "fold_len_multiplier");
 
         CopyOption(boostingOptionsRef, "approx_on_full_history", &plainOptionsJson, &seenKeys);
-        DeleteSeenOption(&OptionsCopyBoosting, "approx_on_full_history");
+        DeleteSeenOption(&optionsCopyBoosting, "approx_on_full_history");
 
         CopyOption(boostingOptionsRef, "fold_permutation_block", &plainOptionsJson, &seenKeys);
-        DeleteSeenOption(&OptionsCopyBoosting, "fold_permutation_block");
+        DeleteSeenOption(&optionsCopyBoosting, "fold_permutation_block");
 
         CopyOption(boostingOptionsRef, "min_fold_size", &plainOptionsJson, &seenKeys);
-        DeleteSeenOption(&OptionsCopyBoosting, "min_fold_size");
+        DeleteSeenOption(&optionsCopyBoosting, "min_fold_size");
 
         CopyOption(boostingOptionsRef, "permutation_count", &plainOptionsJson, &seenKeys);
-        DeleteSeenOption(&OptionsCopyBoosting, "permutation_count");
+        DeleteSeenOption(&optionsCopyBoosting, "permutation_count");
 
         CopyOption(boostingOptionsRef, "boosting_type", &plainOptionsJson, &seenKeys);
-        DeleteSeenOption(&OptionsCopyBoosting, "boosting_type");
+        DeleteSeenOption(&optionsCopyBoosting, "boosting_type");
 
         CopyOption(boostingOptionsRef, "data_partition", &plainOptionsJson, &seenKeys);
-        DeleteSeenOption(&OptionsCopyBoosting, "data_partition");
+        DeleteSeenOption(&optionsCopyBoosting, "data_partition");
 
         if (boostingOptionsRef.Has("od_config")) {
-            auto &odConfig = boostingOptionsRef["od_config"];
-            NJson::TJsonValue &OptionsCopyOdConfig = OptionsCopyBoosting["od_config"];
+            const auto& odConfig = boostingOptionsRef["od_config"];
+            NJson::TJsonValue &optionsCopyOdConfig = optionsCopyBoosting["od_config"];
 
             CopyOptionWithNewKey(odConfig, "type", "od_type", &plainOptionsJson, &seenKeys);
-            DeleteSeenOption(&OptionsCopyOdConfig, "type");
+            DeleteSeenOption(&optionsCopyOdConfig, "type");
 
             CopyOptionWithNewKey(odConfig, "stop_pvalue", "od_pval", &plainOptionsJson, &seenKeys);
-            DeleteSeenOption(&OptionsCopyOdConfig, "stop_pvalue");
+            DeleteSeenOption(&optionsCopyOdConfig, "stop_pvalue");
 
             CopyOptionWithNewKey(odConfig, "wait_iterations", "od_wait", &plainOptionsJson, &seenKeys);
-            DeleteSeenOption(&OptionsCopyOdConfig, "wait_iterations");
+            DeleteSeenOption(&optionsCopyOdConfig, "wait_iterations");
 
-            CB_ENSURE(OptionsCopyOdConfig.GetMapSafe().empty(), "some keys in boosting od_config options missed");
-            DeleteSeenOption(&OptionsCopyBoosting, "od_config");
+            CB_ENSURE(optionsCopyOdConfig.GetMapSafe().empty(), "some keys in boosting od_config options missed");
+            DeleteSeenOption(&optionsCopyBoosting, "od_config");
         }
-        CB_ENSURE(OptionsCopyBoosting.GetMapSafe().empty(), "some keys in boosting options missed");
-        DeleteSeenOption(&OptionsCopy, "boosting_options");
+        CB_ENSURE(optionsCopyBoosting.GetMapSafe().empty(), "some keys in boosting options missed");
+        DeleteSeenOption(&optionsCopy, "boosting_options");
     }
 
     if (options.Has("tree_learner_options")) {
-        auto &treeOptions = options["tree_learner_options"];
-        NJson::TJsonValue &OptionsCopyTree = OptionsCopy["tree_learner_options"];
+        const auto& treeOptions = options["tree_learner_options"];
+        NJson::TJsonValue &optionsCopyTree = optionsCopy["tree_learner_options"];
 
         CopyOption(treeOptions, "rsm", &plainOptionsJson, &seenKeys);
-        DeleteSeenOption(&OptionsCopyTree, "rsm");
+        DeleteSeenOption(&optionsCopyTree, "rsm");
 
         CopyOption(treeOptions, "leaf_estimation_iterations", &plainOptionsJson, &seenKeys);
-        DeleteSeenOption(&OptionsCopyTree, "leaf_estimation_iterations");
+        DeleteSeenOption(&optionsCopyTree, "leaf_estimation_iterations");
 
         CopyOption(treeOptions, "leaf_estimation_backtracking", &plainOptionsJson, &seenKeys);
-        DeleteSeenOption(&OptionsCopyTree, "leaf_estimation_backtracking");
+        DeleteSeenOption(&optionsCopyTree, "leaf_estimation_backtracking");
 
         CopyOption(treeOptions, "depth", &plainOptionsJson, &seenKeys);
-        DeleteSeenOption(&OptionsCopyTree, "depth");
+        DeleteSeenOption(&optionsCopyTree, "depth");
 
         CopyOption(treeOptions, "l2_leaf_reg", &plainOptionsJson, &seenKeys);
-        DeleteSeenOption(&OptionsCopyTree, "l2_leaf_reg");
+        DeleteSeenOption(&optionsCopyTree, "l2_leaf_reg");
 
         CopyOption(treeOptions, "bayesian_matrix_reg", &plainOptionsJson, &seenKeys);
-        DeleteSeenOption(&OptionsCopyTree, "bayesian_matrix_reg");
+        DeleteSeenOption(&optionsCopyTree, "bayesian_matrix_reg");
 
         CopyOption(treeOptions, "model_size_reg", &plainOptionsJson, &seenKeys);
-        DeleteSeenOption(&OptionsCopyTree, "model_size_reg");
+        DeleteSeenOption(&optionsCopyTree, "model_size_reg");
 
-        DeleteSeenOption(&OptionsCopyTree, "dev_score_calc_obj_block_size");
+        DeleteSeenOption(&optionsCopyTree, "dev_score_calc_obj_block_size");
 
-        DeleteSeenOption(&OptionsCopyTree, "dev_efb_max_buckets");
+        DeleteSeenOption(&optionsCopyTree, "dev_efb_max_buckets");
 
         CopyOption(treeOptions, "efb_max_conflict_fraction", &plainOptionsJson, &seenKeys);
-        DeleteSeenOption(&OptionsCopyTree, "efb_max_conflict_fraction");
+        DeleteSeenOption(&optionsCopyTree, "efb_max_conflict_fraction");
 
         CopyOption(treeOptions, "random_strength", &plainOptionsJson, &seenKeys);
-        DeleteSeenOption(&OptionsCopyTree, "random_strength");
+        DeleteSeenOption(&optionsCopyTree, "random_strength");
 
         CopyOption(treeOptions, "leaf_estimation_method", &plainOptionsJson, &seenKeys);
-        DeleteSeenOption(&OptionsCopyTree, "leaf_estimation_method");
+        DeleteSeenOption(&optionsCopyTree, "leaf_estimation_method");
 
         CopyOption(treeOptions, "grow_policy", &plainOptionsJson, &seenKeys);
-        DeleteSeenOption(&OptionsCopyTree, "grow_policy");
+        DeleteSeenOption(&optionsCopyTree, "grow_policy");
 
         CopyOption(treeOptions, "max_leaves", &plainOptionsJson, &seenKeys);
-        DeleteSeenOption(&OptionsCopyTree, "max_leaves");
+        DeleteSeenOption(&optionsCopyTree, "max_leaves");
 
         CopyOption(treeOptions, "min_data_in_leaf", &plainOptionsJson, &seenKeys);
-        DeleteSeenOption(&OptionsCopyTree, "min_data_in_leaf");
+        DeleteSeenOption(&optionsCopyTree, "min_data_in_leaf");
 
         CopyOption(treeOptions, "score_function", &plainOptionsJson, &seenKeys);
-        DeleteSeenOption(&OptionsCopyTree, "score_function");
+        DeleteSeenOption(&optionsCopyTree, "score_function");
 
         CopyOption(treeOptions, "fold_size_loss_normalization", &plainOptionsJson, &seenKeys);
-        DeleteSeenOption(&OptionsCopyTree, "fold_size_loss_normalization");
+        DeleteSeenOption(&optionsCopyTree, "fold_size_loss_normalization");
 
         CopyOption(treeOptions, "add_ridge_penalty_to_loss_function", &plainOptionsJson, &seenKeys);
-        DeleteSeenOption(&OptionsCopyTree, "add_ridge_penalty_to_loss_function");
+        DeleteSeenOption(&optionsCopyTree, "add_ridge_penalty_to_loss_function");
 
         CopyOption(treeOptions, "sampling_frequency", &plainOptionsJson, &seenKeys);
-        DeleteSeenOption(&OptionsCopyTree, "sampling_frequency");
+        DeleteSeenOption(&optionsCopyTree, "sampling_frequency");
 
-        DeleteSeenOption(&OptionsCopyTree, "dev_max_ctr_complexity_for_border_cache");
+        DeleteSeenOption(&optionsCopyTree, "dev_max_ctr_complexity_for_border_cache");
 
         CopyOption(treeOptions, "observations_to_bootstrap", &plainOptionsJson, &seenKeys);
-        DeleteSeenOption(&OptionsCopyTree, "observations_to_bootstrap");
+        DeleteSeenOption(&optionsCopyTree, "observations_to_bootstrap");
 
         // bootstrap
         if (treeOptions.Has("bootstrap")) {
-            auto &bootstrapOptions = treeOptions["bootstrap"];
-            NJson::TJsonValue &OptionsCopyTreeBootstrap = OptionsCopyTree["bootstrap"];
+            const auto& bootstrapOptions = treeOptions["bootstrap"];
+            NJson::TJsonValue &optionsCopyTreeBootstrap = optionsCopyTree["bootstrap"];
 
             CopyOptionWithNewKey(bootstrapOptions, "type", "bootstrap_type", &plainOptionsJson, &seenKeys);
-            DeleteSeenOption(&OptionsCopyTreeBootstrap, "type");
+            DeleteSeenOption(&optionsCopyTreeBootstrap, "type");
 
             CopyOption(bootstrapOptions, "bagging_temperature", &plainOptionsJson, &seenKeys);
-            DeleteSeenOption(&OptionsCopyTreeBootstrap, "bagging_temperature");
+            DeleteSeenOption(&optionsCopyTreeBootstrap, "bagging_temperature");
 
             CopyOption(bootstrapOptions, "subsample", &plainOptionsJson, &seenKeys);
-            DeleteSeenOption(&OptionsCopyTreeBootstrap, "subsample");
+            DeleteSeenOption(&optionsCopyTreeBootstrap, "subsample");
 
             CopyOption(bootstrapOptions, "mvs_head_fraction", &plainOptionsJson, &seenKeys);
-            DeleteSeenOption(&OptionsCopyTreeBootstrap, "mvs_head_fraction");
+            DeleteSeenOption(&optionsCopyTreeBootstrap, "mvs_head_fraction");
 
-            CB_ENSURE(OptionsCopyTreeBootstrap.GetMapSafe().empty(), "some bootstrap keys missed");
-            DeleteSeenOption(&OptionsCopyTree, "bootstrap");
+            CB_ENSURE(optionsCopyTreeBootstrap.GetMapSafe().empty(), "some bootstrap keys missed");
+            DeleteSeenOption(&optionsCopyTree, "bootstrap");
         }
-        CB_ENSURE(OptionsCopyTree.GetMapSafe().empty(), "some tree_learner_options keys missed");
-        DeleteSeenOption(&OptionsCopy, "tree_learner_options");
+        CB_ENSURE(optionsCopyTree.GetMapSafe().empty(), "some tree_learner_options keys missed");
+        DeleteSeenOption(&optionsCopy, "tree_learner_options");
     }
 
     //feature evaluation options
-    if (OptionsCopy.Has("model_based_eval_options")) {
-        NJson::TJsonValue& OptionsCopyBasedEval = OptionsCopy["model_based_eval_options"];
+    if (optionsCopy.Has("model_based_eval_options")) {
+        NJson::TJsonValue& optionsCopyBasedEval = optionsCopy["model_based_eval_options"];
 
-        DeleteSeenOption(&OptionsCopyBasedEval, "features_to_evaluate");
-        DeleteSeenOption(&OptionsCopyBasedEval, "offset");
-        DeleteSeenOption(&OptionsCopyBasedEval, "experiment_count");
-        DeleteSeenOption(&OptionsCopyBasedEval, "experiment_size");
-        DeleteSeenOption(&OptionsCopyBasedEval, "baseline_model_snapshot");
+        DeleteSeenOption(&optionsCopyBasedEval, "features_to_evaluate");
+        DeleteSeenOption(&optionsCopyBasedEval, "offset");
+        DeleteSeenOption(&optionsCopyBasedEval, "experiment_count");
+        DeleteSeenOption(&optionsCopyBasedEval, "experiment_size");
+        DeleteSeenOption(&optionsCopyBasedEval, "baseline_model_snapshot");
 
-        CB_ENSURE(OptionsCopyBasedEval.GetMapSafe().empty(), "some model_based_eval_options keys missed");
-        DeleteSeenOption(&OptionsCopy, "model_based_eval_options");
+        CB_ENSURE(optionsCopyBasedEval.GetMapSafe().empty(), "some model_based_eval_options keys missed");
+        DeleteSeenOption(&optionsCopy, "model_based_eval_options");
     }
 
     //cat-features
     if (options.Has("cat_feature_params")) {
-        auto &ctrOptions = options["cat_feature_params"];
-        NJson::TJsonValue &OptionsCopyCtr = OptionsCopy["cat_feature_params"];
+        const auto& ctrOptions = options["cat_feature_params"];
+        NJson::TJsonValue &optionsCopyCtr = optionsCopy["cat_feature_params"];
 
         ConcatenateCtrDescription(ctrOptions, "simple_ctrs", "simple_ctr", &plainOptionsJson, &seenKeys);
-        DeleteSeenOption(&OptionsCopyCtr, "simple_ctrs");
+        DeleteSeenOption(&optionsCopyCtr, "simple_ctrs");
 
         ConcatenateCtrDescription(ctrOptions, "combinations_ctrs", "combinations_ctr", &plainOptionsJson, &seenKeys);
-        DeleteSeenOption(&OptionsCopyCtr, "combinations_ctrs");
+        DeleteSeenOption(&optionsCopyCtr, "combinations_ctrs");
 
         RemapPerFeatureCtrDescription(ctrOptions, "per_feature_ctrs", "per_feature_ctr", &plainOptionsJson);
-        DeleteSeenOption(&OptionsCopyCtr, "per_feature_ctrs");
-
+        DeleteSeenOption(&optionsCopyCtr, "per_feature_ctrs");
 
         if (ctrOptions.Has("target_binarization")) {
-            auto &ctrTargetBinarization = ctrOptions["target_binarization"];
-            NJson::TJsonValue &OptionsCopyCtrTargetBinarization = OptionsCopyCtr["target_binarization"];
+            const auto& ctrTargetBinarization = ctrOptions["target_binarization"];
+            NJson::TJsonValue &optionsCopyCtrTargetBinarization = optionsCopyCtr["target_binarization"];
 
             CopyOptionWithNewKey(ctrTargetBinarization, "border_count", "ctr_target_border_count", &plainOptionsJson,
                                  &seenKeys);
-            DeleteSeenOption(&OptionsCopyCtrTargetBinarization, "border_count");
-            DeleteSeenOption(&OptionsCopyCtr, "target_binarization");
+            DeleteSeenOption(&optionsCopyCtrTargetBinarization, "border_count");
+            DeleteSeenOption(&optionsCopyCtr, "target_binarization");
         }
 
         CopyOption(ctrOptions, "max_ctr_complexity", &plainOptionsJson, &seenKeys);
-        DeleteSeenOption(&OptionsCopyCtr, "max_ctr_complexity");
+        DeleteSeenOption(&optionsCopyCtr, "max_ctr_complexity");
 
         CopyOption(ctrOptions, "simple_ctr_description", &plainOptionsJson, &seenKeys);
-        DeleteSeenOption(&OptionsCopyCtr, "simple_ctr_description");
+        DeleteSeenOption(&optionsCopyCtr, "simple_ctr_description");
 
         CopyOption(ctrOptions, "tree_ctr_description", &plainOptionsJson, &seenKeys);
-        DeleteSeenOption(&OptionsCopyCtr, "tree_ctr_description");
+        DeleteSeenOption(&optionsCopyCtr, "tree_ctr_description");
 
         CopyOption(ctrOptions, "per_feature_ctr_description", &plainOptionsJson, &seenKeys);
-        DeleteSeenOption(&OptionsCopyCtr, "per_feature_ctr_description");
+        DeleteSeenOption(&optionsCopyCtr, "per_feature_ctr_description");
 
         CopyOption(ctrOptions, "counter_calc_method", &plainOptionsJson, &seenKeys);
-        DeleteSeenOption(&OptionsCopyCtr, "counter_calc_method");
+        DeleteSeenOption(&optionsCopyCtr, "counter_calc_method");
 
         CopyOption(ctrOptions, "store_all_simple_ctr", &plainOptionsJson, &seenKeys);
-        DeleteSeenOption(&OptionsCopyCtr, "store_all_simple_ctr");
+        DeleteSeenOption(&optionsCopyCtr, "store_all_simple_ctr");
 
         CopyOption(ctrOptions, "one_hot_max_size", &plainOptionsJson, &seenKeys);
-        DeleteSeenOption(&OptionsCopyCtr, "one_hot_max_size");
+        DeleteSeenOption(&optionsCopyCtr, "one_hot_max_size");
 
         CopyOption(ctrOptions, "ctr_leaf_count_limit", &plainOptionsJson, &seenKeys);
-        DeleteSeenOption(&OptionsCopyCtr, "ctr_leaf_count_limit");
+        DeleteSeenOption(&optionsCopyCtr, "ctr_leaf_count_limit");
 
         CopyOption(ctrOptions, "ctr_history_unit", &plainOptionsJson, &seenKeys);
-        DeleteSeenOption(&OptionsCopyCtr, "ctr_history_unit");
+        DeleteSeenOption(&optionsCopyCtr, "ctr_history_unit");
 
-        CB_ENSURE(OptionsCopyCtr.GetMapSafe().empty(), "some ctr options keys missed");
-        DeleteSeenOption(&OptionsCopy, "cat_feature_params");
+        CB_ENSURE(optionsCopyCtr.GetMapSafe().empty(), "some ctr options keys missed");
+        DeleteSeenOption(&optionsCopy, "cat_feature_params");
     }
 
     //data processing
     if (options.Has("data_processing_options")) {
-        auto &dataProcessingOptions = options["data_processing_options"];
-        NJson::TJsonValue &OptionsCopyDataProcessing = OptionsCopy["data_processing_options"];
+        const auto& dataProcessingOptions = options["data_processing_options"];
+        NJson::TJsonValue &optionsCopyDataProcessing = optionsCopy["data_processing_options"];
 
         CopyOption(dataProcessingOptions, "ignored_features", &plainOptionsJson, &seenKeys);
-        DeleteSeenOption(&OptionsCopyDataProcessing, "ignored_features");
+        DeleteSeenOption(&optionsCopyDataProcessing, "ignored_features");
 
         CopyOption(dataProcessingOptions, "has_time", &plainOptionsJson, &seenKeys);
-        DeleteSeenOption(&OptionsCopyDataProcessing, "has_time");
+        DeleteSeenOption(&optionsCopyDataProcessing, "has_time");
 
         CopyOption(dataProcessingOptions, "allow_const_label", &plainOptionsJson, &seenKeys);
-        DeleteSeenOption(&OptionsCopyDataProcessing, "allow_const_label");
+        DeleteSeenOption(&optionsCopyDataProcessing, "allow_const_label");
 
         CopyOption(dataProcessingOptions, "classes_count", &plainOptionsJson, &seenKeys);
-        DeleteSeenOption(&OptionsCopyDataProcessing, "classes_count");
+        DeleteSeenOption(&optionsCopyDataProcessing, "classes_count");
 
         CopyOption(dataProcessingOptions, "class_names", &plainOptionsJson, &seenKeys);
-        DeleteSeenOption(&OptionsCopyDataProcessing, "class_names");
+        DeleteSeenOption(&optionsCopyDataProcessing, "class_names");
 
         CopyOption(dataProcessingOptions, "class_weights", &plainOptionsJson, &seenKeys);
-        DeleteSeenOption(&OptionsCopyDataProcessing, "class_weights");
+        DeleteSeenOption(&optionsCopyDataProcessing, "class_weights");
 
         CopyOption(dataProcessingOptions, "gpu_cat_features_storage", &plainOptionsJson, &seenKeys);
-        DeleteSeenOption(&OptionsCopyDataProcessing, "gpu_cat_features_storage");
+        DeleteSeenOption(&optionsCopyDataProcessing, "gpu_cat_features_storage");
 
         if (dataProcessingOptions.Has("float_features_binarization")) {
-            auto &floatFeaturesBinarization = dataProcessingOptions["float_features_binarization"];
-            NJson::TJsonValue &OptionsCopyDataProcessingFloatFeaturesBinarization = OptionsCopyDataProcessing["float_features_binarization"];
+            const auto& floatFeaturesBinarization = dataProcessingOptions["float_features_binarization"];
+            NJson::TJsonValue &optionsCopyDataProcessingFloatFeaturesBinarization = optionsCopyDataProcessing["float_features_binarization"];
 
             CopyOption(floatFeaturesBinarization, "border_count", &plainOptionsJson, &seenKeys);
-            DeleteSeenOption(&OptionsCopyDataProcessingFloatFeaturesBinarization, "border_count");
+            DeleteSeenOption(&optionsCopyDataProcessingFloatFeaturesBinarization, "border_count");
 
             CopyOptionWithNewKey(floatFeaturesBinarization, "border_type", "feature_border_type", &plainOptionsJson,
                                  &seenKeys);
-            DeleteSeenOption(&OptionsCopyDataProcessingFloatFeaturesBinarization, "border_type");
+            DeleteSeenOption(&optionsCopyDataProcessingFloatFeaturesBinarization, "border_type");
 
             CopyOption(floatFeaturesBinarization, "nan_mode", &plainOptionsJson, &seenKeys);
-            DeleteSeenOption(&OptionsCopyDataProcessingFloatFeaturesBinarization, "nan_mode");
+            DeleteSeenOption(&optionsCopyDataProcessingFloatFeaturesBinarization, "nan_mode");
 
-            CB_ENSURE(OptionsCopyDataProcessingFloatFeaturesBinarization.GetMapSafe().empty(),
+            CB_ENSURE(optionsCopyDataProcessingFloatFeaturesBinarization.GetMapSafe().empty(),
                       "some float features binarization options keys missed");
-            DeleteSeenOption(&OptionsCopyDataProcessing, "float_features_binarization");
+            DeleteSeenOption(&optionsCopyDataProcessing, "float_features_binarization");
         }
-        CB_ENSURE(OptionsCopyDataProcessing.GetMapSafe().empty(), "some data processing options keys missed");
-        DeleteSeenOption(&OptionsCopy, "data_processing_options");
+        CB_ENSURE(optionsCopyDataProcessing.GetMapSafe().empty(), "some data processing options keys missed");
+        DeleteSeenOption(&optionsCopy, "data_processing_options");
     }
 
     //system
     if (options.Has("system_options")) {
-        auto& systemOptions = options["system_options"];
-        NJson::TJsonValue& OptionsCopySystemOptions = OptionsCopy["system_options"];
+        const auto& systemOptions = options["system_options"];
+        NJson::TJsonValue& optionsCopySystemOptions = optionsCopy["system_options"];
 
         CopyOption(systemOptions, "thread_count", &plainOptionsJson, &seenKeys);
-        DeleteSeenOption(&OptionsCopySystemOptions, "thread_count");
+        DeleteSeenOption(&optionsCopySystemOptions, "thread_count");
 
         CopyOption(systemOptions, "devices", &plainOptionsJson, &seenKeys);
-        DeleteSeenOption(&OptionsCopySystemOptions, "devices");
+        DeleteSeenOption(&optionsCopySystemOptions, "devices");
 
         CopyOption(systemOptions, "used_ram_limit", &plainOptionsJson, &seenKeys);
-        DeleteSeenOption(&OptionsCopySystemOptions, "used_ram_limit");
+        DeleteSeenOption(&optionsCopySystemOptions, "used_ram_limit");
 
         CopyOption(systemOptions, "gpu_ram_part", &plainOptionsJson, &seenKeys);
-        DeleteSeenOption(&OptionsCopySystemOptions, "gpu_ram_part");
+        DeleteSeenOption(&optionsCopySystemOptions, "gpu_ram_part");
 
         CopyOption(systemOptions, "pinned_memory_bytes", &plainOptionsJson, &seenKeys);
-        DeleteSeenOption(&OptionsCopySystemOptions, "pinned_memory_bytes");
+        DeleteSeenOption(&optionsCopySystemOptions, "pinned_memory_bytes");
 
         CopyOption(systemOptions, "node_type", &plainOptionsJson, &seenKeys);
-        DeleteSeenOption(&OptionsCopySystemOptions, "node_type");
+        DeleteSeenOption(&optionsCopySystemOptions, "node_type");
 
         CopyOption(systemOptions, "node_port", &plainOptionsJson, &seenKeys);
-        DeleteSeenOption(&OptionsCopySystemOptions, "node_port");
+        DeleteSeenOption(&optionsCopySystemOptions, "node_port");
 
         CopyOption(systemOptions, "file_with_hosts", &plainOptionsJson, &seenKeys);
-        DeleteSeenOption(&OptionsCopySystemOptions, "file_with_hosts");
+        DeleteSeenOption(&optionsCopySystemOptions, "file_with_hosts");
 
-        CB_ENSURE(OptionsCopySystemOptions.GetMapSafe().empty(), "some system options keys missed");
-        DeleteSeenOption(&OptionsCopy, "system_options");
+        CB_ENSURE(optionsCopySystemOptions.GetMapSafe().empty(), "some system options keys missed");
+        DeleteSeenOption(&optionsCopy, "system_options");
     }
 
     //rest
     CopyOption(options, "random_seed", &plainOptionsJson, &seenKeys);
-    DeleteSeenOption(&OptionsCopy, "random_seed");
+    DeleteSeenOption(&optionsCopy, "random_seed");
 
     CopyOption(options, "logging_level", &plainOptionsJson, &seenKeys);
-    DeleteSeenOption(&OptionsCopy, "logging_level");
+    DeleteSeenOption(&optionsCopy, "logging_level");
 
     CopyOption(options, "detailed_profile", &plainOptionsJson, &seenKeys);
-    DeleteSeenOption(&OptionsCopy, "detailed_profile");
+    DeleteSeenOption(&optionsCopy, "detailed_profile");
 
     CopyOption(options, "task_type", &plainOptionsJson, &seenKeys);
-    DeleteSeenOption(&OptionsCopy, "task_type");
+    DeleteSeenOption(&optionsCopy, "task_type");
 
     CopyOption(options, "metadata", &plainOptionsJson, &seenKeys);
-    DeleteSeenOption(&OptionsCopy, "metadata");
+    DeleteSeenOption(&optionsCopy, "metadata");
 
-    DeleteSeenOption(&OptionsCopy, "flat_params");
+    DeleteSeenOption(&optionsCopy, "flat_params");
 
-    CB_ENSURE(OptionsCopy.GetMapSafe().empty(), "some options keys missed");
+    CB_ENSURE(optionsCopy.GetMapSafe().empty(), "some options keys missed");
 }
 
 void NCatboostOptions::DeleteEmptyKeysInPlainJson(
         NJson::TJsonValue* plainOptionsJsonEfficient,
-        bool CatFeaturesArePresent) {
+        bool categoricalFeaturesArePresent) {
 
     if ((*plainOptionsJsonEfficient)["od_type"].GetStringSafe() == ToString(EOverfittingDetectorType::None)) {
         DeleteSeenOption(plainOptionsJsonEfficient, "od_type");
@@ -846,7 +840,7 @@ void NCatboostOptions::DeleteEmptyKeysInPlainJson(
         }
     }
 
-    if (!CatFeaturesArePresent) {
+    if (!categoricalFeaturesArePresent) {
         DeleteSeenOption(plainOptionsJsonEfficient, "simple_ctrs");
         DeleteSeenOption(plainOptionsJsonEfficient, "combinations_ctrs");
         DeleteSeenOption(plainOptionsJsonEfficient, "per_feature_ctrs");

@@ -185,7 +185,6 @@ Y_UNIT_TEST_SUITE(TJsonHelperTest) {
             TString refBootstrapType = "Bernoulli";
             double refBaggingTemperature = 36.6;
 
-
             // parsed variables
             int parsedIterations = 7;
             double parsedLearningRate = 10.9;
@@ -204,21 +203,20 @@ Y_UNIT_TEST_SUITE(TJsonHelperTest) {
             TString parsedBootstrapType = "Laplace";
             double parsedBaggingTemperature = 39.0;
 
-
             NJson::TJsonValue trainOptionsJson;
             NJson::TJsonValue outputFilesOptionsJson;
             NCatboostOptions::PlainJsonToOptions(plainOptions, &trainOptionsJson, &outputFilesOptionsJson);
 
             // boosting options
-            auto& boosting_options = trainOptionsJson["boosting_options"];
-            TJsonFieldHelper<int>::Read(boosting_options["iterations"], &parsedIterations);
-            TJsonFieldHelper<double>::Read(boosting_options["learning_rate"], &parsedLearningRate);
-            TJsonFieldHelper<int>::Read(boosting_options["fold_len_multiplier"], &parsedFoldLenMultiplier);
-            TJsonFieldHelper<bool>::Read(boosting_options["approx_on_full_history"], &parsedApproxOnFullHistory);
-            TJsonFieldHelper<int>::Read(boosting_options["fold_permutation_block"], &parsedFoldPermutationBlock);
+            auto& boostingOptions = trainOptionsJson["boosting_options"];
+            TJsonFieldHelper<int>::Read(boostingOptions["iterations"], &parsedIterations);
+            TJsonFieldHelper<double>::Read(boostingOptions["learning_rate"], &parsedLearningRate);
+            TJsonFieldHelper<int>::Read(boostingOptions["fold_len_multiplier"], &parsedFoldLenMultiplier);
+            TJsonFieldHelper<bool>::Read(boostingOptions["approx_on_full_history"], &parsedApproxOnFullHistory);
+            TJsonFieldHelper<int>::Read(boostingOptions["fold_permutation_block"], &parsedFoldPermutationBlock);
 
             // od_config options
-            auto& odConfig = boosting_options["od_config"];
+            auto& odConfig = boostingOptions["od_config"];
             TJsonFieldHelper<double>::Read(odConfig["stop_pvalue"], &parsedOdPval);
             TJsonFieldHelper<int>::Read(odConfig["wait_iterations"], &parsedOdWait);
             TJsonFieldHelper<TString>::Read(odConfig["type"], &parsedOdType);
@@ -233,8 +231,6 @@ Y_UNIT_TEST_SUITE(TJsonHelperTest) {
             auto& bootstrapOptions = treeOptions["bootstrap"];
             TJsonFieldHelper<TString>::Read(bootstrapOptions["type"], &parsedBootstrapType);
             TJsonFieldHelper<double>::Read(bootstrapOptions["bagging_temperature"], &parsedBaggingTemperature);
-
-
 
             // plainOptions to trainOptionsJson and outputFilesOptionsJson using PlainJsonToOptions
             UNIT_ASSERT_VALUES_EQUAL(parsedIterations, refIterations);
@@ -253,7 +249,6 @@ Y_UNIT_TEST_SUITE(TJsonHelperTest) {
 
             UNIT_ASSERT_VALUES_EQUAL(parsedBootstrapType, refBootstrapType);
             UNIT_ASSERT_VALUES_EQUAL(parsedBaggingTemperature, refBaggingTemperature);
-
 
             // now test reverse transformation
             NJson::TJsonValue reversePlainOptions;
@@ -275,9 +270,6 @@ Y_UNIT_TEST_SUITE(TJsonHelperTest) {
 
             TString reverseParsedBootstrapType = "Laplace";
             double reverseParsedBaggingTemperature = 39.0;
-
-
-
 
             TJsonFieldHelper<int>::Read(reversePlainOptions["iterations"], &reverseParsedIterations);
             TJsonFieldHelper<double>::Read(reversePlainOptions["learning_rate"], &reverseParsedLearningRate);

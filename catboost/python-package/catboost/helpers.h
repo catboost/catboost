@@ -148,5 +148,5 @@ NJson::TJsonValue GetTrainingOptions(
     const TMaybe<NCB::TDataMetaInfo>& testDataMetaInfo
 );
 
-NJson::TJsonValue GetPlainJsonWithAllOptions(const TFullModel& model, bool catFeaturesArePresent);
+NJson::TJsonValue GetPlainJsonWithAllOptions(const TFullModel& model, bool categoricalFeaturesArePresent);
 

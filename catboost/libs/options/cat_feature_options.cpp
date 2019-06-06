@@ -333,27 +333,27 @@ TString NCatboostOptions::BuildCtrOptionsDescription(const NJson::TJsonValue& op
     ctrTypeStringConcat = StripString(ctrTypeStringConcat, EqualsStripAdapter('"'));
 
     if (options["ctr_binarization"].Has("border_count")) {
-        auto ctr_border_count = ToString(options["ctr_binarization"]["border_count"]);
-        ctrTypeStringConcat = ctrTypeStringConcat + ":CtrBorderCount=" + ctr_border_count;
+        auto ctrBorderCount = ToString(options["ctr_binarization"]["border_count"]);
+        ctrTypeStringConcat = ctrTypeStringConcat + ":CtrBorderCount=" + ctrBorderCount;
     }
 
     if (options["ctr_binarization"].Has("border_type")) {
-        auto ctr_border_type_stripped = StripString(ToString(options["ctr_binarization"]["border_type"]),
+        auto ctrBorderTypeStripped = StripString(ToString(options["ctr_binarization"]["border_type"]),
                                                     EqualsStripAdapter('"'));
         ctrTypeStringConcat =
-                ctrTypeStringConcat + ":CtrBorderType=" + ctr_border_type_stripped;
+                ctrTypeStringConcat + ":CtrBorderType=" + ctrBorderTypeStripped;
     }
 
     if (options["target_binarization"].Has("border_count")) {
-        auto target_border_count = ToString(options["target_binarization"]["border_count"]);
-        ctrTypeStringConcat = ctrTypeStringConcat + ":TargetBorderCount=" + target_border_count;
+        auto targetBorderCount = ToString(options["target_binarization"]["border_count"]);
+        ctrTypeStringConcat = ctrTypeStringConcat + ":TargetBorderCount=" + targetBorderCount;
     }
 
     if (options["target_binarization"].Has("border_type")) {
-        auto target_border_type_stripped = StripString(ToString(options["target_binarization"]["border_type"]),
+        auto targetBorderTypeStripped = StripString(ToString(options["target_binarization"]["border_type"]),
                                                        EqualsStripAdapter('"'));
         ctrTypeStringConcat =
-                ctrTypeStringConcat + ":TargetBorderType=" + target_border_type_stripped;
+                ctrTypeStringConcat + ":TargetBorderType=" + targetBorderTypeStripped;
     }
 
     const NJson::TJsonValue& priorDescriptions = options["priors"];

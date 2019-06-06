@@ -2729,10 +2729,10 @@ cdef class _CatBoost:
         except Exception as e:
             return {}
 
-    cpdef _get_plain_params(self, catFeaturesArePresent):
+    cpdef _get_plain_params(self, categoricalFeaturesArePresent):
         cdef TJsonValue plainOptions
         try:
-            plainOptions = GetPlainJsonWithAllOptions(dereference(self.__model), catFeaturesArePresent)
+            plainOptions = GetPlainJsonWithAllOptions(dereference(self.__model), categoricalFeaturesArePresent)
             return loads(to_native_str(ToString(plainOptions)))
         except Exception as e:
             return {}
