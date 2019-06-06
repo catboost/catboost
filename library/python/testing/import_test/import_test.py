@@ -115,6 +115,8 @@ def check_imports(no_check=None, extra=[], skip_func=None):
         "django.db.migrations.*",
         "django.template.backends.jinja2",
 
+        "pytest_django.compat",
+
         "matplotlib.backends.*",
         "matplotlib.sphinxext.*",
         "matplotlib.testing.*",
