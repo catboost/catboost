@@ -6,7 +6,7 @@
 template <class T>
 class TSocketMap {
 public:
-    inline T& Get(size_t idx) {
+    T& Get(size_t idx) {
         if (idx < 128000) {
             if (V_.size() <= idx) {
                 V_.resize(idx + 1);

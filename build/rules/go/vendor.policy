@@ -30,6 +30,7 @@ ALLOW .* -> vendor/github.com/dgrijalva/jwt-go
 # Docker API client
 ALLOW .* -> vendor/github.com/docker/docker/client
 ALLOW .* -> vendor/github.com/docker/docker/api
+ALLOW .* -> vendor/github.com/docker/go-connections
 
 # cross-platform file system notifications
 ALLOW .* -> vendor/github.com/fsnotify/fsnotify       
@@ -154,6 +155,9 @@ ALLOW .* -> vendor/github.com/OneOfOne/xxhash
 # default logging library. See also: library/go/core/log.
 ALLOW .* -> vendor/go.uber.org/zap                    
 
+# Find goroutine leaks in tests.
+ALLOW .* -> vendor/go.uber.org/goleak
+
 # golang.org/x/net
 ALLOW .* -> vendor/golang.org/x/net
 
@@ -213,6 +217,9 @@ ALLOW .* -> vendor/github.com/grpc-ecosystem/grpc-gateway
 
 # tus: the open protocol for resumable file uploads
 ALLOW .* -> vendor/github.com/tus/tusd
+
+# gopsutil: psutil for golang
+ALLOW .* -> vendor/github.com/shirou/gopsutil
 
 # 
 # Temporary exceptions.

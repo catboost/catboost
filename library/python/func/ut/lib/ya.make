@@ -8,4 +8,6 @@ PEERDIR(
     library/python/func
 )
 
+NO_LINT()
+
 END()

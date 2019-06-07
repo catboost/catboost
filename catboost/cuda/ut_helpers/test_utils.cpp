@@ -168,6 +168,8 @@ void LoadTrainingData(NCB::TPathWithScheme poolPath,
 
     TRestorableFastRng64 rand(0);
 
+    TMaybe<float> targetBorder = catBoostOptions.DataProcessingOptions->TargetBorder;
+
     *trainingData = NCB::GetTrainingData(std::move(dataProvider),
                                          true,
                                          "learn",
@@ -178,6 +180,7 @@ void LoadTrainingData(NCB::TPathWithScheme poolPath,
                                          nullptr,
                                          &catBoostOptions,
                                          &labelConverter,
+                                         &targetBorder,
                                          &localExecutor,
                                          &rand);
 

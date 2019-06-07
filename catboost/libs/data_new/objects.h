@@ -183,6 +183,7 @@ namespace NCB {
     };
 
     using TObjectsDataProviderPtr = TIntrusivePtr<TObjectsDataProvider>;
+    using TObjectsDataProviderConstPtr = TIntrusiveConstPtr<TObjectsDataProvider>;
 
 
     // for use while building and storing this part in TRawObjectsDataProvider
@@ -253,6 +254,14 @@ namespace NCB {
             NPar::TLocalExecutor* localExecutor
         ) const override;
 
+        // needed for effective application of models
+        TIntrusiveConstPtr<TRawObjectsDataProvider> GetWithPermutedConsecutiveArrayFeaturesData(
+            NPar::TLocalExecutor* localExecutor,
+
+            // if result is already in the same order as this return Nothing()
+            TMaybe<TVector<ui32>>* srcArrayPermutation
+        ) const;
+
         // needed for low-level optimizations in CPU applying code
         const TFeaturesArraySubsetIndexing& GetFeaturesArraySubsetIndexing() const {
             return *CommonData.SubsetIndexing;
@@ -307,8 +316,11 @@ namespace NCB {
          */
         TVector<THolder<IQuantizedFloatValuesHolder>> FloatFeatures; // [floatFeatureIdx]
         TVector<THolder<IQuantizedCatValuesHolder>> CatFeatures; // [catFeatureIdx]
+        TVector<THolder<TTokenizedTextValuesHolder>> TextFeatures; // [textFeatureIdx]
 
         TQuantizedFeaturesInfoPtr QuantizedFeaturesInfo;
+
+        mutable TMaybe<ui32> CachedFeaturesCheckSum;
 
     public:
         bool operator==(const TQuantizedObjectsData& rhs) const;
@@ -375,6 +387,11 @@ namespace NCB {
             NPar::TLocalExecutor* localExecutor
         ) const override;
 
+        TIntrusiveConstPtr<TQuantizedObjectsDataProvider> GetWithPermutedConsecutiveArrayFeaturesData(
+            NPar::TLocalExecutor* localExecutor,
+            TMaybe<TVector<ui32>>* srcArrayPermutation
+        ) const;
+
         /* can return nullptr if this feature is unavailable
          * (ignored or this data provider contains only subset of features)
          */
@@ -387,6 +404,13 @@ namespace NCB {
          */
         TMaybeData<const IQuantizedCatValuesHolder*> GetCatFeature(ui32 catFeatureIdx) const {
             return MakeMaybeData<const IQuantizedCatValuesHolder>(Data.CatFeatures[catFeatureIdx]);
+        }
+
+        /* can return nullptr if this feature is unavailable
+         * (ignored or this data provider contains only subset of features)
+         */
+        TMaybeData<const TTokenizedTextValuesHolder*> GetTextFeature(ui32 textFeatureIdx) const {
+            return MakeMaybeData<const TTokenizedTextValuesHolder>(Data.TextFeatures[textFeatureIdx]);
         }
 
         TQuantizedFeaturesInfoPtr GetQuantizedFeaturesInfo() const {
@@ -402,6 +426,8 @@ namespace NCB {
         void SaveDataNonSharedPart(IBinSaver* binSaver) const {
             Data.SaveNonSharedPart(binSaver);
         }
+
+        bool AllFeaturesDataIsCompressedArrays() const;
 
     protected:
         TQuantizedObjectsData Data;

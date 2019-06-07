@@ -10,22 +10,54 @@ NCatboostOptions::TModelBasedEvalOptions::TModelBasedEvalOptions(ETaskType /*tas
     , Offset("offset", 1000)
     , ExperimentCount("experiment_count", 200)
     , ExperimentSize("experiment_size", 5)
+    , UseEvaluatedFeaturesInBaselineModel("use_evaluated_features_in_baseline_model", false)
 {
 }
 
 void NCatboostOptions::TModelBasedEvalOptions::Load(const NJson::TJsonValue& options) {
-    CheckedLoad(options, &FeaturesToEvaluate, &BaselineModelSnapshot, &Offset, &ExperimentCount, &ExperimentSize);
+    CheckedLoad(
+        options,
+        &FeaturesToEvaluate,
+        &BaselineModelSnapshot,
+        &Offset,
+        &ExperimentCount,
+        &ExperimentSize,
+        &UseEvaluatedFeaturesInBaselineModel
+    );
 
     Validate();
 }
 
 void NCatboostOptions::TModelBasedEvalOptions::Save(NJson::TJsonValue* options) const {
-    SaveFields(options, FeaturesToEvaluate, BaselineModelSnapshot, Offset, ExperimentCount, ExperimentSize);
+    SaveFields(
+        options,
+        FeaturesToEvaluate,
+        BaselineModelSnapshot,
+        Offset,
+        ExperimentCount,
+        ExperimentSize,
+        UseEvaluatedFeaturesInBaselineModel
+    );
 }
 
 bool NCatboostOptions::TModelBasedEvalOptions::operator==(const TModelBasedEvalOptions& rhs) const {
-    return std::tie(FeaturesToEvaluate, BaselineModelSnapshot, Offset, ExperimentCount, ExperimentSize) ==
-        std::tie(rhs.FeaturesToEvaluate, rhs.BaselineModelSnapshot, rhs.Offset, rhs.ExperimentCount, rhs.ExperimentSize);
+    const auto& options = std::tie(
+        FeaturesToEvaluate,
+        BaselineModelSnapshot,
+        Offset,
+        ExperimentCount,
+        ExperimentSize,
+        UseEvaluatedFeaturesInBaselineModel
+    );
+    const auto& rhsOptions = std::tie(
+        rhs.FeaturesToEvaluate,
+        rhs.BaselineModelSnapshot,
+        rhs.Offset,
+        rhs.ExperimentCount,
+        rhs.ExperimentSize,
+        rhs.UseEvaluatedFeaturesInBaselineModel
+    );
+    return options == rhsOptions;
 }
 
 bool NCatboostOptions::TModelBasedEvalOptions::operator!=(const TModelBasedEvalOptions& rhs) const {

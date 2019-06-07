@@ -66,8 +66,8 @@ namespace NTextProcessing::NDictionary {
 
         friend class NTextProcessing::NDictionary::TBpeDictionaryBuilder;
 
-        explicit TBpeDictionary(THolder<TDictionary> alphabet, TVector<TBpeUnit> bpeUnits)
-            : Alphabet(alphabet.Release())
+        explicit TBpeDictionary(TIntrusivePtr<TDictionary> alphabet, TVector<TBpeUnit> bpeUnits)
+            : Alphabet(alphabet)
             , BpeUnits(std::move(bpeUnits)) {
             InitBpeTokens();
         }

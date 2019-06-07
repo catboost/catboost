@@ -3,23 +3,34 @@
 LIBRARY()
 
 SRCS(
-    options.cpp
+    bpe_builder.cpp
+    bpe_dictionary.cpp
     dictionary.cpp
     dictionary_builder.cpp
-    bpe_dictionary.cpp
+    fbs_helpers.cpp
     frequency_based_dictionary.cpp
     frequency_based_dictionary_impl.cpp
-    bpe_builder.cpp
+    mmap_frequency_based_dictionary.cpp
+    mmap_frequency_based_dictionary_impl.cpp
+    mmap_hash_table.cpp
+    multigram_dictionary_helpers.cpp
+    options.cpp
+    serialization_helpers.cpp
     util.cpp
-    bpe_builder.cpp
 )
 
 PEERDIR(
     library/containers/flat_hash
     library/json
+    library/text_processing/dictionary/idl
     library/threading/local_executor
 )
 
 GENERATE_ENUM_SERIALIZATION(types.h)
 
 END()
+
+RECURSE(
+    idl
+    ut
+)

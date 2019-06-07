@@ -2,6 +2,10 @@ PY23_LIBRARY()
 
 
 
+VERSION(1.0.2)
+
+LICENSE(Apache)
+
 NO_LINT()
 
 PY_SRCS(
@@ -10,8 +14,9 @@ PY_SRCS(
     funcsigs/version.py
 )
 
-RESOURCE(
-    .dist-info/METADATA /fs/contrib/python/funcsigs/.dist-info/METADATA
+RESOURCE_FILES(
+    PREFIX contrib/python/funcsigs/
+    .dist-info/METADATA
 )
 
 END()

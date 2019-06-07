@@ -34,7 +34,7 @@
 
 #include <windows.h>
 #include <tchar.h>
-
+#include <stdlib.h>
 
 HMODULE _Expat_LoadLibrary(LPCTSTR filename);
 

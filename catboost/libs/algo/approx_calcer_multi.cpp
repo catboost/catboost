@@ -16,7 +16,7 @@ void UpdateApproxDeltasMulti(
 ) {
     if (storeExpApprox) {
         for (int dim = 0; dim < leafValues->ysize(); ++dim) {
-            ExpApproxIf(storeExpApprox, &(*leafValues)[dim]);
+            ExpApproxIf(storeExpApprox, (*leafValues)[dim]);
             for (int z = 0; z < docCount; ++z) {
                 (*resArr)[dim][z] = UpdateApprox</*StoreExpApprox*/true>(
                     (*resArr)[dim][z],
@@ -25,7 +25,7 @@ void UpdateApproxDeltasMulti(
         }
     } else {
         for (int dim = 0; dim < leafValues->ysize(); ++dim) {
-            ExpApproxIf(storeExpApprox, &(*leafValues)[dim]);
+            ExpApproxIf(storeExpApprox, (*leafValues)[dim]);
             for (int z = 0; z < docCount; ++z) {
                 (*resArr)[dim][z] = UpdateApprox</*StoreExpApprox*/false>(
                     (*resArr)[dim][z],
@@ -100,7 +100,7 @@ void CalcApproxDeltaIterationMulti(
             &bucket);
 
         CalcMethodDelta(bucket, l2Regularizer, bt.BodySumWeight, bt.BodyFinish, &avrg);
-        ExpApproxIf(error.GetIsExpApprox(), &avrg);
+        ExpApproxIf(error.GetIsExpApprox(), avrg);
         for (int dim = 0; dim < approxDimension; ++dim) {
             (*resArr)[dim][z] = UpdateApprox(error.GetIsExpApprox(), (*resArr)[dim][z], avrg[dim]);
         }

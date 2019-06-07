@@ -45,6 +45,7 @@ SRCS(
     pairwise_leaves_calculation.cpp
     pairwise_scoring.cpp
     roc_curve.cpp
+    monotonic_constraint_utils.cpp
 )
 
 PEERDIR(
@@ -61,6 +62,7 @@ PEERDIR(
     catboost/libs/metrics
     catboost/libs/model
     catboost/libs/target
+    catboost/libs/text_features
     catboost/libs/options
     catboost/libs/overfitting_detector
     library/binsaver
@@ -76,7 +78,6 @@ PEERDIR(
     library/json
     library/malloc/api
     library/object_factory
-    library/par
     library/svnversion
     library/threading/local_executor
 )

@@ -3,6 +3,14 @@
 #include "asio.h"
 #include "io_service_impl.h"
 
+#if defined(_win_)
+#   define IOV_MAX 16
+#endif
+
+#if defined(_bionic_)
+#   define IOV_MAX 1024
+#endif
+
 namespace NAsio {
     // ownership/keep-alive references:
     // Handlers <- TOperation...(TFdOperation) <- TPollFdEventHandler <- TIOService

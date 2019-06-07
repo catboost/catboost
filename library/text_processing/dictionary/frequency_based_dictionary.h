@@ -45,6 +45,8 @@ namespace NTextProcessing::NDictionary {
         void Load(IInputStream* stream);
 
     private:
+        friend class TMMapDictionary;
+
         THolder<IDictionaryImpl> DictionaryImpl;
     };
 

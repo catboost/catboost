@@ -3,11 +3,13 @@
 #include "option.h"
 #include "enums.h"
 #include "binarization_options.h"
+#include "text_feature_options.h"
 #include "unimplemented_aware_option.h"
 
 #include <library/grid_creator/binarization.h>
 
 #include <util/generic/map.h>
+#include <util/generic/maybe.h>
 #include <util/generic/vector.h>
 #include <util/system/types.h>
 
@@ -29,8 +31,10 @@ namespace NCatboostOptions {
         TOption<TVector<ui32>> IgnoredFeatures;
         TOption<bool> HasTimeFlag;
         TOption<bool> AllowConstLabel;
+        TOption<TMaybe<float>> TargetBorder;
         TOption<TBinarizationOptions> FloatFeaturesBinarization;
         TOption<TMap<ui32, TBinarizationOptions>> PerFloatFeatureBinarization;
+        TOption<TTextProcessingOptionCollection> TextProcessing;
         TOption<ui32> ClassesCount;
         TOption<TVector<float>> ClassWeights;
         TOption<TVector<TString>> ClassNames;
@@ -38,4 +42,8 @@ namespace NCatboostOptions {
     private:
         void SetPerFeatureMissingSettingToCommonValues();
     };
+
+    constexpr float GetDefaultTargetBorder() {
+        return 0.5;
+    }
 }

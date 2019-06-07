@@ -1,14 +1,11 @@
 #pragma once
 
-#include <util/string/split.h>
+#include <util/generic/strbuf.h>
+#include <util/stream/output.h>
 #include <util/string/ascii.h>
 
 namespace NNeh {
     namespace NHttp {
-        inline auto SplitHeaders(TStringBuf headers) {
-            return StringSplitter(headers).SplitByString("\r\n").SkipEmpty();
-        }
-
         template <typename Port>
         void WriteHostHeader(IOutputStream& out, TStringBuf host, Port port) {
             out << AsStringBuf("Host: ") << host;
@@ -18,8 +15,29 @@ namespace NNeh {
             out << AsStringBuf("\r\n");
         }
 
+        class THeaderSplitter {
+        public:
+            THeaderSplitter(TStringBuf headers)
+                : Headers_(headers)
+            {
+            }
+
+            bool Next(TStringBuf& header) {
+                while (Headers_.ReadLine(header)) {
+                    if (!header.Empty()) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+        private:
+            TStringBuf Headers_;
+        };
+
         inline bool HasHostHeader(TStringBuf headers) {
-            for (TStringBuf header : NNeh::NHttp::SplitHeaders(headers)) {
+            THeaderSplitter splitter(headers);
+            TStringBuf header;
+            while (splitter.Next(header)) {
                 if (AsciiHasPrefixIgnoreCase(header, "Host:")) {
                     return true;
                 }

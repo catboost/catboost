@@ -18,6 +18,12 @@ PY_SRCS(
     pluggy/manager.py
 )
 
+RESOURCE_FILES(
+    PREFIX contrib/python/pluggy/
+    .dist-info/METADATA
+    .dist-info/top_level.txt
+)
+
 END()
 
 RECURSE_FOR_TESTS(

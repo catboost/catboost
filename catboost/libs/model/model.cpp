@@ -7,13 +7,15 @@
 #include "model_build_helper.h"
 #include "model_export/model_exporter.h"
 #include "onnx_helpers.h"
+#include "pmml_helpers.h"
 #include "static_ctr_provider.h"
 
 #include <catboost/libs/cat_feature/cat_feature.h>
 #include <catboost/libs/helpers/borders_io.h>
 #include <catboost/libs/logging/logging.h>
-#include <catboost/libs/options/json_helper.h>
 #include <catboost/libs/options/check_train_options.h>
+#include <catboost/libs/options/json_helper.h>
+#include <catboost/libs/options/loss_description.h>
 #include <catboost/libs/options/output_file_options.h>
 
 #include <contrib/libs/coreml/TreeEnsemble.pb.h>
@@ -85,6 +87,7 @@ TFullModel ReadModel(IInputStream* modelStream, EModelType format) {
         Load(modelStream, model);
     } else if (format == EModelType::Json) {
         NJson::TJsonValue jsonModel = NJson::ReadJsonTree(modelStream);
+        CB_ENSURE(jsonModel.IsDefined(), "Json model deserialization failed");
         ConvertJsonToCatboostModel(jsonModel, &model);
     } else {
         CoreML::Specification::Model coreMLModel;
@@ -114,21 +117,48 @@ TFullModel ReadModel(const void* binaryBuffer, size_t binaryBufferSize, EModelTy
 void OutputModelCoreML(
     const TFullModel& model,
     const TString& modelFile,
-    const NJson::TJsonValue& userParameters) {
+    const NJson::TJsonValue& userParameters,
+    const THashMap<ui32, TString>* catFeaturesHashToString) {
 
-    CoreML::Specification::Model outModel;
-    outModel.set_specificationversion(1);
+    CoreML::Specification::Model treeModel;
+    treeModel.set_specificationversion(1);
 
-    auto regressor = outModel.mutable_treeensembleregressor();
+    auto regressor = treeModel.mutable_treeensembleregressor();
     auto ensemble = regressor->mutable_treeensemble();
-    auto description = outModel.mutable_description();
 
-    NCatboost::NCoreML::ConfigureMetadata(model, userParameters, description);
-    NCatboost::NCoreML::ConfigureTrees(model, ensemble);
-    NCatboost::NCoreML::ConfigureIO(model, userParameters, regressor, description);
+    NCatboost::NCoreML::TPerTypeFeatureIdxToInputIndex perTypeFeatureIdxToInputIndex;
+    bool createPipelineModel = model.HasCategoricalFeatures();
 
     TString data;
-    outModel.SerializeToString(&data);
+    if (createPipelineModel) {
+        CoreML::Specification::Model pipelineModel;
+        pipelineModel.set_specificationversion(1);
+
+        auto* container = pipelineModel.mutable_pipeline()->mutable_models();
+        NCatboost::NCoreML::ConfigureCategoricalMappings(model, catFeaturesHashToString, container);
+
+        auto* contained = container->Add();
+        auto treeDescription = treeModel.mutable_description();
+        NCatboost::NCoreML::ConfigureTreeModelIO(model, userParameters, regressor, treeDescription, &perTypeFeatureIdxToInputIndex);
+
+        NCatboost::NCoreML::ConfigureTrees(model, perTypeFeatureIdxToInputIndex, ensemble);
+
+        *contained = treeModel;
+
+        auto pipelineDescription = pipelineModel.mutable_description();
+        NCatboost::NCoreML::ConfigureMetadata(model, userParameters, pipelineDescription);
+        NCatboost::NCoreML::ConfigurePipelineModelIO(model, pipelineDescription);
+
+        pipelineModel.SerializeToString(&data);
+    } else {
+        auto description = treeModel.mutable_description();
+        NCatboost::NCoreML::ConfigureMetadata(model, userParameters, description);
+        NCatboost::NCoreML::ConfigureTreeModelIO(model, userParameters, regressor, description, &perTypeFeatureIdxToInputIndex);
+
+        NCatboost::NCoreML::ConfigureTrees(model, perTypeFeatureIdxToInputIndex, ensemble);
+
+        treeModel.SerializeToString(&data);
+    }
 
     TOFStream out(modelFile);
     out.Write(data);
@@ -191,7 +221,7 @@ void ExportModel(
                 NJson::TJsonValue params;
                 NJson::ReadJsonTree(&is, &params);
 
-                OutputModelCoreML(model, modelFileName, params);
+                OutputModelCoreML(model, modelFileName, params, catFeaturesHashToString);
             }
             break;
         case EModelType::Json:
@@ -200,6 +230,7 @@ void ExportModel(
                     userParametersJson.empty(),
                     "JSON user params for CatBoost model export are not supported"
                 );
+
                 OutputModelJson(model, modelFileName, featureId, catFeaturesHashToString);
             }
             break;
@@ -210,6 +241,15 @@ void ExportModel(
                 NJson::ReadJsonTree(&is, &params);
 
                 OutputModelOnnx(model, modelFileName, params);
+            }
+            break;
+        case EModelType::Pmml:
+            {
+                TStringInput is(userParametersJson);
+                NJson::TJsonValue params;
+                NJson::ReadJsonTree(&is, &params);
+
+                NCatboost::NPmml::OutputModel(model, modelFileName, params, catFeaturesHashToString);
             }
             break;
         default:
@@ -484,6 +524,24 @@ void TObliviousTrees::ConvertObliviousToAsymmetric() {
     NonSymmetricStepNodes = std::move(nonSymmetricStepNodes);
     NonSymmetricNodeIdToLeafId = std::move(nonSymmetricNodeIdToLeafId);
     UpdateRuntimeData();
+}
+
+TVector<ui32> TObliviousTrees::GetTreeLeafCounts() const {
+    const auto& firstLeafOfsets = GetFirstLeafOffsets();
+    Y_ASSERT(IsSorted(firstLeafOfsets.begin(), firstLeafOfsets.end()));
+    TVector<ui32> treeLeafCounts;
+    treeLeafCounts.reserve(GetTreeCount());
+    for (size_t treeNum = 0; treeNum < GetTreeCount(); ++treeNum) {
+        const size_t currTreeLeafValuesEnd = (
+            treeNum + 1 < GetTreeCount()
+            ? firstLeafOfsets[treeNum + 1]
+            : LeafValues.size()
+        );
+        const size_t currTreeLeafValuesCount = currTreeLeafValuesEnd - firstLeafOfsets[treeNum];
+        Y_ASSERT(currTreeLeafValuesCount % ApproxDimension == 0);
+        treeLeafCounts.push_back(currTreeLeafValuesCount / ApproxDimension);
+    }
+    return treeLeafCounts;
 }
 
 void TFullModel::CalcFlat(
@@ -840,6 +898,22 @@ void TFullModel::Load(IInputStream* s) {
         CtrProvider->Load(s);
     }
     UpdateDynamicData();
+}
+
+TString TFullModel::GetLossFunctionName() const {
+    NCatboostOptions::TLossDescription lossDescription;
+    if (ModelInfo.contains("loss_function")) {
+        lossDescription.Load(ReadTJsonValue(ModelInfo.at("loss_function")));
+        return ToString(lossDescription.GetLossFunction());
+    }
+    if (ModelInfo.contains("params")) {
+        const auto& params = ReadTJsonValue(ModelInfo.at("params"));
+        if (params.Has("loss_function")) {
+            lossDescription.Load(params["loss_function"]);
+            return ToString(lossDescription.GetLossFunction());
+        }
+    }
+    return {};
 }
 
 TVector<TString> GetModelUsedFeaturesNames(const TFullModel& model) {

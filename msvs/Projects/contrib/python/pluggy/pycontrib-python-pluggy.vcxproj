@@ -57,8 +57,8 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <UseFullPaths>true</UseFullPaths>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /DFAKEID=5020880 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DFFI_BUILDING -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1  /std:c++17 -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /DFAKEID=5020880 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DFFI_BUILDING -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1  /std:c++17 -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /DFAKEID=5020880 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOGDI /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1  -DARCADIA_PYTHON_UNICODE_SIZE=2 /std:c++17 -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /DFAKEID=5020880 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOGDI /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1  -DARCADIA_PYTHON_UNICODE_SIZE=2 /std:c++17 -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
@@ -78,7 +78,35 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pluggy\2ef87a6139c9ca267781d51419.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pluggy\64133dc756b7b8cec67f7a391b.cpp"/>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pluggy\_2ef87a6139c9ca267781d51419.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/brotli/include" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/_2ef87a6139c9ca267781d51419.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/_2ef87a6139c9ca267781d51419.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/brotli/include" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/_2ef87a6139c9ca267781d51419.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/_2ef87a6139c9ca267781d51419.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/pluggy/_2ef87a6139c9ca267781d51419.py2.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pluggy\_2ef87a6139c9ca267781d51419.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pluggy\_2ef87a6139c9ca267781d51419.py2.obj;</Outputs>
+    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pluggy\_64133dc756b7b8cec67f7a391b.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy
@@ -110,6 +138,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/2ef87a6139c9ca267781d51419.cpp" "_64e24082b238b72bb0382b014d=resfs/src/resfs/file/contrib/python/pluggy/.dist-info/METADATA" "_d07971e4a40b39a63bc6b0c232=resfs/file/contrib/python/pluggy/.dist-info/METADATA" "_8aa4916de97b738f7a8e444eb4=resfs/src/resfs/file/contrib/python/pluggy/.dist-info/top_level.txt" "_3b369e7878c728c5ae1c687354=resfs/file/contrib/python/pluggy/.dist-info/top_level.txt"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy
+if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/64133dc756b7b8cec67f7a391b.cpp" "_d94af1076d23c3ca3246af41d3=/py_modules/pluggy.__init__" "_3407912912fcd8d7c608996a4a=resfs/src//py_modules/pluggy.__init__" "_4fb8bf402c52a4d91ad4b5592a=/py_code/pluggy.__init__" "_272f27981879f00847ee2d41fe=/py_modules/pluggy._tracing" "_fcdb4fb223fa546fb279a7db04=resfs/src//py_modules/pluggy._tracing" "_e85bae2a106e7c72bf5f0f069a=/py_code/pluggy._tracing" "_73ca20b68d35b7b1c548b7e4ef=/py_modules/pluggy._version" "_368a37298411de6a1d73329b02=resfs/src//py_modules/pluggy._version" "_d723d67c31faabcb7b4905e18a=/py_code/pluggy._version" "_3494e892239585676f9ea19647=/py_modules/pluggy.callers" "_cf2b5c30c340d537512b8d6e8c=resfs/src//py_modules/pluggy.callers" "_374f49c722fea7c99a8f152f5e=/py_code/pluggy.callers" "_1258781cca5cdc9042f96407c9=/py_modules/pluggy.hooks" "_8bc353d0e2bc4a8447fd7ee90e=resfs/src//py_modules/pluggy.hooks" "_d964d7d16c1a3e17c96aca042a=/py_code/pluggy.hooks" "_60e43d3d0125ba1d695e23fe47=/py_modules/pluggy.manager" "_1449ee421503680031e53299a4=resfs/src//py_modules/pluggy.manager" "_6d691749598a5a21f05f092142=/py_code/pluggy.manager"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
@@ -121,6 +153,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/2ef87a6139c9ca267781d51419.cpp" "_64e24082b238b72bb0382b014d=resfs/src/resfs/file/contrib/python/pluggy/.dist-info/METADATA" "_d07971e4a40b39a63bc6b0c232=resfs/file/contrib/python/pluggy/.dist-info/METADATA" "_8aa4916de97b738f7a8e444eb4=resfs/src/resfs/file/contrib/python/pluggy/.dist-info/top_level.txt" "_3b369e7878c728c5ae1c687354=resfs/file/contrib/python/pluggy/.dist-info/top_level.txt"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy
+if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/64133dc756b7b8cec67f7a391b.cpp" "_d94af1076d23c3ca3246af41d3=/py_modules/pluggy.__init__" "_3407912912fcd8d7c608996a4a=resfs/src//py_modules/pluggy.__init__" "_4fb8bf402c52a4d91ad4b5592a=/py_code/pluggy.__init__" "_272f27981879f00847ee2d41fe=/py_modules/pluggy._tracing" "_fcdb4fb223fa546fb279a7db04=resfs/src//py_modules/pluggy._tracing" "_e85bae2a106e7c72bf5f0f069a=/py_code/pluggy._tracing" "_73ca20b68d35b7b1c548b7e4ef=/py_modules/pluggy._version" "_368a37298411de6a1d73329b02=resfs/src//py_modules/pluggy._version" "_d723d67c31faabcb7b4905e18a=/py_code/pluggy._version" "_3494e892239585676f9ea19647=/py_modules/pluggy.callers" "_cf2b5c30c340d537512b8d6e8c=resfs/src//py_modules/pluggy.callers" "_374f49c722fea7c99a8f152f5e=/py_code/pluggy.callers" "_1258781cca5cdc9042f96407c9=/py_modules/pluggy.hooks" "_8bc353d0e2bc4a8447fd7ee90e=resfs/src//py_modules/pluggy.hooks" "_d964d7d16c1a3e17c96aca042a=/py_code/pluggy.hooks" "_60e43d3d0125ba1d695e23fe47=/py_modules/pluggy.manager" "_1449ee421503680031e53299a4=resfs/src//py_modules/pluggy.manager" "_6d691749598a5a21f05f092142=/py_code/pluggy.manager"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
@@ -129,9 +165,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/pluggy/64133dc756b7b8cec67f7a391b.cpp	</Message>
+      <Message>$B/contrib/python/pluggy/2ef87a6139c9ca267781d51419.cpp	$B/contrib/python/pluggy/64133dc756b7b8cec67f7a391b.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pluggy\64133dc756b7b8cec67f7a391b.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pluggy\2ef87a6139c9ca267781d51419.cpp;$(SolutionDir)$(Configuration)\contrib\python\pluggy\64133dc756b7b8cec67f7a391b.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -199,6 +235,33 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/pluggy/pluggy/__init__.py.yapyc	$B/contrib/python/pluggy/pluggy/_tracing.py.yapyc	$B/contrib/python/pluggy/pluggy/_version.py.yapyc	$B/contrib/python/pluggy/pluggy/callers.py.yapyc	$B/contrib/python/pluggy/pluggy/hooks.py.yapyc	$B/contrib/python/pluggy/pluggy/manager.py.yapyc	</Message>
       <AdditionalInputs>$(SolutionDir)..\build\scripts\py_compile.py;$(SolutionDir)..\contrib\python\pluggy\pluggy\__init__.py;$(SolutionDir)..\contrib\python\pluggy\pluggy\_tracing.py;$(SolutionDir)..\contrib\python\pluggy\pluggy\_version.py;$(SolutionDir)..\contrib\python\pluggy\pluggy\callers.py;$(SolutionDir)..\contrib\python\pluggy\pluggy\hooks.py;$(SolutionDir)..\contrib\python\pluggy\pluggy\manager.py;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pluggy\pluggy\__init__.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\pluggy\pluggy\_tracing.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\pluggy\pluggy\_version.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\pluggy\pluggy\callers.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\pluggy\pluggy\hooks.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\pluggy\pluggy\manager.py.yapyc;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\pluggy\.dist-info\METADATA">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/_2ef87a6139c9ca267781d51419.yasm" "-" "contrib/python/pluggy/.dist-info/METADATA" "_64e24082b238b72bb0382b014d.rodata" "$(SolutionDir)../contrib/python/pluggy/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/_d07971e4a40b39a63bc6b0c232.rodata" "-" "contrib/python/pluggy/.dist-info/top_level.txt" "_8aa4916de97b738f7a8e444eb4.rodata" "$(SolutionDir)../contrib/python/pluggy/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/_3b369e7878c728c5ae1c687354.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/_2ef87a6139c9ca267781d51419.yasm" "-" "contrib/python/pluggy/.dist-info/METADATA" "_64e24082b238b72bb0382b014d.rodata" "$(SolutionDir)../contrib/python/pluggy/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/_d07971e4a40b39a63bc6b0c232.rodata" "-" "contrib/python/pluggy/.dist-info/top_level.txt" "_8aa4916de97b738f7a8e444eb4.rodata" "$(SolutionDir)../contrib/python/pluggy/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/_3b369e7878c728c5ae1c687354.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/pluggy/_2ef87a6139c9ca267781d51419.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\pluggy\.dist-info\METADATA;$(SolutionDir)..\contrib\python\pluggy\.dist-info\top_level.txt;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pluggy\_2ef87a6139c9ca267781d51419.yasm;$(SolutionDir)$(Configuration)\contrib\python\pluggy\_d07971e4a40b39a63bc6b0c232.rodata;$(SolutionDir)$(Configuration)\contrib\python\pluggy\_3b369e7878c728c5ae1c687354.rodata;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\python\pluggy\pluggy\__init__.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal

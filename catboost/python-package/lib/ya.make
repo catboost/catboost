@@ -22,6 +22,7 @@ PEERDIR(
     catboost/libs/metrics
     catboost/libs/model
     catboost/libs/options
+    catboost/libs/quantized_pool_analysis
     catboost/libs/target
     library/containers/2d_array
     library/json/writer
@@ -34,6 +35,8 @@ PEERDIR(
 IF(NOT CATBOOST_OPENSOURCE)
     PEERDIR(
         catboost//libs/for_python_package
+        contrib/python/matplotlib
+        contrib/python/plotly
     )
 ENDIF()
 
@@ -70,5 +73,7 @@ PY_SRCS(
     eval/log_config.py
     eval/utils.py
 )
+
+NO_LINT()
 
 END()

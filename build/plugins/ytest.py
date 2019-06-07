@@ -122,7 +122,7 @@ def validate_test(kw):
             errors.append("FLEUR test is not allowed here")
     elif valid_kw.get('SCRIPT-REL-PATH') == 'gtest':
         project_path = valid_kw.get('BUILD-FOLDER-PATH', "")
-        if not project_path.startswith(("contrib", "devtools", "mail")):
+        if not project_path.startswith(("adfox", "contrib", "devtools", "mail")):
             errors.append("GTEST is not allowed here")
 
     size_timeout = collections.OrderedDict(sorted(consts.TestSize.DefaultTimeouts.items(), key=lambda t: t[1]))
@@ -415,8 +415,10 @@ def onadd_check(unit, *args):
     test_dir = unit.resolve(os.path.join(unit.path()))
 
     test_timeout = ''
-    if check_type in ["PEP8", "PYFLAKES", "PY_FLAKES"]:
+    if check_type in ["PEP8", "PYFLAKES", "PY_FLAKES", "PEP8_2", "PYFLAKES_2"]:
         script_rel_path = "py.lint.pylint"
+    elif check_type in ["PEP8_3", "PYFLAKES_3"]:
+        script_rel_path = "py.lint.pylint.3"
     elif check_type == "JAVA_STYLE":
         if len(flat_args) < 2:
             raise Exception("Not enough arguments for JAVA_STYLE check")

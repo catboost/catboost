@@ -6,10 +6,19 @@
 
 class TString;
 
-struct TFileLock: public TFile {
-    TFileLock(const TString& filename);
+enum class EFileLockType{
+    Exclusive,
+    Shared
+};
+
+class TFileLock: public TFile {
+public:
+    TFileLock(const TString& filename, const EFileLockType type = EFileLockType::Exclusive);
 
     void Acquire();
     bool TryAcquire();
     void Release();
+
+private:
+    EFileLockType Type;
 };

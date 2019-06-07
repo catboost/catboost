@@ -1,5 +1,6 @@
 import sys
 import subprocess
+import optparse
 
 
 def get_leaks_suppressions(cmd):
@@ -10,6 +11,13 @@ def get_leaks_suppressions(cmd):
         else:
             newcmd.append(arg)
     return supp, newcmd
+
+
+musl_libs = '-lc', '-lcrypt', '-ldl', '-lm', '-lpthread', '-lrt', '-lutil'
+
+
+def fix_cmd(musl, c):
+    return [i for i in c if not musl or i not in musl_libs]
 
 
 def gen_default_suppressions(inputs, output):
@@ -25,8 +33,16 @@ def gen_default_suppressions(inputs, output):
         dst.write('}\n')
 
 
+def parse_args():
+    parser = optparse.OptionParser()
+    parser.disable_interspersed_args()
+    parser.add_option('--musl', action='store_true')
+    return parser.parse_args()
+
+
 if __name__ == '__main__':
-    cmd = sys.argv[1:]
+    opts, args = parse_args()
+    cmd = fix_cmd(opts.musl, args)
     supp, cmd = get_leaks_suppressions(cmd)
     if not supp:
         rc = subprocess.call(cmd, shell=False, stderr=sys.stderr, stdout=sys.stdout)

@@ -13,6 +13,7 @@
 #include <catboost/libs/metrics/metric.h>
 #include <catboost/libs/options/catboost_options.h>
 #include <catboost/libs/options/enums.h>
+#include <catboost/libs/options/load_options.h>
 #include <catboost/libs/options/restrictions.h>
 
 #include <library/binsaver/bin_saver.h>
@@ -62,49 +63,62 @@ namespace NCatboostDistributed {
 
     struct TTrainData : public IObjectBase {
         NCB::TTrainingForCPUDataProviderPtr TrainData;
-        TVector<TTargetClassifier> TargetClassifiers;
-        ui64 RandomSeed;
-        int ApproxDimension;
-        TString StringParams;
-        ui32 AllDocCount;
-        double SumAllWeights;
-
-        const EHessianType HessianType = EHessianType::Symmetric;
 
     public:
         TTrainData() = default;
-        TTrainData(NCB::TTrainingForCPUDataProviderPtr trainData,
-            const TVector<TTargetClassifier>& targetClassifiers,
-            ui64 randomSeed,
-            int approxDimension,
-            const TString& stringParams,
-            ui32 allDocCount,
-            double sumAllWeights,
-            EHessianType hessianType)
+        TTrainData(NCB::TTrainingForCPUDataProviderPtr trainData)
         : TrainData(trainData)
-        , TargetClassifiers(targetClassifiers)
-        , RandomSeed(randomSeed)
-        , ApproxDimension(approxDimension)
-        , StringParams(stringParams)
-        , AllDocCount(allDocCount)
-        , SumAllWeights(sumAllWeights)
-        , HessianType(hessianType)
         {
         }
 
         int operator&(IBinSaver& binSaver) {
             NCB::AddWithShared(&binSaver, &TrainData);
-            binSaver.AddMulti(
-                TargetClassifiers,
-                RandomSeed,
-                ApproxDimension,
-                StringParams,
-                AllDocCount,
-                SumAllWeights);
             return 0;
         }
 
         OBJECT_NOCOPY_METHODS(TTrainData);
+    };
+
+    struct TPlainFoldBuilderParams {
+        TVector<TTargetClassifier> TargetClassifiers;
+        ui64 RandomSeed;
+        int ApproxDimension;
+        TString TrainParams;
+        ui32 AllDocCount;
+        double SumAllWeights;
+        EHessianType HessianType;
+
+    public:
+        TPlainFoldBuilderParams() = default;
+
+        SAVELOAD(
+            TargetClassifiers,
+            RandomSeed,
+            ApproxDimension,
+            TrainParams,
+            AllDocCount,
+            SumAllWeights,
+            HessianType);
+    };
+
+    struct TDatasetLoaderParams {
+        NCatboostOptions::TPoolLoadParams PoolLoadOptions;
+        TString TrainOptions;
+        NCB::EObjectsOrder ObjectsOrder;
+        NCB::TObjectsGrouping ObjectsGrouping;
+        NCB::TFeaturesLayout FeaturesLayout;
+        ui64 RandomSeed;
+
+    public:
+        TDatasetLoaderParams() = default;
+
+        SAVELOAD(
+            PoolLoadOptions,
+            TrainOptions,
+            ObjectsOrder,
+            ObjectsGrouping,
+            FeaturesLayout,
+            RandomSeed);
     };
 
     struct TLocalTensorSearchData {
@@ -115,7 +129,7 @@ namespace NCatboostDistributed {
         THolder<TRestorableFastRng64> Rand;
 
         // data used by CalcScore, SetPermutedIndices, CalcApprox, CalcWeightedDerivatives
-        TLearnProgress Progress;
+        THolder<TLearnProgress> Progress;
         int Depth;
         TVector<TIndexType> Indices;
 
@@ -129,8 +143,12 @@ namespace NCatboostDistributed {
 
         ui32 AllDocCount;
         double SumAllWeights;
+        EHessianType HessianType = EHessianType::Symmetric;
 
         NCatboostOptions::TCatBoostOptions Params;
+
+        NCB::TTrainingForCPUDataProviderPtr TrainData;
+        TVector<TString> ClassNamesFromDataset;
 
         TFlatPairsInfo FlatPairs;
 

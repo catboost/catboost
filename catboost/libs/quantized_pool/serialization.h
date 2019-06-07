@@ -1,5 +1,6 @@
 #pragma once
 
+#include <catboost/libs/data_new/loader.h>
 #include <catboost/libs/data_util/path_with_scheme.h>
 
 #include <util/generic/fwd.h>
@@ -21,6 +22,7 @@ namespace NCB {
     struct TLoadQuantizedPoolParameters {
         bool LockMemory = true;
         bool Precharge = true;
+        TDatasetSubset DatasetSubset;
     };
 
     // Load quantized pool saved by `SaveQuantizedPool` from file.

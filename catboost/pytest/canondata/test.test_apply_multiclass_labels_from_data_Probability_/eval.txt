@@ -1,4 +1,4 @@
-DocId	Probability:Class=0.0	Probability:Class=7.0	Probability:Class=9999.0	Probability:Class=10000000.0
+SampleId	Probability:Class=0.0	Probability:Class=7.0	Probability:Class=9999.0	Probability:Class=10000000.0
 0	0.2421100383	0.2619426668	0.24552821	0.2504190849
 1	0.2525013958	0.2358972297	0.2623559424	0.2492454321
 2	0.2469399106	0.25275328	0.2541161593	0.2461906501

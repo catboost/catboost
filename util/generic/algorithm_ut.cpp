@@ -13,6 +13,11 @@ Y_UNIT_TEST_SUITE(TAlgorithm) {
         UNIT_ASSERT(1 == AnyOf(AsStringBuf("10"), isOne));
         UNIT_ASSERT(1 == AnyOf(AsStringBuf("11"), isOne));
         UNIT_ASSERT(0 == AnyOf(TStringBuf(), isOne));
+
+        const char array00[]{'0', '0'};
+        UNIT_ASSERT(0 == AnyOf(array00, isOne));
+        const char array01[]{'0', '1'};
+        UNIT_ASSERT(1 == AnyOf(array01, isOne));
     }
 
     Y_UNIT_TEST(AllOfTest) {
@@ -21,6 +26,11 @@ Y_UNIT_TEST_SUITE(TAlgorithm) {
         UNIT_ASSERT(0 == AllOf(AsStringBuf("10"), isOne));
         UNIT_ASSERT(1 == AllOf(AsStringBuf("11"), isOne));
         UNIT_ASSERT(1 == AllOf(TStringBuf(), isOne));
+
+        const char array01[]{'0', '1'};
+        UNIT_ASSERT(0 == AllOf(array01, isOne));
+        const char array11[]{'1', '1'};
+        UNIT_ASSERT(1 == AllOf(array11, isOne));
     }
 
     Y_UNIT_TEST(CountIfTest) {
@@ -29,6 +39,9 @@ Y_UNIT_TEST_SUITE(TAlgorithm) {
         UNIT_ASSERT(0 == CountIf(AsStringBuf("___________"), isOne));
         UNIT_ASSERT(0 == CountIf(TStringBuf(), isOne));
         UNIT_ASSERT(1 == CountIf(AsStringBuf("1"), isOne));
+
+        const char array[] = "____1________1____1_______";
+        UNIT_ASSERT(3 == CountIf(array, isOne));
     }
 
     Y_UNIT_TEST(CountTest) {
@@ -38,6 +51,9 @@ Y_UNIT_TEST_SUITE(TAlgorithm) {
         UNIT_ASSERT(0 == Count(AsStringBuf("___________"), '1'));
         UNIT_ASSERT(0 == Count(TStringBuf(), '1'));
         UNIT_ASSERT(1 == Count(AsStringBuf("1"), '1'));
+
+        const char array[] = "____1________1____1_______";
+        UNIT_ASSERT(3 == Count(array, '1'));
     }
 
     struct TStrokaNoCopy : TString {

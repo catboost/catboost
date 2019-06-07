@@ -6,6 +6,19 @@ PEERDIR(
     contrib/python/Jinja2
 )
 
+PY_SRCS(
+    TOP_LEVEL
+    res/__init__.py
+)
+
+RESOURCE_FILES(
+    PREFIX contrib/python/Jinja2/tests/
+    res/templates/broken.html
+    res/templates/foo/test.html
+    res/templates/syntaxerror.html
+    res/templates/test.html
+)
+
 TEST_SRCS(
     conftest.py
     test_api.py

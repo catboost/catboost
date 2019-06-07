@@ -9,7 +9,7 @@ catboost.cv(pool, params = list(), fold_count = 3, inverted = FALSE,
   early_stopping_rounds = NULL)
 }
 \arguments{
-\item{pool}{Data to cross-validatte}
+\item{pool}{Data to cross-validate on}
 
 \item{params}{Parameters for catboost.train}
 
@@ -17,7 +17,7 @@ catboost.cv(pool, params = list(), fold_count = 3, inverted = FALSE,
 
 \item{inverted}{Train on the test fold and evaluate the model on the training folds.}
 
-\item{partition_random_seed}{The random seed used for splittng pool into folds.}
+\item{partition_random_seed}{The random seed used for splitting pool into folds.}
 
 \item{shuffle}{Shuffle the dataset objects before splitting into folds.}
 

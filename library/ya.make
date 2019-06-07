@@ -88,14 +88,13 @@ RECURSE(
     svnversion/java
     terminate_handler
     terminate_handler/sample
+    text_processing
     threading
     unittest
     unittest/fat
     unittest/main
     unittest/ut
     yson
-    text_processing/dictionary/ut
-    text_processing/dictionary
 )
 
 IF (OS_LINUX)

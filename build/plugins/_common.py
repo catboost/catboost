@@ -135,6 +135,10 @@ def make_tuples(arg_list):
     return list(tpl())
 
 
+def resolve_includes(unit, src, paths):
+    return unit.resolve_include([src] + paths) if paths else []
+
+
 def rootrel_arc_src(src, unit):
     if src.startswith('${ARCADIA_ROOT}/'):
         return src[16:]

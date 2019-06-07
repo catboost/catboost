@@ -5,20 +5,70 @@
 #include <catboost/libs/helpers/checksum.h>
 #include <catboost/libs/helpers/compare.h>
 #include <catboost/libs/helpers/parallel_tasks.h>
+#include <catboost/libs/helpers/permutation.h>
 #include <catboost/libs/helpers/serialization.h>
 #include <catboost/libs/helpers/vector_helpers.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/cast.h>
+#include <util/generic/ylimits.h>
 #include <util/generic/ymath.h>
 #include <util/stream/format.h>
 #include <util/stream/output.h>
 #include <util/system/yassert.h>
 
 #include <algorithm>
+#include <numeric>
 
 
 using namespace NCB;
+
+
+static TMaybe<TVector<ui32>> GetSrcArrayPermutation(
+    const TArraySubsetIndexing<ui32>& subsetIndexing,
+    NPar::TLocalExecutor* localExecutor
+) {
+    switch (subsetIndexing.index()) {
+        case TVariantIndexV<TFullSubset<ui32>, TArraySubsetIndexing<ui32>::TBase>:
+            {
+                TVector<ui32> srcArrayPermutation;
+                srcArrayPermutation.yresize(subsetIndexing.Size());
+                std::iota(srcArrayPermutation.begin(), srcArrayPermutation.end(), 0);
+                return MakeMaybe(std::move(srcArrayPermutation));
+            }
+        case TVariantIndexV<TRangesSubset<ui32>, TArraySubsetIndexing<ui32>::TBase>:
+        case TVariantIndexV<TIndexedSubset<ui32>, TArraySubsetIndexing<ui32>::TBase>:
+            {
+                TVector<ui32> subsetIndices;
+                subsetIndices.yresize(subsetIndexing.Size());
+                ui32 minIdx = Max<ui32>();
+                subsetIndexing.ForEach( // not ParallelForEach to avoid minIdx synchronization issues
+                    [&] (ui32 idx, ui32 srcIdx) {
+                        subsetIndices[idx] = srcIdx;
+                        if (srcIdx < minIdx) {
+                            minIdx = srcIdx;
+                        }
+                    }
+                );
+                NPar::ParallelFor(
+                    *localExecutor,
+                    0,
+                    SafeIntegerCast<int>(subsetIndices.size()),
+                    [minIdx, &subsetIndices] (int i) {
+                        subsetIndices[i] -= minIdx;
+                    }
+                );
+
+                if (!IsPermutation(TVector<ui32>(subsetIndices))) {
+                    return Nothing();
+                }
+
+                return MakeMaybe(InvertPermutation(subsetIndices));
+            }
+    }
+    Y_UNREACHABLE();
+    return Nothing(); // just to silence compiler warnings
+}
 
 
 void NCB::CheckGroupIds(
@@ -523,6 +573,123 @@ TObjectsDataProviderPtr NCB::TRawObjectsDataProvider::GetSubset(
 }
 
 
+template <class T, EFeatureValuesType TType>
+static void CreateConsecutiveFeaturesData(
+    const TVector<THolder<TArrayValuesHolder<T, TType>>>& srcFeatures,
+    const TFeaturesArraySubsetIndexing* subsetIndexing,
+    NPar::TLocalExecutor* localExecutor,
+    TVector<THolder<TArrayValuesHolder<T, TType>>>* dstFeatures
+) {
+    dstFeatures->resize(srcFeatures.size());
+    localExecutor->ExecRangeWithThrow(
+        [&] (int featureIdx) {
+            if (srcFeatures[featureIdx]) {
+                const auto& srcFeatureHolder = *srcFeatures[featureIdx];
+
+                const auto arrayData = srcFeatureHolder.GetArrayData();
+
+                TVector<T> dstStorage = GetSubset<T>(
+                    *arrayData.GetSrc(),
+                    *arrayData.GetSubsetIndexing(),
+                    localExecutor
+                );
+
+                (*dstFeatures)[featureIdx] = MakeHolder<TArrayValuesHolder<T, TType>>(
+                    srcFeatureHolder.GetId(),
+                    TMaybeOwningArrayHolder<const T>::CreateOwning(std::move(dstStorage)),
+                    subsetIndexing
+                );
+            }
+        },
+        0,
+        SafeIntegerCast<int>(srcFeatures.size()),
+        NPar::TLocalExecutor::WAIT_COMPLETE
+    );
+}
+
+TIntrusiveConstPtr<TRawObjectsDataProvider>
+    NCB::TRawObjectsDataProvider::GetWithPermutedConsecutiveArrayFeaturesData(
+        NPar::TLocalExecutor* localExecutor,
+        TMaybe<TVector<ui32>>* srcArrayPermutation
+    ) const {
+        if (CommonData.SubsetIndexing->IsConsecutive()) {
+            *srcArrayPermutation = Nothing();
+            // TODO(akhropov): proper IntrusivePtr interface to avoid const_cast
+            return TIntrusiveConstPtr<TRawObjectsDataProvider>(const_cast<TRawObjectsDataProvider*>(this));
+        }
+
+        *srcArrayPermutation = GetSrcArrayPermutation(*CommonData.SubsetIndexing, localExecutor);
+        if (*srcArrayPermutation) {
+            return TIntrusiveConstPtr<TRawObjectsDataProvider>(
+                dynamic_cast<TRawObjectsDataProvider*>(
+                    this->GetSubset(
+                        GetGroupingSubsetFromObjectsSubset(
+                            ObjectsGrouping,
+                            TArraySubsetIndexing<ui32>(TVector<ui32>(**srcArrayPermutation)),
+                            CommonData.Order
+                        ),
+                        localExecutor
+                    ).Get()
+                )
+            );
+        }
+
+        TCommonObjectsData dstCommonData = CommonData;
+        dstCommonData.SubsetIndexing = MakeAtomicShared<TArraySubsetIndexing<ui32>>(
+            TFullSubset<ui32>(ObjectsGrouping->GetObjectCount())
+        );
+
+        TRawObjectsData dstData;
+
+        TVector<std::function<void()>> tasks;
+
+        tasks.push_back(
+            [&] () {
+                CreateConsecutiveFeaturesData(
+                    Data.FloatFeatures,
+                    dstCommonData.SubsetIndexing.Get(),
+                    localExecutor,
+                    &dstData.FloatFeatures
+                );
+            }
+        );
+
+        tasks.push_back(
+            [&] () {
+                CreateConsecutiveFeaturesData(
+                    Data.CatFeatures,
+                    dstCommonData.SubsetIndexing.Get(),
+                    localExecutor,
+                    &dstData.CatFeatures
+                );
+            }
+        );
+
+        tasks.push_back(
+            [&] () {
+                CreateConsecutiveFeaturesData(
+                    Data.TextFeatures,
+                    dstCommonData.SubsetIndexing.Get(),
+                    localExecutor,
+                    &dstData.TextFeatures
+                );
+            }
+        );
+
+        ExecuteTasksInParallel(&tasks, localExecutor);
+
+        *srcArrayPermutation = Nothing();
+
+        return MakeIntrusiveConst<TRawObjectsDataProvider>(
+            ObjectsGrouping,
+            std::move(dstCommonData),
+            std::move(dstData),
+            /*skipCheck*/ true,
+            Nothing()
+        );
+    }
+
+
 void NCB::TRawObjectsDataProvider::SetGroupIds(TConstArrayRef<TStringBuf> groupStringIds) {
     CheckDataSize(groupStringIds.size(), (size_t)GetObjectCount(), "group Ids");
 
@@ -592,7 +759,8 @@ TVector<float> NCB::TRawObjectsDataProvider::GetFeatureDataOldFormat(ui32 flatFe
 
 bool NCB::TQuantizedObjectsData::operator==(const NCB::TQuantizedObjectsData& rhs) const {
     return AreFeaturesValuesEqual(FloatFeatures, rhs.FloatFeatures) &&
-        AreFeaturesValuesEqual(CatFeatures, rhs.CatFeatures);
+        AreFeaturesValuesEqual(CatFeatures, rhs.CatFeatures) &&
+        AreFeaturesValuesEqual(TextFeatures, rhs.TextFeatures);
 }
 
 
@@ -608,6 +776,10 @@ void NCB::TQuantizedObjectsData::PrepareForInitialization(
     CatFeatures.clear();
     const ui32 catFeatureCount = metaInfo.FeaturesLayout->GetCatFeatureCount();
     CatFeatures.resize(catFeatureCount);
+
+    TextFeatures.clear();
+    const ui32 textFeatureCount = metaInfo.FeaturesLayout->GetTextFeatureCount();
+    TextFeatures.resize(textFeatureCount);
 
     if (!QuantizedFeaturesInfo) {
         QuantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
@@ -638,6 +810,7 @@ void NCB::TQuantizedObjectsData::Check(
 
     CheckDataSizes(objectCount, featuresLayout, EFeatureType::Float, FloatFeatures);
     CheckDataSizes(objectCount, featuresLayout, EFeatureType::Categorical, CatFeatures);
+    CheckDataSizes(objectCount, featuresLayout, EFeatureType::Text, TextFeatures);
 }
 
 
@@ -673,6 +846,11 @@ TQuantizedObjectsData NCB::TQuantizedObjectsData::GetSubset(
         subsetComposition,
         &subsetData.CatFeatures
     );
+    CreateSubsetFeatures(
+        TextFeatures,
+        subsetComposition,
+        &subsetData.TextFeatures
+    );
     subsetData.QuantizedFeaturesInfo = QuantizedFeaturesInfo;
 
     return subsetData;
@@ -696,6 +874,120 @@ NCB::TObjectsDataProviderPtr NCB::TQuantizedObjectsDataProvider::GetSubset(
         Nothing()
     );
 }
+
+
+template <class IFeatureValuesHolder>
+static void CreateConsecutiveFeaturesData(
+    const TVector<THolder<IFeatureValuesHolder>>& srcFeatures,
+    const TFeaturesArraySubsetIndexing* subsetIndexing,
+    NPar::TLocalExecutor* localExecutor,
+    TVector<THolder<IFeatureValuesHolder>>* dstFeatures
+) {
+    using TValueType = typename IFeatureValuesHolder::TValueType;
+
+    dstFeatures->resize(srcFeatures.size());
+    localExecutor->ExecRangeWithThrow(
+        [&] (int featureIdx) {
+            if (srcFeatures[featureIdx]) {
+                const auto& srcFeatureHolder = *srcFeatures[featureIdx];
+
+                auto dstStorage = srcFeatureHolder.ExtractValues(localExecutor);
+
+                (*dstFeatures)[featureIdx] = MakeHolder<TCompressedValuesHolderImpl<IFeatureValuesHolder>>(
+                    srcFeatureHolder.GetId(),
+                    TCompressedArray(
+                        srcFeatureHolder.GetSize(),
+                        CHAR_BIT * sizeof(TValueType),
+                        TMaybeOwningArrayHolder<ui64>::CreateOwningReinterpretCast(dstStorage)
+                    ),
+                    subsetIndexing
+                );
+            }
+        },
+        0,
+        SafeIntegerCast<int>(srcFeatures.size()),
+        NPar::TLocalExecutor::WAIT_COMPLETE
+    );
+}
+
+
+TIntrusiveConstPtr<TQuantizedObjectsDataProvider>
+    NCB::TQuantizedObjectsDataProvider::GetWithPermutedConsecutiveArrayFeaturesData(
+        NPar::TLocalExecutor* localExecutor,
+        TMaybe<TVector<ui32>>* srcArrayPermutation
+    ) const {
+        if (CommonData.SubsetIndexing->IsConsecutive()) {
+            *srcArrayPermutation = Nothing();
+            // TODO(akhropov): proper IntrusivePtr interface to avoid const_cast
+            return TIntrusiveConstPtr<TQuantizedObjectsDataProvider>(
+                const_cast<TQuantizedObjectsDataProvider*>(this)
+            );
+        }
+
+        if (AllFeaturesDataIsCompressedArrays()) {
+            *srcArrayPermutation = GetSrcArrayPermutation(*CommonData.SubsetIndexing, localExecutor);
+            if (*srcArrayPermutation) {
+                return TIntrusiveConstPtr<TQuantizedObjectsDataProvider>(
+                    dynamic_cast<TQuantizedObjectsDataProvider*>(
+                        this->GetSubset(
+                            GetGroupingSubsetFromObjectsSubset(
+                                ObjectsGrouping,
+                                TArraySubsetIndexing<ui32>(TVector<ui32>(**srcArrayPermutation)),
+                                CommonData.Order
+                            ),
+                            localExecutor
+                        ).Get()
+                    )
+                );
+            }
+        }
+
+        TCommonObjectsData dstCommonData = CommonData;
+        dstCommonData.SubsetIndexing = MakeAtomicShared<TArraySubsetIndexing<ui32>>(
+            TFullSubset<ui32>(ObjectsGrouping->GetObjectCount())
+        );
+
+        TQuantizedObjectsData dstData;
+
+        TVector<std::function<void()>> tasks;
+
+        tasks.push_back(
+            [&] () {
+                CreateConsecutiveFeaturesData(
+                    Data.FloatFeatures,
+                    dstCommonData.SubsetIndexing.Get(),
+                    localExecutor,
+                    &dstData.FloatFeatures
+                );
+            }
+        );
+
+        tasks.push_back(
+            [&] () {
+                CreateConsecutiveFeaturesData(
+                    Data.CatFeatures,
+                    dstCommonData.SubsetIndexing.Get(),
+                    localExecutor,
+                    &dstData.CatFeatures
+                );
+            }
+        );
+
+        ExecuteTasksInParallel(&tasks, localExecutor);
+
+        dstData.QuantizedFeaturesInfo = Data.QuantizedFeaturesInfo;
+        dstData.CachedFeaturesCheckSum = Data.CachedFeaturesCheckSum;
+
+        *srcArrayPermutation = Nothing();
+
+        return MakeIntrusiveConst<TQuantizedObjectsDataProvider>(
+            ObjectsGrouping,
+            std::move(dstCommonData),
+            std::move(dstData),
+            /*skipCheck*/ true,
+            Nothing()
+        );
+    }
 
 template<class TCompressedColumnData>
 static ui32 CalcCompressedFeatureChecksum(ui32 checkSum, TCompressedColumnData& columnData) {
@@ -741,6 +1033,10 @@ static ui32 CalcFeatureValuesCheckSum(
     TVector<ui32> checkSums(featuresLayout.GetFeatureCount(FeatureType), 0);
     ParallelFor(*localExecutor, 0, featuresLayout.GetFeatureCount(FeatureType), [&] (ui32 perTypeFeatureIdx) {
         if (featuresLayout.GetInternalFeatureMetaInfo(perTypeFeatureIdx, FeatureType).IsAvailable) {
+            // TODO(espetrov,akhropov): remove workaround below MLTOOLS-3604
+            if (featuresData[perTypeFeatureIdx].Get() == nullptr) {
+                return;
+            }
             auto compressedValuesFeatureData = dynamic_cast<const TCompressedValuesHolderImpl<IColumn>*>(
                 featuresData[perTypeFeatureIdx].Get()
             );
@@ -762,25 +1058,43 @@ static ui32 CalcFeatureValuesCheckSum(
 }
 
 ui32 NCB::TQuantizedObjectsDataProvider::CalcFeaturesCheckSum(NPar::TLocalExecutor* localExecutor) const {
-    ui32 checkSum = 0;
+    if (!Data.CachedFeaturesCheckSum) {
+        ui32 checkSum = 0;
 
-    checkSum = Data.QuantizedFeaturesInfo->CalcCheckSum();
-    checkSum = CalcFeatureValuesCheckSum<EFeatureType::Float>(
-        checkSum,
-        *CommonData.FeaturesLayout,
-        Data.FloatFeatures,
-        localExecutor
-    );
-    checkSum = CalcFeatureValuesCheckSum<EFeatureType::Categorical>(
-        checkSum,
-        *CommonData.FeaturesLayout,
-        Data.CatFeatures,
-        localExecutor
-    );
+        checkSum = Data.QuantizedFeaturesInfo->CalcCheckSum();
+        checkSum = CalcFeatureValuesCheckSum<EFeatureType::Float>(
+            checkSum,
+            *CommonData.FeaturesLayout,
+            Data.FloatFeatures,
+            localExecutor
+        );
+        checkSum = CalcFeatureValuesCheckSum<EFeatureType::Categorical>(
+            checkSum,
+            *CommonData.FeaturesLayout,
+            Data.CatFeatures,
+            localExecutor
+        );
 
-    return checkSum;
-
+        Data.CachedFeaturesCheckSum = checkSum;
+    }
+    return *Data.CachedFeaturesCheckSum;
 }
+
+bool NCB::TQuantizedObjectsDataProvider::AllFeaturesDataIsCompressedArrays() const {
+    for (const auto& floatFeatureHolder : Data.FloatFeatures) {
+        if (floatFeatureHolder && !dynamic_cast<const TQuantizedFloatValuesHolder*>(floatFeatureHolder.Get())) {
+            return false;
+        }
+    }
+    for (const auto& catFeatureHolder : Data.CatFeatures) {
+        if (catFeatureHolder && !dynamic_cast<const TQuantizedCatValuesHolder*>(catFeatureHolder.Get())) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 
 template <EFeatureType FeatureType, class IColumnType>
 static void LoadFeatures(
@@ -906,6 +1220,7 @@ void NCB::TQuantizedObjectsData::Load(
         binSaver,
         &CatFeatures
     );
+    LoadMulti(binSaver, &CachedFeaturesCheckSum);
 }
 
 
@@ -973,6 +1288,7 @@ void NCB::TQuantizedObjectsData::SaveNonSharedPart(IBinSaver* binSaver) const {
         &localExecutor,
         binSaver
     );
+    SaveMulti(binSaver, CachedFeaturesCheckSum);
 }
 
 
@@ -1257,6 +1573,7 @@ void NCB::TQuantizedForCPUObjectsData::Load(
         binSaver,
         &Data.CatFeatures
     );
+    LoadMulti(binSaver, &Data.CachedFeaturesCheckSum);
 }
 
 

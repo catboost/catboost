@@ -82,14 +82,14 @@ def execute(*args, **kwargs):
             *args,
             task_spec={
                 'layer_paths': [
-                    '//home/devtools/porto_layers/test/gpu/cuda-drivers_396.44-1.tar.gz',
+                    '//home/devtools/porto_layers/test/gpu/cuda-drivers_418.67-1.tar.gz',
                     '//porto_layers/ubuntu-xenial-base.tar.xz',
                 ],
                 'gpu_limit': 1
             },
             operation_spec={
                 'pool_trees': ['gpu_geforce_1080ti'],
-                'scheduling_tag_filter': 'porto & !testing',
+                'scheduling_tag_filter': 'porto & testing',
             },
             input_data=input_data,
             output_data=output_data,

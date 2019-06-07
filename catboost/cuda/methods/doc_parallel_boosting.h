@@ -498,7 +498,12 @@ namespace NCatboostCuda {
             for (const auto& featureSet : features) {
                 allEvaluatedFeatures.insert(featureSet.begin(), featureSet.end());
             }
-            TBinarizedFeaturesManager baseFeatureManager(FeaturesManager, {allEvaluatedFeatures.begin(), allEvaluatedFeatures.end()});
+            const auto isFullBaseline = ModelBasedEvalConfig.UseEvaluatedFeaturesInBaselineModel;
+            const auto& ignoredFeaturesInBaseline = isFullBaseline ? TSet<ui32>() : allEvaluatedFeatures;
+            TBinarizedFeaturesManager baseFeatureManager(
+                FeaturesManager,
+                /*ignoredFeatureIds*/{ignoredFeaturesInBaseline.begin(), ignoredFeaturesInBaseline.end()}
+            );
             auto baseInputData = CreateInputData(permutationCount, &baseFeatureManager);
             auto baseCursors = CreateCursors(*baseInputData);
 

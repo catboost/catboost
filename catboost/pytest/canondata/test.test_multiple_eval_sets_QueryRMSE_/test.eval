@@ -1,4 +1,4 @@
-EvalSet:DocId	RawFormulaVal	Label
+EvalSet:SampleId	RawFormulaVal	Label
 0:0	0.0005688805654	0.07
 0:1	-0.001200938961	0.14
 0:2	-0.0002927112583	0

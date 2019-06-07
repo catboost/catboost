@@ -1,3 +1,4 @@
+import base64
 import os
 from _common import rootrel_arc_src
 import ymake
@@ -6,6 +7,15 @@ import ymake
 runtime_cgo_path = os.path.join('runtime', 'cgo')
 runtime_msan_path = os.path.join('runtime', 'msan')
 runtime_race_path = os.path.join('runtime', 'race')
+arc_project_prefix = 'a.yandex-team.ru/'
+import_runtime_cgo_false = {
+    'norace': (runtime_cgo_path, runtime_msan_path, runtime_race_path),
+    'race': (runtime_cgo_path, runtime_msan_path),
+}
+import_syscall_false = {
+    'norace': (runtime_cgo_path),
+    'race': (runtime_cgo_path, runtime_race_path),
+}
 
 
 def get_appended_values(unit, key):
@@ -25,6 +35,19 @@ def compare_versions(version1, version2):
     return 1 if v1 < v2 else -1
 
 
+def go_package_name(unit):
+    name = unit.get('GO_PACKAGE_VALUE')
+    if not name:
+        name = unit.get('GO_TEST_IMPORT_PATH')
+        if name:
+            name = os.path.basename(os.path.normpath(name))
+        elif unit.get('MODULE_TYPE') == 'PROGRAM':
+            name = 'main'
+        else:
+            name = unit.get('REALPRJNAME')
+    return name
+
+
 def on_go_process_srcs(unit):
     """
         _GO_PROCESS_SRCS() macro processes only 'CGO' files. All remaining *.go files
@@ -32,8 +55,8 @@ def on_go_process_srcs(unit):
         GO module (GO_LIBRARY, GO_PROGRAM)
     """
 
-    go_files = get_appended_values(unit, 'GO_SRCS_VALUE')
-    for f in go_files:
+    srcs_files = get_appended_values(unit, 'GO_SRCS_VALUE')
+    for f in srcs_files:
         if f.endswith('_test.go'):
             ymake.report_configure_error('file {} must be listed in GO_TEST_SRCS() or GO_XTEST_SRCS() macros'.format(f))
     go_test_files = get_appended_values(unit, 'GO_TEST_SRCS_VALUE')
@@ -42,8 +65,25 @@ def on_go_process_srcs(unit):
         if not f.endswith('_test.go'):
             ymake.report_configure_error('file {} should not be listed in GO_TEST_SRCS() or GO_XTEST_SRCS() macros'.format(f))
 
+    if unit.get('GO_TEST_MODULE') and unit.get('GO_TEST_COVER'):
+        temp_srcs_files = []
+        cover_info = []
+        for f in srcs_files:
+            if f.endswith('.go') and not f.endswith('_test.go'):
+                cover_var = 'GoCover_' + base64.b32encode(f).rstrip('=')
+                cover_file = unit.resolve_arc_path(f)
+                unit.on_go_gen_cover_go([cover_file, cover_var])
+                if cover_file.startswith('$S/'):
+                    cover_file = arc_project_prefix + cover_file[3:]
+                cover_info.append('{}:{}'.format(cover_var, cover_file))
+            else:
+                temp_srcs_files.append(f)
+        srcs_files = temp_srcs_files
+        unit.set(['GO_SRCS_VALUE', ' '.join(srcs_files)])
+        unit.set(['GO_COVER_INFO_VALUE', ' '.join(cover_info)])
+
     resolved_go_files = []
-    for path in go_files + go_test_files + go_xtest_files:
+    for path in srcs_files + go_test_files + go_xtest_files:
         if path.endswith(".go"):
             resolved = unit.resolve_arc_path([path])
             if resolved != path and not resolved.startswith("$S/vendor") and not resolved.startswith("$S/contrib"):
@@ -60,23 +100,24 @@ def on_go_process_srcs(unit):
 
     go_std_root = unit.get('GOSTD') + os.path.sep
 
-    proto_files = filter(lambda x: x.endswith('.proto'), go_files)
+    proto_files = filter(lambda x: x.endswith('.proto'), srcs_files)
     if len(proto_files) > 0:
         for f in proto_files:
             unit.on_go_proto_cmd(f)
 
-    in_files = filter(lambda x: x.endswith('.in'), go_files)
+    in_files = filter(lambda x: x.endswith('.in'), srcs_files)
     if len(in_files) > 0:
         for f in in_files:
             unit.onsrc(f)
 
     if compare_versions('1.12', unit.get('GOSTD_VERSION')) >= 0:
-        asm_files = filter(lambda x: x.endswith('.s'), go_files)
+        asm_files = filter(lambda x: x.endswith('.s'), srcs_files)
         if len(asm_files) > 0:
             unit.on_go_compile_symabis(asm_files)
 
-    s_files = filter(lambda x: x.endswith('.S'), go_files)
-    c_files = filter(lambda x: x.endswith('.c'), go_files)
+    s_files = filter(lambda x: x.endswith('.S'), srcs_files)
+    c_files = filter(lambda x: x.endswith('.c'), srcs_files)
+    syso_files = filter(lambda x: x.endswith('.syso'), srcs_files)
     if len(c_files) + len(s_files) > 0:
         cgo_flags = get_appended_values(unit, 'CGO_CFLAGS_VALUE')
         for f in c_files + s_files:
@@ -84,18 +125,56 @@ def on_go_process_srcs(unit):
 
     cgo_files = get_appended_values(unit, 'CGO_SRCS_VALUE')
     if len(cgo_files) > 0:
+        if not unit.enabled('CGO_ENABLED'):
+            ymake.report_configure_error('trying to build with CGO (CGO_SRCS is non-empty) when CGO is disabled')
         import_path = rootrel_arc_src(unit.path(), unit)
         if import_path.startswith(go_std_root):
             import_path = import_path[len(go_std_root):]
         if import_path != runtime_cgo_path:
             unit.onpeerdir(os.path.join(go_std_root, runtime_cgo_path))
-        import_runtime_cgo = 'false' if import_path in [runtime_cgo_path, runtime_msan_path, runtime_race_path] else 'true'
-        import_syscall = 'false' if import_path == runtime_cgo_path else 'true'
+        race_mode = 'race' if unit.enabled('RACE') else 'norace'
+        import_runtime_cgo = 'false' if import_path in import_runtime_cgo_false[race_mode] else 'true'
+        import_syscall = 'false' if import_path in import_syscall_false[race_mode] else 'true'
         args = [import_path] + cgo_files + ['FLAGS', '-import_runtime_cgo=' + import_runtime_cgo, '-import_syscall=' + import_syscall]
         unit.on_go_compile_cgo1(args)
-        args = [unit.get('GO_PACKAGE_VALUE') or unit.get('MODULE_TYPE') == 'PROGRAM' and 'main' or unit.get('REALPRJNAME')] + cgo_files
+        args = [go_package_name(unit)] + cgo_files
         if len(c_files) > 0:
             args += ['C_FILES'] + c_files
         if len(s_files) > 0:
             args += ['S_FILES'] + s_files
+        if len(syso_files) > 0:
+            args += ['OBJ_FILES'] + syso_files
         unit.on_go_compile_cgo2(args)
+
+
+def on_go_resource(unit, *args):
+    args = list(args)
+    files = args[::2]
+    keys = args[1::2]
+    resource_go = os.path.join("resource.res.go")
+
+    unit.onpeerdir(["library/go/core/resource"])
+
+    if len(files) != len(keys):
+        ymake.report_configure_error("last file {} is missing resource key".format(files[-1]))
+
+    for i, (key, filename) in enumerate(zip(keys, files)):
+        if not key:
+            ymake.report_configure_error("file key must be non empty")
+            return
+
+        if filename == "-" and "=" not in key:
+            ymake.report_configure_error("key \"{}\" must contain = sign".format(key))
+            return
+
+        # quote key, to avoid automatic substitution of filename by absolute
+        # path in RUN_PROGRAM
+        args[2*i+1] = "notafile" + args[2*i+1]
+
+    files = [file for file in files if file != "-"]
+    unit.onrun_program([
+        "library/go/core/resource/cc",
+        "-package", go_package_name(unit),
+        "-o", resource_go] + list(args) + [
+        "IN"] + files + [
+        "OUT", resource_go])

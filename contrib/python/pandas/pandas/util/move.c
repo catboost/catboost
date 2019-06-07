@@ -7,6 +7,9 @@
 #define PyString_CheckExact PyBytes_CheckExact
 #define PyString_AS_STRING PyBytes_AS_STRING
 #define PyString_GET_SIZE PyBytes_GET_SIZE
+
+/* in python 3, we cannot intern bytes objects so this is always false */
+#define PyString_CHECK_INTERNED(cs) 0
 #endif  /* !COMPILING_IN_PY2 */
 
 #ifndef Py_TPFLAGS_HAVE_GETCHARBUFFER
@@ -17,7 +20,7 @@
 #define Py_TPFLAGS_HAVE_NEWBUFFER 0
 #endif
 
-PyObject *badmove;  /* bad move exception class */
+static PyObject *badmove;  /* bad move exception class */
 
 typedef struct {
     PyObject_HEAD
@@ -25,7 +28,7 @@ typedef struct {
     PyObject *invalid_bytes;
 } stolenbufobject;
 
-PyTypeObject stolenbuf_type;  /* forward declare type */
+static PyTypeObject stolenbuf_type;  /* forward declare type */
 
 static void
 stolenbuf_dealloc(stolenbufobject *self)
@@ -68,7 +71,7 @@ stolenbuf_getsegcount(stolenbufobject *self, Py_ssize_t *len)
     return 1;
 }
 
-PyBufferProcs stolenbuf_as_buffer = {
+static PyBufferProcs stolenbuf_as_buffer = {
     (readbufferproc) stolenbuf_getreadwritebuf,
     (writebufferproc) stolenbuf_getreadwritebuf,
     (segcountproc) stolenbuf_getsegcount,
@@ -78,86 +81,17 @@ PyBufferProcs stolenbuf_as_buffer = {
 
 #else  /* Python 3 */
 
-PyBufferProcs stolenbuf_as_buffer = {
+static PyBufferProcs stolenbuf_as_buffer = {
     (getbufferproc) stolenbuf_getbuffer,
     NULL,
 };
 
 #endif  /* COMPILING_IN_PY2 */
 
-static PyObject *
-stolenbuf_new(PyObject *self, PyObject *args, PyObject *kwargs)
-{
-    stolenbufobject *ret;
-    PyObject *bytes_rvalue;
+PyDoc_STRVAR(stolenbuf_doc,
+             "A buffer that is wrapping a stolen bytes object's buffer.");
 
-    if (kwargs && PyDict_Size(kwargs)) {
-        PyErr_SetString(PyExc_TypeError,
-                        "stolenbuf does not accept keyword arguments");
-        return NULL;
-    }
-
-    if (PyTuple_GET_SIZE(args) != 1) {
-        PyErr_SetString(PyExc_TypeError,
-                        "stolenbuf requires exactly 1 positional argument");
-        return NULL;
-
-    }
-
-    /* pull out the single, positional argument */
-    bytes_rvalue = PyTuple_GET_ITEM(args, 0);
-
-    if (!PyString_CheckExact(bytes_rvalue)) {
-        PyErr_SetString(PyExc_TypeError,
-                        "stolenbuf can only steal from bytes objects");
-        return NULL;
-    }
-
-    if (Py_REFCNT(bytes_rvalue) != 1) {
-        /* there is a reference other than the caller's stack */
-        PyErr_SetObject(badmove, bytes_rvalue);
-        return NULL;
-    }
-
-    if (!(ret = PyObject_New(stolenbufobject, &stolenbuf_type))) {
-        return NULL;
-    }
-
-    /* store the original bytes object in a field that is not
-       exposed to python */
-    Py_INCREF(bytes_rvalue);
-    ret->invalid_bytes = bytes_rvalue;
-    return (PyObject*) ret;
-}
-
-PyDoc_STRVAR(
-    stolenbuf_doc,
-    "Moves a bytes object that is about to be destroyed into a mutable buffer\n"
-    "without copying the data.\n"
-    "\n"
-    "Parameters\n"
-    "----------\n"
-    "bytes_rvalue : bytes with 1 refcount.\n"
-    "    The bytes object that you want to move into a mutable buffer. This\n"
-    "    cannot be a named object. It must only have a single reference.\n"
-    "\n"
-    "Returns\n"
-    "-------\n"
-    "buf : stolenbuf\n"
-    "    An object that supports the buffer protocol which can give a mutable\n"
-    "    view of the data that was previously owned by ``bytes_rvalue``.\n"
-    "\n"
-    "Raises\n"
-    "------\n"
-    "BadMove\n"
-    "    Raised when a move is attempted on an object with more than one\n"
-    "    reference.\n"
-    "\n"
-    "Notes\n"
-    "-----\n"
-    "If you want to use this function you are probably wrong.\n");
-
-PyTypeObject stolenbuf_type = {
+static PyTypeObject stolenbuf_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     "pandas.util._move.stolenbuf",              /* tp_name */
     sizeof(stolenbufobject),                    /* tp_basicsize */
@@ -181,33 +115,93 @@ PyTypeObject stolenbuf_type = {
     Py_TPFLAGS_HAVE_NEWBUFFER |
     Py_TPFLAGS_HAVE_GETCHARBUFFER,              /* tp_flags */
     stolenbuf_doc,                              /* tp_doc */
-    0,                                          /* tp_traverse */
-    0,                                          /* tp_clear */
-    0,                                          /* tp_richcompare */
-    0,                                          /* tp_weaklistoffset */
-    0,                                          /* tp_iter */
-    0,                                          /* tp_iternext */
-    0,                                          /* tp_methods */
-    0,                                          /* tp_members */
-    0,                                          /* tp_getset */
-    0,                                          /* tp_base */
-    0,                                          /* tp_dict */
-    0,                                          /* tp_descr_get */
-    0,                                          /* tp_descr_set */
-    0,                                          /* tp_dictoffset */
-    0,                                          /* tp_init */
-    0,                                          /* tp_alloc */
-    (newfunc) stolenbuf_new,                    /* tp_new */
+};
+
+PyDoc_STRVAR(
+    move_into_mutable_buffer_doc,
+    "Moves a bytes object that is about to be destroyed into a mutable buffer\n"
+    "without copying the data.\n"
+    "\n"
+    "Parameters\n"
+    "----------\n"
+    "bytes_rvalue : bytes with 1 refcount.\n"
+    "    The bytes object that you want to move into a mutable buffer. This\n"
+    "    cannot be a named object. It must only have a single reference.\n"
+    "\n"
+    "Returns\n"
+    "-------\n"
+    "buf : stolenbuf\n"
+    "    An object that supports the buffer protocol which can give a mutable\n"
+    "    view of the data that was previously owned by ``bytes_rvalue``.\n"
+    "\n"
+    "Raises\n"
+    "------\n"
+    "BadMove\n"
+    "    Raised when a move is attempted on an object with more than one\n"
+    "    reference.\n"
+    "\n"
+    "Notes\n"
+    "-----\n"
+    "If you want to use this function you are probably wrong.\n"
+    "\n"
+    "Warning: Do not call this function through *unpacking. This can\n"
+    "potentially trick the reference checks which may allow you to get a\n"
+    "mutable reference to a shared string!\n"
+    "\n");
+
+/* This is implemented as a standalone function instead of the ``tp_new`` of
+   ``stolenbuf`` because we need to create a function using the METH_O flag
+   to support Python 3.6. In python 3.6, PyCFunction calls from python code now
+   count the reference owned by the argument tuple. This would cause the object
+   to have 2 references if used with a direct call like: ``stolenbuf(a)``;
+   however, if called through *unpacking like ``stolenbuf(*(a,))`` it would
+   only have the one reference (the tuple). */
+static PyObject*
+move_into_mutable_buffer(PyObject *self, PyObject *bytes_rvalue)
+{
+    stolenbufobject *ret;
+
+    if (!PyString_CheckExact(bytes_rvalue)) {
+        PyErr_SetString(PyExc_TypeError,
+                        "stolenbuf can only steal from bytes objects");
+        return NULL;
+    }
+
+    if (Py_REFCNT(bytes_rvalue) != 1 || PyString_CHECK_INTERNED(bytes_rvalue)) {
+        /* there is a reference other than the caller's stack or the string is
+           interned */
+        PyErr_SetObject(badmove, bytes_rvalue);
+        return NULL;
+    }
+
+    if (!(ret = PyObject_New(stolenbufobject, &stolenbuf_type))) {
+        return NULL;
+    }
+
+    /* store the original bytes object in a field that is not
+       exposed to python */
+    Py_INCREF(bytes_rvalue);
+    ret->invalid_bytes = bytes_rvalue;
+    return (PyObject*) ret;
+}
+
+static PyMethodDef methods[] = {
+    {"move_into_mutable_buffer",
+     (PyCFunction) move_into_mutable_buffer,
+     METH_O,
+     move_into_mutable_buffer_doc},
+    {NULL},
 };
 
 #define MODULE_NAME "pandas.util._move"
 
 #if !COMPILING_IN_PY2
-PyModuleDef _move_module = {
+static PyModuleDef move_module = {
     PyModuleDef_HEAD_INIT,
     MODULE_NAME,
     NULL,
     -1,
+    methods,
 };
 #endif  /* !COMPILING_IN_PY2 */
 
@@ -219,7 +213,7 @@ PyDoc_STRVAR(
     "Parameters\n"
     "----------\n"
     "data : any\n"
-    "    The data which was passed to ``_move_into_mutable_buffer``.\n"
+    "    The data which was passed to ``move_into_mutable_buffer``.\n"
     "\n"
     "See Also\n"
     "--------\n"
@@ -248,16 +242,16 @@ init_move(void)
     }
 
 #if !COMPILING_IN_PY2
-    if (!(m = PyModule_Create(&_move_module)))
+    if (!(m = PyModule_Create(&move_module)))
 #else
-    if (!(m = Py_InitModule(MODULE_NAME, NULL)))
+    if (!(m = Py_InitModule(MODULE_NAME, methods)))
 #endif  /* !COMPILING_IN_PY2 */
     {
         return ERROR_RETURN;
     }
 
     if (PyModule_AddObject(m,
-                           "move_into_mutable_buffer",
+                           "stolenbuf",
                            (PyObject*) &stolenbuf_type)) {
         Py_DECREF(m);
         return ERROR_RETURN;

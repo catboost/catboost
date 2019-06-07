@@ -31,7 +31,7 @@ TPooledSocket TSocketPool::AllocateMore(TConnectData* conn) {
     TCont* cont = conn->Cont;
 
     while (true) {
-        TSocketHolder s(cont->Socket(Addr_->Addr()->sa_family, SOCK_STREAM, 0));
+        TSocketHolder s(NCoro::Socket(Addr_->Addr()->sa_family, SOCK_STREAM, 0));
 
         if (s == INVALID_SOCKET) {
             ythrow TSystemError(errno) << AsStringBuf("can not create socket");
@@ -40,7 +40,7 @@ TPooledSocket TSocketPool::AllocateMore(TConnectData* conn) {
         SetCommonSockOpts(s, Addr_->Addr());
         SetZeroLinger(s);
 
-        const int ret = cont->ConnectD(s, Addr_->Addr(), Addr_->Len(), conn->DeadLine);
+        const int ret = NCoro::ConnectD(cont, s, Addr_->Addr(), Addr_->Len(), conn->DeadLine);
 
         if (ret == EINTR) {
             continue;

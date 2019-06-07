@@ -12,6 +12,12 @@ TIMEOUT(300)
 
 SIZE(MEDIUM)
 
+IF (OS_DARWIN)
+    SIZE(LARGE)
+    TAG(ya:fat ya:force_sandbox ya:exotic_platform)
+    TIMEOUT(3600)
+ENDIF()
+
 PEERDIR(
     library/testing/benchmark
 )

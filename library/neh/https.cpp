@@ -452,7 +452,7 @@ namespace NNeh {
                             TSocketRef res(new TSocketHolder());
 
                             for (TNetworkAddress::TIterator it = Host_->Addr.Begin(); it != Host_->Addr.End(); ++it) {
-                                int ret = c->Connect(*res, *it, TDuration::MilliSeconds(300).ToDeadLine());
+                                int ret = NCoro::ConnectD(c, *res, *it, TDuration::MilliSeconds(300).ToDeadLine());
 
                                 if (!ret) {
                                     TConnection tc(res, false, Host_);
@@ -465,7 +465,7 @@ namespace NNeh {
                                 }
                             }
                         } else {
-                            if (!c->PollT(*S_, CONT_POLL_WRITE, TDuration::MilliSeconds(300))) {
+                            if (!NCoro::PollT(c, *S_, CONT_POLL_WRITE, TDuration::MilliSeconds(300))) {
                                 TConnection tc(S_, false, Host_);
                                 SocketCache()->Release(tc);
                             }
@@ -493,7 +493,7 @@ namespace NNeh {
                 while (connList.Dequeue(&res)) {
                     CachedSockets.Dec();
 
-                    if (TCont::SocketNotClosedByOtherSide(*res)) {
+                    if (IsNotSocketClosedByOtherSide(*res)) {
                         if (connList.Size() == 0) {
                             //available connections exhausted - try create yet one (reserve)
                             TAutoPtr<IJob> job(new TConnector(addr));
@@ -529,12 +529,12 @@ namespace NNeh {
                 }
 
                 TNetworkAddress::TIterator ait = addr->Addr.Begin();
-                res.Reset(new TSocketHolder(c->Socket(*ait)));
+                res.Reset(new TSocketHolder(NCoro::Socket(*ait)));
                 const TInstant now(TInstant::Now());
                 const TInstant deadline(now + TDuration::Seconds(10));
                 TDuration delay = TDuration::MilliSeconds(8);
                 TInstant checkpoint = Min(deadline, now + delay);
-                int ret = c->ConnectD(*res, ait->ai_addr, ait->ai_addrlen, checkpoint);
+                int ret = NCoro::ConnectD(c, *res, ait->ai_addr, ait->ai_addrlen, checkpoint);
 
                 if (ret) {
                     do {
@@ -547,7 +547,7 @@ namespace NNeh {
                             if (connList.Dequeue(&res2)) {
                                 CachedSockets.Dec();
 
-                                if (TCont::SocketNotClosedByOtherSide(*res2)) {
+                                if (IsNotSocketClosedByOtherSide(*res2)) {
                                     try {
                                         TAutoPtr<IJob> job(new TConnector(addr, res));
 
@@ -567,7 +567,7 @@ namespace NNeh {
                             }
                             return nullptr;
                         }
-                    } while (ret = c->PollD(*res, CONT_POLL_WRITE, checkpoint));
+                    } while (ret = NCoro::PollD(c, *res, CONT_POLL_WRITE, checkpoint));
                 }
 
                 PrepareSocket(*res);
@@ -672,7 +672,7 @@ namespace NNeh {
                             if (qsize <= 2) {
                                 TSocketRef res;
                                 if (tc.Dequeue(&res)) {
-                                    if (TCont::SocketNotClosedByOtherSide(*res)) {
+                                    if (IsNotSocketClosedByOtherSide(*res)) {
                                         tc.Enqueue(res);
                                     } else {
                                         OnPurgeSocket(processed);
@@ -894,7 +894,7 @@ namespace NNeh {
             }
 
             int PollT(int what, const TDuration& timeout) {
-                return Cont_->PollT(Socket(), what, timeout);
+                return NCoro::PollT(Cont_, Socket(), what, timeout);
             }
 
             void WaitUntilWritten() {
@@ -905,7 +905,7 @@ namespace NNeh {
                     TDuration tout = TDuration::MilliSeconds(10);
 
                     while (((err = ioctl(S_, FIONWRITE, &nbytes)) == 0) && nbytes) {
-                        err = Cont_->PollT(S_, CONT_POLL_READ, tout);
+                        err = NCoro::PollT(Cont_, S_, CONT_POLL_READ, tout);
 
                         if (!err) {
                             //wait complete, cause have some data
@@ -941,7 +941,7 @@ namespace NNeh {
                 }
 
                 while (true) {
-                    auto done = Cont_->WriteI(S_, data, dlen);
+                    auto done = NCoro::WriteI(Cont_, S_, data, dlen);
                     if (done.Status() != EAGAIN) {
                         *written = done.Checked();
                         return 1;
@@ -956,7 +956,7 @@ namespace NNeh {
 
                 if (!Canceled_) {
                     while (true) {
-                        auto done = Cont_->ReadI(S_, data, dlen);
+                        auto done = NCoro::ReadI(Cont_, S_, data, dlen);
                         if (EAGAIN != done.Status()) {
                             *readbytes = done.Processed();
                             return 1;
@@ -969,7 +969,7 @@ namespace NNeh {
                         return SSL_RVAL_TIMEOUT;
                     }
 
-                    TContIOStatus ioStat(Cont_->ReadT(S_, data, dlen, Timeout_));
+                    TContIOStatus ioStat(NCoro::ReadT(Cont_, S_, data, dlen, Timeout_));
                     if (ioStat.Status() == ETIMEDOUT) {
                         //increase to 1.5 times every iteration (to 1sec floor)
                         Timeout_ = TDuration::MicroSeconds(Min<ui64>(1000000, Timeout_.MicroSeconds() + (Timeout_.MicroSeconds() >> 1)));
@@ -1588,7 +1588,7 @@ namespace NNeh {
                     if (!IO_) {
                         return false;
                     }
-                    return !TCont::SocketNotClosedByOtherSide(IO_->Socket());
+                    return !IsNotSocketClosedByOtherSide(IO_->Socket());
                 }
 
                 void SendReply(TData& data) override {
@@ -1819,7 +1819,7 @@ namespace NNeh {
                     THolder<TRead> read(new TRead(new TSslServerIOStream(SslCtx_, s), this, /* selfRemove */ true));
                     E_.Create(*read, "https-response");
                     Y_UNUSED(read.Release());
-                    E_.Running()->ContPtr()->Yield();
+                    E_.Running()->Yield();
                 } catch (...) {
                 }
             }
@@ -1830,7 +1830,7 @@ namespace NNeh {
                 } catch (const TSystemError& e) {
                     //crutch for prevent 100% busyloop (simple suspend listener/accepter)
                     if (e.Status() == EMFILE) {
-                        E_.Running()->ContPtr()->SleepT(TDuration::MilliSeconds(500));
+                        E_.Running()->SleepT(TDuration::MilliSeconds(500));
                     }
                 }
             }

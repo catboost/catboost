@@ -7,7 +7,6 @@ VERSION(2.8.0)
 
 PEERDIR(
     contrib/python/six
-    library/python/resource
 )
 
 PY_SRCS(
@@ -32,8 +31,11 @@ PY_SRCS(
     dateutil/zoneinfo/rebuild.py
 )
 
-RESOURCE(
-    dateutil/zoneinfo/dateutil-zoneinfo.tar.gz  zoneinfo/dateutil-zoneinfo.tar.gz
+RESOURCE_FILES(
+    PREFIX contrib/python/dateutil/
+    .dist-info/METADATA
+    .dist-info/top_level.txt
+    dateutil/zoneinfo/dateutil-zoneinfo.tar.gz
 )
 
 NO_LINT()

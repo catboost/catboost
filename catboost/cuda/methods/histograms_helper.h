@@ -183,7 +183,7 @@ namespace NCatboostCuda {
                               const TGpuDataSet& dataSet,
                               ui32 foldCount,
                               ui32 maxDepth,
-                              EScoreFunction score = EScoreFunction::Correlation,
+                              EScoreFunction score = EScoreFunction::Cosine,
                               double l2 = 1.0,
                               bool normalize = false,
                               ui32 stream = 0)
@@ -264,7 +264,7 @@ namespace NCatboostCuda {
                               const TGpuDataSet& dataSet,
                               ui32 foldCount,
                               ui32 maxDepth,
-                              EScoreFunction score = EScoreFunction::Correlation,
+                              EScoreFunction score = EScoreFunction::Cosine,
                               double l2 = 1.0,
                               bool normalize = false,
                               ui32 stream = 0)
@@ -335,7 +335,7 @@ namespace NCatboostCuda {
                      const TGpuDataSet& dataSet,
                      ui32 foldCount,
                      ui32 maxDepth,
-                     EScoreFunction score = EScoreFunction::Correlation,
+                     EScoreFunction score = EScoreFunction::Cosine,
                      double l2 = 1.0,
                      bool normalize = false,
                      bool requestStream = true)

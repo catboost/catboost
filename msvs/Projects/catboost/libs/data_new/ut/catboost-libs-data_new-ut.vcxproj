@@ -57,13 +57,13 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <UseFullPaths>true</UseFullPaths>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /DFAKEID=5020880 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ "-I$(CUDA_PATH)/include" /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1  /std:c++17 -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /DFAKEID=5020880 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ "-I$(CUDA_PATH)/include" /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1  /std:c++17 -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /DFAKEID=5020880 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ "-I$(CUDA_PATH)/include" /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOGDI /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1  /std:c++17 -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /DFAKEID=5020880 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ "-I$(CUDA_PATH)/include" /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOGDI /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1  /std:c++17 -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
-      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../catboost/libs/data_new;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/double-conversion/include;$(SolutionDir)$(Configuration)/library/unittest;$(SolutionDir)../contrib/libs/brotli/include;$(SolutionDir)../contrib/libs/protobuf;$(SolutionDir)../contrib/libs/protobuf/google/protobuf;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../catboost/libs/data_new;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/double-conversion/include;$(SolutionDir)$(Configuration)/library/unittest;$(SolutionDir)../contrib/libs/brotli/include;$(SolutionDir)../contrib/libs/protobuf;$(SolutionDir)../contrib/libs/protobuf/google/protobuf;$(SolutionDir)../contrib/libs/libf2c;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;crypt32.lib;$(SolutionDir)$(Configuration)\MSVS\2C228BC9-6312-D2CC-3CFB-6F34BAB794C9\cb_dsv_loader.obj;$(SolutionDir)$(Configuration)\MSVS\B4A310AF-0E82-DDD5-9A9D-5C5C37155EC0\exists_checker.obj;$(SolutionDir)$(Configuration)\MSVS\B4A310AF-0E82-DDD5-9A9D-5C5C37155EC0\line_data_reader.obj;$(SolutionDir)$(Configuration)\MSVS\FAFB4883-665E-74FC-687B-B3E92B73012E\1cc3e14d43bed0c73ca4b4b233.obj;$(SolutionDir)$(Configuration)\MSVS\2674849B-0330-C348-578B-DB562AA37E65\brotli.obj;$(SolutionDir)$(Configuration)\MSVS\AC376A6B-93D4-59AC-5493-C2308B528517\bzip.obj;$(SolutionDir)$(Configuration)\MSVS\A880DD8B-7948-E7DF-FDDB-6F6C1A23012A\fastlz.obj;$(SolutionDir)$(Configuration)\MSVS\39206ED1-8CD9-0701-178E-0631ABD19D17\legacy_zstd06.obj;$(SolutionDir)$(Configuration)\MSVS\F13B7D24-08DF-93EE-EF06-0A42A67F1F2A\lz4.obj;$(SolutionDir)$(Configuration)\MSVS\005F2BD3-F54E-2F5E-204D-10BBF3ABD244\lzma.obj;$(SolutionDir)$(Configuration)\MSVS\96581D45-46BF-09E3-6477-BFA2BF8C22E1\snappy.obj;$(SolutionDir)$(Configuration)\MSVS\DD085378-CB32-3420-0F56-EB3498FD2743\zlib.obj;$(SolutionDir)$(Configuration)\MSVS\AC7594FF-6F1D-C755-11B7-918627CFBD0B\zstd.obj;%(AdditionalDependencies)</AdditionalDependencies>
@@ -127,6 +127,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\data_util\catboost-libs-data_util.vcxproj">
       <Project>{B4A310AF-0E82-DDD5-9A9D-5C5C37155EC0}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\feature_estimator\catboost-libs-feature_estimator.vcxproj">
+      <Project>{0E2E4DB1-7B74-0856-9AE8-A5C39471561D}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\gpu_config\interface\libs-gpu_config-interface.vcxproj">
       <Project>{F8F093C9-FBBE-5DBB-F4BF-56E91E44C829}</Project>
     </ProjectReference>
@@ -160,6 +163,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\quantization_schema\catboost-libs-quantization_schema.vcxproj">
       <Project>{DD94FB48-7329-B4E0-9617-51FA31F09621}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\text_features\catboost-libs-text_features.vcxproj">
+      <Project>{1DC2329C-D17B-1F04-445F-BD55E24DB60E}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\base64\avx2\libs-base64-avx2.vcxproj">
       <Project>{69A3431A-8A49-B198-8E40-2F61C1B0C1BC}</Project>
     </ProjectReference>
@@ -187,6 +193,18 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\brotli\enc\libs-brotli-enc.vcxproj">
       <Project>{81F8519B-E4FA-2A51-8D90-E6E1A0B110C3}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cblas\contrib-libs-cblas.vcxproj">
+      <Project>{F42B3303-A85B-C579-9BF8-27924B30359B}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\clapack\contrib-libs-clapack.vcxproj">
+      <Project>{04A8455B-4404-6B67-F3CD-6366DEF170FE}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\clapack\part1\libs-clapack-part1.vcxproj">
+      <Project>{6C58A7BD-61C5-1C8D-6C74-836658D88AE1}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\clapack\part2\libs-clapack-part2.vcxproj">
+      <Project>{917DA2BF-AE17-9DD9-93C2-EE8EAF72E9BD}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\coreml\contrib-libs-coreml.vcxproj">
       <Project>{93EB7B67-F5F5-2F81-81E6-CAB2EBA6B8E6}</Project>
     </ProjectReference>
@@ -210,6 +228,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\libbz2\contrib-libs-libbz2.vcxproj">
       <Project>{22D13723-C5D2-BCB5-73F8-368EA5B1CBE5}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\libf2c\contrib-libs-libf2c.vcxproj">
+      <Project>{ACC03840-E215-DC54-B209-59FA03988A57}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\lz4\generated\libs-lz4-generated.vcxproj">
       <Project>{B1939F66-2680-431C-0803-80E79529B7E9}</Project>
@@ -292,6 +313,12 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\containers\dense_hash\library-containers-dense_hash.vcxproj">
       <Project>{45F2062A-3F31-B7B8-9501-F0C86DB74515}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\containers\flat_hash\lib\containers-flat_hash-lib.vcxproj">
+      <Project>{F197135F-A8DC-82F1-30DC-370483845AFC}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\containers\flat_hash\library-containers-flat_hash.vcxproj">
+      <Project>{5FD588BE-C0D3-668F-80A4-E122B11CEE84}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\containers\paged_vector\library-containers-paged_vector.vcxproj">
       <Project>{F2373D22-DBF0-B7E4-B028-8BF674973AED}</Project>
     </ProjectReference>
@@ -363,6 +390,12 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\terminate_handler\library-terminate_handler.vcxproj">
       <Project>{4E4966F6-2368-4B6C-B986-DF5B07F94F72}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\text_processing\dictionary\idl\text_processing-dictionary-idl.vcxproj">
+      <Project>{939B289A-1787-7277-2983-EC29354F300F}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\text_processing\dictionary\library-text_processing-dictionary.vcxproj">
+      <Project>{20E66110-58A2-0F4C-801A-002FF362F425}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\threading\future\library-threading-future.vcxproj">
       <Project>{CF2582C4-C4A1-875F-6897-27B28FB8018A}</Project>

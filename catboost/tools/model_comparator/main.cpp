@@ -1,5 +1,8 @@
 
-#include "onnx.h"
+#include "decl.h"
+#include "pmml.h"
+
+#include <contrib/libs/onnx/proto/onnx_ml.pb.h>
 
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/logging/logging.h>
@@ -10,6 +13,7 @@
 
 
 using namespace NCB;
+
 
 
 struct TSubmodelComparison {
@@ -103,6 +107,41 @@ static bool CompareModelInfo(const THashMap<TString, TString>& modelInfo1, const
 }
 
 
+// returns Nothing() if both lhs and rhs are not of TModel type
+template <class TModel>
+TMaybe<int> ProcessSubType(const TStringBuf modelTypeName, const TStringBuf modelPath1, const TStringBuf modelPath2) {
+    TMaybe<TModel> model1 = TryLoadModel<TModel>(modelPath1);
+    TMaybe<TModel> model2 = TryLoadModel<TModel>(modelPath2);
+
+    if (model1 && model2) {
+        TString diffString;
+        bool modelsAreEqual = CompareModels<TModel>(*model1, *model2, &diffString);
+        if (modelsAreEqual) {
+            Clog << "Models are equal" << Endl;
+            return 0;
+        }
+        Clog << modelTypeName << " models differ:\n" << diffString << Endl
+             << "MODEL1 = " << modelPath1 << Endl
+             << "MODEL2 = " << modelPath2 << Endl;
+        return 1;
+    }
+    if (model1 && !model2) {
+        Clog << "Cannot compare (not implemented)\n"
+            << modelTypeName << " MODEL1 = " << modelPath1 << Endl
+            << "non-" << modelTypeName << " MODEL2 = " << modelPath2 << Endl;
+        return 2;
+    }
+    if (!model1 && model2) {
+        Clog << "Cannot compare (not implemented)\n"
+            << "non-" << modelTypeName << " MODEL1 = " << modelPath1 << Endl
+            << modelTypeName << " MODEL2 = " << modelPath2 << Endl;
+        return 2;
+    }
+
+    return Nothing();
+}
+
+
 int main(int argc, char** argv) {
     using namespace NLastGetopt;
     double diffLimit = 0.0;
@@ -118,36 +157,17 @@ int main(int argc, char** argv) {
     TOptsParseResult args(&opts, argc, argv);
     TVector<TString> freeArgs = args.GetFreeArgs();
 
-
-    TMaybe<onnx::ModelProto> onnxModel1 = TryLoadOnnxModel(freeArgs[0]);
-    TMaybe<onnx::ModelProto> onnxModel2 = TryLoadOnnxModel(freeArgs[1]);
-
-    if (onnxModel1 && onnxModel2) {
-        TString diffString;
-        bool modelsAreEqual = Compare(*onnxModel1, *onnxModel2, &diffString);
-        if (modelsAreEqual) {
-            Clog << "Models are equal" << Endl;
-            return 0;
-        }
-        Clog << "ONNX models differ:\n" << diffString << Endl
-             << "MODEL1 = " << freeArgs[0] << Endl
-             << "MODEL2 = " << freeArgs[1] << Endl;
-        return 1;
-    }
-    if (onnxModel1 && !onnxModel2) {
-        Clog << "Cannot compare (not implemented)\n"
-            << "ONNX MODEL1 = " << freeArgs[0] << Endl
-            << "non-ONNX MODEL2 = " << freeArgs[1] << Endl;
-        return 2;
-    }
-    if (!onnxModel1 && onnxModel2) {
-        Clog << "Cannot compare (not implemented)\n"
-            << "non-ONNX MODEL1 = " << freeArgs[0] << Endl
-            << "ONNX MODEL2 = " << freeArgs[1] << Endl;
-        return 2;
+    TMaybe<int> subTypeResult = ProcessSubType<onnx::ModelProto>("ONNX", freeArgs[0], freeArgs[1]);
+    if (subTypeResult) {
+        return *subTypeResult;
     }
 
-    // both models are non-ONNX - compare loaded as TFullModel
+    subTypeResult = ProcessSubType<TPmmlModel>("PMML", freeArgs[0], freeArgs[1]);
+    if (subTypeResult) {
+        return *subTypeResult;
+    }
+
+    // both models are non-ONNX and non-PMML - compare loaded as TFullModel
 
     TFullModel model1 = ReadModelAny(freeArgs[0]);
     TFullModel model2 = ReadModelAny(freeArgs[1]);

@@ -120,6 +120,7 @@ TDStrResult GetDocumentImportances(
     int threadCount,
     int logPeriod
 ) {
+    CB_ENSURE(model.GetTreeCount(), "Model is not trained");
     if (topSize == -1) {
         topSize = SafeIntegerCast<int>(trainData.ObjectsData->GetObjectCount());
     } else {

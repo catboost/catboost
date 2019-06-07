@@ -64,7 +64,7 @@ namespace NCatboostCuda {
         if (IsFloat(featureId)) {
             return QuantizedFeaturesInfo->GetNanMode(
                 QuantizedFeaturesInfo->GetFeaturesLayout()->GetInternalFeatureIdx<EFeatureType::Float>(
-                    featureId));
+                    FeatureManagerIdToDataProviderId[featureId]));
         }
         return nanMode;
     }
@@ -73,7 +73,7 @@ namespace NCatboostCuda {
         if (IsFloat(featureId)) {
             return QuantizedFeaturesInfo->HasBorders(
                 QuantizedFeaturesInfo->GetFeaturesLayout()->GetInternalFeatureIdx<EFeatureType::Float>(
-                    featureId));
+                    FeatureManagerIdToDataProviderId[featureId]));
         }
         return Borders.contains(featureId);
     }
@@ -139,7 +139,7 @@ namespace NCatboostCuda {
         if (IsFloat(featureId)) {
             return QuantizedFeaturesInfo->GetBorders(
                 QuantizedFeaturesInfo->GetFeaturesLayout()->GetInternalFeatureIdx<EFeatureType::Float>(
-                    featureId));
+                    FeatureManagerIdToDataProviderId[featureId]));
         }
         CB_ENSURE(Borders.contains(featureId), "Can't find borders for feature #" << featureId);
         return Borders.at(featureId);
@@ -428,7 +428,7 @@ namespace NCatboostCuda {
         CB_ENSURE(IsCat(featureId));
         return QuantizedFeaturesInfo->GetUniqueValuesCounts(
             QuantizedFeaturesInfo->GetFeaturesLayout()->GetInternalFeatureIdx<EFeatureType::Categorical>(
-                featureId));
+                FeatureManagerIdToDataProviderId[featureId]));
     }
     TVector<ui32> TBinarizedFeaturesManager::GetEstimatedFeatureIds() const {
         TVector<ui32> result;

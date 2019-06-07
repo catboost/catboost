@@ -28,9 +28,13 @@
   - wctype.h:   contrib/libs/cxxsupp/libcxx/include/wctype.h
 
 - includes:
+  - atomic.h:
+    - contrib/libs/cxxsupp/libcxxrt/atomic.h
   - cxxabi.h:
     - contrib/libs/cxxsupp/libcxx/include/cxxabi.h
     - contrib/libs/cxxsupp/libcxxrt/cxxabi.h
+  - omp.h:
+    - contrib/libs/cxxsupp/openmp/omp.h
   - unwind.h:
     - contrib/libs/cxxsupp/libcxx/include/unwind.h
     - contrib/libs/cxxsupp/libcxxrt/unwind.h

@@ -217,3 +217,36 @@ void TUnigramDictionaryImpl::Load(IInputStream* stream, bool isNewFormat) {
     IdToCount.shrink_to_fit();
     InitializeSpecialTokenIds();
 }
+
+THolder<IMMapDictionaryImpl> TUnigramDictionaryImpl::CreateMMapDictionaryImpl() const {
+    TVector<TStringBuf> idToToken;
+    if (IdToToken.empty()) {
+        GetIdToTokenMapping(TokenToId, &idToToken);
+    }
+    const TVector<TStringBuf>& idToTokenRef = IdToToken.empty() ? idToToken : IdToToken;
+
+    TVector<TBucket> buckets;
+    ui64 seed;
+    BuildBuckets(
+        xrange<TTokenId>(idToTokenRef.size()),
+        [&](TTokenId tokenId, ui64 seed) {
+            auto hash = MurmurHash<ui64>(
+                (void*)(idToTokenRef[tokenId].data()),
+                idToTokenRef[tokenId].size(),
+                seed
+            );
+            return std::make_pair(hash, tokenId);
+        },
+        &buckets,
+        &seed
+    );
+
+    TVector<ui8> dictionaryMetaInfoBuffer;
+    BuildDictionaryMetaInfo(Size(), DictionaryOptions, &dictionaryMetaInfoBuffer);
+
+    return MakeHolder<TMMapUnigramDictionaryImpl>(
+        std::move(dictionaryMetaInfoBuffer),
+        std::move(buckets),
+        seed
+    );
+}

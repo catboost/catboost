@@ -11,55 +11,75 @@
 #include <util/generic/ymath.h>
 #include <util/generic/serialized_enum.h>
 
-using NSplitSelection::IBinarizer;
+#include <algorithm>
+
+using namespace NSplitSelection;
+using namespace NSplitSelection::NImpl;
 
 namespace {
     template <EPenaltyType PenaltyType>
     class TGreedyBinarizer: public IBinarizer {
     public:
-        THashSet<float> BestSplit(
-            TVector<float>& featureValues,
-            int maxBordersCount,
-            bool isSorted) const override;
+        THashSet<float> BestSplit(TFeatureValues&& features, int maxBordersCount) const override;
     };
 
     template <EPenaltyType PenaltyType>
     class TExactBinarizer: public IBinarizer {
     public:
-        THashSet<float> BestSplit(
-            TVector<float>& featureValues,
-            int maxBordersCount,
-            bool isSorted) const override;
+        THashSet<float> BestSplit(TFeatureValues&& features, int maxBordersCount) const override;
     };
 
     class TMedianPlusUniformBinarizer: public IBinarizer {
     public:
-        THashSet<float> BestSplit(
-            TVector<float>& featureValues,
-            int maxBordersCount,
-            bool isSorted) const override;
+        THashSet<float> BestSplit(TFeatureValues&& features, int maxBordersCount) const override;
     };
 
     // Works in O(binCount * log(n)) + O(n * log(n)) for sorting.
     // It's possible to implement O(n * log(binCount)) version.
     class TMedianBinarizer: public IBinarizer {
     public:
-        THashSet<float> BestSplit(
-            TVector<float>& featureValues,
-            int maxBordersCount,
-            bool isSorted) const override;
+        THashSet<float> BestSplit(TFeatureValues&& features, int maxBordersCount) const override;
     };
 
     class TUniformBinarizer: public IBinarizer {
     public:
-        THashSet<float> BestSplit(
-            TVector<float>& featureValues,
-            int maxBordersCount,
-            bool isSorted) const override;
+        THashSet<float> BestSplit(TFeatureValues&& features, int maxBordersCount) const override;
     };
 }
 
 namespace NSplitSelection {
+
+    THashSet<float> BestSplit(
+        TFeatureValues&& features,
+        bool featureValuesMayContainNans,
+        int maxBordersCount,
+        EBorderSelectionType type
+    ) {
+        if (features.DefaultValue && IsNan(features.DefaultValue->Value)) {
+            if (featureValuesMayContainNans) {
+                features.DefaultValue = Nothing();
+            } else {
+                throw (yexception() << "Unexpected Nan value.");
+            }
+        }
+
+        auto firstNanPos = std::remove_if(features.Values.begin(), features.Values.end(), IsNan);
+        if (firstNanPos != features.Values.end()) {
+            if (featureValuesMayContainNans) {
+                features.Values.erase(firstNanPos, features.Values.end());
+            } else {
+                throw (yexception() << "Unexpected Nan value.");
+            }
+        }
+
+        if (features.Values.empty()) {
+            return {};
+        }
+
+        const auto binarizer = MakeBinarizer(type);
+        return binarizer->BestSplit(std::move(features), maxBordersCount);
+    }
+
     THolder<IBinarizer> MakeBinarizer(const EBorderSelectionType type) {
         switch (type) {
             case EBorderSelectionType::UniformAndQuantiles:
@@ -89,21 +109,11 @@ THashSet<float> BestSplit(
     bool filterNans,
     bool featuresAreSorted
 ) {
-    auto firstNanPos = std::remove_if(features.begin(), features.end(), IsNan);
-    if (firstNanPos != features.end()) {
-        if (filterNans) {
-            features.erase(firstNanPos, features.end());
-        } else {
-            throw (yexception() << "Unexpected Nan value.");
-        }
-    }
-
-    if (features.empty()) {
-        return {};
-    }
-
-    const auto binarizer = NSplitSelection::MakeBinarizer(type);
-    return binarizer->BestSplit(features, maxBordersCount, featuresAreSorted);
+    return NSplitSelection::BestSplit(
+        TFeatureValues(std::move(features), featuresAreSorted),
+        filterNans,
+        maxBordersCount,
+        type);
 }
 
 namespace {
@@ -121,19 +131,27 @@ namespace {
     };
 }
 
-template <>
-double Penalty<EPenaltyType::MinEntropy>(double weight) {
-    return weight * log(weight + 1e-8);
-}
-template <>
-double Penalty<EPenaltyType::MaxSumLog>(double weight) {
-    return -log(weight + 1e-8);
+namespace NSplitSelection {
+
+    namespace NImpl {
+
+        template <>
+        double Penalty<EPenaltyType::MinEntropy>(double weight) {
+            return weight * log(weight + 1e-8);
+        }
+        template <>
+        double Penalty<EPenaltyType::MaxSumLog>(double weight) {
+            return -log(weight + 1e-8);
+        }
+
+        template <>
+        double Penalty<EPenaltyType::W2>(double weight) {
+            return weight * weight;
+        }
+
+    }
 }
 
-template <>
-double Penalty<EPenaltyType::W2>(double weight) {
-    return weight * weight;
-}
 
 template <typename TWeightType, EPenaltyType type>
 static void BestSplit(
@@ -662,6 +680,39 @@ namespace {
         T operator*() const { return Value; }
     };
 
+    /*
+     * returns non-default weight for a single value and default weight otherwise
+     * useful when dealing with default values
+     */
+    template <typename T>
+    class TSingleValueWeightedIterator {
+    public:
+    private:
+        size_t CurrentPosition;
+        size_t SingleValuePosition;
+        T DefaultWeight;
+        T SingleValueWeight;
+    public:
+        TSingleValueWeightedIterator(T defaultWeight, size_t singleValuePosition, T singleValueWeight)
+            : CurrentPosition(0)
+            , SingleValuePosition(singleValuePosition)
+            , DefaultWeight(defaultWeight)
+            , SingleValueWeight(singleValueWeight)
+        {}
+        TSingleValueWeightedIterator& operator++() {
+            ++CurrentPosition;
+            return *this;
+        }
+        TSingleValueWeightedIterator operator++(int) {
+            TSingleValueWeightedIterator result(*this);
+            ++(*this);
+            return result;
+        }
+        T operator*() const {
+            return (CurrentPosition == SingleValuePosition) ? SingleValueWeight  : DefaultWeight;
+        }
+    };
+
     template <typename TWeightType>
     static inline bool ShouldBeSkipped(float value, TWeightType weight, bool filterNans) {
         if (weight <= 0) {
@@ -676,83 +727,103 @@ namespace {
 
     template <class TWeightIteratorType>
     std::pair<TVector<float>, TVector<float>> GroupAndSortWeighedValuesImpl(
-        const TVector<float>& featureValues,
+        TVector<float>&& featureValues,
         TWeightIteratorType weightsIterator,
         bool filterNans,
         bool isSorted,
-        bool normalizeWeights = false
+        bool normalizeWeights = false,
+        bool cumulativeWeights = false
     ) {
-        TVector<float> uniqueFeatureValues; // is it worth to make a reserve?
+        TVector<float> uniqueFeatureValues; // featureValues' memory will be moved here
         TVector<float> uniqueValueWeights;
         size_t valueCount = 0;
         double totalWeight = 0.0f;
         if (isSorted) {
-            for (auto value : featureValues) {
+            auto srcIter = featureValues.begin();
+            auto srcEndIter = featureValues.end();
+            auto dstIter = featureValues.begin();
+
+            for (; srcIter != srcEndIter; ++srcIter) {
                 auto weight = *weightsIterator++;
-                if (ShouldBeSkipped(value, weight, filterNans)) {
+                if (ShouldBeSkipped(*srcIter, weight, filterNans)) {
                     continue;
                 }
                 ++valueCount;
                 totalWeight += weight;
-                if (uniqueFeatureValues.empty() || uniqueFeatureValues.back() != value) {
-                    uniqueFeatureValues.push_back(value);
+
+                if (uniqueValueWeights.empty()) {
+                    *dstIter++ = *srcIter;
+                    uniqueValueWeights.push_back(weight);
+                } else if (*(dstIter - 1) != *srcIter) {
+                    *dstIter++ = *srcIter;
+                    if (cumulativeWeights) {
+                        weight += uniqueValueWeights.back();
+                    }
                     uniqueValueWeights.push_back(weight);
                 } else {
                     uniqueValueWeights.back() += weight;
                 }
             }
+            featureValues.resize(dstIter - featureValues.begin());
+            featureValues.shrink_to_fit();
+            uniqueFeatureValues = std::move(featureValues);
+            if (normalizeWeights && uniqueValueWeights.size() > 0) {
+                const double weightMultiplier = static_cast<double>(valueCount) / totalWeight;
+                for (float& weight : uniqueValueWeights) {
+                    weight *= weightMultiplier;
+                }
+            }
         } else {
             THashMap<float, float> groupedValues;
-            for (auto value : featureValues) {
+            THashMap<float, float>::insert_ctx insertCtx;
+
+            auto srcIter = featureValues.begin();
+            auto srcEndIter = featureValues.end();
+            auto dstIter = featureValues.begin();
+
+            for (; srcIter != srcEndIter; ++srcIter) {
                 auto weight = *weightsIterator++;
-                if (ShouldBeSkipped(value, weight, filterNans)) {
+                if (ShouldBeSkipped(*srcIter, weight, filterNans)) {
                     continue;
                 }
                 ++valueCount;
                 totalWeight += weight;
-                if (groupedValues.contains(value)) {
-                    groupedValues.at(value) += weight;
+
+                auto groupedValuesIter = groupedValues.find(*srcIter, insertCtx);
+                if (groupedValuesIter == groupedValues.end()) {
+                    groupedValues.emplace_direct(insertCtx, *srcIter, weight);
+                    *dstIter++ = *srcIter;
                 } else {
-                    groupedValues.emplace(value, weight);
-                    uniqueFeatureValues.push_back(value);
+                    groupedValuesIter->second += weight;
                 }
             }
+            featureValues.resize(dstIter - featureValues.begin());
+            featureValues.shrink_to_fit();
+            uniqueFeatureValues = std::move(featureValues);
             Sort(uniqueFeatureValues.begin(), uniqueFeatureValues.end());
+
             uniqueValueWeights.reserve(uniqueFeatureValues.size());
-            for (auto value : uniqueFeatureValues) {
-                uniqueValueWeights.push_back(groupedValues.at(value));
-            }
-        }
-        if (normalizeWeights && valueCount > 0) {
             const double weightMultiplier = static_cast<double>(valueCount) / totalWeight;
-            for (float& weight : uniqueValueWeights) {
-                weight *= weightMultiplier;
+            for (auto value : uniqueFeatureValues) {
+                float weight = groupedValues.at(value);
+                if (normalizeWeights) {
+                    weight *= weightMultiplier;
+                }
+                if (cumulativeWeights && !uniqueValueWeights.empty()) {
+                    weight += uniqueValueWeights.back();
+                }
+                uniqueValueWeights.push_back(weight);
             }
         }
+
         return {std::move(uniqueFeatureValues), std::move(uniqueValueWeights)};
     }
 }
 
-std::pair<TVector<float>, TVector<float>> GroupAndSortWeighedValues(
-        const TVector<float>& featureValues,
-        const TVector<float>& weights,
-        bool filterNans, bool isSorted) {
-    Y_ENSURE(featureValues.size() == weights.size());
-    return GroupAndSortWeighedValuesImpl(featureValues, weights.begin(), filterNans, isSorted, true);
-}
-
-std::pair<TVector<float>, TVector<float>> GroupAndSortValues(
-        const TVector<float>& featureValues, bool filterNans, bool isSorted) {
-    return GroupAndSortWeighedValuesImpl(
-        featureValues, TRepeatIterator<float>(1.0f), filterNans, isSorted);
-}
 
 template <EPenaltyType type>
-static THashSet<float> SplitWithGuaranteedOptimum(TVector<float>& featureValues,
-                                                  int maxBordersCount,
-                                                  bool isSorted) {
-    const auto [uniqueFeatureValues, uniqueValueWeights] = GroupAndSortValues(
-        featureValues, false, isSorted);
+static THashSet<float> SplitWithGuaranteedOptimum(TFeatureValues&& features, int maxBordersCount) {
+    const auto [uniqueFeatureValues, uniqueValueWeights] = GroupAndSortValues(std::move(features), false);
     return BestSplit<type>(uniqueFeatureValues, uniqueValueWeights, maxBordersCount);
 }
 
@@ -775,60 +846,187 @@ static THashSet<float> GenerateMedianBorders(
     return result;
 }
 
+static THashSet<float> GenerateMedianBordersWithDefaultValue(
+    // must be sorted, featureValues must include it
+    const TVector<float>& featureValues,
+    size_t defaultValueStartPos, // in featureValues
+    const TDefaultValue defaultValue,
+    int maxBordersCount) {
+
+    Y_ASSERT(featureValues[defaultValueStartPos] == defaultValue.Value);
+
+    THashSet<float> result;
+    if (maxBordersCount == 0 || featureValues.front() == featureValues.back()) {
+        return result;
+    }
+
+    ui64 total = featureValues.size() + defaultValue.Count - 1;
+
+    auto getValuesIndex = [=] (int borderIdx) -> ui64 {
+        ui64 i1 = (borderIdx + 1) * total / (maxBordersCount + 1);
+        return Min(i1, total - 1);
+    };
+
+    int i = 0;
+    bool defaultValuePassed = false;
+    do {
+        if (defaultValuePassed) {
+            float val1 = featureValues[getValuesIndex(i) - (defaultValue.Count - 1)];
+            if (val1 != featureValues[0]) {
+                result.insert(RegularBorder(val1, featureValues));
+            }
+            ++i;
+        } else {
+            ui64 i1 = getValuesIndex(i);
+            float val1;
+            if (i1 > featureValues.size()) { // default value at the end
+                val1 = defaultValue.Value;
+                i = maxBordersCount;
+            } else {
+                if (i1 >= defaultValueStartPos) {
+                    defaultValuePassed = true;
+
+                    int newI = (
+                        CeilDiv((defaultValueStartPos + defaultValue.Count) * (maxBordersCount + 1), total) - 1);
+                    if (newI != i) {
+                        val1 = defaultValue.Value;
+                        i = newI;
+                    } else {
+                        continue;
+                    }
+                } else {
+                    val1 = featureValues[i1];
+                    ++i;
+                }
+            }
+            if (val1 != featureValues[0]) {
+                result.insert(RegularBorder(val1, featureValues));
+            }
+        }
+    } while (i < maxBordersCount);
+
+    return result;
+}
+
+static THashSet<float> GenerateMedianBorders(
+    // must be sorted, featureValues must include it
+    const TVector<float>& featureValues,
+    const TMaybe<TDefaultValue> defaultValue,
+    TMaybe<size_t> defaultValueFirstPos, // pos in featureValues, defined only if defaultValue is defined
+    int maxBordersCount) {
+
+    if (defaultValue) {
+        return GenerateMedianBordersWithDefaultValue(
+            featureValues,
+            *defaultValueFirstPos,
+            *defaultValue,
+            maxBordersCount);
+    } else {
+        return GenerateMedianBorders(featureValues, maxBordersCount);
+    }
+}
+
+
+
 template <EPenaltyType PenaltyType>
-THashSet<float> TExactBinarizer<PenaltyType>::BestSplit(
-    TVector<float>& featureValues, int maxBordersCount, bool isSorted) const {
-    return SplitWithGuaranteedOptimum<PenaltyType>(featureValues, maxBordersCount, isSorted);
+THashSet<float> TExactBinarizer<PenaltyType>::BestSplit(TFeatureValues&& features, int maxBordersCount) const {
+    return SplitWithGuaranteedOptimum<PenaltyType>(std::move(features), maxBordersCount);
 }
 
-THashSet<float> TMedianBinarizer::BestSplit(
-    TVector<float>& featureValues, int maxBordersCount, bool isSorted) const {
-    if (!isSorted) {
-        Sort(featureValues.begin(), featureValues.end());
+
+// features.Values will be sorted after this function
+static void PrepareFeatureValuesForGenerateMedianBorders(
+    TFeatureValues& features,
+    TMaybe<size_t>* defaultValueFirstPos) { // out parameter
+
+    if (features.DefaultValue) {
+        const float defaultValue = features.DefaultValue->Value;
+        if (features.ValuesSorted) {
+            auto defaultValueFirstPosIter = LowerBound(
+                features.Values.begin(),
+                features.Values.end(),
+                defaultValue);
+
+            *defaultValueFirstPos = defaultValueFirstPosIter - features.Values.begin();
+
+            features.Values.insert(defaultValueFirstPosIter, defaultValue);
+        } else {
+            features.Values.push_back(defaultValue);
+            Sort(features.Values);
+
+            auto defaultValueFirstPosIter = LowerBound(
+                features.Values.begin(),
+                features.Values.end(),
+                defaultValue);
+
+            *defaultValueFirstPos = defaultValueFirstPosIter - features.Values.begin();
+        }
+    } else {
+        if (!features.ValuesSorted) {
+            Sort(features.Values);
+        }
+        *defaultValueFirstPos = Nothing();
     }
-    return GenerateMedianBorders(featureValues, maxBordersCount);
+    features.ValuesSorted = true;
 }
 
-THashSet<float> TMedianPlusUniformBinarizer::BestSplit(
-    TVector<float>& featureValues, int maxBordersCount, bool isSorted) const {
-    if (!isSorted) {
-        Sort(featureValues.begin(), featureValues.end());
-    }
 
-    if (featureValues.empty() || featureValues.front() == featureValues.back()) {
+THashSet<float> TMedianBinarizer::BestSplit(TFeatureValues&& features, int maxBordersCount) const {
+    TMaybe<size_t> defaultValueFirstPos;
+    PrepareFeatureValuesForGenerateMedianBorders(features, &defaultValueFirstPos);
+
+    return GenerateMedianBorders(
+        features.Values,
+        features.DefaultValue,
+        defaultValueFirstPos,
+        maxBordersCount);
+}
+
+THashSet<float> TMedianPlusUniformBinarizer::BestSplit(TFeatureValues&& features, int maxBordersCount) const {
+    TMaybe<size_t> defaultValueFirstPos;
+    PrepareFeatureValuesForGenerateMedianBorders(features, &defaultValueFirstPos);
+
+    if (features.Values.empty() || features.Values.front() == features.Values.back()) {
         return THashSet<float>();
     }
 
     int halfBorders = maxBordersCount / 2;
-    THashSet<float> borders = GenerateMedianBorders(featureValues, maxBordersCount - halfBorders);
+    THashSet<float> borders;
+    borders = GenerateMedianBorders(
+        features.Values,
+        features.DefaultValue,
+        defaultValueFirstPos,
+        maxBordersCount - halfBorders);
 
     // works better on rel approximation with quadratic loss
-    float minValue = featureValues.front();
-    float maxValue = featureValues.back();
+    float minValue = features.Values.front();
+    float maxValue = features.Values.back();
 
     for (int i = 0; i < halfBorders; ++i) {
         float val = minValue + (i + 1) * (maxValue - minValue) / (halfBorders + 1);
-        borders.insert(RegularBorder(val, featureValues));
+        borders.insert(RegularBorder(val, features.Values));
     }
 
     return borders;
 }
 
-THashSet<float> TUniformBinarizer::BestSplit(
-    TVector<float>& featureValues,
-    int maxBordersCount,
-    bool isSorted
-) const {
-    if (!isSorted) {
-        Sort(featureValues.begin(), featureValues.end());
-    }
-
-    if (featureValues.empty() || featureValues.front() == featureValues.back()) {
+THashSet<float> TUniformBinarizer::BestSplit(TFeatureValues&& features, int maxBordersCount) const {
+    if (features.Values.empty()) {
         return THashSet<float>();
     }
 
-    float minValue = featureValues.front();
-    float maxValue = featureValues.back();
+    auto [minIter, maxIter] = MinMaxElement(features.Values.begin(), features.Values.end());
+    float minValue = *minIter;
+    float maxValue = *maxIter;
+
+    if (features.DefaultValue) {
+        minValue = Min(minValue, features.DefaultValue->Value);
+        maxValue = Max(maxValue, features.DefaultValue->Value);
+    }
+
+    if (minValue == maxValue) {
+        return THashSet<float>();
+    }
 
     THashSet<float> borders;
     for (int i = 0; i < maxBordersCount; ++i) {
@@ -1037,7 +1235,7 @@ namespace {
 
     template<EPenaltyType penaltyType, class TWeightIteratorType>
     THashSet<float> BestWeightedSplitImpl(
-        const TVector<float>& featureValues,
+        TVector<float>&& featureValues,
         TWeightIteratorType weightsIterator,
         int maxBordersCount,
         EOptimizationType optimizationType,
@@ -1046,7 +1244,12 @@ namespace {
         bool normalizeWeights = true
     ) {
         auto[uniqueFeatureValues, uniqueValueWeights] = GroupAndSortWeighedValuesImpl(
-            featureValues, weightsIterator, filterNans, featuresAreSorted, normalizeWeights);
+            std::move(featureValues),
+            weightsIterator,
+            filterNans,
+            featuresAreSorted,
+            normalizeWeights,
+            /*cumulativeWeights*/ optimizationType == EOptimizationType::Greedy);
         if (uniqueFeatureValues.empty()) {
             return {};
         }
@@ -1054,9 +1257,6 @@ namespace {
             case EOptimizationType::Exact:
                 return BestSplit<penaltyType>(uniqueFeatureValues, uniqueValueWeights, maxBordersCount);
             case EOptimizationType::Greedy: {
-                for (size_t i = 0; i + 1 < uniqueValueWeights.size(); ++i) {
-                    uniqueValueWeights[i + 1] += uniqueValueWeights[i];
-                }
                 TWeightedFeatureBin<float, penaltyType> initialBin(
                     0, uniqueFeatureValues.size(), uniqueFeatureValues.begin(), uniqueValueWeights.begin());
                 return GreedySplit(initialBin, maxBordersCount);
@@ -1067,36 +1267,99 @@ namespace {
     }
 }
 
-template <EPenaltyType penaltyType>
-Y_NO_INLINE THashSet<float> BestWeightedSplit(
-    const TVector<float>& featureValues,
-    const TVector<float>& weights,
-    int maxBordersCount,
-    EOptimizationType optimizationType,
-    bool filterNans,
-    bool featuresAreSorted
-) {
-    Y_ENSURE(featureValues.size() == weights.size(), "weights and features should have equal size.");
-    return BestWeightedSplitImpl<penaltyType>(
-        featureValues, weights.begin(), maxBordersCount, optimizationType, filterNans, featuresAreSorted);
+
+namespace NSplitSelection {
+
+    namespace NImpl {
+
+        template <EPenaltyType penaltyType>
+        Y_NO_INLINE THashSet<float> BestWeightedSplit(
+            TVector<float>&& featureValues,
+            const TVector<float>& weights,
+            int maxBordersCount,
+            EOptimizationType optimizationType,
+            bool filterNans,
+            bool featuresAreSorted
+        ) {
+            Y_ENSURE(featureValues.size() == weights.size(), "weights and features should have equal size.");
+            return BestWeightedSplitImpl<penaltyType>(
+                std::move(featureValues),
+                weights.begin(),
+                maxBordersCount,
+                optimizationType,
+                filterNans,
+                featuresAreSorted);
+        }
+
+        template<>
+        Y_NO_INLINE THashSet<float> BestWeightedSplit<EPenaltyType::W2>(
+            TVector<float>&& featureValues,
+            const TVector<float>& weights,
+            int maxBordersCount,
+            EOptimizationType optimizationType,
+            bool filterNans,
+            bool featuresAreSorted
+        ) {
+            Y_ENSURE(featureValues.size() == weights.size(), "weights and features should have equal size.");
+            return BestWeightedSplitImpl<EPenaltyType::W2>(
+                std::move(featureValues),
+                weights.begin(),
+                maxBordersCount,
+                optimizationType,
+                filterNans,
+                featuresAreSorted);
+        }
+
+        std::pair<TVector<float>, TVector<float>> GroupAndSortWeighedValues(
+                TVector<float>&& featureValues,
+                TVector<float>&& weights,
+                bool filterNans,
+                bool isSorted) {
+            Y_ENSURE(featureValues.size() == weights.size());
+            return GroupAndSortWeighedValuesImpl(
+                std::move(featureValues),
+                weights.begin(),
+                filterNans,
+                isSorted,
+                true);
+        }
+
+        std::pair<TVector<float>, TVector<float>> GroupAndSortValues(
+            TFeatureValues&& features,
+            bool filterNans,
+            bool cumulativeWeights) {
+
+            if (features.DefaultValue) {
+                features.Values.push_back(features.DefaultValue->Value);
+                const size_t defaultValuePosition = features.Values.size() - 1;
+                return GroupAndSortWeighedValuesImpl(
+                    std::move(features.Values),
+                    TSingleValueWeightedIterator<float>(
+                        1.0f,
+                        defaultValuePosition,
+                        (float)features.DefaultValue->Count),
+                    filterNans,
+                    /*isSorted*/ false,
+                    /*normalizeWeights*/ false,
+                    cumulativeWeights);
+            } else {
+                return GroupAndSortWeighedValuesImpl(
+                    std::move(features.Values),
+                    TRepeatIterator<float>(1.0f),
+                    filterNans,
+                    features.ValuesSorted,
+                    /*normalizeWeights*/ false,
+                    cumulativeWeights);
+            }
+        }
+
+    }
+
 }
 
-template<>
-Y_NO_INLINE THashSet<float> BestWeightedSplit<EPenaltyType::W2>(
-    const TVector<float>& featureValues,
-    const TVector<float>& weights,
-    int maxBordersCount,
-    EOptimizationType optimizationType,
-    bool filterNans,
-    bool featuresAreSorted
-) {
-    Y_ENSURE(featureValues.size() == weights.size(), "weights and features should have equal size.");
-    return BestWeightedSplitImpl<EPenaltyType::W2>(
-        featureValues, weights.begin(), maxBordersCount, optimizationType, filterNans, featuresAreSorted);
-}
 
 THashSet<float> BestWeightedSplit(
-    const TVector<float>& featureValues,
+    TVector<float>&& featureValues,
     const TVector<float>& weights,
     int maxBordersCount,
     EBorderSelectionType borderSelectionType,
@@ -1105,16 +1368,16 @@ THashSet<float> BestWeightedSplit(
 ) {
     switch (borderSelectionType) {
         case EBorderSelectionType::MinEntropy:
-            return BestWeightedSplit<EPenaltyType::MinEntropy>(featureValues, weights, maxBordersCount,
+            return BestWeightedSplit<EPenaltyType::MinEntropy>(std::move(featureValues), weights, maxBordersCount,
                 EOptimizationType::Exact, filterNans, featuresAreSorted);
         case EBorderSelectionType::MaxLogSum:
-            return BestWeightedSplit<EPenaltyType::MaxSumLog>(featureValues, weights, maxBordersCount,
+            return BestWeightedSplit<EPenaltyType::MaxSumLog>(std::move(featureValues), weights, maxBordersCount,
                 EOptimizationType::Exact, filterNans, featuresAreSorted);
         case EBorderSelectionType ::GreedyLogSum:
-            return BestWeightedSplit<EPenaltyType::MaxSumLog>(featureValues, weights, maxBordersCount,
+            return BestWeightedSplit<EPenaltyType::MaxSumLog>(std::move(featureValues), weights, maxBordersCount,
                 EOptimizationType::Greedy, filterNans, featuresAreSorted);
         case EBorderSelectionType ::GreedyMinEntropy:
-            return BestWeightedSplit<EPenaltyType::MinEntropy>(featureValues, weights, maxBordersCount,
+            return BestWeightedSplit<EPenaltyType::MinEntropy>(std::move(featureValues), weights, maxBordersCount,
                 EOptimizationType::Greedy, filterNans, featuresAreSorted);
         default:
             const auto borderSelectionTypeName = GetEnumNames<EBorderSelectionType>().at(borderSelectionType);
@@ -1124,19 +1387,29 @@ THashSet<float> BestWeightedSplit(
 }
 
 template <EPenaltyType PenaltyType>
-THashSet<float> TGreedyBinarizer<PenaltyType>::BestSplit(
-    TVector<float>& featureValues,
-    int maxBordersCount,
-    bool isSorted
-) const {
-    if (featureValues.empty()) {
+THashSet<float> TGreedyBinarizer<PenaltyType>::BestSplit(TFeatureValues&& features, int maxBordersCount) const {
+    if (features.Values.empty()) {
         return {};
     }
-    if (!isSorted) {
-        Sort(featureValues.begin(), featureValues.end());
+    if (features.DefaultValue) {
+        auto [uniqueFeatureValues, uniqueValueWeights] = GroupAndSortValues(
+            std::move(features),
+            /*filterNans*/ false,
+            /*cumulativeWeights*/ true);
+
+        TWeightedFeatureBin<float, PenaltyType> initialBin(
+            0,
+            uniqueFeatureValues.size(),
+            uniqueFeatureValues.begin(),
+            uniqueValueWeights.begin());
+        return GreedySplit(initialBin, maxBordersCount);
+    } else {
+        if (!features.ValuesSorted) {
+            Sort(features.Values);
+        }
+        TFeatureBin<PenaltyType> initialBin(0, features.Values.size(), features.Values.cbegin());
+        return GreedySplit(initialBin, maxBordersCount);
     }
-    TFeatureBin<PenaltyType> initialBin(0, featureValues.size(), featureValues.cbegin());
-    return GreedySplit(initialBin, maxBordersCount);
 }
 
 template <typename TKey, typename TValue>
@@ -1145,20 +1418,137 @@ size_t EstimateHashMapMemoryUsage(size_t hashMapSize) {
     return 2 * sizeof(std::pair<TKey, TValue>) * powTwoUpRoundedSize;
 }
 
-size_t CalcMemoryForFindBestSplit(int maxBordersCount, size_t docsCount, EBorderSelectionType type) {
-    switch (type) {
-        case EBorderSelectionType::Median:
-        case EBorderSelectionType::UniformAndQuantiles:
-        case EBorderSelectionType::Uniform:
-            return maxBordersCount * sizeof(float);
-        case EBorderSelectionType::GreedyLogSum:
-        case EBorderSelectionType::GreedyMinEntropy:
-            // 4 stands for priority_queue and THashSet memory overhead
-            return 4 * maxBordersCount * (sizeof(TFeatureBin<EPenaltyType::MaxSumLog>) + sizeof(float));
-        case EBorderSelectionType::MinEntropy:
-        case EBorderSelectionType::MaxLogSum:
-            return docsCount * ((maxBordersCount + 2) * sizeof(size_t) + 4 * sizeof(double)) + docsCount * 3 * sizeof(float);
-        default:
-            Y_UNREACHABLE();
+
+static size_t CalcMemoryForFindBestSplitGreedyBinarizer(
+    int maxBordersCount,
+    size_t nonDefaultObjectCount,
+    const TMaybe<TDefaultValue>& defaultValue) {
+
+    if (!defaultValue) {
+        // 4 stands for priority_queue and THashSet memory overhead
+        return 4 * maxBordersCount * (sizeof(TFeatureBin<EPenaltyType::MaxSumLog>) + sizeof(float));
     }
+
+    const size_t featureValuesCount = nonDefaultObjectCount + 1;
+
+    const size_t memoryForResizedFeaturesValues = featureValuesCount * sizeof(float);
+    const size_t memoryForGroupedValues = EstimateHashMapMemoryUsage<float, float>(featureValuesCount);
+    const size_t memoryForUniqueWeights = featureValuesCount * sizeof(float);
+
+    // 4 stands for priority_queue and THashSet memory overhead
+    const size_t memoryForGreedySplit
+        = 4 * maxBordersCount * (
+            sizeof(TWeightedFeatureBin<float, EPenaltyType::MaxSumLog>) + sizeof(float));
+
+    return memoryForResizedFeaturesValues
+        + memoryForUniqueWeights
+        + Max(memoryForGroupedValues, memoryForGreedySplit);
+}
+
+
+/*
+ * for
+ *
+ * template <typename TWeightType, EPenaltyType type>
+ *   static void BestSplit(
+ *      const TVector<TWeightType>& weights,
+ *      size_t maxBordersCount,
+ *      TVector<size_t>& thresholds,
+ *      ESF mode
+ *  ) {
+ *
+ * only common case: TWeightType = float, mode = E_RLM2
+ */
+static size_t CalcMemoryForInnerBestSplit(size_t weightsCount, size_t maxBordersCount) {
+    const size_t bins = maxBordersCount + 1;
+    const size_t wsize = weightsCount;
+
+    if (wsize <= bins) {
+        return 0;
+    }
+
+    const size_t dsize = wsize - bins + 1;
+
+    return
+        // sweights
+        weightsCount * sizeof(float)
+
+        // bestSolutionsBuffer
+        + (bins - 2) * dsize * sizeof(size_t)
+
+        // bestSolutions
+        + (bins - 2) * sizeof(TArrayRef<size_t>)
+
+        // current_error, prevError
+        + 2 * dsize * sizeof(double)
+
+        // bs1, bs2
+        + 2 * dsize * sizeof(size_t)
+
+        // e1, e2
+        + 2 * dsize * sizeof(double);
+}
+
+
+static size_t CalcMemoryForFindBestSplitExactBinarizer(
+    int maxBordersCount,
+    size_t nonDefaultObjectCount,
+    const TMaybe<TDefaultValue>& defaultValue) {
+
+    const size_t featureValuesCount = defaultValue ? (nonDefaultObjectCount + 1) : nonDefaultObjectCount;
+
+    const size_t memoryForGroupedValues = EstimateHashMapMemoryUsage<float, float>(featureValuesCount);
+    const size_t memoryForUniqueWeights = featureValuesCount * sizeof(float);
+
+    // groupedValues + uniqueValueWeights
+    const size_t memoryForGroupAndSortWeighedValuesImpl
+        = memoryForGroupedValues + memoryForUniqueWeights;
+
+    const size_t memoryForBorders = maxBordersCount * sizeof(float);
+
+    const size_t memoryForOuterBestSplit
+        = memoryForUniqueWeights
+
+            // thresholds
+            + maxBordersCount * sizeof(size_t)
+
+            + Max(CalcMemoryForInnerBestSplit(featureValuesCount, maxBordersCount), memoryForBorders);
+
+    return Max(memoryForGroupAndSortWeighedValuesImpl, memoryForOuterBestSplit);
+}
+
+
+namespace NSplitSelection {
+
+    size_t CalcMemoryForFindBestSplit(
+        int maxBordersCount,
+        size_t nonDefaultObjectCount,
+        const TMaybe<TDefaultValue>& defaultValue,
+        EBorderSelectionType type) {
+
+        switch (type) {
+            case EBorderSelectionType::Median:
+            case EBorderSelectionType::UniformAndQuantiles:
+                return maxBordersCount * sizeof(float)
+                    + (defaultValue ? ((nonDefaultObjectCount + 1) * sizeof(float)) : 0);
+            case EBorderSelectionType::Uniform:
+                return maxBordersCount * sizeof(float);
+            case EBorderSelectionType::GreedyLogSum:
+            case EBorderSelectionType::GreedyMinEntropy:
+                return CalcMemoryForFindBestSplitGreedyBinarizer(
+                    maxBordersCount,
+                    nonDefaultObjectCount,
+                    defaultValue);
+
+            case EBorderSelectionType::MinEntropy:
+            case EBorderSelectionType::MaxLogSum:
+                return CalcMemoryForFindBestSplitExactBinarizer(
+                    maxBordersCount,
+                    nonDefaultObjectCount,
+                    defaultValue);
+            default:
+                Y_UNREACHABLE();
+        }
+    }
+
 }

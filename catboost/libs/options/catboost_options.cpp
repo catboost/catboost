@@ -78,6 +78,13 @@ void NCatboostOptions::TCatBoostOptions::SetLeavesEstimationDefault() {
             defaultEstimationMethod = ELeavesEstimation::Gradient;
             break;
         }
+        case ELossFunction::Expectile: {
+            CB_ENSURE(lossFunctionConfig.GetLossParams().contains("alpha"), "Param alpha is mandatory for expectile loss");
+            defaultNewtonIterations = 5;
+            defaultGradientIterations = 10;
+            defaultEstimationMethod = ELeavesEstimation::Newton;
+            break;
+        }
         case ELossFunction::PairLogit: {
             defaultEstimationMethod = ELeavesEstimation::Newton;
             defaultNewtonIterations = 10;
@@ -217,7 +224,7 @@ void NCatboostOptions::TCatBoostOptions::Load(const NJson::TJsonValue& options) 
                 &SystemOptions, &BoostingOptions, &ModelBasedEvalOptions,
                 &ObliviousTreeOptions,
                 &DataProcessingOptions, &LossFunctionDescription,
-                &RandomSeed, &CatFeatureParams,
+                &RandomSeed, &CatFeatureParams, &TextFeatureOptions,
                 &FlatParams, &Metadata, &LoggingLevel,
                 &IsProfile, &MetricOptions);
     SetNotSpecifiedOptionsToDefaults();
@@ -228,7 +235,8 @@ void NCatboostOptions::TCatBoostOptions::Load(const NJson::TJsonValue& options) 
 void NCatboostOptions::TCatBoostOptions::Save(NJson::TJsonValue* options) const {
     SaveFields(options, TaskType, SystemOptions, BoostingOptions, ModelBasedEvalOptions, ObliviousTreeOptions,
                DataProcessingOptions, LossFunctionDescription,
-               RandomSeed, CatFeatureParams, FlatParams, Metadata, LoggingLevel, IsProfile, MetricOptions);
+               RandomSeed, CatFeatureParams, TextFeatureOptions, FlatParams,
+               Metadata, LoggingLevel, IsProfile, MetricOptions);
 }
 
 NCatboostOptions::TCtrDescription
@@ -454,6 +462,23 @@ void NCatboostOptions::TCatBoostOptions::Validate() const {
         CB_ENSURE(keyValue.second.IsString(), "only string to string metadata dictionary supported");
     }
     CB_ENSURE(!Metadata.Get().Has("params"), "\"params\" key in metadata prohibited");
+
+    // Delete it when MLTOOLS-3572 is implemented.
+    if (ShouldBinarizeLabel(LossFunctionDescription->LossFunction.Get())) {
+        const TString message = "Metric parameter 'border' isn't supported when target is binarized.";
+        CB_ENSURE(!LossFunctionDescription->LossParams->contains("border"), message);
+        CB_ENSURE(!MetricOptions->EvalMetric->LossParams->contains("border"), message);
+        CB_ENSURE(!MetricOptions->ObjectiveMetric->LossParams->contains("border"), message);
+        for (const auto& metric : MetricOptions->CustomMetrics.Get()) {
+            CB_ENSURE(!metric.LossParams->contains("border"), message);
+        }
+    }
+
+    // Delete it when MLTOOLS-3612 is implemented.
+    CB_ENSURE(!LossFunctionDescription->LossParams->contains("use_weights"),
+        "Metric parameter 'use_weights' isn't supported for objective function. " <<
+        "If weights are present they will necessarily be used in optimization. " <<
+        "It cannot be disabled.");
 }
 
 void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
@@ -626,12 +651,27 @@ NCatboostOptions::TCatBoostOptions NCatboostOptions::LoadOptions(const NJson::TJ
     return options;
 }
 
+static bool IsFullBaseline(const NJson::TJsonValue& source) {
+    NCatboostOptions::TOption<bool> isFullBaseline(
+        "use_evaluated_features_in_baseline_model",
+        false
+    );
+    NCatboostOptions::TJsonFieldHelper<decltype(isFullBaseline)>::Read(
+        source["model_based_eval_options"],
+        &isFullBaseline
+    );
+    return isFullBaseline.Get();
+}
+
 static TSet<ui32> GetMaybeIgnoredFeatures(const NJson::TJsonValue& params) {
     const auto ignoredFeatures = GetOptionIgnoredFeatures(params);
     const auto featuresToEvaluate = GetOptionFeaturesToEvaluate(params);
     TSet<ui32> result;
     result.insert(ignoredFeatures.begin(), ignoredFeatures.end());
-    result.insert(featuresToEvaluate.begin(), featuresToEvaluate.end());
+    const bool isFullBaseline = IsFullBaseline(params);
+    if (!isFullBaseline) {
+        result.insert(featuresToEvaluate.begin(), featuresToEvaluate.end());
+    }
     return result;
 }
 
@@ -682,6 +722,7 @@ NCatboostOptions::TCatBoostOptions::TCatBoostOptions(ETaskType taskType)
     , DataProcessingOptions("data_processing_options", TDataProcessingOptions(taskType))
     , LossFunctionDescription("loss_function", TLossDescription())
     , CatFeatureParams("cat_feature_params", TCatFeatureParams(taskType))
+    , TextFeatureOptions("text_feature_options", TTextFeatureOptions())
     , FlatParams("flat_params", NJson::TJsonValue(NJson::JSON_MAP))
     , Metadata("metadata", NJson::TJsonValue(NJson::JSON_MAP))
     , RandomSeed("random_seed", 0)

@@ -1,0 +1,14 @@
+0	Text	synopsis
+1	Categ	mpaa_film_rating
+2	Text	genre
+3	Categ	director
+4	Categ	writer
+5	Num	theater_date
+6	Num	dvd_date
+7	Text	review
+8	Categ	rating
+9	Categ
+10	Categ	critic
+11	Label	top_critic
+12	Categ	publisher
+13	Num	date

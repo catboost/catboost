@@ -1,4 +1,4 @@
-DocId	Probability:Class=0	Probability:Class=1	Label
+SampleId	Probability:Class=0	Probability:Class=1	Label
 0	0.3481417497	0.6518582503	1
 1	0.321133198	0.678866802	1
 2	0.3190701876	0.6809298124	1

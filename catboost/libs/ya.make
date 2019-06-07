@@ -35,6 +35,7 @@ RECURSE(
     quantization_schema
     quantization_schema/ut
     quantized_pool
+    quantized_pool_analysis
     quantized_pool/ut
     target
     train_lib

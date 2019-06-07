@@ -19,7 +19,7 @@ namespace NCB {
         const TRawTargetDataProvider& rawData,
         TMaybeData<TConstArrayRef<TSubgroupId>> subgroupIds,
         bool isForGpu,
-        bool isLearnData,
+        bool isNonEmptyAndNonConst,
         TStringBuf datasetName,
         TConstArrayRef<NCatboostOptions::TLossDescription> metricDescriptions, // must be non-empty
 
@@ -36,6 +36,7 @@ namespace NCB {
         TConstArrayRef<float> classWeights, // [classIdx], empty if not specified
         TVector<TString>* classNames, // inout parameter
         TMaybe<TLabelConverter*> labelConverter, // needed only for multiclass
+        TMaybe<float>* targetBorder,
         TRestorableFastRng64* rand, // for possible pairs generation
         NPar::TLocalExecutor* localExecutor,
         bool* hasPairs);

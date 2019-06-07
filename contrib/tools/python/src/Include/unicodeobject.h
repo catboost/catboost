@@ -67,6 +67,10 @@ Copyright (c) Corporation for National Research Initiatives.
 
 #else
 
+#undef Py_UNICODE_SIZE
+#undef PY_UNICODE_TYPE
+#define Py_UNICODE_SIZE ARCADIA_PYTHON_UNICODE_SIZE
+
 /* FIXME: MvL's new implementation assumes that Py_UNICODE_SIZE is
    properly set, but the default rules below doesn't set it.  I'll
    sort this out some other day -- fredrik@pythonware.com */
@@ -100,6 +104,10 @@ Copyright (c) Corporation for National Research Initiatives.
 #  define PY_UNICODE_TYPE Py_UCS4
 # endif
 
+#endif
+
+#ifndef PY_UNICODE_TYPE
+#define PY_UNICODE_TYPE unsigned short
 #endif
 
 /* If the compiler provides a wchar_t type we try to support it

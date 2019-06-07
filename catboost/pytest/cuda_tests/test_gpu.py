@@ -26,9 +26,17 @@ MULTICLASS_LOSSES = ['MultiClass', 'MultiClassOneVsAll']
 NONSYMMETRIC = ['Lossguide', 'Depthwise']
 GROW_POLICIES = ['SymmetricTree'] + NONSYMMETRIC
 SCORE_FUNCTIONS = [
-    'L2', 'Correlation',
-    'NewtonL2', 'NewtonCorrelation',
+    'L2', 'Cosine',
+    'NewtonL2', 'NewtonCosine',
     'SolarL2', 'LOOL2'
+]
+
+TEXT_FEATURE_ESTIMATORS = [
+    'BoW',
+    'NaiveBayes',
+    'BM25',
+    'BoW,NaiveBayes',
+    'BoW,NaiveBayes,BM25'
 ]
 
 
@@ -646,6 +654,7 @@ def test_logloss_with_not_binarized_target(boosting_type):
         '-i': '10',
         '-w': '0.03',
         '-T': '4',
+        '--target-border': '0.5',
         '-m': output_model_path,
     }
     fit_catboost_gpu(params)
@@ -670,6 +679,7 @@ def test_fold_len_mult():
         '-w': '0.03',
         '-T': '4',
         '--fold-len-multiplier': 1.2,
+        '--target-border': '0.5',
         '-m': output_model_path,
     }
     fit_catboost_gpu(params)
@@ -694,6 +704,7 @@ def test_random_strength():
         '-w': '0.03',
         '-T': '4',
         '--random-strength': 122,
+        '--target-border': '0.5',
         '-m': output_model_path,
     }
     fit_catboost_gpu(params)
@@ -2029,7 +2040,7 @@ def test_save_and_apply_multiclass_labels_from_classes_count(loss_function, pred
         with open(eval_path, "rt") as f:
             for i, line in enumerate(f):
                 if i == 0:
-                    assert line[:-1] == 'DocId\t{}:Class=0\t{}:Class=1\t{}:Class=2\t{}:Class=3' \
+                    assert line[:-1] == 'SampleId\t{}:Class=0\t{}:Class=1\t{}:Class=2\t{}:Class=3' \
                         .format(prediction_type, prediction_type, prediction_type, prediction_type)
                 else:
                     assert float(line[:-1].split()[1]) == float('-inf') and float(line[:-1].split()[4]) == float('-inf')  # fictitious approxes must be negative infinity
@@ -2038,7 +2049,7 @@ def test_save_and_apply_multiclass_labels_from_classes_count(loss_function, pred
         with open(eval_path, "rt") as f:
             for i, line in enumerate(f):
                 if i == 0:
-                    assert line[:-1] == 'DocId\t{}:Class=0\t{}:Class=1\t{}:Class=2\t{}:Class=3' \
+                    assert line[:-1] == 'SampleId\t{}:Class=0\t{}:Class=1\t{}:Class=2\t{}:Class=3' \
                         .format(prediction_type, prediction_type, prediction_type, prediction_type)
                 else:
                     assert abs(float(line[:-1].split()[1])) < 1e-307 \
@@ -2048,7 +2059,7 @@ def test_save_and_apply_multiclass_labels_from_classes_count(loss_function, pred
         with open(eval_path, "rt") as f:
             for i, line in enumerate(f):
                 if i == 0:
-                    assert line[:-1] == 'DocId\tClass'
+                    assert line[:-1] == 'SampleId\tClass'
                 else:
                     assert float(line[:-1].split()[1]) in [1, 2]  # probability of 0,3 classes appearance must be zero
 
@@ -2095,6 +2106,7 @@ def test_eval_result_on_different_pool_type():
             '--cd', data_file('querywise', 'train.cd'),
             '-i', '10',
             '-T', '4',
+            '--target-border', '0.5',
             '--eval-file', eval_path,
         )
 
@@ -2283,8 +2295,8 @@ def test_yetirank_default_metric(loss_function):
 
 
 def is_valid_gpu_params(boosting_type, grow_policy, score_function, loss_func):
-    correlation_scores = ['Correlation', 'NewtonCorrelation']
-    second_order_scores = ['NewtonL2', 'NewtonCorrelation']
+    correlation_scores = ['Cosine', 'NewtonCosine']
+    second_order_scores = ['NewtonL2', 'NewtonCosine']
 
     is_correct = True
 
@@ -2382,3 +2394,176 @@ def test_output_options():
     )
     fit_catboost_gpu(params)
     return local_canonical_file(os.path.join(train_dir, output_options_path))
+
+
+def model_based_eval_catboost_gpu(params):
+    cmd = [CATBOOST_PATH, 'model-based-eval', '--task-type', 'GPU']
+    append_params_to_cmdline(cmd, params)
+    execute(cmd)
+
+
+@pytest.mark.parametrize(
+    'dataset',
+    [{'base': 'querywise', 'cd': 'train.cd'}, {'base': 'adult', 'train': 'train_small', 'test': 'test_small', 'cd': 'train.cd'}],
+    ids=['querywise', 'adult']
+)
+def test_model_based_eval(dataset):
+    test_err_log = 'test_error.log'
+
+    def get_table_path(table):
+        return data_file(dataset['base'], dataset.get(table, table))
+
+    def get_params():
+        return (
+            '--data-partition', 'DocParallel',
+            '--permutations', '1',
+            '--loss-function', 'RMSE',
+            '-f', get_table_path('train'),
+            '-t', get_table_path('test'),
+            '--cd', get_table_path('cd'),
+            '-i', '100',
+            '-T', '4',
+            '--test-err-log', test_err_log,
+        )
+
+    fit_catboost_gpu(
+        get_params() + (
+            '--snapshot-file', 'baseline_model_snapshot',
+            '-I', '10:11:12:13:15:20:31',
+            '--train-dir', 'zero_out_tested',
+        ))
+
+    model_based_eval_catboost_gpu(
+        get_params() + (
+            '--baseline-model-snapshot', 'baseline_model_snapshot',
+            '--features-to-evaluate', '10,11,12,13;15,20,31',
+            '--offset', '20',
+            '--experiment-size', '10',
+            '--experiment-count', '2',
+            '--train-dir', 'zero_out_tested',
+        ))
+
+    fit_catboost_gpu(
+        get_params() + (
+            '--snapshot-file', 'baseline_model_snapshot',
+            '--train-dir', 'use_tested',
+        ))
+
+    model_based_eval_catboost_gpu(
+        get_params() + (
+            '--baseline-model-snapshot', 'baseline_model_snapshot',
+            '--features-to-evaluate', '10,11,12,13;15,20,31',
+            '--offset', '20',
+            '--experiment-size', '10',
+            '--experiment-count', '2',
+            '--use-evaluated-features-in-baseline-model',
+            '--train-dir', 'use_tested',
+        ))
+
+    return [
+        local_canonical_file(os.path.join('zero_out_tested', 'feature_set0_fold0', test_err_log), diff_tool=diff_tool()),
+        local_canonical_file(os.path.join('zero_out_tested', 'feature_set0_fold1', test_err_log), diff_tool=diff_tool()),
+        local_canonical_file(os.path.join('zero_out_tested', 'feature_set1_fold0', test_err_log), diff_tool=diff_tool()),
+        local_canonical_file(os.path.join('zero_out_tested', 'feature_set1_fold1', test_err_log), diff_tool=diff_tool()),
+        local_canonical_file(os.path.join('use_tested', 'feature_set0_fold0', test_err_log), diff_tool=diff_tool()),
+        local_canonical_file(os.path.join('use_tested', 'feature_set0_fold1', test_err_log), diff_tool=diff_tool()),
+        local_canonical_file(os.path.join('use_tested', 'feature_set1_fold0', test_err_log), diff_tool=diff_tool()),
+        local_canonical_file(os.path.join('use_tested', 'feature_set1_fold1', test_err_log), diff_tool=diff_tool())
+    ]
+
+
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+@pytest.mark.parametrize('feature_estimators', TEXT_FEATURE_ESTIMATORS)
+def test_fit_binclass_with_text_features(boosting_type, feature_estimators):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    learn_error_path = yatest.common.test_output_path('learn.tsv')
+    test_error_path = yatest.common.test_output_path('test.tsv')
+
+    pool_name = 'rotten_tomatoes'
+    params = {
+        '--loss-function': 'Logloss',
+        '--eval-metric': 'AUC',
+        '-f': data_file(pool_name, 'train'),
+        '-t': data_file(pool_name, 'test'),
+        '--text-feature-estimators': feature_estimators,
+        '--column-description': data_file(pool_name, 'cd_binclass'),
+        '--boosting-type': boosting_type,
+        '-i': '20',
+        '-T': '4',
+        '-m': output_model_path,
+        '--learn-err-log': learn_error_path,
+        '--test-err-log': test_error_path,
+        '--use-best-model': 'false',
+    }
+    fit_catboost_gpu(params)
+
+    return [local_canonical_file(learn_error_path, diff_tool=diff_tool()),
+            local_canonical_file(test_error_path, diff_tool=diff_tool())]
+
+
+@pytest.mark.parametrize('feature_estimators', TEXT_FEATURE_ESTIMATORS)
+@pytest.mark.parametrize('loss_function', MULTICLASS_LOSSES)
+def test_fit_multiclass_with_text_features(feature_estimators, loss_function):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    learn_error_path = yatest.common.test_output_path('learn.tsv')
+    test_error_path = yatest.common.test_output_path('test.tsv')
+
+    pool_name = 'rotten_tomatoes'
+    params = {
+        '--loss-function': loss_function,
+        '--eval-metric': 'Accuracy',
+        '-f': data_file(pool_name, 'train'),
+        '-t': data_file(pool_name, 'test'),
+        '--text-feature-estimators': feature_estimators,
+        '--column-description': data_file(pool_name, 'cd'),
+        '--boosting-type': 'Plain',
+        '-i': '20',
+        '-T': '4',
+        '-m': output_model_path,
+        '--learn-err-log': learn_error_path,
+        '--test-err-log': test_error_path,
+        '--use-best-model': 'false',
+    }
+    fit_catboost_gpu(params)
+
+    return [local_canonical_file(learn_error_path, diff_tool=diff_tool()),
+            local_canonical_file(test_error_path, diff_tool=diff_tool())]
+
+
+TEXT_PROCESSING_OPTIONS = [
+    "min_token_occurence=2:token_level_type=Word",
+    "min_token_occurence=5:token_level_type=Word",
+    "min_token_occurence=10",
+    "min_token_occurence=5:gram_order=1:token_level_type=Letter",
+    "min_token_occurence=5:gram_order=2:token_level_type=Letter",
+    "min_token_occurence=5:gram_order=3:token_level_type=Letter",
+]
+
+
+@pytest.mark.parametrize('text_processing', TEXT_PROCESSING_OPTIONS)
+@pytest.mark.parametrize('loss_function', MULTICLASS_LOSSES)
+def test_text_processing_options(text_processing, loss_function):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    learn_error_path = yatest.common.test_output_path('learn.tsv')
+    test_error_path = yatest.common.test_output_path('test.tsv')
+
+    pool_name = 'rotten_tomatoes'
+    params = {
+        '--loss-function': loss_function,
+        '--eval-metric': 'Accuracy',
+        '-f': data_file(pool_name, 'train'),
+        '-t': data_file(pool_name, 'test'),
+        '--column-description': data_file(pool_name, 'cd'),
+        '--text-processing': '2:' + text_processing + ';7:' + text_processing,
+        '--boosting-type': 'Plain',
+        '-i': '20',
+        '-T': '4',
+        '-m': output_model_path,
+        '--learn-err-log': learn_error_path,
+        '--test-err-log': test_error_path,
+        '--use-best-model': 'false',
+    }
+    fit_catboost_gpu(params)
+
+    return [local_canonical_file(learn_error_path, diff_tool=diff_tool()),
+            local_canonical_file(test_error_path, diff_tool=diff_tool())]
