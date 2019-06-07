@@ -1115,7 +1115,7 @@ class GnuCompiler(Compiler):
         self.c_defines = [
             '-DFAKEID=$CPP_FAKEID', '-DARCADIA_ROOT=${ARCADIA_ROOT}', '-DARCADIA_BUILD_ROOT=${ARCADIA_BUILD_ROOT}',
             '-D_THREAD_SAFE', '-D_PTHREADS', '-D_REENTRANT', '-D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES',
-            '-D_LARGEFILE_SOURCE', '-D__STDC_CONSTANT_MACROS', '-D__STDC_FORMAT_MACROS', '-DGNU',
+            '-D_LARGEFILE_SOURCE', '-D__STDC_CONSTANT_MACROS', '-D__STDC_FORMAT_MACROS',
         ]
         self.c_flags = []
 
