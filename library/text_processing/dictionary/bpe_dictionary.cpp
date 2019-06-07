@@ -1,10 +1,12 @@
 #include "bpe_builder.h"
+#include "serialization_helpers.h"
 
-#include <library/streams/factory/factory.h>
-
-#include <util/string/split.h>
-#include <util/generic/queue.h>
+#include <util/digest/murmur.h>
+#include <util/generic/array_ref.h>
 #include <util/generic/hash_set.h>
+#include <util/generic/maybe.h>
+#include <util/generic/queue.h>
+#include <util/string/split.h>
 
 using namespace NTextProcessing::NDictionary;
 using NTextProcessing::NDictionary::EUnknownTokenPolicy;
@@ -12,50 +14,32 @@ using TUnit = std::pair<TTokenId, TTokenId>;
 using TTokenToUnit = std::pair<TTokenId, TUnit>;
 using TUnitQueue = TPriorityQueue<TTokenToUnit, TVector<TTokenToUnit>, std::greater<TTokenToUnit>>;
 
-void TBpeDictionary::Load(const TString& dictionaryPath, const TString& bpePath) {
-    auto dictInput = OpenInput(dictionaryPath);
-    Alphabet = MakeIntrusive<TDictionary>();
-    Alphabet->Load(dictInput.Get());
+static const char BPE_MAGIC[] = "MMapBpeDict";
+static const size_t BPE_MAGIC_SIZE = Y_ARRAY_SIZE(BPE_MAGIC);  // yes, with terminating zero
 
-    auto bpeInput = OpenInput(bpePath);
-    TString line;
-    while (bpeInput->ReadLine(line)) {
-        TBpeUnit unit;
-        TString _;
-        StringSplitter(line).Split('\t').Limit(4).CollectInto(&unit.Left, &unit.Right, &unit.Count, &_);
-        BpeUnits.push_back(unit);
-    }
-    InitBpeTokens();
-}
-
-void TBpeDictionary::Save(const TString& dictionaryPath, const TString& bpePath) const {
-    auto dictionaryOutput = OpenOutput(dictionaryPath);
-    GetAlphabet()->Save(dictionaryOutput.Get());
-    auto bpeDictionaryOutput = OpenOutput(bpePath);
-    Save(bpeDictionaryOutput.Get());
-}
-
+template <typename TUnitToTokenId>
 static void AddUnit(
     const TUnit& unit,
-    const THashMap<std::pair<TTokenId, TTokenId>, TTokenId>& sourceTokenIdsToTokenId,
+    const TUnitToTokenId& unitToTokenId,
     THashMap<TUnit, int>* unitCounts,
     TUnitQueue* minIds) {
 
     int countOfNewUnits = ++(*unitCounts)[unit];
     if (countOfNewUnits == 1) {
-        auto unitIdIter = sourceTokenIdsToTokenId.find(unit);
-        if (unitIdIter != sourceTokenIdsToTokenId.end()) {
-            minIds->emplace(unitIdIter->second, unit);
+        auto maybeTokenId = unitToTokenId(unit);
+        if (maybeTokenId) {
+            minIds->emplace(*maybeTokenId, unit);
         }
     }
 }
 
+template <typename TUnitToTokenId>
 static void UpdatePrevUnit(
     const TVector<TTokenId>& tokenIds,
     int idxStartInOld,
     int idxStartInNew,
     TTokenId changedToken,
-    const THashMap<std::pair<TTokenId, TTokenId>, TTokenId>& sourceTokenIdsToTokenId,
+    const TUnitToTokenId& unitToTokenId,
     THashMap<TUnit, int>* unitCounts,
     TUnitQueue* minIds) {
     if (idxStartInNew == 0) {
@@ -65,14 +49,15 @@ static void UpdatePrevUnit(
     (*unitCounts)[oldPrevUnit]--;
 
     TUnit newPrevUnit{tokenIds[idxStartInNew - 1], changedToken};
-    AddUnit(newPrevUnit, sourceTokenIdsToTokenId, unitCounts, minIds);
+    AddUnit(newPrevUnit, unitToTokenId, unitCounts, minIds);
 }
 
+template <typename TUnitToTokenId>
 static void UpdateNextUnit(
     const TVector<TTokenId>& tokenIds,
     int idxStartInOld,
     TTokenId changedToken,
-    const THashMap<std::pair<TTokenId, TTokenId>, TTokenId>& sourceTokenIdsToTokenId,
+    const TUnitToTokenId& unitToTokenId,
     THashMap<TUnit, int>* unitCounts,
     TUnitQueue* minIds) {
 
@@ -83,16 +68,16 @@ static void UpdateNextUnit(
     (*unitCounts)[oldNextUnit]--;
 
     TUnit newNextUnit{changedToken, tokenIds[idxStartInOld + 2]};
-    AddUnit(newNextUnit, sourceTokenIdsToTokenId, unitCounts, minIds);
+    AddUnit(newNextUnit, unitToTokenId, unitCounts, minIds);
 }
 
 // TODO(annaveronika): more efficient apply.
-template <typename TStringVector>
+template <typename TStringVector, typename TUnitToTokenId>
 static void ApplyImpl(
     TStringVector tokens,
     TVector<TTokenId>* tokenIds,
-    const TDictionary* alphabet,
-    const THashMap<std::pair<TTokenId, TTokenId>, TTokenId>& sourceTokenIdsToTokenId,
+    const IDictionary* alphabet,
+    const TUnitToTokenId& unitToTokenId,
     EUnknownTokenPolicy unknownTokenPolicy
 ) {
     tokenIds->clear();
@@ -103,11 +88,11 @@ static void ApplyImpl(
 
     for (size_t i = 0; i + 1 < tokenIds->size(); ++i) {
         auto unit = TUnit((*tokenIds)[i], (*tokenIds)[i + 1]);
-        auto it = sourceTokenIdsToTokenId.find(unit);
-        if (it == sourceTokenIdsToTokenId.end()) {
+        auto maybeTokenId = unitToTokenId(unit);
+        if (!maybeTokenId) {
             continue;
         }
-        auto unitId = it->second;
+        auto unitId = *maybeTokenId;
         auto unitInCounts = unitCounts.find(unit);
         if (unitInCounts == unitCounts.end()) {
             minIds.push({unitId, unit});
@@ -130,8 +115,8 @@ static void ApplyImpl(
         size_t i = 0, j = 0;
         while (i < tokenIds->size()) {
             if (i + 1 < tokenIds->size() && bestUnit.first == (*tokenIds)[i] && bestUnit.second == (*tokenIds)[i + 1]) {
-                UpdatePrevUnit(*tokenIds, i, j, bestId, sourceTokenIdsToTokenId, &unitCounts, &minIds);
-                UpdateNextUnit(*tokenIds, i, bestId, sourceTokenIdsToTokenId, &unitCounts, &minIds);
+                UpdatePrevUnit(*tokenIds, i, j, bestId, unitToTokenId, &unitCounts, &minIds);
+                UpdateNextUnit(*tokenIds, i, bestId, unitToTokenId, &unitCounts, &minIds);
 
                 (*tokenIds)[j] = bestId;
                 unitCounts[bestUnit]--;
@@ -146,8 +131,22 @@ static void ApplyImpl(
     }
 }
 
+TBpeDictionary::TBpeDictionary(TIntrusivePtr<TDictionary> alphabet)
+    : Alphabet(alphabet)
+{
+}
+
 TTokenId TBpeDictionary::Apply(TStringBuf) const {
     Y_ENSURE(false, "This method is unimplemented for TBpeDictionary.");
+}
+
+static std::function<TMaybe<TTokenId>(const TUnit& unit)> GetUnitToTokenIdFunc(
+    const THashMap<std::pair<TTokenId, TTokenId>, TTokenId>& sourceTokenIdsToTokenId
+) {
+    return [&](const TUnit& unit) {
+        auto it = sourceTokenIdsToTokenId.find(unit);
+        return it == sourceTokenIdsToTokenId.end() ? Nothing() : TMaybe<TTokenId>(it->second);
+    };
 }
 
 void TBpeDictionary::Apply(
@@ -159,7 +158,7 @@ void TBpeDictionary::Apply(
         tokens,
         tokensIds,
         Alphabet.Get(),
-        SourceTokenIdsToTokenId,
+        GetUnitToTokenIdFunc(SourceTokenIdsToTokenId),
         unknownTokenPolicy
     );
 }
@@ -173,7 +172,7 @@ void TBpeDictionary::Apply(
         tokens,
         tokensIds,
         Alphabet.Get(),
-        SourceTokenIdsToTokenId,
+        GetUnitToTokenIdFunc(SourceTokenIdsToTokenId),
         unknownTokenPolicy
     );
 }
@@ -208,6 +207,26 @@ void TBpeDictionary::ClearStatsData() {
     // TODO(nikitxksv): Implement this method.
 }
 
+TTokenId TBpeDictionary::GetUnknownTokenId() const {
+    return Alphabet->GetUnknownTokenId();
+}
+
+TTokenId TBpeDictionary::GetEndOfSentenceTokenId() const {
+    return Alphabet->GetEndOfSentenceTokenId();
+}
+
+TTokenId TBpeDictionary::GetMinUnusedTokenId() const {
+    return Alphabet->GetMinUnusedTokenId() + BpeUnits.size();
+}
+
+void TBpeDictionary::SetAlphabet(TIntrusivePtr<TDictionary> alphabet) {
+    Alphabet = alphabet;
+}
+
+TIntrusiveConstPtr<TDictionary> TBpeDictionary::GetAlphabet() const {
+    return Alphabet.Get();
+}
+
 TString TBpeDictionary::GetBpeToken(TTokenId leftId, TTokenId rightId) const {
     if (Alphabet->GetDictionaryOptionsRef().TokenLevelType == ETokenLevelType::Word) {
         return TString::Join(GetToken(leftId), " ", GetToken(rightId));
@@ -217,10 +236,37 @@ TString TBpeDictionary::GetBpeToken(TTokenId leftId, TTokenId rightId) const {
     }
 }
 
-void TBpeDictionary::Save(IOutputStream* output) const {
+void TBpeDictionary::Save(IOutputStream* stream) const {
     for (const auto& unit : BpeUnits) {
-        *output << unit.Left << '\t' << unit.Right << '\t' << unit.Count << '\t' << GetBpeToken(unit.Left, unit.Right) << '\n';
+        *stream << unit.Left << '\t' << unit.Right << '\t' << unit.Count << '\t' << GetBpeToken(unit.Left, unit.Right) << '\n';
     }
+}
+
+void TBpeDictionary::Load(IInputStream* stream) {
+    TString line;
+    while (stream->ReadLine(line)) {
+        TBpeUnit unit;
+        TString _;
+        StringSplitter(line).Split('\t').Limit(4).CollectInto(&unit.Left, &unit.Right, &unit.Count, &_);
+        BpeUnits.push_back(unit);
+    }
+    InitBpeTokens();
+}
+
+void TBpeDictionary::Load(const TString& dictionaryPath, const TString& bpePath) {
+    TFileInput dictInput(dictionaryPath);
+    Alphabet = MakeIntrusive<TDictionary>();
+    Alphabet->Load(&dictInput);
+
+    TFileInput bpeInput(bpePath);
+    Load(&bpeInput);
+}
+
+void TBpeDictionary::Save(const TString& dictionaryPath, const TString& bpePath) const {
+    TFileOutput dictionaryOutput(dictionaryPath);
+    GetAlphabet()->Save(&dictionaryOutput);
+    TFileOutput bpeDictionaryOutput(bpePath);
+    Save(&bpeDictionaryOutput);
 }
 
 void TBpeDictionary::InitBpeTokens() {
@@ -229,4 +275,174 @@ void TBpeDictionary::InitBpeTokens() {
         SourceTokenIdsToTokenId[std::pair<TTokenId, TTokenId>(unit.Left, unit.Right)] = curTokenId++;
         StringTokens.push_back(GetBpeToken(unit.Left, unit.Right));
     }
+}
+
+static ui64 MurmurHashFromUnit(const TUnit& unit, ui64 seed) {
+    return MurmurHash<ui64>((void*)(&unit), sizeof(unit), seed);
+}
+
+TMMapBpeDictionary::TMMapBpeDictionary(TIntrusivePtr<TBpeDictionary> bpeDictionary)
+    : Alphabet(MakeIntrusive<TMMapDictionary>(bpeDictionary->Alphabet))
+    , BpeSize(bpeDictionary->SourceTokenIdsToTokenId.size())
+{
+    BuildBuckets(
+        bpeDictionary->BpeUnits,
+        [&](const TBpeDictionary::TBpeUnit& bpeUnit, ui64 seed) {
+            const auto unit = std::make_pair(bpeUnit.Left, bpeUnit.Right);
+            const auto hash = MurmurHashFromUnit(unit, seed);
+            return std::make_pair(hash, bpeDictionary->SourceTokenIdsToTokenId.at(unit));
+        },
+        &SourceTokenIdsToTokenIdBuffer,
+        &SourceTokenIdsToTokenIdSeed
+    );
+    SourceTokenIdsToTokenId = MakeArrayRef(SourceTokenIdsToTokenIdBuffer);
+}
+
+TMMapBpeDictionary::TMMapBpeDictionary(TIntrusivePtr<TMMapDictionary> alphabet)
+    : Alphabet(alphabet)
+{
+}
+
+TMMapBpeDictionary::TMMapBpeDictionary(
+    TIntrusivePtr<TMMapDictionary> alphabet,
+    const void* data,
+    size_t size
+)
+    : Alphabet(alphabet)
+{
+    InitFromMemory(data, size);
+}
+
+TTokenId TMMapBpeDictionary::Apply(TStringBuf) const {
+    Y_ENSURE(false, "This method is unimplemented for TMMapBpeDictionary.");
+}
+
+static std::function<TMaybe<TTokenId>(const TUnit& unit)> GetUnitToTokenIdFuncForMMap(
+    TConstArrayRef<TBucket> sourceTokenIdsToTokenId,
+    ui64 sourceTokenIdsToTokenIdSeed
+) {
+    return [=](const TUnit& unit) {
+        const auto hash = MurmurHashFromUnit(unit, sourceTokenIdsToTokenIdSeed);
+        const auto& bucket = sourceTokenIdsToTokenId[GetBucketIndex(hash, sourceTokenIdsToTokenId)];
+        return bucket.Hash == hash ? TMaybe<TTokenId>(bucket.TokenId) : Nothing();
+    };
+}
+
+void TMMapBpeDictionary::Apply(
+    TConstArrayRef<TString> tokens,
+    TVector<TTokenId>* tokensIds,
+    EUnknownTokenPolicy unknownTokenPolicy
+) const {
+    ApplyImpl(
+        tokens,
+        tokensIds,
+        Alphabet.Get(),
+        GetUnitToTokenIdFuncForMMap(SourceTokenIdsToTokenId, SourceTokenIdsToTokenIdSeed),
+        unknownTokenPolicy
+    );
+}
+
+void TMMapBpeDictionary::Apply(
+    TConstArrayRef<TStringBuf> tokens,
+    TVector<TTokenId>* tokensIds,
+    EUnknownTokenPolicy unknownTokenPolicy
+) const {
+    ApplyImpl(
+        tokens,
+        tokensIds,
+        Alphabet.Get(),
+        GetUnitToTokenIdFuncForMMap(SourceTokenIdsToTokenId, SourceTokenIdsToTokenIdSeed),
+        unknownTokenPolicy
+    );
+}
+
+ui32 TMMapBpeDictionary::Size() const {
+    return Alphabet->Size() + BpeSize;
+}
+
+TString TMMapBpeDictionary::GetToken(TTokenId /*tokenId*/) const {
+    Y_ENSURE(false, "Unsupported method");
+}
+
+ui64 TMMapBpeDictionary::GetCount(TTokenId /*tokenId*/) const {
+    Y_ENSURE(false, "Unsupported method");
+}
+
+TVector<TString> TMMapBpeDictionary::GetTopTokens(ui32 /*topSize*/) const{
+    Y_ENSURE(false, "Unsupported method");
+}
+
+void TMMapBpeDictionary::ClearStatsData() {
+    Y_ENSURE(false, "Unsupported method");
+}
+
+TTokenId TMMapBpeDictionary::GetUnknownTokenId() const {
+    return Alphabet->GetUnknownTokenId();
+}
+
+TTokenId TMMapBpeDictionary::GetEndOfSentenceTokenId() const {
+    return Alphabet->GetEndOfSentenceTokenId();
+}
+
+TTokenId TMMapBpeDictionary::GetMinUnusedTokenId() const {
+    return Alphabet->GetMinUnusedTokenId() + SourceTokenIdsToTokenId.size();
+}
+
+void TMMapBpeDictionary::SetAlphabet(TIntrusivePtr<TMMapDictionary> alphabet) {
+    Alphabet = alphabet;
+}
+
+TIntrusiveConstPtr<TMMapDictionary> TMMapBpeDictionary::GetAlphabet() const {
+    return Alphabet.Get();
+}
+
+void TMMapBpeDictionary::Save(IOutputStream* stream) const {
+    stream->Write(BPE_MAGIC, BPE_MAGIC_SIZE);
+    AddPadding(16 - BPE_MAGIC_SIZE, stream);
+
+    WriteLittleEndian(BpeSize, stream);
+    AddPadding(8, stream);
+
+    const ui64 sourceTokenIdsToTokenIdSize = SourceTokenIdsToTokenId.size() * sizeof(TBucket);
+    WriteLittleEndian(sourceTokenIdsToTokenIdSize, stream);
+    WriteLittleEndian(SourceTokenIdsToTokenIdSeed, stream);
+
+    stream->Write(reinterpret_cast<const char*>(SourceTokenIdsToTokenId.data()), sourceTokenIdsToTokenIdSize);
+}
+
+void TMMapBpeDictionary::Load(IInputStream* stream) {
+    char magic[BPE_MAGIC_SIZE];
+    stream->Read(magic, BPE_MAGIC_SIZE);
+    Y_ENSURE(!std::memcmp(magic, BPE_MAGIC, BPE_MAGIC_SIZE));
+    SkipPadding(16 - BPE_MAGIC_SIZE, stream);
+
+    ReadLittleEndian(&BpeSize, stream);
+    SkipPadding(8, stream);
+
+    ui64 sourceTokenIdsToTokenIdSize;
+    ReadLittleEndian(&sourceTokenIdsToTokenIdSize, stream);
+    ReadLittleEndian(&SourceTokenIdsToTokenIdSeed, stream);
+
+    SourceTokenIdsToTokenIdBuffer.resize(sourceTokenIdsToTokenIdSize / sizeof(TBucket));
+    stream->Read(SourceTokenIdsToTokenIdBuffer.data(), sourceTokenIdsToTokenIdSize);
+    SourceTokenIdsToTokenId = MakeArrayRef(SourceTokenIdsToTokenIdBuffer);
+}
+
+void TMMapBpeDictionary::InitFromMemory(const void* data, size_t size) {
+    const ui8* ptr = reinterpret_cast<const ui8*>(data);
+    Y_ENSURE(!std::memcmp(ptr, BPE_MAGIC, BPE_MAGIC_SIZE));
+    ptr += 16;
+
+    BpeSize = *reinterpret_cast<const ui64*>(ptr);
+    ptr += 16;
+
+    ui64 sourceTokenIdsToTokenIdSize = *reinterpret_cast<const ui64*>(ptr);
+    ptr += 8;
+    SourceTokenIdsToTokenIdSeed = *reinterpret_cast<const ui64*>(ptr);
+    ptr += 8;
+
+    const TBucket* bucketDataBegin = reinterpret_cast<const TBucket*>(ptr);
+    const TBucket* bucketDataEnd = reinterpret_cast<const TBucket*>(ptr + sourceTokenIdsToTokenIdSize);
+    SourceTokenIdsToTokenId = MakeArrayRef(bucketDataBegin, bucketDataEnd);
+    Y_ENSURE(size == 16 + 16 + 16 + sourceTokenIdsToTokenIdSize);
 }

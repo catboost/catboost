@@ -1,6 +1,3 @@
-valgrind/callgrind.h
-valgrind/memcheck.h
-valgrind/valgrind.h
 cublas_v2.h
 cuda.h
 cuda_runtime.h

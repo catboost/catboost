@@ -4,8 +4,6 @@ RECURSE(
     brotli
     bzip2
     bzip2/ut
-    factory
-    factory/ut
     lz
     lz/ut
     lzma

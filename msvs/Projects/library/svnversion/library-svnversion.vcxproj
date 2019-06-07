@@ -82,45 +82,6 @@
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\library\svnversion\svnversion.cpp"/>
-    <CustomBuild Include="$(SolutionDir)..\build\scripts\yield_line.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\library\svnversion
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/yield_line.py" "--" "$(SolutionDir)$(Configuration)/library/svnversion/__args" "$(SolutionDir).."
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/yield_line.py" "--" "$(SolutionDir)$(Configuration)/library/svnversion/__args" "$(SolutionDir)$(Configuration)"
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/yield_line.py" "--" "$(SolutionDir)$(Configuration)/library/svnversion/__args" "python"
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/xargs.py" "--" "$(SolutionDir)$(Configuration)/library/svnversion/__args" "python" "$(SolutionDir)../build/scripts/svn_version_gen.py" "$(SolutionDir)$(Configuration)/library/svnversion/svnversion_data.h"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\library\svnversion
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/yield_line.py" "--" "$(SolutionDir)$(Configuration)/library/svnversion/__args" "$(SolutionDir).."
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/yield_line.py" "--" "$(SolutionDir)$(Configuration)/library/svnversion/__args" "$(SolutionDir)$(Configuration)"
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/yield_line.py" "--" "$(SolutionDir)$(Configuration)/library/svnversion/__args" "python"
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/xargs.py" "--" "$(SolutionDir)$(Configuration)/library/svnversion/__args" "python" "$(SolutionDir)../build/scripts/svn_version_gen.py" "$(SolutionDir)$(Configuration)/library/svnversion/svnversion_data.h"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/svnversion/svnversion_data.h	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\yield_line.py;$(SolutionDir)..\build\scripts\xargs.py;$(SolutionDir)..\build\scripts\svn_version_gen.py;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\svnversion\svnversion_data.h;</Outputs>
-    </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\library\svnversion\svnversion.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>

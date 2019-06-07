@@ -1,3 +1,4 @@
+#include <library/text_processing/dictionary/bpe_builder.h>
 #include <library/text_processing/dictionary/dictionary_builder.h>
 #include <library/text_processing/dictionary/frequency_based_dictionary.h>
 #include <library/text_processing/dictionary/mmap_frequency_based_dictionary.h>
@@ -8,7 +9,10 @@
 #include <util/memory/blob.h>
 
 using NTextProcessing::NDictionary::IDictionary;
+using NTextProcessing::NDictionary::TBpeDictionary;
+using NTextProcessing::NDictionary::TBpeDictionaryBuilder;
 using NTextProcessing::NDictionary::TDictionary;
+using NTextProcessing::NDictionary::TMMapBpeDictionary;
 using NTextProcessing::NDictionary::TMMapDictionary;
 using NTextProcessing::NDictionary::TDictionaryOptions;
 using NTextProcessing::NDictionary::TDictionaryBuilderOptions;
@@ -35,6 +39,45 @@ static auto GetApplyToAllDictsFunc(TDictionaryBuilder dictionaryBuilder, TBlob* 
     auto restoredFromMemoryMmapDictionary = MakeIntrusive<TMMapDictionary>(blob->Data(), blob->Size());
 
     dicts->emplace_back(dictionary);
+    dicts->emplace_back(mmapDictionary);
+    dicts->emplace_back(restoredDictionary);
+    dicts->emplace_back(restoredMmapDictionary);
+    dicts->emplace_back(restoredFromMemoryMmapDictionary);
+
+    return [=] (const std::function<void(IDictionary*)>& callback) {
+        for (const auto& d : *dicts) {
+            callback(d.Get());
+        }
+    };
+}
+
+static auto GetApplyToAllBpeDictsFunc(
+    TIntrusivePtr<TDictionary> dictionary,
+    TBpeDictionaryBuilder dictionaryBuilder,
+    TBlob* blob,
+    TVector<TIntrusivePtr<IDictionary>>* dicts
+) {
+    auto bpeDictionary = dictionaryBuilder.FinishBuilding();
+    auto mmapDictionary = MakeIntrusive<TMMapBpeDictionary>(bpeDictionary);
+
+    TStringStream stream;
+    bpeDictionary->Save(&stream);
+    auto restoredDictionary = MakeIntrusive<TBpeDictionary>(dictionary);
+    restoredDictionary->Load(&stream);
+
+    mmapDictionary->Save(&stream);
+    auto restoredMmapDictionary = MakeIntrusive<TMMapBpeDictionary>(MakeIntrusive<TMMapDictionary>(dictionary));
+    restoredMmapDictionary->Load(&stream);
+
+    restoredMmapDictionary->Save(&stream);
+    *blob = TBlob::FromStream(stream);
+    auto restoredFromMemoryMmapDictionary = MakeIntrusive<TMMapBpeDictionary>(
+        MakeIntrusive<TMMapDictionary>(dictionary),
+        blob->Data(),
+        blob->Size()
+    );
+
+    dicts->emplace_back(bpeDictionary);
     dicts->emplace_back(mmapDictionary);
     dicts->emplace_back(restoredDictionary);
     dicts->emplace_back(restoredMmapDictionary);
@@ -388,4 +431,56 @@ Y_UNIT_TEST_SUITE(DictionaryTests) {
 
     }
 
+    Y_UNIT_TEST(BpeDictionaryMainTest) {
+
+        TVector<TString> firstSentence = {"abc", "bcd", "bcd", "abc", "bcd"};
+        TVector<TString> secondSentence = {"abc", "bcd", "abc", "cde"};
+
+        TDictionaryOptions dictionaryOptions;
+        TDictionaryBuilderOptions dictionaryBuilderOptions;
+        dictionaryBuilderOptions.OccurrenceLowerBound = 0;
+        dictionaryOptions.GramOrder = 1;
+        dictionaryOptions.TokenLevelType = ETokenLevelType::Word;
+
+        TDictionaryBuilder dictionaryBuilder(dictionaryBuilderOptions, dictionaryOptions);
+        dictionaryBuilder.Add(firstSentence);
+        auto dictionary = dictionaryBuilder.FinishBuilding();
+        TBpeDictionaryBuilder bpeBuilder(/*numUnits=*/1, /*skipUnknown=*/false, dictionary);
+        bpeBuilder.Add(firstSentence);
+
+        TVector<TIntrusivePtr<IDictionary>> dicts;
+        TBlob blob;
+        auto checkForAll = GetApplyToAllBpeDictsFunc(dictionary, std::move(bpeBuilder), &blob, &dicts);
+
+        checkForAll([](IDictionary* d){
+            UNIT_ASSERT_VALUES_EQUAL(d->Size(), 3);
+        });
+
+        TVector<TTokenId> tokenIdsWithOutUnknownTokens;
+        dicts[0]->Apply(secondSentence, &tokenIdsWithOutUnknownTokens);
+        auto minUnusedTokenId = dicts[0]->GetMinUnusedTokenId();
+        auto thirdTokenId = dictionary->Apply(secondSentence[2]);
+        checkForAll([&](IDictionary* d){
+            TVector<TTokenId> tokenIds;
+            d->Apply(secondSentence, &tokenIds);
+            UNIT_ASSERT_VALUES_EQUAL(tokenIds.size(), 2);
+            UNIT_ASSERT_VALUES_EQUAL(tokenIds[0], minUnusedTokenId - 1);
+            UNIT_ASSERT_VALUES_EQUAL(tokenIds[1], thirdTokenId);
+            UNIT_ASSERT_VALUES_EQUAL(tokenIdsWithOutUnknownTokens, tokenIds);
+        });
+
+        TVector<TTokenId> tokenIdsWithUnknownTokens;
+        dicts[0]->Apply(secondSentence, &tokenIdsWithUnknownTokens, EUnknownTokenPolicy::Insert);
+        auto unknownTokenId = dicts[0]->GetUnknownTokenId();
+        checkForAll([&](IDictionary* d){
+            TVector<TTokenId> tokenIds;
+            d->Apply(secondSentence, &tokenIds, EUnknownTokenPolicy::Insert);
+            UNIT_ASSERT_VALUES_EQUAL(tokenIds.size(), 3);
+            UNIT_ASSERT_VALUES_EQUAL(tokenIds[0], minUnusedTokenId - 1);
+            UNIT_ASSERT_VALUES_EQUAL(tokenIds[1], thirdTokenId);
+            UNIT_ASSERT_VALUES_EQUAL(tokenIds[2], unknownTokenId);
+            UNIT_ASSERT_VALUES_EQUAL(tokenIdsWithUnknownTokens, tokenIds);
+        });
+
+    }
 }

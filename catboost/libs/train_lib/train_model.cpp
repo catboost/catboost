@@ -507,6 +507,12 @@ namespace {
                 trainingOptionsFile.Write(NJson::PrettifyJson(ToString(catboostOptions)));
             }
 
+            // need to save it because initLearnProgress is moved to TLearnContext
+            TMaybe<ui32> initLearnProgressLearnAndTestQuantizedFeaturesCheckSum;
+            if (initLearnProgress) {
+                initLearnProgressLearnAndTestQuantizedFeaturesCheckSum = initLearnProgress->LearnAndTestQuantizedFeaturesCheckSum;
+            }
+
             TLearnContext ctx(
                 catboostOptions,
                 objectiveDescriptor,
@@ -639,8 +645,8 @@ namespace {
 
                         if (!dstModel) {
                             const bool allLearnObjectsDataIsAvailable
-                                = initLearnProgress &&
-                                  (initLearnProgress->LearnAndTestQuantizedFeaturesCheckSum ==
+                                = initLearnProgressLearnAndTestQuantizedFeaturesCheckSum &&
+                                  (*initLearnProgressLearnAndTestQuantizedFeaturesCheckSum ==
                                    ctx.LearnProgress->LearnAndTestQuantizedFeaturesCheckSum);
 
                             ExportFullModel(

@@ -7,6 +7,13 @@
 - includes:
     - iconv.h:       contrib/libs/libiconv/iconv.h
 
+# Valgrind PEERDIR and ADDINCL are added only in --valgrind builds,
+# but we should resolve headers anyway.
+- includes:
+  - valgrind/callgrind.h
+  - valgrind/memcheck.h
+  - valgrind/valgrind.h
+
 # libunistring has its own libc header wrappers that are added to ADDINCL and
 # need to be added here for consistensy between ADDINCL and sysincl resolving.
 # Btw: we don't parse include_next, so we might lose real dependency to musl,

@@ -2,16 +2,22 @@
 
 #include "dictionary.h"
 #include "frequency_based_dictionary.h"
+#include "mmap_frequency_based_dictionary.h"
+#include "mmap_hash_table.h"
 
 #include <util/generic/vector.h>
 #include <util/stream/output.h>
 
 namespace NTextProcessing::NDictionary {
+
     class TBpeDictionaryBuilder;
+    class TMMapBpeDictionary;
 
     class TBpeDictionary final : public IDictionary {
     public:
         TBpeDictionary() = default;
+
+        explicit TBpeDictionary(TIntrusivePtr<TDictionary> alphabet);
 
         TTokenId Apply(TStringBuf token) const override;
 
@@ -35,23 +41,17 @@ namespace NTextProcessing::NDictionary {
 
         void ClearStatsData() override;
 
-        TTokenId GetUnknownTokenId() const override {
-            return Alphabet->GetUnknownTokenId();
-        }
+        TTokenId GetUnknownTokenId() const override;
+        TTokenId GetEndOfSentenceTokenId() const override;
+        TTokenId GetMinUnusedTokenId() const override;
 
-        TTokenId GetEndOfSentenceTokenId() const override {
-            return Alphabet->GetEndOfSentenceTokenId();
-        }
+        void SetAlphabet(TIntrusivePtr<TDictionary> alphabet);
+        TIntrusiveConstPtr<TDictionary> GetAlphabet() const;
 
-        TTokenId GetMinUnusedTokenId() const override {
-            return Alphabet->GetMinUnusedTokenId() + BpeUnits.size();
-        }
-
-        TIntrusiveConstPtr<TDictionary> GetAlphabet() const {
-            return Alphabet.Get();
-        }
-
-        void Save(IOutputStream* output) const override;
+        // These methods save/load only bpe data.
+        // The alphabet must be saved/loaded separately or use next two methods.
+        void Save(IOutputStream* stream) const override;
+        void Load(IInputStream* stream);
 
         // TODO(annaveronika): Allow loading without GetToken functionality (less memory).
         void Load(const TString& dictionaryPath, const TString& bpePath);
@@ -65,6 +65,7 @@ namespace NTextProcessing::NDictionary {
         };
 
         friend class NTextProcessing::NDictionary::TBpeDictionaryBuilder;
+        friend class NTextProcessing::NDictionary::TMMapBpeDictionary;
 
         explicit TBpeDictionary(TIntrusivePtr<TDictionary> alphabet, TVector<TBpeUnit> bpeUnits)
             : Alphabet(alphabet)
@@ -85,5 +86,57 @@ namespace NTextProcessing::NDictionary {
         TVector<TString> StringTokens;
         THashMap<std::pair<TTokenId, TTokenId>, TTokenId> SourceTokenIdsToTokenId;
     };
+
+    class TMMapBpeDictionary final : public IDictionary {
+    public:
+        TMMapBpeDictionary() = default;
+        explicit TMMapBpeDictionary(TIntrusivePtr<TBpeDictionary> bpeDictionary);
+        explicit TMMapBpeDictionary(TIntrusivePtr<TMMapDictionary> alphabet);
+        TMMapBpeDictionary(TIntrusivePtr<TMMapDictionary> alphabet, const void* data, size_t size);
+
+        TTokenId Apply(TStringBuf token) const override;
+
+        void Apply(
+            TConstArrayRef<TString> tokens,
+            TVector<TTokenId>* tokensIds,
+            EUnknownTokenPolicy unknownTokenPolicy = EUnknownTokenPolicy::Skip
+        ) const override;
+
+        void Apply(
+            TConstArrayRef<TStringBuf> tokens,
+            TVector<TTokenId>* tokensIds,
+            EUnknownTokenPolicy unknownTokenPolicy = EUnknownTokenPolicy::Skip
+        ) const override;
+
+        ui32 Size() const override;
+
+        TString GetToken(TTokenId /*tokenId*/) const override;
+        ui64 GetCount(TTokenId /*tokenId*/) const override;
+        TVector<TString> GetTopTokens(ui32 /*topSize*/) const override;
+
+        void ClearStatsData() override;
+
+        TTokenId GetUnknownTokenId() const override;
+        TTokenId GetEndOfSentenceTokenId() const override;
+        TTokenId GetMinUnusedTokenId() const override;
+
+        void SetAlphabet(TIntrusivePtr<TMMapDictionary> alphabet);
+        TIntrusiveConstPtr<TMMapDictionary> GetAlphabet() const;
+
+        // These methods save/load only bpe data. The alphabet must be saved/loaded separately.
+        void Save(IOutputStream* stream) const override;
+        void Load(IInputStream* stream);
+
+        // These method initializes only bpe data. The alphabet must be initialized separately.
+        void InitFromMemory(const void* data, size_t size);
+
+    private:
+        TIntrusivePtr<TMMapDictionary> Alphabet;
+        ui64 BpeSize = 0;
+        TVector<TBucket> SourceTokenIdsToTokenIdBuffer;
+        TConstArrayRef<TBucket> SourceTokenIdsToTokenId;
+        ui64 SourceTokenIdsToTokenIdSeed = 0;
+    };
+
 }
 
