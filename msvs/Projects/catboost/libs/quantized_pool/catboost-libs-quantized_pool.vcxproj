@@ -256,9 +256,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\lzmasdk\contrib-libs-lzmasdk.vcxproj">
       <Project>{4F7974CD-8E2E-CE00-9601-B94495E36E7D}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\minilzo\contrib-libs-minilzo.vcxproj">
-      <Project>{94713897-E687-8100-B717-C74B1BDC82BD}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\nayuki_md5\contrib-libs-nayuki_md5.vcxproj">
       <Project>{C0251DC8-E401-B1AF-785F-72D686693CB9}</Project>
     </ProjectReference>
@@ -270,9 +267,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\protobuf\contrib-libs-protobuf.vcxproj">
       <Project>{18399176-5408-8102-7C5F-8DA029B8F78E}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\quicklz\contrib-libs-quicklz.vcxproj">
-      <Project>{EA7732D3-703C-A0A4-8111-3D5A64DBE581}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\rapidjson\contrib-libs-rapidjson.vcxproj">
       <Project>{9CDB08FB-219D-3356-E006-1AC8AECC636E}</Project>
@@ -384,15 +378,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\resource\library-resource.vcxproj">
       <Project>{0182C1FA-B7CF-C21E-561C-06B91159C53A}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\streams\bzip2\library-streams-bzip2.vcxproj">
-      <Project>{D2BE05C4-A3E9-F005-03A2-D5BA7CA9894C}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\streams\factory\library-streams-factory.vcxproj">
-      <Project>{843A93C8-B2CF-9378-BE52-B82E551F4783}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\streams\lz\library-streams-lz.vcxproj">
-      <Project>{A185EB49-4726-0AE5-D7C8-4A76EB282A3E}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\string_utils\base64\library-string_utils-base64.vcxproj">
       <Project>{137212F6-D2FE-719F-EBE2-99060434BC72}</Project>
