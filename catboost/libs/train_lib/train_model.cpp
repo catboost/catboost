@@ -742,7 +742,7 @@ static void TrainModel(
     }
 
     if (outputOptions.SaveSnapshot()) {
-        UpdateUndefinedRandomSeed(ETaskType::CPU, updatedOutputOptions, &updatedTrainOptionsJson, [&](IInputStream* in, TString& params) {
+        UpdateUndefinedRandomSeed(taskType, updatedOutputOptions, &updatedTrainOptionsJson, [&](IInputStream* in, TString& params) {
             ::Load(in, params);
         });
     }
