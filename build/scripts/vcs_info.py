@@ -111,7 +111,10 @@ def merge_java_mf(json_file, out_manifest, input_dir):
 
 
 def print_java_mf(info):
-    wrapper = textwrap.TextWrapper(subsequent_indent=' ')
+    wrapper = textwrap.TextWrapper(subsequent_indent=' ',
+                                   break_long_words=True,
+                                   replace_whitespace=False,
+                                   drop_whitespace=False)
 
     def wrap(key, val):
         if not val:
