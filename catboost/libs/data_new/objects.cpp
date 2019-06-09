@@ -411,7 +411,7 @@ bool NCB::TRawObjectsData::operator==(const NCB::TRawObjectsData& rhs) const {
 }
 
 void NCB::TRawObjectsData::PrepareForInitialization(const TDataMetaInfo& metaInfo) {
-    // FloatFeatures and CatFeatures members are initialized at the end of building
+    // FloatFeatures, CatFeatures and TextFeatures members are initialized at the end of building
     FloatFeatures.clear();
     FloatFeatures.resize((size_t)metaInfo.FeaturesLayout->GetFloatFeatureCount());
 
