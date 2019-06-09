@@ -2425,7 +2425,7 @@ class Cuda(object):
         if host != target:
             return False
 
-        if self.cuda_version.value in ('9.0', '9.1', '9.2', '10.0'):
+        if self.cuda_version.value in ('9.0', '9.1', '9.2', '10.0', '10.1'):
             return True
 
         if self.cuda_version.value == '8.0' and host.is_linux_x86_64:
