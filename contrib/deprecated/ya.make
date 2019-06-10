@@ -25,6 +25,7 @@ RECURSE(
     libtorrent/test
     libxml++
     mimepp
+    mongo-cxx-driver
     pygtrie
     pygtrie/tests
     sigc++
