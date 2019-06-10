@@ -86,7 +86,7 @@ def on_go_process_srcs(unit):
     for path in srcs_files + go_test_files + go_xtest_files:
         if path.endswith(".go"):
             resolved = unit.resolve_arc_path([path])
-            if resolved != path and not resolved.startswith("$S/vendor") and not resolved.startswith("$S/contrib"):
+            if resolved != path and not resolved.startswith("$S/vendor/") and not resolved.startswith("$S/contrib/"):
                 resolved_go_files.append(resolved)
     if resolved_go_files:
         basedirs = {}
