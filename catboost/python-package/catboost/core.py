@@ -2144,7 +2144,7 @@ class CatBoost(_CatBoostBase):
 
     def calc_feature_statistics(self, data, target, feature, prediction_type=None,
                                 cat_feature_values=None, plot=True, max_cat_features_on_plot=10,
-                                thread_count=-1):
+                                thread_count=-1, plot_file=None):
         """
         Get statistics for the feature using the model, dataset and target.
         To use this function, you should install plotly.
@@ -2186,6 +2186,8 @@ class CatBoost(_CatBoostBase):
             Used only if plot=True.
         thread_count: int
             Number of threads to use for getting statistics.
+        plot_file: str
+            Output file for plot statistics.
         Returns
         -------
         dict:
@@ -2243,8 +2245,41 @@ class CatBoost(_CatBoostBase):
             res['cat_values'] = np.array([hash_to_val[i] for i in sorted(hash_to_val.keys())])
             res.pop('borders', None)
 
-        if plot:
-            _plot_feature_statistics(res, feature, max_cat_features_on_plot)
+        if plot or plot_file is not None:
+            try:
+                from plotly.offline import iplot
+                from plotly.offline import plot
+                from plotly.offline import init_notebook_mode
+                init_notebook_mode(connected=True)
+            except ImportError as e:
+                warnings.warn("To draw binarized feature statistics you should install plotly.")
+                raise ImportError(str(e))
+
+            figs = _plot_feature_statistics(res, feature, max_cat_features_on_plot)
+            if plot:
+                for fig in figs:
+                    iplot(fig)
+
+            if plot_file is not None:
+                with open(plot_file, 'w') as html_plot_file:
+                    html_plot_file.write('\n'.join((
+                            '<html>',
+                            '<head>',
+                            '<meta charset="utf-8" />',
+                            '<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>',
+                            '<title>Catboost metrics graph</title>',
+                            '</head>',
+                            '<body>'
+                    )))
+                    for fig in figs:
+                        graph_div = plot(
+                            fig,
+                            output_type='div',
+                            show_link=False,
+                            include_plotlyjs=False
+                        )
+                        html_plot_file.write('\n{}\n'.format(graph_div))
+                    html_plot_file.write('</body>\n</html>')
 
         return res
 
@@ -3794,18 +3829,11 @@ def _build_binarized_feature_statistics_fig(statistics, feature):
 
 
 def _plot_feature_statistics(statistics, feature, max_cat_features_on_plot):
-    try:
-        from plotly.offline import iplot
-        from plotly.offline import init_notebook_mode
-        init_notebook_mode(connected=True)
-    except ImportError as e:
-        warnings.warn("To draw binarized feature statistics you should install plotly.")
-        raise ImportError(str(e))
-
     if 'cat_values' in statistics.keys() and len(statistics['cat_values']) > max_cat_features_on_plot:
+        figs = []
         for begin in range(0, len(statistics['cat_values']), max_cat_features_on_plot):
             sub_statistics = {
-                'borders': statistics['borders'][begin:begin+max_cat_features_on_plot],
+                'cat_values': statistics['cat_values'][begin:begin+max_cat_features_on_plot],
                 'mean_target': statistics['mean_target'][begin:begin+max_cat_features_on_plot],
                 'mean_prediction': statistics['mean_prediction'][begin:begin+max_cat_features_on_plot],
                 'objects_per_bin': statistics['objects_per_bin'][begin:begin+max_cat_features_on_plot],
@@ -3813,7 +3841,8 @@ def _plot_feature_statistics(statistics, feature, max_cat_features_on_plot):
                     statistics['predictions_on_varying_feature'][begin:begin+max_cat_features_on_plot]
             }
             fig = _build_binarized_feature_statistics_fig(sub_statistics, feature)
-            iplot(fig)
+            figs.append(fig)
+        return figs
     else:
         fig = _build_binarized_feature_statistics_fig(statistics, feature)
-        iplot(fig)
+        return [fig]
