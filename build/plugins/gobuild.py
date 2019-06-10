@@ -118,12 +118,15 @@ def on_go_process_srcs(unit):
     s_files = filter(lambda x: x.endswith('.S'), srcs_files)
     c_files = filter(lambda x: x.endswith('.c'), srcs_files)
     syso_files = filter(lambda x: x.endswith('.syso'), srcs_files)
-    if len(c_files) + len(s_files) > 0:
-        cgo_flags = get_appended_values(unit, 'CGO_CFLAGS_VALUE')
-        for f in c_files + s_files:
-            unit.onsrc([f] + cgo_flags)
-
     cgo_files = get_appended_values(unit, 'CGO_SRCS_VALUE')
+
+    cgo_cflags = []
+    if len(c_files) + len(s_files) + len(cgo_files) > 0:
+        cgo_cflags = get_appended_values(unit, 'CGO_CFLAGS_VALUE')
+
+    for f in c_files + s_files:
+        unit.onsrc([f] + cgo_cflags)
+
     if len(cgo_files) > 0:
         if not unit.enabled('CGO_ENABLED'):
             ymake.report_configure_error('trying to build with CGO (CGO_SRCS is non-empty) when CGO is disabled')
@@ -137,6 +140,12 @@ def on_go_process_srcs(unit):
         import_syscall = 'false' if import_path in import_syscall_false[race_mode] else 'true'
         args = [import_path] + cgo_files + ['FLAGS', '-import_runtime_cgo=' + import_runtime_cgo, '-import_syscall=' + import_syscall]
         unit.on_go_compile_cgo1(args)
+        cgo2_cflags = get_appended_values(unit, 'CGO2_CFLAGS_VALUE')
+        for f in cgo_files:
+            if f.endswith('.go'):
+                unit.onsrc([f[:-2] + 'cgo2.c'] + cgo_cflags + cgo2_cflags)
+            else:
+                ymake.report_configure_error('file {} should not be listed in CGO_SRCS() macros'.format(f))
         args = [go_package_name(unit)] + cgo_files
         if len(c_files) > 0:
             args += ['C_FILES'] + c_files
