@@ -341,7 +341,8 @@
             },
             "platforms": [
                 {"host": {"os": "LINUX"}, "default": true},
-                {"host": {"os": "DARWIN"}, "default": true}
+                {"host": {"os": "DARWIN"}, "default": true},
+                {"host": {"os": "WIN"}, "default": true}
             ]
         },
         "yo": {
@@ -1568,7 +1569,7 @@
         },
         "arc": {
             "formula": {
-                "sandbox_id": [442997810],
+                "sandbox_id": [445418024],
                 "match": "arc"
             },
             "executable": {
