@@ -18,7 +18,6 @@
   # - pcap/pcap.h
   # - sasl/sasl.h
   # - sasl/saslutil.h
-  # - util.h
   # - uuid/uuid.h
   # - zconf.h
 
@@ -146,6 +145,7 @@
   - termcap.h
   - timeconv.h
   - tzfile.h
+  - util.h
   - vis.h
 
   # OSX frameworks

@@ -47,7 +47,6 @@
     - sys/socket.h:  contrib/libs/lftp/lib/sys/socket.h
     - sys/stat.h:    contrib/libs/lftp/lib/sys/stat.h
     - sys/time.h:    contrib/libs/lftp/lib/sys/time.h
-    - util.h
 
 # Another sysincl/addincl clash. Here we also have GLOBAL ADDINCL that will
 # produce sysincl/addincl mismatch configure errors when someone writes
@@ -169,6 +168,26 @@
     - sqltypes.h:    contrib/libs/unixodbc/include/sqltypes.h
     - sqlucode.h:    contrib/libs/unixodbc/include/sqlucode.h
 
+- source_filter: "^contrib/libs/icu"
+  includes:
+    - util.h:        contrib/libs/icu/common/util.h
+
+- source_filter: "^contrib/tools/yasm"
+  includes:
+    - util.h:        contrib/tools/yasm/util.h
+
+- source_filter: "^contrib/libs/libgit2"
+  includes:
+    - util.h:        contrib/libs/libgit2/src/util.h
+
+- source_filter: "^contrib/libs/nodejs_8"
+  includes:
+    - util.h:        contrib/libs/nodejs_8/src/util.h
+
+- source_filter: "^contrib/libs/numa"
+  includes:
+    - util.h:        contrib/libs/numa/internal/util.h
+
 # unused legacy include in boost
 - source_filter: "^contrib/deprecated/boost"
   includes:
@@ -189,11 +208,6 @@
     - sqlext.h
     - sqltypes.h
     - sqlucode.h
-
-# osx sdk includes that we do not want to apply for whole arcadia
-- source_filter: "^contrib/tools/python|yt/19_4/yt/core/misc/proc.cpp"
-  includes:
-    - util.h
 
 - source_filter: "^contrib/libs/libmemcached"
   includes:
