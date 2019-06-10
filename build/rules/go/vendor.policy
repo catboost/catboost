@@ -127,7 +127,7 @@ ALLOW .* -> vendor/github.com/prometheus/common
 # ZooKeeper client
 ALLOW .* -> vendor/github.com/samuel/go-zookeeper
 
-# Test diffing.
+# Text diffing.
 ALLOW .* -> vendor/github.com/pmezard/go-difflib
 
 # statsd client library
