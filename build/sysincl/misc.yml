@@ -33,6 +33,11 @@
     - wchar.h:       contrib/libs/libunistring/wchar.h
     - wctype.h:      contrib/libs/libunistring/wctype.h
 
+- source_filter: "^contrib/libs/libidn2/"
+  includes:
+    - error.h:  contrib/libs/libidn2/gl/error.h
+    - unistd.h: contrib/libs/libunistring/include/unistd.h
+
 # Same as libunistring - lftp has own libc header wrappers/replacements.
 # However here we have GLOBAL ADDINCL to contrib/libs/lftp{,/trio,/lib}
 # that can poison resolving in PEERDIRing projects.
