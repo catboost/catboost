@@ -130,8 +130,11 @@ def onjava_module(unit, *args):
 
     if not data['EXTERNAL_JAR']:
         data['GENERATE_VCS_JAVA_INFO_NODEP'] = extract_macro_calls(unit, 'GENERATE_VCS_JAVA_INFO_NODEP', args_delim)
-        # FORCE_VCS_INFO_UPDATE is responsible for setting special value of VCS_INFO_DISABLE_CACHE
+        # FORCE_VCS_INFO_UPDATE is responsible for setting special value of __IGN_FOR_UIDS__VCS_INFO
+        # TODO: dvshkurko@ remove
         data['VCS_INFO_DISABLE_CACHE'] = extract_macro_calls(unit, 'FORCE_VCS_INFO_UPDATE', args_delim)
+        # TODO: dvshkurko@ remove
+        data['VCS_INFO_DISABLE_CACHE__NO_UID__ '] = extract_macro_calls(unit, 'FORCE_VCS_INFO_UPDATE', args_delim)
         force_empty = extract_macro_calls(unit, 'FORCE_EMPTY_VCS_INFO', args_delim)
         force_empty = force_empty[0][0] if force_empty and force_empty[0] and force_empty[0][0] else ''
         if force_empty:
