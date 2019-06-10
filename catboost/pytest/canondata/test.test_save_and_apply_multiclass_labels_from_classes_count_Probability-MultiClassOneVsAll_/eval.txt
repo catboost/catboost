@@ -1,4 +1,4 @@
-DocId	Probability:Class=0	Probability:Class=1	Probability:Class=2	Probability:Class=3
+SampleId	Probability:Class=0	Probability:Class=1	Probability:Class=2	Probability:Class=3
 0	1.123712852e-308	0.5050227198	0.4949772802	1.123712852e-308
 1	1.13842006e-308	0.5116324816	0.4883675184	1.13842006e-308
 2	1.144610549e-308	0.4855853684	0.5144146316	1.144610549e-308

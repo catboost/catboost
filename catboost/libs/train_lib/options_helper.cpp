@@ -2,6 +2,7 @@
 
 #include <catboost/libs/helpers/vector_helpers.h>
 #include <catboost/libs/options/enum_helpers.h>
+#include <catboost/libs/options/defaults_helper.h>
 
 #include <util/system/types.h>
 #include <util/generic/ymath.h>
@@ -92,24 +93,17 @@ void UpdateYetiRankEvalMetric(
     }
 }
 
-static void UpdateUseBestModel(bool hasTest, bool hasTestConstTarget, bool hasTestPairs, NCatboostOptions::TOption<bool>* useBestModel) {
-    if (useBestModel->NotSet() && hasTest && (!hasTestConstTarget || hasTestPairs)) {
+static void UpdateUseBestModel(bool learningContinuation, bool hasTest, bool hasTestConstTarget, bool hasTestPairs, NCatboostOptions::TOption<bool>* useBestModel) {
+    if (useBestModel->NotSet() && !learningContinuation && hasTest && (!hasTestConstTarget || hasTestPairs)) {
         *useBestModel = true;
+    }
+    if (learningContinuation && *useBestModel) {
+        CATBOOST_WARNING_LOG << "Using best model is not supported for learning continuation. use_best_model parameter has been switched to false value." << Endl;
+        *useBestModel = false;
     }
     if (!hasTest && *useBestModel) {
         CATBOOST_WARNING_LOG << "You should provide test set for use best model. use_best_model parameter has been switched to false value." << Endl;
         *useBestModel = false;
-    }
-}
-
-static void UpdateBoostingTypeOption(size_t learnSampleCount, NCatboostOptions::TCatBoostOptions* catBoostOptions) {
-    auto& boostingTypeOption = catBoostOptions->BoostingOptions->BoostingType;
-    if (
-        boostingTypeOption.NotSet() &&
-        (learnSampleCount >= 50000 || catBoostOptions->BoostingOptions->IterationCount < 500) &&
-        !(catBoostOptions->GetTaskType() == ETaskType::CPU && catBoostOptions->BoostingOptions->ApproxOnFullHistory.Get())
-    ) {
-        boostingTypeOption = EBoostingType::Plain;
     }
 }
 
@@ -169,6 +163,7 @@ static bool IsConstTarget(const NCB::TDataMetaInfo& dataMetaInfo) {
 void SetDataDependentDefaults(
     const NCB::TDataMetaInfo& trainDataMetaInfo,
     const TMaybe<NCB::TDataMetaInfo>& testDataMetaInfo,
+    bool learningContinuation,
     NCatboostOptions::TOption<bool>* useBestModel,
     NCatboostOptions::TCatBoostOptions* catBoostOptions
 ) {
@@ -176,7 +171,7 @@ void SetDataDependentDefaults(
     const ui64 testPoolSize = testDataMetaInfo.Defined() ? testDataMetaInfo->ObjectCount : 0;
     const bool isConstTestTarget = testDataMetaInfo.Defined() && IsConstTarget(*testDataMetaInfo);
     const bool hasTestPairs = testDataMetaInfo.Defined() && testDataMetaInfo->HasPairs;
-    UpdateUseBestModel(testPoolSize, isConstTestTarget, hasTestPairs, useBestModel);
+    UpdateUseBestModel(learningContinuation, testPoolSize, isConstTestTarget, hasTestPairs, useBestModel);
     UpdateBoostingTypeOption(learnPoolSize, catBoostOptions);
     UpdateLearningRate(learnPoolSize, useBestModel->Get(), catBoostOptions);
     UpdateOneHotMaxSize(

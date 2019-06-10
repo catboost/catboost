@@ -7,10 +7,22 @@
 #include <catboost/libs/algo/split.h>
 #include <catboost/libs/algo/tensor_search_helpers.h>
 #include <catboost/libs/data_new/data_provider.h>
+#include <catboost/libs/data_new/loader.h>
+#include <catboost/libs/options/load_options.h>
 
-void InitializeMaster(TLearnContext* ctx);
+void InitializeMaster(const NCatboostOptions::TSystemOptions& systemOptions);
 void FinalizeMaster(TLearnContext* ctx);
-void MapBuildPlainFold(NCB::TTrainingForCPUDataProviderPtr trainData, TLearnContext* ctx);
+void SetTrainDataFromQuantizedPool(
+    const NCatboostOptions::TPoolLoadParams& poolLoadOptions,
+    const NCatboostOptions::TCatBoostOptions& catBoostOptions,
+    const NCB::TObjectsGrouping& objectsGrouping,
+    const NCB::TFeaturesLayout& featuresLayout,
+    TRestorableFastRng64* rand
+);
+void SetTrainDataFromMaster(
+    NCB::TTrainingForCPUDataProviderPtr trainData,
+    NPar::TLocalExecutor* localExecutor);
+void MapBuildPlainFold(TLearnContext* ctx);
 void MapRestoreApproxFromTreeStruct(TLearnContext* ctx);
 void MapTensorSearchStart(TLearnContext* ctx);
 void MapBootstrap(TLearnContext* ctx);

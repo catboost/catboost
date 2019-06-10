@@ -298,20 +298,26 @@ namespace NCatboostCuda {
             const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
             const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
             const TMaybe<TOnEndIterationCallback>& onEndIterationCallback,
-            TFeatureEstimators featureEstimators,
             TTrainingDataProviders trainingData,
             const TLabelConverter& labelConverter,
+            TMaybe<TFullModel*> initModel,
+            THolder<TLearnProgress> initLearnProgress,
+            NCB::TDataProviders initModelApplyCompatiblePools,
             NPar::TLocalExecutor* localExecutor,
             const TMaybe<TRestorableFastRng64*> rand,
-            TFullModel* model,
+            TFullModel* dstModel,
             const TVector<TEvalResult*>& evalResultPtrs,
-            TMetricsAndTimeLeftHistory* metricsAndTimeHistory) const override {
+            TMetricsAndTimeLeftHistory* metricsAndTimeHistory,
+            THolder<TLearnProgress>* dstLearnProgress) const override {
 
             Y_UNUSED(objectiveDescriptor);
             Y_UNUSED(evalMetricDescriptor);
             Y_UNUSED(rand);
             CB_ENSURE(trainingData.Test.size() <= 1, "Multiple eval sets not supported for GPU");
             Y_VERIFY(evalResultPtrs.size() == trainingData.Test.size());
+            CB_ENSURE(!initModel && !initLearnProgress, "Training continuation for GPU is not yet supported");
+            Y_UNUSED(initModelApplyCompatiblePools);
+            CB_ENSURE_INTERNAL(!dstLearnProgress, "Returning learn progress for GPU is not yet supported");
 
             NCatboostOptions::TCatBoostOptions updatedCatboostOptions(catboostOptions);
 
@@ -331,7 +337,7 @@ namespace NCatboostCuda {
             auto quantizedFeaturesInfo = trainingData.Learn->ObjectsData->GetQuantizedFeaturesInfo();
 
             TBinarizedFeaturesManager featuresManager(updatedCatboostOptions.CatFeatureParams,
-                                                      featureEstimators,
+                                                      trainingData.FeatureEstimators,
                                                       quantizedFeaturesInfo);
 
 
@@ -369,7 +375,7 @@ namespace NCatboostCuda {
                 outputOptions,
                 *trainingData.Learn,
                 !trainingData.Test.empty() ? trainingData.Test[0].Get() : nullptr,
-                featureEstimators,
+                trainingData.FeatureEstimators,
                 featuresManager,
                 approxDimension,
                 onEndIterationCallback,
@@ -392,8 +398,8 @@ namespace NCatboostCuda {
 
             TMaybe<TFullModel> fullModel;
             TFullModel* modelPtr = nullptr;
-            if (model) {
-                modelPtr = model;
+            if (dstModel) {
+                modelPtr = dstModel;
             } else {
                 fullModel.ConstructInPlace();
                 modelPtr = &*fullModel;
@@ -442,8 +448,8 @@ namespace NCatboostCuda {
                     modelPtr)
                 .WithObjectsDataFrom(trainingData.Learn->ObjectsData);
 
-            if (model) {
-                coreModelToFullModelConverter.Do(true, model);
+            if (dstModel) {
+                coreModelToFullModelConverter.Do(true, dstModel);
             } else {
                 coreModelToFullModelConverter.Do(
                     outputOptions.CreateResultModelFullPath(),

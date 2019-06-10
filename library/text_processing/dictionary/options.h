@@ -28,6 +28,9 @@ namespace NTextProcessing::NDictionary {
             EndOfWordTokenPolicy,
             EndOfSentenceTokenPolicy
         );
+
+        bool operator==(const TDictionaryOptions& rhs) const;
+        bool operator!=(const TDictionaryOptions& rhs) const;
     };
 
     struct TDictionaryBuilderOptions {
@@ -35,6 +38,9 @@ namespace NTextProcessing::NDictionary {
         i32 MaxDictionarySize = -1; // The max dictionary size.
 
         Y_SAVELOAD_DEFINE(OccurrenceLowerBound, MaxDictionarySize);
+
+        bool operator==(const TDictionaryBuilderOptions& rhs) const;
+        bool operator!=(const TDictionaryBuilderOptions& rhs) const;
     };
 
     struct TBpeDictionaryOptions {

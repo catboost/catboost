@@ -6,4 +6,5 @@ RECURSE(
     base64/fuzz
     relaxed_escaper
     relaxed_escaper/ut
+    ztstrbuf
 )

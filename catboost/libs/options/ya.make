@@ -26,6 +26,7 @@ SRCS(
     overfitting_detector_options.cpp
     plain_options_helper.cpp
     system_options.cpp
+    text_feature_options.cpp
 )
 
 PEERDIR(
@@ -37,6 +38,7 @@ PEERDIR(
     library/getopt/small
     library/grid_creator
     library/json
+    library/text_processing/dictionary
 )
 
 GENERATE_ENUM_SERIALIZATION(enums.h)

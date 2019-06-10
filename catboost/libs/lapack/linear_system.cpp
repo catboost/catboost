@@ -4,6 +4,7 @@
 
 #include <util/generic/ymath.h>
 #include <util/generic/vector.h>
+#include <util/stream/output.h>
 
 #include <contrib/libs/clapack/clapack.h>
 

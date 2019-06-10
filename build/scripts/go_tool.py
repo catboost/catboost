@@ -66,6 +66,7 @@ def classify_srcs(srcs, args):
     args.asm_srcs = list(filter(lambda x: x.endswith('.s'), srcs))
     args.objects = list(filter(lambda x: x.endswith('.o') or x.endswith('.obj'), srcs))
     args.symabis = list(filter(lambda x: x.endswith('.symabis'), srcs))
+    args.sysos = list(filter(lambda x: x.endswith('.syso'), srcs))
 
 
 def create_import_config(peers, import_map={}, module_map={}):
@@ -114,9 +115,12 @@ def do_compile_go(args):
             cmd += ['-symabis'] + args.symabis
         if import_path in ('runtime', 'runtime/internal/atomic'):
             cmd.append('-allabis')
-    cmd += ['-pack', '-c=4']
+    compile_workers = '4'
     if args.compile_flags:
         cmd += args.compile_flags
+        if '-race' in args.compile_flags:
+            compile_workers = '1'
+    cmd += ['-pack', '-c={}'.format(compile_workers)]
     cmd += args.go_srcs
     call(cmd, args.build_root)
 
@@ -146,7 +150,7 @@ def do_link_lib(args):
     else:
         do_compile_go(args)
     if args.objects:
-        cmd = [args.go_pack, 'r', args.output] + args.objects
+        cmd = [args.go_pack, 'r', args.output] + args.objects + args.sysos
         call(cmd, args.build_root)
 
 
@@ -159,6 +163,8 @@ def do_link_exe(args):
     import_config_name = create_import_config(args.peers, args.import_map, args.module_map)
     if import_config_name:
         cmd += ['-importcfg', import_config_name]
+    if args.link_flags:
+        cmd += args.link_flags
     cmd += ['-buildmode=exe', '-extld={}'.format(args.extld)]
     extldflags = []
     if args.extldflags is not None:
@@ -172,16 +178,57 @@ def do_link_exe(args):
             extldflags.append('-Wl,--end-group')
     if len(extldflags) > 0:
         cmd.append('-extldflags=' + ' '.join(extldflags))
-    if args.link_flags:
-        cmd += args.link_flags
     cmd.append(compile_args.output)
     call(cmd, args.build_root)
+
+
+def gen_cover_info(args):
+    lines = []
+    lines.extend([
+        """
+var (
+    coverCounters = make(map[string][]uint32)
+    coverBlocks = make(map[string][]testing.CoverBlock)
+)
+        """,
+        'func init() {',
+    ])
+    for var, file in (x.split(':') for x in args.cover_info):
+        lines.append('    coverRegisterFile("{file}", _cover0.{var}.Count[:], _cover0.{var}.Pos[:], _cover0.{var}.NumStmt[:])'.format(file=file, var=var))
+    lines.extend([
+        '}',
+        """
+func coverRegisterFile(fileName string, counter []uint32, pos []uint32, numStmts []uint16) {
+    if 3*len(counter) != len(pos) || len(counter) != len(numStmts) {
+        panic("coverage: mismatched sizes")
+    }
+    if coverCounters[fileName] != nil {
+        // Already registered.
+        return
+    }
+    coverCounters[fileName] = counter
+    block := make([]testing.CoverBlock, len(counter))
+    for i := range counter {
+        block[i] = testing.CoverBlock{
+            Line0: pos[3*i+0],
+            Col0: uint16(pos[3*i+2]),
+            Line1: pos[3*i+1],
+            Col1: uint16(pos[3*i+2]>>16),
+            Stmts: numStmts[i],
+        }
+    }
+    coverBlocks[fileName] = block
+}
+        """,
+    ])
+    return lines
 
 
 def gen_test_main(args, test_lib_args, xtest_lib_args):
     assert args and (test_lib_args or xtest_lib_args)
     test_miner = args.test_miner
     test_module_path = test_lib_args.module_path if test_lib_args else xtest_lib_args.module_path
+    is_cover = args.cover_info and len(args.cover_info) > 0
 
     # Prepare GOPATH
     # $BINDIR
@@ -240,6 +287,8 @@ def gen_test_main(args, test_lib_args, xtest_lib_args):
         lines.append('    _test "{}"'.format(test_module_path))
     if len(xtests) > 0:
         lines.append('    _xtest "{}"'.format(xtest_module_path))
+    if is_cover:
+        lines.append('    _cover0 "{}"'.format(test_module_path))
     lines.extend([')', ''])
 
     for kind in ['Test', 'Benchmark', 'Example']:
@@ -250,8 +299,20 @@ def gen_test_main(args, test_lib_args, xtest_lib_args):
             lines.append('    {{"{test}", _xtest.{test}}},'.format(test=test))
         lines.extend(['}', ''])
 
+    if is_cover:
+        lines.extend(gen_cover_info(args))
+
+    lines.append('func main() {')
+    if is_cover:
+        lines.extend([
+            '    testing.RegisterCover(testing.Cover{',
+            '        Mode: "set",',
+            '        Counters: coverCounters,',
+            '        Blocks: coverBlocks,',
+            '        CoveredPackages: "",',
+            '    })',
+        ])
     lines.extend([
-        'func main() {',
         '    m := testing.MainStart(testdeps.TestDeps{}, tests, benchmarks, examples)'
         '',
     ])
@@ -317,6 +378,7 @@ if __name__ == '__main__':
     parser.add_argument('++srcs', nargs='*', required=True)
     parser.add_argument('++test_srcs', nargs='*')
     parser.add_argument('++xtest_srcs', nargs='*')
+    parser.add_argument('++cover_info', nargs='*')
     parser.add_argument('++output', nargs='?', default=None)
     parser.add_argument('++build-root', required=True)
     parser.add_argument('++output-root', required=True)

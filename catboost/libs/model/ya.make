@@ -14,6 +14,7 @@ SRCS(
     model.cpp
     online_ctr.cpp
     onnx_helpers.cpp
+    pmml_helpers.cpp
     static_ctr_provider.cpp
     formula_evaluator.cpp
     model_build_helper.cpp

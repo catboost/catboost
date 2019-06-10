@@ -49,5 +49,7 @@ namespace NCatboostOptions {
         TGpuOnlyOption<EGrowPolicy> GrowPolicy;
         TGpuOnlyOption<ui32> MaxLeaves;
         TGpuOnlyOption<double> MinDataInLeaf;
+
+        TCpuOnlyOption<TVector<int>> MonotoneConstraints;
     };
 }

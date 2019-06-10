@@ -7,6 +7,13 @@
 - includes:
     - iconv.h:       contrib/libs/libiconv/iconv.h
 
+# Valgrind PEERDIR and ADDINCL are added only in --valgrind builds,
+# but we should resolve headers anyway.
+- includes:
+  - valgrind/callgrind.h
+  - valgrind/memcheck.h
+  - valgrind/valgrind.h
+
 # libunistring has its own libc header wrappers that are added to ADDINCL and
 # need to be added here for consistensy between ADDINCL and sysincl resolving.
 # Btw: we don't parse include_next, so we might lose real dependency to musl,
@@ -18,12 +25,18 @@
     - langinfo.h:    contrib/libs/libunistring/langinfo.h
     - limits.h:      contrib/libs/libunistring/limits.h
     - math.h:        contrib/libs/libunistring/math.h
+    - minmax.h:      contrib/libs/libunistring/minmax.h
     - stdlib.h:      contrib/libs/libunistring/stdlib.h
     - string.h:      contrib/libs/libunistring/string.h
     - sys/types.h:   contrib/libs/libunistring/sys/types.h
     - unistd.h:      contrib/libs/libunistring/unistd.h
     - wchar.h:       contrib/libs/libunistring/wchar.h
     - wctype.h:      contrib/libs/libunistring/wctype.h
+
+- source_filter: "^contrib/libs/libidn2/"
+  includes:
+    - error.h:  contrib/libs/libidn2/gl/error.h
+    - unistd.h: contrib/libs/libunistring/include/unistd.h
 
 # Same as libunistring - lftp has own libc header wrappers/replacements.
 # However here we have GLOBAL ADDINCL to contrib/libs/lftp{,/trio,/lib}
@@ -33,6 +46,7 @@
 - source_filter: "^contrib/libs/lftp"
   includes:
     - alloca.h:      contrib/libs/lftp/alloca.h
+    - error.h:       contrib/libs/lftp/lib/error.h
     - fnmatch.h:     contrib/libs/lftp/lib/fnmatch.h
     - regex.h:       contrib/libs/lftp/lib/regex.h
     - sys/socket.h:  contrib/libs/lftp/lib/sys/socket.h
@@ -50,9 +64,13 @@
 # Some more sysincl/addincl clashes.
 - source_filter: "^contrib/tools/bison/(bison|gnulib|m4)/src"
   includes:
+    - error.h:       contrib/tools/bison/gnulib/src/error.h
     - fcntl.h:       contrib/tools/bison/gnulib/platform/posix/fcntl.h
     - getopt.h:      contrib/tools/bison/gnulib/platform/posix/getopt.h
+    - obstack.h:     contrib/tools/bison/gnulib/src/obstack.h
     - regex.h:       contrib/tools/bison/gnulib/src/regex.h
+    - system.h
+    - unlocked-io.h: contrib/tools/bison/gnulib/src/unlocked-io.h
 - source_filter: "^contrib/tools/make"
   includes:
     - fnmatch.h:     contrib/tools/make/glob/fnmatch.h
@@ -67,21 +85,369 @@
   includes:
     - unwind.h:      contrib/libs/libunwind/include/unwind.h
 
+- source_filter: "^contrib/libs/clickhouse/contrib/cppkafka"
+  includes:
+    - error.h:       contrib/libs/clickhouse/contrib/cppkafka/include/cppkafka/error.h
+
+- source_filter: "^contrib/libs/libevent"
+  includes:
+    - sys/queue.h:   contrib/libs/libevent/compat/sys/queue.h
+
+- source_filter: "^contrib/libs/(libmnl|libnetfilter_log)"
+  includes:
+    - linux/netlink.h: contrib/libs/libmnl/include/linux/netlink.h
+
+- source_filter: "^contrib/libs/musl-1.1.20"
+  includes:
+    - atomic.h:      contrib/libs/musl-1.1.20/src/internal/atomic.h
+    - bits/fenv.h:   contrib/libs/musl-1.1.20/arch/x86_64/bits/fenv.h
+
+- source_filter: "^contrib/libs/unixodbc"
+  includes:
+    - argz.h:        contrib/libs/unixodbc/libltdl/argz.h
+
+- source_filter: "^contrib/libs/zbar"
+  includes:
+    - error.h:       contrib/libs/zbar/zbar/error.h
+
+- source_filter: "^contrib/libs/curl"
+  includes:
+    - share.h:       contrib/libs/curl/lib/share.h
+    - libssh2.h
+    - libssh2_sftp.h
+    - nghttp2/nghttp2.h
+
+- source_filter: "^contrib/libs/gdal"
+  includes:
+    - CL/opencl.h
+    - io.h:          contrib/libs/gdal/ogr/ogrsf_frmts/cad/libopencad/dwg/io.h
+
+- source_filter: "^contrib/libs/zeromq"
+  includes:
+    - atomic.h:      contrib/libs/zeromq/missing_includes/atomic.h
+    - Mstcpip.h:     contrib/libs/zeromq/missing_includes/Mstcpip.h
+
+- source_filter: "^contrib/libs/ffmpeg-3"
+  includes:
+    - fribidi.h
+    - stdatomic.h:   contrib/libs/ffmpeg-3.4.1/compat/atomics/win32/stdatomic.h
+
+- source_filter: "^contrib/libs/(gc-profiler|v8-profiler)"
+  includes:
+    - nan.h:         contrib/libs/node_nan/nan.h
+
+- source_filter: "^contrib/libs/glog"
+  includes:
+    - port.h:        contrib/libs/glog/missing_includes/port.h
+
+- source_filter: "^contrib/libs/intel"
+  includes:
+    - CL/cl.h:       contrib/libs/intel/FPGA_pro/hld/host/include/CL/cl.h
+    - CL/opencl.h:   contrib/libs/intel/FPGA_pro/hld/host/include/CL/opencl.h
+
+- source_filter: "^contrib/libs/nsync"
+  includes:
+    - atomic.h:      contrib/libs/nsync/platform/c++11/atomic.h
+
+- source_filter: "^contrib/python/numpy"
+  includes:
+    - cpuid.h:       contrib/python/numpy/numpy/core/src/umath/cpuid.h
+
+- source_filter: "^contrib/tools/python/src/Objects/exceptions.c"
+  includes:
+    - errmap.h:      contrib/tools/python/src/PC/errmap.h
+
+- source_filter: "^contrib/libs/(speex|tf)"
+  includes:
+    - mkl.h:         contrib/libs/intel/mkl/include/mkl.h
+
 # deprecated contrib with ADDINCL to libintl
 - source_filter: "^contrib/deprecated/glib/glib"
   includes:
     - libintl.h:     contrib/deprecated/libintl/libintl.h
+
+- source_filter: "^contrib/libs/poco/Data/ODBC"
+  includes:
+    - sql.h:         contrib/libs/unixodbc/include/sql.h
+    - sqlext.h:      contrib/libs/unixodbc/include/sqlext.h
+    - sqltypes.h:    contrib/libs/unixodbc/include/sqltypes.h
+    - sqlucode.h:    contrib/libs/unixodbc/include/sqlucode.h
+
+- source_filter: "^contrib/libs/icu"
+  includes:
+    - util.h:        contrib/libs/icu/common/util.h
+
+- source_filter: "^contrib/tools/yasm"
+  includes:
+    - util.h:        contrib/tools/yasm/util.h
+
+- source_filter: "^contrib/libs/libgit2"
+  includes:
+    - util.h:        contrib/libs/libgit2/src/util.h
+
+- source_filter: "^contrib/libs/nodejs_8"
+  includes:
+    - util.h:        contrib/libs/nodejs_8/src/util.h
+
+- source_filter: "^contrib/libs/numa"
+  includes:
+    - util.h:        contrib/libs/numa/internal/util.h
 
 # unused legacy include in boost
 - source_filter: "^contrib/deprecated/boost"
   includes:
     - fstream.h
 
+# libc++ internal implementation details
 - source_filter: "^contrib/deprecated/boost/boost/asio/detail"
   includes:
   - __config
 
-# temporary here, will be moved to linux header list
-- source_filter: "^contrib/libs/musl"
+# windows sdk includes that we do not want to apply for whole arcadia
+- source_filter: "^contrib"
   includes:
-    - linux/soundcard.h
+    - process.h
+- source_filter: "^contrib/tools/tpce-benchmark"
+  includes:
+    - sql.h
+    - sqlext.h
+    - sqltypes.h
+    - sqlucode.h
+
+- source_filter: "^contrib/libs/libmemcached"
+  includes:
+    - sasl/sasl.h
+    - sasl/saslutil.h
+
+- source_filter: "^contrib/libs/(apr|httpd|llvm)"
+  includes:
+    - uuid.h
+    - uuid/uuid.h
+
+- source_filter: "^contrib/libs/(kenlm|libxml|re2|sqlite3)"
+  includes:
+    - unicode/ucnv.h
+    - unicode/ucol.h
+    - unicode/uniset.h
+    - unicode/unistr.h
+    - unicode/ustring.h
+    - unicode/utf16.h
+    - unicode/utypes.h
+    - unicode/uversion.h
+
+- source_filter: "^contrib/deprecated/boost"
+  includes:
+    - ../include/fenv.h
+
+- source_filter: "^contrib/deprecated/glib"
+  includes:
+    - configmake.h
+
+- source_filter: "^contrib/libs/ImageMagick"
+  includes:
+    - ft2build.h
+    - ltdl.h
+
+- source_filter: "^contrib/libs/authparser"
+  includes:
+    - settings.h
+
+- source_filter: "^contrib/libs/ceres-solver"
+  includes:
+    - tbb/tbb_stddef.h
+
+- source_filter: "^contrib/libs/deprecated"
+  includes:
+    - hdf5.h
+
+- source_filter: "^contrib/libs/dlib"
+  includes:
+    - jpeglib.h
+
+- source_filter: "^contrib/libs/freetype"
+  includes:
+    - hb-ft.h
+    - hb.h
+
+- source_filter: "^contrib/libs/httpd"
+  includes:
+    - nginx.h
+    - ngx_config.h
+    - ngx_core.h
+    - ngx_http.h
+    - ngx_log.h
+
+- source_filter: "^contrib/libs/leptonica-1.70"
+  includes:
+    - gif_lib.h
+    - webp/decode.h
+    - webp/encode.h
+
+- source_filter: "^contrib/libs/libarchive"
+  includes:
+    - lzo/lzoconf.h
+    - md5.h
+
+- source_filter: "^contrib/libs/libmysql_r"
+  includes:
+    - md5.hpp
+    - sha.hpp
+
+- source_filter: "^contrib/libs/libpcap"
+  includes:
+    - strerror.h
+
+- source_filter: "^contrib/libs/libxml"
+  includes:
+    - lzma.h
+    - win32config.h
+
+- source_filter: "^contrib/libs/mod_perl2"
+  includes:
+    - config.h
+
+- source_filter: "^contrib/libs/(apr|httpd|openssl)"
+  includes:
+    - netinet/sctp.h
+
+- source_filter: "^contrib/libs/subversion"
+  includes:
+    - magic.h
+    - xmlparse.h
+
+- source_filter: "^contrib/python/scipy"
+  includes:
+    - matrix.h
+
+- source_filter: "^contrib/python/uwsgi"
+  includes:
+    - libxml/parser.h
+    - libxml/tree.h
+    - uuid/uuid.h
+
+- source_filter: "^contrib/tools/python"
+  includes:
+    - ioctl.h
+    - utils.h
+
+- source_filter: "^(contrib/libs/cxxsupp/openmp|catboost/cuda/cuda_lib)"
+  includes:
+    - hwloc.h
+    - hwloc/cudart.h
+
+- source_filter: "^contrib/libs/(deprecated|intel|tf)"
+  includes:
+    - cblas.h
+
+- source_filter: "^contrib/libs/(aws-sdk-cpp|c-ares|proj)"
+  includes:
+    - jni.h
+
+- source_filter: "^contrib/(libs/(ffmpeg-3|kenlm|kyotocabinet|libarchive)|tools/ag)"
+  includes:
+    - lzma.h
+
+- source_filter: "^(contrib/libs/(kyotocabinet|libarchive|minilzo)|logbroker/contrib/tokyocabinet)"
+  includes:
+    - lzo/lzo1x.h
+
+- source_filter: "^(contrib/libs/(gtest|libpng|opencv)|maps/contrib/freeimage)"
+  includes:
+    - mem.h
+
+- source_filter: "^contrib/libs/(authparser|libcoro-perl|libev-perl|libevent-perl|perl-JavaScript-V8|uatraits)"
+  includes:
+    - patchlevel.h
+
+- source_filter: "^contrib/tools/(swig|watchman)"
+  includes:
+    - pcre.h
+
+- source_filter: "^contrib/libs/(dlib|freetype|leptonica-1.70|libtheora|opencv|zbar)"
+  includes:
+    - png.h
+
+- source_filter: "^(contrib/deprecated/boost/boost/mpi|catboost/cuda/cuda_lib/mpi|cv/imgclassifiers/danet/distributed/network)"
+  includes:
+    - mpi.h
+
+- source_filter: "^contrib/libs/clickhouse"
+  includes:
+    - Common/LFAllocator.h
+    - DataStreams/CapnProtoRowInputStream.h
+    - Formats/CapnProtoRowInputStream.h
+    - Formats/ProtobufColumnMatcher.h
+    - Formats/ProtobufRowInputStream.h
+    - Formats/ProtobufSchemas.h
+    - IO/ReadBufferFromHDFS.h
+    - IO/WriteBufferFromHDFS.h
+    - LFAllocator.h
+    - ParquetBlockInputStream.h
+    - ParquetBlockOutputStream.h
+    - Poco/SQL/ODBC/
+    - Poco/SQL/ODBC/ODBCException.h
+    - Poco/SQL/ODBC/SessionImpl.h
+    - Poco/SQL/ODBC/Utility.h
+    - ProtobufBlockOutputStream.h
+    - ProtobufRowOutputStream.h
+    - Storages/StorageHDFS.h
+    - Suggest.h
+    - TableFunctions/TableFunctionHDFS.h
+    - arrow/api.h
+    - arrow/io/api.h
+    - arrow/util/decimal.h
+    - capnp/common.h
+    - capnp/dynamic.h
+    - capnp/serialize.h
+    - civil_time.h
+    - config_compile.h
+    - cpuinfo.h
+    - editline/history.h
+    - google/protobuf/compiler/importer.h
+    - google/protobuf/descriptor.h
+    - google/protobuf/descriptor.pb.h
+    - gperftools/malloc_extension.h
+    - hdfs/hdfs.h
+    - hs.h
+    - hs/hs.h
+    - lf_allocX64.h
+    - libbase64.h
+    - llvm/
+    - llvm/Analysis/TargetTransformInfo.h
+    - llvm/Config/llvm-config.h
+    - llvm/ExecutionEngine/ExecutionEngine.h
+    - llvm/ExecutionEngine/JITSymbol.h
+    - llvm/ExecutionEngine/Orc/CompileUtils.h
+    - llvm/ExecutionEngine/Orc/IRCompileLayer.h
+    - llvm/ExecutionEngine/Orc/RTDyldObjectLinkingLayer.h
+    - llvm/ExecutionEngine/SectionMemoryManager.h
+    - llvm/IR/BasicBlock.h
+    - llvm/IR/DataLayout.h
+    - llvm/IR/DerivedTypes.h
+    - llvm/IR/Function.h
+    - llvm/IR/IRBuilder.h
+    - llvm/IR/LLVMContext.h
+    - llvm/IR/Mangler.h
+    - llvm/IR/Module.h
+    - llvm/IR/Type.h
+    - llvm/MC/SubtargetFeature.h
+    - llvm/Support/DynamicLibrary.h
+    - llvm/Support/Host.h
+    - llvm/Support/TargetRegistry.h
+    - llvm/Support/TargetSelect.h
+    - llvm/Target/TargetMachine.h
+    - llvm/Transforms/IPO/PassManagerBuilder.h
+    - mariadb/mysql.h
+    - mariadb/mysqld_error.h
+    - parquet/arrow/reader.h
+    - parquet/arrow/writer.h
+    - parquet/exception.h
+    - parquet/file_reader.h
+    - parquet/util/memory.h
+    - pcg_uint128.hpp
+    - rdkafka.h
+    - re2_st/re2.h
+    - time_zone.h
+    - vectorf128.h
+    - vectormath_exp.h
+    - vectormath_trig.h

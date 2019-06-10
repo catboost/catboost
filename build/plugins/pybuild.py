@@ -1,4 +1,6 @@
 import os
+import collections
+
 import ymake
 from _common import stripext, rootrel_arc_src, tobuilddir, listid, resolve_to_ymake_path, generate_chunks
 
@@ -74,10 +76,16 @@ def parse_pyx_includes(filename, path, source_root, seen=None):
             for e in parse_pyx_includes(incname, incpath, source_root, seen):
                 yield e
         else:
-            # There might be arcadia root relative include.
+            # There might be arcadia root or cython relative include.
             # Don't treat such file as missing, because there must be PEERDIR on py_library
             # which contains it.
-            if not os.path.exists(normpath(source_root, incfile)):
+            for path in [
+                source_root,
+                source_root + "/contrib/tools/cython/Cython/Includes",
+            ]:
+                if os.path.exists(normpath(path, incfile)):
+                    break
+            else:
                 ymake.report_configure_error("'{}' includes missing file: {} ({})".format(path, incfile, abs_path))
 
 def has_pyx(args):
@@ -91,15 +99,15 @@ def is_generated(path, unit):
     return not unit.resolve(path).startswith('$S/')
 
 
-def add_python_lint_checks(unit, files):
+def add_python_lint_checks(unit, py_ver, files):
     if files and unit.get('LINT_LEVEL_VALUE') != "none":
         resolved_files = []
         for path in files:
             resolved = unit.resolve_arc_path([path])
             if resolved != path:  # path was resolved
                 resolved_files.append(resolved)
-        unit.onadd_check(["PEP8"] + resolved_files)
-        unit.onadd_check(["PYFLAKES"] + resolved_files)
+        unit.onadd_check(["PEP8_{}".format(py_ver)] + resolved_files)
+        unit.onadd_check(["PYFLAKES_{}".format(py_ver)] + resolved_files)
 
 
 def is_py3(unit):
@@ -272,6 +280,10 @@ def onpy_srcs(unit, *args):
 
     if pyxs:
         files2res = set()
+        # Include map stores files which were included in the processing pyx file,
+        # to be able to find source code of the included file inside generated file
+        # for currently processing pyx file.
+        include_map = collections.defaultdict(set)
 
         if cython_coverage:
             def process_pyx(filename, path, out_suffix, noext):
@@ -288,6 +300,8 @@ def onpy_srcs(unit, *args):
                 # used includes
                 for entry in parse_pyx_includes(filename, path, unit.resolve('$S')):
                     files2res.add(entry)
+                    include_arc_rel = entry[0]
+                    include_map[filename].add(include_arc_rel)
         else:
             def process_pyx(filename, path, out_suffix, noext):
                 pass
@@ -325,6 +339,13 @@ def onpy_srcs(unit, *args):
             # Compile original and generated sources into target for proper cython coverage calculation
             unit.onresource_files([x for name, path in files2res for x in ('DEST', name, path)])
 
+        if include_map:
+            data = []
+            prefix = 'resfs/cython/include'
+            for line in sorted('{}/{}={}'.format(prefix, filename, ':'.join(sorted(files))) for filename, files in include_map.iteritems()):
+                data += ['-', line]
+            unit.onresource(data)
+
     if pys:
         pys_seen = set()
         pys_dups = {m for _, m in pys if (m in pys_seen or pys_seen.add(m))}
@@ -344,7 +365,7 @@ def onpy_srcs(unit, *args):
                     res += ['DEST', dest + '.yapyc3', path + '.yapyc3']
 
             unit.onresource_files(res)
-            #add_python_lint_checks(unit, [path for path, mod in pys])
+            add_python_lint_checks(unit, 3, [path for path, mod in pys])
         else:
             for path, mod in pys:
                 root_rel_path = rootrel_arc_src(path, unit)
@@ -361,7 +382,7 @@ def onpy_srcs(unit, *args):
                     res += [dst, '/py_code/' + mod]
 
             unit.onresource(res)
-            add_python_lint_checks(unit, [path for path, mod in pys])
+            add_python_lint_checks(unit, 2, [path for path, mod in pys])
 
     if protos:
         if not upath.startswith('contrib/libs/protobuf/python/google_lib'):
@@ -484,7 +505,9 @@ def onpy_register(unit, *args):
 
 
 def py_main(unit, arg):
-    py_program(unit, is_py3(unit))
+    is_program = unit.get('MODULE_TYPE') == 'PROGRAM'
+    if is_program:
+        py_program(unit, is_py3(unit))
     unit.onresource(['-', 'PY_MAIN={}'.format(arg)])
 
 

@@ -1,9 +1,9 @@
 #include "options.h"
 
 #include <util/string/cast.h>
+#include <tuple>
 
 namespace NTextProcessing::NDictionary {
-
     template <typename TType>
     static void SetOption(const TType& value, const TString& name, NJson::TJsonValue* optionsJson) {
         (*optionsJson)[name] = ToString(value);
@@ -23,7 +23,9 @@ namespace NTextProcessing::NDictionary {
     template <typename TType>
     static void GetOption(const NJson::TJsonValue& optionsJson, const TString& name, TType* result) {
         if (optionsJson.Has(name)) {
-            *result = FromString<TType>(optionsJson[name].GetString());
+            TStringBuf value = (optionsJson[name]).GetString();
+            const bool isParsed = TryFromString<TType>(value, *result);
+            Y_VERIFY(isParsed, "Couldn't parse option \"%s\" with value = %s", name.data(), value.data());
         }
     }
 
@@ -38,4 +40,33 @@ namespace NTextProcessing::NDictionary {
         return options;
     }
 
+    bool TDictionaryOptions::operator==(const TDictionaryOptions& rhs) const {
+        return std::tie(
+            TokenLevelType,
+            GramOrder,
+            SkipStep,
+            StartTokenId,
+            EndOfWordTokenPolicy,
+            EndOfSentenceTokenPolicy) ==
+            std::tie(
+                rhs.TokenLevelType,
+                rhs.GramOrder,
+                rhs.SkipStep,
+                rhs.StartTokenId,
+                rhs.EndOfWordTokenPolicy,
+                rhs.EndOfSentenceTokenPolicy);
+    }
+
+    bool TDictionaryOptions::operator!=(const NTextProcessing::NDictionary::TDictionaryOptions& rhs) const {
+        return !(rhs == *this);
+    }
+
+    bool TDictionaryBuilderOptions::operator==(const TDictionaryBuilderOptions& rhs) const {
+        return OccurrenceLowerBound == rhs.OccurrenceLowerBound &&
+           MaxDictionarySize == rhs.MaxDictionarySize;
+    }
+
+    bool TDictionaryBuilderOptions::operator!=(const TDictionaryBuilderOptions& rhs) const {
+        return !(rhs == *this);
+    }
 }

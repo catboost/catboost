@@ -73,6 +73,11 @@ class PythonTrait(object):
             return True
         return platform.system() == 'Windows'
 
+    def custom_requirements(self):
+        if self.python_version.major == 2:
+            return ['Requires-Dist: enum34']
+        else:
+            return []
 
 def mine_platform(tail_args):
     platform = find_target_platform(tail_args)
@@ -185,7 +190,7 @@ def make_record(dir_path, dist_info_dir):
                 record.write(item[tmp_dir_length:] + ',,\n')
 
 
-def make_wheel(wheel_name, pkg_name, ver, arc_root, so_path):
+def make_wheel(wheel_name, pkg_name, ver, arc_root, so_path, custom_requirements):
     dir_path = tempfile.mkdtemp()
 
     # Create py files
@@ -211,7 +216,11 @@ def make_wheel(wheel_name, pkg_name, ver, arc_root, so_path):
         allow_to_write(file_path)
         with open(file_path, 'r') as fm:
             metadata = fm.read()
-        metadata = metadata.format(pkg_name=pkg_name, version=ver)
+        metadata = metadata.format(
+            pkg_name=pkg_name,
+            version=ver,
+            custom_requirements=custom_requirements
+        )
         with open(file_path, 'w') as fm:
             fm.write(metadata)
     substitute_vars(os.path.join(dist_info_dir, 'METADATA'))
@@ -243,7 +252,8 @@ def build(arc_root, out_root, tail_args):
             dst = '.'.join([src, task_type])
             shutil.move(src, dst)
             wheel_name = os.path.join(py_trait.arc_root, 'catboost', 'python-package', '{}-{}-{}-none-{}.whl'.format(pkg_name, ver, py_trait.lang, py_trait.platform))
-            make_wheel(wheel_name, pkg_name, ver, arc_root, dst)
+            custom_requirements_str = '\n'.join(py_trait.custom_requirements())
+            make_wheel(wheel_name, pkg_name, ver, arc_root, dst, custom_requirements_str)
             os.remove(dst)
             return wheel_name
         except Exception as e:

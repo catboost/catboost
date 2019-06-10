@@ -47,6 +47,12 @@ PY_SRCS(
     py/_xmlgen.py
 )
 
+RESOURCE_FILES(
+    PREFIX contrib/python/py/
+    .dist-info/METADATA
+    .dist-info/top_level.txt
+)
+
 NO_LINT()
 
 END()

@@ -90,7 +90,7 @@ void CalcErrors(
     TLearnContext* ctx
 ) {
     if (trainingDataProviders.Learn->GetObjectCount() > 0) {
-        ctx->LearnProgress.MetricsAndTimeHistory.LearnMetricsHistory.emplace_back();
+        ctx->LearnProgress->MetricsAndTimeHistory.LearnMetricsHistory.emplace_back();
         if (calcAllMetrics) {
             if (ctx->Params.SystemOptions->IsSingleHost()) {
                 const auto& targetData = trainingDataProviders.Learn->TargetData;
@@ -103,14 +103,14 @@ void CalcErrors(
                 for (int i = 0; i < errors.ysize(); ++i) {
                     if (!skipMetricOnTrain[i]) {
                         const auto& additiveStats = EvalErrors(
-                            ctx->LearnProgress.AvrgApprox,
+                            ctx->LearnProgress->AvrgApprox,
                             target,
                             weights,
                             queryInfo,
                             errors[i],
                             ctx->LocalExecutor
                         );
-                        ctx->LearnProgress.MetricsAndTimeHistory.AddLearnError(
+                        ctx->LearnProgress->MetricsAndTimeHistory.AddLearnError(
                             *errors[i].Get(),
                             errors[i]->GetFinalError(additiveStats)
                         );
@@ -125,7 +125,7 @@ void CalcErrors(
     const int errorTrackerMetricIdx = calcErrorTrackerMetric ? 0 : -1;
 
     if (trainingDataProviders.GetTestSampleCount() > 0) {
-        ctx->LearnProgress.MetricsAndTimeHistory.TestMetricsHistory.emplace_back(); // new [iter]
+        ctx->LearnProgress->MetricsAndTimeHistory.TestMetricsHistory.emplace_back(); // new [iter]
         for (size_t testIdx = 0; testIdx < trainingDataProviders.Test.size(); ++testIdx) {
             const auto& testDataPtr = trainingDataProviders.Test[testIdx];
 
@@ -143,7 +143,7 @@ void CalcErrors(
             auto weights = GetWeights(*targetData);
             auto queryInfo = targetData->GetGroupInfo().GetOrElse(TConstArrayRef<TQueryInfo>());;
 
-            const auto& testApprox = ctx->LearnProgress.TestApprox[testIdx];
+            const auto& testApprox = ctx->LearnProgress->TestApprox[testIdx];
             for (int i = 0; i < errors.ysize(); ++i) {
                 if (!calcAllMetrics && (i != errorTrackerMetricIdx)) {
                     continue;
@@ -161,7 +161,7 @@ void CalcErrors(
                     ctx->LocalExecutor
                 );
                 bool updateBestIteration = (i == 0) && (testIdx == trainingDataProviders.Test.size() - 1);
-                ctx->LearnProgress.MetricsAndTimeHistory.AddTestError(
+                ctx->LearnProgress->MetricsAndTimeHistory.AddTestError(
                     testIdx,
                     *errors[i].Get(),
                     errors[i]->GetFinalError(additiveStats),

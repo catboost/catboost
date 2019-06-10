@@ -5,8 +5,8 @@
 \title{Calculate the object importances}
 \usage{
 catboost.get_object_importance(model, pool, train_pool, top_size = -1,
-  ostr_type = "Average", update_method = "SinglePoint",
-  thread_count = -1)
+  type = "Average", update_method = "SinglePoint", thread_count = -1,
+  ostr_type = NULL)
 }
 \arguments{
 \item{model}{The model obtained as the result of training.
@@ -17,28 +17,13 @@ Default value: Required argument}
 
 Default value: Required argument}
 
-\item{train_pool}{The pool on which the model was trained.
+\item{train_pool}{The pool on which the model has been trained.
 
 Default value: Required argument}
 
 \item{top_size}{Method returns the result of the top_size most important train objects. If -1, then the top size is not limited.
 
 Default value: -1}
-
-\item{ostr_type}{The ostr type.
-
-Possible values:
-\itemize{
-  \item 'Average'
-
-    Method returns the mean train objects scores for all input objects.
-
-  \item 'PerObject'
-
-    Method returns the train objects scores for every input object.
-}
-
-Default value: 'Average'}
 
 \item{update_method}{Description of the update set methods are given in section 3.1.3 of the paper.
 
@@ -52,11 +37,26 @@ Possible values:
 
 Default value: 'SinglePoint'}
 
-\item{thread_count}{The number of threads to use when applying the model. If -1, then the number of threads is set to the number of cores.
+\item{thread_count}{The number of threads to use when applying the model. If -1, then the number of threads is set to the number of CPU cores.
 
 Allows you to optimize the speed of execution. This parameter doesn't affect results.
 
 Default value: -1}
+
+\item{ostr_type}{Deprecated parameter, use 'type' instead.}
+
+\item{type.}{Possible values:
+\itemize{
+  \item 'Average'
+
+    Method returns the mean train objects scores for all input objects.
+
+  \item 'PerObject'
+
+    Method returns the train objects scores for every input object.
+}
+
+Default value: 'Average'}
 }
 \description{
 Calculate the object importances (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/about-docpage/}).

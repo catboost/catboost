@@ -1,6 +1,6 @@
 #include "naive_bayesian.h"
 #include "helpers.h"
-#include "text_dataset.h"
+
 #include <library/containers/dense_hash/dense_hash.h>
 #include <util/generic/array_ref.h>
 #include <util/generic/ymath.h>

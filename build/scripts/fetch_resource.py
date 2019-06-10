@@ -24,7 +24,7 @@ def fetch(url, retries=4, timeout=5):
 
 
 def fetch_resource(id_):
-    urls = xmlrpclib.ServerProxy("http://sandbox.yandex-team.ru/sandbox/xmlrpc").get_resource_http_links(id_)
+    urls = xmlrpclib.ServerProxy("https://sandbox.yandex-team.ru/sandbox/xmlrpc").get_resource_http_links(id_)
 
     for u in urls:
         try:

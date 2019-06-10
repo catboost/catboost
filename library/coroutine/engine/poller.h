@@ -28,12 +28,12 @@ public:
         ui16 Filter;
     };
 
-    typedef TVector<TEvent> TEvents;
+    using TEvents = TVector<TEvent>;
 
     virtual ~IPollerFace() {
     }
 
-    inline void Set(void* ptr, SOCKET fd, ui16 flags) {
+    void Set(void* ptr, SOCKET fd, ui16 flags) {
         const TChange c = {fd, ptr, flags};
 
         Set(c);

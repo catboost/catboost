@@ -10,4 +10,6 @@ PEERDIR(
     contrib/python/six
 )
 
+NO_LINT()
+
 END()

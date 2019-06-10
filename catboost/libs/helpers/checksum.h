@@ -65,4 +65,9 @@ namespace NCB {
         }
     }
 
+    template <typename THead, typename... TTail>
+    inline ui32 UpdateCheckSum(ui32 init, const THead& head, const TTail&... tail) {
+        return UpdateCheckSum(UpdateCheckSum(init, head), tail...);
+    }
+
 }

@@ -859,6 +859,10 @@ namespace {
             Limits.SetHard(hardLimit);
         }
 
+        inline std::pair<size_t, size_t> GetLimits() const noexcept {
+            return {Limits.Soft(), Limits.Hard()};
+        }
+
         inline void CheckLimits() {
             if (ExceedSoftLimit()) {
                 SuggestPurgeCache();
@@ -1908,6 +1912,10 @@ namespace NNeh {
 
     TAtomicBase GetHttpOutputConnectionCount() {
         return HttpOutConnCounter()->Val();
+    }
+
+    std::pair<size_t, size_t> GetHttpOutputConnectionLimits() {
+        return HttpConnManager()->GetLimits();
     }
 
     TAtomicBase GetHttpInputConnectionCount() {

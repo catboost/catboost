@@ -9,13 +9,15 @@
 
 TConstArrayRef<ELossFunction> GetAllObjectives() {
     static TVector<ELossFunction> allObjectives = {
-        ELossFunction::Logloss, ELossFunction::CrossEntropy, ELossFunction::RMSE,
-        ELossFunction::MAE, ELossFunction::Quantile, ELossFunction::LogLinQuantile,
+        ELossFunction::Logloss, ELossFunction::CrossEntropy, ELossFunction::RMSE, ELossFunction::MAE,
+        ELossFunction::Quantile, ELossFunction::LogLinQuantile, ELossFunction::Expectile,
         ELossFunction::MAPE, ELossFunction::Poisson, ELossFunction::MultiClass,
-        ELossFunction::MultiClassOneVsAll, ELossFunction::PairLogit,
-        ELossFunction::PairLogitPairwise, ELossFunction::YetiRank, ELossFunction::YetiRankPairwise,
-        ELossFunction::QueryRMSE, ELossFunction::QuerySoftMax, ELossFunction::QueryCrossEntropy,
-        ELossFunction::Lq, ELossFunction::Huber, ELossFunction::StochasticFilter};
+        ELossFunction::MultiClassOneVsAll, ELossFunction::PairLogit, ELossFunction::PairLogitPairwise,
+        ELossFunction::YetiRank, ELossFunction::YetiRankPairwise, ELossFunction::QueryRMSE,
+        ELossFunction::QuerySoftMax, ELossFunction::QueryCrossEntropy, ELossFunction::Lq,
+        ELossFunction::Huber, ELossFunction::StochasticFilter, ELossFunction::UserPerObjMetric,
+        ELossFunction::UserQuerywiseMetric
+    };
     return allObjectives;
 }
 
@@ -165,6 +167,7 @@ bool IsRegressionObjective(ELossFunction lossFunction) {
             lossFunction == ELossFunction::MAPE ||
             lossFunction == ELossFunction::Poisson ||
             lossFunction == ELossFunction::Quantile ||
+            lossFunction == ELossFunction::Expectile ||
             lossFunction == ELossFunction::RMSE ||
             lossFunction == ELossFunction::LogLinQuantile ||
             lossFunction == ELossFunction::Lq ||
@@ -186,6 +189,10 @@ bool IsRegressionMetric(ELossFunction lossFunction) {
     );
 }
 
+bool IsGroupwiseMetric(TStringBuf metricName) {
+    ELossFunction lossFunction = ParseLossType(metricName);
+    return IsGroupwiseMetric(lossFunction);
+}
 
 bool IsGroupwiseMetric(ELossFunction lossFunction) {
     return (
@@ -261,10 +268,10 @@ bool IsPairLogit(ELossFunction lossFunction) {
 bool IsSecondOrderScoreFunction(EScoreFunction function) {
     switch (function) {
         case EScoreFunction::NewtonL2:
-        case EScoreFunction::NewtonCorrelation: {
+        case EScoreFunction::NewtonCosine: {
             return true;
         }
-        case EScoreFunction::Correlation:
+        case EScoreFunction::Cosine:
         case EScoreFunction::SolarL2:
         case EScoreFunction::LOOL2:
         case EScoreFunction::L2: {
@@ -312,6 +319,12 @@ bool IsUserDefined(ELossFunction lossFunction) {
     }
 }
 
+bool IsEmbeddingFeatureEstimator(EFeatureEstimatorType estimatorType) {
+    return estimatorType == EFeatureEstimatorType::CosDistanceWithClassCenter ||
+            estimatorType == EFeatureEstimatorType::GaussianHomoscedasticModel ||
+            estimatorType == EFeatureEstimatorType::GaussianHeteroscedasticModel;
+}
+
 bool ShouldSkipFstrGrowPolicy(EGrowPolicy growPolicy) {
     return (
         growPolicy == EGrowPolicy::Depthwise ||
@@ -321,7 +334,11 @@ bool ShouldSkipFstrGrowPolicy(EGrowPolicy growPolicy) {
 
 bool IsPlainOnlyModeScoreFunction(EScoreFunction scoreFunction) {
     return (
-        scoreFunction != EScoreFunction::Correlation &&
-        scoreFunction != EScoreFunction::NewtonCorrelation
+        scoreFunction != EScoreFunction::Cosine &&
+        scoreFunction != EScoreFunction::NewtonCosine
     );
+}
+
+bool ShouldBinarizeLabel(ELossFunction lossFunction) {
+    return lossFunction == ELossFunction::Logloss;
 }

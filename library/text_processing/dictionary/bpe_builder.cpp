@@ -75,11 +75,11 @@ void TBpeDictionaryBuilder::Add(TConstArrayRef<TString> tokens, ui64 weight) {
     AddImpl(tokens, weight, SkipUnknown, *Alphabet, &Lines, &Counts);
 }
 
-THolder<TBpeDictionary> TBpeDictionaryBuilder::FinishBuilding() {
+TIntrusivePtr<TBpeDictionary> TBpeDictionaryBuilder::FinishBuilding() {
     Y_ENSURE(!IsBuildingFinish, "FinishBuilding method should be called only once.");
     IsBuildingFinish = true;
     CalcMostFrequentUnits();
-    return new TBpeDictionary(std::move(Alphabet), std::move(ResultingBpeUnits));
+    return new TBpeDictionary(Alphabet, std::move(ResultingBpeUnits));
 }
 
 void TBpeDictionaryBuilder::CalcMostFrequentUnits() {

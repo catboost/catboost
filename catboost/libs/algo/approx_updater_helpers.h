@@ -42,15 +42,15 @@ static inline double GetNeutralApprox(bool storeExpApproxes) {
     }
 }
 
-static inline void ExpApproxIf(bool storeExpApproxes, TVector<double>* approx) {
+static inline void ExpApproxIf(bool storeExpApproxes, TArrayRef<double> approx) {
     if (storeExpApproxes) {
-        FastExpInplace(approx->data(), approx->ysize());
+        FastExpInplace(approx.data(), approx.size());
     }
 }
 
 static inline void ExpApproxIf(bool storeExpApproxes, TVector<TVector<double>>* approxMulti) {
     for (auto& approx : *approxMulti) {
-        ExpApproxIf(storeExpApproxes, &approx);
+        ExpApproxIf(storeExpApproxes, approx);
     }
 }
 
@@ -187,5 +187,32 @@ inline TVector<double> ScaleElementwise<double>(double scale, const TVector<doub
         scaledValue[idx] = value[idx] * scale;
     }
     return scaledValue;
+}
+
+
+template <class T>
+void InitApproxFromBaseline(
+    const ui32 beginIdx,
+    const ui32 endIdx,
+    TConstArrayRef<TConstArrayRef<T>> baseline,
+    TConstArrayRef<ui32> learnPermutation,
+    bool storeExpApproxes,
+    TVector<TVector<double>>* approx
+) {
+    const ui32 learnSampleCount = learnPermutation.size();
+    const int approxDimension = approx->ysize();
+    for (int dim = 0; dim < approxDimension; ++dim) {
+        for (ui32 docId : xrange(beginIdx, endIdx)) {
+            ui32 initialIdx = docId;
+            if (docId < learnSampleCount) {
+                initialIdx = learnPermutation[docId];
+            }
+            (*approx)[dim][docId] = baseline[dim][initialIdx];
+        }
+        ExpApproxIf(
+            storeExpApproxes,
+            TArrayRef<double>((*approx)[dim].data() + beginIdx, (*approx)[dim].data() + endIdx)
+        );
+    }
 }
 

@@ -15,7 +15,7 @@ DEPENDS(
 )
 
 SIZE(LARGE)
-TAG(ya:fat)
+TAG(ya:fat ya:noretries)
 REQUIREMENTS(network:full)
 
 IF(AUTOCHECK)

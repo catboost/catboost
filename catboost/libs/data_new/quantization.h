@@ -5,6 +5,7 @@
 #include "quantized_features_info.h"
 
 #include <catboost/libs/helpers/restorable_rng.h>
+#include <catboost/libs/options/data_processing_options.h>
 
 #include <library/threading/local_executor/local_executor.h>
 
@@ -79,8 +80,7 @@ namespace NCB {
 
     TQuantizedDataProviders Quantize(
         const TQuantizationOptions& options,
-        const NCatboostOptions::TBinarizationOptions floatFeaturesBinarization,
-        const TMap<ui32, NCatboostOptions::TBinarizationOptions> perFloatFeatureBinarization,
+        const NCatboostOptions::TDataProcessingOptions& dataProcessingOptions,
         bool floatFeaturesAllowNansInTestOnly,
         TConstArrayRef<ui32> ignoredFeatures,
         TRawDataProviders rawDataProviders,

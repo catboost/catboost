@@ -107,6 +107,7 @@
                     <encoding>
                         utf-8
                     </encoding>
+                    <source>8</source>
                 </configuration>
                 <executions>
                     <execution>

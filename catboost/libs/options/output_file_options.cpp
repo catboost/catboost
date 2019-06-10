@@ -19,6 +19,8 @@ TString NCatboostOptions::GetModelExtensionFromType(const EModelType modelType) 
             return "py";
         case EModelType::Onnx:
             return "onnx";
+        case EModelType::Pmml:
+            return "pmml";
     }
 }
 
@@ -85,7 +87,7 @@ NCatboostOptions::TOutputFilesOptions::TOutputFilesOptions()
     , VerbosePeriod("verbose", 1)
     , MetricPeriod("metric_period", 1)
     , PredictionTypes("prediction_type", {EPredictionType::RawFormulaVal})
-    , OutputColumns("output_columns", {"DocId", "RawFormulaVal", "Label"})
+    , OutputColumns("output_columns", {"SampleId", "RawFormulaVal", "Label"})
     , RocOutputPath("roc_file", "") {
 }
 
@@ -173,7 +175,7 @@ const TVector<EPredictionType>& NCatboostOptions::TOutputFilesOptions::GetPredic
 
 const TVector<TString> NCatboostOptions::TOutputFilesOptions::GetOutputColumns(bool datasetHasLabels) const {
     if (!OutputColumns.IsSet()) {
-        TVector<TString> result{"DocId"};
+        TVector<TString> result{"SampleId"};
         if (!PredictionTypes.IsSet()) {
             result.emplace_back("RawFormulaVal");
         } else {

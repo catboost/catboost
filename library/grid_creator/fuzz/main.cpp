@@ -7,6 +7,11 @@
 #include <util/system/types.h>
 #include <util/system/unaligned_mem.h>
 
+
+using namespace NSplitSelection;
+using namespace NSplitSelection::NImpl;
+
+
 namespace {
     struct TBestSplitInput {
         TVector<float> Values;
@@ -83,6 +88,7 @@ static bool TryParse(const ui8* data, size_t size, TBestSplitInput* const input)
     const auto memoryUseUpperBound = 2ULL * CalcMemoryForFindBestSplit(
         input->MaxBordersCount,
         valuesSize,
+        /*defaultValue*/ Nothing(),
         input->GridType);
     if (memoryUseUpperBound > RAM_SIZE_UPPER_LIMIT) {
         return false;

@@ -15,9 +15,6 @@ using namespace NColorizer;
 namespace {
     constexpr TStringBuf ToStringBufC(NColorizer::EAnsiCode x) {
         switch(x) {
-            case INVALID:
-                return AsStringBuf("");
-
             case RESET:
                 return AsStringBuf("\033[0m");
 
@@ -133,6 +130,10 @@ namespace {
                 return AsStringBuf("\033[0m\033[2;36m");
             case DARK_WHITE:
                 return AsStringBuf("\033[0m\033[2;37m");
+
+            case INVALID:
+            default:
+                return AsStringBuf("");
         }
     }
 }

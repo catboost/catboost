@@ -97,6 +97,15 @@ THolder<IDerCalcer> BuildError(
                 return MakeHolder<TQuantileError>(FromString<float>(lossParams.at("alpha")), isStoreExpApprox);
             }
         }
+        case ELossFunction::Expectile: {
+            const auto& lossParams = params.LossFunctionDescription->GetLossParams();
+            if (lossParams.empty()) {
+                return MakeHolder<TExpectileError>(isStoreExpApprox);
+            } else {
+                CB_ENSURE(lossParams.begin()->first == "alpha", "Invalid loss description" << ToString(params.LossFunctionDescription.Get()));
+                return MakeHolder<TExpectileError>(FromString<float>(lossParams.at("alpha")), isStoreExpApprox);
+            }
+        }
         case ELossFunction::LogLinQuantile: {
             const auto& lossParams = params.LossFunctionDescription->GetLossParams();
             if (lossParams.empty()) {

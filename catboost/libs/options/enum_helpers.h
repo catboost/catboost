@@ -42,6 +42,8 @@ bool IsRegressionMetric(ELossFunction lossFunction);
 
 bool IsGroupwiseMetric(ELossFunction lossFunction);
 
+bool IsGroupwiseMetric(TStringBuf metricName);
+
 bool IsPairwiseMetric(ELossFunction lossFunction);
 
 bool UsesPairsForCalculation(ELossFunction lossFunction);
@@ -66,6 +68,10 @@ bool ShouldSkipCalcOnTrainByDefault(ELossFunction lossFunction);
 
 bool IsUserDefined(ELossFunction lossFunction);
 
+bool IsEmbeddingFeatureEstimator(EFeatureEstimatorType estimatorType);
+
 bool ShouldSkipFstrGrowPolicy(EGrowPolicy growPolicy);
 
 bool IsPlainOnlyModeScoreFunction(EScoreFunction scoreFunction);
+
+bool ShouldBinarizeLabel(ELossFunction lossFunction);

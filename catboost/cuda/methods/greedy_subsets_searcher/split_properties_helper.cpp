@@ -1040,6 +1040,8 @@ namespace NCatboostCuda {
 
         subsets.Partitions.Reset(partsMapping);
         subsets.PartitionsCpu.Reset(partsMapping);
+        ZeroBuffer(subsets.Partitions);
+
 
         WriteInitPartitions(subsets.Target.Indices,
                             &subsets.PartitionsCpu,
@@ -1217,6 +1219,7 @@ namespace NCatboostCuda {
                           reducedMapping,
                           false,
                           streamId);
+
             if (leavesGpu) {
                 using TKernel = NKernelHost::TWriteReducesHistogramsKernel;
                 LaunchKernels<TKernel>(subsets.Histograms.NonEmptyDevices(),
@@ -1457,5 +1460,6 @@ namespace NCudaLib {
     REGISTER_KERNEL(0xD2DAB2, NKernelHost::TComputeSingleHistKernelGatherBins);
     REGISTER_KERNEL(0xD2DAB3, NKernelHost::TWriteReducesHistogramKernel);
     REGISTER_KERNEL_TEMPLATE(0xD2DAB4, NKernelHost::TZeroBuffer, float);
+    REGISTER_KERNEL_TEMPLATE(0xD2DAB5, NKernelHost::TZeroBuffer, TDataPartition);
 
 }

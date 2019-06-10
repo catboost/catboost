@@ -10,7 +10,7 @@
 
 namespace NCatboostCuda {
     struct TTreeStructureSearcherOptions {
-        EScoreFunction ScoreFunction = EScoreFunction::Correlation;
+        EScoreFunction ScoreFunction = EScoreFunction::Cosine;
         NCatboostOptions::TBootstrapConfig BootstrapOptions = NCatboostOptions::TBootstrapConfig(ETaskType::GPU);
         ui32 MaxLeaves = 64;
         ui32 MaxDepth = 6;

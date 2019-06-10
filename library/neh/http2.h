@@ -3,6 +3,7 @@
 #include "factory.h"
 
 #include <util/datetime/base.h>
+#include <utility>
 
 namespace NNeh {
     IProtocol* Http1Protocol();
@@ -83,6 +84,7 @@ namespace NNeh {
     /// for debug and monitoring purposes
     TAtomicBase GetHttpOutputConnectionCount();
     TAtomicBase GetHttpInputConnectionCount();
+    std::pair<size_t, size_t> GetHttpOutputConnectionLimits();
 
     /// unused input sockets keepalive timeouts
     /// real(used) timeout:

@@ -4,10 +4,14 @@ RECURSE(
     blackhole
     boost
     boost/libs/test
+    coreapi
+    coreschema
     folly
     glib
     glib/gio
     glibmm
+    itypes
+    http-parser
     jsoncpp
     libahocorasick
     libcds
@@ -20,12 +24,13 @@ RECURSE(
     libtorrent/bindings/python
     libtorrent/test
     libxml++
-    sigc++
-    udns
     mimepp
+    mongo-cxx-driver
     pygtrie
     pygtrie/tests
-
+    sigc++
+    udns
+    uriparser
 )
 
 

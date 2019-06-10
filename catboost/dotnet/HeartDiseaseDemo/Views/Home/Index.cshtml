@@ -1,0 +1,357 @@
+﻿@model PatientModel
+
+@{
+    ViewData["Title"] = "Heart Disease CatBoost demo";
+}
+
+@using (Html.BeginForm("Index", "Home", FormMethod.Get))
+{
+    <div class="col-md-8">
+        @Html.Hidden("IsEmpty", false)
+
+        <div class="form-group row">
+            @Html.LabelFor(model => model.Age, htmlAttributes: new { @class = "col-sm-3  col-form-label" })
+            <div class="col-sm-9">
+                @Html.TextBoxFor(model => model.Age, new { @class = "col-sm-4 form-control" })
+                @Html.ValidationMessageFor(model => model.Age, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group row">
+            @Html.LabelFor(model => model.Sex, htmlAttributes: new { @class = "col-sm-3 col-form-label" })
+
+            <div class="btn-group btn-group-toggle col-sm-9" data-toggle="buttons">
+                <label class="btn btn-secondary btn-light">
+                    @Html.RadioButtonFor(
+                        model => model.Sex,
+                        PatientModel.Gender.Male,
+                        new { @id = "sex-male", @class = ViewBag.Sex == PatientModel.Gender.Male ? "default" : "" }) Male
+                </label>
+
+                <label class="btn btn-secondary btn-light">
+                    @Html.RadioButtonFor(
+                        model => model.Sex,
+                        PatientModel.Gender.Female,
+                        new { @id = "sex-female", @class = ViewBag.Sex == PatientModel.Gender.Female ? "default" : "" }) Female
+                </label>
+            </div>
+        </div>
+
+        <div class="form-group row">
+            @Html.LabelFor(model => model.ChestPain, htmlAttributes: new { @class = "col-sm-3 col-form-label" })
+
+            <div class="btn-group btn-group-toggle col-sm-9" data-toggle="buttons">
+                <label class="btn btn-secondary btn-light">
+                    @Html.RadioButtonFor(
+                        model => model.ChestPain,
+                        PatientModel.ChestPainType.Type1,
+                        new
+                        {
+                            @id = "cp-type1",
+                            @class = ViewBag.ChestPain == PatientModel.ChestPainType.Type1 ? "default" : ""
+                        }) Type 1
+                </label>
+
+                <label class="btn btn-secondary btn-light">
+                    @Html.RadioButtonFor(
+                        model => model.ChestPain,
+                        PatientModel.ChestPainType.Type2,
+                        new
+                        {
+                            @id = "cp-type2",
+                            @class = ViewBag.ChestPain == PatientModel.ChestPainType.Type2 ? "default" : ""
+                        }) Type 2
+                </label>
+
+                <label class="btn btn-secondary btn-light">
+                    @Html.RadioButtonFor(
+                        model => model.ChestPain,
+                        PatientModel.ChestPainType.Type3,
+                        new
+                        {
+                            @id = "cp-type3",
+                            @class = ViewBag.ChestPain == PatientModel.ChestPainType.Type3 ? "default" : ""
+                        }) Type 3
+                </label>
+
+                <label class="btn btn-secondary btn-light">
+                    @Html.RadioButtonFor(
+                        model => model.ChestPain,
+                        PatientModel.ChestPainType.Type4,
+                        new
+                        {
+                            @id = "cp-type4",
+                            @class = ViewBag.ChestPain == PatientModel.ChestPainType.Type4 ? "default" : ""
+                        }) Type 4
+                </label>
+            </div>
+        </div>
+
+        <div class="form-group row">
+            @Html.LabelFor(model => model.BloodPressure, htmlAttributes: new { @class = "col-sm-3  col-form-label" })
+            <div class="col-sm-9">
+                @Html.TextBoxFor(model => model.BloodPressure, new { @class = "col-sm-4 form-control" })
+                @Html.ValidationMessageFor(model => model.BloodPressure, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group row">
+            @Html.LabelFor(model => model.Cholesterol, htmlAttributes: new { @class = "col-sm-3  col-form-label" })
+            <div class="col-sm-9">
+                @Html.TextBoxFor(model => model.Cholesterol, new { @class = "col-sm-4 form-control" })
+                @Html.ValidationMessageFor(model => model.Cholesterol, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group row">
+            @Html.LabelFor(model => model.HighBloodSugar, htmlAttributes: new { @class = "col-sm-3 col-form-label" })
+
+            <div class="btn-group-toggle col-sm-9" data-toggle="buttons">
+                <label class="btn btn-secondary btn-light">
+                    @Html.CheckBoxFor(model => model.HighBloodSugar, new
+                    {
+                        @class = ViewBag.HighBloodSugar ? "default" : ""
+                    }) Fasting blood sugar > 120 mg/dl
+                </label>
+            </div>
+        </div>
+
+        <div class="form-group row">
+            @Html.LabelFor(model => model.ECGResults, htmlAttributes: new { @class = "col-sm-3 col-form-label" })
+
+            <div class="btn-group btn-group-toggle col-sm-9" data-toggle="buttons">
+                <label class="btn btn-secondary btn-light">
+                    @Html.RadioButtonFor(
+                        model => model.ECGResults,
+                        PatientModel.ECGResultType.Normal,
+                        new
+                        {
+                            id = "ecg-normal",
+                            @class = ViewBag.ECGResults == PatientModel.ECGResultType.Normal ? "default" : ""
+                        }) Normal
+                </label>
+
+                <label class="btn btn-secondary btn-light">
+                    @Html.RadioButtonFor(
+                        model => model.ECGResults,
+                        PatientModel.ECGResultType.STTWaveAbnormality,
+                        new
+                        {
+                            @id = "ecg-stt",
+                            @class = ViewBag.ECGResults == PatientModel.ECGResultType.STTWaveAbnormality ? "default" : ""
+                        }) ST-T wave abnormality
+                </label>
+
+                <label class="btn btn-secondary btn-light">
+                    @Html.RadioButtonFor(
+                        model => model.ECGResults,
+                        PatientModel.ECGResultType.LeftVentricularHypertrophy,
+                        new
+                             {
+                            @id = "ecg-lvh",
+                            @class = ViewBag.ECGResults == PatientModel.ECGResultType.LeftVentricularHypertrophy ? "default" : ""
+                        }) Left ventricular hypertrophy
+                </label>
+            </div>
+        </div>
+
+        <div class="form-group row">
+            @Html.LabelFor(model => model.MaxHeartRate, htmlAttributes: new { @class = "col-sm-3  col-form-label" })
+            <div class="col-sm-9">
+                @Html.TextBoxFor(model => model.MaxHeartRate, new { @class = "col-sm-4 form-control" })
+                @Html.ValidationMessageFor(model => model.MaxHeartRate, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group row">
+            @Html.LabelFor(model => model.Exang, htmlAttributes: new { @class = "col-sm-3 col-form-label" })
+
+            <div class="btn-group-toggle col-sm-9" data-toggle="buttons">
+                <label class="btn btn-secondary btn-light">
+                    @Html.CheckBoxFor(model => model.Exang, new
+                    {
+                        @class = ViewBag.Exang ? "default" : ""
+                    }) Has exercise induced angina
+                </label>
+            </div>
+        </div>
+
+        <div class="form-group row">
+            @Html.LabelFor(model => model.OldPeak, htmlAttributes: new { @class = "col-sm-3  col-form-label" })
+            <div class="col-sm-9">
+                @Html.TextBoxFor(model => model.OldPeak, new { @class = "col-sm-4 form-control" })
+                @Html.ValidationMessageFor(model => model.OldPeak, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group row">
+            @Html.LabelFor(model => model.SlopeST, htmlAttributes: new { @class = "col-sm-3 col-form-label" })
+
+            <div class="btn-group btn-group-toggle col-sm-9" data-toggle="buttons">
+                <label class="btn btn-secondary btn-light">
+                    @Html.RadioButtonFor(
+                        model => model.SlopeST,
+                        PatientModel.SlopeType.Uprising,
+                        new
+                        {
+                            id = "slope-uprising",
+                            @class = ViewBag.SlopeST == PatientModel.SlopeType.Uprising ? "default" : ""
+                        }) Uprising
+                </label>
+
+                <label class="btn btn-secondary btn-light">
+                    @Html.RadioButtonFor(
+                        model => model.SlopeST,
+                        PatientModel.SlopeType.Flat,
+                        new
+                        {
+                            id = "slope-flat",
+                            @class = ViewBag.SlopeST == PatientModel.SlopeType.Flat ? "default" : ""
+                        }) Flat
+                </label>
+
+                <label class="btn btn-secondary btn-light">
+                    @Html.RadioButtonFor(
+                        model => model.SlopeST,
+                        PatientModel.SlopeType.Downrising,
+                        new
+                        {
+                            id = "slope-down",
+                            @class = ViewBag.SlopeST == PatientModel.SlopeType.Downrising ? "default" : ""
+                        }) Downrising
+                </label>
+            </div>
+        </div>
+
+        <div class="form-group row">
+            @Html.LabelFor(model => model.FlurMajorVessels, htmlAttributes: new { @class = "col-sm-3 col-form-label" })
+
+            <div class="btn-group btn-group-toggle col-sm-9" data-toggle="buttons">
+                <label class="btn btn-secondary btn-light">
+                    @Html.RadioButtonFor(
+                        model => model.FlurMajorVessels,
+                        0,
+                        new
+                        {
+                            @class = ViewBag.FlurMajorVessels == 0 ? "default" : ""
+                        }) 0
+                </label>
+
+                <label class="btn btn-secondary btn-light">
+                    @Html.RadioButtonFor(
+                        model => model.FlurMajorVessels,
+                        1,
+                        new
+                        {
+                            @class = ViewBag.FlurMajorVessels == 1 ? "default" : ""
+                        }) 1
+                </label>
+
+                <label class="btn btn-secondary btn-light">
+                    @Html.RadioButtonFor(
+                        model => model.FlurMajorVessels,
+                        2,
+                        new
+                        {
+                            @class = ViewBag.FlurMajorVessels == 2 ? "default" : ""
+                        }) 2
+                </label>
+
+                <label class="btn btn-secondary btn-light">
+                    @Html.RadioButtonFor(
+                        model => model.FlurMajorVessels,
+                        3,
+                        new
+                        {
+                            @class = ViewBag.FlurMajorVessels == 3 ? "default" : ""
+                        }) 3
+                </label>
+
+                <label class="btn btn-secondary btn-light">
+                    @Html.RadioButtonFor(
+                        model => model.FlurMajorVessels,
+                        4,
+                        new
+                        {
+                            @class = ViewBag.FlurMajorVessels == 4 ? "default" : ""
+                        }) 4
+                </label>
+            </div>
+        </div>
+
+        <div class="form-group row">
+            @Html.LabelFor(model => model.Thal, htmlAttributes: new { @class = "col-sm-3 col-form-label" })
+
+            <div class="btn-group btn-group-toggle col-sm-9" data-toggle="buttons">
+                <label class="btn btn-secondary btn-light">
+                    @Html.RadioButtonFor(
+                        model => model.Thal,
+                        PatientModel.ThalType.Normal,
+                        new
+                        {
+                            @class = ViewBag.Thal == PatientModel.ThalType.Normal ? "default" : ""
+                        }) Normal
+                </label>
+
+                <label class="btn btn-secondary btn-light">
+                    @Html.RadioButtonFor(
+                        model => model.Thal,
+                        PatientModel.ThalType.FixedDefect,
+                        new
+                        {
+                            @class = ViewBag.Thal == PatientModel.ThalType.FixedDefect ? "default" : ""
+                        }) Fixed defect
+                </label>
+
+                <label class="btn btn-secondary btn-light">
+                    @Html.RadioButtonFor(
+                        model => model.Thal,
+                        PatientModel.ThalType.ReversibleDefect,
+                        new
+                        {
+                            @class = ViewBag.Thal == PatientModel.ThalType.ReversibleDefect ? "default" : ""
+                        }) Reversible defect
+                </label>
+            </div>
+        </div>
+
+        <input type="submit" value="Estimate" class="btn btn-primary" />
+    </div>
+}
+
+<div>
+
+    @if (ViewBag.Output != null)
+    {
+        string fmt = $"{ViewBag.Output * 100:0.##} %";
+
+        <hr />
+
+        @if (ViewBag.Output >= 0.85)
+        {
+            <div class="alert alert-danger">
+                Disease estimate: @fmt. <strong>Take immediate action.</strong>
+            </div>
+        }
+        else if (ViewBag.Output >= 0.5)
+        {
+            <div class="alert alert-warning">
+                Disease estimate: @fmt.
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-success">
+                Disease estimate: @fmt.
+            </div>
+        }
+    }
+
+</div>
+
+@section Scripts {
+<script>
+    $(document).ready(() => { $("input.default").prop("checked", true); });
+    $(document).ready(() => { $("input.default").parent().addClass("active"); });
+</script>
+}

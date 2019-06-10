@@ -28,12 +28,16 @@
         "uri": "file://test.test_convert_model_to_json_GPU-higgs_/converted_model.bin"
     },
     "test.test_coreml_cbm_import_export[GPU]": {
-        "checksum": "ad89f4ccdd1ed3503b02f574bbb9622d",
+        "checksum": "4f15b325149c0db081bd0a447f370997",
         "uri": "file://test.test_coreml_cbm_import_export_GPU_/model.mlmodel"
     },
     "test.test_coreml_import_export[GPU]": {
-        "checksum": "ad89f4ccdd1ed3503b02f574bbb9622d",
+        "checksum": "b94d20f4f4032e4e770f9f41ee6dfb3c",
         "uri": "file://test.test_coreml_import_export_GPU_/model.mlmodel"
+    },
+    "test.test_coreml_import_export_one_hot_features[GPU]": {
+        "checksum": "82f2a93d693122db6b390f4f73af1e09",
+        "uri": "file://test.test_coreml_import_export_one_hot_features_GPU_/model.mlmodel"
     },
     "test.test_cpp_export_no_cat_features[GPU]": {
         "checksum": "6b2b7b87b95455fcb8c634768375ed5d",

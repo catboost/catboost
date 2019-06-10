@@ -1,95 +1,55 @@
 #pragma once
 
 #include "dictionary.h"
-#include <catboost/libs/helpers/exception.h>
-#include <library/containers/dense_hash/dense_hash.h>
-#include <util/generic/array_ref.h>
+
+#include <catboost/libs/data_types/text.h>
+#include <catboost/libs/helpers/maybe_owning_array_holder.h>
+
 #include <util/generic/ptr.h>
-#include <util/generic/string.h>
+
 
 namespace NCB {
-
-    struct TTokenId {
-        ui32 Id;
-
-        TTokenId()
-        : Id(static_cast<ui32>(-1)) {
-
-        }
-
-        TTokenId(ui32 id)
-        : Id(id) {
-
-        }
-
-
-        operator ui32() const {
-            return Id;
-        }
-
-        bool operator==(const TTokenId& rhs) const {
-            return Id == rhs.Id;
-        }
-        bool operator!=(const TTokenId& rhs) const {
-            return !(rhs == *this);
-        }
-
-        bool operator<(const TTokenId& rhs) const {
-            return Id < rhs.Id;
-        }
-        bool operator>(const TTokenId& rhs) const {
-            return rhs < *this;
-        }
-        bool operator<=(const TTokenId& rhs) const {
-            return !(rhs < *this);
-        }
-        bool operator>=(const TTokenId& rhs) const {
-            return !(*this < rhs);
-        }
-    };
-
-    using TText = TDenseHash<TTokenId, ui32>;
-
+    using TTextColumn = TMaybeOwningConstArrayHolder<TText>;
 
     class TTextDataSet : public TThrRefBase {
     public:
-        TTextDataSet(TVector<TText> texts, TDictionaryPtr dictionary)
+        TTextDataSet(TTextColumn texts, TDictionaryPtr dictionary)
         : Text(std::move(texts))
-        , Dictionary(dictionary) {
-
-        }
+        , Dictionary(std::move(dictionary)) {}
 
         ui64 SamplesCount() const {
-            return Text.size();
+            return (*Text).size();
         }
 
         const TText& GetText(ui64 idx) const {
-            CB_ENSURE(idx < Text.size(), "Error: text line " << idx << " is out of bound (" << Text.size() << ")");
+            const ui64 samplesCount = SamplesCount();
+            CB_ENSURE(idx < samplesCount, "Error: text line " << idx << " is out of bound (" << samplesCount << ")");
             return Text[idx];
         }
 
         TConstArrayRef<TText> GetTexts() const {
-            return MakeConstArrayRef(Text);
+            return *Text;
         }
 
         const IDictionary& GetDictionary() const {
             return *Dictionary;
         }
     private:
-        TVector<TText> Text;
-        TDictionaryPtr Dictionary;
+        const TTextColumn Text;
+        const TDictionaryPtr Dictionary;
     };
 
-
-    using TTextDataSetPtr = TIntrusivePtr<TTextDataSet>;
-
     struct TTextClassificationTarget : public TThrRefBase {
+        TTextClassificationTarget(TVector<ui32>&& classes, ui32 numClasses)
+        : Classes(std::move(classes))
+        , NumClasses(numClasses)
+        {}
+
+    public:
         TVector<ui32> Classes;
         ui32 NumClasses;
     };
 
-
+    using TTextDataSetPtr = TIntrusivePtr<TTextDataSet>;
     using TTextClassificationTargetPtr = TIntrusivePtr<TTextClassificationTarget>;
-
-
 }

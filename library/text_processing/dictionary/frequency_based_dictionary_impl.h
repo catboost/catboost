@@ -1,10 +1,14 @@
 #pragma once
 
+#include "fbs_helpers.h"
 #include "options.h"
-
-#include <library/containers/flat_hash/flat_hash.h>
+#include "multigram_dictionary_helpers.h"
+#include "mmap_frequency_based_dictionary.h"
+#include "mmap_frequency_based_dictionary_impl.h"
+#include "mmap_hash_table.h"
 
 #include <util/digest/multi.h>
+#include <util/digest/murmur.h>
 #include <util/generic/algorithm.h>
 #include <util/generic/array_ref.h>
 #include <util/generic/hash.h>
@@ -15,79 +19,6 @@
 #include <array>
 
 namespace NTextProcessing::NDictionary {
-    using TInternalTokenId = TTokenId;
-    static const TString END_OF_SENTENCE_SYMBOL = "";
-    constexpr TInternalTokenId UNKNOWN_INTERNAL_TOKEN_ID = Max<TInternalTokenId>();
-    static const TString DICT_FORMAT_KEY = "dictionary_format";
-    static const TString DICT_NEW_FORMAT_DESC = "id_count_token";
-
-    template <ui32 N>
-    struct TMultiInternalTokenId : public std::array<TInternalTokenId, N> {
-        using TParent = std::array<TInternalTokenId, N>;
-        using TParent::TParent;
-
-        bool operator==(const TMultiInternalTokenId<N>& other) const {
-            return memcmp(this->data(), other.data(), sizeof(TInternalTokenId) * N) == 0;
-        }
-    };
-
-    template <ui32 GramOrder, typename TValue>
-    using TInternalIdsMap = NFH::TFlatHashMap<TMultiInternalTokenId<GramOrder>, TValue>;
-
-    template <typename TTokenType>
-    TInternalTokenId GetInternalWordTokenId(
-        const TTokenType& token,
-        NFH::TFlatHashMap<TString, TInternalTokenId>* tokenToInternalId
-    ) {
-        const auto it = tokenToInternalId->find(token);
-        if (it != tokenToInternalId->end()) {
-            return it->second;
-        } else {
-            const TInternalTokenId tokenId = tokenToInternalId->size();
-            tokenToInternalId->emplace(token, tokenId);
-            return tokenId;
-        }
-    }
-
-    template <typename T>
-    class TConstArrayRefChainer {
-    public:
-        TConstArrayRefChainer(TConstArrayRef<T> firstContainer, TConstArrayRef<T> secondContainer)
-            : FirstContainer(firstContainer)
-            , SecondContainer(secondContainer)
-        {
-        }
-
-        size_t Size() const {
-            return FirstContainer.size() + SecondContainer.size();
-        }
-
-        const T& operator[](ui32 i) const {
-            return i < FirstContainer.size() ? FirstContainer[i] : SecondContainer[i - FirstContainer.size()];
-        }
-
-    private:
-        TConstArrayRef<T> FirstContainer;
-        TConstArrayRef<T> SecondContainer;
-    };
-
-    template <typename TTokenType>
-    TConstArrayRefChainer<TTokenType> AppendEndOfSentenceTokenIfNeed(
-        TConstArrayRef<TTokenType> rawTokens,
-        EEndOfSentenceTokenPolicy endOfSentenceTokenPolicy,
-        TVector<TTokenType>* vectorWithEndOfSentence
-    ) {
-        vectorWithEndOfSentence->clear();
-        if (endOfSentenceTokenPolicy == EEndOfSentenceTokenPolicy::Insert) {
-            vectorWithEndOfSentence->emplace_back(END_OF_SENTENCE_SYMBOL);
-        }
-        return {rawTokens, *vectorWithEndOfSentence};
-    }
-
-    inline ui32 GetEndTokenIndex(ui32 tokenCount, ui32 gramOrder, ui32 skipStep) {
-        const ui32 lastGramTokenIndex = (gramOrder - 1) * (skipStep + 1);
-        return lastGramTokenIndex < tokenCount ? tokenCount - lastGramTokenIndex : 0;
-    }
 
     class IDictionaryImpl {
     public:
@@ -127,6 +58,8 @@ namespace NTextProcessing::NDictionary {
 
         virtual void Save(IOutputStream* stream) const = 0;
         virtual void Load(IInputStream* stream, bool isNewFormat) = 0;
+
+        virtual THolder<IMMapDictionaryImpl> CreateMMapDictionaryImpl() const = 0;
 
         virtual ~IDictionaryImpl() = default;
 
@@ -184,6 +117,8 @@ namespace NTextProcessing::NDictionary {
 
         void Save(IOutputStream* stream) const override;
         void Load(IInputStream* stream, bool isNewFormat) override;
+
+        THolder<IMMapDictionaryImpl> CreateMMapDictionaryImpl() const override;
 
     private:
         void InitializeSpecialTokenIds() {
@@ -428,6 +363,54 @@ namespace NTextProcessing::NDictionary {
             }
 
             InitializeSpecialTokenIds();
+        }
+
+        THolder<IMMapDictionaryImpl> CreateMMapDictionaryImpl() const override {
+            TVector<TBucket> tokenToInternalIdBuckets;
+            ui64 tokenToInternalIdBucketsSeed;
+            BuildBuckets(
+                TokenToInternalId,
+                [](const auto& it, ui64 seed) {
+                    auto hash = MurmurHash<ui64>((void*)(it.first.data()), it.first.size(), seed);
+                    return std::make_pair(hash, it.second);
+                },
+                &tokenToInternalIdBuckets,
+                &tokenToInternalIdBucketsSeed
+            );
+
+            TVector<const TMultiInternalTokenId<GramOrder>*> idToInternalIds;
+            NFH::TFlatHashMap<TInternalTokenId, TStringBuf> internalIdToToken;
+            if (IdToInternalIds.empty() || InternalIdToToken.empty()) {
+                GetIdToTokensMapping(&idToInternalIds, &internalIdToToken);
+            }
+            const auto& idToInternalIdsRef = IdToInternalIds.empty() ? idToInternalIds : IdToInternalIds;
+
+            TVector<TBucket> internalIdsToIdBuckets;
+            ui64 internalIdsToIdBucketsSeed;
+            BuildBuckets(
+                xrange(idToInternalIdsRef.size()),
+                [&](TTokenId tokenId, ui64 seed) {
+                    auto hash = MurmurHash<ui64>(
+                        (void*)(idToInternalIdsRef[tokenId]->data()),
+                        sizeof(TInternalTokenId) * GramOrder,
+                        seed
+                    );
+                    return std::make_pair(hash, tokenId);
+                },
+                &internalIdsToIdBuckets,
+                &internalIdsToIdBucketsSeed
+            );
+
+            TVector<ui8> dictionaryMetaInfoBuffer;
+            BuildDictionaryMetaInfo(Size(), DictionaryOptions, &dictionaryMetaInfoBuffer);
+
+            return MakeHolder<TMMapMultigramDictionaryImpl<GramOrder>>(
+                std::move(dictionaryMetaInfoBuffer),
+                std::move(tokenToInternalIdBuckets),
+                tokenToInternalIdBucketsSeed,
+                std::move(internalIdsToIdBuckets),
+                internalIdsToIdBucketsSeed
+            );
         }
 
     private:

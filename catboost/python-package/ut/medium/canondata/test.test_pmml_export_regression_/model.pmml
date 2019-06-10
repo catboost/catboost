@@ -1,0 +1,747 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PMML version="4.3" xmlns="http://www.dmg.org/PMML-4_3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<Header copyright="(c) catboost team" description="CatBoostModel_for_regression" modelVersion="1">
+<Application name="CatBoost" version="Svn info"/>
+<Timestamp>2019-06-01T00:49:22Z</Timestamp>
+</Header>
+<DataDictionary>
+<DataField name="feature_3" optype="continuous" dataType="float"/>
+<DataField name="feature_5" optype="continuous" dataType="float"/>
+<DataField name="feature_7" optype="continuous" dataType="float"/>
+<DataField name="feature_13" optype="continuous" dataType="float"/>
+<DataField name="feature_14" optype="continuous" dataType="float"/>
+<DataField name="feature_15" optype="continuous" dataType="float"/>
+<DataField name="feature_0" optype="categorical" dataType="string"/>
+<DataField name="feature_0_mapped" optype="categorical" dataType="integer"/>
+<DataField name="feature_1" optype="categorical" dataType="string"/>
+<DataField name="feature_1_mapped" optype="categorical" dataType="integer"/>
+<DataField name="feature_2" optype="categorical" dataType="string"/>
+<DataField name="feature_2_mapped" optype="categorical" dataType="integer"/>
+<DataField name="feature_4" optype="categorical" dataType="string"/>
+<DataField name="feature_4_mapped" optype="categorical" dataType="integer"/>
+<DataField name="feature_6" optype="categorical" dataType="string"/>
+<DataField name="feature_6_mapped" optype="categorical" dataType="integer"/>
+<DataField name="feature_8" optype="categorical" dataType="string"/>
+<DataField name="feature_8_mapped" optype="categorical" dataType="integer"/>
+<DataField name="feature_9" optype="categorical" dataType="string"/>
+<DataField name="feature_9_mapped" optype="categorical" dataType="integer"/>
+<DataField name="feature_10" optype="categorical" dataType="string"/>
+<DataField name="feature_10_mapped" optype="categorical" dataType="integer"/>
+<DataField name="feature_11" optype="categorical" dataType="string"/>
+<DataField name="feature_11_mapped" optype="categorical" dataType="integer"/>
+<DataField name="feature_12" optype="categorical" dataType="string"/>
+<DataField name="feature_12_mapped" optype="categorical" dataType="integer"/>
+<DataField name="feature_16" optype="categorical" dataType="string"/>
+<DataField name="feature_16_mapped" optype="categorical" dataType="integer"/>
+<DataField name="prediction" optype="continuous" dataType="double"/>
+</DataDictionary>
+<MiningModel functionName="regression">
+<MiningSchema>
+<MiningField name="feature_3" usageType="active"/>
+<MiningField name="feature_5" usageType="active"/>
+<MiningField name="feature_7" usageType="active"/>
+<MiningField name="feature_13" usageType="active"/>
+<MiningField name="feature_14" usageType="active"/>
+<MiningField name="feature_15" usageType="active"/>
+<MiningField name="feature_0" usageType="active"/>
+<MiningField name="feature_1" usageType="active"/>
+<MiningField name="feature_2" usageType="active"/>
+<MiningField name="feature_4" usageType="active"/>
+<MiningField name="feature_6" usageType="active"/>
+<MiningField name="feature_8" usageType="active"/>
+<MiningField name="feature_9" usageType="active"/>
+<MiningField name="feature_10" usageType="active"/>
+<MiningField name="feature_11" usageType="active"/>
+<MiningField name="feature_12" usageType="active"/>
+<MiningField name="feature_16" usageType="active"/>
+<MiningField name="prediction" usageType="target"/>
+</MiningSchema>
+<Output>
+<OutputField name="prediction" optype="continuous" dataType="double"/>
+</Output>
+<LocalTransformations>
+<DerivedField name="feature_4_mapped" optype="categorical" dataType="integer">
+<MapValues mapMissingTo="3" defaultValue="3" outputColumn="value" dataType="integer">
+<FieldColumnPair field="feature_4" column="key"/>
+<InlineTable>
+<row>
+<key>Federal-gov</key>
+<value>0</value>
+</row>
+<row>
+<key>?</key>
+<value>1</value>
+</row>
+<row>
+<key>State-gov</key>
+<value>2</value>
+</row>
+</InlineTable>
+</MapValues>
+</DerivedField>
+<DerivedField name="feature_8_mapped" optype="categorical" dataType="integer">
+<MapValues mapMissingTo="1" defaultValue="1" outputColumn="value" dataType="integer">
+<FieldColumnPair field="feature_8" column="key"/>
+<InlineTable>
+<row>
+<key>Married-spouse-absent</key>
+<value>0</value>
+</row>
+</InlineTable>
+</MapValues>
+</DerivedField>
+<DerivedField name="feature_9_mapped" optype="categorical" dataType="integer">
+<MapValues mapMissingTo="2" defaultValue="2" outputColumn="value" dataType="integer">
+<FieldColumnPair field="feature_9" column="key"/>
+<InlineTable>
+<row>
+<key>?</key>
+<value>0</value>
+</row>
+<row>
+<key>Exec-managerial</key>
+<value>1</value>
+</row>
+</InlineTable>
+</MapValues>
+</DerivedField>
+<DerivedField name="feature_10_mapped" optype="categorical" dataType="integer">
+<MapValues mapMissingTo="2" defaultValue="2" outputColumn="value" dataType="integer">
+<FieldColumnPair field="feature_10" column="key"/>
+<InlineTable>
+<row>
+<key>Husband</key>
+<value>0</value>
+</row>
+<row>
+<key>Other-relative</key>
+<value>1</value>
+</row>
+</InlineTable>
+</MapValues>
+</DerivedField>
+<DerivedField name="feature_16_mapped" optype="categorical" dataType="integer">
+<MapValues mapMissingTo="2" defaultValue="2" outputColumn="value" dataType="integer">
+<FieldColumnPair field="feature_16" column="key"/>
+<InlineTable>
+<row>
+<key>?</key>
+<value>0</value>
+</row>
+<row>
+<key>Canada</key>
+<value>1</value>
+</row>
+</InlineTable>
+</MapValues>
+</DerivedField>
+</LocalTransformations>
+<Segmentation multipleModelMethod="sum">
+<Segment id="0">
+<True/>
+<TreeModel modelName="tree_0" functionName="regression" missingValueStrategy="defaultChild" splitCharacteristic="binarySplit">
+<MiningSchema>
+<MiningField name="feature_3" usageType="active"/>
+<MiningField name="feature_5" usageType="active"/>
+<MiningField name="feature_7" usageType="active"/>
+<MiningField name="feature_13" usageType="active"/>
+<MiningField name="feature_14" usageType="active"/>
+<MiningField name="feature_15" usageType="active"/>
+<MiningField name="feature_0_mapped" usageType="active"/>
+<MiningField name="feature_1_mapped" usageType="active"/>
+<MiningField name="feature_2_mapped" usageType="active"/>
+<MiningField name="feature_4_mapped" usageType="active"/>
+<MiningField name="feature_6_mapped" usageType="active"/>
+<MiningField name="feature_8_mapped" usageType="active"/>
+<MiningField name="feature_9_mapped" usageType="active"/>
+<MiningField name="feature_10_mapped" usageType="active"/>
+<MiningField name="feature_11_mapped" usageType="active"/>
+<MiningField name="feature_12_mapped" usageType="active"/>
+<MiningField name="feature_16_mapped" usageType="active"/>
+<MiningField name="prediction" usageType="target"/>
+</MiningSchema>
+<Output>
+<OutputField name="prediction" optype="continuous" dataType="double"/>
+</Output>
+<Node id="0">
+<True/>
+<Node id="2" defaultChild="5">
+<SimplePredicate field="feature_13" operator="greaterThan" value="11356"/>
+<Node id="6" defaultChild="13">
+<SimplePredicate field="feature_3" operator="greaterThan" value="52.5"/>
+<Node id="14" defaultChild="29">
+<SimplePredicate field="feature_4_mapped" operator="equal" value="0"/>
+<Node id="30" score="0">
+<SimplePredicate field="feature_4_mapped" operator="equal" value="2"/>
+</Node>
+<Node id="29" score="0">
+<True/>
+</Node>
+</Node>
+<Node id="13">
+<True/>
+<Node id="28" score="0">
+<SimplePredicate field="feature_4_mapped" operator="equal" value="2"/>
+</Node>
+<Node id="27" score="0">
+<True/>
+</Node>
+</Node>
+</Node>
+<Node id="5">
+<True/>
+<Node id="12" defaultChild="25">
+<SimplePredicate field="feature_4_mapped" operator="equal" value="0"/>
+<Node id="26" score="0">
+<SimplePredicate field="feature_4_mapped" operator="equal" value="2"/>
+</Node>
+<Node id="25" score="0">
+<True/>
+</Node>
+</Node>
+<Node id="11">
+<True/>
+<Node id="24" score="0">
+<SimplePredicate field="feature_4_mapped" operator="equal" value="2"/>
+</Node>
+<Node id="23" score="0">
+<True/>
+</Node>
+</Node>
+</Node>
+</Node>
+<Node id="1">
+<True/>
+<Node id="4" defaultChild="9">
+<SimplePredicate field="feature_3" operator="greaterThan" value="52.5"/>
+<Node id="10" defaultChild="21">
+<SimplePredicate field="feature_4_mapped" operator="equal" value="0"/>
+<Node id="22" score="0">
+<SimplePredicate field="feature_4_mapped" operator="equal" value="2"/>
+</Node>
+<Node id="21" score="0">
+<True/>
+</Node>
+</Node>
+<Node id="9">
+<True/>
+<Node id="20" score="0.007499999832">
+<SimplePredicate field="feature_4_mapped" operator="equal" value="2"/>
+</Node>
+<Node id="19" score="0.01956521695">
+<True/>
+</Node>
+</Node>
+</Node>
+<Node id="3">
+<True/>
+<Node id="8" defaultChild="17">
+<SimplePredicate field="feature_4_mapped" operator="equal" value="0"/>
+<Node id="18" score="0">
+<SimplePredicate field="feature_4_mapped" operator="equal" value="2"/>
+</Node>
+<Node id="17" score="0">
+<True/>
+</Node>
+</Node>
+<Node id="7">
+<True/>
+<Node id="16" score="0.01499999966">
+<SimplePredicate field="feature_4_mapped" operator="equal" value="2"/>
+</Node>
+<Node id="15" score="0.02368421">
+<True/>
+</Node>
+</Node>
+</Node>
+</Node>
+</Node>
+</TreeModel>
+</Segment>
+<Segment id="1">
+<True/>
+<TreeModel modelName="tree_1" functionName="regression" missingValueStrategy="defaultChild" splitCharacteristic="binarySplit">
+<MiningSchema>
+<MiningField name="feature_3" usageType="active"/>
+<MiningField name="feature_5" usageType="active"/>
+<MiningField name="feature_7" usageType="active"/>
+<MiningField name="feature_13" usageType="active"/>
+<MiningField name="feature_14" usageType="active"/>
+<MiningField name="feature_15" usageType="active"/>
+<MiningField name="feature_0_mapped" usageType="active"/>
+<MiningField name="feature_1_mapped" usageType="active"/>
+<MiningField name="feature_2_mapped" usageType="active"/>
+<MiningField name="feature_4_mapped" usageType="active"/>
+<MiningField name="feature_6_mapped" usageType="active"/>
+<MiningField name="feature_8_mapped" usageType="active"/>
+<MiningField name="feature_9_mapped" usageType="active"/>
+<MiningField name="feature_10_mapped" usageType="active"/>
+<MiningField name="feature_11_mapped" usageType="active"/>
+<MiningField name="feature_12_mapped" usageType="active"/>
+<MiningField name="feature_16_mapped" usageType="active"/>
+<MiningField name="prediction" usageType="target"/>
+</MiningSchema>
+<Output>
+<OutputField name="prediction" optype="continuous" dataType="double"/>
+</Output>
+<Node id="0">
+<True/>
+<Node id="2" defaultChild="5">
+<SimplePredicate field="feature_10_mapped" operator="equal" value="1"/>
+<Node id="6" defaultChild="13">
+<SimplePredicate field="feature_3" operator="greaterThan" value="61.5"/>
+<Node id="14" defaultChild="29">
+<SimplePredicate field="feature_16_mapped" operator="equal" value="1"/>
+<Node id="30" score="0">
+<SimplePredicate field="feature_13" operator="greaterThan" value="3280"/>
+</Node>
+<Node id="29" score="0">
+<True/>
+</Node>
+</Node>
+<Node id="13">
+<True/>
+<Node id="28" score="0">
+<SimplePredicate field="feature_13" operator="greaterThan" value="3280"/>
+</Node>
+<Node id="27" score="0">
+<True/>
+</Node>
+</Node>
+</Node>
+<Node id="5">
+<True/>
+<Node id="12" defaultChild="25">
+<SimplePredicate field="feature_16_mapped" operator="equal" value="1"/>
+<Node id="26" score="0">
+<SimplePredicate field="feature_13" operator="greaterThan" value="3280"/>
+</Node>
+<Node id="25" score="0">
+<True/>
+</Node>
+</Node>
+<Node id="11">
+<True/>
+<Node id="24" score="0">
+<SimplePredicate field="feature_13" operator="greaterThan" value="3280"/>
+</Node>
+<Node id="23" score="0.007353260708">
+<True/>
+</Node>
+</Node>
+</Node>
+</Node>
+<Node id="1">
+<True/>
+<Node id="4" defaultChild="9">
+<SimplePredicate field="feature_3" operator="greaterThan" value="61.5"/>
+<Node id="10" defaultChild="21">
+<SimplePredicate field="feature_16_mapped" operator="equal" value="1"/>
+<Node id="22" score="0">
+<SimplePredicate field="feature_13" operator="greaterThan" value="3280"/>
+</Node>
+<Node id="21" score="0">
+<True/>
+</Node>
+</Node>
+<Node id="9">
+<True/>
+<Node id="20" score="-0.0001173912991">
+<SimplePredicate field="feature_13" operator="greaterThan" value="3280"/>
+</Node>
+<Node id="19" score="0.01183760843">
+<True/>
+</Node>
+</Node>
+</Node>
+<Node id="3">
+<True/>
+<Node id="8" defaultChild="17">
+<SimplePredicate field="feature_16_mapped" operator="equal" value="1"/>
+<Node id="18" score="-0.000177631571">
+<SimplePredicate field="feature_13" operator="greaterThan" value="3280"/>
+</Node>
+<Node id="17" score="0">
+<True/>
+</Node>
+</Node>
+<Node id="7">
+<True/>
+<Node id="16" score="-0.0001421052568">
+<SimplePredicate field="feature_13" operator="greaterThan" value="3280"/>
+</Node>
+<Node id="15" score="0.02334972971">
+<True/>
+</Node>
+</Node>
+</Node>
+</Node>
+</Node>
+</TreeModel>
+</Segment>
+<Segment id="2">
+<True/>
+<TreeModel modelName="tree_2" functionName="regression" missingValueStrategy="defaultChild" splitCharacteristic="binarySplit">
+<MiningSchema>
+<MiningField name="feature_3" usageType="active"/>
+<MiningField name="feature_5" usageType="active"/>
+<MiningField name="feature_7" usageType="active"/>
+<MiningField name="feature_13" usageType="active"/>
+<MiningField name="feature_14" usageType="active"/>
+<MiningField name="feature_15" usageType="active"/>
+<MiningField name="feature_0_mapped" usageType="active"/>
+<MiningField name="feature_1_mapped" usageType="active"/>
+<MiningField name="feature_2_mapped" usageType="active"/>
+<MiningField name="feature_4_mapped" usageType="active"/>
+<MiningField name="feature_6_mapped" usageType="active"/>
+<MiningField name="feature_8_mapped" usageType="active"/>
+<MiningField name="feature_9_mapped" usageType="active"/>
+<MiningField name="feature_10_mapped" usageType="active"/>
+<MiningField name="feature_11_mapped" usageType="active"/>
+<MiningField name="feature_12_mapped" usageType="active"/>
+<MiningField name="feature_16_mapped" usageType="active"/>
+<MiningField name="prediction" usageType="target"/>
+</MiningSchema>
+<Output>
+<OutputField name="prediction" optype="continuous" dataType="double"/>
+</Output>
+<Node id="0">
+<True/>
+<Node id="2" defaultChild="5">
+<SimplePredicate field="feature_8_mapped" operator="equal" value="0"/>
+<Node id="6" defaultChild="13">
+<SimplePredicate field="feature_9_mapped" operator="equal" value="0"/>
+<Node id="14" defaultChild="29">
+<SimplePredicate field="feature_13" operator="greaterThan" value="1087"/>
+<Node id="30" score="0">
+<SimplePredicate field="feature_15" operator="greaterThan" value="42"/>
+</Node>
+<Node id="29" score="0">
+<True/>
+</Node>
+</Node>
+<Node id="13">
+<True/>
+<Node id="28" score="0">
+<SimplePredicate field="feature_15" operator="greaterThan" value="42"/>
+</Node>
+<Node id="27" score="0">
+<True/>
+</Node>
+</Node>
+</Node>
+<Node id="5">
+<True/>
+<Node id="12" defaultChild="25">
+<SimplePredicate field="feature_13" operator="greaterThan" value="1087"/>
+<Node id="26" score="0">
+<SimplePredicate field="feature_15" operator="greaterThan" value="42"/>
+</Node>
+<Node id="25" score="0">
+<True/>
+</Node>
+</Node>
+<Node id="11">
+<True/>
+<Node id="24" score="0.007147245292">
+<SimplePredicate field="feature_15" operator="greaterThan" value="42"/>
+</Node>
+<Node id="23" score="0.01433568051">
+<True/>
+</Node>
+</Node>
+</Node>
+</Node>
+<Node id="1">
+<True/>
+<Node id="4" defaultChild="9">
+<SimplePredicate field="feature_9_mapped" operator="equal" value="0"/>
+<Node id="10" defaultChild="21">
+<SimplePredicate field="feature_13" operator="greaterThan" value="1087"/>
+<Node id="22" score="0">
+<SimplePredicate field="feature_15" operator="greaterThan" value="42"/>
+</Node>
+<Node id="21" score="-0.0001458586892">
+<True/>
+</Node>
+</Node>
+<Node id="9">
+<True/>
+<Node id="20" score="0">
+<SimplePredicate field="feature_15" operator="greaterThan" value="42"/>
+</Node>
+<Node id="19" score="0.01789900568">
+<True/>
+</Node>
+</Node>
+</Node>
+<Node id="3">
+<True/>
+<Node id="8" defaultChild="17">
+<SimplePredicate field="feature_13" operator="greaterThan" value="1087"/>
+<Node id="18" score="-0.0001403999938">
+<SimplePredicate field="feature_15" operator="greaterThan" value="42"/>
+</Node>
+<Node id="17" score="0.003983900796">
+<True/>
+</Node>
+</Node>
+<Node id="7">
+<True/>
+<Node id="16" score="0.01380139996">
+<SimplePredicate field="feature_15" operator="greaterThan" value="42"/>
+</Node>
+<Node id="15" score="0.0242362927">
+<True/>
+</Node>
+</Node>
+</Node>
+</Node>
+</Node>
+</TreeModel>
+</Segment>
+<Segment id="3">
+<True/>
+<TreeModel modelName="tree_3" functionName="regression" missingValueStrategy="defaultChild" splitCharacteristic="binarySplit">
+<MiningSchema>
+<MiningField name="feature_3" usageType="active"/>
+<MiningField name="feature_5" usageType="active"/>
+<MiningField name="feature_7" usageType="active"/>
+<MiningField name="feature_13" usageType="active"/>
+<MiningField name="feature_14" usageType="active"/>
+<MiningField name="feature_15" usageType="active"/>
+<MiningField name="feature_0_mapped" usageType="active"/>
+<MiningField name="feature_1_mapped" usageType="active"/>
+<MiningField name="feature_2_mapped" usageType="active"/>
+<MiningField name="feature_4_mapped" usageType="active"/>
+<MiningField name="feature_6_mapped" usageType="active"/>
+<MiningField name="feature_8_mapped" usageType="active"/>
+<MiningField name="feature_9_mapped" usageType="active"/>
+<MiningField name="feature_10_mapped" usageType="active"/>
+<MiningField name="feature_11_mapped" usageType="active"/>
+<MiningField name="feature_12_mapped" usageType="active"/>
+<MiningField name="feature_16_mapped" usageType="active"/>
+<MiningField name="prediction" usageType="target"/>
+</MiningSchema>
+<Output>
+<OutputField name="prediction" optype="continuous" dataType="double"/>
+</Output>
+<Node id="0">
+<True/>
+<Node id="2" defaultChild="5">
+<SimplePredicate field="feature_16_mapped" operator="equal" value="0"/>
+<Node id="6" defaultChild="13">
+<SimplePredicate field="feature_8_mapped" operator="equal" value="0"/>
+<Node id="14" defaultChild="29">
+<SimplePredicate field="feature_4_mapped" operator="equal" value="1"/>
+<Node id="30" score="0">
+<SimplePredicate field="feature_10_mapped" operator="equal" value="0"/>
+</Node>
+<Node id="29" score="0">
+<True/>
+</Node>
+</Node>
+<Node id="13">
+<True/>
+<Node id="28" score="0">
+<SimplePredicate field="feature_10_mapped" operator="equal" value="0"/>
+</Node>
+<Node id="27" score="0">
+<True/>
+</Node>
+</Node>
+</Node>
+<Node id="5">
+<True/>
+<Node id="12" defaultChild="25">
+<SimplePredicate field="feature_4_mapped" operator="equal" value="1"/>
+<Node id="26" score="0">
+<SimplePredicate field="feature_10_mapped" operator="equal" value="0"/>
+</Node>
+<Node id="25" score="0">
+<True/>
+</Node>
+</Node>
+<Node id="11">
+<True/>
+<Node id="24" score="0">
+<SimplePredicate field="feature_10_mapped" operator="equal" value="0"/>
+</Node>
+<Node id="23" score="0.007030604677">
+<True/>
+</Node>
+</Node>
+</Node>
+</Node>
+<Node id="1">
+<True/>
+<Node id="4" defaultChild="9">
+<SimplePredicate field="feature_8_mapped" operator="equal" value="0"/>
+<Node id="10" defaultChild="21">
+<SimplePredicate field="feature_4_mapped" operator="equal" value="1"/>
+<Node id="22" score="0">
+<SimplePredicate field="feature_10_mapped" operator="equal" value="0"/>
+</Node>
+<Node id="21" score="0">
+<True/>
+</Node>
+</Node>
+<Node id="9">
+<True/>
+<Node id="20" score="0">
+<SimplePredicate field="feature_10_mapped" operator="equal" value="0"/>
+</Node>
+<Node id="19" score="0.01615691938">
+<True/>
+</Node>
+</Node>
+</Node>
+<Node id="3">
+<True/>
+<Node id="8" defaultChild="17">
+<SimplePredicate field="feature_4_mapped" operator="equal" value="1"/>
+<Node id="18" score="-0.000144764749">
+<SimplePredicate field="feature_10_mapped" operator="equal" value="0"/>
+</Node>
+<Node id="17" score="0.01756339933">
+<True/>
+</Node>
+</Node>
+<Node id="7">
+<True/>
+<Node id="16" score="0.01180208354">
+<SimplePredicate field="feature_10_mapped" operator="equal" value="0"/>
+</Node>
+<Node id="15" score="0.02499915026">
+<True/>
+</Node>
+</Node>
+</Node>
+</Node>
+</Node>
+</TreeModel>
+</Segment>
+<Segment id="4">
+<True/>
+<TreeModel modelName="tree_4" functionName="regression" missingValueStrategy="defaultChild" splitCharacteristic="binarySplit">
+<MiningSchema>
+<MiningField name="feature_3" usageType="active"/>
+<MiningField name="feature_5" usageType="active"/>
+<MiningField name="feature_7" usageType="active"/>
+<MiningField name="feature_13" usageType="active"/>
+<MiningField name="feature_14" usageType="active"/>
+<MiningField name="feature_15" usageType="active"/>
+<MiningField name="feature_0_mapped" usageType="active"/>
+<MiningField name="feature_1_mapped" usageType="active"/>
+<MiningField name="feature_2_mapped" usageType="active"/>
+<MiningField name="feature_4_mapped" usageType="active"/>
+<MiningField name="feature_6_mapped" usageType="active"/>
+<MiningField name="feature_8_mapped" usageType="active"/>
+<MiningField name="feature_9_mapped" usageType="active"/>
+<MiningField name="feature_10_mapped" usageType="active"/>
+<MiningField name="feature_11_mapped" usageType="active"/>
+<MiningField name="feature_12_mapped" usageType="active"/>
+<MiningField name="feature_16_mapped" usageType="active"/>
+<MiningField name="prediction" usageType="target"/>
+</MiningSchema>
+<Output>
+<OutputField name="prediction" optype="continuous" dataType="double"/>
+</Output>
+<Node id="0">
+<True/>
+<Node id="2" defaultChild="5">
+<SimplePredicate field="feature_13" operator="greaterThan" value="7493"/>
+<Node id="6" defaultChild="13">
+<SimplePredicate field="feature_5" operator="greaterThan" value="188655"/>
+<Node id="14" defaultChild="29">
+<SimplePredicate field="feature_9_mapped" operator="equal" value="1"/>
+<Node id="30" score="0">
+<SimplePredicate field="feature_7" operator="greaterThan" value="6.5"/>
+</Node>
+<Node id="29" score="0">
+<True/>
+</Node>
+</Node>
+<Node id="13">
+<True/>
+<Node id="28" score="-8.639683525e-05">
+<SimplePredicate field="feature_7" operator="greaterThan" value="6.5"/>
+</Node>
+<Node id="27" score="0">
+<True/>
+</Node>
+</Node>
+</Node>
+<Node id="5">
+<True/>
+<Node id="12" defaultChild="25">
+<SimplePredicate field="feature_9_mapped" operator="equal" value="1"/>
+<Node id="26" score="-0.0002173728781">
+<SimplePredicate field="feature_7" operator="greaterThan" value="6.5"/>
+</Node>
+<Node id="25" score="0">
+<True/>
+</Node>
+</Node>
+<Node id="11">
+<True/>
+<Node id="24" score="-0.0003297669274">
+<SimplePredicate field="feature_7" operator="greaterThan" value="6.5"/>
+</Node>
+<Node id="23" score="0">
+<True/>
+</Node>
+</Node>
+</Node>
+</Node>
+<Node id="1">
+<True/>
+<Node id="4" defaultChild="9">
+<SimplePredicate field="feature_5" operator="greaterThan" value="188655"/>
+<Node id="10" defaultChild="21">
+<SimplePredicate field="feature_9_mapped" operator="equal" value="1"/>
+<Node id="22" score="0.004419584743">
+<SimplePredicate field="feature_7" operator="greaterThan" value="6.5"/>
+</Node>
+<Node id="21" score="0">
+<True/>
+</Node>
+</Node>
+<Node id="9">
+<True/>
+<Node id="20" score="0.02175467096">
+<SimplePredicate field="feature_7" operator="greaterThan" value="6.5"/>
+</Node>
+<Node id="19" score="0.01717094932">
+<True/>
+</Node>
+</Node>
+</Node>
+<Node id="3">
+<True/>
+<Node id="8" defaultChild="17">
+<SimplePredicate field="feature_9_mapped" operator="equal" value="1"/>
+<Node id="18" score="0.01338106964">
+<SimplePredicate field="feature_7" operator="greaterThan" value="6.5"/>
+</Node>
+<Node id="17" score="0">
+<True/>
+</Node>
+</Node>
+<Node id="7">
+<True/>
+<Node id="16" score="0.01993622829">
+<SimplePredicate field="feature_7" operator="greaterThan" value="6.5"/>
+</Node>
+<Node id="15" score="0.01711590505">
+<True/>
+</Node>
+</Node>
+</Node>
+</Node>
+</Node>
+</TreeModel>
+</Segment>
+</Segmentation>
+</MiningModel>
+</PMML>

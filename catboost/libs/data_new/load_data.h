@@ -1,6 +1,7 @@
 #pragma once
 
 #include "data_provider.h"
+#include "loader.h"
 #include "objects.h"
 
 #include <catboost/libs/column_description/column.h>
@@ -27,6 +28,7 @@ namespace NCB {
         const NCatboostOptions::TDsvPoolFormatParams& dsvPoolFormatParams,
         const TVector<ui32>& ignoredFeatures,
         EObjectsOrder objectsOrder,
+        TDatasetSubset loadSubset,
         TMaybe<TVector<TString>*> classNames,
         NPar::TLocalExecutor* localExecutor
     );
@@ -63,6 +65,7 @@ namespace NCB {
         const NCatboostOptions::TPoolLoadParams& loadOptions,
         EObjectsOrder objectsOrder,
         bool readTestData,
+        TDatasetSubset trainDatasetSubset,
         TMaybe<TVector<TString>*> classNames,
         NPar::TLocalExecutor* executor,
         TProfileInfo* profile

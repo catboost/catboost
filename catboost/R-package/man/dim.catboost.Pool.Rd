@@ -12,5 +12,5 @@
 Default value: Required argument}
 }
 \description{
-Returns a vector of row numbers and columns column numbers in an catboost.Pool.
+Returns a vector of row numbers and column numbers in an catboost.Pool.
 }

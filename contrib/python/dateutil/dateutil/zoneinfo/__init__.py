@@ -7,7 +7,6 @@ from pkgutil import get_data
 from io import BytesIO
 
 from dateutil.tz import tzfile as _tzfile
-from library.python import resource
 
 __all__ = ["get_zonefile_instance", "gettz", "gettz_db_metadata"]
 
@@ -22,7 +21,7 @@ class tzfile(_tzfile):
 
 def getzoneinfofile_stream():
     try:
-        return BytesIO(resource.find('zoneinfo/dateutil-zoneinfo.tar.gz'))
+        return BytesIO(get_data(__name__, ZONEFILENAME))
     except IOError as e:  # TODO  switch to FileNotFoundError?
         warnings.warn("I/O error({0}): {1}".format(e.errno, e.strerror))
         return None

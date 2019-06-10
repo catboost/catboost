@@ -213,9 +213,8 @@ public:
         return std::basic_string_view<TCharType>(data(), size());
     }
 
-    // TODO: DROP! this one provides an implicit TStringBuf -> std::string conversion!
     template <class TCharTraits, class Allocator>
-    inline operator std::basic_string<TCharType, TCharTraits, Allocator>() const {
+    inline explicit operator std::basic_string<TCharType, TCharTraits, Allocator>() const {
         return std::basic_string<TCharType, TCharTraits, Allocator>(Ptr(), Len());
     }
 
@@ -1331,6 +1330,15 @@ public:
         return *This();
     }
 
+    template <class TCharTraits, class Allocator>
+    /* implicit */ operator std::basic_string<TCharType, TCharTraits, Allocator>() const {
+        // NB(eeight) MSVC cannot compiler direct reference to TBase::operator std::basic_string<...>
+        // so we are using static_cast to force the needed operator call.
+        return static_cast<std::basic_string<TCharType, TCharTraits, Allocator>>(
+                static_cast<const TBase&>(*this));
+    }
+
+
     /*
      * Following overloads of "operator+" aim to choose the cheapest implementation depending on
      * summand types: lvalues, detached rvalues, shared rvalues.
@@ -1730,6 +1738,7 @@ public:
         ret.to_title();
         return ret;
     }
+
 };
 
 class TUtf16String: public TBasicString<TUtf16String, wchar16, TCharTraits<wchar16>> {

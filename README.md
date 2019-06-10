@@ -35,7 +35,7 @@ Install CatBoost by following the guide for the
 
 Next you may want to investigate:
 * [Tutorials](https://github.com/catboost/tutorials)
-* [Training modes and metrics] (https://catboost.ai/docs/concepts/loss-functions.html)
+* [Training modes and metrics](https://catboost.ai/docs/concepts/loss-functions.html)
 * [Cross-validation](https://catboost.ai/docs/features/cross-validation.html#cross-validation)
 * [Parameters tuning](https://catboost.ai/docs/concepts/parameter-tuning.html)
 * [Feature importance calculation](https://catboost.ai/docs/features/feature-importances-calculation.html#fe%20ature-importances-calculation)

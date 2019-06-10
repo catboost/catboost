@@ -182,10 +182,10 @@ namespace NKernel {
                 RUN()
                 break;
             }
-            case  EScoreFunction::Correlation:
-            case  EScoreFunction::NewtonCorrelation: {
-                using TScoreCalcer = TCorrelationScoreCalcer;
-                TCorrelationScoreCalcer scoreCalcer(static_cast<float>(l2),
+            case  EScoreFunction::Cosine:
+            case  EScoreFunction::NewtonCosine: {
+                using TScoreCalcer = TCosineScoreCalcer;
+                TCosineScoreCalcer scoreCalcer(static_cast<float>(l2),
                                                     normalize,
                                                     static_cast<float>(scoreStdDev),
                                                     seed);
@@ -486,10 +486,10 @@ namespace NKernel {
                 RUN()
                 break;
             }
-            case  EScoreFunction::Correlation:
-            case  EScoreFunction::NewtonCorrelation: {
-                using TScoreCalcer = TCorrelationScoreCalcer;
-                TCorrelationScoreCalcer scoreCalcer(static_cast<float>(l2),
+            case  EScoreFunction::Cosine:
+            case  EScoreFunction::NewtonCosine: {
+                using TScoreCalcer = TCosineScoreCalcer;
+                TCosineScoreCalcer scoreCalcer(static_cast<float>(l2),
                                                     normalize,
                                                     static_cast<float>(scoreStdDev),
                                                     seed);
@@ -554,10 +554,10 @@ namespace NKernel {
                 RUN()
                 break;
             }
-            case  EScoreFunction::Correlation:
-            case  EScoreFunction::NewtonCorrelation: {
-                using TScoreCalcer = TCorrelationScoreCalcer;
-                TCorrelationScoreCalcer scoreCalcer(static_cast<float>(l2),
+            case  EScoreFunction::Cosine:
+            case  EScoreFunction::NewtonCosine: {
+                using TScoreCalcer = TCosineScoreCalcer;
+                TCosineScoreCalcer scoreCalcer(static_cast<float>(l2),
                                                     normalize,
                                                     static_cast<float>(scoreStdDev),
                                                     seed);
@@ -649,10 +649,10 @@ namespace NKernel {
                 RUN()
                 break;
             }
-            case  EScoreFunction::Correlation:
-            case  EScoreFunction::NewtonCorrelation: {
-                using TScoreCalcer = TCorrelationScoreCalcer;
-                TCorrelationScoreCalcer scoreCalcer(static_cast<float>(l2),
+            case  EScoreFunction::Cosine:
+            case  EScoreFunction::NewtonCosine: {
+                using TScoreCalcer = TCosineScoreCalcer;
+                TCosineScoreCalcer scoreCalcer(static_cast<float>(l2),
                                                     normalize,
                                                     static_cast<float>(scoreStdDev),
                                                     seed);

@@ -9,4 +9,6 @@ SRCS(
     wide_ut.cpp
 )
 
+INCLUDE(${ARCADIA_ROOT}/util/tests/ya_util_tests.inc)
+
 END()

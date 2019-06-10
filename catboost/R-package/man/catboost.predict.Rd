@@ -33,15 +33,15 @@ Possible values:
 
 Default value: 'RawFormulaVal'}
 
-\item{ntree_start}{Model is applyed on the interval [ntree_start, ntree_end) (zero-based indexing).
+\item{ntree_start}{Model is applied on the interval [ntree_start, ntree_end) (zero-based indexing).
 
 Default value: 0}
 
-\item{ntree_end}{Model is applyed on the interval [ntree_start, ntree_end) (zero-based indexing).
+\item{ntree_end}{Model is applied on the interval [ntree_start, ntree_end) (zero-based indexing).
 
 Default value: 0 (if value equals to 0 this parameter is ignored and ntree_end equal to tree_count)}
 
-\item{thread_count}{The number of threads to use when applying the model. If -1, then the number of threads is set to the number of cores.
+\item{thread_count}{The number of threads to use when applying the model. If -1, then the number of threads is set to the number of CPU cores.
 
 Allows you to optimize the speed of execution. This parameter doesn't affect results.
 

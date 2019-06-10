@@ -466,21 +466,16 @@ namespace {
         explicit TFileQuantizedPoolLoader(const NCB::TPathWithScheme& pathWithScheme)
             : PathWithScheme(pathWithScheme)
         {}
-        NCB::TQuantizedPool LoadQuantizedPool(
-            NCB::TLoadQuantizedPoolParameters params,
-            NCB::TLoadSubset loadSubset) override;
+        NCB::TQuantizedPool LoadQuantizedPool(NCB::TLoadQuantizedPoolParameters params) override;
     private:
         NCB::TPathWithScheme PathWithScheme;
     };
 }
 
-NCB::TQuantizedPool TFileQuantizedPoolLoader::LoadQuantizedPool(
-    NCB::TLoadQuantizedPoolParameters params,
-    NCB::TLoadSubset loadSubset
-) {
+NCB::TQuantizedPool TFileQuantizedPoolLoader::LoadQuantizedPool(NCB::TLoadQuantizedPoolParameters params) {
     CB_ENSURE_INTERNAL(
-        loadSubset.Range == NCB::TLoadSubset().Range &&
-        loadSubset.SkipFeatures == NCB::TLoadSubset().SkipFeatures,
+        params.DatasetSubset.Range == NCB::TDatasetSubset().Range &&
+        params.DatasetSubset.HasFeatures == NCB::TDatasetSubset().HasFeatures,
         "Scheme quantized supports only default load subset"
     );
 
@@ -622,7 +617,7 @@ NCB::TQuantizedPool NCB::LoadQuantizedPool(
     const TLoadQuantizedPoolParameters& params
 ) {
     const auto poolLoader = GetProcessor<IQuantizedPoolLoader, const TPathWithScheme&>(pathWithScheme, pathWithScheme);
-    return poolLoader->LoadQuantizedPool(params, /*loadSubset*/{});
+    return poolLoader->LoadQuantizedPool(params);
 }
 
 static NCB::TQuantizedPoolDigest GetQuantizedPoolDigest(
