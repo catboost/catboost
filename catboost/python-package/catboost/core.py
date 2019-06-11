@@ -324,14 +324,12 @@ class Pool(_PoolBase):
         """
         Check files existence.
         """
-        scheme_end = data.find('://')
-        if scheme_end == -1:
-            if not os.path.isfile(data):
-                raise CatBoostError("Invalid data path='{}': file does not exist.".format(data))
-            if column_description is not None and not os.path.isfile(column_description):
-                raise CatBoostError("Invalid column_description path='{}': file does not exist.".format(column_description))
-            if pairs is not None and not os.path.isfile(pairs):
-                raise CatBoostError("Invalid pairs path='{}': file does not exist.".format(pairs))
+        if data.find('://') == -1 and not os.path.isfile(data):
+            raise CatBoostError("Invalid data path='{}': file does not exist.".format(data))
+        if column_description is not None and column_description.find('://') == -1 and not os.path.isfile(column_description):
+            raise CatBoostError("Invalid column_description path='{}': file does not exist.".format(column_description))
+        if pairs is not None and pairs.find('://') == -1 and not os.path.isfile(pairs):
+            raise CatBoostError("Invalid pairs path='{}': file does not exist.".format(pairs))
 
     def _check_delimiter(self, delimiter):
         if not isinstance(delimiter, STRING_TYPES):
