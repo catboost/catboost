@@ -14,6 +14,9 @@
   - valgrind/memcheck.h
   - valgrind/valgrind.h
 
+- includes:
+  - cudnn.h:         contrib/libs/nvidia/cudnn/cudnn.h
+
 # libunistring has its own libc header wrappers that are added to ADDINCL and
 # need to be added here for consistensy between ADDINCL and sysincl resolving.
 # Btw: we don't parse include_next, so we might lose real dependency to musl,
@@ -192,6 +195,10 @@
 - source_filter: "^contrib/libs/numa"
   includes:
     - util.h:        contrib/libs/numa/internal/util.h
+
+- source_filter: "^contrib/libs/tf/tensorflow"
+  includes:
+    - cuda.h:        contrib/libs/tf/tensorflow/core/platform/cuda.h
 
 # unused legacy include in boost
 - source_filter: "^contrib/deprecated/boost"
