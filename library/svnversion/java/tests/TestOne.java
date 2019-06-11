@@ -42,6 +42,9 @@ public class TestOne {
                 vcsType.equals("hg") ||
                 vcsType.equals("svn"));
 
+        Assert.assertFalse(vcs.getProgramBuildDate().equals(""));
+        Assert.assertFalse(vcs.getProgramBuildHost().equals(""));
+        Assert.assertFalse(vcs.getProgramBuildUser().equals(""));
         if (vcsType.equals("arc")) {
             Assert.assertFalse(vcs.getProgramHgHash().equals(""));
         }
