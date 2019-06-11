@@ -2246,21 +2246,27 @@ class CatBoost(_CatBoostBase):
             res.pop('borders', None)
 
         if plot or plot_file is not None:
-            try:
-                from plotly.offline import iplot
-                from plotly.offline import plot
-                from plotly.offline import init_notebook_mode
-                init_notebook_mode(connected=True)
-            except ImportError as e:
-                warnings.warn("To draw binarized feature statistics you should install plotly.")
-                raise ImportError(str(e))
-
+            warn_msg = "To draw binarized feature statistics you should install plotly."
             figs = _plot_feature_statistics(res, feature, max_cat_features_on_plot)
             if plot:
+                try:
+                    from plotly.offline import iplot
+                    from plotly.offline import init_notebook_mode
+                    init_notebook_mode(connected=True)
+                except ImportError as e:
+                    warnings.warn(warn_msg)
+                    raise ImportError(str(e))
+
                 for fig in figs:
                     iplot(fig)
 
             if plot_file is not None:
+                try:
+                    from plotly.offline import plot as plotly_plot
+                except ImportError as e:
+                    warnings.warn(warn_msg)
+                    raise ImportError(str(e))
+
                 with open(plot_file, 'w') as html_plot_file:
                     html_plot_file.write('\n'.join((
                             '<html>',
@@ -2272,7 +2278,7 @@ class CatBoost(_CatBoostBase):
                             '<body>'
                     )))
                     for fig in figs:
-                        graph_div = plot(
+                        graph_div = plotly_plot(
                             fig,
                             output_type='div',
                             show_link=False,
