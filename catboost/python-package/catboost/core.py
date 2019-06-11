@@ -324,8 +324,10 @@ class Pool(_PoolBase):
         """
         Check files existence.
         """
-        if not os.path.isfile(data):
-            raise CatBoostError("Invalid data path='{}': file does not exist.".format(data))
+        scheme_end = data.find('://')
+        if scheme_end == -1:
+            if not os.path.isfile(data):
+                raise CatBoostError("Invalid data path='{}': file does not exist.".format(data))
         if column_description is not None and not os.path.isfile(column_description):
             raise CatBoostError("Invalid column_description path='{}': file does not exist.".format(column_description))
         if pairs is not None and not os.path.isfile(pairs):
