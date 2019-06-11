@@ -134,7 +134,7 @@ def onjava_module(unit, *args):
         # TODO: dvshkurko@ remove
         data['VCS_INFO_DISABLE_CACHE'] = extract_macro_calls(unit, 'FORCE_VCS_INFO_UPDATE', args_delim)
         # TODO: dvshkurko@ remove
-        data['VCS_INFO_DISABLE_CACHE__NO_UID__ '] = extract_macro_calls(unit, 'FORCE_VCS_INFO_UPDATE', args_delim)
+        data['VCS_INFO_DISABLE_CACHE__NO_UID__'] = extract_macro_calls(unit, 'FORCE_VCS_INFO_UPDATE', args_delim)
         force_empty = extract_macro_calls(unit, 'FORCE_EMPTY_VCS_INFO', args_delim)
         force_empty = force_empty[0][0] if force_empty and force_empty[0] and force_empty[0][0] else ''
         if force_empty:
