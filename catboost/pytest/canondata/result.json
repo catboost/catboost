@@ -3855,85 +3855,85 @@
     ],
     "test.test_quantized_adult_pool[Ordered-CrossEntropy]": [
         {
-            "checksum": "e018430a4e60c88832f99b9ebc4b2210",
+            "checksum": "4c57846d7430bec3412e3c0d5004ce9f",
             "uri": "file://test.test_quantized_adult_pool_Ordered-CrossEntropy_/test.eval"
         }
     ],
     "test.test_quantized_adult_pool[Ordered-LogLinQuantile]": [
         {
-            "checksum": "ede5e263e431a2a1827997ae248544be",
+            "checksum": "7f681fc81d3a67985eec2ab734bd363b",
             "uri": "file://test.test_quantized_adult_pool_Ordered-LogLinQuantile_/test.eval"
         }
     ],
     "test.test_quantized_adult_pool[Ordered-Logloss]": [
         {
-            "checksum": "e018430a4e60c88832f99b9ebc4b2210",
+            "checksum": "4c57846d7430bec3412e3c0d5004ce9f",
             "uri": "file://test.test_quantized_adult_pool_Ordered-Logloss_/test.eval"
         }
     ],
     "test.test_quantized_adult_pool[Ordered-MAE]": [
         {
-            "checksum": "eeab7e4b1af63e8507b532b6ac86d3e0",
+            "checksum": "aa71e5c01f1b90c3d50c82bd63b2c4be",
             "uri": "file://test.test_quantized_adult_pool_Ordered-MAE_/test.eval"
         }
     ],
     "test.test_quantized_adult_pool[Ordered-Poisson]": [
         {
-            "checksum": "02a3f9f8517e6c6f2b168a50612c8a51",
+            "checksum": "899e52196e80f5ce2f5361b75d061baf",
             "uri": "file://test.test_quantized_adult_pool_Ordered-Poisson_/test.eval"
         }
     ],
     "test.test_quantized_adult_pool[Ordered-Quantile]": [
         {
-            "checksum": "eeab7e4b1af63e8507b532b6ac86d3e0",
+            "checksum": "aa71e5c01f1b90c3d50c82bd63b2c4be",
             "uri": "file://test.test_quantized_adult_pool_Ordered-Quantile_/test.eval"
         }
     ],
     "test.test_quantized_adult_pool[Ordered-RMSE]": [
         {
-            "checksum": "bccd5be237c6d51d88531e674842520b",
+            "checksum": "994bf28eddd7dfe4729a175b63a627a8",
             "uri": "file://test.test_quantized_adult_pool_Ordered-RMSE_/test.eval"
         }
     ],
     "test.test_quantized_adult_pool[Plain-CrossEntropy]": [
         {
-            "checksum": "d703b641c4277d4e7f1382d1b1ec3e7b",
+            "checksum": "768810a9122e37c5356a0aea35b294c6",
             "uri": "file://test.test_quantized_adult_pool_Plain-CrossEntropy_/test.eval"
         }
     ],
     "test.test_quantized_adult_pool[Plain-LogLinQuantile]": [
         {
-            "checksum": "cc9060fe75379f355479085e83e03616",
+            "checksum": "61bf4e3f37b2e0439f74b01d2f94f212",
             "uri": "file://test.test_quantized_adult_pool_Plain-LogLinQuantile_/test.eval"
         }
     ],
     "test.test_quantized_adult_pool[Plain-Logloss]": [
         {
-            "checksum": "d703b641c4277d4e7f1382d1b1ec3e7b",
+            "checksum": "768810a9122e37c5356a0aea35b294c6",
             "uri": "file://test.test_quantized_adult_pool_Plain-Logloss_/test.eval"
         }
     ],
     "test.test_quantized_adult_pool[Plain-MAE]": [
         {
-            "checksum": "a7fecf9c62669f8bdb97a54bbd8be8da",
+            "checksum": "70c6321594180601f91278dee9252753",
             "uri": "file://test.test_quantized_adult_pool_Plain-MAE_/test.eval"
         }
     ],
     "test.test_quantized_adult_pool[Plain-Poisson]": [
         {
-            "checksum": "0086c3d85e2127e6e19a1e392f2fd1d4",
+            "checksum": "be8e130f2c78fb052ad44dec2a53cfd7",
             "uri": "file://test.test_quantized_adult_pool_Plain-Poisson_/test.eval"
         }
     ],
     "test.test_quantized_adult_pool[Plain-Quantile]": [
         {
-            "checksum": "a7fecf9c62669f8bdb97a54bbd8be8da",
+            "checksum": "70c6321594180601f91278dee9252753",
             "uri": "file://test.test_quantized_adult_pool_Plain-Quantile_/test.eval"
         }
     ],
     "test.test_quantized_adult_pool[Plain-RMSE]": [
         {
-            "checksum": "0b1a6f4e8144401fa151e9c35f38905b",
+            "checksum": "c3cf143a7a705e5746fe58f1a5b1b5fa",
             "uri": "file://test.test_quantized_adult_pool_Plain-RMSE_/test.eval"
         }
     ],
