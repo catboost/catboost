@@ -1,5 +1,3 @@
-#pragma once
-
 /* zutil.h -- internal interface and configuration of the compression library
  * Copyright (C) 1995-2013 Jean-loup Gailly.
  * For conditions of distribution and use, see copyright notice in zlib.h
@@ -11,6 +9,9 @@
  */
 
 /* @(#) $Id$ */
+
+#ifndef ZUTIL_H
+#define ZUTIL_H
 
 #ifdef HAVE_HIDDEN
 #  define ZLIB_INTERNAL __attribute__((visibility ("hidden")))
@@ -248,3 +249,5 @@ extern z_const char * const z_errmsg[10]; /* indexed by 2-zlib_error */
 /* Reverse the bytes in a 32-bit value */
 #define ZSWAP32(q) ((((q) >> 24) & 0xff) + (((q) >> 8) & 0xff00) + \
                     (((q) & 0xff00) << 8) + (((q) & 0xff) << 24))
+
+#endif /* ZUTIL_H */

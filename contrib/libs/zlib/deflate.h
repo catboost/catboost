@@ -1,5 +1,3 @@
-#pragma once
-
 /* deflate.h -- internal compression state
  * Copyright (C) 1995-2012 Jean-loup Gailly
  * For conditions of distribution and use, see copyright notice in zlib.h
@@ -11,6 +9,9 @@
  */
 
 /* @(#) $Id$ */
+
+#ifndef DEFLATE_H
+#define DEFLATE_H
 
 #include "zutil.h"
 
@@ -341,3 +342,5 @@ void ZLIB_INTERNAL _tr_stored_block OF((deflate_state *s, charf *buf,
 # define _tr_tally_dist(s, distance, length, flush) \
               flush = _tr_tally(s, distance, length)
 #endif
+
+#endif /* DEFLATE_H */

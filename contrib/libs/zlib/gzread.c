@@ -380,7 +380,7 @@ int ZEXPORT gzread(file, buf, len)
 
 /* -- see zlib.h -- */
 #ifdef Z_PREFIX_SET
-#  undef arc_gzgetc
+#  undef z_gzgetc
 #else
 #  undef gzgetc
 #endif

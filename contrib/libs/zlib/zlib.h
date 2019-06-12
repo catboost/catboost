@@ -1,5 +1,3 @@
-#pragma once
-
 /* zlib.h -- interface of the 'zlib' general purpose compression library
   version 1.2.8, April 28th, 2013
 
@@ -30,7 +28,10 @@
   (zlib format), rfc1951 (deflate format) and rfc1952 (gzip format).
 */
 
-#include <contrib/libs/zlib/zconf.h>
+#ifndef ZLIB_H
+#define ZLIB_H
+
+#include "zconf.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -1673,8 +1674,8 @@ struct gzFile_s {
 };
 ZEXTERN int ZEXPORT gzgetc_ OF((gzFile file));  /* backward compatibility */
 #ifdef Z_PREFIX_SET
-#  undef arc_gzgetc
-#  define arc_gzgetc(g) \
+#  undef z_gzgetc
+#  define z_gzgetc(g) \
           ((g)->have ? ((g)->have--, (g)->pos++, *((g)->next)++) : gzgetc(g))
 #else
 #  define gzgetc(g) \
@@ -1698,30 +1699,18 @@ ZEXTERN int ZEXPORT gzgetc_ OF((gzFile file));  /* backward compatibility */
 
 #if !defined(ZLIB_INTERNAL) && defined(Z_WANT64)
 #  ifdef Z_PREFIX_SET
-#    undef arc_gzopen
-#    define arc_gzopen arc_gzopen64
-#    undef arc_gzseek
-#    define arc_gzseek arc_gzseek64
-#    undef arc_gztell
-#    define arc_gztell arc_gztell64
-#    undef arc_gzoffset
-#    define arc_gzoffset arc_gzoffset64
-#    undef arc_adler32_combine
-#    define arc_adler32_combine arc_adler32_combine64
-#    undef arc_crc32_combine
-#    define arc_crc32_combine arc_crc32_combine64
+#    define z_gzopen z_gzopen64
+#    define z_gzseek z_gzseek64
+#    define z_gztell z_gztell64
+#    define z_gzoffset z_gzoffset64
+#    define z_adler32_combine z_adler32_combine64
+#    define z_crc32_combine z_crc32_combine64
 #  else
-#    undef gzopen
 #    define gzopen gzopen64
-#    undef gzseek
 #    define gzseek gzseek64
-#    undef gztell
 #    define gztell gztell64
-#    undef gzoffset
 #    define gzoffset gzoffset64
-#    undef adler32_combine
 #    define adler32_combine adler32_combine64
-#    undef crc32_combine
 #    define crc32_combine crc32_combine64
 #  endif
 #  ifndef Z_LARGE64
@@ -1776,8 +1765,4 @@ ZEXTERN int            ZEXPORTVA gzvprintf Z_ARG((gzFile file,
 }
 #endif
 
-// There are 'crc32' structure members and other things in user code that are broken by '#define crc32'
-// Use 'arc_crc32' explicitly or redefine 'crc32' back to 'arc_crc32' in your code.
-#if !defined(BUILD_ZLIB)
-    #undef crc32
-#endif
+#endif /* ZLIB_H */
