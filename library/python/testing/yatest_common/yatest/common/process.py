@@ -26,7 +26,7 @@ from . import environment
 
 MAX_OUT_LEN = 1000 * 1000  # 1 mb
 MAX_MESSAGE_LEN = 1500
-SANITIZER_ERROR_PATTERN = r": ([A-Z][\w]+Sanitizer)"
+SANITIZER_ERROR_PATTERN = br": ([A-Z][\w]+Sanitizer)"
 GLIBC_PATTERN = re.compile(r"\S+@GLIBC_([0-9.]+)")
 yatest_logger = logging.getLogger("ya.test")
 
