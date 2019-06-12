@@ -911,7 +911,7 @@ $(BUILD_ROOT)/contrib/libs/zlib/libcontrib-libs-zlib.a\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/zlib'
-	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name contrib-libs-zlib -o contrib/libs/zlib/libcontrib-libs-zlib.a.mf -t LIBRARY -Ya,lics ZLIB -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name contrib-libs-zlib -o contrib/libs/zlib/libcontrib-libs-zlib.a.mf -t LIBRARY -Ya,lics Zlib -Ya,peers
 	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/zlib/libcontrib-libs-zlib.a' '$(BUILD_ROOT)/contrib/libs/zlib/adler32.c.pic.o' '$(BUILD_ROOT)/contrib/libs/zlib/compress.c.pic.o' '$(BUILD_ROOT)/contrib/libs/zlib/crc32.c.pic.o' '$(BUILD_ROOT)/contrib/libs/zlib/deflate.c.pic.o' '$(BUILD_ROOT)/contrib/libs/zlib/gzclose.c.pic.o' '$(BUILD_ROOT)/contrib/libs/zlib/gzlib.c.pic.o' '$(BUILD_ROOT)/contrib/libs/zlib/gzread.c.pic.o' '$(BUILD_ROOT)/contrib/libs/zlib/gzwrite.c.pic.o' '$(BUILD_ROOT)/contrib/libs/zlib/infback.c.pic.o' '$(BUILD_ROOT)/contrib/libs/zlib/inffast.c.pic.o' '$(BUILD_ROOT)/contrib/libs/zlib/inflate.c.pic.o' '$(BUILD_ROOT)/contrib/libs/zlib/inftrees.c.pic.o' '$(BUILD_ROOT)/contrib/libs/zlib/trees.c.pic.o' '$(BUILD_ROOT)/contrib/libs/zlib/uncompr.c.pic.o' '$(BUILD_ROOT)/contrib/libs/zlib/zutil.c.pic.o'
 
 $(BUILD_ROOT)/contrib/libs/zlib/adler32.c.pic.o\
@@ -3810,7 +3810,7 @@ $(BUILD_ROOT)/contrib/libs/zlib/libcontrib-libs-zlib.a\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/zlib'
-	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name contrib-libs-zlib -o contrib/libs/zlib/libcontrib-libs-zlib.a.mf -t LIBRARY -Ya,lics ZLIB -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name contrib-libs-zlib -o contrib/libs/zlib/libcontrib-libs-zlib.a.mf -t LIBRARY -Ya,lics Zlib -Ya,peers
 	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/zlib/libcontrib-libs-zlib.a' '$(BUILD_ROOT)/contrib/libs/zlib/adler32.c.pic.o' '$(BUILD_ROOT)/contrib/libs/zlib/compress.c.pic.o' '$(BUILD_ROOT)/contrib/libs/zlib/crc32.c.pic.o' '$(BUILD_ROOT)/contrib/libs/zlib/deflate.c.pic.o' '$(BUILD_ROOT)/contrib/libs/zlib/gzclose.c.pic.o' '$(BUILD_ROOT)/contrib/libs/zlib/gzlib.c.pic.o' '$(BUILD_ROOT)/contrib/libs/zlib/gzread.c.pic.o' '$(BUILD_ROOT)/contrib/libs/zlib/gzwrite.c.pic.o' '$(BUILD_ROOT)/contrib/libs/zlib/infback.c.pic.o' '$(BUILD_ROOT)/contrib/libs/zlib/inffast.c.pic.o' '$(BUILD_ROOT)/contrib/libs/zlib/inflate.c.pic.o' '$(BUILD_ROOT)/contrib/libs/zlib/inftrees.c.pic.o' '$(BUILD_ROOT)/contrib/libs/zlib/trees.c.pic.o' '$(BUILD_ROOT)/contrib/libs/zlib/uncompr.c.pic.o' '$(BUILD_ROOT)/contrib/libs/zlib/zutil.c.pic.o'
 
 $(BUILD_ROOT)/contrib/libs/zlib/adler32.c.pic.o\
