@@ -234,6 +234,9 @@ ALLOW .* -> vendor/gopkg.in/gographics/imagick.v2
 # MIGRATION-289. responsible: nekto0n@. deadline: 30.06.2019
 ALLOW infra/nanny2 -> vendor/github.com/golang/glog
 
+# CONTRIB-1244. resposible: gzuykov@
+ALLOW cloud -> vendor/github.com/rcrowley/go-metrics
+
 #
 # Permanent exceptions.
 #
