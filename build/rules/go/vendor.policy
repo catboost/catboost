@@ -191,6 +191,9 @@ ALLOW .* -> vendor/gopkg.in/resty.v1
 # YAML support for Go
 ALLOW .* -> vendor/gopkg.in/yaml.v2
 
+# INI file format
+ALLOW .* -> vendor/gopkg.in/ini.v1
+
 # Go generated proto packages
 ALLOW .* -> vendor/google.golang.org/genproto
 
