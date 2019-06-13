@@ -11404,8 +11404,6 @@ $(BUILD_ROOT)/catboost/libs/model/libcatboost-libs-model.a.mf\
 
 $(BUILD_ROOT)/catboost/libs/model/libcatboost-libs-model.a\
         ::\
-        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/features.fbs.h\
-        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/ctr_data.fbs.h\
         $(BUILD_ROOT)/catboost/libs/model/coreml_helpers.cpp.pic.o\
         $(BUILD_ROOT)/catboost/libs/model/ctr_data.cpp.pic.o\
         $(BUILD_ROOT)/catboost/libs/model/ctr_provider.cpp.pic.o\
