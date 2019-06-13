@@ -230,6 +230,9 @@ ALLOW .* -> vendor/github.com/shirou/gopsutil
 # Go Imagick is a Go bind to ImageMagick's MagickWand C API
 ALLOW .* -> vendor/gopkg.in/gographics/imagick.v2
 
+# fixed-size thread safe LRU cache
+ALLOW .* -> vendor/github.com/hashicorp/golang-lru
+
 # 
 # Temporary exceptions.
 #
