@@ -43,16 +43,17 @@ namespace NTextProcessing::NDictionary {
             GetLetterIndices(token, &letterStartIndices);
             const int lettersCount = letterStartIndices.size() - 1; // Last element of this vector is token.size()
             const int gramCount = lettersCount - gramOrder + 1;
+
+            // Add start of word token (First gramOrder - 1 symbols)
+            if (gramOrder <= lettersCount + 1) {
+                visitor({token.data(), token.data() + letterStartIndices[gramOrder - 1]});
+            }
+
             for (int i = 0; i < gramCount; ++i) {
                 visitor({
                     token.data() + letterStartIndices[i],
                     token.data() + letterStartIndices[i + gramOrder]
                 });
-            }
-
-            // Add start of word token (First gramOrder - 1 symbols)
-            if (gramOrder <= lettersCount + 1) {
-                visitor({token.data(), token.data() + letterStartIndices[gramOrder - 1]});
             }
 
             if constexpr (needToAddEndOfWordToken) {
