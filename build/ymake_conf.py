@@ -1335,9 +1335,10 @@ class Linker(object):
         """
         self.tc = tc
         self.build = build
-        if self.tc.is_clang and self.tc.version_at_least(3, 9) and self.build.host.is_linux and not self.build.target.is_apple and not self.build.target.is_android and self.tc.is_from_arcadia:
-            self.type = Linker.LLD
-            if is_positive('USE_LTO') or self.build.target.is_linux_armv8 or self.build.target.is_ppc64le:  # TODO: try to enable PPC64 with LLD>=6
+        if self.tc.is_from_arcadia and self.build.host.is_linux and not (self.build.target.is_apple or self.build.target.is_android):
+            if self.tc.is_clang and not (is_positive('USE_LTO') or self.build.target.is_linux_armv8 or self.build.target.is_ppc64le):  # TODO: try to enable PPC64 with LLD>=6
+                self.type = Linker.LLD
+            else:
                 self.type = Linker.GOLD
         else:
             self.type = None
@@ -1346,7 +1347,8 @@ class Linker(object):
         self._print_linker_selector()
 
     def _print_linker_selector(self):
-        if self.type == self.LLD or self.type == self.GOLD:
+        if self.type and self.tc.is_clang:
+            # GCC does not support -fuse-ld.
             emit_big('''
                 macro _USE_LINKER() {
                     DEFAULT(_LINKER_ID %(default_linker)s)
