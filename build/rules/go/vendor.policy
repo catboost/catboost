@@ -233,6 +233,9 @@ ALLOW .* -> vendor/gopkg.in/gographics/imagick.v2
 # fixed-size thread safe LRU cache
 ALLOW .* -> vendor/github.com/hashicorp/golang-lru
 
+# A wrapper around os/exec.Cmd to run external commands asynchronously (for Linux and macOS)
+ALLOW .* -> github.com/go-cmd/cmd
+
 # 
 # Temporary exceptions.
 #
