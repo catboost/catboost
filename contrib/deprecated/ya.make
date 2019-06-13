@@ -31,6 +31,7 @@ RECURSE(
     sigc++
     udns
     uriparser
+    wangle
 )
 
 

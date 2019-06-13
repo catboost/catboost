@@ -11,9 +11,14 @@ ALLOW devtools/experimental/mds -> contrib/deprecated/blackhole
 DENY .* -> contrib/deprecated/blackhole
 
 ALLOW contrib/deprecated/folly -> contrib/deprecated/folly
+ALLOW contrib/deprecated/wangle -> contrib/deprecated/folly
+ALLOW contrib/deprecated/wangle -> contrib/deprecated/wangle
 ALLOW mds -> contrib/deprecated/folly
+ALLOW mds -> contrib/deprecated/wangle
 ALLOW devtools/experimental/mds -> contrib/deprecated/folly
+ALLOW devtools/experimental/mds -> contrib/deprecated/wangle
 DENY .* -> contrib/deprecated/folly
+DENY .* -> contrib/deprecated/wangle
 
 ALLOW contrib/deprecated/http-parser -> contrib/deprecated/http-parser
 ALLOW mds -> contrib/deprecated/http-parser
