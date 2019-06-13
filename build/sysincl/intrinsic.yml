@@ -17,6 +17,7 @@
   - lzcntintrin.h
   - mm3dnow.h
   - mmintrin.h
+  - msa.h
   - nmmintrin.h
   - pmmintrin.h
   - popcntintrin.h
