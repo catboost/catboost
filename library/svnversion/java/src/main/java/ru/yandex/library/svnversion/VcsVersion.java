@@ -136,5 +136,10 @@ public class VcsVersion {
         return new String(Base64.getDecoder().decode(Val));
     }
 
+    public static void main(String[] args) {
+        VcsVersion vcs = new VcsVersion(VcsVersion.class);
+        vcs.printSvnVersionAndExit0();
+    }
+
     private Manifest Manifest;
 }
