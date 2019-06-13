@@ -554,7 +554,7 @@ class Build(object):
 
         if self.ignore_local_files or host.is_windows or is_positive('NO_SVN_DEPENDS'):
             emit('SVN_DEPENDS')
-            emit('SVN_DEPENDS_CACHE')
+            emit('SVN_DEPENDS_CACHE__NO_UID__')
         else:
             def find_svn():
                 for i in range(0, 3):
@@ -577,7 +577,7 @@ class Build(object):
                 return ''
 
             emit('SVN_DEPENDS', find_svn())
-            emit('SVN_DEPENDS_CACHE', '${hide;kv:"disable_cache"}')
+            emit('SVN_DEPENDS_CACHE__NO_UID__', '${hide;kv:"disable_cache"}')
 
     @staticmethod
     def _load_json_from_base64(base64str):
