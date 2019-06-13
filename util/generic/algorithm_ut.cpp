@@ -225,6 +225,28 @@ Y_UNIT_TEST_SUITE(TAlgorithm) {
         UNIT_ASSERT_EQUAL(NPOS, FindIndex(empty, 0));
     }
 
+    Y_UNIT_TEST(FindIndexIfTest) {
+        TVectorNoCopy v;
+        v.push_back(1);
+        v.push_back(2);
+        v.push_back(3);
+
+        UNIT_ASSERT_EQUAL(0, FindIndexIf(v, [](int x) { return x == 1; }));
+        UNIT_ASSERT_EQUAL(1, FindIndexIf(v, [](int x) { return x == 2; }));
+        UNIT_ASSERT_EQUAL(2, FindIndexIf(v, [](int x) { return x == 3; }));
+        UNIT_ASSERT_EQUAL(NPOS, FindIndexIf(v, [](int x) { return x == 42; }));
+
+        int array[3] = {1, 2, 3};
+
+        UNIT_ASSERT_EQUAL(0, FindIndexIf(array, [](int x) { return x == 1; }));
+        UNIT_ASSERT_EQUAL(1, FindIndexIf(array, [](int x) { return x == 2; }));
+        UNIT_ASSERT_EQUAL(2, FindIndexIf(array, [](int x) { return x == 3; }));
+        UNIT_ASSERT_EQUAL(NPOS, FindIndexIf(array, [](int x) { return x == 42; }));
+
+        TVector<int> empty;
+        UNIT_ASSERT_EQUAL(NPOS, FindIndexIf(empty, [](int x) { return x == 3; }));
+    }
+
     Y_UNIT_TEST(SortUniqueTest) {
         {
             TVector<TString> v;
