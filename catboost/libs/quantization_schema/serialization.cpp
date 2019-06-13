@@ -216,6 +216,9 @@ NCB::TPoolQuantizationSchema NCB::QuantizationSchemaFromProto(
         schema.NanModes[i] = NanModeFromProto(featureSchema.GetNanMode());
     }
 
+    const auto& classNames = proto.GetClassNames();
+    schema.ClassNames.assign(classNames.begin(), classNames.end());
+
     return schema;
 }
 

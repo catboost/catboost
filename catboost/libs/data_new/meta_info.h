@@ -59,7 +59,7 @@ namespace NCB {
         bool HasTimestamp = false;
         bool HasPairs = false;
 
-        // can be set if baseline file header contains such information
+        // can be set from baseline file header or from quantized pool
         TVector<TString> ClassNames = {};
 
         // set only for dsv format pools
