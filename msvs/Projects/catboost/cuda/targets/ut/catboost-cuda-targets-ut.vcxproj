@@ -79,7 +79,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\targets\ut\test_auc.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\cuda\targets\ut\test_dcg.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\targets\ut\test_multi_logit.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\targets\ut\test_query_cross_entropy.cpp"/>
   </ItemGroup>
