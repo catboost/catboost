@@ -452,8 +452,10 @@
     - parquet/file_reader.h
     - parquet/util/memory.h
     - pcg_uint128.hpp
+    - rapidjson/document.h
     - rdkafka.h
     - re2_st/re2.h
+    - simdjson/jsonparser.h
     - time_zone.h
     - vectorf128.h
     - vectormath_exp.h
