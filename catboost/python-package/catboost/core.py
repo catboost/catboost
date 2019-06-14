@@ -2142,7 +2142,7 @@ class CatBoost(_CatBoostBase):
             self._init_params[key] = value
         return self
 
-    def calc_feature_statistics(self, data, target, feature, prediction_type=None,
+    def calc_feature_statistics(self, feature, data, target=None, prediction_type=None,
                                 cat_feature_values=None, plot=True, max_cat_features_on_plot=10,
                                 thread_count=-1, plot_file=None):
         """
@@ -2166,12 +2166,13 @@ class CatBoost(_CatBoostBase):
 
         Parameters
         ----------
-        data: numpy.array or pandas.DataFrame
-            Data to compute statistics on
-        target: numpy.array or pandas.Series
-            Target corresponding to data
         feature: int or string
             Feature index or name in pd.DataFrame
+        data: numpy.array or pandas.DataFrame or catboost.Pool
+            Data to compute statistics on
+        target: numpy.array or pandas.Series or None
+            Target corresponding to data
+            Use only if data is not catboost.Pool.
         prediction_type: str
             Prediction type used for counting mean_prediction: 'Class', 'Probability' or 'RawFormulaVal'.
             If not specified, is derived from the model.
