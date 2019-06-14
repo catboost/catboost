@@ -21,6 +21,9 @@ def just_do_it():
                           ['-o', args.cpp_out, '-java', '-module', os.path.splitext(os.path.basename(args.src))[0], '-package', args.package, '-outdir', java_srcs_dir, args.src])
     with tarfile.open(args.jsrc_out, 'a') as tf:
         tf.add(java_srcs_dir, arcname=args.package.replace('.', '/'))
+    header = os.path.splitext(args.cpp_out)[0]+'.h'
+    if not os.path.exists(header):
+        open(header, 'w').close()
 
 
 if __name__ == '__main__':
