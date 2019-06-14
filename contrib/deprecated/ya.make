@@ -29,6 +29,7 @@ RECURSE(
     pygtrie
     pygtrie/tests
     sigc++
+    tornadis
     udns
     uriparser
     wangle
