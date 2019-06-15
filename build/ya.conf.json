@@ -85,7 +85,8 @@
         "qemu-i386": { "description": "QEMU i386 machine emulator and virtualizer" },
         "qemu-img": { "description": "QEMU disk image utility" },
         "qemu-nbd": { "description": "QEMU disk network block device server" },
-        "yfm": { "description": "YFM-extended markdown processor for Cloud deploy" }
+        "yfm": { "description": "YFM-extended markdown processor for Cloud deploy" },
+        "aws": { "description": "Run aws" }
     },
     "toolchain": {
         "msvc2017-i686": {
@@ -1510,6 +1511,16 @@
                 {"host": {"os": "DARWIN"}, "default": true},
                 {"host": {"os": "WIN"}, "default": true}
             ]
+        },
+        "aws": {
+            "tools": {
+                "aws": { "bottle" : "aws", "executable": "aws" }
+            },
+            "platforms": [
+                {"host": {"os": "LINUX"}, "default": true},
+                {"host": {"os": "WIN"}, "default": true},
+                {"host": {"os": "DARWIN"}, "default": true}
+            ]
         }
     },
     "bottles": {
@@ -2454,7 +2465,15 @@
             "executable": {
                 "yfm": ["yfm-transform"]
             }
+        },
+        "aws": {
+            "formula": {
+                "sandbox_id": 448981674,
+                "match": "aws"
+            },
+            "executable": {
+                "aws": ["aws"]
+            }
         }
     }
 }
-
