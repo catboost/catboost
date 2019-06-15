@@ -370,7 +370,7 @@
   includes:
     - pcre.h
 
-- source_filter: "^contrib/libs/(dlib|freetype|leptonica-1.70|libtheora|opencv|zbar)"
+- source_filter: "^contrib/libs/(dlib|freetype|leptonica-1.70|libtheora|zbar)"
   includes:
     - png.h
 
