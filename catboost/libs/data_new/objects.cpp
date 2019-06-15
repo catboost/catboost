@@ -989,7 +989,7 @@ TIntrusiveConstPtr<TQuantizedObjectsDataProvider>
         );
     }
 
-template<class TCompressedColumnData>
+template <class TCompressedColumnData>
 static ui32 CalcCompressedFeatureChecksum(ui32 checkSum, TCompressedColumnData& columnData) {
     TConstCompressedArraySubset compressedDataSubset = columnData->GetCompressedData();
 

@@ -185,12 +185,12 @@ namespace NCB {
             TVector<TConstArrayRef<ui8>>& RepackedFeaturesRef;
         };
 
-        template<class TBaseAccesorType>
+        template <class TBaseAccesorType>
         class TFeatureAccessorTemplate : public TBaseAccesorType {
             using TBaseAccesorType::RepackedFeaturesRef;
             using TBaseAccesorType::GetFeatureDataBeginPtr;
         public:
-            template<class TObjectsDataProviderType>
+            template <class TObjectsDataProviderType>
             TFeatureAccessorTemplate(
                 const TFullModel& model,
                 const TObjectsDataProviderType& objectsData,

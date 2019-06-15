@@ -191,7 +191,7 @@ namespace NCB {
             );
         }
 
-        template<class F>
+        template <class F>
         void ForEach(F&& f, const NCB::TFeaturesArraySubsetIndexing* featuresSubsetIndexing = nullptr) const {
             if (!featuresSubsetIndexing) {
                 featuresSubsetIndexing = SubsetIndexing;

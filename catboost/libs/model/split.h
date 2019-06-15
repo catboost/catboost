@@ -7,7 +7,7 @@
 #include <util/str_stl.h>
 #include <util/ysaveload.h>
 
-template<typename TBucketType>
+template <typename TBucketType>
 inline bool IsTrueHistogram(TBucketType bucket, TBucketType splitIdx) {
     return bucket > splitIdx;
 }
