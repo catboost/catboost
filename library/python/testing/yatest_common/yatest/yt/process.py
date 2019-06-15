@@ -1,22 +1,73 @@
+import base64
+import collections
+import json
+import logging
+import marshal
 import os
 import re
-import json
 import shlex
-import base64
-import marshal
-import logging
-import tempfile
-import subprocess
-import collections
 import six
+import subprocess
+import tempfile
 
 import yatest.common as ytc
 
 logger = logging.getLogger(__name__)
-
+YT_SANDBOX_ROOT_PREFIX = '$(YT_SANDBOX_ROOT)'
 
 class InvalidInputError(Exception):
     pass
+
+
+def get_yt_sandbox_path(path):
+    return "{}/{}".format(YT_SANDBOX_ROOT_PREFIX, path)
+
+
+class _YtExecutor(ytc.process._Execution):
+
+    def wait(self, exec_spec, command, user_stdout, user_stderr, check_exit_code, timeout):
+        super(_YtExecutor, self).wait(check_exit_code=True)
+
+        def local_path(name):
+            return exec_spec['output_data'][exec_spec[name]]
+
+        if user_stdout is not False:
+            with open(local_path('stdout')) as afile:
+                self._std_out = afile.read()
+
+        if user_stderr is not False:
+            with open(local_path('stderr')) as afile:
+                self._std_err = afile.read()
+
+        self._command = command
+
+        with open(local_path('meta')) as afile:
+            meta = json.load(afile)
+
+        self._elapsed = meta['elapsed']
+        self._metrics = meta['metrics']
+        self._exit_code = meta['exit_code']
+
+        self._set_metrics(meta)
+
+        if meta['timeout']:
+            raise ytc.ExecutionTimeoutError(self, "{} second(s) wait timeout has expired".format(timeout))
+
+        # if rc != 0 and check_exit_code - _finalise will print stderr and stdout
+        if not check_exit_code or self._exit_code == 0:
+            logger.debug("Command over YT output:\n%s", ytc.process.truncate(self._std_out, ytc.process.MAX_OUT_LEN))
+            logger.debug("Command over YT errors:\n%s", ytc.process.truncate(self._std_err, ytc.process.MAX_OUT_LEN))
+
+        self._finalise(check_exit_code)
+
+    def _set_metrics(self, meta):
+        import pytest
+        # set global yt-execute's machinery metrics
+        ya_inst = pytest.config.ya
+        for k, v in six.iteritems(meta.get('yt_metrics', {})):
+            ya_inst.set_metric_value(k, v + ya_inst.get_metric_value(k, default=0))
+        # increase global call counter
+        ya_inst.set_metric_value('yt_execute_call_count', ya_inst.get_metric_value('yt_execute_call_count', default=0) + 1)
 
 
 # Don't forget to sync changes in the interface and defaults with yatest.common.execute

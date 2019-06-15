@@ -356,6 +356,7 @@ def execute(
     creationflags=0, wait=True,
     process_progress_listener=None, close_fds=False,
     collect_cores=True, check_sanitizer=True, preexec_fn=None, on_timeout=None,
+    executor=_Execution,
 ):
     """
     Executes a command
@@ -437,7 +438,7 @@ def execute(
     )
     yatest_logger.debug("Command pid: %s", process.pid)
 
-    res = _Execution(command, process, out_file, err_file, process_progress_listener, cwd, collect_cores, check_sanitizer, started, user_stdout=user_stdout, user_stderr=user_stderr)
+    res = executor(command, process, out_file, err_file, process_progress_listener, cwd, collect_cores, check_sanitizer, started, user_stdout=user_stdout, user_stderr=user_stderr)
     if wait:
         res.wait(check_exit_code, timeout, on_timeout)
     return res
