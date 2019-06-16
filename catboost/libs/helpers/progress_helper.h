@@ -16,7 +16,7 @@
 class TMD5Output : public IOutputStream {
 public:
     explicit inline TMD5Output(IOutputStream* slave) noexcept
-            : Slave_(slave) {
+        : Slave_(slave) {
     }
 
     inline const char* Sum(char* buf) {
@@ -39,19 +39,20 @@ private:
 
 class TProgressHelper {
 public:
-    explicit TProgressHelper(const TString& label,
-                             const TString exceptionMessage = "Can't save progress to file, got exception: ",
-                             const TString savedMessage = "Saved progress",
-                             bool calcMd5 = true)
-            : Label(label)
-            , ExceptionMessage(exceptionMessage)
-            , SavedMessage(savedMessage)
-            , CalcMd5(calcMd5) {
-    }
+    explicit TProgressHelper(
+        const TString& label,
+        const TString exceptionMessage = "Can't save progress to file, got exception: ",
+        const TString savedMessage = "Saved progress",
+        bool calcMd5 = true
+    )
+        : Label(label)
+        , ExceptionMessage(exceptionMessage)
+        , SavedMessage(savedMessage)
+        , CalcMd5(calcMd5)
+    {}
 
     template <class TWriter>
-    void Write(const TFsPath& path,
-               TWriter&& writer) {
+    void Write(const TFsPath& path, TWriter&& writer) {
         TString tempName = JoinFsPaths(path.Dirname(), CreateGuidAsString()) + ".tmp";
         try {
             {
@@ -72,8 +73,7 @@ public:
     }
 
     template <class TReader>
-    void CheckedLoad(const TFsPath& path,
-                     TReader&& reader) {
+    void CheckedLoad(const TFsPath& path, TReader&& reader) {
         TString label;
         TIFStream input(path);
         ::Load(&input, label);

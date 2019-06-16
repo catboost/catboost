@@ -1031,25 +1031,30 @@ static ui32 CalcFeatureValuesCheckSum(
 {
     const ui32 emptyColumnDataForCrc = 0;
     TVector<ui32> checkSums(featuresLayout.GetFeatureCount(FeatureType), 0);
-    ParallelFor(*localExecutor, 0, featuresLayout.GetFeatureCount(FeatureType), [&] (ui32 perTypeFeatureIdx) {
-        if (featuresLayout.GetInternalFeatureMetaInfo(perTypeFeatureIdx, FeatureType).IsAvailable) {
-            // TODO(espetrov,akhropov): remove workaround below MLTOOLS-3604
-            if (featuresData[perTypeFeatureIdx].Get() == nullptr) {
-                return;
-            }
-            auto compressedValuesFeatureData = dynamic_cast<const TCompressedValuesHolderImpl<IColumn>*>(
-                featuresData[perTypeFeatureIdx].Get()
-            );
-            if (compressedValuesFeatureData) {
-                checkSums[perTypeFeatureIdx] = CalcCompressedFeatureChecksum(0, compressedValuesFeatureData);
+    ParallelFor(
+        *localExecutor,
+        0,
+        featuresLayout.GetFeatureCount(FeatureType),
+        [&] (ui32 perTypeFeatureIdx) {
+            if (featuresLayout.GetInternalFeatureMetaInfo(perTypeFeatureIdx, FeatureType).IsAvailable) {
+                // TODO(espetrov,akhropov): remove workaround below MLTOOLS-3604
+                if (featuresData[perTypeFeatureIdx].Get() == nullptr) {
+                    return;
+                }
+                auto compressedValuesFeatureData = dynamic_cast<const TCompressedValuesHolderImpl<IColumn>*>(
+                    featuresData[perTypeFeatureIdx].Get()
+                );
+                if (compressedValuesFeatureData) {
+                    checkSums[perTypeFeatureIdx] = CalcCompressedFeatureChecksum(0, compressedValuesFeatureData);
+                } else {
+                    const auto repackedHolder = featuresData[perTypeFeatureIdx]->ExtractValues(localExecutor);
+                    checkSums[perTypeFeatureIdx] = UpdateCheckSum(0, *repackedHolder);
+                }
             } else {
-                const auto repackedHolder = featuresData[perTypeFeatureIdx]->ExtractValues(localExecutor);
-                checkSums[perTypeFeatureIdx] = UpdateCheckSum(0, *repackedHolder);
+                checkSums[perTypeFeatureIdx] = UpdateCheckSum(0, emptyColumnDataForCrc);
             }
-        } else {
-            checkSums[perTypeFeatureIdx] = UpdateCheckSum(0, emptyColumnDataForCrc);
         }
-    });
+    );
     ui32 checkSum = init;
     for (ui32 featureCheckSum : checkSums) {
         checkSum = UpdateCheckSum(checkSum, featureCheckSum);

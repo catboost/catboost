@@ -8,11 +8,15 @@
 
 
 namespace NCB {
-    void ParseBordersFileLine(const TString& line, ui32* flatFeatureIdx, float* border, TMaybe<ENanMode>* nanMode);
+    void ParseBordersFileLine(
+        const TString& line,
+        ui32* flatFeatureIdx,
+        float* border,
+        TMaybe<ENanMode>* nanMode);
 
     void OutputFeatureBorders(
         ui32 flatFeatureIdx,
         const TVector<float>& borders,
         ENanMode nanMode,
-        IOutputStream& output);
+        IOutputStream* output);
 }

@@ -1221,10 +1221,10 @@ namespace NCB {
                 OutputWarningIfCpuRamUsageOverLimit(cpuRamUsage, options.CpuRamLimit);
 
                 TResourceConstrainedExecutor resourceConstrainedExecutor(
-                    *localExecutor,
                     "CPU RAM",
                     options.CpuRamLimit - Min(cpuRamUsage, options.CpuRamLimit),
-                    true
+                    true,
+                    localExecutor
                 );
 
                 const ui64 maxMemUsageForFloatFeature = EstimateMaxMemUsageForFloatFeature(
@@ -1384,10 +1384,10 @@ namespace NCB {
                 OutputWarningIfCpuRamUsageOverLimit(cpuRamUsage, options.CpuRamLimit);
 
                 TResourceConstrainedExecutor resourceConstrainedExecutor(
-                    *localExecutor,
                     "CPU RAM",
                     options.CpuRamLimit - Min(cpuRamUsage, options.CpuRamLimit),
-                    true
+                    true,
+                    localExecutor
                 );
 
                 if (bundleExclusiveFeatures) {

@@ -56,7 +56,7 @@ public:
 
     template <class T>
     inline T Extract(TConstArrayRef<TStorageType> compressedData, ui32 index) const {
-        Y_ASSERT(sizeof(T)*CHAR_BIT >= BitsPerKey);
+        Y_ASSERT(sizeof(T) * CHAR_BIT >= BitsPerKey);
         const ui32 offset = Offset(index);
         const ui32 shift = Shift(index);
         return static_cast<T>((compressedData[offset] >> shift) & Mask());
@@ -148,15 +148,26 @@ inline TVector<TStorageType> CompressVector(const T* data, ui32 size, ui32 bitsP
     //alignment by entries per int allows parallel compression
     params.SetBlockSize(indexHelper.GetEntriesPerType() * 8192);
 
-    NPar::LocalExecutor().ExecRange([&](int blockIdx) {
-        NPar::TLocalExecutor::BlockedLoopBody(params, [&](int i) {
-            const ui32 offset = indexHelper.Offset((ui32)i);
-            const ui32 shift = indexHelper.Shift((ui32)i);
-            CB_ENSURE((data[i] & mask) == data[i], TStringBuilder() << "Error: key contains too many bits: max bits per key: allowed " << bitsPerKey << ", observe key " << static_cast<ui64>(data[i]));
-            dst[offset] |= static_cast<ui64>(data[i]) << shift;
-        })(blockIdx);
-    },
-                                    0, params.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
+    NPar::LocalExecutor().ExecRange(
+        [&](int blockIdx) {
+            NPar::TLocalExecutor::BlockedLoopBody(
+                params,
+                [&](int i) {
+                    const ui32 offset = indexHelper.Offset((ui32)i);
+                    const ui32 shift = indexHelper.Shift((ui32)i);
+                    CB_ENSURE(
+                        (data[i] & mask) == data[i],
+                        TStringBuilder() << "Error: key contains too many bits: max bits per key: allowed "
+                            << bitsPerKey << ", observe key " << static_cast<ui64>(data[i])
+                    );
+                    dst[offset] |= static_cast<ui64>(data[i]) << shift;
+                }
+            )(blockIdx);
+        },
+        0,
+        params.GetBlockCount(),
+        NPar::TLocalExecutor::WAIT_COMPLETE
+    );
 
     return dst;
 }
@@ -176,11 +187,15 @@ inline TVector<T> DecompressVector(const TVector<TStorageType>& compressedData, 
     const TIndexHelper<TStorageType> indexHelper(bitsPerKey);
     const auto mask = indexHelper.Mask();
 
-    NPar::ParallelFor(0, keys, [&](int i) {
-        const ui32 offset = indexHelper.Offset(i);
-        const ui32 shift = indexHelper.Shift(i);
-        dst[i] = (compressedData[offset] >> shift) & mask;
-    });
+    NPar::ParallelFor(
+        0,
+        keys,
+        [&](int i) {
+            const ui32 offset = indexHelper.Offset(i);
+            const ui32 shift = indexHelper.Shift(i);
+            dst[i] = (compressedData[offset] >> shift) & mask;
+        }
+    );
 
     return dst;
 }

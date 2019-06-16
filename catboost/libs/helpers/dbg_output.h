@@ -24,7 +24,8 @@ namespace NCB {
                         (*out) << Endl;
                     }
                     for (auto i : xrange<size_t>(V.size())) {
-                        (*out) << (OnSeparateLines ? "\t" : (i == 0 ? "" : ", ")) << i << ':' << ::DbgDump(V[i]);
+                        (*out) << (OnSeparateLines ? "\t" : (i == 0 ? "" : ", ")) << i << ':'
+                            << ::DbgDump(V[i]);
                         if (OnSeparateLines) {
                             (*out) << Endl;
                         }

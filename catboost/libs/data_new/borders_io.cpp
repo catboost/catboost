@@ -91,7 +91,7 @@ namespace NCB {
                     flatFeatureIdx,
                     quantizedFeaturesInfo.GetBorders(floatFeatureIdx),
                     quantizedFeaturesInfo.GetNanMode(floatFeatureIdx),
-                    out);
+                    &out);
             }
         );
     }

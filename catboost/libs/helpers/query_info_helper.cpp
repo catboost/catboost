@@ -37,7 +37,10 @@ void UpdateQueriesInfo(
             docIdEnd = docId;
             queryInfo->emplace_back(docIdStart, docIdEnd);
             if (!subgroupId.empty()) {
-                queryInfo->back().SubgroupId = {subgroupId.begin() + docIdStart, subgroupId.begin() + docIdEnd};
+                queryInfo->back().SubgroupId = {
+                    subgroupId.begin() + docIdStart,
+                    subgroupId.begin() + docIdEnd
+                };
             }
             if (!groupWeight.empty()) {
                 queryInfo->back().Weight = groupWeight[docIdStart];
@@ -64,7 +67,10 @@ TVector<ui32> GetQueryIndicesForDocs(
     TVector<ui32> queriesInfoForDocs;
     queriesInfoForDocs.reserve(learnSampleCount);
     for (size_t queryIndex = 0; queryIndex < queriesInfo.size(); ++queryIndex) {
-        queriesInfoForDocs.insert(queriesInfoForDocs.end(), queriesInfo[queryIndex].End - queriesInfo[queryIndex].Begin, queryIndex);
+        queriesInfoForDocs.insert(
+            queriesInfoForDocs.end(),
+            queriesInfo[queryIndex].End - queriesInfo[queryIndex].Begin,
+            queryIndex);
     }
     return queriesInfoForDocs;
 }
@@ -86,7 +92,8 @@ void UpdateQueriesPairs(
     for (ui32 docId = 0; docId < queriesIndices.size(); ++docId) {
         queriesIndices[docId] = currentQueryIndex;
         if (docId + 1 == queryInfoRef[currentQueryIndex].End) {
-            queryInfoRef[currentQueryIndex].Competitors.resize(queryInfoRef[currentQueryIndex].End - queryInfoRef[currentQueryIndex].Begin);
+            queryInfoRef[currentQueryIndex].Competitors.resize(
+                queryInfoRef[currentQueryIndex].End - queryInfoRef[currentQueryIndex].Begin);
             ++currentQueryIndex;
         }
     }
@@ -95,7 +102,9 @@ void UpdateQueriesPairs(
         const auto& pair = pairs[pairId];
         ui32 winnerId = invertedPermutation.empty() ? pair.WinnerId : invertedPermutation[pair.WinnerId];
         ui32 loserId = invertedPermutation.empty() ? pair.LoserId : invertedPermutation[pair.LoserId];
-        ui32 queryIndex = queriesIndices[winnerId]; // assume that winnerId and loserId belong to the same query
+
+        // assume that winnerId and loserId belong to the same query
+        ui32 queryIndex = queriesIndices[winnerId];
         CB_ENSURE(
             queryIndex == queriesIndices[loserId],
             "Both documents in pair should have the same queryId"
@@ -109,7 +118,8 @@ void UpdateQueriesPairs(
 void UpdateQueriesPairs(
     const TConstArrayRef<TPair> pairs,
     const TConstArrayRef<ui32> invertedPermutation,
-    TVector<TQueryInfo>* const queryInfo) {
+    TVector<TQueryInfo>* const queryInfo)
+{
     UpdateQueriesPairs(pairs, 0, pairs.size(), invertedPermutation, queryInfo);
 }
 
