@@ -22,7 +22,6 @@ using NCatboostOptions::ParsePerFeatureBinarization;
 using NCatboostOptions::ParsePerFeatureCtrDescription;
 using NCatboostOptions::ParsePerTextFeatureProcessing;
 
-
 using NCatboostOptions::BuildCtrOptionsDescription;
 
 static Y_NO_INLINE void CopyCtrDescription(
