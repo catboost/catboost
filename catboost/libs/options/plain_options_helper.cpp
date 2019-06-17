@@ -22,6 +22,9 @@ using NCatboostOptions::ParsePerFeatureBinarization;
 using NCatboostOptions::ParsePerFeatureCtrDescription;
 using NCatboostOptions::ParsePerTextFeatureProcessing;
 
+
+using NCatboostOptions::BuildCtrOptionsDescription;
+
 static Y_NO_INLINE void CopyCtrDescription(
     const NJson::TJsonValue& options,
     const TStringBuf srcKey,
@@ -66,7 +69,6 @@ static Y_NO_INLINE void ConcatenateCtrDescription(
     }
     seenKeys->insert(TString(sourceKey));
 }
-
 
 static Y_NO_INLINE void CopyPerFeatureCtrDescription(
     const NJson::TJsonValue& options,
@@ -459,7 +461,7 @@ void NCatboostOptions::PlainJsonToOptions(
     CopyOption(plainOptions, "task_type", &trainOptions, &seenKeys);
     CopyOption(plainOptions, "metadata", &trainOptions, &seenKeys);
 
-    for (const auto& [optionName, optionValue] : plainOptions.GetMap()) {
+    for (const auto& [optionName, optionValue] : plainOptions.GetMapSafe()) {
         if (!seenKeys.contains(optionName)) {
             const TString message = TStringBuilder()
                     //TODO(kirillovs): this cast fixes structured binding problem in msvc 14.12 compilator
@@ -496,7 +498,7 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
         }
         if (options["metrics"].Has("custom_metrics")) {
             auto& result = plainOptionsJson["custom_metric"] = NJson::TJsonValue(NJson::JSON_ARRAY);
-            for (auto& metric : options["metrics"]["custom_metrics"].GetArray()) {
+            for (auto& metric : options["metrics"]["custom_metrics"].GetArraySafe()) {
                 result.AppendValue(BuildMetricOptionDescription(metric));
             }
             DeleteSeenOption(&optionsCopy["metrics"], "custom_metrics");
@@ -661,6 +663,9 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
         CopyOption(treeOptions, "observations_to_bootstrap", &plainOptionsJson, &seenKeys);
         DeleteSeenOption(&optionsCopyTree, "observations_to_bootstrap");
 
+        CopyOption(treeOptions, "monotone_constraints", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopyTree, "monotone_constraints");
+
         // bootstrap
         if (treeOptions.Has("bootstrap")) {
             const auto& bootstrapOptions = treeOptions["bootstrap"];
@@ -685,7 +690,7 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
         DeleteSeenOption(&optionsCopy, "tree_learner_options");
     }
 
-    //feature evaluation options
+    // feature evaluation options
     if (optionsCopy.Has("model_based_eval_options")) {
         auto& optionsCopyBasedEval = optionsCopy["model_based_eval_options"];
 
@@ -699,7 +704,7 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
         DeleteSeenOption(&optionsCopy, "model_based_eval_options");
     }
 
-    //cat-features
+    // cat-features
     if (options.Has("cat_feature_params")) {
         const auto& ctrOptions = options["cat_feature_params"];
         auto& optionsCopyCtr = optionsCopy["cat_feature_params"];
@@ -716,11 +721,20 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
         if (ctrOptions.Has("target_binarization")) {
             const auto& ctrTargetBinarization = ctrOptions["target_binarization"];
             auto& optionsCopyCtrTargetBinarization = optionsCopyCtr["target_binarization"];
-
             CopyOptionWithNewKey(ctrTargetBinarization, "border_count", "ctr_target_border_count", &plainOptionsJson,
                                  &seenKeys);
             DeleteSeenOption(&optionsCopyCtrTargetBinarization, "border_count");
             DeleteSeenOption(&optionsCopyCtr, "target_binarization");
+        }
+
+        if (options.Has("text_feature_options")) {
+            const auto& textFeatureOptions = options["text_feature_options"];
+            auto textFeatureOptionsCopy = optionsCopy["text_feature_options"];
+            CopyOption(textFeatureOptions, "text_feature_estimators", &plainOptionsJson, &seenKeys);
+            DeleteSeenOption(&textFeatureOptionsCopy, "text_feature_estimators");
+
+            CB_ENSURE(textFeatureOptionsCopy.GetMapSafe().empty(), "some text features options keys missed");
+            DeleteSeenOption(&optionsCopy, "text_feature_options");
         }
 
         CopyOption(ctrOptions, "max_ctr_complexity", &plainOptionsJson, &seenKeys);
@@ -754,7 +768,7 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
         DeleteSeenOption(&optionsCopy, "cat_feature_params");
     }
 
-    //data processing
+    // data processing
     if (options.Has("data_processing_options")) {
         const auto& dataProcessingOptions = options["data_processing_options"];
         auto& optionsCopyDataProcessing = optionsCopy["data_processing_options"];
@@ -780,6 +794,15 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
         CopyOption(dataProcessingOptions, "gpu_cat_features_storage", &plainOptionsJson, &seenKeys);
         DeleteSeenOption(&optionsCopyDataProcessing, "gpu_cat_features_storage");
 
+        CopyOption(dataProcessingOptions, "text_processing", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopyDataProcessing, "text_processing");
+
+        CopyOption(dataProcessingOptions, "per_float_feature_binarization", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopyDataProcessing, "per_float_feature_binarization");
+
+        CopyOption(dataProcessingOptions, "target_border", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopyDataProcessing, "target_border");
+
         if (dataProcessingOptions.Has("float_features_binarization")) {
             const auto& floatFeaturesBinarization = dataProcessingOptions["float_features_binarization"];
             auto& optionsCopyDataProcessingFloatFeaturesBinarization = optionsCopyDataProcessing["float_features_binarization"];
@@ -802,7 +825,7 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
         DeleteSeenOption(&optionsCopy, "data_processing_options");
     }
 
-    //system
+    // system
     if (options.Has("system_options")) {
         const auto& systemOptions = options["system_options"];
         auto& optionsCopySystemOptions = optionsCopy["system_options"];
@@ -835,7 +858,7 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
         DeleteSeenOption(&optionsCopy, "system_options");
     }
 
-    //rest
+    // rest
     CopyOption(options, "random_seed", &plainOptionsJson, &seenKeys);
     DeleteSeenOption(&optionsCopy, "random_seed");
 
@@ -852,13 +875,15 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
     DeleteSeenOption(&optionsCopy, "metadata");
 
     DeleteSeenOption(&optionsCopy, "flat_params");
-
     CB_ENSURE(optionsCopy.GetMapSafe().empty(), "some options keys missed");
 }
 
 void NCatboostOptions::DeleteEmptyKeysInPlainJson(
         NJson::TJsonValue* plainOptionsJsonEfficient,
         bool categoricalFeaturesArePresent) {
+
+    CB_ENSURE(!plainOptionsJsonEfficient->GetMapSafe().empty(), "plainOptionsJsonEfficient should not be empty");
+    CB_ENSURE(plainOptionsJsonEfficient->GetMapSafe().size() > 30, "plainOptionsJsonEfficient LALALA ");
 
     if ((*plainOptionsJsonEfficient)["od_type"].GetStringSafe() == ToString(EOverfittingDetectorType::None)) {
         DeleteSeenOption(plainOptionsJsonEfficient, "od_type");

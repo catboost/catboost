@@ -5,7 +5,7 @@
 import six
 from six import iteritems, string_types, PY3
 from six.moves import range
-from json import dumps, loads, JSONEncoder
+from json import dumps, load, loads, JSONEncoder
 from copy import deepcopy
 from collections import Sequence, defaultdict
 import functools
@@ -2834,9 +2834,10 @@ cdef class _CatBoost:
     cpdef _get_plain_params(self, categoricalFeaturesArePresent):
         cdef TJsonValue plainOptions
         try:
-            plainOptions = GetPlainJsonWithAllOptions(dereference(self.__model), categoricalFeaturesArePresent)
-            return loads(to_native_str(ToString(plainOptions)))
+            options_json = GetPlainJsonWithAllOptions(dereference(self.__model), categoricalFeaturesArePresent)
+            return loads(to_native_str(ToString(options_json)))
         except Exception as e:
+            print(e)
             return {}
 
     def _get_tree_count(self):

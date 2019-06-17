@@ -160,8 +160,11 @@ NJson::TJsonValue GetPlainJsonWithAllOptions(const TFullModel& model, bool categ
     NJson::TJsonValue outputOptions = ReadTJsonValue(model.ModelInfo.at("output_options"));
     NJson::TJsonValue plainOptionsJson;
     NCatboostOptions::ConvertOptionsToPlainJson(trainOptions, outputOptions, &plainOptionsJson);
+    CB_ENSURE(!plainOptionsJson.GetMapSafe().empty(), "plainOptionsJson should not be empty.");
     NJson::TJsonValue plainOptionsJsonEfficient(plainOptionsJson);
+    CB_ENSURE(!plainOptionsJsonEfficient.GetMapSafe().empty(), "problems with copy constructor.");
     NCatboostOptions::DeleteEmptyKeysInPlainJson(&plainOptionsJsonEfficient, categoricalFeaturesArePresent);
+    CB_ENSURE(!plainOptionsJsonEfficient.GetMapSafe().empty(), "plainOptionsJsonEfficient should not be empty.");
     return plainOptionsJsonEfficient;
 }
 
