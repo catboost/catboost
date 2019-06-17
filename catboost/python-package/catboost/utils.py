@@ -93,7 +93,7 @@ def create_cd(
             f.write('{}\t{}\t{}\n'.format(index, title, name))
 
 
-def eval_metric(label, approx, metric, weight=None, group_id=None, thread_count=-1):
+def eval_metric(label, approx, metric, weight=None, group_id=None, subgroup_id=None, pairs=None, thread_count=-1):
     """
     Evaluate metrics with raw approxes and labels.
 
@@ -114,6 +114,18 @@ def eval_metric(label, approx, metric, weight=None, group_id=None, thread_count=
     group_id : list or numpy.array or pandas.DataFrame or pandas.Series, optional (default=None)
         Object group ids.
 
+    subgroup_id : list or numpy.array, optional (default=None)
+        subgroup id for each instance.
+        If not None, giving 1 dimensional array like data.
+
+    pairs : list or numpy.array or pandas.DataFrame or string
+        The pairs description.
+        If list or numpy.arrays or pandas.DataFrame, giving 2 dimensional.
+        The shape should be Nx2, where N is the pairs' count. The first element of the pair is
+        the index of winner object in the training set. The second element of the pair is
+        the index of loser object in the training set.
+        If string, giving the path to the file with pairs description.
+
     thread_count : int, optional (default=-1)
         Number of threads to work with.
         If -1, then the number of threads is set to the number of CPU cores.
@@ -126,7 +138,7 @@ def eval_metric(label, approx, metric, weight=None, group_id=None, thread_count=
         approx = [[]]
     if not isinstance(approx[0], ARRAY_TYPES):
         approx = [approx]
-    return _eval_metric_util(label, approx, metric, weight, group_id, thread_count)
+    return _eval_metric_util(label, approx, metric, weight, group_id, subgroup_id, pairs, thread_count)
 
 
 def get_gpu_device_count():

@@ -908,6 +908,8 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
         const TString& metricName,
         const TVector[float]& weight,
         const TVector[TGroupId]& groupId,
+        const TVector[TSubgroupId]& subgroup_id,
+        const TVector[TPair]& pairs,
         int threadCount
     ) nogil except +ProcessException
 
@@ -3288,7 +3290,7 @@ cdef class _MetricCalcerBase:
         raise CatBoostError('Can\'t deepcopy _MetricCalcerBase object')
 
 
-cpdef _eval_metric_util(label_param, approx_param, metric, weight_param, group_id_param, thread_count):
+cpdef _eval_metric_util(label_param, approx_param, metric, weight_param, group_id_param, subgroup_id_param, pairs_param, thread_count):
     if (len(label_param) != len(approx_param[0])):
         raise CatBoostError('Label and approx should have same sizes.')
     doc_count = len(label_param);
@@ -3325,9 +3327,26 @@ cpdef _eval_metric_util(label_param, approx_param, metric, weight_param, group_i
             get_id_object_bytes_string_representation(group_id_param[i], &group_id_strbuf)
             group_id[i] = CalcGroupIdFor(<TStringBuf>group_id_strbuf)
 
+    cdef TString subgroup_id_strbuf
+
+    cdef TVector[TSubgroupId] subgroup_id;
+    if subgroup_id_param is not None:
+        if (len(subgroup_id_param) != doc_count):
+            raise CatBoostError('Label and subgroup_id should have same sizes.')
+        subgroup_id.resize(doc_count)
+        for i in range(doc_count):
+            get_id_object_bytes_string_representation(subgroup_id_param[i], &subgroup_id_strbuf)
+            subgroup_id[i] = CalcSubgroupIdFor(<TStringBuf>subgroup_id_strbuf)
+
+    cdef TVector[TPair] pairs;
+    if pairs_param is not None:
+        pairs.resize(len(pairs_param))
+        for i in range(len(pairs_param)):
+            pairs[i] = TPair(pairs_param[i][0], pairs_param[i][1], 1)
+
     thread_count = UpdateThreadCount(thread_count);
 
-    return EvalMetricsForUtils(label, approx, to_arcadia_string(metric), weight, group_id, thread_count)
+    return EvalMetricsForUtils(label, approx, to_arcadia_string(metric), weight, group_id, subgroup_id, pairs, thread_count)
 
 
 cpdef _get_roc_curve(model, pools_list, thread_count):
