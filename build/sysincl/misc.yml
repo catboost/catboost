@@ -165,7 +165,7 @@
     - mkl.h:         contrib/libs/intel/mkl/include/mkl.h
 
 # deprecated contrib with ADDINCL to libintl
-- source_filter: "^contrib/deprecated/glib/glib"
+- source_filter: "^contrib/(deprecated/glib/glib|libs/gdk-pixbuf)"
   includes:
     - libintl.h:     contrib/deprecated/libintl/libintl.h
 
