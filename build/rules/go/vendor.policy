@@ -260,7 +260,8 @@ ALLOW cloud -> vendor/github.com/rcrowley/go-metrics
 # CONTRIB-865. Jaeger YT plugin. responsible: prime@
 ALLOW yt/jaeger/plugin -> vendor/github.com/jaegertracing/jaeger
 ALLOW yt/jaeger/plugin -> vendor/github.com/uber/jaeger-lib
+ALLOW yt/jaeger/plugin -> vendor/github.com/uber/jaeger-client-go
 ALLOW yt/jaeger/plugin -> vendor/github.com/spf13/viper
-
+ALLOW yt/jaeger/plugin -> vendor/github.com/gorilla/handlers
 
 DENY .* -> vendor/
