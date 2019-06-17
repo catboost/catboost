@@ -882,7 +882,6 @@ void NCatboostOptions::DeleteEmptyKeysInPlainJson(
         bool categoricalFeaturesArePresent) {
 
     CB_ENSURE(!plainOptionsJsonEfficient->GetMapSafe().empty(), "plainOptionsJsonEfficient should not be empty");
-    CB_ENSURE(plainOptionsJsonEfficient->GetMapSafe().size() > 30, "plainOptionsJsonEfficient LALALA ");
 
     if ((*plainOptionsJsonEfficient)["od_type"].GetStringSafe() == ToString(EOverfittingDetectorType::None)) {
         DeleteSeenOption(plainOptionsJsonEfficient, "od_type");
