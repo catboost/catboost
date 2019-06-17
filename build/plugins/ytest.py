@@ -104,7 +104,7 @@ def validate_requirement(req_name, value, test_size, is_force_sandbox, in_autoch
         return check_func(req_name, value)
 
 
-def validate_test(kw):
+def validate_test(unit, kw):
     def get_list(key):
         return deserialize_list(kw.get(key, ""))
 
@@ -222,6 +222,29 @@ def validate_test(kw):
                 errors.append("You can't use '[[imp]]{}[[rst]]' - it will be automatically calculated or configured during run".format(option))
                 break
 
+    if valid_kw.get("YT-SPEC"):
+        if 'ya:yt' not in tags:
+            errors.append("You can use YT_SPEC macro only tests marked with ya:yt tag")
+        else:
+            for filename in get_list("YT-SPEC"):
+                filename = unit.resolve('$S/' + filename)
+                if not os.path.exists(filename):
+                    errors.append("File '{}' specified in the YT_SPEC macro doesn't exist".format(filename))
+                    continue
+
+                try:
+                    with open(filename) as afile:
+                        data = json.load(afile)
+                except Exception as e:
+                    errors.append("Malformed data in {}: {} ({})".format(unit.path(), e, filename))
+                    continue
+
+                known = {'operation_spec', 'task_spec'}
+                unknown = set(data.keys()) - known
+                if unknown:
+                    errors.append("Don't know what to do with {} field(s) in {}. You can use only: {}".format(unknown, unit.path(), known))
+                    continue
+
     if valid_kw.get("USE_ARCADIA_PYTHON") == "yes" and valid_kw.get("SCRIPT-REL-PATH") == "py.test":
         errors.append("PYTEST_SCRIPT is deprecated")
 
@@ -244,7 +267,7 @@ def validate_test(kw):
 
 
 def dump_test(unit, kw):
-    valid_kw, warnings, errors = validate_test(kw)
+    valid_kw, warnings, errors = validate_test(unit, kw)
     for w in warnings:
         unit.message(['warn', w])
     for e in errors:
@@ -561,9 +584,10 @@ def add_test_to_dart(unit, test_type, binary_path=None, runner_bin=None):
     test_data = get_values_list(unit, 'TEST_DATA_VALUE')
     test_data += get_canonical_test_resources(test_dir, unit_path)
     python_paths = get_values_list(unit, 'TEST_PYTHON_PATH_VALUE')
+    yt_spec = get_values_list(unit, 'TEST_YT_SPEC_VALUE')
     if not binary_path:
         binary_path = os.path.join(unit_path, unit.filename())
-    _dump_test(unit, test_type, test_files, timeout, test_dir, custom_deps, test_data, python_paths, split_factor, fork_mode, test_size, tags, requirements, binary_path, test_cwd=test_cwd, runner_bin=runner_bin)
+    _dump_test(unit, test_type, test_files, timeout, test_dir, custom_deps, test_data, python_paths, split_factor, fork_mode, test_size, tags, requirements, binary_path, test_cwd=test_cwd, runner_bin=runner_bin, yt_spec=yt_spec)
 
 
 def extract_java_system_properties(unit, args):
@@ -701,7 +725,8 @@ def _dump_test(
         binary_path='',
         old_pytest=False,
         test_cwd=None,
-        runner_bin=None
+        runner_bin=None,
+        yt_spec=None,
 ):
 
     if test_type == "PY_TEST":
@@ -758,6 +783,8 @@ def _dump_test(
             test_record['BINARY-PATH'] = strip_roots(binary_path)
         if runner_bin:
             test_record['TEST-RUNNER-BIN'] = runner_bin
+        if yt_spec:
+            test_record['YT-SPEC'] = serialize_list(yt_spec)
         data = dump_test(unit, test_record)
         if data:
             unit.set_property(["DART_DATA", data])
