@@ -39,6 +39,14 @@ namespace NCB {
         const TFullModel& model,
         TDataProvider& dataset,
         const size_t featureNum,
+        const int featureFlatNum,
+        const EPredictionType predictionType,
+        const int threadCount);
+
+    TBinarizedFeatureStatistics GetBinarizedCatFeatureStatistics(
+        const TFullModel& model,
+        TDataProvider& dataset,
+        const size_t featureNum,
         const EPredictionType predictionType,
         const int threadCount);
 

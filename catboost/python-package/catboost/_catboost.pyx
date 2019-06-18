@@ -952,9 +952,17 @@ cdef extern from "catboost/libs/quantized_pool_analysis/quantized_pool_analysis.
         const TFullModel& model,
         TDataProvider& dataset,
         const size_t featureNum,
+        const int featureFlatNum,
         const EPredictionType predictionType,
         const int threadCount) nogil except +ProcessException
 
+    cdef TBinarizedFeatureStatistics GetBinarizedCatFeatureStatistics(
+        const TFullModel& model,
+        TDataProvider& dataset,
+        const size_t featureNum,
+        const EPredictionType predictionType,
+        const int threadCount) nogil except +ProcessException
+    
     cdef ui32 GetCatFeaturePerfectHash(
         const TFullModel& model,
         const TStringBuf& value,
@@ -2906,7 +2914,7 @@ cdef class _CatBoost:
                 thread_count
             )
         elif feature_type == 'categorical':
-            res = GetBinarizedOneHotFeatureStatistics(
+            res = GetBinarizedCatFeatureStatistics(
                 dereference(self.__model),
                 dereference(pool.__pool.Get()),
                 featureNum,

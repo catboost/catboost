@@ -189,10 +189,28 @@ namespace NCB {
         };
     }
 
+    int GetOneHotFeatureFlatNum(const TFullModel& model, const size_t featureNum) {
+        int featureFlatNum = -1;
+        for(auto & feature: model.ObliviousTrees.OneHotFeatures) {
+            const int distToNearestCatFeature = featureNum - feature.CatFeatureIndex;
+            ++featureFlatNum;
+            if (distToNearestCatFeature < 0) {
+                return -1;
+            }
+            else{
+                if (distToNearestCatFeature == 0) {
+                    return featureFlatNum;
+                }
+            }
+        }
+        return -1;
+    }
+
     TBinarizedFeatureStatistics GetBinarizedOneHotFeatureStatistics(
         const TFullModel& model,
         TDataProvider& dataset,
         const size_t featureNum,
+        const int featureFlatNum,
         const EPredictionType predictionType,
         const int threadCount) {
 
@@ -216,8 +234,7 @@ namespace NCB {
             return {};
         }
 
-        TVector<int> oneHotUniqueValues = model.ObliviousTrees.OneHotFeatures[featureNum].Values;
-
+        const TVector<int>& oneHotUniqueValues = model.ObliviousTrees.OneHotFeatures[featureFlatNum].Values;
         TMaybeData<const THashedCatValuesHolder*> catFeatureMaybe = \
             rawObjectsDataProviderPtr->GetCatFeature(featureNum);
         CB_ENSURE_INTERNAL(catFeatureMaybe, "Categorical feature #" << featureNum << " not found");
@@ -227,7 +244,7 @@ namespace NCB {
         TVector<ui32> featureValues(featureValuesRef.begin(), featureValuesRef.end());
 
         TVector<int> binNums;
-        binNums.reserve(featureValues.size());
+        binNums.reserve(oneHotUniqueValues.size());
         for (auto val : featureValues) {
             auto it = std::find(oneHotUniqueValues.begin(), oneHotUniqueValues.end(), val);
             binNums.push_back(it - oneHotUniqueValues.begin()); // Unknown values will be at bin #oneHotUniqueValues.size()
@@ -247,6 +264,7 @@ namespace NCB {
             meanTarget.pop_back();
             meanPrediction.pop_back();
             countObjectsPerBin.pop_back();
+            --numBins;
         }
         for (size_t binNum = 0; binNum < numBins; ++binNum) {
             size_t numObjs = countObjectsPerBin[binNum];
@@ -278,6 +296,26 @@ namespace NCB {
         };
     }
 
+    TBinarizedFeatureStatistics GetBinarizedCatFeatureStatistics(
+        const TFullModel& model,
+        TDataProvider& dataset,
+        const size_t featureNum,
+        const EPredictionType predictionType,
+        const int threadCount) {
+        const int featureFlatNum = GetOneHotFeatureFlatNum(model, featureNum);
+        if (featureFlatNum != -1) {
+            return GetBinarizedOneHotFeatureStatistics(
+                model,
+                dataset,
+                featureNum,
+                featureFlatNum,
+                predictionType,
+                threadCount
+            );
+        }
+        return {}; // CTR statistics
+    }
+
     ui32 GetCatFeaturePerfectHash(
             const TFullModel& model,
             const TStringBuf& value,
@@ -287,8 +325,11 @@ namespace NCB {
         if (model.ObliviousTrees.OneHotFeatures.empty()) {
             return 0;
         }
-
-        const TVector<int>& oneHotUniqueValues = model.ObliviousTrees.OneHotFeatures[featureNum].Values;
+        const int featureFlatNum = GetOneHotFeatureFlatNum(model, featureNum);
+        if (featureFlatNum == -1) {
+            return 0;
+        }
+        const TVector<int>& oneHotUniqueValues = model.ObliviousTrees.OneHotFeatures[featureFlatNum].Values;
         auto it = std::find(oneHotUniqueValues.begin(), oneHotUniqueValues.end(), hash);
         return it - oneHotUniqueValues.begin();
     }
