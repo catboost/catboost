@@ -423,45 +423,7 @@ __forceinline__ __device__ float4 BroadCast4(float val) {
     return result;
 }
 
-template <int BlockSize, class TLoader>
-__forceinline__ __device__ float4 ComputeSum2(
-    TLoader& inputProvider,
-    float* tmp,
-    int dim) {
 
-    float4 sum2;
-    sum2.x = sum2.y = sum2.z = sum2.w = 0;
-
-    for (int i = threadIdx.x; i < dim; i += BlockSize) {
-        float4 point = inputProvider.Load(i);
-        point = point * point;
-        sum2 = sum2 + point;
-    }
-
-    tmp[threadIdx.x] = sum2.x;
-    tmp[threadIdx.x + BlockSize] = sum2.y;
-    tmp[threadIdx.x + BlockSize * 2] = sum2.z;
-    tmp[threadIdx.x + BlockSize * 3] = sum2.w;
-
-    __syncthreads();
-
-    for (int s = BlockSize / 2; s > 0; s /= 2) {
-        if (threadIdx.x < s) {
-            for (int k = 0; k < 4; ++k) {
-                tmp[threadIdx.x + k * BlockSize] += tmp[threadIdx.x + s  + k * BlockSize];
-            }
-        }
-        __syncthreads();
-    }
-
-    float4 result;
-    result.x = tmp[0];
-    result.y = tmp[BlockSize];
-    result.z = tmp[BlockSize * 2];
-    result.w = tmp[BlockSize * 3];
-    __syncthreads();
-    return result;
-}
 
 
 template <int MaxDim>
@@ -592,4 +554,42 @@ __forceinline__ __device__ void BlockReduceN(volatile T* data, int reduceSize, T
 
 __forceinline__ __device__ int RoundUpToPowerTwo(int dim) {
     return 1 << (33 - __clz(dim));
+}
+
+
+template <int BlockSize, class TLoader>
+__forceinline__ __device__ float4 ComputeSum2(
+    TLoader& inputProvider,
+    float* tmp,
+    int dim) {
+
+    float4 sum2 = BroadCast4(0);
+
+    for (int i = threadIdx.x; i < dim; i += BlockSize) {
+        float4 point = inputProvider.Load(i);
+        point = point * point;
+        sum2 = sum2 + point;
+    }
+
+    Float4ToSharedMemory<BlockSize>(sum2, tmp, threadIdx.x);
+
+    __syncthreads();
+
+    for (int s = BlockSize / 2; s > 0; s /= 2) {
+        if (threadIdx.x < s) {
+            #pragma unroll
+            for (int k = 0; k < 4; ++k) {
+                tmp[threadIdx.x + k * BlockSize] += tmp[threadIdx.x + s + k * BlockSize];
+            }
+        }
+        __syncthreads();
+    }
+
+    float4 result;
+    result.x = tmp[0];
+    result.y = tmp[BlockSize];
+    result.z = tmp[BlockSize * 2];
+    result.w = tmp[BlockSize * 3];
+    __syncthreads();
+    return result;
 }
