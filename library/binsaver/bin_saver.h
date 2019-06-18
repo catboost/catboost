@@ -10,6 +10,8 @@
 #include <util/generic/list.h>
 #include <util/generic/maybe.h>
 #include <util/generic/bitmap.h>
+#include <util/generic/variant.h>
+#include <util/generic/ylimits.h>
 #include <util/memory/blob.h>
 #include <util/digest/murmur.h>
 
@@ -436,6 +438,46 @@ public:
         }
         return 0;
     }
+
+    template <class TVariantClass>
+    struct TLoadFromTypeFromListHelper {
+        template <class T0, class... TTail>
+        static void Do(IBinSaver& binSaver, ui32 typeIndex, TVariantClass* pData) {
+            if constexpr (sizeof...(TTail) == 0) {
+                Y_ASSERT(typeIndex == 0);
+                T0 chunk;
+                binSaver.Add(2, &chunk);
+                *pData = std::move(chunk);
+            } else {
+                if (typeIndex == 0) {
+                    Do<T0>(binSaver, 0, pData);
+                } else {
+                    Do<TTail...>(binSaver, typeIndex - 1, pData);
+                }
+            }
+        }
+    };
+
+    template <class... TVariantTypes>
+    int Add(const chunk_id, TVariant<TVariantTypes...>* pData) {
+        static_assert(::TVariantSize<TVariant<TVariantTypes...>>::value < Max<ui32>());
+
+        ui32 index;
+        if (IsReading()) {
+            Add(1, &index);
+            TLoadFromTypeFromListHelper<TVariant<TVariantTypes...>>::template Do<TVariantTypes...>(
+                *this,
+                index,
+                pData
+            );
+        } else {
+            index = pData->index(); // type cast is safe because of static_assert check above
+            Add(1, &index);
+            ::Visit([&](auto& dst) -> void { Add(2, &dst); }, *pData);
+        }
+        return 0;
+    }
+
 
     void AddPolymorphicBase(chunk_id, IObjectBase* pObject) {
         (*pObject) & (*this);
