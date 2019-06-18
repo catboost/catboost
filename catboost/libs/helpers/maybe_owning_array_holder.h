@@ -59,6 +59,10 @@ namespace NCB {
             return 0;
         }
 
+        bool operator==(const TMaybeOwningArrayHolder& rhs) const {
+            return ArrayRef == rhs.ArrayRef;
+        }
+
         TArrayRef<T> operator*() {
             return ArrayRef;
         }
