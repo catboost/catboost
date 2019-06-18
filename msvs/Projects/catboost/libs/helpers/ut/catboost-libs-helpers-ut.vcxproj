@@ -82,6 +82,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\ut\checksum_ut.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\ut\compare_ut.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\ut\dbg_output_ut.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\ut\double_array_iterator_ut.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\ut\map_merge_ut.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\ut\math_utils_ut.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\ut\maybe_owning_array_holder_ut.cpp"/>

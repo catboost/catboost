@@ -88,6 +88,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\dbg_output.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\dense_hash.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\dense_hash_view.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\double_array_iterator.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\element_range.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\exception.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\hash.cpp"/>
@@ -124,6 +125,7 @@
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\dbg_output.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\dense_hash.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\dense_hash_view.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\double_array_iterator.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\element_range.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\exception.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\hash.h"/>
