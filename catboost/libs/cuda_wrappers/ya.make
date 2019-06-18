@@ -20,6 +20,7 @@ ENDIF()
 PEERDIR(
     contrib/libs/cub
     catboost/libs/helpers
+    library/threading/future
 )
 
 INCLUDE(${ARCADIA_ROOT}/catboost/libs/cuda_wrappers/default_nvcc_flags.make.inc)
