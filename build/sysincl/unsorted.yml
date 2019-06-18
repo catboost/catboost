@@ -357,9 +357,6 @@
   - quadmath.h
   #endif
   #if defined(_MSC_VER)
-  - armintr.h
-  - arm_acle.h
-  - arm_neon.h
   - comdef.h
   - comutil.h
   - concrt.h

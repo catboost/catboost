@@ -1,6 +1,10 @@
 - includes:
   - Intrin.h
   - ammintrin.h
+  - arm_acle.h
+  - arm_neon.h
+  - arm64_neon.h
+  - armintr.h
   - avx2intrin.h
   - avxintrin.h
   - bmi2intrin.h
