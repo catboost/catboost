@@ -240,5 +240,10 @@ NCB::NIdl::TPoolQuantizationSchema NCB::QuantizationSchemaToProto(
             std::move(featureSchema)});
     }
 
+    proto.MutableClassNames()->Reserve(schema.ClassNames.size());
+    for (const auto className : schema.ClassNames) {
+        proto.AddClassNames(className);
+    }
+
     return proto;
 }
