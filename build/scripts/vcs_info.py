@@ -20,8 +20,8 @@ class _Formatting(object):
         return retval.decode('utf-8') if isinstance(strval, unicode) else retval
 
     @staticmethod
-    def escape_line_feed(strval, indent='    ', cont=True):
-        return strval.replace(r'\n', '\\n"\\\n' + indent + '"' if cont else '\\n"\n' + indent + '"')
+    def escape_line_feed(strval, indent='    '):
+        return strval.replace(r'\n', '\\n"\\\n' + indent + '"')
 
     @staticmethod
     def escaped_define(strkey, val):
@@ -36,7 +36,7 @@ class _Formatting(object):
     @staticmethod
     def escaped_go_map_key(strkey, strval):
         if isinstance(strval, basestring):
-            return '    ' + '"' + strkey + '": "' + _Formatting.escape_line_feed(_Formatting.escape_special_symbols(strval), '      ', False) + '",'
+            return '    ' + '"' + strkey + '": "' + _Formatting.escape_special_symbols(strval) + '",'
         else:
             return '    ' + '"' + strkey + '": "' + str(strval) + '",'
 
@@ -160,7 +160,12 @@ def print_go(json_file, output_file):
     with open(output_file, 'w') as f:
         f.write('\n'.join([
             'package main',
-            'var buildinfo = map[string]string{'] + gen_map(json_file) + ['}']).encode('utf-8') + '\n')
+            'import ("a.yandex-team.ru/library/go/core/buildinfo")',
+            'var buildinfomap = map[string]string {'] + gen_map(json_file) + ['}'] +
+            ['func init() {',
+             '   buildinfo.InitBuildInfo(buildinfomap)',
+             '}']
+        ).encode('utf-8') + '\n')
 
 
 if __name__ == '__main__':
