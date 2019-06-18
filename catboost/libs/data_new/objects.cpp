@@ -1187,7 +1187,10 @@ static void LoadFeatures(
                 binSaver->Add(0, &bitsPerKey);
 
                 TVector<ui64> storage;
-                LoadMulti(binSaver, &storage);
+                IBinSaver::TStoredSize compressedStorageVectorSize;
+                LoadMulti(binSaver, &compressedStorageVectorSize);
+                storage.yresize(compressedStorageVectorSize);
+                LoadArrayData<ui64>(storage, binSaver);
 
                 (*dst)[*featureIdx] = MakeHolder<TCompressedValuesHolderImpl<IColumnType>>(
                     flatFeatureIdx,
@@ -1269,9 +1272,9 @@ static void SaveFeatures(
                 const size_t paddingSize =
                     size_t(compressedStorageVectorSize)*sizeof(ui64) - size_t(bytesPerKey)*objectCount;
 
-                SaveRawData(*values, binSaver);
+                SaveArrayData(*values, binSaver);
                 if (paddingSize) {
-                    SaveRawData(TConstArrayRef<ui8>(paddingBuffer, paddingSize), binSaver);
+                    SaveArrayData(TConstArrayRef<ui8>(paddingBuffer, paddingSize), binSaver);
                 }
             }
         }

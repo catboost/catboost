@@ -683,7 +683,7 @@ void TProcessedTargetData::Save(IBinSaver* binSaver) const {
 
     SaveMulti(binSaver, cache);
 
-    SaveRawData(
+    SaveArrayData(
         TConstArrayRef<ui8>((ui8*)serializedTargetDataWithIds.Data(), serializedTargetDataWithIds.Size()),
         binSaver
     );

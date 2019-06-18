@@ -116,13 +116,15 @@ namespace NCB {
             binSaver.Add(0, &Size);
             if (binSaver.IsReading()) {
                 TVector<T> weights;
-                LoadMulti(&binSaver, &weights);
+                IBinSaver::TStoredSize weightsSize;
+                LoadMulti(&binSaver, &weightsSize);
+                weights.yresize(weightsSize);
+                LoadArrayData<T>(weights, &binSaver);
                 Weights = TMaybeOwningArrayHolder<T>::CreateOwning(std::move(weights));
             } else {
-                // save data to be deserialized as TVector<T>
                 auto weightsSize = SafeIntegerCast<IBinSaver::TStoredSize>((*Weights).size());
                 SaveMulti(&binSaver, weightsSize);
-                SaveRawData<T>(*Weights, &binSaver);
+                SaveArrayData<T>(*Weights, &binSaver);
             }
             return 0;
         }
