@@ -36,6 +36,7 @@
 #include <library/grid_creator/binarization.h>
 #include <library/json/json_prettifier.h>
 
+#include <util/generic/cast.h>
 #include <util/generic/mapfindptr.h>
 #include <util/generic/scope.h>
 #include <util/generic/vector.h>
@@ -117,10 +118,6 @@ static TDataProviders LoadPools(
     }
 }
 
-static inline bool DivisibleOrLastIteration(int currentIteration, int iterationsCount, int period) {
-    return currentIteration % period == 0 || currentIteration == iterationsCount - 1;
-}
-
 static bool HasInvalidValues(const TVector<TVector<TVector<double>>>& leafValues) {
     for (const auto& tree : leafValues) {
         for (const TVector<double>& leaf : tree) {
@@ -138,6 +135,7 @@ namespace {
 struct TMetricsData {
     TVector<THolder<IMetric>> Metrics;
     bool CalcEvalMetricOnEveryIteration;
+    TMaybe<ui32> MetricPeriodOffset; // shift metric period calculations by this value if defined
     TMaybe<TErrorTracker> ErrorTracker;
     TMaybe<TErrorTracker> BestModelMinTreesTracker;
     size_t ErrorTrackerMetricIdx;
@@ -145,8 +143,8 @@ struct TMetricsData {
 }
 
 static void InitializeAndCheckMetricData(
+    const TTrainModelInternalOptions& internalOptions,
     const TTrainingForCPUDataProviders& data,
-    bool forceCalcEvalMetricOnEveryIteration,
     const TLearnContext& ctx,
     TMetricsData* metricsData) {
 
@@ -187,7 +185,7 @@ static void InitializeAndCheckMetricData(
 
     auto& errorTracker = metricsData->ErrorTracker;
     metricsData->CalcEvalMetricOnEveryIteration
-        = canCalcEvalMetric && (forceCalcEvalMetricOnEveryIteration || errorTracker->IsActive());
+        = canCalcEvalMetric && (internalOptions.ForceCalcEvalMetricOnEveryIteration || errorTracker->IsActive());
 
     if (ctx.OutputOptions.GetMetricPeriod() > 1 && errorTracker && errorTracker->IsActive() && hasTest) {
         CATBOOST_WARNING_LOG << "Warning: Overfitting detector is active, thus evaluation metric is " <<
@@ -197,6 +195,12 @@ static void InitializeAndCheckMetricData(
     // Use only (last_test, first_metric) for best iteration and overfitting detection
     // In case of changing the order it should be changed in GPU mode also.
     metricsData->ErrorTrackerMetricIdx = 0;
+
+    if (internalOptions.OffsetMetricPeriodByInitModelSize) {
+        metricsData->MetricPeriodOffset = ctx.LearnProgress->GetInitModelTreesSize();
+    } else {
+        metricsData->MetricPeriodOffset = Nothing();
+    }
 }
 
 namespace {
@@ -207,16 +211,14 @@ struct TLoggingData {
 };
 }
 
-static bool ShouldCalcAllMetrics(int iter, const TLearnContext& ctx) {
-    return DivisibleOrLastIteration(
-        iter,
-        ctx.Params.BoostingOptions->IterationCount,
-        ctx.OutputOptions.GetMetricPeriod()
-    );
+static bool ShouldCalcAllMetrics(ui32 iter, const TMetricsData& metricsData, const TLearnContext& ctx) {
+    const ui32 iterWithOffset = iter + metricsData.MetricPeriodOffset.GetOrElse(0);
+    return ((iterWithOffset + 1) == ctx.Params.BoostingOptions->IterationCount) || // last iteration
+        !(iterWithOffset % SafeIntegerCast<ui32>(ctx.OutputOptions.GetMetricPeriod()));
 }
 
-static bool ShouldCalcErrorTrackerMetric(int iter, const TMetricsData& metricsData, const TLearnContext& ctx) {
-    return ShouldCalcAllMetrics(iter, ctx) || metricsData.CalcEvalMetricOnEveryIteration;
+static bool ShouldCalcErrorTrackerMetric(ui32 iter, const TMetricsData& metricsData, const TLearnContext& ctx) {
+    return ShouldCalcAllMetrics(iter, metricsData, ctx) || metricsData.CalcEvalMetricOnEveryIteration;
 }
 
 // Write history metrics to loggers, error trackers and get info from per iteration metric based callback.
@@ -267,7 +269,7 @@ static void ProcessHistoryMetrics(
             TProfileResults(timeHistory[iter].PassedTime, timeHistory[iter].RemainingTime),
             loggingData->LearnToken,
             loggingData->TestTokens,
-            ShouldCalcAllMetrics(iter, ctx),
+            ShouldCalcAllMetrics(iter, *metricsData, ctx),
             &loggingData->Logger
         );
 
@@ -322,11 +324,11 @@ static void CalcErrors(
     int iter,
     TLearnContext* ctx) {
 
-    CalcErrors(data, metricsData.Metrics, ShouldCalcAllMetrics(iter, *ctx), ShouldCalcErrorTrackerMetric(iter, metricsData, *ctx), ctx);
+    CalcErrors(data, metricsData.Metrics, ShouldCalcAllMetrics(iter, metricsData, *ctx), ShouldCalcErrorTrackerMetric(iter, metricsData, *ctx), ctx);
 }
 
 static void Train(
-    bool forceCalcEvalMetricOnEveryIteration,
+    const TTrainModelInternalOptions& internalOptions,
     const TTrainingForCPUDataProviders& data,
     const TMaybe<TOnEndIterationCallback>& onEndIterationCallback,
     TLearnContext* ctx,
@@ -335,7 +337,7 @@ static void Train(
     TProfileInfo& profile = ctx->Profile;
 
     TMetricsData metricsData;
-    InitializeAndCheckMetricData(data, forceCalcEvalMetricOnEveryIteration, *ctx, &metricsData);
+    InitializeAndCheckMetricData(internalOptions, data, *ctx, &metricsData);
 
     if (ctx->TryLoadProgress() && ctx->Params.SystemOptions->IsMaster()) {
         MapRestoreApproxFromTreeStruct(ctx);
@@ -414,7 +416,7 @@ static void Train(
             profileResults,
             loggingData.LearnToken,
             loggingData.TestTokens,
-            ShouldCalcAllMetrics(iter, *ctx),
+            ShouldCalcAllMetrics(iter, metricsData, *ctx),
             &loggingData.Logger
         );
 
@@ -456,6 +458,120 @@ static void Train(
             }
             CATBOOST_NOTICE_LOG << Endl;
             ShrinkModel(bestModelIterations, ctx->CtrsHelper, ctx->LearnProgress.Get());
+        }
+    }
+}
+
+
+static void SaveModel(
+    const TTrainingForCPUDataProviders& trainingDataForCpu,
+    const TLearnContext& ctx,
+    TMaybe<TFullModel*> initModel,
+    TMaybe<ui32> initLearnProgressLearnAndTestQuantizedFeaturesCheckSum,
+    TFullModel* dstModel
+) {
+    TPerfectHashedToHashedCatValuesMap perfectHashedToHashedCatValuesMap
+        = trainingDataForCpu.Learn->ObjectsData->GetQuantizedFeaturesInfo()
+            ->CalcPerfectHashedToHashedCatValuesMap(ctx.LocalExecutor);
+
+    TObliviousTrees obliviousTrees;
+    THashMap<TFeatureCombination, TProjection> featureCombinationToProjectionMap;
+    {
+        TObliviousTreeBuilder builder(ctx.LearnProgress->FloatFeatures, ctx.LearnProgress->CatFeatures, ctx.LearnProgress->ApproxDimension);
+        for (size_t treeId = 0; treeId < ctx.LearnProgress->TreeStruct.size(); ++treeId) {
+            TVector<TModelSplit> modelSplits;
+            for (const auto& split : ctx.LearnProgress->TreeStruct[treeId].Splits) {
+                auto modelSplit = split.GetModelSplit(ctx, perfectHashedToHashedCatValuesMap);
+                modelSplits.push_back(modelSplit);
+                if (modelSplit.Type == ESplitType::OnlineCtr) {
+                    featureCombinationToProjectionMap[modelSplit.OnlineCtr.Ctr.Base.Projection] = split.Ctr.Projection;
+                }
+            }
+            builder.AddTree(modelSplits, ctx.LearnProgress->LeafValues[treeId], ctx.LearnProgress->TreeStats[treeId].LeafWeightsSum);
+        }
+        obliviousTrees = builder.Build();
+    }
+
+
+//    TODO(kirillovs,espetrov): return this code after fixing R and Python wrappers
+//    for (auto& oheFeature : obliviousTrees.OneHotFeatures) {
+//        for (const auto& value : oheFeature.Values) {
+//            oheFeature.StringValues.push_back(pools.Learn->CatFeaturesHashToString.at(value));
+//        }
+//    }
+    TClassificationTargetHelper classificationTargetHelper(
+        ctx.LearnProgress->LabelConverter,
+        ctx.Params.DataProcessingOptions
+    );
+
+    TDatasetDataForFinalCtrs datasetDataForFinalCtrs;
+    datasetDataForFinalCtrs.Data = trainingDataForCpu;
+    datasetDataForFinalCtrs.LearnPermutation = &ctx.LearnProgress->AveragingFold.LearnPermutation->GetObjectsIndexing();
+    datasetDataForFinalCtrs.Targets = ctx.LearnProgress->AveragingFold.LearnTarget;
+    datasetDataForFinalCtrs.LearnTargetClass = &ctx.LearnProgress->AveragingFold.LearnTargetClass;
+    datasetDataForFinalCtrs.TargetClassesCount = &ctx.LearnProgress->AveragingFold.TargetClassesCount;
+
+    {
+        NCB::TCoreModelToFullModelConverter coreModelToFullModelConverter(
+            ctx.Params,
+            classificationTargetHelper,
+            ctx.Params.CatFeatureParams->CtrLeafCountLimit,
+            ctx.Params.CatFeatureParams->StoreAllSimpleCtrs,
+            ctx.OutputOptions.GetFinalCtrComputationMode()
+        );
+
+        coreModelToFullModelConverter.WithBinarizedDataComputedFrom(
+            std::move(datasetDataForFinalCtrs),
+            std::move(featureCombinationToProjectionMap)
+        ).WithPerfectHashedToHashedCatValuesMap(
+            &perfectHashedToHashedCatValuesMap
+        ).WithObjectsDataFrom(trainingDataForCpu.Learn->ObjectsData);
+
+        const bool addResultModelToInitModel = ctx.LearnProgress->SeparateInitModelTreesSize != 0;
+
+        TMaybe<TFullModel> fullModel;
+        TFullModel* modelPtr = nullptr;
+        if (dstModel && !addResultModelToInitModel) {
+            modelPtr = dstModel;
+        } else {
+            fullModel.ConstructInPlace();
+            modelPtr = &*fullModel;
+        }
+
+        modelPtr->ObliviousTrees = std::move(obliviousTrees);
+        coreModelToFullModelConverter.WithCoreModelFrom(modelPtr);
+
+        if (dstModel || addResultModelToInitModel) {
+            coreModelToFullModelConverter.Do(true, modelPtr);
+            if (addResultModelToInitModel) {
+                TVector<const TFullModel*> models = {*initModel, modelPtr};
+                TVector<double> weights = {1.0, 1.0};
+                *modelPtr = SumModels(models, weights);
+
+                if (!dstModel) {
+                    const bool allLearnObjectsDataIsAvailable
+                        = initLearnProgressLearnAndTestQuantizedFeaturesCheckSum &&
+                            (*initLearnProgressLearnAndTestQuantizedFeaturesCheckSum ==
+                             ctx.LearnProgress->LearnAndTestQuantizedFeaturesCheckSum);
+
+                    ExportFullModel(
+                        *modelPtr,
+                        ctx.OutputOptions.CreateResultModelFullPath(),
+                        allLearnObjectsDataIsAvailable ?
+                            TMaybe<TObjectsDataProvider*>(trainingDataForCpu.Learn->ObjectsData.Get()) :
+                            Nothing(),
+                        ctx.OutputOptions.GetModelFormats(),
+                        ctx.OutputOptions.AddFileFormatExtension()
+                    );
+                }
+            }
+        } else if (!dstModel) {
+            coreModelToFullModelConverter.WithCoreModelFrom(modelPtr);
+            coreModelToFullModelConverter.Do(
+                ctx.OutputOptions.CreateResultModelFullPath(),
+                ctx.OutputOptions.GetModelFormats(),
+                ctx.OutputOptions.AddFileFormatExtension()
+            );
         }
     }
 }
@@ -540,13 +656,7 @@ namespace {
             TVector<TVector<double>> oneRawValues(ctx.LearnProgress->ApproxDimension);
             TVector<TVector<TVector<double>>> rawValues(trainingDataForCpu.Test.size(), oneRawValues);
 
-            Train(
-                internalOptions.ForceCalcEvalMetricOnEveryIteration,
-                trainingDataForCpu,
-                onEndIterationCallback,
-                &ctx,
-                &rawValues
-            );
+            Train(internalOptions, trainingDataForCpu, onEndIterationCallback, &ctx, &rawValues);
 
             if (!dstLearnProgress) {
                 // Save memory as it is no longer needed
@@ -561,113 +671,13 @@ namespace {
                 *metricsAndTimeHistory = ctx.LearnProgress->MetricsAndTimeHistory;
             }
 
-            if (internalOptions.CalcMetricsOnly) {
-                return;
-            }
-
-            TPerfectHashedToHashedCatValuesMap perfectHashedToHashedCatValuesMap
-                = trainingDataForCpu.Learn->ObjectsData->GetQuantizedFeaturesInfo()
-                    ->CalcPerfectHashedToHashedCatValuesMap(localExecutor);
-
-            TObliviousTrees obliviousTrees;
-            THashMap<TFeatureCombination, TProjection> featureCombinationToProjectionMap;
-            {
-                TObliviousTreeBuilder builder(ctx.LearnProgress->FloatFeatures, ctx.LearnProgress->CatFeatures, ctx.LearnProgress->ApproxDimension);
-                for (size_t treeId = 0; treeId < ctx.LearnProgress->TreeStruct.size(); ++treeId) {
-                    TVector<TModelSplit> modelSplits;
-                    for (const auto& split : ctx.LearnProgress->TreeStruct[treeId].Splits) {
-                        auto modelSplit = split.GetModelSplit(ctx, perfectHashedToHashedCatValuesMap);
-                        modelSplits.push_back(modelSplit);
-                        if (modelSplit.Type == ESplitType::OnlineCtr) {
-                            featureCombinationToProjectionMap[modelSplit.OnlineCtr.Ctr.Base.Projection] = split.Ctr.Projection;
-                        }
-                    }
-                    builder.AddTree(modelSplits, ctx.LearnProgress->LeafValues[treeId], ctx.LearnProgress->TreeStats[treeId].LeafWeightsSum);
-                }
-                obliviousTrees = builder.Build();
-            }
-
-
-//        TODO(kirillovs,espetrov): return this code after fixing R and Python wrappers
-//        for (auto& oheFeature : obliviousTrees.OneHotFeatures) {
-//            for (const auto& value : oheFeature.Values) {
-//                oheFeature.StringValues.push_back(pools.Learn->CatFeaturesHashToString.at(value));
-//            }
-//        }
-            TClassificationTargetHelper classificationTargetHelper(
-                ctx.LearnProgress->LabelConverter,
-                ctx.Params.DataProcessingOptions
-            );
-
-            TDatasetDataForFinalCtrs datasetDataForFinalCtrs;
-            datasetDataForFinalCtrs.Data = trainingDataForCpu;
-            datasetDataForFinalCtrs.LearnPermutation = &ctx.LearnProgress->AveragingFold.LearnPermutation->GetObjectsIndexing();
-            datasetDataForFinalCtrs.Targets = ctx.LearnProgress->AveragingFold.LearnTarget;
-            datasetDataForFinalCtrs.LearnTargetClass = &ctx.LearnProgress->AveragingFold.LearnTargetClass;
-            datasetDataForFinalCtrs.TargetClassesCount = &ctx.LearnProgress->AveragingFold.TargetClassesCount;
-
-            {
-                NCB::TCoreModelToFullModelConverter coreModelToFullModelConverter(
-                    ctx.Params,
-                    classificationTargetHelper,
-                    ctx.Params.CatFeatureParams->CtrLeafCountLimit,
-                    ctx.Params.CatFeatureParams->StoreAllSimpleCtrs,
-                    ctx.OutputOptions.GetFinalCtrComputationMode()
-                );
-
-                coreModelToFullModelConverter.WithBinarizedDataComputedFrom(
-                    std::move(datasetDataForFinalCtrs),
-                    std::move(featureCombinationToProjectionMap)
-                ).WithPerfectHashedToHashedCatValuesMap(
-                    &perfectHashedToHashedCatValuesMap
-                ).WithObjectsDataFrom(trainingDataForCpu.Learn->ObjectsData);
-
-                const bool addResultModelToInitModel = ctx.LearnProgress->SeparateInitModelTreesSize != 0;
-
-                TMaybe<TFullModel> fullModel;
-                TFullModel* modelPtr = nullptr;
-                if (dstModel && !addResultModelToInitModel) {
-                    modelPtr = dstModel;
-                } else {
-                    fullModel.ConstructInPlace();
-                    modelPtr = &*fullModel;
-                }
-
-                modelPtr->ObliviousTrees = std::move(obliviousTrees);
-                coreModelToFullModelConverter.WithCoreModelFrom(modelPtr);
-
-                if (dstModel || addResultModelToInitModel) {
-                    coreModelToFullModelConverter.Do(true, modelPtr);
-                    if (addResultModelToInitModel) {
-                        TVector<const TFullModel*> models = {*initModel, modelPtr};
-                        TVector<double> weights = {1.0, 1.0};
-                        *modelPtr = SumModels(models, weights);
-
-                        if (!dstModel) {
-                            const bool allLearnObjectsDataIsAvailable
-                                = initLearnProgressLearnAndTestQuantizedFeaturesCheckSum &&
-                                  (*initLearnProgressLearnAndTestQuantizedFeaturesCheckSum ==
-                                   ctx.LearnProgress->LearnAndTestQuantizedFeaturesCheckSum);
-
-                            ExportFullModel(
-                                *modelPtr,
-                                ctx.OutputOptions.CreateResultModelFullPath(),
-                                allLearnObjectsDataIsAvailable ?
-                                    TMaybe<TObjectsDataProvider*>(trainingData.Learn->ObjectsData.Get()) :
-                                    Nothing(),
-                                ctx.OutputOptions.GetModelFormats(),
-                                ctx.OutputOptions.AddFileFormatExtension()
-                            );
-                        }
-                    }
-                } else if (!dstModel) {
-                    coreModelToFullModelConverter.WithCoreModelFrom(modelPtr);
-                    coreModelToFullModelConverter.Do(
-                        ctx.OutputOptions.CreateResultModelFullPath(),
-                        ctx.OutputOptions.GetModelFormats(),
-                        ctx.OutputOptions.AddFileFormatExtension()
-                    );
-                }
+            if (!internalOptions.CalcMetricsOnly) {
+                SaveModel(
+                    trainingDataForCpu,
+                    ctx,
+                    initModel,
+                    initLearnProgressLearnAndTestQuantizedFeaturesCheckSum,
+                    dstModel);
             }
 
             if (dstLearnProgress) {

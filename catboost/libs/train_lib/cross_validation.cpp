@@ -220,12 +220,19 @@ public:
         TSetLoggingSilent silentMode;
 
         const size_t batchStartIteration = MetricValuesOnTest.size();
+        Y_ASSERT(
+            !batchStartIteration ||
+            (TaskType != ETaskType::CPU) ||
+            (LearnProgress && (LearnProgress->GetInitModelTreesSize() == batchStartIteration))
+        );
+
         const bool estimateUpToIteration = !upToIteration->Defined();
         double batchIterationsTime = 0.0; // without initialization time
 
         TTrainModelInternalOptions internalOptions;
         internalOptions.CalcMetricsOnly = true;
         internalOptions.ForceCalcEvalMetricOnEveryIteration = isErrorTrackerActive;
+        internalOptions.OffsetMetricPeriodByInitModelSize = true;
 
         THPTimer trainTimer;
         THolder<TLearnProgress> dstLearnProgress;
@@ -238,10 +245,12 @@ public:
             evalMetricDescriptor,
             [&, this] (const TMetricsAndTimeLeftHistory& metricsAndTimeHistory) -> bool {
                 Y_VERIFY(metricsAndTimeHistory.TimeHistory.size() > 0);
-                size_t iteration = metricsAndTimeHistory.TimeHistory.size() - 1;
+                size_t iteration = (TaskType == ETaskType::CPU) ?
+                      batchStartIteration + (metricsAndTimeHistory.TimeHistory.size() - 1)
+                    : (metricsAndTimeHistory.TimeHistory.size() - 1);
 
                 // replay
-                if (iteration < batchStartIteration) {
+                if (iteration < MetricValuesOnTest.size()) {
                     return true;
                 }
 

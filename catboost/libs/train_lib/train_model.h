@@ -43,6 +43,13 @@ struct TTrainModelInternalOptions {
      * not for immediate application
      */
     bool SaveFinalCtrsToModel = true;
+
+    /*
+     * When choosing iterations to evaluate metrics on, consider initModel size (if it is specified)
+     *   to ensure equal metrics steps in learning continuation.
+     * Used in Cross-Validation
+     */
+    bool OffsetMetricPeriodByInitModelSize = false;
 };
 
 

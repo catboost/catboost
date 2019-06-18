@@ -777,6 +777,10 @@ ui32 TLearnProgress::GetCompleteModelTreesSize() const {
     return SeparateInitModelTreesSize + SafeIntegerCast<ui32>(TreeStruct.size());
 }
 
+ui32 TLearnProgress::GetInitModelTreesSize() const {
+    return SeparateInitModelTreesSize + InitTreesSize;
+}
+
 
 bool TLearnContext::UseTreeLevelCaching() const {
     return UseTreeLevelCachingFlag;
