@@ -303,17 +303,19 @@ namespace NCB {
         const EPredictionType predictionType,
         const int threadCount) {
         const int featureFlatNum = GetOneHotFeatureFlatNum(model, featureNum);
-        if (featureFlatNum != -1) {
-            return GetBinarizedOneHotFeatureStatistics(
-                model,
-                dataset,
-                featureNum,
-                featureFlatNum,
-                predictionType,
-                threadCount
-            );
-        }
-        return {}; // CTR statistics
+
+        CB_ENSURE_INTERNAL(
+            featureFlatNum == -1,
+            "Supported only for one-hot encoded features. Use one_hot_max_size when training to manage that."
+        );
+        return GetBinarizedOneHotFeatureStatistics(
+            model,
+            dataset,
+            featureNum,
+            featureFlatNum,
+            predictionType,
+            threadCount
+        );
     }
 
     ui32 GetCatFeaturePerfectHash(
