@@ -216,6 +216,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\string_utils\base64\library-string_utils-base64.vcxproj">
       <Project>{137212F6-D2FE-719F-EBE2-99060434BC72}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\threading\future\library-threading-future.vcxproj">
+      <Project>{CF2582C4-C4A1-875F-6897-27B28FB8018A}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\threading\local_executor\library-threading-local_executor.vcxproj">
       <Project>{5707A0DE-3EF6-1E74-8DEE-4FDC5C2E6854}</Project>
     </ProjectReference>
