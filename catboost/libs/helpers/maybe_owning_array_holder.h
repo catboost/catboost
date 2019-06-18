@@ -79,6 +79,10 @@ namespace NCB {
             return ResourceHolder;
         }
 
+        size_t GetSize() const {
+            return ArrayRef.size();
+        }
+
     private:
         TMaybeOwningArrayHolder(
             TArrayRef<T> arrayRef,
