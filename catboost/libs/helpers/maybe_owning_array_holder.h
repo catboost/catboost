@@ -1,8 +1,12 @@
 #pragma once
 
 #include "resource_holder.h"
+#include "serialization.h"
+
+#include <library/binsaver/bin_saver.h>
 
 #include <util/generic/array_ref.h>
+#include <util/generic/cast.h>
 
 
 namespace NCB {
@@ -36,6 +40,23 @@ namespace NCB {
             return TMaybeOwningArrayHolder(
                 TArrayRef<T>((T*)arrayRef.begin(), (T*)arrayRef.end()),
                 data.GetResourceHolder());
+        }
+
+        int operator&(IBinSaver& binSaver) {
+            IBinSaver::TStoredSize serializedSize;
+            if (!binSaver.IsReading()) {
+                serializedSize = SafeIntegerCast<IBinSaver::TStoredSize>(ArrayRef.size());
+            }
+            binSaver.Add(1, &serializedSize);
+            if (binSaver.IsReading()) {
+                TVector<T> data;
+                data.yresize(serializedSize);
+                LoadArrayData<T>(data, &binSaver);
+                *this = TMaybeOwningArrayHolder<T>::CreateOwning(std::move(data));
+            } else {
+                SaveArrayData<T>(ArrayRef, &binSaver);
+            }
+            return 0;
         }
 
         TArrayRef<T> operator*() {
