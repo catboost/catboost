@@ -1,11 +1,18 @@
 #pragma once
+
+#include "kernel.cuh"
+
 #include <contrib/libs/cub/cub/thread/thread_load.cuh>
 #include <contrib/libs/cub/cub/thread/thread_store.cuh>
 #include <cooperative_groups.h>
 
+template<int Alignment, typename T>
+__forceinline__ __device__ __host__ T AlignBy(T x) {
+    return NKernel::CeilDivide<size_t>(x, Alignment) * Alignment;
+}
 
 __forceinline__ __device__ int Align32(int i) {
-    return ((i + 31) / 32) * 32;
+    return AlignBy<32>(i);
 }
 
 template <class T>
@@ -157,6 +164,13 @@ struct TAtomicAdd {
     static __forceinline__ __device__ T Add(T* dst, T val) {
         return atomicAdd(dst, val);
     }
+    static __forceinline__ __device__ T AddBlock(T* dst, T val) {
+#if __CUDA_ARCH__ < 600
+        return TAtomicAdd<T>::Add(dst, val);
+#else
+        return atomicAdd_block(dst, val);
+#endif
+    }
 };
 
 /*
@@ -184,6 +198,13 @@ struct TAtomicAdd<double> {
         return atomicAdd(address, val);
         #endif
     }
+    static __forceinline__ __device__ double AddBlock(double* dst, double val) {
+#if __CUDA_ARCH__ < 600
+        return TAtomicAdd<double>::Add(dst, val);
+#else
+        return atomicAdd_block(dst, val);
+#endif
+    }
 };
 
 
@@ -201,11 +222,11 @@ __forceinline__ __device__ void Swap(float** left, float** right) {
     *right = tmp;
 }
 
-template <int TileSize, class TOp = TCudaAdd<float>>
-__forceinline__ __device__ float4 TileReduce4(cooperative_groups::thread_block_tile<TileSize> tile, const float4 threadValue) {
+template <int TileSize, class TOp = TCudaAdd<float>, typename TReduceType = float4>
+__forceinline__ __device__ TReduceType TileReduce4(cooperative_groups::thread_block_tile<TileSize> tile, const TReduceType threadValue) {
     TOp op;
     tile.sync();
-    float4 val = threadValue;
+    TReduceType val = threadValue;
     for (int s = tile.size() / 2; s > 0; s >>= 1) {
         val.x = op(val.x, tile.shfl_down(val.x, s));
         val.y = op(val.y, tile.shfl_down(val.y, s));

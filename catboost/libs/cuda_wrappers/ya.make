@@ -6,12 +6,16 @@ LIBRARY()
 SRCS(
    base.cpp
    run_gpu_program.cpp
-   cuda_graph.cpp
    cuda_event.cpp
    kernel.cu
    arch.cu
-   stream_capture.cpp
 )
+IF (CUDA_VERSION STREQUAL "10.1")
+    SRCS(
+        cuda_graph.cpp
+        stream_capture.cpp
+    )
+ENDIF()
 
 PEERDIR(
     contrib/libs/cub

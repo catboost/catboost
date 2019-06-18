@@ -10,7 +10,9 @@
 enum class EMemoryType {
     Host,
     Device,
+#if (CUDART_VERSION >= 10000)
     Managed,
+#endif
     Cpu
 };
 
@@ -31,8 +33,10 @@ EMemoryType GetPointerType(const T* ptr) {
         return EMemoryType::Host;
     } else if (type == cudaMemoryTypeDevice) {
         return EMemoryType::Device;
+#if (CUDART_VERSION >= 10000)
     } else if (type == cudaMemoryTypeManaged) {
         return EMemoryType::Managed;
+#endif
     } else {
         return EMemoryType::Cpu;
     }
@@ -41,7 +45,11 @@ EMemoryType GetPointerType(const T* ptr) {
 template <class T>
 bool IsAccessibleFromHost(const T* ptr) {
     auto type = GetPointerType(ptr);
-    return type == EMemoryType::Managed || type == EMemoryType::Host || type == EMemoryType::Cpu;
+    return
+#if (CUDART_VERSION >= 10000)
+        type == EMemoryType::Managed ||
+#endif
+        type == EMemoryType::Host || type == EMemoryType::Cpu;
 }
 
 template <class T>
@@ -72,10 +80,12 @@ private:
                         CUDA_SAFE_CALL(cudaHostAlloc((void**)&Data_, size * sizeof(T), cudaHostAllocPortable));
                         break;
                     }
+#if (CUDART_VERSION >= 10000)
                     case EMemoryType::Managed: {
                         CUDA_SAFE_CALL(cudaMallocManaged((void**)&Data_, size * sizeof(T)));
                         break;
                     }
+#endif
                     case EMemoryType::Cpu: {
                         Data_ = new T[size];
                         break;
@@ -87,8 +97,10 @@ private:
         ~Inner() {
             if (Data_) {
                 switch (Type) {
-                    case EMemoryType::Device:
-                    case EMemoryType::Managed: {
+#if (CUDART_VERSION >= 10000)
+                    case EMemoryType::Managed:
+#endif
+                    case EMemoryType::Device: {
                         CUDA_SAFE_CALL(cudaFree(Data_));
                         break;
                     }
