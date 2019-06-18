@@ -262,6 +262,6 @@ ALLOW yt/jaeger/plugin -> vendor/github.com/jaegertracing/jaeger
 ALLOW yt/jaeger/plugin -> vendor/github.com/uber/jaeger-lib
 ALLOW yt/jaeger/plugin -> vendor/github.com/uber/jaeger-client-go
 ALLOW yt/jaeger/plugin -> vendor/github.com/spf13/viper
-ALLOW yt/jaeger/plugin -> vendor/github.com/gorilla/handlers
+ALLOW yt/jaeger/plugin -> vendor/github.com/gorilla
 
 DENY .* -> vendor/
