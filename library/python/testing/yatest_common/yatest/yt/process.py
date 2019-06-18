@@ -8,6 +8,7 @@ import re
 import shlex
 import six
 import subprocess
+import sys
 import tempfile
 
 import yatest.common as ytc
@@ -82,9 +83,21 @@ def execute(
     # YT specific
     input_data=None, output_data=None,
     data_mine_strategy=None,
+    env_mine_strategy=None,
     operation_spec=None, task_spec=None,
     yt_proxy=None, output_result_path=None,
     init_func=None, fini_func=None,
+    # Service args
+    spec_filename=None,
+    test_tool_bin=None,
+    executor=_YtExecutor,
+    runner_log_path=None,
+    runner_log2stderr=False,
+    runner_meta_path=None,
+    target_stdout_path=None,
+    target_stderr_path=None,
+    operation_log_path=None,
+    operation_description=None,
 ):
     """
     Executes a command on the YT. Listed below are options whose behavior is different from yatest.common.execute
@@ -102,6 +115,7 @@ def execute(
     :param output_data: map of output files/dirs which will be downloaded from YT after command execution (YT sandbox path -> local path)
                         Take into account that runner will call os.path.dirname(YT sandbox path) to create intermediate directories for every entry
     :param data_mine_strategy: allows to provide own function to mine input data and fix cmd. For more info take a look at *_mine_strategy()
+    :param env_mine_strategy: allows to provide own function to mine input data and fix env. For more info take a look at *_mine_strategy()
     :param operation_spec: YT operation spec
     :param task_spec: YT task spec
     :param output_result_path: specify path to output archive. Used for test purposes
@@ -113,16 +127,15 @@ def execute(
         * every used module should be imported inside this functions, because functions will be called in a different environment and required modules may be not imported or available
         * you can only use built-in python modules (because test_tool uploads itself and runs init/fini func inside itself)
     """
-    test_tool_bin = _get_test_tool_bin()
+    test_tool_bin = test_tool_bin or _get_test_tool_bin()
     data_mine_strategy = data_mine_strategy or default_mine_strategy
+    env_mine_strategy = env_mine_strategy or default_env_mine_strategy
 
     if not wait:
         raise NotImplementedError()
 
-    env = _get_fixed_env(env, data_mine_strategy)
-
     orig_command = command
-    command, to_upload, to_download = _fix_user_data(command, shell, input_data, output_data, data_mine_strategy)
+    command, env, to_upload, to_download = _fix_user_data(command, shell, env, input_data, output_data, data_mine_strategy, env_mine_strategy)
     command_name = ytc.process.get_command_name(command)
 
     exec_spec = {
@@ -131,6 +144,7 @@ def execute(
         'timeout': timeout,
         'input_data': to_upload,
         'output_data': to_download,
+        'description': operation_description,
     }
 
     if stdin:
@@ -141,22 +155,22 @@ def execute(
             with tempfile.NamedTemporaryFile(delete=False) as afile:
                 afile.write(stdin.read())
                 stdin_path = afile.name
-        to_upload[stdin_path] = 'env/stdin'
-        exec_spec['stdin'] = 'env/stdin'
+        to_upload[stdin_path] = get_yt_sandbox_path('env/stdin')
+        exec_spec['stdin'] = get_yt_sandbox_path('env/stdin')
 
-    for stream, name in [
-        (True, 'meta'),
-        (stdout, 'stdout'),
-        (stderr, 'stderr'),
+    for stream, name, filename in [
+        (True, 'meta', runner_meta_path),
+        (stdout, 'stdout', target_stdout_path),
+        (stderr, 'stderr', target_stderr_path),
     ]:
         if stream is not False:
-            path = 'env/{}'.format(name)
+            path = get_yt_sandbox_path("env/{}".format(name))
             exec_spec[name] = path
-            to_download[path] = ytc.get_unique_file_path(ytc.work_path(), 'yt_vanilla_{}_{}'.format(command_name, name))
+            to_download[path] = filename or ytc.get_unique_file_path(ytc.work_path(), 'yt_vanilla_{}_{}'.format(command_name, name))
 
-    runner_log_dst = 'env/runner_log'
+    runner_log_dst = get_yt_sandbox_path('env/runner_log')
     exec_spec['runner_log'] = runner_log_dst
-    to_download[runner_log_dst] = ytc.path.get_unique_file_path(ytc.test_output_path(), 'yt_vanilla_wrapper_{}.log'.format(command_name))
+    to_download[runner_log_dst] = runner_log_path or ytc.path.get_unique_file_path(ytc.test_output_path(), 'yt_vanilla_wrapper_{}.log'.format(command_name))
 
     exec_spec['op_spec'] = _get_spec(
         default={
@@ -176,23 +190,33 @@ def execute(
     if fini_func:
         exec_spec['fini_func'] = _dump_func(fini_func)
 
-    exec_spec_path = _dump_spec(exec_spec)
+    exec_spec_path = _dump_spec(spec_filename, exec_spec)
 
     executor_cmd = [
         test_tool_bin, 'yt_vanilla_execute',
         '--spec-file', exec_spec_path,
-        '--log-path', ytc.path.get_unique_file_path(ytc.test_output_path(), 'yt_vanilla_op_{}.log'.format(command_name)),
+        '--log-path', operation_log_path or ytc.path.get_unique_file_path(ytc.test_output_path(), 'yt_vanilla_op_{}.log'.format(command_name)),
     ]
     if yt_proxy:
         executor_cmd += ['--yt-proxy', yt_proxy]
     if output_result_path:
         executor_cmd += ['--output-path', output_result_path]
+    if runner_log2stderr:
+        executor_cmd += ['--log2stderr']
+        executor_stderr = sys.stderr
+    else:
+        executor_stderr = None
 
-    res = ytc.execute(executor_cmd, collect_cores=collect_cores, wait=False, check_sanitizer=check_sanitizer)
+    res = ytc.execute(
+        executor_cmd,
+        stderr=executor_stderr,
+        collect_cores=collect_cores,
+        wait=False,
+        check_sanitizer=check_sanitizer,
+        executor=executor,
+    )
     if wait:
-        res.wait(check_exit_code=True)
-
-    _patch_result(res, exec_spec, orig_command, stdout, stderr, check_exit_code, timeout)
+        res.wait(exec_spec, orig_command, stdout, stderr, check_exit_code, timeout)
     return res
 
 
@@ -212,47 +236,6 @@ def replace_mine_strategy(arg):
             local_path = match.group(2) + match.group(3)
             remote_path = replacement + match.group(3)
             return fixed_arg, local_path, remote_path, os.path.exists(local_path)
-
-
-def _patch_result(result, exec_spec, command, user_stdout, user_stderr, check_exit_code, timeout):
-
-    def local_path(name):
-        return exec_spec['output_data'][exec_spec[name]]
-
-    if user_stdout is not False:
-        with open(local_path('stdout')) as afile:
-            result._std_out = afile.read()
-
-    if user_stderr is not False:
-        with open(local_path('stderr')) as afile:
-            result._std_err = afile.read()
-
-    result._command = command
-
-    with open(local_path('meta')) as afile:
-        meta = json.load(afile)
-
-    result._elapsed = meta['elapsed']
-    result._metrics = meta['metrics']
-    result._exit_code = meta['exit_code']
-
-    import pytest
-    # set global yt-execute's machinery metrics
-    ya_inst = pytest.config.ya
-    for k, v in six.iteritems(meta.get('yt_metrics', {})):
-        ya_inst.set_metric_value(k, v + ya_inst.get_metric_value(k, default=0))
-    # increase global call counter
-    ya_inst.set_metric_value('yt_execute_call_count', ya_inst.get_metric_value('yt_execute_call_count', default=0) + 1)
-
-    if meta['timeout']:
-        raise ytc.ExecutionTimeoutError(result, "{} second(s) wait timeout has expired".format(timeout))
-
-    # if rc != 0 and check_exit_code - _finalise will print stderr and stdout
-    if not check_exit_code or result._exit_code == 0:
-        logger.debug("Command over YT output:\n%s", ytc.process.truncate(result._std_out, ytc.process.MAX_OUT_LEN))
-        logger.debug("Command over YT errors:\n%s", ytc.process.truncate(result._std_err, ytc.process.MAX_OUT_LEN))
-
-    result._finalise(check_exit_code)
 
 
 def _get_test_tool_bin():
@@ -280,20 +263,18 @@ def _get_spec(default=None, user=None, mandatory=None):
 def _get_output_replace_map():
     d = collections.OrderedDict()
     # ytc.test_output_path() is based on output_path()
-    d[ytc.output_path()] = 'env/output_path'
+    d[ytc.output_path()] = get_yt_sandbox_path('env/output_path')
     return d
 
 
 @ytc.misc.lazy
 def _get_input_replace_map():
-    tmpdir = ytc.misc.first(os.environ.get(var) for var in ['TMPDIR', 'TEMP', 'TMP']) or '/tmp'
     # order matters - source_path is build_path's subdir
     d = collections.OrderedDict()
-    d[ytc.source_path()] = 'env/source_path'
-    d[ytc.data_path()] = 'env/data_path'
+    d[ytc.source_path()] = get_yt_sandbox_path('env/source_path')
+    d[ytc.data_path()] = get_yt_sandbox_path('env/data_path')
     # yatest.common.binary_path() based on build_path()
-    d[ytc.build_path()] = 'env/build_path'
-    d[tmpdir] = 'env/tempdir'
+    d[ytc.build_path()] = get_yt_sandbox_path('env/build_path')
     return d
 
 
@@ -305,62 +286,68 @@ def _get_replace_map():
     return d
 
 
-def _get_fixed_env(env, strategy):
-    if env is None:
-        env = os.environ.copy()
-
-    for env_var in [
+def default_env_mine_strategy(name, value, strategy):
+    if name in [
+        'ARCADIA_BUILD_ROOT',
+        'ARCADIA_SOURCE_ROOT',
+        'ARCADIA_TESTS_DATA_DIR',
         'HOME',
         'PORT_SYNC_PATH',
         'PWD',
         'PYTHONPATH',
+        'TEST_WORK_PATH',
         'USER',
         'YT_TOKEN',
     ]:
-        if env_var in env.keys():
-            del env[env_var]
+        return None
 
-    for prefix in ['YA_']:
-        for env_var in [env_var for env_var in env.keys() if env_var.startswith(prefix)]:
-            del env[env_var]
+    if name.startswith('YA_'):
+        return None
 
-    def fix_path(p):
-        res = strategy(p)
-        if res:
-            # remote path
-            return res[2]
-        return p
-
-    return {k: fix_path(v) for k, v in six.iteritems(env)}
+    res = strategy(value)
+    if res:
+        return res
+    return value, None, None, False
 
 
-def _fix_user_data(orig_cmd, shell, user_input, user_output, strategy):
+def _fix_user_data(orig_cmd, shell, orig_env, user_input, user_output, arg_mine_strategy, env_mine_strategy):
     cmd = []
     input_data, output_data = {}, {}
     user_input = user_input or {}
     user_output = user_output or {}
+    orig_env = dict(orig_env or os.environ)
+    env = {}
 
     if isinstance(orig_cmd, six.string_types):
         orig_cmd = shlex.split(orig_cmd)
 
-    def check_arg(arg):
-        res = strategy(arg)
-        if res:
-            fixed_arg, local_path, remote_path, inlet = res
-            # Drop data marked by user with None destination
-            if inlet and user_input.get(local_path, '') is not None:
+    def process_fixed_path(res):
+        fixed_val, local_path, remote_path, inlet = res
+        # Drop data marked by user with None destination
+        if inlet and user_input.get(local_path, '') is not None:
+            if remote_path:
                 input_data.update({local_path: remote_path})
-            else:
+        else:
+            if local_path:
                 output_data.update({remote_path: local_path})
-            cmd.append(fixed_arg)
-            return True
 
-        return False
-
+    # Fix command line
     for arg in orig_cmd:
-        if check_arg(arg):
-            continue
-        cmd.append(arg)
+        res = arg_mine_strategy(arg)
+        if res:
+            new_val = res[0]
+            process_fixed_path(res)
+            cmd.append(new_val)
+        else:
+            cmd.append(arg)
+
+    # Fix env
+    for name, val in six.iteritems(orig_env):
+        res = env_mine_strategy(name, val, arg_mine_strategy)
+        if res:
+            new_val = res[0]
+            process_fixed_path(res)
+            env[name] = new_val
 
     for srcs, dst, local_path_iter in [
         (user_input, input_data, lambda x: x.values()),
@@ -376,15 +363,39 @@ def _fix_user_data(orig_cmd, shell, user_input, user_output, strategy):
     input_data = {k: v for k, v in six.iteritems(input_data) if v}
     output_data = {k: v for k, v in six.iteritems(output_data) if v}
 
-    return subprocess.list2cmdline(cmd) if shell else cmd, input_data, output_data
+    input_data = _remove_subdirs_inclusion(input_data)
+    output_data = _remove_subdirs_inclusion(output_data)
+
+    return subprocess.list2cmdline(cmd) if shell else cmd, env, input_data, output_data
 
 
-def _dump_spec(data):
-    filename = tempfile.NamedTemporaryFile(prefix='yt_op_spec_', suffix='.json', delete=False)
-    with open(filename.name, 'w') as afile:
-        json.dump(data, afile, indent=4, sort_keys=True)
-    return filename.name
+def _remove_subdirs_inclusion(data):
+    if not data:
+        return data
 
+    it = iter(sorted(six.iteritems(data)))
+    prev_key, prev_val = next(it)
+    newd = {prev_key: prev_val}
+
+    for key, val in it:
+        if not key.startswith(prev_key + os.sep):
+            newd[key] = val
+            prev_key = key
+    return newd
+
+
+def _dump_spec(filename, data):
+
+    def dump(filename):
+        with open(filename, 'w') as afile:
+            json.dump(data, afile, indent=4, sort_keys=True)
+        return filename
+
+    if filename:
+        return dump(filename)
+    else:
+        tmp = tempfile.NamedTemporaryFile(prefix='yt_op_spec_', suffix='.json', delete=False)
+        return dump(tmp.name)
 
 def _dump_func(func):
     def encode(d):
