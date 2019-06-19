@@ -1,8 +1,11 @@
 #include <catboost/libs/helpers/compression.h>
 
+#include <library/binsaver/util_stream_io.h>
+
 #include <util/generic/algorithm.h>
 #include <util/generic/maybe.h>
 #include <util/random/fast.h>
+#include <util/stream/buffer.h>
 #include <util/system/yassert.h>
 
 #include <library/unittest/registar.h>
@@ -86,5 +89,33 @@ Y_UNIT_TEST_SUITE(Compression) {
         TestEqualityComparisonOnGenerated<ui8>();
         TestEqualityComparisonOnGenerated<ui16>();
         TestEqualityComparisonOnGenerated<ui32>();
+    }
+
+    void TestSaveAndLoad(TCompressedArray&& data) {
+        TBuffer buffer;
+
+        {
+            TBufferOutput out(buffer);
+            SerializeToStream(out, data);
+        }
+
+        TCompressedArray loadedData;
+
+        {
+            TBufferInput in(buffer);
+            SerializeFromStream(in, loadedData);
+        }
+
+        UNIT_ASSERT_EQUAL(data, loadedData);
+    }
+
+    Y_UNIT_TEST(TestBinSaverSerialization) {
+        TVector<ui32> bitsPerKeyForTest = {1, 2, 4, 8, 12, 16, 32};
+        for (const auto size : {0, 5, 100, 316}) {
+            for (auto bitsPerKey : bitsPerKeyForTest) {
+                const TVector<ui32> generatedData = GenerateRandomVector<ui32>(size, bitsPerKey);
+                TestSaveAndLoad(CreateCompressedArray<ui32>(generatedData, bitsPerKey));
+            }
+        }
     }
 }

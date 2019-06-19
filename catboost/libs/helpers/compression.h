@@ -4,6 +4,7 @@
 #include "exception.h"
 #include "maybe_owning_array_holder.h"
 
+#include <library/binsaver/bin_saver.h>
 #include <library/threading/local_executor/local_executor.h>
 
 #include <util/system/defaults.h>
@@ -31,6 +32,8 @@ public:
         CB_ENSURE(bitsPerKey <= 32, "Too many bits in key");
         EntriesPerType = sizeof(TStorageType) * CHAR_BIT / BitsPerKey;
     }
+
+    SAVELOAD(BitsPerKey, EntriesPerType);
 
     inline ui64 Mask() const {
         return ((static_cast<TStorageType>(1) << BitsPerKey) - 1);
@@ -79,6 +82,8 @@ public:
         , IndexHelper(bitsPerKey)
         , Storage(std::move(storage))
     {}
+
+    SAVELOAD(Size, IndexHelper, Storage);
 
     ui64 GetSize() const {
         return Size;
