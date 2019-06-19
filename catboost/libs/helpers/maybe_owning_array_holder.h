@@ -75,6 +75,14 @@ namespace NCB {
             return ArrayRef;
         }
 
+        T* data() {
+            return ArrayRef.data();
+        }
+
+        const T* data() const {
+            return ArrayRef.data();
+        }
+
         T& operator[] (size_t idx) {
             return ArrayRef[idx];
         }
