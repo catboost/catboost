@@ -13,9 +13,11 @@
 #include <util/generic/array_ref.h>
 #include <util/generic/ymath.h>
 #include <util/generic/vector.h>
+#include <util/generic/xrange.h>
 
 #include <climits>
 #include <cmath>
+#include <type_traits>
 
 
 template <class TStorageType>
@@ -90,6 +92,47 @@ public:
     T operator[](ui32 index) const {
         Y_ASSERT(index < Size);
         return IndexHelper.Extract<T>(*Storage, index);
+    }
+
+    // comparison is strict by default, useful for unit tests
+    bool operator==(const TCompressedArray& rhs) const {
+        return EqualTo(rhs, /*strict*/ true);
+    }
+
+    template <class T>
+    bool operator==(TConstArrayRef<T> rhs) const {
+        static_assert(std::is_integral<T>::value);
+
+        if (Size != rhs.size()) {
+            return false;
+        }
+
+        for (auto i : xrange(Size)) {
+            if ((*this)[i] != rhs[i]) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // if strict is true compare bit-by-bit, else compare values even with different BitsPerKey
+    bool EqualTo(const TCompressedArray& rhs, bool strict = true) const {
+        if (Size != rhs.Size) {
+            return false;
+        }
+
+        if (strict) {
+            if ((GetBitsPerKey() != rhs.GetBitsPerKey()) || !(*Storage == *rhs.Storage)) {
+                return false;
+            }
+        } else {
+            for (auto i : xrange(Size)) {
+                if ((*this)[i] != rhs[i]) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     // will throw exception if data cannot be interpreted as usual array as-is
