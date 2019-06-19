@@ -14,6 +14,10 @@ namespace NCB {
     template <class T>
     class TMaybeOwningArrayHolder {
     public:
+        using iterator = typename TArrayRef<T>::iterator;
+        using const_iterator = typename TArrayRef<T>::const_iterator;
+
+    public:
         TMaybeOwningArrayHolder() = default;
 
         static TMaybeOwningArrayHolder CreateNonOwning(TArrayRef<T> arrayRef)
@@ -85,6 +89,22 @@ namespace NCB {
 
         size_t GetSize() const {
             return ArrayRef.size();
+        }
+
+        iterator begin() {
+            return ArrayRef.begin();
+        }
+
+        iterator end() {
+            return ArrayRef.end();
+        }
+
+        const_iterator begin() const {
+            return ArrayRef.begin();
+        }
+
+        const_iterator end() const {
+            return ArrayRef.end();
         }
 
     private:
