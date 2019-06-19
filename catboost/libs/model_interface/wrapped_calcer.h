@@ -223,11 +223,11 @@ public:
         return ::GetCatFeaturesCount(CalcerHolder.get());
     }
 
-    bool CheckMetadataHasKey(const std::string& key) {
+    bool CheckMetadataHasKey(const std::string& key) const {
         return ::CheckModelMetadataHasKey(CalcerHolder.get(), key.c_str(), key.size());
     }
 
-    std::string GetMetadataKeyValue(const std::string& key) {
+    std::string GetMetadataKeyValue(const std::string& key) const {
         if (!CheckMetadataHasKey(key)) {
             return "";
         }
