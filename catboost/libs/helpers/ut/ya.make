@@ -11,6 +11,7 @@ SRCS(
     compression_ut.cpp
     dbg_output_ut.cpp
     double_array_iterator_ut.cpp
+    dynamic_iterator_ut.cpp
     map_merge_ut.cpp
     math_utils_ut.cpp
     maybe_owning_array_holder_ut.cpp
