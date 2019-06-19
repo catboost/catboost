@@ -300,8 +300,10 @@ class Pool(_PoolBase):
                 raise CatBoostError("data should be the string type if column_description parameter is specified.")
             if isinstance(data, STRING_TYPES):
                 if any(v is not None for v in [cat_features, weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, feature_names]):
-                    raise CatBoostError("cat_features, weight, group_id, group_weight, subgroup_id, pairs_weight, \
-                                        baseline, feature_names should have the None type when the pool is read from the file.")
+                    raise CatBoostError(
+                        "cat_features, weight, group_id, group_weight, subgroup_id, pairs_weight, "
+                        "baseline, feature_names should have the None type when the pool is read from the file."
+                    )
                 self._read(data, column_description, pairs, delimiter, has_header, thread_count)
             else:
                 if isinstance(data, FeaturesData):
@@ -2211,8 +2213,6 @@ class CatBoost(_CatBoostBase):
         if not isinstance(feature, int):
             if self.feature_names_ is None or feature not in self.feature_names_:
                 raise CatBoostError('No feature named "{}" in model'.format(feature))
-            if feature not in data.get_feature_names():
-                raise CatBoostError('No feature named "{}" in dataset'.format(feature))
             feature_num = self.feature_names_.index(feature)
         else:
             feature_num = feature
