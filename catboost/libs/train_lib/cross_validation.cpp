@@ -207,8 +207,8 @@ public:
         outputJsonParams["train_dir"] = TempDir->Name();
         outputJsonParams["use_best_model"] = false;
 
-        // TODO(akhropov): proper snapshots for CV. MLTOOLS-3439.
-        outputJsonParams["save_snapshot"] = false;
+        // TODO(akhropov): implement learning continuation for GPU, do not rely on snapshots. MLTOOLS-3735.
+        outputJsonParams["save_snapshot"] = (taskType == ETaskType::GPU);
         OutputOptions.Load(outputJsonParams);
     }
 
@@ -418,6 +418,14 @@ void CrossValidate(
     // TODO(akhropov): implement snapshots in CV. MLTOOLS-3439.
     CB_ENSURE(!outputFileOptions.SaveSnapshot(), "Saving snapshots in Cross-validation is not supported yet");
 
+    const ETaskType taskType = catBoostOptions.GetTaskType();
+
+    // TODO(akhropov): implement learning continuation for GPU, do not rely on snapshots. MLTOOLS-3735.
+    CB_ENSURE(
+        (taskType == ETaskType::CPU) || outputFileOptions.AllowWriteFiles(),
+        "Cross-validation on GPU relies on writing files, so it must be allowed"
+    );
+
     const ui32 allDataObjectCount = data->ObjectsData->GetObjectCount();
 
     CB_ENSURE(allDataObjectCount != 0, "Pool is empty");
@@ -467,8 +475,6 @@ void CrossValidate(
     // internal training output shouldn't interfere with main stdout
     const auto loggingLevel = catBoostOptions.LoggingLevel;
     catBoostOptions.LoggingLevel = ELoggingLevel::Silent;
-
-    const ETaskType taskType = catBoostOptions.GetTaskType();
 
     THolder<IModelTrainer> modelTrainerHolder;
 
