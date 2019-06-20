@@ -164,6 +164,8 @@ def check_imports(no_check=None, extra=[], skip_func=None):
         "raven.handlers.logbook",
         "raven.utils.testutils",
 
+        "semantic_version.django_fields",
+
         "sklearn.utils.*",
         "statsmodels.*",
 
