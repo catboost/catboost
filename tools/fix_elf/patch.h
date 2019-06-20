@@ -1,6 +1,6 @@
 #pragma once
 
-#include <contrib/libs/musl-1.1.20/include/elf.h>
+#include "elf.h"
 
 #include <util/generic/string.h>
 #include <util/stream/file.h>

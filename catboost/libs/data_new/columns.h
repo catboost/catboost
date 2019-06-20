@@ -30,7 +30,8 @@ namespace NCB {
 
     enum class EFeatureValuesType {
         Float,                      //32 bits per feature value
-        QuantizedFloat,             //at most 8 bits per feature value. Contains grid
+        QuantizedFloat,             //quantized with at most 8 bits (for GPU) or 16 bits (for CPU) per
+                                    // feature value.
         HashedCategorical,          //values - 32 bit hashes of original strings
         PerfectHashedCategorical,   //after perfect hashing
         StringText,                 //unoptimized text feature
@@ -190,7 +191,7 @@ namespace NCB {
             );
         }
 
-        template<class F>
+        template <class F>
         void ForEach(F&& f, const NCB::TFeaturesArraySubsetIndexing* featuresSubsetIndexing = nullptr) const {
             if (!featuresSubsetIndexing) {
                 featuresSubsetIndexing = SubsetIndexing;

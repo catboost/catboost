@@ -192,10 +192,18 @@ static inline auto FindIfPtr(C&& c, P pred) {
 }
 
 template <class C, class T>
-static inline size_t FindIndex(C& c, const T& x) {
+static inline size_t FindIndex(C&& c, const T& x) {
     using std::begin;
     using std::end;
     auto it = Find(begin(c), end(c), x);
+    return it == end(c) ? NPOS : (it - begin(c));
+}
+
+template <class C, class P>
+static inline size_t FindIndexIf(C&& c, P p) {
+    using std::begin;
+    using std::end;
+    auto it = FindIf(begin(c), end(c), p);
     return it == end(c) ? NPOS : (it - begin(c));
 }
 

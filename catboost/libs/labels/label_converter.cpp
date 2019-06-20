@@ -6,7 +6,7 @@
 #include <catboost/libs/options/option.h>
 
 #include <util/generic/algorithm.h>
-#include <util/string/builder.h>
+#include <util/string/join.h>
 
 static THashMap<float, int> CalcLabelToClassMap(TVector<float> targets, int classesCount) {
     SortUnique(targets);
@@ -16,9 +16,9 @@ static THashMap<float, int> CalcLabelToClassMap(TVector<float> targets, int clas
             "If classes count is specified each target label should be nonnegative integer in [0,..,classes_count - 1].");
 
         if (classesCount > targets.ysize()) {
-            CATBOOST_WARNING_LOG << "Found only " << targets.ysize() <<
-                " unique classes but defined " << classesCount
-                << " classes probably something is wrong with data." << Endl;
+            CATBOOST_WARNING_LOG << "Found only " << targets.ysize() << " unique classes in the data"
+                << ", but have defined " << classesCount << " classes."
+                << " Probably something is wrong with data." << Endl;
         }
     }
 
@@ -114,26 +114,14 @@ void TLabelConverter::ValidateLabels(TConstArrayRef<float> labels) const {
             if (ClassesCount > 0 && int(label) == label && label >= 0 && label < ClassesCount) {
                 missingLabels.emplace(label);
             } else {
-                CB_ENSURE(false, "Label " << label
-                    << " is bad label and not contained in train set.");
+                CATBOOST_WARNING_LOG << "Label " << label << " not present in train set.";
             }
         }
     }
 
     if (!missingLabels.empty()) {
-        TStringBuilder warningStrBuilder;
-        bool isFirstLabel = true;
-
-        warningStrBuilder << "Labels ";
-        for (auto label : missingLabels) {
-            warningStrBuilder << (isFirstLabel ? "": ", ") << label;
-            isFirstLabel = false;
-        }
-
-        CB_ENSURE(!ClassToLabel.empty(), "ClassToLabel mapping must be not empty.");
-        warningStrBuilder << " aren't contained in train set but still valid "
-                      << "and will be processed the same as label " << ClassToLabel[0] << ".";
-        CATBOOST_WARNING_LOG << warningStrBuilder << Endl;
+        CATBOOST_WARNING_LOG << "Label(s) " << JoinSeq(", ", missingLabels) << " are not present in the train set."
+            << " Perhaps, something is wrong with the data." << Endl;
     }
 }
 

@@ -83,6 +83,7 @@ namespace NCB {
         const TFullModel& model,
         TDataProvider& dataset,
         const size_t featureNum,
+        const TVector<double>& prediction,
         const EPredictionType predictionType,
         const int threadCount) {
         CB_ENSURE_INTERNAL(!model.ObliviousTrees.FloatFeatures[featureNum].HasNans,
@@ -94,7 +95,6 @@ namespace NCB {
 
         TVector<float> borders = model.ObliviousTrees.FloatFeatures[featureNum].Borders;
         size_t bordersSize = borders.size();
-        TVector<double> prediction = ApplyModel(model, dataset, false, predictionType, 0, 0, threadCount);
 
         TProcessedDataProvider processedDataProvider = CreateModelCompatibleProcessedDataProvider(
             dataset, {}, model, &rand, &executor);
@@ -189,18 +189,35 @@ namespace NCB {
         };
     }
 
+    int GetOneHotFeatureFlatNum(const TFullModel& model, const size_t featureNum) {
+        int featureFlatNum = -1;
+        for(auto & feature: model.ObliviousTrees.OneHotFeatures) {
+            const int distToNearestCatFeature = featureNum - feature.CatFeatureIndex;
+            ++featureFlatNum;
+            if (distToNearestCatFeature < 0) {
+                return -1;
+            }
+            else{
+                if (distToNearestCatFeature == 0) {
+                    return featureFlatNum;
+                }
+            }
+        }
+        return -1;
+    }
+
     TBinarizedFeatureStatistics GetBinarizedOneHotFeatureStatistics(
         const TFullModel& model,
         TDataProvider& dataset,
         const size_t featureNum,
+        const int featureFlatNum,
+        const TVector<double>& prediction,
         const EPredictionType predictionType,
         const int threadCount) {
 
         NPar::TLocalExecutor executor;
         executor.RunAdditionalThreads(threadCount - 1);
         TRestorableFastRng64 rand(0);
-
-        TVector<double> prediction = ApplyModel(model, dataset, false, predictionType, 0, 0, threadCount);
 
         TProcessedDataProvider processedDataProvider = CreateModelCompatibleProcessedDataProvider(
             dataset, {}, model, &rand, &executor);
@@ -216,8 +233,7 @@ namespace NCB {
             return {};
         }
 
-        TVector<int> oneHotUniqueValues = model.ObliviousTrees.OneHotFeatures[featureNum].Values;
-
+        const TVector<int>& oneHotUniqueValues = model.ObliviousTrees.OneHotFeatures[featureFlatNum].Values;
         TMaybeData<const THashedCatValuesHolder*> catFeatureMaybe = \
             rawObjectsDataProviderPtr->GetCatFeature(featureNum);
         CB_ENSURE_INTERNAL(catFeatureMaybe, "Categorical feature #" << featureNum << " not found");
@@ -227,7 +243,7 @@ namespace NCB {
         TVector<ui32> featureValues(featureValuesRef.begin(), featureValuesRef.end());
 
         TVector<int> binNums;
-        binNums.reserve(featureValues.size());
+        binNums.reserve(oneHotUniqueValues.size());
         for (auto val : featureValues) {
             auto it = std::find(oneHotUniqueValues.begin(), oneHotUniqueValues.end(), val);
             binNums.push_back(it - oneHotUniqueValues.begin()); // Unknown values will be at bin #oneHotUniqueValues.size()
@@ -247,6 +263,7 @@ namespace NCB {
             meanTarget.pop_back();
             meanPrediction.pop_back();
             countObjectsPerBin.pop_back();
+            --numBins;
         }
         for (size_t binNum = 0; binNum < numBins; ++binNum) {
             size_t numObjs = countObjectsPerBin[binNum];
@@ -278,6 +295,67 @@ namespace NCB {
         };
     }
 
+    TBinarizedFeatureStatistics GetBinarizedCatFeatureStatistics(
+        const TFullModel& model,
+        TDataProvider& dataset,
+        const size_t featureNum,
+        const TVector<double>& prediction,
+        const EPredictionType predictionType,
+        const int threadCount) {
+        const int featureFlatNum = GetOneHotFeatureFlatNum(model, featureNum);
+        CB_ENSURE_INTERNAL(
+            featureFlatNum != -1,
+            "Binarized statistics supported only for one-hot encoded features. Use one_hot_max_size when training to manage that."
+        );
+        return GetBinarizedOneHotFeatureStatistics(
+            model,
+            dataset,
+            featureNum,
+            featureFlatNum,
+            prediction,
+            predictionType,
+            threadCount
+        );
+    }
+
+    TVector<TBinarizedFeatureStatistics> GetBinarizedStatistics(
+        const TFullModel& model,
+        TDataProvider& dataset,
+        const TVector<size_t>& catFeaturesNums,
+        const TVector<size_t>& floatFeaturesNums,
+        const EPredictionType predictionType,
+        const int threadCount) {
+
+        const TVector<double> prediction = ApplyModel(model, dataset, false, predictionType, 0, 0, threadCount);
+        TVector<TBinarizedFeatureStatistics> statistics;
+
+        for (const auto catFeatureNum: catFeaturesNums) {
+            statistics.push_back(
+                GetBinarizedCatFeatureStatistics(
+                    model, dataset,
+                    catFeatureNum,
+                    prediction,
+                    predictionType,
+                    threadCount
+                )
+            );
+        }
+
+        for (const auto floatFeatureNum: floatFeaturesNums) {
+            statistics.push_back(
+                GetBinarizedFloatFeatureStatistics(
+                    model, dataset,
+                    floatFeatureNum,
+                    prediction,
+                    predictionType,
+                    threadCount
+                )
+            );
+        }
+
+        return statistics;
+    }
+
     ui32 GetCatFeaturePerfectHash(
             const TFullModel& model,
             const TStringBuf& value,
@@ -287,8 +365,12 @@ namespace NCB {
         if (model.ObliviousTrees.OneHotFeatures.empty()) {
             return 0;
         }
+        const int featureFlatNum = GetOneHotFeatureFlatNum(model, featureNum);
 
-        const TVector<int>& oneHotUniqueValues = model.ObliviousTrees.OneHotFeatures[featureNum].Values;
+        if (featureFlatNum == -1) {
+            return 0;
+        }
+        const TVector<int>& oneHotUniqueValues = model.ObliviousTrees.OneHotFeatures[featureFlatNum].Values;
         auto it = std::find(oneHotUniqueValues.begin(), oneHotUniqueValues.end(), hash);
         return it - oneHotUniqueValues.begin();
     }

@@ -1,8 +1,12 @@
 import base64
 import json
 import os
+import re
 import sys
+import shutil
+import tempfile
 import textwrap
+import zipfile
 
 
 class _Formatting(object):
@@ -20,8 +24,8 @@ class _Formatting(object):
         return retval.decode('utf-8') if isinstance(strval, unicode) else retval
 
     @staticmethod
-    def escape_line_feed(strval, indent='    ', cont=True):
-        return strval.replace(r'\n', '\\n"\\\n' + indent + '"' if cont else '\\n"\n' + indent + '"')
+    def escape_line_feed(strval, indent='    '):
+        return strval.replace(r'\n', '\\n"\\\n' + indent + '"')
 
     @staticmethod
     def escaped_define(strkey, val):
@@ -36,7 +40,7 @@ class _Formatting(object):
     @staticmethod
     def escaped_go_map_key(strkey, strval):
         if isinstance(strval, basestring):
-            return '    ' + '"' + strkey + '": "' + _Formatting.escape_line_feed(_Formatting.escape_special_symbols(strval), '      ', False) + '",'
+            return '    ' + '"' + strkey + '": "' + _Formatting.escape_special_symbols(strval) + '",'
         else:
             return '    ' + '"' + strkey + '": "' + str(strval) + '",'
 
@@ -95,19 +99,79 @@ def print_c(json_file, output_file, argv):
         f.write('\n'.join(gen_header(json_file)).encode('utf-8') + '\n' + c_file)
 
 
-def merge_java_mf(json_file, out_manifest, input_dir):
-    manifest = os.path.join(input_dir, 'META-INF', 'MANIFEST.MF')
-    if not os.path.isfile(manifest):
-        cont = 'Manifest-Version: 1.0'
+def merge_java_content(old_content, json_file):
+    new_content, names = print_java_mf(json_file)
+
+    def split_to_sections(content):
+        sections = []
+        cur_section = []
+        for l in content:
+            if l.rstrip():
+                cur_section.append(l)
+            else:
+                sections.append(cur_section)
+                cur_section = []
+
+        if cur_section:  # should not be needed according to format specification
+            sections.append(cur_section)
+
+        return sections
+
+    def drop_duplicate_entries(main_section, names):
+        header = re.compile('^([A-Za-z0-9][A-Za-z0-9_-]*): .*$')
+        new_main_section = []
+        for l in main_section:
+            match = header.match(l)
+            # duplicate entry
+            if match:
+                skip = match.group(1) in names
+
+            if not skip:
+                new_main_section.append(l)
+        return new_main_section
+
+    if old_content:
+        sections = split_to_sections(old_content)
+        sections[0] = drop_duplicate_entries(sections[0], names)
     else:
+        sections = [['Manifest-Version: 1.0\n']]
+
+    sections[0].extend(map(lambda x: x + '\n', new_content))
+
+    return ''.join(map(lambda x: ''.join(x), sections)) + '\n'
+
+
+def merge_java_mf_jar(json_file, out_manifest, jar_file):
+    try:
+        temp_dir = tempfile.mkdtemp()
+        try:
+            with zipfile.ZipFile(jar_file, 'r') as jar:
+                jar.extract(os.path.join('META-INF', 'MANIFEST.MF'), path=temp_dir)
+        except KeyError:
+            pass
+
+        merge_java_mf_dir(json_file, out_manifest, temp_dir)
+    finally:
+        shutil.rmtree(temp_dir)
+
+
+def merge_java_mf_dir(json_file, out_manifest, input_dir):
+    manifest = os.path.join(input_dir, 'META-INF', 'MANIFEST.MF')
+
+    old_lines = []
+    if os.path.isfile(manifest):
         with open(manifest, 'r') as f:
-            cont = f.read().rstrip()
+            old_lines = f.readlines()
 
     with open(out_manifest, 'w') as f:
-        f.write(cont + '\n')
+        f.write(merge_java_content(old_lines, json_file))
 
-    with open(out_manifest, 'a') as f:
-        f.write('\n'.join(print_java_mf(json_file)) + '\n\n')
+
+def merge_java_mf(json_file, out_manifest, input):
+    if zipfile.is_zipfile(input):
+        merge_java_mf_jar(json_file, out_manifest, input)
+    elif os.path.isdir(input):
+        merge_java_mf_dir(json_file, out_manifest, input)
 
 
 def print_java_mf(info):
@@ -115,8 +179,10 @@ def print_java_mf(info):
                                    break_long_words=True,
                                    replace_whitespace=False,
                                    drop_whitespace=False)
+    names = set()
 
     def wrap(key, val):
+        names.add(key[:-2])
         if not val:
             return []
         return wrapper.wrap(key + val)
@@ -138,7 +204,7 @@ def print_java_mf(info):
         lines += wrap('SVN-Arcroot: ', info['SVN_ARCROOT'])
         lines += wrap('SVN-Time: ', info['SVN_TIME'])
     lines += wrap('Build-Date: ', info['BUILD_DATE'])
-    return lines
+    return lines, names
 
 
 def print_java(json_file, output_file, argv):
@@ -146,8 +212,8 @@ def print_java(json_file, output_file, argv):
             json file
             output file
             file"""
-    input_dir = argv[0] if argv else os.curdir
-    merge_java_mf(json_file, output_file, input_dir)
+    input = argv[0] if argv else os.curdir
+    merge_java_mf(json_file, output_file, input)
 
 
 def print_go(json_file, output_file):
@@ -160,7 +226,12 @@ def print_go(json_file, output_file):
     with open(output_file, 'w') as f:
         f.write('\n'.join([
             'package main',
-            'var buildinfo = map[string]string{'] + gen_map(json_file) + ['}']).encode('utf-8') + '\n')
+            'import ("a.yandex-team.ru/library/go/core/buildinfo")',
+            'var buildinfomap = map[string]string {'] + gen_map(json_file) + ['}'] +
+            ['func init() {',
+             '   buildinfo.InitBuildInfo(buildinfomap)',
+             '}']
+        ).encode('utf-8') + '\n')
 
 
 if __name__ == '__main__':

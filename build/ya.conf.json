@@ -71,12 +71,12 @@
         "graphs_difference": { "description": "Run graphs_difference tool", "visible": false },
         "contexts_difference": { "description": "Run contexts_difference tool", "visible": false },
         "crypta": { "description": "Run Crypta client" },
-        "go_1.12.4": { "description": "Run go tool (1.12.4)" },
-        "godoc_1.12.4": { "description": "Run godoc tool (1.12.4)" },
-        "gofmt_1.12.4": { "description": "Run gofmt tool (1.12.4)" },
-        "go": { "description": "Run go tool (1.12.5)" },
-        "godoc": { "description": "Run godoc tool (1.12.5)" },
-        "gofmt": { "description": "Run gofmt tool (1.12.5)" },
+        "go_1.12.5": { "description": "Run go tool (1.12.5)" },
+        "godoc_1.12.5": { "description": "Run godoc tool (1.12.5)" },
+        "gofmt_1.12.5": { "description": "Run gofmt tool (1.12.5)" },
+        "go": { "description": "Run go tool (1.12.6)" },
+        "godoc": { "description": "Run godoc tool (1.12.6)" },
+        "gofmt": { "description": "Run gofmt tool (1.12.6)" },
         "yo": { "description": "Tool for managing vendor/ directory" },
         "tvmknife": { "description": "Tool for debugging and testing with TVM tickets" },
         "sandboxctl": { "description": "Tool to run tasks in Sandbox" },
@@ -85,7 +85,8 @@
         "qemu-i386": { "description": "QEMU i386 machine emulator and virtualizer" },
         "qemu-img": { "description": "QEMU disk image utility" },
         "qemu-nbd": { "description": "QEMU disk network block device server" },
-        "yfm": { "description": "YFM-extended markdown processor for Cloud deploy" }
+        "yfm": { "description": "YFM-extended markdown processor for Cloud deploy" },
+        "aws": { "description": "Run aws" }
     },
     "toolchain": {
         "msvc2017-i686": {
@@ -1456,29 +1457,12 @@
                 {"host": {"os": "DARWIN"}, "default": true}
             ]
         },
-        "golang_1_12_4": {
-            "tools": {
-                "golang_1.12.4": {"bottle": "golang_1.12.4",  "executable": "golang_1.12.4"},
-                "go_1.12.4": {"bottle": "golang_1.12.4",  "executable": "go_1.12.4"},
-                "godoc_1.12.4": {"bottle": "golang_1.12.4",  "executable": "godoc_1.12.4"},
-                "gofmt_1.12.4": {"bottle": "golang_1.12.4",  "executable": "gofmt_1.12.4"}
-            },
-            "platforms": [
-                {"host": {"os": "LINUX"}, "default": true},
-                {"host": {"os": "DARWIN"}, "default": true},
-                {"host": {"os": "WIN"}, "default": true}
-            ],
-            "params": {
-                "type": "golang",
-                "version": "1.12.4"
-            }
-        },
         "golang_1_12_5": {
             "tools": {
-                "golang": {"bottle": "golang_1.12.5",  "executable": "golang"},
-                "go": {"bottle": "golang_1.12.5",  "executable": "go"},
-                "godoc": {"bottle": "golang_1.12.5",  "executable": "godoc"},
-                "gofmt": {"bottle": "golang_1.12.5",  "executable": "gofmt"}
+                "golang_1.12.5": {"bottle": "golang_1.12.5",  "executable": "golang_1.12.5"},
+                "go_1.12.5": {"bottle": "golang_1.12.5",  "executable": "go_1.12.5"},
+                "godoc_1.12.5": {"bottle": "golang_1.12.5",  "executable": "godoc_1.12.5"},
+                "gofmt_1.12.5": {"bottle": "golang_1.12.5",  "executable": "gofmt_1.12.5"}
             },
             "platforms": [
                 {"host": {"os": "LINUX"}, "default": true},
@@ -1488,6 +1472,23 @@
             "params": {
                 "type": "golang",
                 "version": "1.12.5"
+            }
+        },
+        "golang_1_12_6": {
+            "tools": {
+                "golang": {"bottle": "golang_1.12.6",  "executable": "golang"},
+                "go": {"bottle": "golang_1.12.6",  "executable": "go"},
+                "godoc": {"bottle": "golang_1.12.6",  "executable": "godoc"},
+                "gofmt": {"bottle": "golang_1.12.6",  "executable": "gofmt"}
+            },
+            "platforms": [
+                {"host": {"os": "LINUX"}, "default": true},
+                {"host": {"os": "DARWIN"}, "default": true},
+                {"host": {"os": "WIN"}, "default": true}
+            ],
+            "params": {
+                "type": "golang",
+                "version": "1.12.6"
             }
         },
         "qemu": {
@@ -1509,6 +1510,16 @@
                 {"host": {"os": "LINUX"}, "default": true},
                 {"host": {"os": "DARWIN"}, "default": true},
                 {"host": {"os": "WIN"}, "default": true}
+            ]
+        },
+        "aws": {
+            "tools": {
+                "aws": { "bottle" : "aws", "executable": "aws" }
+            },
+            "platforms": [
+                {"host": {"os": "LINUX"}, "default": true},
+                {"host": {"os": "WIN"}, "default": true},
+                {"host": {"os": "DARWIN"}, "default": true}
             ]
         }
     },
@@ -1533,7 +1544,7 @@
         },
         "ymake": {
             "formula": {
-                "sandbox_id": [441700246],
+                "sandbox_id": [449551319],
                 "match": "ymake"
             },
             "executable": {
@@ -1569,7 +1580,7 @@
         },
         "arc": {
             "formula": {
-                "sandbox_id": [445904652],
+                "sandbox_id": [451308405],
                 "match": "arc"
             },
             "executable": {
@@ -1614,7 +1625,7 @@
         },
         "hg": {
             "formula": {
-                "sandbox_id": [384697982, 384698485, 433333071],
+                "sandbox_id": [384697982, 384698485, 446769978],
                 "match": "Hg"
             },
             "executable": {
@@ -2061,7 +2072,7 @@
         },
         "yp-util": {
             "formula": {
-                "sandbox_id":  [430985072],
+                "sandbox_id":  [451466288],
                 "match": "yp_util"
             },
             "executable": {
@@ -2079,7 +2090,7 @@
         },
         "dctl": {
             "formula": {
-                "sandbox_id":  [437945251],
+                "sandbox_id":  [440250987],
                 "match": "dctl"
             },
             "executable": {
@@ -2249,7 +2260,7 @@
         },
         "kwmktorrent": {
             "formula": {
-                "sandbox_id": 30970326,
+                "sandbox_id": 451506451,
                 "match": "KWMKTorrent"
             },
             "executable": {
@@ -2412,20 +2423,20 @@
                 "crypta": ["crypta"]
             }
         },
-        "golang_1.12.4": {
-            "formula": {
-                "sandbox_id": [412009563, 412010042, 412010635],
-                "match": "GOLANG"
-            },
-            "executable": {
-                "go_1.12.4": ["bin", "go"],
-                "godoc_1.12.4": ["bin", "godoc"],
-                "gofmt_1.12.4": ["bin", "gofmt"]
-            }
-        },
         "golang_1.12.5": {
             "formula": {
                 "sandbox_id": [433848019, 433848953, 433849700],
+                "match": "GOLANG"
+            },
+            "executable": {
+                "go_1.12.5": ["bin", "go"],
+                "godoc_1.12.5": ["bin", "godoc"],
+                "gofmt_1.12.5": ["bin", "gofmt"]
+            }
+        },
+        "golang_1.12.6": {
+            "formula": {
+                "sandbox_id": [447801790, 447803563, 447805610],
                 "match": "GOLANG"
             },
             "executable": {
@@ -2448,14 +2459,21 @@
         },
         "yfm": {
             "formula": {
-                "sandbox_id": 440317482,
-                "match": "YFM"
-
+                "sandbox_id": 448364688,
+                "match": "yfm"
             },
             "executable": {
                 "yfm": ["yfm-transform"]
             }
+        },
+        "aws": {
+            "formula": {
+                "sandbox_id": 448981674,
+                "match": "aws"
+            },
+            "executable": {
+                "aws": ["aws"]
+            }
         }
     }
 }
-

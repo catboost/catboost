@@ -25,6 +25,7 @@
 #include <util/generic/ylimits.h>
 #include <util/generic/ymath.h>
 #include <util/stream/labeled.h>
+#include <util/string/join.h>
 #include <util/system/yassert.h>
 
 #include <algorithm>
@@ -814,9 +815,17 @@ namespace NCB {
 
             ObjectCount = objectCount;
 
-            ClassNames = poolQuantizationSchema.ClassNames;
-
             Data.MetaInfo = metaInfo;
+
+            if (Data.MetaInfo.ClassNames.empty()) {
+                Data.MetaInfo.ClassNames = poolQuantizationSchema.ClassNames;
+            } else {
+                size_t prefixLength = Min(Data.MetaInfo.ClassNames.size(), poolQuantizationSchema.ClassNames.size());
+                auto firstGivenNames = TConstArrayRef<TString>(Data.MetaInfo.ClassNames.begin(), Data.MetaInfo.ClassNames.begin() + prefixLength);
+                CB_ENSURE(firstGivenNames == TConstArrayRef<TString>(poolQuantizationSchema.ClassNames),
+                          "Class-names incompatible with quantized pool, expected: " << JoinSeq(",", poolQuantizationSchema.ClassNames));
+            }
+
             Data.TargetData.PrepareForInitialization(metaInfo, objectCount, 0);
             Data.CommonObjectsData.PrepareForInitialization(metaInfo, objectCount, 0);
             Data.ObjectsData.Data.PrepareForInitialization(
@@ -928,6 +937,12 @@ namespace NCB {
 
         void AddTargetPart(ui32 objectOffset, TUnalignedArrayBuf<float> targetPart) override {
             auto& target = *Data.TargetData.Target;
+            if (Data.MetaInfo.ClassNames) {
+                for (auto it = targetPart.GetIterator(); !it.AtEnd(); it.Next(), ++objectOffset) {
+                    target[objectOffset] = Data.MetaInfo.ClassNames[int(it.Cur())];
+                }
+                return;
+            }
             for (auto it = targetPart.GetIterator(); !it.AtEnd(); it.Next(), ++objectOffset) {
                 target[objectOffset] = ToString(it.Cur());
             }

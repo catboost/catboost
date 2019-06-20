@@ -1,5 +1,8 @@
 #include <catboost/libs/helpers/maybe_owning_array_holder.h>
 
+#include <library/binsaver/util_stream_io.h>
+
+#include <util/stream/buffer.h>
 #include <util/generic/string.h>
 
 #include <library/unittest/registar.h>
@@ -36,5 +39,33 @@ Y_UNIT_TEST_SUITE(TMaybeOwningArrayHolder) {
         auto arrayHolder =  NCB::TMaybeOwningArrayHolder<TString>::CreateOwning(std::move(v));
 
         UNIT_ASSERT_EQUAL(*arrayHolder, (TArrayRef<TString>)(TVector<TString>{"aa", "bbb", "cccc", "d"}));
+    }
+
+    template <class T>
+    void TestSaveAndLoad(NCB::TMaybeOwningArrayHolder<T>&& data) {
+        TBuffer buffer;
+
+        {
+            TBufferOutput out(buffer);
+            SerializeToStream(out, data);
+        }
+
+        NCB::TMaybeOwningArrayHolder<T> loadedData;
+
+        {
+            TBufferInput in(buffer);
+            SerializeFromStream(in, loadedData);
+        }
+
+        UNIT_ASSERT_EQUAL(*data, *loadedData);
+    }
+
+    Y_UNIT_TEST(TestBinSaverSerialization) {
+        TestSaveAndLoad(NCB::TMaybeOwningArrayHolder<ui32>());
+        TestSaveAndLoad(NCB::TMaybeOwningArrayHolder<TString>());
+        TestSaveAndLoad(NCB::TMaybeOwningArrayHolder<i64>::CreateOwning(TVector<i64>{12, 8, 7, 11}));
+        TestSaveAndLoad(
+            NCB::TMaybeOwningArrayHolder<TString>::CreateOwning(TVector<TString>{"awk", "sed", "find", "ls"})
+        );
     }
 }

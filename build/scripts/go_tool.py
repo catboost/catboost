@@ -158,6 +158,12 @@ def do_link_exe(args):
     assert args.extld is not None
     compile_args = copy_args(args)
     compile_args.output = os.path.join(args.output_root, 'main.a')
+
+    if args.vcs and os.path.isfile(compile_args.vcs):
+        build_info = os.path.join('library', 'go', 'core', 'buildinfo')
+        if any(map(lambda x: x.startswith(build_info), compile_args.peers)):
+            compile_args.go_srcs.append(compile_args.vcs)
+
     do_link_lib(compile_args)
     cmd = [args.go_link, '-o', args.output]
     import_config_name = create_import_config(args.peers, args.import_map, args.module_map)
@@ -400,6 +406,7 @@ if __name__ == '__main__':
     parser.add_argument('++asm-flags', nargs='*')
     parser.add_argument('++compile-flags', nargs='*')
     parser.add_argument('++link-flags', nargs='*')
+    parser.add_argument('++vcs', nargs='?', default=None)
     args = parser.parse_args()
 
     args.pkg_root = os.path.join(str(args.tools_root), 'pkg')

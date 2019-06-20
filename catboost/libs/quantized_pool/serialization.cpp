@@ -695,6 +695,8 @@ static NCB::TQuantizedPoolDigest GetQuantizedPoolDigest(
         digest.NumericFeature4BitCount +
         digest.NumericFeature8BitCount;
 
+    digest.ClassesCount = quantizationSchema.classnames_size();
+
     return digest;
 }
 

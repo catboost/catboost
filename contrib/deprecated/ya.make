@@ -13,7 +13,6 @@ RECURSE(
     itypes
     http-parser
     jsoncpp
-    libahocorasick
     libcds
     libcouchbase
     libctpp
@@ -29,8 +28,10 @@ RECURSE(
     pygtrie
     pygtrie/tests
     sigc++
+    tornadis
     udns
     uriparser
+    wangle
 )
 
 

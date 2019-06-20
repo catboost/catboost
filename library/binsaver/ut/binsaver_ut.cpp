@@ -147,6 +147,22 @@ Y_UNIT_TEST(TestBlob) {
     TestSerialization(TBlob::FromStringSingleThreaded("qwerty"));
 }
 
+Y_UNIT_TEST(TestVariant) {
+    {
+        using T = TVariant<TString, int>;
+
+        TestSerialization(T(TString("")));
+        TestSerialization(T(0));
+    }
+    {
+        using T = TVariant<TString, int, float>;
+
+        TestSerialization(T(TString("ask")));
+        TestSerialization(T(12));
+        TestSerialization(T(0.64f));
+    }
+}
+
 Y_UNIT_TEST(TestPod) {
     struct TPod {
         ui32 A = 5;

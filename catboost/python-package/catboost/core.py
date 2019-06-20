@@ -9,6 +9,8 @@ if sys.version_info >= (3, 3):
 else:
     from collections import Iterable, Sequence, Mapping, MutableMapping
 
+from abc import ABCMeta, abstractmethod
+
 import warnings
 import numpy as np
 import ctypes
@@ -300,8 +302,10 @@ class Pool(_PoolBase):
                 raise CatBoostError("data should be the string type if column_description parameter is specified.")
             if isinstance(data, STRING_TYPES):
                 if any(v is not None for v in [cat_features, weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, feature_names]):
-                    raise CatBoostError("cat_features, weight, group_id, group_weight, subgroup_id, pairs_weight, \
-                                        baseline, feature_names should have the None type when the pool is read from the file.")
+                    raise CatBoostError(
+                        "cat_features, weight, group_id, group_weight, subgroup_id, pairs_weight, "
+                        "baseline, feature_names should have the None type when the pool is read from the file."
+                    )
                 self._read(data, column_description, pairs, delimiter, has_header, thread_count)
             else:
                 if isinstance(data, FeaturesData):
@@ -324,11 +328,11 @@ class Pool(_PoolBase):
         """
         Check files existence.
         """
-        if not os.path.isfile(data):
+        if data.find('://') == -1 and not os.path.isfile(data):
             raise CatBoostError("Invalid data path='{}': file does not exist.".format(data))
-        if column_description is not None and not os.path.isfile(column_description):
+        if column_description is not None and column_description.find('://') == -1 and not os.path.isfile(column_description):
             raise CatBoostError("Invalid column_description path='{}': file does not exist.".format(column_description))
-        if pairs is not None and not os.path.isfile(pairs):
+        if pairs is not None and pairs.find('://') == -1 and not os.path.isfile(pairs):
             raise CatBoostError("Invalid pairs path='{}': file does not exist.".format(pairs))
 
     def _check_delimiter(self, delimiter):
@@ -2160,7 +2164,7 @@ class CatBoost(_CatBoostBase):
             self._init_params[key] = value
         return self
 
-    def calc_feature_statistics(self, data, target, feature, prediction_type=None,
+    def calc_feature_statistics(self, data, target=None, feature=None, prediction_type=None,
                                 cat_feature_values=None, plot=True, max_cat_features_on_plot=10,
                                 thread_count=-1, plot_file=None):
         """
@@ -2168,56 +2172,62 @@ class CatBoost(_CatBoostBase):
         To use this function, you should install plotly.
 
         The catboost model has borders for the float features used in it. The borders divide
-        feature values into bins, and the model's prediction depends on the number of bin where
-        falls the feature value.
+        feature values into bins, and the model's prediction depends on the number of the bin where the
+        feature value falls in.
 
-        For float features takes model's borders and computes
-        1) Mean target value across every bin;
-        2) Mean model prediction across every bin;
+        For float features this function takes model's borders and computes
+        1) Mean target value for every bin;
+        2) Mean model prediction for every bin;
         3) The number of objects in dataset which fall into each bin;
-        4) Predictions on varying feature. For every object, varies the feature value so
-        that it falls into bin #0, bin #1, ... and counts model predictions. After that,
-        plots the average plot over all objects.
+        4) Predictions on varying feature. For every object, varies the feature value
+        so that it falls into bin #0, bin #1, ... and counts model predictions.
+        Then counts average prediction for each bin.
 
         For categorical features (only one-hot supported) does the same, but takes feature values
         provided in cat_feature_values instead of borders.
 
         Parameters
         ----------
-        data: numpy.array or pandas.DataFrame
+        feature: None, int, string, or list of int or strings
+            Features indexes or names in pd.DataFrame for which you want to get statistics.
+            None, if you need statistics for all features.
+        data: numpy.array or pandas.DataFrame or catboost.Pool
             Data to compute statistics on
-        target: numpy.array or pandas.Series
+        target: numpy.array or pandas.Series or None
             Target corresponding to data
-        feature: int or string
-            Feature index or name in pd.DataFrame
+            Use only if data is not catboost.Pool.
         prediction_type: str
             Prediction type used for counting mean_prediction: 'Class', 'Probability' or 'RawFormulaVal'.
             If not specified, is derived from the model.
-        cat_feature_values: list or numpy.array or pandas.Series
-            Categorical feature values you need to get statistics on. Needed only for
-            statistics of a categorical feature.
+        cat_feature_values: list or numpy.array or pandas.Series or
+                            dict: int or string to list or numpy.array or pandas.Series
+            Contains categorical feature values you need to get statistics on.
+            Use dict, when parameter 'feature' is a list to specify cat values for different features.
+            When parameter 'feature' is int or str, you can just pass list of cat values.
         plot: bool
             Plot statistics.
         max_cat_features_on_plot: int
             If categorical feature takes more than max_cat_features_on_plot different unique values,
             output result on several plots, not more than max_cat_features_on_plot feature values on each.
-            Used only if plot=True.
+            Used only if plot=True or plot_file is not None.
         thread_count: int
             Number of threads to use for getting statistics.
         plot_file: str
             Output file for plot statistics.
         Returns
         -------
-        dict:
-            Python dict with binarized feature statistics. For float feature, includes
-                'borders' -- borders for the specified feature in model
-                'binarized_feature' -- numbers of bins where feature values fall
-                'mean_target' -- mean value of target over each bin
-                'mean_prediction' -- mean value of model prediction over each bin
-                'objects_per_bin' -- number of objects per bin
-                'predictions_on_varying_feature' -- averaged over dataset predictions for
-                varying feature (see above)
-            For one-hot feature, returns the same, but with 'cat_feature_values' instead of 'borders'
+        dict if parameter 'feature' is int or string, else dict of dicts:
+            For each unique feature contain
+            python dict with binarized feature statistics.
+            For float feature, includes
+                    'borders' -- borders for the specified feature in model
+                    'binarized_feature' -- numbers of bins where feature values fall
+                    'mean_target' -- mean value of target over each bin
+                    'mean_prediction' -- mean value of model prediction over each bin
+                    'objects_per_bin' -- number of objects per bin
+                    'predictions_on_varying_feature' -- averaged over dataset predictions for
+                    varying feature (see above)
+            For one-hot feature, returns the same, but with 'cat_values' instead of 'borders'
         """
         data, _ = self._process_predict_input_data(data, "get_binarized_statistics", target)
 
@@ -2225,60 +2235,124 @@ class CatBoost(_CatBoostBase):
             prediction_type = 'Probability' if self.get_param('loss_function') in ['CrossEntropy', 'Logloss'] \
                 else 'RawFormulaVal'
 
-        if not isinstance(feature, int):
-            if self.feature_names_ is None or feature not in self.feature_names_:
-                raise CatBoostError('No feature named "{}" in model'.format(feature))
-            if feature not in data.get_feature_names():
-                raise CatBoostError('No feature named "{}" in dataset'.format(feature))
-            feature_num = self.feature_names_.index(feature)
-        else:
-            feature_num = feature
-            feature = self.feature_names_[feature_num]
-
         if prediction_type not in ['Class', 'Probability', 'RawFormulaVal']:
             raise CatBoostError('Unknown prediction type "{}"'.format(prediction_type))
 
-        feature_type, feature_internal_index = self._object._get_feature_type_and_internal_index(feature_num)
+        if feature is None:
+            feature = self.feature_names_
+
+        if cat_feature_values is None:
+            cat_feature_values = {}
+        else:
+            if not isinstance(cat_feature_values, dict):
+                if isinstance(features, list):
+                    raise CatBoostError('cat_feature_values should be dict when features is a list')
+                else:
+                    cat_feature_values = {features: cat_feature_values}
+
+        if isinstance(feature, str) or isinstance(feature, int):
+            features = [feature]
+            is_for_one_feature = True
+        else:
+            features = feature
+            is_for_one_feature = False
+
+        cat_features_nums = []
+        float_features_nums = []
+        feature_type_mapper = []
+        feature_names = []
+        feature_name_to_num = {}
+        for feature in features:
+            if not isinstance(feature, int):
+                if self.feature_names_ is None or feature not in self.feature_names_:
+                    raise CatBoostError('No feature named "{}" in model'.format(feature))
+                feature_num = self.feature_names_.index(feature)
+            else:
+                feature_num = feature
+                feature = self.feature_names_[feature_num]
+            if feature in feature_names:
+                continue  # There is no reason to count statistics twice for the same feature
+            if feature_num in cat_feature_values:
+                cat_feature_values[feature] = cat_feature_values[feature_num]
+            feature_names.append(feature)
+            feature_name_to_num[feature] = feature_num
+            feature_type, feature_internal_index = self._object._get_feature_type_and_internal_index(feature_num)
+            if feature_type == 'categorical':
+                cat_features_nums.append(feature_internal_index)
+                feature_type_mapper.append('cat')
+            else:
+                float_features_nums.append(feature_internal_index)
+                feature_type_mapper.append('float')
         res = self._object._get_binarized_statistics(
             data,
-            feature_internal_index,
+            cat_features_nums,
+            float_features_nums,
             prediction_type,
-            feature_type,
             thread_count
         )
+        # res = [dict,   dict,   ...,   dict,  dict,   dict,   ...,   dict ]
+        #        |  stat for cat features  |  |  stat for float features  |
+        statistics_by_feature = {}
+        to_float_offset = len(cat_features_nums)
+        cat_index, float_index = 0, to_float_offset
+        for i, type in enumerate(feature_type_mapper):
+            feature_name = feature_names[i]
+            feature_num = feature_name_to_num[feature_name]
+            if type == 'cat':
+                if feature_name not in cat_feature_values:
+                    cat_feature_values_ = self._object._get_cat_feature_values(data, feature_num)
+                    cat_feature_values_ = [val for val in cat_feature_values_]
+                else:
+                    cat_feature_values_ = cat_feature_values[feature_name]
+                if not isinstance(cat_feature_values_, ARRAY_TYPES):
+                    raise CatBoostError(
+                        "Feature '{}' is categorical. "
+                        "Please provide values for which you need statistics in cat_feature_values"
+                        .format(feature)
+                    )
+                val_to_hash = dict()
+                for val in cat_feature_values_:
+                    val_to_hash[val] = self._object._calc_cat_feature_perfect_hash(val, cat_features_nums[cat_index])
+                hash_to_val = {hash: val for val, hash in val_to_hash.items()}
+                res[cat_index]['cat_values'] = np.array([hash_to_val[i] for i in sorted(hash_to_val.keys())])
+                res[cat_index].pop('borders', None)
+                statistics_by_feature[feature_num] = res[cat_index]
+                cat_index += 1
+            else:
+                statistics_by_feature[feature_num] = res[float_index]
+                float_index += 1
+        # now order in statistics_by_feature is the same as in features
 
-        if feature_type == 'categorical':
-            if cat_feature_values is None:
-                cat_feature_values = self._object._get_cat_feature_values(data, feature_num)
-                cat_feature_values = [val for val in cat_feature_values]
-
-            if not isinstance(cat_feature_values, ARRAY_TYPES):
-                raise CatBoostError("Feature '{}' is categorical. "
-                                    "Please provide values for which you need statistics in cat_feature_values"
-                                    .format(feature))
-            val_to_hash = dict()
-            for val in cat_feature_values:
-                val_to_hash[val] = self._object._calc_cat_feature_perfect_hash(val, feature_internal_index)
-            hash_to_val = {hash: val for val, hash in val_to_hash.items()}
-            res['cat_values'] = np.array([hash_to_val[i] for i in sorted(hash_to_val.keys())])
-            res.pop('borders', None)
-
+        # draw only unique plots
         if plot or plot_file is not None:
-            try:
-                from plotly.offline import iplot
-                from plotly.offline import plot
-                from plotly.offline import init_notebook_mode
-                init_notebook_mode(connected=True)
-            except ImportError as e:
-                warnings.warn("To draw binarized feature statistics you should install plotly.")
-                raise ImportError(str(e))
+            warn_msg = "To draw binarized feature statistics you should install plotly."
+            figs = []
+            for feature_name in statistics_by_feature:
+                figs += _plot_feature_statistics(
+                    statistics_by_feature[feature_name],
+                    feature_name,
+                    max_cat_features_on_plot
+                )
 
-            figs = _plot_feature_statistics(res, feature, max_cat_features_on_plot)
             if plot:
+                try:
+                    from plotly.offline import iplot
+                    from plotly.offline import init_notebook_mode
+                    init_notebook_mode(connected=True)
+                except ImportError as e:
+                    warnings.warn(warn_msg)
+                    raise ImportError(str(e))
+
                 for fig in figs:
                     iplot(fig)
 
             if plot_file is not None:
+                try:
+                    from plotly.offline import plot as plotly_plot
+                except ImportError as e:
+                    warnings.warn(warn_msg)
+                    raise ImportError(str(e))
+
                 with open(plot_file, 'w') as html_plot_file:
                     html_plot_file.write('\n'.join((
                             '<html>',
@@ -2290,7 +2364,7 @@ class CatBoost(_CatBoostBase):
                             '<body>'
                     )))
                     for fig in figs:
-                        graph_div = plot(
+                        graph_div = plotly_plot(
                             fig,
                             output_type='div',
                             show_link=False,
@@ -2299,7 +2373,19 @@ class CatBoost(_CatBoostBase):
                         html_plot_file.write('\n{}\n'.format(graph_div))
                     html_plot_file.write('</body>\n</html>')
 
-        return res
+        if is_for_one_feature:
+            return statistics_by_feature[feature_name_to_num[feature_names[0]]]
+
+        # return dict with possible duplicates
+        # (if features from input contains both str and int values appropriate one feature)
+        return_stats = {}
+        for feature in features:
+            if isinstance(feature, int):
+                return_stats[feature] = statistics_by_feature[feature]
+            else:
+                return_stats[feature] = statistics_by_feature[feature_name_to_num[feature]]
+
+        return return_stats
 
     def plot_tree(self, tree_idx, pool):
         from graphviz import Digraph

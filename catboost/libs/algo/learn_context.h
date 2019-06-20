@@ -129,6 +129,7 @@ public:
 
     ui32 GetCurrentTrainingIterationCount() const;
     ui32 GetCompleteModelTreesSize() const; // includes init model size if it's a continuation training
+    ui32 GetInitModelTreesSize() const;
 };
 
 class TCommonContext : public TNonCopyable {

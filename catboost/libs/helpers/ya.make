@@ -13,6 +13,8 @@ SRCS(
     dbg_output.cpp
     dense_hash.cpp
     dense_hash_view.cpp
+    double_array_iterator.cpp
+    dynamic_iterator.cpp
     element_range.cpp
     exception.cpp
     hash.cpp

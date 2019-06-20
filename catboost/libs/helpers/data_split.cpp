@@ -10,7 +10,10 @@ TVector<std::pair<ui32, ui32>> Split(ui32 docCount, ui32 partCount) {
     for (ui32 part = 0; part < partCount; ++part) {
         ui32 partStartIndex, partEndIndex;
         InitElementRange(part, partCount, docCount, &partStartIndex, &partEndIndex);
-        CB_ENSURE(partEndIndex - partStartIndex > 0, "Not enough documents for splitting into requested amount of parts");
+        CB_ENSURE(
+            partEndIndex - partStartIndex > 0,
+            "Not enough documents for splitting into requested amount of parts"
+        );
         result[part] = {partStartIndex, partEndIndex};
     }
     return result;
@@ -33,7 +36,10 @@ TVector<std::pair<ui32, ui32>> Split(ui32 docCount, const TVector<TGroupId>& que
         if (part + 1 == partCount) {
             partEndIndex = docCount;
         }
-        CB_ENSURE(partEndIndex - partStartIndex > 0, "Not enough documents for splitting into requested amount of parts");
+        CB_ENSURE(
+            partEndIndex - partStartIndex > 0,
+            "Not enough documents for splitting into requested amount of parts"
+        );
         result[part] = {partStartIndex, partEndIndex};
     }
     return result;
@@ -62,7 +68,9 @@ TVector<TVector<ui32>> StratifiedSplit(const TVector<float>& target, ui32 partCo
         }
     }
     if (minLen < partCount) {
-        CATBOOST_WARNING_LOG << " Warning: The least populated class in y has only " << minLen << " members, which is too few. The minimum number of members in any class cannot be less than parts count=" << partCount << Endl;
+        CATBOOST_WARNING_LOG << " Warning: The least populated class in y has only " << minLen << " members,"
+            " which is too few. The minimum number of members in any class cannot be less than parts count="
+            << partCount << Endl;
     }
     TVector<TVector<ui32>> result(partCount);
     for (const auto& part : splittedByTarget) {

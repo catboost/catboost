@@ -125,7 +125,7 @@ static bool FillMemoryOnAllocation = true;
 
 static bool TransparentHugePages = false; // force MADV_HUGEPAGE for large allocs
 static bool MapHugeTLB = false;           // force MAP_HUGETLB for small allocs
-static bool EnableDefrag = false;
+static bool EnableDefrag = true;
 
 // Buffers that are larger than this size will not be filled with 0xcf
 #ifndef DBG_FILL_MAX_SIZE

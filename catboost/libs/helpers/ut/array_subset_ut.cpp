@@ -507,4 +507,60 @@ Y_UNIT_TEST_SUITE(TArraySubset) {
             }
         }
     }
+
+    Y_UNIT_TEST(TestGetInvertedIndexing) {
+        {
+            NCB::TArraySubsetIndexing<ui32> subset(NCB::TFullSubset<ui32>(4));
+            NCB::TArraySubsetInvertedIndexing<ui32> invertedSubset = NCB::GetInvertedIndexing(subset);
+            UNIT_ASSERT_EQUAL(
+                invertedSubset,
+                NCB::TArraySubsetInvertedIndexing<ui32>(NCB::TFullSubset<ui32>(4))
+            );
+        }
+        {
+            TVector<NCB::TIndexRange<ui32>> indexRanges{{6, 9}, {10, 12}, {0, 3}}; //
+
+            NCB::TSavedIndexRanges<ui32> savedIndexRanges(std::move(indexRanges));
+
+            NCB::TArraySubsetIndexing<ui32> subset(NCB::TRangesSubset<ui32>{savedIndexRanges});
+            NCB::TArraySubsetInvertedIndexing<ui32> invertedSubset = NCB::GetInvertedIndexing(subset);
+            UNIT_ASSERT_EQUAL(
+                invertedSubset,
+                NCB::TArraySubsetInvertedIndexing<ui32>(
+                    NCB::TIndexedSubset<ui32>{
+                        5, // 0
+                        6, // 1
+                        7, // 2
+                        Max<ui32>(), // 3
+                        Max<ui32>(), // 4
+                        Max<ui32>(), // 5
+                        0, // 6
+                        1, // 7
+                        2, // 8
+                        Max<ui32>(), // 9
+                        3, // 10
+                        4, // 11
+                    }
+                )
+            );
+        }
+        {
+            NCB::TArraySubsetIndexing<ui32> subset(NCB::TIndexedSubset<ui32>{});
+            NCB::TArraySubsetInvertedIndexing<ui32> invertedSubset = NCB::GetInvertedIndexing(subset);
+            UNIT_ASSERT_EQUAL(
+                invertedSubset,
+                NCB::TArraySubsetInvertedIndexing<ui32>(NCB::TIndexedSubset<ui32>{})
+            );
+        }
+        {
+            NCB::TArraySubsetIndexing<ui32> subset(NCB::TIndexedSubset<ui32>{3, 1, 5, 4, 7});
+            NCB::TArraySubsetInvertedIndexing<ui32> invertedSubset = NCB::GetInvertedIndexing(subset);
+            UNIT_ASSERT_EQUAL(
+                invertedSubset,
+                NCB::TArraySubsetInvertedIndexing<ui32>(
+                    NCB::TIndexedSubset<ui32>{Max<ui32>(), 1, Max<ui32>(), 0, 3, 2, Max<ui32>(), 4}
+                )
+            );
+        }
+    }
 }

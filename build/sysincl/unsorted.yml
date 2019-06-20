@@ -276,6 +276,23 @@
   - iphlpapi.h
 
 - includes:
+  - cuda.h
+  - cublas_v2.h
+  - cuda_runtime.h
+  - cuda_runtime_api.h
+  - cusolverDn.h
+  - cupti.h
+  - curand.h
+  - cusparse.h
+  - cooperative_groups.h
+  - driver_types.h
+  - nvToolsExt.h
+  - cuda/include/cuComplex.h
+  - cuda/include/cublas_v2.h
+  - cuda/include/cuda.h
+  - cuda/include/cudnn.h
+  - cuda/include/cufft.h
+  - cuda/include/curand.h
   - cpuid.h
   - nan.h
   - omp.h
@@ -340,9 +357,6 @@
   - quadmath.h
   #endif
   #if defined(_MSC_VER)
-  - armintr.h
-  - arm_acle.h
-  - arm_neon.h
   - comdef.h
   - comutil.h
   - concrt.h

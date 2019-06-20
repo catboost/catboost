@@ -6,7 +6,12 @@
 
 
 namespace NCB {
-    void ParseBordersFileLine(const TString& line, ui32* flatFeatureIdx, float* border, TMaybe<ENanMode>* nanMode) {
+    void ParseBordersFileLine(
+        const TString& line,
+        ui32* flatFeatureIdx,
+        float* border,
+        TMaybe<ENanMode>* nanMode
+    ) {
         TVector<TString> tokens;
         StringSplitter(line).Split('\t').SkipEmpty().Collect(&tokens);
         CB_ENSURE(
@@ -25,14 +30,15 @@ namespace NCB {
     void OutputFeatureBorders(
         ui32 flatFeatureIdx,
         const TVector<float>& borders,
-        ENanMode nanMode, IOutputStream& output
+        ENanMode nanMode,
+        IOutputStream* output
     ) {
         for (const auto& border : borders) {
-            output << flatFeatureIdx << "\t" << ToString<double>(border);
+            (*output) << flatFeatureIdx << "\t" << ToString<double>(border);
             if (nanMode != ENanMode::Forbidden) {
-                output << "\t" << nanMode;
+                (*output) << "\t" << nanMode;
             }
-            output << Endl;
+            (*output) << Endl;
         }
     }
 }

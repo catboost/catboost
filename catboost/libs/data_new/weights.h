@@ -112,21 +112,7 @@ namespace NCB {
             return GetNonTrivialData() == lhs.GetNonTrivialData();
         }
 
-        int operator&(IBinSaver& binSaver) {
-            binSaver.Add(0, &Size);
-            if (binSaver.IsReading()) {
-                TVector<T> weights;
-                LoadMulti(&binSaver, &weights);
-                Weights = TMaybeOwningArrayHolder<T>::CreateOwning(std::move(weights));
-            } else {
-                // save data to be deserialized as TVector<T>
-                auto weightsSize = SafeIntegerCast<IBinSaver::TStoredSize>((*Weights).size());
-                SaveMulti(&binSaver, weightsSize);
-                SaveRawData<T>(*Weights, &binSaver);
-            }
-            return 0;
-        }
-
+        SAVELOAD(Size, Weights);
 
         ui32 GetSize() const {
             return Size;

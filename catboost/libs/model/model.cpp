@@ -1154,7 +1154,12 @@ void SaveModelBorders(
     TOFStream out(file);
 
     for (const auto& feature : model.ObliviousTrees.FloatFeatures) {
-        NCB::OutputFeatureBorders(feature.FlatFeatureIndex, feature.Borders, NanValueTreatmentToNanMode(feature.NanValueTreatment), out);
+        NCB::OutputFeatureBorders(
+            feature.FlatFeatureIndex,
+            feature.Borders,
+            NanValueTreatmentToNanMode(feature.NanValueTreatment),
+            &out
+        );
     }
 }
 

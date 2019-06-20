@@ -130,10 +130,7 @@ namespace NCB {
             NPar::TLocalExecutor* localExecutor
         ) const = 0;
 
-        /*
-         * GetFeaturesLayout, GetGroupIds, GetSubgroupIds are common for all implementations,
-         *  so they're in this base class
-         */
+        // The following Get* functions are common for all implementations, so they're in this base class
 
         TFeaturesLayoutPtr GetFeaturesLayout() const {
             return CommonData.FeaturesLayout;
@@ -194,7 +191,7 @@ namespace NCB {
          */
         TVector<THolder<TFloatValuesHolder>> FloatFeatures; // [floatFeatureIdx]
         TVector<THolder<THashedCatValuesHolder>> CatFeatures; // [catFeatureIdx]
-        TVector<THolder<TStringTextValuesHolder>> TextFeatures;
+        TVector<THolder<TStringTextValuesHolder>> TextFeatures; // [textFeatureIdx]
 
     public:
         bool operator==(const TRawObjectsData& rhs) const;

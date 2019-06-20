@@ -10,16 +10,17 @@ import json
 import catboost
 from catboost_pytest_lib import (
     apply_catboost,
-    compare_evals,
     compare_evals_with_precision,
+    compare_evals,
     data_file,
     execute_catboost_fit,
+    execute_dist_train,
     format_crossvalidation,
     generate_random_labeled_set,
+    get_limited_precision_dsv_diff_tool,
     local_canonical_file,
     permute_dataset_columns,
     remove_time_from_json,
-    execute_dist_train,
 )
 
 CATBOOST_PATH = yatest.common.binary_path("catboost/app/catboost")
@@ -44,6 +45,10 @@ OVERFITTING_DETECTOR_TYPE = ['IncToDec', 'Iter']
 # default block size (5000000) is too big to run in parallel on these tests
 SCORE_CALC_OBJ_BLOCK_SIZES = ['60', '5000000']
 SCORE_CALC_OBJ_BLOCK_SIZES_IDS = ['calc_block=60', 'calc_block=5000000']
+
+
+def diff_tool(threshold=None):
+    return get_limited_precision_dsv_diff_tool(threshold, True)
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
@@ -6361,7 +6366,7 @@ def test_quantized_adult_pool(loss_function, boosting_type):
     test_file = data_file('quantized_adult', 'test_small.tsv')
     apply_catboost(output_model_path, test_file, cd_file, output_eval_path)
 
-    return [local_canonical_file(output_eval_path)]
+    return [local_canonical_file(output_eval_path, diff_tool=diff_tool())]
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)

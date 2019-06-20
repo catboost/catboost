@@ -59,8 +59,8 @@ def _cached_download(url, md5, dst):
 
     dst_md5 = _calc_md5(dst)
     if dst_md5 != md5:
-        raise RuntimeError('md5 sum mismatch; expected {expected}, but got {got}'.format(
-            expected=md5, got=dst_md5))
+        raise RuntimeError('md5 sum mismatch for url {url}; expected {expected}, but got {got}'.format(
+            url=u, expected=md5, got=dst_md5))
 
 
 def _get_cache_path():

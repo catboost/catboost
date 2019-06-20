@@ -51,4 +51,11 @@ namespace NCB {
         TRestorableFastRng64* rand, // for possible pairs generation
         NPar::TLocalExecutor* localExecutor);
 
+
+    TSharedVector<TQueryInfo> MakeGroupInfos(
+        const TObjectsGrouping& objectsGrouping,
+        TMaybeData<TConstArrayRef<TSubgroupId>> subgroupIds,
+        const TWeights<float>& groupWeights,
+        TConstArrayRef<TPair> pairs);
+
 }

@@ -989,7 +989,7 @@ TIntrusiveConstPtr<TQuantizedObjectsDataProvider>
         );
     }
 
-template<class TCompressedColumnData>
+template <class TCompressedColumnData>
 static ui32 CalcCompressedFeatureChecksum(ui32 checkSum, TCompressedColumnData& columnData) {
     TConstCompressedArraySubset compressedDataSubset = columnData->GetCompressedData();
 
@@ -1031,25 +1031,30 @@ static ui32 CalcFeatureValuesCheckSum(
 {
     const ui32 emptyColumnDataForCrc = 0;
     TVector<ui32> checkSums(featuresLayout.GetFeatureCount(FeatureType), 0);
-    ParallelFor(*localExecutor, 0, featuresLayout.GetFeatureCount(FeatureType), [&] (ui32 perTypeFeatureIdx) {
-        if (featuresLayout.GetInternalFeatureMetaInfo(perTypeFeatureIdx, FeatureType).IsAvailable) {
-            // TODO(espetrov,akhropov): remove workaround below MLTOOLS-3604
-            if (featuresData[perTypeFeatureIdx].Get() == nullptr) {
-                return;
-            }
-            auto compressedValuesFeatureData = dynamic_cast<const TCompressedValuesHolderImpl<IColumn>*>(
-                featuresData[perTypeFeatureIdx].Get()
-            );
-            if (compressedValuesFeatureData) {
-                checkSums[perTypeFeatureIdx] = CalcCompressedFeatureChecksum(0, compressedValuesFeatureData);
+    ParallelFor(
+        *localExecutor,
+        0,
+        featuresLayout.GetFeatureCount(FeatureType),
+        [&] (ui32 perTypeFeatureIdx) {
+            if (featuresLayout.GetInternalFeatureMetaInfo(perTypeFeatureIdx, FeatureType).IsAvailable) {
+                // TODO(espetrov,akhropov): remove workaround below MLTOOLS-3604
+                if (featuresData[perTypeFeatureIdx].Get() == nullptr) {
+                    return;
+                }
+                auto compressedValuesFeatureData = dynamic_cast<const TCompressedValuesHolderImpl<IColumn>*>(
+                    featuresData[perTypeFeatureIdx].Get()
+                );
+                if (compressedValuesFeatureData) {
+                    checkSums[perTypeFeatureIdx] = CalcCompressedFeatureChecksum(0, compressedValuesFeatureData);
+                } else {
+                    const auto repackedHolder = featuresData[perTypeFeatureIdx]->ExtractValues(localExecutor);
+                    checkSums[perTypeFeatureIdx] = UpdateCheckSum(0, *repackedHolder);
+                }
             } else {
-                const auto repackedHolder = featuresData[perTypeFeatureIdx]->ExtractValues(localExecutor);
-                checkSums[perTypeFeatureIdx] = UpdateCheckSum(0, *repackedHolder);
+                checkSums[perTypeFeatureIdx] = UpdateCheckSum(0, emptyColumnDataForCrc);
             }
-        } else {
-            checkSums[perTypeFeatureIdx] = UpdateCheckSum(0, emptyColumnDataForCrc);
         }
-    });
+    );
     ui32 checkSum = init;
     for (ui32 featureCheckSum : checkSums) {
         checkSum = UpdateCheckSum(checkSum, featureCheckSum);
@@ -1182,7 +1187,10 @@ static void LoadFeatures(
                 binSaver->Add(0, &bitsPerKey);
 
                 TVector<ui64> storage;
-                LoadMulti(binSaver, &storage);
+                IBinSaver::TStoredSize compressedStorageVectorSize;
+                LoadMulti(binSaver, &compressedStorageVectorSize);
+                storage.yresize(compressedStorageVectorSize);
+                LoadArrayData<ui64>(storage, binSaver);
 
                 (*dst)[*featureIdx] = MakeHolder<TCompressedValuesHolderImpl<IColumnType>>(
                     flatFeatureIdx,
@@ -1264,9 +1272,9 @@ static void SaveFeatures(
                 const size_t paddingSize =
                     size_t(compressedStorageVectorSize)*sizeof(ui64) - size_t(bytesPerKey)*objectCount;
 
-                SaveRawData(*values, binSaver);
+                SaveArrayData(*values, binSaver);
                 if (paddingSize) {
-                    SaveRawData(TConstArrayRef<ui8>(paddingBuffer, paddingSize), binSaver);
+                    SaveArrayData(TConstArrayRef<ui8>(paddingBuffer, paddingSize), binSaver);
                 }
             }
         }

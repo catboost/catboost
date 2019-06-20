@@ -2530,6 +2530,34 @@ def test_util_eval_metric_multiclass(metric):
     return local_canonical_file(preds_path)
 
 
+@pytest.mark.parametrize('metric', ['PairLogit', 'PairAccuracy'])
+def test_util_eval_metric_pairwise(metric):
+    metric_results = eval_metric(
+        [0, 1, 2, 3, 4, 5, 6, 7],
+        [0, 0.1, 0.1, 0, -1, 0.1, 1, 2],
+        metric,
+        group_id=[1, 1, 1, 1, 1, 1, 1, 1],
+        pairs=[[0, 1], [1, 4], [7, 6], [7, 4], [1, 6], [2, 3], [3, 6], [5, 4]]
+    )
+    preds_path = test_output_path(PREDS_PATH)
+    np.savetxt(preds_path, np.array(metric_results))
+    return local_canonical_file(preds_path)
+
+
+@pytest.mark.parametrize('metric', ['PFound'])
+def test_util_eval_metric_subgroups(metric):
+    metric_results = eval_metric(
+        [-1, 0, 0, 0.5, 0.2, 0.1, -2.39, 1.9],
+        [0, 1, 0, -1, 0.7, 0, -2, 2],
+        metric,
+        group_id=[1, 1, 1, 1, 1, 2, 2, 2],
+        subgroup_id=['r', 'r', 'g', 'b', 'g', 'r', 'r', 'g']
+    )
+    preds_path = test_output_path(PREDS_PATH)
+    np.savetxt(preds_path, np.array(metric_results))
+    return local_canonical_file(preds_path)
+
+
 def test_option_used_ram_limit():
     for limit in [1000, 1234.56, 0, 0.0, 0.5,
                   '100', '34.56', '0', '0.0', '0.5',

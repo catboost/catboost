@@ -10,13 +10,18 @@ namespace NCatboost {
     struct TBucket {
         static constexpr ui64 InvalidHashValue = 0xffffffffffffffffull;
         using THashType = ui64;
+
+    public:
         THashType Hash;
         ui32 IndexValue;
+
+    public:
         bool operator==(const TBucket& other) const {
             return std::tie(Hash, IndexValue) == std::tie(other.Hash, other.IndexValue);
         }
     };
 #pragma pack(pop)
+
     // Special optimized classes for building and applying non resizeable indexes [ui64] -> [ui32]
     // It's only use case - to be stored on disk as part of catboost flatbuffer model
     class TDenseIndexHashView {
@@ -24,6 +29,8 @@ namespace NCatboost {
         static_assert(sizeof(TBucket) == 12, "Expected sizeof(TBucket) == 12 bytes");
         static constexpr ui32 NotFoundIndex = 0xffffffffu;
         static_assert(std::is_pod<TBucket>::value, "must be pod");
+
+    public:
         explicit TDenseIndexHashView(TConstArrayRef<TBucket> bucketsRef)
             : HashMask(bucketsRef.size() - 1)
             , Buckets(bucketsRef)
@@ -36,7 +43,10 @@ namespace NCatboost {
         }
 
         ui32 GetIndex(ui64 idx) const {
-            for (ui64 zz = idx & HashMask; Buckets[zz].Hash != TBucket::InvalidHashValue; zz = (zz + 1) & HashMask) {
+            for (ui64 zz = idx & HashMask;
+                 Buckets[zz].Hash != TBucket::InvalidHashValue;
+                 zz = (zz + 1) & HashMask)
+            {
                 if (Buckets[zz].Hash == idx) {
                     return Buckets[zz].IndexValue;
                 }
@@ -45,7 +55,9 @@ namespace NCatboost {
         }
 
         size_t CountNonEmptyBuckets() const {
-            return CountIf(Buckets, [](const TBucket& bucket) { return bucket.Hash != TBucket::InvalidHashValue; });
+            return CountIf(
+                Buckets,
+                [](const TBucket& bucket) { return bucket.Hash != TBucket::InvalidHashValue; });
         }
 
         const TConstArrayRef<TBucket> GetBuckets() const {
@@ -59,6 +71,8 @@ namespace NCatboost {
     class TDenseIndexHashBuilder {
     public:
         static_assert(sizeof(TBucket) == 12, "Expected sizeof(TBucket) == 12 bytes");
+
+    public:
         explicit TDenseIndexHashBuilder(TArrayRef<TBucket> bucketsRef)
             : HashMask(bucketsRef.size() - 1)
             , Buckets(bucketsRef)
@@ -92,8 +106,8 @@ namespace NCatboost {
             Buckets[zz].IndexValue = index;
             BinCount = Max(BinCount, index );
         }
-        static size_t GetProperBucketsCount(size_t uniqueElementsCount, float loadFactor=0.5f) {
-            if (uniqueElementsCount==0) {
+        static size_t GetProperBucketsCount(size_t uniqueElementsCount, float loadFactor = 0.5f) {
+            if (uniqueElementsCount == 0) {
                 return 2;
             }
             return FastClp2(static_cast<size_t>(uniqueElementsCount / loadFactor));

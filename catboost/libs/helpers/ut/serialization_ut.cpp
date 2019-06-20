@@ -171,4 +171,34 @@ Y_UNIT_TEST_SUITE(BinSaverSerialization) {
             UNIT_ASSERT_VALUES_EQUAL(*object.HolderString, "Sample");
         }
     }
+
+
+    template <class T>
+    void TestSaveAndLoadArrayData(TVector<T>&& data) {
+        TBuffer buffer;
+
+        {
+            TBufferOutput out(buffer);
+            TYaStreamOutput out2(out);
+            IBinSaver binSaver(out2, false);
+            NCB::SaveArrayData<T>(data, &binSaver);
+        }
+        {
+            TBufferInput in(buffer);
+            TYaStreamInput in2(in);
+            IBinSaver binSaver(in2, true);
+
+            TVector<T> loadedData(data.size());
+            NCB::LoadArrayData<T>(loadedData, &binSaver);
+
+            UNIT_ASSERT_VALUES_EQUAL(data, loadedData);
+        }
+    }
+
+    Y_UNIT_TEST(TestSaveAndLoadArrayData) {
+        TestSaveAndLoadArrayData(TVector<ui32>());
+        TestSaveAndLoadArrayData(TVector<TString>());
+        TestSaveAndLoadArrayData(TVector<i64>{12, 8, 7, 11});
+        TestSaveAndLoadArrayData(TVector<TString>{"awk", "sed", "find", "ls"});
+    }
 }

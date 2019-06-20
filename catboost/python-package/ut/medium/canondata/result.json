@@ -607,6 +607,18 @@
         "checksum": "08eeaf51a9ad565e3ebf16cd7e32f245",
         "uri": "file://test.test_util_eval_metric_multiclass_MultiClass_/predictions.npy"
     },
+    "test.test_util_eval_metric_pairwise[PairAccuracy]": {
+        "checksum": "9bdd42193bbc9b01a0f02a574e99db7c",
+        "uri": "file://test.test_util_eval_metric_pairwise_PairAccuracy_/predictions.npy"
+    },
+    "test.test_util_eval_metric_pairwise[PairLogit]": {
+        "checksum": "86a64dc611cbc7be13922ced17014d81",
+        "uri": "file://test.test_util_eval_metric_pairwise_PairLogit_/predictions.npy"
+    },
+    "test.test_util_eval_metric_subgroups[PFound]": {
+        "checksum": "901c4da7c1dc8d51131c461ec3d2af50",
+        "uri": "file://test.test_util_eval_metric_subgroups_PFound_/predictions.npy"
+    },
     "test.test_verbose_int[CPU-5]": {
         "checksum": "6c37c2dcb36ffd66478f78bf31593279",
         "uri": "file://test.test_verbose_int_CPU-5_/catboost_training.json"

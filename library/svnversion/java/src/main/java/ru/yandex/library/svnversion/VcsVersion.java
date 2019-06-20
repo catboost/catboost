@@ -41,14 +41,6 @@ public class VcsVersion {
         }
     }
 
-    public VcsVersion(String cls) throws ClassNotFoundException {
-        this(Class.forName(cls));
-    }
-
-    public VcsVersion() throws ClassNotFoundException {
-        this(Thread.currentThread().getStackTrace()[1].getClassName());
-    }
-
     public String getProgramSvnVersion() {
         return getLongBase64StringSafe("Program-Version-String");
     }
@@ -142,6 +134,11 @@ public class VcsVersion {
             return "";
         }
         return new String(Base64.getDecoder().decode(Val));
+    }
+
+    public static void main(String[] args) {
+        VcsVersion vcs = new VcsVersion(VcsVersion.class);
+        vcs.printSvnVersionAndExit0();
     }
 
     private Manifest Manifest;

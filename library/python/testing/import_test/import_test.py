@@ -151,6 +151,11 @@ def check_imports(no_check=None, extra=[], skip_func=None):
         "prompt_toolkit.win32_types",
         "prompt_toolkit.terminal.win32_input",
         "prompt_toolkit.terminal.win32_output",
+        "prompt_toolkit.input.win32",
+        "prompt_toolkit.input.win32_pipe",
+        "prompt_toolkit.output.conemu",
+        "prompt_toolkit.output.win32",
+        "prompt_toolkit.output.windows10",
 
         "backports.__init__",
         "pygments.sphinxext",
@@ -158,6 +163,8 @@ def check_imports(no_check=None, extra=[], skip_func=None):
         "raven.contrib.*",
         "raven.handlers.logbook",
         "raven.utils.testutils",
+
+        "semantic_version.django_fields",
 
         "sklearn.utils.*",
         "statsmodels.*",

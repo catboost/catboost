@@ -15,12 +15,12 @@
 namespace NCB {
 
     TResourceConstrainedExecutor::TResourceConstrainedExecutor(
-        NPar::TLocalExecutor& localExecutor,
         const TString& resourceName,
         TResourceUnit resourceQuota,
-        bool lenientMode
+        bool lenientMode,
+        NPar::TLocalExecutor* localExecutor
     )
-        : LocalExecutor(localExecutor)
+        : LocalExecutor(*localExecutor)
         , ResourceName(resourceName)
         , ResourceQuota(resourceQuota)
         , LenientMode(lenientMode)
@@ -34,8 +34,8 @@ namespace NCB {
         if (functionWithResourceUsage.first > ResourceQuota) {
             TStringStream message;
             message << "Resource " << ResourceName
-                    << ": functionWithResourceUsage.ResourceUsage(" << functionWithResourceUsage.first
-                    << ") > ResourceQuota(" << ResourceQuota << ')';
+                << ": functionWithResourceUsage.ResourceUsage(" << functionWithResourceUsage.first
+                << ") > ResourceQuota(" << ResourceQuota << ')';
             if (LenientMode) {
                 CATBOOST_WARNING_LOG << message.Str() << Endl;
             } else {

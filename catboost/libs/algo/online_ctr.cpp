@@ -795,10 +795,10 @@ void CalcFinalCtrsAndSaveToModel(
 
     {
         NCB::TResourceConstrainedExecutor finalCtrExecutor(
-            *localExecutor,
             "CPU RAM",
             cpuRamLimit - Min(cpuRamLimit, cpuRamUsage),
-            true);
+            true,
+            localExecutor);
 
         const auto& layout = *datasetDataForFinalCtrs.Data.Learn->MetaInfo.FeaturesLayout;
 
