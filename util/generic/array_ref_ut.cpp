@@ -186,6 +186,16 @@ Y_UNIT_TEST_SUITE(TestArrayRef) {
         // fm(ac); // This one shouldn't compile.
     }
 
+	Y_UNIT_TEST(TestFirstLastSubspan) {
+        const int arr[] = {1, 2, 3, 4, 5};
+        TArrayRef<const int> aRef(arr);
+
+		UNIT_ASSERT_EQUAL(aRef.first(2), MakeArrayRef(std::vector<int>{1, 2}));
+		UNIT_ASSERT_EQUAL(aRef.last(2), MakeArrayRef(std::vector<int>{4, 5}));
+		UNIT_ASSERT_EQUAL(aRef.subspan(2), MakeArrayRef(std::vector<int>{3, 4, 5}));
+		UNIT_ASSERT_EQUAL(aRef.subspan(1, 3), MakeArrayRef(std::vector<int>{2, 3, 4}));
+	}
+
     Y_UNIT_TEST(TestSlice) {
         const int a0[] = {1, 2, 3};
         TArrayRef<const int> r0(a0);
@@ -220,6 +230,37 @@ Y_UNIT_TEST_SUITE(TestArrayRef) {
             }
         }
     }
+
+	Y_UNIT_TEST(TestAsBytes) {
+		const int16_t constArr[] = {1, 2, 3};
+		TArrayRef<const int16_t> constRef(constArr);
+		auto bytesRef = as_bytes(constRef);
+
+		UNIT_ASSERT_VALUES_EQUAL(bytesRef.size(), sizeof(int16_t) * constRef.size());
+		UNIT_ASSERT_EQUAL(
+			bytesRef,
+			MakeArrayRef(std::vector<char>{0x01, 0x00, 0x02, 0x00, 0x03, 0x00})
+		);
+
+		//should not compile
+		//as_writable_bytes(constRef);
+	}
+
+	Y_UNIT_TEST(TestAsWritableBytes) {
+		uint32_t uintArr[] = {0x0c'00'0d'0e};
+		TArrayRef<uint32_t> uintRef(uintArr);
+		auto writableBytesRef = as_writable_bytes(uintRef);
+
+		UNIT_ASSERT_VALUES_EQUAL(writableBytesRef.size(), sizeof(uint32_t));
+		UNIT_ASSERT_EQUAL(
+			writableBytesRef,
+			MakeArrayRef(std::vector<char>{0x0e, 0x0d, 0x00, 0x0c})
+		);
+
+		uint32_t newVal = 0xde'ad'be'ef;
+		std::memcpy(writableBytesRef.data(), &newVal, writableBytesRef.size());
+		UNIT_ASSERT_VALUES_EQUAL(uintArr[0], newVal);
+	}
 
     Y_UNIT_TEST(TestTypeDeductionViaMakeArrayRef) {
         TVector<int> vec{17, 19, 21};
