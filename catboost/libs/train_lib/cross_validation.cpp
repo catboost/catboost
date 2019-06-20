@@ -112,7 +112,14 @@ inline bool DivisibleOrLastIteration(int currentIteration, int iterationsCount, 
 }
 
 
+/*
+ * For CPU foldContexts contain LearnProgress that allows quick learning resume when switching
+ *  between folds, so use one iteration batches.
+ *
+ * For GPU where fold context switch is relatively expensive init batch size based on profile data
+ */
 static ui32 CalcBatchSize(
+    ETaskType taskType,
     ui32 lastIteration,
     ui32 batchStartIteration,
     double batchIterationsTime, // in sec
@@ -121,6 +128,13 @@ static ui32 CalcBatchSize(
     ui32 maxIterationsBatchSize,
     ui32 globalMaxIteration
 ) {
+    CATBOOST_DEBUG_LOG << "CalcBatchSize:\n\t" << LabeledOutput(taskType) << "\n\t";
+
+    if (taskType == ETaskType::CPU) {
+        CATBOOST_DEBUG_LOG << "set batch size to 1\n";
+        return 1;
+    }
+
     CB_ENSURE_INTERNAL(batchIterationsTime > 0.0, "batchIterationTime <= 0.0");
     CB_ENSURE_INTERNAL(
         batchIterationsPlusTrainInitializationTime > batchIterationsTime,
@@ -135,8 +149,8 @@ static ui32 CalcBatchSize(
         std::ceil((1.0 - maxTimeSpentOnFixedCostRatio)*timeSpentOnFixedCost
            / (maxTimeSpentOnFixedCostRatio*averageIterationTime));
 
-    CATBOOST_DEBUG_LOG << "CalcBatchSize:\n\t" <<
-        LabeledOutput(
+    CATBOOST_DEBUG_LOG
+        << LabeledOutput(
             lastIteration,
             batchIterationsTime,
             batchIterationsPlusTrainInitializationTime,
@@ -268,6 +282,7 @@ public:
 
                         *upToIteration
                             = batchStartIteration + CalcBatchSize(
+                                TaskType,
                                 iteration,
                                 batchStartIteration,
                                 batchIterationsTime,
@@ -595,7 +610,7 @@ void CrossValidate(
     while (!errorTracker.GetIsNeedStop() && (batchStartIteration < globalMaxIteration)) {
         profile.StartIterationBlock();
 
-        /* Inited based on profile data after first iteration
+        /* Inited using profile data after first iteration
          *
          * TODO(akhropov): assuming all folds have approximately the same fixed cost/iteration cost ratio
          * this might not be the case in the future when time-split CV folds or custom CV folds
