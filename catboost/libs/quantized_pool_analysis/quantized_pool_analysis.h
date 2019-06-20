@@ -28,25 +28,11 @@ namespace NCB {
         int Index;
     };
 
-    TBinarizedFeatureStatistics GetBinarizedFloatFeatureStatistics(
+    TVector<TBinarizedFeatureStatistics> GetBinarizedStatistics(
         const TFullModel& model,
         TDataProvider& dataset,
-        const size_t featureNum,
-        const EPredictionType predictionType,
-        const int threadCount);
-
-    TBinarizedFeatureStatistics GetBinarizedOneHotFeatureStatistics(
-        const TFullModel& model,
-        TDataProvider& dataset,
-        const size_t featureNum,
-        const int featureFlatNum,
-        const EPredictionType predictionType,
-        const int threadCount);
-
-    TBinarizedFeatureStatistics GetBinarizedCatFeatureStatistics(
-        const TFullModel& model,
-        TDataProvider& dataset,
-        const size_t featureNum,
+        const TVector<size_t>& catFeaturesNums,
+        const TVector<size_t>& floatFeaturesNums,
         const EPredictionType predictionType,
         const int threadCount);
 

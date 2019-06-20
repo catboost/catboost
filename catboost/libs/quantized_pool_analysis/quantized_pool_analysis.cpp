@@ -83,6 +83,7 @@ namespace NCB {
         const TFullModel& model,
         TDataProvider& dataset,
         const size_t featureNum,
+        const TVector<double>& prediction,
         const EPredictionType predictionType,
         const int threadCount) {
         CB_ENSURE_INTERNAL(!model.ObliviousTrees.FloatFeatures[featureNum].HasNans,
@@ -94,7 +95,6 @@ namespace NCB {
 
         TVector<float> borders = model.ObliviousTrees.FloatFeatures[featureNum].Borders;
         size_t bordersSize = borders.size();
-        TVector<double> prediction = ApplyModel(model, dataset, false, predictionType, 0, 0, threadCount);
 
         TProcessedDataProvider processedDataProvider = CreateModelCompatibleProcessedDataProvider(
             dataset, {}, model, &rand, &executor);
@@ -211,14 +211,13 @@ namespace NCB {
         TDataProvider& dataset,
         const size_t featureNum,
         const int featureFlatNum,
+        const TVector<double>& prediction,
         const EPredictionType predictionType,
         const int threadCount) {
 
         NPar::TLocalExecutor executor;
         executor.RunAdditionalThreads(threadCount - 1);
         TRestorableFastRng64 rand(0);
-
-        TVector<double> prediction = ApplyModel(model, dataset, false, predictionType, 0, 0, threadCount);
 
         TProcessedDataProvider processedDataProvider = CreateModelCompatibleProcessedDataProvider(
             dataset, {}, model, &rand, &executor);
@@ -300,22 +299,61 @@ namespace NCB {
         const TFullModel& model,
         TDataProvider& dataset,
         const size_t featureNum,
+        const TVector<double>& prediction,
         const EPredictionType predictionType,
         const int threadCount) {
         const int featureFlatNum = GetOneHotFeatureFlatNum(model, featureNum);
-
         CB_ENSURE_INTERNAL(
-            featureFlatNum == -1,
-            "Supported only for one-hot encoded features. Use one_hot_max_size when training to manage that."
+            featureFlatNum != -1,
+            "Binarized statistics supported only for one-hot encoded features. Use one_hot_max_size when training to manage that."
         );
         return GetBinarizedOneHotFeatureStatistics(
             model,
             dataset,
             featureNum,
             featureFlatNum,
+            prediction,
             predictionType,
             threadCount
         );
+    }
+
+    TVector<TBinarizedFeatureStatistics> GetBinarizedStatistics(
+        const TFullModel& model,
+        TDataProvider& dataset,
+        const TVector<size_t>& catFeaturesNums,
+        const TVector<size_t>& floatFeaturesNums,
+        const EPredictionType predictionType,
+        const int threadCount) {
+
+        const TVector<double> prediction = ApplyModel(model, dataset, false, predictionType, 0, 0, threadCount);
+        TVector<TBinarizedFeatureStatistics> statistics;
+
+        for (const auto catFeatureNum: catFeaturesNums) {
+            statistics.push_back(
+                GetBinarizedCatFeatureStatistics(
+                    model, dataset,
+                    catFeatureNum,
+                    prediction,
+                    predictionType,
+                    threadCount
+                )
+            );
+        }
+
+        for (const auto floatFeatureNum: floatFeaturesNums) {
+            statistics.push_back(
+                GetBinarizedFloatFeatureStatistics(
+                    model, dataset,
+                    floatFeatureNum,
+                    prediction,
+                    predictionType,
+                    threadCount
+                )
+            );
+        }
+
+        return statistics;
     }
 
     ui32 GetCatFeaturePerfectHash(
@@ -328,6 +366,7 @@ namespace NCB {
             return 0;
         }
         const int featureFlatNum = GetOneHotFeatureFlatNum(model, featureNum);
+
         if (featureFlatNum == -1) {
             return 0;
         }

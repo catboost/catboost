@@ -941,28 +941,14 @@ cdef extern from "catboost/libs/quantized_pool_analysis/quantized_pool_analysis.
         EFeatureType Type
         int Index
 
-    cdef TBinarizedFeatureStatistics GetBinarizedFloatFeatureStatistics(
+    cdef TVector[TBinarizedFeatureStatistics] GetBinarizedStatistics(
         const TFullModel& model,
         TDataProvider& dataset,
-        const size_t featureNum,
+        const TVector[size_t]& catFeaturesNums,
+        const TVector[size_t]& floatFeaturesNums,
         const EPredictionType predictionType,
         const int threadCount) nogil except +ProcessException
 
-    cdef TBinarizedFeatureStatistics GetBinarizedOneHotFeatureStatistics(
-        const TFullModel& model,
-        TDataProvider& dataset,
-        const size_t featureNum,
-        const int featureFlatNum,
-        const EPredictionType predictionType,
-        const int threadCount) nogil except +ProcessException
-
-    cdef TBinarizedFeatureStatistics GetBinarizedCatFeatureStatistics(
-        const TFullModel& model,
-        TDataProvider& dataset,
-        const size_t featureNum,
-        const EPredictionType predictionType,
-        const int threadCount) nogil except +ProcessException
-    
     cdef ui32 GetCatFeaturePerfectHash(
         const TFullModel& model,
         const TStringBuf& value,
@@ -1675,6 +1661,7 @@ cdef object _set_features_order_data_pd_data_frame(
         elif ((not column_type_is_pandas_Categorical) and
               (column_values.dtype == np.float32) and
               column_values.flags.aligned and
+
               column_values.flags.c_contiguous
             ):
 
@@ -2902,36 +2889,36 @@ cdef class _CatBoost:
 
         return leaf_values_list
 
-    cpdef _get_binarized_statistics(self, _PoolBase pool, size_t featureNum, predictionType, feature_type, int thread_count):
+    cpdef _get_binarized_statistics(self, _PoolBase pool, catFeaturesNums, floatFeaturesNums, predictionType, int thread_count):
         thread_count = UpdateThreadCount(thread_count)
-        cdef TBinarizedFeatureStatistics res
-        if feature_type == 'float':
-            res = GetBinarizedFloatFeatureStatistics(
-                dereference(self.__model),
-                dereference(pool.__pool.Get()),
-                featureNum,
-                PyPredictionType(predictionType).predictionType,
-                thread_count
+        cdef TVector[TBinarizedFeatureStatistics] statistics
+        cdef TVector[size_t] catFeaturesNumsVec
+        cdef TVector[size_t] floatFeaturesNumsVec
+        for num in catFeaturesNums:
+            catFeaturesNumsVec.push_back(num)
+        for num in floatFeaturesNums:
+            floatFeaturesNumsVec.push_back(num)
+        statistics_vec = GetBinarizedStatistics(
+            dereference(self.__model),
+            dereference(pool.__pool.Get()),
+            catFeaturesNumsVec,
+            floatFeaturesNumsVec,
+            PyPredictionType(predictionType).predictionType,
+            thread_count
+        )
+        statistics_list = []
+        for stat in statistics_vec:
+            statistics_list.append(
+                {
+                    'borders': _vector_of_floats_to_np_array(stat.Borders),
+                    'binarized_feature': _vector_of_ints_to_np_array(stat.BinarizedFeature),
+                    'mean_target': _vector_of_floats_to_np_array(stat.MeanTarget),
+                    'mean_prediction': _vector_of_floats_to_np_array(stat.MeanPrediction),
+                    'objects_per_bin': _vector_of_size_t_to_np_array(stat.ObjectsPerBin),
+                    'predictions_on_varying_feature': _vector_of_double_to_np_array(stat.PredictionsOnVaryingFeature)
+                }
             )
-        elif feature_type == 'categorical':
-            res = GetBinarizedCatFeatureStatistics(
-                dereference(self.__model),
-                dereference(pool.__pool.Get()),
-                featureNum,
-                PyPredictionType(predictionType).predictionType,
-                thread_count
-            )
-        else:
-            raise CatBoostError('Unsupported feature type {}'.format(feature_type))
-
-        return {
-            'borders': _vector_of_floats_to_np_array(res.Borders),
-            'binarized_feature': _vector_of_ints_to_np_array(res.BinarizedFeature),
-            'mean_target': _vector_of_floats_to_np_array(res.MeanTarget),
-            'mean_prediction': _vector_of_floats_to_np_array(res.MeanPrediction),
-            'objects_per_bin': _vector_of_size_t_to_np_array(res.ObjectsPerBin),
-            'predictions_on_varying_feature': _vector_of_double_to_np_array(res.PredictionsOnVaryingFeature)
-        }
+        return statistics_list
 
     cpdef _calc_cat_feature_perfect_hash(self, value, size_t featureNum):
         return GetCatFeaturePerfectHash(dereference(self.__model), to_arcadia_string(value), featureNum)

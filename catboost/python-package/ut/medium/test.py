@@ -4481,7 +4481,7 @@ def test_feature_statistics():
     model.fit(X, y, silent=True)
 
     feature_num = 0
-    res = model.calc_feature_statistics(feature_num, X, y, plot=False)
+    res = model.calc_feature_statistics(X, y, feature_num, plot=False)
 
     def mean_per_bin(res, feature_num, data):
         return np.array([data[np.digitize(X[:, feature_num], res['borders']) == bin_num].mean()
