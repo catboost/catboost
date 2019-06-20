@@ -138,7 +138,7 @@ $(BUILD_ROOT)/contrib/libs/cppdemangle/demangle.cpp.pic.o\
         $(SOURCE_ROOT)/contrib/libs/cppdemangle/demangle.cpp\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/cppdemangle'
-	${CXX} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/cppdemangle/demangle.cpp.pic.o' '$(SOURCE_ROOT)/contrib/libs/cppdemangle/demangle.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -nostdinc++ -msse2 -msse3 -mssse3 -std=c++1z -Wno-register -DCATBOOST_OPENSOURCE=yes -nostdinc++
+	${CXX} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/cppdemangle/demangle.cpp.pic.o' '$(SOURCE_ROOT)/contrib/libs/cppdemangle/demangle.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -nostdinc++ -msse2 -msse3 -mssse3 -std=c++1z -Wno-register -DCATBOOST_OPENSOURCE=yes -nostdinc++
 
 $(BUILD_ROOT)/contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a.mf\
         ::\
@@ -2325,7 +2325,7 @@ $(BUILD_ROOT)/contrib/libs/cppdemangle/demangle.cpp.pic.o\
         $(SOURCE_ROOT)/contrib/libs/cppdemangle/demangle.cpp\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/cppdemangle'
-	${CXX} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/cppdemangle/demangle.cpp.pic.o' '$(SOURCE_ROOT)/contrib/libs/cppdemangle/demangle.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' -pipe -m64 -O3 -fPIC -fexceptions -w -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -nostdinc++ -msse2 -msse3 -mssse3 -std=c++1z -Wno-register -DCATBOOST_OPENSOURCE=yes -nostdinc++
+	${CXX} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/cppdemangle/demangle.cpp.pic.o' '$(SOURCE_ROOT)/contrib/libs/cppdemangle/demangle.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' -pipe -m64 -O3 -fPIC -fexceptions -w -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -nostdinc++ -msse2 -msse3 -mssse3 -std=c++1z -Wno-register -DCATBOOST_OPENSOURCE=yes -nostdinc++
 
 $(BUILD_ROOT)/contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a.mf\
         ::\
