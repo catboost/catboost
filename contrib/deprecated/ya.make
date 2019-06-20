@@ -13,7 +13,6 @@ RECURSE(
     itypes
     http-parser
     jsoncpp
-    libahocorasick
     libcds
     libcouchbase
     libctpp
