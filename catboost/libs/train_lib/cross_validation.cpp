@@ -112,7 +112,7 @@ inline bool DivisibleOrLastIteration(int currentIteration, int iterationsCount, 
 }
 
 
-static ui32 EstimateUpToIteration(
+static ui32 CalcBatchSize(
     ui32 lastIteration,
     ui32 batchStartIteration,
     double batchIterationsTime, // in sec
@@ -130,11 +130,12 @@ static ui32 EstimateUpToIteration(
     double timeSpentOnFixedCost = batchIterationsPlusTrainInitializationTime - batchIterationsTime;
     double averageIterationTime = batchIterationsTime / double(lastIteration - batchStartIteration + 1);
 
-    double estimatedToBeUnderFixedCostLimitIterationsBatchSize =
+    // estimated to be under fixed cost limit
+    double estimatedBatchSize =
         std::ceil((1.0 - maxTimeSpentOnFixedCostRatio)*timeSpentOnFixedCost
            / (maxTimeSpentOnFixedCostRatio*averageIterationTime));
 
-    CATBOOST_DEBUG_LOG << "EstimateUpToIteration:\n\t" <<
+    CATBOOST_DEBUG_LOG << "CalcBatchSize:\n\t" <<
         LabeledOutput(
             lastIteration,
             batchIterationsTime,
@@ -142,20 +143,17 @@ static ui32 EstimateUpToIteration(
             averageIterationTime) << Endl
         << '\t' << LabeledOutput(timeSpentOnFixedCost, maxTimeSpentOnFixedCostRatio, globalMaxIteration)
         << "\n\testimated batch size to be under fixed cost ratio limit: "
-        << estimatedToBeUnderFixedCostLimitIterationsBatchSize << Endl;
+        << estimatedBatchSize << Endl;
 
-    double estimatedUpToIteration = (
-        double(batchStartIteration) + Min(
-            (double)maxIterationsBatchSize,
-            estimatedToBeUnderFixedCostLimitIterationsBatchSize));
+    // cast to ui32 from double is safe after taking Min
+    ui32 batchSize = Min((double)maxIterationsBatchSize, estimatedBatchSize);
 
-    if (estimatedUpToIteration <= (double)lastIteration) {
-        return lastIteration + 1;
-    } else if (double(globalMaxIteration) < estimatedUpToIteration) {
-        return globalMaxIteration;
+    if ((batchStartIteration + batchSize) <= lastIteration) {
+        return lastIteration - batchStartIteration + 1;
+    } else if ((batchStartIteration + batchSize) > globalMaxIteration) {
+        return globalMaxIteration - batchStartIteration;
     } else {
-        // cast won't overflow because upToIteration has already been compared with globalMaxIteration
-        return (ui32)estimatedUpToIteration;
+        return batchSize;
     }
 }
 
@@ -226,7 +224,6 @@ public:
             (LearnProgress && (LearnProgress->GetInitModelTreesSize() == batchStartIteration))
         );
 
-        const bool estimateUpToIteration = !upToIteration->Defined();
         double batchIterationsTime = 0.0; // without initialization time
 
         TTrainModelInternalOptions internalOptions;
@@ -237,77 +234,72 @@ public:
         THPTimer trainTimer;
         THolder<TLearnProgress> dstLearnProgress;
 
+        TOnEndIterationCallback onEndIterationCallback
+            = [
+                batchStartIteration,
+                loggingLevel,
+                &upToIteration,
+                &batchIterationsTime,
+                &trainTimer,
+                maxTimeSpentOnFixedCostRatio,
+                maxIterationsBatchSize,
+                globalMaxIteration,
+                isErrorTrackerActive,
+                &metrics,
+                skipMetricOnTrain,
+                this
+              ] (const TMetricsAndTimeLeftHistory& metricsAndTimeHistory) -> bool {
+                    Y_VERIFY(metricsAndTimeHistory.TimeHistory.size() > 0);
+                    size_t iteration = (TaskType == ETaskType::CPU) ?
+                          batchStartIteration + (metricsAndTimeHistory.TimeHistory.size() - 1)
+                        : (metricsAndTimeHistory.TimeHistory.size() - 1);
+
+                    // replay
+                    if (iteration < MetricValuesOnTest.size()) {
+                        return true;
+                    }
+
+                    if (!*upToIteration) {
+                        TSetLogging inThisScope(loggingLevel);
+
+                        batchIterationsTime += metricsAndTimeHistory.TimeHistory.back().IterationTime;
+
+                        TMaybe<ui32> prevUpToIteration = *upToIteration;
+
+                        *upToIteration
+                            = batchStartIteration + CalcBatchSize(
+                                iteration,
+                                batchStartIteration,
+                                batchIterationsTime,
+                                trainTimer.Passed(),
+                                maxTimeSpentOnFixedCostRatio,
+                                maxIterationsBatchSize,
+                                globalMaxIteration);
+
+                        if (*upToIteration != prevUpToIteration) {
+                            CATBOOST_INFO_LOG << "CrossValidation: batch iterations upper bound estimate = "
+                                << **upToIteration << Endl;
+                        }
+                    }
+
+                    UpdateMetricsAfterIteration(
+                        iteration,
+                        globalMaxIteration,
+                        isErrorTrackerActive,
+                        metrics,
+                        skipMetricOnTrain,
+                        metricsAndTimeHistory);
+
+                    return (iteration + 1) < **upToIteration;
+                };
+
         modelTrainer->TrainModel(
             internalOptions,
             catboostOption,
             OutputOptions,
             objectiveDescriptor,
             evalMetricDescriptor,
-            [&, this] (const TMetricsAndTimeLeftHistory& metricsAndTimeHistory) -> bool {
-                Y_VERIFY(metricsAndTimeHistory.TimeHistory.size() > 0);
-                size_t iteration = (TaskType == ETaskType::CPU) ?
-                      batchStartIteration + (metricsAndTimeHistory.TimeHistory.size() - 1)
-                    : (metricsAndTimeHistory.TimeHistory.size() - 1);
-
-                // replay
-                if (iteration < MetricValuesOnTest.size()) {
-                    return true;
-                }
-
-                if (estimateUpToIteration) {
-                    TSetLogging inThisScope(loggingLevel);
-
-                    batchIterationsTime += metricsAndTimeHistory.TimeHistory.back().IterationTime;
-
-                    TMaybe<ui32> prevUpToIteration = *upToIteration;
-
-                    *upToIteration = EstimateUpToIteration(
-                        iteration,
-                        batchStartIteration,
-                        batchIterationsTime,
-                        trainTimer.Passed(),
-                        maxTimeSpentOnFixedCostRatio,
-                        maxIterationsBatchSize,
-                        globalMaxIteration);
-
-                    if (*upToIteration != prevUpToIteration) {
-                        CATBOOST_INFO_LOG << "CrossValidation: batch iterations upper bound estimate = "
-                            << **upToIteration << Endl;
-                    }
-                }
-
-                bool calcMetrics = DivisibleOrLastIteration(
-                    iteration,
-                    globalMaxIteration,
-                    OutputOptions.GetMetricPeriod()
-                );
-
-                const bool calcErrorTrackerMetric = calcMetrics || isErrorTrackerActive;
-                const int errorTrackerMetricIdx = calcErrorTrackerMetric ? 0 : -1;
-
-                MetricValuesOnTrain.resize(iteration + 1);
-                MetricValuesOnTest.resize(iteration + 1);
-
-                for (auto metricIdx : xrange((int)metrics.size())) {
-                    if (!calcMetrics && (metricIdx != errorTrackerMetricIdx)) {
-                        continue;
-                    }
-                    const auto& metric = metrics[metricIdx];
-                    const TString& metricDescription = metric->GetDescription();
-
-                    const auto* metricValueOnTrain
-                        = MapFindPtr(metricsAndTimeHistory.LearnMetricsHistory.back(), metricDescription);
-                    MetricValuesOnTrain[iteration].push_back(
-                        (skipMetricOnTrain[metricIdx] || (metricValueOnTrain == nullptr)) ?
-                            std::numeric_limits<double>::quiet_NaN() :
-                            *metricValueOnTrain);
-
-                    MetricValuesOnTest[iteration].push_back(
-                        metricsAndTimeHistory.TestMetricsHistory.back()[0].at(metricDescription));
-                }
-
-                return (iteration + 1) < **upToIteration;
-            },
+            onEndIterationCallback,
             TrainingData,
             labelConverter,
             /*initModel*/ Nothing(),
@@ -322,6 +314,47 @@ public:
         );
         LearnProgress = std::move(dstLearnProgress);
     }
+
+private:
+    void UpdateMetricsAfterIteration(
+        size_t iteration,
+        size_t globalMaxIteration,
+        bool isErrorTrackerActive,
+        TConstArrayRef<THolder<IMetric>> metrics,
+        TConstArrayRef<bool> skipMetricOnTrain,
+        const TMetricsAndTimeLeftHistory& metricsAndTimeHistory
+    ) {
+        bool calcMetrics = DivisibleOrLastIteration(
+            iteration,
+            globalMaxIteration,
+            OutputOptions.GetMetricPeriod()
+        );
+
+        const bool calcErrorTrackerMetric = calcMetrics || isErrorTrackerActive;
+        const int errorTrackerMetricIdx = calcErrorTrackerMetric ? 0 : -1;
+
+        MetricValuesOnTrain.resize(iteration + 1);
+        MetricValuesOnTest.resize(iteration + 1);
+
+        for (auto metricIdx : xrange((int)metrics.size())) {
+            if (!calcMetrics && (metricIdx != errorTrackerMetricIdx)) {
+                continue;
+            }
+            const auto& metric = metrics[metricIdx];
+            const TString& metricDescription = metric->GetDescription();
+
+            const auto* metricValueOnTrain
+                = MapFindPtr(metricsAndTimeHistory.LearnMetricsHistory.back(), metricDescription);
+            MetricValuesOnTrain[iteration].push_back(
+                (skipMetricOnTrain[metricIdx] || (metricValueOnTrain == nullptr)) ?
+                    std::numeric_limits<double>::quiet_NaN() :
+                    *metricValueOnTrain);
+
+            MetricValuesOnTest[iteration].push_back(
+                metricsAndTimeHistory.TestMetricsHistory.back()[0].at(metricDescription));
+        }
+    }
+
 };
 
 
