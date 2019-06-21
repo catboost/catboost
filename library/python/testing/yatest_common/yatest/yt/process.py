@@ -21,6 +21,8 @@ class InvalidInputError(Exception):
 
 
 def get_yt_sandbox_path(path):
+    if path.startswith(YT_SANDBOX_ROOT_PREFIX):
+        return path
     return "{}/{}".format(YT_SANDBOX_ROOT_PREFIX, path)
 
 
@@ -315,6 +317,8 @@ def _fix_user_data(orig_cmd, shell, orig_env, user_input, user_output, arg_mine_
     input_data, output_data = {}, {}
     user_input = user_input or {}
     user_output = user_output or {}
+    user_input = {k: get_yt_sandbox_path(v) if v is not None else None for k, v in user_input.items()}
+    user_output = {get_yt_sandbox_path(k) if k is not None else None: v for k, v in user_output.items()}
     orig_env = dict(orig_env or os.environ)
     env = {}
 
