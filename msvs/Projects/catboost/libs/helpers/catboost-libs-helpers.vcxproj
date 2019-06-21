@@ -122,7 +122,6 @@
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\compare.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\compression.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\cpu_random.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\data_split.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\dbg_output.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\dense_hash.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\dense_hash_view.h"/>
