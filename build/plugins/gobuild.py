@@ -66,7 +66,9 @@ def on_go_process_srcs(unit):
         if not f.endswith('_test.go'):
             ymake.report_configure_error('file {} should not be listed in GO_TEST_SRCS() or GO_XTEST_SRCS() macros'.format(f))
 
-    if unit.get('GO_TEST_MODULE') and unit.get('GO_TEST_COVER'):
+    is_test_module = unit.enabled('GO_TEST_MODULE')
+
+    if is_test_module and unit.enabled('GO_TEST_COVER'):
         temp_srcs_files = []
         cover_info = []
         for f in srcs_files:
@@ -130,6 +132,10 @@ def on_go_process_srcs(unit):
 
     cgo_cflags = []
     if len(c_files) + len(cxx_files) + len(s_files) + len(cgo_files) > 0:
+        if is_test_module:
+            cgo_cflags.append(os.path.join('-I${ARCADIA_ROOT}', unit.get('GO_TEST_FOR_DIR')[3:]))
+        cgo_cflags.append('-I$CURDIR')
+        unit.oncgo_cflags(cgo_cflags)
         cgo_cflags = get_appended_values(unit, 'CGO_CFLAGS_VALUE')
 
     if len(cxx_files) > 0:
