@@ -1,0 +1,83 @@
+- includes:
+  - typemaps.i:
+    - contrib/tools/swig/Lib/python/typemaps.i
+    - contrib/tools/swig/Lib/perl5/typemaps.i
+    - contrib/tools/swig/Lib/java/typemaps.i
+    - contrib/tools/swig/Lib/go/typemaps.i
+
+  - exception.i:
+    - contrib/tools/swig/Lib/python/exception.i
+    - contrib/tools/swig/Lib/exception.i
+    - contrib/tools/swig/Lib/perl5/exception.i
+    - contrib/tools/swig/Lib/go/exception.i
+
+  - std_common.i:
+    - contrib/tools/swig/Lib/python/std_common.i
+    - contrib/tools/swig/Lib/perl5/std_common.i
+    - contrib/tools/swig/Lib/java/std_common.i
+    - contrib/tools/swig/Lib/go/std_common.i
+    - contrib/tools/swig/Lib/std/std_common.i
+
+  - std_except.i:
+    - contrib/tools/swig/Lib/python/std_except.i
+    - contrib/tools/swig/Lib/perl5/std_except.i
+    - contrib/tools/swig/Lib/java/std_except.i
+    - contrib/tools/swig/Lib/go/std_except.i
+    - contrib/tools/swig/Lib/std/std_except.i
+
+  - std_string.i:
+    - contrib/tools/swig/Lib/python/std_string.i
+    - contrib/tools/swig/Lib/perl5/std_string.i
+    - contrib/tools/swig/Lib/java/std_string.i
+    - contrib/tools/swig/Lib/go/std_string.i
+    - contrib/tools/swig/Lib/std/std_string.i
+
+  - std_vector.i:
+    - contrib/tools/swig/Lib/python/std_vector.i
+    - contrib/tools/swig/Lib/perl5/std_vector.i
+    - contrib/tools/swig/Lib/java/std_vector.i
+    - contrib/tools/swig/Lib/go/std_vector.i
+    - contrib/tools/swig/Lib/std/std_vector.i
+
+  - std_container.i:
+    - contrib/tools/swig/Lib/python/std_container.i
+    - contrib/tools/swig/Lib/std/std_container.i
+
+  - std_alloc.i:
+    - contrib/tools/swig/Lib/python/std_alloc.i
+    - contrib/tools/swig/Lib/std/std_alloc.i
+
+  - std_map.i:
+    - contrib/tools/swig/Lib/python/std_map.i
+    - contrib/tools/swig/Lib/perl5/std_map.i
+    - contrib/tools/swig/Lib/java/std_map.i
+    - contrib/tools/swig/Lib/go/std_map.i
+    - contrib/tools/swig/Lib/std/std_map.i
+
+  - std_pair.i:
+    - contrib/tools/swig/Lib/python/std_pair.i
+    - contrib/tools/swig/Lib/perl5/std_pair.i
+    - contrib/tools/swig/Lib/java/std_pair.i
+    - contrib/tools/swig/Lib/go/std_pair.i
+    - contrib/tools/swig/Lib/std/std_pair.i
+
+  - std_char_traits.i:    contrib/tools/swig/Lib/python/std_char_traits.i
+
+  - boost_shared_ptr.i:
+    - contrib/tools/swig/Lib/python/boost_shared_ptr.i
+    - contrib/tools/swig/Lib/java/boost_shared_ptr.i
+
+  - std_shared_ptr.i:
+    - contrib/tools/swig/Lib/python/std_shared_ptr.i
+    - contrib/tools/swig/Lib/java/std_shared_ptr.i
+
+  - cpointer.i:
+    - contrib/tools/swig/Lib/python/cpointer.i
+    - contrib/tools/swig/Lib/perl5/cpointer.i
+    - contrib/tools/swig/Lib/cpointer.i
+
+  - wchar.i:
+    - contrib/tools/swig/Lib/python/wchar.i
+    - contrib/tools/swig/Lib/wchar.i
+
+  - reference.i:          contrib/tools/swig/Lib/python/reference.i
