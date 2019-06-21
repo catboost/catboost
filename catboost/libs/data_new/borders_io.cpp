@@ -14,7 +14,6 @@
 
 
 #include <catboost/libs/options/enums.h>
-#include <catboost/libs/helpers/data_split.h>
 #include <catboost/libs/logging/logging.h>
 
 #include <util/generic/map.h>
