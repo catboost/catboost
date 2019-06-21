@@ -1,4 +1,5 @@
 import base64
+import itertools
 import os
 from _common import rootrel_arc_src, tobuilddir
 import ymake
@@ -96,7 +97,7 @@ def on_go_process_srcs(unit):
                 basedirs[basedir] = []
             basedirs[basedir].append(f)
         for basedir in basedirs:
-            unit.onadd_check(["gofmt"] + basedirs[basedir])
+            unit.onadd_check(['gofmt'] + basedirs[basedir])
 
     # Add go vet check
     if unit.get(['GO_VET']) == 'yes':
@@ -123,14 +124,20 @@ def on_go_process_srcs(unit):
 
     s_files = filter(lambda x: x.endswith('.S'), srcs_files)
     c_files = filter(lambda x: x.endswith('.c'), srcs_files)
+    cxx_files = filter(lambda x: any(x.endswith(e) for e in ('.cc', '.cpp', '.cxx', '.C')), srcs_files)
     syso_files = filter(lambda x: x.endswith('.syso'), srcs_files)
     cgo_files = get_appended_values(unit, 'CGO_SRCS_VALUE')
 
     cgo_cflags = []
-    if len(c_files) + len(s_files) + len(cgo_files) > 0:
+    if len(c_files) + len(cxx_files) + len(s_files) + len(cgo_files) > 0:
         cgo_cflags = get_appended_values(unit, 'CGO_CFLAGS_VALUE')
 
-    for f in c_files + s_files:
+    if len(cxx_files) > 0:
+        unit.onpeerdir('contrib/libs/cxxsupp')
+        if unit.get(['USE_LIBCXXRT']) == 'yes':
+            unit.onpeerdir('contrib/libs/cxxsupp/libcxxrt')
+
+    for f in itertools.chain(c_files, cxx_files, s_files):
         unit.onsrc([f] + cgo_cflags)
 
     if len(cgo_files) > 0:
