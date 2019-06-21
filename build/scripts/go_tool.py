@@ -495,8 +495,6 @@ if __name__ == '__main__':
     args.output = os.path.normpath(args.output)
     args.build_root = os.path.normpath(args.build_root) + os.path.sep
     args.output_root = os.path.normpath(args.output_root)
-    # FIXME
-    args.source_root = '/home/snermolaev/gopath/src/a.yandex-team.ru/'
     args.import_map = {}
     args.module_map = {}
 
