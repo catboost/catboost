@@ -121,7 +121,6 @@ private:
 
 public:
 
-
     TCudaVec(ui64 size, EMemoryType type)
         : Impl_(new Inner(size, type))
     {
@@ -147,9 +146,6 @@ public:
         result.Write(from);
         return result;
     }
-
-
-
 
     EMemoryType MemoryType() const {
         CB_ENSURE(Impl_);
@@ -227,8 +223,22 @@ public:
         CB_ENSURE(*this);
         return TConstArrayRef<T>(Impl_->Data_, Impl_->Size_);
     }
+
+    void ClearAsync(const TCudaStream& stream) {
+        ClearMemoryAsync(AsArrayRef(), stream);
+    }
 };
 
+
+template <class T>
+inline TCudaVec<T> MakeCudaVec(TConstArrayRef<T> data, EMemoryType type) {
+    return TCudaVec<T>(data, type);
+}
+
+template <class T>
+inline TCudaVec<T> MakeCudaVec(const TVector<T>& data, EMemoryType type) {
+    return MakeCudaVec<T>(MakeConstArrayRef(data), type);
+}
 template <class T>
 inline void MemoryCopy(TConstArrayRef<T> from, TArrayRef<T> to) {
     CB_ENSURE(from.size() == to.size(), from.size() << " ≠ " << to.size());
@@ -239,4 +249,12 @@ template <class T>
 inline void MemoryCopyAsync(TConstArrayRef<T> from, TArrayRef<T> to, TCudaStream stream) {
     CB_ENSURE(from.size() == to.size(), from.size() << " ≠ " << to.size());
     CUDA_SAFE_CALL(cudaMemcpyAsync((void*)to.data(), (const void*)from.data(), sizeof(T) * from.size(), cudaMemcpyDefault, stream));
+}
+
+
+template <class T>
+inline TVector<T> ReadVec(const TCudaVec<T>& data) {
+    TVector<T> result(data.Size());
+    data.Read(MakeArrayRef(result));
+    return result;
 }
