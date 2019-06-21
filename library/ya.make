@@ -5,6 +5,7 @@ RECURSE(
     accurate_accumulate/benchmark
     accurate_accumulate/benchmark/metrics
     binsaver
+    binsaver/ut_util
     binsaver/ut
     blockcodecs
     blockcodecs/fuzz

@@ -3214,7 +3214,7 @@ def _mkstemp(*args, **kw):
 
 
 # Yandex resource support
-from __res import ResourceImporter, executable
+from __res import Y_PYTHON_SOURCE_ROOT, ResourceImporter, executable
 from library.python import resource
 
 
@@ -3223,31 +3223,27 @@ class ResProvider(EmptyProvider):
         if hasattr(prefix, '__file__'):
             key = prefix.__file__.rsplit('/', 1)[0]
             self.egg_info = self.module_path = 'resfs/file/{}/'.format(key)
-            self.fallback = DefaultProvider(prefix)
         else:
             self.egg_info = self.module_path = prefix
-            self.fallback = None
+
+    @staticmethod
+    def from_module(module):
+        if Y_PYTHON_SOURCE_ROOT:
+            return DefaultProvider(module)
+        else:
+            return ResProvider(module)
 
     def _fn(self, base, resource_name):
         return base + resource_name
 
     def _has(self, path):
-        result = resource.find(path) is not None
-        if result:
-            return True
-        elif self.fallback:
-            return self.fallback._has(path)
-        else:
-            return False
+        return resource.find(path) is not None
 
     def _get(self, path):
         result = resource.find(path)
-        if result:
-            return result
-        elif self.fallback:
-            return self.fallback._get(path)
-        else:
-            raise KeyError(path)
+        if result is None:
+            raise IOError(path)
+        return result
 
 
 class ResDistribution(DistInfoDistribution):
@@ -3267,7 +3263,7 @@ def find_in_res(importer, path_item, only=False):
 
 
 register_finder(ResourceImporter, find_in_res)
-register_loader_type(ResourceImporter, ResProvider)
+register_loader_type(ResourceImporter, ResProvider.from_module)
 
 
 # Silence the PEP440Warning by default, so that end users don't get hit by it
