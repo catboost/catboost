@@ -1,6 +1,6 @@
 import base64
 import os
-from _common import rootrel_arc_src
+from _common import rootrel_arc_src, tobuilddir
 import ymake
 
 
@@ -35,8 +35,8 @@ def compare_versions(version1, version2):
     return 1 if v1 < v2 else -1
 
 
-def go_package_name(unit):
-    name = unit.get('GO_PACKAGE_VALUE')
+def go_package_name(unit, vet_mode=False):
+    name = None if vet_mode else unit.get('GO_PACKAGE_VALUE')
     if not name:
         name = unit.get('GO_TEST_IMPORT_PATH')
         if name:
@@ -97,6 +97,12 @@ def on_go_process_srcs(unit):
             basedirs[basedir].append(f)
         for basedir in basedirs:
             unit.onadd_check(["gofmt"] + basedirs[basedir])
+
+    # Add go vet check
+    if unit.get(['GO_VET']) == 'yes':
+        vet_package_name = go_package_name(unit, vet_mode=True)
+        unit.onadd_check(["govet", '$(BUILD_ROOT)/' + tobuilddir(os.path.join(unit.path(), vet_package_name + '.a.vet.txt'))[3:]])
+        unit.set(['_GO_VET_PACKAGE_NAME', vet_package_name])
 
     go_std_root = unit.get('GOSTD') + os.path.sep
 

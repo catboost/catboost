@@ -1,11 +1,12 @@
 import argparse
 import copy
+import json
 import os
 import shutil
 import subprocess
 import sys
 import tempfile
-
+import threading
 
 arc_project_prefix = 'a.yandex-team.ru/'
 std_lib_prefix = 'contrib/go/_std/src/'
@@ -69,19 +70,30 @@ def classify_srcs(srcs, args):
     args.sysos = list(filter(lambda x: x.endswith('.syso'), srcs))
 
 
-def create_import_config(peers, import_map={}, module_map={}):
-    lines = []
+def get_import_config_info(peers, import_map={}, module_map={}):
+    info = {'importmap': [], 'packagefile': [], 'standard': {}}
     for key, value in import_map.items():
-        lines.append('importmap {}={}'.format(key, value))
+        info['importmap'].append((key, value))
     for peer in peers:
-        peer_import_path, _ = get_import_path(os.path.dirname(peer))
+        peer_import_path, is_std = get_import_path(os.path.dirname(peer))
         index = get_vendor_index(peer_import_path)
         if index >= 0:
             index += len(vendor_prefix)
-            lines.append('importmap {}={}'.format(peer_import_path[index:], peer_import_path))
-        lines.append('packagefile {}={}'.format(peer_import_path, os.path.join(args.build_root, peer)))
+            info['importmap'].append((peer_import_path[index:], peer_import_path))
+        info['packagefile'].append((peer_import_path, os.path.join(args.build_root, peer)))
+        if is_std:
+            info['standard'][peer_import_path] = True
     for key, value in module_map.items():
-        lines.append('packagefile {}={}'.format(key, value))
+        info['packagefile'].append((key, value))
+    return info
+
+
+def create_import_config(peers, import_map={}, module_map={}):
+    lines = []
+    info = get_import_config_info(peers, import_map, module_map)
+    for key in ('importmap', 'packagefile'):
+        for item in info[key]:
+            lines.append('{} {}={}'.format(key, *item))
     if len(lines) > 0:
         lines.append('')
         content = '\n'.join(lines)
@@ -92,7 +104,65 @@ def create_import_config(peers, import_map={}, module_map={}):
     return None
 
 
+def gen_vet_info(args):
+    import_path, _ = get_import_path(args.module_path)
+    info = get_import_config_info(args.peers, args.import_map, args.module_map)
+
+    import_map = dict(info['importmap'])
+    # FIXME(snermolaev): it seems that adding import map for 'fake' package
+    #                    does't make any harm (it needs to be revised later)
+    import_map['unsafe'] = 'unsafe'
+
+    for (key, _) in info['packagefile']:
+        if key not in import_map:
+            import_map[key] = key
+
+    data = {
+        'ID': import_path,
+        'Compiler': 'gc',
+        'Dir': args.module_path,
+        'ImportPath': import_path,
+        'GoFiles': list(filter(lambda x: x.endswith('.go'), args.go_srcs)),
+        'NonGoFiles': [
+        ],
+        'ImportMap': import_map,
+        'PackageFile': dict(info['packagefile']),
+        'Standard': dict(info['standard']),
+        'PackageVetx': dict((key, value + '.vet.out') for key, value in info['packagefile']),
+        'VetxOnly': False,
+        'VetxOutput': args.output + '.vet.out',
+        'SucceedOnTypecheckFailure': True
+    }
+    # print >>sys.stderr, json.dumps(data, indent=4)
+    return data
+
+
+def create_vet_config(args, info):
+    with tempfile.NamedTemporaryFile(delete=False, suffix='.cfg') as f:
+        f.write(json.dumps(info))
+        return f.name
+
+
+def dump_vet_report(args, report):
+    with open(args.output + '.vet.txt', 'w') as f:
+        f.write(report)
+
+
+def do_vet(args):
+    assert args.vet
+    info = gen_vet_info(args)
+    vet_config = create_vet_config(args, info)
+    cmd = [args.go_vet, vet_config]
+    p_vet = subprocess.Popen(cmd, stdin=None, stderr=subprocess.PIPE, cwd=args.build_root)
+    _, vet_err = p_vet.communicate()
+    dump_vet_report(args, vet_err if vet_err else '')
+
+
 def do_compile_go(args):
+    if args.vet:
+        run_vet = threading.Thread(target=do_vet, args=(args,))
+        run_vet.start()
+
     import_path, is_std_module = get_import_path(args.module_path)
     cmd = [args.go_compile, '-o', args.output, '-trimpath', args.build_root, '-p', import_path, '-D', '""']
     cmd += ['-goversion', 'go' + args.goversion]
@@ -123,6 +193,9 @@ def do_compile_go(args):
     cmd += ['-pack', '-c={}'.format(compile_workers)]
     cmd += args.go_srcs
     call(cmd, args.build_root)
+
+    if args.vet:
+        run_vet.join()
 
 
 def do_compile_asm(args):
@@ -375,6 +448,7 @@ def do_link_test(args):
         test_args.module_map[test_import_path] = test_lib_args.output
     if xtest_lib_args:
         test_args.module_map[test_import_path + '_test'] = xtest_lib_args.output
+    test_args.vet = False
     do_link_exe(test_args)
 
 
@@ -407,6 +481,7 @@ if __name__ == '__main__':
     parser.add_argument('++compile-flags', nargs='*')
     parser.add_argument('++link-flags', nargs='*')
     parser.add_argument('++vcs', nargs='?', default=None)
+    parser.add_argument('++vet', action='store_true', default=False)
     args = parser.parse_args()
 
     args.pkg_root = os.path.join(str(args.tools_root), 'pkg')
@@ -416,9 +491,12 @@ if __name__ == '__main__':
     args.go_link = os.path.join(args.tool_root, 'link')
     args.go_asm = os.path.join(args.tool_root, 'asm')
     args.go_pack = os.path.join(args.tool_root, 'pack')
+    args.go_vet = os.path.join(args.tool_root, 'vet')
     args.output = os.path.normpath(args.output)
     args.build_root = os.path.normpath(args.build_root) + os.path.sep
     args.output_root = os.path.normpath(args.output_root)
+    # FIXME
+    args.source_root = '/home/snermolaev/gopath/src/a.yandex-team.ru/'
     args.import_map = {}
     args.module_map = {}
 
@@ -469,5 +547,5 @@ if __name__ == '__main__':
         print >>sys.stderr, e.output
         exit_code = e.returncode
     except Exception as e:
-        print >>sys.stderr, "Unhandled exception [{}]...".format(str(e))
+       print >>sys.stderr, "Unhandled exception [{}]...".format(str(e))
     sys.exit(exit_code)
