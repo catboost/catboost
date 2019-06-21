@@ -138,10 +138,8 @@ def on_go_process_srcs(unit):
         unit.oncgo_cflags(cgo_cflags)
         cgo_cflags = get_appended_values(unit, 'CGO_CFLAGS_VALUE')
 
-    if len(cxx_files) > 0:
-        unit.onpeerdir('contrib/libs/cxxsupp')
-        if unit.get(['USE_LIBCXXRT']) == 'yes':
-            unit.onpeerdir('contrib/libs/cxxsupp/libcxxrt')
+    if len(cxx_files) == 0:
+        unit.onno_runtime()
 
     for f in itertools.chain(c_files, cxx_files, s_files):
         unit.onsrc([f] + cgo_cflags)
