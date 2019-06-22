@@ -83,6 +83,13 @@ Local naming conventions:
 
 */
 
+#include <stdbool.h>
+bool IsReusePortAvailable();
+
+#if !defined(SO_REUSEPORT) && defined(__linux__)
+#define SO_REUSEPORT 15
+#endif
+
 #ifdef __APPLE__
 #include <AvailabilityMacros.h>
 /* for getaddrinfo thread safety test on old versions of OS X */
@@ -7186,7 +7193,8 @@ PyInit__socket(void)
 #endif
 #ifndef __GNU__
 #ifdef  SO_REUSEPORT
-    PyModule_AddIntMacro(m, SO_REUSEPORT);
+    if (IsReusePortAvailable())
+        PyModule_AddIntMacro(m, SO_REUSEPORT);
 #endif
 #endif
 #ifdef  SO_SNDBUF
