@@ -246,6 +246,9 @@ ALLOW .* -> vendor/github.com/NVIDIA/gpu-monitoring-tools/bindings/go
 ALLOW .* -> vendor/github.com/jaegertracing/jaeger-client-go
 ALLOW .* -> vendor/github.com/opentracing/opentracing-go
 
+# CONTRIB-1299. Date parser. resposible: tserakhau@
+ALLOW .* -> vendor/github.com/araddon/dateparse
+
 #
 # Temporary exceptions.
 #
