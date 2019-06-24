@@ -98,7 +98,7 @@ namespace NCB {
                 } else {
                     CB_ENSURE(
                         pair.WinnerId >= loadSubset.GetSize() && pair.LoserId >= loadSubset.GetSize(),
-                        "Load subset [" << loadSubset.Range.Begin << ", " << loadSubset.Range.End << ") must contain loser "
+                        "Load subset " << loadSubset.Range << " must contain loser "
                         << pair.LoserId + loadSubset.Range.Begin << " and winner " << pair.WinnerId + loadSubset.Range.Begin
                     );
                 }

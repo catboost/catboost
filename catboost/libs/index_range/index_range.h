@@ -3,6 +3,7 @@
 #include <util/generic/vector.h>
 #include <util/generic/xrange.h>
 #include <util/generic/ymath.h>
+#include <util/stream/output.h>
 #include <util/system/yassert.h>
 
 #include <library/binsaver/bin_saver.h>
@@ -68,6 +69,13 @@ namespace NCB {
 
         SAVELOAD(Begin, End);
     };
+
+    template <class TSize>
+    static inline IOutputStream& operator<<(IOutputStream& o, const TIndexRange<TSize>& indexRange) {
+        o << '[' << indexRange.Begin << ',' << indexRange.End << ')';
+        return o;
+    }
+
 
     template <class TSize>
     struct IIndexRangesGenerator {
