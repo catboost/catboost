@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{6048E29B-4487-B4DB-ADA1-4CAAE7C1607F}</ProjectGUID>
+    <ProjectGUID>{0F7ECE1F-EE4E-A88C-12F5-7D1C49F1BC75}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>zstd</ProjectName>
+    <ProjectName>contrib-libs-zstd</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>zstd</TargetName>
+    <TargetName>contrib-libs-zstd</TargetName>
     <TargetExtention>.lib</TargetExtention>
     <OutDir>$(SolutionDir)$(Configuration)\contrib\libs\zstd\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\6048E29B-4487-B4DB-ADA1-4CAAE7C1607F\</IntDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\0F7ECE1F-EE4E-A88C-12F5-7D1C49F1BC75\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,6 +78,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\zstd\common\debug.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\zstd\common\entropy_common.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
@@ -100,6 +103,9 @@
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\zstd\compress\fse_compress.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\zstd\compress\hist.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\zstd\compress\huf_compress.c">
@@ -129,7 +135,13 @@
     <ClCompile Include="$(SolutionDir)..\contrib\libs\zstd\decompress\huf_decompress.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\zstd\decompress\zstd_ddict.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\zstd\decompress\zstd_decompress.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\zstd\decompress\zstd_decompress_block.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\zstd\deprecated\zbuff_common.c">
@@ -145,6 +157,9 @@
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\zstd\dictBuilder\divsufsort.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\zstd\dictBuilder\fastcover.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\zstd\dictBuilder\zdict.c">
@@ -174,6 +189,7 @@
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\common\bitstream.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\common\compiler.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\common\cpu.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\common\debug.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\common\error_private.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\common\fse.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\common\huf.h"/>
@@ -183,6 +199,7 @@
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\common\xxhash.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\common\zstd_errors.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\common\zstd_internal.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\compress\hist.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\compress\zstd_compress_internal.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\compress\zstd_double_fast.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\compress\zstd_fast.h"/>
@@ -190,7 +207,11 @@
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\compress\zstd_ldm.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\compress\zstd_opt.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\compress\zstdmt_compress.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\decompress\zstd_ddict.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\decompress\zstd_decompress_block.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\decompress\zstd_decompress_internal.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\deprecated\zbuff.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\dictBuilder\cover.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\dictBuilder\divsufsort.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\dictBuilder\zdict.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\legacy\zstd_legacy.h"/>
