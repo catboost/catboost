@@ -347,7 +347,7 @@ TMetricHolder EvalErrors(
     TConstArrayRef<float> target,
     TConstArrayRef<float> weight,
     TConstArrayRef<TQueryInfo> queriesInfo,
-    const THolder<IMetric>& error,
+    const IMetric& error,
     NPar::TLocalExecutor* localExecutor
 );
 
@@ -358,7 +358,7 @@ TMetricHolder EvalErrors(
     TConstArrayRef<float> target,
     TConstArrayRef<float> weight,
     TConstArrayRef<TQueryInfo> queriesInfo,
-    const THolder<IMetric>& error,
+    const IMetric& error,
     NPar::TLocalExecutor* localExecutor
 );
 

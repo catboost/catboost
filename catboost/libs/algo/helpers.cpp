@@ -107,7 +107,7 @@ void CalcErrors(
                             target,
                             weights,
                             queryInfo,
-                            errors[i],
+                            *errors[i],
                             ctx->LocalExecutor
                         );
                         ctx->LearnProgress->MetricsAndTimeHistory.AddLearnError(
@@ -157,7 +157,7 @@ void CalcErrors(
                     target,
                     weights,
                     queryInfo,
-                    errors[i],
+                    *errors[i],
                     ctx->LocalExecutor
                 );
                 bool updateBestIteration = (i == 0) && (testIdx == trainingDataProviders.Test.size() - 1);

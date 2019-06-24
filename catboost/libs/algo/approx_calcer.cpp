@@ -811,7 +811,7 @@ static void CalcApproxDeltaSimple(
             bodyTailTarget,
             fold.GetLearnWeights(),
             bodyTailQueryInfo,
-            lossFunction[0],
+            *lossFunction[0],
             ctx->LocalExecutor
         );
         return directionSign * lossFunction[0]->GetFinalError(additiveStats);
@@ -937,7 +937,7 @@ static void CalcLeafValuesSimple(
             fold.LearnTarget,
             fold.GetLearnWeights(),
             fold.LearnQueriesInfo,
-            lossFunction[0],
+            *lossFunction[0],
             &localExecutor
         );
         return directionSign * lossFunction[0]->GetFinalError(additiveStats);

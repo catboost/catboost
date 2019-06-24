@@ -768,7 +768,7 @@ namespace NCatboostDistributed {
                     *GetTrainData(trainData)->TargetData->GetTarget(),
                     GetWeights(*GetTrainData(trainData)->TargetData),
                     GetTrainData(trainData)->TargetData->GetGroupInfo().GetOrElse(TConstArrayRef<TQueryInfo>()),
-                    errors[errorIdx],
+                    *errors[errorIdx],
                     &NPar::LocalExecutor());
             }
         }

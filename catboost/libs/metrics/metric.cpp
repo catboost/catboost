@@ -4515,17 +4515,17 @@ TMetricHolder EvalErrors(
         TConstArrayRef<float> target,
         TConstArrayRef<float> weight,
         TConstArrayRef<TQueryInfo> queriesInfo,
-        const THolder<IMetric>& error,
+        const IMetric& error,
         NPar::TLocalExecutor* localExecutor
 ) {
-    if (error->GetErrorType() == EErrorType::PerObjectError) {
+    if (error.GetErrorType() == EErrorType::PerObjectError) {
         int begin = 0, end = target.size();
         Y_VERIFY(approx[0].ysize() == end - begin);
-        return error->Eval(approx, target, weight, queriesInfo, begin, end, *localExecutor);
+        return error.Eval(approx, target, weight, queriesInfo, begin, end, *localExecutor);
     } else {
-        Y_VERIFY(error->GetErrorType() == EErrorType::QuerywiseError || error->GetErrorType() == EErrorType::PairwiseError);
+        Y_VERIFY(error.GetErrorType() == EErrorType::QuerywiseError || error.GetErrorType() == EErrorType::PairwiseError);
         int queryStartIndex = 0, queryEndIndex = queriesInfo.size();
-        return error->Eval(approx, target, weight, queriesInfo, queryStartIndex, queryEndIndex, *localExecutor);
+        return error.Eval(approx, target, weight, queriesInfo, queryStartIndex, queryEndIndex, *localExecutor);
     }
 }
 
@@ -4537,17 +4537,17 @@ TMetricHolder EvalErrors(
         TConstArrayRef<float> target,
         TConstArrayRef<float> weight,
         TConstArrayRef<TQueryInfo> queriesInfo,
-        const THolder<IMetric>& error,
+        const IMetric& error,
         NPar::TLocalExecutor* localExecutor
 ) {
-    if (error->GetErrorType() == EErrorType::PerObjectError) {
+    if (error.GetErrorType() == EErrorType::PerObjectError) {
         int begin = 0, end = target.size();
         Y_VERIFY(end <= approx[0].ysize());
-        return error->Eval(approx, approxDelta, isExpApprox, target, weight, queriesInfo, begin, end, *localExecutor);
+        return error.Eval(approx, approxDelta, isExpApprox, target, weight, queriesInfo, begin, end, *localExecutor);
     } else {
-        Y_VERIFY(error->GetErrorType() == EErrorType::QuerywiseError || error->GetErrorType() == EErrorType::PairwiseError);
+        Y_VERIFY(error.GetErrorType() == EErrorType::QuerywiseError || error.GetErrorType() == EErrorType::PairwiseError);
         int queryStartIndex = 0, queryEndIndex = queriesInfo.size();
-        return error->Eval(approx, approxDelta, isExpApprox, target, weight, queriesInfo, queryStartIndex, queryEndIndex, *localExecutor);
+        return error.Eval(approx, approxDelta, isExpApprox, target, weight, queriesInfo, queryStartIndex, queryEndIndex, *localExecutor);
     }
 }
 
