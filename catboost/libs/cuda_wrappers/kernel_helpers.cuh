@@ -445,6 +445,16 @@ __forceinline__ __device__ float4 Float4FromSharedMemory(const float* sharedMemo
 }
 
 
+__forceinline__ __device__ float4 Float4FromSharedMemory(int maxDim, const float* sharedMemory, int i) {
+    float4 val;
+    val.x =  sharedMemory[i];
+    val.y =  sharedMemory[i + maxDim];
+    val.z =  sharedMemory[i + maxDim * 2];
+    val.w =  sharedMemory[i + maxDim * 3];
+    return val;
+}
+
+
 __forceinline__ __device__ float4 LoadFloat4(const float* memory, int index, int lineSize) {
     float4 result;
     result.x = memory[index];
@@ -563,7 +573,7 @@ __forceinline__ __device__ float4 ComputeSum2(
     float* tmp,
     int dim) {
 
-    float4 sum2 = BroadCast4(0);
+    float4 sum2 = BroadCast4(0.0f);
 
     for (int i = threadIdx.x; i < dim; i += BlockSize) {
         float4 point = inputProvider.Load(i);
