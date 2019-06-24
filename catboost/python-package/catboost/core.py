@@ -2170,14 +2170,14 @@ class CatBoost(_CatBoostBase):
 
         Parameters
         ----------
-        feature: None, int, string, or list of int or strings
-            Features indexes or names in pd.DataFrame for which you want to get statistics.
-            None, if you need statistics for all features.
         data: numpy.array or pandas.DataFrame or catboost.Pool
             Data to compute statistics on
         target: numpy.array or pandas.Series or None
             Target corresponding to data
             Use only if data is not catboost.Pool.
+        feature: None, int, string, or list of int or strings
+            Features indexes or names in pd.DataFrame for which you want to get statistics.
+            None, if you need statistics for all features.
         prediction_type: str
             Prediction type used for counting mean_prediction: 'Class', 'Probability' or 'RawFormulaVal'.
             If not specified, is derived from the model.
@@ -2309,9 +2309,10 @@ class CatBoost(_CatBoostBase):
         if plot or plot_file is not None:
             warn_msg = "To draw binarized feature statistics you should install plotly."
             figs = []
-            for feature_name in statistics_by_feature:
+            for feature_num in statistics_by_feature:
+                feature_name = self.feature_names_[feature_num]
                 figs += _plot_feature_statistics(
-                    statistics_by_feature[feature_name],
+                    statistics_by_feature[feature_num],
                     feature_name,
                     max_cat_features_on_plot
                 )
