@@ -3243,6 +3243,10 @@
         {
             "checksum": "62c7fa428486e12249c64633ce1f9305",
             "uri": "file://test.test_pairs_generation_with_max_pairs/test.eval"
+        },
+        {
+            "checksum": "398514202d33eb8e0ea6ce67fe35ac08",
+            "uri": "file://test.test_pairs_generation_with_max_pairs/fstr.tsv"
         }
     ],
     "test.test_pairwise_bayesian_bootstrap[calc_block=5000000-PairLogitPairwise-Group-0]": [

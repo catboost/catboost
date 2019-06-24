@@ -527,7 +527,8 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
         case ELossFunction::PairLogit:
         case ELossFunction::PairLogitPairwise: {
             NCatboostOptions::TLossDescription lossDescription;
-            lossDescription.Load(LossDescriptionToJson("PairLogit"));
+            lossDescription.LossParams.Set(LossFunctionDescription->GetLossParams());
+            lossDescription.LossFunction.Set(ELossFunction::PairLogit);
             MetricOptions->ObjectiveMetric.Set(lossDescription);
             break;
         }

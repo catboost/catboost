@@ -541,6 +541,7 @@ def test_pairs_generation_with_max_pairs():
     output_eval_path = yatest.common.test_output_path('test.eval')
     test_error_path = yatest.common.test_output_path('test_error.tsv')
     learn_error_path = yatest.common.test_output_path('learn_error.tsv')
+    output_fstr_path = yatest.common.test_output_path('fstr.tsv')
 
     def run_catboost(eval_path):
         cmd = [
@@ -560,6 +561,7 @@ def test_pairs_generation_with_max_pairs():
             '--learn-err-log', learn_error_path,
             '--test-err-log', test_error_path,
             '--use-best-model', 'false',
+            '--fstr-file', output_fstr_path,
         ]
         yatest.common.execute(cmd)
 
@@ -567,7 +569,8 @@ def test_pairs_generation_with_max_pairs():
 
     return [local_canonical_file(learn_error_path),
             local_canonical_file(test_error_path),
-            local_canonical_file(output_eval_path)]
+            local_canonical_file(output_eval_path),
+            local_canonical_file(output_fstr_path)]
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
