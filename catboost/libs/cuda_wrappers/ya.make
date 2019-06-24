@@ -8,6 +8,7 @@ SRCS(
    run_gpu_program.cpp
    cuda_event.cpp
    kernel.cu
+   kernel_helpers.cu
    arch.cu
 )
 IF (CUDA_VERSION STREQUAL "10.1")

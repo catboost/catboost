@@ -239,6 +239,14 @@ template <class T>
 inline TCudaVec<T> MakeCudaVec(const TVector<T>& data, EMemoryType type) {
     return MakeCudaVec<T>(MakeConstArrayRef(data), type);
 }
+
+template <class T>
+inline TCudaVec<T> MakeZeroVec(ui64 size, EMemoryType type) {
+    TCudaVec<T> result(size, type);
+    result.ClearAsync(TCudaStream::ZeroStream());
+    return result;
+}
+
 template <class T>
 inline void MemoryCopy(TConstArrayRef<T> from, TArrayRef<T> to) {
     CB_ENSURE(from.size() == to.size(), from.size() << " ≠ " << to.size());
