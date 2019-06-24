@@ -53,7 +53,7 @@ def get_catboost_bin_module():
             return loaded_catboost
         except ImportError:
             pass
-    import _catboost
+    from . import _catboost
     return _catboost
 
 

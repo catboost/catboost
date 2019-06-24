@@ -1,4 +1,4 @@
-PYMODULE(_catboost PREFIX "")
+PY_ANY_MODULE(_catboost PREFIX "")
 
 
 

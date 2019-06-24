@@ -59,7 +59,9 @@ def get_default_json():
     "BUILD_USER": "nobody",
     "PROGRAM_VERSION": "Arc info:\\n    Branch: math\\n    Commit: 0577215664901532860606512090082402431042\\n    Author: ordinal\\n    Summary: No VCS\\n\\n",
     "SCM_DATA": "Arc info:\\n    Branch: math\\n    Commit: 0577215664901532860606512090082402431042\\n    Author: ordinal\\n    Summary: No VCS\\n",
-    "VCS": "arc"
+    "VCS": "arc",
+    "ARCADIA_PATCH_NUMBER": 42,
+    "ARCADIA_TAG": ""
 }''')
 
 
@@ -192,13 +194,15 @@ def print_java_mf(info):
     lines += wrap('Arcadia-Source-Path: ', info['ARCADIA_SOURCE_PATH'])
     lines += wrap('Arcadia-Source-URL: ', info['ARCADIA_SOURCE_URL'])
     lines += wrap('Arcadia-Source-Revision: ', str(info['ARCADIA_SOURCE_REVISION']))
-    lines += wrap('Arcadia-Source-Hg-Hash: ', info['ARCADIA_SOURCE_HG_HASH'])
+    lines += wrap('Arcadia-Source-Hg-Hash: ', info['ARCADIA_SOURCE_HG_HASH'].rstrip())
     lines += wrap('Arcadia-Source-Last-Change: ', str(info['ARCADIA_SOURCE_LAST_CHANGE']))
     lines += wrap('Arcadia-Source-Last-Author: ', info['ARCADIA_SOURCE_LAST_AUTHOR'])
     lines += wrap('Build-User: ', info['BUILD_USER'])
     lines += wrap('Build-Host: ', info['BUILD_HOST'])
     lines += wrap('Version-Control-System: ', info['VCS'])
     lines += wrap('Branch: ', info['BRANCH'])
+    lines += wrap('Arcadia-Tag: ', info.get('ARCADIA_TAG', ''))
+    lines += wrap('Arcadia-Patch-Number: ', str(info.get('ARCADIA_PATCH_NUMBER', 42)))
     if 'SVN_REVISION' in info:
         lines += wrap('SVN-Revision: ', str(info['SVN_REVISION']))
         lines += wrap('SVN-Arcroot: ', info['SVN_ARCROOT'])

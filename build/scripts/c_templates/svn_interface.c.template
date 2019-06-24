@@ -129,3 +129,19 @@ const char* GetBranch() {
     return "";
 #endif
 }
+
+int GetArcadiaGitPatchNumber() {
+#if defined(ARCADIA_PATCH_NUMBER)
+    return ARCADIA_PATCH_NUMBER;
+#else
+    return 42;
+#endif
+}
+
+const char* GetTag() {
+#if defined(ARCADIA_TAG)
+    return ARCADIA_TAG;
+#else
+    return "";
+#endif
+}

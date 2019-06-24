@@ -31,6 +31,8 @@ const char* GetProgramBuildHost() Y_HIDDEN;
 const char* GetProgramBuildDate() Y_HIDDEN;
 const char* GetVCS() Y_HIDDEN;
 const char* GetBranch() Y_HIDDEN;
+const char* GetTag() Y_HIDDEN;
+int GetArcadiaGitPatchNumber() Y_HIDDEN;
 #if defined(__cplusplus)
 }
 #endif

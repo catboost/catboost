@@ -24,6 +24,8 @@ public class TestOne {
         System.out.println(vcs.getProgramBuildDate());
         System.out.println(vcs.getVCS());
         System.out.println(vcs.getBranch());
+        System.out.println(vcs.getTag());
+        System.out.println(vcs.getArcadiaGitPatchNumer());
     }
 
     @Test

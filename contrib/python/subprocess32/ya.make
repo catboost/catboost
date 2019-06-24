@@ -2,6 +2,10 @@ LIBRARY()
 
 
 
+LICENSE(PSFv2)
+
+VERSION(3.2.7)
+
 COPY_FILE(subprocess32.py subprocess.py)
 
 PY_SRCS(

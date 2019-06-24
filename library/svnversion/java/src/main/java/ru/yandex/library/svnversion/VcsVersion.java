@@ -78,6 +78,10 @@ public class VcsVersion {
         return getIntParam("Arcadia-Source-Revision");
     }
 
+    public int getArcadiaGitPatchNumer() {
+        return getIntParam("Arcadia-Patch-Number");
+    }
+
     public String getProgramHgHash() {
         return getStringParamSafe("Arcadia-Source-Hg-Hash");
     }
@@ -104,6 +108,10 @@ public class VcsVersion {
 
     public String getBranch() {
         return getStringParamSafe("Branch");
+    }
+
+    public String getTag() {
+        return getStringParamSafe("Arcadia-Tag");
     }
 
     private int getIntParam(String Str) {

@@ -1,6 +1,8 @@
 IF (PYTHON_CONFIG MATCHES "python3" OR USE_SYSTEM_PYTHON MATCHES "3.")
+    PYTHON3_MODULE()
     EXPORTS_SCRIPT(catboost3.exports)
 ELSE()
+    PYTHON2_MODULE()
     EXPORTS_SCRIPT(catboost.exports)
 ENDIF()
 

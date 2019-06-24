@@ -1,4 +1,4 @@
-PY_LIBRARY()
+PY23_LIBRARY()
 
 
 
@@ -26,11 +26,16 @@ PEERDIR(
     catboost/libs/target
     library/containers/2d_array
     library/json/writer
-    contrib/python/enum34
     contrib/python/graphviz
     contrib/python/numpy
     contrib/python/pandas
 )
+
+IF(PYTHON2)
+    PEERDIR(
+        contrib/python/enum34
+    )
+ENDIF()
 
 IF(NOT CATBOOST_OPENSOURCE)
     PEERDIR(
@@ -39,8 +44,6 @@ IF(NOT CATBOOST_OPENSOURCE)
         contrib/python/plotly
     )
 ENDIF()
-
-SRCS(catboost/python-package/catboost/helpers.cpp)
 
 IF(HAVE_CUDA)
     PEERDIR(
@@ -51,28 +54,33 @@ ENDIF()
 # have to disable them because cython's numpy integration uses deprecated numpy API
 NO_COMPILER_WARNINGS()
 
-PY_SRCS(
-    NAMESPACE catboost
-    __init__.py
-    version.py
-    core.py
-    datasets.py
-    utils.py
-    _catboost.pyx
-    widget/__init__.py
-    widget/ipythonwidget.py
-    eval/_fold_model.py
-    eval/_fold_models_handler.py
-    eval/_fold_storage.py
-    eval/_readers.py
-    eval/_splitter.py
-    eval/catboost_evaluation.py
-    eval/evaluation_result.py
-    eval/execution_case.py
-    eval/factor_utils.py
-    eval/log_config.py
-    eval/utils.py
-)
+# In case of android with python3 there will be the following error: "fatal error: 'crypt.h' file not found"
+IF(NOT OS_ANDROID OR PYTHON2)
+    SRCS(catboost/python-package/catboost/helpers.cpp)
+
+    PY_SRCS(
+        NAMESPACE catboost
+        __init__.py
+        version.py
+        core.py
+        datasets.py
+        utils.py
+        _catboost.pyx
+        widget/__init__.py
+        widget/ipythonwidget.py
+        eval/_fold_model.py
+        eval/_fold_models_handler.py
+        eval/_fold_storage.py
+        eval/_readers.py
+        eval/_splitter.py
+        eval/catboost_evaluation.py
+        eval/evaluation_result.py
+        eval/execution_case.py
+        eval/factor_utils.py
+        eval/log_config.py
+        eval/utils.py
+    )
+ENDIF()
 
 NO_LINT()
 
