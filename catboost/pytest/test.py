@@ -2981,7 +2981,6 @@ def test_train_on_binarized_equal_train_on_float(boosting_type, qwise_loss):
     execute_catboost_fit(
         task_type='CPU',
         params=params_binarized,
-        input_data={learn_error_path: None, test_error_path: None}
     )
 
     apply_catboost(output_model_path_binarized, learn_file, cd_file, predictions_path_learn_binarized)

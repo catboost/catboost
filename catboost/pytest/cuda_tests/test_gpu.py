@@ -13,7 +13,6 @@ from catboost_pytest_lib import (
     compare_evals_with_precision,
     compare_metrics_with_diff,
     data_file,
-    execute,
     execute_catboost_fit,
     format_crossvalidation,
     get_limited_precision_dsv_diff_tool,
@@ -64,13 +63,11 @@ def skipif_no_cuda():
 pytestmark = skipif_no_cuda()
 
 
-def fit_catboost_gpu(params, devices='0', input_data=None, output_data=None):
+def fit_catboost_gpu(params, devices='0'):
     execute_catboost_fit(
         task_type='GPU',
         params=params,
         devices=devices,
-        input_data=input_data,
-        output_data=output_data
     )
 
 
@@ -80,7 +77,7 @@ def fstr_catboost_cpu(params):
     cmd.append(CATBOOST_PATH)
     cmd.append('fstr')
     append_params_to_cmdline(cmd, params)
-    execute(cmd)
+    yatest.common.execute(cmd)
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
@@ -884,8 +881,7 @@ def test_meta(loss_function, boosting_type):
         '-m', output_model_path,
         '--name', 'test experiment',
     )
-    # meta_path is implicit output file
-    fit_catboost_gpu(params, output_data={meta_path: meta_path})
+    fit_catboost_gpu(params)
 
     return [local_canonical_file(meta_path)]
 
@@ -904,7 +900,7 @@ def test_train_dir():
         '-m', output_model_path,
         '--train-dir', train_dir_path,
     )
-    fit_catboost_gpu(params, output_data={train_dir_path: train_dir_path, output_model_path: output_model_path})
+    fit_catboost_gpu(params)
     outputs = ['time_left.tsv', 'learn_error.tsv', 'test_error.tsv', 'meta.tsv', output_model_path]
     for output in outputs:
         assert os.path.isfile(train_dir_path + '/' + output)
@@ -951,11 +947,7 @@ def test_train_on_binarized_equal_train_on_float(boosting_type, qwise_loss):
     apply_catboost(output_model_path, learn_file, cd_file, predictions_path_learn)
     apply_catboost(output_model_path, test_file, cd_file, predictions_path_test)
 
-    # learn_error_path and test_error_path already exist after first fit_catboost_gpu() call
-    # and would be automatically marked as input_data for YT operation,
-    # which will lead to error, because input files are available only for reading.
-    # That's why we explicitly drop files from input_data and implicitly add them to output_data.
-    fit_catboost_gpu(params_binarized, input_data={learn_error_path: None, test_error_path: None})
+    fit_catboost_gpu(params_binarized)
 
     apply_catboost(output_model_path_binarized, learn_file, cd_file, predictions_path_learn_binarized)
     apply_catboost(output_model_path_binarized, test_file, cd_file, predictions_path_test_binarized)
@@ -2148,7 +2140,7 @@ def test_convert_model_to_json_without_cat_features():
         '--model-format', 'Json',
         '--output-path', formula_predict_path
     )
-    execute(calc_cmd)
+    yatest.common.execute(calc_cmd)
     assert (compare_evals_with_precision(output_eval_path, formula_predict_path))
     return [local_canonical_file(output_eval_path, diff_tool=diff_tool())]
 
@@ -2371,7 +2363,7 @@ def test_grow_policies(boosting_type, grow_policy, score_function, loss_func):
         '-m', model_path,
         '--output-path', formula_predict_path
     )
-    execute(calc_cmd)
+    yatest.common.execute(calc_cmd)
     assert (compare_evals_with_precision(output_eval_path, formula_predict_path, 1e-4))
 
     return [local_canonical_file(learn_error_path, diff_tool=diff_tool()),
@@ -2399,7 +2391,7 @@ def test_output_options():
 def model_based_eval_catboost_gpu(params):
     cmd = [CATBOOST_PATH, 'model-based-eval', '--task-type', 'GPU']
     append_params_to_cmdline(cmd, params)
-    execute(cmd)
+    yatest.common.execute(cmd)
 
 
 @pytest.mark.parametrize(

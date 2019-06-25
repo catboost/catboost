@@ -15,12 +15,13 @@ DEPENDS(
 )
 
 SIZE(LARGE)
-TAG(ya:fat ya:noretries)
-REQUIREMENTS(network:full)
+
+TAG(ya:noretries ya:fat ya:yt)
+
+YT_SPEC(catboost/pytest/cuda_tests/yt_spec.json)
 
 IF(AUTOCHECK)
     FORK_SUBTESTS()
-    SPLIT_FACTOR(120)
 ENDIF()
 
 PEERDIR(

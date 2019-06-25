@@ -67,44 +67,9 @@ def run_nvidia_smi():
     subprocess.call(['/usr/bin/nvidia-smi'])
 
 
-def execute(*args, **kwargs):
-    input_data = kwargs.pop('input_data', None)
-    output_data = kwargs.pop('output_data', None)
-
-    task_gpu = 'GPU' in args[0]
-    cuda_setup_error = get_cuda_setup_error() if task_gpu else None
-
-    if task_gpu and cuda_setup_error:
-        cuda_explicitly_disabled = 'HAVE_CUDA' in cuda_setup_error
-        if cuda_explicitly_disabled:
-            pytest.xfail(reason=cuda_setup_error)
-        return yatest.yt.execute(
-            *args,
-            task_spec={
-                'layer_paths': [
-                    '//home/devtools/porto_layers/test/gpu/cuda-drivers_418.67-1.tar.gz',
-                    '//porto_layers/ubuntu-xenial-base.tar.xz',
-                ],
-                'gpu_limit': 1
-            },
-            operation_spec={
-                'pool_trees': ['gpu_geforce_1080ti'],
-                'scheduling_tag_filter': 'porto & testing',
-            },
-            input_data=input_data,
-            output_data=output_data,
-            # required for quantized-marked input filenames
-            data_mine_strategy=yatest.yt.process.replace_mine_strategy,
-            # required for debug purposes
-            init_func=run_nvidia_smi,
-            **kwargs
-        )
-    return yatest.common.execute(*args, **kwargs)
-
-
 # params is either dict or iterable
 # devices used only if task_type == 'GPU'
-def execute_catboost_fit(task_type, params, devices='0', input_data=None, output_data=None):
+def execute_catboost_fit(task_type, params, devices='0'):
     if task_type not in ('CPU', 'GPU'):
         raise Exception('task_type must be "CPU" or "GPU"')
 
@@ -131,7 +96,7 @@ def execute_catboost_fit(task_type, params, devices='0', input_data=None, output
             ]
         )
 
-    execute(cmd, input_data=input_data, output_data=output_data)
+    yatest.common.execute(cmd)
 
 
 # cd_path should be None for yt-search-proto pools
@@ -153,7 +118,7 @@ def apply_catboost(model_file, pool_path, cd_path, eval_file, output_columns=Non
     if args:
         calc_cmd += tuple(args.strip().split())
 
-    execute(calc_cmd)
+    yatest.common.execute(calc_cmd)
 
 
 def get_limited_precision_dsv_diff_tool(diff_limit, have_header=False):
