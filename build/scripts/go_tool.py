@@ -335,7 +335,7 @@ def gen_test_main(args, test_lib_args, xtest_lib_args):
     if test_lib_args:
         os.makedirs(os.path.join(test_src_dir, test_module_path))
         os_symlink(test_lib_args.output, os.path.join(test_pkg_dir, os.path.basename(test_module_path) + '.a'))
-        cmd = [test_miner, '-tests', test_module_path]
+        cmd = [test_miner, '-benchmarks', '-tests', test_module_path]
         tests = filter(lambda x: len(x) > 0, (call(cmd, test_lib_args.output_root, my_env) or '').strip().split('\n'))
     test_main_found = '#TestMain' in tests
 
@@ -344,7 +344,7 @@ def gen_test_main(args, test_lib_args, xtest_lib_args):
         xtest_module_path = xtest_lib_args.module_path
         os.makedirs(os.path.join(test_src_dir, xtest_module_path))
         os_symlink(xtest_lib_args.output, os.path.join(test_pkg_dir, os.path.basename(xtest_module_path) + '.a'))
-        cmd = [test_miner, '-tests', xtest_module_path]
+        cmd = [test_miner, '-benchmarks', '-tests', xtest_module_path]
         xtests = filter(lambda x: len(x) > 0, (call(cmd, xtest_lib_args.output_root, my_env) or '').strip().split('\n'))
     xtest_main_found = '#TestMain' in xtests
 
