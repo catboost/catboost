@@ -856,7 +856,6 @@
   - asm/fpu.h
   - i386/fpu_control.h
   - jmorecfg.h
-  - turbojpeg.h
   - zlibdefs.h
   #endif
   #if defined(_MSC_VER)
