@@ -29,8 +29,13 @@ TIMESTAMP_FORMAT = "%Y-%m-%d %H:%M:%S.%f"
 TRACE_FILE_NAME = "ytest.report.trace"
 TRUNCATING_IGNORE_FILE_LIST = {TRACE_FILE_NAME, "run_test.log"}
 
+# kvm
+DEFAULT_RAM_REQUIREMENTS_FOR_KVM = 4
+MAX_RAM_REQUIREMENTS_FOR_KVM = 16
+
 # distbuild
 TEST_NODE_FINISHING_TIME = 5 * 60
+DEFAULT_TEST_NODE_TIMEOUT = 15 * 60
 
 # coverage
 COVERAGE_TESTS_TIMEOUT_FACTOR = 1.5
@@ -55,6 +60,18 @@ FUZZING_TIMEOUT_RE = re.compile(r'(^|\s)-max_total_time=(?P<max_time>\d+)')
 GENERATED_CORPUS_DIR_NAME = 'mined_corpus'
 MAX_CORPUS_RESOURCES_ALLOWED = 5
 
+TEST_TOOL_HOST = 'TEST_TOOL_HOST_RESOURCE_GLOBAL'
+TEST_TOOL_TARGET = 'TEST_TOOL_TARGET_RESOURCE_GLOBAL'
+TEST_TOOL_HOST_LOCAL = 'TEST_TOOL_HOST_LOCAL'
+TEST_TOOL_TARGET_LOCAL = 'TEST_TOOL_TARGET_LOCAL'
+XCODE_TOOLS_RESOURCE = 'XCODE_TOOLS_ROOT_RESOURCE_GLOBAL'
+GO_TOOLS_RESOURCE = 'GO_TOOLS_RESOURCE_GLOBAL'
+LLVM_COV9_RESOURCE = 'LLVM_COV9_RESOURCE_GLOBAL'
+PEP8_PY2_RESOURCE = 'PEP8_PY2_RESOURCE_GLOBAL'
+PEP8_PY3_RESOURCE = 'PEP8_PY3_RESOURCE_GLOBAL'
+FLAKES_PY2_RESOURCE = 'FLAKES_PY2_RESOURCE_GLOBAL'
+FLAKES_PY3_RESOURCE = 'FLAKES_PY3_RESOURCE_GLOBAL'
+
 
 class Enum(object):
 
@@ -71,6 +88,8 @@ class TestRequirements(Enum):
     RamDisk = 'ram_disk'
     SbVault = 'sb_vault'
     Network = 'network'
+    Dns = 'dns'
+    Kvm = 'kvm'
 
 
 class TestRequirementsConstants(Enum):
@@ -188,6 +207,7 @@ class TestSize(Enum):
 
 class TestRunExitCode(Enum):
     Skipped = 2
+    Failed = 3
     TimeOut = 10
     InfrastructureError = 12
 
@@ -201,6 +221,8 @@ class YaTestTags(Enum):
     Fat = "ya:fat"
     RunWithAsserts = "ya:relwithdebinfo"
     Privileged = "ya:privileged"
+    ExoticPlatform = "ya:exotic_platform"
+    NotAutocheck = "ya:not_autocheck"
 
 
 class Status(object):
@@ -232,7 +254,7 @@ class _Colors(object):
         "white",
         "yellow",
     ]
-    _PREFIXES = ["", "light"]
+    _PREFIXES = ["", "light", "dark"]
 
     def __init__(self):
         self._table = {}

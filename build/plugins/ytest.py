@@ -69,7 +69,7 @@ def validate_choice_requirement(name, val, valid):
         return "Unknown [[imp]]{}[[rst]] requirement: [[imp]]{}[[rst]], choose from [[imp]]{}[[rst]]".format(name, val, ", ".join(valid))
 
 
-def validate_force_sandbox_requirement(name, value, test_size, is_force_sandbox, in_autocheck, is_fuzzing, check_func):
+def validate_force_sandbox_requirement(name, value, test_size, is_force_sandbox, in_autocheck, is_fuzzing, is_kvm, check_func):
     if is_force_sandbox or not in_autocheck or is_fuzzing:
         if value == 'all':
             return
@@ -77,18 +77,19 @@ def validate_force_sandbox_requirement(name, value, test_size, is_force_sandbox,
     error_msg = validate_numerical_requirement(name, value)
     if error_msg:
         return error_msg
-    return check_func(mr.resolve_value(value), test_size)
+    return check_func(mr.resolve_value(value), test_size, is_kvm)
 
 
-def validate_requirement(req_name, value, test_size, is_force_sandbox, in_autocheck, is_fuzzing):
+# TODO: Remove is_kvm param when there will be guarantees on RAM
+def validate_requirement(req_name, value, test_size, is_force_sandbox, in_autocheck, is_fuzzing, is_kvm):
     req_checks = {
         'container': validate_numerical_requirement,
-        'cpu': lambda n, v: validate_force_sandbox_requirement(n, v, test_size, is_force_sandbox, in_autocheck, is_fuzzing, reqs.check_cpu),
+        'cpu': lambda n, v: validate_force_sandbox_requirement(n, v, test_size, is_force_sandbox, in_autocheck, is_fuzzing, is_kvm, reqs.check_cpu),
         'disk_usage': validate_numerical_requirement,
         'dns': lambda n, v: validate_choice_requirement(n, v, VALID_DNS_REQUIREMENTS),
         'network': lambda n, v: validate_choice_requirement(n, v, VALID_NETWORK_REQUIREMENTS),
-        'ram': lambda n, v: validate_force_sandbox_requirement(n, v, test_size, is_force_sandbox, in_autocheck, is_fuzzing, reqs.check_ram),
-        'ram_disk': lambda n, v: validate_force_sandbox_requirement(n, v, test_size, is_force_sandbox, in_autocheck, is_fuzzing, reqs.check_ram_disk),
+        'ram': lambda n, v: validate_force_sandbox_requirement(n, v, test_size, is_force_sandbox, in_autocheck, is_fuzzing, is_kvm, reqs.check_ram),
+        'ram_disk': lambda n, v: validate_force_sandbox_requirement(n, v, test_size, is_force_sandbox, in_autocheck, is_fuzzing, is_kvm, reqs.check_ram_disk),
         'sb': None,
         'sb_vault': validate_sb_vault,
     }
@@ -128,17 +129,24 @@ def validate_test(unit, kw):
     size_timeout = collections.OrderedDict(sorted(consts.TestSize.DefaultTimeouts.items(), key=lambda t: t[1]))
 
     size = valid_kw.get('SIZE', consts.TestSize.Small).lower()
+    # TODO: use set instead list
     tags = get_list("TAG")
+    requirements_set = set(get_list("REQUIREMENTS"))
+    in_autocheck = "ya:not_autocheck" not in tags and 'ya:manual' not in tags
     is_fat = 'ya:fat' in tags
     is_force_sandbox = 'ya:force_sandbox' in tags
-    in_autocheck = "ya:not_autocheck" not in tags and 'ya:manual' not in tags
     is_fuzzing = valid_kw.get("FUZZING", False)
+    is_kvm = 'kvm' in requirements_set
     requirements = {}
     list_requirements = ('sb_vault')
-    for req in get_list("REQUIREMENTS"):
+    for req in requirements_set:
+        if req in ('kvm', ):
+            requirements[req] = str(True)
+            continue
+
         if ":" in req:
             req_name, req_value = req.split(":", 1)
-            error_msg = validate_requirement(req_name, req_value, size, is_force_sandbox, in_autocheck, is_fuzzing)
+            error_msg = validate_requirement(req_name, req_value, size, is_force_sandbox, in_autocheck, is_fuzzing, is_kvm)
             if error_msg:
                 errors += [error_msg]
             else:
