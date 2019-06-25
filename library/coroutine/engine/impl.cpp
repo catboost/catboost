@@ -10,7 +10,7 @@
 
 namespace NCoro {
     ui32 RealCoroStackSize(ui32 coroStackSize) {
-#if defined(_asan_enabled_)
+#if defined(_san_enabled_) || !defined(NDEBUG)
         coroStackSize *= 4;
 #endif
         return coroStackSize;
