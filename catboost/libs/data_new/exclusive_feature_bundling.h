@@ -175,8 +175,7 @@ struct TDumper<NCB::TExclusiveBundlePart> {
     static inline void Dump(S& s, const NCB::TExclusiveBundlePart& exclusiveBundlePart) {
         s << "FeatureType=" << exclusiveBundlePart.FeatureType
           << ",FeatureIdx=" << exclusiveBundlePart.FeatureIdx
-          << ",BoundsInBundle=[" << exclusiveBundlePart.Bounds.Begin << ","
-          << exclusiveBundlePart.Bounds.End << ")";
+          << ",BoundsInBundle=" << exclusiveBundlePart.Bounds;
     }
 };
 
