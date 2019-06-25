@@ -184,6 +184,6 @@ struct TDumper<NCB::TExclusiveFeaturesBundle> {
     template <class S>
     static inline void Dump(S& s, const NCB::TExclusiveFeaturesBundle& exclusiveFeaturesBundle) {
         s << "SizeInBytes=" << exclusiveFeaturesBundle.SizeInBytes
-          << ",Parts=[" << NCB::DbgDumpWithIndices(exclusiveFeaturesBundle.Parts) << "\n";
+          << ",Parts=" << NCB::DbgDumpWithIndices(exclusiveFeaturesBundle.Parts) << '\n';
     }
 };
