@@ -137,7 +137,7 @@ class ResourceImporter(object):
                 if k not in self.memory:
                     self.memory.add(k)
 
-    def find_spec(self, fullname, path, target=None):
+    def find_spec(self, fullname, path=None, target=None):
         try:
             is_package = self.is_package(fullname)
         except ImportError:
