@@ -854,7 +854,6 @@
   #if defined (__linux__)
   - asm/fpu.h
   - i386/fpu_control.h
-  - jmorecfg.h
   - zlibdefs.h
   #endif
   #if defined(_MSC_VER)
