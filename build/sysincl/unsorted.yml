@@ -774,7 +774,6 @@
   - cxcore.h
   - efndef
   - exiv2/types.hpp
-  - extra/glyphs.h
   - hw_4758_cca.h
   - hw_ubsec.h
   - hwcryptohook.h
