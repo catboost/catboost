@@ -15,6 +15,7 @@ SRCS(
     network.cpp
     poller.cpp
     sockpool.cpp
+    trampoline.cpp
 )
 
 END()

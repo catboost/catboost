@@ -4,6 +4,7 @@
 #include "iostatus.h"
 #include "poller.h"
 #include "schedule_callback.h"
+#include "trampoline.h"
 
 #include <library/containers/intrusive_rb_tree/rb_tree.h>
 
@@ -15,9 +16,6 @@
 #include <util/datetime/base.h>
 #include <util/generic/maybe.h>
 
-#if !defined(STACK_GROW_DOWN)
-#   error "unsupported"
-#endif
 
 #define EWAKEDUP 34567
 
@@ -26,48 +24,8 @@ struct TContRep;
 class TContExecutor;
 class TContPollEvent;
 
-/* TODO(velavokr): some minor improvements:
- * 1) allow any std::function objects, not only TContFunc
- * 2) allow name storage owning (for generated names backed by TString)
- */
-
-namespace NCoro {
-    class IScheduleCallback;
-
-    // accounts for asan stack space overhead
-    ui32 RealCoroStackSize(ui32 coroStackSize);
-    TMaybe<ui32> RealCoroStackSize(TMaybe<ui32> coroStackSize);
-}
-
-typedef void (*TContFunc)(TCont*, void*);
-
 
 class TCont : private TIntrusiveListItem<TCont>, private ITrampoLine {
-    struct TTrampoline : public ITrampoLine, TNonCopyable {
-        TTrampoline(
-            ui32 stackSize,
-            TContFunc f,
-            TCont* cont,
-            void* arg
-        ) noexcept;
-
-        ~TTrampoline();
-
-        void SwitchTo(TExceptionSafeContext* ctx) noexcept;
-
-        void DoRun();
-
-    public:
-        const THolder<char, TFree> Stack_;
-        const ui32 StackSize_;
-        const TContClosure Clo_;
-        TExceptionSafeContext Ctx_;
-        TContFunc const Func_ = nullptr;
-        TCont* const Cont_;
-        size_t StackId_ = 0;
-        void* const Arg_;
-    };
-
     struct TJoinWait: public TIntrusiveListItem<TJoinWait> {
         TJoinWait(TCont* c) noexcept;
 
@@ -80,6 +38,7 @@ class TCont : private TIntrusiveListItem<TCont>, private ITrampoLine {
     friend class TContExecutor;
     friend class TIntrusiveListItem<TCont>;
     friend class NCoro::TEventWaitQueue;
+    friend class NCoro::TTrampoline;
 
 private:
     TCont(
@@ -132,8 +91,6 @@ public:
         return Scheduled_;
     }
 
-    void WakeAllWaiters() noexcept;
-
     bool Join(TCont* c, TInstant deadLine = TInstant::Max()) noexcept;
 
     void ReSchedule() noexcept;
@@ -143,7 +100,7 @@ public:
     }
 
 private:
-    void Exit();
+    void Terminate();
 
     TExceptionSafeContext* Context() noexcept {
         return &Trampoline_.Ctx_;
@@ -151,8 +108,9 @@ private:
 
 private:
     TContExecutor* Executor_ = nullptr;
-    TTrampoline Trampoline_;
+    NCoro::TTrampoline Trampoline_;
 
+    // TODO(velavokr): allow name storage owning (for generated names backed by TString)
     const char* Name_ = nullptr;
     TIntrusiveList<TJoinWait> Waiters_;
     bool Cancelled_ = false;
