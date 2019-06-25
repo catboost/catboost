@@ -856,7 +856,6 @@
   - asm/fpu.h
   - i386/fpu_control.h
   - jmorecfg.h
-  - jpegint.h
   - turbojpeg.h
   - zlibdefs.h
   #endif
