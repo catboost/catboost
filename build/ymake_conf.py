@@ -1369,8 +1369,8 @@ class Linker(object):
         else:
             emit_big('''
                 macro _USE_LINKER() {
-                    ENABLE(UNUSED_MACRO)
-                }''')
+                    SET(_LINKER_ID %(default_linker)s)
+                }''' % {'default_linker': self.type})
 
         emit_big('''
             ### @usage: USE_LINKER_BFD()
