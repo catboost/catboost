@@ -162,11 +162,9 @@ TString BuildDescription(const NCB::TFeaturesLayout& layout, const TModelSplit& 
     return result;
 }
 
-TVector<TString> GetTreeSplitsDescriptions(const TFullModel& model, int tree_idx, const NCB::TDataProvider& pool) {
+TVector<TString> GetTreeSplitsDescriptions(const TFullModel& model, int tree_idx, const NCB::TDataProviderPtr pool) {
     //TODO: support non symmetric trees
     CB_ENSURE(model.IsOblivious(), "Is not supported for non symmetric trees");
-
-    THashMap<ui32, TString> cat_features_hash = MergeCatFeaturesHashToString(pool.ObjectsData.Get()[0]);
 
     TVector<TString> splits;
 
@@ -180,13 +178,26 @@ TVector<TString> GetTreeSplitsDescriptions(const TFullModel& model, int tree_idx
         tree_split_end = model.ObliviousTrees.TreeSplits.size();
     }
 
-    NCB::TFeaturesLayout featuresLayout = *(pool.MetaInfo.FeaturesLayout.Get());
+    THashMap<ui32, TString> cat_features_hash;
+    NCB::TFeaturesLayout featuresLayout;
+    if (pool) {
+        cat_features_hash = MergeCatFeaturesHashToString(pool.Get()->ObjectsData.Get()[0]);
+        featuresLayout = *(pool.Get()->MetaInfo.FeaturesLayout.Get());
+    } else {
+        TVector<ui32> catFeaturesExternalIndexes;
+        for (const auto& feature: model.ObliviousTrees.CatFeatures) {
+            catFeaturesExternalIndexes.push_back(feature.FlatFeatureIndex);
+        }
+        featuresLayout = NCB::TFeaturesLayout(model.GetNumFloatFeatures() + model.GetNumCatFeatures(), catFeaturesExternalIndexes, {}, {});
+    }
 
     for (int split_idx = model.ObliviousTrees.TreeStartOffsets[tree_idx]; split_idx < tree_split_end; ++split_idx) {
         TModelSplit bin_feature = bin_features[model.ObliviousTrees.TreeSplits[split_idx]];
         TString feature_description = BuildDescription(featuresLayout, bin_feature);
 
         if (bin_feature.Type == ESplitType::OneHotFeature) {
+            CB_ENSURE(pool,
+                "Model has one hot features. Need pool for get correct split descriptions");
             feature_description += cat_features_hash[(ui32)bin_feature.OneHotFeature.Value];
         }
 

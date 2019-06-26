@@ -581,8 +581,17 @@ cdef extern from "catboost/libs/algo/ders_holder.h":
 
 
 cdef extern from "catboost/libs/algo/tree_print.h":
-    TVector[TString] GetTreeSplitsDescriptions(const TFullModel& model, size_t tree_idx, const TDataProvider& pool)
-    TVector[TString] GetTreeLeafValuesDescriptions(const TFullModel& model, int tree_idx, int leaves_num)
+    TVector[TString] GetTreeSplitsDescriptions(
+        const TFullModel& model,
+        int tree_idx,
+        const TDataProviderPtr pool
+    ) nogil except +ProcessException
+
+    TVector[TString] GetTreeLeafValuesDescriptions(
+        const TFullModel& model,
+        int tree_idx,
+        int leaves_num
+    ) nogil except +ProcessException
 
 
 cdef extern from "catboost/libs/options/enum_helpers.h":
@@ -2873,11 +2882,14 @@ cdef class _CatBoost:
     cpdef _save_borders(self, output_file):
         SaveModelBorders( to_arcadia_string(output_file), dereference(self.__model))
 
-    cpdef _get_tree_splits(self, tree_idx, _PoolBase pool):
-        splits = GetTreeSplitsDescriptions(dereference(self.__model), tree_idx, dereference(pool.__pool.Get()))
-        node_descriptions = []
-        for description in splits:
-            node_descriptions.append(description)
+    cpdef _get_tree_splits(self, int tree_idx, _PoolBase pool):
+        cdef TVector[TString] splits = GetTreeSplitsDescriptions(
+            dereference(self.__model),
+            tree_idx,
+            pool.__pool if pool else TDataProviderPtr(),
+        )
+
+        node_descriptions = [to_native_str(s) for s in splits]
         return node_descriptions
 
     cpdef _get_tree_leaf_values(self, tree_idx, leaves_num):

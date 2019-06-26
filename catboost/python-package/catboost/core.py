@@ -2370,9 +2370,10 @@ class CatBoost(_CatBoostBase):
 
         return return_stats
 
-    def plot_tree(self, tree_idx, pool):
+    def plot_tree(self, tree_idx, pool=None):
         from graphviz import Digraph
         graph = Digraph()
+        pool, _ = self._process_predict_input_data(pool, "plot_tree") if pool is not None else (None, None)
 
         splits = self._get_tree_splits(tree_idx, pool)
         leaf_values = self._get_tree_leaf_values(tree_idx, 1 << len(splits))
@@ -2383,7 +2384,7 @@ class CatBoost(_CatBoostBase):
         for split_num in range(len(splits) - 1, -2, -1):
             for node_num in range(layer_size):
                 if split_num >= 0:
-                    node_label = splits[split_num].decode('utf-8')
+                    node_label = splits[split_num].decode('utf-8').replace('bin=', 'value>', 1)
                     color = 'black'
                     shape = 'ellipse'
                 else:
