@@ -833,7 +833,7 @@ class _CatBoostBase(object):
             params['_test_evals'] = test_evals
         if self.is_fitted():
             params['__model'] = self._serialize_model()
-        for attr in ['_classes', '_prediction_values_change', '_loss_value_change']:
+        for attr in ['_prediction_values_change', '_loss_value_change']:
             if getattr(self, attr, None) is not None:
                 params[attr] = getattr(self, attr, None)
         return params
@@ -853,7 +853,7 @@ class _CatBoostBase(object):
         if '_test_evals' in state:
             self._set_test_evals(state['_test_evals'])
             del state['_test_evals']
-        for attr in ['_classes', '_prediction_values_change', '_loss_value_change']:
+        for attr in ['_prediction_values_change', '_loss_value_change']:
             if attr in state:
                 setattr(self, attr, state[attr])
                 del state[attr]
@@ -1282,18 +1282,19 @@ class CatBoost(_CatBoostBase):
         with log_fixup(), plot_wrapper(plot, [_get_train_dir(self.get_params())]):
             self._train(train_pool, eval_sets, params, allow_clear_pool, init_model)
 
-        if (not self._object._has_leaf_weights_in_model()) and allow_clear_pool:
-            train_pool = _build_train_pool(X, y, cat_features, pairs, sample_weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, column_description)
         if self._object._is_oblivious():
             # Have property feature_importance possibly set
             loss = self._object._get_loss_function_name()
             if loss and is_groupwise_metric(loss):
                 pass  # too expensive
             else:
-                self.get_feature_importance(type=EFstrType.PredictionValuesChange)
+                if not self._object._has_leaf_weights_in_model():
+                    if allow_clear_pool:
+                        train_pool = _build_train_pool(X, y, cat_features, pairs, sample_weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, column_description)
+                    self.get_feature_importance(data=train_pool, type=EFstrType.PredictionValuesChange)
+                else:
+                    self.get_feature_importance(type=EFstrType.PredictionValuesChange)
 
-        if 'loss_function' in params and self._is_classification_objective(params['loss_function']):
-            setattr(self, "_classes", np.unique(train_pool.get_label()))
         return self
 
     def fit(self, X, y=None, cat_features=None, pairs=None, sample_weight=None, group_id=None,
@@ -2833,10 +2834,6 @@ class CatBoostClassifier(CatBoost):
                 params[key] = value
 
         super(CatBoostClassifier, self).__init__(params)
-
-    @property
-    def classes_(self):
-        return getattr(self, "_classes", None)
 
     def fit(self, X, y=None, cat_features=None, sample_weight=None, baseline=None, use_best_model=None,
             eval_set=None, verbose=None, logging_level=None, plot=False, column_description=None,
