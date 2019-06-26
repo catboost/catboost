@@ -36,8 +36,8 @@ def compare_versions(version1, version2):
     return 1 if v1 < v2 else -1
 
 
-def go_package_name(unit, vet_mode=False):
-    name = None if vet_mode else unit.get('GO_PACKAGE_VALUE')
+def go_package_name(unit):
+    name = unit.get('GO_PACKAGE_VALUE')
     if not name:
         name = unit.get('GO_TEST_IMPORT_PATH')
         if name:
@@ -47,6 +47,10 @@ def go_package_name(unit, vet_mode=False):
         else:
             name = unit.get('REALPRJNAME')
     return name
+
+
+def need_lint(path):
+    return not path.startswith('$S/vendor/') and not path.startswith('$S/contrib/')
 
 
 def on_go_process_srcs(unit):
@@ -89,7 +93,7 @@ def on_go_process_srcs(unit):
     for path in srcs_files + go_test_files + go_xtest_files:
         if path.endswith(".go"):
             resolved = unit.resolve_arc_path([path])
-            if resolved != path and not resolved.startswith("$S/vendor/") and not resolved.startswith("$S/contrib/"):
+            if resolved != path and need_lint(resolved):
                 resolved_go_files.append(resolved)
     if resolved_go_files:
         basedirs = {}
@@ -101,11 +105,11 @@ def on_go_process_srcs(unit):
         for basedir in basedirs:
             unit.onadd_check(['gofmt'] + basedirs[basedir])
 
+    unit_path = unit.path()
+
     # Add go vet check
-    if unit.get(['GO_VET']) == 'yes':
-        vet_package_name = go_package_name(unit, vet_mode=True)
-        unit.onadd_check(["govet", '$(BUILD_ROOT)/' + tobuilddir(os.path.join(unit.path(), vet_package_name + '.a.vet.txt'))[3:]])
-        unit.set(['_GO_VET_PACKAGE_NAME', vet_package_name])
+    if unit.get(['GO_VET']) == 'yes' and need_lint(unit_path):
+        unit.onadd_check(["govet", '$(BUILD_ROOT)/' + tobuilddir(os.path.join(unit_path, unit.filename() + '.vet.txt'))[3:]])
 
     go_std_root = unit.get('GOSTD') + os.path.sep
 
@@ -147,7 +151,7 @@ def on_go_process_srcs(unit):
     if len(cgo_files) > 0:
         if not unit.enabled('CGO_ENABLED'):
             ymake.report_configure_error('trying to build with CGO (CGO_SRCS is non-empty) when CGO is disabled')
-        import_path = rootrel_arc_src(unit.path(), unit)
+        import_path = rootrel_arc_src(unit_path, unit)
         if import_path.startswith(go_std_root):
             import_path = import_path[len(go_std_root):]
         if import_path != runtime_cgo_path:

@@ -104,6 +104,14 @@ def create_import_config(peers, import_map={}, module_map={}):
     return None
 
 
+def vet_info_output_name(path):
+    return path + '.vet.out'
+
+
+def vet_report_output_name(path):
+    return path + '.vet.txt'
+
+
 def gen_vet_info(args):
     import_path, _ = get_import_path(args.module_path)
     info = get_import_config_info(args.peers, args.import_map, args.module_map)
@@ -128,9 +136,9 @@ def gen_vet_info(args):
         'ImportMap': import_map,
         'PackageFile': dict(info['packagefile']),
         'Standard': dict(info['standard']),
-        'PackageVetx': dict((key, value + '.vet.out') for key, value in info['packagefile']),
+        'PackageVetx': dict((key, vet_info_output_name(value)) for key, value in info['packagefile']),
         'VetxOnly': False,
-        'VetxOutput': args.output + '.vet.out',
+        'VetxOutput': vet_info_output_name(args.output),
         'SucceedOnTypecheckFailure': True
     }
     # print >>sys.stderr, json.dumps(data, indent=4)
@@ -144,8 +152,21 @@ def create_vet_config(args, info):
 
 
 def dump_vet_report(args, report):
-    with open(args.output + '.vet.txt', 'w') as f:
+    with open(args.vet_report_output, 'w') as f:
         f.write(report)
+
+
+def read_vet_report(args):
+    assert args
+    report = ''
+    if os.path.exists(args.vet_report_output):
+        with open(args.vet_report_output, 'r') as f:
+            report += f.read()
+    return report
+
+
+def dump_vet_report_for_tests(args, *test_args_list):
+    dump_vet_report(args, reduce(lambda x, y: x + read_vet_report(y), filter(None, test_args_list), ''))
 
 
 def do_vet(args):
@@ -419,6 +440,7 @@ def do_link_test(args):
     if args.srcs:
         test_lib_args = copy_args(args)
         test_lib_args.output = os.path.join(args.output_root, 'test.a')
+        test_lib_args.vet_report_output = vet_report_output_name(test_lib_args.output)
         test_lib_args.module_path = test_import_path
         do_link_lib(test_lib_args)
 
@@ -427,6 +449,7 @@ def do_link_test(args):
         xtest_lib_args.srcs = xtest_lib_args.xtest_srcs
         classify_srcs(xtest_lib_args.srcs, xtest_lib_args)
         xtest_lib_args.output = os.path.join(args.output_root, 'xtest.a')
+        xtest_lib_args.vet_report_output = vet_report_output_name(xtest_lib_args.output)
         xtest_lib_args.module_path = test_import_path + '_test'
         if test_lib_args:
             xtest_lib_args.module_map[test_import_path] = test_lib_args.output
@@ -448,7 +471,11 @@ def do_link_test(args):
         test_args.module_map[test_import_path] = test_lib_args.output
     if xtest_lib_args:
         test_args.module_map[test_import_path + '_test'] = xtest_lib_args.output
+
+    if args.vet:
+        dump_vet_report_for_tests(test_args, test_lib_args, xtest_lib_args)
     test_args.vet = False
+
     do_link_exe(test_args)
 
 
@@ -493,6 +520,7 @@ if __name__ == '__main__':
     args.go_pack = os.path.join(args.tool_root, 'pack')
     args.go_vet = os.path.join(args.tool_root, 'vet')
     args.output = os.path.normpath(args.output)
+    args.vet_report_output = vet_report_output_name(args.output)
     args.build_root = os.path.normpath(args.build_root) + os.path.sep
     args.output_root = os.path.normpath(args.output_root)
     args.import_map = {}
