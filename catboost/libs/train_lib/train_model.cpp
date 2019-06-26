@@ -566,7 +566,6 @@ static void SaveModel(
                 }
             }
         } else if (!dstModel) {
-            coreModelToFullModelConverter.WithCoreModelFrom(modelPtr);
             coreModelToFullModelConverter.Do(
                 ctx.OutputOptions.CreateResultModelFullPath(),
                 ctx.OutputOptions.GetModelFormats(),
