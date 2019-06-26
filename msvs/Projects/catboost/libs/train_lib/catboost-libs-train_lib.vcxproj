@@ -79,9 +79,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\train_lib\cross_validation.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\train_lib\feature_names_converter.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\train_lib\options_helper.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\train_lib\train_model.cpp"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\train_lib\cross_validation.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\train_lib\feature_names_converter.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\train_lib\options_helper.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\train_lib\train_model.h"/>
   </ItemGroup>
