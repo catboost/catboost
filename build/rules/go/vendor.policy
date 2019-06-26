@@ -249,6 +249,9 @@ ALLOW .* -> vendor/github.com/opentracing/opentracing-go
 # CONTRIB-1299. Date parser. resposible: tserakhau@
 ALLOW .* -> vendor/github.com/araddon/dateparse
 
+# Semantic versioning parsing and comparision library
+ALLOW .* -> vendor/github.com/blang/semver
+
 #
 # Temporary exceptions.
 #
