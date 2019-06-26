@@ -515,6 +515,7 @@ static void SaveModel(
     {
         NCB::TCoreModelToFullModelConverter coreModelToFullModelConverter(
             ctx.Params,
+            ctx.OutputOptions,
             classificationTargetHelper,
             ctx.Params.CatFeatureParams->CtrLeafCountLimit,
             ctx.Params.CatFeatureParams->StoreAllSimpleCtrs,

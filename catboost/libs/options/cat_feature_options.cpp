@@ -6,6 +6,8 @@
 #include <util/generic/maybe.h>
 #include <util/string/cast.h>
 #include <util/string/split.h>
+#include <util/string/strip.h>
+
 
 namespace {
     struct TCtrParam {
@@ -324,3 +326,48 @@ bool NCatboostOptions::CtrsNeedTargetData(const NCatboostOptions::TCatFeaturePar
 
     return ctrsNeedTargetData;
 }
+
+TString NCatboostOptions::BuildCtrOptionsDescription(const NJson::TJsonValue& options)
+{
+    TString ctrTypeStringConcat = ToString(options["ctr_type"]);
+    ctrTypeStringConcat = StripString(ctrTypeStringConcat, EqualsStripAdapter('"'));
+
+    if (options["ctr_binarization"].Has("border_count")) {
+        auto ctrBorderCount = ToString(options["ctr_binarization"]["border_count"]);
+        ctrTypeStringConcat = ctrTypeStringConcat + ":CtrBorderCount=" + ctrBorderCount;
+    }
+
+    if (options["ctr_binarization"].Has("border_type")) {
+        auto ctrBorderTypeStripped = StripString(ToString(options["ctr_binarization"]["border_type"]),
+                                                 EqualsStripAdapter('"'));
+        ctrTypeStringConcat =
+                ctrTypeStringConcat + ":CtrBorderType=" + ctrBorderTypeStripped;
+    }
+
+    if (options["target_binarization"].Has("border_count")) {
+        auto targetBorderCount = ToString(options["target_binarization"]["border_count"]);
+        ctrTypeStringConcat = ctrTypeStringConcat + ":TargetBorderCount=" + targetBorderCount;
+    }
+
+    if (options["target_binarization"].Has("border_type")) {
+        auto targetBorderTypeStripped = StripString(ToString(options["target_binarization"]["border_type"]),
+                                                    EqualsStripAdapter('"'));
+        ctrTypeStringConcat =
+                ctrTypeStringConcat + ":TargetBorderType=" + targetBorderTypeStripped;
+    }
+
+    const NJson::TJsonValue& priorDescriptions = options["priors"];
+    if (priorDescriptions.IsArray()) {
+        for (const auto& prior : priorDescriptions.GetArraySafe()) {
+            auto numerator = ToString(prior[0]);
+
+            // for GPU
+            if (prior.Has(1)) {
+                numerator  = numerator + "/" + ToString(prior[1]);
+            }
+            ctrTypeStringConcat = ctrTypeStringConcat + ":Prior=" + numerator;
+        }
+    }
+    return ctrTypeStringConcat;
+}
+

@@ -432,6 +432,7 @@ namespace NCatboostCuda {
 
             TCoreModelToFullModelConverter coreModelToFullModelConverter(
                 updatedCatboostOptions,
+                outputOptions,
                 classificationTargetHelper,
                 /*ctrLeafCountLimit*/ Max<ui64>(),
                 /*storeAllSimpleCtrs*/ false,

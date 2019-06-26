@@ -6,6 +6,8 @@
 #include <catboost/libs/helpers/interrupt.h>
 #include <catboost/libs/helpers/query_info_helper.h>
 #include <catboost/libs/target/data_providers.h>
+#include <catboost/libs/options/plain_options_helper.h>
+
 
 extern "C" PyObject* PyCatboostExceptionType;
 
@@ -166,3 +168,18 @@ NJson::TJsonValue GetTrainingOptions(
     catboostOptions.Save(&catboostOptionsJson);
     return catboostOptionsJson;
 }
+
+NJson::TJsonValue GetPlainJsonWithAllOptions(const TFullModel& model, bool categoricalFeaturesArePresent)
+{
+    NJson::TJsonValue trainOptions = ReadTJsonValue(model.ModelInfo.at("params"));
+    NJson::TJsonValue outputOptions = ReadTJsonValue(model.ModelInfo.at("output_options"));
+    NJson::TJsonValue plainOptionsJson;
+    NCatboostOptions::ConvertOptionsToPlainJson(trainOptions, outputOptions, &plainOptionsJson);
+    CB_ENSURE(!plainOptionsJson.GetMapSafe().empty(), "plainOptionsJson should not be empty.");
+    NJson::TJsonValue plainOptionsJsonEfficient(plainOptionsJson);
+    CB_ENSURE(!plainOptionsJsonEfficient.GetMapSafe().empty(), "problems with copy constructor.");
+    NCatboostOptions::DeleteEmptyKeysInPlainJson(&plainOptionsJsonEfficient, categoricalFeaturesArePresent);
+    CB_ENSURE(!plainOptionsJsonEfficient.GetMapSafe().empty(), "plainOptionsJsonEfficient should not be empty.");
+    return plainOptionsJsonEfficient;
+}
+
