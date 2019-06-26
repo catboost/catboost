@@ -27,6 +27,10 @@
         "checksum": "c8f7dccab064fad365024f9601b7042e",
         "uri": "file://test.test_compute_options/options.json"
     },
+    "test.test_continue_learning_with_changing_dataset": {
+        "checksum": "5d1831c1342f6866b601cc793ba19a76",
+        "uri": "file://test.test_continue_learning_with_changing_dataset/predictions.txt"
+    },
     "test.test_continue_learning_with_changing_params[param_set=iterations,depth,rsm-problem_type=binclass]": [
         {
             "checksum": "1336effae234b2e4bf22de2e4b25a474",

@@ -4646,6 +4646,35 @@ def test_continue_learning_with_changing_params(problem_type, param_set):
     return canonical_files
 
 
+def test_continue_learning_with_changing_dataset():
+    train_df = read_table(TRAIN_FILE, header=None)
+    train_labels = Series(train_df.iloc[:, TARGET_IDX])
+    train_df.drop([TARGET_IDX], axis=1, inplace=True)
+
+    train_params = {
+        'task_type': 'CPU',  # TODO(akhropov): GPU support
+        'loss_function': 'Logloss',
+        'boosting_type': 'Plain',
+        'learning_rate': 0.3  # fixed, because automatic value depends on number of iterations
+    }
+
+    def train_model(train_features_df, train_labels, iterations, init_model=None):
+        local_params = train_params
+        local_params['iterations'] = iterations
+        model = CatBoost(local_params)
+        model.fit(X=train_features_df, y=train_labels, cat_features=CAT_FEATURES, init_model=init_model)
+        return model
+
+    model1 = train_model(train_df.head(70), train_labels.head(70), iterations=5)
+    model2 = train_model(train_df, train_labels, iterations=4, init_model=model1)
+
+    pred = model2.predict(Pool(TEST_FILE, column_description=CD_FILE))
+    preds_path = test_output_path(PREDS_TXT_PATH)
+    np.savetxt(preds_path, np.array(pred), fmt='%.8f')
+
+    return local_canonical_file(preds_path)
+
+
 class TestModelWithoutParams(object):
 
     @pytest.fixture(

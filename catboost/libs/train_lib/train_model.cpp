@@ -546,7 +546,7 @@ static void SaveModel(
             if (addResultModelToInitModel) {
                 TVector<const TFullModel*> models = {*initModel, modelPtr};
                 TVector<double> weights = {1.0, 1.0};
-                *modelPtr = SumModels(models, weights);
+                (dstModel ? *dstModel : *modelPtr) = SumModels(models, weights);
 
                 if (!dstModel) {
                     const bool allLearnObjectsDataIsAvailable
