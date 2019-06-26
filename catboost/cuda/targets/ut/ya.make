@@ -1,11 +1,16 @@
 
 
-IF (AUTOCHECK)
-    LIBRARY()
+UNITTEST()
+
+SIZE(MEDIUM)
+
+IF (SANITIZER_TYPE)
+    TAG(ya:not_autocheck)
 ELSE()
-    UNITTEST()
-    SIZE(MEDIUM)
+    TAG(ya:noretries ya:yt)
 ENDIF()
+
+YT_SPEC(catboost/pytest/cuda_tests/yt_spec.json)
 
 SRCS(
     test_auc.cpp
