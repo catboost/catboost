@@ -273,4 +273,7 @@ ALLOW yt/jaeger/plugin -> vendor/github.com/uber/jaeger-client-go
 ALLOW yt/jaeger/plugin -> vendor/github.com/spf13/viper
 ALLOW yt/jaeger/plugin -> vendor/github.com/gorilla
 
+# CONTRIB-1302. Godbus goes to Arcadia
+ALLOW .* -> vendor/github.com/godbus/dbus
+
 DENY .* -> vendor/
