@@ -104,7 +104,7 @@ void ModelBasedEval(
 
 
 void TrainModel(
-    const NJson::TJsonValue& plainJsonParams,
+    NJson::TJsonValue plainJsonParams,
     NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo, // can be nullptr
     const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
     const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,

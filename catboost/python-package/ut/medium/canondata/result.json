@@ -423,6 +423,10 @@
         "checksum": "be31352f0e843c0c87e6570ebedd0f4b",
         "uri": "file://test.test_ignored_features_CPU_/model.bin"
     },
+    "test.test_ignored_features_names[CPU]": {
+        "checksum": "1c70a280d65958a6b05d7cbcb492a317",
+        "uri": "file://test.test_ignored_features_names_CPU_/model.bin"
+    },
     "test.test_interaction_feature_importance[CPU]": {
         "checksum": "691ac716ff25b30a47dab9fde43d8e52",
         "uri": "file://test.test_interaction_feature_importance_CPU_/feature_importance.npy"

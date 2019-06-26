@@ -1704,6 +1704,30 @@ def test_ignored_features(task_type):
     return compare_canonical_models(output_model_path)
 
 
+def test_ignored_features_names(task_type):
+    train_pool = Pool(data=BLACK_FRIDAY_TRAIN_FILE, column_description=BLACK_FRIDAY_CD_FILE, has_header=True)
+    test_pool = Pool(data=BLACK_FRIDAY_TEST_FILE, column_description=BLACK_FRIDAY_CD_FILE, has_header=True)
+    params = dict(
+        iterations=20,
+        learning_rate=0.5,
+        task_type=task_type,
+        devices='0',
+        max_ctr_complexity=1,
+        target_border=5000,
+    )
+    model2 = CatBoostClassifier(**params)
+    params.update(dict(ignored_features=['Stay_In_Current_City_Years', 'Gender']))
+    model1 = CatBoostClassifier(**params)
+    model1.fit(train_pool)
+    model2.fit(train_pool)
+    predictions1 = model1.predict_proba(test_pool)
+    predictions2 = model2.predict_proba(test_pool)
+    assert not _check_data(predictions1, predictions2)
+    output_model_path = test_output_path(OUTPUT_MODEL_PATH)
+    model1.save_model(output_model_path)
+    return compare_canonical_models(output_model_path)
+
+
 def test_class_weights(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoostClassifier(iterations=5, learning_rate=0.03, class_weights=[1, 2], task_type=task_type, devices='0')

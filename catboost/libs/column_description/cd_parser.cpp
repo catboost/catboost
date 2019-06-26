@@ -27,11 +27,12 @@ namespace {
 
     template <class TReadLineFunc>
     TVector<TColumn> ReadCDImpl(TReadLineFunc readLineFunc, const TCdParserDefaults& defaults) {
-        size_t columnsCount = defaults.UseDefaultType ? SafeIntegerCast<size_t>(defaults.ColumnCount) : 0;
+        size_t columnsCount = defaults.UseDefaultColumnCount ? SafeIntegerCast<size_t>(defaults.ColumnCount) : 0;
+        const auto defaultColumnType = defaults.DefaultColumnType.GetOrElse(EColumn());
+        const TColumn defaultColumn{defaultColumnType, TString()};
+        TVector<TColumn> columns(columnsCount, defaultColumn);
 
-        TVector<TColumn> columns(columnsCount, TColumn{defaults.DefaultColumnType, TString()});
         TSet<size_t> parsedColumns;
-
         TString line;
         for (size_t lineNumber = 0; readLineFunc(&line); lineNumber++) {
             TVector<TString> tokens;
@@ -54,14 +55,15 @@ namespace {
                     TryFromString(tokens[0], index),
                     "Invalid column index: \"" << tokens[0] << "\""
                 );
-                if (defaults.UseDefaultType) {
+                if (defaults.UseDefaultColumnCount) {
                     CB_ENSURE(
                         index < columnsCount,
                         "Invalid column index: " LabeledOutput(index, columnsCount));
                 }
                 CB_ENSURE(!parsedColumns.contains(index), "column specified twice in cd file: " << index);
                 parsedColumns.insert(index);
-                columns.resize(Max(columns.size(), index + 1));
+
+                columns.resize(Max(columns.size(), index + 1), defaultColumn);
 
                 TStringBuf type = ToCanonicalColumnName(tokens[1]);
 
@@ -74,7 +76,7 @@ namespace {
                     << ": " << e.what();
             }
         }
-        if (!defaults.UseDefaultType) {
+        if (!defaults.DefaultColumnType.Defined()) {
             CheckAllFeaturesPresent(columns, parsedColumns);
         }
 

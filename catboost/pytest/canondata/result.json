@@ -2353,6 +2353,12 @@
             "uri": "file://test.test_ignored_features_Plain_/test.eval"
         }
     ],
+    "test.test_ignored_features_names": [
+        {
+            "checksum": "65711c506dac24e8a2a7c06331a3dae7",
+            "uri": "file://test.test_ignored_features_names/test.eval"
+        }
+    ],
     "test.test_json_logging": [
         {
             "checksum": "6afd0301e4d7c45ec313a7b031dbe7ef",

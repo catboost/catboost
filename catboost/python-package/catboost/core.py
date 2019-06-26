@@ -2594,7 +2594,7 @@ class CatBoostClassifier(CatBoost):
     name : string, [default='experiment']
         The name that should be displayed in the visualization tools.
     ignored_features : list, [default=None]
-        Indices of features that should be excluded when training.
+        Indices or names of features that should be excluded when training.
     train_dir : string, [default=None]
         The directory in which you want to record generated in the process of learning files.
     custom_metric : string or list of strings, [default=None]

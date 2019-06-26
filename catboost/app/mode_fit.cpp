@@ -7,6 +7,7 @@
 #include <catboost/libs/options/catboost_options.h>
 #include <catboost/libs/options/plain_options_helper.h>
 #include <catboost/libs/train_lib/train_model.h>
+#include <catboost/libs/train_lib/feature_names_converter.h>
 
 #if defined(USE_MPI)
 #include <catboost/cuda/cuda_lib/cuda_manager.h>
@@ -18,7 +19,6 @@
 #include <library/json/json_reader.h>
 
 #include <util/generic/ptr.h>
-
 
 
 using namespace NCB;
@@ -44,10 +44,9 @@ int mode_fit(int argc, const char* argv[]) {
     NJson::TJsonValue catBoostJsonOptions;
     NJson::TJsonValue outputOptionsJson;
     InitOptions(paramsFile, &catBoostJsonOptions, &outputOptionsJson);
+    ConvertIgnoredFeaturesFromStringToIndices(poolLoadParams, &catBoostFlatJsonOptions);
     NCatboostOptions::PlainJsonToOptions(catBoostFlatJsonOptions, &catBoostJsonOptions, &outputOptionsJson);
-
     CopyIgnoredFeaturesToPoolParams(catBoostJsonOptions, &poolLoadParams);
-
     NCatboostOptions::TOutputFilesOptions outputOptions;
     outputOptions.Load(outputOptionsJson);
     //Cout << LabeledOutput(outputOptions.UseBestModel.IsSet()) << Endl;

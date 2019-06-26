@@ -70,10 +70,6 @@ inline static TVector<int> ParseIndicesLine(const TStringBuf indicesLine, char d
     return result;
 }
 
-inline static TVector<int> ParseIndicesLine(const TStringBuf indicesLine) {
-    return ParseIndicesLine(indicesLine, ':');
-}
-
 inline static TVector<TVector<int>> ParseIndexSetsLine(const TStringBuf indicesLine) {
     TVector<TVector<int>> result;
     for (const auto& t : StringSplitter(indicesLine).Split(';')) {
@@ -876,11 +872,10 @@ static void BindDataProcessingParams(NLastGetopt::TOpts* parserPtr, NJson::TJson
     auto& parser = *parserPtr;
     parser.AddLongOption('I', "ignore-features",
                          "don't use the specified features in the learn set (the features are separated by colon and can be specified as an inclusive interval, for example: -I 4:78-89:312)")
-        .RequiredArgument("INDEXES")
+        .RequiredArgument("INDEXES or NAMES")
         .Handler1T<TString>([plainJsonPtr](const TString& indicesLine) {
-            auto ignoredFeatures = ParseIndicesLine(indicesLine);
-            for (int f : ignoredFeatures) {
-                (*plainJsonPtr)["ignored_features"].AppendValue(f);
+            for (const auto& ignoredFeature : StringSplitter(indicesLine).Split(':')) {
+                (*plainJsonPtr)["ignored_features"].AppendValue(ignoredFeature.Token());
             }
         });
 

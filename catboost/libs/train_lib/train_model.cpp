@@ -1,6 +1,7 @@
 #include "train_model.h"
 #include "options_helper.h"
 #include "cross_validation.h"
+#include "feature_names_converter.h"
 
 #include <catboost/libs/algo/approx_dimension.h>
 #include <catboost/libs/algo/data.h>
@@ -1208,7 +1209,7 @@ void ModelBasedEval(
 }
 
 void TrainModel(
-    const NJson::TJsonValue& plainJsonParams,
+    NJson::TJsonValue plainJsonParams,
     NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo, // can be nullptr
     const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
     const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
@@ -1223,6 +1224,7 @@ void TrainModel(
 ) {
     NJson::TJsonValue trainOptionsJson;
     NJson::TJsonValue outputFilesOptionsJson;
+    ConvertIgnoredFeaturesFromStringToIndices(pools.Learn.Get()->MetaInfo, &plainJsonParams);
     NCatboostOptions::PlainJsonToOptions(plainJsonParams, &trainOptionsJson, &outputFilesOptionsJson);
     CB_ENSURE(!plainJsonParams.Has("node_type") || plainJsonParams["node_type"] == "SingleHost", "CatBoost Python module does not support distributed training");
 

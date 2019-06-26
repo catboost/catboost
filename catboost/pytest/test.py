@@ -1245,6 +1245,28 @@ def test_ignored_features(boosting_type):
     return [local_canonical_file(output_eval_path)]
 
 
+def test_ignored_features_names():
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'RMSE',
+        '--has-header',
+        '--learn-set', data_file('black_friday', 'train'),
+        '--test-set', data_file('black_friday', 'test'),
+        '--column-description', data_file('black_friday', 'cd'),
+        '-i', '10',
+        '-T', '4',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+        '-I', 'Stay_In_Current_City_Years:Product_Category_2:Gender',
+    )
+    yatest.common.execute(cmd)
+    return [local_canonical_file(output_eval_path)]
+
+
 def test_ignored_features_not_read():
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
@@ -1279,6 +1301,39 @@ def test_ignored_features_not_read():
     )
     yatest.common.execute(cmd)
     # Not needed: return [local_canonical_file(output_eval_path)]
+
+
+def test_ignored_features_not_read_names():
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    input_cd_path = data_file('black_friday', 'cd')
+    cd_path = yatest.common.test_output_path('cd')
+
+    with open(input_cd_path, "rt") as f:
+        cd_lines = f.readlines()
+    with open(cd_path, "wt") as f:
+        for cd_line in cd_lines:
+            if cd_line.split() == ('2', 'Categ', 'Gender'):
+                cd_line = cd_line.replace('2', 'Num', 'Gender')
+            if cd_line.split() == ('10', 'Categ', 'Product_Category_3'):
+                cd_line = cd_line.replace('10', 'Num', 'Product_Category_3')
+            f.write(cd_line)
+
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'RMSE',
+        '--has-header',
+        '--learn-set', data_file('black_friday', 'train'),
+        '--test-set', data_file('black_friday', 'test'),
+        '--column-description', cd_path,
+        '-i', '10',
+        '-T', '4',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+        '-I', 'Gender:Product_Category_3',
+    )
+    yatest.common.execute(cmd)
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)

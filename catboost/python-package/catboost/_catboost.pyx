@@ -667,7 +667,7 @@ cdef extern from "catboost/libs/loggers/catboost_logger_helpers.h":
 
 cdef extern from "catboost/libs/train_lib/train_model.h":
     cdef void TrainModel(
-        const TJsonValue& params,
+        TJsonValue params,
         TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
         const TMaybe[TCustomObjectiveDescriptor]& objectiveDescriptor,
         const TMaybe[TCustomMetricDescriptor]& evalMetricDescriptor,
@@ -691,7 +691,7 @@ cdef extern from "catboost/libs/train_lib/cross_validation.h":
         TVector[double] StdDevTest
 
     cdef void CrossValidate(
-        const TJsonValue& jsonParams,
+        TJsonValue jsonParams,
         const TMaybe[TCustomObjectiveDescriptor]& objectiveDescriptor,
         const TMaybe[TCustomMetricDescriptor]& evalMetricDescriptor,
         TDataProviderPtr data,
@@ -1250,6 +1250,9 @@ cdef class _PreprocessParams:
     cdef TMaybe[TCustomObjectiveDescriptor] customObjectiveDescriptor
     cdef TMaybe[TCustomMetricDescriptor] customMetricDescriptor
     def __init__(self, dict params):
+        if "ignored_features" in params:
+            params["ignored_features"] = list(map(str, params["ignored_features"]))
+
         eval_metric = params.get("eval_metric")
         objective = params.get("loss_function")
 
@@ -3464,6 +3467,8 @@ cpdef _check_train_params(dict params):
         del params_to_check['cat_features']
     if 'input_borders' in params_to_check:
         del params_to_check['input_borders']
+    if 'ignored_features' in params_to_check:
+        del params_to_check['ignored_features']
 
     prep_params = _PreprocessParams(params_to_check)
     CheckFitParams(

@@ -204,7 +204,6 @@ void NCatboostOptions::PlainJsonToOptions(
     NJson::TJsonValue* outputOptions)
 {
     ValidatePlainOptionsConsistency(plainOptions);
-
     TSet<TString> seenKeys;
     auto& trainOptions = *options;
 

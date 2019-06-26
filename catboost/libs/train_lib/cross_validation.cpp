@@ -1,6 +1,7 @@
 #include "cross_validation.h"
 #include "train_model.h"
 #include "options_helper.h"
+#include "feature_names_converter.h"
 
 #include <catboost/libs/algo/approx_dimension.h>
 #include <catboost/libs/algo/calc_score_cache.h>
@@ -399,7 +400,7 @@ static void UpdatePermutationBlockSize(
 
 
 void CrossValidate(
-    const NJson::TJsonValue& plainJsonParams,
+    NJson::TJsonValue plainJsonParams,
     const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
     const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
     TDataProviderPtr data,
@@ -410,6 +411,7 @@ void CrossValidate(
 
     NJson::TJsonValue jsonParams;
     NJson::TJsonValue outputJsonParams;
+    ConvertIgnoredFeaturesFromStringToIndices(data.Get()->MetaInfo, &plainJsonParams);
     NCatboostOptions::PlainJsonToOptions(plainJsonParams, &jsonParams, &outputJsonParams);
     NCatboostOptions::TCatBoostOptions catBoostOptions(NCatboostOptions::LoadOptions(jsonParams));
     NCatboostOptions::TOutputFilesOptions outputFileOptions;
