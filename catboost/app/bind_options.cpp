@@ -15,6 +15,7 @@
 #include <library/grid_creator/binarization.h>
 #include <library/json/json_reader.h>
 #include <library/logger/log.h>
+#include <library/text_processing/dictionary/options.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/serialized_enum.h>
@@ -67,10 +68,6 @@ inline static TVector<int> ParseIndicesLine(const TStringBuf indicesLine, char d
         }
     }
     return result;
-}
-
-inline static TVector<int> ParseIndicesLine(const TStringBuf indicesLine) {
-    return ParseIndicesLine(indicesLine, ':');
 }
 
 inline static TVector<TVector<int>> ParseIndexSetsLine(const TStringBuf indicesLine) {
@@ -515,6 +512,13 @@ static void BindModelBasedEvalParams(NLastGetopt::TOpts* parserPtr, NJson::TJson
         .Handler1T<int>([plainJsonPtr](int experimentSize) {
             (*plainJsonPtr)["experiment_size"] = experimentSize;
         });
+    parser
+        .AddLongOption("use-evaluated-features-in-baseline-model")
+        .NoArgument()
+        .Help("Use all evaluated features in baseline model rather than zero out them.")
+        .Handler0([plainJsonPtr]() {
+            (*plainJsonPtr)["use_evaluated_features_in_baseline_model"] = true;
+        });
 }
 
 static void BindTreeParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* plainJsonPtr) {
@@ -728,6 +732,20 @@ static void BindTreeParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* pla
         .Handler1T<TString>([plainJsonPtr](const TString& type) {
             (*plainJsonPtr)["observations_to_bootstrap"] = type;
         });
+
+     parser
+        .AddLongOption("monotone-constraints")
+        .RequiredArgument("String")
+        .Help("Monotone constraints for all features.")
+        .Handler1T<TString>([plainJsonPtr](TString monotonic) {
+            if (!monotonic.empty()) {
+                monotonic.erase(monotonic.begin());
+                monotonic.pop_back();
+                for (const auto& oneFeatureMonotonic : StringSplitter(monotonic).Split(',').SkipEmpty()) {
+                    (*plainJsonPtr)["monotone_constraints"].AppendValue(FromString<int>(oneFeatureMonotonic.Token()));
+                }
+            }
+        });
 }
 
 static void BindCatFeatureParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* plainJsonPtr) {
@@ -823,15 +841,41 @@ static void BindCatFeatureParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValu
         .Help("If parameter is specified than features with no more than specified value different values will be converted to float features using one-hot encoding. No ctrs will be calculated on this features.");
 }
 
+static void BindTextFeaturesParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* plainJsonPtr) {
+    using namespace NTextProcessing::NDictionary;
+
+    auto& parser = *parserPtr;
+    parser.AddLongOption("text-feature-estimators")
+        .RequiredArgument("Comma separated list of names")
+        .Help("List of feature estimators to compute over each text column in dataset")
+        .Handler1T<TString>([plainJsonPtr](const TString& estimatorsLine) {
+            for (const auto& featureEstimator : StringSplitter(estimatorsLine).Split(',').SkipEmpty()) {
+                FromString<EFeatureEstimatorType>(featureEstimator.Token());
+                (*plainJsonPtr)["text_feature_estimators"].AppendValue(NJson::TJsonValue(featureEstimator.Token()));
+            }
+            CB_ENSURE(!(*plainJsonPtr)["text_feature_estimators"].GetArray().empty(), "Empty text features list " << estimatorsLine);
+        });
+
+    parser.AddLongOption("text-processing")
+        .RequiredArgument("DESC[;DESC...]")
+        .Help("Semicolon separated list of text processing descriptions. Text processing description should be written in format "
+            "FeatureId[:min_token_occurence=MinTokenOccurence][:max_dict_size=MaxDictSize][:gram_order=GramOrder][:token_level_type=TokenLevelType]"
+        ).Handler1T<TString>([plainJsonPtr](const TString& descriptionLine) {
+            for (const auto& oneConfig : StringSplitter(descriptionLine).Split(';').SkipEmpty()) {
+                (*plainJsonPtr)["text_processing"].AppendValue(oneConfig.Token());
+            }
+            CB_ENSURE(!(*plainJsonPtr)["text_processing"].GetArray().empty(), "Empty text processing settings " << descriptionLine);
+        });
+}
+
 static void BindDataProcessingParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* plainJsonPtr) {
     auto& parser = *parserPtr;
     parser.AddLongOption('I', "ignore-features",
                          "don't use the specified features in the learn set (the features are separated by colon and can be specified as an inclusive interval, for example: -I 4:78-89:312)")
-        .RequiredArgument("INDEXES")
+        .RequiredArgument("INDEXES or NAMES")
         .Handler1T<TString>([plainJsonPtr](const TString& indicesLine) {
-            auto ignoredFeatures = ParseIndicesLine(indicesLine);
-            for (int f : ignoredFeatures) {
-                (*plainJsonPtr)["ignored_features"].AppendValue(f);
+            for (const auto& ignoredFeature : StringSplitter(indicesLine).Split(':')) {
+                (*plainJsonPtr)["ignored_features"].AppendValue(ignoredFeature.Token());
             }
         });
 
@@ -845,6 +889,12 @@ static void BindDataProcessingParams(NLastGetopt::TOpts* parserPtr, NJson::TJson
         .NoArgument()
         .Handler0([plainJsonPtr]() {
             (*plainJsonPtr)["allow_const_label"] = true;
+        });
+
+    parser.AddLongOption("target-border", "Border for target binarization")
+        .RequiredArgument("float")
+        .Handler1T<float>([plainJsonPtr](float targetBorder) {
+            (*plainJsonPtr)["target_border"] = targetBorder;
         });
 
     parser.AddLongOption("classes-count", "number of classes")
@@ -1054,6 +1104,8 @@ void ParseCommandLine(int argc, const char* argv[],
 
     BindCatFeatureParams(&parser, plainJsonPtr);
 
+    BindTextFeaturesParams(&parser, plainJsonPtr);
+
     BindDataProcessingParams(&parser, plainJsonPtr);
 
     BindBinarizationParams(&parser, plainJsonPtr);
@@ -1110,6 +1162,8 @@ void ParseModelBasedEvalCommandLine(
     BindTreeParams(&parser, plainJsonPtr);
 
     BindCatFeatureParams(&parser, plainJsonPtr);
+
+    BindTextFeaturesParams(&parser, plainJsonPtr);
 
     BindDataProcessingParams(&parser, plainJsonPtr);
 

@@ -3,7 +3,10 @@
 #include <util/generic/vector.h>
 #include <util/generic/xrange.h>
 #include <util/generic/ymath.h>
+#include <util/stream/output.h>
 #include <util/system/yassert.h>
+
+#include <library/binsaver/bin_saver.h>
 
 // TODO(akhropov): move back to libs/helpers when circular dependencies with libs/data_types are resolved
 
@@ -63,7 +66,16 @@ namespace NCB {
                 End = Max(End, rhs.End);
             }
         }
+
+        SAVELOAD(Begin, End);
     };
+
+    template <class TSize>
+    static inline IOutputStream& operator<<(IOutputStream& o, const TIndexRange<TSize>& indexRange) {
+        o << '[' << indexRange.Begin << ',' << indexRange.End << ')';
+        return o;
+    }
+
 
     template <class TSize>
     struct IIndexRangesGenerator {

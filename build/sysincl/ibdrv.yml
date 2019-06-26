@@ -1,0 +1,4 @@
+- source_filter: "^contrib/libs/ibdrv"
+  includes:
+    - infiniband/verbs.h
+    - rdma/rdma_cma.h

@@ -8,6 +8,10 @@ namespace NCB {
         return GetProcessor<IExistsChecker>(pathWithScheme)->Exists(pathWithScheme);
     }
 
+    bool IsSharedFs(const TPathWithScheme& pathWithScheme) {
+        return GetProcessor<IExistsChecker>(pathWithScheme)->IsSharedFs();
+    }
+
     namespace {
 
     TExistsCheckerFactory::TRegistrator<TFSExistsChecker> FSExistsCheckerReg("");

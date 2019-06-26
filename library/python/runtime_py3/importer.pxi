@@ -137,7 +137,7 @@ class ResourceImporter(object):
                 if k not in self.memory:
                     self.memory.add(k)
 
-    def find_spec(self, fullname, path, target=None):
+    def find_spec(self, fullname, path=None, target=None):
         try:
             is_package = self.is_package(fullname)
         except ImportError:
@@ -202,7 +202,7 @@ class ResourceImporter(object):
             abspath = resfs_resolve(relpath)
             if abspath:
                 data = resfs_read(path, builtin=False)
-                return compile(data, abspath, 'exec', dont_inherit=True)
+                return compile(data, utf_8_decode(abspath)[0], 'exec', dont_inherit=True)
 
         yapyc_path = path + b'.yapyc3'
         yapyc_data = resfs_read(yapyc_path, builtin=True)
@@ -211,7 +211,7 @@ class ResourceImporter(object):
         else:
             py_data = resfs_read(path, builtin=True)
             if py_data:
-                return compile(py_data, relpath, 'exec', dont_inherit=True)
+                return compile(py_data, utf_8_decode(relpath)[0], 'exec', dont_inherit=True)
             else:
                 # This covers packages with no __init__.py in resources.
                 return compile('', modname, 'exec', dont_inherit=True)

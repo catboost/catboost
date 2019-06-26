@@ -5,6 +5,7 @@
 #include <catboost/libs/helpers/progress_helper.h>
 #include <catboost/libs/helpers/restorable_rng.h>
 #include <catboost/libs/options/catboost_options.h>
+#include <catboost/libs/options/defaults_helper.h>
 #include <catboost/libs/options/output_file_options.h>
 #include <catboost/libs/loggers/catboost_logger_helpers.h>
 #include <catboost/libs/logging/logging.h>
@@ -132,18 +133,23 @@ TDataProviderPtr ReorderByTimestampLearnDataIfNeeded(
 }
 
 
-static bool NeedShuffle(ui32 catFeatureCount, const NCatboostOptions::TCatBoostOptions& catBoostOptions) {
+static bool NeedShuffle(
+    const ui32 catFeatureCount,
+    const ui32 docCount,
+    const NCatboostOptions::TCatBoostOptions& catBoostOptions) {
+
     if (catBoostOptions.DataProcessingOptions->HasTimeFlag) {
         return false;
     }
-
     // TODO(akhropov): make it universal ?
     if (catBoostOptions.GetTaskType() == ETaskType::CPU) {
         return true;
     }
 
     if (catFeatureCount == 0) {
-        if (catBoostOptions.BoostingOptions->BoostingType ==  EBoostingType::Ordered) {
+        NCatboostOptions::TCatBoostOptions updatedOpitons(catBoostOptions);
+        UpdateBoostingTypeOption(docCount, &updatedOpitons);
+        if (updatedOpitons.BoostingOptions->BoostingType == EBoostingType::Ordered) {
             return true;
         } else {
             return false;
@@ -153,16 +159,19 @@ static bool NeedShuffle(ui32 catFeatureCount, const NCatboostOptions::TCatBoostO
     }
 }
 
-TTrainingDataProviderPtr ShuffleLearnDataIfNeeded(
+TDataProviderPtr ShuffleLearnDataIfNeeded(
     const NCatboostOptions::TCatBoostOptions& catBoostOptions,
-    TTrainingDataProviderPtr learnData,
+    TDataProviderPtr learnData,
     NPar::TLocalExecutor* localExecutor,
     TRestorableFastRng64* rand) {
 
-    if (NeedShuffle(learnData->MetaInfo.FeaturesLayout->GetCatFeatureCount(), catBoostOptions)) {
+    if (NeedShuffle(
+        learnData->MetaInfo.FeaturesLayout->GetCatFeatureCount(),
+        learnData->ObjectsData->GetObjectCount(),
+        catBoostOptions
+    )) {
         auto objectsGroupingSubset = NCB::Shuffle(learnData->ObjectsGrouping, 1, rand);
         return learnData->GetSubset(objectsGroupingSubset, localExecutor);
     }
-
     return learnData;
 }

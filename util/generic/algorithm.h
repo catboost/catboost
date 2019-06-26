@@ -135,12 +135,9 @@ static inline auto FindPtr(I f, I l, const T& v) -> decltype(&*f) {
 
 template <class C, class T>
 static inline auto FindPtr(C&& c, const T& v) {
-    return FindPtr(c.begin(), c.end(), v);
-}
-
-template <size_t N, class U, class T>
-static inline U* FindPtr(U (&c)[N], const T& v) {
-    return FindPtr(c, c + N, v);
+    using std::begin;
+    using std::end;
+    return FindPtr(begin(c), end(c), v);
 }
 
 template <class I, class P>
@@ -163,7 +160,9 @@ static inline bool AllOf(I f, I l, P pred) {
 
 template <class C, class P>
 static inline bool AllOf(const C& c, P pred) {
-    return AllOf(c.begin(), c.end(), pred);
+    using std::begin;
+    using std::end;
+    return AllOf(begin(c), end(c), pred);
 }
 
 template <class I, class P>
@@ -173,7 +172,9 @@ static inline bool AnyOf(I f, I l, P pred) {
 
 template <class C, class P>
 static inline bool AnyOf(const C& c, P pred) {
-    return AnyOf(c.begin(), c.end(), pred);
+    using std::begin;
+    using std::end;
+    return AnyOf(begin(c), end(c), pred);
 }
 
 // FindIfPtr - return NULL if not found. Works for arrays, containers, iterators
@@ -185,24 +186,25 @@ static inline auto FindIfPtr(I f, I l, P pred) -> decltype(&*f) {
 
 template <class C, class P>
 static inline auto FindIfPtr(C&& c, P pred) {
-    return FindIfPtr(c.begin(), c.end(), pred);
-}
-
-template <size_t N, class T, class P>
-static inline T* FindIfPtr(T (&c)[N], P pred) {
-    return FindIfPtr(c, c + N, pred);
+    using std::begin;
+    using std::end;
+    return FindIfPtr(begin(c), end(c), pred);
 }
 
 template <class C, class T>
-static inline size_t FindIndex(C& c, const T& x) {
-    auto it = Find(c.begin(), c.end(), x);
-    return it == c.end() ? NPOS : (it - c.begin());
+static inline size_t FindIndex(C&& c, const T& x) {
+    using std::begin;
+    using std::end;
+    auto it = Find(begin(c), end(c), x);
+    return it == end(c) ? NPOS : (it - begin(c));
 }
 
-template <class U, size_t N, class T>
-static inline size_t FindIndex(U (&c)[N], const T& x) {
-    auto it = Find(c, c + N, x);
-    return it == (c + N) ? NPOS : (it - c);
+template <class C, class P>
+static inline size_t FindIndexIf(C&& c, P p) {
+    using std::begin;
+    using std::end;
+    auto it = FindIf(begin(c), end(c), p);
+    return it == end(c) ? NPOS : (it - begin(c));
 }
 
 //EqualToOneOf(x, "apple", "orange") means (x == "apple" || x == "orange")
@@ -592,7 +594,9 @@ static inline auto CountIf(It first, It last, P p) {
 
 template <class C, class P>
 static inline auto CountIf(const C& c, P pred) {
-    return CountIf(c.begin(), c.end(), pred);
+    using std::begin;
+    using std::end;
+    return CountIf(begin(c), end(c), pred);
 }
 
 template <class I1, class I2>

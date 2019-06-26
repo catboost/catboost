@@ -41,12 +41,32 @@ namespace NCB {
 
     // Note: does not store data size!
     template <class T>
-    inline void SaveRawData(TConstArrayRef<T> data, IBinSaver* binSaver) {
-        binSaver->AddRawData(
-            0,
-            const_cast<void*>((const void*)data.data()),
-            SafeIntegerCast<i64>(sizeof(T)*data.size())
-        );
+    inline void SaveArrayData(TConstArrayRef<T> data, IBinSaver* binSaver) {
+        Y_ASSERT(!binSaver->IsReading());
+        if (IBinSaver::HasNonTrivialSerializer<T>(0u)) {
+            for (const auto& element : data) {
+                binSaver->Add(0, const_cast<T*>(&element));
+            }
+        } else {
+            binSaver->AddRawData(
+                0,
+                const_cast<void*>((const void*)data.data()),
+                SafeIntegerCast<i64>(sizeof(T) * data.size())
+            );
+        }
+    }
+
+    // Note: does not load data size!
+    template <class T>
+    inline void LoadArrayData(TArrayRef<T> data, IBinSaver* binSaver) {
+        Y_ASSERT(binSaver->IsReading());
+        if (IBinSaver::HasNonTrivialSerializer<T>(0u)) {
+            for (auto& element : data) {
+                binSaver->Add(0, &element);
+            }
+        } else {
+            binSaver->AddRawData(0, (void*)data.data(), SafeIntegerCast<i64>(sizeof(T) * data.size()));
+        }
     }
 
 

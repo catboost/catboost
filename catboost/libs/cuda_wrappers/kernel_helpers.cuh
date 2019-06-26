@@ -1,11 +1,18 @@
 #pragma once
+
+#include "kernel.cuh"
+
 #include <contrib/libs/cub/cub/thread/thread_load.cuh>
 #include <contrib/libs/cub/cub/thread/thread_store.cuh>
 #include <cooperative_groups.h>
 
+template<int Alignment, typename T>
+__forceinline__ __device__ __host__ T AlignBy(T x) {
+    return NKernel::CeilDivide<size_t>(x, Alignment) * Alignment;
+}
 
 __forceinline__ __device__ int Align32(int i) {
-    return ((i + 31) / 32) * 32;
+    return AlignBy<32>(i);
 }
 
 template <class T>
@@ -157,6 +164,13 @@ struct TAtomicAdd {
     static __forceinline__ __device__ T Add(T* dst, T val) {
         return atomicAdd(dst, val);
     }
+    static __forceinline__ __device__ T AddBlock(T* dst, T val) {
+#if __CUDA_ARCH__ < 600
+        return TAtomicAdd<T>::Add(dst, val);
+#else
+        return atomicAdd_block(dst, val);
+#endif
+    }
 };
 
 /*
@@ -184,6 +198,13 @@ struct TAtomicAdd<double> {
         return atomicAdd(address, val);
         #endif
     }
+    static __forceinline__ __device__ double AddBlock(double* dst, double val) {
+#if __CUDA_ARCH__ < 600
+        return TAtomicAdd<double>::Add(dst, val);
+#else
+        return atomicAdd_block(dst, val);
+#endif
+    }
 };
 
 
@@ -201,11 +222,11 @@ __forceinline__ __device__ void Swap(float** left, float** right) {
     *right = tmp;
 }
 
-template <int TileSize, class TOp = TCudaAdd<float>>
-__forceinline__ __device__ float4 TileReduce4(cooperative_groups::thread_block_tile<TileSize> tile, const float4 threadValue) {
+template <int TileSize, class TOp = TCudaAdd<float>, typename TReduceType = float4>
+__forceinline__ __device__ TReduceType TileReduce4(cooperative_groups::thread_block_tile<TileSize> tile, const TReduceType threadValue) {
     TOp op;
     tile.sync();
-    float4 val = threadValue;
+    TReduceType val = threadValue;
     for (int s = tile.size() / 2; s > 0; s >>= 1) {
         val.x = op(val.x, tile.shfl_down(val.x, s));
         val.y = op(val.y, tile.shfl_down(val.y, s));
@@ -402,45 +423,7 @@ __forceinline__ __device__ float4 BroadCast4(float val) {
     return result;
 }
 
-template <int BlockSize, class TLoader>
-__forceinline__ __device__ float4 ComputeSum2(
-    TLoader& inputProvider,
-    float* tmp,
-    int dim) {
 
-    float4 sum2;
-    sum2.x = sum2.y = sum2.z = sum2.w = 0;
-
-    for (int i = threadIdx.x; i < dim; i += BlockSize) {
-        float4 point = inputProvider.Load(i);
-        point = point * point;
-        sum2 = sum2 + point;
-    }
-
-    tmp[threadIdx.x] = sum2.x;
-    tmp[threadIdx.x + BlockSize] = sum2.y;
-    tmp[threadIdx.x + BlockSize * 2] = sum2.z;
-    tmp[threadIdx.x + BlockSize * 3] = sum2.w;
-
-    __syncthreads();
-
-    for (int s = BlockSize / 2; s > 0; s /= 2) {
-        if (threadIdx.x < s) {
-            for (int k = 0; k < 4; ++k) {
-                tmp[threadIdx.x + k * BlockSize] += tmp[threadIdx.x + s  + k * BlockSize];
-            }
-        }
-        __syncthreads();
-    }
-
-    float4 result;
-    result.x = tmp[0];
-    result.y = tmp[BlockSize];
-    result.z = tmp[BlockSize * 2];
-    result.w = tmp[BlockSize * 3];
-    __syncthreads();
-    return result;
-}
 
 
 template <int MaxDim>
@@ -458,6 +441,16 @@ __forceinline__ __device__ float4 Float4FromSharedMemory(const float* sharedMemo
     val.y =  sharedMemory[i + MaxDim];
     val.z =  sharedMemory[i + MaxDim * 2];
     val.w =  sharedMemory[i + MaxDim * 3];
+    return val;
+}
+
+
+__forceinline__ __device__ float4 Float4FromSharedMemory(int maxDim, const float* sharedMemory, int i) {
+    float4 val;
+    val.x =  sharedMemory[i];
+    val.y =  sharedMemory[i + maxDim];
+    val.z =  sharedMemory[i + maxDim * 2];
+    val.w =  sharedMemory[i + maxDim * 3];
     return val;
 }
 
@@ -571,4 +564,42 @@ __forceinline__ __device__ void BlockReduceN(volatile T* data, int reduceSize, T
 
 __forceinline__ __device__ int RoundUpToPowerTwo(int dim) {
     return 1 << (33 - __clz(dim));
+}
+
+
+template <int BlockSize, class TLoader>
+__forceinline__ __device__ float4 ComputeSum2(
+    TLoader& inputProvider,
+    float* tmp,
+    int dim) {
+
+    float4 sum2 = BroadCast4(0.0f);
+
+    for (int i = threadIdx.x; i < dim; i += BlockSize) {
+        float4 point = inputProvider.Load(i);
+        point = point * point;
+        sum2 = sum2 + point;
+    }
+
+    Float4ToSharedMemory<BlockSize>(sum2, tmp, threadIdx.x);
+
+    __syncthreads();
+
+    for (int s = BlockSize / 2; s > 0; s /= 2) {
+        if (threadIdx.x < s) {
+            #pragma unroll
+            for (int k = 0; k < 4; ++k) {
+                tmp[threadIdx.x + k * BlockSize] += tmp[threadIdx.x + s + k * BlockSize];
+            }
+        }
+        __syncthreads();
+    }
+
+    float4 result;
+    result.x = tmp[0];
+    result.y = tmp[BlockSize];
+    result.z = tmp[BlockSize * 2];
+    result.w = tmp[BlockSize * 3];
+    __syncthreads();
+    return result;
 }

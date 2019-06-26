@@ -124,14 +124,17 @@ inline static void SetSingleIndex(
         }
     } else if (permBlockSize > 1) {
         const int blockCount = (docCount + permBlockSize - 1) / permBlockSize;
-        Y_ASSERT(   (static_cast<int>(bucketIndexing[0]) / permBlockSize + 1 == blockCount)
-                 || (static_cast<int>(bucketIndexing[0]) + permBlockSize - 1
-                     == static_cast<int>(bucketIndexing[permBlockSize - 1])));
+        Y_ASSERT(
+            (static_cast<int>(bucketIndexing[0]) / permBlockSize + 1 == blockCount)
+            || (static_cast<int>(bucketIndexing[0]) + permBlockSize - 1
+            == static_cast<int>(bucketIndexing[permBlockSize - 1]))
+        );
         int blockStart = docIndexRange.Begin;
         while (blockStart < docIndexRange.End) {
             const int blockIdx = static_cast<int>(bucketIndexing[blockStart]) / permBlockSize;
-            const int nextBlockStart = blockStart + (
-                blockIdx + 1 == blockCount ? docCount - blockIdx * permBlockSize : permBlockSize
+            const int nextBlockStart = Min(
+                blockStart + (blockIdx + 1 == blockCount ? docCount - blockIdx * permBlockSize : permBlockSize),
+                docIndexRange.End
             );
             const int originalBlockIdx = static_cast<int>(bucketIndexing[blockStart]);
             for (int doc = blockStart; doc < nextBlockStart; ++doc) {

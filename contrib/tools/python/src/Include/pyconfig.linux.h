@@ -55,9 +55,7 @@
 #define HAVE_FTRUNCATE 1
 #define HAVE_GAI_STRERROR 1
 #define HAVE_GAMMA 1
-#if defined(__aarch64__)
-//no x87
-#else
+#if defined(__x86_64__) || defined(__i386__)
 #define HAVE_GCC_ASM_FOR_X87 1
 #endif
 #define HAVE_GETADDRINFO 1

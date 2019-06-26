@@ -174,7 +174,7 @@ namespace NCatboostCuda {
             switch (metricType) {
                 case ELossFunction::Logloss:
                 case ELossFunction::CrossEntropy: {
-                    float border = GetDefaultClassificationBorder();
+                    float border = GetDefaultTargetBorder();
                     bool useBorder = false;
                     auto tmp = TVec::Create(cursor.GetMapping().RepeatOnAllDevices(1));
                     if (metricType == ELossFunction::Logloss) {
@@ -209,7 +209,8 @@ namespace NCatboostCuda {
                 case ELossFunction::Lq:
                 case ELossFunction::NumErrors:
                 case ELossFunction::MAPE:
-                case ELossFunction::Poisson: {
+                case ELossFunction::Poisson:
+                case ELossFunction::Expectile: {
                     float alpha = 0.5;
                     auto tmp = TVec::Create(cursor.GetMapping().RepeatOnAllDevices(1));
                     //TODO(noxoomo): make param dispatch on device side
@@ -495,7 +496,8 @@ namespace NCatboostCuda {
             case ELossFunction::Accuracy:
             case ELossFunction::ZeroOneLoss:
             case ELossFunction::NumErrors:
-            case ELossFunction::Poisson: {
+            case ELossFunction::Poisson:
+            case ELossFunction::Expectile: {
                 result.push_back(new TGpuPointwiseMetric(metricDescription, approxDim));
                 break;
             }
@@ -547,7 +549,7 @@ namespace NCatboostCuda {
             }
 
             case ELossFunction::HammingLoss: {
-                double border = GetDefaultClassificationBorder();
+                double border = GetDefaultTargetBorder();
                 const auto& params = metricDescription.GetLossParams();
                 if (params.contains("border")) {
                     border = FromString<float>(params.at("border"));

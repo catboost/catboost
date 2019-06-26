@@ -125,9 +125,9 @@ namespace NKernel {
     };
 
 
-    class TCorrelationScoreCalcer {
+    class TCosineScoreCalcer {
     public:
-        __host__ __device__ TCorrelationScoreCalcer(float lambda,
+        __host__ __device__ TCosineScoreCalcer(float lambda,
                                                     bool normalize,
                                                     float scoreStdDev,
                                                     ui64 globalSeed
@@ -138,7 +138,7 @@ namespace NKernel {
                   , GlobalSeed(globalSeed) {
 
         }
-        __host__ __device__ TCorrelationScoreCalcer(const TCorrelationScoreCalcer& other) = default;
+        __host__ __device__ TCosineScoreCalcer(const TCosineScoreCalcer& other) = default;
 
         __forceinline__ __host__ __device__ void NextFeature(TCBinFeature bf) {
             FeatureId = bf.FeatureId;
@@ -165,7 +165,7 @@ namespace NKernel {
             return score;
         }
 
-        __forceinline__ __host__ __device__ void Combine(const  TCorrelationScoreCalcer& other) {
+        __forceinline__ __host__ __device__ void Combine(const  TCosineScoreCalcer& other) {
             Score += other.Score;
             DenumSqr += other.DenumSqr;
         }

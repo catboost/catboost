@@ -13,5 +13,4 @@ struct TWxTestResult {
     double PValue = 0;
 };
 
-TWxTestResult WxTest(const TVector<double>& baseline,
-                     const TVector<double>& test);
+TWxTestResult WxTest(const TVector<double>& baseline, const TVector<double>& test);

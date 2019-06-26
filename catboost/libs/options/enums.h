@@ -65,9 +65,9 @@ enum class ELeavesEstimation {
 
 enum class EScoreFunction {
     SolarL2,
-    Correlation,
+    Cosine,
     NewtonL2,
-    NewtonCorrelation,
+    NewtonCosine,
     LOOL2,
     SatL2,
     L2
@@ -112,6 +112,7 @@ enum class ELossFunction {
     Lq,
     MAE,
     Quantile,
+    Expectile,
     LogLinQuantile,
     MAPE,
     Poisson,
@@ -254,7 +255,8 @@ enum class EModelType {
     Cpp            /* "Cpp", "CPP", "cpp" */,
     Python         /* "Python", "python" */,
     Json           /* "Json", "json"       */,
-    Onnx           /* "Onnx", "onnx" */
+    Onnx           /* "Onnx", "onnx" */,
+    Pmml           /* "PMML", "pmml" */
 };
 
 enum class EFinalCtrComputationMode {
@@ -285,7 +287,7 @@ enum class EMetricBestValue {
     Undefined
 };
 
-enum class EFeatureCalculatorType {
+enum class EFeatureEstimatorType {
 //Examples
 //    LinearModel,
 //    TfIdf,
@@ -295,5 +297,10 @@ enum class EFeatureCalculatorType {
     BM25,
     CosDistanceWithClassCenter,
     GaussianHomoscedasticModel,
-    GaussianHeteroscedasticiModel
+    GaussianHeteroscedasticModel
+};
+
+enum class ETokenizerType {
+    Naive,
+    UserDefined
 };

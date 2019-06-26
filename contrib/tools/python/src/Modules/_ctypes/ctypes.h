@@ -7,6 +7,10 @@
 #   include <alloca.h>
 #endif
 
+#ifdef MS_WIN32
+#include <unknwn.h>
+#endif
+
 #if (PY_VERSION_HEX < 0x02040000)
 #define PyDict_CheckExact(ob) (Py_TYPE(ob) == &PyDict_Type)
 #endif

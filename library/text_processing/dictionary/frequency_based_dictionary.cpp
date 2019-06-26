@@ -1,5 +1,4 @@
 #include "frequency_based_dictionary.h"
-
 #include "frequency_based_dictionary_impl.h"
 #include "util.h"
 

@@ -9,6 +9,8 @@
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/options/binarization_options.h>
 #include <catboost/libs/options/enums.h>
+#include <catboost/libs/options/text_feature_options.h>
+#include <catboost/libs/text_features/dictionary.h>
 #include <catboost/libs/quantization/utils.h>
 
 #include <library/binsaver/bin_saver.h>
@@ -44,6 +46,15 @@ namespace NCB {
             TConstArrayRef<ui32> ignoredFeatures,
             NCatboostOptions::TBinarizationOptions commonFloatFeaturesBinarization,
             TMap<ui32, NCatboostOptions::TBinarizationOptions> perFloatFeaturebinarization=TMap<ui32, NCatboostOptions::TBinarizationOptions>(),
+            bool floatFeaturesAllowNansInTestOnly = true,
+            bool allowWriteFiles = true);
+
+        TQuantizedFeaturesInfo(
+            const TFeaturesLayout& featuresLayout,
+            TConstArrayRef<ui32> ignoredFeatures,
+            NCatboostOptions::TBinarizationOptions commonFloatFeaturesBinarization,
+            TMap<ui32, NCatboostOptions::TBinarizationOptions> perFloatFeaturebinarization,
+            NCatboostOptions::TTextProcessingOptionCollection textFeaturesProcessing,
             bool floatFeaturesAllowNansInTestOnly = true,
             bool allowWriteFiles = true);
 
@@ -112,6 +123,10 @@ namespace NCB {
             return CommonFloatFeaturesBinarization;
         }
 
+        const NCatboostOptions::TTextProcessingOptions& GetTextFeatureProcessing(ui32 featureIdx) const {
+            return TextFeaturesProcessing.GetFeatureTextProcessing(featureIdx);
+        }
+
         bool GetFloatFeaturesAllowNansInTestOnly() const {
             return FloatFeaturesAllowNansInTestOnly;
         }
@@ -160,6 +175,22 @@ namespace NCB {
 
         ui32 CalcCheckSum() const;
 
+        void SetDictionary(const TTextFeatureIdx textFeatureIdx,
+                           TDictionaryPtr dictionary) {
+            CheckCorrectPerTypeFeatureIdx(textFeatureIdx);
+            Dictionaries[*textFeatureIdx] = std::move(dictionary);
+        }
+
+        const TDictionaryPtr GetDictionary(const TTextFeatureIdx textFeatureIdx) const {
+            CheckCorrectPerTypeFeatureIdx(textFeatureIdx);
+            return Dictionaries.at(*textFeatureIdx);
+        }
+
+        bool HasDictionary(const TTextFeatureIdx textFeatureIdx) const {
+            CheckCorrectPerTypeFeatureIdx(textFeatureIdx);
+            return Dictionaries.contains(*textFeatureIdx);
+        }
+
     private:
         void LoadNonSharedPart(IBinSaver* binSaver);
         void SaveNonSharedPart(IBinSaver* binSaver) const;
@@ -199,6 +230,9 @@ namespace NCB {
         TMap<ui32, ENanMode> NanModes; // [floatFeatureIdx]
 
         TCatFeaturesPerfectHash CatFeaturesPerfectHash;
+
+        NCatboostOptions::TTextProcessingOptionCollection TextFeaturesProcessing;
+        TMap<ui32, TDictionaryPtr> Dictionaries; // [textFeatureIdx]
     };
 
     using TQuantizedFeaturesInfoPtr = TIntrusivePtr<TQuantizedFeaturesInfo>;

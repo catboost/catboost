@@ -6,6 +6,8 @@
 #include <catboost/libs/data_util/line_data_reader.h>
 #include <catboost/libs/data_util/path_with_scheme.h>
 
+#include <library/binsaver/bin_saver.h>
+
 #include <util/generic/string.h>
 #include <util/generic/vector.h>
 #include <util/system/types.h>
@@ -18,6 +20,8 @@ namespace NCatboostOptions {
         TDsvPoolFormatParams() = default;
 
         void Validate() const;
+
+        SAVELOAD(Format, CdFilePath);
     };
 
     struct TPoolLoadParams {
@@ -45,6 +49,13 @@ namespace NCatboostOptions {
 
         void Validate() const;
         void Validate(TMaybe<ETaskType> taskType) const;
+
+        SAVELOAD(
+            CvParams, DsvPoolFormatParams, LearnSetPath, TestSetPaths,
+            PairsFilePath, TestPairsFilePath, GroupWeightsFilePath, TestGroupWeightsFilePath,
+            BaselineFilePath, TestBaselineFilePath, ClassNames, IgnoredFeatures,
+            BordersFile
+        );
     };
 
     void ValidatePoolParams(

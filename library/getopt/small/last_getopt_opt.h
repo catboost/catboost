@@ -412,6 +412,12 @@ namespace NLastGetopt {
             return StoreResultT<T>(target, def);
         }
 
+        template <typename T, typename TpDef>
+        TOpt& StoreResultDef(T* target, const TpDef& def) {
+            DefaultValue_ = ToString(def);
+            return StoreResultT<T>(target, def);
+        }
+
         // Sugar for storing flags (option without arguments) to boolean vars
         TOpt& SetFlag(bool* target) {
             return DefaultValue("0").StoreResult(target, true);

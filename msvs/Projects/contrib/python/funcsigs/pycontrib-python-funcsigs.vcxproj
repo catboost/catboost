@@ -57,8 +57,8 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <UseFullPaths>true</UseFullPaths>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /DFAKEID=5020880 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DFFI_BUILDING -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1  /std:c++17 -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /DFAKEID=5020880 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DFFI_BUILDING -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1  /std:c++17 -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /DFAKEID=5020880 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOGDI /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1  -DARCADIA_PYTHON_UNICODE_SIZE=2 /std:c++17 -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /DFAKEID=5020880 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOGDI /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1  -DARCADIA_PYTHON_UNICODE_SIZE=2 /std:c++17 -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
@@ -78,13 +78,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\funcsigs\56d280102d92096a4ae0336039.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\funcsigs\4ccd8b43f9b2a5c3d636fde4b0.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\funcsigs\75d72c639ecc9d73894e9c865a.cpp"/>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\funcsigs\_56d280102d92096a4ae0336039.yasm">
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\funcsigs\_4ccd8b43f9b2a5c3d636fde4b0.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\funcsigs
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/brotli/include" "-o" "$(SolutionDir)$(Configuration)/contrib/python/funcsigs/_56d280102d92096a4ae0336039.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/funcsigs/_56d280102d92096a4ae0336039.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/brotli/include" "-o" "$(SolutionDir)$(Configuration)/contrib/python/funcsigs/_4ccd8b43f9b2a5c3d636fde4b0.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/funcsigs/_4ccd8b43f9b2a5c3d636fde4b0.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -95,7 +95,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\funcsigs
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/brotli/include" "-o" "$(SolutionDir)$(Configuration)/contrib/python/funcsigs/_56d280102d92096a4ae0336039.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/funcsigs/_56d280102d92096a4ae0336039.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/brotli/include" "-o" "$(SolutionDir)$(Configuration)/contrib/python/funcsigs/_4ccd8b43f9b2a5c3d636fde4b0.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/funcsigs/_4ccd8b43f9b2a5c3d636fde4b0.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -103,9 +103,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/funcsigs/_56d280102d92096a4ae0336039.py2.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\funcsigs\_56d280102d92096a4ae0336039.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\funcsigs\_56d280102d92096a4ae0336039.py2.obj;</Outputs>
+      <Message>$B/contrib/python/funcsigs/_4ccd8b43f9b2a5c3d636fde4b0.py2.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\funcsigs\_4ccd8b43f9b2a5c3d636fde4b0.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\funcsigs\_4ccd8b43f9b2a5c3d636fde4b0.py2.obj;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\funcsigs\_75d72c639ecc9d73894e9c865a.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -138,7 +138,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\funcsigs
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/funcsigs/56d280102d92096a4ae0336039.cpp" "_6edbe9634933d264cf5a2d387e=/fs/contrib/python/funcsigs/.dist-info/METADATA"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/funcsigs/4ccd8b43f9b2a5c3d636fde4b0.cpp" "_c81664802f1e00d7f88a8a327b=resfs/src/resfs/file/contrib/python/funcsigs/.dist-info/METADATA" "_44d86cfe8d7b386f757a9b174f=resfs/file/contrib/python/funcsigs/.dist-info/METADATA"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\funcsigs
 if %errorlevel% neq 0 goto :cmEnd
@@ -153,7 +153,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\funcsigs
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/funcsigs/56d280102d92096a4ae0336039.cpp" "_6edbe9634933d264cf5a2d387e=/fs/contrib/python/funcsigs/.dist-info/METADATA"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/funcsigs/4ccd8b43f9b2a5c3d636fde4b0.cpp" "_c81664802f1e00d7f88a8a327b=resfs/src/resfs/file/contrib/python/funcsigs/.dist-info/METADATA" "_44d86cfe8d7b386f757a9b174f=resfs/file/contrib/python/funcsigs/.dist-info/METADATA"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\funcsigs
 if %errorlevel% neq 0 goto :cmEnd
@@ -165,9 +165,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/funcsigs/56d280102d92096a4ae0336039.cpp	$B/contrib/python/funcsigs/75d72c639ecc9d73894e9c865a.cpp	</Message>
+      <Message>$B/contrib/python/funcsigs/4ccd8b43f9b2a5c3d636fde4b0.cpp	$B/contrib/python/funcsigs/75d72c639ecc9d73894e9c865a.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\funcsigs\56d280102d92096a4ae0336039.cpp;$(SolutionDir)$(Configuration)\contrib\python\funcsigs\75d72c639ecc9d73894e9c865a.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\funcsigs\4ccd8b43f9b2a5c3d636fde4b0.cpp;$(SolutionDir)$(Configuration)\contrib\python\funcsigs\75d72c639ecc9d73894e9c865a.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -208,7 +208,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\funcsigs
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/funcsigs/_56d280102d92096a4ae0336039.yasm" "$(SolutionDir)../contrib/python/funcsigs/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/funcsigs/_6edbe9634933d264cf5a2d387e.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/funcsigs/_4ccd8b43f9b2a5c3d636fde4b0.yasm" "-" "contrib/python/funcsigs/.dist-info/METADATA" "_c81664802f1e00d7f88a8a327b.rodata" "$(SolutionDir)../contrib/python/funcsigs/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/funcsigs/_44d86cfe8d7b386f757a9b174f.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -219,7 +219,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\funcsigs
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/funcsigs/_56d280102d92096a4ae0336039.yasm" "$(SolutionDir)../contrib/python/funcsigs/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/funcsigs/_6edbe9634933d264cf5a2d387e.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/funcsigs/_4ccd8b43f9b2a5c3d636fde4b0.yasm" "-" "contrib/python/funcsigs/.dist-info/METADATA" "_c81664802f1e00d7f88a8a327b.rodata" "$(SolutionDir)../contrib/python/funcsigs/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/funcsigs/_44d86cfe8d7b386f757a9b174f.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -227,9 +227,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/funcsigs/_56d280102d92096a4ae0336039.yasm	</Message>
+      <Message>$B/contrib/python/funcsigs/_4ccd8b43f9b2a5c3d636fde4b0.yasm	</Message>
       <AdditionalInputs>$(SolutionDir)..\contrib\python\funcsigs\.dist-info\METADATA;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\funcsigs\_56d280102d92096a4ae0336039.yasm;$(SolutionDir)$(Configuration)\contrib\python\funcsigs\_6edbe9634933d264cf5a2d387e.rodata;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\funcsigs\_4ccd8b43f9b2a5c3d636fde4b0.yasm;$(SolutionDir)$(Configuration)\contrib\python\funcsigs\_44d86cfe8d7b386f757a9b174f.rodata;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\python\funcsigs\funcsigs\__init__.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -319,8 +319,8 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zlib\contrib-libs-zlib.vcxproj">
       <Project>{E8A35EC0-40EE-2D96-1FB2-D065B804958D}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zstd\zstd.vcxproj">
-      <Project>{6048E29B-4487-B4DB-ADA1-4CAAE7C1607F}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zstd\contrib-libs-zstd.vcxproj">
+      <Project>{0F7ECE1F-EE4E-A88C-12F5-7D1C49F1BC75}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zstd06\contrib-libs-zstd06.vcxproj">
       <Project>{149CAE2F-67B1-E007-9F05-67247453CE03}</Project>

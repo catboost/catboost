@@ -1,14 +1,10 @@
+import junit.framework.Assert;
 import org.junit.Test;
 
 import ru.yandex.library.svnversion.VcsVersion;
 
 
 public class TestOne {
-    private static void outAll(String cls) throws Exception {
-        VcsVersion VCS = cls.equals("") ? new VcsVersion() : new VcsVersion(cls);
-        outAll(VCS);
-    }
-
     private static void outAll(Class cls) throws Exception {
         outAll(new VcsVersion(cls));
     }
@@ -28,20 +24,42 @@ public class TestOne {
         System.out.println(vcs.getProgramBuildDate());
         System.out.println(vcs.getVCS());
         System.out.println(vcs.getBranch());
-    }
-
-    @Test
-    public void test1() throws Exception {
-        outAll("");
-    }
-
-    @Test
-    public void test2() throws Exception {
-        outAll("ru.yandex.library.svnversion.VcsVersion");
+        System.out.println(vcs.getTag());
+        System.out.println(vcs.getArcadiaGitPatchNumer());
     }
 
     @Test
     public void test3() throws Exception {
         outAll(VcsVersion.class);
+    }
+
+    @Test
+    public void testSanity() throws Exception {
+        VcsVersion vcs = new VcsVersion(VcsVersion.class);
+        String vcsType = vcs.getVCS();
+
+        Assert.assertTrue(
+                vcsType.equals("arc") ||
+                vcsType.equals("git") ||
+                vcsType.equals("hg") ||
+                vcsType.equals("svn"));
+
+        Assert.assertFalse(vcs.getProgramBuildDate().equals(""));
+        Assert.assertFalse(vcs.getProgramBuildHost().equals(""));
+        Assert.assertFalse(vcs.getProgramBuildUser().equals(""));
+        if (vcsType.equals("arc")) {
+            Assert.assertFalse(vcs.getProgramHgHash().equals(""));
+        }
+        if (vcsType.equals("git")) {
+            Assert.assertFalse(vcs.getProgramHgHash().equals(""));
+        }
+        if (vcsType.equals("hg")) {
+            Assert.assertFalse(vcs.getProgramHgHash().equals(""));
+        }
+        if (vcsType.equals("svn")) {
+            Assert.assertFalse(vcs.getArcadiaSourceUrl().equals(""));
+            Assert.assertTrue(vcs.getProgramSvnRevision() > 0);
+            Assert.assertTrue(vcs.getArcadiaLastChangeNum() > 0);
+        }
     }
 }

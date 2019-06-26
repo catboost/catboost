@@ -9,11 +9,13 @@ PEERDIR(
 )
 
 SRCS(
+    cont_poller.cpp
     impl.cpp
     iostatus.cpp
+    network.cpp
     poller.cpp
     sockpool.cpp
-    stack.cpp
+    trampoline.cpp
 )
 
 END()

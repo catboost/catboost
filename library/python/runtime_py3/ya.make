@@ -22,6 +22,8 @@ PY_SRCS(
     __res.pyx
 )
 
+NO_LINT()
+
 END()
 
 RECURSE_FOR_TESTS(

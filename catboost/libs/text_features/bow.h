@@ -11,16 +11,15 @@ namespace NCB {
         TBagOfWordsEstimator(
             TTextDataSetPtr learnTexts,
             TVector<TTextDataSetPtr> testTexts)
-            :  LearnTexts({learnTexts})
+            : LearnTexts({learnTexts})
             , TestTexts(std::move(testTexts))
-            , Dictionary(learnTexts->GetDictionary()){
-
-        }
+            , Dictionary(learnTexts->GetDictionary())
+        {}
 
         TEstimatedFeaturesMeta FeaturesMeta() const override {
             const ui32 featureCount = Dictionary.Size();
             TEstimatedFeaturesMeta meta;
-            meta.Type = TVector<EFeatureCalculatorType>(featureCount, EFeatureCalculatorType::BoW);
+            meta.Type = TVector<EFeatureEstimatorType>(featureCount, EFeatureEstimatorType::BoW);
             meta.FeaturesCount = featureCount;
             meta.UniqueValuesUpperBoundHint = TVector<ui32>(featureCount, 2);
             return meta;

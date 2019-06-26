@@ -24,7 +24,14 @@ TEST_SRCS(
 NO_CHECK_IMPORTS(widget.ipythonwidget)
 
 SIZE(LARGE)
-TAG(ya:fat)
+
+IF (SANITIZER_TYPE)
+    TAG(ya:fat ya:not_autocheck)
+ELSE()
+    TAG(ya:fat ya:yt ya:noretries)
+ENDIF()
+
+YT_SPEC(catboost/pytest/cuda_tests/yt_spec.json)
 
 DATA(
     arcadia/catboost/pytest/data

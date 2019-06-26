@@ -11,6 +11,98 @@ ALLOW devtools/experimental/mds -> contrib/deprecated/blackhole
 DENY .* -> contrib/deprecated/blackhole
 
 ALLOW contrib/deprecated/folly -> contrib/deprecated/folly
+ALLOW contrib/deprecated/wangle -> contrib/deprecated/folly
+ALLOW contrib/deprecated/wangle -> contrib/deprecated/wangle
 ALLOW mds -> contrib/deprecated/folly
+ALLOW mds -> contrib/deprecated/wangle
 ALLOW devtools/experimental/mds -> contrib/deprecated/folly
+ALLOW devtools/experimental/mds -> contrib/deprecated/wangle
 DENY .* -> contrib/deprecated/folly
+DENY .* -> contrib/deprecated/wangle
+
+ALLOW contrib/deprecated/http-parser -> contrib/deprecated/http-parser
+ALLOW mds -> contrib/deprecated/http-parser
+ALLOW devtools/experimental/mds -> contrib/deprecated/http-parser
+DENY .* -> contrib/deprecated/http-parser
+
+ALLOW contrib/deprecated/uriparser -> contrib/deprecated/uriparser
+ALLOW mds -> contrib/deprecated/uriparser
+ALLOW devtools/experimental/mds -> contrib/deprecated/uriparser
+DENY .* -> contrib/deprecated/uriparser
+
+ALLOW travel/rasp -> contrib/python/django/django-1.9
+DENY .* -> contrib/python/django/django-1.9
+
+ALLOW maps -> maps/contrib
+# maps/contrib/libpqxx is used by maps/libs/pgpool, a client-side connection pool for PostgrSQL
+# This rule can be removed upon completion of https://st.yandex-team.ru/HEREBEDRAGONS-123
+ALLOW .* -> maps/contrib/libpqxx
+DENY .* -> maps/contrib
+
+# contrib/libs/boost is just a proxy towards contrib/deprecated/boost - hence all the rules are duplicated
+ALLOW adfox -> contrib/libs/boost
+ALLOW adfox -> contrib/deprecated/boost
+ALLOW ads -> contrib/libs/boost
+ALLOW ads -> contrib/deprecated/boost
+ALLOW advq -> contrib/libs/boost
+ALLOW advq -> contrib/deprecated/boost
+ALLOW alice/nlu -> contrib/libs/boost
+ALLOW alice/nlu -> contrib/deprecated/boost
+ALLOW alice/vins_contrib/crfsuitex -> contrib/libs/boost
+ALLOW alice/vins_contrib/crfsuitex -> contrib/deprecated/boost
+ALLOW contrib/libs -> contrib/libs/boost
+ALLOW contrib/libs -> contrib/deprecated/boost
+ALLOW contrib/deprecated -> contrib/libs/boost
+ALLOW contrib/deprecated -> contrib/deprecated/boost
+ALLOW contrib/tools -> contrib/libs/boost
+ALLOW contrib/tools -> contrib/deprecated/boost
+ALLOW devtools -> contrib/libs/boost
+ALLOW devtools -> contrib/deprecated/boost
+ALLOW extsearch/geo/poi_service/tools/storage_reader -> contrib/libs/boost
+ALLOW extsearch/geo/poi_service/tools/storage_reader -> contrib/deprecated/boost
+ALLOW infra/contrib/pdns -> contrib/libs/boost
+ALLOW infra/contrib/pdns -> contrib/deprecated/boost
+ALLOW juggler/pongerd -> contrib/libs/boost
+ALLOW juggler/pongerd -> contrib/deprecated/boost
+ALLOW lbs/locator -> contrib/libs/boost
+ALLOW lbs/locator -> contrib/deprecated/boost
+ALLOW library/testing/ya_boost_test -> contrib/libs/boost
+ALLOW library/testing/ya_boost_test -> contrib/deprecated/boost
+ALLOW logbroker/pipe-parser -> contrib/libs/boost
+ALLOW logbroker/pipe-parser -> contrib/deprecated/boost
+ALLOW mail -> contrib/libs/boost
+ALLOW mail -> contrib/deprecated/boost
+ALLOW market/feedparser -> contrib/libs/boost
+ALLOW market/feedparser -> contrib/deprecated/boost
+ALLOW market/indexer -> contrib/libs/boost
+ALLOW market/indexer -> contrib/deprecated/boost
+ALLOW maps -> contrib/libs/boost
+ALLOW maps -> contrib/deprecated/boost
+ALLOW metrika -> contrib/libs/boost
+ALLOW metrika -> contrib/deprecated/boost
+ALLOW netsys/tiles-vcdiff/gen-tiles -> contrib/libs/boost
+ALLOW netsys/tiles-vcdiff/gen-tiles -> contrib/deprecated/boost
+ALLOW orgvisits/dwellplaces -> contrib/libs/boost
+ALLOW orgvisits/dwellplaces -> contrib/deprecated/boost
+ALLOW orgvisits/heuristics -> contrib/libs/boost
+ALLOW orgvisits/heuristics -> contrib/deprecated/boost
+ALLOW orgvisits/library/soc -> contrib/libs/boost
+ALLOW orgvisits/library/soc -> contrib/deprecated/boost
+ALLOW quality/antifraud/common_lib -> contrib/libs/boost
+ALLOW quality/antifraud/common_lib -> contrib/deprecated/boost
+ALLOW regulargeo/research -> contrib/libs/boost
+ALLOW regulargeo/research -> contrib/deprecated/boost
+ALLOW rem/python/geobase30 -> contrib/libs/boost
+ALLOW rem/python/geobase30 -> contrib/deprecated/boost
+ALLOW rtline/services/drive/contrib/libs/telemetry -> contrib/libs/boost
+ALLOW rtline/services/drive/contrib/libs/telemetry -> contrib/deprecated/boost
+ALLOW statbox/libstatbox -> contrib/libs/boost
+ALLOW statbox/libstatbox -> contrib/deprecated/boost
+ALLOW voicetech/tools -> contrib/libs/boost
+ALLOW voicetech/tools -> contrib/deprecated/boost
+ALLOW weather/grid_api/lib -> contrib/libs/boost
+ALLOW weather/grid_api/lib -> contrib/deprecated/boost
+ALLOW yabs/telephony -> contrib/libs/boost
+ALLOW yabs/telephony -> contrib/deprecated/boost
+DENY .* -> contrib/libs/boost
+DENY .* -> contrib/deprecated/boost 

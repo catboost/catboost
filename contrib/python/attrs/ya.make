@@ -21,4 +21,10 @@ PY_SRCS(
     attr/validators.py
 )
 
+RESOURCE_FILES(
+    PREFIX contrib/python/attrs/
+    .dist-info/METADATA
+    .dist-info/top_level.txt
+)
+
 END()

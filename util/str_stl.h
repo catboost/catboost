@@ -155,7 +155,10 @@ namespace NHashPrivate {
     struct TPairHash<TFirst, TSecond, true> {
         template <class T>
         inline size_t operator()(const T& pair) const {
-            return CombineHashes(THash<TFirst>()(pair.first), THash<TSecond>()(pair.second));
+            // maps have TFirst = const TFoo, which would make for an undefined specialization
+            using TFirstClean = std::remove_cv_t<TFirst>;
+            using TSecondClean = std::remove_cv_t<TSecond>;
+            return CombineHashes(THash<TFirstClean>()(pair.first), THash<TSecondClean>()(pair.second));
         }
     };
 }

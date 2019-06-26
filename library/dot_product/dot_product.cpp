@@ -13,11 +13,17 @@ i32 DotProduct(const i8* lhs, const i8* rhs, ui32 length) noexcept {
         __m128i lVec = _mm_loadu_si128((const __m128i*)lhs);
         __m128i rVec = _mm_loadu_si128((const __m128i*)rhs);
 
+#ifdef _sse4_1_
+        __m128i lLo = _mm_cvtepi8_epi16(lVec);
+        __m128i rLo = _mm_cvtepi8_epi16(rVec);
+        __m128i lHi = _mm_cvtepi8_epi16(_mm_alignr_epi8(lVec, lVec, 8));
+        __m128i rHi = _mm_cvtepi8_epi16(_mm_alignr_epi8(rVec, rVec, 8));
+#else
         __m128i lLo = _mm_srai_epi16(_mm_unpacklo_epi8(zero, lVec), 8);
         __m128i rLo = _mm_srai_epi16(_mm_unpacklo_epi8(zero, rVec), 8);
         __m128i lHi = _mm_srai_epi16(_mm_unpackhi_epi8(zero, lVec), 8);
         __m128i rHi = _mm_srai_epi16(_mm_unpackhi_epi8(zero, rVec), 8);
-
+#endif
         resVec = _mm_add_epi32(resVec,
                                _mm_add_epi32(_mm_madd_epi16(lLo, rLo), _mm_madd_epi16(lHi, rHi)));
 
@@ -35,6 +41,43 @@ i32 DotProduct(const i8* lhs, const i8* rhs, ui32 length) noexcept {
 
     return sum;
 }
+
+#ifdef _sse4_1_
+
+i64 DotProduct(const i32* lhs, const i32* rhs, ui32 length) noexcept {
+    __m128i zero = _mm_setzero_si128();
+    __m128i res = zero;
+
+    while (length >= 4) {
+        __m128i a = _mm_loadu_si128((const __m128i*)lhs);
+        __m128i b = _mm_loadu_si128((const __m128i*)rhs);
+        res = _mm_add_epi64(_mm_mul_epi32(a, b), res);    // This is lower parts multiplication
+        a = _mm_alignr_epi8(a, a, 4);
+        b = _mm_alignr_epi8(b, b, 4);
+        res = _mm_add_epi64(_mm_mul_epi32(a, b), res);
+        rhs += 4;
+        lhs += 4;
+        length -= 4;
+    }
+
+    alignas(16) i64 r[2];
+    _mm_store_si128((__m128i*)r, res);
+    i64 sum = r[0] + r[1];
+
+    for (ui32 i = 0; i < length; ++i) {
+        sum += static_cast<i32>(lhs[i]) * static_cast<i32>(rhs[i]);
+    }
+
+    return sum;
+}
+
+#else
+
+i64 DotProduct(const i32* lhs, const i32* rhs, ui32 length) noexcept {
+    return DotProductSlow(lhs, rhs, length);
+}
+
+#endif
 
 float DotProduct(const float* lhs, const float* rhs, ui32 length) noexcept {
     __m128 sum1 = _mm_setzero_ps();
@@ -372,35 +415,6 @@ TTriWayDotProduct<float> TriWayDotProduct(const float* lhs, const float* rhs, ui
 
 #endif // ARCADIA_SSE
 
-i64 DotProduct(const i32* lhs, const i32* rhs, ui32 length) noexcept {
-    /*
-     * Unfortunately there is no way of 32-bit signed integer multiplication with SSE. At least I couldn't find the way.
-     * So if there is somebody who knows everithing about SSE, you are welcome.
-     *
-     * But this method allows processor to use vectorization and works resonably fast. You can find benchmark results
-     * running bench and it is about 75% of SSE-powered speed for i8 and should be even better for i32.
-     */
-    i64 s0 = 0;
-    i64 s1 = 0;
-    i64 s2 = 0;
-    i64 s3 = 0;
-
-    while (length >= 4) {
-        s0 += static_cast<i64>(lhs[0]) * static_cast<i64>(rhs[0]);
-        s1 += static_cast<i64>(lhs[1]) * static_cast<i64>(rhs[1]);
-        s2 += static_cast<i64>(lhs[2]) * static_cast<i64>(rhs[2]);
-        s3 += static_cast<i64>(lhs[3]) * static_cast<i64>(rhs[3]);
-        lhs += 4;
-        rhs += 4;
-        length -= 4;
-    }
-
-    while (length--)
-        s0 += static_cast<i64>(*lhs++) * static_cast<i64>(*rhs++);
-
-    return s0 + s1 + s2 + s3;
-}
-
 i32 DotProductSlow(const i8* lhs, const i8* rhs, ui32 length) noexcept {
     i32 s0 = 0;
     i32 s1 = 0;
@@ -466,9 +480,8 @@ static Res DotProductSlowImpl(const Number* lhs, const Number* rhs, ui32 length)
         length -= 4;
     }
 
-    while (length) {
+    while (length--) {
         s0 += static_cast<Res>(*lhs++) * static_cast<Res>(*rhs++);
-        --length;
     }
 
     return s0 + s1 + s2 + s3;

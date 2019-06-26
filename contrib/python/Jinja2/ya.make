@@ -6,6 +6,7 @@ VERSION(2.10.1)
 
 PEERDIR(
     contrib/python/MarkupSafe
+    contrib/python/setuptools
 )
 
 PY_SRCS(
@@ -48,3 +49,7 @@ ENDIF()
 NO_LINT()
 
 END()
+
+RECURSE_FOR_TESTS(
+    tests
+)

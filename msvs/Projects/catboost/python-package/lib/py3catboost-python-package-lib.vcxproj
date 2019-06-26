@@ -1,0 +1,1369 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build" ToolsVersion="4.0">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGUID>{3D166C49-A831-D283-8151-457BCEA12850}</ProjectGUID>
+    <Keyword>Win32Proj</Keyword>
+    <Platform>x64</Platform>
+    <ProjectName>py3catboost-python-package-lib</ProjectName>
+    <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.default.props"/>
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>Multibyte</CharacterSet>
+    <PlatformToolset>v141</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props"/>
+  <ImportGroup Label="ArcadiaProps"/>
+  <ImportGroup Label="ExtensionSettings"/>
+  <ImportGroup Label="PropertySheets"/>
+  <PropertyGroup Label="UserMacros"/>
+  <PropertyGroup>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
+    <TargetName>py3catboost-python-package-lib</TargetName>
+    <TargetExtention>.lib</TargetExtention>
+    <OutDir>$(SolutionDir)$(Configuration)\catboost\python-package\lib\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\3D166C49-A831-D283-8151-457BCEA12850\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">EnableFastChecks</BasicRuntimeChecks>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DisableSpecificWarnings>4267;4244</DisableSpecificWarnings>
+      <ErrorReporting>Prompt</ErrorReporting>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Disabled</InlineFunctionExpansion>
+      <InlineFunctionExpansion Condition="'$(Configuration)|$(Platform)'=='Release|x64'">AnySuitable</InlineFunctionExpansion>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Disabled</Optimization>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">MaxSpeed</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">MultiThreadedDebug</RuntimeLibrary>
+      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Release|x64'">MultiThreaded</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <UseFullPaths>true</UseFullPaths>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /DFAKEID=5020880 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DUSE_PYTHON3 "-I$(CUDA_PATH)/include" /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOGDI /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1  -DUSE_PYTHON3   /wd4456 /wd4457 /std:c++17 -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /DFAKEID=5020880 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DUSE_PYTHON3 "-I$(CUDA_PATH)/include" /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOGDI /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1  -DUSE_PYTHON3   /wd4456 /wd4457 /std:c++17 -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">TurnOffAllWarnings</WarningLevel>
+      <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
+      <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
+      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/python/Include;$(SolutionDir)../contrib/tools/cython/Cython/Includes;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/double-conversion/include;$(SolutionDir)../contrib/libs/openssl/include;$(SolutionDir)../contrib/libs/brotli/include;$(SolutionDir)../contrib/libs/protobuf;$(SolutionDir)../contrib/libs/protobuf/google/protobuf;$(SolutionDir)../contrib/libs/libf2c;$(SolutionDir)../contrib/python/numpy/numpy/core/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  Mincore.lib Shlwapi.lib Winmm.lib "/LIBPATH:$(CUDA_PATH)/lib/x64" cublas.lib curand.lib cudart_static.lib cusparse.lib</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  Mincore.lib Shlwapi.lib Winmm.lib "/LIBPATH:$(CUDA_PATH)/lib/x64" cublas.lib curand.lib cudart_static.lib cusparse.lib</AdditionalOptions>
+      <SubSystem Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Console</SubSystem>
+      <GenerateDebugInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">DebugFastLink</GenerateDebugInformation>
+      <RandomizedBaseAddress Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</RandomizedBaseAddress>
+      <SubSystem Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Console</SubSystem>
+      <GenerateDebugInformation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Debug</GenerateDebugInformation>
+      <RandomizedBaseAddress Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</RandomizedBaseAddress>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="$(SolutionDir)..\catboost\python-package\catboost\helpers.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\python-package\lib\_catboost.pyx.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\python-package\lib\catboost._catboost.reg3.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\python-package\lib\join_ddf3e0114f5f63d47aa37323ff.cpp"/>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\catboost\python-package\lib\join_aa230ca8531060ed8c6e1e919e.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/brotli/include" "-I" "$(SolutionDir)../contrib/libs/protobuf" "-I" "$(SolutionDir)../contrib/libs/protobuf/google/protobuf" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-o" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/join_aa230ca8531060ed8c6e1e919e.py3.obj" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/join_aa230ca8531060ed8c6e1e919e.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/brotli/include" "-I" "$(SolutionDir)../contrib/libs/protobuf" "-I" "$(SolutionDir)../contrib/libs/protobuf/google/protobuf" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-o" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/join_aa230ca8531060ed8c6e1e919e.py3.obj" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/join_aa230ca8531060ed8c6e1e919e.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/catboost/python-package/lib/join_aa230ca8531060ed8c6e1e919e.py3.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\catboost\python-package\lib\join_aa230ca8531060ed8c6e1e919e.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\python-package\lib\join_aa230ca8531060ed8c6e1e919e.py3.obj;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/7601a68d4805084f93dbae9390.cpp" "_5ccd179c2389742b69a4cd1f6d=resfs/src/resfs/file/py/catboost/__init__.py" "_f36f1adf498a39538418f334ea=resfs/file/py/catboost/__init__.py" "_c1c580f7db30853a7dc3c165b6=resfs/src/resfs/file/py/catboost/__init__.py.yapyc3" "_df20fc578c59889e866a17b3bd=resfs/file/py/catboost/__init__.py.yapyc3" "_e735c4820918cf88be51f95373=resfs/src/resfs/file/py/catboost/version.py" "_73d692c565f89f2e26183290ec=resfs/file/py/catboost/version.py" "_73016cbd17e9bf366d9a1cecdc=resfs/src/resfs/file/py/catboost/version.py.yapyc3" "_6c0fba3d803e1b9ba277c43472=resfs/file/py/catboost/version.py.yapyc3" "_e18093d34abe579c9f9895fb5f=resfs/src/resfs/file/py/catboost/core.py" "_58a04087841526283da2b808cb=resfs/file/py/catboost/core.py" "_3a1083f0d0db5762dfb332ba2b=resfs/src/resfs/file/py/catboost/core.py.yapyc3" "_a857f20acdc58aed47c25e991b=resfs/file/py/catboost/core.py.yapyc3" "_8857ef01b027f7bfd7911b9e6b=resfs/src/resfs/file/py/catboost/datasets.py" "_15f2613c6046d24b512ba751f6=resfs/file/py/catboost/datasets.py" "_0f06f49c8af6f7fa30253ca34b=resfs/src/resfs/file/py/catboost/datasets.py.yapyc3" "_23405bebdf312ab5ab9808a8ab=resfs/file/py/catboost/datasets.py.yapyc3" "_79eeee8b0e11a06286228601e3=resfs/src/resfs/file/py/catboost/utils.py" "_19e3f15dbc82192b68c3824c0d=resfs/file/py/catboost/utils.py" "_c745aebb17ed31858d8bdbe458=resfs/src/resfs/file/py/catboost/utils.py.yapyc3" "_37f2d1b113cc46f2af926141df=resfs/file/py/catboost/utils.py.yapyc3" "_71c671907c073b0663cc88ac3b=resfs/src/resfs/file/py/catboost/widget/__init__.py" "_ad6b700443d8d15c4ed086f54e=resfs/file/py/catboost/widget/__init__.py" "_2361043da63de54ac2b69a0ff3=resfs/src/resfs/file/py/catboost/widget/__init__.py.yapyc3" "_8716ff79e2f90eab9214c6b40a=resfs/file/py/catboost/widget/__init__.py.yapyc3" "_6b9dfe075b15e4c8f09a443fe5=resfs/src/resfs/file/py/catboost/widget/ipythonwidget.py" "_1902ef9ad2e07571a9e9911cdc=resfs/file/py/catboost/widget/ipythonwidget.py" "_92c7a5fce70dc7adefa1370d88=resfs/src/resfs/file/py/catboost/widget/ipythonwidget.py.yapyc3" "_40e218fe189d3dfe5392f83156=resfs/file/py/catboost/widget/ipythonwidget.py.yapyc3" "_c640470516524f94b65b53b5de=resfs/src/resfs/file/py/catboost/eval/_fold_model.py"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/bb8b7a8674c14c5e2f84f69265.cpp" "_7b0d29db8c11478dccdac72cc9=resfs/src/resfs/file/py/catboost/eval/execution_case.py" "_bc16a278d61e28f56328ca1423=resfs/file/py/catboost/eval/execution_case.py" "_f3f0a255b4d948044b26a50a7a=resfs/src/resfs/file/py/catboost/eval/execution_case.py.yapyc3" "_30a8319d22f46e275ee025c81f=resfs/file/py/catboost/eval/execution_case.py.yapyc3" "_859f87e79e8549b67dbf40637f=resfs/src/resfs/file/py/catboost/eval/factor_utils.py" "_d45af007c67577fb78e346faad=resfs/file/py/catboost/eval/factor_utils.py" "_9cac699c8aae8b8501ad052b73=resfs/src/resfs/file/py/catboost/eval/factor_utils.py.yapyc3" "_d2bbae645514514cdba0cb2859=resfs/file/py/catboost/eval/factor_utils.py.yapyc3" "_7daa65b2b9ac710fed4ff1c1c3=resfs/src/resfs/file/py/catboost/eval/log_config.py" "_8f94546a54574f43a49dfff6f7=resfs/file/py/catboost/eval/log_config.py" "_bfb1bdfd575b43426e0d65ee7b=resfs/src/resfs/file/py/catboost/eval/log_config.py.yapyc3" "_aabdae28e98d8975f356ddedc5=resfs/file/py/catboost/eval/log_config.py.yapyc3" "_33d0d8bd62500212aa1f9641b4=resfs/src/resfs/file/py/catboost/eval/utils.py" "_1da0d02555d63263d398d9be29=resfs/file/py/catboost/eval/utils.py" "_cdff86bcb1dd7356e0616f120c=resfs/src/resfs/file/py/catboost/eval/utils.py.yapyc3" "_c43316e01be385770d4dc3082e=resfs/file/py/catboost/eval/utils.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/be9ca84dd549c80ba416b09df8.cpp" "_2ea327a7342fa7d180824b566c=resfs/file/py/catboost/eval/_fold_model.py" "_2d8940f93af79b08b08575438d=resfs/src/resfs/file/py/catboost/eval/_fold_model.py.yapyc3" "_843817897900c46de251d1e075=resfs/file/py/catboost/eval/_fold_model.py.yapyc3" "_847fc60e84c7f5fb88c93f69a6=resfs/src/resfs/file/py/catboost/eval/_fold_models_handler.py" "_2e0fbe3508f1371d5dbba008d3=resfs/file/py/catboost/eval/_fold_models_handler.py" "_b838f6feff247e59fa1d1231c9=resfs/src/resfs/file/py/catboost/eval/_fold_models_handler.py.yapyc3" "_a9ea208efce82a2a67e124c137=resfs/file/py/catboost/eval/_fold_models_handler.py.yapyc3" "_b1abab1ee35194de6f6b961b8d=resfs/src/resfs/file/py/catboost/eval/_fold_storage.py" "_71c2da42157a75fdc688ec14b9=resfs/file/py/catboost/eval/_fold_storage.py" "_e683da7d826538b58832a9d921=resfs/src/resfs/file/py/catboost/eval/_fold_storage.py.yapyc3" "_4d085e9810bfbe7de439d9dff1=resfs/file/py/catboost/eval/_fold_storage.py.yapyc3" "_dc5fe128bd56073c1af2477f7a=resfs/src/resfs/file/py/catboost/eval/_readers.py" "_6aebf8304084eea30ce611551b=resfs/file/py/catboost/eval/_readers.py" "_514d540f8ac7c9bcf4a128ab65=resfs/src/resfs/file/py/catboost/eval/_readers.py.yapyc3" "_9e4ce9eb4c90816687e2bf4af7=resfs/file/py/catboost/eval/_readers.py.yapyc3" "_98fa918b42fa4429cb1732ac66=resfs/src/resfs/file/py/catboost/eval/_splitter.py" "_d13634b6a3ba686342bb3e1276=resfs/file/py/catboost/eval/_splitter.py" "_c2d9969fb387ee32d557279446=resfs/src/resfs/file/py/catboost/eval/_splitter.py.yapyc3" "_4f78c2b03e2821f7b8f77f280b=resfs/file/py/catboost/eval/_splitter.py.yapyc3" "_62a60c81d321bdf7366d9531e4=resfs/src/resfs/file/py/catboost/eval/catboost_evaluation.py" "_930030b1ebd4ecd3bd10f3c7fe=resfs/file/py/catboost/eval/catboost_evaluation.py" "_cfe8f85d7c5138463c62e75c50=resfs/src/resfs/file/py/catboost/eval/catboost_evaluation.py.yapyc3" "_8d28ffee6fed0fe3a38cfd832d=resfs/file/py/catboost/eval/catboost_evaluation.py.yapyc3" "_69223f723e2ba4b1ac8b72476b=resfs/src/resfs/file/py/catboost/eval/evaluation_result.py" "_64376ea95b55ddc6d748b4a7af=resfs/file/py/catboost/eval/evaluation_result.py" "_ed3ef527fbcc67496ba17cef08=resfs/src/resfs/file/py/catboost/eval/evaluation_result.py.yapyc3" "_50149675f34baa01d51e367e21=resfs/file/py/catboost/eval/evaluation_result.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/7601a68d4805084f93dbae9390.cpp" "_5ccd179c2389742b69a4cd1f6d=resfs/src/resfs/file/py/catboost/__init__.py" "_f36f1adf498a39538418f334ea=resfs/file/py/catboost/__init__.py" "_c1c580f7db30853a7dc3c165b6=resfs/src/resfs/file/py/catboost/__init__.py.yapyc3" "_df20fc578c59889e866a17b3bd=resfs/file/py/catboost/__init__.py.yapyc3" "_e735c4820918cf88be51f95373=resfs/src/resfs/file/py/catboost/version.py" "_73d692c565f89f2e26183290ec=resfs/file/py/catboost/version.py" "_73016cbd17e9bf366d9a1cecdc=resfs/src/resfs/file/py/catboost/version.py.yapyc3" "_6c0fba3d803e1b9ba277c43472=resfs/file/py/catboost/version.py.yapyc3" "_e18093d34abe579c9f9895fb5f=resfs/src/resfs/file/py/catboost/core.py" "_58a04087841526283da2b808cb=resfs/file/py/catboost/core.py" "_3a1083f0d0db5762dfb332ba2b=resfs/src/resfs/file/py/catboost/core.py.yapyc3" "_a857f20acdc58aed47c25e991b=resfs/file/py/catboost/core.py.yapyc3" "_8857ef01b027f7bfd7911b9e6b=resfs/src/resfs/file/py/catboost/datasets.py" "_15f2613c6046d24b512ba751f6=resfs/file/py/catboost/datasets.py" "_0f06f49c8af6f7fa30253ca34b=resfs/src/resfs/file/py/catboost/datasets.py.yapyc3" "_23405bebdf312ab5ab9808a8ab=resfs/file/py/catboost/datasets.py.yapyc3" "_79eeee8b0e11a06286228601e3=resfs/src/resfs/file/py/catboost/utils.py" "_19e3f15dbc82192b68c3824c0d=resfs/file/py/catboost/utils.py" "_c745aebb17ed31858d8bdbe458=resfs/src/resfs/file/py/catboost/utils.py.yapyc3" "_37f2d1b113cc46f2af926141df=resfs/file/py/catboost/utils.py.yapyc3" "_71c671907c073b0663cc88ac3b=resfs/src/resfs/file/py/catboost/widget/__init__.py" "_ad6b700443d8d15c4ed086f54e=resfs/file/py/catboost/widget/__init__.py" "_2361043da63de54ac2b69a0ff3=resfs/src/resfs/file/py/catboost/widget/__init__.py.yapyc3" "_8716ff79e2f90eab9214c6b40a=resfs/file/py/catboost/widget/__init__.py.yapyc3" "_6b9dfe075b15e4c8f09a443fe5=resfs/src/resfs/file/py/catboost/widget/ipythonwidget.py" "_1902ef9ad2e07571a9e9911cdc=resfs/file/py/catboost/widget/ipythonwidget.py" "_92c7a5fce70dc7adefa1370d88=resfs/src/resfs/file/py/catboost/widget/ipythonwidget.py.yapyc3" "_40e218fe189d3dfe5392f83156=resfs/file/py/catboost/widget/ipythonwidget.py.yapyc3" "_c640470516524f94b65b53b5de=resfs/src/resfs/file/py/catboost/eval/_fold_model.py"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/bb8b7a8674c14c5e2f84f69265.cpp" "_7b0d29db8c11478dccdac72cc9=resfs/src/resfs/file/py/catboost/eval/execution_case.py" "_bc16a278d61e28f56328ca1423=resfs/file/py/catboost/eval/execution_case.py" "_f3f0a255b4d948044b26a50a7a=resfs/src/resfs/file/py/catboost/eval/execution_case.py.yapyc3" "_30a8319d22f46e275ee025c81f=resfs/file/py/catboost/eval/execution_case.py.yapyc3" "_859f87e79e8549b67dbf40637f=resfs/src/resfs/file/py/catboost/eval/factor_utils.py" "_d45af007c67577fb78e346faad=resfs/file/py/catboost/eval/factor_utils.py" "_9cac699c8aae8b8501ad052b73=resfs/src/resfs/file/py/catboost/eval/factor_utils.py.yapyc3" "_d2bbae645514514cdba0cb2859=resfs/file/py/catboost/eval/factor_utils.py.yapyc3" "_7daa65b2b9ac710fed4ff1c1c3=resfs/src/resfs/file/py/catboost/eval/log_config.py" "_8f94546a54574f43a49dfff6f7=resfs/file/py/catboost/eval/log_config.py" "_bfb1bdfd575b43426e0d65ee7b=resfs/src/resfs/file/py/catboost/eval/log_config.py.yapyc3" "_aabdae28e98d8975f356ddedc5=resfs/file/py/catboost/eval/log_config.py.yapyc3" "_33d0d8bd62500212aa1f9641b4=resfs/src/resfs/file/py/catboost/eval/utils.py" "_1da0d02555d63263d398d9be29=resfs/file/py/catboost/eval/utils.py" "_cdff86bcb1dd7356e0616f120c=resfs/src/resfs/file/py/catboost/eval/utils.py.yapyc3" "_c43316e01be385770d4dc3082e=resfs/file/py/catboost/eval/utils.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/be9ca84dd549c80ba416b09df8.cpp" "_2ea327a7342fa7d180824b566c=resfs/file/py/catboost/eval/_fold_model.py" "_2d8940f93af79b08b08575438d=resfs/src/resfs/file/py/catboost/eval/_fold_model.py.yapyc3" "_843817897900c46de251d1e075=resfs/file/py/catboost/eval/_fold_model.py.yapyc3" "_847fc60e84c7f5fb88c93f69a6=resfs/src/resfs/file/py/catboost/eval/_fold_models_handler.py" "_2e0fbe3508f1371d5dbba008d3=resfs/file/py/catboost/eval/_fold_models_handler.py" "_b838f6feff247e59fa1d1231c9=resfs/src/resfs/file/py/catboost/eval/_fold_models_handler.py.yapyc3" "_a9ea208efce82a2a67e124c137=resfs/file/py/catboost/eval/_fold_models_handler.py.yapyc3" "_b1abab1ee35194de6f6b961b8d=resfs/src/resfs/file/py/catboost/eval/_fold_storage.py" "_71c2da42157a75fdc688ec14b9=resfs/file/py/catboost/eval/_fold_storage.py" "_e683da7d826538b58832a9d921=resfs/src/resfs/file/py/catboost/eval/_fold_storage.py.yapyc3" "_4d085e9810bfbe7de439d9dff1=resfs/file/py/catboost/eval/_fold_storage.py.yapyc3" "_dc5fe128bd56073c1af2477f7a=resfs/src/resfs/file/py/catboost/eval/_readers.py" "_6aebf8304084eea30ce611551b=resfs/file/py/catboost/eval/_readers.py" "_514d540f8ac7c9bcf4a128ab65=resfs/src/resfs/file/py/catboost/eval/_readers.py.yapyc3" "_9e4ce9eb4c90816687e2bf4af7=resfs/file/py/catboost/eval/_readers.py.yapyc3" "_98fa918b42fa4429cb1732ac66=resfs/src/resfs/file/py/catboost/eval/_splitter.py" "_d13634b6a3ba686342bb3e1276=resfs/file/py/catboost/eval/_splitter.py" "_c2d9969fb387ee32d557279446=resfs/src/resfs/file/py/catboost/eval/_splitter.py.yapyc3" "_4f78c2b03e2821f7b8f77f280b=resfs/file/py/catboost/eval/_splitter.py.yapyc3" "_62a60c81d321bdf7366d9531e4=resfs/src/resfs/file/py/catboost/eval/catboost_evaluation.py" "_930030b1ebd4ecd3bd10f3c7fe=resfs/file/py/catboost/eval/catboost_evaluation.py" "_cfe8f85d7c5138463c62e75c50=resfs/src/resfs/file/py/catboost/eval/catboost_evaluation.py.yapyc3" "_8d28ffee6fed0fe3a38cfd832d=resfs/file/py/catboost/eval/catboost_evaluation.py.yapyc3" "_69223f723e2ba4b1ac8b72476b=resfs/src/resfs/file/py/catboost/eval/evaluation_result.py" "_64376ea95b55ddc6d748b4a7af=resfs/file/py/catboost/eval/evaluation_result.py" "_ed3ef527fbcc67496ba17cef08=resfs/src/resfs/file/py/catboost/eval/evaluation_result.py.yapyc3" "_50149675f34baa01d51e367e21=resfs/file/py/catboost/eval/evaluation_result.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/catboost/python-package/lib/7601a68d4805084f93dbae9390.cpp	$B/catboost/python-package/lib/bb8b7a8674c14c5e2f84f69265.cpp	$B/catboost/python-package/lib/be9ca84dd549c80ba416b09df8.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\python-package\lib\7601a68d4805084f93dbae9390.cpp;$(SolutionDir)$(Configuration)\catboost\python-package\lib\bb8b7a8674c14c5e2f84f69265.cpp;$(SolutionDir)$(Configuration)\catboost\python-package\lib\be9ca84dd549c80ba416b09df8.cpp;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\build\scripts\fs_tools.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/join_aa230ca8531060ed8c6e1e919e.yasm" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_7601a68d4805084f93dbae9390.yasm" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_be9ca84dd549c80ba416b09df8.yasm" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_bb8b7a8674c14c5e2f84f69265.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/join_aa230ca8531060ed8c6e1e919e.yasm" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_7601a68d4805084f93dbae9390.yasm" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_be9ca84dd549c80ba416b09df8.yasm" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_bb8b7a8674c14c5e2f84f69265.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/catboost/python-package/lib/join_aa230ca8531060ed8c6e1e919e.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\fs_tools.py;$(SolutionDir)$(Configuration)\catboost\python-package\lib\_7601a68d4805084f93dbae9390.yasm;$(SolutionDir)$(Configuration)\catboost\python-package\lib\_be9ca84dd549c80ba416b09df8.yasm;$(SolutionDir)$(Configuration)\catboost\python-package\lib\_bb8b7a8674c14c5e2f84f69265.yasm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\python-package\lib\join_aa230ca8531060ed8c6e1e919e.yasm;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_join_srcs.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/join_ddf3e0114f5f63d47aa37323ff.cpp" "catboost/python-package/lib/7601a68d4805084f93dbae9390.cpp" "catboost/python-package/lib/be9ca84dd549c80ba416b09df8.cpp" "catboost/python-package/lib/bb8b7a8674c14c5e2f84f69265.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/join_ddf3e0114f5f63d47aa37323ff.cpp" "catboost/python-package/lib/7601a68d4805084f93dbae9390.cpp" "catboost/python-package/lib/be9ca84dd549c80ba416b09df8.cpp" "catboost/python-package/lib/bb8b7a8674c14c5e2f84f69265.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/catboost/python-package/lib/join_ddf3e0114f5f63d47aa37323ff.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_join_srcs.py;$(SolutionDir)$(Configuration)\catboost\python-package\lib\7601a68d4805084f93dbae9390.cpp;$(SolutionDir)$(Configuration)\catboost\python-package\lib\be9ca84dd549c80ba416b09df8.cpp;$(SolutionDir)$(Configuration)\catboost\python-package\lib\bb8b7a8674c14c5e2f84f69265.cpp;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\python-package\lib\join_ddf3e0114f5f63d47aa37323ff.cpp;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_py3_reg.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_py3_reg.py" "catboost._catboost" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/catboost._catboost.reg3.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_py3_reg.py" "catboost._catboost" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/catboost._catboost.reg3.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/catboost/python-package/lib/catboost._catboost.reg3.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_py3_reg.py;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\python-package\lib\catboost._catboost.reg3.cpp;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\catboost\python-package\catboost\__init__.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_7601a68d4805084f93dbae9390.yasm" "-" "catboost/python-package/catboost/__init__.py" "_5ccd179c2389742b69a4cd1f6d.rodata" "$(SolutionDir)../catboost/python-package/catboost/__init__.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_f36f1adf498a39538418f334ea.rodata" "-" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/__init__.py.yapyc3" "_c1c580f7db30853a7dc3c165b6.rodata" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/__init__.py.yapyc3" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_df20fc578c59889e866a17b3bd.rodata" "-" "catboost/python-package/catboost/version.py" "_e735c4820918cf88be51f95373.rodata" "$(SolutionDir)../catboost/python-package/catboost/version.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_73d692c565f89f2e26183290ec.rodata" "-" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/version.py.yapyc3" "_73016cbd17e9bf366d9a1cecdc.rodata" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/version.py.yapyc3" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_6c0fba3d803e1b9ba277c43472.rodata" "-" "catboost/python-package/catboost/core.py" "_e18093d34abe579c9f9895fb5f.rodata" "$(SolutionDir)../catboost/python-package/catboost/core.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_58a04087841526283da2b808cb.rodata" "-" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/core.py.yapyc3" "_3a1083f0d0db5762dfb332ba2b.rodata" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/core.py.yapyc3" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_a857f20acdc58aed47c25e991b.rodata" "-" "catboost/python-package/catboost/datasets.py" "_8857ef01b027f7bfd7911b9e6b.rodata" "$(SolutionDir)../catboost/python-package/catboost/datasets.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_15f2613c6046d24b512ba751f6.rodata" "-" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/datasets.py.yapyc3" "_0f06f49c8af6f7fa30253ca34b.rodata" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/datasets.py.yapyc3" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_23405bebdf312ab5ab9808a8ab.rodata" "-" "catboost/python-package/catboost/utils.py" "_79eeee8b0e11a06286228601e3.rodata" "$(SolutionDir)../catboost/python-package/catboost/utils.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_19e3f15dbc82192b68c3824c0d.rodata" "-" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/utils.py.yapyc3" "_c745aebb17ed31858d8bdbe458.rodata" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/utils.py.yapyc3" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_37f2d1b113cc46f2af926141df.rodata" "-" "catboost/python-package/catboost/widget/__init__.py" "_71c671907c073b0663cc88ac3b.rodata" "$(SolutionDir)../catboost/python-package/catboost/widget/__init__.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_ad6b700443d8d15c4ed086f54e.rodata" "-" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/widget/__init__.py.yapyc3" "_2361043da63de54ac2b69a0ff3.rodata" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/widget/__init__.py.yapyc3" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_8716ff79e2f90eab9214c6b40a.rodata" "-" "catboost/python-package/catboost/widget/ipythonwidget.py" "_6b9dfe075b15e4c8f09a443fe5.rodata" "$(SolutionDir)../catboost/python-package/catboost/widget/ipythonwidget.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_1902ef9ad2e07571a9e9911cdc.rodata" "-" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/widget/ipythonwidget.py.yapyc3" "_92c7a5fce70dc7adefa1370d88.rodata" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/widget/ipythonwidget.py.yapyc3" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_40e218fe189d3dfe5392f83156.rodata" "-" "catboost/python-package/catboost/eval/_fold_model.py" "_c640470516524f94b65b53b5de.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
+if %errorlevel% neq 0 goto :cmEnd
+PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/__init__.py-" "$(SolutionDir)../catboost/python-package/catboost/__init__.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/__init__.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_7601a68d4805084f93dbae9390.yasm" "-" "catboost/python-package/catboost/__init__.py" "_5ccd179c2389742b69a4cd1f6d.rodata" "$(SolutionDir)../catboost/python-package/catboost/__init__.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_f36f1adf498a39538418f334ea.rodata" "-" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/__init__.py.yapyc3" "_c1c580f7db30853a7dc3c165b6.rodata" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/__init__.py.yapyc3" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_df20fc578c59889e866a17b3bd.rodata" "-" "catboost/python-package/catboost/version.py" "_e735c4820918cf88be51f95373.rodata" "$(SolutionDir)../catboost/python-package/catboost/version.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_73d692c565f89f2e26183290ec.rodata" "-" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/version.py.yapyc3" "_73016cbd17e9bf366d9a1cecdc.rodata" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/version.py.yapyc3" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_6c0fba3d803e1b9ba277c43472.rodata" "-" "catboost/python-package/catboost/core.py" "_e18093d34abe579c9f9895fb5f.rodata" "$(SolutionDir)../catboost/python-package/catboost/core.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_58a04087841526283da2b808cb.rodata" "-" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/core.py.yapyc3" "_3a1083f0d0db5762dfb332ba2b.rodata" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/core.py.yapyc3" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_a857f20acdc58aed47c25e991b.rodata" "-" "catboost/python-package/catboost/datasets.py" "_8857ef01b027f7bfd7911b9e6b.rodata" "$(SolutionDir)../catboost/python-package/catboost/datasets.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_15f2613c6046d24b512ba751f6.rodata" "-" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/datasets.py.yapyc3" "_0f06f49c8af6f7fa30253ca34b.rodata" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/datasets.py.yapyc3" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_23405bebdf312ab5ab9808a8ab.rodata" "-" "catboost/python-package/catboost/utils.py" "_79eeee8b0e11a06286228601e3.rodata" "$(SolutionDir)../catboost/python-package/catboost/utils.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_19e3f15dbc82192b68c3824c0d.rodata" "-" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/utils.py.yapyc3" "_c745aebb17ed31858d8bdbe458.rodata" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/utils.py.yapyc3" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_37f2d1b113cc46f2af926141df.rodata" "-" "catboost/python-package/catboost/widget/__init__.py" "_71c671907c073b0663cc88ac3b.rodata" "$(SolutionDir)../catboost/python-package/catboost/widget/__init__.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_ad6b700443d8d15c4ed086f54e.rodata" "-" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/widget/__init__.py.yapyc3" "_2361043da63de54ac2b69a0ff3.rodata" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/widget/__init__.py.yapyc3" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_8716ff79e2f90eab9214c6b40a.rodata" "-" "catboost/python-package/catboost/widget/ipythonwidget.py" "_6b9dfe075b15e4c8f09a443fe5.rodata" "$(SolutionDir)../catboost/python-package/catboost/widget/ipythonwidget.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_1902ef9ad2e07571a9e9911cdc.rodata" "-" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/widget/ipythonwidget.py.yapyc3" "_92c7a5fce70dc7adefa1370d88.rodata" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/widget/ipythonwidget.py.yapyc3" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_40e218fe189d3dfe5392f83156.rodata" "-" "catboost/python-package/catboost/eval/_fold_model.py" "_c640470516524f94b65b53b5de.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
+if %errorlevel% neq 0 goto :cmEnd
+PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/__init__.py-" "$(SolutionDir)../catboost/python-package/catboost/__init__.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/__init__.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/catboost/python-package/lib/_7601a68d4805084f93dbae9390.yasm	$B/catboost/python-package/lib/__init__.py.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\catboost\python-package\catboost\__init__.py;$(SolutionDir)$(Configuration)\catboost\python-package\lib\__init__.py.yapyc3;$(SolutionDir)..\catboost\python-package\catboost\version.py;$(SolutionDir)$(Configuration)\catboost\python-package\lib\version.py.yapyc3;$(SolutionDir)..\catboost\python-package\catboost\core.py;$(SolutionDir)$(Configuration)\catboost\python-package\lib\core.py.yapyc3;$(SolutionDir)..\catboost\python-package\catboost\datasets.py;$(SolutionDir)$(Configuration)\catboost\python-package\lib\datasets.py.yapyc3;$(SolutionDir)..\catboost\python-package\catboost\utils.py;$(SolutionDir)$(Configuration)\catboost\python-package\lib\utils.py.yapyc3;$(SolutionDir)..\catboost\python-package\catboost\widget\__init__.py;$(SolutionDir)$(Configuration)\catboost\python-package\lib\widget\__init__.py.yapyc3;$(SolutionDir)..\catboost\python-package\catboost\widget\ipythonwidget.py;$(SolutionDir)$(Configuration)\catboost\python-package\lib\widget\ipythonwidget.py.yapyc3;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\python-package\lib\_7601a68d4805084f93dbae9390.yasm;$(SolutionDir)$(Configuration)\catboost\python-package\lib\_f36f1adf498a39538418f334ea.rodata;$(SolutionDir)$(Configuration)\catboost\python-package\lib\_df20fc578c59889e866a17b3bd.rodata;$(SolutionDir)$(Configuration)\catboost\python-package\lib\_73d692c565f89f2e26183290ec.rodata;$(SolutionDir)$(Configuration)\catboost\python-package\lib\_6c0fba3d803e1b9ba277c43472.rodata;$(SolutionDir)$(Configuration)\catboost\python-package\lib\_58a04087841526283da2b808cb.rodata;$(SolutionDir)$(Configuration)\catboost\python-package\lib\_a857f20acdc58aed47c25e991b.rodata;$(SolutionDir)$(Configuration)\catboost\python-package\lib\_15f2613c6046d24b512ba751f6.rodata;$(SolutionDir)$(Configuration)\catboost\python-package\lib\_23405bebdf312ab5ab9808a8ab.rodata;$(SolutionDir)$(Configuration)\catboost\python-package\lib\_19e3f15dbc82192b68c3824c0d.rodata;$(SolutionDir)$(Configuration)\catboost\python-package\lib\_37f2d1b113cc46f2af926141df.rodata;$(SolutionDir)$(Configuration)\catboost\python-package\lib\_ad6b700443d8d15c4ed086f54e.rodata;$(SolutionDir)$(Configuration)\catboost\python-package\lib\_8716ff79e2f90eab9214c6b40a.rodata;$(SolutionDir)$(Configuration)\catboost\python-package\lib\_1902ef9ad2e07571a9e9911cdc.rodata;$(SolutionDir)$(Configuration)\catboost\python-package\lib\_40e218fe189d3dfe5392f83156.rodata;$(SolutionDir)$(Configuration)\catboost\python-package\lib\__init__.py.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\catboost\python-package\catboost\core.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
+if %errorlevel% neq 0 goto :cmEnd
+PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/core.py-" "$(SolutionDir)../catboost/python-package/catboost/core.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/core.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
+if %errorlevel% neq 0 goto :cmEnd
+PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/core.py-" "$(SolutionDir)../catboost/python-package/catboost/core.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/core.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/catboost/python-package/lib/core.py.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\catboost\python-package\catboost\core.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\python-package\lib\core.py.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\catboost\python-package\catboost\datasets.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
+if %errorlevel% neq 0 goto :cmEnd
+PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/datasets.py-" "$(SolutionDir)../catboost/python-package/catboost/datasets.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/datasets.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
+if %errorlevel% neq 0 goto :cmEnd
+PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/datasets.py-" "$(SolutionDir)../catboost/python-package/catboost/datasets.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/datasets.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/catboost/python-package/lib/datasets.py.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\catboost\python-package\catboost\datasets.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\python-package\lib\datasets.py.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\catboost\python-package\catboost\eval\_fold_model.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_be9ca84dd549c80ba416b09df8.yasm" "$(SolutionDir)../catboost/python-package/catboost/eval/_fold_model.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_2ea327a7342fa7d180824b566c.rodata" "-" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/_fold_model.py.yapyc3" "_2d8940f93af79b08b08575438d.rodata" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/_fold_model.py.yapyc3" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_843817897900c46de251d1e075.rodata" "-" "catboost/python-package/catboost/eval/_fold_models_handler.py" "_847fc60e84c7f5fb88c93f69a6.rodata" "$(SolutionDir)../catboost/python-package/catboost/eval/_fold_models_handler.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_2e0fbe3508f1371d5dbba008d3.rodata" "-" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/_fold_models_handler.py.yapyc3" "_b838f6feff247e59fa1d1231c9.rodata" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/_fold_models_handler.py.yapyc3" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_a9ea208efce82a2a67e124c137.rodata" "-" "catboost/python-package/catboost/eval/_fold_storage.py" "_b1abab1ee35194de6f6b961b8d.rodata" "$(SolutionDir)../catboost/python-package/catboost/eval/_fold_storage.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_71c2da42157a75fdc688ec14b9.rodata" "-" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/_fold_storage.py.yapyc3" "_e683da7d826538b58832a9d921.rodata" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/_fold_storage.py.yapyc3" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_4d085e9810bfbe7de439d9dff1.rodata" "-" "catboost/python-package/catboost/eval/_readers.py" "_dc5fe128bd56073c1af2477f7a.rodata" "$(SolutionDir)../catboost/python-package/catboost/eval/_readers.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_6aebf8304084eea30ce611551b.rodata" "-" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/_readers.py.yapyc3" "_514d540f8ac7c9bcf4a128ab65.rodata" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/_readers.py.yapyc3" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_9e4ce9eb4c90816687e2bf4af7.rodata" "-" "catboost/python-package/catboost/eval/_splitter.py" "_98fa918b42fa4429cb1732ac66.rodata" "$(SolutionDir)../catboost/python-package/catboost/eval/_splitter.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_d13634b6a3ba686342bb3e1276.rodata" "-" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/_splitter.py.yapyc3" "_c2d9969fb387ee32d557279446.rodata" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/_splitter.py.yapyc3" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_4f78c2b03e2821f7b8f77f280b.rodata" "-" "catboost/python-package/catboost/eval/catboost_evaluation.py" "_62a60c81d321bdf7366d9531e4.rodata" "$(SolutionDir)../catboost/python-package/catboost/eval/catboost_evaluation.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_930030b1ebd4ecd3bd10f3c7fe.rodata" "-" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/catboost_evaluation.py.yapyc3" "_cfe8f85d7c5138463c62e75c50.rodata" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/catboost_evaluation.py.yapyc3" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_8d28ffee6fed0fe3a38cfd832d.rodata" "-" "catboost/python-package/catboost/eval/evaluation_result.py" "_69223f723e2ba4b1ac8b72476b.rodata" "$(SolutionDir)../catboost/python-package/catboost/eval/evaluation_result.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_64376ea95b55ddc6d748b4a7af.rodata" "-" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/evaluation_result.py.yapyc3" "_ed3ef527fbcc67496ba17cef08.rodata" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/evaluation_result.py.yapyc3" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_50149675f34baa01d51e367e21.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
+if %errorlevel% neq 0 goto :cmEnd
+PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/eval/_fold_model.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/_fold_model.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/_fold_model.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_be9ca84dd549c80ba416b09df8.yasm" "$(SolutionDir)../catboost/python-package/catboost/eval/_fold_model.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_2ea327a7342fa7d180824b566c.rodata" "-" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/_fold_model.py.yapyc3" "_2d8940f93af79b08b08575438d.rodata" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/_fold_model.py.yapyc3" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_843817897900c46de251d1e075.rodata" "-" "catboost/python-package/catboost/eval/_fold_models_handler.py" "_847fc60e84c7f5fb88c93f69a6.rodata" "$(SolutionDir)../catboost/python-package/catboost/eval/_fold_models_handler.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_2e0fbe3508f1371d5dbba008d3.rodata" "-" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/_fold_models_handler.py.yapyc3" "_b838f6feff247e59fa1d1231c9.rodata" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/_fold_models_handler.py.yapyc3" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_a9ea208efce82a2a67e124c137.rodata" "-" "catboost/python-package/catboost/eval/_fold_storage.py" "_b1abab1ee35194de6f6b961b8d.rodata" "$(SolutionDir)../catboost/python-package/catboost/eval/_fold_storage.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_71c2da42157a75fdc688ec14b9.rodata" "-" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/_fold_storage.py.yapyc3" "_e683da7d826538b58832a9d921.rodata" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/_fold_storage.py.yapyc3" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_4d085e9810bfbe7de439d9dff1.rodata" "-" "catboost/python-package/catboost/eval/_readers.py" "_dc5fe128bd56073c1af2477f7a.rodata" "$(SolutionDir)../catboost/python-package/catboost/eval/_readers.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_6aebf8304084eea30ce611551b.rodata" "-" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/_readers.py.yapyc3" "_514d540f8ac7c9bcf4a128ab65.rodata" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/_readers.py.yapyc3" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_9e4ce9eb4c90816687e2bf4af7.rodata" "-" "catboost/python-package/catboost/eval/_splitter.py" "_98fa918b42fa4429cb1732ac66.rodata" "$(SolutionDir)../catboost/python-package/catboost/eval/_splitter.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_d13634b6a3ba686342bb3e1276.rodata" "-" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/_splitter.py.yapyc3" "_c2d9969fb387ee32d557279446.rodata" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/_splitter.py.yapyc3" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_4f78c2b03e2821f7b8f77f280b.rodata" "-" "catboost/python-package/catboost/eval/catboost_evaluation.py" "_62a60c81d321bdf7366d9531e4.rodata" "$(SolutionDir)../catboost/python-package/catboost/eval/catboost_evaluation.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_930030b1ebd4ecd3bd10f3c7fe.rodata" "-" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/catboost_evaluation.py.yapyc3" "_cfe8f85d7c5138463c62e75c50.rodata" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/catboost_evaluation.py.yapyc3" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_8d28ffee6fed0fe3a38cfd832d.rodata" "-" "catboost/python-package/catboost/eval/evaluation_result.py" "_69223f723e2ba4b1ac8b72476b.rodata" "$(SolutionDir)../catboost/python-package/catboost/eval/evaluation_result.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_64376ea95b55ddc6d748b4a7af.rodata" "-" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/evaluation_result.py.yapyc3" "_ed3ef527fbcc67496ba17cef08.rodata" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/evaluation_result.py.yapyc3" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_50149675f34baa01d51e367e21.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
+if %errorlevel% neq 0 goto :cmEnd
+PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/eval/_fold_model.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/_fold_model.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/_fold_model.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/catboost/python-package/lib/_be9ca84dd549c80ba416b09df8.yasm	$B/catboost/python-package/lib/eval/_fold_model.py.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\catboost\python-package\catboost\eval\_fold_model.py;$(SolutionDir)$(Configuration)\catboost\python-package\lib\eval\_fold_model.py.yapyc3;$(SolutionDir)..\catboost\python-package\catboost\eval\_fold_models_handler.py;$(SolutionDir)$(Configuration)\catboost\python-package\lib\eval\_fold_models_handler.py.yapyc3;$(SolutionDir)..\catboost\python-package\catboost\eval\_fold_storage.py;$(SolutionDir)$(Configuration)\catboost\python-package\lib\eval\_fold_storage.py.yapyc3;$(SolutionDir)..\catboost\python-package\catboost\eval\_readers.py;$(SolutionDir)$(Configuration)\catboost\python-package\lib\eval\_readers.py.yapyc3;$(SolutionDir)..\catboost\python-package\catboost\eval\_splitter.py;$(SolutionDir)$(Configuration)\catboost\python-package\lib\eval\_splitter.py.yapyc3;$(SolutionDir)..\catboost\python-package\catboost\eval\catboost_evaluation.py;$(SolutionDir)$(Configuration)\catboost\python-package\lib\eval\catboost_evaluation.py.yapyc3;$(SolutionDir)..\catboost\python-package\catboost\eval\evaluation_result.py;$(SolutionDir)$(Configuration)\catboost\python-package\lib\eval\evaluation_result.py.yapyc3;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\python-package\lib\_be9ca84dd549c80ba416b09df8.yasm;$(SolutionDir)$(Configuration)\catboost\python-package\lib\_2ea327a7342fa7d180824b566c.rodata;$(SolutionDir)$(Configuration)\catboost\python-package\lib\_843817897900c46de251d1e075.rodata;$(SolutionDir)$(Configuration)\catboost\python-package\lib\_2e0fbe3508f1371d5dbba008d3.rodata;$(SolutionDir)$(Configuration)\catboost\python-package\lib\_a9ea208efce82a2a67e124c137.rodata;$(SolutionDir)$(Configuration)\catboost\python-package\lib\_71c2da42157a75fdc688ec14b9.rodata;$(SolutionDir)$(Configuration)\catboost\python-package\lib\_4d085e9810bfbe7de439d9dff1.rodata;$(SolutionDir)$(Configuration)\catboost\python-package\lib\_6aebf8304084eea30ce611551b.rodata;$(SolutionDir)$(Configuration)\catboost\python-package\lib\_9e4ce9eb4c90816687e2bf4af7.rodata;$(SolutionDir)$(Configuration)\catboost\python-package\lib\_d13634b6a3ba686342bb3e1276.rodata;$(SolutionDir)$(Configuration)\catboost\python-package\lib\_4f78c2b03e2821f7b8f77f280b.rodata;$(SolutionDir)$(Configuration)\catboost\python-package\lib\_930030b1ebd4ecd3bd10f3c7fe.rodata;$(SolutionDir)$(Configuration)\catboost\python-package\lib\_8d28ffee6fed0fe3a38cfd832d.rodata;$(SolutionDir)$(Configuration)\catboost\python-package\lib\_64376ea95b55ddc6d748b4a7af.rodata;$(SolutionDir)$(Configuration)\catboost\python-package\lib\_50149675f34baa01d51e367e21.rodata;$(SolutionDir)$(Configuration)\catboost\python-package\lib\eval\_fold_model.py.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\catboost\python-package\catboost\eval\_fold_models_handler.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
+if %errorlevel% neq 0 goto :cmEnd
+PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/eval/_fold_models_handler.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/_fold_models_handler.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/_fold_models_handler.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
+if %errorlevel% neq 0 goto :cmEnd
+PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/eval/_fold_models_handler.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/_fold_models_handler.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/_fold_models_handler.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/catboost/python-package/lib/eval/_fold_models_handler.py.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\catboost\python-package\catboost\eval\_fold_models_handler.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\python-package\lib\eval\_fold_models_handler.py.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\catboost\python-package\catboost\eval\_fold_storage.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
+if %errorlevel% neq 0 goto :cmEnd
+PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/eval/_fold_storage.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/_fold_storage.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/_fold_storage.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
+if %errorlevel% neq 0 goto :cmEnd
+PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/eval/_fold_storage.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/_fold_storage.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/_fold_storage.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/catboost/python-package/lib/eval/_fold_storage.py.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\catboost\python-package\catboost\eval\_fold_storage.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\python-package\lib\eval\_fold_storage.py.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\catboost\python-package\catboost\eval\_readers.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
+if %errorlevel% neq 0 goto :cmEnd
+PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/eval/_readers.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/_readers.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/_readers.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
+if %errorlevel% neq 0 goto :cmEnd
+PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/eval/_readers.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/_readers.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/_readers.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/catboost/python-package/lib/eval/_readers.py.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\catboost\python-package\catboost\eval\_readers.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\python-package\lib\eval\_readers.py.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\catboost\python-package\catboost\eval\_splitter.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
+if %errorlevel% neq 0 goto :cmEnd
+PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/eval/_splitter.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/_splitter.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/_splitter.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
+if %errorlevel% neq 0 goto :cmEnd
+PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/eval/_splitter.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/_splitter.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/_splitter.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/catboost/python-package/lib/eval/_splitter.py.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\catboost\python-package\catboost\eval\_splitter.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\python-package\lib\eval\_splitter.py.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\catboost\python-package\catboost\eval\catboost_evaluation.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
+if %errorlevel% neq 0 goto :cmEnd
+PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/eval/catboost_evaluation.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/catboost_evaluation.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/catboost_evaluation.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
+if %errorlevel% neq 0 goto :cmEnd
+PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/eval/catboost_evaluation.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/catboost_evaluation.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/catboost_evaluation.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/catboost/python-package/lib/eval/catboost_evaluation.py.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\catboost\python-package\catboost\eval\catboost_evaluation.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\python-package\lib\eval\catboost_evaluation.py.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\catboost\python-package\catboost\eval\evaluation_result.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
+if %errorlevel% neq 0 goto :cmEnd
+PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/eval/evaluation_result.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/evaluation_result.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/evaluation_result.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
+if %errorlevel% neq 0 goto :cmEnd
+PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/eval/evaluation_result.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/evaluation_result.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/evaluation_result.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/catboost/python-package/lib/eval/evaluation_result.py.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\catboost\python-package\catboost\eval\evaluation_result.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\python-package\lib\eval\evaluation_result.py.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\catboost\python-package\catboost\eval\execution_case.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_bb8b7a8674c14c5e2f84f69265.yasm" "-" "catboost/python-package/catboost/eval/execution_case.py" "_7b0d29db8c11478dccdac72cc9.rodata" "$(SolutionDir)../catboost/python-package/catboost/eval/execution_case.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_bc16a278d61e28f56328ca1423.rodata" "-" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/execution_case.py.yapyc3" "_f3f0a255b4d948044b26a50a7a.rodata" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/execution_case.py.yapyc3" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_30a8319d22f46e275ee025c81f.rodata" "-" "catboost/python-package/catboost/eval/factor_utils.py" "_859f87e79e8549b67dbf40637f.rodata" "$(SolutionDir)../catboost/python-package/catboost/eval/factor_utils.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_d45af007c67577fb78e346faad.rodata" "-" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/factor_utils.py.yapyc3" "_9cac699c8aae8b8501ad052b73.rodata" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/factor_utils.py.yapyc3" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_d2bbae645514514cdba0cb2859.rodata" "-" "catboost/python-package/catboost/eval/log_config.py" "_7daa65b2b9ac710fed4ff1c1c3.rodata" "$(SolutionDir)../catboost/python-package/catboost/eval/log_config.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_8f94546a54574f43a49dfff6f7.rodata" "-" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/log_config.py.yapyc3" "_bfb1bdfd575b43426e0d65ee7b.rodata" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/log_config.py.yapyc3" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_aabdae28e98d8975f356ddedc5.rodata" "-" "catboost/python-package/catboost/eval/utils.py" "_33d0d8bd62500212aa1f9641b4.rodata" "$(SolutionDir)../catboost/python-package/catboost/eval/utils.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_1da0d02555d63263d398d9be29.rodata" "-" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/utils.py.yapyc3" "_cdff86bcb1dd7356e0616f120c.rodata" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/utils.py.yapyc3" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_c43316e01be385770d4dc3082e.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
+if %errorlevel% neq 0 goto :cmEnd
+PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/eval/execution_case.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/execution_case.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/execution_case.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_bb8b7a8674c14c5e2f84f69265.yasm" "-" "catboost/python-package/catboost/eval/execution_case.py" "_7b0d29db8c11478dccdac72cc9.rodata" "$(SolutionDir)../catboost/python-package/catboost/eval/execution_case.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_bc16a278d61e28f56328ca1423.rodata" "-" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/execution_case.py.yapyc3" "_f3f0a255b4d948044b26a50a7a.rodata" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/execution_case.py.yapyc3" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_30a8319d22f46e275ee025c81f.rodata" "-" "catboost/python-package/catboost/eval/factor_utils.py" "_859f87e79e8549b67dbf40637f.rodata" "$(SolutionDir)../catboost/python-package/catboost/eval/factor_utils.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_d45af007c67577fb78e346faad.rodata" "-" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/factor_utils.py.yapyc3" "_9cac699c8aae8b8501ad052b73.rodata" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/factor_utils.py.yapyc3" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_d2bbae645514514cdba0cb2859.rodata" "-" "catboost/python-package/catboost/eval/log_config.py" "_7daa65b2b9ac710fed4ff1c1c3.rodata" "$(SolutionDir)../catboost/python-package/catboost/eval/log_config.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_8f94546a54574f43a49dfff6f7.rodata" "-" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/log_config.py.yapyc3" "_bfb1bdfd575b43426e0d65ee7b.rodata" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/log_config.py.yapyc3" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_aabdae28e98d8975f356ddedc5.rodata" "-" "catboost/python-package/catboost/eval/utils.py" "_33d0d8bd62500212aa1f9641b4.rodata" "$(SolutionDir)../catboost/python-package/catboost/eval/utils.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_1da0d02555d63263d398d9be29.rodata" "-" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/utils.py.yapyc3" "_cdff86bcb1dd7356e0616f120c.rodata" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/utils.py.yapyc3" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_c43316e01be385770d4dc3082e.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
+if %errorlevel% neq 0 goto :cmEnd
+PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/eval/execution_case.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/execution_case.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/execution_case.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/catboost/python-package/lib/_bb8b7a8674c14c5e2f84f69265.yasm	$B/catboost/python-package/lib/eval/execution_case.py.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\catboost\python-package\catboost\eval\execution_case.py;$(SolutionDir)$(Configuration)\catboost\python-package\lib\eval\execution_case.py.yapyc3;$(SolutionDir)..\catboost\python-package\catboost\eval\factor_utils.py;$(SolutionDir)$(Configuration)\catboost\python-package\lib\eval\factor_utils.py.yapyc3;$(SolutionDir)..\catboost\python-package\catboost\eval\log_config.py;$(SolutionDir)$(Configuration)\catboost\python-package\lib\eval\log_config.py.yapyc3;$(SolutionDir)..\catboost\python-package\catboost\eval\utils.py;$(SolutionDir)$(Configuration)\catboost\python-package\lib\eval\utils.py.yapyc3;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\python-package\lib\_bb8b7a8674c14c5e2f84f69265.yasm;$(SolutionDir)$(Configuration)\catboost\python-package\lib\_bc16a278d61e28f56328ca1423.rodata;$(SolutionDir)$(Configuration)\catboost\python-package\lib\_30a8319d22f46e275ee025c81f.rodata;$(SolutionDir)$(Configuration)\catboost\python-package\lib\_d45af007c67577fb78e346faad.rodata;$(SolutionDir)$(Configuration)\catboost\python-package\lib\_d2bbae645514514cdba0cb2859.rodata;$(SolutionDir)$(Configuration)\catboost\python-package\lib\_8f94546a54574f43a49dfff6f7.rodata;$(SolutionDir)$(Configuration)\catboost\python-package\lib\_aabdae28e98d8975f356ddedc5.rodata;$(SolutionDir)$(Configuration)\catboost\python-package\lib\_1da0d02555d63263d398d9be29.rodata;$(SolutionDir)$(Configuration)\catboost\python-package\lib\_c43316e01be385770d4dc3082e.rodata;$(SolutionDir)$(Configuration)\catboost\python-package\lib\eval\execution_case.py.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\catboost\python-package\catboost\eval\factor_utils.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
+if %errorlevel% neq 0 goto :cmEnd
+PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/eval/factor_utils.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/factor_utils.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/factor_utils.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
+if %errorlevel% neq 0 goto :cmEnd
+PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/eval/factor_utils.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/factor_utils.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/factor_utils.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/catboost/python-package/lib/eval/factor_utils.py.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\catboost\python-package\catboost\eval\factor_utils.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\python-package\lib\eval\factor_utils.py.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\catboost\python-package\catboost\eval\log_config.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
+if %errorlevel% neq 0 goto :cmEnd
+PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/eval/log_config.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/log_config.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/log_config.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
+if %errorlevel% neq 0 goto :cmEnd
+PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/eval/log_config.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/log_config.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/log_config.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/catboost/python-package/lib/eval/log_config.py.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\catboost\python-package\catboost\eval\log_config.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\python-package\lib\eval\log_config.py.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\catboost\python-package\catboost\eval\utils.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
+if %errorlevel% neq 0 goto :cmEnd
+PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/eval/utils.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/utils.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/utils.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
+if %errorlevel% neq 0 goto :cmEnd
+PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/eval/utils.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/utils.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/utils.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/catboost/python-package/lib/eval/utils.py.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\catboost\python-package\catboost\eval\utils.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\python-package\lib\eval\utils.py.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\catboost\python-package\catboost\utils.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
+if %errorlevel% neq 0 goto :cmEnd
+PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/utils.py-" "$(SolutionDir)../catboost/python-package/catboost/utils.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/utils.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
+if %errorlevel% neq 0 goto :cmEnd
+PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/utils.py-" "$(SolutionDir)../catboost/python-package/catboost/utils.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/utils.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/catboost/python-package/lib/utils.py.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\catboost\python-package\catboost\utils.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\python-package\lib\utils.py.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\catboost\python-package\catboost\version.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
+if %errorlevel% neq 0 goto :cmEnd
+PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/version.py-" "$(SolutionDir)../catboost/python-package/catboost/version.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/version.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
+if %errorlevel% neq 0 goto :cmEnd
+PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/version.py-" "$(SolutionDir)../catboost/python-package/catboost/version.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/version.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/catboost/python-package/lib/version.py.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\catboost\python-package\catboost\version.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\python-package\lib\version.py.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\catboost\python-package\catboost\widget\__init__.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
+if %errorlevel% neq 0 goto :cmEnd
+PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/widget/__init__.py-" "$(SolutionDir)../catboost/python-package/catboost/widget/__init__.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/widget/__init__.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
+if %errorlevel% neq 0 goto :cmEnd
+PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/widget/__init__.py-" "$(SolutionDir)../catboost/python-package/catboost/widget/__init__.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/widget/__init__.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/catboost/python-package/lib/widget/__init__.py.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\catboost\python-package\catboost\widget\__init__.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\python-package\lib\widget\__init__.py.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\catboost\python-package\catboost\widget\ipythonwidget.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
+if %errorlevel% neq 0 goto :cmEnd
+PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/widget/ipythonwidget.py-" "$(SolutionDir)../catboost/python-package/catboost/widget/ipythonwidget.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/widget/ipythonwidget.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
+if %errorlevel% neq 0 goto :cmEnd
+PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/widget/ipythonwidget.py-" "$(SolutionDir)../catboost/python-package/catboost/widget/ipythonwidget.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/widget/ipythonwidget.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/catboost/python-package/lib/widget/ipythonwidget.py.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\catboost\python-package\catboost\widget\ipythonwidget.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\python-package\lib\widget\ipythonwidget.py.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\tools\cython\cython.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "-E" "UNAME_SYSNAME=Windows" "--module-name" "catboost._catboost" "--init-suffix" "8catboost9_catboost" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=catboost/python-package/catboost/_catboost.pyx" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "--cplus" "-I$(SolutionDir).." "$(SolutionDir)../catboost/python-package/catboost/_catboost.pyx" "-o" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_catboost.pyx.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "-E" "UNAME_SYSNAME=Windows" "--module-name" "catboost._catboost" "--init-suffix" "8catboost9_catboost" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=catboost/python-package/catboost/_catboost.pyx" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "--cplus" "-I$(SolutionDir).." "$(SolutionDir)../catboost/python-package/catboost/_catboost.pyx" "-o" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_catboost.pyx.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/catboost/python-package/lib/_catboost.pyx.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\tools\cython\cython.py;$(SolutionDir)..\catboost\python-package\catboost\_catboost.pyx;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\python-package\lib\_catboost.pyx.cpp;</Outputs>
+    </CustomBuild>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
+  <ImportGroup Label="ExtensionTargets"/>
+  <ItemGroup>
+    <ProjectReference Include="$(SolutionDir)Projects\build\platform\cuda\build-platform-cuda.vcxproj">
+      <Project>{18ED0C1C-3127-4315-3368-E63B97EFA8F1}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\cpu_compatibility_helpers\catboost-cuda-cpu_compatibility_helpers.vcxproj">
+      <Project>{25AC1B6D-6F5F-550C-B8D7-D7E344784C2E}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\ctrs\catboost-cuda-ctrs.vcxproj">
+      <Project>{07ECC93E-2BA3-7E0C-C328-28501ED2E5A3}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\cuda_lib\catboost-cuda-cuda_lib.vcxproj">
+      <Project>{8F0089E7-CD22-2D41-938B-A9A7A3319AE7}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\cuda_util\catboost-cuda-cuda_util.vcxproj">
+      <Project>{46C6451F-4D82-1C63-28D4-7F5FD766784A}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\data\catboost-cuda-data.vcxproj">
+      <Project>{7A8B786E-2597-9616-5F4E-B17CEE2501EE}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\gpu_data\catboost-cuda-gpu_data.vcxproj">
+      <Project>{4FE35BB1-F43A-39F4-9770-E9463DC3D595}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\methods\catboost-cuda-methods.vcxproj">
+      <Project>{B414E7D1-BF71-311C-0E2C-D6B4527D7528}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\models\models.vcxproj">
+      <Project>{6E76AE3A-B08F-C725-81DB-2ECE3CE545A2}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\targets\catboost-cuda-targets.vcxproj">
+      <Project>{1D3CF7E0-080E-0EC6-D27D-211F8567FEC0}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\train_lib\catboost-cuda-train_lib.vcxproj">
+      <Project>{D8550C12-2887-902A-28EC-36996021F9BC}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\idl\pool\flat\idl-pool-flat.vcxproj">
+      <Project>{215B0CED-E132-32D3-B5B5-71B6CD17231C}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\idl\pool\proto\idl-pool-proto.vcxproj">
+      <Project>{DC2F8CD1-9883-449F-5F63-13AE540A462A}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\algo\catboost-libs-algo.vcxproj">
+      <Project>{B0627422-3EA3-A666-3928-B63AADBE0945}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\cat_feature\catboost-libs-cat_feature.vcxproj">
+      <Project>{39CEAA9A-D75F-AA0D-96C0-E8C323B015CB}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\column_description\catboost-libs-column_description.vcxproj">
+      <Project>{C4CE937E-C847-074C-4882-D3312E33D29A}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\ctr_description\catboost-libs-ctr_description.vcxproj">
+      <Project>{5030F53C-99A3-E919-89CF-5D8DD5FD3717}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\data_new\catboost-libs-data_new.vcxproj">
+      <Project>{2C228BC9-6312-D2CC-3CFB-6F34BAB794C9}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\data_types\catboost-libs-data_types.vcxproj">
+      <Project>{3750DBCB-749A-6149-7B4D-D132A7A922DA}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\data_util\catboost-libs-data_util.vcxproj">
+      <Project>{B4A310AF-0E82-DDD5-9A9D-5C5C37155EC0}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\distributed\catboost-libs-distributed.vcxproj">
+      <Project>{F6BCA033-DCEE-0EBC-29CD-D9BE4598E359}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\documents_importance\catboost-libs-documents_importance.vcxproj">
+      <Project>{7751BEC2-0B4A-B9BE-613C-ADD0DA46E2F6}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\eval_result\catboost-libs-eval_result.vcxproj">
+      <Project>{4721D1FD-2700-CA2E-7C39-1340CCD203BE}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\feature_estimator\catboost-libs-feature_estimator.vcxproj">
+      <Project>{0E2E4DB1-7B74-0856-9AE8-A5C39471561D}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\fstr\catboost-libs-fstr.vcxproj">
+      <Project>{E83B3FB9-9F00-AC47-8D5D-2028D57A073D}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\gpu_config\interface\libs-gpu_config-interface.vcxproj">
+      <Project>{F8F093C9-FBBE-5DBB-F4BF-56E91E44C829}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\gpu_config\maybe_have_cuda\libs-gpu_config-maybe_have_cuda.vcxproj">
+      <Project>{04036804-5965-53CB-70D8-AFAAA3355C77}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\helpers\catboost-libs-helpers.vcxproj">
+      <Project>{1ED2E5C8-4D20-BC86-8EEB-C69117E1D3FA}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\index_range\catboost-libs-index_range.vcxproj">
+      <Project>{C7EA1784-4778-7D80-C197-652E8C20DC97}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\init\catboost-libs-init.vcxproj">
+      <Project>{8C9203B7-3634-9C08-97C3-BEF287A48132}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\labels\catboost-libs-labels.vcxproj">
+      <Project>{EB86A32A-0A4A-7BD0-0414-09B87332B724}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\lapack\catboost-libs-lapack.vcxproj">
+      <Project>{34417530-E016-6BED-C5EA-EFB4E5D0038B}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\loggers\catboost-libs-loggers.vcxproj">
+      <Project>{8AC84D86-0BD7-E573-5982-63BDF5296882}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\logging\catboost-libs-logging.vcxproj">
+      <Project>{F83EC464-B188-D6BC-6C08-C75EB8176525}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\metrics\catboost-libs-metrics.vcxproj">
+      <Project>{3E05C3A9-D91C-174C-F5A0-5D363362CFDC}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\model\catboost-libs-model.vcxproj">
+      <Project>{A51525C5-634E-FC35-5327-3CD4A8F2B67F}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\model\flatbuffers\libs-model-flatbuffers.vcxproj">
+      <Project>{2A1F054B-AB2A-66AA-1838-2784A8B46C5D}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\model\model_export\libs-model-model_export.vcxproj">
+      <Project>{FAFB4883-665E-74FC-687B-B3E92B73012E}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\options\catboost-libs-options.vcxproj">
+      <Project>{D350B71A-438C-3D20-8D8E-292B20D81461}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\overfitting_detector\catboost-libs-overfitting_detector.vcxproj">
+      <Project>{37000E43-2347-88B9-F125-78F4CA4B2776}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\pairs\catboost-libs-pairs.vcxproj">
+      <Project>{6BE76251-8797-21D8-087A-ECBA25DEF163}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\quantization\catboost-libs-quantization.vcxproj">
+      <Project>{FB5A55D2-0C31-3068-15EB-9FA55E97086F}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\quantization_schema\catboost-libs-quantization_schema.vcxproj">
+      <Project>{DD94FB48-7329-B4E0-9617-51FA31F09621}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\quantized_pool\catboost-libs-quantized_pool.vcxproj">
+      <Project>{5B6277B4-44BD-6F15-42A1-2BEB2252ED53}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\quantized_pool_analysis\catboost-libs-quantized_pool_analysis.vcxproj">
+      <Project>{4C63CD0F-B8A4-4282-7B4F-E1CD186E6A2D}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\target\catboost-libs-target.vcxproj">
+      <Project>{5B13F9C8-8762-C986-5C05-19D08B360E04}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\text_features\catboost-libs-text_features.vcxproj">
+      <Project>{1DC2329C-D17B-1F04-445F-BD55E24DB60E}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\train_lib\catboost-libs-train_lib.vcxproj">
+      <Project>{B6361F28-19AC-62AF-82F3-98822E01D227}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\validate_fb\catboost-libs-validate_fb.vcxproj">
+      <Project>{5C82988B-62A7-7DFB-0935-AAAD43162232}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\libffi\contrib-deprecated-libffi.vcxproj">
+      <Project>{32E78DFF-5451-B440-4B35-E627E82B514E}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\base64\avx2\libs-base64-avx2.vcxproj">
+      <Project>{69A3431A-8A49-B198-8E40-2F61C1B0C1BC}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\base64\neon32\libs-base64-neon32.vcxproj">
+      <Project>{1A9691CB-BFB6-C486-E87D-5328BA1D30C4}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\base64\neon64\libs-base64-neon64.vcxproj">
+      <Project>{43F02410-7174-E3EB-72B4-FB60D5A771BE}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\base64\plain32\libs-base64-plain32.vcxproj">
+      <Project>{8D1207DE-3DBC-244F-460F-3B0EE19D59C1}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\base64\plain64\libs-base64-plain64.vcxproj">
+      <Project>{559B2726-07B4-6C78-6788-352FCD15D411}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\base64\ssse3\libs-base64-ssse3.vcxproj">
+      <Project>{DD9D736A-4883-1CB0-3953-E0D477192D2F}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\brotli\common\libs-brotli-common.vcxproj">
+      <Project>{8892D418-C7EA-5D54-5335-0BAA71F39229}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\brotli\dec\libs-brotli-dec.vcxproj">
+      <Project>{2C78C643-C826-3FB8-0307-5CA33CE7B76C}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\brotli\enc\libs-brotli-enc.vcxproj">
+      <Project>{81F8519B-E4FA-2A51-8D90-E6E1A0B110C3}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cblas\contrib-libs-cblas.vcxproj">
+      <Project>{F42B3303-A85B-C579-9BF8-27924B30359B}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\clapack\contrib-libs-clapack.vcxproj">
+      <Project>{04A8455B-4404-6B67-F3CD-6366DEF170FE}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\clapack\part1\libs-clapack-part1.vcxproj">
+      <Project>{6C58A7BD-61C5-1C8D-6C74-836658D88AE1}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\clapack\part2\libs-clapack-part2.vcxproj">
+      <Project>{917DA2BF-AE17-9DD9-93C2-EE8EAF72E9BD}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\coreml\contrib-libs-coreml.vcxproj">
+      <Project>{93EB7B67-F5F5-2F81-81E6-CAB2EBA6B8E6}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\crcutil\contrib-libs-crcutil.vcxproj">
+      <Project>{1EE751F2-33FA-3640-4C59-F20313BE143E}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cub\contrib-libs-cub.vcxproj">
+      <Project>{E6D0934F-A141-5DB0-60FA-6BD719540061}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\contrib-libs-cxxsupp.vcxproj">
+      <Project>{8D7C41B0-2344-C558-29D8-570B39498A2F}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\libcxx\libs-cxxsupp-libcxx.vcxproj">
+      <Project>{671FE333-6D0D-E7E3-0E1D-D4CB43CF879D}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\double-conversion\contrib-libs-double-conversion.vcxproj">
+      <Project>{1BA2A109-73A9-0A33-0C89-68ACB8229C74}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\expat\expat.vcxproj">
+      <Project>{4101A82B-19B1-4235-DF65-DD2155721571}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\fastlz\contrib-libs-fastlz.vcxproj">
+      <Project>{D709661F-2EAC-6991-0421-E9D659AB8256}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\flatbuffers\contrib-libs-flatbuffers.vcxproj">
+      <Project>{B88207AE-800B-A7B1-AE0B-F609E8684A5A}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\fmath\contrib-libs-fmath.vcxproj">
+      <Project>{90F91270-0728-ADD6-69B3-0B2735FE25FB}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\gamma_function_apache_math_port\contrib-libs-gamma_function_apache_math_port.vcxproj">
+      <Project>{80882C98-2659-8885-5B61-34A8E4283441}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\libbz2\contrib-libs-libbz2.vcxproj">
+      <Project>{22D13723-C5D2-BCB5-73F8-368EA5B1CBE5}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\libf2c\contrib-libs-libf2c.vcxproj">
+      <Project>{ACC03840-E215-DC54-B209-59FA03988A57}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\lz4\generated\libs-lz4-generated.vcxproj">
+      <Project>{B1939F66-2680-431C-0803-80E79529B7E9}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\lz4\lz4.vcxproj">
+      <Project>{1B7E96CA-22DB-5D08-EC22-214B2D56032B}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\lzmasdk\contrib-libs-lzmasdk.vcxproj">
+      <Project>{4F7974CD-8E2E-CE00-9601-B94495E36E7D}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\nayuki_md5\contrib-libs-nayuki_md5.vcxproj">
+      <Project>{C0251DC8-E401-B1AF-785F-72D686693CB9}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\onnx\contrib-libs-onnx.vcxproj">
+      <Project>{BA51C351-CD64-A60B-C4C2-2794FC71EE24}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\onnx\proto\libs-onnx-proto.vcxproj">
+      <Project>{53A49A97-A4C2-5A8F-A5D9-DAEC245E36A6}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\openssl\contrib-libs-openssl.vcxproj">
+      <Project>{C09AB4D0-26FB-8670-4A3A-438A55553615}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\openssl\crypto\libs-openssl-crypto.vcxproj">
+      <Project>{0EED471E-D91D-9917-D1A8-550D2EBE46DB}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\protobuf\contrib-libs-protobuf.vcxproj">
+      <Project>{18399176-5408-8102-7C5F-8DA029B8F78E}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\python\Include\py3libs-python-Include.vcxproj">
+      <Project>{979D0A38-9505-F3B3-16F9-58B713DAE389}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\python\py3contrib-libs-python.vcxproj">
+      <Project>{5B790388-FDEE-2F70-2F9B-EDB49D07DACF}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\rapidjson\contrib-libs-rapidjson.vcxproj">
+      <Project>{9CDB08FB-219D-3356-E006-1AC8AECC636E}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\snappy\contrib-libs-snappy.vcxproj">
+      <Project>{31072066-3C10-BD50-C299-F4AF4767798E}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\sqlite3\contrib-libs-sqlite3.vcxproj">
+      <Project>{95B1672E-65CB-6C0E-8AEB-4971392AB876}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\tensorboard\contrib-libs-tensorboard.vcxproj">
+      <Project>{85643E70-B3E5-4747-7C6D-59B9CF26EE48}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zlib\contrib-libs-zlib.vcxproj">
+      <Project>{E8A35EC0-40EE-2D96-1FB2-D065B804958D}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zstd\contrib-libs-zstd.vcxproj">
+      <Project>{0F7ECE1F-EE4E-A88C-12F5-7D1C49F1BC75}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zstd06\contrib-libs-zstd06.vcxproj">
+      <Project>{149CAE2F-67B1-E007-9F05-67247453CE03}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\Jinja2\py3Jinja2.vcxproj">
+      <Project>{ABE69C03-D8AA-46E8-A10F-942CBD86C860}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\MarkupSafe\py3contrib-python-MarkupSafe.vcxproj">
+      <Project>{0AF8F6ED-AFD8-CA23-BD1D-2D750C053CF0}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\dateutil\py3dateutil.vcxproj">
+      <Project>{4F62D972-C51F-BBC3-4B6A-266C6674E907}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\graphviz\py3contrib-python-graphviz.vcxproj">
+      <Project>{330DC72E-A843-8BC7-F0CD-1868368EA271}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\numpy\core\src\multiarray\py3core-src-multiarray.vcxproj">
+      <Project>{197484B2-39B2-9714-3434-79916553F031}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\numpy\core\src\umath\py3core-src-umath.vcxproj">
+      <Project>{9FEFEE81-2012-3BB1-4BB9-6F02699FCD8D}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\numpy\fft\py3numpy-numpy-fft.vcxproj">
+      <Project>{85AA5D7D-22B6-900D-6F5D-16CB775E612F}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\numpy\linalg\py3numpy-numpy-linalg.vcxproj">
+      <Project>{4E5E422C-0D27-62AE-17F7-E014A5EF55D7}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\numpy\random\mtrand\py3numpy-random-mtrand.vcxproj">
+      <Project>{6E0C4076-0B68-527E-E412-B2F8BD1896D7}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\py3contrib-python-numpy.vcxproj">
+      <Project>{FA301ACA-9DC7-C37A-FCD9-C0464CED7425}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pandas\py3contrib-python-pandas.vcxproj">
+      <Project>{19857ED0-7E0A-9EB9-3613-E37F9152CC67}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pytz\py3contrib-python-pytz.vcxproj">
+      <Project>{5257C446-B594-693C-C2C7-E97834CB951E}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\setuptools\py3contrib-python-setuptools.vcxproj">
+      <Project>{62979E22-6FCA-5446-4C8A-EE18209B5DE2}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\six\py3contrib-python-six.vcxproj">
+      <Project>{3C1C21ED-038A-3D60-F57B-2F1C7A00A9BE}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python3\lib\py\pypython3-lib-py.vcxproj">
+      <Project>{29D11B36-E190-930C-F04D-08E664A940A9}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python3\lib\tools-python3-lib.vcxproj">
+      <Project>{CD9FC9E1-E55E-F0DF-E06C-5DF7C166141B}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python3\pycc\pycc.vcxproj">
+      <Project>{480F44FB-05D5-35A4-D564-704F9C2920B7}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python3\src\Lib\pypython3-src-Lib.vcxproj">
+      <Project>{1F5842EA-E053-C6FC-4F42-BAAFD2F5B0EB}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python3\src\Modules\python3-src-Modules.vcxproj">
+      <Project>{D9DA0254-41B3-1659-443E-58F351ADA4FA}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python3\src\tools-python3-src.vcxproj">
+      <Project>{3853084F-52D5-B05E-2706-65BD06611610}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\yasm\yasm.vcxproj">
+      <Project>{1959E211-4FF5-553B-2DD1-9BDC1CFDC107}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\binsaver\library-binsaver.vcxproj">
+      <Project>{9C4284EC-342F-438F-B12F-EF54AD02C9C0}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\blockcodecs\codecs\brotli\blockcodecs-codecs-brotli.vcxproj">
+      <Project>{2674849B-0330-C348-578B-DB562AA37E65}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\blockcodecs\codecs\bzip\blockcodecs-codecs-bzip.vcxproj">
+      <Project>{AC376A6B-93D4-59AC-5493-C2308B528517}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\blockcodecs\codecs\fastlz\blockcodecs-codecs-fastlz.vcxproj">
+      <Project>{A880DD8B-7948-E7DF-FDDB-6F6C1A23012A}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\blockcodecs\codecs\legacy_zstd06\blockcodecs-codecs-legacy_zstd06.vcxproj">
+      <Project>{39206ED1-8CD9-0701-178E-0631ABD19D17}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\blockcodecs\codecs\lz4\blockcodecs-codecs-lz4.vcxproj">
+      <Project>{F13B7D24-08DF-93EE-EF06-0A42A67F1F2A}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\blockcodecs\codecs\lzma\blockcodecs-codecs-lzma.vcxproj">
+      <Project>{005F2BD3-F54E-2F5E-204D-10BBF3ABD244}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\blockcodecs\codecs\snappy\blockcodecs-codecs-snappy.vcxproj">
+      <Project>{96581D45-46BF-09E3-6477-BFA2BF8C22E1}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\blockcodecs\codecs\zlib\blockcodecs-codecs-zlib.vcxproj">
+      <Project>{DD085378-CB32-3420-0F56-EB3498FD2743}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\blockcodecs\codecs\zstd\blockcodecs-codecs-zstd.vcxproj">
+      <Project>{AC7594FF-6F1D-C755-11B7-918627CFBD0B}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\blockcodecs\core\library-blockcodecs-core.vcxproj">
+      <Project>{BC4F6560-AAA9-63AA-0B89-2627FA172162}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\blockcodecs\library-blockcodecs.vcxproj">
+      <Project>{E62EED19-EC2A-B4C3-0650-0923E4030E8B}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\chromium_trace\library-chromium_trace.vcxproj">
+      <Project>{9541389A-C448-428A-BEEE-604F1A02F5EA}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\colorizer\library-colorizer.vcxproj">
+      <Project>{439BAFF9-1167-D24B-92A2-3A00BEE420B1}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\containers\2d_array\library-containers-2d_array.vcxproj">
+      <Project>{57275066-CBBF-3FD5-137B-685E648981E5}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\containers\dense_hash\library-containers-dense_hash.vcxproj">
+      <Project>{45F2062A-3F31-B7B8-9501-F0C86DB74515}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\containers\flat_hash\lib\containers-flat_hash-lib.vcxproj">
+      <Project>{F197135F-A8DC-82F1-30DC-370483845AFC}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\containers\flat_hash\library-containers-flat_hash.vcxproj">
+      <Project>{5FD588BE-C0D3-668F-80A4-E122B11CEE84}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\containers\intrusive_rb_tree\library-containers-intrusive_rb_tree.vcxproj">
+      <Project>{53AA6AAE-E388-987D-9719-F611E55F76E8}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\containers\ring_buffer\library-containers-ring_buffer.vcxproj">
+      <Project>{A2C28480-F7EF-BB91-851E-44FEBBF8B8ED}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\containers\stack_vector\library-containers-stack_vector.vcxproj">
+      <Project>{16887906-E366-16EA-B53A-A081633E4AB5}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\coroutine\engine\library-coroutine-engine.vcxproj">
+      <Project>{810DAE0F-1259-BCE1-AB1B-BB8F715CA0BD}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\coroutine\listener\library-coroutine-listener.vcxproj">
+      <Project>{B4028C7F-B714-C057-20FD-5CC1C3A20526}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\dbg_output\library-dbg_output.vcxproj">
+      <Project>{806C141C-ADC5-203A-DF01-02F7E1563621}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\digest\crc32c\library-digest-crc32c.vcxproj">
+      <Project>{60AC81ED-1273-F1B9-1D99-3ED29CC2B4D0}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\digest\lower_case\library-digest-lower_case.vcxproj">
+      <Project>{98B506A2-A065-0821-3BB0-07FDF5C590A5}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\digest\md5\library-digest-md5.vcxproj">
+      <Project>{ECB75138-E9C8-5662-6E1E-06BCA3ED01E6}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\dns\library-dns.vcxproj">
+      <Project>{8C356353-67D3-3399-7DA3-792F6D7BF6D5}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\dot_product\library-dot_product.vcxproj">
+      <Project>{C9E27228-EB15-9076-28B8-5DEE405DB9A4}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\fast_exp\library-fast_exp.vcxproj">
+      <Project>{E0EC7772-5C0F-6407-290B-3900C3FF324B}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\fast_log\library-fast_log.vcxproj">
+      <Project>{B07A4621-4CF7-3047-5301-F164A4A90693}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\getopt\small\library-getopt-small.vcxproj">
+      <Project>{DB9C26F0-E241-89AB-6F12-8CE533A7E012}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\grid_creator\library-grid_creator.vcxproj">
+      <Project>{779D8853-F643-71C6-90BD-D7B34A2441E9}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\http\io\library-http-io.vcxproj">
+      <Project>{7AAD42F7-318F-829E-0019-82746753CD46}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\http\misc\library-http-misc.vcxproj">
+      <Project>{673846BF-CACD-8F51-393A-34F2381DAE0C}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\http\push_parser\library-http-push_parser.vcxproj">
+      <Project>{B05B7FF9-4CE5-696B-D8BB-5C8C4EEDBD2C}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\json\common\library-json-common.vcxproj">
+      <Project>{3B322F11-1D2A-AEFE-BC14-4F74683E14DB}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\json\fast_sax\library-json-fast_sax.vcxproj">
+      <Project>{8AAB2F9B-ECAA-2170-D871-1CEE27B498C2}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\json\library-json.vcxproj">
+      <Project>{E633ADF4-A720-EDCB-A12B-52A8216FF956}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\json\writer\library-json-writer.vcxproj">
+      <Project>{C27A0E65-4FDF-D0F0-5127-62A23E33B196}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\logger\global\library-logger-global.vcxproj">
+      <Project>{D1EB170E-C5D0-989C-A93C-B5A2CD895E62}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\logger\library-logger.vcxproj">
+      <Project>{83A191D5-D636-DE22-2633-0CBA3DEA99BB}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\malloc\api\library-malloc-api.vcxproj">
+      <Project>{32459880-AE0E-8CCD-4A48-44F805C4FC9B}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\neh\asio\library-neh-asio.vcxproj">
+      <Project>{ACDED067-8B74-5223-7E1A-7937B35A78E1}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\neh\library-neh.vcxproj">
+      <Project>{7FF4A650-AA1E-8970-CED7-751939DB312C}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\netliba\socket\library-netliba-socket.vcxproj">
+      <Project>{F9056049-5115-AB7C-F09D-A4BCA92367DD}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\netliba\v12\library-netliba-v12.vcxproj">
+      <Project>{89AB8FF8-D670-7C29-CED9-549FB45E0AAD}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\netliba\v6\library-netliba-v6.vcxproj">
+      <Project>{CF99E3A7-16F9-8EA9-027D-B9629FC7C3CD}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\object_factory\library-object_factory.vcxproj">
+      <Project>{F7622D70-2702-4C7E-04DA-52DC56DF911E}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\openssl\holders\library-openssl-holders.vcxproj">
+      <Project>{8BD519C9-FE74-64B1-416B-3052CA898BD0}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\openssl\init\library-openssl-init.vcxproj">
+      <Project>{0A9ED00A-8390-D6BA-3A2A-7A98AAFFB3E5}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\openssl\method\library-openssl-method.vcxproj">
+      <Project>{EBC3626B-F273-EB61-E7BE-9BBC217D8FB4}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\par\library-par.vcxproj">
+      <Project>{33DA38DE-6DFE-3983-55A4-A689CCC58EFD}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\pop_count\library-pop_count.vcxproj">
+      <Project>{5388367D-330A-ED57-0DB7-1F988A5A9B05}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\resource\py3library-python-resource.vcxproj">
+      <Project>{56BE61DD-902F-46E5-A0C0-F54A78D0B209}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\runtime_py3\pylibrary-python-runtime_py3.vcxproj">
+      <Project>{1CDAABEA-CAFE-2098-5B65-A951B25498E4}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\symbols\libc\python-symbols-libc.vcxproj">
+      <Project>{8E374D9B-CDBD-993F-45A3-F459C9A9C508}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\symbols\module\py3python-symbols-module.vcxproj">
+      <Project>{D01E799B-0965-1C31-0C5E-2F984B04A0B2}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\symbols\registry\python-symbols-registry.vcxproj">
+      <Project>{BD115620-103F-AECF-8093-05A7D89F72D6}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\resource\library-resource.vcxproj">
+      <Project>{0182C1FA-B7CF-C21E-561C-06B91159C53A}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\sse\library-sse.vcxproj">
+      <Project>{D4A23E39-75EE-97F4-A50A-283C64388B74}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\statistics\library-statistics.vcxproj">
+      <Project>{898C3811-AD77-869C-24DC-EF6A89FA8399}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\streams\brotli\library-streams-brotli.vcxproj">
+      <Project>{C372D0A1-5406-DEDE-C1E4-5FDC44B12554}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\streams\bzip2\library-streams-bzip2.vcxproj">
+      <Project>{D2BE05C4-A3E9-F005-03A2-D5BA7CA9894C}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\streams\lzma\library-streams-lzma.vcxproj">
+      <Project>{E67D1C28-54CB-F906-6A94-75D8A616C435}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\string_utils\base64\library-string_utils-base64.vcxproj">
+      <Project>{137212F6-D2FE-719F-EBE2-99060434BC72}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\string_utils\relaxed_escaper\library-string_utils-relaxed_escaper.vcxproj">
+      <Project>{91423FEC-8B3D-547B-2674-3740D83114B5}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\svnversion\library-svnversion.vcxproj">
+      <Project>{EB1297E8-310F-2F45-45A8-54D412024564}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\text_processing\dictionary\idl\text_processing-dictionary-idl.vcxproj">
+      <Project>{939B289A-1787-7277-2983-EC29354F300F}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\text_processing\dictionary\library-text_processing-dictionary.vcxproj">
+      <Project>{20E66110-58A2-0F4C-801A-002FF362F425}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\threading\atomic\library-threading-atomic.vcxproj">
+      <Project>{DE3D7773-D32D-01F5-FAE1-0EBED7524579}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\threading\chunk_queue\library-threading-chunk_queue.vcxproj">
+      <Project>{51BCA57C-7E5E-48F9-7D56-FD5809F99DCC}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\threading\future\library-threading-future.vcxproj">
+      <Project>{CF2582C4-C4A1-875F-6897-27B28FB8018A}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\threading\local_executor\library-threading-local_executor.vcxproj">
+      <Project>{5707A0DE-3EF6-1E74-8DEE-4FDC5C2E6854}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\threading\mux_event\library-threading-mux_event.vcxproj">
+      <Project>{B74D5080-3614-52D8-BADE-8FF788EF3582}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\threading\name_guard\library-threading-name_guard.vcxproj">
+      <Project>{245DBD38-96D4-34AF-0014-199EB4C1FEEA}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\yson\library-yson.vcxproj">
+      <Project>{2779E1A2-0D5A-216D-65BF-CE9DF81108EF}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\tools\enum_parser\enum_serialization_runtime\tools-enum_parser-enum_serialization_runtime.vcxproj">
+      <Project>{F745D73A-277F-A595-1468-618C82B9B77E}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\tools\rescompressor\rescompressor.vcxproj">
+      <Project>{659583CA-86AE-A5F2-5BA3-BE5FC38B1B30}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\tools\rorescompiler\rorescompiler.vcxproj">
+      <Project>{138FDCC6-8D99-5FD2-952A-2DA00D63BE45}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\util\charset\util-charset.vcxproj">
+      <Project>{44174C28-7454-8F7D-C06B-E2E8E0B4BF9E}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\util\yutil.vcxproj">
+      <Project>{1C91E826-1D2A-B4DB-C1D2-F89E49E9BDCD}</Project>
+    </ProjectReference>
+  </ItemGroup>
+</Project>

@@ -6,4 +6,6 @@ SRCS(
     binsaver_ut.cpp
 )
 
+PEERDIR(library/binsaver/ut_util)
+
 END()

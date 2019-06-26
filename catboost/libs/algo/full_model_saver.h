@@ -10,6 +10,7 @@
 #include <catboost/libs/options/cat_feature_options.h>
 #include <catboost/libs/options/enums.h>
 
+#include <util/generic/array_ref.h>
 #include <util/generic/maybe.h>
 #include <util/generic/hash.h>
 #include <util/generic/ptr.h>
@@ -106,4 +107,14 @@ namespace NCB {
         TGetBinarizedDataFunc GetBinarizedDataFunc;
         TObjectsDataProviderPtr LearnObjectsData;
     };
+
+    void ExportFullModel(
+        const TFullModel& fullModel,
+        const TString& fullModelPath,
+
+        // if specified - all categorical feature values must be present in this dataset
+        const TMaybe<const TObjectsDataProvider*> allLearnObjectsData,
+        TConstArrayRef<EModelType> formats,
+        bool addFileFormatExtension = false
+    );
 }

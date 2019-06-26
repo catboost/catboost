@@ -2,7 +2,19 @@
 
 
 static double ErrorFunction(const double x) {
-    double coeffs[] = {-1.26551223, 1.00002368, 0.37409196, 0.09678418, -0.18628806, 0.27886807, -1.13520398, 1.48851587, -0.82215223, 0.17087277};
+    double coeffs[] = {
+        -1.26551223,
+        1.00002368,
+        0.37409196,
+        0.09678418,
+        -0.18628806,
+        0.27886807,
+        -1.13520398,
+        1.48851587,
+        -0.82215223,
+        0.17087277
+    };
+
     double t = 1.0 / (1.0 + 0.5 * Abs(x));
     double sum = -x * x;
     double powT = 1.0;
@@ -54,8 +66,7 @@ static double CalcLevelOfSignificanceWXMPSR(double w, int n) {
 }
 
 
-TWxTestResult WxTest(const TVector<double>& baseline,
-                     const TVector<double>& test) {
+TWxTestResult WxTest(const TVector<double>& baseline, const TVector<double>& test) {
     TVector<double> diffs;
 
     for (size_t i = 0; i < baseline.size(); ++i) {
@@ -74,9 +85,7 @@ TWxTestResult WxTest(const TVector<double>& baseline,
         return result;
     }
 
-    Sort(diffs.begin(), diffs.end(), [&](double x, double y) {
-        return Abs(x) < Abs(y);
-    });
+    Sort(diffs.begin(), diffs.end(), [&](double x, double y) { return Abs(x) < Abs(y); });
 
     double wPlus = 0;
     double wMinus = 0;

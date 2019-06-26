@@ -1,98 +1,126 @@
-#define FROM_IMPL_CPP
-
-#include "coro_events.h"
 #include "impl.h"
 
-#include <util/generic/yexception.h>
+#include <util/stream/format.h>
 #include <util/stream/output.h>
 #include <util/system/yassert.h>
 
-template <>
-void Out<TCont>(IOutputStream& out, const TCont& c) {
-    c.PrintMe(out);
+
+TCont::TJoinWait::TJoinWait(TCont* c) noexcept
+    : Cont_(c)
+{}
+
+void TCont::TJoinWait::Wake() noexcept {
+    Cont_->ReSchedule();
 }
 
-template <>
-void Out<TContRep>(IOutputStream& out, const TContRep& c) {
-    c.ContPtr()->PrintMe(out);
+TCont::TCont(size_t stackSize, TContExecutor* executor, TContFunc func, void* arg, const char* name) noexcept
+    : Executor_(executor)
+    , Trampoline_(stackSize, func, this, arg)
+    , Name_(name)
+{}
+
+
+void TCont::PrintMe(IOutputStream& out) const noexcept {
+    out << "cont("
+        << "func = " << (size_t)(void*)Trampoline_.Func_ << ", "
+        << "arg = " << (size_t)(void*)Trampoline_.Arg_ << ", "
+        << "name = " << Name_ << ", "
+        << "addr = " << Hex((size_t)this)
+        << ")";
 }
 
-TContRep::TContRep(TContStackAllocator* alloc)
-    : real(alloc->Allocate())
-    , full((char*)real->Data(), real->Length())
-#if defined(STACK_GROW_DOWN)
-    , stack(full.data(), EffectiveStackLength(full.size()))
-    , cont(stack.end(), Align(sizeof(TCont)))
-    , machine(cont.end(), Align(sizeof(TExceptionSafeContext)))
-#else
-#error todo
-#endif
-{
-}
+bool TCont::Join(TCont* c, TInstant deadLine) noexcept {
+    TJoinWait ev(this);
+    c->Waiters_.PushBack(&ev);
 
-void TContRep::DoRun() {
-    try {
-        Y_CORO_DBGOUT(Y_CORO_PRINT(ContPtr()) << " execute");
-        ContPtr()->Execute();
-    } catch (...) {
-        try {
-            Y_CORO_DBGOUT(CurrentExceptionMessage());
-        } catch (...) {
+    do {
+        if (SleepD(deadLine) == ETIMEDOUT || Cancelled()) {
+            if (!ev.Empty()) {
+                c->Cancel();
+
+                do {
+                    SwitchTo(Executor()->SchedContext());
+                } while (!ev.Empty());
+            }
+
+            return false;
         }
+    } while (!ev.Empty());
 
-        Y_VERIFY(!ContPtr()->Executor()->FailOnError(), "uncaught exception");
+    return true;
+}
+
+int TCont::SleepD(TInstant deadline) noexcept {
+    TTimerEvent event(this, deadline);
+
+    return ExecuteEvent(&event);
+}
+
+void TCont::Yield() noexcept {
+    if (SleepD(TInstant::Zero())) {
+        ReScheduleAndSwitch();
+    }
+}
+
+void TCont::ReScheduleAndSwitch() noexcept {
+    ReSchedule();
+    SwitchTo(Executor()->SchedContext());
+}
+
+void TCont::Terminate() {
+    while (!Waiters_.Empty()) {
+        Waiters_.PopFront()->Wake();
+    }
+    Executor()->Exit(this);
+}
+
+bool TCont::IAmRunning() const noexcept {
+    return this == Executor()->Running();
+}
+
+void TCont::Cancel() noexcept {
+    if (Cancelled()) {
+        return;
     }
 
-    ContPtr()->WakeAllWaiters();
-    ContPtr()->Executor()->Exit(this);
-}
+    Cancelled_ = true;
 
-void TContRep::Construct(TContExecutor* executor, TContFunc func, void* arg, const char* name) {
-    TContClosure closure = {
-        this,
-        stack,
-    };
-
-    THolder<TExceptionSafeContext, TDestructor> mc(new (MachinePtr()) TExceptionSafeContext(closure));
-
-    new (ContPtr()) TCont(executor, this, func, arg, name);
-    Y_UNUSED(mc.Release());
-}
-
-void TContRep::Destruct() noexcept {
-    ContPtr()->~TCont();
-    MachinePtr()->~TExceptionSafeContext();
-}
-
-#if defined(_unix_)
-#include <sys/mman.h>
-#endif
-
-void TProtectedContStackAllocator::Protect(void* ptr, size_t len) noexcept {
-#if defined(_unix_) && !defined(_cygwin_)
-    if (mprotect(ptr, len, PROT_NONE)) {
-        Y_FAIL("failed to mprotect (protect): %s", LastSystemErrorText());
+    if (!IAmRunning()) {
+        ReSchedule();
     }
-#else
-    Y_UNUSED(ptr);
-    Y_UNUSED(len);
-#endif
 }
 
-void TProtectedContStackAllocator::UnProtect(void* ptr, size_t len) noexcept {
-#if defined(_unix_) && !defined(_cygwin_)
-    if (mprotect(ptr, len, PROT_READ | PROT_WRITE)) {
-        Y_FAIL("failed to mprotect (unprotect): %s", LastSystemErrorText());
+void TCont::ReSchedule() noexcept {
+    if (Cancelled()) {
+        // Legacy code may expect a Cancelled coroutine to be scheduled without delay.
+        Executor()->ScheduleExecutionNow(this);
+    } else {
+        Executor()->ScheduleExecution(this);
     }
-#else
-    Y_UNUSED(ptr);
-    Y_UNUSED(len);
-#endif
+}
+
+
+TContExecutor::TContExecutor(ui32 defaultStackSize, THolder<IPollerFace> poller, NCoro::IScheduleCallback* callback)
+    : CallbackPtr_(callback)
+    , DefaultStackSize_(defaultStackSize)
+    , Poller_(std::move(poller))
+{}
+
+TContExecutor::~TContExecutor() {
+    Y_VERIFY(Allocated_ == 0, "leaked %u coroutines", (ui32)Allocated_);
+}
+
+void TContExecutor::Execute() noexcept {
+    auto nop = [](void*){};
+    Execute(nop);
+}
+
+void TContExecutor::Execute(TContFunc func, void* arg) noexcept {
+    Create(func, arg, "sys_main");
+    RunScheduler();
 }
 
 void TContExecutor::WaitForIO() {
-    Y_CORO_DBGOUT("scheduler: WaitForIO R,RN,WQ=" << Ready_.Size() << "," << ReadyNext_.Size() << "," << !WaitQueue_.Empty());
-
     while (Ready_.Empty() && !WaitQueue_.Empty()) {
         const auto now = TInstant::Now();
 
@@ -110,24 +138,21 @@ void TContExecutor::WaitForIO() {
 
         Ready_.Append(ReadyNext_);
     }
-
-    Y_CORO_DBGOUT("scheduler: Done WaitForIO R,RN,WQ="
-           << Ready_.Size() << "," << ReadyNext_.Size() << "," << !WaitQueue_.Empty());
 }
 
-void TContExecutor::ProcessEvents(){
+void TContExecutor::ProcessEvents() {
     for (auto event : Events_) {
-        TPollEventList* lst = (TPollEventList*)event.Data;
+        auto* lst = (NCoro::TPollEventList*)event.Data;
         const int status = event.Status;
 
         if (status) {
-            for (TPollEventList::TIterator it = lst->Begin(); it != lst->End();) {
+            for (auto it = lst->Begin(); it != lst->End();) {
                 (it++)->OnPollEvent(status);
             }
         } else {
             const ui16 filter = event.Filter;
 
-            for (TPollEventList::TIterator it = lst->Begin(); it != lst->End();) {
+            for (auto it = lst->Begin(); it != lst->End();) {
                 if (it->What() & filter) {
                     (it++)->OnPollEvent(0);
                 } else {
@@ -138,295 +163,57 @@ void TContExecutor::ProcessEvents(){
     }
 }
 
-void TCont::PrintMe(IOutputStream& out) const noexcept {
-    out << "cont("
-        << "func = " << (size_t)(void*)Func_ << ", "
-        << "arg = " << (size_t)(void*)Arg_ << ", "
-        << "name = " << Name_
-        << ")";
+void TContExecutor::Abort() noexcept {
+    WaitQueue_.Abort();
+    auto visitor = [](TCont* c) {
+        c->Cancel();
+    };
+    Ready_.ForEach(visitor);
+    ReadyNext_.ForEach(visitor);
 }
 
-int TCont::SelectD(SOCKET fds[], int what[], size_t nfds, SOCKET* outfd, TInstant deadline) {
-    Y_CORO_DBGOUT(Y_CORO_PRINT(this) << " prepare select");
-    Y_VERIFY(!Dead_, "%s", Y_CORO_PRINTF(this));
-
-    if (Cancelled()) {
-        return ECANCELED;
+TCont* TContExecutor::Create(TContFunc func, void* arg, const char* name, TMaybe<ui32> stackSize) noexcept {
+    Allocated_ += 1;
+    if (!stackSize) {
+        stackSize = DefaultStackSize_;
     }
-
-    if (nfds == 0) {
-        return 0;
-    }
-
-    TTempBuf memoryBuf(nfds * sizeof(TFdEvent));
-    void* memory = memoryBuf.Data();
-    TContPollEventHolder holder(memory, this, fds, what, nfds, deadline);
-    holder.ScheduleIoWait(Executor());
-
-    SwitchToScheduler();
-
-    if (Cancelled()) {
-        return ECANCELED;
-    }
-
-    TFdEvent* ev = holder.TriggeredEvent();
-
-    if (ev) {
-        if (outfd) {
-            *outfd = ev->Fd();
-        }
-
-        return ev->Status();
-    }
-
-    return EINPROGRESS;
+    auto* cont = new TCont(*stackSize, this, func, arg, name);
+    ScheduleExecution(cont);
+    return cont;
 }
 
-TContIOStatus TCont::ReadVectorD(SOCKET fd, TContIOVector* vec, TInstant deadline) noexcept {
-    Y_CORO_DBGOUT(Y_CORO_PRINT(this) << " do readv");
-    Y_VERIFY(!Dead_, "%s", Y_CORO_PRINTF(this));
-
-    while (true) {
-        ssize_t res = DoReadVector(fd, vec);
-
-        if (res >= 0) {
-            return TContIOStatus::Success((size_t)res);
-        }
-
-        {
-            const int err = LastSystemError();
-
-            if (!IsBlocked(err)) {
-                return TContIOStatus::Error(err);
-            }
-        }
-
-        if ((res = PollD(fd, CONT_POLL_READ, deadline)) != 0) {
-            return TContIOStatus::Error((int)res);
-        }
-    }
+void TContExecutor::Release(TCont* cont) noexcept {
+    delete cont;
+    Allocated_ -= 1;
 }
 
-TContIOStatus TCont::ReadD(SOCKET fd, void* buf, size_t len, TInstant deadline) noexcept {
-    IOutputStream::TPart part(buf, len);
-    TContIOVector vec(&part, 1);
-    return ReadVectorD(fd, &vec, deadline);
+void TContExecutor::ScheduleToDelete(TCont* cont) noexcept {
+    ToDelete_.PushBack(cont);
 }
 
-TContIOStatus TCont::WriteVectorD(SOCKET fd, TContIOVector* vec, TInstant deadline) noexcept {
-    Y_CORO_DBGOUT(Y_CORO_PRINT(this) << " do writev");
-    Y_VERIFY(!Dead_, "%s", Y_CORO_PRINTF(this));
-
-    size_t written = 0;
-
-    while (!vec->Complete()) {
-        ssize_t res = DoWriteVector(fd, vec);
-
-        if (res >= 0) {
-            written += res;
-
-            vec->Proceed((size_t)res);
-        } else {
-            {
-                const int err = LastSystemError();
-
-                if (!IsBlocked(err)) {
-                    return TContIOStatus(written, err);
-                }
-            }
-
-            if ((res = PollD(fd, CONT_POLL_WRITE, deadline)) != 0) {
-                return TContIOStatus(written, (int)res);
-            }
-        }
-    }
-
-    return TContIOStatus::Success(written);
+void TContExecutor::ScheduleExecution(TCont* cont) noexcept {
+    cont->Scheduled_ = true;
+    ReadyNext_.PushBack(cont);
 }
 
-TContIOStatus TCont::WriteD(SOCKET fd, const void* buf, size_t len, TInstant deadline) noexcept {
-    Y_CORO_DBGOUT(Y_CORO_PRINT(this) << " do write");
-    Y_VERIFY(!Dead_, "%s", Y_CORO_PRINTF(this));
-
-    size_t written = 0;
-
-    while (len) {
-        ssize_t res = DoWrite(fd, (const char*)buf, len);
-
-        if (res >= 0) {
-            written += res;
-            buf = (const char*)buf + res;
-            len -= res;
-        } else {
-            {
-                const int err = LastSystemError();
-
-                if (!IsBlocked(err)) {
-                    return TContIOStatus(written, err);
-                }
-            }
-
-            if ((res = PollD(fd, CONT_POLL_WRITE, deadline)) != 0) {
-                return TContIOStatus(written, (int)res);
-            }
-        }
-    }
-
-    return TContIOStatus::Success(written);
+void TContExecutor::ScheduleExecutionNow(TCont* cont) noexcept {
+    cont->Scheduled_ = true;
+    Ready_.PushBack(cont);
 }
 
-int TCont::ConnectD(SOCKET s, const struct sockaddr* name, socklen_t namelen, TInstant deadline) noexcept {
-    Y_CORO_DBGOUT(Y_CORO_PRINT(this) << " do connect");
-    Y_VERIFY(!Dead_, "%s", Y_CORO_PRINTF(this));
-
-    if (connect(s, name, namelen)) {
-        const int err = LastSystemError();
-
-        if (!IsBlocked(err) && err != EINPROGRESS) {
-            return err;
-        }
-
-        int ret = PollD(s, CONT_POLL_WRITE, deadline);
-
-        if (ret) {
-            return ret;
-        }
-
-        // check if we really connected
-        // FIXME: Unportable ??
-        int serr = 0;
-        socklen_t slen = sizeof(serr);
-
-        ret = getsockopt(s, SOL_SOCKET, SO_ERROR, (char*)&serr, &slen);
-
-        if (ret) {
-            return LastSystemError();
-        }
-
-        if (serr) {
-            return serr;
-        }
-    }
-
-    return 0;
+void TContExecutor::Activate(TCont* cont) noexcept {
+    Current_ = cont;
+    cont->Scheduled_ = false;
+    SchedContext_.SwitchTo(cont->Context());
 }
 
-int TCont::AcceptD(SOCKET s, struct sockaddr* addr, socklen_t* addrlen, TInstant deadline) noexcept {
-    Y_CORO_DBGOUT(Y_CORO_PRINT(this) << " do accept");
-    Y_VERIFY(!Dead_, "%s", Y_CORO_PRINTF(this));
-
-    SOCKET ret;
-
-    while ((ret = Accept4(s, addr, addrlen)) == INVALID_SOCKET) {
-        int err = LastSystemError();
-
-        if (!IsBlocked(err)) {
-            return -err;
-        }
-
-        err = PollD(s, CONT_POLL_READ, deadline);
-
-        if (err) {
-            return -err;
-        }
-    }
-
-    return (int)ret;
-}
-
-ssize_t TCont::DoRead(SOCKET fd, char* buf, size_t len) noexcept {
-#if defined(_win_)
-    if (IsSocket(fd)) {
-        return recv(fd, buf, (int)len, 0);
-    }
-
-    return _read((int)fd, buf, (int)len);
-#else
-    return read(fd, buf, len);
-#endif
-}
-
-ssize_t TCont::DoReadVector(SOCKET fd, TContIOVector* vec) noexcept {
-    return readv(fd, (const iovec*)vec->Parts(), Min(IOV_MAX, (int)vec->Count()));
-}
-
-ssize_t TCont::DoWrite(SOCKET fd, const char* buf, size_t len) noexcept {
-#if defined(_win_)
-    if (IsSocket(fd)) {
-        return send(fd, buf, (int)len, 0);
-    }
-
-    return _write((int)fd, buf, (int)len);
-#else
-    return write(fd, buf, len);
-#endif
-}
-
-ssize_t TCont::DoWriteVector(SOCKET fd, TContIOVector* vec) noexcept {
-    return writev(fd, (const iovec*)vec->Parts(), Min(IOV_MAX, (int)vec->Count()));
-}
-
-int TCont::Connect(TSocketHolder& s, const struct addrinfo& ai, TInstant deadLine) noexcept {
-    Y_CORO_DBGOUT(Y_CORO_PRINT(this) << " do connect addrinfo");
-    Y_VERIFY(!Dead_, "%s", Y_CORO_PRINTF(this));
-
-    TSocketHolder res(Socket(ai));
-
-    if (res.Closed()) {
-        return LastSystemError();
-    }
-
-    const int ret = ConnectD(res, ai.ai_addr, (socklen_t)ai.ai_addrlen, deadLine);
-
-    if (!ret) {
-        s.Swap(res);
-    }
-
-    return ret;
-}
-
-int TCont::Connect(TSocketHolder& s, const TNetworkAddress& addr, TInstant deadLine) noexcept {
-    Y_CORO_DBGOUT(Y_CORO_PRINT(this) << " do connect netaddr");
-    Y_VERIFY(!Dead_, "%s", Y_CORO_PRINTF(this));
-
-    int ret = EHOSTUNREACH;
-
-    for (TNetworkAddress::TIterator it = addr.Begin(); it != addr.End(); ++it) {
-        ret = Connect(s, *it, deadLine);
-
-        if (ret == 0 || ret == ETIMEDOUT) {
-            return ret;
-        }
-    }
-
-    return ret;
-}
-
-TContExecutor::TContExecutor(size_t stackSize, THolder<IPollerFace> poller, NCoro::IScheduleCallback* callback)
-    : Poller_(std::move(poller))
-    , MyPool_(new TContRepPool(stackSize))
-    , Pool_(*MyPool_)
-    , Current_(nullptr)
-    , CallbackPtr_(callback)
-    , FailOnError_(false)
-{
-}
-
-TContExecutor::TContExecutor(TContRepPool* pool, THolder<IPollerFace> poller, NCoro::IScheduleCallback* callback)
-    : Poller_(std::move(poller))
-    , Pool_(*pool)
-    , Current_(nullptr)
-    , CallbackPtr_(callback)
-    , FailOnError_(false)
-{
-}
-
-TContExecutor::~TContExecutor() {
+void TContExecutor::DeleteScheduled() noexcept {
+    ToDelete_.ForEach([this](TCont* c) {
+        Release(c);
+    });
 }
 
 void TContExecutor::RunScheduler() noexcept {
-    Y_CORO_DBGOUT("scheduler: started");
-
     try {
         while (true) {
             Ready_.Append(ReadyNext_);
@@ -435,11 +222,10 @@ void TContExecutor::RunScheduler() noexcept {
                 break;
             }
 
-            TContRep* cont = Ready_.PopFront();
+            TCont* cont = Ready_.PopFront();
 
-            Y_CORO_DBGOUT(Y_CORO_PRINT(cont->ContPtr()) << " prepare for activate");
             if (CallbackPtr_) {
-                CallbackPtr_->OnSchedule(*this, *cont->ContPtr());
+                CallbackPtr_->OnSchedule(*this, *cont);
             }
             Activate(cont);
             if (CallbackPtr_) {
@@ -450,63 +236,17 @@ void TContExecutor::RunScheduler() noexcept {
             DeleteScheduled();
         }
     } catch (...) {
-        Y_FAIL("Uncaught exception in scheduler: %s", CurrentExceptionMessage().c_str());
-    }
-
-    Y_CORO_DBGOUT("scheduler: stopped");
-}
-
-TContPollEventHolder::TContPollEventHolder(void* memory, TCont* rep, SOCKET fds[], int what[], size_t nfds, TInstant deadline)
-    : Events_((TFdEvent*)memory)
-    , Count_(nfds)
-{
-    for (size_t i = 0; i < Count_; ++i) {
-        new (&(Events_[i])) TFdEvent(rep, fds[i], (ui16)what[i], deadline);
+        Y_FAIL("Uncaught exception in the scheduler: %s", CurrentExceptionMessage().c_str());
     }
 }
 
-TContPollEventHolder::~TContPollEventHolder() {
-    for (size_t i = 0; i < Count_; ++i) {
-        Events_[i].~TFdEvent();
-    }
+void TContExecutor::Exit(TCont* cont) noexcept {
+    ScheduleToDelete(cont);
+    cont->SwitchTo(&SchedContext_);
+    Y_FAIL("can not return from exit");
 }
 
-void TContPollEventHolder::ScheduleIoWait(TContExecutor* executor) {
-    for (size_t i = 0; i < Count_; ++i) {
-        executor->ScheduleIoWait(&(Events_[i]));
-    }
-}
-
-TFdEvent* TContPollEventHolder::TriggeredEvent() noexcept {
-    TFdEvent* ret = nullptr;
-    int status = EINPROGRESS;
-
-    for (size_t i = 0; i < Count_; ++i) {
-        TFdEvent& ev = Events_[i];
-
-        switch (ev.Status()) {
-            case EINPROGRESS:
-                break;
-
-            case ETIMEDOUT:
-                if (status != EINPROGRESS) {
-                    break;
-                } // else fallthrough
-
-            default:
-                status = ev.Status();
-                ret = &ev;
-        }
-    }
-
-    return ret;
-}
-
-void TInterruptibleEvent::Interrupt() noexcept {
-    if (!Interrupted_) {
-        Interrupted_ = true;
-        if (!Cont_->Scheduled()) {
-            Cont_->ReSchedule();
-        }
-    }
+template <>
+void Out<TCont>(IOutputStream& out, const TCont& c) {
+    c.PrintMe(out);
 }

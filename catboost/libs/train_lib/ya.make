@@ -5,16 +5,19 @@ LIBRARY()
 SRCS(
     cross_validation.cpp
     options_helper.cpp
+    feature_names_converter.cpp
     GLOBAL train_model.cpp
 )
 
 PEERDIR(
     catboost/libs/algo
+    catboost/libs/column_description
     catboost/libs/options
     catboost/libs/data_new
+    catboost/libs/helpers
+    catboost/libs/data_util
     catboost/libs/distributed
     catboost/libs/eval_result
-    catboost/libs/helpers
     catboost/libs/labels
     catboost/libs/logging
     catboost/libs/loggers

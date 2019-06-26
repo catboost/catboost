@@ -46,12 +46,11 @@ Possible values:
 
 Default value: 'FeatureImportance'}
 
-\item{thread_count}{The number of threads to use when applying the model. If -1, then the number of threads is set to the number of cores.
+\item{thread_count}{The number of threads to use when applying the model. If -1, then the number of threads is set to the number of CPU cores.
 
 Allows you to optimize the speed of execution. This parameter doesn't affect results.
 
 Default value: -1}
-
 \item{fstr_type}{Deprecated parameter, use 'type' instead.}
 }
 \description{

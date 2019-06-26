@@ -1,0 +1,173 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>CatBoostNet</name>
+    </assembly>
+    <members>
+        <member name="T:CatBoostNet.CatBoostValuePrediction">
+            <summary>
+            Schema for the CatBoost model prediction.
+            Currently it stores the array of doubles which can mean:
+            <list type="bullet">
+            <item>response variable (1 real number) for regression;</item>
+            <item>logit of probability estimate (1 real number) for binary classification;</item>
+            <item>logits of probability estimates (several real numbers, one for each class) for multiclass classification</item>
+            </list>
+            </summary>
+        </member>
+        <member name="F:CatBoostNet.CatBoostValuePrediction.OutputValues">
+            <summary>
+            Array of output values
+            </summary>
+        </member>
+        <member name="T:CatBoostNet.CatBoostModel">
+            <summary>
+            High-level, ML.NET-compliant class for making predictions using CatBoost models.
+            If you need to implement a custom model code, use <see cref="T:CatBoostNet.CatBoostModelEvaluator"/>
+            as the basic building block.
+            </summary>
+        </member>
+        <member name="P:CatBoostNet.CatBoostModel.TargetFeature">
+            <summary>
+            Name of the predicted feature
+            </summary>
+        </member>
+        <member name="M:CatBoostNet.CatBoostModel.#ctor(System.String,System.String)">
+            <summary>
+            Model constructor
+            </summary>
+            <param name="modelFilePath">Path to the model file</param>
+            <param name="targetFeature">Name of the target feature</param>
+        </member>
+        <member name="P:CatBoostNet.CatBoostModel.IsRowToRowMapper">
+            <inheritdoc />
+        </member>
+        <member name="M:CatBoostNet.CatBoostModel.GetOutputSchema(Microsoft.ML.DataViewSchema)">
+            <inheritdoc />
+        </member>
+        <member name="M:CatBoostNet.CatBoostModel.GetRowToRowMapper(Microsoft.ML.DataViewSchema)">
+            <inheritdoc />
+        </member>
+        <member name="M:CatBoostNet.CatBoostModel.Save(Microsoft.ML.ModelSaveContext)">
+            <inheritdoc />
+        </member>
+        <member name="M:CatBoostNet.CatBoostModel.Transform(Microsoft.ML.IDataView)">
+            <inheritdoc />
+        </member>
+        <member name="T:CatBoostNet.CatBoostModelEvaluator">
+            <summary>
+            Low-level API for interacting with CatBoost library.
+            Should be used only for creating custom predictors —
+            if you just want to run common classification/regression task,
+            use <see cref="T:CatBoostNet.CatBoostModel"/> instead.
+            </summary>
+        </member>
+        <member name="T:CatBoostNet.CatBoostModelEvaluator.CatBoostModelContainer">
+            <summary>
+            Structure for storing minimal model info — path to the model file
+            and pointer to the model handler
+            (as returned by <see cref="M:CatBoostNet.CatBoostModelEvaluator.ModelCalcerCreate"/>).
+            </summary>
+        </member>
+        <member name="P:CatBoostNet.CatBoostModelEvaluator.CatBoostModelContainer.ModelPath">
+            <summary>
+            Path to the model file.
+            </summary>
+        </member>
+        <member name="P:CatBoostNet.CatBoostModelEvaluator.CatBoostModelContainer.ModelHandler">
+            <summary>
+            Pointer to the model handler. <seealso cref="M:CatBoostNet.CatBoostModelEvaluator.ModelCalcerCreate"/>
+            </summary>
+        </member>
+        <member name="M:CatBoostNet.CatBoostModelEvaluator.CatBoostModelContainer.#ctor(System.String)">
+            <summary>
+            Container constructor.
+            </summary>
+            <param name="path">Path to the model file</param>
+        </member>
+        <member name="M:CatBoostNet.CatBoostModelEvaluator.#ctor(System.String)">
+            <summary>
+            Low-level model evaluator constructor.
+            </summary>
+            <param name="path">Path to the model file</param>
+        </member>
+        <member name="M:CatBoostNet.CatBoostModelEvaluator.Finalize">
+            <summary>
+            Low-level model evaluator destructor.
+            </summary>
+        </member>
+        <member name="P:CatBoostNet.CatBoostModelEvaluator.TreeCount">
+            <summary>
+            Number of trees in the model
+            </summary>
+        </member>
+        <member name="P:CatBoostNet.CatBoostModelEvaluator.FloatFeaturesCount">
+            <summary>
+            Number of numeric used in the model input
+            </summary>
+        </member>
+        <member name="P:CatBoostNet.CatBoostModelEvaluator.CatFeaturesCount">
+            <summary>
+            Number of categorical features used in the model input
+            </summary>
+        </member>
+        <member name="P:CatBoostNet.CatBoostModelEvaluator.CatFeaturesIndices">
+            <summary>
+            Indices of the categorical features in the model input
+            </summary>
+        </member>
+        <member name="M:CatBoostNet.CatBoostModelEvaluator.EvaluateBatch(System.Single[0:,0:],System.String[0:,0:])">
+            <summary>
+            Evaluates the model on the input batch.
+            <seealso cref="M:CatBoostNet.CatBoostModelEvaluator.EvaluateSingle(System.Single[],System.String[])"/>
+            </summary>
+            <param name="floatFeatures">
+            2D array of float features.
+            Should have the same <c>.GetLength(0)</c> as <paramref name="catFeatures"/>
+            </param>
+            <param name="catFeatures">
+            2D array of categorical features encoded as strings.
+            Should have the same <c>.GetLength(0)</c> as <paramref name="floatFeatures"/>
+            </param>
+            <returns>2D array with model predictions for all samples in the batch</returns>
+        </member>
+        <member name="M:CatBoostNet.CatBoostModelEvaluator.EvaluateSingle(System.Single[],System.String[])">
+            <summary>
+            Evaluates the model on the single input.
+            <seealso cref="M:CatBoostNet.CatBoostModelEvaluator.EvaluateSingle(System.Single[],System.String[])"/>
+            </summary>
+            <param name="floatFeatures">Array of float features</param>
+            <param name="catFeatures">Array of categorical features</param>
+            <returns>Array storing model prediction for the input</returns>
+        </member>
+        <member name="P:CatBoostNet.CatBoostModelEvaluator.ModelPath">
+            <summary>
+            Path to the model file
+            </summary>
+        </member>
+        <member name="P:CatBoostNet.CatBoostModelEvaluator.ModelContainer">
+            <summary>
+            Container storing the model handler
+            </summary>
+        </member>
+        <member name="T:CatBoostNet.PointerTools">
+            <summary>
+            Helper class for pointer-level memory management.
+            </summary>
+        </member>
+        <member name="M:CatBoostNet.PointerTools.AllocateToPtr(System.Single[0:,0:])">
+            <summary>
+            Allocate the 2D array of floats to the contiguous memory segment
+            </summary>
+            <param name="vals">Array to be allocated</param>
+            <returns>Pointer to the first memory cell storing input array</returns>
+        </member>
+        <member name="M:CatBoostNet.PointerTools.AllocateToPtr(System.String[0:,0:])">
+            <summary>
+            Allocate the 2D array of strings as the contiguous array of char pointers
+            </summary>
+            <param name="vals">Array to be allocated</param>
+            <returns>Pointer to the first memory cell storing array of pointers to the strings of the input array</returns>
+        </member>
+    </members>
+</doc>

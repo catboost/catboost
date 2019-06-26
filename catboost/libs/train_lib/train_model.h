@@ -10,18 +10,21 @@
 #include <catboost/libs/options/load_options.h>
 #include <catboost/libs/options/output_file_options.h>
 #include <catboost/libs/options/catboost_options.h>
-#include <catboost/libs/feature_estimator/feature_estimator.h>
 
 #include <library/json/json_value.h>
 #include <library/object_factory/object_factory.h>
 
 #include <util/generic/maybe.h>
+#include <util/generic/ptr.h>
 #include <util/generic/string.h>
 
 #include <functional>
 
 
 using NCB::TEvalResult;
+
+struct TLearnProgress;
+
 
 // returns whether training should be continued
 using TOnEndIterationCallback = std::function<bool(const TMetricsAndTimeLeftHistory&)>;
@@ -34,6 +37,19 @@ struct TTrainModelInternalOptions {
 
     // force it even if overfitting detector is disabled, used in Cross-Validation
     bool ForceCalcEvalMetricOnEveryIteration = false;
+
+    /* Save final Ctr statistics in the model.
+     * Disable to save resources if the resulting model is intended to be used to continue training only,
+     * not for immediate application
+     */
+    bool SaveFinalCtrsToModel = true;
+
+    /*
+     * When choosing iterations to evaluate metrics on, consider initModel size (if it is specified)
+     *   to ensure equal metrics steps in learning continuation.
+     * Used in Cross-Validation
+     */
+    bool OffsetMetricPeriodByInitModelSize = false;
 };
 
 
@@ -46,14 +62,23 @@ public:
         const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
         const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
         const TMaybe<TOnEndIterationCallback>& onEndIterationCallback,
-        NCB::TFeatureEstimators featureEstimators,
         NCB::TTrainingDataProviders trainingData,
         const TLabelConverter& labelConverter,
+        TMaybe<TFullModel*> initModel,
+        THolder<TLearnProgress> initLearnProgress, // can be nullptr, can be modified if non-nullptr
+
+        /* It might be needed to apply initModel to trainingData to get initial approxes
+         * but quantization for initModel could be different from quantization for training continuation
+         * used in trainingData
+         * that's why this additional parameter is necessary
+         */
+        NCB::TDataProviders initModelApplyCompatiblePools,
         NPar::TLocalExecutor* localExecutor,
         const TMaybe<TRestorableFastRng64*> rand,
-        TFullModel* model,
+        TFullModel* dstModel,
         const TVector<TEvalResult*>& evalResultPtrs,
-        TMetricsAndTimeLeftHistory* metricsAndTimeHistory
+        TMetricsAndTimeLeftHistory* metricsAndTimeHistory,
+        THolder<TLearnProgress>* dstLearnProgress
     ) const = 0;
 
     virtual void ModelBasedEval(
@@ -79,15 +104,20 @@ void ModelBasedEval(
 
 
 void TrainModel(
-    const NJson::TJsonValue& plainJsonParams,
+    NJson::TJsonValue plainJsonParams,
     NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo, // can be nullptr
     const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
     const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
     NCB::TDataProviders pools, // not rvalue reference because Cython does not support them
+    TMaybe<TFullModel*> initModel,
+
+    // can be nullptr, if not nullptr, THolder will be freed. Not r-value or value because of Cython
+    THolder<TLearnProgress>* initLearnProgress,
     const TString& outputModelPath,
-    TFullModel* model,
+    TFullModel* dstModel,
     const TVector<TEvalResult*>& evalResultPtrs,
-    TMetricsAndTimeLeftHistory* metricsAndTimeHistory = nullptr);
+    TMetricsAndTimeLeftHistory* metricsAndTimeHistory = nullptr,
+    THolder<TLearnProgress>* dstLearnProgress = nullptr);
 
 
 using TTrainerFactory = NObjectFactory::TParametrizedObjectFactory<IModelTrainer, ETaskType>;

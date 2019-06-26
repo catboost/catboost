@@ -32,6 +32,7 @@ namespace NCB {
         TQuantizedFeaturesInfoPtr quantizedFeaturesInfo, // can be nullptr, then create it
         NCatboostOptions::TCatBoostOptions* params,
         TLabelConverter* labelConverter,
+        TMaybe<float>* targetBorder,
         NPar::TLocalExecutor* localExecutor,
         TRestorableFastRng64* rand);
 

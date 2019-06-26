@@ -1,41 +1,48 @@
 ALLOW vendor/ -> .*
 
+# driver for write to and read from XLSX files
+ALLOW .* -> vendor/github.com/360EntSecGroup-Skylar/excelize/v2
+
 # in-process redis server for tests
 ALLOW .* -> vendor/github.com/alicebob/miniredis
 
 # AWS client libraries
-ALLOW .* -> vendor/github.com/aws/aws-sdk-go          
+ALLOW .* -> vendor/github.com/aws/aws-sdk-go
 
 # TOML parser/encoder with reflection
 ALLOW .* -> vendor/github.com/BurntSushi/toml
 
 # helpers for data sizes (kilobytes, petabytes), human readable sizes, parsing
-ALLOW .* -> vendor/github.com/c2h5oh/datasize         
+ALLOW .* -> vendor/github.com/c2h5oh/datasize
 
 # etcd client
 ALLOW .* -> vendor/github.com/coreos/etcd
 
+# logging to systemd
+ALLOW .* -> vendor/github.com/coreos/go-systemd/journal
+
 # mocking for database/sql
-ALLOW .* -> vendor/github.com/DATA-DOG/go-sqlmock    
+ALLOW .* -> vendor/github.com/DATA-DOG/go-sqlmock
 
 # Cucumber-like BDD for Go
 ALLOW .* -> vendor/github.com/DATA-DOG/godog
 
 # pretty printer for GO
-ALLOW .* -> vendor/github.com/davecgh/go-spew/spew    
+ALLOW .* -> vendor/github.com/davecgh/go-spew/spew
 
 # implementation of JSON Web Tokens (JWT)
-ALLOW .* -> vendor/github.com/dgrijalva/jwt-go        
+ALLOW .* -> vendor/github.com/dgrijalva/jwt-go
 
 # Docker API client
 ALLOW .* -> vendor/github.com/docker/docker/client
 ALLOW .* -> vendor/github.com/docker/docker/api
+ALLOW .* -> vendor/github.com/docker/go-connections
 
 # cross-platform file system notifications
-ALLOW .* -> vendor/github.com/fsnotify/fsnotify       
+ALLOW .* -> vendor/github.com/fsnotify/fsnotify
 
 # lightweight, idiomatic and composable router
-ALLOW .* -> vendor/github.com/go-chi/chi              
+ALLOW .* -> vendor/github.com/go-chi/chi
 
 # a pure Go MySQL driver
 ALLOW .* -> vendor/github.com/go-sql-driver/mysql
@@ -44,25 +51,25 @@ ALLOW .* -> vendor/github.com/go-sql-driver/mysql
 ALLOW .* -> vendor/github.com/gofrs/flock
 
 # a pure Go implementation of Universally Unique Identifiers
-ALLOW .* -> vendor/github.com/gofrs/uuid              
+ALLOW .* -> vendor/github.com/gofrs/uuid
 
 # websocket protocol
-ALLOW .* -> vendor/github.com/gorilla/websocket       
+ALLOW .* -> vendor/github.com/gorilla/websocket
 
 # Protocol buffers
 ALLOW .* -> vendor/github.com/golang/protobuf
 
 # snappy compression
-ALLOW .* -> vendor/github.com/golang/snappy           
+ALLOW .* -> vendor/github.com/golang/snappy
 
 # API for sentry
-ALLOW .* -> vendor/github.com/getsentry/raven-go      
+ALLOW .* -> vendor/github.com/getsentry/raven-go
 
 # configuration library
 ALLOW .* -> vendor/github.com/heetch/confita
 
 # PostgreSQL driver and toolkit for Go
-ALLOW .* -> vendor/github.com/jackc/pgx               
+ALLOW .* -> vendor/github.com/jackc/pgx
 
 # database/sql wrapper with a lot of helper functions
 ALLOW .* -> vendor/github.com/jmoiron/sqlx
@@ -71,37 +78,37 @@ ALLOW .* -> vendor/github.com/jmoiron/sqlx
 ALLOW .* -> vendor/github.com/jonboulle/clockwork
 
 # LRU Cache with TTL
-ALLOW .* -> vendor/github.com/karlseguin/ccache       
+ALLOW .* -> vendor/github.com/karlseguin/ccache
 
 # driver for ClickHouse column-oriented database management system
-ALLOW .* -> vendor/github.com/kshvakov/clickhouse     
+ALLOW .* -> vendor/github.com/kshvakov/clickhouse
 
 # High performance, minimalist web framework
-ALLOW .* -> vendor/github.com/labstack/echo           
+ALLOW .* -> vendor/github.com/labstack/echo
 
 # fluent SQL builder
-ALLOW .* -> vendor/github.com/Masterminds/squirrel    
+ALLOW .* -> vendor/github.com/Masterminds/squirrel
 
 # isatty for golang
-ALLOW .* -> vendor/github.com/mattn/go-isatty         
+ALLOW .* -> vendor/github.com/mattn/go-isatty
 
 # complete and usable DNS library
-ALLOW .* -> vendor/github.com/miekg/dns               
+ALLOW .* -> vendor/github.com/miekg/dns
 
 # deep copying values
-ALLOW .* -> vendor/github.com/mitchellh/copystructure 
+ALLOW .* -> vendor/github.com/mitchellh/copystructure
 
 # decoding generic map values to structures and vice versa
-ALLOW .* -> vendor/github.com/mitchellh/mapstructure  
+ALLOW .* -> vendor/github.com/mitchellh/mapstructure
 
 # A well tested and comprehensive Golang statistics library package with no dependencies
 ALLOW .* -> vendor/github.com/montanaflynn/stats
 
 # runtime dependencies of go-swagger
-ALLOW .* -> vendor/github.com/go-openapi              
+ALLOW .* -> vendor/github.com/go-openapi
 
 # redis client
-ALLOW .* -> vendor/github.com/go-redis/redis          
+ALLOW .* -> vendor/github.com/go-redis/redis
 
 # library for accessing the GitHub API v3
 ALLOW .* -> vendor/github.com/google/go-github/v25/github
@@ -110,13 +117,13 @@ ALLOW .* -> vendor/github.com/google/go-github/v25/github
 ALLOW .* -> vendor/github.com/mailru/easyjson
 
 # lz4 compression codec
-ALLOW .* -> vendor/github.com/pierrec/lz4             
+ALLOW .* -> vendor/github.com/pierrec/lz4
 
 # simple error handling primitives
-ALLOW .* -> vendor/github.com/pkg/errors              
+ALLOW .* -> vendor/github.com/pkg/errors
 
 # library for HTML DOM manipulations and searching nodes by CSS selectors
-ALLOW .* -> vendor/github.com/PuerkitoBio/goquery     
+ALLOW .* -> vendor/github.com/PuerkitoBio/goquery
 
 # prometheus client
 ALLOW .* -> vendor/github.com/prometheus/client_golang
@@ -126,23 +133,23 @@ ALLOW .* -> vendor/github.com/prometheus/common
 # ZooKeeper client
 ALLOW .* -> vendor/github.com/samuel/go-zookeeper
 
-# text diffing and patching
-ALLOW .* -> vendor/github.com/sergi/go-diff
+# Text diffing.
+ALLOW .* -> vendor/github.com/pmezard/go-difflib
 
 # statsd client library
-ALLOW .* -> vendor/github.com/smira/go-statsd         
+ALLOW .* -> vendor/github.com/smira/go-statsd
 
 # safe and easy casting from one type to another
-ALLOW .* -> vendor/github.com/spf13/cast              
+ALLOW .* -> vendor/github.com/spf13/cast
 
 # library for creating CLI applications
-ALLOW .* -> vendor/github.com/spf13/cobra             
+ALLOW .* -> vendor/github.com/spf13/cobra
 
 # drop-in replacement for stdlib flag module
-ALLOW .* -> vendor/github.com/spf13/pflag             
+ALLOW .* -> vendor/github.com/spf13/pflag
 
 # a toolkit with common test assertions and mocks
-ALLOW .* -> vendor/github.com/stretchr/testify        
+ALLOW .* -> vendor/github.com/stretchr/testify
 
 # very fast json parser and encoder.
 # uses dynamic message structure, suitable for cases where json structure is not known in advance.
@@ -152,7 +159,10 @@ ALLOW .* -> vendor/github.com/valyala/fastjson
 ALLOW .* -> vendor/github.com/OneOfOne/xxhash
 
 # default logging library. See also: library/go/core/log.
-ALLOW .* -> vendor/go.uber.org/zap                    
+ALLOW .* -> vendor/go.uber.org/zap
+
+# Find goroutine leaks in tests.
+ALLOW .* -> vendor/go.uber.org/goleak
 
 # golang.org/x/net
 ALLOW .* -> vendor/golang.org/x/net
@@ -170,19 +180,22 @@ ALLOW .* -> vendor/golang.org/x/tools
 ALLOW .* -> vendor/golang.org/x/sync
 
 # experimental implementation of Go error inspection. Use x/xerrors instead.
-ALLOW .* -> vendor/golang.org/x/exp/errors            
+ALLOW .* -> vendor/golang.org/x/exp/errors
 
 # less experimental implementation of Go error inspection
-ALLOW .* -> vendor/golang.org/x/xerrors               
+ALLOW .* -> vendor/golang.org/x/xerrors
 
 # basic LDAP v3 functionality for the GO programming language
-ALLOW .* -> vendor/gopkg.in/ldap.v3                   
+ALLOW .* -> vendor/gopkg.in/ldap.v3
 
 # simple HTTP and REST client library
-ALLOW .* -> vendor/gopkg.in/resty.v1                  
+ALLOW .* -> vendor/gopkg.in/resty.v1
 
 # YAML support for Go
 ALLOW .* -> vendor/gopkg.in/yaml.v2
+
+# INI file format
+ALLOW .* -> vendor/gopkg.in/ini.v1
 
 # Go generated proto packages
 ALLOW .* -> vendor/google.golang.org/genproto
@@ -214,12 +227,40 @@ ALLOW .* -> vendor/github.com/grpc-ecosystem/grpc-gateway
 # tus: the open protocol for resumable file uploads
 ALLOW .* -> vendor/github.com/tus/tusd
 
-# 
+# gopsutil: psutil for golang
+ALLOW .* -> vendor/github.com/shirou/gopsutil
+
+# Go Imagick is a Go bind to ImageMagick's MagickWand C API
+ALLOW .* -> vendor/gopkg.in/gographics/imagick.v2
+
+# fixed-size thread safe LRU cache
+ALLOW .* -> vendor/github.com/hashicorp/golang-lru
+
+# A wrapper around os/exec.Cmd to run external commands asynchronously (for Linux and macOS)
+ALLOW .* -> github.com/go-cmd/cmd
+
+# NVIDIA Management Library (NVML) is a C-based API for monitoring and managing NVIDIA GPU devices (for Linux only)
+ALLOW .* -> vendor/github.com/NVIDIA/gpu-monitoring-tools/bindings/go
+
+# Opentracing interface and implementation.
+ALLOW .* -> vendor/github.com/jaegertracing/jaeger-client-go
+ALLOW .* -> vendor/github.com/opentracing/opentracing-go
+
+# CONTRIB-1299. Date parser. resposible: tserakhau@
+ALLOW .* -> vendor/github.com/araddon/dateparse
+
+# Semantic versioning parsing and comparision library
+ALLOW .* -> vendor/github.com/blang/semver
+
+#
 # Temporary exceptions.
 #
 
 # MIGRATION-289. responsible: nekto0n@. deadline: 30.06.2019
 ALLOW infra/nanny2 -> vendor/github.com/golang/glog
+
+# CONTRIB-1244. resposible: gzuykov@
+ALLOW cloud -> vendor/github.com/rcrowley/go-metrics
 
 #
 # Permanent exceptions.
@@ -228,7 +269,8 @@ ALLOW infra/nanny2 -> vendor/github.com/golang/glog
 # CONTRIB-865. Jaeger YT plugin. responsible: prime@
 ALLOW yt/jaeger/plugin -> vendor/github.com/jaegertracing/jaeger
 ALLOW yt/jaeger/plugin -> vendor/github.com/uber/jaeger-lib
+ALLOW yt/jaeger/plugin -> vendor/github.com/uber/jaeger-client-go
 ALLOW yt/jaeger/plugin -> vendor/github.com/spf13/viper
-
+ALLOW yt/jaeger/plugin -> vendor/github.com/gorilla
 
 DENY .* -> vendor/

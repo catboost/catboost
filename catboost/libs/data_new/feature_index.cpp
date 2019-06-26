@@ -13,3 +13,8 @@ template <>
 void Out<NCB::TCatFeatureIdx>(IOutputStream& output, const NCB::TCatFeatureIdx& catFeatureIdx) {
     output << "categorical feature #" << *catFeatureIdx;
 }
+
+template <>
+void Out<NCB::TTextFeatureIdx>(IOutputStream& output, const NCB::TTextFeatureIdx& textFeatureIdx) {
+    output << "text feature #" << *textFeatureIdx;
+}

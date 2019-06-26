@@ -49,14 +49,19 @@ namespace NTensor2 {
         ui64 HashMask;
         ui64 BinCount;
 
-        SAVELOAD(Elems, HashMask, BinCount)
-        Y_SAVELOAD_DEFINE(Elems, HashMask, BinCount)
+        static ui64 CallsCount;
+        static ui64 ItersCount;
 
+    public:
         TDenseHash()
             : HashMask(0)
             , BinCount(0)
         {
         }
+
+        SAVELOAD(Elems, HashMask, BinCount)
+        Y_SAVELOAD_DEFINE(Elems, HashMask, BinCount)
+
         void Clear() {
             Elems.resize(0);
             HashMask = 0;
@@ -76,9 +81,6 @@ namespace NTensor2 {
             Elems.resize(HashMask, zz);
             HashMask--; // pow 2 - 1
         }
-
-        static ui64 CallsCount;
-        static ui64 ItersCount;
 
         ui64 GetIndex(ui64 idx) const {
             CallsCount++;

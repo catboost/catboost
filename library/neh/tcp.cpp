@@ -12,6 +12,7 @@
 #include <library/dns/cache.h>
 
 #include <util/ysaveload.h>
+#include <util/generic/buffer.h>
 #include <util/generic/guid.h>
 #include <util/generic/hash.h>
 #include <util/generic/intrlist.h>
@@ -20,6 +21,7 @@
 #include <util/system/yassert.h>
 #include <util/system/unaligned_mem.h>
 #include <util/stream/buffered.h>
+#include <util/stream/mem.h>
 
 using namespace NDns;
 using namespace NNeh;
@@ -243,7 +245,7 @@ namespace {
                     Executor()->Create<TLink, &TLink::RecvCycle>(this, "recv");
                     Executor()->Create<TLink, &TLink::SendCycle>(this, "send");
 
-                    Executor()->Running()->ContPtr()->Yield();
+                    Executor()->Running()->Yield();
                 }
 
                 inline void Enqueue(TResponcePtr res) {
@@ -275,8 +277,7 @@ namespace {
 
                         {
                             TContIOVector iovec(parts.data(), parts.size());
-
-                            c->WriteVectorI(S, &iovec);
+                            NCoro::WriteVectorI(c, S, &iovec);
                         }
 
                         parts.Clear();
@@ -454,8 +455,8 @@ namespace {
                     }
 
                     inline void DoSendCycle(TCont* c) {
-                        if (int ret = c->Connect(S, P->RI->Addr)) {
-                            throw TSystemError(ret) << "can't connect";
+                        if (int ret = NCoro::ConnectI(c, S, P->RI->Addr)) {
+                            ythrow TSystemError(ret) << "can't connect";
                         }
                         SetNoDelay(S, true);
                         Executor()->Create<TLink, &TLink::RecvCycle>(this, "recv");
@@ -473,8 +474,7 @@ namespace {
 
                             {
                                 TContIOVector vec(parts.data(), parts.size());
-
-                                c->WriteVectorI(S, &vec);
+                                NCoro::WriteVectorI(c, S, &vec);
                             }
 
                             reqs.clear();

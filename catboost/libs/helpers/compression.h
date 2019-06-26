@@ -4,6 +4,7 @@
 #include "exception.h"
 #include "maybe_owning_array_holder.h"
 
+#include <library/binsaver/bin_saver.h>
 #include <library/threading/local_executor/local_executor.h>
 
 #include <util/system/defaults.h>
@@ -13,9 +14,11 @@
 #include <util/generic/array_ref.h>
 #include <util/generic/ymath.h>
 #include <util/generic/vector.h>
+#include <util/generic/xrange.h>
 
 #include <climits>
 #include <cmath>
+#include <type_traits>
 
 
 template <class TStorageType>
@@ -29,6 +32,8 @@ public:
         CB_ENSURE(bitsPerKey <= 32, "Too many bits in key");
         EntriesPerType = sizeof(TStorageType) * CHAR_BIT / BitsPerKey;
     }
+
+    SAVELOAD(BitsPerKey, EntriesPerType);
 
     inline ui64 Mask() const {
         return ((static_cast<TStorageType>(1) << BitsPerKey) - 1);
@@ -56,7 +61,7 @@ public:
 
     template <class T>
     inline T Extract(TConstArrayRef<TStorageType> compressedData, ui32 index) const {
-        Y_ASSERT(sizeof(T)*CHAR_BIT >= BitsPerKey);
+        Y_ASSERT(sizeof(T) * CHAR_BIT >= BitsPerKey);
         const ui32 offset = Offset(index);
         const ui32 shift = Shift(index);
         return static_cast<T>((compressedData[offset] >> shift) & Mask());
@@ -78,6 +83,8 @@ public:
         , Storage(std::move(storage))
     {}
 
+    SAVELOAD(Size, IndexHelper, Storage);
+
     ui64 GetSize() const {
         return Size;
     }
@@ -90,6 +97,47 @@ public:
     T operator[](ui32 index) const {
         Y_ASSERT(index < Size);
         return IndexHelper.Extract<T>(*Storage, index);
+    }
+
+    // comparison is strict by default, useful for unit tests
+    bool operator==(const TCompressedArray& rhs) const {
+        return EqualTo(rhs, /*strict*/ true);
+    }
+
+    template <class T>
+    bool operator==(TConstArrayRef<T> rhs) const {
+        static_assert(std::is_integral<T>::value);
+
+        if (Size != rhs.size()) {
+            return false;
+        }
+
+        for (auto i : xrange(Size)) {
+            if ((*this)[i] != rhs[i]) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // if strict is true compare bit-by-bit, else compare values even with different BitsPerKey
+    bool EqualTo(const TCompressedArray& rhs, bool strict = true) const {
+        if (Size != rhs.Size) {
+            return false;
+        }
+
+        if (strict) {
+            if ((GetBitsPerKey() != rhs.GetBitsPerKey()) || !(*Storage == *rhs.Storage)) {
+                return false;
+            }
+        } else {
+            for (auto i : xrange(Size)) {
+                if ((*this)[i] != rhs[i]) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     // will throw exception if data cannot be interpreted as usual array as-is
@@ -148,15 +196,26 @@ inline TVector<TStorageType> CompressVector(const T* data, ui32 size, ui32 bitsP
     //alignment by entries per int allows parallel compression
     params.SetBlockSize(indexHelper.GetEntriesPerType() * 8192);
 
-    NPar::LocalExecutor().ExecRange([&](int blockIdx) {
-        NPar::TLocalExecutor::BlockedLoopBody(params, [&](int i) {
-            const ui32 offset = indexHelper.Offset((ui32)i);
-            const ui32 shift = indexHelper.Shift((ui32)i);
-            CB_ENSURE((data[i] & mask) == data[i], TStringBuilder() << "Error: key contains too many bits: max bits per key: allowed " << bitsPerKey << ", observe key " << static_cast<ui64>(data[i]));
-            dst[offset] |= static_cast<ui64>(data[i]) << shift;
-        })(blockIdx);
-    },
-                                    0, params.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
+    NPar::LocalExecutor().ExecRange(
+        [&](int blockIdx) {
+            NPar::TLocalExecutor::BlockedLoopBody(
+                params,
+                [&](int i) {
+                    const ui32 offset = indexHelper.Offset((ui32)i);
+                    const ui32 shift = indexHelper.Shift((ui32)i);
+                    CB_ENSURE(
+                        (data[i] & mask) == data[i],
+                        TStringBuilder() << "Error: key contains too many bits: max bits per key: allowed "
+                            << bitsPerKey << ", observe key " << static_cast<ui64>(data[i])
+                    );
+                    dst[offset] |= static_cast<ui64>(data[i]) << shift;
+                }
+            )(blockIdx);
+        },
+        0,
+        params.GetBlockCount(),
+        NPar::TLocalExecutor::WAIT_COMPLETE
+    );
 
     return dst;
 }
@@ -176,11 +235,15 @@ inline TVector<T> DecompressVector(const TVector<TStorageType>& compressedData, 
     const TIndexHelper<TStorageType> indexHelper(bitsPerKey);
     const auto mask = indexHelper.Mask();
 
-    NPar::ParallelFor(0, keys, [&](int i) {
-        const ui32 offset = indexHelper.Offset(i);
-        const ui32 shift = indexHelper.Shift(i);
-        dst[i] = (compressedData[offset] >> shift) & mask;
-    });
+    NPar::ParallelFor(
+        0,
+        keys,
+        [&](int i) {
+            const ui32 offset = indexHelper.Offset(i);
+            const ui32 shift = indexHelper.Shift(i);
+            dst[i] = (compressedData[offset] >> shift) & mask;
+        }
+    );
 
     return dst;
 }

@@ -86,7 +86,11 @@ public:
         return S_;
     }
 
-    inline bool empty() const noexcept {
+    constexpr size_t size_bytes() const noexcept {
+        return (size() * sizeof(T));
+    }
+
+    constexpr inline bool empty() const noexcept {
         return (S_ == 0);
     }
 
@@ -150,15 +154,47 @@ public:
         return (S_ > 0);
     }
 
-    TArrayRef<T> Slice(size_t offset) const {
-        Y_ASSERT(offset <= size());
-        return TArrayRef<T>(data() + offset, size() - offset);
+	/**
+	 * Obtains a ref that is a view over the first `count` elements of this TArrayRef.
+	 *
+	 * The behavor is undefined if count > size().
+	 */
+    TArrayRef first(size_t count) const {
+        Y_ASSERT(count <= size());
+        return TArrayRef(data(), count);
     }
 
-    TArrayRef<T> Slice(size_t offset, size_t size) const {
-        Y_ASSERT(offset + size <= S_);
+	/**
+	 * Obtains a ref that is a view over the last `count` elements of this TArrayRef.
+	 *
+	 * The behavior is undefined if count > size().
+	 */
+    TArrayRef last(size_t count) const {
+        Y_ASSERT(count <= size());
+        return TArrayRef(end() - count, end());
+    }
 
-        return TArrayRef<T>(T_ + offset, size);
+	/**
+	 * Obtains a ref that is a view over the `count` elements of this TArrayRef starting at `offset`.
+	 *
+	 * The behavior is undefined in either offset or count is out of range.
+	 */
+    TArrayRef subspan(size_t offset) const {
+        Y_ASSERT(offset <= size());
+        return TArrayRef(data() + offset, size() - offset);
+    }
+
+    TArrayRef subspan(size_t offset, size_t count) const {
+        Y_ASSERT(offset + count <= size());
+        return TArrayRef(data() + offset, count);
+    }
+
+    TArrayRef Slice(size_t offset) const {
+        return subspan(offset);
+    }
+
+    TArrayRef Slice(size_t offset, size_t size) const {
+        return subspan(offset, size);
     }
 
     /* FIXME:
@@ -168,7 +204,7 @@ public:
      *
      * DEPRECATED. DO NOT USE.
      */
-    TArrayRef<T> SubRegion(size_t offset, size_t size) const {
+    TArrayRef SubRegion(size_t offset, size_t size) const {
         if (size == 0 || offset >= S_) {
             return TArrayRef();
         }
@@ -188,6 +224,32 @@ private:
     T* T_;
     size_t S_;
 };
+
+/**
+ * Obtains a view to the object representation of the elements of the TArrayRef arrayRef.
+ *
+ * Named as its std counterparts, std::as_bytes.
+ */
+template<typename T>
+TArrayRef<const char> as_bytes(TArrayRef<T> arrayRef) noexcept {
+    return TArrayRef<const char>(
+        reinterpret_cast<const char*>(arrayRef.data()),
+        arrayRef.size_bytes()
+    );
+}
+
+/**
+ * Obtains a view to the writable object representation of the elements of the TArrayRef arrayRef.
+ *
+ * Named as its std counterparts, std::as_writable_bytes.
+ */
+template<typename T>
+TArrayRef<char> as_writable_bytes(TArrayRef<T> arrayRef) noexcept {
+    return TArrayRef<char>(
+        reinterpret_cast<char*>(arrayRef.data()),
+        arrayRef.size_bytes()
+    );
+}
 
 template <class Range>
 constexpr TArrayRef<const typename Range::value_type> MakeArrayRef(const Range& range) {

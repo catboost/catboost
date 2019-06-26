@@ -94,6 +94,8 @@ Y_UNIT_TEST_SUITE(TTrainTest) {
             Nothing(),
             Nothing(),
             dataProviders,
+            /*initModel*/ Nothing(),
+            /*initLearnProgress*/ nullptr,
             "",
             &model,
             {&testApprox}
@@ -105,6 +107,8 @@ Y_UNIT_TEST_SUITE(TTrainTest) {
                 Nothing(),
                 Nothing(),
                 dataProviders,
+                /*initModel*/ Nothing(),
+                /*initLearnProgress*/ nullptr,
                 "model_for_test.cbm",
                 nullptr,
                 {&testApprox}

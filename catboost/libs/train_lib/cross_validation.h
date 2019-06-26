@@ -137,7 +137,7 @@ TVector<TDataProvidersTemplate> PrepareCvFolds(
 
 
 void CrossValidate(
-    const NJson::TJsonValue& plainJsonParams,
+    NJson::TJsonValue plainJsonParams,
     const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
     const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
     NCB::TDataProviderPtr data,

@@ -10,7 +10,9 @@
 enum class EMemoryType {
     Host,
     Device,
+#if (CUDART_VERSION >= 10000)
     Managed,
+#endif
     Cpu
 };
 
@@ -31,8 +33,10 @@ EMemoryType GetPointerType(const T* ptr) {
         return EMemoryType::Host;
     } else if (type == cudaMemoryTypeDevice) {
         return EMemoryType::Device;
+#if (CUDART_VERSION >= 10000)
     } else if (type == cudaMemoryTypeManaged) {
         return EMemoryType::Managed;
+#endif
     } else {
         return EMemoryType::Cpu;
     }
@@ -41,7 +45,11 @@ EMemoryType GetPointerType(const T* ptr) {
 template <class T>
 bool IsAccessibleFromHost(const T* ptr) {
     auto type = GetPointerType(ptr);
-    return type == EMemoryType::Managed || type == EMemoryType::Host || type == EMemoryType::Cpu;
+    return
+#if (CUDART_VERSION >= 10000)
+        type == EMemoryType::Managed ||
+#endif
+        type == EMemoryType::Host || type == EMemoryType::Cpu;
 }
 
 template <class T>
@@ -72,10 +80,12 @@ private:
                         CUDA_SAFE_CALL(cudaHostAlloc((void**)&Data_, size * sizeof(T), cudaHostAllocPortable));
                         break;
                     }
+#if (CUDART_VERSION >= 10000)
                     case EMemoryType::Managed: {
                         CUDA_SAFE_CALL(cudaMallocManaged((void**)&Data_, size * sizeof(T)));
                         break;
                     }
+#endif
                     case EMemoryType::Cpu: {
                         Data_ = new T[size];
                         break;
@@ -87,8 +97,10 @@ private:
         ~Inner() {
             if (Data_) {
                 switch (Type) {
-                    case EMemoryType::Device:
-                    case EMemoryType::Managed: {
+#if (CUDART_VERSION >= 10000)
+                    case EMemoryType::Managed:
+#endif
+                    case EMemoryType::Device: {
                         CUDA_SAFE_CALL(cudaFree(Data_));
                         break;
                     }
@@ -108,7 +120,6 @@ private:
     TIntrusivePtr<Inner> Impl_;
 
 public:
-
 
     TCudaVec(ui64 size, EMemoryType type)
         : Impl_(new Inner(size, type))
@@ -135,9 +146,6 @@ public:
         result.Write(from);
         return result;
     }
-
-
-
 
     EMemoryType MemoryType() const {
         CB_ENSURE(Impl_);
@@ -215,7 +223,29 @@ public:
         CB_ENSURE(*this);
         return TConstArrayRef<T>(Impl_->Data_, Impl_->Size_);
     }
+
+    void ClearAsync(const TCudaStream& stream) {
+        ClearMemoryAsync(AsArrayRef(), stream);
+    }
 };
+
+
+template <class T>
+inline TCudaVec<T> MakeCudaVec(TConstArrayRef<T> data, EMemoryType type) {
+    return TCudaVec<T>(data, type);
+}
+
+template <class T>
+inline TCudaVec<T> MakeCudaVec(const TVector<T>& data, EMemoryType type) {
+    return MakeCudaVec<T>(MakeConstArrayRef(data), type);
+}
+
+template <class T>
+inline TCudaVec<T> MakeZeroVec(ui64 size, EMemoryType type) {
+    TCudaVec<T> result(size, type);
+    result.ClearAsync(TCudaStream::ZeroStream());
+    return result;
+}
 
 template <class T>
 inline void MemoryCopy(TConstArrayRef<T> from, TArrayRef<T> to) {
@@ -227,4 +257,12 @@ template <class T>
 inline void MemoryCopyAsync(TConstArrayRef<T> from, TArrayRef<T> to, TCudaStream stream) {
     CB_ENSURE(from.size() == to.size(), from.size() << " ≠ " << to.size());
     CUDA_SAFE_CALL(cudaMemcpyAsync((void*)to.data(), (const void*)from.data(), sizeof(T) * from.size(), cudaMemcpyDefault, stream));
+}
+
+
+template <class T>
+inline TVector<T> ReadVec(const TCudaVec<T>& data) {
+    TVector<T> result(data.Size());
+    data.Read(MakeArrayRef(result));
+    return result;
 }

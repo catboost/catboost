@@ -41,14 +41,6 @@ public class VcsVersion {
         }
     }
 
-    public VcsVersion(String cls) throws ClassNotFoundException {
-        this(Class.forName(cls));
-    }
-
-    public VcsVersion() throws ClassNotFoundException {
-        this(Thread.currentThread().getStackTrace()[1].getClassName());
-    }
-
     public String getProgramSvnVersion() {
         return getLongBase64StringSafe("Program-Version-String");
     }
@@ -86,6 +78,10 @@ public class VcsVersion {
         return getIntParam("Arcadia-Source-Revision");
     }
 
+    public int getArcadiaGitPatchNumer() {
+        return getIntParam("Arcadia-Patch-Number");
+    }
+
     public String getProgramHgHash() {
         return getStringParamSafe("Arcadia-Source-Hg-Hash");
     }
@@ -112,6 +108,10 @@ public class VcsVersion {
 
     public String getBranch() {
         return getStringParamSafe("Branch");
+    }
+
+    public String getTag() {
+        return getStringParamSafe("Arcadia-Tag");
     }
 
     private int getIntParam(String Str) {
@@ -142,6 +142,11 @@ public class VcsVersion {
             return "";
         }
         return new String(Base64.getDecoder().decode(Val));
+    }
+
+    public static void main(String[] args) {
+        VcsVersion vcs = new VcsVersion(VcsVersion.class);
+        vcs.printSvnVersionAndExit0();
     }
 
     private Manifest Manifest;

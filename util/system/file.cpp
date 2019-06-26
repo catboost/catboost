@@ -383,7 +383,12 @@ bool TFileHandle::Flush() noexcept {
     // EROFS, EINVAL
     //    fd is bound to a special file which does not support synchronization.
     // (from man fsync)
-    return ret == 0 || errno == EROFS || errno == EINVAL;
+    return ret == 0 || errno == EROFS || errno == EINVAL
+#if defined(_darwin_)
+        // ENOTSUP fd does not refer to a vnode
+        || errno == ENOTSUP
+#endif
+        ;
 #else
 #error unsupported platform
 #endif

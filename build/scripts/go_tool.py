@@ -1,11 +1,12 @@
 import argparse
 import copy
+import json
 import os
 import shutil
 import subprocess
 import sys
 import tempfile
-
+import threading
 
 arc_project_prefix = 'a.yandex-team.ru/'
 std_lib_prefix = 'contrib/go/_std/src/'
@@ -66,21 +67,33 @@ def classify_srcs(srcs, args):
     args.asm_srcs = list(filter(lambda x: x.endswith('.s'), srcs))
     args.objects = list(filter(lambda x: x.endswith('.o') or x.endswith('.obj'), srcs))
     args.symabis = list(filter(lambda x: x.endswith('.symabis'), srcs))
+    args.sysos = list(filter(lambda x: x.endswith('.syso'), srcs))
+
+
+def get_import_config_info(peers, import_map={}, module_map={}):
+    info = {'importmap': [], 'packagefile': [], 'standard': {}}
+    for key, value in import_map.items():
+        info['importmap'].append((key, value))
+    for peer in peers:
+        peer_import_path, is_std = get_import_path(os.path.dirname(peer))
+        index = get_vendor_index(peer_import_path)
+        if index >= 0:
+            index += len(vendor_prefix)
+            info['importmap'].append((peer_import_path[index:], peer_import_path))
+        info['packagefile'].append((peer_import_path, os.path.join(args.build_root, peer)))
+        if is_std:
+            info['standard'][peer_import_path] = True
+    for key, value in module_map.items():
+        info['packagefile'].append((key, value))
+    return info
 
 
 def create_import_config(peers, import_map={}, module_map={}):
     lines = []
-    for key, value in import_map.items():
-        lines.append('importmap {}={}'.format(key, value))
-    for peer in peers:
-        peer_import_path, _ = get_import_path(os.path.dirname(peer))
-        index = get_vendor_index(peer_import_path)
-        if index >= 0:
-            index += len(vendor_prefix)
-            lines.append('importmap {}={}'.format(peer_import_path[index:], peer_import_path))
-        lines.append('packagefile {}={}'.format(peer_import_path, os.path.join(args.build_root, peer)))
-    for key, value in module_map.items():
-        lines.append('packagefile {}={}'.format(key, value))
+    info = get_import_config_info(peers, import_map, module_map)
+    for key in ('importmap', 'packagefile'):
+        for item in info[key]:
+            lines.append('{} {}={}'.format(key, *item))
     if len(lines) > 0:
         lines.append('')
         content = '\n'.join(lines)
@@ -91,7 +104,65 @@ def create_import_config(peers, import_map={}, module_map={}):
     return None
 
 
+def gen_vet_info(args):
+    import_path, _ = get_import_path(args.module_path)
+    info = get_import_config_info(args.peers, args.import_map, args.module_map)
+
+    import_map = dict(info['importmap'])
+    # FIXME(snermolaev): it seems that adding import map for 'fake' package
+    #                    does't make any harm (it needs to be revised later)
+    import_map['unsafe'] = 'unsafe'
+
+    for (key, _) in info['packagefile']:
+        if key not in import_map:
+            import_map[key] = key
+
+    data = {
+        'ID': import_path,
+        'Compiler': 'gc',
+        'Dir': args.module_path,
+        'ImportPath': import_path,
+        'GoFiles': list(filter(lambda x: x.endswith('.go'), args.go_srcs)),
+        'NonGoFiles': [
+        ],
+        'ImportMap': import_map,
+        'PackageFile': dict(info['packagefile']),
+        'Standard': dict(info['standard']),
+        'PackageVetx': dict((key, value + '.vet.out') for key, value in info['packagefile']),
+        'VetxOnly': False,
+        'VetxOutput': args.output + '.vet.out',
+        'SucceedOnTypecheckFailure': True
+    }
+    # print >>sys.stderr, json.dumps(data, indent=4)
+    return data
+
+
+def create_vet_config(args, info):
+    with tempfile.NamedTemporaryFile(delete=False, suffix='.cfg') as f:
+        f.write(json.dumps(info))
+        return f.name
+
+
+def dump_vet_report(args, report):
+    with open(args.output + '.vet.txt', 'w') as f:
+        f.write(report)
+
+
+def do_vet(args):
+    assert args.vet
+    info = gen_vet_info(args)
+    vet_config = create_vet_config(args, info)
+    cmd = [args.go_vet, vet_config]
+    p_vet = subprocess.Popen(cmd, stdin=None, stderr=subprocess.PIPE, cwd=args.build_root)
+    _, vet_err = p_vet.communicate()
+    dump_vet_report(args, vet_err if vet_err else '')
+
+
 def do_compile_go(args):
+    if args.vet:
+        run_vet = threading.Thread(target=do_vet, args=(args,))
+        run_vet.start()
+
     import_path, is_std_module = get_import_path(args.module_path)
     cmd = [args.go_compile, '-o', args.output, '-trimpath', args.build_root, '-p', import_path, '-D', '""']
     cmd += ['-goversion', 'go' + args.goversion]
@@ -114,11 +185,17 @@ def do_compile_go(args):
             cmd += ['-symabis'] + args.symabis
         if import_path in ('runtime', 'runtime/internal/atomic'):
             cmd.append('-allabis')
-    cmd += ['-pack', '-c=4']
+    compile_workers = '4'
     if args.compile_flags:
         cmd += args.compile_flags
+        if '-race' in args.compile_flags:
+            compile_workers = '1'
+    cmd += ['-pack', '-c={}'.format(compile_workers)]
     cmd += args.go_srcs
     call(cmd, args.build_root)
+
+    if args.vet:
+        run_vet.join()
 
 
 def do_compile_asm(args):
@@ -146,7 +223,7 @@ def do_link_lib(args):
     else:
         do_compile_go(args)
     if args.objects:
-        cmd = [args.go_pack, 'r', args.output] + args.objects
+        cmd = [args.go_pack, 'r', args.output] + args.objects + args.sysos
         call(cmd, args.build_root)
 
 
@@ -154,11 +231,19 @@ def do_link_exe(args):
     assert args.extld is not None
     compile_args = copy_args(args)
     compile_args.output = os.path.join(args.output_root, 'main.a')
+
+    if args.vcs and os.path.isfile(compile_args.vcs):
+        build_info = os.path.join('library', 'go', 'core', 'buildinfo')
+        if any(map(lambda x: x.startswith(build_info), compile_args.peers)):
+            compile_args.go_srcs.append(compile_args.vcs)
+
     do_link_lib(compile_args)
     cmd = [args.go_link, '-o', args.output]
     import_config_name = create_import_config(args.peers, args.import_map, args.module_map)
     if import_config_name:
         cmd += ['-importcfg', import_config_name]
+    if args.link_flags:
+        cmd += args.link_flags
     cmd += ['-buildmode=exe', '-extld={}'.format(args.extld)]
     extldflags = []
     if args.extldflags is not None:
@@ -172,16 +257,57 @@ def do_link_exe(args):
             extldflags.append('-Wl,--end-group')
     if len(extldflags) > 0:
         cmd.append('-extldflags=' + ' '.join(extldflags))
-    if args.link_flags:
-        cmd += args.link_flags
     cmd.append(compile_args.output)
     call(cmd, args.build_root)
+
+
+def gen_cover_info(args):
+    lines = []
+    lines.extend([
+        """
+var (
+    coverCounters = make(map[string][]uint32)
+    coverBlocks = make(map[string][]testing.CoverBlock)
+)
+        """,
+        'func init() {',
+    ])
+    for var, file in (x.split(':') for x in args.cover_info):
+        lines.append('    coverRegisterFile("{file}", _cover0.{var}.Count[:], _cover0.{var}.Pos[:], _cover0.{var}.NumStmt[:])'.format(file=file, var=var))
+    lines.extend([
+        '}',
+        """
+func coverRegisterFile(fileName string, counter []uint32, pos []uint32, numStmts []uint16) {
+    if 3*len(counter) != len(pos) || len(counter) != len(numStmts) {
+        panic("coverage: mismatched sizes")
+    }
+    if coverCounters[fileName] != nil {
+        // Already registered.
+        return
+    }
+    coverCounters[fileName] = counter
+    block := make([]testing.CoverBlock, len(counter))
+    for i := range counter {
+        block[i] = testing.CoverBlock{
+            Line0: pos[3*i+0],
+            Col0: uint16(pos[3*i+2]),
+            Line1: pos[3*i+1],
+            Col1: uint16(pos[3*i+2]>>16),
+            Stmts: numStmts[i],
+        }
+    }
+    coverBlocks[fileName] = block
+}
+        """,
+    ])
+    return lines
 
 
 def gen_test_main(args, test_lib_args, xtest_lib_args):
     assert args and (test_lib_args or xtest_lib_args)
     test_miner = args.test_miner
     test_module_path = test_lib_args.module_path if test_lib_args else xtest_lib_args.module_path
+    is_cover = args.cover_info and len(args.cover_info) > 0
 
     # Prepare GOPATH
     # $BINDIR
@@ -209,7 +335,7 @@ def gen_test_main(args, test_lib_args, xtest_lib_args):
     if test_lib_args:
         os.makedirs(os.path.join(test_src_dir, test_module_path))
         os_symlink(test_lib_args.output, os.path.join(test_pkg_dir, os.path.basename(test_module_path) + '.a'))
-        cmd = [test_miner, '-tests', test_module_path]
+        cmd = [test_miner, '-benchmarks', '-tests', test_module_path]
         tests = filter(lambda x: len(x) > 0, (call(cmd, test_lib_args.output_root, my_env) or '').strip().split('\n'))
     test_main_found = '#TestMain' in tests
 
@@ -218,7 +344,7 @@ def gen_test_main(args, test_lib_args, xtest_lib_args):
         xtest_module_path = xtest_lib_args.module_path
         os.makedirs(os.path.join(test_src_dir, xtest_module_path))
         os_symlink(xtest_lib_args.output, os.path.join(test_pkg_dir, os.path.basename(xtest_module_path) + '.a'))
-        cmd = [test_miner, '-tests', xtest_module_path]
+        cmd = [test_miner, '-benchmarks', '-tests', xtest_module_path]
         xtests = filter(lambda x: len(x) > 0, (call(cmd, xtest_lib_args.output_root, my_env) or '').strip().split('\n'))
     xtest_main_found = '#TestMain' in xtests
 
@@ -240,6 +366,8 @@ def gen_test_main(args, test_lib_args, xtest_lib_args):
         lines.append('    _test "{}"'.format(test_module_path))
     if len(xtests) > 0:
         lines.append('    _xtest "{}"'.format(xtest_module_path))
+    if is_cover:
+        lines.append('    _cover0 "{}"'.format(test_module_path))
     lines.extend([')', ''])
 
     for kind in ['Test', 'Benchmark', 'Example']:
@@ -250,8 +378,20 @@ def gen_test_main(args, test_lib_args, xtest_lib_args):
             lines.append('    {{"{test}", _xtest.{test}}},'.format(test=test))
         lines.extend(['}', ''])
 
+    if is_cover:
+        lines.extend(gen_cover_info(args))
+
+    lines.append('func main() {')
+    if is_cover:
+        lines.extend([
+            '    testing.RegisterCover(testing.Cover{',
+            '        Mode: "set",',
+            '        Counters: coverCounters,',
+            '        Blocks: coverBlocks,',
+            '        CoveredPackages: "",',
+            '    })',
+        ])
     lines.extend([
-        'func main() {',
         '    m := testing.MainStart(testdeps.TestDeps{}, tests, benchmarks, examples)'
         '',
     ])
@@ -308,6 +448,7 @@ def do_link_test(args):
         test_args.module_map[test_import_path] = test_lib_args.output
     if xtest_lib_args:
         test_args.module_map[test_import_path + '_test'] = xtest_lib_args.output
+    test_args.vet = False
     do_link_exe(test_args)
 
 
@@ -317,6 +458,7 @@ if __name__ == '__main__':
     parser.add_argument('++srcs', nargs='*', required=True)
     parser.add_argument('++test_srcs', nargs='*')
     parser.add_argument('++xtest_srcs', nargs='*')
+    parser.add_argument('++cover_info', nargs='*')
     parser.add_argument('++output', nargs='?', default=None)
     parser.add_argument('++build-root', required=True)
     parser.add_argument('++output-root', required=True)
@@ -338,6 +480,8 @@ if __name__ == '__main__':
     parser.add_argument('++asm-flags', nargs='*')
     parser.add_argument('++compile-flags', nargs='*')
     parser.add_argument('++link-flags', nargs='*')
+    parser.add_argument('++vcs', nargs='?', default=None)
+    parser.add_argument('++vet', action='store_true', default=False)
     args = parser.parse_args()
 
     args.pkg_root = os.path.join(str(args.tools_root), 'pkg')
@@ -347,6 +491,7 @@ if __name__ == '__main__':
     args.go_link = os.path.join(args.tool_root, 'link')
     args.go_asm = os.path.join(args.tool_root, 'asm')
     args.go_pack = os.path.join(args.tool_root, 'pack')
+    args.go_vet = os.path.join(args.tool_root, 'vet')
     args.output = os.path.normpath(args.output)
     args.build_root = os.path.normpath(args.build_root) + os.path.sep
     args.output_root = os.path.normpath(args.output_root)
@@ -400,5 +545,5 @@ if __name__ == '__main__':
         print >>sys.stderr, e.output
         exit_code = e.returncode
     except Exception as e:
-        print >>sys.stderr, "Unhandled exception [{}]...".format(str(e))
+       print >>sys.stderr, "Unhandled exception [{}]...".format(str(e))
     sys.exit(exit_code)

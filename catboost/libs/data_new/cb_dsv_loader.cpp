@@ -108,6 +108,10 @@ namespace NCB {
             size_t tokenCount = 0;
             TVector<TStringBuf> tokens = StringSplitter(line).Split(FieldDelimiter);
             try {
+                CB_ENSURE(
+                    tokens.size() == columnsDescription.size(),
+                    "wrong column count: expected " << columnsDescription.ysize() << ", found " << tokens.size()
+                );
                 for (const auto& token : tokens) {
                     try {
                         switch (columnsDescription[tokenCount].Type) {
@@ -206,11 +210,6 @@ namespace NCB {
                 if (!textFeatures.empty()) {
                     visitor->AddAllTextFeatures(lineIdx, textFeatures);
                 }
-                CB_ENSURE(
-                    tokenCount == columnsDescription.size(),
-                    "wrong columns number: expected " << columnsDescription.ysize()
-                    << ", found " << tokenCount
-                );
             } catch (yexception& e) {
                 throw TCatBoostException() << "Error in dsv data. Line " <<
                     AsyncRowProcessor.GetLinesProcessed() + lineIdx + 1 << ": " << e.what();

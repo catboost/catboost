@@ -156,11 +156,6 @@ void NCB::CheckOneGroupInfo(const TQueryInfo& groupInfo) {
     }
 }
 
-// local definition because there's no universal way to print NCB::TIndexRange
-static TString HumanReadable(TGroupBounds groupBounds) {
-    return TStringBuilder() << '[' << groupBounds.Begin << ',' << groupBounds.End << ')';
-}
-
 void NCB::CheckGroupInfo(
     TConstArrayRef<TQueryInfo> groupInfoVector,
     const TObjectsGrouping& objectsGrouping,
@@ -182,9 +177,9 @@ void NCB::CheckGroupInfo(
         try {
             CB_ENSURE_INTERNAL(
                 (TGroupBounds)groupInfo == objectsGrouping.GetGroup(i),
-                "bounds " << HumanReadable(groupInfo)
+                "bounds " << ((const TGroupBounds&) groupInfo)
                 << " are not equal to grouping's corresponding group bounds: "
-                << HumanReadable(objectsGrouping.GetGroup(i))
+                << objectsGrouping.GetGroup(i)
             );
             CheckOneGroupInfo(groupInfo);
             if (!groupInfo.Competitors.empty()) {
@@ -683,7 +678,7 @@ void TProcessedTargetData::Save(IBinSaver* binSaver) const {
 
     SaveMulti(binSaver, cache);
 
-    SaveRawData(
+    SaveArrayData(
         TConstArrayRef<ui8>((ui8*)serializedTargetDataWithIds.Data(), serializedTargetDataWithIds.Size()),
         binSaver
     );

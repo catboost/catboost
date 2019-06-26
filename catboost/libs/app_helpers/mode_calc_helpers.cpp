@@ -44,7 +44,7 @@ void NCB::PrepareCalcModeParamsParser(
             "Comma separated list of prediction types. Every prediction type should be one of: Probability, Class, RawFormulaVal")
         .Handler1T<TString>([&](const TString& predictionTypes) {
             params.PredictionTypes.clear();
-            params.OutputColumnsIds = {"DocId"};
+            params.OutputColumnsIds = {"SampleId"};
             for (const auto& typeName : StringSplitter(predictionTypes).Split(',').SkipEmpty()) {
                 params.PredictionTypes.push_back(FromString<EPredictionType>(typeName.Token()));
                 params.OutputColumnsIds.push_back(FromString<TString>(typeName.Token()));

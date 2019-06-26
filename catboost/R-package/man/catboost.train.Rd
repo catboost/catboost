@@ -92,6 +92,8 @@ Supported loss functions:
       \itemize{
         \item 'Logloss'
         \item 'CrossEntropy'
+        \item 'MultiClass'
+        \item 'MultiClassOneVsAll'
         \item 'RMSE'
         \item 'MAE'
         \item 'Quantile'
@@ -99,10 +101,13 @@ Supported loss functions:
         \item 'MAPE'
         \item 'Poisson'
         \item 'Lq'
-        \item 'QueryRMSE'
-        \item 'MultiClass'
-        \item 'MultiClassOneVsAll'
         \item 'PairLogit'
+        \item 'PairLogitPairwise'
+        \item 'YetiRank'
+        \item 'YetiRankPairwise'
+        \item 'QueryCrossEntropy'
+        \item 'QueryRMSE'
+        \item 'QuerySoftMax'
       }
 
 Supported parameters:
@@ -121,7 +126,7 @@ Default value:
 
 Loss function (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/loss-functions-docpage/#loss-functions})
       values to output during training.
-      These functions are not optimized and are displayed for informational purposes only.
+      These functions are not used for optimization and are displayed for informational purposes only.
 
 Format:
 
@@ -131,26 +136,49 @@ Supported loss functions:
       \itemize{
         \item 'Logloss'
         \item 'CrossEntropy'
-        \item 'RMSE'
-        \item 'MAE'
-        \item 'Quantile'
-        \item 'LogLinQuantile'
-        \item 'MAPE'
-        \item 'Poisson'
-        \item 'Lq'
-        \item 'QueryRMSE'
-        \item 'MultiClass'
-        \item 'MultiClassOneVsAll'
-        \item 'PairLogit'
-        \item 'R2'
-        \item 'AUC'
-        \item 'Accuracy'
         \item 'Precision'
         \item 'Recall'
         \item 'F1'
-        \item 'TotalF1'
+        \item 'BalancedAccuracy'
+        \item 'BalancedErrorRate'
         \item 'MCC'
+        \item 'Accuracy'
+        \item 'CtrFactor'
+        \item 'AUC'
+        \item 'BrierScore'
+        \item 'HingeLoss'
+        \item 'HammingLoss'
+        \item 'ZeroOneLoss'
+        \item 'Kappa'
+        \item 'WKappa'
+        \item 'LogLikelihoodOfPrediction'
+        \item 'MultiClass'
+        \item 'MultiClassOneVsAll'
+        \item 'TotalF1'
+        \item 'MAE'
+        \item 'MAPE'
+        \item 'Poisson'
+        \item 'Quantile'
+        \item 'RMSE'
+        \item 'LogLinQuantile'
+        \item 'Lq'
+        \item 'NumErrors'
+        \item 'SMAPE'
+        \item 'R2'
+        \item 'MSLE'
+        \item 'MedianAbsoluteError'
+        \item 'PairLogit'
+        \item 'PairLogitPairwise'
         \item 'PairAccuracy'
+        \item 'QueryCrossEntropy'
+        \item 'QueryRMSE'
+        \item 'QuerySoftMax'
+        \item 'PFound'
+        \item 'NDCG'
+        \item 'AverageGain'
+        \item 'PrecisionAt'
+        \item 'RecallAt'
+        \item 'MAP'
       }
 
 Supported parameters:
@@ -177,26 +205,49 @@ Supported loss functions:
       \itemize{
         \item 'Logloss'
         \item 'CrossEntropy'
-        \item 'RMSE'
-        \item 'MAE'
-        \item 'Quantile'
-        \item 'LogLinQuantile'
-        \item 'MAPE'
-        \item 'Poisson'
-        \item 'Lq'
-        \item 'QueryRMSE'
-        \item 'MultiClass'
-        \item 'MultiClassOneVsAll'
-        \item 'PairLogit'
-        \item 'R2'
-        \item 'AUC'
-        \item 'Accuracy'
         \item 'Precision'
         \item 'Recall'
         \item 'F1'
-        \item 'TotalF1'
+        \item 'BalancedAccuracy'
+        \item 'BalancedErrorRate'
         \item 'MCC'
+        \item 'Accuracy'
+        \item 'CtrFactor'
+        \item 'AUC'
+        \item 'BrierScore'
+        \item 'HingeLoss'
+        \item 'HammingLoss'
+        \item 'ZeroOneLoss'
+        \item 'Kappa'
+        \item 'WKappa'
+        \item 'LogLikelihoodOfPrediction'
+        \item 'MultiClass'
+        \item 'MultiClassOneVsAll'
+        \item 'TotalF1'
+        \item 'MAE'
+        \item 'MAPE'
+        \item 'Poisson'
+        \item 'Quantile'
+        \item 'RMSE'
+        \item 'LogLinQuantile'
+        \item 'Lq'
+        \item 'NumErrors'
+        \item 'SMAPE'
+        \item 'R2'
+        \item 'MSLE'
+        \item 'MedianAbsoluteError'
+        \item 'PairLogit'
+        \item 'PairLogitPairwise'
         \item 'PairAccuracy'
+        \item 'QueryCrossEntropy'
+        \item 'QueryRMSE'
+        \item 'QuerySoftMax'
+        \item 'PFound'
+        \item 'NDCG'
+        \item 'AverageGain'
+        \item 'PrecisionAt'
+        \item 'RecallAt'
+        \item 'MAP'
       }
 
 Format:
@@ -222,7 +273,7 @@ When using other parameters that limit the number of iterations, the final numbe
 
 Default value:
 
-500
+1000
 
 \item border
 
@@ -250,7 +301,7 @@ Default value:
 
 Depth of the tree.
 
-The value can be any integer up to 32. It is recommended to use values in the range [1; 10].
+The value can be any integer up to 16. It is recommended to use values in the range [1; 10].
 
 Default value:
 
@@ -281,11 +332,11 @@ The random seed used for training.
 
 Default value:
 
-A new random value is selected on each run
+0
 
 \item nan_mode
 
-Way to process nan-values.
+Way to process missing values.
 
 Possible values:
       \itemize{
@@ -356,6 +407,58 @@ Default value:
 
 Default value depends on the selected loss function
 
+\item grow_policy
+
+GPU only. The tree growing policy. It describes how to perform greedy tree construction.
+
+Possible values:
+      \itemize{
+        \item SymmetricTree
+        \item Lossguide
+        \item Depthwise
+      }
+
+Default value:
+
+SymmetricTree
+
+\item min_data_in_leaf
+
+GPU only.
+      The minimum training samples count in leaf.
+      CatBoost will not search for new splits in leaves with samples count less than min_data_in_leaf.
+      This parameter is used only for Depthwise and Lossguide growing policies.
+
+Default value:
+
+1
+
+\item max_leaves
+
+GPU only. The maximum leaf count in resulting tree. Used only for Lossguide growing policy.
+      This parameter is used only for Lossguide growing policy.
+
+Default value:
+
+31
+
+\item score_function
+      GPU only. Score that is used during tree construction to select the next tree split.
+
+Possible values:
+      \itemize{
+        \item L2
+        \item Cosine
+        \item NewtonL2
+        \item NewtonCosine
+      }
+
+Default value:
+
+Cosine
+
+For growing policy Lossguide default is NewtonL2.
+
 \item l2_leaf_reg
 
 L2 regularization coefficient. Used for leaf value calculation.
@@ -379,13 +482,12 @@ Default value:
 
 \item has_time
 
-Use the order of objects in the input data (do not perform random permutations during the
-      Transforming categorical features to numerical features (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/algorithm-main-stages_cat-to-numberic-docpage/#algorithm-main-stages_cat-to-numberic})
-      and Choosing the tree structure (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/algorithm-main-stages_choose-tree-structure-docpage/#algorithm-main-stages_choose-tree-structure}) stages).
+Use the order of objects in the input data
+      (do not perform a random permutation of the dataset at the preprocessing stage)
 
 Default value:
 
-FALSE (not used; generate random permutations)
+FALSE (not used; permute input dataset)
 
 \item allow_const_label
 
@@ -485,8 +587,12 @@ Possible values:
       \itemize{
         \item 'Bayesian'
         \item 'Bernoulli'
+        \item 'Poisson'
+        \item 'MVS'
         \item 'No'
       }
+
+Poisson bootstrap is supported only on GPU.
 
 Default value:
 
@@ -744,8 +850,9 @@ The number of splits for numerical features. Allowed values are integers from 1 
 
 Default value:
 
-32
-    \item feature_border_type
+254 for training on CPU or 128 for training on GPU
+
+\item feature_border_type
 
 The binarization mode (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/binarization-docpage/#binarization})
       for numerical features.
@@ -774,7 +881,7 @@ Allows you to optimize the speed of execution. This parameter doesn't affect res
 
 Default value:
 
-The number of cores.
+The number of CPU cores.
   }
   \item Output settings
   \itemize{
@@ -833,7 +940,7 @@ File can't be generated or read. If the value is omitted, the file name is exper
 
 \item snapshot_interval
 
-Interval beetween saving snapshots (seconds)
+Interval between saving snapshots (seconds)
 
 Default value:
 
@@ -878,6 +985,24 @@ CPU only. Size of block of samples in score calculation. Should be > 0
 Default value:
 
 5000000
+
+\item dev_efb_max_buckets
+
+CPU only. Maximum bucket count in exclusive features bundle. Should be in an integer between 0 and 65536.
+      Used only for learning speed tuning.
+
+Default value:
+
+1024
+
+\item efb_max_conflict_fraction
+
+CPU only. Maximum allowed fraction of conflicting non-default values for features in exclusive features bundle.
+     Should be a real value in [0, 1) interval.
+
+Default value:
+
+0.0
 
 \item leaf_estimation_backtracking
 

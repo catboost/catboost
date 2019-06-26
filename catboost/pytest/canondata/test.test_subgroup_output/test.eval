@@ -1,4 +1,4 @@
-GroupId	SubgroupId	DocId	Label	RawFormulaVal
+GroupId	SubgroupId	SampleId	Label	RawFormulaVal
 10	2	0	0.07	0.0008494086939
 10	4	1	0	0.004453368788
 10	21	2	0	-0.001791707622

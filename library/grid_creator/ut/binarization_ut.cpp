@@ -10,6 +10,11 @@
 #include <util/generic/ymath.h>
 #include <util/generic/xrange.h>
 #include <util/random/fast.h>
+#include <util/random/shuffle.h>
+
+
+using namespace NSplitSelection;
+using namespace NSplitSelection::NImpl;
 
 
 static const TVector<size_t> MAX_BORDER_COUNT_VALUES = {1, 10, 128};
@@ -24,22 +29,23 @@ static const THashSet<EBorderSelectionType> WEIGHTED_BORDER_SELECTION_TYPES = {
 static double EPSILON = 1e-8;
 
 void TestAll(
-    const TVector<float>& values,
+    const TFeatureValues& features,
     const THashSet<float>& expectedBorders,
     const TVector<EBorderSelectionType>& borderSelectionTypes = BORDER_SELECTION_TYPES,
     const TVector<size_t>& borderCounts = MAX_BORDER_COUNT_VALUES,
     const TVector<bool>& nanIsInfinityValues = NAN_IS_INFINITY_VALUES
 ) {
-    const TVector<float> weights(values.size(), 1.0f);
+    const TVector<float> weights(features.Values.size(), 1.0f);
     for (const auto& borderSelectionType : borderSelectionTypes) {
         for (const auto& nanIsInfinity : nanIsInfinityValues) {
             for (const auto& maxBorderCount : borderCounts) {
-                TVector<float> valuesCopy(values);
-                auto borders = BestSplit(valuesCopy, maxBorderCount, borderSelectionType, nanIsInfinity);
+                TFeatureValues featuresCopy(features);
+                auto borders = BestSplit(
+                    std::move(featuresCopy), nanIsInfinity, maxBorderCount, borderSelectionType);
                 UNIT_ASSERT_EQUAL_C(borders, expectedBorders,
                     GetEnumNames<EBorderSelectionType>().at(borderSelectionType));
-                if (WEIGHTED_BORDER_SELECTION_TYPES.contains(borderSelectionType)) {
-                    borders = BestWeightedSplit(values, weights, maxBorderCount, borderSelectionType,
+                if (WEIGHTED_BORDER_SELECTION_TYPES.contains(borderSelectionType) && !features.DefaultValue) {
+                    borders = BestWeightedSplit(TVector<float>(features.Values), weights, maxBorderCount, borderSelectionType,
                         nanIsInfinity);
                     UNIT_ASSERT_EQUAL_C(borders, expectedBorders,
                         GetEnumNames<EBorderSelectionType>().at(borderSelectionType));
@@ -93,7 +99,7 @@ void TestAllWeighted(
         for (bool filterNans : {false, true}) {
             for (bool isSorted : isSortedValues) {
                 const auto borders = BestWeightedSplit(
-                    values, weights, maxBorderCount, borderSelectionType, filterNans, isSorted);
+                    TVector<float>(values), weights, maxBorderCount, borderSelectionType, filterNans, isSorted);
                 UNIT_ASSERT_EQUAL(borders, expectedBorders);
             }
         }
@@ -136,9 +142,9 @@ void TestScoreInequalities() {
                     auto valuesCopy = values;
                     const auto medianBorders = BestSplit(valuesCopy, maxBordersCount,
                                                          EBorderSelectionType::Median, false, false);
-                    const auto optimalBorders = BestWeightedSplit<penaltyType>(values, weights,
+                    const auto optimalBorders = BestWeightedSplit<penaltyType>(TVector<float>(values), weights,
                         maxBordersCount, EOptimizationType::Exact, false, false);
-                    const auto greedyBorders = BestWeightedSplit<penaltyType>(values, weights,
+                    const auto greedyBorders = BestWeightedSplit<penaltyType>(TVector<float>(values), weights,
                         maxBordersCount, EOptimizationType::Greedy, false, false);
 
                     UNIT_ASSERT_EQUAL(medianBorders.size(), expectedBordersCount);
@@ -182,7 +188,7 @@ Y_UNIT_TEST_SUITE(ValuePreprocessingTests) {
 
         for (bool isSorted : {false, true}) {
             auto[resultValues, resultWeights] = GroupAndSortWeighedValues(
-                featureValues, weights, false, isSorted);
+                TVector<float>(featureValues), TVector<float>(weights), false, isSorted);
             UNIT_ASSERT_EQUAL(resultValues, expectedValues);
             AssertApproximateEquality(resultWeights, expectedWeights);
         }
@@ -205,27 +211,25 @@ Y_UNIT_TEST_SUITE(ValuePreprocessingTests) {
         for (bool isSorted : {false, true}) {
             std::pair<TVector<float>, TVector<float>> expectedResult = {{}, {}};
             UNIT_ASSERT_EQUAL(expectedResult, GroupAndSortWeighedValues({}, {}, true, isSorted));
-            UNIT_ASSERT_EQUAL(expectedResult, GroupAndSortValues({}, true, isSorted));
+            UNIT_ASSERT_EQUAL(expectedResult, GroupAndSortValues(TFeatureValues({}, isSorted), true));
             UNIT_ASSERT_EQUAL(expectedResult, GroupAndSortWeighedValues({nan}, {1.0f}, true, isSorted));
-            UNIT_ASSERT_EQUAL(expectedResult, GroupAndSortValues({nan}, true, isSorted));
+            UNIT_ASSERT_EQUAL(expectedResult, GroupAndSortValues(TFeatureValues({nan}, isSorted), true));
             expectedResult = {{4}, {1.0f}};
             UNIT_ASSERT_EQUAL(expectedResult, GroupAndSortWeighedValues({1, nan, 3, 4},
                 {+0.0f, 1.0f, -1.0f, 1.0f}, true, isSorted));
-            UNIT_ASSERT_EQUAL(expectedResult, GroupAndSortValues({nan, nan, nan, 4}, true, isSorted));
+            UNIT_ASSERT_EQUAL(expectedResult, GroupAndSortValues(TFeatureValues({nan, nan, nan, 4}, isSorted), true));
         }
     }
 }
 
 Y_UNIT_TEST_SUITE(BinarizationTests) {
     Y_UNIT_TEST(TestEmpty) {
-        TVector<float> values;
-        TestAll(values, {});
+        TestAll(TFeatureValues(TVector<float>()), {});
     }
 
     Y_UNIT_TEST(TestSingleValue) {
-        TestAll({0.0}, {});
-        TVector<float> values(5, 0.0);
-        TestAll(values, {});
+        TestAll(TFeatureValues(TVector<float>{0.0}), {});
+        TestAll(TFeatureValues(TVector<float>(5, 0.0)), {});
     }
 
     Y_UNIT_TEST(TestFullSplits) {
@@ -236,7 +240,7 @@ Y_UNIT_TEST_SUITE(BinarizationTests) {
         };
         const TVector<size_t> possibleBorderCounts = {1, 2, 3, 5, 6, 15, 127};
         for (size_t valueCount : {0, 1, 2, 3, 10, 20, 100}) {
-            const TVector<float> values = GenerateDistinctRandomValues(valueCount, TFastRng64(valueCount));
+            TVector<float> values = GenerateDistinctRandomValues(valueCount, TFastRng64(valueCount));
             TVector<size_t> borderCounts;
             if (valueCount > 0) {
                 borderCounts.push_back(valueCount - 1);
@@ -246,7 +250,69 @@ Y_UNIT_TEST_SUITE(BinarizationTests) {
                     borderCounts.push_back(borderCount);
                 }
             }
-            TestAll(values, GetAllBorders(values), borderSelectionTypes, borderCounts);
+            auto allBorders = GetAllBorders(values);
+            TestAll(TFeatureValues(std::move(values)), allBorders, borderSelectionTypes, borderCounts);
+        }
+    }
+
+    Y_UNIT_TEST(TestWithDefaultValue) {
+        constexpr size_t NON_DEFAULT_VALUE_COUNT = 12;
+        constexpr int MAX_BORDERS_COUNT = 6;
+
+        for (auto onlyNonNegativeValues : {false, true}) {
+            TVector<float> nonDefaultValues;
+
+            TFastRng64 randGen(NON_DEFAULT_VALUE_COUNT);
+
+            for (auto i : xrange(NON_DEFAULT_VALUE_COUNT)) {
+                Y_UNUSED(i);
+                nonDefaultValues.push_back(
+                    (onlyNonNegativeValues ? 0.f : -5.f) + 10.f * randGen.GenRandReal1()
+                );
+            }
+
+            const TVector<float> defaultValues = {
+                0.0f,
+                nonDefaultValues.front(),
+                0.5f * (nonDefaultValues.front() + nonDefaultValues.back())
+            };
+
+            for (auto defaultValue : defaultValues) {
+                for (ui64 defaultValueCount : {1, 5, 30, 250}) {
+                    TVector<float> denseValues = nonDefaultValues;
+
+                    for (auto i : xrange(defaultValueCount)) {
+                        Y_UNUSED(i);
+                        denseValues.push_back(defaultValue);
+                    }
+
+                    Shuffle(denseValues.begin(), denseValues.end(), TReallyFastRng32(defaultValueCount));
+
+                    for (auto borderSelectionType : BORDER_SELECTION_TYPES) {
+                        const THashSet<float> bordersFromDenseData = NSplitSelection::BestSplit(
+                            TFeatureValues(TVector<float>(denseValues)),
+                            /*featureMayContainNans*/ false,
+                            MAX_BORDERS_COUNT,
+                            borderSelectionType
+                        );
+
+                        TFeatureValues featuresWithDefaultValue(
+                            TVector<float>(nonDefaultValues),
+                            /*valuesSorted*/ false,
+                            TDefaultValue(defaultValue, defaultValueCount)
+                        );
+
+                        const THashSet<float> bordersFromDataWithDefaultValue = NSplitSelection::BestSplit(
+                            std::move(featuresWithDefaultValue),
+                            /*featureMayContainNans*/ false,
+                            MAX_BORDERS_COUNT,
+                            borderSelectionType
+                        );
+
+                        UNIT_ASSERT_VALUES_EQUAL(bordersFromDenseData, bordersFromDataWithDefaultValue);
+                    }
+                }
+            }
         }
     }
 }
@@ -324,14 +390,14 @@ Y_UNIT_TEST_SUITE(WeightedBinarizationTests) {
                     const auto weights = GenerateDistinctRandomValues(valueCount, generator);
                     for (auto borderSelectionType : WEIGHTED_BORDER_SELECTION_TYPES) {
                         const auto expectedBorders = BestWeightedSplit(
-                                values, weights, maxBorderCount, borderSelectionType);
+                            TVector<float>(values), weights, maxBorderCount, borderSelectionType);
                         for (auto weightMultiplier : weightMultipliers) {
                             TVector<float> scaledWeights(weights);
                             for (auto &weight : scaledWeights) {
                                 weight *= weightMultiplier;
                             }
                             const auto borders = BestWeightedSplit(
-                                    values, scaledWeights, maxBorderCount, borderSelectionType);
+                                TVector<float>(values), scaledWeights, maxBorderCount, borderSelectionType);
                             UNIT_ASSERT_EQUAL(borders, expectedBorders);
                         }
                     }

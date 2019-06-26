@@ -15,7 +15,7 @@
 
 Y_UNIT_TEST_SUITE(TResourceConstrainedExecutor) {
     Y_UNIT_TEST(TestDoNothing) {
-        NCB::TResourceConstrainedExecutor executor(NPar::LocalExecutor(), "Memory", 0, true);
+        NCB::TResourceConstrainedExecutor executor("Memory", 0, true, &NPar::LocalExecutor());
     }
 
     void SimpleTestCase(size_t threadsCount, bool runInsideLocalExecutor, bool lenientMode) {
@@ -33,10 +33,10 @@ Y_UNIT_TEST_SUITE(TResourceConstrainedExecutor) {
         auto func = [&] (NPar::TLocalExecutor& localExecutor) {
             {
                 NCB::TResourceConstrainedExecutor executor(
-                    localExecutor,
                     "Memory",
                     resourceQuota,
-                    lenientMode
+                    lenientMode,
+                    &localExecutor
                 );
                 for (auto taskType : xrange(TASK_TYPE_COUNT)) {
                     for (auto i : xrange(tasksPerType[taskType])) {
@@ -95,11 +95,11 @@ Y_UNIT_TEST_SUITE(TResourceConstrainedExecutor) {
 
     Y_UNIT_TEST(TestImpossibleResourceRequest) {
         {
-            NCB::TResourceConstrainedExecutor executor(NPar::LocalExecutor(), "Memory", 0, false);
+            NCB::TResourceConstrainedExecutor executor("Memory", 0, false, &NPar::LocalExecutor());
             UNIT_ASSERT_EXCEPTION(executor.Add({1, [](){;}}), TCatBoostException);
         }
         {
-            NCB::TResourceConstrainedExecutor executor(NPar::LocalExecutor(), "Memory", 5, false);
+            NCB::TResourceConstrainedExecutor executor("Memory", 5, false, &NPar::LocalExecutor());
             UNIT_ASSERT_EXCEPTION(executor.Add({6, [](){;}}), TCatBoostException);
         }
     }
@@ -112,7 +112,7 @@ Y_UNIT_TEST_SUITE(TResourceConstrainedExecutor) {
                         NPar::TLocalExecutor localExecutor;
                         localExecutor.RunAdditionalThreads(1);
 
-                        NCB::TResourceConstrainedExecutor executor(localExecutor, "Memory", 2, false);
+                        NCB::TResourceConstrainedExecutor executor("Memory", 2, false, &localExecutor);
                         executor.Add({1, [](){;}});
                         executor.Add({1, [](){;}});
                         executor.Add({2, [](){ ythrow TCatBoostException(); }});
@@ -130,7 +130,7 @@ Y_UNIT_TEST_SUITE(TResourceConstrainedExecutor) {
                         NPar::TLocalExecutor localExecutor;
                         localExecutor.RunAdditionalThreads(3);
 
-                        NCB::TResourceConstrainedExecutor executor(localExecutor, "Memory", 2, false);
+                        NCB::TResourceConstrainedExecutor executor("Memory", 2, false, &localExecutor);
                         executor.Add({1, [](){;}});
                         executor.Add({1, [](){ FromString<int>("2.9"); }});
                         executor.Add({0, [](){ ythrow TCatBoostException(); }});

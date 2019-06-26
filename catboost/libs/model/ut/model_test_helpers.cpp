@@ -66,6 +66,8 @@ TFullModel TrainFloatCatboostModel(int iterations, int seed) {
             Nothing(),
             Nothing(),
             std::move(dataProviders),
+            /*initModel*/ Nothing(),
+            /*initLearnProgress*/ nullptr,
             "",
             &model,
             {&evalResult}
@@ -278,6 +280,8 @@ TFullModel TrainCatOnlyModel() {
         {},
         {},
         std::move(dataProviders),
+        /*initModel*/ Nothing(),
+        /*initLearnProgress*/ nullptr,
         "",
         &model,
         {&evalResult}

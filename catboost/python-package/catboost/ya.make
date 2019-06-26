@@ -1,4 +1,4 @@
-PYMODULE(_catboost PREFIX "")
+PY_ANY_MODULE(_catboost PREFIX "")
 
 
 
@@ -21,5 +21,7 @@ IF(NOT CATBOOST_OPENSOURCE)
         catboost//libs/for_python_package
     )
 ENDIF()
+
+NO_LINT()
 
 END()

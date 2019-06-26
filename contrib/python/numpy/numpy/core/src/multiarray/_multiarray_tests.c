@@ -895,6 +895,29 @@ get_buffer_info(PyObject *NPY_UNUSED(self), PyObject *args)
 
 #undef GET_PYBUF_FLAG
 
+/*
+ * Return a new array object wrapping existing C-allocated (dummy) data.
+ * Such an array does not own its data (must not free it), but because it
+ * wraps C data, it also has no base object. Used to test arr.flags.writeable
+ * setting behaviour.
+ */
+static PyObject*
+get_c_wrapping_array(PyObject* NPY_UNUSED(self), PyObject* arg)
+{
+    int writeable, flags;
+    npy_intp zero = 0;
+
+    writeable = PyObject_IsTrue(arg);
+    if (error_converting(writeable)) {
+        return NULL;
+    }
+
+    flags = writeable ? NPY_ARRAY_WRITEABLE : 0;
+    /* Create an empty array (which points to a random place) */
+    return PyArray_NewFromDescr(&PyArray_Type, PyArray_DescrFromType(NPY_INTP),
+                                1, &zero, NULL, &zero, flags, NULL);
+}
+
 
 /*
  * Test C-api level item getting.
@@ -1723,7 +1746,7 @@ get_struct_alignments(PyObject *NPY_UNUSED(self), PyObject *args) {
     PyObject *ret = PyTuple_New(3);
     PyObject *alignment, *size, *val;
 
-#line 1681
+#line 1704
     alignment = PyInt_FromLong(_ALIGN(struct TestStruct1));
     size = PyInt_FromLong(sizeof(struct TestStruct1));
     val = PyTuple_Pack(2, alignment, size);
@@ -1734,7 +1757,7 @@ get_struct_alignments(PyObject *NPY_UNUSED(self), PyObject *args) {
     }
     PyTuple_SET_ITEM(ret, 1-1, val);
 
-#line 1681
+#line 1704
     alignment = PyInt_FromLong(_ALIGN(struct TestStruct2));
     size = PyInt_FromLong(sizeof(struct TestStruct2));
     val = PyTuple_Pack(2, alignment, size);
@@ -1745,7 +1768,7 @@ get_struct_alignments(PyObject *NPY_UNUSED(self), PyObject *args) {
     }
     PyTuple_SET_ITEM(ret, 2-1, val);
 
-#line 1681
+#line 1704
     alignment = PyInt_FromLong(_ALIGN(struct TestStruct3));
     size = PyInt_FromLong(sizeof(struct TestStruct3));
     val = PyTuple_Pack(2, alignment, size);
@@ -1794,9 +1817,9 @@ get_fpu_mode(PyObject *NPY_UNUSED(self), PyObject *args)
  * npymath wrappers
  */
 
-#line 1732
+#line 1755
 
-#line 1740
+#line 1763
 
 static PyObject *
 call_npy_cabsf(PyObject *NPY_UNUSED(self), PyObject *args)
@@ -1826,7 +1849,7 @@ call_npy_cabsf(PyObject *NPY_UNUSED(self), PyObject *args)
 }
 
 
-#line 1740
+#line 1763
 
 static PyObject *
 call_npy_cabs(PyObject *NPY_UNUSED(self), PyObject *args)
@@ -1856,7 +1879,7 @@ call_npy_cabs(PyObject *NPY_UNUSED(self), PyObject *args)
 }
 
 
-#line 1740
+#line 1763
 
 static PyObject *
 call_npy_cabsl(PyObject *NPY_UNUSED(self), PyObject *args)
@@ -1888,9 +1911,9 @@ call_npy_cabsl(PyObject *NPY_UNUSED(self), PyObject *args)
 
 
 
-#line 1732
+#line 1755
 
-#line 1740
+#line 1763
 
 static PyObject *
 call_npy_cargf(PyObject *NPY_UNUSED(self), PyObject *args)
@@ -1920,7 +1943,7 @@ call_npy_cargf(PyObject *NPY_UNUSED(self), PyObject *args)
 }
 
 
-#line 1740
+#line 1763
 
 static PyObject *
 call_npy_carg(PyObject *NPY_UNUSED(self), PyObject *args)
@@ -1950,7 +1973,7 @@ call_npy_carg(PyObject *NPY_UNUSED(self), PyObject *args)
 }
 
 
-#line 1740
+#line 1763
 
 static PyObject *
 call_npy_cargl(PyObject *NPY_UNUSED(self), PyObject *args)
@@ -1983,9 +2006,9 @@ call_npy_cargl(PyObject *NPY_UNUSED(self), PyObject *args)
 
 
 
-#line 1775
+#line 1798
 
-#line 1781
+#line 1804
 
 static PyObject *
 call_npy_log10f(PyObject *NPY_UNUSED(self), PyObject *args)
@@ -2015,7 +2038,7 @@ call_npy_log10f(PyObject *NPY_UNUSED(self), PyObject *args)
 }
 
 
-#line 1781
+#line 1804
 
 static PyObject *
 call_npy_log10(PyObject *NPY_UNUSED(self), PyObject *args)
@@ -2045,7 +2068,7 @@ call_npy_log10(PyObject *NPY_UNUSED(self), PyObject *args)
 }
 
 
-#line 1781
+#line 1804
 
 static PyObject *
 call_npy_log10l(PyObject *NPY_UNUSED(self), PyObject *args)
@@ -2077,9 +2100,9 @@ call_npy_log10l(PyObject *NPY_UNUSED(self), PyObject *args)
 
 
 
-#line 1775
+#line 1798
 
-#line 1781
+#line 1804
 
 static PyObject *
 call_npy_coshf(PyObject *NPY_UNUSED(self), PyObject *args)
@@ -2109,7 +2132,7 @@ call_npy_coshf(PyObject *NPY_UNUSED(self), PyObject *args)
 }
 
 
-#line 1781
+#line 1804
 
 static PyObject *
 call_npy_cosh(PyObject *NPY_UNUSED(self), PyObject *args)
@@ -2139,7 +2162,7 @@ call_npy_cosh(PyObject *NPY_UNUSED(self), PyObject *args)
 }
 
 
-#line 1781
+#line 1804
 
 static PyObject *
 call_npy_coshl(PyObject *NPY_UNUSED(self), PyObject *args)
@@ -2171,9 +2194,9 @@ call_npy_coshl(PyObject *NPY_UNUSED(self), PyObject *args)
 
 
 
-#line 1775
+#line 1798
 
-#line 1781
+#line 1804
 
 static PyObject *
 call_npy_sinhf(PyObject *NPY_UNUSED(self), PyObject *args)
@@ -2203,7 +2226,7 @@ call_npy_sinhf(PyObject *NPY_UNUSED(self), PyObject *args)
 }
 
 
-#line 1781
+#line 1804
 
 static PyObject *
 call_npy_sinh(PyObject *NPY_UNUSED(self), PyObject *args)
@@ -2233,7 +2256,7 @@ call_npy_sinh(PyObject *NPY_UNUSED(self), PyObject *args)
 }
 
 
-#line 1781
+#line 1804
 
 static PyObject *
 call_npy_sinhl(PyObject *NPY_UNUSED(self), PyObject *args)
@@ -2265,9 +2288,9 @@ call_npy_sinhl(PyObject *NPY_UNUSED(self), PyObject *args)
 
 
 
-#line 1775
+#line 1798
 
-#line 1781
+#line 1804
 
 static PyObject *
 call_npy_tanf(PyObject *NPY_UNUSED(self), PyObject *args)
@@ -2297,7 +2320,7 @@ call_npy_tanf(PyObject *NPY_UNUSED(self), PyObject *args)
 }
 
 
-#line 1781
+#line 1804
 
 static PyObject *
 call_npy_tan(PyObject *NPY_UNUSED(self), PyObject *args)
@@ -2327,7 +2350,7 @@ call_npy_tan(PyObject *NPY_UNUSED(self), PyObject *args)
 }
 
 
-#line 1781
+#line 1804
 
 static PyObject *
 call_npy_tanl(PyObject *NPY_UNUSED(self), PyObject *args)
@@ -2359,9 +2382,9 @@ call_npy_tanl(PyObject *NPY_UNUSED(self), PyObject *args)
 
 
 
-#line 1775
+#line 1798
 
-#line 1781
+#line 1804
 
 static PyObject *
 call_npy_tanhf(PyObject *NPY_UNUSED(self), PyObject *args)
@@ -2391,7 +2414,7 @@ call_npy_tanhf(PyObject *NPY_UNUSED(self), PyObject *args)
 }
 
 
-#line 1781
+#line 1804
 
 static PyObject *
 call_npy_tanh(PyObject *NPY_UNUSED(self), PyObject *args)
@@ -2421,7 +2444,7 @@ call_npy_tanh(PyObject *NPY_UNUSED(self), PyObject *args)
 }
 
 
-#line 1781
+#line 1804
 
 static PyObject *
 call_npy_tanhl(PyObject *NPY_UNUSED(self), PyObject *args)
@@ -2576,6 +2599,9 @@ static PyMethodDef Multiarray_TestsMethods[] = {
     {"get_buffer_info",
         get_buffer_info,
         METH_VARARGS, NULL},
+    {"get_c_wrapping_array",
+        get_c_wrapping_array,
+        METH_O, NULL},
     {"array_indexing",
         array_indexing,
         METH_VARARGS, NULL},
@@ -2636,38 +2662,38 @@ static PyMethodDef Multiarray_TestsMethods[] = {
     {"getset_numericops",
         getset_numericops,
         METH_NOARGS, NULL},
-#line 1998
+#line 2024
 
-#line 2002
+#line 2028
     {"npy_cabsf",
         call_npy_cabsf,
         METH_VARARGS, NULL},
 
-#line 2002
+#line 2028
     {"npy_cabs",
         call_npy_cabs,
         METH_VARARGS, NULL},
 
-#line 2002
+#line 2028
     {"npy_cabsl",
         call_npy_cabsl,
         METH_VARARGS, NULL},
 
 
 
-#line 1998
+#line 2024
 
-#line 2002
+#line 2028
     {"npy_cargf",
         call_npy_cargf,
         METH_VARARGS, NULL},
 
-#line 2002
+#line 2028
     {"npy_carg",
         call_npy_carg,
         METH_VARARGS, NULL},
 
-#line 2002
+#line 2028
     {"npy_cargl",
         call_npy_cargl,
         METH_VARARGS, NULL},
@@ -2675,95 +2701,95 @@ static PyMethodDef Multiarray_TestsMethods[] = {
 
 
 
-#line 2012
+#line 2038
 
-#line 2016
+#line 2042
     {"npy_log10f",
         call_npy_log10f,
         METH_VARARGS, NULL},
 
-#line 2016
+#line 2042
     {"npy_log10",
         call_npy_log10,
         METH_VARARGS, NULL},
 
-#line 2016
+#line 2042
     {"npy_log10l",
         call_npy_log10l,
         METH_VARARGS, NULL},
 
 
 
-#line 2012
+#line 2038
 
-#line 2016
+#line 2042
     {"npy_coshf",
         call_npy_coshf,
         METH_VARARGS, NULL},
 
-#line 2016
+#line 2042
     {"npy_cosh",
         call_npy_cosh,
         METH_VARARGS, NULL},
 
-#line 2016
+#line 2042
     {"npy_coshl",
         call_npy_coshl,
         METH_VARARGS, NULL},
 
 
 
-#line 2012
+#line 2038
 
-#line 2016
+#line 2042
     {"npy_sinhf",
         call_npy_sinhf,
         METH_VARARGS, NULL},
 
-#line 2016
+#line 2042
     {"npy_sinh",
         call_npy_sinh,
         METH_VARARGS, NULL},
 
-#line 2016
+#line 2042
     {"npy_sinhl",
         call_npy_sinhl,
         METH_VARARGS, NULL},
 
 
 
-#line 2012
+#line 2038
 
-#line 2016
+#line 2042
     {"npy_tanf",
         call_npy_tanf,
         METH_VARARGS, NULL},
 
-#line 2016
+#line 2042
     {"npy_tan",
         call_npy_tan,
         METH_VARARGS, NULL},
 
-#line 2016
+#line 2042
     {"npy_tanl",
         call_npy_tanl,
         METH_VARARGS, NULL},
 
 
 
-#line 2012
+#line 2038
 
-#line 2016
+#line 2042
     {"npy_tanhf",
         call_npy_tanhf,
         METH_VARARGS, NULL},
 
-#line 2016
+#line 2042
     {"npy_tanh",
         call_npy_tanh,
         METH_VARARGS, NULL},
 
-#line 2016
+#line 2042
     {"npy_tanhl",
         call_npy_tanhl,
         METH_VARARGS, NULL},

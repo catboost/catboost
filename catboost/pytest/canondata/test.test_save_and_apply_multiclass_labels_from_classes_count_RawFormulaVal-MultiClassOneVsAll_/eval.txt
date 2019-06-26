@@ -1,4 +1,4 @@
-DocId	RawFormulaVal:Class=0	RawFormulaVal:Class=1	RawFormulaVal:Class=2	RawFormulaVal:Class=3
+SampleId	RawFormulaVal:Class=0	RawFormulaVal:Class=1	RawFormulaVal:Class=2	RawFormulaVal:Class=3
 0	-inf	0.01004577752	-0.01004577752	-inf
 1	-inf	0.02326916195	-0.02326916195	-inf
 2	-inf	-0.02883725408	0.02883725408	-inf

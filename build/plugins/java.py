@@ -99,6 +99,7 @@ def onjava_module(unit, *args):
         'IDEA_RESOURCE': extract_macro_calls(unit, 'IDEA_RESOURCE_DIRS_VALUE', args_delim),
         'GENERATE_SCRIPT': extract_macro_calls2(unit, 'GENERATE_SCRIPT_VALUE'),
         'FAKEID': extract_macro_calls(unit, 'FAKEID', args_delim),
+        'TEST_DATA': extract_macro_calls(unit, 'TEST_DATA_VALUE', args_delim),
     }
 
     if unit.get('JAVA_ADD_DLLS_VALUE') == 'yes':
@@ -114,6 +115,10 @@ def onjava_module(unit, *args):
         data['UBERJAR_PREFIX'] = extract_macro_calls(unit, 'UBERJAR_PREFIX_VALUE', args_delim)
         data['UBERJAR_HIDE_EXCLUDE'] = extract_macro_calls(unit, 'UBERJAR_HIDE_EXCLUDE_VALUE', args_delim)
         data['UBERJAR_PATH_EXCLUDE'] = extract_macro_calls(unit, 'UBERJAR_PATH_EXCLUDE_VALUE', args_delim)
+        data['UBERJAR_MANIFEST_TRANSFORMER_MAIN'] = extract_macro_calls(unit, 'UBERJAR_MANIFEST_TRANSFORMER_MAIN_VALUE', args_delim)
+        data['UBERJAR_MANIFEST_TRANSFORMER_ATTRIBUTE'] = extract_macro_calls(unit, 'UBERJAR_MANIFEST_TRANSFORMER_ATTRIBUTE_VALUE', args_delim)
+        data['UBERJAR_APPENDING_TRANSFORMER'] = extract_macro_calls(unit, 'UBERJAR_APPENDING_TRANSFORMER_VALUE', args_delim)
+        data['UBERJAR_SERVICES_RESOURCE_TRANSFORMER'] = extract_macro_calls(unit, 'UBERJAR_SERVICES_RESOURCE_TRANSFORMER_VALUE', args_delim)
 
     if unit.get('WITH_JDK_VALUE') == 'yes':
         if unit.get('MODULE_TYPE') != 'JAVA_PROGRAM':
@@ -123,6 +128,28 @@ def onjava_module(unit, *args):
     for dm_paths in data['DEPENDENCY_MANAGEMENT']:
         for p in dm_paths:
             unit.onpeerdir(p)
+
+    if not data['EXTERNAL_JAR']:
+        has_processor = extract_macro_calls(unit, 'GENERATE_VCS_JAVA_INFO_NODEP', args_delim)
+        data['EMBED_VCS'] = [[str(has_processor and has_processor[0] and has_processor[0][0])]]
+        # FORCE_VCS_INFO_UPDATE is responsible for setting special value of VCS_INFO_DISABLE_CACHE__NO_UID__
+        macro_val = extract_macro_calls(unit, 'FORCE_VCS_INFO_UPDATE', args_delim)
+        macro_str = macro_val[0][0] if macro_val and macro_val[0] and macro_val[0][0] else ''
+        if macro_str and macro_str == 'yes':
+            data['VCS_INFO_DISABLE_CACHE__NO_UID__'] = macro_val
+
+        # TODO: dvshkurko@ remove
+        data['GENERATE_VCS_JAVA_INFO_NODEP'] = extract_macro_calls(unit, 'GENERATE_VCS_JAVA_INFO_NODEP', args_delim)
+        # FORCE_VCS_INFO_UPDATE is responsible for setting special value of VCS_INFO_DISABLE_CACHE__NO_UID__
+        force_empty = extract_macro_calls(unit, 'FORCE_EMPTY_VCS_INFO', args_delim)
+        force_empty = force_empty[0][0] if force_empty and force_empty[0] and force_empty[0][0] else ''
+        if force_empty:
+            data['GENERATE_VCS_JAVA_INFO_NODEP'][0] = [
+                c.replace("$FORCE_EMPTY_VCS_INFO", force_empty) for c in data['GENERATE_VCS_JAVA_INFO_NODEP'][0]]
+        else:
+            data['GENERATE_VCS_JAVA_INFO_NODEP'][0] = [
+                c for c in data['GENERATE_VCS_JAVA_INFO_NODEP'][0] if c != "$FORCE_EMPTY_VCS_INFO"]
+        # TODO: dvshkurko@ remove
 
     for java_srcs_args in data['JAVA_SRCS']:
         external = None

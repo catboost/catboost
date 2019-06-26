@@ -122,19 +122,30 @@
         },
         "per_feature_ctrs" : { }
     },
+    "text_feature_options" : {
+        "text_feature_estimators" : [
+            "BoW",
+            "NaiveBayes"
+        ]
+    },
     "logging_level" : "Verbose",
     "data_processing_options" : {
-        "classes_count" : 0,
-        "allow_const_label" : false,
-        "class_names" : [ ],
         "has_time" : false,
-        "ignored_features" : [ ],
+        "per_float_feature_binarization" : { },
+        "allow_const_label" : false,
+        "text_processing" : {
+            "per_feature_text_processing" : { }
+        },
+        "class_names" : [ ],
         "class_weights" : [ ],
+        "target_border" : null,
         "float_features_binarization" : {
             "border_count" : 254,
             "nan_mode" : "Min",
             "border_type" : "GreedyLogSum"
-        }
+        },
+        "classes_count" : 0,
+        "ignored_features" : [ ]
     },
     "loss_function" : {
         "type" : "Logloss",
@@ -155,6 +166,7 @@
             "bagging_temperature" : 1,
             "type" : "Bayesian"
         },
+        "monotone_constraints" : [ ],
         "efb_max_conflict_fraction" : 0,
         "l2_leaf_reg" : 3,
         "depth" : 6

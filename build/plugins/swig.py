@@ -45,8 +45,10 @@ class Swig(iw.CustomCommand):
 
         if self._swig_lang == 'java':
             self._out_name = os.path.splitext(os.path.basename(self._path))[0] + '.jsrc'
+            self._out_header = os.path.splitext(self._main_out)[0] + '.h'
             self._package = 'ru.yandex.' + os.path.dirname(self._path).replace('$S/', '').replace('$B/', '').replace('/', '.').replace('-', '_')
-            unit.onpeerdir(['contrib/libs/jdk'])
+            if unit.get('OS_ANDROID') != "yes":
+                unit.onpeerdir(['contrib/libs/jdk'])
 
         self._flags.append('-' + self._swig_lang)
 
@@ -68,7 +70,10 @@ class Swig(iw.CustomCommand):
         return [
             (self._main_out, []),
             (common.join_intl_paths(self._bindir, self._out_name), (['noauto', 'add_to_outs'] if self._swig_lang != 'java' else [])),
-        ]
+        ] + ([(self._out_header,  [])] if self._swig_lang == 'java' else [])
+
+    def output_includes(self):
+        return [(self._out_header,  [])] if self._swig_lang == 'java' else []
 
     def run(self, binary):
         return self.do_run(binary, self._path) if self._swig_lang != 'java' else self.do_run_java(binary, self._path)

@@ -53,9 +53,10 @@ TVector<double> EvalMetricsForUtils(
     const TString& metricName,
     const TVector<float>& weight,
     const TVector<TGroupId>& groupId,
+    const TVector<TSubgroupId>& subgroupId,
+    const TVector<TPair>& pairs,
     int threadCount
 );
-
 
 inline TVector<NCatboostOptions::TLossDescription> CreateMetricLossDescriptions(
     const TVector<TString>& metricDescriptions) {

@@ -35,6 +35,7 @@ RECURSE(
     quantization_schema
     quantization_schema/ut
     quantized_pool
+    quantized_pool_analysis
     quantized_pool/ut
     target
     train_lib
@@ -46,9 +47,8 @@ RECURSE(
     train_interface
 )
 
-# TODO(noxoomo): return when cuda 10 will be default
-#IF (HAVE_CUDA)
-#    RECURSE(
+IF (HAVE_CUDA)
+RECURSE(
     cuda_wrappers
 )
-#ENDIF()
+ENDIF()

@@ -2,6 +2,7 @@
 
 #include <library/dbg_output/dump.h>
 
+#include <util/generic/array_ref.h>
 #include <util/generic/xrange.h>
 #include <util/stream/output.h>
 
@@ -24,7 +25,8 @@ namespace NCB {
                         (*out) << Endl;
                     }
                     for (auto i : xrange<size_t>(V.size())) {
-                        (*out) << (OnSeparateLines ? "\t" : (i == 0 ? "" : ", ")) << i << ':' << ::DbgDump(V[i]);
+                        (*out) << (OnSeparateLines ? "\t" : (i == 0 ? "" : ", ")) << i << ':'
+                            << ::DbgDump(V[i]);
                         if (OnSeparateLines) {
                             (*out) << Endl;
                         }

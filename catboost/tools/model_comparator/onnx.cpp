@@ -1,12 +1,16 @@
-#include "onnx.h"
+#include "decl.h"
 
 #include <contrib/libs/onnx/onnx/common/constants.h>
+#include <contrib/libs/onnx/proto/onnx_ml.pb.h>
 #include <contrib/libs/protobuf/util/message_differencer.h>
 
 #include <util/stream/file.h>
 #include <util/stream/output.h>
 
 #include <util/generic/is_in.h>
+#include <util/generic/maybe.h>
+#include <util/generic/strbuf.h>
+#include <util/generic/string.h>
 #include <util/generic/xrange.h>
 #include <util/system/compiler.h>
 
@@ -15,7 +19,8 @@
 
 namespace NCB {
 
-    TMaybe<onnx::ModelProto> TryLoadOnnxModel(TStringBuf filePath) {
+    template <>
+    TMaybe<onnx::ModelProto> TryLoadModel<onnx::ModelProto>(TStringBuf filePath) {
         TMaybe<onnx::ModelProto> model = MakeMaybe<onnx::ModelProto>();
 
         TIFStream in{TString(filePath)};
@@ -98,7 +103,8 @@ namespace NCB {
     };
 
 
-    bool Compare(const onnx::ModelProto& model1, const onnx::ModelProto& model2, TString* diffString) {
+    template <>
+    bool CompareModels<onnx::ModelProto>(const onnx::ModelProto& model1, const onnx::ModelProto& model2, TString* diffString) {
         google::protobuf::util::DefaultFieldComparator fieldComparator;
         fieldComparator.set_treat_nan_as_equal(true);
 

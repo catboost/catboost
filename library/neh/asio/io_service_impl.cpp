@@ -1,5 +1,7 @@
 #include "io_service_impl.h"
 
+#include <library/coroutine/engine/poller.h>
+
 using namespace NAsio;
 
 void TFdOperation::AddOp(TIOService::TImpl& srv) {

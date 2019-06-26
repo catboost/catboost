@@ -261,6 +261,45 @@ private:
     }
 };
 
+class TExpectileError final : public IDerCalcer {
+public:
+    static constexpr double EXPECTILE_DER3 = 0.0;
+
+public:
+    const double Alpha;
+
+public:
+    explicit TExpectileError(bool isExpApprox)
+        : IDerCalcer(isExpApprox)
+        , Alpha(0.5)
+    {
+        CB_ENSURE(isExpApprox == false, "Approx format does not match");
+    }
+
+    TExpectileError(double alpha, bool isExpApprox)
+        : IDerCalcer(isExpApprox)
+        , Alpha(alpha)
+    {
+        Y_ASSERT(Alpha > -1e-6 && Alpha < 1.0 + 1e-6);
+        CB_ENSURE(isExpApprox == false, "Approx format does not match");
+    }
+
+private:
+    double CalcDer(double approx, float target) const override {
+        double e = target - approx;
+        return (e > 0) ? 2.0 * Alpha * e : 2.0 * (1 - Alpha) * e;
+    }
+
+    double CalcDer2(double approx, float target) const override {
+        double e = target - approx;
+        return (e > 0) ? -2.0 * Alpha : -2.0 * (1 - Alpha);
+    }
+
+    double CalcDer3(double /*approx*/, float /*target*/) const override {
+        return EXPECTILE_DER3;
+    }
+};
+
 class TLqError final : public IDerCalcer {
 public:
     const double Q;
@@ -747,7 +786,7 @@ public:
 
 public:
     TUserDefinedQuerywiseError(const TMap<TString, TString>& params, bool isExpApprox)
-        : IDerCalcer(isExpApprox, EErrorType::QuerywiseError)
+        : IDerCalcer(isExpApprox, /*maxDerivativeOrder*/ 2, EErrorType::QuerywiseError)
         , Alpha(GetNumericParameter(params, "alpha"))
     {
         CB_ENSURE(isExpApprox == false, "Approx format does not match");

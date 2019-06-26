@@ -9,13 +9,16 @@
 #include <util/generic/vector.h>
 
 struct TCdParserDefaults {
-    bool UseDefaultType = false;
-    EColumn DefaultColumnType;
+    bool UseDefaultColumnCount = false;
+    TMaybe<EColumn> DefaultColumnType = Nothing();
     int ColumnCount;
 
     TCdParserDefaults() = default;
-    TCdParserDefaults(EColumn defaultColumnType, int columnCount)
-        : UseDefaultType(true)
+    TCdParserDefaults(TMaybe<EColumn> defaultColumnType)
+        : UseDefaultColumnCount(false)
+        , DefaultColumnType(defaultColumnType) {}
+    TCdParserDefaults(TMaybe<EColumn> defaultColumnType, int columnCount)
+        : UseDefaultColumnCount(true)
         , DefaultColumnType(defaultColumnType)
         , ColumnCount(columnCount) {}
 };

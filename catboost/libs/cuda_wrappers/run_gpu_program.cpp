@@ -1,18 +1,13 @@
 #include "run_gpu_program.h"
 
+#include <library/threading/future/async.h>
+#include <util/thread/pool.h>
+
 void RunGpuProgram(std::function<void()> func) {
-    TMaybe<TCatBoostException> message;
-    {
-        std::thread thread([&]() -> void {
-            try {
-                func();
-            } catch (...) {
-                message = TCatBoostException() << CurrentExceptionMessage();
-            }
-        });
-        thread.join();
-    }
-    if (message) {
-        ythrow* message;
-    }
+    auto queue = CreateThreadPool(1);
+    NThreading::TFuture<void> future = NThreading::Async(
+        func,
+        *queue
+    );
+    future.Wait();
 }

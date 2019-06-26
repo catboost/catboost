@@ -254,7 +254,7 @@ namespace NKernel {
 
 
     template <int BLOCK_SIZE>
-    __global__ void FindOptimalSplitCorrelationImpl(const TCBinFeature* bf, int binFeatureCount, const float* binSums,
+    __global__ void FindOptimalSplitCosineImpl(const TCBinFeature* bf, int binFeatureCount, const float* binSums,
                                                     const TPartitionStatistics* parts, int pCount, int foldCount,
                                                     double l2, bool normalize,
                                                     double scoreStdDev, ui64 globalSeed,
@@ -373,9 +373,9 @@ namespace NKernel {
                 FindOptimalSplitSolarImpl<blockSize> << < resultSize, blockSize, 0, stream >> > (binaryFeatures, binaryFeatureCount, splits, parts, pCount, foldCount, result);
                 break;
             }
-            case  EScoreFunction::Correlation:
-            case  EScoreFunction::NewtonCorrelation: {
-                FindOptimalSplitCorrelationImpl<blockSize> << < resultSize, blockSize, 0, stream >> > (binaryFeatures, binaryFeatureCount, splits, parts, pCount, foldCount, l2, normalize, scoreStdDev, seed, result);
+            case  EScoreFunction::Cosine:
+            case  EScoreFunction::NewtonCosine: {
+                FindOptimalSplitCosineImpl<blockSize> << < resultSize, blockSize, 0, stream >> > (binaryFeatures, binaryFeatureCount, splits, parts, pCount, foldCount, l2, normalize, scoreStdDev, seed, result);
                 break;
             }
             default: {
@@ -423,10 +423,10 @@ namespace NKernel {
                 RUN()
                 break;
             }
-            case  EScoreFunction::Correlation:
-            case  EScoreFunction::NewtonCorrelation: {
-                using TScoreCalcer = TCorrelationScoreCalcer;
-                TCorrelationScoreCalcer scoreCalcer(static_cast<float>(l2),
+            case  EScoreFunction::Cosine:
+            case  EScoreFunction::NewtonCosine: {
+                using TScoreCalcer = TCosineScoreCalcer;
+                TCosineScoreCalcer scoreCalcer(static_cast<float>(l2),
                                                     normalize,
                                                     static_cast<float>(scoreStdDev),
                                                     seed);

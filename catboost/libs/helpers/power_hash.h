@@ -31,15 +31,17 @@ namespace NPowerHash2 {
         TIntegerPowerUnion pow;
         pow.Power8 = powArg;
         if (powArg & 0xffffffff00000000ull) {
-            return (tbl.PowTable[0][pow.Power1.X[0]] * tbl.PowTable[1][pow.Power1.X[1]]) *
-                   (tbl.PowTable[2][pow.Power1.X[2]] * tbl.PowTable[3][pow.Power1.X[3]]) *
-                   (tbl.PowTable[4][pow.Power1.X[4]] * tbl.PowTable[5][pow.Power1.X[5]]) *
-                   (tbl.PowTable[6][pow.Power1.X[6]] * tbl.PowTable[7][pow.Power1.X[7]]);
+            return
+                (tbl.PowTable[0][pow.Power1.X[0]] * tbl.PowTable[1][pow.Power1.X[1]]) *
+                (tbl.PowTable[2][pow.Power1.X[2]] * tbl.PowTable[3][pow.Power1.X[3]]) *
+                (tbl.PowTable[4][pow.Power1.X[4]] * tbl.PowTable[5][pow.Power1.X[5]]) *
+                (tbl.PowTable[6][pow.Power1.X[6]] * tbl.PowTable[7][pow.Power1.X[7]]);
 
         } else {
             if (powArg & 0xffff0000ull) {
-                return (tbl.PowTable[0][pow.Power1.X[0]] * tbl.PowTable[1][pow.Power1.X[1]]) *
-                       (tbl.PowTable[2][pow.Power1.X[2]] * tbl.PowTable[3][pow.Power1.X[3]]);
+                return
+                    (tbl.PowTable[0][pow.Power1.X[0]] * tbl.PowTable[1][pow.Power1.X[1]]) *
+                    (tbl.PowTable[2][pow.Power1.X[2]] * tbl.PowTable[3][pow.Power1.X[3]]);
 
             } else {
                 return tbl.PowTable[0][pow.Power1.X[0]] * tbl.PowTable[1][pow.Power1.X[1]];

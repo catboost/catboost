@@ -40,10 +40,10 @@ namespace NCB {
 
     public:
         TResourceConstrainedExecutor(
-            NPar::TLocalExecutor& localExecutor,
             const TString& resourceName,
             TResourceUnit resourceQuota,
-            bool lenientMode
+            bool lenientMode,
+            NPar::TLocalExecutor* localExecutor
         );
 
         // waits until all tasks are finished

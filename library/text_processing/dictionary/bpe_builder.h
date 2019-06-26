@@ -10,10 +10,10 @@ namespace NTextProcessing::NDictionary {
 
     class TBpeDictionaryBuilder {
     public:
-        TBpeDictionaryBuilder(ui32 numUnits, bool skipUnknown, THolder<TDictionary> alphabet)
+        TBpeDictionaryBuilder(ui32 numUnits, bool skipUnknown, TIntrusivePtr<TDictionary> alphabet)
             : NumUnits(numUnits)
             , SkipUnknown(skipUnknown)
-            , Alphabet(std::move(alphabet))
+            , Alphabet(alphabet)
         {
             Y_ENSURE(Alphabet->GetDictionaryOptionsRef().GramOrder == 1,
                 "GramOrder should be equal to 1 for Bpe dictionary");
@@ -22,14 +22,14 @@ namespace NTextProcessing::NDictionary {
         void Add(TConstArrayRef<TString> tokens, ui64 weight = 1);
         void Add(TConstArrayRef<TStringBuf> tokens, ui64 weight = 1);
 
-        THolder<TBpeDictionary> FinishBuilding();
+        TIntrusivePtr<TBpeDictionary> FinishBuilding();
 
     private:
         void CalcMostFrequentUnits();
 
         ui32 NumUnits;
         bool SkipUnknown;
-        THolder<TDictionary> Alphabet;
+        TIntrusivePtr<TDictionary> Alphabet;
 
         TVector<TVector<ui32>> Lines;
         TVector<ui64> Counts;

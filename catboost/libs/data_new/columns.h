@@ -4,6 +4,7 @@
 #include "features_layout.h"
 #include "packed_binary_features.h"
 
+#include <catboost/libs/data_types/text.h>
 #include <catboost/libs/helpers/array_subset.h>
 #include <catboost/libs/helpers/compression.h>
 #include <catboost/libs/helpers/maybe_owning_array_holder.h>
@@ -29,10 +30,12 @@ namespace NCB {
 
     enum class EFeatureValuesType {
         Float,                      //32 bits per feature value
-        QuantizedFloat,             //at most 8 bits per feature value. Contains grid
+        QuantizedFloat,             //quantized with at most 8 bits (for GPU) or 16 bits (for CPU) per
+                                    // feature value.
         HashedCategorical,          //values - 32 bit hashes of original strings
         PerfectHashedCategorical,   //after perfect hashing
         StringText,                 //unoptimized text feature
+        TokenizedText,              //32 bits for each token in string
     };
 
     using TFeaturesArraySubsetIndexing = TArraySubsetIndexing<ui32>;
@@ -67,6 +70,7 @@ namespace NCB {
                 case EFeatureValuesType::PerfectHashedCategorical:
                     return EFeatureType::Categorical;
                 case EFeatureValuesType::StringText:
+                case EFeatureValuesType::TokenizedText:
                     return EFeatureType::Text;
             }
             Y_FAIL("This place should be inaccessible");
@@ -125,6 +129,12 @@ namespace NCB {
             return {&SrcData, SubsetIndexing};
         }
 
+        THolder<TArrayValuesHolder> CloneWithNewSubsetIndexing(
+            const TFeaturesArraySubsetIndexing* subsetIndexing
+        ) const {
+            return MakeHolder<TArrayValuesHolder>(GetId(), SrcData, subsetIndexing);
+        }
+
     private:
         TMaybeOwningConstArrayHolder<T> SrcData;
         const TFeaturesArraySubsetIndexing* SubsetIndexing;
@@ -135,6 +145,8 @@ namespace NCB {
     using THashedCatValuesHolder = TArrayValuesHolder<ui32, EFeatureValuesType::HashedCategorical>;
 
     using TStringTextValuesHolder = TArrayValuesHolder<TString, EFeatureValuesType::StringText>;
+
+    using TTokenizedTextValuesHolder = TArrayValuesHolder<TText, EFeatureValuesType::TokenizedText>;
 
 
     /*******************************************************************************************************
@@ -179,7 +191,7 @@ namespace NCB {
             );
         }
 
-        template<class F>
+        template <class F>
         void ForEach(F&& f, const NCB::TFeaturesArraySubsetIndexing* featuresSubsetIndexing = nullptr) const {
             if (!featuresSubsetIndexing) {
                 featuresSubsetIndexing = SubsetIndexing;

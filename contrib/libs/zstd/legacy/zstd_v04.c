@@ -9,26 +9,25 @@
  */
 
 
-/*- Dependencies -*/
+ /******************************************
+ *  Includes
+ ******************************************/
+#include <stddef.h>    /* size_t, ptrdiff_t */
+#include <string.h>    /* memcpy */
+
 #include "zstd_v04.h"
 #include "error_private.h"
 
 
 /* ******************************************************************
-   mem.h
-****************************************************************** */
+ *   mem.h
+ *******************************************************************/
 #ifndef MEM_H_MODULE
 #define MEM_H_MODULE
 
 #if defined (__cplusplus)
 extern "C" {
 #endif
-
-/******************************************
-*  Includes
-******************************************/
-#include <stddef.h>    /* size_t, ptrdiff_t */
-#include <string.h>    /* memcpy */
 
 
 /******************************************
@@ -75,38 +74,9 @@ extern "C" {
 /*-*************************************
 *  Debug
 ***************************************/
-#if defined(ZSTD_DEBUG) && (ZSTD_DEBUG>=1)
-#  include <assert.h>
-#else
-#  ifndef assert
-#    define assert(condition) ((void)0)
-#  endif
-#endif
-
-#define ZSTD_STATIC_ASSERT(c) { enum { ZSTD_static_assert = 1/(int)(!!(c)) }; }
-
-#if defined(ZSTD_DEBUG) && (ZSTD_DEBUG>=2)
-#  include <stdio.h>
-extern int g_debuglog_enable;
-/* recommended values for ZSTD_DEBUG display levels :
- * 1 : no display, enables assert() only
- * 2 : reserved for currently active debug path
- * 3 : events once per object lifetime (CCtx, CDict, etc.)
- * 4 : events once per frame
- * 5 : events once per block
- * 6 : events once per sequence (*very* verbose) */
-#  define RAWLOG(l, ...) {                                      \
-                if ((g_debuglog_enable) & (l<=ZSTD_DEBUG)) {    \
-                    fprintf(stderr, __VA_ARGS__);               \
-            }   }
-#  define DEBUGLOG(l, ...) {                                    \
-                if ((g_debuglog_enable) & (l<=ZSTD_DEBUG)) {    \
-                    fprintf(stderr, __FILE__ ": " __VA_ARGS__); \
-                    fprintf(stderr, " \n");                     \
-            }   }
-#else
-#  define RAWLOG(l, ...)      {}    /* disabled */
-#  define DEBUGLOG(l, ...)    {}    /* disabled */
+#include "debug.h"
+#ifndef assert
+#  define assert(condition) ((void)0)
 #endif
 
 
@@ -266,29 +236,11 @@ MEM_STATIC size_t MEM_readLEST(const void* memPtr)
 #ifndef ZSTD_STATIC_H
 #define ZSTD_STATIC_H
 
-/* The objects defined into this file shall be considered experimental.
- * They are not considered stable, as their prototype may change in the future.
- * You can use them for tests, provide feedback, or if you can endure risks of future changes.
- */
-
-#if defined (__cplusplus)
-extern "C" {
-#endif
 
 /* *************************************
 *  Types
 ***************************************/
-#define ZSTD_WINDOWLOG_MAX 26
-#define ZSTD_WINDOWLOG_MIN 18
 #define ZSTD_WINDOWLOG_ABSOLUTEMIN 11
-#define ZSTD_CONTENTLOG_MAX (ZSTD_WINDOWLOG_MAX+1)
-#define ZSTD_CONTENTLOG_MIN 4
-#define ZSTD_HASHLOG_MAX 28
-#define ZSTD_HASHLOG_MIN 4
-#define ZSTD_SEARCHLOG_MAX (ZSTD_CONTENTLOG_MAX-1)
-#define ZSTD_SEARCHLOG_MIN 1
-#define ZSTD_SEARCHLENGTH_MAX 7
-#define ZSTD_SEARCHLENGTH_MIN 4
 
 /** from faster to stronger */
 typedef enum { ZSTD_fast, ZSTD_greedy, ZSTD_lazy, ZSTD_lazy2, ZSTD_btlazy2 } ZSTD_strategy;
@@ -360,9 +312,6 @@ static size_t ZSTD_decompressContinue(ZSTD_DCtx* dctx, void* dst, size_t maxDstS
 */
 
 
-#if defined (__cplusplus)
-}
-#endif
 
 
 #endif  /* ZSTD_STATIC_H */
@@ -374,10 +323,6 @@ static size_t ZSTD_decompressContinue(ZSTD_DCtx* dctx, void* dst, size_t maxDstS
 */
 #ifndef ZSTD_CCOMMON_H_MODULE
 #define ZSTD_CCOMMON_H_MODULE
-
-#if defined (__cplusplus)
-extern "C" {
-#endif
 
 /* *************************************
 *  Common macros
@@ -428,6 +373,8 @@ static const size_t ZSTD_frameHeaderSize_min = 5;
 #define MIN_SEQUENCES_SIZE (2 /*seqNb*/ + 2 /*dumps*/ + 3 /*seqTables*/ + 1 /*bitStream*/)
 #define MIN_CBLOCK_SIZE (3 /*litCSize*/ + MIN_SEQUENCES_SIZE)
 
+#define ZSTD_CONTENTSIZE_ERROR   (0ULL - 2)
+
 typedef enum { bt_compressed, bt_raw, bt_rle, bt_end } blockType_t;
 
 
@@ -449,10 +396,6 @@ static void ZSTD_wildcopy(void* dst, const void* src, ptrdiff_t length)
     while (op < oend);
 }
 
-
-#if defined (__cplusplus)
-}
-#endif
 
 
 /* ******************************************************************
@@ -1142,6 +1085,7 @@ static size_t FSE_buildDTable(FSE_DTable* dt, const short* normalizedCounter, un
     if (tableLog > FSE_MAX_TABLELOG) return ERROR(tableLog_tooLarge);
 
     /* Init, lay down lowprob symbols */
+    memset(tableDecode, 0, sizeof(FSE_DECODE_TYPE) * (maxSymbolValue+1) );   /* useless init, but keep static analyzer happy, and we don't need to performance optimize legacy decoders */
     DTableH.tableLog = (U16)tableLog;
     for (s=0; s<=maxSymbolValue; s++)
     {
@@ -2918,7 +2862,7 @@ static size_t ZSTD_execSequence(BYTE* op,
                                 const BYTE* const base, const BYTE* const vBase, const BYTE* const dictEnd)
 {
     static const int dec32table[] = { 0, 1, 2, 1, 4, 4, 4, 4 };   /* added */
-    static const int dec64table[] = { 8, 8, 8, 7, 8, 9,10,11 };   /* substracted */
+    static const int dec64table[] = { 8, 8, 8, 7, 8, 9,10,11 };   /* subtracted */
     BYTE* const oLitEnd = op + sequence.litLength;
     const size_t sequenceLength = sequence.litLength + sequence.matchLength;
     BYTE* const oMatchEnd = op + sequenceLength;   /* risk : address space overflow (32-bits) */
@@ -2991,7 +2935,7 @@ static size_t ZSTD_execSequence(BYTE* op,
     }
     else
     {
-        ZSTD_wildcopy(op, match, (ptrdiff_t)sequence.matchLength-8);   /* works even if matchLength < 8 */
+        ZSTD_wildcopy(op, match, (ptrdiff_t)sequence.matchLength-8);   /* works even if matchLength < 8, but must be signed */
     }
     return sequenceLength;
 }
@@ -3177,34 +3121,57 @@ static size_t ZSTD_decompress_usingDict(ZSTD_DCtx* ctx,
     return op-ostart;
 }
 
-static size_t ZSTD_findFrameCompressedSize(const void* src, size_t srcSize)
+/* ZSTD_errorFrameSizeInfoLegacy() :
+   assumes `cSize` and `dBound` are _not_ NULL */
+static void ZSTD_errorFrameSizeInfoLegacy(size_t* cSize, unsigned long long* dBound, size_t ret)
+{
+    *cSize = ret;
+    *dBound = ZSTD_CONTENTSIZE_ERROR;
+}
+
+void ZSTDv04_findFrameSizeInfoLegacy(const void *src, size_t srcSize, size_t* cSize, unsigned long long* dBound)
 {
     const BYTE* ip = (const BYTE*)src;
     size_t remainingSize = srcSize;
+    size_t nbBlocks = 0;
     blockProperties_t blockProperties;
 
     /* Frame Header */
-    if (srcSize < ZSTD_frameHeaderSize_min) return ERROR(srcSize_wrong);
-    if (MEM_readLE32(src) != ZSTD_MAGICNUMBER) return ERROR(prefix_unknown);
+    if (srcSize < ZSTD_frameHeaderSize_min) {
+        ZSTD_errorFrameSizeInfoLegacy(cSize, dBound, ERROR(srcSize_wrong));
+        return;
+    }
+    if (MEM_readLE32(src) != ZSTD_MAGICNUMBER) {
+        ZSTD_errorFrameSizeInfoLegacy(cSize, dBound, ERROR(prefix_unknown));
+        return;
+    }
     ip += ZSTD_frameHeaderSize_min; remainingSize -= ZSTD_frameHeaderSize_min;
 
     /* Loop on each block */
     while (1)
     {
         size_t cBlockSize = ZSTD_getcBlockSize(ip, remainingSize, &blockProperties);
-        if (ZSTD_isError(cBlockSize)) return cBlockSize;
+        if (ZSTD_isError(cBlockSize)) {
+            ZSTD_errorFrameSizeInfoLegacy(cSize, dBound, cBlockSize);
+            return;
+        }
 
         ip += ZSTD_blockHeaderSize;
         remainingSize -= ZSTD_blockHeaderSize;
-        if (cBlockSize > remainingSize) return ERROR(srcSize_wrong);
+        if (cBlockSize > remainingSize) {
+            ZSTD_errorFrameSizeInfoLegacy(cSize, dBound, ERROR(srcSize_wrong));
+            return;
+        }
 
         if (cBlockSize == 0) break;   /* bt_end */
 
         ip += cBlockSize;
         remainingSize -= cBlockSize;
+        nbBlocks++;
     }
 
-    return ip - (const BYTE*)src;
+    *cSize = ip - (const BYTE*)src;
+    *dBound = nbBlocks * BLOCKSIZE;
 }
 
 /* ******************************
@@ -3636,11 +3603,6 @@ size_t ZSTDv04_decompress(void* dst, size_t maxDstSize, const void* src, size_t 
 #endif
 }
 
-size_t ZSTDv04_findFrameCompressedSize(const void* src, size_t srcSize)
-{
-    return ZSTD_findFrameCompressedSize(src, srcSize);
-}
-
 size_t ZSTDv04_resetDCtx(ZSTDv04_Dctx* dctx) { return ZSTD_resetDCtx(dctx); }
 
 size_t ZSTDv04_nextSrcSizeToDecompress(ZSTDv04_Dctx* dctx)
@@ -3670,8 +3632,3 @@ size_t ZBUFFv04_decompressContinue(ZBUFFv04_DCtx* dctx, void* dst, size_t* maxDs
 
 ZSTD_DCtx* ZSTDv04_createDCtx(void) { return ZSTD_createDCtx(); }
 size_t ZSTDv04_freeDCtx(ZSTD_DCtx* dctx) { return ZSTD_freeDCtx(dctx); }
-
-size_t ZSTDv04_getFrameParams(ZSTD_parameters* params, const void* src, size_t srcSize)
-{
-    return ZSTD_getFrameParams(params, src, srcSize);
-}

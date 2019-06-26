@@ -10,7 +10,7 @@ namespace NCB {
         public:
             TVector<float> BuildBorders(TConstArrayRef<float> sortedFeature, ui32 borderCount) const override {
                 TVector<float> copy = CheckedCopyWithoutNans(sortedFeature, ENanMode::Forbidden);
-                auto bordersSet = Binarizer->BestSplit(copy, borderCount, true);
+                auto bordersSet = Binarizer->BestSplit(NSplitSelection::TFeatureValues(std::move(copy), true), borderCount);
                 TVector<float> borders(bordersSet.begin(), bordersSet.end());
                 Sort(borders.begin(), borders.end());
                 return borders;

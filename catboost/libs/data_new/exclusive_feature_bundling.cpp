@@ -297,7 +297,8 @@ next_outer_loop_iter:
         TVector<TFeatureWithDegree> featuresWithDegree;
 
         for (auto flatFeatureIdx : xrange(featuresLayout.GetExternalFeatureCount())) {
-            if (!featuresMetaInfo[flatFeatureIdx].IsAvailable) {
+            if (!featuresMetaInfo[flatFeatureIdx].IsAvailable ||
+                featuresMetaInfo[flatFeatureIdx].Type == EFeatureType::Text) {
                 continue;
             }
 

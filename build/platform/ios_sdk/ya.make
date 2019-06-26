@@ -17,7 +17,7 @@ ENDIF()
 # Apple C++ standard library headers are not in OS SDK but in Xcode toolchain
 IF (USE_STL_SYSTEM)
     SET(__XCODE_RESOURCE_NAME CPP_XCODE_TOOLCHAIN_ROOT)
-    SET(__XCODE_TOOLCHAIN_VERSION ${CPP_XCODE_TOOLCHAIN_VERSION})
+    SET(__XCODE_TOOLCHAIN_VERSION 10.2.1)
     INCLUDE(${ARCADIA_ROOT}/build/platform/xcode/ya.make.inc)
     IF (OS_IOS)
         CFLAGS(

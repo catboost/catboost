@@ -315,7 +315,7 @@ bool NCatboostOptions::CtrsNeedTargetData(const NCatboostOptions::TCatFeaturePar
     bool ctrsNeedTargetData = false;
 
     catFeatureParams.ForEachCtrDescription(
-        [&] (const auto& ctrDescription) {
+        [&] (const NCatboostOptions::TCtrDescription& ctrDescription) {
             if (NeedTarget(ctrDescription.Type)) {
                 ctrsNeedTargetData = true;
             }

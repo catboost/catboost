@@ -23,6 +23,8 @@ def check_imports(no_check=None, extra=[], skip_func=None):
         'click._winconsole',
         'common.*',  # sandbox.common
 
+        'dask.*',
+
         'flaky.flaky_pytest_plugin',
 
         'flask.ext.__init__',
@@ -38,6 +40,7 @@ def check_imports(no_check=None, extra=[], skip_func=None):
         'kernel.*',  # skynet/kernel
         'kombu.transport.sqlalchemy.*',
         'IPython.*',
+        'ipykernel.pylab.backend_inline',
         'lxml.cssselect',
         'lxml.html.ElementSoup',
         'lxml.html.diff',
@@ -112,6 +115,8 @@ def check_imports(no_check=None, extra=[], skip_func=None):
         "django.db.migrations.*",
         "django.template.backends.jinja2",
 
+        "pytest_django.compat",
+
         "matplotlib.backends.*",
         "matplotlib.sphinxext.*",
         "matplotlib.testing.*",
@@ -126,17 +131,14 @@ def check_imports(no_check=None, extra=[], skip_func=None):
         "nile.drivers.yql.*",
         "nile.style.jupyter_monitor",
 
-        "pandas.io.auth",
-        "pandas.io.data",
-        "pandas.io.ga",
-        "pandas.io.s3",
-        "pandas.io.wb",
-        "pandas.rpy.base",
-        "pandas.rpy.common",
-        "pandas.rpy.vars",
-        "pandas.util.clipboard",
+        "pandas.io.*",
+        "pandas.plotting.*",
+        "pandas.tseries.*",
+        "pandas.util.*",
 
         "parsel.unified",
+        'partd.pandas',
+        'partd.zmq',
 
         "ptpython.contrib.asyncssh_repl",
         "ptpython.ipython",
@@ -149,6 +151,11 @@ def check_imports(no_check=None, extra=[], skip_func=None):
         "prompt_toolkit.win32_types",
         "prompt_toolkit.terminal.win32_input",
         "prompt_toolkit.terminal.win32_output",
+        "prompt_toolkit.input.win32",
+        "prompt_toolkit.input.win32_pipe",
+        "prompt_toolkit.output.conemu",
+        "prompt_toolkit.output.win32",
+        "prompt_toolkit.output.windows10",
 
         "backports.__init__",
         "pygments.sphinxext",
@@ -157,7 +164,14 @@ def check_imports(no_check=None, extra=[], skip_func=None):
         "raven.handlers.logbook",
         "raven.utils.testutils",
 
+        "semantic_version.django_fields",
+
         "sklearn.utils.*",
+        "statsmodels.*",
+
+        "skimage.io._plugins.*",
+        "skimage.measure.mc_meta.visual_test",
+
 
         "subvertpy.ra_svn",  # can only be imported after subvertpy.ra
         "superfcgi.*",
@@ -199,6 +213,8 @@ def check_imports(no_check=None, extra=[], skip_func=None):
 
         "hypothesis.extra.*",
 
+        "jsonrpc.backend.*",
+
     ] + list(no_check or [])
 
     if sys.version_info.major == 3:
@@ -229,6 +245,7 @@ def check_imports(no_check=None, extra=[], skip_func=None):
             "distutils.command.bdist_msi",
             "yaml.cyaml",
             "vh.ext.nirvana.nirvana_api_bridge",
+            "aiohttp.pytest_plugin",
         ]
 
     patterns = [re.escape(s).replace(r'\*', r'.*') for s in exceptions]

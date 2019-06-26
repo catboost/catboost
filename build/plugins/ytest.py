@@ -69,7 +69,7 @@ def validate_choice_requirement(name, val, valid):
         return "Unknown [[imp]]{}[[rst]] requirement: [[imp]]{}[[rst]], choose from [[imp]]{}[[rst]]".format(name, val, ", ".join(valid))
 
 
-def validate_force_sandbox_requirement(name, value, test_size, is_force_sandbox, in_autocheck, is_fuzzing, check_func):
+def validate_force_sandbox_requirement(name, value, test_size, is_force_sandbox, in_autocheck, is_fuzzing, is_kvm, check_func):
     if is_force_sandbox or not in_autocheck or is_fuzzing:
         if value == 'all':
             return
@@ -77,18 +77,19 @@ def validate_force_sandbox_requirement(name, value, test_size, is_force_sandbox,
     error_msg = validate_numerical_requirement(name, value)
     if error_msg:
         return error_msg
-    return check_func(mr.resolve_value(value), test_size)
+    return check_func(mr.resolve_value(value), test_size, is_kvm)
 
 
-def validate_requirement(req_name, value, test_size, is_force_sandbox, in_autocheck, is_fuzzing):
+# TODO: Remove is_kvm param when there will be guarantees on RAM
+def validate_requirement(req_name, value, test_size, is_force_sandbox, in_autocheck, is_fuzzing, is_kvm):
     req_checks = {
         'container': validate_numerical_requirement,
-        'cpu': lambda n, v: validate_force_sandbox_requirement(n, v, test_size, is_force_sandbox, in_autocheck, is_fuzzing, reqs.check_cpu),
+        'cpu': lambda n, v: validate_force_sandbox_requirement(n, v, test_size, is_force_sandbox, in_autocheck, is_fuzzing, is_kvm, reqs.check_cpu),
         'disk_usage': validate_numerical_requirement,
         'dns': lambda n, v: validate_choice_requirement(n, v, VALID_DNS_REQUIREMENTS),
         'network': lambda n, v: validate_choice_requirement(n, v, VALID_NETWORK_REQUIREMENTS),
-        'ram': lambda n, v: validate_force_sandbox_requirement(n, v, test_size, is_force_sandbox, in_autocheck, is_fuzzing, reqs.check_ram),
-        'ram_disk': lambda n, v: validate_force_sandbox_requirement(n, v, test_size, is_force_sandbox, in_autocheck, is_fuzzing, reqs.check_ram_disk),
+        'ram': lambda n, v: validate_force_sandbox_requirement(n, v, test_size, is_force_sandbox, in_autocheck, is_fuzzing, is_kvm, reqs.check_ram),
+        'ram_disk': lambda n, v: validate_force_sandbox_requirement(n, v, test_size, is_force_sandbox, in_autocheck, is_fuzzing, is_kvm, reqs.check_ram_disk),
         'sb': None,
         'sb_vault': validate_sb_vault,
     }
@@ -104,7 +105,7 @@ def validate_requirement(req_name, value, test_size, is_force_sandbox, in_autoch
         return check_func(req_name, value)
 
 
-def validate_test(kw):
+def validate_test(unit, kw):
     def get_list(key):
         return deserialize_list(kw.get(key, ""))
 
@@ -122,23 +123,30 @@ def validate_test(kw):
             errors.append("FLEUR test is not allowed here")
     elif valid_kw.get('SCRIPT-REL-PATH') == 'gtest':
         project_path = valid_kw.get('BUILD-FOLDER-PATH', "")
-        if not project_path.startswith(("contrib", "devtools", "mail")):
+        if not project_path.startswith(("adfox", "contrib", "devtools", "mail")):
             errors.append("GTEST is not allowed here")
 
     size_timeout = collections.OrderedDict(sorted(consts.TestSize.DefaultTimeouts.items(), key=lambda t: t[1]))
 
     size = valid_kw.get('SIZE', consts.TestSize.Small).lower()
+    # TODO: use set instead list
     tags = get_list("TAG")
+    requirements_set = set(get_list("REQUIREMENTS"))
+    in_autocheck = "ya:not_autocheck" not in tags and 'ya:manual' not in tags
     is_fat = 'ya:fat' in tags
     is_force_sandbox = 'ya:force_sandbox' in tags
-    in_autocheck = "ya:not_autocheck" not in tags and 'ya:manual' not in tags
     is_fuzzing = valid_kw.get("FUZZING", False)
+    is_kvm = 'kvm' in requirements_set
     requirements = {}
     list_requirements = ('sb_vault')
-    for req in get_list("REQUIREMENTS"):
+    for req in requirements_set:
+        if req in ('kvm', ):
+            requirements[req] = str(True)
+            continue
+
         if ":" in req:
             req_name, req_value = req.split(":", 1)
-            error_msg = validate_requirement(req_name, req_value, size, is_force_sandbox, in_autocheck, is_fuzzing)
+            error_msg = validate_requirement(req_name, req_value, size, is_force_sandbox, in_autocheck, is_fuzzing, is_kvm)
             if error_msg:
                 errors += [error_msg]
             else:
@@ -222,6 +230,29 @@ def validate_test(kw):
                 errors.append("You can't use '[[imp]]{}[[rst]]' - it will be automatically calculated or configured during run".format(option))
                 break
 
+    if valid_kw.get("YT-SPEC"):
+        if 'ya:yt' not in tags:
+            errors.append("You can use YT_SPEC macro only tests marked with ya:yt tag")
+        else:
+            for filename in get_list("YT-SPEC"):
+                filename = unit.resolve('$S/' + filename)
+                if not os.path.exists(filename):
+                    errors.append("File '{}' specified in the YT_SPEC macro doesn't exist".format(filename))
+                    continue
+
+                try:
+                    with open(filename) as afile:
+                        data = json.load(afile)
+                except Exception as e:
+                    errors.append("Malformed data in {}: {} ({})".format(unit.path(), e, filename))
+                    continue
+
+                known = {'operation_spec', 'task_spec'}
+                unknown = set(data.keys()) - known
+                if unknown:
+                    errors.append("Don't know what to do with {} field(s) in {}. You can use only: {}".format(unknown, unit.path(), known))
+                    continue
+
     if valid_kw.get("USE_ARCADIA_PYTHON") == "yes" and valid_kw.get("SCRIPT-REL-PATH") == "py.test":
         errors.append("PYTEST_SCRIPT is deprecated")
 
@@ -244,7 +275,7 @@ def validate_test(kw):
 
 
 def dump_test(unit, kw):
-    valid_kw, warnings, errors = validate_test(kw)
+    valid_kw, warnings, errors = validate_test(unit, kw)
     for w in warnings:
         unit.message(['warn', w])
     for e in errors:
@@ -349,6 +380,7 @@ def onadd_ytest(unit, *args):
         'TEST-CWD': unit.get('TEST_CWD_VALUE') or '',
         'FUZZ-DICTS': serialize_list(spec_args.get('FUZZ_DICTS', []) + get_unit_list_variable(unit, 'FUZZ_DICTS_VALUE')),
         'FUZZ-OPTS': serialize_list(spec_args.get('FUZZ_OPTS', []) + get_unit_list_variable(unit, 'FUZZ_OPTS_VALUE')),
+        'YT-SPEC': serialize_list(spec_args.get('YT_SPEC', []) + get_unit_list_variable(unit, 'TEST_YT_SPEC_VALUE')),
         'BLOB': unit.get('TEST_BLOB_DATA') or '',
         'SKIP_TEST': unit.get('SKIP_TEST_VALUE') or '',
     }
@@ -415,8 +447,10 @@ def onadd_check(unit, *args):
     test_dir = unit.resolve(os.path.join(unit.path()))
 
     test_timeout = ''
-    if check_type in ["PEP8", "PYFLAKES", "PY_FLAKES"]:
+    if check_type in ["PEP8", "PYFLAKES", "PY_FLAKES", "PEP8_2", "PYFLAKES_2"]:
         script_rel_path = "py.lint.pylint"
+    elif check_type in ["PEP8_3", "PYFLAKES_3"]:
+        script_rel_path = "py.lint.pylint.3"
     elif check_type == "JAVA_STYLE":
         if len(flat_args) < 2:
             raise Exception("Not enough arguments for JAVA_STYLE check")
@@ -559,9 +593,10 @@ def add_test_to_dart(unit, test_type, binary_path=None, runner_bin=None):
     test_data = get_values_list(unit, 'TEST_DATA_VALUE')
     test_data += get_canonical_test_resources(test_dir, unit_path)
     python_paths = get_values_list(unit, 'TEST_PYTHON_PATH_VALUE')
+    yt_spec = get_values_list(unit, 'TEST_YT_SPEC_VALUE')
     if not binary_path:
         binary_path = os.path.join(unit_path, unit.filename())
-    _dump_test(unit, test_type, test_files, timeout, test_dir, custom_deps, test_data, python_paths, split_factor, fork_mode, test_size, tags, requirements, binary_path, test_cwd=test_cwd, runner_bin=runner_bin)
+    _dump_test(unit, test_type, test_files, timeout, test_dir, custom_deps, test_data, python_paths, split_factor, fork_mode, test_size, tags, requirements, binary_path, test_cwd=test_cwd, runner_bin=runner_bin, yt_spec=yt_spec)
 
 
 def extract_java_system_properties(unit, args):
@@ -699,7 +734,8 @@ def _dump_test(
         binary_path='',
         old_pytest=False,
         test_cwd=None,
-        runner_bin=None
+        runner_bin=None,
+        yt_spec=None,
 ):
 
     if test_type == "PY_TEST":
@@ -756,6 +792,8 @@ def _dump_test(
             test_record['BINARY-PATH'] = strip_roots(binary_path)
         if runner_bin:
             test_record['TEST-RUNNER-BIN'] = runner_bin
+        if yt_spec:
+            test_record['YT-SPEC'] = serialize_list(yt_spec)
         data = dump_test(unit, test_record)
         if data:
             unit.set_property(["DART_DATA", data])

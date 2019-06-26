@@ -1,3 +1,51 @@
+# Release 0.15.1
+
+## Bug fixes
+- restored parameter `fstr_type` in Python and R interfaces
+
+
+# Release 0.15
+
+## Breaking changes
+- cv is now stratified by default for `Logloss`, `MultiClass` and `MultiClassOneVsAll`.
+- We have removed `border` parameter of `Logloss` metric. You need to use `target_border` as a separate training parameter now.
+- `CatBoostClassifier` now runs `MultiClass` if more than 2 different values are present in training dataset labels.
+- `model.best_score_["validation_0"]` is replaced with `model.best_score_["validation"]` if a single validation dataset is present.
+- `get_object_importance` function parameter `ostr_type` is renamed to `type` in Python and R.
+
+## Model analysis
+- Tree visualisation by [@karina-usmanova](https://github.com/karina-usmanova).
+- New feature analysis: plotting information about how a feature was used in the model by [@alexrogozin12](https://github.com/alexrogozin12).
+- Added `plot` parameter to `get_roc_curve`, `get_fpr_curve` and `get_fnr_curve` functions from `catboost.utils`.
+- Supported prettified format for all types of feature importances.
+
+## New ways of doing predictions
+- Rust applier by [@shuternay](https://github.com/shuternay).
+- DotNet applier by [@17minutes](https://github.com/17minutes).
+- One-hot encoding for categorical features in CatBoost CoreML model by Kseniya Valchuk and Ekaterina Pogodina.
+
+
+## New objectives
+- Expectile Regression by [@david-waterworth](https://github.com/david-waterworth).
+- Huber loss by [@atsky](https://github.com/atsky).
+
+## Speedups
+- Speed up of shap values calculation for single object or for small number of objects by [@Lokutrus](https://github.com/Lokutrus).
+- Cheap preprocessing and no fighting of overfitting if there is little amount of iterations (since you will not overfit anyway).
+
+## New functionality
+- Prediction of leaf indices.
+
+## New educational materials
+- Rust tutorial by [@shuternay](https://github.com/shuternay).
+- C# tutorial.
+- Leaf indices.
+- Tree visualisation tutorial by [@karina-usmanova](https://github.com/karina-usmanova).
+- Google Colab tutorial for regression in catboost by [@col14m](https://github.com/col14m).
+
+And a set of fixes for your issues.
+
+
 # Release 0.14.2
 
 ## New features

@@ -5,6 +5,7 @@
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/interrupt.h>
 #include <catboost/libs/helpers/query_info_helper.h>
+#include <catboost/libs/target/data_providers.h>
 
 extern "C" PyObject* PyCatboostExceptionType;
 
@@ -108,17 +109,30 @@ TVector<double> EvalMetricsForUtils(
     const TString& metricName,
     const TVector<float>& weight,
     const TVector<TGroupId>& groupId,
+    const TVector<TSubgroupId>& subgroupId,
+    const TVector<TPair>& pairs,
     int threadCount
 ) {
     NPar::TLocalExecutor executor;
     executor.RunAdditionalThreads(threadCount - 1);
     const int approxDimension = approx.ysize();
     const TVector<THolder<IMetric>> metrics = CreateMetricsFromDescription({metricName}, approxDimension);
+    NCB::TObjectsGrouping objectGrouping = NCB::CreateObjectsGroupingFromGroupIds(
+        label.size(),
+        groupId.empty() ? Nothing() : NCB::TMaybeData<TConstArrayRef<TGroupId>>(groupId)
+    );
+    if (!pairs.empty()) {
+        NCB::CheckPairs(pairs, objectGrouping);
+    }
     TVector<TQueryInfo> queriesInfo;
-
-    // TODO(nikitxskv): Make GroupWeight, SubgroupId and Pairs support.
-    UpdateQueriesInfo(groupId, /*groupWeight=*/{}, /*subgroupId=*/{}, /*beginDoc=*/0, groupId.ysize(), &queriesInfo);
-
+    if (!groupId.empty()) {
+        queriesInfo = *NCB::MakeGroupInfos(
+            objectGrouping,
+            subgroupId.empty() ? Nothing() : NCB::TMaybeData<TConstArrayRef<TSubgroupId>>(subgroupId),
+            NCB::TWeights(groupId.size()),
+            pairs
+        ).Get();
+    }
     TVector<double> metricResults;
     metricResults.reserve(metrics.size());
     for (const auto& metric : metrics) {
@@ -147,7 +161,7 @@ NJson::TJsonValue GetTrainingOptions(
     NCatboostOptions::PlainJsonToOptions(plainJsonParams, &trainOptionsJson, &outputFilesOptionsJson);
     NCatboostOptions::TCatBoostOptions catboostOptions(NCatboostOptions::LoadOptions(trainOptionsJson));
     NCatboostOptions::TOption<bool> useBestModelOption("use_best_model", false);
-    SetDataDependentDefaults(trainDataMetaInfo, testDataMetaInfo, &useBestModelOption, &catboostOptions);
+    SetDataDependentDefaults(trainDataMetaInfo, testDataMetaInfo, /*learningContinuation*/ false, &useBestModelOption, &catboostOptions);
     NJson::TJsonValue catboostOptionsJson;
     catboostOptions.Save(&catboostOptionsJson);
     return catboostOptionsJson;

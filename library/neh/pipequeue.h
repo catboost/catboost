@@ -3,6 +3,7 @@
 #include "lfqueue.h"
 
 #include <library/coroutine/engine/impl.h>
+#include <library/coroutine/engine/network.h>
 #include <util/system/pipe.h>
 
 #ifdef _linux_
@@ -30,7 +31,7 @@ namespace NNeh {
 
         inline size_t Acquire(TCont* c) {
             ui64 ev;
-            return c->ReadI(F_, &ev, sizeof ev).Processed();
+            return NCoro::ReadI(c, F_, &ev, sizeof ev).Processed();
         }
 
         inline void Release() {
@@ -54,11 +55,11 @@ namespace NNeh {
 
         inline size_t Acquire(TCont* c) {
             char ch;
-            return c->ReadI(S_[0], &ch, 1).Processed();
+            return NCoro::ReadI(c, S_[0], &ch, 1).Processed();
         }
 
         inline size_t Acquire(TCont* c, char* buff, size_t buflen) {
-            return c->ReadI(S_[0], buff, buflen).Processed();
+            return NCoro::ReadI(c, S_[0], buff, buflen).Processed();
         }
 
         inline void Release() {

@@ -7,7 +7,7 @@ RECURSE(
     system
 )
 
-IF (OS_LINUX OR OS_WINDOWS)
+IF (NOT OS_WINDOWS)
     RECURSE(
     
 )

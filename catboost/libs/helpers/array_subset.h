@@ -10,11 +10,13 @@
 #include <library/dbg_output/dump.h>
 #include <library/threading/local_executor/local_executor.h>
 
+#include <util/generic/algorithm.h>
 #include <util/generic/array_ref.h>
 #include <util/generic/maybe.h>
 #include <util/generic/variant.h>
 #include <util/generic/vector.h>
 #include <util/generic/xrange.h>
+#include <util/generic/ylimits.h>
 #include <util/generic/ymath.h>
 
 #include <algorithm>
@@ -427,7 +429,7 @@ template <class TSize>
 struct TDumper<NCB::TArraySubsetIndexing<TSize>> {
     template <class S>
     static inline void Dump(S& s, const NCB::TArraySubsetIndexing<TSize>& subset) {
-        subset.Visit(NCB::TDumperVisitor<S, TSize>(s));
+        Visit(NCB::TDumperVisitor<S, TSize>(s), subset);
     }
 };
 
@@ -856,5 +858,59 @@ namespace NCB {
     template <class T, class TSize=size_t>
     using TMaybeOwningConstArraySubset = TArraySubset<const TMaybeOwningArrayHolder<const T>, TSize>;
 
+
+    // index in dst data or Max<TSize> if not present in subset
+    template <class TSize>
+    using TInvertedIndexedSubset = TVector<TSize>;
+
+    template <class TSize>
+    class TArraySubsetInvertedIndexing
+        : public TVariant<TFullSubset<TSize>, TInvertedIndexedSubset<TSize>>
+    {
+    public:
+        using TBase = TVariant<TFullSubset<TSize>, TInvertedIndexedSubset<TSize>>;
+
+    public:
+        explicit TArraySubsetInvertedIndexing(TFullSubset<TSize>&& subset)
+            : TBase(std::move(subset))
+        {}
+
+        explicit TArraySubsetInvertedIndexing(TInvertedIndexedSubset<TSize>&& subset)
+            : TBase(std::move(subset))
+        {}
+
+        friend bool operator ==(const TArraySubsetInvertedIndexing& a, const TArraySubsetInvertedIndexing& b) {
+            return static_cast<const TBase&>(a) == static_cast<const TBase&>(b);
+        }
+    };
+
+    template <class TSize>
+    TArraySubsetInvertedIndexing<TSize> GetInvertedIndexing(const TArraySubsetIndexing<TSize>& indexing) {
+        if (indexing.index()
+            == TVariantIndexV<TFullSubset<TSize>, typename TArraySubsetIndexing<TSize>::TBase>)
+        {
+            return TArraySubsetInvertedIndexing<TSize>(
+                TFullSubset<TSize>(Get<TFullSubset<TSize>>(indexing))
+            );
+        }
+
+        // there's at least indexing.Size() elements is src data
+        TInvertedIndexedSubset<TSize> invertedIndices(indexing.Size(), Max<TSize>());
+
+        indexing.ForEach(
+            [&] (TSize dstIdx, TSize srcIdx) {
+                if (srcIdx >= invertedIndices.size()) {
+                    TSize oldSize = invertedIndices.size();
+                    invertedIndices.yresize(srcIdx + 1);
+                    Fill(invertedIndices.begin() + oldSize, invertedIndices.begin() + srcIdx, Max<TSize>());
+                    invertedIndices.back() = dstIdx;
+                } else {
+                    invertedIndices[srcIdx] = dstIdx;
+                }
+            }
+        );
+
+        return TArraySubsetInvertedIndexing<TSize>(std::move(invertedIndices));
+    }
 }
 

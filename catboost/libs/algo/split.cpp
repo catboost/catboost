@@ -25,7 +25,7 @@ TModelSplit TSplit::GetModelSplit(
     split.Type = Type;
     if (Type == ESplitType::FloatFeature) {
         split.FloatFeature.FloatFeature = FeatureIdx;
-        split.FloatFeature.Split = ctx.LearnProgress.FloatFeatures[FeatureIdx].Borders[BinBorder];
+        split.FloatFeature.Split = ctx.LearnProgress->FloatFeatures[FeatureIdx].Borders[BinBorder];
     } else if (Type == ESplitType::OneHotFeature) {
         split.OneHotFeature.CatFeatureIdx = FeatureIdx;
         split.OneHotFeature.Value = perfectHashedToHashedCatValuesMap[FeatureIdx][BinBorder];
@@ -37,7 +37,7 @@ TModelSplit TSplit::GetModelSplit(
         for (auto binFeature : Ctr.Projection.BinFeatures) {
             auto& ref = featureCombination.BinFeatures.emplace_back();
             ref.FloatFeature = binFeature.FloatFeature;
-            ref.Split = ctx.LearnProgress.FloatFeatures[binFeature.FloatFeature].Borders[binFeature.SplitIdx];
+            ref.Split = ctx.LearnProgress->FloatFeatures[binFeature.FloatFeature].Borders[binFeature.SplitIdx];
         }
         for (auto oheFeature : Ctr.Projection.OneHotFeatures) {
             auto& ref = featureCombination.OneHotFeatures.emplace_back();

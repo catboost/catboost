@@ -5,6 +5,7 @@ RECURSE(
     accurate_accumulate/benchmark
     accurate_accumulate/benchmark/metrics
     binsaver
+    binsaver/ut_util
     binsaver/ut
     blockcodecs
     blockcodecs/fuzz
@@ -88,14 +89,13 @@ RECURSE(
     svnversion/java
     terminate_handler
     terminate_handler/sample
+    text_processing
     threading
     unittest
     unittest/fat
     unittest/main
     unittest/ut
     yson
-    text_processing/dictionary/ut
-    text_processing/dictionary
 )
 
 IF (OS_LINUX)
