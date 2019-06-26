@@ -36,7 +36,7 @@ def onregister_yql_python_udf(unit, *args):
         'yql/library/udf/udf_registrator.h',
     ]
     path = name + '.yql_python_udf.cpp'
-    unit.onbuiltin_python([
+    unit.onpython([
         'build/scripts/gen_yql_python_udf.py',
         flavor, name, resource_name, path,
         'OUT', path,
