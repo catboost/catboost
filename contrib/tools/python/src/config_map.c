@@ -93,6 +93,6 @@
 {"_winreg", init_winreg},
 #endif
 
-#if !defined(_ARM_) && !defined(_CYGWIN_)
+#if defined(_x86_) && !defined(_CYGWIN_)
 {"_ctypes", init_ctypes},
 #endif
