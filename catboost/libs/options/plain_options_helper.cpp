@@ -299,7 +299,7 @@ void NCatboostOptions::PlainJsonToOptions(
     CopyOption(plainOptions, "model_size_reg", &treeOptions, &seenKeys);
     CopyOption(plainOptions, "dev_score_calc_obj_block_size", &treeOptions, &seenKeys);
     CopyOption(plainOptions, "dev_efb_max_buckets", &treeOptions, &seenKeys);
-    CopyOption(plainOptions, "efb_max_conflict_fraction", &treeOptions, &seenKeys);
+    CopyOption(plainOptions, "sparse_features_conflict_fraction", &treeOptions, &seenKeys);
     CopyOption(plainOptions, "random_strength", &treeOptions, &seenKeys);
     CopyOption(plainOptions, "leaf_estimation_method", &treeOptions, &seenKeys);
     CopyOption(plainOptions, "grow_policy", &treeOptions, &seenKeys);
