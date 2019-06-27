@@ -138,19 +138,6 @@ def onjava_module(unit, *args):
         if macro_str and macro_str == 'yes':
             data['VCS_INFO_DISABLE_CACHE__NO_UID__'] = macro_val
 
-        # TODO: dvshkurko@ remove
-        data['GENERATE_VCS_JAVA_INFO_NODEP'] = extract_macro_calls(unit, 'GENERATE_VCS_JAVA_INFO_NODEP', args_delim)
-        # FORCE_VCS_INFO_UPDATE is responsible for setting special value of VCS_INFO_DISABLE_CACHE__NO_UID__
-        force_empty = extract_macro_calls(unit, 'FORCE_EMPTY_VCS_INFO', args_delim)
-        force_empty = force_empty[0][0] if force_empty and force_empty[0] and force_empty[0][0] else ''
-        if force_empty:
-            data['GENERATE_VCS_JAVA_INFO_NODEP'][0] = [
-                c.replace("$FORCE_EMPTY_VCS_INFO", force_empty) for c in data['GENERATE_VCS_JAVA_INFO_NODEP'][0]]
-        else:
-            data['GENERATE_VCS_JAVA_INFO_NODEP'][0] = [
-                c for c in data['GENERATE_VCS_JAVA_INFO_NODEP'][0] if c != "$FORCE_EMPTY_VCS_INFO"]
-        # TODO: dvshkurko@ remove
-
     for java_srcs_args in data['JAVA_SRCS']:
         external = None
 
