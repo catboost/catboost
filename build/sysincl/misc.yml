@@ -290,11 +290,6 @@
     - webp/decode.h
     - webp/encode.h
 
-- source_filter: "^contrib/libs/libarchive"
-  includes:
-    - lzo/lzoconf.h
-    - md5.h
-
 - source_filter: "^contrib/libs/libmysql_r"
   includes:
     - md5.hpp
@@ -350,11 +345,11 @@
   includes:
     - jni.h
 
-- source_filter: "^contrib/(libs/(ffmpeg-3|kenlm|kyotocabinet|libarchive)|tools/ag)"
+- source_filter: "^contrib/(libs/(ffmpeg-3|kenlm|kyotocabinet)|tools/ag)"
   includes:
     - lzma.h
 
-- source_filter: "^(contrib/libs/(kyotocabinet|libarchive|minilzo)|logbroker/contrib/tokyocabinet)"
+- source_filter: "^(contrib/libs/(kyotocabinet|minilzo)|logbroker/contrib/tokyocabinet)"
   includes:
     - lzo/lzo1x.h
 

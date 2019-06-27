@@ -28,6 +28,7 @@
   - CommonCrypto/CommonCryptor.h
   - CommonCrypto/CommonDigest.h
   - CommonCrypto/CommonHMAC.h
+  - CommonCrypto/CommonKeyDerivation.h
   - ConditionalMacros.h
   - MacTypes.h
   - TargetConditionals.h
