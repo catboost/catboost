@@ -1658,14 +1658,14 @@ static void MakeConsecutiveArrayFeatures(
 
     featuresLayout.IterateOverAvailableFeatures<FeatureType>(
         [&] (TFeatureIdx<FeatureType> featureIdx) {
-            const auto& srcColumn = *(src[*featureIdx]);
+            const auto* srcColumn = src[*featureIdx].Get();
 
             if (auto maybeExclusiveFeaturesBundleIndex = featureToExclusiveFeaturesBundleIndex[*featureIdx]) {
                 const auto& bundleMetaData
                     = newExclusiveFeatureBundlesData.MetaData[maybeExclusiveFeaturesBundleIndex->BundleIdx];
 
                 (*dst)[*featureIdx] = MakeHolder<TBundlePartValuesHolderImpl<IColumnType>>(
-                    srcColumn.GetId(),
+                    srcColumn->GetId(),
                     newExclusiveFeatureBundlesData.SrcData[maybeExclusiveFeaturesBundleIndex->BundleIdx],
                     bundleMetaData.SizeInBytes,
                     bundleMetaData.Parts[maybeExclusiveFeaturesBundleIndex->InBundleIdx].Bounds,
@@ -1673,16 +1673,16 @@ static void MakeConsecutiveArrayFeatures(
                 );
             } else if (auto maybePackedBinaryIndex = featureToPackedBinaryIndex[*featureIdx]) {
                 (*dst)[*featureIdx] = MakeHolder<TPackedBinaryValuesHolderImpl<IColumnType>>(
-                    srcColumn.GetId(),
+                    srcColumn->GetId(),
                     newPackedBinaryFeatures[maybePackedBinaryIndex->PackIdx],
                     maybePackedBinaryIndex->BitIdx,
                     newSubsetIndexing
                 );
             } else {
                 tasks.emplace_back(
-                    [&, featureIdx, localExecutor]() {
+                    [&, srcColumn, featureIdx, localExecutor]() {
                         const auto& srcCompressedValuesHolder
-                            = dynamic_cast<const TCompressedValuesHolderImpl<IColumnType>&>(srcColumn);
+                            = dynamic_cast<const TCompressedValuesHolderImpl<IColumnType>&>(*srcColumn);
                         const ui32 bitsPerKey = srcCompressedValuesHolder.GetBitsPerKey();
                         TIndexHelper<ui64> indexHelper(bitsPerKey);
                         const ui32 dstStorageSize = indexHelper.CompressedSize(objectCount);
@@ -1720,7 +1720,7 @@ static void MakeConsecutiveArrayFeatures(
                         }
 
                         (*dst)[*featureIdx] = MakeHolder<TCompressedValuesHolderImpl<IColumnType>>(
-                            srcColumn.GetId(),
+                            srcColumn->GetId(),
                             TCompressedArray(
                                 objectCount,
                                 bitsPerKey,
