@@ -1335,7 +1335,7 @@ class Linker(object):
         """
         self.tc = tc
         self.build = build
-        if self.tc.is_from_arcadia and self.build.host.is_linux and not (self.build.target.is_apple or self.build.target.is_android):
+        if self.tc.is_from_arcadia and self.build.host.is_linux and not (self.build.target.is_apple or self.build.target.is_android or self.build.target.is_windows):
             if self.tc.is_clang and not (is_positive('USE_LTO') or self.build.target.is_linux_armv8 or self.build.target.is_ppc64le):  # TODO: try to enable PPC64 with LLD>=6
                 self.type = Linker.LLD
             else:
