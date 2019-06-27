@@ -727,20 +727,6 @@ namespace NCB {
         TVector<TCatFeatureUniqueValuesCounts> CatFeatureUniqueValuesCounts; // [catFeatureIdx]
     };
 
-/*
-    // util function for commonly used functionality
-    template <class TBase>
-    inline TConstPtrArraySubset<typename TBase::TValueType> SubsetWithAlternativeIndexing(
-        TMaybeData<const TCompressedValuesHolderImpl<TBase>*> featureData,
-        const TFeaturesArraySubsetIndexing* alternativeIndexing
-    ) {
-        return TConstPtrArraySubset<typename TBase::TValueType>(
-            (*featureData)->GetArrayData().GetSrc(),
-            alternativeIndexing
-        );
-    }
-*/
-
     // needed to make friends with TObjectsDataProvider s
     class TObjectsSerialization {
     public:
