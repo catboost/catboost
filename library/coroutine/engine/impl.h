@@ -9,8 +9,6 @@
 #include <library/containers/intrusive_rb_tree/rb_tree.h>
 
 #include <util/system/error.h>
-#include <util/system/context.h>
-#include <util/system/defaults.h>
 #include <util/generic/ptr.h>
 #include <util/generic/intrlist.h>
 #include <util/datetime/base.h>
@@ -25,14 +23,14 @@ class TContExecutor;
 class TContPollEvent;
 
 
-class TCont : private TIntrusiveListItem<TCont>, private ITrampoLine {
+class TCont : private TIntrusiveListItem<TCont> {
     struct TJoinWait: public TIntrusiveListItem<TJoinWait> {
-        TJoinWait(TCont* c) noexcept;
+        TJoinWait(TCont& c) noexcept;
 
         void Wake() noexcept;
 
     public:
-        TCont* Cont_;
+        TCont& Cont_;
     };
 
     friend class TContExecutor;
@@ -42,8 +40,9 @@ class TCont : private TIntrusiveListItem<TCont>, private ITrampoLine {
 
 private:
     TCont(
-        size_t stackSize,
-        TContExecutor* executor,
+        ui32 stackSize,
+        NCoro::TStack::EGuard stackGuard,
+        TContExecutor& executor,
         TContFunc func,
         void* arg,
         const char* name
@@ -51,11 +50,11 @@ private:
 
 public:
     TContExecutor* Executor() noexcept {
-        return Executor_;
+        return &Executor_;
     }
 
     const TContExecutor* Executor() const noexcept {
-        return Executor_;
+        return &Executor_;
     }
 
     const char* Name() const noexcept {
@@ -102,12 +101,8 @@ public:
 private:
     void Terminate();
 
-    TExceptionSafeContext* Context() noexcept {
-        return &Trampoline_.Ctx_;
-    }
-
 private:
-    TContExecutor* Executor_ = nullptr;
+    TContExecutor& Executor_;
     NCoro::TTrampoline Trampoline_;
 
     // TODO(velavokr): allow name storage owning (for generated names backed by TString)
@@ -138,7 +133,8 @@ public:
     TContExecutor(
         ui32 defaultStackSize,
         THolder<IPollerFace> poller = IPollerFace::Default(),
-        NCoro::IScheduleCallback* = nullptr
+        NCoro::IScheduleCallback* = nullptr,
+        NCoro::TStack::EGuard stackGuard = NCoro::TStack::EGuard::Canary
     );
 
     ~TContExecutor();
@@ -163,16 +159,29 @@ public:
     }
 
     template <class Functor>
-    TCont* Create(Functor& f, const char* name, TMaybe<ui32> stackSize = Nothing()) noexcept {
-        return Create((TContFunc)ContHelperFunc<Functor>, (void*)&f, name, stackSize);
+    TCont* Create(
+        Functor& f,
+        const char* name,
+        TMaybe<ui32> customStackSize = Nothing()
+    ) noexcept {
+        return Create((TContFunc)ContHelperFunc<Functor>, (void*)&f, name, customStackSize);
     }
 
     template <typename T, void (T::*M)(TCont*)>
-    TCont* Create(T* obj, const char* name, TMaybe<ui32> stackSize = Nothing()) noexcept {
-        return Create(ContHelperMemberFunc<T, M>, obj, name, stackSize);
+    TCont* Create(
+        T* obj,
+        const char* name,
+        TMaybe<ui32> customStackSize = Nothing()
+    ) noexcept {
+        return Create(ContHelperMemberFunc<T, M>, obj, name, customStackSize);
     }
 
-    TCont* Create(TContFunc func, void* arg, const char* name, TMaybe<ui32> stackSize = Nothing()) noexcept;
+    TCont* Create(
+        TContFunc func,
+        void* arg,
+        const char* name,
+        TMaybe<ui32> customStackSize = Nothing()
+    ) noexcept;
 
     NCoro::TContPoller* Poller() noexcept {
         return &Poller_;
@@ -241,6 +250,7 @@ private:
 private:
     NCoro::IScheduleCallback* const CallbackPtr_ = nullptr;
     const ui32 DefaultStackSize_;
+    const NCoro::TStack::EGuard StackGuard_;
 
     TExceptionSafeContext SchedContext_;
 

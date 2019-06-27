@@ -7,6 +7,7 @@
 #include <util/string/cast.h>
 #include <util/system/pipe.h>
 #include <util/system/env.h>
+#include <util/system/info.h>
 #include <util/generic/xrange.h>
 
 // TODO (velavokr): BALANCER-1345 add more tests on pollers
@@ -35,6 +36,8 @@ class TCoroTest: public TTestBase {
     UNIT_TEST(TestFastPathWakeSelect)
     UNIT_TEST(TestLegacyCancelYieldRaceBug)
     UNIT_TEST(TestJoinRescheduleBug);
+    UNIT_TEST(TestStackCanaries);
+    UNIT_TEST(TestStackPages);
     UNIT_TEST_SUITE_END();
 
 public:
@@ -59,6 +62,8 @@ public:
     void TestFastPathWakeSelect();
     void TestLegacyCancelYieldRaceBug();
     void TestJoinRescheduleBug();
+    void TestStackCanaries();
+    void TestStackPages();
 };
 
 void TCoroTest::TestException() {
@@ -792,6 +797,40 @@ void TCoroTest::TestJoinRescheduleBug() {
     UNIT_ASSERT_EQUAL(state.SubAState, EState::Finished);
     UNIT_ASSERT_EQUAL(state.SubBState, EState::Finished);
     UNIT_ASSERT_EQUAL(state.SubCState, EState::Finished);
+}
+
+void TCoroTest::TestStackCanaries() {
+    {
+        NCoro::TStack s(1, NCoro::TStack::EGuard::Canary);
+        UNIT_ASSERT_GE(s.Get().size(), 32);
+        UNIT_ASSERT_VALUES_EQUAL(((size_t)s.Get().data()) & 31, 0);
+        memset(s.Get().data(), 0, s.Get().size());
+        UNIT_ASSERT(s.LowerCanaryOk());
+        UNIT_ASSERT(s.UpperCanaryOk());
+    }
+    {
+        NCoro::TStack s(1, NCoro::TStack::EGuard::Canary);
+        UNIT_ASSERT_GE(s.Get().size(), 32);
+        UNIT_ASSERT_VALUES_EQUAL(((size_t)s.Get().data()) & 31, 0);
+        memset(s.Get().data() - 1, 0, s.Get().size() + 1);
+        UNIT_ASSERT(!s.LowerCanaryOk());
+        UNIT_ASSERT(s.UpperCanaryOk());
+    }
+    {
+        NCoro::TStack s(1, NCoro::TStack::EGuard::Canary);
+        UNIT_ASSERT_GE(s.Get().size(), 32);
+        UNIT_ASSERT_VALUES_EQUAL(((size_t)s.Get().data()) & 31, 0);
+        memset(s.Get().data(), 0, s.Get().size() + 1);
+        UNIT_ASSERT(s.LowerCanaryOk());
+        UNIT_ASSERT(!s.UpperCanaryOk());
+    }
+}
+
+void TCoroTest::TestStackPages() {
+    NCoro::TStack s(1, NCoro::TStack::EGuard::Page);
+    UNIT_ASSERT_GE(s.Get().size(), NSystemInfo::GetPageSize());
+    UNIT_ASSERT_VALUES_EQUAL(((ptrdiff_t)s.Get().data()) & (NSystemInfo::GetPageSize() - 1), 0);
+    memset(s.Get().data(), 0, s.Get().size());
 }
 
 UNIT_TEST_SUITE_REGISTRATION(TCoroTest);

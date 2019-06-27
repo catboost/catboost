@@ -5,32 +5,38 @@
 #include <util/system/yassert.h>
 
 
-TCont::TJoinWait::TJoinWait(TCont* c) noexcept
+TCont::TJoinWait::TJoinWait(TCont& c) noexcept
     : Cont_(c)
 {}
 
 void TCont::TJoinWait::Wake() noexcept {
-    Cont_->ReSchedule();
+    Cont_.ReSchedule();
 }
 
-TCont::TCont(size_t stackSize, TContExecutor* executor, TContFunc func, void* arg, const char* name) noexcept
+TCont::TCont(ui32 stackSize, NCoro::TStack::EGuard stackGuard, TContExecutor& executor, TContFunc func, void* arg, const char* name) noexcept
     : Executor_(executor)
-    , Trampoline_(stackSize, func, this, arg)
+    , Trampoline_(
+        stackSize,
+        stackGuard,
+        func,
+        this,
+        arg
+    )
     , Name_(name)
 {}
 
 
 void TCont::PrintMe(IOutputStream& out) const noexcept {
     out << "cont("
-        << "func = " << (size_t)(void*)Trampoline_.Func_ << ", "
-        << "arg = " << (size_t)(void*)Trampoline_.Arg_ << ", "
+        << "func = " << Hex((size_t)(void*)Trampoline_.Func()) << ", "
+        << "arg = " << Hex((size_t)(void*)Trampoline_.Arg()) << ", "
         << "name = " << Name_ << ", "
         << "addr = " << Hex((size_t)this)
         << ")";
 }
 
 bool TCont::Join(TCont* c, TInstant deadLine) noexcept {
-    TJoinWait ev(this);
+    TJoinWait ev(*this);
     c->Waiters_.PushBack(&ev);
 
     do {
@@ -100,9 +106,15 @@ void TCont::ReSchedule() noexcept {
 }
 
 
-TContExecutor::TContExecutor(ui32 defaultStackSize, THolder<IPollerFace> poller, NCoro::IScheduleCallback* callback)
+TContExecutor::TContExecutor(
+    ui32 defaultStackSize,
+    THolder<IPollerFace> poller,
+    NCoro::IScheduleCallback* callback,
+    NCoro::TStack::EGuard defaultGuard
+)
     : CallbackPtr_(callback)
     , DefaultStackSize_(defaultStackSize)
+    , StackGuard_(defaultGuard)
     , Poller_(std::move(poller))
 {}
 
@@ -172,12 +184,17 @@ void TContExecutor::Abort() noexcept {
     ReadyNext_.ForEach(visitor);
 }
 
-TCont* TContExecutor::Create(TContFunc func, void* arg, const char* name, TMaybe<ui32> stackSize) noexcept {
+TCont* TContExecutor::Create(
+    TContFunc func,
+    void* arg,
+    const char* name,
+    TMaybe<ui32> customStackSize
+) noexcept {
     Allocated_ += 1;
-    if (!stackSize) {
-        stackSize = DefaultStackSize_;
+    if (!customStackSize) {
+        customStackSize = DefaultStackSize_;
     }
-    auto* cont = new TCont(*stackSize, this, func, arg, name);
+    auto* cont = new TCont(*customStackSize, StackGuard_, *this, func, arg, name);
     ScheduleExecution(cont);
     return cont;
 }
@@ -204,7 +221,7 @@ void TContExecutor::ScheduleExecutionNow(TCont* cont) noexcept {
 void TContExecutor::Activate(TCont* cont) noexcept {
     Current_ = cont;
     cont->Scheduled_ = false;
-    SchedContext_.SwitchTo(cont->Context());
+    SchedContext_.SwitchTo(cont->Trampoline_.Context());
 }
 
 void TContExecutor::DeleteScheduled() noexcept {
