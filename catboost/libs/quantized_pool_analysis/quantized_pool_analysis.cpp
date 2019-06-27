@@ -6,6 +6,7 @@ namespace NCB {
     static void GetPredictionsOnVaryingFeature(
         const TFullModel& model,
         const size_t featureNum,
+        const TVector<size_t>& ignoredValues, // for cat features, ordered
         const TVector<T>& featureValues,
         const EPredictionType predictionType,
         const int threadCount,
@@ -30,8 +31,13 @@ namespace NCB {
             CB_ENSURE_INTERNAL(FeatureType == EFeatureType::Float, "Unsupported FeatureType");
             initialHolder = std::move(data.ObjectsData.FloatFeatures[featureNum]);
         }
-
+        size_t ignoreIndex = 0;
+        size_t ignoreSize = ignoredValues.size();
         for (size_t numVal = 0; numVal < featureValues.size(); ++numVal) {
+            if (ignoreIndex < ignoreSize && ignoredValues[ignoreIndex] == numVal) {
+                ++ignoreIndex;
+                continue;
+            }
             if constexpr (FeatureType == EFeatureType::Categorical) {
                 THolder<THashedCatValuesHolder> holder = MakeHolder<THashedCatValuesHolder>(
                     featureNum,
@@ -50,8 +56,9 @@ namespace NCB {
             rawDataProviderPtr = MakeDataProvider<TRawObjectsDataProvider>(
                 Nothing(),
                 std::move(data),
-                false,
-                executor);
+                true,
+                executor
+            );
 
             auto pred = ApplyModel(model, *(rawDataProviderPtr->ObjectsData), false, predictionType, 0, 0, threadCount);
             (*predictions)[numVal] = std::accumulate(pred.begin(), pred.end(), 0.) / static_cast<double>(pred.size());
@@ -95,16 +102,15 @@ namespace NCB {
 
         TVector<float> borders = model.ObliviousTrees.FloatFeatures[featureNum].Borders;
         size_t bordersSize = borders.size();
+        if (bordersSize == 0) {
+            return {};
+        }
 
         TProcessedDataProvider processedDataProvider = CreateModelCompatibleProcessedDataProvider(
             dataset, {}, model, &rand, &executor);
         TVector<float> target(
             processedDataProvider.TargetData->GetTarget().GetRef().begin(),
             processedDataProvider.TargetData->GetTarget().GetRef().end());
-
-        if (bordersSize == 0) {
-            return {};
-        }
 
         auto objectsPtr = dynamic_cast<TRawObjectsDataProvider*>(dataset.ObjectsData.Get());
         CB_ENSURE_INTERNAL(objectsPtr, "Zero pointer to raw objects");
@@ -143,7 +149,8 @@ namespace NCB {
 
         TMaybeData<const IQuantizedFloatValuesHolder*> feature = quantizedPtr->GetFloatFeature(featureNum);
         CB_ENSURE_INTERNAL(feature, "Float feature #" << featureNum << " not found");
-        const TQuantizedFloatValuesHolder* values = dynamic_cast<const TQuantizedFloatValuesHolder*>(feature.GetRef());
+
+        const IQuantizedFloatValuesHolder* values = dynamic_cast<const IQuantizedFloatValuesHolder*>(feature.GetRef());
         CB_ENSURE_INTERNAL(values, "Cannot access values of float feature #" << featureNum);
         TMaybeOwningArrayHolder<ui8> extractedValues = values->ExtractValues(&executor);
         TVector<int> binNums((*extractedValues).begin(), (*extractedValues).end());
@@ -172,6 +179,7 @@ namespace NCB {
         GetPredictionsOnVaryingFeature<float, TFloatValuesHolder, EFeatureType::Float>(
             model,
             featureNum,
+            TVector<size_t> (),
             quantizedFeaturesInfo->GetBorders(TFloatFeatureIdx(featureNum)),
             predictionType,
             threadCount,
@@ -265,19 +273,30 @@ namespace NCB {
             countObjectsPerBin.pop_back();
             --numBins;
         }
+        int emptyOffset = 0;
+        TVector<size_t> skippedValues;
         for (size_t binNum = 0; binNum < numBins; ++binNum) {
             size_t numObjs = countObjectsPerBin[binNum];
             if (numObjs == 0) {
+                ++emptyOffset;
+                skippedValues.push_back(binNum);
                 continue;
             }
-            meanTarget[binNum] /= static_cast<float>(numObjs);
-            meanPrediction[binNum] /= static_cast<float>(numObjs);
+            countObjectsPerBin[binNum - emptyOffset] = countObjectsPerBin[binNum];
+            binNums[binNum - emptyOffset] = binNums[binNum];
+            meanTarget[binNum - emptyOffset] = meanTarget[binNum] / static_cast<float>(numObjs);
+            meanPrediction[binNum - emptyOffset] = meanPrediction[binNum] / static_cast<float>(numObjs);
         }
+        countObjectsPerBin.resize(countObjectsPerBin.size() - emptyOffset);
+        binNums.resize(binNums.size() - emptyOffset);
+        meanTarget.resize(meanTarget.size() - emptyOffset);
+        meanPrediction.resize(meanPrediction.size() - emptyOffset);
 
         TVector<double> predictionsOnVarying(numBins, 0.);
         GetPredictionsOnVaryingFeature<int, THashedCatValuesHolder, EFeatureType::Categorical>(
             model,
             featureNum,
+            skippedValues,
             oneHotUniqueValues,
             predictionType,
             threadCount,
