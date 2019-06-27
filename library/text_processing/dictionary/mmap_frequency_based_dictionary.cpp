@@ -18,7 +18,7 @@ using namespace NTextProcessing::NDictionary;
 
 TMMapDictionary::TMMapDictionary() = default;
 
-TMMapDictionary::TMMapDictionary(TIntrusivePtr<TDictionary> dictionary)
+TMMapDictionary::TMMapDictionary(TIntrusiveConstPtr<TDictionary> dictionary)
     : DictionaryImpl(dictionary->DictionaryImpl->CreateMMapDictionaryImpl())
 {
 }
