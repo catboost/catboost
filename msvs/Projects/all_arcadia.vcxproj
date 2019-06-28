@@ -681,6 +681,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\binsaver\library-binsaver.vcxproj">
       <Project>9C4284EC-342F-438F-B12F-EF54AD02C9C0</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\binsaver\ut_util\library-binsaver-ut_util.vcxproj">
+      <Project>0535A087-E0A5-E4C1-3C87-219D8CBAE4B1</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\blockcodecs\codecs\brotli\blockcodecs-codecs-brotli.vcxproj">
       <Project>2674849B-0330-C348-578B-DB562AA37E65</Project>
     </ProjectReference>

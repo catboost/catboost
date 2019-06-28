@@ -111,10 +111,39 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\restorable_rng.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\serialization.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\set.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\sparse_array.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\helpers\sparse_array.h_serialized.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\vec_list.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\vector_helpers.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\wx_test.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\xml_output.cpp"/>
+    <CustomBuild Include="$(SolutionDir)..\catboost\libs\helpers\sparse_array.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\libs\helpers
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../catboost/libs/helpers/sparse_array.h" "--include-path" "catboost/libs/helpers/sparse_array.h" "--output" "$(SolutionDir)$(Configuration)/catboost/libs/helpers/sparse_array.h_serialized.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\libs\helpers
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../catboost/libs/helpers/sparse_array.h" "--include-path" "catboost/libs/helpers/sparse_array.h" "--output" "$(SolutionDir)$(Configuration)/catboost/libs/helpers/sparse_array.h_serialized.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/catboost/libs/helpers/sparse_array.h_serialized.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)..\catboost\libs\helpers\sparse_array.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\helpers\sparse_array.h_serialized.cpp;</Outputs>
+    </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\array_subset.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\borders_io.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\checksum.h"/>
@@ -148,6 +177,7 @@
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\restorable_rng.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\serialization.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\set.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\sparse_array-inl.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\vec_list.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\vector_helpers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\wx_test.h"/>
@@ -237,11 +267,17 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\object_factory\library-object_factory.vcxproj">
       <Project>{F7622D70-2702-4C7E-04DA-52DC56DF911E}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\pop_count\library-pop_count.vcxproj">
+      <Project>{5388367D-330A-ED57-0DB7-1F988A5A9B05}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\string_utils\base64\library-string_utils-base64.vcxproj">
       <Project>{137212F6-D2FE-719F-EBE2-99060434BC72}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\threading\local_executor\library-threading-local_executor.vcxproj">
       <Project>{5707A0DE-3EF6-1E74-8DEE-4FDC5C2E6854}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\tools\enum_parser\enum_parser\enum_parser.vcxproj">
+      <Project>{F6CDBBB3-9B26-9DC1-90B1-CF3F94F04C9B}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\tools\enum_parser\enum_serialization_runtime\tools-enum_parser-enum_serialization_runtime.vcxproj">
       <Project>{F745D73A-277F-A595-1468-618C82B9B77E}</Project>
