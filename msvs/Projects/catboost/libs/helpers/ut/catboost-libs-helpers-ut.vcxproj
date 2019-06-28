@@ -99,6 +99,9 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
   <ItemGroup>
+    <ProjectReference Include="$(SolutionDir)Projects\build\scripts\c_templates\dummy-vcs.vcxproj">
+      <Project>{C7161B5C-139D-1AE8-3502-FC9B47248265}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\data_types\catboost-libs-data_types.vcxproj">
       <Project>{3750DBCB-749A-6149-7B4D-D132A7A922DA}</Project>
     </ProjectReference>
