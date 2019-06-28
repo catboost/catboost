@@ -60,9 +60,9 @@ namespace NCoro {
     TStack::TStack(ui32 sz, TStack::EGuard guard) noexcept
         : Guard_(guard)
         , Size_(
-            AlignUp(sz, GuardSize(Guard_)) + 3 * GuardSize(Guard_)
+            AlignUp(sz, GuardSize(Guard_)) + 2 * GuardSize(Guard_)
         ) // reservation for unaligned allocation and 2 guards
-        , Data_((char*) malloc(Size_))
+        , Data_((char*) malloc(Size_ + GuardSize(Guard_)))
     {
         switch (Guard_) {
         case EGuard::Canary:
