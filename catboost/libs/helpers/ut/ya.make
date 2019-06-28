@@ -19,6 +19,7 @@ SRCS(
     resource_constrained_executor_ut.cpp
     resource_holder_ut.cpp
     serialization_ut.cpp
+    sparse_array_ut.cpp
     vec_list_ut.cpp
     wx_test_ut.cpp
     xml_output_ut.cpp
@@ -26,6 +27,7 @@ SRCS(
 
 PEERDIR(
     catboost/libs/helpers
+    library/binsaver/ut_util
 )
 
 END()
