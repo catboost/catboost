@@ -114,6 +114,7 @@
   - linux/types.h
   - linux/unistd.h
   - linux/usbdevice_fs.h
+  - linux/userfaultfd.h
   - linux/version.h
   - linux/veth.h
   - linux/vfio.h
