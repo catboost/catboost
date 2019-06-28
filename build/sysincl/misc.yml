@@ -17,6 +17,12 @@
 - includes:
   - cudnn.h:         contrib/libs/nvidia/cudnn/cudnn.h
 
+# _cgo_export.h is generated into build dir of go package which uses cgo
+# and we are unable to resolve it correctly to whcih build dir to resolve
+# in the case when tests are also built for this package
+- includes:
+  - _cgo_export.h
+
 # libunistring has its own libc header wrappers that are added to ADDINCL and
 # need to be added here for consistensy between ADDINCL and sysincl resolving.
 # Btw: we don't parse include_next, so we might lose real dependency to musl,

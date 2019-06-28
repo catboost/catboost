@@ -61,7 +61,54 @@ def on_go_process_srcs(unit):
     """
 
     srcs_files = get_appended_values(unit, 'GO_SRCS_VALUE')
+
+    asm_files = []
+    c_files = []
+    cxx_files = []
+    go_files = []
+    in_files = []
+    proto_files = []
+    s_files = []
+    syso_files = []
+
+    classifed_files = {
+        '.c': c_files,
+        '.cc': cxx_files,
+        '.cpp': cxx_files,
+        '.cxx': cxx_files,
+        '.go': go_files,
+        '.in': in_files,
+        '.proto': proto_files,
+        '.s': asm_files,
+        '.syso': syso_files,
+        '.C': cxx_files,
+        '.S': s_files,
+    }
+
+    # Classify files specifed in _GO_SRCS() macro by extension and process CGO_EXPORT keyword
+    # which can preceed C/C++ files only
+    is_cgo_export = False
     for f in srcs_files:
+        _, ext = os.path.splitext(f)
+        ext_files = classifed_files.get(ext)
+        if ext_files is not None:
+            if is_cgo_export:
+                is_cgo_export = False
+                if ext in ('.c', '.cc', '.cpp', '.cxx', '.C'):
+                    unit.oncopy_file_with_deps_no_auto([f, f, 'OUTPUT_INCLUDES', '${BINDIR}/_cgo_export.h'])
+                    f = '${BINDIR}/' + f
+                else:
+                    ymake.report_configure_error('Unmatched CGO_EXPORT keyword in SRCS()/_GO_SRCS() macro')
+            ext_files.append(f)
+        elif f == 'CGO_EXPORT':
+            is_cgo_export = True
+        else:
+            # FIXME(snermolaev): We can report an unsupported files for _GO_SRCS here
+            pass
+    if is_cgo_export:
+        ymake.report_configure_error('Unmatched CGO_EXPORT keyword in SRCS()/_GO_SRCS() macro')
+
+    for f in go_files:
         if f.endswith('_test.go'):
             ymake.report_configure_error('file {} must be listed in GO_TEST_SRCS() or GO_XTEST_SRCS() macros'.format(f))
     go_test_files = get_appended_values(unit, 'GO_TEST_SRCS_VALUE')
@@ -70,28 +117,10 @@ def on_go_process_srcs(unit):
         if not f.endswith('_test.go'):
             ymake.report_configure_error('file {} should not be listed in GO_TEST_SRCS() or GO_XTEST_SRCS() macros'.format(f))
 
-    is_test_module = unit.enabled('GO_TEST_MODULE')
-
-    if is_test_module and unit.enabled('GO_TEST_COVER'):
-        temp_srcs_files = []
-        cover_info = []
-        for f in srcs_files:
-            if f.endswith('.go') and not f.endswith('_test.go'):
-                cover_var = 'GoCover_' + base64.b32encode(f).rstrip('=')
-                cover_file = unit.resolve_arc_path(f)
-                unit.on_go_gen_cover_go([cover_file, cover_var])
-                if cover_file.startswith('$S/'):
-                    cover_file = arc_project_prefix + cover_file[3:]
-                cover_info.append('{}:{}'.format(cover_var, cover_file))
-            else:
-                temp_srcs_files.append(f)
-        srcs_files = temp_srcs_files
-        unit.set(['GO_SRCS_VALUE', ' '.join(srcs_files)])
-        unit.set(['GO_COVER_INFO_VALUE', ' '.join(cover_info)])
-
+    # Add gofmt style checks
     resolved_go_files = []
-    for path in srcs_files + go_test_files + go_xtest_files:
-        if path.endswith(".go"):
+    for path in itertools.chain(go_files, go_test_files, go_xtest_files):
+        if path.endswith('.go'):
             resolved = unit.resolve_arc_path([path])
             if resolved != path and need_lint(resolved):
                 resolved_go_files.append(resolved)
@@ -105,33 +134,51 @@ def on_go_process_srcs(unit):
         for basedir in basedirs:
             unit.onadd_check(['gofmt'] + basedirs[basedir])
 
+    is_test_module = unit.enabled('GO_TEST_MODULE')
+
+    # Go coverage instrumentation (NOTE! go_files list is modified here)
+    if is_test_module and unit.enabled('GO_TEST_COVER'):
+        cover_info = []
+
+        for f in go_files:
+            if f.endswith('_test.go'):
+                continue
+            cover_var = 'GoCover_' + base64.b32encode(f).rstrip('=')
+            cover_file = unit.resolve_arc_path(f)
+            unit.on_go_gen_cover_go([cover_file, cover_var])
+            if cover_file.startswith('$S/'):
+                cover_file = arc_project_prefix + cover_file[3:]
+            cover_info.append('{}:{}'.format(cover_var, cover_file))
+
+        # go_files should be empty now since the initial list shouldn't contain
+        # any non-go or go test file. The value of go_files list will be used later
+        # to update the value of GO_SRCS_VALUE
+        go_files = []
+        unit.set(['GO_COVER_INFO_VALUE', ' '.join(cover_info)])
+
+    # We have cleaned up the list of files from GO_SRCS_VALUE var and we have to update
+    # the value since it is used in module command line
+    unit.set(['GO_SRCS_VALUE', ' '.join(itertools.chain(go_files, asm_files, syso_files))])
+
     unit_path = unit.path()
 
     # Add go vet check
     if unit.get(['GO_VET']) == 'yes' and need_lint(unit_path):
         unit.onadd_check(["govet", '$(BUILD_ROOT)/' + tobuilddir(os.path.join(unit_path, unit.filename() + '.vet.txt'))[3:]])
 
-    go_std_root = unit.get('GOSTD') + os.path.sep
+    # Process .proto files
+    for f in proto_files:
+        unit.on_go_proto_cmd(f)
 
-    proto_files = filter(lambda x: x.endswith('.proto'), srcs_files)
-    if len(proto_files) > 0:
-        for f in proto_files:
-            unit.on_go_proto_cmd(f)
+    # Process .in files
+    for f in in_files:
+        unit.onsrc(f)
 
-    in_files = filter(lambda x: x.endswith('.in'), srcs_files)
-    if len(in_files) > 0:
-        for f in in_files:
-            unit.onsrc(f)
+    # Generate .symabis for .s files (starting from 1.12 version)
+    if compare_versions('1.12', unit.get('GOSTD_VERSION')) >= 0 and len(asm_files) > 0:
+        unit.on_go_compile_symabis(asm_files)
 
-    if compare_versions('1.12', unit.get('GOSTD_VERSION')) >= 0:
-        asm_files = filter(lambda x: x.endswith('.s'), srcs_files)
-        if len(asm_files) > 0:
-            unit.on_go_compile_symabis(asm_files)
-
-    s_files = filter(lambda x: x.endswith('.S'), srcs_files)
-    c_files = filter(lambda x: x.endswith('.c'), srcs_files)
-    cxx_files = filter(lambda x: any(x.endswith(e) for e in ('.cc', '.cpp', '.cxx', '.C')), srcs_files)
-    syso_files = filter(lambda x: x.endswith('.syso'), srcs_files)
+    # Process cgo files
     cgo_files = get_appended_values(unit, 'CGO_SRCS_VALUE')
 
     cgo_cflags = []
@@ -149,6 +196,7 @@ def on_go_process_srcs(unit):
         if not unit.enabled('CGO_ENABLED'):
             ymake.report_configure_error('trying to build with CGO (CGO_SRCS is non-empty) when CGO is disabled')
         import_path = rootrel_arc_src(unit_path, unit)
+        go_std_root = unit.get('GOSTD') + os.path.sep
         if import_path.startswith(go_std_root):
             import_path = import_path[len(go_std_root):]
         if import_path != runtime_cgo_path:
