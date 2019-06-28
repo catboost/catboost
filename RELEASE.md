@@ -1,3 +1,21 @@
+# Release 0.15.2
+
+## Breaking changes:
+- Function `get_feature_statistics` is replaced by `calc_feature_statistics`
+- Scoring function `Correlation` is renamed to `Cosine`
+- Parameter `efb_max_conflict_fraction` is renamed to `sparse_features_conflict_fraction`
+
+## New features:
+- Models can be saved in PMML format now.
+> **Note:**  PMML does not have full categorical features support, so to have the model in PMML format for datasets with categorical features you need to use set `one_hot_max_size` parameter to some large value, so that all categorical features are one-hot encoded
+- Feature names can be used to specify ignored features
+
+## Bug fixes, including:
+- Fixed restarting of CV on GPU for datasets without categorical features
+- Fixed learning continuation errors with changed dataset (PR #879) and with model loaded from file (#884)
+- Fixed NativeLib for JDK 9+ (PR #857)
+
+
 # Release 0.15.1
 
 ## Bug fixes
