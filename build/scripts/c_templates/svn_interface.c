@@ -1,6 +1,6 @@
 // Used indirectly. See build/scripts/vcs_info.py
 // ya-bin dump vcs-info > vcs.json
-// python build/scripts/vcs_info.py vcs.json library/svnversion/svn_interface.c out.c <any_prefix>library/svnversion<any_suffix>
+// python build/scripts/vcs_info.py vcs.json out.c build/scripts/c_templates/svn_interface.c <any_prefix>library/svnversion<any_suffix>
 
 
 #include "build/scripts/c_templates/svnversion.h"

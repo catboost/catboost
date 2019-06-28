@@ -86,7 +86,7 @@ def print_c(json_file, output_file, argv):
     """ params:
             json file
             output file
-            $(SOURCE_ROOT)/build/scripts/c_templates/svn_interface.c.template"""
+            $(SOURCE_ROOT)/build/scripts/c_templates/svn_interface.c"""
     def gen_header(info):
         lines = []
         for k, v in info.items():
