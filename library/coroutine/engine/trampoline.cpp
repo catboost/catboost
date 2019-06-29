@@ -10,13 +10,25 @@
 #include <util/stream/format.h>
 
 namespace NCoro {
+    namespace NPrivate {
+        ui32 RawStackSize(ui32 sz, ui32 guardSize) {
+            // reservation for unaligned allocation and 2 guards
+            return Max<ui32>(sz, 1) + 4 * guardSize;
+        }
+
+        TArrayRef<char> AlignedRange(char* data, ui32 sz, ui32 guardSize) {
+            return {
+                AlignUp(data, guardSize),
+                AlignDown(data + sz, guardSize)
+            };
+        }
+    }
+
     namespace {
         constexpr TStringBuf CANARY = AsStringBuf(
-            "\x4e\xf8\xf9\xc2\xf7\xeb\x6c\xb8"
-            "\xaf\x66\xf2\xe4\x41\xf4\x25\x0c"
-            "\x0f\x81\x9a\x30\xd0\x78\x21\x89"
-            "\x5b\x53\xe6\x01\x7f\x90\xfb\xcd"
+            "[IfYouReadThisTheStackIsStillOK]"
         );
+        static_assert(CANARY.size() == 32);
 
         ui32 GuardSize(TStack::EGuard guard) {
             static const ui32 pageSize = NSystemInfo::GetPageSize();
@@ -28,29 +40,29 @@ namespace NCoro {
             }
         }
 
-        void ProtectWithCanary(char* data, size_t sz) {
+        void ProtectWithCanary(TArrayRef<char> alignedRange) {
             constexpr ui32 guardSize = CANARY.size();
             memcpy(
-                AlignUp(data, guardSize),
+                alignedRange.data(),
                 NCoro::CANARY.data(),
                 guardSize
             );
             memcpy(
-                AlignUp(data, guardSize) + sz - guardSize,
+                alignedRange.end() - guardSize,
                 NCoro::CANARY.data(),
                 guardSize
             );
         }
 
-        void ProtectWithPages(char* data, size_t sz, EProtectMemory mode) {
+        void ProtectWithPages(TArrayRef<char> alignedRange, EProtectMemory mode) {
             static const ui32 guardSize = NSystemInfo::GetPageSize();
             ProtectMemory(
-                AlignUp(data, guardSize),
+                alignedRange.data(),
                 guardSize,
                 mode
             );
             ProtectMemory(
-                AlignUp(data, guardSize) + sz - guardSize,
+                alignedRange.end() - guardSize,
                 guardSize,
                 mode
             );
@@ -59,20 +71,19 @@ namespace NCoro {
 
     TStack::TStack(ui32 sz, TStack::EGuard guard) noexcept
         : Guard_(guard)
-        , Size_(
-            AlignUp(sz, GuardSize(Guard_)) + 2 * GuardSize(Guard_)
-        ) // reservation for unaligned allocation and 2 guards
-        , Data_((char*) malloc(Size_ + GuardSize(Guard_)))
+        , RawSize_(NPrivate::RawStackSize(sz, GuardSize(Guard_)))
+        , RawPtr_((char*) malloc(RawSize_))
     {
+        const auto guardSize = GuardSize(Guard_);
+        const auto alignedRange = NPrivate::AlignedRange(RawPtr_, RawSize_, guardSize);
         switch (Guard_) {
         case EGuard::Canary:
-            ProtectWithCanary(Data_, Size_);
+            ProtectWithCanary(alignedRange);
             break;
         case EGuard::Page:
-            ProtectWithPages(Data_, Size_, PM_NONE);
+            ProtectWithPages(alignedRange, PM_NONE);
             break;
         }
-
         StackId_ = VALGRIND_STACK_REGISTER(
             Get().data(),
             Get().size()
@@ -82,32 +93,36 @@ namespace NCoro {
     TStack::~TStack()
     {
         if (Guard_ == EGuard::Page) {
-            ProtectWithPages(Data_, Size_, PM_WRITE | PM_READ);
+            const auto alignedRange = NPrivate::AlignedRange(RawPtr_, RawSize_, GuardSize(Guard_));
+            ProtectWithPages(alignedRange, PM_WRITE | PM_READ);
         }
-        free(Data_);
         VALGRIND_STACK_DEREGISTER(StackId_);
+        free(RawPtr_);
     }
 
     TArrayRef<char> TStack::Get() noexcept {
-        const size_t guardSize = GuardSize(Guard_);
+        const auto guardSize = GuardSize(Guard_);
+        const auto alignedRange = NPrivate::AlignedRange(RawPtr_, RawSize_, guardSize);
         return {
-            AlignUp(Data_, guardSize) + guardSize,
-            AlignUp(Data_, guardSize) + Size_ - guardSize
+            alignedRange.data() + guardSize,
+            alignedRange.end() - guardSize
         };
     }
 
     bool TStack::LowerCanaryOk() const noexcept {
-        constexpr ui32 guardSize = NCoro::CANARY.size();
+        constexpr auto guardSize = NCoro::CANARY.size();
+        const auto alignedRange = NPrivate::AlignedRange(RawPtr_, RawSize_, guardSize);
         return Guard_ != EGuard::Canary || TStringBuf(
-            AlignUp(Data_, guardSize),
+            alignedRange.data(),
             guardSize
         ) == NCoro::CANARY;
     }
 
     bool TStack::UpperCanaryOk() const noexcept {
-        constexpr ui32 guardSize = NCoro::CANARY.size();
+        constexpr auto guardSize = NCoro::CANARY.size();
+        const auto alignedRange = NPrivate::AlignedRange(RawPtr_, RawSize_, guardSize);
         return Guard_ != EGuard::Canary || TStringBuf(
-            AlignUp(Data_, guardSize) + Size_ - guardSize,
+            alignedRange.end() - guardSize,
             guardSize
         ) == NCoro::CANARY;
     }

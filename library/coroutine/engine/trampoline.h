@@ -14,6 +14,13 @@ class TCont;
 typedef void (*TContFunc)(TCont*, void*);
 
 namespace NCoro {
+    namespace NPrivate {
+        // including alignment and 2x guard overheads
+        ui32 RawStackSize(ui32 sz, ui32 guardSize);
+
+        TArrayRef<char> AlignedRange(char* data, ui32 sz, ui32 guardSize);
+    }
+
     class TStack : TNonCopyable {
     public:
         enum class EGuard {
@@ -32,8 +39,8 @@ namespace NCoro {
 
     private:
         const EGuard Guard_;
-        const ui32 Size_;
-        char* const Data_;
+        const ui32 RawSize_;
+        char* const RawPtr_;
         size_t StackId_ = 0;
     };
 
