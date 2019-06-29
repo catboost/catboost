@@ -128,7 +128,6 @@
 
 - source_filter: "^contrib/libs/gdal"
   includes:
-    - CL/opencl.h
     - io.h:          contrib/libs/gdal/ogr/ogrsf_frmts/cad/libopencad/dwg/io.h
     - iconv.h:       contrib/libs/libiconv/include/iconv.h
 
