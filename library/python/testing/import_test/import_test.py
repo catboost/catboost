@@ -17,6 +17,8 @@ def check_imports(no_check=None, extra=[], skip_func=None):
     exceptions = [
         '__yt_entry_point__',
 
+        'apscheduler.*',
+
         'boto.*',
 
         'celery.backends.database.*',  # needs optional dependency sqlalchemy
