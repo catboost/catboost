@@ -456,6 +456,7 @@
     - rapidjson/document.h
     - rdkafka.h
     - re2_st/re2.h
+    - readpassphrase.h: contrib/libs/clickhouse/dbms/programs/client/readpassphrase/readpassphrase.h
     - simdjson/jsonparser.h
     - time_zone.h
     - vectorf128.h

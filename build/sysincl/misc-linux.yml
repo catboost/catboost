@@ -1,3 +1,0 @@
-- source_filter: "^contrib/libs/clickhouse"
-  includes:
-  - readpassphrase.h: contrib/libs/clickhouse/dbms/programs/client/readpassphrase/readpassphrase.h
