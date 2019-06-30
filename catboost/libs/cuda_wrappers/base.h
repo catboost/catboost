@@ -2,7 +2,7 @@
 
 #include "kernel.cuh"
 
-#include <catboost/libs/helpers/exception.h>
+#include "exception.h"
 
 #include <util/datetime/base.h>
 #include <util/generic/array_ref.h>
@@ -13,7 +13,7 @@
     {                                                                                                                \
         cudaError_t errorCode = statement;                                                                           \
         if (errorCode != cudaSuccess && errorCode != cudaErrorCudartUnloading) {                                     \
-            ythrow TCatBoostException() << "CUDA error " << (int)errorCode << ": " << cudaGetErrorString(errorCode); \
+            ythrow TCudaException(errorCode) << "CUDA error " << (int)errorCode << ": " << cudaGetErrorString(errorCode); \
         }                                                                                                            \
     }
 
@@ -73,6 +73,10 @@ public:
 
     static TCudaStream NewStream(bool nonBlocking = true) {
         return TCudaStream(new TImpl(nonBlocking));
+    }
+
+    bool operator==(const TCudaStream& other) const {
+        return GetStream() == other.GetStream();
     }
 
     void WaitEvent(const TCudaEvent& event) const;
