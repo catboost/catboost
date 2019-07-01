@@ -32,7 +32,7 @@
     - LZ4 homepage : http://www.lz4.org
     - LZ4 source repository : https://github.com/lz4/lz4
 */
-#if defined (__cplusplus)
+#if defined (__cplusplus) && !defined(LZ4_NAMESPACE)
 extern "C" {
 #endif
 
@@ -682,6 +682,6 @@ LZ4LIB_API void LZ4_resetStream (LZ4_stream_t* streamPtr);
 #endif /* LZ4_H_2983827168210 */
 
 
-#if defined (__cplusplus)
+#if defined (__cplusplus) && !defined(LZ4_NAMESPACE)
 }
 #endif

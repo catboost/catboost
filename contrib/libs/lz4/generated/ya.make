@@ -1,9 +1,5 @@
 LIBRARY()
 
-LICENSE(
-    BSD
-)
-
 
 
 NO_UTIL()
