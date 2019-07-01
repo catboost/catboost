@@ -7,6 +7,7 @@ NO_PYTHON_INCLUDES()
 IF (USE_ARCADIA_PYTHON)
     PEERDIR(
         contrib/libs/python/Include
+        library/python/certs
         library/python/symbols/module
         library/python/symbols/libc
     )

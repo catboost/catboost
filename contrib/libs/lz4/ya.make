@@ -8,17 +8,20 @@ VERSION(1.9.1)
 
 LICENSE(BSD-2-Clause)
 
-NO_UTIL()
-
-CFLAGS(
-    -DXXH_NAMESPACE=LZ4_
+PEERDIR(
+    contrib/libs/xxhash
 )
+
+ADDINCL(
+    contrib/libs/xxhash
+)
+
+NO_UTIL()
 
 SRCS(
     lz4.c
     lz4frame.c
     lz4hc.c
-    xxhash.c
 )
 
 END()

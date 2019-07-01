@@ -40,6 +40,7 @@ RECURSE(
     snappy
     sqlite3
     tensorboard
+    xxhash
     zlib
     zstd
     zstd06

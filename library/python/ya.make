@@ -1,6 +1,7 @@
 
 
 RECURSE(
+    certs
     cores
     filelock
     filelock/ut

@@ -237,7 +237,7 @@ ALLOW .* -> vendor/gopkg.in/gographics/imagick.v2
 ALLOW .* -> vendor/github.com/hashicorp/golang-lru
 
 # A wrapper around os/exec.Cmd to run external commands asynchronously (for Linux and macOS)
-ALLOW .* -> github.com/go-cmd/cmd
+ALLOW .* -> vendor/github.com/go-cmd/cmd
 
 # NVIDIA Management Library (NVML) is a C-based API for monitoring and managing NVIDIA GPU devices (for Linux only)
 ALLOW .* -> vendor/github.com/NVIDIA/gpu-monitoring-tools/bindings/go

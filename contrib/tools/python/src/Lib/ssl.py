@@ -407,6 +407,11 @@ class SSLContext(_SSLContext):
     def load_default_certs(self, purpose=Purpose.SERVER_AUTH):
         if not isinstance(purpose, _ASN1Object):
             raise TypeError(purpose)
+
+        from library.python.certs import builtin_cadata
+        self.load_verify_locations(cadata=builtin_cadata())
+        return
+
         if sys.platform == "win32":
             for storename in self._windows_cert_stores:
                 self._load_windows_store_certs(storename, purpose)
@@ -507,10 +512,6 @@ def _https_verify_certificates(enable=True):
         _create_default_https_context = create_default_context
     else:
         _create_default_https_context = _create_unverified_context
-
-
-# Yandex compatibility with Python 2.7.3
-_create_default_https_context = _create_unverified_context
 
 
 class SSLSocket(socket):

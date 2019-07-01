@@ -60,7 +60,7 @@ def get_default_json():
     "PROGRAM_VERSION": "Arc info:\\n    Branch: math\\n    Commit: 0577215664901532860606512090082402431042\\n    Author: ordinal\\n    Summary: No VCS\\n\\n",
     "SCM_DATA": "Arc info:\\n    Branch: math\\n    Commit: 0577215664901532860606512090082402431042\\n    Author: ordinal\\n    Summary: No VCS\\n",
     "VCS": "arc",
-    "ARCADIA_PATCH_NUMBER": 42,
+    "ARCADIA_PATCH_NUMBER": 0,
     "ARCADIA_TAG": ""
 }''')
 

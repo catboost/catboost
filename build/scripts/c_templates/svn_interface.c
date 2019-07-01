@@ -74,11 +74,22 @@ int GetProgramSvnRevision() {
 #endif
 }
 
-const char* GetProgramHgHash() {
+const char* GetProgramHash() {
 #if defined(ARCADIA_SOURCE_HG_HASH)
     return ARCADIA_SOURCE_HG_HASH;
 #else
     return "";
+#endif
+}
+
+const char* GetProgramCommitId() {
+#if defined(ARCADIA_SOURCE_REVISION)
+    if (ARCADIA_SOURCE_REVISION <= 0) {
+        return GetProgramHash();
+    }
+    return STR2(ARCADIA_SOURCE_REVISION);
+#else
+    return GetProgramHash();
 #endif
 }
 

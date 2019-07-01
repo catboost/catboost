@@ -8,7 +8,12 @@ VERSION(1.4.0)
 
 LICENSE(BSD-3-Clause)
 
+PEERDIR(
+    contrib/libs/xxhash
+)
+
 ADDINCL(
+    contrib/libs/xxhash
     contrib/libs/zstd
     contrib/libs/zstd/common
     contrib/libs/zstd/legacy
@@ -19,7 +24,6 @@ NO_COMPILER_WARNINGS()
 NO_UTIL()
 
 CFLAGS(
-    -DXXH_NAMESPACE=ZSTD_
     -DZSTD_LEGACY_SUPPORT=1
 )
 
@@ -30,7 +34,6 @@ SRCS(
     common/fse_decompress.c
     common/pool.c
     common/threading.c
-    common/xxhash.c
     common/zstd_common.c
     compress/fse_compress.c
     compress/hist.c

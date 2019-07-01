@@ -119,6 +119,8 @@ def check_imports(no_check=None, extra=[], skip_func=None):
 
         "pytest_django.compat",
 
+        "maps.streetview.backoffice.*",
+
         "matplotlib.backends.*",
         "matplotlib.sphinxext.*",
         "matplotlib.testing.*",

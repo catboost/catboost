@@ -21,7 +21,8 @@ const char* GetArcadiaLastChange() Y_HIDDEN; // "2902074"
 int GetArcadiaLastChangeNum() Y_HIDDEN; // 2902074
 const char* GetArcadiaLastAuthor() Y_HIDDEN; // "dieash"
 int   GetProgramSvnRevision() Y_HIDDEN;     // 2902074
-const char* GetProgramHgHash() Y_HIDDEN;
+const char* GetProgramHash() Y_HIDDEN;
+const char* GetProgramCommitId() Y_HIDDEN;
 void PrintSvnVersionAndExit(int argc, char* argv[]) Y_HIDDEN;
 void PrintSvnVersionAndExitEx(int argc, char* argv[], const char* opts) Y_HIDDEN;
 void PrintSvnVersionAndExit0() Y_HIDDEN;

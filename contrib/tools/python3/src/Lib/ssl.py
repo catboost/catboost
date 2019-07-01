@@ -474,6 +474,11 @@ class SSLContext(_SSLContext):
     def load_default_certs(self, purpose=Purpose.SERVER_AUTH):
         if not isinstance(purpose, _ASN1Object):
             raise TypeError(purpose)
+
+        from library.python.certs import builtin_cadata
+        self.load_verify_locations(cadata=builtin_cadata())
+        return
+
         if sys.platform == "win32":
             for storename in self._windows_cert_stores:
                 self._load_windows_store_certs(storename, purpose)
