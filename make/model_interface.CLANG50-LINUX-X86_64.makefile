@@ -6747,7 +6747,7 @@ $(BUILD_ROOT)/contrib/libs/lz4/generated/liblibs-lz4-generated.a\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/lz4/generated'
-	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name libs-lz4-generated -o contrib/libs/lz4/generated/liblibs-lz4-generated.a.mf -t LIBRARY -Ya,lics BSD -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name libs-lz4-generated -o contrib/libs/lz4/generated/liblibs-lz4-generated.a.mf -t LIBRARY -Ya,lics -Ya,peers
 	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/lz4/generated/liblibs-lz4-generated.a' '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_10.cpp.pic.o' '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_11.cpp.pic.o' '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_12.cpp.pic.o' '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_13.cpp.pic.o' '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_14.cpp.pic.o' '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_15.cpp.pic.o' '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_16.cpp.pic.o' '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_17.cpp.pic.o' '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_18.cpp.pic.o' '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_19.cpp.pic.o' '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_20.cpp.pic.o' '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4methods.cpp.pic.o'
 
 $(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_10.cpp.pic.o\
@@ -8026,7 +8026,7 @@ $(BUILD_ROOT)/contrib/libs/lz4/generated/liblibs-lz4-generated.a\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/lz4/generated'
-	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name libs-lz4-generated -o contrib/libs/lz4/generated/liblibs-lz4-generated.a.mf -t LIBRARY -Ya,lics BSD -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name libs-lz4-generated -o contrib/libs/lz4/generated/liblibs-lz4-generated.a.mf -t LIBRARY -Ya,lics -Ya,peers
 	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/lz4/generated/liblibs-lz4-generated.a' '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_10.cpp.pic.o' '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_11.cpp.pic.o' '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_12.cpp.pic.o' '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_13.cpp.pic.o' '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_14.cpp.pic.o' '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_15.cpp.pic.o' '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_16.cpp.pic.o' '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_17.cpp.pic.o' '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_18.cpp.pic.o' '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_19.cpp.pic.o' '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_20.cpp.pic.o' '$(BUILD_ROOT)/contrib/libs/lz4/generated/lz4methods.cpp.pic.o'
 
 $(BUILD_ROOT)/contrib/libs/lz4/generated/lz4_10.cpp.pic.o\
