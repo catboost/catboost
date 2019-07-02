@@ -34,6 +34,7 @@ Y_UNIT_TEST_SUITE(TAsciiTest) {
             UNIT_ASSERT_VALUES_EQUAL((bool)isupper(i), IsAsciiUpper((char)i));
             UNIT_ASSERT_VALUES_EQUAL((bool)islower(i), IsAsciiLower((char)i));
             UNIT_ASSERT_VALUES_EQUAL((bool)isdigit(i), IsAsciiDigit((char)i));
+            UNIT_ASSERT_VALUES_EQUAL((bool)ispunct(i), IsAsciiPunct((char)i));
         }
     }
 
@@ -46,6 +47,7 @@ Y_UNIT_TEST_SUITE(TAsciiTest) {
             UNIT_ASSERT(!IsAsciiUpper(i));
             UNIT_ASSERT(!IsAsciiLower(i));
             UNIT_ASSERT(!IsAsciiDigit(i));
+            UNIT_ASSERT(!IsAsciiPunct(i));
         }
 
         for (int i = -1000; i < 0; ++i) {
@@ -56,6 +58,7 @@ Y_UNIT_TEST_SUITE(TAsciiTest) {
             UNIT_ASSERT(!IsAsciiUpper(i));
             UNIT_ASSERT(!IsAsciiLower(i));
             UNIT_ASSERT(!IsAsciiDigit(i));
+            UNIT_ASSERT(!IsAsciiPunct(i));
         }
     }
 
