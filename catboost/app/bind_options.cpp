@@ -82,6 +82,12 @@ inline static TVector<TVector<int>> ParseIndexSetsLine(const TStringBuf indicesL
 inline static void BindPoolLoadParams(NLastGetopt::TOpts* parser, NCatboostOptions::TPoolLoadParams* loadParamsPtr) {
     BindDsvPoolFormatParams(parser, &(loadParamsPtr->DsvPoolFormatParams));
 
+    parser->AddLongOption("no-shuffle", "no shuffle data")
+      .NoArgument()
+      .Handler0([loadParamsPtr]() {
+      loadParamsPtr->CvParams.Shuffle = false;
+        });
+
     parser->AddLongOption('f', "learn-set", "learn set path")
         .RequiredArgument("[SCHEME://]PATH")
         .Handler1T<TStringBuf>([loadParamsPtr](const TStringBuf& str) {
