@@ -82,8 +82,8 @@ public class VcsVersion {
         return getIntParam("Arcadia-Patch-Number");
     }
 
-    public String getProgramHgHash() {
-        return getStringParamSafe("Arcadia-Source-Hg-Hash");
+    public String getProgramHash() {
+        return getStringParamSafe("Arcadia-Source-Hash");
     }
 
     public String getProgramScmData() {

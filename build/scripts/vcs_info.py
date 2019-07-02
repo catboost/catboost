@@ -194,7 +194,7 @@ def print_java_mf(info):
     lines += wrap('Arcadia-Source-Path: ', info['ARCADIA_SOURCE_PATH'])
     lines += wrap('Arcadia-Source-URL: ', info['ARCADIA_SOURCE_URL'])
     lines += wrap('Arcadia-Source-Revision: ', str(info['ARCADIA_SOURCE_REVISION']))
-    lines += wrap('Arcadia-Source-Hg-Hash: ', info['ARCADIA_SOURCE_HG_HASH'].rstrip())
+    lines += wrap('Arcadia-Source-Hash: ', info['ARCADIA_SOURCE_HG_HASH'].rstrip())
     lines += wrap('Arcadia-Source-Last-Change: ', str(info['ARCADIA_SOURCE_LAST_CHANGE']))
     lines += wrap('Arcadia-Source-Last-Author: ', info['ARCADIA_SOURCE_LAST_AUTHOR'])
     lines += wrap('Build-User: ', info['BUILD_USER'])
