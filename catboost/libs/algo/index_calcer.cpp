@@ -55,7 +55,7 @@ static inline const ui32* GetRemappedCatFeatures(
 }
 
 template <typename TCount, typename TCmpOp, int VectorWidth>
-inline void BuildIndicesKernel(
+inline void UpdateIndicesKernel(
     const ui32* permutation,
     const TCount* histogram,
     TCmpOp cmpOp,
@@ -83,7 +83,7 @@ inline void BuildIndicesKernel(
 
 
 template <typename TCount, typename TCmpOp>
-inline void OfflineCtrBlock(
+inline void UpdateIndicesForSplit(
     const NPar::TLocalExecutor::TExecRangeParams& params,
     int blockIdx,
     const ui32* permutation,
@@ -97,7 +97,7 @@ inline void OfflineCtrBlock(
     constexpr int vectorWidth = 4;
     int doc;
     for (doc = blockStart; doc + vectorWidth <= nextBlockStart; doc += vectorWidth) {
-        BuildIndicesKernel<TCount, TCmpOp, vectorWidth>(
+        UpdateIndicesKernel<TCount, TCmpOp, vectorWidth>(
             permutation + doc,
             histogram,
             cmpOp,
@@ -112,7 +112,7 @@ inline void OfflineCtrBlock(
 
 
 template <typename TCount, class TCmpOp>
-inline void OfflineCtrBlock(
+inline void UpdateIndicesForSplit(
     const NPar::TLocalExecutor::TExecRangeParams& params,
     int blockIdx,
     TMaybe<TExclusiveBundleIndex> maybeExclusiveBundleIndex,
@@ -131,7 +131,7 @@ inline void OfflineCtrBlock(
 
         NCB::TPackedBinaryFeaturesArraySubset packSubset = getBinaryFeaturesPack(maybeBinaryIndex->PackIdx);
 
-        OfflineCtrBlock(
+        UpdateIndicesForSplit(
             params,
             blockIdx,
             permutation,
@@ -148,8 +148,8 @@ inline void OfflineCtrBlock(
 
         auto boundsInBundle = bundleSubset.MetaData->Parts[maybeExclusiveBundleIndex->InBundleIdx].Bounds;
 
-        auto calcOfflineCtrBlock = [&] (const auto* histogram) {
-            OfflineCtrBlock(
+        auto updateIndicesForSplit = [&] (const auto* histogram) {
+            UpdateIndicesForSplit(
                 params,
                 blockIdx,
                 permutation,
@@ -163,10 +163,10 @@ inline void OfflineCtrBlock(
 
         switch (bundleSubset.MetaData->SizeInBytes) {
             case 1:
-                calcOfflineCtrBlock(bundleSubset.SrcData.data());
+                updateIndicesForSplit(bundleSubset.SrcData.data());
                 break;
             case 2:
-                calcOfflineCtrBlock((const ui16*)bundleSubset.SrcData.data());
+                updateIndicesForSplit((const ui16*)bundleSubset.SrcData.data());
                 break;
             default:
                 CB_ENSURE_INTERNAL(
@@ -174,7 +174,7 @@ inline void OfflineCtrBlock(
                     "unsupported Bundle SizeInBytes = " << bundleSubset.MetaData->SizeInBytes);
         }
     } else {
-        OfflineCtrBlock(
+        UpdateIndicesForSplit(
             params,
             blockIdx,
             permutation,
@@ -216,7 +216,7 @@ void SetPermutedIndices(
         localExecutor->ExecRange(
             [&](int blockIdx) {
                 if (HoldsAlternative<const ui8*>(histogram)) {
-                    OfflineCtrBlock(
+                    UpdateIndicesForSplit(
                         blockParams,
                         blockIdx,
                         maybeExclusiveFeaturesBundleIndex,
@@ -231,7 +231,7 @@ void SetPermutedIndices(
                         splitWeight,
                         indicesData);
                 } else {
-                    OfflineCtrBlock(
+                    UpdateIndicesForSplit(
                         blockParams,
                         blockIdx,
                         maybeExclusiveFeaturesBundleIndex,
@@ -273,7 +273,7 @@ void SetPermutedIndices(
 
         localExecutor->ExecRange(
             [&] (int blockIdx) {
-                OfflineCtrBlock(
+                UpdateIndicesForSplit(
                     blockParams,
                     blockIdx,
                     maybeExclusiveFeaturesBundleIndex,
@@ -395,7 +395,7 @@ static void BuildIndicesForDataset(
             if (split.Type == ESplitType::FloatFeature) {
                 auto floatFeatureIdx = TFloatFeatureIdx((ui32)split.FeatureIdx);
                 if (HoldsAlternative<const ui8*>(splitFloatHistograms[splitIdx])) {
-                    OfflineCtrBlock(
+                    UpdateIndicesForSplit(
                         blockParams,
                         blockIdx,
                         objectsDataProvider.GetFloatFeatureToExclusiveBundleIndex(floatFeatureIdx),
@@ -410,7 +410,7 @@ static void BuildIndicesForDataset(
                         splitWeight,
                         indices);
                 } else {
-                    OfflineCtrBlock(
+                    UpdateIndicesForSplit(
                         blockParams,
                         blockIdx,
                         objectsDataProvider.GetFloatFeatureToExclusiveBundleIndex(floatFeatureIdx),
@@ -437,7 +437,7 @@ static void BuildIndicesForDataset(
 
                 auto catFeatureIdx = TCatFeatureIdx((ui32)split.FeatureIdx);
 
-                OfflineCtrBlock(
+                UpdateIndicesForSplit(
                     blockParams,
                     blockIdx,
                     objectsDataProvider.GetCatFeatureToExclusiveBundleIndex(catFeatureIdx),
