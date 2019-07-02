@@ -2128,7 +2128,10 @@ class CatBoost(_CatBoostBase):
         Get all params (specified by user and default params) that were set in training from CatBoost model.
         Full parameters documentation could be found here: https://catboost.ai/docs/concepts/python-reference_parameters-list.html
         """
-        return self._get_plain_params()
+        params = self._get_plain_params()
+        if params is None:
+            return {}
+        return params
 
 
     def save_borders(self, fname):
