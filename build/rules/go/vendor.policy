@@ -68,6 +68,9 @@ ALLOW .* -> vendor/github.com/getsentry/raven-go
 # configuration library
 ALLOW .* -> vendor/github.com/heetch/confita
 
+# string case conversion library
+ALLOW .* -> vendor/github.com/iancoleman/strcase
+
 # PostgreSQL driver and toolkit for Go
 ALLOW .* -> vendor/github.com/jackc/pgx
 
