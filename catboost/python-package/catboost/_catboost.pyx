@@ -2350,7 +2350,7 @@ cdef class _PoolBase:
         """
         cdef TMaybeData[TConstArrayRef[TString]] maybe_target = self.__pool.Get()[0].RawTargetData.GetTarget()
         if maybe_target.Defined():
-            return [self.target_type(target_string.decode()) for target_string in maybe_target.GetRef()]
+            return [self.target_type(to_native_str(target_string)) for target_string in maybe_target.GetRef()]
         return None
 
     cpdef get_cat_feature_indices(self):

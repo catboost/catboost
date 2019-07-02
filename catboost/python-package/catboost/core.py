@@ -2385,11 +2385,11 @@ class CatBoost(_CatBoostBase):
         for split_num in range(len(splits) - 1, -2, -1):
             for node_num in range(layer_size):
                 if split_num >= 0:
-                    node_label = splits[split_num].decode('utf-8').replace('bin=', 'value>', 1)
+                    node_label = splits[split_num].replace('bin=', 'value>', 1)
                     color = 'black'
                     shape = 'ellipse'
                 else:
-                    node_label = leaf_values[node_num].decode('utf-8')
+                    node_label = leaf_values[node_num]
                     color = 'red'
                     shape = 'rect'
 
