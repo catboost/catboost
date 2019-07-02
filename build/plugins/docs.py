@@ -1,11 +1,12 @@
 import base64
 import json
 import os
+import ymake
 
 DELIM = '================================'
 
 
-def extract_macro_calls(unit, macro_value_name):
+def extract_macro_calls(unit, macro_value_name, kv_args=True):
     if not unit.get(macro_value_name):
         return {}
 
@@ -20,7 +21,10 @@ def extract_macro_calls(unit, macro_value_name):
 
         return kv
 
-    return dict(filter(None, map(split_args, unit.get(macro_value_name).replace('$' + macro_value_name, '').split())))
+    if kv_args:
+        return dict(filter(None, map(split_args, unit.get(macro_value_name).replace('$' + macro_value_name, '').split())))
+    else:
+        return filter(None, unit.get(macro_value_name).replace('$' + macro_value_name, '').split())
 
 
 def onprocess_docslib(unit, *args):
@@ -52,12 +56,15 @@ def generate_dart(unit, as_lib=False):
         unit.message(['error', 'DOCS_CONFIG value "{}" does not exist'.format(docs_config)])
         return
 
+    includes = extract_macro_calls(unit, 'DOCSINCLUDESOURCES', False)
+
     data = {
         'PATH': module_dir,
         'MODULE_TAG': unit.get('MODULE_TAG'),
         'DOCSDIR': docs_dir,
         'DOCSCONFIG': docs_config,
         'DOCSVARS': extract_macro_calls(unit, 'DOCSVARS'),
+        'DOCSINCLUDESOURCES': includes,
         'DOCSLIB': as_lib,
         'PEERDIRS': [d[3:] for d in unit.get_module_dirs('PEERDIRS')],
     }
@@ -65,3 +72,12 @@ def generate_dart(unit, as_lib=False):
     dart = 'DOCS_DART: ' + base64.b64encode(json.dumps(data)) + '\n' + DELIM + '\n'
 
     unit.set_property(['DOCS_DART_DATA', dart])
+
+    for i in includes:
+        include_path = unit.resolve('$S/' + i)
+
+        if not os.path.exists(include_path):
+            ymake.report_configure_error('DOCS_INCLUDE_SOURCES value "{}" does not exist'.format(i))
+
+        elif not os.path.isfile(include_path):
+            ymake.report_configure_error('DOCS_INCLUDE_SOURCES value "{}" must be a file'.format(i))
