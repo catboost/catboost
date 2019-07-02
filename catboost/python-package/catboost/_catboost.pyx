@@ -938,7 +938,7 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
 
     cdef TJsonValue GetPlainJsonWithAllOptions(
         TFullModel& model,
-        bool_t catFeaturesArePresent
+        bool_t hasCatFeatures
     ) nogil except +ProcessException
 
 cdef extern from "catboost/libs/quantized_pool_analysis/quantized_pool_analysis.h" namespace "NCB":
@@ -2839,10 +2839,10 @@ cdef class _CatBoost:
         except Exception as e:
             return {}
 
-    cpdef _get_plain_params(self, categoricalFeaturesArePresent):
+    cpdef _get_plain_params(self, hasCatFeatures):
         cdef TJsonValue plainOptions
         try:
-            options_json = GetPlainJsonWithAllOptions(dereference(self.__model), categoricalFeaturesArePresent)
+            options_json = GetPlainJsonWithAllOptions(dereference(self.__model), hasCatFeatures)
             return loads(to_native_str(ToString(options_json)))
         except Exception as e:
             print(e)

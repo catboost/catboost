@@ -52,8 +52,7 @@ static Y_NO_INLINE void ConcatenateCtrDescription(
         const NJson::TJsonValue& options,
         const TStringBuf sourceKey,
         const TStringBuf destinationKey,
-        NJson::TJsonValue* const destination,
-        TSet<TString>* const seenKeys
+        NJson::TJsonValue* const destination
 ) {
     if (!options.Has(sourceKey)) {
         return;
@@ -65,7 +64,6 @@ static Y_NO_INLINE void ConcatenateCtrDescription(
         const auto& ctrOptionsConcatenated = BuildCtrOptionsDescription(element);
         ctrOptionsArray.AppendValue(ctrOptionsConcatenated);
     }
-    seenKeys->insert(TString(sourceKey));
 }
 
 static Y_NO_INLINE void CopyPerFeatureCtrDescription(
@@ -709,10 +707,10 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
         const auto& ctrOptions = options["cat_feature_params"];
         auto& optionsCopyCtr = optionsCopy["cat_feature_params"];
 
-        ConcatenateCtrDescription(ctrOptions, "simple_ctrs", "simple_ctr", &plainOptionsJson, &seenKeys);
+        ConcatenateCtrDescription(ctrOptions, "simple_ctrs", "simple_ctr", &plainOptionsJson);
         DeleteSeenOption(&optionsCopyCtr, "simple_ctrs");
 
-        ConcatenateCtrDescription(ctrOptions, "combinations_ctrs", "combinations_ctr", &plainOptionsJson, &seenKeys);
+        ConcatenateCtrDescription(ctrOptions, "combinations_ctrs", "combinations_ctr", &plainOptionsJson);
         DeleteSeenOption(&optionsCopyCtr, "combinations_ctrs");
 
         RemapPerFeatureCtrDescription(ctrOptions, "per_feature_ctrs", "per_feature_ctr", &plainOptionsJson);
@@ -880,7 +878,7 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
 
 void NCatboostOptions::DeleteEmptyKeysInPlainJson(
         NJson::TJsonValue* plainOptionsJsonEfficient,
-        bool categoricalFeaturesArePresent) {
+        bool hasCatFeatures) {
 
     CB_ENSURE(!plainOptionsJsonEfficient->GetMapSafe().empty(), "plainOptionsJsonEfficient should not be empty");
 
@@ -897,7 +895,7 @@ void NCatboostOptions::DeleteEmptyKeysInPlainJson(
         }
     }
 
-    if (!categoricalFeaturesArePresent) {
+    if (!hasCatFeatures) {
         DeleteSeenOption(plainOptionsJsonEfficient, "simple_ctrs");
         DeleteSeenOption(plainOptionsJsonEfficient, "combinations_ctrs");
         DeleteSeenOption(plainOptionsJsonEfficient, "per_feature_ctrs");

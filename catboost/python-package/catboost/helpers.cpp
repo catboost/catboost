@@ -169,17 +169,17 @@ NJson::TJsonValue GetTrainingOptions(
     return catboostOptionsJson;
 }
 
-NJson::TJsonValue GetPlainJsonWithAllOptions(const TFullModel& model, bool categoricalFeaturesArePresent)
+NJson::TJsonValue GetPlainJsonWithAllOptions(const TFullModel& model, bool hasCatFeatures)
 {
     NJson::TJsonValue trainOptions = ReadTJsonValue(model.ModelInfo.at("params"));
     NJson::TJsonValue outputOptions = ReadTJsonValue(model.ModelInfo.at("output_options"));
-    NJson::TJsonValue plainOptionsJson;
-    NCatboostOptions::ConvertOptionsToPlainJson(trainOptions, outputOptions, &plainOptionsJson);
-    CB_ENSURE(!plainOptionsJson.GetMapSafe().empty(), "plainOptionsJson should not be empty.");
-    NJson::TJsonValue plainOptionsJsonEfficient(plainOptionsJson);
-    CB_ENSURE(!plainOptionsJsonEfficient.GetMapSafe().empty(), "problems with copy constructor.");
-    NCatboostOptions::DeleteEmptyKeysInPlainJson(&plainOptionsJsonEfficient, categoricalFeaturesArePresent);
-    CB_ENSURE(!plainOptionsJsonEfficient.GetMapSafe().empty(), "plainOptionsJsonEfficient should not be empty.");
-    return plainOptionsJsonEfficient;
+    NJson::TJsonValue plainOptions;
+    NCatboostOptions::ConvertOptionsToPlainJson(trainOptions, outputOptions, &plainOptions);
+    CB_ENSURE(!plainOptions.GetMapSafe().empty(), "plainOptions should not be empty.");
+    NJson::TJsonValue cleanedOptions(plainOptions);
+    CB_ENSURE(!cleanedOptions.GetMapSafe().empty(), "problems with copy constructor.");
+    NCatboostOptions::DeleteEmptyKeysInPlainJson(&cleanedOptions, hasCatFeatures);
+    CB_ENSURE(!cleanedOptions.GetMapSafe().empty(), "cleanedOptions should not be empty.");
+    return cleanedOptions;
 }
 
