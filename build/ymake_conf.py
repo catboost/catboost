@@ -1173,6 +1173,9 @@ class GnuCompiler(Compiler):
             if self.tc.version_at_least(7):
                 self.cxx_warnings.append('-Wno-return-std-move')
 
+            if self.tc.version_at_least(8):
+                self.cxx_warnings.append('-Wno-defaulted-function-deleted')
+
         if self.tc.is_gcc and self.tc.version_at_least(4, 9):
             self.c_foptions.append('-fno-delete-null-pointer-checks')
             self.c_foptions.append('-fabi-version=8')
