@@ -6,10 +6,14 @@ import ymake
 DELIM = '================================'
 
 
-def extract_macro_calls(unit, macro_value_name, kv_args=True):
+def extract_macro_calls(unit, macro_value_name):
     if not unit.get(macro_value_name):
-        return {}
+        return []
 
+    return filter(None, unit.get(macro_value_name).replace('$' + macro_value_name, '').split())
+
+
+def macro_calls_to_dict(unit, calls):
     def split_args(arg):
         if arg is None:
             return None
@@ -21,10 +25,7 @@ def extract_macro_calls(unit, macro_value_name, kv_args=True):
 
         return kv
 
-    if kv_args:
-        return dict(filter(None, map(split_args, unit.get(macro_value_name).replace('$' + macro_value_name, '').split())))
-    else:
-        return filter(None, unit.get(macro_value_name).replace('$' + macro_value_name, '').split())
+    return dict(filter(None, map(split_args, calls)))
 
 
 def onprocess_docslib(unit, *args):
@@ -56,14 +57,14 @@ def generate_dart(unit, as_lib=False):
         unit.message(['error', 'DOCS_CONFIG value "{}" does not exist'.format(docs_config)])
         return
 
-    includes = extract_macro_calls(unit, 'DOCSINCLUDESOURCES', False)
+    includes = extract_macro_calls(unit, 'DOCSINCLUDESOURCES')
 
     data = {
         'PATH': module_dir,
         'MODULE_TAG': unit.get('MODULE_TAG'),
         'DOCSDIR': docs_dir,
         'DOCSCONFIG': docs_config,
-        'DOCSVARS': extract_macro_calls(unit, 'DOCSVARS'),
+        'DOCSVARS': macro_calls_to_dict(unit, extract_macro_calls(unit, 'DOCSVARS')),
         'DOCSINCLUDESOURCES': includes,
         'DOCSLIB': as_lib,
         'PEERDIRS': [d[3:] for d in unit.get_module_dirs('PEERDIRS')],
