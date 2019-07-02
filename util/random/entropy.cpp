@@ -158,7 +158,7 @@ namespace {
 
 #define DO_STEP(type)                              \
     while (len >= sizeof(type)) {                  \
-        WriteUnaligned(buf, RandomNumber<type>()); \
+        WriteUnaligned<type>(buf, RandomNumber<type>()); \
         buf += sizeof(type);                       \
         len -= sizeof(type);                       \
     }

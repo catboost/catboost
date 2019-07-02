@@ -11,8 +11,8 @@
 void CreateGuid(TGUID* res) {
     ui64* dw = reinterpret_cast<ui64*>(res->dw);
 
-    WriteUnaligned(&dw[0], RandomNumber<ui64>());
-    WriteUnaligned(&dw[1], RandomNumber<ui64>());
+    WriteUnaligned<ui64>(&dw[0], RandomNumber<ui64>());
+    WriteUnaligned<ui64>(&dw[1], RandomNumber<ui64>());
 }
 
 TString GetGuidAsString(const TGUID& g) {
