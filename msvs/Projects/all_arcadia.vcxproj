@@ -885,12 +885,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\pop_count\library-pop_count.vcxproj">
       <Project>5388367D-330A-ED57-0DB7-1F988A5A9B05</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\python\certs\py3library-python-certs.vcxproj">
-      <Project>F3D8AFB0-AA24-AA18-1A77-4B0CD16A9D05</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\python\certs\pylibrary-python-certs.vcxproj">
-      <Project>D59393E0-2EB8-5168-105E-09D41470D489</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\cores\pylibrary-python-cores.vcxproj">
       <Project>F7BF95C4-FA90-1985-8730-2F198D6D9964</Project>
     </ProjectReference>

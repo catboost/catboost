@@ -361,9 +361,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\blockcodecs\library-blockcodecs.vcxproj">
       <Project>{E62EED19-EC2A-B4C3-0650-0923E4030E8B}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\python\certs\py3library-python-certs.vcxproj">
-      <Project>{F3D8AFB0-AA24-AA18-1A77-4B0CD16A9D05}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\runtime_py3\pylibrary-python-runtime_py3.vcxproj">
       <Project>{1CDAABEA-CAFE-2098-5B65-A951B25498E4}</Project>
     </ProjectReference>
