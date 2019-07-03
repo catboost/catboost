@@ -329,7 +329,7 @@ inline TInt IntFromString(const TChar* str) {
     return IntFromString<TInt, base>(str, TCharTraits<TChar>::GetLength(str));
 }
 
-template <class TInt, int base, class Troka>
-inline TInt IntFromString(const Troka& str) {
+template <class TInt, int base, class TStringType>
+inline TInt IntFromString(const TStringType& str) {
     return IntFromString<TInt, base>(str.data(), str.size());
 }
