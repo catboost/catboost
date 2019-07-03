@@ -9,6 +9,7 @@ LICENSE(
 INCLUDE(${ARCADIA_ROOT}/contrib/tools/python/pyconfig.inc)
 
 PEERDIR(
+    certs
     contrib/tools/python/base
     contrib/tools/python/include
 )
