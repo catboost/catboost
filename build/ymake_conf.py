@@ -1174,7 +1174,12 @@ class GnuCompiler(Compiler):
                 self.cxx_warnings.append('-Wno-return-std-move')
 
             if self.tc.version_at_least(8):
-                self.cxx_warnings.append('-Wno-defaulted-function-deleted')
+                self.cxx_warnings.extend((
+                    '-Wno-address-of-packed-member',
+                    '-Wno-defaulted-function-deleted',
+                    '-Wno-enum-compare-switch',
+                    '-Wno-pass-failed',
+                ))
 
         if self.tc.is_gcc and self.tc.version_at_least(4, 9):
             self.c_foptions.append('-fno-delete-null-pointer-checks')
