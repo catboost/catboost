@@ -3,7 +3,9 @@
 #include <library/python/symbols/registry/syms.h>
 
 #if !defined(_MSC_VER)
+#if __has_include(<aio.h>)
 #include <aio.h>
+#endif
 #include <arpa/inet.h>
 #include <dirent.h>
 #include <ifaddrs.h>
@@ -103,10 +105,12 @@ SYM(inotify_rm_watch)
 SYM(sysctlbyname)
 #endif
 SYM(ftok)
+#if __has_include(<aio.h>)
 SYM(aio_error)
 SYM(aio_read)
 SYM(aio_return)
 SYM(aio_suspend)
+#endif
 SYM(calloc)
 SYM(clock_gettime)
 SYM_2("clock_getres", ClockGetres)
