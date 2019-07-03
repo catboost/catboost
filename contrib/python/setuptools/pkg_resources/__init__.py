@@ -3222,9 +3222,14 @@ class ResProvider(EmptyProvider):
     def __init__(self, prefix):
         if hasattr(prefix, '__file__'):
             key = prefix.__file__.rsplit('/', 1)[0]
-            self.egg_info = self.module_path = 'resfs/file/{}/'.format(key)
+            self.module_path = 'resfs/file/{}/'.format(key)
+            # Метаданные лежат на уровень выше самого пакета
+            key = key.rsplit('/', 1)[0]
+            self.egg_info = 'resfs/file/{}/.dist-info/'.format(key)
         else:
-            self.egg_info = self.module_path = prefix
+            # Сюда попадаем только из ResDistribution, который работает
+            # только метаданными, поэтому self.module_path не используется
+            self.egg_info = prefix
 
     @staticmethod
     def from_module(module):

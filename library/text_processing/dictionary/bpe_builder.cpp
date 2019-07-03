@@ -88,13 +88,22 @@ void TBpeDictionaryBuilder::CalcMostFrequentUnits() {
     using TPair = std::pair<TTokenId, TTokenId>;
     struct TPairStat {
         ui64 Count = 0;
-        TTokenId SmallerTokenId = 0;
-        TTokenId LargerTokenId = 0;
+        TPair Pair = {0, 0};
         // ui32 is used for lower memory consumption
         TDenseHashSet<ui32, THash<ui32>, /*maxLoadFactor*/75, /*logInitSize*/0> SrcStrIds{/*emptyKey*/Max<ui32>()};
 
         bool operator<(const TPairStat& other) const {
-            return std::tie(Count, other.SmallerTokenId, other.LargerTokenId) < std::tie(other.Count, SmallerTokenId, LargerTokenId);
+            return std::tie(
+                Count,
+                Min(other.Pair.first, other.Pair.second),
+                Max(other.Pair.first, other.Pair.second),
+                other.Pair.first
+            ) < std::tie(
+                other.Count,
+                Min(Pair.first, Pair.second),
+                Max(Pair.first, Pair.second),
+                Pair.first
+            );
         }
     };
     using TPairStats = THeapDict<TPair, TPairStat>;
@@ -107,8 +116,7 @@ void TBpeDictionaryBuilder::CalcMostFrequentUnits() {
         for (size_t j = 0; j + 1 < line.size(); ++j) {
             TPair pair(line[j], line[j + 1]);
             auto& stat = pairStats[pair];
-            stat.SmallerTokenId = Min(pair.first, pair.second);
-            stat.LargerTokenId = Max(pair.first, pair.second);
+            stat.Pair = pair;
             stat.Count += count;
             stat.SrcStrIds.Insert(i);
         }
@@ -157,12 +165,14 @@ void TBpeDictionaryBuilder::CalcMostFrequentUnits() {
                     if (i - 1) {
                         TPair left(line[i - 2], line[i - 1]);
                         auto& stat = pairStats[left];
+                        stat.Pair = left;
                         stat.Count += lineCount;
                         stat.SrcStrIds.Insert(strId);
                     }
                     if (i < line.size()) {
                         TPair right(line[i - 1], line[i]);
                         auto& stat = pairStats[right];
+                        stat.Pair = right;
                         stat.Count += lineCount;
                         stat.SrcStrIds.Insert(strId);
                     }
