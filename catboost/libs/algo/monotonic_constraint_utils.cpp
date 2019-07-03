@@ -53,6 +53,22 @@ TVector<ui32> BuildLinearOrderOnLeafsOfMonotonicSubtree(
     return result;
 }
 
+TVector<TVector<ui32>> BuildMonotonicLinearOrdersOnLeafs(const TVector<int>& treeMonotonicConstraints) {
+    int nonMonotonicFeatureCount = 0;
+    for (ui32 i = 0; i < treeMonotonicConstraints.size(); ++i) {
+        if (treeMonotonicConstraints[i] == 0) {
+            nonMonotonicFeatureCount += 1;
+        }
+    }
+    TVector<TVector<ui32>> result;
+    const ui32 subTreeCount = (1u << nonMonotonicFeatureCount);
+    result.reserve(subTreeCount);
+    for (ui32 subTreeIndex=0; subTreeIndex < subTreeCount; ++subTreeIndex) {
+        result.push_back(BuildLinearOrderOnLeafsOfMonotonicSubtree(treeMonotonicConstraints, subTreeIndex));
+    }
+    return result;
+}
+
 void CalcOneDimensionalIsotonicRegression(
     const TVector<double>& values,
     const TVector<double>& weight,
@@ -91,6 +107,21 @@ void CalcOneDimensionalIsotonicRegression(
         }
     }
 }
+
+TVector<int> GetTreeMonotoneConstraints(const TSplitTree& tree, const TVector<int>& monotoneConstraints) {
+    TVector<int> treeMonotoneConstraints(tree.GetDepth(), 0);
+    if (!monotoneConstraints.empty()) {
+        for (int splitIndex = 0; splitIndex < tree.GetDepth(); ++splitIndex) {
+            if (tree.Splits[splitIndex].Type == ESplitType::FloatFeature) {
+                int splitFeatureId = tree.Splits[splitIndex].FeatureIdx;
+                Y_ASSERT(splitFeatureId != -1);
+                treeMonotoneConstraints[splitIndex] = monotoneConstraints[splitFeatureId];
+            }
+        }
+    }
+    return treeMonotoneConstraints;
+}
+
 
 bool CheckMonotonicity(const TVector<ui32>& indexOrder, const TVector<double>& values) {
     for (ui32 i = 0; i + 1 < indexOrder.size(); ++i) {

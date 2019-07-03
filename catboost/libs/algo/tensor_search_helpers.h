@@ -48,6 +48,12 @@ public:
         const NCB::TQuantizedForCPUObjectsDataProvider& objectsData,
         ui32 oneHotMaxSize
     ) const;
+
+    TSplit GetSplit(
+        int binId,
+        const NCB::TQuantizedForCPUObjectsDataProvider& objectsData,
+        ui32 oneHotMaxSize
+    ) const;
 };
 
 struct TCandidatesInfoList {

@@ -7,6 +7,8 @@
 #include <util/system/types.h>
 #include <util/generic/ymath.h>
 #include <util/generic/maybe.h>
+#include <util/string/builder.h>
+
 
 static double Round(double number, int precision) {
     const double multiplier = pow(10, precision);
@@ -160,6 +162,62 @@ static bool IsConstTarget(const NCB::TDataMetaInfo& dataMetaInfo) {
     return dataMetaInfo.TargetStats.Defined() && dataMetaInfo.TargetStats->MinValue == dataMetaInfo.TargetStats->MaxValue;
 }
 
+void UpdateMonotoneConstraints(
+    const NCB::TFeaturesLayout& featuresLayout,
+    NCatboostOptions::TCatBoostOptions* catBoostOptions
+) {
+    TVector<int>* monotoneConstraints = &catBoostOptions->ObliviousTreeOptions->MonotoneConstraints.Get();
+    const auto& optionsConstRef = *catBoostOptions;
+
+    // TODO(strashila): support monotonic constraints for pairwise loss
+    CB_ENSURE(
+        monotoneConstraints->empty() ||
+        !IsPairwiseScoring(optionsConstRef.LossFunctionDescription->GetLossFunction()),
+        "Monotone constraints is unsupported for pairwise loss functions."
+    );
+    // TODO(strashila): support distributed monotonic constraints
+    CB_ENSURE(
+        monotoneConstraints->empty() || optionsConstRef.SystemOptions->IsSingleHost(),
+        "Monotone constraints is unsupported for distributed learning."
+    );
+
+    CB_ENSURE(
+        monotoneConstraints->size() <= featuresLayout.GetExternalFeatureCount(),
+        "length of monotone constraints vector exceeds number of features."
+    );
+    const THashSet<int> validMonotoneConstraintValues = {-1, 0, 1};
+    CB_ENSURE(
+        AllOf(*monotoneConstraints, [&] (int val) { return validMonotoneConstraintValues.contains(val); }),
+        TStringBuilder() << "Monotone constraints should be values in {-1, 0, 1}. Got:\n" <<
+        "(" << JoinVectorIntoString(*monotoneConstraints, ",") << ")"
+    );
+    CB_ENSURE(
+        AllOf(
+            xrange(monotoneConstraints->size()),
+            [&] (int featureIndex) {
+                return (
+                    (*monotoneConstraints)[featureIndex] == 0 ||
+                    featuresLayout.GetExternalFeatureType(featureIndex) == EFeatureType::Float
+                );
+            }
+        ),
+        "Monotone constraints may be imposed only on float features."
+    );
+
+    // Ensure that monotoneConstraints size is zero or equals to the number of float features.
+    if (AllOf(*monotoneConstraints, [] (int constraint) { return constraint == 0; })) {
+        monotoneConstraints->clear();
+    } else {
+        TVector<int> floatFeatureMonotonicConstraints(featuresLayout.GetFloatFeatureCount(), 0);
+        for (ui32 floatFeatureId : xrange<ui32>(featuresLayout.GetFloatFeatureCount())) {
+            floatFeatureMonotonicConstraints[floatFeatureId] = (*monotoneConstraints)[
+                featuresLayout.GetExternalFeatureIdx(floatFeatureId, EFeatureType::Float)
+            ];
+        }
+        *monotoneConstraints = floatFeatureMonotonicConstraints;
+    }
+}
+
 void SetDataDependentDefaults(
     const NCB::TDataMetaInfo& trainDataMetaInfo,
     const TMaybe<NCB::TDataMetaInfo>& testDataMetaInfo,
@@ -185,4 +243,5 @@ void SetDataDependentDefaults(
         catBoostOptions
     );
     UpdateLeavesEstimationIterations(trainDataMetaInfo, catBoostOptions);
+    UpdateMonotoneConstraints(*trainDataMetaInfo.FeaturesLayout.Get(), catBoostOptions);
 }

@@ -81,7 +81,7 @@ void UpdateApproxDeltas(
     NPar::TLocalExecutor::TExecRangeParams blockParams(0, docCount);
     blockParams.SetBlockSize(1000);
 
-    const auto GetUpdateApproxBlockLambda = [&] (auto boolConst) -> std::function<void(int)> {
+    const auto getUpdateApproxBlockLambda = [&] (auto boolConst) -> std::function<void(int)> {
         return [=] (int blockIdx) {
             UpdateApproxBlock</*StoreExpApprox*/ boolConst.value>(
                 blockParams,
@@ -93,7 +93,7 @@ void UpdateApproxDeltas(
         };
     };
     const auto updateApproxBlockLambda = (storeExpApprox ?
-        GetUpdateApproxBlockLambda(std::true_type()) : GetUpdateApproxBlockLambda(std::false_type())
+        getUpdateApproxBlockLambda(std::true_type()) : getUpdateApproxBlockLambda(std::false_type())
     );
     localExecutor->ExecRange(
         updateApproxBlockLambda,
@@ -421,32 +421,44 @@ void CalcLeafDeltasSimple(
     }
 }
 
-static void CalcMonotonicDeltasSimple(
-    const TVector<TSum> &leafDers,
-    const TVector<int> &treeMonotoneConstraints,
-    TVector<double> *leafDeltas
+static void CalcMonotonicLeafDeltasSimple(
+    const TVector<TSum>& leafDers,
+    const ELeavesEstimation& estimationMethod,
+    const double scaledL2Regularizer,
+    const TVector<double>& currLeafValues,
+    const TVector<TVector<ui32>>& leafMonotonicLinearOrders,
+    TVector<double>* leafDeltas
 ) {
-    const ui32 leafCount = leafDers.ysize();
-    TVector<double> leafWeights(leafCount, 0);
-    TVector<double> leafValues(leafCount, 0);
-    for (ui32 i = 0; i < leafCount; ++i) {
-        leafWeights[i] = leafDers[i].SumWeights;
-        leafValues[i] = (*leafDeltas)[i];
-    }
-
-    int nonMonotonicFeatureCount = 0;
-    for (ui32 i = 0; i < treeMonotoneConstraints.size(); ++i) {
-        if (treeMonotoneConstraints[i] == 0) {
-            nonMonotonicFeatureCount += 1;
+    const int leafCount = leafDers.size();
+    leafDeltas->yresize(leafCount);
+    TVector<double> leafWeights(leafCount);
+    if (estimationMethod == ELeavesEstimation::Gradient) {
+        for (int leafIndex = 0; leafIndex < leafCount; ++leafIndex) {
+            const double leafWeight = leafDers[leafIndex].SumWeights + scaledL2Regularizer;
+            leafWeights[leafIndex] = leafWeight;
+            (*leafDeltas)[leafIndex] = leafDers[leafIndex].SumDer / leafWeight;
+        }
+    } else {
+        Y_ASSERT(estimationMethod == ELeavesEstimation::Newton);
+        for (int leafIndex = 0; leafIndex < leafCount; ++leafIndex) {
+            const double leafWeight = -leafDers[leafIndex].SumDer2 + scaledL2Regularizer;
+            leafWeights[leafIndex] = leafWeight;
+            (*leafDeltas)[leafIndex] = leafDers[leafIndex].SumDer / leafWeight;
         }
     }
-
-    const ui32 subTreeCount = (1 << nonMonotonicFeatureCount);
-    for (ui32 subTreeIndex=0; subTreeIndex < subTreeCount; ++subTreeIndex) {
-        TVector<ui32> indexOrder = BuildLinearOrderOnLeafsOfMonotonicSubtree(
-            treeMonotoneConstraints, subTreeIndex);
-        CalcOneDimensionalIsotonicRegression(leafValues, leafWeights, indexOrder, leafDeltas);
-        Y_VERIFY_DEBUG(CheckMonotonicity(indexOrder, *leafDeltas));
+    TVector<double> updatedLeafValues = currLeafValues;
+    AddElementwise(*leafDeltas, &updatedLeafValues);
+    for (const auto& linearOrder : leafMonotonicLinearOrders) {
+        CalcOneDimensionalIsotonicRegression(
+            updatedLeafValues,
+            leafWeights,
+            linearOrder,
+            &updatedLeafValues
+        );
+        Y_VERIFY_DEBUG(CheckMonotonicity(linearOrder, updatedLeafValues), "Tree monotonization failed");
+    }
+    for (int leafIndex = 0; leafIndex < leafCount; ++leafIndex) {
+        (*leafDeltas)[leafIndex] = updatedLeafValues[leafIndex] - currLeafValues[leafIndex];
     }
 }
 
@@ -656,6 +668,8 @@ void GradientWalker(
         calculateStep(bucketHistoryIdx, *point, &step);
         copyPoint(*point, &startPoint);
         double scale = 1.0;
+        // if monotone constraints are nontrivial the scale should be less or equal to 1.0.
+        // Otherwise monotonicity may be violated.
         do {
             const auto scaledStep = ScaleElementwise(scale, step);
             updatePoint(bucketHistoryIdx, scaledStep, point);
@@ -692,6 +706,7 @@ static void CalcApproxDeltaSimple(
     const IDerCalcer& error,
     const TVector<TIndexType>& indices,
     ui64 randomSeed,
+    const TVector<int>& treeMonotoneConstraints,
     TLearnContext* ctx,
     TVector<TVector<double>>* approxDeltas,
     TVector<TVector<double>>* sumLeafDeltas
@@ -704,12 +719,23 @@ static void CalcApproxDeltaSimple(
     );
     TVector<TDers> weightedDers;
     weightedDers.yresize(scratchSize); // iteration scratch space
+    sumLeafDeltas->assign(1, TVector<double>(leafCount));
 
     const auto treeLearnerOptions = ctx->Params.ObliviousTreeOptions.Get();
     const ui32 gradientIterations = treeLearnerOptions.LeavesEstimationIterations;
     const auto estimationMethod = treeLearnerOptions.LeavesEstimationMethod;
     TVector<TSum> leafDers(leafCount, TSum()); // iteration scratch space
     TArray2D<double> pairwiseBuckets; // iteration scratch space
+    const bool treeHasMonotonicConstraints = AnyOf(
+            treeMonotoneConstraints,
+            [] (int val) { return val != 0;}
+    );
+    const auto leafMonotonicLinearOrders = (
+            treeHasMonotonicConstraints ?
+            BuildMonotonicLinearOrdersOnLeafs(treeMonotoneConstraints) :
+            TVector<TVector<ui32>>()
+    );
+
     const auto leafUpdaterFunc = [&] (
         int bucketHistoryIdx,
         const TVector<TVector<double>>& approxDeltas,
@@ -736,14 +762,28 @@ static void CalcApproxDeltaSimple(
             &pairwiseBuckets,
             &weightedDers
         );
-        CalcLeafDeltasSimple(
-            leafDers,
-            pairwiseBuckets,
-            ctx->Params,
-            bt.BodySumWeight,
-            bt.BodyFinish,
-            &(*leafDeltas)[0]
-        );
+        if (treeHasMonotonicConstraints) {
+            const double scaledL2Regularizer = (
+                ctx->Params.ObliviousTreeOptions->L2Reg * (fold.GetSumWeight() / fold.GetLearnSampleCount())
+            );
+            CalcMonotonicLeafDeltasSimple(
+                leafDers,
+                estimationMethod,
+                scaledL2Regularizer,
+                (*sumLeafDeltas)[0],
+                leafMonotonicLinearOrders,
+                &(*leafDeltas)[0]
+            );
+        } else {
+            CalcLeafDeltasSimple(
+                leafDers,
+                pairwiseBuckets,
+                ctx->Params,
+                bt.BodySumWeight,
+                bt.BodyFinish,
+                &(*leafDeltas)[0]
+            );
+        }
     };
 
     const float l2Regularizer = treeLearnerOptions.L2Reg;
@@ -840,14 +880,15 @@ static void CalcLeafValuesSimple(
     const IDerCalcer& error,
     const TFold& fold,
     const TVector<TIndexType>& indices,
+    const TVector<int>& treeMonotoneConstraints,
     TLearnContext* ctx,
-    TVector<TVector<double>>* sumLeafDeltas,
-    TVector<int>& treeMonotoneConstraints
+    TVector<TVector<double>>* sumLeafDeltas
 ) {
     const int scratchSize = error.GetErrorType() == EErrorType::PerObjectError
         ? APPROX_BLOCK_SIZE * CB_THREAD_LIMIT
         : fold.GetLearnSampleCount();
     TVector<TDers> weightedDers(scratchSize);
+    sumLeafDeltas->assign(1, TVector<double>(leafCount));
 
     const int queryCount = fold.LearnQueriesInfo.ysize();
     const auto& learnerOptions = ctx->Params.ObliviousTreeOptions.Get();
@@ -855,6 +896,16 @@ static void CalcLeafValuesSimple(
     const auto estimationMethod = learnerOptions.LeavesEstimationMethod;
     auto& localExecutor = *ctx->LocalExecutor;
     const TFold::TBodyTail& bt = fold.BodyTailArr[0];
+
+    const bool treeHasMonotonicConstraints = AnyOf(
+        treeMonotoneConstraints,
+        [] (int val) { return val != 0;}
+    );
+    const auto leafMonotonicLinearOrders = (
+        treeHasMonotonicConstraints ?
+        BuildMonotonicLinearOrdersOnLeafs(treeMonotoneConstraints) :
+        TVector<TVector<ui32>>()
+    );
 
     TVector<TVector<double>> approxes(
         1,
@@ -888,17 +939,28 @@ static void CalcLeafValuesSimple(
             &pairwiseBuckets,
             &weightedDers
         );
-        CalcLeafDeltasSimple(
-            leafDers,
-            pairwiseBuckets,
-            ctx->Params,
-            fold.GetSumWeight(),
-            fold.GetLearnSampleCount(),
-            &(*leafDeltas)[0]
-        );
 
-        if (!ctx->Params.ObliviousTreeOptions->MonotoneConstraints.Get().empty()) {
-            CalcMonotonicDeltasSimple(leafDers, treeMonotoneConstraints, &(*leafDeltas)[0]);
+        if (treeHasMonotonicConstraints) {
+            const double scaledL2Regularizer = (
+                ctx->Params.ObliviousTreeOptions->L2Reg * (fold.GetSumWeight() / fold.GetLearnSampleCount())
+            );
+            CalcMonotonicLeafDeltasSimple(
+                leafDers,
+                estimationMethod,
+                scaledL2Regularizer,
+                (*sumLeafDeltas)[0],
+                leafMonotonicLinearOrders,
+                &(*leafDeltas)[0]
+            );
+        } else {
+            CalcLeafDeltasSimple(
+                leafDers,
+                pairwiseBuckets,
+                ctx->Params,
+                fold.GetSumWeight(),
+                fold.GetLearnSampleCount(),
+                &(*leafDeltas)[0]
+            );
         }
     };
 
@@ -947,7 +1009,6 @@ static void CalcLeafValuesSimple(
         CopyApprox(src, dst, ctx->LocalExecutor);
     };
 
-    sumLeafDeltas->assign(1, TVector<double>(leafCount));
     GradientWalker(
         isTrivialWalker,
         gradientIterations,
@@ -976,20 +1037,13 @@ void CalcLeafValues(
     Y_VERIFY(fold.GetLearnSampleCount() == data.Learn->GetObjectCount());
     const int leafCount = tree.GetLeafCount();
 
-    TVector<int> treeMonotoneConstraints(tree.GetDepth(), 0);
-    if (!ctx->Params.ObliviousTreeOptions->MonotoneConstraints.Get().empty()) {
-        for (int i = 0; i < tree.GetDepth(); ++i) {
-            int splitFeatureId = tree.Splits[i].FeatureIdx;
-            if (splitFeatureId == -1) {
-                treeMonotoneConstraints[i] = 0;
-            } else {
-                treeMonotoneConstraints[i] = ctx->Params.ObliviousTreeOptions->MonotoneConstraints.Get()[splitFeatureId];
-            }
-        }
-    }
+    const auto treeMonotoneConstraints = GetTreeMonotoneConstraints(
+        tree,
+        ctx->Params.ObliviousTreeOptions->MonotoneConstraints.Get()
+    );
 
     if (approxDimension == 1) {
-        CalcLeafValuesSimple(leafCount, error, fold, *indices, ctx, leafDeltas, treeMonotoneConstraints);
+        CalcLeafValuesSimple(leafCount, error, fold, *indices, treeMonotoneConstraints, ctx, leafDeltas);
     } else {
         CalcLeafValuesMulti(leafCount, error, fold, *indices, ctx, leafDeltas);
     }
@@ -1008,6 +1062,11 @@ void CalcApproxForLeafStruct(
     const TVector<TIndexType> indices = BuildIndices(fold, tree, data.Learn, data.Test, ctx->LocalExecutor);
     const int approxDimension = ctx->LearnProgress->ApproxDimension;
     const int leafCount = tree.GetLeafCount();
+    const auto treeMonotoneConstraints = GetTreeMonotoneConstraints(
+        tree,
+        ctx->Params.ObliviousTreeOptions->MonotoneConstraints.Get()
+    );
+
     TVector<ui64> randomSeeds;
     if (approxDimension == 1) {
         randomSeeds = GenRandUI64Vector(fold.BodyTailArr.ysize(), randomSeed);
@@ -1026,6 +1085,7 @@ void CalcApproxForLeafStruct(
                 }
             }
             if (approxDimension == 1) {
+                TVector<TVector<double>> sumLeafDeltas;
                 CalcApproxDeltaSimple(
                     fold,
                     bt,
@@ -1033,9 +1093,10 @@ void CalcApproxForLeafStruct(
                     error,
                     indices,
                     randomSeeds[bodyTailId],
+                    treeMonotoneConstraints,
                     ctx,
                     &approxDeltas,
-                    /*sumLeafDeltas*/ nullptr
+                    &sumLeafDeltas
                 );
             } else {
                 CalcApproxDeltaMulti(

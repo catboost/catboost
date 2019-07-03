@@ -8,6 +8,7 @@
 #include "split.h"
 #include "tensor_search_helpers.h"
 #include "tree_print.h"
+#include "monotonic_constraint_utils.h"
 
 #include <catboost/libs/data_new/feature_index.h>
 #include <catboost/libs/data_new/packed_binary_features.h>
@@ -525,7 +526,7 @@ static void SelectCtrsToDropAfterCalc(
 
 static void CalcBestScore(
     const TTrainingForCPUDataProviders& data,
-    int currentDepth,
+    const TSplitTree& currentTree,
     ui64 randSeed,
     double scoreStDev,
     TCandidatesContext* candidatesContext,
@@ -534,6 +535,12 @@ static void CalcBestScore(
 
     const TFlatPairsInfo pairs = UnpackPairsFromQueries(fold->LearnQueriesInfo);
     TCandidateList& candList = candidatesContext->CandidateList;
+    const auto& monotonicConstraints = ctx->Params.ObliviousTreeOptions->MonotoneConstraints.Get();
+    const TVector<int> currTreeMonotonicConstraints = (
+        monotonicConstraints.empty()
+        ? TVector<int>()
+        : GetTreeMonotoneConstraints(currentTree, monotonicConstraints)
+    );
     ctx->LocalExecutor->ExecRange(
         [&](int id) {
             auto& candidate = candList[id];
@@ -554,7 +561,8 @@ static void CalcBestScore(
             TVector<TVector<double>> allScores(candidate.Candidates.size());
             ctx->LocalExecutor->ExecRange(
                 [&](int oneCandidate) {
-                    const auto& splitEnsemble = candidate.Candidates[oneCandidate].SplitEnsemble;
+                    const auto& candidateInfo = candidate.Candidates[oneCandidate];
+                    const auto& splitEnsemble = candidateInfo.SplitEnsemble;
 
                     if (splitEnsemble.IsSplitOfType(ESplitType::OnlineCtr)) {
                         const auto& proj = splitEnsemble.SplitCandidate.Ctr.Projection;
@@ -569,9 +577,11 @@ static void CalcBestScore(
                         fold,
                         pairs,
                         ctx->Params,
-                        splitEnsemble,
-                        currentDepth,
+                        candidateInfo,
+                        currentTree.GetDepth(),
                         ctx->UseTreeLevelCaching(),
+                        currTreeMonotonicConstraints,
+                        monotonicConstraints,
                         ctx->LocalExecutor,
                         &ctx->PrevTreeLevelStats,
                         /*stats3d*/nullptr,
@@ -695,7 +705,7 @@ void GreedyTensorSearch(
             const ui64 randSeed = ctx->LearnProgress->Rand.GenRand();
             CalcBestScore(
                 data,
-                currentSplitTree.GetDepth(),
+                currentSplitTree,
                 randSeed,
                 scoreStDev,
                 &candidatesContext,
