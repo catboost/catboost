@@ -1181,6 +1181,8 @@ class GnuCompiler(Compiler):
                     '-Wno-pass-failed',
                 ))
 
+                self.c_foptions.append('-faligned-allocation')
+
         if self.tc.is_gcc and self.tc.version_at_least(4, 9):
             self.c_foptions.append('-fno-delete-null-pointer-checks')
             self.c_foptions.append('-fabi-version=8')
