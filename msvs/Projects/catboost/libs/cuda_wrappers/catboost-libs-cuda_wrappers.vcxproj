@@ -127,6 +127,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\cuda_wrappers\base.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\cuda_wrappers\cuda_event.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\cuda_wrappers\cuda_vec.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\cuda_wrappers\exception.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\cuda_wrappers\run_gpu_program.h"/>
   </ItemGroup>

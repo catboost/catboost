@@ -105,6 +105,7 @@ $(BUILD_ROOT)/catboost/libs/model_interface/libcatboostmodel.so.1\
         $(BUILD_ROOT)/contrib/libs/coreml/libcontrib-libs-coreml.a\
         $(BUILD_ROOT)/contrib/libs/onnx/proto/liblibs-onnx-proto.a\
         $(BUILD_ROOT)/contrib/libs/onnx/libcontrib-libs-onnx.a\
+        $(BUILD_ROOT)/library/fast_exp/liblibrary-fast_exp.a\
         $(BUILD_ROOT)/library/svnversion/liblibrary-svnversion.a\
         $(BUILD_ROOT)/catboost/libs/model/libcatboost-libs-model.a\
         $(BUILD_ROOT)/catboost/libs/model_interface/c_api.cpp.pic.o\
@@ -116,10 +117,10 @@ $(BUILD_ROOT)/catboost/libs/model_interface/libcatboostmodel.so.1\
         $(SOURCE_ROOT)/catboost/libs/model_interface/calcer.exports\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/model_interface'
-	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name catboostmodel -o catboost/libs/model_interface/libcatboostmodel.so.1.mf -t UNKNOWN -Ya,lics -Ya,peers contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a util/charset/libutil-charset.a contrib/libs/zlib/libcontrib-libs-zlib.a contrib/libs/double-conversion/libcontrib-libs-double-conversion.a util/libyutil.a catboost/libs/cat_feature/libcatboost-libs-cat_feature.a catboost/libs/index_range/libcatboost-libs-index_range.a library/containers/2d_array/liblibrary-containers-2d_array.a library/binsaver/liblibrary-binsaver.a library/containers/dense_hash/liblibrary-containers-dense_hash.a catboost/libs/data_types/libcatboost-libs-data_types.a library/object_factory/liblibrary-object_factory.a catboost/libs/data_util/libcatboost-libs-data_util.a tools/enum_parser/enum_serialization_runtime/libtools-enum_parser-enum_serialization_runtime.a library/logger/liblibrary-logger.a library/logger/global/liblibrary-logger-global.a catboost/libs/logging/libcatboost-libs-logging.a library/colorizer/liblibrary-colorizer.a library/dbg_output/liblibrary-dbg_output.a contrib/libs/crcutil/libcontrib-libs-crcutil.a library/digest/crc32c/liblibrary-digest-crc32c.a contrib/libs/nayuki_md5/libcontrib-libs-nayuki_md5.a contrib/libs/base64/avx2/liblibs-base64-avx2.a contrib/libs/base64/ssse3/liblibs-base64-ssse3.a contrib/libs/base64/neon32/liblibs-base64-neon32.a contrib/libs/base64/neon64/liblibs-base64-neon64.a contrib/libs/base64/plain32/liblibs-base64-plain32.a contrib/libs/base64/plain64/liblibs-base64-plain64.a library/string_utils/base64/liblibrary-string_utils-base64.a library/digest/md5/liblibrary-digest-md5.a library/malloc/api/liblibrary-malloc-api.a library/pop_count/liblibrary-pop_count.a library/threading/local_executor/liblibrary-threading-local_executor.a catboost/libs/helpers/libcatboost-libs-helpers.a catboost/libs/ctr_description/libcatboost-libs-ctr_description.a contrib/libs/flatbuffers/libcontrib-libs-flatbuffers.a library/json/common/liblibrary-json-common.a library/json/fast_sax/liblibrary-json-fast_sax.a library/json/writer/liblibrary-json-writer.a library/string_utils/relaxed_escaper/liblibrary-string_utils-relaxed_escaper.a library/json/liblibrary-json.a library/getopt/small/liblibrary-getopt-small.a library/grid_creator/liblibrary-grid_creator.a library/containers/flat_hash/lib/libcontainers-flat_hash-lib.a library/containers/flat_hash/liblibrary-containers-flat_hash.a library/text_processing/dictionary/liblibrary-text_processing-dictionary.a catboost/libs/options/libcatboost-libs-options.a library/blockcodecs/core/liblibrary-blockcodecs-core.a contrib/libs/brotli/common/liblibs-brotli-common.a contrib/libs/brotli/dec/liblibs-brotli-dec.a contrib/libs/brotli/enc/liblibs-brotli-enc.a contrib/libs/libbz2/libcontrib-libs-libbz2.a contrib/libs/fastlz/libcontrib-libs-fastlz.a contrib/libs/zstd06/libcontrib-libs-zstd06.a contrib/libs/xxhash/libcontrib-libs-xxhash.a contrib/libs/lz4/libcontrib-libs-lz4.a contrib/libs/lz4/generated/liblibs-lz4-generated.a contrib/libs/lzmasdk/libcontrib-libs-lzmasdk.a contrib/libs/snappy/libcontrib-libs-snappy.a contrib/libs/zstd/libcontrib-libs-zstd.a library/blockcodecs/liblibrary-blockcodecs.a library/resource/liblibrary-resource.a catboost/libs/model/model_export/liblibs-model-model_export.a contrib/libs/protobuf/libcontrib-libs-protobuf.a contrib/libs/coreml/libcontrib-libs-coreml.a contrib/libs/onnx/proto/liblibs-onnx-proto.a contrib/libs/onnx/libcontrib-libs-onnx.a library/svnversion/liblibrary-svnversion.a catboost/libs/model/libcatboost-libs-model.a
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name catboostmodel -o catboost/libs/model_interface/libcatboostmodel.so.1.mf -t UNKNOWN -Ya,lics -Ya,peers contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a util/charset/libutil-charset.a contrib/libs/zlib/libcontrib-libs-zlib.a contrib/libs/double-conversion/libcontrib-libs-double-conversion.a util/libyutil.a catboost/libs/cat_feature/libcatboost-libs-cat_feature.a catboost/libs/index_range/libcatboost-libs-index_range.a library/containers/2d_array/liblibrary-containers-2d_array.a library/binsaver/liblibrary-binsaver.a library/containers/dense_hash/liblibrary-containers-dense_hash.a catboost/libs/data_types/libcatboost-libs-data_types.a library/object_factory/liblibrary-object_factory.a catboost/libs/data_util/libcatboost-libs-data_util.a tools/enum_parser/enum_serialization_runtime/libtools-enum_parser-enum_serialization_runtime.a library/logger/liblibrary-logger.a library/logger/global/liblibrary-logger-global.a catboost/libs/logging/libcatboost-libs-logging.a library/colorizer/liblibrary-colorizer.a library/dbg_output/liblibrary-dbg_output.a contrib/libs/crcutil/libcontrib-libs-crcutil.a library/digest/crc32c/liblibrary-digest-crc32c.a contrib/libs/nayuki_md5/libcontrib-libs-nayuki_md5.a contrib/libs/base64/avx2/liblibs-base64-avx2.a contrib/libs/base64/ssse3/liblibs-base64-ssse3.a contrib/libs/base64/neon32/liblibs-base64-neon32.a contrib/libs/base64/neon64/liblibs-base64-neon64.a contrib/libs/base64/plain32/liblibs-base64-plain32.a contrib/libs/base64/plain64/liblibs-base64-plain64.a library/string_utils/base64/liblibrary-string_utils-base64.a library/digest/md5/liblibrary-digest-md5.a library/malloc/api/liblibrary-malloc-api.a library/pop_count/liblibrary-pop_count.a library/threading/local_executor/liblibrary-threading-local_executor.a catboost/libs/helpers/libcatboost-libs-helpers.a catboost/libs/ctr_description/libcatboost-libs-ctr_description.a contrib/libs/flatbuffers/libcontrib-libs-flatbuffers.a library/json/common/liblibrary-json-common.a library/json/fast_sax/liblibrary-json-fast_sax.a library/json/writer/liblibrary-json-writer.a library/string_utils/relaxed_escaper/liblibrary-string_utils-relaxed_escaper.a library/json/liblibrary-json.a library/getopt/small/liblibrary-getopt-small.a library/grid_creator/liblibrary-grid_creator.a library/containers/flat_hash/lib/libcontainers-flat_hash-lib.a library/containers/flat_hash/liblibrary-containers-flat_hash.a library/text_processing/dictionary/liblibrary-text_processing-dictionary.a catboost/libs/options/libcatboost-libs-options.a library/blockcodecs/core/liblibrary-blockcodecs-core.a contrib/libs/brotli/common/liblibs-brotli-common.a contrib/libs/brotli/dec/liblibs-brotli-dec.a contrib/libs/brotli/enc/liblibs-brotli-enc.a contrib/libs/libbz2/libcontrib-libs-libbz2.a contrib/libs/fastlz/libcontrib-libs-fastlz.a contrib/libs/zstd06/libcontrib-libs-zstd06.a contrib/libs/xxhash/libcontrib-libs-xxhash.a contrib/libs/lz4/libcontrib-libs-lz4.a contrib/libs/lz4/generated/liblibs-lz4-generated.a contrib/libs/lzmasdk/libcontrib-libs-lzmasdk.a contrib/libs/snappy/libcontrib-libs-snappy.a contrib/libs/zstd/libcontrib-libs-zstd.a library/blockcodecs/liblibrary-blockcodecs.a library/resource/liblibrary-resource.a catboost/libs/model/model_export/liblibs-model-model_export.a contrib/libs/protobuf/libcontrib-libs-protobuf.a contrib/libs/coreml/libcontrib-libs-coreml.a contrib/libs/onnx/proto/liblibs-onnx-proto.a contrib/libs/onnx/libcontrib-libs-onnx.a library/fast_exp/liblibrary-fast_exp.a library/svnversion/liblibrary-svnversion.a catboost/libs/model/libcatboost-libs-model.a
 	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/vcs_info.py' '$(VCS)/vcs.json' '$(BUILD_ROOT)/catboost/libs/model_interface/libcatboostmodel.so.1.__vcs_version__.c' '$(SOURCE_ROOT)/build/scripts/c_templates/svn_interface.c'
 	${CC} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model_interface/libcatboostmodel.so.1.__vcs_version__.c.pic.o' '$(BUILD_ROOT)/catboost/libs/model_interface/libcatboostmodel.so.1.__vcs_version__.c' '-I$(SOURCE_ROOT)' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -nostdinc++ -msse2 -msse3 -mssse3
-	cd $(BUILD_ROOT) && '$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_dyn_lib.py' --target '$(BUILD_ROOT)/catboost/libs/model_interface/libcatboostmodel.so.1' --arch=LINUX --soname '$(BUILD_ROOT)/catboost/libs/model_interface/libcatboostmodel.so' --fix-elf '$(BUILD_ROOT)/tools/fix_elf/fix_elf' ${CXX} catboost/libs/data_util/line_data_reader.cpp.pic.o catboost/libs/data_util/exists_checker.cpp.pic.o library/blockcodecs/codecs/brotli/brotli.cpp.pic.o library/blockcodecs/codecs/bzip/bzip.cpp.pic.o library/blockcodecs/codecs/fastlz/fastlz.cpp.pic.o library/blockcodecs/codecs/legacy_zstd06/legacy_zstd06.cpp.pic.o library/blockcodecs/codecs/lz4/lz4.cpp.pic.o library/blockcodecs/codecs/lzma/lzma.cpp.pic.o library/blockcodecs/codecs/snappy/snappy.cpp.pic.o library/blockcodecs/codecs/zlib/zlib.cpp.pic.o library/blockcodecs/codecs/zstd/zstd.cpp.pic.o catboost/libs/model/model_export/1cc3e14d43bed0c73ca4b4b233.cpp.pic.o '$(BUILD_ROOT)/catboost/libs/model_interface/libcatboostmodel.so.1.__vcs_version__.c.pic.o' '$(BUILD_ROOT)/catboost/libs/model_interface/c_api.cpp.pic.o' -o '$(BUILD_ROOT)/catboost/libs/model_interface/libcatboostmodel.so.1' -shared -Wl,-soname,libcatboostmodel.so.1 --target=x86_64-linux-gnu -Wl,--start-group contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a util/charset/libutil-charset.a contrib/libs/zlib/libcontrib-libs-zlib.a contrib/libs/double-conversion/libcontrib-libs-double-conversion.a util/libyutil.a catboost/libs/cat_feature/libcatboost-libs-cat_feature.a catboost/libs/index_range/libcatboost-libs-index_range.a library/containers/2d_array/liblibrary-containers-2d_array.a library/binsaver/liblibrary-binsaver.a library/containers/dense_hash/liblibrary-containers-dense_hash.a catboost/libs/data_types/libcatboost-libs-data_types.a library/object_factory/liblibrary-object_factory.a catboost/libs/data_util/libcatboost-libs-data_util.a tools/enum_parser/enum_serialization_runtime/libtools-enum_parser-enum_serialization_runtime.a library/logger/liblibrary-logger.a library/logger/global/liblibrary-logger-global.a catboost/libs/logging/libcatboost-libs-logging.a library/colorizer/liblibrary-colorizer.a library/dbg_output/liblibrary-dbg_output.a contrib/libs/crcutil/libcontrib-libs-crcutil.a library/digest/crc32c/liblibrary-digest-crc32c.a contrib/libs/nayuki_md5/libcontrib-libs-nayuki_md5.a contrib/libs/base64/avx2/liblibs-base64-avx2.a contrib/libs/base64/ssse3/liblibs-base64-ssse3.a contrib/libs/base64/neon32/liblibs-base64-neon32.a contrib/libs/base64/neon64/liblibs-base64-neon64.a contrib/libs/base64/plain32/liblibs-base64-plain32.a contrib/libs/base64/plain64/liblibs-base64-plain64.a library/string_utils/base64/liblibrary-string_utils-base64.a library/digest/md5/liblibrary-digest-md5.a library/malloc/api/liblibrary-malloc-api.a library/pop_count/liblibrary-pop_count.a library/threading/local_executor/liblibrary-threading-local_executor.a catboost/libs/helpers/libcatboost-libs-helpers.a catboost/libs/ctr_description/libcatboost-libs-ctr_description.a contrib/libs/flatbuffers/libcontrib-libs-flatbuffers.a library/json/common/liblibrary-json-common.a library/json/fast_sax/liblibrary-json-fast_sax.a library/json/writer/liblibrary-json-writer.a library/string_utils/relaxed_escaper/liblibrary-string_utils-relaxed_escaper.a library/json/liblibrary-json.a library/getopt/small/liblibrary-getopt-small.a library/grid_creator/liblibrary-grid_creator.a library/containers/flat_hash/lib/libcontainers-flat_hash-lib.a library/containers/flat_hash/liblibrary-containers-flat_hash.a library/text_processing/dictionary/liblibrary-text_processing-dictionary.a catboost/libs/options/libcatboost-libs-options.a library/blockcodecs/core/liblibrary-blockcodecs-core.a contrib/libs/brotli/common/liblibs-brotli-common.a contrib/libs/brotli/dec/liblibs-brotli-dec.a contrib/libs/brotli/enc/liblibs-brotli-enc.a contrib/libs/libbz2/libcontrib-libs-libbz2.a contrib/libs/fastlz/libcontrib-libs-fastlz.a contrib/libs/zstd06/libcontrib-libs-zstd06.a contrib/libs/xxhash/libcontrib-libs-xxhash.a contrib/libs/lz4/libcontrib-libs-lz4.a contrib/libs/lz4/generated/liblibs-lz4-generated.a contrib/libs/lzmasdk/libcontrib-libs-lzmasdk.a contrib/libs/snappy/libcontrib-libs-snappy.a contrib/libs/zstd/libcontrib-libs-zstd.a library/blockcodecs/liblibrary-blockcodecs.a library/resource/liblibrary-resource.a catboost/libs/model/model_export/liblibs-model-model_export.a contrib/libs/protobuf/libcontrib-libs-protobuf.a contrib/libs/coreml/libcontrib-libs-coreml.a contrib/libs/onnx/proto/liblibs-onnx-proto.a contrib/libs/onnx/libcontrib-libs-onnx.a library/svnversion/liblibrary-svnversion.a catboost/libs/model/libcatboost-libs-model.a -Wl,--end-group '-Wl,--version-script=$(SOURCE_ROOT)/catboost/libs/model_interface/calcer.exports' -ldl -lrt -Wl,--no-as-needed -Wl,-z,notext -lpthread -lrt -ldl -nodefaultlibs -lpthread -lc -lm
+	cd $(BUILD_ROOT) && '$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_dyn_lib.py' --target '$(BUILD_ROOT)/catboost/libs/model_interface/libcatboostmodel.so.1' --arch=LINUX --soname '$(BUILD_ROOT)/catboost/libs/model_interface/libcatboostmodel.so' --fix-elf '$(BUILD_ROOT)/tools/fix_elf/fix_elf' ${CXX} catboost/libs/data_util/line_data_reader.cpp.pic.o catboost/libs/data_util/exists_checker.cpp.pic.o library/blockcodecs/codecs/brotli/brotli.cpp.pic.o library/blockcodecs/codecs/bzip/bzip.cpp.pic.o library/blockcodecs/codecs/fastlz/fastlz.cpp.pic.o library/blockcodecs/codecs/legacy_zstd06/legacy_zstd06.cpp.pic.o library/blockcodecs/codecs/lz4/lz4.cpp.pic.o library/blockcodecs/codecs/lzma/lzma.cpp.pic.o library/blockcodecs/codecs/snappy/snappy.cpp.pic.o library/blockcodecs/codecs/zlib/zlib.cpp.pic.o library/blockcodecs/codecs/zstd/zstd.cpp.pic.o catboost/libs/model/model_export/1cc3e14d43bed0c73ca4b4b233.cpp.pic.o '$(BUILD_ROOT)/catboost/libs/model_interface/libcatboostmodel.so.1.__vcs_version__.c.pic.o' '$(BUILD_ROOT)/catboost/libs/model_interface/c_api.cpp.pic.o' -o '$(BUILD_ROOT)/catboost/libs/model_interface/libcatboostmodel.so.1' -shared -Wl,-soname,libcatboostmodel.so.1 --target=x86_64-linux-gnu -Wl,--start-group contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a util/charset/libutil-charset.a contrib/libs/zlib/libcontrib-libs-zlib.a contrib/libs/double-conversion/libcontrib-libs-double-conversion.a util/libyutil.a catboost/libs/cat_feature/libcatboost-libs-cat_feature.a catboost/libs/index_range/libcatboost-libs-index_range.a library/containers/2d_array/liblibrary-containers-2d_array.a library/binsaver/liblibrary-binsaver.a library/containers/dense_hash/liblibrary-containers-dense_hash.a catboost/libs/data_types/libcatboost-libs-data_types.a library/object_factory/liblibrary-object_factory.a catboost/libs/data_util/libcatboost-libs-data_util.a tools/enum_parser/enum_serialization_runtime/libtools-enum_parser-enum_serialization_runtime.a library/logger/liblibrary-logger.a library/logger/global/liblibrary-logger-global.a catboost/libs/logging/libcatboost-libs-logging.a library/colorizer/liblibrary-colorizer.a library/dbg_output/liblibrary-dbg_output.a contrib/libs/crcutil/libcontrib-libs-crcutil.a library/digest/crc32c/liblibrary-digest-crc32c.a contrib/libs/nayuki_md5/libcontrib-libs-nayuki_md5.a contrib/libs/base64/avx2/liblibs-base64-avx2.a contrib/libs/base64/ssse3/liblibs-base64-ssse3.a contrib/libs/base64/neon32/liblibs-base64-neon32.a contrib/libs/base64/neon64/liblibs-base64-neon64.a contrib/libs/base64/plain32/liblibs-base64-plain32.a contrib/libs/base64/plain64/liblibs-base64-plain64.a library/string_utils/base64/liblibrary-string_utils-base64.a library/digest/md5/liblibrary-digest-md5.a library/malloc/api/liblibrary-malloc-api.a library/pop_count/liblibrary-pop_count.a library/threading/local_executor/liblibrary-threading-local_executor.a catboost/libs/helpers/libcatboost-libs-helpers.a catboost/libs/ctr_description/libcatboost-libs-ctr_description.a contrib/libs/flatbuffers/libcontrib-libs-flatbuffers.a library/json/common/liblibrary-json-common.a library/json/fast_sax/liblibrary-json-fast_sax.a library/json/writer/liblibrary-json-writer.a library/string_utils/relaxed_escaper/liblibrary-string_utils-relaxed_escaper.a library/json/liblibrary-json.a library/getopt/small/liblibrary-getopt-small.a library/grid_creator/liblibrary-grid_creator.a library/containers/flat_hash/lib/libcontainers-flat_hash-lib.a library/containers/flat_hash/liblibrary-containers-flat_hash.a library/text_processing/dictionary/liblibrary-text_processing-dictionary.a catboost/libs/options/libcatboost-libs-options.a library/blockcodecs/core/liblibrary-blockcodecs-core.a contrib/libs/brotli/common/liblibs-brotli-common.a contrib/libs/brotli/dec/liblibs-brotli-dec.a contrib/libs/brotli/enc/liblibs-brotli-enc.a contrib/libs/libbz2/libcontrib-libs-libbz2.a contrib/libs/fastlz/libcontrib-libs-fastlz.a contrib/libs/zstd06/libcontrib-libs-zstd06.a contrib/libs/xxhash/libcontrib-libs-xxhash.a contrib/libs/lz4/libcontrib-libs-lz4.a contrib/libs/lz4/generated/liblibs-lz4-generated.a contrib/libs/lzmasdk/libcontrib-libs-lzmasdk.a contrib/libs/snappy/libcontrib-libs-snappy.a contrib/libs/zstd/libcontrib-libs-zstd.a library/blockcodecs/liblibrary-blockcodecs.a library/resource/liblibrary-resource.a catboost/libs/model/model_export/liblibs-model-model_export.a contrib/libs/protobuf/libcontrib-libs-protobuf.a contrib/libs/coreml/libcontrib-libs-coreml.a contrib/libs/onnx/proto/liblibs-onnx-proto.a contrib/libs/onnx/libcontrib-libs-onnx.a library/fast_exp/liblibrary-fast_exp.a library/svnversion/liblibrary-svnversion.a catboost/libs/model/libcatboost-libs-model.a -Wl,--end-group '-Wl,--version-script=$(SOURCE_ROOT)/catboost/libs/model_interface/calcer.exports' -ldl -lrt -Wl,--no-as-needed -Wl,-z,notext -lpthread -lrt -ldl -nodefaultlibs -lpthread -lc -lm
 
 $(BUILD_ROOT)/contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a.mf\
         ::\
@@ -8750,58 +8751,13 @@ $(BUILD_ROOT)/tools/rescompressor/main.cpp.pic.o\
 
 $(BUILD_ROOT)/catboost/libs/model/model_export/cpp_exporter.cpp.pic.o\
         ::\
-        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/features.fbs.h\
-        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/ctr_data.fbs.h\
-        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/model.fbs.h\
         $(SOURCE_ROOT)/catboost/libs/model/model_export/cpp_exporter.cpp\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/model/model_export'
 	${CXX} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/model_export/cpp_exporter.cpp.pic.o' '$(SOURCE_ROOT)/catboost/libs/model/model_export/cpp_exporter.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/brotli/include' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -nostdinc++ -msse2 -msse3 -mssse3 -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
 
-$(BUILD_ROOT)/catboost/libs/model/flatbuffers/features.bfbs\
-        ::\
-        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/features.fbs.h\
-
-$(BUILD_ROOT)/catboost/libs/model/flatbuffers/features.fbs.h\
-        ::\
-        $(BUILD_ROOT)/contrib/tools/flatc/flatc\
-        $(SOURCE_ROOT)/catboost/libs/model/flatbuffers/features.fbs\
-        $(SOURCE_ROOT)/build/scripts/stdout2stderr.py\
-
-	mkdir -p '$(BUILD_ROOT)/catboost/libs/model/flatbuffers'
-	'$(PYTHON)' '$(SOURCE_ROOT)/build/plugins/_unpickler.py' --src-root '$(SOURCE_ROOT)' --build-root '$(BUILD_ROOT)' --data gAJjZmxhdGMKRmxhdGMKcQApgXEBfXECKFUKX2luY2xfZGlyc3EDXXEEKFUCJFNxBVUCJEJxBmVVBV9wYXRocQdVLyRTL2NhdGJvb3N0L2xpYnMvbW9kZWwvZmxhdGJ1ZmZlcnMvZmVhdHVyZXMuZmJzcQh1hXEJYi4= --tools 1 '$(BUILD_ROOT)/contrib/tools/flatc/flatc'
-
-$(BUILD_ROOT)/catboost/libs/model/flatbuffers/ctr_data.bfbs\
-        ::\
-        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/ctr_data.fbs.h\
-
-$(BUILD_ROOT)/catboost/libs/model/flatbuffers/ctr_data.fbs.h\
-        ::\
-        $(BUILD_ROOT)/contrib/tools/flatc/flatc\
-        $(SOURCE_ROOT)/catboost/libs/model/flatbuffers/ctr_data.fbs\
-        $(SOURCE_ROOT)/build/scripts/stdout2stderr.py\
-
-	mkdir -p '$(BUILD_ROOT)/catboost/libs/model/flatbuffers'
-	'$(PYTHON)' '$(SOURCE_ROOT)/build/plugins/_unpickler.py' --src-root '$(SOURCE_ROOT)' --build-root '$(BUILD_ROOT)' --data gAJjZmxhdGMKRmxhdGMKcQApgXEBfXECKFUKX2luY2xfZGlyc3EDXXEEKFUCJFNxBVUCJEJxBmVVBV9wYXRocQdVLyRTL2NhdGJvb3N0L2xpYnMvbW9kZWwvZmxhdGJ1ZmZlcnMvY3RyX2RhdGEuZmJzcQh1hXEJYi4= --tools 1 '$(BUILD_ROOT)/contrib/tools/flatc/flatc'
-
-$(BUILD_ROOT)/catboost/libs/model/flatbuffers/model.bfbs\
-        ::\
-        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/model.fbs.h\
-
-$(BUILD_ROOT)/catboost/libs/model/flatbuffers/model.fbs.h\
-        ::\
-        $(BUILD_ROOT)/contrib/tools/flatc/flatc\
-        $(SOURCE_ROOT)/catboost/libs/model/flatbuffers/model.fbs\
-        $(SOURCE_ROOT)/build/scripts/stdout2stderr.py\
-
-	mkdir -p '$(BUILD_ROOT)/catboost/libs/model/flatbuffers'
-	'$(PYTHON)' '$(SOURCE_ROOT)/build/plugins/_unpickler.py' --src-root '$(SOURCE_ROOT)' --build-root '$(BUILD_ROOT)' --data gAJjZmxhdGMKRmxhdGMKcQApgXEBfXECKFUKX2luY2xfZGlyc3EDXXEEKFUCJFNxBVUCJEJxBmVVBV9wYXRocQdVLCRTL2NhdGJvb3N0L2xpYnMvbW9kZWwvZmxhdGJ1ZmZlcnMvbW9kZWwuZmJzcQh1hXEJYi4= --tools 1 '$(BUILD_ROOT)/contrib/tools/flatc/flatc'
-
 $(BUILD_ROOT)/catboost/libs/model/model_export/export_helpers.cpp.pic.o\
         ::\
-        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/features.fbs.h\
-        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/ctr_data.fbs.h\
-        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/model.fbs.h\
         $(SOURCE_ROOT)/catboost/libs/model/model_export/export_helpers.cpp\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/model/model_export'
@@ -8809,9 +8765,6 @@ $(BUILD_ROOT)/catboost/libs/model/model_export/export_helpers.cpp.pic.o\
 
 $(BUILD_ROOT)/catboost/libs/model/model_export/model_exporter.cpp.pic.o\
         ::\
-        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/features.fbs.h\
-        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/ctr_data.fbs.h\
-        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/model.fbs.h\
         $(SOURCE_ROOT)/catboost/libs/model/model_export/model_exporter.cpp\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/model/model_export'
@@ -8819,9 +8772,6 @@ $(BUILD_ROOT)/catboost/libs/model/model_export/model_exporter.cpp.pic.o\
 
 $(BUILD_ROOT)/catboost/libs/model/model_export/python_exporter.cpp.pic.o\
         ::\
-        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/features.fbs.h\
-        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/ctr_data.fbs.h\
-        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/model.fbs.h\
         $(SOURCE_ROOT)/catboost/libs/model/model_export/python_exporter.cpp\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/model/model_export'
@@ -11528,6 +11478,43 @@ $(BUILD_ROOT)/contrib/libs/onnx/onnx/onnxifi_utils.cc.pic.o\
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/onnx/onnx'
 	${CXX} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/onnx/onnx/onnxifi_utils.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/onnx/onnx/onnxifi_utils.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/onnx' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx -nostdinc++ -msse2 -msse3 -mssse3 -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
 
+$(BUILD_ROOT)/library/fast_exp/liblibrary-fast_exp.a.mf\
+        ::\
+        $(BUILD_ROOT)/library/fast_exp/liblibrary-fast_exp.a\
+
+$(BUILD_ROOT)/library/fast_exp/liblibrary-fast_exp.a\
+        ::\
+        $(BUILD_ROOT)/library/fast_exp/fast_exp_avx2.cpp.pic.o\
+        $(BUILD_ROOT)/library/fast_exp/fast_exp_sse2.cpp.pic.o\
+        $(BUILD_ROOT)/library/fast_exp/fast_exp.cpp.pic.o\
+        $(SOURCE_ROOT)/build/scripts/generate_mf.py\
+        $(SOURCE_ROOT)/build/scripts/link_lib.py\
+
+	mkdir -p '$(BUILD_ROOT)/library/fast_exp'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name library-fast_exp -o library/fast_exp/liblibrary-fast_exp.a.mf -t LIBRARY -Ya,lics -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/library/fast_exp/liblibrary-fast_exp.a' '$(BUILD_ROOT)/library/fast_exp/fast_exp_avx2.cpp.pic.o' '$(BUILD_ROOT)/library/fast_exp/fast_exp_sse2.cpp.pic.o' '$(BUILD_ROOT)/library/fast_exp/fast_exp.cpp.pic.o'
+
+$(BUILD_ROOT)/library/fast_exp/fast_exp_avx2.cpp.pic.o\
+        ::\
+        $(SOURCE_ROOT)/library/fast_exp/fast_exp_avx2.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/library/fast_exp'
+	${CXX} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/library/fast_exp/fast_exp_avx2.cpp.pic.o' '$(SOURCE_ROOT)/library/fast_exp/fast_exp_avx2.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -nostdinc++ -msse2 -msse3 -mssse3 -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++ -mavx2
+
+$(BUILD_ROOT)/library/fast_exp/fast_exp_sse2.cpp.pic.o\
+        ::\
+        $(SOURCE_ROOT)/library/fast_exp/fast_exp_sse2.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/library/fast_exp'
+	${CXX} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/library/fast_exp/fast_exp_sse2.cpp.pic.o' '$(SOURCE_ROOT)/library/fast_exp/fast_exp_sse2.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -nostdinc++ -msse2 -msse3 -mssse3 -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++ -msse2
+
+$(BUILD_ROOT)/library/fast_exp/fast_exp.cpp.pic.o\
+        ::\
+        $(SOURCE_ROOT)/library/fast_exp/fast_exp.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/library/fast_exp'
+	${CXX} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/library/fast_exp/fast_exp.cpp.pic.o' '$(SOURCE_ROOT)/library/fast_exp/fast_exp.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -nostdinc++ -msse2 -msse3 -mssse3 -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
 $(BUILD_ROOT)/library/svnversion/liblibrary-svnversion.a.mf\
         ::\
         $(BUILD_ROOT)/library/svnversion/liblibrary-svnversion.a\
@@ -11567,6 +11554,7 @@ $(BUILD_ROOT)/catboost/libs/model/libcatboost-libs-model.a\
         $(BUILD_ROOT)/catboost/libs/model/ctr_data.cpp.pic.o\
         $(BUILD_ROOT)/catboost/libs/model/ctr_provider.cpp.pic.o\
         $(BUILD_ROOT)/catboost/libs/model/ctr_value_table.cpp.pic.o\
+        $(BUILD_ROOT)/catboost/libs/model/eval_processing.cpp.pic.o\
         $(BUILD_ROOT)/catboost/libs/model/features.cpp.pic.o\
         $(BUILD_ROOT)/catboost/libs/model/json_model_helpers.cpp.pic.o\
         $(BUILD_ROOT)/catboost/libs/model/model.cpp.pic.o\
@@ -11574,23 +11562,25 @@ $(BUILD_ROOT)/catboost/libs/model/libcatboost-libs-model.a\
         $(BUILD_ROOT)/catboost/libs/model/onnx_helpers.cpp.pic.o\
         $(BUILD_ROOT)/catboost/libs/model/pmml_helpers.cpp.pic.o\
         $(BUILD_ROOT)/catboost/libs/model/static_ctr_provider.cpp.pic.o\
-        $(BUILD_ROOT)/catboost/libs/model/formula_evaluator.cpp.pic.o\
         $(BUILD_ROOT)/catboost/libs/model/model_build_helper.cpp.pic.o\
         $(BUILD_ROOT)/catboost/libs/model/feature_calcer.cpp.pic.o\
+        $(BUILD_ROOT)/catboost/libs/model/cpu/evaluator_impl.cpp.pic.o\
+        $(BUILD_ROOT)/catboost/libs/model/cpu/formula_evaluator.cpp.pic.o\
+        $(BUILD_ROOT)/catboost/libs/model/cpu/quantization.cpp.pic.o\
+        $(BUILD_ROOT)/catboost/libs/model/cuda/no_cuda_stub.cpp.pic.o\
         $(BUILD_ROOT)/catboost/libs/model/ctr_provider.h_serialized.cpp.pic.o\
+        $(BUILD_ROOT)/catboost/libs/model/features.h_serialized.cpp.pic.o\
+        $(BUILD_ROOT)/catboost/libs/model/fwd.h_serialized.cpp.pic.o\
         $(BUILD_ROOT)/catboost/libs/model/split.h_serialized.cpp.pic.o\
         $(SOURCE_ROOT)/build/scripts/generate_mf.py\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/model'
 	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name catboost-libs-model -o catboost/libs/model/libcatboost-libs-model.a.mf -t LIBRARY -Ya,lics -Ya,peers
-	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/catboost/libs/model/libcatboost-libs-model.a' '$(BUILD_ROOT)/catboost/libs/model/coreml_helpers.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/ctr_data.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/ctr_provider.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/ctr_value_table.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/features.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/json_model_helpers.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/model.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/online_ctr.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/onnx_helpers.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/pmml_helpers.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/static_ctr_provider.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/formula_evaluator.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/model_build_helper.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/feature_calcer.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/ctr_provider.h_serialized.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/split.h_serialized.cpp.pic.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/catboost/libs/model/libcatboost-libs-model.a' '$(BUILD_ROOT)/catboost/libs/model/coreml_helpers.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/ctr_data.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/ctr_provider.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/ctr_value_table.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/eval_processing.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/features.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/json_model_helpers.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/model.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/online_ctr.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/onnx_helpers.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/pmml_helpers.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/static_ctr_provider.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/model_build_helper.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/feature_calcer.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/cpu/evaluator_impl.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/cpu/formula_evaluator.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/cpu/quantization.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/cuda/no_cuda_stub.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/ctr_provider.h_serialized.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/features.h_serialized.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/fwd.h_serialized.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/split.h_serialized.cpp.pic.o'
 
 $(BUILD_ROOT)/catboost/libs/model/coreml_helpers.cpp.pic.o\
         ::\
-        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/features.fbs.h\
-        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/ctr_data.fbs.h\
-        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/model.fbs.h\
         $(BUILD_ROOT)/contrib/libs/coreml/ArrayFeatureExtractor.pb.h\
         $(BUILD_ROOT)/contrib/libs/coreml/FeatureTypes.pb.h\
         $(BUILD_ROOT)/contrib/libs/coreml/DataStructures.pb.h\
@@ -11615,8 +11605,6 @@ $(BUILD_ROOT)/catboost/libs/model/coreml_helpers.cpp.pic.o\
 
 $(BUILD_ROOT)/catboost/libs/model/ctr_data.cpp.pic.o\
         ::\
-        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/features.fbs.h\
-        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/ctr_data.fbs.h\
         $(SOURCE_ROOT)/catboost/libs/model/ctr_data.cpp\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/model'
@@ -11624,8 +11612,6 @@ $(BUILD_ROOT)/catboost/libs/model/ctr_data.cpp.pic.o\
 
 $(BUILD_ROOT)/catboost/libs/model/ctr_provider.cpp.pic.o\
         ::\
-        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/features.fbs.h\
-        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/ctr_data.fbs.h\
         $(SOURCE_ROOT)/catboost/libs/model/ctr_provider.cpp\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/model'
@@ -11640,6 +11626,52 @@ $(BUILD_ROOT)/catboost/libs/model/ctr_value_table.cpp.pic.o\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/model'
 	${CXX} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/ctr_value_table.cpp.pic.o' '$(SOURCE_ROOT)/catboost/libs/model/ctr_value_table.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/brotli/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx -nostdinc++ -msse2 -msse3 -mssse3 -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/catboost/libs/model/flatbuffers/features.bfbs\
+        ::\
+        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/features.fbs.h\
+
+$(BUILD_ROOT)/catboost/libs/model/flatbuffers/features.fbs.h\
+        ::\
+        $(BUILD_ROOT)/contrib/tools/flatc/flatc\
+        $(SOURCE_ROOT)/catboost/libs/model/flatbuffers/features.fbs\
+        $(SOURCE_ROOT)/build/scripts/stdout2stderr.py\
+
+	mkdir -p '$(BUILD_ROOT)/catboost/libs/model/flatbuffers'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/plugins/_unpickler.py' --src-root '$(SOURCE_ROOT)' --build-root '$(BUILD_ROOT)' --data gAJjZmxhdGMKRmxhdGMKcQApgXEBfXECKFUKX2luY2xfZGlyc3EDXXEEKFUCJFNxBVUCJEJxBmVVBV9wYXRocQdVLyRTL2NhdGJvb3N0L2xpYnMvbW9kZWwvZmxhdGJ1ZmZlcnMvZmVhdHVyZXMuZmJzcQh1hXEJYi4= --tools 1 '$(BUILD_ROOT)/contrib/tools/flatc/flatc'
+
+$(BUILD_ROOT)/catboost/libs/model/flatbuffers/ctr_data.bfbs\
+        ::\
+        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/ctr_data.fbs.h\
+
+$(BUILD_ROOT)/catboost/libs/model/flatbuffers/ctr_data.fbs.h\
+        ::\
+        $(BUILD_ROOT)/contrib/tools/flatc/flatc\
+        $(SOURCE_ROOT)/catboost/libs/model/flatbuffers/ctr_data.fbs\
+        $(SOURCE_ROOT)/build/scripts/stdout2stderr.py\
+
+	mkdir -p '$(BUILD_ROOT)/catboost/libs/model/flatbuffers'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/plugins/_unpickler.py' --src-root '$(SOURCE_ROOT)' --build-root '$(BUILD_ROOT)' --data gAJjZmxhdGMKRmxhdGMKcQApgXEBfXECKFUKX2luY2xfZGlyc3EDXXEEKFUCJFNxBVUCJEJxBmVVBV9wYXRocQdVLyRTL2NhdGJvb3N0L2xpYnMvbW9kZWwvZmxhdGJ1ZmZlcnMvY3RyX2RhdGEuZmJzcQh1hXEJYi4= --tools 1 '$(BUILD_ROOT)/contrib/tools/flatc/flatc'
+
+$(BUILD_ROOT)/catboost/libs/model/flatbuffers/model.bfbs\
+        ::\
+        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/model.fbs.h\
+
+$(BUILD_ROOT)/catboost/libs/model/flatbuffers/model.fbs.h\
+        ::\
+        $(BUILD_ROOT)/contrib/tools/flatc/flatc\
+        $(SOURCE_ROOT)/catboost/libs/model/flatbuffers/model.fbs\
+        $(SOURCE_ROOT)/build/scripts/stdout2stderr.py\
+
+	mkdir -p '$(BUILD_ROOT)/catboost/libs/model/flatbuffers'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/plugins/_unpickler.py' --src-root '$(SOURCE_ROOT)' --build-root '$(BUILD_ROOT)' --data gAJjZmxhdGMKRmxhdGMKcQApgXEBfXECKFUKX2luY2xfZGlyc3EDXXEEKFUCJFNxBVUCJEJxBmVVBV9wYXRocQdVLCRTL2NhdGJvb3N0L2xpYnMvbW9kZWwvZmxhdGJ1ZmZlcnMvbW9kZWwuZmJzcQh1hXEJYi4= --tools 1 '$(BUILD_ROOT)/contrib/tools/flatc/flatc'
+
+$(BUILD_ROOT)/catboost/libs/model/eval_processing.cpp.pic.o\
+        ::\
+        $(SOURCE_ROOT)/catboost/libs/model/eval_processing.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/catboost/libs/model'
+	${CXX} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/eval_processing.cpp.pic.o' '$(SOURCE_ROOT)/catboost/libs/model/eval_processing.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/brotli/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx -nostdinc++ -msse2 -msse3 -mssse3 -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
 
 $(BUILD_ROOT)/catboost/libs/model/features.cpp.pic.o\
         ::\
@@ -11701,9 +11733,6 @@ $(BUILD_ROOT)/catboost/libs/model/online_ctr.cpp.pic.o\
 
 $(BUILD_ROOT)/catboost/libs/model/onnx_helpers.cpp.pic.o\
         ::\
-        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/features.fbs.h\
-        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/ctr_data.fbs.h\
-        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/model.fbs.h\
         $(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_ml.pb.h\
         $(SOURCE_ROOT)/catboost/libs/model/onnx_helpers.cpp\
 
@@ -11712,9 +11741,6 @@ $(BUILD_ROOT)/catboost/libs/model/onnx_helpers.cpp.pic.o\
 
 $(BUILD_ROOT)/catboost/libs/model/pmml_helpers.cpp.pic.o\
         ::\
-        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/features.fbs.h\
-        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/ctr_data.fbs.h\
-        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/model.fbs.h\
         $(SOURCE_ROOT)/catboost/libs/model/pmml_helpers.cpp\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/model'
@@ -11722,29 +11748,13 @@ $(BUILD_ROOT)/catboost/libs/model/pmml_helpers.cpp.pic.o\
 
 $(BUILD_ROOT)/catboost/libs/model/static_ctr_provider.cpp.pic.o\
         ::\
-        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/features.fbs.h\
-        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/ctr_data.fbs.h\
-        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/model.fbs.h\
         $(SOURCE_ROOT)/catboost/libs/model/static_ctr_provider.cpp\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/model'
 	${CXX} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/static_ctr_provider.cpp.pic.o' '$(SOURCE_ROOT)/catboost/libs/model/static_ctr_provider.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/brotli/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx -nostdinc++ -msse2 -msse3 -mssse3 -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
 
-$(BUILD_ROOT)/catboost/libs/model/formula_evaluator.cpp.pic.o\
-        ::\
-        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/features.fbs.h\
-        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/ctr_data.fbs.h\
-        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/model.fbs.h\
-        $(SOURCE_ROOT)/catboost/libs/model/formula_evaluator.cpp\
-
-	mkdir -p '$(BUILD_ROOT)/catboost/libs/model'
-	${CXX} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/formula_evaluator.cpp.pic.o' '$(SOURCE_ROOT)/catboost/libs/model/formula_evaluator.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/brotli/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx -nostdinc++ -msse2 -msse3 -mssse3 -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
-
 $(BUILD_ROOT)/catboost/libs/model/model_build_helper.cpp.pic.o\
         ::\
-        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/features.fbs.h\
-        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/ctr_data.fbs.h\
-        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/model.fbs.h\
         $(SOURCE_ROOT)/catboost/libs/model/model_build_helper.cpp\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/model'
@@ -11757,10 +11767,36 @@ $(BUILD_ROOT)/catboost/libs/model/feature_calcer.cpp.pic.o\
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/model'
 	${CXX} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/feature_calcer.cpp.pic.o' '$(SOURCE_ROOT)/catboost/libs/model/feature_calcer.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/brotli/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx -nostdinc++ -msse2 -msse3 -mssse3 -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
 
+$(BUILD_ROOT)/catboost/libs/model/cpu/evaluator_impl.cpp.pic.o\
+        ::\
+        $(SOURCE_ROOT)/catboost/libs/model/cpu/evaluator_impl.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/catboost/libs/model/cpu'
+	${CXX} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/cpu/evaluator_impl.cpp.pic.o' '$(SOURCE_ROOT)/catboost/libs/model/cpu/evaluator_impl.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/brotli/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx -nostdinc++ -msse2 -msse3 -mssse3 -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/catboost/libs/model/cpu/formula_evaluator.cpp.pic.o\
+        ::\
+        $(SOURCE_ROOT)/catboost/libs/model/cpu/formula_evaluator.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/catboost/libs/model/cpu'
+	${CXX} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/cpu/formula_evaluator.cpp.pic.o' '$(SOURCE_ROOT)/catboost/libs/model/cpu/formula_evaluator.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/brotli/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx -nostdinc++ -msse2 -msse3 -mssse3 -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/catboost/libs/model/cpu/quantization.cpp.pic.o\
+        ::\
+        $(SOURCE_ROOT)/catboost/libs/model/cpu/quantization.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/catboost/libs/model/cpu'
+	${CXX} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/cpu/quantization.cpp.pic.o' '$(SOURCE_ROOT)/catboost/libs/model/cpu/quantization.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/brotli/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx -nostdinc++ -msse2 -msse3 -mssse3 -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/catboost/libs/model/cuda/no_cuda_stub.cpp.pic.o\
+        ::\
+        $(SOURCE_ROOT)/catboost/libs/model/cuda/no_cuda_stub.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/catboost/libs/model/cuda'
+	${CXX} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/cuda/no_cuda_stub.cpp.pic.o' '$(SOURCE_ROOT)/catboost/libs/model/cuda/no_cuda_stub.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/brotli/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx -nostdinc++ -msse2 -msse3 -mssse3 -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
 $(BUILD_ROOT)/catboost/libs/model/ctr_provider.h_serialized.cpp.pic.o\
         ::\
-        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/features.fbs.h\
-        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/ctr_data.fbs.h\
         $(BUILD_ROOT)/catboost/libs/model/ctr_provider.h_serialized.cpp\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/model'
@@ -11769,17 +11805,43 @@ $(BUILD_ROOT)/catboost/libs/model/ctr_provider.h_serialized.cpp.pic.o\
 $(BUILD_ROOT)/catboost/libs/model/ctr_provider.h_serialized.cpp\
         ::\
         $(BUILD_ROOT)/tools/enum_parser/enum_parser/enum_parser\
-        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/features.fbs.h\
-        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/ctr_data.fbs.h\
         $(SOURCE_ROOT)/catboost/libs/model/ctr_provider.h\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/model'
 	'$(BUILD_ROOT)/tools/enum_parser/enum_parser/enum_parser' '$(SOURCE_ROOT)/catboost/libs/model/ctr_provider.h' --include-path catboost/libs/model/ctr_provider.h --output '$(BUILD_ROOT)/catboost/libs/model/ctr_provider.h_serialized.cpp'
 
+$(BUILD_ROOT)/catboost/libs/model/features.h_serialized.cpp.pic.o\
+        ::\
+        $(BUILD_ROOT)/catboost/libs/model/features.h_serialized.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/catboost/libs/model'
+	${CXX} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/features.h_serialized.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/features.h_serialized.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/brotli/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx -nostdinc++ -msse2 -msse3 -mssse3 -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/catboost/libs/model/features.h_serialized.cpp\
+        ::\
+        $(BUILD_ROOT)/tools/enum_parser/enum_parser/enum_parser\
+        $(SOURCE_ROOT)/catboost/libs/model/features.h\
+
+	mkdir -p '$(BUILD_ROOT)/catboost/libs/model'
+	'$(BUILD_ROOT)/tools/enum_parser/enum_parser/enum_parser' '$(SOURCE_ROOT)/catboost/libs/model/features.h' --include-path catboost/libs/model/features.h --output '$(BUILD_ROOT)/catboost/libs/model/features.h_serialized.cpp'
+
+$(BUILD_ROOT)/catboost/libs/model/fwd.h_serialized.cpp.pic.o\
+        ::\
+        $(BUILD_ROOT)/catboost/libs/model/fwd.h_serialized.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/catboost/libs/model'
+	${CXX} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/fwd.h_serialized.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/fwd.h_serialized.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/brotli/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx -nostdinc++ -msse2 -msse3 -mssse3 -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/catboost/libs/model/fwd.h_serialized.cpp\
+        ::\
+        $(BUILD_ROOT)/tools/enum_parser/enum_parser/enum_parser\
+        $(SOURCE_ROOT)/catboost/libs/model/fwd.h\
+
+	mkdir -p '$(BUILD_ROOT)/catboost/libs/model'
+	'$(BUILD_ROOT)/tools/enum_parser/enum_parser/enum_parser' '$(SOURCE_ROOT)/catboost/libs/model/fwd.h' --include-path catboost/libs/model/fwd.h --output '$(BUILD_ROOT)/catboost/libs/model/fwd.h_serialized.cpp'
+
 $(BUILD_ROOT)/catboost/libs/model/split.h_serialized.cpp.pic.o\
         ::\
-        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/features.fbs.h\
-        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/ctr_data.fbs.h\
         $(BUILD_ROOT)/catboost/libs/model/split.h_serialized.cpp\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/model'
@@ -11788,8 +11850,6 @@ $(BUILD_ROOT)/catboost/libs/model/split.h_serialized.cpp.pic.o\
 $(BUILD_ROOT)/catboost/libs/model/split.h_serialized.cpp\
         ::\
         $(BUILD_ROOT)/tools/enum_parser/enum_parser/enum_parser\
-        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/features.fbs.h\
-        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/ctr_data.fbs.h\
         $(SOURCE_ROOT)/catboost/libs/model/split.h\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/model'
@@ -11797,9 +11857,6 @@ $(BUILD_ROOT)/catboost/libs/model/split.h_serialized.cpp\
 
 $(BUILD_ROOT)/catboost/libs/model_interface/c_api.cpp.pic.o\
         ::\
-        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/features.fbs.h\
-        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/ctr_data.fbs.h\
-        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/model.fbs.h\
         $(SOURCE_ROOT)/catboost/libs/model_interface/c_api.cpp\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/model_interface'
@@ -12810,9 +12867,6 @@ clean\
 	rm -f '$(BUILD_ROOT)/tools/rescompressor/rescompressor' '$(BUILD_ROOT)/tools/rescompressor/rescompressor.mf'
 	rm -f '$(BUILD_ROOT)/tools/rescompressor/main.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/catboost/libs/model/model_export/cpp_exporter.cpp.pic.o'
-	rm -f '$(BUILD_ROOT)/catboost/libs/model/flatbuffers/features.fbs.h' '$(BUILD_ROOT)/catboost/libs/model/flatbuffers/features.bfbs'
-	rm -f '$(BUILD_ROOT)/catboost/libs/model/flatbuffers/ctr_data.fbs.h' '$(BUILD_ROOT)/catboost/libs/model/flatbuffers/ctr_data.bfbs'
-	rm -f '$(BUILD_ROOT)/catboost/libs/model/flatbuffers/model.fbs.h' '$(BUILD_ROOT)/catboost/libs/model/flatbuffers/model.bfbs'
 	rm -f '$(BUILD_ROOT)/catboost/libs/model/model_export/export_helpers.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/catboost/libs/model/model_export/model_exporter.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/catboost/libs/model/model_export/python_exporter.cpp.pic.o'
@@ -13121,6 +13175,10 @@ clean\
 	rm -f '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/rnn/defs.cc.pic.o'
 	rm -f '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/reduction/defs.cc.pic.o'
 	rm -f '$(BUILD_ROOT)/contrib/libs/onnx/onnx/onnxifi_utils.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/library/fast_exp/liblibrary-fast_exp.a' '$(BUILD_ROOT)/library/fast_exp/liblibrary-fast_exp.a.mf'
+	rm -f '$(BUILD_ROOT)/library/fast_exp/fast_exp_avx2.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/library/fast_exp/fast_exp_sse2.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/library/fast_exp/fast_exp.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/library/svnversion/liblibrary-svnversion.a' '$(BUILD_ROOT)/library/svnversion/liblibrary-svnversion.a.mf'
 	rm -f '$(BUILD_ROOT)/library/svnversion/svnversion.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/library/svnversion/svn_interface.c.pic.o'
@@ -13129,6 +13187,10 @@ clean\
 	rm -f '$(BUILD_ROOT)/catboost/libs/model/ctr_data.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/catboost/libs/model/ctr_provider.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/catboost/libs/model/ctr_value_table.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/model/flatbuffers/features.fbs.h' '$(BUILD_ROOT)/catboost/libs/model/flatbuffers/features.bfbs'
+	rm -f '$(BUILD_ROOT)/catboost/libs/model/flatbuffers/ctr_data.fbs.h' '$(BUILD_ROOT)/catboost/libs/model/flatbuffers/ctr_data.bfbs'
+	rm -f '$(BUILD_ROOT)/catboost/libs/model/flatbuffers/model.fbs.h' '$(BUILD_ROOT)/catboost/libs/model/flatbuffers/model.bfbs'
+	rm -f '$(BUILD_ROOT)/catboost/libs/model/eval_processing.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/catboost/libs/model/features.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/catboost/libs/model/json_model_helpers.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/catboost/libs/model/model.cpp.pic.o'
@@ -13136,11 +13198,18 @@ clean\
 	rm -f '$(BUILD_ROOT)/catboost/libs/model/onnx_helpers.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/catboost/libs/model/pmml_helpers.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/catboost/libs/model/static_ctr_provider.cpp.pic.o'
-	rm -f '$(BUILD_ROOT)/catboost/libs/model/formula_evaluator.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/catboost/libs/model/model_build_helper.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/catboost/libs/model/feature_calcer.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/model/cpu/evaluator_impl.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/model/cpu/formula_evaluator.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/model/cpu/quantization.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/model/cuda/no_cuda_stub.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/catboost/libs/model/ctr_provider.h_serialized.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/catboost/libs/model/ctr_provider.h_serialized.cpp'
+	rm -f '$(BUILD_ROOT)/catboost/libs/model/features.h_serialized.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/model/features.h_serialized.cpp'
+	rm -f '$(BUILD_ROOT)/catboost/libs/model/fwd.h_serialized.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/model/fwd.h_serialized.cpp'
 	rm -f '$(BUILD_ROOT)/catboost/libs/model/split.h_serialized.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/catboost/libs/model/split.h_serialized.cpp'
 	rm -f '$(BUILD_ROOT)/catboost/libs/model_interface/c_api.cpp.pic.o'
