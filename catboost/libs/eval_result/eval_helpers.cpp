@@ -2,41 +2,14 @@
 
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/labels/label_helper_builder.h>
+#include <catboost/libs/model/eval_processing.h>
 
-#include <library/fast_exp/fast_exp.h>
-
-#include <util/generic/algorithm.h>
 #include <util/generic/utility.h>
 #include <util/string/cast.h>
 #include <util/generic/array_ref.h>
 
-#include <cmath>
 #include <limits>
 
-
-void CalcSoftmax(const TConstArrayRef<double> approx, TVector<double>* softmax) {
-    double maxApprox = *MaxElement(approx.begin(), approx.end());
-    for (size_t dim = 0; dim < approx.size(); ++dim) {
-        (*softmax)[dim] = approx[dim] - maxApprox;
-    }
-    FastExpInplace(softmax->data(), softmax->ysize());
-    double sumExpApprox = 0;
-    for (auto curSoftmax : *softmax) {
-        sumExpApprox += curSoftmax;
-    }
-    for (auto& curSoftmax : *softmax) {
-        curSoftmax /= sumExpApprox;
-    }
-}
-
-TVector<double> CalcSigmoid(const TConstArrayRef<double> approx) {
-    TVector<double> probabilities;
-    probabilities.yresize(approx.size());
-    for (size_t i = 0; i < approx.size(); ++i) {
-        probabilities[i] = 1. / (1. + exp(-approx[i]));
-    }
-    return probabilities;
-}
 
 static TVector<TVector<double>> CalcSoftmax(
     const TVector<TVector<double>>& approx,
@@ -58,7 +31,7 @@ static TVector<TVector<double>> CalcSoftmax(
             for (int dim = 0; dim < approx.ysize(); ++dim) {
                 line[dim] = approx[dim][lineInd];
             }
-            CalcSoftmax(line, &softmax);
+            CalcSoftmax(line, softmax);
             for (int dim = 0; dim < approx.ysize(); ++dim) {
                 probabilities[dim][lineInd] = softmax[dim];
             }

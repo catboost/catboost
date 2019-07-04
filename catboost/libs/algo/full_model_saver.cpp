@@ -53,7 +53,7 @@ namespace NCB {
 
     static bool NeedTargetClasses(const TFullModel& coreModel) {
         return AnyOf(
-            coreModel.ObliviousTrees.GetUsedModelCtrs(),
+            coreModel.ObliviousTrees->GetUsedModelCtrs(),
             [](const TModelCtr& modelCtr) {
                 return NeedTargetClassifier(modelCtr.Base.CtrType);
             }
@@ -282,7 +282,7 @@ namespace NCB {
             CalcFinalCtrs(
                 datasetDataForFinalCtrs,
                 *featureCombinationToProjectionMap,
-                dstModel->ObliviousTrees.GetUsedModelCtrBases(),
+                dstModel->ObliviousTrees->GetUsedModelCtrBases(),
                 [&dstModel, &lock](TCtrValueTable&& table) {
                     with_lock(lock) {
                         dstModel->CtrProvider->AddCtrCalcerData(std::move(table));
@@ -293,7 +293,7 @@ namespace NCB {
             dstModel->UpdateDynamicData();
         } else {
             dstModel->CtrProvider = new TStaticCtrOnFlightSerializationProvider(
-                dstModel->ObliviousTrees.GetUsedModelCtrBases(),
+                dstModel->ObliviousTrees->GetUsedModelCtrBases(),
                 [this,
                  datasetDataForFinalCtrs = std::move(datasetDataForFinalCtrs),
                  featureCombinationToProjectionMap] (
@@ -345,8 +345,8 @@ namespace NCB {
         bool addFileFormatExtension
     ) {
         TFeaturesLayout featuresLayout(
-            fullModel.ObliviousTrees.FloatFeatures,
-            fullModel.ObliviousTrees.CatFeatures
+            fullModel.ObliviousTrees->FloatFeatures,
+            fullModel.ObliviousTrees->CatFeatures
         );
         TVector<TString> featureIds = featuresLayout.GetExternalFeatureIds();
 

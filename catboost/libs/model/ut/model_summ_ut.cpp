@@ -17,20 +17,20 @@ Y_UNIT_TEST_SUITE(TModelSummTests) {
 
     Y_UNIT_TEST(FloatModelMergeTest) {
         auto bigModel = TrainFloatCatboostModel(40);
-        bigModel.ObliviousTrees.DropUnusedFeatures();
+        bigModel.ObliviousTrees.GetMutable()->DropUnusedFeatures();
         TVector<TFullModel> partModels;
         TVector<const TFullModel*> modelPtrs;
         TVector<double> modelWeights(5, 1.0);
         for (size_t i = 0; i < 5; ++i) {
             auto partModel = bigModel.CopyTreeRange(i * 8, (i + 1) * 8);
-            partModel.ObliviousTrees.DropUnusedFeatures();
+            partModel.ObliviousTrees.GetMutable()->DropUnusedFeatures();
             partModels.emplace_back(partModel);
         }
         for (auto& model : partModels) {
             modelPtrs.push_back(&model);
         }
         auto mergedModel = SumModels(modelPtrs, modelWeights);
-        UNIT_ASSERT_EQUAL(mergedModel.ObliviousTrees, bigModel.ObliviousTrees);
+        UNIT_ASSERT_EQUAL(*mergedModel.ObliviousTrees, *bigModel.ObliviousTrees);
     }
 
     Y_UNIT_TEST(AdultModelMergeTest) {
@@ -59,13 +59,13 @@ Y_UNIT_TEST_SUITE(TModelSummTests) {
             &bigModel,
             {&evalResult});
         auto bigResult = ApplyModel(bigModel, *(dataProvider->ObjectsData));
-        bigModel.ObliviousTrees.DropUnusedFeatures();
+        bigModel.ObliviousTrees->DropUnusedFeatures();
         TVector<TFullModel> partModels;
         TVector<const TFullModel*> modelPtrs;
         TVector<double> modelWeights(5, 1.0);
         for (size_t i = 0; i < 5; ++i) {
             auto partModel = bigModel.CopyTreeRange(i * 20, (i + 1) * 20);
-            partModel.ObliviousTrees.DropUnusedFeatures();
+            partModel.ObliviousTrees->DropUnusedFeatures();
             partModels.emplace_back(partModel);
         }
         for (auto& model : partModels) {

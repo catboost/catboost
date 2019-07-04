@@ -6,7 +6,7 @@
 #include "hessian.h"
 
 #include <catboost/libs/data_types/pair.h>
-#include <catboost/libs/eval_result/eval_helpers.h>
+#include <catboost/libs/model/eval_processing.h>
 #include <catboost/libs/options/catboost_options.h>
 #include <catboost/libs/options/enums.h>
 #include <catboost/libs/options/restrictions.h>
@@ -433,7 +433,7 @@ public:
         const int approxDimension = approx.ysize();
 
         TVector<double> softmax(approxDimension);
-        CalcSoftmax(approx, &softmax);
+        CalcSoftmax(approx, softmax);
 
         for (int dim = 0; dim < approxDimension; ++dim) {
             (*der)[dim] = -softmax[dim];

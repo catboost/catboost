@@ -52,35 +52,35 @@ Y_UNIT_TEST_SUITE(TestFeaturesLayout) {
     Y_UNIT_TEST(TestConstructionWithFloatAndCatFeaturesFromModel) {
         TVector<TFloatFeature> floatFeatures(4);
 
-        floatFeatures[0].FeatureIndex = 0;
-        floatFeatures[0].FlatFeatureIndex = 0;
+        floatFeatures[0].Position.Index = 0;
+        floatFeatures[0].Position.FlatIndex = 0;
         floatFeatures[0].FeatureId = "f0";
 
-        floatFeatures[1].FeatureIndex = 1;
-        floatFeatures[1].FlatFeatureIndex = 2;
+        floatFeatures[1].Position.Index = 1;
+        floatFeatures[1].Position.FlatIndex = 2;
         floatFeatures[1].FeatureId = "f1_name1";
 
-        floatFeatures[2].FeatureIndex = 2;
-        floatFeatures[2].FlatFeatureIndex = 3;
+        floatFeatures[2].Position.Index = 2;
+        floatFeatures[2].Position.FlatIndex = 3;
         floatFeatures[2].FeatureId = "f2";
 
-        floatFeatures[3].FeatureIndex = 3;
-        floatFeatures[3].FlatFeatureIndex = 5;
+        floatFeatures[3].Position.Index = 3;
+        floatFeatures[3].Position.FlatIndex = 5;
         floatFeatures[3].FeatureId = "f3";
 
 
         TVector<TCatFeature> catFeatures(3);
 
-        catFeatures[0].FeatureIndex = 0;
-        catFeatures[0].FlatFeatureIndex = 1;
+        catFeatures[0].Position.Index = 0;
+        catFeatures[0].Position.FlatIndex = 1;
         catFeatures[0].FeatureId = "c0_catname0";
 
-        catFeatures[1].FeatureIndex = 1;
-        catFeatures[1].FlatFeatureIndex = 4;
+        catFeatures[1].Position.Index = 1;
+        catFeatures[1].Position.FlatIndex = 4;
         catFeatures[1].FeatureId = "c1";
 
-        catFeatures[2].FeatureIndex = 2;
-        catFeatures[2].FlatFeatureIndex = 6;
+        catFeatures[2].Position.Index = 2;
+        catFeatures[2].Position.FlatIndex = 6;
         catFeatures[2].FeatureId = "c2";
 
         const NCB::TFeaturesLayout layout(floatFeatures, catFeatures);
@@ -140,27 +140,27 @@ Y_UNIT_TEST_SUITE(TestFeaturesLayout) {
     Y_UNIT_TEST(TestSkippedFeatures) {
         TVector<TFloatFeature> floatFeatures(3);
 
-        floatFeatures[0].FeatureIndex = 0;
-        floatFeatures[0].FlatFeatureIndex = 0;
+        floatFeatures[0].Position.Index = 0;
+        floatFeatures[0].Position.FlatIndex = 0;
         floatFeatures[0].FeatureId = "f0";
 
-        floatFeatures[1].FeatureIndex = 1;
-        floatFeatures[1].FlatFeatureIndex = 2;
+        floatFeatures[1].Position.Index = 1;
+        floatFeatures[1].Position.FlatIndex = 2;
         floatFeatures[1].FeatureId = "f1_name1";
 
-        floatFeatures[2].FeatureIndex = 3;
-        floatFeatures[2].FlatFeatureIndex = 5;
+        floatFeatures[2].Position.Index = 3;
+        floatFeatures[2].Position.FlatIndex = 5;
         floatFeatures[2].FeatureId = "f3";
 
 
         TVector<TCatFeature> catFeatures(2);
 
-        catFeatures[0].FeatureIndex = 0;
-        catFeatures[0].FlatFeatureIndex = 1;
+        catFeatures[0].Position.Index = 0;
+        catFeatures[0].Position.FlatIndex = 1;
         catFeatures[0].FeatureId = "c0_catname0";
 
-        catFeatures[1].FeatureIndex = 2;
-        catFeatures[1].FlatFeatureIndex = 6;
+        catFeatures[1].Position.Index = 2;
+        catFeatures[1].Position.FlatIndex = 6;
         catFeatures[1].FeatureId = "c2";
 
         const NCB::TFeaturesLayout layout(floatFeatures, catFeatures);

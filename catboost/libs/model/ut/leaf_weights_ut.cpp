@@ -120,7 +120,7 @@ static void RunTestWithParams(EWeightsMode addWeights, ETargetDimMode multiclass
     TDataProviderPtr floatPool = SmallFloatPool(addWeights, multiclass);
     TFullModel trainedModel = TrainModelOnPool(floatPool, multiclass);
     if (clearWeightsInModel) {
-        trainedModel.ObliviousTrees.LeafWeights.clear();
+        trainedModel.ObliviousTrees.GetMutable()->LeafWeights.clear();
     }
     TFullModel deserializedModel;
     if (exportToCBM) {
@@ -129,9 +129,9 @@ static void RunTestWithParams(EWeightsMode addWeights, ETargetDimMode multiclass
         deserializedModel = SaveLoadCoreML(trainedModel);
     }
     if (exportToCBM) {
-        CheckWeights(floatPool->RawTargetData.GetWeights(), deserializedModel.ObliviousTrees.LeafWeights);
+        CheckWeights(floatPool->RawTargetData.GetWeights(), deserializedModel.ObliviousTrees->LeafWeights);
     } else {
-        UNIT_ASSERT(deserializedModel.ObliviousTrees.LeafWeights.empty());
+        UNIT_ASSERT(deserializedModel.ObliviousTrees->LeafWeights.empty());
     }
 }
 

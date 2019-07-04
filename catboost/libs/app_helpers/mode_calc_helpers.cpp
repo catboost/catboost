@@ -103,7 +103,7 @@ static NCB::TEvalResult Apply(
     if (maybeBaseline) {
         AssignRank2(*maybeBaseline, &rawValues[0]);
     } else {
-        rawValues[0].resize(model.ObliviousTrees.ApproxDimension,
+        rawValues[0].resize(model.GetDimensionsCount(),
                             TVector<double>(dataset.ObjectsGrouping->GetObjectCount(), 0.0));
     }
     TModelCalcerOnPool modelCalcerOnPool(model, dataset.ObjectsData, executor);
@@ -157,7 +157,10 @@ void NCB::CalcModelSingleHost(
     bool IsFirstBlock = true;
     ui64 docIdOffset = 0;
     auto poolColumnsPrinter = CreatePoolColumnPrinter(params.InputPath, params.DsvPoolFormatParams.Format);
-    const int blockSize = Max<int>(32, static_cast<int>(10000. / (static_cast<double>(iterationsLimit) / evalPeriod) / model.ObliviousTrees.ApproxDimension));
+    const int blockSize = Max<int>(
+        32,
+        static_cast<int>(10000. / (static_cast<double>(iterationsLimit) / evalPeriod) / model.GetDimensionsCount())
+    );
     ReadAndProceedPoolInBlocks(params, blockSize, [&](const NCB::TDataProviderPtr datasetPart) {
         if (IsFirstBlock) {
             ValidateColumnOutput(params.OutputColumnsIds, *datasetPart);

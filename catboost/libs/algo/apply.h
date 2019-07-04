@@ -1,16 +1,14 @@
 #pragma once
 
 #include <catboost/libs/data_new/objects.h>
-#include <catboost/libs/model/formula_evaluator.h>
 #include <catboost/libs/options/enums.h>
+#include <catboost/libs/model/fwd.h>
+
 
 #include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/ptr.h>
 #include <util/generic/vector.h>
-
-
-struct TFullModel;
 
 namespace NCB {
     template <class TTObjectsDataProvider>
@@ -83,25 +81,12 @@ public:
         TVector<TVector<double>>* approx);
 
 private:
-    void InitForRawFeatures(
-        const TFullModel& model,
-        const NCB::TRawObjectsDataProvider& rawObjectsData,
-        const THashMap<ui32, ui32>& columnReorderMap,
-        const NPar::TLocalExecutor::TExecRangeParams& blockParams,
-        NPar::TLocalExecutor* executor);
-    void InitForQuantizedFeatures(
-        const TFullModel& model,
-        const NCB::TQuantizedForCPUObjectsDataProvider& quantizedObjectsData,
-        const THashMap<ui32, ui32>& columnReorderMap,
-        const NPar::TLocalExecutor::TExecRangeParams& blockParams,
-        NPar::TLocalExecutor* executor);
-
-private:
     const TFullModel* Model;
+    NCB::NModelEvaluation::TConstModelEvaluatorPtr ModelEvaluator;
     NCB::TObjectsDataProviderPtr ObjectsData;
     NPar::TLocalExecutor* Executor;
     NPar::TLocalExecutor::TExecRangeParams BlockParams;
-    TVector<THolder<TFeatureCachedTreeEvaluator>> ThreadCalcers;
+    TVector<TIntrusivePtr<NCB::NModelEvaluation::IQuantizedData>> QuantizedDataForThreads;
 };
 
 
@@ -115,10 +100,10 @@ public:
 
     bool Next();
     bool CanGet() const;
-    TVector<TCalcerIndexType> Get() const;
+    TVector<NCB::NModelEvaluation::TCalcerIndexType> Get() const;
 
 private:
-    THolder<ILeafIndexCalcer> InnerLeafIndexCalcer;
+    THolder<NCB::NModelEvaluation::ILeafIndexCalcer> InnerLeafIndexCalcer;
 };
 
 TVector<ui32> CalcLeafIndexesMulti(

@@ -6,7 +6,7 @@
 #include <util/generic/vector.h>
 
 
-struct TFullModel;
+class TFullModel;
 
 namespace NPar {
     class TLocalExecutor;

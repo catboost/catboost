@@ -58,7 +58,7 @@ static TVector<TFeature>  GetCombinationClassFeatures(const TObliviousTrees& for
             continue;
         }
         featuresCombinations.emplace_back();
-        featuresCombinations.back().first = { floatFeature.FlatFeatureIndex };
+        featuresCombinations.back().first = { floatFeature.Position.FlatIndex };
         featuresCombinations.back().second = TFeature(floatFeature);
     }
     for (const TOneHotFeature& oneHotFeature: forest.OneHotFeatures) {
@@ -109,27 +109,27 @@ static TVector<TMxTree> BuildTrees(
     const THashMap<TFeature, int, TFeatureHash>& featureToIdx,
     const TFullModel& model)
 {
-    TVector<TMxTree> trees(model.ObliviousTrees.GetTreeCount());
-    auto& binFeatures = model.ObliviousTrees.GetBinFeatures();
+    TVector<TMxTree> trees(model.GetTreeCount());
+    auto& binFeatures = model.ObliviousTrees->GetBinFeatures();
     for (int treeIdx = 0; treeIdx < trees.ysize(); ++treeIdx) {
         auto& tree = trees[treeIdx];
-        const int leafCount = (1uLL << model.ObliviousTrees.TreeSizes[treeIdx]);
+        const int leafCount = (1uLL << model.ObliviousTrees->TreeSizes[treeIdx]);
 
         tree.Leaves.resize(leafCount);
         for (int leafIdx = 0; leafIdx < leafCount; ++leafIdx) {
-            tree.Leaves[leafIdx].Vals.resize(model.ObliviousTrees.ApproxDimension);
+            tree.Leaves[leafIdx].Vals.resize(model.ObliviousTrees->ApproxDimension);
         }
-        auto firstTreeLeafPtr = model.ObliviousTrees.GetFirstLeafPtrForTree(treeIdx);
+        auto firstTreeLeafPtr = model.ObliviousTrees->GetFirstLeafPtrForTree(treeIdx);
         for (int leafIdx = 0; leafIdx < leafCount; ++leafIdx) {
-            for (int dim = 0; dim < model.ObliviousTrees.ApproxDimension; ++dim) {
+            for (int dim = 0; dim < model.ObliviousTrees->ApproxDimension; ++dim) {
                 tree.Leaves[leafIdx].Vals[dim] = firstTreeLeafPtr[leafIdx
-                    * model.ObliviousTrees.ApproxDimension + dim];
+                    * model.ObliviousTrees->ApproxDimension + dim];
             }
         }
-        auto treeSplitsStart = model.ObliviousTrees.TreeStartOffsets[treeIdx];
-        auto treeSplitsStop = treeSplitsStart + model.ObliviousTrees.TreeSizes[treeIdx];
+        auto treeSplitsStart = model.ObliviousTrees->TreeStartOffsets[treeIdx];
+        auto treeSplitsStop = treeSplitsStart + model.ObliviousTrees->TreeSizes[treeIdx];
         for (auto splitIdx = treeSplitsStart; splitIdx < treeSplitsStop; ++splitIdx) {
-            auto feature = GetFeature(binFeatures[model.ObliviousTrees.TreeSplits[splitIdx]]);
+            auto feature = GetFeature(binFeatures[model.ObliviousTrees->TreeSplits[splitIdx]]);
             tree.SrcFeatures.push_back(featureToIdx.at(feature));
         }
     }
@@ -138,8 +138,8 @@ static TVector<TMxTree> BuildTrees(
 
 TVector<TMxTree> BuildMatrixnetTrees(const TFullModel& model, TVector<TFeature>* features) {
     THashMap<TFeature, int, TFeatureHash> featureToIdx;
-    const auto& modelBinFeatures = model.ObliviousTrees.GetBinFeatures();
-    for (auto binSplit : model.ObliviousTrees.TreeSplits) {
+    const auto& modelBinFeatures = model.ObliviousTrees->GetBinFeatures();
+    for (auto binSplit : model.ObliviousTrees->TreeSplits) {
         TFeature feature = GetFeature(modelBinFeatures[binSplit]);
         if (featureToIdx.contains(feature)) {
             continue;
@@ -189,9 +189,9 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectAverageChange(
         return TVector<std::pair<double, TFeature>>();
     }
 
-    // use only if model.ObliviousTrees.LeafWeights is empty
+    // use only if model.ObliviousTrees->LeafWeights is empty
     TVector<TVector<double>> leavesStatisticsOnPool;
-    if (model.ObliviousTrees.LeafWeights.empty()) {
+    if (model.ObliviousTrees->LeafWeights.empty()) {
         CB_ENSURE(dataset, "CalcFeatureEffect requires either non-empty LeafWeights in model"
             " or provided dataset");
         CB_ENSURE(dataset->GetObjectCount() != 0, "no docs in pool");
@@ -209,7 +209,7 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectAverageChange(
 
     TVector<double> effect = CalcEffect(
         trees,
-        model.ObliviousTrees.LeafWeights.empty() ? leavesStatisticsOnPool : model.ObliviousTrees.LeafWeights);
+        model.ObliviousTrees->LeafWeights.empty() ? leavesStatisticsOnPool : model.ObliviousTrees->LeafWeights);
 
     TVector<std::pair<double, int>> effectWithFeature;
     for (int i = 0; i < effect.ysize(); ++i) {
@@ -255,9 +255,9 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
     NCatboostOptions::TLossDescription metricDescription;
     CB_ENSURE(TryGetObjectiveMetric(model, metricDescription), "Cannot calculate LossFunctionChange feature importances without metric, need model with params");
     CATBOOST_INFO_LOG << "Used " << metricDescription << " metric for fstr calculation" << Endl;
-    int approxDimension = model.ObliviousTrees.ApproxDimension;
+    int approxDimension = model.ObliviousTrees->ApproxDimension;
 
-    auto combinationClassFeatures = GetCombinationClassFeatures(model.ObliviousTrees);
+    auto combinationClassFeatures = GetCombinationClassFeatures(*model.ObliviousTrees);
     int featuresCount = combinationClassFeatures.size();
     if (featuresCount == 0) {
         TVector<std::pair<double, TFeature>> result;
@@ -486,8 +486,8 @@ TVector<double> CalcRegularFeatureEffect(
     NPar::TLocalExecutor* localExecutor)
 {
     const NCB::TFeaturesLayout layout(
-        model.ObliviousTrees.FloatFeatures,
-        model.ObliviousTrees.CatFeatures);
+        model.ObliviousTrees->FloatFeatures,
+        model.ObliviousTrees->CatFeatures);
 
     TVector<TFeatureEffect> regularEffect = CalcRegularFeatureEffect(
         CalcFeatureEffect(model, dataset, type, localExecutor),
@@ -640,7 +640,7 @@ static TVector<TVector<double>> CalcFstr(
     //TODO(eermishkina): support non symmetric trees
     CB_ENSURE(model.IsOblivious(), "Support feature importance only for symmetric trees");
     CB_ENSURE(
-        !model.ObliviousTrees.LeafWeights.empty() || (dataset != nullptr),
+        !model.ObliviousTrees->LeafWeights.empty() || (dataset != nullptr),
         "CalcFstr requires either non-empty LeafWeights in model or provided dataset");
 
     TVector<double> regularEffect = CalcRegularFeatureEffect(model, dataset, type, localExecutor);
@@ -654,8 +654,8 @@ static TVector<TVector<double>> CalcFstr(
 
 TVector<TVector<double>> CalcInteraction(const TFullModel& model) {
     const TFeaturesLayout layout(
-        model.ObliviousTrees.FloatFeatures,
-        model.ObliviousTrees.CatFeatures);
+        model.ObliviousTrees->FloatFeatures,
+        model.ObliviousTrees->CatFeatures);
 
     TVector<TInternalFeatureInteraction> internalInteraction = CalcInternalFeatureInteraction(model);
     TVector<TFeatureInteraction> interaction = CalcFeatureInteraction(internalInteraction, layout);
@@ -746,8 +746,8 @@ TVector<TVector<TVector<double>>> GetFeatureImportancesMulti(
 
 TVector<TString> GetMaybeGeneratedModelFeatureIds(const TFullModel& model, const TDataProviderPtr dataset) {
     const NCB::TFeaturesLayout modelFeaturesLayout(
-        model.ObliviousTrees.FloatFeatures,
-        model.ObliviousTrees.CatFeatures);
+        model.ObliviousTrees->FloatFeatures,
+        model.ObliviousTrees->CatFeatures);
     TVector<TString> modelFeatureIds(modelFeaturesLayout.GetExternalFeatureCount());
     if (AllFeatureIdsEmpty(modelFeaturesLayout.GetExternalFeaturesMetaInfo())) {
         if (dataset) {

@@ -115,6 +115,10 @@ namespace NCB {
             return ArrayRef.end();
         }
 
+        TMaybeOwningArrayHolder Slice(size_t offset, size_t size) const {
+            return TMaybeOwningArrayHolder(ArrayRef.Slice(offset, size), ResourceHolder);
+        }
+
     private:
         TMaybeOwningArrayHolder(
             TArrayRef<T> arrayRef,

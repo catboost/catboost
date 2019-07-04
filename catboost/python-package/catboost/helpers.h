@@ -84,7 +84,7 @@ public:
                                     bool deleteTempDirOnExit = false)
     : Rand(0)
     , MetricLossDescriptions(CreateMetricLossDescriptions(metricDescriptions))
-    , Metrics(CreateMetrics(MetricLossDescriptions, model.ObliviousTrees.ApproxDimension))
+    , Metrics(CreateMetrics(MetricLossDescriptions, model.GetDimensionsCount()))
     , MetricPlotCalcer(CreateMetricCalcer(
             model,
             begin,

@@ -10,7 +10,7 @@
 #include <catboost/libs/documents_importance/docs_importance.h>
 #include <catboost/libs/documents_importance/enums.h>
 #include <catboost/libs/model/model.h>
-#include <catboost/libs/model/formula_evaluator.h>
+#include <catboost/libs/model/cpu/evaluator.h>
 #include <catboost/libs/logging/logging.h>
 #include <catboost/libs/options/cross_validation_params.h>
 #include <catboost/libs/helpers/int_cast.h>
@@ -324,7 +324,7 @@ SEXP CatBoostGetNumTrees_R(SEXP modelParam) {
     SEXP result = NULL;
     R_API_BEGIN();
     TFullModelHandle model = reinterpret_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
-    result = ScalarInteger(static_cast<int>(model->ObliviousTrees.GetTreeCount()));
+    result = ScalarInteger(static_cast<int>(model->GetTreeCount()));
     R_API_END();
     return result;
 }
@@ -618,7 +618,7 @@ SEXP CatBoostShrinkModel_R(SEXP modelParam, SEXP treeCountStartParam, SEXP treeC
 SEXP CatBoostDropUnusedFeaturesFromModel_R(SEXP modelParam) {
     R_API_BEGIN();
     TFullModelHandle model = reinterpret_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
-    model->ObliviousTrees.DropUnusedFeatures();
+    model->ObliviousTrees.GetMutable()->DropUnusedFeatures();
     R_API_END();
     return ScalarLogical(1);
 }
@@ -642,7 +642,7 @@ SEXP CatBoostCalcRegularFeatureEffect_R(SEXP modelParam, SEXP poolParam, SEXP fs
     EFstrType fstrType = FromString<EFstrType>(CHAR(asChar(fstrTypeParam)));
 
     const int threadCount = UpdateThreadCount(asInteger(threadCountParam));
-    const bool multiClass = model->ObliviousTrees.ApproxDimension > 1;
+    const bool multiClass = model->GetDimensionsCount() > 1;
     const bool verbose = false;
     // TODO(akhropov): make prettified mode as in python-package
     if (fstrType == EFstrType::ShapValues && multiClass) {

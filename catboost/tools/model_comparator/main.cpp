@@ -176,8 +176,8 @@ int main(int argc, char** argv) {
         return 0;
     }
     TSubmodelComparison result;
-    const TObliviousTrees& trees1 = model1.ObliviousTrees;
-    const TObliviousTrees& trees2 = model2.ObliviousTrees;
+    const TObliviousTrees& trees1 = *model1.ObliviousTrees;
+    const TObliviousTrees& trees2 = *model2.ObliviousTrees;
     if (true) {
         if (trees1.FloatFeatures.size() != trees2.FloatFeatures.size()) {
             Clog << "FloatFeatures size differ: "

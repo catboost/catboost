@@ -32,8 +32,8 @@ static TVector<TFeature> CreateFeatures(
         }
 
         TFeature feature;
-        feature.FeatureIndex = (int)*featuresLayout.GetInternalFeatureIdx<FeatureType>(flatFeatureIdx);
-        feature.FlatFeatureIndex = flatFeatureIdx;
+        feature.Position.Index = (int)*featuresLayout.GetInternalFeatureIdx<FeatureType>(flatFeatureIdx);
+        feature.Position.FlatIndex = flatFeatureIdx;
         feature.FeatureId = featureMetaInfo.Name;
 
         if (featureMetaInfo.IsAvailable) {
@@ -51,13 +51,13 @@ TVector<TFloatFeature> CreateFloatFeatures(const NCB::TQuantizedFeaturesInfo& qu
     return CreateFeatures<TFloatFeature, EFeatureType::Float>(
         quantizedFeaturesInfo,
         [&] (TFloatFeature& floatFeature) {
-            const auto floatFeatureIdx = TFloatFeatureIdx((ui32)floatFeature.FeatureIndex);
+            const auto floatFeatureIdx = TFloatFeatureIdx((ui32)floatFeature.Position.Index);
             auto nanMode = quantizedFeaturesInfo.GetNanMode(floatFeatureIdx);
             if (nanMode == ENanMode::Min) {
-                floatFeature.NanValueTreatment = NCatBoostFbs::ENanValueTreatment_AsFalse;
+                floatFeature.NanValueTreatment = TFloatFeature::ENanValueTreatment::AsFalse;
                 floatFeature.HasNans = true;
             } else if (nanMode == ENanMode::Max) {
-                floatFeature.NanValueTreatment = NCatBoostFbs::ENanValueTreatment_AsTrue;
+                floatFeature.NanValueTreatment = TFloatFeature::ENanValueTreatment::AsTrue;
                 floatFeature.HasNans = true;
             }
 

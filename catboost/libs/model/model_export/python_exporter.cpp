@@ -24,7 +24,7 @@ namespace NCatboost {
     };
 
     static void WriteModelCTRs(IOutputStream& out, const TFullModel& model, TIndent& indent) {
-        const TVector<TModelCtr>& neededCtrs = model.ObliviousTrees.GetUsedModelCtrs();
+        const TVector<TModelCtr>& neededCtrs = model.ObliviousTrees->GetUsedModelCtrs();
         if (neededCtrs.empty()) {
             return;
         }
@@ -37,7 +37,7 @@ namespace NCatboost {
 
         TVector<TCompressedModelCtr> compressedModelCtrs = CompressModelCtrs(neededCtrs);
 
-        out << indent << "used_model_ctrs_count = " << model.ObliviousTrees.GetUsedModelCtrs().size() << "," << '\n';
+        out << indent << "used_model_ctrs_count = " << model.ObliviousTrees->GetUsedModelCtrs().size() << "," << '\n';
         out << indent++ << "compressed_model_ctrs = [" << '\n';
 
         comma.ResetCount(compressedModelCtrs.size());
@@ -141,9 +141,9 @@ namespace NCatboost {
 
 
     void TCatboostModelToPythonConverter::WriteModelCatFeatures(const TFullModel& model, const THashMap<ui32, TString>* catFeaturesHashToString) {
-        CB_ENSURE(model.ObliviousTrees.ApproxDimension == 1, "Export of MultiClassification model to Python is not supported.");
+        CB_ENSURE(model.ObliviousTrees->ApproxDimension == 1, "Export of MultiClassification model to Python is not supported.");
 
-        if (!model.ObliviousTrees.GetUsedModelCtrs().empty()) {
+        if (!model.ObliviousTrees->GetUsedModelCtrs().empty()) {
             WriteCTRStructs();
         }
 
@@ -154,22 +154,22 @@ namespace NCatboost {
         Out << indent++ << "class catboost_model(object):" << '\n';
         Out << indent << "float_features_index = [\n";
         TStringBuilder str;
-        for (const auto& feature: model.ObliviousTrees.FloatFeatures) {
+        for (const auto& feature: model.ObliviousTrees->FloatFeatures) {
             if (feature.UsedInModel()) {
-                str << feature.FeatureIndex << ", ";
+                str << feature.Position.Index << ", ";
             }
         }
         str.pop_back();
         Out << ++indent << str << "\n";
         Out << --indent << "]\n";
-        Out << indent << "float_feature_count = " << model.ObliviousTrees.GetNumFloatFeatures() << '\n';
-        Out << indent << "cat_feature_count = " << model.ObliviousTrees.GetNumCatFeatures() << '\n';
-        Out << indent << "binary_feature_count = " << model.ObliviousTrees.GetEffectiveBinaryFeaturesBucketsCount() << '\n';
-        Out << indent << "tree_count = " << model.ObliviousTrees.TreeSizes.size() << '\n';
+        Out << indent << "float_feature_count = " << model.ObliviousTrees->GetNumFloatFeatures() << '\n';
+        Out << indent << "cat_feature_count = " << model.ObliviousTrees->GetNumCatFeatures() << '\n';
+        Out << indent << "binary_feature_count = " << model.ObliviousTrees->GetEffectiveBinaryFeaturesBucketsCount() << '\n';
+        Out << indent << "tree_count = " << model.ObliviousTrees->TreeSizes.size() << '\n';
 
         Out << indent++ << "float_feature_borders = [" << '\n';
-        comma.ResetCount(model.ObliviousTrees.FloatFeatures.size());
-        for (const auto& floatFeature : model.ObliviousTrees.FloatFeatures) {
+        comma.ResetCount(model.ObliviousTrees->FloatFeatures.size());
+        for (const auto& floatFeature : model.ObliviousTrees->FloatFeatures) {
             if (!floatFeature.UsedInModel()) {
                 continue;
             }
@@ -179,23 +179,23 @@ namespace NCatboost {
         }
         Out << --indent << "]" << '\n';
 
-        Out << indent << "tree_depth = [" << OutputArrayInitializer(model.ObliviousTrees.TreeSizes) << "]" << '\n';
+        Out << indent << "tree_depth = [" << OutputArrayInitializer(model.ObliviousTrees->TreeSizes) << "]" << '\n';
 
-        const TVector<TRepackedBin>& bins = model.ObliviousTrees.GetRepackedBins();
+        const TVector<TRepackedBin>& bins = model.ObliviousTrees->GetRepackedBins();
         Out << indent << "tree_split_border = [" << OutputArrayInitializer([&bins](size_t i) { return (int)bins[i].SplitIdx; }, bins.size()) << "]" << '\n';
         Out << indent << "tree_split_feature_index = [" << OutputArrayInitializer([&bins](size_t i) { return (int)bins[i].FeatureIndex; }, bins.size()) << "]" << '\n';
         Out << indent << "tree_split_xor_mask = [" << OutputArrayInitializer([&bins](size_t i) { return (int)bins[i].XorMask; }, bins.size()) << "]" << '\n';
 
         Out << indent << "cat_features_index = ["
-            << OutputArrayInitializer([&model](size_t i) { return model.ObliviousTrees.CatFeatures[i].FeatureIndex; }, model.ObliviousTrees.CatFeatures.size()) << "]" << '\n';
+            << OutputArrayInitializer([&model](size_t i) { return model.ObliviousTrees->CatFeatures[i].Position.Index; }, model.ObliviousTrees->CatFeatures.size()) << "]" << '\n';
 
         Out << indent << "one_hot_cat_feature_index = ["
-            << OutputArrayInitializer([&model](size_t i) { return model.ObliviousTrees.OneHotFeatures[i].CatFeatureIndex; }, model.ObliviousTrees.OneHotFeatures.size())
+            << OutputArrayInitializer([&model](size_t i) { return model.ObliviousTrees->OneHotFeatures[i].CatFeatureIndex; }, model.ObliviousTrees->OneHotFeatures.size())
             << "]" << '\n';
 
         Out << indent++ << "one_hot_hash_values = [" << '\n';
-        comma.ResetCount(model.ObliviousTrees.OneHotFeatures.size());
-        for (const auto& oneHotFeature : model.ObliviousTrees.OneHotFeatures) {
+        comma.ResetCount(model.ObliviousTrees->OneHotFeatures.size());
+        for (const auto& oneHotFeature : model.ObliviousTrees->OneHotFeatures) {
             Out << indent << "["
                 << OutputArrayInitializer([&oneHotFeature](size_t i) { return oneHotFeature.Values[i]; }, oneHotFeature.Values.size())
                 << "]" << comma << '\n';
@@ -203,8 +203,8 @@ namespace NCatboost {
         Out << --indent << "]" << '\n';
 
         Out << indent++ << "ctr_feature_borders = [" << '\n';
-        comma.ResetCount(model.ObliviousTrees.CtrFeatures.size());
-        for (const auto& ctrFeature : model.ObliviousTrees.CtrFeatures) {
+        comma.ResetCount(model.ObliviousTrees->CtrFeatures.size());
+        for (const auto& ctrFeature : model.ObliviousTrees->CtrFeatures) {
             Out << indent << "["
                 << OutputArrayInitializer([&ctrFeature](size_t i) { return FloatToString(ctrFeature.Borders[i], PREC_NDIGITS, 9); }, ctrFeature.Borders.size())
                 << "]" << comma << '\n';
@@ -212,14 +212,14 @@ namespace NCatboost {
         Out << --indent << "]" << '\n';
 
         int leafValueCount = 0;
-        for (const auto& treeSize : model.ObliviousTrees.TreeSizes) {
-            leafValueCount += treeSize * model.ObliviousTrees.ApproxDimension;
+        for (const auto& treeSize : model.ObliviousTrees->TreeSizes) {
+            leafValueCount += treeSize * model.ObliviousTrees->ApproxDimension;
         }
         Out << '\n';
         Out << indent << "## Aggregated array of leaf values for trees. Each tree is represented by a separate line:" << '\n';
         Out << indent << "leaf_values = [" << OutputLeafValues(model, indent) << indent << "]" << '\n';
 
-        if (!model.ObliviousTrees.GetUsedModelCtrs().empty()) {
+        if (!model.ObliviousTrees->GetUsedModelCtrs().empty()) {
             WriteModelCTRs(Out, model, indent);
             Out << '\n' << '\n';
             Out << NResource::Find("catboost_model_export_python_ctr_calcer") << '\n';

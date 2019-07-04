@@ -93,14 +93,14 @@ namespace NCB {
         const TVector<double>& prediction,
         const EPredictionType predictionType,
         const int threadCount) {
-        CB_ENSURE_INTERNAL(!model.ObliviousTrees.FloatFeatures[featureNum].HasNans,
+        CB_ENSURE_INTERNAL(!model.ObliviousTrees->FloatFeatures[featureNum].HasNans,
             "Features with nan values not supported");
 
         NPar::TLocalExecutor executor;
         executor.RunAdditionalThreads(threadCount - 1);
         TRestorableFastRng64 rand(0);
 
-        TVector<float> borders = model.ObliviousTrees.FloatFeatures[featureNum].Borders;
+        TVector<float> borders = model.ObliviousTrees->FloatFeatures[featureNum].Borders;
         size_t bordersSize = borders.size();
         if (bordersSize == 0) {
             return {};
@@ -118,13 +118,13 @@ namespace NCB {
 
         TVector<ui32> ignoredFeatureNums;
 
-        for (auto& feature : model.ObliviousTrees.FloatFeatures) {
-            if (feature.FeatureIndex != -1 && static_cast<ui32>(feature.FeatureIndex) != featureNum) {
-                ignoredFeatureNums.push_back(feature.FlatFeatureIndex);
+        for (auto& feature : model.ObliviousTrees->FloatFeatures) {
+            if (feature.Position.Index != -1 && static_cast<ui32>(feature.Position.Index) != featureNum) {
+                ignoredFeatureNums.push_back(feature.Position.FlatIndex);
             }
         }
-        for (auto& feature : model.ObliviousTrees.CatFeatures) {
-            ignoredFeatureNums.push_back(feature.FlatFeatureIndex);
+        for (auto& feature : model.ObliviousTrees->CatFeatures) {
+            ignoredFeatureNums.push_back(feature.Position.FlatIndex);
         }
 
         TConstArrayRef<ui32> ignoredFeatures = MakeConstArrayRef(ignoredFeatureNums);
@@ -136,7 +136,7 @@ namespace NCB {
             commonFloatFeaturesBinarization);
         quantizedFeaturesInfo->SetBorders(TFloatFeatureIdx(featureNum), std::move(borders));
         quantizedFeaturesInfo->SetNanMode(TFloatFeatureIdx(featureNum),
-            model.ObliviousTrees.FloatFeatures[featureNum].HasNans ? ENanMode::Min : ENanMode::Forbidden);
+            model.ObliviousTrees->FloatFeatures[featureNum].HasNans ? ENanMode::Min : ENanMode::Forbidden);
 
         TQuantizationOptions options;
 
@@ -199,7 +199,7 @@ namespace NCB {
 
     int GetOneHotFeatureFlatNum(const TFullModel& model, const size_t featureNum) {
         int featureFlatNum = -1;
-        for(auto & feature: model.ObliviousTrees.OneHotFeatures) {
+        for(auto & feature: model.ObliviousTrees->OneHotFeatures) {
             const int distToNearestCatFeature = featureNum - feature.CatFeatureIndex;
             ++featureFlatNum;
             if (distToNearestCatFeature < 0) {
@@ -237,11 +237,11 @@ namespace NCB {
         CB_ENSURE_INTERNAL(objectsPtr, "Zero pointer to raw objects");
         TRawObjectsDataProviderPtr rawObjectsDataProviderPtr(objectsPtr);
 
-        if (model.ObliviousTrees.OneHotFeatures.empty()) {
+        if (model.ObliviousTrees->OneHotFeatures.empty()) {
             return {};
         }
 
-        const TVector<int>& oneHotUniqueValues = model.ObliviousTrees.OneHotFeatures[featureFlatNum].Values;
+        const TVector<int>& oneHotUniqueValues = model.ObliviousTrees->OneHotFeatures[featureFlatNum].Values;
         TMaybeData<const THashedCatValuesHolder*> catFeatureMaybe = \
             rawObjectsDataProviderPtr->GetCatFeature(featureNum);
         CB_ENSURE_INTERNAL(catFeatureMaybe, "Categorical feature #" << featureNum << " not found");
@@ -381,7 +381,7 @@ namespace NCB {
             const size_t featureNum) {
 
         int hash = static_cast<int>(CalcCatFeatureHash(value));
-        if (model.ObliviousTrees.OneHotFeatures.empty()) {
+        if (model.ObliviousTrees->OneHotFeatures.empty()) {
             return 0;
         }
         const int featureFlatNum = GetOneHotFeatureFlatNum(model, featureNum);
@@ -389,20 +389,20 @@ namespace NCB {
         if (featureFlatNum == -1) {
             return 0;
         }
-        const TVector<int>& oneHotUniqueValues = model.ObliviousTrees.OneHotFeatures[featureFlatNum].Values;
+        const TVector<int>& oneHotUniqueValues = model.ObliviousTrees->OneHotFeatures[featureFlatNum].Values;
         auto it = std::find(oneHotUniqueValues.begin(), oneHotUniqueValues.end(), hash);
         return it - oneHotUniqueValues.begin();
     }
 
     TFeatureTypeAndInternalIndex GetFeatureTypeAndInternalIndex(const TFullModel& model, const int flatFeatureIndex) {
-        for (auto& feature: model.ObliviousTrees.FloatFeatures) {
-            if (feature.FlatFeatureIndex == flatFeatureIndex) {
-                return TFeatureTypeAndInternalIndex{EFeatureType::Float, feature.FeatureIndex};
+        for (auto& feature: model.ObliviousTrees->FloatFeatures) {
+            if (feature.Position.FlatIndex == flatFeatureIndex) {
+                return TFeatureTypeAndInternalIndex{EFeatureType::Float, feature.Position.Index};
             }
         }
-        for (auto& feature: model.ObliviousTrees.CatFeatures) {
-            if (feature.FlatFeatureIndex == flatFeatureIndex) {
-                return TFeatureTypeAndInternalIndex{EFeatureType::Categorical, feature.FeatureIndex};
+        for (auto& feature: model.ObliviousTrees->CatFeatures) {
+            if (feature.Position.FlatIndex == flatFeatureIndex) {
+                return TFeatureTypeAndInternalIndex{EFeatureType::Categorical, feature.Position.Index};
             }
         }
         CB_ENSURE(false, "Unsupported feature type");

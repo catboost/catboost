@@ -86,43 +86,43 @@ TFeaturesLayout::TFeaturesLayout(
     TFeatureMetaInfo defaultIgnoredMetaInfo(EFeatureType::Float, TString(), true);
     const ui32 internalOrExternalIndexPlaceholder = Max<ui32>();
     for (const TFloatFeature& floatFeature : floatFeatures) {
-        CB_ENSURE(floatFeature.FlatFeatureIndex >= 0, "floatFeature.FlatFeatureIndex is negative");
-        CB_ENSURE(floatFeature.FeatureIndex >= 0, "floatFeature.FeatureIndex is negative");
-        if ((size_t)floatFeature.FlatFeatureIndex >= ExternalIdxToMetaInfo.size()) {
+        CB_ENSURE(floatFeature.Position.FlatIndex >= 0, "floatFeature.Position.FlatIndex is negative");
+        CB_ENSURE(floatFeature.Position.Index >= 0, "floatFeature.Position.Index is negative");
+        if ((size_t)floatFeature.Position.FlatIndex >= ExternalIdxToMetaInfo.size()) {
             CB_ENSURE(
-                (size_t)floatFeature.FlatFeatureIndex < (size_t)Max<ui32>(),
-                "floatFeature.FlatFeatureIndex is greater than maximum allowed index: " << (Max<ui32>() - 1)
+                (size_t)floatFeature.Position.FlatIndex < (size_t)Max<ui32>(),
+                "floatFeature.Position.FlatIndex is greater than maximum allowed index: " << (Max<ui32>() - 1)
             );
-            ExternalIdxToMetaInfo.resize(floatFeature.FlatFeatureIndex + 1, defaultIgnoredMetaInfo);
-            FeatureExternalIdxToInternalIdx.resize(floatFeature.FlatFeatureIndex + 1, internalOrExternalIndexPlaceholder);
+            ExternalIdxToMetaInfo.resize(floatFeature.Position.FlatIndex + 1, defaultIgnoredMetaInfo);
+            FeatureExternalIdxToInternalIdx.resize(floatFeature.Position.FlatIndex + 1, internalOrExternalIndexPlaceholder);
         }
-        ExternalIdxToMetaInfo[floatFeature.FlatFeatureIndex] =
+        ExternalIdxToMetaInfo[floatFeature.Position.FlatIndex] =
             TFeatureMetaInfo(EFeatureType::Float, floatFeature.FeatureId);
-        FeatureExternalIdxToInternalIdx[floatFeature.FlatFeatureIndex] = floatFeature.FeatureIndex;
-        if ((size_t)floatFeature.FeatureIndex >= FloatFeatureInternalIdxToExternalIdx.size()) {
-            FloatFeatureInternalIdxToExternalIdx.resize((size_t)floatFeature.FeatureIndex + 1, internalOrExternalIndexPlaceholder);
+        FeatureExternalIdxToInternalIdx[floatFeature.Position.FlatIndex] = floatFeature.Position.Index;
+        if ((size_t)floatFeature.Position.Index >= FloatFeatureInternalIdxToExternalIdx.size()) {
+            FloatFeatureInternalIdxToExternalIdx.resize((size_t)floatFeature.Position.Index + 1, internalOrExternalIndexPlaceholder);
         }
-        FloatFeatureInternalIdxToExternalIdx[floatFeature.FeatureIndex] = floatFeature.FlatFeatureIndex;
+        FloatFeatureInternalIdxToExternalIdx[floatFeature.Position.Index] = floatFeature.Position.FlatIndex;
     }
 
     for (const TCatFeature& catFeature : catFeatures) {
-        CB_ENSURE(catFeature.FlatFeatureIndex >= 0, "catFeature.FlatFeatureIndex is negative");
-        CB_ENSURE(catFeature.FeatureIndex >= 0, "catFeature.FeatureIndex is negative");
-        if ((size_t)catFeature.FlatFeatureIndex >= ExternalIdxToMetaInfo.size()) {
+        CB_ENSURE(catFeature.Position.FlatIndex >= 0, "catFeature.Position.FlatIndex is negative");
+        CB_ENSURE(catFeature.Position.Index >= 0, "catFeature.Position.Index is negative");
+        if ((size_t)catFeature.Position.FlatIndex >= ExternalIdxToMetaInfo.size()) {
             CB_ENSURE(
-                (size_t)catFeature.FlatFeatureIndex < (size_t)Max<ui32>(),
-                "catFeature.FlatFeatureIndex is greater than maximum allowed index: " << (Max<ui32>() - 1)
+                (size_t)catFeature.Position.FlatIndex < (size_t)Max<ui32>(),
+                "catFeature.Position.FlatIndex is greater than maximum allowed index: " << (Max<ui32>() - 1)
             );
-            ExternalIdxToMetaInfo.resize(catFeature.FlatFeatureIndex + 1, defaultIgnoredMetaInfo);
-            FeatureExternalIdxToInternalIdx.resize(catFeature.FlatFeatureIndex + 1, internalOrExternalIndexPlaceholder);
+            ExternalIdxToMetaInfo.resize(catFeature.Position.FlatIndex + 1, defaultIgnoredMetaInfo);
+            FeatureExternalIdxToInternalIdx.resize(catFeature.Position.FlatIndex + 1, internalOrExternalIndexPlaceholder);
         }
-        ExternalIdxToMetaInfo[catFeature.FlatFeatureIndex] =
+        ExternalIdxToMetaInfo[catFeature.Position.FlatIndex] =
             TFeatureMetaInfo(EFeatureType::Categorical, catFeature.FeatureId);
-        FeatureExternalIdxToInternalIdx[catFeature.FlatFeatureIndex] = catFeature.FeatureIndex;
-        if ((size_t)catFeature.FeatureIndex >= CatFeatureInternalIdxToExternalIdx.size()) {
-            CatFeatureInternalIdxToExternalIdx.resize((size_t)catFeature.FeatureIndex + 1, internalOrExternalIndexPlaceholder);
+        FeatureExternalIdxToInternalIdx[catFeature.Position.FlatIndex] = catFeature.Position.Index;
+        if ((size_t)catFeature.Position.Index >= CatFeatureInternalIdxToExternalIdx.size()) {
+            CatFeatureInternalIdxToExternalIdx.resize((size_t)catFeature.Position.Index + 1, internalOrExternalIndexPlaceholder);
         }
-        CatFeatureInternalIdxToExternalIdx[catFeature.FeatureIndex] = catFeature.FlatFeatureIndex;
+        CatFeatureInternalIdxToExternalIdx[catFeature.Position.Index] = catFeature.Position.FlatIndex;
     }
 }
 

@@ -42,7 +42,7 @@ public:
 
         AddTree(modelSplits, treeLeafValues, TVector<double>());
     }
-    TObliviousTrees Build();
+    void Build(TObliviousTrees* result);
 private:
     TVector<TVector<TModelSplit>> Trees;
     TVector<double> LeafValues;
@@ -81,7 +81,7 @@ public:
         int approxDimension
     );
     void AddTree(THolder<TNonSymmetricTreeNode> head);
-    TObliviousTrees Build();
+    void Build(TObliviousTrees* result);
 private:
     ui32 AddTreeNode(const TNonSymmetricTreeNode& node);
     void InsertNodeValue(const TNonSymmetricTreeNode& node);

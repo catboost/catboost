@@ -1,6 +1,8 @@
 #pragma once
 
 #include <catboost/libs/labels/external_label_helper.h>
+// TODO(kirillovs): remove this include and fix external code
+#include <catboost/libs/model/eval_processing.h>
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/options/enums.h>
 
@@ -9,10 +11,6 @@
 #include <util/generic/fwd.h>
 #include <util/generic/vector.h>
 
-
-void CalcSoftmax(TConstArrayRef<double> approx, TVector<double>* softmax);
-
-TVector<double> CalcSigmoid(TConstArrayRef<double> approx);
 
 TVector<TVector<double>> PrepareEvalForInternalApprox(
     const EPredictionType prediction_type,

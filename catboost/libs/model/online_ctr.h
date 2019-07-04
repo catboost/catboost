@@ -2,8 +2,7 @@
 
 #include "hash.h"
 
-#include <catboost/libs/model/flatbuffers/ctr_data.fbs.h>
-
+#include "fwd.h"
 #include <catboost/libs/ctr_description/ctr_type.h>
 
 #include <contrib/libs/flatbuffers/include/flatbuffers/flatbuffers.h>
@@ -131,27 +130,7 @@ public:
 
     flatbuffers::Offset<NCatBoostFbs::TFeatureCombination> FBSerialize(TModelPartsCachingSerializer& serializer) const;
 
-    void FBDeserialize(const NCatBoostFbs::TFeatureCombination* fbObj) {
-        Clear();
-        if (fbObj == nullptr) {
-            return;
-        }
-        if (fbObj->CatFeatures() && fbObj->CatFeatures()->size() != 0) {
-            CatFeatures.assign(fbObj->CatFeatures()->begin(), fbObj->CatFeatures()->end());
-        }
-        if (fbObj->FloatSplits() && fbObj->FloatSplits()->size() != 0) {
-            for (const auto fbSplit : *fbObj->FloatSplits()) {
-                TFloatSplit split{fbSplit->Index(), fbSplit->Border()};
-                BinFeatures.push_back(split);
-            }
-        }
-        if (fbObj->OneHotSplits() && fbObj->OneHotSplits()->size() != 0) {
-            for (const auto fbSplit : *fbObj->OneHotSplits()) {
-                TOneHotSplit split{fbSplit->Index(), fbSplit->Value()};
-                OneHotFeatures.push_back(split);
-            }
-        }
-    }
+    void FBDeserialize(const NCatBoostFbs::TFeatureCombination* fbObj);
 };
 
 template <>
@@ -188,15 +167,7 @@ public:
     }
 
     flatbuffers::Offset<NCatBoostFbs::TModelCtrBase> FBSerialize(TModelPartsCachingSerializer& serializer) const;
-    void FBDeserialize(const NCatBoostFbs::TModelCtrBase* fbObj) {
-        Projection.Clear();
-        if (fbObj == nullptr) {
-            return;
-        }
-        Projection.FBDeserialize(fbObj->FeatureCombination());
-        CtrType = static_cast<ECtrType>(fbObj->CtrType());
-        TargetBorderClassifierIdx = fbObj->TargetBorderClassifierIdx();
-    }
+    void FBDeserialize(const NCatBoostFbs::TModelCtrBase* fbObj);
 };
 
 template <>
@@ -249,14 +220,7 @@ public:
     }
 
     flatbuffers::Offset<NCatBoostFbs::TModelCtr> FBSerialize(TModelPartsCachingSerializer& serializer) const;
-    void FBDeserialize(const NCatBoostFbs::TModelCtr* fbObj) {
-        Base.FBDeserialize(fbObj->Base());
-        TargetBorderIdx = fbObj->TargetBorderIdx();
-        PriorNum = fbObj->PriorNum();
-        PriorDenom = fbObj->PriorDenom();
-        Shift = fbObj->Shift();
-        Scale = fbObj->Scale();
-    }
+    void FBDeserialize(const NCatBoostFbs::TModelCtr* fbObj);
 };
 
 template <>

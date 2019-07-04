@@ -1,10 +1,11 @@
 #include "metric_holder.h"
 
-#include <cmath>
-#include <catboost/libs/eval_result/eval_helpers.h>
+#include <catboost/libs/model/eval_processing.h>
 
 #include <util/generic/vector.h>
 #include <util/generic/array_ref.h>
+
+#include <cmath>
 
 TMetricHolder ComputeHingeLossMetric(TConstArrayRef<TVector<double>> approx,
                                      TConstArrayRef<float> target,

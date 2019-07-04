@@ -63,12 +63,11 @@ public:
 };
 
 void CalcShapValuesForDocumentMulti(
-    const TObliviousTrees& forest,
+    const TFullModel& model,
     const TShapPreparedTrees& preparedTrees,
-    const TVector<ui8>& binarizedFeaturesForBlock,
+    const NCB::NModelEvaluation::IQuantizedData* binarizedFeaturesForBlock,
     int flatFeatureCount,
     size_t documentIdx,
-    size_t documentCount,
     TVector<TVector<double>>* shapValues
 );
 

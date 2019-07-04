@@ -87,8 +87,8 @@ inline void CalcAndOutputFstr(const TFullModel& model,
                               const TString* internalFstrPath,
                               EFstrType type) {
     const NCB::TFeaturesLayout layout(
-        model.ObliviousTrees.FloatFeatures,
-        model.ObliviousTrees.CatFeatures);
+        model.ObliviousTrees->FloatFeatures,
+        model.ObliviousTrees->CatFeatures);
 
     TVector<std::pair<double, TFeature>> internalEffect = CalcFeatureEffect(model, dataset, type, localExecutor);
     if (internalFstrPath != nullptr && !internalFstrPath->empty()) {
@@ -110,8 +110,8 @@ inline void CalcAndOutputInteraction(
     const TString* internalFstrPath)
 {
     const NCB::TFeaturesLayout layout(
-        model.ObliviousTrees.FloatFeatures,
-        model.ObliviousTrees.CatFeatures);
+        model.ObliviousTrees->FloatFeatures,
+        model.ObliviousTrees->CatFeatures);
 
     TVector<TInternalFeatureInteraction> internalInteraction = CalcInternalFeatureInteraction(model);
     if (internalFstrPath != nullptr) {

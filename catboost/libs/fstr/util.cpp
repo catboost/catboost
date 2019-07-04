@@ -3,7 +3,7 @@
 #include <catboost/libs/algo/features_data_helpers.h>
 #include <catboost/libs/algo/index_calcer.h>
 #include <catboost/libs/helpers/exception.h>
-#include <catboost/libs/model/formula_evaluator.h>
+#include <catboost/libs/model/cpu/evaluator.h>
 #include <catboost/libs/options/json_helper.h>
 #include <catboost/libs/target/data_providers.h>
 
@@ -47,17 +47,17 @@ TVector<TVector<double>> CollectLeavesStatistics(
     }
 
 
-    const size_t treeCount = model.ObliviousTrees.TreeSizes.size();
+    const size_t treeCount = model.GetTreeCount();
     TVector<TVector<double>> leavesStatistics(treeCount);
     for (size_t index = 0; index < treeCount; ++index) {
-        leavesStatistics[index].resize(1 << model.ObliviousTrees.TreeSizes[index]);
+        leavesStatistics[index].resize(1 << model.ObliviousTrees->TreeSizes[index]);
     }
 
-    TVector<ui8> binFeatures = GetModelCompatibleQuantizedFeatures(model, *dataset.ObjectsData.Get());
+    auto binFeatures = MakeQuantizedFeaturesForEvaluator(model, *dataset.ObjectsData.Get());
 
     const auto documentsCount = dataset.GetObjectCount();
     for (size_t treeIdx = 0; treeIdx < treeCount; ++treeIdx) {
-        TVector<TIndexType> indices = BuildIndicesForBinTree(model, binFeatures, treeIdx);
+        TVector<TIndexType> indices = BuildIndicesForBinTree(model, binFeatures.Get(), treeIdx);
 
         if (indices.empty()) {
             continue;

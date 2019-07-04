@@ -6,7 +6,7 @@
 #include <catboost/libs/data_new/data_provider.h>
 #include <catboost/libs/data_new/data_provider_builders.h>
 #include <catboost/libs/model/model.h>
-#include <catboost/libs/model/formula_evaluator.h>
+#include <catboost/libs/model/cpu/evaluator.h>
 #include <catboost/libs/target/data_providers.h>
 
 #include <util/generic/vector.h>

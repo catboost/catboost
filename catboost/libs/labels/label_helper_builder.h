@@ -6,12 +6,12 @@
 template <typename TLabelsHelper>
 TLabelsHelper BuildLabelsHelper(const TFullModel& model) {
     TLabelsHelper labelsHelper;
-    if (model.ObliviousTrees.ApproxDimension > 1) {  // is multiclass?
+    if (model.GetDimensionsCount() > 1) {  // is multiclass?
         if (model.ModelInfo.contains("multiclass_params")) {
             labelsHelper.Initialize(model.ModelInfo.at("multiclass_params"));
         }
         else {
-            labelsHelper.Initialize(model.ObliviousTrees.ApproxDimension);
+            labelsHelper.Initialize(model.GetDimensionsCount());
         }
     }
     return labelsHelper;

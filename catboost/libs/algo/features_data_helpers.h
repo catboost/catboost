@@ -54,19 +54,24 @@ namespace NCB {
                 );
             }
 
-            Y_FORCE_INLINE float operator()(const TFloatFeature& floatFeature, size_t index) const {
-                Y_ASSERT(SafeIntegerCast<size_t>(floatFeature.FlatFeatureIndex) < RepackedFeaturesRef.size());
-                Y_ASSERT(SafeIntegerCast<size_t>(index) <
-                    RepackedFeaturesRef[floatFeature.FlatFeatureIndex].size());
-                return RepackedFeaturesRef[floatFeature.FlatFeatureIndex][index];
+            Y_FORCE_INLINE auto GetFloatAccessor() {
+                return [this](const TFeaturePosition& position, size_t index) -> float {
+                    Y_ASSERT(SafeIntegerCast<size_t>(position.FlatIndex) < RepackedFeaturesRef.size());
+                    Y_ASSERT(SafeIntegerCast<size_t>(index) <
+                             RepackedFeaturesRef[position.FlatIndex].size());
+                    return RepackedFeaturesRef[position.FlatIndex][index];
+                };
             }
 
-            Y_FORCE_INLINE ui32 operator()(const TCatFeature& catFeature, size_t index) const {
-                Y_ASSERT(SafeIntegerCast<size_t>(catFeature.FlatFeatureIndex) < RepackedFeaturesRef.size());
-                Y_ASSERT(SafeIntegerCast<size_t>(index) <
-                    RepackedFeaturesRef[catFeature.FlatFeatureIndex].size());
-                return ConvertFloatCatFeatureToIntHash(
-                    RepackedFeaturesRef[catFeature.FlatFeatureIndex][index]);
+            Y_FORCE_INLINE auto GetCatAccessor() {
+                 return [this] (const TFeaturePosition& position, size_t index) -> ui32 {
+                    Y_ASSERT(SafeIntegerCast<size_t>(position.FlatIndex) < RepackedFeaturesRef.size());
+                    Y_ASSERT(SafeIntegerCast<size_t>(index) <
+                    RepackedFeaturesRef[position.FlatIndex].size());
+                    return ConvertFloatCatFeatureToIntHash(
+                        RepackedFeaturesRef[position.FlatIndex][index]);
+
+                };
             };
 
         private:
@@ -95,8 +100,8 @@ namespace NCB {
             {
                 FloatBinsRemapRef = GetFloatFeaturesBordersRemap(
                     model, *quantizedObjectsData.GetQuantizedFeaturesInfo().Get());
-                PackedIndexesRef.resize(model.ObliviousTrees.GetFlatFeatureVectorExpectedSize());
-                BundledIndexesRef.resize(model.ObliviousTrees.GetFlatFeatureVectorExpectedSize());
+                PackedIndexesRef.resize(model.ObliviousTrees->GetFlatFeatureVectorExpectedSize());
+                BundledIndexesRef.resize(model.ObliviousTrees->GetFlatFeatureVectorExpectedSize());
             }
 
             const ui8* GetFeatureDataBeginPtr(ui32 flatFeatureIdx) {
@@ -120,48 +125,49 @@ namespace NCB {
                         ConsecutiveSubsetBegin);
                 }
             }
+            Y_FORCE_INLINE auto GetFloatAccessor() {
+                return [this] (const TFeaturePosition& position, size_t index) -> ui8 {
+                    const auto& bundleIdx = BundledIndexesRef[position.Index];
+                    const auto& packIdx = PackedIndexesRef[position.Index];
+                    ui8 unremappedFeatureBin;
 
-            Y_FORCE_INLINE ui8 operator()(const TFloatFeature& floatFeature, size_t index) const {
-                const auto& bundleIdx = BundledIndexesRef[floatFeature.FeatureIndex];
-                const auto& packIdx = PackedIndexesRef[floatFeature.FeatureIndex];
-                ui8 unremappedFeatureBin;
+                    if (bundleIdx.Defined()) {
+                        const auto& bundleMetaData = BundlesMetaData[bundleIdx->BundleIdx];
+                        const auto& bundlePart = bundleMetaData.Parts[bundleIdx->InBundleIdx];
+                        auto boundsInBundle = bundlePart.Bounds;
 
-                if (bundleIdx.Defined()) {
-                    const auto& bundleMetaData = BundlesMetaData[bundleIdx->BundleIdx];
-                    const auto& bundlePart = bundleMetaData.Parts[bundleIdx->InBundleIdx];
-                    auto boundsInBundle = bundlePart.Bounds;
+                        const ui8* rawBundlesData = RepackedFeaturesRef[position.FlatIndex].data();
 
-                    const ui8* rawBundlesData = RepackedFeaturesRef[floatFeature.FlatFeatureIndex].data();
-
-                    switch (bundleMetaData.SizeInBytes) {
-                        case 1:
-                            unremappedFeatureBin = GetBinFromBundle<ui8>(rawBundlesData[index],
-                                boundsInBundle);
-                            break;
-                        case 2:
-                            unremappedFeatureBin = GetBinFromBundle<ui8>(
-                                ((const ui16*) rawBundlesData)[index], boundsInBundle);
-                            break;
-                        default:
-                            CB_ENSURE_INTERNAL(
-                                false,
-                                "unsupported Bundle SizeInBytes = " << bundleMetaData.SizeInBytes);
+                        switch (bundleMetaData.SizeInBytes) {
+                            case 1:
+                                unremappedFeatureBin = GetBinFromBundle<ui8>(rawBundlesData[index],
+                                                                             boundsInBundle);
+                                break;
+                            case 2:
+                                unremappedFeatureBin = GetBinFromBundle<ui8>(
+                                    ((const ui16*)rawBundlesData)[index], boundsInBundle);
+                                break;
+                            default:
+                                CB_ENSURE_INTERNAL(
+                                    false,
+                                    "unsupported Bundle SizeInBytes = " << bundleMetaData.SizeInBytes);
+                        }
+                    } else if (packIdx.Defined()) {
+                        TBinaryFeaturesPack bitIdx = packIdx->BitIdx;
+                        unremappedFeatureBin =
+                            (RepackedFeaturesRef[position.FlatIndex][index] >> bitIdx) & 1;
+                    } else {
+                        unremappedFeatureBin = RepackedFeaturesRef[position.FlatIndex][index];
                     }
-                } else if (packIdx.Defined()) {
-                    TBinaryFeaturesPack bitIdx = packIdx->BitIdx;
-                    unremappedFeatureBin =
-                        (RepackedFeaturesRef[floatFeature.FlatFeatureIndex][index] >> bitIdx) & 1;
-                } else {
-                    unremappedFeatureBin = RepackedFeaturesRef[floatFeature.FlatFeatureIndex][index];
-                }
 
-                return FloatBinsRemapRef[floatFeature.FlatFeatureIndex][unremappedFeatureBin];
+                    return FloatBinsRemapRef[position.FlatIndex][unremappedFeatureBin];
+                };
             }
-
-            Y_FORCE_INLINE ui8 operator()(const TCatFeature&, size_t) const {
-                ythrow TCatBoostException() <<
-                    "Quantized datasets with categorical features are not currently supported";
-                return 0;
+            Y_FORCE_INLINE auto GetCatAccessor() {
+                return [] (const TFeaturePosition& , size_t ) -> ui32 {
+                    Y_FAIL();
+                    return 0;
+                };
             }
 
         private:
@@ -201,10 +207,10 @@ namespace NCB {
                 : TBaseAccesorType(objectsData, model)
             {
                 const auto &featuresLayout = *objectsData.GetFeaturesLayout();
-                RepackedFeaturesRef.resize(model.ObliviousTrees.GetFlatFeatureVectorExpectedSize());
+                RepackedFeaturesRef.resize(model.ObliviousTrees->GetFlatFeatureVectorExpectedSize());
                 const int objectCount = objectsEnd - objectsBegin;
                 if (columnReorderMap.empty()) {
-                    for (size_t i = 0; i < model.ObliviousTrees.GetFlatFeatureVectorExpectedSize(); ++i) {
+                    for (size_t i = 0; i < model.ObliviousTrees->GetFlatFeatureVectorExpectedSize(); ++i) {
                         if (featuresLayout.GetExternalFeaturesMetaInfo()[i].IsAvailable) {
                             RepackedFeaturesRef[i] =
                                 MakeArrayRef(GetFeatureDataBeginPtr(i) + objectsBegin, objectCount);

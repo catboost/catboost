@@ -123,7 +123,8 @@ TDataProviderPtr GetAdultPool() {
 
 TFullModel SimpleFloatModel(size_t treeCount) {
     TFullModel model;
-    model.ObliviousTrees.FloatFeatures = {
+    TObliviousTrees* trees = model.ObliviousTrees.GetMutable();
+    trees->FloatFeatures = {
         TFloatFeature{
             false, 0, 0,
             {}, // bin splits 0, 1
@@ -141,15 +142,15 @@ TFullModel SimpleFloatModel(size_t treeCount) {
         }
     };
     for (auto i : xrange(301)) {
-        model.ObliviousTrees.FloatFeatures[0].Borders.push_back(-298.0f + i);
+        trees->FloatFeatures[0].Borders.push_back(-298.0f + i);
     }
     {
         double tenPower = 1.0;
         for (size_t treeIndex = 0; treeIndex < treeCount; ++treeIndex) {
             TVector<int> tree = {300, 301, 302};
-            model.ObliviousTrees.AddBinTree(tree);
+            trees->AddBinTree(tree);
             for (int leafIndex = 0; leafIndex < 8; ++leafIndex) {
-                model.ObliviousTrees.LeafValues.push_back(leafIndex * tenPower);
+                trees->LeafValues.push_back(leafIndex * tenPower);
             }
             tenPower *= 10.0;
         }
@@ -160,15 +161,16 @@ TFullModel SimpleFloatModel(size_t treeCount) {
 
 TFullModel SimpleDeepTreeModel(size_t treeDepth) {
     TFullModel model;
+    TObliviousTrees* trees = model.ObliviousTrees.GetMutable();
     for (size_t featureIndex : xrange(treeDepth)) {
         const auto feature = TFloatFeature(false, featureIndex, featureIndex, {0.5f}, "");
-        model.ObliviousTrees.FloatFeatures.push_back(feature);
+        trees->FloatFeatures.push_back(feature);
     }
     for (size_t val : xrange(1 << treeDepth)) {
-        model.ObliviousTrees.LeafValues.push_back(val);
+        trees->LeafValues.push_back(val);
     }
     TVector<int> tree = xrange(treeDepth);
-    model.ObliviousTrees.AddBinTree(tree);
+    trees->AddBinTree(tree);
     model.UpdateDynamicData();
     return model;
 }
@@ -237,7 +239,8 @@ TFullModel SimpleAsymmetricModel() {
     builder.AddTree(std::move(treeHead));
 
     TFullModel model;
-    model.ObliviousTrees = builder.Build();
+    builder.Build(model.ObliviousTrees.GetMutable());
+    model.UpdateDynamicData();
     return model;
 }
 
@@ -292,7 +295,8 @@ TFullModel TrainCatOnlyModel() {
 
 TFullModel MultiValueFloatModel() {
     TFullModel model;
-    model.ObliviousTrees.FloatFeatures = {
+    TObliviousTrees* trees = model.ObliviousTrees.GetMutable();
+    trees->FloatFeatures = {
         TFloatFeature{
             false, 0, 0,
             {0.5f}, // bin split 0
@@ -306,14 +310,14 @@ TFullModel MultiValueFloatModel() {
     };
     {
         TVector<int> tree = {0, 1};
-        model.ObliviousTrees.AddBinTree(tree);
-        model.ObliviousTrees.LeafValues = {
+        trees->AddBinTree(tree);
+        trees->LeafValues = {
             00., 10., 20.,
             01., 11., 21.,
             02., 12., 22.,
             03., 13., 23.
         };
-        model.ObliviousTrees.ApproxDimension = 3;
+        trees->ApproxDimension = 3;
     }
     model.UpdateDynamicData();
     return model;

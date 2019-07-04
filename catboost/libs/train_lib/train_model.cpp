@@ -490,7 +490,7 @@ static void SaveModel(
             }
             builder.AddTree(modelSplits, ctx.LearnProgress->LeafValues[treeId], ctx.LearnProgress->TreeStats[treeId].LeafWeightsSum);
         }
-        obliviousTrees = builder.Build();
+        builder.Build(&obliviousTrees);
     }
 
 
@@ -539,7 +539,8 @@ static void SaveModel(
             modelPtr = &*fullModel;
         }
 
-        modelPtr->ObliviousTrees = std::move(obliviousTrees);
+        *modelPtr->ObliviousTrees.GetMutable() = std::move(obliviousTrees);
+        modelPtr->UpdateDynamicData();
         coreModelToFullModelConverter.WithCoreModelFrom(modelPtr);
 
         if (dstModel || addResultModelToInitModel) {

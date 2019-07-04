@@ -10,7 +10,7 @@
 #include <catboost/libs/cat_feature/cat_feature.h>
 #include <catboost/libs/data_new/model_dataset_compatibility.h>
 #include <catboost/libs/helpers/dense_hash.h>
-#include <catboost/libs/model/formula_evaluator.h>
+#include <catboost/libs/model/cpu/evaluator.h>
 #include <catboost/libs/model/model.h>
 
 #include <library/containers/stack_vector/stack_vec.h>
@@ -507,92 +507,17 @@ TVector<TIndexType> BuildIndices(
     return indices;
 }
 
-static void BinarizeRawFeatures(
-    const TFullModel& model,
-    const NCB::TRawObjectsDataProvider& rawObjectsData,
-    size_t start,
-    size_t end,
-    TVector<ui8>* result) {
-
-    THashMap<ui32, ui32> columnReorderMap;
-    CheckModelAndDatasetCompatibility(model, rawObjectsData, &columnReorderMap);
-    auto docCount = end - start;
-    result->resize(model.ObliviousTrees.GetEffectiveBinaryFeaturesBucketsCount() * docCount);
-    TVector<ui32> transposedHash(docCount * model.GetUsedCatFeaturesCount());
-    TVector<float> ctrs(model.ObliviousTrees.GetUsedModelCtrs().size() * docCount);
-    TRawFeatureAccessor featureAccessor(model, rawObjectsData, columnReorderMap, start, end);
-
-    BinarizeFeatures(
-        model, featureAccessor, featureAccessor, 0, docCount, *result, transposedHash, ctrs);
-}
-
-static void AssignFeatureBins(
-    const TFullModel& model,
-    const NCB::TQuantizedForCPUObjectsDataProvider& quantizedObjectsData,
-    size_t start,
-    size_t end,
-    TVector<ui8>* result)
-{
-    THashMap<ui32, ui32> columnReorderMap;
-    CheckModelAndDatasetCompatibility(model, quantizedObjectsData, &columnReorderMap);
-    auto docCount = end - start;
-    result->resize(model.ObliviousTrees.GetEffectiveBinaryFeaturesBucketsCount() * docCount);
-    TQuantizedFeatureAccessor quantizedFeatureAccessor(
-        model, quantizedObjectsData, columnReorderMap, start, end);
-
-    AssignFeatureBins(model, quantizedFeatureAccessor, quantizedFeatureAccessor, 0, end - start, *result);
-}
-
-TVector<ui8> GetModelCompatibleQuantizedFeatures(
-    const TFullModel& model,
-    const NCB::TObjectsDataProvider& objectsData,
-    size_t start,
-    size_t end) {
-
-    TVector<ui8> result;
-    if (const auto* const rawObjectsData = dynamic_cast<const TRawObjectsDataProvider*>(&objectsData)) {
-        BinarizeRawFeatures(model, *rawObjectsData, start, end, &result);
-    } else if (
-        const auto* const quantizedObjectsData
-            = dynamic_cast<const TQuantizedForCPUObjectsDataProvider*>(&objectsData))
-    {
-        AssignFeatureBins(model, *quantizedObjectsData, start, end, &result);
-    } else {
-        ythrow TCatBoostException() << "Unsupported objects data - neither raw nor quantized for CPU";
-    }
-    return result;
-}
-
-TVector<ui8> GetModelCompatibleQuantizedFeatures(
-    const TFullModel& model,
-    const NCB::TObjectsDataProvider& objectsData) {
-
-    return GetModelCompatibleQuantizedFeatures(model, objectsData, /*start*/0, objectsData.GetObjectCount());
-}
-
 TVector<TIndexType> BuildIndicesForBinTree(
     const TFullModel& model,
-    const TVector<ui8>& binarizedFeatures,
+    const NCB::NModelEvaluation::IQuantizedData* quantizedFeatures,
     size_t treeId) {
 
-    //TODO(eermishkina): support non symmetric trees
-    CB_ENSURE_INTERNAL(model.IsOblivious(), "Is supported only for symmetric trees");
-
-    if (model.ObliviousTrees.GetEffectiveBinaryFeaturesBucketsCount() == 0) {
+    if (model.ObliviousTrees->GetEffectiveBinaryFeaturesBucketsCount() == 0) {
         return TVector<TIndexType>();
     }
-
-    auto docCount = binarizedFeatures.size() / model.ObliviousTrees.GetEffectiveBinaryFeaturesBucketsCount();
-    TVector<TIndexType> indexesVec(docCount);
-    const auto* treeSplitsCurPtr = model.ObliviousTrees.GetRepackedBins().data()
-        + model.ObliviousTrees.TreeStartOffsets[treeId];
-    CalcIndexes(
-        !model.ObliviousTrees.OneHotFeatures.empty(),
-        binarizedFeatures.data(),
-        docCount,
-        indexesVec.data(),
-        treeSplitsCurPtr,
-        model.ObliviousTrees.TreeSizes[treeId]);
+    TVector<TIndexType> indexesVec(quantizedFeatures->GetObjectsCount());
+    auto evaluator =  model.GetCurrentEvaluator();
+    evaluator->CalcLeafIndexes(quantizedFeatures, treeId, treeId + 1, indexesVec);
     return indexesVec;
 }
 

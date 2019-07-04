@@ -133,7 +133,7 @@ int mode_eval_metrics(int argc, const char* argv[]) {
     params.ClassNames = GetModelClassNames(model);
 
     if (plotParams.EndIteration == 0) {
-        plotParams.EndIteration = model.ObliviousTrees.TreeSizes.size();
+        plotParams.EndIteration = model.GetTreeCount();
     }
     if (plotParams.TmpDir == "-") {
         plotParams.TmpDir = TTempDir().Name();
@@ -145,7 +145,7 @@ int mode_eval_metrics(int argc, const char* argv[]) {
     TRestorableFastRng64 rand(0);
 
     auto metricDescriptions = CreateMetricDescriptions(plotParams.MetricsDescription);
-    auto metrics = CreateMetrics(metricDescriptions, model.ObliviousTrees.ApproxDimension);
+    auto metrics = CreateMetrics(metricDescriptions, model.GetDimensionsCount());
 
     TMetricsPlotCalcer plotCalcer = CreateMetricCalcer(
         model,

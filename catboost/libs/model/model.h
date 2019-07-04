@@ -1,12 +1,13 @@
 #pragma once
 
+#include "fwd.h"
 #include "ctr_provider.h"
+#include "evaluation_interface.h"
 #include "features.h"
 #include "online_ctr.h"
 #include "split.h"
 
 #include <catboost/libs/helpers/exception.h>
-#include <catboost/libs/model/flatbuffers/model.fbs.h>
 #include <catboost/libs/options/enums.h>
 
 #include <util/generic/array_ref.h>
@@ -20,6 +21,7 @@
 #include <util/generic/vector.h>
 #include <util/stream/fwd.h>
 #include <util/stream/mem.h>
+#include <util/system/spinlock.h>
 #include <util/system/types.h>
 #include <util/system/yassert.h>
 
@@ -57,6 +59,7 @@ struct TRepackedBin {
     ui8 SplitIdx = 0;
 };
 
+constexpr ui32 MAX_VALUES_PER_BIN = 254;
 
 // If selected diff is 0 we are in the last node in path
 struct TNonSymmetricTreeStepNode {
@@ -70,11 +73,7 @@ struct TNonSymmetricTreeStepNode {
         return TNonSymmetricTreeStepNode{0, 0};
     }
 
-    TNonSymmetricTreeStepNode& operator=(const NCatBoostFbs::TNonSymmetricTreeStepNode* stepNode) {
-        LeftSubtreeDiff = stepNode->LeftSubtreeDiff();
-        RightSubtreeDiff = stepNode->RightSubtreeDiff();
-        return *this;
-    }
+    TNonSymmetricTreeStepNode& operator=(const NCatBoostFbs::TNonSymmetricTreeStepNode* stepNode);
 
     bool operator==(const TNonSymmetricTreeStepNode& other) const {
         return std::tie(LeftSubtreeDiff, RightSubtreeDiff)
@@ -220,64 +219,7 @@ public:
      * Deserialize from flatbuffers object
      * @param fbObj
      */
-    void FBDeserialize(const NCatBoostFbs::TObliviousTrees* fbObj) {
-        ApproxDimension = fbObj->ApproxDimension();
-        if (fbObj->TreeSplits()) {
-            TreeSplits.assign(fbObj->TreeSplits()->begin(), fbObj->TreeSplits()->end());
-        }
-        if (fbObj->TreeSizes()) {
-            TreeSizes.assign(fbObj->TreeSizes()->begin(), fbObj->TreeSizes()->end());
-        }
-        if (fbObj->TreeStartOffsets()) {
-            TreeStartOffsets.assign(fbObj->TreeStartOffsets()->begin(), fbObj->TreeStartOffsets()->end());
-        }
-
-        if (fbObj->LeafValues()) {
-            LeafValues.assign(fbObj->LeafValues()->begin(), fbObj->LeafValues()->end());
-        }
-        if (fbObj->NonSymmetricStepNodes()) {
-            NonSymmetricStepNodes.resize(fbObj->NonSymmetricStepNodes()->size());
-            std::copy(
-                fbObj->NonSymmetricStepNodes()->begin(),
-                fbObj->NonSymmetricStepNodes()->end(),
-                NonSymmetricStepNodes.begin()
-            );
-        }
-        if (fbObj->NonSymmetricNodeIdToLeafId()) {
-            NonSymmetricNodeIdToLeafId.assign(
-                fbObj->NonSymmetricNodeIdToLeafId()->begin(), fbObj->NonSymmetricNodeIdToLeafId()->end()
-            );
-        }
-
-#define FBS_ARRAY_DESERIALIZER(var) \
-        if (fbObj->var()) {\
-            var.resize(fbObj->var()->size());\
-            for (size_t i = 0; i < fbObj->var()->size(); ++i) {\
-                var[i].FBDeserialize(fbObj->var()->Get(i));\
-            }\
-        }
-        FBS_ARRAY_DESERIALIZER(CatFeatures)
-        FBS_ARRAY_DESERIALIZER(FloatFeatures)
-        FBS_ARRAY_DESERIALIZER(OneHotFeatures)
-        FBS_ARRAY_DESERIALIZER(CtrFeatures)
-#undef FBS_ARRAY_DESERIALIZER
-        if (fbObj->LeafWeights() && fbObj->LeafWeights()->size() > 0) {
-            if (IsOblivious()) {
-                LeafWeights.resize(TreeSizes.size());
-                CB_ENSURE(fbObj->LeafWeights()->size() * ApproxDimension == LeafValues.size(),
-                          "Bad leaf weights count: " << fbObj->LeafWeights()->size());
-                auto leafValIter = fbObj->LeafWeights()->begin();
-                for (size_t treeId = 0; treeId < TreeSizes.size(); ++treeId) {
-                    const auto treeLeafCout = (1 << TreeSizes[treeId]);
-                    LeafWeights[treeId].assign(leafValIter, leafValIter + treeLeafCout);
-                    leafValIter += treeLeafCout;
-                }
-            } else {
-                LeafWeights.resize(1);
-                LeafWeights[0].assign(fbObj->LeafWeights()->begin(), fbObj->LeafWeights()->end());
-            }
-        }
-    }
+    void FBDeserialize(const NCatBoostFbs::TObliviousTrees* fbObj);
 
     /**
      * Internal usage only.
@@ -348,7 +290,6 @@ public:
         CB_ENSURE(RuntimeData.Defined(), "runtime data should be initialized");
         return &LeafValues[RuntimeData->TreeFirstLeafOffsets[treeIdx]];
     }
-
     /**
      * List all unique CTR bases (feature combination + ctr type) in model
      * @return
@@ -365,7 +306,7 @@ public:
         if (FloatFeatures.empty()) {
             return 0;
         } else {
-            return static_cast<size_t>(FloatFeatures.back().FeatureIndex) + 1;
+            return static_cast<size_t>(FloatFeatures.back().Position.Index) + 1;
         }
     }
 
@@ -383,7 +324,7 @@ public:
         if (CatFeatures.empty()) {
             return 0;
         } else {
-            return static_cast<size_t>(CatFeatures.back().FeatureIndex) + 1;
+            return static_cast<size_t>(CatFeatures.back().Position.Index) + 1;
         }
     }
 
@@ -408,8 +349,8 @@ public:
 
     size_t GetFlatFeatureVectorExpectedSize() const {
         return (size_t)Max(
-            CatFeatures.empty() ? 0 : CatFeatures.back().FlatFeatureIndex + 1,
-            FloatFeatures.empty() ? 0 : FloatFeatures.back().FlatFeatureIndex + 1
+            CatFeatures.empty() ? 0 : CatFeatures.back().Position.FlatIndex + 1,
+            FloatFeatures.empty() ? 0 : FloatFeatures.back().Position.FlatIndex + 1
         );
     }
 
@@ -419,25 +360,68 @@ private:
     mutable TMaybe<TRuntimeData> RuntimeData;
 };
 
+enum class EFormulaEvaluatorType {
+    CPU,
+    GPU
+};
+
+class TCOWTreeWrapper {
+public:
+    const TObliviousTrees& operator*() const {
+        return *Trees;
+    }
+    const TObliviousTrees* operator->() const {
+        return Trees.Get();
+    }
+
+    const TObliviousTrees* Get() const {
+        return Trees.Get();
+    }
+
+    TObliviousTrees* GetMutable() {
+        if (Trees.RefCount() > 1) {
+            Trees = MakeAtomicShared<TObliviousTrees>(*Trees);
+        }
+        return Trees.Get();
+    }
+private:
+    TAtomicSharedPtr<TObliviousTrees> Trees = MakeAtomicShared<TObliviousTrees>();
+};
+
 /*!
  * \brief Full model class - contains all the data for model evaluation
  *
  * This class contains oblivious trees data, key-value dictionary for model metadata storage and CtrProvider
  *  holder.
  */
-struct TFullModel {
-    TObliviousTrees ObliviousTrees;
+class TFullModel {
+public:
+    using TFeatureLayout = NCB::NModelEvaluation::TFeatureLayout;
+public:
+    TCOWTreeWrapper ObliviousTrees;
     /**
      * Model information key-value storage.
      */
     THashMap<TString, TString> ModelInfo;
     TIntrusivePtr<ICtrProvider> CtrProvider;
-
+private:
+    EFormulaEvaluatorType FormulaEvaluatorType = EFormulaEvaluatorType::CPU;
+    TAdaptiveLock CurrentEvaluatorLock;
+    mutable NCB::NModelEvaluation::TModelEvaluatorPtr Evaluator;
 public:
-    TFullModel() = default;
+    NCB::NModelEvaluation::TConstModelEvaluatorPtr GetCurrentEvaluator() const {
+        if (!Evaluator) {
+            with_lock(CurrentEvaluatorLock) {
+                if (!Evaluator) {
+                    Evaluator = CreateEvaluator();
+                }
+            }
+        }
+        return Evaluator;
+    }
 
     bool operator==(const TFullModel& other) const {
-        return ObliviousTrees == other.ObliviousTrees;
+        return *ObliviousTrees == *other.ObliviousTrees;
     }
 
     bool operator!=(const TFullModel& other) const {
@@ -461,14 +445,14 @@ public:
      * @return Number of trees in model.
      */
     size_t GetTreeCount() const {
-        return ObliviousTrees.TreeSizes.size();
+        return ObliviousTrees->TreeSizes.size();
     }
 
     /**
      * @return Number of dimensions in model.
      */
     size_t GetDimensionsCount() const {
-        return ObliviousTrees.ApproxDimension;
+        return ObliviousTrees->ApproxDimension;
     }
 
     /**
@@ -477,9 +461,9 @@ public:
      * @param end
      */
     void Truncate(size_t begin, size_t end) {
-        ObliviousTrees.TruncateTrees(begin, end);
+        ObliviousTrees.GetMutable()->TruncateTrees(begin, end);
         if (CtrProvider) {
-            CtrProvider->DropUnusedTables(ObliviousTrees.GetUsedModelCtrBases());
+            CtrProvider->DropUnusedTables(ObliviousTrees->GetUsedModelCtrBases());
         }
         UpdateDynamicData();
     }
@@ -488,47 +472,47 @@ public:
      * @return Minimal float features vector length sufficient for this model
      */
     size_t GetMinimalSufficientFloatFeaturesVectorSize() const {
-        return ObliviousTrees.GetMinimalSufficientFloatFeaturesVectorSize();
+        return ObliviousTrees->GetMinimalSufficientFloatFeaturesVectorSize();
     }
     /**
      * @return Number of float features that are really used in trees
      */
     size_t GetUsedFloatFeaturesCount() const {
-        return ObliviousTrees.GetUsedFloatFeaturesCount();
+        return ObliviousTrees->GetUsedFloatFeaturesCount();
     }
 
     /**
      * @return Expected float features vector length for this model
      */
     size_t GetNumFloatFeatures() const {
-        return ObliviousTrees.GetNumFloatFeatures();
+        return ObliviousTrees->GetNumFloatFeatures();
     }
 
     /**
      * @return Expected categorical features vector length for this model
      */
     size_t GetMinimalSufficientCatFeaturesVectorSize() const {
-        return ObliviousTrees.GetMinimalSufficientCatFeaturesVectorSize();
+        return ObliviousTrees->GetMinimalSufficientCatFeaturesVectorSize();
     }
     /**
     * @return Number of float features that are really used in trees
     */
     size_t GetUsedCatFeaturesCount() const {
-        return ObliviousTrees.GetUsedCatFeaturesCount();
+        return ObliviousTrees->GetUsedCatFeaturesCount();
     }
 
     /**
      * @return Expected categorical features vector length for this model
      */
     size_t GetNumCatFeatures() const {
-        return ObliviousTrees.GetNumCatFeatures();
+        return ObliviousTrees->GetNumCatFeatures();
     }
 
     /**
      * Check whether model trees are oblivious
      */
     bool IsOblivious() const {
-        return ObliviousTrees.IsOblivious();
+        return ObliviousTrees->IsOblivious();
     }
 
     /**
@@ -547,9 +531,9 @@ public:
     // If no ctr features present it will return true
     bool HasValidCtrProvider() const {
         if (!CtrProvider) {
-            return ObliviousTrees.GetUsedModelCtrs().empty();
+            return ObliviousTrees->GetUsedModelCtrs().empty();
         }
-        return CtrProvider->HasNeededCtrs(ObliviousTrees.GetUsedModelCtrs());
+        return CtrProvider->HasNeededCtrs(ObliviousTrees->GetUsedModelCtrs());
     }
 
     /**
@@ -567,7 +551,9 @@ public:
         TConstArrayRef<TConstArrayRef<float>> transposedFeatures,
         size_t treeStart,
         size_t treeEnd,
-        TArrayRef<double> results) const;
+        TArrayRef<double> results,
+        const TFeatureLayout* featureInfo = nullptr
+    ) const;
 
     /**
      * Special interface for model evaluation on flat feature vectors. Flat here means that float features and
@@ -585,15 +571,20 @@ public:
         TConstArrayRef<TConstArrayRef<float>> features,
         size_t treeStart,
         size_t treeEnd,
-        TArrayRef<double> results) const;
+        TArrayRef<double> results,
+        const TFeatureLayout* featureInfo = nullptr
+    ) const;
 
     /**
      * Call CalcFlat on all model trees
      * @param features
      * @param results
      */
-    void CalcFlat(TConstArrayRef<TConstArrayRef<float>> features, TArrayRef<double> results) const {
-        CalcFlat(features, 0, ObliviousTrees.TreeSizes.size(), results);
+    void CalcFlat(
+        TConstArrayRef<TConstArrayRef<float>> features, TArrayRef<double> results,
+        const TFeatureLayout* featureInfo = nullptr
+    ) const {
+        CalcFlat(features, 0, GetTreeCount(), results, featureInfo);
     }
 
     /**
@@ -610,7 +601,9 @@ public:
         TConstArrayRef<float> features,
         size_t treeStart,
         size_t treeEnd,
-        TArrayRef<double> results) const;
+        TArrayRef<double> results,
+        const TFeatureLayout* featureInfo = nullptr
+    ) const;
 
     /**
      * CalcFlatSingle on all trees in the model
@@ -619,8 +612,12 @@ public:
      * If feature is categorical, we do reinterpret cast from float to int.
      * @param[out] results double vector with indexation [classId].
      */
-    void CalcFlatSingle(TConstArrayRef<float> features, TArrayRef<double> results) const {
-        CalcFlatSingle(features, 0, ObliviousTrees.TreeSizes.size(), results);
+    void CalcFlatSingle(
+        TConstArrayRef<float> features,
+        TArrayRef<double> results,
+        const TFeatureLayout* featureInfo = nullptr
+    ) const {
+        CalcFlatSingle(features, 0, GetTreeCount(), results, featureInfo);
     }
 
     /**
@@ -629,30 +626,6 @@ public:
     void CalcFlat(TConstArrayRef<float> features, TArrayRef<double> result) const {
         CalcFlatSingle(features, result);
     }
-
-    /**
-     * Staged model evaluation. Evaluates model for each incrementStep trees.
-     * Useful for per tree model quality analysis.
-     * @param[in] floatFeatures vector of float features values array references
-     * @param[in] catFeatures vector of hashed categorical features values array references
-     * @param[in] incrementStep tree count on each prediction stage
-     * @return vector of vector of double - first index is for stage id, second is for
-     *  [objectIndex * ApproxDimension + classId]
-     */
-    TVector<TVector<double>> CalcTreeIntervals(
-        TConstArrayRef<TConstArrayRef<float>> floatFeatures,
-        TConstArrayRef<TConstArrayRef<int>> catFeatures,
-        size_t incrementStep) const;
-
-    /**
-     * Same as CalcTreeIntervalsFlat but for **flat** feature vectors
-     * @param[in] mixedFeatures
-     * @param[in] incrementStep
-     * @return
-     */
-    TVector<TVector<double>> CalcTreeIntervalsFlat(
-        TConstArrayRef<TConstArrayRef<float>> mixedFeatures,
-        size_t incrementStep) const;
 
     /**
      * Evaluate raw formula predictions on user data. Uses model trees for interval [treeStart, treeEnd)
@@ -667,7 +640,8 @@ public:
         TConstArrayRef<TConstArrayRef<int>> catFeatures,
         size_t treeStart,
         size_t treeEnd,
-        TArrayRef<double> results) const;
+        TArrayRef<double> results,
+        const TFeatureLayout* featureInfo = nullptr) const;
 
     /**
      * Evaluate raw formula predictions on user data. Uses all model trees
@@ -678,9 +652,10 @@ public:
     void Calc(
         TConstArrayRef<TConstArrayRef<float>> floatFeatures,
         TConstArrayRef<TConstArrayRef<int>> catFeatures,
-        TArrayRef<double> results) const {
-
-        Calc(floatFeatures, catFeatures, 0, ObliviousTrees.TreeSizes.size(), results);
+        TArrayRef<double> results,
+        const TFeatureLayout* featureInfo = nullptr
+    ) const {
+        Calc(floatFeatures, catFeatures, 0, GetTreeCount(), results, featureInfo);
     }
 
     /**
@@ -692,11 +667,12 @@ public:
     void Calc(
         TConstArrayRef<float> floatFeatures,
         TConstArrayRef<int> catFeatures,
-        TArrayRef<double> result) const {
-
+        TArrayRef<double> result,
+        const TFeatureLayout* featureInfo = nullptr
+    ) const {
         const TConstArrayRef<float> floatFeaturesArray[] = {floatFeatures};
         const TConstArrayRef<int> catFeaturesArray[] = {catFeatures};
-        Calc(floatFeaturesArray, catFeaturesArray, result);
+        Calc(floatFeaturesArray, catFeaturesArray, result, featureInfo);
     }
 
     /**
@@ -712,7 +688,9 @@ public:
         TConstArrayRef<TVector<TStringBuf>> catFeatures,
         size_t treeStart,
         size_t treeEnd,
-        TArrayRef<double> results) const;
+        TArrayRef<double> results,
+        const TFeatureLayout* featureInfo = nullptr
+    ) const;
 
     /**
      * Evaluate raw formula predictions for objects. Uses all model trees.
@@ -723,9 +701,11 @@ public:
     void Calc(
         TConstArrayRef<TConstArrayRef<float>> floatFeatures,
         TConstArrayRef<TVector<TStringBuf>> catFeatures,
-        TArrayRef<double> results) const {
+        TArrayRef<double> results,
+        const TFeatureLayout* featureInfo = nullptr
+    ) const {
 
-        Calc(floatFeatures, catFeatures, 0, ObliviousTrees.TreeSizes.size(), results);
+        Calc(floatFeatures, catFeatures, 0, GetTreeCount(), results, featureInfo);
     }
 
     /**
@@ -756,7 +736,9 @@ public:
         TConstArrayRef<TStringBuf> catFeatures,
         size_t treeStart,
         size_t treeEnd,
-        TArrayRef<ui32> indexes) const;
+        TArrayRef<ui32> indexes,
+        const TFeatureLayout* featureInfo = nullptr
+    ) const;
 
     /**
      * Evaluate indexes of leafs at which object are mapped by all trees of the model.
@@ -767,9 +749,10 @@ public:
     void CalcLeafIndexesSingle(
         TConstArrayRef<float> floatFeatures,
         TConstArrayRef<TStringBuf> catFeatures,
-        TArrayRef<ui32> indexes
+        TArrayRef<ui32> indexes,
+        const TFeatureLayout* featureInfo = nullptr
     ) const {
-        CalcLeafIndexesSingle(floatFeatures, catFeatures, 0, ObliviousTrees.TreeSizes.size(), indexes);
+        CalcLeafIndexesSingle(floatFeatures, catFeatures, 0, GetTreeCount(), indexes, featureInfo);
     }
 
     /**
@@ -785,7 +768,8 @@ public:
         TConstArrayRef<TVector<TStringBuf>> catFeatures,
         size_t treeStart,
         size_t treeEnd,
-        TArrayRef<ui32> indexes
+        TArrayRef<ui32> indexes,
+        const TFeatureLayout* featureInfo = nullptr
     ) const;
 
     /**
@@ -797,9 +781,10 @@ public:
     void CalcLeafIndexes(
         TConstArrayRef<TConstArrayRef<float>> floatFeatures,
         TConstArrayRef<TVector<TStringBuf>> catFeatures,
-        TArrayRef<ui32> indexes
+        TArrayRef<ui32> indexes,
+        const TFeatureLayout* featureInfo = nullptr
     ) const {
-        CalcLeafIndexes(floatFeatures, catFeatures, 0, ObliviousTrees.TreeSizes.size(), indexes);
+        CalcLeafIndexes(floatFeatures, catFeatures, 0, ObliviousTrees->TreeSizes.size(), indexes, featureInfo);
     }
 
     /**
@@ -813,15 +798,9 @@ public:
      * Updates indexes in CTR provider and recalculates runtime data in Oblivious trees after model
      *  modifications.
      */
-    void UpdateDynamicData() {
-        ObliviousTrees.UpdateRuntimeData();
-        if (CtrProvider) {
-            CtrProvider->SetupBinFeatureIndexes(
-                ObliviousTrees.FloatFeatures,
-                ObliviousTrees.OneHotFeatures,
-                ObliviousTrees.CatFeatures);
-        }
-    }
+    void UpdateDynamicData();
+private:
+    NCB::NModelEvaluation::TModelEvaluatorPtr CreateEvaluator() const;
 };
 
 void OutputModel(const TFullModel& model, TStringBuf modelFile);

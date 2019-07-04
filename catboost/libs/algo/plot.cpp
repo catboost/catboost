@@ -232,7 +232,7 @@ TMetricsPlotCalcer& TMetricsPlotCalcer::ProceedDataSet(
 
     const ui32 docCount = processedData.ObjectsData->GetObjectCount();
     InitApproxBuffer(
-        Model.ObliviousTrees.ApproxDimension,
+        Model.GetDimensionsCount(),
         MakeArrayRef(&processedData, 1),
         /*initBaselineIfAvailable*/ beginIterationIndex == 0,
         &CurApproxBuffer
@@ -337,7 +337,7 @@ void TMetricsPlotCalcer::ComputeNonAdditiveMetrics(const TVector<TProcessedDataP
 
     TVector<TVector<double>> curApprox;
     InitApproxBuffer(
-        Model.ObliviousTrees.ApproxDimension,
+        Model.GetDimensionsCount(),
         datasetParts,
         /*initBaselineIfAvailable*/ true,
         &curApprox);
@@ -415,7 +415,7 @@ void TMetricsPlotCalcer::SaveApproxToFile(ui32 plotLineIndex, const TVector<TVec
 TVector<TVector<double>> TMetricsPlotCalcer::LoadApprox(ui32 plotLineIndex) {
     TIFStream input(GetApproxFileName(plotLineIndex));
     ui32 docCount = NonAdditiveMetricsData.Target.size();
-    TVector<TVector<double>> result(Model.ObliviousTrees.ApproxDimension, TVector<double>(docCount));
+    TVector<TVector<double>> result(Model.GetDimensionsCount(), TVector<double>(docCount));
     Load(docCount, &input, &result);
     return result;
 }

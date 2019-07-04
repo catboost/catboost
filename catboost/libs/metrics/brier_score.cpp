@@ -1,6 +1,6 @@
 #include "metric_holder.h"
 
-#include <catboost/libs/eval_result/eval_helpers.h>
+#include <catboost/libs/model/eval_processing.h>
 
 #include <util/generic/vector.h>
 #include <util/generic/ymath.h>

@@ -106,7 +106,7 @@ void NCB::ModeFstrSingleHost(const NCB::TAnalyticalModeCommonParams& params) {
     switch (fstrType) {
         case EFstrType::PredictionValuesChange:
             CalcAndOutputFstr(model,
-                              model.ObliviousTrees.LeafWeights.empty() ? poolLoader() : nullptr,
+                              model.ObliviousTrees->LeafWeights.empty() ? poolLoader() : nullptr,
                               localExecutor.Get(),
                               &params.OutputPath.Path,
                               nullptr,
@@ -122,7 +122,7 @@ void NCB::ModeFstrSingleHost(const NCB::TAnalyticalModeCommonParams& params) {
             break;
         case EFstrType::InternalFeatureImportance:
             CalcAndOutputFstr(model,
-                              model.ObliviousTrees.LeafWeights.empty() ? poolLoader() : nullptr,
+                              model.ObliviousTrees->LeafWeights.empty() ? poolLoader() : nullptr,
                               localExecutor.Get(),
                               nullptr,
                               &params.OutputPath.Path,
