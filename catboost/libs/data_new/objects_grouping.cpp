@@ -327,3 +327,33 @@ TVector<TArraySubsetIndexing<ui32>> NCB::Split(
     return result;
 }
 
+void NCB::TrainTestSplit(
+    const TObjectsGrouping& objectsGrouping,
+    double trainPart,
+    TArraySubsetIndexing<ui32>* trainIndices,
+    TArraySubsetIndexing<ui32>* testIndices
+) {
+    const ui32 objectCount = objectsGrouping.GetObjectCount();
+    const ui32 trainSize = static_cast<ui32>(trainPart * objectCount);
+    CB_ENSURE(trainSize > 0 && trainSize < objectCount, "Can't split with provided trainPart");
+    TSubsetBlock<ui32> trainBlock;
+    TSubsetBlock<ui32> testBlock;
+    if (objectsGrouping.IsTrivial()) {
+        trainBlock.SrcBegin = 0;
+        trainBlock.SrcEnd = trainSize;
+        testBlock.SrcBegin = trainBlock.SrcEnd;
+        testBlock.SrcEnd = objectCount;
+    } else {
+        const ui32 lastGroupIdx = objectsGrouping.GetGroupIdxForObject(trainSize - 1);
+        TSubsetBlock<ui32> trainBlock{{0, lastGroupIdx + 1}, 0};
+        CB_ENSURE(trainBlock.GetSize() > 0, "Not enough objects to give train split");
+        TSubsetBlock<ui32> testBlock{{lastGroupIdx + 1, objectsGrouping.GetGroupIdxForObject(objectCount - 1)}, 0};
+        CB_ENSURE(testBlock.GetSize() > 0, "Not enough objects to give test split");
+    }
+    *trainIndices = TArraySubsetIndexing<ui32>(
+        TRangesSubset<ui32>(trainBlock.GetSize(), TVector<TSubsetBlock<ui32>>{std::move(trainBlock)})
+    );
+    *testIndices = TArraySubsetIndexing<ui32>(
+        TRangesSubset<ui32>(testBlock.GetSize(), TVector<TSubsetBlock<ui32>>{std::move(testBlock)})
+    );
+}
