@@ -27,6 +27,7 @@ def ytest_base(unit, related_prj_dir, related_prj_name, args):
     custom_deps = ' '.join(spec_args["DEPENDS"]) if "DEPENDS" in spec_args else ''
     unit.set(['CUSTOM-DEPENDENCIES', custom_deps])
     data_lst = spec_args.get('DATA', []) + (unit.get(['__test_data']) or '').split(' ')
+    data_lst.sort()
     data = '\"' + ';'.join(data_lst) + '\"' if data_lst else ''
     unit.set(['TEST-DATA', data])
     ya_root = unit.get('YA_ROOT')
@@ -60,7 +61,7 @@ def on_py_test(unit, *args):
 def on_test(unit, *args):
     flat_args, spec_args = _common.sort_by_keywords({"DEPENDS": -1, "TIMEOUT": 1, "DATA": -1}, args)
     custom_deps = ' '.join(spec_args["DEPENDS"]) if "DEPENDS" in spec_args else ''
-    test_data = '\"' + ';'.join(spec_args["DATA"]) + '\"' if "DATA" in spec_args else ''
+    test_data = '\"' + ';'.join(sorted(spec_args["DATA"])) + '\"' if "DATA" in spec_args else ''
     timeout = spec_args.get("TIMEOUT", ['0'])[0]
     test_type = flat_args[0]
     script_rel_path = None
