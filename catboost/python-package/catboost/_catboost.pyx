@@ -945,6 +945,10 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
         const TMaybe[TDataMetaInfo]& trainDataMetaInfo
     ) nogil except +ProcessException
 
+    cdef TJsonValue GetPlainJsonWithAllOptions(
+        TFullModel& model,
+        bool_t hasCatFeatures
+    ) nogil except +ProcessException
 
 cdef extern from "catboost/libs/quantized_pool_analysis/quantized_pool_analysis.h" namespace "NCB":
     cdef cppclass TBinarizedFeatureStatistics:
@@ -2845,6 +2849,16 @@ cdef class _CatBoost:
             return params
         except Exception as e:
             return {}
+
+    cpdef _get_plain_params(self, hasCatFeatures):
+        cdef TJsonValue plainOptions
+        try:
+            options_json = GetPlainJsonWithAllOptions(dereference(self.__model), hasCatFeatures)
+            return loads(to_native_str(ToString(options_json)))
+        except Exception as e:
+            print(e)
+            return {}
+
 
     def _get_tree_count(self):
         return self.__model.GetTreeCount()

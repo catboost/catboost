@@ -6,6 +6,8 @@
 #include <catboost/libs/helpers/interrupt.h>
 #include <catboost/libs/helpers/query_info_helper.h>
 #include <catboost/libs/target/data_providers.h>
+#include <catboost/libs/options/plain_options_helper.h>
+
 
 extern "C" PyObject* PyCatboostExceptionType;
 
@@ -166,3 +168,18 @@ NJson::TJsonValue GetTrainingOptions(
     catboostOptions.Save(&catboostOptionsJson);
     return catboostOptionsJson;
 }
+
+NJson::TJsonValue GetPlainJsonWithAllOptions(const TFullModel& model, bool hasCatFeatures)
+{
+    NJson::TJsonValue trainOptions = ReadTJsonValue(model.ModelInfo.at("params"));
+    NJson::TJsonValue outputOptions = ReadTJsonValue(model.ModelInfo.at("output_options"));
+    NJson::TJsonValue plainOptions;
+    NCatboostOptions::ConvertOptionsToPlainJson(trainOptions, outputOptions, &plainOptions);
+    CB_ENSURE(!plainOptions.GetMapSafe().empty(), "plainOptions should not be empty.");
+    NJson::TJsonValue cleanedOptions(plainOptions);
+    CB_ENSURE(!cleanedOptions.GetMapSafe().empty(), "problems with copy constructor.");
+    NCatboostOptions::DeleteEmptyKeysInPlainJson(&cleanedOptions, hasCatFeatures);
+    CB_ENSURE(!cleanedOptions.GetMapSafe().empty(), "cleanedOptions should not be empty.");
+    return cleanedOptions;
+}
+

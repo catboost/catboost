@@ -12,12 +12,16 @@
 #include <util/string/builder.h>
 #include <util/string/cast.h>
 #include <util/string/escape.h>
+#include <util/string/strip.h>
+#include <util/string/subst.h>
 #include <util/system/compiler.h>
 
 using NCatboostOptions::ParseCtrDescription;
 using NCatboostOptions::ParsePerFeatureBinarization;
 using NCatboostOptions::ParsePerFeatureCtrDescription;
 using NCatboostOptions::ParsePerTextFeatureProcessing;
+using NCatboostOptions::BuildCtrOptionsDescription;
+
 
 static Y_NO_INLINE void CopyCtrDescription(
     const NJson::TJsonValue& options,
@@ -42,6 +46,24 @@ static Y_NO_INLINE void CopyCtrDescription(
     }
 
     seenKeys->insert(TString(srcKey));
+}
+
+static Y_NO_INLINE void ConcatenateCtrDescription(
+        const NJson::TJsonValue& options,
+        const TStringBuf sourceKey,
+        const TStringBuf destinationKey,
+        NJson::TJsonValue* const destination
+) {
+    if (!options.Has(sourceKey)) {
+        return;
+    }
+
+    auto& ctrOptionsArray = (*destination)[destinationKey] = NJson::TJsonValue(NJson::JSON_ARRAY);
+    const NJson::TJsonValue& ctrDescriptions = options[sourceKey];
+    for (const auto& element: ctrDescriptions.GetArraySafe()) {
+        const auto& ctrOptionsConcatenated = BuildCtrOptionsDescription(element);
+        ctrOptionsArray.AppendValue(ctrOptionsConcatenated);
+    }
 }
 
 static Y_NO_INLINE void CopyPerFeatureCtrDescription(
@@ -195,6 +217,31 @@ static void ValidatePlainOptionsConsistency(const NJson::TJsonValue& plainOption
         ythrow TCatBoostException()
             << ELossFunction::MultiClass << " and "
             << ELossFunction::MultiClassOneVsAll << " are incompatible";
+    }
+}
+
+
+static Y_NO_INLINE void RemapPerFeatureCtrDescription(
+        const NJson::TJsonValue& options,
+        const TStringBuf sourceKey,
+        const TStringBuf destinationKey,
+        NJson::TJsonValue* const destination)
+{
+    auto& result = (*destination)[destinationKey] = NJson::TJsonValue(NJson::JSON_ARRAY);
+    for (const auto& elem : options[sourceKey].GetMap()) {
+        TString catFeatureIndex = elem.first;
+        auto& ctrDict = elem.second[0];
+        const auto& ctrOptionsConcatenated = BuildCtrOptionsDescription(ctrDict);
+        result.AppendValue(catFeatureIndex + ":" + ctrOptionsConcatenated);
+    }
+}
+
+static Y_NO_INLINE void DeleteSeenOption(
+        NJson::TJsonValue* options,
+        const TStringBuf key)
+{
+    if (options->Has(key)) {
+        options->EraseValue(key);
     }
 }
 
@@ -411,7 +458,7 @@ void NCatboostOptions::PlainJsonToOptions(
     CopyOption(plainOptions, "task_type", &trainOptions, &seenKeys);
     CopyOption(plainOptions, "metadata", &trainOptions, &seenKeys);
 
-    for (const auto& [optionName, optionValue] : plainOptions.GetMap()) {
+    for (const auto& [optionName, optionValue] : plainOptions.GetMapSafe()) {
         if (!seenKeys.contains(optionName)) {
             const TString message = TStringBuilder()
                     //TODO(kirillovs): this cast fixes structured binding problem in msvc 14.12 compilator
@@ -423,3 +470,445 @@ void NCatboostOptions::PlainJsonToOptions(
 
     trainOptions["flat_params"] = plainOptions;
 }
+
+void NCatboostOptions::ConvertOptionsToPlainJson(
+        const NJson::TJsonValue& options,
+        const NJson::TJsonValue& outputOptions,
+        NJson::TJsonValue* plainOptions)
+{
+    TSet<TString> seenKeys;
+
+    NJson::TJsonValue& plainOptionsJson = *plainOptions;
+    plainOptionsJson.SetType(NJson::JSON_MAP);
+
+    NJson::TJsonValue optionsCopy(options);
+    NJson::TJsonValue outputoptionsCopy(outputOptions);
+
+    if (options.Has("loss_function")) {
+        plainOptionsJson["loss_function"] = BuildMetricOptionDescription(options["loss_function"]);
+        DeleteSeenOption(&optionsCopy, "loss_function");
+    }
+
+    if (options.Has("metrics")) {
+        if (options["metrics"].Has("eval_metric")) {
+            plainOptionsJson["eval_metric"] = BuildMetricOptionDescription(options["metrics"]["eval_metric"]);
+            DeleteSeenOption(&optionsCopy["metrics"], "eval_metric");
+        }
+        if (options["metrics"].Has("custom_metrics")) {
+            auto& result = plainOptionsJson["custom_metric"] = NJson::TJsonValue(NJson::JSON_ARRAY);
+            for (auto& metric : options["metrics"]["custom_metrics"].GetArraySafe()) {
+                result.AppendValue(BuildMetricOptionDescription(metric));
+            }
+            DeleteSeenOption(&optionsCopy["metrics"], "custom_metrics");
+        }
+        if (options["metrics"].Has("objective_metric")) {
+            plainOptionsJson["objective_metric"] = BuildMetricOptionDescription(options["metrics"]["objective_metric"]);
+            DeleteSeenOption(&optionsCopy["metrics"], "objective_metric");
+        }
+        CB_ENSURE(optionsCopy["metrics"].GetMapSafe().empty(), "some loss or metrics keys missed");
+        DeleteSeenOption(&optionsCopy, "metrics");
+    }
+
+    // outputOptions
+    DeleteSeenOption(&outputoptionsCopy, "train_dir");
+    DeleteSeenOption(&outputoptionsCopy, "name");
+    DeleteSeenOption(&outputoptionsCopy, "meta");
+    DeleteSeenOption(&outputoptionsCopy, "json_log");
+    DeleteSeenOption(&outputoptionsCopy, "profile_log");
+    DeleteSeenOption(&outputoptionsCopy, "learn_error_log");
+    DeleteSeenOption(&outputoptionsCopy, "test_error_log");
+    DeleteSeenOption(&outputoptionsCopy, "time_left_log");
+    DeleteSeenOption(&outputoptionsCopy, "result_model_file");
+    DeleteSeenOption(&outputoptionsCopy, "snapshot_file");
+    DeleteSeenOption(&outputoptionsCopy, "save_snapshot");
+    DeleteSeenOption(&outputoptionsCopy, "snapshot_interval");
+    DeleteSeenOption(&outputoptionsCopy, "verbose");
+    DeleteSeenOption(&outputoptionsCopy, "metric_period");
+    DeleteSeenOption(&outputoptionsCopy, "prediction_type");
+    DeleteSeenOption(&outputoptionsCopy, "output_columns");
+    DeleteSeenOption(&outputoptionsCopy, "allow_writing_files");
+    DeleteSeenOption(&outputoptionsCopy, "final_ctr_computation_mode");
+
+    CopyOption(outputOptions, "use_best_model", &plainOptionsJson, &seenKeys);
+    DeleteSeenOption(&outputoptionsCopy, "use_best_model");
+
+    CopyOption(outputOptions, "best_model_min_trees", &plainOptionsJson, &seenKeys);
+    DeleteSeenOption(&outputoptionsCopy, "best_model_min_trees");
+
+    DeleteSeenOption(&outputoptionsCopy, "eval_file_name");
+    DeleteSeenOption(&outputoptionsCopy, "fstr_regular_file");
+    DeleteSeenOption(&outputoptionsCopy, "fstr_internal_file");
+    DeleteSeenOption(&outputoptionsCopy, "fstr_type");
+    DeleteSeenOption(&outputoptionsCopy, "training_options_file");
+    DeleteSeenOption(&outputoptionsCopy, "model_format");
+    DeleteSeenOption(&outputoptionsCopy, "output_borders");
+    DeleteSeenOption(&outputoptionsCopy, "roc_file");
+    CB_ENSURE(outputoptionsCopy.GetMapSafe().empty(), "some output_options keys missed");
+
+    // boosting options
+    if (options.Has("boosting_options")) {
+        const auto& boostingOptionsRef = options["boosting_options"];
+        auto& optionsCopyBoosting = optionsCopy["boosting_options"];
+
+        CopyOption(boostingOptionsRef, "iterations", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopyBoosting, "iterations");
+
+        CopyOption(boostingOptionsRef, "learning_rate", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopyBoosting, "learning_rate");
+
+        CopyOption(boostingOptionsRef, "fold_len_multiplier", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopyBoosting, "fold_len_multiplier");
+
+        CopyOption(boostingOptionsRef, "approx_on_full_history", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopyBoosting, "approx_on_full_history");
+
+        CopyOption(boostingOptionsRef, "fold_permutation_block", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopyBoosting, "fold_permutation_block");
+
+        CopyOption(boostingOptionsRef, "min_fold_size", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopyBoosting, "min_fold_size");
+
+        CopyOption(boostingOptionsRef, "permutation_count", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopyBoosting, "permutation_count");
+
+        CopyOption(boostingOptionsRef, "boosting_type", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopyBoosting, "boosting_type");
+
+        CopyOption(boostingOptionsRef, "data_partition", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopyBoosting, "data_partition");
+
+        if (boostingOptionsRef.Has("od_config")) {
+            const auto& odConfig = boostingOptionsRef["od_config"];
+            auto& optionsCopyOdConfig = optionsCopyBoosting["od_config"];
+
+            CopyOptionWithNewKey(odConfig, "type", "od_type", &plainOptionsJson, &seenKeys);
+            DeleteSeenOption(&optionsCopyOdConfig, "type");
+
+            CopyOptionWithNewKey(odConfig, "stop_pvalue", "od_pval", &plainOptionsJson, &seenKeys);
+            DeleteSeenOption(&optionsCopyOdConfig, "stop_pvalue");
+
+            CopyOptionWithNewKey(odConfig, "wait_iterations", "od_wait", &plainOptionsJson, &seenKeys);
+            DeleteSeenOption(&optionsCopyOdConfig, "wait_iterations");
+
+            CB_ENSURE(optionsCopyOdConfig.GetMapSafe().empty(), "some keys in boosting od_config options missed");
+            DeleteSeenOption(&optionsCopyBoosting, "od_config");
+        }
+        CB_ENSURE(optionsCopyBoosting.GetMapSafe().empty(), "some keys in boosting options missed");
+        DeleteSeenOption(&optionsCopy, "boosting_options");
+    }
+
+    if (options.Has("tree_learner_options")) {
+        const auto& treeOptions = options["tree_learner_options"];
+        auto& optionsCopyTree = optionsCopy["tree_learner_options"];
+
+        CopyOption(treeOptions, "rsm", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopyTree, "rsm");
+
+        CopyOption(treeOptions, "leaf_estimation_iterations", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopyTree, "leaf_estimation_iterations");
+
+        CopyOption(treeOptions, "leaf_estimation_backtracking", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopyTree, "leaf_estimation_backtracking");
+
+        CopyOption(treeOptions, "depth", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopyTree, "depth");
+
+        CopyOption(treeOptions, "l2_leaf_reg", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopyTree, "l2_leaf_reg");
+
+        CopyOption(treeOptions, "bayesian_matrix_reg", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopyTree, "bayesian_matrix_reg");
+
+        CopyOption(treeOptions, "model_size_reg", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopyTree, "model_size_reg");
+
+        DeleteSeenOption(&optionsCopyTree, "dev_score_calc_obj_block_size");
+
+        DeleteSeenOption(&optionsCopyTree, "dev_efb_max_buckets");
+
+        CopyOption(treeOptions, "efb_max_conflict_fraction", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopyTree, "efb_max_conflict_fraction");
+
+        CopyOption(treeOptions, "random_strength", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopyTree, "random_strength");
+
+        CopyOption(treeOptions, "leaf_estimation_method", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopyTree, "leaf_estimation_method");
+
+        CopyOption(treeOptions, "grow_policy", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopyTree, "grow_policy");
+
+        CopyOption(treeOptions, "max_leaves", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopyTree, "max_leaves");
+
+        CopyOption(treeOptions, "min_data_in_leaf", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopyTree, "min_data_in_leaf");
+
+        CopyOption(treeOptions, "score_function", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopyTree, "score_function");
+
+        CopyOption(treeOptions, "fold_size_loss_normalization", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopyTree, "fold_size_loss_normalization");
+
+        CopyOption(treeOptions, "add_ridge_penalty_to_loss_function", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopyTree, "add_ridge_penalty_to_loss_function");
+
+        CopyOption(treeOptions, "sampling_frequency", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopyTree, "sampling_frequency");
+
+        DeleteSeenOption(&optionsCopyTree, "dev_max_ctr_complexity_for_border_cache");
+
+        CopyOption(treeOptions, "observations_to_bootstrap", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopyTree, "observations_to_bootstrap");
+
+        CopyOption(treeOptions, "monotone_constraints", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopyTree, "monotone_constraints");
+
+        // bootstrap
+        if (treeOptions.Has("bootstrap")) {
+            const auto& bootstrapOptions = treeOptions["bootstrap"];
+            auto& optionsCopyTreeBootstrap = optionsCopyTree["bootstrap"];
+
+            CopyOptionWithNewKey(bootstrapOptions, "type", "bootstrap_type", &plainOptionsJson, &seenKeys);
+            DeleteSeenOption(&optionsCopyTreeBootstrap, "type");
+
+            CopyOption(bootstrapOptions, "bagging_temperature", &plainOptionsJson, &seenKeys);
+            DeleteSeenOption(&optionsCopyTreeBootstrap, "bagging_temperature");
+
+            CopyOption(bootstrapOptions, "subsample", &plainOptionsJson, &seenKeys);
+            DeleteSeenOption(&optionsCopyTreeBootstrap, "subsample");
+
+            CopyOption(bootstrapOptions, "mvs_head_fraction", &plainOptionsJson, &seenKeys);
+            DeleteSeenOption(&optionsCopyTreeBootstrap, "mvs_head_fraction");
+
+            CB_ENSURE(optionsCopyTreeBootstrap.GetMapSafe().empty(), "some bootstrap keys missed");
+            DeleteSeenOption(&optionsCopyTree, "bootstrap");
+        }
+        CB_ENSURE(optionsCopyTree.GetMapSafe().empty(), "some tree_learner_options keys missed");
+        DeleteSeenOption(&optionsCopy, "tree_learner_options");
+    }
+
+    // feature evaluation options
+    if (optionsCopy.Has("model_based_eval_options")) {
+        auto& optionsCopyBasedEval = optionsCopy["model_based_eval_options"];
+
+        DeleteSeenOption(&optionsCopyBasedEval, "features_to_evaluate");
+        DeleteSeenOption(&optionsCopyBasedEval, "offset");
+        DeleteSeenOption(&optionsCopyBasedEval, "experiment_count");
+        DeleteSeenOption(&optionsCopyBasedEval, "experiment_size");
+        DeleteSeenOption(&optionsCopyBasedEval, "baseline_model_snapshot");
+
+        CB_ENSURE(optionsCopyBasedEval.GetMapSafe().empty(), "some model_based_eval_options keys missed");
+        DeleteSeenOption(&optionsCopy, "model_based_eval_options");
+    }
+
+    // cat-features
+    if (options.Has("cat_feature_params")) {
+        const auto& ctrOptions = options["cat_feature_params"];
+        auto& optionsCopyCtr = optionsCopy["cat_feature_params"];
+
+        ConcatenateCtrDescription(ctrOptions, "simple_ctrs", "simple_ctr", &plainOptionsJson);
+        DeleteSeenOption(&optionsCopyCtr, "simple_ctrs");
+
+        ConcatenateCtrDescription(ctrOptions, "combinations_ctrs", "combinations_ctr", &plainOptionsJson);
+        DeleteSeenOption(&optionsCopyCtr, "combinations_ctrs");
+
+        RemapPerFeatureCtrDescription(ctrOptions, "per_feature_ctrs", "per_feature_ctr", &plainOptionsJson);
+        DeleteSeenOption(&optionsCopyCtr, "per_feature_ctrs");
+
+        if (ctrOptions.Has("target_binarization")) {
+            const auto& ctrTargetBinarization = ctrOptions["target_binarization"];
+            auto& optionsCopyCtrTargetBinarization = optionsCopyCtr["target_binarization"];
+            CopyOptionWithNewKey(ctrTargetBinarization, "border_count", "ctr_target_border_count", &plainOptionsJson,
+                                 &seenKeys);
+            DeleteSeenOption(&optionsCopyCtrTargetBinarization, "border_count");
+            DeleteSeenOption(&optionsCopyCtr, "target_binarization");
+        }
+
+        if (options.Has("text_feature_options")) {
+            const auto& textFeatureOptions = options["text_feature_options"];
+            auto textFeatureOptionsCopy = optionsCopy["text_feature_options"];
+            CopyOption(textFeatureOptions, "text_feature_estimators", &plainOptionsJson, &seenKeys);
+            DeleteSeenOption(&textFeatureOptionsCopy, "text_feature_estimators");
+
+            CB_ENSURE(textFeatureOptionsCopy.GetMapSafe().empty(), "some text features options keys missed");
+            DeleteSeenOption(&optionsCopy, "text_feature_options");
+        }
+
+        CopyOption(ctrOptions, "max_ctr_complexity", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopyCtr, "max_ctr_complexity");
+
+        CopyOption(ctrOptions, "simple_ctr_description", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopyCtr, "simple_ctr_description");
+
+        CopyOption(ctrOptions, "tree_ctr_description", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopyCtr, "tree_ctr_description");
+
+        CopyOption(ctrOptions, "per_feature_ctr_description", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopyCtr, "per_feature_ctr_description");
+
+        CopyOption(ctrOptions, "counter_calc_method", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopyCtr, "counter_calc_method");
+
+        CopyOption(ctrOptions, "store_all_simple_ctr", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopyCtr, "store_all_simple_ctr");
+
+        CopyOption(ctrOptions, "one_hot_max_size", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopyCtr, "one_hot_max_size");
+
+        CopyOption(ctrOptions, "ctr_leaf_count_limit", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopyCtr, "ctr_leaf_count_limit");
+
+        CopyOption(ctrOptions, "ctr_history_unit", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopyCtr, "ctr_history_unit");
+
+        CB_ENSURE(optionsCopyCtr.GetMapSafe().empty(), "some ctr options keys missed");
+        DeleteSeenOption(&optionsCopy, "cat_feature_params");
+    }
+
+    // data processing
+    if (options.Has("data_processing_options")) {
+        const auto& dataProcessingOptions = options["data_processing_options"];
+        auto& optionsCopyDataProcessing = optionsCopy["data_processing_options"];
+
+        CopyOption(dataProcessingOptions, "ignored_features", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopyDataProcessing, "ignored_features");
+
+        CopyOption(dataProcessingOptions, "has_time", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopyDataProcessing, "has_time");
+
+        CopyOption(dataProcessingOptions, "allow_const_label", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopyDataProcessing, "allow_const_label");
+
+        CopyOption(dataProcessingOptions, "classes_count", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopyDataProcessing, "classes_count");
+
+        CopyOption(dataProcessingOptions, "class_names", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopyDataProcessing, "class_names");
+
+        CopyOption(dataProcessingOptions, "class_weights", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopyDataProcessing, "class_weights");
+
+        CopyOption(dataProcessingOptions, "gpu_cat_features_storage", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopyDataProcessing, "gpu_cat_features_storage");
+
+        CopyOption(dataProcessingOptions, "text_processing", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopyDataProcessing, "text_processing");
+
+        CopyOption(dataProcessingOptions, "per_float_feature_binarization", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopyDataProcessing, "per_float_feature_binarization");
+
+        CopyOption(dataProcessingOptions, "target_border", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopyDataProcessing, "target_border");
+
+        if (dataProcessingOptions.Has("float_features_binarization")) {
+            const auto& floatFeaturesBinarization = dataProcessingOptions["float_features_binarization"];
+            auto& optionsCopyDataProcessingFloatFeaturesBinarization = optionsCopyDataProcessing["float_features_binarization"];
+
+            CopyOption(floatFeaturesBinarization, "border_count", &plainOptionsJson, &seenKeys);
+            DeleteSeenOption(&optionsCopyDataProcessingFloatFeaturesBinarization, "border_count");
+
+            CopyOptionWithNewKey(floatFeaturesBinarization, "border_type", "feature_border_type", &plainOptionsJson,
+                                 &seenKeys);
+            DeleteSeenOption(&optionsCopyDataProcessingFloatFeaturesBinarization, "border_type");
+
+            CopyOption(floatFeaturesBinarization, "nan_mode", &plainOptionsJson, &seenKeys);
+            DeleteSeenOption(&optionsCopyDataProcessingFloatFeaturesBinarization, "nan_mode");
+
+            CB_ENSURE(optionsCopyDataProcessingFloatFeaturesBinarization.GetMapSafe().empty(),
+                      "some float features binarization options keys missed");
+            DeleteSeenOption(&optionsCopyDataProcessing, "float_features_binarization");
+        }
+        CB_ENSURE(optionsCopyDataProcessing.GetMapSafe().empty(), "some data processing options keys missed");
+        DeleteSeenOption(&optionsCopy, "data_processing_options");
+    }
+
+    // system
+    if (options.Has("system_options")) {
+        const auto& systemOptions = options["system_options"];
+        auto& optionsCopySystemOptions = optionsCopy["system_options"];
+
+        CopyOption(systemOptions, "thread_count", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopySystemOptions, "thread_count");
+
+        CopyOption(systemOptions, "devices", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopySystemOptions, "devices");
+
+        CopyOption(systemOptions, "used_ram_limit", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopySystemOptions, "used_ram_limit");
+
+        CopyOption(systemOptions, "gpu_ram_part", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopySystemOptions, "gpu_ram_part");
+
+        CopyOption(systemOptions, "pinned_memory_bytes", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopySystemOptions, "pinned_memory_bytes");
+
+        CopyOption(systemOptions, "node_type", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopySystemOptions, "node_type");
+
+        CopyOption(systemOptions, "node_port", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopySystemOptions, "node_port");
+
+        CopyOption(systemOptions, "file_with_hosts", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopySystemOptions, "file_with_hosts");
+
+        CB_ENSURE(optionsCopySystemOptions.GetMapSafe().empty(), "some system options keys missed");
+        DeleteSeenOption(&optionsCopy, "system_options");
+    }
+
+    // rest
+    CopyOption(options, "random_seed", &plainOptionsJson, &seenKeys);
+    DeleteSeenOption(&optionsCopy, "random_seed");
+
+    CopyOption(options, "logging_level", &plainOptionsJson, &seenKeys);
+    DeleteSeenOption(&optionsCopy, "logging_level");
+
+    CopyOption(options, "detailed_profile", &plainOptionsJson, &seenKeys);
+    DeleteSeenOption(&optionsCopy, "detailed_profile");
+
+    CopyOption(options, "task_type", &plainOptionsJson, &seenKeys);
+    DeleteSeenOption(&optionsCopy, "task_type");
+
+    CopyOption(options, "metadata", &plainOptionsJson, &seenKeys);
+    DeleteSeenOption(&optionsCopy, "metadata");
+
+    DeleteSeenOption(&optionsCopy, "flat_params");
+    CB_ENSURE(optionsCopy.GetMapSafe().empty(), "some options keys missed");
+}
+
+void NCatboostOptions::DeleteEmptyKeysInPlainJson(
+        NJson::TJsonValue* plainOptionsJsonEfficient,
+        bool hasCatFeatures) {
+
+    CB_ENSURE(!plainOptionsJsonEfficient->GetMapSafe().empty(), "plainOptionsJsonEfficient should not be empty");
+
+    if ((*plainOptionsJsonEfficient)["od_type"].GetStringSafe() == ToString(EOverfittingDetectorType::None)) {
+        DeleteSeenOption(plainOptionsJsonEfficient, "od_type");
+        DeleteSeenOption(plainOptionsJsonEfficient, "od_wait");
+        DeleteSeenOption(plainOptionsJsonEfficient, "od_pval");
+    }
+
+    if (plainOptionsJsonEfficient->Has("node_type")) {
+        if ((*plainOptionsJsonEfficient)["node_type"].GetStringSafe() == ToString("SingleHost")) {
+            DeleteSeenOption(plainOptionsJsonEfficient, "node_port");
+            DeleteSeenOption(plainOptionsJsonEfficient, "file_with_hosts");
+        }
+    }
+
+    if (!hasCatFeatures) {
+        DeleteSeenOption(plainOptionsJsonEfficient, "simple_ctrs");
+        DeleteSeenOption(plainOptionsJsonEfficient, "combinations_ctrs");
+        DeleteSeenOption(plainOptionsJsonEfficient, "per_feature_ctrs");
+        DeleteSeenOption(plainOptionsJsonEfficient, "target_binarization");
+        DeleteSeenOption(plainOptionsJsonEfficient, "max_ctr_complexity");
+        DeleteSeenOption(plainOptionsJsonEfficient, "simple_ctr_description");
+        DeleteSeenOption(plainOptionsJsonEfficient, "tree_ctr_description");
+        DeleteSeenOption(plainOptionsJsonEfficient, "per_feature_ctr_description");
+        DeleteSeenOption(plainOptionsJsonEfficient, "counter_calc_method");
+        DeleteSeenOption(plainOptionsJsonEfficient, "store_all_simple_ctr");
+        DeleteSeenOption(plainOptionsJsonEfficient, "one_hot_max_size");
+        DeleteSeenOption(plainOptionsJsonEfficient, "ctr_leaf_count_limit");
+        DeleteSeenOption(plainOptionsJsonEfficient, "ctr_history_unit");
+    }
+}
+
