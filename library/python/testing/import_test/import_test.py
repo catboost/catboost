@@ -1,5 +1,6 @@
 from __future__ import print_function
 
+import os
 import re
 import sys
 import traceback
@@ -294,6 +295,7 @@ def main():
     skip_names = sys.argv[1:]
     print("Skip patterns:", skip_names)
 
+    os.environ['Y_PYTHON_IMPORT_TEST'] = ''
     try:
         check_imports(no_check=skip_names)
     except:
