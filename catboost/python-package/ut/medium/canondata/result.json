@@ -411,6 +411,10 @@
         "checksum": "3706da39e9c18f7bfd9c43a31c9ee7a2",
         "uri": "file://test.test_full_history_CPU_/model.bin"
     },
+    "test.test_get_all_params": {
+        "checksum": "f4b771d52310cfc3cc6eef68290db743",
+        "uri": "file://test.test_get_all_params/options.json"
+    },
     "test.test_get_evals_result_without_eval_set": {
         "checksum": "733328e62d6c66e02ca7cd9a14b3ed0e",
         "uri": "file://test.test_get_evals_result_without_eval_set/evals.txt"
@@ -484,15 +488,15 @@
         "uri": "file://test.test_ones_weight_CPU_/model.bin"
     },
     "test.test_onnx_export[binclass]": {
-        "checksum": "316a18c88db16b8becdd2f9ed64d58d4",
+        "checksum": "1c6c9ebaa6ab6466ed27250b9feb5698",
         "uri": "file://test.test_onnx_export_binclass_/model.onnx"
     },
     "test.test_onnx_export[multiclass]": {
-        "checksum": "611f546507a565c11de5e8cd2ef3a0ee",
+        "checksum": "086ad1c8e294f3435ec06e75d33b443f",
         "uri": "file://test.test_onnx_export_multiclass_/model.onnx"
     },
     "test.test_onnx_export[regression]": {
-        "checksum": "32c25b94fa0e07c0ef447776a1bcf908",
+        "checksum": "a771726a8c30f7ce85e0c5987ce3cb6a",
         "uri": "file://test.test_onnx_export_regression_/model.onnx"
     },
     "test.test_pairs_generation[CPU]": {

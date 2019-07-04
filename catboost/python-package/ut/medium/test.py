@@ -4774,3 +4774,26 @@ class TestModelWithoutParams(object):
         model, train_pool, test_pool = model_no_trees
         with pytest.raises(CatBoostError):
             model.get_object_importance(test_pool, train_pool, top_size=10)
+
+
+def test_get_all_params():
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoost(dict(iterations=16, thread_count=4))
+    model.fit(pool, verbose=True)
+
+    options = model.get_all_params()
+
+    # TODO (nikitxskv): Need to make correct support of this parameters in ConvertOptionsToPlainJson
+    options.pop('per_float_feature_binarization', None)
+    options.pop('text_processing', None)
+
+    model2 = CatBoost(options)
+    model2.fit(pool, verbose=True)
+
+    assert all(model.predict(pool) == model2.predict(pool))
+
+    options_file = test_output_path('options.json')
+    with open(options_file, 'w') as f:
+        json.dump(options, f, indent=4, sort_keys=True)
+
+    return local_canonical_file(options_file)

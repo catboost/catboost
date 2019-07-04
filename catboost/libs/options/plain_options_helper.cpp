@@ -28,8 +28,8 @@ static Y_NO_INLINE void CopyCtrDescription(
     const TStringBuf srcKey,
     const TStringBuf dstKey,
     NJson::TJsonValue* const dst,
-    TSet<TString>* const seenKeys)
-{
+    TSet<TString>* const seenKeys
+) {
     if (!options.Has(srcKey)) {
         return;
     }
@@ -49,10 +49,10 @@ static Y_NO_INLINE void CopyCtrDescription(
 }
 
 static Y_NO_INLINE void ConcatenateCtrDescription(
-        const NJson::TJsonValue& options,
-        const TStringBuf sourceKey,
-        const TStringBuf destinationKey,
-        NJson::TJsonValue* const destination
+    const NJson::TJsonValue& options,
+    const TStringBuf sourceKey,
+    const TStringBuf destinationKey,
+    NJson::TJsonValue* const destination
 ) {
     if (!options.Has(sourceKey)) {
         return;
@@ -71,8 +71,8 @@ static Y_NO_INLINE void CopyPerFeatureCtrDescription(
     const TStringBuf srcKey,
     const TStringBuf dstKey,
     NJson::TJsonValue* dst,
-    TSet<TString>* seenKeys)
-{
+    TSet<TString>* seenKeys
+) {
     if (!options.Has(srcKey)) {
         return;
     }
@@ -94,8 +94,8 @@ static Y_NO_INLINE void CopyPerFloatFeatureBinarization(
     const NJson::TJsonValue& options,
     const TStringBuf key,
     NJson::TJsonValue* dst,
-    TSet<TString>* seenKeys)
-{
+    TSet<TString>* seenKeys
+) {
     if (!options.Has(key)) {
         return;
     }
@@ -118,8 +118,8 @@ static Y_NO_INLINE void CopyPerFeatureTextProcessing(
     const TStringBuf key,
     const TStringBuf dstKey,
     NJson::TJsonValue* dst,
-    TSet<TString>* seenKeys)
-{
+    TSet<TString>* seenKeys
+) {
     if (!options.Has(key)) {
         return;
     }
@@ -141,8 +141,8 @@ static Y_NO_INLINE void CopyOption(
     const NJson::TJsonValue& options,
     const TStringBuf key,
     NJson::TJsonValue* dst,
-    TSet<TString>* seenKeys)
-{
+    TSet<TString>* seenKeys
+) {
     if (options.Has(key)) {
         (*dst)[key] = options[key];
         seenKeys->insert(TString(key));
@@ -154,7 +154,8 @@ static Y_NO_INLINE void CopyOptionWithNewKey(
     const TStringBuf srcKey,
     const TStringBuf dstKey,
     NJson::TJsonValue* dst,
-    TSet<TString>* seenKeys) {
+    TSet<TString>* seenKeys
+) {
 
     if (options.Has(srcKey)) {
         (*dst)[dstKey] = options[srcKey];
@@ -164,8 +165,8 @@ static Y_NO_INLINE void CopyOptionWithNewKey(
 
 static bool HasLossFunctionSomeWhereInPlainOptions(
     const NJson::TJsonValue& plainOptions,
-    const ELossFunction lossFunction)
-{
+    const ELossFunction lossFunction
+) {
     bool hasLossFunction = false;
 
     auto checkLossFunction = [&](const NJson::TJsonValue& metricOrLoss) {
@@ -222,11 +223,11 @@ static void ValidatePlainOptionsConsistency(const NJson::TJsonValue& plainOption
 
 
 static Y_NO_INLINE void RemapPerFeatureCtrDescription(
-        const NJson::TJsonValue& options,
-        const TStringBuf sourceKey,
-        const TStringBuf destinationKey,
-        NJson::TJsonValue* const destination)
-{
+    const NJson::TJsonValue& options,
+    const TStringBuf sourceKey,
+    const TStringBuf destinationKey,
+    NJson::TJsonValue* const destination
+) {
     auto& result = (*destination)[destinationKey] = NJson::TJsonValue(NJson::JSON_ARRAY);
     for (const auto& elem : options[sourceKey].GetMap()) {
         TString catFeatureIndex = elem.first;
@@ -236,10 +237,7 @@ static Y_NO_INLINE void RemapPerFeatureCtrDescription(
     }
 }
 
-static Y_NO_INLINE void DeleteSeenOption(
-        NJson::TJsonValue* options,
-        const TStringBuf key)
-{
+static Y_NO_INLINE void DeleteSeenOption(NJson::TJsonValue* options, const TStringBuf key) {
     if (options->Has(key)) {
         options->EraseValue(key);
     }
@@ -248,8 +246,8 @@ static Y_NO_INLINE void DeleteSeenOption(
 void NCatboostOptions::PlainJsonToOptions(
     const NJson::TJsonValue& plainOptions,
     NJson::TJsonValue* options,
-    NJson::TJsonValue* outputOptions)
-{
+    NJson::TJsonValue* outputOptions
+) {
     ValidatePlainOptionsConsistency(plainOptions);
     TSet<TString> seenKeys;
     auto& trainOptions = *options;
@@ -472,10 +470,10 @@ void NCatboostOptions::PlainJsonToOptions(
 }
 
 void NCatboostOptions::ConvertOptionsToPlainJson(
-        const NJson::TJsonValue& options,
-        const NJson::TJsonValue& outputOptions,
-        NJson::TJsonValue* plainOptions)
-{
+    const NJson::TJsonValue& options,
+    const NJson::TJsonValue& outputOptions,
+    NJson::TJsonValue* plainOptions
+) {
     TSet<TString> seenKeys;
 
     NJson::TJsonValue& plainOptionsJson = *plainOptions;
@@ -626,8 +624,8 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
 
         DeleteSeenOption(&optionsCopyTree, "dev_efb_max_buckets");
 
-        CopyOption(treeOptions, "efb_max_conflict_fraction", &plainOptionsJson, &seenKeys);
-        DeleteSeenOption(&optionsCopyTree, "efb_max_conflict_fraction");
+        CopyOption(treeOptions, "sparse_features_conflict_fraction", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopyTree, "sparse_features_conflict_fraction");
 
         CopyOption(treeOptions, "random_strength", &plainOptionsJson, &seenKeys);
         DeleteSeenOption(&optionsCopyTree, "random_strength");
@@ -876,9 +874,10 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
     CB_ENSURE(optionsCopy.GetMapSafe().empty(), "some options keys missed");
 }
 
-void NCatboostOptions::DeleteEmptyKeysInPlainJson(
-        NJson::TJsonValue* plainOptionsJsonEfficient,
-        bool hasCatFeatures) {
+void NCatboostOptions::CleanPlainJson(
+    bool hasCatFeatures,
+    NJson::TJsonValue* plainOptionsJsonEfficient
+) {
 
     CB_ENSURE(!plainOptionsJsonEfficient->GetMapSafe().empty(), "plainOptionsJsonEfficient should not be empty");
 
@@ -894,6 +893,8 @@ void NCatboostOptions::DeleteEmptyKeysInPlainJson(
             DeleteSeenOption(plainOptionsJsonEfficient, "file_with_hosts");
         }
     }
+
+    DeleteSeenOption(plainOptionsJsonEfficient, "objective_metric");
 
     if (!hasCatFeatures) {
         DeleteSeenOption(plainOptionsJsonEfficient, "simple_ctrs");

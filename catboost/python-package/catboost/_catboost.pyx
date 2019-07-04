@@ -946,7 +946,7 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
     ) nogil except +ProcessException
 
     cdef TJsonValue GetPlainJsonWithAllOptions(
-        TFullModel& model,
+        const TFullModel& model,
         bool_t hasCatFeatures
     ) nogil except +ProcessException
 
@@ -2850,15 +2850,10 @@ cdef class _CatBoost:
         except Exception as e:
             return {}
 
-    cpdef _get_plain_params(self, hasCatFeatures):
-        cdef TJsonValue plainOptions
-        try:
-            options_json = GetPlainJsonWithAllOptions(dereference(self.__model), hasCatFeatures)
-            return loads(to_native_str(ToString(options_json)))
-        except Exception as e:
-            print(e)
-            return {}
-
+    cpdef _get_plain_params(self):
+        hasCatFeatures = len(self._get_cat_feature_indices()) != 0
+        cdef TJsonValue plainOptions = GetPlainJsonWithAllOptions(dereference(self.__model), hasCatFeatures)
+        return loads(to_native_str(ToString(plainOptions)))
 
     def _get_tree_count(self):
         return self.__model.GetTreeCount()

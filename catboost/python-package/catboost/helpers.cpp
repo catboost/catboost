@@ -178,7 +178,7 @@ NJson::TJsonValue GetPlainJsonWithAllOptions(const TFullModel& model, bool hasCa
     CB_ENSURE(!plainOptions.GetMapSafe().empty(), "plainOptions should not be empty.");
     NJson::TJsonValue cleanedOptions(plainOptions);
     CB_ENSURE(!cleanedOptions.GetMapSafe().empty(), "problems with copy constructor.");
-    NCatboostOptions::DeleteEmptyKeysInPlainJson(&cleanedOptions, hasCatFeatures);
+    NCatboostOptions::CleanPlainJson(hasCatFeatures, &cleanedOptions);
     CB_ENSURE(!cleanedOptions.GetMapSafe().empty(), "cleanedOptions should not be empty.");
     return cleanedOptions;
 }

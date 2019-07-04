@@ -273,17 +273,15 @@ NJson::TJsonValue LossDescriptionToJson(const TStringBuf lossDescription) {
 
 TString BuildMetricOptionDescription(const NJson::TJsonValue& lossOptions) {
     TString paramType = StripString(ToString(lossOptions["type"]), EqualsStripAdapter('"'));
-    if (!lossOptions["params"].GetMap().empty()) {
-        paramType = paramType + ":";
-    }
+    paramType += ":";
+
     for (const auto& elem : lossOptions["params"].GetMap()) {
         const TString& paramName = elem.first;
         const TString& paramValue = StripString(ToString(elem.second), EqualsStripAdapter('"'));
-        paramType = paramType + paramName + "=" + paramValue + ";";
+        paramType += paramName + "=" + paramValue + ";";
     }
 
-    // delete the last ";" symbol
-    SubstGlobal(paramType, ";", "", paramType.size() - 1);
+    paramType.pop_back();
     return paramType;
 }
 
