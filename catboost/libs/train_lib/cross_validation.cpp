@@ -401,6 +401,7 @@ static void UpdatePermutationBlockSize(
 
 void CrossValidate(
     NJson::TJsonValue plainJsonParams,
+    TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
     const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
     const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
     TDataProviderPtr data,
@@ -460,7 +461,7 @@ void CrossValidate(
         /*unloadCatFeaturePerfectHashFromRamIfPossible*/ true,
         /*ensureConsecutiveLearnFeaturesDataForCpu*/ false,
         outputFileOptions.AllowWriteFiles(),
-        /*quantizedFeaturesInfo*/ nullptr,
+        quantizedFeaturesInfo,
         &catBoostOptions,
         &labelConverter,
         &targetBorder,

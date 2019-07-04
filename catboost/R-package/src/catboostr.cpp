@@ -456,6 +456,7 @@ SEXP CatBoostCV_R(SEXP fitParamsAsJsonParam,
 
     CrossValidate(
         fitParams,
+        TQuantizedFeaturesInfoPtr(nullptr),
         Nothing(),
         Nothing(),
         pool,

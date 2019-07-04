@@ -700,6 +700,7 @@ cdef extern from "catboost/libs/train_lib/cross_validation.h":
 
     cdef void CrossValidate(
         TJsonValue jsonParams,
+        TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
         const TMaybe[TCustomObjectiveDescriptor]& objectiveDescriptor,
         const TMaybe[TCustomMetricDescriptor]& evalMetricDescriptor,
         TDataProviderPtr data,
@@ -3068,6 +3069,7 @@ cpdef _cv(dict params, _PoolBase pool, int fold_count, bool_t inverted, int part
         try:
             CrossValidate(
                 prep_params.tree,
+                TQuantizedFeaturesInfoPtr(<TQuantizedFeaturesInfo*>nullptr),
                 prep_params.customObjectiveDescriptor,
                 prep_params.customMetricDescriptor,
                 pool.__pool,
