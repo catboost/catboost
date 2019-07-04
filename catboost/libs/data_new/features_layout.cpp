@@ -8,6 +8,7 @@
 #include <util/generic/algorithm.h>
 #include <util/generic/scope.h>
 #include <util/generic/xrange.h>
+#include <util/generic/hash_set.h>
 #include <util/string/join.h>
 
 #include <algorithm>
@@ -75,6 +76,17 @@ TFeaturesLayout::TFeaturesLayout(
                 TextFeatureInternalIdxToExternalIdx.push_back(externalFeatureIdx);
                 break;
             }
+        }
+    }
+
+    THashSet<TString> featureNames;
+    for (const TString& name : featureId) {
+        if (!name.empty()) {
+            CB_ENSURE(
+                !featureNames.contains(name),
+                "All feature names should be different, but '" << name << "' used more than once."
+            );
+            featureNames.insert(name);
         }
     }
 }

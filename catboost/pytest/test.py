@@ -6964,3 +6964,14 @@ class TestModelWithoutParams(object):
                 yatest.common.execute(fstr_cmd)
         else:
             yatest.common.execute(fstr_cmd)
+
+
+def test_equal_feature_names():
+    with pytest.raises(yatest.common.ExecutionError):
+        yatest.common.execute((
+            CATBOOST_PATH,
+            'fit',
+            '--loss-function', 'RMSE',
+            '-f', data_file('querywise', 'train'),
+            '--column-description', data_file('querywise', 'train.cd.equal_names'),
+        ))

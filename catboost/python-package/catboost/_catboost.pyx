@@ -1503,7 +1503,7 @@ class FeaturesData(object):
         return self.num_feature_names + self.cat_feature_names
 
 
-cdef TFeaturesLayout* _init_features_layout(data, cat_features, feature_names):
+cdef TFeaturesLayout* _init_features_layout(data, cat_features, feature_names) except*:
     cdef TVector[ui32] cat_features_vector
     cdef TVector[ui32] text_features_vector # TODO(d-kruchinin): support text features in python package
     cdef TVector[TString] feature_names_vector

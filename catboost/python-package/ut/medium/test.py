@@ -4699,6 +4699,12 @@ def test_continue_learning_with_changing_dataset():
     return local_canonical_file(preds_path)
 
 
+def test_equal_feature_names():
+    train_data = [[1, 2, 3, 4, 5, 6], [6, 5, 4, 3, 2, 1]]
+    with pytest.raises(CatBoostError):
+        Pool(train_data, feature_names=['first', 'second', 'third', 'fourth', 'second', 'sixth'])
+
+
 class TestModelWithoutParams(object):
 
     @pytest.fixture(
