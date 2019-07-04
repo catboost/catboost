@@ -366,7 +366,6 @@ void Bootstrap(
     switch (bootstrapType) {
         case EBootstrapType::Bernoulli:
             if (isPairwiseScoring) {
-                // TODO(nikitxskv): Need to add groupwise sampling (take the whole group or not)
                 GenerateBernoulliWeightsForPairs(takenFraction, samplingUnit, localExecutor, rand, fold);
             } else {
                 Fill(fold->SampleWeights.begin(), fold->SampleWeights.end(), 1);
