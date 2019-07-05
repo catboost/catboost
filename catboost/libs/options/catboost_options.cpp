@@ -7,6 +7,9 @@
 #include <util/generic/set.h>
 #include <util/string/cast.h>
 #include <util/system/info.h>
+#include <util/string/builder.h>
+#include <util/string/vector.h>
+#include <util/generic/hash_set.h>
 
 template <>
 void Out<NCatboostOptions::TCatBoostOptions>(IOutputStream& out, const NCatboostOptions::TCatBoostOptions& options) {
@@ -479,6 +482,29 @@ void NCatboostOptions::TCatBoostOptions::Validate() const {
         "Metric parameter 'use_weights' isn't supported for objective function. " <<
         "If weights are present they will necessarily be used in optimization. " <<
         "It cannot be disabled.");
+
+    if (GetTaskType() == ETaskType::CPU && !ObliviousTreeOptions->MonotoneConstraints.Get().empty()) {
+        // validate monotone constraints
+        const auto& monotoneConstraints = ObliviousTreeOptions->MonotoneConstraints.Get();
+        CB_ENSURE(!IsPairwiseScoring(lossFunction),
+            "Monotone constraints is unsupported for pairwise loss functions."
+        );
+        CB_ENSURE(!IsMultiClassOnlyMetric(lossFunction),
+            "Monotone constraints is unsupported for multiclass."
+        );
+        CB_ENSURE(!BoostingOptions->ApproxOnFullHistory.Get(),
+            "Can't combine approx_on_full_history with monotone constraints."
+        );
+        CB_ENSURE(
+            SystemOptions->IsSingleHost(), "Monotone constraints is unsupported for distributed learning."
+        );
+        const THashSet<int> validMonotoneConstraintValues = {-1, 0, 1};
+        CB_ENSURE(
+            AllOf(monotoneConstraints, [&] (int val) { return validMonotoneConstraintValues.contains(val); }),
+            TStringBuilder() << "Monotone constraints should be values in {-1, 0, 1}. Got:\n" <<
+            "(" << JoinVectorIntoString(monotoneConstraints, ",") << ")"
+        );
+    }
 }
 
 void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {

@@ -162,34 +162,13 @@ static bool IsConstTarget(const NCB::TDataMetaInfo& dataMetaInfo) {
     return dataMetaInfo.TargetStats.Defined() && dataMetaInfo.TargetStats->MinValue == dataMetaInfo.TargetStats->MaxValue;
 }
 
-void UpdateMonotoneConstraints(
+static void UpdateAndValidateMonotoneConstraints(
     const NCB::TFeaturesLayout& featuresLayout,
-    NCatboostOptions::TCatBoostOptions* catBoostOptions
+    TVector<int>* monotoneConstraints
 ) {
-    TVector<int>* monotoneConstraints = &catBoostOptions->ObliviousTreeOptions->MonotoneConstraints.Get();
-    const auto& optionsConstRef = *catBoostOptions;
-
-    // TODO(strashila): support monotonic constraints for pairwise loss
-    CB_ENSURE(
-        monotoneConstraints->empty() ||
-        !IsPairwiseScoring(optionsConstRef.LossFunctionDescription->GetLossFunction()),
-        "Monotone constraints is unsupported for pairwise loss functions."
-    );
-    // TODO(strashila): support distributed monotonic constraints
-    CB_ENSURE(
-        monotoneConstraints->empty() || optionsConstRef.SystemOptions->IsSingleHost(),
-        "Monotone constraints is unsupported for distributed learning."
-    );
-
     CB_ENSURE(
         monotoneConstraints->size() <= featuresLayout.GetExternalFeatureCount(),
         "length of monotone constraints vector exceeds number of features."
-    );
-    const THashSet<int> validMonotoneConstraintValues = {-1, 0, 1};
-    CB_ENSURE(
-        AllOf(*monotoneConstraints, [&] (int val) { return validMonotoneConstraintValues.contains(val); }),
-        TStringBuilder() << "Monotone constraints should be values in {-1, 0, 1}. Got:\n" <<
-        "(" << JoinVectorIntoString(*monotoneConstraints, ",") << ")"
     );
     CB_ENSURE(
         AllOf(
@@ -243,5 +222,10 @@ void SetDataDependentDefaults(
         catBoostOptions
     );
     UpdateLeavesEstimationIterations(trainDataMetaInfo, catBoostOptions);
-    UpdateMonotoneConstraints(*trainDataMetaInfo.FeaturesLayout.Get(), catBoostOptions);
+    if (catBoostOptions->GetTaskType() == ETaskType::CPU) {
+        UpdateAndValidateMonotoneConstraints(
+            *trainDataMetaInfo.FeaturesLayout.Get(),
+            &catBoostOptions->ObliviousTreeOptions->MonotoneConstraints.Get()
+        );
+    }
 }

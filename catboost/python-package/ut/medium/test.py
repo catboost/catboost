@@ -2638,7 +2638,6 @@ def test_serialization_of_numpy_objects_execution_case():
     ExecutionCase(get_values_that_json_dumps_breaks_on())
 
 
-@fails_on_gpu(how='assert 0 == 4')
 def test_metric_period_redefinition(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     tmpfile1 = test_output_path('tmpfile1')
@@ -3069,7 +3068,6 @@ def test_pairs_generation(task_type):
     return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
 
 
-@fails_on_gpu(how="cuda/methods/dynamic_boosting.h:169: Error: pool has just 3 groups or docs, can't use #1 GPUs to learn on such small pool")
 def test_pairs_generation_generated(task_type):
     model = CatBoost(params={'loss_function': 'PairLogit', 'iterations': 10, 'thread_count': 8, 'task_type': task_type, 'devices': '0'})
 
