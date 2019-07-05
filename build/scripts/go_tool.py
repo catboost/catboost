@@ -112,8 +112,12 @@ def vet_report_output_name(path):
     return path + '.vet.txt'
 
 
+def get_source_path(args):
+    return args.test_import_path or args.output_root[len(args.build_root):]
+
+
 def gen_vet_info(args):
-    import_path, _ = get_import_path(args.module_path)
+    import_path = args.import_path
     info = get_import_config_info(args.peers, args.import_map, args.module_map)
 
     import_map = dict(info['importmap'])
@@ -128,7 +132,7 @@ def gen_vet_info(args):
     data = {
         'ID': import_path,
         'Compiler': 'gc',
-        'Dir': args.module_path,
+        'Dir': os.path.join(args.arc_source_root, get_source_path(args)),
         'ImportPath': import_path,
         'GoFiles': list(filter(lambda x: x.endswith('.go'), args.go_srcs)),
         'NonGoFiles': [
@@ -184,7 +188,7 @@ def do_compile_go(args):
         run_vet = threading.Thread(target=do_vet, args=(args,))
         run_vet.start()
 
-    import_path, is_std_module = get_import_path(args.module_path)
+    import_path, is_std_module = args.import_path, args.is_std
     cmd = [args.go_compile, '-o', args.output, '-trimpath', args.build_root, '-p', import_path, '-D', '""']
     cmd += ['-goversion', 'go' + args.goversion]
     if is_std_module:
@@ -327,7 +331,7 @@ func coverRegisterFile(fileName string, counter []uint32, pos []uint32, numStmts
 def gen_test_main(args, test_lib_args, xtest_lib_args):
     assert args and (test_lib_args or xtest_lib_args)
     test_miner = args.test_miner
-    test_module_path = test_lib_args.module_path if test_lib_args else xtest_lib_args.module_path
+    test_module_path = test_lib_args.import_path if test_lib_args else xtest_lib_args.import_path
     is_cover = args.cover_info and len(args.cover_info) > 0
 
     # Prepare GOPATH
@@ -362,7 +366,7 @@ def gen_test_main(args, test_lib_args, xtest_lib_args):
 
     # Get the list of "external" tests
     if xtest_lib_args:
-        xtest_module_path = xtest_lib_args.module_path
+        xtest_module_path = xtest_lib_args.import_path
         os.makedirs(os.path.join(test_src_dir, xtest_module_path))
         os_symlink(xtest_lib_args.output, os.path.join(test_pkg_dir, os.path.basename(xtest_module_path) + '.a'))
         cmd = [test_miner, '-benchmarks', '-tests', xtest_module_path]
@@ -432,7 +436,8 @@ def do_link_test(args):
     assert args.srcs or args.xtest_srcs
     assert args.test_miner is not None
 
-    test_import_path, _ = get_import_path(args.test_import_path or args.module_path)
+    test_module_path = args.test_import_path or args.module_path
+    test_import_path, _ = get_import_path(test_module_path)
 
     test_lib_args = None
     xtest_lib_args = None
@@ -441,7 +446,8 @@ def do_link_test(args):
         test_lib_args = copy_args(args)
         test_lib_args.output = os.path.join(args.output_root, 'test.a')
         test_lib_args.vet_report_output = vet_report_output_name(test_lib_args.output)
-        test_lib_args.module_path = test_import_path
+        test_lib_args.module_path = test_module_path
+        test_lib_args.import_path = test_import_path
         do_link_lib(test_lib_args)
 
     if args.xtest_srcs:
@@ -450,7 +456,8 @@ def do_link_test(args):
         classify_srcs(xtest_lib_args.srcs, xtest_lib_args)
         xtest_lib_args.output = os.path.join(args.output_root, 'xtest.a')
         xtest_lib_args.vet_report_output = vet_report_output_name(xtest_lib_args.output)
-        xtest_lib_args.module_path = test_import_path + '_test'
+        xtest_lib_args.module_path = test_module_path + '_test'
+        xtest_lib_args.import_path = test_import_path + '_test'
         if test_lib_args:
             xtest_lib_args.module_map[test_import_path] = test_lib_args.output
         do_link_lib(xtest_lib_args)
@@ -466,11 +473,12 @@ def do_link_test(args):
         # of mangling doesn't really looks good to me and we leave it
         # for pure GO_TEST module
         test_args.module_path = test_args.module_path + '___test_main__'
+        test_args.import_path = test_args.import_path + '___test_main__'
     classify_srcs(test_args.srcs, test_args)
     if test_lib_args:
-        test_args.module_map[test_import_path] = test_lib_args.output
+        test_args.module_map[test_lib_args.import_path] = test_lib_args.output
     if xtest_lib_args:
-        test_args.module_map[test_import_path + '_test'] = xtest_lib_args.output
+        test_args.module_map[xtest_lib_args.import_path] = xtest_lib_args.output
 
     if args.vet:
         dump_vet_report_for_tests(test_args, test_lib_args, xtest_lib_args)
@@ -509,6 +517,7 @@ if __name__ == '__main__':
     parser.add_argument('++link-flags', nargs='*')
     parser.add_argument('++vcs', nargs='?', default=None)
     parser.add_argument('++vet', action='store_true', default=False)
+    parser.add_argument('++arc-source-root')
     args = parser.parse_args()
 
     args.pkg_root = os.path.join(str(args.tools_root), 'pkg')
@@ -543,6 +552,7 @@ if __name__ == '__main__':
     assert args.output_root.startswith(args.build_root)
     args.module_path = args.output_root[len(args.build_root):]
     assert len(args.module_path) > 0
+    args.import_path, args.is_std = get_import_path(args.module_path)
 
     classify_srcs(args.srcs, args)
 
