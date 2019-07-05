@@ -378,7 +378,7 @@ namespace NCB::NModelEvaluation {
                         treeEnd,
                         resultPtr
                     );
-                    resultPtr += subBlock.GetObjectsCount();
+                    resultPtr += subBlock.GetObjectsCount() * ObliviousTrees->ApproxDimension;
                 }
             }
 
