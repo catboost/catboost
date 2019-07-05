@@ -21,6 +21,9 @@ public:
 #if defined(_win_)
         TString Password;
 #endif
+#if defined(_unix_)
+        bool UseUserGroups = false;
+#endif
     };
 
     enum EHandleMode {
@@ -381,22 +384,22 @@ public:
     TProcessId GetPid() const;
 
     /**
-     * @brief return the file handle that provides input to the child process 
-     * 
+     * @brief return the file handle that provides input to the child process
+     *
      * @return input file handle
      */
     TFileHandle& GetInputHandle();
 
     /**
-     * @brief return the file handle that provides output from the child process 
-     * 
+     * @brief return the file handle that provides output from the child process
+     *
      * @return output file handle
      */
     TFileHandle& GetOutputHandle();
 
     /**
-     * @brief return the file handle that provides error output from the child process 
-     * 
+     * @brief return the file handle that provides error output from the child process
+     *
      * @return error file handle
      */
     TFileHandle& GetErrorHandle();

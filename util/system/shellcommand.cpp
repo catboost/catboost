@@ -20,12 +20,19 @@
 #if defined(_unix_)
 #include <unistd.h>
 #include <fcntl.h>
+#include <grp.h>
 #include <sys/wait.h>
 
 using TPid = pid_t;
 using TWaitResult = pid_t;
 using TExitStatus = int;
 #define WAIT_PROCEED 0
+
+#if defined(_darwin_)
+using TGetGroupListGid = int;
+#else
+using TGetGroupListGid = gid_t;
+#endif
 #elif defined(_win_)
 #include <string>
 
@@ -49,16 +56,31 @@ namespace {
     constexpr static size_t DATA_BUFFER_SIZE = 128 * 1024;
 
 #if defined(_unix_)
-    void ImpersonateUser(const TString& userName) {
-        if (GetUsername() == userName) {
+    void SetUserGroups(const passwd* pw) {
+        int ngroups = 1;
+        THolder<gid_t, TFree> groups = static_cast<gid_t*>(malloc(ngroups * sizeof(gid_t)));
+        if (getgrouplist(pw->pw_name, pw->pw_gid, reinterpret_cast<TGetGroupListGid*>(groups.Get()), &ngroups) == -1) {
+            groups.Reset(static_cast<gid_t*>(malloc(ngroups * sizeof(gid_t))));
+            if (getgrouplist(pw->pw_name, pw->pw_gid, reinterpret_cast<TGetGroupListGid*>(groups.Get()), &ngroups) == -1) {
+                ythrow TSystemError() << "getgrouplist failed: user " << pw->pw_name << " (" << pw->pw_uid << ")";
+            }
+        }
+        setgroups(ngroups, groups.Get());
+    }
+
+    void ImpersonateUser(const TShellCommandOptions::TUserOptions& userOpts) {
+        if (GetUsername() == userOpts.Name) {
             return;
         }
-        const passwd* newUser = getpwnam(userName.c_str());
+        const passwd* newUser = getpwnam(userOpts.Name.c_str());
         if (!newUser) {
             ythrow TSystemError(errno) << "getpwnam failed";
         }
         if (setuid(newUser->pw_uid)) {
             ythrow TSystemError(errno) << "setuid failed";
+        }
+        if (userOpts.UseUserGroups) {
+            SetUserGroups(newUser);
         }
     }
 #elif defined(_win_)
@@ -674,7 +696,7 @@ void TShellCommand::TImpl::OnFork(TPipes& pipes, sigset_t oldmask, char* const* 
         }
 
         if (!User.Name.empty()) {
-            ImpersonateUser(User.Name);
+            ImpersonateUser(User);
         }
 
         if (Nice) {
