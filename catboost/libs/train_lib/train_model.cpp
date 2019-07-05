@@ -119,13 +119,11 @@ static TDataProviders LoadPools(
     }
 }
 
-static bool HasInvalidValues(const TVector<TVector<TVector<double>>>& leafValues) {
-    for (const auto& tree : leafValues) {
-        for (const TVector<double>& leaf : tree) {
-            for (double value : leaf) {
-                if (!IsValidFloat(value)) {
-                    return true;
-                }
+static bool HasInvalidValues(const TVector<TVector<double>>& treeLeafValues) {
+    for (const auto& leafValuesDimension : treeLeafValues) {
+        for (double leafValueCoord : leafValuesDimension) {
+            if (!IsValidFloat(leafValueCoord)) {
+                return true;
             }
         }
     }
@@ -421,7 +419,7 @@ static void Train(
             &loggingData.Logger
         );
 
-        if (HasInvalidValues(ctx->LearnProgress->LeafValues)) {
+        if (HasInvalidValues(ctx->LearnProgress->LeafValues.back())) {
             ctx->LearnProgress->LeafValues.pop_back();
             ctx->LearnProgress->TreeStruct.pop_back();
             CATBOOST_WARNING_LOG << "Training has stopped (degenerate solution on iteration "
