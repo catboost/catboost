@@ -67,7 +67,6 @@
   - console.h
   - could_not_find_Perl_patchlevel.h
   - cpml.h
-  - cpu-features.h
   - crtl.h
   - cthreads.h
   - ctime.h
@@ -276,6 +275,7 @@
   - iphlpapi.h
 
 - includes:
+  - cpu-features.h
   - cuda.h
   - cublas_v2.h
   - cuda_runtime.h
