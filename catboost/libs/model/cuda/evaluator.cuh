@@ -1,6 +1,6 @@
 #include <catboost/libs/cuda_wrappers/cuda_vec.h>
 
-#include <catboost/libs/model/evaluation_interface.h>
+#include <catboost/libs/model/fwd.h>
 
 #include <util/generic/ptr.h>
 #include <util/generic/vector.h>
@@ -21,7 +21,7 @@ struct TGPUModelData : public TThrRefBase {
     TCudaVec<ui32> BordersOffsets;
     TCudaVec<ui32> BordersCount;
     TCudaVec<float> FlatBordersVector;
-    
+
     TCudaVec<ui32> TreeSizes;
     TCudaVec<ui32> TreeStartOffsets;
     TCudaVec<ui32> TreeFirstLeafOffsets;
