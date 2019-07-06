@@ -23,7 +23,8 @@ namespace NCoro {
     }
 
     void TContPollEvent::Wake() noexcept {
-        UnLink();
+        TTreeNode::UnLink();
+        TListNode::Unlink();
         Cont()->ReSchedule();
     }
 
@@ -45,15 +46,23 @@ namespace NCoro {
     }
 
     void TEventWaitQueue::Register(NCoro::TContPollEvent* event) {
-        IoWait_.Insert(event);
+        if (event->DeadLine() == TInstant::Max()) {
+            InfiniteIoWait_.PushBack(event);
+        } else {
+            IoWait_.Insert(event);
+        }
         event->Cont()->Unlink();
     }
 
     void TEventWaitQueue::Abort() noexcept {
-        auto visitor = [](TContPollEvent& e) {
+        auto canceler = [](TContPollEvent& e) {
             e.Cont()->Cancel();
         };
-        IoWait_.ForEach(visitor);
+        auto cancelerPtr = [&](TContPollEvent* e) {
+            canceler(*e);
+        };
+        IoWait_.ForEach(canceler);
+        InfiniteIoWait_.ForEach(cancelerPtr);
     }
 }
 

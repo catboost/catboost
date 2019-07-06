@@ -207,6 +207,7 @@ public:
         return TotalConts() - TotalReadyConts();
     }
 
+    // TODO(velavokr): rename, it is just CancelAll actually
     void Abort() noexcept;
 
     void SetFailOnError(bool fail) noexcept {
