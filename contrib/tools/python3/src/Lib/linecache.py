@@ -90,6 +90,18 @@ def updatecache(filename, module_globals=None):
     if not filename or (filename.startswith('<') and filename.endswith('>')):
         return []
 
+    if not os.path.isabs(filename):
+        # Do not read builtin code from the filesystem.
+        import __res
+        key = __res.importer.file_source(filename)
+        if key:
+            data = __res.find(key)
+            assert data is not None, filename
+            data = data.decode('UTF-8')
+            lines = [line + '\n' for line in data.splitlines()]
+            cache[filename] = (len(data), None, lines, filename)
+            return cache[filename][2]
+
     fullname = filename
     try:
         stat = os.stat(fullname)
