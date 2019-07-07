@@ -52,6 +52,8 @@
   - linux/fs.h
   - linux/futex.h
   - linux/genetlink.h
+  - linux/i2c.h
+  - linux/i2c-dev.h
   - linux/icmp.h
   - linux/icmpv6.h
   - linux/if.h
@@ -103,6 +105,7 @@
   - linux/smb.h
   - linux/sockios.h
   - linux/soundcard.h
+  - linux/spi/spidev.h
   - linux/stat.h
   - linux/taskstats.h
   - linux/tc_act/tc_gact.h
