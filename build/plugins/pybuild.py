@@ -480,28 +480,24 @@ def onpy_register(unit, *args):
     To register the modules from the sources in the SRCS(), you need to use PY_REGISTER().
 
     PY_REGISTER(module_name) initializes module globally via call to initmodule_name()
-    PY_REGISTER(package.module_name) initializes module in the specified package using package-specific initialization using init7package11module_name
-    PY_REGISTER(package.module_name=module_name) redeclares global initialization of a module to use
-    package-specific initialization within package CFLAGS(-Dinitmodule_name=init7package11module_name)
+    PY_REGISTER(package.module_name) initializes module in the specified package
+    It renames its init function with CFLAGS(-Dinitmodule_name=init7package11module_name)
+    or CFLAGS(-DPyInit_module_name=PyInit_7package11module_name)
 
-    PY_REGISTER honors Python2 and Python3 differences and adjusts itself to Python version of a current module
     Documentation: https://wiki.yandex-team.ru/arcadia/python/pysrcs/#makrospyregister
     """
 
     py3 = is_py3(unit)
 
     for name in args:
-        if '=' in name:
-            fullname, shortname = name.split('=', 1)
-            assert '.' not in shortname, shortname
-            assert fullname == shortname or fullname.endswith('.' + shortname), fullname
-            py_register(unit, fullname, py3)
+        assert '=' not in name, name
+        py_register(unit, name, py3)
+        if '.' in name:
+            shortname = name.rsplit('.', 1)[1]
             if py3:
-                unit.oncflags(['-DPyInit_{}=PyInit_{}'.format(shortname, mangle(fullname))])
+                unit.oncflags(['-DPyInit_{}=PyInit_{}'.format(shortname, mangle(name))])
             else:
-                unit.oncflags(['-Dinit{}=init{}'.format(shortname, mangle(fullname))])
-        else:
-            py_register(unit, name, py3)
+                unit.oncflags(['-Dinit{}=init{}'.format(shortname, mangle(name))])
 
 
 def py_main(unit, arg):

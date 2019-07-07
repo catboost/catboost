@@ -39,8 +39,8 @@ CFLAGS(
     -Dparse_iso_8601_datetime=pandas_parse_iso_8601_datetime
 )
 
-PY_REGISTER(pandas._libs.json=json)
-PY_REGISTER(pandas.util._move=_move)
+PY_REGISTER(pandas._libs.json)
+PY_REGISTER(pandas.util._move)
 
 SRCS(
     pandas/_libs/src/parser/io.c

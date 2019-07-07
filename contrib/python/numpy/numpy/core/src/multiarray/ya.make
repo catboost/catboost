@@ -77,7 +77,7 @@ SRCS(
     vdot.c
 )
 
-PY_REGISTER(numpy.core._multiarray_umath=_multiarray_umath)
-PY_REGISTER(numpy.core._multiarray_tests=_multiarray_tests)
+PY_REGISTER(numpy.core._multiarray_umath)
+PY_REGISTER(numpy.core._multiarray_tests)
 
 END()
