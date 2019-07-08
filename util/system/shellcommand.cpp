@@ -65,7 +65,9 @@ namespace {
                 ythrow TSystemError() << "getgrouplist failed: user " << pw->pw_name << " (" << pw->pw_uid << ")";
             }
         }
-        setgroups(ngroups, groups.Get());
+        if (setgroups(ngroups, groups.Get()) == -1) {
+            ythrow TSystemError(errno) << "Unable to set groups for user " << pw->pw_name << Endl;
+        }
     }
 
     void ImpersonateUser(const TShellCommandOptions::TUserOptions& userOpts) {
@@ -76,11 +78,11 @@ namespace {
         if (!newUser) {
             ythrow TSystemError(errno) << "getpwnam failed";
         }
-        if (setuid(newUser->pw_uid)) {
-            ythrow TSystemError(errno) << "setuid failed";
-        }
         if (userOpts.UseUserGroups) {
             SetUserGroups(newUser);
+        }
+        if (setuid(newUser->pw_uid)) {
+            ythrow TSystemError(errno) << "setuid failed";
         }
     }
 #elif defined(_win_)
