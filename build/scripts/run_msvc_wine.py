@@ -449,7 +449,7 @@ def run_main():
             log = colorize(log)
         print >>sys.stderr, log
 
-    tout = 15
+    tout = 200
 
     while True:
         rc, out = run_process(0, tout)
