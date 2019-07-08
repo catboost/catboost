@@ -78,6 +78,8 @@ ALLOW market/indexer -> contrib/libs/boost
 ALLOW market/indexer -> contrib/deprecated/boost
 ALLOW maps -> contrib/libs/boost
 ALLOW maps -> contrib/deprecated/boost
+ALLOW mds -> contrib/libs/boost
+ALLOW mds -> contrib/deprecated/boost
 ALLOW metrika -> contrib/libs/boost
 ALLOW metrika -> contrib/deprecated/boost
 ALLOW netsys/tiles-vcdiff/gen-tiles -> contrib/libs/boost
