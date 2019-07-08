@@ -709,7 +709,7 @@ public:                       \
         ITestSuiteProcessor* Processor() const noexcept;
 
     private:
-        TTestFactory(ITestSuiteProcessor* processor);
+        explicit TTestFactory(ITestSuiteProcessor* processor);
 
         ~TTestFactory();
 
