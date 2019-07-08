@@ -5,6 +5,7 @@ LIBRARY()
 SRCS(
     bpe_builder.cpp
     bpe_dictionary.cpp
+    bpe_helpers.cpp
     dictionary.cpp
     dictionary_builder.cpp
     fbs_helpers.cpp

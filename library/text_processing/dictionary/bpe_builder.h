@@ -1,12 +1,16 @@
 #pragma once
 
 #include "bpe_dictionary.h"
+#include "bpe_helpers.h"
 #include "frequency_based_dictionary.h"
+
+#include <library/containers/heap_dict/heap_dict.h>
 
 #include <util/generic/array_ref.h>
 #include <util/generic/fwd.h>
 
 namespace NTextProcessing::NDictionary {
+    using TPairStats = THeapDict<TPair, TPairStat>;
 
     class TBpeDictionaryBuilder {
     public:
@@ -31,7 +35,8 @@ namespace NTextProcessing::NDictionary {
         bool SkipUnknown;
         TIntrusivePtr<TDictionary> Alphabet;
 
-        TVector<TVector<ui32>> Lines;
+        TVector<TEraseList<TTokenId>> TokenIdsLists;
+        TPairStats PairStats;
         TVector<ui64> Counts;
         TVector<TBpeDictionary::TBpeUnit> ResultingBpeUnits;
         bool IsBuildingFinish = false;
