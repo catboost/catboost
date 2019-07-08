@@ -177,7 +177,10 @@ def do_vet(args):
     assert args.vet
     info = gen_vet_info(args)
     vet_config = create_vet_config(args, info)
-    cmd = [args.go_vet, vet_config]
+    cmd = [args.go_vet]
+    if args.vet_flags:
+        cmd.extend(args.vet_flags)
+    cmd.append(vet_config)
     p_vet = subprocess.Popen(cmd, stdin=None, stderr=subprocess.PIPE, cwd=args.build_root)
     _, vet_err = p_vet.communicate()
     dump_vet_report(args, vet_err if vet_err else '')
@@ -517,6 +520,7 @@ if __name__ == '__main__':
     parser.add_argument('++link-flags', nargs='*')
     parser.add_argument('++vcs', nargs='?', default=None)
     parser.add_argument('++vet', action='store_true', default=False)
+    parser.add_argument('++vet-flags', nargs='*', default=None)
     parser.add_argument('++arc-source-root')
     args = parser.parse_args()
 
