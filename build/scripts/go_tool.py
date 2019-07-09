@@ -519,7 +519,7 @@ if __name__ == '__main__':
     parser.add_argument('++compile-flags', nargs='*')
     parser.add_argument('++link-flags', nargs='*')
     parser.add_argument('++vcs', nargs='?', default=None)
-    parser.add_argument('++vet', action='store_true', default=False)
+    parser.add_argument('++vet', nargs='?', const=True, default=False)
     parser.add_argument('++vet-flags', nargs='*', default=None)
     parser.add_argument('++arc-source-root')
     args = parser.parse_args()
@@ -531,7 +531,7 @@ if __name__ == '__main__':
     args.go_link = os.path.join(args.tool_root, 'link')
     args.go_asm = os.path.join(args.tool_root, 'asm')
     args.go_pack = os.path.join(args.tool_root, 'pack')
-    args.go_vet = os.path.join(args.tool_root, 'vet')
+    args.go_vet = os.path.join(args.tool_root, 'vet') if args.vet is True else args.vet
     args.output = os.path.normpath(args.output)
     args.vet_report_output = vet_report_output_name(args.output)
     args.build_root = os.path.normpath(args.build_root) + os.path.sep

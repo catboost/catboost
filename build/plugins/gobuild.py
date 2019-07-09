@@ -163,7 +163,7 @@ def on_go_process_srcs(unit):
     unit_path = unit.path()
 
     # Add go vet check
-    if unit.get(['GO_VET']) == 'yes' and need_lint(unit_path):
+    if unit.enabled('GO_VET') and not unit.enabled('NO_GO_VET') and need_lint(unit_path):
         unit.onadd_check(["govet", '$(BUILD_ROOT)/' + tobuilddir(os.path.join(unit_path, unit.filename() + '.vet.txt'))[3:]])
 
     # Process .proto files
