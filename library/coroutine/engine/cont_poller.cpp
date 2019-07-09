@@ -30,26 +30,33 @@ namespace NCoro {
 
 
     TInstant TEventWaitQueue::WakeTimedout(TInstant now) noexcept {
-        TIoWait::TIterator it = IoWait_.Begin();
+        ZeroWait_.ForEach([](TContPollEvent* ev) {
+            ev->Wake(ETIMEDOUT);
+        });
 
-        if (it != IoWait_.End()) {
+        TIoWaitTree::TIterator it = DeadlineWait_.Begin();
+
+        if (it != DeadlineWait_.End()) {
             if (it->DeadLine() > now) {
                 return it->DeadLine();
             }
 
             do {
                 (it++)->Wake(ETIMEDOUT);
-            } while (it != IoWait_.End() && it->DeadLine() <= now);
+            } while (it != DeadlineWait_.End() && it->DeadLine() <= now);
         }
 
         return now;
     }
 
     void TEventWaitQueue::Register(NCoro::TContPollEvent* event) {
-        if (event->DeadLine() == TInstant::Max()) {
-            InfiniteIoWait_.PushBack(event);
+        const auto deadline = event->DeadLine();
+        if (!deadline) {
+            ZeroWait_.PushBack(event);
+        } else if (deadline == TInstant::Max()) {
+            InfiniteWait_.PushBack(event);
         } else {
-            IoWait_.Insert(event);
+            DeadlineWait_.Insert(event);
         }
         event->Cont()->Unlink();
     }
@@ -61,8 +68,9 @@ namespace NCoro {
         auto cancelerPtr = [&](TContPollEvent* e) {
             canceler(*e);
         };
-        IoWait_.ForEach(canceler);
-        InfiniteIoWait_.ForEach(cancelerPtr);
+        ZeroWait_.ForEach(cancelerPtr);
+        InfiniteWait_.ForEach(cancelerPtr);
+        DeadlineWait_.ForEach(canceler);
     }
 }
 

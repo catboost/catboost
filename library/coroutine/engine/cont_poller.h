@@ -188,14 +188,16 @@ namespace NCoro {
 
 
     class TEventWaitQueue {
-        using TIoWait = TRbTree<TContPollEvent, TContPollEventCompare>;
-        using TInfiniteIoWait = TIntrusiveList<TContPollEvent>;
+        using TIoWaitTree = TRbTree<TContPollEvent, TContPollEventCompare>;
+        using TIoWaitList = TIntrusiveList<TContPollEvent>;
 
     public:
         void Register(TContPollEvent* event);
 
         bool Empty() const noexcept {
-            return IoWait_.Empty() && InfiniteIoWait_.Empty();
+            return DeadlineWait_.Empty()
+            && InfiniteWait_.Empty()
+            && ZeroWait_.Empty();
         }
 
         void Abort() noexcept;
@@ -203,8 +205,9 @@ namespace NCoro {
         TInstant WakeTimedout(TInstant now) noexcept;
 
     private:
-        TIoWait IoWait_;
-        TInfiniteIoWait InfiniteIoWait_;
+        TIoWaitTree DeadlineWait_;
+        TIoWaitList InfiniteWait_;
+        TIoWaitList ZeroWait_;
     };
 }
 
