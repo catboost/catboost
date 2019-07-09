@@ -167,9 +167,9 @@
             "type" : "Bayesian"
         },
         "monotone_constraints" : [ ],
-        "efb_max_conflict_fraction" : 0,
         "l2_leaf_reg" : 3,
-        "depth" : 6
+        "depth" : 6,
+        "sparse_features_conflict_fraction" : 0
     },
     "task_type" : "CPU",
     "flat_params" : {

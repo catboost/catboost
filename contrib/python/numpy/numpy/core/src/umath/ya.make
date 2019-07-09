@@ -43,9 +43,9 @@ SRCS(
     umathmodule.c
 )
 
-PY_REGISTER(numpy.core._operand_flag_tests=_operand_flag_tests)
-PY_REGISTER(numpy.core._rational_tests=_rational_tests)
-PY_REGISTER(numpy.core._struct_ufunc_tests=_struct_ufunc_tests)
-PY_REGISTER(numpy.core._umath_tests=_umath_tests)
+PY_REGISTER(numpy.core._operand_flag_tests)
+PY_REGISTER(numpy.core._rational_tests)
+PY_REGISTER(numpy.core._struct_ufunc_tests)
+PY_REGISTER(numpy.core._umath_tests)
 
 END()

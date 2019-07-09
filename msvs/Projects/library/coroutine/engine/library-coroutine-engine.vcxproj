@@ -86,6 +86,7 @@
     <ClCompile Include="$(SolutionDir)$(Configuration)\library\coroutine\engine\poller.h_serialized.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\coroutine\engine\sockpool.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\coroutine\engine\trampoline.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\library\coroutine\engine\trampoline.h_serialized.cpp"/>
     <CustomBuild Include="$(SolutionDir)..\library\coroutine\engine\poller.h">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\coroutine\engine
@@ -113,6 +114,33 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)..\library\coroutine\engine\poller.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\library\coroutine\engine\poller.h_serialized.cpp;</Outputs>
     </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\library\coroutine\engine\trampoline.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\library\coroutine\engine
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../library/coroutine/engine/trampoline.h" "--include-path" "library/coroutine/engine/trampoline.h" "--output" "$(SolutionDir)$(Configuration)/library/coroutine/engine/trampoline.h_serialized.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\library\coroutine\engine
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../library/coroutine/engine/trampoline.h" "--include-path" "library/coroutine/engine/trampoline.h" "--output" "$(SolutionDir)$(Configuration)/library/coroutine/engine/trampoline.h_serialized.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/library/coroutine/engine/trampoline.h_serialized.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)..\library\coroutine\engine\trampoline.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\coroutine\engine\trampoline.h_serialized.cpp;</Outputs>
+    </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\library\coroutine\engine\cont_poller.h"/>
     <ClInclude Include="$(SolutionDir)..\library\coroutine\engine\events.h"/>
     <ClInclude Include="$(SolutionDir)..\library\coroutine\engine\impl.h"/>
@@ -121,7 +149,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\library\coroutine\engine\schedule_callback.h"/>
     <ClInclude Include="$(SolutionDir)..\library\coroutine\engine\sockmap.h"/>
     <ClInclude Include="$(SolutionDir)..\library\coroutine\engine\sockpool.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\coroutine\engine\trampoline.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>

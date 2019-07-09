@@ -81,7 +81,7 @@ namespace NBlockCodecs {
         size_t Compress(const TData& in, void* out) const override {
             ui64* ptr = (ui64*)out;
 
-            WriteUnaligned(ptr, (ui64) in.size());
+            WriteUnaligned<ui64>(ptr, (ui64) in.size());
 
             return Base()->DoCompress(!in ? TData(AsStringBuf("")) : in, ptr + 1) + sizeof(*ptr);
         }

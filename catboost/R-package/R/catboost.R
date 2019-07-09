@@ -1358,7 +1358,7 @@ print.catboost.Pool <- function(x, ...) {
 #'
 #'       1024
 #'
-#'   \item efb_max_conflict_fraction
+#'   \item sparse_features_conflict_fraction
 #'
 #'      CPU only. Maximum allowed fraction of conflicting non-default values for features in exclusive features bundle.
 #'      Should be a real value in [0, 1) interval.

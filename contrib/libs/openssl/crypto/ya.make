@@ -98,6 +98,12 @@ IF (ARCH_TYPE_32)
     CFLAGS(-DOPENSSL_NO_EC_NISTP_64_GCC_128)
 ENDIF()
 
+IF (OS_WINDOWS AND ARCH_X86_64)
+    LDFLAGS(
+        ws2_32.lib
+    )
+ENDIF()
+
 SRCDIR(
     contrib/libs/openssl
 )

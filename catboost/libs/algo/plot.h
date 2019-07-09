@@ -4,6 +4,7 @@
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/metrics/metric.h>
 #include <catboost/libs/metrics/metric_holder.h>
+#include <catboost/libs/model/fwd.h>
 
 #include <util/generic/fwd.h>
 #include <util/generic/ptr.h>
@@ -13,8 +14,6 @@
 #include <util/system/fs.h>
 #include <util/system/types.h>
 
-
-struct TFullModel;
 
 namespace NPar {
     class TLocalExecutor;

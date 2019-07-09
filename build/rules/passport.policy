@@ -1,0 +1,16 @@
+## TEMPORARY EXCEPTIONS. TODO: PASSP-24128
+ALLOW yweb/yasap/pdb/pdb-backend/src -> passport/python/library/cookiemy
+ALLOW mail/ava/daemon -> passport/cpp/libs/utils
+ALLOW mail/libblackbox2 -> passport/cpp/libs/auth_core
+ALLOW maps/wikimap/mapspro/services/mrc/libs/blackbox_client -> passport/cpp/fastcgi-mods/library/blackbox2
+ALLOW maps/wikimap/mapspro/services/rdrproxy/bin -> passport/cpp/fastcgi-mods/library/blackbox2
+
+
+# PERSISTENT EXCEPTION: 'ya yav' handler
+ALLOW devtools/ya/handlers/yav -> passport/python/vault/cli/yav/vault_client_cli
+
+# COMMON RULE: Self using
+ALLOW passport -> passport/
+
+# COMMON RULE: we need freedom for refactorings
+DENY .* -> passport/

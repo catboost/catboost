@@ -12,7 +12,7 @@ namespace NTextProcessing::NDictionary {
     class TMMapDictionary final : public IDictionary {
     public:
         TMMapDictionary();
-        explicit TMMapDictionary(TIntrusivePtr<TDictionary> dictionary);
+        explicit TMMapDictionary(TIntrusiveConstPtr<TDictionary> dictionary);
         TMMapDictionary(const void* data, size_t size);
 
         TMMapDictionary(TMMapDictionary&&);

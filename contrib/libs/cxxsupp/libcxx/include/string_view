@@ -579,7 +579,8 @@ public:
             (data(), size(), __s, __pos, traits_type::length(__s));
     }
 
-#if _LIBCPP_STD_VER > 17
+//WARN: disabled std guards in order to allow using these options without switching to new std
+//#if _LIBCPP_STD_VER > 17
     _LIBCPP_CONSTEXPR_AFTER_CXX11 _LIBCPP_INLINE_VISIBILITY
     bool starts_with(basic_string_view __s) const _NOEXCEPT
     { return size() >= __s.size() && compare(0, __s.size(), __s) == 0; }
@@ -603,7 +604,7 @@ public:
     _LIBCPP_CONSTEXPR_AFTER_CXX11 _LIBCPP_INLINE_VISIBILITY
     bool ends_with(const value_type* __s) const _NOEXCEPT
     { return ends_with(basic_string_view(__s)); }
-#endif
+//#endif
 
 private:
     const   value_type* __data;

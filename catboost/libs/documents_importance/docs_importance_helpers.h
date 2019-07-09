@@ -49,7 +49,7 @@ public:
     )
         : Model(model)
         , UpdateMethod(updateMethod)
-        , TreeCount(model.ObliviousTrees.GetTreeCount())
+        , TreeCount(model.GetTreeCount())
         , DocCount(processedData.GetObjectCount())
         , LocalExecutor(std::move(localExecutor))
     {

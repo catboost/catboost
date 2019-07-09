@@ -42,6 +42,7 @@ namespace NNetlibaSocket {
 
         void MyIPAndTosTest() {
             struct sockaddr_in6 myAddr;
+            memset(&myAddr, 0, sizeof(myAddr));
             char ctrlBuffer[CTRL_BUFFER_SIZE];
             memset(ctrlBuffer, 0, CTRL_BUFFER_SIZE);
             const ui8 tosValue = 77;

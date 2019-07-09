@@ -1173,6 +1173,16 @@ class GnuCompiler(Compiler):
             if self.tc.version_at_least(7):
                 self.cxx_warnings.append('-Wno-return-std-move')
 
+            if self.tc.version_at_least(8):
+                self.cxx_warnings.extend((
+                    '-Wno-address-of-packed-member',
+                    '-Wno-defaulted-function-deleted',
+                    '-Wno-enum-compare-switch',
+                    '-Wno-pass-failed',
+                ))
+
+                self.c_foptions.append('-faligned-allocation')
+
         if self.tc.is_gcc and self.tc.version_at_least(4, 9):
             self.c_foptions.append('-fno-delete-null-pointer-checks')
             self.c_foptions.append('-fabi-version=8')
@@ -1335,7 +1345,7 @@ class Linker(object):
         """
         self.tc = tc
         self.build = build
-        if self.tc.is_from_arcadia and self.build.host.is_linux and not (self.build.target.is_apple or self.build.target.is_android):
+        if self.tc.is_from_arcadia and self.build.host.is_linux and not (self.build.target.is_apple or self.build.target.is_android or self.build.target.is_windows):
             if self.tc.is_clang and not (is_positive('USE_LTO') or self.build.target.is_linux_armv8 or self.build.target.is_ppc64le):  # TODO: try to enable PPC64 with LLD>=6
                 self.type = Linker.LLD
             else:
@@ -1369,8 +1379,8 @@ class Linker(object):
         else:
             emit_big('''
                 macro _USE_LINKER() {
-                    ENABLE(UNUSED_MACRO)
-                }''')
+                    SET(_LINKER_ID %(default_linker)s)
+                }''' % {'default_linker': self.type})
 
         emit_big('''
             ### @usage: USE_LINKER_BFD()

@@ -9,6 +9,7 @@ LICENSE(Python-2.0)
 NO_PYTHON_INCLUDES()
 
 PEERDIR(
+    certs
     contrib/tools/python3/lib/py
 )
 

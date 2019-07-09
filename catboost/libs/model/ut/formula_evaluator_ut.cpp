@@ -1,13 +1,14 @@
 #include "model_test_helpers.h"
 
 #include <catboost/libs/data_new/data_provider_builders.h>
-#include <catboost/libs/model/formula_evaluator.h>
+#include <catboost/libs/model/cpu/evaluator.h>
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/train_lib/train_model.h>
 
 #include <library/unittest/registar.h>
 
 using namespace NCB;
+using namespace NCB::NModelEvaluation;
 
 const TVector<TVector<float>> DATA = {
     {0.f, 0.f, 0.f},
@@ -36,8 +37,8 @@ void CheckFlatCalcResult(
     const TVector<ui32>& expectedLeafIndexes,
     const TVector<TConstArrayRef<float>>& features = FLOAT_FEATURES
 ) {
-    const size_t approxDimension = model.ObliviousTrees.ApproxDimension;
-    const size_t treeCount = model.ObliviousTrees.TreeSizes.size();
+    const size_t approxDimension = model.GetDimensionsCount();
+    const size_t treeCount = model.GetTreeCount();
     {
         TVector<double> predicts(features.size() * approxDimension);
         model.CalcFlat(features, predicts);
@@ -55,7 +56,7 @@ void CheckFlatCalcResult(
             expectedPredicts.begin() + sampleIndex * approxDimension,
             expectedPredicts.begin() + (sampleIndex + 1) * approxDimension
         );
-        TVector<double> samplePredict(model.ObliviousTrees.ApproxDimension);
+        TVector<double> samplePredict(model.GetDimensionsCount());
         model.CalcFlatSingle(sampleFeatures, samplePredict);
         UNIT_ASSERT_EQUAL(expectedSamplePredict, samplePredict);
 
@@ -81,7 +82,7 @@ Y_UNIT_TEST_SUITE(TObliviousTreeModel) {
     Y_UNIT_TEST(TestFlatCalcFloat) {
         auto model = SimpleFloatModel();
         CheckFlatCalcResult(model, xrange<double>(8), xrange<ui32>(8));
-        model.ObliviousTrees.ConvertObliviousToAsymmetric();
+        model.ObliviousTrees.GetMutable()->ConvertObliviousToAsymmetric();
         CheckFlatCalcResult(model, xrange<double>(8), xrange<ui32>(8));
     }
 
@@ -95,7 +96,7 @@ Y_UNIT_TEST_SUITE(TObliviousTreeModel) {
             expectedPredicts.push_back(11.0 * sampleId);
         }
         CheckFlatCalcResult(model, expectedPredicts, expectedLeafIndexes);
-        model.ObliviousTrees.ConvertObliviousToAsymmetric();
+        model.ObliviousTrees.GetMutable()->ConvertObliviousToAsymmetric();
         CheckFlatCalcResult(model, expectedPredicts, expectedLeafIndexes);
     }
 
@@ -118,7 +119,7 @@ Y_UNIT_TEST_SUITE(TObliviousTreeModel) {
         }
         const auto features = GetFeatureRef(data);
         CheckFlatCalcResult(model, expectedPredicts, expectedLeafIndexes, features);
-        model.ObliviousTrees.ConvertObliviousToAsymmetric();
+        model.ObliviousTrees.GetMutable()->ConvertObliviousToAsymmetric();
         CheckFlatCalcResult(model, expectedPredicts, expectedLeafIndexes, features);
     }
 
@@ -132,7 +133,7 @@ Y_UNIT_TEST_SUITE(TObliviousTreeModel) {
             03., 13., 23.,
         };
         CheckFlatCalcResult(model, expectedPredicts, xrange(4), features);
-        model.ObliviousTrees.ConvertObliviousToAsymmetric();
+        model.ObliviousTrees.GetMutable()->ConvertObliviousToAsymmetric();
         CheckFlatCalcResult(model, expectedPredicts, xrange(4), features);
     }
 

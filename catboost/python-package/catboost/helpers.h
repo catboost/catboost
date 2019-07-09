@@ -84,7 +84,7 @@ public:
                                     bool deleteTempDirOnExit = false)
     : Rand(0)
     , MetricLossDescriptions(CreateMetricLossDescriptions(metricDescriptions))
-    , Metrics(CreateMetrics(MetricLossDescriptions, model.ObliviousTrees.ApproxDimension))
+    , Metrics(CreateMetrics(MetricLossDescriptions, model.GetDimensionsCount()))
     , MetricPlotCalcer(CreateMetricCalcer(
             model,
             begin,
@@ -148,3 +148,5 @@ NJson::TJsonValue GetTrainingOptions(
     const NCB::TDataMetaInfo& trainDataMetaInfo,
     const TMaybe<NCB::TDataMetaInfo>& testDataMetaInfo
 );
+
+NJson::TJsonValue GetPlainJsonWithAllOptions(const TFullModel& model, bool hasCatFeatures);

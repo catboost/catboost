@@ -99,7 +99,7 @@ namespace {
 
     template <bool PrintUpToSeconds>
     void WritePrintableLocalTimeToStream(IOutputStream& os, const ::NPrivate::TPrintableLocalTime<PrintUpToSeconds>& timeToPrint) {
-        const auto& momentToPrint = timeToPrint.MomentToPrint;
+        const TInstant& momentToPrint = timeToPrint.MomentToPrint;
         struct tm localTime;
         momentToPrint.LocalTime(&localTime);
         WriteTmToStream(os, localTime);
@@ -124,7 +124,7 @@ namespace {
             } else {
                 os << '+';
             }
-            os << Pad<2>(utcOffsetInMinutes / 60) << Pad<2>(utcOffsetInMinutes % 60);
+            os << Pad<2>(utcOffsetInMinutes / 60) << ':' << Pad<2>(utcOffsetInMinutes % 60);
         }
     }
 }

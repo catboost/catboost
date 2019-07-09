@@ -2638,7 +2638,6 @@ def test_serialization_of_numpy_objects_execution_case():
     ExecutionCase(get_values_that_json_dumps_breaks_on())
 
 
-@fails_on_gpu(how='assert 0 == 4')
 def test_metric_period_redefinition(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     tmpfile1 = test_output_path('tmpfile1')
@@ -3069,7 +3068,6 @@ def test_pairs_generation(task_type):
     return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
 
 
-@fails_on_gpu(how="cuda/methods/dynamic_boosting.h:169: Error: pool has just 3 groups or docs, can't use #1 GPUs to learn on such small pool")
 def test_pairs_generation_generated(task_type):
     model = CatBoost(params={'loss_function': 'PairLogit', 'iterations': 10, 'thread_count': 8, 'task_type': task_type, 'devices': '0'})
 
@@ -4699,6 +4697,12 @@ def test_continue_learning_with_changing_dataset():
     return local_canonical_file(preds_path)
 
 
+def test_equal_feature_names():
+    train_data = [[1, 2, 3, 4, 5, 6], [6, 5, 4, 3, 2, 1]]
+    with pytest.raises(CatBoostError):
+        Pool(train_data, feature_names=['first', 'second', 'third', 'fourth', 'second', 'sixth'])
+
+
 class TestModelWithoutParams(object):
 
     @pytest.fixture(
@@ -4768,3 +4772,26 @@ class TestModelWithoutParams(object):
         model, train_pool, test_pool = model_no_trees
         with pytest.raises(CatBoostError):
             model.get_object_importance(test_pool, train_pool, top_size=10)
+
+
+def test_get_all_params():
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoost(dict(iterations=16, thread_count=4))
+    model.fit(pool, verbose=True)
+
+    options = model.get_all_params()
+
+    # TODO (nikitxskv): Need to make correct support of this parameters in ConvertOptionsToPlainJson
+    options.pop('per_float_feature_binarization', None)
+    options.pop('text_processing', None)
+
+    model2 = CatBoost(options)
+    model2.fit(pool, verbose=True)
+
+    assert all(model.predict(pool) == model2.predict(pool))
+
+    options_file = test_output_path('options.json')
+    with open(options_file, 'w') as f:
+        json.dump(options, f, indent=4, sort_keys=True)
+
+    return local_canonical_file(options_file)

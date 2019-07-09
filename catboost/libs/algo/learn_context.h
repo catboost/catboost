@@ -15,6 +15,7 @@
 #include <catboost/libs/loggers/logger.h>
 #include <catboost/libs/logging/logging.h>
 #include <catboost/libs/logging/profile_info.h>
+#include <catboost/libs/model/fwd.h>
 #include <catboost/libs/model/target_classifier.h>
 #include <catboost/libs/options/catboost_options.h>
 
@@ -24,8 +25,6 @@
 #include <util/generic/hash_set.h>
 #include <util/generic/ptr.h>
 
-
-struct TFullModel;
 
 namespace NPar {
     class TLocalExecutor;

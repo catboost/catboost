@@ -1,5 +1,6 @@
 from __future__ import print_function
 
+import os
 import re
 import sys
 import traceback
@@ -16,6 +17,8 @@ def check_imports(no_check=None, extra=[], skip_func=None):
     """
     exceptions = [
         '__yt_entry_point__',
+
+        'apscheduler.*',
 
         'boto.*',
 
@@ -116,6 +119,8 @@ def check_imports(no_check=None, extra=[], skip_func=None):
         "django.template.backends.jinja2",
 
         "pytest_django.compat",
+
+        "maps.streetview.backoffice.*",
 
         "matplotlib.backends.*",
         "matplotlib.sphinxext.*",
@@ -290,6 +295,7 @@ def main():
     skip_names = sys.argv[1:]
     print("Skip patterns:", skip_names)
 
+    os.environ['Y_PYTHON_IMPORT_TEST'] = ''
     try:
         check_imports(no_check=skip_names)
     except:

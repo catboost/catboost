@@ -15,8 +15,11 @@ inline T ReadUnaligned(const void* from) noexcept {
     return ret;
 }
 
+// std::remove_reference_t for non-deduced context to prevent such code to blow below:
+// ui8 first = f(); ui8 second = g();
+// WriteUnaligned(to, first - second) (int will be deduced)
 template <class T>
-inline void WriteUnaligned(void* to, const T& t) noexcept {
+inline void WriteUnaligned(void* to, const std::remove_reference_t<T>& t) noexcept {
     memcpy(to, &t, sizeof(T));
 }
 

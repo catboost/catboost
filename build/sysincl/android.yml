@@ -1,2 +1,3 @@
 - includes:
   - ifaddrs.h: contrib/libs/android_ifaddrs/ifaddrs.h
+  - cpu-features.h: contrib/libs/android_cpufeatures/cpu-features.h

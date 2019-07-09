@@ -195,7 +195,7 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetPredi
     const auto* const model = ToConstFullModelPtr(jhandle);
     CB_ENSURE(model, "got nullptr model pointer");
 
-    const jint predictionDimension = model->ObliviousTrees.ApproxDimension;
+    const jint predictionDimension = model->GetDimensionsCount();
     jenv->SetIntArrayRegion(jpredictionDimension, 0, 1, &predictionDimension);
 
     Y_END_JNI_API_CALL();
@@ -272,7 +272,7 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict_
 
     const auto* const model = ToConstFullModelPtr(jhandle);
     CB_ENSURE(model, "got nullptr model pointer");
-    const size_t modelPredictionSize = model->ObliviousTrees.ApproxDimension;
+    const size_t modelPredictionSize = model->GetDimensionsCount();
     const size_t minNumericFeatureCount = model->GetNumFloatFeatures();
     const size_t minCatFeatureCount = model->GetNumCatFeatures();
     const size_t numericFeatureCount = GetArraySize(jenv, jnumericFeatures);
@@ -347,7 +347,7 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict_
 
     const auto* const model = ToConstFullModelPtr(jhandle);
     CB_ENSURE(model, "got nullptr model pointer");
-    const size_t modelPredictionSize = model->ObliviousTrees.ApproxDimension;
+    const size_t modelPredictionSize = model->GetDimensionsCount();
     const size_t minNumericFeatureCount = model->GetNumFloatFeatures();
     const size_t minCatFeatureCount = model->GetNumCatFeatures();
     const size_t numericFeatureCount = GetMatrixColumnCount(jenv, jnumericFeaturesMatrix);
@@ -456,7 +456,7 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict_
 
     const auto* const model = ToConstFullModelPtr(jhandle);
     CB_ENSURE(model, "got nullptr model pointer");
-    const size_t modelPredictionSize = model->ObliviousTrees.ApproxDimension;
+    const size_t modelPredictionSize = model->GetDimensionsCount();
     const size_t minNumericFeatureCount = model->GetNumFloatFeatures();
     const size_t minCatFeatureCount = model->GetNumCatFeatures();
     const size_t numericFeatureCount = GetArraySize(jenv, jnumericFeatures);
@@ -524,7 +524,7 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict_
 
     const auto* const model = ToConstFullModelPtr(jhandle);
     CB_ENSURE(model, "got nullptr model pointer");
-    const size_t modelPredictionSize = model->ObliviousTrees.ApproxDimension;
+    const size_t modelPredictionSize = model->GetDimensionsCount();
     const size_t minNumericFeatureCount = model->GetNumFloatFeatures();
     const size_t minCatFeatureCount = model->GetNumCatFeatures();
     const size_t numericFeatureCount = GetMatrixColumnCount(jenv, jnumericFeaturesMatrix);

@@ -1,6 +1,6 @@
 {
     "operation_spec": {
-        "scheduling_tag_filter": "porto & testing",
+        "scheduling_tag_filter": "porto",
         "pool_trees": [
             "gpu_geforce_1080ti"
         ]

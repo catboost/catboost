@@ -224,17 +224,17 @@ static TJsonValue ToJson(const TModelSplit& modelSplit) {
 static TJsonValue ToJson(const TFloatFeature& floatFeature) {
     TJsonValue jsonValue;
     jsonValue.InsertValue("has_nans", floatFeature.HasNans);
-    jsonValue.InsertValue("feature_index", floatFeature.FeatureIndex);
-    jsonValue.InsertValue("flat_feature_index", floatFeature.FlatFeatureIndex);
+    jsonValue.InsertValue("feature_index", floatFeature.Position.Index);
+    jsonValue.InsertValue("flat_feature_index", floatFeature.Position.FlatIndex);
     jsonValue.InsertValue("borders", VectorToJson(floatFeature.Borders));
     switch (floatFeature.NanValueTreatment) {
-        case NCatBoostFbs::ENanValueTreatment_AsIs:
+        case TFloatFeature::ENanValueTreatment::AsIs:
             jsonValue.InsertValue("nan_value_treatment", "AsIs");
             break;
-        case NCatBoostFbs::ENanValueTreatment_AsFalse:
+        case TFloatFeature::ENanValueTreatment::AsFalse:
             jsonValue.InsertValue("nan_value_treatment", "AsFalse");
             break;
-        case NCatBoostFbs::ENanValueTreatment_AsTrue:
+        case TFloatFeature::ENanValueTreatment::AsTrue:
             jsonValue.InsertValue("nan_value_treatment", "AsTrue");
             break;
     }
@@ -251,15 +251,15 @@ static TFloatFeature FloatFeatureFromJson(const TJsonValue& value) {
 
 static TJsonValue ToJson(const TCatFeature& catFeature) {
     TJsonValue jsonValue;
-    jsonValue.InsertValue("feature_index", catFeature.FeatureIndex);
-    jsonValue.InsertValue("flat_feature_index", catFeature.FlatFeatureIndex);
+    jsonValue.InsertValue("feature_index", catFeature.Position.Index);
+    jsonValue.InsertValue("flat_feature_index", catFeature.Position.FlatIndex);
     return jsonValue;
 }
 
 static TCatFeature CatFeatureFromJson(const TJsonValue& value) {
     TCatFeature catFeature;
-    catFeature.FeatureIndex = value["feature_index"].GetInteger();
-    catFeature.FlatFeatureIndex = value["flat_feature_index"].GetInteger();
+    catFeature.Position.Index = value["feature_index"].GetInteger();
+    catFeature.Position.FlatIndex = value["flat_feature_index"].GetInteger();
     return catFeature;
 }
 
@@ -275,7 +275,7 @@ static TJsonValue GetFeaturesInfoJson(
     for (const auto& floatFeature: obliviousTrees.FloatFeatures) {
         jsonValue["float_features"].AppendValue(ToJson(floatFeature));
         if (featureId) {
-            const auto& name = (*featureId)[floatFeature.FlatFeatureIndex];
+            const auto& name = (*featureId)[floatFeature.Position.FlatIndex];
             if (!name.empty()) {
                 jsonValue["float_features"].Back().InsertValue("feature_name", name);
             }
@@ -289,15 +289,15 @@ static TJsonValue GetFeaturesInfoJson(
         }
         for (const auto &catFeature: obliviousTrees.CatFeatures) {
             auto catFeatureJsonValue = ToJson(catFeature);
-            if (oneHotIndexes.contains(catFeature.FlatFeatureIndex)) {
-                auto &ohFeauture = obliviousTrees.OneHotFeatures[oneHotIndexes[catFeature.FlatFeatureIndex]];
+            if (oneHotIndexes.contains(catFeature.Position.FlatIndex)) {
+                auto &ohFeauture = obliviousTrees.OneHotFeatures[oneHotIndexes[catFeature.Position.FlatIndex]];
                 catFeatureJsonValue.InsertValue("values", VectorToJson(ohFeauture.Values));
                 if (!ohFeauture.StringValues.empty()) {
                     catFeatureJsonValue.InsertValue("string_values", VectorToJson(ohFeauture.StringValues));
                 }
             }
             if (featureId) {
-                const auto &name = (*featureId)[catFeature.FlatFeatureIndex];
+                const auto &name = (*featureId)[catFeature.Position.FlatIndex];
                 if (!name.empty()) {
                     catFeatureJsonValue.InsertValue("feature_name", name);
                 }
@@ -335,7 +335,7 @@ static void GetFeaturesInfo(const TJsonValue& jsonValue, TObliviousTrees* oblivi
             obliviousTrees->CatFeatures.push_back(catFeature);
             if (value.Has("values")) {
                 TOneHotFeature ohFeature;
-                ohFeature.CatFeatureIndex = catFeature.FlatFeatureIndex;
+                ohFeature.CatFeatureIndex = catFeature.Position.FlatIndex;
                 ohFeature.Values = JsonToVector<int>(value["values"]);
                 ohFeature.StringValues = JsonToVector<TString>(value["string_values"]);
                 obliviousTrees->OneHotFeatures.push_back(ohFeature);
@@ -414,11 +414,11 @@ TJsonValue ConvertModelToJson(const TFullModel& model, const TVector<TString>* f
         }
     }
     jsonModel.InsertValue("model_info", modelInfo);
-    jsonModel.InsertValue("oblivious_trees", GetObliviousTreesJson(model.ObliviousTrees));
-    jsonModel.InsertValue("features_info", GetFeaturesInfoJson(model.ObliviousTrees, featureId, catFeaturesHashToString));
+    jsonModel.InsertValue("oblivious_trees", GetObliviousTreesJson(*model.ObliviousTrees));
+    jsonModel.InsertValue("features_info", GetFeaturesInfoJson(*model.ObliviousTrees, featureId, catFeaturesHashToString));
     const TStaticCtrProvider* ctrProvider = dynamic_cast<TStaticCtrProvider*>(model.CtrProvider.Get());
     if (ctrProvider) {
-        jsonModel.InsertValue("ctr_data", ctrProvider->ConvertCtrsToJson(model.ObliviousTrees.GetUsedModelCtrs()));
+        jsonModel.InsertValue("ctr_data", ctrProvider->ConvertCtrsToJson(model.ObliviousTrees->GetUsedModelCtrs()));
     }
     return jsonModel;
 }
@@ -480,8 +480,8 @@ void ConvertJsonToCatboostModel(const TJsonValue& jsonModel, TFullModel* fullMod
     for (const auto& key_value : jsonModel["model_info"].GetMap()) {
         fullModel->ModelInfo[key_value.first] = key_value.second.GetStringRobust();
     }
-    GetObliviousTrees(jsonModel["oblivious_trees"], &(fullModel->ObliviousTrees));
-    GetFeaturesInfo(jsonModel["features_info"], &(fullModel->ObliviousTrees));
+    GetObliviousTrees(jsonModel["oblivious_trees"], fullModel->ObliviousTrees.GetMutable());
+    GetFeaturesInfo(jsonModel["features_info"], fullModel->ObliviousTrees.GetMutable());
     if (jsonModel.Has("ctr_data")) {
         auto ctrData = CtrDataFromJson(jsonModel["ctr_data"]);
         fullModel->CtrProvider = new TStaticCtrProvider(ctrData);

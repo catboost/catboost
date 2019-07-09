@@ -127,7 +127,8 @@ TFullModel TModelConverter::Convert(
             obliviousTreeBuilder.AddTree(treeStructure, leafValues, leafWeights);
         }
     }
-        coreModel.ObliviousTrees = obliviousTreeBuilder.Build();
+        obliviousTreeBuilder.Build(coreModel.ObliviousTrees.GetMutable());
+        coreModel.UpdateDynamicData();
         return coreModel;
     }
 
@@ -195,7 +196,8 @@ TFullModel TModelConverter::Convert(
                 treeBuilder.AddTree(std::move(treeHeadHolder));
             }
         }
-        coreModel.ObliviousTrees = treeBuilder.Build();
+        treeBuilder.Build(coreModel.ObliviousTrees.GetMutable());
+        coreModel.UpdateDynamicData();
         return coreModel;
     }
 

@@ -6,6 +6,8 @@
 #include <util/string/cast.h>
 #include <util/string/split.h>
 #include <util/string/vector.h>
+#include <util/string/strip.h>
+#include <util/string/subst.h>
 
 
 ELossFunction ParseLossType(const TStringBuf lossDescription) {
@@ -268,3 +270,18 @@ NJson::TJsonValue LossDescriptionToJson(const TStringBuf lossDescription) {
     }
     return descriptionJson;
 }
+
+TString BuildMetricOptionDescription(const NJson::TJsonValue& lossOptions) {
+    TString paramType = StripString(ToString(lossOptions["type"]), EqualsStripAdapter('"'));
+    paramType += ":";
+
+    for (const auto& elem : lossOptions["params"].GetMap()) {
+        const TString& paramName = elem.first;
+        const TString& paramValue = StripString(ToString(elem.second), EqualsStripAdapter('"'));
+        paramType += paramName + "=" + paramValue + ";";
+    }
+
+    paramType.pop_back();
+    return paramType;
+}
+

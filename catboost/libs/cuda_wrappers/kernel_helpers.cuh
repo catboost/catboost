@@ -603,3 +603,19 @@ __forceinline__ __device__ float4 ComputeSum2(
     __syncthreads();
     return result;
 }
+
+
+__forceinline__ __device__ float AtomicFMA(float* dst, float alpha, float val) {
+    int* dst_as_int = (int*)(dst);
+
+    int assumed = *dst_as_int;
+    int old = assumed;
+
+    do {
+        assumed = old;
+        float newVal = alpha * __int_as_float(assumed) + val;
+        old = atomicCAS(dst_as_int, assumed, __float_as_int(newVal));
+        // Note: uses integer comparison to avoid hang in case of NaN (since NaN != NaN)
+    } while (assumed != old);
+    return __int_as_float(old);
+}

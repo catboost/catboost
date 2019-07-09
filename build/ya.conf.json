@@ -86,7 +86,8 @@
         "qemu-img": { "description": "QEMU disk image utility" },
         "qemu-nbd": { "description": "QEMU disk network block device server" },
         "yfm": { "description": "YFM-extended markdown processor for Cloud deploy" },
-        "aws": { "description": "Run aws" }
+        "aws": { "description": "Run aws" },
+        "sedem": { "description": "SEDEM tool - Service management tool for Maps services" }
     },
     "toolchain": {
         "msvc2017-i686": {
@@ -502,20 +503,20 @@
                 "nm": { "bottle": "clang50", "executable": "nm" },
                 "strip": { "bottle": "clang50", "executable": "strip" }
             },
-            "platforms": [{"host": {"os": "LINUX"}, "target": {"os": "LINUX", "arch": "x86_64"}, "default": false},
-                          {"host": {"os": "LINUX"}, "target": {"os": "LINUX", "arch": "aarch64"}, "default": false},
-                          {"host": {"os": "LINUX"}, "target": {"os": "LINUX", "arch": "ppc64le"}, "default": false},
-                          {"host": {"os": "LINUX"}, "target": {"os": "DARWIN", "arch": "x86_64"}, "default": false},
-                          {"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "i386"}, "default": false},
-                          {"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "x86_64"}, "default": false},
-                          {"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "armv7"}, "default": false},
-                          {"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "arm64"}, "default": false},
-                          {"host": {"os": "DARWIN"}, "target": {"os": "LINUX", "arch": "x86_64"}, "default": false},
-                          {"host": {"os": "DARWIN"}, "target": {"os": "DARWIN", "arch": "x86_64"}, "default": false},
-                          {"host": {"os": "DARWIN"}, "target": {"os": "IOS", "arch": "i386"}, "default": false},
-                          {"host": {"os": "DARWIN"}, "target": {"os": "IOS", "arch": "x86_64"}, "default": false},
-                          {"host": {"os": "DARWIN"}, "target": {"os": "IOS", "arch": "armv7"}, "default": false},
-                          {"host": {"os": "DARWIN"}, "target": {"os": "IOS", "arch": "arm64"}, "default": false}],
+            "platforms": [{"host": {"os": "LINUX"}, "target": {"os": "LINUX", "arch": "x86_64"}},
+                          {"host": {"os": "LINUX"}, "target": {"os": "LINUX", "arch": "aarch64"}},
+                          {"host": {"os": "LINUX"}, "target": {"os": "LINUX", "arch": "ppc64le"}},
+                          {"host": {"os": "LINUX"}, "target": {"os": "DARWIN", "arch": "x86_64"}},
+                          {"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "i386"}},
+                          {"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "x86_64"}},
+                          {"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "armv7"}},
+                          {"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "arm64"}},
+                          {"host": {"os": "DARWIN"}, "target": {"os": "LINUX", "arch": "x86_64"}},
+                          {"host": {"os": "DARWIN"}, "target": {"os": "DARWIN", "arch": "x86_64"}},
+                          {"host": {"os": "DARWIN"}, "target": {"os": "IOS", "arch": "i386"}},
+                          {"host": {"os": "DARWIN"}, "target": {"os": "IOS", "arch": "x86_64"}},
+                          {"host": {"os": "DARWIN"}, "target": {"os": "IOS", "arch": "armv7"}},
+                          {"host": {"os": "DARWIN"}, "target": {"os": "IOS", "arch": "arm64"}}],
             "params": {
                 "type": "clang",
                 "match_root": "CLANG",
@@ -613,22 +614,22 @@
                 "strip": { "bottle": "clang8", "executable": "llvm-strip" }
             },
             "platforms": [
-                {"host": {"os": "LINUX"}, "target": {"os": "LINUX", "arch": "x86_64"}},
-                {"host": {"os": "LINUX"}, "target": {"os": "LINUX", "arch": "aarch64"}},
-                {"host": {"os": "LINUX"}, "target": {"os": "LINUX", "arch": "ppc64le"}},
-                {"host": {"os": "LINUX"}, "target": {"os": "DARWIN", "arch": "x86_64"}},
-                {"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "i386"}},
-                {"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "x86_64"}},
-                {"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "armv7"}},
-                {"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "arm64"}},
-                {"host": {"os": "DARWIN"}, "target": {"os": "LINUX", "arch": "x86_64"}},
-                {"host": {"os": "DARWIN"}, "target": {"os": "LINUX", "arch": "aarch64"}},
-                {"host": {"os": "DARWIN"}, "target": {"os": "LINUX", "arch": "ppc64le"}},
-                {"host": {"os": "DARWIN"}, "target": {"os": "DARWIN", "arch": "x86_64"}},
-                {"host": {"os": "DARWIN"}, "target": {"os": "IOS", "arch": "i386"}},
-                {"host": {"os": "DARWIN"}, "target": {"os": "IOS", "arch": "x86_64"}},
-                {"host": {"os": "DARWIN"}, "target": {"os": "IOS", "arch": "armv7"}},
-                {"host": {"os": "DARWIN"}, "target": {"os": "IOS", "arch": "arm64"}}
+                {"host": {"os": "LINUX"}, "target": {"os": "LINUX", "arch": "x86_64"}, "default": false},
+                {"host": {"os": "LINUX"}, "target": {"os": "LINUX", "arch": "aarch64"}, "default": false},
+                {"host": {"os": "LINUX"}, "target": {"os": "LINUX", "arch": "ppc64le"}, "default": false},
+                {"host": {"os": "LINUX"}, "target": {"os": "DARWIN", "arch": "x86_64"}, "default": false},
+                {"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "i386"}, "default": false},
+                {"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "x86_64"}, "default": false},
+                {"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "armv7"}, "default": false},
+                {"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "arm64"}, "default": false},
+                {"host": {"os": "DARWIN"}, "target": {"os": "LINUX", "arch": "x86_64"}, "default": false},
+                {"host": {"os": "DARWIN"}, "target": {"os": "LINUX", "arch": "aarch64"}, "default": false},
+                {"host": {"os": "DARWIN"}, "target": {"os": "LINUX", "arch": "ppc64le"}, "default": false},
+                {"host": {"os": "DARWIN"}, "target": {"os": "DARWIN", "arch": "x86_64"}, "default": false},
+                {"host": {"os": "DARWIN"}, "target": {"os": "IOS", "arch": "i386"}, "default": false},
+                {"host": {"os": "DARWIN"}, "target": {"os": "IOS", "arch": "x86_64"}, "default": false},
+                {"host": {"os": "DARWIN"}, "target": {"os": "IOS", "arch": "armv7"}, "default": false},
+                {"host": {"os": "DARWIN"}, "target": {"os": "IOS", "arch": "arm64"}, "default": false}
             ],
             "params": {
                 "type": "clang",
@@ -1521,6 +1522,12 @@
                 {"host": {"os": "WIN"}, "default": true},
                 {"host": {"os": "DARWIN"}, "default": true}
             ]
+        },
+        "sedem": {
+            "tools": {
+                "sedem": { "bottle": "sedem", "executable": "sedem" }
+            },
+            "platforms": [{"host": {"os": "LINUX"}, "default": true}]
         }
     },
     "bottles": {
@@ -1544,7 +1551,7 @@
         },
         "ymake": {
             "formula": {
-                "sandbox_id": [453951635],
+                "sandbox_id": [462764227],
                 "match": "ymake"
             },
             "executable": {
@@ -1580,7 +1587,7 @@
         },
         "arc": {
             "formula": {
-                "sandbox_id": [454492071],
+                "sandbox_id": [457040045],
                 "match": "arc"
             },
             "executable": {
@@ -1924,7 +1931,7 @@
         },
         "yt": {
             "formula": {
-                "sandbox_id": 354938258,
+                "sandbox_id": 456986241,
                 "match": "YT"
             },
             "executable": {
@@ -2072,7 +2079,7 @@
         },
         "yp-util": {
             "formula": {
-                "sandbox_id":  [454996882],
+                "sandbox_id":  [461718707],
                 "match": "yp_util"
             },
             "executable": {
@@ -2081,7 +2088,7 @@
         },
         "yp": {
             "formula": {
-                "sandbox_id":  [362550511],
+                "sandbox_id":  [456510834],
                 "match": "yp"
             },
             "executable": {
@@ -2090,7 +2097,7 @@
         },
         "dctl": {
             "formula": {
-                "sandbox_id":  [452791794],
+                "sandbox_id":  [461023202],
                 "match": "dctl"
             },
             "executable": {
@@ -2468,11 +2475,21 @@
         },
         "aws": {
             "formula": {
-                "sandbox_id": 448981674,
+                "sandbox_id": 458553353,
                 "match": "aws"
             },
             "executable": {
                 "aws": ["aws"]
+            }
+        },
+        "sedem": {
+            "formula": {
+                "sandbox_id": 461619216,
+                "match": "SEDEM archive"
+
+            },
+            "executable": {
+                "sedem": ["sedem"]
             }
         }
     }

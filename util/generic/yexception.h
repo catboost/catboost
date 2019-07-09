@@ -125,6 +125,15 @@ struct TIoException: public virtual yexception {
 };
 
 class TIoSystemError: public TSystemError, public TIoException {
+public:
+    TIoSystemError() = default;
+    TIoSystemError(const TIoSystemError&) noexcept = default;
+    TIoSystemError& operator=(const TIoSystemError&) noexcept = default;
+    TIoSystemError(TIoSystemError&&) noexcept = default;
+    TIoSystemError& operator=(TIoSystemError&& error) noexcept {
+        static_cast<TSystemError&>(*this) = static_cast<TSystemError&&>(error);
+        return *this;
+    }
 };
 
 class TFileError: public TIoSystemError {

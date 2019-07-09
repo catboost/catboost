@@ -30,12 +30,17 @@ namespace NCoro {
     };
 
 
-    class TContPollEvent : public TRbTreeItem<TContPollEvent, TContPollEventCompare> {
+    class TContPollEvent
+        : public TRbTreeItem<TContPollEvent, TContPollEventCompare>
+        , public TIntrusiveListItem<TContPollEvent>
+    {
+        using TTreeNode = TRbTreeItem<TContPollEvent, TContPollEventCompare>;
+        using TListNode = TIntrusiveListItem<TContPollEvent>;
+
     public:
         TContPollEvent(TCont* cont, TInstant deadLine) noexcept
             : Cont_(cont)
             , DeadLine_(deadLine)
-            , Status_(EINPROGRESS)
         {}
 
         static bool Compare(const TContPollEvent& l, const TContPollEvent& r) noexcept {
@@ -69,7 +74,7 @@ namespace NCoro {
     private:
         TCont* Cont_;
         TInstant DeadLine_;
-        int Status_;
+        int Status_ = EINPROGRESS;
     };
 
 
@@ -128,8 +133,8 @@ namespace NCoro {
 
     class TContPoller {
     public:
-        typedef IPollerFace::TEvent TEvent;
-        typedef IPollerFace::TEvents TEvents;
+        using TEvent = IPollerFace::TEvent;
+        using TEvents = IPollerFace::TEvents;
 
         TContPoller()
             : P_(IPollerFace::Default())
@@ -183,13 +188,16 @@ namespace NCoro {
 
 
     class TEventWaitQueue {
-        using TIoWait = TRbTree<NCoro::TContPollEvent, NCoro::TContPollEventCompare>;
+        using TIoWaitTree = TRbTree<TContPollEvent, TContPollEventCompare>;
+        using TIoWaitList = TIntrusiveList<TContPollEvent>;
 
     public:
-        void Register(NCoro::TContPollEvent* event);
+        void Register(TContPollEvent* event);
 
         bool Empty() const noexcept {
-            return IoWait_.Empty();
+            return DeadlineWait_.Empty()
+            && InfiniteWait_.Empty()
+            && ZeroWait_.Empty();
         }
 
         void Abort() noexcept;
@@ -197,7 +205,9 @@ namespace NCoro {
         TInstant WakeTimedout(TInstant now) noexcept;
 
     private:
-        TIoWait IoWait_;
+        TIoWaitTree DeadlineWait_;
+        TIoWaitList InfiniteWait_;
+        TIoWaitList ZeroWait_;
     };
 }
 

@@ -160,8 +160,8 @@ static inline ui32 UpdateCheckSumImpl(ui32 init, const TCatFeature& catFeature) 
     return UpdateCheckSum(
         init,
         catFeature.UsedInModel,
-        catFeature.FeatureIndex,
-        catFeature.FlatFeatureIndex
+        catFeature.Position.Index,
+        catFeature.Position.FlatIndex
     );
 }
 
@@ -169,8 +169,8 @@ static inline ui32 UpdateCheckSumImpl(ui32 init, const TFloatFeature& floatFeatu
     return UpdateCheckSum(
         init,
         floatFeature.HasNans,
-        floatFeature.FeatureIndex,
-        floatFeature.FlatFeatureIndex,
+        floatFeature.Position.Index,
+        floatFeature.Position.FlatIndex,
         floatFeature.Borders
     );
 }
@@ -200,7 +200,7 @@ static inline ui32 UpdateCheckSumImpl(ui32 init, const TCtrFeature& ctrFeature) 
 
 
 static ui32 CalcCoreModelCheckSum(const TFullModel& model) {
-    const auto& trees = model.ObliviousTrees;
+    const auto& trees = *model.ObliviousTrees;
 
     return UpdateCheckSum(
         ui32(0),

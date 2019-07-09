@@ -92,6 +92,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\ut\resource_constrained_executor_ut.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\ut\resource_holder_ut.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\ut\serialization_ut.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\ut\sparse_array_ut.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\ut\vec_list_ut.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\ut\wx_test_ut.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\ut\xml_output_ut.cpp"/>
@@ -99,6 +100,9 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
   <ItemGroup>
+    <ProjectReference Include="$(SolutionDir)Projects\build\scripts\c_templates\dummy-vcs.vcxproj">
+      <Project>{C7161B5C-139D-1AE8-3502-FC9B47248265}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\data_types\catboost-libs-data_types.vcxproj">
       <Project>{3750DBCB-749A-6149-7B4D-D132A7A922DA}</Project>
     </ProjectReference>
@@ -153,6 +157,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\binsaver\library-binsaver.vcxproj">
       <Project>{9C4284EC-342F-438F-B12F-EF54AD02C9C0}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\binsaver\ut_util\library-binsaver-ut_util.vcxproj">
+      <Project>{0535A087-E0A5-E4C1-3C87-219D8CBAE4B1}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\colorizer\library-colorizer.vcxproj">
       <Project>{439BAFF9-1167-D24B-92A2-3A00BEE420B1}</Project>
     </ProjectReference>
@@ -203,6 +210,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\object_factory\library-object_factory.vcxproj">
       <Project>{F7622D70-2702-4C7E-04DA-52DC56DF911E}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\pop_count\library-pop_count.vcxproj">
+      <Project>{5388367D-330A-ED57-0DB7-1F988A5A9B05}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\string_utils\base64\library-string_utils-base64.vcxproj">
       <Project>{137212F6-D2FE-719F-EBE2-99060434BC72}</Project>

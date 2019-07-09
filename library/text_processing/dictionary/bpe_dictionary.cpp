@@ -1,5 +1,8 @@
 #include "bpe_builder.h"
+#include "bpe_helpers.h"
 #include "serialization_helpers.h"
+
+#include <library/containers/dense_hash/dense_hash.h>
 
 #include <util/digest/murmur.h>
 #include <util/generic/array_ref.h>
@@ -14,61 +17,29 @@ using TUnit = std::pair<TTokenId, TTokenId>;
 using TTokenToUnit = std::pair<TTokenId, TUnit>;
 using TUnitQueue = TPriorityQueue<TTokenToUnit, TVector<TTokenToUnit>, std::greater<TTokenToUnit>>;
 
+using TPositionsMap = TDenseHash<TTokenId, TVector<int>, THash<TTokenId>, 100>;
+
 static const char BPE_MAGIC[] = "MMapBpeDict";
 static const size_t BPE_MAGIC_SIZE = Y_ARRAY_SIZE(BPE_MAGIC);  // yes, with terminating zero
 
 template <typename TUnitToTokenId>
-static void AddUnit(
-    const TUnit& unit,
+static void AddPair(
+    int firstPosition,
     const TUnitToTokenId& unitToTokenId,
-    THashMap<TUnit, int>* unitCounts,
-    TUnitQueue* minIds) {
-
-    int countOfNewUnits = ++(*unitCounts)[unit];
-    if (countOfNewUnits == 1) {
-        auto maybeTokenId = unitToTokenId(unit);
-        if (maybeTokenId) {
-            minIds->emplace(*maybeTokenId, unit);
-        }
-    }
-}
-
-template <typename TUnitToTokenId>
-static void UpdatePrevUnit(
-    const TVector<TTokenId>& tokenIds,
-    int idxStartInOld,
-    int idxStartInNew,
-    TTokenId changedToken,
-    const TUnitToTokenId& unitToTokenId,
-    THashMap<TUnit, int>* unitCounts,
-    TUnitQueue* minIds) {
-    if (idxStartInNew == 0) {
+    TEraseList<TTokenId>* tokenIdsList,
+    TPositionsMap* positions,
+    TUnitQueue* minIds
+) {
+    if (tokenIdsList->IsLastElement(firstPosition)) {
         return;
     }
-    TUnit oldPrevUnit{tokenIds[idxStartInNew - 1], tokenIds[idxStartInOld]};
-    (*unitCounts)[oldPrevUnit]--;
-
-    TUnit newPrevUnit{tokenIds[idxStartInNew - 1], changedToken};
-    AddUnit(newPrevUnit, unitToTokenId, unitCounts, minIds);
-}
-
-template <typename TUnitToTokenId>
-static void UpdateNextUnit(
-    const TVector<TTokenId>& tokenIds,
-    int idxStartInOld,
-    TTokenId changedToken,
-    const TUnitToTokenId& unitToTokenId,
-    THashMap<TUnit, int>* unitCounts,
-    TUnitQueue* minIds) {
-
-    if (idxStartInOld + 2 >= tokenIds.ysize()) {
+    auto unit = tokenIdsList->GetPair(firstPosition);
+    auto unitId = unitToTokenId(unit);
+    if (!unitId) {
         return;
     }
-    TUnit oldNextUnit{tokenIds[idxStartInOld + 1], tokenIds[idxStartInOld + 2]};
-    (*unitCounts)[oldNextUnit]--;
-
-    TUnit newNextUnit{changedToken, tokenIds[idxStartInOld + 2]};
-    AddUnit(newNextUnit, unitToTokenId, unitCounts, minIds);
+    minIds->push({*unitId, unit});
+    (*positions)[*unitId].push_back(firstPosition);
 }
 
 // TODO(annaveronika): more efficient apply.
@@ -83,8 +54,13 @@ static void ApplyImpl(
     tokenIds->clear();
     alphabet->Apply(tokens, tokenIds, unknownTokenPolicy);
 
-    TPriorityQueue<TTokenToUnit, TVector<TTokenToUnit>, std::greater<TTokenToUnit>> minIds;
-    THashMap<TUnit, int> unitCounts;
+    if (tokenIds->size() <= 1) {
+        return;
+    }
+
+    TUnitQueue minIds;
+    TEraseList<TTokenId> tokenIdsList(*tokenIds);
+    TPositionsMap positions(Max<TTokenId>(), tokenIds->size());
 
     for (size_t i = 0; i + 1 < tokenIds->size(); ++i) {
         auto unit = TUnit((*tokenIds)[i], (*tokenIds)[i + 1]);
@@ -93,13 +69,8 @@ static void ApplyImpl(
             continue;
         }
         auto unitId = *maybeTokenId;
-        auto unitInCounts = unitCounts.find(unit);
-        if (unitInCounts == unitCounts.end()) {
-            minIds.push({unitId, unit});
-            unitCounts[unit]++;
-        } else {
-            unitInCounts->second++;
-        }
+        minIds.push({unitId, unit});
+        positions[unitId].push_back(i);
     }
 
     while (!minIds.empty()) {
@@ -107,28 +78,29 @@ static void ApplyImpl(
         auto bestId = bestIdWithUnit.first;
         auto bestUnit = bestIdWithUnit.second;
 
-        minIds.pop();
-        if (unitCounts[bestUnit] == 0) {
-            continue;
+        while (!minIds.empty() && minIds.top() == bestIdWithUnit) {
+            minIds.pop();
         }
 
-        size_t i = 0, j = 0;
-        while (i < tokenIds->size()) {
-            if (i + 1 < tokenIds->size() && bestUnit.first == (*tokenIds)[i] && bestUnit.second == (*tokenIds)[i + 1]) {
-                UpdatePrevUnit(*tokenIds, i, j, bestId, unitToTokenId, &unitCounts, &minIds);
-                UpdateNextUnit(*tokenIds, i, bestId, unitToTokenId, &unitCounts, &minIds);
-
-                (*tokenIds)[j] = bestId;
-                unitCounts[bestUnit]--;
-                i += 2;
-            } else {
-                (*tokenIds)[j] = (*tokenIds)[i];
-                i += 1;
+        for (int firstPosition : positions[bestId]) {
+            if (
+                !tokenIdsList.IsValidElement(firstPosition) ||
+                tokenIdsList.IsLastElement(firstPosition) ||
+                tokenIdsList.GetPair(firstPosition) != bestUnit
+            ) {
+                continue;
             }
-            j += 1;
+            tokenIdsList.Erase(tokenIdsList.GetNextPosition(firstPosition));
+            tokenIdsList.UpdateToken(firstPosition, bestId);
+            if (!tokenIdsList.IsFirstElement(firstPosition)) {
+                int prevPosition = tokenIdsList.GetPrevPosition(firstPosition);
+                AddPair(prevPosition, unitToTokenId, &tokenIdsList, &positions, &minIds);
+            }
+            AddPair(firstPosition, unitToTokenId, &tokenIdsList, &positions, &minIds);
         }
-        tokenIds->resize(j);
     }
+
+    (*tokenIds) = tokenIdsList.GetValidElements();
 }
 
 TBpeDictionary::TBpeDictionary(TIntrusivePtr<TDictionary> alphabet)

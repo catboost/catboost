@@ -97,12 +97,20 @@ public:
 inline double CalcAverage(
     double sumDelta,
     double count,
+    double scaledL2Regularizer) {
+
+    double inv = count > 0 ? 1. / (count + scaledL2Regularizer) : 0;
+    return sumDelta * inv;
+}
+
+inline double CalcAverage(
+    double sumDelta,
+    double count,
     float l2Regularizer,
     double sumAllWeights,
     int allDocCount) {
 
-    double inv = count > 0 ? 1. / (count + l2Regularizer * (sumAllWeights / allDocCount)) : 0;
-    return sumDelta * inv;
+    return CalcAverage(sumDelta, count, l2Regularizer * (sumAllWeights / allDocCount));
 }
 
 inline double CalcDeltaGradient(

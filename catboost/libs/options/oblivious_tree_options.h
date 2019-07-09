@@ -39,7 +39,7 @@ namespace NCatboostOptions {
         TCpuOnlyOption<ui32> DevScoreCalcObjBlockSize;
 
         TCpuOnlyOption<ui32> DevExclusiveFeaturesBundleMaxBuckets;
-        TCpuOnlyOption<float> ExclusiveFeaturesBundleMaxConflictFraction;
+        TCpuOnlyOption<float> SparseFeaturesConflictFraction;
 
         TGpuOnlyOption<EObservationsToBootstrap> ObservationsToBootstrap;
         TGpuOnlyOption<bool> FoldSizeLossNormalization;

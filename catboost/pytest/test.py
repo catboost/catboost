@@ -6877,16 +6877,43 @@ def test_target_border():
 
 
 def test_monotonic_constraint():
-    cmd = (
-        CATBOOST_PATH,
-        'fit',
-        '-f', data_file('adult', 'train_small'),
-        '-t', data_file('adult', 'test_small'),
-        '--column-description', data_file('adult', 'train.cd'),
-        '--monotone-constraints', '(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1)'
+    train_pool = catboost.Pool(
+        data_file('higgs', 'train_small'),
+        column_description=data_file('higgs', 'train.cd')
     )
-    yatest.common.execute(cmd)
-    return
+    test_pool = catboost.Pool(
+        data_file('higgs', 'test_small'),
+        column_description=data_file('higgs', 'train.cd')
+    )
+    monotone_constraints = [0, 0, 1, -1, 0, 0, 1, 0, -1, 1, 1, -1, 0, 1, 0, 0, -1, 1, 1, -1, 0, 0, 0, 0, 0, -1, 0, -1]
+    model = catboost.CatBoostRegressor(
+        n_estimators=100,
+        learning_rate=0.2,
+        monotone_constraints=monotone_constraints,
+        verbose=False
+    ).fit(train_pool, eval_set=test_pool)
+
+    dummy_data = np.zeros((1, test_pool.num_col()))
+    dummy_target = np.zeros(len(dummy_data))
+    feature_stats = model.calc_feature_statistics(dummy_data, dummy_target, plot=False)
+    for feature_index, feature_name in enumerate(model.feature_names_):
+        monotonicity = monotone_constraints[feature_index]
+        if monotonicity == 0:
+            continue
+        feature_borders = feature_stats[feature_name]['borders']
+        if len(feature_borders) == 0:
+            continue
+        mid_values = (feature_borders[:-1] + feature_borders[1:]) / 2
+        min_value = feature_borders[0] - 1
+        max_value = feature_borders[-1] + 1
+        feature_values = np.array([min_value] + list(mid_values) + [max_value])
+        for obj in test_pool.get_features():
+            obj_variations = np.zeros((len(feature_values), test_pool.num_col()))
+            obj_variations[:] = obj.reshape((1, -1))
+            obj_variations[:, feature_index] = feature_values
+            model_predicts = model.predict(obj_variations)
+            prediction_deltas = model_predicts[1:] - model_predicts[:-1]
+            assert np.all(prediction_deltas * monotonicity >= 0)
 
 
 class TestModelWithoutParams(object):
@@ -6964,3 +6991,14 @@ class TestModelWithoutParams(object):
                 yatest.common.execute(fstr_cmd)
         else:
             yatest.common.execute(fstr_cmd)
+
+
+def test_equal_feature_names():
+    with pytest.raises(yatest.common.ExecutionError):
+        yatest.common.execute((
+            CATBOOST_PATH,
+            'fit',
+            '--loss-function', 'RMSE',
+            '-f', data_file('querywise', 'train'),
+            '--column-description', data_file('querywise', 'train.cd.equal_names'),
+        ))

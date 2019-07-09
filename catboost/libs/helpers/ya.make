@@ -36,6 +36,7 @@ SRCS(
     restorable_rng.cpp
     serialization.cpp
     set.cpp
+    sparse_array.cpp
     vec_list.cpp
     vector_helpers.cpp
     wx_test.cpp
@@ -53,7 +54,10 @@ PEERDIR(
     library/digest/crc32c
     library/digest/md5
     library/malloc/api
+    library/pop_count
     library/threading/local_executor
 )
+
+GENERATE_ENUM_SERIALIZATION(sparse_array.h)
 
 END()

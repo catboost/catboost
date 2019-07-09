@@ -51,14 +51,18 @@ def main():
     for r, _, files in os.walk(sources_dir):
         for f in files:
             srcs.append(os.path.join(r, f))
-    srcs += [f for f in jsrcs if f.endswith('.java')]
+    srcs += jsrcs
+    srcs = list(filter(lambda x: x.endswith('.java'), srcs))
 
     classes_dir = 'cls'
     mkdir_p(classes_dir)
     classpath = os.pathsep.join(peers)
 
     if srcs:
-        sp.check_call([opts.javac_bin, '-nowarn', '-g', '-classpath', classpath, '-encoding', 'UTF-8', '-d', classes_dir] + javac_opts + srcs)
+        temp_sources_file = 'temp.sources.list'
+        with open(temp_sources_file, 'w') as ts:
+            ts.write(' '.join(srcs))
+        sp.check_call([opts.javac_bin, '-nowarn', '-g', '-classpath', classpath, '-encoding', 'UTF-8', '-d', classes_dir] + javac_opts + ['@' + temp_sources_file])
 
     for s in jsrcs:
         if s.endswith('-sources.jar'):

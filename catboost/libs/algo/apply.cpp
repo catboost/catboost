@@ -7,6 +7,7 @@
 #include <catboost/libs/eval_result/eval_helpers.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/logging/logging.h>
+#include <catboost/libs/model/cpu/evaluator.h>
 
 #include <util/generic/array_ref.h>
 #include <util/generic/cast.h>
@@ -31,35 +32,36 @@ TLocalExecutor::TExecRangeParams GetBlockParams(int executorThreadCount, int doc
     return blockParams;
 };
 
-static void ApplyOnRawFeatures(
+static void ApplyBlockImpl(
     const TFullModel& model,
-    const TRawObjectsDataProvider* rawObjectsData,
+    const TObjectsDataProvider& objectsData,
     int begin,
     int end,
-    const THashMap<ui32, ui32>& columnReorderMap,
     const TLocalExecutor::TExecRangeParams& blockParams,
     TVector<double>* approxesFlat,
     TLocalExecutor* executor
 ) {
-    const int approxDimension = model.ObliviousTrees.ApproxDimension;
-
+    const int approxDimension = model.GetDimensionsCount();
+    const auto evaluator = model.GetCurrentEvaluator();
     const auto applyOnBlock = [&](int blockId) {
-        const int blockFirstIdx = blockParams.FirstId + blockId * blockParams.GetBlockSize();
+        int blockFirstIdx = blockParams.FirstId + blockId * blockParams.GetBlockSize();
         const int blockLastIdx = Min(blockParams.LastId, blockFirstIdx + blockParams.GetBlockSize());
-        const int blockSize = blockLastIdx - blockFirstIdx;
+        const int subBlockSize = NModelEvaluation::FORMULA_EVALUATION_BLOCK_SIZE * 64;
 
-        TRawFeatureAccessor featureAccessor(
-            model, *rawObjectsData, columnReorderMap, blockFirstIdx, blockLastIdx);
-
-        CalcGeneric(
-            model,
-            featureAccessor,
-            featureAccessor,
-            blockSize,
-            begin,
-            end,
-            MakeArrayRef(approxesFlat->data() + blockFirstIdx * approxDimension,blockSize * approxDimension)
-        );
+        for (; blockFirstIdx < blockLastIdx; blockFirstIdx += subBlockSize) {
+            const int currentBlockSize = Min<int>(blockLastIdx - blockFirstIdx, subBlockSize);
+            auto quantizedBlock = MakeQuantizedFeaturesForEvaluator(
+                model,
+                objectsData,
+                blockFirstIdx,
+                blockFirstIdx + currentBlockSize
+            );
+            evaluator->Calc(
+                quantizedBlock.Get(),
+                begin, end,
+                MakeArrayRef(approxesFlat->data() + blockFirstIdx * approxDimension,currentBlockSize * approxDimension)
+            );
+        }
     };
     if (executor) {
         executor->ExecRange(applyOnBlock, 0, blockParams.GetBlockCount(), TLocalExecutor::WAIT_COMPLETE);
@@ -67,44 +69,6 @@ static void ApplyOnRawFeatures(
         applyOnBlock(0);
     }
 }
-
-static void ApplyOnQuantizedFeatures(
-    const TFullModel& model,
-    const TQuantizedForCPUObjectsDataProvider& quantizedObjectsData,
-    int begin,
-    int end,
-    const THashMap<ui32, ui32>& columnReorderMap,
-    const TLocalExecutor::TExecRangeParams& blockParams,
-    TVector<double>* approxesFlat,
-    TLocalExecutor* executor
-) {
-    const int approxDimension = model.ObliviousTrees.ApproxDimension;
-    const auto applyOnBlock = [&](int blockId) {
-        const int blockFirstIdx = blockParams.FirstId + blockId * blockParams.GetBlockSize();
-        const int blockLastIdx = Min(blockParams.LastId, blockFirstIdx + blockParams.GetBlockSize());
-        const int blockSize = blockLastIdx - blockFirstIdx;
-
-        TQuantizedFeatureAccessor quantizedFeatureAccessor(
-            model, quantizedObjectsData, columnReorderMap, blockFirstIdx, blockLastIdx);
-
-        constexpr bool isQuantized = true;
-        CalcGeneric<isQuantized>(
-            model,
-            quantizedFeatureAccessor,
-            quantizedFeatureAccessor,
-            blockSize,
-            begin,
-            end,
-            MakeArrayRef(approxesFlat->data() + blockFirstIdx * approxDimension, blockSize * approxDimension)
-        );
-    };
-    if (executor) {
-        executor->ExecRange(applyOnBlock, 0, blockParams.GetBlockCount(), TLocalExecutor::WAIT_COMPLETE);
-    } else {
-        applyOnBlock(0);
-    }
-}
-
 
 TVector<TVector<double>> ApplyModelMulti(
     const TFullModel& model,
@@ -115,41 +79,21 @@ TVector<TVector<double>> ApplyModelMulti(
     TLocalExecutor* executor)
 {
     const int docCount = SafeIntegerCast<int>(objectsData.GetObjectCount());
-    const int approxesDimension = model.ObliviousTrees.ApproxDimension;
+    const int approxesDimension = model.GetDimensionsCount();
     TVector<double> approxesFlat(docCount * approxesDimension);
     if (docCount > 0) {
         end = end == 0 ? model.GetTreeCount() : Min<int>(end, model.GetTreeCount());
         const int executorThreadCount = executor ? executor->GetThreadCount() : 0;
         auto blockParams = GetBlockParams(executorThreadCount, docCount, begin, end);
 
-        THashMap<ui32, ui32> columnReorderMap;
-        CheckModelAndDatasetCompatibility(model, objectsData, &columnReorderMap);
-
-        if (const auto *const rawObjectsData = dynamic_cast<const TRawObjectsDataProvider*>(&objectsData)) {
-            ApplyOnRawFeatures(
-                model,
-                rawObjectsData,
-                begin,
-                end,
-                columnReorderMap,
-                blockParams,
-                &approxesFlat,
-                executor);
-        } else if (const auto *const quantizedObjectsData
-            = dynamic_cast<const TQuantizedForCPUObjectsDataProvider*>(&objectsData)
-        ) {
-            ApplyOnQuantizedFeatures(
-                model,
-                *quantizedObjectsData,
-                begin,
-                end,
-                columnReorderMap,
-                blockParams,
-                &approxesFlat,
-                executor);
-        } else {
-            ythrow TCatBoostException() << "Unsupported objects data - neither raw nor quantized for CPU";
-        }
+        ApplyBlockImpl(
+            model,
+            objectsData,
+            begin,
+            end,
+            blockParams,
+            &approxesFlat,
+            executor);
     }
 
     TVector<TVector<double>> approxes(approxesDimension);
@@ -242,7 +186,7 @@ void TModelCalcerOnPool::ApplyModelMulti(
     TVector<TVector<double>>* approx)
 {
     const ui32 docCount = ObjectsData->GetObjectCount();
-    auto approxDimension = SafeIntegerCast<ui32>(Model->ObliviousTrees.ApproxDimension);
+    auto approxDimension = Model->GetDimensionsCount();
     TVector<double>& approxFlat = *flatApproxBuffer;
     approxFlat.resize(static_cast<unsigned long>(docCount * approxDimension)); // TODO(annaveronika): yresize?
 
@@ -253,14 +197,13 @@ void TModelCalcerOnPool::ApplyModelMulti(
     }
 
     Executor->ExecRange(
-        [&](int blockId) {
-            auto& calcer = *ThreadCalcers[blockId];
+        [&, this](int blockId) {
             const int blockFirstId = BlockParams.FirstId + blockId * BlockParams.GetBlockSize();
             const int blockLastId = Min(BlockParams.LastId, blockFirstId + BlockParams.GetBlockSize());
             TArrayRef<double> resultRef(
                 approxFlat.data() + blockFirstId * approxDimension,
                 (blockLastId - blockFirstId) * approxDimension);
-            calcer.Calc(begin, end, resultRef);
+            ModelEvaluator->Calc(QuantizedDataForThreads[blockId].Get(), begin, end, resultRef);
         },
         0,
         BlockParams.GetBlockCount(),
@@ -291,62 +234,12 @@ void TModelCalcerOnPool::ApplyModelMulti(
     flatApproxBuffer->clear();
 }
 
-void TModelCalcerOnPool::InitForRawFeatures(
-    const TFullModel& model,
-    const TRawObjectsDataProvider& rawObjectsData,
-    const THashMap<ui32, ui32>& columnReorderMap,
-    const TLocalExecutor::TExecRangeParams& blockParams,
-    TLocalExecutor* executor)
-{
-    executor->ExecRange(
-        [&](int blockId) {
-            const int blockFirstIdx = blockParams.FirstId + blockId * blockParams.GetBlockSize();
-            const int blockLastIdx = Min(blockParams.LastId, blockFirstIdx + blockParams.GetBlockSize());
-            TRawFeatureAccessor featureAccessor(
-                model, rawObjectsData, columnReorderMap, blockFirstIdx, blockLastIdx);
-            ui64 docCount = ui64(blockLastIdx - blockFirstIdx);
-            ThreadCalcers[blockId] = MakeHolder<TFeatureCachedTreeEvaluator>(
-                model,
-                featureAccessor,
-                featureAccessor,
-                docCount);
-        },
-        0,
-        blockParams.GetBlockCount(),
-        NPar::TLocalExecutor::WAIT_COMPLETE
-    );
-}
-
-void TModelCalcerOnPool::InitForQuantizedFeatures(
-    const TFullModel& model,
-    const TQuantizedForCPUObjectsDataProvider& quantizedObjectsData,
-    const THashMap<ui32, ui32>& columnReorderMap,
-    const NPar::TLocalExecutor::TExecRangeParams& blockParams,
-    NPar::TLocalExecutor* executor)
-{
-    executor->ExecRange(
-        [&](int blockId) {
-            const int blockFirstIdx = blockParams.FirstId + blockId * blockParams.GetBlockSize();
-            const int blockLastIdx = Min(blockParams.LastId, blockFirstIdx + blockParams.GetBlockSize());
-
-            ui64 docCount = ui64(blockLastIdx - blockFirstIdx);
-            ThreadCalcers[blockId] = MakeHolder<TFeatureCachedTreeEvaluator>(
-                model,
-                TQuantizedFeatureAccessor(
-                    model, quantizedObjectsData, columnReorderMap, blockFirstIdx, blockLastIdx),
-                docCount
-            );
-        },
-        0,
-        blockParams.GetBlockCount(),
-        NPar::TLocalExecutor::WAIT_COMPLETE);
-}
-
 TModelCalcerOnPool::TModelCalcerOnPool(
     const TFullModel& model,
     TObjectsDataProviderPtr objectsData,
     NPar::TLocalExecutor* executor)
     : Model(&model)
+    , ModelEvaluator(model.GetCurrentEvaluator())
     , ObjectsData(objectsData)
     , Executor(executor)
     , BlockParams(0, SafeIntegerCast<int>(objectsData->GetObjectCount()))
@@ -354,31 +247,20 @@ TModelCalcerOnPool::TModelCalcerOnPool(
     if (BlockParams.FirstId == BlockParams.LastId) {
         return;
     }
-    THashMap<ui32, ui32> columnReorderMap;
-    CheckModelAndDatasetCompatibility(model, *ObjectsData, &columnReorderMap);
     const int threadCount = executor->GetThreadCount() + 1; // one for current thread
     BlockParams.SetBlockCount(threadCount);
-    ThreadCalcers.resize(BlockParams.GetBlockCount());
-    if (const auto *const rawObjectsData = dynamic_cast<const TRawObjectsDataProvider*>(ObjectsData.Get())) {
-        TModelCalcerOnPool::InitForRawFeatures(
-            model,
-            *rawObjectsData,
-            columnReorderMap,
-            BlockParams,
-            executor);
-    } else if (
-        const auto *const quantizedObjectsData =
-            dynamic_cast<const TQuantizedForCPUObjectsDataProvider*>(ObjectsData.Get()))
-    {
-        TModelCalcerOnPool::InitForQuantizedFeatures(
-            model,
-            *quantizedObjectsData,
-            columnReorderMap,
-            BlockParams,
-            executor);
-    } else {
-        ythrow TCatBoostException() << "Unsupported objects data - neither raw nor quantized for CPU";
-    }
+    QuantizedDataForThreads.resize(BlockParams.GetBlockCount());
+
+    executor->ExecRange(
+        [this, objectsData](int blockId) {
+            const int blockFirstIdx = BlockParams.FirstId + blockId * BlockParams.GetBlockSize();
+            const int blockLastIdx = Min(BlockParams.LastId, blockFirstIdx + BlockParams.GetBlockSize());
+            QuantizedDataForThreads[blockId] = MakeQuantizedFeaturesForEvaluator(*Model, *objectsData, blockFirstIdx, blockLastIdx);
+        },
+        0,
+        BlockParams.GetBlockCount(),
+        NPar::TLocalExecutor::WAIT_COMPLETE
+    );
 }
 
 TLeafIndexCalcerOnPool::TLeafIndexCalcerOnPool(
@@ -395,16 +277,16 @@ TLeafIndexCalcerOnPool::TLeafIndexCalcerOnPool(
     if (const auto *const rawObjectsData = dynamic_cast<const TRawObjectsDataProvider*>(objectsData.Get())) {
         TRawFeatureAccessor featureAccessor(
             model, *rawObjectsData, columnReorderMap, 0, SafeIntegerCast<int>(docCount));
-        InnerLeafIndexCalcer = MakeLeafIndexCalcer(
-            model, featureAccessor, featureAccessor, docCount, treeStart, treeEnd);
+        InnerLeafIndexCalcer = NModelEvaluation::MakeLeafIndexCalcer(
+            model, featureAccessor.GetFloatAccessor(), featureAccessor.GetCatAccessor(), docCount, treeStart, treeEnd);
     } else if (
         const auto *const quantizedObjectsData =
             dynamic_cast<const TQuantizedForCPUObjectsDataProvider*>(objectsData.Get()))
     {
         TQuantizedFeatureAccessor quantizedFeatureAccessor(
             model, *quantizedObjectsData, columnReorderMap, 0, SafeIntegerCast<int>(docCount));
-        InnerLeafIndexCalcer = MakeLeafIndexCalcer(
-                model, quantizedFeatureAccessor, docCount, treeStart, treeEnd);
+        InnerLeafIndexCalcer = NModelEvaluation::MakeLeafIndexCalcer(
+                model, quantizedFeatureAccessor.GetFloatAccessor(), quantizedFeatureAccessor.GetCatAccessor(), docCount, treeStart, treeEnd);
     } else {
         ythrow TCatBoostException() << "Unsupported objects data - neither raw nor quantized for CPU";
     }
@@ -414,7 +296,7 @@ bool TLeafIndexCalcerOnPool::CanGet() const {
     return InnerLeafIndexCalcer->CanGet();
 }
 
-TVector<TCalcerIndexType> TLeafIndexCalcerOnPool::Get() const {
+TVector<NModelEvaluation::TCalcerIndexType> TLeafIndexCalcerOnPool::Get() const {
     return InnerLeafIndexCalcer->Get();
 }
 
@@ -446,14 +328,16 @@ static void CalcLeafIndexesMultiImpll(
         const int blockSize = blockLastIdx - blockFirstIdx;
         TFeatureAccessorType featureAccessor(
             model, objectsData, columnReorderMap, blockFirstIdx, blockLastIdx);
-        CalcLeafIndexesGeneric<IsQuantizedData>(
-            model,
-            featureAccessor,
-            featureAccessor,
+        NModelEvaluation::CalcLeafIndexesGeneric<IsQuantizedData>(
+            *model.ObliviousTrees,
+            model.CtrProvider,
+            featureAccessor.GetFloatAccessor(),
+            featureAccessor.GetCatAccessor(),
             blockSize,
             treeStart,
             treeEnd,
-            MakeArrayRef(leafIndexes.data() + blockFirstIdx * treeCount, blockSize * treeCount)
+            MakeArrayRef(leafIndexes.data() + blockFirstIdx * treeCount, blockSize * treeCount),
+            nullptr
         );
     };
 

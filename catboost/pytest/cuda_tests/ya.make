@@ -14,9 +14,9 @@ DEPENDS(
     catboost/tools/limited_precision_dsv_diff
 )
 
-SIZE(LARGE)
+SIZE(MEDIUM)
 
-TAG(ya:noretries ya:fat ya:yt)
+TAG(ya:yt)
 
 YT_SPEC(catboost/pytest/cuda_tests/yt_spec.json)
 

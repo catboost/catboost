@@ -1395,7 +1395,8 @@ public:
     int compare(size_type __pos1, size_type __n1, const value_type* __s) const;
     int compare(size_type __pos1, size_type __n1, const value_type* __s, size_type __n2) const;
 
-#if _LIBCPP_STD_VER > 17
+//WARN: disabled std guards in order to allow using these options without switching to new std
+//#if _LIBCPP_STD_VER > 17
     _LIBCPP_CONSTEXPR_AFTER_CXX11 _LIBCPP_INLINE_VISIBILITY
     bool starts_with(__self_view __sv) const _NOEXCEPT
     { return __self_view(data(), size()).starts_with(__sv); }
@@ -1419,7 +1420,7 @@ public:
     _LIBCPP_CONSTEXPR_AFTER_CXX11 _LIBCPP_INLINE_VISIBILITY
     bool ends_with(const value_type* __s) const _NOEXCEPT
     { return ends_with(__self_view(__s)); }
-#endif
+//#endif
 
     _LIBCPP_INLINE_VISIBILITY bool __invariants() const;
 

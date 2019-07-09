@@ -3,7 +3,6 @@
 #include "online_ctr.h"
 
 #include <catboost/libs/helpers/dense_hash_view.h>
-#include <catboost/libs/model/flatbuffers/ctr_data.fbs.h>
 
 #include <util/generic/array_ref.h>
 #include <util/generic/variant.h>

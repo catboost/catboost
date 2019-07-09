@@ -17,6 +17,7 @@
 #include <util/generic/vector.h>
 #include <util/generic/yexception.h>
 #include <util/stream/buffer.h>
+#include <util/stream/labeled.h>
 #include <util/system/yassert.h>
 
 #include <climits>
@@ -322,8 +323,7 @@ namespace NCB {
             const ui32 maxBound = ui32(1) << (CHAR_BIT * bundleSizeInBytes);
             CB_ENSURE_INTERNAL(
                 (boundsInBundle.Begin < boundsInBundle.End),
-                "boundsInBundle [" << boundsInBundle.Begin << ',' << boundsInBundle.End
-                << ") do not represent a valid range"
+                LabeledOutput(boundsInBundle) << " do not represent a valid range"
             );
             CB_ENSURE_INTERNAL(boundsInBundle.End <= maxBound, "boundsInBundle.End > maxBound");
             CB_ENSURE_INTERNAL(SubsetIndexing, "subsetIndexing is empty");

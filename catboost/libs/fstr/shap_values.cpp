@@ -12,6 +12,7 @@
 #include <util/generic/algorithm.h>
 #include <util/generic/utility.h>
 #include <util/generic/ymath.h>
+#include <catboost/libs/model/cpu/quantization.h>
 
 
 using namespace NCB;
@@ -98,20 +99,21 @@ static TVector<TFeaturePathElement> UnwindFeaturePath(
     return newFeaturePath;
 }
 
+//TODO(kirillovs): remove asap
 static size_t CalcLeafToFallForDocument(
-    const TObliviousTrees& forest,
+    const NCB::NModelEvaluation::IModelEvaluator* modelEvaluator,
     size_t treeIdx,
-    const TVector<ui8>& binarizedFeaturesForBlock,
-    size_t documentIdx,
-    size_t documentCount
+    const NCB::NModelEvaluation::IQuantizedData* binarizedFeaturesForBlock,
+    size_t documentIdx
 ) {
-    size_t leafIdx = 0;
-    for (int depth = 0; depth < forest.TreeSizes[treeIdx]; ++depth) {
-        const TRepackedBin& split = forest.GetRepackedBins()[forest.TreeStartOffsets[treeIdx] + depth];
-        auto featureValue = binarizedFeaturesForBlock[split.FeatureIndex * documentCount + documentIdx];
-        leafIdx |= ((featureValue ^ split.XorMask) >= split.SplitIdx) << depth;
-    }
-    return leafIdx;
+    const NModelEvaluation::TCPUEvaluatorQuantizedData* dataPtr = reinterpret_cast<const NModelEvaluation::TCPUEvaluatorQuantizedData*>(binarizedFeaturesForBlock);
+    Y_ASSERT(dataPtr);
+    auto blockId = documentIdx / NModelEvaluation::FORMULA_EVALUATION_BLOCK_SIZE;
+    auto subBlock = dataPtr->ExtractBlock(blockId);
+    TVector<NCB::NModelEvaluation::TCalcerIndexType> indexes(subBlock.GetObjectsCount());
+    modelEvaluator->CalcLeafIndexes(&subBlock, treeIdx, treeIdx + 1, indexes);
+
+    return indexes[documentIdx % NModelEvaluation::FORMULA_EVALUATION_BLOCK_SIZE];
 }
 
 static void CalcInternalShapValuesForLeafRecursive(
@@ -371,7 +373,7 @@ static void MapBinFeaturesToClasses(
             continue;
         }
         featuresCombinations.emplace_back();
-        featuresCombinations.back() = { floatFeature.FlatFeatureIndex };
+        featuresCombinations.back() = { floatFeature.Position.FlatIndex };
         featureBucketSizes.push_back(floatFeature.Borders.size());
     }
 
@@ -428,24 +430,22 @@ static void MapBinFeaturesToClasses(
 }
 
 void CalcShapValuesForDocumentMulti(
-    const TObliviousTrees& forest,
+    const TFullModel& model,
     const TShapPreparedTrees& preparedTrees,
-    const TVector<ui8>& binarizedFeaturesForBlock,
+    const NCB::NModelEvaluation::IQuantizedData* binarizedFeaturesForBlock,
     int flatFeatureCount,
     size_t documentIdx,
-    size_t documentCount,
     TVector<TVector<double>>* shapValues
 ) {
-    const int approxDimension = forest.ApproxDimension;
+    const int approxDimension = model.GetDimensionsCount();
     shapValues->assign(approxDimension, TVector<double>(flatFeatureCount + 1, 0.0));
-    const size_t treeCount = forest.GetTreeCount();
+    const size_t treeCount = model.GetTreeCount();
     for (size_t treeIdx = 0; treeIdx < treeCount; ++treeIdx) {
         size_t leafIdx = CalcLeafToFallForDocument(
-            forest,
+            model.GetCurrentEvaluator().Get(),
             treeIdx,
             binarizedFeaturesForBlock,
-            documentIdx,
-            documentCount
+            documentIdx
         );
         if (preparedTrees.CalcShapValuesByLeafForAllTrees) {
             for (const TShapValue& shapValue : preparedTrees.ShapValuesByLeafForAllTrees[treeIdx][leafIdx]) {
@@ -457,7 +457,7 @@ void CalcShapValuesForDocumentMulti(
             TVector<TShapValue> shapValuesByLeaf;
 
             CalcShapValuesForLeaf(
-                forest,
+                *model.ObliviousTrees.Get(),
                 preparedTrees.BinFeatureCombinationClass,
                 preparedTrees.CombinationClassFeatures,
                 leafIdx,
@@ -490,10 +490,9 @@ static void CalcShapValuesForDocumentBlockMulti(
     NPar::TLocalExecutor* localExecutor,
     TVector<TVector<TVector<double>>>* shapValuesForAllDocuments
 ) {
-    const TObliviousTrees& forest = model.ObliviousTrees;
     const size_t documentCount = end - start;
 
-    TVector<ui8> binarizedFeaturesForBlock = GetModelCompatibleQuantizedFeatures(model, objectsData, start, end);
+    auto binarizedFeaturesForBlock = MakeQuantizedFeaturesForEvaluator(model, objectsData, start, end);
 
     const int flatFeatureCount = objectsData.GetFeaturesLayout()->GetExternalFeatureCount();
 
@@ -505,12 +504,11 @@ static void CalcShapValuesForDocumentBlockMulti(
         TVector<TVector<double>>& shapValues = (*shapValuesForAllDocuments)[oldShapValuesSize + documentIdx];
 
         CalcShapValuesForDocumentMulti(
-            forest,
+            model,
             preparedTrees,
-            binarizedFeaturesForBlock,
+            binarizedFeaturesForBlock.Get(),
             flatFeatureCount,
             documentIdx,
-            documentCount,
             &shapValues
         );
 
@@ -578,7 +576,7 @@ bool PrepareTreesCalcShapValues(
             } else {
                 const size_t treeCount = model.GetTreeCount();
                 double treesAverageLeafCount = 0;
-                const TObliviousTrees& forest = model.ObliviousTrees;
+                const TObliviousTrees& forest = *model.ObliviousTrees;
                 for (size_t treeIdx = 0; treeIdx < treeCount; ++treeIdx) {
                     treesAverageLeafCount += (size_t(1) << forest.TreeSizes[treeIdx]);
                 }
@@ -601,9 +599,9 @@ TShapPreparedTrees PrepareTrees(
 
     TImportanceLogger treesLogger(treeCount, "trees processed", "Processing trees...", logPeriod);
 
-    // use only if model.ObliviousTrees.LeafWeights is empty
+    // use only if model.ObliviousTrees->LeafWeights is empty
     TVector<TVector<double>> leafWeights;
-    if (model.ObliviousTrees.LeafWeights.empty()) {
+    if (model.ObliviousTrees->LeafWeights.empty()) {
         CB_ENSURE(
                 dataset,
                 "PrepareTrees requires either non-empty LeafWeights in model or provided dataset"
@@ -618,7 +616,7 @@ TShapPreparedTrees PrepareTrees(
 
     if (!preparedTrees.CalcShapValuesByLeafForAllTrees) {
         preparedTrees.LeafWeightsForAllTrees
-            = model.ObliviousTrees.LeafWeights.empty() ? leafWeights : model.ObliviousTrees.LeafWeights;
+            = model.ObliviousTrees->LeafWeights.empty() ? leafWeights : model.ObliviousTrees->LeafWeights;
     }
 
     preparedTrees.ShapValuesByLeafForAllTrees.resize(treeCount);
@@ -626,7 +624,7 @@ TShapPreparedTrees PrepareTrees(
     preparedTrees.MeanValuesForAllTrees.resize(treeCount);
     preparedTrees.CalcInternalValues = calcInternalValues;
 
-    const TObliviousTrees& forest = model.ObliviousTrees;
+    const TObliviousTrees& forest = *model.ObliviousTrees;
     MapBinFeaturesToClasses(
         forest,
         &preparedTrees.BinFeatureCombinationClass,
@@ -641,8 +639,8 @@ TShapPreparedTrees PrepareTrees(
         processTreesProfile.StartIterationBlock();
 
         CalcShapValuesByLeafForTreeBlock(
-            model.ObliviousTrees,
-            model.ObliviousTrees.LeafWeights.empty() ? leafWeights : model.ObliviousTrees.LeafWeights,
+            *model.ObliviousTrees,
+            model.ObliviousTrees->LeafWeights.empty() ? leafWeights : model.ObliviousTrees->LeafWeights,
             start,
             end,
             calcInternalValues,
@@ -663,7 +661,7 @@ TShapPreparedTrees PrepareTrees(
     NPar::TLocalExecutor* localExecutor
 ) {
     CB_ENSURE(
-        !model.ObliviousTrees.LeafWeights.empty(),
+        !model.ObliviousTrees->LeafWeights.empty(),
         "Model must have leaf weights or sample pool must be provided"
     );
     return PrepareTrees(model, nullptr, 0, EPreCalcShapValues::Auto, localExecutor);
@@ -681,12 +679,12 @@ void CalcShapValuesInternalForFeature(
     NPar::TLocalExecutor* localExecutor
 ) {
     CB_ENSURE(start <= end && end <= objectsData.GetObjectCount());
-    const TObliviousTrees& forest = model.ObliviousTrees;
+    const TObliviousTrees& forest = *model.ObliviousTrees;
     shapValues->clear();
     const ui32 documentCount = end - start;
     shapValues->resize(documentCount);
 
-    TVector<ui8> binarizedFeaturesForBlock = GetModelCompatibleQuantizedFeatures(model, objectsData, start, end);
+    auto binarizedFeaturesForBlock = MakeQuantizedFeaturesForEvaluator(model, objectsData, start, end);
     const ui32 documentBlockSize = CB_THREAD_LIMIT;
     for (ui32 startIdx = 0; startIdx < documentCount; startIdx += documentBlockSize) {
         NPar::TLocalExecutor::TExecRangeParams blockParams(startIdx, startIdx + Min(documentBlockSize, documentCount - startIdx));
@@ -695,11 +693,10 @@ void CalcShapValuesInternalForFeature(
             docShapValues.assign(featuresCount, TVector<double>(forest.ApproxDimension + 1, 0.0));
             for (size_t treeIdx = 0; treeIdx < forest.GetTreeCount(); ++treeIdx) {
                 size_t leafIdx = CalcLeafToFallForDocument(
-                    forest,
+                    model.GetCurrentEvaluator().Get(),
                     treeIdx,
-                    binarizedFeaturesForBlock,
-                    documentIdx,
-                    documentCount
+                    binarizedFeaturesForBlock.Get(),
+                    documentIdx
                 );
 
                 if (preparedTrees.CalcShapValuesByLeafForAllTrees) {
@@ -789,7 +786,7 @@ TVector<TVector<double>> CalcShapValues(
     EPreCalcShapValues mode,
     NPar::TLocalExecutor* localExecutor
 ) {
-    CB_ENSURE(model.ObliviousTrees.ApproxDimension == 1, "Model must not be trained for multiclassification.");
+    CB_ENSURE(model.ObliviousTrees->ApproxDimension == 1, "Model must not be trained for multiclassification.");
     TVector<TVector<TVector<double>>> shapValuesMulti = CalcShapValuesMulti(
         model,
         dataset,

@@ -9,7 +9,7 @@ import __res as __resource
 
 env_entry_point = b'Y_PYTHON_ENTRY_POINT'
 env_source_root = b'Y_PYTHON_SOURCE_ROOT'
-executable = sys.executable
+executable = sys.executable or 'Y_PYTHON'
 path_sep = utf_8_encode(path_sep)[0]
 sys.modules['run_import_hook'] = __resource
 
@@ -130,12 +130,19 @@ class ResourceImporter(object):
         self.memory = set(iter_py_modules())  # Set of importable module names.
         self.source_map = {}                  # Map from file names to module names.
         self._source_name = {}                # Map from original to altered module names.
+        self._package_prefix = ''
 
         for p in list(self.memory) + list(sys.builtin_module_names):
             for pp in iter_prefixes(p):
                 k = pp + '.__init__'
                 if k not in self.memory:
                     self.memory.add(k)
+
+    def for_package(self, name):
+        import copy
+        importer = copy.copy(self)
+        importer._package_prefix = name + '.'
+        return importer
 
     def find_spec(self, fullname, path=None, target=None):
         try:
@@ -154,6 +161,8 @@ class ResourceImporter(object):
 
     def exec_module(self, module):
         code = self.get_code(module.__name__)
+        if self.is_package(module.__name__):
+            module.__path__= [executable + '/' + module.__name__]
         _call_with_frames_removed(exec, code, module.__dict__)
 
     # PEP-302 extension 1 of 3: data loader.
@@ -237,6 +246,15 @@ class ResourceImporter(object):
 
         return self.source_map.get(filename, '')
 
+    # Extension for pkgutil.iter_modules.
+    def iter_modules(self, prefix=''):
+        import re
+        rx = re.compile(re.escape(self._package_prefix) + r'([^.]+)(\.__init__)?$')
+        for p in self.memory:
+            m = rx.match(p)
+            if m:
+                yield prefix + m.group(1), m.group(2) is not None
+
 
 class BuiltinSubmoduleImporter(BuiltinImporter):
     @classmethod
@@ -265,6 +283,9 @@ sys.meta_path.insert(0, importer)
 def executable_path_hook(path):
     if path == executable:
         return importer
+
+    if path.startswith(executable + '/'):
+        return importer.for_package(path[len(executable) + 1:])
 
     raise ImportError
 

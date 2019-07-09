@@ -10,7 +10,7 @@
 #include <catboost/libs/cat_feature/cat_feature.h>
 #include <catboost/libs/data_new/model_dataset_compatibility.h>
 #include <catboost/libs/helpers/dense_hash.h>
-#include <catboost/libs/model/formula_evaluator.h>
+#include <catboost/libs/model/cpu/evaluator.h>
 #include <catboost/libs/model/model.h>
 
 #include <library/containers/stack_vector/stack_vec.h>
@@ -55,7 +55,7 @@ static inline const ui32* GetRemappedCatFeatures(
 }
 
 template <typename TCount, typename TCmpOp, int VectorWidth>
-inline void BuildIndicesKernel(
+inline void UpdateIndicesKernel(
     const ui32* permutation,
     const TCount* histogram,
     TCmpOp cmpOp,
@@ -83,7 +83,7 @@ inline void BuildIndicesKernel(
 
 
 template <typename TCount, typename TCmpOp>
-inline void OfflineCtrBlock(
+inline void UpdateIndicesForSplit(
     const NPar::TLocalExecutor::TExecRangeParams& params,
     int blockIdx,
     const ui32* permutation,
@@ -97,7 +97,7 @@ inline void OfflineCtrBlock(
     constexpr int vectorWidth = 4;
     int doc;
     for (doc = blockStart; doc + vectorWidth <= nextBlockStart; doc += vectorWidth) {
-        BuildIndicesKernel<TCount, TCmpOp, vectorWidth>(
+        UpdateIndicesKernel<TCount, TCmpOp, vectorWidth>(
             permutation + doc,
             histogram,
             cmpOp,
@@ -112,7 +112,7 @@ inline void OfflineCtrBlock(
 
 
 template <typename TCount, class TCmpOp>
-inline void OfflineCtrBlock(
+inline void UpdateIndicesForSplit(
     const NPar::TLocalExecutor::TExecRangeParams& params,
     int blockIdx,
     TMaybe<TExclusiveBundleIndex> maybeExclusiveBundleIndex,
@@ -131,7 +131,7 @@ inline void OfflineCtrBlock(
 
         NCB::TPackedBinaryFeaturesArraySubset packSubset = getBinaryFeaturesPack(maybeBinaryIndex->PackIdx);
 
-        OfflineCtrBlock(
+        UpdateIndicesForSplit(
             params,
             blockIdx,
             permutation,
@@ -148,8 +148,8 @@ inline void OfflineCtrBlock(
 
         auto boundsInBundle = bundleSubset.MetaData->Parts[maybeExclusiveBundleIndex->InBundleIdx].Bounds;
 
-        auto calcOfflineCtrBlock = [&] (const auto* histogram) {
-            OfflineCtrBlock(
+        auto updateIndicesForSplit = [&] (const auto* histogram) {
+            UpdateIndicesForSplit(
                 params,
                 blockIdx,
                 permutation,
@@ -163,10 +163,10 @@ inline void OfflineCtrBlock(
 
         switch (bundleSubset.MetaData->SizeInBytes) {
             case 1:
-                calcOfflineCtrBlock(bundleSubset.SrcData.data());
+                updateIndicesForSplit(bundleSubset.SrcData.data());
                 break;
             case 2:
-                calcOfflineCtrBlock((const ui16*)bundleSubset.SrcData.data());
+                updateIndicesForSplit((const ui16*)bundleSubset.SrcData.data());
                 break;
             default:
                 CB_ENSURE_INTERNAL(
@@ -174,7 +174,7 @@ inline void OfflineCtrBlock(
                     "unsupported Bundle SizeInBytes = " << bundleSubset.MetaData->SizeInBytes);
         }
     } else {
-        OfflineCtrBlock(
+        UpdateIndicesForSplit(
             params,
             blockIdx,
             permutation,
@@ -216,7 +216,7 @@ void SetPermutedIndices(
         localExecutor->ExecRange(
             [&](int blockIdx) {
                 if (HoldsAlternative<const ui8*>(histogram)) {
-                    OfflineCtrBlock(
+                    UpdateIndicesForSplit(
                         blockParams,
                         blockIdx,
                         maybeExclusiveFeaturesBundleIndex,
@@ -231,7 +231,7 @@ void SetPermutedIndices(
                         splitWeight,
                         indicesData);
                 } else {
-                    OfflineCtrBlock(
+                    UpdateIndicesForSplit(
                         blockParams,
                         blockIdx,
                         maybeExclusiveFeaturesBundleIndex,
@@ -273,7 +273,7 @@ void SetPermutedIndices(
 
         localExecutor->ExecRange(
             [&] (int blockIdx) {
-                OfflineCtrBlock(
+                UpdateIndicesForSplit(
                     blockParams,
                     blockIdx,
                     maybeExclusiveFeaturesBundleIndex,
@@ -395,7 +395,7 @@ static void BuildIndicesForDataset(
             if (split.Type == ESplitType::FloatFeature) {
                 auto floatFeatureIdx = TFloatFeatureIdx((ui32)split.FeatureIdx);
                 if (HoldsAlternative<const ui8*>(splitFloatHistograms[splitIdx])) {
-                    OfflineCtrBlock(
+                    UpdateIndicesForSplit(
                         blockParams,
                         blockIdx,
                         objectsDataProvider.GetFloatFeatureToExclusiveBundleIndex(floatFeatureIdx),
@@ -410,7 +410,7 @@ static void BuildIndicesForDataset(
                         splitWeight,
                         indices);
                 } else {
-                    OfflineCtrBlock(
+                    UpdateIndicesForSplit(
                         blockParams,
                         blockIdx,
                         objectsDataProvider.GetFloatFeatureToExclusiveBundleIndex(floatFeatureIdx),
@@ -437,7 +437,7 @@ static void BuildIndicesForDataset(
 
                 auto catFeatureIdx = TCatFeatureIdx((ui32)split.FeatureIdx);
 
-                OfflineCtrBlock(
+                UpdateIndicesForSplit(
                     blockParams,
                     blockIdx,
                     objectsDataProvider.GetCatFeatureToExclusiveBundleIndex(catFeatureIdx),
@@ -507,92 +507,17 @@ TVector<TIndexType> BuildIndices(
     return indices;
 }
 
-static void BinarizeRawFeatures(
-    const TFullModel& model,
-    const NCB::TRawObjectsDataProvider& rawObjectsData,
-    size_t start,
-    size_t end,
-    TVector<ui8>* result) {
-
-    THashMap<ui32, ui32> columnReorderMap;
-    CheckModelAndDatasetCompatibility(model, rawObjectsData, &columnReorderMap);
-    auto docCount = end - start;
-    result->resize(model.ObliviousTrees.GetEffectiveBinaryFeaturesBucketsCount() * docCount);
-    TVector<ui32> transposedHash(docCount * model.GetUsedCatFeaturesCount());
-    TVector<float> ctrs(model.ObliviousTrees.GetUsedModelCtrs().size() * docCount);
-    TRawFeatureAccessor featureAccessor(model, rawObjectsData, columnReorderMap, start, end);
-
-    BinarizeFeatures(
-        model, featureAccessor, featureAccessor, 0, docCount, *result, transposedHash, ctrs);
-}
-
-static void AssignFeatureBins(
-    const TFullModel& model,
-    const NCB::TQuantizedForCPUObjectsDataProvider& quantizedObjectsData,
-    size_t start,
-    size_t end,
-    TVector<ui8>* result)
-{
-    THashMap<ui32, ui32> columnReorderMap;
-    CheckModelAndDatasetCompatibility(model, quantizedObjectsData, &columnReorderMap);
-    auto docCount = end - start;
-    result->resize(model.ObliviousTrees.GetEffectiveBinaryFeaturesBucketsCount() * docCount);
-    TQuantizedFeatureAccessor quantizedFeatureAccessor(
-        model, quantizedObjectsData, columnReorderMap, start, end);
-
-    AssignFeatureBins(model, quantizedFeatureAccessor, quantizedFeatureAccessor, 0, end - start, *result);
-}
-
-TVector<ui8> GetModelCompatibleQuantizedFeatures(
-    const TFullModel& model,
-    const NCB::TObjectsDataProvider& objectsData,
-    size_t start,
-    size_t end) {
-
-    TVector<ui8> result;
-    if (const auto* const rawObjectsData = dynamic_cast<const TRawObjectsDataProvider*>(&objectsData)) {
-        BinarizeRawFeatures(model, *rawObjectsData, start, end, &result);
-    } else if (
-        const auto* const quantizedObjectsData
-            = dynamic_cast<const TQuantizedForCPUObjectsDataProvider*>(&objectsData))
-    {
-        AssignFeatureBins(model, *quantizedObjectsData, start, end, &result);
-    } else {
-        ythrow TCatBoostException() << "Unsupported objects data - neither raw nor quantized for CPU";
-    }
-    return result;
-}
-
-TVector<ui8> GetModelCompatibleQuantizedFeatures(
-    const TFullModel& model,
-    const NCB::TObjectsDataProvider& objectsData) {
-
-    return GetModelCompatibleQuantizedFeatures(model, objectsData, /*start*/0, objectsData.GetObjectCount());
-}
-
 TVector<TIndexType> BuildIndicesForBinTree(
     const TFullModel& model,
-    const TVector<ui8>& binarizedFeatures,
+    const NCB::NModelEvaluation::IQuantizedData* quantizedFeatures,
     size_t treeId) {
 
-    //TODO(eermishkina): support non symmetric trees
-    CB_ENSURE_INTERNAL(model.IsOblivious(), "Is supported only for symmetric trees");
-
-    if (model.ObliviousTrees.GetEffectiveBinaryFeaturesBucketsCount() == 0) {
+    if (model.ObliviousTrees->GetEffectiveBinaryFeaturesBucketsCount() == 0) {
         return TVector<TIndexType>();
     }
-
-    auto docCount = binarizedFeatures.size() / model.ObliviousTrees.GetEffectiveBinaryFeaturesBucketsCount();
-    TVector<TIndexType> indexesVec(docCount);
-    const auto* treeSplitsCurPtr = model.ObliviousTrees.GetRepackedBins().data()
-        + model.ObliviousTrees.TreeStartOffsets[treeId];
-    CalcIndexes(
-        !model.ObliviousTrees.OneHotFeatures.empty(),
-        binarizedFeatures.data(),
-        docCount,
-        indexesVec.data(),
-        treeSplitsCurPtr,
-        model.ObliviousTrees.TreeSizes[treeId]);
+    TVector<TIndexType> indexesVec(quantizedFeatures->GetObjectsCount());
+    auto evaluator =  model.GetCurrentEvaluator();
+    evaluator->CalcLeafIndexes(quantizedFeatures, treeId, treeId + 1, indexesVec);
     return indexesVec;
 }
 

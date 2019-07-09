@@ -53,7 +53,7 @@ namespace NCB {
 
     static bool NeedTargetClasses(const TFullModel& coreModel) {
         return AnyOf(
-            coreModel.ObliviousTrees.GetUsedModelCtrs(),
+            coreModel.ObliviousTrees->GetUsedModelCtrs(),
             [](const TModelCtr& modelCtr) {
                 return NeedTargetClassifier(modelCtr.Base.CtrType);
             }
@@ -127,6 +127,7 @@ namespace NCB {
 
     TCoreModelToFullModelConverter::TCoreModelToFullModelConverter(
         const NCatboostOptions::TCatBoostOptions& options,
+        const NCatboostOptions::TOutputFilesOptions& outputOptions,
         const TClassificationTargetHelper& classificationTargetHelper,
         ui64 ctrLeafCountLimit,
         bool storeAllSimpleCtrs,
@@ -138,6 +139,7 @@ namespace NCB {
         , CtrLeafCountLimit(ctrLeafCountLimit)
         , StoreAllSimpleCtrs(storeAllSimpleCtrs)
         , Options(options)
+        , outputOptions(outputOptions)
         , ClassificationTargetHelper(classificationTargetHelper)
     {}
 
@@ -241,6 +243,9 @@ namespace NCB {
             NJson::TJsonValue jsonOptions(NJson::EJsonValueType::JSON_MAP);
             Options.Save(&jsonOptions);
             dstModel->ModelInfo["params"] = ToString(jsonOptions);
+            NJson::TJsonValue jsonOutputOptions(NJson::EJsonValueType::JSON_MAP);
+            outputOptions.Save(&jsonOutputOptions);
+            dstModel->ModelInfo["output_options"] = ToString(jsonOutputOptions);
             for (const auto& keyValue : Options.Metadata.Get().GetMap()) {
                 dstModel->ModelInfo[keyValue.first] = keyValue.second.GetString();
             }
@@ -282,7 +287,7 @@ namespace NCB {
             CalcFinalCtrs(
                 datasetDataForFinalCtrs,
                 *featureCombinationToProjectionMap,
-                dstModel->ObliviousTrees.GetUsedModelCtrBases(),
+                dstModel->ObliviousTrees->GetUsedModelCtrBases(),
                 [&dstModel, &lock](TCtrValueTable&& table) {
                     with_lock(lock) {
                         dstModel->CtrProvider->AddCtrCalcerData(std::move(table));
@@ -293,7 +298,7 @@ namespace NCB {
             dstModel->UpdateDynamicData();
         } else {
             dstModel->CtrProvider = new TStaticCtrOnFlightSerializationProvider(
-                dstModel->ObliviousTrees.GetUsedModelCtrBases(),
+                dstModel->ObliviousTrees->GetUsedModelCtrBases(),
                 [this,
                  datasetDataForFinalCtrs = std::move(datasetDataForFinalCtrs),
                  featureCombinationToProjectionMap] (
@@ -345,8 +350,8 @@ namespace NCB {
         bool addFileFormatExtension
     ) {
         TFeaturesLayout featuresLayout(
-            fullModel.ObliviousTrees.FloatFeatures,
-            fullModel.ObliviousTrees.CatFeatures
+            fullModel.ObliviousTrees->FloatFeatures,
+            fullModel.ObliviousTrees->CatFeatures
         );
         TVector<TString> featureIds = featuresLayout.GetExternalFeatureIds();
 

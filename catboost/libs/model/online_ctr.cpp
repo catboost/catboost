@@ -1,6 +1,8 @@
 #include "online_ctr.h"
 #include "flatbuffers_serializer_helper.h"
 
+#include <catboost/libs/model/flatbuffers/ctr_data.fbs.h>
+
 flatbuffers::Offset<NCatBoostFbs::TModelCtrBase> TModelCtrBase::FBSerialize(
     TModelPartsCachingSerializer& serializer) const {
     auto featureCombinationOffset = serializer.GetOffset(Projection);
@@ -10,6 +12,16 @@ flatbuffers::Offset<NCatBoostFbs::TModelCtrBase> TModelCtrBase::FBSerialize(
         static_cast<NCatBoostFbs::ECtrType>(CtrType),
         TargetBorderClassifierIdx
     );
+}
+
+void TModelCtrBase::FBDeserialize(const NCatBoostFbs::TModelCtrBase* fbObj) {
+    Projection.Clear();
+    if (fbObj == nullptr) {
+        return;
+    }
+    Projection.FBDeserialize(fbObj->FeatureCombination());
+    CtrType = static_cast<ECtrType>(fbObj->CtrType());
+    TargetBorderClassifierIdx = fbObj->TargetBorderClassifierIdx();
 }
 
 flatbuffers::Offset<NCatBoostFbs::TModelCtr> TModelCtr::FBSerialize(
@@ -23,6 +35,15 @@ flatbuffers::Offset<NCatBoostFbs::TModelCtr> TModelCtr::FBSerialize(
         Shift,
         Scale
     );
+}
+
+void TModelCtr::FBDeserialize(const NCatBoostFbs::TModelCtr* fbObj) {
+    Base.FBDeserialize(fbObj->Base());
+    TargetBorderIdx = fbObj->TargetBorderIdx();
+    PriorNum = fbObj->PriorNum();
+    PriorDenom = fbObj->PriorDenom();
+    Shift = fbObj->Shift();
+    Scale = fbObj->Scale();
 }
 
 flatbuffers::Offset<NCatBoostFbs::TFeatureCombination> TFeatureCombination::FBSerialize(TModelPartsCachingSerializer& serializer) const {
@@ -45,4 +66,26 @@ flatbuffers::Offset<NCatBoostFbs::TFeatureCombination> TFeatureCombination::FBSe
         floatSplits,
         oneHotSplits
     );
+}
+
+void TFeatureCombination::FBDeserialize(const NCatBoostFbs::TFeatureCombination* fbObj) {
+    Clear();
+    if (fbObj == nullptr) {
+        return;
+    }
+    if (fbObj->CatFeatures() && fbObj->CatFeatures()->size() != 0) {
+        CatFeatures.assign(fbObj->CatFeatures()->begin(), fbObj->CatFeatures()->end());
+    }
+    if (fbObj->FloatSplits() && fbObj->FloatSplits()->size() != 0) {
+        for (const auto fbSplit : *fbObj->FloatSplits()) {
+            TFloatSplit split{fbSplit->Index(), fbSplit->Border()};
+            BinFeatures.push_back(split);
+        }
+    }
+    if (fbObj->OneHotSplits() && fbObj->OneHotSplits()->size() != 0) {
+        for (const auto fbSplit : *fbObj->OneHotSplits()) {
+            TOneHotSplit split{fbSplit->Index(), fbSplit->Value()};
+            OneHotFeatures.push_back(split);
+        }
+    }
 }

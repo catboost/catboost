@@ -26,6 +26,7 @@ SRCS(
     index_calcer.cpp
     index_hash_calcer.cpp
     learn_context.cpp
+    model_quantization_adapter.cpp
     mvs.cpp
     online_ctr.cpp
     online_predictor.cpp

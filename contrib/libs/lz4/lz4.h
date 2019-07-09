@@ -32,7 +32,7 @@
     - LZ4 homepage : http://www.lz4.org
     - LZ4 source repository : https://github.com/lz4/lz4
 */
-#if defined (__cplusplus)
+#if defined (__cplusplus) && !defined(LZ4_NAMESPACE)
 extern "C" {
 #endif
 
@@ -97,7 +97,7 @@ extern "C" {
 /*------   Version   ------*/
 #define LZ4_VERSION_MAJOR    1    /* for breaking interface changes  */
 #define LZ4_VERSION_MINOR    9    /* for new (non-breaking) interface capabilities */
-#define LZ4_VERSION_RELEASE  0    /* for tweaks, bug-fixes, or development */
+#define LZ4_VERSION_RELEASE  1    /* for tweaks, bug-fixes, or development */
 
 #define LZ4_VERSION_NUMBER (LZ4_VERSION_MAJOR *100*100 + LZ4_VERSION_MINOR *100 + LZ4_VERSION_RELEASE)
 
@@ -682,6 +682,6 @@ LZ4LIB_API void LZ4_resetStream (LZ4_stream_t* streamPtr);
 #endif /* LZ4_H_2983827168210 */
 
 
-#if defined (__cplusplus)
+#if defined (__cplusplus) && !defined(LZ4_NAMESPACE)
 }
 #endif

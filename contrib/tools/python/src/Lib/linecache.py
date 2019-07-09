@@ -79,6 +79,18 @@ def updatecache(filename, module_globals=None):
     if not filename or (filename.startswith('<') and filename.endswith('>')):
         return []
 
+    if not os.path.isabs(filename):
+        # mod.__loader__.get_source works, but when mod fails to import
+        # mod.__loader__ and other mod globals are already None.
+        import __res
+        key = __res.importer.file_source(filename)
+        if key:
+            data = __res.find(key)
+            assert data is not None, filename
+            lines = [line + '\n' for line in data.splitlines()]
+            cache[filename] = (len(data), None, lines, filename)
+            return cache[filename][2]
+
     fullname = filename
     try:
         stat = os.stat(fullname)

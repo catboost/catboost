@@ -26,9 +26,9 @@ TVector<TTreeStatistics> ITreeStatisticsEvaluator::EvaluateTreeStatistics(
     const ui32 leavesEstimationIterations = paramsJson["tree_learner_options"]["leaf_estimation_iterations"].GetUInteger();
     const float learningRate = paramsJson["boosting_options"]["learning_rate"].GetDouble();
     const float l2LeafReg = paramsJson["tree_learner_options"]["l2_leaf_reg"].GetDouble();
-    const ui32 treeCount = model.ObliviousTrees.GetTreeCount();
+    const ui32 treeCount = model.GetTreeCount();
 
-    const TVector<ui8> binarizedFeatures = GetModelCompatibleQuantizedFeatures(model, *processedData.ObjectsData.Get());
+    auto binarizedFeatures = MakeQuantizedFeaturesForEvaluator(model, *processedData.ObjectsData.Get());
     TVector<TTreeStatistics> treeStatistics;
     treeStatistics.reserve(treeCount);
     TVector<double> approxes(DocCount);
@@ -39,8 +39,8 @@ TVector<TTreeStatistics> ITreeStatisticsEvaluator::EvaluateTreeStatistics(
     for (ui32 treeId = 0; treeId < treeCount; ++treeId) {
         processTreesProfile.StartIterationBlock();
 
-        LeafCount = 1 << model.ObliviousTrees.TreeSizes[treeId];
-        LeafIndices = BuildIndicesForBinTree(model, binarizedFeatures, treeId);
+        LeafCount = 1 << model.ObliviousTrees->TreeSizes[treeId];
+        LeafIndices = BuildIndicesForBinTree(model, binarizedFeatures.Get(), treeId);
 
         TVector<TVector<ui32>> leavesDocId(LeafCount);
         for (ui32 docId = 0; docId < DocCount; ++docId) {

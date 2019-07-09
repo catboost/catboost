@@ -15,17 +15,24 @@
 
 using namespace NCB;
 
-
 TSplit TCandidateInfo::GetBestSplit(
+    const TQuantizedForCPUObjectsDataProvider& objectsData,
+    ui32 oneHotMaxSize
+) const {
+    return GetSplit(BestBinId, objectsData, oneHotMaxSize);
+}
+
+TSplit TCandidateInfo::GetSplit(
+    int binId,
     const TQuantizedForCPUObjectsDataProvider& objectsData,
     ui32 oneHotMaxSize
 ) const {
     switch (SplitEnsemble.Type) {
         case ESplitEnsembleType::OneFeature:
-            return TSplit(SplitEnsemble.SplitCandidate, BestBinId);
+            return TSplit(SplitEnsemble.SplitCandidate, binId);
         case ESplitEnsembleType::BinarySplits:
             {
-                TPackedBinaryIndex packedBinaryIndex(SplitEnsemble.BinarySplitsPackRef.PackIdx, BestBinId);
+                TPackedBinaryIndex packedBinaryIndex(SplitEnsemble.BinarySplitsPackRef.PackIdx, binId);
                 auto featureInfo = objectsData.GetPackedBinaryFeatureSrcIndex(packedBinaryIndex);
                 TSplitCandidate splitCandidate;
                 splitCandidate.Type
@@ -51,7 +58,7 @@ TSplit TCandidateInfo::GetBestSplit(
                         bundlePart.Bounds.GetSize() :
                         bundlePart.Bounds.GetSize() + 1;
 
-                    const auto binInBundlePart = BestBinId - binFeatureOffset;
+                    const auto binInBundlePart = binId - binFeatureOffset;
 
                     if (binInBundlePart < binFeatureSize) {
                         TSplitCandidate splitCandidate;
@@ -359,7 +366,6 @@ void Bootstrap(
     switch (bootstrapType) {
         case EBootstrapType::Bernoulli:
             if (isPairwiseScoring) {
-                // TODO(nikitxskv): Need to add groupwise sampling (take the whole group or not)
                 GenerateBernoulliWeightsForPairs(takenFraction, samplingUnit, localExecutor, rand, fold);
             } else {
                 Fill(fold->SampleWeights.begin(), fold->SampleWeights.end(), 1);

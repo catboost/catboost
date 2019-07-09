@@ -36,8 +36,8 @@ PY_SRCS(
     linalg.py
 )
 
-PY_REGISTER(numpy.linalg._umath_linalg=_umath_linalg)
-PY_REGISTER(numpy.linalg.lapack_lite=lapack_lite)
+PY_REGISTER(numpy.linalg._umath_linalg)
+PY_REGISTER(numpy.linalg.lapack_lite)
 
 
 END()

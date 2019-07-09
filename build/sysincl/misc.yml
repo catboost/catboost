@@ -17,6 +17,12 @@
 - includes:
   - cudnn.h:         contrib/libs/nvidia/cudnn/cudnn.h
 
+# _cgo_export.h is generated into build dir of go package which uses cgo
+# and we are unable to resolve it correctly to whcih build dir to resolve
+# in the case when tests are also built for this package
+- includes:
+  - _cgo_export.h
+
 # libunistring has its own libc header wrappers that are added to ADDINCL and
 # need to be added here for consistensy between ADDINCL and sysincl resolving.
 # Btw: we don't parse include_next, so we might lose real dependency to musl,
@@ -122,8 +128,8 @@
 
 - source_filter: "^contrib/libs/gdal"
   includes:
-    - CL/opencl.h
     - io.h:          contrib/libs/gdal/ogr/ogrsf_frmts/cad/libopencad/dwg/io.h
+    - iconv.h:       contrib/libs/libiconv/include/iconv.h
 
 - source_filter: "^contrib/libs/zeromq"
   includes:
@@ -290,11 +296,6 @@
     - webp/decode.h
     - webp/encode.h
 
-- source_filter: "^contrib/libs/libarchive"
-  includes:
-    - lzo/lzoconf.h
-    - md5.h
-
 - source_filter: "^contrib/libs/libmysql_r"
   includes:
     - md5.hpp
@@ -350,11 +351,11 @@
   includes:
     - jni.h
 
-- source_filter: "^contrib/(libs/(ffmpeg-3|kenlm|kyotocabinet|libarchive)|tools/ag)"
+- source_filter: "^contrib/(libs/(ffmpeg-3|kenlm|kyotocabinet)|tools/ag)"
   includes:
     - lzma.h
 
-- source_filter: "^(contrib/libs/(kyotocabinet|libarchive|minilzo)|logbroker/contrib/tokyocabinet)"
+- source_filter: "^(contrib/libs/(kyotocabinet|minilzo)|logbroker/contrib/tokyocabinet)"
   includes:
     - lzo/lzo1x.h
 
@@ -455,6 +456,7 @@
     - rapidjson/document.h
     - rdkafka.h
     - re2_st/re2.h
+    - readpassphrase.h: contrib/libs/clickhouse/dbms/programs/client/readpassphrase/readpassphrase.h
     - simdjson/jsonparser.h
     - time_zone.h
     - vectorf128.h

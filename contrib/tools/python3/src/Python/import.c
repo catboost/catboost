@@ -1415,6 +1415,7 @@ remove_importlib_frames(void)
 {
     const char *importlib_filename = "<frozen importlib._bootstrap>";
     const char *external_filename = "<frozen importlib._bootstrap_external>";
+    const char *importer_filename = "library/python/runtime_py3/importer.pxi";
     const char *remove_frames = "_call_with_frames_removed";
     int always_trim = 0;
     int in_importlib = 0;
@@ -1443,7 +1444,8 @@ remove_importlib_frames(void)
 
         assert(PyTraceBack_Check(tb));
         now_in_importlib = _PyUnicode_EqualToASCIIString(code->co_filename, importlib_filename) ||
-                           _PyUnicode_EqualToASCIIString(code->co_filename, external_filename);
+                           _PyUnicode_EqualToASCIIString(code->co_filename, external_filename) ||
+                           _PyUnicode_EqualToASCIIString(code->co_filename, importer_filename);
         if (now_in_importlib && !in_importlib) {
             /* This is the link to this chunk of importlib tracebacks */
             outer_link = prev_link;

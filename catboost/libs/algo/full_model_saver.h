@@ -4,6 +4,7 @@
 #include "projection.h"
 
 #include <catboost/libs/data_new/data_provider.h>
+#include <catboost/libs/model/fwd.h>
 #include <catboost/libs/model/ctr_data.h>
 #include <catboost/libs/model/online_ctr.h>
 #include <catboost/libs/model/target_classifier.h>
@@ -19,12 +20,12 @@
 #include <functional>
 
 
-class TCtrValueTable;
+
 struct TDatasetDataForFinalCtrs;
-struct TFullModel;
 
 namespace NCatboostOptions {
     class TCatBoostOptions;
+    class TOutputFilesOptions;
 }
 
 namespace NCB {
@@ -45,6 +46,7 @@ namespace NCB {
     public:
         TCoreModelToFullModelConverter(
             const NCatboostOptions::TCatBoostOptions& options,
+            const NCatboostOptions::TOutputFilesOptions& outputOptions,
             const TClassificationTargetHelper& classificationTargetHelper,
             ui64 ctrLeafCountLimit,
             bool storeAllSimpleCtrs,
@@ -100,6 +102,7 @@ namespace NCB {
         bool StoreAllSimpleCtrs;
 
         const NCatboostOptions::TCatBoostOptions& Options;
+        const NCatboostOptions::TOutputFilesOptions& outputOptions;
         const TClassificationTargetHelper& ClassificationTargetHelper;
 
         TFullModel* CoreModel = nullptr;

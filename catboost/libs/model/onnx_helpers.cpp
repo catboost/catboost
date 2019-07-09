@@ -59,10 +59,10 @@ void NCatboost::NOnnx::InitMetadata(
     }
 
     // If categorical features are present save cat_features to metadata_props as well
-    if (!model.ObliviousTrees.CatFeatures.empty()) {
+    if (!model.ObliviousTrees->CatFeatures.empty()) {
         TVector<int> catFeaturesIndices;
-        for (const auto& catFeature : model.ObliviousTrees.CatFeatures) {
-            catFeaturesIndices.push_back(catFeature.FlatFeatureIndex);
+        for (const auto& catFeature : model.ObliviousTrees->CatFeatures) {
+            catFeaturesIndices.push_back(catFeature.Position.FlatIndex);
         }
 
         onnx::StringStringEntryProto* catFeaturesProp = onnxModel->add_metadata_props();
@@ -73,7 +73,7 @@ void NCatboost::NOnnx::InitMetadata(
 
 
 static bool IsClassifierModel(const TFullModel& model) {
-    if (model.ObliviousTrees.ApproxDimension > 1) { // multiclass
+    if (model.ObliviousTrees->ApproxDimension > 1) { // multiclass
         return true;
     }
 
@@ -103,7 +103,7 @@ static void GetClassLabels(
     classLabelsInt64->clear();
     classLabelsString->clear();
 
-    if (model.ObliviousTrees.ApproxDimension > 1) {  // is multiclass?
+    if (model.ObliviousTrees->ApproxDimension > 1) {  // is multiclass?
         if (model.ModelInfo.contains("multiclass_params")) {
             const auto& multiclassParamsJsonAsString = model.ModelInfo.at("multiclass_params");
             TMulticlassLabelOptions multiclassOptions;
@@ -118,7 +118,7 @@ static void GetClassLabels(
                 return;
             }
         }
-        classLabelsInt64->resize(model.ObliviousTrees.ApproxDimension);
+        classLabelsInt64->resize(model.ObliviousTrees->ApproxDimension);
         std::iota(classLabelsInt64->begin(), classLabelsInt64->end(), 0);
     } else { // binclass
         if (const auto* modelInfoParams = MapFindPtr(model.ModelInfo, "params")) {
@@ -326,9 +326,9 @@ static void AddTree(
 
         if (split.Type == ESplitType::FloatFeature) {
             const auto& floatFeature = trees.FloatFeatures[split.FloatFeature.FloatFeature];
-            splitFlatFeatureIdx = floatFeature.FlatFeatureIndex;
+            splitFlatFeatureIdx = floatFeature.Position.FlatIndex;
             nodeMode = branchGTEMode;
-            if (floatFeature.NanValueTreatment == NCatBoostFbs::ENanValueTreatment_AsTrue) {
+            if (floatFeature.NanValueTreatment == TFloatFeature::ENanValueTreatment::AsTrue) {
                 missingValueTracksTrue = 1;
             }
             splitValue = split.FloatFeature.Split;
@@ -412,7 +412,7 @@ void NCatboost::NOnnx::ConvertTreeToOnnxGraph(
 
     const bool isClassifierModel = IsClassifierModel(model);
 
-    const TObliviousTrees& trees = model.ObliviousTrees;
+    const TObliviousTrees& trees = *model.ObliviousTrees;
 
     onnxGraph->set_name(onnxGraphName.GetOrElse("CatBoostModel"));
 

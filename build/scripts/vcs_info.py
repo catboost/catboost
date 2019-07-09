@@ -60,7 +60,7 @@ def get_default_json():
     "PROGRAM_VERSION": "Arc info:\\n    Branch: math\\n    Commit: 0577215664901532860606512090082402431042\\n    Author: ordinal\\n    Summary: No VCS\\n\\n",
     "SCM_DATA": "Arc info:\\n    Branch: math\\n    Commit: 0577215664901532860606512090082402431042\\n    Author: ordinal\\n    Summary: No VCS\\n",
     "VCS": "arc",
-    "ARCADIA_PATCH_NUMBER": 42,
+    "ARCADIA_PATCH_NUMBER": 0,
     "ARCADIA_TAG": ""
 }''')
 
@@ -86,7 +86,7 @@ def print_c(json_file, output_file, argv):
     """ params:
             json file
             output file
-            $(SOURCE_ROOT)/build/scripts/c_templates/svn_interface.c.template"""
+            $(SOURCE_ROOT)/build/scripts/c_templates/svn_interface.c"""
     def gen_header(info):
         lines = []
         for k, v in info.items():
@@ -194,7 +194,7 @@ def print_java_mf(info):
     lines += wrap('Arcadia-Source-Path: ', info['ARCADIA_SOURCE_PATH'])
     lines += wrap('Arcadia-Source-URL: ', info['ARCADIA_SOURCE_URL'])
     lines += wrap('Arcadia-Source-Revision: ', str(info['ARCADIA_SOURCE_REVISION']))
-    lines += wrap('Arcadia-Source-Hg-Hash: ', info['ARCADIA_SOURCE_HG_HASH'].rstrip())
+    lines += wrap('Arcadia-Source-Hash: ', info['ARCADIA_SOURCE_HG_HASH'].rstrip())
     lines += wrap('Arcadia-Source-Last-Change: ', str(info['ARCADIA_SOURCE_LAST_CHANGE']))
     lines += wrap('Arcadia-Source-Last-Author: ', info['ARCADIA_SOURCE_LAST_AUTHOR'])
     lines += wrap('Build-User: ', info['BUILD_USER'])

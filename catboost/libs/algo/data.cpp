@@ -109,7 +109,7 @@ namespace NCB {
                 quantizationOptions.ExclusiveFeaturesBundlingOptions.MaxBuckets
                     = params->ObliviousTreeOptions->DevExclusiveFeaturesBundleMaxBuckets.Get();
                 quantizationOptions.ExclusiveFeaturesBundlingOptions.MaxConflictFraction
-                    = params->ObliviousTreeOptions->ExclusiveFeaturesBundleMaxConflictFraction.Get();
+                    = params->ObliviousTreeOptions->SparseFeaturesConflictFraction.Get();
             } else {
                 Y_ASSERT(params->GetTaskType() == ETaskType::GPU);
 

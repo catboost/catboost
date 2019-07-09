@@ -744,9 +744,9 @@ namespace NCB {
 
                 if ((classCount == 0) && IsBinaryClassOnlyMetric(modelLossDescription.LossFunction)) {
                     CB_ENSURE_INTERNAL(
-                        model.ObliviousTrees.ApproxDimension == 1,
+                        model.GetDimensionsCount() == 1,
                         "model trained with binary classification function has ApproxDimension="
-                        << model.ObliviousTrees.ApproxDimension
+                        << model.GetDimensionsCount()
                     );
                 }
 
@@ -757,7 +757,7 @@ namespace NCB {
         }
 
         TLabelConverter labelConverter;
-        if (model.ObliviousTrees.ApproxDimension > 1) {  // is multiclass?
+        if (model.GetDimensionsCount() > 1) {  // is multiclass?
             if (model.ModelInfo.contains("multiclass_params")) {
                 const auto& multiclassParamsJsonAsString = model.ModelInfo.at("multiclass_params");
                 labelConverter.Initialize(multiclassParamsJsonAsString);
@@ -768,8 +768,8 @@ namespace NCB {
                 }
                 classCount = GetClassesCount(multiclassOptions.ClassesCount.Get(), classNames);
             } else {
-                labelConverter.Initialize(model.ObliviousTrees.ApproxDimension);
-                classCount = model.ObliviousTrees.ApproxDimension;
+                labelConverter.Initialize(model.GetDimensionsCount());
+                classCount = model.GetDimensionsCount();
             }
         }
 
@@ -790,7 +790,7 @@ namespace NCB {
             /*allowConstLabel*/ true,
             /*metricsThatRequireTargetCanBeSkipped*/ false,
             /*needTargetDataForCtrs*/ false,
-            (ui32)model.ObliviousTrees.ApproxDimension,
+            (ui32)model.GetDimensionsCount(),
             classCount,
             classWeights,
             &classNames,

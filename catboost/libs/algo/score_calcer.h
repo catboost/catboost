@@ -14,7 +14,7 @@ class TBucketStatsCache;
 class TCalcScoreFold;
 class TFold;
 struct TPairwiseStats;
-struct TSplitEnsemble;
+struct TCandidateInfo;
 struct TStats3D;
 
 namespace NCatboostOptions {
@@ -44,9 +44,11 @@ void CalcStatsAndScores(
     const TFold* initialFold,
     const TFlatPairsInfo& pairs,
     const NCatboostOptions::TCatBoostOptions& fitParams,
-    const TSplitEnsemble& splitEnsemble,
+    const TCandidateInfo& candidateInfo,
     int depth,
     bool useTreeLevelCaching,
+    const TVector<int>& currTreeMonotonicConstraints,
+    const TVector<int>& monotonicConstraints,
     NPar::TLocalExecutor* localExecutor,
     TBucketStatsCache* statsFromPrevTree,
     TStats3D* stats3d, // can be nullptr (and if PairwiseScoring must be), if so - don't return this data

@@ -25,6 +25,11 @@ namespace NTextProcessing::NDictionary {
         Insert
     };
 
+    enum class EContextLevel {
+        Word,
+        Sentence
+    };
+
     enum class EDictionaryType {
         FrequencyBased,
         Bpe

@@ -833,7 +833,7 @@ class _CatBoostBase(object):
             params['_test_evals'] = test_evals
         if self.is_fitted():
             params['__model'] = self._serialize_model()
-        for attr in ['_classes', '_prediction_values_change', '_loss_value_change']:
+        for attr in ['_prediction_values_change', '_loss_value_change']:
             if getattr(self, attr, None) is not None:
                 params[attr] = getattr(self, attr, None)
         return params
@@ -853,7 +853,7 @@ class _CatBoostBase(object):
         if '_test_evals' in state:
             self._set_test_evals(state['_test_evals'])
             del state['_test_evals']
-        for attr in ['_classes', '_prediction_values_change', '_loss_value_change']:
+        for attr in ['_prediction_values_change', '_loss_value_change']:
             if attr in state:
                 setattr(self, attr, state[attr])
                 del state[attr]
@@ -1282,18 +1282,19 @@ class CatBoost(_CatBoostBase):
         with log_fixup(), plot_wrapper(plot, [_get_train_dir(self.get_params())]):
             self._train(train_pool, eval_sets, params, allow_clear_pool, init_model)
 
-        if (not self._object._has_leaf_weights_in_model()) and allow_clear_pool:
-            train_pool = _build_train_pool(X, y, cat_features, pairs, sample_weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, column_description)
         if self._object._is_oblivious():
             # Have property feature_importance possibly set
             loss = self._object._get_loss_function_name()
             if loss and is_groupwise_metric(loss):
                 pass  # too expensive
             else:
-                self.get_feature_importance(type=EFstrType.PredictionValuesChange)
+                if not self._object._has_leaf_weights_in_model():
+                    if allow_clear_pool:
+                        train_pool = _build_train_pool(X, y, cat_features, pairs, sample_weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, column_description)
+                    self.get_feature_importance(data=train_pool, type=EFstrType.PredictionValuesChange)
+                else:
+                    self.get_feature_importance(type=EFstrType.PredictionValuesChange)
 
-        if 'loss_function' in params and self._is_classification_objective(params['loss_function']):
-            setattr(self, "_classes", np.unique(train_pool.get_label()))
         return self
 
     def fit(self, X, y=None, cat_features=None, pairs=None, sample_weight=None, group_id=None,
@@ -2120,6 +2121,21 @@ class CatBoost(_CatBoostBase):
         else:
             return params
 
+    def get_all_params(self):
+        """
+        Get all params (specified by user and default params) that were set in training from CatBoost model.
+        Full parameters documentation could be found here: https://catboost.ai/docs/concepts/python-reference_parameters-list.html
+
+        Returns
+        -------
+        result : dict
+            Dictionary of {param_key: param_value}.
+        """
+        if not self.is_fitted():
+            raise CatBoostError("There is no trained model to use get_all_params(). Use fit() to train model. Then use this method.")
+        return self._object._get_plain_params()
+
+
     def save_borders(self, fname):
         """
         Save the model borders to a file.
@@ -2384,11 +2400,11 @@ class CatBoost(_CatBoostBase):
         for split_num in range(len(splits) - 1, -2, -1):
             for node_num in range(layer_size):
                 if split_num >= 0:
-                    node_label = splits[split_num].decode('utf-8').replace('bin=', 'value>', 1)
+                    node_label = splits[split_num].replace('bin=', 'value>', 1)
                     color = 'black'
                     shape = 'ellipse'
                 else:
-                    node_label = leaf_values[node_num].decode('utf-8')
+                    node_label = leaf_values[node_num]
                     color = 'red'
                     shape = 'rect'
 
@@ -2670,7 +2686,7 @@ class CatBoostClassifier(CatBoost):
         CPU only. Maximum bucket count in exclusive features bundle. Should be in an integer between 0 and 65536.
         Used only for learning speed tuning.
 
-    efb_max_conflict_fraction : float, [default=0.0]
+    sparse_features_conflict_fraction : float, [default=0.0]
         CPU only. Maximum allowed fraction of conflicting non-default values for features in exclusive features bundle.
         Should be a real value in [0, 1) interval.
 
@@ -2802,7 +2818,7 @@ class CatBoostClassifier(CatBoost):
         sampling_unit=None,
         dev_score_calc_obj_block_size=None,
         dev_efb_max_buckets=None,
-        efb_max_conflict_fraction=None,
+        sparse_features_conflict_fraction=None,
         max_depth=None,
         n_estimators=None,
         num_boost_round=None,
@@ -2833,10 +2849,6 @@ class CatBoostClassifier(CatBoost):
                 params[key] = value
 
         super(CatBoostClassifier, self).__init__(params)
-
-    @property
-    def classes_(self):
-        return getattr(self, "_classes", None)
 
     def fit(self, X, y=None, cat_features=None, sample_weight=None, baseline=None, use_best_model=None,
             eval_set=None, verbose=None, logging_level=None, plot=False, column_description=None,
@@ -3240,7 +3252,7 @@ class CatBoostRegressor(CatBoost):
         sampling_unit=None,
         dev_score_calc_obj_block_size=None,
         dev_efb_max_buckets=None,
-        efb_max_conflict_fraction=None,
+        sparse_features_conflict_fraction=None,
         max_depth=None,
         n_estimators=None,
         num_boost_round=None,

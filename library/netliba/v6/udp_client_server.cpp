@@ -635,7 +635,7 @@ namespace NNetliba {
     }
     template <class T>
     inline void Write(char** data, T res) {
-        WriteUnaligned(*data, res);
+        WriteUnaligned<T>(*data, res);
         *data += sizeof(T);
     }
 

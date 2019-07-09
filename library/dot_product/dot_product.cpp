@@ -65,7 +65,7 @@ i64 DotProduct(const i32* lhs, const i32* rhs, ui32 length) noexcept {
     i64 sum = r[0] + r[1];
 
     for (ui32 i = 0; i < length; ++i) {
-        sum += static_cast<i32>(lhs[i]) * static_cast<i32>(rhs[i]);
+        sum += static_cast<i64>(lhs[i]) * static_cast<i64>(rhs[i]);
     }
 
     return sum;

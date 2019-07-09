@@ -27,7 +27,7 @@ size_t NICONVPrivate::RecodeImpl(const TDescriptor& descriptor, const char* in, 
     Y_ASSERT(in);
     Y_ASSERT(out);
 
-    const char* inPtr = in;
+    char* inPtr = const_cast<char*>(in);
     char* outPtr = out;
     size_t inSizeMod = inSize;
     size_t outSizeMod = outSize;

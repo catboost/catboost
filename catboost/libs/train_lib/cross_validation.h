@@ -47,7 +47,6 @@ struct TCVResult {
     }
 };
 
-
 TConstArrayRef<TString> GetTargetForStratifiedSplit(const NCB::TDataProvider& dataProvider);
 TConstArrayRef<float> GetTargetForStratifiedSplit(const NCB::TTrainingDataProvider& dataProvider);
 
@@ -132,12 +131,11 @@ TVector<TDataProvidersTemplate> PrepareCvFolds(
     NCB::ExecuteTasksInParallel(&tasks, localExecutor);
 
     return result;
-
 }
-
 
 void CrossValidate(
     NJson::TJsonValue plainJsonParams,
+    NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
     const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
     const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
     NCB::TDataProviderPtr data,

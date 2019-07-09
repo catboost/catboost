@@ -70,3 +70,4 @@ TMap<TString, TString> ParseHintsDescription(TStringBuf hintsDescription);
 TString MakeHintsDescription(const TMap<TString, TString>& hints);
 
 NJson::TJsonValue LossDescriptionToJson(TStringBuf lossDescription);
+TString BuildMetricOptionDescription(const NJson::TJsonValue& lossOptions);

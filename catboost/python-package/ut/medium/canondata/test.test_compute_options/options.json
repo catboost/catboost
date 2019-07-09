@@ -173,7 +173,6 @@
         "depth": 6, 
         "dev_efb_max_buckets": 1024, 
         "dev_score_calc_obj_block_size": 5000000, 
-        "efb_max_conflict_fraction": 0, 
         "l2_leaf_reg": 3, 
         "leaf_estimation_backtracking": "AnyImprovement", 
         "leaf_estimation_iterations": 1, 
@@ -182,6 +181,7 @@
         "monotone_constraints": [], 
         "random_strength": 1, 
         "rsm": 1, 
-        "sampling_frequency": "PerTree"
+        "sampling_frequency": "PerTree", 
+        "sparse_features_conflict_fraction": 0
     }
 }

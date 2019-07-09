@@ -47,6 +47,13 @@ namespace NTextProcessing::NDictionary {
         size_t NumUnits = 0;
         bool SkipUnknown = false;
 
+        // Used in conjunction with Letter TokenLevelType.
+        //   Word - BPE units are created from each word in isolation.
+        //     Letter sequences include letters inside the word and end of word token.
+        //     It works faster and requires less memory then Sentence type.
+        //   Sentence - BPE units are created from a whole sentence by taking into account spaces between words.
+        EContextLevel ContextLevel = EContextLevel::Word;
+
         Y_SAVELOAD_DEFINE(NumUnits, SkipUnknown);
     };
 

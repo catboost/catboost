@@ -80,6 +80,7 @@
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\library\text_processing\dictionary\bpe_builder.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\text_processing\dictionary\bpe_dictionary.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\text_processing\dictionary\bpe_helpers.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\text_processing\dictionary\dictionary.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\text_processing\dictionary\dictionary_builder.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\text_processing\dictionary\fbs_helpers.cpp"/>
@@ -122,6 +123,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\library\text_processing\dictionary\bpe_builder.h"/>
     <ClInclude Include="$(SolutionDir)..\library\text_processing\dictionary\bpe_dictionary.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\text_processing\dictionary\bpe_helpers.h"/>
     <ClInclude Include="$(SolutionDir)..\library\text_processing\dictionary\dictionary.h"/>
     <ClInclude Include="$(SolutionDir)..\library\text_processing\dictionary\dictionary_builder.h"/>
     <ClInclude Include="$(SolutionDir)..\library\text_processing\dictionary\fbs_helpers.h"/>

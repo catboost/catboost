@@ -5,3 +5,6 @@ SRCS(
     svn_interface.c
 )
 END()
+RECURSE(
+    test
+)

@@ -20,7 +20,7 @@ NCatboostOptions::TObliviousTreeLearnerOptions::TObliviousTreeLearnerOptions(ETa
       , ModelSizeReg("model_size_reg", 0.5, taskType)
       , DevScoreCalcObjBlockSize("dev_score_calc_obj_block_size", 5000000, taskType)
       , DevExclusiveFeaturesBundleMaxBuckets("dev_efb_max_buckets", 1 << 10, taskType)
-      , ExclusiveFeaturesBundleMaxConflictFraction("efb_max_conflict_fraction", 0.0f, taskType)
+      , SparseFeaturesConflictFraction("sparse_features_conflict_fraction", 0.0f, taskType)
       , ObservationsToBootstrap("observations_to_bootstrap", EObservationsToBootstrap::TestOnly, taskType) //it's specific for fold-based scheme, so here and not in bootstrap options
       , FoldSizeLossNormalization("fold_size_loss_normalization", false, taskType)
       , AddRidgeToTargetFunctionFlag("add_ridge_penalty_to_loss_function", false, taskType)
@@ -55,7 +55,7 @@ void NCatboostOptions::TObliviousTreeLearnerOptions::Load(const NJson::TJsonValu
             &SamplingFrequency,
             &DevScoreCalcObjBlockSize,
             &DevExclusiveFeaturesBundleMaxBuckets,
-            &ExclusiveFeaturesBundleMaxConflictFraction,
+            &SparseFeaturesConflictFraction,
             &GrowPolicy,
             &MaxLeaves,
             &MinDataInLeaf,
@@ -75,7 +75,7 @@ void NCatboostOptions::TObliviousTreeLearnerOptions::Save(NJson::TJsonValue* opt
             MaxCtrComplexityForBordersCaching, Rsm, ObservationsToBootstrap, SamplingFrequency,
             DevScoreCalcObjBlockSize,
             DevExclusiveFeaturesBundleMaxBuckets,
-            ExclusiveFeaturesBundleMaxConflictFraction,
+            SparseFeaturesConflictFraction,
             GrowPolicy,
             MaxLeaves,
             MinDataInLeaf,
@@ -88,7 +88,7 @@ bool NCatboostOptions::TObliviousTreeLearnerOptions::operator==(const TOblivious
             BootstrapConfig, Rsm, SamplingFrequency, ObservationsToBootstrap, FoldSizeLossNormalization,
             AddRidgeToTargetFunctionFlag, ScoreFunction, MaxCtrComplexityForBordersCaching,
             PairwiseNonDiagReg, LeavesEstimationBacktrackingType, DevScoreCalcObjBlockSize,
-            DevExclusiveFeaturesBundleMaxBuckets, ExclusiveFeaturesBundleMaxConflictFraction,
+            DevExclusiveFeaturesBundleMaxBuckets, SparseFeaturesConflictFraction,
             GrowPolicy, MaxLeaves, MinDataInLeaf, MonotoneConstraints
             ) ==
         std::tie(rhs.MaxDepth, rhs.LeavesEstimationIterations, rhs.LeavesEstimationMethod, rhs.L2Reg, rhs.ModelSizeReg,
@@ -96,7 +96,7 @@ bool NCatboostOptions::TObliviousTreeLearnerOptions::operator==(const TOblivious
                 rhs.ObservationsToBootstrap, rhs.FoldSizeLossNormalization, rhs.AddRidgeToTargetFunctionFlag,
                 rhs.ScoreFunction, rhs.MaxCtrComplexityForBordersCaching, rhs.PairwiseNonDiagReg, rhs.LeavesEstimationBacktrackingType,
                 rhs.DevScoreCalcObjBlockSize,
-                rhs.DevExclusiveFeaturesBundleMaxBuckets, rhs.ExclusiveFeaturesBundleMaxConflictFraction,
+                rhs.DevExclusiveFeaturesBundleMaxBuckets, rhs.SparseFeaturesConflictFraction,
                 rhs.GrowPolicy, rhs.MaxLeaves, rhs.MinDataInLeaf, rhs.MonotoneConstraints);
 }
 
@@ -113,8 +113,8 @@ void NCatboostOptions::TObliviousTreeLearnerOptions::Validate() const {
     CB_ENSURE(DevScoreCalcObjBlockSize.GetUnchecked() > 0, "DevScoreCalcObjBlockSize must be > 0");
     CB_ENSURE(DevExclusiveFeaturesBundleMaxBuckets.GetUnchecked() < (1U << 16), "DevExclusiveFeaturesBundleMaxBuckets must be less than 65536");
     CB_ENSURE(
-        (ExclusiveFeaturesBundleMaxConflictFraction.GetUnchecked() >= 0.f) && (ExclusiveFeaturesBundleMaxConflictFraction.GetUnchecked() < 1.f),
-        "ExclusiveFeaturesBundleMaxConflictFraction should be in [0, 1)"
+        (SparseFeaturesConflictFraction.GetUnchecked() >= 0.f) && (SparseFeaturesConflictFraction.GetUnchecked() < 1.f),
+        "SparseFeaturesConflictFraction should be in [0, 1)"
     );
     CB_ENSURE(LeavesEstimationIterations.Get() > 0, "Leaves estimation iterations should be positive");
     CB_ENSURE(L2Reg.Get() >= 0, "L2LeafRegularizer should be >= 0, current value: " << L2Reg.Get());

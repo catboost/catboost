@@ -278,6 +278,7 @@ static void LZ4_write32(void* memPtr, U32 value)
 #endif /* LZ4_FORCE_MEMORY_ACCESS */
 
 
+#if !defined(ONLY_COMPRESS)
 static U16 LZ4_readLE16(const void* memPtr)
 {
     if (LZ4_isLittleEndian()) {
@@ -287,6 +288,7 @@ static U16 LZ4_readLE16(const void* memPtr)
         return (U16)((U16)p[0] + (p[1]<<8));
     }
 }
+#endif   /* ONLY_COMPRESS */
 
 static void LZ4_writeLE16(void* memPtr, U16 value)
 {
@@ -322,7 +324,7 @@ static const int      dec64table[8] = {0, 0, 0, -1, -4,  1, 2, 3};
 #  endif
 #endif
 
-#if LZ4_FAST_DEC_LOOP
+#if LZ4_FAST_DEC_LOOP && !defined(ONLY_COMPRESS)
 
 LZ4_FORCE_O2_INLINE_GCC_PPC64LE void
 LZ4_memcpy_using_offset_base(BYTE* dstPtr, const BYTE* srcPtr, BYTE* dstEnd, const size_t offset)
@@ -602,7 +604,7 @@ int LZ4_sizeofState() { return LZ4_STREAMSIZE; }
 /*-************************************
 *  Internal Definitions used in Tests
 **************************************/
-#if defined (__cplusplus)
+#if defined (__cplusplus) && !defined(ONLY_COMPRESS)
 extern "C" {
 #endif
 
@@ -610,7 +612,7 @@ int LZ4_compress_forceExtDict (LZ4_stream_t* LZ4_stream, const char* source, cha
 
 int LZ4_decompress_safe_forceExtDict(const char* in, char* out, int inSize, int outSize, const void* dict, size_t dictSize);
 
-#if defined (__cplusplus)
+#if defined (__cplusplus) && !defined(ONLY_COMPRESS)
 }
 #endif
 
@@ -1283,6 +1285,7 @@ int LZ4_compress_destSize(const char* src, char* dst, int* srcSizePtr, int targe
 *  Streaming functions
 ********************************/
 
+#if !defined(ONLY_COMPRESS)
 LZ4_stream_t* LZ4_createStream(void)
 {
     LZ4_stream_t* const lz4s = (LZ4_stream_t*)ALLOC(sizeof(LZ4_stream_t));
@@ -1292,6 +1295,7 @@ LZ4_stream_t* LZ4_createStream(void)
     LZ4_initStream(lz4s, sizeof(*lz4s));
     return lz4s;
 }
+#endif   /* ONLY_COMPRESS */
 
 #ifndef _MSC_VER  /* for some reason, Visual fails the aligment test on 32-bit x86 :
                      it reports an aligment of 8-bytes,
@@ -1317,6 +1321,7 @@ LZ4_stream_t* LZ4_initStream (void* buffer, size_t size)
     return (LZ4_stream_t*)buffer;
 }
 
+#if !defined(ONLY_COMPRESS)
 /* resetStream is now deprecated,
  * prefer initStream() which is more general */
 void LZ4_resetStream (LZ4_stream_t* LZ4_stream)
@@ -2296,4 +2301,5 @@ char* LZ4_slideInputBuffer (void* state)
     return (char *)(uptrval)((LZ4_stream_t*)state)->internal_donotuse.dictionary;
 }
 
+#endif   /* ONLY_COMPRESS */
 #endif   /* LZ4_COMMONDEFS_ONLY */

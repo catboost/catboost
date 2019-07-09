@@ -39,6 +39,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\build\platform\cuda\build-platform-cuda.vcxproj">
       <Project>18ED0C1C-3127-4315-3368-E63B97EFA8F1</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\build\scripts\c_templates\dummy-vcs.vcxproj">
+      <Project>C7161B5C-139D-1AE8-3502-FC9B47248265</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\R-package\catboost-R-package.vcxproj">
       <Project>A865CAE7-8B3F-B9B7-2CEA-DB5FE65BBE46</Project>
     </ProjectReference>
@@ -348,6 +351,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\tools\model_comparator\model_comparator.vcxproj">
       <Project>F2890E3D-C0D6-F694-F586-9591CDA361D1</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\certs\certs.vcxproj">
+      <Project>C092F5EB-6E3B-CBC5-C723-B1E4327CB1A8</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\libffi\contrib-deprecated-libffi.vcxproj">
       <Project>32E78DFF-5451-B440-4B35-E627E82B514E</Project>
     </ProjectReference>
@@ -435,11 +441,11 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\libf2c\contrib-libs-libf2c.vcxproj">
       <Project>ACC03840-E215-DC54-B209-59FA03988A57</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\lz4\contrib-libs-lz4.vcxproj">
+      <Project>3E6BC25C-7681-5FB8-F139-A03845C5F910</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\lz4\generated\libs-lz4-generated.vcxproj">
       <Project>B1939F66-2680-431C-0803-80E79529B7E9</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\lz4\lz4.vcxproj">
-      <Project>1B7E96CA-22DB-5D08-EC22-214B2D56032B</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\lzmasdk\contrib-libs-lzmasdk.vcxproj">
       <Project>4F7974CD-8E2E-CE00-9601-B94495E36E7D</Project>
@@ -497,6 +503,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\tensorboard\contrib-libs-tensorboard.vcxproj">
       <Project>85643E70-B3E5-4747-7C6D-59B9CF26EE48</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\xxhash\contrib-libs-xxhash.vcxproj">
+      <Project>93F9D338-B2A4-2DC4-8B30-A39701C2F9EE</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zlib\contrib-libs-zlib.vcxproj">
       <Project>E8A35EC0-40EE-2D96-1FB2-D065B804958D</Project>
@@ -677,6 +686,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\binsaver\library-binsaver.vcxproj">
       <Project>9C4284EC-342F-438F-B12F-EF54AD02C9C0</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\binsaver\ut_util\library-binsaver-ut_util.vcxproj">
+      <Project>0535A087-E0A5-E4C1-3C87-219D8CBAE4B1</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\blockcodecs\codecs\brotli\blockcodecs-codecs-brotli.vcxproj">
       <Project>2674849B-0330-C348-578B-DB562AA37E65</Project>

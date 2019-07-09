@@ -4,10 +4,11 @@
 #include <util/thread/pool.h>
 
 void RunGpuProgram(std::function<void()> func) {
-    auto queue = CreateThreadPool(1);
+    TThreadPool queue;
+    queue.Start(1);
     NThreading::TFuture<void> future = NThreading::Async(
         func,
-        *queue
+        queue
     );
     future.Wait();
 }

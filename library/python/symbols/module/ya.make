@@ -13,7 +13,7 @@ SRCS(
 )
 
 PY_REGISTER(
-    library.python.symbols.module.syms=syms
+    library.python.symbols.module.syms
 )
 
 PY_SRCS(

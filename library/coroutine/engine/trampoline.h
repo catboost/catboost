@@ -14,35 +14,81 @@ class TCont;
 typedef void (*TContFunc)(TCont*, void*);
 
 namespace NCoro {
-    class IScheduleCallback;
+    namespace NPrivate {
+        // including alignment and 2x guard overheads
+        ui32 RawStackSize(ui32 sz, ui32 guardSize);
 
-    // accounts for asan stack space overhead
-    ui32 RealCoroStackSize(ui32 coroStackSize);
-    TMaybe<ui32> RealCoroStackSize(TMaybe<ui32> coroStackSize);
+        TArrayRef<char> AlignedRange(char* data, ui32 sz, ui32 guardSize);
+    }
+
+    class TStack : TNonCopyable {
+    public:
+        enum class EGuard {
+            Canary /* "canary" */,
+            Page /* "page" */,
+        };
+
+        explicit TStack(ui32 sz, EGuard) noexcept;
+        ~TStack();
+
+        TArrayRef<char> Get() noexcept;
+
+        bool LowerCanaryOk() const noexcept;
+
+        bool UpperCanaryOk() const noexcept;
+
+    private:
+        const EGuard Guard_;
+        const ui32 RawSize_;
+        char* const RawPtr_;
+        size_t StackId_ = 0;
+    };
+
 
     class TTrampoline : public ITrampoLine, TNonCopyable {
     public:
         TTrampoline(
             ui32 stackSize,
+            TStack::EGuard guard,
             TContFunc f,
             TCont* cont,
             void* arg
         ) noexcept;
 
-        ~TTrampoline();
+        TArrayRef<char> Stack() noexcept;
 
-        void SwitchTo(TExceptionSafeContext* ctx) noexcept;
+        TExceptionSafeContext* Context() noexcept {
+            return &Ctx_;
+        }
+
+        TContFunc Func() const noexcept {
+            return Func_;
+        }
+
+        void* Arg() const noexcept {
+            return Arg_;
+        }
+
+        void SwitchTo(TExceptionSafeContext* ctx) noexcept {
+            Y_VERIFY(Stack_.LowerCanaryOk(), "Stack overflow");
+            Y_VERIFY(Stack_.UpperCanaryOk(), "Stack override");
+            Ctx_.SwitchTo(ctx);
+        }
 
         void DoRun();
 
-    public:
-        const THolder<char, TFree> Stack_;
-        const ui32 StackSize_;
+    private:
+        TStack Stack_;
         const TContClosure Clo_;
         TExceptionSafeContext Ctx_;
         TContFunc const Func_ = nullptr;
         TCont* const Cont_;
-        size_t StackId_ = 0;
         void* const Arg_;
     };
+
+
+    // accounts for the stack space overhead in sanitizers and debug builds
+    ui32 RealCoroStackSize(ui32 coroStackSize);
+
+    TMaybe<ui32> RealCoroStackSize(TMaybe<ui32> coroStackSize);
 }

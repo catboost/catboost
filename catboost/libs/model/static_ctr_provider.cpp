@@ -1,6 +1,6 @@
 #include "static_ctr_provider.h"
 #include "json_model_helpers.h"
-#include "formula_evaluator.h"
+#include "cpu/evaluator.h"
 
 #include <catboost/libs/model/model_export/export_helpers.h>
 
@@ -201,7 +201,7 @@ void TStaticCtrProvider::SetupBinFeatureIndexes(const TVector<TFloatFeature>& fl
         }
         for (size_t borderIdx = 0; borderIdx < floatFeature.Borders.size(); ++borderIdx) {
             TBinFeatureIndexValue featureIdx{currentIndex + (ui32)borderIdx / MAX_VALUES_PER_BIN, false, (ui8)((borderIdx % MAX_VALUES_PER_BIN)+ 1)};
-            TFloatSplit split{floatFeature.FeatureIndex, floatFeature.Borders[borderIdx]};
+            TFloatSplit split{floatFeature.Position.Index, floatFeature.Borders[borderIdx]};
             FloatFeatureIndexes[split] = featureIdx;
         }
         currentIndex += (floatFeature.Borders.size() + MAX_VALUES_PER_BIN - 1) / MAX_VALUES_PER_BIN;
@@ -219,7 +219,7 @@ void TStaticCtrProvider::SetupBinFeatureIndexes(const TVector<TFloatFeature>& fl
     for (const auto& catFeature : catFeatures) {
         if (catFeature.UsedInModel) {
             const int prevSize = CatFeatureIndex.ysize();
-            CatFeatureIndex[catFeature.FeatureIndex] = prevSize;
+            CatFeatureIndex[catFeature.Position.Index] = prevSize;
         }
     }
 }

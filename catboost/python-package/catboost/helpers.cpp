@@ -6,6 +6,8 @@
 #include <catboost/libs/helpers/interrupt.h>
 #include <catboost/libs/helpers/query_info_helper.h>
 #include <catboost/libs/target/data_providers.h>
+#include <catboost/libs/options/plain_options_helper.h>
+
 
 extern "C" PyObject* PyCatboostExceptionType;
 
@@ -57,7 +59,7 @@ TVector<TVector<double>> EvalMetrics(
     TRestorableFastRng64 rand(0);
 
     auto metricLossDescriptions = CreateMetricLossDescriptions(metricsDescription);
-    auto metrics = CreateMetrics(metricLossDescriptions, model.ObliviousTrees.ApproxDimension);
+    auto metrics = CreateMetrics(metricLossDescriptions, model.GetDimensionsCount());
     TMetricsPlotCalcer plotCalcer = CreateMetricCalcer(
         model,
         begin,
@@ -94,7 +96,7 @@ TVector<TVector<double>> EvalMetrics(
 }
 
 TVector<TString> GetMetricNames(const TFullModel& model, const TVector<TString>& metricsDescription) {
-    auto metrics = CreateMetricsFromDescription(metricsDescription, model.ObliviousTrees.ApproxDimension);
+    auto metrics = CreateMetricsFromDescription(metricsDescription, model.GetDimensionsCount());
     TVector<TString> metricNames;
     metricNames.reserve(metrics.ysize());
     for (auto& metric : metrics) {
@@ -166,3 +168,18 @@ NJson::TJsonValue GetTrainingOptions(
     catboostOptions.Save(&catboostOptionsJson);
     return catboostOptionsJson;
 }
+
+NJson::TJsonValue GetPlainJsonWithAllOptions(const TFullModel& model, bool hasCatFeatures)
+{
+    NJson::TJsonValue trainOptions = ReadTJsonValue(model.ModelInfo.at("params"));
+    NJson::TJsonValue outputOptions = ReadTJsonValue(model.ModelInfo.at("output_options"));
+    NJson::TJsonValue plainOptions;
+    NCatboostOptions::ConvertOptionsToPlainJson(trainOptions, outputOptions, &plainOptions);
+    CB_ENSURE(!plainOptions.GetMapSafe().empty(), "plainOptions should not be empty.");
+    NJson::TJsonValue cleanedOptions(plainOptions);
+    CB_ENSURE(!cleanedOptions.GetMapSafe().empty(), "problems with copy constructor.");
+    NCatboostOptions::CleanPlainJson(hasCatFeatures, &cleanedOptions);
+    CB_ENSURE(!cleanedOptions.GetMapSafe().empty(), "cleanedOptions should not be empty.");
+    return cleanedOptions;
+}
+

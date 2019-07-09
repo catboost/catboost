@@ -119,13 +119,11 @@ static TDataProviders LoadPools(
     }
 }
 
-static bool HasInvalidValues(const TVector<TVector<TVector<double>>>& leafValues) {
-    for (const auto& tree : leafValues) {
-        for (const TVector<double>& leaf : tree) {
-            for (double value : leaf) {
-                if (!IsValidFloat(value)) {
-                    return true;
-                }
+static bool HasInvalidValues(const TVector<TVector<double>>& treeLeafValues) {
+    for (const auto& leafValuesDimension : treeLeafValues) {
+        for (double leafValueCoord : leafValuesDimension) {
+            if (!IsValidFloat(leafValueCoord)) {
+                return true;
             }
         }
     }
@@ -421,7 +419,7 @@ static void Train(
             &loggingData.Logger
         );
 
-        if (HasInvalidValues(ctx->LearnProgress->LeafValues)) {
+        if (HasInvalidValues(ctx->LearnProgress->LeafValues.back())) {
             ctx->LearnProgress->LeafValues.pop_back();
             ctx->LearnProgress->TreeStruct.pop_back();
             CATBOOST_WARNING_LOG << "Training has stopped (degenerate solution on iteration "
@@ -490,7 +488,7 @@ static void SaveModel(
             }
             builder.AddTree(modelSplits, ctx.LearnProgress->LeafValues[treeId], ctx.LearnProgress->TreeStats[treeId].LeafWeightsSum);
         }
-        obliviousTrees = builder.Build();
+        builder.Build(&obliviousTrees);
     }
 
 
@@ -515,6 +513,7 @@ static void SaveModel(
     {
         NCB::TCoreModelToFullModelConverter coreModelToFullModelConverter(
             ctx.Params,
+            ctx.OutputOptions,
             classificationTargetHelper,
             ctx.Params.CatFeatureParams->CtrLeafCountLimit,
             ctx.Params.CatFeatureParams->StoreAllSimpleCtrs,
@@ -539,7 +538,8 @@ static void SaveModel(
             modelPtr = &*fullModel;
         }
 
-        modelPtr->ObliviousTrees = std::move(obliviousTrees);
+        *modelPtr->ObliviousTrees.GetMutable() = std::move(obliviousTrees);
+        modelPtr->UpdateDynamicData();
         coreModelToFullModelConverter.WithCoreModelFrom(modelPtr);
 
         if (dstModel || addResultModelToInitModel) {

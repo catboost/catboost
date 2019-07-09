@@ -117,9 +117,9 @@ Y_UNIT_TEST_SUITE(TMultiLogitTests) {
                     value += val;
                 }
             }
-            UNIT_ASSERT_DOUBLES_EQUAL_C(value / totalWeight, funcValueRef / totalWeight, 1e-5, TStringBuilder() << value << " " << funcValueRef);
+            UNIT_ASSERT_DOUBLES_EQUAL_C(value / totalWeight, funcValueRef / totalWeight, 1e-4, TStringBuilder() << value << " " << funcValueRef);
 
-            const double eps = 1e-5;
+            const double eps = 1e-4;
             AssertDoubleEqual(derRef, der, eps, "der");
 
             for (ui32 row = 0; row < numClasses - 1; ++row) {

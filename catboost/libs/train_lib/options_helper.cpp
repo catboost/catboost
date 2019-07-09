@@ -7,6 +7,8 @@
 #include <util/system/types.h>
 #include <util/generic/ymath.h>
 #include <util/generic/maybe.h>
+#include <util/string/builder.h>
+
 
 static double Round(double number, int precision) {
     const double multiplier = pow(10, precision);
@@ -160,6 +162,41 @@ static bool IsConstTarget(const NCB::TDataMetaInfo& dataMetaInfo) {
     return dataMetaInfo.TargetStats.Defined() && dataMetaInfo.TargetStats->MinValue == dataMetaInfo.TargetStats->MaxValue;
 }
 
+static void UpdateAndValidateMonotoneConstraints(
+    const NCB::TFeaturesLayout& featuresLayout,
+    TVector<int>* monotoneConstraints
+) {
+    CB_ENSURE(
+        monotoneConstraints->size() <= featuresLayout.GetExternalFeatureCount(),
+        "length of monotone constraints vector exceeds number of features."
+    );
+    CB_ENSURE(
+        AllOf(
+            xrange(monotoneConstraints->size()),
+            [&] (int featureIndex) {
+                return (
+                    (*monotoneConstraints)[featureIndex] == 0 ||
+                    featuresLayout.GetExternalFeatureType(featureIndex) == EFeatureType::Float
+                );
+            }
+        ),
+        "Monotone constraints may be imposed only on float features."
+    );
+
+    // Ensure that monotoneConstraints size is zero or equals to the number of float features.
+    if (AllOf(*monotoneConstraints, [] (int constraint) { return constraint == 0; })) {
+        monotoneConstraints->clear();
+    } else {
+        TVector<int> floatFeatureMonotonicConstraints(featuresLayout.GetFloatFeatureCount(), 0);
+        for (ui32 floatFeatureId : xrange<ui32>(featuresLayout.GetFloatFeatureCount())) {
+            floatFeatureMonotonicConstraints[floatFeatureId] = (*monotoneConstraints)[
+                featuresLayout.GetExternalFeatureIdx(floatFeatureId, EFeatureType::Float)
+            ];
+        }
+        *monotoneConstraints = floatFeatureMonotonicConstraints;
+    }
+}
+
 void SetDataDependentDefaults(
     const NCB::TDataMetaInfo& trainDataMetaInfo,
     const TMaybe<NCB::TDataMetaInfo>& testDataMetaInfo,
@@ -185,4 +222,10 @@ void SetDataDependentDefaults(
         catBoostOptions
     );
     UpdateLeavesEstimationIterations(trainDataMetaInfo, catBoostOptions);
+    if (catBoostOptions->GetTaskType() == ETaskType::CPU) {
+        UpdateAndValidateMonotoneConstraints(
+            *trainDataMetaInfo.FeaturesLayout.Get(),
+            &catBoostOptions->ObliviousTreeOptions->MonotoneConstraints.Get()
+        );
+    }
 }

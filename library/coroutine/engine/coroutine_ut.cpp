@@ -7,6 +7,7 @@
 #include <util/string/cast.h>
 #include <util/system/pipe.h>
 #include <util/system/env.h>
+#include <util/system/info.h>
 #include <util/generic/xrange.h>
 
 // TODO (velavokr): BALANCER-1345 add more tests on pollers
@@ -35,6 +36,9 @@ class TCoroTest: public TTestBase {
     UNIT_TEST(TestFastPathWakeSelect)
     UNIT_TEST(TestLegacyCancelYieldRaceBug)
     UNIT_TEST(TestJoinRescheduleBug);
+    UNIT_TEST(TestStackAlignmentLogic);
+    UNIT_TEST(TestStackCanaries);
+    UNIT_TEST(TestStackPages);
     UNIT_TEST_SUITE_END();
 
 public:
@@ -59,6 +63,9 @@ public:
     void TestFastPathWakeSelect();
     void TestLegacyCancelYieldRaceBug();
     void TestJoinRescheduleBug();
+    void TestStackAlignmentLogic();
+    void TestStackCanaries();
+    void TestStackPages();
 };
 
 void TCoroTest::TestException() {
@@ -792,6 +799,65 @@ void TCoroTest::TestJoinRescheduleBug() {
     UNIT_ASSERT_EQUAL(state.SubAState, EState::Finished);
     UNIT_ASSERT_EQUAL(state.SubBState, EState::Finished);
     UNIT_ASSERT_EQUAL(state.SubCState, EState::Finished);
+}
+
+void TCoroTest::TestStackAlignmentLogic() {
+    char mem[4096 * 8] = {};
+
+    for (ui32 guardAlign : {32, 4096}) {
+        for (ui32 sz = 0; sz < 2 * guardAlign; sz += guardAlign / 32) {
+            UNIT_ASSERT_GE(NCoro::NPrivate::RawStackSize(sz, guardAlign), sz + 4 * guardAlign);
+        }
+
+        for (ui32 off = 0; off < 2 * guardAlign; off += guardAlign / 32) {
+            for (ui32 sz = 0; sz < 2 * guardAlign; sz += guardAlign / 32) {
+                const auto beg = mem + off;
+                const auto rawSz = NCoro::NPrivate::RawStackSize(sz, guardAlign);
+                const auto range = NCoro::NPrivate::AlignedRange(beg, rawSz, guardAlign);
+
+                // The range beginning is properly aligned
+                UNIT_ASSERT_EQUAL(range.data(), AlignUp(beg, guardAlign));
+                // The range end is also propery aligned
+                UNIT_ASSERT_VALUES_EQUAL(range.end(), AlignDown(range.end(), guardAlign));
+                // The range capacity is enough to accomodate 2 guard entities at the ends
+                UNIT_ASSERT_GE(range.size(), sz + 2 * guardAlign);
+            }
+        }
+    }
+}
+
+void TCoroTest::TestStackCanaries() {
+    {
+        NCoro::TStack s(1, NCoro::TStack::EGuard::Canary);
+        UNIT_ASSERT_GE(s.Get().size(), 32);
+        UNIT_ASSERT_VALUES_EQUAL(((size_t)s.Get().data()) & 31, 0);
+        memset(s.Get().data(), 0, s.Get().size());
+        UNIT_ASSERT(s.LowerCanaryOk());
+        UNIT_ASSERT(s.UpperCanaryOk());
+    }
+    {
+        NCoro::TStack s(1, NCoro::TStack::EGuard::Canary);
+        UNIT_ASSERT_GE(s.Get().size(), 32);
+        UNIT_ASSERT_VALUES_EQUAL(((size_t)s.Get().data()) & 31, 0);
+        memset(s.Get().data() - 1, 0, s.Get().size() + 1);
+        UNIT_ASSERT(!s.LowerCanaryOk());
+        UNIT_ASSERT(s.UpperCanaryOk());
+    }
+    {
+        NCoro::TStack s(1, NCoro::TStack::EGuard::Canary);
+        UNIT_ASSERT_GE(s.Get().size(), 32);
+        UNIT_ASSERT_VALUES_EQUAL(((size_t)s.Get().data()) & 31, 0);
+        memset(s.Get().data(), 0, s.Get().size() + 1);
+        UNIT_ASSERT(s.LowerCanaryOk());
+        UNIT_ASSERT(!s.UpperCanaryOk());
+    }
+}
+
+void TCoroTest::TestStackPages() {
+    NCoro::TStack s(1, NCoro::TStack::EGuard::Page);
+    UNIT_ASSERT_GE(s.Get().size(), NSystemInfo::GetPageSize());
+    UNIT_ASSERT_VALUES_EQUAL(((ptrdiff_t)s.Get().data()) & (NSystemInfo::GetPageSize() - 1), 0);
+    memset(s.Get().data(), 0, s.Get().size());
 }
 
 UNIT_TEST_SUITE_REGISTRATION(TCoroTest);

@@ -1178,6 +1178,31 @@ def _idval(val, argname, idx, idfn, item, config):
     return str(argname) + str(idx)
 
 
+def limit_idval(limit):
+    import functools
+
+    names = {}
+    limit -= 6
+    assert limit > 0
+
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kw):
+            idval = func(*args, **kw)
+            if len(idval) > limit:
+                prefix = idval[:limit]
+                idx = names.setdefault(prefix, -1) + 1
+                names[prefix] = idx
+                idval = "{}-{}".format(prefix, idx)
+            return idval
+
+        return wrapper
+
+    return decorator
+
+
+# XXX limit testnames in the name of sanity and readability
+@limit_idval(limit=500)
 def _idvalset(idx, parameterset, argnames, idfn, ids, item, config):
     if parameterset.id is not None:
         return parameterset.id

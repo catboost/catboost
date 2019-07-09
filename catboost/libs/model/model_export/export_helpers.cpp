@@ -17,7 +17,7 @@ static TString FloatToStringWithSuffix(float value, bool addFloatingSuffix) {
 namespace NCatboostModelExportHelpers {
     int GetBinaryFeatureCount(const TFullModel& model) {
         int binaryFeatureCount = 0;
-        for (const auto& floatFeature : model.ObliviousTrees.FloatFeatures) {
+        for (const auto& floatFeature : model.ObliviousTrees->FloatFeatures) {
             if (!floatFeature.UsedInModel()) {
                 continue;
             }
@@ -27,13 +27,13 @@ namespace NCatboostModelExportHelpers {
     }
 
     TString OutputBorderCounts(const TFullModel& model) {
-        return OutputArrayInitializer([&model] (size_t i) { return model.ObliviousTrees.FloatFeatures[i].Borders.size(); }, model.ObliviousTrees.FloatFeatures.size());
+        return OutputArrayInitializer([&model] (size_t i) { return model.ObliviousTrees->FloatFeatures[i].Borders.size(); }, model.ObliviousTrees->FloatFeatures.size());
     }
 
     TString OutputBorders(const TFullModel& model, bool addFloatingSuffix) {
         TStringBuilder outString;
-        TSequenceCommaSeparator comma(model.ObliviousTrees.FloatFeatures.size(), AddSpaceAfterComma);
-        for (const auto& floatFeature : model.ObliviousTrees.FloatFeatures) {
+        TSequenceCommaSeparator comma(model.ObliviousTrees->FloatFeatures.size(), AddSpaceAfterComma);
+        for (const auto& floatFeature : model.ObliviousTrees->FloatFeatures) {
             if (!floatFeature.UsedInModel()) {
                 continue;
             }
@@ -44,11 +44,11 @@ namespace NCatboostModelExportHelpers {
 
     TString OutputLeafValues(const TFullModel& model, TIndent indent) {
         TStringBuilder outString;
-        TSequenceCommaSeparator commaOuter(model.ObliviousTrees.TreeSizes.size());
+        TSequenceCommaSeparator commaOuter(model.ObliviousTrees->TreeSizes.size());
         ++indent;
-        auto currentTreeFirstLeafPtr = model.ObliviousTrees.LeafValues.data();
-        for (const auto& treeSize : model.ObliviousTrees.TreeSizes) {
-            const auto treeLeafCount = (1uLL << treeSize) * model.ObliviousTrees.ApproxDimension;
+        auto currentTreeFirstLeafPtr = model.ObliviousTrees->LeafValues.data();
+        for (const auto& treeSize : model.ObliviousTrees->TreeSizes) {
+            const auto treeLeafCount = (1uLL << treeSize) * model.ObliviousTrees->ApproxDimension;
             outString << '\n' << indent;
             outString << OutputArrayInitializer([&currentTreeFirstLeafPtr] (size_t i) { return FloatToString(currentTreeFirstLeafPtr[i], PREC_NDIGITS, 16); }, treeLeafCount);
             outString << commaOuter;

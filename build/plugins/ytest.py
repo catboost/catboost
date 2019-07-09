@@ -115,7 +115,7 @@ def validate_test(unit, kw):
 
     if valid_kw.get('SCRIPT-REL-PATH') == 'boost.test':
         project_path = valid_kw.get('BUILD-FOLDER-PATH', "")
-        if not project_path.startswith(("contrib", "mail", "maps", "metrika", "devtools")):
+        if not project_path.startswith(("contrib", "mail", "maps", "metrika", "devtools", "mds")):
             errors.append("BOOSTTEST is not allowed here")
     elif valid_kw.get('SCRIPT-REL-PATH') == 'ytest.py':
         project_path = valid_kw.get('BUILD-FOLDER-PATH', "")
@@ -123,7 +123,7 @@ def validate_test(unit, kw):
             errors.append("FLEUR test is not allowed here")
     elif valid_kw.get('SCRIPT-REL-PATH') == 'gtest':
         project_path = valid_kw.get('BUILD-FOLDER-PATH', "")
-        if not project_path.startswith(("adfox", "contrib", "devtools", "mail")):
+        if not project_path.startswith(("adfox", "contrib", "devtools", "mail", "mds")):
             errors.append("GTEST is not allowed here")
 
     size_timeout = collections.OrderedDict(sorted(consts.TestSize.DefaultTimeouts.items(), key=lambda t: t[1]))
@@ -370,7 +370,7 @@ def onadd_ytest(unit, *args):
         'TEST-RECIPES': prepare_recipes(unit.get("TEST_RECIPES_VALUE")),
         'TEST-ENV': prepare_env(unit.get("TEST_ENV_VALUE")),
         #  'TEST-PRESERVE-ENV': 'da',
-        'TEST-DATA': serialize_list(_common.filter_out_by_keyword(spec_args.get('DATA', []) + get_values_list(unit, 'TEST_DATA_VALUE'), 'AUTOUPDATED')),
+        'TEST-DATA': serialize_list(sorted(_common.filter_out_by_keyword(spec_args.get('DATA', []) + get_values_list(unit, 'TEST_DATA_VALUE'), 'AUTOUPDATED'))),
         'TEST-TIMEOUT': ''.join(spec_args.get('TIMEOUT', [])) or unit.get('TEST_TIMEOUT') or '',
         'FORK-MODE': fork_mode,
         'SPLIT-FACTOR': ''.join(spec_args.get('SPLIT_FACTOR', [])) or unit.get('TEST_SPLIT_FACTOR') or '',
@@ -664,7 +664,7 @@ def onjava_test(unit, *args):
         'TESTED-PROJECT-NAME': path,
         'TEST-ENV': prepare_env(unit.get("TEST_ENV_VALUE")),
         #  'TEST-PRESERVE-ENV': 'da',
-        'TEST-DATA': serialize_list(_common.filter_out_by_keyword(test_data, 'AUTOUPDATED')),
+        'TEST-DATA': serialize_list(sorted(_common.filter_out_by_keyword(test_data, 'AUTOUPDATED'))),
         'FORK-MODE': unit.get('TEST_FORK_MODE') or '',
         'SPLIT-FACTOR': unit.get('TEST_SPLIT_FACTOR') or '',
         'CUSTOM-DEPENDENCIES': ' '.join(get_values_list(unit, 'TEST_DEPENDS_VALUE')),
@@ -771,7 +771,7 @@ def _dump_test(
             'CUSTOM-DEPENDENCIES': " ".join(custom_deps),
             'TEST-ENV': prepare_env(unit.get("TEST_ENV_VALUE")),
             #  'TEST-PRESERVE-ENV': 'da',
-            'TEST-DATA': serialize_list(_common.filter_out_by_keyword(test_data, 'AUTOUPDATED')),
+            'TEST-DATA': serialize_list(sorted(_common.filter_out_by_keyword(test_data, 'AUTOUPDATED'))),
             'TEST-RECIPES': prepare_recipes(unit.get("TEST_RECIPES_VALUE")),
             'SPLIT-FACTOR': split_factor,
             'FORK-MODE': fork_mode,

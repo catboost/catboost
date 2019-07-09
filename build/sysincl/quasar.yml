@@ -1,0 +1,40 @@
+- source_filter: "^quasar/yandex_io/daemons/local/include/"
+  includes:
+  - _mingw.h
+  - mingw-threads/mingw.thread.h
+  - mingw-threads/mingw.mutex.h
+  - mingw-threads/mingw.condition_variable.h
+  - sanitizer/tsan_interface_atomic.h
+  - sanitizer/msan_interface.h
+- source_filter: "^quasar/yandex_io/daemons/local/include/json/"
+  includes:
+  - cpptl/config.h
+  - cpptl/cpptl_autolink.h
+  - cpptl/smallmap.h
+  - cpptl/forwards.h
+- source_filter: "^quasar/yandex_io/daemons/local/include/(asio|boost/asio)/"
+  includes:
+  - __config
+  - atomic.h
+- source_filter: "^quasar/yandex_io/daemons/local/include/"
+  includes:
+  - atomic.h
+  - asm/sgidefs.h
+- source_filter: "^quasar/yandex_io/daemons/contrib/spdlog"
+  includes:
+  - fmt/core.h
+  - fmt/format.h
+- source_filter: "^quasar/yandex_io/daemons/local/include/boost"
+  includes:
+  - ../include/fenv.h
+  - version.h
+  - sysLib.h
+  - tickLib.h
+  - type_traits.h
+  - msl_utility
+  - builtins.h
+  - _cygwin.h
+  - kfuncs.h
+  - optional
+  - variant
+  - msl_utility

@@ -6,7 +6,8 @@ Y_UNIT_TEST_SUITE(TObliviousTreesMetadata) {
 
     Y_UNIT_TEST(TestMetadataUpdate) {
         TFullModel model;
-        model.ObliviousTrees.FloatFeatures = {
+        TObliviousTrees* trees = model.ObliviousTrees.GetMutable();
+        trees->FloatFeatures = {
             TFloatFeature {
                 false, 0, 0,
                 {1.f, 2.f}, // bin splits 0, 1
@@ -28,7 +29,7 @@ Y_UNIT_TEST_SUITE(TObliviousTreesMetadata) {
                 ""
             }
         };
-        model.ObliviousTrees.CatFeatures = {
+        trees->CatFeatures = {
             TCatFeature {
                 false,
                 0, 1,
@@ -68,7 +69,7 @@ Y_UNIT_TEST_SUITE(TObliviousTreesMetadata) {
         UNIT_ASSERT_EQUAL(model.GetUsedCatFeaturesCount(), 3);
         UNIT_ASSERT_EQUAL(model.GetNumFloatFeatures(), 4);
         UNIT_ASSERT_EQUAL(model.GetNumCatFeatures(), 6);
-        model.ObliviousTrees.DropUnusedFeatures();
+        trees->DropUnusedFeatures();
         UNIT_ASSERT_EQUAL(model.GetMinimalSufficientFloatFeaturesVectorSize(), 3);
         UNIT_ASSERT_EQUAL(model.GetMinimalSufficientCatFeaturesVectorSize(), 5);
         UNIT_ASSERT_EQUAL(model.GetUsedFloatFeaturesCount(), 2);

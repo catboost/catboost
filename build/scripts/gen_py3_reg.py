@@ -1,9 +1,9 @@
 import sys
 
 template = '''
-#include "Python.h"
-
-PyMODINIT_FUNC {1}(void);
+struct PyObject;
+extern "C" int PyImport_AppendInittab(const char* name, PyObject* (*initfunc)());
+extern "C" PyObject* {1}();
 
 namespace {
     struct TRegistrar {
