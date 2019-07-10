@@ -148,7 +148,7 @@ namespace NCB {
         return (ui32)borders.size() + 1 + (nanMode != ENanMode::Forbidden);
     }
 
-    inline ui8 CalHistogramWidthForBorders(size_t bordersCount) {
+    inline ui8 CalcHistogramWidthForBorders(size_t bordersCount) {
         Y_ASSERT(bordersCount < 65536);
         if (bordersCount < 255) {
             return 8;

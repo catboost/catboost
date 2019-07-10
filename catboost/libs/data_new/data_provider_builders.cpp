@@ -1208,7 +1208,7 @@ namespace NCB {
                         flatFeatureIdx);
 
                     IsAvailable[typedFeatureIdx.Idx] = true;
-                    ui8 bitsPerFeature = CalHistogramWidthForBorders(quantizedFeaturesInfoPtr->GetBorders(typedFeatureIdx).size());
+                    ui8 bitsPerFeature = CalcHistogramWidthForBorders(quantizedFeaturesInfoPtr->GetBorders(typedFeatureIdx).size());
                     IndexHelpers[typedFeatureIdx.Idx] = TIndexHelper<ui64>(bitsPerFeature);
                 }
 

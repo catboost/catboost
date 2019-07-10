@@ -490,7 +490,7 @@ namespace NCB {
     ) {
         TMaybeOwningConstArraySubset<float, ui32> srcFeatureData = srcFeature.GetArrayData();
 
-        const ui32 bitsPerKey = CalHistogramWidthForBorders(borders.size());
+        const ui32 bitsPerKey = CalcHistogramWidthForBorders(borders.size());
         TIndexHelper<ui64> indexHelper(bitsPerKey);
         TVector<ui64> quantizedDataStorage;
         quantizedDataStorage.yresize(indexHelper.CompressedSize(srcFeatureData.Size()));
