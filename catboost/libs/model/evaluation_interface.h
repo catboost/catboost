@@ -59,6 +59,20 @@ namespace NCB {  // split due to CUDA-compiler inability to parse nested namespa
 
             virtual void SetFeatureLayout(const TFeatureLayout& featureLayout) = 0;
 
+            // TODO(kirillovs): maybe write special class for results (on gpu it'll hold floats in possibly managed memory)
+            TVector<double> CreateVectorForPredictions(size_t docCount) const {
+                switch (GetPredictionType())
+                {
+                case EPredictionType::RawFormulaVal:
+                case EPredictionType::Probability:
+                    return TVector<double>(docCount * GetApproxDimension());
+                case EPredictionType::Class:
+                    return TVector<double>(docCount * GetApproxDimension());
+                default:
+                    Y_UNREACHABLE();
+                }
+            }
+
             virtual void CalcFlatTransposed(
                 TConstArrayRef<TConstArrayRef<float>> transposedFeatures,
                 size_t treeStart,
@@ -98,6 +112,14 @@ namespace NCB {  // split due to CUDA-compiler inability to parse nested namespa
                 TArrayRef<double> results,
                 const TFeatureLayout* featureInfo = nullptr
             ) const = 0;
+
+            void CalcFlatSingle(
+                TConstArrayRef<float> features,
+                TArrayRef<double> results,
+                const TFeatureLayout* featureInfo = nullptr
+            ) const {
+                CalcFlatSingle(features, 0, GetTreeCount(), results, featureInfo);
+            }
 
             virtual void Calc(
                 TConstArrayRef<TConstArrayRef<float>> floatFeatures,
