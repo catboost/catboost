@@ -78,8 +78,9 @@ class Platform(object):
         self.is_android = self.os == 'android'
         self.is_cygwin = self.os == 'cygwin'
         self.is_freebsd = self.os == 'freebsd'
+        self.is_yocto = self.os == 'yocto'
 
-        self.is_posix = self.is_linux or self.is_apple or self.is_android or self.is_cygwin or self.is_freebsd
+        self.is_posix = self.is_linux or self.is_apple or self.is_android or self.is_cygwin or self.is_freebsd or self.is_yocto
 
     @staticmethod
     def from_json(data):
@@ -969,6 +970,15 @@ class GnuToolchain(Toolchain):
         :type tc: GnuToolchainOptions
         :type build: Build
         """
+
+        def get_os_sdk(target):
+            if target.is_macos:
+                return '$MACOS_SDK_RESOURCE_GLOBAL/MacOSX10.11.sdk'
+            elif target.is_yocto:
+                return '$YOCTO_SDK_RESOURCE_GLOBAL'
+            return '$OS_SDK_ROOT_RESOURCE_GLOBAL'
+
+
         super(GnuToolchain, self).__init__(tc, build)
         self.tc = tc
 
@@ -977,7 +987,7 @@ class GnuToolchain(Toolchain):
 
         self.c_flags_platform = list(tc.target_opt)
 
-        self.default_os_sdk_root = '$MACOS_SDK_RESOURCE_GLOBAL/MacOSX10.11.sdk' if build.target.is_macos else '$OS_SDK_ROOT_RESOURCE_GLOBAL'
+        self.default_os_sdk_root = get_os_sdk(target)
 
         self.env = self.tc.get_env()
 
@@ -1012,6 +1022,7 @@ class GnuToolchain(Toolchain):
                 (target.is_apple and target.is_x86_64, 'x86_64-apple-darwin14'),
                 (target.is_apple and target.is_armv7, 'armv7-apple-darwin14'),
                 (target.is_apple and target.is_armv8, 'arm64-apple-darwin14'),
+                (target.is_yocto and target.is_armv7, 'arm-poky-linux-gnueabi')
             ])
 
             if target_triple:
@@ -1025,7 +1036,8 @@ class GnuToolchain(Toolchain):
                 (target.is_ios and not target.is_intel, ['-mios-version-min=9.0']),
                 (target.is_ios and target.is_intel, ['-mios-version-min=10.0']),
                 (target.is_android and target.is_armv7, ['-march=armv7-a', '-mfloat-abi=softfp']),
-                (target.is_android and target.is_armv8, ['-march=armv8-a'])
+                (target.is_android and target.is_armv8, ['-march=armv8-a']),
+                (target.is_yocto and target.is_armv7, ['-march=armv7-a', '-mfpu=neon', '-mfloat-abi=hard', '-mcpu=cortex-a9', '-O1'])
             ])
 
             if target_flags:
@@ -1062,6 +1074,10 @@ class GnuToolchain(Toolchain):
                         self.setup_tools(project='build/platform/linux_sdk', var='$OS_SDK_ROOT_RESOURCE_GLOBAL', bin='usr/bin', ldlibs='usr/x86_64-linux-gnu/powerpc64le-linux-gnu/lib')
                     elif target.is_armv8:
                         self.setup_tools(project='build/platform/linux_sdk', var='$OS_SDK_ROOT_RESOURCE_GLOBAL', bin='usr/bin', ldlibs='usr/lib/x86_64-linux-gnu')
+
+                if target.is_yocto:
+                    self.setup_sdk(project='build/platform/yocto_sdk', var='${YOCTO_SDK_ROOT_RESOURCE_GLOBAL}')
+
 
     def setup_sdk(self, project, var):
         self.platform_projects.append(project)

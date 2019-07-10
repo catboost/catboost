@@ -550,6 +550,7 @@
                 {"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "x86_64"}, "default": true},
                 {"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "armv7"}, "default": true},
                 {"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "arm64"}, "default": true},
+                {"host": {"os": "LINUX"}, "target": {"os": "YOCTO", "arch": "armv7a"}, "default": true},
                 {"host": {"os": "DARWIN"}, "target": {"os": "LINUX", "arch": "x86_64"}, "default": true},
                 {"host": {"os": "DARWIN"}, "target": {"os": "LINUX", "arch": "aarch64"}, "default": true},
                 {"host": {"os": "DARWIN"}, "target": {"os": "LINUX", "arch": "ppc64le"}, "default": true},
