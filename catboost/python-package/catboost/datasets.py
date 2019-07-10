@@ -156,6 +156,48 @@ def epsilon():
         _load_numeric_only_dataset(test_path, 100000, 2001, sep='\t'))
 
 
+def monotonic1():
+    """
+    Yandex internal dataset with monotonic constraints.
+    Can be used for regression.
+    Has several numerical and several categorical features.
+    The first column contains target values. Columns with names Cat* contain categorical features.
+    Columns with names Num* contain numerical features.
+
+    Dataset also contains several numerical features, for which monotonic constraints must hold.
+    For features in columns named MonotonicNeg*, if feature value decreases, then prediction value must not decrease.
+    Thus, if there are two samples x1, x2 with all features being equal except
+    for a monotonic negative feature M, such that x1[M] > x2[M], then the following inequality must
+    hold for predictions: f(x1) <= f(x2)
+    """
+    url = 'https://storage.mds.yandex.net/get-devtools-opensource/233854/monotonic1.tar.gz'
+    md5 = '4d9bf62372afd44feb0842fa8b4ed058'
+    dataset_name, train_file, test_file = 'market', 'train.csv', 'test.csv'
+    return _cached_dataset_load_pd(url, md5, dataset_name, train_file, test_file, sep='\t')
+
+
+def monotonic2():
+    """
+    Yandex internal dataset with monotonic constraints.
+    Can be used for regression.
+    The first column contains target values.
+    Other columns contain contain numerical features, for which monotonic constraints must hold.
+
+    For features in columns named MonotonicNeg*, if feature value decreases, then prediction
+    value must not decrease. Thus, if there are two samples x1, x2 with all features being
+    equal except for a monotonic negative feature MNeg, such that x1[MNeg] > x2[MNeg], then
+    the following inequality must hold for predictions: f(x1) <= f(x2)
+    For features in columns named MonotonicPos*, if feature value decreases, then prediction
+    value must not increase. Thus, if there are two samples x1, x2 with all features being
+    equal except for a monotonic negative feature MPos, such that x1[MPos] > x2[MPos],
+    then the following inequality must hold for predictions: f(x1) >= f(x2)
+    """
+    url = 'https://storage.mds.yandex.net/get-devtools-opensource/373962/monotonic2.tar.gz'
+    md5 = 'ffc146a203a1bf7f43f73229a0d7aa77'
+    dataset_name, train_file, test_file = 'monotonic2', 'train.csv', 'test.csv'
+    return _cached_dataset_load_pd(url, md5, dataset_name, train_file, test_file, sep='\t')
+
+
 def adult():
     """
     Download "Adult Data Set" [1] from UCI Machine Learning Repository.
