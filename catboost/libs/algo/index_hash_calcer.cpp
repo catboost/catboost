@@ -1,5 +1,222 @@
 #include "index_hash_calcer.h"
 
+#include "projection.h"
+
+#include <util/generic/utility.h>
+#include <util/generic/xrange.h>
+
+
+using namespace NCB;
+
+
+void CalcHashes(
+    const TProjection& proj,
+    const TQuantizedForCPUObjectsDataProvider& objectsDataProvider,
+    const TFeaturesArraySubsetIndexing& featuresSubsetIndexing,
+    const TPerfectHashedToHashedCatValuesMap* perfectHashedToHashedCatValuesMap,
+    bool processBundledAndBinaryFeaturesInPacks,
+    ui64* begin,
+    ui64* end) {
+
+    const size_t sampleCount = end - begin;
+    Y_VERIFY((size_t)featuresSubsetIndexing.Size() == sampleCount);
+    if (sampleCount == 0) {
+        return;
+    }
+
+    ui64* hashArr = begin;
+
+
+    // [bundleIdx]
+    TVector<TVector<TCalcHashInBundleContext>> featuresInBundles(
+        objectsDataProvider.GetExclusiveFeatureBundlesSize()
+    );
+
+    // TBinaryFeaturesPack here is actually bit mask to what binary feature in pack are used in projection
+    TVector<TBinaryFeaturesPack> binaryFeaturesBitMasks(
+        objectsDataProvider.GetBinaryFeaturesPacksSize(),
+        TBinaryFeaturesPack(0));
+
+    TVector<TBinaryFeaturesPack> projBinaryFeatureValues(
+        objectsDataProvider.GetBinaryFeaturesPacksSize(),
+        TBinaryFeaturesPack(0));
+
+    if (perfectHashedToHashedCatValuesMap) {
+        for (const int featureIdx : proj.CatFeatures) {
+            auto catFeatureIdx = TCatFeatureIdx((ui32)featureIdx);
+
+            const auto& ohv = (*perfectHashedToHashedCatValuesMap)[featureIdx];
+
+            ProcessFeatureForCalcHashes<IQuantizedCatValuesHolder>(
+                objectsDataProvider.GetCatFeatureToExclusiveBundleIndex(catFeatureIdx),
+                objectsDataProvider.GetCatFeatureToPackedBinaryIndex(catFeatureIdx),
+                featuresSubsetIndexing,
+                /*processBundledAndBinaryFeaturesInPacks*/ false,
+                /*isBinaryFeatureEquals1*/ false, // unused
+                TArrayRef<TVector<TCalcHashInBundleContext>>(), // unused
+                TArrayRef<TBinaryFeaturesPack>(), // unused
+                TArrayRef<TBinaryFeaturesPack>(), // unused
+                [&]() { return *objectsDataProvider.GetCatFeature(*catFeatureIdx); },
+                [&](ui32 bundleIdx) { return objectsDataProvider.GetExclusiveFeaturesBundle(bundleIdx); },
+                [&](ui32 packIdx) { return objectsDataProvider.GetBinaryFeaturesPack(packIdx); },
+                [hashArr, &ohv] (ui32 i, ui32 featureValue) {
+                    hashArr[i] = CalcHash(hashArr[i], (ui64)(int)ohv[featureValue]);
+                }
+            );
+        }
+    } else {
+        for (const int featureIdx : proj.CatFeatures) {
+            auto catFeatureIdx = TCatFeatureIdx((ui32)featureIdx);
+            ProcessFeatureForCalcHashes<IQuantizedCatValuesHolder>(
+                objectsDataProvider.GetCatFeatureToExclusiveBundleIndex(catFeatureIdx),
+                objectsDataProvider.GetCatFeatureToPackedBinaryIndex(catFeatureIdx),
+                featuresSubsetIndexing,
+                processBundledAndBinaryFeaturesInPacks,
+                /*isBinaryFeatureEquals1*/ true,
+                featuresInBundles,
+                binaryFeaturesBitMasks,
+                projBinaryFeatureValues,
+                [&]() { return *objectsDataProvider.GetCatFeature(*catFeatureIdx); },
+                [&](ui32 bundleIdx) { return objectsDataProvider.GetExclusiveFeaturesBundle(bundleIdx); },
+                [&](ui32 packIdx) { return objectsDataProvider.GetBinaryFeaturesPack(packIdx); },
+                [hashArr] (ui32 i, ui32 featureValue) {
+                    hashArr[i] = CalcHash(hashArr[i], (ui64)featureValue + 1);
+                }
+            );
+        }
+    }
+
+
+    for (const TBinFeature& feature : proj.BinFeatures) {
+        auto floatFeatureIdx = TFloatFeatureIdx((ui32)feature.FloatFeature);
+        ProcessFeatureForCalcHashes<IQuantizedFloatValuesHolder>(
+            objectsDataProvider.GetFloatFeatureToExclusiveBundleIndex(floatFeatureIdx),
+            objectsDataProvider.GetFloatFeatureToPackedBinaryIndex(floatFeatureIdx),
+            featuresSubsetIndexing,
+            processBundledAndBinaryFeaturesInPacks,
+            /*isBinaryFeatureEquals1*/ 1,
+            featuresInBundles,
+            binaryFeaturesBitMasks,
+            projBinaryFeatureValues,
+            [&]() { return *objectsDataProvider.GetFloatFeature(*floatFeatureIdx); },
+            [&](ui32 bundleIdx) { return objectsDataProvider.GetExclusiveFeaturesBundle(bundleIdx); },
+            [&](ui32 packIdx) { return objectsDataProvider.GetBinaryFeaturesPack(packIdx); },
+            [feature, hashArr] (ui32 i, ui32 featureValue) {
+                const bool isTrueFeature = IsTrueHistogram((ui16)featureValue, (ui16)feature.SplitIdx);
+                hashArr[i] = CalcHash(hashArr[i], (ui64)isTrueFeature);
+            }
+        );
+    }
+
+    const auto& quantizedFeaturesInfo = *objectsDataProvider.GetQuantizedFeaturesInfo();
+
+    for (const TOneHotSplit& feature : proj.OneHotFeatures) {
+        auto catFeatureIdx = TCatFeatureIdx((ui32)feature.CatFeatureIdx);
+
+        auto maybeBinaryIndex = objectsDataProvider.GetCatFeatureToPackedBinaryIndex(catFeatureIdx);
+        ui32 maxBin = 2;
+        if (!maybeBinaryIndex) {
+            const auto uniqueValuesCounts = quantizedFeaturesInfo.GetUniqueValuesCounts(
+                catFeatureIdx
+            );
+            maxBin = uniqueValuesCounts.OnLearnOnly;
+        }
+
+        ProcessFeatureForCalcHashes<IQuantizedCatValuesHolder>(
+            objectsDataProvider.GetCatFeatureToExclusiveBundleIndex(catFeatureIdx),
+            maybeBinaryIndex,
+            featuresSubsetIndexing,
+            processBundledAndBinaryFeaturesInPacks,
+            /*isBinaryFeatureEquals1*/ feature.Value == 1,
+            featuresInBundles,
+            binaryFeaturesBitMasks,
+            projBinaryFeatureValues,
+            [&]() { return *objectsDataProvider.GetCatFeature(*catFeatureIdx); },
+            [&](ui32 bundleIdx) { return objectsDataProvider.GetExclusiveFeaturesBundle(bundleIdx); },
+            [&](ui32 packIdx) { return objectsDataProvider.GetBinaryFeaturesPack(packIdx); },
+            [feature, hashArr, maxBin] (ui32 i, ui32 featureValue) {
+                const bool isTrueFeature = IsTrueOneHotFeature(Min(featureValue, maxBin), (ui32)feature.Value);
+                hashArr[i] = CalcHash(hashArr[i], (ui64)isTrueFeature);
+            }
+        );
+    }
+
+    if (processBundledAndBinaryFeaturesInPacks) {
+        for (size_t bundleIdx : xrange(featuresInBundles.size())) {
+            TConstArrayRef<TCalcHashInBundleContext> featuresInBundle = featuresInBundles[bundleIdx];
+            if (featuresInBundle.empty()) {
+                continue;
+            }
+
+            TFeaturesBundleArraySubset featuresBundleArraySubset
+                = objectsDataProvider.GetExclusiveFeaturesBundle(bundleIdx);
+
+            const auto& metaData = *featuresBundleArraySubset.MetaData;
+
+            TVector<TBoundsInBundle> selectedBounds;
+
+            for (const auto& featureInBundle : featuresInBundle) {
+                selectedBounds.push_back(metaData.Parts[featureInBundle.InBundleIdx].Bounds);
+            }
+
+            auto iterateFunction = [&] (const auto* bundlesSrcData) {
+                featuresSubsetIndexing.ForEach(
+                    [selectedBounds, featuresInBundle, bundlesSrcData] (ui32 i, ui32 srcIdx) {
+                        auto bundleData = bundlesSrcData[srcIdx];
+
+                        for (auto selectedFeatureIdx : xrange(featuresInBundle.size())) {
+                            featuresInBundle[selectedFeatureIdx].CalcHashCallback(
+                                i,
+                                GetBinFromBundle<decltype(bundleData)>(
+                                    bundleData,
+                                    selectedBounds[selectedFeatureIdx]
+                                )
+                            );
+                        }
+                    }
+                );
+            };
+
+            switch (metaData.SizeInBytes) {
+                case 1:
+                    iterateFunction(featuresBundleArraySubset.SrcData.data());
+                    break;
+                case 2:
+                    iterateFunction((const ui16*)featuresBundleArraySubset.SrcData.data());
+                    break;
+                default:
+                    CB_ENSURE_INTERNAL(
+                        false,
+                        "unsupported Bundle SizeInBytes = " << metaData.SizeInBytes
+                    );
+            }
+        }
+
+        for (size_t packIdx : xrange(binaryFeaturesBitMasks.size())) {
+            TBinaryFeaturesPack bitMask = binaryFeaturesBitMasks[packIdx];
+            if (!bitMask) {
+                continue;
+            }
+            TBinaryFeaturesPack packProjBinaryFeatureValues = projBinaryFeatureValues[packIdx];
+
+            TPackedBinaryFeaturesArraySubset(
+                objectsDataProvider.GetBinaryFeaturesPack(packIdx).GetSrc(),
+                &featuresSubsetIndexing
+            ).ForEach(
+                [bitMask, packProjBinaryFeatureValues, hashArr] (
+                    ui32 i,
+                    TBinaryFeaturesPack binaryFeaturesPack
+                ) {
+                    hashArr[i] = CalcHash(
+                        hashArr[i],
+                        (ui64)((~(binaryFeaturesPack ^ packProjBinaryFeatureValues)) & bitMask) + (ui64)bitMask
+                    );
+                }
+            );
+        }
+    }
+}
+
 
 /// Compute reindexHash and reindex hash values in range [begin,end).
 size_t ComputeReindexHash(ui64 topSize, TDenseHash<ui64, ui32>* reindexHashPtr, ui64* begin, ui64* end) {
