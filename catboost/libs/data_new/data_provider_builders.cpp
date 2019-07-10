@@ -1410,35 +1410,6 @@ namespace NCB {
         }
     }
 
-
-    TDataProviderPtr CreateDataProviderFromFeaturesOrderData(TVector<TVector<float>>&& floatFeatures) {
-        const ui32 objectsCount = floatFeatures.empty() ? ui32(0) : (ui32)floatFeatures[0].size();
-
-        TDataProviderBuilderOptions options;
-        options.SkipCheck = true;
-        return NCB::CreateDataProvider<IRawFeaturesOrderDataVisitor>(
-            [&] (IRawFeaturesOrderDataVisitor* visitor) {
-                TDataMetaInfo metaInfo;
-                metaInfo.FeaturesLayout = MakeIntrusive<TFeaturesLayout>(
-                    SafeIntegerCast<ui32>(floatFeatures.size())
-                );
-
-                visitor->Start(metaInfo, objectsCount, NCB::EObjectsOrder::Undefined, {});
-
-                for (auto featureIdx : xrange(floatFeatures.size())) {
-                    visitor->AddFloatFeature(
-                        featureIdx,
-                        TMaybeOwningConstArrayHolder<float>::CreateOwning(std::move(floatFeatures[featureIdx]))
-                    );
-                }
-
-                visitor->Finish();
-            },
-            options
-        );
-    }
-
-
     TDataProviderPtr CreateDataProviderFromObjectsOrderData(TVector<TVector<float>>&& floatFeatures) {
         const ui32 featuresCount = floatFeatures.empty() ? ui32(0) : (ui32)floatFeatures[0].size();
 

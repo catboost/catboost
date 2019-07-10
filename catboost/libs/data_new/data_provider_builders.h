@@ -124,14 +124,6 @@ namespace NCB {
     }
 
     /* common case
-     *
-     * floatFeatures is [featureIdx][objectIdx] matrix, skip data check for speed
-     */
-    TDataProviderPtr CreateDataProviderFromFeaturesOrderData(
-        TVector<TVector<float>>&& floatFeatures
-    );
-
-    /* common case
      * floatFeatures is [objectIdx][featureIdx] matrix, skip data check for speed
      */
     TDataProviderPtr CreateDataProviderFromObjectsOrderData(
