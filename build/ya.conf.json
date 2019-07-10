@@ -1587,7 +1587,7 @@
         },
         "arc": {
             "formula": {
-                "sandbox_id": [457040045],
+                "sandbox_id": [463932824],
                 "match": "arc"
             },
             "executable": {
@@ -1596,7 +1596,7 @@
         },
         "yo": {
             "formula": {
-                "sandbox_id": [455016501, 455016623],
+                "sandbox_id": [463998997, 463999083],
                 "match": "yo"
             },
             "executable": {
@@ -2484,7 +2484,7 @@
         },
         "sedem": {
             "formula": {
-                "sandbox_id": 461619216,
+                "sandbox_id": 463878495,
                 "match": "SEDEM archive"
 
             },

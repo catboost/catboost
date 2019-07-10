@@ -9,7 +9,6 @@ import subprocess
 import sys
 import tempfile
 import json
-
 from catboost import (
     CatBoost,
     CatBoostClassifier,
@@ -38,7 +37,8 @@ from catboost_pytest_lib import (
     permute_dataset_columns,
     remove_time_from_json,
     test_output_path,
-    generate_random_labeled_set
+    generate_random_labeled_set,
+    load_pool_features_as_df
 )
 
 if sys.version_info.major == 2:
@@ -195,12 +195,6 @@ def verify_finite(result):
 def append_param(metric_name, param):
     return metric_name + (':' if ':' not in metric_name else ';') + param
 
-
-# returns (features DataFrame, cat_feature_indices)
-def load_pool_features_as_df(pool_file, cd_file, target_idx):
-    data = read_table(pool_file, header=None, dtype=str)
-    data.drop([target_idx], axis=1, inplace=True)
-    return (data, Pool(pool_file, column_description=cd_file).get_cat_feature_indices())
 
 # Test cases begin here ########################################################
 

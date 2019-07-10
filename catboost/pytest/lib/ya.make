@@ -10,6 +10,8 @@ PY_SRCS(
 
 PEERDIR(
     contrib/python/numpy
+    catboost/python-package/lib
+    contrib/python/pandas
 )
 
 END()

@@ -3450,7 +3450,7 @@ class CatBoostRegressor(CatBoost):
 
     def score(self, X, y=None):
         """
-        Calculate RMSE.
+        Calculate R^2.
 
         Parameters
         ----------
@@ -3461,7 +3461,7 @@ class CatBoostRegressor(CatBoost):
 
         Returns
         -------
-        RMSE : float
+        R^2 : float
         """
         if isinstance(X, Pool):
             if X.get_label() is None:
@@ -3471,7 +3471,6 @@ class CatBoostRegressor(CatBoost):
             y = X.get_label()
         elif y is None:
             raise CatBoostError("y should be specified.")
-        error = []
         y = np.array(y, dtype=np.float64)
         predictions = self._predict(
             X,
@@ -3482,9 +3481,9 @@ class CatBoostRegressor(CatBoost):
             verbose=None,
             parent_method_name='score'
         )
-        for i, val in enumerate(predictions):
-            error.append(pow(y[i] - val, 2))
-        return np.sqrt(np.mean(error))
+        total_sum_of_squares = np.sum((y - y.mean()) ** 2)
+        residual_sum_of_squares = np.sum((y - predictions) ** 2)
+        return 1 - residual_sum_of_squares / total_sum_of_squares
 
     def _check_is_regressor_loss(self, loss_function):
         if isinstance(loss_function, str) and not self._is_regression_objective(loss_function):

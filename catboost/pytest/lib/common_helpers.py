@@ -3,10 +3,10 @@ import json
 import os
 import random
 import shutil
-
+from pandas import read_table
 from copy import deepcopy
 import numpy as np
-
+from catboost import Pool
 __all__ = [
     'DelayedTee',
     'binary_path',
@@ -14,6 +14,7 @@ __all__ = [
     'compare_evals_with_precision',
     'compare_metrics_with_diff',
     'generate_random_labeled_set',
+    'load_pool_features_as_df',
     'permute_dataset_columns',
     'remove_time_from_json',
     'test_output_path',
@@ -165,3 +166,9 @@ def compare_evals_with_precision(fit_eval, calc_eval, rtol=1e-6, skip_last_colum
     if header_fit != header_calc:
         return False
     return np.all(np.isclose(array_fit, array_calc, rtol=rtol))
+
+# returns (features DataFrame, cat_feature_indices)
+def load_pool_features_as_df(pool_file, cd_file, target_idx):
+    data = read_table(pool_file, header=None, dtype=str)
+    data.drop([target_idx], axis=1, inplace=True)
+    return (data, Pool(pool_file, column_description=cd_file).get_cat_feature_indices())
