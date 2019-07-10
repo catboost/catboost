@@ -414,7 +414,16 @@ public:
     /**
      * Formats the instant using the system time zone, with microsecond precision.
      *
-     * @returns An ISO 8601 formatted string, e.g. '2015-11-22T04:30:27.991669+0500'.
+     * @returns An ISO 8601 / RFC 3339 formatted string,
+     * e.g. '2015-11-22T04:30:27.991669+05:00'.
+     */
+    TString ToIsoStringLocal() const;
+
+    /**
+     * Formats the instant using the system time zone, with microsecond precision.
+     *
+     * @returns A semi-ISO 8601 formatted string with timezone without colon,
+     * e.g. '2015-11-22T04:30:27.991669+0500'.
      */
     TString ToStringLocal() const;
 
@@ -428,7 +437,16 @@ public:
     /**
      * Formats the instant using the system time zone, with second precision.
      *
-     * @returns An ISO 8601 formatted string, e.g. '2015-11-22T04:30:27+0500'.
+     * @returns An ISO 8601 / RFC 3339 formatted string,
+     * e.g. '2015-11-22T04:30:27+05:00'.
+     */
+    TString ToIsoStringLocalUpToSeconds() const;
+
+    /**
+     * Formats the instant using the system time zone, with second precision.
+     *
+     * @returns A semi-ISO 8601 formatted string with timezone without colon,
+     * e.g. '2015-11-22T04:30:27+0500'.
      */
     TString ToStringLocalUpToSeconds() const;
 
@@ -476,7 +494,7 @@ struct THash<TInstant> {
 };
 
 namespace NPrivate {
-    template <bool PrintUpToSeconds>
+    template <bool PrintUpToSeconds, bool iso>
     struct TPrintableLocalTime {
         TInstant MomentToPrint;
 
@@ -500,10 +518,14 @@ namespace NPrivate {
  *        TInstant::ToString*() functions.
  */
 ///@{
+/// @see TInstant::ToIsoStringLocal()
+::NPrivate::TPrintableLocalTime<false, true> FormatIsoLocal(TInstant instant);
 /// @see TInstant::ToStringLocal()
-::NPrivate::TPrintableLocalTime<false> FormatLocal(TInstant instant);
+::NPrivate::TPrintableLocalTime<false, false> FormatLocal(TInstant instant);
+/// @see TInstant::ToIsoStringLocalUpToSeconds()
+::NPrivate::TPrintableLocalTime<true, true> FormatIsoLocalUpToSeconds(TInstant instant);
 /// @see TInstant::ToStringLocalUpToSeconds()
-::NPrivate::TPrintableLocalTime<true> FormatLocalUpToSeconds(TInstant instant);
+::NPrivate::TPrintableLocalTime<true, false> FormatLocalUpToSeconds(TInstant instant);
 ///@}
 
 template <class S>
