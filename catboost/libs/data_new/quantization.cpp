@@ -121,7 +121,7 @@ namespace NCB {
             // for storing quantized data
 
             TIndexHelper<ui64> indexHelper(
-                CalHistogramWidthForBorders(floatFeatureBinarizationSettings.BorderCount.Get())
+                CalcHistogramWidthForBorders(floatFeatureBinarizationSettings.BorderCount.Get())
             );
 
             result += indexHelper.CompressedSize(objectCount) * sizeof(ui64);
