@@ -81,6 +81,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\ut\balanced_accuracy_ut.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\ut\brier_score_ut.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\ut\dcg_ut.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\ut\fair_loss_ut.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\ut\hamming_loss_ut.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\ut\hinge_loss_ut.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\ut\huber_loss_ut.cpp"/>
@@ -88,6 +89,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\ut\llp_ut.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\ut\median_absolute_error_ut.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\ut\msle_ut.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\ut\normalized_gini_ut.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\ut\precision_recall_at_k_ut.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\ut\smape_ut.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\ut\stochastic_filter_ut.cpp"/>
