@@ -30,13 +30,7 @@ namespace NCoro {
     };
 
 
-    class TContPollEvent
-        : public TRbTreeItem<TContPollEvent, TContPollEventCompare>
-        , public TIntrusiveListItem<TContPollEvent>
-    {
-        using TTreeNode = TRbTreeItem<TContPollEvent, TContPollEventCompare>;
-        using TListNode = TIntrusiveListItem<TContPollEvent>;
-
+    class TContPollEvent : public TRbTreeItem<TContPollEvent, TContPollEventCompare> {
     public:
         TContPollEvent(TCont* cont, TInstant deadLine) noexcept
             : Cont_(cont)
@@ -188,16 +182,13 @@ namespace NCoro {
 
 
     class TEventWaitQueue {
-        using TIoWaitTree = TRbTree<TContPollEvent, TContPollEventCompare>;
-        using TIoWaitList = TIntrusiveList<TContPollEvent>;
+        using TIoWait = TRbTree<NCoro::TContPollEvent, NCoro::TContPollEventCompare>;
 
     public:
-        void Register(TContPollEvent* event);
+        void Register(NCoro::TContPollEvent* event);
 
         bool Empty() const noexcept {
-            return DeadlineWait_.Empty()
-            && InfiniteWait_.Empty()
-            && ZeroWait_.Empty();
+            return IoWait_.Empty();
         }
 
         void Abort() noexcept;
@@ -205,9 +196,7 @@ namespace NCoro {
         TInstant WakeTimedout(TInstant now) noexcept;
 
     private:
-        TIoWaitTree DeadlineWait_;
-        TIoWaitList InfiniteWait_;
-        TIoWaitList ZeroWait_;
+        TIoWait IoWait_;
     };
 }
 
