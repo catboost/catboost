@@ -67,7 +67,7 @@ namespace NCB {  // split due to CUDA-compiler inability to parse nested namespa
                 case EPredictionType::Probability:
                     return TVector<double>(docCount * GetApproxDimension());
                 case EPredictionType::Class:
-                    return TVector<double>(docCount * GetApproxDimension());
+                    return TVector<double>(docCount);
                 default:
                     Y_UNREACHABLE();
                 }
