@@ -1813,7 +1813,6 @@ void TNdcgMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
     *valueType = EMetricBestValue::Max;
 }
 
-
 /* QuerySoftMax */
 
 namespace {
@@ -2030,13 +2029,15 @@ void TR2Metric::GetBestValue(EMetricBestValue* valueType, float*) const {
 namespace {
     struct TAUCMetric: public TNonAdditiveMetric {
         explicit TAUCMetric(double border = GetDefaultTargetBorder())
-                : Border(border) {
+            : Border(border)
+            , IsMultiClass(false) {
             UseWeights.SetDefaultValue(false);
         }
 
         explicit TAUCMetric(int positiveClass)
             : PositiveClass(positiveClass)
             , IsMultiClass(true) {
+            UseWeights.SetDefaultValue(false);
         }
 
         TMetricHolder Eval(
@@ -2064,8 +2065,8 @@ namespace {
 
     private:
         int PositiveClass = 1;
-        bool IsMultiClass = false;
         double Border = GetDefaultTargetBorder();
+        bool IsMultiClass = false;
     };
 }
 
@@ -2082,45 +2083,31 @@ TMetricHolder TAUCMetric::Eval(
     const TVector<TVector<double>>& approxDelta,
     bool isExpApprox,
     TConstArrayRef<float> target,
-    TConstArrayRef<float> weightIn,
+    TConstArrayRef<float> weight,
     TConstArrayRef<TQueryInfo> /*queriesInfo*/,
     int begin,
     int end,
-    NPar::TLocalExecutor& /* executor */
+    NPar::TLocalExecutor& /*executor*/
 ) const {
     Y_ASSERT(!isExpApprox);
     Y_ASSERT((approx.size() > 1) == IsMultiClass);
-    const auto& approxVec = approx.ysize() == 1 ? approx.front() : approx[PositiveClass];
-    Y_ASSERT(approxVec.size() == target.size());
-    auto weight = UseWeights ? weightIn : TConstArrayRef<float>{};
+    Y_ASSERT(approx.front().size() == target.size());
 
-    TVector<double> approxCopy(approxVec.begin() + begin, approxVec.begin() + end);
-    if (!approxDelta.empty()) {
-        for (int idx : xrange(begin, end)) {
-            approxCopy[idx - begin] += approxDelta[0][idx];
-        }
-    }
-    TVector<double> targetCopy(target.begin() + begin, target.begin() + end);
-
-    if (!IsMultiClass) {
-        for (ui32 i = 0; i < targetCopy.size(); ++i) {
-            targetCopy[i] = targetCopy[i] > Border;
-        }
-    }
-
-    if (approx.ysize() > 1) {
-        int positiveClass = PositiveClass;
-        ForEach(targetCopy.begin(), targetCopy.end(), [positiveClass](double& x) {
-            x = (x == static_cast<double>(positiveClass));
-        });
-    }
+    const auto realApprox = [&](int idx) {
+        return approx[IsMultiClass ? PositiveClass : 0][idx]
+        + (approxDelta.empty() ? 0.0 : approxDelta[IsMultiClass ? PositiveClass : 0][idx]);
+    };
+    const auto realWeight = [&](int idx) {
+        return UseWeights && !weight.empty() ? weight[idx] : 1.0;
+    };
+    const auto realTarget = [&](int idx) {
+        return IsMultiClass ? target[idx] == static_cast<double>(PositiveClass) : target[idx] > Border;
+    };
 
     TVector<NMetrics::TSample> samples;
-    if (weight.empty()) {
-        samples = NMetrics::TSample::FromVectors(targetCopy, approxCopy);
-    } else {
-        TVector<double> weightCopy(weight.begin() + begin, weight.begin() + end);
-        samples = NMetrics::TSample::FromVectors(targetCopy, approxCopy, weightCopy);
+    samples.reserve(end - begin);
+    for (int i : xrange(begin, end)) {
+        samples.emplace_back(realTarget(i), realApprox(i), realWeight(i));
     }
 
     TMetricHolder error(2);
@@ -2140,6 +2127,158 @@ TString TAUCMetric::GetDescription() const {
 
 void TAUCMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
     *valueType = EMetricBestValue::Max;
+}
+
+/* Normalized Gini metric */
+
+namespace {
+    struct TNormalizedGini: public TNonAdditiveMetric {
+        explicit TNormalizedGini(double border = GetDefaultTargetBorder())
+            : Border(border)
+            , IsMultiClass(false) {
+        }
+        explicit TNormalizedGini(int positiveClass)
+            : PositiveClass(positiveClass)
+            , IsMultiClass(true) {
+        }
+        TMetricHolder Eval(
+            const TVector<TVector<double>>& approx,
+            TConstArrayRef<float> target,
+            TConstArrayRef<float> weight,
+            TConstArrayRef<TQueryInfo> queriesInfo,
+            int begin,
+            int end,
+            NPar::TLocalExecutor& executor) const override {
+                return Eval(approx, /*approxDelta*/{}, /*isExpApprox*/false, target, weight, queriesInfo, begin, end, executor);
+        }
+        TMetricHolder Eval(
+            const TVector<TVector<double>>& approx,
+            const TVector<TVector<double>>& approxDelta,
+            bool isExpApprox,
+            TConstArrayRef<float> target,
+            TConstArrayRef<float> weight,
+            TConstArrayRef<TQueryInfo> queriesInfo,
+            int begin,
+            int end,
+            NPar::TLocalExecutor& executor) const override;
+        TString GetDescription() const override;
+        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+    private:
+        int PositiveClass = 1;
+        double Border = GetDefaultTargetBorder();
+        bool IsMultiClass = false;
+    };
+}
+THolder<IMetric> MakeBinClassNormalizedGiniMetric(double border) {
+    return MakeHolder<TNormalizedGini>(border);
+}
+THolder<IMetric> MakeMultiClassNormalizedGiniMetric(int positiveClass) {
+    return MakeHolder<TNormalizedGini>(positiveClass);
+}
+TMetricHolder TNormalizedGini::Eval(
+    const TVector<TVector<double>>& approx,
+    const TVector<TVector<double>>& approxDelta,
+    bool isExpApprox,
+    TConstArrayRef<float> target,
+    TConstArrayRef<float> weight,
+    TConstArrayRef<TQueryInfo> /*queriesInfo*/,
+    int begin,
+    int end,
+    NPar::TLocalExecutor& /*executor*/
+) const {
+    Y_ASSERT(!isExpApprox);
+    Y_ASSERT((approx.size() > 1) == IsMultiClass);
+    Y_ASSERT(approx.front().size() == target.size());
+    const auto realApprox = [&](int idx) {
+        return approx[IsMultiClass ? PositiveClass : 0][idx]
+        + (approxDelta.empty() ? 0.0 : approxDelta[IsMultiClass ? PositiveClass : 0][idx]);
+    };
+    const auto realWeight = [&](int idx) {
+        return UseWeights && !weight.empty() ? weight[idx] : 1.0;
+    };
+    const auto realTarget = [&](int idx) {
+        return IsMultiClass ? target[idx] == static_cast<double>(PositiveClass) : target[idx] > Border;
+    };
+    TVector<NMetrics::TSample> samples;
+    samples.reserve(end - begin);
+    for (int i : xrange(begin, end)) {
+        samples.emplace_back(realTarget(i), realApprox(i), realWeight(i));
+    }
+    TMetricHolder error(2);
+    error.Stats[0] = 2.0*CalcAUC(&samples) - 1.0;
+    error.Stats[1] = 1.0;
+    return error;
+}
+TString TNormalizedGini::GetDescription() const {
+    if (IsMultiClass) {
+        const TMetricParam<int> positiveClass("class", PositiveClass, /*userDefined*/true);
+        return BuildDescription(ELossFunction::NormalizedGini, UseWeights, positiveClass);
+    } else {
+        return BuildDescription(ELossFunction::NormalizedGini, UseWeights, "%.3g", MakeBorderParam(Border));
+    }
+}
+void TNormalizedGini::GetBestValue(EMetricBestValue* valueType, float*) const {
+    *valueType = EMetricBestValue::Max;
+}
+
+/* Fair Loss metric */
+
+namespace {
+    struct TFairLossMetric: public TAdditiveMetric<TFairLossMetric> {
+        static constexpr double DefaultSmoothness = 1.0;
+
+        TFairLossMetric(double smoothness)
+            : Smoothness(smoothness) {
+            Y_ASSERT(smoothness > 0.0 && "Fair loss is not defined for negative smoothness");
+        }
+        TMetricHolder EvalSingleThread(
+            const TVector<TVector<double>>& approx,
+            const TVector<TVector<double>>& approxDelta,
+            bool isExpApprox,
+            TConstArrayRef<float> target,
+            TConstArrayRef<float> weight,
+            TConstArrayRef<TQueryInfo> queriesInfo,
+            int begin,
+            int end
+        ) const;
+        TString GetDescription() const override;
+        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+    private:
+        const double Smoothness;
+    };
+}
+THolder<IMetric> MakeFairLossMetric(double smoothness) {
+    return MakeHolder<TFairLossMetric>(smoothness);
+}
+TMetricHolder TFairLossMetric::EvalSingleThread(
+    const TVector<TVector<double>>& approx,
+    const TVector<TVector<double>>& approxDelta,
+    bool isExpApprox,
+    TConstArrayRef<float> target,
+    TConstArrayRef<float> weight,
+    TConstArrayRef<TQueryInfo> /*queriesInfo*/,
+    int begin,
+    int end
+) const {
+    Y_ASSERT(approx.size() == 1 && "Fair Loss metric supports only single-dimentional data");
+    Y_ASSERT(approx.front().size() == target.size());
+    Y_ASSERT(!isExpApprox);
+    const auto realApprox = [&](int idx) { return approx[0][idx] + (approxDelta.empty() ? 0.0 : approxDelta[0][idx]);  };
+    const auto realWeight = [&](int idx) { return weight.empty() ? 1.0 : weight[idx]; };
+    TMetricHolder error(2);
+    for (int i : xrange(begin, end)) {
+        double smoothMismatch = Abs(realApprox(i) - target[i])/Smoothness;
+        error.Stats[0] += Power(Smoothness, 2)*(smoothMismatch - Log2(smoothMismatch + 1)/M_LN2_INV)*realWeight(i);
+        error.Stats[1] += realWeight(i);
+    }
+    return error;
+}
+TString TFairLossMetric::GetDescription() const {
+    const TMetricParam<double> smoothness("smoothness", Smoothness, /*userDefined*/true);
+    return BuildDescription(ELossFunction::FairLoss, UseWeights, "%.3g", smoothness);
+}
+void TFairLossMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+    *valueType = EMetricBestValue::Min;
 }
 
 /* Accuracy */
@@ -4037,7 +4176,6 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
             result.push_back(MakeCrossEntropyMetric(ELossFunction::Logloss, border));
             validParams = {"border"};
             break;
-
         case ELossFunction::CrossEntropy:
             result.push_back(MakeCrossEntropyMetric(ELossFunction::CrossEntropy));
             break;
@@ -4052,7 +4190,6 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
         case ELossFunction::MAE:
             result.push_back(MakeQuantileMetric(ELossFunction::MAE));
             break;
-
         case ELossFunction::Quantile: {
             auto it = params.find("alpha");
             if (it != params.end()) {
@@ -4063,7 +4200,6 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
             validParams = {"alpha"};
             break;
         }
-
         case ELossFunction::Expectile: {
             auto it = params.find("alpha");
             if (it != params.end()) {
@@ -4074,7 +4210,6 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
             validParams = {"alpha"};
             break;
         }
-
         case ELossFunction::LogLinQuantile: {
             auto it = params.find("alpha");
             if (it != params.end()) {
@@ -4085,7 +4220,6 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
             validParams = {"alpha"};
             break;
         }
-
         case ELossFunction::AverageGain:
         case ELossFunction::QueryAverage: {
             auto it = params.find("top");
@@ -4094,49 +4228,38 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
             validParams = {"top"};
             break;
         }
-
         case ELossFunction::MAPE:
             result.push_back(MakeMAPEMetric());
             break;
-
         case ELossFunction::Poisson:
             result.push_back(MakePoissonMetric());
             break;
-
         case ELossFunction::MedianAbsoluteError:
             result.push_back(MakeMedianAbsoluteErrorMetric());
             break;
-
         case ELossFunction::SMAPE:
             result.push_back(MakeSMAPEMetric());
             break;
-
         case ELossFunction::MSLE:
             result.push_back(MakeMSLEMetric());
             break;
-
         case ELossFunction::MultiClass:
             result.push_back(MakeMultiClassMetric());
             break;
-
         case ELossFunction::MultiClassOneVsAll:
             result.push_back(MakeMultiClassOneVsAllMetric());
             break;
-
         case ELossFunction::PairLogit:
             result.push_back(MakePairLogitMetric());
             validParams = {"max_pairs"};
             break;
-
         case ELossFunction::QueryRMSE:
             result.push_back(MakeQueryRMSEMetric());
             break;
-
         case ELossFunction::QuerySoftMax:
             result.emplace_back(new TQuerySoftMaxMetric());
             validParams = {"lambda"};
             break;
-
         case ELossFunction::PFound: {
             auto itTopSize = params.find("top");
             auto itDecay = params.find("decay");
@@ -4146,11 +4269,9 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
             validParams = {"top", "decay"};
             break;
         }
-
         case ELossFunction::LogLikelihoodOfPrediction:
             result.push_back(MakeLLPMetric());
             break;
-
         case ELossFunction::NDCG: {
             auto itTopSize = params.find("top");
             auto itType = params.find("type");
@@ -4166,7 +4287,6 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
             validParams = {"top", "type"};
             break;
         }
-
         case ELossFunction::R2:
             result.push_back(MakeR2Metric());
             break;
@@ -4187,17 +4307,14 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
             }
             break;
         }
-
         case ELossFunction::Accuracy:
             result.push_back(MakeAccuracyMetric(border));
             validParams = {"border"};
             break;
-
         case ELossFunction::CtrFactor:
             result.push_back(MakeCtrFactorMetric(border));
             validParams = {"border"};
             break;
-
         case ELossFunction::Precision: {
             if (approxDimension == 1) {
                 result.emplace_back(MakeBinClassPrecisionMetric(border));
@@ -4209,7 +4326,6 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
             }
             break;
         }
-
         case ELossFunction::Recall: {
             if (approxDimension == 1) {
                 result.emplace_back(MakeBinClassRecallMetric(border));
@@ -4221,21 +4337,18 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
             }
             break;
         }
-
         case ELossFunction::BalancedAccuracy: {
             CB_ENSURE(approxDimension == 1, "Balanced accuracy is used only for binary classification problems.");
             validParams = {"border"};
             result.emplace_back(MakeBinClassBalancedAccuracyMetric(border));
             break;
         }
-
         case ELossFunction::BalancedErrorRate: {
             CB_ENSURE(approxDimension == 1, "Balanced Error Rate is used only for binary classification problems.");
             validParams = {"border"};
             result.emplace_back(MakeBinClassBalancedErrorRate(border));
             break;
         }
-
         case ELossFunction::Kappa: {
             if (approxDimension == 1) {
                 validParams = {"border"};
@@ -4245,7 +4358,6 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
             }
             break;
         }
-
         case ELossFunction::WKappa: {
             if (approxDimension == 1) {
                 validParams = {"border"};
@@ -4255,7 +4367,6 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
             }
             break;
         }
-
         case ELossFunction::F1: {
             if (approxDimension == 1) {
                 result.emplace_back(MakeBinClassF1Metric(border));
@@ -4267,65 +4378,53 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
             }
             break;
         }
-
         case ELossFunction::TotalF1:
             result.push_back(MakeTotalF1Metric(approxDimension == 1 ? 2 : approxDimension));
             break;
-
         case ELossFunction::MCC:
             result.push_back(MakeMCCMetric(approxDimension == 1 ? 2 : approxDimension));
             break;
-
         case ELossFunction::BrierScore:
             CB_ENSURE(approxDimension == 1, "Brier Score is used only for binary classification problems.");
             result.push_back(MakeBrierScoreMetric());
             break;
-
         case ELossFunction::ZeroOneLoss:
             result.emplace_back(MakeZeroOneLossMetric(border, approxDimension > 1));
             validParams = {"border"};
             break;
-
         case ELossFunction::HammingLoss:
             result.push_back(MakeHammingLossMetric(border, approxDimension > 1));
             validParams = {"border"};
             break;
-
         case ELossFunction::HingeLoss:
             result.push_back(MakeHingeLossMetric());
             break;
-
         case ELossFunction::PairAccuracy:
             result.emplace_back(MakePairAccuracyMetric());
             break;
-
         case ELossFunction::PrecisionAt: {
             int topSize = GetParameterTop(params, ELossFunction::PrecisionAt);
             validParams = {"top", "border"};
             result.emplace_back(MakePrecisionAtKMetric(topSize, border));
             break;
         }
-
         case ELossFunction::RecallAt: {
             int topSize = GetParameterTop(params, ELossFunction::RecallAt);
             validParams = {"top", "border"};
             result.emplace_back(MakeRecallAtKMetric(topSize, border));
             break;
         }
-
         case ELossFunction::MAP: {
             int topSize = GetParameterTop(params, ELossFunction::MAP);
             validParams = {"top", "border"};
             result.emplace_back(MakeMAPKMetric(topSize, border));
             break;
         }
-
         case ELossFunction::UserPerObjMetric: {
             result.emplace_back(MakeUserDefinedPerObjectMetric(params));
             validParams = {"alpha"};
             break;
         }
-
         case ELossFunction::UserQuerywiseMetric: {
             result.emplace_back(MakeUserDefinedQuerywiseMetric(params));
             validParams = {"alpha"};
@@ -4349,6 +4448,26 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
         case ELossFunction::StochasticFilter: {
             validParams={"sigma", "num_estimations"};
             result.push_back(MakeStochasticFilterMetric());
+            break;
+        }
+        case ELossFunction::FairLoss: {
+            double smoothness = TFairLossMetric::DefaultSmoothness;
+            if (params.contains("smoothness")) {
+                smoothness = FromString<double>(params.at("smoothness"));
+                validParams = {"smoothness"};
+            }
+            result.push_back(MakeFairLossMetric(smoothness));
+            break;
+        }
+        case ELossFunction::NormalizedGini: {
+            if (approxDimension == 1) {
+                result.push_back(MakeBinClassAucMetric(border));
+                validParams = {"border"};
+            } else {
+                for (int i : xrange(approxDimension)) {
+                    result.push_back(MakeMultiClassNormalizedGiniMetric(i));
+                }
+            }
             break;
         }
         default:

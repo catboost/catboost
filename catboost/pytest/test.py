@@ -2620,7 +2620,8 @@ def test_custom_loss_for_classification(loss_function, boosting_type):
             'BrierScore',
             'ZeroOneLoss',
             'HammingLoss',
-            'HingeLoss'
+            'HingeLoss',
+            'NormalizedGini'
         ]
         if metric != loss_function
     ]
@@ -2695,7 +2696,7 @@ def test_custom_loss_for_multiclassification(boosting_type):
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '--custom-metric',
-        'AUC:hints=skip_train~false,Accuracy,Precision,Recall,F1,TotalF1,MCC,Kappa,WKappa,ZeroOneLoss,HammingLoss,HingeLoss',
+        'AUC:hints=skip_train~false,Accuracy,Precision,Recall,F1,TotalF1,MCC,Kappa,WKappa,ZeroOneLoss,HammingLoss,HingeLoss,NormalizedGini',
         '--learn-err-log', learn_error_path,
         '--test-err-log', test_error_path,
     )
@@ -2906,7 +2907,8 @@ def test_quantile_targets(loss_function, boosting_type):
 
 
 CUSTOM_LOSS_FUNCTIONS = ['RMSE,MAE', 'Quantile:alpha=0.9', 'MSLE,MedianAbsoluteError,SMAPE',
-                         'NumErrors:greater_than=0.01,NumErrors:greater_than=0.1,NumErrors:greater_than=0.5']
+                         'NumErrors:greater_than=0.01,NumErrors:greater_than=0.1,NumErrors:greater_than=0.5',
+                         'FairLoss:smoothness=0.9']
 
 
 @pytest.mark.parametrize('custom_loss_function', CUSTOM_LOSS_FUNCTIONS)

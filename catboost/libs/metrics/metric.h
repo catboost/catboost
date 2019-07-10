@@ -321,6 +321,11 @@ THolder<IMetric> MakeAverageGainMetric(float topSize);
 
 THolder<IMetric> MakeHuberLossMetric(double delta);
 
+THolder<IMetric> MakeBinClassNormalizedGiniMetric(double border);
+THolder<IMetric> MakeMultiClassNormalizedGiniMetric(int positiveClass);
+
+THolder<IMetric> MakeFairLossMetric(double smoothness);
+
 TVector<THolder<IMetric>> CreateMetricsFromDescription(const TVector<TString>& description, int approxDim);
 
 TVector<THolder<IMetric>> CreateMetricFromDescription(const NCatboostOptions::TLossDescription& description, int approxDimension);

@@ -149,6 +149,7 @@ enum class ELossFunction {
 
     R2,
     NumErrors,
+    FairLoss,
 
     /* classification metrics */
 
@@ -168,6 +169,7 @@ enum class ELossFunction {
     Kappa,
     WKappa,
     LogLikelihoodOfPrediction,
+    NormalizedGini,
 
     /* pair metrics */
 

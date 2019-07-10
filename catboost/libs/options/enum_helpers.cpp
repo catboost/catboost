@@ -40,7 +40,8 @@ bool IsMultiDimensionalCompatibleError(ELossFunction lossFunction) {
             lossFunction == ELossFunction::HammingLoss ||
             lossFunction == ELossFunction::ZeroOneLoss ||
             lossFunction == ELossFunction::Kappa ||
-            lossFunction == ELossFunction::WKappa);
+            lossFunction == ELossFunction::WKappa ||
+            lossFunction == ELossFunction::NormalizedGini);
 }
 
 bool IsForCrossEntropyOptimization(ELossFunction lossFunction) {
@@ -85,7 +86,7 @@ bool IsGroupwiseOrderMetric(ELossFunction lossFunction) {
 }
 
 bool IsForOrderOptimization(ELossFunction lossFunction) {
-    return lossFunction == ELossFunction::AUC || IsGroupwiseOrderMetric(lossFunction);
+    return lossFunction == ELossFunction::AUC || lossFunction == ELossFunction::NormalizedGini || IsGroupwiseOrderMetric(lossFunction);
 }
 
 bool IsForAbsoluteValueOptimization(ELossFunction lossFunction) {
@@ -125,8 +126,8 @@ bool IsBinaryClassCompatibleMetric(ELossFunction lossFunction) {
     if (IsClassificationOnlyMetric(lossFunction)) {
         return !IsMultiClassOnlyMetric(lossFunction);
     } else {
-       return (lossFunction == ELossFunction::AUC) ||
-           (IsGroupwiseMetric(lossFunction) && (lossFunction != ELossFunction::QueryRMSE));
+        return (lossFunction == ELossFunction::AUC || lossFunction == ELossFunction::NormalizedGini) ||
+            (IsGroupwiseMetric(lossFunction) && (lossFunction != ELossFunction::QueryRMSE));
     }
 }
 
@@ -185,7 +186,8 @@ bool IsRegressionMetric(ELossFunction lossFunction) {
         lossFunction == ELossFunction::SMAPE ||
         lossFunction == ELossFunction::R2 ||
         lossFunction == ELossFunction::MSLE ||
-        lossFunction == ELossFunction::MedianAbsoluteError
+        lossFunction == ELossFunction::MedianAbsoluteError ||
+        lossFunction == ELossFunction::FairLoss
     );
 }
 
@@ -301,6 +303,7 @@ bool ShouldSkipCalcOnTrainByDefault(ELossFunction lossFunction) {
         case ELossFunction::YetiRank:
         case ELossFunction::NDCG:
         case ELossFunction::AUC:
+        case ELossFunction::NormalizedGini:
         case ELossFunction::MedianAbsoluteError:
             return true;
         default:

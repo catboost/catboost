@@ -1019,6 +1019,16 @@
             "uri": "file://test.test_ctr_type_calc_block=60-Plain-Buckets_/test.eval"
         }
     ],
+    "test.test_custom_loss[Ordered-FairLoss:smoothness=0.9]": [
+        {
+            "checksum": "6181211e1faebaeebef6e4533f08d8dc",
+            "uri": "file://test.test_custom_loss_Ordered-FairLoss_smoothness=0.9_/learn_error.tsv"
+        },
+        {
+            "checksum": "7a0269bbc70fc4b07c3d8ecca4d1caeb",
+            "uri": "file://test.test_custom_loss_Ordered-FairLoss_smoothness=0.9_/test_error.tsv"
+        }
+    ],
     "test.test_custom_loss[Ordered-MSLE,MedianAbsoluteError,SMAPE]": [
         {
             "checksum": "f720b27f5352cf3b9bb3307cb12c642c",
@@ -1057,6 +1067,16 @@
         {
             "checksum": "246174a61ecd7bdccec597fc3cd2967d",
             "uri": "file://test.test_custom_loss_Ordered-RMSE_MAE_/test_error.tsv"
+        }
+    ],
+    "test.test_custom_loss[Plain-FairLoss:smoothness=0.9]": [
+        {
+            "checksum": "a483e44295658564b8ccd275a294f1fb",
+            "uri": "file://test.test_custom_loss_Plain-FairLoss_smoothness=0.9_/learn_error.tsv"
+        },
+        {
+            "checksum": "beb2f758ca47a88d463ee4264c752d56",
+            "uri": "file://test.test_custom_loss_Plain-FairLoss_smoothness=0.9_/test_error.tsv"
         }
     ],
     "test.test_custom_loss[Plain-MSLE,MedianAbsoluteError,SMAPE]": [
@@ -1145,7 +1165,7 @@
             "uri": "file://test.test_custom_loss_for_multiclassification_Ordered_/learn_error.tsv"
         },
         {
-            "checksum": "dcc16eca4997454c514895cdb6a8da4b",
+            "checksum": "6461a054c425221915c13bd615aeb16c",
             "uri": "file://test.test_custom_loss_for_multiclassification_Ordered_/test_error.tsv"
         }
     ],
@@ -1155,7 +1175,7 @@
             "uri": "file://test.test_custom_loss_for_multiclassification_Plain_/learn_error.tsv"
         },
         {
-            "checksum": "bb469540ef68b4cf82d68ac77e0360b4",
+            "checksum": "ffa1d5e018c3091033589cc41da4786b",
             "uri": "file://test.test_custom_loss_for_multiclassification_Plain_/test_error.tsv"
         }
     ],
