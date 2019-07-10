@@ -6,6 +6,7 @@
 #include "util.h"
 
 #include <catboost/libs/helpers/array_subset.h>
+#include <catboost/libs/helpers/compression.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/mem_usage.h>
 #include <catboost/libs/helpers/resource_constrained_executor.h>
@@ -96,9 +97,10 @@ namespace NCB {
     ) {
         ui64 result = 0;
 
+        //TODO(kirillovs): iterate through all per feature binarization settings and select smallest sample size
+        const auto& floatFeatureBinarizationSettings = quantizedFeaturesInfo.GetFloatFeatureBinarization(Max<ui32>());
+
         if (NeedToCalcBorders(quantizedFeaturesInfo)) {
-            //TODO(kirillovs): iterate through all per feature binarization settings and select smallest sample size
-            const auto& floatFeatureBinarizationSettings = quantizedFeaturesInfo.GetFloatFeatureBinarization(Max<ui32>());
             const ui32 sampleSize = GetSampleSizeForBorderSelectionType(
                 objectCount,
                 floatFeatureBinarizationSettings.BorderSelectionType,
@@ -117,8 +119,12 @@ namespace NCB {
 
         if (doQuantization && !storeFeaturesDataAsExternalValuesHolder) {
             // for storing quantized data
-            // TODO(akhropov): support other bitsPerKey. MLTOOLS-2425
-            result += sizeof(ui8) * objectCount;
+
+            TIndexHelper<ui64> indexHelper(
+                CalHistogramWidthForBorders(floatFeatureBinarizationSettings.BorderCount.Get())
+            );
+
+            result += indexHelper.CompressedSize(objectCount) * sizeof(ui64);
         }
 
         return result;
