@@ -14,14 +14,14 @@ struct TFeatureAccessor {
     TFeatureAccessor() = default;
     using TFeature = TFeatureType;
     using TFeaturePtr = const TFeature*;
-    
+
     i32 FeatureStride = 0;
     i32 ObjectStride = 0;
-    
+
     i32 FeatureCount = 0;
     i32 ObjectCount = 0;
     TFeaturePtr FeaturesPtr = nullptr;
-    
+
     __forceinline__ __device__ TFeature operator()(i32 featureId, i32 objectId) const {
         if (Layout == TGPUDataInput::EFeatureLayout::ColumnFirst) {
             return objectId < ObjectCount && featureId < FeatureCount ?
@@ -67,7 +67,7 @@ __global__ void Binarize(
 ) {
     const int blockby32 = blockIdx.x * QuantizationDocBlockSize / WarpSize + threadIdx.x / WarpSize;
     const int firstDocForThread = blockby32 * WarpSize * ObjectsPerThread + threadIdx.x % WarpSize;
-    
+
     const int targetBucketIdx = blockIdx.y;
     const float* featureBorders = borders + featureBorderOffsets[targetBucketIdx];
     const int featureBorderCount = __ldg(featureBordersCount + targetBucketIdx);
@@ -77,13 +77,13 @@ __global__ void Binarize(
         bordersLocal[threadIdx.x] = __ldg(featureBorders + threadIdx.x);
     }
     __syncthreads();
-    
+
     float4 features;
     features.x = floatAccessor(featureIdx, firstDocForThread + 0 * WarpSize);
     features.y = floatAccessor(featureIdx, firstDocForThread + 1 * WarpSize);
     features.z = floatAccessor(featureIdx, firstDocForThread + 2 * WarpSize);
     features.w = floatAccessor(featureIdx, firstDocForThread + 3 * WarpSize);
-    
+
     TCudaQuantizationBucket bins = { 0 };
 #pragma unroll 8
     for (int borderId = 0; borderId < featureBorderCount; ++borderId) {
@@ -251,7 +251,7 @@ void TGPUCatboostEvaluationContext::EvalData(const TGPUDataInput& dataInput, TAr
         GPUModelData.FloatFeatureForBucketIdx.Size(),
         EvalDataCache.BinarizedFeaturesBuffer.Get()
     );
-    
+
     const dim3 treeCalcDimBlock(EvalDocBlockSize, TreeSubBlockWidth);
     const dim3 treeCalcDimGrid(
         NKernel::CeilDivide<unsigned int>(GPUModelData.TreeSizes.Size(), TreeSubBlockWidth * ExtTreeBlockWidth),

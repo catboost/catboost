@@ -88,12 +88,13 @@ namespace NCB::NModelEvaluation {
                 size_t treeStart,
                 size_t treeEnd,
                 TArrayRef<double> results,
-                const TFeatureLayout*
+                const TFeatureLayout* featureLayout
             ) const override {
                 CB_ENSURE(
                     ObliviousTrees->GetFlatFeatureVectorExpectedSize() <= transposedFeatures.size(),
                     "Not enough features provided"
                 );
+                CB_ENSURE(featureLayout == nullptr, "feature layout currenlty not supported");
                 TMaybe<size_t> docCount;
                 CB_ENSURE(!ObliviousTrees->FloatFeatures.empty() || !ObliviousTrees->CatFeatures.empty(),
                           "Both float features and categorical features information are empty");
@@ -137,20 +138,47 @@ namespace NCB::NModelEvaluation {
                 size_t treeStart,
                 size_t treeEnd,
                 TArrayRef<double> results,
-                const TFeatureLayout*
+                const TFeatureLayout* featureLayout
             ) const override {
-                const auto expectedFlatVecSize = ObliviousTrees->GetFlatFeatureVectorExpectedSize();
+                CB_ENSURE(featureLayout == nullptr, "feature layout currenlty not supported");
+                if (!featureLayout) {
+                    featureLayout = ExtFeatureLayout.Get();
+                }
+                auto expectedFlatVecSize = ObliviousTrees->GetFlatFeatureVectorExpectedSize();
+                if (featureLayout && featureLayout->FlatIndexes) {
+                    CB_ENSURE(
+                        featureLayout->FlatIndexes->size() >= expectedFlatVecSize,
+                        "Feature layout FlatIndexes expected to be at least " << expectedFlatVecSize << " long"
+                    );
+                    expectedFlatVecSize = *MaxElement(featureLayout->FlatIndexes->begin(), featureLayout->FlatIndexes->end());
+                }
                 for (const auto& flatFeaturesVec : features) {
                     CB_ENSURE(
                         flatFeaturesVec.size() >= expectedFlatVecSize,
-                        "insufficient flat features vector size: " << flatFeaturesVec.size()
-                                                                   << " expected: " << expectedFlatVecSize
+                        "insufficient flat features vector size: " << flatFeaturesVec.size() << " expected: " << expectedFlatVecSize
                     );
                 }
-                Y_UNUSED(treeStart);
-                Y_UNUSED(treeEnd);
-                Y_UNUSED(results);
-                ythrow yexception() << "Unimplemented on GPU";
+                size_t docCount = features.size();
+
+                const size_t FeatureStride = CeilDiv<size_t>(docCount, 32) * 32;
+                TGPUDataInput dataInput;
+                dataInput.ObjectCount = docCount;
+                dataInput.FloatFeatureCount = features[0].size();
+                dataInput.Stride = FeatureStride;
+                dataInput.FlatFloatsVector = TCudaVec<float>(dataInput.FloatFeatureCount * FeatureStride, EMemoryType::Host);
+                auto arrRef = dataInput.FlatFloatsVector.AsArrayRef();
+                for (size_t featureId = 0; featureId < ObliviousTrees->GetMinimalSufficientFloatFeaturesVectorSize(); ++featureId) {
+                    if (!Ctx.GPUModelData.UsedInModel[featureId]) {
+                        continue;
+                    }
+                    auto target = arrRef.Slice(featureId * FeatureStride, docCount);
+                    #pragma clang loop vectorize_width(16)
+                    for (size_t i = 0; i < docCount; ++i) {
+                        target[i] = features[i][featureId];
+                    }
+                }
+                TVector<TCudaEvaluatorLeafType> gpuD(results.size());
+                Ctx.EvalData(dataInput, gpuD, treeStart, treeEnd);
             }
 
             void CalcFlatSingle(
@@ -298,10 +326,13 @@ namespace NCB::NModelEvaluation {
         };
     }
     TModelEvaluatorPtr CreateGpuEvaluator(const TFullModel& model) {
-        CB_ENSURE(CudaEvaluationPossible(model), "Imp");
+        if (!CudaEvaluationPossible(model)) {
+            CB_ENSURE(!model.HasCategoricalFeatures(), "Model contains categorical features, gpu evaluation impossible");
+            CB_ENSURE(model.IsOblivious(), "Model is not oblivious, gpu evaluation impossible");
+        }
         return new NDetail::TGpuEvaluator(model);
     }
     bool CudaEvaluationPossible(const TFullModel& model) {
-        return !model.HasCategoricalFeatures();
+        return !model.HasCategoricalFeatures() && model.IsOblivious();
     }
 }

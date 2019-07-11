@@ -1,4 +1,4 @@
-#include "../model.h"
+#include <catboost/libs/model/model.h>
 
 namespace NCB::NModelEvaluation {
 

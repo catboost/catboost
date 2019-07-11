@@ -409,11 +409,20 @@ private:
     TAdaptiveLock CurrentEvaluatorLock;
     mutable NCB::NModelEvaluation::TModelEvaluatorPtr Evaluator;
 public:
+    void SetEvaluatorType(EFormulaEvaluatorType evaluatorType) {
+        with_lock(CurrentEvaluatorLock) {
+            if (FormulaEvaluatorType != evaluatorType) {
+                Evaluator = CreateEvaluator(evaluatorType); // we can fail here
+                FormulaEvaluatorType = evaluatorType;
+            }
+        }
+    }
+
     NCB::NModelEvaluation::TConstModelEvaluatorPtr GetCurrentEvaluator() const {
         if (!Evaluator) {
             with_lock(CurrentEvaluatorLock) {
                 if (!Evaluator) {
-                    Evaluator = CreateEvaluator();
+                    Evaluator = CreateEvaluator(FormulaEvaluatorType);
                 }
             }
         }
@@ -815,7 +824,7 @@ public:
      */
     void UpdateDynamicData();
 private:
-    NCB::NModelEvaluation::TModelEvaluatorPtr CreateEvaluator() const;
+    NCB::NModelEvaluation::TModelEvaluatorPtr CreateEvaluator(EFormulaEvaluatorType evaluatorType) const;
 };
 
 void OutputModel(const TFullModel& model, TStringBuf modelFile);

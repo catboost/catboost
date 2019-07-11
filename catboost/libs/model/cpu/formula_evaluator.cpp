@@ -98,7 +98,7 @@ namespace NCB::NModelEvaluation {
                 }
                 CB_ENSURE(
                     ObliviousTrees->GetFlatFeatureVectorExpectedSize() <= transposedFeatures.size(),
-                    "Not enough features provided"
+                    "Not enough features provided" << LabeledOutput(ObliviousTrees->GetFlatFeatureVectorExpectedSize(), transposedFeatures.size())
                 );
                 TMaybe<size_t> docCount;
                 CB_ENSURE(!ObliviousTrees->FloatFeatures.empty() || !ObliviousTrees->CatFeatures.empty(),
