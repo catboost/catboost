@@ -21,6 +21,13 @@ TVector<TCatFeature> CreateCatFeatures(const NCB::TQuantizedFeaturesInfo& quanti
 
 void ConfigureMalloc();
 
+double CalcMetric(
+    const IMetric& metric,
+    const NCB::TTargetDataProviderPtr& targetData,
+    const TVector<TVector<double>>& approx,
+    NPar::TLocalExecutor* localExecutor
+);
+
 void CalcErrors(
     const NCB::TTrainingForCPUDataProviders& trainingDataProviders,
     const TVector<THolder<IMetric>>& errors,

@@ -49,6 +49,7 @@ int main(int argc, const char* argv[]) {
         modChooser.AddMode("fstr", mode_fstr, "evaluate feature importances");
         modChooser.AddMode("ostr", mode_ostr, "evaluate object importances");
         modChooser.AddMode("eval-metrics", mode_eval_metrics, "evaluate metrics for model");
+        modChooser.AddMode("eval-feature", mode_eval_feature, "evaluate features");
         modChooser.AddMode("metadata", mode_metadata, "get/set/dump metainfo fields from model");
         modChooser.AddMode("model-sum", mode_model_sum, "sum model files");
         modChooser.AddMode("run-worker", mode_run_worker, "run worker");

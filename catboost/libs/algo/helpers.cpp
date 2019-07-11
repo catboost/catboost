@@ -82,6 +82,32 @@ void ConfigureMalloc() {
 #endif
 }
 
+
+double CalcMetric(
+    const IMetric& metric,
+    const TTargetDataProviderPtr& targetData,
+    const TVector<TVector<double>>& approx,
+    NPar::TLocalExecutor* localExecutor
+) {
+    CB_ENSURE(
+        approx[0].size() == targetData->GetObjectCount(),
+        "Approx size and object count must be equal"
+    );
+    auto target = targetData->GetTarget().GetOrElse(TConstArrayRef<float>());
+    auto weights = GetWeights(*targetData);
+    auto queryInfo = targetData->GetGroupInfo().GetOrElse(TConstArrayRef<TQueryInfo>());
+    const auto& additiveStats = EvalErrors(
+        approx,
+        target,
+        weights,
+        queryInfo,
+        metric,
+        localExecutor
+    );
+    return metric.GetFinalError(additiveStats);
+}
+
+
 void CalcErrors(
     const TTrainingForCPUDataProviders& trainingDataProviders,
     const TVector<THolder<IMetric>>& errors,

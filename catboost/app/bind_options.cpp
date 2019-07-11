@@ -527,6 +527,60 @@ static void BindModelBasedEvalParams(NLastGetopt::TOpts* parserPtr, NJson::TJson
         });
 }
 
+static void BindFeatureEvalParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* plainJsonPtr) {
+    auto& parser = *parserPtr;
+    parser
+        .AddLongOption("features-to-evaluate")
+        .RequiredArgument("INDEXES[;INDEXES...]")
+        .Help("Evaluate impact of each set of features on test error; each set is a comma-separated list of indices and index intervals, e.g. 4,78-89,312.")
+        .Handler1T<TString>([plainJsonPtr](const TString& indicesLine) {
+            auto featuresToEvaluate = ParseIndexSetsLine(indicesLine);
+            NCatboostOptions::TJsonFieldHelper<TVector<TVector<int>>>::Write(featuresToEvaluate, &(*plainJsonPtr)["features_to_evaluate"]);
+        });
+    parser
+        .AddLongOption("feature-eval-mode")
+        .RequiredArgument("STRING")
+        .Help("Feature evaluation mode; must be one of " + GetEnumAllNames<NCB::EFeatureEvalMode>())
+        .Handler1T<NCB::EFeatureEvalMode>([plainJsonPtr](const auto mode) {
+            (*plainJsonPtr)["feature_eval_mode"] = ToString(mode);
+        });
+    parser
+        .AddLongOption("feature-eval-output-file")
+        .RequiredArgument("STRING")
+        .Help("file containing feature evaluation summary (p-values and metric deltas for each set of tested features)")
+        .Handler1T<TString>([plainJsonPtr](const auto filename) {
+            (*plainJsonPtr)["eval_feature_file"] = ToString(filename);
+        });
+    parser
+        .AddLongOption("offset")
+        .RequiredArgument("INT")
+        .Help("First fold for feature evaluation")
+        .Handler1T<ui32>([plainJsonPtr](const auto offset) {
+            (*plainJsonPtr)["offset"] = offset;
+        });
+    parser
+        .AddLongOption("fold-count")
+        .RequiredArgument("INT")
+        .Help("Fold count for feature evaluation")
+        .Handler1T<ui32>([plainJsonPtr](const auto foldCount) {
+            (*plainJsonPtr)["fold_count"] = foldCount;
+        });
+    parser
+        .AddLongOption("fold-size-unit")
+        .RequiredArgument("STRING")
+        .Help("Units to specify fold size for feature evaluation; must be one of " + GetEnumAllNames<ESamplingUnit>())
+        .Handler1T<ESamplingUnit>([plainJsonPtr](const auto foldSizeUnit) {
+            (*plainJsonPtr)["fold_size_unit"] = ToString(foldSizeUnit);
+        });
+    parser
+        .AddLongOption("fold-size")
+        .RequiredArgument("INT")
+        .Help("Fold size (in fold-size-units) for feature evaluation")
+        .Handler1T<ui32>([plainJsonPtr](const auto foldSize) {
+            (*plainJsonPtr)["fold_size"] = foldSize;
+        });
+}
+
 static void BindTreeParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* plainJsonPtr) {
     auto& parser = *parserPtr;
     parser.AddLongOption("rsm", "random subspace method (feature bagging)")
@@ -1164,6 +1218,48 @@ void ParseModelBasedEvalCommandLine(
     BindBoostingParams(&parser, plainJsonPtr);
 
     BindModelBasedEvalParams(&parser, plainJsonPtr);
+
+    BindTreeParams(&parser, plainJsonPtr);
+
+    BindCatFeatureParams(&parser, plainJsonPtr);
+
+    BindTextFeaturesParams(&parser, plainJsonPtr);
+
+    BindDataProcessingParams(&parser, plainJsonPtr);
+
+    BindBinarizationParams(&parser, plainJsonPtr);
+
+    BindSystemParams(&parser, plainJsonPtr);
+
+    BindCatboostParams(&parser, plainJsonPtr);
+
+    NLastGetopt::TOptsParseResult parserResult{&parser, argc, argv};
+}
+
+void ParseFeatureEvalCommandLine(
+    int argc,
+    const char* argv[],
+    NJson::TJsonValue* plainJsonPtr,
+    NJson::TJsonValue* featureEvalOptions,
+    TString* paramsPath,
+    NCatboostOptions::TPoolLoadParams* params
+) {
+    auto parser = NLastGetopt::TOpts();
+    parser.AddHelpOption();
+    BindPoolLoadParams(&parser, params);
+
+    parser.AddLongOption("params-file", "Path to JSON file with params.")
+        .RequiredArgument("PATH")
+        .StoreResult(paramsPath)
+        .Help("If param is given in json file and in command line then one from command line will be used.");
+
+    BindMetricParams(&parser, plainJsonPtr);
+
+    BindOutputParams(&parser, plainJsonPtr);
+
+    BindBoostingParams(&parser, plainJsonPtr);
+
+    BindFeatureEvalParams(&parser, featureEvalOptions);
 
     BindTreeParams(&parser, plainJsonPtr);
 

@@ -306,3 +306,11 @@ enum class ETokenizerType {
     Naive,
     UserDefined
 };
+
+namespace NCB {
+    enum class EFeatureEvalMode {
+        OneVsNone,
+        OneVsOthers,
+        OneVsAll
+    };
+}

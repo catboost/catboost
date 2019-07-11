@@ -264,6 +264,15 @@ void TFeaturesLayout::IgnoreExternalFeatures(TConstArrayRef<ui32> ignoredFeature
     }
 }
 
+void TFeaturesLayout::SetExternalFeatureAvailability(ui32 externalFeatureIdx, bool isAvailable) {
+    if (externalFeatureIdx >= ExternalIdxToMetaInfo.size()) {
+        return;
+    }
+
+    auto& metaInfo = ExternalIdxToMetaInfo[externalFeatureIdx];
+    metaInfo.IsAvailable = isAvailable && !metaInfo.IsIgnored;
+}
+
 TConstArrayRef<ui32> TFeaturesLayout::GetCatFeatureInternalIdxToExternalIdx() const {
     return CatFeatureInternalIdxToExternalIdx;
 }

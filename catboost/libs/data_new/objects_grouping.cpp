@@ -357,3 +357,64 @@ void NCB::TrainTestSplit(
         TRangesSubset<ui32>(testBlock.GetSize(), TVector<TSubsetBlock<ui32>>{std::move(testBlock)})
     );
 }
+static void AlignBlockEndToGroupEnd(
+    const TObjectsGrouping& objectsGrouping,
+    TSubsetBlock<ui32>* block
+) {
+    if (objectsGrouping.IsTrivial() || block->GetSize() == 0) {
+        return;
+    }
+    block->SrcEnd = objectsGrouping.GetGroup(objectsGrouping.GetGroupIdxForObject(block->SrcEnd - 1)).End;
+}
+
+static TSubsetBlock<ui32> GetGroupBlock(
+    const TObjectsGrouping& objectsGrouping,
+    const TSubsetBlock<ui32>& block
+) {
+    if (objectsGrouping.IsTrivial() || block.GetSize() == 0) {
+        return block;
+    }
+    const auto srcBegin = objectsGrouping.GetGroupIdxForObject(block.SrcBegin);
+    const auto srcEnd = objectsGrouping.GetGroupIdxForObject(block.SrcEnd - 1) + 1;
+    return {{srcBegin, srcEnd}, /*DstBegin*/0};
+}
+
+TVector<TArraySubsetIndexing<ui32>> NCB::SplitByObjects(
+    const TObjectsGrouping& objectsGrouping,
+    ui32 partSizeInObjects
+) {
+    const ui32 objectCount = objectsGrouping.GetObjectCount();
+    TVector<TArraySubsetIndexing<ui32>> result;
+    TSubsetBlock<ui32> block{{/*SrcBegin*/0, /*SrcEnd*/Min(objectCount, partSizeInObjects)}, /*DstBegin*/0};
+    while (block.GetSize() > 0) {
+        AlignBlockEndToGroupEnd(objectsGrouping, &block);
+        const auto groupBlock = GetGroupBlock(objectsGrouping, block);
+        result.push_back(
+            TArraySubsetIndexing<ui32>(
+                TRangesSubset<ui32>(groupBlock.GetSize(), TVector<TSubsetBlock<ui32>>{groupBlock})
+            )
+        );
+        block.SrcBegin = block.SrcEnd;
+        block.SrcEnd = Min(objectCount, block.SrcBegin + partSizeInObjects);
+    }
+    return result;
+}
+
+TVector<TArraySubsetIndexing<ui32>> NCB::SplitByGroups(
+    const TObjectsGrouping& objectsGrouping,
+    ui32 partSizeInGroups
+) {
+    const ui32 groupCount = objectsGrouping.GetGroupCount();
+    TVector<TArraySubsetIndexing<ui32>> result;
+    TSubsetBlock<ui32> block{{/*SrcBegin*/0, /*SrcEnd*/Min(groupCount, partSizeInGroups)}, /*DstBegin*/0};
+    while (block.GetSize() > 0) {
+        result.push_back(
+            TArraySubsetIndexing<ui32>(
+                TRangesSubset<ui32>(block.GetSize(), TVector<TSubsetBlock<ui32>>{block})
+            )
+        );
+        block.SrcBegin = block.SrcEnd;
+        block.SrcEnd = Min(groupCount, block.SrcBegin + partSizeInGroups);
+    }
+    return result;
+}

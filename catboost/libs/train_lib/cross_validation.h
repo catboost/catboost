@@ -1,13 +1,19 @@
 #pragma once
 
 #include <catboost/libs/algo/custom_objective_descriptor.h>
+#include <catboost/libs/algo/learn_context.h>
 #include <catboost/libs/data_new/data_provider.h>
+#include <catboost/libs/eval_result/eval_result.h>
 #include <catboost/libs/helpers/parallel_tasks.h>
+#include <catboost/libs/helpers/restorable_rng.h>
 #include <catboost/libs/metrics/metric.h>
 #include <catboost/libs/options/cross_validation_params.h>
+#include <catboost/libs/options/output_file_options.h>
+#include <catboost/libs/train_lib/train_model.h>
 
 #include <library/json/json_value.h>
 
+#include <util/folder/tempdir.h>
 #include <util/generic/array_ref.h>
 #include <util/generic/maybe.h>
 #include <util/generic/string.h>
@@ -141,3 +147,77 @@ void CrossValidate(
     NCB::TDataProviderPtr data,
     const TCrossValidationParams& cvParams,
     TVector<TCVResult>* results);
+
+struct TFoldContext {
+    ui32 FoldIdx;
+
+    ETaskType TaskType;
+
+    THolder<TTempDir> TempDir; // THolder because of bugs with move semantics of TTempDir
+    NCatboostOptions::TOutputFilesOptions OutputOptions; // with modified Overfitting params, TrainDir
+    NCB::TTrainingDataProviders TrainingData;
+
+    THolder<TLearnProgress> LearnProgress;
+    TMaybe<TFullModel> FullModel;
+
+    TVector<TVector<double>> MetricValuesOnTrain; // [iter][metricIdx]
+    TVector<TVector<double>> MetricValuesOnTest;  // [iter][metricIdx]
+
+    NCB::TEvalResult LastUpdateEvalResult;
+
+    TRestorableFastRng64 Rand;
+
+public:
+    TFoldContext(
+        size_t foldIdx,
+        ETaskType taskType,
+        const NCatboostOptions::TOutputFilesOptions& commonOutputOptions,
+        NCB::TTrainingDataProviders&& trainingData,
+        ui64 randomSeed,
+        bool hasFullModel = false);
+
+};
+
+void TrainBatch(
+    const NCatboostOptions::TCatBoostOptions& catboostOption,
+    const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
+    const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
+    const TLabelConverter& labelConverter,
+    TConstArrayRef<THolder<IMetric>> metrics,
+    TConstArrayRef<bool> skipMetricOnTrain,
+    double maxTimeSpentOnFixedCostRatio,
+    ui32 maxIterationsBatchSize,
+    size_t globalMaxIteration,
+    bool isErrorTrackerActive,
+    ELoggingLevel loggingLevel,
+    TFoldContext* foldContext,
+    IModelTrainer* modelTrainer,
+    NPar::TLocalExecutor* localExecutor,
+    TMaybe<ui32>* upToIteration);
+
+void Train(
+    const NCatboostOptions::TCatBoostOptions& catboostOption,
+    const TString& trainDir,
+    const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
+    const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
+    const TLabelConverter& labelConverter,
+    const TVector<THolder<IMetric>>& metrics,
+    bool isErrorTrackerActive,
+    TFoldContext* foldContext,
+    IModelTrainer* modelTrainer,
+    NPar::TLocalExecutor* localExecutor);
+
+void UpdateMetricsAfterIteration(
+    size_t iteration,
+    bool calcMetric,
+    bool isErrorTrackerActive,
+    TConstArrayRef<THolder<IMetric>> metrics,
+    TConstArrayRef<bool> skipMetricOnTrain,
+    const TMetricsAndTimeLeftHistory& metricsAndTimeHistory,
+    TVector<TVector<double>>* metricValuesOnTrain,
+    TVector<TVector<double>>* metricValuesOnTest);
+
+void UpdatePermutationBlockSize(
+    ETaskType taskType,
+    TConstArrayRef<NCB::TTrainingDataProviders> foldsData,
+    NCatboostOptions::TCatBoostOptions* catboostOptions);

@@ -7004,3 +7004,48 @@ def test_equal_feature_names():
             '-f', data_file('querywise', 'train'),
             '--column-description', data_file('querywise', 'train.cd.equal_names'),
         ))
+
+
+def test_eval_feature():
+    output_eval_path = yatest.common.test_output_path('feature.eval')
+    test_err_log = 'test_error.log'
+    cmd = (
+        CATBOOST_PATH,
+        'eval-feature',
+        '--loss-function', 'RMSE',
+        '-f', data_file('higgs', 'train_small'),
+        '--cd', data_file('higgs', 'train.cd'),
+        '--features-to-evaluate', '0-6;7-13;14-20;21-27',
+        '--feature-eval-mode', 'OneVsOthers',
+        '-i', '30',
+        '-T', '4',
+        '-w', '0.7',
+        '--feature-eval-output-file', output_eval_path,
+        '--offset', '2',
+        '--fold-count', '2',
+        '--fold-size-unit', 'Object',
+        '--fold-size', '20',
+        '--test-err-log', test_err_log,
+        '--train-dir', '.'
+    )
+
+    yatest.common.execute(cmd)
+
+    return [
+        local_canonical_file(os.path.join('Baseline_set_3_fold_3', test_err_log), diff_tool=diff_tool()),
+        local_canonical_file(os.path.join('Baseline_set_3_fold_2', test_err_log), diff_tool=diff_tool()),
+        local_canonical_file(os.path.join('Baseline_set_2_fold_3', test_err_log), diff_tool=diff_tool()),
+        local_canonical_file(os.path.join('Baseline_set_2_fold_2', test_err_log), diff_tool=diff_tool()),
+        local_canonical_file(os.path.join('Baseline_set_1_fold_3', test_err_log), diff_tool=diff_tool()),
+        local_canonical_file(os.path.join('Baseline_set_1_fold_2', test_err_log), diff_tool=diff_tool()),
+        local_canonical_file(os.path.join('Baseline_set_0_fold_3', test_err_log), diff_tool=diff_tool()),
+        local_canonical_file(os.path.join('Baseline_set_0_fold_2', test_err_log), diff_tool=diff_tool()),
+        local_canonical_file(os.path.join('Testing_set_3_fold_3', test_err_log), diff_tool=diff_tool()),
+        local_canonical_file(os.path.join('Testing_set_3_fold_2', test_err_log), diff_tool=diff_tool()),
+        local_canonical_file(os.path.join('Testing_set_2_fold_3', test_err_log), diff_tool=diff_tool()),
+        local_canonical_file(os.path.join('Testing_set_2_fold_2', test_err_log), diff_tool=diff_tool()),
+        local_canonical_file(os.path.join('Testing_set_1_fold_3', test_err_log), diff_tool=diff_tool()),
+        local_canonical_file(os.path.join('Testing_set_1_fold_2', test_err_log), diff_tool=diff_tool()),
+        local_canonical_file(os.path.join('Testing_set_0_fold_3', test_err_log), diff_tool=diff_tool()),
+        local_canonical_file(os.path.join('Testing_set_0_fold_2', test_err_log), diff_tool=diff_tool()),
+    ]

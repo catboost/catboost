@@ -14,6 +14,7 @@ SRCS(
     data_processing_options.cpp
     defaults_helper.cpp
     enum_helpers.cpp
+    feature_eval_options.cpp
     json_helper.cpp
     load_options.cpp
     loss_description.cpp

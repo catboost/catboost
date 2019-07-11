@@ -1,3 +1,4 @@
+#include "catboost_options.h"
 #include "loss_description.h"
 #include "cat_feature_options.h"
 #include "binarization_options.h"
@@ -368,15 +369,17 @@ void NCatboostOptions::PlainJsonToOptions(
     CopyOption(plainOptions, "sampling_unit", &bootstrapOptions, &seenKeys);
 
     //feature evaluation options
-    auto& modelBasedEvalOptions = trainOptions["model_based_eval_options"];
-    modelBasedEvalOptions.SetType(NJson::JSON_MAP);
+    if (GetTaskType(plainOptions) == ETaskType::GPU) {
+        auto& modelBasedEvalOptions = trainOptions["model_based_eval_options"];
+        modelBasedEvalOptions.SetType(NJson::JSON_MAP);
 
-    CopyOption(plainOptions, "features_to_evaluate", &modelBasedEvalOptions, &seenKeys);
-    CopyOption(plainOptions, "offset", &modelBasedEvalOptions, &seenKeys);
-    CopyOption(plainOptions, "experiment_count", &modelBasedEvalOptions, &seenKeys);
-    CopyOption(plainOptions, "experiment_size", &modelBasedEvalOptions, &seenKeys);
-    CopyOption(plainOptions, "baseline_model_snapshot", &modelBasedEvalOptions, &seenKeys);
-    CopyOption(plainOptions, "use_evaluated_features_in_baseline_model", &modelBasedEvalOptions, &seenKeys);
+        CopyOption(plainOptions, "features_to_evaluate", &modelBasedEvalOptions, &seenKeys);
+        CopyOption(plainOptions, "offset", &modelBasedEvalOptions, &seenKeys);
+        CopyOption(plainOptions, "experiment_count", &modelBasedEvalOptions, &seenKeys);
+        CopyOption(plainOptions, "experiment_size", &modelBasedEvalOptions, &seenKeys);
+        CopyOption(plainOptions, "baseline_model_snapshot", &modelBasedEvalOptions, &seenKeys);
+        CopyOption(plainOptions, "use_evaluated_features_in_baseline_model", &modelBasedEvalOptions, &seenKeys);
+    }
 
     //cat-features
     auto& ctrOptions = trainOptions["cat_feature_params"];

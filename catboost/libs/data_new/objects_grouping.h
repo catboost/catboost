@@ -305,4 +305,14 @@ namespace NCB {
         }
         return result;
     }
+
+    TVector<TArraySubsetIndexing<ui32>> SplitByObjects(
+        const TObjectsGrouping& objectsGrouping,
+        ui32 partSizeInObjects
+    );
+
+    TVector<TArraySubsetIndexing<ui32>> SplitByGroups(
+        const TObjectsGrouping& objectsGrouping,
+        ui32 partSizeInGroups
+    );
 }
