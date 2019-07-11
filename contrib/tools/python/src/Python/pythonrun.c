@@ -158,6 +158,42 @@ isatty_no_error(PyObject *sys_stream)
     return 0;
 }
 
+static void
+inittracemalloc(void)
+{
+    PyObject *mod = NULL, *res = NULL;
+    char *p, *endptr;
+    long nframe;
+
+    p = Py_GETENV("PYTHONTRACEMALLOC");
+    if (p == NULL || *p == '\0')
+        return;
+
+    endptr = p;
+    nframe = strtol(p, &endptr, 10);
+    if (*endptr != '\0' || nframe < 1 || nframe > 100000)
+        Py_FatalError("PYTHONTRACEMALLOC: invalid number of frames");
+
+    mod = PyImport_ImportModule("_tracemalloc");
+    if (mod == NULL)
+        goto error;
+
+    res = PyObject_CallMethod(mod, "start", "i", (int)nframe);
+    if (res == NULL)
+        goto error;
+
+    goto done;
+
+error:
+    fprintf(stderr, "failed to start tracemalloc:\n");
+    PyErr_Print();
+
+done:
+    Py_XDECREF(mod);
+    Py_XDECREF(res);
+}
+
+
 void
 Py_InitializeEx(int install_sigs)
 {
@@ -293,6 +329,8 @@ Py_InitializeEx(int install_sigs)
 
     if (!Py_NoSiteFlag)
         initsite(); /* Module site */
+
+    inittracemalloc();
 
     if ((p = Py_GETENV("PYTHONIOENCODING")) && *p != '\0') {
         p = icodeset = codeset = strdup(p);

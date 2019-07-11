@@ -2340,27 +2340,6 @@ PyTypeObject *_Py_cobject_hack = &PyCObject_Type;
 Py_ssize_t (*_Py_abstract_hack)(PyObject *) = PyObject_Size;
 
 
-/* Python's malloc wrappers (see pymem.h) */
-
-void *
-PyMem_Malloc(size_t nbytes)
-{
-    return PyMem_MALLOC(nbytes);
-}
-
-void *
-PyMem_Realloc(void *p, size_t nbytes)
-{
-    return PyMem_REALLOC(p, nbytes);
-}
-
-void
-PyMem_Free(void *p)
-{
-    PyMem_FREE(p);
-}
-
-
 /* These methods are used to control infinite recursion in repr, str, print,
    etc.  Container objects that may recursively contain themselves,
    e.g. builtin dictionaries and lists, should use Py_ReprEnter() and
