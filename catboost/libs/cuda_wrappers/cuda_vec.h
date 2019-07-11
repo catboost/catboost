@@ -219,6 +219,15 @@ public:
         return TArrayRef<T>(Impl_->Data_, Impl_->Size_);
     }
 
+    TArrayRef<T> AsMaybeNullptrArrayRef() {
+        return Impl_ ? TArrayRef<T>(Impl_->Data_, Impl_->Size_)
+                     : TArrayRef<T>((T*)nullptr, (ui64)0);
+    }
+
+    TArrayRef<const T> AsMaybeNullptrArrayRef() const {
+        return Impl_ ? TArrayRef<const T>(Impl_->Data_, Impl_->Size_) : TArrayRef<const T>((const T*)nullptr, (ui64)0);
+    }
+
     TConstArrayRef<T> AsArrayRef() const {
         CB_ENSURE(*this);
         return TConstArrayRef<T>(Impl_->Data_, Impl_->Size_);
