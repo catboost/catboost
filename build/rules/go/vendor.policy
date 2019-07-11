@@ -279,4 +279,7 @@ ALLOW yt/jaeger/plugin -> vendor/github.com/gorilla
 # CONTRIB-1302. Godbus goes to Arcadia
 ALLOW .* -> vendor/github.com/godbus/dbus
 
+# CONTRIB-1300. Osquery SDK goes to Arcadia
+ALLOW .* -> vendor/github.com/kolide/osquery-go
+
 DENY .* -> vendor/
