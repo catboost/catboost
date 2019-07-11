@@ -10,6 +10,7 @@ TConstArrayRef<ELossFunction> GetAllObjectives();
 bool IsSingleDimensionalCompatibleError(ELossFunction lossFunction);
 
 bool IsMultiDimensionalCompatibleError(ELossFunction lossFunction);
+bool IsMultiDimensionalCompatibleError(TStringBuf lossFunction);
 
 bool IsForCrossEntropyOptimization(ELossFunction lossFunction);
 
@@ -45,6 +46,7 @@ bool IsGroupwiseMetric(ELossFunction lossFunction);
 bool IsGroupwiseMetric(TStringBuf metricName);
 
 bool IsPairwiseMetric(ELossFunction lossFunction);
+bool IsPairwiseMetric(TStringBuf lossFunction);
 
 bool UsesPairsForCalculation(ELossFunction lossFunction);
 

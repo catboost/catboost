@@ -374,6 +374,10 @@ inline bool IsMaxOptimal(const IMetric& metric) {
     return bestValueType == EMetricBestValue::Max;
 }
 
+bool IsMaxOptimal(TStringBuf lossFunction);
+
+bool IsMinOptimal(TStringBuf lossFunction);
+
 void CheckPreprocessedTarget(
     TConstArrayRef<float> target,
     const NCatboostOptions::TLossDescription& lossDesciption,

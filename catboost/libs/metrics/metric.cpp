@@ -4898,3 +4898,19 @@ void CheckPreprocessedTarget(
                   " each target label should be a nonnegative integer");
     }
 }
+
+static EMetricBestValue GetOptimumType(TStringBuf lossFunction) {
+    const auto metric = CreateMetricsFromDescription({TString(lossFunction)}, /*approxDim*/ 1);
+    EMetricBestValue valueType;
+    float bestValue;
+    metric[0]->GetBestValue(&valueType, &bestValue);
+    return valueType;
+}
+
+bool IsMaxOptimal(TStringBuf lossFunction) {
+    return GetOptimumType(lossFunction) == EMetricBestValue::Max;
+}
+
+bool IsMinOptimal(TStringBuf lossFunction) {
+    return GetOptimumType(lossFunction) == EMetricBestValue::Min;
+}

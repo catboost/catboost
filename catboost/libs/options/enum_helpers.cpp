@@ -44,6 +44,11 @@ bool IsMultiDimensionalCompatibleError(ELossFunction lossFunction) {
             lossFunction == ELossFunction::NormalizedGini);
 }
 
+bool IsMultiDimensionalCompatibleError(TStringBuf lossFunction) {
+    const ELossFunction lossType = ParseLossType(lossFunction);
+    return IsMultiDimensionalCompatibleError(lossType);
+}
+
 bool IsForCrossEntropyOptimization(ELossFunction lossFunction) {
     return (lossFunction == ELossFunction::Logloss ||  // binary classification metrics
             lossFunction == ELossFunction::CrossEntropy ||
@@ -212,6 +217,11 @@ bool IsPairwiseMetric(ELossFunction lossFunction) {
         lossFunction == ELossFunction::PairLogitPairwise ||
         lossFunction == ELossFunction::PairAccuracy
     );
+}
+
+bool IsPairwiseMetric(TStringBuf lossFunction) {
+    const ELossFunction lossType = ParseLossType(lossFunction);
+    return IsPairwiseMetric(lossType);
 }
 
 bool UsesPairsForCalculation(ELossFunction lossFunction) {

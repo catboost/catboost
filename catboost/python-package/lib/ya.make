@@ -65,6 +65,7 @@ IF(NOT OS_ANDROID OR PYTHON2)
         core.py
         datasets.py
         utils.py
+        dev_utils.py
         _catboost.pyx
         widget/__init__.py
         widget/ipythonwidget.py
