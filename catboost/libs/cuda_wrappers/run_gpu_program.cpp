@@ -10,5 +10,5 @@ void RunGpuProgram(std::function<void()> func) {
         func,
         queue
     );
-    future.Wait();
+    future.GetValueSync();
 }
