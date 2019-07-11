@@ -122,11 +122,4 @@ namespace NCB {
         loader(dataProviderClosure.GetVisitor<IVisitor>());
         return dataProviderClosure.GetResult();
     }
-
-    /* common case
-     * floatFeatures is [objectIdx][featureIdx] matrix, skip data check for speed
-     */
-    TDataProviderPtr CreateDataProviderFromObjectsOrderData(
-        TVector<TVector<float>>&& floatFeatures
-    );
 }

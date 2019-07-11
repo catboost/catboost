@@ -1409,27 +1409,4 @@ namespace NCB {
                 return nullptr;
         }
     }
-
-    TDataProviderPtr CreateDataProviderFromObjectsOrderData(TVector<TVector<float>>&& floatFeatures) {
-        const ui32 featuresCount = floatFeatures.empty() ? ui32(0) : (ui32)floatFeatures[0].size();
-
-        TDataProviderBuilderOptions options;
-        options.SkipCheck = true;
-        return NCB::CreateDataProvider<IRawObjectsOrderDataVisitor>(
-            [&] (IRawObjectsOrderDataVisitor* visitor) {
-                TDataMetaInfo metaInfo;
-                metaInfo.FeaturesLayout = MakeIntrusive<TFeaturesLayout>(featuresCount);
-
-                visitor->Start(false, metaInfo, (ui32)floatFeatures.size(), NCB::EObjectsOrder::Undefined, {});
-                visitor->StartNextBlock((ui32)floatFeatures.size());
-
-                for (auto objectIdx : xrange(floatFeatures.size())) {
-                    visitor->AddAllFloatFeatures(objectIdx, floatFeatures[objectIdx]);
-                }
-
-                visitor->Finish();
-            },
-            options
-        );
-    }
 }
