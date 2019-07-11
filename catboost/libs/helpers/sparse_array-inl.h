@@ -498,31 +498,6 @@ namespace NCB {
                NonDefaultValues);
     }
 
-    template <class TValue, class TContainer, class TSize>
-    size_t TSparseArrayBase<TValue, TContainer, TSize>::EstimateGetSubsetCpuRamUsage(
-        const TArraySubsetInvertedIndexing<TSize>& subsetInvertedIndexing,
-        ESparseArrayIndexingType sparseArrayIndexingType) const {
-
-        if (HoldsAlternative<TFullSubset<TSize>>(subsetInvertedIndexing)) {
-            return 0;
-        }
-
-        size_t result
-            = (sizeof(TSize) + sizeof(TValue)) * GetNonDefaultSize(); // dstVectorIndexing + dstValues
-
-        if (sparseArrayIndexingType == ESparseArrayIndexingType::Undefined) {
-            sparseArrayIndexingType = Indexing->GetType();
-        }
-
-        // builder and dstIndexing
-        if (sparseArrayIndexingType == ESparseArrayIndexingType::Blocks) {
-            result += 2 * sizeof(TSize) * GetNonDefaultSize();
-        } else if (sparseArrayIndexingType == ESparseArrayIndexingType::HybridIndex) {
-            result += (sizeof(TSize) + sizeof(sizeof(ui64))) * GetNonDefaultSize();
-        }
-
-        return result;
-    }
 
     template <class TValue, class TSize>
     TMaybeOwningArrayHolder<TValue> CreateSubsetContainer(
@@ -532,6 +507,17 @@ namespace NCB {
         Y_UNUSED(parent);
 
         return TMaybeOwningArrayHolder<TValue>::CreateOwning(std::move(subsetNonDefaultValues));
+    }
+
+    // in addition to dstValues passed to CreateSubsetContainer
+    template <class TValue, class TSize>
+    size_t EstimateContainerCreationAdditionalCpuRamUsage(
+        const TSparseArrayBase<TValue, TMaybeOwningArrayHolder<TValue>, TSize>& parent) {
+
+        Y_UNUSED(parent);
+
+        // dstValues is moved to result
+        return 0;
     }
 
     template <class TValue, class TSize>
@@ -549,6 +535,62 @@ namespace NCB {
             )
         );
     }
+
+    // in addition to dstValues passed to CreateSubsetContainer
+    template <class TValue, class TSize>
+    size_t EstimateContainerCreationAdditionalCpuRamUsage(
+        const TSparseArrayBase<TValue, TCompressedArray, TSize>& parent) {
+
+        const TCompressedArray& nonDefaultValues = parent.GetNonDefaultValues();
+        const TIndexHelper<ui64> indexHelper(nonDefaultValues.GetBitsPerKey());
+        return indexHelper.CompressedSize(nonDefaultValues.GetSize()) * sizeof(ui64);
+    }
+
+
+    template <class TValue, class TContainer, class TSize>
+    size_t TSparseArrayBase<TValue, TContainer, TSize>::EstimateGetSubsetCpuRamUsage(
+        const TArraySubsetInvertedIndexing<TSize>& subsetInvertedIndexing,
+        ESparseArrayIndexingType sparseArrayIndexingType) const {
+
+        if (HoldsAlternative<TFullSubset<TSize>>(subsetInvertedIndexing)) {
+            return 0;
+        }
+
+        ui64 ramUsedForDstIndexing;
+        switch (sparseArrayIndexingType) {
+            case ESparseArrayIndexingType::Indices:
+                ramUsedForDstIndexing = sizeof(TSize) * GetNonDefaultSize();
+                break;
+            case ESparseArrayIndexingType::Blocks:
+                ramUsedForDstIndexing = 2 * sizeof(TSize) * GetNonDefaultSize();
+                break;
+            case ESparseArrayIndexingType::HybridIndex:
+                ramUsedForDstIndexing = (sizeof(TSize) + sizeof(ui64)) * GetNonDefaultSize();
+                break;
+            default:
+                ;
+        }
+
+        const ui64 ramUsedForDstValues = sizeof(TValue) * GetNonDefaultSize();
+
+        if (sparseArrayIndexingType == ESparseArrayIndexingType::Undefined) {
+            sparseArrayIndexingType = Indexing->GetType();
+        }
+
+        ui64 ramUsedDuringBuilding = ramUsedForDstIndexing + ramUsedForDstValues;
+        if (sparseArrayIndexingType != ESparseArrayIndexingType::Indices) {
+            // for dstVectorIndexing
+            ramUsedDuringBuilding += sizeof(TSize) * GetNonDefaultSize();
+        }
+
+        const ui64 ramUsedDuringResultCreation
+            = ramUsedForDstIndexing
+                + ramUsedForDstValues
+                + EstimateContainerCreationAdditionalCpuRamUsage(*this);
+
+        return Max(ramUsedDuringBuilding, ramUsedDuringResultCreation);
+    }
+
 
     template <class TValue, class TContainer, class TSize>
     TSparseArrayBase<TValue, TContainer, TSize> TSparseArrayBase<TValue, TContainer, TSize>::GetSubset(
@@ -593,6 +635,7 @@ namespace NCB {
             for (auto i : dstVectorIndexing) {
                 builder->AddOrdered(i);
             }
+            TVector<TSize>().swap(dstVectorIndexing); // force early CPU RAM release
             dstIndexing = MakeIntrusive<TIndexing>(builder->Build());
         }
 
