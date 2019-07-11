@@ -1928,7 +1928,7 @@ class MSVCCompiler(MSVC, Compiler):
 
         if not self.tc.ide_msvs:
             def include_flag(path):
-                return '{flag}"{path}"'.format(path=path, flag='/I' if not self.tc.use_clang else '-imsvc')
+                return '{flag}"{path}"'.format(path=path, flag='/I ' if not self.tc.use_clang else '-imsvc')
 
             for name in ('shared', 'ucrt', 'um', 'winrt'):
                 flags.append(include_flag(os.path.join(self.tc.kit_includes, name)))
@@ -2017,15 +2017,15 @@ class MSVCCompiler(MSVC, Compiler):
             }
 
             macro _SRC_c_nodeps(INFILE, OUTFILE, INC...) {
-                 .CMD=${cwd:ARCADIA_BUILD_ROOT} ${TOOLCHAIN_ENV} ${CL_WRAPPER} ${CXX_COMPILER} /c /Fo${OUTFILE} ${INFILE} ${EXTRA_C_FLAGS} ${pre=/I :INC} ${CXXFLAGS} ${hide;kv:"soe"} ${hide;kv:"p CC"} ${hide;kv:"pc yellow"}
+                 .CMD=${TOOLCHAIN_ENV} ${CL_WRAPPER} ${CXX_COMPILER} /c /Fo${OUTFILE} ${INFILE} ${EXTRA_C_FLAGS} ${pre=/I :INC} ${CXXFLAGS} ${hide;kv:"soe"} ${hide;kv:"p CC"} ${hide;kv:"pc yellow"}
             }
 
             macro _SRC_cpp(SRC, SRCFLAGS...) {
-                .CMD=${cwd:ARCADIA_BUILD_ROOT} ${TOOLCHAIN_ENV} ${CL_WRAPPER} ${CXX_COMPILER} /c /Fo${output;suf=${OBJECT_SUF}:SRC} ${input;msvs_source:SRC} ${EXTRA_C_FLAGS} ${pre=/I :INCLUDE} ${CXXFLAGS} ${SRCFLAGS} ${hide;kv:"soe"} ${hide;kv:"p CC"} ${hide;kv:"pc yellow"}
+                .CMD=${TOOLCHAIN_ENV} ${CL_WRAPPER} ${CXX_COMPILER} /c /Fo${output;suf=${OBJECT_SUF}:SRC} ${input;msvs_source:SRC} ${EXTRA_C_FLAGS} ${pre=/I :INCLUDE} ${CXXFLAGS} ${SRCFLAGS} ${hide;kv:"soe"} ${hide;kv:"p CC"} ${hide;kv:"pc yellow"}
             }
 
             macro _SRC_c(SRC, SRCFLAGS...) {
-                .CMD=${cwd:ARCADIA_BUILD_ROOT} ${TOOLCHAIN_ENV} ${CL_WRAPPER} ${C_COMPILER} /c /Fo${output;suf=${OBJECT_SUF}:SRC} ${input;msvs_source:SRC} ${EXTRA_C_FLAGS} ${pre=/I :INCLUDE} ${CFLAGS} ${CONLYFLAGS} ${SRCFLAGS} ${hide;kv:"soe"} ${hide;kv:"p CC"} ${hide;kv:"pc yellow"}
+                .CMD=${TOOLCHAIN_ENV} ${CL_WRAPPER} ${C_COMPILER} /c /Fo${output;suf=${OBJECT_SUF}:SRC} ${input;msvs_source:SRC} ${EXTRA_C_FLAGS} ${pre=/I :INCLUDE} ${CFLAGS} ${CONLYFLAGS} ${SRCFLAGS} ${hide;kv:"soe"} ${hide;kv:"p CC"} ${hide;kv:"pc yellow"}
             }
 
             macro _SRC_m(SRC, SRCFLAGS...) {

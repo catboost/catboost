@@ -369,6 +369,9 @@ def run_main():
         if pp is not None:
             return p[:pp] + 'Z:' + p[pp:].replace('/', '\\')
 
+        if p.startswith('/Fo'):
+            return '/Fo' + p[3:].replace('/', '\\')
+
         return p
 
     parser = argparse.ArgumentParser()
@@ -415,6 +418,9 @@ def run_main():
     short_names = {}
     winepath = os.path.join(os.path.dirname(wine), 'winepath')
     short_names[bld_root] = trim_path(bld_root, winepath)
+    # Slow for no benefit.
+    # arc_root = args.arcadia_root
+    # short_names[arc_root] = trim_path(arc_root, winepath)
 
     process_link = lambda x: make_full_path_arg(x, bld_root, short_names[bld_root]) if mode in ('link', 'lib') else x
 
@@ -474,6 +480,8 @@ def run_main():
 
             # non-zero return code - bad, return it immediately
             if rc:
+                print >>sys.stderr, '##win_cmd##' + ' '.join(cmd)
+                print >>sys.stderr, '##args##' + ' '.join(free_args)
                 return rc
 
             # check for output existence(if we expect it!) and real length
