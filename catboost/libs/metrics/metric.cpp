@@ -1412,6 +1412,10 @@ void TMultiClassOneVsAllMetric::GetBestValue(EMetricBestValue* valueType, float*
 
 namespace {
     struct TPairLogitMetric : public TAdditiveMetric<TPairLogitMetric> {
+        TPairLogitMetric() {
+            UseWeights.SetDefaultValue(true);
+        }
+
         TMetricHolder EvalSingleThread(
             const TVector<TVector<double>>& approx,
             const TVector<TVector<double>>& approxDelta,
@@ -1521,6 +1525,10 @@ void TPairLogitMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
 
 namespace {
     struct TQueryRMSEMetric : public TAdditiveMetric<TQueryRMSEMetric> {
+        TQueryRMSEMetric() {
+            UseWeights.SetDefaultValue(true);
+        }
+
         TMetricHolder EvalSingleThread(
             const TVector<TVector<double>>& approx,
             const TVector<TVector<double>>& approxDelta,
@@ -1668,6 +1676,7 @@ THolder<IMetric> MakePFoundMetric(int topSize, double decay) {
 TPFoundMetric::TPFoundMetric(int topSize, double decay)
         : TopSize(topSize)
         , Decay(decay) {
+    UseWeights.SetDefaultValue(true);
 }
 
 TMetricHolder TPFoundMetric::EvalSingleThread(
@@ -1764,6 +1773,7 @@ THolder<IMetric> MakeNdcgMetric(int topSize, ENdcgMetricType type) {
 TNdcgMetric::TNdcgMetric(int topSize, ENdcgMetricType type)
     : TopSize(topSize)
     , MetricType(type) {
+    UseWeights.SetDefaultValue(true);
 }
 
 TMetricHolder TNdcgMetric::EvalSingleThread(
@@ -1817,6 +1827,10 @@ void TNdcgMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
 
 namespace {
     struct TQuerySoftMaxMetric : public TAdditiveMetric<TQuerySoftMaxMetric> {
+        TQuerySoftMaxMetric() {
+            UseWeights.SetDefaultValue(true);
+        }
+
         TMetricHolder EvalSingleThread(
             const TVector<TVector<double>>& approx,
             const TVector<TVector<double>>& approxDelta,
@@ -2031,13 +2045,11 @@ namespace {
         explicit TAUCMetric(double border = GetDefaultTargetBorder())
             : Border(border)
             , IsMultiClass(false) {
-            UseWeights.SetDefaultValue(false);
         }
 
         explicit TAUCMetric(int positiveClass)
             : PositiveClass(positiveClass)
             , IsMultiClass(true) {
-            UseWeights.SetDefaultValue(false);
         }
 
         TMetricHolder Eval(
@@ -3322,6 +3334,10 @@ TVector<TString> TMCCMetric::GetStatDescriptions() const {
 
 namespace {
     struct TPairAccuracyMetric : public TAdditiveMetric<TPairAccuracyMetric> {
+        TPairAccuracyMetric() {
+            UseWeights.SetDefaultValue(true);
+        }
+
         TMetricHolder EvalSingleThread(
             const TVector<TVector<double>>& approx,
             const TVector<TVector<double>>& approxDelta,
@@ -3415,8 +3431,8 @@ THolder<IMetric> MakePrecisionAtKMetric(int topSize, double border) {
 
 TPrecisionAtKMetric::TPrecisionAtKMetric(int topSize, double border)
         : TopSize(topSize)
-        , Border(border)
-{
+        , Border(border) {
+    UseWeights.SetDefaultValue(true);
 }
 
 TMetricHolder TPrecisionAtKMetric::EvalSingleThread(
@@ -3494,8 +3510,8 @@ THolder<IMetric> MakeRecallAtKMetric(int topSize, double border) {
 
 TRecallAtKMetric::TRecallAtKMetric(int topSize, double border)
         : TopSize(topSize)
-        , Border(border)
-{
+        , Border(border) {
+    UseWeights.SetDefaultValue(true);
 }
 
 TMetricHolder TRecallAtKMetric::EvalSingleThread(
@@ -3573,8 +3589,8 @@ THolder<IMetric> MakeMAPKMetric(int topSize, double border) {
 
 TMAPKMetric::TMAPKMetric(int topSize, double border)
         : TopSize(topSize)
-        , Border(border)
-{
+        , Border(border) {
+    UseWeights.SetDefaultValue(true);
 }
 
 TMetricHolder TMAPKMetric::EvalSingleThread(
@@ -4029,6 +4045,7 @@ namespace {
             : TopSize(topSize) {
             CB_ENSURE(topSize > 0, "top size for AverageGain should be greater than 0");
             CB_ENSURE(topSize == (int)topSize, "top size for AverageGain should be an integer value");
+            UseWeights.SetDefaultValue(true);
         }
 
         TMetricHolder EvalSingleThread(
@@ -4818,6 +4835,7 @@ TString TQueryCrossEntropyMetric::GetDescription() const {
 
 TQueryCrossEntropyMetric::TQueryCrossEntropyMetric(double alpha)
         : Alpha(alpha) {
+    UseWeights.SetDefaultValue(true);
 }
 
 void TQueryCrossEntropyMetric::GetBestValue(EMetricBestValue* valueType, float*) const {

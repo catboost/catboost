@@ -22,6 +22,7 @@ Y_UNIT_TEST(HuberLossTest) {
 
         NPar::TLocalExecutor executor;
         const auto metric = MakeHuberLossMetric(1.0);
+        metric->UseWeights = true;
         TMetricHolder score = metric->Eval(approx, target, weight, {}, 0, target.size(), executor);
 
         UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 2.0987963, 1e-6);

@@ -26,6 +26,7 @@ Y_UNIT_TEST(LLPTest) {
 
         NPar::TLocalExecutor executor;
         const auto metric = MakeLLPMetric();
+        metric->UseWeights = true;
         TMetricHolder score = metric->Eval(approx, target, {}, {}, 0, target.size(), executor);
 
         UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 1.59346f, 1e-5);
@@ -37,6 +38,7 @@ Y_UNIT_TEST(LLPTest) {
 
         NPar::TLocalExecutor executor;
         const auto metric = MakeLLPMetric();
+        metric->UseWeights = true;
         TMetricHolder score = metric->Eval(approx, target, weight, {}, 0, target.size(), executor);
 
         UNIT_ASSERT_EQUAL(metric->GetFinalError(score), 0);
@@ -48,6 +50,7 @@ Y_UNIT_TEST(LLPTest) {
 
         NPar::TLocalExecutor executor;
         const auto metric = MakeLLPMetric();
+        metric->UseWeights = true;
         TMetricHolder score = metric->Eval(approx, target, weight, {}, 0, target.size(), executor);
 
         UNIT_ASSERT_EQUAL(metric->GetFinalError(score), 0);
@@ -59,6 +62,7 @@ Y_UNIT_TEST(LLPTest) {
 
         NPar::TLocalExecutor executor;
         const auto metric = MakeLLPMetric();
+        metric->UseWeights = true;
 
         for (int i = 1; i <= 10; i++) {
             Fill(weight.begin(), weight.end(), i / 3.);
@@ -73,6 +77,7 @@ Y_UNIT_TEST(LLPTest) {
 
         NPar::TLocalExecutor executor;
         const auto metric = MakeLLPMetric();
+        metric->UseWeights = true;
         TMetricHolder score = metric->Eval(approx, target, weight, {}, 0, target.size(), executor);
 
         UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 0.0420202789f, 1e-5);
@@ -84,6 +89,7 @@ Y_UNIT_TEST(LLPTest) {
 
         NPar::TLocalExecutor executor;
         const auto metric = MakeLLPMetric();
+        metric->UseWeights = true;
         TMetricHolder score = metric->Eval(approx, target, weight, {}, 0, target.size(), executor);
 
         UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 1.90262617f, 1e-5);
@@ -95,6 +101,7 @@ Y_UNIT_TEST(LLPTest) {
 
         NPar::TLocalExecutor executor;
         const auto metric = MakeLLPMetric();
+        metric->UseWeights = true;
         TMetricHolder score = metric->Eval(approx, target, weight, {}, 0, target.size(), executor);
 
         UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 0.328661609f, 1e-5);

@@ -1351,25 +1351,25 @@
     ],
     "test.test_dist_train_auc[Logloss]": [
         {
-            "checksum": "e6741aa788971cfd6e1cb476ce3d4121",
+            "checksum": "f3a4c302729422eec620f188a1bccd8a",
             "uri": "file://test.test_dist_train_auc_Logloss_/test_1.eval"
         }
     ],
     "test.test_dist_train_auc[RMSE]": [
         {
-            "checksum": "8b5438cab58f2848502be32543306f59",
+            "checksum": "4c665888226827f98990fa2a922bc700",
             "uri": "file://test.test_dist_train_auc_RMSE_/test_1.eval"
         }
     ],
     "test.test_dist_train_auc_weight[Logloss]": [
         {
-            "checksum": "c14ea7622ae1395076602d4f463ac12e",
+            "checksum": "62642606fafcefe8d2f61232e196abf4",
             "uri": "file://test.test_dist_train_auc_weight_Logloss_/test_1.eval"
         }
     ],
     "test.test_dist_train_auc_weight[RMSE]": [
         {
-            "checksum": "807cd3bbe2a2326f9f0ca66b9498d4aa",
+            "checksum": "50153ce4af6b882447fc36285f136837",
             "uri": "file://test.test_dist_train_auc_weight_RMSE_/test_1.eval"
         }
     ],
@@ -1567,13 +1567,13 @@
     ],
     "test.test_dist_train_with_weights[calc_block=5000000]": [
         {
-            "checksum": "7072973ca627d402bf403c33808f34fc",
+            "checksum": "eac78923bf96c5de8a6a79eba6496e9c",
             "uri": "file://test.test_dist_train_with_weights_calc_block=5000000_/test_1.eval"
         }
     ],
     "test.test_dist_train_with_weights[calc_block=60]": [
         {
-            "checksum": "7072973ca627d402bf403c33808f34fc",
+            "checksum": "eac78923bf96c5de8a6a79eba6496e9c",
             "uri": "file://test.test_dist_train_with_weights_calc_block=60_/test_1.eval"
         }
     ],
@@ -2483,21 +2483,21 @@
     ],
     "test.test_loglikelihood_of_prediction[Ordered]": [
         {
-            "checksum": "dbde244430767f85b6a0823010a81d13",
+            "checksum": "82e0314c8004e045df34b849c8122a82",
             "uri": "file://test.test_loglikelihood_of_prediction_Ordered_/learn_error.tsv"
         },
         {
-            "checksum": "6c43621ed14507e6b9eb75749651b6e6",
+            "checksum": "1282dd03c64163e668faf7c7b2231f2f",
             "uri": "file://test.test_loglikelihood_of_prediction_Ordered_/test_error.tsv"
         }
     ],
     "test.test_loglikelihood_of_prediction[Plain]": [
         {
-            "checksum": "d9dd84657b60b1b557f4e0b5b7d02a25",
+            "checksum": "39ac001e23f34b9c4a8becc6263a6ccc",
             "uri": "file://test.test_loglikelihood_of_prediction_Plain_/learn_error.tsv"
         },
         {
-            "checksum": "25816e8d4b75926874770ffb2905d806",
+            "checksum": "cd9b992e78d91f36fb684a675302c5ad",
             "uri": "file://test.test_loglikelihood_of_prediction_Plain_/test_error.tsv"
         }
     ],
@@ -3055,7 +3055,7 @@
     ],
     "test.test_newton_on_pool_with_weights[calc_block=5000000-Plain]": [
         {
-            "checksum": "a51a8fb863d57b8ebaaeebf9e9a9a350",
+            "checksum": "56be0e7971036a5e0d77f5b0adeef636",
             "uri": "file://test.test_newton_on_pool_with_weights_calc_block=5000000-Plain_/test.eval"
         }
     ],
@@ -3067,7 +3067,7 @@
     ],
     "test.test_newton_on_pool_with_weights[calc_block=60-Plain]": [
         {
-            "checksum": "a51a8fb863d57b8ebaaeebf9e9a9a350",
+            "checksum": "56be0e7971036a5e0d77f5b0adeef636",
             "uri": "file://test.test_newton_on_pool_with_weights_calc_block=60-Plain_/test.eval"
         }
     ],
