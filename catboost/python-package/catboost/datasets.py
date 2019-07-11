@@ -189,7 +189,7 @@ def monotonic2():
     the following inequality must hold for predictions: f(x1) <= f(x2)
     For features in columns named MonotonicPos*, if feature value decreases, then prediction
     value must not increase. Thus, if there are two samples x1, x2 with all features being
-    equal except for a monotonic negative feature MPos, such that x1[MPos] > x2[MPos],
+    equal except for a monotonic positive feature MPos, such that x1[MPos] > x2[MPos],
     then the following inequality must hold for predictions: f(x1) >= f(x2)
     """
     url = 'https://storage.mds.yandex.net/get-devtools-opensource/373962/monotonic2.tar.gz'
