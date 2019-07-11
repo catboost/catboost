@@ -57,6 +57,9 @@ namespace NCB {
             const ui32 objectCount = srcIndexing.Size();
             const ui32 sampleSize = GetSampleSizeForBorderSelectionType(
                 objectCount,
+                /*TODO(kirillovs): iterate through all per feature binarization settings and select smallest
+                 * sample size
+                 */
                 quantizedFeaturesInfo.GetFloatFeatureBinarization(Max<ui32>()).BorderSelectionType,
                 options.MaxSubsetSizeForSlowBuildBordersAlgorithms
             );
@@ -88,8 +91,8 @@ namespace NCB {
     }
 
 
-    static ui64 EstimateMaxMemUsageForFloatFeature(
-        ui32 objectCount,
+    static ui64 EstimateMemUsageForFloatFeature(
+        const TFloatValuesHolder& srcFeature,
         const TQuantizedFeaturesInfo& quantizedFeaturesInfo,
         const TQuantizationOptions& options,
         bool doQuantization, // if false - only calc borders
@@ -97,34 +100,42 @@ namespace NCB {
     ) {
         ui64 result = 0;
 
-        //TODO(kirillovs): iterate through all per feature binarization settings and select smallest sample size
-        const auto& floatFeatureBinarizationSettings = quantizedFeaturesInfo.GetFloatFeatureBinarization(Max<ui32>());
+        size_t borderCount;
 
         if (NeedToCalcBorders(quantizedFeaturesInfo)) {
+            // sampleSize is computed using defaultBinarizationSettings for now
+            const auto& defaultBinarizationSettings
+                = quantizedFeaturesInfo.GetFloatFeatureBinarization(Max<ui32>());
+
             const ui32 sampleSize = GetSampleSizeForBorderSelectionType(
-                objectCount,
-                floatFeatureBinarizationSettings.BorderSelectionType,
+                srcFeature.GetSize(),
+                defaultBinarizationSettings.BorderSelectionType,
                 options.MaxSubsetSizeForSlowBuildBordersAlgorithms
             );
 
             result += sizeof(float) * sampleSize; // for copying to srcFeatureValuesForBuildBorders
 
+            const auto& floatFeatureBinarizationSettings
+                = quantizedFeaturesInfo.GetFloatFeatureBinarization(srcFeature.GetId());
+
+            borderCount = floatFeatureBinarizationSettings.BorderCount.Get();
+
             result += NSplitSelection::CalcMemoryForFindBestSplit(
-                SafeIntegerCast<int>(floatFeatureBinarizationSettings.BorderCount.Get()),
+                SafeIntegerCast<int>(borderCount),
                 (size_t)sampleSize,
                 /*defaultValue*/ Nothing(),
                 floatFeatureBinarizationSettings.BorderSelectionType
             );
+        } else {
+            const TFloatFeatureIdx floatFeatureIdx
+                = quantizedFeaturesInfo.GetPerTypeFeatureIdx<EFeatureType::Float>(srcFeature);
+            borderCount = quantizedFeaturesInfo.GetBorders(floatFeatureIdx).size();
         }
 
         if (doQuantization && !storeFeaturesDataAsExternalValuesHolder) {
             // for storing quantized data
-
-            TIndexHelper<ui64> indexHelper(
-                CalcHistogramWidthForBorders(floatFeatureBinarizationSettings.BorderCount.Get())
-            );
-
-            result += indexHelper.CompressedSize(objectCount) * sizeof(ui64);
+            TIndexHelper<ui64> indexHelper(CalcHistogramWidthForBorders(borderCount));
+            result += indexHelper.CompressedSize(srcFeature.GetSize()) * sizeof(ui64);
         }
 
         return result;
@@ -1233,29 +1244,28 @@ namespace NCB {
                     localExecutor
                 );
 
-                const ui64 maxMemUsageForFloatFeature = EstimateMaxMemUsageForFloatFeature(
-                    objectsGrouping->GetObjectCount(),
-                    *quantizedFeaturesInfo,
-                    options,
-                    !calcBordersAndNanModeOnly,
-                    storeFeaturesDataAsExternalValuesHolders
-                );
-
                 const bool calcBordersAndNanModeOnlyInProcessFloatFeatures =
                     calcBordersAndNanModeOnly || bundleExclusiveFeatures;
 
                 featuresLayout->IterateOverAvailableFeatures<EFeatureType::Float>(
                     [&] (TFloatFeatureIdx floatFeatureIdx) {
+                        // as pointer to capture in lambda
+                        auto* srcFloatFeatureHolderPtr =
+                            &(rawDataProvider->ObjectsData->Data.FloatFeatures[*floatFeatureIdx]);
+
                         resourceConstrainedExecutor.Add(
                             {
-                                maxMemUsageForFloatFeature,
-                                [&, floatFeatureIdx]() {
-                                    auto& srcFloatFeatureHolder =
-                                        rawDataProvider->ObjectsData->Data.FloatFeatures[*floatFeatureIdx];
-
+                                EstimateMemUsageForFloatFeature(
+                                    **srcFloatFeatureHolderPtr,
+                                    *quantizedFeaturesInfo,
+                                    options,
+                                    !calcBordersAndNanModeOnly,
+                                    storeFeaturesDataAsExternalValuesHolders
+                                ),
+                                [&, floatFeatureIdx, srcFloatFeatureHolderPtr]() {
                                     ProcessFloatFeature(
                                         floatFeatureIdx,
-                                        *srcFloatFeatureHolder,
+                                        **srcFloatFeatureHolderPtr,
                                         subsetForBuildBorders ?
                                             subsetForBuildBorders.Get()
                                             : srcObjectsCommonData.SubsetIndexing.Get(),
@@ -1281,7 +1291,7 @@ namespace NCB {
                                               floatFeatureIdx
                                          ))))
                                     {
-                                        srcFloatFeatureHolder.Destroy();
+                                        srcFloatFeatureHolderPtr->Destroy();
                                     }
                                 }
                             }
