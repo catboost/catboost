@@ -89,6 +89,15 @@ namespace NCB {  // split due to CUDA-compiler inability to parse nested namespa
                 CalcFlatTransposed(transposedFeatures, 0, GetTreeCount(), results, featureInfo);
             }
 
+            void CalcFlatTransposed(
+                TConstArrayRef<TVector<float>> transposedFeatures,
+                TArrayRef<double> results,
+                const TFeatureLayout* featureInfo = nullptr
+            ) const {
+                TVector<TConstArrayRef<float>> featureRefs{transposedFeatures.begin(), transposedFeatures.end()};
+                CalcFlatTransposed(featureRefs, 0, GetTreeCount(), results, featureInfo);
+            }
+
             virtual void CalcFlat(
                 TConstArrayRef<TConstArrayRef<float>> features,
                 size_t treeStart,
@@ -103,6 +112,15 @@ namespace NCB {  // split due to CUDA-compiler inability to parse nested namespa
                 const TFeatureLayout* featureInfo = nullptr
             ) const {
                 CalcFlat(features, 0, GetTreeCount(), results, featureInfo);
+            }
+
+            void CalcFlat(
+                TConstArrayRef<TVector<float>> features,
+                TArrayRef<double> results,
+                const TFeatureLayout* featureInfo = nullptr
+            ) const {
+                TVector<TConstArrayRef<float>> featureRefs{features.begin(), features.end()};
+                CalcFlat(featureRefs, 0, GetTreeCount(), results, featureInfo);
             }
 
             virtual void CalcFlatSingle(

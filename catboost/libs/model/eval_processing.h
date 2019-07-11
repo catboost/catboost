@@ -58,16 +58,17 @@ namespace NCB::NModelEvaluation {
     class TEvalResultProcessor {
     public:
         TEvalResultProcessor(
-            TArrayRef<double> result,
+            size_t docCount,
+            TArrayRef<double> results,
             EPredictionType predictionType,
             ui32 approxDimension,
             ui32 blockSize,
             TMaybe<double> binclassProbabilityBorder = Nothing());
 
         inline TArrayRef<double> GetResultBlockView(ui32 blockId, ui32 dimension) {
-            return Result.Slice(
+            return Results.Slice(
                 blockId * BlockSize * dimension,
-                Min<ui32>(BlockSize, Result.size() - (blockId * BlockSize)) * dimension
+                Min<ui32>(BlockSize, Results.size() - (blockId * BlockSize)) * dimension
             );
         }
 
@@ -104,15 +105,14 @@ namespace NCB::NModelEvaluation {
                     auto resultView = GetResultBlockView(blockId, 1);
                     for (size_t objId = 0; objId < resultView.size(); ++objId) {
                         auto objRawIterator = IntermediateBlockResults.begin() + objId * ApproxDimension;
-                        resultView[objId] =
-                            objRawIterator - MaxElement(objRawIterator, objRawIterator + ApproxDimension);
+                        resultView[objId] = MaxElement(objRawIterator, objRawIterator + ApproxDimension) - objRawIterator;
                     }
                 }
             }
         }
 
     private:
-        TArrayRef<double> Result;
+        TArrayRef<double> Results;
         EPredictionType PredictionType;
         ui32 ApproxDimension;
         ui32 BlockSize;

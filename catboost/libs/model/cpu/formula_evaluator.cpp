@@ -20,14 +20,10 @@ namespace NCB::NModelEvaluation {
         ) {
             const size_t blockSize = Min(FORMULA_EVALUATION_BLOCK_SIZE, docCount);
             auto calcTrees = GetCalcTreesFunction(trees, blockSize);
-            CB_ENSURE(
-                results.size() == docCount * trees.ApproxDimension,
-                "`results` size is insufficient: "
-                    LabeledOutput(results.size(), docCount * trees.ApproxDimension)
-            );
             std::fill(results.begin(), results.end(), 0.0);
             TVector<TCalcerIndexType> indexesVec(blockSize);
             TEvalResultProcessor resultProcessor(
+                docCount,
                 results,
                 predictionType,
                 trees.ApproxDimension,

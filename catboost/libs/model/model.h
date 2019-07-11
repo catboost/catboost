@@ -581,10 +581,25 @@ public:
      * @param results
      */
     void CalcFlat(
-        TConstArrayRef<TConstArrayRef<float>> features, TArrayRef<double> results,
+        TConstArrayRef<TConstArrayRef<float>> features,
+        TArrayRef<double> results,
         const TFeatureLayout* featureInfo = nullptr
     ) const {
         CalcFlat(features, 0, GetTreeCount(), results, featureInfo);
+    }
+
+    /**
+     * Call CalcFlat on all model trees
+     * @param features
+     * @param results
+     */
+    void CalcFlat(
+        TConstArrayRef<TVector<float>> features,
+        TArrayRef<double> results,
+        const TFeatureLayout* featureInfo = nullptr
+    ) const {
+        TVector<TConstArrayRef<float>> featureRefs{features.begin(), features.end()};
+        CalcFlat(featureRefs, results, featureInfo);
     }
 
     /**
