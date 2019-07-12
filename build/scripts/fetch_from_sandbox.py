@@ -50,6 +50,8 @@ def download_by_skynet(resource_info, file_name):
         return "/usr/local/bin/sky"
 
     def is_skynet_avaliable():
+        if not os.path.exists(_sky_path()):
+            return False
         try:
             subprocess.check_output([_sky_path(), "--version"])
             return True
