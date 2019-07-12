@@ -156,6 +156,9 @@ def create_vet_config(args, info):
 
 
 def dump_vet_report(args, report):
+    if report:
+        report = report.replace(args.build_root, '$B')
+        report = report.replace(args.arc_source_root, '$S')
     with open(args.vet_report_output, 'w') as f:
         f.write(report)
 
