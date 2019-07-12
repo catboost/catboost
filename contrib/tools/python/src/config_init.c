@@ -19,7 +19,6 @@ extern void init_random(void);
 extern void init_sha(void);
 extern void init_sha256(void);
 extern void init_sha512(void);
-extern void init_sqlite3(void);
 extern void init_ssl(void);
 extern void init_struct(void);
 extern void initarray(void);

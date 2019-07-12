@@ -19,7 +19,6 @@
 {"_sha", init_sha},
 {"_sha256", init_sha256},
 {"_sha512", init_sha512},
-{"_sqlite3", init_sqlite3},
 {"_ssl", init_ssl},
 {"_struct", init_struct},
 {"array", initarray},

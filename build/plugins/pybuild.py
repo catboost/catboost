@@ -119,9 +119,14 @@ def py_program(unit, py3):
     Documentation: https://wiki.yandex-team.ru/devtools/commandsandvars/py_srcs/#modulpyprogramimakrospymain
     """
     if py3:
-        unit.onpeerdir(['library/python/runtime_py3/main'])
+        peers = ['library/python/runtime_py3/main']
+        if unit.get('PYTHON_SQLITE3') != 'no':
+            peers.append('contrib/tools/python3/src/Modules/_sqlite')
     else:
-        unit.onpeerdir(['library/python/runtime/main'])
+        peers = ['library/python/runtime/main']
+        if unit.get('PYTHON_SQLITE3') != 'no':
+            peers.append('contrib/tools/python/src/Modules/_sqlite')
+    unit.onpeerdir(peers)
     unit.onadd_check_py_imports()
 
 

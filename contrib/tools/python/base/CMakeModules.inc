@@ -1,11 +1,9 @@
 # Generated automatically by ../modules.py
 
 ADDINCL(contrib/libs/libbz2)
-ADDINCL(contrib/libs/sqlite3)
 ADDINCL(contrib/libs/zlib)
 PEERDIR(contrib/libs/libbz2)
 PEERDIR(contrib/libs/openssl)
-PEERDIR(contrib/libs/sqlite3)
 PEERDIR(contrib/libs/zlib)
 SRCS(Modules/_bisectmodule.c
      Modules/_collectionsmodule.c
@@ -26,15 +24,6 @@ SRCS(Modules/_bisectmodule.c
      Modules/_lsprof.c
      Modules/_math.c
      Modules/_randommodule.c
-     Modules/_sqlite/cache.c
-     Modules/_sqlite/connection.c
-     Modules/_sqlite/cursor.c
-     Modules/_sqlite/microprotocols.c
-     Modules/_sqlite/module.c
-     Modules/_sqlite/prepare_protocol.c
-     Modules/_sqlite/row.c
-     Modules/_sqlite/statement.c
-     Modules/_sqlite/util.c
      Modules/_struct.c
      Modules/arraymodule.c
      Modules/audioop.c
