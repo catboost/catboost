@@ -161,6 +161,7 @@ class ResourceImporter(object):
 
     def exec_module(self, module):
         code = self.get_code(module.__name__)
+        module.__file__ = code.co_filename
         if self.is_package(module.__name__):
             module.__path__= [executable + '/' + module.__name__]
         _call_with_frames_removed(exec, code, module.__dict__)
@@ -194,7 +195,7 @@ class ResourceImporter(object):
 
         relpath = self.get_filename(fullname)
         if relpath:
-            abspath = resfs_resolve(relpath)
+            abspath = resfs_resolve(utf_8_encode(relpath)[0])
             if abspath:
                 return utf_8_decode(file_bytes(abspath))[0]
         data = resfs_read(mod_path(fullname))
