@@ -433,14 +433,18 @@ typedef uLong FAR uLongf;
 
 #ifdef __GNUC__
 #  define Z_HAVE_UNISTD_H
-#elif __has_include(<unistd.h>)
-#  define Z_HAVE_UNISTD_H
+#else
+#  if __has_include(<unistd.h>)
+#    define Z_HAVE_UNISTD_H
+#  endif
 #endif
 
 #ifdef __GNUC__
 #  define Z_HAVE_UNISTD_H
-#elif __has_include(<stdarg.h>)
-#  define Z_HAVE_STDARG_H
+#else
+#  if __has_include(<stdarg.h>)
+#    define Z_HAVE_STDARG_H
+#  endif
 #endif
 
 #ifdef STDC
