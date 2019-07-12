@@ -654,6 +654,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\lib\tools-python-lib.vcxproj">
       <Project>F56D05C3-DCE3-DF03-B792-75B4F5F59907</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\src\Modules\_sqlite\src-Modules-_sqlite.vcxproj">
+      <Project>469B8567-F337-E166-82C8-C7ED8063AA56</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python3\lib\py\pypython3-lib-py.vcxproj">
       <Project>29D11B36-E190-930C-F04D-08E664A940A9</Project>
     </ProjectReference>
@@ -665,6 +668,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python3\src\Lib\pypython3-src-Lib.vcxproj">
       <Project>1F5842EA-E053-C6FC-4F42-BAAFD2F5B0EB</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python3\src\Modules\_sqlite\src-Modules-_sqlite.vcxproj">
+      <Project>792075FE-4B44-7067-1903-46389DB92BE8</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python3\src\Modules\python3-src-Modules.vcxproj">
       <Project>D9DA0254-41B3-1659-443E-58F351ADA4FA</Project>

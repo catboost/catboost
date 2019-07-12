@@ -222,33 +222,6 @@
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_sha3\sha3module.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_sqlite\cache.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_sqlite\connection.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_sqlite\cursor.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_sqlite\microprotocols.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_sqlite\module.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_sqlite\prepare_protocol.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_sqlite\row.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_sqlite\statement.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_sqlite\util.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_sre.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
@@ -422,15 +395,6 @@
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_sha3\kcp\KeccakSponge.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_sha3\kcp\SnP-Relaned.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_sha3\kcp\align.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_sqlite\cache.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_sqlite\connection.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_sqlite\cursor.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_sqlite\microprotocols.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_sqlite\module.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_sqlite\prepare_protocol.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_sqlite\row.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_sqlite\statement.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_sqlite\util.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_ssl_data.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\addrinfo.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\cjkcodecs\alg_jisx0201.h"/>
