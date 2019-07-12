@@ -4,7 +4,7 @@
 
 template <class T>
 struct TCommonLockOps {
-    static inline void Acquire(T* t) noexcept (noexcept(t->Acquire())) {
+    static inline void Acquire(T* t) noexcept {
         t->Acquire();
     }
 
@@ -29,7 +29,7 @@ struct TInverseLockOps: public TOps {
     }
 
     template <class T>
-    static inline void Release(T* t) noexcept (noexcept(TOps::Acquire(t))){
+    static inline void Release(T* t) noexcept {
         TOps::Acquire(t);
     }
 };
@@ -37,11 +37,11 @@ struct TInverseLockOps: public TOps {
 template <class T, class TOps = TCommonLockOps<T>>
 class TGuard: public TNonCopyable {
 public:
-    inline TGuard(const T& t) noexcept (noexcept(Init(&t))) {
+    inline TGuard(const T& t) noexcept {
         Init(&t);
     }
 
-    inline TGuard(const T* t) noexcept (noexcept(Init(t))) {
+    inline TGuard(const T* t) noexcept {
         Init(t);
     }
 
@@ -75,7 +75,7 @@ public:
     }
 
 private:
-    inline void Init(const T* t) noexcept (noexcept(TOps::Acquire(T_))) {
+    inline void Init(const T* t) noexcept {
         T_ = const_cast<T*>(t);
         TOps::Acquire(T_);
     }
