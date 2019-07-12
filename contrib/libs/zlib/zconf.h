@@ -431,11 +431,15 @@ typedef uLong FAR uLongf;
    typedef unsigned long z_crc_t;
 #endif
 
-#if __has_include(<unistd.h>)
+#ifdef __GNUC__
+#  define Z_HAVE_UNISTD_H
+#elif __has_include(<unistd.h>)
 #  define Z_HAVE_UNISTD_H
 #endif
 
-#if __has_include(<stdarg.h>)
+#ifdef __GNUC__
+#  define Z_HAVE_UNISTD_H
+#elif __has_include(<stdarg.h>)
 #  define Z_HAVE_STDARG_H
 #endif
 
