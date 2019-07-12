@@ -118,7 +118,12 @@ TVector<double> EvalMetricsForUtils(
     NPar::TLocalExecutor executor;
     executor.RunAdditionalThreads(threadCount - 1);
     const int approxDimension = approx.ysize();
-    const TVector<THolder<IMetric>> metrics = CreateMetricsFromDescription({metricName}, approxDimension);
+    TVector<THolder<IMetric>> metrics = CreateMetricsFromDescription({metricName}, approxDimension);
+    if (!weight.empty()) {
+        for (auto& metric : metrics) {
+            metric->UseWeights.SetDefaultValue(true);
+        }
+    }
     NCB::TObjectsGrouping objectGrouping = NCB::CreateObjectsGroupingFromGroupIds(
         label.size(),
         groupId.empty() ? Nothing() : NCB::TMaybeData<TConstArrayRef<TGroupId>>(groupId)

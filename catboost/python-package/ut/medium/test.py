@@ -4789,3 +4789,13 @@ def test_get_all_params():
         json.dump(options, f, indent=4, sort_keys=True)
 
     return local_canonical_file(options_file)
+
+
+@pytest.mark.parametrize('metric', ['MAE', 'RMSE', 'CrossEntropy', 'AUC'])
+def test_weights_in_eval_metric(metric):
+    predictions = [1, 1, 2, 3, 1, 4, 1, 2, 3, 4]
+    label = [1, 0, 1, 1, 0, 1, 1, 1, 0, 0]
+    weights = [1, 0.75, 2.39, 0.5, 1, 1.3, 0.7, 1, 1.1, 0.67]
+    result_with_no_weights = eval_metric(label, predictions, metric)
+    result_with_weights = eval_metric(label, predictions, metric, weights)
+    assert not np.isclose(result_with_no_weights, result_with_weights)
