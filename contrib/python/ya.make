@@ -18,7 +18,6 @@ RECURSE(
     py
     pytest
     pytz
-    pytz/tests
     scandir
     setuptools
     six
