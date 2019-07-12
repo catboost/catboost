@@ -1,11 +1,12 @@
 import os
+import re
 import shutil
 import subprocess
 import sys
 import tempfile
 
 
-OUT_DIR_FLAG = '--go_out='
+OUT_DIR_FALG_PATTERN = re.compile('^(--go\w+=)')
 
 
 def move_tree(src_root, dst_root):
@@ -22,13 +23,18 @@ def main(arcadia_prefix, contrib_prefix, args):
     out_dir_orig = None
     out_dir_temp = None
     for i in range(len(args)):
-        if args[i].startswith(OUT_DIR_FLAG):
-            assert out_dir_orig is None, 'Duplicate "' + OUT_DIR_FLAG + '" param'
-            index = max(len(OUT_DIR_FLAG), args[i].rfind(':')+1)
-            out_dir_orig = args[i][index:]
-            out_dir_temp = tempfile.mkdtemp(dir=out_dir_orig)
+        m = re.match(OUT_DIR_FALG_PATTERN, args[i])
+        if m:
+            out_dir_flag = m.group(1)
+            index = max(len(out_dir_flag), args[i].rfind(':')+1)
+            out_dir = args[i][index:]
+            if out_dir_orig:
+                assert out_dir_orig == out_dir, 'Output directories do not match: [{}] and [{}]'.format(out_dir_orig, out_dir)
+            else:
+                out_dir_orig = out_dir
+                out_dir_temp = tempfile.mkdtemp(dir=out_dir_orig)
             args[i] = args[i][:index] + out_dir_temp
-    assert out_dir_temp is not None, 'Param "' + OUT_DIR_FLAG + '" is not specified'
+    assert out_dir_temp is not None, 'Output directory is not specified'
 
     try:
         subprocess.check_call(args, stdin=None, stderr=subprocess.STDOUT)
