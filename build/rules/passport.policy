@@ -9,6 +9,9 @@ ALLOW maps/wikimap/mapspro/services/rdrproxy/bin -> passport/cpp/fastcgi-mods/li
 # PERSISTENT EXCEPTION: 'ya yav' handler
 ALLOW devtools/ya/handlers/yav -> passport/python/vault/cli/yav/vault_client_cli
 
+# PERSISTENT EXCEPTION: useful for debug purposes
+ALLOW junk -> passport/
+
 # COMMON RULE: Self using
 ALLOW passport -> passport/
 
