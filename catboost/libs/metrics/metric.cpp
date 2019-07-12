@@ -2099,7 +2099,7 @@ TMetricHolder TAUCMetric::Eval(
     TConstArrayRef<TQueryInfo> /*queriesInfo*/,
     int begin,
     int end,
-    NPar::TLocalExecutor& /*executor*/
+    NPar::TLocalExecutor& executor
 ) const {
     Y_ASSERT(!isExpApprox);
     Y_ASSERT((approx.size() > 1) == IsMultiClass);
@@ -2123,7 +2123,7 @@ TMetricHolder TAUCMetric::Eval(
     }
 
     TMetricHolder error(2);
-    error.Stats[0] = CalcAUC(&samples);
+    error.Stats[0] = CalcAUC(&samples, &executor);
     error.Stats[1] = 1.0;
     return error;
 }

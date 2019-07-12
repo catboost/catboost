@@ -129,4 +129,30 @@ namespace NCB {
         TVector<NCB::TIndexRange<TSize>> IndexRanges;
     };
 
+    template <class TSize>
+    class TEqualRangesGenerator : public IIndexRangesGenerator<TSize> {
+    public:
+        TEqualRangesGenerator(NCB::TIndexRange<TSize> fullRange, TSize blockCount) {
+            TSize begin = fullRange.Begin;
+            const TSize size = fullRange.GetSize();
+            IndexRanges.reserve(blockCount);
+            for (TSize i = 0; i < blockCount; ++i) {
+                const TSize currentSize = (size / blockCount) + (i < (size % blockCount));
+                IndexRanges.emplace_back(begin, begin + currentSize);
+                begin += currentSize;
+            }
+        }
+
+        TSize RangesCount() const override {
+            return (TSize)IndexRanges.size();
+        }
+
+        NCB::TIndexRange<TSize> GetRange(TSize idx) const override {
+            return IndexRanges[idx];
+        }
+
+    private:
+        TVector<NCB::TIndexRange<TSize>> IndexRanges;
+    };
+
 }

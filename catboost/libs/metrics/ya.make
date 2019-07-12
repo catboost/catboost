@@ -22,6 +22,7 @@ PEERDIR(
     catboost/libs/eval_result
     catboost/libs/helpers
     catboost/libs/options
+    catboost/libs/helpers/parallel_sort
     library/binsaver
     library/containers/2d_array
     library/containers/stack_vector

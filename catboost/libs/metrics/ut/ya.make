@@ -6,10 +6,11 @@ SIZE(MEDIUM)
 
 PEERDIR(
     catboost/libs/metrics
-    catboost/libs/algo
+    catboost/libs/helpers
 )
 
 SRCS(
+    auc_ut.cpp
     brier_score_ut.cpp
     balanced_accuracy_ut.cpp
     dcg_ut.cpp
