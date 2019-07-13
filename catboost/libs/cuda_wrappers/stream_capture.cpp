@@ -10,6 +10,6 @@ TStreamCapture::~TStreamCapture() {
 
 TStreamCapture TStreamCapture::Capture(TCudaStream stream,
                                        TCudaGraph* graph) {
-    CUDA_SAFE_CALL(cudaStreamBeginCapture(stream, cudaStreamCaptureModeGlobal));
+    CUDA_SAFE_CALL(cudaStreamBeginCapture(stream, cudaStreamCaptureModeThreadLocal));
     return TStreamCapture(graph, stream);
 }

@@ -35,3 +35,4 @@ static inline TStreamCapture Capture(TCudaGraph& graph, TCudaStream stream) {
     } else                                                               \
         Y_CAT(CAPTURE_LABEL, __LINE__)                                   \
             :
+
