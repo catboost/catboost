@@ -478,17 +478,20 @@ namespace NCB {
     }
 
     template <class TValue, class TContainer, class TSize>
-    TVector<TValue> TSparseArrayBase<TValue, TContainer, TSize>::ExtractValues() const {
-        TVector<TValue> result;
-        result.reserve(GetSize());
-        ForEach(
-            [&] (ui32 idx, TValue value) {
-                Y_UNUSED(idx);
-                result.push_back(std::move(value));
-            }
-        );
-        return result;
-    }
+    TVector<typename TSparseArrayBase<TValue, TContainer, TSize>::TNonConstValue>
+        TSparseArrayBase<TValue, TContainer, TSize>::ExtractValues() const {
+            using TNonConstValue = typename TSparseArrayBase<TValue, TContainer, TSize>::TNonConstValue;
+
+            TVector<TNonConstValue> result;
+            result.reserve(GetSize());
+            ForEach(
+                [&] (ui32 idx, TNonConstValue value) {
+                    Y_UNUSED(idx);
+                    result.push_back(std::move(value));
+                }
+            );
+            return result;
+        }
 
     template <class TValue, class TContainer, class TSize>
     TSparseArrayBaseIteratorPtr<TValue, TContainer, TSize>

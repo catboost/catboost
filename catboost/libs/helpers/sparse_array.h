@@ -341,6 +341,7 @@ namespace NCB {
         using TIndexing = TSparseArrayIndexing<TSize>;
         using TIndexingPtr = TIntrusivePtr<TSparseArrayIndexing<TSize>>;
         using TIndexingImpl = typename TIndexing::TImpl;
+        using TNonConstValue = typename std::remove_const<TValue>::type;
 
     public:
         // needed because of IBinSaver
@@ -387,7 +388,7 @@ namespace NCB {
         template <class F>
         inline void ForEach(F&& f) const;
 
-        TVector<TValue> ExtractValues() const;
+        TVector<TNonConstValue> ExtractValues() const;
 
         TSparseArrayBaseIteratorPtr<TValue, TContainer, TSize> GetIterator();
 
@@ -419,6 +420,9 @@ namespace NCB {
 
     template <class TValue, class TSize>
     using TSparseArray = TSparseArrayBase<TValue, TMaybeOwningArrayHolder<TValue>, TSize>;
+
+    template <class TValue, class TSize>
+    using TConstSparseArray = TSparseArray<const TValue, TSize>;
 
     template <class TValue, class TSize>
     using TSparseCompressedArray = TSparseArrayBase<TValue, TCompressedArray, TSize>;
