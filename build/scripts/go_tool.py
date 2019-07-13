@@ -189,11 +189,7 @@ def do_vet(args):
     dump_vet_report(args, vet_err if vet_err else '')
 
 
-def do_compile_go(args):
-    if args.vet:
-        run_vet = threading.Thread(target=do_vet, args=(args,))
-        run_vet.start()
-
+def _do_compile_go(args):
     import_path, is_std_module = args.import_path, args.is_std
     cmd = [args.go_compile, '-o', args.output, '-trimpath', args.build_root, '-p', import_path, '-D', '""']
     cmd += ['-goversion', 'go' + args.goversion]
@@ -225,8 +221,16 @@ def do_compile_go(args):
     cmd += args.go_srcs
     call(cmd, args.build_root)
 
+
+def do_compile_go(args):
     if args.vet:
-        run_vet.join()
+        run_vet = threading.Thread(target=do_vet, args=(args,))
+        run_vet.start()
+    try:
+        _do_compile_go(args)
+    finally:
+        if args.vet:
+            run_vet.join()
 
 
 def do_compile_asm(args):
