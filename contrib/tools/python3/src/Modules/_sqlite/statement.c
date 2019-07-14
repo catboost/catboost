@@ -1,4 +1,3 @@
-#define MODULE_NAME "sqlite3"
 /* statement.c - the statement type
  *
  * Copyright (C) 2005-2010 Gerhard Häring <gh@ghaering.de>

@@ -1,4 +1,3 @@
-#define MODULE_NAME "sqlite3"
 /* util.c - various utility functions
  *
  * Copyright (C) 2005-2010 Gerhard Häring <gh@ghaering.de>

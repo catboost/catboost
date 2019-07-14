@@ -220,7 +220,7 @@ PyAPI_FUNC(int) _PyObject_HasFastCall(PyObject *callable);
    If nargs is equal to zero, args can be NULL. kwargs can be NULL.
    nargs must be greater or equal to zero.
 
-   Return the result on success. Raise an exception on return NULL on
+   Return the result on success. Raise an exception and return NULL on
    error. */
 PyAPI_FUNC(PyObject *) _PyObject_FastCallDict(
     PyObject *callable,
@@ -471,14 +471,14 @@ PyAPI_FUNC(int) PyObject_DelItem(PyObject *o, PyObject *key);
 PyAPI_FUNC(int) PyObject_AsCharBuffer(PyObject *obj,
                                       const char **buffer,
                                       Py_ssize_t *buffer_len)
-                                      /*Py_DEPRECATED(3.0)*/;
+                                      Py_DEPRECATED(3.0);
 
 /* Checks whether an arbitrary object supports the (character, single segment)
    buffer interface.
 
    Returns 1 on success, 0 on failure. */
 PyAPI_FUNC(int) PyObject_CheckReadBuffer(PyObject *obj)
-                                         /*Py_DEPRECATED(3.0)*/;
+                                         Py_DEPRECATED(3.0);
 
 /* Same as PyObject_AsCharBuffer() except that this API expects (readable,
    single segment) buffer interface and returns a pointer to a read-only memory

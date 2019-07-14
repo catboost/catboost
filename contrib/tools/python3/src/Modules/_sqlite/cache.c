@@ -1,4 +1,3 @@
-#define MODULE_NAME "sqlite3"
 /* cache .c - a LRU cache
  *
  * Copyright (C) 2004-2010 Gerhard Häring <gh@ghaering.de>

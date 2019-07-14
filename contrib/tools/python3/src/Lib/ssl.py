@@ -243,12 +243,22 @@ def _inet_paton(ipname):
     Supports IPv4 addresses on all platforms and IPv6 on platforms with IPv6
     support.
     """
-    # inet_aton() also accepts strings like '1'
-    if ipname.count('.') == 3:
-        try:
-            return _socket.inet_aton(ipname)
-        except OSError:
-            pass
+    # inet_aton() also accepts strings like '1', '127.1', some also trailing
+    # data like '127.0.0.1 whatever'.
+    try:
+        addr = _socket.inet_aton(ipname)
+    except OSError:
+        # not an IPv4 address
+        pass
+    else:
+        if _socket.inet_ntoa(addr) == ipname:
+            # only accept injective ipnames
+            return addr
+        else:
+            # refuse for short IPv4 notation and additional trailing data
+            raise ValueError(
+                "{!r} is not a quad-dotted IPv4 address.".format(ipname)
+            )
 
     try:
         return _socket.inet_pton(_socket.AF_INET6, ipname)
@@ -262,14 +272,15 @@ def _inet_paton(ipname):
     raise ValueError("{!r} is not an IPv4 address.".format(ipname))
 
 
-def _ipaddress_match(ipname, host_ip):
+def _ipaddress_match(cert_ipaddress, host_ip):
     """Exact matching of IP addresses.
 
     RFC 6125 explicitly doesn't define an algorithm for this
     (section 1.7.2 - "Out of Scope").
     """
-    # OpenSSL may add a trailing newline to a subjectAltName's IP address
-    ip = _inet_paton(ipname.rstrip())
+    # OpenSSL may add a trailing newline to a subjectAltName's IP address,
+    # commonly woth IPv6 addresses. Strip off trailing \n.
+    ip = _inet_paton(cert_ipaddress.rstrip())
     return ip == host_ip
 
 
@@ -799,6 +810,12 @@ class SSLObject:
         return self._sslobj.verify_client_post_handshake()
 
 
+def _sslcopydoc(func):
+    """Copy docstring from SSLObject to SSLSocket"""
+    func.__doc__ = getattr(SSLObject, func.__name__).__doc__
+    return func
+
+
 class SSLSocket(socket):
     """This class implements a subtype of socket.socket that wraps
     the underlying OS socket in an SSL context when necessary, and
@@ -875,6 +892,7 @@ class SSLSocket(socket):
         return self
 
     @property
+    @_sslcopydoc
     def context(self):
         return self._context
 
@@ -884,8 +902,8 @@ class SSLSocket(socket):
         self._sslobj.context = ctx
 
     @property
+    @_sslcopydoc
     def session(self):
-        """The SSLSession for client socket."""
         if self._sslobj is not None:
             return self._sslobj.session
 
@@ -896,8 +914,8 @@ class SSLSocket(socket):
             self._sslobj.session = session
 
     @property
+    @_sslcopydoc
     def session_reused(self):
-        """Was the client session reused during handshake"""
         if self._sslobj is not None:
             return self._sslobj.session_reused
 
@@ -947,16 +965,13 @@ class SSLSocket(socket):
             raise ValueError("Write on closed or unwrapped SSL socket.")
         return self._sslobj.write(data)
 
+    @_sslcopydoc
     def getpeercert(self, binary_form=False):
-        """Returns a formatted version of the data in the
-        certificate provided by the other end of the SSL channel.
-        Return None if no certificate was provided, {} if a
-        certificate was provided, but not validated."""
-
         self._checkClosed()
         self._check_connected()
         return self._sslobj.getpeercert(binary_form)
 
+    @_sslcopydoc
     def selected_npn_protocol(self):
         self._checkClosed()
         if self._sslobj is None or not _ssl.HAS_NPN:
@@ -964,6 +979,7 @@ class SSLSocket(socket):
         else:
             return self._sslobj.selected_npn_protocol()
 
+    @_sslcopydoc
     def selected_alpn_protocol(self):
         self._checkClosed()
         if self._sslobj is None or not _ssl.HAS_ALPN:
@@ -971,6 +987,7 @@ class SSLSocket(socket):
         else:
             return self._sslobj.selected_alpn_protocol()
 
+    @_sslcopydoc
     def cipher(self):
         self._checkClosed()
         if self._sslobj is None:
@@ -978,6 +995,7 @@ class SSLSocket(socket):
         else:
             return self._sslobj.cipher()
 
+    @_sslcopydoc
     def shared_ciphers(self):
         self._checkClosed()
         if self._sslobj is None:
@@ -985,6 +1003,7 @@ class SSLSocket(socket):
         else:
             return self._sslobj.shared_ciphers()
 
+    @_sslcopydoc
     def compression(self):
         self._checkClosed()
         if self._sslobj is None:
@@ -1095,6 +1114,7 @@ class SSLSocket(socket):
         raise NotImplementedError("recvmsg_into not allowed on instances of "
                                   "%s" % self.__class__)
 
+    @_sslcopydoc
     def pending(self):
         self._checkClosed()
         if self._sslobj is not None:
@@ -1107,6 +1127,7 @@ class SSLSocket(socket):
         self._sslobj = None
         super().shutdown(how)
 
+    @_sslcopydoc
     def unwrap(self):
         if self._sslobj:
             s = self._sslobj.shutdown()
@@ -1115,6 +1136,7 @@ class SSLSocket(socket):
         else:
             raise ValueError("No SSL wrapper around " + str(self))
 
+    @_sslcopydoc
     def verify_client_post_handshake(self):
         if self._sslobj:
             return self._sslobj.verify_client_post_handshake()
@@ -1125,8 +1147,8 @@ class SSLSocket(socket):
         self._sslobj = None
         super()._real_close()
 
+    @_sslcopydoc
     def do_handshake(self, block=False):
-        """Perform a TLS/SSL handshake."""
         self._check_connected()
         timeout = self.gettimeout()
         try:
@@ -1184,11 +1206,8 @@ class SSLSocket(socket):
                     server_side=True)
         return newsock, addr
 
+    @_sslcopydoc
     def get_channel_binding(self, cb_type="tls-unique"):
-        """Get channel binding data for current connection.  Raise ValueError
-        if the requested `cb_type` is not supported.  Return bytes of the data
-        or None if the data is not available (e.g. before the handshake).
-        """
         if self._sslobj is not None:
             return self._sslobj.get_channel_binding(cb_type)
         else:
@@ -1198,11 +1217,8 @@ class SSLSocket(socket):
                 )
             return None
 
+    @_sslcopydoc
     def version(self):
-        """
-        Return a string identifying the protocol version used by the
-        current SSL channel, or None if there is no established channel.
-        """
         if self._sslobj is not None:
             return self._sslobj.version()
         else:
