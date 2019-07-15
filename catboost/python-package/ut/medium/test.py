@@ -3473,6 +3473,11 @@ def test_use_loss_if_no_eval_metric_cv(task_type):
     assert results_1.shape[0] == results_2.shape[0] and results_2.shape[0] != results_3.shape[0]
 
 
+def test_target_with_file():
+    with pytest.raises(CatBoostError):
+        Pool(TRAIN_FILE, label=[1, 2, 3, 4, 5], column_description=CD_FILE)
+
+
 @pytest.mark.parametrize('metrics', [
     {'custom_metric': ['Accuracy', 'Logloss'], 'eval_metric': None},
     {'custom_metric': ['Accuracy', 'Accuracy'], 'eval_metric': None},

@@ -8,6 +8,7 @@ import timeit
 import json
 
 import catboost
+
 from catboost_pytest_lib import (
     apply_catboost,
     compare_evals_with_precision,

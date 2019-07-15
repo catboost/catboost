@@ -227,6 +227,7 @@ class Pool(_PoolBase):
         label : list or numpy.arrays or pandas.DataFrame or pandas.Series, optional (default=None)
             Label of the training data.
             If not None, giving 1 dimensional array like data with floats.
+            If data is a file, then label must be in the file, that is label must be equals to None
 
         cat_features : list or numpy.array, optional (default=None)
             If not None, giving the list of Categ features indices or names.
@@ -301,10 +302,10 @@ class Pool(_PoolBase):
             if column_description is not None and not isinstance(data, STRING_TYPES):
                 raise CatBoostError("data should be the string type if column_description parameter is specified.")
             if isinstance(data, STRING_TYPES):
-                if any(v is not None for v in [cat_features, weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, feature_names]):
+                if any(v is not None for v in [cat_features, weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, feature_names, label]):
                     raise CatBoostError(
                         "cat_features, weight, group_id, group_weight, subgroup_id, pairs_weight, "
-                        "baseline, feature_names should have the None type when the pool is read from the file."
+                        "baseline, feature_names, label should have the None type when the pool is read from the file."
                     )
                 self._read(data, column_description, pairs, delimiter, has_header, thread_count)
             else:
