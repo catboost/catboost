@@ -210,6 +210,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\helpers\parallel_sort\libs-helpers-parallel_sort.vcxproj">
       <Project>3D8525D8-C5BE-2847-94DF-23F1896F6BA1</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\helpers\parallel_sort\ut\catboost-libs-helpers-parallel_sort-ut.vcxproj">
+      <Project>4678F8AE-CC86-5830-DCB8-FB6877864069</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\helpers\ut\catboost-libs-helpers-ut.vcxproj">
       <Project>D8F65ACB-B4D5-C453-9642-AF492985188F</Project>
     </ProjectReference>
