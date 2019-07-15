@@ -61,6 +61,11 @@ EXPORT bool LoadFullModelFromBuffer(
     size_t binaryBufferSize);
 
 /**
+ * Use CUDA gpu device for model evaluation
+*/
+EXPORT bool EnableGPUEvaluation(ModelCalcerHandle* modelHandle, int deviceId);
+
+/**
  * **Use this method only if you really understand what you want.**
  * Calculate raw model predictions on flat feature vectors
  * Flat here means that float features and categorical feature are in the same float array.

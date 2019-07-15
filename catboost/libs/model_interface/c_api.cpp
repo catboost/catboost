@@ -57,6 +57,18 @@ EXPORT bool LoadFullModelFromBuffer(ModelCalcerHandle* modelHandle, const void* 
     return true;
 }
 
+EXPORT bool EnableGPUEvaluation(ModelCalcerHandle* modelHandle, int deviceId) {
+    try {
+        //TODO(kirillovs): fix this after adding set evaluator props interface
+        CB_ENSURE(deviceId == 0, "FIXME: Only device 0 is supported for now");
+        FULL_MODEL_PTR(modelHandle)->SetEvaluatorType(EFormulaEvaluatorType::GPU);
+    } catch (...) {
+        Singleton<TErrorMessageHolder>()->Message = CurrentExceptionMessage();
+        return false;
+    }
+    return true;
+}
+
 EXPORT bool CalcModelPredictionFlat(ModelCalcerHandle* modelHandle, size_t docCount, const float** floatFeatures, size_t floatFeaturesSize, double* result, size_t resultSize) {
     try {
         if (docCount == 1) {
