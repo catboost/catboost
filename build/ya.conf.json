@@ -65,7 +65,6 @@
         "afl-fuzz": { "description": "Run afl-fuzz" },
         "horadric": { "description": "Run horadric generator" },
         "run_python_udf": {"description": "run_python_udf tool"},
-        "gitarc": { "description": "Run git-like client with FUSE support"},
         "arc": { "description": "Arcadia command-line client" },
         "graphs_difference": { "description": "Run graphs_difference tool", "visible": false },
         "contexts_difference": { "description": "Run contexts_difference tool", "visible": false },
@@ -382,14 +381,6 @@
                 {"host": {"os": "WIN"}, "default": true},
                 {"host": {"os": "DARWIN"}, "default": true},
                 {"host": {"os": "LINUX", "arch": "aarch64"}, "default": true}
-            ]
-        },
-        "gitarc": {
-            "tools": {
-                "gitarc": { "bottle": "gitarc", "executable": "gitarc" }
-            },
-            "platforms": [
-                {"host": {"os": "LINUX"}, "default": true}
             ]
         },
         "gcc82": {
@@ -1616,15 +1607,6 @@
             },
             "executable": {
                 "hg": ["hg/hg"]
-            }
-        },
-        "gitarc": {
-            "formula": {
-                "sandbox_id": [286482792],
-                "match": "gitarc"
-            },
-            "executable": {
-                "gitarc": ["git/gitarc"]
             }
         },
         "python": {
