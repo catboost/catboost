@@ -61,3 +61,8 @@ PEERDIR(
 GENERATE_ENUM_SERIALIZATION(sparse_array.h)
 
 END()
+
+RECURSE(
+    parallel_sort
+    parallel_sort/ut
+)

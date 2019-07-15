@@ -1,6 +1,8 @@
+
+
 UNITTEST()
 
-
+SIZE(MEDIUM)
 
 PEERDIR(
     catboost/libs/helpers/parallel_sort
