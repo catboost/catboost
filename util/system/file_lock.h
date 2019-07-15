@@ -19,6 +19,18 @@ public:
     bool TryAcquire();
     void Release();
 
+    inline void lock() {
+        Acquire();
+    }
+
+    inline bool try_lock() {
+        return TryAcquire();
+    }
+
+    inline void unlock() {
+        Release();
+    }
+
 private:
     EFileLockType Type;
 };

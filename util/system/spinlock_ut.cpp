@@ -18,6 +18,13 @@ Y_UNIT_TEST_SUITE(TSpinLock) {
         UNIT_ASSERT(lock.IsLocked());
         lock.Release();
         UNIT_ASSERT(!lock.IsLocked());
+
+        // Lockable requirements
+        lock.lock();
+        UNIT_ASSERT(lock.IsLocked());
+        UNIT_ASSERT(!lock.try_lock());
+        lock.unlock();
+        UNIT_ASSERT(!lock.IsLocked());
     }
 
     Y_UNIT_TEST(TSpinLock_IsLocked) {

@@ -18,6 +18,18 @@ public:
     inline void Release() noexcept {
     }
 
+    inline void lock() noexcept {
+        Acquire();
+    }
+
+    inline bool try_lock() noexcept {
+        return TryAcquire();
+    }
+
+    inline void unlock() noexcept {
+        Release();
+    }
+
     ~TFakeMutex() = default;
 };
 
@@ -30,6 +42,18 @@ public:
     void Acquire() noexcept;
     bool TryAcquire() noexcept;
     void Release() noexcept;
+
+    inline void lock() noexcept {
+        Acquire();
+    }
+
+    inline bool try_lock() noexcept {
+        return TryAcquire();
+    }
+
+    inline void unlock() noexcept {
+        Release();
+    }
 
     //return opaque pointer to real handler
     void* Handle() const noexcept;

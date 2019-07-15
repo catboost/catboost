@@ -18,6 +18,10 @@ public:
         return AtomicTryLock(&Val_);
     }
 
+    inline bool try_lock() noexcept {
+        return TryAcquire();
+    }
+
 protected:
     TAtomic Val_;
 };
@@ -52,6 +56,14 @@ public:
     inline void Acquire() noexcept {
         AcquireSpinLock(&Val_);
     }
+
+    inline void unlock() noexcept {
+        Release();
+    }
+
+    inline void lock() noexcept {
+        Acquire();
+    }
 };
 
 static inline void AcquireAdaptiveLock(TAtomic* l) {
@@ -76,6 +88,14 @@ public:
 
     inline void Acquire() noexcept {
         AcquireAdaptiveLock(&Val_);
+    }
+
+    inline void unlock() noexcept {
+        Release();
+    }
+
+    inline void lock() noexcept {
+        Acquire();
     }
 };
 
