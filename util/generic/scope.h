@@ -44,16 +44,16 @@ namespace NPrivate {
 // function upon return from the current scope.
 //
 // @note expects `body` to provide no-throw guarantee, otherwise behaviour is unspecified (e.g
-// exception in d-tor may happen with typically results in a sigfault).
+// exception in d-tor may happen which typically results in a sigfault).
 // @see http://drdobbs.com/184403758 for detailed motivation.
 #define Y_SCOPE_EXIT(...) const auto Y_GENERATE_UNIQUE_ID(scopeGuard) Y_DECLARE_UNUSED = ::NPrivate::TMakeGuardHelper{} | [__VA_ARGS__]() mutable -> void
 
 // \brief `Y_DEFER { body };`
 //
-// Same as `Y_SCOPE_EXIT` but doesn't requires user to provide caputure-list explicitly (it
+// Same as `Y_SCOPE_EXIT` but doesn't require user to provide capture-list explicitly (it
 // implicitly uses `[u]` capture). Have same requirements for `body`.
 //
-// Insipired by `defer` statement in languages like Swift and Go.
+// Inspired by `defer` statement in languages like Swift and Go.
 //
 // \code
 // auto item = s.pop();
