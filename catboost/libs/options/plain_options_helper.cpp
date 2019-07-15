@@ -254,6 +254,27 @@ static Y_NO_INLINE void RemapTextProcessingOptions(
     }
 }
 
+static Y_NO_INLINE void ConcatenatePerFloatFeatureBinarizationOptions(
+    const NJson::TJsonValue& options,
+    const TStringBuf destinationKey,
+    NJson::TJsonValue* const destination
+) {
+    auto& plainConcatenatedParams = (*destination)[destinationKey] = NJson::TJsonValue(NJson::JSON_ARRAY);
+    for (auto& oneFeatureConfig : options["per_float_feature_binarization"].GetMap()) {
+        TString concatenatedParams = ToString(oneFeatureConfig.first) + ":";
+        for (auto& paramKeyValuePair : oneFeatureConfig.second.GetMapSafe()) {
+            if (paramKeyValuePair.first == "border_count") {
+                concatenatedParams = concatenatedParams + paramKeyValuePair.first + "=" + ToString(paramKeyValuePair.second) + ",";
+            } else {
+                concatenatedParams =
+                        concatenatedParams + paramKeyValuePair.first + "=" + paramKeyValuePair.second.GetString() + ",";
+            }
+        }
+        concatenatedParams.pop_back();
+        plainConcatenatedParams.AppendValue(concatenatedParams);
+    }
+}
+
 static Y_NO_INLINE void DeleteSeenOption(NJson::TJsonValue* options, const TStringBuf key) {
     if (options->Has(key)) {
         options->EraseValue(key);
@@ -810,7 +831,8 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
         RemapTextProcessingOptions(dataProcessingOptions, "text_processing", &plainOptionsJson);
         DeleteSeenOption(&optionsCopyDataProcessing, "text_processing");
 
-        CopyOption(dataProcessingOptions, "per_float_feature_binarization", &plainOptionsJson, &seenKeys);
+        ConcatenatePerFloatFeatureBinarizationOptions(dataProcessingOptions, "per_float_feature_binarization",
+                &plainOptionsJson);
         DeleteSeenOption(&optionsCopyDataProcessing, "per_float_feature_binarization");
 
         CopyOption(dataProcessingOptions, "target_border", &plainOptionsJson, &seenKeys);
