@@ -52,6 +52,8 @@ ALLOW alice/vins_contrib/crfsuitex -> contrib/libs/boost
 ALLOW alice/vins_contrib/crfsuitex -> contrib/deprecated/boost
 ALLOW contrib/libs -> contrib/libs/boost
 ALLOW contrib/libs -> contrib/deprecated/boost
+ALLOW contrib/python/horovod -> contrib/libs/boost
+ALLOW contrib/python/horovod -> contrib/deprecated/boost
 ALLOW contrib/deprecated -> contrib/libs/boost
 ALLOW contrib/deprecated -> contrib/deprecated/boost
 ALLOW contrib/tools -> contrib/libs/boost
