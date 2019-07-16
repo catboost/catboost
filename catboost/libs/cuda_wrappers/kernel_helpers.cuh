@@ -395,7 +395,31 @@ __forceinline__ __device__ float4& operator/=(float4& left, float right) {
 
 
 __forceinline__ __device__ float Reduce4(float4 val) {
-    return val.x + val.y + val.z + val.w;
+    return (val.x + val.y) + (val.z + val.w);
+}
+
+
+__forceinline__ __device__ float Dot4(float4 left, float4 right) {
+    return fmaf(left.x, right.x, left.y * right.y) + fmaf(left.z, right.z , left.w * right.w);
+//    return left.x * right.x + left.y * right.y + left.z * right.z + left.w * right.w;
+}
+
+__forceinline__ __device__ float4 FMA4(float alpha, float4 x, float4 y) {
+    float4 result;
+    result.x = fmaf(alpha, x.x, y.x);
+    result.y = fmaf(alpha, x.y, y.y);
+    result.z = fmaf(alpha, x.z, y.z);
+    result.w = fmaf(alpha, x.w, y.w);
+    return result;
+}
+
+__forceinline__ __device__ float4 FMA4(float4 alpha, float4 x, float4 y) {
+    float4 result;
+    result.x = fmaf(alpha.x, x.x, y.x);
+    result.y = fmaf(alpha.y, x.y, y.y);
+    result.z = fmaf(alpha.z, x.z, y.z);
+    result.w = fmaf(alpha.w, x.w, y.w);
+    return result;
 }
 
 __forceinline__ __device__ float4 Max4(float4 left, float right) {
@@ -479,11 +503,10 @@ __forceinline__ __device__ float4 DotProduct4(
     for (int i = threadIdx.x; i < dim; i += BlockSize) {
         float4 l = left.Load(i);
         float4 r = right.Load(i);
-        sum += l * r;
+        sum = FMA4(l, r, sum);
     }
 
     Float4ToSharedMemory<BlockSize>(sum, tmp, threadIdx.x);
-
 
     __syncthreads();
 
