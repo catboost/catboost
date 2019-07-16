@@ -1,7 +1,7 @@
 {
     "test_traceback.test_traceback[custom-default]": {
         "stderr": {
-            "checksum": "68acc51a499bf5499fb8bce0b6617863",
+            "checksum": "62f16c363ba2487272e0c6fd244e66ae",
             "uri": "file://test_traceback.test_traceback_custom-default_/stderr.txt"
         },
         "stdout": {
@@ -11,7 +11,7 @@
     },
     "test_traceback.test_traceback[custom-ultratb_color]": {
         "stderr": {
-            "checksum": "3ebd42f70870a97a7866c9e102ceea10",
+            "checksum": "1a313612279728d57e23dc461471f9f2",
             "uri": "file://test_traceback.test_traceback_custom-ultratb_color_/stderr.txt"
         },
         "stdout": {
@@ -31,7 +31,7 @@
     },
     "test_traceback.test_traceback[main-default]": {
         "stderr": {
-            "checksum": "eb310b3fff556cb9cc4c7b2a6eb29e85",
+            "checksum": "152c72934e80f6eeffbd5472ba29d259",
             "uri": "file://test_traceback.test_traceback_main-default_/stderr.txt"
         },
         "stdout": {
@@ -41,7 +41,7 @@
     },
     "test_traceback.test_traceback[main-ultratb_color]": {
         "stderr": {
-            "checksum": "cac4d2bc7d2764edf8a5dad2273c9d7b",
+            "checksum": "e12ee0b7cab498fb4325868fd6cd062c",
             "uri": "file://test_traceback.test_traceback_main-ultratb_color_/stderr.txt"
         },
         "stdout": {

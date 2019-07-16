@@ -23,6 +23,11 @@ if Y_PYTHON_SOURCE_ROOT is not None:
     os.environ[env_source_root] = Y_PYTHON_SOURCE_ROOT
 
 
+def file_bytes(path):
+    with open(path, 'rb') as f:
+        return f.read()
+
+
 def iter_keys(prefix):
     l = len(prefix)
     for idx in xrange(__resource.count()):
@@ -50,28 +55,12 @@ def iter_prefixes(s):
 
 def resfs_resolve(path):
     """
-    Return the absolute path of the resource path if it exists.
+    Return the absolute path of a root-relative path if it exists.
     """
     if Y_PYTHON_SOURCE_ROOT:
         abspath = os.path.join(Y_PYTHON_SOURCE_ROOT, path)
         if os.path.exists(abspath):
             return abspath
-
-
-def resfs_read(path, builtin=None):
-    """
-    Return the bytes of the resouce file at path.
-    If builtin is True, do not look for it in Y_PYTHON_SOURCE_ROOT.
-    If builtin is False, do not look in the builtin resources.
-    """
-    if builtin is not True:
-        abspath = resfs_resolve(path)
-        if abspath:
-            with open(abspath, 'rb') as f:
-                return f.read()
-
-    if builtin is not False:
-        return __resource.find('resfs/file/' + path)
 
 
 def resfs_src(key, resfs_file=False):
@@ -81,6 +70,21 @@ def resfs_src(key, resfs_file=False):
     if resfs_file:
         key = 'resfs/file/' + key
     return __resource.find('resfs/src/' + key)
+
+
+def resfs_read(path, builtin=None):
+    """
+    Return the bytes of the resouce file at path, or None.
+    If builtin is True, do not look for it in Y_PYTHON_SOURCE_ROOT.
+    If builtin is False, do not look in the builtin resources.
+    """
+    if builtin is not True:
+        abspath = resfs_resolve(resfs_src(path, resfs_file=True))
+        if abspath:
+            return file_bytes(abspath)
+
+    if builtin is not False:
+        return __resource.find('resfs/file/' + path)
 
 
 def resfs_files():
@@ -122,9 +126,12 @@ class ResourceImporter(object):
 
     # PEP-302 extension 1 of 3: data loader.
     def get_data(self, path):
-        data = resfs_read(path)
+        abspath = resfs_resolve(path)
+        if abspath:
+            return file_bytes(abspath)
+        data = resfs_read(path, builtin=True)
         if data is None:
-            raise IOError
+            raise IOError(path)
         return data
 
     # PEP-302 extension 2 of 3: get __file__ without importing.
@@ -142,11 +149,9 @@ class ResourceImporter(object):
         if self.is_package(fullname):
             fullname += '.__init__'
 
-        path = self.get_filename(fullname)
-        abspath = resfs_resolve(path)
+        abspath = resfs_resolve(self.get_filename(fullname))
         if abspath:
-            with open(abspath, 'rb') as f:
-                return f.read()
+            return file_bytes(abspath)
         return find_py_module(fullname)
 
     def get_code(self, fullname):
@@ -154,10 +159,9 @@ class ResourceImporter(object):
         if self.is_package(fullname):
             fullname += '.__init__'
 
-        path = self.get_filename(fullname)
-        abspath = resfs_resolve(path)
+        abspath = resfs_resolve(self.get_filename(fullname))
         if abspath:
-            data = resfs_read(path, builtin=False)
+            data = file_bytes(abspath)
             return compile(data, abspath, 'exec', dont_inherit=True)
 
         pyc = find_py_code(fullname)
@@ -174,7 +178,7 @@ class ResourceImporter(object):
         if fullname + '.__init__' in self.memory:
             return True
 
-        raise ImportError
+        raise ImportError(fullname)
 
     # Extension for contrib/python/coverage.
     def file_source(self, filename):
@@ -263,7 +267,7 @@ def executable_path_hook(path):
     if path.startswith(executable + '/'):
         return importer.for_package(path[len(executable) + 1:])
 
-    raise ImportError
+    raise ImportError(path)
 
 
 sys.path.insert(0, executable)

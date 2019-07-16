@@ -1,7 +1,7 @@
 Traceback (most recent call last):
   File "<string>", line 2, in <module>
-  File "library/python/runtime/importer.pxi", line 252, in __res.ResourceImporter.run_main
-  File "library/python/runtime/importer.pxi", line 223, in __res.ResourceImporter.load_module
+  File "library/python/runtime/importer.pxi", line 256, in __res.ResourceImporter.run_main
+  File "library/python/runtime/importer.pxi", line 227, in __res.ResourceImporter.load_module
   File "library/python/runtime/test/traceback/__main__.py", line 8, in <module>
     main()
   File "library/python/runtime/test/traceback/crash.py", line 48, in main
