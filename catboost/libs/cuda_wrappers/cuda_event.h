@@ -58,4 +58,8 @@ public:
         }
         return false;
     }
+
+    void Swap(TCudaEvent& other) {
+        Inner_.Swap(other.Inner_);
+    }
 };
