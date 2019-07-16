@@ -32,5 +32,5 @@ def onrun_antlr4_cpp(unit, *args):
     if '-visitor' in args:
         arg_list += [ 'OUT', grammar + 'Visitor.h', grammar + 'BaseVisitor.h' ]
     arg_list += [ 'CWD', '${BINDIR}' ]
-
+    arg_list += [ 'OUTPUT_INCLUDES', '${ARCADIA_ROOT}/contrib/libs/antlr4_cpp_runtime/src/antlr4-runtime.h' ]
     unit.onrun_antlr4(arg_list)
