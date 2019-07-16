@@ -297,8 +297,14 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\text_features\catboost-libs-text_features.vcxproj">
       <Project>1DC2329C-D17B-1F04-445F-BD55E24DB60E</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\text_features\flatbuffers\libs-text_features-flatbuffers.vcxproj">
+      <Project>E3DB2F4B-F914-EC79-08A1-FC9635AA8929</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\text_features\ut\catboost-libs-text_features-ut.vcxproj">
       <Project>1667D033-3231-03A1-025B-D08B4920BBD2</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\text_processing\catboost-libs-text_processing.vcxproj">
+      <Project>FFADE371-7C1D-73A4-49BB-7BB88008B40D</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\train_interface\catboost.vcxproj">
       <Project>57C64460-E1A9-1AD6-8C62-4AEAF48107D3</Project>

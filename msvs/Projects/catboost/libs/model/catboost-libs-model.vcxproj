@@ -88,7 +88,6 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\model\ctr_value_table.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\model\cuda\evaluator.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\model\eval_processing.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\model\feature_calcer.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\model\features.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\model\features.h_serialized.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\model\fwd.h_serialized.cpp"/>
@@ -242,7 +241,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\model\ctr_value_table.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\model\eval_processing.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\model\evaluation_interface.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\libs\model\feature_calcer.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\model\flatbuffers_serializer_helper.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\model\hash.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\model\json_model_helpers.h"/>

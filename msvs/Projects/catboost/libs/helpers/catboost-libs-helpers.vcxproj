@@ -92,6 +92,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\dynamic_iterator.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\element_range.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\exception.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\guid.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\hash.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\int_cast.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\interrupt.cpp"/>
@@ -158,6 +159,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\dynamic_iterator.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\element_range.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\exception.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\guid.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\hash.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\int_cast.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\interrupt.h"/>
