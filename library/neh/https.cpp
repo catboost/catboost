@@ -271,7 +271,7 @@ namespace NNeh {
                 ERROR
             };
             static bool EqualNoCase(TStringBuf a, TStringBuf b) {
-                return (a.size() == b.size()) && a.ToString().to_lower() == b.ToString().to_lower();
+                return (a.size() == b.size()) && ToString(a).to_lower() == ToString(b).to_lower();
             }
             static bool MatchDomainName(TStringBuf tmpl, TStringBuf name) {
                 // match wildcards only in the left-most part

@@ -278,7 +278,7 @@ Y_UNIT_TEST_SUITE(TBase64) {
     }
 
     Y_UNIT_TEST(TestAllPossibleOctets) {
-        const TString x = AsStringBuf("\0\x01\x02\x03\x04\x05\x06\x07\b\t\n\x0B\f\r\x0E\x0F\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1A\x1B\x1C\x1D\x1E\x1F !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\x7F").ToString();
+        const TString x(AsStringBuf("\0\x01\x02\x03\x04\x05\x06\x07\b\t\n\x0B\f\r\x0E\x0F\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1A\x1B\x1C\x1D\x1E\x1F !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\x7F"));
         const TString xEnc = "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8gISIjJCUmJygpKissLS4vMDEyMzQ1Njc4OTo7PD0+P0BBQkNERUZHSElKS0xNTk9QUVJTVFVWV1hZWltcXV5fYGFiY2RlZmdoaWprbG1ub3BxcnN0dXZ3eHl6e3x9fn8=";
         const TString y = Base64Decode(xEnc);
         const TString yEnc = Base64Encode(x);
@@ -287,7 +287,7 @@ Y_UNIT_TEST_SUITE(TBase64) {
     }
 
     Y_UNIT_TEST(TestTwoPaddingCharacters) {
-        const TString x = AsStringBuf("a").ToString();
+        const TString x(AsStringBuf("a"));
         const TString xEnc = "YQ==";
         const TString y = Base64Decode(xEnc);
         const TString yEnc = Base64Encode(x);
@@ -296,7 +296,7 @@ Y_UNIT_TEST_SUITE(TBase64) {
     }
 
     Y_UNIT_TEST(TestOnePaddingCharacter) {
-        const TString x = AsStringBuf("aa").ToString();
+        const TString x(AsStringBuf("aa"));
         const TString xEnc = "YWE=";
         const TString y = Base64Decode(xEnc);
         const TString yEnc = Base64Encode(x);
@@ -305,7 +305,7 @@ Y_UNIT_TEST_SUITE(TBase64) {
     }
 
     Y_UNIT_TEST(TestNoPaddingCharacters) {
-        const TString x = AsStringBuf("aaa").ToString();
+        const TString x(AsStringBuf("aaa"));
         const TString xEnc = "YWFh";
         const TString y = Base64Decode(xEnc);
         const TString yEnc = Base64Encode(x);
@@ -314,7 +314,7 @@ Y_UNIT_TEST_SUITE(TBase64) {
     }
 
     Y_UNIT_TEST(TestTrailingZero) {
-        const TString x = AsStringBuf("foo\0").ToString();
+        const TString x(AsStringBuf("foo\0"));
         const TString xEnc = "Zm9vAA==";
         const TString y = Base64Decode(xEnc);
         const TString yEnc = Base64Encode(x);
@@ -323,7 +323,7 @@ Y_UNIT_TEST_SUITE(TBase64) {
     }
 
     Y_UNIT_TEST(TestTwoTrailingZeroes) {
-        const TString x = AsStringBuf("foo\0\0").ToString();
+        const TString x(AsStringBuf("foo\0\0"));
         const TString xEnc = "Zm9vAAA=";
         const TString y = Base64Decode(xEnc);
         const TString yEnc = Base64Encode(x);
@@ -332,7 +332,7 @@ Y_UNIT_TEST_SUITE(TBase64) {
     }
 
     Y_UNIT_TEST(TestZero) {
-        const TString x = AsStringBuf("\0").ToString();
+        const TString x(AsStringBuf("\0"));
         const TString xEnc = "AA==";
         const TString y = Base64Decode(xEnc);
         const TString yEnc = Base64Encode(x);
@@ -341,7 +341,7 @@ Y_UNIT_TEST_SUITE(TBase64) {
     }
 
     Y_UNIT_TEST(TestSymbolsAfterZero) {
-        const TString x = AsStringBuf("\0a").ToString();
+        const TString x(AsStringBuf("\0a"));
         const TString xEnc = "AGE=";
         const TString y = Base64Decode(xEnc);
         const TString yEnc = Base64Encode(x);
@@ -350,7 +350,7 @@ Y_UNIT_TEST_SUITE(TBase64) {
     }
 
     Y_UNIT_TEST(TestEmptyString) {
-        const TString x = TStringBuf().ToString();
+        const TString x = "";
         const TString xEnc = "";
         const TString y = Base64Decode(xEnc);
         const TString yEnc = Base64Encode(x);

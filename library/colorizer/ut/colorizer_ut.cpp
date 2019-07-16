@@ -9,8 +9,8 @@ Y_UNIT_TEST_SUITE(ColorizerTest) {
     Y_UNIT_TEST(BasicTest) {
         NColorizer::TColors colors;
         colors.Enable();
-        UNIT_ASSERT_STRINGS_EQUAL(EscapeC(colors.BlueColor().ToString()), "\\x1B[22;34m");
-        UNIT_ASSERT_STRINGS_EQUAL(EscapeC(colors.ForeBlue().ToString()), "\\x1B[34m");
+        UNIT_ASSERT_STRINGS_EQUAL(EscapeC(colors.BlueColor()), "\\x1B[22;34m");
+        UNIT_ASSERT_STRINGS_EQUAL(EscapeC(colors.ForeBlue()), "\\x1B[34m");
         colors.Disable();
         UNIT_ASSERT(colors.BlueColor().Empty());
     }
@@ -19,10 +19,10 @@ Y_UNIT_TEST_SUITE(ColorizerTest) {
         NColorizer::TColors colors;
         colors.Enable();
         // 22;39, not 0, should be used so that only foreground changes
-        UNIT_ASSERT_STRINGS_EQUAL(EscapeC(colors.OldColor().ToString()), "\\x1B[22;39m");
-        UNIT_ASSERT_STRINGS_EQUAL(EscapeC(colors.Reset().ToString()), "\\x1B[0m");
+        UNIT_ASSERT_STRINGS_EQUAL(EscapeC(colors.OldColor()), "\\x1B[22;39m");
+        UNIT_ASSERT_STRINGS_EQUAL(EscapeC(colors.Reset()), "\\x1B[0m");
         // 22, not 0, should be used to reset boldness
-        UNIT_ASSERT_STRINGS_EQUAL(EscapeC(colors.PurpleColor().ToString()), "\\x1B[22;35m");
+        UNIT_ASSERT_STRINGS_EQUAL(EscapeC(colors.PurpleColor()), "\\x1B[22;35m");
     }
 
     Y_UNIT_TEST(PrintAnsi) {

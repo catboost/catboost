@@ -232,8 +232,8 @@ public:
 
         TTestHandler h;
         const bool res = ReadJsonFast(json, &h);
-        UNIT_ASSERT_VALUES_EQUAL_C(res, accept, Sprintf("%s (%s)", json.ToString().data(), h.Events.back().Str.data()));
-        h.Assert(evs, json.ToString());
+        UNIT_ASSERT_VALUES_EQUAL_C(res, accept, Sprintf("%s (%s)", ToString(json).data(), h.Events.back().Str.data()));
+        h.Assert(evs, ToString(json));
     }
 
     void TestParse() {

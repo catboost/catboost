@@ -105,7 +105,7 @@ namespace NPar {
             }
 
             TGUID reqId;
-            if (!GetGuid(req->Data().substr(0, del1pos).ToString(), reqId)) {
+            if (!GetGuid(ToString(req->Data().substr(0, del1pos)), reqId)) {
                 req->SendError(NNeh::IRequest::BadRequest, "incorrect guid");
                 return;
             }

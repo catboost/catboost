@@ -183,8 +183,8 @@ void SplitUrlToHostAndPath(const TStringBuf url, TString& host, TString& path) {
     TStringBuf hostBuf;
     TStringBuf pathBuf;
     SplitUrlToHostAndPath(url, hostBuf, pathBuf);
-    hostBuf.ToString().swap(host);
-    pathBuf.ToString().swap(path);
+    host = hostBuf;
+    path = pathBuf;
 }
 
 bool TryGetSchemeHostAndPort(const TStringBuf url, TStringBuf& scheme, TStringBuf& host, ui16& port) {
