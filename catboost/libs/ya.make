@@ -52,3 +52,9 @@ RECURSE(
     cuda_wrappers
 )
 ENDIF()
+
+IF (NOT OS_WINDOWS)
+    RECURSE(
+    model_interface/static
+)
+ENDIF()

@@ -17,9 +17,3 @@ IF (OS_WINDOWS)
 ENDIF()
 
 END()
-
-IF (NOT OS_WINDOWS)
-    RECURSE(
-    static
-)
-ENDIF()
