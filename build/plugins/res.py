@@ -59,6 +59,8 @@ def onresource_files(unit, *args):
 
     This form is for use from other plugins:
     RESOURCE_FILES([DEST {dest}] {path}) expands into RESOURCE({path} resfs/file/{dest})
+
+    @see: https://wiki.yandex-team.ru/devtools/commandsandvars/resourcefiles/
     """
     prefix = ''
     dest = None
