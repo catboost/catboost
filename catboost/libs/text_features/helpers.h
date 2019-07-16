@@ -1,8 +1,9 @@
 #pragma once
 
-#include <util/generic/array_ref.h>
 #include <catboost/libs/helpers/exception.h>
+#include <util/generic/array_ref.h>
 #include <util/generic/ymath.h>
+#include <util/stream/length.h>
 
 inline double Norm(TConstArrayRef<float> vec) {
     double norm = 0;
@@ -44,4 +45,25 @@ inline void Softmax(TArrayRef<double> vals) {
     for (auto& val : vals) {
         val /= total;
     }
+}
+
+inline void AddPadding(TCountingOutput* const output, const ui32 alignment) {
+    if (output->Counter() % alignment == 0) {
+        return;
+    }
+
+    const auto bytesToWrite = alignment - output->Counter() % alignment;
+    for (ui64 i = 0; i < bytesToWrite; ++i) {
+        output->Write('\0');
+    }
+}
+
+inline void SkipPadding(TCountingInput* const input, const ui32 alignment) {
+    if (input->Counter() % alignment == 0) {
+        return;
+    }
+
+    const auto bytesToSkip = alignment - input->Counter() % alignment;
+    const auto bytesSkipped = input->Skip(bytesToSkip);
+    CB_ENSURE(bytesToSkip == bytesSkipped);
 }

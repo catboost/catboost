@@ -70,7 +70,7 @@ bool ShouldSkipCalcOnTrainByDefault(ELossFunction lossFunction);
 
 bool IsUserDefined(ELossFunction lossFunction);
 
-bool IsEmbeddingFeatureEstimator(EFeatureEstimatorType estimatorType);
+bool IsEmbeddingFeatureEstimator(EFeatureCalcerType estimatorType);
 
 bool ShouldSkipFstrGrowPolicy(EGrowPolicy growPolicy);
 

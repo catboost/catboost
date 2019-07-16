@@ -28,7 +28,7 @@ namespace NCB {
 
         void AddText(ui32 index, TStringBuf text);
 
-        TTextColumn Build();
+        TVector<TText> Build();
 
     private:
         TTokenizerPtr Tokenizer;

@@ -135,7 +135,7 @@ bool NCatboostOptions::TTextProcessingOptionCollection::operator!=(
 }
 
 NCatboostOptions::TTextFeatureOptions::TTextFeatureOptions()
-    : FeatureEstimators("text_feature_estimators", {EFeatureEstimatorType::BoW, EFeatureEstimatorType::NaiveBayes})
+    : FeatureEstimators("text_feature_estimators", {EFeatureCalcerType::BoW, EFeatureCalcerType::NaiveBayes})
 {
 }
 

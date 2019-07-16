@@ -1,8 +1,8 @@
-#include <catboost/libs/text_features/dictionary.h>
-#include <catboost/libs/text_features/embedding_loader.h>
-#include <catboost/libs/text_features/embedding.h>
 #include <catboost/libs/text_features/embedding_online_features.h>
-#include <catboost/libs/text_features/text_column_builder.h>
+#include <catboost/libs/text_processing/dictionary.h>
+#include <catboost/libs/text_processing/embedding_loader.h>
+#include <catboost/libs/text_processing/embedding.h>
+#include <catboost/libs/text_processing/text_column_builder.h>
 #include <library/text_processing/dictionary/dictionary_builder.h>
 #include <library/unittest/registar.h>
 #include <util/generic/guid.h>
@@ -67,7 +67,8 @@ Y_UNIT_TEST_SUITE(EmbeddingTest) {
 
         TVector<float> testVec;
 
-        TEmbeddingOnlineFeatures calcer(2, embeddingFromFile);
+        const ui32 numClasses = 2;
+        TEmbeddingOnlineFeatures calcer(numClasses, embeddingFromFile);
 
         int i = 0;
 
@@ -83,7 +84,13 @@ Y_UNIT_TEST_SUITE(EmbeddingTest) {
                 ref.push_back(val / 1.5);
             }
             EnsureVecEqual(ref, testVec);
-            auto features = calcer.CalcFeaturesAndAddEmbedding(rng.GenRandReal1() > 0.5, testVec);
+            {
+                TEmbeddingFeaturesVisitor visitor(numClasses, embeddingFromFile->Dim());
+                visitor.UpdateEmbedding(rng.GenRandReal1() > 0.5, testVec, &calcer);
+            }
+            TVector<float> features;
+            features.resize(calcer.FeatureCount());
+            calcer.Compute(testVec, TOutputFloatIterator(features.begin(), features.size()));
             int j = 0;
             for (auto f : features) {
                 if (!std::isfinite(f)) {

@@ -12,7 +12,7 @@
 #include <catboost/libs/options/catboost_options.h>
 #include <catboost/libs/options/system_options.h>
 #include <catboost/libs/target/data_providers.h>
-#include <catboost/libs/text_features/estimators.h>
+#include <catboost/libs/feature_estimator/text_feature_estimators.h>
 
 #include <library/threading/local_executor/local_executor.h>
 
@@ -253,7 +253,7 @@ namespace NCB {
     }
 
     static TFeatureEstimators CreateEstimators(
-        TConstArrayRef<EFeatureEstimatorType> estimatorsTypes,
+        TConstArrayRef<EFeatureCalcerType> estimatorsTypes,
         TTrainingDataProviders pools) {
 
         TFeatureEstimators estimators;

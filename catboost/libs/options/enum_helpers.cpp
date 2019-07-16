@@ -332,10 +332,10 @@ bool IsUserDefined(ELossFunction lossFunction) {
     }
 }
 
-bool IsEmbeddingFeatureEstimator(EFeatureEstimatorType estimatorType) {
-    return estimatorType == EFeatureEstimatorType::CosDistanceWithClassCenter ||
-            estimatorType == EFeatureEstimatorType::GaussianHomoscedasticModel ||
-            estimatorType == EFeatureEstimatorType::GaussianHeteroscedasticModel;
+bool IsEmbeddingFeatureEstimator(EFeatureCalcerType estimatorType) {
+    return estimatorType == EFeatureCalcerType::CosDistanceWithClassCenter ||
+            estimatorType == EFeatureCalcerType::GaussianHomoscedasticModel ||
+            estimatorType == EFeatureCalcerType::GaussianHeteroscedasticModel;
 }
 
 bool ShouldSkipFstrGrowPolicy(EGrowPolicy growPolicy) {

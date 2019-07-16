@@ -22,8 +22,8 @@ void TTextColumnBuilder::AddText(ui32 index, const TStringBuf text) {
     Texts[index] = TokensToText(*Dictionary, tokens);
 }
 
-TTextColumn TTextColumnBuilder::Build() {
+TVector<TText> TTextColumnBuilder::Build() {
     CB_ENSURE_INTERNAL(!WasBuilt, "Build could be done only once");
     WasBuilt = true;
-    return TMaybeOwningConstArrayHolder<TText>::CreateOwning(std::move(Texts));
+    return Texts;
 }

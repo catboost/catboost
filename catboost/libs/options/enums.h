@@ -1,5 +1,8 @@
 #pragma once
 
+#include <util/system/types.h>
+
+
 enum class EConvertTargetPolicy {
     CastFloat,
     UseClassNames,
@@ -289,7 +292,7 @@ enum class EMetricBestValue {
     Undefined
 };
 
-enum class EFeatureEstimatorType {
+enum class EFeatureCalcerType : ui32 {
 //Examples
 //    LinearModel,
 //    TfIdf,
@@ -299,7 +302,8 @@ enum class EFeatureEstimatorType {
     BM25,
     CosDistanceWithClassCenter,
     GaussianHomoscedasticModel,
-    GaussianHeteroscedasticModel
+    GaussianHeteroscedasticModel,
+    EmbeddingDistanceToClass
 };
 
 enum class ETokenizerType {

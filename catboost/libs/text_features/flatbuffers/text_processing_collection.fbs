@@ -1,0 +1,32 @@
+namespace NCatBoostFbs;
+
+struct TGuid {
+    dw0: uint32;
+    dw1: uint32;
+    dw2: uint32;
+    dw3: uint32;
+}
+
+table AdjacencyList {
+    Ids: [uint32];
+}
+
+table TCollectionHeader {
+    DictionaryId: [TGuid];
+    CalcerId: [TGuid];
+    PerFeatureDictionaries: [AdjacencyList];
+    PerTokenizedFeatureCalcers: [AdjacencyList];
+}
+
+enum EPartType : ubyte {
+    FeatureCalcer,
+    Dictionary
+}
+
+table TCollectionPart {
+    PartType: EPartType;
+    Id: TGuid;
+}
+
+root_type TCollectionHeader;
+root_type TCollectionPart;

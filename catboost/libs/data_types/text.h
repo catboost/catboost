@@ -19,6 +19,14 @@ namespace NCB {
             return Id;
         }
 
+        bool operator==(ui32 rhs) const {
+            return Id == rhs;
+        }
+
+        bool operator!=(ui32 rhs) const {
+            return !(rhs == *this);
+        }
+
         bool operator==(const TTokenId& rhs) const {
             return Id == rhs.Id;
         }
@@ -42,6 +50,8 @@ namespace NCB {
         bool operator>=(const TTokenId& rhs) const {
             return !(*this < rhs);
         }
+
+        Y_SAVELOAD_DEFINE(Id);
     };
 
     class TText : public TDenseHash<TTokenId, ui32> {

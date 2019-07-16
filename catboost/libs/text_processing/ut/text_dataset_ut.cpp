@@ -1,7 +1,7 @@
 #include <catboost/libs/options/text_feature_options.h>
 #include <catboost/libs/helpers/array_subset.h>
-#include <catboost/libs/text_features/text_dataset.h>
-#include <catboost/libs/text_features/text_column_builder.h>
+#include <catboost/libs/text_processing/text_dataset.h>
+#include <catboost/libs/text_processing/text_column_builder.h>
 
 #include <library/unittest/registar.h>
 
@@ -51,7 +51,10 @@ Y_UNIT_TEST_SUITE(TestTextDataset) {
             TStringBuf line = text[i];
             textColumnBuilder.AddText(i, line);
         }
-        TTextDataSetPtr dataSet = MakeIntrusive<TTextDataSet>(textColumnBuilder.Build(), dictionary);
+        TTextDataSetPtr dataSet = MakeIntrusive<TTextDataSet>(
+            TTextColumn::CreateOwning(textColumnBuilder.Build()),
+            dictionary
+        );
 
         const TTokenId hiId = dictionary->Apply("hi");
         const TTokenId haId = dictionary->Apply("ha");

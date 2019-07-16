@@ -18,7 +18,6 @@ SRCS(
     pmml_helpers.cpp
     static_ctr_provider.cpp
     model_build_helper.cpp
-    feature_calcer.cpp
     cpu/evaluator_impl.cpp
     cpu/formula_evaluator.cpp
     cpu/quantization.cpp

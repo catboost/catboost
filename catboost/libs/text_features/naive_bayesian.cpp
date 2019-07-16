@@ -1,38 +1,42 @@
 #include "naive_bayesian.h"
 #include "helpers.h"
 
+#include <catboost/libs/text_features/flatbuffers/feature_calcers.fbs.h>
+
 #include <library/containers/dense_hash/dense_hash.h>
 #include <util/generic/array_ref.h>
 #include <util/generic/ymath.h>
 
 using namespace NCB;
 
-double TMultinomialOnlineNaiveBayes::LogProb(
-    const TDenseHash<ui32, ui32>& freqTable,
+TTextFeatureCalcerFactory::TRegistrator<TMultinomialNaiveBayes>
+    NaiveBayesRegistrator(EFeatureCalcerType::NaiveBayes);
+
+double TMultinomialNaiveBayes::LogProb(
+    const TDenseHash<TTokenId, ui32>& freqTable,
     double classSamples,
     double classTokensCount,
-    const TText& text,
-    double classPrior,
-    double tokenPrior) const {
+    const TText& text) const {
 
-    double value = log(classSamples + classPrior);
+    Y_UNUSED(text, freqTable);
+    double value = log(classSamples + ClassPrior);
 
-    classTokensCount += tokenPrior * (KnownTokens.Size() + 1);
+    classTokensCount += TokenPrior * (NumSeenTokens + SEEN_TOKENS_PRIOR);
     double textLen = 0;
 
     for (const auto& [token, count] : text) {
         textLen += count;
 
         auto tokenCountPtr = freqTable.find(token);
-        double num = tokenPrior;
+        double num = TokenPrior;
 
         if (tokenCountPtr != freqTable.end()) {
             num += tokenCountPtr->second;
         } else {
             //unseen word, adjust prior
-            classTokensCount += tokenPrior;
+            classTokensCount += TokenPrior;
         }
-        value += log(num);
+        value += count * log(num);
     }
 
     //denum
@@ -41,34 +45,86 @@ double TMultinomialOnlineNaiveBayes::LogProb(
     return value;
 }
 
-void TMultinomialOnlineNaiveBayes::AddText(ui32 classId, const TText& text)  {
-    auto& classCounts = Counts[classId];
+void TMultinomialNaiveBayes::Compute(
+    const TText& text,
+    TOutputFloatIterator outputFeaturesIterator) const {
 
-    for (const auto& [term, termCount] : text) {
-        KnownTokens.Insert(term);
-        classCounts[term] += termCount;
-        ClassTotalTokens[classId] += termCount;
-    }
-    ++ClassDocs[classId];
-}
-
-TVector<double> TMultinomialOnlineNaiveBayes::CalcFeatures(const TText& text, double classPrior, double tokenPrior) const  {
     TVector<double> logProbs(NumClasses);
     for (ui32 clazz = 0; clazz < NumClasses; ++clazz) {
-        logProbs[clazz] = LogProb(Counts[clazz],
-                                  ClassDocs[clazz],
-                                  ClassTotalTokens[clazz],
-                                  text,
-                                  classPrior,
-                                  tokenPrior
-                                  );
+        logProbs[clazz] = LogProb(Frequencies[clazz], ClassDocs[clazz], ClassTotalTokens[clazz], text);
     }
     Softmax(logProbs);
-    return logProbs;
+
+    for (ui32 featureIdx = 0; featureIdx < FeatureCount(); ++featureIdx, ++outputFeaturesIterator) {
+        *outputFeaturesIterator = logProbs[featureIdx];
+    }
 }
 
-TVector<double> TMultinomialOnlineNaiveBayes::CalcFeaturesAndAddText(ui32 classId, const TText& text, double classPrior, double tokenPrior) {
-    auto result = CalcFeatures(text, classPrior, tokenPrior);
-    AddText(classId, text);
-    return result;
+flatbuffers::Offset<NCatBoostFbs::TFeatureCalcer> TMultinomialNaiveBayes::SaveParametersToFB(flatbuffers::FlatBufferBuilder& builder) const {
+    using namespace NCatBoostFbs;
+
+    // TODO(d-kruchinin, kirillovs) change types in flatbuffers to arcadian
+    static_assert(sizeof(ui32) == sizeof(uint32_t));
+    const auto& fbsClassDocs = builder.CreateVector(
+        reinterpret_cast<const uint32_t*>(ClassDocs.data()),
+        ClassDocs.size()
+    );
+
+    static_assert(sizeof(ui64) == sizeof(uint64_t));
+    const auto& fbsClassTotalTokens = builder.CreateVector(
+        reinterpret_cast<const uint64_t*>(ClassTotalTokens.data()),
+        ClassTotalTokens.size()
+    );
+
+    const auto& fbsNaiveBayes = CreateTNaiveBayes(
+        builder,
+        NumClasses,
+        ClassPrior,
+        TokenPrior,
+        NumSeenTokens,
+        fbsClassDocs,
+        fbsClassTotalTokens
+    );
+
+    return CreateTFeatureCalcer(builder, TAnyFeatureCalcer_TNaiveBayes, fbsNaiveBayes.Union());
+}
+
+void TMultinomialNaiveBayes::LoadParametersFromFB(const NCatBoostFbs::TFeatureCalcer* calcer) {
+    auto naiveBayes = calcer->FeatureCalcerImpl_as_TNaiveBayes();
+
+    NumClasses = naiveBayes->NumClasses();
+    ClassPrior = naiveBayes->ClassPrior();
+    TokenPrior = naiveBayes->TokenPrior();
+    NumSeenTokens = naiveBayes->NumSeenTokens();
+
+    auto fbsClassDocs = naiveBayes->ClassDocs();
+    ClassDocs.yresize(fbsClassDocs->size());
+    Copy(fbsClassDocs->begin(), fbsClassDocs->end(), ClassDocs.begin());
+
+    auto fbsClassTotalTokens = naiveBayes->ClassTotalTokens();
+    ClassTotalTokens.yresize(fbsClassTotalTokens->size());
+    Copy(fbsClassTotalTokens->begin(), fbsClassTotalTokens->end(), ClassTotalTokens.begin());
+}
+
+void TMultinomialNaiveBayes::SaveLargeParameters(IOutputStream* stream) const {
+    ::Save(stream, Frequencies);
+}
+
+void TMultinomialNaiveBayes::LoadLargeParameters(IInputStream* stream) {
+    ::Load(stream, Frequencies);
+}
+
+void TNaiveBayesVisitor::Update(ui32 classId, const TText& text, TTextFeatureCalcer* calcer) {
+    auto naiveBayes = dynamic_cast<TMultinomialNaiveBayes*>(calcer);
+    Y_ASSERT(naiveBayes);
+
+    auto& classCounts = naiveBayes->Frequencies[classId];
+
+    for (const auto& [term, termCount] : text) {
+        SeenTokens.Insert(term);
+        classCounts[term] += termCount;
+        naiveBayes->ClassTotalTokens[classId] += termCount;
+    }
+    naiveBayes->ClassDocs[classId] += 1;
+    naiveBayes->NumSeenTokens = SeenTokens.Size();
 }

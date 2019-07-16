@@ -1,6 +1,7 @@
 #pragma once
 
-#include "text_dataset.h"
+#include "feature_calcer.h"
+
 #include <util/system/types.h>
 #include <util/generic/fwd.h>
 
@@ -12,29 +13,58 @@ namespace NCB {
      *  query = text
      *  BM25(class, text)
     */
-    class TOnlineBM25 {
+    class TBM25 final : public TTextFeatureCalcer {
     public:
 
-        explicit TOnlineBM25(ui32 numClasses, double truncateBorder)
+        explicit TBM25(ui32 numClasses = 2, double truncateBorder = 1e-3, double k = 1.5, double b = 0.75)
             : NumClasses(numClasses)
+            , K(k)
+            , B(b)
+            , TruncateBorder(truncateBorder)
             , TotalTokens(1)
             , ClassTotalTokens(numClasses)
-            , Freq(numClasses)
-            , TruncateBorder(truncateBorder) {
+            , Frequencies(numClasses) {
         }
 
-        TVector<double> CalcFeatures(const TText& text, double k = 1.5, double b = 0.75) const;
+        virtual bool IsSerializable() const {
+            return true;
+        }
 
-        TVector<double> CalcFeaturesAndAddText(ui32 classId, const TText& text, double k = 1.5, double b = 0.75);
+        EFeatureCalcerType Type() const override {
+            return EFeatureCalcerType::BM25;
+        }
 
-        void AddText(ui32 classId, const TText& text);
+        void Compute(const TText& text, TOutputFloatIterator iterator) const override;
 
+        static ui32 FeatureCount(ui32 numClasses) {
+            return numClasses;
+        }
+        ui32 FeatureCount() const override {
+            return FeatureCount(NumClasses);
+        }
 
     private:
         ui32 NumClasses;
+        double K;
+        double B;
+        double TruncateBorder;
+
         ui64 TotalTokens;
         TVector<ui64> ClassTotalTokens;
-        TVector<TDenseHash<ui32, ui32>> Freq;
-        double TruncateBorder;
+        TVector<TDenseHash<TTokenId, ui32>> Frequencies;
+
+    protected:
+        flatbuffers::Offset<NCatBoostFbs::TFeatureCalcer> SaveParametersToFB(flatbuffers::FlatBufferBuilder& builder) const override;
+        void LoadParametersFromFB(const NCatBoostFbs::TFeatureCalcer* calcerFbs) override;
+
+        void SaveLargeParameters(IOutputStream* ) const override;
+        void LoadLargeParameters(IInputStream* ) override;
+
+        friend class TBM25Visitor;
+    };
+
+    class TBM25Visitor final : public ITextCalcerVisitor {
+    public:
+        void Update(ui32 classId, const TText& text, TTextFeatureCalcer* bm25) override;
     };
 }

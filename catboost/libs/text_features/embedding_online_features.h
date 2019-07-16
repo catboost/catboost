@@ -1,17 +1,20 @@
 #pragma once
 
-#include "embedding.h"
+#include "feature_calcer.h"
+
+#include <catboost/libs/text_processing/embedding.h>
+
 #include <util/system/types.h>
 #include <util/generic/vector.h>
 #include <util/generic/array_ref.h>
 
 namespace NCB {
 
-    class TEmbeddingOnlineFeatures {
+    class TEmbeddingOnlineFeatures final : public TTextFeatureCalcer {
     public:
 
-        explicit TEmbeddingOnlineFeatures(ui32 numClasses,
-                                          TEmbeddingPtr embedding,
+        explicit TEmbeddingOnlineFeatures(ui32 numClasses = 2,
+                                          TEmbeddingPtr embedding = TEmbeddingPtr(),
                                           bool useCos = true,
                                           bool computeHomoscedasticModel = true,
                                           bool computeHeteroscedasticModel = true,
@@ -19,59 +22,113 @@ namespace NCB {
                                           )
             : NumClasses(numClasses)
             , Embedding(std::move(embedding))
-            , UseCos(useCos)
+            , ComputeCosDistance(useCos)
             , ComputeHomoscedasticModel(computeHomoscedasticModel)
             , ComputeHeteroscedasticModel(computeHeteroscedasticModel)
             , Prior(prior)
-            , Sums(numClasses)
-            , Sums2(numClasses)
+            , TotalWeight(prior)
+            , Means(numClasses)
+            , PerClassSigma(numClasses)
             , ClassSizes(numClasses) {
             const auto embeddingsDim = Embedding->Dim();
 
-            for (auto& vec : Sums) {
+            TotalSigma = TVector<double>(embeddingsDim * embeddingsDim);
+
+            for (auto& vec : Means) {
                 vec.resize(embeddingsDim);
             }
-            for (auto& vec : Sums2) {
-                vec.resize(embeddingsDim * (embeddingsDim + 1) / 2);
+            for (auto& vec : PerClassSigma) {
+                vec.resize(embeddingsDim * embeddingsDim);
             }
         }
 
-        TVector<double> CalcFeatures(TConstArrayRef<float> embedding) const;
-
-        TVector<double> CalcFeaturesAndAddEmbedding(ui32 classId, TConstArrayRef<float> embedding);
-
-        void AddEmbedding(ui32 classId, TConstArrayRef<float> embedding);
-
-        TVector<double> CalcFeatures(const TText& text) const {
-            TVector<float> embedding;
-            Embedding->Apply(text, &embedding);
-            return CalcFeatures(embedding);
+        static ui32 FeatureCount(
+            ui32 numClasses,
+            bool computeCosDistance,
+            bool computeHomoscedasticModel,
+            bool computeHeteroscedasticModel) {
+            return numClasses * (
+                (ui32)(computeCosDistance) +
+                (ui32)(computeHomoscedasticModel) +
+                (ui32)(computeHeteroscedasticModel)
+            );
+        }
+        ui32 FeatureCount() const override {
+            return FeatureCount(NumClasses, ComputeCosDistance, ComputeHomoscedasticModel, ComputeHeteroscedasticModel);
         }
 
-        TVector<double> CalcFeaturesAndAddText(ui32 classId, const TText& text) {
-            TVector<float> embedding;
-            Embedding->Apply(text, &embedding);
-            return CalcFeaturesAndAddEmbedding(classId, embedding);
+        void Compute(TConstArrayRef<float> embedding, TOutputFloatIterator outputFeaturesIterator) const;
+
+        EFeatureCalcerType Type() const override {
+            return EFeatureCalcerType::EmbeddingDistanceToClass;
         }
 
-        void AddText(ui32 classId, const TText& text) {
+        void Compute(const TText& text, TOutputFloatIterator iterator) const override {
             TVector<float> embedding;
             Embedding->Apply(text, &embedding);
-            AddEmbedding(classId, embedding);
+            return Compute(embedding, iterator);
+        }
+
+        void SetEmbedding(TEmbeddingPtr embedding) {
+            Embedding = std::move(embedding);
+        }
+
+        bool IsSerializable() const override {
+            return true;
         }
 
     private:
         ui32 NumClasses;
         TEmbeddingPtr Embedding;
 
-        bool UseCos;
+        bool ComputeCosDistance;
         bool ComputeHomoscedasticModel;
         bool ComputeHeteroscedasticModel;
         double Prior;
+        double TotalWeight;
 
-        TVector<TVector<double>> Sums;
-        TVector<TVector<double>> Sums2;
+        TVector<double> TotalSigma;
+        TVector<TVector<double>> Means;
+        TVector<TVector<double>> PerClassSigma;
         TVector<ui64> ClassSizes;
+
+        friend class TEmbeddingFeaturesVisitor;
     };
 
+    class TEmbeddingFeaturesVisitor final : public ITextCalcerVisitor {
+    public:
+        TEmbeddingFeaturesVisitor(ui32 numClasses, ui32 embeddingsDim)
+        : NumClasses(numClasses)
+        , Dim(embeddingsDim)
+        , Sums(numClasses)
+        , Sums2(numClasses) {
+            for (auto& vec : Sums) {
+                vec.resize(Dim);
+            }
+            for (auto& vec : Sums2) {
+                vec.resize(Dim * (Dim + 1) / 2);
+            }
+        }
+
+        void Update(ui32 classIdx, const TText& text, TTextFeatureCalcer* calcer) override {
+            auto embeddingCalcer = dynamic_cast<TEmbeddingOnlineFeatures*>(calcer);
+            Y_ASSERT(embeddingCalcer);
+
+            TVector<float> embedding;
+            embeddingCalcer->Embedding->Apply(text, &embedding);
+            UpdateEmbedding(classIdx, embedding, embeddingCalcer);
+        }
+
+        void UpdateEmbedding(
+            ui32 classId,
+            TConstArrayRef<float> embedding,
+            TEmbeddingOnlineFeatures* embeddingCalcer
+        );
+
+    private:
+        const ui32 NumClasses;
+        const ui32 Dim;
+        TVector<TVector<double>> Sums;
+        TVector<TVector<double>> Sums2;
+    };
 }

@@ -1,45 +1,35 @@
 #pragma once
 
-#include "text_dataset.h"
-#include <catboost/libs/feature_estimator/feature_estimator.h>
+#include "feature_calcer.h"
+
+#include <catboost/libs/text_features/flatbuffers/feature_calcers.fbs.h>
 
 namespace NCB {
 
-
-    class TBagOfWordsEstimator final : public IFeatureEstimator {
+    class TBagOfWordsCalcer final : public TTextFeatureCalcer {
     public:
-        TBagOfWordsEstimator(
-            TTextDataSetPtr learnTexts,
-            TVector<TTextDataSetPtr> testTexts)
-            : LearnTexts({learnTexts})
-            , TestTexts(std::move(testTexts))
-            , Dictionary(learnTexts->GetDictionary())
+        explicit TBagOfWordsCalcer(ui32 numTokens = 1)
+        : NumTokens(numTokens)
         {}
 
-        TEstimatedFeaturesMeta FeaturesMeta() const override {
-            const ui32 featureCount = Dictionary.Size();
-            TEstimatedFeaturesMeta meta;
-            meta.Type = TVector<EFeatureEstimatorType>(featureCount, EFeatureEstimatorType::BoW);
-            meta.FeaturesCount = featureCount;
-            meta.UniqueValuesUpperBoundHint = TVector<ui32>(featureCount, 2);
-            return meta;
+        EFeatureCalcerType Type() const override {
+            return EFeatureCalcerType::BoW;
         }
 
-        void ComputeFeatures(TCalculatedFeatureVisitor learnVisitor,
-                             TConstArrayRef<TCalculatedFeatureVisitor> testVisitors,
-                             NPar::TLocalExecutor* executor) const override;
+        void Compute(const TText& text, TOutputFloatIterator outputFeaturesIterator) const override;
 
+        ui32 FeatureCount() const override {
+            return NumTokens;
+        }
 
     protected:
+        flatbuffers::Offset<NCatBoostFbs::TFeatureCalcer> SaveParametersToFB(flatbuffers::FlatBufferBuilder&) const override;
+        void LoadParametersFromFB(const NCatBoostFbs::TFeatureCalcer*) override;
 
-        void Calc(NPar::TLocalExecutor& executor,
-                  TConstArrayRef<TTextDataSetPtr> dataSets,
-                  TConstArrayRef<TCalculatedFeatureVisitor> visitors) const;
+        void SaveLargeParameters(IOutputStream*) const override {}
+        void LoadLargeParameters(IInputStream*) override {}
 
     private:
-        TVector<TTextDataSetPtr> LearnTexts;
-        TVector<TTextDataSetPtr> TestTexts;
-        const IDictionary& Dictionary;
+        ui32 NumTokens;
     };
-
 }

@@ -17,6 +17,7 @@ SRCS(
     dynamic_iterator.cpp
     element_range.cpp
     exception.cpp
+    guid.cpp
     hash.cpp
     int_cast.cpp
     interrupt.cpp

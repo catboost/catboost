@@ -1,33 +1,30 @@
 #include "bow.h"
 
-void NCB::TBagOfWordsEstimator::Calc(NPar::TLocalExecutor& executor,
-                                     TConstArrayRef<TTextDataSetPtr> dataSets,
-                                     TConstArrayRef<TCalculatedFeatureVisitor> visitors) const {
+namespace NCB {
+    TTextFeatureCalcerFactory::TRegistrator<TBagOfWordsCalcer>
+        BagOfWordsRegistrator(EFeatureCalcerType::BoW);
 
-    const ui32 featuresCount = Dictionary.Size();
+    void TBagOfWordsCalcer::Compute(const NCB::TText& text, TOutputFloatIterator outputFeaturesIterator) const {
+        TVector<float> features;
+        features.yresize(NumTokens);
 
-    for (ui32 id = 0; id < dataSets.size(); ++id) {
-        const auto& ds = *dataSets[id];
-        const ui64 samplesCount = ds.SamplesCount();
-
-        //one-by-one, we don't want to acquire unnecessary RAM for very sparse features
-        TVector<float> singleFeature(samplesCount);
-        for (ui32 tokenId = 0; tokenId < featuresCount; ++tokenId) {
-            NPar::ParallelFor(executor, 0, samplesCount, [&](ui32 line) {
-                const bool hasToken = ds.GetText(line).Has(TTokenId(tokenId));
-                if (hasToken) {
-                    singleFeature[line] = 1.0;
-                }
-            });
-            visitors[id](tokenId, singleFeature);
+        for (ui32 tokenId = 0; tokenId < NumTokens; tokenId++, ++outputFeaturesIterator) {
+            *outputFeaturesIterator = text.Has(tokenId);
         }
     }
-}
 
-void NCB::TBagOfWordsEstimator::ComputeFeatures(TCalculatedFeatureVisitor learnVisitor,
-                                                TConstArrayRef<TCalculatedFeatureVisitor> testVisitors,
-                                                NPar::TLocalExecutor* executor) const {
+    flatbuffers::Offset<NCatBoostFbs::TFeatureCalcer> TBagOfWordsCalcer::SaveParametersToFB(
+        flatbuffers::FlatBufferBuilder& builder) const {
+        using namespace NCatBoostFbs;
 
-    Calc(*executor, MakeConstArrayRef(LearnTexts), {learnVisitor});
-    Calc(*executor, MakeConstArrayRef(TestTexts), testVisitors);
+        auto bow = CreateTBoW(builder, NumTokens);
+
+        return CreateTFeatureCalcer(builder, TAnyFeatureCalcer_TBoW, bow.Union());
+    }
+
+    void TBagOfWordsCalcer::LoadParametersFromFB(const NCatBoostFbs::TFeatureCalcer* calcer) {
+        auto bow = calcer->FeatureCalcerImpl_as_TBoW();
+        NumTokens = bow->NumTokens();
+    }
+
 }

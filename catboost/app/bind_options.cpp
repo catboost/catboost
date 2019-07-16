@@ -910,7 +910,7 @@ static void BindTextFeaturesParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonVa
         .Help("List of feature estimators to compute over each text column in dataset")
         .Handler1T<TString>([plainJsonPtr](const TString& estimatorsLine) {
             for (const auto& featureEstimator : StringSplitter(estimatorsLine).Split(',').SkipEmpty()) {
-                FromString<EFeatureEstimatorType>(featureEstimator.Token());
+                FromString<EFeatureCalcerType>(featureEstimator.Token());
                 (*plainJsonPtr)["text_feature_estimators"].AppendValue(NJson::TJsonValue(featureEstimator.Token()));
             }
             CB_ENSURE(!(*plainJsonPtr)["text_feature_estimators"].GetArray().empty(), "Empty text features list " << estimatorsLine);

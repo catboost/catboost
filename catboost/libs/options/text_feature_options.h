@@ -53,6 +53,6 @@ namespace NCatboostOptions {
         bool operator!=(const TTextFeatureOptions& rhs) const;
 
     public:
-        TOption<TVector<EFeatureEstimatorType>> FeatureEstimators;
+        TOption<TVector<EFeatureCalcerType>> FeatureEstimators;
     };
 }

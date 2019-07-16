@@ -1,7 +1,7 @@
 #pragma once
 
 #include <catboost/libs/options/enums.h>
-#include <catboost/libs/model/feature_calcer.h>
+#include <catboost/libs/text_features/feature_calcer.h>
 #include <catboost/libs/helpers/exception.h>
 #include <util/system/types.h>
 #include <util/generic/vector.h>
@@ -20,7 +20,7 @@ namespace NCB {
     struct TEstimatedFeaturesMeta {
         ui32 FeaturesCount = 0;
         TMaybe<TVector<ui32>> UniqueValuesUpperBoundHint;
-        TVector<EFeatureEstimatorType> Type;
+        TVector<EFeatureCalcerType> Type;
     };
 
 

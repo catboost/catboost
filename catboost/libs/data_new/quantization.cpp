@@ -11,7 +11,7 @@
 #include <catboost/libs/helpers/mem_usage.h>
 #include <catboost/libs/helpers/resource_constrained_executor.h>
 #include <catboost/libs/logging/logging.h>
-#include <catboost/libs/text_features/text_column_builder.h>
+#include <catboost/libs/text_processing/text_column_builder.h>
 #include <catboost/libs/quantization/utils.h>
 #include <catboost/libs/quantization_schema/quantize.h>
 
@@ -1085,7 +1085,7 @@ namespace NCB {
 
         *dstQuantizedFeature = MakeHolder<TTokenizedTextValuesHolder>(
             srcFeature.GetId(),
-            textColumnBuilder.Build(),
+            TTextColumn::CreateOwning(textColumnBuilder.Build()),
             dstSubsetIndexing
         );
     }

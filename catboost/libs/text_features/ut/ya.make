@@ -4,8 +4,9 @@ UNITTEST()
 SIZE(MEDIUM)
 
 SRCS(
-    test_load_embedding.cpp
-    text_dataset_ut.cpp
+    calcer_canonization_ut.cpp
+    feature_calcer_ut.cpp
+    text_processing_collection_ut.cpp
 )
 
 PEERDIR(

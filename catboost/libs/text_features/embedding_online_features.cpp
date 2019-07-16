@@ -19,7 +19,7 @@ static inline void SolveLinearSystemCholesky(TArrayRef<double> matrix,
 }
 
 
-inline double LogProbNormal(TConstArrayRef<double> x, TConstArrayRef<double> mu, TConstArrayRef<double> sigma) {
+inline double LogProbNormal(TConstArrayRef<float> x, TConstArrayRef<double> mu, TConstArrayRef<double> sigma) {
     const ui32 dim = x.size();
 
     TVector<double> target(x.begin(), x.end());
@@ -43,85 +43,32 @@ inline double LogProbNormal(TConstArrayRef<double> x, TConstArrayRef<double> mu,
     return result;
 }
 
-TVector<double> NCB::TEmbeddingOnlineFeatures::CalcFeatures(TConstArrayRef<float> embedding) const {
-    TVector<double> features;
+void NCB::TEmbeddingOnlineFeatures::Compute(
+    TConstArrayRef<float> embedding,
+    TOutputFloatIterator outputFeaturesIterator) const {
 
     TVector<double> classProbsHomoscedastic(NumClasses);
     TVector<double> classProbsHeteroscedastic(NumClasses);
 
-    const ui32 dim = Embedding->Dim();
-    Y_ASSERT(dim && dim == embedding.size());
-
-    TVector<double> totalSigma(dim * dim);
-    for (ui64 x = 0; x < dim; ++x) {
-        totalSigma[x * dim + x] = Prior;
-    }
-    TVector<TVector<double>> means;
-    TVector<TVector<double>> perClassSigma;
     for (ui32 i = 0; i < NumClasses; ++i) {
-        means.push_back(TVector<double>(dim));
-        perClassSigma.push_back(TVector<double>(dim * dim));
-    }
-
-    double totalWeight = Prior;
-
-    bool needMatrices = ComputeHomoscedasticModel || ComputeHeteroscedasticModel;
-
-    //TODO(noxoomo): this could be cached for test application
-    for (ui32 i = 0; i < NumClasses; ++i) {
-        auto& sum = Sums[i];
-        auto& sum2 = Sums2[i];
-
-        auto& sigma = perClassSigma[i];
-        auto& mean = means[i];
-        const auto weight = ClassSizes[i] + Prior;
-        totalWeight += ClassSizes[i];
-
-        if (needMatrices) {
-            for (ui64 x = 0; x < dim; ++x) {
-                mean[x] = sum[x] / weight;
-                sigma[x * dim + x] = Prior;
-
-                for (ui64 y = 0; y < x; ++y) {
-                    sigma[x * dim + y] = sum2[x * (x + 1) / 2 + y] / weight - mean[x] * mean[y];
-                    sigma[y * dim + x] = sum2[x * (x + 1) / 2 + y] / weight - mean[x] * mean[y];
-
-                    totalSigma[x * dim + y] += sum2[x * (x + 1) / 2 + y] - ClassSizes[i] * mean[x] * mean[y];
-                    totalSigma[y * dim + x] += sum2[x * (x + 1) / 2 + y] - ClassSizes[i] * mean[x] * mean[y];
-                }
-
-                sigma[x * dim + x] += sum2[x * (x + 1) / 2 + x] / weight - mean[x] * mean[x];
-                totalSigma[x * dim + x] += sum2[x * (x + 1) / 2 + x] - ClassSizes[i] * mean[x] * mean[x];
-            }
-        }
-
-        if (UseCos) {
-            TVector<double> center(Sums[i].begin(), Sums[i].end());
-            for (auto& val : center) {
-                val /= weight;
-            }
-            features.push_back(CosDistance(MakeConstArrayRef(center), MakeConstArrayRef(embedding)));
-        }
-    }
-    for (auto& val : totalSigma) {
-        val /= totalWeight;
-    }
-
-    TVector<double> x(dim);
-    for (ui32 i = 0; i < dim; ++i) {
-        x[i] = embedding[i];
-    }
-    for (ui32 i = 0; i < NumClasses; ++i) {
-        const auto weight = ClassSizes[i] + Prior;
-        double classPrior = log(weight) - log(totalWeight);
+        const double weight = ClassSizes[i] + Prior;
+        const double classPrior = log(weight) - log(TotalWeight);
 
         if (ComputeHomoscedasticModel) {
             classProbsHomoscedastic[i] += classPrior;
-            classProbsHomoscedastic[i] += LogProbNormal(x, means[i], totalSigma);
+            classProbsHomoscedastic[i] += LogProbNormal(embedding, Means[i], TotalSigma);
         }
         if (ComputeHeteroscedasticModel) {
             classProbsHeteroscedastic[i] += classPrior;
-            classProbsHeteroscedastic[i] += LogProbNormal(x, means[i], perClassSigma[i]);
+            classProbsHeteroscedastic[i] += LogProbNormal(embedding, Means[i], PerClassSigma[i]);
+        }
+
+        if (ComputeCosDistance) {
+            *outputFeaturesIterator = CosDistance(
+                MakeConstArrayRef(Means[i]),
+                embedding
+            );
+            ++outputFeaturesIterator;
         }
     }
 
@@ -133,30 +80,81 @@ TVector<double> NCB::TEmbeddingOnlineFeatures::CalcFeatures(TConstArrayRef<float
     }
     for (ui32 i = 0; i < NumClasses; ++i) {
         if (ComputeHomoscedasticModel) {
-            features.push_back(classProbsHomoscedastic[i]);
+            *outputFeaturesIterator = classProbsHomoscedastic[i];
+            ++outputFeaturesIterator;
         }
         if (ComputeHeteroscedasticModel) {
-            features.push_back(classProbsHeteroscedastic[i]);
+            *outputFeaturesIterator = classProbsHeteroscedastic[i];
+            ++outputFeaturesIterator;
         }
     }
-    return features;
 }
 
-TVector<double> NCB::TEmbeddingOnlineFeatures::CalcFeaturesAndAddEmbedding(ui32 classId, TConstArrayRef<float> embedding) {
-    auto result = CalcFeatures(embedding);
-    AddEmbedding(classId, embedding);
-    return result;
-}
+void NCB::TEmbeddingFeaturesVisitor::UpdateEmbedding(
+    ui32 classId,
+    TConstArrayRef<float> embedding,
+    TEmbeddingOnlineFeatures* embeddingCalcer) {
 
-void NCB::TEmbeddingOnlineFeatures::AddEmbedding(ui32 classId, TConstArrayRef<float> embedding) {
-    ClassSizes[classId]++;
-    auto& sum = Sums[classId];
-    auto& sum2 = Sums2[classId];
+    Y_ASSERT(Dim == embedding.size());
 
-    for (ui64 i = 0; i < sum.size(); ++i) {
-        sum[i] += embedding[i];
-        for (ui32 j = 0; j <= i; ++j) {
-            sum2[i * (i + 1) / 2 + j] += embedding[i] * embedding[j];
+    const double prior = embeddingCalcer->Prior;
+
+    {
+        embeddingCalcer->ClassSizes[classId]++;
+        auto& sums = Sums[classId];
+        auto& sums2 = Sums2[classId];
+
+        for (ui64 i = 0; i < Dim; ++i) {
+            sums[i] += embedding[i];
+            for (ui32 j = 0; j <= i; ++j) {
+                sums2[i * (i + 1) / 2 + j] += embedding[i] * embedding[j];
+            }
         }
     }
+
+    auto& totalSigma = embeddingCalcer->TotalSigma;
+    Fill(totalSigma.begin(), totalSigma.end(), 0);
+    for (ui64 x = 0; x < Dim; ++x) {
+        totalSigma[x * Dim + x] = prior;
+    }
+
+    double totalWeight = prior;
+
+    const bool needMatrices =
+        embeddingCalcer->ComputeHomoscedasticModel ||
+        embeddingCalcer->ComputeHeteroscedasticModel;
+
+    const auto& classSizes = embeddingCalcer->ClassSizes;
+    for (ui32 i = 0; i < NumClasses; ++i) {
+        const auto& sum = Sums[i];
+        const auto& sum2 = Sums2[i];
+
+        auto& sigma = embeddingCalcer->PerClassSigma[i];
+        auto& mean = embeddingCalcer->Means[i];
+        const double weight = classSizes[i] + prior;
+        totalWeight += classSizes[i];
+
+        if (needMatrices) {
+            for (ui64 x = 0; x < Dim; ++x) {
+                mean[x] = sum[x] / weight;
+                sigma[x * Dim + x] = prior;
+
+                for (ui64 y = 0; y < x; ++y) {
+                    sigma[x * Dim + y] = sum2[x * (x + 1) / 2 + y] / weight - mean[x] * mean[y];
+                    sigma[y * Dim + x] = sum2[x * (x + 1) / 2 + y] / weight - mean[x] * mean[y];
+
+                    totalSigma[x * Dim + y] += sum2[x * (x + 1) / 2 + y] - classSizes[i] * mean[x] * mean[y];
+                    totalSigma[y * Dim + x] += sum2[x * (x + 1) / 2 + y] - classSizes[i] * mean[x] * mean[y];
+                }
+
+                sigma[x * Dim + x] += sum2[x * (x + 1) / 2 + x] / weight - mean[x] * mean[x];
+                totalSigma[x * Dim + x] += sum2[x * (x + 1) / 2 + x] - classSizes[i] * mean[x] * mean[x];
+            }
+        }
+    }
+
+    for (auto& val : totalSigma) {
+        val /= totalWeight;
+    }
+    embeddingCalcer->TotalWeight = totalWeight;
 }

@@ -25,3 +25,14 @@ NCB::TTokenizerPtr NCB::CreateTokenizer(ETokenizerType tokenizerType) {
         CB_ENSURE(false, "Currently supported only naive tokenizer");
     }
 }
+
+TVector<TVector<TStringBuf>> Tokenize(TConstArrayRef<TStringBuf> textFeature, const TTokenizerPtr& tokenizer) {
+    TVector<TVector<TStringBuf>> tokens;
+    tokens.yresize(textFeature.size());
+
+    for (ui32 i : xrange(textFeature.size())) {
+        tokenizer->Tokenize(textFeature[i], &tokens[i]);
+    }
+
+    return tokens;
+}

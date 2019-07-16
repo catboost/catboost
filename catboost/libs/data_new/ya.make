@@ -44,12 +44,13 @@ PEERDIR(
     catboost/libs/column_description
     catboost/libs/data_types
     catboost/libs/data_util
+    catboost/libs/feature_estimator
     catboost/libs/helpers
     catboost/libs/index_range
     catboost/libs/logging
     catboost/libs/model
     catboost/libs/options
-    catboost/libs/text_features
+    catboost/libs/text_processing
     catboost/libs/quantization
     catboost/libs/quantization_schema
 )
