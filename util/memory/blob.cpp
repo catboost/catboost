@@ -84,6 +84,11 @@ public:
     {
     }
 
+    TStringBlobBase(TString&& s) noexcept
+        : S_(std::move(s))
+    {
+    }
+
     ~TStringBlobBase() override = default;
 
     void Ref() noexcept override {
@@ -374,10 +379,10 @@ TBlob TBlob::FromBuffer(TBuffer& in) {
     return ConstructFromBuffer<TAtomicCounter>(in);
 }
 
-template <class TCounter>
-static inline TBlob ConstructFromString(const TString& s) {
+template <class TCounter, class S>
+TBlob ConstructFromString(S&& s) {
     using TBase = TStringBlobBase<TCounter>;
-    THolder<TBase> base(new TBase(s));
+    auto base = MakeHolder<TBase>(std::forward<S>(s));
 
     TBlob ret(base->String().data(), base->String().size(), base.Get());
     Y_UNUSED(base.Release());
@@ -389,6 +394,14 @@ TBlob TBlob::FromStringSingleThreaded(const TString& s) {
     return ConstructFromString<TSimpleCounter>(s);
 }
 
+TBlob TBlob::FromStringSingleThreaded(TString&& s) {
+    return ConstructFromString<TSimpleCounter>(std::move(s));
+}
+
 TBlob TBlob::FromString(const TString& s) {
     return ConstructFromString<TAtomicCounter>(s);
+}
+
+TBlob TBlob::FromString(TString&& s) {
+    return ConstructFromString<TAtomicCounter>(std::move(s));
 }
