@@ -225,6 +225,6 @@ double CalcAUC(TVector<TSample>* samples, NPar::TLocalExecutor* localExecutor, d
 
 double CalcAUC(TVector<TSample>* samples, double* outWeightSum, double* outPairWeightSum, int threadCount) {
     NPar::TLocalExecutor localExecutor;
-    localExecutor.RunAdditionalThreads(threadCount);
+    localExecutor.RunAdditionalThreads(threadCount - 1);
     return CalcAUC(samples, &localExecutor, outWeightSum, outPairWeightSum);
 }
