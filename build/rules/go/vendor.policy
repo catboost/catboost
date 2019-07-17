@@ -282,4 +282,7 @@ ALLOW .* -> vendor/github.com/godbus/dbus
 # CONTRIB-1300. Osquery SDK goes to Arcadia
 ALLOW .* -> vendor/github.com/kolide/osquery-go
 
+# CONTRIB-1383. Groupcache is a caching and cache-filling library
+ALLOW .* -> vendor/github.com/golang/groupcache
+
 DENY .* -> vendor/
