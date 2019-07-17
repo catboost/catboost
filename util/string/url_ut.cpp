@@ -104,6 +104,17 @@ Y_UNIT_TEST_SUITE(TUtilUrlTest) {
         UNIT_ASSERT_VALUES_EQUAL("www", CutWWWPrefix("www"));
         UNIT_ASSERT_VALUES_EQUAL("ya.ru", CutWWWPrefix("www.ya.ru"));
 
+        UNIT_ASSERT_VALUES_EQUAL("", CutWWWNumberedPrefix("www."));
+        UNIT_ASSERT_VALUES_EQUAL("www", CutWWWNumberedPrefix("www"));
+        UNIT_ASSERT_VALUES_EQUAL("www27", CutWWWNumberedPrefix("www27"));
+        UNIT_ASSERT_VALUES_EQUAL("", CutWWWNumberedPrefix("www27."));
+        UNIT_ASSERT_VALUES_EQUAL("ya.ru", CutWWWNumberedPrefix("www.ya.ru"));
+        UNIT_ASSERT_VALUES_EQUAL("ya.ru", CutWWWNumberedPrefix("www2.ya.ru"));
+        UNIT_ASSERT_VALUES_EQUAL("ya.ru", CutWWWNumberedPrefix("www12.ya.ru"));
+        UNIT_ASSERT_VALUES_EQUAL("ya.ru", CutWWWNumberedPrefix("ww2.ya.ru"));
+        UNIT_ASSERT_VALUES_EQUAL("w1w2w3.ya.ru", CutWWWNumberedPrefix("w1w2w3.ya.ru"));
+        UNIT_ASSERT_VALUES_EQUAL("123.ya.ru", CutWWWNumberedPrefix("123.ya.ru"));
+
         UNIT_ASSERT_VALUES_EQUAL("", CutMPrefix("m."));
         UNIT_ASSERT_VALUES_EQUAL("", CutMPrefix("M."));
         UNIT_ASSERT_VALUES_EQUAL("m", CutMPrefix("m"));

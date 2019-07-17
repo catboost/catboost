@@ -264,6 +264,26 @@ TStringBuf CutWWWPrefix(const TStringBuf url) noexcept {
     return url;
 }
 
+TStringBuf CutWWWNumberedPrefix(const TStringBuf url) noexcept {
+    auto it = url.begin();
+
+    StripRangeBegin(it, url.end(), [](auto& it){ return *it == 'w' || *it == 'W'; });
+    if (it == url.begin()) {
+        return url;
+    }
+
+    StripRangeBegin(it, url.end(), [](auto& it){ return IsAsciiDigit(*it); });
+    if (it == url.end()) {
+        return url;
+    }
+
+    if (*it++ == '.') {
+        return url.Tail(it - url.begin());
+    }
+
+    return url;
+}
+
 TStringBuf CutMPrefix(const TStringBuf url) noexcept {
     if (url.size() >= 2 && url[1] == '.' && (url[0] == 'm' || url[0] == 'M')) {
         return url.substr(2);
