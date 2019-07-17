@@ -42,7 +42,7 @@
     "node_type": "SingleHost", 
     "one_hot_max_size": 2, 
     "per_feature_ctr": [], 
-    "per_float_feature_binarization": [],
+    "per_float_feature_binarization": [], 
     "permutation_count": 4, 
     "random_seed": 0, 
     "random_strength": 1, 
@@ -60,9 +60,8 @@
         "BoW", 
         "NaiveBayes"
     ], 
-    "text_processing": [],
+    "text_processing": [], 
     "thread_count": 4, 
     "use_best_model": false, 
     "used_ram_limit": ""
 }
-
