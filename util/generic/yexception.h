@@ -152,10 +152,6 @@ void fputs(const std::exception& e, FILE* f = stderr);
 TString CurrentExceptionMessage();
 bool UncaughtException() noexcept;
 
-[[noreturn]] void ThrowBadAlloc();
-[[noreturn]] void ThrowLengthError(const char* descr);
-[[noreturn]] void ThrowRangeError(const char* descr);
-
 #define Y_ENSURE_EX(CONDITION, THROW_EXPRESSION) \
     do {                                         \
         if (Y_UNLIKELY(!(CONDITION))) {          \

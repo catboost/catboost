@@ -8,8 +8,6 @@
 #include <util/system/compiler.h>
 #include <util/system/yassert.h>
 
-[[noreturn]] extern void ThrowBadAlloc();
-
 /**
  * @addtogroup Streams
  * @{
@@ -192,7 +190,7 @@ private:
 
     inline void CheckBuf() const {
         if (!Buf_.Data()) {
-            ThrowBadAlloc();
+            throw std::bad_alloc();
         }
     }
 

@@ -29,7 +29,7 @@ namespace NDetail {
         }
 
         if (Y_UNLIKELY(newLen >= TDataTraits::MaxSize)) {
-            ThrowLengthError("Allocate() will fail");
+            throw std::length_error("Allocate() will fail");
         }
 
         size_t bufLen = newLen;

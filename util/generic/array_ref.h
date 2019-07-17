@@ -144,7 +144,7 @@ public:
 
     inline reference at(size_t n) const {
         if (n >= S_) {
-            ThrowRangeError("array ref range error");
+            throw std::out_of_range("array ref range error");
         }
 
         return (*this)[n];

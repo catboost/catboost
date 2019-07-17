@@ -38,7 +38,7 @@ namespace {
     int Gets(BIO* bio, char* buf, int size) noexcept {
         return ExceptionBoundary(bio, &TAbstractIO::Gets, -1, buf, size);
     }
-    
+
     long Ctrl(BIO* bio, int cmd, long larg, void* parg) noexcept {
         return ExceptionBoundary(bio, &TAbstractIO::Ctrl, -1, cmd, larg, parg);
     }
@@ -76,7 +76,7 @@ namespace NOpenSSL {
     TAbstractIO::TAbstractIO()
         : Bio(BIO_new(*Method())) {
         if (Y_UNLIKELY(!Bio)) {
-            ThrowBadAlloc();
+            throw std::bad_alloc();
         }
         BIO_set_data(Bio, this);
     }

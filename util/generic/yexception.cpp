@@ -44,18 +44,6 @@ bool UncaughtException() noexcept {
     return std::uncaught_exception();
 }
 
-void ThrowBadAlloc() {
-    throw std::bad_alloc();
-}
-
-void ThrowLengthError(const char* descr) {
-    throw std::length_error(descr);
-}
-
-void ThrowRangeError(const char* descr) {
-    throw std::out_of_range(descr);
-}
-
 void TSystemError::Init() {
     yexception& exc = *this;
 

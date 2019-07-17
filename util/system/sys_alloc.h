@@ -3,14 +3,13 @@
 #include <util/system/compiler.h>
 
 #include <cstdlib>
-
-[[noreturn]] extern void ThrowBadAlloc();
+#include <new>
 
 inline void* y_allocate(size_t n) {
     void* r = malloc(n);
 
     if (r == nullptr) {
-        ThrowBadAlloc();
+        throw std::bad_alloc();
     }
 
     return r;
@@ -37,7 +36,7 @@ inline void* y_reallocate(void* p, size_t new_sz) {
     void* r = realloc(p, new_sz);
 
     if (r == nullptr) {
-        ThrowBadAlloc();
+        throw std::bad_alloc();
     }
 
     return r;

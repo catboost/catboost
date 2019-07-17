@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <cstring>
 #include <stlfwd>
+#include <stdexcept>
 #include <string_view>
 
 #include <util/system/compat.h>
@@ -18,9 +19,6 @@
 #if defined(address_sanitizer_enabled) || defined(thread_sanitizer_enabled)
 #include "hide_ptr.h"
 #endif
-
-[[noreturn]] void ThrowLengthError(const char* descr);
-[[noreturn]] void ThrowRangeError(const char* descr);
 
 namespace NDetail {
     extern void const* STRING_DATA_NULL;
@@ -649,7 +647,7 @@ public:
 
     inline size_t copy(TCharType* pc, size_t n, size_t pos) const {
         if (pos > Len()) {
-            ThrowRangeError("TStringBase::copy");
+            throw std::out_of_range("TStringBase::copy");
         }
 
         return CopyImpl(pc, n, pos);
@@ -1571,7 +1569,7 @@ public:
         ins = Min(ins, len1 - pos1);
 
         if (len - del > this->max_size() - ins) { // len-del+ins -- overflow
-            ThrowLengthError("TBasicString::replace");
+            throw std::length_error("TBasicString::replace");
         }
 
         size_t total = len - del + ins;
