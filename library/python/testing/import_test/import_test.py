@@ -117,6 +117,10 @@ def check_imports(no_check=None, extra=[], skip_func=None):
         "django.db.backends.*",
         "django.db.migrations.*",
         "django.template.backends.jinja2",
+        "django_template_common.templatetags.*",
+        "django_template_common.utils",
+        "django_yauth.authentication_mechanisms.*",
+        "django_yauth.urls",
 
         "pytest_django.compat",
 
