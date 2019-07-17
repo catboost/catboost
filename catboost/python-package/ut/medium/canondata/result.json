@@ -24,7 +24,7 @@
         "uri": "file://test.test_classification_ctr_CPU_/model.bin"
     },
     "test.test_compute_options": {
-        "checksum": "824cee121fd5007437775e369a82eaa0",
+        "checksum": "5b782729c3cdb6e669da8bd8d4619190",
         "uri": "file://test.test_compute_options/options.json"
     },
     "test.test_continue_learning_with_changing_dataset": {
@@ -412,7 +412,7 @@
         "uri": "file://test.test_full_history_CPU_/model.bin"
     },
     "test.test_get_all_params": {
-        "checksum": "02f418fece608fb5cd874f99c2181562",
+        "checksum": "760f7f00ed4b85877cd8512dfb9101e2",
         "uri": "file://test.test_get_all_params/options.json"
     },
     "test.test_get_evals_result_without_eval_set": {

@@ -3,7 +3,6 @@
 #include "approx_calcer.h"
 #include "custom_objective_descriptor.h"
 #include "error_functions.h"
-#include "fold.h"
 #include "rand_score.h"
 #include "split.h"
 #include "yetirank_helpers.h"
@@ -106,24 +105,6 @@ void CalcWeightedDerivatives(
     TFold* takenFold,
     NPar::TLocalExecutor* localExecutor
 );
-
-template <bool StoreExpApprox>
-inline void UpdateBodyTailApprox(const TVector<TVector<TVector<double>>>& approxDelta,
-    double learningRate,
-    NPar::TLocalExecutor* localExecutor,
-    TFold* fold
-) {
-    const auto applyLearningRate = [=](TConstArrayRef<double> delta, TArrayRef<double> approx, size_t idx) {
-        approx[idx] = UpdateApprox<StoreExpApprox>(
-            approx[idx],
-            ApplyLearningRate<StoreExpApprox>(delta[idx], learningRate)
-        );
-    };
-    for (int bodyTailId = 0; bodyTailId < fold->BodyTailArr.ysize(); ++bodyTailId) {
-        TFold::TBodyTail& bt = fold->BodyTailArr[bodyTailId];
-        UpdateApprox(applyLearningRate, approxDelta[bodyTailId], &bt.Approx, localExecutor);
-    }
-}
 
 void SetBestScore(
     ui64 randSeed,

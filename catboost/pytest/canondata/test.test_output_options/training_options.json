@@ -6,6 +6,7 @@
         "fold_permutation_block" : 0,
         "boosting_type" : "Plain",
         "iterations" : 10,
+        "dev_model_shrink_rate" : 0,
         "od_config" : {
             "wait_iterations" : 20,
             "type" : "None",

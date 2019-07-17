@@ -20,6 +20,7 @@
     "custom_metric": [], 
     "depth": 6, 
     "detailed_profile": false, 
+    "dev_model_shrink_rate": 0, 
     "eval_metric": "RMSE", 
     "feature_border_type": "GreedyLogSum", 
     "fold_len_multiplier": 2, 

@@ -31,6 +31,8 @@ namespace NCatboostOptions {
         TOption<TOverfittingDetectorOptions> OverfittingDetector;
         TOption<EBoostingType> BoostingType;
         TCpuOnlyOption<bool> ApproxOnFullHistory;
+        TCpuOnlyOption<float> ModelShrinkRate;
+
 
         TGpuOnlyOption<ui32> MinFoldSize;
         TGpuOnlyOption<EDataPartitionType> DataPartitionType;

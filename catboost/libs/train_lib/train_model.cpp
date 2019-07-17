@@ -66,6 +66,10 @@ static void ShrinkModel(int itCount, const TCtrHelper& ctrsHelper, TLearnProgres
     progress->LeafValues.resize(itCount);
     progress->TreeStruct.resize(itCount);
     progress->TreeStats.resize(itCount);
+    if (!progress->ModelShrinkHistory.empty()) {
+        Y_ASSERT(SafeIntegerCast<int>(progress->ModelShrinkHistory.size()) >= itCount);
+        progress->ModelShrinkHistory.resize(itCount);
+    }
     progress->UsedCtrSplits.clear();
     for (const auto& tree: progress->TreeStruct) {
         for (const auto& split: tree.GetCtrSplits()) {
@@ -422,6 +426,9 @@ static void Train(
         if (HasInvalidValues(ctx->LearnProgress->LeafValues.back())) {
             ctx->LearnProgress->LeafValues.pop_back();
             ctx->LearnProgress->TreeStruct.pop_back();
+            if (!ctx->LearnProgress->ModelShrinkHistory.empty()) {
+                ctx->LearnProgress->ModelShrinkHistory.pop_back();
+            }
             CATBOOST_WARNING_LOG << "Training has stopped (degenerate solution on iteration "
                 << iter << ", probably too small l2-regularization, try to increase it)" << Endl;
             break;
@@ -459,6 +466,18 @@ static void Train(
             ShrinkModel(bestModelIterations, ctx->CtrsHelper, ctx->LearnProgress.Get());
         }
     }
+
+    if (!ctx->LearnProgress->ModelShrinkHistory.empty()) {
+        const int treeCount = ctx->LearnProgress->ModelShrinkHistory.size();
+        Y_ASSERT(SafeIntegerCast<int>(ctx->LearnProgress->LeafValues.size()) == treeCount);
+        double accumulatedTreeShrinkage = 1.0;
+        for (int treeIndex = treeCount - 1; treeIndex >= 0; --treeIndex) {
+            auto& treeLeafValues = ctx->LearnProgress->LeafValues[treeIndex];
+            treeLeafValues = ScaleElementwise(accumulatedTreeShrinkage, treeLeafValues);
+            accumulatedTreeShrinkage *= ctx->LearnProgress->ModelShrinkHistory[treeIndex];
+        }
+    }
+
 }
 
 

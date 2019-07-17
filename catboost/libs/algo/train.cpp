@@ -63,6 +63,51 @@ static void UpdateLearningFold(
     }
 }
 
+static void ScaleAllApproxes(
+    const double approxMultiplier,
+    const bool storeExpApprox,
+    TLearnProgress* learnProgress,
+    NPar::TLocalExecutor* localExecutor
+) {
+    TVector<TVector<TVector<double>>*> allApproxes;
+    for (auto& fold : learnProgress->Folds) {
+        for (auto &bodyTail : fold.BodyTailArr) {
+            allApproxes.push_back(&bodyTail.Approx);
+        }
+    }
+    allApproxes.push_back(&learnProgress->AveragingFold.BodyTailArr[0].Approx);
+    for (auto& testApprox : learnProgress->TestApprox) {
+        allApproxes.push_back(&testApprox);
+    }
+
+    NPar::ParallelFor(
+        *localExecutor,
+        0,
+        allApproxes.size(),
+        [approxMultiplier, storeExpApprox, localExecutor, &allApproxes](int index) {
+            if (storeExpApprox) {
+                UpdateApprox(
+                    [approxMultiplier](TConstArrayRef<double> /* delta */, TArrayRef<double> approx, size_t idx) {
+                        approx[idx] = ApplyLearningRate<true>(approx[idx], approxMultiplier);
+                    },
+                    *allApproxes[index], // stub deltas
+                    allApproxes[index],
+                    localExecutor
+                );
+            } else {
+                UpdateApprox(
+                    [approxMultiplier](TConstArrayRef<double> /* delta */, TArrayRef<double> approx, size_t idx) {
+                        approx[idx] = ApplyLearningRate<false>(approx[idx], approxMultiplier);
+                    },
+                    *allApproxes[index], // stub deltas
+                    allApproxes[index],
+                    localExecutor
+                );
+            }
+        }
+    );
+}
+
 void TrainOneIteration(const NCB::TTrainingForCPUDataProviders& data, TLearnContext* ctx) {
     const auto error = BuildError(ctx->Params, ctx->ObjectiveDescriptor);
     ctx->LearnProgress->HessianType = error->GetHessianType();
@@ -72,11 +117,28 @@ void TrainOneIteration(const NCB::TTrainingForCPUDataProviders& data, TLearnCont
     );
     TProfileInfo& profile = ctx->Profile;
 
+    const size_t iterationIndex = ctx->LearnProgress->TreeStruct.size();
     const int foldCount = ctx->LearnProgress->Folds.ysize();
     const double modelLength
-        = double(ctx->LearnProgress->TreeStruct.size()) * ctx->Params.BoostingOptions->LearningRate;
+        = double(iterationIndex) * ctx->Params.BoostingOptions->LearningRate;
 
     CheckInterrupted(); // check after long-lasting operation
+
+    const double modelShrinkRate = ctx->Params.BoostingOptions->ModelShrinkRate.Get();
+    if (modelShrinkRate > 0) {
+        if (iterationIndex > 0) {
+            const double modelShrinkage = 1 - modelShrinkRate / static_cast<double>(iterationIndex);
+            ScaleAllApproxes(
+                modelShrinkage,
+                error->GetIsExpApprox(),
+                ctx->LearnProgress.Get(),
+                ctx->LocalExecutor
+            );
+            ctx->LearnProgress->ModelShrinkHistory.push_back(modelShrinkage);
+        } else {
+            ctx->LearnProgress->ModelShrinkHistory.push_back(1.0);
+        }
+    }
 
     TSplitTree bestSplitTree;
     {

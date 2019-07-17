@@ -15,6 +15,7 @@ NCatboostOptions::TBoostingOptions::TBoostingOptions(ETaskType taskType)
     , OverfittingDetector("od_config", TOverfittingDetectorOptions())
     , BoostingType("boosting_type", EBoostingType::Ordered)
     , ApproxOnFullHistory("approx_on_full_history", false, taskType)
+    , ModelShrinkRate("dev_model_shrink_rate", 0.0f, taskType)
     , MinFoldSize("min_fold_size", 100, taskType)
     , DataPartitionType("data_partition", EDataPartitionType::FeatureParallel, taskType)
 {
@@ -23,23 +24,26 @@ NCatboostOptions::TBoostingOptions::TBoostingOptions(ETaskType taskType)
 void NCatboostOptions::TBoostingOptions::Load(const NJson::TJsonValue& options) {
     CheckedLoad(options,
             &LearningRate, &FoldLenMultiplier, &PermutationBlockSize, &IterationCount, &OverfittingDetector,
-            &BoostingType, &PermutationCount, &MinFoldSize, &ApproxOnFullHistory, &DataPartitionType);
+            &BoostingType, &PermutationCount, &MinFoldSize, &ApproxOnFullHistory, &DataPartitionType,
+            &ModelShrinkRate);
 
     Validate();
 }
 
 void NCatboostOptions::TBoostingOptions::Save(NJson::TJsonValue* options) const {
-    SaveFields(options, LearningRate, FoldLenMultiplier, PermutationBlockSize, IterationCount, OverfittingDetector,
-            BoostingType, PermutationCount, MinFoldSize, ApproxOnFullHistory, DataPartitionType);
+    SaveFields(options,
+            LearningRate, FoldLenMultiplier, PermutationBlockSize, IterationCount, OverfittingDetector,
+            BoostingType, PermutationCount, MinFoldSize, ApproxOnFullHistory, DataPartitionType,
+            ModelShrinkRate);
 }
 
 bool NCatboostOptions::TBoostingOptions::operator==(const TBoostingOptions& rhs) const {
     return std::tie(LearningRate, FoldLenMultiplier, PermutationBlockSize, IterationCount, OverfittingDetector,
             ApproxOnFullHistory, BoostingType, PermutationCount,
-            MinFoldSize, DataPartitionType) ==
+            MinFoldSize, DataPartitionType, ModelShrinkRate) ==
         std::tie(rhs.LearningRate, rhs.FoldLenMultiplier, rhs.PermutationBlockSize, rhs.IterationCount,
                 rhs.OverfittingDetector, rhs.ApproxOnFullHistory, rhs.BoostingType,
-                rhs.PermutationCount, rhs.MinFoldSize, rhs.DataPartitionType);
+                rhs.PermutationCount, rhs.MinFoldSize, rhs.DataPartitionType, rhs.ModelShrinkRate);
 }
 
 bool NCatboostOptions::TBoostingOptions::operator!=(const TBoostingOptions& rhs) const {
@@ -69,4 +73,9 @@ void NCatboostOptions::TBoostingOptions::Validate() const {
             << "learning rate is greater than 1. You probably need to decrease learning rate." << Endl;
         }
     }
+
+    CB_ENSURE(
+        ModelShrinkRate.GetUnchecked() >= 0.0 && ModelShrinkRate.GetUnchecked() < 1.0,
+        "Model shrink rate should be in [0, 1)."
+    );
 }

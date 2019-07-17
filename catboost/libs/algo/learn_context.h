@@ -81,6 +81,10 @@ struct TLearnProgress {
     TVector<TSplitTree> TreeStruct;
     TVector<TTreeStats> TreeStats;
     TVector<TVector<TVector<double>>> LeafValues; // [numTree][dim][bucketId]
+    /* Vector of multipliers that were applied to approxes at each iteration.
+     * Needed to properly scale leaf values as well at the end of training.
+     */
+    TVector<double> ModelShrinkHistory; // [numTree]
 
     ui32 InitTreesSize = 0; // can be non-0 if it is a continuation of training.
 

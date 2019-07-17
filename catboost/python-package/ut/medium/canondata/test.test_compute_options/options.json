@@ -2,6 +2,7 @@
     "boosting_options": {
         "approx_on_full_history": false, 
         "boosting_type": "Plain", 
+        "dev_model_shrink_rate": 0, 
         "fold_len_multiplier": 2, 
         "fold_permutation_block": 0, 
         "iterations": 1000, 
