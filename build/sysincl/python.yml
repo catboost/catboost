@@ -1,4 +1,4 @@
-- source_filter: "^(?!(contrib/tools/python|library/python/runtime|library/python/symbols)).*"
+- source_filter: "^(?!(contrib/tools/python|library/python/runtime|library/python/symbols)).*|^contrib/tools/python/src/Modules/_sqlite"
   includes:
   - Python-ast.h
   - Python.h
