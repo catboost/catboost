@@ -162,6 +162,9 @@ Y_UNIT_TEST_SUITE(TJsonHelperTest) {
                                    "  \"bootstrap_type\": \"Bernoulli\",\n"
                                    "  \"bagging_temperature\": 36.6,\n"
 
+                                   "  \"text_processing\": [\"1:max_dict_size=4\", \"3:min_token_occurence=55\"],\n"
+                                   "  \"per_float_feature_binarization\": [\"1:border_count=4\", \"2:nan_mode=Max,border_type=MinEntropy\"],\n"
+
                                    "}"
                                    "";
 
@@ -186,6 +189,9 @@ Y_UNIT_TEST_SUITE(TJsonHelperTest) {
             TString refBootstrapType = "Bernoulli";
             double refBaggingTemperature = 36.6;
 
+            TVector<TString> refTextProcessing = {"1:max_dict_size=4", "3:min_token_occurence=55"};
+            TVector<TString> refPerFloatFeatureBinarization = {"1:border_count=4", "2:nan_mode=Max,border_type=MinEntropy"};
+
             // parsed variables
             int parsedIterations = 7;
             double parsedLearningRate = 10.9;
@@ -203,6 +209,9 @@ Y_UNIT_TEST_SUITE(TJsonHelperTest) {
 
             TString parsedBootstrapType = "Laplace";
             double parsedBaggingTemperature = 39.0;
+
+            TVector<TString> parsedTextProcessing = {"foo", "bar"};
+            TVector<TString> parsedPerFloatFeatureBinarization = {"foo", "bar"};
 
             NJson::TJsonValue trainOptionsJson;
             NJson::TJsonValue outputFilesOptionsJson;
@@ -272,6 +281,9 @@ Y_UNIT_TEST_SUITE(TJsonHelperTest) {
             TString reverseParsedBootstrapType = "Laplace";
             double reverseParsedBaggingTemperature = 39.0;
 
+            TVector<TString> reverseTextOptions = {"foo", "bar"};
+            TVector<TString> reversePerFloatFeatureBinarization = {"foo", "bar"};
+
             TJsonFieldHelper<int>::Read(reversePlainOptions["iterations"], &reverseParsedIterations);
             TJsonFieldHelper<double>::Read(reversePlainOptions["learning_rate"], &reverseParsedLearningRate);
             TJsonFieldHelper<int>::Read(reversePlainOptions["fold_len_multiplier"], &reverseParsedFoldLenMultiplier);
@@ -288,6 +300,9 @@ Y_UNIT_TEST_SUITE(TJsonHelperTest) {
 
             TJsonFieldHelper<TString>::Read(reversePlainOptions["bootstrap_type"], &reverseParsedBootstrapType);
             TJsonFieldHelper<double>::Read(reversePlainOptions["bagging_temperature"], &reverseParsedBaggingTemperature);
+
+            TJsonFieldHelper<TVector<TString>>::Read(reversePlainOptions["text_processing"], &reverseTextOptions);
+            TJsonFieldHelper<TVector<TString>>::Read(reversePlainOptions["per_float_feature_binarization"], &reversePerFloatFeatureBinarization);
 
             // plainOptions == reversePlainOptions
             UNIT_ASSERT_VALUES_EQUAL(reverseParsedIterations, refIterations);
@@ -306,5 +321,8 @@ Y_UNIT_TEST_SUITE(TJsonHelperTest) {
 
             UNIT_ASSERT_VALUES_EQUAL(reverseParsedBootstrapType, refBootstrapType);
             UNIT_ASSERT_VALUES_EQUAL(reverseParsedBaggingTemperature, refBaggingTemperature);
+
+            UNIT_ASSERT_VALUES_EQUAL(reverseTextOptions, refTextProcessing);
+            UNIT_ASSERT_VALUES_EQUAL(reversePerFloatFeatureBinarization, refPerFloatFeatureBinarization);
         }
 }

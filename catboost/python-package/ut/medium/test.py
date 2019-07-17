@@ -4780,10 +4780,6 @@ def test_get_all_params():
 
     options = model.get_all_params()
 
-    # TODO (nikitxskv): Need to make correct support of this parameters in ConvertOptionsToPlainJson
-    options.pop('per_float_feature_binarization', None)
-    options.pop('text_processing', None)
-
     model2 = CatBoost(options)
     model2.fit(pool, verbose=True)
 
