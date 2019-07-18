@@ -415,9 +415,12 @@ def test_mapk(boosting_type):
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 @pytest.mark.parametrize('ndcg_power_mode', ['Base', 'Exp'])
-def test_ndcg(boosting_type, ndcg_power_mode):
+@pytest.mark.parametrize('metric_type', ['DCG', 'NDCG'])
+@pytest.mark.parametrize('ndcg_denominator', ['None', 'LogPosition', 'Position'])
+def test_ndcg(boosting_type, ndcg_power_mode, metric_type, ndcg_denominator):
     learn_error_path = yatest.common.test_output_path('learn_error.tsv')
     test_error_path = yatest.common.test_output_path('test_error.tsv')
+    denominator = '' if ndcg_denominator == 'None' else ';denominator={}'.format(ndcg_denominator)
     cmd = (
         CATBOOST_PATH,
         'fit',
@@ -428,7 +431,7 @@ def test_ndcg(boosting_type, ndcg_power_mode):
         '--boosting-type', boosting_type,
         '-i', '20',
         '-T', '4',
-        '--custom-metric', 'NDCG:top={};type={};hints=skip_train~false'.format(10, ndcg_power_mode),
+        '--custom-metric', '{}:top={};type={};hints=skip_train~false{}'.format(metric_type, 10, ndcg_power_mode, denominator),
         '--learn-err-log', learn_error_path,
         '--test-err-log', test_error_path,
         '--use-best-model', 'false',

@@ -42,9 +42,10 @@ static TStackVec<double> GetTopSortedTargets(
 }
 
 static double CalcDcgSorted(
-    const TConstArrayRef<double> sortedTargets,
-    const ENdcgMetricType type,
-    const TMaybe<double> expDecay)
+        const TConstArrayRef<double> sortedTargets,
+        const ENdcgMetricType type,
+        const TMaybe<double> expDecay,
+        const ENdcgDenominatorType denominator)
 {
     const auto size = sortedTargets.size();
 
@@ -57,8 +58,19 @@ static double CalcDcgSorted(
             decay[i] = decay[i - 1] * expDecayBase;
         }
     } else {
-        for (size_t i = 1; i < size; ++i) {
-            decay[i] = 1. / Log2(static_cast<double>(i + 2));
+        switch (denominator) {
+            case ENdcgDenominatorType::Position: {
+                for (size_t i = 1; i < size; ++i) {
+                    decay[i] = 1. / (i + 1);
+                }
+                break;
+            }
+            case ENdcgDenominatorType::LogPosition: {
+                for (size_t i = 1; i < size; ++i) {
+                    decay[i] = 1. / Log2(static_cast<double>(i + 2));
+                }
+                break;
+            }
         }
     }
 
@@ -75,22 +87,24 @@ static double CalcDcgSorted(
     return DotProduct(modifiedTargets.data(), decay.data(), size);
 }
 
-double CalcDcg(TConstArrayRef<TSample> samples, ENdcgMetricType type, TMaybe<double> expDecay, ui32 topSize) {
+double CalcDcg(TConstArrayRef<TSample> samples, ENdcgMetricType type, TMaybe<double> expDecay, ui32 topSize,
+               ENdcgDenominatorType denominator) {
     const auto sortedTargets = GetTopSortedTargets(samples, topSize, [](const auto& left, const auto& right) {
         return CompareDocs(left.Prediction, left.Target, right.Prediction, right.Target);
     });
-    return CalcDcgSorted(sortedTargets, type, expDecay);
+    return CalcDcgSorted(sortedTargets, type, expDecay, denominator);
 }
 
-double CalcIDcg(TConstArrayRef<TSample> samples, ENdcgMetricType type, TMaybe<double> expDecay, ui32 topSize) {
+double CalcIDcg(TConstArrayRef<TSample> samples, ENdcgMetricType type, TMaybe<double> expDecay, ui32 topSize,
+                ENdcgDenominatorType denominator) {
     const auto sortedTargets = GetTopSortedTargets(samples, topSize, [](const auto& left, const auto& right) {
         return left.Target > right.Target;
     });
-    return CalcDcgSorted(sortedTargets, type, expDecay);
+    return CalcDcgSorted(sortedTargets, type, expDecay, denominator);
 }
 
-double CalcNdcg(TConstArrayRef<TSample> samples, ENdcgMetricType type, ui32 topSize) {
-    double dcg = CalcDcg(samples, type, Nothing(), topSize);
-    double idcg = CalcIDcg(samples, type, Nothing(), topSize);
+double CalcNdcg(TConstArrayRef<TSample> samples, ENdcgMetricType type, ui32 topSize, ENdcgDenominatorType denominator) {
+    double dcg = CalcDcg(samples, type, Nothing(), topSize, denominator);
+    double idcg = CalcIDcg(samples, type, Nothing(), topSize, denominator);
     return idcg > 0 ? dcg / idcg : 0;
 }

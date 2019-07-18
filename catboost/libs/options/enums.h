@@ -185,7 +185,8 @@ enum class ELossFunction {
     PrecisionAt,
     RecallAt,
     MAP,
-    NDCG
+    NDCG,
+    DCG
 };
 
 enum class EHessianType {
@@ -283,6 +284,11 @@ enum class EKappaMetricType {
 enum class ENdcgMetricType {
     Base,
     Exp
+};
+
+enum class ENdcgDenominatorType {
+    LogPosition,
+    Position
 };
 
 enum class EMetricBestValue {

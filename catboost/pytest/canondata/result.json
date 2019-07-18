@@ -2983,44 +2983,244 @@
             "uri": "file://test.test_nan_mode_forbidden_Plain_/test.eval"
         }
     ],
-    "test.test_ndcg[Base-Ordered]": [
+    "test.test_ndcg[None-DCG-Base-Ordered]": [
+        {
+            "checksum": "028b8a4b9abe56a552797565d1af3008",
+            "uri": "file://test.test_ndcg_None-DCG-Base-Ordered_/learn_error.tsv"
+        },
+        {
+            "checksum": "7132a67d0c4cbf27b4b3ba0566bef3bc",
+            "uri": "file://test.test_ndcg_None-DCG-Base-Ordered_/test_error.tsv"
+        }
+    ],
+    "test.test_ndcg[None-DCG-Base-Plain]": [
+        {
+            "checksum": "e17f053bc85822960437cc8d7b686207",
+            "uri": "file://test.test_ndcg_None-DCG-Base-Plain_/learn_error.tsv"
+        },
+        {
+            "checksum": "6c7a6db98a7195cc80b911d89598621d",
+            "uri": "file://test.test_ndcg_None-DCG-Base-Plain_/test_error.tsv"
+        }
+    ],
+    "test.test_ndcg[None-DCG-Exp-Ordered]": [
+        {
+            "checksum": "889cfd10ceb109396314b260f6ba9bd6",
+            "uri": "file://test.test_ndcg_None-DCG-Exp-Ordered_/learn_error.tsv"
+        },
+        {
+            "checksum": "f54f9cfecfe868e7a778cc0585939762",
+            "uri": "file://test.test_ndcg_None-DCG-Exp-Ordered_/test_error.tsv"
+        }
+    ],
+    "test.test_ndcg[None-DCG-Exp-Plain]": [
+        {
+            "checksum": "745d14567ce055a6892726404b4cb406",
+            "uri": "file://test.test_ndcg_None-DCG-Exp-Plain_/learn_error.tsv"
+        },
+        {
+            "checksum": "1a7fa70d48f905680471a597c9634151",
+            "uri": "file://test.test_ndcg_None-DCG-Exp-Plain_/test_error.tsv"
+        }
+    ],
+    "test.test_ndcg[LogPosition-DCG-Base-Ordered]": [
+        {
+            "checksum": "028b8a4b9abe56a552797565d1af3008",
+            "uri": "file://test.test_ndcg_LogPosition-DCG-Base-Ordered_/learn_error.tsv"
+        },
+        {
+            "checksum": "7132a67d0c4cbf27b4b3ba0566bef3bc",
+            "uri": "file://test.test_ndcg_LogPosition-DCG-Base-Ordered_/test_error.tsv"
+        }
+    ],
+    "test.test_ndcg[LogPosition-DCG-Base-Plain]": [
+        {
+            "checksum": "e17f053bc85822960437cc8d7b686207",
+            "uri": "file://test.test_ndcg_LogPosition-DCG-Base-Plain_/learn_error.tsv"
+        },
+        {
+            "checksum": "6c7a6db98a7195cc80b911d89598621d",
+            "uri": "file://test.test_ndcg_LogPosition-DCG-Base-Plain_/test_error.tsv"
+        }
+    ],
+    "test.test_ndcg[LogPosition-DCG-Exp-Ordered]": [
+        {
+            "checksum": "889cfd10ceb109396314b260f6ba9bd6",
+            "uri": "file://test.test_ndcg_LogPosition-DCG-Exp-Ordered_/learn_error.tsv"
+        },
+        {
+            "checksum": "f54f9cfecfe868e7a778cc0585939762",
+            "uri": "file://test.test_ndcg_LogPosition-DCG-Exp-Ordered_/test_error.tsv"
+        }
+    ],
+    "test.test_ndcg[LogPosition-DCG-Exp-Plain]": [
+        {
+            "checksum": "745d14567ce055a6892726404b4cb406",
+            "uri": "file://test.test_ndcg_LogPosition-DCG-Exp-Plain_/learn_error.tsv"
+        },
+        {
+            "checksum": "1a7fa70d48f905680471a597c9634151",
+            "uri": "file://test.test_ndcg_LogPosition-DCG-Exp-Plain_/test_error.tsv"
+        }
+    ],
+    "test.test_ndcg[LogPosition-NDCG-Base-Ordered]": [
         {
             "checksum": "b95f16f169b8a53628b23fc97b78ef95",
-            "uri": "file://test.test_ndcg_Base-Ordered_/learn_error.tsv"
+            "uri": "file://test.test_ndcg_LogPosition-NDCG-Base-Ordered_/learn_error.tsv"
         },
         {
             "checksum": "df2e2010e61e2c295a269ef44722b891",
-            "uri": "file://test.test_ndcg_Base-Ordered_/test_error.tsv"
+            "uri": "file://test.test_ndcg_LogPosition-NDCG-Base-Ordered_/test_error.tsv"
         }
     ],
-    "test.test_ndcg[Base-Plain]": [
+    "test.test_ndcg[LogPosition-NDCG-Base-Plain]": [
         {
             "checksum": "01610940a0f5eb9904a9c92d0245d4d4",
-            "uri": "file://test.test_ndcg_Base-Plain_/learn_error.tsv"
+            "uri": "file://test.test_ndcg_LogPosition-NDCG-Base-Plain_/learn_error.tsv"
         },
         {
             "checksum": "66e6d9ff4832cc0eae67ce8ea2b21913",
-            "uri": "file://test.test_ndcg_Base-Plain_/test_error.tsv"
+            "uri": "file://test.test_ndcg_LogPosition-NDCG-Base-Plain_/test_error.tsv"
         }
     ],
-    "test.test_ndcg[Exp-Ordered]": [
+    "test.test_ndcg[LogPosition-NDCG-Exp-Ordered]": [
         {
             "checksum": "e68efabd2024b78457231cf7d2f2bbcb",
-            "uri": "file://test.test_ndcg_Exp-Ordered_/learn_error.tsv"
+            "uri": "file://test.test_ndcg_LogPosition-NDCG-Exp-Ordered_/learn_error.tsv"
         },
         {
             "checksum": "8bb2a11a71066376b61747aad32265fb",
-            "uri": "file://test.test_ndcg_Exp-Ordered_/test_error.tsv"
+            "uri": "file://test.test_ndcg_LogPosition-NDCG-Exp-Ordered_/test_error.tsv"
         }
     ],
-    "test.test_ndcg[Exp-Plain]": [
+    "test.test_ndcg[LogPosition-NDCG-Exp-Plain]": [
         {
             "checksum": "11ceea190773dfbc1487f1fe82c9313c",
-            "uri": "file://test.test_ndcg_Exp-Plain_/learn_error.tsv"
+            "uri": "file://test.test_ndcg_LogPosition-NDCG-Exp-Plain_/learn_error.tsv"
         },
         {
             "checksum": "c1fae6b67f5d9b22121fe9a87c29e05f",
-            "uri": "file://test.test_ndcg_Exp-Plain_/test_error.tsv"
+            "uri": "file://test.test_ndcg_LogPosition-NDCG-Exp-Plain_/test_error.tsv"
+        }
+    ],
+    "test.test_ndcg[Position-DCG-Base-Ordered]": [
+        {
+            "checksum": "546e60776baab431971060ea905263f5",
+            "uri": "file://test.test_ndcg_Position-DCG-Base-Ordered_/learn_error.tsv"
+        },
+        {
+            "checksum": "76787f960fd2002cd584a3bd22aed5d9",
+            "uri": "file://test.test_ndcg_Position-DCG-Base-Ordered_/test_error.tsv"
+        }
+    ],
+    "test.test_ndcg[Position-DCG-Base-Plain]": [
+        {
+            "checksum": "9adb6e126f5afaf3fdbe6a039271a9b3",
+            "uri": "file://test.test_ndcg_Position-DCG-Base-Plain_/learn_error.tsv"
+        },
+        {
+            "checksum": "b00ec5e8a7238be567f3b9c80872ff9e",
+            "uri": "file://test.test_ndcg_Position-DCG-Base-Plain_/test_error.tsv"
+        }
+    ],
+    "test.test_ndcg[Position-DCG-Exp-Ordered]": [
+        {
+            "checksum": "b51cb40a6d12e385e6c2ec87690c85c9",
+            "uri": "file://test.test_ndcg_Position-DCG-Exp-Ordered_/learn_error.tsv"
+        },
+        {
+            "checksum": "806053ac67403cfb939f47e0c454913a",
+            "uri": "file://test.test_ndcg_Position-DCG-Exp-Ordered_/test_error.tsv"
+        }
+    ],
+    "test.test_ndcg[Position-DCG-Exp-Plain]": [
+        {
+            "checksum": "aa49ecb466b25ba56878d7e349dcca44",
+            "uri": "file://test.test_ndcg_Position-DCG-Exp-Plain_/learn_error.tsv"
+        },
+        {
+            "checksum": "1470bd8d79ac56f2e6b00b9b5586c5ad",
+            "uri": "file://test.test_ndcg_Position-DCG-Exp-Plain_/test_error.tsv"
+        }
+    ],
+    "test.test_ndcg[Position-NDCG-Base-Ordered]": [
+        {
+            "checksum": "2236a1f741909ebc2cfc4178423698f3",
+            "uri": "file://test.test_ndcg_Position-NDCG-Base-Ordered_/learn_error.tsv"
+        },
+        {
+            "checksum": "6e3fa4d1a83fe1f009a493839fecd4dd",
+            "uri": "file://test.test_ndcg_Position-NDCG-Base-Ordered_/test_error.tsv"
+        }
+    ],
+    "test.test_ndcg[Position-NDCG-Base-Plain]": [
+        {
+            "checksum": "b14198a65958a6cdd5e89da32282d98d",
+            "uri": "file://test.test_ndcg_Position-NDCG-Base-Plain_/learn_error.tsv"
+        },
+        {
+            "checksum": "49d706c21ada3adbd10a1b205d818a07",
+            "uri": "file://test.test_ndcg_Position-NDCG-Base-Plain_/test_error.tsv"
+        }
+    ],
+    "test.test_ndcg[Position-NDCG-Exp-Ordered]": [
+        {
+            "checksum": "c116356769d96d91605a666ab2b95d06",
+            "uri": "file://test.test_ndcg_Position-NDCG-Exp-Ordered_/learn_error.tsv"
+        },
+        {
+            "checksum": "b484ba6eadc695219a2721035be32b71",
+            "uri": "file://test.test_ndcg_Position-NDCG-Exp-Ordered_/test_error.tsv"
+        }
+    ],
+    "test.test_ndcg[Position-NDCG-Exp-Plain]": [
+        {
+            "checksum": "ec1a9ee5ec7132992a82c997bf33d61e",
+            "uri": "file://test.test_ndcg_Position-NDCG-Exp-Plain_/learn_error.tsv"
+        },
+        {
+            "checksum": "faa19af9f82b2285a7bd1f4194b0e2e0",
+            "uri": "file://test.test_ndcg_Position-NDCG-Exp-Plain_/test_error.tsv"
+        }
+    ],
+    "test.test_ndcg[None-NDCG-Base-Ordered]": [
+        {
+            "checksum": "b95f16f169b8a53628b23fc97b78ef95",
+            "uri": "file://test.test_ndcg_None-NDCG-Base-Ordered_/learn_error.tsv"
+        },
+        {
+            "checksum": "df2e2010e61e2c295a269ef44722b891",
+            "uri": "file://test.test_ndcg_None-NDCG-Base-Ordered_/test_error.tsv"
+        }
+    ],
+    "test.test_ndcg[None-NDCG-Base-Plain]": [
+        {
+            "checksum": "01610940a0f5eb9904a9c92d0245d4d4",
+            "uri": "file://test.test_ndcg_None-NDCG-Base-Plain_/learn_error.tsv"
+        },
+        {
+            "checksum": "66e6d9ff4832cc0eae67ce8ea2b21913",
+            "uri": "file://test.test_ndcg_None-NDCG-Base-Plain_/test_error.tsv"
+        }
+    ],
+    "test.test_ndcg[None-NDCG-Exp-Ordered]": [
+        {
+            "checksum": "e68efabd2024b78457231cf7d2f2bbcb",
+            "uri": "file://test.test_ndcg_None-NDCG-Exp-Ordered_/learn_error.tsv"
+        },
+        {
+            "checksum": "8bb2a11a71066376b61747aad32265fb",
+            "uri": "file://test.test_ndcg_None-NDCG-Exp-Ordered_/test_error.tsv"
+        }
+    ],
+    "test.test_ndcg[None-NDCG-Exp-Plain]": [
+        {
+            "checksum": "11ceea190773dfbc1487f1fe82c9313c",
+            "uri": "file://test.test_ndcg_None-NDCG-Exp-Plain_/learn_error.tsv"
+        },
+        {
+            "checksum": "c1fae6b67f5d9b22121fe9a87c29e05f",
+            "uri": "file://test.test_ndcg_None-NDCG-Exp-Plain_/test_error.tsv"
         }
     ],
     "test.test_newton[calc_block=5000000-Ordered]": [

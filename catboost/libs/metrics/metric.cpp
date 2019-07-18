@@ -1743,8 +1743,8 @@ void TPFoundMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
 /* NDCG@N */
 
 namespace {
-    struct TNdcgMetric: public TAdditiveMetric<TNdcgMetric> {
-        explicit TNdcgMetric(int topSize, ENdcgMetricType type);
+    struct TDcgMetric: public TAdditiveMetric<TDcgMetric> {
+        explicit TDcgMetric(int topSize, ENdcgMetricType type, bool normalized, ENdcgDenominatorType denominator);
         TMetricHolder EvalSingleThread(
                 const TVector<TVector<double>>& approx,
                 const TVector<TVector<double>>& approxDelta,
@@ -1763,20 +1763,24 @@ namespace {
     private:
         int TopSize;
         ENdcgMetricType MetricType;
+        bool Normalized;
+        ENdcgDenominatorType DenominatorType;
     };
 }
 
-THolder<IMetric> MakeNdcgMetric(int topSize, ENdcgMetricType type) {
-    return MakeHolder<TNdcgMetric>(topSize, type);
+THolder<IMetric> MakeDcgMetric(int topSize, ENdcgMetricType type, bool normalized, ENdcgDenominatorType denominator) {
+    return MakeHolder<TDcgMetric>(topSize, type, normalized, denominator);
 }
 
-TNdcgMetric::TNdcgMetric(int topSize, ENdcgMetricType type)
+TDcgMetric::TDcgMetric(int topSize, ENdcgMetricType type, bool normalized, ENdcgDenominatorType denominator)
     : TopSize(topSize)
-    , MetricType(type) {
+    , MetricType(type)
+    , Normalized(normalized)
+    , DenominatorType(denominator) {
     UseWeights.SetDefaultValue(true);
 }
 
-TMetricHolder TNdcgMetric::EvalSingleThread(
+TMetricHolder TDcgMetric::EvalSingleThread(
     const TVector<TVector<double>>& approx,
     const TVector<TVector<double>>& approxDelta,
     bool isExpApprox,
@@ -1799,27 +1803,31 @@ TMetricHolder TNdcgMetric::EvalSingleThread(
             MakeArrayRef(target.data() + queryBegin, querySize),
             MakeArrayRef(approx.front().data() + queryBegin, querySize),
             &samples);
-        error.Stats[0] += queryWeight * CalcNdcg(samples, MetricType, TopSize);
+        if (Normalized) {
+            error.Stats[0] += queryWeight * CalcNdcg(samples, MetricType, TopSize, DenominatorType);
+        } else {
+            error.Stats[0] += queryWeight * CalcDcg(samples, MetricType, Nothing(), TopSize, DenominatorType);
+        }
         error.Stats[1] += queryWeight;
     }
     return error;
 }
 
-TString TNdcgMetric::GetDescription() const {
+TString TDcgMetric::GetDescription() const {
     const TMetricParam<int> topSize("top", TopSize, TopSize != -1);
     const TMetricParam<ENdcgMetricType> type("type", MetricType, true);
-    return BuildDescription(ELossFunction::NDCG, UseWeights, topSize, type);
+    return BuildDescription(Normalized ? ELossFunction::NDCG : ELossFunction::DCG, UseWeights, topSize, type);
 }
 
-EErrorType TNdcgMetric::GetErrorType() const {
+EErrorType TDcgMetric::GetErrorType() const {
     return EErrorType::QuerywiseError;
 }
 
-double TNdcgMetric::GetFinalError(const TMetricHolder& error) const {
+double TDcgMetric::GetFinalError(const TMetricHolder& error) const {
     return error.Stats[1] > 0 ? error.Stats[0] / error.Stats[1] : 0;
 }
 
-void TNdcgMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TDcgMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
     *valueType = EMetricBestValue::Max;
 }
 
@@ -4289,9 +4297,11 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
         case ELossFunction::LogLikelihoodOfPrediction:
             result.push_back(MakeLLPMetric());
             break;
+        case ELossFunction::DCG:
         case ELossFunction::NDCG: {
             auto itTopSize = params.find("top");
             auto itType = params.find("type");
+            auto itDenominator = params.find("denominator");
             int topSize = itTopSize != params.end() ? FromString<int>(itTopSize->second) : -1;
 
             ENdcgMetricType type = ENdcgMetricType::Base;
@@ -4300,8 +4310,14 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
                 type = FromString<ENdcgMetricType>(itType->second);
             }
 
-            result.emplace_back(new TNdcgMetric(topSize, type));
-            validParams = {"top", "type"};
+            ENdcgDenominatorType denominator = ENdcgDenominatorType::LogPosition;
+
+            if (itDenominator != params.end()) {
+                denominator = FromString<ENdcgDenominatorType>(itDenominator->second);
+            }
+
+            result.emplace_back(new TDcgMetric(topSize, type, metric == ELossFunction::NDCG, denominator));
+            validParams = {"top", "type", "denominator"};
             break;
         }
         case ELossFunction::R2:

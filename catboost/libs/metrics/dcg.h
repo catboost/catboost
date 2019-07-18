@@ -14,16 +14,19 @@ namespace NMetrics {
 double CalcNdcg(
     TConstArrayRef<NMetrics::TSample> samples,
     ENdcgMetricType type = ENdcgMetricType::Base,
-    ui32 topSize = Max<ui32>());
+    ui32 topSize = Max<ui32>(),
+    ENdcgDenominatorType denominator = ENdcgDenominatorType::LogPosition);
 
 double CalcDcg(
     TConstArrayRef<NMetrics::TSample> samples,
     ENdcgMetricType type = ENdcgMetricType::Base,
     TMaybe<double> expDecay = Nothing(),
-    ui32 topSize = Max<ui32>());
+    ui32 topSize = Max<ui32>(),
+    ENdcgDenominatorType denominator = ENdcgDenominatorType::LogPosition);
 
 double CalcIDcg(
     TConstArrayRef<NMetrics::TSample> samples,
     ENdcgMetricType type = ENdcgMetricType::Base,
     TMaybe<double> expDecay = Nothing(),
-    ui32 topSize = Max<ui32>());
+    ui32 topSize = Max<ui32>(),
+    ENdcgDenominatorType denominator = ENdcgDenominatorType::LogPosition);

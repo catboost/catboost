@@ -28,6 +28,23 @@ Y_UNIT_TEST_SUITE(NdcgTests) {
         }
     }
 
+    Y_UNIT_TEST(TestDcgDetails) {
+        {
+            TVector<double> approx{1.0, 0.0, 2.0};
+            TVector<double> target{1.0, 0.0, 2.0};
+            const auto samples = NMetrics::TSample::FromVectors(target, approx);
+            UNIT_ASSERT_DOUBLES_EQUAL(CalcDcg(samples, ENdcgMetricType::Base), 2.6309297535714573, 1e-5);
+            UNIT_ASSERT_DOUBLES_EQUAL(CalcDcg(samples, ENdcgMetricType::Exp), 3.6309297535714573, 1e-5);
+        }
+        {
+            TVector<double> approx{1.0, 1.0, 2.0};
+            TVector<double> target{1.0, 0.0, 2.0};
+            const auto samples = NMetrics::TSample::FromVectors(target, approx);
+            UNIT_ASSERT_DOUBLES_EQUAL(CalcDcg(samples, ENdcgMetricType::Base), 2.5, 1e-5);
+            UNIT_ASSERT_DOUBLES_EQUAL(CalcDcg(samples, ENdcgMetricType::Exp), 3.5, 1e-5);
+        }
+    }
+
     static void TestNdcg(
         const TString metricDescription,
         const size_t totalDocumentCount,
@@ -105,6 +122,62 @@ Y_UNIT_TEST_SUITE(NdcgTests) {
                 seed));
     }
 
+    Y_UNIT_TEST(TestDcg1) {
+        TMetricHolder expected(2);
+        expected.Stats[0] = 11.869085255821183;
+        expected.Stats[1] = 2.5384541749954224;
+        TestNdcg("DCG:top=3;type=Base", 10, 3, 5, 1, 20181129, 1e-6, expected);
+    }
+
+    Y_UNIT_TEST(TestDcg2) {
+        TMetricHolder expected(2);
+        expected.Stats[0] = 18.669697535999937;
+        expected.Stats[1] = 4;
+        TestNdcg("DCG:top=3;type=Base;use_weights=false", 10, 3, 5, 1, 20181129, 1e-6, expected);
+    }
+
+    Y_UNIT_TEST(TestDcg3) {
+        TMetricHolder expected(2);
+        expected.Stats[0] = 42.705168163665576;
+        expected.Stats[1] = 2.5384541749954224;
+        TestNdcg("DCG:top=3;type=Exp", 10, 3, 5, 1, 20181129, 1e-6, expected);
+    }
+
+    Y_UNIT_TEST(TestDcg4) {
+        TMetricHolder expected(2);
+        expected.Stats[0] = 68.80169093445322;
+        expected.Stats[1] = 4;
+        TestNdcg("DCG:top=3;type=Exp;use_weights=false", 10, 3, 5, 1, 20181129, 1e-6, expected);
+    }
+
+    Y_UNIT_TEST(TestDcgPos1) {
+        TMetricHolder expected(2);
+        expected.Stats[0] = 10.82153538353361;
+        expected.Stats[1] = 2.5384541749954224;
+        TestNdcg("DCG:top=3;type=Base;denominator=Position", 10, 3, 5, 1, 20181129, 1e-6, expected);
+    }
+
+    Y_UNIT_TEST(TestDcgPos2) {
+        TMetricHolder expected(2);
+        expected.Stats[0] = 16.924527952273333;
+        expected.Stats[1] = 4;
+        TestNdcg("DCG:top=3;type=Base;use_weights=false;denominator=Position", 10, 3, 5, 1, 20181129, 1e-6, expected);
+    }
+
+    Y_UNIT_TEST(TestDcgPos3) {
+        TMetricHolder expected(2);
+        expected.Stats[0] = 39.65690359032617;
+        expected.Stats[1] = 2.5384541749954224;
+        TestNdcg("DCG:top=3;type=Exp;denominator=Position", 10, 3, 5, 1, 20181129, 1e-6, expected);
+    }
+
+    Y_UNIT_TEST(TestDcgPos4) {
+        TMetricHolder expected(2);
+        expected.Stats[0] = 63.43172290133928;
+        expected.Stats[1] = 4;
+        TestNdcg("DCG:top=3;type=Exp;use_weights=false;denominator=Position", 10, 3, 5, 1, 20181129, 1e-6, expected);
+    }
+
     Y_UNIT_TEST(TestNdcg1) {
         TMetricHolder expected(2);
         expected.Stats[0] = 2.3522257049940407;
@@ -131,6 +204,34 @@ Y_UNIT_TEST_SUITE(NdcgTests) {
         expected.Stats[0] = 3.6016879356622065;
         expected.Stats[1] = 4;
         TestNdcg("NDCG:top=3;type=Exp;use_weights=false", 10, 3, 5, 1, 20181129, 1e-6, expected);
+    }
+
+    Y_UNIT_TEST(TestNdcgPos1) {
+        TMetricHolder expected(2);
+        expected.Stats[0] = 2.272529107367333;
+        expected.Stats[1] = 2.5384541749954224;
+        TestNdcg("NDCG:top=3;type=Base;denominator=Position", 10, 3, 5, 1, 20181129, 1e-6, expected);
+    }
+
+    Y_UNIT_TEST(TestNdcgPos2) {
+        TMetricHolder expected(2);
+        expected.Stats[0] = 3.5175379099202693;
+        expected.Stats[1] = 4;
+        TestNdcg("NDCG:top=3;type=Base;use_weights=false;denominator=Position", 10, 3, 5, 1, 20181129, 1e-6, expected);
+    }
+
+    Y_UNIT_TEST(TestNdcgPos3) {
+        TMetricHolder expected(2);
+        expected.Stats[0] = 2.23288740341198;
+        expected.Stats[1] = 2.5384541749954224;
+        TestNdcg("NDCG:top=3;type=Exp;denominator=Position", 10, 3, 5, 1, 20181129, 1e-6, expected);
+    }
+
+    Y_UNIT_TEST(TestNdcgPos4) {
+        TMetricHolder expected(2);
+        expected.Stats[0] = 3.4456168251015917;
+        expected.Stats[1] = 4;
+        TestNdcg("NDCG:top=3;type=Exp;use_weights=false;denominator=Position", 10, 3, 5, 1, 20181129, 1e-6, expected);
     }
 
     Y_UNIT_TEST(TestNdcg5) {

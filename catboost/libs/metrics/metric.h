@@ -253,7 +253,7 @@ THolder<IMetric> MakeQueryCrossEntropyMetric(double alpha = 0.95);
 
 THolder<IMetric> MakePFoundMetric(int topSize = -1, double decay = 0.85);
 
-THolder<IMetric> MakeNdcgMetric(int topSize = -1, ENdcgMetricType type = ENdcgMetricType::Base);
+THolder<IMetric> MakeDcgMetric(int topSize = -1, ENdcgMetricType type = ENdcgMetricType::Base, bool normalized = true, ENdcgDenominatorType denominator = ENdcgDenominatorType::LogPosition);
 
 THolder<IMetric> MakeQuerySoftMaxMetric();
 
