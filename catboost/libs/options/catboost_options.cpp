@@ -390,36 +390,6 @@ void NCatboostOptions::TCatBoostOptions::ValidateCtr(const TCtrDescription& ctr,
     }
 }
 
-inline double CalculateExpectedSizeModel(const ui32 leafCount, const ui32 iterations) {
-    return static_cast<double>(leafCount) * sizeof(double) * iterations;
-}
-
-static void ValidateModelSize(const NCatboostOptions::TObliviousTreeLearnerOptions& treeConfig,
-                              const ETaskType taskType) {
-    ui32 leafCount;
-    if (taskType == ETaskType::GPU) {
-        const bool useSymmetricTreeOrDepthwise = (treeConfig.GrowPolicy.Get() == EGrowPolicy::SymmetricTree ||
-                                            treeConfig.GrowPolicy.Get() == EGrowPolicy::Depthwise);
-        if (useSymmetricTreeOrDepthwise) {
-            leafCount = 1 << treeConfig.MaxDepth.Get();
-        } else {
-            leafCount = treeConfig.MaxLeaves.Get();
-        }
-    } else {
-        leafCount = 1 << treeConfig.MaxDepth.Get();
-    }
-
-    constexpr ui32 OneGb = (1 << 30);
-    constexpr ui32 TwoGb = (1 << 31);
-    const double totalSizeModel = CalculateExpectedSizeModel(leafCount,
-                                                             treeConfig.LeavesEstimationIterations.Get());
-    CB_ENSURE(totalSizeModel < TwoGb, "Cannot save the model, because it is larger than 2Gb");
-
-    if (totalSizeModel >= OneGb) {
-        CATBOOST_WARNING_LOG << "Model size exceeds 1Gb";
-    }
-}
-
 void NCatboostOptions::TCatBoostOptions::Validate() const {
     ELossFunction lossFunction = LossFunctionDescription->GetLossFunction();
     {
@@ -535,7 +505,6 @@ void NCatboostOptions::TCatBoostOptions::Validate() const {
             "(" << JoinVectorIntoString(monotoneConstraints, ",") << ")"
         );
     }
-    ValidateModelSize(ObliviousTreeOptions.Get(), GetTaskType());
 }
 
 void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
