@@ -2,6 +2,10 @@ PY3_PROGRAM()
 
 
 
+ENABLE(PYBUILD_NO_PYC)
+
+DISABLE(PYTHON_SQLITE3)
+
 PEERDIR(
     library/python/runtime_py3
     library/python/runtime_py3/main
@@ -10,8 +14,6 @@ PEERDIR(
 NO_CHECK_IMPORTS()
 
 NO_PYTHON_INCLUDES()
-
-ENABLE(PYBUILD_NO_PYC)
 
 PY_SRCS(
     MAIN main.py

@@ -5,17 +5,10 @@ LIBRARY()
 LICENSE(Python-2.0)
 
 PEERDIR(
-    ADDINCL contrib/libs/expat
-    ADDINCL contrib/libs/libbz2
-    ADDINCL contrib/libs/openssl
-    ADDINCL contrib/libs/sqlite3
-    ADDINCL contrib/libs/zlib
-    contrib/deprecated/libffi
     contrib/tools/python3/src/Modules
 )
 
 ADDINCL(
-    contrib/deprecated/libffi/include
     contrib/tools/python3/src/Include
     contrib/tools/python3/src/Modules
     contrib/tools/python3/src/Modules/_decimal/libmpdec

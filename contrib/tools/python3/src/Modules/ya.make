@@ -8,7 +8,6 @@ PEERDIR(
     ADDINCL contrib/libs/expat
     ADDINCL contrib/libs/libbz2
     ADDINCL contrib/libs/openssl
-    ADDINCL contrib/libs/sqlite3
     ADDINCL contrib/libs/zlib
     contrib/deprecated/libffi
 )
