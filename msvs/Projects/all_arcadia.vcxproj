@@ -681,9 +681,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python3\src\Lib\pypython3-src-Lib.vcxproj">
       <Project>1F5842EA-E053-C6FC-4F42-BAAFD2F5B0EB</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python3\src\Modules\_sqlite\src-Modules-_sqlite.vcxproj">
-      <Project>792075FE-4B44-7067-1903-46389DB92BE8</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python3\src\Modules\python3-src-Modules.vcxproj">
       <Project>D9DA0254-41B3-1659-443E-58F351ADA4FA</Project>
     </ProjectReference>

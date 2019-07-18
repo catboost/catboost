@@ -236,9 +236,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\snappy\contrib-libs-snappy.vcxproj">
       <Project>{31072066-3C10-BD50-C299-F4AF4767798E}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\sqlite3\contrib-libs-sqlite3.vcxproj">
-      <Project>{95B1672E-65CB-6C0E-8AEB-4971392AB876}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\xxhash\contrib-libs-xxhash.vcxproj">
       <Project>{93F9D338-B2A4-2DC4-8B30-A39701C2F9EE}</Project>
     </ProjectReference>
