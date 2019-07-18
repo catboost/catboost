@@ -1,3 +1,8 @@
 - includes:
-  - ifaddrs.h: contrib/libs/android_ifaddrs/ifaddrs.h
+  - android/log.h
+  - android/native_window_jni.h
   - cpu-features.h: contrib/libs/android_cpufeatures/cpu-features.h
+  - ifaddrs.h: contrib/libs/android_ifaddrs/ifaddrs.h
+  - jni.h
+  - vulkan/vulkan.h
+  - vulkan/vk_sdk_platform.h
