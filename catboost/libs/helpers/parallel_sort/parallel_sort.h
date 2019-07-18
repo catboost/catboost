@@ -76,7 +76,7 @@ namespace NCB {
             newBuf.assign(elements->begin(), elements->end());
             buf = &newBuf;
         }
-        const ui32 threadCount = Min((ui32)localExecutor->GetThreadCount(), (ui32)elements->size());
+        const ui32 threadCount = Min((ui32)localExecutor->GetThreadCount() + 1, (ui32)elements->size());
         TVector<ui32> blockSizes;
         EquallyDivide(elements->size(), threadCount, &blockSizes);
         TVector<ui32> startPositions(threadCount);

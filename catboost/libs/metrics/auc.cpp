@@ -76,7 +76,7 @@ static double ParallelSortAndCountInversions(
     if (samples->size() <= 1u) {
         return 0;
     }
-    const ui32 threadCount = Min((ui32)localExecutor->GetThreadCount(), (ui32)samples->size());
+    const ui32 threadCount = Min((ui32)localExecutor->GetThreadCount() + 1u, (ui32)samples->size());
     TVector<ui32> blockSizes;
     NCB::EquallyDivide(samples->size(), threadCount, &blockSizes);
     TVector<ui32> startPositions(threadCount);

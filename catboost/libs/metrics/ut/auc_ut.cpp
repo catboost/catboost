@@ -82,6 +82,80 @@ static double MyAUC(
     return 1 - (wrongPairsSum / pairWeightSum);
 }
 
+using NMetrics::TSample;
+
+static double MergeAndCountInversions(TVector<TSample>* samples, TVector<TSample>* aux, ui32 lo, ui32 hi, ui32 mid) {
+    double result = 0;
+    ui32 left = lo;
+    ui32 right = mid;
+    auto& input = *samples;
+    auto& output = *aux;
+    ui32 outputIndex = lo;
+    double accumulatedWeight = 0;
+    while (outputIndex < hi) {
+        if (left == mid || right < hi && input[right].Target < input[left].Target) {
+            accumulatedWeight += input[right].Weight;
+            output[outputIndex] = input[right];
+            ++outputIndex;
+            ++right;
+        } else {
+            result += input[left].Weight * accumulatedWeight;
+            output[outputIndex] = input[left];
+            ++outputIndex;
+            ++left;
+        }
+    }
+    return result;
+}
+
+static double SortAndCountInversions(TVector<TSample>* samples, TVector<TSample>* aux, ui32 lo, ui32 hi) {
+    if (lo + 1 >= hi) return 0;
+    ui32 mid = lo + (hi - lo) / 2;
+    auto leftCount = SortAndCountInversions(samples, aux, lo, mid);
+    auto rightCount = SortAndCountInversions(samples, aux, mid, hi);
+    auto mergeCount = MergeAndCountInversions(samples, aux, lo, hi, mid);
+    std::copy(aux->begin() + lo, aux->begin() + hi, samples->begin() + lo);
+    return leftCount + rightCount + mergeCount;
+}
+
+static double CalcAUCSingleThread(TVector<TSample>* samples, double* outWeightSum = nullptr, double* outPairWeightSum = nullptr) {
+    double weightSum = 0;
+    double pairWeightSum = 0;
+    Sort(samples->begin(), samples->end(), [](const TSample& left, const TSample& right) {
+        return left.Target < right.Target;
+    });
+    double accumulatedWeight = 0;
+    for (ui32 i = 0; i < samples->size(); ++i) {
+        auto& sample = (*samples)[i];
+        if (i > 0 && (*samples)[i - 1].Target != sample.Target) {
+            accumulatedWeight = weightSum;
+        }
+        weightSum += sample.Weight;
+        pairWeightSum += accumulatedWeight * sample.Weight;
+    }
+    if (outWeightSum != nullptr) {
+        *outWeightSum = weightSum;
+    }
+    if (outPairWeightSum != nullptr) {
+        *outPairWeightSum = pairWeightSum;
+    }
+    if (pairWeightSum == 0) {
+        return 0;
+    }
+    TVector<TSample> aux(samples->begin(), samples->end());
+    Sort(samples->begin(), samples->end(), [](const TSample& left, const TSample& right) {
+        return left.Prediction < right.Prediction ||
+               left.Prediction == right.Prediction && left.Target < right.Target;
+    });
+    auto optimisticAUC = 1 - SortAndCountInversions(samples, &aux, 0, samples->size()) / pairWeightSum;
+    Sort(samples->begin(), samples->end(), [](const TSample& left, const TSample& right) {
+        return left.Prediction < right.Prediction ||
+               left.Prediction == right.Prediction && left.Target > right.Target;
+    });
+    auto pessimisticAUC = 1 - SortAndCountInversions(samples, &aux, 0, samples->size()) / pairWeightSum;
+    return (optimisticAUC + pessimisticAUC) / 2.0;
+}
+
 Y_UNIT_TEST_SUITE(AUCMetricTests) {
     static void TestAuc(
         const TVector<double>& prediction,
@@ -96,8 +170,11 @@ Y_UNIT_TEST_SUITE(AUCMetricTests) {
         for (ui32 i = 0; i < prediction.size(); ++i) {
             samples.emplace_back(target[i], prediction[i], weight[i]);
         }
-        double score = CalcAUC(&samples, &executor);
-        UNIT_ASSERT_DOUBLES_EQUAL(score, MyAUC(prediction, target, weight), eps);
+        double scoreParallel = CalcAUC(&samples, &executor);
+        double score = CalcAUC(&samples);
+        UNIT_ASSERT_DOUBLES_EQUAL(scoreParallel, MyAUC(prediction, target, weight), eps);
+        UNIT_ASSERT_DOUBLES_EQUAL(scoreParallel, CalcAUCSingleThread(&samples), eps);
+        UNIT_ASSERT_DOUBLES_EQUAL(scoreParallel, score, eps);
     }
 
     static void TestAucRandom(
@@ -267,5 +344,12 @@ Y_UNIT_TEST_SUITE(AUCMetricTests) {
 
     Y_UNIT_TEST(AucEqualOrdersStressTest_200_Test) {
         AucEqualOrdersStressTest(200, EPS);
+    }
+
+    Y_UNIT_TEST(FedorAucTest) {
+        TVector<double> approx{3, 2, 1};
+        TVector<double> target{0, 1, 0};
+        TVector<double> weight{1, 1, 1};
+        TestAuc(approx, target, weight, EPS);
     }
 }
