@@ -508,9 +508,9 @@ namespace NCB {
         TMaybeOwningConstArraySubset<float, ui32> srcFeatureData = srcFeature.GetArrayData();
 
         const ui32 bitsPerKey = CalcHistogramWidthForBorders(borders.size());
-        TIndexHelper<ui64> indexHelper(bitsPerKey);
-        TVector<ui64> quantizedDataStorage;
-        quantizedDataStorage.yresize(indexHelper.CompressedSize(srcFeatureData.Size()));
+
+        TCompressedArray quantizedDataStorage
+            = TCompressedArray::CreateWithUninitializedData(srcFeatureData.Size(), bitsPerKey);
 
         if (bitsPerKey == 8) {
             Quantize(
@@ -519,7 +519,7 @@ namespace NCB {
                 nanMode,
                 srcFeature.GetId(),
                 borders,
-                MakeArrayRef(reinterpret_cast<ui8*>(quantizedDataStorage.data()), srcFeatureData.Size()),
+                quantizedDataStorage.GetRawArray<ui8>(),
                 localExecutor
             );
         } else {
@@ -529,18 +529,14 @@ namespace NCB {
                 nanMode,
                 srcFeature.GetId(),
                 borders,
-                MakeArrayRef(reinterpret_cast<ui16*>(quantizedDataStorage.data()), srcFeatureData.Size()),
+                quantizedDataStorage.GetRawArray<ui16>(),
                 localExecutor
             );
         }
 
         return MakeHolder<TQuantizedFloatValuesHolder>(
             srcFeature.GetId(),
-            TCompressedArray(
-                srcFeatureData.Size(),
-                indexHelper.GetBitsPerKey(),
-                TMaybeOwningArrayHolder<ui64>::CreateOwning(std::move(quantizedDataStorage))
-            ),
+            std::move(quantizedDataStorage),
             dstSubsetIndexing
         );
     }
@@ -556,14 +552,11 @@ namespace NCB {
 
         // TODO(akhropov): support other bitsPerKey. MLTOOLS-2425
         const ui32 bitsPerKey = 32;
-        TIndexHelper<ui64> indexHelper(bitsPerKey);
-        TVector<ui64> quantizedDataStorage;
-        quantizedDataStorage.yresize(indexHelper.CompressedSize(srcFeatureData.Size()));
 
-        TArrayRef<ui32> quantizedData(
-            reinterpret_cast<ui32*>(quantizedDataStorage.data()),
-            srcFeatureData.Size()
-        );
+        TCompressedArray quantizedDataStorage
+            = TCompressedArray::CreateWithUninitializedData(srcFeatureData.Size(), bitsPerKey);
+
+        TArrayRef<ui32> quantizedData = quantizedDataStorage.GetRawArray<ui32>();
 
         srcFeatureData.ParallelForEach(
             [&] (ui32 idx, ui32 srcValue) {
@@ -583,11 +576,7 @@ namespace NCB {
 
         return MakeHolder<TQuantizedCatValuesHolder>(
             srcFeature.GetId(),
-            TCompressedArray(
-                srcFeatureData.Size(),
-                indexHelper.GetBitsPerKey(),
-                TMaybeOwningArrayHolder<ui64>::CreateOwning(std::move(quantizedDataStorage))
-            ),
+            std::move(quantizedDataStorage),
             dstSubsetIndexing
         );
     }
@@ -1003,21 +992,19 @@ namespace NCB {
     ) {
         TMaybeOwningConstArraySubset<ui32, ui32> srcFeatureData = srcFeature.GetArrayData();
 
-        // TODO(akhropov): support other bitsPerKey. MLTOOLS-2425
-        const ui32 bitsPerKey = 32;
-        TIndexHelper<ui64> indexHelper(bitsPerKey);
-        TVector<ui64> quantizedDataStorage;
-        TArrayRef<ui32> quantizedDataValue;
-
         // GPU-only external columns
         const bool quantizeData = !updatePerfectHashOnly && !storeFeaturesDataAsExternalValuesHolder;
 
+        TCompressedArray quantizedDataStorage;
+        TArrayRef<ui32> quantizedDataValue;
+
         if (quantizeData) {
-            quantizedDataStorage.yresize(indexHelper.CompressedSize(srcFeatureData.Size()));
-            quantizedDataValue = TArrayRef<ui32>(
-                reinterpret_cast<ui32*>(quantizedDataStorage.data()),
-                srcFeatureData.Size()
-            );
+            // TODO(akhropov): support other bitsPerKey. MLTOOLS-2425
+            const ui32 bitsPerKey = 32;
+
+            quantizedDataStorage
+                = TCompressedArray::CreateWithUninitializedData(srcFeatureData.Size(), bitsPerKey);
+            quantizedDataValue = quantizedDataStorage.GetRawArray<ui32>();
         }
 
         {
@@ -1044,11 +1031,7 @@ namespace NCB {
                 } else {
                     *dstQuantizedFeature = MakeHolder<TQuantizedCatValuesHolder>(
                         srcFeature.GetId(),
-                        TCompressedArray(
-                            srcFeatureData.Size(),
-                            indexHelper.GetBitsPerKey(),
-                            TMaybeOwningArrayHolder<ui64>::CreateOwning(std::move(quantizedDataStorage))
-                        ),
+                        std::move(quantizedDataStorage),
                         dstSubsetIndexing
                     );
                 }

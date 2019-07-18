@@ -741,8 +741,7 @@ Y_UNIT_TEST_SUITE(SparseArray) {
                 TCompressedArray(
                     nonDefaultValues.size(),
                     bitsPerKey,
-                    TMaybeOwningArrayHolder<ui64>::CreateOwning(
-                        CompressVector<ui64>(nonDefaultValues, bitsPerKey))),
+                    CompressVector<ui64>(nonDefaultValues, bitsPerKey)),
                 defaultValue,
                 expectedArray,
                 expectedNonDefaultIndicesArray);
@@ -1021,9 +1020,7 @@ Y_UNIT_TEST_SUITE(SparseArray) {
                 TCompressedArray(
                     srcNonDefaultValues.size(),
                     /*bitsPerKey*/ 8,
-                    TMaybeOwningArrayHolder<ui64>::CreateOwning(
-                        CompressVector<ui64>(srcNonDefaultValues, 8)
-                    )
+                    CompressVector<ui64>(srcNonDefaultValues, 8)
                 ),
                 std::move(defaultValue)
             );

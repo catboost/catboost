@@ -1194,11 +1194,7 @@ static void LoadFeatures(
 
                 (*dst)[*featureIdx] = MakeHolder<TCompressedValuesHolderImpl<IColumnType>>(
                     flatFeatureIdx,
-                    TCompressedArray(
-                        objectCount,
-                        bitsPerKey,
-                        TMaybeOwningArrayHolder<ui64>::CreateOwning(std::move(storage))
-                    ),
+                    TCompressedArray(objectCount, bitsPerKey, std::move(storage)),
                     subsetIndexing
                 );
             }
@@ -1684,14 +1680,12 @@ static void MakeConsecutiveArrayFeatures(
                         const auto& srcCompressedValuesHolder
                             = dynamic_cast<const TCompressedValuesHolderImpl<IColumnType>&>(*srcColumn);
                         const ui32 bitsPerKey = srcCompressedValuesHolder.GetBitsPerKey();
-                        TIndexHelper<ui64> indexHelper(bitsPerKey);
-                        const ui32 dstStorageSize = indexHelper.CompressedSize(objectCount);
 
-                        TVector<ui64> storage;
-                        storage.yresize(dstStorageSize);
+                        TCompressedArray dstCompressedArray
+                            = TCompressedArray::CreateWithUninitializedData(objectCount, bitsPerKey);
 
                         if (bitsPerKey == 8) {
-                            auto dstBuffer = (ui8*)(storage.data());
+                            auto dstBuffer = dstCompressedArray.GetRawArray<ui8>();
 
                             srcCompressedValuesHolder.template GetArrayData<ui8>().ParallelForEach(
                                 [&](ui32 idx, ui8 value) {
@@ -1700,7 +1694,7 @@ static void MakeConsecutiveArrayFeatures(
                                 localExecutor
                             );
                         } else if (bitsPerKey == 16) {
-                            auto dstBuffer = (ui16*)(storage.data());
+                            auto dstBuffer = dstCompressedArray.GetRawArray<ui16>();
 
                             srcCompressedValuesHolder.template GetArrayData<ui16>().ParallelForEach(
                                 [&](ui32 idx, ui16 value) {
@@ -1709,7 +1703,7 @@ static void MakeConsecutiveArrayFeatures(
                                 localExecutor
                             );
                         } else {
-                            auto dstBuffer = (ui32*)(storage.data());
+                            auto dstBuffer = dstCompressedArray.GetRawArray<ui32>();
 
                             srcCompressedValuesHolder.template GetArrayData<ui32>().ParallelForEach(
                                 [&](ui32 idx, ui32 value) {
@@ -1721,11 +1715,7 @@ static void MakeConsecutiveArrayFeatures(
 
                         (*dst)[*featureIdx] = MakeHolder<TCompressedValuesHolderImpl<IColumnType>>(
                             srcColumn->GetId(),
-                            TCompressedArray(
-                                objectCount,
-                                bitsPerKey,
-                                TMaybeOwningArrayHolder<ui64>::CreateOwning(std::move(storage))
-                            ),
+                            std::move(dstCompressedArray),
                             newSubsetIndexing
                         );
                     }

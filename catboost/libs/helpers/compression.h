@@ -83,6 +83,20 @@ public:
         , Storage(std::move(storage))
     {}
 
+    TCompressedArray(ui64 size, ui32 bitsPerKey, TVector<ui64>&& storage)
+        : Size(size)
+        , IndexHelper(bitsPerKey)
+        , Storage(NCB::TMaybeOwningArrayHolder<ui64>::CreateOwning(std::move(storage)))
+    {}
+
+    // init later using GetRawArray or GetRawPtr
+    static TCompressedArray CreateWithUninitializedData(ui64 size, ui32 bitsPerKey) {
+        TIndexHelper<ui64> indexHelper(bitsPerKey);
+        TVector<ui64> storage;
+        storage.yresize(indexHelper.CompressedSize(size));
+        return TCompressedArray(size, bitsPerKey, std::move(storage));
+    }
+
     SAVELOAD(Size, IndexHelper, Storage);
 
     ui64 GetSize() const {
@@ -161,6 +175,12 @@ public:
     }
 
     // works only if BitsPerKey == sizeof(T)*CHAR_BIT
+    template <class T>
+    TArrayRef<T> GetRawArray() {
+        CheckIfCanBeInterpretedAsRawArray<T>();
+        return TArrayRef<T>(reinterpret_cast<T*>((*Storage).data()), Size);
+    }
+
     template <class T>
     TConstArrayRef<T> GetRawArray() const {
         CheckIfCanBeInterpretedAsRawArray<T>();

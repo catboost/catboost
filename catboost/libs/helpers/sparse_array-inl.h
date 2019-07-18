@@ -533,9 +533,7 @@ namespace NCB {
         return TCompressedArray(
             subsetNonDefaultValues.size(),
             bitsPerKey,
-            TMaybeOwningArrayHolder<ui64>::CreateOwning(
-                CompressVector<ui64>(subsetNonDefaultValues, bitsPerKey)
-            )
+            CompressVector<ui64>(subsetNonDefaultValues, bitsPerKey)
         );
     }
 
