@@ -83,6 +83,9 @@ ALLOW .* -> vendor/github.com/jonboulle/clockwork
 # LRU Cache with TTL
 ALLOW .* -> vendor/github.com/karlseguin/ccache
 
+# Garbage collector-sensitive patricia tree for IP/CIDR tagging
+ALLOW .* -> vendor/github.com/kentik/patricia
+
 # driver for ClickHouse column-oriented database management system
 ALLOW .* -> vendor/github.com/kshvakov/clickhouse
 
