@@ -154,31 +154,31 @@ public:
         return (S_ > 0);
     }
 
-	/**
-	 * Obtains a ref that is a view over the first `count` elements of this TArrayRef.
-	 *
-	 * The behavor is undefined if count > size().
-	 */
+    /**
+     * Obtains a ref that is a view over the first `count` elements of this TArrayRef.
+     *
+     * The behavor is undefined if count > size().
+     */
     TArrayRef first(size_t count) const {
         Y_ASSERT(count <= size());
         return TArrayRef(data(), count);
     }
 
-	/**
-	 * Obtains a ref that is a view over the last `count` elements of this TArrayRef.
-	 *
-	 * The behavior is undefined if count > size().
-	 */
+    /**
+     * Obtains a ref that is a view over the last `count` elements of this TArrayRef.
+     *
+     * The behavior is undefined if count > size().
+     */
     TArrayRef last(size_t count) const {
         Y_ASSERT(count <= size());
         return TArrayRef(end() - count, end());
     }
 
-	/**
-	 * Obtains a ref that is a view over the `count` elements of this TArrayRef starting at `offset`.
-	 *
-	 * The behavior is undefined in either offset or count is out of range.
-	 */
+    /**
+     * Obtains a ref that is a view over the `count` elements of this TArrayRef starting at `offset`.
+     *
+     * The behavior is undefined in either offset or count is out of range.
+     */
     TArrayRef subspan(size_t offset) const {
         Y_ASSERT(offset <= size());
         return TArrayRef(data() + offset, size() - offset);
