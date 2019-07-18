@@ -22,6 +22,10 @@
 
 #include <numeric>
 
+namespace NCB {
+    using TCustomTrainTestSubsets =
+    std::pair<TVector<TVector<ui32>>, TVector<TVector<ui32>>>;
+}
 
 struct TCVIterationResults {
     TMaybe<double> AverageTrain;
@@ -60,11 +64,13 @@ TVector<NCB::TArraySubsetIndexing<ui32>> CalcTrainSubsets(
     const TVector<NCB::TArraySubsetIndexing<ui32>>& testSubsets,
     ui32 groupCount);
 
+TVector<NCB::TArraySubsetIndexing<ui32>> TransformToVectorArrayIndexing(const TVector<TVector<ui32>>& vectorData);
 
 template <class TDataProvidersTemplate> // TDataProvidersTemplate<...> or TTrainingDataProvidersTemplate<...>
 TVector<TDataProvidersTemplate> PrepareCvFolds(
     typename TDataProvidersTemplate::TDataPtr srcData,
     const TCrossValidationParams& cvParams,
+    const TMaybe<NCB::TCustomTrainTestSubsets>& customTrainTestSubset,
     TMaybe<ui32> foldIdx, // if Nothing() - return data for all folds, if defined - return only one fold
     bool oldCvStyleSplit,
     NPar::TLocalExecutor* localExecutor) {
@@ -75,18 +81,30 @@ TVector<TDataProvidersTemplate> PrepareCvFolds(
     // both NCB::Split and NCB::StratifiedSplit keep objects order
     NCB::EObjectsOrder objectsOrder = NCB::EObjectsOrder::Ordered;
 
-    if (cvParams.Stratified) {
-        testSubsets = NCB::StratifiedSplit(
-            *srcData->ObjectsGrouping,
-            GetTargetForStratifiedSplit(*srcData),
-            cvParams.FoldCount);
+    // group subsets, maybe trivial
+    TVector<NCB::TArraySubsetIndexing<ui32>> trainSubsets;
+
+    if (customTrainTestSubset) {
+        trainSubsets = TransformToVectorArrayIndexing(customTrainTestSubset->first);
+        testSubsets = TransformToVectorArrayIndexing(customTrainTestSubset->second);
+        CB_ENSURE(
+            cvParams.FoldCount == trainSubsets.size() &&
+            testSubsets.size() == trainSubsets.size(),
+            "Fold count must be equal to number of custom subsets"
+        );
     } else {
-        testSubsets = NCB::Split(*srcData->ObjectsGrouping, cvParams.FoldCount, oldCvStyleSplit);
+        if (cvParams.Stratified) {
+            testSubsets = NCB::StratifiedSplit(
+                *srcData->ObjectsGrouping,
+                GetTargetForStratifiedSplit(*srcData),
+                cvParams.FoldCount
+            );
+        } else {
+            testSubsets = NCB::Split(*srcData->ObjectsGrouping, cvParams.FoldCount, oldCvStyleSplit);
+        }
+        trainSubsets = CalcTrainSubsets(testSubsets, srcData->ObjectsGrouping->GetGroupCount());
     }
 
-    // group subsets, maybe trivial
-    TVector<NCB::TArraySubsetIndexing<ui32>> trainSubsets
-        = CalcTrainSubsets(testSubsets, srcData->ObjectsGrouping->GetGroupCount());
 
     if (cvParams.Inverted) {
         testSubsets.swap(trainSubsets);
@@ -144,6 +162,7 @@ void CrossValidate(
     NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
     const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
     const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
+    const TMaybe<NCB::TCustomTrainTestSubsets>& customTrainTestSubset,
     NCB::TDataProviderPtr data,
     const TCrossValidationParams& cvParams,
     TVector<TCVResult>* results);

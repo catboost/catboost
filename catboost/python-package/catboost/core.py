@@ -3618,7 +3618,7 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
        shuffle=True, logging_level=None, stratified=None, as_pandas=True, metric_period=None,
        verbose=None, verbose_eval=None, plot=False, early_stopping_rounds=None,
        save_snapshot=None, snapshot_file=None, snapshot_interval=None, max_time_spent_on_fixed_cost_ratio=0.05,
-       dev_max_iterations_batch_size=100000):
+       dev_max_iterations_batch_size=100000, folds=None):
     """
     Cross-validate the CatBoost model.
 
@@ -3717,6 +3717,13 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
         Should be used only for testing, max_time_spent_on_fixed_cost_ratio is the prefered parameter to be
         used in normal operation.
 
+    folds: generator or iterator of (train_idx, test_idx) tuples, scikit-learn splitter object or None, optional (default=None)
+        If generator or iterator, it should yield the train and test indices for each fold.
+        If object, it should be one of the scikit-learn splitter classes
+        (https://scikit-learn.org/stable/modules/classes.html#splitter-classes)
+        and have ``split`` method.
+        if folds is not None, then all of fold_count, shuffle, partition_random_seed, inverted are None
+
     Returns
     -------
     cv results : pandas.core.frame.DataFrame with cross-validation results
@@ -3729,6 +3736,15 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
     _process_synonyms(params)
 
     metric_period, verbose, logging_level = _process_verbose(metric_period, verbose, logging_level, verbose_eval)
+
+    if any(v is not None for v in [fold_count,nfold]) and folds is not None:
+        raise CatBoostError(
+            "if folds is not None, then all of fold_count, shuffle, partition_random_seed, inverted are None"
+        )
+
+    if folds is not None:
+        shuffle = False
+        inverted = False
 
     if verbose is not None:
         params.update({
@@ -3791,7 +3807,9 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
     else:
         assert nfold is None or nfold == fold_count
 
-    if stratified is None:
+    if folds is not None:
+        stratified = False
+    elif stratified is None:
         loss_function = params.get('loss_function', None)
         stratified = isinstance(loss_function, STRING_TYPES) and is_cv_stratified_objective(loss_function)
 
@@ -3805,7 +3823,7 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
 
     with log_fixup(), plot_wrapper(plot, [_get_train_dir(params)]):
         return _cv(params, pool, fold_count, inverted, partition_random_seed, shuffle, stratified,
-                   as_pandas, max_time_spent_on_fixed_cost_ratio, dev_max_iterations_batch_size)
+                   as_pandas, max_time_spent_on_fixed_cost_ratio, dev_max_iterations_batch_size, folds)
 
 
 class BatchMetricCalcer(_MetricCalcerBase):

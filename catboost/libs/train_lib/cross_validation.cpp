@@ -469,6 +469,7 @@ void CrossValidate(
     TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
     const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
     const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
+    const TMaybe<NCB::TCustomTrainTestSubsets>& customTrainTestSubset,
     TDataProviderPtr data,
     const TCrossValidationParams& cvParams,
     TVector<TCVResult>* results
@@ -587,6 +588,7 @@ void CrossValidate(
     TVector<TTrainingDataProviders> foldsData = PrepareCvFolds<TTrainingDataProviders>(
         std::move(trainingData),
         cvParams,
+        customTrainTestSubset,
         Nothing(),
         /* oldCvStyleSplit */ false,
         &localExecutor);
@@ -817,4 +819,18 @@ void CrossValidate(
         TRocCurve rocCurve(allApproxes, labels, catBoostOptions.SystemOptions.Get().NumThreads);
         rocCurve.OutputRocCurve(outputFileOptions.GetRocOutputPath());
     }
+}
+
+
+TVector<NCB::TArraySubsetIndexing<ui32>> TransformToVectorArrayIndexing(
+    const TVector<TVector<ui32>>& vectorData) {
+    TVector<NCB::TArraySubsetIndexing<ui32>> result;
+    result.reserve(vectorData.size());
+    for (const auto& block: vectorData) {
+        result.push_back(
+            NCB::TArraySubsetIndexing<ui32>(
+                NCB::TIndexedSubset<ui32>(block))
+        );
+    }
+    return result;
 }

@@ -694,6 +694,9 @@ cdef extern from "catboost/libs/train_lib/train_model.h":
         THolder[TLearnProgress]* dstLearnProgress
     ) nogil except +ProcessException
 
+cdef extern from "catboost/libs/train_lib/cross_validation.h" namespace "NCB":
+    ctypedef pair[TVector[TVector[ui32]], TVector[TVector[ui32]]] TCustomTrainTestSubsets
+
 cdef extern from "catboost/libs/train_lib/cross_validation.h":
     cdef cppclass TCVResult:
         TString Metric
@@ -708,6 +711,7 @@ cdef extern from "catboost/libs/train_lib/cross_validation.h":
         TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
         const TMaybe[TCustomObjectiveDescriptor]& objectiveDescriptor,
         const TMaybe[TCustomMetricDescriptor]& evalMetricDescriptor,
+        const TMaybe[TCustomTrainTestSubsets]& customArrayIndexing,
         TDataProviderPtr data,
         const TCrossValidationParams& cvParams,
         TVector[TCVResult]* results
@@ -2318,6 +2322,24 @@ cdef class _PoolBase:
         """
         return self.__pool.Get()[0].RawTargetData.GetPairs().size()
 
+    def get_group_id(self):
+        """
+        Get group_id for each object.
+
+        Returns
+        -------
+        group_id : list
+        """
+        cdef TMaybeData[TConstArrayRef[TGroupId]] arr_group_ids = self.__pool.Get()[0].ObjectsData.Get()[0].GetGroupIds()
+        if arr_group_ids.Defined():
+            result_group_ids = []
+            for group_id in arr_group_ids.GetRef():
+                result_group_ids.append(group_id)
+
+            return result_group_ids
+                
+        return None
+
     @property
     def shape(self):
         """
@@ -3063,9 +3085,80 @@ cdef class _MetadataHashProxy:
         return ((to_native_str(kv.first), to_native_str(kv.second)) for kv in self._catboost.__model.ModelInfo)
 
 
+cdef TCustomTrainTestSubsets _make_train_test_subsets(_PoolBase pool, folds) except *:
+    num_data = pool.num_row()
+
+    if not hasattr(folds, '__iter__') and not hasattr(folds, 'split'):
+        raise AttributeError("folds should be a generator or iterator of (train_idx, test_idx) tuples "
+                             "or scikit-learn splitter object with split method")
+
+    group_info = pool.get_group_id()
+
+    if hasattr(folds, 'split'):
+        if group_info is not None:
+            flatted_group = group_info
+        else:
+            flatted_group = np.zeros(num_data, dtype=int)
+        folds = folds.split(X=np.zeros(num_data), y=pool.get_label(), groups=flatted_group)
+
+    cdef TVector[TVector[ui32]] custom_train_subsets
+    cdef TVector[TVector[ui32]] custom_test_subsets
+    
+    if group_info is None:
+        for train_test in folds:
+            train = train_test[0]
+            test = train_test[1]
+
+            custom_train_subsets.emplace_back()
+            for subset in train:
+                custom_train_subsets.back().push_back(subset)
+
+            custom_test_subsets.emplace_back()
+            for subset in test:
+                custom_test_subsets.back().push_back(subset)
+    else:
+        map_group_id_to_group_number = {}
+        current_num = 0
+        for idx in range(len(group_info)):
+            if idx == 0 or group_info[idx] != group_info[idx - 1]:
+                map_group_id_to_group_number[group_info[idx]] = current_num
+                current_num = current_num + 1
+        
+        for train_test in folds:
+            train = train_test[0]
+            test = train_test[1]
+            
+            train_group = []
+
+            custom_train_subsets.emplace_back()
+
+            for idx in range(len(train)):
+                current_group = group_info[train[idx]]
+                if idx == 0 or current_group != group_info[train[idx - 1]]:
+                    custom_train_subsets.back().push_back(map_group_id_to_group_number[current_group])
+                    train_group.append(map_group_id_to_group_number[current_group])
+
+            custom_test_subsets.emplace_back()
+
+            for idx in range(len(test)):
+                current_group = group_info[test[idx]]
+
+                if map_group_id_to_group_number[current_group] in train_group:
+                    raise CatBoostError('Objects with the same group id must be in the same fold.')
+                    
+                if idx == 0 or current_group != group_info[test[idx - 1]]:
+                    custom_test_subsets.back().push_back(map_group_id_to_group_number[current_group])
+
+    cdef TCustomTrainTestSubsets result
+    result.first = custom_train_subsets
+    result.second = custom_test_subsets
+    
+    return result
+
+
 cpdef _cv(dict params, _PoolBase pool, int fold_count, bool_t inverted, int partition_random_seed,
           bool_t shuffle, bool_t stratified, bool_t as_pandas, double max_time_spent_on_fixed_cost_ratio,
-          int dev_max_iterations_batch_size):
+          int dev_max_iterations_batch_size, folds):
     prep_params = _PreprocessParams(params)
     cdef TCrossValidationParams cvParams
     cdef TVector[TCVResult] results
@@ -3078,6 +3171,11 @@ cpdef _cv(dict params, _PoolBase pool, int fold_count, bool_t inverted, int part
     cvParams.MaxTimeSpentOnFixedCostRatio = max_time_spent_on_fixed_cost_ratio
     cvParams.DevMaxIterationsBatchSize = <ui32>dev_max_iterations_batch_size
 
+    cdef TMaybe[TCustomTrainTestSubsets] custom_train_test_subset
+    if folds is not None:
+        custom_train_test_subset = _make_train_test_subsets(pool, folds)
+        cvParams.FoldCount = custom_train_test_subset.GetRef().first.size()
+
     with nogil:
         SetPythonInterruptHandler()
         try:
@@ -3086,6 +3184,7 @@ cpdef _cv(dict params, _PoolBase pool, int fold_count, bool_t inverted, int part
                 TQuantizedFeaturesInfoPtr(<TQuantizedFeaturesInfo*>nullptr),
                 prep_params.customObjectiveDescriptor,
                 prep_params.customMetricDescriptor,
+                custom_train_test_subset,
                 pool.__pool,
                 cvParams,
                 &results)

@@ -110,6 +110,7 @@ static TDataProviders LoadPools(
         TVector<TDataProviders> foldPools = PrepareCvFolds<TDataProviders>(
             std::move(pools.Learn),
             cvParams,
+            /* customTrainTestSubset */ Nothing(),
             cvParams.FoldIdx,
             /* oldCvStyleSplit */ true,
             executor);
