@@ -6,12 +6,17 @@
 
 namespace NEnumSerializationRuntime {
     template <typename TEnumRepresentationType>
+    [[noreturn]] static void ThrowUndefinedValueException(const TEnumRepresentationType key, const TStringBuf className) {
+        throw yexception() << "Undefined value " << key << " in " << className << ". ";
+    }
+
+    template <typename TEnumRepresentationType>
     const TString& TEnumDescriptionBase<TEnumRepresentationType>::ToString(TRepresentationType key) const {
         const auto it = Names.find(key);
-        if (it != Names.end()) {
+        if (Y_LIKELY(it != Names.end())) {
             return it->second;
         }
-        throw yexception() << "Undefined value " << key << " in " << ClassName << ". ";
+        ThrowUndefinedValueException(key, ClassName);
     }
 
     template <typename TEnumRepresentationType>
@@ -23,13 +28,17 @@ namespace NEnumSerializationRuntime {
         return {false, TRepresentationType()};
     }
 
+    [[noreturn]] static void ThrowUndefinedNameException(const TStringBuf name, const TStringBuf className, const TStringBuf allEnumNames) {
+        ythrow yexception() << "Key '" << name << "' not found in enum " << className << ". Valid options are: " << allEnumNames << ". ";
+    }
+
     template <typename TEnumRepresentationType>
     auto TEnumDescriptionBase<TEnumRepresentationType>::FromString(const TStringBuf name) const -> TRepresentationType {
         const auto findResult = TryFromString(name);
         if (Y_LIKELY(findResult.first)) {
             return findResult.second;
         }
-        ythrow yexception() << "Key '" << name << "' not found in enum " << ClassName << ". Valid options are: " << AllEnumNames() << ". ";
+        ThrowUndefinedNameException(name, ClassName, AllEnumNames());
     }
 
     template <typename TEnumRepresentationType>
