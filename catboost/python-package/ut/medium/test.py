@@ -719,28 +719,6 @@ def test_fit_from_file(task_type):
     assert 'train_finish_time' in model.get_metadata()
 
 
-@fails_on_gpu(how='assert 0.019921323750168085 < EPS, where 0.019921323750168085 = abs((0.03378972364589572 - 0.053711047396063805))')
-@pytest.mark.parametrize('order', ['C', 'F'], ids=['order=C', 'order=F'])
-def test_fit_from_features_data(order, task_type):
-    pool_from_files = Pool(TRAIN_FILE, column_description=CD_FILE)
-    model = CatBoost({'iterations': 2, 'loss_function': 'RMSE', 'task_type': task_type, 'devices': '0'})
-    model.fit(pool_from_files)
-    assert(model.is_fitted())
-    predictions_from_files = model.predict(pool_from_files)
-
-    features_data = get_features_data_from_file(
-        data_file=TRAIN_FILE,
-        drop_columns=[TARGET_IDX],
-        cat_feature_indices=pool_from_files.get_cat_feature_indices(),
-        order=order
-    )
-    model.fit(X=features_data, y=pool_from_files.get_label())
-    predictions_from_features_data = model.predict(Pool(features_data))
-
-    for prediction1, prediction2 in zip(predictions_from_files, predictions_from_features_data):
-        assert abs(prediction1 - prediction2) < EPS
-
-
 def test_fit_from_empty_features_data(task_type):
     model = CatBoost({'iterations': 2, 'loss_function': 'RMSE', 'task_type': task_type, 'devices': '0'})
     with pytest.raises(CatBoostError):
@@ -991,41 +969,6 @@ def test_predict_class_proba(task_type):
     preds_path = test_output_path(PREDS_PATH)
     np.save(preds_path, np.array(pred))
     return local_canonical_file(preds_path)
-
-
-@fails_on_gpu(how='assert 0.031045619651137835 < EPS, where 0.031045619651137835 = <function amax at ...')
-@pytest.mark.parametrize('function_name', ['predict', 'predict_proba'])
-def test_predict_funcs_from_features_data(function_name, task_type):
-    function = getattr(CatBoostClassifier, function_name)
-
-    train_pool_from_files = Pool(TRAIN_FILE, column_description=CD_FILE)
-    model = CatBoostClassifier(iterations=10, learning_rate=0.03, task_type=task_type, devices='0')
-    model.fit(train_pool_from_files)
-
-    test_pool_from_files = Pool(TEST_FILE, column_description=CD_FILE)
-    predictions_from_files = function(model, test_pool_from_files)
-
-    train_features_data, test_features_data = [
-        get_features_data_from_file(
-            data_file=data_file,
-            drop_columns=[TARGET_IDX],
-            cat_feature_indices=train_pool_from_files.get_cat_feature_indices()
-        )
-        for data_file in [TRAIN_FILE, TEST_FILE]
-    ]
-    model.fit(X=train_features_data, y=train_pool_from_files.get_label())
-    predictions_from_features_data = function(model, test_features_data)
-
-    for prediction1, prediction2 in zip(predictions_from_files, predictions_from_features_data):
-        assert np.max(np.abs(prediction1 - prediction2)) < EPS
-
-    # empty
-    empty_test_features_data = FeaturesData(
-        num_feature_data=np.empty((0, test_features_data.get_num_feature_count()), dtype=np.float32),
-        cat_feature_data=np.empty((0, test_features_data.get_cat_feature_count()), dtype=object)
-    )
-    empty_predictions = function(model, empty_test_features_data)
-    assert len(empty_predictions) == 0
 
 
 def test_no_cat_in_predict(task_type):
@@ -1414,49 +1357,6 @@ def test_staged_predict_and_predict_proba_on_single_object(problem):
             assert len(pred_probabilities) == len(single_object_pred_probabilities)
             for iteration in xrange(len(pred_probabilities)):
                 assert np.array_equal(pred_probabilities[iteration][test_object_idx], single_object_pred_probabilities[iteration])
-
-
-@fails_on_gpu(how='assert 1.0 < EPS')
-@pytest.mark.parametrize('staged_function_name', ['staged_predict', 'staged_predict_proba'])
-def test_staged_predict_funcs_from_features_data(staged_function_name, task_type):
-    staged_function = getattr(CatBoostClassifier, staged_function_name)
-    fit_iterations = 10
-
-    train_pool_from_files = Pool(TRAIN_FILE, column_description=CD_FILE)
-    model = CatBoostClassifier(iterations=fit_iterations, learning_rate=0.03, task_type=task_type, devices='0')
-    model.fit(train_pool_from_files)
-
-    test_pool_from_files = Pool(TEST_FILE, column_description=CD_FILE)
-    predictions_from_files = []
-    for prediction in staged_function(model, test_pool_from_files):
-        predictions_from_files.append(prediction)
-
-    train_features_data, test_features_data = [
-        get_features_data_from_file(
-            data_file=data_file,
-            drop_columns=[TARGET_IDX],
-            cat_feature_indices=train_pool_from_files.get_cat_feature_indices()
-        )
-        for data_file in [TRAIN_FILE, TEST_FILE]
-    ]
-    model.fit(X=train_features_data, y=train_pool_from_files.get_label())
-    predictions_from_features_data = []
-    for prediction in staged_function(model, test_features_data):
-        predictions_from_features_data.append(prediction)
-
-    for prediction1, prediction2 in zip(predictions_from_files, predictions_from_features_data):
-        assert np.max(np.abs(prediction1 - prediction2)) < EPS
-
-    # empty
-    empty_test_features_data = FeaturesData(
-        num_feature_data=np.empty((0, test_features_data.get_num_feature_count()), dtype=np.float32),
-        cat_feature_data=np.empty((0, test_features_data.get_cat_feature_count()), dtype=object)
-    )
-    empty_predictions = []
-    for prediction in staged_function(model, empty_test_features_data):
-        assert np.shape(prediction) == ((0, 2) if staged_function_name == 'staged_predict_proba' else (0, ))
-        empty_predictions.append(prediction)
-    assert len(empty_predictions) == fit_iterations
 
 
 def test_invalid_loss_base(task_type):
@@ -2228,74 +2128,6 @@ def test_eval_metrics_batch_calcer(loss_function, task_type):
         assert np.all(abs(elemwise_mindiff) < 1e-6)
     else:
         assert np.all(abs(elemwise_mindiff) < 1e-9)
-
-
-@fails_on_gpu(how='assert 0.001453466387789204 < EPS, where 0.001453466387789204 = abs((0.8572555206815472 - 0.8587089870693364))')
-@pytest.mark.parametrize('catboost_class', [CatBoostClassifier, CatBoostRegressor])
-def test_score_from_features_data(catboost_class, task_type):
-    train_pool_from_files = Pool(TRAIN_FILE, column_description=CD_FILE)
-    test_pool_from_files = Pool(TEST_FILE, column_description=CD_FILE)
-    model = catboost_class(iterations=2, learning_rate=0.03, task_type=task_type, devices='0')
-    model.fit(train_pool_from_files)
-    score_from_files = model.score(test_pool_from_files)
-
-    train_features_data, test_features_data = [
-        get_features_data_from_file(
-            data_file=data_file,
-            drop_columns=[TARGET_IDX],
-            cat_feature_indices=train_pool_from_files.get_cat_feature_indices()
-        )
-        for data_file in [TRAIN_FILE, TEST_FILE]
-    ]
-    model.fit(X=train_features_data, y=train_pool_from_files.get_label())
-    score_from_features_data = model.score(test_features_data, test_pool_from_files.get_label())
-
-    assert abs(score_from_files - score_from_features_data) < EPS
-
-    # empty
-    empty_test_features_data = FeaturesData(
-        num_feature_data=np.empty((0, test_features_data.get_num_feature_count()), dtype=np.float32),
-        cat_feature_data=np.empty((0, test_features_data.get_cat_feature_count()), dtype=object)
-    )
-    score_from_features_data = model.score(empty_test_features_data, [])
-    assert np.isnan(score_from_features_data)
-
-
-@pytest.mark.parametrize('catboost_class', [CatBoostClassifier, CatBoostRegressor])
-def test_call_score_with_pool_and_y(catboost_class):
-    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    model = catboost_class(iterations=2)
-
-    test_pool = Pool(TEST_FILE, column_description=CD_FILE)
-    train_features, test_features = [
-        get_features_data_from_file(
-            data_file=data_file,
-            drop_columns=[TARGET_IDX],
-            cat_feature_indices=train_pool.get_cat_feature_indices()
-        )
-        for data_file in [TRAIN_FILE, TEST_FILE]
-    ]
-    train_target = train_pool.get_label()
-    test_target = test_pool.get_label()
-    test_pool_without_label = Pool(test_features)
-
-    model.fit(train_pool)
-    model.score(test_pool)
-
-    with pytest.raises(CatBoostError, message="Label in X has not initialized."):
-        model.score(test_pool_without_label, test_target)
-
-    with pytest.raises(CatBoostError, message="Wrong initializing y: X is catboost.Pool object, y must be initialized inside catboost.Pool."):
-        model.score(test_pool, test_target)
-
-    with pytest.raises(CatBoostError, message="Wrong initializing y: X is catboost.Pool object, y must be initialized inside catboost.Pool."):
-        model.score(test_pool_without_label, test_target)
-
-    model.fit(train_features, train_target)
-    model.score(test_features, test_target)
-
-    with pytest.raises(CatBoostError, message="y should be specified."):
-        model.score(test_features)
 
 
 @pytest.mark.parametrize('verbose', [5, False, True])

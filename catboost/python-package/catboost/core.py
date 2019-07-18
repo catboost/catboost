@@ -1188,6 +1188,11 @@ class CatBoost(_CatBoostBase):
 
         _process_synonyms(params)
 
+        if isinstance(X, FeaturesData):
+            warnings.warn("FeaturesData is deprecated for using in fit function "
+                          "and soon will not be supported. If you want to use FeaturesData, "
+                          "please pass it to Pool initialization and use Pool in fit")
+
         if 'cat_features' in params:
             if isinstance(X, Pool):
                 cat_feature_indices_from_params = _get_cat_features_indices(params['cat_features'], X.get_feature_names())
@@ -1308,7 +1313,7 @@ class CatBoost(_CatBoostBase):
 
         Parameters
         ----------
-        X : catboost.Pool or list or numpy.array or pandas.DataFrame or pandas.Series or catboost.FeaturesData
+        X : catboost.Pool or list or numpy.array or pandas.DataFrame or pandas.Series
              or string.
             If not catboost.Pool or catboost.FeaturesData it must be 2 dimensional Feature matrix
              or string - file with dataset.
