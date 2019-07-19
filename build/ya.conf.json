@@ -1584,7 +1584,7 @@
         },
         "sandboxctl": {
             "formula": {
-                "sandbox_id": [442883572],
+                "sandbox_id": 470446244,
                 "match": "sandboxctl"
             },
             "executable": {
@@ -2415,7 +2415,7 @@
         },
         "qemu": {
             "formula": {
-                "sandbox_id": 435931020,
+                "sandbox_id": 468108108,
                 "match": "qemu"
             },
             "executable": {
