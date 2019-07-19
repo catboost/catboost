@@ -373,4 +373,8 @@ JOIN_SRCS(
     thread/singleton.cpp
 )
 
+IF (CPU_CHECK)
+    SRCS(GLOBAL system/cpu_id_check.cpp)
+ENDIF()
+
 END()

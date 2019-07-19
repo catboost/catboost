@@ -149,6 +149,22 @@
 #define _pclmul_
 #endif
 
+#if defined(__AES__) || defined(AES_ENABLED)
+#define _aes_
+#endif
+
+#if defined(__AVX__) || defined(AVX_ENABLED)
+#define _avx_
+#endif
+
+#if defined(__AVX2__) || defined(AVX2_ENABLED)
+#define _avx2_
+#endif
+
+#if defined(__FMA__) || defined(FMA_ENABLED)
+#define _fma_
+#endif
+
 #if defined(__DLL__) || defined(_DLL)
 #define _dll_
 #endif
