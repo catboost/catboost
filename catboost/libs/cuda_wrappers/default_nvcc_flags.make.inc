@@ -10,4 +10,5 @@ CUDA_NVCC_FLAGS(
     -gencode arch=compute_70,code=compute_70
     --ptxas-options=-v
     -lineinfo
+    --use_fast_math
 )

@@ -400,8 +400,8 @@ __forceinline__ __device__ float Reduce4(float4 val) {
 
 
 __forceinline__ __device__ float Dot4(float4 left, float4 right) {
-    return fmaf(left.x, right.x, left.y * right.y) + fmaf(left.z, right.z , left.w * right.w);
-//    return left.x * right.x + left.y * right.y + left.z * right.z + left.w * right.w;
+//    return fmaf(left.x, right.x, left.y * right.y) + fmaf(left.z, right.z , left.w * right.w);
+    return left.x * right.x + left.y * right.y + left.z * right.z + left.w * right.w;
 }
 
 __forceinline__ __device__ float4 FMA4(float alpha, float4 x, float4 y) {
