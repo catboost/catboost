@@ -45,14 +45,18 @@ public:
     ~TModChooser();
 
 public:
-    void AddMode(const TString& mode, const TMainFunctionRawPtr func, const TString& description);
-    void AddMode(const TString& mode, const TMainFunctionRawPtrV func, const TString& description);
-    void AddMode(const TString& mode, const TMainFunctionPtr func, const TString& description);
-    void AddMode(const TString& mode, const TMainFunctionPtrV func, const TString& description);
-    void AddMode(const TString& mode, TMainClass* func, const TString& description);
-    void AddMode(const TString& mode, TMainClassV* func, const TString& description);
+    void AddMode(const TString& mode, const TMainFunctionRawPtr func, const TString& description, bool hidden = false);
+    void AddMode(const TString& mode, const TMainFunctionRawPtrV func, const TString& description, bool hidden = false);
+    void AddMode(const TString& mode, const TMainFunctionPtr func, const TString& description, bool hidden = false);
+    void AddMode(const TString& mode, const TMainFunctionPtrV func, const TString& description, bool hidden = false);
+    void AddMode(const TString& mode, TMainClass* func, const TString& description, bool hidden = false);
+    void AddMode(const TString& mode, TMainClassV* func, const TString& description, bool hidden = false);
 
-    void AddGroupModeDescription(const TString& description);
+    //! Hidden groups won't be displayed in 'help' block
+    void AddGroupModeDescription(const TString& description, bool hidden = false);
+
+    //! Set default mode (if not specified explicitly)
+    void SetDefaultMode(const TString& mode);
 
     void AddAlias(const TString& alias, const TString& mode);
 
@@ -70,6 +74,9 @@ public:
 
     //! Set separation string
     void SetSeparationString(const TString& str);
+
+    //! Set short command representation in Usage block
+    void SetPrintShortCommandInUsage(bool printShortCommandInUsage);
 
     void DisableSvnRevisionOption();
 
@@ -97,6 +104,7 @@ private:
         TMainClassV* Main;
         TString Description;
         bool Separator;
+        bool Hidden;
         TVector<TString> Aliases;
 
         TMode()
@@ -105,7 +113,7 @@ private:
         {
         }
 
-        TMode(const TString& name, TMainClassV* main, const TString& descr);
+        TMode(const TString& name, TMainClassV* main, const TString& descr, bool hidden);
 
         // Full name includes primary name and aliases. Also, will add ANSI colors.
         size_t CalculateFullNameLen() const;
@@ -127,6 +135,8 @@ private:
     //! Modes
     TModes Modes;
 
+    TString DefaultMode;
+
     //! Handler for '--version' parameter
     TVersionHandlerPtr VersionHandler;
 
@@ -135,6 +145,9 @@ private:
 
     //! When set to true, disables --svnrevision option, useful for opensource (git hosted) projects
     bool SvnRevisionOptionDisabled;
+
+    //! When true - will print only 'mode name' in 'Usage' block
+    bool PrintShortCommandInUsage;
 
     //! Text string used when displaying each separator
     TString SeparationString;

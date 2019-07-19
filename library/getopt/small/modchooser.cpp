@@ -65,11 +65,12 @@ private:
     TMainClass* Main;
 };
 
-TModChooser::TMode::TMode(const TString& name, TMainClassV* main, const TString& descr)
+TModChooser::TMode::TMode(const TString& name, TMainClassV* main, const TString& descr, bool hidden)
     : Name(name)
     , Main(main)
     , Description(descr)
     , Separator(name ? false : true)
+    , Hidden(hidden)
 {
 }
 
@@ -78,44 +79,49 @@ TModChooser::TModChooser()
     , VersionHandler(nullptr)
     , ShowSeparated(true)
     , SvnRevisionOptionDisabled(false)
+    , PrintShortCommandInUsage(false)
 {
 }
 
 TModChooser::~TModChooser() = default;
 
-void TModChooser::AddMode(const TString& mode, const TMainFunctionRawPtr func, const TString& description) {
-    AddMode(mode, TMainFunctionPtr(func), description);
+void TModChooser::AddMode(const TString& mode, const TMainFunctionRawPtr func, const TString& description, bool hidden) {
+    AddMode(mode, TMainFunctionPtr(func), description, hidden);
 }
-void TModChooser::AddMode(const TString& mode, const TMainFunctionRawPtrV func, const TString& description) {
-    AddMode(mode, TMainFunctionPtrV(func), description);
+void TModChooser::AddMode(const TString& mode, const TMainFunctionRawPtrV func, const TString& description, bool hidden) {
+    AddMode(mode, TMainFunctionPtrV(func), description, hidden);
 }
 
-void TModChooser::AddMode(const TString& mode, const TMainFunctionPtr func, const TString& description) {
+void TModChooser::AddMode(const TString& mode, const TMainFunctionPtr func, const TString& description, bool hidden) {
     Wrappers.push_back(new PtrWrapper(func));
-    AddMode(mode, Wrappers.back().Get(), description);
+    AddMode(mode, Wrappers.back().Get(), description, hidden);
 }
 
-void TModChooser::AddMode(const TString& mode, const TMainFunctionPtrV func, const TString& description) {
+void TModChooser::AddMode(const TString& mode, const TMainFunctionPtrV func, const TString& description, bool hidden) {
     Wrappers.push_back(new PtrvWrapper(func));
-    AddMode(mode, Wrappers.back().Get(), description);
+    AddMode(mode, Wrappers.back().Get(), description, hidden);
 }
 
-void TModChooser::AddMode(const TString& mode, TMainClass* func, const TString& description) {
+void TModChooser::AddMode(const TString& mode, TMainClass* func, const TString& description, bool hidden) {
     Wrappers.push_back(new ClassWrapper(func));
-    AddMode(mode, Wrappers.back().Get(), description);
+    AddMode(mode, Wrappers.back().Get(), description, hidden);
 }
 
-void TModChooser::AddMode(const TString& mode, TMainClassV* main, const TString& description) {
+void TModChooser::AddMode(const TString& mode, TMainClassV* main, const TString& description, bool hidden) {
     if (Modes.FindPtr(mode)) {
         ythrow yexception() << "TMode '" << mode << "' already exists in TModChooser.";
     }
 
-    Modes[mode] = UnsortedModes.emplace_back(new TMode(mode, main, description)).Get();
+    Modes[mode] = UnsortedModes.emplace_back(new TMode(mode, main, description, hidden)).Get();
     return;
 }
 
-void TModChooser::AddGroupModeDescription(const TString& description) {
-    UnsortedModes.push_back(new TMode(nullptr, nullptr, description.data()));
+void TModChooser::AddGroupModeDescription(const TString& description, bool hidden) {
+    UnsortedModes.push_back(new TMode(nullptr, nullptr, description.data(), hidden));
+}
+
+void TModChooser::SetDefaultMode(const TString& mode) {
+    DefaultMode = mode;
 }
 
 void TModChooser::AddAlias(const TString& alias, const TString& mode) {
@@ -147,6 +153,10 @@ void TModChooser::SetSeparationString(const TString& str) {
     SeparationString = str;
 }
 
+void TModChooser::SetPrintShortCommandInUsage(bool printShortCommandInUsage = false) {
+    PrintShortCommandInUsage = printShortCommandInUsage;
+}
+
 void TModChooser::DisableSvnRevisionOption() {
     SvnRevisionOptionDisabled = true;
 }
@@ -159,12 +169,20 @@ int TModChooser::Run(const int argc, const char** argv) const {
 int TModChooser::Run(const TVector<TString>& argv) const {
     Y_ENSURE(!argv.empty(), "Can't run TModChooser with empty list of arguments.");
 
+    bool shiftArgs = true;
+    TString modeName;
     if (argv.size() == 1) {
-        PrintHelp(argv[0]);
-        return 0;
+        if (DefaultMode.empty()) {
+            PrintHelp(argv[0]);
+            return 0;
+        } else {
+            modeName = DefaultMode;
+            shiftArgs = false;
+        }
+    } else {
+        modeName = argv[1];
     }
 
-    TString modeName = argv[1];
     if (modeName == "-h" || modeName == "--help" || modeName == "-?") {
         PrintHelp(argv[0]);
         return 0;
@@ -177,21 +195,34 @@ int TModChooser::Run(const TVector<TString>& argv) const {
         NLastGetopt::PrintVersionAndExit(nullptr);
     }
 
-    TModes::const_iterator modeIter = Modes.find(modeName);
+    auto modeIter = Modes.find(modeName);
+    if (modeIter == Modes.end() && !DefaultMode.empty()) {
+        modeIter = Modes.find(DefaultMode);
+        shiftArgs = false;
+    }
+
     if (modeIter == Modes.end()) {
         Cerr << "Unknown mode " << modeName.Quote() << "." << Endl;
         PrintHelp(argv[0]);
         return 1;
     }
 
-    TVector<TString> nargv;
-    nargv.reserve(argv.size() - 1);
-    nargv.push_back(argv[0] + TString(" ") + modeIter->second->Name);
+    if (shiftArgs) {
+        TVector<TString> nargv;
+        nargv.reserve(argv.size() - 1);
+        if (PrintShortCommandInUsage) {
+            nargv.push_back(modeIter->second->Name);
+        } else {
+            nargv.push_back(argv[0] + TString(" ") + modeIter->second->Name);
+        }
 
-    for (size_t i = 2; i < argv.size(); ++i) {
-        nargv.push_back(argv[i]);
+        for (size_t i = 2; i < argv.size(); ++i) {
+            nargv.push_back(argv[i]);
+        }
+        return (*modeIter->second->Main)(nargv);
+    } else {
+        return (*modeIter->second->Main)(argv);
     }
-    return (*modeIter->second->Main)(nargv);
 }
 
 size_t TModChooser::TMode::CalculateFullNameLen() const {
@@ -244,17 +275,22 @@ void TModChooser::PrintHelp(const TString& progName) const {
 
     if (ShowSeparated) {
         for (const auto& unsortedMode : UnsortedModes)
-            if (unsortedMode->Name.size()) {
-                Cerr << "  " << unsortedMode->FormatFullName(maxModeLen + 4) << unsortedMode->Description << Endl;
-            } else {
-                Cerr << SeparationString << Endl;
-                Cerr << unsortedMode->Description << Endl;
+            if (!unsortedMode->Hidden) {
+                if (unsortedMode->Name.size()) {
+                    Cerr << "  " << unsortedMode->FormatFullName(maxModeLen + 4) << unsortedMode->Description << Endl;
+                } else {
+                    Cerr << SeparationString << Endl;
+                    Cerr << unsortedMode->Description << Endl;
+                }
             }
     } else {
         for (const auto& mode : Modes) {
             if (mode.first != mode.second->Name)
                 continue;  // this is an alias
-            Cerr << "  " << mode.second->FormatFullName(maxModeLen + 4) << mode.second->Description << Endl;
+
+            if (!mode.second->Hidden) {
+                Cerr << "  " << mode.second->FormatFullName(maxModeLen + 4) << mode.second->Description << Endl;
+            }
         }
     }
 
