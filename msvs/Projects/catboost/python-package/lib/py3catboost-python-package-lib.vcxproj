@@ -921,6 +921,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\model\model_export\libs-model-model_export.vcxproj">
       <Project>{FAFB4883-665E-74FC-687B-B3E92B73012E}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\model\thin\libs-model-thin.vcxproj">
+      <Project>{72D6542E-F0C9-DD13-021C-BD29BB4FB496}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\options\catboost-libs-options.vcxproj">
       <Project>{D350B71A-438C-3D20-8D8E-292B20D81461}</Project>
     </ProjectReference>
