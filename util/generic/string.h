@@ -1709,35 +1709,14 @@ public:
         return changed;
     }
 
+    /**
+     * @warning these methods do not work with non-ASCII letters.
+     */
     bool to_lower(size_t pos = 0, size_t n = TBase::npos);
     bool to_upper(size_t pos = 0, size_t n = TBase::npos);
     bool to_title(size_t pos = 0, size_t n = TBase::npos);
-
-    /**
-     * @warning doesn't work with non-ASCII letters.
-     */
-    friend TString to_lower(const TString& s) {
-        TString ret(s);
-        ret.to_lower();
-        return ret;
-    }
-
-    /**
-     * @warning doesn't work with non-ASCII letters.
-     */
-    friend TString to_upper(const TString& s) {
-        TString ret(s);
-        ret.to_upper();
-        return ret;
-    }
-
-    friend TString to_title(const TString& s) {
-        TString ret(s);
-        ret.to_title();
-        return ret;
-    }
-
 };
+std::ostream& operator<<(std::ostream&, const TString&);
 
 class TUtf16String: public TBasicString<TUtf16String, wchar16, TCharTraits<wchar16>> {
     using TBase = TBasicString<TUtf16String, wchar16, TCharTraits<wchar16>>;
@@ -1814,24 +1793,6 @@ public:
     bool to_upper(size_t pos = 0, size_t n = TBase::npos);
     bool to_title();
     // @}
-
-    friend TUtf16String to_lower(const TUtf16String& s) {
-        TUtf16String ret(s);
-        ret.to_lower();
-        return ret;
-    }
-
-    friend TUtf16String to_upper(const TUtf16String& s) {
-        TUtf16String ret(s);
-        ret.to_upper();
-        return ret;
-    }
-
-    friend TUtf16String to_title(const TUtf16String& s) {
-        TUtf16String ret(s);
-        ret.to_title();
-        return ret;
-    }
 };
 
 class TUtf32String: public TBasicString<TUtf32String, wchar32, TCharTraits<wchar32>> {
@@ -1919,27 +1880,7 @@ public:
     bool to_upper(size_t pos = 0, size_t n = TBase::npos);
     bool to_title();
     // @}
-
-    friend TUtf32String to_lower(const TUtf32String& s) {
-        TUtf32String ret(s);
-        ret.to_lower();
-        return ret;
-    }
-
-    friend TUtf32String to_upper(const TUtf32String& s) {
-        TUtf32String ret(s);
-        ret.to_upper();
-        return ret;
-    }
-
-    friend TUtf32String to_title(const TUtf32String& s) {
-        TUtf32String ret(s);
-        ret.to_title();
-        return ret;
-    }
 };
-
-std::ostream& operator<<(std::ostream&, const TString&);
 
 namespace NPrivate {
     template <class Char>
@@ -1966,6 +1907,27 @@ namespace NPrivate {
 
 template <class Char>
 using TGenericString = typename NPrivate::TCharToString<Char>::type;
+
+template<typename TDerived, typename TCharType, typename TTraits>
+TGenericString<TCharType> to_lower(const TBasicString<TDerived, TCharType, TTraits>& s) {
+	TGenericString<TCharType> ret(s);
+	ret.to_lower();
+	return ret;
+}
+
+template<typename TDerived, typename TCharType, typename TTraits>
+TGenericString<TCharType> to_upper(const TBasicString<TDerived, TCharType, TTraits>& s) {
+	TGenericString<TCharType> ret(s);
+	ret.to_upper();
+	return ret;
+}
+
+template<typename TDerived, typename TCharType, typename TTraits>
+TGenericString<TCharType> to_title(const TBasicString<TDerived, TCharType, TTraits>& s) {
+	TGenericString<TCharType> ret(s);
+	ret.to_title();
+	return ret;
+}
 
 namespace std {
     template <>
