@@ -46,7 +46,7 @@ TConstArrayRef<TString> GetTargetForStratifiedSplit(const TDataProvider& dataPro
 
 
 TConstArrayRef<float> GetTargetForStratifiedSplit(const TTrainingDataProvider& dataProvider) {
-    return *dataProvider.TargetData->GetTarget();
+    return *dataProvider.TargetData->GetTargetForLoss();
 }
 
 
@@ -813,7 +813,7 @@ void CrossValidate(
         TVector<TConstArrayRef<float>> labels;
         for (auto& foldContext : foldContexts) {
             allApproxes.push_back(std::move(foldContext.LastUpdateEvalResult.GetRawValuesRef()[0][0]));
-            labels.push_back(*foldContext.TrainingData.Test[0]->TargetData->GetTarget());
+            labels.push_back(*foldContext.TrainingData.Test[0]->TargetData->GetTargetForLoss());
         }
 
         TRocCurve rocCurve(allApproxes, labels, catBoostOptions.SystemOptions.Get().NumThreads);

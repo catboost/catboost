@@ -199,6 +199,7 @@ namespace NCB {
     public:
         THashMap<TString, ui32> TargetsClassCount;
         THashMap<TString, TSharedVector<float>> Targets;
+        TMaybe<TSharedVector<float>> BinaryTarget;
         THashMap<TString, TSharedWeights<float>> Weights;
         THashMap<TString, TVector<TSharedVector<float>>> Baselines;
         THashMap<TString, TSharedVector<TQueryInfo>> GroupInfos;
@@ -259,6 +260,11 @@ namespace NCB {
         // after preprocessing - enumerating labels if necessary, etc.
         TMaybeData<TConstArrayRef<float>> GetTarget(const TString& name = "") const { // [objectIdx]
             return GetDataFromMap<TConstArrayRef<float>>(Data.Targets, name);
+        }
+
+        // after preprocessing - enumerating labels if necessary, etc.
+        TMaybeData<TConstArrayRef<float>> GetTargetForLoss(const TString name = "") const {
+            return Data.BinaryTarget ? TMaybeData<TConstArrayRef<float>>(**Data.BinaryTarget) : GetTarget(name);
         }
 
         // after preprocessing - adjusted for classes, group etc. weights

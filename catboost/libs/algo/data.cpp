@@ -242,7 +242,7 @@ namespace NCB {
     static TTextClassificationTargetPtr CreateTextClassificationTarget(const TTargetDataProvider& targetDataProvider) {
 
         const ui32 numClasses = *targetDataProvider.GetTargetClassCount();
-        TConstArrayRef<float> target = *targetDataProvider.GetTarget();
+        TConstArrayRef<float> target = *targetDataProvider.GetTargetForLoss();
         TVector<ui32> classes;
         classes.resize(target.size());
 

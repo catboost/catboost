@@ -83,6 +83,11 @@ void ConfigureMalloc() {
 }
 
 
+static bool IsTargetBinarizationNeeded(const TString& lossFunction) {
+    return TStringBuf(lossFunction).Before(':') == "Logloss";
+}
+
+
 double CalcMetric(
     const IMetric& metric,
     const TTargetDataProviderPtr& targetData,
@@ -93,7 +98,8 @@ double CalcMetric(
         approx[0].size() == targetData->GetObjectCount(),
         "Approx size and object count must be equal"
     );
-    auto target = targetData->GetTarget().GetOrElse(TConstArrayRef<float>());
+    //TODO(isaf27): will be removed after MLTOOLS-3572
+    auto target = (IsTargetBinarizationNeeded(metric.GetDescription()) ? targetData->GetTargetForLoss() : targetData->GetTarget()).GetOrElse(TConstArrayRef<float>());
     auto weights = GetWeights(*targetData);
     auto queryInfo = targetData->GetGroupInfo().GetOrElse(TConstArrayRef<TQueryInfo>());
     const auto& additiveStats = EvalErrors(
@@ -122,15 +128,19 @@ void CalcErrors(
                 const auto& targetData = trainingDataProviders.Learn->TargetData;
 
                 auto target = targetData->GetTarget().GetOrElse(TConstArrayRef<float>());
+                auto targetForLoss = targetData->GetTargetForLoss().GetOrElse(TConstArrayRef<float>());
+
                 auto weights = GetWeights(*targetData);
                 auto queryInfo = targetData->GetGroupInfo().GetOrElse(TConstArrayRef<TQueryInfo>());
 
                 TVector<bool> skipMetricOnTrain = GetSkipMetricOnTrain(errors);
                 for (int i = 0; i < errors.ysize(); ++i) {
                     if (!skipMetricOnTrain[i]) {
+                        //TODO(isaf27): will be removed after MLTOOLS-3572
+                        const auto& currentTarget = IsTargetBinarizationNeeded(errors[i]->GetDescription()) ? targetForLoss : target;
                         const auto& additiveStats = EvalErrors(
                             ctx->LearnProgress->AvrgApprox,
-                            target,
+                            currentTarget,
                             weights,
                             queryInfo,
                             *errors[i],
@@ -166,6 +176,7 @@ void CalcErrors(
 
             auto maybeTarget = targetData->GetTarget();
             auto target = maybeTarget.GetOrElse(TConstArrayRef<float>());
+            auto targetForLoss = targetData->GetTargetForLoss().GetOrElse(TConstArrayRef<float>());
             auto weights = GetWeights(*targetData);
             auto queryInfo = targetData->GetGroupInfo().GetOrElse(TConstArrayRef<TQueryInfo>());;
 
@@ -178,9 +189,12 @@ void CalcErrors(
                     continue;
                 }
 
+                //TODO(isaf27): will be removed after MLTOOLS-3572
+                const auto& currentTarget = IsTargetBinarizationNeeded(errors[i]->GetDescription()) ? targetForLoss : target;
+
                 const auto& additiveStats = EvalErrors(
                     testApprox,
-                    target,
+                    currentTarget,
                     weights,
                     queryInfo,
                     *errors[i],

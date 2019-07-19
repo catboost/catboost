@@ -769,7 +769,7 @@ namespace NCatboostDistributed {
                 const TString metricDescription = errors[errorIdx]->GetDescription();
                 (*additiveStats)[metricDescription] = EvalErrors(
                     localData.Progress->AvrgApprox,
-                    *GetTrainData(trainData)->TargetData->GetTarget(),
+                    *GetTrainData(trainData)->TargetData->GetTargetForLoss(),
                     GetWeights(*GetTrainData(trainData)->TargetData),
                     GetTrainData(trainData)->TargetData->GetGroupInfo().GetOrElse(TConstArrayRef<TQueryInfo>()),
                     *errors[errorIdx],

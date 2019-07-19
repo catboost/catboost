@@ -28,7 +28,7 @@ TVector<TVector<double>> TDocumentImportancesEvaluator::GetDocumentImportances(
     }, NPar::TLocalExecutor::TExecRangeParams(0, TreeCount), NPar::TLocalExecutor::WAIT_COMPLETE);
 
 
-    UpdateFinalFirstDerivatives(leafIndices, *processedData.TargetData->GetTarget());
+    UpdateFinalFirstDerivatives(leafIndices, *processedData.TargetData->GetTargetForLoss());
     TVector<TVector<double>> documentImportances(DocCount, TVector<double>(processedData.GetObjectCount()));
     const size_t docBlockSize = 1000;
     TImportanceLogger documentsLogger(DocCount, "documents processed", "Processing documents...", logPeriod);
