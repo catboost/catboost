@@ -1,14 +1,13 @@
 #pragma once
 
+#include "split_params.h"
+
 #include <util/system/types.h>
 
 
-struct TCrossValidationParams {
+struct TCrossValidationParams : public TSplitParams {
     ui32 FoldCount = 0;
     bool Inverted = false;
-    int PartitionRandSeed = 0;
-    bool Shuffle = true;
-    bool Stratified = false;
     double MaxTimeSpentOnFixedCostRatio = 0.05;
     ui32 DevMaxIterationsBatchSize = 100000; // useful primarily for tests
 

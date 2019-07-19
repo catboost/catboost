@@ -443,6 +443,47 @@ namespace NCB {
         return testOffsets;
     }
 
+    template <class TDataProvidersTemplate>
+    TDataProvidersTemplate CreateTrainTestSubsets(
+        typename TDataProvidersTemplate::TDataPtr srcData,
+        NCB::TArraySubsetIndexing<ui32>&& trainIndices,
+        NCB::TArraySubsetIndexing<ui32>&& testIndices,
+        NPar::TLocalExecutor* localExecutor
+    ) {
+
+        const NCB::EObjectsOrder objectsOrder = NCB::EObjectsOrder::Ordered;
+        TDataProvidersTemplate result;
+
+        TVector<std::function<void()>> tasks;
+        tasks.emplace_back(
+            [&]() {
+                result.Learn = srcData->GetSubset(
+                    GetSubset(
+                        srcData->ObjectsGrouping,
+                        std::move(trainIndices),
+                        objectsOrder
+                    ),
+                    localExecutor
+                );
+            }
+        );
+        tasks.emplace_back(
+            [&]() {
+                result.Test.emplace_back(
+                    srcData->GetSubset(
+                        GetSubset(
+                            srcData->ObjectsGrouping,
+                            std::move(testIndices),
+                            objectsOrder
+                        ),
+                        localExecutor
+                    )
+                );
+            }
+        );
+        NCB::ExecuteTasksInParallel(&tasks, localExecutor);
+        return result;
+    }
 
     template <class TTObjectsDataProvider>
     class TTrainingDataProvidersTemplate {

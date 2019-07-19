@@ -16,6 +16,7 @@ RECURSE(
     gpu_config
     helpers
     helpers/ut
+    hyperparameter_tuning
     index_range
     init
     labels

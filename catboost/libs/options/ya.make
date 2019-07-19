@@ -26,6 +26,7 @@ SRCS(
     output_file_options.cpp
     overfitting_detector_options.cpp
     plain_options_helper.cpp
+    split_params.cpp
     system_options.cpp
     text_feature_options.cpp
 )

@@ -78,9 +78,6 @@ TVector<TDataProvidersTemplate> PrepareCvFolds(
     // group subsets, groups maybe trivial
     TVector<NCB::TArraySubsetIndexing<ui32>> testSubsets;
 
-    // both NCB::Split and NCB::StratifiedSplit keep objects order
-    NCB::EObjectsOrder objectsOrder = NCB::EObjectsOrder::Ordered;
-
     // group subsets, maybe trivial
     TVector<NCB::TArraySubsetIndexing<ui32>> trainSubsets;
 
@@ -124,31 +121,11 @@ TVector<TDataProvidersTemplate> PrepareCvFolds(
     TVector<std::function<void()>> tasks;
 
     for (ui32 resultIdx : xrange(resultFolds.size())) {
-        tasks.emplace_back(
-            [&, resultIdx]() {
-                result[resultIdx].Learn = srcData->GetSubset(
-                    GetSubset(
-                        srcData->ObjectsGrouping,
-                        std::move(trainSubsets[resultFolds[resultIdx]]),
-                        objectsOrder
-                    ),
-                    localExecutor
-                );
-            }
-        );
-        tasks.emplace_back(
-            [&, resultIdx]() {
-                result[resultIdx].Test.emplace_back(
-                    srcData->GetSubset(
-                        GetSubset(
-                            srcData->ObjectsGrouping,
-                            std::move(testSubsets[resultFolds[resultIdx]]),
-                            objectsOrder
-                        ),
-                        localExecutor
-                    )
-                );
-            }
+        result[resultIdx] = NCB::CreateTrainTestSubsets<TDataProvidersTemplate>(
+            srcData,
+            std::move(trainSubsets[resultFolds[resultIdx]]),
+            std::move(testSubsets[resultFolds[resultIdx]]),
+            localExecutor
         );
     }
 

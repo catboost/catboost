@@ -1912,6 +1912,166 @@ def test_cv_with_save_snapshot(task_type):
         )
 
 
+def test_grid_search_cv_aliases(task_type):
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoost(
+        {
+            "task_type": task_type,
+            "iterations": 10,
+        }
+    )
+    grid = {
+        "num_boost_round": [5, 10],
+        "eta": [0.03, 0.1],
+        "random_state": [21, 42],
+        "reg_lambda": [3.0, 6.6],
+        "max_depth": [4, 8],
+        "colsample_bylevel": [0.5, 1],
+        "max_bin": [8, 28]
+    }
+    results = model.grid_search(
+        grid,
+        pool
+    )
+    for key, value in results["params"].iteritems():
+        assert value in grid[key]
+
+
+def test_grid_search_cv(task_type):
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoost(
+        {
+            "learning_rate": 0.03,
+            "loss_function": "Logloss",
+            "eval_metric": "AUC",
+            "task_type": task_type,
+        }
+    )
+    feature_border_type_list = ['Median', 'Uniform', 'UniformAndQuantiles', 'MaxLogSum']
+    one_hot_max_size_list = [4, 7, 10]
+    iterations_list = [5, 7, 10]
+    border_count_list = [4, 10, 50, 100]
+    results = model.grid_search(
+        {
+            'feature_border_type': feature_border_type_list,
+            'one_hot_max_size': one_hot_max_size_list,
+            'iterations': iterations_list,
+            'border_count': border_count_list
+        },
+        pool
+    )
+    assert "train-Logloss-mean" in results, '"train-Logloss-mean" not in results'
+
+    prev_value = results["train-Logloss-mean"][0]
+    for value in results["train-Logloss-mean"][1:]:
+        assert value < prev_value, 'not monotonous Logloss-mean'
+        prev_value = value
+
+    assert 'feature_border_type' in results['params'], '"feature_border_type" not in results'
+    assert results['params']['feature_border_type'] in feature_border_type_list, "wrong 'feature_border_type_list' value"
+    assert 'one_hot_max_size' in results['params'], '"one_hot_max_size" not in results'
+    assert results['params']['one_hot_max_size'] in one_hot_max_size_list, "wrong 'one_hot_max_size_list' value"
+    assert 'iterations' in results['params'], '"iterations" not in results'
+    assert results['params']['iterations'] in iterations_list, "wrong 'iterations_list' value"
+    assert 'border_count' in results['params'], '"border_count" not in results'
+    assert results['params']['border_count'] in border_count_list, "wrong 'border_count_list' value"
+
+
+def test_grid_search_cv_wrong_param_type(task_type):
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoost(
+        {
+            "iterations": 20,
+            "learning_rate": 0.03,
+            "loss_function": "Logloss",
+            "eval_metric": "AUC",
+            "task_type": task_type,
+        }
+    )
+    feature_border_type_list = ['Median', 12, 'UniformAndQuantiles', 'MaxLogSum']
+    one_hot_max_size_list = [4, 7, '10']
+    try:
+        model.grid_search(
+            {
+                'feature_border_type': feature_border_type_list,
+                'one_hot_max_size': one_hot_max_size_list
+            },
+            pool
+        )
+    except CatBoostError:
+        return
+    assert False
+
+
+def test_grid_search_cv_trivial(task_type):
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoost(
+        {
+            "iterations": 20,
+            "learning_rate": 0.03,
+            "loss_function": "Logloss",
+            "eval_metric": "AUC",
+            "task_type": task_type,
+        }
+    )
+    feature_border_type_list = ['Median']
+    one_hot_max_size_list = [4]
+    iterations_list = [30]
+    results = model.grid_search(
+        {
+            'feature_border_type': feature_border_type_list,
+            'one_hot_max_size': one_hot_max_size_list,
+            'iterations': iterations_list
+        },
+        pool
+    )
+    assert 'feature_border_type' in results['params']
+    assert results['params']['feature_border_type'] == 'Median'
+    assert 'one_hot_max_size' in results['params']
+    assert results['params']['one_hot_max_size'] == 4
+    assert 'iterations' in results['params']
+    assert results['params']['iterations'] == 30
+
+
+def test_grid_search_cv_several_grids(task_type):
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoost(
+        {
+            "iterations": 10,
+            "learning_rate": 0.03,
+            "loss_function": "Logloss",
+            "eval_metric": "AUC",
+            "task_type": task_type,
+        }
+    )
+    grids = []
+    grids.append(
+        {
+            'feature_border_type': ['Median', 'Uniform'],
+            'one_hot_max_size': [4, 6],
+            'iterations': [10],
+            'border_count': [4, 10]
+        }
+    )
+    grids.append(
+        {
+            'feature_border_type': ['UniformAndQuantiles', 'MaxLogSum'],
+            'one_hot_max_size': [8, 10],
+            'iterations': [20],
+            'border_count': [50, 100]
+        }
+    )
+    results = model.grid_search(
+        grids,
+        pool
+    )
+    grid_num = 0 if results['params']['feature_border_type'] in grids[0]['feature_border_type'] else 1
+    assert results['params']['feature_border_type'] in grids[grid_num]['feature_border_type']
+    assert results['params']['one_hot_max_size'] in grids[grid_num]['one_hot_max_size']
+    assert results['params']['iterations'] in grids[grid_num]['iterations']
+    assert results['params']['border_count'] in grids[grid_num]['border_count']
+
+
 def test_feature_importance(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     pool_querywise = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)

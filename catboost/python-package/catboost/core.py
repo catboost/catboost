@@ -746,6 +746,16 @@ def _process_synonyms_group(synonyms, params):
     if value is not None:
         params[synonyms[0]] = value
 
+def _process_synonyms_groups(params):
+    _process_synonyms_group(['learning_rate', 'eta'], params)
+    _process_synonyms_group(['border_count', 'max_bin'], params)
+    _process_synonyms_group(['depth', 'max_depth'], params)
+    _process_synonyms_group(['rsm', 'colsample_bylevel'], params)
+    _process_synonyms_group(['random_seed', 'random_state'], params)
+    _process_synonyms_group(['l2_leaf_reg', 'reg_lambda'], params)
+    _process_synonyms_group(['iterations', 'n_estimators', 'num_boost_round', 'num_trees'], params)
+    _process_synonyms_group(['od_wait', 'early_stopping_rounds'], params)
+    _process_synonyms_group(['custom_metric', 'custom_loss'], params)
 
 def _process_synonyms(params):
     if 'objective' in params:
@@ -760,15 +770,7 @@ def _process_synonyms(params):
         params['class_weights'] = [1.0, params['scale_pos_weight']]
         del params['scale_pos_weight']
 
-    _process_synonyms_group(['learning_rate', 'eta'], params)
-    _process_synonyms_group(['border_count', 'max_bin'], params)
-    _process_synonyms_group(['depth', 'max_depth'], params)
-    _process_synonyms_group(['rsm', 'colsample_bylevel'], params)
-    _process_synonyms_group(['random_seed', 'random_state'], params)
-    _process_synonyms_group(['l2_leaf_reg', 'reg_lambda'], params)
-    _process_synonyms_group(['iterations', 'n_estimators', 'num_boost_round', 'num_trees'], params)
-    _process_synonyms_group(['od_wait', 'early_stopping_rounds'], params)
-    _process_synonyms_group(['custom_metric', 'custom_loss'], params)
+    _process_synonyms_groups(params)
 
     metric_period = None
     if 'metric_period' in params:
@@ -1171,17 +1173,10 @@ class CatBoost(_CatBoostBase):
         """
         super(CatBoost, self).__init__(params)
 
-    def _fit(self, X, y, cat_features, pairs, sample_weight, group_id, group_weight, subgroup_id,
-             pairs_weight, baseline, use_best_model, eval_set, verbose, logging_level, plot,
-             column_description, verbose_eval, metric_period, silent, early_stopping_rounds,
-             save_snapshot, snapshot_file, snapshot_interval, init_model):
-
-        if X is None:
-            raise CatBoostError("X must not be None")
-
-        if y is None and not isinstance(X, STRING_TYPES + (Pool,)):
-            raise CatBoostError("y may be None only when X is an instance of catboost.Pool or string")
-
+    def _prepare_train_params(self, X, y, cat_features, pairs, sample_weight, group_id, group_weight, subgroup_id,
+                              pairs_weight, baseline, use_best_model, eval_set, verbose, logging_level, plot,
+                              column_description, verbose_eval, metric_period, silent, early_stopping_rounds,
+                              save_snapshot, snapshot_file, snapshot_interval, init_model):
         params = deepcopy(self._init_params)
         if params is None:
             params = {}
@@ -1285,8 +1280,44 @@ class CatBoost(_CatBoostBase):
             except Exception as e:
                 raise CatBoostError("Error while loading init_model: {}".format(e))
 
+        return {
+            "train_pool": train_pool,
+            "eval_sets": eval_sets,
+            "params": params,
+            "allow_clear_pool": allow_clear_pool,
+            "init_model": init_model
+        }
+
+    def _fit(self, X, y, cat_features, pairs, sample_weight, group_id, group_weight, subgroup_id,
+             pairs_weight, baseline, use_best_model, eval_set, verbose, logging_level, plot,
+             column_description, verbose_eval, metric_period, silent, early_stopping_rounds,
+             save_snapshot, snapshot_file, snapshot_interval, init_model):
+
+        if X is None:
+            raise CatBoostError("X must not be None")
+
+        if y is None and not isinstance(X, STRING_TYPES + (Pool,)):
+            raise CatBoostError("y may be None only when X is an instance of catboost.Pool or string")
+
+        train_params = self._prepare_train_params(
+            X, y, cat_features, pairs, sample_weight, group_id,
+            group_weight, subgroup_id, pairs_weight, baseline,
+            use_best_model, eval_set, verbose, logging_level, plot,
+            column_description, verbose_eval, metric_period, silent, early_stopping_rounds,
+            save_snapshot, snapshot_file, snapshot_interval, init_model
+        )
+        params = train_params["params"]
+        train_pool = train_params["train_pool"]
+        allow_clear_pool = train_params["allow_clear_pool"]
+
         with log_fixup(), plot_wrapper(plot, [_get_train_dir(self.get_params())]):
-            self._train(train_pool, eval_sets, params, allow_clear_pool, init_model)
+            self._train(
+                train_pool,
+                train_params["eval_sets"],
+                params,
+                allow_clear_pool,
+                train_params["init_model"]
+            )
 
         if self._object._is_oblivious():
             # Have property feature_importance possibly set
@@ -2427,6 +2458,197 @@ class CatBoost(_CatBoostBase):
 
         return graph
 
+    def _tune_hyperparams(self, param_grid, X, y=None, n_iter=10, partition_random_seed=0,
+                          refit=True, shuffle=True, stratified=None, train_size=0.8, fold_count=3):
+
+        currently_not_supported_params = {
+            'ignored_features',
+            'input_borders',
+            'loss_function',
+            'eval_metric'
+        }
+        if isinstance(param_grid, Mapping):
+            param_grid = [param_grid]
+
+        for grid_num, grid in enumerate(param_grid):
+            _process_synonyms_groups(grid)
+            grid = _params_type_cast(grid)
+
+            for param in currently_not_supported_params:
+                if param in grid:
+                    raise CatBoostError("Parameter '{}' currently is not supported in grid search".format(param))
+
+            ignored_params = set()
+        if X is None:
+            raise CatBoostError("X must not be None")
+
+        if y is None and not isinstance(X, STRING_TYPES + (Pool,)):
+            raise CatBoostError("y may be None only when X is an instance of catboost. Pool or string")
+
+        if not isinstance(param_grid, (Mapping, Iterable)):
+            raise TypeError('Parameter grid is not a dict or a list ({!r})'.format(param_grid))
+
+        train_params = self._prepare_train_params(
+            X, y, None, None, None, None, None, None, None, None, None, None, None,
+            None, None, None, None, None, True, None, None, None, None, None
+        )
+        params = train_params["params"]
+
+        if stratified is None:
+            loss_function = params.get('loss_function', None)
+            stratified = isinstance(loss_function, STRING_TYPES) and is_cv_stratified_objective(loss_function)
+
+        cv_result = self._object._tune_hyperparams(
+            param_grid, train_params["train_pool"], params, n_iter,
+            fold_count, partition_random_seed, shuffle, stratified, train_size
+        )
+
+        self.set_params(**cv_result['params'])
+        if refit:
+            self.fit(
+                X, y, silent=True
+            )
+        return cv_result
+
+    def grid_search(self, param_grid, X, y=None, partition_random_seed=0,
+                    refit=True, shuffle=True, stratified=None, train_size=0.8, fold_count=3):
+        """
+        Exhaustive search over specified parameter values for a model.
+        Source dataset is splitted into train and test parts, models are trained on the train part and
+        parameters are compared by loss function score on the test part.
+        After that, statistics on metrics are calculated using cross-validation using best parameters and
+        the model is fitted with these parameters.
+        Thus, after calling this method model is fitted and can be used, if not specified otherwise (refit=False).
+
+        Parameters
+        ----------
+        param_grid: dict or list of dictionaries
+            Dictionary with parameters names (string) as keys and lists of parameter settings
+            to try as values, or a list of such dictionaries, in which case the grids spanned by each
+            dictionary in the list are explored.
+            This enables searching over any sequence of parameter settings.
+
+        X: numpy.array or pandas.DataFrame or catboost.Pool
+            Data to compute statistics on
+
+        y: numpy.array or pandas.Series or None
+            Target corresponding to data
+            Use only if data is not catboost.Pool.
+
+        partition_random_seed: int, optional (default=0)
+            Use this as the seed value for random permutation of the data.
+            Permutation is performed before splitting the data for cross validation.
+            Each seed generates unique data splits.
+
+        refit: bool (default=True)
+            Refit an estimator using the best found parameters on the whole dataset.
+
+        shuffle: bool, optional (default=True)
+            Shuffle the dataset objects before parameters searching.
+
+        stratified: bool, optional (default=None)
+            Perform stratified sampling. True for classification and False otherwise.
+            Currently supported only for final cross-validation.
+
+        train_size: float, optional (default=0.8)
+            Should be between 0.0 and 1.0 and represent the proportion of the dataset to include in the train split.
+
+        fold_count: int, optional (default=3)
+            The number of folds to split the dataset into during final cross-validation.
+
+        Returns
+        -------
+        dict with two fields:
+            'params': dict of best found parameters
+            'cv_results': dict or pandas.core.frame.DataFrame with cross-validation results
+                columns are: test-error-mean  test-error-std  train-error-mean  train-error-std
+        """
+        if isinstance(param_grid, Mapping):
+            param_grid = [param_grid]
+        for grid in param_grid:
+            if not isinstance(grid, Mapping):
+                raise TypeError('Parameter grid is not a dict ({!r})'.format(grid))
+            for key in grid:
+                if not isinstance(grid[key], Iterable):
+                    raise TypeError('Parameter grid value is not iterable (key={!r}, value={!r})'.format(key, grid[key]))
+
+        return self._tune_hyperparams(
+            param_grid, X, y, -1, partition_random_seed, refit,
+            shuffle, stratified, train_size, fold_count
+        )
+
+    def randomized_search(self, param_distributions, X, y=None, n_iter=10, partition_random_seed=0,
+                          refit=True, shuffle=True, stratified=None, train_size=0.8, fold_count=3):
+        """
+        Randomized search on hyper parameters.
+        Source dataset is splitted into train and test parts, models are trained on the train part and
+        parameters are compared by loss function score on the test part
+        After that, statistics on metrics are calculated using cross-validation using best parameters and
+        the model is fitted with these parameters.
+        Thus, after calling this method model is fitted and can be used, if not specified otherwise (refit=False).
+
+        In contrast to grid_search, not all parameter values are tried out,
+        but rather a fixed number of parameter settings is sampled from the specified distributions.
+        The number of parameter settings that are tried is given by n_iter.
+
+        Parameters
+        ----------
+        param_distributions: dict
+            Dictionary with parameters names (string) as keys and distributions or lists of parameters to try.
+            Distributions must provide a rvs method for sampling (such as those from scipy.stats.distributions).
+            If a list is given, it is sampled uniformly.
+
+        X: numpy.array or pandas.DataFrame or catboost.Pool
+            Data to compute statistics on
+
+        y: numpy.array or pandas.Series or None
+            Target corresponding to data
+            Use only if data is not catboost.Pool.
+
+        n_iter: int
+            Number of parameter settings that are sampled.
+            n_iter trades off runtime vs quality of the solution.
+
+        partition_random_seed: int, optional (default=0)
+            Use this as the seed value for random permutation of the data.
+            Permutation is performed before splitting the data for cross validation.
+            Each seed generates unique data splits.
+
+        refit: bool (default=True)
+            Refit an estimator using the best found parameters on the whole dataset.
+
+        shuffle: bool, optional (default=True)
+            Shuffle the dataset objects before parameters searching.
+
+        stratified: bool, optional (default=None)
+            Perform stratified sampling. True for classification and False otherwise.
+            Currently supported only for cross-validation.
+
+        train_size: float, optional (default=0.8)
+            Should be between 0.0 and 1.0 and represent the proportion of the dataset to include in the train split.
+
+        fold_count: int, optional (default=3)
+            The number of folds to split the dataset into during final cross-validation.
+
+        Returns
+        -------
+        dict with two fields:
+            'params': dict of best found parameters
+            'cv_results': dict or pandas.core.frame.DataFrame with cross-validation results
+                columns are: test-error-mean  test-error-std  train-error-mean  train-error-std
+        """
+        if n_iter <= 0:
+            assert CatBoostError("n_iter should be a positive number")
+        if not isinstance(param_distributions, Mapping):
+            assert CatBoostError("param_distributions should be a dictionary")
+        for key in param_distributions:
+            if not isinstance(param_distributions[key], Iterable) and not hasattr(param_distributions[key], "rvs"):
+                raise TypeError('Parameter grid value is not iterable and do not have \'rvs\' method (key={!r}, value={!r})'.format(key, param_distributions[key]))
+
+        return self._tune_hyperparams(
+            param_distributions, X, y, n_iter, partition_random_seed, refit,
+            shuffle, stratified, train_size, fold_count
+        )
 
 class CatBoostClassifier(CatBoost):
 

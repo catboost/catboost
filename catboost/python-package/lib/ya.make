@@ -16,6 +16,7 @@ PEERDIR(
     catboost/libs/documents_importance
     catboost/libs/eval_result
     catboost/libs/helpers
+    catboost/libs/hyperparameter_tuning
     catboost/libs/init
     catboost/libs/loggers
     catboost/libs/logging

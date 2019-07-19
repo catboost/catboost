@@ -11,6 +11,12 @@ from collections import Sequence, defaultdict
 import functools
 import traceback
 
+import sys
+if sys.version_info >= (3, 3):
+    from collections.abc import Iterable
+else:
+    from collections import Iterable
+
 import numpy as np
 cimport numpy as np
 
@@ -659,6 +665,13 @@ cdef extern from "catboost/libs/options/cross_validation_params.h":
         double MaxTimeSpentOnFixedCostRatio
         ui32 DevMaxIterationsBatchSize
 
+cdef extern from "catboost/libs/options/split_params.h":
+    cdef cppclass TTrainTestSplitParams:
+        int PartitionRandSeed
+        bool_t Shuffle
+        bool_t Stratified
+        double TrainPart
+
 cdef extern from "catboost/libs/options/check_train_options.h":
     cdef void CheckFitParams(
         const TJsonValue& tree,
@@ -992,6 +1005,40 @@ cdef extern from "catboost/libs/quantized_pool_analysis/quantized_pool_analysis.
         const TDataProvider& dataset,
         const int flatFeatureIndex) nogil except +ProcessException
 
+cdef extern from "catboost/libs/hyperparameter_tuning/hyperparameter_tuning.h" namespace "NCB":
+    cdef cppclass TCustomRandomDistributionGenerator:
+        void* CustomData
+        double (*EvalFunc)(void* customData) with gil
+
+    cdef cppclass TBestOptionValuesWithCvResult:
+        TVector[TCVResult] CvResult
+        THashMap[TString, bool_t] BoolOptions
+        THashMap[TString, int] IntOptions
+        THashMap[TString, ui32] UIntOptions
+        THashMap[TString, double] DoubleOptions
+        THashMap[TString, TString] StringOptions
+
+    cdef void GridSearch(
+        const TJsonValue& grid,
+        const TJsonValue& params,
+        const TTrainTestSplitParams& trainTestSplitParams,
+        const TCrossValidationParams& cvParams,
+        const TMaybe[TCustomObjectiveDescriptor]& objectiveDescriptor,
+        const TMaybe[TCustomMetricDescriptor]& evalMetricDescriptor,
+        TDataProviderPtr pool,
+        TBestOptionValuesWithCvResult* results) nogil except +ProcessException
+
+    cdef void RandomizedSearch(
+        ui32 numberOfTries,
+        const THashMap[TString, TCustomRandomDistributionGenerator]& randDistGenerators,
+        const TJsonValue& grid,
+        const TJsonValue& params,
+        const TTrainTestSplitParams& trainTestSplitParams,
+        const TCrossValidationParams& cvParams,
+        const TMaybe[TCustomObjectiveDescriptor]& objectiveDescriptor,
+        const TMaybe[TCustomMetricDescriptor]& evalMetricDescriptor,
+        TDataProviderPtr pool,
+        TBestOptionValuesWithCvResult* results) nogil except +ProcessException
 
 cdef inline float _FloatOrNan(object obj) except *:
     try:
@@ -1160,6 +1207,19 @@ cdef TMetricHolder _MetricEval(
     holder.Stats[1] = weight_
     return holder
 
+cdef double _RandomDistGen(
+    void* customFunction
+) with gil:
+    cdef randomDistGenerator = <object>customFunction
+    cdef TString errorMessage
+    try:
+        rand_value = randomDistGenerator.rvs()
+    except:
+        errorMessage = to_arcadia_string(traceback.format_exc())
+        with nogil:
+            ThrowCppExceptionWithMessage(errorMessage)
+    return rand_value
+
 cdef void _ObjectiveCalcDersRange(
     int count,
     const double* approxes,
@@ -1220,6 +1280,13 @@ cdef void _ObjectiveCalcDersMulti(
         for num in line[indY:]:
             dereference(der2).Data[index] = num
             index += 1
+
+# customGenerator should have method rvs()
+cdef TCustomRandomDistributionGenerator _BuildCustomRandomDistributionGenerator(object customGenerator):
+    cdef TCustomRandomDistributionGenerator descriptor
+    descriptor.CustomData = <void*>customGenerator
+    descriptor.EvalFunc = &_RandomDistGen
+    return descriptor
 
 cdef TCustomMetricDescriptor _BuildCustomMetricDescriptor(object metricObject):
     cdef TCustomMetricDescriptor descriptor
@@ -1315,6 +1382,35 @@ cdef class _PreprocessParams:
 
         self.tree = ReadTJsonValue(to_arcadia_string(dumps_params))
 
+cdef class _PreprocessGrids:
+    cdef TJsonValue tree
+    cdef THashMap[TString, TCustomRandomDistributionGenerator] custom_rnd_dist_gens
+    cdef int rdg_enumeration
+    def __prepare_grid(self, dict grid):
+        loss_functions = grid.get("loss_function", [])
+
+        params_to_json = {}
+        for param_name, values in grid.iteritems():
+            if isinstance(values, Iterable):
+                params_to_json[param_name] = list(values)
+            else:
+                if hasattr(values, "rvs"):
+                    rnd_name = "CustomRandomDistributionGenerator_" + str(self.rdg_enumeration)
+                    params_to_json[param_name] = [rnd_name]
+                    self.custom_rnd_dist_gens[to_arcadia_string(rnd_name)] = _BuildCustomRandomDistributionGenerator(values)
+                    self.rdg_enumeration += 1
+                else:
+                    raise CatBoostError("Error: not iterable and not random distribytion generator object at grid")
+                
+        return params_to_json
+
+    def __init__(self, list grids_list):
+        prepared_grids = []
+        self.rdg_enumeration = 0
+        for grid in grids_list:
+            prepared_grids.append(self.__prepare_grid(grid))
+        dumps_grid = dumps(prepared_grids, cls=_NumpyAwareEncoder)
+        self.tree = ReadTJsonValue(to_arcadia_string(dumps_grid))
 
 cdef TString to_arcadia_string(s):
     cdef const unsigned char[:] bytes_s
@@ -1348,6 +1444,27 @@ cdef _npint64 = np.int64
 cdef _npfloat32 = np.float32
 cdef _npfloat64 = np.float64
 
+cpdef _prepare_cv_result(metric_name, const TVector[ui32]& iterations,
+        const TVector[double]& average_train, const TVector[double]& std_dev_train,
+        const TVector[double]& average_test, const TVector[double]& std_dev_test, result):
+    # sklearn-style preparation
+    fill_iterations_column = 'iterations' not in result
+    if fill_iterations_column:
+        result['iterations'] = list()
+    for it in xrange(iterations.size()):
+        iteration = iterations[it]
+        if fill_iterations_column:
+            result['iterations'].append(iteration)
+        else:
+            # ensure that all metrics have the same iterations specified
+            assert(result['iterations'][it] == iteration)
+        result["test-" + metric_name + "-mean"].append(average_test[it])
+        result["test-" + metric_name + "-std"].append(std_dev_test[it])
+
+        if average_train.size() != 0:
+            result["train-" + metric_name + "-mean"].append(average_train[it])
+            result["train-" + metric_name + "-std"].append(std_dev_train[it])
+    return result
 
 cdef inline get_id_object_bytes_string_representation(
     object id_object,
@@ -2516,8 +2633,7 @@ cdef class _CatBoost:
         return self.__model != other.__model
 
     cpdef _reserve_test_evals(self, num_tests):
-        if self.__test_evals.size() < num_tests:
-            self.__test_evals.resize(num_tests)
+        self.__test_evals.resize(num_tests)
         for i in range(num_tests):
             if self.__test_evals[i] == NULL:
                 self.__test_evals[i] = new TEvalResult()
@@ -2950,6 +3066,89 @@ cdef class _CatBoost:
 
         return leaf_values_list
 
+    cpdef _tune_hyperparams(self, list grids_list, _PoolBase train_pool, dict params, int n_iter,
+                          int fold_count, int partition_random_seed, bool_t shuffle, bool_t stratified,
+                          double train_size):
+
+        prep_params = _PreprocessParams(params)
+        prep_grids = _PreprocessGrids(grids_list)
+   
+        self._reserve_test_evals(1)
+        self._clear_test_evals()
+
+        cdef TCrossValidationParams cvParams
+        cvParams.FoldCount = fold_count
+        cvParams.PartitionRandSeed = partition_random_seed
+        cvParams.Shuffle = shuffle
+        cvParams.Stratified = stratified
+        cvParams.Inverted = False
+
+        cdef TTrainTestSplitParams ttParams
+        ttParams.PartitionRandSeed = partition_random_seed
+        ttParams.Shuffle = shuffle
+        ttParams.Stratified = False
+        ttParams.TrainPart = train_size
+
+        cdef TBestOptionValuesWithCvResult results
+        with nogil:
+            SetPythonInterruptHandler()
+            try:
+                if n_iter == -1:
+                    GridSearch(
+                        prep_grids.tree,
+                        prep_params.tree,
+                        ttParams,
+                        cvParams,
+                        prep_params.customObjectiveDescriptor,
+                        prep_params.customMetricDescriptor,
+                        train_pool.__pool,
+                        &results
+                    )
+                else:
+                    RandomizedSearch(
+                        n_iter,
+                        prep_grids.custom_rnd_dist_gens,
+                        prep_grids.tree,
+                        prep_params.tree,
+                        ttParams,
+                        cvParams,
+                        prep_params.customObjectiveDescriptor,
+                        prep_params.customMetricDescriptor,
+                        train_pool.__pool,
+                        &results
+                    )
+            finally:
+                ResetPythonInterruptHandler()
+        cv_results = defaultdict(list)
+        result_metrics = set()
+        for metric_idx in xrange(results.CvResult.size()):
+            name = to_native_str(results.CvResult[metric_idx].Metric)
+            if name in result_metrics:
+                continue
+            _prepare_cv_result(
+                name,
+                results.CvResult[metric_idx].Iterations,
+                results.CvResult[metric_idx].AverageTrain,
+                results.CvResult[metric_idx].StdDevTrain,
+                results.CvResult[metric_idx].AverageTest,
+                results.CvResult[metric_idx].StdDevTest,
+                cv_results
+            )
+            result_metrics.add(name)
+        best_params = {}
+        for key, value in results.BoolOptions:
+            best_params[key.decode('utf-8')] = value
+        for key, value in results.IntOptions:
+            best_params[key.decode('utf-8')] = value
+        for key, value in results.UIntOptions:
+            best_params[key.decode('utf-8')] = value
+        for key, value in results.DoubleOptions:
+            best_params[key.decode('utf-8')] = value
+        for key, value in results.StringOptions:
+            best_params[key.decode('utf-8')] = value.decode('utf-8')
+        cv_results["params"] = best_params
+        return cv_results
+
     cpdef _get_binarized_statistics(self, _PoolBase pool, catFeaturesNums, floatFeaturesNums, predictionType, int thread_count):
         thread_count = UpdateThreadCount(thread_count)
         cdef TVector[TBinarizedFeatureStatistics] statistics
@@ -3190,35 +3389,25 @@ cpdef _cv(dict params, _PoolBase pool, int fold_count, bool_t inverted, int part
         finally:
             ResetPythonInterruptHandler()
 
-    result = defaultdict(list)
-    metric_count = results.size()
-    used_metric_names = set()
-    for metric_idx in xrange(metric_count):
-        metric_name = to_native_str(results[metric_idx].Metric.c_str())
-        if metric_name in used_metric_names:
+    cv_results = defaultdict(list)
+    result_metrics = set()
+    for metric_idx in xrange(results.size()):
+        name = to_native_str(results[metric_idx].Metric)
+        if name in result_metrics:
             continue
-        used_metric_names.add(metric_name)
-
-        fill_iterations_column = 'iterations' not in result
-        if fill_iterations_column:
-            result['iterations'] = list()
-        for it in xrange(results[metric_idx].Iterations.size()):
-            iteration = results[metric_idx].Iterations[it]
-            if fill_iterations_column:
-                result['iterations'].append(iteration)
-            else:
-                # ensure that all metrics have the same iterations specified
-                assert(result['iterations'][it] == iteration)
-            result["test-" + metric_name + "-mean"].append(results[metric_idx].AverageTest[it])
-            result["test-" + metric_name + "-std"].append(results[metric_idx].StdDevTest[it])
-
-            if results[metric_idx].AverageTrain.size() != 0:
-                result["train-" + metric_name + "-mean"].append(results[metric_idx].AverageTrain[it])
-                result["train-" + metric_name + "-std"].append(results[metric_idx].StdDevTrain[it])
-
+        _prepare_cv_result(
+            name,
+            results[metric_idx].Iterations,
+            results[metric_idx].AverageTrain,
+            results[metric_idx].StdDevTrain,
+            results[metric_idx].AverageTest,
+            results[metric_idx].StdDevTest,
+            cv_results
+        )
+        result_metrics.add(name)
     if as_pandas:
-        return pd.DataFrame.from_dict(result)
-    return result
+        return pd.DataFrame.from_dict(cv_results)
+    return cv_results
 
 
 cdef _FloatOrStringFromString(char* s):
