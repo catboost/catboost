@@ -33,7 +33,7 @@ def main(arcadia_prefix, contrib_prefix, args):
             else:
                 out_dir_orig = out_dir
                 out_dir_temp = tempfile.mkdtemp(dir=out_dir_orig)
-            args[i] = args[i][:index] + out_dir_temp
+            args[i] = (args[i][:index] + out_dir_temp).replace('|', ',')
     assert out_dir_temp is not None, 'Output directory is not specified'
 
     try:
