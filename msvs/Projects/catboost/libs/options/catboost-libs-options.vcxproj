@@ -103,6 +103,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\options\output_file_options.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\options\overfitting_detector_options.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\options\plain_options_helper.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\options\split_params.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\options\system_options.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\options\text_feature_options.cpp"/>
     <CustomBuild Include="$(SolutionDir)..\catboost\libs\options\enums.h">
@@ -182,6 +183,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\options\overfitting_detector_options.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\options\plain_options_helper.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\options\restrictions.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\options\split_params.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\options\system_options.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\options\text_feature_options.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\options\unimplemented_aware_option.h"/>

@@ -202,6 +202,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\helpers\parallel_sort\libs-helpers-parallel_sort.vcxproj">
       <Project>{3D8525D8-C5BE-2847-94DF-23F1896F6BA1}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\hyperparameter_tuning\catboost-libs-hyperparameter_tuning.vcxproj">
+      <Project>{F4CD697E-52B9-329F-6AEF-0AF26D95C5D9}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\index_range\catboost-libs-index_range.vcxproj">
       <Project>{C7EA1784-4778-7D80-C197-652E8C20DC97}</Project>
     </ProjectReference>
