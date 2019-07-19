@@ -28,8 +28,6 @@ public:
         size_t docCount,
         TArrayRef<float> result) override;
 
-    NJson::TJsonValue ConvertCtrsToJson(const TVector<TModelCtr>& neededCtrs) const override;
-
     void SetupBinFeatureIndexes(
         const TVector<TFloatFeature>& floatFeatures,
         const TVector<TOneHotFeature>& oheFeatures,
@@ -98,11 +96,6 @@ public:
 
     bool HasNeededCtrs(const TVector<TModelCtr>& ) const override {
         return false;
-    }
-
-    NJson::TJsonValue ConvertCtrsToJson(const TVector<TModelCtr>&) const override {
-        ythrow TCatBoostException()
-            << "TStaticCtrOnFlightSerializationProvider is for streamed serialization only";
     }
 
     void CalcCtrs(

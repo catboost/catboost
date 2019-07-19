@@ -1,6 +1,6 @@
 #pragma once
 
-#include "model.h"
+#include <catboost/libs/model/model.h>
 
 #include <library/json/json_value.h>
 

@@ -130,7 +130,7 @@ int mode_eval_metrics(int argc, const char* argv[]) {
     TFullModel model = ReadModel(params.ModelFileName, params.ModelFormat);
     CB_ENSURE(model.GetUsedCatFeaturesCount() == 0 || params.DsvPoolFormatParams.CdFilePath.Inited(),
               "Model has categorical features. Specify column_description file with correct categorical features.");
-    params.ClassNames = GetModelClassNames(model);
+    params.ClassNames = model.GetModelClassNames();
 
     if (plotParams.EndIteration == 0) {
         plotParams.EndIteration = model.GetTreeCount();

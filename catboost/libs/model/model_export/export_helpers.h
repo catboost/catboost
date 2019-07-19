@@ -125,11 +125,4 @@ namespace NCatboostModelExportHelpers {
     TString OutputBorders(const TFullModel& model, bool addFloatingSuffix = false);
 
     TString OutputLeafValues(const TFullModel& model, TIndent indent);
-
-    struct TCompressedModelCtr {
-        const TFeatureCombination* Projection;
-        TVector<const TModelCtr*> ModelCtrs;
-    };
-
-    TVector<TCompressedModelCtr> CompressModelCtrs(const TVector<TModelCtr>& neededCtrs);
 }

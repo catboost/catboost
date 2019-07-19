@@ -1,6 +1,6 @@
 #include "pmml_helpers.h"
 
-#include "model.h"
+#include <catboost/libs/model/model.h>
 
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/xml_output.h>
@@ -454,7 +454,7 @@ static void OutputMiningModel(
 
 }
 
-namespace NCatboost {
+namespace NCB {
     namespace NPmml {
 
     void OutputModel(

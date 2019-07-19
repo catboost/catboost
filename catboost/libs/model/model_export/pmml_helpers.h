@@ -1,12 +1,12 @@
 #pragma once
 
-#include "fwd.h"
+#include <catboost/libs/model/fwd.h>
 
 namespace NJson {
     class TJsonValue;
 }
 
-namespace NCatboost {
+namespace NCB {
     namespace NPmml {
         void OutputModel(
             const TFullModel& model,

@@ -816,6 +816,7 @@ public:
      * @return the name, or empty string if the model does not have this information
      */
     TString GetLossFunctionName() const;
+    TVector<TString> GetModelClassNames() const;
 
     /**
      * Internal usage only.
@@ -829,30 +830,12 @@ private:
 
 void OutputModel(const TFullModel& model, TStringBuf modelFile);
 void OutputModel(const TFullModel& model, IOutputStream* out);
+
 TFullModel ReadModel(const TString& modelFile, EModelType format = EModelType::CatboostBinary);
 TFullModel ReadModel(
     const void* binaryBuffer,
     size_t binaryBufferSize,
     EModelType format = EModelType::CatboostBinary);
-
-/**
- * Export model in our binary or protobuf CoreML format
- * @param model
- * @param modelFile
- * @param format
- * @param userParametersJson
- * @param addFileFormatExtension
- * @param featureId
- * @param catFeaturesHashToString
- */
-void ExportModel(
-    const TFullModel& model,
-    const TString& modelFile,
-    EModelType format,
-    const TString& userParametersJson = "",
-    bool addFileFormatExtension = false,
-    const TVector<TString>* featureId=nullptr,
-    const THashMap<ui32, TString>* catFeaturesHashToString=nullptr);
 
 /**
  * Serialize model to string
@@ -876,9 +859,6 @@ TFullModel DeserializeModel(TMemoryInput serializedModel);
 TFullModel DeserializeModel(const TString& serializedModel);
 
 TVector<TString> GetModelUsedFeaturesNames(const TFullModel& model);
-
-//TODO(kirillovs): make this method a member of TFullModel
-TVector<TString> GetModelClassNames(const TFullModel& model);
 
 TFullModel SumModels(
     const TVector<const TFullModel*> modelVector,

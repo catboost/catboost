@@ -524,10 +524,23 @@ cdef extern from "catboost/libs/model/model.h":
         void Truncate(size_t begin, size_t end) except +ProcessException
         bool_t IsOblivious() except +ProcessException
         TString GetLossFunctionName() except +ProcessException
+        TVector[TString] GetModelClassNames() except +ProcessException
 
     cdef cppclass EModelType:
         pass
 
+    cdef TFullModel ReadModel(const TString& modelFile, EModelType format) nogil except +ProcessException
+    cdef TString SerializeModel(const TFullModel& model) except +ProcessException
+    cdef TFullModel DeserializeModel(const TString& serializeModelString) nogil except +ProcessException
+    cdef TVector[TString] GetModelUsedFeaturesNames(const TFullModel& model) except +ProcessException
+    cdef void SaveModelBorders(const TString& file, const TFullModel& model) nogil except +ProcessException
+
+ctypedef const TFullModel* TFullModel_const_ptr
+
+cdef extern from "catboost/libs/model/model.h":
+    cdef TFullModel SumModels(TVector[TFullModel_const_ptr], TVector[double], ECtrTableMergePolicy) nogil except +ProcessException
+
+cdef extern from "catboost/libs/model/model_export/model_exporter.h" namespace "NCB":
     cdef void ExportModel(
         const TFullModel& model,
         const TString& modelFile,
@@ -536,21 +549,7 @@ cdef extern from "catboost/libs/model/model.h":
         bool_t addFileFormatExtension,
         const TVector[TString]* featureId,
         const THashMap[ui32, TString]* catFeaturesHashToString
-    ) except +ProcessException
-
-    cdef void OutputModel(const TFullModel& model, const TString& modelFile) except +ProcessException
-    cdef TFullModel ReadModel(const TString& modelFile, EModelType format) nogil except +ProcessException
-    cdef TString SerializeModel(const TFullModel& model) except +ProcessException
-    cdef TFullModel DeserializeModel(const TString& serializeModelString) nogil except +ProcessException
-    cdef TVector[TString] GetModelUsedFeaturesNames(const TFullModel& model) except +ProcessException
-    cdef TVector[TString] GetModelClassNames(const TFullModel& model) except +ProcessException
-    cdef void SaveModelBorders(const TString& file, const TFullModel& model) nogil except +ProcessException
-
-ctypedef const TFullModel* TFullModel_const_ptr
-
-cdef extern from "catboost/libs/model/model.h":
-    cdef TFullModel SumModels(TVector[TFullModel_const_ptr], TVector[double], ECtrTableMergePolicy) nogil except +ProcessException
-
+    ) nogil except +ProcessException
 
 cdef extern from "library/json/writer/json_value.h" namespace "NJson":
     cdef cppclass TJsonValue:
@@ -2337,7 +2336,7 @@ cdef class _PoolBase:
                 result_group_ids.append(group_id)
 
             return result_group_ids
-                
+
         return None
 
     @property
@@ -2914,7 +2913,7 @@ cdef class _CatBoost:
         return [to_native_str(s) for s in GetModelUsedFeaturesNames(dereference(self.__model))]
 
     def _get_class_names(self):
-        return [to_native_str(s) for s in GetModelClassNames(dereference(self.__model))]
+        return [to_native_str(s) for s in self.__model.GetModelClassNames()]
 
     cpdef _sum_models(self, models, weights, ctr_merge_policy):
         cdef TVector[TFullModel_const_ptr] models_vector
@@ -3103,7 +3102,7 @@ cdef TCustomTrainTestSubsets _make_train_test_subsets(_PoolBase pool, folds) exc
 
     cdef TVector[TVector[ui32]] custom_train_subsets
     cdef TVector[TVector[ui32]] custom_test_subsets
-    
+
     if group_info is None:
         for train_test in folds:
             train = train_test[0]
@@ -3123,11 +3122,11 @@ cdef TCustomTrainTestSubsets _make_train_test_subsets(_PoolBase pool, folds) exc
             if idx == 0 or group_info[idx] != group_info[idx - 1]:
                 map_group_id_to_group_number[group_info[idx]] = current_num
                 current_num = current_num + 1
-        
+
         for train_test in folds:
             train = train_test[0]
             test = train_test[1]
-            
+
             train_group = []
 
             custom_train_subsets.emplace_back()
@@ -3145,14 +3144,14 @@ cdef TCustomTrainTestSubsets _make_train_test_subsets(_PoolBase pool, folds) exc
 
                 if map_group_id_to_group_number[current_group] in train_group:
                     raise CatBoostError('Objects with the same group id must be in the same fold.')
-                    
+
                 if idx == 0 or current_group != group_info[test[idx - 1]]:
                     custom_test_subsets.back().push_back(map_group_id_to_group_number[current_group])
 
     cdef TCustomTrainTestSubsets result
     result.first = custom_train_subsets
     result.second = custom_test_subsets
-    
+
     return result
 
 

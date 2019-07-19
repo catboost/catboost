@@ -1,12 +1,14 @@
 #include "json_model_helpers.h"
 
-#include "static_ctr_provider.h"
+#include <catboost/libs/model/ctr_helpers.h>
+#include <catboost/libs/model/static_ctr_provider.h>
 
 #include <catboost/libs/model/flatbuffers/model.fbs.h>
 
 #include <library/json/json_reader.h>
 #include <library/json/json_writer.h>
 
+#include <util/generic/set.h>
 #include <util/string/builder.h>
 #include <util/string/cast.h>
 #include <util/stream/file.h>
@@ -400,6 +402,63 @@ static void GetObliviousTrees(const TJsonValue& jsonValue, TObliviousTrees* obli
     obliviousTrees->TreeStartOffsets.pop_back();
 }
 
+static NJson::TJsonValue ConvertCtrsToJson(const TStaticCtrProvider* ctrProvider, const TVector<TModelCtr>& neededCtrs) {
+    NJson::TJsonValue jsonValue;
+    if (neededCtrs.empty()) {
+        return jsonValue;
+    }
+    auto compressedModelCtrs = NCB::CompressModelCtrs(neededCtrs);
+    for (size_t idx = 0; idx < compressedModelCtrs.size(); ++idx) {
+        auto& proj = *compressedModelCtrs[idx].Projection;
+        for (const auto& ctr: compressedModelCtrs[idx].ModelCtrs) {
+            NJson::TJsonValue hashValue;
+            auto& learnCtr = ctrProvider->CtrData.LearnCtrs.at(ctr->Base);
+            auto hashIndexResolver = learnCtr.GetIndexHashViewer();
+            const ECtrType ctrType = ctr->Base.CtrType;
+            TSet<ui64> hashIndexes;
+            for (const auto& bucket: hashIndexResolver.GetBuckets()) {
+                auto value = bucket.IndexValue;
+                if (value == NCatboost::TDenseIndexHashView::NotFoundIndex) {
+                    continue;
+                }
+                if (hashIndexes.find(bucket.Hash) != hashIndexes.end()) {
+                    continue;
+                } else {
+                    hashIndexes.insert(bucket.Hash);
+                }
+                hashValue.AppendValue(ToString(bucket.Hash));
+                if (ctrType == ECtrType::BinarizedTargetMeanValue || ctrType == ECtrType::FloatTargetMeanValue) {
+                    if (value != NCatboost::TDenseIndexHashView::NotFoundIndex) {
+                        auto ctrMean = learnCtr.GetTypedArrayRefForBlobData<TCtrMeanHistory>();
+                        const TCtrMeanHistory& ctrMeanHistory = ctrMean[value];
+                        hashValue.AppendValue(ctrMeanHistory.Sum);
+                        hashValue.AppendValue(ctrMeanHistory.Count);
+                    }
+                } else  if (ctrType == ECtrType::Counter || ctrType == ECtrType::FeatureFreq) {
+                    TConstArrayRef<int> ctrTotal = learnCtr.GetTypedArrayRefForBlobData<int>();
+                    hashValue.AppendValue(ctrTotal[value]);
+                } else {
+                    auto ctrIntArray = learnCtr.GetTypedArrayRefForBlobData<int>();
+                    const int targetClassesCount = learnCtr.TargetClassesCount;
+                    auto ctrHistory = MakeArrayRef(ctrIntArray.data() + value * targetClassesCount, targetClassesCount);
+                    for (int classId = 0; classId < targetClassesCount; ++classId) {
+                        hashValue.AppendValue(ctrHistory[classId]);
+                    }
+                }
+            }
+            NJson::TJsonValue hash;
+            hash["hash_map"] = hashValue;
+            hash["hash_stride"] =  hashValue.GetArray().ysize() / hashIndexes.size();
+            hash["counter_denominator"] = learnCtr.CounterDenominator;
+            TModelCtrBase modelCtrBase;
+            modelCtrBase.Projection = proj;
+            modelCtrBase.CtrType = ctrType;
+            jsonValue.InsertValue(ModelCtrBaseToStr(modelCtrBase), hash);
+        }
+    }
+    return jsonValue;
+}
+
 TJsonValue ConvertModelToJson(const TFullModel& model, const TVector<TString>* featureId, const THashMap<ui32, TString>* catFeaturesHashToString) {
     TJsonValue jsonModel;
     TJsonValue modelInfo;
@@ -418,7 +477,7 @@ TJsonValue ConvertModelToJson(const TFullModel& model, const TVector<TString>* f
     jsonModel.InsertValue("features_info", GetFeaturesInfoJson(*model.ObliviousTrees, featureId, catFeaturesHashToString));
     const TStaticCtrProvider* ctrProvider = dynamic_cast<TStaticCtrProvider*>(model.CtrProvider.Get());
     if (ctrProvider) {
-        jsonModel.InsertValue("ctr_data", ctrProvider->ConvertCtrsToJson(model.ObliviousTrees->GetUsedModelCtrs()));
+        jsonModel.InsertValue("ctr_data", ConvertCtrsToJson(ctrProvider, model.ObliviousTrees->GetUsedModelCtrs()));
     }
     return jsonModel;
 }

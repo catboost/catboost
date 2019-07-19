@@ -74,7 +74,7 @@ void NCB::ReadModelAndUpdateParams(
                   "Model has invalid ctr provider, possibly you are using core model without or with incomplete ctr data");
     }
 
-    params.ClassNames = GetModelClassNames(model);
+    params.ClassNames = model.GetModelClassNames();
 
     if (iterationsLimit == 0) {
         iterationsLimit = model.GetTreeCount();

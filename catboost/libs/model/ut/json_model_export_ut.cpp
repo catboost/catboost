@@ -1,8 +1,11 @@
 #include "model_test_helpers.h"
 
+#include <catboost/libs/model/model_export/model_exporter.h>
+
 #include <library/unittest/registar.h>
 
 using namespace std;
+using namespace NCB;
 
 Y_UNIT_TEST_SUITE(TJsonModelExport) {
     Y_UNIT_TEST(TestWithCatFeatures) {

@@ -31,8 +31,6 @@ public:
         size_t docCount,
         TArrayRef<float> result) = 0;
 
-    virtual NJson::TJsonValue ConvertCtrsToJson(const TVector<TModelCtr>& neededCtrs) const = 0;
-
     virtual void SetupBinFeatureIndexes(
         const TVector<TFloatFeature>& floatFeatures,
         const TVector<TOneHotFeature>& oheFeatures,

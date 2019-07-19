@@ -1,5 +1,5 @@
 #include "coreml_helpers.h"
-#include "model_build_helper.h"
+#include <catboost/libs/model/model_build_helper.h>
 
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/cat_feature/cat_feature.h>
@@ -14,7 +14,7 @@
 
 using namespace CoreML::Specification;
 
-void NCatboost::NCoreML::ConfigureTrees(const TFullModel& model, const TPerTypeFeatureIdxToInputIndex& perTypeFeatureIdxToInputIndex, TreeEnsembleParameters* ensemble) {
+void NCB::NCoreML::ConfigureTrees(const TFullModel& model, const TPerTypeFeatureIdxToInputIndex& perTypeFeatureIdxToInputIndex, TreeEnsembleParameters* ensemble) {
     const auto classesCount = static_cast<size_t>(model.ObliviousTrees->ApproxDimension);
     auto& binFeatures = model.ObliviousTrees->GetBinFeatures();
     size_t currentSplitIndex = 0;
@@ -113,7 +113,7 @@ void NCatboost::NCoreML::ConfigureTrees(const TFullModel& model, const TPerTypeF
     }
 }
 
-void NCatboost::NCoreML::ConfigureCategoricalMappings(const TFullModel& model,
+void NCB::NCoreML::ConfigureCategoricalMappings(const TFullModel& model,
                                                       const THashMap<ui32, TString>* catFeaturesHashToString,
                                                       google::protobuf::RepeatedPtrField<CoreML::Specification::Model>* container) {
     size_t catFeaturesCount  = model.ObliviousTrees->CatFeatures.size();
@@ -165,7 +165,7 @@ void NCatboost::NCoreML::ConfigureCategoricalMappings(const TFullModel& model,
     }
 }
 
-void NCatboost::NCoreML::ConfigureFloatInput(
+void NCB::NCoreML::ConfigureFloatInput(
     const TFullModel& model,
     CoreML::Specification::ModelDescription* description,
     THashMap<int, int>* perTypeFeatureIdxToInputIndex) {
@@ -185,7 +185,7 @@ void NCatboost::NCoreML::ConfigureFloatInput(
     }
 }
 
-void NCatboost::NCoreML::ConfigurePipelineModelIO(const TFullModel& model,
+void NCB::NCoreML::ConfigurePipelineModelIO(const TFullModel& model,
                                                   CoreML::Specification::ModelDescription* description) {
     ConfigureFloatInput(model, description);
 
@@ -224,7 +224,7 @@ void NCatboost::NCoreML::ConfigurePipelineModelIO(const TFullModel& model,
     featureType->set_allocated_multiarraytype(outputArray);
 }
 
-void NCatboost::NCoreML::ConfigureTreeModelIO(
+void NCB::NCoreML::ConfigureTreeModelIO(
     const TFullModel& model,
     const NJson::TJsonValue& userParameters,
     TreeEnsembleRegressor* regressor,
@@ -281,7 +281,7 @@ void NCatboost::NCoreML::ConfigureTreeModelIO(
     }
 }
 
-void NCatboost::NCoreML::ConfigureMetadata(const TFullModel& model, const NJson::TJsonValue& userParameters, ModelDescription* description) {
+void NCB::NCoreML::ConfigureMetadata(const TFullModel& model, const NJson::TJsonValue& userParameters, ModelDescription* description) {
     auto meta = description->mutable_metadata();
 
     meta->set_shortdescription(
@@ -379,7 +379,7 @@ void ProcessOneTree(const TVector<const TreeEnsembleParameters::TreeNode*>& tree
 
 }
 
-void NCatboost::NCoreML::ConvertCoreMLToCatboostModel(const Model& coreMLModel, TFullModel* fullModel) {
+void NCB::NCoreML::ConvertCoreMLToCatboostModel(const Model& coreMLModel, TFullModel* fullModel) {
     CB_ENSURE(coreMLModel.specificationversion() == 1, "expected specificationVersion == 1");
 
     TFeaturesMetaData featuresMetaData;

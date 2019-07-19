@@ -3,6 +3,8 @@
 
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/model/model.h>
+#include <catboost/libs/model/model_export/model_exporter.h>
+
 #include <catboost/libs/options/analytical_mode_params.h>
 
 #include <library/getopt/small/modchooser.h>
@@ -58,9 +60,9 @@ int set_key(int argc, const char* argv[]) {
     params.LoadModel();
     params.Model.ModelInfo[key] = value;
     if (outputModelPath.empty()) {
-        ExportModel(params.Model, params.ModelPath, outputModelFormat);
+        NCB::ExportModel(params.Model, params.ModelPath, outputModelFormat);
     } else {
-        ExportModel(params.Model, outputModelPath, outputModelFormat);
+        NCB::ExportModel(params.Model, outputModelPath, outputModelFormat);
     }
     return 0;
 }

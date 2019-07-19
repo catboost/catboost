@@ -9,7 +9,7 @@ SRCS(
 
 PEERDIR(
     catboost/libs/cat_feature
-    catboost/libs/model
+    catboost/libs/model/thin
 )
 
 IF (OS_WINDOWS)

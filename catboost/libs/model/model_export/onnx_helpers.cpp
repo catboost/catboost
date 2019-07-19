@@ -23,7 +23,7 @@
 #include <numeric>
 
 
-void NCatboost::NOnnx::InitMetadata(
+void NCB::NOnnx::InitMetadata(
     const TFullModel& model,
     const NJson::TJsonValue& userParameters,
     onnx::ModelProto* onnxModel) {
@@ -405,7 +405,7 @@ static void AddTree(
 }
 
 
-void NCatboost::NOnnx::ConvertTreeToOnnxGraph(
+void NCB::NOnnx::ConvertTreeToOnnxGraph(
     const TFullModel& model,
     const TMaybe<TString>& onnxGraphName,
     onnx::GraphProto* onnxGraph) {

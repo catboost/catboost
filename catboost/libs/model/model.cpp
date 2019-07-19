@@ -1,12 +1,8 @@
 #include "model.h"
 
-#include "coreml_helpers.h"
 #include "flatbuffers_serializer_helper.h"
-#include "json_model_helpers.h"
+#include "model_import_interface.h"
 #include "model_build_helper.h"
-#include "model_export/model_exporter.h"
-#include "onnx_helpers.h"
-#include "pmml_helpers.h"
 #include "static_ctr_provider.h"
 
 #include <catboost/libs/model/flatbuffers/model.fbs.h>
@@ -14,29 +10,20 @@
 #include <catboost/libs/cat_feature/cat_feature.h>
 #include <catboost/libs/helpers/borders_io.h>
 #include <catboost/libs/logging/logging.h>
-#include <catboost/libs/options/check_train_options.h>
-#include <catboost/libs/options/json_helper.h>
-#include <catboost/libs/options/loss_description.h>
-#include <catboost/libs/options/output_file_options.h>
 
-#include <contrib/libs/coreml/TreeEnsemble.pb.h>
-#include <contrib/libs/coreml/Model.pb.h>
+#include <catboost/libs/options/loss_description.h>
 
 #include <library/json/json_reader.h>
 #include <library/dbg_output/dump.h>
 #include <library/dbg_output/auto.h>
 
 #include <util/generic/algorithm.h>
-#include <util/generic/buffer.h>
 #include <util/generic/fwd.h>
 #include <util/generic/guid.h>
 #include <util/generic/variant.h>
 #include <util/generic/xrange.h>
 #include <util/generic/ylimits.h>
 #include <util/string/builder.h>
-#include <util/stream/buffer.h>
-#include <util/stream/file.h>
-#include <util/system/fs.h>
 #include <util/stream/str.h>
 
 
@@ -57,219 +44,22 @@ void OutputModel(const TFullModel& model, const TStringBuf modelFile) {
     OutputModel(model, &f);
 }
 
-static NJson::TJsonValue RemoveInvalidParams(const NJson::TJsonValue& params) {
-    try {
-        CheckFitParams(params);
-        return params;
-    } catch (...) {
-        CATBOOST_WARNING_LOG << "There are invalid params and some of them will be ignored." << Endl;
-    }
-    NJson::TJsonValue result(NJson::JSON_MAP);
-    // TODO(sergmiller): make proper validation for each parameter separately
-    for (const auto& param : params.GetMap()) {
-        result[param.first] = param.second;
-
-        try {
-            CheckFitParams(result);
-        } catch (...) {
-            result.EraseValue(param.first);
-
-            NJson::TJsonValue badParam;
-            badParam[param.first] = param.second;
-            CATBOOST_WARNING_LOG << "Parameter " << ToString<NJson::TJsonValue>(badParam)
-                << " is ignored, because it cannot be parsed." << Endl;
-        }
-    }
-    return result;
-}
-
-TFullModel ReadModel(IInputStream* modelStream, EModelType format) {
-    TFullModel model;
-    if (format == EModelType::CatboostBinary) {
-        Load(modelStream, model);
-    } else if (format == EModelType::Json) {
-        NJson::TJsonValue jsonModel = NJson::ReadJsonTree(modelStream);
-        CB_ENSURE(jsonModel.IsDefined(), "Json model deserialization failed");
-        ConvertJsonToCatboostModel(jsonModel, &model);
-    } else {
-        CoreML::Specification::Model coreMLModel;
-        CB_ENSURE(coreMLModel.ParseFromString(modelStream->ReadAll()), "coreml model deserialization failed");
-        NCatboost::NCoreML::ConvertCoreMLToCatboostModel(coreMLModel, &model);
-    }
-    if (model.ModelInfo.contains("params")) {
-        NJson::TJsonValue paramsJson = ReadTJsonValue(model.ModelInfo.at("params"));
-        paramsJson["flat_params"] = RemoveInvalidParams(paramsJson["flat_params"]);
-        model.ModelInfo["params"] = ToString<NJson::TJsonValue>(paramsJson);
-    }
-    return model;
-}
-
-TFullModel ReadModel(const TString& modelFile, EModelType format){
-    CB_ENSURE(NFs::Exists(modelFile), "Model file doesn't exist: " << modelFile);
-    TIFStream f(modelFile);
-    return ReadModel(&f, format);
-}
-
-TFullModel ReadModel(const void* binaryBuffer, size_t binaryBufferSize, EModelType format)  {
-    TBuffer buf((char*)binaryBuffer, binaryBufferSize);
-    TBufferInput bs(buf);
-    return ReadModel(&bs, format);
-}
-
-void OutputModelCoreML(
-    const TFullModel& model,
-    const TString& modelFile,
-    const NJson::TJsonValue& userParameters,
-    const THashMap<ui32, TString>* catFeaturesHashToString) {
-
-    CoreML::Specification::Model treeModel;
-    treeModel.set_specificationversion(1);
-
-    auto regressor = treeModel.mutable_treeensembleregressor();
-    auto ensemble = regressor->mutable_treeensemble();
-
-    NCatboost::NCoreML::TPerTypeFeatureIdxToInputIndex perTypeFeatureIdxToInputIndex;
-    bool createPipelineModel = model.HasCategoricalFeatures();
-
-    TString data;
-    if (createPipelineModel) {
-        CoreML::Specification::Model pipelineModel;
-        pipelineModel.set_specificationversion(1);
-
-        auto* container = pipelineModel.mutable_pipeline()->mutable_models();
-        NCatboost::NCoreML::ConfigureCategoricalMappings(model, catFeaturesHashToString, container);
-
-        auto* contained = container->Add();
-        auto treeDescription = treeModel.mutable_description();
-        NCatboost::NCoreML::ConfigureTreeModelIO(model, userParameters, regressor, treeDescription, &perTypeFeatureIdxToInputIndex);
-
-        NCatboost::NCoreML::ConfigureTrees(model, perTypeFeatureIdxToInputIndex, ensemble);
-
-        *contained = treeModel;
-
-        auto pipelineDescription = pipelineModel.mutable_description();
-        NCatboost::NCoreML::ConfigureMetadata(model, userParameters, pipelineDescription);
-        NCatboost::NCoreML::ConfigurePipelineModelIO(model, pipelineDescription);
-
-        pipelineModel.SerializeToString(&data);
-    } else {
-        auto description = treeModel.mutable_description();
-        NCatboost::NCoreML::ConfigureMetadata(model, userParameters, description);
-        NCatboost::NCoreML::ConfigureTreeModelIO(model, userParameters, regressor, description, &perTypeFeatureIdxToInputIndex);
-
-        NCatboost::NCoreML::ConfigureTrees(model, perTypeFeatureIdxToInputIndex, ensemble);
-
-        treeModel.SerializeToString(&data);
-    }
-
-    TOFStream out(modelFile);
-    out.Write(data);
-}
-
-void OutputModelOnnx(
-    const TFullModel& model,
-    const TString& modelFile,
-    const NJson::TJsonValue& userParameters) {
-
-    /* TODO(akhropov): the problem with OneHotFeatures is that raw 'float' values
-     * could be interpreted as nans so that equality comparison won't work for such splits
-     */
+TFullModel ReadModel(const TString& modelFile, EModelType format) {
     CB_ENSURE(
-        !model.HasCategoricalFeatures(),
-        "ONNX-ML format export does yet not support categorical features"
+        NCB::TModelLoaderFactory::Has(format),
+        "Model format " << format << " deserialiazation not supported or missing. Link with catboost/libs/model/model_export if you need CoreML or JSON"
     );
-
-    onnx::ModelProto outModel;
-
-    NCatboost::NOnnx::InitMetadata(model, userParameters, &outModel);
-
-    TMaybe<TString> graphName;
-    if (userParameters.Has("onnx_graph_name")) {
-        graphName = userParameters["onnx_graph_name"].GetStringSafe();
-    }
-
-    NCatboost::NOnnx::ConvertTreeToOnnxGraph(model, graphName, outModel.mutable_graph());
-
-    TString data;
-    outModel.SerializeToString(&data);
-
-    TOFStream out(modelFile);
-    out.Write(data);
+    THolder<NCB::IModelLoader> modelLoader = NCB::TModelLoaderFactory::Construct(format);
+    return modelLoader->ReadModel(modelFile);
 }
 
-void ExportModel(
-    const TFullModel& model,
-    const TString& modelFile,
-    const EModelType format,
-    const TString& userParametersJson,
-    bool addFileFormatExtension,
-    const TVector<TString>* featureId,
-    const THashMap<ui32, TString>* catFeaturesHashToString) {
-
-    //TODO(eermishkina): support non symmetric trees
-    CB_ENSURE(model.IsOblivious() || format == EModelType::CatboostBinary, "Can save non symmetric trees only in cbm format");
-    const auto modelFileName = NCatboostOptions::AddExtension(format, modelFile, addFileFormatExtension);
-    switch (format) {
-        case EModelType::CatboostBinary:
-            CB_ENSURE(
-                userParametersJson.empty(),
-                "JSON user params for CatBoost model export are not supported"
-            );
-            OutputModel(model, modelFileName);
-            break;
-        case EModelType::AppleCoreML:
-            {
-                TStringInput is(userParametersJson);
-                NJson::TJsonValue params;
-                NJson::ReadJsonTree(&is, &params);
-
-                OutputModelCoreML(model, modelFileName, params, catFeaturesHashToString);
-            }
-            break;
-        case EModelType::Json:
-            {
-                CB_ENSURE(
-                    userParametersJson.empty(),
-                    "JSON user params for CatBoost model export are not supported"
-                );
-
-                OutputModelJson(model, modelFileName, featureId, catFeaturesHashToString);
-            }
-            break;
-        case EModelType::Onnx:
-            {
-                TStringInput is(userParametersJson);
-                NJson::TJsonValue params;
-                NJson::ReadJsonTree(&is, &params);
-
-                OutputModelOnnx(model, modelFileName, params);
-            }
-            break;
-        case EModelType::Pmml:
-            {
-                TStringInput is(userParametersJson);
-                NJson::TJsonValue params;
-                NJson::ReadJsonTree(&is, &params);
-
-                NCatboost::NPmml::OutputModel(model, modelFileName, params, catFeaturesHashToString);
-            }
-            break;
-        default:
-            TIntrusivePtr<NCatboost::ICatboostModelExporter> modelExporter
-                = NCatboost::CreateCatboostModelExporter(
-                    modelFile,
-                    format,
-                    userParametersJson,
-                    addFileFormatExtension
-                );
-            if (!modelExporter) {
-                TStringBuilder err;
-                err << "Export to " << format << " format is not supported";
-                CB_ENSURE(false, err.c_str());
-            }
-            modelExporter->Write(model, catFeaturesHashToString);
-            break;
-    }
+TFullModel ReadModel(const void* binaryBuffer, size_t binaryBufferSize, EModelType format) {
+    CB_ENSURE(
+        NCB::TModelLoaderFactory::Has(format),
+        "Model format " << format << " deserialiazation not supported or missing. Link with catboost/libs/model/model_export if you need CoreML or JSON"
+    );
+    THolder<NCB::IModelLoader> modelLoader = NCB::TModelLoaderFactory::Construct(format);
+    return modelLoader->ReadModel(binaryBuffer, binaryBufferSize);
 }
 
 TString SerializeModel(const TFullModel& model) {
@@ -763,22 +553,6 @@ void TFullModel::Load(IInputStream* s) {
     UpdateDynamicData();
 }
 
-TString TFullModel::GetLossFunctionName() const {
-    NCatboostOptions::TLossDescription lossDescription;
-    if (ModelInfo.contains("loss_function")) {
-        lossDescription.Load(ReadTJsonValue(ModelInfo.at("loss_function")));
-        return ToString(lossDescription.GetLossFunction());
-    }
-    if (ModelInfo.contains("params")) {
-        const auto& params = ReadTJsonValue(ModelInfo.at("params"));
-        if (params.Has("loss_function")) {
-            lossDescription.Load(params["loss_function"]);
-            return ToString(lossDescription.GetLossFunction());
-        }
-    }
-    return {};
-}
-
 void TFullModel::UpdateDynamicData() {
     ObliviousTrees->UpdateRuntimeData();
     if (CtrProvider) {
@@ -834,6 +608,22 @@ TVector<TString> GetModelUsedFeaturesNames(const TFullModel& model) {
     return result;
 }
 
+TString TFullModel::GetLossFunctionName() const {
+    NCatboostOptions::TLossDescription lossDescription;
+    if (ModelInfo.contains("loss_function")) {
+        lossDescription.Load(ReadTJsonValue(ModelInfo.at("loss_function")));
+        return ToString(lossDescription.GetLossFunction());
+    }
+    if (ModelInfo.contains("params")) {
+        const auto& params = ReadTJsonValue(ModelInfo.at("params"));
+        if (params.Has("loss_function")) {
+            lossDescription.Load(params["loss_function"]);
+            return ToString(lossDescription.GetLossFunction());
+        }
+    }
+    return {};
+}
+
 inline TVector<TString> ExtractClassNamesFromJsonArray(const NJson::TJsonValue& arr) {
     TVector<TString> classNames;
     for (const auto& token : arr.GetArraySafe()) {
@@ -842,14 +632,13 @@ inline TVector<TString> ExtractClassNamesFromJsonArray(const NJson::TJsonValue& 
     return classNames;
 }
 
-TVector<TString> GetModelClassNames(const TFullModel& model) {
+TVector<TString> TFullModel::GetModelClassNames() const {
     TVector<TString> classNames;
-
-    if (model.ModelInfo.contains("multiclass_params")) {
-        NJson::TJsonValue paramsJson = ReadTJsonValue(model.ModelInfo.at("multiclass_params"));
+    if (ModelInfo.contains("multiclass_params")) {
+        NJson::TJsonValue paramsJson = ReadTJsonValue(ModelInfo.at("multiclass_params"));
         classNames = ExtractClassNamesFromJsonArray(paramsJson["class_names"]);
-    } else if (model.ModelInfo.contains("params")) {
-        const TString& modelInfoParams = model.ModelInfo.at("params");
+    } else if (ModelInfo.contains("params")) {
+        const TString& modelInfoParams = ModelInfo.at("params");
         NJson::TJsonValue paramsJson = ReadTJsonValue(modelInfoParams);
         if (paramsJson.Has("data_processing_options")
             && paramsJson["data_processing_options"].Has("class_names")) {

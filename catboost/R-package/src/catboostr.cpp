@@ -10,7 +10,6 @@
 #include <catboost/libs/documents_importance/docs_importance.h>
 #include <catboost/libs/documents_importance/enums.h>
 #include <catboost/libs/model/model.h>
-#include <catboost/libs/model/cpu/evaluator.h>
 #include <catboost/libs/logging/logging.h>
 #include <catboost/libs/options/cross_validation_params.h>
 #include <catboost/libs/helpers/int_cast.h>

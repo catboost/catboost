@@ -2,16 +2,29 @@ LIBRARY()
 
 
 
+CFLAGS(-DONNX_ML=1 -DONNX_NAMESPACE=onnx)
+
 SRCS(
+    coreml_helpers.cpp
     cpp_exporter.cpp
     export_helpers.cpp
+    json_model_helpers.cpp
     model_exporter.cpp
+    GLOBAL model_import.cpp
+    onnx_helpers.cpp
+    pmml_helpers.cpp
     python_exporter.cpp
 )
 
+
+
 PEERDIR(
+    # better replace thin with model/fat wich will include all catboost model possibilities
+    catboost/libs/model/thin #TODO(kirillovs): invert peerdir logic
+
     catboost/libs/ctr_description
-    catboost/libs/model/flatbuffers
+    contrib/libs/coreml
+    contrib/libs/onnx
     library/resource
 )
 

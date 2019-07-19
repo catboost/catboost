@@ -1,6 +1,6 @@
 #pragma once
 
-#include "model.h"
+#include <catboost/libs/model/model.h>
 
 #include <contrib/libs/onnx/proto/onnx_ml.pb.h>
 
@@ -10,7 +10,7 @@
 #include <util/generic/string.h>
 
 
-namespace NCatboost {
+namespace NCB {
     namespace NOnnx {
         void InitMetadata(
             const TFullModel& model,

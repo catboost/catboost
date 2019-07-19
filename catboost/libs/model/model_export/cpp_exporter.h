@@ -7,7 +7,7 @@
 #include <util/stream/file.h>
 
 
-namespace NCatboost {
+namespace NCB {
     class TCatboostModelToCppConverter: public ICatboostModelExporter {
     private:
         TOFStream Out;

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "model.h"
+#include <catboost/libs/model/model.h>
 
 #include <contrib/libs/coreml/TreeEnsemble.pb.h>
 #include <contrib/libs/coreml/Model.pb.h>
@@ -10,7 +10,7 @@
 #include <util/generic/hash.h>
 
 
-namespace NCatboost {
+namespace NCB {
     namespace NCoreML {
         struct TPerTypeFeatureIdxToInputIndex {
             THashMap<int, int> ForFloatFeatures;

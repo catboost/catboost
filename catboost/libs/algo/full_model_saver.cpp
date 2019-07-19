@@ -4,6 +4,7 @@
 #include <catboost/libs/helpers/vector_helpers.h>
 #include <catboost/libs/model/ctr_value_table.h>
 #include <catboost/libs/model/model.h>
+#include <catboost/libs/model/model_export/model_exporter.h>
 #include <catboost/libs/model/static_ctr_provider.h>
 #include <catboost/libs/options/catboost_options.h>
 #include <catboost/libs/options/enum_helpers.h>
@@ -376,7 +377,7 @@ namespace NCB {
         }
 
         for (const auto& format: formats) {
-            ExportModel(
+            NCB::ExportModel(
                 fullModel,
                 fullModelPath,
                 format,

@@ -25,6 +25,7 @@ RECURSE(
     metrics
     metrics/ut
     model
+    model/model_export
     model/model_export/ut
     model/ut
     model_interface
@@ -48,7 +49,7 @@ RECURSE(
 )
 
 IF (HAVE_CUDA)
-RECURSE(
+    RECURSE(
     cuda_wrappers
 )
 ENDIF()

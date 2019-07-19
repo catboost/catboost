@@ -2,6 +2,7 @@
 
 #include "export_helpers.h"
 
+#include <catboost/libs/model/ctr_helpers.h>
 #include <catboost/libs/model/static_ctr_provider.h>
 
 #include <library/resource/resource.h>
@@ -12,7 +13,7 @@
 #include <util/string/cast.h>
 #include <util/stream/input.h>
 
-namespace NCatboost {
+namespace NCB {
     using namespace NCatboostModelExportHelpers;
 
     /*
@@ -112,7 +113,7 @@ namespace NCatboost {
             out << indent << orderedLearnCtr.first << " :" << '\n';
             out << indent++ << "catboost_ctr_value_table(" << '\n';
             out << indent << "index_hash_viewer = {";
-            const TConstArrayRef<TBucket> HashViewerBuckets = learnCtrValueTable.GetIndexHashViewer().GetBuckets();
+            const TConstArrayRef<NCatboost::TBucket> HashViewerBuckets = learnCtrValueTable.GetIndexHashViewer().GetBuckets();
             commaInner.ResetCount(HashViewerBuckets.size());
             for (const auto& bucket : HashViewerBuckets) {
                 out << bucket.Hash << " : " << bucket.IndexValue << commaInner;

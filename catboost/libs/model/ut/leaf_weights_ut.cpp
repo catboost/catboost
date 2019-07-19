@@ -1,5 +1,6 @@
 #include <catboost/libs/data_new/data_provider_builders.h>
 #include <catboost/libs/train_lib/train_model.h>
+#include <catboost/libs/model/model_export/model_exporter.h>
 
 #include <util/generic/xrange.h>
 
