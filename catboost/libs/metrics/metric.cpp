@@ -3970,12 +3970,12 @@ void THuberLossMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
     *valueType = EMetricBestValue::Min;
 }
 
-/* StochasticFilter */
+/* FilteredNdcg */
 
 namespace {
-    class TStochasticFilter : public TAdditiveMetric<TStochasticFilter> {
+    class TFilteredDcgMetric : public TAdditiveMetric<TFilteredDcgMetric> {
     public:
-        explicit TStochasticFilter();
+        explicit TFilteredDcgMetric(ENdcgMetricType metricType, ENdcgDenominatorType denominatorType);
 
         TMetricHolder EvalSingleThread(
                 const TVector<TVector<double>>& approx,
@@ -3991,18 +3991,24 @@ namespace {
         EErrorType GetErrorType() const override;
         TString GetDescription() const override;
         void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+
+    private:
+        ENdcgMetricType MetricType;
+        ENdcgDenominatorType DenominatorType;
     };
 }
 
-THolder<IMetric> MakeStochasticFilterMetric() {
-    return MakeHolder<TStochasticFilter>();
+THolder<IMetric> MakeFilteredDcgMetric(ENdcgMetricType type, ENdcgDenominatorType denominator) {
+    return MakeHolder<TFilteredDcgMetric>(type, denominator);
 }
 
-TStochasticFilter::TStochasticFilter() {
+TFilteredDcgMetric::TFilteredDcgMetric(ENdcgMetricType metricType, ENdcgDenominatorType denominatorType) {
     UseWeights.MakeIgnored();
+    MetricType = metricType;
+    DenominatorType = denominatorType;
 }
 
-TMetricHolder TStochasticFilter::EvalSingleThread(
+TMetricHolder TFilteredDcgMetric::EvalSingleThread(
         const TVector<TVector<double>>& approx,
         const TVector<TVector<double>>& approxDelta,
         bool isExpApprox,
@@ -4024,7 +4030,9 @@ TMetricHolder TStochasticFilter::EvalSingleThread(
             const double currentApprox = approxDelta.empty() ? approx[0][i] : approx[0][i] + approxDelta[0][i];
             if (currentApprox >= 0.0) {
                 pos += 1;
-                metric.Stats[0] += target[i] / pos;
+                float numerator = MetricType == ENdcgMetricType::Exp ? pow(2, target[i]) - 1 : target[i];
+                float denominator = DenominatorType == ENdcgDenominatorType::LogPosition ? log2(pos + 1) : pos;
+                metric.Stats[0] += numerator / denominator;
             }
         }
     }
@@ -4032,15 +4040,15 @@ TMetricHolder TStochasticFilter::EvalSingleThread(
     return metric;
 }
 
-EErrorType TStochasticFilter::GetErrorType() const {
+EErrorType TFilteredDcgMetric::GetErrorType() const {
     return EErrorType::QuerywiseError;
 }
 
-TString TStochasticFilter::GetDescription() const {
-    return BuildDescription(ELossFunction::StochasticFilter, UseWeights);
+TString TFilteredDcgMetric::GetDescription() const {
+    return BuildDescription(ELossFunction::FilteredDCG, UseWeights);
 }
 
-void TStochasticFilter::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TFilteredDcgMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
     *valueType = EMetricBestValue::Max;
 }
 
@@ -4478,9 +4486,24 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
             validParams={"delta"};
             result.push_back(MakeHuberLossMetric(FromString<float>(params.at("delta"))));
             break;
-        case ELossFunction::StochasticFilter: {
-            validParams={"sigma", "num_estimations"};
-            result.push_back(MakeStochasticFilterMetric());
+        case ELossFunction::FilteredDCG: {
+            auto itType = params.find("type");
+            auto itDenominator = params.find("denominator");
+
+            ENdcgMetricType type = ENdcgMetricType::Base;
+
+            if (itType != params.end()) {
+                type = FromString<ENdcgMetricType>(itType->second);
+            }
+
+            ENdcgDenominatorType denomianator = ENdcgDenominatorType::Position;
+
+            if (itDenominator != params.end()) {
+                denomianator = FromString<ENdcgDenominatorType>(itDenominator->second);
+            }
+
+            validParams={"sigma", "num_estimations", "type", "denominator"};
+            result.push_back(MakeFilteredDcgMetric(type, denomianator));
             break;
         }
         case ELossFunction::FairLoss: {

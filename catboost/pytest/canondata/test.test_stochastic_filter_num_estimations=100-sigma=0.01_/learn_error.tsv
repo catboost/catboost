@@ -1,4 +1,4 @@
-iter	StochasticFilter
+iter	FilteredDCG
 0	9.465711359
 1	9.492251485
 2	9.539021594

@@ -257,7 +257,7 @@ THolder<IMetric> MakeDcgMetric(int topSize = -1, ENdcgMetricType type = ENdcgMet
 
 THolder<IMetric> MakeQuerySoftMaxMetric();
 
-THolder<IMetric> MakeStochasticFilterMetric();
+THolder<IMetric> MakeFilteredDcgMetric(ENdcgMetricType type, ENdcgDenominatorType denominator);
 
 THolder<IMetric> MakeBinClassAucMetric(double border = GetDefaultTargetBorder());
 THolder<IMetric> MakeMultiClassAucMetric(int positiveClass);

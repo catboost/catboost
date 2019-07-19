@@ -186,7 +186,8 @@ enum class ELossFunction {
     RecallAt,
     MAP,
     NDCG,
-    DCG
+    DCG,
+    FilteredDCG
 };
 
 enum class EHessianType {

@@ -87,7 +87,8 @@ bool IsGroupwiseOrderMetric(ELossFunction lossFunction) {
             lossFunction == ELossFunction::NDCG ||
             lossFunction == ELossFunction::AverageGain ||
             lossFunction == ELossFunction::QueryAverage ||
-            lossFunction == ELossFunction::StochasticFilter);
+            lossFunction == ELossFunction::StochasticFilter ||
+            lossFunction == ELossFunction::FilteredDCG);
 }
 
 bool IsForOrderOptimization(ELossFunction lossFunction) {

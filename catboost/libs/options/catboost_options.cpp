@@ -558,6 +558,13 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
             MetricOptions->ObjectiveMetric.Set(lossDescription);
             break;
         }
+        case ELossFunction::StochasticFilter: {
+            NCatboostOptions::TLossDescription lossDescription;
+            lossDescription.LossParams.Set(LossFunctionDescription->GetLossParams());
+            lossDescription.LossFunction.Set(ELossFunction::FilteredDCG);
+            MetricOptions->ObjectiveMetric.Set(lossDescription);
+            break;
+        }
         default: {
             MetricOptions->ObjectiveMetric.Set(LossFunctionDescription.Get());
             break;
