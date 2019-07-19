@@ -191,6 +191,9 @@ ALLOW .* -> vendor/golang.org/x/exp/errors
 # less experimental implementation of Go error inspection
 ALLOW .* -> vendor/golang.org/x/xerrors
 
+# golang.org/x/sys required for SO_REUSEPORT, for example
+ALLOW .* -> vendor/golang.org/x/sys
+
 # basic LDAP v3 functionality for the GO programming language
 ALLOW .* -> vendor/gopkg.in/ldap.v3
 
