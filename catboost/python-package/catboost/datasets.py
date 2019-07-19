@@ -172,7 +172,7 @@ def monotonic1():
     """
     url = 'https://storage.mds.yandex.net/get-devtools-opensource/233854/monotonic1.tar.gz'
     md5 = '4d9bf62372afd44feb0842fa8b4ed058'
-    dataset_name, train_file, test_file = 'market', 'train.csv', 'test.csv'
+    dataset_name, train_file, test_file = 'monotonic1', 'train.csv', 'test.csv'
     return _cached_dataset_load_pd(url, md5, dataset_name, train_file, test_file, sep='\t')
 
 
