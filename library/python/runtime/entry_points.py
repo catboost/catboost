@@ -1,3 +1,5 @@
+import sys
+
 import __res
 
 
@@ -48,3 +50,7 @@ def repl():
         code.interact(local=user_ns)
     else:
         IPython.start_ipython(user_ns=user_ns)
+
+
+def resource_files():
+    sys.stdout.write('\n'.join(sorted(__res.resfs_files()) + ['']))

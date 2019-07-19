@@ -1,3 +1,5 @@
+import sys
+
 import __res
 
 
@@ -36,3 +38,7 @@ def repl():
 
     import code
     code.interact(local=user_ns)
+
+
+def resource_files():
+    sys.stdout.buffer.write(b'\n'.join(sorted(__res.resfs_files()) + [b'']))

@@ -131,7 +131,7 @@ class ResourceImporter(object):
             return file_bytes(abspath)
         data = resfs_read(path, builtin=True)
         if data is None:
-            raise IOError(path)
+            raise IOError(path)  # Y_PYTHON_ENTRY_POINT=:resource_files
         return data
 
     # PEP-302 extension 2 of 3: get __file__ without importing.
@@ -190,7 +190,13 @@ class ResourceImporter(object):
                 path = self.get_filename(mod)
                 self.source_map[path] = key
 
-        return self.source_map.get(filename, '')
+        if filename in self.source_map:
+            return self.source_map[filename]
+
+        if resfs_read(filename, builtin=True) is not None:
+            return 'resfs/file/' + filename
+
+        return ''
 
     # Extension for pkgutil.iter_modules.
     def iter_modules(self, prefix=''):

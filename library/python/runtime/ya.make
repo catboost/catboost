@@ -20,4 +20,11 @@ PY_SRCS(
     sitecustomize.pyx
 )
 
+RESOURCE_FILES(
+    PREFIX ${MODDIR}/
+    __res.pyx
+    importer.pxi
+    sitecustomize.pyx
+)
+
 END()

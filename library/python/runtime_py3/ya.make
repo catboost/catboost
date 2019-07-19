@@ -22,6 +22,14 @@ PY_SRCS(
     __res.pyx
 )
 
+
+RESOURCE_FILES(
+    PREFIX ${MODDIR}/
+    __res.pyx
+    importer.pxi
+    sitecustomize.pyx
+)
+
 NO_LINT()
 
 END()
