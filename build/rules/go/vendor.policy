@@ -258,6 +258,9 @@ ALLOW .* -> vendor/github.com/araddon/dateparse
 # Semantic versioning parsing and comparision library
 ALLOW .* -> vendor/github.com/blang/semver
 
+# Go implementation of SipHash-2-4
+ALLOW .* -> vendor/github.com/dchest/siphash
+
 #
 # Temporary exceptions.
 #
