@@ -810,7 +810,35 @@ def _process_synonyms(params):
         params['used_ram_limit'] = str(params['used_ram_limit'])
 
 
-def _get_loss_function(params):
+def _get_loss_function_for_train(params, estimator_type, train_pool):
+    """
+        estimator_type must be 'classifier', 'regressor' or None
+        train_pool must be Pool
+    """
+
+    loss_function_param = params.get('loss_function')
+    if loss_function_param is not None:
+        return loss_function_param
+
+    if estimator_type == 'classifier':
+        if not isinstance(train_pool, Pool):
+            raise CatBoostError('train_pool param must have Pool type')
+
+        label = train_pool.get_label()
+        if label is None:
+            raise CatBoostError('loss function has not been specified and cannot be deduced')
+
+        """
+            len(set) is faster than np.unique on Python lists:
+             https://bbengfort.github.io/observations/2017/05/02/python-unique-benchmark.html
+        """
+        is_multiclass_task = len(set(label)) > 2 and 'target_border' not in params
+        return 'MultiClass' if is_multiclass_task else 'Logloss'
+    else:
+        return 'RMSE'
+
+
+def _get_loss_function_for_predict(params):
     if params is None:
         return None
 
@@ -1205,6 +1233,18 @@ class CatBoost(_CatBoostBase):
                 cat_features = params['cat_features']
             del params['cat_features']
 
+        train_pool = _build_train_pool(X, y, cat_features, pairs, sample_weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, column_description)
+        if train_pool.is_empty_:
+            raise CatBoostError("X is empty.")
+
+        allow_clear_pool = not isinstance(X, Pool)
+
+        params['loss_function'] = _get_loss_function_for_train(
+            params,
+            getattr(self, '_estimator_type', None),
+            train_pool
+        )
+
         metric_period, verbose, logging_level = _process_verbose(metric_period, verbose, logging_level, verbose_eval, silent)
 
         if metric_period is not None:
@@ -1234,12 +1274,6 @@ class CatBoost(_CatBoostBase):
         _check_param_types(params)
         params = _params_type_cast(params)
         _check_train_params(params)
-
-        train_pool = _build_train_pool(X, y, cat_features, pairs, sample_weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, column_description)
-        if train_pool.is_empty_:
-            raise CatBoostError("X is empty.")
-
-        allow_clear_pool = not isinstance(X, Pool)
 
         eval_set_list = eval_set if isinstance(eval_set, list) else [eval_set]
         eval_sets = []
@@ -1474,7 +1508,7 @@ class CatBoost(_CatBoostBase):
         data, data_is_single_object = self._process_predict_input_data(data, parent_method_name)
         self._validate_prediction_type(prediction_type)
 
-        loss_function_type = _get_loss_function(self._get_params())
+        loss_function_type = _get_loss_function_for_predict(self._get_params())
 
         # TODO(kirillovs): very bad solution. user should be able to use custom multiclass losses
         if loss_function_type is not None and (loss_function_type == 'MultiClass' or loss_function_type == 'MultiClassOneVsAll'):
@@ -1542,7 +1576,7 @@ class CatBoost(_CatBoostBase):
         if ntree_end == 0:
             ntree_end = self.tree_count_
         staged_predict_iterator = self._staged_predict_iterator(data, prediction_type, ntree_start, ntree_end, eval_period, thread_count, verbose)
-        loss_function = _get_loss_function(self._get_params())
+        loss_function = _get_loss_function_for_predict(self._get_params())
         while True:
             predictions = staged_predict_iterator.next()
             if loss_function is not None and (loss_function == 'MultiClass' or loss_function == 'MultiClassOneVsAll'):
@@ -3162,9 +3196,6 @@ class CatBoostClassifier(CatBoost):
         _process_synonyms(params)
         if 'loss_function' in params:
             self._check_is_classification_objective(params['loss_function'])
-        else:
-            is_multiclass_task = len(np.unique(y)) > 2 and 'target_border' not in params
-            self.set_params(loss_function='MultiClass' if is_multiclass_task else 'Logloss')
 
         self._fit(X, y, cat_features, None, sample_weight, None, None, None, None, baseline, use_best_model,
                   eval_set, verbose, logging_level, plot, column_description, verbose_eval, metric_period,

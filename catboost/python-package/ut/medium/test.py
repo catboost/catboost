@@ -4524,14 +4524,49 @@ def test_loss_function_auto_set():
     bin_y = [1, 2, 1]
     multi_y = [1, 2, 3]
 
-    model = CatBoostClassifier(iterations=10).fit(X, bin_y)
-    assert model.get_param('loss_function') == 'Logloss'
+    def test_one_case(params, X, y, expected_loss):
+        model = CatBoostClassifier(**params).fit(X, y)
+        assert model.get_all_params()['loss_function'] == expected_loss
 
-    model = CatBoostClassifier(iterations=10).fit(X, multi_y)
-    assert model.get_param('loss_function') == 'MultiClass'
+        model = CatBoostClassifier(**params).fit(Pool(X, y))
+        assert model.get_all_params()['loss_function'] == expected_loss
 
-    model = CatBoostClassifier(iterations=10, target_border=1.5).fit(X, multi_y)
-    assert model.get_param('loss_function') == 'Logloss'
+    test_one_case({'iterations': 10}, X, bin_y, 'Logloss')
+    test_one_case({'iterations': 10}, X, multi_y, 'MultiClass')
+    test_one_case({'iterations': 10, 'target_border': 1.5}, X, multi_y, 'Logloss')
+
+
+DATASET_TARGET_TYPES = ['binarized', 'not_binarized', 'multiclass']
+
+
+@pytest.mark.parametrize(
+    'dataset_target_type',
+    DATASET_TARGET_TYPES,
+    ids=['dataset_target_type=%s' % dtt for dtt in DATASET_TARGET_TYPES]
+)
+def test_loss_function_auto_set_from_file(dataset_target_type):
+    dataset_path = {
+        'binarized': 'adult',
+        'not_binarized': 'adult_not_binarized',
+        'multiclass': 'cloudness_small'
+    }[dataset_target_type]
+
+    params = {'iterations': 3}
+    if dataset_target_type == 'not_binarized':
+        params['target_border'] = 0.5
+
+    model = CatBoostClassifier(**params).fit(
+        data_file(dataset_path, 'train_small'),
+        column_description=data_file(dataset_path, 'train.cd')
+    )
+
+    expected_loss = {
+        'binarized': 'Logloss',
+        'not_binarized': 'Logloss',
+        'multiclass': 'MultiClass'
+    }[dataset_target_type]
+
+    assert model.get_all_params()['loss_function'] == expected_loss
 
 
 PROBLEM_TYPES = ['binclass', 'multiclass', 'regression', 'ranking']
