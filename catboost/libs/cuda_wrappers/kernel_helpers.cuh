@@ -642,3 +642,43 @@ __forceinline__ __device__ float AtomicFMA(float* dst, float alpha, float val) {
     } while (assumed != old);
     return __int_as_float(old);
 }
+
+
+
+template <int BlockSize>
+__forceinline__ __device__ float4 SharedReduce4(float4 val, float* tmp) {
+    Float4ToSharedMemory<BlockSize>(val, tmp, threadIdx.x);
+    __syncthreads();
+
+    for (int s = BlockSize / 2; s > 0; s >>= 1) {
+        if (threadIdx.x < s) {
+            for (int k = 0; k < 4; ++k) {
+                tmp[threadIdx.x + BlockSize * k] += tmp[threadIdx.x + s + BlockSize * k];
+            }
+        }
+        __syncthreads();
+    }
+
+    float4 result = Float4FromSharedMemory<BlockSize>(tmp, 0);
+    __syncthreads();
+    return result;
+}
+
+
+template <int BlockSize>
+__forceinline__ __device__ void SharedPartReduce4(float4 val0, float4 val1, float* tmp, int tileSize) {
+    Float4ToSharedMemory<BlockSize>(val0, tmp, threadIdx.x);
+    Float4ToSharedMemory<BlockSize>(val1, tmp + 4 * BlockSize, threadIdx.x);
+    __syncthreads();
+
+    for (int s = BlockSize / 2; s >= tileSize; s >>= 1) {
+        if (threadIdx.x < s) {
+            for (int k = 0; k < 8; ++k) {
+                tmp[threadIdx.x + BlockSize * k] += tmp[threadIdx.x + s + BlockSize * k];
+            }
+        }
+        __syncthreads();
+    }
+}
+
+
