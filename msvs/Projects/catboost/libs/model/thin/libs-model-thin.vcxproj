@@ -94,8 +94,8 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\model\online_ctr.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\model\static_ctr_provider.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\model\thin\ctr_provider.h_serialized.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\model\thin\enums.h_serialized.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\model\thin\features.h_serialized.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\model\thin\fwd.h_serialized.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\model\thin\split.h_serialized.cpp"/>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\compile_cuda.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -151,6 +151,33 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)..\catboost\libs\model\ctr_provider.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\model\thin\ctr_provider.h_serialized.cpp;</Outputs>
     </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\catboost\libs\model\enums.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\libs\model\thin
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../catboost/libs/model/enums.h" "--include-path" "catboost/libs/model/enums.h" "--output" "$(SolutionDir)$(Configuration)/catboost/libs/model/thin/enums.h_serialized.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\libs\model\thin
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../catboost/libs/model/enums.h" "--include-path" "catboost/libs/model/enums.h" "--output" "$(SolutionDir)$(Configuration)/catboost/libs/model/thin/enums.h_serialized.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/catboost/libs/model/thin/enums.h_serialized.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)..\catboost\libs\model\enums.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\model\thin\enums.h_serialized.cpp;</Outputs>
+    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\catboost\libs\model\features.h">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\libs\model\thin
@@ -177,33 +204,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/catboost/libs/model/thin/features.h_serialized.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)..\catboost\libs\model\features.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\model\thin\features.h_serialized.cpp;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\catboost\libs\model\fwd.h">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\catboost\libs\model\thin
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../catboost/libs/model/fwd.h" "--include-path" "catboost/libs/model/fwd.h" "--output" "$(SolutionDir)$(Configuration)/catboost/libs/model/thin/fwd.h_serialized.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\catboost\libs\model\thin
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../catboost/libs/model/fwd.h" "--include-path" "catboost/libs/model/fwd.h" "--output" "$(SolutionDir)$(Configuration)/catboost/libs/model/thin/fwd.h_serialized.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/catboost/libs/model/thin/fwd.h_serialized.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\catboost\libs\model\fwd.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\model\thin\fwd.h_serialized.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\catboost\libs\model\split.h">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal

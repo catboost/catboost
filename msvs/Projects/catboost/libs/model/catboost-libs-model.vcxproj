@@ -85,6 +85,7 @@
     <ClInclude Include="$(SolutionDir)..\catboost\libs\model\ctr_helpers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\model\ctr_provider.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\model\ctr_value_table.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\model\enums.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\model\eval_processing.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\model\evaluation_interface.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\model\features.h"/>
