@@ -483,8 +483,6 @@ namespace NCB {
 
         void Save(const TArraySubsetIndexing<ui32>& subsetIndexing, IBinSaver* binSaver) const;
         void Load(IBinSaver* binSaver);
-
-        TPackedBinaryIndex AddFeature(EFeatureType featureType, ui32 perTypeFeatureIdx);
     };
 
 }

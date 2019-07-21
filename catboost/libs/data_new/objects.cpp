@@ -1511,23 +1511,6 @@ void NCB::TPackedBinaryFeaturesData::Load(IBinSaver* binSaver) {
     }
 }
 
-TPackedBinaryIndex NCB::TPackedBinaryFeaturesData::AddFeature(
-    EFeatureType featureType,
-    ui32 perTypeFeatureIdx
-) {
-    auto packedBinaryIndex = TPackedBinaryIndex::FromLinearIdx(PackedBinaryToSrcIndex.size());
-    PackedBinaryToSrcIndex.emplace_back(featureType, perTypeFeatureIdx);
-    if (featureType == EFeatureType::Float) {
-        FloatFeatureToPackedBinaryIndex[perTypeFeatureIdx] = packedBinaryIndex;
-    } else if (featureType == EFeatureType::Categorical) {
-        CatFeatureToPackedBinaryIndex[perTypeFeatureIdx] = packedBinaryIndex;
-    } else {
-        CB_ENSURE(false, "Feature type " << featureType << " is not supported in PackedBinaryFeatures");
-    }
-
-    return packedBinaryIndex;
-}
-
 TString NCB::DbgDumpMetaData(const NCB::TPackedBinaryFeaturesData& packedBinaryFeaturesData) {
     TStringBuilder sb;
     sb << "FloatFeatureToPackedBinaryIndex="
