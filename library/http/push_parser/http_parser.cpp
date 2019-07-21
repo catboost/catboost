@@ -75,6 +75,8 @@ bool THttpParser::HeadersParser() {
         if (!CurrentLine_) {
             //end of headers
             DBGOUT("end of headers()");
+            ParseHeaderLine();
+
             if (HasContentLength_) {
                 if (ContentLength_ == 0) {
                     return OnEndParsing();
@@ -84,8 +86,6 @@ bool THttpParser::HeadersParser() {
                     Content_.reserve(ContentLength_ + 1);
                 }
             }
-
-            ParseHeaderLine();
 
             return !!ChunkInputState_ ? ChunkedContentParser() : ContentParser();
         }

@@ -111,6 +111,28 @@ Y_UNIT_TEST_SUITE(THttpParser) {
         UNIT_ASSERT_VALUES_EQUAL(p.Content(), "0123456789");
     }
 
+    Y_UNIT_TEST(TParsingContentLengthZero) {
+        THttpParser p(THttpParser::Request);
+        UNIT_ASSERT(!Parse(p, "GET /test HTTP/1.1"));
+        UNIT_ASSERT(!Parse(p, "\r\nAccept: *\r"));
+        UNIT_ASSERT(!Parse(p, "\nContent-Length: 0\r\n"));
+        UNIT_ASSERT(!Parse(p, "Cookie: a=b\r\nX-Foo: "));
+        UNIT_ASSERT(!Parse(p, "bar\r\nX-Bar: foo\r"));
+        UNIT_ASSERT(Parse(p, "\n\r\n"));
+
+        auto ch = p.Headers().FindHeader("Cookie");
+        UNIT_ASSERT(ch);
+        UNIT_ASSERT_VALUES_EQUAL(ch->Value(), "a=b");
+
+        auto xh = p.Headers().FindHeader("X-Foo");
+        UNIT_ASSERT(xh);
+        UNIT_ASSERT_VALUES_EQUAL(xh->Value(), "bar");
+
+        auto bh = p.Headers().FindHeader("X-Bar");
+        UNIT_ASSERT(bh);
+        UNIT_ASSERT_VALUES_EQUAL(bh->Value(), "foo");
+    }
+
     Y_UNIT_TEST(TParsingChunkedContent) {
         {
             THttpParser p;
