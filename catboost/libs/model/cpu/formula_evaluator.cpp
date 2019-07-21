@@ -253,7 +253,7 @@ namespace NCB::NModelEvaluation {
 
             void Calc(
                 TConstArrayRef<TConstArrayRef<float>> floatFeatures,
-                TConstArrayRef<TVector<TStringBuf>> catFeatures,
+                TConstArrayRef<TConstArrayRef<TStringBuf>> catFeatures,
                 size_t treeStart,
                 size_t treeEnd,
                 TArrayRef<double> results,
@@ -313,7 +313,7 @@ namespace NCB::NModelEvaluation {
 
             void CalcLeafIndexes(
                 TConstArrayRef<TConstArrayRef<float>> floatFeatures,
-                TConstArrayRef<TVector<TStringBuf>> catFeatures,
+                TConstArrayRef<TConstArrayRef<TStringBuf>> catFeatures,
                 size_t treeStart,
                 size_t treeEnd,
                 TArrayRef<ui32> indexes,

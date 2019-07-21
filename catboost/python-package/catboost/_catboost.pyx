@@ -756,16 +756,6 @@ cdef extern from "catboost/libs/algo/apply.h":
         bool_t CanGet() nogil except +ProcessException;
         TVector[ui32] Get() nogil except +ProcessException;
 
-    cdef TVector[double] ApplyModel(
-        const TFullModel& model,
-        const TDataProvider& objectsData,
-        bool_t verbose,
-        const EPredictionType predictionType,
-        int begin,
-        int end,
-        int threadCount
-    ) nogil except +ProcessException
-
     cdef TVector[TVector[double]] ApplyModelMulti(
         const TFullModel& calcer,
         const TDataProvider& objectsData,
@@ -2794,7 +2784,7 @@ cdef class _CatBoost:
         cdef EPredictionType predictionType = PyPredictionType(prediction_type).predictionType
         thread_count = UpdateThreadCount(thread_count);
         with nogil:
-            pred = ApplyModel(
+            pred = ApplyModelMulti(
                 dereference(self.__model),
                 dereference(pool.__pool.Get()),
                 verbose,
@@ -2802,7 +2792,7 @@ cdef class _CatBoost:
                 ntree_start,
                 ntree_end,
                 thread_count
-            )
+            )[0]
         return _vector_of_double_to_np_array(pred)
 
 

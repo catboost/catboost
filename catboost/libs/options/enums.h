@@ -1,5 +1,7 @@
 #pragma once
 
+#include <catboost/libs/model/enums.h>
+
 #include <util/system/types.h>
 
 
@@ -254,16 +256,6 @@ enum class ELaunchMode {
 enum class ENodeType {
     Master,
     SingleHost
-};
-
-enum class EModelType {
-    CatboostBinary /* "CatboostBinary", "cbm", "catboost" */,
-    AppleCoreML    /* "AppleCoreML", "coreml"     */,
-    Cpp            /* "Cpp", "CPP", "cpp" */,
-    Python         /* "Python", "python" */,
-    Json           /* "Json", "json"       */,
-    Onnx           /* "Onnx", "onnx" */,
-    Pmml           /* "PMML", "pmml" */
 };
 
 enum class EFinalCtrComputationMode {

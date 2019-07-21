@@ -1,5 +1,7 @@
 #pragma once
 
+#include "enums.h"
+
 #include <util/generic/fwd.h>
 #include <util/generic/ptr.h> // TODO(kirillovs): remove
 
@@ -18,12 +20,6 @@ namespace NCB { // split due to CUDA-compiler inability to support nested namesp
 
         using TModelEvaluatorPtr = TAtomicSharedPtr<IModelEvaluator>;
         using TConstModelEvaluatorPtr = TAtomicSharedPtr<const IModelEvaluator>;
-
-        enum class EPredictionType {
-            RawFormulaVal,
-            Probability,
-            Class
-        };
     }
 }
 

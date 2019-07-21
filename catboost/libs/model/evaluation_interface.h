@@ -150,7 +150,7 @@ namespace NCB {  // split due to CUDA-compiler inability to parse nested namespa
 
             virtual void Calc(
                 TConstArrayRef<TConstArrayRef<float>> floatFeatures,
-                TConstArrayRef<TVector<TStringBuf>> catFeatures,
+                TConstArrayRef<TConstArrayRef<TStringBuf>> catFeatures,
                 size_t treeStart,
                 size_t treeEnd,
                 TArrayRef<double> results,
@@ -165,6 +165,20 @@ namespace NCB {  // split due to CUDA-compiler inability to parse nested namespa
                 const TFeatureLayout* featureInfo = nullptr
             ) const {
                 Calc(floatFeatures, catFeatures, 0, GetTreeCount(), results, featureInfo);
+            }
+
+            void Calc(
+                TConstArrayRef<TVector<float>> floatFeatures,
+                TConstArrayRef<TVector<TString>> catFeatures,
+                TArrayRef<double> results,
+                const TFeatureLayout* featureInfo = nullptr
+            ) const {
+                TVector<TConstArrayRef<float>> floatRefs(floatFeatures.begin(), floatFeatures.end());
+                TVector<TConstArrayRef<TStringBuf>> catFeatureStringRefs(Reserve(catFeatures.size()));
+                for (const auto& objCatFeature : catFeatures) {
+                    catFeatureStringRefs.emplace_back(TVector<TStringBuf>{objCatFeature.begin(), objCatFeature.end()});
+                }
+                Calc<TStringBuf>(floatRefs, catFeatureStringRefs, results, featureInfo);
             }
 
             virtual void Calc(
@@ -185,7 +199,7 @@ namespace NCB {  // split due to CUDA-compiler inability to parse nested namespa
 
             virtual void CalcLeafIndexes(
                 TConstArrayRef<TConstArrayRef<float>> floatFeatures,
-                TConstArrayRef<TVector<TStringBuf>> catFeatures,
+                TConstArrayRef<TConstArrayRef<TStringBuf>> catFeatures,
                 size_t treeStart,
                 size_t treeEnd,
                 TArrayRef<TCalcerIndexType> indexes,

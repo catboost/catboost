@@ -444,7 +444,8 @@ void TFullModel::Calc(
     TArrayRef<double> results,
     const TFeatureLayout* featureInfo
 ) const {
-    GetCurrentEvaluator()->Calc(floatFeatures, catFeatures, treeStart, treeEnd, results, featureInfo);
+    TVector<TConstArrayRef<TStringBuf>> stringbufVecRefs{catFeatures.begin(), catFeatures.end()};
+    GetCurrentEvaluator()->Calc(floatFeatures, stringbufVecRefs, treeStart, treeEnd, results, featureInfo);
 }
 
 void TFullModel::CalcLeafIndexesSingle(
@@ -460,7 +461,7 @@ void TFullModel::CalcLeafIndexesSingle(
 
 void TFullModel::CalcLeafIndexes(
     TConstArrayRef<TConstArrayRef<float>> floatFeatures,
-    TConstArrayRef<TVector<TStringBuf>> catFeatures,
+    TConstArrayRef<TConstArrayRef<TStringBuf>> catFeatures,
     size_t treeStart,
     size_t treeEnd,
     TArrayRef<ui32> indexes,

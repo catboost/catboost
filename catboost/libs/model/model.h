@@ -728,7 +728,6 @@ public:
         TArrayRef<double> results,
         const TFeatureLayout* featureInfo = nullptr
     ) const {
-
         Calc(floatFeatures, catFeatures, 0, GetTreeCount(), results, featureInfo);
     }
 
@@ -789,7 +788,7 @@ public:
      */
     void CalcLeafIndexes(
         TConstArrayRef<TConstArrayRef<float>> floatFeatures,
-        TConstArrayRef<TVector<TStringBuf>> catFeatures,
+        TConstArrayRef<TConstArrayRef<TStringBuf>> catFeatures,
         size_t treeStart,
         size_t treeEnd,
         TArrayRef<ui32> indexes,
@@ -804,7 +803,7 @@ public:
      */
     void CalcLeafIndexes(
         TConstArrayRef<TConstArrayRef<float>> floatFeatures,
-        TConstArrayRef<TVector<TStringBuf>> catFeatures,
+        TConstArrayRef<TConstArrayRef<TStringBuf>> catFeatures,
         TArrayRef<ui32> indexes,
         const TFeatureLayout* featureInfo = nullptr
     ) const {

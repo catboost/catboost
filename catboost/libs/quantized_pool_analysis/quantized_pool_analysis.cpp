@@ -60,7 +60,7 @@ namespace NCB {
                 executor
             );
 
-            auto pred = ApplyModel(model, *(rawDataProviderPtr->ObjectsData), false, predictionType, 0, 0, threadCount);
+            auto pred = ApplyModelMulti(model, *(rawDataProviderPtr->ObjectsData), false, predictionType, 0, 0, threadCount)[0];
             (*predictions)[numVal] = std::accumulate(pred.begin(), pred.end(), 0.) / static_cast<double>(pred.size());
             data = TRawBuilderDataHelper::Extract(std::move(*(rawDataProviderPtr.Release())));
         }
@@ -345,7 +345,7 @@ namespace NCB {
         const EPredictionType predictionType,
         const int threadCount) {
 
-        const TVector<double> prediction = ApplyModel(model, dataset, false, predictionType, 0, 0, threadCount);
+        const TVector<double> prediction = ApplyModelMulti(model, dataset, false, predictionType, 0, 0, threadCount)[0];
         TVector<TBinarizedFeatureStatistics> statistics;
 
         for (const auto catFeatureNum: catFeaturesNums) {

@@ -153,31 +153,6 @@ TVector<TVector<double>> ApplyModelMulti(
     return approxes;
 }
 
-TVector<double> ApplyModel(
-    const TFullModel& model,
-    const TObjectsDataProvider& objectsData,
-    bool verbose,
-    const EPredictionType predictionType,
-    int begin, /*= 0*/
-    int end, /*= 0*/
-    int threadCount /*= 1*/)
-{
-    return ApplyModelMulti(model, objectsData, verbose, predictionType, begin, end, threadCount)[0];
-}
-
-TVector<double> ApplyModel(
-    const TFullModel& model,
-    const TDataProvider& data,
-    bool verbose,
-    const EPredictionType predictionType,
-    int begin, /*= 0*/
-    int end, /*= 0*/
-    int threadCount /*= 1*/)
-{
-    return ApplyModelMulti(model, data, verbose, predictionType, begin, end, threadCount)[0];
-}
-
-
 void TModelCalcerOnPool::ApplyModelMulti(
     const EPredictionType predictionType,
     int begin,
