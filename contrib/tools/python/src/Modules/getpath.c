@@ -443,6 +443,12 @@ calculate_path(void)
                 progpath[0] = '\0';
         if (progpath[0] != SEP && progpath[0] != '\0')
                 absolutize(progpath);
+
+        prefix[0] = '\0';
+        exec_prefix[0] = '\0';
+        module_search_path = rtpypath ? rtpypath : progpath;
+        return;
+
         strncpy(argv0_path, progpath, MAXPATHLEN);
         argv0_path[MAXPATHLEN] = '\0';
 

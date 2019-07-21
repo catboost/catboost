@@ -91,6 +91,8 @@ def abs__file__():
         if hasattr(m, '__loader__'):
             continue   # don't mess with a PEP 302-supplied __file__
         try:
+            if m.__file__ == '<frozen>':
+                continue
             m.__file__ = os.path.abspath(m.__file__)
         except (AttributeError, OSError):
             pass
@@ -515,11 +517,11 @@ def main():
     global ENABLE_USER_SITE
 
     abs__file__()
-    known_paths = removeduppaths()
+    #known_paths = removeduppaths()
     if ENABLE_USER_SITE is None:
         ENABLE_USER_SITE = check_enableusersite()
-    known_paths = addusersitepackages(known_paths)
-    known_paths = addsitepackages(known_paths)
+    #known_paths = addusersitepackages(known_paths)
+    #known_paths = addsitepackages(known_paths)
     if sys.platform == 'os2emx':
         setBEGINLIBPATH()
     setquit()

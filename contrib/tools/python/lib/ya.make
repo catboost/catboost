@@ -25,6 +25,7 @@ RUN_PROGRAM(
     IN bootstrap.py python-libs.txt
     OUT python_frozen_modules.rodata bootstrap.c
 
+ENV PYTHONPATH=${PYTHON_SRC_DIR}/Lib
 IN ${PYTHON_SRC_DIR}/Include/Python.h
 IN __future__.py
 IN __phello__.foo.py

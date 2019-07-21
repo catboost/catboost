@@ -1722,7 +1722,7 @@ PySys_SetArgvEx(int argc, char **argv, int updatepath)
 void
 PySys_SetArgv(int argc, char **argv)
 {
-    PySys_SetArgvEx(argc, argv, 1);
+    PySys_SetArgvEx(argc, argv, 0);
 }
 
 

@@ -276,8 +276,10 @@ def executable_path_hook(path):
     raise ImportError(path)
 
 
-sys.path.insert(0, executable)
+if executable not in sys.path:
+    sys.path.insert(0, executable)
 sys.path_hooks.insert(0, executable_path_hook)
+sys.path_importer_cache[executable] = importer
 
 # Indicator that modules and resources are built-in rather than on the file system.
 sys.is_standalone_binary = True
