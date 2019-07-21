@@ -412,6 +412,12 @@ namespace NLastGetopt {
             return StoreResultT<T>(target, def);
         }
 
+        template <typename T>
+        TOpt& StoreResultDef(T* target) {
+            DefaultValue_ = ToString(*target);
+            return StoreResultT<T>(target, *target);
+        }
+
         template <typename T, typename TpDef>
         TOpt& StoreResultDef(T* target, const TpDef& def) {
             DefaultValue_ = ToString(def);
