@@ -51,7 +51,9 @@ namespace NCB {
 
         void Add(TFunctionWithResourceUsage&& functionWithResourceUsage);
 
-        // executes all tasks added so far until completion
+        /* Executes all tasks added so far until completion.
+         * It is possible to add tasks after that and call this method again.
+         */
         void ExecTasks();
 
     private:
