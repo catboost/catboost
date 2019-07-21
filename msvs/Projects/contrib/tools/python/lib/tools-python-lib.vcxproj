@@ -113,7 +113,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\tools\python\lib
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python/bootstrap/bootstrap.exe" "$(SolutionDir)../contrib/tools/python/lib/bootstrap.py" "$(SolutionDir)$(Configuration)/contrib/tools/python/lib/python_frozen_modules.rodata" "$(SolutionDir)$(Configuration)/contrib/tools/python/lib/bootstrap.c" "$(SolutionDir)../contrib/tools/python/lib/python-libs.txt"
+"PYTHONPATH=contrib/tools/python/src/Lib" "$(SolutionDir)$(Configuration)/contrib/tools/python/bootstrap/bootstrap.exe" "$(SolutionDir)../contrib/tools/python/lib/bootstrap.py" "$(SolutionDir)$(Configuration)/contrib/tools/python/lib/python_frozen_modules.rodata" "$(SolutionDir)$(Configuration)/contrib/tools/python/lib/bootstrap.c" "$(SolutionDir)../contrib/tools/python/lib/python-libs.txt"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -124,7 +124,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\tools\python\lib
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python/bootstrap/bootstrap.exe" "$(SolutionDir)../contrib/tools/python/lib/bootstrap.py" "$(SolutionDir)$(Configuration)/contrib/tools/python/lib/python_frozen_modules.rodata" "$(SolutionDir)$(Configuration)/contrib/tools/python/lib/bootstrap.c" "$(SolutionDir)../contrib/tools/python/lib/python-libs.txt"
+"PYTHONPATH=contrib/tools/python/src/Lib" "$(SolutionDir)$(Configuration)/contrib/tools/python/bootstrap/bootstrap.exe" "$(SolutionDir)../contrib/tools/python/lib/bootstrap.py" "$(SolutionDir)$(Configuration)/contrib/tools/python/lib/python_frozen_modules.rodata" "$(SolutionDir)$(Configuration)/contrib/tools/python/lib/bootstrap.c" "$(SolutionDir)../contrib/tools/python/lib/python-libs.txt"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
