@@ -4,18 +4,18 @@
 #define ABIFLAGS "m"
 #define PREFIX "/var/empty"
 #define EXEC_PREFIX "/var/empty"
-#define VERSION "3.6"
+#define VERSION "3.7"
 #define VPATH ""
 #define BLAKE2_USE_SSE
 #define USE_ZLIB_CRC32
 #if defined(__linux__)
 #define PLATFORM "linux"
 #define MULTIARCH "x86_64-linux-gnu"
-#define SOABI "cpython-36m-x86_64-linux-gnu"
+#define SOABI "cpython-37m-x86_64-linux-gnu"
 #elif defined(__APPLE__)
 #define PLATFORM "darwin"
 #define MULTIARCH "darwin"
-#define SOABI "cpython-36m-darwin"
+#define SOABI "cpython-37m-darwin"
 #endif
 #endif
 
