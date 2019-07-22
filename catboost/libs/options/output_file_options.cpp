@@ -66,7 +66,6 @@ NCatboostOptions::TOutputFilesOptions::TOutputFilesOptions()
     , BestModelMinTrees("best_model_min_trees", 1)
     , TrainDir("train_dir", "catboost_info")
     , Name("name", "experiment")
-    , MetaFile("meta", "meta.tsv")
     , JsonLogPath("json_log", "catboost_training.json")
     , ProfileLogPath("profile_log", "catboost_profile.log")
     , LearnErrorLogPath("learn_error_log", "learn_error.tsv")
@@ -121,10 +120,6 @@ const TString& NCatboostOptions::TOutputFilesOptions::GetTestErrorFilename() con
 
 const TString& NCatboostOptions::TOutputFilesOptions::GetTimeLeftLogFilename() const {
     return TimeLeftLog.Get();
-}
-
-const TString& NCatboostOptions::TOutputFilesOptions::GetMetaFileFilename() const {
-    return MetaFile.Get();
 }
 
 const TVector<EModelType>& NCatboostOptions::TOutputFilesOptions::GetModelFormats() const {
@@ -252,13 +247,13 @@ TString NCatboostOptions::TOutputFilesOptions::GetRocOutputPath() const {
 
 bool NCatboostOptions::TOutputFilesOptions::operator==(const TOutputFilesOptions& rhs) const {
     return std::tie(
-            TrainDir, Name, MetaFile, JsonLogPath, ProfileLogPath, LearnErrorLogPath, TestErrorLogPath,
+            TrainDir, Name, JsonLogPath, ProfileLogPath, LearnErrorLogPath, TestErrorLogPath,
             TimeLeftLog, ResultModelPath, SnapshotPath, ModelFormats, SaveSnapshotFlag,
             AllowWriteFilesFlag, FinalCtrComputationMode, UseBestModel, BestModelMinTrees,
             SnapshotSaveIntervalSeconds, EvalFileName, FstrRegularFileName, FstrInternalFileName, FstrType,
             TrainingOptionsFileName, OutputBordersFileName, RocOutputPath
             ) == std::tie(
-                rhs.TrainDir, rhs.Name, rhs.MetaFile, rhs.JsonLogPath, rhs.ProfileLogPath,
+                rhs.TrainDir, rhs.Name, rhs.JsonLogPath, rhs.ProfileLogPath,
                 rhs.LearnErrorLogPath, rhs.TestErrorLogPath, rhs.TimeLeftLog, rhs.ResultModelPath,
                 rhs.SnapshotPath, rhs.ModelFormats, rhs.SaveSnapshotFlag, rhs.AllowWriteFilesFlag,
                 rhs.FinalCtrComputationMode, rhs.UseBestModel, rhs.BestModelMinTrees,
@@ -275,7 +270,7 @@ bool NCatboostOptions::TOutputFilesOptions::operator!=(const TOutputFilesOptions
 void NCatboostOptions::TOutputFilesOptions::Load(const NJson::TJsonValue& options) {
     CheckedLoad(
             options,
-            &TrainDir, &Name, &MetaFile, &JsonLogPath, &ProfileLogPath, &LearnErrorLogPath,
+            &TrainDir, &Name, &JsonLogPath, &ProfileLogPath, &LearnErrorLogPath,
             &TestErrorLogPath, &TimeLeftLog, &ResultModelPath, &SnapshotPath, &ModelFormats,
             &SaveSnapshotFlag, &AllowWriteFilesFlag, &FinalCtrComputationMode, &UseBestModel,
             &BestModelMinTrees, &SnapshotSaveIntervalSeconds, &EvalFileName, &OutputColumns,
@@ -291,7 +286,7 @@ void NCatboostOptions::TOutputFilesOptions::Load(const NJson::TJsonValue& option
 void NCatboostOptions::TOutputFilesOptions::Save(NJson::TJsonValue* options) const {
     SaveFields(
             options,
-            TrainDir, Name, MetaFile, JsonLogPath, ProfileLogPath, LearnErrorLogPath, TestErrorLogPath,
+            TrainDir, Name, JsonLogPath, ProfileLogPath, LearnErrorLogPath, TestErrorLogPath,
             TimeLeftLog, ResultModelPath, SnapshotPath, ModelFormats, SaveSnapshotFlag,
             AllowWriteFilesFlag, FinalCtrComputationMode, UseBestModel, BestModelMinTrees,
             SnapshotSaveIntervalSeconds, EvalFileName, OutputColumns, FstrRegularFileName,

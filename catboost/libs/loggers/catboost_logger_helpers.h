@@ -56,7 +56,6 @@ public:
     TString LearnErrorLogFile;
     TString TestErrorLogFile;
     TString SnapshotFile;
-    TString MetaFile;
     TString JsonLogFile;
     TString ProfileLogFile;
     TString TrainDir;
@@ -116,12 +115,6 @@ NJson::TJsonValue GetJsonMeta(
         const TVector<TString>& testSetNames,
         ELaunchMode launchMode
 );
-
-
-void CreateMetaFile(const TOutputFiles& outputFiles,
-                    const NCatboostOptions::TOutputFilesOptions& outputOptions,
-                    const TVector<const IMetric*>& losses,
-                    ui32 iterationsCount);
 
 TString GetTrainModelLearnToken();
 TVector<const TString> GetTrainModelTestTokens(int testCount);

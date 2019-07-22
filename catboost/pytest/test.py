@@ -2945,32 +2945,6 @@ def test_custom_loss(custom_loss_function, boosting_type):
     return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
 
 
-@pytest.mark.parametrize('loss_function', LOSS_FUNCTIONS)
-@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
-def test_meta(loss_function, boosting_type):
-    output_model_path = yatest.common.test_output_path('model.bin')
-    output_eval_path = yatest.common.test_output_path('test.eval')
-    meta_path = 'meta.tsv'
-    cmd = (
-        CATBOOST_PATH,
-        'fit',
-        '--use-best-model', 'false',
-        '--loss-function', loss_function,
-        '-f', data_file('adult', 'train_small'),
-        '-t', data_file('adult', 'test_small'),
-        '--column-description', data_file('adult', 'train.cd'),
-        '--boosting-type', boosting_type,
-        '-i', '10',
-        '-T', '4',
-        '-m', output_model_path,
-        '--eval-file', output_eval_path,
-        '--name', 'test experiment',
-    )
-    yatest.common.execute(cmd)
-
-    return [local_canonical_file(meta_path)]
-
-
 def test_train_dir():
     output_model_path = 'model.bin'
     output_eval_path = 'test.eval'
@@ -2992,7 +2966,7 @@ def test_train_dir():
         '--fstr-internal-file', 'ifstr.tsv'
     )
     yatest.common.execute(cmd)
-    outputs = ['time_left.tsv', 'learn_error.tsv', 'test_error.tsv', 'meta.tsv', output_model_path, output_eval_path, 'fstr.tsv', 'ifstr.tsv']
+    outputs = ['time_left.tsv', 'learn_error.tsv', 'test_error.tsv', output_model_path, output_eval_path, 'fstr.tsv', 'ifstr.tsv']
     for output in outputs:
         assert os.path.isfile(train_dir_path + '/' + output)
 

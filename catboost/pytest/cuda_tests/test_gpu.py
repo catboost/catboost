@@ -864,28 +864,6 @@ def test_ctr_type(ctr_type, boosting_type):
     return [local_canonical_file(output_eval_path)]
 
 
-@pytest.mark.parametrize('loss_function', LOSS_FUNCTIONS)
-@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
-def test_meta(loss_function, boosting_type):
-    output_model_path = yatest.common.test_output_path('model.bin')
-    meta_path = 'meta.tsv'
-    params = (
-        '--use-best-model', 'false',
-        '--loss-function', loss_function,
-        '-f', data_file('adult', 'train_small'),
-        '-t', data_file('adult', 'test_small'),
-        '--column-description', data_file('adult', 'train.cd'),
-        '--boosting-type', boosting_type,
-        '-i', '10',
-        '-T', '4',
-        '-m', output_model_path,
-        '--name', 'test experiment',
-    )
-    fit_catboost_gpu(params)
-
-    return [local_canonical_file(meta_path)]
-
-
 def test_train_dir():
     output_model_path = 'model.bin'
     train_dir_path = 'trainDir'
@@ -901,7 +879,7 @@ def test_train_dir():
         '--train-dir', train_dir_path,
     )
     fit_catboost_gpu(params)
-    outputs = ['time_left.tsv', 'learn_error.tsv', 'test_error.tsv', 'meta.tsv', output_model_path]
+    outputs = ['time_left.tsv', 'learn_error.tsv', 'test_error.tsv', output_model_path]
     for output in outputs:
         assert os.path.isfile(train_dir_path + '/' + output)
 

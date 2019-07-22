@@ -45,11 +45,6 @@ namespace NCatboostCuda {
         , CalcEvalMetricOnEveryIteration(forceCalcEvalMetricOnEveryIteration || ErrorTracker.IsActive())
     {
         if (OutputOptions.AllowWriteFiles()) {
-            CreateMetaFile(OutputFiles,
-                           OutputOptions,
-                           GetCpuMetrics(Metrics),
-                           CatboostOptions.BoostingOptions->IterationCount);
-
             InitializeFileLoggers(CatboostOptions,
                                   OutputFiles,
                                   GetCpuMetrics(Metrics),

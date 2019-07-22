@@ -185,7 +185,6 @@ public:
 
     ~TLearnContext();
 
-    void OutputMeta();
     void SaveProgress();
     bool TryLoadProgress();
     bool UseTreeLevelCaching() const;

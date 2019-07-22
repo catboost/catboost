@@ -63,7 +63,6 @@ void TOutputFiles::InitializeFiles(const NCatboostOptions::TOutputFilesOptions& 
         Y_ASSERT(TimeLeftLogFile.empty());
         Y_ASSERT(LearnErrorLogFile.empty());
         Y_ASSERT(TestErrorLogFile.empty());
-        Y_ASSERT(MetaFile.empty());
         Y_ASSERT(SnapshotFile.empty());
         return;
     }
@@ -85,10 +84,6 @@ void TOutputFiles::InitializeFiles(const NCatboostOptions::TOutputFilesOptions& 
     if (params.SaveSnapshot()) {
         SnapshotFile = TOutputFiles::AlignFilePathAndCreateDir(trainDir, params.GetSnapshotFilename(), NamesPrefix);
     }
-    const TString& metaFileFilename = params.GetMetaFileFilename();
-    CB_ENSURE(!metaFileFilename.empty(), "empty meta filename");
-    MetaFile = TOutputFiles::AlignFilePathAndCreateDir(trainDir, metaFileFilename, NamesPrefix);
-
     const TString& jsonLogFilename = params.GetJsonLogFilename();
     CB_ENSURE(!jsonLogFilename.empty(), "empty json_log filename");
     JsonLogFile = TOutputFiles::AlignFilePathAndCreateDir(trainDir, jsonLogFilename, "");
@@ -321,47 +316,3 @@ void InitializeFileLoggers(
 
 
 }
-
-
-static TString FilePathForMeta(const TString& filename, const TString& namePrefix) {
-    TFsPath filePath(filename);
-    if (filePath.IsAbsolute()) {
-        return JoinFsPaths(filePath.Dirname(), namePrefix + filePath.Basename());
-    }
-    return JoinFsPaths(namePrefix + filename);
-}
-
-
-void CreateMetaFile(const TOutputFiles& outputFiles,
-                    const NCatboostOptions::TOutputFilesOptions& outputOptions,
-                    const TVector<const IMetric*>& losses,
-                    ui32 iterationsCount) {
-        if (outputFiles.MetaFile.empty()) {
-            return;
-        }
-
-        TOFStream meta(outputFiles.MetaFile);
-        meta << "name\t" << outputOptions.GetName() << Endl;
-        meta << "iterCount\t" << iterationsCount << Endl;
-
-        //output log files path relative to trainDirectory
-        meta << "learnErrorLog\t" << FilePathForMeta(outputOptions.GetLearnErrorFilename(), outputFiles.NamesPrefix) << Endl;
-        if (!outputFiles.TestErrorLogFile.empty()) {
-            meta << "testErrorLog\t" << FilePathForMeta(outputOptions.GetTestErrorFilename(), outputFiles.NamesPrefix) << Endl;
-        }
-        meta << "timeLeft\t" << FilePathForMeta(outputOptions.GetTimeLeftLogFilename(), outputFiles.NamesPrefix) << Endl;
-
-        for (const auto& loss : losses) {
-            EMetricBestValue bestValueType;
-            float bestValue;
-            loss->GetBestValue(&bestValueType, &bestValue);
-            TString bestValueString;
-            if (bestValueType == EMetricBestValue::Max) {
-                bestValueString = "max";
-            } else {
-                bestValueString = "min";
-            }
-            meta << "loss\t" << loss->GetDescription() << "\t" << bestValueString << Endl;
-        }
-}
-

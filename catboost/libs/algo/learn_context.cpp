@@ -360,16 +360,6 @@ TLearnContext::~TLearnContext() {
     }
 }
 
-void TLearnContext::OutputMeta() {
-    auto losses = CreateMetrics(
-        Params.MetricOptions,
-        EvalMetricDescriptor,
-        LearnProgress->ApproxDimension
-    );
-
-    CreateMetaFile(Files, OutputOptions, GetConstPointers(losses), Params.BoostingOptions->IterationCount);
-}
-
 void TLearnContext::SaveProgress() {
     if (!OutputOptions.SaveSnapshot()) {
         return;

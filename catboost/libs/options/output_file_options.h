@@ -44,8 +44,6 @@ namespace NCatboostOptions {
 
         const TString& GetTimeLeftLogFilename() const;
 
-        const TString& GetMetaFileFilename() const;
-
         const TVector<EModelType>& GetModelFormats() const;
 
         bool ExportRequiresStaticCtrProvider() const;
@@ -124,7 +122,6 @@ namespace NCatboostOptions {
     private:
         TOption<TString> TrainDir;
         TOption<TString> Name;
-        TOption<TString> MetaFile;
         TOption<TString> JsonLogPath;
         TOption<TString> ProfileLogPath;
         TOption<TString> LearnErrorLogPath;

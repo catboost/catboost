@@ -663,8 +663,6 @@ namespace {
                 localExecutor
             );
 
-            ctx.OutputMeta();
-
             DumpMemUsage("Before start train");
 
             const auto& systemOptions = ctx.Params.SystemOptions;
