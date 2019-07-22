@@ -51,7 +51,9 @@ namespace NCB {
         const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
         const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
         TDataProviderPtr data,
-        TBestOptionValuesWithCvResult* bestOptionValuesWithCvResult);
+        TBestOptionValuesWithCvResult* bestOptionValuesWithCvResult,
+        bool isSearchUsingTrainTestSplit = true,
+        bool returnCvStat = true);
 
     void RandomizedSearch(
         ui32 numberOfTries,
@@ -63,5 +65,7 @@ namespace NCB {
         const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
         const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
         TDataProviderPtr data,
-        TBestOptionValuesWithCvResult* bestOptionValuesWithCvResult);
+        TBestOptionValuesWithCvResult* bestOptionValuesWithCvResult,
+        bool isSearchUsingTrainTestSplit = true,
+        bool returnCvStat = true);
 }

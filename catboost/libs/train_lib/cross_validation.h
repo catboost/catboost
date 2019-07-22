@@ -136,6 +136,18 @@ TVector<TDataProvidersTemplate> PrepareCvFolds(
 
 void CrossValidate(
     NJson::TJsonValue plainJsonParams,
+    const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
+    const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
+    const TMaybe<NCB::TCustomTrainTestSubsets>& customTrainTestSubset,
+    const TLabelConverter& labelConverter,
+    NCB::TTrainingDataProviderPtr trainingData,
+    const TCrossValidationParams& cvParams,
+    NPar::TLocalExecutor* localExecutor,
+    TVector<TCVResult>* results,
+    bool isAlreadyShuffled = false);
+
+void CrossValidate(
+    NJson::TJsonValue plainJsonParams,
     NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
     const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
     const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,

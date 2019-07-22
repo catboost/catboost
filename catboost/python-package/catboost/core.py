@@ -2493,6 +2493,7 @@ class CatBoost(_CatBoostBase):
         return graph
 
     def _tune_hyperparams(self, param_grid, X, y=None, n_iter=10, partition_random_seed=0,
+                          calc_cv_statistics=True, search_by_train_test_split=True,
                           refit=True, shuffle=True, stratified=None, train_size=0.8, fold_count=3):
 
         currently_not_supported_params = {
@@ -2534,25 +2535,21 @@ class CatBoost(_CatBoostBase):
 
         cv_result = self._object._tune_hyperparams(
             param_grid, train_params["train_pool"], params, n_iter,
-            fold_count, partition_random_seed, shuffle, stratified, train_size
+            fold_count, partition_random_seed, shuffle, stratified, train_size,
+            search_by_train_test_split, calc_cv_statistics
         )
 
         self.set_params(**cv_result['params'])
         if refit:
-            self.fit(
-                X, y, silent=True
-            )
+            self.fit(X, y, silent=True)
         return cv_result
 
     def grid_search(self, param_grid, X, y=None, partition_random_seed=0,
+                    calc_cv_statistics=True, search_by_train_test_split=True,
                     refit=True, shuffle=True, stratified=None, train_size=0.8, fold_count=3):
         """
         Exhaustive search over specified parameter values for a model.
-        Source dataset is splitted into train and test parts, models are trained on the train part and
-        parameters are compared by loss function score on the test part.
-        After that, statistics on metrics are calculated using cross-validation using best parameters and
-        the model is fitted with these parameters.
-        Thus, after calling this method model is fitted and can be used, if not specified otherwise (refit=False).
+        Aafter calling this method model is fitted and can be used, if not specified otherwise (refit=False).
 
         Parameters
         ----------
@@ -2573,6 +2570,19 @@ class CatBoost(_CatBoostBase):
             Use this as the seed value for random permutation of the data.
             Permutation is performed before splitting the data for cross validation.
             Each seed generates unique data splits.
+
+        search_by_train_test_split: bool, optional (default=True)
+            If True, source dataset is splitted into train and test parts, models are trained
+            on the train part and parameters are compared by loss function score on the test part.
+            After that, if calc_cv_statistics=true, statistics on metrics are calculated
+            using cross-validation using best parameters and the model is fitted with these parameters.
+
+            If False, every iteration of grid search evaluates results on cross-validation.
+            It is recommended to set parameter to True for large datasets, and to False for small datasets.
+
+        calc_cv_statistics: bool, optional (default=True)
+            The parameter determines whether quality should be estimated.
+            using cross-validation with the found best parameters. Used only when search_by_train_test_split=True.
 
         refit: bool (default=True)
             Refit an estimator using the best found parameters on the whole dataset.
@@ -2608,18 +2618,16 @@ class CatBoost(_CatBoostBase):
 
         return self._tune_hyperparams(
             param_grid, X, y, -1, partition_random_seed, refit,
+            calc_cv_statistics, search_by_train_test_split,
             shuffle, stratified, train_size, fold_count
         )
 
     def randomized_search(self, param_distributions, X, y=None, n_iter=10, partition_random_seed=0,
+                          calc_cv_statistics=True, search_by_train_test_split=True,
                           refit=True, shuffle=True, stratified=None, train_size=0.8, fold_count=3):
         """
         Randomized search on hyper parameters.
-        Source dataset is splitted into train and test parts, models are trained on the train part and
-        parameters are compared by loss function score on the test part
-        After that, statistics on metrics are calculated using cross-validation using best parameters and
-        the model is fitted with these parameters.
-        Thus, after calling this method model is fitted and can be used, if not specified otherwise (refit=False).
+        After calling this method model is fitted and can be used, if not specified otherwise (refit=False).
 
         In contrast to grid_search, not all parameter values are tried out,
         but rather a fixed number of parameter settings is sampled from the specified distributions.
@@ -2647,6 +2655,19 @@ class CatBoost(_CatBoostBase):
             Use this as the seed value for random permutation of the data.
             Permutation is performed before splitting the data for cross validation.
             Each seed generates unique data splits.
+
+        search_by_train_test_split: bool, optional (default=True)
+            If True, source dataset is splitted into train and test parts, models are trained
+            on the train part and parameters are compared by loss function score on the test part.
+            After that, if calc_cv_statistics=true, statistics on metrics are calculated
+            using cross-validation using best parameters and the model is fitted with these parameters.
+
+            If False, every iteration of grid search evaluates results on cross-validation.
+            It is recommended to set parameter to True for large datasets, and to False for small datasets.
+
+        calc_cv_statistics: bool, optional (default=True)
+            The parameter determines whether quality should be estimated.
+            using cross-validation with the found best parameters. Used only when search_by_train_test_split=True.
 
         refit: bool (default=True)
             Refit an estimator using the best found parameters on the whole dataset.
@@ -2681,6 +2702,7 @@ class CatBoost(_CatBoostBase):
 
         return self._tune_hyperparams(
             param_distributions, X, y, n_iter, partition_random_seed, refit,
+            calc_cv_statistics, search_by_train_test_split,
             shuffle, stratified, train_size, fold_count
         )
 

@@ -463,22 +463,23 @@ void UpdatePermutationBlockSize(
     }
 }
 
-
 void CrossValidate(
     NJson::TJsonValue plainJsonParams,
-    TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
     const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
     const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
     const TMaybe<NCB::TCustomTrainTestSubsets>& customTrainTestSubset,
-    TDataProviderPtr data,
+    const TLabelConverter& labelConverter,
+    NCB::TTrainingDataProviderPtr trainingData,
     const TCrossValidationParams& cvParams,
-    TVector<TCVResult>* results
-) {
+    NPar::TLocalExecutor* localExecutor,
+    TVector<TCVResult>* results,
+    bool isAlreadyShuffled) {
+
     cvParams.Check();
 
     NJson::TJsonValue jsonParams;
     NJson::TJsonValue outputJsonParams;
-    ConvertIgnoredFeaturesFromStringToIndices(data.Get()->MetaInfo, &plainJsonParams);
+    ConvertIgnoredFeaturesFromStringToIndices(trainingData.Get()->MetaInfo, &plainJsonParams);
     NCatboostOptions::PlainJsonToOptions(plainJsonParams, &jsonParams, &outputJsonParams);
     NCatboostOptions::TCatBoostOptions catBoostOptions(NCatboostOptions::LoadOptions(jsonParams));
     NCatboostOptions::TOutputFilesOptions outputFileOptions;
@@ -495,44 +496,25 @@ void CrossValidate(
         "Cross-validation on GPU relies on writing files, so it must be allowed"
     );
 
-    const ui32 allDataObjectCount = data->ObjectsData->GetObjectCount();
+    const ui32 allDataObjectCount = trainingData->ObjectsData->GetObjectCount();
 
     CB_ENSURE(allDataObjectCount != 0, "Pool is empty");
     CB_ENSURE(allDataObjectCount > cvParams.FoldCount, "Pool is too small to be split into folds");
 
     // TODO(akhropov): implement ordered split. MLTOOLS-2486.
     CB_ENSURE(
-        data->ObjectsData->GetOrder() != EObjectsOrder::Ordered,
+        trainingData->ObjectsData->GetOrder() != EObjectsOrder::Ordered,
         "Cross-validation for Ordered objects data is not yet implemented"
     );
 
     TRestorableFastRng64 rand(cvParams.PartitionRandSeed);
 
-    NPar::TLocalExecutor localExecutor;
-    localExecutor.RunAdditionalThreads(catBoostOptions.SystemOptions->NumThreads.Get() - 1);
+    localExecutor->RunAdditionalThreads(catBoostOptions.SystemOptions->NumThreads.Get() - 1);
 
-    if (cvParams.Shuffle) {
-        auto objectsGroupingSubset = NCB::Shuffle(data->ObjectsGrouping, 1, &rand);
-        data = data->GetSubset(objectsGroupingSubset, &localExecutor);
+    if (cvParams.Shuffle && !isAlreadyShuffled) {
+        auto objectsGroupingSubset = NCB::Shuffle(trainingData->ObjectsGrouping, 1, &rand);
+        trainingData = trainingData->GetSubset(objectsGroupingSubset, localExecutor);
     }
-
-    TLabelConverter labelConverter;
-    TMaybe<float> targetBorder = catBoostOptions.DataProcessingOptions->TargetBorder;
-
-    TTrainingDataProviderPtr trainingData = GetTrainingData(
-        std::move(data),
-        /*isLearnData*/ true,
-        TStringBuf(),
-        Nothing(), // TODO(akhropov): allow loading borders and nanModes in CV?
-        /*unloadCatFeaturePerfectHashFromRamIfPossible*/ true,
-        /*ensureConsecutiveLearnFeaturesDataForCpu*/ false,
-        outputFileOptions.AllowWriteFiles(),
-        quantizedFeaturesInfo,
-        &catBoostOptions,
-        &labelConverter,
-        &targetBorder,
-        &localExecutor,
-        &rand);
 
     UpdateYetiRankEvalMetric(trainingData->MetaInfo.TargetStats, Nothing(), &catBoostOptions);
 
@@ -591,7 +573,7 @@ void CrossValidate(
         customTrainTestSubset,
         Nothing(),
         /* oldCvStyleSplit */ false,
-        &localExecutor);
+        localExecutor);
 
     /* ensure that all folds have the same permutation block size because some of them might be consecutive
        and some might not
@@ -711,7 +693,7 @@ void CrossValidate(
                 loggingLevel,
                 &foldContexts[foldIdx],
                 modelTrainerHolder.Get(),
-                &localExecutor,
+                localExecutor,
                 &batchEndIteration);
 
             Y_ASSERT(batchEndIteration); // should be inited right after the first iteration of the first fold
@@ -813,7 +795,7 @@ void CrossValidate(
         TVector<TConstArrayRef<float>> labels;
         for (auto& foldContext : foldContexts) {
             allApproxes.push_back(std::move(foldContext.LastUpdateEvalResult.GetRawValuesRef()[0][0]));
-            labels.push_back(*foldContext.TrainingData.Test[0]->TargetData->GetTargetForLoss());
+            labels.push_back(*foldContext.TrainingData.Test[0]->TargetData->GetTarget());
         }
 
         TRocCurve rocCurve(allApproxes, labels, catBoostOptions.SystemOptions.Get().NumThreads);
@@ -821,6 +803,88 @@ void CrossValidate(
     }
 }
 
+void CrossValidate(
+    NJson::TJsonValue plainJsonParams,
+    TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
+    const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
+    const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
+    const TMaybe<NCB::TCustomTrainTestSubsets>& customTrainTestSubset,
+    TDataProviderPtr data,
+    const TCrossValidationParams& cvParams,
+    TVector<TCVResult>* results
+) {
+    cvParams.Check();
+
+    NJson::TJsonValue jsonParams;
+    NJson::TJsonValue outputJsonParams;
+    ConvertIgnoredFeaturesFromStringToIndices(data.Get()->MetaInfo, &plainJsonParams);
+    NCatboostOptions::PlainJsonToOptions(plainJsonParams, &jsonParams, &outputJsonParams);
+    NCatboostOptions::TCatBoostOptions catBoostOptions(NCatboostOptions::LoadOptions(jsonParams));
+    NCatboostOptions::TOutputFilesOptions outputFileOptions;
+    outputFileOptions.Load(outputJsonParams);
+
+    // TODO(akhropov): implement snapshots in CV. MLTOOLS-3439.
+    CB_ENSURE(!outputFileOptions.SaveSnapshot(), "Saving snapshots in Cross-validation is not supported yet");
+
+    const ETaskType taskType = catBoostOptions.GetTaskType();
+
+    // TODO(akhropov): implement learning continuation for GPU, do not rely on snapshots. MLTOOLS-3735.
+    CB_ENSURE(
+        (taskType == ETaskType::CPU) || outputFileOptions.AllowWriteFiles(),
+        "Cross-validation on GPU relies on writing files, so it must be allowed"
+    );
+
+    const ui32 allDataObjectCount = data->ObjectsData->GetObjectCount();
+
+    CB_ENSURE(allDataObjectCount != 0, "Pool is empty");
+    CB_ENSURE(allDataObjectCount > cvParams.FoldCount, "Pool is too small to be split into folds");
+
+    // TODO(akhropov): implement ordered split. MLTOOLS-2486.
+    CB_ENSURE(
+        data->ObjectsData->GetOrder() != EObjectsOrder::Ordered,
+        "Cross-validation for Ordered objects data is not yet implemented"
+    );
+
+    TRestorableFastRng64 rand(cvParams.PartitionRandSeed);
+
+    NPar::TLocalExecutor localExecutor;
+    localExecutor.RunAdditionalThreads(catBoostOptions.SystemOptions->NumThreads.Get() - 1);
+
+    if (cvParams.Shuffle) {
+        auto objectsGroupingSubset = NCB::Shuffle(data->ObjectsGrouping, 1, &rand);
+        data = data->GetSubset(objectsGroupingSubset, &localExecutor);
+    }
+
+    TLabelConverter labelConverter;
+    TMaybe<float> targetBorder = catBoostOptions.DataProcessingOptions->TargetBorder;
+
+    TTrainingDataProviderPtr trainingData = GetTrainingData(
+        std::move(data),
+        /*isLearnData*/ true,
+        TStringBuf(),
+        Nothing(), // TODO(akhropov): allow loading borders and nanModes in CV?
+        /*unloadCatFeaturePerfectHashFromRamIfPossible*/ true,
+        /*ensureConsecutiveLearnFeaturesDataForCpu*/ false,
+        outputFileOptions.AllowWriteFiles(),
+        quantizedFeaturesInfo,
+        &catBoostOptions,
+        &labelConverter,
+        &targetBorder,
+        &localExecutor,
+        &rand);
+
+    CrossValidate(
+        plainJsonParams,
+        objectiveDescriptor,
+        evalMetricDescriptor,
+        customTrainTestSubset,
+        labelConverter,
+        trainingData,
+        cvParams,
+        &localExecutor,
+        results,
+        true);
+}
 
 TVector<NCB::TArraySubsetIndexing<ui32>> TransformToVectorArrayIndexing(
     const TVector<TVector<ui32>>& vectorData) {

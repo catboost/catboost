@@ -1016,7 +1016,9 @@ cdef extern from "catboost/libs/hyperparameter_tuning/hyperparameter_tuning.h" n
         const TMaybe[TCustomObjectiveDescriptor]& objectiveDescriptor,
         const TMaybe[TCustomMetricDescriptor]& evalMetricDescriptor,
         TDataProviderPtr pool,
-        TBestOptionValuesWithCvResult* results) nogil except +ProcessException
+        TBestOptionValuesWithCvResult* results,
+        bool_t isSearchUsingCV,
+        bool_t isReturnCvResults) nogil except +ProcessException
 
     cdef void RandomizedSearch(
         ui32 numberOfTries,
@@ -1028,7 +1030,9 @@ cdef extern from "catboost/libs/hyperparameter_tuning/hyperparameter_tuning.h" n
         const TMaybe[TCustomObjectiveDescriptor]& objectiveDescriptor,
         const TMaybe[TCustomMetricDescriptor]& evalMetricDescriptor,
         TDataProviderPtr pool,
-        TBestOptionValuesWithCvResult* results) nogil except +ProcessException
+        TBestOptionValuesWithCvResult* results,
+        bool_t isSearchUsingCV,
+        bool_t isReturnCvResults) nogil except +ProcessException
 
 cdef inline float _FloatOrNan(object obj) except *:
     try:
@@ -3058,7 +3062,7 @@ cdef class _CatBoost:
 
     cpdef _tune_hyperparams(self, list grids_list, _PoolBase train_pool, dict params, int n_iter,
                           int fold_count, int partition_random_seed, bool_t shuffle, bool_t stratified,
-                          double train_size):
+                          double train_size, bool_t choose_by_train_test_split, bool_t return_cv_results):
 
         prep_params = _PreprocessParams(params)
         prep_grids = _PreprocessGrids(grids_list)
@@ -3092,7 +3096,9 @@ cdef class _CatBoost:
                         prep_params.customObjectiveDescriptor,
                         prep_params.customMetricDescriptor,
                         train_pool.__pool,
-                        &results
+                        &results,
+                        choose_by_train_test_split,
+                        return_cv_results
                     )
                 else:
                     RandomizedSearch(
@@ -3105,7 +3111,9 @@ cdef class _CatBoost:
                         prep_params.customObjectiveDescriptor,
                         prep_params.customMetricDescriptor,
                         train_pool.__pool,
-                        &results
+                        &results,
+                        choose_by_train_test_split,
+                        return_cv_results
                     )
             finally:
                 ResetPythonInterruptHandler()
