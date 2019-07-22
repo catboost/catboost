@@ -2649,7 +2649,7 @@ PySys_SetArgvEx(int argc, wchar_t **argv, int updatepath)
 void
 PySys_SetArgv(int argc, wchar_t **argv)
 {
-    PySys_SetArgvEx(argc, argv, Py_IsolatedFlag == 0);
+    PySys_SetArgvEx(argc, argv, 0);
 }
 
 /* Reimplementation of PyFile_WriteString() no calling indirectly

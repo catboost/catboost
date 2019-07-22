@@ -783,6 +783,12 @@ calculate_module_search_path(const _PyCoreConfig *core_config,
     calculate->machine_path = getpythonregpath(HKEY_LOCAL_MACHINE, skiphome);
     calculate->user_path = getpythonregpath(HKEY_CURRENT_USER, skiphome);
 #endif
+    config->module_search_path = core_config->module_search_path_env;
+    if (!config->module_search_path) {
+        config->module_search_path = config->program_full_path;
+    }
+    return _Py_INIT_OK();
+
     /* We only use the default relative PYTHONPATH if we haven't
        anything better to use! */
     int skipdefault = (core_config->module_search_path_env != NULL ||

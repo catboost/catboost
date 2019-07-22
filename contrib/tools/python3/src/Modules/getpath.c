@@ -803,6 +803,12 @@ calculate_module_search_path(const _PyCoreConfig *core_config,
                              const wchar_t *prefix, const wchar_t *exec_prefix,
                              _PyPathConfig *config)
 {
+    config->module_search_path = core_config->module_search_path_env;
+    if (!config->module_search_path) {
+        config->module_search_path = config->program_full_path;
+    }
+    return _Py_INIT_OK();
+
     /* Calculate size of return buffer */
     size_t bufsz = 0;
     if (core_config->module_search_path_env != NULL) {

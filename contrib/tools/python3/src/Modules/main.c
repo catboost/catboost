@@ -2827,7 +2827,7 @@ pymain_init_sys_path(_PyMain *pymain, _PyCoreConfig *config)
         return 0;
     }
 
-    if (Py_IsolatedFlag) {
+    if (Py_IsolatedFlag || 1) { // Do not add current directory.
         return 0;
     }
 

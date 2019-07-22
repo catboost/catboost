@@ -553,17 +553,17 @@ def main():
     global ENABLE_USER_SITE
 
     orig_path = sys.path[:]
-    known_paths = removeduppaths()
+    #known_paths = removeduppaths()
     if orig_path != sys.path:
         # removeduppaths() might make sys.path absolute.
         # fix __file__ and __cached__ of already imported modules too.
         abs_paths()
 
-    known_paths = venv(known_paths)
+    #known_paths = venv(known_paths)
     if ENABLE_USER_SITE is None:
         ENABLE_USER_SITE = check_enableusersite()
-    known_paths = addusersitepackages(known_paths)
-    known_paths = addsitepackages(known_paths)
+    #known_paths = addusersitepackages(known_paths)
+    #known_paths = addsitepackages(known_paths)
     setquit()
     setcopyright()
     sethelper()
