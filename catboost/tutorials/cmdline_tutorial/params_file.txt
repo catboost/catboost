@@ -1,0 +1,5 @@
+{
+    "thread_count": 4,
+    "loss_function": "Logloss",
+    "iterations": 400
+}

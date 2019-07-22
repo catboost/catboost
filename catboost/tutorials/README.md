@@ -18,7 +18,7 @@ It's better to start CatBoost exploring from this basic tutorials.
 
 ### Command line
 
-* [Command Line Tutorial](cmdline_tutorial.md)
+* [Command Line Tutorial](cmdline_tutorial/cmdline_tutorial.md)
     * This tutorial shows how to train and apply model with the command line tool.
 
 ## Classification
