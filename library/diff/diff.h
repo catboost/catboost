@@ -2,6 +2,7 @@
 
 #include <library/lcs/lcs_via_lis.h>
 
+#include <util/generic/algorithm.h>
 #include <util/generic/array_ref.h>
 #include <util/generic/strbuf.h>
 #include <util/generic/vector.h>
@@ -62,7 +63,7 @@ namespace NDiff {
                 // Save the beginning of common part in s2
                 c2 = s2.begin() + ctx.ResultBuffer[i];
                 // Find the beginning of common part in s1
-                c1 = FastStrChr(e1, *c2);
+                c1 = Find(e1, s1.end(), *c2);
                 // Follow common substring
                 for (e1 = c1, e2 = c2; i < n && *e1 == *e2; ++e1, ++e2) {
                     ++i;
