@@ -509,8 +509,6 @@ void CrossValidate(
 
     TRestorableFastRng64 rand(cvParams.PartitionRandSeed);
 
-    localExecutor->RunAdditionalThreads(catBoostOptions.SystemOptions->NumThreads.Get() - 1);
-
     if (cvParams.Shuffle && !isAlreadyShuffled) {
         auto objectsGroupingSubset = NCB::Shuffle(trainingData->ObjectsGrouping, 1, &rand);
         trainingData = trainingData->GetSubset(objectsGroupingSubset, localExecutor);
