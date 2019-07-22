@@ -205,14 +205,14 @@ static void CalcLeafDers(
             ) {
                 const int innerCount = Min(nextBlockStart - innerBlockStart, innerBlockSize);
                 error.CalcDersRange(
-                    innerBlockStart,
+                    0,
                     innerCount,
                     /*calcThirdDer=*/false,
-                    approxes.data(),
-                    approxesDelta.data(),
-                    targets.data(),
-                    weights.data(),
-                    approxDers.data() - innerBlockStart
+                    approxes.data() + innerBlockStart,
+                    approxesDelta.empty() ? nullptr : approxesDelta.data() + innerBlockStart,
+                    targets.data() + innerBlockStart,
+                    weights.empty() ? nullptr : weights.data() + innerBlockStart,
+                    approxDers.data()
                 );
                 if (weights.empty()) {
                     CalcLeafDersImpl<false>(
