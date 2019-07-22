@@ -189,15 +189,19 @@ public:
     }
 
     void Write(TConstArrayRef<T> src) {
+        TCudaStream stream = TCudaStream::ZeroStream();
         CB_ENSURE(src.size() == Size(), src.size() << " ≠ " << Size());
         CB_ENSURE(Impl_);
-        CUDA_SAFE_CALL(cudaMemcpy((void*)Impl_->Data_, (const void*)src.data(), sizeof(T) * src.size(), cudaMemcpyDefault));
+        CUDA_SAFE_CALL(cudaMemcpyAsync((void*)Impl_->Data_, (const void*)src.data(), sizeof(T) * src.size(), cudaMemcpyDefault, stream));
+        stream.Synchronize();
     }
 
     void Read(TArrayRef<T> dst) const {
+        TCudaStream stream = TCudaStream::ZeroStream();
         CB_ENSURE(dst.size() == Size());
         CB_ENSURE(Impl_);
-        CUDA_SAFE_CALL(cudaMemcpy((void*)dst.data(), (const void*)Impl_->Data_, sizeof(T) * dst.size(), cudaMemcpyDefault));
+        CUDA_SAFE_CALL(cudaMemcpyAsync((void*)dst.data(), (const void*)Impl_->Data_, sizeof(T) * dst.size(), cudaMemcpyDefault, stream));
+        stream.Synchronize();
     }
 
     void ReadAsync(TArrayRef<T> dst, TCudaStream stream) const {
@@ -251,8 +255,13 @@ inline TCudaVec<T> MakeCudaVec(const TVector<T>& data, EMemoryType type) {
 
 template <class T>
 inline TCudaVec<T> MakeZeroVec(ui64 size, EMemoryType type) {
+    if (size == 0) {
+        return TCudaVec<T>();
+    }
     TCudaVec<T> result(size, type);
-    result.ClearAsync(TCudaStream::ZeroStream());
+    auto stream = TCudaStream::ZeroStream();
+    result.ClearAsync(stream);
+    stream.Synchronize();
     return result;
 }
 
