@@ -253,6 +253,37 @@ Y_UNIT_TEST_SUITE(AUCMetricTests) {
         );
     }
 
+    Y_UNIT_TEST(ParallelizationOnTest) {
+        TVector<double> approx{3, 2, 1};
+        TVector<double> target{0, 1, 0};
+        TVector<double> weight{1, 1, 1};
+
+        NPar::TLocalExecutor executor;
+        executor.RunAdditionalThreads(31);
+
+        TVector<NMetrics::TSample> samples;
+        for (ui32 i = 0; i < target.size(); ++i) {
+            samples.emplace_back(target[i], approx[i], weight[i]);
+        }
+
+        double score = CalcAUC(&samples, &executor);
+        UNIT_ASSERT_DOUBLES_EQUAL(score, 0.5, 1e-6);
+    }
+
+    Y_UNIT_TEST(ParallelizationOffTest) {
+        TVector<double> approx{3, 2, 1};
+        TVector<double> target{0, 1, 0};
+        TVector<double> weight{1, 1, 1};
+
+        TVector<NMetrics::TSample> samples;
+        for (ui32 i = 0; i < target.size(); ++i) {
+            samples.emplace_back(target[i], approx[i], weight[i]);
+        }
+
+        double score = CalcAUC(&samples);
+        UNIT_ASSERT_DOUBLES_EQUAL(score, 0.5, 1e-6);
+    }
+
     Y_UNIT_TEST(BigRandomTest) {
         TFastRng<ui64> rng(239);
         ui32 size = 2000;

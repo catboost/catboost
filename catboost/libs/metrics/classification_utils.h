@@ -39,7 +39,8 @@ void GetTotalPositiveStats(
         int end,
         TVector<double>* truePositive,
         TVector<double>* targetPositive,
-        TVector<double>* approxPositive
+        TVector<double>* approxPositive,
+        double border
 );
 
 TMetricHolder GetAccuracy(

@@ -104,15 +104,17 @@ void GetTotalPositiveStats(
         int end,
         TVector<double>* truePositive,
         TVector<double>* targetPositive,
-        TVector<double>* approxPositive
+        TVector<double>* approxPositive,
+        double border
 ) {
-    const int classesCount = approx.size() == 1 ? 2 : approx.size();
+    const bool isMultiClass = approx.size() > 1;
+    const int classesCount = isMultiClass ? approx.size() : 2;
     truePositive->assign(classesCount, 0);
     targetPositive->assign(classesCount, 0);
     approxPositive->assign(classesCount, 0);
     for (int i = begin; i < end; ++i) {
         int approxClass = GetApproxClass(approx, i);
-        int targetClass = static_cast<int>(target[i]);
+        int targetClass = isMultiClass ? static_cast<int>(target[i]) : target[i] > border;
         Y_ASSERT(targetClass >= 0 && targetClass < classesCount);
 
         float w = weight.empty() ? 1 : weight[i];

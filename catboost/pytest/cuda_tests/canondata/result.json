@@ -327,31 +327,31 @@
     ],
     "test_gpu.test_custom_loss_for_classification[Ordered]": [
         {
-            "checksum": "418cc5c309633974c8f6e8709fa0a81c",
+            "checksum": "d5d4c6dd4b44d01f33baa8b23a6b1811",
             "uri": "file://test_gpu.test_custom_loss_for_classification_Ordered_/learn_error.tsv"
         },
         {
-            "checksum": "5972964515714a8a21f6c76b918206b0",
+            "checksum": "3b1bf2e83b1d8964c3e821a94d7b8557",
             "uri": "file://test_gpu.test_custom_loss_for_classification_Ordered_/test_error.tsv"
         }
     ],
     "test_gpu.test_custom_loss_for_classification[Plain]": [
         {
-            "checksum": "351ad65f9239f593b3ba49722f1355df",
+            "checksum": "c483ea1d1e1802a1d6262f9d11d5917a",
             "uri": "file://test_gpu.test_custom_loss_for_classification_Plain_/learn_error.tsv"
         },
         {
-            "checksum": "526ba4ba9b856105eee493e0c50072a0",
+            "checksum": "0be8d94a6480b00f5bce7eae6dcb8886",
             "uri": "file://test_gpu.test_custom_loss_for_classification_Plain_/test_error.tsv"
         }
     ],
     "test_gpu.test_custom_loss_for_multiclassification": [
         {
-            "checksum": "b723537ac49ea3b26a07cc712b0e9902",
+            "checksum": "5a946f2d1cb5694fee5a258e2da1fc7c",
             "uri": "file://test_gpu.test_custom_loss_for_multiclassification/learn_error.tsv"
         },
         {
-            "checksum": "eef7942dca33d10ae42581ef357a30a9",
+            "checksum": "eb8a61521656dddf3c60be1021d30192",
             "uri": "file://test_gpu.test_custom_loss_for_multiclassification/test_error.tsv"
         }
     ],

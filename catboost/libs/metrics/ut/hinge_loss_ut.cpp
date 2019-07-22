@@ -16,9 +16,9 @@ Y_UNIT_TEST(HingeLossTest) {
         TMetricHolder score = ComputeHingeLossMetric(TConstArrayRef<TVector<double>>(approx.begin(), approx.end()),
                                                      TConstArrayRef<float>(target.begin(), target.end()),
                                                      TConstArrayRef<float>(weight.begin(), weight.end()),
-                                                     0, 4);
+                                                     0, 4, 0.5);
 
-        UNIT_ASSERT_DOUBLES_EQUAL(score.Stats[0] / score.Stats[1], 0.675, 1e-3);
+        UNIT_ASSERT_DOUBLES_EQUAL(score.Stats[0] / score.Stats[1], 0.03817553500000001, 1e-6);
     }
     {
         TVector<TVector<double>> approx{{0, 100, 100, 0}};
@@ -28,9 +28,9 @@ Y_UNIT_TEST(HingeLossTest) {
         TMetricHolder score = ComputeHingeLossMetric({approx.begin(), approx.end()},
                                                      {target.begin(), target.end()},
                                                      {weight.begin(), weight.end()},
-                                                     0, 4);
+                                                     0, 4, 0.5);
 
-        UNIT_ASSERT_DOUBLES_EQUAL(score.Stats[0] / score.Stats[1], 0.75, 1e-2);
+        UNIT_ASSERT_DOUBLES_EQUAL(score.Stats[0] / score.Stats[1], 0.5, 1e-6);
     }
     {
         TVector<TVector<double>> approx{{0.3, 0.9, 0.1, 0.2}, {0.5, 0.05, 0.8, 0.1}, {0.2, 0.05, 0.1, 0.7}};
@@ -40,9 +40,9 @@ Y_UNIT_TEST(HingeLossTest) {
         TMetricHolder score = ComputeHingeLossMetric({approx.begin(), approx.end()},
                                                      {target.begin(), target.end()},
                                                      {weight.begin(), weight.end()},
-                                                     0, 4);
+                                                     0, 4, 0.5);
 
-        UNIT_ASSERT_DOUBLES_EQUAL(score.Stats[0] / score.Stats[1], 0.4375, 1e-5);
+        UNIT_ASSERT_DOUBLES_EQUAL(score.Stats[0] / score.Stats[1], 1.75/4.0, 1e-6);
     }
 }
 }

@@ -8,4 +8,5 @@ TMetricHolder ComputeHingeLossMetric(TConstArrayRef<TVector<double>> approx,
                                      TConstArrayRef<float> target,
                                      TConstArrayRef<float> weight,
                                      int begin,
-                                     int end);
+                                     int end,
+                                     double border);
