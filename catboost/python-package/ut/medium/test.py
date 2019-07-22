@@ -4301,6 +4301,42 @@ def test_grow_policy_fails(task_type, grow_policy):
         pass
 
 
+def test_synonims_max_leaves_min_data_in_leaf(task_type):
+    if task_type == 'CPU':
+        return
+
+    args = {
+        'iterations': 30,
+        'loss_function': 'Logloss',
+        'use_best_model': False,
+        'learning_rate': 0.3,
+        'grow_policy': 'Lossguide',
+        'boosting_type': 'Plain',
+        'task_type': task_type,
+        'max_leaves': 32,
+        'min_data_in_leaf': 2,
+        'devices': '0'
+    }
+    model = CatBoostClassifier(**args)
+
+    args_with_synonyms = {
+        'iterations': 30,
+        'loss_function': 'Logloss',
+        'use_best_model': False,
+        'learning_rate': 0.3,
+        'grow_policy': 'Lossguide',
+        'boosting_type': 'Plain',
+        'task_type': task_type,
+        'num_leaves': 32,
+        'min_child_samples': 2,
+        'devices': '0'
+    }
+    model_with_synonyms = CatBoostClassifier(**args_with_synonyms)
+
+    assert model.get_param('max_leaves') == model_with_synonyms.get_param('max_leaves')
+    assert model.get_param('min_data_in_leaf') == model_with_synonyms.get_param('min_data_in_leaf')
+
+
 @pytest.mark.parametrize('grow_policy', NONSYMMETRIC)
 def test_multiclass_grow_policy(task_type, grow_policy):
     if task_type == 'CPU':

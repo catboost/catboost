@@ -756,6 +756,8 @@ def _process_synonyms_groups(params):
     _process_synonyms_group(['iterations', 'n_estimators', 'num_boost_round', 'num_trees'], params)
     _process_synonyms_group(['od_wait', 'early_stopping_rounds'], params)
     _process_synonyms_group(['custom_metric', 'custom_loss'], params)
+    _process_synonyms_group(['max_leaves', 'num_leaves'], params)
+    _process_synonyms_group(['min_data_in_leaf', 'min_child_samples'], params)
 
 def _process_synonyms(params):
     if 'objective' in params:
@@ -3007,6 +3009,10 @@ class CatBoostClassifier(CatBoost):
 
     objective : string, synonym for loss_function.
 
+    num_leaves : int, synonym for max_leaves.
+
+    min_child_samples : int, synonym for min_data_in_leaf
+
     eta : float, synonym for learning_rate.
 
     max_bin : float, synonym for border_count.
@@ -3121,7 +3127,9 @@ class CatBoostClassifier(CatBoost):
         cat_features=None,
         grow_policy=None,
         min_data_in_leaf=None,
+        min_child_samples=None,
         max_leaves=None,
+        num_leaves=None,
         score_function=None,
         leaf_estimation_backtracking=None,
         ctr_history_unit=None
@@ -3551,7 +3559,9 @@ class CatBoostRegressor(CatBoost):
         cat_features=None,
         grow_policy=None,
         min_data_in_leaf=None,
+        min_child_samples=None,
         max_leaves=None,
+        num_leaves=None,
         score_function=None,
         leaf_estimation_backtracking=None,
         ctr_history_unit=None,
