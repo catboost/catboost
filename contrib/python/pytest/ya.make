@@ -25,6 +25,11 @@ IF (PYTHON2)
     )
 ENDIF()
 
+NO_CHECK_IMPORTS(
+    __tests__.*  # all test modules get imported when tests are run
+    _pytest.*
+)
+
 PY_SRCS(
     TOP_LEVEL
     _pytest/_argcomplete.py

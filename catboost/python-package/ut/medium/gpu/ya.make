@@ -21,8 +21,6 @@ TEST_SRCS(
     test.py
 )
 
-NO_CHECK_IMPORTS(widget.ipythonwidget)
-
 SIZE(LARGE)
 
 IF (SANITIZER_TYPE)

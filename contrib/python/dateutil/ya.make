@@ -9,6 +9,11 @@ PEERDIR(
     contrib/python/six
 )
 
+NO_CHECK_IMPORTS(
+    dateutil.tz.win
+    dateutil.tzwin
+)
+
 PY_SRCS(
     TOP_LEVEL
     dateutil/__init__.py

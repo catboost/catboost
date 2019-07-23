@@ -8,6 +8,11 @@ LICENSE(
 
 
 
+NO_CHECK_IMPORTS(
+    py._code._assertionnew
+    py._code._assertionold
+)
+
 PY_SRCS(
     TOP_LEVEL
     py/_builtin.py

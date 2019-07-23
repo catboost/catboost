@@ -18,7 +18,13 @@ def iterkeys(prefix='', strip_prefix=False):
             yield decode(key)
 
 
-def iteritems(prefix=b'', strip_prefix=False):
+def itervalues(prefix=b''):
+    for key in iterkeys(prefix=prefix):
+        value = find(key)
+        yield value
+
+
+def iteritems(prefix='', strip_prefix=False):
     for key in iterkeys(prefix=prefix):
         value = find(key)
         if strip_prefix:

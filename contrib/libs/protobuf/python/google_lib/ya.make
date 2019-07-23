@@ -5,6 +5,11 @@ LICENSE(
 
 
 
+NO_CHECK_IMPORTS(
+    google.protobuf.internal.cpp_message
+    google.protobuf.pyext.cpp_message
+)
+
 NO_COMPILER_WARNINGS()
 
 NO_LINT()

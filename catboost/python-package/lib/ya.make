@@ -59,6 +59,10 @@ NO_COMPILER_WARNINGS()
 IF(NOT OS_ANDROID OR PYTHON2)
     SRCS(catboost/python-package/catboost/helpers.cpp)
 
+    NO_CHECK_IMPORTS(
+        catboost.widget.*
+    )
+
     PY_SRCS(
         NAMESPACE catboost
         __init__.py

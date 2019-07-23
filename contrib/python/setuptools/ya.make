@@ -12,6 +12,10 @@ PEERDIR(
     library/python/resource
 )
 
+NO_CHECK_IMPORTS(
+    setuptools.*
+)
+
 NO_LINT()
 
 PY_SRCS(

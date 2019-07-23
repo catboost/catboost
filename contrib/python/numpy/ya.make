@@ -10,8 +10,6 @@ VERSION(1.16.4)
 
 NO_COMPILER_WARNINGS()
 
-NO_LINT()
-
 PEERDIR(
     contrib/libs/clapack
     contrib/python/numpy/numpy/core/src/multiarray
@@ -40,6 +38,21 @@ CFLAGS(
     -D_LARGEFILE64_SOURCE=1
     -D_LARGEFILE_SOURCE=1
 )
+
+NO_CHECK_IMPORTS(
+    numpy.__init__
+    numpy.core.code_generators.generate_numpy_api
+    numpy.core.cversions
+    numpy.core.setup
+    numpy.distutils.*
+    numpy.doc.*
+    numpy.lib.__init__
+    numpy.ma.version
+    numpy.matrixlib.__init__
+    numpy.testing.*
+)
+
+NO_LINT()
 
 PY_SRCS(
     TOP_LEVEL

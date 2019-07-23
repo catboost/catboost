@@ -21,6 +21,13 @@ ADDINCL(
     contrib/python/pandas/pandas/_libs/tslibs
 )
 
+NO_CHECK_IMPORTS(
+    pandas.io.*
+    pandas.plotting.*
+    pandas.tseries.*
+    pandas.util.*
+)
+
 NO_COMPILER_WARNINGS()
 
 NO_LINT()

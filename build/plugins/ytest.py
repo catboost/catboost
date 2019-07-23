@@ -499,6 +499,12 @@ def onadd_check(unit, *args):
         save_in_file(unit.get('TEST_DART_OUT_FILE'), data)
 
 
+def on_register_no_check_imports(unit):
+    s = unit.get('NO_CHECK_IMPORTS_FOR_VALUE')
+    if s not in ('', 'None'):
+        unit.onresource(['-', 'py/no_check_imports/{}="{}"'.format(_common.pathid(s), s)])
+
+
 def onadd_check_py_imports(unit, *args):
     if unit.get('NO_CHECK_IMPORTS_FOR_VALUE').strip() == "":
         return
