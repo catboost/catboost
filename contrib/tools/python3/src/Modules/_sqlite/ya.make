@@ -12,6 +12,13 @@ ADDINCL(
     contrib/libs/sqlite3
 )
 
+IF (USE_SYSTEM_PYTHON)
+    # Prevent configure error when arcadia python is a tool in a system python graph.
+    ADDINCL(
+        contrib/tools/python3/src/Include
+    )
+ENDIF()
+
 CFLAGS(
     -DMODULE_NAME=\"sqlite3\"
 )
