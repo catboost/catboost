@@ -1,6 +1,6 @@
 #include <catboost/libs/cuda_wrappers/cuda_vec.h>
 
-#include <catboost/libs/model/fwd.h>
+#include <catboost/libs/model/evaluation_interface.h>
 
 #include <util/generic/ptr.h>
 #include <util/generic/vector.h>
@@ -42,24 +42,50 @@ struct TGPUDataInput {
     ui32 Stride = 0;
     EFeatureLayout FloatFeatureLayout = EFeatureLayout::ColumnFirst;
     EFeatureLayout CatFeatureLayout = EFeatureLayout::ColumnFirst;
-    TCudaVec<float> FlatFloatsVector;
-    TCudaVec<ui32> HashedFlatCatFeatures;
+    TConstArrayRef<float> FlatFloatsVector;
+    TConstArrayRef<ui32> HashedFlatCatFeatures;
+};
+
+class TCudaQuantizedData : public NCB::NModelEvaluation::IQuantizedData {
+public:
+    size_t GetObjectsCount() const override {
+        return ObjectsCount;
+    }
+    void SetDimensions(ui32 effectiveBucketCount, ui32 objectsCount);
+public:
+    TCudaVec<TCudaQuantizationBucket> BinarizedFeaturesBuffer;
+private:
+    size_t ObjectsCount = 0;
+    size_t EffectiveBucketCount = 0;
 };
 
 class TEvaluationDataCache {
 public:
-    TCudaVec<TCudaQuantizationBucket> BinarizedFeaturesBuffer;
-    TCudaVec<TCudaEvaluatorLeafType> EvalResults;
+    TCudaVec<float> CopyDataBufHost;
+    TCudaVec<float> CopyDataBufDevice;
+    TCudaVec<float> ResultsFloatBuf;
+    TCudaVec<double> ResultsDoubleBuf;
 public:
-    void PrepareCache(ui32 effectiveBucketCount, ui32 objectsCount);
+    void PrepareCopyBufs(size_t bufSize, size_t objectsCount);
 };
 
 class TGPUCatboostEvaluationContext {
 public:
     TGPUModelData GPUModelData;
     TCudaStream Stream = TCudaStream::ZeroStream();
-    NCB::NModelEvaluation::EPredictionType PredictionType = NCB::NModelEvaluation::EPredictionType::RawFormulaVal;
     mutable TEvaluationDataCache EvalDataCache;
 public:
-    void EvalData(const TGPUDataInput& dataInput, TArrayRef<TCudaEvaluatorLeafType> result, size_t treeStart, size_t treeEnd) const;
+    void QuantizeData(const TGPUDataInput& dataInput, TCudaQuantizedData* quantizedData) const;
+    void EvalQuantizedData(
+        const TCudaQuantizedData* data,
+        size_t treeStart,
+        size_t treeEnd,
+        TArrayRef<double> result,
+        NCB::NModelEvaluation::EPredictionType predictionType) const;
+    void EvalData(
+        const TGPUDataInput& dataInput,
+        size_t treeStart,
+        size_t treeEnd,
+        TArrayRef<double> result,
+        NCB::NModelEvaluation::EPredictionType predictionType) const;
 };

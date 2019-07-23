@@ -4,6 +4,10 @@
 
 #include <catboost/libs/model/cuda/evaluator.cuh>
 
+#include <util/generic/ymath.h>
+#include <util/string/cast.h>
+#include <util/system/hp_timer.h>
+
 namespace NCB::NModelEvaluation {
     namespace NDetail {
         class TGpuEvaluator final : public IModelEvaluator {
@@ -60,18 +64,25 @@ namespace NCB::NModelEvaluation {
             }
 
             void SetPredictionType(EPredictionType type) override {
-                Ctx.PredictionType = type;
+                PredictionType = type;
+            }
+
+            void SetProperty(const TStringBuf propName, const TStringBuf propValue) override {
+                {
+                    Y_UNUSED(propValue);
+                    CB_ENSURE(false, "GPU evaluator don't have property " << propName);
+                }
             }
 
             EPredictionType GetPredictionType() const override {
-                return Ctx.PredictionType;
+                return PredictionType;
             }
 
             void SetFeatureLayout(const TFeatureLayout& featureLayout) override {
                 ExtFeatureLayout = featureLayout;
             }
 
-            size_t GetTreeCount() const {
+            size_t GetTreeCount() const override {
                 return ObliviousTrees->GetTreeCount();
             }
 
@@ -116,21 +127,25 @@ namespace NCB::NModelEvaluation {
                 }
 
                 CB_ENSURE(docCount.Defined(), "couldn't determine document count, something went wrong");
-                const size_t FeatureStride = CeilDiv<size_t>(*docCount, 32) * 32;
+                const size_t stride = CeilDiv<size_t>(*docCount, 32) * 32;
+                Ctx.EvalDataCache.PrepareCopyBufs(
+                    ObliviousTrees->GetMinimalSufficientFloatFeaturesVectorSize() * stride,
+                    *docCount
+                );
                 TGPUDataInput dataInput;
                 dataInput.ObjectCount = *docCount;
                 dataInput.FloatFeatureCount = transposedFeatures.size();
-                dataInput.Stride = FeatureStride;
-                dataInput.FlatFloatsVector = TCudaVec<float>(transposedFeatures.size() * FeatureStride, EMemoryType::Device);
-                auto arrRef = dataInput.FlatFloatsVector.AsArrayRef();
+                dataInput.Stride = stride;
+                dataInput.FlatFloatsVector = Ctx.EvalDataCache.CopyDataBufDevice.AsArrayRef();
+                auto buf = Ctx.EvalDataCache.CopyDataBufHost.AsArrayRef();
                 for (size_t featureId = 0; featureId < ObliviousTrees->GetMinimalSufficientFloatFeaturesVectorSize(); ++featureId) {
                     if (transposedFeatures[featureId].empty() || !Ctx.GPUModelData.UsedInModel[featureId]) {
                         continue;
                     }
-                    MemoryCopyAsync(transposedFeatures[featureId], arrRef.Slice(featureId * FeatureStride, transposedFeatures[featureId].size()), Ctx.Stream);
+                    memcpy(&buf[featureId * stride], transposedFeatures[featureId].data(), sizeof(float) * transposedFeatures[featureId].size());
                 }
-                TVector<TCudaEvaluatorLeafType> gpuD(results.size());
-                Ctx.EvalData(dataInput, gpuD, treeStart, treeEnd);
+                MemoryCopyAsync<float>(MakeArrayRef(buf), Ctx.EvalDataCache.CopyDataBufDevice.AsArrayRef(), Ctx.Stream);
+                Ctx.EvalData(dataInput, treeStart, treeEnd, results, PredictionType);
             }
 
             void CalcFlat(
@@ -158,27 +173,22 @@ namespace NCB::NModelEvaluation {
                         "insufficient flat features vector size: " << flatFeaturesVec.size() << " expected: " << expectedFlatVecSize
                     );
                 }
-                size_t docCount = features.size();
+                const size_t docCount = features.size();
+                const size_t stride = CeilDiv<size_t>(expectedFlatVecSize, 32) * 32;
 
-                const size_t FeatureStride = CeilDiv<size_t>(docCount, 32) * 32;
                 TGPUDataInput dataInput;
+                dataInput.FloatFeatureLayout = TGPUDataInput::EFeatureLayout::RowFirst;
                 dataInput.ObjectCount = docCount;
-                dataInput.FloatFeatureCount = features[0].size();
-                dataInput.Stride = FeatureStride;
-                dataInput.FlatFloatsVector = TCudaVec<float>(dataInput.FloatFeatureCount * FeatureStride, EMemoryType::Host);
-                auto arrRef = dataInput.FlatFloatsVector.AsArrayRef();
-                for (size_t featureId = 0; featureId < ObliviousTrees->GetMinimalSufficientFloatFeaturesVectorSize(); ++featureId) {
-                    if (!Ctx.GPUModelData.UsedInModel[featureId]) {
-                        continue;
-                    }
-                    auto target = arrRef.Slice(featureId * FeatureStride, docCount);
-                    #pragma clang loop vectorize_width(16)
-                    for (size_t i = 0; i < docCount; ++i) {
-                        target[i] = features[i][featureId];
-                    }
+                dataInput.FloatFeatureCount = expectedFlatVecSize;
+                dataInput.Stride = stride;
+                Ctx.EvalDataCache.PrepareCopyBufs(docCount * stride, docCount);
+                dataInput.FlatFloatsVector = Ctx.EvalDataCache.CopyDataBufDevice.AsArrayRef();
+                auto copyBufRef = Ctx.EvalDataCache.CopyDataBufHost.AsArrayRef();
+                for (size_t docId = 0; docId < docCount; ++docId) {
+                    memcpy(&copyBufRef[docId * stride], features[docId].data(), sizeof(float) * expectedFlatVecSize);
                 }
-                TVector<TCudaEvaluatorLeafType> gpuD(results.size());
-                Ctx.EvalData(dataInput, gpuD, treeStart, treeEnd);
+                MemoryCopyAsync<float>(copyBufRef, Ctx.EvalDataCache.CopyDataBufDevice.AsArrayRef(), Ctx.Stream);
+                Ctx.EvalData(dataInput, treeStart, treeEnd, results, PredictionType);
             }
 
             void CalcFlatSingle(
@@ -320,6 +330,7 @@ namespace NCB::NModelEvaluation {
             }
 
         private:
+            EPredictionType PredictionType = EPredictionType::RawFormulaVal;
             TCOWTreeWrapper ObliviousTrees;
             TMaybe<TFeatureLayout> ExtFeatureLayout;
             TGPUCatboostEvaluationContext Ctx;

@@ -86,6 +86,11 @@ namespace NCB::NModelEvaluation {
                 return ObliviousTrees->ApproxDimension;
             }
 
+            void SetProperty(const TStringBuf propName, const TStringBuf propValue) override {
+                CB_ENSURE(false, "CPU evaluator don't have any properties. Got: " << propName);
+                Y_UNUSED(propValue);
+            }
+
             void CalcFlatTransposed(
                 TConstArrayRef<TConstArrayRef<float>> transposedFeatures,
                 size_t treeStart,

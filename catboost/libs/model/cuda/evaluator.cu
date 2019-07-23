@@ -15,8 +15,7 @@ struct TFeatureAccessor {
     using TFeature = TFeatureType;
     using TFeaturePtr = const TFeature*;
 
-    i32 FeatureStride = 0;
-    i32 ObjectStride = 0;
+    i32 Stride = 0;
 
     i32 FeatureCount = 0;
     i32 ObjectCount = 0;
@@ -25,11 +24,11 @@ struct TFeatureAccessor {
     __forceinline__ __device__ TFeature operator()(i32 featureId, i32 objectId) const {
         if (Layout == TGPUDataInput::EFeatureLayout::ColumnFirst) {
             return objectId < ObjectCount && featureId < FeatureCount ?
-                __ldg(FeaturesPtr + featureId * FeatureStride + objectId)
+                __ldg(FeaturesPtr + featureId * Stride + objectId)
                 : NegativeInfty();
         } else {
             return objectId < ObjectCount && featureId < FeatureCount ?
-                __ldg(FeaturesPtr + featureId + objectId * ObjectStride)
+                __ldg(FeaturesPtr + featureId + objectId * Stride)
                 : NegativeInfty();
         }
     }
@@ -53,6 +52,31 @@ constexpr ui32 EvalDocBlockSize = BlockWidth / TreeSubBlockWidth;
 
 static_assert(EvalDocBlockSize >= WarpSize, "EvalBlockSize should be greater than WarpSize");
 using TTreeIndex = uint4;
+
+void TCudaQuantizedData::SetDimensions(ui32 effectiveBucketCount, ui32 objectsCount) {
+    ObjectsCount = objectsCount;
+    EffectiveBucketCount = effectiveBucketCount;
+    const auto one32blockSize = WarpSize * effectiveBucketCount;
+    const auto desiredQuantBuff = one32blockSize * NKernel::CeilDivide<ui32>(objectsCount, 128) * 4;
+    if (BinarizedFeaturesBuffer.Size() < desiredQuantBuff) {
+        BinarizedFeaturesBuffer = TCudaVec<TCudaQuantizationBucket>(desiredQuantBuff, EMemoryType::Device);
+    }
+}
+
+void TEvaluationDataCache::PrepareCopyBufs(size_t bufSize, size_t objectsCount) {
+    if (CopyDataBufDevice.Size() < bufSize) {
+        CopyDataBufDevice = TCudaVec<float>(AlignBy<2048>(bufSize), EMemoryType::Device);
+    }
+    if (CopyDataBufHost.Size() < bufSize) {
+        CopyDataBufHost = TCudaVec<float>(AlignBy<2048>(bufSize), EMemoryType::Host);
+    }
+    if (ResultsFloatBuf.Size() < objectsCount) {
+        ResultsFloatBuf = TCudaVec<float>(AlignBy<2048>(objectsCount), EMemoryType::Device);
+    }
+    if (ResultsDoubleBuf.Size() < objectsCount) {
+        ResultsDoubleBuf = TCudaVec<double>(AlignBy<2048>(objectsCount), EMemoryType::Device);
+    }
+}
 
 template<typename TFloatFeatureAccessor>
 __launch_bounds__(QuantizationDocBlockSize, 1)
@@ -217,49 +241,59 @@ __global__ void EvalObliviousTrees(
     }
 }
 
-void TEvaluationDataCache::PrepareCache(ui32 effectiveBucketCount, ui32 objectsCount) {
-    const auto one32blockSize = WarpSize * effectiveBucketCount;
-    const auto desiredQuantBuff = one32blockSize * NKernel::CeilDivide<ui32>(objectsCount, 128) * 4;
-    if (BinarizedFeaturesBuffer.Size() < desiredQuantBuff) {
-        BinarizedFeaturesBuffer = TCudaVec<TCudaQuantizationBucket>(desiredQuantBuff, EMemoryType::Device);
-    }
-    if (EvalResults.Size() < objectsCount) {
-        EvalResults = TCudaVec<TCudaEvaluatorLeafType>(AlignBy<2048>(objectsCount), EMemoryType::Device);
+template<NCB::NModelEvaluation::EPredictionType PredictionType, bool OneDimension>
+__global__ void ProcessResults(
+    const float* __restrict__ rawResults,
+    ui32 resultsSize,
+    double* hostMemResults,
+    ui32 approxDimension
+) {
+    for (ui32 resultId = threadIdx.x; resultId < resultsSize; resultId += blockDim.x) {
+        if (PredictionType == NCB::NModelEvaluation::EPredictionType::RawFormulaVal) {
+            hostMemResults[resultId] = __ldg(rawResults + resultId);
+        } else if (PredictionType == NCB::NModelEvaluation::EPredictionType::Probability) {
+            if (OneDimension) {
+                hostMemResults[resultId] = 1 / (1 + exp(-__ldg(rawResults + resultId)));
+            } else {
+                // TODO(kirillovs): write softmax
+                assert(0);
+            }
+        } else {
+            if (OneDimension) {
+                hostMemResults[resultId] = __ldg(rawResults + resultId) > 0;
+            } else {
+                float maxVal = __ldg(rawResults);
+                ui32 maxPos = 0;
+                for (ui32 dim = 1; dim < approxDimension; ++dim) {
+                    const float val = __ldg(rawResults + dim);
+                    if (val > maxVal) {
+                        maxVal = val;
+                        maxPos = dim;
+                    }
+                }
+                hostMemResults[resultId] = maxPos;
+                rawResults += approxDimension;
+            }
+        }
     }
 }
 
-void TGPUCatboostEvaluationContext::EvalData(const TGPUDataInput& dataInput, TArrayRef<TCudaEvaluatorLeafType> result, size_t treeStart, size_t treeEnd) const {
-    TFeatureAccessor<float, TGPUDataInput::EFeatureLayout::ColumnFirst> floatFeatureAccessor;
-    floatFeatureAccessor.FeatureCount = dataInput.FloatFeatureCount;
-    floatFeatureAccessor.FeatureStride = dataInput.Stride;
-    floatFeatureAccessor.ObjectCount = dataInput.ObjectCount;
-    floatFeatureAccessor.ObjectStride = 1;
-    floatFeatureAccessor.FeaturesPtr = dataInput.FlatFloatsVector.Get();
 
-    EvalDataCache.PrepareCache(GPUModelData.FloatFeatureForBucketIdx.Size(), dataInput.ObjectCount);
-    const dim3 quantizationDimBlock(QuantizationDocBlockSize, 1);
-    const dim3 quantizationDimGrid(
-        NKernel::CeilDivide<unsigned int>(dataInput.ObjectCount, QuantizationDocBlockSize * ObjectsPerThread),
-        GPUModelData.BordersCount.Size() // float features from models
-    );
-    Binarize<<<quantizationDimGrid, quantizationDimBlock, 0, Stream>>> (
-        floatFeatureAccessor,
-        GPUModelData.FlatBordersVector.Get(),
-        GPUModelData.BordersOffsets.Get(),
-        GPUModelData.BordersCount.Get(),
-        GPUModelData.FloatFeatureForBucketIdx.Get(),
-        GPUModelData.FloatFeatureForBucketIdx.Size(),
-        EvalDataCache.BinarizedFeaturesBuffer.Get()
-    );
-
+void TGPUCatboostEvaluationContext::EvalQuantizedData(
+    const TCudaQuantizedData* data,
+    size_t treeStart,
+    size_t treeEnd,
+    TArrayRef<double> result,
+    NCB::NModelEvaluation::EPredictionType predictionType
+    ) const {
     const dim3 treeCalcDimBlock(EvalDocBlockSize, TreeSubBlockWidth);
     const dim3 treeCalcDimGrid(
         NKernel::CeilDivide<unsigned int>(GPUModelData.TreeSizes.Size(), TreeSubBlockWidth * ExtTreeBlockWidth),
-        NKernel::CeilDivide<unsigned int>(dataInput.ObjectCount, EvalDocBlockSize * ObjectsPerThread)
+        NKernel::CeilDivide<unsigned int>(data->GetObjectsCount(), EvalDocBlockSize * ObjectsPerThread)
     );
-    ClearMemoryAsync(EvalDataCache.EvalResults.AsArrayRef(), Stream);
+    ClearMemoryAsync(EvalDataCache.ResultsFloatBuf.AsArrayRef(), Stream);
     EvalObliviousTrees<<<treeCalcDimGrid, treeCalcDimBlock, 0, Stream>>> (
-        EvalDataCache.BinarizedFeaturesBuffer.Get(),
+        data->BinarizedFeaturesBuffer.Get(),
         GPUModelData.TreeSizes.Get(),
         GPUModelData.TreeSizes.Size(),
         GPUModelData.TreeStartOffsets.Get(),
@@ -267,13 +301,85 @@ void TGPUCatboostEvaluationContext::EvalData(const TGPUDataInput& dataInput, TAr
         GPUModelData.TreeFirstLeafOffsets.Get(),
         GPUModelData.FloatFeatureForBucketIdx.Size(),
         GPUModelData.ModelLeafs.Get(),
-        dataInput.ObjectCount,
-        EvalDataCache.EvalResults.Get()
+        data->GetObjectsCount(),
+        EvalDataCache.ResultsFloatBuf.Get()
     );
-    MemoryCopyAsync<TCudaEvaluatorLeafType>(
-        EvalDataCache.EvalResults.AsArrayRef().Slice(0, dataInput.ObjectCount),
-        result,
-        Stream
+    switch (predictionType) {
+    case NCB::NModelEvaluation::EPredictionType::RawFormulaVal:
+        ProcessResults<NCB::NModelEvaluation::EPredictionType::RawFormulaVal, true><<<1, 256, 0, Stream>>> (
+            EvalDataCache.ResultsFloatBuf.Get(),
+            data->GetObjectsCount(),
+            EvalDataCache.ResultsDoubleBuf.Get(),
+            1
+        );
+        break;
+    case NCB::NModelEvaluation::EPredictionType::Probability:
+        ProcessResults<NCB::NModelEvaluation::EPredictionType::Probability, true><<<1, 256, 0, Stream>>> (
+            EvalDataCache.ResultsFloatBuf.Get(),
+            data->GetObjectsCount(),
+            EvalDataCache.ResultsDoubleBuf.Get(),
+            1
+        );
+        break;
+    case NCB::NModelEvaluation::EPredictionType::Class:
+        ProcessResults<NCB::NModelEvaluation::EPredictionType::Class, true><<<1, 256, 0, Stream>>> (
+            EvalDataCache.ResultsFloatBuf.Get(),
+            data->GetObjectsCount(),
+            EvalDataCache.ResultsDoubleBuf.Get(),
+            1
+        );
+        break;
+    }
+    MemoryCopyAsync<double>(EvalDataCache.ResultsDoubleBuf.Slice(0, data->GetObjectsCount()), result, Stream);
+}
+
+void TGPUCatboostEvaluationContext::QuantizeData(const TGPUDataInput& dataInput, TCudaQuantizedData* quantizedData) const{
+    const dim3 quantizationDimBlock(QuantizationDocBlockSize, 1);
+    const dim3 quantizationDimGrid(
+        NKernel::CeilDivide<unsigned int>(dataInput.ObjectCount, QuantizationDocBlockSize * ObjectsPerThread),
+        GPUModelData.BordersCount.Size() // float features from models
     );
-    Stream.Synchronize();
+    if (dataInput.FloatFeatureLayout == TGPUDataInput::EFeatureLayout::ColumnFirst) {
+        TFeatureAccessor<float, TGPUDataInput::EFeatureLayout::ColumnFirst> floatFeatureAccessor;
+        floatFeatureAccessor.FeatureCount = dataInput.FloatFeatureCount;
+        floatFeatureAccessor.Stride = dataInput.Stride;
+        floatFeatureAccessor.ObjectCount = dataInput.ObjectCount;
+        floatFeatureAccessor.FeaturesPtr = dataInput.FlatFloatsVector.data();
+        Binarize<<<quantizationDimGrid, quantizationDimBlock, 0, Stream>>> (
+            floatFeatureAccessor,
+            GPUModelData.FlatBordersVector.Get(),
+            GPUModelData.BordersOffsets.Get(),
+            GPUModelData.BordersCount.Get(),
+            GPUModelData.FloatFeatureForBucketIdx.Get(),
+            GPUModelData.FloatFeatureForBucketIdx.Size(),
+            quantizedData->BinarizedFeaturesBuffer.Get()
+        );
+    } else {
+        TFeatureAccessor<float, TGPUDataInput::EFeatureLayout::RowFirst> floatFeatureAccessor;
+        floatFeatureAccessor.FeatureCount = dataInput.FloatFeatureCount;
+        floatFeatureAccessor.ObjectCount = dataInput.ObjectCount;
+        floatFeatureAccessor.Stride = dataInput.Stride;
+        floatFeatureAccessor.FeaturesPtr = dataInput.FlatFloatsVector.data();
+        Binarize<<<quantizationDimGrid, quantizationDimBlock, 0, Stream>>> (
+            floatFeatureAccessor,
+            GPUModelData.FlatBordersVector.Get(),
+            GPUModelData.BordersOffsets.Get(),
+            GPUModelData.BordersCount.Get(),
+            GPUModelData.FloatFeatureForBucketIdx.Get(),
+            GPUModelData.FloatFeatureForBucketIdx.Size(),
+            quantizedData->BinarizedFeaturesBuffer.Get()
+        );
+    }
+}
+
+void TGPUCatboostEvaluationContext::EvalData(
+    const TGPUDataInput& dataInput,
+    size_t treeStart,
+    size_t treeEnd,
+    TArrayRef<double> result,
+    NCB::NModelEvaluation::EPredictionType predictionType) const {
+    TCudaQuantizedData quantizedData;
+    quantizedData.SetDimensions(GPUModelData.FloatFeatureForBucketIdx.Size(), dataInput.ObjectCount);
+    QuantizeData(dataInput, &quantizedData);
+    EvalQuantizedData(&quantizedData, treeStart, treeEnd, result, predictionType);
 }

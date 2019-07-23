@@ -59,6 +59,8 @@ namespace NCB {  // split due to CUDA-compiler inability to parse nested namespa
 
             virtual void SetFeatureLayout(const TFeatureLayout& featureLayout) = 0;
 
+            virtual void SetProperty(const TStringBuf propName, const TStringBuf propValue) = 0;
+
             // TODO(kirillovs): maybe write special class for results (on gpu it'll hold floats in possibly managed memory)
             TVector<double> CreateVectorForPredictions(size_t docCount) const {
                 switch (GetPredictionType())
