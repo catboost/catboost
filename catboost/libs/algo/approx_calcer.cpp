@@ -164,7 +164,7 @@ static void CalcLeafDers(
     TConstArrayRef<double> approxesDelta,
     const IDerCalcer& error,
     int sampleCount,
-    int iteration,
+    bool recalcLeafWeights,
     ELeavesEstimation estimationMethod,
     NPar::TLocalExecutor* localExecutor,
     TArrayRef<TSum> leafDers,
@@ -249,7 +249,7 @@ static void CalcLeafDers(
                     AddMethodDer<ELeavesEstimation::Newton>(
                         blockBucketDers[blockId][leafId],
                         blockBucketSumWeights[blockId][leafId],
-                        iteration,
+                        /* updateWeight */ false, // value doesn't matter
                         &leafDers[leafId]
                     );
                 }
@@ -263,7 +263,7 @@ static void CalcLeafDers(
                     AddMethodDer<ELeavesEstimation::Gradient>(
                         blockBucketDers[blockId][leafId],
                         blockBucketSumWeights[blockId][leafId],
-                        iteration,
+                        recalcLeafWeights,
                         &leafDers[leafId]
                     );
                 }
@@ -281,7 +281,7 @@ void CalcLeafDersSimple(
     const IDerCalcer& error,
     int sampleCount,
     int queryCount,
-    int iteration,
+    bool recalcLeafWeights,
     ELeavesEstimation estimationMethod,
     const NCatboostOptions::TCatBoostOptions& params,
     ui64 randomSeed,
@@ -299,7 +299,7 @@ void CalcLeafDersSimple(
             approxDeltas,
             error,
             sampleCount,
-            iteration,
+            recalcLeafWeights,
             estimationMethod,
             localExecutor,
             *leafDers,
@@ -355,7 +355,7 @@ void CalcLeafDersSimple(
             /*queryStartIndex=*/0,
             queryCount,
             estimationMethod,
-            iteration,
+            recalcLeafWeights,
             leafDers,
             localExecutor
         );
@@ -468,7 +468,6 @@ static void UpdateApproxDeltasHistoricallyImpl(
     TConstArrayRef<TIndexType> leafIndices,
     TConstArrayRef<float> weights,
     TConstArrayRef<TDers> approxDers, // view of size rowCount
-    int iterationIdx,
     float l2Regularizer,
     double bodySumWeight,
     ELeavesEstimation estimationMethod,
@@ -482,7 +481,9 @@ static void UpdateApproxDeltasHistoricallyImpl(
             const double rowWeight = UseWeights ? weights[rowIdx] : 1;
             sumWeights += rowWeight;
             TSum& leafDer = leafDers[leafIndices[rowIdx]];
-            AddMethodDer<EstimationMethod>(approxDers[rowIdx - rowStart], rowWeight, iterationIdx, &leafDer);
+            AddMethodDer<EstimationMethod>(
+                approxDers[rowIdx - rowStart], rowWeight, /* updateWeight */ true, &leafDer
+            );
             double approxDelta = CalcMethodDelta<EstimationMethod>(leafDer, l2Regularizer, sumWeights, rowIdx);
             if (UseExpApprox) {
                 FastExpInplace(&approxDelta, /*count*/1);
@@ -552,13 +553,12 @@ static void UpdateApproxDeltasHistorically(
     const TFold& fold,
     const TFold::TBodyTail& bt,
     const IDerCalcer& error,
-    int iterationIdx,
     float l2Regularizer,
     const NCatboostOptions::TCatBoostOptions& params,
     ui64 randomSeed,
     NPar::TLocalExecutor* localExecutor,
     TLearnContext* ctx,
-    TVector<TSum>* leafDers,
+    TVector<TSum> leafDers,
     TVector<double>* approxDeltas,
     TArrayRef<TDers> approxDers
 ) {
@@ -625,12 +625,11 @@ static void UpdateApproxDeltasHistorically(
         indices,
         weights,
         approxDers,
-        iterationIdx,
         l2Regularizer,
         bt.BodySumWeight,
         estimationMethod,
         error.GetIsExpApprox(),
-        *leafDers,
+        leafDers,
         *approxDeltas
     );
 }
@@ -651,8 +650,8 @@ void GradientWalker(
     TVector<TVector<double>> step(dimensionCount, TVector<double>(leafCount)); // iteration scratch space
     if (isTrivial) {
         for (int iterationIdx = 0; iterationIdx < iterationCount; ++iterationIdx) {
-            calculateStep(iterationIdx, *point, &step);
-            updatePoint(iterationIdx, step, point);
+            calculateStep(iterationIdx == 0, *point, &step);
+            updatePoint(step, point);
             if (stepSum != nullptr) {
                 AddElementwise(step, stepSum);
             }
@@ -661,18 +660,16 @@ void GradientWalker(
     }
     TVector<TVector<double>> startPoint; // iteration scratch space
     double lossValue = calculateLoss(*point);
-    for (int iterationIdx = 0, bucketHistoryIdx = 0;
-         iterationIdx < iterationCount;
-         ++iterationIdx, ++bucketHistoryIdx)
+    for (int iterationIdx = 0; iterationIdx < iterationCount; ++iterationIdx)
     {
-        calculateStep(bucketHistoryIdx, *point, &step);
+        calculateStep(iterationIdx == 0, *point, &step);
         copyPoint(*point, &startPoint);
         double scale = 1.0;
         // if monotone constraints are nontrivial the scale should be less or equal to 1.0.
         // Otherwise monotonicity may be violated.
         do {
             const auto scaledStep = ScaleElementwise(scale, step);
-            updatePoint(bucketHistoryIdx, scaledStep, point);
+            updatePoint(scaledStep, point);
             const double valueAfterStep = calculateLoss(*point);
             if (valueAfterStep < lossValue) {
                 lossValue = valueAfterStep;
@@ -737,7 +734,7 @@ static void CalcApproxDeltaSimple(
     );
 
     const auto leafUpdaterFunc = [&] (
-        int bucketHistoryIdx,
+        bool recalcLeafWeights,
         const TVector<TVector<double>>& approxDeltas,
         TVector<TVector<double>>* leafDeltas
     ) {
@@ -753,7 +750,7 @@ static void CalcApproxDeltaSimple(
             error,
             bt.BodyFinish,
             bt.BodyQueryFinish,
-            bucketHistoryIdx,
+            recalcLeafWeights,
             estimationMethod,
             ctx->Params,
             randomSeed,
@@ -788,7 +785,6 @@ static void CalcApproxDeltaSimple(
 
     const float l2Regularizer = treeLearnerOptions.L2Reg;
     const auto approxUpdaterFunc = [&] (
-        int bucketHistoryIdx,
         const TVector<TVector<double>>& leafDeltas,
         TVector<TVector<double>>* approxDeltas
     ) {
@@ -817,13 +813,12 @@ static void CalcApproxDeltaSimple(
                 fold,
                 bt,
                 error,
-                bucketHistoryIdx,
                 l2Regularizer,
                 ctx->Params,
                 randomSeed,
                 ctx->LocalExecutor,
                 ctx,
-                &leafDers,
+                leafDers,
                 &(*approxDeltas)[0],
                 weightedDers
             );
@@ -914,7 +909,7 @@ static void CalcLeafValuesSimple(
     TVector<TSum> leafDers(leafCount, TSum()); // iteration scratch space
     TArray2D<double> pairwiseBuckets; // iteration scratch space
     const auto leafUpdaterFunc = [&] (
-        int bucketHistoryIdx,
+        bool recalcLeafWeights,
         const TVector<TVector<double>>& approxes,
         TVector<TVector<double>>* leafDeltas
     ) {
@@ -930,7 +925,7 @@ static void CalcLeafValuesSimple(
             error,
             fold.GetLearnSampleCount(),
             queryCount,
-            bucketHistoryIdx,
+            recalcLeafWeights,
             estimationMethod,
             ctx->Params,
             ctx->LearnProgress->Rand.GenRand(),
@@ -965,7 +960,6 @@ static void CalcLeafValuesSimple(
     };
 
     const auto approxUpdaterFunc = [&] (
-        int /*bucketHistoryIdx*/,
         const TVector<TVector<double>>& leafDeltas,
         TVector<TVector<double>>* approxes
     ) {

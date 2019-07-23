@@ -7,15 +7,15 @@
 
 
 template <ELeavesEstimation LeafEstimationType>
-inline void AddMethodDer(const TDers&, double, int, TSum*);
+inline void AddMethodDer(const TDers&, double, bool, TSum*);
 
 template <>
-inline void AddMethodDer<ELeavesEstimation::Gradient>(const TDers& der, double weight, int it, TSum* bucket) {
-    bucket->AddDerWeight(der.Der1, weight, it);
+inline void AddMethodDer<ELeavesEstimation::Gradient>(const TDers& der, double weight, bool updateWeight, TSum* bucket) {
+    bucket->AddDerWeight(der.Der1, weight, updateWeight);
 }
 
 template <>
-inline void AddMethodDer<ELeavesEstimation::Newton>(const TDers& der, double, int, TSum* bucket) {
+inline void AddMethodDer<ELeavesEstimation::Newton>(const TDers& der, double, bool, TSum* bucket) {
     bucket->AddDerDer2(der.Der1, der.Der2);
 }
 

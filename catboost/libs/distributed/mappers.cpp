@@ -576,7 +576,7 @@ namespace NCatboostDistributed {
             *error,
             localData.Progress->AveragingFold.BodyTailArr[0].BodyFinish,
             localData.Progress->AveragingFold.BodyTailArr[0].BodyQueryFinish,
-            localData.GradientIteration,
+            localData.GradientIteration == 0,
             estimationMethod,
             localData.Params,
             localData.Progress->Rand.GenRand(),

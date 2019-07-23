@@ -35,9 +35,9 @@ public:
         SumDer2 = 0.0;
     }
 
-    inline void AddDerWeight(double delta, double weight, int gradientIteration) {
+    inline void AddDerWeight(double delta, double weight, bool updateWeight) {
         SumDer += delta;
-        if (gradientIteration == 0) {
+        if (updateWeight) {
             SumWeights += weight;
         }
     }
@@ -74,12 +74,12 @@ public:
         Fill(SumDer2.Data.begin(), SumDer2.Data.end(), 0.0);
     }
 
-    void AddDerWeight(const TVector<double>& delta, double weight, int gradientIteration) {
+    void AddDerWeight(const TVector<double>& delta, double weight, bool updateWeight) {
         Y_ASSERT(delta.ysize() == SumDer.ysize());
         for (int dim = 0; dim < SumDer.ysize(); ++dim) {
             SumDer[dim] += delta[dim];
         }
-        if (gradientIteration == 0) {
+        if (updateWeight) {
             SumWeights += weight;
         }
     }

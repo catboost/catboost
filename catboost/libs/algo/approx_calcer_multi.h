@@ -45,7 +45,7 @@ inline void AddSampleToBucketGradientMulti(
 ) {
     Y_ASSERT(curDer != nullptr);
     error.CalcDersMulti(approx, target, weight, curDer, nullptr);
-    bucket->AddDerWeight(*curDer, weight, iteration);
+    bucket->AddDerWeight(*curDer, weight, /* updateWeight */ iteration == 0);
 }
 
 template <typename TAddSampleToBucket>

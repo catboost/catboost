@@ -42,6 +42,12 @@ SAMPLING_UNIT_TYPES = ['Object', 'Group']
 
 OVERFITTING_DETECTOR_TYPE = ['IncToDec', 'Iter']
 
+LOSS_FUNCTIONS = ['RMSE', 'Logloss', 'MAE', 'CrossEntropy', 'Quantile', 'LogLinQuantile',
+                  'Poisson', 'MAPE', 'MultiClass', 'MultiClassOneVsAll']
+
+LEAF_ESTIMATION_METHOD = ['Gradient', 'Newton']
+
+
 # test both parallel in and non-parallel modes
 # default block size (5000000) is too big to run in parallel on these tests
 SCORE_CALC_OBJ_BLOCK_SIZES = ['60', '5000000']
@@ -996,6 +1002,36 @@ def test_overfit_detector_with_resume_from_snapshot(boosting_type, overfitting_d
     return [local_canonical_file(output_eval_path)]
 
 
+@pytest.mark.parametrize('leaf_estimation_method', LEAF_ESTIMATION_METHOD)
+def test_per_object_approx_on_full_history(leaf_estimation_method):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'Logloss',
+        '-f', data_file('adult', 'train_small'),
+        '-t', data_file('adult', 'test_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '--boosting-type', 'Ordered',
+        '--approx-on-full-history',
+        '-i', '100',
+        '-T', '4',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+        '-x', '1',
+        '-w', '0.5',
+        '--od-pval', '0.99',
+        '--rsm', '1',
+        '--leaf-estimation-method', leaf_estimation_method,
+        '--leaf-estimation-iterations', '20',
+        '--use-best-model', 'false')
+    yatest.common.execute(cmd)
+
+    return [local_canonical_file(output_eval_path)]
+
+
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 def test_shrink_model(boosting_type):
     output_model_path = yatest.common.test_output_path('model.bin')
@@ -1023,11 +1059,6 @@ def test_shrink_model(boosting_type):
     yatest.common.execute(cmd)
 
     return [local_canonical_file(output_eval_path)]
-
-
-LOSS_FUNCTIONS = ['RMSE', 'Logloss', 'MAE', 'CrossEntropy', 'Quantile', 'LogLinQuantile', 'Poisson', 'MAPE', 'MultiClass', 'MultiClassOneVsAll']
-
-LEAF_ESTIMATION_METHOD = ['Gradient', 'Newton']
 
 
 @pytest.mark.parametrize('leaf_estimation_method', LEAF_ESTIMATION_METHOD)

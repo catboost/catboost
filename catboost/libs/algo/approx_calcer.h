@@ -41,7 +41,7 @@ void CalcLeafDersSimple(
     const IDerCalcer& error,
     int sampleCount,
     int queryCount,
-    int iteration,
+    bool recalcLeafWeights,
     ELeavesEstimation estimationMethod,
     const NCatboostOptions::TCatBoostOptions& params,
     ui64 randomSeed,

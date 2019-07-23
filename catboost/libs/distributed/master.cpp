@@ -366,7 +366,7 @@ void MapSetApproxes(
                     buckets[leafIdx].AddDerWeight(
                         workerBuckets[leafIdx].SumDer,
                         workerBuckets[leafIdx].SumWeights,
-                        it);
+                        /* updateWeight */ it == 0);
                 } else {
                     Y_ASSERT(
                         ctx->Params.ObliviousTreeOptions->LeavesEstimationMethod == ELeavesEstimation::Newton);
