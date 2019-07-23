@@ -1,9 +1,10 @@
 #include <catboost/libs/cuda_wrappers/cuda_vec.h>
 
-#include <catboost/libs/model/evaluation_interface.h>
+#include <catboost/libs/model/fwd.h>
 
 #include <util/generic/ptr.h>
 #include <util/generic/vector.h>
+
 
 constexpr ui32 WarpSize = 32;
 

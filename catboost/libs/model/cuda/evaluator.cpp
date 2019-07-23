@@ -196,16 +196,9 @@ namespace NCB::NModelEvaluation {
                 size_t treeStart,
                 size_t treeEnd,
                 TArrayRef<double> results,
-                const TFeatureLayout*
+                const TFeatureLayout* featureLayout
             ) const override {
-                CB_ENSURE(
-                    ObliviousTrees->GetFlatFeatureVectorExpectedSize() <= features.size(),
-                    "Not enough features provided"
-                );
-                Y_UNUSED(treeStart);
-                Y_UNUSED(treeEnd);
-                Y_UNUSED(results);
-                ythrow yexception() << "Unimplemented on GPU";
+                CalcFlat({ features }, treeStart, treeEnd, results, featureLayout);
             }
 
             void Calc(
@@ -214,15 +207,15 @@ namespace NCB::NModelEvaluation {
                 size_t treeStart,
                 size_t treeEnd,
                 TArrayRef<double> results,
-                const TFeatureLayout*
+                const TFeatureLayout* featureLayout
             ) const override {
                 ValidateInputFeatures(floatFeatures, catFeatures);
                 const size_t docCount = Max(catFeatures.size(), floatFeatures.size());
-                Y_UNUSED(treeStart);
-                Y_UNUSED(docCount);
-                Y_UNUSED(treeEnd);
-                Y_UNUSED(results);
-                ythrow yexception() << "Unimplemented on GPU";
+                CB_ENSURE(
+                    catFeatures.empty(),
+                    "Cat features are not supported on GPU, should be empty"
+                );
+                CalcFlat(floatFeatures, treeStart, treeEnd, results, featureLayout);
             }
 
             void Calc(
@@ -231,15 +224,15 @@ namespace NCB::NModelEvaluation {
                 size_t treeStart,
                 size_t treeEnd,
                 TArrayRef<double> results,
-                const TFeatureLayout*
+                const TFeatureLayout* featureLayout
             ) const override {
                 ValidateInputFeatures(floatFeatures, catFeatures);
                 const size_t docCount = Max(catFeatures.size(), floatFeatures.size());
-                Y_UNUSED(treeStart);
-                Y_UNUSED(docCount);
-                Y_UNUSED(treeEnd);
-                Y_UNUSED(results);
-                ythrow yexception() << "Unimplemented on GPU";
+                CB_ENSURE(
+                    catFeatures.empty(),
+                    "Cat features are not supported on GPU, should be empty"
+                );
+                CalcFlat(floatFeatures, treeStart, treeEnd, results, featureLayout);
             }
 
             void Calc(
@@ -248,10 +241,10 @@ namespace NCB::NModelEvaluation {
                 size_t treeEnd,
                 TArrayRef<double> results
             ) const override {
-                Y_UNUSED(treeStart);
-                Y_UNUSED(quantizedFeatures);
-                Y_UNUSED(treeEnd);
-                Y_UNUSED(results);
+                CB_ENSURE(quantizedFeatures != nullptr, "Got null quantizedFeatures");
+                const TCudaQuantizedData* cudaQuantizedFeatures = dynamic_cast<const TCudaQuantizedData*>(quantizedFeatures);
+                CB_ENSURE(cudaQuantizedFeatures != nullptr, "Got improperly typed quantized data");
+                Ctx.EvalQuantizedData(cudaQuantizedFeatures, treeStart, treeEnd, results, PredictionType);
             }
 
             void CalcLeafIndexesSingle(

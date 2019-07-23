@@ -440,8 +440,7 @@ namespace NCB {
 
     struct TExclusiveFeatureBundlesData {
         // lookups
-        TVector<TMaybe<TExclusiveBundleIndex>> FloatFeatureToBundlePart; // [floatFeatureIdx]
-        TVector<TMaybe<TExclusiveBundleIndex>> CatFeatureToBundlePart; // [catFeatureIdx]
+        TVector<TMaybe<TExclusiveBundleIndex>> FlatFeatureIndexToBundlePart; // [flatFeatureIdx]
 
         TVector<TExclusiveFeaturesBundle> MetaData; // [bundleIdx]
 
@@ -464,8 +463,7 @@ namespace NCB {
 
     struct TPackedBinaryFeaturesData {
         // lookups
-        TVector<TMaybe<TPackedBinaryIndex>> FloatFeatureToPackedBinaryIndex; // [floatFeatureIdx]
-        TVector<TMaybe<TPackedBinaryIndex>> CatFeatureToPackedBinaryIndex;// [catFeatureIdx]
+        TVector<TMaybe<TPackedBinaryIndex>> FlatFeatureIndexToPackedBinaryIndex; // [flatFeatureIdx]
         TVector<std::pair<EFeatureType, ui32>> PackedBinaryToSrcIndex; // [linearPackedBinaryIndex]
 
         // shared source data, apply SubsetIndexing
@@ -554,16 +552,7 @@ namespace NCB {
         }
 
         TMaybeData<const TQuantizedFloatValuesHolder*> GetNonPackedFloatFeature(ui32 floatFeatureIdx) const {
-            CB_ENSURE_INTERNAL(
-                !PackedBinaryFeaturesData.FloatFeatureToPackedBinaryIndex[floatFeatureIdx],
-                "Called TQuantizedForCPUObjectsDataProvider::GetFloatFeature for binary packed float feature #"
-                << floatFeatureIdx
-            );
-            CB_ENSURE_INTERNAL(
-                !ExclusiveFeatureBundlesData.FloatFeatureToBundlePart[floatFeatureIdx],
-                "Called TQuantizedForCPUObjectsDataProvider::GetFloatFeature for bundled float feature #"
-                << floatFeatureIdx
-            );
+            CheckFeatureIsNotBinaryPackedOrBundled(EFeatureType::Float, "Float", floatFeatureIdx);
             return MakeMaybeData(
                 // checked above that this cast is safe
                 static_cast<const TQuantizedFloatValuesHolder*>(
@@ -578,16 +567,7 @@ namespace NCB {
         }
 
         TMaybeData<const TQuantizedCatValuesHolder*> GetNonPackedCatFeature(ui32 catFeatureIdx) const {
-            CB_ENSURE_INTERNAL(
-                !PackedBinaryFeaturesData.CatFeatureToPackedBinaryIndex[catFeatureIdx],
-                "Called TQuantizedForCPUObjectsDataProvider::GetCatFeature for binary packed cat feature #"
-                << catFeatureIdx
-            );
-            CB_ENSURE_INTERNAL(
-                !ExclusiveFeatureBundlesData.CatFeatureToBundlePart[catFeatureIdx],
-                "Called TQuantizedForCPUObjectsDataProvider::GetCatFeature for bundled cat feature #"
-                << catFeatureIdx
-            );
+            CheckFeatureIsNotBinaryPackedOrBundled(EFeatureType::Categorical, "Cat", catFeatureIdx);
             return MakeMaybeData(
                 // checked above that this cast is safe
                 static_cast<const TQuantizedCatValuesHolder*>(
@@ -622,22 +602,17 @@ namespace NCB {
         }
 
         TMaybe<TPackedBinaryIndex> GetFloatFeatureToPackedBinaryIndex(TFloatFeatureIdx floatFeatureIdx) const {
-            return PackedBinaryFeaturesData.FloatFeatureToPackedBinaryIndex[*floatFeatureIdx];
+            return GetFeatureToPackedBinaryIndex(floatFeatureIdx);
         }
 
         TMaybe<TPackedBinaryIndex> GetCatFeatureToPackedBinaryIndex(TCatFeatureIdx catFeatureIdx) const {
-            return PackedBinaryFeaturesData.CatFeatureToPackedBinaryIndex[*catFeatureIdx];
+            return GetFeatureToPackedBinaryIndex(catFeatureIdx);
         }
 
         template <EFeatureType FeatureType>
         TMaybe<TPackedBinaryIndex> GetFeatureToPackedBinaryIndex(TFeatureIdx<FeatureType> featureIdx) const {
-            if constexpr (FeatureType == EFeatureType::Float) {
-                return GetFloatFeatureToPackedBinaryIndex(featureIdx);
-            } else if constexpr (FeatureType == EFeatureType::Categorical) {
-                return GetCatFeatureToPackedBinaryIndex(featureIdx);
-            } else {
-                CB_ENSURE_INTERNAL(false, "Unsupported feature type " << ToString(FeatureType));
-            }
+            const ui32 flatFeatureIdx = GetFeaturesLayout()->GetExternalFeatureIdx(*featureIdx, FeatureType);
+            return PackedBinaryFeaturesData.FlatFeatureIndexToPackedBinaryIndex[flatFeatureIdx];
         }
 
         template <EFeatureType FeatureType>
@@ -671,24 +646,19 @@ namespace NCB {
         TMaybe<TExclusiveBundleIndex> GetFloatFeatureToExclusiveBundleIndex(
             TFloatFeatureIdx floatFeatureIdx
         ) const {
-            return ExclusiveFeatureBundlesData.FloatFeatureToBundlePart[*floatFeatureIdx];
+            return GetFeatureToExclusiveBundleIndex(floatFeatureIdx);
         }
 
         TMaybe<TExclusiveBundleIndex> GetCatFeatureToExclusiveBundleIndex(TCatFeatureIdx catFeatureIdx) const {
-            return ExclusiveFeatureBundlesData.CatFeatureToBundlePart[*catFeatureIdx];
+            return GetFeatureToExclusiveBundleIndex(catFeatureIdx);
         }
 
         template <EFeatureType FeatureType>
         TMaybe<TExclusiveBundleIndex> GetFeatureToExclusiveBundleIndex(
             TFeatureIdx<FeatureType> featureIdx
         ) const {
-            if constexpr (FeatureType == EFeatureType::Float) {
-                return GetFloatFeatureToExclusiveBundleIndex(featureIdx);
-            } else if constexpr (FeatureType == EFeatureType::Categorical) {
-                return GetCatFeatureToExclusiveBundleIndex(featureIdx);
-            } else {
-                CB_ENSURE_INTERNAL(false, "Unsupported feature type " << FeatureType);
-            }
+            const ui32 flatFeatureIdx = GetFeaturesLayout()->GetExternalFeatureIdx(*featureIdx, FeatureType);
+            return ExclusiveFeatureBundlesData.FlatFeatureIndexToBundlePart[flatFeatureIdx];
         }
 
         template <EFeatureType FeatureType>
@@ -715,6 +685,12 @@ namespace NCB {
         void Check(
             const TPackedBinaryFeaturesData& packedBinaryData,
             const TExclusiveFeatureBundlesData& exclusiveFeatureBundlesData
+        ) const;
+
+        void CheckFeatureIsNotBinaryPackedOrBundled(
+            EFeatureType featureType,
+            const TStringBuf featureTypeName,
+            ui32 perTypeFeatureIdx
         ) const;
 
     private:

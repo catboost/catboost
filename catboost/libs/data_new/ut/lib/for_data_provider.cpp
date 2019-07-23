@@ -225,9 +225,10 @@ namespace NCB {
         const auto& featuresLayout = *objectsData.GetFeaturesLayout();
 
         for (auto floatFeatureIdx : xrange(featuresLayout.GetFloatFeatureCount())) {
+            auto flatFeatureIdx = featuresLayout.GetExternalFeatureIdx(floatFeatureIdx, EFeatureType::Float);
             auto expectedMaybeBinaryIndex
                 = expectedData.Objects.PackedBinaryFeaturesData
-                    .FloatFeatureToPackedBinaryIndex[floatFeatureIdx];
+                    .FlatFeatureIndexToPackedBinaryIndex[flatFeatureIdx];
 
             UNIT_ASSERT_EQUAL(
                 objectsData.GetFloatFeatureToPackedBinaryIndex(TFloatFeatureIdx(floatFeatureIdx)),
@@ -244,9 +245,11 @@ namespace NCB {
         UNIT_ASSERT(!catFeatureCount || expectedData.Objects.CatFeatureUniqueValuesCounts);
 
         for (auto catFeatureIdx : xrange(catFeatureCount)) {
+            auto flatFeatureIdx
+                = featuresLayout.GetExternalFeatureIdx(catFeatureIdx, EFeatureType::Categorical);
             auto expectedMaybeBinaryIndex
                 = expectedData.Objects.PackedBinaryFeaturesData
-                    .CatFeatureToPackedBinaryIndex[catFeatureIdx];
+                    .FlatFeatureIndexToPackedBinaryIndex[flatFeatureIdx];
 
             UNIT_ASSERT_EQUAL(
                 objectsData.GetCatFeatureToPackedBinaryIndex(TCatFeatureIdx(catFeatureIdx)),

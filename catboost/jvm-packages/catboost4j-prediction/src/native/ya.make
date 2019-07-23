@@ -6,6 +6,8 @@ SRCS(
     ai_catboost_CatBoostJNIImpl.cpp
 )
 
+STRIP()
+
 PEERDIR(
     catboost/libs/helpers
     catboost/libs/model

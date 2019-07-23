@@ -595,16 +595,25 @@ namespace NCB {
 
         const auto& featuresLayout = *quantizedObjectsData->Data.QuantizedFeaturesInfo->GetFeaturesLayout();
 
+        auto isBinaryPackedOrBundled = [&] (EFeatureType featureType, ui32 perTypeFeatureIdx) {
+            const ui32 flatFeatureIdx = featuresLayout.GetExternalFeatureIdx(perTypeFeatureIdx, featureType);
+
+            if (quantizedObjectsData
+                    ->ExclusiveFeatureBundlesData.FlatFeatureIndexToBundlePart[flatFeatureIdx])
+            {
+                return true;
+            }
+            if (quantizedObjectsData
+                    ->PackedBinaryFeaturesData.FlatFeatureIndexToPackedBinaryIndex[flatFeatureIdx])
+            {
+                return true;
+            }
+            return false;
+        };
+
         featuresLayout.IterateOverAvailableFeatures<EFeatureType::Float>(
             [&] (TFloatFeatureIdx floatFeatureIdx) {
-                if (quantizedObjectsData
-                        ->ExclusiveFeatureBundlesData.FloatFeatureToBundlePart[*floatFeatureIdx])
-                {
-                    return;
-                }
-                if (quantizedObjectsData
-                        ->PackedBinaryFeaturesData.FloatFeatureToPackedBinaryIndex[*floatFeatureIdx])
-                {
+                if (isBinaryPackedOrBundled(EFeatureType::Float, *floatFeatureIdx)) {
                     return;
                 }
 
@@ -646,14 +655,7 @@ namespace NCB {
 
         featuresLayout.IterateOverAvailableFeatures<EFeatureType::Categorical>(
             [&] (TCatFeatureIdx catFeatureIdx) {
-                if (quantizedObjectsData
-                        ->ExclusiveFeatureBundlesData.CatFeatureToBundlePart[*catFeatureIdx])
-                {
-                    return;
-                }
-                if (quantizedObjectsData
-                        ->PackedBinaryFeaturesData.CatFeatureToPackedBinaryIndex[*catFeatureIdx])
-                {
+                if (isBinaryPackedOrBundled(EFeatureType::Categorical, *catFeatureIdx)) {
                     return;
                 }
 
@@ -1187,24 +1189,17 @@ namespace NCB {
             if (!calcBordersAndNanModeOnly) {
                 data.ConstructInPlace();
 
-                auto floatFeatureCount = featuresLayout->GetFloatFeatureCount();
-                data->ObjectsData.Data.FloatFeatures.resize(floatFeatureCount);
-                data->ObjectsData.PackedBinaryFeaturesData.FloatFeatureToPackedBinaryIndex.resize(
-                    floatFeatureCount
+                auto flatFeatureCount = featuresLayout->GetExternalFeatureCount();
+                data->ObjectsData.PackedBinaryFeaturesData.FlatFeatureIndexToPackedBinaryIndex.resize(
+                    flatFeatureCount
                 );
-                data->ObjectsData.ExclusiveFeatureBundlesData.FloatFeatureToBundlePart.resize(
-                    floatFeatureCount
+                data->ObjectsData.ExclusiveFeatureBundlesData.FlatFeatureIndexToBundlePart.resize(
+                    flatFeatureCount
                 );
 
-                auto catFeatureCount = featuresLayout->GetCatFeatureCount();
-                data->ObjectsData.Data.CatFeatures.resize(catFeatureCount);
-                data->ObjectsData.PackedBinaryFeaturesData.CatFeatureToPackedBinaryIndex.resize(
-                    catFeatureCount
-                );
-                data->ObjectsData.ExclusiveFeatureBundlesData.CatFeatureToBundlePart.resize(catFeatureCount);
-
-                auto textFeatureCount = featuresLayout->GetTextFeatureCount();
-                data->ObjectsData.Data.TextFeatures.resize(textFeatureCount);
+                data->ObjectsData.Data.FloatFeatures.resize(featuresLayout->GetFloatFeatureCount());
+                data->ObjectsData.Data.CatFeatures.resize(featuresLayout->GetCatFeatureCount());
+                data->ObjectsData.Data.TextFeatures.resize(featuresLayout->GetTextFeatureCount());
 
                 if (storeFeaturesDataAsExternalValuesHolders) {
                     // external columns keep the same subset

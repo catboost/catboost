@@ -869,7 +869,7 @@ namespace NCB {
                     objectCount,
                     Data.ObjectsData.Data.QuantizedFeaturesInfo,
                     BinaryFeaturesStorage,
-                    Data.ObjectsData.PackedBinaryFeaturesData.FloatFeatureToPackedBinaryIndex
+                    Data.ObjectsData.PackedBinaryFeaturesData.FlatFeatureIndexToPackedBinaryIndex
                 );
             }
 
@@ -1173,8 +1173,7 @@ namespace NCB {
             // BinaryStorage is not owned by TFeaturesStorage but common for all FeatureTypes
             TVector<TArrayRef<TBinaryFeaturesPack>> DstBinaryView; // [packIdx][objectIdx][bitIdx]
 
-            // copy from Data.ObjectsData.PackedBinaryFeaturesData for fast access
-            TConstArrayRef<TMaybe<TPackedBinaryIndex>> FeatureIdxToPackedBinaryIndex; // [perTypeFeatureIdx]
+            TVector<TMaybe<TPackedBinaryIndex>> FeatureIdxToPackedBinaryIndex; // [perTypeFeatureIdx]
 
 
             /******************************************************************************************/
@@ -1188,15 +1187,14 @@ namespace NCB {
                 ui32 objectCount,
                 const TQuantizedFeaturesInfoPtr& quantizedFeaturesInfoPtr,
                 TBinaryFeaturesStorage& binaryStorage,
-                TConstArrayRef<TMaybe<TPackedBinaryIndex>> featureIdxToPackedBinaryIndex
+                TConstArrayRef<TMaybe<TPackedBinaryIndex>> flatFeatureIndexToPackedBinaryIndex
             ) {
                 const size_t perTypeFeatureCount = (size_t)featuresLayout.GetFeatureCount(FeatureType);
                 Storage.resize(perTypeFeatureCount);
                 DstView.resize(perTypeFeatureCount);
                 IsAvailable.resize(perTypeFeatureCount, false); // filled from quantization Schema, then checked
                 IndexHelpers.resize(perTypeFeatureCount, TIndexHelper<ui64>(8));
-
-                FeatureIdxToPackedBinaryIndex = featureIdxToPackedBinaryIndex;
+                FeatureIdxToPackedBinaryIndex.resize(perTypeFeatureCount);
 
                 const auto metaInfos = featuresLayout.GetExternalFeaturesMetaInfo();
                 for (size_t flatFeatureIdx = 0; flatFeatureIdx < metaInfos.size(); ++flatFeatureIdx) {
@@ -1210,6 +1208,8 @@ namespace NCB {
                     IsAvailable[typedFeatureIdx.Idx] = true;
                     ui8 bitsPerFeature = CalcHistogramWidthForBorders(quantizedFeaturesInfoPtr->GetBorders(typedFeatureIdx).size());
                     IndexHelpers[typedFeatureIdx.Idx] = TIndexHelper<ui64>(bitsPerFeature);
+                    FeatureIdxToPackedBinaryIndex[typedFeatureIdx.Idx]
+                        = flatFeatureIndexToPackedBinaryIndex[flatFeatureIdx];
                 }
 
                 for (auto perTypeFeatureIdx : xrange(perTypeFeatureCount)) {

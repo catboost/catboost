@@ -10,12 +10,6 @@
 
 namespace NCB {  // split due to CUDA-compiler inability to parse nested namespace definitions
     namespace NModelEvaluation {
-
-        class IQuantizedData : public TThrRefBase {
-        public:
-            virtual size_t GetObjectsCount() const = 0;
-        };
-
         class TFeatureLayout {
         public:
             TMaybe<TVector<ui32>> FloatFeatureIndexes;

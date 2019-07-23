@@ -14,6 +14,7 @@ function(compile_flatbuffers_schema_to_cpp SRC_FBS)
             COMMAND flatc -c --gen-mutable
             -o "${CMAKE_CURRENT_SOURCE_DIR}"
             --reflect-names
+            -I "${CMAKE_CURRENT_SOURCE_DIR}/../../.."
             -I "${CMAKE_CURRENT_SOURCE_DIR}/../model/flatbuffers"
             "${CMAKE_CURRENT_SOURCE_DIR}/../model/flatbuffers/${SRC_FBS}")
 endfunction()
