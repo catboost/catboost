@@ -1395,7 +1395,7 @@ cdef class _PreprocessGrids:
                     self.rdg_enumeration += 1
                 else:
                     raise CatBoostError("Error: not iterable and not random distribytion generator object at grid")
-                
+
         return params_to_json
 
     def __init__(self, list grids_list):
@@ -1797,7 +1797,7 @@ cdef object _set_features_order_data_pd_data_frame(
                 get_cat_factor_bytes_representation(
                     doc_idx,
                     flat_feature_idx,
-                    column_data[doc_idx] if column_type_is_pandas_Categorical else column_values[doc_idx],
+                    column_data.iloc[doc_idx] if column_type_is_pandas_Categorical else column_values[doc_idx],
                     &factor_string
                 )
                 cat_factor_data.push_back(factor_string)
@@ -3066,7 +3066,7 @@ cdef class _CatBoost:
 
         prep_params = _PreprocessParams(params)
         prep_grids = _PreprocessGrids(grids_list)
-   
+
         self._reserve_test_evals(1)
         self._clear_test_evals()
 

@@ -369,8 +369,8 @@ def compare_flat_index_and_features_data_pools(flat_index_pool, features_data_po
         cat_feature_idx = 0
         for flat_feature_idx in xrange(flat_index_pool.shape[1]):
             if (
-                (cat_feature_idx < len(cat_feature_indices))
-                and (cat_feature_indices[cat_feature_idx] == flat_feature_idx)
+                (cat_feature_idx < len(cat_feature_indices)) and
+                (cat_feature_indices[cat_feature_idx] == flat_feature_idx)
             ):
 
                 # simplified handling of transformation to bytes for tests
@@ -2726,8 +2726,8 @@ def test_option_used_ram_limit():
 
 def get_values_that_json_dumps_breaks_on():
     name_dtype = {name: np.__dict__[name] for name in dir(np) if (
-        isinstance(np.__dict__[name], type)
-        and re.match('(int|uint|float|bool).*', name)
+        isinstance(np.__dict__[name], type) and
+        re.match('(int|uint|float|bool).*', name)
     )}
     name_value = {}
     for name, dtype in name_dtype.items():
@@ -4969,3 +4969,12 @@ def test_weights_in_eval_metric(metric):
     result_with_no_weights = eval_metric(label, predictions, metric)
     result_with_weights = eval_metric(label, predictions, metric, weights)
     assert not np.isclose(result_with_no_weights, result_with_weights)
+
+
+def test_dataframe_with_custom_index():
+    X = DataFrame(np.random.randint(0, 9, (3, 2)), index=[55, 675, 34])
+    X[0] = X[0].astype('category')
+    y = X[1]
+
+    model = CatBoost(dict(iterations=10))
+    model.fit(X, y, cat_features=[0])
