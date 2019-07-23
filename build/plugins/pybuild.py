@@ -127,7 +127,8 @@ def py_program(unit, py3):
         if unit.get('PYTHON_SQLITE3') != 'no':
             peers.append('contrib/tools/python/src/Modules/_sqlite')
     unit.onpeerdir(peers)
-    unit.onadd_check_py_imports()
+    if unit.get('MODULE_TYPE') == 'PROGRAM':  # can not check DLL
+        unit.onadd_check_py_imports()
 
 
 def onpy_srcs(unit, *args):
@@ -162,8 +163,8 @@ def onpy_srcs(unit, *args):
     if not upath.startswith('contrib/tools/python') and not upath.startswith('library/python/runtime') and unit.get('NO_PYTHON_INCLS') != 'yes':
         unit.onpeerdir(['contrib/libs/python'])
 
-    is_program = unit.get('MODULE_TYPE') == 'PROGRAM'
-    if is_program:
+    unit_needs_main = unit.get('MODULE_TYPE') in ('PROGRAM', 'DLL')
+    if unit_needs_main:
         py_program(unit, py3)
 
     py_namespace_value = unit.get('PY_NAMESPACE_VALUE')
@@ -238,7 +239,7 @@ def onpy_srcs(unit, *args):
             else:
                 path = arg
                 main_py = (path == '__main__.py' or path.endswith('/__main__.py'))
-                if not py3 and main_py:
+                if not py3 and unit_needs_main and main_py:
                     mod = '__main__'
                 else:
                     if arg.startswith('../'):
@@ -253,7 +254,7 @@ def onpy_srcs(unit, *args):
 
             if main_mod:
                 py_main(unit, mod + ":main")
-            elif py3 and main_py:
+            elif py3 and unit_needs_main and main_py:
                 py_main(unit, mod)
 
             pathmod = (path, mod)
@@ -413,7 +414,7 @@ def onpy_srcs(unit, *args):
             ]
 
             for pb_cc_outs_chunk in generate_chunks(pb_cc_outs, 10):
-                if is_program:
+                if unit_needs_main:
                     unit.onjoin_srcs(['join_' + listid(pb_cc_outs_chunk) + '.cpp'] + pb_cc_outs_chunk)
                 else:
                     unit.onjoin_srcs_global(['join_' + listid(pb_cc_outs_chunk) + '.cpp'] + pb_cc_outs_chunk)
@@ -430,7 +431,7 @@ def onpy_srcs(unit, *args):
 
             pb_cc_outs = [ev_cc_arg(path, unit) for path, _ in evs]
             for pb_cc_outs_chunk in generate_chunks(pb_cc_outs, 10):
-                if is_program:
+                if unit_needs_main:
                     unit.onjoin_srcs(['join_' + listid(pb_cc_outs_chunk) + '.cpp'] + pb_cc_outs_chunk)
                 else:
                     unit.onjoin_srcs_global(['join_' + listid(pb_cc_outs_chunk) + '.cpp'] + pb_cc_outs_chunk)
@@ -506,8 +507,8 @@ def onpy_register(unit, *args):
 
 
 def py_main(unit, arg):
-    is_program = unit.get('MODULE_TYPE') == 'PROGRAM'
-    if is_program:
+    unit_needs_main = unit.get('MODULE_TYPE') in ('PROGRAM', 'DLL')
+    if unit_needs_main:
         py_program(unit, is_py3(unit))
     unit.onresource(['-', 'PY_MAIN={}'.format(arg)])
 

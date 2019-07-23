@@ -269,7 +269,8 @@ def check_imports(no_check=None, extra=[], skip_func=None):
         if skip_func and skip_func(module):
             continue
 
-        if module == '__main__' and 'if __name__ ==' not in importer.get_source(module):
+        name = module.rsplit('.', 1)[-1]
+        if name == '__main__' and 'if __name__ ==' not in importer.get_source(module):
             print('SKIP:', module, '''without "if __name__ == '__main__'" check''')
             continue
 
