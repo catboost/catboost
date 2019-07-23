@@ -1912,7 +1912,7 @@ def test_cv_with_save_snapshot(task_type):
         )
 
 
-def test_grid_search_cv_aliases(task_type):
+def test_grid_search_aliases(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoost(
         {
@@ -1937,7 +1937,7 @@ def test_grid_search_cv_aliases(task_type):
         assert value in grid[key]
 
 
-def test_grid_search_cv(task_type):
+def test_grid_search(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoost(
         {
@@ -1977,7 +1977,149 @@ def test_grid_search_cv(task_type):
     assert results['params']['border_count'] in border_count_list, "wrong 'border_count_list' value"
 
 
-def test_grid_search_cv_wrong_param_type(task_type):
+def test_randomized_search(task_type):
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoost(
+        {
+            "learning_rate": 0.03,
+            "loss_function": "Logloss",
+            "eval_metric": "AUC",
+            "task_type": task_type
+        }
+    )
+    feature_border_type_list = ['Median', 'Uniform', 'UniformAndQuantiles', 'MaxLogSum']
+    one_hot_max_size_list = [4, 7, 10]
+    iterations_list = [5, 7, 10]
+    border_count_list = [4, 10, 50, 100]
+    results = model.randomized_search(
+        {
+            'feature_border_type': feature_border_type_list,
+            'one_hot_max_size': one_hot_max_size_list,
+            'iterations': iterations_list,
+            'border_count': border_count_list
+        },
+        pool
+    )
+    assert "train-Logloss-mean" in results, '"train-Logloss-mean" not in results'
+
+    prev_value = results["train-Logloss-mean"][0]
+    for value in results["train-Logloss-mean"][1:]:
+        assert value < prev_value, 'not monotonic Logloss-mean'
+        prev_value = value
+
+    assert results['params'].get('feature_border_type') in feature_border_type_list
+    assert results['params'].get('one_hot_max_size') in one_hot_max_size_list
+    assert results['params'].get('iterations') in iterations_list
+    assert results['params'].get('border_count') in border_count_list
+
+
+def test_randomized_search_only_dist(task_type):
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoost(
+        {
+            "learning_rate": 0.03,
+            "loss_function": "Logloss",
+            "eval_metric": "AUC",
+            "task_type": task_type
+        }
+    )
+    class UniformChoice:
+
+        def __init__(self, values):
+            self.values = values
+
+        def rvs(self):
+            return np.random.choice(self.values)
+
+    feature_border_type_list = ['Median', 'Uniform', 'UniformAndQuantiles', 'MaxLogSum']
+    results = model.randomized_search(
+        {
+            'feature_border_type': feature_border_type_list,
+            'one_hot_max_size': UniformChoice(list(range(20))),
+            'iterations': UniformChoice([4, 7, 9]),
+            'border_count': UniformChoice([10, 6, 20, 4])
+        },
+        pool
+    )
+    assert results['params']['feature_border_type'] in feature_border_type_list
+    assert results['params']['one_hot_max_size'] in range(20)
+    assert results['params']['border_count'] in [10, 6, 20, 4]
+    assert results['params']['iterations'] in [4, 7, 9]
+
+
+def test_randomized_search_refit_model(task_type):
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoost(
+        {
+            "learning_rate": 0.03,
+            "loss_function": "Logloss",
+            "eval_metric": "AUC",
+            "task_type": task_type
+        }
+    )
+
+    class UniformChoice:
+
+        def __init__(self, values):
+            self.values = values
+
+        def rvs(self):
+            return np.random.choice(self.values)
+
+    feature_border_type_list = ['Median', 'Uniform', 'UniformAndQuantiles', 'MaxLogSum']
+    model.randomized_search(
+        {
+            'feature_border_type': feature_border_type_list,
+            'one_hot_max_size': UniformChoice(list(range(20))),
+            'iterations': UniformChoice([4, 7, 9]),
+            'border_count': UniformChoice([10, 6, 20, 4])
+        },
+        pool,
+        refit=True
+    )
+
+    test_pool = Pool(TEST_FILE, column_description=CD_FILE)
+    model.predict(test_pool)
+
+
+def test_randomized_search_cv(task_type):
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoost(
+        {
+            "learning_rate": 0.03,
+            "loss_function": "Logloss",
+            "eval_metric": "AUC",
+            "task_type": task_type
+        }
+    )
+
+    class UniformChoice:
+
+        def __init__(self, values):
+            self.values = values
+
+        def rvs(self):
+            return np.random.choice(self.values)
+
+    feature_border_type_list = ['Median', 'Uniform', 'UniformAndQuantiles', 'MaxLogSum']
+    results = model.randomized_search(
+        {
+            'feature_border_type': feature_border_type_list,
+            'one_hot_max_size': UniformChoice(list(range(20))),
+            'iterations': UniformChoice([1, 2, 3]),
+            'border_count': UniformChoice([10, 6, 20, 4])
+        },
+        pool,
+        n_iter=2,
+        search_by_train_test_split=False
+    )
+    assert results['params']['feature_border_type'] in feature_border_type_list
+    assert results['params']['one_hot_max_size'] in range(20)
+    assert results['params']['border_count'] in [10, 6, 20, 4]
+    assert results['params']['iterations'] in [1, 2, 3]
+
+
+def test_grid_search_wrong_param_type(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoost(
         {
@@ -2003,7 +2145,7 @@ def test_grid_search_cv_wrong_param_type(task_type):
     assert False
 
 
-def test_grid_search_cv_trivial(task_type):
+def test_grid_search_trivial(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoost(
         {
@@ -2033,7 +2175,7 @@ def test_grid_search_cv_trivial(task_type):
     assert results['params']['iterations'] == 30
 
 
-def test_grid_search_cv_several_grids(task_type):
+def test_grid_search_several_grids(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoost(
         {
@@ -4299,42 +4441,6 @@ def test_grow_policy_fails(task_type, grow_policy):
         sum_models([model, model.copy()])
     except:
         pass
-
-
-def test_synonims_max_leaves_min_data_in_leaf(task_type):
-    if task_type == 'CPU':
-        return
-
-    args = {
-        'iterations': 30,
-        'loss_function': 'Logloss',
-        'use_best_model': False,
-        'learning_rate': 0.3,
-        'grow_policy': 'Lossguide',
-        'boosting_type': 'Plain',
-        'task_type': task_type,
-        'max_leaves': 32,
-        'min_data_in_leaf': 2,
-        'devices': '0'
-    }
-    model = CatBoostClassifier(**args)
-
-    args_with_synonyms = {
-        'iterations': 30,
-        'loss_function': 'Logloss',
-        'use_best_model': False,
-        'learning_rate': 0.3,
-        'grow_policy': 'Lossguide',
-        'boosting_type': 'Plain',
-        'task_type': task_type,
-        'num_leaves': 32,
-        'min_child_samples': 2,
-        'devices': '0'
-    }
-    model_with_synonyms = CatBoostClassifier(**args_with_synonyms)
-
-    assert model.get_param('max_leaves') == model_with_synonyms.get_param('max_leaves')
-    assert model.get_param('min_data_in_leaf') == model_with_synonyms.get_param('min_data_in_leaf')
 
 
 @pytest.mark.parametrize('grow_policy', NONSYMMETRIC)
