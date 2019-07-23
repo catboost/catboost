@@ -458,15 +458,20 @@ class LibraryLoader(object):
 cdll = LibraryLoader(CDLL)
 pydll = LibraryLoader(PyDLL)
 
-if _os.name == "nt":
-    pythonapi = PyDLL("python dll", None, _sys.dllhandle)
-elif _sys.platform == "cygwin":
-    pythonapi = PyDLL("libpython%d.%d.dll" % _sys.version_info[:2])
-else:
+#if _os.name == "nt":
+#    pythonapi = PyDLL("python dll", None, _sys.dllhandle)
+#elif _sys.platform == "cygwin":
+#    pythonapi = PyDLL("libpython%d.%d.dll" % _sys.version_info[:2])
+#else:
+#    pythonapi = PyDLL(None)
+
+try:
+    pythonapi = PyDLL(None)
+except:
     try:
-        pythonapi = PyDLL(None)
-    except OSError:
         pythonapi = PyDLL(_find_library('python'))
+    except:
+        pythonapi = PyDLL(dict(name='python', symbols={}))
 
 
 if _os.name == "nt":
