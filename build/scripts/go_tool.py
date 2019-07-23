@@ -501,6 +501,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(prefix_chars='+')
     parser.add_argument('++mode', choices=['lib', 'exe', 'test'], required=True)
     parser.add_argument('++srcs', nargs='*', required=True)
+    parser.add_argument('++cgo-srcs', nargs='*')
     parser.add_argument('++test_srcs', nargs='*')
     parser.add_argument('++xtest_srcs', nargs='*')
     parser.add_argument('++cover_info', nargs='*')
@@ -530,6 +531,11 @@ if __name__ == '__main__':
     parser.add_argument('++vet-flags', nargs='*', default=None)
     parser.add_argument('++arc-source-root')
     args = parser.parse_args()
+
+    # Temporary work around for noauto
+    if args.cgo_srcs and len(args.cgo_srcs) > 0:
+        cgo_srcs_set = set(args.cgo_srcs)
+        args.srcs = list(filter(lambda x: x not in cgo_srcs_set, args.srcs))
 
     args.pkg_root = os.path.join(str(args.tools_root), 'pkg')
     args.tool_root = os.path.join(args.pkg_root, 'tool', '{}_{}'.format(args.host_os, args.host_arch))
