@@ -1840,28 +1840,26 @@ class MSVCCompiler(MSVC, Compiler):
         ]
 
         defines = [
-            'WIN32',
-            '_WIN32',
-            '_WINDOWS',
-            '_CRT_SECURE_NO_WARNINGS',
-            '_CRT_NONSTDC_NO_WARNINGS',
-            '_USE_MATH_DEFINES',
-            '__STDC_CONSTANT_MACROS',
-            '__STDC_FORMAT_MACROS',
-            '_USING_V110_SDK71_',
-            '_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES',
+            '/DFAKEID=$CPP_FAKEID',
+            '/DWIN32',
+            '/D_WIN32',
+            '/D_WINDOWS',
+            '/D_CRT_SECURE_NO_WARNINGS',
+            '/D_CRT_NONSTDC_NO_WARNINGS',
+            '/D_USE_MATH_DEFINES',
+            '/D__STDC_CONSTANT_MACROS',
+            '/D__STDC_FORMAT_MACROS',
+            '/D_USING_V110_SDK71_',
+            '/D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES',
         ]
 
         if target.is_x86_64:
-            defines.extend(('_WIN64', 'WIN64'))
+            defines.extend(('/D_WIN64', '/DWIN64'))
 
         if target.is_armv7:
-            defines.extend(('_ARM_WINAPI_PARTITION_DESKTOP_SDK_AVAILABLE', '__arm__'))
+            defines.extend(('/D_ARM_WINAPI_PARTITION_DESKTOP_SDK_AVAILABLE', '/D__arm__'))
 
         winapi_unicode = False
-
-        defines_debug = ['_DEBUG']
-        defines_release = ['NDEBUG']
 
         emit_big('''
             MSVC_INLINE_OPTIMIZED=yes
@@ -1872,22 +1870,21 @@ class MSVCCompiler(MSVC, Compiler):
                 MSVC_INLINE_FLAG=/Zc:inline-
             }''')
 
-        flags = ['/nologo', '/Zm500', '/GR', '/bigobj', '/FC', '/EHs', '/errorReport:prompt', '$MSVC_INLINE_FLAG', '/DFAKEID=$CPP_FAKEID']
-        flags += ['/we{}'.format(code) for code in warns_as_error]
-        flags += ['/w1{}'.format(code) for code in warns_enabled]
-        flags += ['/wd{}'.format(code) for code in warns_disabled]
+        flags = ['/nologo', '/Zm500', '/GR', '/bigobj', '/FC', '/EHs', '/errorReport:prompt', '$MSVC_INLINE_FLAG']
         flags += self.tc.arch_opt
 
-        flags_debug = ['/Ob0', '/Od'] + self._gen_defines(defines_debug)
-        flags_release = ['/Ox', '/Ob2', '/Oi'] + self._gen_defines(defines_release)
+        c_warnings = ['/we{}'.format(code) for code in warns_as_error]
+        c_warnings += ['/w1{}'.format(code) for code in warns_enabled]
+        c_warnings += ['/wd{}'.format(code) for code in warns_disabled]
+        cxx_warnings = []
 
-        flags_cxx = [
-            '/std:c++17',
-        ]
+        flags_debug = ['/Ob0', '/Od', '/D_DEBUG']
+        flags_release = ['/Ox', '/Ob2', '/Oi', '/DNDEBUG']
+
         flags_c_only = []
 
         if self.tc.use_clang:
-            flags_cxx += [
+            cxx_warnings += [
                 '-Woverloaded-virtual', '-Wno-invalid-offsetof', '-Wno-attributes',
                 '-Wno-dynamic-exception-spec',  # IGNIETFERRO-282 some problems with lucid
                 '-Wno-register',  # IGNIETFERRO-722 needed for contrib
@@ -1898,7 +1895,7 @@ class MSVCCompiler(MSVC, Compiler):
                 '-Wno-undefined-var-template',
             ]
             if self.tc.ide_msvs:
-                flags_cxx += [
+                cxx_warnings += [
                     '-Wno-unused-command-line-argument',
                 ]
 
@@ -1909,12 +1906,12 @@ class MSVCCompiler(MSVC, Compiler):
 
         emit('OBJECT_SUF', '$OBJ_SUF.obj')
         emit('WIN32_WINNT', '{value}'.format(value=win32_winnt))
-        defines.append('{name}=$WIN32_WINNT'.format(name=self.WIN32_WINNT.Macro))
+        defines.append('/D{name}=$WIN32_WINNT'.format(name=self.WIN32_WINNT.Macro))
 
         if winapi_unicode:
-            defines += ['UNICODE', '_UNICODE']
+            defines += ['/DUNICODE', '/D_UNICODE']
         else:
-            defines += ['_MBCS']
+            defines += ['/D_MBCS']
 
         # https://msdn.microsoft.com/en-us/library/abx4dbyh.aspx
         if is_positive('DLL_RUNTIME'):  # XXX
@@ -1943,13 +1940,6 @@ class MSVCCompiler(MSVC, Compiler):
         else:
             debug_info_flags = '/Z7'
 
-        defines = self._gen_defines(defines)
-        flags_werror = ['/WX']
-        flags_sfdl = ['/E', '/C', '/P', '/Fi$SFDL_TMP_OUT']
-        flags_no_optimize = ['/Od']
-        flags_no_shadow = ['/wd4456', '/wd4457']
-        flags_no_compiler_warnings = ['/w']
-
         if self.tc.use_clang:
             emit('CLANG_CL', 'yes')
         if self.tc.ide_msvs:
@@ -1965,6 +1955,8 @@ class MSVCCompiler(MSVC, Compiler):
         emit('CFLAGS_RELEASE', flags_release)
         emit('MASMFLAGS', '')
         emit('DEBUG_INFO_FLAGS', debug_info_flags)
+        append('C_WARNING_OPTS', c_warnings)
+        append('CXX_WARNING_OPTS', cxx_warnings)
 
         if self.build.is_release:
             emit('CFLAGS_PER_TYPE', '$CFLAGS_RELEASE')
@@ -1973,12 +1965,12 @@ class MSVCCompiler(MSVC, Compiler):
         if self.build.is_ide:
             emit('CFLAGS_PER_TYPE', '@[debug|$CFLAGS_DEBUG]@[release|$CFLAGS_RELEASE]')
 
-        append('CFLAGS', flags, flags_msvs_only, '$CFLAGS_PER_TYPE', '$DEBUG_INFO_FLAGS', '$C_DEFINES', '$USER_CFLAGS', '$USER_CFLAGS_GLOBAL')
-        append('CXXFLAGS', '$CFLAGS', flags_cxx, '$USER_CXXFLAGS')
+        append('CFLAGS', flags, flags_msvs_only, '$CFLAGS_PER_TYPE', '$DEBUG_INFO_FLAGS', '$C_WARNING_OPTS', '$C_DEFINES', '$USER_CFLAGS', '$USER_CFLAGS_GLOBAL')
+        append('CXXFLAGS', '$CFLAGS', '/std:c++17', '$CXX_WARNING_OPTS', '$USER_CXXFLAGS')
         append('CONLYFLAGS', flags_c_only, '$USER_CONLYFLAGS')
 
-        append('BC_CFLAGS', flags, '$CFLAGS_PER_TYPE', '$DEBUG_INFO_FLAGS', '$C_DEFINES', '$USER_CFLAGS', '$USER_CFLAGS_GLOBAL')
-        append('BC_CXXFLAGS', '$BC_CFLAGS', flags_cxx, '$USER_CXXFLAGS')
+        append('BC_CFLAGS', '$CFLAGS')
+        append('BC_CXXFLAGS', '$BC_CFLAGS', '$CXXFLAGS')
 
         ucrt_include = os.path.join(self.tc.kit_includes, 'ucrt') if not self.tc.ide_msvs else "$(UniversalCRT_IncludePath.Split(';')[0].Replace('\\','/'))"
 
@@ -1986,18 +1978,19 @@ class MSVCCompiler(MSVC, Compiler):
         append('CFLAGS', '/DY_MSVC_INCLUDE="%s"' % vc_include)
 
         emit_big('''
-            when ($NO_OPTIMIZE == "yes") {{
-                OPTIMIZE = {no_opt}
-            }}
-            when ($NO_COMPILER_WARNINGS == "yes") {{
-                CFLAGS += {no_warn}
-            }}
-            when ($NO_WSHADOW == "yes") {{
-                CFLAGS += {no_shadow}
-            }}'''.format(no_opt=' '.join(flags_no_optimize), no_warn=' '.join(flags_no_compiler_warnings), no_shadow=' '.join(flags_no_shadow)))
+            when ($NO_WSHADOW == "yes") {
+                C_WARNING_OPTS += /wd4456 /wd4457
+            }
+            when ($NO_COMPILER_WARNINGS == "yes") {
+                C_WARNING_OPTS = /w
+                CXX_WARNING_OPTS =
+            }
+            when ($NO_OPTIMIZE == "yes") {
+                OPTIMIZE = /Od
+            }''')
 
-        emit('SFDL_FLAG', flags_sfdl)
-        emit('WERROR_FLAG', flags_werror)
+        emit('SFDL_FLAG', ['/E', '/C', '/P', '/Fi$SFDL_TMP_OUT'])
+        emit('WERROR_FLAG', '/WX')
         emit('WERROR_MODE', self.tc.werror_mode)
 
         if not self.tc.under_wine:
@@ -2034,10 +2027,6 @@ class MSVCCompiler(MSVC, Compiler):
             macro _SRC_masm(SRC, SRCFLAGS...) {
                 .CMD=${cwd:ARCADIA_BUILD_ROOT} ${TOOLCHAIN_ENV} ${ML_WRAPPER} ${MASM_COMPILER} ${MASMFLAGS} ${SRCFLAGS} ''' + masm_io + ''' ${kv;hide:"p AS"} ${kv;hide:"pc yellow"}
             }''')
-
-    @staticmethod
-    def _gen_defines(defines):
-        return ['/D{}'.format(s) for s in defines]
 
 
 class MSVCLinker(MSVC, Linker):
