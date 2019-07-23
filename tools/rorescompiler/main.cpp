@@ -3,15 +3,20 @@
 #include <util/digest/city.h>
 #include <util/stream/output.h>
 #include <util/stream/file.h>
+#include <util/string/escape.h>
 #include <util/string/vector.h>
 #include <util/string/split.h>
-
 
 using namespace NResource;
 
 void GenOne(const TString& raw, const TString& key, IOutputStream& out) {
-    out << "extern \"C\" {\n   extern const unsigned char " << raw << "[];\n   extern const unsigned int " << raw << "Size;\n};\n";
-    out << "static const NResource::TRegHelper REG_name" << ToString(CityHash64(key.data(), key.size())) << "(\"" << key << "\", TStringBuf((const char *)" << raw << ", " << raw << "Size));\n\n";
+    TString size = raw + "Size";
+    TString name = ToString(CityHash64(key.data(), key.size()));
+    out << "extern \"C\" const char " << raw << "[];\n"
+        << "extern \"C\" const unsigned int " << size << ";\n"
+        << "static const NResource::TRegHelper REG_name" << name
+        << "(\"" << EscapeC(key) << "\", TStringBuf(" << raw << ", " << size << "));\n"
+        << "\n";
 };
 
 int main(int argc, char** argv) {

@@ -202,6 +202,10 @@
   includes:
     - util.h:        contrib/libs/numa/internal/util.h
 
+- source_filter: "^contrib/libs/nvidia/nccl"
+  includes:
+    - socket.h: contrib/libs/nvidia/nccl/src/include/socket.h
+
 - source_filter: "^contrib/libs/tf/tensorflow"
   includes:
     - cuda.h:        contrib/libs/tf/tensorflow/core/platform/cuda.h
