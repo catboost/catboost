@@ -24,8 +24,9 @@ SRCS(
 IF (HAVE_CUDA AND NOT GCC)
     INCLUDE(${ARCADIA_ROOT}/catboost/libs/cuda_wrappers/default_nvcc_flags.make.inc)
 
+    SRC(cuda/evaluator.cu -fno-lto)
+
     SRCS(
-        cuda/evaluator.cu
         cuda/evaluator.cpp
     )
     PEERDIR(
