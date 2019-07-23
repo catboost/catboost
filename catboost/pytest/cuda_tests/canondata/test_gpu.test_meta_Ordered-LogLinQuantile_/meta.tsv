@@ -1,6 +1,0 @@
-name	test experiment
-iterCount	10
-learnErrorLog	learn_error.tsv
-testErrorLog	test_error.tsv
-timeLeft	time_left.tsv
-loss	LogLinQuantile:alpha=0.5	min
