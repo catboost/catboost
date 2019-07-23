@@ -1,3 +1,29 @@
+# Release 0.16
+
+## Breaking changes:
+- `MultiClass` loss has now the same sign as Logloss. It had the other sign before and was maximized, now it is minimized.
+- `CatBoostRegressor.score` now returns the value of $R^2$ metric instead of RMSE to be more consistent with the behavior of scikit-learn regressors.
+- Changed metric parameter `use_weights` default value to false (except for ranking metrics)
+
+## New features:
+- It is now possible to apply model on GPU
+- We have published two new realworld datasets with monotonic constraints, `catboost.datasets.monotonic1()` and `catboost.datasets.monotonic2()`. Before that  there was only `california_housing` dataset in open-source with monotonic constraints. Now you can use these two to benchmark algorithms with monotonic constraints.
+- We've added several new metrics to catboost, including `DCG`, `FairLoss`, `HammingLoss`, `NormalizedGini` and `FilteredNDCG`
+- Introduced efficient `GridSearch` and `RandomSearch` implementations.
+- `get_all_params()` Python function returns the values of all training parameters, both user-defined and default.
+- Added more synonyms for training parameters to be more compatible with other GBDT libraries.
+
+## Speedups:
+- AUC metric is computationally very expensive. We've implemented parallelized calculation of this metric, now it can be calculated on every iteration (or every k-th iteration) about 4x faster.
+
+## Educational materials:
+- We've improved our command-line tutorial, now it has examples of files and more information.
+
+## Fixes:
+- Automatic `Logloss` or `MultiClass` loss function deduction for `CatBoostClassifier.fit` now also works if the training dataset is specified as `Pool` or filename string.
+- And some other fixes
+
+
 # Release 0.15.2
 
 ## Breaking changes:
