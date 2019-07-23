@@ -210,7 +210,6 @@ namespace NCB::NModelEvaluation {
                 const TFeatureLayout* featureLayout
             ) const override {
                 ValidateInputFeatures(floatFeatures, catFeatures);
-                const size_t docCount = Max(catFeatures.size(), floatFeatures.size());
                 CB_ENSURE(
                     catFeatures.empty(),
                     "Cat features are not supported on GPU, should be empty"
@@ -227,7 +226,6 @@ namespace NCB::NModelEvaluation {
                 const TFeatureLayout* featureLayout
             ) const override {
                 ValidateInputFeatures(floatFeatures, catFeatures);
-                const size_t docCount = Max(catFeatures.size(), floatFeatures.size());
                 CB_ENSURE(
                     catFeatures.empty(),
                     "Cat features are not supported on GPU, should be empty"
