@@ -85,6 +85,7 @@ bool IsGroupwiseOrderMetric(ELossFunction lossFunction) {
             lossFunction == ELossFunction::YetiRankPairwise ||
             lossFunction == ELossFunction::PFound ||
             lossFunction == ELossFunction::NDCG ||
+            lossFunction == ELossFunction::DCG ||
             lossFunction == ELossFunction::AverageGain ||
             lossFunction == ELossFunction::QueryAverage ||
             lossFunction == ELossFunction::StochasticFilter ||
@@ -313,6 +314,8 @@ bool ShouldSkipCalcOnTrainByDefault(ELossFunction lossFunction) {
         case ELossFunction::YetiRankPairwise:
         case ELossFunction::YetiRank:
         case ELossFunction::NDCG:
+        case ELossFunction::DCG:
+        case ELossFunction::FilteredDCG:
         case ELossFunction::AUC:
         case ELossFunction::NormalizedGini:
         case ELossFunction::MedianAbsoluteError:
