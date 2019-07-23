@@ -78,8 +78,36 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\b55b5693f0e6408f516f46a5bb.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\e40b857e9274cc98c50ef66930.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\join_c4fd4c5cc1de0ca064554a611d.cpp"/>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_b55b5693f0e6408f516f46a5bb.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/brotli/include" "-o" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_b55b5693f0e6408f516f46a5bb.py3.obj" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_b55b5693f0e6408f516f46a5bb.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/brotli/include" "-o" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_b55b5693f0e6408f516f46a5bb.py3.obj" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_b55b5693f0e6408f516f46a5bb.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/setuptools/_b55b5693f0e6408f516f46a5bb.py3.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\_b55b5693f0e6408f516f46a5bb.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\_b55b5693f0e6408f516f46a5bb.py3.obj;</Outputs>
+    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_e40b857e9274cc98c50ef66930.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
@@ -377,6 +405,33 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\setuptools\unicode_utils.py.yapyc3;$(SolutionDir)..\contrib\python\setuptools\setuptools\version.py;$(SolutionDir)$(Configuration)\contrib\python\setuptools\setuptools\version.py.yapyc3;$(SolutionDir)..\contrib\python\setuptools\setuptools\wheel.py;$(SolutionDir)$(Configuration)\contrib\python\setuptools\setuptools\wheel.py.yapyc3;$(SolutionDir)..\contrib\python\setuptools\setuptools\windows_support.py;$(SolutionDir)$(Configuration)\contrib\python\setuptools\setuptools\windows_support.py.yapyc3;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\_d723d930ee048d0261ded78d4d.yasm;$(SolutionDir)$(Configuration)\contrib\python\setuptools\_624dda43fe38146688fff939d2.rodata;$(SolutionDir)$(Configuration)\contrib\python\setuptools\_f8e7967f8fd29ee6e79a982587.rodata;$(SolutionDir)$(Configuration)\contrib\python\setuptools\_00022f816097ac875c73ce4699.rodata;$(SolutionDir)$(Configuration)\contrib\python\setuptools\_e1e0cd627630d9e036b9e8de56.rodata;$(SolutionDir)$(Configuration)\contrib\python\setuptools\_840dd0eb4dd608f4ba4a8dbc7b.rodata;$(SolutionDir)$(Configuration)\contrib\python\setuptools\_4fc7b6bce7950a8a1cc43d50f6.rodata;$(SolutionDir)$(Configuration)\contrib\python\setuptools\_d89ce3d28fa9bf741ddbe9e801.rodata;</Outputs>
     </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_b55b5693f0e6408f516f46a5bb.yasm" "-" "setuptools.*" "_d8dc493ee2e67ab42f496435aa.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_b55b5693f0e6408f516f46a5bb.yasm" "-" "setuptools.*" "_d8dc493ee2e67ab42f496435aa.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/setuptools/_b55b5693f0e6408f516f46a5bb.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\_b55b5693f0e6408f516f46a5bb.yasm;</Outputs>
+    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
@@ -414,6 +469,10 @@ if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/b3c0a54ce9b96bcb58b74a0289.cpp" "_0de9ec311964de0d2603bccf91=resfs/file/py/setuptools/config.py.yapyc3" "_a03f4a264a36125b49f7ea6c67=resfs/src/resfs/file/py/setuptools/dep_util.py" "_40296856dca1b5b3dc8eb1f61d=resfs/file/py/setuptools/dep_util.py" "_cf481d78317c91d488863c574c=resfs/src/resfs/file/py/setuptools/dep_util.py.yapyc3" "_06d77ef51793f28dc19479deca=resfs/file/py/setuptools/dep_util.py.yapyc3" "_562f0860c68c9d5a81bf783d3f=resfs/src/resfs/file/py/setuptools/depends.py" "_592ddc5b18e9a0e3eade6bdcc5=resfs/file/py/setuptools/depends.py" "_8438b326632ed1a48d74b18fce=resfs/src/resfs/file/py/setuptools/depends.py.yapyc3" "_08a7352abd361bfdf6b97f9d9e=resfs/file/py/setuptools/depends.py.yapyc3" "_75c87c447333ef6216e64912e3=resfs/src/resfs/file/py/setuptools/dist.py" "_955129a03806e08967aba92703=resfs/file/py/setuptools/dist.py" "_166891275ff5a90a3db39b40ca=resfs/src/resfs/file/py/setuptools/dist.py.yapyc3" "_40714c3e6b1b6173eaceb8b653=resfs/file/py/setuptools/dist.py.yapyc3" "_0f7d5f30d596d62ae5330c9890=resfs/src/resfs/file/py/setuptools/extension.py" "_7ef050677daba1c792d5c1c18a=resfs/file/py/setuptools/extension.py" "_3c420d9778d9bea3e80e8c1905=resfs/src/resfs/file/py/setuptools/extension.py.yapyc3" "_1aa59beae984c561a88e5dc063=resfs/file/py/setuptools/extension.py.yapyc3" "_5f5b77631a3299ab91bf323c49=resfs/src/resfs/file/py/setuptools/extern/__init__.py" "_4530eaebb46ff1675eedf5e1ab=resfs/file/py/setuptools/extern/__init__.py" "_550e024d470e5b27e82823a2fd=resfs/src/resfs/file/py/setuptools/extern/__init__.py.yapyc3" "_8bab29de176415e468f1e4742c=resfs/file/py/setuptools/extern/__init__.py.yapyc3" "_3112209de427ece6f4fb9ae2bf=resfs/src/resfs/file/py/setuptools/glibc.py" "_32ee3829768a866632349b70a0=resfs/file/py/setuptools/glibc.py" "_e94e28c64840145ac7d59206d6=resfs/src/resfs/file/py/setuptools/glibc.py.yapyc3" "_e34cd67d400c8bb86793a256fc=resfs/file/py/setuptools/glibc.py.yapyc3" "_4f01a692cf075b660f09e19206=resfs/src/resfs/file/py/setuptools/glob.py" "_c15e1465d79e36811236d9eed9=resfs/file/py/setuptools/glob.py" "_daf6d99c58a99419d3f4deaf63=resfs/src/resfs/file/py/setuptools/glob.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/b55b5693f0e6408f516f46a5bb.cpp" "_d8dc493ee2e67ab42f496435aa=py/no_check_imports/md3547rqx4an27adbxgkeb7mtu"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
@@ -480,6 +539,10 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/b55b5693f0e6408f516f46a5bb.cpp" "_d8dc493ee2e67ab42f496435aa=py/no_check_imports/md3547rqx4an27adbxgkeb7mtu"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
+if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/bbd8452f2cf60f6f7dac816597.cpp" "_ac4355708fe9d41cca3d245b1d=resfs/src/resfs/file/py/setuptools/command/install.py.yapyc3" "_f32bcd814a9abbc6d407e2bd5c=resfs/file/py/setuptools/command/install.py.yapyc3" "_0a9cfe43de231c446d5f3794e5=resfs/src/resfs/file/py/setuptools/command/install_egg_info.py" "_8ffe17e2adc90ef10d42f6b6f9=resfs/file/py/setuptools/command/install_egg_info.py" "_46e7cd8a5908b07da213a03903=resfs/src/resfs/file/py/setuptools/command/install_egg_info.py.yapyc3" "_fe21c1301b1004c9aabfe6d963=resfs/file/py/setuptools/command/install_egg_info.py.yapyc3" "_b13e4f34253a5c9333bbd76bb5=resfs/src/resfs/file/py/setuptools/command/install_lib.py" "_424159276bbbf1e230b90f643d=resfs/file/py/setuptools/command/install_lib.py" "_5022cc89720845da95c140a5fd=resfs/src/resfs/file/py/setuptools/command/install_lib.py.yapyc3" "_a2c679488ddd9c27744a31420b=resfs/file/py/setuptools/command/install_lib.py.yapyc3" "_e800b161b4455433fe9c5242af=resfs/src/resfs/file/py/setuptools/command/install_scripts.py" "_ab6a2c7b98a670007574e5d611=resfs/file/py/setuptools/command/install_scripts.py" "_3b27657eca56aaf897621060bc=resfs/src/resfs/file/py/setuptools/command/install_scripts.py.yapyc3" "_34b89b175b2bcb43151e22a67e=resfs/file/py/setuptools/command/install_scripts.py.yapyc3" "_35d80a7d9836710d0bae8d43fa=resfs/src/resfs/file/py/setuptools/command/py36compat.py" "_8e7cb4131d6f3590c85325557c=resfs/file/py/setuptools/command/py36compat.py" "_ad21c093352c7e9694289b92df=resfs/src/resfs/file/py/setuptools/command/py36compat.py.yapyc3" "_09273eec248ebdd46533808aa8=resfs/file/py/setuptools/command/py36compat.py.yapyc3" "_5fc7786f329d468cb26403a8d0=resfs/src/resfs/file/py/setuptools/command/register.py" "_052f45cd3df781ff8bae68e9aa=resfs/file/py/setuptools/command/register.py" "_7d149b97e7c31256692555ff33=resfs/src/resfs/file/py/setuptools/command/register.py.yapyc3" "_7f9f316f235317946b7e05de37=resfs/file/py/setuptools/command/register.py.yapyc3" "_b78630919029ed98796ea17e14=resfs/src/resfs/file/py/setuptools/command/rotate.py" "_2cd2a01462492711061e2d3003=resfs/file/py/setuptools/command/rotate.py" "_fdc4a5e983a948b5c49238a0c7=resfs/src/resfs/file/py/setuptools/command/rotate.py.yapyc3" "_6c5ff1183f43db2af2d23f44ff=resfs/file/py/setuptools/command/rotate.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
@@ -504,9 +567,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/setuptools/05f9a62df77cc0b7429af5fab3.cpp	$B/contrib/python/setuptools/09f0a1f2e4c6de659bb1683b40.cpp	$B/contrib/python/setuptools/30a193558acba8c34b0e192eb6.cpp	$B/contrib/python/setuptools/633f7ce4017e350ab707e67342.cpp	$B/contrib/python/setuptools/77215de8225bf99658bd363251.cpp	$B/contrib/python/setuptools/976875d5e95eb3cd757bc920e1.cpp	$B/contrib/python/setuptools/a5884ad016f6dcf42a22ab35f8.cpp	$B/contrib/python/setuptools/b1bb286099aa70c2e25a8137e9.cpp	$B/contrib/python/setuptools/b3c0a54ce9b96bcb58b74a0289.cpp	$B/contrib/python/setuptools/bbd8452f2cf60f6f7dac816597.cpp	$B/contrib/python/setuptools/c0e3eb62c2418eabeb8722c35b.cpp	$B/contrib/python/setuptools/cbda2896417da786cea9023b6a.cpp	$B/contrib/python/setuptools/d723d930ee048d0261ded78d4d.cpp	$B/contrib/python/setuptools/e40b857e9274cc98c50ef66930.cpp	</Message>
+      <Message>$B/contrib/python/setuptools/05f9a62df77cc0b7429af5fab3.cpp	$B/contrib/python/setuptools/09f0a1f2e4c6de659bb1683b40.cpp	$B/contrib/python/setuptools/30a193558acba8c34b0e192eb6.cpp	$B/contrib/python/setuptools/633f7ce4017e350ab707e67342.cpp	$B/contrib/python/setuptools/77215de8225bf99658bd363251.cpp	$B/contrib/python/setuptools/976875d5e95eb3cd757bc920e1.cpp	$B/contrib/python/setuptools/a5884ad016f6dcf42a22ab35f8.cpp	$B/contrib/python/setuptools/b1bb286099aa70c2e25a8137e9.cpp	$B/contrib/python/setuptools/b3c0a54ce9b96bcb58b74a0289.cpp	$B/contrib/python/setuptools/b55b5693f0e6408f516f46a5bb.cpp	$B/contrib/python/setuptools/bbd8452f2cf60f6f7dac816597.cpp	$B/contrib/python/setuptools/c0e3eb62c2418eabeb8722c35b.cpp	$B/contrib/python/setuptools/cbda2896417da786cea9023b6a.cpp	$B/contrib/python/setuptools/d723d930ee048d0261ded78d4d.cpp	$B/contrib/python/setuptools/e40b857e9274cc98c50ef66930.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\05f9a62df77cc0b7429af5fab3.cpp;$(SolutionDir)$(Configuration)\contrib\python\setuptools\09f0a1f2e4c6de659bb1683b40.cpp;$(SolutionDir)$(Configuration)\contrib\python\setuptools\30a193558acba8c34b0e192eb6.cpp;$(SolutionDir)$(Configuration)\contrib\python\setuptools\633f7ce4017e350ab707e67342.cpp;$(SolutionDir)$(Configuration)\contrib\python\setuptools\77215de8225bf99658bd363251.cpp;$(SolutionDir)$(Configuration)\contrib\python\setuptools\976875d5e95eb3cd757bc920e1.cpp;$(SolutionDir)$(Configuration)\contrib\python\setuptools\a5884ad016f6dcf42a22ab35f8.cpp;$(SolutionDir)$(Configuration)\contrib\python\setuptools\b1bb286099aa70c2e25a8137e9.cpp;$(SolutionDir)$(Configuration)\contrib\python\setuptools\b3c0a54ce9b96bcb58b74a0289.cpp;$(SolutionDir)$(Configuration)\contrib\python\setuptools\bbd8452f2cf60f6f7dac816597.cpp;$(SolutionDir)$(Configuration)\contrib\python\setuptools\c0e3eb62c2418eabeb8722c35b.cpp;$(SolutionDir)$(Configuration)\contrib\python\setuptools\cbda2896417da786cea9023b6a.cpp;$(SolutionDir)$(Configuration)\contrib\python\setuptools\d723d930ee048d0261ded78d4d.cpp;$(SolutionDir)$(Configuration)\contrib\python\setuptools\e40b857e9274cc98c50ef66930.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\05f9a62df77cc0b7429af5fab3.cpp;$(SolutionDir)$(Configuration)\contrib\python\setuptools\09f0a1f2e4c6de659bb1683b40.cpp;$(SolutionDir)$(Configuration)\contrib\python\setuptools\30a193558acba8c34b0e192eb6.cpp;$(SolutionDir)$(Configuration)\contrib\python\setuptools\633f7ce4017e350ab707e67342.cpp;$(SolutionDir)$(Configuration)\contrib\python\setuptools\77215de8225bf99658bd363251.cpp;$(SolutionDir)$(Configuration)\contrib\python\setuptools\976875d5e95eb3cd757bc920e1.cpp;$(SolutionDir)$(Configuration)\contrib\python\setuptools\a5884ad016f6dcf42a22ab35f8.cpp;$(SolutionDir)$(Configuration)\contrib\python\setuptools\b1bb286099aa70c2e25a8137e9.cpp;$(SolutionDir)$(Configuration)\contrib\python\setuptools\b3c0a54ce9b96bcb58b74a0289.cpp;$(SolutionDir)$(Configuration)\contrib\python\setuptools\b55b5693f0e6408f516f46a5bb.cpp;$(SolutionDir)$(Configuration)\contrib\python\setuptools\bbd8452f2cf60f6f7dac816597.cpp;$(SolutionDir)$(Configuration)\contrib\python\setuptools\c0e3eb62c2418eabeb8722c35b.cpp;$(SolutionDir)$(Configuration)\contrib\python\setuptools\cbda2896417da786cea9023b6a.cpp;$(SolutionDir)$(Configuration)\contrib\python\setuptools\d723d930ee048d0261ded78d4d.cpp;$(SolutionDir)$(Configuration)\contrib\python\setuptools\e40b857e9274cc98c50ef66930.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\fs_tools.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal

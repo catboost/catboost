@@ -92,6 +92,7 @@
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\pyext\message_module.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\pyext\repeated_composite_container.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\pyext\repeated_scalar_container.cc"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\a7ca4f47cb350b374ed52bbdeb.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\google.protobuf.internal._api_implementation.reg.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\google.protobuf.pyext._message.reg.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\join_04a1a8150cf43c47c9eae3e0c6.cpp"/>
@@ -204,6 +205,33 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\_1b483a23bce746d5bd348c4edc.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\_1b483a23bce746d5bd348c4edc.py2.obj;</Outputs>
     </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\_a7ca4f47cb350b374ed52bbdeb.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/protobuf" "-I" "python" "-I" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/brotli/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/protobuf/google/protobuf" "-o" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_a7ca4f47cb350b374ed52bbdeb.py2.obj" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_a7ca4f47cb350b374ed52bbdeb.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/protobuf" "-I" "python" "-I" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/brotli/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/protobuf/google/protobuf" "-o" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_a7ca4f47cb350b374ed52bbdeb.py2.obj" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_a7ca4f47cb350b374ed52bbdeb.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/libs/protobuf/python/google_lib/_a7ca4f47cb350b374ed52bbdeb.py2.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\_a7ca4f47cb350b374ed52bbdeb.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\_a7ca4f47cb350b374ed52bbdeb.py2.obj;</Outputs>
+    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\join_5f21b6546b8dee139919f46feb.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
@@ -231,6 +259,33 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\join_5f21b6546b8dee139919f46feb.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\join_5f21b6546b8dee139919f46feb.py2.obj;</Outputs>
     </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_a7ca4f47cb350b374ed52bbdeb.yasm" "-" "google.protobuf.internal.cpp_message google.protobuf.pyext.cpp_message" "_564699396f61e58efef7dbfb5b.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_a7ca4f47cb350b374ed52bbdeb.yasm" "-" "google.protobuf.internal.cpp_message google.protobuf.pyext.cpp_message" "_564699396f61e58efef7dbfb5b.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/libs/protobuf/python/google_lib/_a7ca4f47cb350b374ed52bbdeb.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\_a7ca4f47cb350b374ed52bbdeb.yasm;</Outputs>
+    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
@@ -256,6 +311,10 @@ if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/51abd30ca2cfb96992f7b69f89.cpp" "_e1fab2fb464c0b0f348499030b=/py_code/google.protobuf.internal.decoder" "_35321737662c4c8124213f80e5=/py_modules/google.protobuf.internal.encoder" "_c2d93d5f96bd369ecefee8277c=resfs/src//py_modules/google.protobuf.internal.encoder" "_25453d316cfce81e496218fa79=/py_code/google.protobuf.internal.encoder" "_c8a3f27f5fbbb563e600e68567=/py_modules/google.protobuf.internal.enum_type_wrapper" "_0c3573c515cdeab4eeec1a3dcc=resfs/src//py_modules/google.protobuf.internal.enum_type_wrapper" "_8c73348d5d65a103ef4b21f93b=/py_code/google.protobuf.internal.enum_type_wrapper" "_993d712172f991d8d2d8ec9e0b=/py_modules/google.protobuf.internal.message_listener" "_f7c34ddfa5f7d4021524cf030f=resfs/src//py_modules/google.protobuf.internal.message_listener" "_84cbb725c8dfd69cc35692f0a4=/py_code/google.protobuf.internal.message_listener" "_59f461e1fa326b177abd6ff711=/py_modules/google.protobuf.internal.python_message" "_0c1d03308d4c3084d0e85d94dc=resfs/src//py_modules/google.protobuf.internal.python_message" "_121de710bb76d48275bd6fc1a3=/py_code/google.protobuf.internal.python_message" "_4a2f20acc800a1dd9ea55891a8=/py_modules/google.protobuf.internal.type_checkers" "_a90955ba15697df85baa206572=resfs/src//py_modules/google.protobuf.internal.type_checkers" "_4feb86428c98be8d26c3a522a9=/py_code/google.protobuf.internal.type_checkers" "_cfe6631fd97f0d56679a0460af=/py_modules/google.protobuf.internal.well_known_types" "_224462d2d6f055890690c99314=resfs/src//py_modules/google.protobuf.internal.well_known_types" "_4d36f963b851b9da35df5bab23=/py_code/google.protobuf.internal.well_known_types" "_4e7cf1319a5275edd2db1cd1a5=/py_modules/google.protobuf.internal.wire_format" "_212deb860668e38c9b5559ef0e=resfs/src//py_modules/google.protobuf.internal.wire_format" "_9fae6feeb4cfe784b416f3e85b=/py_code/google.protobuf.internal.wire_format" "_b94f7ca81e8e1ee8cfb403e25c=/py_modules/google.protobuf.json_format" "_ab6266596c96f79206cb2a0770=resfs/src//py_modules/google.protobuf.json_format" "_30807e6f998cc87da81218786a=/py_code/google.protobuf.json_format"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/a7ca4f47cb350b374ed52bbdeb.cpp" "_564699396f61e58efef7dbfb5b=py/no_check_imports/hpurds6x4ovrrnlpk5goasbcum"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -288,15 +347,19 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/51abd30ca2cfb96992f7b69f89.cpp" "_e1fab2fb464c0b0f348499030b=/py_code/google.protobuf.internal.decoder" "_35321737662c4c8124213f80e5=/py_modules/google.protobuf.internal.encoder" "_c2d93d5f96bd369ecefee8277c=resfs/src//py_modules/google.protobuf.internal.encoder" "_25453d316cfce81e496218fa79=/py_code/google.protobuf.internal.encoder" "_c8a3f27f5fbbb563e600e68567=/py_modules/google.protobuf.internal.enum_type_wrapper" "_0c3573c515cdeab4eeec1a3dcc=resfs/src//py_modules/google.protobuf.internal.enum_type_wrapper" "_8c73348d5d65a103ef4b21f93b=/py_code/google.protobuf.internal.enum_type_wrapper" "_993d712172f991d8d2d8ec9e0b=/py_modules/google.protobuf.internal.message_listener" "_f7c34ddfa5f7d4021524cf030f=resfs/src//py_modules/google.protobuf.internal.message_listener" "_84cbb725c8dfd69cc35692f0a4=/py_code/google.protobuf.internal.message_listener" "_59f461e1fa326b177abd6ff711=/py_modules/google.protobuf.internal.python_message" "_0c1d03308d4c3084d0e85d94dc=resfs/src//py_modules/google.protobuf.internal.python_message" "_121de710bb76d48275bd6fc1a3=/py_code/google.protobuf.internal.python_message" "_4a2f20acc800a1dd9ea55891a8=/py_modules/google.protobuf.internal.type_checkers" "_a90955ba15697df85baa206572=resfs/src//py_modules/google.protobuf.internal.type_checkers" "_4feb86428c98be8d26c3a522a9=/py_code/google.protobuf.internal.type_checkers" "_cfe6631fd97f0d56679a0460af=/py_modules/google.protobuf.internal.well_known_types" "_224462d2d6f055890690c99314=resfs/src//py_modules/google.protobuf.internal.well_known_types" "_4d36f963b851b9da35df5bab23=/py_code/google.protobuf.internal.well_known_types" "_4e7cf1319a5275edd2db1cd1a5=/py_modules/google.protobuf.internal.wire_format" "_212deb860668e38c9b5559ef0e=resfs/src//py_modules/google.protobuf.internal.wire_format" "_9fae6feeb4cfe784b416f3e85b=/py_code/google.protobuf.internal.wire_format" "_b94f7ca81e8e1ee8cfb403e25c=/py_modules/google.protobuf.json_format" "_ab6266596c96f79206cb2a0770=resfs/src//py_modules/google.protobuf.json_format" "_30807e6f998cc87da81218786a=/py_code/google.protobuf.json_format"
 if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/a7ca4f47cb350b374ed52bbdeb.cpp" "_564699396f61e58efef7dbfb5b=py/no_check_imports/hpurds6x4ovrrnlpk5goasbcum"
+if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 :cmErrorLevel
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/libs/protobuf/python/google_lib/0eac088e69085f071e6611e738.cpp	$B/contrib/libs/protobuf/python/google_lib/1b483a23bce746d5bd348c4edc.cpp	$B/contrib/libs/protobuf/python/google_lib/33098b69682a11cb81c857b976.cpp	$B/contrib/libs/protobuf/python/google_lib/36aeedf30c6edf364fbad84d06.cpp	$B/contrib/libs/protobuf/python/google_lib/4ee824682a2ca561c3f2a4e102.cpp	$B/contrib/libs/protobuf/python/google_lib/51abd30ca2cfb96992f7b69f89.cpp	</Message>
+      <Message>$B/contrib/libs/protobuf/python/google_lib/0eac088e69085f071e6611e738.cpp	$B/contrib/libs/protobuf/python/google_lib/1b483a23bce746d5bd348c4edc.cpp	$B/contrib/libs/protobuf/python/google_lib/33098b69682a11cb81c857b976.cpp	$B/contrib/libs/protobuf/python/google_lib/36aeedf30c6edf364fbad84d06.cpp	$B/contrib/libs/protobuf/python/google_lib/4ee824682a2ca561c3f2a4e102.cpp	$B/contrib/libs/protobuf/python/google_lib/51abd30ca2cfb96992f7b69f89.cpp	$B/contrib/libs/protobuf/python/google_lib/a7ca4f47cb350b374ed52bbdeb.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\0eac088e69085f071e6611e738.cpp;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\1b483a23bce746d5bd348c4edc.cpp;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\33098b69682a11cb81c857b976.cpp;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\36aeedf30c6edf364fbad84d06.cpp;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\4ee824682a2ca561c3f2a4e102.cpp;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\51abd30ca2cfb96992f7b69f89.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\0eac088e69085f071e6611e738.cpp;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\1b483a23bce746d5bd348c4edc.cpp;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\33098b69682a11cb81c857b976.cpp;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\36aeedf30c6edf364fbad84d06.cpp;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\4ee824682a2ca561c3f2a4e102.cpp;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\51abd30ca2cfb96992f7b69f89.cpp;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\a7ca4f47cb350b374ed52bbdeb.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\fs_tools.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal

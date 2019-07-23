@@ -79,6 +79,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\dateutil\551c0150f94a2ec0b2cd058d91.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\dateutil\afb155d947e04234239551befa.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\dateutil\join_0e04fea484208213cdcdb4f519.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\dateutil\_551c0150f94a2ec0b2cd058d91.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -107,6 +108,33 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\dateutil\_551c0150f94a2ec0b2cd058d91.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\dateutil\_551c0150f94a2ec0b2cd058d91.py3.obj;</Outputs>
     </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\dateutil\_afb155d947e04234239551befa.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/brotli/include" "-o" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_afb155d947e04234239551befa.py3.obj" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_afb155d947e04234239551befa.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/brotli/include" "-o" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_afb155d947e04234239551befa.py3.obj" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_afb155d947e04234239551befa.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/dateutil/_afb155d947e04234239551befa.py3.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\dateutil\_afb155d947e04234239551befa.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\dateutil\_afb155d947e04234239551befa.py3.obj;</Outputs>
+    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\dateutil\join_3e811f8a9406947eb054a96fd4.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
@@ -134,6 +162,33 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\dateutil\join_3e811f8a9406947eb054a96fd4.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\dateutil\join_3e811f8a9406947eb054a96fd4.py3.obj;</Outputs>
     </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_afb155d947e04234239551befa.yasm" "-" "dateutil.tz.win dateutil.tzwin" "_b60ac77fb14e5244c3d3cb26de.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_afb155d947e04234239551befa.yasm" "-" "dateutil.tz.win dateutil.tzwin" "_b60ac77fb14e5244c3d3cb26de.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/dateutil/_afb155d947e04234239551befa.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\dateutil\_afb155d947e04234239551befa.yasm;</Outputs>
+    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
@@ -147,6 +202,10 @@ if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/7a4a8783e6351ea8332c3a5562.cpp" "_455956898cbd573b866b34813c=resfs/src/resfs/file/py/dateutil/__init__.py" "_8cde61858cdfeeaa7b77d0ef45=resfs/file/py/dateutil/__init__.py" "_24156352ff42c88d5ebda3eeb1=resfs/src/resfs/file/py/dateutil/__init__.py.yapyc3" "_7821c4206c4c318c9a98802829=resfs/file/py/dateutil/__init__.py.yapyc3" "_ed354a0a9af4abef4e02343e59=resfs/src/resfs/file/py/dateutil/_common.py" "_fd76d84001ebc16e7cc7e49997=resfs/file/py/dateutil/_common.py" "_a04769fa44ca8f752a92478aed=resfs/src/resfs/file/py/dateutil/_common.py.yapyc3" "_7097dac519d9c8105c30497dc2=resfs/file/py/dateutil/_common.py.yapyc3" "_d8951de02917cc207c34c526d6=resfs/src/resfs/file/py/dateutil/_version.py" "_595f7e5dc9b32dc529700a542b=resfs/file/py/dateutil/_version.py" "_9416da4db45a992431716689b6=resfs/src/resfs/file/py/dateutil/_version.py.yapyc3" "_4b5913ef3d053e469ecd25fb90=resfs/file/py/dateutil/_version.py.yapyc3" "_2022e91267d8dc972d4bfc8aba=resfs/src/resfs/file/py/dateutil/easter.py" "_a0a032007b693de26baf7e46c7=resfs/file/py/dateutil/easter.py" "_0866c20c8dea5b7be0b0955f5e=resfs/src/resfs/file/py/dateutil/easter.py.yapyc3" "_783b72f9fee905abb3863a785e=resfs/file/py/dateutil/easter.py.yapyc3" "_bd8ff580f713492a8ce8b18c0c=resfs/src/resfs/file/py/dateutil/parser/__init__.py" "_5f3f3425abe6a18a83f7f07416=resfs/file/py/dateutil/parser/__init__.py" "_30da607da22b1f7aba29398008=resfs/src/resfs/file/py/dateutil/parser/__init__.py.yapyc3" "_2e593a02f806d7407e95487d26=resfs/file/py/dateutil/parser/__init__.py.yapyc3" "_257c074d515ceb70eb590fab45=resfs/src/resfs/file/py/dateutil/parser/_parser.py" "_7e282cfbf90955d27a94abe584=resfs/file/py/dateutil/parser/_parser.py" "_a5b9baed7d1d17c2f989f87c49=resfs/src/resfs/file/py/dateutil/parser/_parser.py.yapyc3" "_3fc807550d873403b7d4012916=resfs/file/py/dateutil/parser/_parser.py.yapyc3" "_db2337e3c97b45622505838719=resfs/src/resfs/file/py/dateutil/parser/isoparser.py" "_46d20116d4a260b2880560a468=resfs/file/py/dateutil/parser/isoparser.py" "_baf9ce5202d1eac1fc4992dee3=resfs/src/resfs/file/py/dateutil/parser/isoparser.py.yapyc3" "_1ba2d2019665c0f80bf72d8f6a=resfs/file/py/dateutil/parser/isoparser.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/afb155d947e04234239551befa.cpp" "_b60ac77fb14e5244c3d3cb26de=py/no_check_imports/qbawl3ojmczf4xduuzyh25tp3i"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
 if %errorlevel% neq 0 goto :cmEnd
@@ -173,6 +232,10 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/afb155d947e04234239551befa.cpp" "_b60ac77fb14e5244c3d3cb26de=py/no_check_imports/qbawl3ojmczf4xduuzyh25tp3i"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
+if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/d474388be54d52ec88343e2ad5.cpp" "_d0f8191723fe5ff5503b16c364=resfs/file/py/dateutil/tzwin.py" "_dc236c67b8cc6fe6d55fa45073=resfs/src/resfs/file/py/dateutil/tzwin.py.yapyc3" "_a1171be57e48d3e8fcf1d8806d=resfs/file/py/dateutil/tzwin.py.yapyc3" "_46437c59f4f71252fdaf1e2e5a=resfs/src/resfs/file/py/dateutil/utils.py" "_43e147f03d53cec6e25a4ae161=resfs/file/py/dateutil/utils.py" "_741826b8b3cc9cf4be3531fff9=resfs/src/resfs/file/py/dateutil/utils.py.yapyc3" "_5720ce2fbd8b0ca6ffb7c6047c=resfs/file/py/dateutil/utils.py.yapyc3" "_8899c198dfb2d93392545b0414=resfs/src/resfs/file/py/dateutil/zoneinfo/__init__.py" "_8b380a8b434852f5f6bc798f3c=resfs/file/py/dateutil/zoneinfo/__init__.py" "_6b03e3ae1540aeae30d1aa7db6=resfs/src/resfs/file/py/dateutil/zoneinfo/__init__.py.yapyc3" "_7d66f123ec8382041a30087824=resfs/file/py/dateutil/zoneinfo/__init__.py.yapyc3" "_b348d143826c767997d36dd7d4=resfs/src/resfs/file/py/dateutil/zoneinfo/rebuild.py" "_76e2d4d3c8f18ef624ee259740=resfs/file/py/dateutil/zoneinfo/rebuild.py" "_3dd83f3ca3f0a15ef336913f74=resfs/src/resfs/file/py/dateutil/zoneinfo/rebuild.py.yapyc3" "_3908c7b3d303e60376a8221a40=resfs/file/py/dateutil/zoneinfo/rebuild.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
@@ -181,9 +244,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/dateutil/1167080f019574c602934fe739.cpp	$B/contrib/python/dateutil/551c0150f94a2ec0b2cd058d91.cpp	$B/contrib/python/dateutil/7a4a8783e6351ea8332c3a5562.cpp	$B/contrib/python/dateutil/d474388be54d52ec88343e2ad5.cpp	</Message>
+      <Message>$B/contrib/python/dateutil/1167080f019574c602934fe739.cpp	$B/contrib/python/dateutil/551c0150f94a2ec0b2cd058d91.cpp	$B/contrib/python/dateutil/7a4a8783e6351ea8332c3a5562.cpp	$B/contrib/python/dateutil/afb155d947e04234239551befa.cpp	$B/contrib/python/dateutil/d474388be54d52ec88343e2ad5.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\dateutil\1167080f019574c602934fe739.cpp;$(SolutionDir)$(Configuration)\contrib\python\dateutil\551c0150f94a2ec0b2cd058d91.cpp;$(SolutionDir)$(Configuration)\contrib\python\dateutil\7a4a8783e6351ea8332c3a5562.cpp;$(SolutionDir)$(Configuration)\contrib\python\dateutil\d474388be54d52ec88343e2ad5.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\dateutil\1167080f019574c602934fe739.cpp;$(SolutionDir)$(Configuration)\contrib\python\dateutil\551c0150f94a2ec0b2cd058d91.cpp;$(SolutionDir)$(Configuration)\contrib\python\dateutil\7a4a8783e6351ea8332c3a5562.cpp;$(SolutionDir)$(Configuration)\contrib\python\dateutil\afb155d947e04234239551befa.cpp;$(SolutionDir)$(Configuration)\contrib\python\dateutil\d474388be54d52ec88343e2ad5.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\fs_tools.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal

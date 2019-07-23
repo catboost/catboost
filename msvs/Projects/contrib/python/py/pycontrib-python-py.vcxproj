@@ -78,8 +78,36 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\py\1a9bb99fb48e72b712144aad03.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\py\dca285bbc597ad6b55d2f457b6.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\py\join_ffa16c49062046325917fa9f83.cpp"/>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\py\_1a9bb99fb48e72b712144aad03.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/brotli/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-o" "$(SolutionDir)$(Configuration)/contrib/python/py/_1a9bb99fb48e72b712144aad03.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/py/_1a9bb99fb48e72b712144aad03.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/brotli/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-o" "$(SolutionDir)$(Configuration)/contrib/python/py/_1a9bb99fb48e72b712144aad03.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/py/_1a9bb99fb48e72b712144aad03.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/py/_1a9bb99fb48e72b712144aad03.py2.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\py\_1a9bb99fb48e72b712144aad03.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\py\_1a9bb99fb48e72b712144aad03.py2.obj;</Outputs>
+    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\py\_dca285bbc597ad6b55d2f457b6.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py
@@ -134,8 +162,39 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\py\join_d15b8e990f92988964399b34c4.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\py\join_d15b8e990f92988964399b34c4.py2.obj;</Outputs>
     </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/py/_1a9bb99fb48e72b712144aad03.yasm" "-" "py._code._assertionnew py._code._assertionold" "_7001ba192f324818622a37e057.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/py/_1a9bb99fb48e72b712144aad03.yasm" "-" "py._code._assertionnew py._code._assertionold" "_7001ba192f324818622a37e057.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/py/_1a9bb99fb48e72b712144aad03.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\py\_1a9bb99fb48e72b712144aad03.yasm;</Outputs>
+    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/py/1a9bb99fb48e72b712144aad03.cpp" "_7001ba192f324818622a37e057=py/no_check_imports/ooixzlgcbugaoj7elhnbg6xyb4"
+if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/py/34d91ab6a76efb760b2b8c980e.cpp" "_bb0ecda54e66e2abb953a3382c=/py_modules/py._builtin" "_5404025d21634ff17b4f65c656=resfs/src//py_modules/py._builtin" "_9fcba4c85d5f6e7857f3840a09=/py_code/py._builtin" "_b2eb283e73507e9729e2dca1de=/py_modules/py._code._assertionnew" "_bb008f1125fbacc825aa272b63=resfs/src//py_modules/py._code._assertionnew" "_0439fd8124a724b1a8cad8602c=/py_code/py._code._assertionnew" "_5c64bbfa1a9fdd91b8328dd844=/py_modules/py._code._assertionold" "_bd236bc50fb0d95cc6ccf29001=resfs/src//py_modules/py._code._assertionold" "_990c0f3b86f7261c434be2d462=/py_code/py._code._assertionold" "_c1bad11f6f4c854bba45fe2b88=/py_modules/py._code.assertion" "_55202db51a06800ea9e8bd98fb=resfs/src//py_modules/py._code.assertion" "_da44b3799c3739a72210d9d804=/py_code/py._code.assertion" "_e7e5b2810f028e28e563bd207c=/py_modules/py._code.code" "_777ebf6c4d827651214ff5e90e=resfs/src//py_modules/py._code.code" "_9729b97f987af3fed9a90c6fcf=/py_code/py._code.code" "_024d58684b5473b05c16d46afc=/py_modules/py._code.__init__" "_a285e3af47d6252fa942020799=resfs/src//py_modules/py._code.__init__" "_bec2b7d5c05ba725a97439373d=/py_code/py._code.__init__" "_0cb8875db094a83c98b308c338=/py_modules/py._code._py2traceback" "_759c9b7f05eb3b938e78aa4961=resfs/src//py_modules/py._code._py2traceback" "_3b15069aaf883b9decdc154563=/py_code/py._code._py2traceback" "_d401caf7e56d6b78ba7b44bf9b=/py_modules/py._code.source" "_d06d548f7b9de4d84c9e7fa913=resfs/src//py_modules/py._code.source" "_078d2b51b1600cc5d4ced8ab63=/py_code/py._code.source" "_a17dedd218e8852d1b2e75c7c0=/py_modules/py._error" "_0cefac5c4445c24093e8dbbaf0=resfs/src//py_modules/py._error" "_a4887a848d551d21d11e1e864e=/py_code/py._error" "_999c1edece8743b1947eec4ef4=/py_modules/py.__init__" "_39288a2b94d5922ad9529da777=resfs/src//py_modules/py.__init__" "_38f019f8478f4b4c1995e1874e=/py_code/py.__init__"
@@ -165,6 +224,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/py/1a9bb99fb48e72b712144aad03.cpp" "_7001ba192f324818622a37e057=py/no_check_imports/ooixzlgcbugaoj7elhnbg6xyb4"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/py/34d91ab6a76efb760b2b8c980e.cpp" "_bb0ecda54e66e2abb953a3382c=/py_modules/py._builtin" "_5404025d21634ff17b4f65c656=resfs/src//py_modules/py._builtin" "_9fcba4c85d5f6e7857f3840a09=/py_code/py._builtin" "_b2eb283e73507e9729e2dca1de=/py_modules/py._code._assertionnew" "_bb008f1125fbacc825aa272b63=resfs/src//py_modules/py._code._assertionnew" "_0439fd8124a724b1a8cad8602c=/py_code/py._code._assertionnew" "_5c64bbfa1a9fdd91b8328dd844=/py_modules/py._code._assertionold" "_bd236bc50fb0d95cc6ccf29001=resfs/src//py_modules/py._code._assertionold" "_990c0f3b86f7261c434be2d462=/py_code/py._code._assertionold" "_c1bad11f6f4c854bba45fe2b88=/py_modules/py._code.assertion" "_55202db51a06800ea9e8bd98fb=resfs/src//py_modules/py._code.assertion" "_da44b3799c3739a72210d9d804=/py_code/py._code.assertion" "_e7e5b2810f028e28e563bd207c=/py_modules/py._code.code" "_777ebf6c4d827651214ff5e90e=resfs/src//py_modules/py._code.code" "_9729b97f987af3fed9a90c6fcf=/py_code/py._code.code" "_024d58684b5473b05c16d46afc=/py_modules/py._code.__init__" "_a285e3af47d6252fa942020799=resfs/src//py_modules/py._code.__init__" "_bec2b7d5c05ba725a97439373d=/py_code/py._code.__init__" "_0cb8875db094a83c98b308c338=/py_modules/py._code._py2traceback" "_759c9b7f05eb3b938e78aa4961=resfs/src//py_modules/py._code._py2traceback" "_3b15069aaf883b9decdc154563=/py_code/py._code._py2traceback" "_d401caf7e56d6b78ba7b44bf9b=/py_modules/py._code.source" "_d06d548f7b9de4d84c9e7fa913=resfs/src//py_modules/py._code.source" "_078d2b51b1600cc5d4ced8ab63=/py_code/py._code.source" "_a17dedd218e8852d1b2e75c7c0=/py_modules/py._error" "_0cefac5c4445c24093e8dbbaf0=resfs/src//py_modules/py._error" "_a4887a848d551d21d11e1e864e=/py_code/py._error" "_999c1edece8743b1947eec4ef4=/py_modules/py.__init__" "_39288a2b94d5922ad9529da777=resfs/src//py_modules/py.__init__" "_38f019f8478f4b4c1995e1874e=/py_code/py.__init__"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py
@@ -189,9 +252,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/py/34d91ab6a76efb760b2b8c980e.cpp	$B/contrib/python/py/4ce0ab5ec7d67462c3d329f9fa.cpp	$B/contrib/python/py/d49a9a9d74d57afa2b6185d6b3.cpp	$B/contrib/python/py/dca285bbc597ad6b55d2f457b6.cpp	$B/contrib/python/py/e903e8af1abff5304e94c0136e.cpp	</Message>
+      <Message>$B/contrib/python/py/1a9bb99fb48e72b712144aad03.cpp	$B/contrib/python/py/34d91ab6a76efb760b2b8c980e.cpp	$B/contrib/python/py/4ce0ab5ec7d67462c3d329f9fa.cpp	$B/contrib/python/py/d49a9a9d74d57afa2b6185d6b3.cpp	$B/contrib/python/py/dca285bbc597ad6b55d2f457b6.cpp	$B/contrib/python/py/e903e8af1abff5304e94c0136e.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\py\34d91ab6a76efb760b2b8c980e.cpp;$(SolutionDir)$(Configuration)\contrib\python\py\4ce0ab5ec7d67462c3d329f9fa.cpp;$(SolutionDir)$(Configuration)\contrib\python\py\d49a9a9d74d57afa2b6185d6b3.cpp;$(SolutionDir)$(Configuration)\contrib\python\py\dca285bbc597ad6b55d2f457b6.cpp;$(SolutionDir)$(Configuration)\contrib\python\py\e903e8af1abff5304e94c0136e.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\py\1a9bb99fb48e72b712144aad03.cpp;$(SolutionDir)$(Configuration)\contrib\python\py\34d91ab6a76efb760b2b8c980e.cpp;$(SolutionDir)$(Configuration)\contrib\python\py\4ce0ab5ec7d67462c3d329f9fa.cpp;$(SolutionDir)$(Configuration)\contrib\python\py\d49a9a9d74d57afa2b6185d6b3.cpp;$(SolutionDir)$(Configuration)\contrib\python\py\dca285bbc597ad6b55d2f457b6.cpp;$(SolutionDir)$(Configuration)\contrib\python\py\e903e8af1abff5304e94c0136e.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\fs_tools.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal

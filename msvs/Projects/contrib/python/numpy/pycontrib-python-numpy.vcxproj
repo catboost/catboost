@@ -78,6 +78,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\5ff068b7fb18510bcc0763b0ac.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\join_1f9792de0b7cbdff453053b103.cpp"/>
     <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\numpy\core\src\common\array_assign.c">
       <CompileAs>CompileAsC</CompileAs>
@@ -130,6 +131,33 @@
     <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\numpy\core\src\npysort\selection.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\_5ff068b7fb18510bcc0763b0ac.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include/numpy" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/common" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/multiarray" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npymath" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npysort" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/brotli/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-o" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_5ff068b7fb18510bcc0763b0ac.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_5ff068b7fb18510bcc0763b0ac.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include/numpy" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/common" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/multiarray" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npymath" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npysort" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/brotli/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-o" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_5ff068b7fb18510bcc0763b0ac.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_5ff068b7fb18510bcc0763b0ac.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/numpy/_5ff068b7fb18510bcc0763b0ac.py2.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\_5ff068b7fb18510bcc0763b0ac.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\_5ff068b7fb18510bcc0763b0ac.py2.obj;</Outputs>
+    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\join_85e6f8c1f80af804ee9a6eb00d.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy
@@ -427,6 +455,33 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\testing\_private\parameterized.py.yapyc;$(SolutionDir)..\contrib\python\numpy\numpy\testing\_private\utils.py;$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\testing\_private\utils.py.yapyc;$(SolutionDir)..\contrib\python\numpy\numpy\testing\decorators.py;$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\testing\decorators.py.yapyc;$(SolutionDir)..\contrib\python\numpy\numpy\testing\noseclasses.py;$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\testing\noseclasses.py.yapyc;$(SolutionDir)..\contrib\python\numpy\numpy\testing\nosetester.py;$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\testing\nosetester.py.yapyc;$(SolutionDir)..\contrib\python\numpy\numpy\testing\print_coercion_tables.py;$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\testing\print_coercion_tables.py.yapyc;$(SolutionDir)..\contrib\python\numpy\numpy\testing\utils.py;$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\testing\utils.py.yapyc;$(SolutionDir)..\contrib\python\numpy\numpy\version.py;$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\version.py.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\_d1833326b2b3a88006287a9084.yasm;$(SolutionDir)$(Configuration)\contrib\python\numpy\_513c970f6e68cf9e3f311a9b28.rodata;$(SolutionDir)$(Configuration)\contrib\python\numpy\_6b3b8eebef6d2fd69f6f05b377.rodata;$(SolutionDir)$(Configuration)\contrib\python\numpy\_93770079daa8db161849f94b88.rodata;$(SolutionDir)$(Configuration)\contrib\python\numpy\_afb3481fa741bcab1b937b4bf4.rodata;$(SolutionDir)$(Configuration)\contrib\python\numpy\_a6ea954be3c2e2c493df1e035d.rodata;$(SolutionDir)$(Configuration)\contrib\python\numpy\_1775420b0c630e9bb26f9c4ae9.rodata;$(SolutionDir)$(Configuration)\contrib\python\numpy\_5b079e3a08583c9de8c1534a44.rodata;$(SolutionDir)$(Configuration)\contrib\python\numpy\_ed7a47a81552311244b976e7c9.rodata;$(SolutionDir)$(Configuration)\contrib\python\numpy\_0dd3f5ef9153e4fef7a9d84c7d.rodata;$(SolutionDir)$(Configuration)\contrib\python\numpy\_08d3af70604cfd93694238e983.rodata;$(SolutionDir)$(Configuration)\contrib\python\numpy\_82a48e06faf5565bf6b2274e16.rodata;$(SolutionDir)$(Configuration)\contrib\python\numpy\_493fd94dda63c69a86ea487061.rodata;$(SolutionDir)$(Configuration)\contrib\python\numpy\_4aee2d4d1a9f3f1830f677b4e2.rodata;$(SolutionDir)$(Configuration)\contrib\python\numpy\_41da937e3eb3cb1f9974b96a85.rodata;$(SolutionDir)$(Configuration)\contrib\python\numpy\_c890e87a365fa3a93c091208f5.rodata;</Outputs>
     </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_5ff068b7fb18510bcc0763b0ac.yasm" "-" "numpy.__init__ numpy.core.code_generators.generate_numpy_api numpy.core.cversions numpy.core.setup numpy.distutils.* numpy.doc.* numpy.lib.__init__ numpy.ma.version numpy.matrixlib.__init__ numpy.testing.*" "_13dfc8699513a4d3b1216093a6.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_5ff068b7fb18510bcc0763b0ac.yasm" "-" "numpy.__init__ numpy.core.code_generators.generate_numpy_api numpy.core.cversions numpy.core.setup numpy.distutils.* numpy.doc.* numpy.lib.__init__ numpy.ma.version numpy.matrixlib.__init__ numpy.testing.*" "_13dfc8699513a4d3b1216093a6.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/numpy/_5ff068b7fb18510bcc0763b0ac.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\_5ff068b7fb18510bcc0763b0ac.yasm;</Outputs>
+    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy
@@ -444,6 +499,10 @@ if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/numpy/386ba3b5b0ca953873f48cc1f3.cpp" "_a6a4502c1393f02fbd4ec70154=/py_code/numpy.lib.utils" "_3e6816727c1172d292d1aec2b1=/py_modules/numpy.ma.__init__" "_e3147ba53aed63bbda715152a4=resfs/src//py_modules/numpy.ma.__init__" "_774b539c4d95ff527b52ad6ca8=/py_code/numpy.ma.__init__" "_c0da765c20ebf347775c45da6a=/py_modules/numpy.ma.bench" "_7c2fbc61a430097a212f615aa2=resfs/src//py_modules/numpy.ma.bench" "_1c2cfae8ac6628fda333f900fe=/py_code/numpy.ma.bench" "_9297686159f5067941234de9d1=/py_modules/numpy.ma.core" "_f20a98fcd7e348acda0fce37f9=resfs/src//py_modules/numpy.ma.core" "_2adc949c60bbf65b6ade060050=/py_code/numpy.ma.core" "_07fcca1a1922ca94fd9b4cc66e=/py_modules/numpy.ma.extras" "_3b1fbd4885202510f9eee9c3b0=resfs/src//py_modules/numpy.ma.extras" "_cf902602449b9f79c3d63e5fcc=/py_code/numpy.ma.extras" "_240e6ef35b595361c7c8433679=/py_modules/numpy.ma.mrecords" "_6e748c459148cd1f275cd6b04c=resfs/src//py_modules/numpy.ma.mrecords" "_ae86031e8791a894aa6410d5c4=/py_code/numpy.ma.mrecords" "_36b34d8fed3dc41ff927fc11cb=/py_modules/numpy.ma.testutils" "_658056894688b986b1807be403=resfs/src//py_modules/numpy.ma.testutils" "_ddd613e76cc945abfdb2d623e5=/py_code/numpy.ma.testutils" "_0694415fc5798e84ba0e66549f=/py_modules/numpy.ma.timer_comparison" "_c39bc8a28c216351b4f97f1afb=resfs/src//py_modules/numpy.ma.timer_comparison" "_6354b10317cca1abd7d21bf413=/py_code/numpy.ma.timer_comparison" "_d5cec714220ddf18b87c065d0a=/py_modules/numpy.ma.version" "_73ebad7fe9cc2a00c651d2c425=resfs/src//py_modules/numpy.ma.version" "_411d61f61907af2349cd96c035=/py_code/numpy.ma.version" "_ad8fcf0676f37ed82740cc33e3=/py_modules/numpy.matlib" "_cecba16a8bef49f9b02b85f95a=resfs/src//py_modules/numpy.matlib" "_61d5d6d94cc0eabb1766644677=/py_code/numpy.matlib" "_71b8ac3a20c510b7b62620f518=/py_modules/numpy.matrixlib.__init__"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/numpy/5ff068b7fb18510bcc0763b0ac.cpp" "_13dfc8699513a4d3b1216093a6=py/no_check_imports/lrp2opgr6g6w2uzgovgtc2kjri"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy
 if %errorlevel% neq 0 goto :cmEnd
@@ -530,6 +589,10 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/numpy/5ff068b7fb18510bcc0763b0ac.cpp" "_13dfc8699513a4d3b1216093a6=py/no_check_imports/lrp2opgr6g6w2uzgovgtc2kjri"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy
+if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/numpy/604f602a73b093467a6d3ff627.cpp" "_ec9e33ea1cc56bd83e625f47fe=resfs/src//py_modules/numpy.polynomial.polynomial" "_83cf153f401c4353158112b431=/py_code/numpy.polynomial.polynomial" "_66c862ed35321f6d9f8447b1d6=/py_modules/numpy.polynomial.polyutils" "_2ee97c5bafadfd8ee36ffa3787=resfs/src//py_modules/numpy.polynomial.polyutils" "_9b21254ee076c71674911c5e8a=/py_code/numpy.polynomial.polyutils" "_ce90097b857b1955a1cb7d32c2=/py_modules/numpy.random.__init__" "_62147ffc795962473fd8e37664=resfs/src//py_modules/numpy.random.__init__" "_7b8a73afd3cf56a813123c42f9=/py_code/numpy.random.__init__" "_37c88a9ec2e72f8226aa8227e4=/py_modules/numpy.random.info" "_31be507c8496c26710d66c19f9=resfs/src//py_modules/numpy.random.info" "_d204aaf3ac6a7b6706165b0248=/py_code/numpy.random.info" "_b7c0ee75fc0ca395508be3b988=/py_modules/numpy.testing.__init__" "_4ff4bf0720a06149c040db0d62=resfs/src//py_modules/numpy.testing.__init__" "_beb3da63402f40e259cfab692e=/py_code/numpy.testing.__init__" "_466803aebca16cd9041dcbbcdb=/py_modules/numpy.testing._private.__init__" "_20c85afd50f945368eff16c116=resfs/src//py_modules/numpy.testing._private.__init__" "_68ad63eb65b6cf381f37305629=/py_code/numpy.testing._private.__init__" "_4dcf4dc2fee15aefd3457bf2c2=/py_modules/numpy.testing._private.decorators" "_554adaa6f63c7b4629ac98fba3=resfs/src//py_modules/numpy.testing._private.decorators" "_62c8a352f95aecb28428de46c9=/py_code/numpy.testing._private.decorators" "_6717250c63cec174bcfca86cbc=/py_modules/numpy.testing._private.noseclasses" "_acf6b37e88a03978af5a32385c=resfs/src//py_modules/numpy.testing._private.noseclasses" "_e278aa9e3aeeff18b2b3ec8397=/py_code/numpy.testing._private.noseclasses" "_6bec780242ce70ce922c60cb7d=/py_modules/numpy.testing._private.nosetester" "_7b728a05edb87262b1780a810f=resfs/src//py_modules/numpy.testing._private.nosetester" "_ecf771ab4078aef1f3edceeb59=/py_code/numpy.testing._private.nosetester" "_dcba170838e241b4ac6d0f8ace=/py_modules/numpy.testing._private.parameterized"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy
@@ -594,9 +657,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/numpy/15d010b2e51eb8d76c11dc98c5.cpp	$B/contrib/python/numpy/1cbae0969a48cbf09612a9751f.cpp	$B/contrib/python/numpy/23786404efe79de9181e968b49.cpp	$B/contrib/python/numpy/386ba3b5b0ca953873f48cc1f3.cpp	$B/contrib/python/numpy/604f602a73b093467a6d3ff627.cpp	$B/contrib/python/numpy/6176d3fc2fa88d7bdf956eba9a.cpp	$B/contrib/python/numpy/65867b908e9d6483b790c23167.cpp	$B/contrib/python/numpy/694cd94debd3d78b34c3904005.cpp	$B/contrib/python/numpy/703840750e448da50e82646151.cpp	$B/contrib/python/numpy/89c70e51f9da6f956545d1d37a.cpp	$B/contrib/python/numpy/944c040d44d3db92d5d65b2fd9.cpp	$B/contrib/python/numpy/97985885704fd40f8bcaab0d83.cpp	$B/contrib/python/numpy/9eb7031cb85af2c2ef9669e480.cpp	$B/contrib/python/numpy/baadc861d576dee53056778c66.cpp	$B/contrib/python/numpy/bd93debef1d8ae3b0f9c2e277d.cpp	$B/contrib/python/numpy/c878c6f4162bb0ffdec1dfed4e.cpp	$B/contrib/python/numpy/d1833326b2b3a88006287a9084.cpp	$B/contrib/python/numpy/f7d645180b9f21a4093e65465c.cpp	$B/contrib/python/numpy/fa6b59482a435743905432bd8d.cpp	</Message>
+      <Message>$B/contrib/python/numpy/15d010b2e51eb8d76c11dc98c5.cpp	$B/contrib/python/numpy/1cbae0969a48cbf09612a9751f.cpp	$B/contrib/python/numpy/23786404efe79de9181e968b49.cpp	$B/contrib/python/numpy/386ba3b5b0ca953873f48cc1f3.cpp	$B/contrib/python/numpy/5ff068b7fb18510bcc0763b0ac.cpp	$B/contrib/python/numpy/604f602a73b093467a6d3ff627.cpp	$B/contrib/python/numpy/6176d3fc2fa88d7bdf956eba9a.cpp	$B/contrib/python/numpy/65867b908e9d6483b790c23167.cpp	$B/contrib/python/numpy/694cd94debd3d78b34c3904005.cpp	$B/contrib/python/numpy/703840750e448da50e82646151.cpp	$B/contrib/python/numpy/89c70e51f9da6f956545d1d37a.cpp	$B/contrib/python/numpy/944c040d44d3db92d5d65b2fd9.cpp	$B/contrib/python/numpy/97985885704fd40f8bcaab0d83.cpp	$B/contrib/python/numpy/9eb7031cb85af2c2ef9669e480.cpp	$B/contrib/python/numpy/baadc861d576dee53056778c66.cpp	$B/contrib/python/numpy/bd93debef1d8ae3b0f9c2e277d.cpp	$B/contrib/python/numpy/c878c6f4162bb0ffdec1dfed4e.cpp	$B/contrib/python/numpy/d1833326b2b3a88006287a9084.cpp	$B/contrib/python/numpy/f7d645180b9f21a4093e65465c.cpp	$B/contrib/python/numpy/fa6b59482a435743905432bd8d.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\15d010b2e51eb8d76c11dc98c5.cpp;$(SolutionDir)$(Configuration)\contrib\python\numpy\1cbae0969a48cbf09612a9751f.cpp;$(SolutionDir)$(Configuration)\contrib\python\numpy\23786404efe79de9181e968b49.cpp;$(SolutionDir)$(Configuration)\contrib\python\numpy\386ba3b5b0ca953873f48cc1f3.cpp;$(SolutionDir)$(Configuration)\contrib\python\numpy\604f602a73b093467a6d3ff627.cpp;$(SolutionDir)$(Configuration)\contrib\python\numpy\6176d3fc2fa88d7bdf956eba9a.cpp;$(SolutionDir)$(Configuration)\contrib\python\numpy\65867b908e9d6483b790c23167.cpp;$(SolutionDir)$(Configuration)\contrib\python\numpy\694cd94debd3d78b34c3904005.cpp;$(SolutionDir)$(Configuration)\contrib\python\numpy\703840750e448da50e82646151.cpp;$(SolutionDir)$(Configuration)\contrib\python\numpy\89c70e51f9da6f956545d1d37a.cpp;$(SolutionDir)$(Configuration)\contrib\python\numpy\944c040d44d3db92d5d65b2fd9.cpp;$(SolutionDir)$(Configuration)\contrib\python\numpy\97985885704fd40f8bcaab0d83.cpp;$(SolutionDir)$(Configuration)\contrib\python\numpy\9eb7031cb85af2c2ef9669e480.cpp;$(SolutionDir)$(Configuration)\contrib\python\numpy\baadc861d576dee53056778c66.cpp;$(SolutionDir)$(Configuration)\contrib\python\numpy\bd93debef1d8ae3b0f9c2e277d.cpp;$(SolutionDir)$(Configuration)\contrib\python\numpy\c878c6f4162bb0ffdec1dfed4e.cpp;$(SolutionDir)$(Configuration)\contrib\python\numpy\d1833326b2b3a88006287a9084.cpp;$(SolutionDir)$(Configuration)\contrib\python\numpy\f7d645180b9f21a4093e65465c.cpp;$(SolutionDir)$(Configuration)\contrib\python\numpy\fa6b59482a435743905432bd8d.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\15d010b2e51eb8d76c11dc98c5.cpp;$(SolutionDir)$(Configuration)\contrib\python\numpy\1cbae0969a48cbf09612a9751f.cpp;$(SolutionDir)$(Configuration)\contrib\python\numpy\23786404efe79de9181e968b49.cpp;$(SolutionDir)$(Configuration)\contrib\python\numpy\386ba3b5b0ca953873f48cc1f3.cpp;$(SolutionDir)$(Configuration)\contrib\python\numpy\5ff068b7fb18510bcc0763b0ac.cpp;$(SolutionDir)$(Configuration)\contrib\python\numpy\604f602a73b093467a6d3ff627.cpp;$(SolutionDir)$(Configuration)\contrib\python\numpy\6176d3fc2fa88d7bdf956eba9a.cpp;$(SolutionDir)$(Configuration)\contrib\python\numpy\65867b908e9d6483b790c23167.cpp;$(SolutionDir)$(Configuration)\contrib\python\numpy\694cd94debd3d78b34c3904005.cpp;$(SolutionDir)$(Configuration)\contrib\python\numpy\703840750e448da50e82646151.cpp;$(SolutionDir)$(Configuration)\contrib\python\numpy\89c70e51f9da6f956545d1d37a.cpp;$(SolutionDir)$(Configuration)\contrib\python\numpy\944c040d44d3db92d5d65b2fd9.cpp;$(SolutionDir)$(Configuration)\contrib\python\numpy\97985885704fd40f8bcaab0d83.cpp;$(SolutionDir)$(Configuration)\contrib\python\numpy\9eb7031cb85af2c2ef9669e480.cpp;$(SolutionDir)$(Configuration)\contrib\python\numpy\baadc861d576dee53056778c66.cpp;$(SolutionDir)$(Configuration)\contrib\python\numpy\bd93debef1d8ae3b0f9c2e277d.cpp;$(SolutionDir)$(Configuration)\contrib\python\numpy\c878c6f4162bb0ffdec1dfed4e.cpp;$(SolutionDir)$(Configuration)\contrib\python\numpy\d1833326b2b3a88006287a9084.cpp;$(SolutionDir)$(Configuration)\contrib\python\numpy\f7d645180b9f21a4093e65465c.cpp;$(SolutionDir)$(Configuration)\contrib\python\numpy\fa6b59482a435743905432bd8d.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\fs_tools.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
