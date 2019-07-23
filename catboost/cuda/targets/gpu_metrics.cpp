@@ -588,7 +588,6 @@ namespace NCatboostCuda {
                 }
                 break;
             }
-            case ELossFunction::NDCG:
             case ELossFunction::QueryRMSE:
             case ELossFunction::QuerySoftMax:
             case ELossFunction::PairLogit:
