@@ -242,14 +242,14 @@ namespace NCatboostCuda {
                     MultiLogitValueAndDer(target, weights, cursor, (const TCudaBuffer<ui32, TMapping>*)nullptr,
                                           NumClasses, &tmp, (TVec*)nullptr);
                     const double sum = ReadReduce(tmp)[0];
-                    return MakeSimpleAdditiveStatistic(sum, totalWeight);
+                    return MakeSimpleAdditiveStatistic(-sum, totalWeight);
                 }
                 case ELossFunction::MultiClassOneVsAll: {
                     auto tmp = TVec::Create(cursor.GetMapping().RepeatOnAllDevices(1));
                     MultiClassOneVsAllValueAndDer(target, weights, cursor, (const TCudaBuffer<ui32, TMapping>*)nullptr,
                                                   NumClasses, &tmp, (TVec*)nullptr);
                     const double sum = ReadReduce(tmp)[0];
-                    return MakeSimpleAdditiveStatistic(sum, totalWeight);
+                    return MakeSimpleAdditiveStatistic(-sum, totalWeight);
                 }
                 case ELossFunction::MCC: {
                     return BuildConfusionMatrixAtPoint(target, weights, cursor, NumClasses, cache);

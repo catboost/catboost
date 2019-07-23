@@ -1330,7 +1330,7 @@ TMetricHolder TMultiClassMetric::EvalSingleThread(
         const double targetClassApprox = evaluatedApprox[targetClass];
 
         const float w = weight.empty() ? 1 : weight[k];
-        error.Stats[0] += (targetClassApprox - maxApprox - log(sumExpApprox)) * w;
+        error.Stats[0] -= (targetClassApprox - maxApprox - log(sumExpApprox)) * w;
         error.Stats[1] += w;
     }
 
@@ -1342,7 +1342,7 @@ TString TMultiClassMetric::GetDescription() const {
 }
 
 void TMultiClassMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
-    *valueType = EMetricBestValue::Max;
+    *valueType = EMetricBestValue::Min;
 }
 
 /* MultiClassOneVsAll */
@@ -1396,7 +1396,7 @@ TMetricHolder TMultiClassOneVsAllMetric::EvalSingleThread(
         sumDimErrors += evaluatedApprox[targetClass];
 
         const float w = weight.empty() ? 1 : weight[k];
-        error.Stats[0] += sumDimErrors / approxDimension * w;
+        error.Stats[0] -= sumDimErrors / approxDimension * w;
         error.Stats[1] += w;
     }
     return error;
@@ -1407,7 +1407,7 @@ TString TMultiClassOneVsAllMetric::GetDescription() const {
 }
 
 void TMultiClassOneVsAllMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
-    *valueType = EMetricBestValue::Max;
+    *valueType = EMetricBestValue::Min;
 }
 
 /* PairLogit */
