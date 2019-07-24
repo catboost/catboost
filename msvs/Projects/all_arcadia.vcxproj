@@ -1050,6 +1050,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\tools\enum_parser\parse_enum\tools-enum_parser-parse_enum.vcxproj">
       <Project>ED552CD0-2783-3B8B-F133-BB3F842CB698</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\tools\getpid1\getpid1.vcxproj">
+      <Project>4C5FEEC9-7702-F7E6-71E5-46253148F657</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\tools\rescompressor\rescompressor.vcxproj">
       <Project>659583CA-86AE-A5F2-5BA3-BE5FC38B1B30</Project>
     </ProjectReference>

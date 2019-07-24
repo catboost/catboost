@@ -1,6 +1,7 @@
 RECURSE(
     enum_parser
     fix_elf
+    getpid1
     rescompiler
     rescompressor
     rorescompiler

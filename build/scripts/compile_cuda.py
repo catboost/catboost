@@ -3,6 +3,7 @@ import subprocess
 import os
 import collections
 import re
+import tempfile
 
 
 def is_clang(command):
@@ -21,7 +22,8 @@ def main():
         skip_nocxxinc = False
 
     spl = sys.argv.index('--cflags')
-    command = sys.argv[1: spl]
+    getpid1 = sys.argv[1]
+    command = sys.argv[2: spl]
     cflags = sys.argv[spl + 1:]
 
     dump_args = False
@@ -121,6 +123,15 @@ def main():
     command += cpp_args
     if compiler_args:
         command += ['--compiler-options', ','.join(compiler_args)]
+
+    # nvcc generates symbols like this:
+    # __cudaRegisterLinkedBinary_{len}_tmpxft_{pid}_00000000_6_{src}1_ii_{hash}
+    # They embed nvcc pid. This is the only unstable part. We stabilize it by
+    # preloading getpid() that always returns 1.
+    os.environ['LD_PRELOAD'] = getpid1
+    # nvcc deletes all files in TMPDIR that match tmpxft_{pid}*, even not
+    # created by it, so we provide a fresh TMPDIR.
+    os.environ['TMPDIR'] = tempfile.mkdtemp(prefix='compile_cuda.py.')
 
     if dump_args:
         sys.stdout.write('\n'.join(command))
