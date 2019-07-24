@@ -1,5 +1,4 @@
 ## TEMPORARY EXCEPTIONS. TODO: PASSP-24128
-ALLOW yweb/yasap/pdb/pdb-backend/src -> passport/python/library/cookiemy
 ALLOW mail/ava/daemon -> passport/cpp/libs/utils
 ALLOW mail/libblackbox2 -> passport/cpp/libs/auth_core
 
