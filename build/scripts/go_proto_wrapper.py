@@ -19,7 +19,7 @@ def move_tree(src_root, dst_root):
             os.rename(os.path.join(root, file), os.path.join(dst_dir, file))
 
 
-def main(arcadia_prefix, contrib_prefix, args):
+def main(arcadia_prefix, contrib_prefix, proto_namespace, args):
     out_dir_orig = None
     out_dir_temp = None
     for i in range(len(args)):
@@ -43,14 +43,18 @@ def main(arcadia_prefix, contrib_prefix, args):
         print >>sys.stderr, e.output
         return e.returncode
 
-    # All Arcadia GO projects should have 'a.yandex-team.ru/' namespace prefix.
-    # If the namespace doesn't start with 'a.yandex-team.ru/' prefix then this
-    # project is from vendor directory under the root of Arcadia.
-    out_dir_src = os.path.join(out_dir_temp, arcadia_prefix)
-    out_dir_dst = out_dir_orig
-    if not os.path.isdir(out_dir_src):
+    if proto_namespace != '.':
         out_dir_src = out_dir_temp
-        out_dir_dst = os.path.join(out_dir_orig, contrib_prefix)
+        out_dir_dst = out_dir_orig
+    else:
+        # All Arcadia GO projects should have 'a.yandex-team.ru/' namespace prefix.
+        # If the namespace doesn't start with 'a.yandex-team.ru/' prefix then this
+        # project is from vendor directory under the root of Arcadia.
+        out_dir_src = os.path.join(out_dir_temp, arcadia_prefix)
+        out_dir_dst = out_dir_orig
+        if not os.path.isdir(out_dir_src):
+            out_dir_src = out_dir_temp
+            out_dir_dst = os.path.join(out_dir_orig, contrib_prefix)
 
     move_tree(out_dir_src, out_dir_dst)
 
@@ -60,4 +64,4 @@ def main(arcadia_prefix, contrib_prefix, args):
 
 
 if __name__ == '__main__':
-    sys.exit(main(os.path.normpath(sys.argv[1]), os.path.normpath(sys.argv[2]), sys.argv[3:]))
+    sys.exit(main(os.path.normpath(sys.argv[1]), os.path.normpath(sys.argv[2]), os.path.normpath(sys.argv[3]), sys.argv[4:]))
