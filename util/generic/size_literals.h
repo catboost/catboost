@@ -33,17 +33,17 @@ namespace NPrivate {
 }
 
 constexpr i64 operator"" _KBs(const unsigned long long value) noexcept {
-    return NPrivate::SignedCast(value * 1024);
+    return ::NPrivate::SignedCast(value * 1024);
 }
 
 constexpr i64 operator"" _MBs(unsigned long long value) noexcept {
-    return NPrivate::SignedCast(value * 1024_KB);
+    return ::NPrivate::SignedCast(value * 1024_KB);
 }
 
 constexpr i64 operator"" _GBs(unsigned long long value) noexcept {
-    return NPrivate::SignedCast(value * 1024_MB);
+    return ::NPrivate::SignedCast(value * 1024_MB);
 }
 
 constexpr i64 operator"" _TBs(unsigned long long value) noexcept {
-    return NPrivate::SignedCast(value * 1024_GB);
+    return ::NPrivate::SignedCast(value * 1024_GB);
 }
