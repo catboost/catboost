@@ -7,10 +7,12 @@
 #include <util/generic/serialized_enum.h>
 #include <util/generic/vector.h>
 #include <util/generic/algorithm.h>
+#include <util/generic/utility.h>
 #include <util/generic/ymath.h>
 #include <util/generic/xrange.h>
 #include <util/random/fast.h>
 #include <util/random/shuffle.h>
+#include <util/system/compiler.h>
 
 
 using namespace NSplitSelection;
@@ -40,8 +42,9 @@ void TestAll(
         for (const auto& nanIsInfinity : nanIsInfinityValues) {
             for (const auto& maxBorderCount : borderCounts) {
                 TFeatureValues featuresCopy(features);
-                auto borders = BestSplit(
+                TQuantization quantization = BestSplit(
                     std::move(featuresCopy), nanIsInfinity, maxBorderCount, borderSelectionType);
+                THashSet<float> borders(quantization.Borders.begin(), quantization.Borders.end());
                 UNIT_ASSERT_EQUAL_C(borders, expectedBorders,
                     GetEnumNames<EBorderSelectionType>().at(borderSelectionType));
                 if (WEIGHTED_BORDER_SELECTION_TYPES.contains(borderSelectionType) && !features.DefaultValue) {
@@ -289,12 +292,13 @@ Y_UNIT_TEST_SUITE(BinarizationTests) {
                     Shuffle(denseValues.begin(), denseValues.end(), TReallyFastRng32(defaultValueCount));
 
                     for (auto borderSelectionType : BORDER_SELECTION_TYPES) {
-                        const THashSet<float> bordersFromDenseData = NSplitSelection::BestSplit(
-                            TFeatureValues(TVector<float>(denseValues)),
-                            /*featureMayContainNans*/ false,
-                            MAX_BORDERS_COUNT,
-                            borderSelectionType
-                        );
+                        const NSplitSelection::TQuantization quantizationFromDenseData
+                            = NSplitSelection::BestSplit(
+                                TFeatureValues(TVector<float>(denseValues)),
+                                /*featureMayContainNans*/ false,
+                                MAX_BORDERS_COUNT,
+                                borderSelectionType
+                            );
 
                         TFeatureValues featuresWithDefaultValue(
                             TVector<float>(nonDefaultValues),
@@ -302,15 +306,105 @@ Y_UNIT_TEST_SUITE(BinarizationTests) {
                             TDefaultValue(defaultValue, defaultValueCount)
                         );
 
-                        const THashSet<float> bordersFromDataWithDefaultValue = NSplitSelection::BestSplit(
-                            std::move(featuresWithDefaultValue),
-                            /*featureMayContainNans*/ false,
-                            MAX_BORDERS_COUNT,
-                            borderSelectionType
-                        );
+                        const NSplitSelection::TQuantization quantizationFromDataWithDefaultValue
+                            = NSplitSelection::BestSplit(
+                                std::move(featuresWithDefaultValue),
+                                /*featureMayContainNans*/ false,
+                                MAX_BORDERS_COUNT,
+                                borderSelectionType
+                            );
 
-                        UNIT_ASSERT_VALUES_EQUAL(bordersFromDenseData, bordersFromDataWithDefaultValue);
+                        UNIT_ASSERT_EQUAL(quantizationFromDenseData, quantizationFromDataWithDefaultValue);
                     }
+                }
+            }
+        }
+    }
+
+    Y_UNIT_TEST(TestDefaultQuantizedBinDoesNotAffectBorders) {
+        const TVector<size_t> valueCounts = {10, 50, 100, 1000};
+        const TVector<size_t> maxBorderCounts = {5, 10, 20, 254};
+        for (auto valueCount : valueCounts) {
+            TFastRng64 generator(0);
+            const auto values = GenerateDistinctRandomValues(valueCount, generator);
+
+            for (auto maxBorderCount : maxBorderCounts) {
+                for (auto borderSelectionType : BORDER_SELECTION_TYPES) {
+                    TQuantization quantizationWoQuantizedDefaultBin = BestSplit(
+                        TFeatureValues(TVector<float>(values)),
+                        /*featureValuesMayContainNans*/ false,
+                        maxBorderCount,
+                        borderSelectionType,
+                        /*quantizedDefaultBinFraction*/ Nothing()
+                    );
+
+                    TQuantization quantizationWithQuantizedDefaultBin = BestSplit(
+                        TFeatureValues(TVector<float>(values)),
+                        /*featureValuesMayContainNans*/ false,
+                        maxBorderCount,
+                        borderSelectionType,
+                        /*quantizedDefaultBinFraction*/ 0.7f
+                    );
+
+                    UNIT_ASSERT_VALUES_EQUAL(
+                        quantizationWoQuantizedDefaultBin.Borders,
+                        quantizationWithQuantizedDefaultBin.Borders
+                    );
+                }
+            }
+        }
+    }
+
+    Y_UNIT_TEST(TestDefaultQuantizedBin) {
+        constexpr float quantizedDefaultBinFraction = 0.7f;
+
+        const TVector<size_t> valueCounts = {12, 100, 1000};
+        const TVector<size_t> maxBorderCounts = {5, 10, 20, 254};
+        for (auto valueCount : valueCounts) {
+            TFastRng64 generator(0);
+
+            size_t nonDefaultValueCount
+                = Max<size_t>(
+                    3,
+                    float(valueCount) * (1.0f - quantizedDefaultBinFraction) * 0.95f * generator.GenRandReal2()
+                );
+
+            TVector<float> values = GenerateDistinctRandomValues(nonDefaultValueCount, generator);
+            const float defaultValue = values[generator.Uniform(values.size())];
+
+            auto defaultValueCount = valueCount - nonDefaultValueCount;
+            for (auto i : xrange(defaultValueCount)) {
+                Y_UNUSED(i);
+                values.push_back(defaultValue);
+            }
+
+            Shuffle(values.begin(), values.end(), generator);
+
+            for (auto maxBorderCount : maxBorderCounts) {
+                for (auto borderSelectionType : BORDER_SELECTION_TYPES) {
+                    TQuantization quantization = BestSplit(
+                        TFeatureValues(TVector<float>(values)),
+                        /*featureValuesMayContainNans*/ false,
+                        maxBorderCount,
+                        borderSelectionType,
+                        /*quantizedDefaultBinFraction*/ quantizedDefaultBinFraction
+                    );
+
+                    UNIT_ASSERT(quantization.DefaultQuantizedBin.Defined());
+
+                    ui32 defaultBinIdx = quantization.DefaultQuantizedBin->Idx;
+                    if (defaultBinIdx == 0) {
+                        UNIT_ASSERT(defaultValue < quantization.Borders.front());
+                    } else if (defaultBinIdx == quantization.Borders.size()) {
+                        UNIT_ASSERT(defaultValue >= quantization.Borders.back());
+                    } else {
+                        UNIT_ASSERT(
+                            (defaultValue >= quantization.Borders[defaultBinIdx - 1]) &&
+                            (defaultValue < quantization.Borders[defaultBinIdx])
+                        );
+                    }
+
+                    UNIT_ASSERT(quantization.DefaultQuantizedBin->Fraction >= quantizedDefaultBinFraction);
                 }
             }
         }

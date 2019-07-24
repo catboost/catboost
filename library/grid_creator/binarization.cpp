@@ -7,9 +7,11 @@
 #include <util/generic/ptr.h>
 #include <util/generic/queue.h>
 #include <util/generic/vector.h>
+#include <util/generic/xrange.h>
 #include <util/generic/yexception.h>
 #include <util/generic/ymath.h>
 #include <util/generic/serialized_enum.h>
+#include <util/stream/labeled.h>
 
 #include <algorithm>
 
@@ -20,40 +22,56 @@ namespace {
     template <EPenaltyType PenaltyType>
     class TGreedyBinarizer: public IBinarizer {
     public:
-        THashSet<float> BestSplit(TFeatureValues&& features, int maxBordersCount) const override;
+        TQuantization BestSplit(
+            TFeatureValues&& features,
+            int maxBordersCount,
+            TMaybe<float> quantizedDefaultBinFraction = Nothing()) const override;
     };
 
     template <EPenaltyType PenaltyType>
     class TExactBinarizer: public IBinarizer {
     public:
-        THashSet<float> BestSplit(TFeatureValues&& features, int maxBordersCount) const override;
+        TQuantization BestSplit(
+            TFeatureValues&& features,
+            int maxBordersCount,
+            TMaybe<float> quantizedDefaultBinFraction = Nothing()) const override;
     };
 
     class TMedianPlusUniformBinarizer: public IBinarizer {
     public:
-        THashSet<float> BestSplit(TFeatureValues&& features, int maxBordersCount) const override;
+        TQuantization BestSplit(
+            TFeatureValues&& features,
+            int maxBordersCount,
+            TMaybe<float> quantizedDefaultBinFraction = Nothing()) const override;
     };
 
     // Works in O(binCount * log(n)) + O(n * log(n)) for sorting.
     // It's possible to implement O(n * log(binCount)) version.
     class TMedianBinarizer: public IBinarizer {
     public:
-        THashSet<float> BestSplit(TFeatureValues&& features, int maxBordersCount) const override;
+        TQuantization BestSplit(
+            TFeatureValues&& features,
+            int maxBordersCount,
+            TMaybe<float> quantizedDefaultBinFraction = Nothing()) const override;
     };
 
     class TUniformBinarizer: public IBinarizer {
     public:
-        THashSet<float> BestSplit(TFeatureValues&& features, int maxBordersCount) const override;
+        TQuantization BestSplit(
+            TFeatureValues&& features,
+            int maxBordersCount,
+            TMaybe<float> quantizedDefaultBinFraction = Nothing()) const override;
     };
 }
 
 namespace NSplitSelection {
 
-    THashSet<float> BestSplit(
+    TQuantization BestSplit(
         TFeatureValues&& features,
         bool featureValuesMayContainNans,
         int maxBordersCount,
-        EBorderSelectionType type
+        EBorderSelectionType type,
+        TMaybe<float> quantizedDefaultBinFraction
     ) {
         if (features.DefaultValue && IsNan(features.DefaultValue->Value)) {
             if (featureValuesMayContainNans) {
@@ -72,12 +90,19 @@ namespace NSplitSelection {
             }
         }
 
+        if (quantizedDefaultBinFraction) {
+            Y_ENSURE(
+                (*quantizedDefaultBinFraction >= 0.0f) && (*quantizedDefaultBinFraction < 1.0f),
+                LabeledOutput(quantizedDefaultBinFraction) << " is not in required [0, 1) bounds"
+            );
+        }
+
         if (features.Values.empty()) {
             return {};
         }
 
         const auto binarizer = MakeBinarizer(type);
-        return binarizer->BestSplit(std::move(features), maxBordersCount);
+        return binarizer->BestSplit(std::move(features), maxBordersCount, quantizedDefaultBinFraction);
     }
 
     THolder<IBinarizer> MakeBinarizer(const EBorderSelectionType type) {
@@ -109,11 +134,13 @@ THashSet<float> BestSplit(
     bool filterNans,
     bool featuresAreSorted
 ) {
-    return NSplitSelection::BestSplit(
+    const TQuantization quantization = NSplitSelection::BestSplit(
         TFeatureValues(std::move(features), featuresAreSorted),
         filterNans,
         maxBordersCount,
         type);
+
+    return THashSet<float>(quantization.Borders.begin(), quantization.Borders.end());
 }
 
 namespace {
@@ -821,10 +848,162 @@ namespace {
 }
 
 
+template <class TGetWeight>
+static TQuantization SetQuantization(
+    TConstArrayRef<float> sortedValues,
+
+    // (sortedValuedStartIdx, sortedValuesEndIdx) -> weight for values range
+    TGetWeight&& getWeight,
+    float totalWeight,
+    THashSet<float>&& bordersSet,
+    TMaybe<float> quantizedDefaultBinFraction) {
+
+    if (bordersSet.contains(-0.0f)) { // BestSplit might add negative zeros
+        bordersSet.erase(-0.0f);
+        bordersSet.insert(0.0f);
+    }
+
+    TQuantization result;
+    result.Borders.assign(bordersSet.begin(), bordersSet.end());
+    Sort(result.Borders);
+    if (quantizedDefaultBinFraction) {
+        ui32 currentBin = 0;
+
+        auto getBin = [&] (float value) -> ui32 {
+            ui32 bin = currentBin;
+            while ((bin < result.Borders.size()) && (value >= result.Borders[bin])) {
+                ++bin;
+            }
+            return bin;
+        };
+
+        size_t currentBinBeginIdx = 0;
+        currentBin = getBin(sortedValues[0]);
+
+        float maxBinWeight = 0.f;
+        ui32 maxBinIdx;
+
+        auto processCurrentBin = [&] (size_t currentBinEndIdx) {
+            const float currentBinWeight = getWeight(currentBinBeginIdx, currentBinEndIdx);
+            if (currentBinWeight > maxBinWeight) {
+                maxBinWeight = currentBinWeight;
+                maxBinIdx = currentBin;
+            }
+        };
+
+        size_t i = 1;
+        for (; i < sortedValues.size(); ++i) {
+            auto bin = getBin(sortedValues[i]);
+            if (bin != currentBin) {
+                processCurrentBin(i);
+                currentBin = bin;
+                currentBinBeginIdx = i;
+                if (currentBin == result.Borders.size()) {
+                    i = sortedValues.size();
+                    break;
+                }
+            }
+        }
+        processCurrentBin(i);
+
+        float maxBinFraction = maxBinWeight / totalWeight;
+        if (maxBinFraction > *quantizedDefaultBinFraction) {
+            result.DefaultQuantizedBin = TDefaultQuantizedBin{maxBinIdx, maxBinFraction};
+        }
+    }
+    return result;
+}
+
+static TQuantization SetQuantizationWithoutWeights(
+    TConstArrayRef<float> sortedValues,
+    THashSet<float>&& bordersSet,
+    TMaybe<float> quantizedDefaultBinFraction) {
+
+    return SetQuantization(
+        sortedValues,
+        [] (size_t begin, size_t end) -> float {
+            return float(end - begin + 1);
+        },
+        float(sortedValues.size()),
+        std::move(bordersSet),
+        quantizedDefaultBinFraction);
+}
+
+
+static TQuantization SetQuantizationWithCumulativeWeights(
+    TConstArrayRef<float> sortedValues,
+    TConstArrayRef<float> cumulativeWeights,
+    THashSet<float>&& bordersSet,
+    TMaybe<float> quantizedDefaultBinFraction) {
+
+    return SetQuantization(
+        sortedValues,
+        [&] (size_t begin, size_t end) -> float {
+            Y_ASSERT(end != 0);
+            float weight = cumulativeWeights[end - 1];
+            if (begin) {
+                weight -= cumulativeWeights[begin - 1];
+            }
+            return weight;
+        },
+        cumulativeWeights.back(),
+        std::move(bordersSet),
+        quantizedDefaultBinFraction);
+}
+
+static TQuantization SetQuantizationWithMaybeSingleWeightedValue(
+    TFeatureValues&& featureValues, //
+    TMaybe<size_t> maybeDefaultValueFirstPos,
+    THashSet<float>&& bordersSet,
+    TMaybe<float> quantizedDefaultBinFraction) {
+
+    if (maybeDefaultValueFirstPos) {
+        const size_t defaultValueFirstPos = *maybeDefaultValueFirstPos;
+        const float defaultValueWeight = float(featureValues.DefaultValue->Count);
+        return SetQuantization(
+            featureValues.Values,
+            [defaultValueFirstPos, defaultValueWeight] (size_t begin, size_t end) -> float {
+                float result = float(end - begin + 1);
+                if ((defaultValueFirstPos >= begin) && (defaultValueFirstPos < end)) {
+                    result += (defaultValueWeight - 1.0f);
+                }
+                return result;
+            },
+            float(featureValues.Values.size() - 1) + defaultValueWeight,
+            std::move(bordersSet),
+            quantizedDefaultBinFraction);
+    } else {
+        return SetQuantizationWithoutWeights(
+            featureValues.Values,
+            std::move(bordersSet),
+            quantizedDefaultBinFraction);
+    }
+}
+
+
+
 template <EPenaltyType type>
-static THashSet<float> SplitWithGuaranteedOptimum(TFeatureValues&& features, int maxBordersCount) {
-    const auto [uniqueFeatureValues, uniqueValueWeights] = GroupAndSortValues(std::move(features), false);
-    return BestSplit<type>(uniqueFeatureValues, uniqueValueWeights, maxBordersCount);
+static TQuantization SplitWithGuaranteedOptimum(
+    TFeatureValues&& features,
+    int maxBordersCount,
+    TMaybe<float> quantizedDefaultBinFraction) {
+
+    auto [uniqueFeatureValues, uniqueValueWeights] = GroupAndSortValues(std::move(features), false);
+    THashSet<float> bordersSet = BestSplit<type>(uniqueFeatureValues, uniqueValueWeights, maxBordersCount);
+
+    if (quantizedDefaultBinFraction) {
+        // reuse uniqueValueWeights for cumulative weights
+        for (auto i : xrange<size_t>(1, uniqueValueWeights.size())) {
+            uniqueValueWeights[i] += uniqueValueWeights[i - 1];
+        }
+    }
+
+    return SetQuantizationWithCumulativeWeights(
+        uniqueFeatureValues,
+        uniqueValueWeights,
+        std::move(bordersSet),
+        quantizedDefaultBinFraction);
+
 }
 
 static THashSet<float> GenerateMedianBorders(
@@ -850,7 +1029,7 @@ static THashSet<float> GenerateMedianBordersWithDefaultValue(
     // must be sorted, featureValues must include it
     const TVector<float>& featureValues,
     size_t defaultValueStartPos, // in featureValues
-    const TDefaultValue defaultValue,
+    const TDefaultValue<float> defaultValue,
     int maxBordersCount) {
 
     Y_ASSERT(featureValues[defaultValueStartPos] == defaultValue.Value);
@@ -911,7 +1090,7 @@ static THashSet<float> GenerateMedianBordersWithDefaultValue(
 static THashSet<float> GenerateMedianBorders(
     // must be sorted, featureValues must include it
     const TVector<float>& featureValues,
-    const TMaybe<TDefaultValue> defaultValue,
+    const TMaybe<TDefaultValue<float>> defaultValue,
     TMaybe<size_t> defaultValueFirstPos, // pos in featureValues, defined only if defaultValue is defined
     int maxBordersCount) {
 
@@ -929,13 +1108,19 @@ static THashSet<float> GenerateMedianBorders(
 
 
 template <EPenaltyType PenaltyType>
-THashSet<float> TExactBinarizer<PenaltyType>::BestSplit(TFeatureValues&& features, int maxBordersCount) const {
-    return SplitWithGuaranteedOptimum<PenaltyType>(std::move(features), maxBordersCount);
+TQuantization TExactBinarizer<PenaltyType>::BestSplit(
+    TFeatureValues&& features,
+    int maxBordersCount,
+    TMaybe<float> quantizedDefaultBinFraction) const {
+
+    return SplitWithGuaranteedOptimum<PenaltyType>(
+        std::move(features),
+        maxBordersCount,
+        quantizedDefaultBinFraction);
 }
 
 
-// features.Values will be sorted after this function
-static void PrepareFeatureValuesForGenerateMedianBorders(
+static void SortValuesAndInsertDefault(
     TFeatureValues& features,
     TMaybe<size_t>* defaultValueFirstPos) { // out parameter
 
@@ -971,23 +1156,37 @@ static void PrepareFeatureValuesForGenerateMedianBorders(
 }
 
 
-THashSet<float> TMedianBinarizer::BestSplit(TFeatureValues&& features, int maxBordersCount) const {
-    TMaybe<size_t> defaultValueFirstPos;
-    PrepareFeatureValuesForGenerateMedianBorders(features, &defaultValueFirstPos);
+TQuantization TMedianBinarizer::BestSplit(
+    TFeatureValues&& features,
+    int maxBordersCount,
+    TMaybe<float> quantizedDefaultBinFraction) const {
 
-    return GenerateMedianBorders(
+    TMaybe<size_t> defaultValueFirstPos;
+    SortValuesAndInsertDefault(features, &defaultValueFirstPos);
+
+    THashSet<float> borders = GenerateMedianBorders(
         features.Values,
         features.DefaultValue,
         defaultValueFirstPos,
         maxBordersCount);
+
+    return SetQuantizationWithMaybeSingleWeightedValue(
+        std::move(features),
+        defaultValueFirstPos,
+        std::move(borders),
+        quantizedDefaultBinFraction);
 }
 
-THashSet<float> TMedianPlusUniformBinarizer::BestSplit(TFeatureValues&& features, int maxBordersCount) const {
+TQuantization TMedianPlusUniformBinarizer::BestSplit(
+    TFeatureValues&& features,
+    int maxBordersCount,
+    TMaybe<float> quantizedDefaultBinFraction) const {
+
     TMaybe<size_t> defaultValueFirstPos;
-    PrepareFeatureValuesForGenerateMedianBorders(features, &defaultValueFirstPos);
+    SortValuesAndInsertDefault(features, &defaultValueFirstPos);
 
     if (features.Values.empty() || features.Values.front() == features.Values.back()) {
-        return THashSet<float>();
+        return TQuantization();
     }
 
     int halfBorders = maxBordersCount / 2;
@@ -1007,12 +1206,20 @@ THashSet<float> TMedianPlusUniformBinarizer::BestSplit(TFeatureValues&& features
         borders.insert(RegularBorder(val, features.Values));
     }
 
-    return borders;
+    return SetQuantizationWithMaybeSingleWeightedValue(
+        std::move(features),
+        defaultValueFirstPos,
+        std::move(borders),
+        quantizedDefaultBinFraction);
 }
 
-THashSet<float> TUniformBinarizer::BestSplit(TFeatureValues&& features, int maxBordersCount) const {
+TQuantization TUniformBinarizer::BestSplit(
+    TFeatureValues&& features,
+    int maxBordersCount,
+    TMaybe<float> quantizedDefaultBinFraction) const {
+
     if (features.Values.empty()) {
-        return THashSet<float>();
+        return TQuantization();
     }
 
     auto [minIter, maxIter] = MinMaxElement(features.Values.begin(), features.Values.end());
@@ -1025,7 +1232,7 @@ THashSet<float> TUniformBinarizer::BestSplit(TFeatureValues&& features, int maxB
     }
 
     if (minValue == maxValue) {
-        return THashSet<float>();
+        return TQuantization();
     }
 
     THashSet<float> borders;
@@ -1033,7 +1240,16 @@ THashSet<float> TUniformBinarizer::BestSplit(TFeatureValues&& features, int maxB
         borders.insert(minValue + (i + 1) * (maxValue - minValue) / (maxBordersCount + 1));
     }
 
-    return borders;
+    TMaybe<size_t> defaultValueFirstPos;
+    if (quantizedDefaultBinFraction) {
+        SortValuesAndInsertDefault(features, &defaultValueFirstPos);
+    }
+
+    return SetQuantizationWithMaybeSingleWeightedValue(
+        std::move(features),
+        defaultValueFirstPos,
+        std::move(borders),
+        quantizedDefaultBinFraction);
 }
 
 namespace {
@@ -1386,10 +1602,15 @@ THashSet<float> BestWeightedSplit(
     }
 }
 
+
 template <EPenaltyType PenaltyType>
-THashSet<float> TGreedyBinarizer<PenaltyType>::BestSplit(TFeatureValues&& features, int maxBordersCount) const {
+TQuantization TGreedyBinarizer<PenaltyType>::BestSplit(
+    TFeatureValues&& features,
+    int maxBordersCount,
+    TMaybe<float> quantizedDefaultBinFraction) const {
+
     if (features.Values.empty()) {
-        return {};
+        return TQuantization();
     }
     if (features.DefaultValue) {
         auto [uniqueFeatureValues, uniqueValueWeights] = GroupAndSortValues(
@@ -1402,13 +1623,22 @@ THashSet<float> TGreedyBinarizer<PenaltyType>::BestSplit(TFeatureValues&& featur
             uniqueFeatureValues.size(),
             uniqueFeatureValues.begin(),
             uniqueValueWeights.begin());
-        return GreedySplit(initialBin, maxBordersCount);
+        THashSet<float> bordersSet = GreedySplit(initialBin, maxBordersCount);
+        return SetQuantizationWithCumulativeWeights(
+            uniqueFeatureValues,
+            uniqueValueWeights,
+            std::move(bordersSet),
+            quantizedDefaultBinFraction);
     } else {
         if (!features.ValuesSorted) {
             Sort(features.Values);
         }
         TFeatureBin<PenaltyType> initialBin(0, features.Values.size(), features.Values.cbegin());
-        return GreedySplit(initialBin, maxBordersCount);
+        THashSet<float> bordersSet = GreedySplit(initialBin, maxBordersCount);
+        return SetQuantizationWithoutWeights(
+            features.Values,
+            std::move(bordersSet),
+            quantizedDefaultBinFraction);
     }
 }
 
@@ -1422,7 +1652,7 @@ size_t EstimateHashMapMemoryUsage(size_t hashMapSize) {
 static size_t CalcMemoryForFindBestSplitGreedyBinarizer(
     int maxBordersCount,
     size_t nonDefaultObjectCount,
-    const TMaybe<TDefaultValue>& defaultValue) {
+    const TMaybe<TDefaultValue<float>>& defaultValue) {
 
     if (!defaultValue) {
         // 4 stands for priority_queue and THashSet memory overhead
@@ -1493,7 +1723,7 @@ static size_t CalcMemoryForInnerBestSplit(size_t weightsCount, size_t maxBorders
 static size_t CalcMemoryForFindBestSplitExactBinarizer(
     int maxBordersCount,
     size_t nonDefaultObjectCount,
-    const TMaybe<TDefaultValue>& defaultValue) {
+    const TMaybe<TDefaultValue<float>>& defaultValue) {
 
     const size_t featureValuesCount = defaultValue ? (nonDefaultObjectCount + 1) : nonDefaultObjectCount;
 
@@ -1523,7 +1753,7 @@ namespace NSplitSelection {
     size_t CalcMemoryForFindBestSplit(
         int maxBordersCount,
         size_t nonDefaultObjectCount,
-        const TMaybe<TDefaultValue>& defaultValue,
+        const TMaybe<TDefaultValue<float>>& defaultValue,
         EBorderSelectionType type) {
 
         switch (type) {

@@ -4,6 +4,7 @@
 #include <util/generic/maybe.h>
 #include <util/generic/vector.h>
 #include <util/generic/yexception.h>
+#include <util/generic/ymath.h>
 
 
 // TODO(akhropov): move all these to NSplitSelection namespace as well
@@ -34,33 +35,36 @@ THashSet<float> BestWeightedSplit(
     bool featuresAreSorted = false);
 
 
+// used for sparse data
+
+template <class T>
+struct TDefaultValue {
+    T Value;
+    ui64 Count;
+
+public:
+    TDefaultValue(T value, ui64 count)
+        : Value(value)
+        , Count(count)
+    {
+        Y_ENSURE(Count >= 1, "It is required that default value count is non-0");
+    }
+};
+
+
 namespace NSplitSelection {
-
-    // used for sparse data
-    struct TDefaultValue {
-        float Value;
-        ui64 Count;
-
-    public:
-        TDefaultValue(float value, ui64 count)
-            : Value(value)
-            , Count(count)
-        {
-            Y_ENSURE(Count >= 1, "It is required that default value count is non-0");
-        }
-    };
 
     struct TFeatureValues {
         // Values could contain values that are equal to DefaultValue, but don't add it explicitly
         TVector<float> Values;
         bool ValuesSorted;
-        TMaybe<TDefaultValue> DefaultValue;
+        TMaybe<TDefaultValue<float>> DefaultValue;
 
     public:
         explicit TFeatureValues(
             TVector<float>&& values,
             bool valuesSorted = false,
-            TMaybe<TDefaultValue> defaultValue = Nothing())
+            TMaybe<TDefaultValue<float>> defaultValue = Nothing())
             : Values(std::move(values))
             , ValuesSorted(valuesSorted)
             , DefaultValue(std::move(defaultValue))
@@ -73,21 +77,58 @@ namespace NSplitSelection {
     size_t CalcMemoryForFindBestSplit(
         int maxBordersCount,
         size_t nonDefaultObjectCount,
-        const TMaybe<TDefaultValue>& defaultValue,
+        const TMaybe<TDefaultValue<float>>& defaultValue,
         EBorderSelectionType type);
 
-    THashSet<float> BestSplit(
+
+    struct TDefaultQuantizedBin {
+        ui32 Idx; // if for splits: bin borders are [Border[Idx - 1], Borders[Idx])
+        float Fraction;
+
+    public:
+        bool operator==(const TDefaultQuantizedBin & rhs) const {
+            constexpr float EPS = 1e-6;
+            return (Idx == rhs.Idx) && (Abs(Fraction - rhs.Fraction) < EPS);
+        }
+    };
+
+    struct TQuantization {
+        TVector<float> Borders;
+        TMaybe<TDefaultQuantizedBin> DefaultQuantizedBin;
+
+    public:
+        TQuantization() = default;
+
+        explicit TQuantization(
+            TVector<float>&& borders,
+            TMaybe<TDefaultQuantizedBin> defaultQuantizedBin = Nothing())
+            : Borders(std::move(borders))
+            , DefaultQuantizedBin(defaultQuantizedBin)
+        {}
+
+        bool operator==(const TQuantization& rhs) const {
+            return (Borders == rhs.Borders) && (DefaultQuantizedBin == rhs.DefaultQuantizedBin);
+        }
+    };
+
+    TQuantization BestSplit(
         TFeatureValues&& features,
         bool featureValuesMayContainNans,
         int maxBordersCount,
-        EBorderSelectionType type);
+        EBorderSelectionType type,
+
+        // if defined - calculate DefaultQuantizedBin
+        TMaybe<float> quantizedDefaultBinFraction = Nothing());
 
 
     class IBinarizer {
     public:
         virtual ~IBinarizer() = default;
 
-        virtual THashSet<float> BestSplit(TFeatureValues&& features, int maxBordersCount) const = 0;
+        virtual TQuantization BestSplit(
+            TFeatureValues&& features,
+            int maxBordersCount,
+            TMaybe<float> quantizedDefaultBinFraction = Nothing()) const = 0;
     };
 
     THolder<IBinarizer> MakeBinarizer(EBorderSelectionType borderSelectionType);
