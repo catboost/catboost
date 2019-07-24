@@ -1434,9 +1434,10 @@ $(BUILD_ROOT)/util/all_datetime.cpp\
         $(SOURCE_ROOT)/util/datetime/constants.cpp\
         $(SOURCE_ROOT)/util/datetime/cputimer.cpp\
         $(SOURCE_ROOT)/util/datetime/systime.cpp\
+        $(SOURCE_ROOT)/util/datetime/uptime.cpp\
 
 	mkdir -p '$(BUILD_ROOT)/util'
-	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/gen_join_srcs.py' '$(BUILD_ROOT)/util/all_datetime.cpp' util/datetime/base.cpp util/datetime/constants.cpp util/datetime/cputimer.cpp util/datetime/systime.cpp
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/gen_join_srcs.py' '$(BUILD_ROOT)/util/all_datetime.cpp' util/datetime/base.cpp util/datetime/constants.cpp util/datetime/cputimer.cpp util/datetime/systime.cpp util/datetime/uptime.cpp
 
 $(BUILD_ROOT)/util/all_digest.cpp.pic.o\
         ::\
