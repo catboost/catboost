@@ -419,14 +419,12 @@ public:
     }
 
     NCB::NModelEvaluation::TConstModelEvaluatorPtr GetCurrentEvaluator() const {
-        if (!Evaluator) {
-            with_lock(CurrentEvaluatorLock) {
-                if (!Evaluator) {
-                    Evaluator = CreateEvaluator(FormulaEvaluatorType);
-                }
+        with_lock(CurrentEvaluatorLock) {
+            if (!Evaluator) {
+                Evaluator = CreateEvaluator(FormulaEvaluatorType);
             }
+            return Evaluator;
         }
-        return Evaluator;
     }
 
     bool operator==(const TFullModel& other) const {
