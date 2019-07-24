@@ -18,3 +18,10 @@ cdef extern from "<util/generic/ptr.h>" nogil:
         T* Get()
         T* Release()
         void Drop()
+
+    cdef cppclass TAtomicSharedPtr[T]:
+        TAtomicSharedPtr()
+        TAtomicSharedPtr(T*)
+        T& operator*()
+        T* Get()
+        void Reset(T*)
