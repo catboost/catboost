@@ -2494,7 +2494,7 @@ class CatBoost(_CatBoostBase):
 
         return graph
 
-    def _tune_hyperparams(self, param_grid, X, y=None, cv=None, n_iter=10, partition_random_seed=0,
+    def _tune_hyperparams(self, param_grid, X, y=None, cv=3, n_iter=10, partition_random_seed=0,
                           calc_cv_statistics=True, search_by_train_test_split=True,
                           refit=True, shuffle=True, stratified=None, train_size=0.8):
 
@@ -2534,8 +2534,8 @@ class CatBoost(_CatBoostBase):
 
         custom_folds = None
         fold_count = 0
-        if cv is None or isinstance(cv, INTEGER_TYPES):
-            fold_count = cv or 3
+        if isinstance(cv, INTEGER_TYPES):
+            fold_count = cv
             loss_function = params.get('loss_function', None)
             if stratified is None:
                 stratified = isinstance(loss_function, STRING_TYPES) and is_cv_stratified_objective(loss_function)
@@ -2565,7 +2565,7 @@ class CatBoost(_CatBoostBase):
             self.fit(X, y, silent=True)
         return cv_result
 
-    def grid_search(self, param_grid, X, y=None, cv=None, partition_random_seed=0,
+    def grid_search(self, param_grid, X, y=None, cv=3, partition_random_seed=0,
                     calc_cv_statistics=True, search_by_train_test_split=True,
                     refit=True, shuffle=True, stratified=None, train_size=0.8):
         """
@@ -2652,7 +2652,7 @@ class CatBoost(_CatBoostBase):
             shuffle, stratified, train_size
         )
 
-    def randomized_search(self, param_distributions, X, y=None, cv=None, n_iter=10, partition_random_seed=0,
+    def randomized_search(self, param_distributions, X, y=None, cv=3, n_iter=10, partition_random_seed=0,
                           calc_cv_statistics=True, search_by_train_test_split=True,
                           refit=True, shuffle=True, stratified=None, train_size=0.8):
         """
