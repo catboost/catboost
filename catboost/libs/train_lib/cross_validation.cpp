@@ -467,7 +467,6 @@ void CrossValidate(
     NJson::TJsonValue plainJsonParams,
     const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
     const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
-    const TMaybe<NCB::TCustomTrainTestSubsets>& customTrainTestSubset,
     const TLabelConverter& labelConverter,
     NCB::TTrainingDataProviderPtr trainingData,
     const TCrossValidationParams& cvParams,
@@ -568,7 +567,6 @@ void CrossValidate(
     TVector<TTrainingDataProviders> foldsData = PrepareCvFolds<TTrainingDataProviders>(
         std::move(trainingData),
         cvParams,
-        customTrainTestSubset,
         Nothing(),
         /* oldCvStyleSplit */ false,
         localExecutor);
@@ -806,7 +804,6 @@ void CrossValidate(
     TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
     const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
     const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
-    const TMaybe<NCB::TCustomTrainTestSubsets>& customTrainTestSubset,
     TDataProviderPtr data,
     const TCrossValidationParams& cvParams,
     TVector<TCVResult>* results
@@ -875,7 +872,6 @@ void CrossValidate(
         plainJsonParams,
         objectiveDescriptor,
         evalMetricDescriptor,
-        customTrainTestSubset,
         labelConverter,
         trainingData,
         cvParams,

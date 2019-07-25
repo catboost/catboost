@@ -2494,9 +2494,9 @@ class CatBoost(_CatBoostBase):
 
         return graph
 
-    def _tune_hyperparams(self, param_grid, X, y=None, n_iter=10, partition_random_seed=0,
+    def _tune_hyperparams(self, param_grid, X, y=None, cv=None, n_iter=10, partition_random_seed=0,
                           calc_cv_statistics=True, search_by_train_test_split=True,
-                          refit=True, shuffle=True, stratified=None, train_size=0.8, fold_count=3):
+                          refit=True, shuffle=True, stratified=None, train_size=0.8):
 
         currently_not_supported_params = {
             'ignored_features',
@@ -2516,6 +2516,7 @@ class CatBoost(_CatBoostBase):
                     raise CatBoostError("Parameter '{}' currently is not supported in grid search".format(param))
 
             ignored_params = set()
+
         if X is None:
             raise CatBoostError("X must not be None")
 
@@ -2531,6 +2532,24 @@ class CatBoost(_CatBoostBase):
         )
         params = train_params["params"]
 
+        custom_folds = None
+        fold_count = 0
+        if cv is None or isinstance(cv, INTEGER_TYPES):
+            fold_count = cv or 3
+            loss_function = params.get('loss_function', None)
+            if stratified is None:
+                stratified = isinstance(loss_function, STRING_TYPES) and is_cv_stratified_objective(loss_function)
+        else:
+            if not hasattr(cv, '__iter__') and not hasattr(cv, 'split'):
+                raise AttributeError("cv should be one of possible things:"
+                    "\n- None, to use the default 3-fold cross validation,"
+                    "\n- integer, to specify the number of folds in a (Stratified)KFold"
+                    "\n- one of the scikit-learn splitter classes"
+                    " (https://scikit-learn.org/stable/modules/classes.html#splitter-classes)"
+                    "\n- An iterable yielding (train, test) splits as arrays of indices")
+            custom_folds = cv
+            shuffle = False
+
         if stratified is None:
             loss_function = params.get('loss_function', None)
             stratified = isinstance(loss_function, STRING_TYPES) and is_cv_stratified_objective(loss_function)
@@ -2538,7 +2557,7 @@ class CatBoost(_CatBoostBase):
         cv_result = self._object._tune_hyperparams(
             param_grid, train_params["train_pool"], params, n_iter,
             fold_count, partition_random_seed, shuffle, stratified, train_size,
-            search_by_train_test_split, calc_cv_statistics
+            search_by_train_test_split, calc_cv_statistics, custom_folds
         )
 
         self.set_params(**cv_result['params'])
@@ -2546,9 +2565,9 @@ class CatBoost(_CatBoostBase):
             self.fit(X, y, silent=True)
         return cv_result
 
-    def grid_search(self, param_grid, X, y=None, partition_random_seed=0,
+    def grid_search(self, param_grid, X, y=None, cv=None, partition_random_seed=0,
                     calc_cv_statistics=True, search_by_train_test_split=True,
-                    refit=True, shuffle=True, stratified=None, train_size=0.8, fold_count=3):
+                    refit=True, shuffle=True, stratified=None, train_size=0.8):
         """
         Exhaustive search over specified parameter values for a model.
         Aafter calling this method model is fitted and can be used, if not specified otherwise (refit=False).
@@ -2568,10 +2587,19 @@ class CatBoost(_CatBoostBase):
             Target corresponding to data
             Use only if data is not catboost.Pool.
 
+        cv: int, cross-validation generator or an iterable, optional (default=None)
+            Determines the cross-validation splitting strategy. Possible inputs for cv are:
+            - None, to use the default 3-fold cross validation,
+            - integer, to specify the number of folds in a (Stratified)KFold
+            - one of the scikit-learn splitter classes
+                (https://scikit-learn.org/stable/modules/classes.html#splitter-classes)
+            - An iterable yielding (train, test) splits as arrays of indices.
+
         partition_random_seed: int, optional (default=0)
             Use this as the seed value for random permutation of the data.
             Permutation is performed before splitting the data for cross validation.
             Each seed generates unique data splits.
+            Used only when cv is None or int.
 
         search_by_train_test_split: bool, optional (default=True)
             If True, source dataset is splitted into train and test parts, models are trained
@@ -2619,14 +2647,14 @@ class CatBoost(_CatBoostBase):
                     raise TypeError('Parameter grid value is not iterable (key={!r}, value={!r})'.format(key, grid[key]))
 
         return self._tune_hyperparams(
-            param_grid, X, y, -1, partition_random_seed, refit,
+            param_grid, X, y, cv, -1, partition_random_seed, refit,
             calc_cv_statistics, search_by_train_test_split,
-            shuffle, stratified, train_size, fold_count
+            shuffle, stratified, train_size
         )
 
-    def randomized_search(self, param_distributions, X, y=None, n_iter=10, partition_random_seed=0,
+    def randomized_search(self, param_distributions, X, y=None, cv=None, n_iter=10, partition_random_seed=0,
                           calc_cv_statistics=True, search_by_train_test_split=True,
-                          refit=True, shuffle=True, stratified=None, train_size=0.8, fold_count=3):
+                          refit=True, shuffle=True, stratified=None, train_size=0.8):
         """
         Randomized search on hyper parameters.
         After calling this method model is fitted and can be used, if not specified otherwise (refit=False).
@@ -2649,6 +2677,14 @@ class CatBoost(_CatBoostBase):
             Target corresponding to data
             Use only if data is not catboost.Pool.
 
+        cv: int, cross-validation generator or an iterable, optional (default=None)
+            Determines the cross-validation splitting strategy. Possible inputs for cv are:
+            - None, to use the default 3-fold cross validation,
+            - integer, to specify the number of folds in a (Stratified)KFold
+            - one of the scikit-learn splitter classes
+                (https://scikit-learn.org/stable/modules/classes.html#splitter-classes)
+            - An iterable yielding (train, test) splits as arrays of indices.
+
         n_iter: int
             Number of parameter settings that are sampled.
             n_iter trades off runtime vs quality of the solution.
@@ -2657,6 +2693,7 @@ class CatBoost(_CatBoostBase):
             Use this as the seed value for random permutation of the data.
             Permutation is performed before splitting the data for cross validation.
             Each seed generates unique data splits.
+            Used only when cv is None or int.
 
         search_by_train_test_split: bool, optional (default=True)
             If True, source dataset is splitted into train and test parts, models are trained
@@ -2703,9 +2740,9 @@ class CatBoost(_CatBoostBase):
                 raise TypeError('Parameter grid value is not iterable and do not have \'rvs\' method (key={!r}, value={!r})'.format(key, param_distributions[key]))
 
         return self._tune_hyperparams(
-            param_distributions, X, y, n_iter, partition_random_seed, refit,
+            param_distributions, X, y, cv, n_iter, partition_random_seed, refit,
             calc_cv_statistics, search_by_train_test_split,
-            shuffle, stratified, train_size, fold_count
+            shuffle, stratified, train_size
         )
 
 class CatBoostClassifier(CatBoost):

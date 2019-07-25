@@ -655,6 +655,7 @@ cdef extern from "catboost/libs/algo/custom_objective_descriptor.h":
             void* customData
         ) with gil
 
+ctypedef pair[TVector[TVector[ui32]], TVector[TVector[ui32]]] TCustomTrainTestSubsets    
 cdef extern from "catboost/libs/options/cross_validation_params.h":
     cdef cppclass TCrossValidationParams:
         ui32 FoldCount
@@ -662,6 +663,8 @@ cdef extern from "catboost/libs/options/cross_validation_params.h":
         int PartitionRandSeed
         bool_t Shuffle
         bool_t Stratified
+        TMaybe[TVector[TVector[ui32]]] customTrainSubsets
+        TMaybe[TVector[TVector[ui32]]] customTestSubsets
         double MaxTimeSpentOnFixedCostRatio
         ui32 DevMaxIterationsBatchSize
 
@@ -706,9 +709,6 @@ cdef extern from "catboost/libs/train_lib/train_model.h":
         THolder[TLearnProgress]* dstLearnProgress
     ) nogil except +ProcessException
 
-cdef extern from "catboost/libs/train_lib/cross_validation.h" namespace "NCB":
-    ctypedef pair[TVector[TVector[ui32]], TVector[TVector[ui32]]] TCustomTrainTestSubsets
-
 cdef extern from "catboost/libs/train_lib/cross_validation.h":
     cdef cppclass TCVResult:
         TString Metric
@@ -723,7 +723,6 @@ cdef extern from "catboost/libs/train_lib/cross_validation.h":
         TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
         const TMaybe[TCustomObjectiveDescriptor]& objectiveDescriptor,
         const TMaybe[TCustomMetricDescriptor]& evalMetricDescriptor,
-        const TMaybe[TCustomTrainTestSubsets]& customArrayIndexing,
         TDataProviderPtr data,
         const TCrossValidationParams& cvParams,
         TVector[TCVResult]* results
@@ -3062,7 +3061,8 @@ cdef class _CatBoost:
 
     cpdef _tune_hyperparams(self, list grids_list, _PoolBase train_pool, dict params, int n_iter,
                           int fold_count, int partition_random_seed, bool_t shuffle, bool_t stratified,
-                          double train_size, bool_t choose_by_train_test_split, bool_t return_cv_results):
+                          double train_size, bool_t choose_by_train_test_split, bool_t return_cv_results,
+                          custom_folds):
 
         prep_params = _PreprocessParams(params)
         prep_grids = _PreprocessGrids(grids_list)
@@ -3076,6 +3076,13 @@ cdef class _CatBoost:
         cvParams.Shuffle = shuffle
         cvParams.Stratified = stratified
         cvParams.Inverted = False
+
+        cdef TMaybe[TCustomTrainTestSubsets] custom_train_test_subset
+        if custom_folds is not None:
+            custom_train_test_subset = _make_train_test_subsets(train_pool, custom_folds)
+            cvParams.FoldCount = custom_train_test_subset.GetRef().first.size()
+            cvParams.customTrainSubsets = custom_train_test_subset.GetRef().first
+            cvParams.customTestSubsets = custom_train_test_subset.GetRef().second
 
         cdef TTrainTestSplitParams ttParams
         ttParams.PartitionRandSeed = partition_random_seed
@@ -3371,6 +3378,8 @@ cpdef _cv(dict params, _PoolBase pool, int fold_count, bool_t inverted, int part
     if folds is not None:
         custom_train_test_subset = _make_train_test_subsets(pool, folds)
         cvParams.FoldCount = custom_train_test_subset.GetRef().first.size()
+        cvParams.customTrainSubsets = custom_train_test_subset.GetRef().first
+        cvParams.customTestSubsets = custom_train_test_subset.GetRef().second
 
     with nogil:
         SetPythonInterruptHandler()
@@ -3380,7 +3389,6 @@ cpdef _cv(dict params, _PoolBase pool, int fold_count, bool_t inverted, int part
                 TQuantizedFeaturesInfoPtr(<TQuantizedFeaturesInfo*>nullptr),
                 prep_params.customObjectiveDescriptor,
                 prep_params.customMetricDescriptor,
-                custom_train_test_subset,
                 pool.__pool,
                 cvParams,
                 &results)

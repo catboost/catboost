@@ -47,7 +47,6 @@
 #include <util/system/compiler.h>
 #include <util/system/hp_timer.h>
 
-
 using namespace NCB;
 
 static void CreateDirIfNotExist(const TString& path) {
@@ -110,7 +109,6 @@ static TDataProviders LoadPools(
         TVector<TDataProviders> foldPools = PrepareCvFolds<TDataProviders>(
             std::move(pools.Learn),
             cvParams,
-            /* customTrainTestSubset */ Nothing(),
             cvParams.FoldIdx,
             /* oldCvStyleSplit */ true,
             executor);
@@ -697,7 +695,6 @@ namespace {
                     initLearnProgressLearnAndTestQuantizedFeaturesCheckSum,
                     dstModel);
             }
-
             if (dstLearnProgress) {
                 ctx.LearnProgress->PrepareForContinuation();
                 *dstLearnProgress = std::move(ctx.LearnProgress);

@@ -22,11 +22,6 @@
 
 #include <numeric>
 
-namespace NCB {
-    using TCustomTrainTestSubsets =
-    std::pair<TVector<TVector<ui32>>, TVector<TVector<ui32>>>;
-}
-
 struct TCVIterationResults {
     TMaybe<double> AverageTrain;
     TMaybe<double> StdDevTrain;
@@ -70,7 +65,6 @@ template <class TDataProvidersTemplate> // TDataProvidersTemplate<...> or TTrain
 TVector<TDataProvidersTemplate> PrepareCvFolds(
     typename TDataProvidersTemplate::TDataPtr srcData,
     const TCrossValidationParams& cvParams,
-    const TMaybe<NCB::TCustomTrainTestSubsets>& customTrainTestSubset,
     TMaybe<ui32> foldIdx, // if Nothing() - return data for all folds, if defined - return only one fold
     bool oldCvStyleSplit,
     NPar::TLocalExecutor* localExecutor) {
@@ -81,9 +75,9 @@ TVector<TDataProvidersTemplate> PrepareCvFolds(
     // group subsets, maybe trivial
     TVector<NCB::TArraySubsetIndexing<ui32>> trainSubsets;
 
-    if (customTrainTestSubset) {
-        trainSubsets = TransformToVectorArrayIndexing(customTrainTestSubset->first);
-        testSubsets = TransformToVectorArrayIndexing(customTrainTestSubset->second);
+    if (cvParams.customTrainSubsets) {
+        trainSubsets = TransformToVectorArrayIndexing(cvParams.customTrainSubsets.GetRef());
+        testSubsets = TransformToVectorArrayIndexing(cvParams.customTestSubsets.GetRef());
         CB_ENSURE(
             cvParams.FoldCount == trainSubsets.size() &&
             testSubsets.size() == trainSubsets.size(),
@@ -138,7 +132,6 @@ void CrossValidate(
     NJson::TJsonValue plainJsonParams,
     const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
     const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
-    const TMaybe<NCB::TCustomTrainTestSubsets>& customTrainTestSubset,
     const TLabelConverter& labelConverter,
     NCB::TTrainingDataProviderPtr trainingData,
     const TCrossValidationParams& cvParams,
@@ -151,7 +144,6 @@ void CrossValidate(
     NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
     const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
     const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
-    const TMaybe<NCB::TCustomTrainTestSubsets>& customTrainTestSubset,
     NCB::TDataProviderPtr data,
     const TCrossValidationParams& cvParams,
     TVector<TCVResult>* results);

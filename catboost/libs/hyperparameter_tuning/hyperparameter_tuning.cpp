@@ -616,7 +616,6 @@ namespace {
                 *modelParamsToBeTried,
                 objectiveDescriptor,
                 evalMetricDescriptor,
-                /*customTrainTestSubset*/ Nothing(),
                 labelConverter,
                 quantizedData,
                 cvParams,
@@ -905,7 +904,6 @@ namespace NCB {
                     bestGridParams.QuantizedFeatureInfo,
                     objectiveDescriptor,
                     evalMetricDescriptor,
-                    Nothing(),
                     data,
                     cvParams,
                     &(bestOptionValuesWithCvResult->CvResult)
@@ -1010,7 +1008,6 @@ namespace NCB {
                     bestGridParams.QuantizedFeatureInfo,
                     objectiveDescriptor,
                     evalMetricDescriptor,
-                    Nothing(),
                     data,
                     cvParams,
                     &(bestOptionValuesWithCvResult->CvResult)

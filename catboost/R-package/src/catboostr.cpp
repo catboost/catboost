@@ -458,7 +458,6 @@ SEXP CatBoostCV_R(SEXP fitParamsAsJsonParam,
         TQuantizedFeaturesInfoPtr(nullptr),
         Nothing(),
         Nothing(),
-        Nothing(),
         pool,
         cvParams,
         &cvResults);
