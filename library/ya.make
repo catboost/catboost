@@ -22,6 +22,7 @@ RECURSE(
     containers
     coroutine
     cppparser
+    cpuid_check
     dbg_output
     dbg_output/ut
     deprecated
