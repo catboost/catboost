@@ -2647,9 +2647,10 @@ class CatBoost(_CatBoostBase):
                     raise TypeError('Parameter grid value is not iterable (key={!r}, value={!r})'.format(key, grid[key]))
 
         return self._tune_hyperparams(
-            param_grid, X, y, cv, -1, partition_random_seed, refit,
-            calc_cv_statistics, search_by_train_test_split,
-            shuffle, stratified, train_size
+            param_grid=param_grid, X=X, y=y, cv=cv, n_iter=-1,
+            partition_random_seed=partition_random_seed, calc_cv_statistics=calc_cv_statistics,
+            search_by_train_test_split=search_by_train_test_split, refit=refit, shuffle=shuffle,
+            stratified=stratified, train_size=train_size
         )
 
     def randomized_search(self, param_distributions, X, y=None, cv=3, n_iter=10, partition_random_seed=0,
@@ -2740,9 +2741,10 @@ class CatBoost(_CatBoostBase):
                 raise TypeError('Parameter grid value is not iterable and do not have \'rvs\' method (key={!r}, value={!r})'.format(key, param_distributions[key]))
 
         return self._tune_hyperparams(
-            param_distributions, X, y, cv, n_iter, partition_random_seed, refit,
-            calc_cv_statistics, search_by_train_test_split,
-            shuffle, stratified, train_size
+            param_grid=param_distributions, X=X, y=y, cv=cv, n_iter=n_iter,
+            partition_random_seed=partition_random_seed, calc_cv_statistics=calc_cv_statistics,
+            search_by_train_test_split=search_by_train_test_split, refit=refit, shuffle=shuffle,
+            stratified=stratified, train_size=train_size
         )
 
 class CatBoostClassifier(CatBoost):
