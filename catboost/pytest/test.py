@@ -3086,7 +3086,7 @@ def test_feature_id_fstr(boosting_type):
         CATBOOST_PATH,
         'fstr',
         '--input-path', data_file('adult', 'train_small'),
-        '--column-description', data_file('adult_with_id.cd'),
+        '--column-description', data_file('adult', 'train_with_id.cd'),
         '-m', model_path,
         '-o', output_fstr_path,
     )
