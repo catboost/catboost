@@ -922,7 +922,7 @@ static TQuantization SetQuantizationWithoutWeights(
     return SetQuantization(
         sortedValues,
         [] (size_t begin, size_t end) -> float {
-            return float(end - begin + 1);
+            return float(end - begin);
         },
         float(sortedValues.size()),
         std::move(bordersSet),
