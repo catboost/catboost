@@ -1,6 +1,5 @@
 from __future__ import print_function
 
-import itertools
 import os
 import re
 import sys
@@ -24,8 +23,9 @@ def check_imports(no_check=(), extra=(), skip_func=None):
     exceptions = list(no_check)
     for key, _ in __res.iter_keys(b'py/no_check_imports/'):
         exceptions += str_(__res.find(key)).split()
-    exceptions.sort()
-    print('NO_CHECK_IMPORTS', ' '.join(exceptions))
+    if exceptions:
+        exceptions.sort()
+        print('NO_CHECK_IMPORTS', ' '.join(exceptions))
 
     patterns = [re.escape(s).replace(r'\*', r'.*') for s in exceptions]
     rx = re.compile('^({})$'.format('|'.join(patterns)))
