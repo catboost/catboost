@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{39CEAA9A-D75F-AA0D-96C0-E8C323B015CB}</ProjectGUID>
+    <ProjectGUID>{B2E67D35-D818-4BB5-60B7-B6EEC460B8F8}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>catboost-libs-cat_feature</ProjectName>
+    <ProjectName>library-cpuid_check</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>catboost-libs-cat_feature</TargetName>
+    <TargetName>library-cpuid_check</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\catboost\libs\cat_feature\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\39CEAA9A-D75F-AA0D-96C0-E8C323B015CB\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\library\cpuid_check\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\B2E67D35-D818-4BB5-60B7-B6EEC460B8F8\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,8 +78,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\cat_feature\cat_feature.cpp"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\libs\cat_feature\cat_feature.h"/>
+    <ClCompile Include="$(SolutionDir)..\build\scripts\_fake_src.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpuid_check\cpu_id_check.cpp"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>

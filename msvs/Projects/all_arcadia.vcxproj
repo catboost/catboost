@@ -789,6 +789,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cppparser\library-cppparser.vcxproj">
       <Project>83424DDB-2D39-C993-71FE-34F2A604EE5E</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpuid_check\library-cpuid_check.vcxproj">
+      <Project>B2E67D35-D818-4BB5-60B7-B6EEC460B8F8</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\dbg_output\library-dbg_output.vcxproj">
       <Project>806C141C-ADC5-203A-DF01-02F7E1563621</Project>
     </ProjectReference>
