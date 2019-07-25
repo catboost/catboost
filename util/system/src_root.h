@@ -3,6 +3,8 @@
 #include "compiler.h"
 #include "compat.h"
 
+#include <type_traits>
+
 namespace NPrivate {
     struct TStaticBuf {
         constexpr TStaticBuf(const char* data, unsigned len) noexcept
@@ -43,16 +45,24 @@ namespace NPrivate {
         }
     }
 
-    //$(SRC_ROOT)/prj/blah.cpp -> prj/blah.cpp
-    constexpr Y_FORCE_INLINE TStaticBuf StripRoot(const TStaticBuf& f) noexcept {
+    constexpr unsigned RootPrefixLength(const TStaticBuf& f) noexcept {
         if (IsProperPrefix(ArcRoot, f)) {
-            return TStaticBuf(f.Data + ArcRoot.Len + 1, f.Len - ArcRoot.Len - 1);
+            return ArcRoot.Len + 1;
         }
         if (IsProperPrefix(BuildRoot, f)) {
-            return TStaticBuf(f.Data + BuildRoot.Len + 1, f.Len - BuildRoot.Len - 1);
+            return BuildRoot.Len + 1;
         }
-        return f;
+        return 0;
+    }
+
+    constexpr Y_FORCE_INLINE TStaticBuf StripRoot(const TStaticBuf& f, unsigned prefixLength) noexcept {
+        return TStaticBuf(f.Data + prefixLength, f.Len - prefixLength);
+    }
+
+    //$(SRC_ROOT)/prj/blah.cpp -> prj/blah.cpp
+    constexpr Y_FORCE_INLINE TStaticBuf StripRoot(const TStaticBuf& f) noexcept {
+        return StripRoot(f, RootPrefixLength(f));
     }
 }
 
-#define __SOURCE_FILE_IMPL__ ::NPrivate::StripRoot(STATIC_BUF(__FILE__))
+#define __SOURCE_FILE_IMPL__ ::NPrivate::StripRoot(STATIC_BUF(__FILE__), std::integral_constant<unsigned, ::NPrivate::RootPrefixLength(STATIC_BUF(__FILE__))>::value)

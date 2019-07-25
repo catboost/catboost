@@ -14,6 +14,7 @@ Y_UNIT_TEST_SUITE(TestSourceRoot) {
         static constexpr const char str[] = ":\0:\0: It's unlikely that this string has an ARCADIA_ROOT as its prefix :\0:\0:";
         static constexpr const auto strStaticBuf = STATIC_BUF(str);
         UNIT_ASSERT_VALUES_EQUAL(AsStringBuf(str), ::NPrivate::StripRoot(strStaticBuf).As<TStringBuf>());
+        UNIT_ASSERT_VALUES_EQUAL(0, ::NPrivate::RootPrefixLength(strStaticBuf));
 
         static_assert(::NPrivate::IsProperPrefix(STATIC_BUF("foo"), STATIC_BUF("foobar")), R"(IsProperPrefix("foo", "foobar") failed)");
         static_assert(!::NPrivate::IsProperPrefix(STATIC_BUF("foobar"), STATIC_BUF("foo")), R"(IsProperPrefix("foobar", "foo") failed)");
