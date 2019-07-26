@@ -49,6 +49,7 @@ TEST_SRCS(
     merge_files.py
     mkdir.py
     mkver.py
+    pack_ios.py
     pack_jcoverage_resources.py
     perl_wrapper.py
     preprocess.py

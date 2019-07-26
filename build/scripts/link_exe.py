@@ -17,7 +17,7 @@ musl_libs = '-lc', '-lcrypt', '-ldl', '-lm', '-lpthread', '-lrt', '-lutil'
 
 
 def fix_cmd(musl, c):
-    return [i for i in c if not musl or i not in musl_libs]
+    return [i for i in c if (not musl or i not in musl_libs) and not i.endswith('.ios.interface')]
 
 
 def gen_default_suppressions(inputs, output):

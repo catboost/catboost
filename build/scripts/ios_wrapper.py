@@ -25,10 +25,11 @@ def just_do_it(args):
             parts.append([])
         else:
             parts[-1].append(arg)
-    if len(parts) != 4 or len(parts[0]) != 4:
+    if len(parts) != 3 or len(parts[0]) != 5:
         raise Exception('Bad call')
-    xcode_root, main_out, app_name, module_dir = parts[0]
-    inputs, binaries, storyboard_user_flags = parts[1:]
+    bin_name, xcode_root, main_out, app_name, module_dir = parts[0]
+    bin_name = os.path.basename(bin_name)
+    inputs, storyboard_user_flags = parts[1:]
     plists, storyboards, signs, nibs, resources, signed_resources, plist_jsons, strings = [], [], [], [], [], [], [], []
     for i in inputs:
         if i.endswith('.plist') or i.endswith('.partial_plist'):
@@ -57,23 +58,12 @@ def just_do_it(args):
         print >> sys.stderr, "Storyboards list are empty"
     if len(signs) > 1:
         raise Exception("Too many .xcent files")
-    if not len(binaries):
-        print >> sys.stderr, "No binary files found in your application"
-    main_binary = None
-    for binary in binaries:
-        if is_exe(binary):
-            if main_binary is not None:
-                print >> sys.stderr, "Multiple executable files found in your application,", main_binary, "will be used"
-            else:
-                main_binary = binary
-    if not main_binary:
-        print >> sys.stderr, "No executable file found in your application, check PEERDIR section"
     app_dir = os.path.join(module_dir, app_name + '.app')
     ensure_dir(app_dir)
     copy_nibs(nibs, module_dir, app_dir)
     replaced_parameters = {
         'DEVELOPMENT_LANGUAGE': 'en',
-        'EXECUTABLE_NAME': os.path.basename(main_binary) if main_binary else '',
+        'EXECUTABLE_NAME': bin_name,
         'PRODUCT_BUNDLE_IDENTIFIER': 'Yandex.' + app_name,
         'PRODUCT_NAME': app_name,
     }
@@ -108,8 +98,6 @@ def just_do_it(args):
     else:
         sign_file = signs[0]
     sign_application(sign_file, app_dir)
-    for b in binaries:
-        shutil.copy(b, os.path.join(app_dir, os.path.basename(b)))
     make_archive(app_dir, main_out)
 
 
