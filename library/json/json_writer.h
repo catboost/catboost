@@ -85,6 +85,7 @@ namespace NJson {
         void Write(double value);
         void Write(bool value);
         void Write(const TJsonValue* value);
+        void Write(const TJsonValue& value);
 
         // must use all variations of integer types since long
         // and long long are different types but with same size
