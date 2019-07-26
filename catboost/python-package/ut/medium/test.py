@@ -1960,10 +1960,10 @@ def test_grid_search(task_type):
         },
         pool
     )
-    assert "train-Logloss-mean" in results, '"train-Logloss-mean" not in results'
+    assert "train-Logloss-mean" in results['cv_results'], '"train-Logloss-mean" not in results'
 
-    prev_value = results["train-Logloss-mean"][0]
-    for value in results["train-Logloss-mean"][1:]:
+    prev_value = results['cv_results']["train-Logloss-mean"][0]
+    for value in results['cv_results']["train-Logloss-mean"][1:]:
         assert value < prev_value, 'not monotonous Logloss-mean'
         prev_value = value
 
@@ -2000,10 +2000,10 @@ def test_randomized_search(task_type):
         },
         pool
     )
-    assert "train-Logloss-mean" in results, '"train-Logloss-mean" not in results'
+    assert "train-Logloss-mean" in results['cv_results'], '"train-Logloss-mean" not in results'
 
-    prev_value = results["train-Logloss-mean"][0]
-    for value in results["train-Logloss-mean"][1:]:
+    prev_value = results['cv_results']["train-Logloss-mean"][0]
+    for value in results['cv_results']["train-Logloss-mean"][1:]:
         assert value < prev_value, 'not monotonic Logloss-mean'
         prev_value = value
 

@@ -53,7 +53,8 @@ namespace NCB {
         TDataProviderPtr data,
         TBestOptionValuesWithCvResult* bestOptionValuesWithCvResult,
         bool isSearchUsingTrainTestSplit = true,
-        bool returnCvStat = true);
+        bool returnCvStat = true,
+        int verbose = true);
 
     void RandomizedSearch(
         ui32 numberOfTries,
@@ -67,5 +68,6 @@ namespace NCB {
         TDataProviderPtr data,
         TBestOptionValuesWithCvResult* bestOptionValuesWithCvResult,
         bool isSearchUsingTrainTestSplit = true,
-        bool returnCvStat = true);
+        bool returnCvStat = true,
+        int verbose = true);
 }
