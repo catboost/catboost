@@ -192,11 +192,16 @@ enum class ELossFunction {
     FilteredDCG
 };
 
+enum class ERankingType {
+    CrossEntropy,
+    AbsoluteValue,
+    Order
+};
+
 enum class EHessianType {
     Symmetric,
     Diagonal
 };
-
 
 enum class ECounterCalc {
     Full,

@@ -612,7 +612,7 @@ cdef extern from "catboost/libs/options/enum_helpers.h":
     cdef bool_t IsCvStratifiedObjective(const TString& lossFunction) nogil except +ProcessException
     cdef bool_t IsRegressionObjective(const TString& lossFunction) nogil except +ProcessException
     cdef bool_t IsGroupwiseMetric(const TString& metricName) nogil except +ProcessException
-    cdef bool_t IsMultiDimensionalCompatibleError(const TString& metricName) nogil except +ProcessException
+    cdef bool_t IsMultiClassCompatibleMetric(const TString& metricName) nogil except +ProcessException
     cdef bool_t IsPairwiseMetric(const TString& metricName) nogil except +ProcessException
 
 cdef extern from "catboost/libs/metrics/metric.h":
@@ -3784,7 +3784,7 @@ cpdef is_groupwise_metric(metric_name):
 
 
 cpdef is_multiclass_metric(metric_name):
-    return IsMultiDimensionalCompatibleError(to_arcadia_string(metric_name))
+    return IsMultiClassCompatibleMetric(to_arcadia_string(metric_name))
 
 
 cpdef is_pairwise_metric(metric_name):

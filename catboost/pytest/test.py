@@ -6039,11 +6039,11 @@ def test_pairwise_bernoulli_bootstrap(subsample, sampling_unit, loss_function, d
 def test_bad_metrics_combination(loss_function, metric):
     BAD_PAIRS = {
         'Logloss': ['RMSE', 'MultiClass'],
-        'RMSE': ['Logloss', 'MultiClass', 'QuerySoftMax'],
+        'RMSE': ['Logloss', 'MultiClass'],
         'MultiClass': ['Logloss', 'RMSE', 'QuerySoftMax', 'PFound'],
-        'QuerySoftMax': ['RMSE', 'MultiClass'],
+        'QuerySoftMax': ['RMSE', 'MultiClass', 'QueryRMSE'],
         'QueryRMSE': ['Logloss', 'MultiClass', 'QuerySoftMax'],
-        'YetiRank': ['Logloss', 'RMSE', 'MultiClass', 'QuerySoftMax']
+        'YetiRank': ['Logloss', 'RMSE', 'MultiClass']
     }
 
     cd_path = yatest.common.test_output_path('cd.txt')

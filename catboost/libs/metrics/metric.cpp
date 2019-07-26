@@ -5037,36 +5037,71 @@ void TQueryCrossEntropyMetric::GetBestValue(EMetricBestValue* valueType, float*)
     *valueType = EMetricBestValue::Min;
 }
 
-inline void CheckMetric(const ELossFunction metric, const ELossFunction modelLoss) {
+static bool IsFromAucFamily(ELossFunction loss) {
+    return loss == ELossFunction::AUC
+        || loss == ELossFunction::NormalizedGini;
+}
+
+void CheckMetric(const ELossFunction metric, const ELossFunction modelLoss) {
     if (metric == ELossFunction::PythonUserDefinedPerObject || modelLoss == ELossFunction::PythonUserDefinedPerObject) {
         return;
     }
 
-    if (IsMultiClassOnlyMetric(metric)) {
-        CB_ENSURE(IsMultiClassOnlyMetric(modelLoss),
-            "Cannot use strict multiclassification and not multiclassification metrics together: "
-            << "If you din't train multiclassification, use binary classification, regression or ranking metrics instead.");
+    /* [loss -> metric]
+     * ranking             -> ranking compatible
+     * binclass only       -> binclass compatible
+     * multiclass only     -> multiclass compatible
+     * classification only -> classification compatible
+     */
+
+    if (IsRankingMetric(modelLoss)) {
+        CB_ENSURE(
+            // accept classification
+            IsBinaryClassCompatibleMetric(metric) && IsBinaryClassCompatibleMetric(modelLoss)
+            // accept ranking
+            || IsRankingMetric(metric) && (GetRankingType(metric) != ERankingType::CrossEntropy) == (GetRankingType(modelLoss) != ERankingType::CrossEntropy)
+            // accept regression
+            || IsRegressionMetric(metric) && GetRankingType(modelLoss) == ERankingType::AbsoluteValue
+            // accept auc like
+            || IsFromAucFamily(metric),
+            "metric [" + ToString(metric) + "] is incompatible with loss [" + ToString(modelLoss) + "] (not compatible with ranking)"
+        );
+    }
+
+    if (IsBinaryClassOnlyMetric(modelLoss)) {
+        CB_ENSURE(IsBinaryClassCompatibleMetric(metric),
+                  "metric [" + ToString(metric) + "] is incompatible with loss [" + ToString(modelLoss) + "] (no binclass support)");
     }
 
     if (IsMultiClassOnlyMetric(modelLoss)) {
-        CB_ENSURE(IsMultiDimensionalCompatibleError(metric),
-            "Cannot use strict multiclassification and not multiclassification metrics together: "
-            << "If you trained multiclassification, use multiclassification metrics.");
+        CB_ENSURE(IsMultiClassCompatibleMetric(metric),
+                  "metric [" + ToString(metric) + "] is incompatible with loss [" + ToString(modelLoss) + "] (no multiclass support)");
     }
 
-    if (IsForCrossEntropyOptimization(modelLoss)) {
-        CB_ENSURE(IsForCrossEntropyOptimization(metric) || IsForOrderOptimization(metric),
-                  "Cannot calc metric which requires absolute values for logits.");
+    if (IsClassificationOnlyMetric(modelLoss)) {
+        CB_ENSURE(IsClassificationMetric(metric),
+                  "metric [" + ToString(metric) + "] is incompatible with loss [" + ToString(modelLoss) + "] (no classification support)");
     }
 
-    if (IsForOrderOptimization(modelLoss)) {
-        CB_ENSURE(IsForOrderOptimization(metric),
-                  "Cannot calc metric which requires logits or absolute values with order-optimization loss together.");
+    /* [metric -> loss]
+     * binclass only       -> binclass compatible
+     * multiclass only     -> multiclass compatible
+     * classification only -> classification compatible
+     */
+
+    if (IsBinaryClassOnlyMetric(metric)) {
+        CB_ENSURE(IsBinaryClassCompatibleMetric(modelLoss),
+                  "loss [" + ToString(modelLoss) + "] is incompatible with metric [" + ToString(metric) + "] (no binclass support)");
     }
 
-    if (IsForAbsoluteValueOptimization(modelLoss)) {
-        CB_ENSURE(IsForAbsoluteValueOptimization(metric) || IsForOrderOptimization(metric),
-                  "Cannot calc metric which requires logits for absolute values.");
+    if (IsMultiClassOnlyMetric(metric)) {
+        CB_ENSURE(IsMultiClassCompatibleMetric(modelLoss),
+                  "loss [" + ToString(modelLoss) + "] is incompatible with metric [" + ToString(metric) + "] (no multiclass support)");
+    }
+
+    if (IsClassificationOnlyMetric(metric)) {
+        CB_ENSURE(IsClassificationMetric(modelLoss),
+                  "loss [" + ToString(modelLoss) + "] is incompatible with metric [" + ToString(metric) + "] (no classification support)");
     }
 }
 

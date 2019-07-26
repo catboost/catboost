@@ -5,155 +5,530 @@
 #include <util/generic/is_in.h>
 #include <util/generic/strbuf.h>
 #include <util/generic/vector.h>
+#include <util/generic/flags.h>
+#include <util/generic/maybe.h>
+#include <util/generic/map.h>
+#include <util/generic/ptr.h>
 #include <util/string/cast.h>
 
-TConstArrayRef<ELossFunction> GetAllObjectives() {
-    static TVector<ELossFunction> allObjectives = {
-        ELossFunction::Logloss, ELossFunction::CrossEntropy, ELossFunction::RMSE, ELossFunction::MAE,
-        ELossFunction::Quantile, ELossFunction::LogLinQuantile, ELossFunction::Expectile,
-        ELossFunction::MAPE, ELossFunction::Poisson, ELossFunction::MultiClass,
-        ELossFunction::MultiClassOneVsAll, ELossFunction::PairLogit, ELossFunction::PairLogitPairwise,
-        ELossFunction::YetiRank, ELossFunction::YetiRankPairwise, ELossFunction::QueryRMSE,
-        ELossFunction::QuerySoftMax, ELossFunction::QueryCrossEntropy, ELossFunction::Lq,
-        ELossFunction::Huber, ELossFunction::StochasticFilter, ELossFunction::UserPerObjMetric,
-        ELossFunction::UserQuerywiseMetric
+namespace {
+    enum class EMetricAttribute : ui32 {
+        /* metric type */
+        /** classification **/
+        IsBinaryClassCompatible        = 1 << 0,
+        IsMultiClassCompatible         = 1 << 1,
+        /** regression **/
+        IsRegression                   = 1 << 2,
+        /** ranking **/
+        IsGroupwise                    = 1 << 3,
+        IsPairwise                     = 1 << 4,
+
+        /* various */
+        IsUserDefined                  = 1 << 5
     };
-    return allObjectives;
+
+    using EMetricAttributes = TFlags<EMetricAttribute>;
+    constexpr inline EMetricAttributes operator|(EMetricAttributes::TEnum l, EMetricAttributes::TEnum r) {
+        return EMetricAttributes(l) | r;
+    }
+
+    class IMetricInfo {
+    public:
+        explicit IMetricInfo(ELossFunction loss, ERankingType rankingType, EMetricAttributes flags)
+            : Loss(loss), Flags(flags), RankingType(rankingType) {
+            CB_ENSURE(HasFlags(EMetricAttribute::IsGroupwise) || HasFlags(EMetricAttribute::IsPairwise),
+                      "[" + ToString(loss) + "] metric cannot specify ranking type since it's not ranking");
+
+            CB_ENSURE(HasFlags(EMetricAttribute::IsRegression)
+                      || HasFlags(EMetricAttribute::IsBinaryClassCompatible)
+                      || HasFlags(EMetricAttribute::IsMultiClassCompatible)
+                      || HasFlags(EMetricAttribute::IsGroupwise)
+                      || HasFlags(EMetricAttribute::IsPairwise)
+                      || HasFlags(EMetricAttribute::IsUserDefined),
+                      "no type (regression, classification, ranking) for [" + ToString(loss) + "]");
+        }
+
+        explicit IMetricInfo(ELossFunction loss, EMetricAttributes flags)
+            : Loss(loss), Flags(flags) {
+            CB_ENSURE(!(HasFlags(EMetricAttribute::IsGroupwise) || HasFlags(EMetricAttribute::IsPairwise)),
+                      "ranking type required for [" + ToString(loss) + "]");
+
+            CB_ENSURE(HasFlags(EMetricAttribute::IsRegression)
+                      || HasFlags(EMetricAttribute::IsBinaryClassCompatible)
+                      || HasFlags(EMetricAttribute::IsMultiClassCompatible)
+                      || HasFlags(EMetricAttribute::IsGroupwise)
+                      || HasFlags(EMetricAttribute::IsPairwise)
+                      || HasFlags(EMetricAttribute::IsUserDefined),
+                      "no type (regression, classification, ranking) for [" + ToString(loss) + "]");
+        }
+
+        bool HasFlags(EMetricAttributes flags) const {
+            return Flags.HasFlags(flags);
+        }
+
+        bool MissesFlags(EMetricAttributes flags) const {
+            return (~Flags).HasFlags(flags);
+        }
+
+        ERankingType GetRankingType() const {
+            CB_ENSURE(HasFlags(EMetricAttribute::IsGroupwise) || HasFlags(EMetricAttribute::IsPairwise),
+                      "[" + ToString(Loss) + "] metric does not have ranking type since it's not ranking");
+            return RankingType.GetRef();
+        }
+
+        ELossFunction GetLoss() const {
+            return Loss;
+        }
+
+        virtual ~IMetricInfo() = default;
+
+    private:
+        const ELossFunction Loss;
+        const EMetricAttributes Flags;
+        const TMaybe<ERankingType> RankingType;
+    };
 }
 
-bool IsSingleDimensionalCompatibleError(ELossFunction lossFunction) {
-    return (lossFunction != ELossFunction::MultiClass &&
-            lossFunction != ELossFunction::MultiClassOneVsAll);
+#define MakeRegister(name, /*registrees*/...)                           \
+    static const TMap<ELossFunction, THolder<IMetricInfo>> name = []() { \
+        TMap<ELossFunction, THolder<IMetricInfo>> reg;                  \
+        (void) (/*registrees*/__VA_ARGS__);                             \
+        return reg;                                                     \
+    }();
+
+#define Registree(loss, flags)                                          \
+    reg.insert({ELossFunction::loss, [&]() {                            \
+        CB_ENSURE(!reg.contains(ELossFunction::loss), "Loss " + ToString(ELossFunction::loss) + " redefined"); \
+        class T##loss : public IMetricInfo {                            \
+        public:                                                         \
+            T##loss() : IMetricInfo(ELossFunction::loss, flags){}       \
+        };                                                              \
+        return MakeHolder<T##loss>();                                   \
+    }()})
+
+#define RankingRegistree(loss, rankingType, flags)                      \
+    reg.insert({ELossFunction::loss, [&]() {                            \
+        CB_ENSURE(!reg.contains(ELossFunction::loss), "Loss " + ToString(ELossFunction::loss) + " redefined"); \
+        class T##loss : public IMetricInfo {                            \
+        public:                                                         \
+            T##loss() : IMetricInfo(ELossFunction::loss, rankingType, flags){} \
+        };                                                              \
+        return MakeHolder<T##loss>();                                   \
+    }()})
+
+MakeRegister(LossInfos,
+    Registree(Logloss,
+        EMetricAttribute::IsBinaryClassCompatible
+    ),
+    Registree(CrossEntropy,
+        EMetricAttribute::IsBinaryClassCompatible
+    ),
+    Registree(CtrFactor,
+        EMetricAttribute::IsBinaryClassCompatible
+    ),
+    Registree(RMSE,
+        EMetricAttribute::IsRegression
+    ),
+    Registree(Lq,
+        EMetricAttribute::IsRegression
+    ),
+    Registree(MAE,
+        EMetricAttribute::IsRegression
+    ),
+    Registree(Quantile,
+        EMetricAttribute::IsRegression
+    ),
+    Registree(Expectile,
+        EMetricAttribute::IsRegression
+    ),
+    Registree(LogLinQuantile,
+        EMetricAttribute::IsRegression
+    ),
+    Registree(MAPE,
+        EMetricAttribute::IsRegression
+    ),
+    Registree(Poisson,
+        EMetricAttribute::IsRegression
+    ),
+    Registree(MSLE,
+        EMetricAttribute::IsRegression
+    ),
+    Registree(MedianAbsoluteError,
+        EMetricAttribute::IsRegression
+    ),
+    Registree(SMAPE,
+        EMetricAttribute::IsRegression
+    ),
+    Registree(Huber,
+        EMetricAttribute::IsRegression
+    ),
+    Registree(MultiClass,
+        EMetricAttribute::IsMultiClassCompatible
+    ),
+    Registree(MultiClassOneVsAll,
+        EMetricAttribute::IsMultiClassCompatible
+    ),
+    RankingRegistree(PairLogit, ERankingType::CrossEntropy,
+        EMetricAttribute::IsBinaryClassCompatible
+        | EMetricAttribute::IsGroupwise
+        | EMetricAttribute::IsPairwise
+    ),
+    RankingRegistree(PairLogitPairwise, ERankingType::CrossEntropy,
+        EMetricAttribute::IsBinaryClassCompatible
+        | EMetricAttribute::IsGroupwise
+        | EMetricAttribute::IsPairwise
+    ),
+    RankingRegistree(YetiRank, ERankingType::Order,
+        EMetricAttribute::IsBinaryClassCompatible
+        | EMetricAttribute::IsGroupwise
+    ),
+    RankingRegistree(YetiRankPairwise, ERankingType::Order,
+        EMetricAttribute::IsBinaryClassCompatible
+        | EMetricAttribute::IsGroupwise
+    ),
+    RankingRegistree(QueryRMSE, ERankingType::AbsoluteValue,
+        EMetricAttribute::IsGroupwise
+    ),
+    RankingRegistree(QuerySoftMax, ERankingType::CrossEntropy,
+        EMetricAttribute::IsBinaryClassCompatible
+        | EMetricAttribute::IsGroupwise
+    ),
+    RankingRegistree(QueryCrossEntropy, ERankingType::CrossEntropy,
+        EMetricAttribute::IsBinaryClassCompatible
+        | EMetricAttribute::IsGroupwise
+    ),
+    RankingRegistree(StochasticFilter, ERankingType::Order,
+        EMetricAttribute::IsBinaryClassCompatible
+        | EMetricAttribute::IsGroupwise
+    ),
+    Registree(PythonUserDefinedPerObject,
+        EMetricAttribute::IsUserDefined
+    ),
+    Registree(UserPerObjMetric,
+        EMetricAttribute::IsUserDefined
+    ),
+    Registree(UserQuerywiseMetric,
+        EMetricAttribute::IsUserDefined
+    ),
+    Registree(R2,
+        EMetricAttribute::IsRegression
+    ),
+    Registree(NumErrors,
+        EMetricAttribute::IsRegression
+    ),
+    Registree(FairLoss,
+        EMetricAttribute::IsRegression
+    ),
+    Registree(AUC,
+        EMetricAttribute::IsBinaryClassCompatible
+        | EMetricAttribute::IsMultiClassCompatible
+    ),
+    Registree(Accuracy,
+        EMetricAttribute::IsBinaryClassCompatible
+        | EMetricAttribute::IsMultiClassCompatible
+    ),
+    Registree(BalancedAccuracy,
+        EMetricAttribute::IsBinaryClassCompatible
+    ),
+    Registree(BalancedErrorRate,
+        EMetricAttribute::IsBinaryClassCompatible
+    ),
+    Registree(BrierScore,
+        EMetricAttribute::IsBinaryClassCompatible
+    ),
+    Registree(Precision,
+        EMetricAttribute::IsBinaryClassCompatible
+        | EMetricAttribute::IsMultiClassCompatible
+    ),
+    Registree(Recall,
+        EMetricAttribute::IsBinaryClassCompatible
+        | EMetricAttribute::IsMultiClassCompatible
+    ),
+    Registree(F1,
+        EMetricAttribute::IsBinaryClassCompatible
+        | EMetricAttribute::IsMultiClassCompatible
+    ),
+    Registree(TotalF1,
+        EMetricAttribute::IsBinaryClassCompatible
+        | EMetricAttribute::IsMultiClassCompatible
+    ),
+    Registree(MCC,
+        EMetricAttribute::IsBinaryClassCompatible
+        | EMetricAttribute::IsMultiClassCompatible
+    ),
+    Registree(ZeroOneLoss,
+        EMetricAttribute::IsBinaryClassCompatible
+        | EMetricAttribute::IsMultiClassCompatible
+    ),
+    Registree(HammingLoss,
+        EMetricAttribute::IsBinaryClassCompatible
+        | EMetricAttribute::IsMultiClassCompatible
+    ),
+    Registree(HingeLoss,
+        EMetricAttribute::IsBinaryClassCompatible
+        | EMetricAttribute::IsMultiClassCompatible
+    ),
+    Registree(Kappa,
+        EMetricAttribute::IsBinaryClassCompatible
+        | EMetricAttribute::IsMultiClassCompatible
+    ),
+    Registree(WKappa,
+        EMetricAttribute::IsBinaryClassCompatible
+        | EMetricAttribute::IsMultiClassCompatible
+    ),
+    Registree(LogLikelihoodOfPrediction,
+        EMetricAttribute::IsBinaryClassCompatible
+    ),
+    Registree(NormalizedGini,
+        EMetricAttribute::IsBinaryClassCompatible
+        | EMetricAttribute::IsMultiClassCompatible
+    ),
+    RankingRegistree(PairAccuracy, ERankingType::CrossEntropy,
+        EMetricAttribute::IsBinaryClassCompatible
+        | EMetricAttribute::IsGroupwise
+        | EMetricAttribute::IsPairwise
+    ),
+    RankingRegistree(AverageGain, ERankingType::Order,
+        EMetricAttribute::IsBinaryClassCompatible
+        | EMetricAttribute::IsGroupwise
+    ),
+    RankingRegistree(QueryAverage, ERankingType::Order,
+        EMetricAttribute::IsBinaryClassCompatible
+        | EMetricAttribute::IsGroupwise
+    ),
+    RankingRegistree(PFound, ERankingType::Order,
+        EMetricAttribute::IsBinaryClassCompatible
+        | EMetricAttribute::IsGroupwise
+    ),
+    RankingRegistree(PrecisionAt, ERankingType::Order,
+        EMetricAttribute::IsBinaryClassCompatible
+        | EMetricAttribute::IsGroupwise
+    ),
+    RankingRegistree(RecallAt, ERankingType::Order,
+        EMetricAttribute::IsBinaryClassCompatible
+        | EMetricAttribute::IsGroupwise
+    ),
+    RankingRegistree(MAP, ERankingType::Order,
+        EMetricAttribute::IsBinaryClassCompatible
+        | EMetricAttribute::IsGroupwise
+    ),
+    RankingRegistree(NDCG, ERankingType::Order,
+        EMetricAttribute::IsBinaryClassCompatible
+        | EMetricAttribute::IsGroupwise
+    ),
+    RankingRegistree(DCG, ERankingType::Order,
+        EMetricAttribute::IsBinaryClassCompatible
+        | EMetricAttribute::IsGroupwise
+    ),
+    RankingRegistree(FilteredDCG, ERankingType::Order,
+        EMetricAttribute::IsBinaryClassCompatible
+        | EMetricAttribute::IsGroupwise
+    )
+)
+
+const IMetricInfo *GetInfo(ELossFunction loss) {
+    CB_ENSURE(LossInfos.contains(loss), "No description for [" + ToString(loss) + "]");
+    return LossInfos.at(loss).Get();
 }
 
-bool IsMultiDimensionalCompatibleError(ELossFunction lossFunction) {
-    return (lossFunction == ELossFunction::MultiClass ||
-            lossFunction == ELossFunction::MultiClassOneVsAll ||
-            lossFunction == ELossFunction::Precision ||
-            lossFunction == ELossFunction::Recall ||
-            lossFunction == ELossFunction::F1 ||
-            lossFunction == ELossFunction::TotalF1 ||
-            lossFunction == ELossFunction::MCC ||
-            lossFunction == ELossFunction::Accuracy ||
-            lossFunction == ELossFunction::AUC ||
-            lossFunction == ELossFunction::HingeLoss ||
-            lossFunction == ELossFunction::HammingLoss ||
-            lossFunction == ELossFunction::ZeroOneLoss ||
-            lossFunction == ELossFunction::Kappa ||
-            lossFunction == ELossFunction::WKappa ||
-            lossFunction == ELossFunction::NormalizedGini);
-}
-
-bool IsMultiDimensionalCompatibleError(TStringBuf lossFunction) {
-    const ELossFunction lossType = ParseLossType(lossFunction);
-    return IsMultiDimensionalCompatibleError(lossType);
-}
-
-bool IsForCrossEntropyOptimization(ELossFunction lossFunction) {
-    return (lossFunction == ELossFunction::Logloss ||  // binary classification metrics
-            lossFunction == ELossFunction::CrossEntropy ||
-            lossFunction == ELossFunction::Precision ||
-            lossFunction == ELossFunction::Recall ||
-            lossFunction == ELossFunction::F1 ||
-            lossFunction == ELossFunction::MCC ||
-            lossFunction == ELossFunction::BalancedAccuracy ||
-            lossFunction == ELossFunction::BalancedErrorRate ||
-            lossFunction == ELossFunction::Accuracy ||
-            lossFunction == ELossFunction::CtrFactor ||
-            lossFunction == ELossFunction::BrierScore ||
-            lossFunction == ELossFunction::HingeLoss ||
-            lossFunction == ELossFunction::HammingLoss ||
-            lossFunction == ELossFunction::ZeroOneLoss ||
-            lossFunction == ELossFunction::Kappa ||
-            lossFunction == ELossFunction::WKappa ||
-            lossFunction == ELossFunction::LogLikelihoodOfPrediction ||
-            lossFunction == ELossFunction::MultiClass ||  // multiclassification metrics
-            lossFunction == ELossFunction::MultiClassOneVsAll ||
-            lossFunction == ELossFunction::TotalF1 ||
-            lossFunction == ELossFunction::PairLogit ||  // ranking metrics
-            lossFunction == ELossFunction::PairLogitPairwise ||
-            lossFunction == ELossFunction::PairAccuracy ||
-            lossFunction == ELossFunction::QuerySoftMax ||
-            lossFunction == ELossFunction::QueryCrossEntropy);
-}
-
-bool IsGroupwiseOrderMetric(ELossFunction lossFunction) {
-    return (lossFunction == ELossFunction::YetiRank ||
-            lossFunction == ELossFunction::PrecisionAt ||
-            lossFunction == ELossFunction::RecallAt ||
-            lossFunction == ELossFunction::MAP ||
-            lossFunction == ELossFunction::YetiRankPairwise ||
-            lossFunction == ELossFunction::PFound ||
-            lossFunction == ELossFunction::NDCG ||
-            lossFunction == ELossFunction::DCG ||
-            lossFunction == ELossFunction::AverageGain ||
-            lossFunction == ELossFunction::QueryAverage ||
-            lossFunction == ELossFunction::StochasticFilter ||
-            lossFunction == ELossFunction::FilteredDCG);
-}
-
-bool IsForOrderOptimization(ELossFunction lossFunction) {
-    return lossFunction == ELossFunction::AUC || lossFunction == ELossFunction::NormalizedGini || IsGroupwiseOrderMetric(lossFunction);
-}
-
-bool IsForAbsoluteValueOptimization(ELossFunction lossFunction) {
-    return  !IsForOrderOptimization(lossFunction) && !IsForCrossEntropyOptimization(lossFunction);
-}
-
-bool IsOnlyForCrossEntropyOptimization(ELossFunction lossFunction) {
-    return (lossFunction == ELossFunction::BalancedErrorRate ||
-            lossFunction == ELossFunction::BalancedAccuracy ||
-            lossFunction == ELossFunction::Kappa ||
-            lossFunction == ELossFunction::WKappa ||
-            lossFunction == ELossFunction::LogLikelihoodOfPrediction ||
-            lossFunction == ELossFunction::HammingLoss ||
-            lossFunction == ELossFunction::ZeroOneLoss ||
-            lossFunction == ELossFunction::Logloss ||
-            lossFunction == ELossFunction::CrossEntropy ||
-            lossFunction == ELossFunction::Accuracy ||
-            lossFunction == ELossFunction::Precision ||
-            lossFunction == ELossFunction::Recall ||
-            lossFunction == ELossFunction::F1 ||
-            lossFunction == ELossFunction::TotalF1 ||
-            lossFunction == ELossFunction::MCC ||
-            lossFunction == ELossFunction::CtrFactor);
-}
-
-bool IsClassificationOnlyMetric(ELossFunction lossFunction) {
+bool IsPlainOnlyModeLoss(ELossFunction loss) {
     return (
-        IsOnlyForCrossEntropyOptimization(lossFunction) ||
-        lossFunction == ELossFunction::BrierScore ||
-        lossFunction == ELossFunction::HingeLoss ||
-        lossFunction == ELossFunction::MultiClass ||
-        lossFunction == ELossFunction::MultiClassOneVsAll
+        loss == ELossFunction::YetiRankPairwise ||
+        loss == ELossFunction::PairLogitPairwise ||
+        loss == ELossFunction::QueryCrossEntropy
     );
 }
 
-bool IsBinaryClassCompatibleMetric(ELossFunction lossFunction) {
-    if (IsClassificationOnlyMetric(lossFunction)) {
-        return !IsMultiClassOnlyMetric(lossFunction);
-    } else {
-        return (lossFunction == ELossFunction::AUC || lossFunction == ELossFunction::NormalizedGini) ||
-            (IsGroupwiseMetric(lossFunction) && (lossFunction != ELossFunction::QueryRMSE));
+bool IsPairwiseScoring(ELossFunction loss) {
+    return (
+        loss == ELossFunction::YetiRankPairwise ||
+        loss == ELossFunction::PairLogitPairwise ||
+        loss == ELossFunction::QueryCrossEntropy
+    );
+}
+
+bool IsGpuPlainDocParallelOnlyMode(ELossFunction loss) {
+    return (
+        loss == ELossFunction::YetiRankPairwise ||
+        loss == ELossFunction::PairLogitPairwise ||
+        loss == ELossFunction::QueryCrossEntropy ||
+        loss == ELossFunction::MultiClass ||
+        loss == ELossFunction::MultiClassOneVsAll
+    );
+}
+
+bool IsYetiRankLossFunction(ELossFunction loss) {
+    return (
+        loss == ELossFunction::YetiRank ||
+        loss == ELossFunction::YetiRankPairwise
+    );
+}
+
+bool IsPairLogit(ELossFunction loss) {
+    return (
+        loss == ELossFunction::PairLogit ||
+        loss == ELossFunction::PairLogitPairwise
+    );
+}
+
+
+bool UsesPairsForCalculation(ELossFunction loss) {
+    return IsYetiRankLossFunction(loss) || IsPairLogit(loss);
+}
+
+bool ShouldSkipCalcOnTrainByDefault(ELossFunction loss) {
+    return (
+        loss == ELossFunction::MedianAbsoluteError ||
+        loss == ELossFunction::YetiRank ||
+        loss == ELossFunction::YetiRankPairwise ||
+        loss == ELossFunction::AUC ||
+        loss == ELossFunction::PFound ||
+        loss == ELossFunction::NDCG ||
+        loss == ELossFunction::DCG ||
+        loss == ELossFunction::FilteredDCG ||
+        loss == ELossFunction::NormalizedGini
+    );
+}
+
+bool ShouldBinarizeLabel(ELossFunction loss) {
+    return loss == ELossFunction::Logloss;
+}
+
+bool IsCvStratifiedObjective(ELossFunction loss) {
+    return (
+        loss == ELossFunction::Logloss ||
+        loss == ELossFunction::MultiClass ||
+        loss == ELossFunction::MultiClassOneVsAll
+    );
+}
+
+static const TVector<ELossFunction> RegressionObjectives = {
+    ELossFunction::RMSE,
+    ELossFunction::MAE,
+    ELossFunction::Quantile,
+    ELossFunction::LogLinQuantile,
+    ELossFunction::Expectile,
+    ELossFunction::MAPE,
+    ELossFunction::Poisson,
+    ELossFunction::Lq,
+    ELossFunction::Huber
+};
+
+static const TVector<ELossFunction> ClassificationObjectives = {
+    ELossFunction::Logloss,
+    ELossFunction::CrossEntropy,
+    ELossFunction::MultiClass,
+    ELossFunction::MultiClassOneVsAll
+};
+
+static const TVector<ELossFunction> RankingObjectives = {
+    ELossFunction::PairLogit,
+    ELossFunction::PairLogitPairwise,
+    ELossFunction::YetiRank,
+    ELossFunction::YetiRankPairwise,
+    ELossFunction::QueryRMSE,
+    ELossFunction::QuerySoftMax,
+    ELossFunction::QueryCrossEntropy,
+    ELossFunction::StochasticFilter,
+    ELossFunction::UserPerObjMetric,
+    ELossFunction::UserQuerywiseMetric
+};
+
+static const TVector<ELossFunction> Objectives = []() {
+    TVector<ELossFunction> objectives;
+    for (auto objective : RegressionObjectives) {
+        objectives.push_back(objective);
     }
+    for (auto objective : ClassificationObjectives) {
+        objectives.push_back(objective);
+    }
+    for (auto objective : RankingObjectives) {
+        objectives.push_back(objective);
+    }
+    return objectives;
+}();
+
+TConstArrayRef<ELossFunction> GetAllObjectives() {
+    return Objectives;
 }
 
-bool IsMultiClassCompatibleMetric(ELossFunction lossFunction) {
-    return IsMultiDimensionalCompatibleError(lossFunction);
+ERankingType GetRankingType(ELossFunction loss) {
+    CB_ENSURE(IsRankingMetric(loss),
+              "[" + ToString(loss) + "] metric does not have ranking type since it's not ranking");
+    return GetInfo(loss)->GetRankingType();
 }
 
-bool IsBinaryClassOnlyMetric(ELossFunction lossFunction) {
-    return IsClassificationOnlyMetric(lossFunction) && !IsMultiDimensionalCompatibleError(lossFunction);
+static bool IsFromAucFamily(ELossFunction loss) {
+    return loss == ELossFunction::AUC
+        || loss == ELossFunction::NormalizedGini;
 }
 
-bool IsMultiClassOnlyMetric(ELossFunction lossFunction) {
-    return (IsMultiDimensionalCompatibleError(lossFunction) &&
-        !IsSingleDimensionalCompatibleError(lossFunction));
+bool IsClassificationOnlyMetric(ELossFunction loss) {
+    return IsClassificationMetric(loss) && !IsRegressionMetric(loss)
+        && !IsRankingMetric(loss) && !IsFromAucFamily(loss);
 }
 
+bool IsBinaryClassCompatibleMetric(ELossFunction loss) {
+    return GetInfo(loss)->HasFlags(EMetricAttribute::IsBinaryClassCompatible);
+}
 
-bool IsClassificationObjective(ELossFunction lossFunction) {
-    return IsClassificationOnlyMetric(lossFunction) && IsIn(GetAllObjectives(), lossFunction);
+bool IsMultiClassCompatibleMetric(ELossFunction loss) {
+    return GetInfo(loss)->HasFlags(EMetricAttribute::IsMultiClassCompatible);
+}
+
+bool IsMultiClassCompatibleMetric(TStringBuf lossFunction) {
+    auto loss = ParseLossType(lossFunction);
+    return GetInfo(loss)->HasFlags(EMetricAttribute::IsMultiClassCompatible);
+}
+
+bool IsClassificationMetric(ELossFunction loss) {
+    auto info = GetInfo(loss);
+    return info->HasFlags(EMetricAttribute::IsBinaryClassCompatible)
+        || info->HasFlags(EMetricAttribute::IsMultiClassCompatible);
+}
+
+bool IsBinaryClassOnlyMetric(ELossFunction loss) {
+    auto info = GetInfo(loss);
+    return IsClassificationOnlyMetric(loss)
+        && info->HasFlags(EMetricAttribute::IsBinaryClassCompatible)
+        && info->MissesFlags(EMetricAttribute::IsMultiClassCompatible);
+}
+
+bool IsMultiClassOnlyMetric(ELossFunction loss) {
+    auto info = GetInfo(loss);
+    return IsClassificationOnlyMetric(loss)
+        && info->HasFlags(EMetricAttribute::IsMultiClassCompatible)
+        && info->MissesFlags(EMetricAttribute::IsBinaryClassCompatible);
+}
+
+bool IsClassificationObjective(ELossFunction loss) {
+    return IsIn(ClassificationObjectives, loss);
+}
+
+bool IsRegressionObjective(ELossFunction loss) {
+    return IsIn(RegressionObjectives, loss);
+}
+
+bool IsRegressionMetric(ELossFunction loss) {
+    return GetInfo(loss)->HasFlags(EMetricAttribute::IsRegression);
+}
+
+bool IsGroupwiseMetric(ELossFunction loss) {
+    return GetInfo(loss)->HasFlags(EMetricAttribute::IsGroupwise);
+}
+
+bool IsPairwiseMetric(ELossFunction loss) {
+    return GetInfo(loss)->HasFlags(EMetricAttribute::IsPairwise);
+}
+
+bool IsRankingMetric(ELossFunction loss) {
+    auto info = GetInfo(loss);
+    return info->HasFlags(EMetricAttribute::IsPairwise)
+        || info->HasFlags(EMetricAttribute::IsGroupwise);
+}
+
+bool IsUserDefined(ELossFunction loss) {
+    return GetInfo(loss)->HasFlags(EMetricAttribute::IsUserDefined);
 }
 
 bool IsClassificationObjective(const TStringBuf lossDescription) {
@@ -162,25 +537,8 @@ bool IsClassificationObjective(const TStringBuf lossDescription) {
 }
 
 bool IsCvStratifiedObjective(const TStringBuf lossDescription) {
-    ELossFunction lossFunction = ParseLossType(lossDescription);
-    return (
-        lossFunction == ELossFunction::Logloss ||
-        lossFunction == ELossFunction::MultiClass ||
-        lossFunction == ELossFunction::MultiClassOneVsAll
-    );
-}
-
-bool IsRegressionObjective(ELossFunction lossFunction) {
-    return (lossFunction == ELossFunction::MAE ||
-            lossFunction == ELossFunction::MAPE ||
-            lossFunction == ELossFunction::Poisson ||
-            lossFunction == ELossFunction::Quantile ||
-            lossFunction == ELossFunction::Expectile ||
-            lossFunction == ELossFunction::RMSE ||
-            lossFunction == ELossFunction::LogLinQuantile ||
-            lossFunction == ELossFunction::Lq ||
-            lossFunction == ELossFunction::Huber
-    );
+    ELossFunction lossType = ParseLossType(lossDescription);
+    return IsCvStratifiedObjective(lossType);
 }
 
 bool IsRegressionObjective(const TStringBuf lossDescription) {
@@ -188,37 +546,9 @@ bool IsRegressionObjective(const TStringBuf lossDescription) {
     return IsRegressionObjective(lossType);
 }
 
-bool IsRegressionMetric(ELossFunction lossFunction) {
-    return (IsRegressionObjective(lossFunction) ||
-        lossFunction == ELossFunction::SMAPE ||
-        lossFunction == ELossFunction::R2 ||
-        lossFunction == ELossFunction::MSLE ||
-        lossFunction == ELossFunction::MedianAbsoluteError ||
-        lossFunction == ELossFunction::FairLoss
-    );
-}
-
 bool IsGroupwiseMetric(TStringBuf metricName) {
-    ELossFunction lossFunction = ParseLossType(metricName);
-    return IsGroupwiseMetric(lossFunction);
-}
-
-bool IsGroupwiseMetric(ELossFunction lossFunction) {
-    return (
-        lossFunction == ELossFunction::QueryRMSE ||
-        lossFunction == ELossFunction::QuerySoftMax  ||
-        lossFunction == ELossFunction::QueryCrossEntropy ||
-        IsGroupwiseOrderMetric(lossFunction) ||
-        IsPairwiseMetric(lossFunction)
-    );
-}
-
-bool IsPairwiseMetric(ELossFunction lossFunction) {
-    return (
-        lossFunction == ELossFunction::PairLogit ||
-        lossFunction == ELossFunction::PairLogitPairwise ||
-        lossFunction == ELossFunction::PairAccuracy
-    );
+    ELossFunction lossType = ParseLossType(metricName);
+    return IsGroupwiseMetric(lossType);
 }
 
 bool IsPairwiseMetric(TStringBuf lossFunction) {
@@ -226,120 +556,45 @@ bool IsPairwiseMetric(TStringBuf lossFunction) {
     return IsPairwiseMetric(lossType);
 }
 
-bool UsesPairsForCalculation(ELossFunction lossFunction) {
-    return (
-        lossFunction == ELossFunction::PairLogit ||
-        lossFunction == ELossFunction::YetiRank ||
-        lossFunction == ELossFunction::YetiRankPairwise ||
-        lossFunction == ELossFunction::PairLogitPairwise
-    );
-}
-
 bool IsPlainMode(EBoostingType boostingType) {
     return (boostingType == EBoostingType::Plain);
 }
 
-bool IsPairwiseScoring(ELossFunction lossFunction) {
-    return (
-        lossFunction == ELossFunction::YetiRankPairwise ||
-        lossFunction == ELossFunction::PairLogitPairwise ||
-        lossFunction == ELossFunction::QueryCrossEntropy
-    );
-}
-
-bool IsGpuPlainDocParallelOnlyMode(ELossFunction lossFunction) {
-    return (
-            lossFunction == ELossFunction::YetiRankPairwise ||
-            lossFunction == ELossFunction::PairLogitPairwise ||
-            lossFunction == ELossFunction::QueryCrossEntropy ||
-            lossFunction == ELossFunction::MultiClass ||
-            lossFunction == ELossFunction::MultiClassOneVsAll
-    );
-}
-
-bool IsPlainOnlyModeLoss(ELossFunction lossFunction) {
-    return (
-            lossFunction == ELossFunction::YetiRankPairwise ||
-            lossFunction == ELossFunction::PairLogitPairwise ||
-            lossFunction == ELossFunction::QueryCrossEntropy
-    );
-}
-
-bool IsYetiRankLossFunction(ELossFunction lossFunction) {
-    return (
-        lossFunction == ELossFunction::YetiRank ||
-        lossFunction == ELossFunction::YetiRankPairwise
-    );
-}
-
-bool IsPairLogit(ELossFunction lossFunction) {
-    return (
-            lossFunction == ELossFunction::PairLogit ||
-            lossFunction == ELossFunction::PairLogitPairwise
-    );
-}
-
 bool IsSecondOrderScoreFunction(EScoreFunction function) {
     switch (function) {
-        case EScoreFunction::NewtonL2:
-        case EScoreFunction::NewtonCosine: {
-            return true;
-        }
-        case EScoreFunction::Cosine:
-        case EScoreFunction::SolarL2:
-        case EScoreFunction::LOOL2:
-        case EScoreFunction::L2: {
-            return false;
-        }
-        default: {
-            ythrow TCatBoostException() << "Unknown score function " << function;
-        }
+    case EScoreFunction::NewtonL2:
+    case EScoreFunction::NewtonCosine: {
+        return true;
+    }
+    case EScoreFunction::Cosine:
+    case EScoreFunction::SolarL2:
+    case EScoreFunction::LOOL2:
+    case EScoreFunction::L2: {
+        return false;
+    }
+    default: {
+        ythrow TCatBoostException() << "Unknown score function " << function;
+    }
     }
     Y_UNREACHABLE();
 }
 
 bool AreZeroWeightsAfterBootstrap(EBootstrapType type) {
     switch (type) {
-        case EBootstrapType::Bernoulli:
-        case EBootstrapType::Poisson:
-            return true;
-        default:
-            return false;
-    }
-}
-
-bool ShouldSkipCalcOnTrainByDefault(ELossFunction lossFunction) {
-    switch (lossFunction) {
-        case ELossFunction::PFound:
-        case ELossFunction::YetiRankPairwise:
-        case ELossFunction::YetiRank:
-        case ELossFunction::NDCG:
-        case ELossFunction::DCG:
-        case ELossFunction::FilteredDCG:
-        case ELossFunction::AUC:
-        case ELossFunction::NormalizedGini:
-        case ELossFunction::MedianAbsoluteError:
-            return true;
-        default:
-            return false;
-    }
-}
-
-bool IsUserDefined(ELossFunction lossFunction) {
-    switch (lossFunction) {
-        case ELossFunction::PythonUserDefinedPerObject:
-        case ELossFunction::UserPerObjMetric:
-        case ELossFunction::UserQuerywiseMetric:
-            return true;
-        default:
-            return false;
+    case EBootstrapType::Bernoulli:
+    case EBootstrapType::Poisson:
+        return true;
+    default:
+        return false;
     }
 }
 
 bool IsEmbeddingFeatureEstimator(EFeatureCalcerType estimatorType) {
-    return estimatorType == EFeatureCalcerType::CosDistanceWithClassCenter ||
-            estimatorType == EFeatureCalcerType::GaussianHomoscedasticModel ||
-            estimatorType == EFeatureCalcerType::GaussianHeteroscedasticModel;
+    return (
+        estimatorType == EFeatureCalcerType::CosDistanceWithClassCenter ||
+        estimatorType == EFeatureCalcerType::GaussianHomoscedasticModel ||
+        estimatorType == EFeatureCalcerType::GaussianHeteroscedasticModel
+    );
 }
 
 bool ShouldSkipFstrGrowPolicy(EGrowPolicy growPolicy) {
@@ -354,8 +609,4 @@ bool IsPlainOnlyModeScoreFunction(EScoreFunction scoreFunction) {
         scoreFunction != EScoreFunction::Cosine &&
         scoreFunction != EScoreFunction::NewtonCosine
     );
-}
-
-bool ShouldBinarizeLabel(ELossFunction lossFunction) {
-    return lossFunction == ELossFunction::Logloss;
 }
