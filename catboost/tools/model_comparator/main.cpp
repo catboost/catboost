@@ -83,21 +83,33 @@ TFullModel ReadModelAny(const TString& fileName) {
     return model;
 }
 
-static bool CompareModelInfo(const THashMap<TString, TString>& modelInfo1, const THashMap<TString, TString>& modelInfo2) {
+static bool CompareModelInfo(const THashMap<TString, TString>& modelInfo1, const THashMap<TString, TString>& modelInfo2, bool verbose=false) {
     if (modelInfo1.size() != modelInfo2.size()) {
+        if (verbose) {
+            Clog << " Different modelInfo size: " << modelInfo1.size() << " vs " << modelInfo2.size() << Endl;
+        }
         return false;
     }
     for (const auto& key1: modelInfo1) {
         const auto& key2 = modelInfo2.find(key1.first);
         if (key2 == modelInfo2.end()) {
+            if (verbose) {
+                Clog << " Key1 not found in modelInfo2: " << key1.first << Endl;
+            }
             return false;
         }
         if (key1.first != "params") {
             if (key1 != *key2) {
+                if (verbose) {
+                    Clog << " Values differ for key " << key1.first << ": " << key1.second << " vs " << key2->second << Endl;
+                }
                 return false;
             }
         } else {
             if (ReadTJsonValue(key1.second) != ReadTJsonValue(key2->second)) {
+                if (verbose) {
+                    Clog << " Value of `params` differ: " << ReadTJsonValue(key1.second) << " vs " << ReadTJsonValue(key2->second) << Endl;
+                }
                 return false;
             }
         }
@@ -144,11 +156,14 @@ TMaybe<int> ProcessSubType(const TStringBuf modelTypeName, const TStringBuf mode
 int main(int argc, char** argv) {
     using namespace NLastGetopt;
     double diffLimit = 0.0;
+    bool verbose = false;
     TOpts opts = NLastGetopt::TOpts::Default();
     opts.AddLongOption("diff-limit").RequiredArgument("THR")
         .Help("Tolerate elementwise relative difference less than THR")
         .DefaultValue(0.0)
         .StoreResult(&diffLimit);
+    opts.AddLongOption("verbose")
+        .StoreTrue(&verbose);
     opts.SetFreeArgsMin(2);
     opts.SetFreeArgsMax(2);
     opts.SetFreeArgTitle(0, "MODEL1");
@@ -271,7 +286,7 @@ int main(int argc, char** argv) {
             result.StructureIsDifferent = true;
         }
     }
-    if (!CompareModelInfo(model1.ModelInfo, model2.ModelInfo)) {
+    if (!CompareModelInfo(model1.ModelInfo, model2.ModelInfo, verbose)) {
         Clog << "ModelInfo differ" << Endl;
         model1.ModelInfo = THashMap<TString, TString>();
         model2.ModelInfo = THashMap<TString, TString>();
