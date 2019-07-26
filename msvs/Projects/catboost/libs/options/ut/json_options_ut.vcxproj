@@ -78,6 +78,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\options\ut\all_losses_described.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\options\ut\json_helper_ut.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\options\ut\options_ut.cpp"/>
   </ItemGroup>
