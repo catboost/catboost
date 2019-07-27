@@ -277,10 +277,6 @@
   includes:
     - hdf5.h
 
-- source_filter: "^contrib/libs/dlib"
-  includes:
-    - jpeglib.h
-
 - source_filter: "^contrib/libs/freetype"
   includes:
     - hb-ft.h
@@ -375,7 +371,7 @@
   includes:
     - pcre.h
 
-- source_filter: "^contrib/libs/(dlib|freetype|leptonica-1.70|libtheora|zbar)"
+- source_filter: "^contrib/libs/(freetype|leptonica-1.70|libtheora|zbar)"
   includes:
     - png.h
 
