@@ -93,29 +93,13 @@ namespace {
 }
 
 BEGIN_SYMS("c")
-#if defined(_linux_)
-SYM(prctl)
-SYM(sched_getaffinity)
-SYM(sched_setaffinity)
-SYM(inotify_init)
-SYM(inotify_add_watch)
-SYM(inotify_rm_watch)
-#endif
-#if defined(_darwin_)
-SYM(sysctlbyname)
-#endif
-SYM(ftok)
-#if __has_include(<aio.h>)
-SYM(aio_error)
-SYM(aio_read)
-SYM(aio_return)
-SYM(aio_suspend)
-#endif
+
 SYM(calloc)
 SYM(clock_gettime)
 SYM_2("clock_getres", ClockGetres)
 SYM(closedir)
 SYM(freeifaddrs)
+SYM(ftok)
 SYM(getifaddrs)
 SYM(getnameinfo)
 SYM(getpwnam)
@@ -129,5 +113,28 @@ SYM(strdup)
 SYM(sendfile)
 SYM(strtod)
 SYM_2("__errno_location", ErrnoLocation)
+
+#if defined(_linux_)
+SYM(prctl)
+SYM(sched_getaffinity)
+SYM(sched_setaffinity)
+SYM(inotify_init)
+SYM(inotify_add_watch)
+SYM(inotify_rm_watch)
+#endif
+
+#if defined(_darwin_)
+SYM(mach_absolute_time)
+SYM(mach_timebase_info)
+SYM(sysctlbyname)
+#endif
+
+#if __has_include(<aio.h>)
+SYM(aio_error)
+SYM(aio_read)
+SYM(aio_return)
+SYM(aio_suspend)
+#endif
+
 END_SYMS()
 #endif
