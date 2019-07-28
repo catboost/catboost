@@ -682,3 +682,108 @@ __forceinline__ __device__ void SharedPartReduce4(float4 val0, float4 val1, floa
 }
 
 
+
+__forceinline__ __device__ float2 operator*(float2 left, float2 right) {
+    float2 result;
+    result.x = left.x * right.x;
+    result.y = left.y * right.y;
+    return result;
+}
+
+__forceinline__ __device__ float2 operator*(float2 left, float scale) {
+    float2 result;
+    result.x = left.x * scale;
+    result.y = left.y * scale;
+    return result;
+}
+
+__forceinline__ __device__ float2 operator+(float2 left, float2 right) {
+    float2 result;
+    result.x = left.x + right.x;
+    result.y = left.y + right.y;
+    return result;
+}
+
+__forceinline__ __device__ float2 operator/(float2 left, float2 right) {
+    float2 result;
+    result.x = left.x / right.x;
+    result.y = left.y / right.y;
+    return result;
+}
+
+__forceinline__ __device__ float2 operator-(float2 left, float2 right) {
+    float2 result;
+    result.x = left.x - right.x;
+    result.y = left.y - right.y;
+    return result;
+}
+
+
+__forceinline__ __device__ float2 operator+(float2 left, float right) {
+    float2 result;
+    result.x = left.x + right;
+    result.y = left.y + right;
+    return result;
+}
+
+__forceinline__ __device__ float2 operator/(float2 left, float right) {
+    float2 result;
+    result.x = left.x / right;
+    result.y = left.y / right;
+    return result;
+}
+
+__forceinline__ __device__ float2 operator-(float2 left, float right) {
+    float2 result;
+    result.x = left.x - right;
+    result.y = left.y - right;
+    return result;
+}
+
+__forceinline__ __device__ float2& operator+=(float2& left, float2 right) {
+    left = left + right;
+    return left;
+}
+
+__forceinline__ __device__ float2& operator-=(float2& left, float2 right) {
+    left = left - right;
+    return left;
+}
+
+__forceinline__ __device__ float2& operator+=(float2& left, float right) {
+    left = left + right;
+    return left;
+}
+
+__forceinline__ __device__ float2& operator-=(float2& left, float right) {
+    left = left - right;
+    return left;
+}
+
+__forceinline__ __device__ float2& operator*=(float2& left, float2 right) {
+    left = left * right;
+    return left;
+}
+
+__forceinline__ __device__ float2& operator*=(float2& left, float right) {
+    left = left * right;
+    return left;
+}
+
+__forceinline__ __device__ float2& operator/=(float2& left, float2 right) {
+    left = left / right;
+    return left;
+}
+
+__forceinline__ __device__ float2& operator/=(float2& left, float right) {
+    left = left / right;
+    return left;
+}
+
+
+__forceinline__ __device__ float2 Sqrt2(float2 left) {
+    float2 result;
+    result.x = sqrtf(left.x);
+    result.y = sqrtf(left.y);
+    return result;
+}
