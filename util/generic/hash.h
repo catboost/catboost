@@ -1594,6 +1594,19 @@ public:
         return rep.emplace_direct(ins, std::forward<Args>(args)...);
     }
 
+    template <typename TKey, typename... Args>
+    std::pair<iterator, bool> try_emplace(TKey&& key, Args&&... args) {
+        insert_ctx ctx = nullptr;
+        iterator it = find(key, ctx);
+        if (it == end()) {
+            it = rep.emplace_direct(ctx, std::piecewise_construct,
+                    std::forward_as_tuple(std::forward<TKey>(key)),
+                    std::forward_as_tuple(std::forward<Args>(args)...));
+            return {it, true};
+        }
+        return {it, false};
+    }
+
     template <class TheKey>
     iterator find(const TheKey& key) {
         return rep.find(key);
