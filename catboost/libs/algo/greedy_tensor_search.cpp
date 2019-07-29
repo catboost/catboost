@@ -15,9 +15,9 @@
 #include <catboost/libs/distributed/master.h>
 #include <catboost/libs/helpers/interrupt.h>
 #include <catboost/libs/helpers/query_info_helper.h>
+#include <catboost/libs/helpers/parallel_tasks.h>
 #include <catboost/libs/logging/profile_info.h>
 
-#include <library/dot_product/dot_product.h>
 #include <library/fast_log/fast_log.h>
 
 #include <util/generic/cast.h>
@@ -37,16 +37,18 @@ void TrimOnlineCTRcache(const TVector<TFold*>& folds) {
     }
 }
 
-static double CalcDerivativesStDevFromZeroOrderedBoosting(const TFold& fold) {
+static double CalcDerivativesStDevFromZeroOrderedBoosting(
+    const TFold& fold,
+    NPar::TLocalExecutor* localExecutor
+) {
     double sum2 = 0;
     size_t count = 0;
     for (const auto& bt : fold.BodyTailArr) {
         for (const auto& perDimensionWeightedDerivatives : bt.WeightedDerivatives) {
-            // TODO(yazevnul): replace with `L2NormSquared` when it's implemented
-            sum2 += DotProduct(
-                perDimensionWeightedDerivatives.data() + bt.BodyFinish,
-                perDimensionWeightedDerivatives.data() + bt.BodyFinish,
-                bt.TailFinish - bt.BodyFinish);
+            sum2 += L2NormSquared<double>(
+                MakeArrayRef(perDimensionWeightedDerivatives.data() + bt.BodyFinish, bt.TailFinish - bt.BodyFinish),
+                localExecutor
+            );
         }
 
         count += bt.TailFinish - bt.BodyFinish;
@@ -56,7 +58,10 @@ static double CalcDerivativesStDevFromZeroOrderedBoosting(const TFold& fold) {
     return sqrt(sum2 / count);
 }
 
-static double CalcDerivativesStDevFromZeroPlainBoosting(const TFold& fold) {
+static double CalcDerivativesStDevFromZeroPlainBoosting(
+    const TFold& fold,
+    NPar::TLocalExecutor* localExecutor
+) {
     Y_ASSERT(fold.BodyTailArr.size() == 1);
     Y_ASSERT(fold.BodyTailArr.front().WeightedDerivatives.size() > 0);
 
@@ -64,21 +69,22 @@ static double CalcDerivativesStDevFromZeroPlainBoosting(const TFold& fold) {
 
     double sum2 = 0;
     for (const auto& perDimensionWeightedDerivatives : weightedDerivatives) {
-        sum2 += DotProduct(
-            perDimensionWeightedDerivatives.data(),
-            perDimensionWeightedDerivatives.data(),
-            perDimensionWeightedDerivatives.size());
+        sum2 += L2NormSquared<double>(perDimensionWeightedDerivatives, localExecutor);
     }
 
     return sqrt(sum2 / weightedDerivatives.front().size());
 }
 
-static double CalcDerivativesStDevFromZero(const TFold& fold, const EBoostingType boosting) {
+static double CalcDerivativesStDevFromZero(
+    const TFold& fold,
+    const EBoostingType boosting,
+    NPar::TLocalExecutor* localExecutor
+) {
     switch (boosting) {
         case EBoostingType::Ordered:
-            return CalcDerivativesStDevFromZeroOrderedBoosting(fold);
+            return CalcDerivativesStDevFromZeroOrderedBoosting(fold, localExecutor);
         case EBoostingType::Plain:
-            return CalcDerivativesStDevFromZeroPlainBoosting(fold);
+            return CalcDerivativesStDevFromZeroPlainBoosting(fold, localExecutor);
     }
 }
 
@@ -693,7 +699,7 @@ void GreedyTensorSearch(
 
         const auto scoreStDev =
             ctx->Params.ObliviousTreeOptions->RandomStrength
-            * CalcDerivativesStDevFromZero(*fold, ctx->Params.BoostingOptions->BoostingType)
+            * CalcDerivativesStDevFromZero(*fold, ctx->Params.BoostingOptions->BoostingType, ctx->LocalExecutor)
             * CalcDerivativesStDevFromZeroMultiplier(learnSampleCount, modelLength);
         if (!ctx->Params.SystemOptions->IsSingleHost()) {
             if (isPairwiseScoring) {

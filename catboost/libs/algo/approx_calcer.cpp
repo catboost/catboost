@@ -13,6 +13,7 @@
 #include "monotonic_constraint_utils.h"
 
 #include <catboost/libs/data_new/data_provider.h>
+#include <catboost/libs/helpers/parallel_tasks.h>
 #include <catboost/libs/logging/logging.h>
 #include <catboost/libs/logging/profile_info.h>
 #include <catboost/libs/options/catboost_options.h>
@@ -558,7 +559,7 @@ static void UpdateApproxDeltasHistorically(
     ui64 randomSeed,
     NPar::TLocalExecutor* localExecutor,
     TLearnContext* ctx,
-    TVector<TSum> leafDers,
+    TArrayRef<TSum> leafDers,
     TVector<double>* approxDeltas,
     TArrayRef<TDers> approxDers
 ) {
@@ -716,7 +717,6 @@ static void CalcApproxDeltaSimple(
     );
     TVector<TDers> weightedDers;
     weightedDers.yresize(scratchSize); // iteration scratch space
-    sumLeafDeltas->assign(1, TVector<double>(leafCount));
 
     const auto treeLearnerOptions = ctx->Params.ObliviousTreeOptions.Get();
     const ui32 gradientIterations = treeLearnerOptions.LeavesEstimationIterations;
@@ -767,7 +767,7 @@ static void CalcApproxDeltaSimple(
                 leafDers,
                 estimationMethod,
                 scaledL2Regularizer,
-                (*sumLeafDeltas)[0],
+                /*curLeafValues*/TVector<double>(leafCount),
                 leafMonotonicLinearOrders,
                 &(*leafDeltas)[0]
             );
@@ -808,6 +808,7 @@ static void CalcApproxDeltaSimple(
                 &localLeafValues[0],
                 &(*approxDeltas)[0]
             );
+            auto localLeafDers = leafDers;
             UpdateApproxDeltasHistorically(
                 indices,
                 fold,
@@ -818,7 +819,7 @@ static void CalcApproxDeltaSimple(
                 randomSeed,
                 ctx->LocalExecutor,
                 ctx,
-                leafDers,
+                localLeafDers,
                 &(*approxDeltas)[0],
                 weightedDers
             );
@@ -902,10 +903,8 @@ static void CalcLeafValuesSimple(
         TVector<TVector<ui32>>()
     );
 
-    TVector<TVector<double>> approxes(
-        1,
-        TVector<double>(bt.Approx[0].begin(), bt.Approx[0].begin() + fold.GetLearnSampleCount())
-    ); // iteration scratch space
+    TVector<TVector<double>> approxes;
+    CopyApprox(bt.Approx, &approxes, ctx->LocalExecutor);
     TVector<TSum> leafDers(leafCount, TSum()); // iteration scratch space
     TArray2D<double> pairwiseBuckets; // iteration scratch space
     const auto leafUpdaterFunc = [&] (
@@ -1071,15 +1070,8 @@ void CalcApproxForLeafStruct(
             const TFold::TBodyTail& bt = fold.BodyTailArr[bodyTailId];
             TVector<TVector<double>>& approxDeltas = (*approxesDelta)[bodyTailId];
             const double initValue = GetNeutralApprox(error.GetIsExpApprox());
-            if (approxDeltas.empty()) {
-                approxDeltas.assign(approxDimension, TVector<double>(bt.TailFinish, initValue));
-            } else {
-                for (auto& deltaDimension : approxDeltas) {
-                    Fill(deltaDimension.begin(), deltaDimension.end(), initValue);
-                }
-            }
+            NCB::FillRank2(initValue, approxDimension, bt.TailFinish, &approxDeltas, ctx->LocalExecutor);
             if (approxDimension == 1) {
-                TVector<TVector<double>> sumLeafDeltas;
                 CalcApproxDeltaSimple(
                     fold,
                     bt,
@@ -1090,7 +1082,7 @@ void CalcApproxForLeafStruct(
                     treeMonotoneConstraints,
                     ctx,
                     &approxDeltas,
-                    &sumLeafDeltas
+                    /*sumLeafDeltas*/ nullptr
                 );
             } else {
                 CalcApproxDeltaMulti(
