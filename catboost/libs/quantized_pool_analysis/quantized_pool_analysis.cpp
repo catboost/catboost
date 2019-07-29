@@ -33,12 +33,17 @@ namespace NCB {
         }
         size_t ignoreIndex = 0;
         size_t ignoreSize = ignoredValues.size();
-        for (size_t numVal = 0; numVal < featureValues.size(); ++numVal) {
-            if (ignoreIndex < ignoreSize && ignoredValues[ignoreIndex] == numVal) {
-                ++ignoreIndex;
-                continue;
-            }
+        float prevBorder = featureValues[0];
+        for (size_t numVal = 0; numVal <= featureValues.size(); ++numVal) {
             if constexpr (FeatureType == EFeatureType::Categorical) {
+                // Ignored values could be only in categorial features
+                if (ignoreIndex < ignoreSize && ignoredValues[ignoreIndex] == numVal) {
+                    ++ignoreIndex;
+                    continue;
+                }
+                if (numVal == featureValues.size()) {
+                    break;
+                }
                 THolder<THashedCatValuesHolder> holder = MakeHolder<THashedCatValuesHolder>(
                     featureNum,
                     TMaybeOwningConstArrayHolder<ui32>::CreateOwning(TVector<ui32>(objectCount, featureValues[numVal])),
@@ -46,11 +51,20 @@ namespace NCB {
                 data.ObjectsData.CatFeatures[featureNum] = std::move(holder);
             } else {
                 CB_ENSURE_INTERNAL(FeatureType == EFeatureType::Float, "Unsupported FeatureType");
+                float newBorder;
+                if (numVal == featureValues.size()) {
+                    newBorder = prevBorder;
+                } else {
+                    newBorder = featureValues[numVal];
+                }
                 THolder<TFloatValuesHolder> holder = MakeHolder<TFloatValuesHolder>(
                     featureNum,
-                    TMaybeOwningConstArrayHolder<float>::CreateOwning(TVector<float>(objectCount, featureValues[numVal])),
-                    data.CommonObjectsData.SubsetIndexing.Get());
+                    TMaybeOwningConstArrayHolder<float>::CreateOwning(
+                        TVector<float>(objectCount, (prevBorder + newBorder) / 2.0)),
+                        data.CommonObjectsData.SubsetIndexing.Get()
+                    );
                 data.ObjectsData.FloatFeatures[featureNum] = std::move(holder);
+                prevBorder = newBorder;
             }
 
             rawDataProviderPtr = MakeDataProvider<TRawObjectsDataProvider>(
@@ -175,7 +189,7 @@ namespace NCB {
             meanPrediction[binNum] /= static_cast<float>(numObjs);
         }
 
-        TVector<double> predictionsOnVarying(bordersSize, 0.);
+        TVector<double> predictionsOnVarying(bordersSize + 1, 0.);
         GetPredictionsOnVaryingFeature<float, TFloatValuesHolder, EFeatureType::Float>(
             model,
             featureNum,

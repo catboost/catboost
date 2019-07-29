@@ -4216,7 +4216,6 @@ def _build_binarized_feature_statistics_fig(statistics, feature):
                              layout=_calc_feature_statistics_layout(go, feature, xaxis))
 
         order = np.arange(len(statistics['objects_per_bin']))
-        x_order = order[:-1]
         bar_width = 0.8
         xaxis = go.layout.XAxis(
             title='Bins',
@@ -4230,7 +4229,6 @@ def _build_binarized_feature_statistics_fig(statistics, feature):
         )
     elif 'cat_values' in statistics.keys():
         order = np.argsort(statistics['objects_per_bin'])[::-1]
-        x_order = order
         bar_width = 0.2
         xaxis = go.layout.XAxis(
             title='Cat values',
@@ -4270,7 +4268,7 @@ def _build_binarized_feature_statistics_fig(statistics, feature):
     )
 
     trace_4 = go.Scatter(
-        y=statistics['predictions_on_varying_feature'][x_order],
+        y=statistics['predictions_on_varying_feature'][order],
         mode='lines+markers',
         name='Predictions for different feature values',
         yaxis='y1',
