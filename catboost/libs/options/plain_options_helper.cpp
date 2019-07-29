@@ -922,7 +922,8 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
 
 void NCatboostOptions::CleanPlainJson(
     bool hasCatFeatures,
-    NJson::TJsonValue* plainOptionsJsonEfficient
+    NJson::TJsonValue* plainOptionsJsonEfficient,
+    bool hasTextFeatures
 ) {
 
     CB_ENSURE(!plainOptionsJsonEfficient->GetMapSafe().empty(), "plainOptionsJsonEfficient should not be empty");
@@ -932,15 +933,17 @@ void NCatboostOptions::CleanPlainJson(
         DeleteSeenOption(plainOptionsJsonEfficient, "od_wait");
         DeleteSeenOption(plainOptionsJsonEfficient, "od_pval");
     }
+    // options for distributed training
+    DeleteSeenOption(plainOptionsJsonEfficient, "node_port");
+    DeleteSeenOption(plainOptionsJsonEfficient, "file_with_hosts");
+    DeleteSeenOption(plainOptionsJsonEfficient, "node_type");
 
-    if (plainOptionsJsonEfficient->Has("node_type")) {
-        if ((*plainOptionsJsonEfficient)["node_type"].GetStringSafe() == ToString("SingleHost")) {
-            DeleteSeenOption(plainOptionsJsonEfficient, "node_port");
-            DeleteSeenOption(plainOptionsJsonEfficient, "file_with_hosts");
-        }
-    }
-
+    // options with no influence on the final model
     DeleteSeenOption(plainOptionsJsonEfficient, "objective_metric");
+    DeleteSeenOption(plainOptionsJsonEfficient, "thread_count");
+    DeleteSeenOption(plainOptionsJsonEfficient, "allow_const_label");
+    DeleteSeenOption(plainOptionsJsonEfficient, "detailed_profile");
+    DeleteSeenOption(plainOptionsJsonEfficient, "logging_level");
 
     if (!hasCatFeatures) {
         DeleteSeenOption(plainOptionsJsonEfficient, "simple_ctrs");
@@ -956,6 +959,29 @@ void NCatboostOptions::CleanPlainJson(
         DeleteSeenOption(plainOptionsJsonEfficient, "one_hot_max_size");
         DeleteSeenOption(plainOptionsJsonEfficient, "ctr_leaf_count_limit");
         DeleteSeenOption(plainOptionsJsonEfficient, "ctr_history_unit");
+        DeleteSeenOption(plainOptionsJsonEfficient, "per_feature_ctr");
+        DeleteSeenOption(plainOptionsJsonEfficient, "ctr_target_border_count");
+        DeleteSeenOption(plainOptionsJsonEfficient, "combinations_ctr");
+        DeleteSeenOption(plainOptionsJsonEfficient, "simple_ctr");
+    }
+
+    if (!hasTextFeatures) {
+        DeleteSeenOption(plainOptionsJsonEfficient, "text_processing");
+        DeleteSeenOption(plainOptionsJsonEfficient, "text_feature_estimators");
+    }
+    TVector<TStringBuf> keysToDelete;
+    auto& map = plainOptionsJsonEfficient->GetMapSafe();
+    for (const auto& [key, value] : map) {
+        if (value.IsNull() ||
+            value.IsArray() && value.GetArray().empty() ||
+            value.IsMap() && value.GetMap().empty() ||
+            value.IsString() && value.GetString().empty() ||
+            key.substr(0, 4) == "dev_") {
+            keysToDelete.push_back(key);
+        }
+    }
+    for (const TStringBuf& key : keysToDelete) {
+        DeleteSeenOption(plainOptionsJsonEfficient, key);
     }
 }
 
