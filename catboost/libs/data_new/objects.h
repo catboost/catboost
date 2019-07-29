@@ -610,7 +610,7 @@ namespace NCB {
         }
 
         template <EFeatureType FeatureType>
-        TMaybe<TPackedBinaryIndex> GetFeatureToPackedBinaryIndex(TFeatureIdx<FeatureType> featureIdx) const {
+        inline TMaybe<TPackedBinaryIndex> GetFeatureToPackedBinaryIndex(TFeatureIdx<FeatureType> featureIdx) const {
             const ui32 flatFeatureIdx = GetFeaturesLayout()->GetExternalFeatureIdx(*featureIdx, FeatureType);
             return PackedBinaryFeaturesData.FlatFeatureIndexToPackedBinaryIndex[flatFeatureIdx];
         }
@@ -654,7 +654,7 @@ namespace NCB {
         }
 
         template <EFeatureType FeatureType>
-        TMaybe<TExclusiveBundleIndex> GetFeatureToExclusiveBundleIndex(
+        inline TMaybe<TExclusiveBundleIndex> GetFeatureToExclusiveBundleIndex(
             TFeatureIdx<FeatureType> featureIdx
         ) const {
             const ui32 flatFeatureIdx = GetFeaturesLayout()->GetExternalFeatureIdx(*featureIdx, FeatureType);
