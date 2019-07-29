@@ -1,1 +1,1 @@
-Tutorial for applying theo model in .NET
+Tutorial for applying the model in .NET

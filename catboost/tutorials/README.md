@@ -37,7 +37,7 @@ It's better to start CatBoost exploring from this basic tutorials.
 ## Model analysis
 
 * [Object Importance Tutorial](model_analysis/object_importance_tutorial.ipynb)
-    * This tutorial shows how to evaluate importances of the train objects for test objects. And with using of importance scores detect noisy train objects.
+    * This tutorial shows how to evaluate importances of the train objects for test objects, and how to detect broken train objects by using the importance scores.
 
 * [SHAP Values Tutorial](model_analysis/shap_values_tutorial.ipynb)
     * This tutorial shows how to use [SHAP](https://github.com/slundberg/shap) python-package to get and visualize feature importances.
@@ -49,7 +49,7 @@ It's better to start CatBoost exploring from this basic tutorials.
     * This tutorial shows how to visualize catboost decision trees.
 
 * [Feature statistics tutorial](model_analysis/feature_statistics_tutorial.ipynb)
-    * This tutorial shows how to calculate feature statistics for catboost model
+    * This tutorial shows how to calculate feature statistics for catboost model.
 
 ## Custom loss
 
@@ -76,7 +76,7 @@ It's better to start CatBoost exploring from this basic tutorials.
 ## Tools
 
 * [Gradient Boosting: CPU vs GPU](tools/google_colaboratory_cpu_vs_gpu_tutorial.ipynb)
-    * This is a basic tutorial which shows how to run gradient boosting on CPU and GPU on Google Colaboratory. 
+    * This is a basic tutorial which shows how to run gradient boosting on CPU and GPU on Google Colaboratory.
 
 * [Regression on Gradient Boosting: CPU vs GPU](tools/google_colaboratory_cpu_vs_gpu_regression_tutorial.ipynb)
     * This is a basic tutorial which shows how to run regression on gradient boosting on CPU and GPU on Google Colaboratory.
@@ -112,6 +112,6 @@ It's better to start CatBoost exploring from this basic tutorials.
 * [PyData Boston tutorial](events/2019_odsc_east/odsc_east_2019.ipynb)
     * Tutorial from PyData Boston, April 30, 2019.
 
-## Tutorials on Russian
+## Tutorials in Russian
 
-* Find tutorials on Russian language on the separate [page](ru/README.md).
+* Find tutorials in Russian on the separate [page](ru/README.md).
