@@ -1685,7 +1685,6 @@ def test_cv(task_type):
             "eval_metric": "AUC",
             "task_type": task_type,
         },
-        dev_max_iterations_batch_size=6
     )
     assert "train-Logloss-mean" in results
 
@@ -1701,7 +1700,6 @@ def test_cv_query(task_type):
     results = cv(
         pool,
         {"iterations": 20, "learning_rate": 0.03, "loss_function": "QueryRMSE", "task_type": task_type},
-        dev_max_iterations_batch_size=6
     )
     assert "train-QueryRMSE-mean" in results
 
@@ -1723,7 +1721,6 @@ def test_cv_pairs(task_type):
             "loss_function": "PairLogit",
             "task_type": task_type
         },
-        dev_max_iterations_batch_size=6
     )
     assert "train-PairLogit-mean" in results
 
@@ -1745,7 +1742,6 @@ def test_cv_pairs_generated(task_type):
             "loss_function": "PairLogit",
             "task_type": task_type
         },
-        dev_max_iterations_batch_size=6
     )
     assert "train-PairLogit-mean" in results
 
@@ -1783,7 +1779,6 @@ def test_cv_skip_train(task_type):
             "eval_metric": "AUC",
             "task_type": task_type,
         },
-        dev_max_iterations_batch_size=6
     )
     assert "train-Logloss-mean" not in results
     assert "train-Logloss-std" not in results
@@ -1804,7 +1799,6 @@ def test_cv_skip_train_default(task_type):
             "custom_loss": "AUC",
             "task_type": task_type,
         },
-        dev_max_iterations_batch_size=6
     )
     assert "train-AUC-mean" not in results
     assert "train-AUC-std" not in results
@@ -1824,7 +1818,6 @@ def test_cv_metric_period(task_type):
             "task_type": task_type,
         },
         metric_period=5,
-        dev_max_iterations_batch_size=6
     )
     assert "train-Logloss-mean" in results
 
@@ -1853,7 +1846,6 @@ def test_cv_overfitting_detector(with_metric_period, task_type):
         },
         metric_period=5 if with_metric_period else None,
         early_stopping_rounds=7,
-        dev_max_iterations_batch_size=6
     )
     assert "train-Logloss-mean" in results
 
@@ -1908,7 +1900,6 @@ def test_cv_with_save_snapshot(task_type):
                 "task_type": task_type,
                 "save_snapshot": True
             },
-            dev_max_iterations_batch_size=6
         )
 
 
@@ -2353,7 +2344,6 @@ def test_cv_logging(task_type):
             "loss_function": "Logloss",
             "task_type": task_type
         },
-        dev_max_iterations_batch_size=6
     )
     return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
 
@@ -2371,7 +2361,6 @@ def test_cv_with_not_binarized_target(task_type):
             "task_type": task_type,
             "target_border": 0.5
         },
-        dev_max_iterations_batch_size=6
     )
     return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
 
@@ -2443,7 +2432,6 @@ def test_verbose_int(verbose, task_type):
             pool,
             {"iterations": 10, "learning_rate": 0.03, "loss_function": "Logloss", "task_type": task_type},
             verbose=verbose,
-            dev_max_iterations_batch_size=6
         )
     assert(_count_lines(tmpfile) == expected_line_count[verbose])
 
@@ -3139,7 +3127,6 @@ def test_learning_rate_auto_set_in_cv(task_type):
     results = cv(
         pool,
         {"iterations": 14, "loss_function": "Logloss", "task_type": task_type},
-        dev_max_iterations_batch_size=6
     )
     assert "train-Logloss-mean" in results
 
@@ -3460,7 +3447,6 @@ def test_roc_cv(task_type):
             'thread_count': 4,
             'task_type': task_type
         },
-        dev_max_iterations_batch_size=6
     )
 
     return [
@@ -3592,7 +3578,6 @@ def test_use_loss_if_no_eval_metric_cv(task_type):
         'seed': 0,
         'nfold': 3,
         'early_stopping_rounds': 5,
-        'dev_max_iterations_batch_size': 20
     }
 
     results_1 = cv(train_pool, **cv_params)
@@ -3634,7 +3619,6 @@ def test_no_fail_if_metric_is_repeated_cv(task_type, metrics):
         'params': params,
         'nfold': 2,
         'as_pandas': True,
-        'dev_max_iterations_batch_size': 6
     }
 
     cv(train_pool, **cv_params)
