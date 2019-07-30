@@ -390,6 +390,57 @@ void NCatboostOptions::TCatBoostOptions::ValidateCtr(const TCtrDescription& ctr,
     }
 }
 
+inline double CalculateExpectedSizeModel(const ui32 leafCount, const ui32 iterations) {
+    return static_cast<double>(leafCount) * sizeof(double) * iterations * 2;
+}
+
+inline TString GetMessageDecreaseDepth(const ui32 leafCount, const ui32 border) {
+    return "Each tree in the model is requested to have " + ToString(leafCount) +
+           " leaves. Model will weight more than " + ToString(border) + " Gb. Try decreasing depth.";
+}
+
+inline TString GetMessageDecreaseNumberIter(const ui32 treeCount, const ui32 border) {
+    return "Model with " + ToString(treeCount) + " trees will weight more then " + ToString(border) +
+           " Gb. Try decreasing number of iterations";
+}
+
+static void ValidateModelSize(const NCatboostOptions::TObliviousTreeLearnerOptions& treeConfig,
+                              const NCatboostOptions::TOverfittingDetectorOptions& overfittingDetectorConfig,
+                              const ETaskType taskType) {
+    ui32 leafCount;
+    if (taskType == ETaskType::GPU) {
+        const bool isSymmetricTreeOrDepthwise = (treeConfig.GrowPolicy.Get() == EGrowPolicy::SymmetricTree ||
+                                            treeConfig.GrowPolicy.Get() == EGrowPolicy::Depthwise);
+        if (isSymmetricTreeOrDepthwise) {
+            leafCount = 1 << treeConfig.MaxDepth.Get();
+        } else {
+            leafCount = treeConfig.MaxLeaves.Get();
+        }
+    } else {
+        leafCount = 1 << treeConfig.MaxDepth.Get();
+    }
+
+    constexpr ui32 OneGb = (1 << 30);
+    constexpr ui32 TwoGb = (1 << 31);
+    const ui32 treeCount = treeConfig.LeavesEstimationIterations.Get();
+    const double totalSizeModel = CalculateExpectedSizeModel(leafCount, treeCount);
+    const bool hasOverfittingDetector = (overfittingDetectorConfig.OverfittingDetectorType.Get() != EOverfittingDetectorType::None);
+    const bool isModelSizeExceedOneGb = (totalSizeModel > OneGb);
+    const bool isModelSizeLowerTwoGb = (hasOverfittingDetector || totalSizeModel < TwoGb);
+
+    if (leafCount > (1 << 12)) {
+        CB_ENSURE(isModelSizeLowerTwoGb, GetMessageDecreaseDepth(leafCount, 2));
+        if (isModelSizeExceedOneGb) {
+            CATBOOST_WARNING_LOG << GetMessageDecreaseDepth(leafCount, 1);
+        }
+    } else {
+        CB_ENSURE(isModelSizeLowerTwoGb, GetMessageDecreaseNumberIter(treeCount, 2));
+        if (isModelSizeExceedOneGb) {
+            CATBOOST_WARNING_LOG << GetMessageDecreaseNumberIter(treeCount, 1);
+        }
+    }
+}
+
 void NCatboostOptions::TCatBoostOptions::Validate() const {
     ELossFunction lossFunction = LossFunctionDescription->GetLossFunction();
     {
@@ -505,6 +556,7 @@ void NCatboostOptions::TCatBoostOptions::Validate() const {
             "(" << JoinVectorIntoString(monotoneConstraints, ",") << ")"
         );
     }
+    ValidateModelSize(ObliviousTreeOptions.Get(), BoostingOptions->OverfittingDetector.Get(), GetTaskType());
 }
 
 void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
