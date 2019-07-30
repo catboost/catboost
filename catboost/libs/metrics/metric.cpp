@@ -3848,6 +3848,7 @@ THolder<IMetric> MakeCustomMetric(const TCustomMetricDescriptor& descriptor) {
 TCustomMetric::TCustomMetric(const TCustomMetricDescriptor& descriptor)
         : Descriptor(descriptor)
 {
+    UseWeights.SetDefaultValue(true);
 }
 
 TMetricHolder TCustomMetric::Eval(
@@ -4787,6 +4788,9 @@ TVector<THolder<IMetric>> CreateMetrics(
             if (!usedDescriptions.contains(metric->GetDescription())) {
                 usedDescriptions.insert(metric->GetDescription());
                 errors.push_back(std::move(metric));
+                if (!errors.back()->UseWeights.IsIgnored()) {
+                    errors.back()->UseWeights.SetDefaultValue(true);
+                }
             }
         }
     }

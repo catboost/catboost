@@ -627,7 +627,6 @@ namespace NCatboostCuda {
                                                                                                         << "a single value to select best iteration or to detect overfitting. "
                                                                                                         << "If you just want to look on the values of this metric use custom_metric parameter.");
                 metrics.push_back(std::move(createdMetrics.front()));
-                usedDescriptions.insert(metrics.back()->GetCpuMetric().GetDescription());
             }
         }
 
@@ -639,6 +638,9 @@ namespace NCatboostCuda {
             if (!usedDescriptions.contains(description)) {
                 usedDescriptions.insert(description);
                 metrics.push_back(std::move(metric));
+                if (!metrics.back()->GetUseWeights().IsIgnored()) {
+                    metrics.back()->GetUseWeights().SetDefaultValue(true);
+                }
             }
         }
 

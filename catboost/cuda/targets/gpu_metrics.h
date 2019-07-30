@@ -28,6 +28,10 @@ namespace NCatboostCuda {
             return GetCpuMetric().GetErrorType();
         }
 
+        TMetricParam<bool> &GetUseWeights() const {
+            return CpuMetric->UseWeights;
+        }
+
         const NCatboostOptions::TLossDescription& GetMetricDescription() const {
             return MetricDescription;
         }

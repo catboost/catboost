@@ -1351,25 +1351,25 @@
     ],
     "test.test_dist_train_auc[Logloss]": [
         {
-            "checksum": "f3a4c302729422eec620f188a1bccd8a",
+            "checksum": "e6741aa788971cfd6e1cb476ce3d4121",
             "uri": "file://test.test_dist_train_auc_Logloss_/test_1.eval"
         }
     ],
     "test.test_dist_train_auc[RMSE]": [
         {
-            "checksum": "4c665888226827f98990fa2a922bc700",
+            "checksum": "8b5438cab58f2848502be32543306f59",
             "uri": "file://test.test_dist_train_auc_RMSE_/test_1.eval"
         }
     ],
     "test.test_dist_train_auc_weight[Logloss]": [
         {
-            "checksum": "62642606fafcefe8d2f61232e196abf4",
+            "checksum": "c14ea7622ae1395076602d4f463ac12e",
             "uri": "file://test.test_dist_train_auc_weight_Logloss_/test_1.eval"
         }
     ],
     "test.test_dist_train_auc_weight[RMSE]": [
         {
-            "checksum": "50153ce4af6b882447fc36285f136837",
+            "checksum": "807cd3bbe2a2326f9f0ca66b9498d4aa",
             "uri": "file://test.test_dist_train_auc_weight_RMSE_/test_1.eval"
         }
     ],
@@ -1567,13 +1567,13 @@
     ],
     "test.test_dist_train_with_weights[calc_block=5000000]": [
         {
-            "checksum": "eac78923bf96c5de8a6a79eba6496e9c",
+            "checksum": "7072973ca627d402bf403c33808f34fc",
             "uri": "file://test.test_dist_train_with_weights_calc_block=5000000_/test_1.eval"
         }
     ],
     "test.test_dist_train_with_weights[calc_block=60]": [
         {
-            "checksum": "eac78923bf96c5de8a6a79eba6496e9c",
+            "checksum": "7072973ca627d402bf403c33808f34fc",
             "uri": "file://test.test_dist_train_with_weights_calc_block=60_/test_1.eval"
         }
     ],
@@ -2483,21 +2483,21 @@
     ],
     "test.test_loglikelihood_of_prediction[Ordered]": [
         {
-            "checksum": "de4366b759a3711dde5f0824ca86b6b5",
+            "checksum": "10e11059ac83857ddd2fdfee13836bfb",
             "uri": "file://test.test_loglikelihood_of_prediction_Ordered_/learn_error.tsv"
         },
         {
-            "checksum": "0d2dfb05c8de1a7127034fbf5a52ecf8",
+            "checksum": "4b127de0f00aff9f1d33114cb0d18c8f",
             "uri": "file://test.test_loglikelihood_of_prediction_Ordered_/test_error.tsv"
         }
     ],
     "test.test_loglikelihood_of_prediction[Plain]": [
         {
-            "checksum": "57c589105b4573b704398ef783d83a41",
+            "checksum": "cce2a1f3387f3cbc1caaa60da8b5497b",
             "uri": "file://test.test_loglikelihood_of_prediction_Plain_/learn_error.tsv"
         },
         {
-            "checksum": "c6cc287be0365aa08459592120135db4",
+            "checksum": "eace3e6ee7b8a253682a9495783d1f99",
             "uri": "file://test.test_loglikelihood_of_prediction_Plain_/test_error.tsv"
         }
     ],

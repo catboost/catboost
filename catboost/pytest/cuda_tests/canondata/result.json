@@ -177,21 +177,21 @@
     ],
     "test_gpu.test_class_weight_multiclass[MultiClassOneVsAll]": [
         {
-            "checksum": "d96c6af762cd17ef9830ee97e19c7c50",
+            "checksum": "9f5d3e030beb00d9500e0bc57fbaa618",
             "uri": "file://test_gpu.test_class_weight_multiclass_MultiClassOneVsAll_/learn_error.tsv"
         },
         {
-            "checksum": "46ea171f1429e32e51653c698125eedd",
+            "checksum": "4b5de53070e240132fface1de2d623f1",
             "uri": "file://test_gpu.test_class_weight_multiclass_MultiClassOneVsAll_/test_error.tsv"
         }
     ],
     "test_gpu.test_class_weight_multiclass[MultiClass]": [
         {
-            "checksum": "ee6619e3a8f2ef8f0283467c205dc6ca",
+            "checksum": "33ab5796780d729c6b1304b533862d01",
             "uri": "file://test_gpu.test_class_weight_multiclass_MultiClass_/learn_error.tsv"
         },
         {
-            "checksum": "f51192829d6f2bb8eeec1ce3dd435db1",
+            "checksum": "51a37ca1462e6c8db17d0f87a88f78c6",
             "uri": "file://test_gpu.test_class_weight_multiclass_MultiClass_/test_error.tsv"
         }
     ],

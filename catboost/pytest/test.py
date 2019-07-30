@@ -2707,7 +2707,12 @@ def test_loglikelihood_of_prediction(boosting_type):
         '--test-err-log', test_error_path,
     )
     yatest.common.execute(cmd)
-    return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
+
+    # use eps=1e-7 since [log, exp] are platform specific
+    return [
+        local_canonical_file(learn_error_path, diff_tool=diff_tool(1e-7)),
+        local_canonical_file(test_error_path, diff_tool=diff_tool(1e-7))
+    ]
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
