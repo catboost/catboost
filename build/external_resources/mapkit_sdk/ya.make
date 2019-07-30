@@ -24,24 +24,41 @@ IF (OS_LINUX)
 ELSEIF (OS_ANDROID)
     # protobuf 3.6.1
     DECLARE_EXTERNAL_RESOURCE(MAPKIT_SDK sbr:881642915)
+    DECLARE_EXTERNAL_RESOURCE(MAPS_NDK_PATCH sbr:1045044111)
     CFLAGS(
         GLOBAL "-I$MAPKIT_SDK_RESOURCE_GLOBAL/mapkit_sdk/include"
     )
     IF (ARCH_ARM7)
         LDFLAGS_FIXED(
+            "-L$MAPS_NDK_PATCH/android.armeabi-v7a/lib"
             "-L$MAPKIT_SDK_RESOURCE_GLOBAL/mapkit_sdk/local/android.armeabi-v7a/lib"
+        )
+        CFLAGS(
+            GLOBAL "-I$MAPS_NDK_PATCH/android.armeabi-v7a/include"
         )
     ELSEIF (ARCH_ARM64)
         LDFLAGS_FIXED(
+            "-L$MAPS_NDK_PATCH/android.arm64-v8a/lib"
             "-L$MAPKIT_SDK_RESOURCE_GLOBAL/mapkit_sdk/local/android.arm64-v8a/lib"
+        )
+        CFLAGS(
+            GLOBAL "-I$MAPS_NDK_PATCH/android.arm64-v8a/include"
         )
     ELSEIF(ARCH_I386)
         LDFLAGS_FIXED(
+            "-L$MAPS_NDK_PATCH/android.x86/lib"
             "-L$MAPKIT_SDK_RESOURCE_GLOBAL/mapkit_sdk/local/android.x86/lib"
+        )
+        CFLAGS(
+            GLOBAL "-I$MAPS_NDK_PATCH/android.x86/include"
         )
     ELSEIF (ARCH_X86_64)
         LDFLAGS_FIXED(
+            "-L$MAPS_NDK_PATCH/android.x86_64/lib"
             "-L$MAPKIT_SDK_RESOURCE_GLOBAL/mapkit_sdk/local/android.x86_64/lib"
+        )
+        CFLAGS(
+            GLOBAL "-I$MAPS_NDK_PATCH/android.x86_64/include"
         )
     ELSE()
         MESSAGE(FATAL_ERROR Unsupported platform)
