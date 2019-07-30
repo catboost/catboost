@@ -14,6 +14,7 @@
 #include <catboost/libs/options/cross_validation_params.h>
 #include <catboost/libs/helpers/int_cast.h>
 #include <catboost/libs/cat_feature/cat_feature.h>
+#include <catboost/libs/model/model_export/model_exporter.h>
 
 #include <util/generic/cast.h>
 #include <util/generic/mem_copy.h>
@@ -23,7 +24,6 @@
 #include <util/system/info.h>
 
 #include <algorithm>
-
 
 #if defined(SIZEOF_SIZE_T)
 #undef SIZEOF_SIZE_T
@@ -57,6 +57,7 @@ typedef TDataProviderPtr TPoolPtr;
 
 typedef TFullModel* TFullModelHandle;
 typedef std::unique_ptr<TFullModel> TFullModelPtr;
+
 
 class TRPackageInitializer {
     Y_DECLARE_SINGLETON_FRIEND();
@@ -502,19 +503,43 @@ SEXP CatBoostCV_R(SEXP fitParamsAsJsonParam,
     return result;
 }
 
-SEXP CatBoostOutputModel_R(SEXP modelParam, SEXP fileParam) {
+SEXP CatBoostOutputModel_R(SEXP modelParam, SEXP fileParam,
+                           SEXP formatParam, SEXP exportParametersParam, SEXP poolParam) {
     R_API_BEGIN();
     TFullModelHandle model = reinterpret_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
-    OutputModel(*model, CHAR(asChar(fileParam)));
+    THashMap<ui32, TString> catFeaturesHashToString;
+    TVector<TString> featureId;
+
+    if (poolParam != R_NilValue) {
+        TPoolHandle pool = reinterpret_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+        catFeaturesHashToString = MergeCatFeaturesHashToString(*pool->ObjectsData.Get());
+        featureId = pool->MetaInfo.FeaturesLayout.Get()->GetExternalFeatureIds();
+    }
+
+    EModelType modelType;
+    CB_ENSURE(TryFromString<EModelType>(CHAR(asChar(formatParam)), modelType),
+              "unsupported model type: 'cbm', 'coreml', 'cpp', 'python', 'json', 'onnx' or 'pmml' was expected");
+
+    ExportModel(*model,
+                CHAR(asChar(fileParam)),
+                modelType,
+                CHAR(asChar(exportParametersParam)),
+                false,
+                &featureId,
+                &catFeaturesHashToString
+                );
     R_API_END();
     return ScalarLogical(1);
 }
 
-SEXP CatBoostReadModel_R(SEXP fileParam) {
+SEXP CatBoostReadModel_R(SEXP fileParam, SEXP formatParam) {
     SEXP result = NULL;
     R_API_BEGIN();
+    EModelType modelType;
+    CB_ENSURE(TryFromString<EModelType>(CHAR(asChar(formatParam)), modelType),
+              "unsupported model type: 'CatboostBinary', 'AppleCoreML','Cpp','Python','Json','Onnx' or 'Pmml'  was expected");
     TFullModelPtr modelPtr = std::make_unique<TFullModel>();
-    ReadModel(CHAR(asChar(fileParam))).Swap(*modelPtr);
+    ReadModel(CHAR(asChar(fileParam)), modelType).Swap(*modelPtr);
     result = PROTECT(R_MakeExternalPtr(modelPtr.get(), R_NilValue, R_NilValue));
     R_RegisterCFinalizerEx(result, _Finalizer<TFullModelHandle>, TRUE);
     modelPtr.release();
@@ -557,6 +582,7 @@ SEXP CatBoostPredictMulti_R(SEXP modelParam, SEXP poolParam, SEXP verboseParam,
     EPredictionType predictionType;
     CB_ENSURE(TryFromString<EPredictionType>(CHAR(asChar(typeParam)), predictionType),
               "unsupported prediction type: 'Probability', 'Class' or 'RawFormulaVal' was expected");
+
     TVector<TVector<double>> prediction = ApplyModelMulti(*model,
                                                           *pool,
                                                           asLogical(verboseParam),

@@ -1481,10 +1481,13 @@ catboost.cv <- function(pool, params = list(),
 #' @param model_path The path to the model.
 #'
 #' Default value: Required argument
+#' @param file_format Format of the model file.
+#'
+#' Default value: 'cbm'
 #' @export
 #' @seealso \url{https://tech.yandex.com/catboost/doc/dg/concepts/r-reference_catboost-load_model-docpage/}
-catboost.load_model <- function(model_path) {
-    handle <- .Call("CatBoostReadModel_R", model_path)
+catboost.load_model <- function(model_path, file_format = "cbm") {
+    handle <- .Call("CatBoostReadModel_R", model_path, file_format)
     raw <- .Call("CatBoostSerializeModel_R", handle)
     model <- list(handle = handle, raw = raw)
     class(model) <- "catboost.Model"
@@ -1504,12 +1507,41 @@ catboost.load_model <- function(model_path) {
 #' Used for solving other machine learning problems (for instance, applying a model).
 #'
 #' Default value: Required argument
+#' @param file_format specified format model from a file.
+#' Possible values:
+#' \itemize{
+#'   \item 'cbm'
+#'     For catboost binary format
+#'   \item 'coreml'
+#'     To export into Apple CoreML format
+#'   \item 'onnx'
+#'     To export into ONNX-ML format
+#'   \item 'pmml'
+#'     To export into PMML format
+#'   \item 'cpp'
+#'     To export as C++ code
+#'   \item 'python'
+#'     To export as Python code. 
+#' }
+#'
+#' Default value: 'cbm'
+#' @param export_parameters are a parameters for CoreML or PMML export.
+#' @param pool is training pool.
 #' @export
-#' @seealso \url{https://tech.yandex.com/catboost/doc/dg/concepts/r-reference_catboost-save_model-docpage/}
-catboost.save_model <- function(model, model_path) {
+#' @seealso \url{https://catboost.ai/docs/features/export-model-to-core-ml.html}
+catboost.save_model <- function(model, model_path,
+                                file_format = "cbm",
+                                export_parameters = NULL,
+                                pool = NULL) {
+    if (!is.null(pool) && class(pool) != "catboost.Pool")
+        stop("Expected catboost.Pool, got: ", class(pool))
+    params_string <- ""
+    if (!is.null(export_parameters))
+        params_string <- jsonlite::toJSON(params, auto_unbox = TRUE)
+
     if (is.null.handle(model$handle))
         model$handle <- .Call("CatBoostDeserializeModel_R", model$raw)
-    status <- .Call("CatBoostOutputModel_R", model$handle, model_path)
+    status <- .Call("CatBoostOutputModel_R", model$handle, model_path, file_format, params_string, pool)
     return(status)
 }
 
@@ -1563,7 +1595,6 @@ catboost.predict <- function(model, pool,
 
     if (is.null.handle(model$handle))
         model$handle <- .Call("CatBoostDeserializeModel_R", model$raw)
-
     prediction <- .Call("CatBoostPredictMulti_R", model$handle, pool,
                         verbose, prediction_type, ntree_start, ntree_end, thread_count)
     prediction_columns <- length(prediction) / nrow(pool)
