@@ -34,6 +34,14 @@ namespace NThreading {
             static_assert(sizeof(*this) % PadSize == 0, "padding does not work");
             Y_UNUSED(Pad);
         }
+
+        template<typename... Args>
+        TPadded(Args&&... args)
+            : T(std::forward<Args>(args)...)
+        {
+            static_assert(sizeof(*this) % PadSize == 0, "padding does not work");
+            Y_UNUSED(Pad);
+        }
     };
 
     ////////////////////////////////////////////////////////////////////////////////
