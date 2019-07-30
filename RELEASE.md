@@ -1,3 +1,21 @@
+# Release 0.16.1
+
+## Breaking changes:
+- parameter `fold_count` is now called `cv` in [`grid_search()`](https://catboost.ai/docs/concepts/python-reference_catboost_grid_search.html) and [`randomized_search`](https://catboost.ai/docs/concepts/python-reference_catboost_randomized_search.html)
+- cv results are now returned from `grid_search()` and `randomized_search()` in `res['cv_results']` field
+
+## New features:
+- R-language function `catboost.save_model()` now supports PMML, ONNX and other formats
+- Parameter `monotone_constraints` in python API allows specifying numerical features that the prediction shall depend on monotonically
+
+## Bug fixes:
+- Fixed `eval_metric` calculation for training with weights (in release 0.16 evaluation of a metric that was equal to an optimized loss did not use weights by default, so overfitting detector worked incorrectly)
+
+## Improvements:
+- Added option `verbose` to `grid_search()` and `randomized_search()`
+- Added [tutorial](https://github.com/catboost/tutorials/blob/master/hyperparameters_tuning/hyperparameters_tuning.ipynb) on `grid_search()` and `randomized_search()`
+
+
 # Release 0.16
 
 ## Breaking changes:
