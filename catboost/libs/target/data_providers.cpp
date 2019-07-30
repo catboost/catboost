@@ -576,7 +576,7 @@ namespace NCB {
                 CATBOOST_WARNING_LOG << "Pairwise losses don't support object weights." << '\n';
             }
 
-            if (createClassTarget) {
+            if (createClassTarget && !classWeights.empty()) {
                 processedTargetData.Weights.emplace(
                     "",
                     MakeClassificationWeights(
