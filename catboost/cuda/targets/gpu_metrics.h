@@ -28,7 +28,7 @@ namespace NCatboostCuda {
             return GetCpuMetric().GetErrorType();
         }
 
-        TMetricParam<bool> &GetUseWeights() const {
+        TMetricParam<bool>& GetUseWeights() const {
             return CpuMetric->UseWeights;
         }
 
