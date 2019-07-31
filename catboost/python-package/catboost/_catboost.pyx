@@ -3057,7 +3057,7 @@ cdef class _CatBoost:
         leaf_values_list = []
 
         for value in leaf_values:
-            leaf_values_list.append(value)
+            leaf_values_list.append(to_native_str(value))
 
         return leaf_values_list
 
