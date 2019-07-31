@@ -25,7 +25,7 @@ NCatboostOptions::TObliviousTreeLearnerOptions::TObliviousTreeLearnerOptions(ETa
       , FoldSizeLossNormalization("fold_size_loss_normalization", false, taskType)
       , AddRidgeToTargetFunctionFlag("add_ridge_penalty_to_loss_function", false, taskType)
       , ScoreFunction("score_function", EScoreFunction::Cosine, taskType)
-      , MaxCtrComplexityForBordersCaching("max_ctr_complexity_for_borders_cache", 1, taskType)
+      , MaxCtrComplexityForBordersCaching("dev_max_ctr_complexity_for_borders_cache", 1, taskType)
       , GrowPolicy("grow_policy", EGrowPolicy::SymmetricTree, taskType)
       , MaxLeaves("max_leaves", 31, taskType)
       , MinDataInLeaf("min_data_in_leaf", 1, taskType)

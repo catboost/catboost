@@ -394,7 +394,7 @@ void NCatboostOptions::PlainJsonToOptions(
     CopyOption(plainOptions, "fold_size_loss_normalization", &treeOptions, &seenKeys);
     CopyOption(plainOptions, "add_ridge_penalty_to_loss_function", &treeOptions, &seenKeys);
     CopyOption(plainOptions, "sampling_frequency", &treeOptions, &seenKeys);
-    CopyOption(plainOptions, "dev_max_ctr_complexity_for_border_cache", &treeOptions, &seenKeys);
+    CopyOption(plainOptions, "dev_max_ctr_complexity_for_borders_cache", &treeOptions, &seenKeys);
     CopyOption(plainOptions, "observations_to_bootstrap", &treeOptions, &seenKeys);
     CopyOption(plainOptions, "monotone_constraints", &treeOptions, &seenKeys);
 
@@ -545,7 +545,7 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
             plainOptionsJson["objective_metric"] = BuildMetricOptionDescription(options["metrics"]["objective_metric"]);
             DeleteSeenOption(&optionsCopy["metrics"], "objective_metric");
         }
-        CB_ENSURE(optionsCopy["metrics"].GetMapSafe().empty(), "some loss or metrics keys missed");
+        CB_ENSURE(optionsCopy["metrics"].GetMapSafe().empty(), "metrics: key " + optionsCopy["metrics"].GetMapSafe().begin()->first + " wasn't added to plain options.");
         DeleteSeenOption(&optionsCopy, "metrics");
     }
 
@@ -583,7 +583,7 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
     DeleteSeenOption(&outputoptionsCopy, "model_format");
     DeleteSeenOption(&outputoptionsCopy, "output_borders");
     DeleteSeenOption(&outputoptionsCopy, "roc_file");
-    CB_ENSURE(outputoptionsCopy.GetMapSafe().empty(), "some output_options keys missed");
+    CB_ENSURE(outputoptionsCopy.GetMapSafe().empty(), "output_options: key " + outputoptionsCopy.GetMapSafe().begin()->first + " wasn't added to plain options.");
 
     // boosting options
     if (options.Has("boosting_options")) {
@@ -633,10 +633,10 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
             CopyOptionWithNewKey(odConfig, "wait_iterations", "od_wait", &plainOptionsJson, &seenKeys);
             DeleteSeenOption(&optionsCopyOdConfig, "wait_iterations");
 
-            CB_ENSURE(optionsCopyOdConfig.GetMapSafe().empty(), "some keys in boosting od_config options missed");
+            CB_ENSURE(optionsCopyOdConfig.GetMapSafe().empty(), "od_config: key " + optionsCopyOdConfig.GetMapSafe().begin()->first + " wasn't added to plain options.");
             DeleteSeenOption(&optionsCopyBoosting, "od_config");
         }
-        CB_ENSURE(optionsCopyBoosting.GetMapSafe().empty(), "some keys in boosting options missed");
+        CB_ENSURE(optionsCopyBoosting.GetMapSafe().empty(), "boosting_options: key " + optionsCopyBoosting.GetMapSafe().begin()->first + " wasn't added to plain options.");
         DeleteSeenOption(&optionsCopy, "boosting_options");
     }
 
@@ -699,7 +699,7 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
         CopyOption(treeOptions, "sampling_frequency", &plainOptionsJson, &seenKeys);
         DeleteSeenOption(&optionsCopyTree, "sampling_frequency");
 
-        DeleteSeenOption(&optionsCopyTree, "dev_max_ctr_complexity_for_border_cache");
+        DeleteSeenOption(&optionsCopyTree, "dev_max_ctr_complexity_for_borders_cache");
 
         CopyOption(treeOptions, "observations_to_bootstrap", &plainOptionsJson, &seenKeys);
         DeleteSeenOption(&optionsCopyTree, "observations_to_bootstrap");
@@ -724,10 +724,10 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
             CopyOption(bootstrapOptions, "mvs_head_fraction", &plainOptionsJson, &seenKeys);
             DeleteSeenOption(&optionsCopyTreeBootstrap, "mvs_head_fraction");
 
-            CB_ENSURE(optionsCopyTreeBootstrap.GetMapSafe().empty(), "some bootstrap keys missed");
+            CB_ENSURE(optionsCopyTreeBootstrap.GetMapSafe().empty(), "bootstrap: key " + optionsCopyTreeBootstrap.GetMapSafe().begin()->first + " wasn't added to plain options.");
             DeleteSeenOption(&optionsCopyTree, "bootstrap");
         }
-        CB_ENSURE(optionsCopyTree.GetMapSafe().empty(), "some tree_learner_options keys missed");
+        CB_ENSURE(optionsCopyTree.GetMapSafe().empty(), "tree_learner_options: key " + optionsCopyTree.GetMapSafe().begin()->first + " wasn't added to plain options.");
         DeleteSeenOption(&optionsCopy, "tree_learner_options");
     }
 
@@ -740,8 +740,9 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
         DeleteSeenOption(&optionsCopyBasedEval, "experiment_count");
         DeleteSeenOption(&optionsCopyBasedEval, "experiment_size");
         DeleteSeenOption(&optionsCopyBasedEval, "baseline_model_snapshot");
+        DeleteSeenOption(&optionsCopyBasedEval, "use_evaluated_features_in_baseline_model");
 
-        CB_ENSURE(optionsCopyBasedEval.GetMapSafe().empty(), "some model_based_eval_options keys missed");
+        CB_ENSURE(optionsCopyBasedEval.GetMapSafe().empty(), "model_based_eval_options: key " + optionsCopyBasedEval.GetMapSafe().begin()->first + " wasn't added to plain options.");
         DeleteSeenOption(&optionsCopy, "model_based_eval_options");
     }
 
@@ -774,7 +775,7 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
             CopyOption(textFeatureOptions, "text_feature_estimators", &plainOptionsJson, &seenKeys);
             DeleteSeenOption(&textFeatureOptionsCopy, "text_feature_estimators");
 
-            CB_ENSURE(textFeatureOptionsCopy.GetMapSafe().empty(), "some text features options keys missed");
+            CB_ENSURE(textFeatureOptionsCopy.GetMapSafe().empty(), "text_feature_options: key " + textFeatureOptionsCopy.GetMapSafe().begin()->first + " wasn't added to plain options.");
             DeleteSeenOption(&optionsCopy, "text_feature_options");
         }
 
@@ -805,7 +806,7 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
         CopyOption(ctrOptions, "ctr_history_unit", &plainOptionsJson, &seenKeys);
         DeleteSeenOption(&optionsCopyCtr, "ctr_history_unit");
 
-        CB_ENSURE(optionsCopyCtr.GetMapSafe().empty(), "some ctr options keys missed");
+        CB_ENSURE(optionsCopyCtr.GetMapSafe().empty(), "cat_feature_params: key " + optionsCopyCtr.GetMapSafe().begin()->first + " wasn't added to plain options.");
         DeleteSeenOption(&optionsCopy, "cat_feature_params");
     }
 
@@ -860,10 +861,10 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
             DeleteSeenOption(&optionsCopyDataProcessingFloatFeaturesBinarization, "nan_mode");
 
             CB_ENSURE(optionsCopyDataProcessingFloatFeaturesBinarization.GetMapSafe().empty(),
-                      "some float features binarization options keys missed");
+                      "float_features_binarization: key " + optionsCopyDataProcessingFloatFeaturesBinarization.GetMapSafe().begin()->first + " wasn't added to plain options.");
             DeleteSeenOption(&optionsCopyDataProcessing, "float_features_binarization");
         }
-        CB_ENSURE(optionsCopyDataProcessing.GetMapSafe().empty(), "some data processing options keys missed");
+        CB_ENSURE(optionsCopyDataProcessing.GetMapSafe().empty(), "data_processing_options: key " + optionsCopyDataProcessing.GetMapSafe().begin()->first + " wasn't added to plain options.");
         DeleteSeenOption(&optionsCopy, "data_processing_options");
     }
 
@@ -896,7 +897,7 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
         CopyOption(systemOptions, "file_with_hosts", &plainOptionsJson, &seenKeys);
         DeleteSeenOption(&optionsCopySystemOptions, "file_with_hosts");
 
-        CB_ENSURE(optionsCopySystemOptions.GetMapSafe().empty(), "some system options keys missed");
+        CB_ENSURE(optionsCopySystemOptions.GetMapSafe().empty(), "system_options: key " + optionsCopySystemOptions.GetMapSafe().begin()->first + " wasn't added to plain options.");
         DeleteSeenOption(&optionsCopy, "system_options");
     }
 
@@ -917,7 +918,7 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
     DeleteSeenOption(&optionsCopy, "metadata");
 
     DeleteSeenOption(&optionsCopy, "flat_params");
-    CB_ENSURE(optionsCopy.GetMapSafe().empty(), "some options keys missed");
+    CB_ENSURE(optionsCopy.GetMapSafe().empty(), "key " + optionsCopy.GetMapSafe().begin()->first + " wasn't added to plain options.");
 }
 
 void NCatboostOptions::CleanPlainJson(
