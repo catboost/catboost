@@ -562,11 +562,12 @@ def onadd_pytest_script(unit, *args):
     tags = get_values_list(unit, 'TEST_TAGS_VALUE')
     requirements = get_values_list(unit, 'TEST_REQUIREMENTS_VALUE')
     test_data = get_values_list(unit, 'TEST_DATA_VALUE')
-    test_data += get_canonical_test_resources(test_dir, unit_path)
+    data, data_files = get_canonical_test_resources(test_dir, unit_path)
+    test_data += data
     python_paths = get_values_list(unit, 'TEST_PYTHON_PATH_VALUE')
     binary_path = None
     test_cwd = unit.get('TEST_CWD_VALUE') or ''
-    _dump_test(unit, test_type, test_files, timeout, test_dir, custom_deps, test_data, python_paths, split_factor, fork_mode, test_size, tags, requirements, binary_path, test_cwd=test_cwd)
+    _dump_test(unit, test_type, test_files, timeout, test_dir, custom_deps, test_data, python_paths, split_factor, fork_mode, test_size, tags, requirements, binary_path, test_cwd=test_cwd, data_files=data_files)
 
 
 def onadd_pytest_bin(unit, *args):
@@ -599,12 +600,13 @@ def add_test_to_dart(unit, test_type, binary_path=None, runner_bin=None):
     tags = get_values_list(unit, 'TEST_TAGS_VALUE')
     requirements = get_values_list(unit, 'TEST_REQUIREMENTS_VALUE')
     test_data = get_values_list(unit, 'TEST_DATA_VALUE')
-    test_data += get_canonical_test_resources(test_dir, unit_path)
+    data, data_files = get_canonical_test_resources(test_dir, unit_path)
+    test_data += data
     python_paths = get_values_list(unit, 'TEST_PYTHON_PATH_VALUE')
     yt_spec = get_values_list(unit, 'TEST_YT_SPEC_VALUE')
     if not binary_path:
         binary_path = os.path.join(unit_path, unit.filename())
-    _dump_test(unit, test_type, test_files, timeout, test_dir, custom_deps, test_data, python_paths, split_factor, fork_mode, test_size, tags, requirements, binary_path, test_cwd=test_cwd, runner_bin=runner_bin, yt_spec=yt_spec)
+    _dump_test(unit, test_type, test_files, timeout, test_dir, custom_deps, test_data, python_paths, split_factor, fork_mode, test_size, tags, requirements, binary_path, test_cwd=test_cwd, runner_bin=runner_bin, yt_spec=yt_spec, data_files=data_files)
 
 
 def extract_java_system_properties(unit, args):
@@ -744,6 +746,7 @@ def _dump_test(
         test_cwd=None,
         runner_bin=None,
         yt_spec=None,
+        data_files=None
 ):
 
     if test_type == "PY_TEST":
@@ -806,6 +809,10 @@ def _dump_test(
         if data:
             unit.set_property(["DART_DATA", data])
             save_in_file(unit.get('TEST_DART_OUT_FILE'), data)
+            if data_files:
+                data_files = [os.path.relpath(i, test_dir) for i in data_files]
+                data_files = [os.path.join(unit.path(), i) for i in data_files]
+                unit.set_property(['DART_DATA_FILES', serialize_list(sorted(data_files))])
 
 
 def onsetup_pytest_bin(unit, *args):
@@ -844,7 +851,7 @@ def get_canonical_test_resources(test_dir, unit_path):
         _, dirs, files = next(os.walk(canon_data_dir))
     except StopIteration:
         # path doesn't exist
-        return []
+        return ([], [])
 
     if CANON_RESULT_FILE_NAME in files:
         return _get_canonical_data_resources_v2(os.path.join(canon_data_dir, CANON_RESULT_FILE_NAME), unit_path)
@@ -901,16 +908,18 @@ def _get_external_resources_from_canon_data(data):
 
 
 def _get_canonical_data_resources_v2(filename, unit_path):
-    return _get_external_resources_from_canon_data(_load_canonical_file(filename, unit_path))
+    return (_get_external_resources_from_canon_data(_load_canonical_file(filename, unit_path)), [filename])
 
 
 # TODO migrate all canondata to v2 canonization + remove v1 canonization support
 def _get_canonical_data_resources_v1(test_dir, subdirs, unit_path):
     res = set()
+    files = []
 
     for dirname in subdirs:
         filename = os.path.join(test_dir, dirname, CANON_RESULT_FILE_NAME)
+        files.append(filename)
         if os.path.exists(filename):
             res.update(_get_external_resources_from_canon_data(_load_canonical_file(filename, unit_path)))
 
-    return res
+    return (res, files)
