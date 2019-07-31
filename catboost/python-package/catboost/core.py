@@ -3004,6 +3004,12 @@ class CatBoostClassifier(CatBoost):
     subsample : float, [default=None]
         Sample rate for bagging. This parameter can be used Poisson or Bernoully bootstrap types.
 
+    sampling_frequency : string, [default=PerTree]
+        Frequency to sample weights and objects when building trees.
+        Possible values:
+            - 'PerTree' - Before constructing each new tree
+            - 'PerTreeLevel' - Before choosing each new split of a tree
+
     sampling_unit : string, [default='Object'].
         Possible values:
             - 'Object'
@@ -3154,6 +3160,7 @@ class CatBoostClassifier(CatBoost):
         bootstrap_type=None,
         subsample=None,
         sampling_unit=None,
+        sampling_frequency=None,
         dev_score_calc_obj_block_size=None,
         dev_efb_max_buckets=None,
         sparse_features_conflict_fraction=None,
@@ -3586,6 +3593,7 @@ class CatBoostRegressor(CatBoost):
         devices=None,
         bootstrap_type=None,
         subsample=None,
+        sampling_frequency=None,
         sampling_unit=None,
         dev_score_calc_obj_block_size=None,
         dev_efb_max_buckets=None,
