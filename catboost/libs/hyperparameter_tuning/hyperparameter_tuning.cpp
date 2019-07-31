@@ -565,7 +565,7 @@ namespace {
         TGridParamsInfo* bestGridParams,
         TVector<TCVResult>* bestCvResult,
         NPar::TLocalExecutor* localExecutor,
-        bool verbose,
+        int verbose,
         const THashMap<TString, NCB::TCustomRandomDistributionGenerator>& randDistGenerators = {}) {
         TRestorableFastRng64 rand(cvParams.PartitionRandSeed);
 
@@ -703,7 +703,7 @@ namespace {
         NJson::TJsonValue* modelParamsToBeTried,
         TGridParamsInfo * bestGridParams,
         NPar::TLocalExecutor* localExecutor,
-        bool verbose,
+        int verbose,
         const THashMap<TString, NCB::TCustomRandomDistributionGenerator>& randDistGenerators = {}) {
         TRestorableFastRng64 rand(trainTestSplitParams.PartitionRandSeed);
 
