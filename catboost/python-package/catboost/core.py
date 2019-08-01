@@ -2628,9 +2628,6 @@ class CatBoost(_CatBoostBase):
         train_size: float, optional (default=0.8)
             Should be between 0.0 and 1.0 and represent the proportion of the dataset to include in the train split.
 
-        fold_count: int, optional (default=3)
-            The number of folds to split the dataset into during final cross-validation.
-
         verbose: bool or int, optional (default=True)
             If verbose is int, it determines the frequency of writing metrics to output
             verbose==True is equal to verbose==1
@@ -2726,9 +2723,6 @@ class CatBoost(_CatBoostBase):
 
         train_size: float, optional (default=0.8)
             Should be between 0.0 and 1.0 and represent the proportion of the dataset to include in the train split.
-
-        fold_count: int, optional (default=3)
-            The number of folds to split the dataset into during final cross-validation.
 
         verbose: bool or int, optional (default=True)
             If verbose is int, it determines the frequency of writing metrics to output
