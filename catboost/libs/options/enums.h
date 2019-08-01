@@ -222,7 +222,8 @@ enum class EFstrType {
     InternalFeatureImportance,
     Interaction,
     InternalInteraction,
-    ShapValues
+    ShapValues,
+    PredictionDiff
 };
 
 enum class EPreCalcShapValues {

@@ -1,6 +1,7 @@
 #include "mode_fstr_helpers.h"
 
 #include <catboost/libs/data_new/load_data.h>
+#include <catboost/libs/fstr/compare_documents.h>
 #include <catboost/libs/fstr/output_fstr.h>
 #include <catboost/libs/fstr/shap_values.h>
 #include <catboost/libs/logging/logging.h>
@@ -141,6 +142,13 @@ void NCB::ModeFstrSingleHost(const NCB::TAnalyticalModeCommonParams& params) {
                                     params.Verbose,
                                     EPreCalcShapValues::Auto,
                                     localExecutor.Get());
+            break;
+        case EFstrType::PredictionDiff:
+            CalcAndOutputPredictionDiff(
+                model,
+                *poolLoader(),
+                params.OutputPath.Path,
+                localExecutor.Get());
             break;
         default:
             Y_ASSERT(false);

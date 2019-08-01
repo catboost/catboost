@@ -1,5 +1,6 @@
 #include "calc_fstr.h"
 
+#include "compare_documents.h"
 #include "feature_str.h"
 #include "shap_values.h"
 #include "util.h"
@@ -717,6 +718,13 @@ TVector<TVector<double>> GetFeatureImportances(
             localExecutor.RunAdditionalThreads(threadCount - 1);
 
             return CalcShapValues(model, *dataset, logPeriod, mode, &localExecutor);
+        }
+        case EFstrType::PredictionDiff: {
+            NPar::TLocalExecutor localExecutor;
+            localExecutor.RunAdditionalThreads(threadCount - 1);
+
+            CB_ENSURE(dataset, "Documents for comparison are not provided");
+            return GetPredictionDiff(model, *dataset, &localExecutor);
         }
         default:
             Y_UNREACHABLE();

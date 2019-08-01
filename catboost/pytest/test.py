@@ -2048,22 +2048,24 @@ def test_fold_len_multiplier(boosting_type, dev_score_calc_obj_block_size):
     return [local_canonical_file(output_eval_path)]
 
 
-FSTR_TYPES = ['PredictionValuesChange', 'InternalFeatureImportance', 'InternalInteraction', 'Interaction', 'ShapValues']
+FSTR_TYPES = ['PredictionValuesChange', 'InternalFeatureImportance', 'InternalInteraction', 'Interaction', 'ShapValues', 'PredictionDiff']
 
 
 @pytest.mark.parametrize('fstr_type', FSTR_TYPES)
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 def test_fstr(fstr_type, boosting_type):
-    model_path = yatest.common.test_output_path('adult_model.bin')
+    model_path = yatest.common.test_output_path('model.bin')
     output_fstr_path = yatest.common.test_output_path('fstr.tsv')
+    pool = 'adult' if fstr_type != 'PredictionDiff' else 'higgs'
+    input_path = data_file(pool, 'train_small')
 
     cmd = (
         CATBOOST_PATH,
         'fit',
         '--use-best-model', 'false',
         '--loss-function', 'Logloss',
-        '-f', data_file('adult', 'train_small'),
-        '--column-description', data_file('adult', 'train.cd'),
+        '-f', input_path,
+        '--column-description', data_file(pool, 'train.cd'),
         '--boosting-type', boosting_type,
         '-i', '10',
         '-w', '0.03',
@@ -2077,11 +2079,19 @@ def test_fstr(fstr_type, boosting_type):
 
     yatest.common.execute(cmd)
 
+    if fstr_type == 'PredictionDiff':
+        with open(input_path) as input:
+            fstr_pool_path = yatest.common.test_output_path('input.tsv')
+            with open(fstr_pool_path, "w") as output:
+                output.write(input.readline())
+                output.write(input.readline())
+            input_path = fstr_pool_path
+
     fstr_cmd = (
         CATBOOST_PATH,
         'fstr',
-        '--input-path', data_file('adult', 'train_small'),
-        '--column-description', data_file('adult', 'train.cd'),
+        '--input-path', input_path,
+        '--column-description', data_file(pool, 'train.cd'),
         '-m', model_path,
         '-o', output_fstr_path,
         '--fstr-type', fstr_type
@@ -2707,12 +2717,7 @@ def test_loglikelihood_of_prediction(boosting_type):
         '--test-err-log', test_error_path,
     )
     yatest.common.execute(cmd)
-
-    # use eps=1e-7 since [log, exp] are platform specific
-    return [
-        local_canonical_file(learn_error_path, diff_tool=diff_tool(1e-7)),
-        local_canonical_file(test_error_path, diff_tool=diff_tool(1e-7))
-    ]
+    return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)

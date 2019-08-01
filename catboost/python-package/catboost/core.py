@@ -175,6 +175,8 @@ class EFstrType(Enum):
     Interaction = 3
     """Calculate SHAP Values for every object."""
     ShapValues = 4
+    """Calculate most important features explaining difference in predictions for a pair of documents"""
+    PredictionDiff = 5
 
 
 def _get_cat_features_indices(cat_features, feature_names):
@@ -851,6 +853,33 @@ def _get_loss_function_for_predict(params):
 
     return params.get('loss_function')
 
+def _save_plot_file(plot_file, plot_name, figs):
+    warn_msg = "To draw plots you should install plotly."
+    try:
+        from plotly.offline import plot as plotly_plot
+    except ImportError as e:
+        warnings.warn(warn_msg)
+        raise ImportError(str(e))
+
+    with open(plot_file, 'w') as html_plot_file:
+        html_plot_file.write('\n'.join((
+            '<html>',
+            '<head>',
+            '<meta charset="utf-8" />',
+            '<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>',
+            '<title>{}</title>'.format(plot_name),
+            '</head>',
+            '<body>'
+        )))
+        for fig in figs:
+            graph_div = plotly_plot(
+                fig,
+                output_type='div',
+                show_link=False,
+                include_plotlyjs=False
+            )
+            html_plot_file.write('\n{}\n'.format(graph_div))
+        html_plot_file.write('</body>\n</html>')
 
 class _CatBoostBase(object):
     def __init__(self, params):
@@ -1037,6 +1066,11 @@ class _CatBoostBase(object):
         if not self.is_fitted():
             raise CatBoostError("There is no trained model to use save_borders(). Use fit() to train model. Then use save_borders().")
         self._object._save_borders(output_file)
+
+    def _get_borders(self):
+        if not self.is_fitted():
+            raise CatBoostError("There is no trained model to use get_feature_borders(). Use fit() to train model. Then use get_borders().")
+        return self._object._get_borders()
 
     def _get_params(self):
         params = self._object._get_params()
@@ -1880,6 +1914,7 @@ class CatBoost(_CatBoostBase):
             Data to get feature importance.
             If type in ('Shap', 'PredictionValuesChange') data is a dataset. For every object in this dataset feature importances will be calculated.
             If type == 'PredictionValuesChange', data is None or train dataset (in case if model was explicitly trained with flag store no leaf weights).
+            If type == 'PredictionDiff' data is list of list of np.array shape (2, n_features).
 
         type : EFstrType or string (converted to EFstrType), optional
                     (default=EFstrType.FeatureImportance)
@@ -1894,6 +1929,8 @@ class CatBoost(_CatBoostBase):
                     Calculate SHAP Values for every object.
                 - Interaction
                     Calculate pairwise score between every feature.
+                - PredictionDiff
+                    Calculate most important features explaining difference in predictions for a pair of documents.
 
         prettified : bool, optional (default=False)
             used only for PredictionValuesChange type
@@ -1927,9 +1964,9 @@ class CatBoost(_CatBoostBase):
         Returns
         -------
         depends on type:
-            - PredictionValuesChange, LossFunctionChange with prettified=False (default)
+            - PredictionValuesChange, LossFunctionChange, PredictionDiff with prettified=False (default)
                 list of length [n_features] with feature_importance values (float) for feature
-            - PredictionValuesChange, LossFunctionChange with prettified=True
+            - PredictionValuesChange, LossFunctionChange, PredictionDiff with prettified=True
                 list of length [n_features] with (feature_id (string), feature_importance (float)) pairs, sorted by feature_importance in descending order
             - ShapValues
                 np.array of shape (n_objects, n_features + 1) with Shap values (float) for (object, feature).
@@ -1959,9 +1996,19 @@ class CatBoost(_CatBoostBase):
             else:
                 type = EFstrType.PredictionValuesChange
 
-        if data is not None and not isinstance(data, Pool):
-            from __builtin__ import type as typeof
-            raise CatBoostError("Invalid data type={}, must be catboost.Pool.".format(typeof(data)))
+        if type == EFstrType.PredictionDiff:
+            if data is None and isinstance(data, Pool):
+                from __builtin__ import type as typeof
+                raise CatBoostError("Invalid data type={}, must be list or np.array".format(typeof(data)))
+
+            data, _ = self._process_predict_input_data(data, "get_feature_importance")
+            if data.num_row() != 2:
+                raise CatBoostError("{} requires a pair of documents, found {}".format(type, data.num_row()))
+
+        else:
+            if data is not None and not isinstance(data, Pool):
+                from __builtin__ import type as typeof
+                raise CatBoostError("Invalid data type={}, must be catboost.Pool.".format(typeof(data)))
 
         need_meta_info = type == EFstrType.PredictionValuesChange
         empty_data_is_ok = need_meta_info and self._object._has_leaf_weights_in_model() or type == EFstrType.Interaction
@@ -1980,14 +2027,19 @@ class CatBoost(_CatBoostBase):
 
         with log_fixup():
             fstr, feature_names = self._calc_fstr(type, data, thread_count, verbose, shap_mode)
-        if type in (EFstrType.PredictionValuesChange, EFstrType.LossFunctionChange):
+        if type in (EFstrType.PredictionValuesChange, EFstrType.LossFunctionChange, EFstrType.PredictionDiff):
             feature_importances = [value[0] for value in fstr]
-            attribute_name = "_prediction_values_change" if type == EFstrType.PredictionValuesChange else "_loss_value_change"
-            setattr(
-                self,
-                attribute_name,
-                feature_importances
-            )
+            attribute_name = None
+            if type == EFstrType.PredictionValuesChange:
+                attribute_name = "_prediction_values_change"
+            if type == EFstrType.LossFunctionChange:
+                attribute_name = "_loss_value_change"
+            if attribute_name:
+                setattr(
+                    self,
+                    attribute_name,
+                    feature_importances
+                )
 
             if prettified:
                 feature_importances = sorted(zip(feature_names, feature_importances), key=itemgetter(1), reverse=True)
@@ -2222,6 +2274,13 @@ class CatBoost(_CatBoostBase):
             raise CatBoostError("Invalid fname type={}: must be str().".format(type(fname)))
         self._save_borders(fname)
 
+    def get_borders(self):
+        """
+        Return map feature_index: borders for float features.
+
+        """
+        return self._get_borders()
+
     def set_params(self, **params):
         """
         Set parameters into CatBoost model.
@@ -2234,6 +2293,116 @@ class CatBoost(_CatBoostBase):
         for key, value in iteritems(params):
             self._init_params[key] = value
         return self
+
+    def plot_predictions(self, data, features_to_change, plot=True, plot_file=None):
+        """
+        To use this function, you should install plotly.
+        data: numpy.array or pandas.DataFrame or catboost.Pool
+        feature:
+            Float features indexes in pd.DataFrame for which you want vary prediction value.
+        plot: bool
+            Plot predictions.
+        plot_file: str
+            Output file for plot predictions.
+        Returns
+        -------
+            List of list of predictions for all buckets for all documents in data
+        """
+
+        def predict(doc, feature_idx, borders):
+            extended_borders = [borders[0] - 1e-6] + borders + [borders[-1] + 1e-6]
+            points = []
+            predictions = []
+            border_idx = None
+            for i in range(len(extended_borders) - 1):
+                points += [(extended_borders[i] + extended_borders[i + 1]) / 2.]
+                if border_idx is None and doc[feature_idx] < extended_borders[i + 1]:
+                    border_idx = i
+                buf = doc[feature_idx]
+                doc[feature_idx] = points[-1]
+                predictions += [self.predict(doc)]
+                doc[feature_idx] = buf
+            if border_idx is None:
+                border_idx = len(borders)
+            return predictions, border_idx
+
+        def get_layout(go, feature, xaxis):
+            return go.Layout(
+                title="Prediction variation for feature '{}'".format(feature),
+                yaxis={
+                    'title': 'Prediction',
+                    'side': 'left',
+                    'overlaying': 'y2'
+                },
+                xaxis=xaxis
+            )
+        try:
+            import plotly.graph_objs as go
+        except ImportError as e:
+            warnings.warn("To draw plots you should install plotly.")
+            raise ImportError(str(e))
+
+        model_borders = self._get_borders()
+        for feature_idx in features_to_change:
+            assert feature_idx in model_borders, "only float features indexes are supported"
+
+        data, _ = self._process_predict_input_data(data, "vary_feature_value_and_apply")
+        figs = []
+        all_predictions = [{}] * data.num_row()
+        for feature_idx in features_to_change:
+            borders = model_borders[feature_idx]
+
+            if len(borders) == 0:
+                xaxis = go.layout.XAxis(title='Bins', tickvals=[0])
+                figs += go.Figure(data=[],
+                                 layout=get_layout(go, feature_idx, xaxis))
+
+            xaxis = go.layout.XAxis(
+                title='Bins',
+                tickmode='array',
+                tickvals=list(range(len(borders) + 1)),
+                ticktext=['(-inf, {:.4f}]'.format(borders[0])] +
+                         ['({:.4f}, {:.4f}]'.format(val_1, val_2)
+                          for val_1, val_2 in zip(borders[:-1], borders[1:])] +
+                         ['({:.4f}, +inf)'.format(borders[-1])],
+                showticklabels=False
+            )
+
+            trace = []
+            for idx, features in enumerate(data.get_features()):
+                predictions, border_idx = predict(features, feature_idx, borders)
+                all_predictions[idx][feature_idx] = predictions
+                trace.append(go.Scatter(
+                    y = predictions,
+                    mode = 'lines+markers',
+                    name = u'Document {} predictions'.format(idx)
+                ))
+
+                trace.append(go.Scatter(
+                    x = [border_idx],
+                    y = [predictions[border_idx]],
+                    showlegend=False
+                ))
+
+            layout = get_layout(go, feature_idx, xaxis)
+            figs += [go.Figure(data=trace, layout=layout)]
+
+        if plot:
+            try:
+                from plotly.offline import iplot
+                from plotly.offline import init_notebook_mode
+                init_notebook_mode(connected=True)
+            except ImportError as e:
+                warn_msg = "To draw plots you should install plotly."
+                warnings.warn(warn_msg)
+                raise ImportError(str(e))
+            for fig in figs:
+                iplot(fig)
+
+        if plot_file:
+                _save_plot_file(plot_file, 'Predictions for all buckets', figs)
+
+        return all_predictions
 
     def calc_feature_statistics(self, data, target=None, feature=None, prediction_type=None,
                                 cat_feature_values=None, plot=True, max_cat_features_on_plot=10,
@@ -2396,7 +2565,7 @@ class CatBoost(_CatBoostBase):
 
         # draw only unique plots
         if plot or plot_file is not None:
-            warn_msg = "To draw binarized feature statistics you should install plotly."
+            warn_msg = "To draw plots you should install plotly."
             figs = []
             for feature_num in statistics_by_feature:
                 feature_name = self.feature_names_[feature_num]
@@ -2419,31 +2588,7 @@ class CatBoost(_CatBoostBase):
                     iplot(fig)
 
             if plot_file is not None:
-                try:
-                    from plotly.offline import plot as plotly_plot
-                except ImportError as e:
-                    warnings.warn(warn_msg)
-                    raise ImportError(str(e))
-
-                with open(plot_file, 'w') as html_plot_file:
-                    html_plot_file.write('\n'.join((
-                            '<html>',
-                            '<head>',
-                            '<meta charset="utf-8" />',
-                            '<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>',
-                            '<title>Catboost metrics graph</title>',
-                            '</head>',
-                            '<body>'
-                    )))
-                    for fig in figs:
-                        graph_div = plotly_plot(
-                            fig,
-                            output_type='div',
-                            show_link=False,
-                            include_plotlyjs=False
-                        )
-                        html_plot_file.write('\n{}\n'.format(graph_div))
-                    html_plot_file.write('</body>\n</html>')
+                _save_plot_file(plot_file, 'Catboost metrics graph', figs)
 
         if is_for_one_feature:
             return statistics_by_feature[feature_name_to_num[feature_names[0]]]

@@ -2282,6 +2282,19 @@ def test_shap_feature_importance_modes(task_type):
         assert np.all(np.abs(shaps_for_modes[i] - shaps_for_modes[i - 1]) < 1e-9)
 
 
+def test_prediction_diff_feature_importance():
+    pool_file = 'higgs'
+    pool = Pool(data_file(pool_file, 'train_small'), column_description=data_file(pool_file, 'train.cd'))
+    model = CatBoostClassifier(iterations=5, learning_rate=0.03, max_ctr_complexity=1, devices='0')
+    model.fit(pool)
+    fimp_npy_path = test_output_path(FIMP_NPY_PATH)
+    np.save(fimp_npy_path, np.array(model.get_feature_importance(
+        type=EFstrType.PredictionDiff,
+        data=pool.get_features()[:2]
+    )))
+    return local_canonical_file(fimp_npy_path)
+
+
 def test_od(task_type):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)
@@ -4633,6 +4646,21 @@ def test_feature_statistics():
     assert(np.allclose(res['mean_prediction'],
                        mean_per_bin(res, feature_num, model.predict(X)),
                        atol=1e-4))
+
+
+def test_prediction_plot():
+    preds_path = test_output_path('predictions.json')
+    n_features = 3
+    n_samples = 500
+    np.random.seed(42)
+    X = np.random.rand(n_samples, n_features)
+    y = np.random.rand(n_samples)
+    model = CatBoostRegressor(iterations=200)
+    model.fit(X, y, silent=True)
+
+    res = model.plot_predictions(data=X[:2, ], features_to_change=[0, 1], plot=False)
+    json.dump(res, open(preds_path, 'w'))
+    return local_canonical_file(preds_path)
 
 
 def test_binclass_with_nontrivial_classes():

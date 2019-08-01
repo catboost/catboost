@@ -2766,6 +2766,10 @@ cdef class _CatBoost:
         cdef TConstArrayRef[TFloatFeature] arrayView = <TConstArrayRef[TFloatFeature]>self.__model.ObliviousTrees.Get().FloatFeatures
         return [feature.Position.FlatIndex for feature in arrayView]
 
+    cpdef _get_borders(self):
+        cdef TConstArrayRef[TFloatFeature] arrayView = <TConstArrayRef[TFloatFeature]>self.__model.ObliviousTrees.Get().FloatFeatures
+        return dict([(feature.Position.FlatIndex, feature.Borders) for feature in arrayView])
+
     cpdef _base_predict(self, _PoolBase pool, str prediction_type, int ntree_start, int ntree_end, int thread_count, bool_t verbose):
         cdef TVector[double] pred
         cdef EPredictionType predictionType = PyPredictionType(prediction_type).predictionType

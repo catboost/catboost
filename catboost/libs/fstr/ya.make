@@ -3,8 +3,9 @@ LIBRARY()
 
 
 SRCS(
-    feature_str.cpp
     calc_fstr.cpp
+    compare_documents.cpp
+    feature_str.cpp
     output_fstr.cpp
     shap_values.cpp
     util.cpp

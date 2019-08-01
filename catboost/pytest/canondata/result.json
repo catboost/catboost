@@ -2273,6 +2273,10 @@
         "checksum": "0c609e444b4cf5af020a3ccbf93121c9",
         "uri": "file://test.test_fstr_Ordered-InternalInteraction_/fstr.tsv"
     },
+    "test.test_fstr[Ordered-PredictionDiff]": {
+        "checksum": "631fad819ca033698db8d037c8b702f5",
+        "uri": "file://test.test_fstr_Ordered-PredictionDiff_/fstr.tsv"
+    },
     "test.test_fstr[Ordered-PredictionValuesChange]": {
         "checksum": "fdebad7c6109755c91d2a24f3cc5dd91",
         "uri": "file://test.test_fstr_Ordered-PredictionValuesChange_/fstr.tsv"
@@ -2292,6 +2296,10 @@
     "test.test_fstr[Plain-InternalInteraction]": {
         "checksum": "cc7b45667caf91021e4c3fc025736ce3",
         "uri": "file://test.test_fstr_Plain-InternalInteraction_/fstr.tsv"
+    },
+    "test.test_fstr[Plain-PredictionDiff]": {
+        "checksum": "108054d21216682796ad67f746fdedd1",
+        "uri": "file://test.test_fstr_Plain-PredictionDiff_/fstr.tsv"
     },
     "test.test_fstr[Plain-PredictionValuesChange]": {
         "checksum": "d8a7a841a10af5e80ab2dea11e59caa5",
