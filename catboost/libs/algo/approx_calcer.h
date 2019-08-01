@@ -1,6 +1,5 @@
 #pragma once
 
-#include "error_functions.h"
 #include "fold.h"
 #include "online_predictor.h"
 

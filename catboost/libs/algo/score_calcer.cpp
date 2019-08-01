@@ -743,9 +743,7 @@ inline static double CountD2(double avrg, const TBucketStats& leafStats) {
 
 inline void UpdateScoreBin(
     bool isPlainMode,
-    float l2Regularizer,
-    double sumAllWeights,
-    int allDocCount,
+    double scaledL2Regularizer,
     const TBucketStats& trueStats,
     const TBucketStats& falseStats,
     TScoreBin* scoreBin
@@ -755,31 +753,23 @@ inline void UpdateScoreBin(
         trueAvrg = CalcAverage(
             trueStats.SumWeightedDelta,
             trueStats.SumWeight,
-            l2Regularizer,
-            sumAllWeights,
-            allDocCount
+            scaledL2Regularizer
         );
         falseAvrg = CalcAverage(
             falseStats.SumWeightedDelta,
             falseStats.SumWeight,
-            l2Regularizer,
-            sumAllWeights,
-            allDocCount
+            scaledL2Regularizer
         );
     } else {
         trueAvrg = CalcAverage(
             trueStats.SumDelta,
             trueStats.Count,
-            l2Regularizer,
-            sumAllWeights,
-            allDocCount
+            scaledL2Regularizer
         );
         falseAvrg = CalcAverage(
             falseStats.SumDelta,
             falseStats.Count,
-            l2Regularizer,
-            sumAllWeights,
-            allDocCount
+            scaledL2Regularizer
         );
     }
     (*scoreBin).DP += CountDp(trueAvrg, trueStats) + CountDp(falseAvrg, falseStats);
@@ -790,7 +780,7 @@ inline void UpdateScoreBin(
 /* This function calculates resulting sums for each split given statistics that are calculated for each bucket
  * of the histogram.
  */
-template <typename TIsPlainMode>
+template <typename TIsPlainMode, typename THaveMonotonicConstraints>
 inline static void UpdateScoreBins(
     const TBucketStats* stats,
     int leafCount,
@@ -798,13 +788,15 @@ inline static void UpdateScoreBins(
     const TSplitEnsembleSpec& splitEnsembleSpec,
     float l2Regularizer,
     TIsPlainMode isPlainMode,
+    THaveMonotonicConstraints haveMonotonicConstraints,
     ui32 oneHotMaxSize,
     double sumAllWeights,
     int allDocCount,
-    TVector<int> currTreeMonotonicConstraints,
+    const TVector<int>& currTreeMonotonicConstraints,
     const TVector<int>& candidateSplitMonotonicConstraints,
     TVector<TScoreBin>* scoreBins
 ) {
+    Y_ASSERT(haveMonotonicConstraints == !candidateSplitMonotonicConstraints.empty());
     // Used only if monotonic constraints are non trivial.
     TVector<TVector<double>> leafDeltas;
     TVector<TVector<double>> bodyLeafWeights;
@@ -812,30 +804,7 @@ inline static void UpdateScoreBins(
     TVector<TVector<double>> tailLeafWeights;
     TVector<int> leafsProcessed;
     const double scaledL2Regularizer = l2Regularizer * (sumAllWeights / allDocCount);
-
-    std::function<void(
-        const TBucketStats& trueStats,
-        const TBucketStats& falseStats,
-        int scoreBinIndex
-    )> updateScoreBinClosure;
-
-    if (candidateSplitMonotonicConstraints.empty()) {
-        updateScoreBinClosure = [=] (
-            const TBucketStats& trueStats,
-            const TBucketStats& falseStats,
-            int scoreBinIndex
-        ) {
-            UpdateScoreBin(
-                isPlainMode,
-                l2Regularizer,
-                sumAllWeights,
-                allDocCount,
-                trueStats,
-                falseStats,
-                &((*scoreBins)[scoreBinIndex])
-            );
-        };
-    } else {
+    if (haveMonotonicConstraints) {
         /* In this case updateScoreBinClosure simply stores relevant statistics for every leaf and
          * every evaluated split. Then monotonization applies to leaf values and split score is calculated.
          * This implies unnecessary memory usage.
@@ -849,16 +818,26 @@ inline static void UpdateScoreBins(
             }
         }
         leafsProcessed.resize(scoreBins->size());
-        updateScoreBinClosure = [&, scaledL2Regularizer] (
-                const TBucketStats& trueStats,
-                const TBucketStats& falseStats,
-                int scoreBinIndex
-        ) {
+    }
+    const auto updateScoreBinClosure = [&] (
+        const TBucketStats& trueStats,
+        const TBucketStats& falseStats,
+        int scoreBinIndex
+    ) {
+        if (!haveMonotonicConstraints) {
+            UpdateScoreBin(
+                isPlainMode,
+                scaledL2Regularizer,
+                trueStats,
+                falseStats,
+                &((*scoreBins)[scoreBinIndex])
+            );
+        } else {
             auto currLeafId = leafsProcessed[scoreBinIndex];
             Y_ASSERT(currLeafId < leafCount);
             for (const auto leafStats : {&falseStats, &trueStats}) {
                 double bodyLeafWeight = 0.0;
-                if constexpr (TIsPlainMode::value) {
+                if (isPlainMode) {
                     bodyLeafWeight = leafStats->SumWeight;
                     leafDeltas[scoreBinIndex][currLeafId] = CalcAverage(
                         leafStats->SumWeightedDelta,
@@ -883,8 +862,8 @@ inline static void UpdateScoreBins(
                 currLeafId += leafCount;
             }
             leafsProcessed[scoreBinIndex] += 1;
-        };
-    }
+        }
+    };
 
     // used only if splitEnsembleSpec.Type == ESplitEnsembleType::ExclusiveBundle
     const auto& exclusiveFeaturesBundle = splitEnsembleSpec.ExclusiveFeaturesBundle;
@@ -1043,7 +1022,7 @@ inline static void UpdateScoreBins(
         }
     }
 
-    if (!candidateSplitMonotonicConstraints.empty()) {
+    if (haveMonotonicConstraints) {
         Y_ASSERT(AllOf(leafDeltas, [=] (const auto& vec) {
             return vec.size() == SafeIntegerCast<size_t>(2 * leafCount);
         }));
@@ -1051,12 +1030,13 @@ inline static void UpdateScoreBins(
             candidateSplitMonotonicConstraints.begin(), candidateSplitMonotonicConstraints.end()
         );
         THashMap<int, TVector<TVector<ui32>>> possibleLeafIndexOrders;
+        auto monotonicConstraints = currTreeMonotonicConstraints;
         for (int newSplitMonotonicConstraint : possibleNewSplitConstraints) {
-            currTreeMonotonicConstraints.push_back(newSplitMonotonicConstraint);
+            monotonicConstraints.push_back(newSplitMonotonicConstraint);
             possibleLeafIndexOrders[newSplitMonotonicConstraint] = BuildMonotonicLinearOrdersOnLeafs(
-                currTreeMonotonicConstraints
+                monotonicConstraints
             );
-            currTreeMonotonicConstraints.pop_back();
+            monotonicConstraints.pop_back();
         }
         for (int scoreBinIndex : xrange(scoreBins->size())) {
             const auto& indexOrder = possibleLeafIndexOrders[candidateSplitMonotonicConstraints[scoreBinIndex]];
@@ -1099,43 +1079,39 @@ static void CalculateNonPairwiseScore(
     TVector<TScoreBin>* scoreBins
 ) {
     const int approxDimension = fold.GetApproxDimension();
+    const bool haveMonotonicConstraints = !candidateSplitMonotonicConstraints.empty();
 
     for (int bodyTailIdx = 0; bodyTailIdx < fold.GetBodyTailCount(); ++bodyTailIdx) {
-        double sumAllWeights = initialFold.BodyTailArr[bodyTailIdx].BodySumWeight;
-        int docCount = initialFold.BodyTailArr[bodyTailIdx].BodyFinish;
+        const double sumAllWeights = initialFold.BodyTailArr[bodyTailIdx].BodySumWeight;
+        const int docCount = initialFold.BodyTailArr[bodyTailIdx].BodyFinish;
+        const auto updateScoreBins = [&] (auto isPlainMode, auto haveMonotonicConstraints, const auto* stats) {
+            UpdateScoreBins(
+                stats,
+                leafCount,
+                indexer,
+                splitEnsembleSpec,
+                l2Regularizer,
+                isPlainMode,
+                haveMonotonicConstraints,
+                oneHotMaxSize,
+                sumAllWeights,
+                docCount,
+                currTreeMonotonicConstraints,
+                candidateSplitMonotonicConstraints,
+                scoreBins
+            );
+        };
         for (int dim = 0; dim < approxDimension; ++dim) {
             const TBucketStats* stats = splitStats
                 + (bodyTailIdx * approxDimension + dim) * splitStatsCount;
-            if (isPlainMode) {
-                UpdateScoreBins(
-                    stats,
-                    leafCount,
-                    indexer,
-                    splitEnsembleSpec,
-                    l2Regularizer,
-                    /*isPlainMode=*/std::true_type(),
-                    oneHotMaxSize,
-                    sumAllWeights,
-                    docCount,
-                    currTreeMonotonicConstraints,
-                    candidateSplitMonotonicConstraints,
-                    scoreBins
-                );
+            if (isPlainMode && haveMonotonicConstraints) {
+                updateScoreBins(std::true_type(), std::true_type(), stats);
+            } else if (isPlainMode && !haveMonotonicConstraints) {
+                updateScoreBins(std::true_type(), std::false_type(), stats);
+            } else if (!isPlainMode && haveMonotonicConstraints) {
+                updateScoreBins(std::false_type(), std::true_type(), stats);
             } else {
-                UpdateScoreBins(
-                    stats,
-                    leafCount,
-                    indexer,
-                    splitEnsembleSpec,
-                    l2Regularizer,
-                    /*isPlainMode=*/std::false_type(),
-                    oneHotMaxSize,
-                    sumAllWeights,
-                    docCount,
-                    currTreeMonotonicConstraints,
-                    candidateSplitMonotonicConstraints,
-                    scoreBins
-                );
+                updateScoreBins(std::false_type(), std::false_type(), stats);
             }
         }
     }
@@ -1401,6 +1377,7 @@ TVector<TScoreBin> GetScoreBins(
             stats3d.SplitEnsembleSpec,
             l2Regularizer,
             /*isPlainMode=*/std::true_type(),
+            /*haveMonotonicConstraints*/std::false_type(),
             oneHotMaxSize,
             sumAllWeights,
             allDocCount,

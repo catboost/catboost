@@ -4,6 +4,7 @@
 #include "approx_calcer_querywise.h"
 #include "error_functions.h"
 #include "fold.h"
+#include "gradient_walker.h"
 #include "index_calcer.h"
 #include "learn_context.h"
 #include "pairwise_leaves_calculation.h"
@@ -291,6 +292,9 @@ void CalcLeafDersSimple(
     TArray2D<double>* pairwiseBuckets,
     TVector<TDers>* scratchDers
 ) {
+    for (auto& leafDer : *leafDers) {
+        leafDer.SetZeroDers();
+    }
     if (error.GetErrorType() == EErrorType::PerObjectError) {
         CalcLeafDers(
             indices,
@@ -635,68 +639,6 @@ static void UpdateApproxDeltasHistorically(
     );
 }
 
-template <typename TLeafUpdater, typename TApproxUpdater, typename TLossCalcer, typename TApproxCopier>
-void GradientWalker(
-    bool isTrivial,
-    int iterationCount,
-    int leafCount,
-    int dimensionCount,
-    const TLeafUpdater& calculateStep,
-    const TApproxUpdater& updatePoint,
-    const TLossCalcer& calculateLoss,
-    const TApproxCopier& copyPoint,
-    TVector<TVector<double>>* point,
-    TVector<TVector<double>>* stepSum
-) {
-    TVector<TVector<double>> step(dimensionCount, TVector<double>(leafCount)); // iteration scratch space
-    if (isTrivial) {
-        for (int iterationIdx = 0; iterationIdx < iterationCount; ++iterationIdx) {
-            calculateStep(iterationIdx == 0, *point, &step);
-            updatePoint(step, point);
-            if (stepSum != nullptr) {
-                AddElementwise(step, stepSum);
-            }
-        }
-        return;
-    }
-    TVector<TVector<double>> startPoint; // iteration scratch space
-    double lossValue = calculateLoss(*point);
-    for (int iterationIdx = 0; iterationIdx < iterationCount; ++iterationIdx)
-    {
-        calculateStep(iterationIdx == 0, *point, &step);
-        copyPoint(*point, &startPoint);
-        double scale = 1.0;
-        // if monotone constraints are nontrivial the scale should be less or equal to 1.0.
-        // Otherwise monotonicity may be violated.
-        do {
-            const auto scaledStep = ScaleElementwise(scale, step);
-            updatePoint(scaledStep, point);
-            const double valueAfterStep = calculateLoss(*point);
-            if (valueAfterStep < lossValue) {
-                lossValue = valueAfterStep;
-                if (stepSum != nullptr) {
-                    AddElementwise(scaledStep, stepSum);
-                }
-                break;
-            }
-            copyPoint(startPoint, point);
-            scale /= 2;
-            ++iterationIdx;
-        } while (iterationIdx < iterationCount);
-    }
-}
-
-static inline double GetDirectionSign(const THolder<IMetric>& metric) {
-    EMetricBestValue bestMetric;
-    float ignoredBestValue;
-    metric->GetBestValue(&bestMetric, &ignoredBestValue);
-    switch (bestMetric) {
-        case EMetricBestValue::Min: return 1.0;
-        case EMetricBestValue::Max: return -1.0;
-        default: Y_VERIFY(false, "Unexpected metric best value");
-    }
-}
-
 static void CalcApproxDeltaSimple(
     const TFold& fold,
     const TFold::TBodyTail& bt,
@@ -738,9 +680,6 @@ static void CalcApproxDeltaSimple(
         const TVector<TVector<double>>& approxDeltas,
         TVector<TVector<double>>* leafDeltas
     ) {
-        for (auto& leafDer : leafDers) {
-            leafDer.SetZeroDers();
-        }
         CalcLeafDersSimple(
             indices,
             fold,
@@ -826,17 +765,11 @@ static void CalcApproxDeltaSimple(
         }
     };
 
-    const int dimensionCount = ctx->LearnProgress->ApproxDimension;
-    const bool isTrivialWalker
-        = gradientIterations == 1 ||
-            (ctx->Params.ObliviousTreeOptions->LeavesEstimationBacktrackingType ==
-                ELeavesEstimationStepBacktracking::No);
+    bool haveBacktrackingObjective;
+    double minimizationSign;
     TVector<THolder<IMetric>> lossFunction;
-    double directionSign = 0;
-    if (!isTrivialWalker) {
-        lossFunction = CreateMetricFromDescription(ctx->Params.MetricOptions.Get().ObjectiveMetric, dimensionCount);
-        directionSign = GetDirectionSign(lossFunction[0]);
-    }
+    CreateBacktrackingObjective(*ctx, &haveBacktrackingObjective, &minimizationSign, &lossFunction);
+
     const auto lossCalcerFunc = [&] (const TVector<TVector<double>>& approxDeltas) {
         TConstArrayRef<TQueryInfo> bodyTailQueryInfo(fold.LearnQueriesInfo.begin(), bt.BodyQueryFinish);
         TConstArrayRef<float> bodyTailTarget(fold.LearnTarget.begin(), bt.BodyFinish);
@@ -850,7 +783,7 @@ static void CalcApproxDeltaSimple(
             *lossFunction[0],
             ctx->LocalExecutor
         );
-        return directionSign * lossFunction[0]->GetFinalError(additiveStats);
+        return minimizationSign * lossFunction[0]->GetFinalError(additiveStats);
     };
 
     const auto approxCopyFunc = [ctx] (const TVector<TVector<double>>& src, TVector<TVector<double>>* dst) {
@@ -858,10 +791,10 @@ static void CalcApproxDeltaSimple(
     };
 
     GradientWalker(
-        isTrivialWalker,
+        /*isTrivialWalker*/!haveBacktrackingObjective,
         gradientIterations,
         leafCount,
-        dimensionCount,
+        ctx->LearnProgress->ApproxDimension,
         leafUpdaterFunc,
         approxUpdaterFunc,
         lossCalcerFunc,
@@ -912,9 +845,6 @@ static void CalcLeafValuesSimple(
         const TVector<TVector<double>>& approxes,
         TVector<TVector<double>>* leafDeltas
     ) {
-        for (auto& leafDer : leafDers) {
-            leafDer.SetZeroDers();
-        }
         CalcLeafDersSimple(
             indices,
             fold,
@@ -973,17 +903,11 @@ static void CalcLeafValuesSimple(
         );
     };
 
-    const int dimensionCount = ctx->LearnProgress->ApproxDimension;
-    const bool isTrivialWalker
-        = gradientIterations == 1 ||
-            (ctx->Params.ObliviousTreeOptions->LeavesEstimationBacktrackingType ==
-                ELeavesEstimationStepBacktracking::No);
+    bool haveBacktrackingObjective;
+    double minimizationSign;
     TVector<THolder<IMetric>> lossFunction;
-    double directionSign = 0;
-    if (!isTrivialWalker) {
-        lossFunction = CreateMetricFromDescription(ctx->Params.MetricOptions->ObjectiveMetric, dimensionCount);
-        directionSign = GetDirectionSign(lossFunction[0]);
-    }
+    CreateBacktrackingObjective(*ctx, &haveBacktrackingObjective, &minimizationSign, &lossFunction);
+
     const auto lossCalcerFunc = [&] (const TVector<TVector<double>>& approx) {
         const auto& additiveStats = EvalErrors(
             approx,
@@ -995,7 +919,7 @@ static void CalcLeafValuesSimple(
             *lossFunction[0],
             &localExecutor
         );
-        return directionSign * lossFunction[0]->GetFinalError(additiveStats);
+        return minimizationSign * lossFunction[0]->GetFinalError(additiveStats);
     };
 
     const auto approxCopyFunc = [ctx] (const TVector<TVector<double>>& src, TVector<TVector<double>>* dst) {
@@ -1003,10 +927,10 @@ static void CalcLeafValuesSimple(
     };
 
     GradientWalker(
-        isTrivialWalker,
+        /*isTrivialWalker*/!haveBacktrackingObjective,
         gradientIterations,
         leafCount,
-        dimensionCount,
+        ctx->LearnProgress->ApproxDimension,
         leafUpdaterFunc,
         approxUpdaterFunc,
         lossCalcerFunc,

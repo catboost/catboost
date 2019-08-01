@@ -465,24 +465,13 @@ public:
         const float l2Regularizer = ctx.Params.ObliviousTreeOptions->L2Reg;
         const size_t allDocCount = ctx.LearnProgress->Folds[0].GetLearnSampleCount();
         const double sumAllWeights = ctx.LearnProgress->Folds[0].GetSumWeight();
-        if (estimationMethod == ELeavesEstimation::Newton) {
-        CalcMixedModelMulti(
-            CalcDeltaNewtonMulti,
+        CalcLeafDeltasMulti(
             buckets,
+            estimationMethod,
             l2Regularizer,
             sumAllWeights,
             allDocCount,
             &leafValues);
-        } else {
-            Y_ASSERT(estimationMethod == ELeavesEstimation::Gradient);
-            CalcMixedModelMulti(
-                CalcDeltaGradientMulti,
-                buckets,
-                l2Regularizer,
-                sumAllWeights,
-                allDocCount,
-                &leafValues);
-        }
         return leafValues;
     }
 };

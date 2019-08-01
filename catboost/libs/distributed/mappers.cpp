@@ -564,9 +564,6 @@ namespace NCatboostDistributed {
         TVector<TDers> weightedDers;
         weightedDers.yresize(scratchSize);
 
-        for (auto& bucket : localData.Buckets) {
-            bucket.SetZeroDers();
-        }
         CalcLeafDersSimple(
             localData.Indices,
             localData.Progress->AveragingFold,
@@ -703,35 +700,18 @@ namespace NCatboostDistributed {
         const auto error = BuildError(localData.Params, /*custom objective*/Nothing());
         const auto estimationMethod = localData.Params.ObliviousTreeOptions->LeavesEstimationMethod;
 
-        for (auto& bucket : localData.MultiBuckets) {
-            bucket.SetZeroDers();
-        }
-        if (estimationMethod == ELeavesEstimation::Newton) {
-            UpdateBucketsMulti(
-                AddSampleToBucketNewtonMulti,
-                localData.Indices,
-                localData.Progress->AveragingFold.LearnTarget,
-                localData.Progress->AveragingFold.GetLearnWeights(),
-                localData.Progress->AveragingFold.BodyTailArr[0].Approx,
-                localData.ApproxDeltas,
-                *error,
-                localData.Progress->AveragingFold.BodyTailArr[0].BodyFinish,
-                localData.GradientIteration,
-                &localData.MultiBuckets);
-        } else {
-            Y_ASSERT(estimationMethod == ELeavesEstimation::Gradient);
-            UpdateBucketsMulti(
-                AddSampleToBucketGradientMulti,
-                localData.Indices,
-                localData.Progress->AveragingFold.LearnTarget,
-                localData.Progress->AveragingFold.GetLearnWeights(),
-                localData.Progress->AveragingFold.BodyTailArr[0].Approx,
-                localData.ApproxDeltas,
-                *error,
-                localData.Progress->AveragingFold.BodyTailArr[0].BodyFinish,
-                localData.GradientIteration,
-                &localData.MultiBuckets);
-        }
+        CalcLeafDersMulti(
+            localData.Indices,
+            localData.Progress->AveragingFold.LearnTarget,
+            localData.Progress->AveragingFold.GetLearnWeights(),
+            localData.Progress->AveragingFold.BodyTailArr[0].Approx,
+            localData.ApproxDeltas,
+            *error,
+            localData.Progress->AveragingFold.BodyTailArr[0].BodyFinish,
+            /*isUpdateWeight*/localData.GradientIteration == 0,
+            estimationMethod,
+            &NPar::LocalExecutor(),
+            &localData.MultiBuckets);
         sums->Data = std::make_pair(localData.MultiBuckets, TUnusedInitializedParam());
     }
 
@@ -746,6 +726,7 @@ namespace NCatboostDistributed {
             localData.StoreExpApprox,
             localData.Indices,
             localData.Progress->AveragingFold.BodyTailArr[0].BodyFinish,
+            &NPar::LocalExecutor(),
             leafValues,
             &localData.ApproxDeltas);
         ++localData.GradientIteration; // gradient iteration completed

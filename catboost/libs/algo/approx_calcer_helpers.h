@@ -2,9 +2,12 @@
 
 #include "ders_holder.h"
 #include "online_predictor.h"
+#include "learn_context.h"
 
+#include <catboost/libs/metrics/metric.h>
 #include <catboost/libs/options/enums.h>
 
+#include <util/generic/ptr.h>
 
 template <ELeavesEstimation LeafEstimationType>
 inline void AddMethodDer(const TDers&, double, bool, TSum*);
@@ -41,3 +44,9 @@ inline double CalcMethodDelta<ELeavesEstimation::Newton>(
 {
     return CalcDeltaNewton(ss, l2Regularizer, sumAllWeights, allDocCount);
 }
+
+void CreateBacktrackingObjective(
+    const TLearnContext& ctx,
+    bool* haveBacktrackingObjective,
+    double* minimizationSign,
+    TVector<THolder<IMetric>>* lossFunction);
