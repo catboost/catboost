@@ -22,7 +22,7 @@ def main():
         skip_nocxxinc = False
 
     spl = sys.argv.index('--cflags')
-    getpid1 = sys.argv[1]
+    mtime0 = sys.argv[1]
     command = sys.argv[2: spl]
     cflags = sys.argv[spl + 1:]
 
@@ -124,19 +124,23 @@ def main():
     if compiler_args:
         command += ['--compiler-options', ','.join(compiler_args)]
 
-    # nvcc generates symbols like this:
-    # __cudaRegisterLinkedBinary_{len}_tmpxft_{pid}_00000000_6_{src}1_ii_{hash}
-    # They embed nvcc pid. This is the only unstable part. We stabilize it by
-    # preloading getpid() that always returns 1.
-    os.environ['LD_PRELOAD'] = getpid1
-    # nvcc deletes all files in TMPDIR that match tmpxft_{pid}*, even not
-    # created by it, so we provide a fresh TMPDIR.
-    os.environ['TMPDIR'] = tempfile.mkdtemp(prefix='compile_cuda.py.')
+    # --keep is necessary to prevent nvcc from embedding nvcc pid in generated
+    # symbols.  It makes nvcc use the original file name as the prefix in the
+    # generated files (otherwise it also prepends tmpxft_{pid}_00000000-5), and
+    # cicc derives the module name from its {input}.cpp1.ii file name.
+    command += ['--keep', '--keep-dir', tempfile.mkdtemp(prefix='compile_cuda.py.')]
+    # nvcc generates symbols like __fatbinwrap_{len}_{basename}_{hash} where
+    # {basename} is {input}.cpp1.ii with non-C chars translated to _, {len} is
+    # {basename} length, and {hash} is the hash of first exported symbol in
+    # {input}.cpp1.ii if there is one, otherwise it is based on its modification
+    # time and the current working directory.  To stabilize the names of these
+    # symbols we need to fix mtime and cwd.
+    os.environ['LD_PRELOAD'] = mtime0
 
     if dump_args:
         sys.stdout.write('\n'.join(command))
     else:
-        sys.exit(subprocess.Popen(command, stdout=sys.stderr, stderr=sys.stderr).wait())
+        sys.exit(subprocess.Popen(command, stdout=sys.stderr, stderr=sys.stderr, cwd='/').wait())
 
 
 if __name__ == '__main__':
