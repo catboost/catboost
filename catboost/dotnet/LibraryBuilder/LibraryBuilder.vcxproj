@@ -63,10 +63,10 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <NMakeBuildCommandLine>call "$(VCInstallDir)\Auxiliary\Build\vcvars64.bat" &amp;&amp; "$(SolutionDir)../../ya" make "$(SolutionDir)../../catboost/libs/model_interface" --output "$(ProjectDir)lib/$(Platform)/$(Configuration)" --verbose</NMakeBuildCommandLine>
+    <NMakeBuildCommandLine>"$(SolutionDir)../../ya" make "$(SolutionDir)../../catboost/libs/model_interface" --output "$(ProjectDir)lib/$(Platform)/$(Configuration)" --verbose</NMakeBuildCommandLine>
     <NMakePreprocessorDefinitions>_DEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
     <OutDir>$(ProjectDir)lib/$(Platform)/$(Configuration)</OutDir>
-    <NMakeReBuildCommandLine>call "$(VCInstallDir)\Auxiliary\Build\vcvars64.bat" &amp;&amp; "$(SolutionDir)../../ya" make "$(SolutionDir)../../catboost/libs/model_interface" --output "$(ProjectDir)lib/$(Platform)/$(Configuration)" --verbose --rebuild</NMakeReBuildCommandLine>
+    <NMakeReBuildCommandLine>"$(SolutionDir)../../ya" make "$(SolutionDir)../../catboost/libs/model_interface" --output "$(ProjectDir)lib/$(Platform)/$(Configuration)" --verbose --rebuild</NMakeReBuildCommandLine>
     <NMakeOutput>$(ProjectDir)lib/$(Platform)/$(Configuration)/catboost/libs/model_interface/catboostmodel.dl</NMakeOutput>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -78,10 +78,10 @@
     <NMakePreprocessorDefinitions>WIN32;NDEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <NMakeBuildCommandLine>call "$(VCInstallDir)\Auxiliary\Build\vcvars64.bat" &amp;&amp; "$(SolutionDir)../../ya" make -r "$(SolutionDir)../../catboost/libs/model_interface" --output "$(ProjectDir)lib/$(Platform)/$(Configuration)" --verbose</NMakeBuildCommandLine>
+    <NMakeBuildCommandLine>"$(SolutionDir)../../ya" make "$(SolutionDir)../../catboost/libs/model_interface" --output "$(ProjectDir)lib/$(Platform)/$(Configuration)" --verbose</NMakeBuildCommandLine>
     <NMakePreprocessorDefinitions>NDEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
     <OutDir>$(ProjectDir)lib/$(Platform)/$(Configuration)</OutDir>
-    <NMakeReBuildCommandLine>call "$(VCInstallDir)\Auxiliary\Build\vcvars64.bat" &amp;&amp; "$(SolutionDir)../../ya" make -r "$(SolutionDir)../../catboost/libs/model_interface" --output "$(ProjectDir)lib/$(Platform)/$(Configuration)" --verbose --rebuild</NMakeReBuildCommandLine>
+    <NMakeReBuildCommandLine>"$(SolutionDir)../../ya" make "$(SolutionDir)../../catboost/libs/model_interface" --output "$(ProjectDir)lib/$(Platform)/$(Configuration)" --verbose --rebuild</NMakeReBuildCommandLine>
     <NMakeOutput>$(ProjectDir)lib/$(Platform)/$(Configuration)/catboost/libs/model_interface/catboostmodel.dl</NMakeOutput>
   </PropertyGroup>
   <ItemDefinitionGroup>
