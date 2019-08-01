@@ -381,15 +381,11 @@
 
 - source_filter: "^contrib/libs/clickhouse"
   includes:
-    - Common/LFAllocator.h
     - DataStreams/CapnProtoRowInputStream.h
     - Formats/CapnProtoRowInputStream.h
-    - Formats/ProtobufColumnMatcher.h
     - Formats/ProtobufRowInputStream.h
     - Formats/ProtobufSchemas.h
-    - IO/ReadBufferFromHDFS.h
     - IO/WriteBufferFromHDFS.h
-    - LFAllocator.h
     - ParquetBlockInputStream.h
     - ParquetBlockOutputStream.h
     - Poco/SQL/ODBC/
@@ -407,6 +403,7 @@
     - capnp/common.h
     - capnp/dynamic.h
     - capnp/serialize.h
+    - capnp/schema-parser.h
     - civil_time.h
     - config_compile.h
     - cpuinfo.h
@@ -415,6 +412,7 @@
     - google/protobuf/descriptor.h
     - google/protobuf/descriptor.pb.h
     - gperftools/malloc_extension.h
+    - h3api.h
     - hdfs/hdfs.h
     - hs.h
     - hs/hs.h
@@ -447,6 +445,7 @@
     - llvm/Transforms/IPO/PassManagerBuilder.h
     - mariadb/mysql.h
     - mariadb/mysqld_error.h
+    - mimalloc.h
     - parquet/arrow/reader.h
     - parquet/arrow/writer.h
     - parquet/exception.h
