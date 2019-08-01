@@ -29,6 +29,7 @@ function os_sdk {
 }
 
 python ya make -r -DNO_DEBUGINFO $(os_sdk) $CUDA_ARG -o . catboost/app
+python ya make -r -DNO_DEBUGINFO $(os_sdk) $CUDA_ARG -o . catboost/libs/model_interface
 
 echo "Starting R package build"
 cd catboost/R-package

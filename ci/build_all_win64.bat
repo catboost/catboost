@@ -8,6 +8,9 @@ if %errorlevel% neq 0 exit /b %errorlevel%
 c:\Python27\python.exe ya make -r -DNO_DEBUGINFO %WIN_COMMON_FLAGS% -DHAVE_CUDA=yes -o . catboost\app
 if %errorlevel% neq 0 exit /b %errorlevel%
 
+c:\Python27\python.exe ya make -r -DNO_DEBUGINFO %WIN_COMMON_FLAGS% -DHAVE_CUDA=yes -o . catboost\libs\model_interface\
+if %errorlevel% neq 0 exit /b %errorlevel%
+
 cd catboost\python-package
 if %errorlevel% neq 0 exit /b %errorlevel%
 
