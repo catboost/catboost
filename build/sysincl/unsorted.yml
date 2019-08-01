@@ -278,6 +278,7 @@
   - cpu-features.h
   - cuda.h
   - cublas_v2.h
+  - cublasLt.h
   - cuda_runtime.h
   - cuda_runtime_api.h
   - cusolverDn.h
