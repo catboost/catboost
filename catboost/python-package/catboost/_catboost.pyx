@@ -2433,24 +2433,6 @@ cdef class _PoolBase:
         """
         return self.__pool.Get()[0].RawTargetData.GetPairs().size()
 
-    def get_group_id(self):
-        """
-        Get group_id for each object.
-
-        Returns
-        -------
-        group_id : list
-        """
-        cdef TMaybeData[TConstArrayRef[TGroupId]] arr_group_ids = self.__pool.Get()[0].ObjectsData.Get()[0].GetGroupIds()
-        if arr_group_ids.Defined():
-            result_group_ids = []
-            for group_id in arr_group_ids.GetRef():
-                result_group_ids.append(group_id)
-
-            return result_group_ids
-
-        return None
-
     @property
     def shape(self):
         """
@@ -3295,6 +3277,18 @@ cdef class _MetadataHashProxy:
         return ((to_native_str(kv.first), to_native_str(kv.second)) for kv in self._catboost.__model.ModelInfo)
 
 
+cdef object _get_hash_group_id(_PoolBase pool):
+    cdef TMaybeData[TConstArrayRef[TGroupId]] arr_group_ids = pool.__pool.Get()[0].ObjectsData.Get()[0].GetGroupIds()
+    if arr_group_ids.Defined():
+        result_group_ids = []
+        for group_id in arr_group_ids.GetRef():
+            result_group_ids.append(group_id)
+
+        return result_group_ids
+
+    return None
+
+
 cdef TCustomTrainTestSubsets _make_train_test_subsets(_PoolBase pool, folds) except *:
     num_data = pool.num_row()
 
@@ -3302,7 +3296,7 @@ cdef TCustomTrainTestSubsets _make_train_test_subsets(_PoolBase pool, folds) exc
         raise AttributeError("folds should be a generator or iterator of (train_idx, test_idx) tuples "
                              "or scikit-learn splitter object with split method")
 
-    group_info = pool.get_group_id()
+    group_info = _get_hash_group_id(pool)
 
     if hasattr(folds, 'split'):
         if group_info is not None:
