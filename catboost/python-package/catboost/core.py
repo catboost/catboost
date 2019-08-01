@@ -3482,8 +3482,6 @@ class CatBoostClassifier(CatBoost):
             y = X.get_label()
         elif y is None:
             raise CatBoostError("y should be specified.")
-        correct = []
-        y = np.array(y, dtype=np.int32)
         predicted_classes = self._predict(
             X,
             prediction_type='Class',
@@ -3492,10 +3490,14 @@ class CatBoostClassifier(CatBoost):
             thread_count=-1,
             verbose=None,
             parent_method_name='score'
-        )
-        for i, val in enumerate(predicted_classes):
-            correct.append(1 * (y[i] == np.int32(val)))
-        return np.mean(correct)
+        ).reshape(-1)
+        try:
+            predicted_classes = predicted_classes.astype(np.float64)
+        except:
+            pass
+        else:
+            predicted_classes = predicted_classes.astype(np.int32)
+        return np.mean([str(y_pred) == str(y_true) for y_pred, y_true in zip(predicted_classes, y)])
 
     def _check_is_classification_objective(self, loss_function):
         if isinstance(loss_function, str) and not self._is_classification_objective(loss_function):
