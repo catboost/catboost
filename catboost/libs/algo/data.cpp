@@ -363,4 +363,13 @@ namespace NCB {
         return trainingData;
     }
 
+    TConstArrayRef<TString> GetTargetForStratifiedSplit(const TDataProvider& dataProvider) {
+        auto maybeTarget = dataProvider.RawTargetData.GetTarget();
+        CB_ENSURE(maybeTarget, "Cannot do stratified split: Target data is unavailable");
+        return *maybeTarget;
+    }
+
+    TConstArrayRef<float> GetTargetForStratifiedSplit(const TTrainingDataProvider& dataProvider) {
+        return *dataProvider.TargetData->GetTargetForLoss();
+    }
 }

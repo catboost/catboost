@@ -240,11 +240,23 @@ namespace NCB {
         TArraySubsetIndexing<ui32>* testIndices
     );
 
+    static inline ui32 GetClassSplitMinLen(
+        ui32 objectCount,
+        const TVector<TVector<ui32>>& splittedByClass
+    ) {
+        ui32 minLen = objectCount;
+        for (const auto& part : splittedByClass) {
+            if (part.size() < (size_t)minLen) {
+                minLen = (ui32)part.size();
+            }
+        }
+        return minLen;
+    }
+
     template <class TClassId>
-    TVector<TArraySubsetIndexing<ui32>> StratifiedSplit(
+    TVector<TVector<ui32>> SplitByClass(
         const TObjectsGrouping& objectsGrouping,
-        TConstArrayRef<TClassId> objectClasses,
-        ui32 partCount
+        TConstArrayRef<TClassId> objectClasses
     ) {
         CB_ENSURE(objectsGrouping.IsTrivial(), "Stratified split is not supported for data with groups");
 
@@ -274,18 +286,60 @@ namespace NCB {
             splittedByClass.back().push_back(classWithObject[i].second);
         }
 
-        ui32 minLen = objectCount;
+        return splittedByClass;
+    }
+
+    template <class TClassId>
+    void StratifiedTrainTestSplit(
+        const TObjectsGrouping& objectsGrouping,
+        TConstArrayRef<TClassId> objectClasses,
+        double trainPart,
+        TArraySubsetIndexing<ui32>* trainIndices,
+        TArraySubsetIndexing<ui32>* testIndices
+    ) {
+        TVector<TVector<ui32>> splittedByClass = SplitByClass(objectsGrouping, objectClasses);
+        ui32 minLen = GetClassSplitMinLen(objectsGrouping.GetObjectCount(), splittedByClass);
+        if (minLen < 2) {
+            CATBOOST_WARNING_LOG << " Warning: The least populated class in y has only "
+                << minLen << " members, which is too few.";
+        }
+        TVector<ui32> resultTrainIndices;
+        TVector<ui32> resultTestIndices;
         for (const auto& part : splittedByClass) {
-            if (part.size() < (size_t)minLen) {
-                minLen = (ui32)part.size();
+            for (ui32 idx = 0; idx < part.size() * trainPart; ++idx) {
+                resultTrainIndices.push_back(part[idx]);
+            }
+            for (ui32 idx = part.size() * trainPart; idx < part.size(); ++idx) {
+                resultTestIndices.push_back(part[idx]);
             }
         }
+
+        CB_ENSURE(!resultTrainIndices.empty(), "Not enough objects for splitting into train and test subsets");
+        CB_ENSURE(!resultTestIndices.empty(), "Not enough objects for splitting into train and test subsets");
+
+        Sort(resultTrainIndices.begin(), resultTrainIndices.end());
+        *trainIndices = TArraySubsetIndexing<ui32>(std::move(resultTrainIndices));
+
+        Sort(resultTestIndices.begin(), resultTestIndices.end());
+        *testIndices = TArraySubsetIndexing<ui32>(std::move(resultTestIndices));
+    }
+
+    template <class TClassId>
+    TVector<TArraySubsetIndexing<ui32>> StratifiedSplitToFolds(
+        const TObjectsGrouping& objectsGrouping,
+        TConstArrayRef<TClassId> objectClasses,
+        ui32 partCount
+    ) {
+        TVector<TVector<ui32>> splittedByClass = SplitByClass(objectsGrouping, objectClasses);
+        ui32 minLen = GetClassSplitMinLen(objectsGrouping.GetObjectCount(), splittedByClass);
+
         if (minLen < partCount) {
             CATBOOST_WARNING_LOG << " Warning: The least populated class in y has only "
                 << minLen << " members, which is too few."
                 " The minimum number of members in any class cannot be less than parts count="
                 << partCount << Endl;
         }
+
         TVector<TVector<ui32>> resultIndices(partCount);
         for (const auto& part : splittedByClass) {
             for (ui32 fold = 0; fold < partCount; ++fold) {
@@ -306,13 +360,13 @@ namespace NCB {
         return result;
     }
 
-    TVector<TArraySubsetIndexing<ui32>> SplitByObjects(
-        const TObjectsGrouping& objectsGrouping,
-        ui32 partSizeInObjects
-    );
+        TVector<TArraySubsetIndexing<ui32>> SplitByObjects(
+            const TObjectsGrouping& objectsGrouping,
+            ui32 partSizeInObjects
+        );
 
-    TVector<TArraySubsetIndexing<ui32>> SplitByGroups(
-        const TObjectsGrouping& objectsGrouping,
-        ui32 partSizeInGroups
-    );
-}
+        TVector<TArraySubsetIndexing<ui32>> SplitByGroups(
+            const TObjectsGrouping& objectsGrouping,
+            ui32 partSizeInGroups
+        );
+    }

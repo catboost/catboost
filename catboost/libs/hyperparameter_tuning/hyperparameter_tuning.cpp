@@ -235,15 +235,25 @@ namespace {
             srcData->ObjectsData->GetOrder() != NCB::EObjectsOrder::Ordered,
             "Params search for ordered objects data is not yet implemented"
         );
-        CB_ENSURE(!trainTestSplitParams.Stratified, "Stratified train-test split is not yet supported");
         NCB::TArraySubsetIndexing<ui32> trainIndices;
         NCB::TArraySubsetIndexing<ui32> testIndices;
-        TrainTestSplit(
-            *srcData->ObjectsGrouping,
-            trainTestSplitParams.TrainPart,
-            &trainIndices,
-            &testIndices
-        );
+
+        if (trainTestSplitParams.Stratified) {
+            StratifiedTrainTestSplit(
+                *srcData->ObjectsGrouping,
+                NCB::GetTargetForStratifiedSplit(*srcData),
+                trainTestSplitParams.TrainPart,
+                &trainIndices,
+                &testIndices
+            );
+        } else {
+            TrainTestSplit(
+                *srcData->ObjectsGrouping,
+                trainTestSplitParams.TrainPart,
+                &trainIndices,
+                &testIndices
+            );
+        }
         return NCB::CreateTrainTestSubsets<TDataProvidersTemplate>(
             srcData,
             std::move(trainIndices),

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <catboost/libs/algo/custom_objective_descriptor.h>
+#include <catboost/libs/algo/data.h>
 #include <catboost/libs/algo/learn_context.h>
 #include <catboost/libs/data_new/data_provider.h>
 #include <catboost/libs/eval_result/eval_result.h>
@@ -52,9 +53,6 @@ struct TCVResult {
     }
 };
 
-TConstArrayRef<TString> GetTargetForStratifiedSplit(const NCB::TDataProvider& dataProvider);
-TConstArrayRef<float> GetTargetForStratifiedSplit(const NCB::TTrainingDataProvider& dataProvider);
-
 TVector<NCB::TArraySubsetIndexing<ui32>> CalcTrainSubsets(
     const TVector<NCB::TArraySubsetIndexing<ui32>>& testSubsets,
     ui32 groupCount);
@@ -85,9 +83,9 @@ TVector<TDataProvidersTemplate> PrepareCvFolds(
         );
     } else {
         if (cvParams.Stratified) {
-            testSubsets = NCB::StratifiedSplit(
+            testSubsets = NCB::StratifiedSplitToFolds(
                 *srcData->ObjectsGrouping,
-                GetTargetForStratifiedSplit(*srcData),
+                NCB::GetTargetForStratifiedSplit(*srcData),
                 cvParams.FoldCount
             );
         } else {

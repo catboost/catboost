@@ -47,4 +47,6 @@ namespace NCB {
         NPar::TLocalExecutor* localExecutor,
         TRestorableFastRng64* rand);
 
+    TConstArrayRef<TString> GetTargetForStratifiedSplit(const NCB::TDataProvider& dataProvider);
+    TConstArrayRef<float> GetTargetForStratifiedSplit(const NCB::TTrainingDataProvider& dataProvider);
 }
