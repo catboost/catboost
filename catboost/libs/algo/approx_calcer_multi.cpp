@@ -235,46 +235,72 @@ void CalcLeafDersMulti(
     int sampleCount,
     bool isUpdateWeight,
     ELeavesEstimation estimationMethod,
-    NPar::TLocalExecutor* /*localExecutor*/,
+    NPar::TLocalExecutor* localExecutor,
     TVector<TSumMulti>* leafDers
 ) {
     const int approxDimension = approx.ysize();
     Y_ASSERT(approxDimension > 0);
-    TVector<double> curApprox(approxDimension);
-    TVector<double> curDer(approxDimension);
-    THessianInfo curDer2(approxDimension, error.GetHessianType());
+    const auto leafCount = leafDers->size();
     for (auto& curLeafDers : *leafDers) {
         curLeafDers.SetZeroDers();
     }
-    for (int z = 0; z < sampleCount; ++z) {
-        for (int dim = 0; dim < approxDimension; ++dim) {
-            curApprox[dim] = approxDeltas.empty() ?
-                approx[dim][z] :
-                UpdateApprox(error.GetIsExpApprox(), approx[dim][z], approxDeltas[dim][z]);
-        }
-        TSumMulti& curLeafDers = (*leafDers)[indices[z]];
-        if (estimationMethod == ELeavesEstimation::Newton) {
-            AddDerNewtonMulti(
-                error,
-                curApprox,
-                target[z],
-                weight.empty() ? 1 : weight[z],
-                isUpdateWeight,
-                &curDer,
-                &curDer2,
-                &curLeafDers);
-        } else {
-            AddDerGradientMulti(
-                error,
-                curApprox,
-                target[z],
-                weight.empty() ? 1 : weight[z],
-                isUpdateWeight,
-                &curDer,
-                &curDer2,
-                &curLeafDers);
-        }
-    }
+    NCB::MapMerge(
+        localExecutor,
+        NCB::TSimpleIndexRangesGenerator<int>(NCB::TIndexRange<int>(sampleCount), /*blockSize*/1000),
+        /*mapFunc*/[&](NCB::TIndexRange<int> partIndexRange, TVector<TSumMulti>* leafDers) {
+            Y_ASSERT(!partIndexRange.Empty());
+            TVector<double> curApprox(approxDimension);
+            TVector<double> curDer(approxDimension);
+            THessianInfo curDer2(approxDimension, error.GetHessianType());
+            leafDers->resize(leafCount, TSumMulti(approxDimension, error.GetHessianType()));
+            for (auto z : xrange(partIndexRange.Begin, partIndexRange.End)) {
+                for (int dim = 0; dim < approxDimension; ++dim) {
+                    curApprox[dim] = approxDeltas.empty() ?
+                        approx[dim][z] :
+                        UpdateApprox(error.GetIsExpApprox(), approx[dim][z], approxDeltas[dim][z]);
+                }
+                TSumMulti& curLeafDers = (*leafDers)[indices[z]];
+                if (estimationMethod == ELeavesEstimation::Newton) {
+                    AddDerNewtonMulti(
+                        error,
+                        curApprox,
+                        target[z],
+                        weight.empty() ? 1 : weight[z],
+                        isUpdateWeight,
+                        &curDer,
+                        &curDer2,
+                        &curLeafDers);
+                } else {
+                    AddDerGradientMulti(
+                        error,
+                        curApprox,
+                        target[z],
+                        weight.empty() ? 1 : weight[z],
+                        isUpdateWeight,
+                        &curDer,
+                        &curDer2,
+                        &curLeafDers);
+                }
+            }
+        },
+        /*mergeFunc*/[=](TVector<TSumMulti>* leafDers, TVector<TVector<TSumMulti>>&& addVector) {
+            leafDers->resize(leafCount);
+            if (estimationMethod == ELeavesEstimation::Newton) {
+                for (const auto& addItem : addVector) {
+                    for (auto leafIdx : xrange(leafCount)) {
+                        (*leafDers)[leafIdx].AddDerDer2(addItem[leafIdx].SumDer, addItem[leafIdx].SumDer2);
+                    }
+                }
+            } else {
+                for (const auto& addItem : addVector) {
+                    for (auto leafIdx : xrange(leafCount)) {
+                        (*leafDers)[leafIdx].AddDerWeight(addItem[leafIdx].SumDer, addItem[leafIdx].SumWeights, isUpdateWeight);
+                    }
+                }
+            }
+        },
+        leafDers
+    );
 }
 
 void CalcLeafDeltasMulti(
