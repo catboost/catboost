@@ -27,13 +27,13 @@ SRCS(
     index_hash_calcer.cpp
     learn_context.cpp
     model_quantization_adapter.cpp
+    monotonic_constraint_utils.cpp
     mvs.cpp
     online_ctr.cpp
     online_predictor.cpp
     plot.cpp
     preprocess.cpp
     projection.cpp
-    rand_score.cpp
     score_bin.cpp
     score_calcer.cpp
     short_vector_ops.cpp
@@ -42,11 +42,11 @@ SRCS(
     tensor_search_helpers.cpp
     train.cpp
     tree_print.cpp
-    yetirank_helpers.cpp
     pairwise_leaves_calculation.cpp
     pairwise_scoring.cpp
+    rand_score.cpp
     roc_curve.cpp
-    monotonic_constraint_utils.cpp
+    yetirank_helpers.cpp
 )
 
 PEERDIR(

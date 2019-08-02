@@ -2,10 +2,7 @@
 #include "json_model_helpers.h"
 
 #include <catboost/libs/model/model_import_interface.h>
-
-#include <catboost/libs/logging/logging.h>
 #include <catboost/libs/options/json_helper.h>
-#include <catboost/libs/options/check_train_options.h>
 
 #include <library/json/json_reader.h>
 

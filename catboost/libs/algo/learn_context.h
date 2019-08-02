@@ -100,6 +100,7 @@ struct TLearnProgress {
 
     TRestorableFastRng64 Rand;
 public:
+    TLearnProgress();
     TLearnProgress(
         bool isForWorkerLocalData,
         bool isSingleHost,

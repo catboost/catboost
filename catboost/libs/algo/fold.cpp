@@ -325,7 +325,7 @@ void TFold::SaveApproxes(IOutputStream* s) const {
 void TFold::LoadApproxes(IInputStream* s) {
     ui64 bodyTailCount;
     ::Load(s, bodyTailCount);
-    CB_ENSURE(bodyTailCount == BodyTailArr.size());
+    BodyTailArr.resize(bodyTailCount);
     for (ui64 i = 0; i < bodyTailCount; ++i) {
         ::Load(s, BodyTailArr[i].Approx);
     }

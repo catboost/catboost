@@ -8,6 +8,7 @@ SRCS(
     options_helper.cpp
     feature_names_converter.cpp
     GLOBAL train_model.cpp
+    GLOBAL model_import_snapshot.cpp
 )
 
 PEERDIR(

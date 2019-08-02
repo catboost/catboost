@@ -24,6 +24,7 @@ from catboost.eval.catboost_evaluation import CatboostEvaluation, EvalType
 from catboost.utils import eval_metric, create_cd, get_roc_curve, select_threshold
 from catboost.utils import DataMetaInfo, TargetStats, compute_training_options
 import os.path
+import os
 from pandas import read_table, DataFrame, Series, Categorical
 from six import PY3
 from six.moves import xrange
@@ -4990,3 +4991,34 @@ def test_dataframe_with_custom_index():
 
     model = CatBoost(dict(iterations=10))
     model.fit(X, y, cat_features=[0])
+
+
+@pytest.mark.parametrize('features_type', [
+    'numerical_only',
+    'numerical_and_categorical',
+])
+def test_load_model_from_snapshot(features_type):
+    model = CatBoost(dict(iterations=16, thread_count=4))
+    filename = test_output_path('snapshot.bak')
+    try:
+        os.remove(filename)
+    except OSError:
+        pass
+    if features_type == 'numerical_only':
+        pool = Pool(data=[[0, 1, 2, 3],
+                          [1, 2, 3, 4],
+                          [5, 6, 7, 8]],
+                    label=[1, 1, -1])
+    else:
+        df = DataFrame(data={'col1': ['a', 'b', 'c', 'd'], 'col2': [1, 1, 1, 1], 'col3': [2, 3, 4, 5]})
+        pool = Pool(data=df,
+                    label=[1, 1, -1, -1],
+                    cat_features=['col1'])
+    model.fit(pool, verbose=True, save_snapshot=True, snapshot_file=filename)
+    if features_type == 'numerical_only':
+        model_from_snapshot = CatBoost(dict(iterations=16, thread_count=4))
+        model_from_snapshot.load_model(filename, format='CpuSnapshot')
+        assert model == model_from_snapshot
+    else:
+        with pytest.raises(CatBoostError):
+            model.load_model(filename, format='CpuSnapshot')

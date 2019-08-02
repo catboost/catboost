@@ -32,6 +32,9 @@ class TFold {
 public:
     struct TBodyTail {
     public:
+        TBodyTail() : TBodyTail(0, 0, 0, 0, 0) {
+        }
+
         TBodyTail(
             int bodyQueryFinish,
             int tailQueryFinish,

@@ -425,6 +425,8 @@ bool TLearnContext::TryLoadProgress() {
     }
 }
 
+TLearnProgress::TLearnProgress() : Rand(0) {
+}
 
 TLearnProgress::TLearnProgress(
     bool isForWorkerLocalData,
@@ -702,7 +704,7 @@ void TLearnProgress::Save(IOutputStream* s) const {
             Folds[i].SaveApproxes(s);
         }
         AveragingFold.SaveApproxes(s);
-        ::SaveMany(s, AvrgApprox);
+        ::Save(s, AvrgApprox);
     }
     ::SaveMany(
         s,
@@ -727,13 +729,11 @@ void TLearnProgress::Save(IOutputStream* s) const {
 
 void TLearnProgress::Load(IInputStream* s) {
     ::Load(s, SerializedTrainParams);
-    bool enableSaveLoadApprox;
-    ::Load(s, enableSaveLoadApprox);
-    CB_ENSURE(enableSaveLoadApprox == EnableSaveLoadApprox, "Cannot load progress from file");
+    ::Load(s, EnableSaveLoadApprox);
     if (EnableSaveLoadApprox) {
         ui64 foldCount;
         ::Load(s, foldCount);
-        CB_ENSURE(foldCount == Folds.size(), "Cannot load progress from file");
+        Folds.resize(foldCount);
         for (ui64 i = 0; i < foldCount; ++i) {
             Folds[i].LoadApproxes(s);
         }

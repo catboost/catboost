@@ -18,5 +18,6 @@ enum class EModelType {
     Python         /* "Python", "python" */,
     Json           /* "Json", "json"       */,
     Onnx           /* "Onnx", "onnx" */,
-    Pmml           /* "PMML", "pmml" */
+    Pmml           /* "PMML", "pmml" */,
+    CPUSnapshot    /* "CpuSnapshot" */
 };
