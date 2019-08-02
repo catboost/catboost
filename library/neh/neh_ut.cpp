@@ -261,6 +261,8 @@ Y_UNIT_TEST_SUITE(Neh) {
         UNIT_ASSERT_EQUAL(THttp2Options::FullHeadersAsErrorMessage, true);
         UNIT_ASSERT(SetProtocolOption("http2/RedirectionNotError", "1"));
         UNIT_ASSERT_EQUAL(THttp2Options::RedirectionNotError, true);
+        UNIT_ASSERT(SetProtocolOption("http2/TcpKeepAlive", "true"));
+        UNIT_ASSERT_EQUAL(THttp2Options::TcpKeepAlive, true);
         UNIT_ASSERT(SetProtocolOption("tcp2/InputBufferSize", "4999"));
         UNIT_ASSERT_EQUAL(TTcp2Options::InputBufferSize, 4999);
         UNIT_ASSERT(SetProtocolOption("tcp2/InputBufferSize", "4888"));

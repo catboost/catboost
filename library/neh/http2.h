@@ -71,6 +71,9 @@ namespace NNeh {
         //consider responses with 3xx code as successful
         static bool RedirectionNotError;
 
+        //enable tcp keepalive for outgoing requests sockets
+        static bool TcpKeepAlive;
+
         //set option, - return false, if option name not recognized
         static bool Set(TStringBuf name, TStringBuf value);
     };
