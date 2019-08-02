@@ -3634,6 +3634,10 @@ class CatBoostClassifier(CatBoost):
             if y is not None:
                 raise CatBoostError("Wrong initializing y: X is catboost.Pool object, y must be initialized inside catboost.Pool.")
             y = X.get_label()
+        if isinstance(y, DataFrame):
+            if len(y.columns) != 1:
+                raise CatBoostError("y is DataFrame and has {} columns, but must have exactly one.".format(len(y.columns)))
+            y = y[y.columns[0]]
         elif y is None:
             raise CatBoostError("y should be specified.")
         predicted_classes = self._predict(
