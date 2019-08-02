@@ -235,8 +235,14 @@ namespace NCB {
 
     static TTextDataSetPtr CreateTextDataSet(const TQuantizedObjectsDataProvider& dataProvider, TTextFeatureIdx textFeatureIdx) {
         auto dictionary = dataProvider.GetQuantizedFeaturesInfo()->GetDictionary(textFeatureIdx);
-        auto text = *(*dataProvider.GetTextFeature(textFeatureIdx.Idx).Get())->GetArrayData().GetSrc();
-        return MakeIntrusive<TTextDataSet>(text, dictionary);
+
+        const TTokenizedTextValuesHolder* textColumn = *dataProvider.GetTextFeature(textFeatureIdx.Idx);
+        if (const auto* denseData = dynamic_cast<const TTokenizedTextArrayValuesHolder*>(textColumn)) {
+            return MakeIntrusive<TTextDataSet>(*denseData->GetArrayData().GetSrc(), dictionary);
+        } else {
+            CB_ENSURE_INTERNAL(false, "CreateTextDataSet: unsupported column type");
+        }
+        Y_UNREACHABLE();
     }
 
     static TTextClassificationTargetPtr CreateTextClassificationTarget(const TTargetDataProvider& targetDataProvider) {

@@ -21,13 +21,23 @@ Y_UNIT_TEST_SUITE(Quantization) {
         TExpectedQuantizedData ExpectedData;
     };
 
-    void Pack(
+    void PackBinaryFeatures(
         TVector<TVector<TBinaryFeaturesPack>>&& packs,
-        TPackedBinaryFeaturesData* packedBinaryFeaturesData
+        TExpectedQuantizedObjectsData* data
     ) {
+        const ui32 bitsPerKey = sizeof(TBinaryFeaturesPack) * CHAR_BIT;
         for (auto packIdx : xrange(packs.size())) {
-            packedBinaryFeaturesData->SrcData[packIdx]
-                = TMaybeOwningArrayHolder<TBinaryFeaturesPack>::CreateOwning(std::move(packs[packIdx]));
+            const ui32 objectCount = packs[packIdx].size();
+            data->PackedBinaryFeaturesData.SrcData[packIdx]
+                = MakeHolder<TBinaryPacksArrayHolder>(
+                    packIdx,
+                    TCompressedArray(
+                        objectCount,
+                        bitsPerKey,
+                        CompressVector<ui64>(packs[packIdx], bitsPerKey)
+                    ),
+                    data->FullSubsetIndexing.Get()
+                );
         }
     }
 
@@ -242,6 +252,10 @@ Y_UNIT_TEST_SUITE(Quantization) {
                 expectedData.Objects.QuantizedFeaturesInfo->SetNanMode(floatFeatureIdx, nanModes[i]);
             }
 
+            expectedData.Objects.FullSubsetIndexing = MakeHolder<TFeaturesArraySubsetIndexing>(
+                TFullSubset<ui32>(9)
+            );
+
             expectedData.Objects.ExclusiveFeatureBundlesData = TExclusiveFeatureBundlesData(
                 *expectedData.Objects.QuantizedFeaturesInfo,
                 TVector<TExclusiveFeaturesBundle>()
@@ -279,7 +293,7 @@ Y_UNIT_TEST_SUITE(Quantization) {
                     TVector<TBinaryFeaturesPack>{0, 1, 1, 0, 1, 0, 1, 1, 0}
                 };
 
-                Pack(std::move(packs), &expectedData.Objects.PackedBinaryFeaturesData);
+                PackBinaryFeatures(std::move(packs), &expectedData.Objects);
             }
 
             expectedData.ObjectsGrouping = TObjectsGrouping(9);
@@ -660,6 +674,10 @@ Y_UNIT_TEST_SUITE(Quantization) {
                 );
             }
 
+            expectedData.Objects.FullSubsetIndexing = MakeHolder<TFeaturesArraySubsetIndexing>(
+                TFullSubset<ui32>(13)
+            );
+
             expectedData.Objects.CatFeatureUniqueValuesCounts = {
                 {9,9}, // 0
                 {2,2}, // 1, binary
@@ -719,7 +737,7 @@ Y_UNIT_TEST_SUITE(Quantization) {
                     }
                 };
 
-                Pack(std::move(packs), &expectedData.Objects.PackedBinaryFeaturesData);
+                PackBinaryFeatures(std::move(packs), &expectedData.Objects);
             }
 
             expectedData.ObjectsGrouping = TObjectsGrouping(13);
@@ -976,6 +994,10 @@ Y_UNIT_TEST_SUITE(Quantization) {
             }
             expectedData.Objects.MaxCategoricalFeaturesUniqValuesOnLearn = 9;
 
+            expectedData.Objects.FullSubsetIndexing = MakeHolder<TFeaturesArraySubsetIndexing>(
+                TFullSubset<ui32>(13)
+            );
+
             expectedData.Objects.CatFeatureUniqueValuesCounts = {
                 {9,9}, // 0
                 {2,2}, // 1, binary
@@ -1045,7 +1067,7 @@ Y_UNIT_TEST_SUITE(Quantization) {
                     },
                 };
 
-                Pack(std::move(packs), &expectedData.Objects.PackedBinaryFeaturesData);
+                PackBinaryFeatures(std::move(packs), &expectedData.Objects);
             }
 
             expectedData.ObjectsGrouping = TObjectsGrouping(13);
@@ -1246,6 +1268,10 @@ Y_UNIT_TEST_SUITE(Quantization) {
             }
             expectedData.Objects.MaxCategoricalFeaturesUniqValuesOnLearn = 7;
 
+            expectedData.Objects.FullSubsetIndexing = MakeHolder<TFeaturesArraySubsetIndexing>(
+                TFullSubset<ui32>(13)
+            );
+
             expectedData.Objects.CatFeatureUniqueValuesCounts = {{6, 9}, {2, 2}, {7, 9}};
 
             expectedData.Objects.ExclusiveFeatureBundlesData = TExclusiveFeatureBundlesData(
@@ -1262,7 +1288,7 @@ Y_UNIT_TEST_SUITE(Quantization) {
                     TVector<TBinaryFeaturesPack>{0, 0, 1, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1}
                 };
 
-                Pack(std::move(packs), &expectedData.Objects.PackedBinaryFeaturesData);
+                PackBinaryFeatures(std::move(packs), &expectedData.Objects);
             }
 
             expectedData.ObjectsGrouping = TObjectsGrouping(13);

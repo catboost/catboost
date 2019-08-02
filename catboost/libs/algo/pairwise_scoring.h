@@ -214,6 +214,128 @@ inline TArray2D<TVector<TBucketPairWeightStatistics>> ComputePairWeightStatistic
     return weightSums;
 }
 
+
+template <typename TBucket, typename TGetBucketFunc>
+inline void ComputePairwiseStats(
+    ESplitEnsembleType splitEnsembleType,
+    TConstArrayRef<double> weightedDerivatives,
+    const TFlatPairsInfo& pairs,
+    int leafCount,
+    int bucketCount,
+    ui32 oneHotMaxSize,
+    const TVector<TIndexType>& leafIndices,
+
+    // used only if SplitEnsembleType == ESplitEnsembleType::ExclusiveBundle
+    TMaybe<const NCB::TExclusiveFeaturesBundle*> exclusiveFeaturesBundle,
+    NCB::TIndexRange<int> docIndexRange,
+    NCB::TIndexRange<int> pairIndexRange,
+    TGetBucketFunc&& getBucketFunc,
+    TPairwiseStats* output
+) {
+    output->DerSums = ComputeDerSums(
+        weightedDerivatives,
+        leafCount,
+        bucketCount,
+        leafIndices,
+        getBucketFunc,
+        docIndexRange
+    );
+
+    switch (splitEnsembleType) {
+        case ESplitEnsembleType::OneFeature:
+            output->PairWeightStatistics = ComputePairWeightStatistics(
+                pairs,
+                leafCount,
+                bucketCount,
+                leafIndices,
+                getBucketFunc,
+                pairIndexRange
+            );
+            break;
+        case ESplitEnsembleType::BinarySplits:
+            output->PairWeightStatistics = ComputePairWeightStatisticsForBinaryFeaturesPacks(
+                pairs,
+                leafCount,
+                bucketCount,
+                leafIndices,
+                getBucketFunc,
+                pairIndexRange
+            );
+            break;
+        case ESplitEnsembleType::ExclusiveBundle:
+            output->PairWeightStatistics = ComputePairWeightStatisticsForExclusiveFeaturesBundle(
+                oneHotMaxSize,
+                pairs,
+                leafCount,
+                leafIndices,
+                **exclusiveFeaturesBundle,
+                getBucketFunc,
+                pairIndexRange
+            );
+            break;
+    }
+}
+
+
+template <class T, NCB::EFeatureValuesType FeatureValuesType>
+inline void ComputePairwiseStats(
+    const TCalcScoreFold& fold,
+    TConstArrayRef<double> weightedDerivatives,
+    const TFlatPairsInfo& pairs,
+    int leafCount,
+    int bucketCount,
+    ui32 oneHotMaxSize,
+
+    // used only if splitEnsembleType == ESplitEnsembleType::ExclusiveBundle
+    TMaybe<const NCB::TExclusiveFeaturesBundle*> exclusiveFeaturesBundle,
+    const NCB::TTypedFeatureValuesHolder<T, FeatureValuesType>& column,
+    NCB::TIndexRange<int> docIndexRange,
+    NCB::TIndexRange<int> pairIndexRange,
+    TPairwiseStats* output
+) {
+    ESplitEnsembleType splitEnsembleType;
+    if constexpr (FeatureValuesType == NCB::EFeatureValuesType::BinaryPack) {
+        splitEnsembleType = ESplitEnsembleType::BinarySplits;
+    } else if constexpr (FeatureValuesType == NCB::EFeatureValuesType::ExclusiveFeatureBundle) {
+        splitEnsembleType = ESplitEnsembleType::ExclusiveBundle;
+    } else {
+        splitEnsembleType = ESplitEnsembleType::OneFeature;
+    }
+
+    using TDenseColumnData = NCB::TCompressedValuesHolderImpl<T, FeatureValuesType>;
+
+    if (const auto* denseColumnData = dynamic_cast<const TDenseColumnData*>(&column)) {
+        const ui32* bucketIndexing
+            = fold.LearnPermutationFeaturesSubset.Get<NCB::TIndexedSubset<ui32>>().data();
+
+        const TCompressedArray& compressedArray = *denseColumnData->GetCompressedData().GetSrc();
+
+        NCB::DispatchBitsPerKeyToDataType(
+            compressedArray,
+            "ComputePairwiseStats",
+            [&] (const auto* bucketSrcData) {
+                ComputePairwiseStats<decltype(*bucketSrcData)>(
+                    splitEnsembleType,
+                    weightedDerivatives,
+                    pairs,
+                    leafCount,
+                    bucketCount,
+                    oneHotMaxSize,
+                    fold.Indices,
+                    exclusiveFeaturesBundle,
+                    docIndexRange,
+                    pairIndexRange,
+                    [bucketSrcData, bucketIndexing](ui32 docIdx) {
+                        return bucketSrcData[bucketIndexing[docIdx]];
+                    },
+                    output);
+            });
+    } else {
+        CB_ENSURE_INTERNAL(false, "ComputePairwiseStats: unsupported column type");
+    }
+}
+
+
 void CalculatePairwiseScore(
     const TPairwiseStats& pairwiseStats,
     int bucketCount,

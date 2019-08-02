@@ -35,7 +35,7 @@ Y_UNIT_TEST_SUITE(ExternalColumns) {
         const ui32 featureId = 0;
 
         {
-            TFloatValuesHolder floatValuesHolder(
+            TFloatArrayValuesHolder floatValuesHolder(
                 featureId,
                 TMaybeOwningConstArrayHolder<float>::CreateNonOwning(v),
                 &vSubsetIndexing

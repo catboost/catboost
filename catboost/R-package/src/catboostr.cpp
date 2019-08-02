@@ -360,7 +360,7 @@ SEXP CatBoostPoolSlice_R(SEXP poolParam, SEXP sizeParam, SEXP offsetParam) {
     const auto& weights = pool->RawTargetData.GetWeights();
 
     // TODO(akhropov): get only data for slice objects
-    TVector<TVector<float>> rawFeatures(featureCount); // [flatFeatureIdx][objectIdx]
+    TVector<TMaybeOwningArrayHolder<float>> rawFeatures(featureCount); // [flatFeatureIdx][objectIdx]
     for (auto featureIdx : xrange(featureCount)) {
         rawFeatures[featureIdx] = rawObjectsData->GetFeatureDataOldFormat(featureIdx);
     }
@@ -371,7 +371,7 @@ SEXP CatBoostPoolSlice_R(SEXP poolParam, SEXP sizeParam, SEXP offsetParam) {
         REAL(row)[0] = FromString<double>(target[i]);
         REAL(row)[1] = weights[i];
         for (ui32 j = 0; j < featureCount; ++j) {
-            REAL(row)[j + 2] = rawFeatures[j].empty() ? 0.0f : rawFeatures[j][i];
+            REAL(row)[j + 2] = (rawFeatures[j].GetSize() == 0) ? 0.0f : rawFeatures[j][i];
         }
         SET_VECTOR_ELT(result, i - offset, row);
     }

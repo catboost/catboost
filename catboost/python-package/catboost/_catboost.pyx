@@ -73,6 +73,12 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
     cdef void ThrowCppExceptionWithMessage(const TString&) nogil
 
 
+cdef extern from "library/threading/local_executor/local_executor.h" namespace "NPar":
+    cdef cppclass TLocalExecutor:
+        TLocalExecutor() nogil
+        void RunAdditionalThreads(int threadCount) nogil except +ProcessException
+
+
 cdef extern from "catboost/libs/logging/logging.h":
     cdef void SetCustomLoggingFunction(void(*func)(const char*, size_t len) except * with gil, void(*func)(const char*, size_t len) except * with gil)
     cdef void RestoreOriginalLogger()
@@ -102,6 +108,8 @@ cdef extern from "catboost/libs/helpers/maybe_owning_array_holder.h" namespace "
             TArrayRef[T] arrayRef,
             TIntrusivePtr[IResourceHolder] resourceHolder
         )
+        
+        T operator[](size_t idx) except +ProcessException
 
     cdef cppclass TMaybeOwningConstArrayHolder[T]:
         @staticmethod
@@ -276,7 +284,7 @@ cdef extern from "catboost/libs/data_new/objects.h" namespace "NCB":
     cdef cppclass TRawObjectsDataProvider(TObjectsDataProvider):
         void SetGroupIds(TConstArrayRef[TStringBuf] groupStringIds) except +ProcessException
         void SetSubgroupIds(TConstArrayRef[TStringBuf] subgroupStringIds) except +ProcessException
-        TVector[float] GetFeatureDataOldFormat(ui32 flatFeatureIdx) except +ProcessException
+        TMaybeOwningArrayHolder[float] GetFeatureDataOldFormat(ui32 flatFeatureIdx, TLocalExecutor* localExecutor) except +ProcessException
 
     cdef THashMap[ui32, TString] MergeCatFeaturesHashToString(const TObjectsDataProvider& objectsData) except +ProcessException
 
@@ -564,11 +572,6 @@ cdef extern from "library/json/writer/json_value.h" namespace "NJson":
 cdef extern from "library/containers/2d_array/2d_array.h":
     cdef cppclass TArray2D[T]:
         T* operator[] (size_t index) const
-
-cdef extern from "library/threading/local_executor/local_executor.h" namespace "NPar":
-    cdef cppclass TLocalExecutor:
-        TLocalExecutor() nogil
-        void RunAdditionalThreads(int threadCount) nogil except +ProcessException
 
 cdef extern from "util/system/info.h" namespace "NSystemInfo":
     cdef size_t CachedNumberOfCpus() except +ProcessException
@@ -2447,7 +2450,10 @@ cdef class _PoolBase:
 
 
     cdef _get_feature(self, TRawObjectsDataProvider* raw_objects_data_provider, factor_idx, dst_data):
-        cdef TVector[float] factorData = raw_objects_data_provider[0].GetFeatureDataOldFormat(factor_idx)
+        cdef TMaybeOwningArrayHolder[float] factorData = raw_objects_data_provider[0].GetFeatureDataOldFormat(
+            factor_idx,
+            <TLocalExecutor*>nullptr
+        )
         for doc in range(self.num_row()):
             dst_data[doc, factor_idx] = factorData[doc]
 

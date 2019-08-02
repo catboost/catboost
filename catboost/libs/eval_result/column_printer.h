@@ -52,6 +52,12 @@ namespace NCB {
         {
         }
 
+        TArrayPrinter(TMaybeOwningConstArrayHolder<T>&& array, const TString& header)
+            : Array(std::move(array))
+            , Header(header)
+        {
+        }
+
         void OutputValue(IOutputStream* outStream, size_t docIndex) override {
             *outStream << (*Array)[docIndex];
         }
@@ -147,7 +153,7 @@ namespace NCB {
 
     class TCatFeaturePrinter: public IColumnPrinter {
     public:
-        TCatFeaturePrinter(TVector<ui32>&& hashedValues,
+        TCatFeaturePrinter(TMaybeOwningArrayHolder<ui32>&& hashedValues,
                            const THashMap<ui32, TString>& hashToString,
                            const TString& header)
             : HashedValues(std::move(hashedValues))
@@ -165,7 +171,7 @@ namespace NCB {
         }
 
     private:
-        const TVector<ui32> HashedValues;
+        const TMaybeOwningArrayHolder<ui32> HashedValues;
         const THashMap<ui32, TString>& HashToString;
         const TString Header;
     };

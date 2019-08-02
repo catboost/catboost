@@ -6,6 +6,7 @@
 #include <library/containers/dense_hash/dense_hash.h>
 
 #include <util/generic/vector.h>
+#include <util/system/yassert.h>
 
 #include <functional>
 
@@ -19,7 +20,49 @@ struct TCalcHashInBundleContext {
 };
 
 
-template <class IFeatureColumn, class F>
+template <class T, NCB::EFeatureValuesType FeatureValuesType, class F> // F args are (index, value)
+inline void ProcessColumnForCalcHashes(
+    const NCB::TTypedFeatureValuesHolder<T, FeatureValuesType>& column,
+    const NCB::TFeaturesArraySubsetIndexing& featuresSubsetIndexing,
+    F&& f) {
+
+    using TDenseHolder = NCB::TCompressedValuesHolderImpl<T, FeatureValuesType>;
+
+    if (const auto* denseColumnData = dynamic_cast<const TDenseHolder*>(&column)) {
+        const TCompressedArray& compressedArray = *denseColumnData->GetCompressedData().GetSrc();
+
+        NCB::DispatchBitsPerKeyToDataType(
+            compressedArray,
+            "ProcessColumnForCalcHashes",
+            [&] (const auto* histogram) {
+                featuresSubsetIndexing.ForEach(
+                    [histogram, f] (ui32 i, ui32 srcIdx) {
+                        f(i, histogram[srcIdx]);
+                    }
+                );
+            }
+        );
+    } else {
+        Y_FAIL("ProcessColumnForCalcHashes: unexpected column type");
+    }
+}
+
+template <class T, NCB::EFeatureValuesType FeatureValuesType, class TGetBinFromHistogramValue, class F>
+inline void ProcessColumnForCalcHashes(
+    const NCB::TTypedFeatureValuesHolder<T, FeatureValuesType>& column,
+    const NCB::TFeaturesArraySubsetIndexing& featuresSubsetIndexing,
+    TGetBinFromHistogramValue&& getBinFromHistogramValue,
+    F&& f) {
+
+    ProcessColumnForCalcHashes(
+        column,
+        featuresSubsetIndexing,
+        [f, getBinFromHistogramValue] (ui32 i, auto value) {
+            f(i, getBinFromHistogramValue(value));
+        });
+}
+
+template <class T, NCB::EFeatureValuesType FeatureValuesType, class F>
 inline void ProcessFeatureForCalcHashes(
     TMaybe<NCB::TExclusiveBundleIndex> maybeExclusiveBundleIndex,
     TMaybe<NCB::TPackedBinaryIndex> maybeBinaryIndex,
@@ -29,9 +72,10 @@ inline void ProcessFeatureForCalcHashes(
     TArrayRef<TVector<TCalcHashInBundleContext>> featuresInBundles,
     TArrayRef<NCB::TBinaryFeaturesPack> binaryFeaturesBitMasks,
     TArrayRef<NCB::TBinaryFeaturesPack> projBinaryFeatureValues,
-    std::function<const IFeatureColumn*()>&& getFeatureColumn,
-    std::function<NCB::TFeaturesBundleArraySubset(int)>&& getExclusiveFeatureBundle,
-    std::function<NCB::TPackedBinaryFeaturesArraySubset(int)>&& getBinaryFeaturesPack,
+    std::function<const NCB::TTypedFeatureValuesHolder<T, FeatureValuesType>*()>&& getFeatureColumn,
+    std::function<const NCB::TExclusiveFeaturesBundle(ui32)>&& getExclusiveFeatureBundleMetaData,
+    std::function<const NCB::TExclusiveFeatureBundleHolder*(ui32)>&& getExclusiveFeatureBundle,
+    std::function<const NCB::TBinaryPacksHolder*(ui32)>&& getBinaryFeaturesPack,
     F&& f) {
 
     if (maybeExclusiveBundleIndex) {
@@ -44,34 +88,19 @@ inline void ProcessFeatureForCalcHashes(
                 std::move(calcHashInBundleContext)
             );
         } else {
-            NCB::TFeaturesBundleArraySubset featuresBundleArraySubset = getExclusiveFeatureBundle(
-                maybeExclusiveBundleIndex->BundleIdx
+            const ui32 bundleIdx = maybeExclusiveBundleIndex->BundleIdx;
+            const auto& metaData = getExclusiveFeatureBundleMetaData(bundleIdx);
+            const NCB::TBoundsInBundle boundsInBundle
+                = metaData.Parts[maybeExclusiveBundleIndex->InBundleIdx].Bounds;
+
+            ProcessColumnForCalcHashes(
+                *getExclusiveFeatureBundle(bundleIdx),
+                featuresSubsetIndexing,
+                [boundsInBundle] (auto bundleData) {
+                    return NCB::GetBinFromBundle<decltype(bundleData)>(bundleData, boundsInBundle);
+                },
+                std::move(f)
             );
-            const auto& metaData = *featuresBundleArraySubset.MetaData;
-            auto boundsInBundle = metaData.Parts[maybeExclusiveBundleIndex->InBundleIdx].Bounds;
-
-            auto iterateFunction = [&] (const auto* bundlesSrcData) {
-                featuresSubsetIndexing.ForEach(
-                    [&, bundlesSrcData, boundsInBundle] (ui32 i, ui32 srcIdx) {
-                        auto bundleData = bundlesSrcData[srcIdx];
-                        f(i, NCB::GetBinFromBundle<decltype(bundleData)>(bundleData, boundsInBundle));
-                    }
-                );
-            };
-
-            switch (metaData.SizeInBytes) {
-                case 1:
-                    iterateFunction(featuresBundleArraySubset.SrcData.data());
-                    break;
-                case 2:
-                    iterateFunction((const ui16*)featuresBundleArraySubset.SrcData.data());
-                    break;
-                default:
-                    CB_ENSURE_INTERNAL(
-                        false,
-                        "unsupported Bundle SizeInBytes = " << metaData.SizeInBytes
-                    );
-            }
         }
     } else if (maybeBinaryIndex) {
         NCB::TBinaryFeaturesPack bitMask = NCB::TBinaryFeaturesPack(1) << maybeBinaryIndex->BitIdx;
@@ -83,20 +112,23 @@ inline void ProcessFeatureForCalcHashes(
             }
         } else {
             NCB::TBinaryFeaturesPack bitIdx = maybeBinaryIndex->BitIdx;
-            NCB::TPackedBinaryFeaturesArraySubset packSubset = getBinaryFeaturesPack(maybeBinaryIndex->PackIdx);
 
-            NCB::TPackedBinaryFeaturesArraySubset(
-                packSubset.GetSrc(),
-                &featuresSubsetIndexing
-            ).ForEach(
-                [bitMask, bitIdx, f = std::move(f)] (ui32 i, NCB::TBinaryFeaturesPack featuresPack) {
-                    f(i, (featuresPack & bitMask) >> bitIdx);
-                }
+            ProcessColumnForCalcHashes(
+                *getBinaryFeaturesPack(maybeBinaryIndex->PackIdx),
+                featuresSubsetIndexing,
+                [bitMask, bitIdx] (NCB::TBinaryFeaturesPack featuresPack) {
+                    return (featuresPack & bitMask) >> bitIdx;
+                },
+                std::move(f)
             );
         }
     } else {
-        dynamic_cast<const NCB::TCompressedValuesHolderImpl<IFeatureColumn>*>(getFeatureColumn())
-            ->ForEach(std::move(f), &featuresSubsetIndexing);
+        ProcessColumnForCalcHashes(
+            *getFeatureColumn(),
+            featuresSubsetIndexing,
+            [] (auto value) { return value; },
+            std::move(f)
+        );
     }
 }
 

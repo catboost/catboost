@@ -258,29 +258,19 @@ namespace NCB {
                 );
 
                 if (it->second.IsCategorical) {
-                    const auto arrayData = (*rawObjectsData->GetCatFeature(it->second.Index))->GetArrayData();
-                    TVector<ui32> catFeaturesArray = GetSubset<ui32>(
-                        *arrayData.GetSrc(),
-                        *arrayData.GetSubsetIndexing()
-                    );
-
                     columnPrinter.push_back(
                         MakeHolder<TCatFeaturePrinter>(
-                            std::move(catFeaturesArray),
+                            (*rawObjectsData->GetCatFeature(it->second.Index))->ExtractValues(executor),
                             rawObjectsData->GetCatFeaturesHashToString(it->second.Index),
                             outputColumn
                         )
                     );
                 } else {
-                    const auto arrayData = (*rawObjectsData->GetFloatFeature(it->second.Index))->GetArrayData();
-                    TVector<float> floatFeaturesArray = GetSubset<float>(
-                        *arrayData.GetSrc(),
-                        *arrayData.GetSubsetIndexing()
-                    );
-
+                    TMaybeOwningArrayHolder<float> extractedValues
+                        = (*rawObjectsData->GetFloatFeature(it->second.Index))->ExtractValues(executor);
                     columnPrinter.push_back(
                         MakeHolder<TArrayPrinter<float>>(
-                            std::move(floatFeaturesArray),
+                            TMaybeOwningConstArrayHolder<float>::CreateOwningReinterpretCast(extractedValues),
                             outputColumn
                         )
                     );

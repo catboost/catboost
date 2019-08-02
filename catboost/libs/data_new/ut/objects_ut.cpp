@@ -311,8 +311,8 @@ Y_UNIT_TEST_SUITE(TRawObjectsData) {
                 for (auto i : xrange(subsetFloatFeatures.size())) {
                     UNIT_ASSERT(
                         Equal<float>(
-                            subsetFloatFeatures[i],
-                            (*objectsDataProvider.GetFloatFeature(i))->GetArrayData()
+                            *(*objectsDataProvider.GetFloatFeature(i))->ExtractValues(&localExecutor),
+                            subsetFloatFeatures[i]
                         )
                     );
                 }
@@ -321,8 +321,8 @@ Y_UNIT_TEST_SUITE(TRawObjectsData) {
                 for (auto i : xrange(subsetCatFeatures.size())) {
                     UNIT_ASSERT(
                         Equal<ui32>(
-                            subsetCatFeatures[i],
-                            (*objectsDataProvider.GetCatFeature(i))->GetArrayData()
+                            *(*objectsDataProvider.GetCatFeature(i))->ExtractValues(&localExecutor),
+                            subsetCatFeatures[i]
                         )
                     );
                 }
@@ -876,9 +876,9 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
                         for (auto i : xrange(subsetFloatFeatures.size())) {
                             UNIT_ASSERT(
                                 Equal<ui8>(
-                                    subsetFloatFeatures[i],
-                                    (*quantizedForCPUObjectsDataProvider.GetNonPackedFloatFeature(i))
-                                        ->GetArrayData<ui8>()
+                                    *((**quantizedForCPUObjectsDataProvider.GetNonPackedFloatFeature(i))
+                                        .ExtractValues(&localExecutor)),
+                                    subsetFloatFeatures[i]
                                 )
                             );
                         }
@@ -888,9 +888,9 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
                         for (auto i : xrange(subsetCatFeatures.size())) {
                             UNIT_ASSERT(
                                 Equal<ui32>(
-                                    subsetCatFeatures[i],
-                                    (*quantizedForCPUObjectsDataProvider.GetNonPackedCatFeature(i))
-                                        ->GetArrayData<ui32>()
+                                    *((**quantizedForCPUObjectsDataProvider.GetNonPackedCatFeature(i))
+                                        .ExtractValues(&localExecutor)),
+                                    subsetCatFeatures[i]
                                 )
                             );
 

@@ -10,6 +10,7 @@
 #include <catboost/libs/cat_feature/cat_feature.h>
 #include <catboost/libs/data_new/model_dataset_compatibility.h>
 #include <catboost/libs/helpers/dense_hash.h>
+#include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/model/cpu/evaluator.h>
 #include <catboost/libs/model/model.h>
 
@@ -34,25 +35,6 @@ static inline ui16 GetFeatureSplitIdx(const TSplit& split) {
     return split.BinBorder;
 }
 
-static inline const TVariant<const ui8*, const ui16*> GetFloatHistogram(
-    const TSplit& split,
-    const TQuantizedForCPUObjectsDataProvider& objectsDataProvider) {
-
-    const auto* featureColumnHolder = *objectsDataProvider.GetNonPackedFloatFeature((ui32)split.FeatureIdx);
-    if (featureColumnHolder->GetBitsPerKey() == 8) {
-        return *featureColumnHolder->GetArrayData<ui8>().GetSrc();
-    } else {
-        return *featureColumnHolder->GetArrayData<ui16>().GetSrc();
-    }
-}
-
-static inline const ui32* GetRemappedCatFeatures(
-    const TSplit& split,
-    const TQuantizedForCPUObjectsDataProvider& objectsDataProvider) {
-
-    return *(*objectsDataProvider.GetNonPackedCatFeature((ui32)split.FeatureIdx))
-        ->GetArrayData<ui32>().GetSrc();
-}
 
 template <typename TCount, typename TCmpOp, int VectorWidth>
 inline void UpdateIndicesKernel(
@@ -84,19 +66,17 @@ inline void UpdateIndicesKernel(
 
 template <typename TCount, typename TCmpOp>
 inline void UpdateIndicesForSplit(
-    const NPar::TLocalExecutor::TExecRangeParams& params,
-    int blockIdx,
     const ui32* permutation,
     const TCount* histogram,
+    TIndexRange<ui32> indexRange,
     TCmpOp cmpOp,
     int level,
     TIndexType* indices) {
 
-    const int blockStart = blockIdx * params.GetBlockSize();
-    const int nextBlockStart = Min<ui64>(blockStart + params.GetBlockSize(), params.LastId);
     constexpr int vectorWidth = 4;
-    int doc;
-    for (doc = blockStart; doc + vectorWidth <= nextBlockStart; doc += vectorWidth) {
+
+    ui32 doc;
+    for (doc = indexRange.Begin; doc + vectorWidth <= indexRange.End; doc += vectorWidth) {
         UpdateIndicesKernel<TCount, TCmpOp, vectorWidth>(
             permutation + doc,
             histogram,
@@ -104,87 +84,213 @@ inline void UpdateIndicesForSplit(
             level,
             indices + doc);
     }
-    for (; doc < nextBlockStart; ++doc) {
+    for (; doc < indexRange.End; ++doc) {
         const int idxOriginal = permutation[doc];
         indices[doc] += cmpOp(histogram[idxOriginal]) * level;
     }
 }
 
-
-template <typename TCount, class TCmpOp>
-inline void UpdateIndicesForSplit(
-    const NPar::TLocalExecutor::TExecRangeParams& params,
-    int blockIdx,
-    TMaybe<TExclusiveBundleIndex> maybeExclusiveBundleIndex,
-    TMaybe<TPackedBinaryIndex> maybeBinaryIndex,
-    const ui32* permutation,
-    const TCount* histogram, // can be nullptr if maybeBinaryIndex
-    std::function<TFeaturesBundleArraySubset(ui32)>&& getExclusiveFeaturesBundle,
-    std::function<TPackedBinaryFeaturesArraySubset(ui32)>&& getBinaryFeaturesPack,
+template <typename T, EFeatureValuesType FeatureValuesType, class TCmpOp>
+inline void ScheduleUpdateIndicesForSplit(
+    const TIndexedSubset<ui32>& columnsIndexing,
+    const TTypedFeatureValuesHolder<T, FeatureValuesType>& column,
     TCmpOp cmpOp,
     int level,
-    TIndexType* indices) {
+    TIndexType* indices,
+    TVector<std::function<void(TIndexRange<ui32>)>>* updateBlockCallbacks) {
+
+    if (const auto* columnData
+            = dynamic_cast<const TCompressedValuesHolderImpl<T, FeatureValuesType>*>(&column))
+    {
+        const auto* columnsIndexingPtr = &columnsIndexing;
+        const TCompressedArray* compressedArray = columnData->GetCompressedData().GetSrc();
+
+        updateBlockCallbacks->push_back(
+            [columnsIndexingPtr,
+             cmpOp,
+             level,
+             indices,
+             compressedArray]
+                (TIndexRange<ui32> indexRange) {
+
+                NCB::DispatchBitsPerKeyToDataType(
+                    *compressedArray,
+                    "UpdateIndicesForSplit",
+                    [=] (const auto* histogram) {
+                        UpdateIndicesForSplit(
+                            columnsIndexingPtr->data(),
+                            histogram,
+                            indexRange,
+                            cmpOp,
+                            level,
+                            indices);
+                    });
+            });
+    } else {
+        CB_ENSURE_INTERNAL(false, "UpdateIndicesForSplit: unsupported column type");
+    }
+}
+
+
+template <typename T, EFeatureValuesType FeatureValuesType, class TCmpOp>
+void ScheduleUpdateIndicesForSplit(
+    TMaybe<TExclusiveBundleIndex> maybeExclusiveBundleIndex,
+    TMaybe<TPackedBinaryIndex> maybeBinaryIndex,
+    TConstArrayRef<TExclusiveFeaturesBundle> exclusiveFeaturesBundlesMetaData,
+    const TIndexedSubset<ui32>& columnsIndexing,
+    const TTypedFeatureValuesHolder<T, FeatureValuesType>& column,
+    std::function<const TExclusiveFeatureBundleHolder*(ui32)>&& getExclusiveFeaturesBundle,
+    std::function<const TBinaryPacksHolder*(ui32)>&& getBinaryFeaturesPack,
+    TCmpOp cmpOp,
+    int level,
+    TIndexType* indices,
+    TVector<std::function<void(TIndexRange<ui32>)>>* updateBlockCallbacks) {
+
+    auto scheduleUpdateIndicesForSplit = [&] (const auto& column, auto&& cmpOp) {
+        ScheduleUpdateIndicesForSplit(
+            columnsIndexing,
+            column,
+            std::move(cmpOp),
+            level,
+            indices,
+            updateBlockCallbacks);
+    };
 
     if (maybeBinaryIndex) {
         TBinaryFeaturesPack bitMask = TBinaryFeaturesPack(1) << maybeBinaryIndex->BitIdx;
         TBinaryFeaturesPack bitIdx = maybeBinaryIndex->BitIdx;
 
-        NCB::TPackedBinaryFeaturesArraySubset packSubset = getBinaryFeaturesPack(maybeBinaryIndex->PackIdx);
-
-        UpdateIndicesForSplit(
-            params,
-            blockIdx,
-            permutation,
-            (**packSubset.GetSrc()).data(),
+        scheduleUpdateIndicesForSplit(
+            *getBinaryFeaturesPack(maybeBinaryIndex->PackIdx),
             [bitMask, bitIdx, cmpOp = std::move(cmpOp)] (NCB::TBinaryFeaturesPack featuresPack) {
                 return cmpOp((featuresPack & bitMask) >> bitIdx);
-            },
-            level,
-            indices);
+            });
     } else if (maybeExclusiveBundleIndex) {
+        auto boundsInBundle
+            = exclusiveFeaturesBundlesMetaData[maybeExclusiveBundleIndex->BundleIdx]
+                .Parts[maybeExclusiveBundleIndex->InBundleIdx].Bounds;
 
-        TFeaturesBundleArraySubset bundleSubset
-            = getExclusiveFeaturesBundle(maybeExclusiveBundleIndex->BundleIdx);
-
-        auto boundsInBundle = bundleSubset.MetaData->Parts[maybeExclusiveBundleIndex->InBundleIdx].Bounds;
-
-        auto updateIndicesForSplit = [&] (const auto* histogram) {
-            UpdateIndicesForSplit(
-                params,
-                blockIdx,
-                permutation,
-                histogram,
-                [boundsInBundle, cmpOp = std::move(cmpOp)] (auto featuresBundle) {
-                    return cmpOp(GetBinFromBundle<TCount>(featuresBundle, boundsInBundle));
-                },
-                level,
-                indices);
-        };
-
-        switch (bundleSubset.MetaData->SizeInBytes) {
-            case 1:
-                updateIndicesForSplit(bundleSubset.SrcData.data());
-                break;
-            case 2:
-                updateIndicesForSplit((const ui16*)bundleSubset.SrcData.data());
-                break;
-            default:
-                CB_ENSURE_INTERNAL(
-                    false,
-                    "unsupported Bundle SizeInBytes = " << bundleSubset.MetaData->SizeInBytes);
-        }
+        scheduleUpdateIndicesForSplit(
+            *getExclusiveFeaturesBundle(maybeExclusiveBundleIndex->BundleIdx),
+            [boundsInBundle, cmpOp = std::move(cmpOp)] (ui16 featuresBundle) {
+                return cmpOp(GetBinFromBundle<ui16>(featuresBundle, boundsInBundle));
+            });
     } else {
-        UpdateIndicesForSplit(
-            params,
-            blockIdx,
-            permutation,
-            histogram,
-            std::move(cmpOp),
-            level,
-            indices);
+        scheduleUpdateIndicesForSplit(column, std::move(cmpOp));
     }
 }
 
+struct TUpdateIndicesForSplitParams {
+    ui32 Depth;
+    const TSplit& Split;
+    const TOnlineCTR* OnlineCtr;
+};
+
+
+static void UpdateIndices(
+    bool initIndices,
+    TConstArrayRef<TUpdateIndicesForSplitParams> params,
+    ui32 onlineCtrObjectOffset,
+    const TQuantizedForCPUObjectsDataProvider& objectsDataProvider,
+    const TIndexedSubset<ui32>& columnsIndexing,
+    NPar::TLocalExecutor* localExecutor,
+    TArrayRef<TIndexType> indices) {
+
+    TIndexType defaultIndexValue = 0;
+
+    TVector<std::function<void(TIndexRange<ui32>)>> updateBlockCallbacks;
+
+    TIndexType* indicesData = indices.data();
+
+    for (const auto& splitParams : params) {
+        const ui32 splitWeight = 1 << splitParams.Depth;
+        const auto& split = splitParams.Split;
+
+        if (split.Type == ESplitType::OnlineCtr) {
+            updateBlockCallbacks.push_back(
+                [=, ctr=splitParams.OnlineCtr] (TIndexRange<ui32> indexRange) {
+                    for (auto i : indexRange.Iter()) {
+                        indicesData[i] += GetCtrSplit(split, onlineCtrObjectOffset + i, *ctr) * splitWeight;
+                    }
+                });
+        } else {
+            auto scheduleUpdateIndicesForSplit = [&] (
+                auto maybeExclusiveBundleIndex,
+                auto maybeBinaryIndex,
+                const auto& column,
+                auto&& cmpOp) {
+
+                ScheduleUpdateIndicesForSplit(
+                    maybeExclusiveBundleIndex,
+                    maybeBinaryIndex,
+                    objectsDataProvider.GetExclusiveFeatureBundlesMetaData(),
+                    columnsIndexing,
+                    column,
+                    [&] (ui32 bundleIdx) {
+                        return &objectsDataProvider.GetExclusiveFeaturesBundle(bundleIdx);
+                    },
+                    [&] (ui32 packIdx) { return &objectsDataProvider.GetBinaryFeaturesPack(packIdx); },
+                    std::move(cmpOp),
+                    splitWeight,
+                    indicesData,
+                    &updateBlockCallbacks);
+            };
+
+
+            if (split.Type == ESplitType::FloatFeature) {
+                auto floatFeatureIdx = TFloatFeatureIdx((ui32)split.FeatureIdx);
+
+                scheduleUpdateIndicesForSplit(
+                    objectsDataProvider.GetFloatFeatureToExclusiveBundleIndex(floatFeatureIdx),
+                    objectsDataProvider.GetFloatFeatureToPackedBinaryIndex(floatFeatureIdx),
+                    **objectsDataProvider.GetFloatFeature((ui32)split.FeatureIdx),
+                    [splitIdx = GetFeatureSplitIdx(split)] (ui16 bucket) {
+                        return IsTrueHistogram<ui16>(bucket, splitIdx);
+                    });
+            } else {
+                Y_ASSERT(split.Type == ESplitType::OneHotFeature);
+
+                auto catFeatureIdx = TCatFeatureIdx((ui32)split.FeatureIdx);
+
+                scheduleUpdateIndicesForSplit(
+                    objectsDataProvider.GetCatFeatureToExclusiveBundleIndex(catFeatureIdx),
+                    objectsDataProvider.GetCatFeatureToPackedBinaryIndex(catFeatureIdx),
+                    **objectsDataProvider.GetCatFeature((ui32)split.FeatureIdx),
+                    [bucketIdx = (ui32)split.BinBorder] (ui32 bucket) {
+                        return IsTrueOneHotFeature(bucket, bucketIdx);
+                    });
+            }
+        }
+    }
+
+    const ui32 blockSize = 1000;
+
+    TSimpleIndexRangesGenerator<ui32> indexRanges(
+        TIndexRange<ui32>(SafeIntegerCast<ui32>(indices.size())),
+        blockSize);
+
+    NPar::ParallelFor(
+        *localExecutor,
+        0,
+        SafeIntegerCast<int>(indexRanges.RangesCount()),
+        [&, defaultIndexValue] (int blockIdx) {
+            auto indexRange = indexRanges.GetRange((int)blockIdx);
+
+            if (initIndices) {
+                for (auto i : indexRange.Iter()) {
+                    indicesData[i] = defaultIndexValue;
+                }
+            } else {
+                for (auto i : indexRange.Iter()) {
+                    indicesData[i] += defaultIndexValue;
+                }
+            }
+
+            for (auto& updateBlockCallback : updateBlockCallbacks) {
+                updateBlockCallback(indexRange);
+            }
+        });
+}
 
 void SetPermutedIndices(
     const TSplit& split,
@@ -196,102 +302,21 @@ void SetPermutedIndices(
 
     CB_ENSURE(curDepth > 0);
 
-    const int blockSize = 1000;
-    NPar::TLocalExecutor::TExecRangeParams blockParams(0, indices->ysize());
-    blockParams.SetBlockSize(blockSize);
-
-    const int splitWeight = 1 << (curDepth - 1);
-    TIndexType* indicesData = indices->data();
-    if (split.Type == ESplitType::FloatFeature) {
-        auto floatFeatureIdx = TFloatFeatureIdx((ui32)split.FeatureIdx);
-
-        TVariant<const ui8*, const ui16*> histogram;
-        auto maybeExclusiveFeaturesBundleIndex
-            = objectsDataProvider.GetFloatFeatureToExclusiveBundleIndex(floatFeatureIdx);
-        auto maybeBinaryIndex = objectsDataProvider.GetFloatFeatureToPackedBinaryIndex(floatFeatureIdx);
-        if (!maybeExclusiveFeaturesBundleIndex && !maybeBinaryIndex) {
-            histogram = GetFloatHistogram(split, objectsDataProvider);
-        }
-
-        localExecutor->ExecRange(
-            [&](int blockIdx) {
-                if (HoldsAlternative<const ui8*>(histogram)) {
-                    UpdateIndicesForSplit(
-                        blockParams,
-                        blockIdx,
-                        maybeExclusiveFeaturesBundleIndex,
-                        maybeBinaryIndex,
-                        fold.LearnPermutationFeaturesSubset.Get<TIndexedSubset<ui32>>().data(),
-                        Get<const ui8*>(histogram),
-                        [&] (ui32 bundleIdx) { return objectsDataProvider.GetExclusiveFeaturesBundle(bundleIdx); },
-                        [&] (ui32 packIdx) { return objectsDataProvider.GetBinaryFeaturesPack(packIdx); },
-                        [splitIdx = GetFeatureSplitIdx(split)] (ui8 bucket) {
-                            return IsTrueHistogram<ui8>(bucket, splitIdx);
-                        },
-                        splitWeight,
-                        indicesData);
-                } else {
-                    UpdateIndicesForSplit(
-                        blockParams,
-                        blockIdx,
-                        maybeExclusiveFeaturesBundleIndex,
-                        maybeBinaryIndex,
-                        fold.LearnPermutationFeaturesSubset.Get<TIndexedSubset<ui32>>().data(),
-                        Get<const ui16*>(histogram),
-                        [&] (ui32 bundleIdx) { return objectsDataProvider.GetExclusiveFeaturesBundle(bundleIdx); },
-                        [&] (ui32 packIdx) { return objectsDataProvider.GetBinaryFeaturesPack(packIdx); },
-                        [splitIdx = GetFeatureSplitIdx(split)] (ui16 bucket) {
-                            return IsTrueHistogram<ui16>(bucket, splitIdx);
-                        },
-                        splitWeight,
-                        indicesData);
-                }
-            },
-            0,
-            blockParams.GetBlockCount(),
-            NPar::TLocalExecutor::WAIT_COMPLETE);
-    } else if (split.Type == ESplitType::OnlineCtr) {
-        auto& ctr = fold.GetCtr(split.Ctr.Projection);
-        localExecutor->ExecRange(
-            [&] (int i) {
-                indicesData[i] += GetCtrSplit(split, i, ctr) * splitWeight;
-            },
-            blockParams,
-            NPar::TLocalExecutor::WAIT_COMPLETE);
-    } else {
-        Y_ASSERT(split.Type == ESplitType::OneHotFeature);
-
-        auto catFeatureIdx = TCatFeatureIdx((ui32)split.FeatureIdx);
-
-        const ui32* histogram = nullptr;
-        auto maybeBinaryIndex = objectsDataProvider.GetCatFeatureToPackedBinaryIndex(catFeatureIdx);
-        auto maybeExclusiveFeaturesBundleIndex
-            = objectsDataProvider.GetCatFeatureToExclusiveBundleIndex(catFeatureIdx);
-        if (!maybeExclusiveFeaturesBundleIndex && !maybeBinaryIndex) {
-            histogram = GetRemappedCatFeatures(split, objectsDataProvider);
-        }
-
-        localExecutor->ExecRange(
-            [&] (int blockIdx) {
-                UpdateIndicesForSplit(
-                    blockParams,
-                    blockIdx,
-                    maybeExclusiveFeaturesBundleIndex,
-                    maybeBinaryIndex,
-                    fold.LearnPermutationFeaturesSubset.Get<TIndexedSubset<ui32>>().data(),
-                    histogram,
-                    [&] (ui32 bundleIdx) { return objectsDataProvider.GetExclusiveFeaturesBundle(bundleIdx); },
-                    [&] (ui32 packIdx) { return objectsDataProvider.GetBinaryFeaturesPack(packIdx); },
-                    [bucketIdx = (ui32)split.BinBorder] (ui32 bucket) {
-                        return IsTrueOneHotFeature(bucket, bucketIdx);
-                    },
-                    splitWeight,
-                    indicesData);
-            },
-            0,
-            blockParams.GetBlockCount(),
-            NPar::TLocalExecutor::WAIT_COMPLETE);
+    const TOnlineCTR* onlineCtr = nullptr;
+    if (split.Type == ESplitType::OnlineCtr) {
+        onlineCtr = &fold.GetCtr(split.Ctr.Projection);
     }
+
+    TUpdateIndicesForSplitParams params{ (ui32)(curDepth - 1), split, onlineCtr };
+
+    UpdateIndices(
+        /*initIndices*/ false,
+        TConstArrayRef<TUpdateIndicesForSplitParams>(&params, 1),
+        /*onlineCtrObjectOffset*/ 0,
+        objectsDataProvider,
+        fold.LearnPermutationFeaturesSubset.Get<TIndexedSubset<ui32>>(),
+        localExecutor,
+        *indices);
 }
 
 TVector<bool> GetIsLeafEmpty(int curDepth, const TVector<TIndexType>& indices) {
@@ -346,125 +371,39 @@ static void BuildIndicesForDataset(
     const NCB::TFeaturesArraySubsetIndexing& featuresArraySubsetIndexing,
     ui32 sampleCount,
     const TVector<const TOnlineCTR*>& onlineCtrs,
-    int docOffset,
+    ui32 docOffset,
     NPar::TLocalExecutor* localExecutor,
     TIndexType* indices) {
 
-    const ui32* permutation = nullptr;
-    TVector<ui32> permutationStorage;
-    if (HoldsAlternative<TIndexedSubset<ui32>>(featuresArraySubsetIndexing)) {
-        permutation = featuresArraySubsetIndexing.Get<TIndexedSubset<ui32>>().data();
-    } else {
-        permutationStorage.yresize(featuresArraySubsetIndexing.Size());
+    TIndexedSubset<ui32> columnsIndexingStorage;
+
+    const TIndexedSubset<ui32>* columnsIndexing
+        = GetIf<TIndexedSubset<ui32>>(&featuresArraySubsetIndexing);
+
+    if (!columnsIndexing) {
+        columnsIndexingStorage.yresize(featuresArraySubsetIndexing.Size());
         featuresArraySubsetIndexing.ParallelForEach(
-            [&](ui32 idx, ui32 srcIdx) { permutationStorage[idx] = srcIdx; },
+            [&](ui32 idx, ui32 srcIdx) { columnsIndexingStorage[idx] = srcIdx; },
             localExecutor);
-        permutation = permutationStorage.data();
+        columnsIndexing = &columnsIndexingStorage;
     }
 
-    const int blockSize = 1000;
-    NPar::TLocalExecutor::TExecRangeParams blockParams(0, (int)sampleCount);
-    blockParams.SetBlockSize(blockSize);
 
-    // precalc to avoid recalculation in each block
-    TVector<TVariant<const ui8*, const ui16*>> splitFloatHistograms;
-    splitFloatHistograms.yresize(tree.GetDepth());
-
-    TVector<const ui32*> splitRemappedCatHistograms;
-    splitRemappedCatHistograms.yresize(tree.GetDepth());
+    TVector<TUpdateIndicesForSplitParams> params;
+    params.reserve(tree.GetDepth());
 
     for (auto splitIdx : xrange(tree.GetDepth())) {
-        const auto& split = tree.Splits[splitIdx];
-        if (split.Type == ESplitType::FloatFeature) {
-            auto floatFeatureIdx = TFloatFeatureIdx((ui32)split.FeatureIdx);
-            if (!objectsDataProvider.IsFeaturePackedBinary(floatFeatureIdx) &&
-                !objectsDataProvider.IsFeatureInExclusiveBundle(floatFeatureIdx))
-            {
-                splitFloatHistograms[splitIdx] = GetFloatHistogram(split, objectsDataProvider);
-            }
-        } else if (split.Type == ESplitType::OneHotFeature) {
-            auto catFeatureIdx = TCatFeatureIdx((ui32)split.FeatureIdx);
-            if (!objectsDataProvider.IsFeaturePackedBinary(catFeatureIdx) &&
-                !objectsDataProvider.IsFeatureInExclusiveBundle(catFeatureIdx))
-            {
-                splitRemappedCatHistograms[splitIdx] = GetRemappedCatFeatures(split, objectsDataProvider);
-            }
-        }
+        params.push_back({(ui32)splitIdx, tree.Splits[splitIdx], onlineCtrs[splitIdx]});
     }
 
-
-    auto updateLearnIndex = [&](int blockIdx) {
-        for (int splitIdx = 0; splitIdx < tree.GetDepth(); ++splitIdx) {
-            const auto& split = tree.Splits[splitIdx];
-            const int splitWeight = 1 << splitIdx;
-            if (split.Type == ESplitType::FloatFeature) {
-                auto floatFeatureIdx = TFloatFeatureIdx((ui32)split.FeatureIdx);
-                if (HoldsAlternative<const ui8*>(splitFloatHistograms[splitIdx])) {
-                    UpdateIndicesForSplit(
-                        blockParams,
-                        blockIdx,
-                        objectsDataProvider.GetFloatFeatureToExclusiveBundleIndex(floatFeatureIdx),
-                        objectsDataProvider.GetFloatFeatureToPackedBinaryIndex(floatFeatureIdx),
-                        permutation,
-                        Get<const ui8*>(splitFloatHistograms[splitIdx]),
-                        [&](ui32 bundleIdx) { return objectsDataProvider.GetExclusiveFeaturesBundle(bundleIdx); },
-                        [&](ui32 packIdx) { return objectsDataProvider.GetBinaryFeaturesPack(packIdx); },
-                        [splitIdx = GetFeatureSplitIdx(split)](ui8 bucket) {
-                            return IsTrueHistogram<ui8>(bucket, splitIdx);
-                        },
-                        splitWeight,
-                        indices);
-                } else {
-                    UpdateIndicesForSplit(
-                        blockParams,
-                        blockIdx,
-                        objectsDataProvider.GetFloatFeatureToExclusiveBundleIndex(floatFeatureIdx),
-                        objectsDataProvider.GetFloatFeatureToPackedBinaryIndex(floatFeatureIdx),
-                        permutation,
-                        Get<const ui16*>(splitFloatHistograms[splitIdx]),
-                        [&](ui32 bundleIdx) { return objectsDataProvider.GetExclusiveFeaturesBundle(bundleIdx); },
-                        [&](ui32 packIdx) { return objectsDataProvider.GetBinaryFeaturesPack(packIdx); },
-                        [splitIdx = GetFeatureSplitIdx(split)](ui16 bucket) {
-                            return IsTrueHistogram<ui16>(bucket, splitIdx);
-                        },
-                        splitWeight,
-                        indices);
-                }
-            } else if (split.Type == ESplitType::OnlineCtr) {
-                const TOnlineCTR& splitOnlineCtr = *onlineCtrs[splitIdx];
-                NPar::TLocalExecutor::BlockedLoopBody(
-                    blockParams,
-                    [&](int doc) {
-                        indices[doc] += GetCtrSplit(split, doc + docOffset, splitOnlineCtr) * splitWeight;
-                    })(blockIdx);
-            } else {
-                Y_ASSERT(split.Type == ESplitType::OneHotFeature);
-
-                auto catFeatureIdx = TCatFeatureIdx((ui32)split.FeatureIdx);
-
-                UpdateIndicesForSplit(
-                    blockParams,
-                    blockIdx,
-                    objectsDataProvider.GetCatFeatureToExclusiveBundleIndex(catFeatureIdx),
-                    objectsDataProvider.GetCatFeatureToPackedBinaryIndex(catFeatureIdx),
-                    permutation,
-                    splitRemappedCatHistograms[splitIdx],
-                    [&] (ui32 bundleIdx) { return objectsDataProvider.GetExclusiveFeaturesBundle(bundleIdx); },
-                    [&] (ui32 packIdx) { return objectsDataProvider.GetBinaryFeaturesPack(packIdx); },
-                    [bucketIdx = (ui32)split.BinBorder] (ui32 bucket) {
-                        return IsTrueOneHotFeature(bucket, bucketIdx);
-                    },
-                    splitWeight,
-                    indices);
-            }
-        }
-    };
-
-    localExecutor->ExecRange(
-        updateLearnIndex,
-        0,
-        blockParams.GetBlockCount(),
-        NPar::TLocalExecutor::WAIT_COMPLETE);
+    UpdateIndices(
+        /*initIndices*/ true,
+        params,
+        docOffset,
+        objectsDataProvider,
+        *columnsIndexing,
+        localExecutor,
+        MakeArrayRef(indices, sampleCount));
 }
 
 TVector<TIndexType> BuildIndices(
@@ -482,7 +421,8 @@ TVector<TIndexType> BuildIndices(
 
     const TVector<const TOnlineCTR*>& onlineCtrs = GetOnlineCtrs(fold, tree);
 
-    TVector<TIndexType> indices(learnSampleCount + tailSampleCount);
+    TVector<TIndexType> indices;
+    indices.yresize(learnSampleCount + tailSampleCount);
 
     if (learnData) {
         BuildIndicesForDataset(
@@ -504,7 +444,7 @@ TVector<TIndexType> BuildIndices(
             testSet.ObjectsData->GetFeaturesArraySubsetIndexing(),
             testSet.GetObjectCount(),
             onlineCtrs,
-            (int)docOffset,
+            docOffset,
             localExecutor,
             indices.begin() + docOffset);
         docOffset += testSet.GetObjectCount();

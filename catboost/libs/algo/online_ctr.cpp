@@ -394,7 +394,7 @@ void ComputeOnlineCTRs(
         Clear(&hashArr, totalSampleCount);
         TArrayRef<ui64> hashArrView = hashArr;
         if (learnSampleCount > 0) {
-            ProcessFeatureForCalcHashes<IQuantizedCatValuesHolder>(
+            ProcessFeatureForCalcHashes<ui32, EFeatureValuesType::PerfectHashedCategorical>(
                 data.Learn->ObjectsData->GetCatFeatureToExclusiveBundleIndex(catFeatureIdx),
                 data.Learn->ObjectsData->GetCatFeatureToPackedBinaryIndex(catFeatureIdx),
                 fold.LearnPermutationFeaturesSubset,
@@ -404,8 +404,11 @@ void ComputeOnlineCTRs(
                 TArrayRef<TBinaryFeaturesPack>(), // unused
                 TArrayRef<TBinaryFeaturesPack>(), // unused
                 [&]() { return *data.Learn->ObjectsData->GetCatFeature(*catFeatureIdx); },
-                [&](ui32 bundleIdx) { return data.Learn->ObjectsData->GetExclusiveFeaturesBundle(bundleIdx); },
-                [&](ui32 packIdx) { return data.Learn->ObjectsData->GetBinaryFeaturesPack(packIdx); },
+                [&](ui32 bundleIdx) {
+                    return data.Learn->ObjectsData->GetExclusiveFeatureBundlesMetaData()[bundleIdx];
+                },
+                [&](ui32 bundleIdx) { return &data.Learn->ObjectsData->GetExclusiveFeaturesBundle(bundleIdx); },
+                [&](ui32 packIdx) { return &data.Learn->ObjectsData->GetBinaryFeaturesPack(packIdx); },
                 [hashArrView] (ui32 i, ui32 featureValue) {
                     hashArrView[i] = (ui64)featureValue + 1;
                 }
@@ -417,7 +420,7 @@ void ComputeOnlineCTRs(
         {
             const size_t testSampleCount = data.Test[testIdx]->GetObjectCount();
 
-            ProcessFeatureForCalcHashes<IQuantizedCatValuesHolder>(
+            ProcessFeatureForCalcHashes<ui32, EFeatureValuesType::PerfectHashedCategorical>(
                 data.Test[testIdx]->ObjectsData->GetCatFeatureToExclusiveBundleIndex(catFeatureIdx),
                 data.Test[testIdx]->ObjectsData->GetCatFeatureToPackedBinaryIndex(catFeatureIdx),
                 data.Test[testIdx]->ObjectsData->GetFeaturesArraySubsetIndexing(),
@@ -428,9 +431,12 @@ void ComputeOnlineCTRs(
                 TArrayRef<TBinaryFeaturesPack>(), // unused
                 [&]() { return *data.Test[testIdx]->ObjectsData->GetCatFeature(*catFeatureIdx); },
                 [&](ui32 bundleIdx) {
-                    return data.Test[testIdx]->ObjectsData->GetExclusiveFeaturesBundle(bundleIdx);
+                    return data.Test[testIdx]->ObjectsData->GetExclusiveFeatureBundlesMetaData()[bundleIdx];
                 },
-                [&](ui32 packIdx) { return data.Test[testIdx]->ObjectsData->GetBinaryFeaturesPack(packIdx); },
+                [&](ui32 bundleIdx) {
+                    return &data.Test[testIdx]->ObjectsData->GetExclusiveFeaturesBundle(bundleIdx);
+                },
+                [&](ui32 packIdx) { return &data.Test[testIdx]->ObjectsData->GetBinaryFeaturesPack(packIdx); },
                 [hashArrView, docOffset] (ui32 i, ui32 featureValue) {
                     hashArrView[docOffset + i] = (ui64)featureValue + 1;
                 }

@@ -21,7 +21,7 @@ namespace NCB {
         const TVector<TVector<T>>& src,
         const TArraySubsetIndexing<ui32>& indexing,
         TConstArrayRef<ui32> featureIds,
-        TVector<THolder<TArrayValuesHolder<T, TType>>>* dst
+        TVector<THolder<TTypedFeatureValuesHolder<T, TType>>>* dst
     ) {
         for (auto i : xrange(src.size())) {
             dst->emplace_back(
@@ -39,7 +39,7 @@ namespace NCB {
         const TVector<TVector<T>>& src,
         const TArraySubsetIndexing<ui32>& indexing,
         ui32* featureId,
-        TVector<THolder<TArrayValuesHolder<T, TType>>>* dst
+        TVector<THolder<TTypedFeatureValuesHolder<T, TType>>>* dst
     ) {
         TVector<ui32> featureIds(src.size());
         std::iota(featureIds.begin(), featureIds.end(), *featureId);
@@ -47,12 +47,12 @@ namespace NCB {
         *featureId += (ui32)src.size();
     }
 
-    template <class T, class IColumnType>
+    template <class T, class TColumnData, EFeatureValuesType FeatureValuesType>
     void InitQuantizedFeatures(
         const TVector<TVector<T>>& src,
         const TFeaturesArraySubsetIndexing* subsetIndexing,
         TConstArrayRef<ui32> featureIds,
-        TVector<THolder<IColumnType>>* dst
+        TVector<THolder<TTypedFeatureValuesHolder<TColumnData, FeatureValuesType>>>* dst
     ) {
         dst->clear();
         for (auto perTypeFeatureIdx : xrange(src.size())) {
@@ -63,7 +63,7 @@ namespace NCB {
             );
 
             dst->emplace_back(
-                MakeHolder<TCompressedValuesHolderImpl<IColumnType>>(
+                MakeHolder<TCompressedValuesHolderImpl<TColumnData, FeatureValuesType>>(
                     featureIds[perTypeFeatureIdx],
                     TCompressedArray(srcColumn.size(), bitsPerKey, storage),
                     subsetIndexing

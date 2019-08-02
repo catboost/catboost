@@ -47,7 +47,7 @@ void CalcHashes(
 
             const auto& ohv = (*perfectHashedToHashedCatValuesMap)[featureIdx];
 
-            ProcessFeatureForCalcHashes<IQuantizedCatValuesHolder>(
+            ProcessFeatureForCalcHashes<ui32, EFeatureValuesType::PerfectHashedCategorical>(
                 objectsDataProvider.GetCatFeatureToExclusiveBundleIndex(catFeatureIdx),
                 objectsDataProvider.GetCatFeatureToPackedBinaryIndex(catFeatureIdx),
                 featuresSubsetIndexing,
@@ -57,8 +57,9 @@ void CalcHashes(
                 TArrayRef<TBinaryFeaturesPack>(), // unused
                 TArrayRef<TBinaryFeaturesPack>(), // unused
                 [&]() { return *objectsDataProvider.GetCatFeature(*catFeatureIdx); },
-                [&](ui32 bundleIdx) { return objectsDataProvider.GetExclusiveFeaturesBundle(bundleIdx); },
-                [&](ui32 packIdx) { return objectsDataProvider.GetBinaryFeaturesPack(packIdx); },
+                [&](ui32 bundleIdx) { return objectsDataProvider.GetExclusiveFeatureBundlesMetaData()[bundleIdx]; },
+                [&](ui32 bundleIdx) { return &objectsDataProvider.GetExclusiveFeaturesBundle(bundleIdx); },
+                [&](ui32 packIdx) { return &objectsDataProvider.GetBinaryFeaturesPack(packIdx); },
                 [hashArr, &ohv] (ui32 i, ui32 featureValue) {
                     hashArr[i] = CalcHash(hashArr[i], (ui64)(int)ohv[featureValue]);
                 }
@@ -67,7 +68,7 @@ void CalcHashes(
     } else {
         for (const int featureIdx : proj.CatFeatures) {
             auto catFeatureIdx = TCatFeatureIdx((ui32)featureIdx);
-            ProcessFeatureForCalcHashes<IQuantizedCatValuesHolder>(
+            ProcessFeatureForCalcHashes<ui32, EFeatureValuesType::PerfectHashedCategorical>(
                 objectsDataProvider.GetCatFeatureToExclusiveBundleIndex(catFeatureIdx),
                 objectsDataProvider.GetCatFeatureToPackedBinaryIndex(catFeatureIdx),
                 featuresSubsetIndexing,
@@ -77,8 +78,11 @@ void CalcHashes(
                 binaryFeaturesBitMasks,
                 projBinaryFeatureValues,
                 [&]() { return *objectsDataProvider.GetCatFeature(*catFeatureIdx); },
-                [&](ui32 bundleIdx) { return objectsDataProvider.GetExclusiveFeaturesBundle(bundleIdx); },
-                [&](ui32 packIdx) { return objectsDataProvider.GetBinaryFeaturesPack(packIdx); },
+                [&](ui32 bundleIdx) {
+                    return objectsDataProvider.GetExclusiveFeatureBundlesMetaData()[bundleIdx];
+                },
+                [&](ui32 bundleIdx) { return &objectsDataProvider.GetExclusiveFeaturesBundle(bundleIdx); },
+                [&](ui32 packIdx) { return &objectsDataProvider.GetBinaryFeaturesPack(packIdx); },
                 [hashArr] (ui32 i, ui32 featureValue) {
                     hashArr[i] = CalcHash(hashArr[i], (ui64)featureValue + 1);
                 }
@@ -89,7 +93,7 @@ void CalcHashes(
 
     for (const TBinFeature& feature : proj.BinFeatures) {
         auto floatFeatureIdx = TFloatFeatureIdx((ui32)feature.FloatFeature);
-        ProcessFeatureForCalcHashes<IQuantizedFloatValuesHolder>(
+        ProcessFeatureForCalcHashes<ui8, EFeatureValuesType::QuantizedFloat>(
             objectsDataProvider.GetFloatFeatureToExclusiveBundleIndex(floatFeatureIdx),
             objectsDataProvider.GetFloatFeatureToPackedBinaryIndex(floatFeatureIdx),
             featuresSubsetIndexing,
@@ -99,8 +103,11 @@ void CalcHashes(
             binaryFeaturesBitMasks,
             projBinaryFeatureValues,
             [&]() { return *objectsDataProvider.GetFloatFeature(*floatFeatureIdx); },
-            [&](ui32 bundleIdx) { return objectsDataProvider.GetExclusiveFeaturesBundle(bundleIdx); },
-            [&](ui32 packIdx) { return objectsDataProvider.GetBinaryFeaturesPack(packIdx); },
+            [&](ui32 bundleIdx) {
+                return objectsDataProvider.GetExclusiveFeatureBundlesMetaData()[bundleIdx];
+            },
+            [&](ui32 bundleIdx) { return &objectsDataProvider.GetExclusiveFeaturesBundle(bundleIdx); },
+            [&](ui32 packIdx) { return &objectsDataProvider.GetBinaryFeaturesPack(packIdx); },
             [feature, hashArr] (ui32 i, ui32 featureValue) {
                 const bool isTrueFeature = IsTrueHistogram((ui16)featureValue, (ui16)feature.SplitIdx);
                 hashArr[i] = CalcHash(hashArr[i], (ui64)isTrueFeature);
@@ -122,7 +129,7 @@ void CalcHashes(
             maxBin = uniqueValuesCounts.OnLearnOnly;
         }
 
-        ProcessFeatureForCalcHashes<IQuantizedCatValuesHolder>(
+        ProcessFeatureForCalcHashes<ui32, EFeatureValuesType::PerfectHashedCategorical>(
             objectsDataProvider.GetCatFeatureToExclusiveBundleIndex(catFeatureIdx),
             maybeBinaryIndex,
             featuresSubsetIndexing,
@@ -132,8 +139,11 @@ void CalcHashes(
             binaryFeaturesBitMasks,
             projBinaryFeatureValues,
             [&]() { return *objectsDataProvider.GetCatFeature(*catFeatureIdx); },
-            [&](ui32 bundleIdx) { return objectsDataProvider.GetExclusiveFeaturesBundle(bundleIdx); },
-            [&](ui32 packIdx) { return objectsDataProvider.GetBinaryFeaturesPack(packIdx); },
+            [&](ui32 bundleIdx) {
+                return objectsDataProvider.GetExclusiveFeatureBundlesMetaData()[bundleIdx];
+            },
+            [&](ui32 bundleIdx) { return &objectsDataProvider.GetExclusiveFeaturesBundle(bundleIdx); },
+            [&](ui32 packIdx) { return &objectsDataProvider.GetBinaryFeaturesPack(packIdx); },
             [feature, hashArr, maxBin] (ui32 i, ui32 featureValue) {
                 const bool isTrueFeature = IsTrueOneHotFeature(Min(featureValue, maxBin), (ui32)feature.Value);
                 hashArr[i] = CalcHash(hashArr[i], (ui64)isTrueFeature);
@@ -148,10 +158,7 @@ void CalcHashes(
                 continue;
             }
 
-            TFeaturesBundleArraySubset featuresBundleArraySubset
-                = objectsDataProvider.GetExclusiveFeaturesBundle(bundleIdx);
-
-            const auto& metaData = *featuresBundleArraySubset.MetaData;
+            const auto& metaData = objectsDataProvider.GetExclusiveFeatureBundlesMetaData()[bundleIdx];
 
             TVector<TBoundsInBundle> selectedBounds;
 
@@ -159,37 +166,23 @@ void CalcHashes(
                 selectedBounds.push_back(metaData.Parts[featureInBundle.InBundleIdx].Bounds);
             }
 
-            auto iterateFunction = [&] (const auto* bundlesSrcData) {
-                featuresSubsetIndexing.ForEach(
-                    [selectedBounds, featuresInBundle, bundlesSrcData] (ui32 i, ui32 srcIdx) {
-                        auto bundleData = bundlesSrcData[srcIdx];
-
-                        for (auto selectedFeatureIdx : xrange(featuresInBundle.size())) {
-                            featuresInBundle[selectedFeatureIdx].CalcHashCallback(
-                                i,
-                                GetBinFromBundle<decltype(bundleData)>(
-                                    bundleData,
-                                    selectedBounds[selectedFeatureIdx]
-                                )
-                            );
-                        }
-                    }
-                );
+            auto processBundleValue = [&] (ui32 i, ui16 bundleValue) {
+                for (auto selectedFeatureIdx : xrange(featuresInBundle.size())) {
+                    featuresInBundle[selectedFeatureIdx].CalcHashCallback(
+                        i,
+                        GetBinFromBundle<decltype(bundleValue)>(
+                            bundleValue,
+                            selectedBounds[selectedFeatureIdx]
+                        )
+                    );
+                }
             };
 
-            switch (metaData.SizeInBytes) {
-                case 1:
-                    iterateFunction(featuresBundleArraySubset.SrcData.data());
-                    break;
-                case 2:
-                    iterateFunction((const ui16*)featuresBundleArraySubset.SrcData.data());
-                    break;
-                default:
-                    CB_ENSURE_INTERNAL(
-                        false,
-                        "unsupported Bundle SizeInBytes = " << metaData.SizeInBytes
-                    );
-            }
+            ProcessColumnForCalcHashes(
+                objectsDataProvider.GetExclusiveFeaturesBundle(bundleIdx),
+                featuresSubsetIndexing,
+                std::move(processBundleValue)
+            );
         }
 
         for (size_t packIdx : xrange(binaryFeaturesBitMasks.size())) {
@@ -197,20 +190,20 @@ void CalcHashes(
             if (!bitMask) {
                 continue;
             }
+
             TBinaryFeaturesPack packProjBinaryFeatureValues = projBinaryFeatureValues[packIdx];
 
-            TPackedBinaryFeaturesArraySubset(
-                objectsDataProvider.GetBinaryFeaturesPack(packIdx).GetSrc(),
-                &featuresSubsetIndexing
-            ).ForEach(
-                [bitMask, packProjBinaryFeatureValues, hashArr] (
-                    ui32 i,
-                    TBinaryFeaturesPack binaryFeaturesPack
-                ) {
-                    hashArr[i] = CalcHash(
-                        hashArr[i],
-                        (ui64)((~(binaryFeaturesPack ^ packProjBinaryFeatureValues)) & bitMask) + (ui64)bitMask
-                    );
+            auto getBinFromHistogramValue = [=] (TBinaryFeaturesPack defaultPackValue) -> ui64 {
+                // returns default 'b' for CalcHash
+                return (ui64)((~(defaultPackValue ^ packProjBinaryFeatureValues)) & bitMask) + (ui64)bitMask;
+            };
+
+            ProcessColumnForCalcHashes(
+                objectsDataProvider.GetBinaryFeaturesPack(packIdx),
+                featuresSubsetIndexing,
+                std::move(getBinFromHistogramValue),
+                [=] (ui32 i, ui64 b) {
+                    hashArr[i] = CalcHash(hashArr[i], b);
                 }
             );
         }

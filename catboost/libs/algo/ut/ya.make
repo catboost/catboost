@@ -13,7 +13,9 @@ SRCS(
 
 PEERDIR(
     catboost/libs/algo
+    catboost/libs/helpers
     catboost/libs/train_lib
+    library/threading/local_executor
 )
 
 END()

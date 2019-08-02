@@ -6,13 +6,13 @@
 
 namespace NCB {
 
-    class TExternalFloatValuesHolder: public IQuantizedFloatValuesHolder {
+    class TExternalFloatValuesHolder: public ICloneableQuantizedFloatValuesHolder {
     public:
         TExternalFloatValuesHolder(ui32 featureId,
                                    NCB::TMaybeOwningConstArrayHolder<float> srcData,
                                    const TFeaturesArraySubsetIndexing* subsetIndexing,
                                    TQuantizedFeaturesInfoPtr quantizedFeaturesInfo)
-            : IQuantizedFloatValuesHolder(featureId, subsetIndexing->Size())
+            : ICloneableQuantizedFloatValuesHolder(featureId, subsetIndexing->Size())
             , SrcData(std::move(srcData))
             , SubsetIndexing(subsetIndexing)
             , QuantizedFeaturesInfo(std::move(quantizedFeaturesInfo))
@@ -20,7 +20,7 @@ namespace NCB {
             CB_ENSURE(SubsetIndexing, "subsetIndexing is empty");
         }
 
-        THolder<IQuantizedFloatValuesHolder> CloneWithNewSubsetIndexing(
+        THolder<ICloneableQuantizedFloatValuesHolder> CloneWithNewSubsetIndexing(
             const TFeaturesArraySubsetIndexing* subsetIndexing
         ) const override;
 
@@ -34,13 +34,13 @@ namespace NCB {
     };
 
 
-    class TExternalCatValuesHolder: public IQuantizedCatValuesHolder {
+    class TExternalCatValuesHolder: public ICloneableQuantizedCatValuesHolder {
     public:
         TExternalCatValuesHolder(ui32 featureId,
                                  NCB::TMaybeOwningConstArrayHolder<ui32> srcData,
                                  const TFeaturesArraySubsetIndexing* subsetIndexing,
                                  TQuantizedFeaturesInfoPtr quantizedFeaturesInfo)
-            : IQuantizedCatValuesHolder(featureId, subsetIndexing->Size())
+            : ICloneableQuantizedCatValuesHolder(featureId, subsetIndexing->Size())
             , SrcData(std::move(srcData))
             , SubsetIndexing(subsetIndexing)
             , QuantizedFeaturesInfo(std::move(quantizedFeaturesInfo))
@@ -48,7 +48,7 @@ namespace NCB {
             CB_ENSURE(SubsetIndexing, "subsetIndexing is empty");
         }
 
-        THolder<IQuantizedCatValuesHolder> CloneWithNewSubsetIndexing(
+        THolder<ICloneableQuantizedCatValuesHolder> CloneWithNewSubsetIndexing(
             const TFeaturesArraySubsetIndexing* subsetIndexing
         ) const override;
 

@@ -162,9 +162,16 @@ namespace NCB {
         if (floatFeaturesBinarization.NanMode == ENanMode::Forbidden) {
             return ENanMode::Forbidden;
         }
-        TMaybeOwningConstArraySubset<float, ui32> arrayData = feature.GetArrayData();
 
-        bool hasNans = arrayData.Find([] (size_t /*idx*/, float value) { return IsNan(value); });
+        bool hasNans;
+
+        if (const auto* denseData = dynamic_cast<const TFloatArrayValuesHolder*>(&feature)) {
+            hasNans
+                = denseData->GetArrayData().Find([] (size_t /*idx*/, float value) { return IsNan(value); });
+        } else {
+            CB_ENSURE_INTERNAL(false, "TQuantizedFeaturesInfo::ComputeNanMode: unsupported column type");
+        }
+
         if (hasNans) {
             return floatFeaturesBinarization.NanMode;
         }

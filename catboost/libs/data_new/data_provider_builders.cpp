@@ -480,7 +480,7 @@ namespace NCB {
             void GetResult(
                 const TFeaturesLayout& featuresLayout,
                 const TFeaturesArraySubsetIndexing* subsetIndexing,
-                TVector<THolder<TArrayValuesHolder<T, ColumnType>>>* result
+                TVector<THolder<TTypedFeatureValuesHolder<T, ColumnType>>>* result
             ) {
                 CB_ENSURE_INTERNAL(Storage.size() == DstView.size(), "Storage is inconsistent with DstView");
 
@@ -612,7 +612,7 @@ namespace NCB {
         // TRawObjectsData
         void AddFloatFeature(ui32 flatFeatureIdx, TMaybeOwningConstArrayHolder<float> features) override {
             auto floatFeatureIdx = GetInternalFeatureIdx<EFeatureType::Float>(flatFeatureIdx);
-            Data.ObjectsData.FloatFeatures[*floatFeatureIdx] = MakeHolder<TFloatValuesHolder>(
+            Data.ObjectsData.FloatFeatures[*floatFeatureIdx] = MakeHolder<TFloatArrayValuesHolder>(
                 flatFeatureIdx,
                 std::move(features),
                 Data.CommonObjectsData.SubsetIndexing.Get()
@@ -628,7 +628,7 @@ namespace NCB {
 
         void AddCatFeature(ui32 flatFeatureIdx, TMaybeOwningConstArrayHolder<ui32> features) override {
             auto catFeatureIdx = GetInternalFeatureIdx<EFeatureType::Categorical>(flatFeatureIdx);
-            Data.ObjectsData.CatFeatures[*catFeatureIdx] = MakeHolder<THashedCatValuesHolder>(
+            Data.ObjectsData.CatFeatures[*catFeatureIdx] = MakeHolder<THashedCatArrayValuesHolder>(
                 flatFeatureIdx,
                 std::move(features),
                 Data.CommonObjectsData.SubsetIndexing.Get()
@@ -637,7 +637,7 @@ namespace NCB {
 
         void AddTextFeature(ui32 flatFeatureIdx, TMaybeOwningConstArrayHolder<TString> features) override {
             auto textFeatureIdx = GetInternalFeatureIdx<EFeatureType::Text>(flatFeatureIdx);
-            Data.ObjectsData.TextFeatures[*textFeatureIdx] = MakeHolder<TStringTextValuesHolder>(
+            Data.ObjectsData.TextFeatures[*textFeatureIdx] = MakeHolder<TStringTextArrayValuesHolder>(
                 flatFeatureIdx,
                 std::move(features),
                 Data.CommonObjectsData.SubsetIndexing.Get()
@@ -754,7 +754,7 @@ namespace NCB {
                 }
             }
 
-            Data.ObjectsData.CatFeatures[*catFeatureIdx] = MakeHolder<THashedCatValuesHolder>(
+            Data.ObjectsData.CatFeatures[*catFeatureIdx] = MakeHolder<THashedCatArrayValuesHolder>(
                 flatFeatureIdx,
                 TMaybeOwningConstArrayHolder<ui32>::CreateOwning(std::move(hashedCatValues)),
                 Data.CommonObjectsData.SubsetIndexing.Get()
@@ -1111,6 +1111,9 @@ namespace NCB {
                 return;
             }
 
+            TIndexHelper<ui64> indexHelper(sizeof(TBinaryFeaturesPack) * CHAR_BIT);
+            const ui64 storageVectorSize = indexHelper.CompressedSize(ObjectCount);
+
             LocalExecutor->ExecRangeWithThrow(
                 [&] (int i) {
                     auto& binaryFeaturesStorageElement = BinaryFeaturesStorage[i];
@@ -1118,11 +1121,11 @@ namespace NCB {
                         /* storage is either uninited or shared with some other references
                          * so it has to be reset to be reused
                          */
-                        binaryFeaturesStorageElement = MakeIntrusive<TVectorHolder<TBinaryFeaturesPack>>();
+                        binaryFeaturesStorageElement = MakeIntrusive<TVectorHolder<ui64>>();
                     }
                     auto& data = binaryFeaturesStorageElement->Data;
-                    data.yresize(ObjectCount);
-                    Fill(data.begin(), data.end(), TBinaryFeaturesPack(0));
+                    data.yresize(storageVectorSize);
+                    Fill(data.begin(), data.end(), ui64(0));
                 },
                 0,
                 SafeIntegerCast<int>(binaryFeaturesStorageSize),
@@ -1135,16 +1138,25 @@ namespace NCB {
             dst.clear();
             for (auto& binaryFeaturesStorageElement : BinaryFeaturesStorage) {
                 dst.push_back(
-                    TMaybeOwningArrayHolder<TBinaryFeaturesPack>::CreateOwning(
-                        binaryFeaturesStorageElement->Data,
-                        binaryFeaturesStorageElement
+                    MakeHolder<TBinaryPacksArrayHolder>(
+                        0,
+                        TCompressedArray(
+                            ObjectCount,
+                            sizeof(TBinaryFeaturesPack) * CHAR_BIT,
+                            TMaybeOwningArrayHolder<ui64>::CreateOwning(
+                                binaryFeaturesStorageElement->Data,
+                                binaryFeaturesStorageElement
+                            )
+                        ),
+                        Data.CommonObjectsData.SubsetIndexing.Get()
                     )
                 );
             }
         }
 
     private:
-        using TBinaryFeaturesStorage = TVector<TIntrusivePtr<TVectorHolder<TBinaryFeaturesPack>>>;
+        // ui64 because passed to TCompressedArray later
+        using TBinaryFeaturesStorage = TVector<TIntrusivePtr<TVectorHolder<ui64>>>;
 
 
         template <EFeatureType FeatureType>
@@ -1243,7 +1255,9 @@ namespace NCB {
                 }
 
                 for (auto& binaryStorageElement : binaryStorage) {
-                    DstBinaryView.push_back(binaryStorageElement->Data);
+                    DstBinaryView.push_back(
+                        TArrayRef<ui8>((ui8*)binaryStorageElement->Data.data(), objectCount)
+                    );
                 }
             }
 
@@ -1300,13 +1314,13 @@ namespace NCB {
                 }
             }
 
-            template <class IColumnType>
+            template <class T, EFeatureValuesType FeatureValuesType>
             void GetResult(
                 ui32 objectCount,
                 const TFeaturesLayout& featuresLayout,
                 const TFeaturesArraySubsetIndexing* subsetIndexing,
-                const TVector<TMaybeOwningArrayHolder<TBinaryFeaturesPack>>& binaryFeaturesData,
-                TVector<THolder<IColumnType>>* result
+                const TVector<THolder<TBinaryPacksHolder>>& binaryFeaturesData,
+                TVector<THolder<TTypedFeatureValuesHolder<T, FeatureValuesType>>>* result
             ) {
                 CB_ENSURE_INTERNAL(
                     Storage.size() == DstView.size(),
@@ -1330,16 +1344,15 @@ namespace NCB {
                             auto packedBinaryIndex = *FeatureIdxToPackedBinaryIndex[perTypeFeatureIdx];
 
                             result->push_back(
-                                MakeHolder<TPackedBinaryValuesHolderImpl<IColumnType>>(
+                                MakeHolder<TPackedBinaryValuesHolderImpl<T, FeatureValuesType>>(
                                     featureId,
-                                    binaryFeaturesData[packedBinaryIndex.PackIdx],
-                                    packedBinaryIndex.BitIdx,
-                                    subsetIndexing
+                                    binaryFeaturesData[packedBinaryIndex.PackIdx].Get(),
+                                    packedBinaryIndex.BitIdx
                                 )
                             );
                         } else {
                             result->push_back(
-                                MakeHolder<TCompressedValuesHolderImpl<IColumnType>>(
+                                MakeHolder<TCompressedValuesHolderImpl<T, FeatureValuesType>>(
                                     featureId,
                                     TCompressedArray(
                                         objectCount,

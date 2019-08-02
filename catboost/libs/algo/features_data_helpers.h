@@ -3,7 +3,15 @@
 #include <catboost/libs/data_new/objects.h>
 #include <catboost/libs/data_new/model_dataset_compatibility.h>
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/helpers/maybe_owning_array_holder.h>
+#include <catboost/libs/index_range/index_range.h>
 #include <catboost/libs/cat_feature/cat_feature.h>
+
+#include <util/generic/cast.h>
+#include <util/stream/labeled.h>
+#include <util/system/compiler.h>
+
+#include <climits>
 
 
 namespace NCB {
@@ -18,6 +26,63 @@ namespace NCB {
         return *maybeConsecutiveSubsetBegin;
     }
 
+    template <class T, EFeatureValuesType FeatureValuesType>
+    inline const float* GetRawFeatureDataBeginPtr(
+        TMaybeData<const TTypedFeatureValuesHolder<T, FeatureValuesType>*> column,
+        ui32 consecutiveSubsetBegin)
+    {
+        const TMaybeOwningArrayHolder<const T> fullData =
+            *((dynamic_cast<const TArrayValuesHolder<T, FeatureValuesType>&>(**column)).GetArrayData()
+                .GetSrc()
+        );
+        return reinterpret_cast<const float*>((*fullData).data()) + consecutiveSubsetBegin;
+    }
+
+    // raw data array is returned, in case of compressed data using external bitsPerKey might be necessary
+    template <class T, EFeatureValuesType FeatureValuesType>
+    TMaybeOwningArrayHolder<ui8> GetConsecutiveSubRangeColumnData(
+        const TTypedFeatureValuesHolder<T, FeatureValuesType>& column,
+        ui32 consecutiveSubsetBegin,
+        TIndexRange<ui32> indexRange)
+    {
+        if (const auto* arrayValuesHolder
+                = dynamic_cast<const TArrayValuesHolder<T, FeatureValuesType>*>(&column))
+        {
+            const auto& arrayData = arrayValuesHolder->GetArrayData();
+            const auto& fullDataHolder = *arrayData.GetSrc();
+
+            return TMaybeOwningArrayHolder<ui8>::CreateNonOwning(
+                MakeArrayRef(
+                    (ui8*)(fullDataHolder.data() + consecutiveSubsetBegin + indexRange.Begin),
+                    indexRange.GetSize() * sizeof(T)
+                )
+            );
+        } else if (const auto* compressedArrayValuesHolder
+                       = dynamic_cast<const TCompressedValuesHolderImpl<T, FeatureValuesType>*>(&column))
+        {
+            const auto& compressedArrayData = *(compressedArrayValuesHolder->GetCompressedData().GetSrc());
+
+            const ui32 bitsPerKey = compressedArrayData.GetBitsPerKey();
+
+            CB_ENSURE_INTERNAL(!(bitsPerKey % CHAR_BIT), "unsupported " << LabeledOutput(bitsPerKey));
+
+            const ui32 bytesPerKey = bitsPerKey / CHAR_BIT;
+
+            return TMaybeOwningArrayHolder<ui8>::CreateNonOwning(
+                MakeArrayRef(
+                    (ui8*)(
+                        compressedArrayData.GetRawPtr()
+                        + (consecutiveSubsetBegin + indexRange.Begin) * bytesPerKey),
+                    indexRange.GetSize() * bytesPerKey
+                )
+            );
+        } else {
+            CB_ENSURE_INTERNAL(false, "GetConsecutiveSubRangeColumnData: unsupported column type");
+        }
+        Y_UNREACHABLE();
+    }
+
+
     inline const float* GetRawFeatureDataBeginPtr(
         const TRawObjectsDataProvider& rawObjectsData,
         ui32 consecutiveSubsetBegin,
@@ -26,11 +91,15 @@ namespace NCB {
         const auto featuresLayout = rawObjectsData.GetFeaturesLayout();
         const ui32 internalFeatureIdx = featuresLayout->GetInternalFeatureIdx(flatFeatureIdx);
         if (featuresLayout->GetExternalFeatureType(flatFeatureIdx) == EFeatureType::Float) {
-            return (*(*(**rawObjectsData.GetFloatFeature(internalFeatureIdx)).GetArrayData().GetSrc()
-                )).data() + consecutiveSubsetBegin;
+            return GetRawFeatureDataBeginPtr(
+                rawObjectsData.GetFloatFeature(internalFeatureIdx),
+                consecutiveSubsetBegin
+            );
         } else {
-            return reinterpret_cast<const float*>((*(*(**rawObjectsData.GetCatFeature(internalFeatureIdx))
-                .GetArrayData().GetSrc())).data()) + consecutiveSubsetBegin;
+            return GetRawFeatureDataBeginPtr(
+                rawObjectsData.GetCatFeature(internalFeatureIdx),
+                consecutiveSubsetBegin
+            );
         }
     }
 
@@ -39,26 +108,47 @@ namespace NCB {
         public:
             TBaseRawFeatureAccessor(
                 const TRawObjectsDataProvider& rawObjectsData,
-                const TFullModel&
+                const TFullModel& model
             )
-                : RepackedFeaturesHolder(MakeAtomicShared<TVector<TConstArrayRef<float>>>())
+                : RepackedFeaturesHolder(MakeAtomicShared<TVector<TMaybeOwningArrayHolder<float>>>())
                 , RawObjectsData(rawObjectsData)
                 , ConsecutiveSubsetBegin(GetConsecutiveSubsetBegin(rawObjectsData))
-                , RepackedFeaturesRef(*RepackedFeaturesHolder) {}
+                , RepackedFeaturesRef(*RepackedFeaturesHolder)
+            {
+                RepackedFeaturesRef.resize(model.ObliviousTrees->GetFlatFeatureVectorExpectedSize());
+            }
 
-            const float* GetFeatureDataBeginPtr(ui32 flatFeatureIdx) {
-                return GetRawFeatureDataBeginPtr(
-                    RawObjectsData,
-                    ConsecutiveSubsetBegin,
-                    flatFeatureIdx
-                );
+            void AddFeature(
+                ui32 sourceFlatFeatureIdx,
+                ui32 repackedFlatFeatureIdx,
+                TIndexRange<ui32> objectRange)
+            {
+                const auto featuresLayout = RawObjectsData.GetFeaturesLayout();
+                const ui32 internalFeatureIdx = featuresLayout->GetInternalFeatureIdx(sourceFlatFeatureIdx);
+
+                TMaybeOwningArrayHolder<ui8> rawData;
+
+                auto getRawData = [&] (const auto& column) {
+                    return GetConsecutiveSubRangeColumnData(column, ConsecutiveSubsetBegin, objectRange);
+                };
+
+                if (featuresLayout->GetExternalFeatureType(sourceFlatFeatureIdx) == EFeatureType::Float) {
+                    rawData = getRawData(**RawObjectsData.GetFloatFeature(internalFeatureIdx));
+                } else {
+                    rawData = getRawData(**RawObjectsData.GetCatFeature(internalFeatureIdx));
+                }
+                if (repackedFlatFeatureIdx >= RepackedFeaturesRef.size()) {
+                    RepackedFeaturesRef.resize(repackedFlatFeatureIdx + 1);
+                }
+                RepackedFeaturesRef[repackedFlatFeatureIdx]
+                    = TMaybeOwningArrayHolder<float>::CreateOwningReinterpretCast(rawData);
             }
 
             Y_FORCE_INLINE auto GetFloatAccessor() {
                 return [this](const TFeaturePosition& position, size_t index) -> float {
                     Y_ASSERT(SafeIntegerCast<size_t>(position.FlatIndex) < RepackedFeaturesRef.size());
                     Y_ASSERT(SafeIntegerCast<size_t>(index) <
-                             RepackedFeaturesRef[position.FlatIndex].size());
+                             RepackedFeaturesRef[position.FlatIndex].GetSize());
                     return RepackedFeaturesRef[position.FlatIndex][index];
                 };
             }
@@ -67,7 +157,7 @@ namespace NCB {
                  return [this] (const TFeaturePosition& position, size_t index) -> ui32 {
                     Y_ASSERT(SafeIntegerCast<size_t>(position.FlatIndex) < RepackedFeaturesRef.size());
                     Y_ASSERT(SafeIntegerCast<size_t>(index) <
-                    RepackedFeaturesRef[position.FlatIndex].size());
+                    RepackedFeaturesRef[position.FlatIndex].GetSize());
                     return ConvertFloatCatFeatureToIntHash(
                         RepackedFeaturesRef[position.FlatIndex][index]);
 
@@ -75,12 +165,11 @@ namespace NCB {
             };
 
         private:
-            TAtomicSharedPtr<TVector<TConstArrayRef<float>>> RepackedFeaturesHolder;
+            TAtomicSharedPtr<TVector<TMaybeOwningArrayHolder<float>>> RepackedFeaturesHolder;
             const TRawObjectsDataProvider& RawObjectsData;
             const ui32 ConsecutiveSubsetBegin;
 
-        protected:
-            TVector<TConstArrayRef<float>>& RepackedFeaturesRef;
+            TVector<TMaybeOwningArrayHolder<float>>& RepackedFeaturesRef;
         };
 
         class TBaseQuantizedFeatureAccessor {
@@ -102,27 +191,49 @@ namespace NCB {
                     model, *quantizedObjectsData.GetQuantizedFeaturesInfo().Get());
                 PackedIndexesRef.resize(model.ObliviousTrees->GetFlatFeatureVectorExpectedSize());
                 BundledIndexesRef.resize(model.ObliviousTrees->GetFlatFeatureVectorExpectedSize());
+                RepackedFeaturesRef.resize(model.ObliviousTrees->GetFlatFeatureVectorExpectedSize());
+
+                HeavyDataHolder->RepackedBundleData.resize(
+                    quantizedObjectsData.GetExclusiveFeatureBundlesSize());
+                HeavyDataHolder->RepackedBinaryPacksData.resize(
+                    quantizedObjectsData.GetBinaryFeaturesPacksSize());
             }
 
-            const ui8* GetFeatureDataBeginPtr(ui32 flatFeatureIdx) {
-                BundledIndexesRef[flatFeatureIdx] = QuantizedObjectsData.GetFloatFeatureToExclusiveBundleIndex(
-                    TFloatFeatureIdx(flatFeatureIdx));
-                PackedIndexesRef[flatFeatureIdx] = QuantizedObjectsData.GetFloatFeatureToPackedBinaryIndex(
-                    TFloatFeatureIdx(flatFeatureIdx));
+            void AddFeature(
+                ui32 sourceFlatFeatureIdx,
+                ui32 repackedFlatFeatureIdx,
+                TIndexRange<ui32> objectRange)
+            {
+                BundledIndexesRef[repackedFlatFeatureIdx]
+                    = QuantizedObjectsData.GetFloatFeatureToExclusiveBundleIndex(
+                        TFloatFeatureIdx(sourceFlatFeatureIdx));
+                PackedIndexesRef[repackedFlatFeatureIdx]
+                    = QuantizedObjectsData.GetFloatFeatureToPackedBinaryIndex(
+                        TFloatFeatureIdx(sourceFlatFeatureIdx));
 
-                if (BundledIndexesRef[flatFeatureIdx].Defined()) {
-                    return QuantizedObjectsData.GetExclusiveFeaturesBundle(
-                        BundledIndexesRef[flatFeatureIdx]->BundleIdx).SrcData.data();
-                } else if (PackedIndexesRef[flatFeatureIdx].Defined()) {
-                    return (**QuantizedObjectsData.GetBinaryFeaturesPack(
-                        PackedIndexesRef[flatFeatureIdx]->PackIdx).GetSrc()).data();
+                auto getColumnSubRangeData = [&] (const auto& column) {
+                    return GetConsecutiveSubRangeColumnData(column, ConsecutiveSubsetBegin, objectRange);
+                };
+
+                if (BundledIndexesRef[repackedFlatFeatureIdx].Defined()) {
+                    auto bundleIdx = BundledIndexesRef[repackedFlatFeatureIdx]->BundleIdx;
+                    if (!HeavyDataHolder->RepackedBundleData[bundleIdx].GetSize()) {
+                        HeavyDataHolder->RepackedBundleData[bundleIdx] = getColumnSubRangeData(
+                            QuantizedObjectsData.GetExclusiveFeaturesBundle(bundleIdx));
+                    }
+                } else if (PackedIndexesRef[repackedFlatFeatureIdx].Defined()) {
+                    auto packIdx = PackedIndexesRef[repackedFlatFeatureIdx]->PackIdx;
+                    if (!HeavyDataHolder->RepackedBinaryPacksData[packIdx].GetSize()) {
+                        HeavyDataHolder->RepackedBinaryPacksData[packIdx] = getColumnSubRangeData(
+                            QuantizedObjectsData.GetBinaryFeaturesPack(packIdx));
+                    }
                 } else {
                     const auto& featuresLayout = *QuantizedObjectsData.GetFeaturesLayout();
                     CB_ENSURE_INTERNAL(
-                        featuresLayout.GetExternalFeatureType(flatFeatureIdx) == EFeatureType::Float,
+                        featuresLayout.GetExternalFeatureType(sourceFlatFeatureIdx) == EFeatureType::Float,
                         "Mismatched feature type");
-                    return (QuantizedObjectsData.GetFloatFeatureRawSrcData(flatFeatureIdx) +
-                        ConsecutiveSubsetBegin);
+                    HeavyDataHolder->RepackedFeatures[repackedFlatFeatureIdx] = getColumnSubRangeData(
+                        **QuantizedObjectsData.GetNonPackedFloatFeature(sourceFlatFeatureIdx));
                 }
             }
             Y_FORCE_INLINE auto GetFloatAccessor() {
@@ -136,7 +247,8 @@ namespace NCB {
                         const auto& bundlePart = bundleMetaData.Parts[bundleIdx->InBundleIdx];
                         auto boundsInBundle = bundlePart.Bounds;
 
-                        const ui8* rawBundlesData = RepackedFeaturesRef[position.FlatIndex].data();
+                        const ui8* rawBundlesData
+                            = (*(HeavyDataHolder->RepackedBundleData[bundleIdx->BundleIdx])).data();
 
                         switch (bundleMetaData.SizeInBytes) {
                             case 1:
@@ -155,7 +267,7 @@ namespace NCB {
                     } else if (packIdx.Defined()) {
                         TBinaryFeaturesPack bitIdx = packIdx->BitIdx;
                         unremappedFeatureBin =
-                            (RepackedFeaturesRef[position.FlatIndex][index] >> bitIdx) & 1;
+                            (HeavyDataHolder->RepackedBinaryPacksData[packIdx->PackIdx][index] >> bitIdx) & 1;
                     } else {
                         unremappedFeatureBin = RepackedFeaturesRef[position.FlatIndex][index];
                     }
@@ -173,8 +285,12 @@ namespace NCB {
         private:
             struct TQuantizedFeaturesAccessorData {
                 TVector<TVector<ui8>> FloatBinsRemap;
-                TVector<TConstArrayRef<ui8>> RepackedFeatures;
+                TVector<TMaybeOwningArrayHolder<ui8>> RepackedFeatures;
+
+                TVector<TMaybeOwningArrayHolder<ui8>> RepackedBinaryPacksData;
                 TVector<TMaybe<TPackedBinaryIndex>> PackedIndexes;
+
+                TVector<TMaybeOwningArrayHolder<ui8>> RepackedBundleData;
                 TVector<TMaybe<TExclusiveBundleIndex>> BundledIndexes;
             };
 
@@ -187,14 +303,11 @@ namespace NCB {
             const TQuantizedForCPUObjectsDataProvider& QuantizedObjectsData;
             const ui32 ConsecutiveSubsetBegin;
 
-        protected:
-            TVector<TConstArrayRef<ui8>>& RepackedFeaturesRef;
+            TVector<TMaybeOwningArrayHolder<ui8>>& RepackedFeaturesRef;
         };
 
         template <class TBaseAccesorType>
         class TFeatureAccessorTemplate : public TBaseAccesorType {
-            using TBaseAccesorType::RepackedFeaturesRef;
-            using TBaseAccesorType::GetFeatureDataBeginPtr;
         public:
             template <class TObjectsDataProviderType>
             TFeatureAccessorTemplate(
@@ -206,22 +319,25 @@ namespace NCB {
             )
                 : TBaseAccesorType(objectsData, model)
             {
+                TIndexRange<ui32> objectsRange(
+                    SafeIntegerCast<ui32>(objectsBegin),
+                    SafeIntegerCast<ui32>(objectsEnd));
+
                 const auto &featuresLayout = *objectsData.GetFeaturesLayout();
-                RepackedFeaturesRef.resize(model.ObliviousTrees->GetFlatFeatureVectorExpectedSize());
-                const int objectCount = objectsEnd - objectsBegin;
+
+                auto addFeatureIfAvailable = [&] (auto origIdx, auto sourceIdx) {
+                    if (featuresLayout.GetExternalFeaturesMetaInfo()[sourceIdx].IsAvailable) {
+                        TBaseAccesorType::AddFeature(sourceIdx, origIdx, objectsRange);
+                    }
+                };
+
                 if (columnReorderMap.empty()) {
                     for (size_t i = 0; i < model.ObliviousTrees->GetFlatFeatureVectorExpectedSize(); ++i) {
-                        if (featuresLayout.GetExternalFeaturesMetaInfo()[i].IsAvailable) {
-                            RepackedFeaturesRef[i] =
-                                MakeArrayRef(GetFeatureDataBeginPtr(i) + objectsBegin, objectCount);
-                        }
+                        addFeatureIfAvailable(i, i);
                     }
                 } else {
                     for (const auto&[origIdx, sourceIdx] : columnReorderMap) {
-                        if (featuresLayout.GetExternalFeaturesMetaInfo()[sourceIdx].IsAvailable) {
-                            RepackedFeaturesRef[origIdx] =
-                                MakeArrayRef(GetFeatureDataBeginPtr(sourceIdx) + objectsBegin, objectCount);
-                        }
+                        addFeatureIfAvailable(origIdx, sourceIdx);
                     }
                 }
             }

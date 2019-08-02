@@ -44,7 +44,7 @@ namespace NCB {
                 if (numVal == featureValues.size()) {
                     break;
                 }
-                THolder<THashedCatValuesHolder> holder = MakeHolder<THashedCatValuesHolder>(
+                THolder<THashedCatValuesHolder> holder = MakeHolder<THashedCatArrayValuesHolder>(
                     featureNum,
                     TMaybeOwningConstArrayHolder<ui32>::CreateOwning(TVector<ui32>(objectCount, featureValues[numVal])),
                     data.CommonObjectsData.SubsetIndexing.Get());
@@ -57,7 +57,7 @@ namespace NCB {
                 } else {
                     newBorder = featureValues[numVal];
                 }
-                THolder<TFloatValuesHolder> holder = MakeHolder<TFloatValuesHolder>(
+                THolder<TFloatValuesHolder> holder = MakeHolder<TFloatArrayValuesHolder>(
                     featureNum,
                     TMaybeOwningConstArrayHolder<float>::CreateOwning(
                         TVector<float>(objectCount, (prevBorder + newBorder) / 2.0)),
@@ -261,12 +261,11 @@ namespace NCB {
         CB_ENSURE_INTERNAL(catFeatureMaybe, "Categorical feature #" << featureNum << " not found");
         const THashedCatValuesHolder* catFeatureHolder = catFeatureMaybe.GetRef();
         CB_ENSURE_INTERNAL(catFeatureHolder, "Cannot access values of categorical feature #" << featureNum);
-        TArrayRef<const ui32> featureValuesRef = *(*(catFeatureHolder->GetArrayData().GetSrc()));
-        TVector<ui32> featureValues(featureValuesRef.begin(), featureValuesRef.end());
+        TMaybeOwningArrayHolder<ui32> featureValues = catFeatureHolder->ExtractValues(&executor);
 
         TVector<int> binNums;
         binNums.reserve(oneHotUniqueValues.size());
-        for (auto val : featureValues) {
+        for (auto val : *featureValues) {
             auto it = std::find(oneHotUniqueValues.begin(), oneHotUniqueValues.end(), val);
             binNums.push_back(it - oneHotUniqueValues.begin()); // Unknown values will be at bin #oneHotUniqueValues.size()
         }

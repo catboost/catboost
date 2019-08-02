@@ -11,13 +11,13 @@ using namespace NCB;
 
 
 Y_UNIT_TEST_SUITE(Columns) {
-    Y_UNIT_TEST(TFloatValuesHolder) {
+    Y_UNIT_TEST(TFloatArrayValuesHolder) {
         TVector<float> v = {10.0f, 11.1f, 12.2f, 13.3f, 14.4f, 15.5f, 16.6f, 17.7f, 18.8f, 19.9f};
         TVector<float> vCopy = v;
 
         NCB::TArraySubsetIndexing<ui32> vSubsetIndexing( NCB::TFullSubset<ui32>{(ui32)v.size()} );
 
-        TFloatValuesHolder floatValuesHolder(
+        TFloatArrayValuesHolder floatValuesHolder(
             10,
             TMaybeOwningConstArrayHolder<float>::CreateOwning(std::move(v)),
             &vSubsetIndexing
@@ -85,9 +85,19 @@ Y_UNIT_TEST_SUITE(Columns) {
             0b11001011  // 7
         };
 
-        auto storage = NCB::TMaybeOwningArrayHolder<NCB::TBinaryFeaturesPack>::CreateOwning(std::move(src));
+        const ui32 bitsPerKey = sizeof(TBinaryFeaturesPack) * CHAR_BIT;
 
         TFeaturesArraySubsetIndexing subsetIndexing( TIndexedSubset<ui32>{6, 5, 0, 2} );
+
+        auto binaryPackColumn = MakeHolder<TBinaryPacksArrayHolder>(
+            0,
+            TCompressedArray(
+                src.size(),
+                bitsPerKey,
+                CompressVector<ui64>(src, bitsPerKey)
+            ),
+            &subsetIndexing
+        );
 
         NPar::TLocalExecutor localExecutor;
         localExecutor.RunAdditionalThreads(2);
@@ -105,7 +115,7 @@ Y_UNIT_TEST_SUITE(Columns) {
 
 
         for (auto bitIdx : xrange(ui8(8))) {
-            TQuantizedFloatPackedBinaryValuesHolder valuesHolder(bitIdx, storage, bitIdx, &subsetIndexing);
+            TQuantizedFloatPackedBinaryValuesHolder valuesHolder(bitIdx, binaryPackColumn.Get(), bitIdx);
 
             auto values = valuesHolder.ExtractValues(&localExecutor);
             UNIT_ASSERT(Equal<ui8>(*values, expectedFeatureValues[bitIdx]));

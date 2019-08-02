@@ -6,7 +6,7 @@
 
 namespace NCB {
 
-    THolder<IQuantizedFloatValuesHolder> TExternalFloatValuesHolder::CloneWithNewSubsetIndexing(
+    THolder<ICloneableQuantizedFloatValuesHolder> TExternalFloatValuesHolder::CloneWithNewSubsetIndexing(
         const TFeaturesArraySubsetIndexing* subsetIndexing
     ) const {
         return MakeHolder<TExternalFloatValuesHolder>(
@@ -44,7 +44,7 @@ namespace NCB {
     }
 
 
-    THolder<IQuantizedCatValuesHolder> TExternalCatValuesHolder::CloneWithNewSubsetIndexing(
+    THolder<ICloneableQuantizedCatValuesHolder> TExternalCatValuesHolder::CloneWithNewSubsetIndexing(
         const TFeaturesArraySubsetIndexing* subsetIndexing
     ) const {
         return MakeHolder<TExternalCatValuesHolder>(

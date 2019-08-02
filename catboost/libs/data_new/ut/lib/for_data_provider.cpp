@@ -8,6 +8,7 @@
 #include <util/generic/string.h>
 #include <util/generic/xrange.h>
 
+#include <algorithm>
 #include <functional>
 
 
@@ -108,7 +109,8 @@ namespace NCB {
                 return expectedData.Objects.FloatFeatures[floatFeatureIdx];
             },
             /*areEqualFunc*/ [&](const TVector<float>& lhs, const TFloatValuesHolder& rhs) {
-                return EqualWithNans<float>(lhs, rhs.GetArrayData());
+                auto rhsValues = rhs.ExtractValues(&NPar::LocalExecutor());
+                return std::equal(lhs.begin(), lhs.end(), rhsValues.begin(), rhsValues.end(), EqualWithNans<float>);
             }
         );
 
@@ -132,7 +134,7 @@ namespace NCB {
                 }
             },
             /*areEqualFunc*/ [&](const TVector<ui32>& lhs, const THashedCatValuesHolder& rhs) {
-                return Equal<ui32>(lhs, rhs.GetArrayData());
+                return Equal<ui32>(*rhs.ExtractValues(&NPar::LocalExecutor()), lhs);
             }
         );
 
@@ -159,7 +161,8 @@ namespace NCB {
             /*getExpectedFeatureFunc*/ [&](ui32 textFeatureIdx) -> TMaybe<TVector<TStringBuf>>
                 {return *expectedData.Objects.TextFeatures[textFeatureIdx];},
             /*areEqualFunc*/ [&](const TVector<TStringBuf>& lhs, const TStringTextValuesHolder& rhs) {
-                return Equal<TStringBuf>(lhs, rhs.GetArrayData());
+                TMaybeOwningArrayHolder<TString> rhsValues = rhs.ExtractValues(&NPar::LocalExecutor());
+                return std::equal(lhs.begin(), lhs.end(), rhsValues.begin(), rhsValues.end());
             }
         );
     }
@@ -293,12 +296,12 @@ namespace NCB {
             expectedData.Objects.PackedBinaryFeaturesData.SrcData.size()
         );
 
+        NPar::TLocalExecutor localExecutor;
+
         for (auto packIdx : xrange(objectsData.GetBinaryFeaturesPacksSize())) {
-            UNIT_ASSERT(
-                Equal(
-                    *expectedData.Objects.PackedBinaryFeaturesData.SrcData[packIdx],
-                    objectsData.GetBinaryFeaturesPack(packIdx)
-                )
+            UNIT_ASSERT_EQUAL(
+                expectedData.Objects.PackedBinaryFeaturesData.SrcData[packIdx]->ExtractValues(&localExecutor),
+                objectsData.GetBinaryFeaturesPack(packIdx).ExtractValues(&localExecutor)
             );
         }
 

@@ -295,7 +295,10 @@ namespace NCB {
         /* old TPool format (for cat feature  categ features hashes reinterpreted as float,
          * for compatibility with old code only
          */
-        TVector<float> GetFeatureDataOldFormat(ui32 flatFeatureIdx) const;
+        TMaybeOwningArrayHolder<float> GetFeatureDataOldFormat(
+            ui32 flatFeatureIdx,
+            NPar::TLocalExecutor* localExecutor = nullptr // if nullptr use NPar::LocalExecutor()
+        ) const;
 
     private:
         friend class TQuantizationImpl;
@@ -334,9 +337,6 @@ namespace NCB {
             const TFeaturesLayout& featuresLayout,
             NPar::TLocalExecutor* localExecutor
         ) const;
-
-        // subsetComposition passed by pointer, because pointers are used in columns, avoid temporaries
-        TQuantizedObjectsData GetSubset(const TArraySubsetIndexing<ui32>* subsetComposition) const;
 
         void Load(
             const TArraySubsetIndexing<ui32>* subsetIndexing,
@@ -444,8 +444,10 @@ namespace NCB {
 
         TVector<TExclusiveFeaturesBundle> MetaData; // [bundleIdx]
 
-        // shared source data, apply SubsetIndexing
-        TVector<TMaybeOwningArrayHolder<ui8>> SrcData; // [bundleIdx][objectIdx*BundleSizeInBytes]
+        /* supported TExclusiveFeatureBundleHolder types are TExclusiveFeatureBundleArrayHolder
+         * and TExclusiveFeatureBundleSparseArrayHolder
+         */
+        TVector<THolder<TExclusiveFeatureBundleHolder>> SrcData; // [bundleIdx]
 
     public:
         TExclusiveFeatureBundlesData() = default;
@@ -456,8 +458,13 @@ namespace NCB {
             TVector<TExclusiveFeaturesBundle>&& metaData
         );
 
-        void Save(const TArraySubsetIndexing<ui32>& subsetIndexing, IBinSaver* binSaver) const;
-        void Load(IBinSaver* binSaver);
+        void GetSubset(
+            const TFeaturesArraySubsetIndexing* subsetIndexing,
+            TExclusiveFeatureBundlesData* subsetData
+        ) const;
+
+        void Save(NPar::TLocalExecutor* localExecutor, IBinSaver* binSaver) const;
+        void Load(const TArraySubsetIndexing<ui32>* subsetIndexing, IBinSaver* binSaver);
     };
 
 
@@ -466,8 +473,8 @@ namespace NCB {
         TVector<TMaybe<TPackedBinaryIndex>> FlatFeatureIndexToPackedBinaryIndex; // [flatFeatureIdx]
         TVector<std::pair<EFeatureType, ui32>> PackedBinaryToSrcIndex; // [linearPackedBinaryIndex]
 
-        // shared source data, apply SubsetIndexing
-        TVector<TMaybeOwningArrayHolder<TBinaryFeaturesPack>> SrcData; // [packIdx][objectIdx][bitIdx]
+        // supported TBinaryPacksHolder types are TBinaryPacksArrayHolder or TBinaryPacksSparseArrayHolder
+        TVector<THolder<TBinaryPacksHolder>> SrcData; // [packIdx][objectIdx][bitIdx]
 
     public:
         TPackedBinaryFeaturesData() = default;
@@ -479,8 +486,13 @@ namespace NCB {
             bool dontPack = false // set true to disable binary features packing
         );
 
-        void Save(const TArraySubsetIndexing<ui32>& subsetIndexing, IBinSaver* binSaver) const;
-        void Load(IBinSaver* binSaver);
+        void GetSubset(
+            const TFeaturesArraySubsetIndexing* subsetIndexing,
+            TPackedBinaryFeaturesData* subsetData
+        ) const;
+
+        void Save(NPar::TLocalExecutor* localExecutor, IBinSaver* binSaver) const;
+        void Load(const TArraySubsetIndexing<ui32>* subsetIndexing, IBinSaver* binSaver);
     };
 
 }
@@ -500,9 +512,6 @@ struct TDumper<TMaybe<NCB::TPackedBinaryIndex>> {
 
 namespace NCB {
     TString DbgDumpMetaData(const TPackedBinaryFeaturesData& packedBinaryFeaturesData);
-
-    using TPackedBinaryFeaturesArraySubset
-        = TArraySubset<const TMaybeOwningArrayHolder<TBinaryFeaturesPack>, ui32>;
 
 
     struct TQuantizedForCPUObjectsData {
@@ -551,34 +560,14 @@ namespace NCB {
             return *CommonData.SubsetIndexing;
         }
 
-        TMaybeData<const TQuantizedFloatValuesHolder*> GetNonPackedFloatFeature(ui32 floatFeatureIdx) const {
+        TMaybeData<const IQuantizedFloatValuesHolder*> GetNonPackedFloatFeature(ui32 floatFeatureIdx) const {
             CheckFeatureIsNotBinaryPackedOrBundled(EFeatureType::Float, "Float", floatFeatureIdx);
-            return MakeMaybeData(
-                // checked above that this cast is safe
-                static_cast<const TQuantizedFloatValuesHolder*>(
-                    Data.FloatFeatures[floatFeatureIdx].Get()
-                )
-            );
+            return MakeMaybeData(Data.FloatFeatures[floatFeatureIdx].Get());
         }
 
-        // low-level function, data is without subset indexing, apply external subset indexing!
-        const ui8* GetFloatFeatureRawSrcData(ui32 floatFeatureIdx) const {
-            return *((*GetNonPackedFloatFeature(floatFeatureIdx))->GetArrayData<ui8>().GetSrc());
-        }
-
-        TMaybeData<const TQuantizedCatValuesHolder*> GetNonPackedCatFeature(ui32 catFeatureIdx) const {
+        TMaybeData<const IQuantizedCatValuesHolder*> GetNonPackedCatFeature(ui32 catFeatureIdx) const {
             CheckFeatureIsNotBinaryPackedOrBundled(EFeatureType::Categorical, "Cat", catFeatureIdx);
-            return MakeMaybeData(
-                // checked above that this cast is safe
-                static_cast<const TQuantizedCatValuesHolder*>(
-                    Data.CatFeatures[catFeatureIdx].Get()
-                )
-            );
-        }
-
-        // low-level function, data is without subset indexing, apply external subset indexing!
-        const ui32* GetCatFeatureRawSrcData(ui32 catFeatureIdx) const {
-            return *((*GetNonPackedCatFeature(catFeatureIdx))->GetArrayData<ui32>().GetSrc());
+            return MakeMaybeData(Data.CatFeatures[catFeatureIdx].Get());
         }
 
         TCatFeatureUniqueValuesCounts GetCatFeatureUniqueValuesCounts(ui32 catFeatureIdx) const {
@@ -594,11 +583,8 @@ namespace NCB {
             return PackedBinaryFeaturesData.SrcData.size();
         }
 
-        TPackedBinaryFeaturesArraySubset GetBinaryFeaturesPack(ui32 packIdx) const {
-            return TPackedBinaryFeaturesArraySubset(
-                &PackedBinaryFeaturesData.SrcData[packIdx],
-                CommonData.SubsetIndexing.Get()
-            );
+        const TBinaryPacksHolder& GetBinaryFeaturesPack(ui32 packIdx) const {
+            return *(PackedBinaryFeaturesData.SrcData[packIdx]);
         }
 
         TMaybe<TPackedBinaryIndex> GetFloatFeatureToPackedBinaryIndex(TFloatFeatureIdx floatFeatureIdx) const {
@@ -635,12 +621,8 @@ namespace NCB {
             return ExclusiveFeatureBundlesData.MetaData;
         }
 
-        TFeaturesBundleArraySubset GetExclusiveFeaturesBundle(ui32 bundleIdx) const {
-            return TFeaturesBundleArraySubset(
-                &ExclusiveFeatureBundlesData.MetaData[bundleIdx],
-                *ExclusiveFeatureBundlesData.SrcData[bundleIdx],
-                CommonData.SubsetIndexing.Get()
-            );
+        const TExclusiveFeatureBundleHolder& GetExclusiveFeaturesBundle(ui32 bundleIdx) const {
+            return *ExclusiveFeatureBundlesData.SrcData[bundleIdx];
         }
 
         TMaybe<TExclusiveBundleIndex> GetFloatFeatureToExclusiveBundleIndex(
@@ -676,8 +658,10 @@ namespace NCB {
 
     protected:
         void SaveDataNonSharedPart(IBinSaver* binSaver) const {
-            PackedBinaryFeaturesData.Save(*CommonData.SubsetIndexing, binSaver);
-            ExclusiveFeatureBundlesData.Save(*CommonData.SubsetIndexing, binSaver);
+            NPar::TLocalExecutor localExecutor;
+
+            PackedBinaryFeaturesData.Save(&localExecutor, binSaver);
+            ExclusiveFeatureBundlesData.Save(&localExecutor, binSaver);
             Data.SaveNonSharedPart(binSaver);
         }
 
@@ -700,6 +684,34 @@ namespace NCB {
         // store directly instead of looking up in Data.QuantizedFeaturesInfo for runtime efficiency
         TVector<TCatFeatureUniqueValuesCounts> CatFeatureUniqueValuesCounts; // [catFeatureIdx]
     };
+
+
+    // calls generic f with 'const T' pointer to raw data of compressedArray with the appropriate T
+    template <class F>
+    inline void DispatchBitsPerKeyToDataType(
+        const TCompressedArray& compressedArray,
+        const TStringBuf errorMessagePrefix,
+        F&& f
+    ) {
+        const auto bitsPerKey = compressedArray.GetBitsPerKey();
+        const char* rawDataPtr = compressedArray.GetRawPtr();
+        switch (bitsPerKey) {
+            case 8:
+                f((const ui8*)rawDataPtr);
+                break;
+            case 16:
+                f((const ui16*)rawDataPtr);
+                break;
+            case 32:
+                f((const ui32*)rawDataPtr);
+                break;
+            default:
+                CB_ENSURE_INTERNAL(
+                    false,
+                    errorMessagePrefix << "unsupported bitsPerKey: " << bitsPerKey);
+        }
+    }
+
 
     // needed to make friends with TObjectsDataProvider s
     class TObjectsSerialization {

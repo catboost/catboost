@@ -135,24 +135,6 @@ namespace NCB {
     }
 
 
-    struct TFeaturesBundleArraySubset {
-        const TExclusiveFeaturesBundle* MetaData;
-
-        TConstArrayRef<ui8> SrcData;
-        const TArraySubsetIndexing<ui32>* SubsetIndexing;
-
-    public:
-        TFeaturesBundleArraySubset(
-            const TExclusiveFeaturesBundle* metaData,
-            TConstArrayRef<ui8> srcData,
-            const TArraySubsetIndexing<ui32>* subsetIndexing)
-            : MetaData(metaData)
-            , SrcData(srcData)
-            , SubsetIndexing(subsetIndexing)
-        {}
-    };
-
-
     struct TExclusiveFeaturesBundlingOptions {
         ui32 MaxBuckets = 1 << 10;
         float MaxConflictFraction = 0.0f;

@@ -155,6 +155,48 @@ inline static void SetSingleIndex(
 }
 
 
+template <class T, EFeatureValuesType FeatureValuesType, typename TFullIndexType>
+inline static void BuildSingleIndex(
+    const TCalcScoreFold& fold,
+    const TTypedFeatureValuesHolder<T, FeatureValuesType>& column,
+    const TStatsIndexer& indexer,
+    NCB::TIndexRange<int> docIndexRange,
+    TVector<TFullIndexType>* singleIdx // already of proper size
+) {
+    if (const auto* denseColumnData
+            = dynamic_cast<const TCompressedValuesHolderImpl<T, FeatureValuesType>*>(&column))
+    {
+        const bool simpleIndexing = fold.NonCtrDataPermutationBlockSize == fold.GetDocCount();
+        const ui32* docInDataProviderIndexing =
+            simpleIndexing ?
+            nullptr
+            : fold.LearnPermutationFeaturesSubset.Get<TIndexedSubset<ui32>>().data();
+        const int docInDataProviderBeginOffset = simpleIndexing ? fold.FeaturesSubsetBegin : 0;
+
+        const TCompressedArray& compressedArray = *denseColumnData->GetCompressedData().GetSrc();
+
+        DispatchBitsPerKeyToDataType(
+            compressedArray,
+            "BuildSingleIndex",
+            [&] (const auto* histogram) {
+                SetSingleIndex(
+                    fold,
+                    indexer,
+                    histogram,
+                    docInDataProviderIndexing,
+                    docInDataProviderBeginOffset,
+                    fold.NonCtrDataPermutationBlockSize,
+                    docIndexRange,
+                    singleIdx
+                );
+            }
+        );
+    } else {
+        Y_FAIL("BuildSingleIndex: unexpected column type");
+    }
+}
+
+
 // Calculate index of leaf for each document given a new split ensemble.
 template <typename TFullIndexType>
 inline static void BuildSingleIndex(
@@ -181,21 +223,11 @@ inline static void BuildSingleIndex(
             singleIdx
         );
     } else {
-        const bool simpleIndexing = fold.NonCtrDataPermutationBlockSize == fold.GetDocCount();
-        const ui32* docInDataProviderIndexing =
-            simpleIndexing ?
-            nullptr
-            : fold.LearnPermutationFeaturesSubset.Get<TIndexedSubset<ui32>>().data();
-        const int docInDataProviderBeginOffset = simpleIndexing ? fold.FeaturesSubsetBegin : 0;
-
-        auto setSingleIndexFunc = [&] (const auto* srcData) {
-            SetSingleIndex(
+        auto buildSingleIndexFunc = [&] (const auto& column) {
+            BuildSingleIndex(
                 fold,
+                column,
                 indexer,
-                srcData,
-                docInDataProviderIndexing,
-                docInDataProviderBeginOffset,
-                fold.NonCtrDataPermutationBlockSize,
                 docIndexRange,
                 singleIdx
             );
@@ -206,62 +238,28 @@ inline static void BuildSingleIndex(
                 {
                     const auto& splitCandidate = splitEnsemble.SplitCandidate;
                     if (splitCandidate.Type == ESplitType::FloatFeature) {
-                        const auto* featureColumnValuesHolder
-                            = (*objectsDataProvider.GetNonPackedFloatFeature(
-                                (ui32)splitCandidate.FeatureIdx)
-                            );
-                        if (featureColumnValuesHolder->GetBitsPerKey() == 8) {
-                            setSingleIndexFunc(
-                                *featureColumnValuesHolder->GetArrayData<ui8>().GetSrc()
-                            );
-                        } else {
-                            CB_ENSURE_INTERNAL(
-                                featureColumnValuesHolder->GetBitsPerKey() == 16,
-                                "Only 8 and 16 bit wide float feature quantization expected"
-                            );
-                            setSingleIndexFunc(
-                                *featureColumnValuesHolder->GetArrayData<ui16>().GetSrc()
-                            );
-                        }
+                        buildSingleIndexFunc(
+                            **objectsDataProvider.GetNonPackedFloatFeature((ui32)splitCandidate.FeatureIdx)
+                        );
                     } else {
                         Y_ASSERT(splitCandidate.Type == ESplitType::OneHotFeature);
-                        setSingleIndexFunc(
-                            *((*objectsDataProvider.GetNonPackedCatFeature((ui32)splitCandidate.FeatureIdx))
-                                ->GetArrayData<ui32>().GetSrc())
+                        buildSingleIndexFunc(
+                           **objectsDataProvider.GetNonPackedCatFeature((ui32)splitCandidate.FeatureIdx)
                         );
                     }
                 }
                 break;
             case ESplitEnsembleType::BinarySplits:
-                setSingleIndexFunc(
-                    (**objectsDataProvider.GetBinaryFeaturesPack(
-                        splitEnsemble.BinarySplitsPackRef.PackIdx
-                     ).GetSrc()).data()
+                buildSingleIndexFunc(
+                    objectsDataProvider.GetBinaryFeaturesPack(splitEnsemble.BinarySplitsPackRef.PackIdx)
                 );
                 break;
             case ESplitEnsembleType::ExclusiveBundle:
-                {
-                    const auto bundleIdx = splitEnsemble.ExclusiveFeaturesBundleRef.BundleIdx;
-
-                    const auto& bundleMetaData =
-                        objectsDataProvider.GetExclusiveFeatureBundlesMetaData()[bundleIdx];
-                    const ui8* srcData =
-                        objectsDataProvider.GetExclusiveFeaturesBundle(bundleIdx).SrcData.data();
-
-                    switch (bundleMetaData.SizeInBytes) {
-                        case 1:
-                            setSingleIndexFunc(srcData);
-                            break;
-                        case 2:
-                            setSingleIndexFunc((const ui16*)srcData);
-                            break;
-                        default:
-                            CB_ENSURE_INTERNAL(
-                                false,
-                                "Wrong features bundle size in bytes : " << bundleMetaData.SizeInBytes
-                            );
-                    }
-                }
+                buildSingleIndexFunc(
+                    objectsDataProvider.GetExclusiveFeaturesBundle(
+                        splitEnsemble.ExclusiveFeaturesBundleRef.BundleIdx
+                    )
+                );
         }
     }
 }
@@ -441,168 +439,83 @@ static void CalcStatsImpl(
                 Min(pairCount, pairPart * partIndexRange.End)
             );
 
+            auto computePairwiseStats = [&] (
+                const auto& column,
+                TMaybe<const TExclusiveFeaturesBundle*> exclusiveFeaturesBundle = Nothing()
+            ) {
+                ComputePairwiseStats(
+                    fold,
+                    weightedDerivativesData,
+                    pairs,
+                    leafCount,
+                    indexer.BucketCount,
+                    oneHotMaxSize,
+                    exclusiveFeaturesBundle,
+                    column,
+                    docIndexRange,
+                    pairIndexRange,
+                    output);
+            };
+
             switch (splitEnsemble.Type) {
                 case ESplitEnsembleType::OneFeature:
                     {
                         const auto& splitCandidate = splitEnsemble.SplitCandidate;
+                        output->SplitEnsembleSpec = TSplitEnsembleSpec::OneSplit(splitCandidate.Type);
 
-                        auto setOutput = [&] (auto&& getBucketFunc) {
-                            output->DerSums = ComputeDerSums(
-                                weightedDerivativesData,
-                                leafCount,
-                                indexer.BucketCount,
-                                fold.Indices,
-                                getBucketFunc,
-                                docIndexRange
-                            );
-                            auto pairWeightStatistics = ComputePairWeightStatistics(
-                                pairs,
-                                leafCount,
-                                indexer.BucketCount,
-                                fold.Indices,
-                                getBucketFunc,
-                                pairIndexRange
-                            );
-                            output->PairWeightStatistics.Swap(pairWeightStatistics);
-                            output->SplitEnsembleSpec = TSplitEnsembleSpec::OneSplit(splitCandidate.Type);
-                        };
+                        switch (splitCandidate.Type) {
+                            case ESplitType::OnlineCtr:
+                                {
+                                    const TCtr& ctr = splitCandidate.Ctr;
+                                    TConstArrayRef<ui8> buckets =
+                                        GetCtr(allCtrs, ctr.Projection)
+                                            .Feature[ctr.CtrIdx][ctr.TargetBorderIdx][ctr.PriorIdx];
 
-                        if (splitCandidate.Type == ESplitType::OnlineCtr) {
-                            const TCtr& ctr = splitCandidate.Ctr;
-                            TConstArrayRef<ui8> buckets =
-                                GetCtr(allCtrs, ctr.Projection)
-                                    .Feature[ctr.CtrIdx][ctr.TargetBorderIdx][ctr.PriorIdx];
-                            setOutput([buckets](ui32 docIdx) { return buckets[docIdx]; });
-                        } else if (splitCandidate.Type == ESplitType::FloatFeature) {
-                            const auto* featureColumnHolder
-                                = (*objectsDataProvider.GetNonPackedFloatFeature(
-                                    (ui32)splitCandidate.FeatureIdx
-                                ));
-                            const ui32* bucketIndexing
-                                = fold.LearnPermutationFeaturesSubset.Get<TIndexedSubset<ui32>>().data();
-                            if (featureColumnHolder->GetBitsPerKey() == 8) {
-                                const ui8* bucketSrcData
-                                    = *(featureColumnHolder->GetArrayData<ui8>().GetSrc());
-                                setOutput(
-                                    [bucketSrcData, bucketIndexing](ui32 docIdx) {
-                                        return bucketSrcData[bucketIndexing[docIdx]];
-                                    }
-                                );
-                            } else {
-                                Y_ASSERT(featureColumnHolder->GetBitsPerKey() == 16);
-                                const ui16* bucketSrcData
-                                    = *(featureColumnHolder->GetArrayData<ui16>().GetSrc());
-                                setOutput(
-                                    [bucketSrcData, bucketIndexing](ui32 docIdx) {
-                                        return bucketSrcData[bucketIndexing[docIdx]];
-                                    }
-                                );
-                            }
-                        } else {
-                            Y_ASSERT(splitCandidate.Type == ESplitType::OneHotFeature);
-                            const ui32* bucketSrcData =
-                                *((*objectsDataProvider.GetNonPackedCatFeature(
-                                    (ui32)splitCandidate.FeatureIdx)
-                                  )->GetArrayData<ui32>().GetSrc());
-                            const ui32* bucketIndexing
-                                = fold.LearnPermutationFeaturesSubset.Get<TIndexedSubset<ui32>>().data();
-                            setOutput(
-                                [bucketSrcData, bucketIndexing](ui32 docIdx) {
-                                    return bucketSrcData[bucketIndexing[docIdx]];
+                                    ComputePairwiseStats<ui8>(
+                                        ESplitEnsembleType::OneFeature,
+                                        weightedDerivativesData,
+                                        pairs,
+                                        leafCount,
+                                        indexer.BucketCount,
+                                        oneHotMaxSize,
+                                        fold.Indices,
+                                        /*exclusiveFeaturesBundle*/ Nothing(),
+                                        docIndexRange,
+                                        pairIndexRange,
+                                        [buckets](ui32 docIdx) { return buckets[docIdx]; },
+                                        output);
                                 }
-                            );
+                                break;
+                            case ESplitType::FloatFeature:
+                                computePairwiseStats(
+                                    **objectsDataProvider.GetNonPackedFloatFeature(
+                                        (ui32)splitCandidate.FeatureIdx
+                                    ));
+                                break;
+                            case ESplitType::OneHotFeature:
+                                computePairwiseStats(
+                                    **objectsDataProvider.GetNonPackedCatFeature(
+                                        (ui32)splitCandidate.FeatureIdx
+                                    ));
+                                break;
                         }
                     }
                     break;
                 case ESplitEnsembleType::BinarySplits:
-                    {
-                        const TBinaryFeaturesPack* bucketSrcData =
-                            (**objectsDataProvider.GetBinaryFeaturesPack(
-                                splitEnsemble.BinarySplitsPackRef.PackIdx
-                            ).GetSrc()).data();
-                        const ui32* bucketIndexing
-                            = fold.LearnPermutationFeaturesSubset.Get<TIndexedSubset<ui32>>().data();
-
-                        output->DerSums = ComputeDerSums(
-                            weightedDerivativesData,
-                            leafCount,
-                            indexer.BucketCount,
-                            fold.Indices,
-                            [bucketSrcData, bucketIndexing](ui32 docIdx) {
-                                return bucketSrcData[bucketIndexing[docIdx]];
-                            },
-                            docIndexRange
-                        );
-                        output->PairWeightStatistics = ComputePairWeightStatisticsForBinaryFeaturesPacks(
-                            pairs,
-                            leafCount,
-                            indexer.BucketCount,
-                            fold.Indices,
-                            [bucketSrcData, bucketIndexing](ui32 docIdx) {
-                                return bucketSrcData[bucketIndexing[docIdx]];
-                            },
-                            pairIndexRange
-                        );
-                        output->SplitEnsembleSpec = TSplitEnsembleSpec::BinarySplitsPack();
-                    }
+                    output->SplitEnsembleSpec = TSplitEnsembleSpec::BinarySplitsPack();
+                    computePairwiseStats(
+                        objectsDataProvider.GetBinaryFeaturesPack(splitEnsemble.BinarySplitsPackRef.PackIdx)
+                    );
                     break;
                 case ESplitEnsembleType::ExclusiveBundle:
-                    {
-                        const auto bundleIdx = splitEnsemble.ExclusiveFeaturesBundleRef.BundleIdx;
+                    const auto bundleIdx = splitEnsemble.ExclusiveFeaturesBundleRef.BundleIdx;
+                    const auto* bundleMetaData =
+                        &(objectsDataProvider.GetExclusiveFeatureBundlesMetaData()[bundleIdx]);
+                    output->SplitEnsembleSpec = TSplitEnsembleSpec::ExclusiveFeatureBundle(*bundleMetaData);
 
-                        const auto& bundleMetaData =
-                            objectsDataProvider.GetExclusiveFeatureBundlesMetaData()[bundleIdx];
-                        const ui8* bucketSrcData =
-                            objectsDataProvider.GetExclusiveFeaturesBundle(bundleIdx).SrcData.data();
-
-                        const ui32* bucketIndexing
-                            = fold.LearnPermutationFeaturesSubset.Get<TIndexedSubset<ui32>>().data();
-
-                        TArray2D<TVector<TBucketPairWeightStatistics>> pairWeightStatistics;
-
-                        auto computeStatsFunc = [&] (const auto* bucketSrcData) {
-                            output->DerSums = ComputeDerSums(
-                                weightedDerivativesData,
-                                leafCount,
-                                indexer.BucketCount,
-                                fold.Indices,
-                                [bucketSrcData, bucketIndexing](ui32 docIdx) {
-                                    return bucketSrcData[bucketIndexing[docIdx]];
-                                },
-                                docIndexRange
-                            );
-                            output->PairWeightStatistics =
-                                ComputePairWeightStatisticsForExclusiveFeaturesBundle(
-                                    oneHotMaxSize,
-                                    pairs,
-                                    leafCount,
-                                    fold.Indices,
-                                    bundleMetaData,
-                                    [bucketSrcData, bucketIndexing](ui32 docIdx) {
-                                        return bucketSrcData[bucketIndexing[docIdx]];
-                                    },
-                                    pairIndexRange
-                                );
-                        };
-
-                        switch (bundleMetaData.SizeInBytes) {
-                            case 1:
-                                computeStatsFunc(bucketSrcData);
-                                break;
-                            case 2:
-                                computeStatsFunc((const ui16*)bucketSrcData);
-                                break;
-                            default:
-                                CB_ENSURE_INTERNAL(
-                                    false,
-                                    "Wrong features bundle size in bytes : " << bundleMetaData.SizeInBytes
-                                );
-                        }
-
-                        output->SplitEnsembleSpec = TSplitEnsembleSpec::ExclusiveFeatureBundle(
-                            bundleMetaData
-                        );
-                    }
+                    computePairwiseStats(
+                        objectsDataProvider.GetExclusiveFeaturesBundle(bundleIdx),
+                        bundleMetaData);
                     break;
             }
         },
