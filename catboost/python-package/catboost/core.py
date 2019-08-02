@@ -2053,7 +2053,7 @@ class CatBoost(_CatBoostBase):
 
             if prettified:
                 feature_importances = sorted(zip(feature_names, feature_importances), key=itemgetter(1), reverse=True)
-                columns = ['Feature Index', 'Importances']
+                columns = ['Feature Id', 'Importances']
                 return DataFrame(feature_importances, columns=columns)
             else:
                 return np.array(feature_importances)
