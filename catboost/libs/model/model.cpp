@@ -609,6 +609,21 @@ TVector<TString> GetModelUsedFeaturesNames(const TFullModel& model) {
     return result;
 }
 
+void SetModelExternalFeatureNames(const TVector<TString>& featureNames, TFullModel* model) {
+    TObliviousTrees& forest = *(model->ObliviousTrees.GetMutable());
+    CB_ENSURE(
+        (forest.FloatFeatures.empty() || featureNames.ysize() > forest.FloatFeatures.back().Position.FlatIndex) &&
+        (forest.CatFeatures.empty() || featureNames.ysize() > forest.CatFeatures.back().Position.FlatIndex),
+        "Features in model not corresponds to features names array length not correspond");
+
+    for (TFloatFeature& feature : forest.FloatFeatures) {
+        feature.FeatureId = featureNames[feature.Position.FlatIndex];
+    }
+    for (TCatFeature& feature : forest.CatFeatures) {
+        feature.FeatureId = featureNames[feature.Position.FlatIndex];
+    }
+}
+
 TString TFullModel::GetLossFunctionName() const {
     NCatboostOptions::TLossDescription lossDescription;
     if (ModelInfo.contains("loss_function")) {

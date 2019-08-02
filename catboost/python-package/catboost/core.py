@@ -1169,6 +1169,16 @@ class _CatBoostBase(object):
         '''
         self._object._set_leaf_values(new_leaf_values)
 
+    def set_feature_names(self, feature_names):
+        '''
+        Sets feature names equal to feature_names
+
+        Parameters
+        ----------
+        feature_names: 1-d array of strings with new feature names in the same order as in pool
+        '''
+        self._object._set_feature_names(feature_names)
+
 
 def _check_param_types(params):
     if not isinstance(params, (Mapping, MutableMapping)):
@@ -2343,13 +2353,19 @@ class CatBoost(_CatBoostBase):
             raise ImportError(str(e))
 
         model_borders = self._get_borders()
-        for feature_idx in features_to_change:
-            assert feature_idx in model_borders, "only float features indexes are supported"
 
         data, _ = self._process_predict_input_data(data, "vary_feature_value_and_apply")
         figs = []
         all_predictions = [{}] * data.num_row()
-        for feature_idx in features_to_change:
+        for feature in features_to_change:
+            if not isinstance(feature, int):
+                if self.feature_names_ is None or feature not in self.feature_names_:
+                    raise CatBoostError('No feature named "{}" in model'.format(feature))
+                feature_idx = self.feature_names_.index(feature)
+            else:
+                feature_idx = feature
+                feature = self.feature_names_[feature_idx]
+            assert feature_idx in model_borders, "only float features indexes are supported"
             borders = model_borders[feature_idx]
 
             if len(borders) == 0:
@@ -2384,7 +2400,7 @@ class CatBoost(_CatBoostBase):
                     showlegend=False
                 ))
 
-            layout = get_layout(go, feature_idx, xaxis)
+            layout = get_layout(go, feature, xaxis)
             figs += [go.Figure(data=trace, layout=layout)]
 
         if plot:

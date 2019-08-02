@@ -547,6 +547,7 @@ cdef extern from "catboost/libs/model/model.h":
     cdef TString SerializeModel(const TFullModel& model) except +ProcessException
     cdef TFullModel DeserializeModel(const TString& serializeModelString) nogil except +ProcessException
     cdef TVector[TString] GetModelUsedFeaturesNames(const TFullModel& model) except +ProcessException
+    void SetModelExternalFeatureNames(const TVector[TString]& featureNames, TFullModel* model) nogil except +ProcessException
     cdef void SaveModelBorders(const TString& file, const TFullModel& model) nogil except +ProcessException
 
 ctypedef const TFullModel* TFullModel_const_ptr
@@ -3232,6 +3233,13 @@ cdef class _CatBoost:
         cdef TArrayRef[double] model_leafs = <TArrayRef[double]>self.__model.ObliviousTrees.GetMutable().LeafValues
         for i in xrange(self.__model.ObliviousTrees.Get().LeafValues.size()):
             model_leafs[i] = new_leaf_values[i]
+
+    cpdef _set_feature_names(self, feature_names):
+            cdef TVector[TString] feature_names_vector
+            for value in feature_names:
+                feature_names_vector.push_back(to_arcadia_string(str(value)))
+            SetModelExternalFeatureNames(feature_names_vector, self.__model)
+
 
 
 cdef class _MetadataHashProxy:

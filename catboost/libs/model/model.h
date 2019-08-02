@@ -857,6 +857,8 @@ TFullModel DeserializeModel(const TString& serializedModel);
 
 TVector<TString> GetModelUsedFeaturesNames(const TFullModel& model);
 
+void SetModelExternalFeatureNames(const TVector<TString>& featureNames, TFullModel* model);
+
 TFullModel SumModels(
     const TVector<const TFullModel*> modelVector,
     const TVector<double>& weights,

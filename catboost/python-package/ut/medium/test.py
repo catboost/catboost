@@ -4329,6 +4329,17 @@ def test_save_border_file():
     return [local_canonical_file(save_borders_file), local_canonical_file(output_borders_file)]
 
 
+def test_set_feature_names():
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+
+    model = CatBoostClassifier(loss_function='Logloss', iterations=10)
+    model.fit(train_pool)
+
+    names = ["feature_{}".format(x) for x in range(train_pool.num_col())]
+    model.set_feature_names(names)
+    assert names == model.feature_names_
+
+
 def test_model_comparison():
     def fit_model(iterations):
         pool = Pool(TRAIN_FILE, column_description=CD_FILE)
