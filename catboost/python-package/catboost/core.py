@@ -3147,6 +3147,9 @@ class CatBoostClassifier(CatBoost):
     subsample : float, [default=None]
         Sample rate for bagging. This parameter can be used Poisson or Bernoully bootstrap types.
 
+    monotone_constraints : list or string, [default=None]
+        Monotone constraints for all features.
+
     sampling_frequency : string, [default=PerTree]
         Frequency to sample weights and objects when building trees.
         Possible values:
@@ -3331,7 +3334,8 @@ class CatBoostClassifier(CatBoost):
         num_leaves=None,
         score_function=None,
         leaf_estimation_backtracking=None,
-        ctr_history_unit=None
+        ctr_history_unit=None,
+        monotone_constraints=None
     ):
         params = {}
         not_params = ["not_params", "self", "params", "__class__"]
