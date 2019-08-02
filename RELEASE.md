@@ -1,3 +1,30 @@
+# Release 0.16.2
+
+## Breaking changes:
+- Removed `get_group_id()` and `get_features()` methods of `Pool` class
+
+## New model analysis tools:
+- Added `PredictionDiff` type of `get_feature_importance()` method, which is a new method for model analysis. The method shows how the features influenced the fact that among two samples one has a higher prediction. It allows to debug ranking models: you find a pair of samples ranked incorrectly and you look at what features have caused that.
+- Added `plot_predictions()` method
+
+## New features:
+- `model.set_feature_names()` method in Python
+- Added stratified split to parameter search methods
+- Support `catboost.load_model()` from CPU snapshots for numerical-only datasets
+- `CatBoostClassifier.score()` now supports `y` as `DataFrame`
+- Added `sampling_frequency`, `per_float_feature_binarization`, `monotone_constraints` parameters to `CatBoostClassifier` and `CatBoostRegresssor`
+
+## Speedups:
+- 2x speedup of multi-classification mode
+
+## Bugfixes:
+- Fixed `score()` for multiclassification, #924
+- Fixed `get_all_params()` function,  #926
+
+## Other improvements:
+- Clear error messages when a model cannot be saved
+
+
 # Release 0.16.1
 
 ## Breaking changes:
