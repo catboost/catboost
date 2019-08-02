@@ -430,39 +430,37 @@ public:
         TVector<double>* der,
         THessianInfo* der2
     ) const override {
-        const int approxDimension = approx.ysize();
-
-        TVector<double> softmax(approxDimension);
-        CalcSoftmax(approx, softmax);
-
-        for (int dim = 0; dim < approxDimension; ++dim) {
-            (*der)[dim] = -softmax[dim];
-        }
-        int targetClass = static_cast<int>(target);
-        (*der)[targetClass] += 1;
+        const auto derRef = MakeArrayRef(*der);
+        CalcSoftmax(approx, derRef);
 
         if (der2 != nullptr) {
+            const int approxDimension = approx.ysize();
             Y_ASSERT(der2->HessianType == EHessianType::Symmetric &&
                      der2->ApproxDimension == approxDimension);
+            const auto der2Ref = MakeArrayRef(der2->Data);
             int idx = 0;
             for (int dimY = 0; dimY < approxDimension; ++dimY) {
-                der2->Data[idx++] = softmax[dimY] * (softmax[dimY] - 1);
+                der2Ref[idx++] = derRef[dimY] * (derRef[dimY] - 1);
                 for (int dimX = dimY + 1; dimX < approxDimension; ++dimX) {
-                    der2->Data[idx++] = softmax[dimY] * softmax[dimX];
+                    der2Ref[idx++] = derRef[dimY] * derRef[dimX];
                 }
             }
         }
 
+        for (auto& value : derRef) {
+            value = -value;
+        }
+        const int targetClass = static_cast<int>(target);
+        derRef[targetClass] += 1;
+
         if (weight != 1) {
-            for (int dim = 0; dim < approxDimension; ++dim) {
-                (*der)[dim] *= weight;
+            for (auto& value : derRef) {
+                value *= weight;
             }
             if (der2 != nullptr) {
-                int idx = 0;
-                for (int dimY = 0; dimY < approxDimension; ++dimY) {
-                    for (int dimX = dimY; dimX < approxDimension; ++dimX) {
-                        der2->Data[idx++] *= weight;
-                    }
+                const auto der2Ref = MakeArrayRef(der2->Data);
+                for (auto& value : der2Ref) {
+                    value *= weight;
                 }
             }
         }
