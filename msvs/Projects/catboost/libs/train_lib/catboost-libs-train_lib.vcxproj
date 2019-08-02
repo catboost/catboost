@@ -81,6 +81,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\train_lib\cross_validation.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\train_lib\eval_feature.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\train_lib\feature_names_converter.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\train_lib\model_import_snapshot.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\train_lib\options_helper.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\train_lib\train_model.cpp"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\train_lib\cross_validation.h"/>
