@@ -22,6 +22,7 @@ ADD_TEST(
 )
 
 RECURSE(
+    conf_fatal_error
     plugins
     scripts
     platform/perl
