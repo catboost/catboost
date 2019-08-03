@@ -79,5 +79,3 @@
   - wchar.i:
     - contrib/tools/swig/Lib/python/wchar.i
     - contrib/tools/swig/Lib/wchar.i
-
-  - reference.i:          contrib/tools/swig/Lib/python/reference.i

@@ -16,8 +16,7 @@ def just_do_it():
     java_srcs_dir = os.path.join(os.path.dirname(args.jsrc_out), args.package.replace('.', '/'))
     if not os.path.exists(java_srcs_dir):
         os.makedirs(java_srcs_dir)
-    subprocess.check_call([args.tool, '-c++'] +
-                          ['-' + i for i in args.flag] +
+    subprocess.check_call([args.tool, '-c++'] + args.flag +
                           ['-o', args.cpp_out, '-java', '-module', os.path.splitext(os.path.basename(args.src))[0], '-package', args.package, '-outdir', java_srcs_dir, args.src])
     with tarfile.open(args.jsrc_out, 'a') as tf:
         tf.add(java_srcs_dir, arcname=args.package.replace('.', '/'))

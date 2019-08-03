@@ -4,9 +4,6 @@ import _import_wrapper as iw
 import _common as common
 
 
-_SWIG_LIB_PATH = 'contrib/tools/swig/Lib'
-
-
 class Swig(iw.CustomCommand):
     def __init__(self, path, unit):
         self._path = path
@@ -25,7 +22,11 @@ class Swig(iw.CustomCommand):
         self._swig_lang = unit.get('SWIG_LANG')
 
         lang_specific_incl_dir = 'perl5' if self._swig_lang == 'perl' else self._swig_lang
-        incl_dirs = ['bindings/swiglib', os.path.join(_SWIG_LIB_PATH, lang_specific_incl_dir), _SWIG_LIB_PATH, os.path.join(_SWIG_LIB_PATH, 'python')]
+        incl_dirs = [
+            'bindings/swiglib',
+            'contrib/tools/swig/Lib/' + lang_specific_incl_dir,
+            'contrib/tools/swig/Lib',
+        ]
         self._incl_dirs = ['$S', '$B'] + ['$S/{}'.format(d) for d in incl_dirs]
 
         modname = unit.get('REALPRJNAME')
@@ -78,16 +79,19 @@ class Swig(iw.CustomCommand):
     def run(self, binary):
         return self.do_run(binary, self._path) if self._swig_lang != 'java' else self.do_run_java(binary, self._path)
 
+    def _incl_flags(self):
+        return ['-I' + self.resolve_path(x) for x in self._incl_dirs]
+
     def do_run(self, binary, path):
-        self._incl_dirs = ['-I' + self.resolve_path(x) for x in self._incl_dirs]
-        self.call([binary] + self._flags + ['-o', self.resolve_path(common.get(self.output, 0)), '-outdir', self.resolve_path(self._bindir)]
-                  + self._incl_dirs + [self.resolve_path(path)])
+        self.call([binary] + self._flags + [
+            '-o', self.resolve_path(common.get(self.output, 0)),
+            '-outdir', self.resolve_path(self._bindir)
+        ] + self._incl_flags() + [self.resolve_path(path)])
 
     def do_run_java(self, binary, path):
         cmd = common.get_interpreter_path() + ['$S/build/scripts/run_swig_java.py', '--tool', binary, '--src', self.resolve_path(path)]
-        for inc in self._incl_dirs:
-            if inc:
-                cmd += ['--flag', 'I' + self.resolve_path(inc)]
+        for flag in self._incl_flags():
+            cmd.append('--flag=' + flag)
         cmd += ['--cpp-out', self._main_out, '--jsrc-out', '/'.join([self.resolve_path(self._bindir), self._out_name]), '--package', self._package]
         self.call(cmd)
 
