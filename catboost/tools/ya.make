@@ -4,4 +4,5 @@ RECURSE(
     limited_precision_json_diff
     limited_precision_json_diff/pytest
     model_comparator
+    model_perftest
 )
