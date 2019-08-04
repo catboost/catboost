@@ -339,10 +339,7 @@ THolder<IPollerFace> IPollerFace::Default() {
 }
 
 THolder<IPollerFace> IPollerFace::Construct(TStringBuf name) {
-    if (!name) {
-        name = AsStringBuf("default");
-    }
-    return Construct(FromString<EContPoller>(name));
+    return Construct(name ? FromString<EContPoller>(name) : EContPoller::Default);
 }
 
 THolder<IPollerFace> IPollerFace::Construct(EContPoller poller) {
@@ -350,11 +347,7 @@ THolder<IPollerFace> IPollerFace::Construct(EContPoller poller) {
     case EContPoller::Default:
         return MakeHolder<TVirtualize<TCombinedPoller>>();
     case EContPoller::Select:
-#if defined(HAVE_SELECT_POLLER)
         return MakeHolder<TVirtualize<TPoller<TGenericPoller<TSelectPoller<TWithoutLocking>>>>>();
-#else
-        return nullptr;
-#endif
     case EContPoller::Poll:
         return MakeHolder<TVirtualize<TPollPoller>>();
     case EContPoller::Epoll:
@@ -369,8 +362,7 @@ THolder<IPollerFace> IPollerFace::Construct(EContPoller poller) {
 #else
         return nullptr;
 #endif
+    default:
+        Y_FAIL("bad poller type");
     }
-
-    // should never get here
-    Y_FAIL("bad poller type");
 }
