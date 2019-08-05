@@ -156,6 +156,7 @@
         "rsm" : 1,
         "random_strength" : 1,
         "leaf_estimation_iterations" : 1,
+        "score_function" : "Cosine",
         "dev_efb_max_buckets" : 1024,
         "dev_score_calc_obj_block_size" : 5000000,
         "leaf_estimation_backtracking" : "AnyImprovement",

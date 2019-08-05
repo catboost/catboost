@@ -1,4 +1,4 @@
-#include "score_bin.h"
+#include "score_calcers.h"
 
 #include "split.h"
 
@@ -6,7 +6,7 @@
 #include <util/generic/cast.h>
 
 
-int CalcScoreBinCount(
+int CalcSplitsCount(
     const TSplitEnsembleSpec& splitEnsembleSpec,
     int bucketCount,
     ui32 oneHotMaxSize

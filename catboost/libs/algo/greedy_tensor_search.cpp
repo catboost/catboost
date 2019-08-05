@@ -4,7 +4,7 @@
 #include "helpers.h"
 #include "index_calcer.h"
 #include "learn_context.h"
-#include "score_calcer.h"
+#include "scoring.h"
 #include "split.h"
 #include "tensor_search_helpers.h"
 #include "tree_print.h"
@@ -574,7 +574,24 @@ static void CalcBestScore(
                         const auto& proj = splitEnsemble.SplitCandidate.Ctr.Projection;
                         Y_ASSERT(!fold->GetCtrRef(proj).Feature.empty());
                     }
-                    TVector<TScoreBin> scoreBins;
+
+                    THolder<IScoreCalcer> scoreCalcer;
+                    if (IsPairwiseScoring(ctx->Params.LossFunctionDescription->GetLossFunction())) {
+                        scoreCalcer.Reset(new TPairwiseScoreCalcer);
+                    } else {
+                        switch (ctx->Params.ObliviousTreeOptions->ScoreFunction) {
+                            case EScoreFunction::Cosine:
+                                scoreCalcer.Reset(new TCosineScoreCalcer);
+                                break;
+                            case EScoreFunction::L2:
+                                scoreCalcer.Reset(new TL2ScoreCalcer);
+                                break;
+                            default:
+                                CB_ENSURE(false, "Error: score function for CPU should be Cosine or L2");
+                                break;
+                        }
+                    }
+
                     CalcStatsAndScores(
                         *data.Learn->ObjectsData,
                         fold->GetAllCtrs(),
@@ -592,8 +609,8 @@ static void CalcBestScore(
                         &ctx->PrevTreeLevelStats,
                         /*stats3d*/nullptr,
                         /*pairwiseStats*/nullptr,
-                        &scoreBins);
-                    allScores[oneCandidate] = GetScores(scoreBins);
+                        scoreCalcer.Get());
+                    allScores[oneCandidate] = scoreCalcer->GetScores();
                 },
                 NPar::TLocalExecutor::TExecRangeParams(0, candidate.Candidates.ysize()),
                 NPar::TLocalExecutor::WAIT_COMPLETE);

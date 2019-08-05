@@ -16,6 +16,7 @@ NCatboostOptions::TObliviousTreeLearnerOptions::TObliviousTreeLearnerOptions(ETa
       , BootstrapConfig("bootstrap", TBootstrapConfig(taskType))
       , Rsm("rsm", 1.0)
       , LeavesEstimationBacktrackingType("leaf_estimation_backtracking", ELeavesEstimationStepBacktracking::AnyImprovement)
+      , ScoreFunction("score_function", EScoreFunction::Cosine)
       , SamplingFrequency("sampling_frequency", ESamplingFrequency::PerTree, taskType)
       , ModelSizeReg("model_size_reg", 0.5, taskType)
       , DevScoreCalcObjBlockSize("dev_score_calc_obj_block_size", 5000000, taskType)
@@ -24,7 +25,6 @@ NCatboostOptions::TObliviousTreeLearnerOptions::TObliviousTreeLearnerOptions(ETa
       , ObservationsToBootstrap("observations_to_bootstrap", EObservationsToBootstrap::TestOnly, taskType) //it's specific for fold-based scheme, so here and not in bootstrap options
       , FoldSizeLossNormalization("fold_size_loss_normalization", false, taskType)
       , AddRidgeToTargetFunctionFlag("add_ridge_penalty_to_loss_function", false, taskType)
-      , ScoreFunction("score_function", EScoreFunction::Cosine, taskType)
       , MaxCtrComplexityForBordersCaching("dev_max_ctr_complexity_for_borders_cache", 1, taskType)
       , GrowPolicy("grow_policy", EGrowPolicy::SymmetricTree, taskType)
       , MaxLeaves("max_leaves", 31, taskType)
@@ -36,7 +36,6 @@ NCatboostOptions::TObliviousTreeLearnerOptions::TObliviousTreeLearnerOptions(ETa
 
     FoldSizeLossNormalization.ChangeLoadUnimplementedPolicy(ELoadUnimplementedPolicy::ExceptionOnChange);
     AddRidgeToTargetFunctionFlag.ChangeLoadUnimplementedPolicy(ELoadUnimplementedPolicy::ExceptionOnChange);
-    ScoreFunction.ChangeLoadUnimplementedPolicy(ELoadUnimplementedPolicy::ExceptionOnChange);
 
     MaxCtrComplexityForBordersCaching.ChangeLoadUnimplementedPolicy(ELoadUnimplementedPolicy::SkipWithWarning);
 }

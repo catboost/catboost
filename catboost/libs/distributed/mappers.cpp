@@ -4,7 +4,7 @@
 #include <catboost/libs/algo/approx_calcer_multi.h>
 #include <catboost/libs/algo/data.h>
 #include <catboost/libs/algo/error_functions.h>
-#include <catboost/libs/algo/score_calcer.h>
+#include <catboost/libs/algo/scoring.h>
 #include <catboost/libs/algo/learn_context.h>
 #include <catboost/libs/algo/online_ctr.h>
 #include <catboost/libs/algo/preprocess.h>
@@ -345,7 +345,7 @@ namespace NCatboostDistributed {
             &localData.PrevTreeLevelStats,
             stats3D,
             /*pairwiseStats*/nullptr,
-            /*scoreBins*/nullptr);
+            /*scoreCalcer*/nullptr);
     }
 
     static void CalcPairwiseStats(const NPar::TCtxPtr<TTrainData>& trainData,
@@ -371,7 +371,7 @@ namespace NCatboostDistributed {
             &localData.PrevTreeLevelStats,
             /*stats3D*/nullptr,
             pairwiseStats,
-            /*scoreBins*/nullptr);
+            /*scoreCalcer*/nullptr);
     }
 
     void TScoreCalcer::DoMap(
@@ -443,15 +443,15 @@ namespace NCatboostDistributed {
         const int bucketCount = (*bucketStats)[0].DerSums[0].ysize();
         const auto getScores =
             [&] (const TPairwiseStats& candidatePairwiseStats, TVector<double>* candidateScores) {
-                TVector<TScoreBin> scoreBins;
+                ::TPairwiseScoreCalcer scoreCalcer;
                 CalculatePairwiseScore(
                     candidatePairwiseStats,
                     bucketCount,
                     localData.Params.ObliviousTreeOptions->L2Reg,
                     localData.Params.ObliviousTreeOptions->PairwiseNonDiagReg,
                     localData.Params.CatFeatureParams->OneHotMaxSize,
-                    &scoreBins);
-                *candidateScores = GetScores(scoreBins);
+                    &scoreCalcer);
+                *candidateScores = scoreCalcer.GetScores();
             };
         MapVector(getScores, *bucketStats, scores);
     }
@@ -496,13 +496,11 @@ namespace NCatboostDistributed {
         const auto& localData = TLocalTensorSearchData::GetRef();
         const auto getScores =
             [&] (const TStats3D& candidateStats3D, TVector<double>* candidateScores) {
-                *candidateScores = GetScores(
-                    GetScoreBins(
-                        candidateStats3D,
-                        localData.Depth,
-                        localData.SumAllWeights,
-                        localData.AllDocCount,
-                        localData.Params));
+                *candidateScores = GetScores(candidateStats3D,
+                                             localData.Depth,
+                                             localData.SumAllWeights,
+                                             localData.AllDocCount,
+                                             localData.Params);
             };
         MapVector(getScores, *bucketStats, scores);
     }

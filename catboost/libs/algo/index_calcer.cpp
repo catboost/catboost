@@ -3,7 +3,7 @@
 #include "features_data_helpers.h"
 #include "fold.h"
 #include "online_ctr.h"
-#include "score_calcer.h"
+#include "scoring.h"
 #include "split.h"
 #include "tree_print.h"
 

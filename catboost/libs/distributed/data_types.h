@@ -5,7 +5,7 @@
 #include <catboost/libs/algo/learn_context.h>
 #include <catboost/libs/algo/online_predictor.h>
 #include <catboost/libs/algo/pairwise_scoring.h>
-#include <catboost/libs/algo/score_bin.h>
+#include <catboost/libs/algo/score_calcers.h>
 #include <catboost/libs/algo/target_classifier.h>
 #include <catboost/libs/data_new/data_provider.h>
 #include <catboost/libs/helpers/restorable_rng.h>

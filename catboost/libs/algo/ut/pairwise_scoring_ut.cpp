@@ -60,7 +60,7 @@ static void CalculatePairwiseScoreSimple(
     ESplitType splitType,
     float l2DiagReg,
     float pairwiseNonDiagReg,
-    TVector<TScoreBin>* scoreBins
+    TVector<double>* scores
 ) {
     Y_UNUSED(splitType);
     const int docCount = singleIdx.ysize();
@@ -70,6 +70,7 @@ static void CalculatePairwiseScoreSimple(
         bucketIndices[docId] = singleIdx[docId] % bucketCount;
     }
 
+    scores->resize(bucketCount - 1);
     for (int splitId = 0; splitId < bucketCount - 1; ++splitId) {
         TArray2D<double> crossMatrix(2 * leafCount, 2 * leafCount);
         crossMatrix.FillZero();
@@ -112,8 +113,7 @@ static void CalculatePairwiseScoreSimple(
             }
         }
         const TVector<double> leafValues = CalculatePairwiseLeafValues(crossMatrix, derSums, l2DiagReg, pairwiseNonDiagReg);
-        (*scoreBins)[splitId].D2 = 1.0;
-        (*scoreBins)[splitId].DP = CalculateScore(leafValues, derSums, crossMatrix);
+        (*scores)[splitId] = CalculateScore(leafValues, derSums, crossMatrix);
     }
 }
 Y_UNIT_TEST_SUITE(PairwiseScoringTest) {
@@ -139,16 +139,18 @@ Y_UNIT_TEST_SUITE(PairwiseScoringTest) {
         const float pairwiseNonDiagReg = 0.1;
         const ui32 oneHotMaxSize = 2;
 
-        TVector<TScoreBin> scoreBins1(bucketCount - 1), scoreBins2(bucketCount - 1);
+        TVector<double> scores1, scores2;
         {
             TPairwiseStats pairwiseStats = CalcPairwiseStats(singleIdx, MakeArrayRef(ders.data(), ders.size()), queriesInfo, leafCount, bucketCount);
-            CalculatePairwiseScore(pairwiseStats, bucketCount, l2DiagReg, pairwiseNonDiagReg, oneHotMaxSize, &scoreBins1);
+            TPairwiseScoreCalcer scoreCalcer;
+            CalculatePairwiseScore(pairwiseStats, bucketCount, l2DiagReg, pairwiseNonDiagReg, oneHotMaxSize, &scoreCalcer);
+            scores1 = scoreCalcer.GetScores();
         }
-        CalculatePairwiseScoreSimple(singleIdx, MakeArrayRef(ders.data(), ders.size()), queriesInfo, leafCount, bucketCount, splitType, l2DiagReg, pairwiseNonDiagReg, &scoreBins2);
+        CalculatePairwiseScoreSimple(singleIdx, MakeArrayRef(ders.data(), ders.size()), queriesInfo, leafCount, bucketCount, splitType, l2DiagReg, pairwiseNonDiagReg, &scores2);
 
-        UNIT_ASSERT_DOUBLES_EQUAL(scoreBins1[0].DP, scoreBins2[0].DP, 1e-6);
-        UNIT_ASSERT_DOUBLES_EQUAL(scoreBins1[1].DP, scoreBins2[1].DP, 1e-6);
-        UNIT_ASSERT_DOUBLES_EQUAL(scoreBins1[2].DP, scoreBins2[2].DP, 1e-6);
+        UNIT_ASSERT_DOUBLES_EQUAL(scores1[0], scores2[0], 1e-6);
+        UNIT_ASSERT_DOUBLES_EQUAL(scores1[1], scores2[1], 1e-6);
+        UNIT_ASSERT_DOUBLES_EQUAL(scores1[2], scores2[2], 1e-6);
     }
 
     Y_UNIT_TEST(PairwiseScoringTestBig) {
@@ -177,15 +179,17 @@ Y_UNIT_TEST_SUITE(PairwiseScoringTest) {
         const float pairwiseNonDiagReg = 0.1;
         const ui32 oneHotMaxSize = 2;
 
-        TVector<TScoreBin> scoreBins1(bucketCount - 1), scoreBins2(bucketCount - 1);
+        TVector<double> scores1, scores2;
         {
             TPairwiseStats pairwiseStats = CalcPairwiseStats(singleIdx, MakeArrayRef(ders.data(), ders.size()), queriesInfo, leafCount, bucketCount);
-            CalculatePairwiseScore(pairwiseStats, bucketCount, l2DiagReg, pairwiseNonDiagReg, oneHotMaxSize, &scoreBins1);
+            TPairwiseScoreCalcer scoreCalcer;
+            CalculatePairwiseScore(pairwiseStats, bucketCount, l2DiagReg, pairwiseNonDiagReg, oneHotMaxSize, &scoreCalcer);
+            scores1 = scoreCalcer.GetScores();
         }
-        CalculatePairwiseScoreSimple(singleIdx, MakeArrayRef(ders.data(), ders.size()), queriesInfo, leafCount, bucketCount, splitType, l2DiagReg, pairwiseNonDiagReg, &scoreBins2);
+        CalculatePairwiseScoreSimple(singleIdx, MakeArrayRef(ders.data(), ders.size()), queriesInfo, leafCount, bucketCount, splitType, l2DiagReg, pairwiseNonDiagReg, &scores2);
 
-        UNIT_ASSERT_DOUBLES_EQUAL(scoreBins1[0].DP, scoreBins2[0].DP, 1e-6);
-        UNIT_ASSERT_DOUBLES_EQUAL(scoreBins1[1].DP, scoreBins2[1].DP, 1e-6);
-        UNIT_ASSERT_DOUBLES_EQUAL(scoreBins1[2].DP, scoreBins2[2].DP, 1e-6);
+        UNIT_ASSERT_DOUBLES_EQUAL(scores1[0], scores2[0], 1e-6);
+        UNIT_ASSERT_DOUBLES_EQUAL(scores1[1], scores2[1], 1e-6);
+        UNIT_ASSERT_DOUBLES_EQUAL(scores1[2], scores2[2], 1e-6);
     }
 }

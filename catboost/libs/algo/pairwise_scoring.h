@@ -2,7 +2,7 @@
 
 #include "calc_score_cache.h"
 #include "index_calcer.h"
-#include "score_bin.h"
+#include "score_calcers.h"
 #include "split.h"
 
 #include <catboost/libs/data_new/packed_binary_features.h>
@@ -335,6 +335,26 @@ inline void ComputePairwiseStats(
     }
 }
 
+class TPairwiseScoreCalcer final : public IScoreCalcer {
+public:
+    void SetSplitsCount(int splitsCount) override {
+        IScoreCalcer::SetSplitsCount(splitsCount);
+        Scores.resize(splitsCount);
+    }
+
+    void CalculateScore(
+        int splitIdx,
+        TConstArrayRef<double> avrg,
+        TConstArrayRef<double> sumDer,
+        const TArray2D<double>& sumWeights);
+
+    TVector<double> GetScores() const override {
+        return Scores;
+    }
+
+private:
+    TVector<double> Scores;
+};
 
 void CalculatePairwiseScore(
     const TPairwiseStats& pairwiseStats,
@@ -342,6 +362,6 @@ void CalculatePairwiseScore(
     float l2DiagReg,
     float pairwiseBucketWeightPriorReg,
     ui32 oneHotMaxSize,
-    TVector<TScoreBin>* scoreBins
+    TPairwiseScoreCalcer* scoreCalcer
 );
 

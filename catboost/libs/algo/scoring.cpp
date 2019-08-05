@@ -1,4 +1,4 @@
-#include "score_calcer.h"
+#include "scoring.h"
 
 #include "calc_score_cache.h"
 #include "fold.h"
@@ -14,8 +14,6 @@
 #include <catboost/libs/helpers/map_merge.h>
 #include <catboost/libs/index_range/index_range.h>
 #include <catboost/libs/options/catboost_options.h>
-#include <catboost/libs/options/catboost_options.h>
-#include <catboost/libs/options/defaults_helper.h>
 
 #include <library/threading/local_executor/local_executor.h>
 #include <library/dot_product/dot_product.h>
@@ -643,23 +641,13 @@ static void CalcStatsImpl(
 }
 
 
-// Calculate score numerator summand
-inline static double CountDp(double avrg, const TBucketStats& leafStats) {
-    return avrg * leafStats.SumWeightedDelta;
-}
-
-// Calculate score denominator summand
-inline static double CountD2(double avrg, const TBucketStats& leafStats) {
-    return avrg * avrg * leafStats.SumWeight;
-}
-
-
-inline void UpdateScoreBin(
+inline void UpdateSplitScore(
     bool isPlainMode,
     double scaledL2Regularizer,
     const TBucketStats& trueStats,
     const TBucketStats& falseStats,
-    TScoreBin* scoreBin
+    int splitIdx,
+    IPointwiseScoreCalcer* scoreCalcer
 ) {
     double trueAvrg, falseAvrg;
     if (isPlainMode) {
@@ -685,8 +673,8 @@ inline void UpdateScoreBin(
             scaledL2Regularizer
         );
     }
-    (*scoreBin).DP += CountDp(trueAvrg, trueStats) + CountDp(falseAvrg, falseStats);
-    (*scoreBin).D2 += CountD2(trueAvrg, trueStats) + CountD2(falseAvrg, falseStats);
+    scoreCalcer->AddLeaf(splitIdx, trueAvrg, trueStats);
+    scoreCalcer->AddLeaf(splitIdx, falseAvrg, falseStats);
 }
 
 
@@ -694,7 +682,7 @@ inline void UpdateScoreBin(
  * of the histogram.
  */
 template <typename TIsPlainMode, typename THaveMonotonicConstraints>
-inline static void UpdateScoreBins(
+inline static void UpdateScores(
     const TBucketStats* stats,
     int leafCount,
     const TStatsIndexer& indexer,
@@ -707,7 +695,7 @@ inline static void UpdateScoreBins(
     int allDocCount,
     const TVector<int>& currTreeMonotonicConstraints,
     const TVector<int>& candidateSplitMonotonicConstraints,
-    TVector<TScoreBin>* scoreBins
+    IPointwiseScoreCalcer* scoreCalcer
 ) {
     Y_ASSERT(haveMonotonicConstraints == !candidateSplitMonotonicConstraints.empty());
     // Used only if monotonic constraints are non trivial.
@@ -718,41 +706,42 @@ inline static void UpdateScoreBins(
     TVector<int> leafsProcessed;
     const double scaledL2Regularizer = l2Regularizer * (sumAllWeights / allDocCount);
     if (haveMonotonicConstraints) {
-        /* In this case updateScoreBinClosure simply stores relevant statistics for every leaf and
+        /* In this case updateSplitScoreClosure simply stores relevant statistics for every leaf and
          * every evaluated split. Then monotonization applies to leaf values and split score is calculated.
          * This implies unnecessary memory usage.
          */
         for (TVector<TVector<double>>* vec : {
             &leafDeltas, &bodyLeafWeights, &tailLeafSumWeightedDers, &tailLeafWeights
         }) {
-            vec->resize(scoreBins->size());
+            vec->resize(scoreCalcer->GetSplitsCount());
             for (auto& perLeafStats : *vec) {
                 perLeafStats.resize(2 * leafCount);
             }
         }
-        leafsProcessed.resize(scoreBins->size());
+        leafsProcessed.resize(scoreCalcer->GetSplitsCount());
     }
-    const auto updateScoreBinClosure = [&] (
+    const auto updateSplitScoreClosure = [&] (
         const TBucketStats& trueStats,
         const TBucketStats& falseStats,
-        int scoreBinIndex
+        int splitIdx
     ) {
         if (!haveMonotonicConstraints) {
-            UpdateScoreBin(
+            UpdateSplitScore(
                 isPlainMode,
                 scaledL2Regularizer,
                 trueStats,
                 falseStats,
-                &((*scoreBins)[scoreBinIndex])
+                splitIdx,
+                scoreCalcer
             );
         } else {
-            auto currLeafId = leafsProcessed[scoreBinIndex];
+            auto currLeafId = leafsProcessed[splitIdx];
             Y_ASSERT(currLeafId < leafCount);
             for (const auto leafStats : {&falseStats, &trueStats}) {
                 double bodyLeafWeight = 0.0;
                 if (isPlainMode) {
                     bodyLeafWeight = leafStats->SumWeight;
-                    leafDeltas[scoreBinIndex][currLeafId] = CalcAverage(
+                    leafDeltas[splitIdx][currLeafId] = CalcAverage(
                         leafStats->SumWeightedDelta,
                         bodyLeafWeight,
                         scaledL2Regularizer
@@ -760,7 +749,7 @@ inline static void UpdateScoreBins(
                 } else {
                     // compute leaf value using statistics of current BodyTail body:
                     bodyLeafWeight = leafStats->Count;
-                    leafDeltas[scoreBinIndex][currLeafId] = CalcAverage(
+                    leafDeltas[splitIdx][currLeafId] = CalcAverage(
                         leafStats->SumDelta,
                         bodyLeafWeight,
                         scaledL2Regularizer
@@ -769,12 +758,12 @@ inline static void UpdateScoreBins(
                 /* Note that the following lines perform a reduction from isotonic regression with
                  * l2-regularization to usual isotonic regression with properly modified weights and values.
                  */
-                bodyLeafWeights[scoreBinIndex][currLeafId] = bodyLeafWeight + scaledL2Regularizer;
-                tailLeafWeights[scoreBinIndex][currLeafId] = leafStats->SumWeight;
-                tailLeafSumWeightedDers[scoreBinIndex][currLeafId] = leafStats->SumWeightedDelta;
+                bodyLeafWeights[splitIdx][currLeafId] = bodyLeafWeight + scaledL2Regularizer;
+                tailLeafWeights[splitIdx][currLeafId] = leafStats->SumWeight;
+                tailLeafSumWeightedDers[splitIdx][currLeafId] = leafStats->SumWeightedDelta;
                 currLeafId += leafCount;
             }
-            leafsProcessed[scoreBinIndex] += 1;
+            leafsProcessed[splitIdx] += 1;
         }
     };
 
@@ -817,7 +806,7 @@ inline static void UpdateScoreBins(
                             falseStats.Add(stats[indexer.GetIndex(leaf, splitIdx)]);
                             trueStats.Remove(stats[indexer.GetIndex(leaf, splitIdx)]);
 
-                            updateScoreBinClosure(trueStats, falseStats, splitIdx);
+                            updateSplitScoreClosure(trueStats, falseStats, splitIdx);
                         }
                     } else {
                         Y_ASSERT(splitType == ESplitType::OneHotFeature);
@@ -828,7 +817,7 @@ inline static void UpdateScoreBins(
                             }
                             falseStats.Remove(stats[indexer.GetIndex(leaf, bucketIdx)]);
 
-                            updateScoreBinClosure(
+                            updateSplitScoreClosure(
                                 /*trueStats*/ stats[indexer.GetIndex(leaf, bucketIdx)],
                                 falseStats,
                                 bucketIdx
@@ -849,7 +838,7 @@ inline static void UpdateScoreBins(
                             dstStats.Add(stats[indexer.GetIndex(leaf, bucketIdx)]);
                         }
 
-                        updateScoreBinClosure(trueStats, falseStats, binFeatureIdx);
+                        updateSplitScoreClosure(trueStats, falseStats, binFeatureIdx);
                     }
                 }
                 break;
@@ -890,7 +879,7 @@ inline static void UpdateScoreBins(
                                     trueStats.Remove(statsPart);
                                 }
 
-                                updateScoreBinClosure(trueStats, falseStats, binsBegin + splitIdx);
+                                updateSplitScoreClosure(trueStats, falseStats, binsBegin + splitIdx);
                             }
                             binsBegin += binBounds.GetSize();
                         } else {
@@ -906,7 +895,7 @@ inline static void UpdateScoreBins(
                                 TBucketStats trueStats = allStats;
                                 trueStats.Remove(bundlePartsStats[bundlePartIdx]);
 
-                                updateScoreBinClosure(
+                                updateSplitScoreClosure(
                                     trueStats,
                                     /*falseStats*/ bundlePartsStats[bundlePartIdx],
                                     binsBegin
@@ -920,7 +909,7 @@ inline static void UpdateScoreBins(
                                 TBucketStats falseStats = allStats;
                                 falseStats.Remove(statsPart);
 
-                                updateScoreBinClosure(
+                                updateSplitScoreClosure(
                                     /*trueStats*/ statsPart,
                                     falseStats,
                                     binsBegin + binIdx + 1
@@ -951,25 +940,25 @@ inline static void UpdateScoreBins(
             );
             monotonicConstraints.pop_back();
         }
-        for (int scoreBinIndex : xrange(scoreBins->size())) {
-            const auto& indexOrder = possibleLeafIndexOrders[candidateSplitMonotonicConstraints[scoreBinIndex]];
+        for (int splitIdx : xrange(scoreCalcer->GetSplitsCount())) {
+            const auto& indexOrder = possibleLeafIndexOrders[candidateSplitMonotonicConstraints[splitIdx]];
             for (const auto& monotonicSubtreeIndexOrder : indexOrder) {
                 CalcOneDimensionalIsotonicRegression(
-                    leafDeltas[scoreBinIndex],
-                    bodyLeafWeights[scoreBinIndex],
+                    leafDeltas[splitIdx],
+                    bodyLeafWeights[splitIdx],
                     monotonicSubtreeIndexOrder,
-                    &leafDeltas[scoreBinIndex]
+                    &leafDeltas[splitIdx]
                 );
             }
-            (*scoreBins)[scoreBinIndex].DP += DotProduct(
-                leafDeltas[scoreBinIndex].data(),
-                tailLeafSumWeightedDers[scoreBinIndex].data(),
-                2 * leafCount
-            );
             for (int leafIndex = 0; leafIndex < 2 * leafCount; ++leafIndex) {
-                const double leafWeight = tailLeafWeights[scoreBinIndex][leafIndex];
-                const double leafDelta = leafDeltas[scoreBinIndex][leafIndex];
-                (*scoreBins)[scoreBinIndex].D2 += leafWeight * leafDelta * leafDelta;
+                const double leafDelta = leafDeltas[splitIdx][leafIndex];
+                const TBucketStats leafStats {
+                    tailLeafSumWeightedDers[splitIdx][leafIndex],
+                    tailLeafWeights[splitIdx][leafIndex],
+                    0, // it is unused in following call
+                    0  // it is unused in following call
+                };
+                scoreCalcer->AddLeaf(splitIdx, leafDelta, leafStats);
             }
         }
     }
@@ -989,7 +978,7 @@ static void CalculateNonPairwiseScore(
     int splitStatsCount,
     const TVector<int>& currTreeMonotonicConstraints,
     const TVector<int>& candidateSplitMonotonicConstraints,
-    TVector<TScoreBin>* scoreBins
+    IPointwiseScoreCalcer* scoreCalcer
 ) {
     const int approxDimension = fold.GetApproxDimension();
     const bool haveMonotonicConstraints = !candidateSplitMonotonicConstraints.empty();
@@ -997,8 +986,8 @@ static void CalculateNonPairwiseScore(
     for (int bodyTailIdx = 0; bodyTailIdx < fold.GetBodyTailCount(); ++bodyTailIdx) {
         const double sumAllWeights = initialFold.BodyTailArr[bodyTailIdx].BodySumWeight;
         const int docCount = initialFold.BodyTailArr[bodyTailIdx].BodyFinish;
-        const auto updateScoreBins = [&] (auto isPlainMode, auto haveMonotonicConstraints, const auto* stats) {
-            UpdateScoreBins(
+        const auto updateScores = [&] (auto isPlainMode, auto haveMonotonicConstraints, const auto* stats) {
+            UpdateScores(
                 stats,
                 leafCount,
                 indexer,
@@ -1011,20 +1000,20 @@ static void CalculateNonPairwiseScore(
                 docCount,
                 currTreeMonotonicConstraints,
                 candidateSplitMonotonicConstraints,
-                scoreBins
+                scoreCalcer
             );
         };
         for (int dim = 0; dim < approxDimension; ++dim) {
             const TBucketStats* stats = splitStats
                 + (bodyTailIdx * approxDimension + dim) * splitStatsCount;
             if (isPlainMode && haveMonotonicConstraints) {
-                updateScoreBins(std::true_type(), std::true_type(), stats);
+                updateScores(std::true_type(), std::true_type(), stats);
             } else if (isPlainMode && !haveMonotonicConstraints) {
-                updateScoreBins(std::true_type(), std::false_type(), stats);
+                updateScores(std::true_type(), std::false_type(), stats);
             } else if (!isPlainMode && haveMonotonicConstraints) {
-                updateScoreBins(std::false_type(), std::true_type(), stats);
+                updateScores(std::false_type(), std::true_type(), stats);
             } else {
-                updateScoreBins(std::false_type(), std::false_type(), stats);
+                updateScores(std::false_type(), std::false_type(), stats);
             }
         }
     }
@@ -1048,13 +1037,13 @@ void CalcStatsAndScores(
     TBucketStatsCache* statsFromPrevTree,
     TStats3D* stats3d,
     TPairwiseStats* pairwiseStats,
-    TVector<TScoreBin>* scoreBins
+    IScoreCalcer* scoreCalcer
 ) {
     CB_ENSURE(
-        stats3d || pairwiseStats || scoreBins,
-        "stats3d, pairwiseStats, and scoreBins are empty - nothing to calculate"
+        stats3d || pairwiseStats || scoreCalcer,
+        "stats3d, pairwiseStats, and scoreCalcer are empty - nothing to calculate"
     );
-    CB_ENSURE(!scoreBins || initialFold, "initialFold must be non-nullptr for scoreBins calculation");
+    CB_ENSURE(!scoreCalcer || initialFold, "initialFold must be non-nullptr for scores calculation");
 
     const auto& splitEnsemble = candidateInfo.SplitEnsemble;
     const bool isPairwiseScoring = IsPairwiseScoring(fitParams.LossFunctionDescription->GetLossFunction());
@@ -1144,7 +1133,7 @@ void CalcStatsAndScores(
 
         selectCalcStatsImpl(/*isCaching*/ std::false_type(), fold, /*splitStatsCount*/0, pairwiseStats);
 
-        if (scoreBins) {
+        if (scoreCalcer) {
             const float pairwiseBucketWeightPriorReg =
                 static_cast<const float>(fitParams.ObliviousTreeOptions->PairwiseNonDiagReg);
             CalculatePairwiseScore(
@@ -1153,7 +1142,7 @@ void CalcStatsAndScores(
                 l2Regularizer,
                 pairwiseBucketWeightPriorReg,
                 oneHotMaxSize,
-                scoreBins
+                dynamic_cast<TPairwiseScoreCalcer*>(scoreCalcer)
             );
         }
     } else {
@@ -1222,26 +1211,27 @@ void CalcStatsAndScores(
                 );
             }
         }
-        if (scoreBins) {
+        if (scoreCalcer) {
             const int leafCount = 1 << depth;
             TSplitEnsembleSpec splitEnsembleSpec(
                 splitEnsemble,
                 objectsDataProvider.GetExclusiveFeatureBundlesMetaData()
             );
-            const int candidateSplitCount = CalcScoreBinCount(
+            const int candidateSplitCount = CalcSplitsCount(
                 splitEnsembleSpec, indexer.BucketCount, oneHotMaxSize
             );
-            scoreBins->assign(candidateSplitCount, TScoreBin());
+            scoreCalcer->SetSplitsCount(candidateSplitCount);
+
             TVector<int> candidateSplitMonotonicConstraints;
             if (!monotonicConstraints.empty()) {
                 candidateSplitMonotonicConstraints.resize(candidateSplitCount, 0);
-                for (int scoreBinIndex : xrange(candidateSplitCount)) {
+                for (int splitIdx : xrange(candidateSplitCount)) {
                     const auto split = candidateInfo.GetSplit(
-                        scoreBinIndex, objectsDataProvider, oneHotMaxSize
+                        splitIdx, objectsDataProvider, oneHotMaxSize
                     );
                     if (split.Type == ESplitType::FloatFeature) {
                         Y_ASSERT(split.FeatureIdx >= 0);
-                        candidateSplitMonotonicConstraints[scoreBinIndex] =
+                        candidateSplitMonotonicConstraints[splitIdx] =
                             monotonicConstraints[split.FeatureIdx];
                     }
                 }
@@ -1260,13 +1250,13 @@ void CalcStatsAndScores(
                 splitStatsCount,
                 currTreeMonotonicConstraints,
                 candidateSplitMonotonicConstraints,
-                scoreBins
+                dynamic_cast<IPointwiseScoreCalcer*>(scoreCalcer)
             );
         }
     }
 }
 
-TVector<TScoreBin> GetScoreBins(
+TVector<double> GetScores(
     const TStats3D& stats3d,
     int depth,
     double sumAllWeights,
@@ -1280,10 +1270,24 @@ TVector<TScoreBin> GetScoreBins(
     const ui32 oneHotMaxSize = fitParams.CatFeatureParams.Get().OneHotMaxSize.Get();
     const int leafCount = 1 << depth;
     const TStatsIndexer indexer(bucketCount);
-    TVector<TScoreBin> scoreBin(CalcScoreBinCount(stats3d.SplitEnsembleSpec, bucketCount, oneHotMaxSize));
+
+    THolder<IPointwiseScoreCalcer> scoreCalcer;
+    switch (fitParams.ObliviousTreeOptions->ScoreFunction) {
+        case EScoreFunction::Cosine:
+            scoreCalcer.Reset(new TCosineScoreCalcer);
+            break;
+        case EScoreFunction::L2:
+            scoreCalcer.Reset(new TL2ScoreCalcer);
+            break;
+        default:
+            CB_ENSURE(false, "Error: score function for CPU should be Cosine or L2");
+            break;
+    }
+    scoreCalcer->SetSplitsCount(CalcSplitsCount(stats3d.SplitEnsembleSpec, bucketCount, oneHotMaxSize));
+
     for (int statsIdx = 0; statsIdx * splitStatsCount < bucketStats.ysize(); ++statsIdx) {
         const TBucketStats* stats = GetDataPtr(bucketStats) + statsIdx * splitStatsCount;
-        UpdateScoreBins(
+        UpdateScores(
             stats,
             leafCount,
             indexer,
@@ -1296,8 +1300,8 @@ TVector<TScoreBin> GetScoreBins(
             allDocCount,
             /*currTreeMonotonicConstraints*/{},
             /*candidateSplitMonotonicConstraints*/{},
-            &scoreBin
+            scoreCalcer.Get()
         );
     }
-    return scoreBin;
+    return scoreCalcer->GetScores();
 }

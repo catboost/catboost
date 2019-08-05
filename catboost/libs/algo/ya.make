@@ -34,8 +34,8 @@ SRCS(
     plot.cpp
     preprocess.cpp
     projection.cpp
-    score_bin.cpp
-    score_calcer.cpp
+    score_calcers.cpp
+    scoring.cpp
     short_vector_ops.cpp
     split.cpp
     target_classifier.cpp

@@ -4,8 +4,8 @@
 #include <catboost/libs/algo/data.h>
 #include <catboost/libs/algo/error_functions.h>
 #include <catboost/libs/algo/index_calcer.h>
-#include <catboost/libs/algo/score_bin.h>
-#include <catboost/libs/algo/score_calcer.h>
+#include <catboost/libs/algo/score_calcers.h>
+#include <catboost/libs/algo/scoring.h>
 #include <catboost/libs/data_new/load_data.h>
 
 #include <library/par/par_settings.h>
@@ -202,13 +202,11 @@ void MapCalcScore(
     const auto getScore = [&] (const TStats3D& stats3D, const TCandidateInfo& splitInfo) {
         Y_UNUSED(splitInfo);
 
-        return GetScores(
-            GetScoreBins(
-                stats3D,
-                depth,
-                plainFold.GetSumWeight(),
-                plainFold.GetLearnSampleCount(),
-                ctx->Params));
+        return GetScores(stats3D,
+                         depth,
+                         plainFold.GetSumWeight(),
+                         plainFold.GetLearnSampleCount(),
+                         ctx->Params);
     };
     MapGenericCalcScore<TScoreCalcer>(getScore, scoreStDev, candidatesContext, ctx);
 }

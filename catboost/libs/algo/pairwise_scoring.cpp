@@ -47,9 +47,10 @@ void TPairwiseStats::Add(const TPairwiseStats& rhs) {
 }
 
 
-static double CalculateScore(
-    const TVector<double>& avrg,
-    const TVector<double>& sumDer,
+void TPairwiseScoreCalcer::CalculateScore(
+    int splitIdx,
+    TConstArrayRef<double> avrg,
+    TConstArrayRef<double> sumDer,
     const TArray2D<double>& sumWeights
 ) {
     const ui32 sumDerSize = sumDer.ysize();
@@ -75,7 +76,7 @@ static double CalculateScore(
         }
         score += avrg[x] * (sumDer[x] - 0.5 * subScore);
     }
-    return score;
+    Scores[splitIdx] = score;
 }
 
 
@@ -124,7 +125,7 @@ void CalculatePairwiseScore(
     float l2DiagReg,
     float pairwiseBucketWeightPriorReg,
     ui32 oneHotMaxSize,
-    TVector<TScoreBin>* scoreBins
+    TPairwiseScoreCalcer* scoreCalcer
 ) {
     const auto& derSums = pairwiseStats.DerSums;
     const auto& pairWeightStatistics = pairwiseStats.PairWeightStatistics;
@@ -136,7 +137,7 @@ void CalculatePairwiseScore(
     switch (pairwiseStats.SplitEnsembleSpec.Type) {
         case ESplitEnsembleType::OneFeature:
             {
-                scoreBins->yresize(bucketCount - 1);
+                scoreCalcer->SetSplitsCount(bucketCount - 1);
 
                 TVector<double> derSum(2 * leafCount, 0.0);
                 weightSum.FillZero();
@@ -224,8 +225,7 @@ void CalculatePairwiseScore(
                         derSum,
                         l2DiagReg,
                         pairwiseBucketWeightPriorReg);
-                    (*scoreBins)[splitId].D2 = 1.0;
-                    (*scoreBins)[splitId].DP = CalculateScore(leafValues, derSum, weightSum);
+                    scoreCalcer->CalculateScore(splitId, leafValues, derSum, weightSum);
                 }
             }
             break;
@@ -233,7 +233,7 @@ void CalculatePairwiseScore(
             {
                 const int binaryFeaturesCount = (int)GetValueBitCount(bucketCount - 1);
 
-                scoreBins->yresize(binaryFeaturesCount);
+                scoreCalcer->SetSplitsCount(binaryFeaturesCount);
 
                 TVector<double> binDerSums;
                 binDerSums.yresize(2 * leafCount);
@@ -282,15 +282,14 @@ void CalculatePairwiseScore(
                         binDerSums,
                         l2DiagReg,
                         pairwiseBucketWeightPriorReg);
-                    (*scoreBins)[binFeatureIdx].D2 = 1.0;
-                    (*scoreBins)[binFeatureIdx].DP = CalculateScore(leafValues, binDerSums, weightSum);
+                    scoreCalcer->CalculateScore(binFeatureIdx, leafValues, binDerSums, weightSum);
                 }
             }
             break;
         case ESplitEnsembleType::ExclusiveBundle:
             {
-                scoreBins->yresize(
-                    CalcScoreBinCount(pairwiseStats.SplitEnsembleSpec, bucketCount, oneHotMaxSize)
+                scoreCalcer->SetSplitsCount(
+                    CalcSplitsCount(pairwiseStats.SplitEnsembleSpec, bucketCount, oneHotMaxSize)
                 );
 
                 TVector<double> derSum;
@@ -416,8 +415,8 @@ void CalculatePairwiseScore(
                             derSum,
                             l2DiagReg,
                             pairwiseBucketWeightPriorReg);
-                        (*scoreBins)[dstBinOffset + splitId].D2 = 1.0;
-                        (*scoreBins)[dstBinOffset + splitId].DP = CalculateScore(
+                        scoreCalcer->CalculateScore(
+                            dstBinOffset + splitId,
                             leafValues,
                             derSum,
                             weightSum);

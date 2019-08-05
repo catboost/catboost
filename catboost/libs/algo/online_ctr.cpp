@@ -3,7 +3,7 @@
 #include "fold.h"
 #include "index_hash_calcer.h"
 #include "learn_context.h"
-#include "score_calcer.h"
+#include "scoring.h"
 #include "tree_print.h"
 
 #include <catboost/libs/helpers/array_subset.h>
