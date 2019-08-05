@@ -33,7 +33,6 @@ class Swig(iw.CustomCommand):
         self._flags.extend(['-module', modname])
 
         unit.onaddincl(incl_dirs)
-        unit.onpython_addincl([])
 
         if self._swig_lang == 'python':
             self._out_name = modname + '.py'
