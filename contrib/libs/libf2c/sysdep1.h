@@ -10,7 +10,7 @@
 
 #ifdef __linux__
 #define USE_LARGEFILE
-#define OFF_T __off64_t
+#define OFF_T off64_t
 #endif
 
 #ifdef _AIX43
