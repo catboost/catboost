@@ -22,8 +22,8 @@ from pytz.tzfile import build_tzinfo
 
 
 # The IANA (nee Olson) database is updated several times a year.
-OLSON_VERSION = '2019a'
-VERSION = '2019.1'  # pip compatible version number.
+OLSON_VERSION = '2019b'
+VERSION = '2019.2'  # pip compatible version number.
 __version__ = VERSION
 
 OLSEN_VERSION = OLSON_VERSION  # Old releases had this misspelling
@@ -188,8 +188,14 @@ def _unmunge_zone(zone):
     return zone.replace('_plus_', '+').replace('_minus_', '-')
 
 
+_all_timezones_lower_to_standard = None
+
+
 def _case_insensitive_zone_lookup(zone):
     """case-insensitively matching timezone, else return zone unchanged"""
+    global _all_timezones_lower_to_standard
+    if _all_timezones_lower_to_standard is None:
+        _all_timezones_lower_to_standard = dict((tz.lower(), tz) for tz in all_timezones)  # noqa
     return _all_timezones_lower_to_standard.get(zone.lower()) or zone  # noqa
 
 
@@ -1098,7 +1104,6 @@ all_timezones = LazyList(
         tz for tz in all_timezones if resource_exists(tz))
         
 all_timezones_set = LazySet(all_timezones)
-_all_timezones_lower_to_standard = dict((tz.lower(), tz) for tz in all_timezones)
 common_timezones = \
 ['Africa/Abidjan',
  'Africa/Accra',

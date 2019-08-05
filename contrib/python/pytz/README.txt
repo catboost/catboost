@@ -1,37 +1,3 @@
-Metadata-Version: 2.0
-Name: pytz
-Version: 2019.2
-Summary: World timezone definitions, modern and historical
-Home-page: http://pythonhosted.org/pytz
-Author: Stuart Bishop
-Author-email: stuart@stuartbishop.net
-Maintainer: Stuart Bishop
-Maintainer-email: stuart@stuartbishop.net
-License: MIT
-Download-URL: https://pypi.org/project/pytz/
-Keywords: timezone,tzinfo,datetime,olson,time
-Platform: Independent
-Classifier: Development Status :: 6 - Mature
-Classifier: Intended Audience :: Developers
-Classifier: License :: OSI Approved :: MIT License
-Classifier: Natural Language :: English
-Classifier: Operating System :: OS Independent
-Classifier: Programming Language :: Python
-Classifier: Programming Language :: Python :: 2
-Classifier: Programming Language :: Python :: 2.4
-Classifier: Programming Language :: Python :: 2.5
-Classifier: Programming Language :: Python :: 2.6
-Classifier: Programming Language :: Python :: 2.7
-Classifier: Programming Language :: Python :: 3
-Classifier: Programming Language :: Python :: 3.0
-Classifier: Programming Language :: Python :: 3.1
-Classifier: Programming Language :: Python :: 3.2
-Classifier: Programming Language :: Python :: 3.3
-Classifier: Programming Language :: Python :: 3.4
-Classifier: Programming Language :: Python :: 3.5
-Classifier: Programming Language :: Python :: 3.6
-Classifier: Topic :: Software Development :: Libraries :: Python Modules
-
 pytz - World Timezone Definitions for Python
 ============================================
 
@@ -612,7 +578,5 @@ Contact
 ~~~~~~~
 
 Stuart Bishop <stuart@stuartbishop.net>
-
-
 
 
