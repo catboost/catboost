@@ -25,7 +25,7 @@ from catboost.utils import eval_metric, create_cd, get_roc_curve, select_thresho
 from catboost.utils import DataMetaInfo, TargetStats, compute_training_options
 import os.path
 import os
-from pandas import read_table, DataFrame, Series, Categorical
+from pandas import read_csv, DataFrame, Series, Categorical
 from six import PY3
 from six.moves import xrange
 
@@ -229,7 +229,7 @@ def test_load_df_vs_load_from_file(dataset):
     }[dataset]
 
     pool1 = Pool(train_file, column_description=cd_file)
-    data = read_table(train_file, header=None)
+    data = read_csv(train_file, header=None, delimiter='\t')
     labels = DataFrame(data.iloc[:, target_idx], dtype=np.float32)
     data.drop([target_idx] + other_non_feature_columns, axis=1, inplace=True)
     cat_features = pool1.get_cat_feature_indices()
@@ -240,7 +240,7 @@ def test_load_df_vs_load_from_file(dataset):
 
 def test_load_series():
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    data = read_table(TRAIN_FILE, header=None)
+    data = read_csv(TRAIN_FILE, header=None, delimiter='\t')
     labels = Series(data.iloc[:, TARGET_IDX])
     data.drop([TARGET_IDX], axis=1, inplace=True)
     data = Series(list(data.values))
@@ -351,7 +351,7 @@ def get_features_data_from_matrix(feature_matrix, cat_feature_indices, order='C'
 
 
 def get_features_data_from_file(data_file, drop_columns, cat_feature_indices, order='C'):
-    data_matrix_from_file = read_table(data_file, header=None, dtype=str)
+    data_matrix_from_file = read_csv(data_file, header=None, dtype=str, delimiter='\t')
     data_matrix_from_file.drop(drop_columns, axis=1, inplace=True)
     return get_features_data_from_matrix(np.array(data_matrix_from_file), cat_feature_indices, order)
 
@@ -681,7 +681,7 @@ def test_predict_and_predict_proba_on_single_object(problem):
 
     model.fit(train_pool)
 
-    test_data = read_table(TEST_FILE, header=None)
+    test_data = read_csv(TEST_FILE, header=None, delimiter='\t')
     test_data.drop([TARGET_IDX], axis=1, inplace=True)
 
     pred = model.predict(test_data)
@@ -1140,12 +1140,12 @@ def test_querywise(features_dtype, task_type):
     model.fit(train_pool)
     pred1 = model.predict(test_pool)
 
-    df = read_table(QUERYWISE_TRAIN_FILE, delimiter='\t', header=None)
+    df = read_csv(QUERYWISE_TRAIN_FILE, delimiter='\t', header=None)
     train_query_id = df.loc[:, 1]
     train_target = df.loc[:, 2]
     train_data = df.drop([0, 1, 2, 3, 4], axis=1).astype(eval(features_dtype))
 
-    df = read_table(QUERYWISE_TEST_FILE, delimiter='\t', header=None)
+    df = read_csv(QUERYWISE_TEST_FILE, delimiter='\t', header=None)
     test_data = df.drop([0, 1, 2, 3, 4], axis=1).astype(eval(features_dtype))
 
     model.fit(train_data, train_target, group_id=train_query_id)
@@ -1160,13 +1160,13 @@ def test_group_weight(task_type):
     model.fit(train_pool)
     pred1 = model.predict(test_pool)
 
-    df = read_table(QUERYWISE_TRAIN_FILE, delimiter='\t', header=None)
+    df = read_csv(QUERYWISE_TRAIN_FILE, delimiter='\t', header=None)
     train_query_weight = df.loc[:, 0]
     train_query_id = df.loc[:, 1]
     train_target = df.loc[:, 2]
     train_data = df.drop([0, 1, 2, 3, 4], axis=1).astype(str)
 
-    df = read_table(QUERYWISE_TEST_FILE, delimiter='\t', header=None)
+    df = read_csv(QUERYWISE_TEST_FILE, delimiter='\t', header=None)
     test_query_weight = df.loc[:, 0]
     test_query_id = df.loc[:, 1]
     test_data = Pool(df.drop([0, 1, 2, 3, 4], axis=1).astype(np.float32), group_id=test_query_id, group_weight=test_query_weight)
@@ -1235,12 +1235,12 @@ def test_py_data_group_id(task_type):
     model.fit(train_pool_from_files)
     predictions_from_files = model.predict(test_pool_from_files)
 
-    train_df = read_table(QUERYWISE_TRAIN_FILE, delimiter='\t', header=None)
+    train_df = read_csv(QUERYWISE_TRAIN_FILE, delimiter='\t', header=None)
     train_target = train_df.loc[:, 2]
     raw_train_group_id = train_df.loc[:, 1]
     train_data = train_df.drop([0, 1, 2, 3, 4], axis=1).astype(np.float32)
 
-    test_df = read_table(QUERYWISE_TEST_FILE, delimiter='\t', header=None)
+    test_df = read_csv(QUERYWISE_TEST_FILE, delimiter='\t', header=None)
     test_data = Pool(test_df.drop([0, 1, 2, 3, 4], axis=1).astype(np.float32))
 
     for group_id_func in (int, str, lambda id: 'myid_' + str(id)):
@@ -1259,13 +1259,13 @@ def test_py_data_subgroup_id(task_type):
     model.fit(train_pool_from_files)
     predictions_from_files = model.predict(test_pool_from_files)
 
-    train_df = read_table(QUERYWISE_TRAIN_FILE, delimiter='\t', header=None)
+    train_df = read_csv(QUERYWISE_TRAIN_FILE, delimiter='\t', header=None)
     train_group_id = train_df.loc[:, 1]
     raw_train_subgroup_id = train_df.loc[:, 4]
     train_target = train_df.loc[:, 2]
     train_data = train_df.drop([0, 1, 2, 3, 4], axis=1).astype(np.float32)
 
-    test_df = read_table(QUERYWISE_TEST_FILE, delimiter='\t', header=None)
+    test_df = read_csv(QUERYWISE_TEST_FILE, delimiter='\t', header=None)
     test_data = Pool(test_df.drop([0, 1, 2, 3, 4], axis=1).astype(np.float32))
 
     for subgroup_id_func in (int, str, lambda id: 'myid_' + str(id)):
@@ -1326,7 +1326,7 @@ def test_staged_predict_and_predict_proba_on_single_object(problem):
 
     model.fit(train_pool)
 
-    test_data = read_table(TEST_FILE, header=None)
+    test_data = read_csv(TEST_FILE, header=None, delimiter='\t')
     test_data.drop([TARGET_IDX], axis=1, inplace=True)
 
     preds = []
@@ -3200,12 +3200,12 @@ def test_pairs_generation(task_type):
 def test_pairs_generation_generated(task_type):
     model = CatBoost(params={'loss_function': 'PairLogit', 'iterations': 10, 'thread_count': 8, 'task_type': task_type, 'devices': '0'})
 
-    df = read_table(QUERYWISE_TRAIN_FILE, delimiter='\t', header=None)
+    df = read_csv(QUERYWISE_TRAIN_FILE, delimiter='\t', header=None)
     df = df.loc[:10, :]
     train_target = df.loc[:, 2]
     train_data = df.drop([0, 1, 2, 3, 4], axis=1).astype(np.float32)
 
-    df = read_table(QUERYWISE_TEST_FILE, delimiter='\t', header=None)
+    df = read_csv(QUERYWISE_TEST_FILE, delimiter='\t', header=None)
     test_data = df.drop([0, 1, 2, 3, 4], axis=1).astype(np.float32)
 
     prng = np.random.RandomState(seed=20181219)
@@ -4861,7 +4861,7 @@ def test_continue_learning_with_changing_params(problem_type, param_set):
 
 
 def test_continue_learning_with_changing_dataset():
-    train_df = read_table(TRAIN_FILE, header=None)
+    train_df = read_csv(TRAIN_FILE, header=None, delimiter='\t')
     train_labels = Series(train_df.iloc[:, TARGET_IDX])
     train_df.drop([TARGET_IDX], axis=1, inplace=True)
 

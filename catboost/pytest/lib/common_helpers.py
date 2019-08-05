@@ -3,7 +3,7 @@ import json
 import os
 import random
 import shutil
-from pandas import read_table
+from pandas import read_csv
 from copy import deepcopy
 import numpy as np
 from catboost import Pool
@@ -169,6 +169,6 @@ def compare_evals_with_precision(fit_eval, calc_eval, rtol=1e-6, skip_last_colum
 
 # returns (features DataFrame, cat_feature_indices)
 def load_pool_features_as_df(pool_file, cd_file, target_idx):
-    data = read_table(pool_file, header=None, dtype=str)
+    data = read_csv(pool_file, header=None, dtype=str, delimiter='\t')
     data.drop([target_idx], axis=1, inplace=True)
     return (data, Pool(pool_file, column_description=cd_file).get_cat_feature_indices())
