@@ -551,6 +551,10 @@
         "checksum": "86e1e1de5158294a5e84efd5992b2dc4",
         "uri": "file://test.test_priors_CPU_/model.bin"
     },
+    "test.test_regress_with_per_float_feature_binarization_param[CPU]": {
+        "checksum": "297b139b56dccf274c890fddd2bd3aa4",
+        "uri": "file://test.test_regress_with_per_float_feature_binarization_param_CPU_/model.bin"
+    },
     "test.test_regression_ctr[CPU]": {
         "checksum": "7fca591505102bb314b442aa210183ed",
         "uri": "file://test.test_regression_ctr_CPU_/model.bin"

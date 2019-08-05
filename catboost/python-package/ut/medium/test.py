@@ -5033,3 +5033,23 @@ def test_load_model_from_snapshot(features_type):
     else:
         with pytest.raises(CatBoostError):
             model.load_model(filename, format='CpuSnapshot')
+
+
+def test_regress_with_per_float_feature_binarization_param(task_type):
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    per_float_feature_binarization_list = ['0:nan_mode=Forbidden,border_count=2,border_type=GreedyLogSum',
+                                           '1:nan_mode=Forbidden,border_count=3,border_type=GreedyLogSum',
+                                           '2:nan_mode=Forbidden,border_count=8,border_type=GreedyLogSum',
+                                           '3:nan_mode=Forbidden,border_count=14,border_type=GreedyLogSum',
+                                           '4:nan_mode=Forbidden,border_count=31,border_type=GreedyLogSum',
+                                           '5:nan_mode=Forbidden,border_count=32,border_type=GreedyLogSum']
+    model = CatBoostRegressor(iterations=2,
+                              learning_rate=0.03,
+                              task_type=task_type,
+                              devices='0',
+                              per_float_feature_binarization=per_float_feature_binarization_list)
+    model.fit(train_pool)
+    assert(model.is_fitted())
+    output_model_path = test_output_path(OUTPUT_MODEL_PATH)
+    model.save_model(output_model_path)
+    return compare_canonical_models(output_model_path)
