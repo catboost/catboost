@@ -1314,7 +1314,7 @@ TMetricHolder TMultiClassMetric::EvalSingleThread(
         GetMultiDimensionalApprox(k, approx, approxDelta, evaluatedApprox);
 
         double maxApprox = std::numeric_limits<double>::min();
-        for (int dim = 1; dim < approxDimension; ++dim) {
+        for (int dim = 0; dim < approxDimension; ++dim) {
             if (evaluatedApprox[dim] > maxApprox) {
                 maxApprox = evaluatedApprox[dim];
             }
