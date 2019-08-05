@@ -1296,6 +1296,7 @@ cdef TCustomMetricDescriptor _BuildCustomMetricDescriptor(object metricObject):
     descriptor.GetFinalErrorFunc = &_MetricGetFinalError
     return descriptor
 
+
 cdef TCustomObjectiveDescriptor _BuildCustomObjectiveDescriptor(object objectiveObject):
     cdef TCustomObjectiveDescriptor descriptor
     descriptor.CustomData = <void*>objectiveObject
@@ -1303,21 +1304,20 @@ cdef TCustomObjectiveDescriptor _BuildCustomObjectiveDescriptor(object objective
     descriptor.CalcDersMulti = &_ObjectiveCalcDersMulti
     return descriptor
 
-cdef class PyPredictionType:
-    cdef EPredictionType predictionType
-    def __init__(self, prediction_type):
-        if prediction_type == 'Class':
-            self.predictionType = EPredictionType_Class
-        elif prediction_type == 'Probability':
-            self.predictionType = EPredictionType_Probability
-        else:
-            self.predictionType = EPredictionType_RawFormulaVal
+
+cdef EPredictionType string_to_prediction_type(prediction_type_str):
+    cdef EPredictionType prediction_type
+    if not TryFromString[EPredictionType](to_arcadia_string(prediction_type_str), prediction_type):
+        raise CatBoostError("Unknown prediction type {}.".format(prediction_type_str))
+    return prediction_type
+
 
 cdef EModelType string_to_model_type(model_type_str) except *:
     cdef EModelType model_type
     if not TryFromString[EModelType](to_arcadia_string(model_type_str), model_type):
         raise CatBoostError("Unknown model type {}.".format(model_type_str))
     return model_type
+
 
 cdef EFstrType string_to_fstr_type(fstr_type_str) except *:
     cdef EFstrType fstr_type
@@ -2779,7 +2779,7 @@ cdef class _CatBoost:
 
     cpdef _base_predict(self, _PoolBase pool, str prediction_type, int ntree_start, int ntree_end, int thread_count, bool_t verbose):
         cdef TVector[double] pred
-        cdef EPredictionType predictionType = PyPredictionType(prediction_type).predictionType
+        cdef EPredictionType predictionType = string_to_prediction_type(prediction_type)
         thread_count = UpdateThreadCount(thread_count);
         with nogil:
             pred = ApplyModelMulti(
@@ -2797,7 +2797,7 @@ cdef class _CatBoost:
     cpdef _base_predict_multi(self, _PoolBase pool, str prediction_type, int ntree_start, int ntree_end,
                               int thread_count, bool_t verbose):
         cdef TVector[TVector[double]] pred
-        cdef EPredictionType predictionType = PyPredictionType(prediction_type).predictionType
+        cdef EPredictionType predictionType = string_to_prediction_type(prediction_type)
         thread_count = UpdateThreadCount(thread_count);
         with nogil:
             pred = ApplyModelMulti(
@@ -3168,7 +3168,7 @@ cdef class _CatBoost:
             dereference(pool.__pool.Get()),
             catFeaturesNumsVec,
             floatFeaturesNumsVec,
-            PyPredictionType(predictionType).predictionType,
+            string_to_prediction_type(predictionType),
             thread_count
         )
         statistics_list = []
@@ -3444,7 +3444,7 @@ cdef _FloatOrStringFromString(char* s):
 
 
 cdef _convert_to_visible_labels(EPredictionType predictionType, TVector[TVector[double]] raws, int thread_count, TFullModel* model):
-    if predictionType == PyPredictionType('Class').predictionType:
+    if predictionType == string_to_prediction_type('Class'):
         return [[_FloatOrStringFromString(value) for value \
             in ConvertTargetToExternalName([value for value in raws[0]], dereference(model))]]
     return _2d_vector_of_double_to_np_array(raws)
@@ -3462,7 +3462,7 @@ cdef class _StagedPredictIterator:
     cdef bool_t verbose
 
     def __cinit__(self, str prediction_type, int ntree_start, int ntree_end, int eval_period, int thread_count, verbose):
-        self.predictionType = PyPredictionType(prediction_type).predictionType
+        self.predictionType = string_to_prediction_type(prediction_type)
         self.ntree_start = ntree_start
         self.ntree_end = ntree_end
         self.eval_period = eval_period
@@ -3489,7 +3489,7 @@ cdef class _StagedPredictIterator:
             raise StopIteration
 
         dereference(self.__modelCalcerOnPool).ApplyModelMulti(
-            PyPredictionType('InternalRawFormulaVal').predictionType,
+            string_to_prediction_type('RawFormulaVal'),
             self.ntree_start,
             min(self.ntree_start + self.eval_period, self.ntree_end),
             &self.__flatApprox,
