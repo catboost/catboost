@@ -4465,8 +4465,7 @@ def test_multiclass_grow_policy(task_type, grow_policy):
         task_type=task_type,
         devices='0',
         boosting_type='Plain',
-        grow_policy=grow_policy,
-        score_function='Cosine'
+        grow_policy=grow_policy
     )
     classifier.fit(pool)
     output_model_path = test_output_path(OUTPUT_MODEL_PATH)
@@ -4474,6 +4473,40 @@ def test_multiclass_grow_policy(task_type, grow_policy):
     new_classifier = CatBoostClassifier()
     new_classifier.load_model(output_model_path)
     pred = new_classifier.predict_proba(pool)
+    preds_path = test_output_path(PREDS_PATH)
+    np.save(preds_path, np.array(pred))
+    return local_canonical_file(preds_path)
+
+
+@pytest.mark.parametrize('grow_policy', NONSYMMETRIC)
+def test_grow_policy_restriction(task_type, grow_policy):
+    if task_type == 'CPU':
+        return
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    is_failed = False
+    try:
+        classifier = CatBoostClassifier(
+            iterations=2,
+            thread_count=8,
+            task_type=task_type,
+            devices='0',
+            grow_policy=grow_policy,
+            max_leaves=2 ** 16 + 1
+        )
+        classifier.fit(pool)
+    except:
+        is_failed = True
+    assert is_failed
+    classifier = CatBoostClassifier(
+        iterations=2,
+        thread_count=8,
+        task_type=task_type,
+        devices='0',
+        grow_policy=grow_policy,
+        max_leaves=1023
+    )
+    classifier.fit(pool)
+    pred = classifier.predict_proba(pool)
     preds_path = test_output_path(PREDS_PATH)
     np.save(preds_path, np.array(pred))
     return local_canonical_file(preds_path)

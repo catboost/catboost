@@ -1,10 +1,12 @@
-#include "oblivious_tree_options.h"
+#include "enum_helpers.h"
 #include "json_helper.h"
+#include "oblivious_tree_options.h"
 
 #include <catboost/libs/logging/logging_level.h>
 #include <catboost/libs/logging/logging.h>
 
 #include <library/json/json_value.h>
+#include <util/string/cast.h>
 
 NCatboostOptions::TObliviousTreeLearnerOptions::TObliviousTreeLearnerOptions(ETaskType taskType)
     : MaxDepth("depth", 6)
@@ -107,8 +109,14 @@ void NCatboostOptions::TObliviousTreeLearnerOptions::Validate() const {
     BootstrapConfig.Get().Validate();
     const float rsm = Rsm.Get();
     CB_ENSURE(rsm > 0 && rsm <= 1, "Rsm should be in (0, 1]");
-    const ui32 maxModelDepth = 16;
-    CB_ENSURE(MaxDepth.Get() <= maxModelDepth, "Maximum depth is " << maxModelDepth);
+    const ui32 maxFullBinaryTreeDepth = 16;
+    if (IsBuildingFullBinaryTree(GrowPolicy.GetUnchecked())) {
+        CB_ENSURE(MaxDepth.Get() <= maxFullBinaryTreeDepth, "Maximum tree depth is " << maxFullBinaryTreeDepth);
+    }
+    if (GrowPolicy.GetUnchecked() == EGrowPolicy::Lossguide) {
+        const ui32 maxLeavesCount = 1 << 16;
+        CB_ENSURE(MaxLeaves.Get() <= maxLeavesCount, "Maximum leaves count for Lossguide grow policy is " << maxLeavesCount);
+    }
     CB_ENSURE(DevScoreCalcObjBlockSize.GetUnchecked() > 0, "DevScoreCalcObjBlockSize must be > 0");
     CB_ENSURE(DevExclusiveFeaturesBundleMaxBuckets.GetUnchecked() < (1U << 16), "DevExclusiveFeaturesBundleMaxBuckets must be less than 65536");
     CB_ENSURE(

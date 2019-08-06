@@ -655,14 +655,18 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
         }
 
         if (ObliviousTreeOptions->GrowPolicy == EGrowPolicy::Lossguide) {
-            ObliviousTreeOptions->MaxDepth.SetDefault(16);
-            ObliviousTreeOptions->ScoreFunction.SetDefault(EScoreFunction::NewtonL2);
+            auto lossFunction = LossFunctionDescription.Get().GetLossFunction();
+            if (lossFunction == ELossFunction::MultiClass || lossFunction == ELossFunction::MultiClassOneVsAll) {
+                ObliviousTreeOptions->ScoreFunction.SetDefault(EScoreFunction::L2);
+            } else {
+                ObliviousTreeOptions->ScoreFunction.SetDefault(EScoreFunction::NewtonL2);
+            }
         }
-        if (ObliviousTreeOptions->MaxLeaves.IsDefault() && ObliviousTreeOptions->GrowPolicy != EGrowPolicy::Lossguide) {
+        if (ObliviousTreeOptions->GrowPolicy != EGrowPolicy::Lossguide) {
             const ui32 maxLeaves = 1u << ObliviousTreeOptions->MaxDepth.Get();
-            ObliviousTreeOptions->MaxLeaves.SetDefault(maxLeaves);
-
-            if (ObliviousTreeOptions->GrowPolicy != EGrowPolicy::Lossguide) {
+            if (ObliviousTreeOptions->MaxLeaves.IsDefault()) {
+                ObliviousTreeOptions->MaxLeaves.SetDefault(maxLeaves);
+            } else {
                 CB_ENSURE(ObliviousTreeOptions->MaxLeaves == maxLeaves,
                           "max_leaves option works only with lossguide tree growing");
             }

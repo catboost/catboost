@@ -604,6 +604,13 @@ bool ShouldSkipFstrGrowPolicy(EGrowPolicy growPolicy) {
     );
 }
 
+bool IsBuildingFullBinaryTree(EGrowPolicy growPolicy) {
+    return (
+        growPolicy == EGrowPolicy::SymmetricTree ||
+        growPolicy == EGrowPolicy::Depthwise
+    );
+}
+
 bool IsPlainOnlyModeScoreFunction(EScoreFunction scoreFunction) {
     return (
         scoreFunction != EScoreFunction::Cosine &&

@@ -57,6 +57,8 @@ bool IsEmbeddingFeatureEstimator(EFeatureCalcerType estimatorType);
 
 bool ShouldSkipFstrGrowPolicy(EGrowPolicy growPolicy);
 
+bool IsBuildingFullBinaryTree(EGrowPolicy growPolicy);
+
 bool IsPlainOnlyModeScoreFunction(EScoreFunction scoreFunction);
 
 bool ShouldBinarizeLabel(ELossFunction lossFunction);

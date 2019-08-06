@@ -2341,13 +2341,18 @@ def test_grow_policies(boosting_type, grow_policy, score_function, loss_func):
 
     if boosting_type != 'Default':
         params['--boosting-type'] = boosting_type
+    if grow_policy == 'Lossguide':
+        params['--depth'] = 100
 
-    try:
+    # try:
+    if is_valid_gpu_params(boosting_type, grow_policy, score_function, loss_func):
         fit_catboost_gpu(params)
-    except Exception:
-        assert not is_valid_gpu_params(boosting_type, grow_policy, score_function, loss_func)
+    else:
         return
-
+    # except Exception:
+    #     assert not is_valid_gpu_params(boosting_type, grow_policy, score_function, loss_func)
+    #     return
+    #
     assert is_valid_gpu_params(boosting_type, grow_policy, score_function, loss_func)
 
     formula_predict_path = yatest.common.test_output_path('predict_test.eval')
