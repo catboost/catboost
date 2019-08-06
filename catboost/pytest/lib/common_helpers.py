@@ -1,8 +1,10 @@
 import csv
 import json
+import itertools
 import os
 import random
 import shutil
+import sys
 from pandas import read_csv
 from copy import deepcopy
 import numpy as np
@@ -165,7 +167,13 @@ def compare_evals_with_precision(fit_eval, calc_eval, rtol=1e-6, skip_last_colum
         header_fit = header_fit[:-1]
     if header_fit != header_calc:
         return False
-    return np.all(np.isclose(array_fit, array_calc, rtol=rtol))
+    is_close = np.isclose(array_fit, array_calc, rtol=rtol)
+    if np.all(is_close):
+        return True
+    for i, _ in itertools.islice(filter(lambda x: not np.all(x[1]), enumerate(is_close)), 100):
+        sys.stderr.write("index: {} {} != {}\n".format(i, array_fit[i], array_calc[i]))
+    return False
+
 
 # returns (features DataFrame, cat_feature_indices)
 def load_pool_features_as_df(pool_file, cd_file, target_idx):
