@@ -31,7 +31,7 @@ TThreadFactoryHolder::TThreadFactoryHolder() noexcept
 class TThreadPool::TImpl: public TIntrusiveListItem<TImpl>, public IThreadFactory::IThreadAble {
     using TTsr = IThreadPool::TTsr;
     using TJobQueue = TFastQueue<IObjectInQueue*>;
-    using TThreadRef = TAutoPtr<IThreadFactory::IThread>;
+    using TThreadRef = THolder<IThreadFactory::IThread>;
 
 public:
     inline TImpl(TThreadPool* parent, size_t thrnum, size_t maxqueue, EBlocking blocking, ECatching catching)
@@ -377,7 +377,7 @@ public:
 
     private:
         TImpl* Impl_;
-        TAutoPtr<IThreadFactory::IThread> Thread_;
+        THolder<IThreadFactory::IThread> Thread_;
     };
 
     inline TImpl(TAdaptiveThreadPool* parent)
@@ -605,8 +605,8 @@ namespace {
         THolder<IObjectInQueue> Owned;
 
     public:
-        TOwnedObjectInQueue(TAutoPtr<IObjectInQueue> owned)
-            : Owned(owned)
+        TOwnedObjectInQueue(THolder<IObjectInQueue> owned)
+            : Owned(std::move(owned))
         {
         }
 
@@ -621,12 +621,12 @@ void IThreadPool::SafeAdd(IObjectInQueue* obj) {
     Y_ENSURE_EX(Add(obj), TThreadPoolException() << AsStringBuf("can not add object to queue"));
 }
 
-void IThreadPool::SafeAddAndOwn(TAutoPtr<IObjectInQueue> obj) {
-    Y_ENSURE_EX(AddAndOwn(obj), TThreadPoolException() << AsStringBuf("can not add to queue and own"));
+void IThreadPool::SafeAddAndOwn(THolder<IObjectInQueue> obj) {
+    Y_ENSURE_EX(AddAndOwn(std::move(obj)), TThreadPoolException() << AsStringBuf("can not add to queue and own"));
 }
 
-bool IThreadPool::AddAndOwn(TAutoPtr<IObjectInQueue> obj) {
-    THolder<TOwnedObjectInQueue> owner = new TOwnedObjectInQueue(obj);
+bool IThreadPool::AddAndOwn(THolder<IObjectInQueue> obj) {
+    auto owner = MakeHolder<TOwnedObjectInQueue>(std::move(obj));
     bool added = Add(owner.Get());
     if (added) {
         Y_UNUSED(owner.Release());
@@ -718,7 +718,7 @@ IThread* IThreadPool::DoCreate() {
     return new TPoolThread(this);
 }
 
-TAutoPtr<IThreadPool> CreateThreadPool(size_t threadsCount, size_t queueSizeLimit, TThreadPool::EBlocking blocking, TThreadPool::ECatching catching) {
+THolder<IThreadPool> CreateThreadPool(size_t threadsCount, size_t queueSizeLimit, TThreadPool::EBlocking blocking, TThreadPool::ECatching catching) {
     THolder<IThreadPool> queue;
     if (threadsCount > 1) {
         queue.Reset(new TThreadPool(blocking, catching));

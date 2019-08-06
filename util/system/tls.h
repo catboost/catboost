@@ -61,7 +61,7 @@
         //...later somewhere in cpp...
         TMyWriter*& writerRef = ThreadLocalWriter.Get();
         if (writerRef == nullptr) {
-            TAutoPtr<TMyWriter> threadLocalWriter( new TMyWriter(
+            THolder<TMyWriter> threadLocalWriter( new TMyWriter(
                 *Session,
                 MinLogError,
                 MaxRps,

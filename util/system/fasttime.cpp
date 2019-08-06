@@ -57,7 +57,7 @@ namespace {
             return (((TTime)1000000) * (TTime)tv.tv_sec) + (TTime)tv.tv_usec;
         }
 
-        static inline TAutoPtr<TDynamicLibrary> OpenLibc() {
+        static inline THolder<TDynamicLibrary> OpenLibc() {
             const char* libs[] = {
                 "/lib/libc.so.8",
                 "/lib/libc.so.7",
@@ -66,7 +66,7 @@ namespace {
 
             for (auto& lib : libs) {
                 try {
-                    return new TDynamicLibrary(lib);
+                    return MakeHolder<TDynamicLibrary>(lib);
                 } catch (...) {
                     // ¯\_(ツ)_/¯
                 }
@@ -83,7 +83,7 @@ namespace {
             return Lib.Get();
         }
 
-        TAutoPtr<TDynamicLibrary> Lib;
+        THolder<TDynamicLibrary> Lib;
         TFunc Func;
     };
 

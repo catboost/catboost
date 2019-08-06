@@ -131,7 +131,7 @@ TString NAddr::PrintHostAndPort(const IRemoteAddr& addr) {
 }
 
 IRemoteAddrPtr NAddr::GetSockAddr(SOCKET s) {
-    TAutoPtr<TOpaqueAddr> addr(new TOpaqueAddr());
+    auto addr = MakeHolder<TOpaqueAddr>();
 
     if (getsockname(s, addr->MutableAddr(), addr->LenPtr()) < 0) {
         ythrow TSystemError() << "getsockname() failed";

@@ -57,7 +57,7 @@ private:
             : Parent_(parent)
             , C_(nullptr)
             , ListenSocket_(socket(addr->Addr()->sa_family, SOCK_STREAM, 0))
-            , Addr_(addr)
+            , Addr_(std::move(addr))
         {
             if (ListenSocket_ == INVALID_SOCKET) {
                 ythrow TSystemError() << "can not create socket";

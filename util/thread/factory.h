@@ -47,15 +47,15 @@ public:
     virtual ~IThreadFactory() = default;
 
     // XXX: rename to Start
-    inline TAutoPtr<IThread> Run(IThreadAble* func) {
-        TAutoPtr<IThread> ret(DoCreate());
+    inline THolder<IThread> Run(IThreadAble* func) {
+        THolder<IThread> ret(DoCreate());
 
         ret->Run(func);
 
         return ret;
     }
 
-    TAutoPtr<IThread> Run(std::function<void()> func);
+    THolder<IThread> Run(std::function<void()> func);
 
 private:
     virtual IThread* DoCreate() = 0;

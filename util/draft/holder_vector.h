@@ -41,19 +41,15 @@ public:
         }
     }
 
-    void PushBack(TAutoPtr<T> t) {
-        PushBack(t.Release());
-    }
-
-    void PushBack(std::unique_ptr<T>&& t) {
+    void PushBack(std::unique_ptr<T> t) {
         PushBack(t.release());
     }
 
-    void PushBack(THolder<T>& t) {
+    void PushBack(THolder<T> t) {
         PushBack(t.Release());
     }
 
-    void Reset(size_t i, TAutoPtr<T> t) {
+    void Reset(size_t i, THolder<T> t) {
         T* current = (*this)[i];
         if (current) {
             Y_ASSERT(current != t.Get());

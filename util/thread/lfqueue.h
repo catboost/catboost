@@ -363,7 +363,7 @@ public:
 template <class T, class TCounter>
 class TAutoLockFreeQueue {
 public:
-    using TRef = TAutoPtr<T>;
+    using TRef = THolder<T>;
 
     inline ~TAutoLockFreeQueue() {
         TRef tmp;

@@ -208,7 +208,7 @@ namespace {
         }
 
     private:
-        using TPTSRef = TAutoPtr<TPerThreadStorage>;
+        using TPTSRef = THolder<TPerThreadStorage>;
         TMutex Lock_;
         THashMap<TThread::TId, TPTSRef> Datas_;
     };

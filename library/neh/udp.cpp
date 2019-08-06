@@ -96,14 +96,14 @@ namespace {
         static inline void Serialize(TPacket& p, const T& t);
 
         struct TPacket {
-            inline TPacket(const IRemoteAddrPtr& addr)
-                : Addr(addr)
+            inline TPacket(IRemoteAddrPtr addr)
+                : Addr(std::move(addr))
             {
             }
 
             template <class T>
-            inline TPacket(const T& t, const IRemoteAddrPtr& addr)
-                : Addr(addr)
+            inline TPacket(const T& t, IRemoteAddrPtr addr)
+                : Addr(std::move(addr))
             {
                 NUdp::Serialize(*this, t);
             }
@@ -393,7 +393,7 @@ namespace {
             public:
                 inline TRequest(TPacket& p, TProto* parent)
                     : TRequestPacket(p)
-                    , Addr_(p.Addr)
+                    , Addr_(std::move(p.Addr))
                     , H_(PrintHostByRfc(*Addr_))
                     , P_(parent)
                 {
@@ -425,7 +425,7 @@ namespace {
                 }
 
                 void SendReply(TData& data) override {
-                    P_->Schedule(new TPacket(TResponsePacket<TData>(Guid, data), Addr_));
+                    P_->Schedule(new TPacket(TResponsePacket<TData>(Guid, data), std::move(Addr_)));
                 }
 
                 void SendError(TResponseError, const TString&) override {
@@ -624,7 +624,7 @@ namespace {
                         TRequestPacket rp(ToString(loc.Service), msg.Data);
                         TRequestDescrRef rd(new TRequestDescr(rp.Guid, hndl, msg));
                         IRemoteAddrPtr raddr(new TAddrInfo(&*ai));
-                        TPacketRef p(new TPacket(rp, raddr));
+                        TPacketRef p(new TPacket(rp, std::move(raddr)));
 
                         proto->Schedule(rd, p);
 

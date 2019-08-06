@@ -105,9 +105,9 @@ Y_UNIT_TEST_SUITE(EventTest) {
         TManualEvent barrier;
         TThreadPool queue;
         queue.Start(limit);
-        TVector<TAutoPtr<IObjectInQueue>> tasks;
+        TVector<THolder<IObjectInQueue>> tasks;
         for (size_t i = 0; i < limit; ++i) {
-            tasks.push_back(new TSignalTask(barrier, event[i]));
+            tasks.emplace_back(MakeHolder<TSignalTask>(barrier, event[i]));
             UNIT_ASSERT(queue.Add(tasks.back().Get()));
         }
         for (size_t i = limit; i != 0; --i) {
@@ -119,16 +119,16 @@ Y_UNIT_TEST_SUITE(EventTest) {
     /** Test for a problem: http://nga.at.yandex-team.ru/5772 */
     Y_UNIT_TEST(DestructorBeforeSignalFinishTest) {
         return;
-        TVector<TAutoPtr<IObjectInQueue>> tasks;
+        TVector<THolder<IObjectInQueue>> tasks;
         for (size_t i = 0; i < 1000; ++i) {
-            TAutoPtr<TOwnerTask> owner = new TOwnerTask;
-            tasks.push_back(new TSignalTask(owner->Barrier, *owner->Ev));
-            tasks.push_back(owner.Release());
+            auto owner = MakeHolder<TOwnerTask>();
+            tasks.emplace_back(MakeHolder<TSignalTask>(owner->Barrier, *owner->Ev));
+            tasks.emplace_back(std::move(owner));
         }
 
         TThreadPool queue;
         queue.Start(4);
-        for (auto task : tasks) {
+        for (auto& task : tasks) {
             UNIT_ASSERT(queue.Add(task.Get()));
         }
         queue.Stop();

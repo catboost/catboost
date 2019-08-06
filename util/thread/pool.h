@@ -96,7 +96,7 @@ public:
         Y_ENSURE_EX(AddFunc(std::forward<T>(func)), TThreadPoolException() << AsStringBuf("can not add function to queue"));
     }
 
-    void SafeAddAndOwn(TAutoPtr<IObjectInQueue> obj);
+    void SafeAddAndOwn(THolder<IObjectInQueue> obj);
 
     /**
      * Add object to queue, run ojb->Proccess in other threads.
@@ -116,7 +116,7 @@ public:
         return added;
     }
 
-    bool AddAndOwn(TAutoPtr<IObjectInQueue> obj) Y_WARN_UNUSED_RESULT;
+    bool AddAndOwn(THolder<IObjectInQueue> obj) Y_WARN_UNUSED_RESULT;
     virtual void Start(size_t threadCount, size_t queueSizeLimit = 0) = 0;
     /** Wait for completion of all scheduled objects, and then exit */
     virtual void Stop() noexcept = 0;
@@ -329,7 +329,7 @@ private:
     TSlave* Slave_;
 };
 
-inline void Delete(TAutoPtr<IThreadPool> q) {
+inline void Delete(THolder<IThreadPool> q) {
     if (q.Get()) {
         q->Stop();
     }
@@ -339,4 +339,4 @@ inline void Delete(TAutoPtr<IThreadPool> q) {
  * Creates and starts TThreadPool if threadsCount > 1, or TFakeThreadPool otherwise
  * You could specify blocking and catching modes for TThreadPool only
  */
-TAutoPtr<IThreadPool> CreateThreadPool(size_t threadsCount, size_t queueSizeLimit = 0, TThreadPool::EBlocking blocking = TThreadPool::EBlocking::NonBlockingMode, TThreadPool::ECatching catching = TThreadPool::ECatching::CatchingMode);
+THolder<IThreadPool> CreateThreadPool(size_t threadsCount, size_t queueSizeLimit = 0, TThreadPool::EBlocking blocking = TThreadPool::EBlocking::NonBlockingMode, TThreadPool::ECatching catching = TThreadPool::ECatching::CatchingMode);
