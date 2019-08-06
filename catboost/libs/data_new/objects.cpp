@@ -4,6 +4,7 @@
 #include <catboost/libs/cat_feature/cat_feature.h>
 #include <catboost/libs/helpers/checksum.h>
 #include <catboost/libs/helpers/compare.h>
+#include <catboost/libs/helpers/math_utils.h>
 #include <catboost/libs/helpers/parallel_tasks.h>
 #include <catboost/libs/helpers/permutation.h>
 #include <catboost/libs/helpers/serialization.h>
@@ -19,6 +20,7 @@
 
 #include <algorithm>
 #include <numeric>
+#include <type_traits>
 
 
 using namespace NCB;
@@ -353,7 +355,20 @@ static bool AreFeaturesValuesEqual(
     const TTypedFeatureValuesHolder<T, TType>& lhs,
     const TTypedFeatureValuesHolder<T, TType>& rhs
 ) {
-    return *(lhs.ExtractValues(&NPar::LocalExecutor())) == *(rhs.ExtractValues(&NPar::LocalExecutor()));
+    auto lhsValues = lhs.ExtractValues(&NPar::LocalExecutor());
+    auto rhsValues = rhs.ExtractValues(&NPar::LocalExecutor());
+
+    if constexpr (std::is_floating_point<T>::value) {
+        return std::equal(
+            lhsValues.begin(),
+            lhsValues.end(),
+            rhsValues.begin(),
+            rhsValues.end(),
+            EqualWithNans<T>
+        );
+    } else {
+        return *lhsValues == *rhsValues;
+    }
 }
 
 

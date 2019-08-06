@@ -19,6 +19,8 @@
 
 #include <util/stream/output.h>
 
+#include <algorithm>
+
 
 using namespace NCB;
 using namespace NCB::NDataNewUT;
@@ -242,9 +244,166 @@ Y_UNIT_TEST_SUITE(TRawObjectsData) {
         }
     }
 
+    TRawObjectsDataProvider CreateRawObjectsDataProvider(
+        const TVector<TVector<float>>& srcFloatFeatures,
+        const TVector<TVector<ui32>>& srcCatFeatures,
+        const TVector<THashMap<ui32, TString>>& catFeaturesHashToString,
+        const TCommonObjectsData& commonData,
+        std::pair<bool, bool> useFeatureTypes,
+        NPar::TLocalExecutor* localExecutor
+    ) {
+        TRawObjectsData data;
+        ui32 featureId = 0;
+
+        TVector<ui32> catFeatureIndices;
+
+        if (useFeatureTypes.first) {
+            InitFeatures(srcFloatFeatures, *commonData.SubsetIndexing, &featureId, &data.FloatFeatures);
+        }
+        TCommonObjectsData commonDataCopy = commonData;
+        if (useFeatureTypes.second) {
+            ui32 catFeaturesIndicesStart = featureId;
+
+            commonDataCopy.CatFeaturesHashToString = MakeAtomicShared<TVector<THashMap<ui32, TString>>>(
+                catFeaturesHashToString
+            );
+            InitFeatures(srcCatFeatures, *commonData.SubsetIndexing, &featureId, &data.CatFeatures);
+
+            for (ui32 idx : xrange(catFeaturesIndicesStart, featureId)) {
+                catFeatureIndices.push_back(idx);
+            }
+        }
+
+        TFeaturesLayout featuresLayout(featureId, catFeatureIndices, {}, {});
+        commonDataCopy.FeaturesLayout = MakeIntrusive<TFeaturesLayout>(featuresLayout);
+
+        return TRawObjectsDataProvider(
+            Nothing(),
+            std::move(commonDataCopy),
+            std::move(data),
+            /*skipCheck*/ false,
+            localExecutor
+        );
+    }
+
     using TCatHashToString = std::pair<ui32, TString>;
 
-    void TestFeatures(
+    TVector<TVector<float>> GetFloatFeatures1() {
+         return TVector<TVector<float>>{
+            {0.f, 1.f, 2.f, 2.3f, 0.82f, 0.67f},
+            {0.22f, 0.3f, 0.16f, 0.f, 0.2f, 0.11f},
+            {0.31f, 1.0f, 0.23f, 0.89f, 0.0f, 0.9f}
+        };
+    }
+
+    void GetCatFeaturesWithHash1(
+        TVector<TVector<ui32>>* catFeatures,
+        TVector<THashMap<ui32, TString>>* catFeaturesHashToString
+    ) {
+        catFeaturesHashToString->clear();
+        {
+            THashMap<ui32, TString> hashToString = {
+                TCatHashToString(0x0, "0x0"),
+                TCatHashToString(0x12, "0x12"),
+                TCatHashToString(0x0F, "0x0F"),
+                TCatHashToString(0x23, "0x23"),
+                TCatHashToString(0x11, "0x11"),
+                TCatHashToString(0x03, "0x03")
+            };
+            catFeaturesHashToString->push_back(hashToString);
+        }
+        {
+            THashMap<ui32, TString> hashToString = {
+                TCatHashToString(0xAB, "0xAB"),
+                TCatHashToString(0xBF, "0xBF"),
+                TCatHashToString(0x04, "0x04"),
+                TCatHashToString(0x20, "0x20"),
+                TCatHashToString(0x78, "0x78"),
+                TCatHashToString(0xFA, "0xFA")
+            };
+            catFeaturesHashToString->push_back(hashToString);
+        }
+
+        *catFeatures = TVector<TVector<ui32>>{
+            {0x0, 0x12, 0x0F, 0x23, 0x11, 0x03},
+            {0xAB, 0xBF, 0x04, 0x20, 0x78, 0xFA}
+        };
+    }
+
+
+    Y_UNIT_TEST(Equal) {
+        NPar::TLocalExecutor localExecutor;
+        localExecutor.RunAdditionalThreads(2);
+
+        TCommonObjectsData commonData;
+
+        commonData.SubsetIndexing = MakeAtomicShared<TArraySubsetIndexing<ui32>>(
+            TIndexedSubset<ui32>{0, 4, 3, 1}
+        );
+        commonData.Order = EObjectsOrder::RandomShuffled;
+        commonData.GroupIds = {0, 0, 1, 1};
+        commonData.SubgroupIds = {0, 2, 3, 1};
+
+        TVector<TVector<float>> srcFloatFeatures1 = GetFloatFeatures1();
+
+        TVector<TVector<ui32>> srcCatFeatures1;
+        TVector<THashMap<ui32, TString>> catFeaturesHashToString1;
+
+        GetCatFeaturesWithHash1(&srcCatFeatures1, &catFeaturesHashToString1);
+
+
+        TVector<std::pair<bool, bool>> useFeatureTypes = {
+            std::make_pair(true, false),
+            std::make_pair(false, true),
+            std::make_pair(true, true)
+        };
+
+        TVector<TRawObjectsDataProviderPtr> objectDataProviders;
+
+        for (auto i : xrange(useFeatureTypes.size())) {
+            objectDataProviders.push_back(
+                MakeIntrusive<TRawObjectsDataProvider>(
+                    CreateRawObjectsDataProvider(
+                        srcFloatFeatures1,
+                        srcCatFeatures1,
+                        catFeaturesHashToString1,
+                        commonData,
+                        useFeatureTypes[i],
+                        &localExecutor
+                    )
+                )
+            );
+
+            for (auto j : xrange(i + 1)) {
+                UNIT_ASSERT_VALUES_EQUAL((*(objectDataProviders[i]) == (*objectDataProviders[j])), i == j);
+            }
+        }
+
+        TVector<TVector<float>> srcFloatFeatures1WithNans = {
+            {0.f, 1.f, 2.f, 2.3f, std::numeric_limits<float>::quiet_NaN(), 0.67f},
+            {0.22f, 0.3f, 0.16f, 0.f, 0.2f, 0.11f},
+            {std::numeric_limits<float>::quiet_NaN(), 1.0f, 0.23f, 0.89f, 0.0f, 0.9f}
+        };
+
+        TRawObjectsDataProvider objectDataProviderWithNans =
+            CreateRawObjectsDataProvider(
+                srcFloatFeatures1WithNans,
+                /*srcCatFeatures*/ {},
+                /*catFeaturesHashToString*/ {},
+                commonData,
+                std::make_pair(true, false),
+                &localExecutor
+            );
+
+        UNIT_ASSERT_EQUAL(objectDataProviderWithNans, objectDataProviderWithNans);
+
+        for (const auto& objectDataProviderPtr : objectDataProviders) {
+            UNIT_ASSERT_UNEQUAL(*objectDataProviderPtr, objectDataProviderWithNans);
+        }
+    }
+
+
+    void TestSubsetFeatures(
         TMaybe<TArraySubsetIndexing<ui32>> subsetForGetSubset,
         TMaybe<EObjectsOrder> objectsOrderForGetSubset,
         const TObjectsGrouping& expectedObjectsGrouping,
@@ -258,46 +417,22 @@ Y_UNIT_TEST_SUITE(TRawObjectsData) {
         const TVector<TVector<ui32>>& srcCatFeatures,
         const TVector<TVector<ui32>>& subsetCatFeatures
     ) {
+        NPar::TLocalExecutor localExecutor;
+        localExecutor.RunAdditionalThreads(2);
+
         // (use float, use cat) pairs
         for (auto useFeatureTypes : {
             std::make_pair(true, false),
             std::make_pair(false, true),
             std::make_pair(true, true)
         }) {
-            TRawObjectsData data;
-            ui32 featureId = 0;
-
-            TVector<ui32> catFeatureIndices;
-
-            if (useFeatureTypes.first) {
-                InitFeatures(srcFloatFeatures, *commonData.SubsetIndexing, &featureId, &data.FloatFeatures);
-            }
-            TCommonObjectsData commonDataCopy = commonData;
-            if (useFeatureTypes.second) {
-                ui32 catFeaturesIndicesStart = featureId;
-
-                commonDataCopy.CatFeaturesHashToString = MakeAtomicShared<TVector<THashMap<ui32, TString>>>(
-                    catFeaturesHashToString
-                );
-                InitFeatures(srcCatFeatures, *commonData.SubsetIndexing, &featureId, &data.CatFeatures);
-
-                for (ui32 idx : xrange(catFeaturesIndicesStart, featureId)) {
-                    catFeatureIndices.push_back(idx);
-                }
-            }
-
-            TFeaturesLayout featuresLayout(featureId, catFeatureIndices, {}, {});
-            commonDataCopy.FeaturesLayout = MakeIntrusive<TFeaturesLayout>(featuresLayout);
-
-            NPar::TLocalExecutor localExecutor;
-            localExecutor.RunAdditionalThreads(2);
-
             auto objectsDataProvider = GetMaybeSubsetDataProvider(
-                TRawObjectsDataProvider(
-                    Nothing(),
-                    std::move(commonDataCopy),
-                    std::move(data),
-                    false,
+                CreateRawObjectsDataProvider(
+                    srcFloatFeatures,
+                    srcCatFeatures,
+                    catFeaturesHashToString,
+                    commonData,
+                    useFeatureTypes,
                     &localExecutor
                 ),
                 subsetForGetSubset,
@@ -305,9 +440,14 @@ Y_UNIT_TEST_SUITE(TRawObjectsData) {
                 &localExecutor
             );
 
+            ui32 featureCount = 0;
+            TVector<ui32> catFeatureIndices;
+
             UNIT_ASSERT_EQUAL(expectedObjectsGrouping, *objectsDataProvider.GetObjectsGrouping());
 
             if (useFeatureTypes.first) {
+                featureCount += srcFloatFeatures.size();
+
                 for (auto i : xrange(subsetFloatFeatures.size())) {
                     UNIT_ASSERT(
                         Equal<float>(
@@ -318,6 +458,11 @@ Y_UNIT_TEST_SUITE(TRawObjectsData) {
                 }
             }
             if (useFeatureTypes.second) {
+                catFeatureIndices.resize(srcCatFeatures.size());
+                std::iota(catFeatureIndices.begin(), catFeatureIndices.end(), featureCount);
+
+                featureCount += srcCatFeatures.size();
+
                 for (auto i : xrange(subsetCatFeatures.size())) {
                     UNIT_ASSERT(
                         Equal<ui32>(
@@ -327,6 +472,8 @@ Y_UNIT_TEST_SUITE(TRawObjectsData) {
                     );
                 }
             }
+
+            TFeaturesLayout featuresLayout(featureCount, catFeatureIndices, {}, {});
 
 #define COMPARE_DATA_PROVIDER_FIELD(FIELD) \
             UNIT_ASSERT(Equal(objectsDataProvider.Get##FIELD(), expectedCommonData.FIELD));
@@ -385,7 +532,7 @@ Y_UNIT_TEST_SUITE(TRawObjectsData) {
             {0xAB, 0xBF, 0x04, 0x20}
         };
 
-        TestFeatures(
+        TestSubsetFeatures(
             Nothing(),
             Nothing(),
             expectedObjectsGrouping,
@@ -411,11 +558,7 @@ Y_UNIT_TEST_SUITE(TRawObjectsData) {
         commonData.GroupIds = {0, 0, 1, 1};
         commonData.SubgroupIds = {0, 2, 3, 1};
 
-        TVector<TVector<float>> srcFloatFeatures = {
-            {0.f, 1.f, 2.f, 2.3f, 0.82f, 0.67f},
-            {0.22f, 0.3f, 0.16f, 0.f, 0.2f, 0.11f},
-            {0.31f, 1.0f, 0.23f, 0.89f, 0.0f, 0.9f}
-        };
+        TVector<TVector<float>> srcFloatFeatures = GetFloatFeatures1();
 
         TVector<TVector<float>> subsetFloatFeatures = {
             {0.f, 0.82f, 2.3f, 1.f},
@@ -423,41 +566,17 @@ Y_UNIT_TEST_SUITE(TRawObjectsData) {
             {0.31f, 0.0f, 0.89f, 1.0f}
         };
 
+        TVector<TVector<ui32>> srcCatFeatures;
         TVector<THashMap<ui32, TString>> catFeaturesHashToString;
-        {
-            THashMap<ui32, TString> hashToString = {
-                TCatHashToString(0x0, "0x0"),
-                TCatHashToString(0x12, "0x12"),
-                TCatHashToString(0x0F, "0x0F"),
-                TCatHashToString(0x23, "0x23"),
-                TCatHashToString(0x11, "0x11"),
-                TCatHashToString(0x03, "0x03")
-            };
-            catFeaturesHashToString.push_back(hashToString);
-        }
-        {
-            THashMap<ui32, TString> hashToString = {
-                TCatHashToString(0xAB, "0xAB"),
-                TCatHashToString(0xBF, "0xBF"),
-                TCatHashToString(0x04, "0x04"),
-                TCatHashToString(0x20, "0x20"),
-                TCatHashToString(0x78, "0x78"),
-                TCatHashToString(0xFA, "0xFA")
-            };
-            catFeaturesHashToString.push_back(hashToString);
-        }
 
-        TVector<TVector<ui32>> srcCatFeatures = {
-            {0x0, 0x12, 0x0F, 0x23, 0x11, 0x03},
-            {0xAB, 0xBF, 0x04, 0x20, 0x78, 0xFA}
-        };
+        GetCatFeaturesWithHash1(&srcCatFeatures, &catFeaturesHashToString);
 
         TVector<TVector<ui32>> subsetCatFeatures = {
             {0x0, 0x11, 0x23, 0x12},
             {0xAB, 0x78, 0x20, 0xBF}
         };
 
-        TestFeatures(
+        TestSubsetFeatures(
             Nothing(),
             Nothing(),
             expectedObjectsGrouping,
@@ -484,49 +603,21 @@ Y_UNIT_TEST_SUITE(TRawObjectsData) {
         );
         commonData.Order = EObjectsOrder::RandomShuffled;
 
-        TVector<TVector<float>> srcFloatFeatures = {
-            {0.f, 1.f, 2.f, 2.3f, 0.82f, 0.67f},
-            {0.22f, 0.3f, 0.16f, 0.f, 0.2f, 0.11f},
-            {0.31f, 1.0f, 0.23f, 0.89f, 0.0f, 0.9f}
-        };
+        TVector<TVector<float>> srcFloatFeatures = GetFloatFeatures1();
 
         TVector<TVector<float>> subsetFloatFeatures = { {1.f, 0.82f}, {0.3f, 0.2f}, {1.0f, 0.0f} };
 
+        TVector<TVector<ui32>> srcCatFeatures;
         TVector<THashMap<ui32, TString>> catFeaturesHashToString;
-        {
-            THashMap<ui32, TString> hashToString = {
-                TCatHashToString(0x0, "0x0"),
-                TCatHashToString(0x12, "0x12"),
-                TCatHashToString(0x0F, "0x0F"),
-                TCatHashToString(0x23, "0x23"),
-                TCatHashToString(0x11, "0x11"),
-                TCatHashToString(0x03, "0x03")
-            };
-            catFeaturesHashToString.push_back(hashToString);
-        }
-        {
-            THashMap<ui32, TString> hashToString = {
-                TCatHashToString(0xAB, "0xAB"),
-                TCatHashToString(0xBF, "0xBF"),
-                TCatHashToString(0x04, "0x04"),
-                TCatHashToString(0x20, "0x20"),
-                TCatHashToString(0x78, "0x78"),
-                TCatHashToString(0xFA, "0xFA")
-            };
-            catFeaturesHashToString.push_back(hashToString);
-        }
 
-        TVector<TVector<ui32>> srcCatFeatures = {
-            {0x0, 0x12, 0x0F, 0x23, 0x11, 0x03},
-            {0xAB, 0xBF, 0x04, 0x20, 0x78, 0xFA}
-        };
+        GetCatFeaturesWithHash1(&srcCatFeatures, &catFeaturesHashToString);
 
         TVector<TVector<ui32>> subsetCatFeatures = {{0x12, 0x11}, {0xBF, 0x78}};
 
         TCommonObjectsData expectedCommonData;
         expectedCommonData.Order = EObjectsOrder::RandomShuffled;
 
-        TestFeatures(
+        TestSubsetFeatures(
             subsetForGetSubset,
             objectsOrderForGetSubset,
             expectedSubsetObjectsGrouping,
@@ -623,7 +714,7 @@ Y_UNIT_TEST_SUITE(TRawObjectsData) {
         };
 
 
-        TestFeatures(
+        TestSubsetFeatures(
             subsetForGetSubset,
             objectsOrderForGetSubset,
             expectedSubsetObjectsGrouping,
@@ -662,7 +753,7 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
     }
 
 
-    void TestFeatures(
+    void TestSubsetFeatures(
         TMaybe<TArraySubsetIndexing<ui32>> subsetForGetSubset,
         TMaybe<EObjectsOrder> objectsOrderForGetSubset,
         const TObjectsGrouping& expectedObjectsGrouping,
@@ -950,7 +1041,7 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
             {{true, true}, 807288048}
         };
 
-        TestFeatures(
+        TestSubsetFeatures(
             Nothing(),
             Nothing(),
             expectedObjectsGrouping,
@@ -1008,7 +1099,7 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
         };
 
 
-        TestFeatures(
+        TestSubsetFeatures(
             Nothing(),
             Nothing(),
             expectedObjectsGrouping,
@@ -1065,7 +1156,7 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
             {{true, true}, 372545103}
         };
 
-        TestFeatures(
+        TestSubsetFeatures(
             subsetForGetSubset,
             objectsOrderForGetSubset,
             expectedSubsetObjectsGrouping,
@@ -1138,7 +1229,7 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
             {{true, true}, 2043278342}
         };
 
-        TestFeatures(
+        TestSubsetFeatures(
             subsetForGetSubset,
             objectsOrderForGetSubset,
             expectedSubsetObjectsGrouping,
