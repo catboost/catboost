@@ -1,5 +1,4 @@
 #include "float16.h"
-#include <util/system/cpu_id.h>
 #include <util/system/yassert.h>
 #include <util/stream/output.h>
 
@@ -118,10 +117,6 @@ float NFloat16Ops::DotProductOnFloatAuto(const float* f32, const TFloat16* f16, 
         len -= 1;
     }
     return res;
-}
-
-bool NFloat16Ops::IsIntrisincsAvailableOnHost() {
-    return NX86::CachedHaveF16C() && NX86::CachedHaveAVX();
 }
 
 template <>

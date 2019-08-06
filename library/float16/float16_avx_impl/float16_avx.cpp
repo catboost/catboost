@@ -4,8 +4,14 @@
 #include <emmintrin.h>
 #include <immintrin.h>
 
+#include <util/system/cpu_id.h>
 #include <util/system/yassert.h>
 #include <util/system/sanitizers.h>
+
+bool NFloat16Ops::IsIntrisincsAvailableOnHost() {
+    return NX86::CachedHaveF16C() && NX86::CachedHaveAVX();
+}
+
 
 void NFloat16Ops::UnpackFloat16SequenceIntrisincs(const TFloat16* src, float* dst, size_t len) {
     Y_ASSERT(size_t(src) % Float16BufferAlignmentRequirementInBytes == 0);
