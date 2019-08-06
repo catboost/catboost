@@ -5,6 +5,7 @@
 #include <util/generic/array_ref.h>
 #include <util/generic/hash.h>
 #include <util/generic/map.h>
+#include <util/generic/maybe.h>
 #include <util/generic/vector.h>
 
 #include <type_traits>
@@ -54,6 +55,16 @@ namespace NCB {
     template <class T>
     inline ui32 UpdateCheckSumImpl(ui32 init, const TVector<T>& vector) {
         return UpdateCheckSumImpl(init, TConstArrayRef<T>(vector));
+    }
+
+    template <class T>
+    inline ui32 UpdateCheckSumImpl(ui32 init, const TMaybe<T>& value) {
+        const ui8 defined = value.Defined();
+        if (defined) {
+            return UpdateCheckSum(UpdateCheckSum(init, defined), *value);
+        } else {
+            return UpdateCheckSum(init, defined);
+        }
     }
 
     template <class T>
