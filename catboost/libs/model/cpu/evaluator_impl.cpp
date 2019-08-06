@@ -459,17 +459,18 @@ namespace NCB::NModelEvaluation {
     Y_FORCE_INLINE void CalcIndexesNonSymmetric(
         const TObliviousTrees& trees,
         const ui8* __restrict binFeatures,
+        const size_t firstDocId,
         const size_t docCountInBlock,
         const size_t treeId,
         TCalcerIndexType* __restrict indexesVec
     ) {
         const TRepackedBin* treeSplitsPtr = trees.GetRepackedBins().data();
         const TNonSymmetricTreeStepNode* treeStepNodes = trees.NonSymmetricStepNodes.data();
-        std::fill(indexesVec, indexesVec + docCountInBlock, trees.TreeStartOffsets[treeId]);
+        std::fill(indexesVec + firstDocId, indexesVec + docCountInBlock, trees.TreeStartOffsets[treeId]);
         size_t countStopped = 0;
-        while (countStopped != docCountInBlock) {
+        while (countStopped != docCountInBlock - firstDocId) {
             countStopped = 0;
-            for (size_t docId = 0; docId < docCountInBlock; ++docId) {
+            for (size_t docId = firstDocId; docId < docCountInBlock; ++docId) {
                 const auto* stepNode = treeStepNodes + indexesVec[docId];
                 const TRepackedBin split = treeSplitsPtr[indexesVec[docId]];
                 ui8 featureValue = binFeatures[split.FeatureIndex * docCountInBlock + docId];
@@ -482,13 +483,175 @@ namespace NCB::NModelEvaluation {
                 indexesVec[docId] += diff;
             }
         }
-        for (size_t docId = 0; docId < docCountInBlock; ++docId) {
-            indexesVec[docId] = trees.NonSymmetricNodeIdToLeafId[indexesVec[docId]];
+    }
+#if defined(_sse4_1_)
+    template <bool IsSingleClassModel, bool NeedXorMask, bool CalcLeafIndexesOnly = false>
+    inline void CalcNonSymmetricTrees(
+        const TObliviousTrees& trees,
+        const TCPUEvaluatorQuantizedData* quantizedData,
+        size_t docCountInBlock,
+        TCalcerIndexType* __restrict indexes,
+        size_t treeStart,
+        size_t treeEnd,
+        double* __restrict resultsPtr
+    ) {
+        const ui8* __restrict binFeaturesI = quantizedData->QuantizedData.data();
+        const TRepackedBin* treeSplitsPtr = trees.GetRepackedBins().data();
+        const i32* treeStepNodes = reinterpret_cast<const i32*>(trees.NonSymmetricStepNodes.data());
+        const ui32* __restrict nonSymmetricNodeIdToLeafIdPtr = trees.NonSymmetricNodeIdToLeafId.data();
+        const double* __restrict leafValuesPtr = trees.LeafValues.data();
+        for (size_t treeId = treeStart; treeId < treeEnd; ++treeId) {
+            const ui32 treeStartIndex = trees.TreeStartOffsets[treeId];
+            __m128i* indexesVec = reinterpret_cast<__m128i*>(indexes);
+            size_t docId = 0;
+            for (; docId + 8 <= docCountInBlock; docId += 8, indexesVec+=2) {
+                const ui8* __restrict binFeatures = binFeaturesI + docId;
+                __m128i index0 = _mm_set1_epi32(treeStartIndex);
+                __m128i index1 = _mm_set1_epi32(treeStartIndex);
+                __m128i diffs0, diffs1;
+                do {
+                    const TRepackedBin splits[8] = {
+                        treeSplitsPtr[_mm_extract_epi32(index0, 0)],
+                        treeSplitsPtr[_mm_extract_epi32(index0, 1)],
+                        treeSplitsPtr[_mm_extract_epi32(index0, 2)],
+                        treeSplitsPtr[_mm_extract_epi32(index0, 3)],
+                        treeSplitsPtr[_mm_extract_epi32(index1, 0)],
+                        treeSplitsPtr[_mm_extract_epi32(index1, 1)],
+                        treeSplitsPtr[_mm_extract_epi32(index1, 2)],
+                        treeSplitsPtr[_mm_extract_epi32(index1, 3)]
+                    };
+                    const __m128i zeroes = _mm_setzero_si128();
+                    diffs0 = _mm_unpacklo_epi16(
+                        _mm_hadd_epi16(
+                            _mm_and_si128(
+                                _mm_xor_si128(
+                                    _mm_cmplt_epi32(
+                                        _mm_xor_si128(
+                                            _mm_setr_epi32(
+                                                binFeatures[splits[0].FeatureIndex * docCountInBlock + 0],
+                                                binFeatures[splits[1].FeatureIndex * docCountInBlock + 1],
+                                                binFeatures[splits[2].FeatureIndex * docCountInBlock + 2],
+                                                binFeatures[splits[3].FeatureIndex * docCountInBlock + 3]
+                                            ),
+                                            _mm_setr_epi32(
+                                                splits[0].XorMask,
+                                                splits[1].XorMask,
+                                                splits[2].XorMask,
+                                                splits[3].XorMask
+                                            )
+                                        ),
+                                        _mm_setr_epi32(
+                                            splits[0].SplitIdx,
+                                            splits[1].SplitIdx,
+                                            splits[2].SplitIdx,
+                                            splits[3].SplitIdx
+                                        )
+                                   ),
+                                   _mm_set1_epi32(0xffff0000)
+                               ),
+                                _mm_setr_epi32(
+                                    treeStepNodes[_mm_extract_epi32(index0, 0)],
+                                    treeStepNodes[_mm_extract_epi32(index0, 1)],
+                                    treeStepNodes[_mm_extract_epi32(index0, 2)],
+                                    treeStepNodes[_mm_extract_epi32(index0, 3)]
+                                )
+                            ),
+                            zeroes
+                        ),
+                        zeroes
+                    );
+                    diffs1 = _mm_unpacklo_epi16(
+                        _mm_hadd_epi16(
+                            _mm_and_si128(
+                                _mm_xor_si128(
+                                    _mm_cmplt_epi32(
+                                        _mm_xor_si128(
+                                            _mm_setr_epi32(
+                                                binFeatures[splits[4].FeatureIndex * docCountInBlock + 4],
+                                                binFeatures[splits[5].FeatureIndex * docCountInBlock + 5],
+                                                binFeatures[splits[6].FeatureIndex * docCountInBlock + 6],
+                                                binFeatures[splits[7].FeatureIndex * docCountInBlock + 7]
+                                            ),
+                                            _mm_setr_epi32(
+                                                splits[4].XorMask,
+                                                splits[5].XorMask,
+                                                splits[6].XorMask,
+                                                splits[7].XorMask
+                                            )
+                                        ),
+                                        _mm_setr_epi32(
+                                            splits[4].SplitIdx,
+                                            splits[5].SplitIdx,
+                                            splits[6].SplitIdx,
+                                            splits[7].SplitIdx
+                                        )
+                                    ),
+                                    _mm_set1_epi32(0xffff0000)
+                                ),
+                                _mm_setr_epi32(
+                                    treeStepNodes[_mm_extract_epi32(index1, 0)],
+                                    treeStepNodes[_mm_extract_epi32(index1, 1)],
+                                    treeStepNodes[_mm_extract_epi32(index1, 2)],
+                                    treeStepNodes[_mm_extract_epi32(index1, 3)]
+                                )
+                            ),
+                            zeroes
+                        ),
+                        zeroes
+                    );
+                    index0 = _mm_add_epi32(
+                        index0,
+                        diffs0
+                    );
+                    index1 = _mm_add_epi32(
+                        index1,
+                        diffs1
+                    );
+                } while (!_mm_testz_si128(diffs0, _mm_cmpeq_epi32(diffs0, diffs0)) || !_mm_testz_si128(diffs1, _mm_cmpeq_epi32(diffs1, diffs1)));
+                _mm_storeu_si128(indexesVec, index0);
+                _mm_storeu_si128(indexesVec + 1, index1);
+            }
+            if (docId < docCountInBlock) {
+                CalcIndexesNonSymmetric<NeedXorMask>(trees, binFeaturesI, docId, docCountInBlock, treeId, indexes);
+            }
+            if constexpr (CalcLeafIndexesOnly) {
+                const auto firstLeafOffsets = trees.GetFirstLeafOffsets();
+                const auto approxDimension = trees.ApproxDimension;
+                for (size_t docId = 0; docId < docCountInBlock; ++docId) {
+                    Y_ASSERT((nonSymmetricNodeIdToLeafIdPtr[indexes[docId]] - firstLeafOffsets[treeId]) % approxDimension == 0);
+                    indexes[docId] = ((nonSymmetricNodeIdToLeafIdPtr[indexes[docId]] - firstLeafOffsets[treeId]) / approxDimension);
+                }
+                indexes += docCountInBlock;
+            } else if constexpr (IsSingleClassModel) {
+                for (docId = 0; docId + 8 <= docCountInBlock; docId+=8) {
+                    resultsPtr[docId + 0] += leafValuesPtr[nonSymmetricNodeIdToLeafIdPtr[indexes[docId + 0]]];
+                    resultsPtr[docId + 1] += leafValuesPtr[nonSymmetricNodeIdToLeafIdPtr[indexes[docId + 1]]];
+                    resultsPtr[docId + 2] += leafValuesPtr[nonSymmetricNodeIdToLeafIdPtr[indexes[docId + 2]]];
+                    resultsPtr[docId + 3] += leafValuesPtr[nonSymmetricNodeIdToLeafIdPtr[indexes[docId + 3]]];
+                    resultsPtr[docId + 4] += leafValuesPtr[nonSymmetricNodeIdToLeafIdPtr[indexes[docId + 4]]];
+                    resultsPtr[docId + 5] += leafValuesPtr[nonSymmetricNodeIdToLeafIdPtr[indexes[docId + 5]]];
+                    resultsPtr[docId + 6] += leafValuesPtr[nonSymmetricNodeIdToLeafIdPtr[indexes[docId + 6]]];
+                    resultsPtr[docId + 7] += leafValuesPtr[nonSymmetricNodeIdToLeafIdPtr[indexes[docId + 7]]];
+                }
+                for (; docId < docCountInBlock; ++docId) {
+                    resultsPtr[docId] += leafValuesPtr[nonSymmetricNodeIdToLeafIdPtr[indexes[docId]]];
+                }
+            } else {
+                const auto approxDim = trees.ApproxDimension;
+                auto resultWritePtr = resultsPtr;
+                for (docId = 0; docId < docCountInBlock; ++docId) {
+                    const ui32 firstValueIdx = nonSymmetricNodeIdToLeafIdPtr[indexes[docId]];
+                    for (int classId = 0; classId < approxDim; ++classId, ++resultWritePtr) {
+                        *resultWritePtr += leafValuesPtr[firstValueIdx + classId];
+                    }
+                }
+            }
         }
     }
 
+#else
     template <bool IsSingleClassModel, bool NeedXorMask, bool CalcLeafIndexesOnly = false>
-    inline void CalcNonSymmetricTreesSimple(
+    inline void CalcNonSymmetricTrees(
         const TObliviousTrees& trees,
         const TCPUEvaluatorQuantizedData* quantizedData,
         size_t docCountInBlock,
@@ -499,7 +662,10 @@ namespace NCB::NModelEvaluation {
     ) {
         const ui8* __restrict binFeatures = quantizedData->QuantizedData.data();
         for (size_t treeId = treeStart; treeId < treeEnd; ++treeId) {
-            CalcIndexesNonSymmetric<NeedXorMask>(trees, binFeatures, docCountInBlock, treeId, indexesVec);
+            CalcIndexesNonSymmetric<NeedXorMask>(trees, binFeatures, 0, docCountInBlock, treeId, indexesVec);
+            for (size_t docId = 0; docId < docCountInBlock; ++docId) {
+                indexesVec[docId] = trees.NonSymmetricNodeIdToLeafId[indexesVec[docId]];
+            }
             if constexpr (CalcLeafIndexesOnly) {
                 const auto firstLeafOffsets = trees.GetFirstLeafOffsets();
                 const auto approxDimension = trees.ApproxDimension;
@@ -526,6 +692,8 @@ namespace NCB::NModelEvaluation {
             }
         }
     }
+#endif
+
 
     template <bool IsSingleClassModel, bool NeedXorMask, bool CalcIndexesOnly>
     inline void CalcNonSymmetricTreesSingle(
@@ -589,7 +757,7 @@ namespace NCB::NModelEvaluation {
                 if constexpr (IsSingleDoc) {
                     return CalcNonSymmetricTreesSingle<IsSingleClassModel, NeedXorMask, CalcLeafIndexesOnly>;
                 } else {
-                    return CalcNonSymmetricTreesSimple<IsSingleClassModel, NeedXorMask, CalcLeafIndexesOnly>;
+                    return CalcNonSymmetricTrees<IsSingleClassModel, NeedXorMask, CalcLeafIndexesOnly>;
                 }
             }
         }
