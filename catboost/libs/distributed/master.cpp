@@ -493,6 +493,7 @@ void MapSetApproxesMulti(
     TVector<double>* sumLeafWeights,
     TLearnContext* ctx) {
 
+    CB_ENSURE(!error.GetIsExpApprox(), "Multi-class does not support exponentiated approxes");
     MapSetApproxes<TSetApproxesMultiDefs>(error, splitTree, testData, averageLeafValues, sumLeafWeights, ctx);
 }
 

@@ -168,7 +168,7 @@ struct TAdditiveMetric: public TMetric {
         NPar::TLocalExecutor::TExecRangeParams blockParams(begin, end);
 
         const int threadCount = executor.GetThreadCount() + 1;
-        const int MinBlockSize = 10000;
+        const int MinBlockSize = end - begin < 100000 ? 1000 : 10000;
         const int effectiveBlockCount = Min(threadCount, (int)ceil((end - begin) * 1.0 / MinBlockSize));
 
         blockParams.SetBlockCount(effectiveBlockCount);

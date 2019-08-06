@@ -14,7 +14,6 @@ namespace NPar {
 }
 
 void UpdateApproxDeltasMulti(
-    bool storeExpApprox,
     const TVector<TIndexType>& indices,
     int docCount,
     NPar::TLocalExecutor* localExecutor,

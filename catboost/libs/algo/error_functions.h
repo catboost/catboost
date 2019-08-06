@@ -439,10 +439,11 @@ public:
                      der2->ApproxDimension == approxDimension);
             const auto der2Ref = MakeArrayRef(der2->Data);
             int idx = 0;
-            for (int dimY = 0; dimY < approxDimension; ++dimY) {
-                der2Ref[idx++] = derRef[dimY] * (derRef[dimY] - 1);
-                for (int dimX = dimY + 1; dimX < approxDimension; ++dimX) {
-                    der2Ref[idx++] = derRef[dimY] * derRef[dimX];
+            for (int dimY : xrange(approxDimension)) {
+                const double derY = derRef[dimY];
+                der2Ref[idx++] = derY * (derY - 1);
+                for (int dimX : xrange(dimY + 1, approxDimension)) {
+                    der2Ref[idx++] = derY * derRef[dimX];
                 }
             }
         }

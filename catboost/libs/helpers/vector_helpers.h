@@ -3,6 +3,7 @@
 #include <util/generic/array_ref.h>
 #include <util/generic/vector.h>
 #include <util/generic/algorithm.h>
+#include <util/generic/cast.h>
 #include <util/generic/xrange.h>
 #include <util/generic/ymath.h>
 
@@ -111,4 +112,29 @@ inline bool AreEqualTo(TConstArrayRef<T> entries, const T& value) {
         }
     }
     return true;
+}
+
+template <typename T>
+inline void SumTransposedBlocks(
+    int srcColumnBegin,
+    int srcColumnEnd,
+    TConstArrayRef<TVector<T>> srcA,
+    TConstArrayRef<TVector<T>> srcB,
+    TArrayRef<TVector<T>> dst
+) {
+    Y_ASSERT(srcColumnEnd - srcColumnBegin <= IntegerCast<int>(dst.size()));
+    if (srcB.empty()) {
+        for (int srcRowIdx : xrange(srcA.size())) {
+            for (int srcColumnIdx : xrange(srcColumnBegin, srcColumnEnd)) {
+                dst[srcColumnIdx - srcColumnBegin][srcRowIdx] = srcA[srcRowIdx][srcColumnIdx];
+            }
+        }
+    } else {
+        Y_ASSERT(srcA.size() == srcB.size());
+        for (int srcRowIdx : xrange(srcA.size())) {
+            for (int srcColumnIdx : xrange(srcColumnBegin, srcColumnEnd)) {
+                dst[srcColumnIdx - srcColumnBegin][srcRowIdx] = srcA[srcRowIdx][srcColumnIdx] + srcB[srcRowIdx][srcColumnIdx];
+            }
+        }
+    }
 }

@@ -61,6 +61,10 @@ public:
         , SumDer2(approxDimension, hessianType)
     {}
 
+    explicit TSumMulti(int approxDimension)
+        : SumDer(approxDimension)
+    {}
+
     SAVELOAD(SumDer, SumDer2, SumWeights);
 
     bool operator==(const TSumMulti& other) const {
@@ -74,7 +78,7 @@ public:
         Fill(SumDer2.Data.begin(), SumDer2.Data.end(), 0.0);
     }
 
-    void AddDerWeight(const TVector<double>& delta, double weight, bool updateWeight) {
+    inline void AddDerWeight(const TVector<double>& delta, double weight, bool updateWeight) {
         Y_ASSERT(delta.ysize() == SumDer.ysize());
         for (int dim = 0; dim < SumDer.ysize(); ++dim) {
             SumDer[dim] += delta[dim];
@@ -84,7 +88,7 @@ public:
         }
     }
 
-    void AddDerDer2(const TVector<double>& delta, const THessianInfo& der2) {
+    inline void AddDerDer2(const TVector<double>& delta, const THessianInfo& der2) {
         Y_ASSERT(delta.ysize() == SumDer.ysize());
         for (int dim = 0; dim < SumDer.ysize(); ++dim) {
             SumDer[dim] += delta[dim];

@@ -1309,29 +1309,29 @@ TMetricHolder TMultiClassMetric::EvalSingleThread(
 
     TMetricHolder error(2);
 
-    TVector<double> evaluatedApprox(approxDimension);
-    for (int k = begin; k < end; ++k) {
-        GetMultiDimensionalApprox(k, approx, approxDelta, evaluatedApprox);
-
-        double maxApprox = std::numeric_limits<double>::min();
-        for (int dim = 0; dim < approxDimension; ++dim) {
-            if (evaluatedApprox[dim] > maxApprox) {
-                maxApprox = evaluatedApprox[dim];
+    constexpr int UnrollMaxCount = 16;
+    TVector<TVector<double>> evaluatedApprox(UnrollMaxCount, TVector<double>(approxDimension));
+    for (int idx = begin; idx < end; idx += UnrollMaxCount) {
+        const int unrollCount = Min(UnrollMaxCount, end - idx);
+        SumTransposedBlocks(idx, idx + unrollCount, MakeArrayRef(approx), MakeArrayRef(approxDelta), MakeArrayRef(evaluatedApprox));
+        for (int unrollIdx : xrange(unrollCount)) {
+            auto approxRef = MakeArrayRef(evaluatedApprox[unrollIdx]);
+            const double maxApprox = *MaxElement(approxRef.begin(), approxRef.end());
+            for (auto& approxValue : approxRef) {
+                approxValue -= maxApprox;
             }
+
+            const int targetClass = static_cast<int>(target[idx + unrollIdx]);
+            Y_ASSERT(targetClass >= 0 && targetClass < approxDimension);
+            const double targetClassApprox = approxRef[targetClass];
+
+            FastExpInplace(approxRef.data(), approxRef.size());
+            const double sumExpApprox = Accumulate(approxRef, /*val*/0.0);
+
+            const float w = weight.empty() ? 1 : weight[idx + unrollIdx];
+            error.Stats[0] -= (targetClassApprox - log(sumExpApprox)) * w;
+            error.Stats[1] += w;
         }
-
-        double sumExpApprox = 0;
-        for (int dim = 0; dim < approxDimension; ++dim) {
-            sumExpApprox += exp(evaluatedApprox[dim] - maxApprox);
-        }
-
-        const int targetClass = static_cast<int>(target[k]);
-        Y_ASSERT(targetClass >= 0 && targetClass < approxDimension);
-        const double targetClassApprox = evaluatedApprox[targetClass];
-
-        const float w = weight.empty() ? 1 : weight[k];
-        error.Stats[0] -= (targetClassApprox - maxApprox - log(sumExpApprox)) * w;
-        error.Stats[1] += w;
     }
 
     return error;

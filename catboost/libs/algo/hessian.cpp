@@ -63,11 +63,3 @@ int TSymmetricHessian::CalcInternalDer2DataSize(int approxDimenstion) {
 int TDiagonalHessian::CalcInternalDer2DataSize(int approxDimension) {
     return approxDimension;
 }
-
-
-void THessianInfo::AddDer2(const THessianInfo& hessian) {
-    Y_ASSERT(HessianType == hessian.HessianType && Data.ysize() == hessian.Data.ysize());
-    for (int dim = 0; dim < Data.ysize(); ++dim) {
-        Data[dim] += hessian.Data[dim];
-    }
-}

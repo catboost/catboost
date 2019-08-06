@@ -5,6 +5,7 @@
 
 #include <library/binsaver/bin_saver.h>
 
+#include <util/generic/array_ref.h>
 #include <util/generic/vector.h>
 
 
@@ -83,7 +84,13 @@ public:
 
     SAVELOAD(HessianType, ApproxDimension, Data);
 
-    void AddDer2(const THessianInfo& hessian);
+    inline void AddDer2(const THessianInfo& hessian) {
+        Y_ASSERT(HessianType == hessian.HessianType && Data.ysize() == hessian.Data.ysize());
+        const auto hessianRef = MakeArrayRef(hessian.Data);
+        for (int dim = 0; dim < Data.ysize(); ++dim) {
+            Data[dim] += hessianRef[dim];
+        }
+    }
 
 public:
     int ApproxDimension;

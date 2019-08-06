@@ -721,7 +721,6 @@ namespace NCatboostDistributed {
     ) const {
         auto& localData = TLocalTensorSearchData::GetRef();
         UpdateApproxDeltasMulti(
-            localData.StoreExpApprox,
             localData.Indices,
             localData.Progress->AveragingFold.BodyTailArr[0].BodyFinish,
             &NPar::LocalExecutor(),
