@@ -208,6 +208,10 @@ namespace NCB {
             return NonDefaultSize;
         }
 
+        TSize GetDefaultSize() const {
+            return Size - NonDefaultSize;
+        }
+
         TSize GetSize() const {
             return Size;
         }
@@ -370,6 +374,10 @@ namespace NCB {
 
         TSize GetNonDefaultSize() const {
             return Indexing->GetNonDefaultSize();
+        }
+
+        TSize GetDefaultSize() const {
+            return Indexing->GetDefaultSize();
         }
 
         TSize GetSize() const {
