@@ -80,6 +80,24 @@ def fstr_catboost_cpu(params):
     yatest.common.execute(cmd)
 
 
+def test_eval_metric_equals_loss_metric():
+    output_model_path = 'model.bin'
+    train_dir_path = 'trainDir'
+    params = (
+        '--use-best-model', 'false',
+        '--loss-function', 'RMSE',
+        '--eval-metric', 'RMSE',
+        '-f', data_file('adult', 'train_small'),
+        '-t', data_file('adult', 'test_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '-i', '10',
+        '-T', '4',
+        '-m', output_model_path,
+        '--train-dir', train_dir_path,
+    )
+    fit_catboost_gpu(params)
+
+
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 @pytest.mark.parametrize('qwise_loss', ['QueryRMSE', 'RMSE'])
 def test_queryrmse(boosting_type, qwise_loss):
