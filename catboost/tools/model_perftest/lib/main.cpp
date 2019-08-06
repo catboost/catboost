@@ -254,7 +254,7 @@ int DoMain(int argc, char** argv) {
             if (module->SupportsLayout(IPerftestModule::EPerftestModuleDataLayout::FeaturesFirst)) {
                 for (size_t blockId = 0; blockId < blockCount; ++blockId) {
                     results.UpdateResult(
-                        module->GetName(IPerftestModule::EPerftestModuleDataLayout::ObjectsFirst),
+                        module->GetName(IPerftestModule::EPerftestModuleDataLayout::FeaturesFirst),
                         module->Do(IPerftestModule::EPerftestModuleDataLayout::FeaturesFirst,
                                    transpFactorsRef[blockId]));
                 }
