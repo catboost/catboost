@@ -292,14 +292,6 @@ namespace NCB {
         void SetGroupIds(TConstArrayRef<TStringBuf> groupStringIds);
         void SetSubgroupIds(TConstArrayRef<TStringBuf> subgroupStringIds);
 
-        /* old TPool format (for cat feature  categ features hashes reinterpreted as float,
-         * for compatibility with old code only
-         */
-        TMaybeOwningArrayHolder<float> GetFeatureDataOldFormat(
-            ui32 flatFeatureIdx,
-            NPar::TLocalExecutor* localExecutor = nullptr // if nullptr use NPar::LocalExecutor()
-        ) const;
-
     private:
         friend class TQuantizationImpl;
         friend class TRawBuilderDataHelper;

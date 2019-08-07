@@ -1,6 +1,6 @@
-from .core import FeaturesData, EFstrType, Pool, CatBoost, CatBoostClassifier, CatBoostRegressor, CatBoostError, cv, train, sum_models  # noqa
+from .core import FeaturesData, EFstrType, Pool, CatBoost, CatBoostClassifier, CatBoostRegressor, CatBoostError, cv, train, sum_models, _have_equal_features  # noqa
 from .version import VERSION as __version__  # noqa
-__all__ = ['FeaturesData', 'EFstrType', 'Pool', 'CatBoost', 'CatBoostClassifier', 'CatBoostRegressor', 'CatBoostError', 'CatboostError', 'cv', 'train', 'sum_models']
+__all__ = ['FeaturesData', 'EFstrType', 'Pool', 'CatBoost', 'CatBoostClassifier', 'CatBoostRegressor', 'CatBoostError', 'CatboostError', 'cv', 'train', 'sum_models', '_have_equal_features']
 
 # API compatibility alias.
 CatboostError = CatBoostError

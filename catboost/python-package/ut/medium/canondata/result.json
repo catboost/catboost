@@ -404,7 +404,7 @@
         "uri": "file://test.test_feature_names_from_model/feature_names"
     },
     "test.test_fit_data[CPU]": {
-        "checksum": "11dc203f2583967d9fe632b71c75bbf5",
+        "checksum": "86b1158e569498216ca51828b14d103b",
         "uri": "file://test.test_fit_data_CPU_/predictions.npy"
     },
     "test.test_full_history[CPU]": {

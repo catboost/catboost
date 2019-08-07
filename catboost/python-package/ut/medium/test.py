@@ -19,7 +19,8 @@ from catboost import (
     Pool,
     cv,
     sum_models,
-    train,)
+    train,
+    _have_equal_features,)
 from catboost.eval.catboost_evaluation import CatboostEvaluation, EvalType
 from catboost.utils import eval_metric, create_cd, get_roc_curve, select_threshold
 from catboost.utils import DataMetaInfo, TargetStats, compute_training_options
@@ -104,7 +105,7 @@ OIMP_PATH = 'object_importances.txt'
 JSON_LOG_PATH = 'catboost_info/catboost_training.json'
 TARGET_IDX = 1
 CAT_FEATURES = [0, 1, 2, 4, 6, 8, 9, 10, 11, 12, 16]
-
+CAT_COLUMNS = [0, 2, 3, 5, 7, 9, 10, 11, 12, 13, 17]
 
 model_diff_tool = binary_path("catboost/tools/model_comparator/model_comparator")
 
@@ -129,17 +130,8 @@ def compare_canonical_models(model, diff_limit=0):
     return local_canonical_file(model, diff_tool=[model_diff_tool, '--diff-limit', str(diff_limit)])
 
 
-def map_cat_features(data, cat_features):
-    result = []
-    for i in range(data.shape[0]):
-        result.append([])
-        for j in range(data.shape[1]):
-            result[i].append(str(data[i, j]) if j in cat_features else data[i, j])
-    return result
-
-
 def _check_shape(pool, object_count, features_count):
-    return np.shape(pool.get_features()) == (object_count, features_count)
+    return pool.shape == (object_count, features_count)
 
 
 def _check_data(data1, data2):
@@ -197,6 +189,23 @@ def append_param(metric_name, param):
     return metric_name + (':' if ':' not in metric_name else ';') + param
 
 
+# returns (features_data, labels)
+def load_simple_dataset_as_lists(is_test):
+    features_data = []
+    labels = []
+    with open(TEST_FILE if is_test else TRAIN_FILE) as data_file:
+        for l in data_file:
+            elements = l[:-1].split('\t')
+            features_data.append([])
+            for column_idx, element in enumerate(elements):
+                if column_idx == TARGET_IDX:
+                    labels.append(element)
+                else:
+                    features_data[-1].append(element if column_idx in CAT_COLUMNS else float(element))
+
+    return features_data, labels
+
+
 # Test cases begin here ########################################################
 
 
@@ -205,36 +214,57 @@ def test_load_file():
 
 
 def test_load_list():
-    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    cat_features = pool.get_cat_feature_indices()
-    data = map_cat_features(pool.get_features(), cat_features)
-    label = pool.get_label()
-    assert _check_shape(Pool(data, label, cat_features), 101, 17)
+    features_data, labels = load_simple_dataset_as_lists(is_test=False)
+    assert _check_shape(Pool(features_data, labels, CAT_FEATURES), 101, 17)
 
 
 def test_load_ndarray():
-    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    cat_features = pool.get_cat_feature_indices()
-    data = np.array(map_cat_features(pool.get_features(), cat_features))
-    label = np.array(pool.get_label())
-    assert _check_shape(Pool(data, label, cat_features), 101, 17)
+    features_data = np.empty((101, 17), dtype=object)
+    labels = np.empty(101, dtype=str)
+    with open(TRAIN_FILE) as train_file:
+        for line_idx, l in enumerate(train_file.readlines()):
+            elements = l[:-1].split('\t')
+            feature_idx = 0
+            for column_idx, element in enumerate(elements):
+                if column_idx == TARGET_IDX:
+                    labels[line_idx] = element
+                else:
+                    features_data[line_idx, feature_idx] = (
+                        element if column_idx in CAT_COLUMNS else float(element)
+                    )
+                    feature_idx += 1
+
+    assert _check_shape(Pool(features_data, labels, CAT_FEATURES), 101, 17)
 
 
 @pytest.mark.parametrize('dataset', ['adult', 'adult_nan', 'querywise'])
 def test_load_df_vs_load_from_file(dataset):
-    train_file, cd_file, target_idx, other_non_feature_columns = {
-        'adult': (TRAIN_FILE, CD_FILE, TARGET_IDX, []),
-        'adult_nan': (NAN_TRAIN_FILE, NAN_CD_FILE, TARGET_IDX, []),
-        'querywise': (QUERYWISE_TRAIN_FILE, QUERYWISE_CD_FILE, 2, [0, 1, 3, 4])
+    train_file, cd_file, target_idx, group_id_idx, other_non_feature_columns = {
+        'adult': (TRAIN_FILE, CD_FILE, TARGET_IDX, None, []),
+        'adult_nan': (NAN_TRAIN_FILE, NAN_CD_FILE, TARGET_IDX, None, []),
+        'querywise': (QUERYWISE_TRAIN_FILE, QUERYWISE_CD_FILE, 2, 1, [0, 3, 4])
     }[dataset]
 
     pool1 = Pool(train_file, column_description=cd_file)
     data = read_csv(train_file, header=None, delimiter='\t')
-    labels = DataFrame(data.iloc[:, target_idx], dtype=np.float32)
-    data.drop([target_idx] + other_non_feature_columns, axis=1, inplace=True)
+
+    labels = data.iloc[:, target_idx]
+    group_ids = None
+    if group_id_idx:
+        group_ids = [int(group_id) for group_id in data.iloc[:, group_id_idx]]
+
+    data.drop(
+        [target_idx] + ([group_id_idx] if group_id_idx else []) + other_non_feature_columns,
+        axis=1,
+        inplace=True
+    )
+
     cat_features = pool1.get_cat_feature_indices()
-    pool2 = Pool(data, labels, cat_features)
-    assert _check_data(pool1.get_features(), pool2.get_features())
+
+    pool1.set_feature_names(list(data.columns))
+
+    pool2 = Pool(data, labels, cat_features, group_id=group_ids)
+    assert _have_equal_features(pool1, pool2)
     assert _check_data([float(label) for label in pool1.get_label()], pool2.get_label())
 
 
@@ -246,7 +276,7 @@ def test_load_series():
     data = Series(list(data.values))
     cat_features = pool.get_cat_feature_indices()
     pool2 = Pool(data, labels, cat_features)
-    assert _check_data(pool.get_features(), pool2.get_features())
+    assert _have_equal_features(pool, pool2)
     assert [int(label) for label in pool.get_label()] == pool2.get_label()
 
 
@@ -356,53 +386,6 @@ def get_features_data_from_file(data_file, drop_columns, cat_feature_indices, or
     return get_features_data_from_matrix(np.array(data_matrix_from_file), cat_feature_indices, order)
 
 
-def compare_flat_index_and_features_data_pools(flat_index_pool, features_data_pool):
-    assert flat_index_pool.shape == features_data_pool.shape
-
-    cat_feature_indices = flat_index_pool.get_cat_feature_indices()
-    num_feature_count = flat_index_pool.shape[1] - len(cat_feature_indices)
-
-    flat_index_pool_features = flat_index_pool.get_features()
-    features_data_pool_features = features_data_pool.get_features()
-
-    for object_idx in xrange(flat_index_pool.shape[0]):
-        num_feature_idx = 0
-        cat_feature_idx = 0
-        for flat_feature_idx in xrange(flat_index_pool.shape[1]):
-            if (
-                (cat_feature_idx < len(cat_feature_indices)) and
-                (cat_feature_indices[cat_feature_idx] == flat_feature_idx)
-            ):
-
-                # simplified handling of transformation to bytes for tests
-                assert (flat_index_pool_features[object_idx][flat_feature_idx] ==
-                        features_data_pool_features[object_idx][num_feature_count + cat_feature_idx])
-                cat_feature_idx += 1
-            else:
-                assert np.isclose(
-                    flat_index_pool_features[object_idx][flat_feature_idx],
-                    features_data_pool_features[object_idx][num_feature_idx],
-                    rtol=0.001,
-                    equal_nan=True
-                )
-                num_feature_idx += 1
-
-
-@pytest.mark.parametrize('order', ['C', 'F'], ids=['order=C', 'order=F'])
-def test_from_features_data_vs_load_from_files(order):
-    pool_from_files = Pool(TRAIN_FILE, column_description=CD_FILE)
-
-    features_data = get_features_data_from_file(
-        data_file=TRAIN_FILE,
-        drop_columns=[TARGET_IDX],
-        cat_feature_indices=pool_from_files.get_cat_feature_indices(),
-        order=order
-    )
-    pool_from_features_data = Pool(data=features_data)
-
-    compare_flat_index_and_features_data_pools(pool_from_files, pool_from_features_data)
-
-
 def test_features_data_with_empty_objects():
     fd = FeaturesData(
         cat_feature_data=np.empty((0, 4), dtype=object)
@@ -476,9 +459,7 @@ def compare_pools_from_features_data_and_generic_matrix(
 ):
     pool1 = Pool(data=features_data)
     pool2 = Pool(data=generic_matrix, cat_features=cat_features_indices, feature_names=feature_names)
-    assert _check_data(pool1.get_features(), pool2.get_features())
-    assert pool1.get_cat_feature_indices() == pool2.get_cat_feature_indices()
-    assert pool1.get_feature_names() == pool2.get_feature_names()
+    assert _have_equal_features(pool1, pool2)
 
 
 @pytest.mark.parametrize('order', ['C', 'F'], ids=['order=C', 'order=F'])
@@ -974,11 +955,12 @@ def test_predict_class_proba(task_type):
 
 def test_no_cat_in_predict(task_type):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    test_pool = Pool(TEST_FILE, column_description=CD_FILE)
     model = CatBoostClassifier(iterations=2, learning_rate=0.03, task_type=task_type, devices='0')
     model.fit(train_pool)
-    pred1 = model.predict(map_cat_features(test_pool.get_features(), train_pool.get_cat_feature_indices()))
-    pred2 = model.predict(Pool(map_cat_features(test_pool.get_features(), train_pool.get_cat_feature_indices()), cat_features=train_pool.get_cat_feature_indices()))
+
+    test_features_data, _ = load_simple_dataset_as_lists(is_test=True)
+    pred1 = model.predict(test_features_data)
+    pred2 = model.predict(Pool(test_features_data, cat_features=CAT_FEATURES))
     assert _check_data(pred1, pred2)
 
 
@@ -1284,8 +1266,12 @@ def test_fit_data(task_type):
     eval_baseline = np.array(base_model.predict(eval_pool, prediction_type='RawFormulaVal'))
     eval_pool.set_baseline(eval_baseline)
     model = CatBoostClassifier(iterations=2, learning_rate=0.03, loss_function="MultiClass")
-    data = map_cat_features(pool.get_features(), pool.get_cat_feature_indices())
-    model.fit(data, pool.get_label(), pool.get_cat_feature_indices(), sample_weight=np.arange(1, pool.num_row() + 1), baseline=baseline, use_best_model=True, eval_set=eval_pool)
+    data = get_features_data_from_file(
+        CLOUDNESS_TRAIN_FILE,
+        drop_columns=[0],
+        cat_feature_indices=pool.get_cat_feature_indices()
+    )
+    model.fit(data, pool.get_label(), sample_weight=np.arange(1, pool.num_row() + 1), baseline=baseline, use_best_model=True, eval_set=eval_pool)
     pred = model.predict_proba(eval_pool)
     preds_path = test_output_path(PREDS_PATH)
     np.save(preds_path, np.array(pred))
@@ -1562,10 +1548,10 @@ def test_custom_objective(task_type):
 def test_pool_after_fit(task_type):
     pool1 = Pool(TRAIN_FILE, column_description=CD_FILE)
     pool2 = Pool(TRAIN_FILE, column_description=CD_FILE)
-    assert _check_data(pool1.get_features(), pool2.get_features())
+    assert _have_equal_features(pool1, pool2)
     model = CatBoostClassifier(iterations=5, task_type=task_type, devices='0')
     model.fit(pool2)
-    assert _check_data(pool1.get_features(), pool2.get_features())
+    assert _have_equal_features(pool1, pool2)
 
 
 def test_priors(task_type):

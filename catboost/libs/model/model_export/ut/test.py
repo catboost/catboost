@@ -5,7 +5,7 @@ import re
 import yatest
 
 from catboost import Pool, CatBoost, CatBoostClassifier
-from catboost_pytest_lib import data_file
+from catboost_pytest_lib import data_file, load_pool_features_as_df
 
 CATBOOST_APP_PATH = yatest.common.binary_path('catboost')
 APPROXIMATE_DIFF_PATH = yatest.common.binary_path('limited_precision_dsv_diff')
@@ -43,17 +43,6 @@ def _get_cpp_py_cbm_model(dataset):
     assert os.path.exists(basename + '.py')
     assert os.path.exists(basename + '.bin')
     return (basename + '.cpp', basename + '.py', basename + '.bin')
-
-
-def _split_features(features, cat_features_indices, hash_to_string):
-    float_features = []
-    cat_features = []
-    for i in range(len(features)):
-        if i in cat_features_indices:
-            cat_features.append(hash_to_string[features[i]])
-        else:
-            float_features.append(features[i])
-    return float_features, cat_features
 
 
 def _check_data(data1, data2, rtol=0.001):
@@ -103,12 +92,27 @@ def test_cpp_export(dataset):
             raise
 
 
-def _predict_python(test_pool, apply_catboost_model):
+def _get_target_idx(cd_file_path):
+    with open(cd_file_path) as cd_file:
+        for l in cd_file:
+            elements = l[:-1].split('\t')
+            if elements[1] in ['Target', 'Label']:
+                return int(elements[0])
+
+
+def _predict_python_on_test(dataset, apply_catboost_model):
+    features_data, cat_feature_indices = load_pool_features_as_df(
+        data_file(dataset, 'test_small'),
+        data_file(dataset, 'train.cd'),
+        _get_target_idx(data_file(dataset, 'train.cd'))
+    )
+    float_feature_indices = [i for i in range(features_data.shape[1]) if i not in cat_feature_indices]
+
     pred_python = []
-    cat_feature_indices = test_pool.get_cat_feature_indices()
-    cat_feature_hash = test_pool.get_cat_feature_hash_to_string()
-    for test_line in test_pool.get_features():
-        float_features, cat_features = _split_features(test_line, cat_feature_indices, cat_feature_hash)
+
+    for _, row in features_data.iterrows():
+        float_features = [float(v) for v in row.values[float_feature_indices]]
+        cat_features = row.values[cat_feature_indices]
         pred_python.append(apply_catboost_model(float_features, cat_features))
     return pred_python
 
@@ -124,7 +128,7 @@ def test_python_export_from_app(dataset):
 
     scope = {}
     execfile(model_py, scope)
-    pred_python = _predict_python(test_pool, scope['apply_catboost_model'])
+    pred_python = _predict_python_on_test(dataset, scope['apply_catboost_model'])
 
     assert _check_data(pred_model, pred_python)
 
@@ -143,7 +147,7 @@ def test_python_export_from_python(dataset, iterations):
 
     scope = {}
     execfile(model_py, scope)
-    pred_python = _predict_python(test_pool, scope['apply_catboost_model'])
+    pred_python = _predict_python_on_test(dataset, scope['apply_catboost_model'])
 
     assert _check_data(pred_model, pred_python)
 
@@ -167,7 +171,7 @@ def test_python_after_load(dataset):
 
     scope = {}
     execfile(model_py, scope)
-    pred_python = _predict_python(test_pool, scope['apply_catboost_model'])
+    pred_python = _predict_python_on_test(dataset, scope['apply_catboost_model'])
 
     assert _check_data(pred_model, pred_python)
     assert _check_data(pred_model_loaded, pred_python)

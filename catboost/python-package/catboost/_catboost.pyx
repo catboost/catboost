@@ -183,6 +183,7 @@ cdef extern from "catboost/libs/data_new/features_layout.h" namespace "NCB":
         TVector[TString] GetExternalFeatureIds() except +ProcessException
         void SetExternalFeatureIds(TConstArrayRef[TString] featureIds) except +ProcessException
         EFeatureType GetExternalFeatureType(ui32 externalFeatureIdx) except +ProcessException
+        ui32 GetFloatFeatureCount() except +ProcessException
         ui32 GetCatFeatureCount() except +ProcessException
         ui32 GetExternalFeatureCount() except +ProcessException
         TConstArrayRef[ui32] GetCatFeatureInternalIdxToExternalIdx() except +ProcessException
@@ -279,10 +280,14 @@ cdef extern from "catboost/libs/data_new/objects_grouping.h" namespace "NCB":
         EObjectsOrder subsetOrder
     ) except +ProcessException
 
+cdef extern from "catboost/libs/data_new/columns.h" namespace "NCB":
+    cdef cppclass TFloatValuesHolder:
+        TMaybeOwningArrayHolder[float] ExtractValues(TLocalExecutor* localExecutor)
 
 cdef extern from "catboost/libs/data_new/objects.h" namespace "NCB":
     cdef cppclass TObjectsDataProvider:
         ui32 GetObjectCount()
+        bool_t operator==(const TObjectsDataProvider& rhs)
         TMaybeData[TConstArrayRef[TGroupId]] GetGroupIds()
         TMaybeData[TConstArrayRef[TSubgroupId]] GetSubgroupIds()
         TMaybeData[TConstArrayRef[ui64]] GetTimestamp()
@@ -291,7 +296,8 @@ cdef extern from "catboost/libs/data_new/objects.h" namespace "NCB":
     cdef cppclass TRawObjectsDataProvider(TObjectsDataProvider):
         void SetGroupIds(TConstArrayRef[TStringBuf] groupStringIds) except +ProcessException
         void SetSubgroupIds(TConstArrayRef[TStringBuf] subgroupStringIds) except +ProcessException
-        TMaybeOwningArrayHolder[float] GetFeatureDataOldFormat(ui32 flatFeatureIdx, TLocalExecutor* localExecutor) except +ProcessException
+        TMaybeData[const TFloatValuesHolder*] GetFloatFeature(ui32 floatFeatureIdx) except +ProcessException
+
 
     cdef THashMap[ui32, TString] MergeCatFeaturesHashToString(const TObjectsDataProvider& objectsData) except +ProcessException
 
@@ -2457,13 +2463,23 @@ cdef class _PoolBase:
         return tuple([self.num_row(), self.num_col()])
 
 
-    cdef _get_feature(self, TRawObjectsDataProvider* raw_objects_data_provider, factor_idx, dst_data):
-        cdef TMaybeOwningArrayHolder[float] factorData = raw_objects_data_provider[0].GetFeatureDataOldFormat(
-            factor_idx,
-            <TLocalExecutor*>nullptr
-        )
-        for doc in range(self.num_row()):
-            dst_data[doc, factor_idx] = factorData[doc]
+    cdef _get_feature(
+        self,
+        TRawObjectsDataProvider* raw_objects_data_provider,
+        factor_idx,
+        TLocalExecutor* local_executor,
+        dst_data):
+        
+        cdef TMaybeData[const TFloatValuesHolder*] maybe_factor_data = raw_objects_data_provider[0].GetFloatFeature(factor_idx)
+        cdef TMaybeOwningArrayHolder[float] factor_data
+        
+        if maybe_factor_data.Defined():
+            factor_data = maybe_factor_data.GetRef()[0].ExtractValues(local_executor)
+            for doc in range(self.num_row()):
+                dst_data[doc, factor_idx] = factor_data[doc]
+        else:
+            for doc in range(self.num_row()):
+                dst_data[doc, factor_idx] = np.float32(0)
 
 
     cpdef get_features(self):
@@ -2474,16 +2490,23 @@ cdef class _PoolBase:
         -------
         feature matrix : np.array of shape (rows, cols)
         """
+        cdef int thread_count = UpdateThreadCount(-1)
+        cdef TLocalExecutor local_executor
+        cdef TFeaturesLayout* features_layout =self.__pool.Get()[0].MetaInfo.FeaturesLayout.Get()
         cdef TRawObjectsDataProvider* raw_objects_data_provider = dynamic_cast_to_TRawObjectsDataProvider(
             self.__pool.Get()[0].ObjectsData.Get()
         )
         if not raw_objects_data_provider:
             raise CatBoostError('Pool does not have raw features data, only quantized')
+        if features_layout[0].GetExternalFeatureCount() != features_layout[0].GetFloatFeatureCount():
+            raise CatBoostError('Pool has non-numeric features, get_features supports only numeric features')
+
+        local_executor.RunAdditionalThreads(thread_count - 1)
 
         data = np.empty(self.shape, dtype=np.float32)
 
         for factor in range(self.num_col()):
-            self._get_feature(raw_objects_data_provider, factor, data)
+            self._get_feature(raw_objects_data_provider, factor, &local_executor, data)
 
         return data
 
@@ -2601,6 +2624,10 @@ cdef class _PoolBase:
         is_empty_ : bool
         """
         return self.num_row() == 0
+
+
+cpdef _have_equal_features(_PoolBase pool1, _PoolBase pool2):
+    return pool1.__pool.Get()[0].ObjectsData.Get()[0] == pool2.__pool.Get()[0].ObjectsData.Get()[0]
 
 
 cdef class _CatBoost:

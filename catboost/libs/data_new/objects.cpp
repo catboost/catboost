@@ -770,44 +770,6 @@ void NCB::TRawObjectsDataProvider::SetSubgroupIds(TConstArrayRef<TStringBuf> sub
     CommonData.SubgroupIds = std::move(newSubgroupIds);
 }
 
-TMaybeOwningArrayHolder<float> NCB::TRawObjectsDataProvider::GetFeatureDataOldFormat(
-    ui32 flatFeatureIdx,
-    NPar::TLocalExecutor* localExecutor
-) const {
-    if (!localExecutor) {
-        localExecutor = &NPar::LocalExecutor();
-    }
-
-    const auto& featuresLayout = *GetFeaturesLayout();
-    const auto featuresMetaInfo = featuresLayout.GetExternalFeaturesMetaInfo();
-    CB_ENSURE(
-        flatFeatureIdx < featuresMetaInfo.size(),
-        "feature #" << flatFeatureIdx << " is not present in pool"
-    );
-    const auto& featureMetaInfo = featuresMetaInfo[flatFeatureIdx];
-    CB_ENSURE(
-        featureMetaInfo.Type != EFeatureType::Text,
-        "feature #" << flatFeatureIdx << " has type Text and cannot be converted to float format"
-    );
-    if (!featureMetaInfo.IsAvailable) {
-        return TMaybeOwningArrayHolder<float>();
-    }
-
-    if (featureMetaInfo.Type == EFeatureType::Float) {
-        return (*GetFloatFeature(featuresLayout.GetInternalFeatureIdx(flatFeatureIdx)))->ExtractValues(
-            localExecutor
-        );
-    } else {
-        TMaybeOwningArrayHolder<ui32> values
-            = (*GetCatFeature(featuresLayout.GetInternalFeatureIdx(flatFeatureIdx)))->ExtractValues(
-                localExecutor
-            );
-
-        return TMaybeOwningArrayHolder<float>::CreateOwningReinterpretCast(values);
-    }
-}
-
-
 
 bool NCB::TQuantizedObjectsData::operator==(const NCB::TQuantizedObjectsData& rhs) const {
     return AreFeaturesValuesEqual(FloatFeatures, rhs.FloatFeatures) &&

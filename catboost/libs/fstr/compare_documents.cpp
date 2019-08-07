@@ -103,14 +103,23 @@ TVector<TVector<double>> GetPredictionDiff(
     TVector<ui32> borderIdxForSplit(binSplits.size(), std::numeric_limits<ui32>::infinity());
     ui32 splitIdx = 0;
     for (const auto& feature : model.ObliviousTrees->FloatFeatures) {
-        auto values = rawObjectsData->GetFeatureDataOldFormat(feature.Position.FlatIndex);
-        for (ui32 docId = 0; docId < dataProvider.GetObjectCount(); ++docId) {
-            docBorders[docId].push_back(0);
-            for (const auto& border: feature.Borders) {
-                if (values[docId] > border) {
-                    docBorders[docId].back()++;
-                }
-            }
+        TMaybeData<const TFloatValuesHolder*> featureData
+            = rawObjectsData->GetFloatFeature(feature.Position.FlatIndex);
+
+        if (const auto* arrayColumn = dynamic_cast<const TFloatArrayValuesHolder*>(*featureData)) {
+            arrayColumn->GetArrayData().ParallelForEach(
+                [&] (ui32 docId, float value) {
+                    docBorders[docId].push_back(0);
+                    for (const auto& border: feature.Borders) {
+                        if (value > border) {
+                            docBorders[docId].back()++;
+                        }
+                    }
+                },
+                localExecutor
+            );
+        } else {
+            CB_ENSURE_INTERNAL(false, "GetPredictionDiff: Unsupported column type");
         }
         if (splitIdx == binSplits.size() ||
             binSplits[splitIdx].Type != ESplitType::FloatFeature ||

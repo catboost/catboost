@@ -76,6 +76,7 @@ _check_train_params = _catboost._check_train_params
 _MetadataHashProxy = _catboost._MetadataHashProxy
 _NumpyAwareEncoder = _catboost._NumpyAwareEncoder
 FeaturesData = _catboost.FeaturesData
+_have_equal_features = _catboost._have_equal_features
 
 
 from contextlib import contextmanager  # noqa E402

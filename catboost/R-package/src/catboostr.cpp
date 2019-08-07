@@ -354,27 +354,66 @@ SEXP CatBoostPoolSlice_R(SEXP poolParam, SEXP sizeParam, SEXP offsetParam) {
         = dynamic_cast<const TRawObjectsDataProvider*>(pool->ObjectsData.Get());
     CB_ENSURE(rawObjectsData, "Cannot Slice quantized features data");
 
+    const auto& featuresLayout = *(rawObjectsData->GetFeaturesLayout());
+
+    CB_ENSURE(
+        featuresLayout.GetExternalFeatureCount() == featuresLayout.GetFloatFeatureCount(),
+        "Cannot slice non-numeric features data"
+    );
+
     result = PROTECT(allocVector(VECSXP, size));
     ui32 featureCount = pool->MetaInfo.GetFeatureCount();
     auto target = *pool->RawTargetData.GetTarget();
     const auto& weights = pool->RawTargetData.GetWeights();
 
-    // TODO(akhropov): get only data for slice objects
-    TVector<TMaybeOwningArrayHolder<float>> rawFeatures(featureCount); // [flatFeatureIdx][objectIdx]
-    for (auto featureIdx : xrange(featureCount)) {
-        rawFeatures[featureIdx] = rawObjectsData->GetFeatureDataOldFormat(featureIdx);
-    }
 
-    for (size_t i = offset; i < std::min((size_t)pool->GetObjectCount(), offset + size); ++i) {
+    const size_t sliceEnd = std::min((size_t)pool->GetObjectCount(), offset + size);
+
+    TRangesSubset<ui32>::TBlocks subsetBlocks = { TSubsetBlock<ui32>(TIndexRange<ui32>(offset, sliceEnd), 0) };
+
+    TObjectsGroupingSubset objectsGroupingSubset = GetGroupingSubsetFromObjectsSubset(
+        rawObjectsData->GetObjectsGrouping(),
+        TArraySubsetIndexing<ui32>(TRangesSubset<ui32>(subsetBlocks[0].GetSize(), std::move(subsetBlocks))),
+        EObjectsOrder::Ordered
+    );
+
+    TObjectsDataProviderPtr sliceObjectsData
+        = rawObjectsData->GetSubset(objectsGroupingSubset, &NPar::LocalExecutor());
+
+    const TRawObjectsDataProvider& sliceRawObjectsData
+        = dynamic_cast<const TRawObjectsDataProvider&>(*sliceObjectsData);
+
+    TVector<double*> rows;
+
+    for (size_t i = offset; i < sliceEnd; ++i) {
         ui32 featureCount = pool->MetaInfo.GetFeatureCount();
         SEXP row = PROTECT(allocVector(REALSXP, featureCount + 2));
         REAL(row)[0] = FromString<double>(target[i]);
         REAL(row)[1] = weights[i];
-        for (ui32 j = 0; j < featureCount; ++j) {
-            REAL(row)[j + 2] = (rawFeatures[j].GetSize() == 0) ? 0.0f : rawFeatures[j][i];
-        }
+        rows.push_back(REAL(row));
         SET_VECTOR_ELT(result, i - offset, row);
     }
+
+    for (auto flatFeatureIdx : xrange(featureCount)) {
+        TMaybeData<const TFloatValuesHolder*> maybeFeatureData
+            = rawObjectsData->GetFloatFeature(flatFeatureIdx);
+        if (maybeFeatureData) {
+            if (const auto* arrayColumn = dynamic_cast<const TFloatArrayValuesHolder*>(*maybeFeatureData)) {
+                arrayColumn->GetArrayData().ForEach(
+                    [&] (ui32 i, float value) {
+                        rows[i][flatFeatureIdx + 2] = value;
+                    }
+                );
+            } else {
+                CB_ENSURE_INTERNAL(false, "CatBoostPoolSlice_R: Unsupported column type");
+            }
+        } else {
+            for (auto i : xrange(sliceRawObjectsData.GetObjectCount())) {
+                rows[i][flatFeatureIdx + 2] = 0.0f;
+            }
+        }
+    }
+
     R_API_END();
     UNPROTECT(size - offset + 1);
     return result;
