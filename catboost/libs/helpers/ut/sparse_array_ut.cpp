@@ -3,6 +3,7 @@
 #include <catboost/libs/helpers/vector_helpers.h>
 
 #include <library/binsaver/ut_util/ut_util.h>
+#include <library/threading/local_executor/local_executor.h>
 
 #include <util/random/shuffle.h>
 #include <util/system/compiler.h>
@@ -830,7 +831,9 @@ Y_UNIT_TEST_SUITE(SparseArray) {
                 std::move(defaultValue));
 
             TArraySubsetInvertedIndexing<ui32> subsetInvertedIndexing = GetInvertedIndexing(
-                TArraySubsetIndexing<ui32>(std::move(subsetIndexingArg))
+                TArraySubsetIndexing<ui32>(std::move(subsetIndexingArg)),
+                sparseArray.GetSize(),
+                &NPar::LocalExecutor()
             );
 
             return sparseArray.GetSubset(subsetInvertedIndexing, subsetSparseIndexingType);
@@ -882,7 +885,7 @@ Y_UNIT_TEST_SUITE(SparseArray) {
         }
         {
             auto subsetSparseArray = getSubset(
-                TSparseSubsetIndices<ui32>(TVector<ui32>{1, 7, 12, 13}),
+                TSparseArrayIndexing<ui32>(TSparseSubsetIndices<ui32>(TVector<ui32>{1, 7, 12, 13}), 16),
                 /*srcNonDefaultValues*/ {9.0f, 0.1f, 0.7f, 4.2f},
                 0.0f,
                 TIndexedSubset<ui32>{0, 3, 14},
@@ -1026,7 +1029,9 @@ Y_UNIT_TEST_SUITE(SparseArray) {
             );
 
             TArraySubsetInvertedIndexing<ui32> subsetInvertedIndexing = GetInvertedIndexing(
-                TArraySubsetIndexing<ui32>(std::move(subsetIndexingArg))
+                TArraySubsetIndexing<ui32>(std::move(subsetIndexingArg)),
+                sparseArray.GetSize(),
+                &NPar::LocalExecutor()
             );
 
             return sparseArray.GetSubset(subsetInvertedIndexing, subsetSparseIndexingType);
@@ -1065,7 +1070,7 @@ Y_UNIT_TEST_SUITE(SparseArray) {
         }
         {
             auto subsetSparseArray = getSubset(
-                TSparseSubsetIndices<ui32>(TVector<ui32>{1, 7, 12, 13}),
+                TSparseArrayIndexing<ui32>(TSparseSubsetIndices<ui32>(TVector<ui32>{1, 7, 12, 13}), 16),
                 {0x1, 0xFF, 0x43, 0xEF},
                 0,
                 TIndexedSubset<ui32>{0, 3, 14},

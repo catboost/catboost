@@ -509,9 +509,13 @@ Y_UNIT_TEST_SUITE(TArraySubset) {
     }
 
     Y_UNIT_TEST(TestGetInvertedIndexing) {
+        NPar::TLocalExecutor localExecutor;
+        localExecutor.RunAdditionalThreads(2);
+
         {
             NCB::TArraySubsetIndexing<ui32> subset(NCB::TFullSubset<ui32>(4));
-            NCB::TArraySubsetInvertedIndexing<ui32> invertedSubset = NCB::GetInvertedIndexing(subset);
+            NCB::TArraySubsetInvertedIndexing<ui32> invertedSubset
+                = NCB::GetInvertedIndexing(subset, ui32(4), &localExecutor);
             UNIT_ASSERT_EQUAL(
                 invertedSubset,
                 NCB::TArraySubsetInvertedIndexing<ui32>(NCB::TFullSubset<ui32>(4))
@@ -519,46 +523,68 @@ Y_UNIT_TEST_SUITE(TArraySubset) {
         }
         {
             TVector<NCB::TIndexRange<ui32>> indexRanges{{6, 9}, {10, 12}, {0, 3}}; //
-
             NCB::TSavedIndexRanges<ui32> savedIndexRanges(std::move(indexRanges));
-
             NCB::TArraySubsetIndexing<ui32> subset(NCB::TRangesSubset<ui32>{savedIndexRanges});
-            NCB::TArraySubsetInvertedIndexing<ui32> invertedSubset = NCB::GetInvertedIndexing(subset);
+
+            NCB::TArraySubsetInvertedIndexing<ui32> invertedSubset
+                = NCB::GetInvertedIndexing(subset, ui32(12), &localExecutor);
+
             UNIT_ASSERT_EQUAL(
                 invertedSubset,
                 NCB::TArraySubsetInvertedIndexing<ui32>(
-                    NCB::TIndexedSubset<ui32>{
-                        5, // 0
-                        6, // 1
-                        7, // 2
-                        Max<ui32>(), // 3
-                        Max<ui32>(), // 4
-                        Max<ui32>(), // 5
-                        0, // 6
-                        1, // 7
-                        2, // 8
-                        Max<ui32>(), // 9
-                        3, // 10
-                        4, // 11
-                    }
+                    NCB::TInvertedIndexedSubset<ui32>(
+                        8,
+                        TVector<ui32>{
+                            5, // 0
+                            6, // 1
+                            7, // 2
+                            NCB::TInvertedIndexedSubset<ui32>::NOT_PRESENT, // 3
+                            NCB::TInvertedIndexedSubset<ui32>::NOT_PRESENT, // 4
+                            NCB::TInvertedIndexedSubset<ui32>::NOT_PRESENT, // 5
+                            0, // 6
+                            1, // 7
+                            2, // 8
+                            NCB::TInvertedIndexedSubset<ui32>::NOT_PRESENT, // 9
+                            3, // 10
+                            4, // 11
+                        }
+                    )
                 )
             );
         }
         {
             NCB::TArraySubsetIndexing<ui32> subset(NCB::TIndexedSubset<ui32>{});
-            NCB::TArraySubsetInvertedIndexing<ui32> invertedSubset = NCB::GetInvertedIndexing(subset);
+            NCB::TArraySubsetInvertedIndexing<ui32> invertedSubset
+                = NCB::GetInvertedIndexing(subset, ui32(0), &localExecutor);
             UNIT_ASSERT_EQUAL(
                 invertedSubset,
-                NCB::TArraySubsetInvertedIndexing<ui32>(NCB::TIndexedSubset<ui32>{})
+                NCB::TArraySubsetInvertedIndexing<ui32>(
+                    NCB::TInvertedIndexedSubset<ui32>(0, TVector<ui32>{})
+                )
             );
         }
         {
             NCB::TArraySubsetIndexing<ui32> subset(NCB::TIndexedSubset<ui32>{3, 1, 5, 4, 7});
-            NCB::TArraySubsetInvertedIndexing<ui32> invertedSubset = NCB::GetInvertedIndexing(subset);
+            NCB::TArraySubsetInvertedIndexing<ui32> invertedSubset
+                = NCB::GetInvertedIndexing(subset, ui32(10), &localExecutor);
             UNIT_ASSERT_EQUAL(
                 invertedSubset,
                 NCB::TArraySubsetInvertedIndexing<ui32>(
-                    NCB::TIndexedSubset<ui32>{Max<ui32>(), 1, Max<ui32>(), 0, 3, 2, Max<ui32>(), 4}
+                    NCB::TInvertedIndexedSubset<ui32>(
+                        5,
+                        TVector<ui32>{
+                            NCB::TInvertedIndexedSubset<ui32>::NOT_PRESENT, // 0
+                            1, // 1
+                            NCB::TInvertedIndexedSubset<ui32>::NOT_PRESENT, // 2
+                            0, // 3
+                            3, // 4
+                            2, // 5
+                            NCB::TInvertedIndexedSubset<ui32>::NOT_PRESENT, // 6
+                            4, // 7
+                            NCB::TInvertedIndexedSubset<ui32>::NOT_PRESENT, // 8
+                            NCB::TInvertedIndexedSubset<ui32>::NOT_PRESENT // 9
+                        }
+                    )
                 )
             );
         }

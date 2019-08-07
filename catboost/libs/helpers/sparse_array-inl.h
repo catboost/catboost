@@ -602,7 +602,10 @@ namespace NCB {
             return *this;
         }
 
-        TConstArrayRef<TSize> invertedIndicesArray = Get<TInvertedIndexedSubset<TSize>>(subsetInvertedIndexing);
+        const TInvertedIndexedSubset<TSize>& invertedIndexedSubset
+            = Get<TInvertedIndexedSubset<TSize>>(subsetInvertedIndexing);
+
+        TConstArrayRef<TSize> invertedIndicesArray = invertedIndexedSubset.GetMapping();
 
         TVector<TSize> dstVectorIndexing;
         TVector<TValue> dstValues;
@@ -611,7 +614,7 @@ namespace NCB {
         Indexing->ForEachNonDefault(
             [&](TSize srcIdx) {
                 auto dstIdx = invertedIndicesArray[srcIdx];
-                if (dstIdx != Max<TSize>()) {
+                if (dstIdx != TInvertedIndexedSubset<TSize>::NOT_PRESENT) {
                     dstVectorIndexing.push_back(dstIdx);
                     dstValues.push_back(NonDefaultValues[nonDefaultValuesIdx]);
                 }
