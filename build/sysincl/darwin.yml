@@ -1,6 +1,6 @@
 - includes:
-  # These headers are actually exist in arcadia, so we either should use
-  # them and add proper PEERDIR, or should #error them if the are not really used
+  # These headers actually exist in arcadia, so we either should use them and
+  # add proper PEERDIR, or should #error them if they are not really used:
   # - bzlib.h
   # - db.h
   # - expat.h
