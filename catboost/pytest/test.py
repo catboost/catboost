@@ -2741,7 +2741,7 @@ def test_custom_loss_for_multiclassification(boosting_type):
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '--custom-metric',
-        'AUC:hints=skip_train~false,Accuracy,Precision,Recall,F1,TotalF1,MCC,Kappa,WKappa,ZeroOneLoss,HammingLoss,HingeLoss,NormalizedGini',
+        'AUC:hints=skip_train~false;type=OneVsAll,Accuracy,Precision,Recall,F1,TotalF1,MCC,Kappa,WKappa,ZeroOneLoss,HammingLoss,HingeLoss,NormalizedGini',
         '--learn-err-log', learn_error_path,
         '--test-err-log', test_error_path,
     )
@@ -4645,7 +4645,7 @@ def test_eval_metrics_class_names():
         CATBOOST_PATH,
         'fit',
         '--loss-function', 'MultiClass',
-        '--custom-metric', 'TotalF1,AUC',
+        '--custom-metric', 'TotalF1,AUC:type=OneVsAll,AUC:type=Mu,AUC:misclass_cost_matrix=0/0.239/1/-1/0.5/0/1.5/-1.2/1/0.67/0/1.3/-0.5/1/0.5/0',
         '-f', train_path,
         '-t', test_path,
         '--column-description', cd_path,
@@ -4661,7 +4661,7 @@ def test_eval_metrics_class_names():
     eval_cmd = (
         CATBOOST_PATH,
         'eval-metrics',
-        '--metrics', 'TotalF1,AUC',
+        '--metrics', 'TotalF1,AUC:type=OneVsAll,AUC:type=Mu,AUC:misclass_cost_matrix=0/0.239/1/-1/0.5/0/1.5/-1.2/1/0.67/0/1.3/-0.5/1/0.5/0',
         '--input-path', test_path,
         '--column-description', cd_path,
         '-m', model_path,

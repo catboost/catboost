@@ -4,6 +4,7 @@ LIBRARY()
 
 SRCS(
     auc.cpp
+    auc_mu.cpp
     balanced_accuracy.cpp
     brier_score.cpp
     classification_utils.cpp

@@ -623,8 +623,16 @@
         "checksum": "d29e0fa8ebe22f960a0c86d321e44be7",
         "uri": "file://test.test_util_eval_metric_RMSE_/predictions.npy"
     },
-    "test.test_util_eval_metric_multiclass[AUC]": {
+    "test.test_util_eval_metric_multiclass[AUC:misclass_cost_matrix=0/1/0.33/0/0/0.239/-1/1.2/0]": {
+        "checksum": "c8f64aebb827ffa66075de4f51e35dfd",
+        "uri": "file://test.test_util_eval_metric_multiclass_AUC_misclass_cost_matrix=0_1_0.33_0_0_0.239_-1_1.2_0_/predictions.npy"
+    },
+    "test.test_util_eval_metric_multiclass[AUC:type=OneVsAll]": {
         "checksum": "294a8e1a5cc1886ee386f12a33a04541",
+        "uri": "file://test.test_util_eval_metric_multiclass_AUC_type=OneVsAll_/predictions.npy"
+    },
+    "test.test_util_eval_metric_multiclass[AUC]": {
+        "checksum": "2eec478270cb533d34af9d9546d2bed7",
         "uri": "file://test.test_util_eval_metric_multiclass_AUC_/predictions.npy"
     },
     "test.test_util_eval_metric_multiclass[MultiClass]": {

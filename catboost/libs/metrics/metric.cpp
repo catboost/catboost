@@ -1,5 +1,6 @@
 #include "metric.h"
 #include "auc.h"
+#include "auc_mu.h"
 #include "balanced_accuracy.h"
 #include "brier_score.h"
 #include "classification_utils.h"
@@ -2151,6 +2152,11 @@ void TR2Metric::GetBestValue(EMetricBestValue* valueType, float*) const {
 /* AUC */
 
 namespace {
+    enum class EAucType {
+        Mu,
+        OneVsAll
+    };
+
     struct TAUCMetric: public TNonAdditiveMetric {
         explicit TAUCMetric(double border = GetDefaultTargetBorder())
             : Border(border)
@@ -2159,7 +2165,14 @@ namespace {
 
         explicit TAUCMetric(int positiveClass)
             : PositiveClass(positiveClass)
-            , IsMultiClass(true) {
+            , IsMultiClass(true)
+            , Type(EAucType::OneVsAll) {
+        }
+
+        explicit TAUCMetric(const TMaybe<TVector<TVector<double>>>& misclassCostMatrix = Nothing())
+            : IsMultiClass(true)
+            , Type(EAucType::Mu)
+            , MisclassCostMatrix(misclassCostMatrix) {
         }
 
         TMetricHolder Eval(
@@ -2189,6 +2202,8 @@ namespace {
         int PositiveClass = 1;
         double Border = GetDefaultTargetBorder();
         bool IsMultiClass = false;
+        EAucType Type;
+        TMaybe<TVector<TVector<double>>> MisclassCostMatrix = Nothing();
     };
 }
 
@@ -2198,6 +2213,15 @@ THolder<IMetric> MakeBinClassAucMetric(double border) {
 
 THolder<IMetric> MakeMultiClassAucMetric(int positiveClass) {
     return MakeHolder<TAUCMetric>(positiveClass);
+}
+
+THolder<IMetric> MakeMuAucMetric(const TMaybe<TVector<TVector<double>>>& misclassCostMatrix) {
+    if (misclassCostMatrix) {
+        for (ui32 i = 0; i < misclassCostMatrix->size(); ++i) {
+            CB_ENSURE((*misclassCostMatrix)[i][i] == 0, "Diagonal elements of the misclass cost matrix should be equal to 0.");
+        }
+    }
+    return MakeHolder<TAUCMetric>(misclassCostMatrix);
 }
 
 TMetricHolder TAUCMetric::Eval(
@@ -2214,6 +2238,24 @@ TMetricHolder TAUCMetric::Eval(
     Y_ASSERT(!isExpApprox);
     Y_ASSERT((approx.size() > 1) == IsMultiClass);
     Y_ASSERT(approx.front().size() == target.size());
+    if (IsMultiClass && Type == EAucType::Mu && MisclassCostMatrix) {
+        CB_ENSURE(MisclassCostMatrix->size() == approx.size(), "Number of classes should be equal to the size of the misclass cost matrix.");
+    }
+
+    if (IsMultiClass && Type == EAucType::Mu) {
+        TVector<TVector<double>> currentApprox(approx);
+        if (!approxDelta.empty()) {
+            for (ui32 i = 0; i < approx.size(); ++i) {
+                for (ui32 j = 0; j < approx[i].size(); ++j) {
+                    currentApprox[i][j] += approxDelta[i][j];
+                }
+            }
+        }
+        TMetricHolder error(2);
+        error.Stats[0] = CalcMuAuc(currentApprox, target, UseWeights ? weight : TConstArrayRef<float>(), &executor, MisclassCostMatrix);
+        error.Stats[1] = 1;
+        return error;
+    }
 
     const auto realApprox = [&](int idx) {
         return approx[IsMultiClass ? PositiveClass : 0][idx]
@@ -2238,10 +2280,33 @@ TMetricHolder TAUCMetric::Eval(
     return error;
 }
 
+template<typename T>
+static TString ConstructDescriptionOfSquareMatrix(const TVector<TVector<T>>& matrix) {
+    TString matrixInString = "";
+    for (ui32 i = 0; i < matrix.size(); ++i) {
+        for (ui32 j = 0; j < matrix.size(); ++j) {
+            matrixInString += ToString(matrix[i][j]);
+            if (i + 1 != matrix.size() || j + 1 != matrix.size()) {
+                matrixInString += "/";
+            }
+        }
+    }
+    return matrixInString;
+}
+
 TString TAUCMetric::GetDescription() const {
     if (IsMultiClass) {
-        const TMetricParam<int> positiveClass("class", PositiveClass, /*userDefined*/true);
-        return BuildDescription(ELossFunction::AUC, UseWeights, positiveClass);
+        if (Type == EAucType::OneVsAll) {
+            const TMetricParam<int> positiveClass("class", PositiveClass, /*userDefined*/true);
+            return BuildDescription(ELossFunction::AUC, UseWeights, positiveClass);
+        } else {
+            TMetricParam<TString> aucType("type", "Mu", true);
+            if (MisclassCostMatrix) {
+                TMetricParam<TString> misclassCostMatrix("misclass_cost_matrix", ConstructDescriptionOfSquareMatrix<double>(*MisclassCostMatrix), true);
+                return BuildDescription(ELossFunction::AUC, UseWeights, aucType, misclassCostMatrix);
+            }
+            return BuildDescription(ELossFunction::AUC, UseWeights, aucType);
+        }
     } else {
         return BuildDescription(ELossFunction::AUC, UseWeights, "%.3g", MakeBorderParam(Border));
     }
@@ -4342,6 +4407,25 @@ int GetParameterTop(const TMap<TString, TString>& params, ELossFunction metric) 
     return topSize;
 }
 
+template <typename T>
+static TVector<TVector<T>> ConstructSquareMatrix(const TString& matrixString) {
+    const TVector<TString> matrixVector = StringSplitter(matrixString).Split('/');
+    ui32 size = 0;
+    while (size * size < matrixVector.size()) {
+        size++;
+    }
+    CB_ENSURE(size * size == matrixVector.size(), "Size of Matrix should be a square of integer.");
+    TVector<TVector<T>> result(size);
+    for (ui32 i = 0; i < size; ++i) {
+        result[i].resize(size);
+        for (ui32 j = 0; j < size; ++j) {
+            CB_ENSURE(TryFromString<T>(matrixVector[i * size + j], result[i][j]), "Error while parsing AUC Mu missclassification matrix. Building matrix with size "
+                    << size << ", cannot parse \"" << matrixVector[i * size + j] << "\" as a float.");
+        }
+    }
+    return result;
+}
+
 static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString, TString> params, int approxDimension) {
     double border = GetDefaultTargetBorder();
     if (params.contains("border")) {
@@ -4486,10 +4570,25 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
         case ELossFunction::AUC: {
             if (approxDimension == 1) {
                 result.push_back(MakeBinClassAucMetric(border));
-                validParams = {"border"};
             } else {
-                for (int i = 0; i < approxDimension; ++i) {
-                    result.push_back(MakeMultiClassAucMetric(i));
+                validParams = {"type"};
+                bool isMu = true;
+                if (params.contains("type")) {
+                    TString aucType = params.at("type");
+                    CB_ENSURE(aucType == "Mu" || aucType == "OneVsAll", "There is no multiclass AUC type named \"" << aucType << "\". Possible types are \"Mu\" and \"OneVsAll\".");
+                    isMu = (aucType == "Mu");
+                }
+                if (isMu) {
+                    validParams.insert("misclass_cost_matrix");
+                    TMaybe<TVector<TVector<double>>> misclassCostMatrix = Nothing();
+                    if (params.contains("misclass_cost_matrix")) {
+                        misclassCostMatrix.ConstructInPlace(ConstructSquareMatrix<double>(params.at("misclass_cost_matrix")));
+                    }
+                    result.push_back(MakeMuAucMetric(misclassCostMatrix));
+                } else {
+                    for (int i = 0; i < approxDimension; ++i) {
+                        result.push_back(MakeMultiClassAucMetric(i));
+                    }
                 }
             }
             break;

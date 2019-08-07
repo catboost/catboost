@@ -261,6 +261,7 @@ THolder<IMetric> MakeFilteredDcgMetric(ENdcgMetricType type, ENdcgDenominatorTyp
 
 THolder<IMetric> MakeBinClassAucMetric(double border = GetDefaultTargetBorder());
 THolder<IMetric> MakeMultiClassAucMetric(int positiveClass);
+THolder<IMetric> MakeMuAucMetric(const TMaybe<TVector<TVector<double>>>& misclassCostMatrix = Nothing());
 
 THolder<IMetric> MakeAccuracyMetric(double border = GetDefaultTargetBorder());
 

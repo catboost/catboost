@@ -11,6 +11,7 @@ PEERDIR(
 
 SRCS(
     auc_ut.cpp
+    auc_mu_ut.cpp
     brier_score_ut.cpp
     balanced_accuracy_ut.cpp
     dcg_ut.cpp
