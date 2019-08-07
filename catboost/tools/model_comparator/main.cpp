@@ -8,6 +8,9 @@
 #include <catboost/libs/options/json_helper.h>
 #include <library/getopt/small/last_getopt.h>
 
+#include <util/generic/set.h>
+#include <util/string/split.h>
+
 #include <cmath>
 
 
@@ -83,7 +86,7 @@ TFullModel ReadModelAny(const TString& fileName) {
     return model;
 }
 
-static bool CompareModelInfo(const THashMap<TString, TString>& modelInfo1, const THashMap<TString, TString>& modelInfo2, bool verbose=false) {
+static bool CompareModelInfo(const THashMap<TString, TString>& modelInfo1, const THashMap<TString, TString>& modelInfo2,  bool verbose, const TSet<TString>& ignoreKeys) {
     if (modelInfo1.size() != modelInfo2.size()) {
         if (verbose) {
             Clog << " Different modelInfo size: " << modelInfo1.size() << " vs " << modelInfo2.size() << Endl;
@@ -102,6 +105,9 @@ static bool CompareModelInfo(const THashMap<TString, TString>& modelInfo1, const
             if (key1 != *key2) {
                 if (verbose) {
                     Clog << " Values differ for key " << key1.first << ": " << key1.second << " vs " << key2->second << Endl;
+                }
+                if (ignoreKeys.contains(key1.first)) {
+                    continue;
                 }
                 return false;
             }
@@ -157,6 +163,7 @@ int main(int argc, char** argv) {
     using namespace NLastGetopt;
     double diffLimit = 0.0;
     bool verbose = false;
+    TSet<TString> ignoreKeys;
     TOpts opts = NLastGetopt::TOpts::Default();
     opts.AddLongOption("diff-limit").RequiredArgument("THR")
         .Help("Tolerate elementwise relative difference less than THR")
@@ -164,6 +171,15 @@ int main(int argc, char** argv) {
         .StoreResult(&diffLimit);
     opts.AddLongOption("verbose")
         .StoreTrue(&verbose);
+    opts.AddLongOption("ignore-keys")
+        .RequiredArgument("KEY[,...]")
+        .Help("Ignore differences for these keys")
+        .DefaultValue("model_guid")
+        .Handler1T<TStringBuf>([&ignoreKeys](const TStringBuf& arg) {
+            for (const auto& key : StringSplitter(arg).Split(',').SkipEmpty()) {
+                ignoreKeys.insert(TString(key));
+            }
+        });
     opts.SetFreeArgsMin(2);
     opts.SetFreeArgsMax(2);
     opts.SetFreeArgTitle(0, "MODEL1");
@@ -286,7 +302,7 @@ int main(int argc, char** argv) {
             result.StructureIsDifferent = true;
         }
     }
-    if (!CompareModelInfo(model1.ModelInfo, model2.ModelInfo, verbose)) {
+    if (!CompareModelInfo(model1.ModelInfo, model2.ModelInfo, verbose, ignoreKeys)) {
         Clog << "ModelInfo differ" << Endl;
         model1.ModelInfo = THashMap<TString, TString>();
         model2.ModelInfo = THashMap<TString, TString>();
