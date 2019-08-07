@@ -131,8 +131,8 @@
     },
     "logging_level" : "Verbose",
     "data_processing_options" : {
+        "per_float_feature_quantization" : { },
         "has_time" : false,
-        "per_float_feature_binarization" : { },
         "allow_const_label" : false,
         "text_processing" : {
             "per_feature_text_processing" : { }

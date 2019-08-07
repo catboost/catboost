@@ -782,7 +782,7 @@ static void TrainModel(
             *learnFeaturesLayout,
             catBoostOptions.DataProcessingOptions.Get().IgnoredFeatures.Get(),
             catBoostOptions.DataProcessingOptions->FloatFeaturesBinarization.Get(),
-            catBoostOptions.DataProcessingOptions->PerFloatFeatureBinarization.Get(),
+            catBoostOptions.DataProcessingOptions->PerFloatFeatureQuantization.Get(),
             catBoostOptions.DataProcessingOptions->TextProcessing.Get(),
             /*allowNansInTestOnly*/true,
             outputOptions.AllowWriteFiles()
@@ -948,7 +948,7 @@ void TrainModel(
         *pools.Learn->MetaInfo.FeaturesLayout,
         catBoostOptions.DataProcessingOptions->IgnoredFeatures.Get(),
         catBoostOptions.DataProcessingOptions->FloatFeaturesBinarization.Get(),
-        catBoostOptions.DataProcessingOptions->PerFloatFeatureBinarization.Get(),
+        catBoostOptions.DataProcessingOptions->PerFloatFeatureQuantization.Get(),
         catBoostOptions.DataProcessingOptions->TextProcessing.Get(),
         /*allowNansInTestOnly*/true,
         outputOptions.AllowWriteFiles()
@@ -1086,7 +1086,7 @@ static void ModelBasedEval(
             *learnFeaturesLayout,
             catBoostOptions.DataProcessingOptions.Get().IgnoredFeatures.Get(),
             catBoostOptions.DataProcessingOptions->FloatFeaturesBinarization.Get(),
-            catBoostOptions.DataProcessingOptions->PerFloatFeatureBinarization.Get(),
+            catBoostOptions.DataProcessingOptions->PerFloatFeatureQuantization.Get(),
             catBoostOptions.DataProcessingOptions->TextProcessing.Get(),
             /*allowNansInTestOnly*/true,
             outputOptions.AllowWriteFiles()
@@ -1189,7 +1189,7 @@ void ModelBasedEval(
         *pools.Learn->MetaInfo.FeaturesLayout,
         catBoostOptions.DataProcessingOptions->IgnoredFeatures.Get(),
         catBoostOptions.DataProcessingOptions->FloatFeaturesBinarization.Get(),
-        catBoostOptions.DataProcessingOptions->PerFloatFeatureBinarization.Get(),
+        catBoostOptions.DataProcessingOptions->PerFloatFeatureQuantization.Get(),
         catBoostOptions.DataProcessingOptions->TextProcessing.Get(),
         /*allowNansInTestOnly*/true,
         outputOptions.AllowWriteFiles()

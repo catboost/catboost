@@ -14,7 +14,7 @@ NCatboostOptions::TDataProcessingOptions::TDataProcessingOptions(ETaskType type)
           ENanMode::Min,
           type
       ))
-      , PerFloatFeatureBinarization("per_float_feature_binarization", TMap<ui32, TBinarizationOptions>())
+      , PerFloatFeatureQuantization("per_float_feature_quantization", TMap<ui32, TBinarizationOptions>())
       , TextProcessing("text_processing", TTextProcessingOptionCollection())
       , ClassesCount("classes_count", 0)
       , ClassWeights("class_weights", TVector<float>())
@@ -27,7 +27,7 @@ NCatboostOptions::TDataProcessingOptions::TDataProcessingOptions(ETaskType type)
 void NCatboostOptions::TDataProcessingOptions::Load(const NJson::TJsonValue& options) {
     CheckedLoad(
         options, &IgnoredFeatures, &HasTimeFlag, &AllowConstLabel, &TargetBorder,
-        &FloatFeaturesBinarization, &PerFloatFeatureBinarization, &TextProcessing,
+        &FloatFeaturesBinarization, &PerFloatFeatureQuantization, &TextProcessing,
         &ClassesCount, &ClassWeights, &ClassNames, &GpuCatFeaturesStorage
     );
     SetPerFeatureMissingSettingToCommonValues();
@@ -36,18 +36,18 @@ void NCatboostOptions::TDataProcessingOptions::Load(const NJson::TJsonValue& opt
 void NCatboostOptions::TDataProcessingOptions::Save(NJson::TJsonValue* options) const {
     SaveFields(
         options, IgnoredFeatures, HasTimeFlag, AllowConstLabel, TargetBorder,
-        FloatFeaturesBinarization, PerFloatFeatureBinarization, TextProcessing,
+        FloatFeaturesBinarization, PerFloatFeatureQuantization, TextProcessing,
         ClassesCount, ClassWeights, ClassNames, GpuCatFeaturesStorage
     );
 }
 
 bool NCatboostOptions::TDataProcessingOptions::operator==(const TDataProcessingOptions& rhs) const {
     return std::tie(IgnoredFeatures, HasTimeFlag, AllowConstLabel, TargetBorder,
-            FloatFeaturesBinarization, PerFloatFeatureBinarization, TextProcessing,
-            ClassesCount, ClassWeights, ClassNames, GpuCatFeaturesStorage) ==
+                    FloatFeaturesBinarization, PerFloatFeatureQuantization, TextProcessing,
+                    ClassesCount, ClassWeights, ClassNames, GpuCatFeaturesStorage) ==
         std::tie(rhs.IgnoredFeatures, rhs.HasTimeFlag, rhs.AllowConstLabel, rhs.TargetBorder,
-                rhs.FloatFeaturesBinarization, rhs.PerFloatFeatureBinarization, rhs.TextProcessing,
-                rhs.ClassesCount, rhs.ClassWeights, rhs.ClassNames, rhs.GpuCatFeaturesStorage);
+                 rhs.FloatFeaturesBinarization, rhs.PerFloatFeatureQuantization, rhs.TextProcessing,
+                 rhs.ClassesCount, rhs.ClassWeights, rhs.ClassNames, rhs.GpuCatFeaturesStorage);
 }
 
 bool NCatboostOptions::TDataProcessingOptions::operator!=(const TDataProcessingOptions& rhs) const {
@@ -55,11 +55,11 @@ bool NCatboostOptions::TDataProcessingOptions::operator!=(const TDataProcessingO
 }
 
 void NCatboostOptions::TDataProcessingOptions::SetPerFeatureMissingSettingToCommonValues() {
-    if (!PerFloatFeatureBinarization.IsSet()) {
+    if (!PerFloatFeatureQuantization.IsSet()) {
         return;
     }
     const auto& commonSettings = FloatFeaturesBinarization.Get();
-    for (auto& [id, binarizationOption] : PerFloatFeatureBinarization.Get()) {
+    for (auto& [id, binarizationOption] : PerFloatFeatureQuantization.Get()) {
         Y_UNUSED(id);
         if (!binarizationOption.BorderCount.IsSet() && commonSettings.BorderCount.IsSet()) {
             binarizationOption.BorderCount = commonSettings.BorderCount;

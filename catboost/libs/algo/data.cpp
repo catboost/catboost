@@ -138,7 +138,7 @@ namespace NCB {
                     *srcData->MetaInfo.FeaturesLayout,
                     params->DataProcessingOptions->IgnoredFeatures.Get(),
                     params->DataProcessingOptions->FloatFeaturesBinarization.Get(),
-                    params->DataProcessingOptions->PerFloatFeatureBinarization.Get(),
+                    params->DataProcessingOptions->PerFloatFeatureQuantization.Get(),
                     params->DataProcessingOptions->TextProcessing.Get(),
                     /*allowNansInTestOnly*/true
                 );

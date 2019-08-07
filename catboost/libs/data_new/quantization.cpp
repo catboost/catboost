@@ -1609,7 +1609,7 @@ namespace NCB {
             *rawDataProviders.Learn->MetaInfo.FeaturesLayout,
             ignoredFeatures,
             dataProcessingOptions.FloatFeaturesBinarization.Get(),
-            dataProcessingOptions.PerFloatFeatureBinarization.Get(),
+            dataProcessingOptions.PerFloatFeatureQuantization.Get(),
             dataProcessingOptions.TextProcessing.Get(),
             floatFeaturesAllowNansInTestOnly,
             options.AllowWriteFiles

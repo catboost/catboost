@@ -329,7 +329,7 @@ namespace NCB {
         void PrepareForInitialization(
             const TDataMetaInfo& metaInfo,
             const NCatboostOptions::TBinarizationOptions& binarizationOptions,
-            const TMap<ui32, NCatboostOptions::TBinarizationOptions>& perFloatFeatureBinarization
+            const TMap<ui32, NCatboostOptions::TBinarizationOptions>& perFloatFeatureQuantization
         );
 
         void Check(

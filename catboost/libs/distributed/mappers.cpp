@@ -113,7 +113,7 @@ namespace NCatboostDistributed {
             params->Data.FeaturesLayout,
             catBoostOptions.DataProcessingOptions.Get().IgnoredFeatures.Get(),
             catBoostOptions.DataProcessingOptions->FloatFeaturesBinarization.Get(),
-            catBoostOptions.DataProcessingOptions->PerFloatFeatureBinarization.Get(),
+            catBoostOptions.DataProcessingOptions->PerFloatFeatureQuantization.Get(),
             /*allowNansInTestOnly*/true,
             /*allowWriteFiles*/false
         );

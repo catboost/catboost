@@ -2955,7 +2955,7 @@ class CatBoostClassifier(CatBoost):
             - 'GreedyLogSum'
             - 'MaxLogSum'
             - 'MinEntropy'
-    per_float_feature_binarization : list of strings, [default='0:nan_mode=Forbidden,border_count=32,border_type=GreedyLogSum',
+    per_float_feature_quantization : list of strings, [default='0:nan_mode=Forbidden,border_count=32,border_type=GreedyLogSum',
                                                                '1:nan_mode=Forbidden,border_count=32,border_type=GreedyLogSum', ...]
         List of float binarization descriptions.
             Format : see documentation
@@ -3265,7 +3265,7 @@ class CatBoostClassifier(CatBoost):
         loss_function=None,
         border_count=None,
         feature_border_type=None,
-        per_float_feature_binarization=None,
+        per_float_feature_quantization=None,
         input_borders=None,
         output_borders=None,
         fold_permutation_block=None,
@@ -3711,7 +3711,7 @@ class CatBoostRegressor(CatBoost):
         loss_function='RMSE',
         border_count=None,
         feature_border_type=None,
-        per_float_feature_binarization=None,
+        per_float_feature_quantization=None,
         input_borders=None,
         output_borders=None,
         fold_permutation_block=None,

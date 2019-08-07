@@ -819,7 +819,7 @@ bool NCB::TQuantizedObjectsData::operator==(const NCB::TQuantizedObjectsData& rh
 void NCB::TQuantizedObjectsData::PrepareForInitialization(
     const TDataMetaInfo& metaInfo,
     const NCatboostOptions::TBinarizationOptions& binarizationOptions,
-    const TMap<ui32, NCatboostOptions::TBinarizationOptions>& perFloatFeatureBinarization
+    const TMap<ui32, NCatboostOptions::TBinarizationOptions>& perFloatFeatureQuantization
 ) {
     // FloatFeatures and CatFeatures members are initialized at the end of building
     FloatFeatures.clear();
@@ -838,7 +838,7 @@ void NCB::TQuantizedObjectsData::PrepareForInitialization(
             *metaInfo.FeaturesLayout,
             TConstArrayRef<ui32>(),
             binarizationOptions,
-            perFloatFeatureBinarization,
+            perFloatFeatureQuantization,
             /*floatFeaturesAllowNansInTestOnly*/true,
 
             // be conservative here, it will be reset using SetAllowWriteFiles later if needed

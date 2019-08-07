@@ -33,7 +33,7 @@ namespace NCatboostOptions {
         TOption<bool> AllowConstLabel;
         TOption<TMaybe<float>> TargetBorder;
         TOption<TBinarizationOptions> FloatFeaturesBinarization;
-        TOption<TMap<ui32, TBinarizationOptions>> PerFloatFeatureBinarization;
+        TOption<TMap<ui32, TBinarizationOptions>> PerFloatFeatureQuantization;
         TOption<TTextProcessingOptionCollection> TextProcessing;
         TOption<ui32> ClassesCount;
         TOption<TVector<float>> ClassWeights;

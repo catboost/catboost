@@ -45,7 +45,7 @@ namespace NCB {
             const TFeaturesLayout& featuresLayout,
             TConstArrayRef<ui32> ignoredFeatures,
             NCatboostOptions::TBinarizationOptions commonFloatFeaturesBinarization,
-            TMap<ui32, NCatboostOptions::TBinarizationOptions> perFloatFeaturebinarization=TMap<ui32, NCatboostOptions::TBinarizationOptions>(),
+            TMap<ui32, NCatboostOptions::TBinarizationOptions> perFloatFeatureQuantization=TMap<ui32, NCatboostOptions::TBinarizationOptions>(),
             bool floatFeaturesAllowNansInTestOnly = true,
             bool allowWriteFiles = true);
 
@@ -53,7 +53,7 @@ namespace NCB {
             const TFeaturesLayout& featuresLayout,
             TConstArrayRef<ui32> ignoredFeatures,
             NCatboostOptions::TBinarizationOptions commonFloatFeaturesBinarization,
-            TMap<ui32, NCatboostOptions::TBinarizationOptions> perFloatFeaturebinarization,
+            TMap<ui32, NCatboostOptions::TBinarizationOptions> perFloatFeatureQuantization,
             NCatboostOptions::TTextProcessingOptionCollection textFeaturesProcessing,
             bool floatFeaturesAllowNansInTestOnly = true,
             bool allowWriteFiles = true);
@@ -117,7 +117,7 @@ namespace NCB {
         }
 
         const NCatboostOptions::TBinarizationOptions& GetFloatFeatureBinarization(ui32 featureIndex) const {
-            if (auto optsPtr = PerFloatFeatureBinarization.FindPtr(featureIndex)) {
+            if (auto optsPtr = PerFloatFeatureQuantization.FindPtr(featureIndex)) {
                 return *optsPtr;
             }
             return CommonFloatFeaturesBinarization;
@@ -222,7 +222,7 @@ namespace NCB {
         TFeaturesLayoutPtr FeaturesLayout;
 
         NCatboostOptions::TBinarizationOptions CommonFloatFeaturesBinarization;
-        TMap<ui32, NCatboostOptions::TBinarizationOptions> PerFloatFeatureBinarization;
+        TMap<ui32, NCatboostOptions::TBinarizationOptions> PerFloatFeatureQuantization;
 
         bool FloatFeaturesAllowNansInTestOnly;
 

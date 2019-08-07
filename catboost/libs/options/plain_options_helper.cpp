@@ -91,7 +91,7 @@ static Y_NO_INLINE void CopyPerFeatureCtrDescription(
     seenKeys->insert(TString(srcKey));
 }
 
-static Y_NO_INLINE void CopyPerFloatFeatureBinarization(
+static Y_NO_INLINE void CopyPerFloatFeatureQuantization(
     const NJson::TJsonValue& options,
     const TStringBuf key,
     NJson::TJsonValue* dst,
@@ -255,13 +255,13 @@ static Y_NO_INLINE void RemapTextProcessingOptions(
     }
 }
 
-static Y_NO_INLINE void ConcatenatePerFloatFeatureBinarizationOptions(
+static Y_NO_INLINE void ConcatenatePerFloatFeatureQuantizationOptions(
     const NJson::TJsonValue& options,
     const TStringBuf destinationKey,
     NJson::TJsonValue* const destination
 ) {
     auto& plainConcatenatedParams = (*destination)[destinationKey] = NJson::TJsonValue(NJson::JSON_ARRAY);
-    for (auto& oneFeatureConfig : options["per_float_feature_binarization"].GetMap()) {
+    for (auto& oneFeatureConfig : options["per_float_feature_quantization"].GetMap()) {
         TString concatenatedParams = ToString(oneFeatureConfig.first) + ":";
         for (auto& paramKeyValuePair : oneFeatureConfig.second.GetMapSafe()) {
             if (paramKeyValuePair.first == "border_count") {
@@ -470,7 +470,7 @@ void NCatboostOptions::PlainJsonToOptions(
     CopyOption(plainOptions, "border_count", &floatFeaturesBinarization, &seenKeys);
     CopyOptionWithNewKey(plainOptions, "feature_border_type", "border_type", &floatFeaturesBinarization, &seenKeys);
     CopyOption(plainOptions, "nan_mode", &floatFeaturesBinarization, &seenKeys);
-    CopyPerFloatFeatureBinarization(plainOptions, "per_float_feature_binarization", &dataProcessingOptions, &seenKeys);
+    CopyPerFloatFeatureQuantization(plainOptions, "per_float_feature_quantization", &dataProcessingOptions, &seenKeys);
 
     auto& textProcessingOptions = dataProcessingOptions["text_processing"];
     CopyPerFeatureTextProcessing(plainOptions, "text_processing", "per_feature_text_processing", &textProcessingOptions, &seenKeys);
@@ -839,9 +839,11 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
         RemapTextProcessingOptions(dataProcessingOptions, "text_processing", &plainOptionsJson);
         DeleteSeenOption(&optionsCopyDataProcessing, "text_processing");
 
-        ConcatenatePerFloatFeatureBinarizationOptions(dataProcessingOptions, "per_float_feature_binarization",
-                &plainOptionsJson);
-        DeleteSeenOption(&optionsCopyDataProcessing, "per_float_feature_binarization");
+        ConcatenatePerFloatFeatureQuantizationOptions(
+            dataProcessingOptions,
+            "per_float_feature_quantization",
+            &plainOptionsJson);
+        DeleteSeenOption(&optionsCopyDataProcessing, "per_float_feature_quantization");
 
         CopyOption(dataProcessingOptions, "target_border", &plainOptionsJson, &seenKeys);
         DeleteSeenOption(&optionsCopyDataProcessing, "target_border");

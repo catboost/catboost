@@ -66,14 +66,14 @@ namespace NCB {
         const NCB::TFeaturesLayout &featuresLayout,
         TConstArrayRef<ui32> ignoredFeatures,
         NCatboostOptions::TBinarizationOptions commonFloatFeaturesBinarization,
-        TMap<ui32, NCatboostOptions::TBinarizationOptions> perFloatFeaturebinarization,
+        TMap<ui32, NCatboostOptions::TBinarizationOptions> perFloatFeatureQuantization,
         bool floatFeaturesAllowNansInTestOnly,
         bool allowWriteFiles)
         : TQuantizedFeaturesInfo(
             featuresLayout,
             ignoredFeatures,
             commonFloatFeaturesBinarization,
-            perFloatFeaturebinarization,
+            perFloatFeatureQuantization,
             NCatboostOptions::TTextProcessingOptionCollection(),
             floatFeaturesAllowNansInTestOnly,
             allowWriteFiles
@@ -84,13 +84,13 @@ namespace NCB {
         const TFeaturesLayout& featuresLayout,
         TConstArrayRef<ui32> ignoredFeatures,
         NCatboostOptions::TBinarizationOptions commonFloatFeaturesBinarization,
-        TMap<ui32, NCatboostOptions::TBinarizationOptions> perFloatFeaturebinarization,
+        TMap<ui32, NCatboostOptions::TBinarizationOptions> perFloatFeatureQuantization,
         NCatboostOptions::TTextProcessingOptionCollection textFeaturesProcessing,
         bool floatFeaturesAllowNansInTestOnly,
         bool allowWriteFiles)
         : FeaturesLayout(MakeIntrusive<TFeaturesLayout>(featuresLayout))
         , CommonFloatFeaturesBinarization(std::move(commonFloatFeaturesBinarization))
-        , PerFloatFeatureBinarization(std::move(perFloatFeaturebinarization))
+        , PerFloatFeatureQuantization(std::move(perFloatFeatureQuantization))
         , FloatFeaturesAllowNansInTestOnly(floatFeaturesAllowNansInTestOnly)
         , CatFeaturesPerfectHash(
             featuresLayout.GetCatFeatureCount(),
@@ -104,10 +104,10 @@ namespace NCB {
 
     bool TQuantizedFeaturesInfo::operator==(const TQuantizedFeaturesInfo& rhs) const {
         return (*FeaturesLayout == *rhs.FeaturesLayout) &&
-            (CommonFloatFeaturesBinarization == rhs.CommonFloatFeaturesBinarization) &&
-            (PerFloatFeatureBinarization == rhs.PerFloatFeatureBinarization) &&
-            ApproximatelyEqualBorders(Borders, rhs.Borders) && (NanModes == rhs.NanModes) &&
-            (CatFeaturesPerfectHash == rhs.CatFeaturesPerfectHash);
+               (CommonFloatFeaturesBinarization == rhs.CommonFloatFeaturesBinarization) &&
+               (PerFloatFeatureQuantization == rhs.PerFloatFeatureQuantization) &&
+               ApproximatelyEqualBorders(Borders, rhs.Borders) && (NanModes == rhs.NanModes) &&
+               (CatFeaturesPerfectHash == rhs.CatFeaturesPerfectHash);
     }
 
     bool TQuantizedFeaturesInfo::IsSupersetOf(const TQuantizedFeaturesInfo& rhs) const {
@@ -121,9 +121,9 @@ namespace NCB {
             return false;
         }
 
-        for (const auto& [floatFeatureIdx, binarization] : rhs.PerFloatFeatureBinarization) {
-            const auto it = PerFloatFeatureBinarization.find(floatFeatureIdx);
-            if (it == PerFloatFeatureBinarization.end()) {
+        for (const auto& [floatFeatureIdx, binarization] : rhs.PerFloatFeatureQuantization) {
+            const auto it = PerFloatFeatureQuantization.find(floatFeatureIdx);
+            if (it == PerFloatFeatureQuantization.end()) {
                 if (binarization != CommonFloatFeaturesBinarization) {
                     return false;
                 }
@@ -254,7 +254,7 @@ namespace NCB {
             checkSum = UpdateCheckSum(checkSum, binarizationOptions.NanMode.Get());
         };
         updateCheskSum(CommonFloatFeaturesBinarization);
-        for (const auto& [featureId, binarizationOptions] : PerFloatFeatureBinarization) {
+        for (const auto& [featureId, binarizationOptions] : PerFloatFeatureQuantization) {
             checkSum = UpdateCheckSum(checkSum, featureId);
             updateCheskSum(binarizationOptions);
         }
@@ -268,7 +268,7 @@ namespace NCB {
         LoadMulti(
             binSaver,
             &CommonFloatFeaturesBinarization,
-            &PerFloatFeatureBinarization,
+            &PerFloatFeatureQuantization,
             &FloatFeaturesAllowNansInTestOnly,
             &Borders,
             &NanModes,
@@ -280,7 +280,7 @@ namespace NCB {
         SaveMulti(
             binSaver,
             CommonFloatFeaturesBinarization,
-            PerFloatFeatureBinarization,
+            PerFloatFeatureQuantization,
             FloatFeaturesAllowNansInTestOnly,
             Borders,
             NanModes,
