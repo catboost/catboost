@@ -78,6 +78,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\ut\auc_mu_ut.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\ut\auc_ut.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\ut\balanced_accuracy_ut.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\ut\brier_score_ut.cpp"/>

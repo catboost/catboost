@@ -79,6 +79,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\auc.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\auc_mu.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\balanced_accuracy.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\brier_score.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\classification_utils.cpp"/>
@@ -119,6 +120,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\metrics\metric.h_serialized.cpp;</Outputs>
     </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\metrics\auc.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\metrics\auc_mu.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\metrics\balanced_accuracy.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\metrics\brier_score.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\metrics\classification_utils.h"/>
