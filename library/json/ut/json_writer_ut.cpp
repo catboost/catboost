@@ -16,7 +16,8 @@ Y_UNIT_TEST_SUITE(TJsonWriterTest) {
         TJsonWriter json(&out, false);
         json.OpenMap();
         json.Write("key1", (ui16)1);
-        json.Write("key2", (i32)2);
+        json.WriteKey("key2");
+        json.Write((i32)2);
         json.Write("key3", (ui64)3);
 
         UNIT_ASSERT(out.Empty());
