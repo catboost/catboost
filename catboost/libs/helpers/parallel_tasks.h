@@ -6,6 +6,8 @@
 #include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/array_ref.h>
+#include <util/generic/cast.h>
+#include <util/generic/maybe.h>
 #include <util/generic/vector.h>
 
 #include <functional>
@@ -15,6 +17,26 @@ namespace NCB {
 
     // tasks is not const because elements of tasks are cleared after execution
     void ExecuteTasksInParallel(TVector<std::function<void()>>* tasks, NPar::TLocalExecutor* localExecutor);
+
+    template <class T>
+    void ParallelFill(
+        const T& fillValue,
+        TMaybe<int> blockSize,
+        NPar::TLocalExecutor* localExecutor,
+        TArrayRef<T> array) {
+
+        NPar::TLocalExecutor::TExecRangeParams rangeParams(0, SafeIntegerCast<int>(array.size()));
+        if (blockSize) {
+            rangeParams.SetBlockSize(*blockSize);
+        } else {
+            rangeParams.SetBlockCountToThreadCount();
+        }
+
+        localExecutor->ExecRange(
+            [=] (int i) { array[i] = fillValue; },
+            rangeParams,
+            NPar::TLocalExecutor::WAIT_COMPLETE);
+    }
 
     template <typename TNumber>
     inline TNumber L2NormSquared(
@@ -70,14 +92,7 @@ namespace NCB {
         } else {
             for (auto& dimension : *dst) {
                 dimension.yresize(columnCount);
-                const auto dimensionRef = MakeArrayRef(dimension);
-                NPar::ParallelFor(
-                    *localExecutor,
-                    0,
-                    columnCount,
-                    [=] (int idx) {
-                        dimensionRef[idx] = value;
-                    });
+                ParallelFill(value, /*blockSize*/ Nothing(), localExecutor, MakeArrayRef(dimension));
             }
         }
     }
