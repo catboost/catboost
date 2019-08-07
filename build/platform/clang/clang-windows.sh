@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-version="${1:-7.1.0}"
+version="${1:-8.0.1}"
 major="${version%%.*}"
 
 arcadia="$(cd "$(dirname "${BASH_SOURCE[0]}")"/../../.. && pwd)"
@@ -14,7 +14,7 @@ set -x
 
 mkdir -p "$tmp"
 cd "$tmp"
-test -e "$exe" || wget "http://releases.llvm.org/${version}/${exe}"
+test -e "$exe" || wget "https://github.com/llvm/llvm-project/releases/download/llvmorg-${version}/${exe}"
 
 rm -rf "$dir"
 mkdir -p "$dir"
@@ -28,3 +28,4 @@ cd "$dir"
 tar czf "../$tar" *
 
 printf '%q ' ya upload "$tmp/$tar" -d "Clang $version for Windows" --ttl inf --owner YATOOL --type CLANG_TOOLKIT --attr platform=win32 --attr "version=$version"
+echo
