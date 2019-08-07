@@ -128,7 +128,7 @@ TMetricsPlotCalcer& TMetricsPlotCalcer::ProceedDataSetForNonAdditiveMetrics(
         NonAdditiveMetricsData.Target.reserve(newPoolSize);
         NonAdditiveMetricsData.Weights.reserve(newPoolSize);
 
-        const auto target = *processedData.TargetData->GetTargetForLoss();
+        const auto target = *processedData.TargetData->GetTarget();
         NonAdditiveMetricsData.Target.insert(
             NonAdditiveMetricsData.Target.end(),
             target.begin(),
@@ -246,7 +246,7 @@ TMetricsPlotCalcer& TMetricsPlotCalcer::ProceedDataSet(
         Load(docCount, LastApproxes.Get(), &CurApproxBuffer);
     }
 
-    const auto target = *processedData.TargetData->GetTargetForLoss();
+    const auto target = *processedData.TargetData->GetTarget();
     const auto weights = GetWeights(*processedData.TargetData);
     const auto groupInfos = processedData.TargetData->GetGroupInfo().GetOrElse(TConstArrayRef<TQueryInfo>());
 
@@ -303,7 +303,7 @@ static TVector<float> BuildTargets(const TVector<TProcessedDataProvider>& datase
     TVector<float> result;
     result.reserve(GetDocCount(datasetParts));
     for (const auto& datasetPart : datasetParts) {
-        const auto target = *datasetPart.TargetData->GetTargetForLoss();
+        const auto target = *datasetPart.TargetData->GetTarget();
         result.insert(result.end(), target.begin(), target.end());
     }
     return result;

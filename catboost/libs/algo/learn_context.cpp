@@ -282,7 +282,7 @@ TLearnContext::TLearnContext(
     CtrsHelper.InitCtrHelper(
         Params.CatFeatureParams,
         *Layout,
-        data.Learn->TargetData->GetTargetForLoss(),
+        data.Learn->TargetData->GetTarget(),
         lossFunction,
         ObjectiveDescriptor,
         Params.DataProcessingOptions->AllowConstLabel

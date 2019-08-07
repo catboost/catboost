@@ -61,7 +61,7 @@ TVector<TTreeStatistics> ITreeStatisticsEvaluator::EvaluateTreeStatistics(
                 lossFunction,
                 leafEstimationMethod,
                 localApproxes,
-                *processedData.TargetData->GetTargetForLoss(),
+                *processedData.TargetData->GetTarget(),
                 &FirstDerivatives,
                 &SecondDerivatives,
                 &ThirdDerivatives

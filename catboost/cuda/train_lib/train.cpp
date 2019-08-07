@@ -150,7 +150,7 @@ namespace NCatboostCuda {
 
         const auto& featuresLayout = *dataProvider.MetaInfo.FeaturesLayout;
 
-        auto binarizedTarget = NCB::BinarizeLine<ui8>(*dataProvider.TargetData->GetTargetForLoss(), ENanMode::Forbidden, borders);
+        auto binarizedTarget = NCB::BinarizeLine<ui8>(*dataProvider.TargetData->GetTarget(), ENanMode::Forbidden, borders);
 
         TAdaptiveLock lock;
 
@@ -358,7 +358,7 @@ namespace NCatboostCuda {
             featuresManager.SetTargetBorders(
                 NCB::TBordersBuilder(
                     gridBuilderFactory,
-                    *trainingData.Learn->TargetData->GetTargetForLoss())(featuresManager.GetTargetBinarizationDescription()));
+                    *trainingData.Learn->TargetData->GetTarget())(featuresManager.GetTargetBinarizationDescription()));
 
             TSetLogging inThisScope(updatedCatboostOptions.LoggingLevel);
             auto deviceRequestConfig = CreateDeviceRequestConfig(updatedCatboostOptions);
@@ -487,7 +487,7 @@ namespace NCatboostCuda {
             featuresManager.SetTargetBorders(
                 NCB::TBordersBuilder(
                     gridBuilderFactory,
-                    *trainingData.Learn->TargetData->GetTargetForLoss())(featuresManager.GetTargetBinarizationDescription()));
+                    *trainingData.Learn->TargetData->GetTarget())(featuresManager.GetTargetBinarizationDescription()));
 
             TSetLogging inThisScope(updatedCatboostOptions.LoggingLevel);
             auto deviceRequestConfig = CreateDeviceRequestConfig(updatedCatboostOptions);

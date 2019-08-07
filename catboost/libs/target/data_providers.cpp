@@ -529,8 +529,7 @@ namespace NCB {
                     CATBOOST_DEBUG_LOG << "Target border set to " << *targetBorder << Endl;
                 }
 
-                processedTargetData.BinaryTarget.ConstructInPlace(MakeAtomicShared<TVector<float>>(maybeConvertedTarget->begin(), maybeConvertedTarget->end()));
-                PrepareTargetBinary(**processedTargetData.BinaryTarget, **targetBorder, &**processedTargetData.BinaryTarget);
+                PrepareTargetBinary(*maybeConvertedTarget, **targetBorder, &*maybeConvertedTarget);
             }
 
             if (maybeConvertedTarget) {

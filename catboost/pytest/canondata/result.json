@@ -1131,11 +1131,11 @@
     ],
     "test.test_custom_loss_for_classification[Ordered-Logloss]": [
         {
-            "checksum": "9cc6ae62c13efc7e8c4ad95a7ff387c3",
+            "checksum": "0d61ef7da79c8779c424ebaade5197ec",
             "uri": "file://test.test_custom_loss_for_classification_Ordered-Logloss_/learn_error.tsv"
         },
         {
-            "checksum": "0f0b2900183d928f23ea5e039055a29d",
+            "checksum": "bc6c3ca66c911ea4a49df9f75d08800a",
             "uri": "file://test.test_custom_loss_for_classification_Ordered-Logloss_/test_error.tsv"
         }
     ],
@@ -1151,11 +1151,11 @@
     ],
     "test.test_custom_loss_for_classification[Plain-Logloss]": [
         {
-            "checksum": "6e188e304ef9574e90d2152f135c1eca",
+            "checksum": "561159b00dd4a00ae077e888bab88153",
             "uri": "file://test.test_custom_loss_for_classification_Plain-Logloss_/learn_error.tsv"
         },
         {
-            "checksum": "c27e01c503d8fbf4249d3d366b135330",
+            "checksum": "2cd048e14aa8e835c6c8f436232f5e25",
             "uri": "file://test.test_custom_loss_for_classification_Plain-Logloss_/test_error.tsv"
         }
     ],
@@ -2491,21 +2491,21 @@
     ],
     "test.test_loglikelihood_of_prediction[Ordered]": [
         {
-            "checksum": "c13d12d727160d0c036c505c680cd8c9",
+            "checksum": "d1bcbd722a9c9d0103f7c20455801dd6",
             "uri": "file://test.test_loglikelihood_of_prediction_Ordered_/learn_error.tsv"
         },
         {
-            "checksum": "80d914421ba57c077fd64d021d0aabd9",
+            "checksum": "9c1f8d2f9d648f99135da777ed9905f2",
             "uri": "file://test.test_loglikelihood_of_prediction_Ordered_/test_error.tsv"
         }
     ],
     "test.test_loglikelihood_of_prediction[Plain]": [
         {
-            "checksum": "68ad50c40bb2e84be47541342a3027d5",
+            "checksum": "31acb00e752d83089190081a27307e34",
             "uri": "file://test.test_loglikelihood_of_prediction_Plain_/learn_error.tsv"
         },
         {
-            "checksum": "1b1207dfe754b2a35b98513b0a46d78c",
+            "checksum": "7804e7203e5910f11c96076894e97cf5",
             "uri": "file://test.test_loglikelihood_of_prediction_Plain_/test_error.tsv"
         }
     ],

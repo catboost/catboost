@@ -379,7 +379,7 @@ namespace NCB {
             MetaInfo.MaxCatFeaturesUniqValuesOnLearn =
                 ObjectsData->GetQuantizedFeaturesInfo()->CalcMaxCategoricalFeaturesUniqueValuesCountOnLearn();
 
-            const auto& targets = TargetData->GetTargetForLoss();
+            const auto& targets = TargetData->GetTarget();
             if (targets.Defined() && !targets->empty()) {
                 auto targetBounds = CalcMinMax(*targets);
                 MetaInfo.TargetStats = {targetBounds.Min, targetBounds.Max};

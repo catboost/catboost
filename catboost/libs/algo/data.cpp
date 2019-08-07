@@ -248,7 +248,7 @@ namespace NCB {
     static TTextClassificationTargetPtr CreateTextClassificationTarget(const TTargetDataProvider& targetDataProvider) {
 
         const ui32 numClasses = *targetDataProvider.GetTargetClassCount();
-        TConstArrayRef<float> target = *targetDataProvider.GetTargetForLoss();
+        TConstArrayRef<float> target = *targetDataProvider.GetTarget();
         TVector<ui32> classes;
         classes.resize(target.size());
 
@@ -376,6 +376,6 @@ namespace NCB {
     }
 
     TConstArrayRef<float> GetTargetForStratifiedSplit(const TTrainingDataProvider& dataProvider) {
-        return *dataProvider.TargetData->GetTargetForLoss();
+        return *dataProvider.TargetData->GetTarget();
     }
 }

@@ -113,7 +113,7 @@ TFold TFold::BuildDynamicFold(
 
     InitPermutationData(learnData, shuffle, permuteBlockSize, rand, &ff);
 
-    ff.AssignTarget(learnData.TargetData->GetTargetForLoss(), targetClassifiers);
+    ff.AssignTarget(learnData.TargetData->GetTarget(), targetClassifiers);
     ff.SetWeights(GetWeights(*learnData.TargetData), learnSampleCount);
 
     TVector<ui32> queryIndices;
@@ -221,7 +221,7 @@ TFold TFold::BuildPlainFold(
 
     InitPermutationData(learnData, shuffle, permuteBlockSize, rand, &ff);
 
-    ff.AssignTarget(learnData.TargetData->GetTargetForLoss(), targetClassifiers);
+    ff.AssignTarget(learnData.TargetData->GetTarget(), targetClassifiers);
     ff.SetWeights(GetWeights(*learnData.TargetData), learnSampleCount);
 
     auto maybeGroupInfos = learnData.TargetData->GetGroupInfo();

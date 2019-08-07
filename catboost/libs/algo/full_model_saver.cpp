@@ -90,7 +90,7 @@ namespace NCB {
                 outDatasetDataForFinalCtrs->Data = std::move(TrainingData);
                 outDatasetDataForFinalCtrs->LearnPermutation = Nothing();
                 outDatasetDataForFinalCtrs->Targets =
-                    *outDatasetDataForFinalCtrs->Data.Learn->TargetData->GetTargetForLoss();
+                    *outDatasetDataForFinalCtrs->Data.Learn->TargetData->GetTarget();
 
                 *outFeatureCombinationToProjection = &FeatureCombinationToProjection;
 

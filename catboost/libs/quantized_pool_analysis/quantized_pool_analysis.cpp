@@ -123,8 +123,8 @@ namespace NCB {
         TProcessedDataProvider processedDataProvider = CreateModelCompatibleProcessedDataProvider(
             dataset, {}, model, &rand, &executor);
         TVector<float> target(
-            processedDataProvider.TargetData->GetTargetForLoss().GetRef().begin(),
-            processedDataProvider.TargetData->GetTargetForLoss().GetRef().end());
+            processedDataProvider.TargetData->GetTarget().GetRef().begin(),
+            processedDataProvider.TargetData->GetTarget().GetRef().end());
 
         auto objectsPtr = dynamic_cast<TRawObjectsDataProvider*>(dataset.ObjectsData.Get());
         CB_ENSURE_INTERNAL(objectsPtr, "Zero pointer to raw objects");
@@ -244,8 +244,8 @@ namespace NCB {
         TProcessedDataProvider processedDataProvider = CreateModelCompatibleProcessedDataProvider(
             dataset, {}, model, &rand, &executor);
         TVector<float> target(
-            processedDataProvider.TargetData->GetTargetForLoss().GetRef().begin(),
-            processedDataProvider.TargetData->GetTargetForLoss().GetRef().end());
+            processedDataProvider.TargetData->GetTarget().GetRef().begin(),
+            processedDataProvider.TargetData->GetTarget().GetRef().end());
 
         auto objectsPtr = dynamic_cast<TRawObjectsDataProvider*>(dataset.ObjectsData.Get());
         CB_ENSURE_INTERNAL(objectsPtr, "Zero pointer to raw objects");
