@@ -370,4 +370,34 @@ Y_UNIT_TEST_SUITE(TObjectsGrouping) {
             );
         }
     }
+
+    Y_UNIT_TEST(TimeSeriesSplit) {
+        const ui32 objectCount = 8;
+        TObjectsGrouping objectsGrouping(objectCount);
+        const ui32 foldCount = 3;
+        const bool oldStyle = false;
+        const auto result = TimeSeriesSplit(objectsGrouping, foldCount, oldStyle);
+
+        TVector<TArraySubsetIndexing<ui32>> expectedTrainIndices;
+        TVector<TArraySubsetIndexing<ui32>> expectedTestIndices;
+
+        auto getRangesSubset = [](ui32 begin, ui32 end) {
+            TSubsetBlock<ui32> blockBuffer;
+            blockBuffer.DstBegin = 0;
+            blockBuffer.SrcBegin = begin;
+            blockBuffer.SrcEnd = end;
+            return TRangesSubset<ui32>(blockBuffer.GetSize(), TVector<TSubsetBlock<ui32>>{blockBuffer});
+        };
+
+        expectedTrainIndices.emplace_back(getRangesSubset(0, 2));
+        expectedTrainIndices.emplace_back(getRangesSubset(0, 4));
+        expectedTrainIndices.emplace_back(getRangesSubset(0, 6));
+
+        expectedTestIndices.emplace_back(getRangesSubset(2, 4));
+        expectedTestIndices.emplace_back(getRangesSubset(4, 6));
+        expectedTestIndices.emplace_back(getRangesSubset(6, 8));
+
+        UNIT_ASSERT_EQUAL(result.first, expectedTrainIndices);
+        UNIT_ASSERT_EQUAL(result.second, expectedTestIndices);
+    }
 }

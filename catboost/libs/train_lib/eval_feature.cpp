@@ -193,7 +193,7 @@ static void PrepareFolds(
         // group subsets, groups maybe trivial
         testSubsets = NCB::Split(objectsGrouping, foldCount);
         // always inverted
-        CB_ENSURE(cvParams.Inverted, "Feature evaluation requires inverted cross-validation");
+        CB_ENSURE(cvParams.Type == ECrossValidation::Inverted, "Feature evaluation requires inverted cross-validation");
     } else {
         const ui32 foldSize = featureEvalOptions.FoldSize.Get();
         CB_ENSURE(foldSize > 0, "Fold size must be positive integer");

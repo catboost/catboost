@@ -365,8 +365,17 @@ namespace NCB {
             ui32 partSizeInObjects
         );
 
-        TVector<TArraySubsetIndexing<ui32>> SplitByGroups(
-            const TObjectsGrouping& objectsGrouping,
-            ui32 partSizeInGroups
-        );
-    }
+    TVector<TArraySubsetIndexing<ui32>> SplitByGroups(
+        const TObjectsGrouping& objectsGrouping,
+        ui32 partSizeInGroups
+    );
+
+    using TTimeSeriesTrainTestSubsets = std::pair<TVector<TArraySubsetIndexing<ui32>>,
+                                                  TVector<TArraySubsetIndexing<ui32>>>;
+
+    TTimeSeriesTrainTestSubsets TimeSeriesSplit(
+        const TObjectsGrouping& objectsGrouping,
+        ui32 partCount,
+        bool oldCvStyle
+    );
+}

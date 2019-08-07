@@ -76,11 +76,20 @@ TVector<TDataProvidersTemplate> PrepareCvFolds(
     if (cvParams.customTrainSubsets) {
         trainSubsets = TransformToVectorArrayIndexing(cvParams.customTrainSubsets.GetRef());
         testSubsets = TransformToVectorArrayIndexing(cvParams.customTestSubsets.GetRef());
+
         CB_ENSURE(
             cvParams.FoldCount == trainSubsets.size() &&
             testSubsets.size() == trainSubsets.size(),
             "Fold count must be equal to number of custom subsets"
         );
+    } else if (cvParams.Type == ECrossValidation::TimeSeries) {
+        const auto trainAndTestSubsets = NCB::TimeSeriesSplit(
+            *srcData->ObjectsGrouping,
+            cvParams.FoldCount,
+            oldCvStyleSplit
+        );
+        trainSubsets = trainAndTestSubsets.first;
+        testSubsets = trainAndTestSubsets.second;
     } else {
         if (cvParams.Stratified) {
             testSubsets = NCB::StratifiedSplitToFolds(
@@ -95,7 +104,7 @@ TVector<TDataProvidersTemplate> PrepareCvFolds(
     }
 
 
-    if (cvParams.Inverted) {
+    if (cvParams.Type == ECrossValidation::Inverted) {
         testSubsets.swap(trainSubsets);
     }
 

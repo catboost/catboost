@@ -101,7 +101,8 @@ enum class ENanMode {
 
 enum class ECrossValidation {
     Classical,
-    Inverted
+    Inverted,
+    TimeSeries
 };
 
 enum class ELossFunction {

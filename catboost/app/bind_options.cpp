@@ -156,9 +156,10 @@ inline static void BindPoolLoadParams(NLastGetopt::TOpts* parser, NCatboostOptio
             );
             const auto cvType = FromString<ECrossValidation>(TStringBuf(str).Before(':'));
             const auto params = TStringBuf(str).After(':');
-            if (cvType == ECrossValidation::Classical || cvType == ECrossValidation::Inverted) {
+            if (cvType == ECrossValidation::Classical || cvType == ECrossValidation::Inverted ||
+                cvType == ECrossValidation::TimeSeries) {
                 Split(params, ';', loadParamsPtr->CvParams.FoldIdx, loadParamsPtr->CvParams.FoldCount);
-                loadParamsPtr->CvParams.Inverted = (cvType == ECrossValidation::Inverted);
+                loadParamsPtr->CvParams.Type = cvType;
             }
             loadParamsPtr->CvParams.Check();
         });

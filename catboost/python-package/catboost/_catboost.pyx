@@ -149,6 +149,13 @@ cdef extern from "catboost/libs/options/enums.h":
     cdef cppclass EPreCalcShapValues:
         pass
 
+    cdef cppclass ECrossValidation:
+        pass
+
+    cdef ECrossValidation ECrossValidation_TimeSeries "ECrossValidation::TimeSeries"
+    cdef ECrossValidation ECrossValidation_Classical "ECrossValidation::Classical"
+    cdef ECrossValidation ECrossValidation_Inverted "ECrossValidation::Inverted"
+
 
 cdef extern from "catboost/libs/quantization_schema/schema.h" namespace "NCB":
     cdef cppclass TPoolQuantizationSchema:
@@ -663,7 +670,7 @@ ctypedef pair[TVector[TVector[ui32]], TVector[TVector[ui32]]] TCustomTrainTestSu
 cdef extern from "catboost/libs/options/cross_validation_params.h":
     cdef cppclass TCrossValidationParams:
         ui32 FoldCount
-        bool_t Inverted
+        ECrossValidation Type
         int PartitionRandSeed
         bool_t Shuffle
         bool_t Stratified
@@ -3070,7 +3077,7 @@ cdef class _CatBoost:
         cvParams.PartitionRandSeed = partition_random_seed
         cvParams.Shuffle = shuffle
         cvParams.Stratified = stratified
-        cvParams.Inverted = False
+        cvParams.Type = ECrossValidation_Classical
 
         cdef TMaybe[TCustomTrainTestSubsets] custom_train_test_subset
         if custom_folds is not None:
@@ -3379,7 +3386,7 @@ cdef TCustomTrainTestSubsets _make_train_test_subsets(_PoolBase pool, folds) exc
 
 
 cpdef _cv(dict params, _PoolBase pool, int fold_count, bool_t inverted, int partition_random_seed,
-          bool_t shuffle, bool_t stratified, bool_t as_pandas, folds):
+          bool_t shuffle, bool_t stratified, bool_t as_pandas, folds, type):
     prep_params = _PreprocessParams(params)
     cdef TCrossValidationParams cvParams
     cdef TVector[TCVResult] results
@@ -3388,7 +3395,13 @@ cpdef _cv(dict params, _PoolBase pool, int fold_count, bool_t inverted, int part
     cvParams.PartitionRandSeed = partition_random_seed
     cvParams.Shuffle = shuffle
     cvParams.Stratified = stratified
-    cvParams.Inverted = inverted
+
+    if type == 'Classical':
+        cvParams.Type = ECrossValidation_Classical
+    elif type == 'Inverted':
+        cvParams.Type = ECrossValidation_Inverted
+    else:
+        cvParams.Type = ECrossValidation_TimeSeries
 
     cdef TMaybe[TCustomTrainTestSubsets] custom_train_test_subset
     if folds is not None:

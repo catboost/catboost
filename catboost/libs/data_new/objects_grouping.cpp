@@ -418,3 +418,34 @@ TVector<TArraySubsetIndexing<ui32>> NCB::SplitByGroups(
     }
     return result;
 }
+
+TTimeSeriesTrainTestSubsets NCB::TimeSeriesSplit(
+    const TObjectsGrouping& objectsGrouping,
+    ui32 partCount,
+    bool oldCvStyle
+) {
+    const auto regularTestSubsets = Split(
+        objectsGrouping,
+        partCount + 1,
+        oldCvStyle
+    );
+    TVector<TArraySubsetIndexing<ui32>> trainSubsets;
+    TVector<TArraySubsetIndexing<ui32>> testSubsets;
+
+    for (ui32 part = 1; part < partCount + 1; ++part) {
+        TRangesSubset<ui32> currentEndBlocks = regularTestSubsets[part - 1].Get<TRangesSubset<ui32>>();
+        TSubsetBlock<ui32> blockTrain;
+        blockTrain.SrcBegin = 0;
+        blockTrain.SrcEnd = currentEndBlocks.Blocks[0].SrcEnd;
+        blockTrain.DstBegin = 0;
+        trainSubsets.push_back(
+            TArraySubsetIndexing<ui32>(
+                TRangesSubset<ui32>(blockTrain.GetSize(), TVector<TSubsetBlock<ui32>>{std::move(blockTrain)})
+            )
+        );
+
+        testSubsets.emplace_back(regularTestSubsets[part]);
+    }
+
+    return std::make_pair(trainSubsets, testSubsets);
+}

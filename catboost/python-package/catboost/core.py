@@ -4135,7 +4135,7 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
        fold_count=None, nfold=None, inverted=False, partition_random_seed=0, seed=None,
        shuffle=True, logging_level=None, stratified=None, as_pandas=True, metric_period=None,
        verbose=None, verbose_eval=None, plot=False, early_stopping_rounds=None,
-       save_snapshot=None, snapshot_file=None, snapshot_interval=None, folds=None):
+       save_snapshot=None, snapshot_file=None, snapshot_interval=None, folds=None, type='Classical'):
     """
     Cross-validate the CatBoost model.
 
@@ -4164,6 +4164,13 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
 
     nfold : int
         Synonym for fold_count.
+
+    type : string, optional (default='Classical')
+        Type of cross-validation
+        Possible values:
+            - 'Classical'
+            - 'Inverted'
+            - 'TimeSeries'
 
     inverted : bool, optional (default=False)
         Train on the test fold and evaluate the model on the training folds.
@@ -4248,7 +4255,7 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
             "if folds is not None, then all of fold_count, shuffle, partition_random_seed, inverted are None"
         )
 
-    if folds is not None:
+    if folds is not None or type == 'TimeSeries':
         shuffle = False
         inverted = False
 
@@ -4313,7 +4320,7 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
     else:
         assert nfold is None or nfold == fold_count
 
-    if folds is not None:
+    if folds is not None or type == 'TimeSeries':
         stratified = False
     elif stratified is None:
         loss_function = params.get('loss_function', None)
@@ -4329,7 +4336,7 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
 
     with log_fixup(), plot_wrapper(plot, [_get_train_dir(params)]):
         return _cv(params, pool, fold_count, inverted, partition_random_seed, shuffle, stratified,
-                   as_pandas, folds)
+                   as_pandas, folds, type)
 
 
 class BatchMetricCalcer(_MetricCalcerBase):

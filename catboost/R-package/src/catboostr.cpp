@@ -433,7 +433,7 @@ SEXP CatBoostFit_R(SEXP learnPoolParam, SEXP testPoolParam, SEXP fitParamsAsJson
 SEXP CatBoostCV_R(SEXP fitParamsAsJsonParam,
                   SEXP poolParam,
                   SEXP foldCountParam,
-                  SEXP invertedParam,
+                  SEXP cvType,
                   SEXP partitionRandomSeedParam,
                   SEXP shuffleParam,
                   SEXP stratifiedParam) {
@@ -450,7 +450,7 @@ SEXP CatBoostCV_R(SEXP fitParamsAsJsonParam,
     cvParams.PartitionRandSeed = asInteger(partitionRandomSeedParam);
     cvParams.Shuffle = asLogical(shuffleParam);
     cvParams.Stratified = asLogical(stratifiedParam);
-    cvParams.Inverted = asLogical(invertedParam);
+    cvParams.Type = *reinterpret_cast<ECrossValidation*>(R_ExternalPtrAddr(cvType));
 
     TVector<TCVResult> cvResults;
 

@@ -8,11 +8,11 @@
 #include <util/generic/maybe.h>
 #include <util/generic/vector.h>
 
+#include <catboost/libs/options/enums.h>
 
 struct TCrossValidationParams : public TSplitParams {
     TCrossValidationParams() = default;
     ui32 FoldCount = 0;
-    bool Inverted = false;
 
     // customTrainSubsets and customTestSubsets must be either both defined or both undefined
     // and when defined, they should have same sizes
@@ -20,6 +20,7 @@ struct TCrossValidationParams : public TSplitParams {
     TMaybe<TVector<TVector<ui32>>> customTestSubsets = Nothing();
     double MaxTimeSpentOnFixedCostRatio = 0.05;
     ui32 DevMaxIterationsBatchSize = 100000; // useful primarily for tests
+    ECrossValidation Type = ECrossValidation::Classical;
 
 public:
     bool Initialized() const {
