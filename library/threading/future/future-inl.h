@@ -562,7 +562,6 @@ namespace NThreading {
     template <typename T>
     inline const T& TFuture<T>::GetValueSync() const {
         return GetValue(TDuration::Max());
-        ;
     }
 
     template <typename T>
