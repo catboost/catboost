@@ -6,7 +6,6 @@ namespace NCB {
     static void GetPredictionsOnVaryingFeature(
         const TFullModel& model,
         const size_t featureNum,
-        const TVector<size_t>& ignoredValues, // for cat features, ordered
         const TVector<T>& featureValues,
         const EPredictionType predictionType,
         const int threadCount,
@@ -31,16 +30,9 @@ namespace NCB {
             CB_ENSURE_INTERNAL(FeatureType == EFeatureType::Float, "Unsupported FeatureType");
             initialHolder = std::move(data.ObjectsData.FloatFeatures[featureNum]);
         }
-        size_t ignoreIndex = 0;
-        size_t ignoreSize = ignoredValues.size();
         float prevBorder = featureValues[0];
         for (size_t numVal = 0; numVal <= featureValues.size(); ++numVal) {
             if constexpr (FeatureType == EFeatureType::Categorical) {
-                // Ignored values could be only in categorial features
-                if (ignoreIndex < ignoreSize && ignoredValues[ignoreIndex] == numVal) {
-                    ++ignoreIndex;
-                    continue;
-                }
                 if (numVal == featureValues.size()) {
                     break;
                 }
@@ -60,9 +52,12 @@ namespace NCB {
                 THolder<TFloatValuesHolder> holder = MakeHolder<TFloatArrayValuesHolder>(
                     featureNum,
                     TMaybeOwningConstArrayHolder<float>::CreateOwning(
-                        TVector<float>(objectCount, (prevBorder + newBorder) / 2.0)),
-                        data.CommonObjectsData.SubsetIndexing.Get()
-                    );
+                        TVector<float>(
+                            objectCount,
+                            (prevBorder + newBorder) / 2.0
+                        )
+                    ),
+                    data.CommonObjectsData.SubsetIndexing.Get());
                 data.ObjectsData.FloatFeatures[featureNum] = std::move(holder);
                 prevBorder = newBorder;
             }
@@ -107,8 +102,6 @@ namespace NCB {
         const TVector<double>& prediction,
         const EPredictionType predictionType,
         const int threadCount) {
-        CB_ENSURE_INTERNAL(!model.ObliviousTrees->FloatFeatures[featureNum].HasNans,
-            "Features with nan values not supported");
 
         NPar::TLocalExecutor executor;
         executor.RunAdditionalThreads(threadCount - 1);
@@ -174,26 +167,48 @@ namespace NCB {
         TVector<float> meanPrediction(numBins, 0.);
         TVector<size_t> countObjectsPerBin(numBins, 0);
 
+        TVector<float> meanWeightedTarget;
+        TVector<double> sumWeightsObjectsPerBin;
+        auto maybeWeights = processedDataProvider.TargetData->GetWeights();
+        bool useWeights = maybeWeights && !maybeWeights->IsTrivial();
+        if (useWeights) {
+            meanWeightedTarget.resize(numBins, 0);
+            sumWeightsObjectsPerBin.resize(numBins, 0);
+        }
         for (size_t numObj = 0; numObj < binNums.size(); ++numObj) {
             int binNum = binNums[numObj];
+
             meanTarget[binNum] += target[numObj];
             meanPrediction[binNum] += prediction[numObj];
+
             countObjectsPerBin[binNum] += 1;
+            if (useWeights) {
+                double weight = (*maybeWeights)[numObj];
+                meanWeightedTarget[binNum] += target[numObj] * weight;
+                sumWeightsObjectsPerBin[binNum] += weight;
+            }
         }
+
+        TVector<size_t> skippedValues;
         for (size_t binNum = 0; binNum < bordersSize + 1; ++binNum) {
             size_t numObjs = countObjectsPerBin[binNum];
             if (numObjs == 0) {
                 continue;
             }
+            countObjectsPerBin[binNum] = countObjectsPerBin[binNum];
             meanTarget[binNum] /= static_cast<float>(numObjs);
             meanPrediction[binNum] /= static_cast<float>(numObjs);
+
+            if (useWeights) {
+                double sumWeight = sumWeightsObjectsPerBin[binNum];
+                meanWeightedTarget[binNum ] /= sumWeight;
+            }
         }
 
         TVector<double> predictionsOnVarying(bordersSize + 1, 0.);
         GetPredictionsOnVaryingFeature<float, TFloatValuesHolder, EFeatureType::Float>(
             model,
             featureNum,
-            TVector<size_t> (),
             quantizedFeaturesInfo->GetBorders(TFloatFeatureIdx(featureNum)),
             predictionType,
             threadCount,
@@ -205,6 +220,7 @@ namespace NCB {
             quantizedFeaturesInfo->GetBorders(TFloatFeatureIdx(featureNum)),
             binNums,
             meanTarget,
+            useWeights ? meanWeightedTarget : TVector<float> {},
             meanPrediction,
             countObjectsPerBin,
             predictionsOnVarying
@@ -274,42 +290,60 @@ namespace NCB {
         TVector<float> meanTarget(numBins, 0.);
         TVector<float> meanPrediction(numBins, 0.);
         TVector<size_t> countObjectsPerBin(numBins, 0);
+
+        TVector<float> meanWeightedTarget;
+        TVector<double> sumWeightsObjectsPerBin;
+        auto maybeWeights = processedDataProvider.TargetData->GetWeights();
+        bool useWeights = maybeWeights && !maybeWeights->IsTrivial();
+        if (useWeights) {
+            meanWeightedTarget.resize(numBins, 0);
+            sumWeightsObjectsPerBin.resize(numBins, 0);
+        }
         for (size_t numObj = 0; numObj < binNums.size(); ++numObj) {
             ui8 binNum = binNums[numObj];
+
             meanTarget[binNum] += target[numObj];
             meanPrediction[binNum] += prediction[numObj];
             countObjectsPerBin[binNum] += 1;
+
+            if (useWeights) {
+                double weight = (*maybeWeights)[numObj];
+                meanWeightedTarget[binNum] += target[numObj] * weight;
+                sumWeightsObjectsPerBin[binNum] += weight;
+            }
         }
+
         if (countObjectsPerBin[numBins - 1] == 0) {
             meanTarget.pop_back();
             meanPrediction.pop_back();
             countObjectsPerBin.pop_back();
+            if (useWeights) {
+                meanWeightedTarget.pop_back();
+                sumWeightsObjectsPerBin.pop_back();
+            }
             --numBins;
         }
-        int emptyOffset = 0;
+
         TVector<size_t> skippedValues;
         for (size_t binNum = 0; binNum < numBins; ++binNum) {
             size_t numObjs = countObjectsPerBin[binNum];
             if (numObjs == 0) {
-                ++emptyOffset;
-                skippedValues.push_back(binNum);
                 continue;
             }
-            countObjectsPerBin[binNum - emptyOffset] = countObjectsPerBin[binNum];
-            binNums[binNum - emptyOffset] = binNums[binNum];
-            meanTarget[binNum - emptyOffset] = meanTarget[binNum] / static_cast<float>(numObjs);
-            meanPrediction[binNum - emptyOffset] = meanPrediction[binNum] / static_cast<float>(numObjs);
-        }
-        countObjectsPerBin.resize(countObjectsPerBin.size() - emptyOffset);
-        binNums.resize(binNums.size() - emptyOffset);
-        meanTarget.resize(meanTarget.size() - emptyOffset);
-        meanPrediction.resize(meanPrediction.size() - emptyOffset);
+            countObjectsPerBin[binNum] = countObjectsPerBin[binNum];
+            binNums[binNum] = binNums[binNum];
+            meanTarget[binNum] /= static_cast<float>(numObjs);
+            meanPrediction[binNum] /= static_cast<float>(numObjs);
 
+            if (useWeights) {
+                double sumWeight = sumWeightsObjectsPerBin[binNum];
+                meanWeightedTarget[binNum] /= sumWeight;
+            }
+        }
         TVector<double> predictionsOnVarying(numBins, 0.);
         GetPredictionsOnVaryingFeature<int, THashedCatValuesHolder, EFeatureType::Categorical>(
             model,
             featureNum,
-            skippedValues,
             oneHotUniqueValues,
             predictionType,
             threadCount,
@@ -321,6 +355,7 @@ namespace NCB {
             TVector<float>(),
             binNums,
             meanTarget,
+            useWeights ? meanWeightedTarget : TVector<float> {},
             meanPrediction,
             countObjectsPerBin,
             predictionsOnVarying

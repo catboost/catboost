@@ -982,6 +982,7 @@ cdef extern from "catboost/libs/quantized_pool_analysis/quantized_pool_analysis.
         TVector[float] Borders
         TVector[int] BinarizedFeature
         TVector[float] MeanTarget
+        TVector[float] MeanWeightedTarget
         TVector[float] MeanPrediction
         TVector[size_t] ObjectsPerBin
         TVector[double] PredictionsOnVaryingFeature
@@ -3212,6 +3213,7 @@ cdef class _CatBoost:
                     'borders': _vector_of_floats_to_np_array(stat.Borders),
                     'binarized_feature': _vector_of_ints_to_np_array(stat.BinarizedFeature),
                     'mean_target': _vector_of_floats_to_np_array(stat.MeanTarget),
+                    'mean_weighted_target': _vector_of_floats_to_np_array(stat.MeanWeightedTarget),
                     'mean_prediction': _vector_of_floats_to_np_array(stat.MeanPrediction),
                     'objects_per_bin': _vector_of_size_t_to_np_array(stat.ObjectsPerBin),
                     'predictions_on_varying_feature': _vector_of_double_to_np_array(stat.PredictionsOnVaryingFeature)

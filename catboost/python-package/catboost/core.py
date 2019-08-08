@@ -4427,12 +4427,20 @@ def _build_binarized_feature_statistics_fig(statistics, feature):
     trace_2 = go.Scatter(
         y=statistics['mean_prediction'][order],
         mode='lines+markers',
-        name='Mean prediction',
+        name='Mean prediction on each segment of feature values',
         yaxis='y1',
         xaxis='x'
     )
+    if (len(statistics['mean_weighted_target']) != 0):
+        trace_3 = go.Scatter(
+            y=map_ignored(statistics['mean_weighted_target'])[order],
+            mode='lines+markers',
+            name='Mean weighted target',
+            yaxis='y1',
+            xaxis='x'
+        )
 
-    trace_3 = go.Bar(
+    trace_4 = go.Bar(
         y=statistics['objects_per_bin'][order],
         width=bar_width,
         name='Objects per bin',
@@ -4443,15 +4451,17 @@ def _build_binarized_feature_statistics_fig(statistics, feature):
         }
     )
 
-    trace_4 = go.Scatter(
+    trace_5 = go.Scatter(
         y=statistics['predictions_on_varying_feature'][order],
         mode='lines+markers',
-        name='Predictions for different feature values',
+        name='Mean prediction with substituted feature',
         yaxis='y1',
         xaxis='x'
     )
-
-    data = [trace_1, trace_2, trace_3, trace_4]
+    if (len(statistics['mean_weighted_target']) != 0):
+        data = [trace_1, trace_2, trace_3, trace_4, trace_5]
+    else:
+        data = [trace_1, trace_2, trace_4, trace_5]
     layout = _calc_feature_statistics_layout(go, feature, xaxis)
     fig = go.Figure(data=data, layout=layout)
 
@@ -4465,6 +4475,7 @@ def _plot_feature_statistics(statistics, feature, max_cat_features_on_plot):
             sub_statistics = {
                 'cat_values': statistics['cat_values'][begin:begin+max_cat_features_on_plot],
                 'mean_target': statistics['mean_target'][begin:begin+max_cat_features_on_plot],
+                'mean_weighted_target': statistics['mean_weighted_target'][begin:begin+max_cat_features_on_plot],
                 'mean_prediction': statistics['mean_prediction'][begin:begin+max_cat_features_on_plot],
                 'objects_per_bin': statistics['objects_per_bin'][begin:begin+max_cat_features_on_plot],
                 'predictions_on_varying_feature':

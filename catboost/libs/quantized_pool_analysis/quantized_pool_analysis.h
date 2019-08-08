@@ -18,6 +18,7 @@ namespace NCB {
         TVector<float> Borders; // empty in case of one-hot features
         TVector<int> BinarizedFeature;
         TVector<float> MeanTarget;
+        TVector<float> MeanWeightedTarget;
         TVector<float> MeanPrediction;
         TVector<size_t> ObjectsPerBin;
         TVector<double> PredictionsOnVaryingFeature;
