@@ -274,10 +274,7 @@ def onpy_srcs(unit, *args):
             elif path.endswith('.ev'):
                 evs.append(pathmod)
             elif path.endswith('.swg'):
-                if py3:
-                    ymake.report_configure_error('SWIG is not yet supported for Python 3: https://st.yandex-team.ru/DEVTOOLS-4863')
-                else:
-                    swigs.append(path)  # ignore mod, use last (and only) ns
+                swigs.append(path)  # ignore mod, use last (and only) ns
             else:
                 ymake.report_configure_error('in PY_SRCS: unrecognized arg {!r}'.format(path))
 
@@ -438,12 +435,12 @@ def onpy_srcs(unit, *args):
 
     if swigs:
         unit.onsrcs(swigs)
-        prefix = unit.get('MODULE_PREFIX')
+        prefix = unit.get('MODULE_PREFIX')  # 'libpy'
         project = unit.get('REALPRJNAME')
-        py_register(unit, prefix + project, py3)
+        onpy_register(unit, ns + prefix + project)
         path = '${ARCADIA_BUILD_ROOT}/' + '{}/{}.py'.format(upath, project)
-        arg = '{}={}'.format(path, ns + project.replace('/', '.'))
-        unit.onpy_srcs([arg])
+        arg = '{}={}'.format(path, ns + project)
+        onpy_srcs(unit, arg)
 
 
 def _check_test_srcs(*args):
