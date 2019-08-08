@@ -79,6 +79,7 @@ PEERDIR(
     library/json
     library/malloc/api
     library/object_factory
+    library/sse
     library/svnversion
     library/threading/local_executor
 )

@@ -18,7 +18,7 @@ public:
         SplitsCount = splitsCount;
     }
 
-    int GetSplitsCount() {
+    int GetSplitsCount() const {
         return SplitsCount;
     }
 
@@ -30,33 +30,47 @@ protected:
 
 class IPointwiseScoreCalcer : public IScoreCalcer {
 public:
+    void SetL2Regularizer(double l2Regularizer) {
+        L2Regularizer = l2Regularizer;
+    }
+
     virtual void AddLeaf(int splitIdx, double leafApprox, const TBucketStats& leafStats) = 0;
+
+    virtual void AddLeafPlain(int splitIdx, const TBucketStats& leftStats, const TBucketStats& rightStats) = 0;
+
+    virtual void AddLeafOrdered(int splitIdx, const TBucketStats& leftStats, const TBucketStats& rightStats) = 0;
+
+protected:
+    double L2Regularizer = 1e-20;
 };
 
 class TCosineScoreCalcer final : public IPointwiseScoreCalcer {
+    using TFraction = std::array<double, 2>;
 public:
     void SetSplitsCount(int splitsCount) override {
         IPointwiseScoreCalcer::SetSplitsCount(splitsCount);
-        Numerators.resize(splitsCount);
-        Denominators.resize(splitsCount, 1e-100);
+        Scores.resize(splitsCount, {0, 1e-100});
     }
 
     TVector<double> GetScores() const override {
         TVector<double> scores(SplitsCount);
         for (int i : xrange(SplitsCount)) {
-            scores[i] = Numerators[i] / sqrt(Denominators[i]);
+            scores[i] = Scores[i][0] / sqrt(Scores[i][1]);
         }
         return scores;
     }
 
     void AddLeaf(int splitIdx, double leafApprox, const TBucketStats& leafStats) override {
-        Numerators[splitIdx] += leafApprox * leafStats.SumWeightedDelta;
-        Denominators[splitIdx] += leafApprox * leafApprox * leafStats.SumWeight;
+        Scores[splitIdx][0] += leafApprox * leafStats.SumWeightedDelta;
+        Scores[splitIdx][1] += leafApprox * leafApprox * leafStats.SumWeight;
     }
 
+    void AddLeafPlain(int splitIdx, const TBucketStats& leftStats, const TBucketStats& rightStats) override;
+
+    void AddLeafOrdered(int splitIdx, const TBucketStats& leftStats, const TBucketStats& rightStats) override;
+
 private:
-    TVector<double> Numerators;
-    TVector<double> Denominators;
+    TVector<TFraction> Scores;
 };
 
 class TL2ScoreCalcer final : public IPointwiseScoreCalcer {
@@ -73,6 +87,10 @@ public:
     void AddLeaf(int splitIdx, double leafApprox, const TBucketStats& leafStats) override {
         Scores[splitIdx] += 2 * leafApprox * leafStats.SumWeightedDelta - leafApprox * leafApprox * leafStats.SumWeight;
     }
+
+    void AddLeafPlain(int splitIdx, const TBucketStats& leftStats, const TBucketStats& rightStats) override;
+
+    void AddLeafOrdered(int splitIdx, const TBucketStats& leftStats, const TBucketStats& rightStats) override;
 
 private:
     TVector<double> Scores;

@@ -643,38 +643,16 @@ static void CalcStatsImpl(
 
 inline void UpdateSplitScore(
     bool isPlainMode,
-    double scaledL2Regularizer,
     const TBucketStats& trueStats,
     const TBucketStats& falseStats,
     int splitIdx,
     IPointwiseScoreCalcer* scoreCalcer
 ) {
-    double trueAvrg, falseAvrg;
     if (isPlainMode) {
-        trueAvrg = CalcAverage(
-            trueStats.SumWeightedDelta,
-            trueStats.SumWeight,
-            scaledL2Regularizer
-        );
-        falseAvrg = CalcAverage(
-            falseStats.SumWeightedDelta,
-            falseStats.SumWeight,
-            scaledL2Regularizer
-        );
+        scoreCalcer->AddLeafPlain(splitIdx, falseStats, trueStats);
     } else {
-        trueAvrg = CalcAverage(
-            trueStats.SumDelta,
-            trueStats.Count,
-            scaledL2Regularizer
-        );
-        falseAvrg = CalcAverage(
-            falseStats.SumDelta,
-            falseStats.Count,
-            scaledL2Regularizer
-        );
+        scoreCalcer->AddLeafOrdered(splitIdx, falseStats, trueStats);
     }
-    scoreCalcer->AddLeaf(splitIdx, trueAvrg, trueStats);
-    scoreCalcer->AddLeaf(splitIdx, falseAvrg, falseStats);
 }
 
 
@@ -687,12 +665,10 @@ inline static void UpdateScores(
     int leafCount,
     const TStatsIndexer& indexer,
     const TSplitEnsembleSpec& splitEnsembleSpec,
-    float l2Regularizer,
+    double scaledL2Regularizer,
     TIsPlainMode isPlainMode,
     THaveMonotonicConstraints haveMonotonicConstraints,
     ui32 oneHotMaxSize,
-    double sumAllWeights,
-    int allDocCount,
     const TVector<int>& currTreeMonotonicConstraints,
     const TVector<int>& candidateSplitMonotonicConstraints,
     IPointwiseScoreCalcer* scoreCalcer
@@ -704,7 +680,6 @@ inline static void UpdateScores(
     TVector<TVector<double>> tailLeafSumWeightedDers;
     TVector<TVector<double>> tailLeafWeights;
     TVector<int> leafsProcessed;
-    const double scaledL2Regularizer = l2Regularizer * (sumAllWeights / allDocCount);
     if (haveMonotonicConstraints) {
         /* In this case updateSplitScoreClosure simply stores relevant statistics for every leaf and
          * every evaluated split. Then monotonization applies to leaf values and split score is calculated.
@@ -728,7 +703,6 @@ inline static void UpdateScores(
         if (!haveMonotonicConstraints) {
             UpdateSplitScore(
                 isPlainMode,
-                scaledL2Regularizer,
                 trueStats,
                 falseStats,
                 splitIdx,
@@ -986,18 +960,18 @@ static void CalculateNonPairwiseScore(
     for (int bodyTailIdx = 0; bodyTailIdx < fold.GetBodyTailCount(); ++bodyTailIdx) {
         const double sumAllWeights = initialFold.BodyTailArr[bodyTailIdx].BodySumWeight;
         const int docCount = initialFold.BodyTailArr[bodyTailIdx].BodyFinish;
+        const double scaledL2Regularizer = l2Regularizer * (sumAllWeights / docCount);
+        scoreCalcer->SetL2Regularizer(scaledL2Regularizer);
         const auto updateScores = [&] (auto isPlainMode, auto haveMonotonicConstraints, const auto* stats) {
             UpdateScores(
                 stats,
                 leafCount,
                 indexer,
                 splitEnsembleSpec,
-                l2Regularizer,
+                scaledL2Regularizer,
                 isPlainMode,
                 haveMonotonicConstraints,
                 oneHotMaxSize,
-                sumAllWeights,
-                docCount,
                 currTreeMonotonicConstraints,
                 candidateSplitMonotonicConstraints,
                 scoreCalcer
@@ -1274,10 +1248,10 @@ TVector<double> GetScores(
     THolder<IPointwiseScoreCalcer> scoreCalcer;
     switch (fitParams.ObliviousTreeOptions->ScoreFunction) {
         case EScoreFunction::Cosine:
-            scoreCalcer.Reset(new TCosineScoreCalcer);
+            scoreCalcer = MakeHolder<TCosineScoreCalcer>();
             break;
         case EScoreFunction::L2:
-            scoreCalcer.Reset(new TL2ScoreCalcer);
+            scoreCalcer = MakeHolder<TL2ScoreCalcer>();
             break;
         default:
             CB_ENSURE(false, "Error: score function for CPU should be Cosine or L2");
@@ -1285,6 +1259,8 @@ TVector<double> GetScores(
     }
     scoreCalcer->SetSplitsCount(CalcSplitsCount(stats3d.SplitEnsembleSpec, bucketCount, oneHotMaxSize));
 
+    const double scaledL2Regularizer = l2Regularizer * (sumAllWeights / allDocCount);
+    scoreCalcer->SetL2Regularizer(scaledL2Regularizer);
     for (int statsIdx = 0; statsIdx * splitStatsCount < bucketStats.ysize(); ++statsIdx) {
         const TBucketStats* stats = GetDataPtr(bucketStats) + statsIdx * splitStatsCount;
         UpdateScores(
@@ -1292,12 +1268,10 @@ TVector<double> GetScores(
             leafCount,
             indexer,
             stats3d.SplitEnsembleSpec,
-            l2Regularizer,
+            scaledL2Regularizer,
             /*isPlainMode=*/std::true_type(),
             /*haveMonotonicConstraints*/std::false_type(),
             oneHotMaxSize,
-            sumAllWeights,
-            allDocCount,
             /*currTreeMonotonicConstraints*/{},
             /*candidateSplitMonotonicConstraints*/{},
             scoreCalcer.Get()
