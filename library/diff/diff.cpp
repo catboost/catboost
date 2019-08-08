@@ -44,10 +44,10 @@ struct TCollection<char>: public TCollectionImpl<char> {
 };
 
 template <>
-struct TCollection<TChar>: public TCollectionImpl<TChar> {
+struct TCollection<wchar16>: public TCollectionImpl<wchar16> {
     TCollection(const TWtringBuf& str, const TUtf16String& delims) {
-        TSetDelimiter<const TChar> set(delims.data());
-        TKeepDelimiters<TCollection<TChar>> c(this);
+        TSetDelimiter<const wchar16> set(delims.data());
+        TKeepDelimiters<TCollection<wchar16>> c(this);
         SplitString(str.begin(), str.end(), set, c);
     }
 };
@@ -66,16 +66,16 @@ size_t NDiff::InlineDiff(TVector<TChunk<char>>& chunks, const TStringBuf& left, 
     return dist;
 }
 
-size_t NDiff::InlineDiff(TVector<TChunk<TChar>>& chunks, const TWtringBuf& left, const TWtringBuf& right, const TUtf16String& delims) {
+size_t NDiff::InlineDiff(TVector<TChunk<wchar16>>& chunks, const TWtringBuf& left, const TWtringBuf& right, const TUtf16String& delims) {
     if (delims.empty()) {
-        return InlineDiff<TChar>(chunks, TConstArrayRef<TChar>(left.data(), left.size()), TConstArrayRef<TChar>(right.data(), right.size()));
+        return InlineDiff<wchar16>(chunks, TConstArrayRef<wchar16>(left.data(), left.size()), TConstArrayRef<wchar16>(right.data(), right.size()));
     }
-    TCollection<TChar> c1(left, delims);
-    TCollection<TChar> c2(right, delims);
+    TCollection<wchar16> c1(left, delims);
+    TCollection<wchar16> c2(right, delims);
     TVector<TChunk<ui64>> diff;
     const size_t dist = InlineDiff<ui64>(diff, c1.GetKeys(), c2.GetKeys());
     for (const auto& it : diff) {
-        chunks.push_back(TChunk<TChar>(c1.Remap(it.Left), c2.Remap(it.Right), c1.Remap(it.Common)));
+        chunks.push_back(TChunk<wchar16>(c1.Remap(it.Left), c2.Remap(it.Right), c1.Remap(it.Common)));
     }
     return dist;
 }

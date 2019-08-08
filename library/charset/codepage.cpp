@@ -311,10 +311,10 @@ void DoDecodeUnknownPlane(TxChar* str, TxChar*& ee, const ECharset enc) {
     ee = e;
 }
 
-void DecodeUnknownPlane(wchar32* str, wchar32*& ee, const ECharset enc) {
+void DecodeUnknownPlane(wchar16* str, wchar16*& ee, const ECharset enc) {
     DoDecodeUnknownPlane(str, ee, enc);
 }
-void DecodeUnknownPlane(TChar* str, TChar*& ee, const ECharset enc) {
+void DecodeUnknownPlane(wchar32* str, wchar32*& ee, const ECharset enc) {
     DoDecodeUnknownPlane(str, ee, enc);
 }
 

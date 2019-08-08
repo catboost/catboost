@@ -186,7 +186,7 @@ namespace NDetail {
     template <typename TResult>
     TWtringBuf RecodeUTF8Robust(const TStringBuf src, TResult& dst) {
         // make enough room for re-coded string
-        TChar* dstbuf = TRecodeResultOps<TResult>::Reserve(dst, src.size() * TRecodeTraits<TChar>::ReserveSize);
+        wchar16* dstbuf = TRecodeResultOps<TResult>::Reserve(dst, src.size() * TRecodeTraits<wchar16>::ReserveSize);
 
         // do re-coding
         size_t written = 0;

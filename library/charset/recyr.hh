@@ -81,7 +81,7 @@ inline RECODE_RESULT Recode(ECharset from, ECharset to, const char* in, char* ou
     }
 
     size_t wideSize = inSize * 3;
-    TArrayHolder<TChar> wide(new TChar[wideSize]);
+    TArrayHolder<wchar16> wide(new wchar16[wideSize]);
 
     size_t wideRead = 0;
     size_t wideWritten = 0;

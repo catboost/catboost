@@ -107,6 +107,6 @@ namespace NDiff {
     // Without delimiters calculates character-wise diff
     // With delimiters calculates token-wise diff
     size_t InlineDiff(TVector<TChunk<char>>& chunks, const TStringBuf& left, const TStringBuf& right, const TString& delims = TString());
-    size_t InlineDiff(TVector<TChunk<TChar>>& chunks, const TWtringBuf& left, const TWtringBuf& right, const TUtf16String& delims = TUtf16String());
+    size_t InlineDiff(TVector<TChunk<wchar16>>& chunks, const TWtringBuf& left, const TWtringBuf& right, const TUtf16String& delims = TUtf16String());
 
 }
