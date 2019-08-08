@@ -69,7 +69,6 @@ namespace NDetail {
     TCharType* Allocate(size_t oldLen, size_t newLen, TStringData* oldData = nullptr);
 
     void Deallocate(void* data);
-
 }
 
 template <typename TDerived, typename TCharType, typename TTraits>
@@ -1049,6 +1048,23 @@ public:
         TTraits::Copy(Data_, s.data(), s.size());
     }
 
+    /**
+     * wARN:
+     *    Certain invokations of this method will result in link-time error.
+     *    You are free to implement corresponding methods in string.cpp if you need them.
+     */
+    static TDerived FromAscii(const ::TFixedString<char>& s) {
+        return TDerived().AppendAscii(s);
+    }
+
+    static TDerived FromUtf8(const ::TFixedString<char>& s) {
+        return TDerived().AppendUtf8(s);
+    }
+
+    static TDerived FromUtf16(const ::TFixedString<wchar16>& s) {
+        return TDerived().AppendUtf16(s);
+    }
+
     static TDerived Uninitialized(size_t n) {
         return TDerived(TUninitialized(n));
     }
@@ -1184,6 +1200,26 @@ public:
         return AssignNoAlias(s.SubString(spos, sn));
     }
 
+    /**
+     * wARN:
+     *    Certain invokations of this method will result in link-time error.
+     *    You are free to implement corresponding methods in string.cpp if you need them.
+     */
+    auto AssignAscii(const ::TFixedString<char>& s) {
+        clear();
+        return This()->AppendAscii(s);
+    }
+
+    auto AssignUtf8(const ::TFixedString<char>& s) {
+        clear();
+        return This()->AppendUtf8(s);
+    }
+
+    auto AssignUtf16(const ::TFixedString<wchar16>& s) {
+        clear();
+        return This()->AppendUtf8(s);
+    }
+
     TDerived& operator=(const TDerived& s) {
         return assign(s);
     }
@@ -1294,6 +1330,17 @@ public:
     inline TDerived& append(const TCharType* pc, size_t pos, size_t n, size_t pc_len = TBase::npos) {
         return replace(length(), 0, pc, pos, n, pc_len);
     }
+
+    /**
+     * wARN:
+     *    Certain invokations of this method will result in link-time error.
+     *    You are free to implement corresponding methods in string.cpp if you need them.
+     */
+    TDerived& AppendAscii(const ::TFixedString<char>& s);
+
+    TDerived& AppendUtf8(const ::TFixedString<char>& s);
+
+    TDerived& AppendUtf16(const ::TFixedString<wchar16>& s);
 
     inline void push_back(TCharType c) {
         append(c);
@@ -1741,27 +1788,6 @@ public:
         this->reserve(rt.Capacity);
     }
 
-    static TUtf16String FromUtf8(const ::TFixedString<char>& s) {
-        return TUtf16String().AppendUtf8(s);
-    }
-
-    static TUtf16String FromAscii(const ::TFixedString<char>& s) {
-        return TUtf16String().AppendAscii(s);
-    }
-
-    TUtf16String& AssignUtf8(const ::TFixedString<char>& s) {
-        clear();
-        return AppendUtf8(s);
-    }
-
-    TUtf16String& AssignAscii(const ::TFixedString<char>& s) {
-        clear();
-        return AppendAscii(s);
-    }
-
-    TUtf16String& AppendUtf8(const ::TFixedString<char>& s);
-    TUtf16String& AppendAscii(const ::TFixedString<char>& s);
-
     TUtf16String& operator=(const TUtf16String& s) {
         return assign(s);
     }
@@ -1817,37 +1843,6 @@ public:
     TUtf32String(::NDetail::TReserveTag rt) {
         this->reserve(rt.Capacity);
     }
-
-    static TUtf32String FromUtf8(const ::TFixedString<char>& s) {
-        return TUtf32String().AppendUtf8(s);
-    }
-
-    static TUtf32String FromUtf16(const ::TFixedString<wchar16>& s) {
-        return TUtf32String().AppendUtf16(s);
-    }
-
-    static TUtf32String FromAscii(const ::TFixedString<char>& s) {
-        return TUtf32String().AppendAscii(s);
-    }
-
-    TUtf32String& AssignUtf8(const ::TFixedString<char>& s) {
-        clear();
-        return AppendUtf8(s);
-    }
-
-    TUtf32String& AssignUtf16(const ::TFixedString<wchar16>& s) {
-        clear();
-        return AppendUtf16(s);
-    }
-
-    TUtf32String& AssignAscii(const ::TFixedString<char>& s) {
-        clear();
-        return AppendAscii(s);
-    }
-
-    TUtf32String& AppendUtf8(const ::TFixedString<char>& s);
-    TUtf32String& AppendAscii(const ::TFixedString<char>& s);
-    TUtf32String& AppendUtf16(const ::TFixedString<wchar16>& s);
 
     TUtf32String& operator=(const TUtf32String& s) {
         return assign(s);

@@ -78,18 +78,9 @@ bool TString::to_title(size_t pos, size_t n) {
     return to_lower(pos + 1, n - 1) || changed;
 }
 
-TUtf16String& TUtf16String::AppendUtf8(const ::TFixedString<char>& s) {
-    size_t oldSize = size();
-    ReserveAndResize(size() + s.Length * 4);
-    size_t written = 0;
-    size_t pos = UTF8ToWideImpl(s.Start, s.Length, begin() + oldSize, written);
-    if (pos != s.Length)
-        ythrow yexception() << "failed to decode UTF-8 string at pos " << pos << ::NDetail::InStringMsg(s.Start, s.Length);
-    remove(oldSize + written);
-    return *this;
-}
-
-TUtf16String& TUtf16String::AppendAscii(const ::TFixedString<char>& s) {
+template<>
+TUtf16String&
+TBasicString<TUtf16String, wchar16, TCharTraits<wchar16>>::AppendAscii(const ::TFixedString<char>& s) {
     ReserveAndResize(size() + s.Length);
 
     auto dst = begin() + size() - s.Length;
@@ -98,7 +89,21 @@ TUtf16String& TUtf16String::AppendAscii(const ::TFixedString<char>& s) {
         *dst = static_cast<wchar16>(*src);
     }
 
-    return *this;
+    return *This();
+}
+
+template<>
+TUtf16String&
+TBasicString<TUtf16String, wchar16, TCharTraits<wchar16>>::AppendUtf8(const ::TFixedString<char>& s) {
+    size_t oldSize = size();
+    ReserveAndResize(size() + s.Length * 4);
+    size_t written = 0;
+    size_t pos = UTF8ToWideImpl(s.Start, s.Length, begin() + oldSize, written);
+    if (pos != s.Length)
+        ythrow yexception() << "failed to decode UTF-8 string at pos " << pos << ::NDetail::InStringMsg(s.Start, s.Length);
+    remove(oldSize + written);
+
+    return *This();
 }
 
 bool TUtf16String::to_lower(size_t pos, size_t n) {
@@ -113,7 +118,23 @@ bool TUtf16String::to_title() {
     return ToTitle(*this);
 }
 
-TUtf32String& TUtf32String::AppendUtf8(const ::TFixedString<char>& s) {
+template<>
+TUtf32String&
+TBasicString<TUtf32String, wchar32, TCharTraits<wchar32>>::AppendAscii(const ::TFixedString<char>& s) {
+    ReserveAndResize(size() + s.Length);
+
+    auto dst = begin() + size() - s.Length;
+
+    for (const char* src = s.Start; dst != end(); ++dst, ++src) {
+        *dst = static_cast<wchar32>(*src);
+    }
+
+    return *This();
+}
+
+template<>
+TUtf32String&
+TBasicString<TUtf32String, wchar32, TCharTraits<wchar32>>::AppendUtf8(const ::TFixedString<char>& s) {
     size_t oldSize = size();
     ReserveAndResize(size() + s.Length * 4);
     size_t written = 0;
@@ -121,10 +142,13 @@ TUtf32String& TUtf32String::AppendUtf8(const ::TFixedString<char>& s) {
     if (pos != s.Length)
         ythrow yexception() << "failed to decode UTF-8 string at pos " << pos << ::NDetail::InStringMsg(s.Start, s.Length);
     remove(oldSize + written);
-    return *this;
+
+    return *This();
 }
 
-TUtf32String& TUtf32String::AppendUtf16(const ::TFixedString<wchar16>& s) {
+template<>
+TUtf32String&
+TBasicString<TUtf32String, wchar32, TCharTraits<wchar32>>::AppendUtf16(const ::TFixedString<wchar16>& s) {
     size_t oldSize = size();
     ReserveAndResize(size() + s.Length * 2);
 
@@ -134,19 +158,8 @@ TUtf32String& TUtf32String::AppendUtf16(const ::TFixedString<wchar16>& s) {
     size_t written = end - oldEnd;
 
     remove(oldSize + written);
-    return *this;
-}
 
-TUtf32String& TUtf32String::AppendAscii(const ::TFixedString<char>& s) {
-    ReserveAndResize(size() + s.Length);
-
-    auto dst = begin() + size() - s.Length;
-
-    for (const char* src = s.Start; dst != end(); ++dst, ++src) {
-        *dst = static_cast<wchar32>(*src);
-    }
-
-    return *this;
+    return *This();
 }
 
 bool TUtf32String::to_lower(size_t pos, size_t n) {
