@@ -240,10 +240,10 @@ namespace NCB::NModelEvaluation {
             ProcessDocsInBlocks<IsQuantizedFeaturesData>(
                 *Model.ObliviousTrees,
                 Model.CtrProvider,
-                [this](const TFeaturePosition& position, size_t index) -> float {
+                [this](TFeaturePosition position, size_t index) -> float {
                     return FloatFeatureAccessor(position, CurrBatchStart + index);
                 },
-                [this](const TFeaturePosition& position, size_t index) -> ui32 {
+                [this](TFeaturePosition position, size_t index) -> ui32 {
                     return CatFeatureAccessor(position, CurrBatchStart + index);
                 },
                 CurrBatchSize,
@@ -306,10 +306,10 @@ namespace NCB::NModelEvaluation {
         const size_t docCount = Max(floatFeatures.size(), catFeatures.size());
         return MakeLeafIndexCalcer(
             model,
-            [floatFeatures](const TFeaturePosition& position, size_t index) -> float {
+            [floatFeatures](TFeaturePosition position, size_t index) -> float {
                 return floatFeatures[index][position.Index];
             },
-            [catFeatures](const TFeaturePosition& position, size_t index) -> int {
+            [catFeatures](TFeaturePosition position, size_t index) -> int {
                 if constexpr (std::is_integral_v<TCatFeatureValue>) {
                     return catFeatures[index][position.Index];
                 } else {

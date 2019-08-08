@@ -136,10 +136,10 @@ namespace NCB::NModelEvaluation {
                 CalcGeneric(
                     *ObliviousTrees,
                     CtrProvider,
-                    [&transposedFeatures](const TFeaturePosition& floatFeature, size_t index) -> float {
+                    [&transposedFeatures](TFeaturePosition floatFeature, size_t index) -> float {
                         return transposedFeatures[floatFeature.FlatIndex][index];
                     },
-                    [&transposedFeatures](const TFeaturePosition& catFeature, size_t index) -> int {
+                    [&transposedFeatures](TFeaturePosition catFeature, size_t index) -> int {
                         return ConvertFloatCatFeatureToIntHash(transposedFeatures[catFeature.FlatIndex][index]);
                     },
                     *docCount,
@@ -178,10 +178,10 @@ namespace NCB::NModelEvaluation {
                 CalcGeneric(
                     *ObliviousTrees,
                     CtrProvider,
-                    [&features](const TFeaturePosition& position, size_t index) -> float {
+                    [&features](TFeaturePosition position, size_t index) -> float {
                         return features[index][position.FlatIndex];
                     },
-                    [&features](const TFeaturePosition& position, size_t index) -> int {
+                    [&features](TFeaturePosition position, size_t index) -> int {
                         return ConvertFloatCatFeatureToIntHash(features[index][position.FlatIndex]);
                     },
                     features.size(),
@@ -210,10 +210,10 @@ namespace NCB::NModelEvaluation {
                 CalcGeneric(
                     *ObliviousTrees,
                     CtrProvider,
-                    [&features](const TFeaturePosition& position, size_t ) -> float {
+                    [&features](TFeaturePosition position, size_t ) -> float {
                         return features[position.FlatIndex];
                     },
-                    [&features](const TFeaturePosition& position, size_t ) -> int {
+                    [&features](TFeaturePosition position, size_t ) -> int {
                         return ConvertFloatCatFeatureToIntHash(features[position.FlatIndex]);
                     },
                     1,
@@ -241,10 +241,10 @@ namespace NCB::NModelEvaluation {
                 CalcGeneric(
                     *ObliviousTrees,
                     CtrProvider,
-                    [&floatFeatures](const TFeaturePosition& position, size_t index) -> float {
+                    [&floatFeatures](TFeaturePosition position, size_t index) -> float {
                         return floatFeatures[index][position.Index];
                     },
-                    [&catFeatures](const TFeaturePosition& position, size_t index) -> int {
+                    [&catFeatures](TFeaturePosition position, size_t index) -> int {
                         return catFeatures[index][position.Index];
                     },
                     docCount,
@@ -272,10 +272,10 @@ namespace NCB::NModelEvaluation {
                 CalcGeneric(
                     *ObliviousTrees,
                     CtrProvider,
-                    [&floatFeatures](const TFeaturePosition& position, size_t index) -> float {
+                    [&floatFeatures](TFeaturePosition position, size_t index) -> float {
                         return floatFeatures[index][position.Index];
                     },
-                    [&catFeatures](const TFeaturePosition& position, size_t index) -> int {
+                    [&catFeatures](TFeaturePosition position, size_t index) -> int {
                         return CalcCatFeatureHash(catFeatures[index][position.Index]);
                     },
                     docCount,
@@ -302,10 +302,10 @@ namespace NCB::NModelEvaluation {
                 CalcLeafIndexesGeneric(
                     *ObliviousTrees,
                     CtrProvider,
-                    [&floatFeatures](const TFeaturePosition& position, size_t) -> float {
+                    [&floatFeatures](TFeaturePosition position, size_t) -> float {
                         return floatFeatures[position.Index];
                     },
-                    [&catFeatures](const TFeaturePosition& position, size_t) -> int {
+                    [&catFeatures](TFeaturePosition position, size_t) -> int {
                         return CalcCatFeatureHash(catFeatures[position.Index]);
                     },
                     1,
@@ -333,10 +333,10 @@ namespace NCB::NModelEvaluation {
                 CalcLeafIndexesGeneric(
                     *ObliviousTrees,
                     CtrProvider,
-                    [&floatFeatures](const TFeaturePosition& position, size_t index) -> float {
+                    [&floatFeatures](TFeaturePosition position, size_t index) -> float {
                         return floatFeatures[index][position.Index];
                     },
-                    [&catFeatures](const TFeaturePosition& position, size_t index) -> int {
+                    [&catFeatures](TFeaturePosition position, size_t index) -> int {
                         return CalcCatFeatureHash(catFeatures[index][position.Index]);
                     },
                     docCount,

@@ -145,7 +145,7 @@ namespace NCB {
             }
 
             Y_FORCE_INLINE auto GetFloatAccessor() {
-                return [this](const TFeaturePosition& position, size_t index) -> float {
+                return [this](TFeaturePosition position, size_t index) -> float {
                     Y_ASSERT(SafeIntegerCast<size_t>(position.FlatIndex) < RepackedFeaturesRef.size());
                     Y_ASSERT(SafeIntegerCast<size_t>(index) <
                              RepackedFeaturesRef[position.FlatIndex].GetSize());
@@ -154,7 +154,7 @@ namespace NCB {
             }
 
             Y_FORCE_INLINE auto GetCatAccessor() {
-                 return [this] (const TFeaturePosition& position, size_t index) -> ui32 {
+                 return [this] (TFeaturePosition position, size_t index) -> ui32 {
                     Y_ASSERT(SafeIntegerCast<size_t>(position.FlatIndex) < RepackedFeaturesRef.size());
                     Y_ASSERT(SafeIntegerCast<size_t>(index) <
                     RepackedFeaturesRef[position.FlatIndex].GetSize());
@@ -237,7 +237,7 @@ namespace NCB {
                 }
             }
             Y_FORCE_INLINE auto GetFloatAccessor() {
-                return [this] (const TFeaturePosition& position, size_t index) -> ui8 {
+                return [this] (TFeaturePosition position, size_t index) -> ui8 {
                     const auto& bundleIdx = BundledIndexesRef[position.Index];
                     const auto& packIdx = PackedIndexesRef[position.Index];
                     ui8 unremappedFeatureBin;
@@ -276,7 +276,7 @@ namespace NCB {
                 };
             }
             Y_FORCE_INLINE auto GetCatAccessor() {
-                return [] (const TFeaturePosition& , size_t ) -> ui32 {
+                return [] (TFeaturePosition , size_t ) -> ui32 {
                     Y_FAIL();
                     return 0;
                 };

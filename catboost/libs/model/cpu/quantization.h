@@ -80,6 +80,7 @@ namespace NCB::NModelEvaluation {
 
     template <bool UseNanSubstitution, typename TFloatFeatureAccessor>
     Y_FORCE_INLINE void BinarizeFloatsNonSse(
+        TFeaturePosition position,
         const size_t docCount,
         TFloatFeatureAccessor floatAccessor,
         const TConstArrayRef<float> borders,
@@ -90,14 +91,14 @@ namespace NCB::NModelEvaluation {
         const auto docCount8 = (docCount | 0x7) ^0x7;
         for (size_t docId = 0; docId < docCount8; docId += 8) {
             float val[8] = {
-                floatAccessor(start + docId + 0),
-                floatAccessor(start + docId + 1),
-                floatAccessor(start + docId + 2),
-                floatAccessor(start + docId + 3),
-                floatAccessor(start + docId + 4),
-                floatAccessor(start + docId + 5),
-                floatAccessor(start + docId + 6),
-                floatAccessor(start + docId + 7)
+                floatAccessor(position, start + docId + 0),
+                floatAccessor(position, start + docId + 1),
+                floatAccessor(position, start + docId + 2),
+                floatAccessor(position, start + docId + 3),
+                floatAccessor(position, start + docId + 4),
+                floatAccessor(position, start + docId + 5),
+                floatAccessor(position, start + docId + 6),
+                floatAccessor(position, start + docId + 7)
             };
             if (UseNanSubstitution) {
                 for (size_t i = 0; i < 8; ++i) {
@@ -120,7 +121,7 @@ namespace NCB::NModelEvaluation {
             }
         }
         for (size_t docId = docCount8; docId < docCount; ++docId) {
-            float val = floatAccessor(start + docId);
+            float val = floatAccessor(position, start + docId);
             if (UseNanSubstitution) {
                 if (IsNan(val)) {
                     val = nanSubstitutionValue;
@@ -143,6 +144,7 @@ namespace NCB::NModelEvaluation {
 
     template <bool UseNanSubstitution, typename TFloatFeatureAccessor>
     Y_FORCE_INLINE void BinarizeFloats(
+        TFeaturePosition position,
         const size_t docCount,
         TFloatFeatureAccessor floatAccessor,
         const TConstArrayRef<float> borders,
@@ -151,6 +153,7 @@ namespace NCB::NModelEvaluation {
         const float nanSubstitutionValue = 0.0f
     ) {
         BinarizeFloatsNonSse<UseNanSubstitution, TFloatFeatureAccessor>(
+            position,
             docCount,
             floatAccessor,
             borders,
@@ -164,6 +167,7 @@ namespace NCB::NModelEvaluation {
 
     template <bool UseNanSubstitution, typename TFloatFeatureAccessor>
     Y_FORCE_INLINE void BinarizeFloats(
+        TFeaturePosition position,
         const size_t docCount,
         TFloatFeatureAccessor floatAccessor,
         const TConstArrayRef<float> borders,
@@ -175,22 +179,22 @@ namespace NCB::NModelEvaluation {
         const auto docCount16 = (docCount | 0xf) ^ 0xf;
         for (size_t docId = 0; docId < docCount16; docId += 16) {
             const float val[16] = {
-                floatAccessor(start + docId + 0),
-                floatAccessor(start + docId + 1),
-                floatAccessor(start + docId + 2),
-                floatAccessor(start + docId + 3),
-                floatAccessor(start + docId + 4),
-                floatAccessor(start + docId + 5),
-                floatAccessor(start + docId + 6),
-                floatAccessor(start + docId + 7),
-                floatAccessor(start + docId + 8),
-                floatAccessor(start + docId + 9),
-                floatAccessor(start + docId + 10),
-                floatAccessor(start + docId + 11),
-                floatAccessor(start + docId + 12),
-                floatAccessor(start + docId + 13),
-                floatAccessor(start + docId + 14),
-                floatAccessor(start + docId + 15)
+                floatAccessor(position, start + docId + 0),
+                floatAccessor(position, start + docId + 1),
+                floatAccessor(position, start + docId + 2),
+                floatAccessor(position, start + docId + 3),
+                floatAccessor(position, start + docId + 4),
+                floatAccessor(position, start + docId + 5),
+                floatAccessor(position, start + docId + 6),
+                floatAccessor(position, start + docId + 7),
+                floatAccessor(position, start + docId + 8),
+                floatAccessor(position, start + docId + 9),
+                floatAccessor(position, start + docId + 10),
+                floatAccessor(position, start + docId + 11),
+                floatAccessor(position, start + docId + 12),
+                floatAccessor(position, start + docId + 13),
+                floatAccessor(position, start + docId + 14),
+                floatAccessor(position, start + docId + 15)
             };
             const __m128i mask = _mm_set1_epi8(1);
             __m128 floats0 = _mm_load_ps(val);
@@ -234,7 +238,7 @@ namespace NCB::NModelEvaluation {
             }
         }
         for (size_t docId = docCount16; docId < docCount; ++docId) {
-            float val = floatAccessor(start + docId);
+            float val = floatAccessor(position, start + docId);
             if (UseNanSubstitution) {
                 if (IsNan(val)) {
                     val = nanSubstitutionValue;
@@ -294,8 +298,9 @@ namespace NCB::NModelEvaluation {
                 if (!floatFeature.HasNans ||
                     floatFeature.NanValueTreatment == TFloatFeature::ENanValueTreatment::AsIs) {
                     BinarizeFloats<false>(
+                        position,
                         docCount,
-                        [position, floatAccessor](size_t index) { return floatAccessor(position, index); },
+                        floatAccessor,
                         floatFeature.Borders,
                         start,
                         resultPtr
@@ -304,8 +309,9 @@ namespace NCB::NModelEvaluation {
                     const float infinity = std::numeric_limits<float>::infinity();
                     if (floatFeature.NanValueTreatment == TFloatFeature::ENanValueTreatment::AsFalse) {
                         BinarizeFloats<true>(
+                            position,
                             docCount,
-                            [position, floatAccessor](size_t index) { return floatAccessor(position, index); },
+                            floatAccessor,
                             floatFeature.Borders,
                             start,
                             resultPtr,
@@ -314,8 +320,9 @@ namespace NCB::NModelEvaluation {
                     } else {
                         Y_ASSERT(floatFeature.NanValueTreatment == TFloatFeature::ENanValueTreatment::AsTrue);
                         BinarizeFloats<true>(
+                            position,
                             docCount,
-                            [position, floatAccessor](size_t index) { return floatAccessor(position, index); },
+                            floatAccessor,
                             floatFeature.Borders,
                             start,
                             resultPtr,
@@ -364,8 +371,9 @@ namespace NCB::NModelEvaluation {
                     const auto& ctr = trees.CtrFeatures[i];
                     auto ctrFloatsPtr = &ctrs[i * docCount];
                     BinarizeFloats<false>(
+                        TFeaturePosition(),
                         docCount,
-                        [ctrFloatsPtr](size_t index) { return ctrFloatsPtr[index]; },
+                        [ctrFloatsPtr](TFeaturePosition, size_t index) { return ctrFloatsPtr[index]; },
                         ctr.Borders,
                         0,
                         resultPtr
