@@ -70,13 +70,15 @@ namespace NCoro {
         }
 
         void SwitchTo(TExceptionSafeContext* ctx) noexcept {
-            Y_VERIFY(Stack_.LowerCanaryOk(), "Stack overflow");
-            Y_VERIFY(Stack_.UpperCanaryOk(), "Stack override");
+            Y_VERIFY(Stack_.LowerCanaryOk(), "Stack overflow (%s)", ContName());
+            Y_VERIFY(Stack_.UpperCanaryOk(), "Stack override (%s)", ContName());
             Ctx_.SwitchTo(ctx);
         }
 
         void DoRun();
 
+    private:
+        const char* ContName() const noexcept;
     private:
         TStack Stack_;
         const TContClosure Clo_;

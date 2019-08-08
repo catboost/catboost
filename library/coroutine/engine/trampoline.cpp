@@ -154,6 +154,9 @@ namespace NCoro {
         return Stack_.Get();
     }
 
+    const char* TTrampoline::ContName() const noexcept {
+        return Cont_->Name();
+    }
 
     ui32 RealCoroStackSize(ui32 coroStackSize) {
 #if defined(_san_enabled_) || !defined(NDEBUG)
