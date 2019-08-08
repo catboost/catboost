@@ -1910,23 +1910,23 @@ using TGenericString = typename NPrivate::TCharToString<Char>::type;
 
 template<typename TDerived, typename TCharType, typename TTraits>
 TGenericString<TCharType> to_lower(const TBasicString<TDerived, TCharType, TTraits>& s) {
-	TGenericString<TCharType> ret(s);
-	ret.to_lower();
-	return ret;
+    TGenericString<TCharType> ret(s);
+    ret.to_lower();
+    return ret;
 }
 
 template<typename TDerived, typename TCharType, typename TTraits>
 TGenericString<TCharType> to_upper(const TBasicString<TDerived, TCharType, TTraits>& s) {
-	TGenericString<TCharType> ret(s);
-	ret.to_upper();
-	return ret;
+    TGenericString<TCharType> ret(s);
+    ret.to_upper();
+    return ret;
 }
 
 template<typename TDerived, typename TCharType, typename TTraits>
 TGenericString<TCharType> to_title(const TBasicString<TDerived, TCharType, TTraits>& s) {
-	TGenericString<TCharType> ret(s);
-	ret.to_title();
-	return ret;
+    TGenericString<TCharType> ret(s);
+    ret.to_title();
+    return ret;
 }
 
 namespace std {
