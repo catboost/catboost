@@ -4689,7 +4689,7 @@ def test_prediction_plot():
     model = CatBoostRegressor(iterations=200)
     model.fit(X, y, silent=True)
 
-    res = model.plot_predictions(data=X[:2, ], features_to_change=[0, 1], plot=False)
+    res, _ = model.plot_predictions(data=X[:2, ], features_to_change=[0, 1], plot=False)
     json.dump(res, open(preds_path, 'w'))
     return local_canonical_file(preds_path)
 

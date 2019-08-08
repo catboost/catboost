@@ -2417,9 +2417,9 @@ class CatBoost(_CatBoostBase):
                 iplot(fig)
 
         if plot_file:
-                _save_plot_file(plot_file, 'Predictions for all buckets', figs)
+            _save_plot_file(plot_file, 'Predictions for all buckets', figs)
 
-        return all_predictions
+        return all_predictions, figs
 
     def calc_feature_statistics(self, data, target=None, feature=None, prediction_type=None,
                                 cat_feature_values=None, plot=True, max_cat_features_on_plot=10,
