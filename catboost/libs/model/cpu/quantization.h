@@ -6,6 +6,8 @@
 #include <catboost/libs/helpers/maybe_owning_array_holder.h>
 #include <catboost/libs/cat_feature/cat_feature.h>
 
+#include <library/sse/sse.h>
+
 #include <util/generic/array_ref.h>
 #include <util/generic/hash.h>
 #include <util/generic/ymath.h>
