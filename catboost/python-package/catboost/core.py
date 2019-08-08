@@ -2956,11 +2956,13 @@ class CatBoostClassifier(CatBoost):
             - 'GreedyLogSum'
             - 'MaxLogSum'
             - 'MinEntropy'
-    per_float_feature_quantization : list of strings, [default='0:nan_mode=Forbidden,border_count=32,border_type=GreedyLogSum',
-                                                               '1:nan_mode=Forbidden,border_count=32,border_type=GreedyLogSum', ...]
+    per_float_feature_quantization : list of strings, [default=None]
         List of float binarization descriptions.
-            Format : see documentation
-            Example: ['0:border_count=1024', '1:border_count=1024', ...]
+        Format : described in documentation on catboost.ai
+        Example 1: ['0:1024'] means that feature 0 will have 1024 borders.
+        Example 2: ['0:border_count=1024', '1:border_count=1024', ...] means that two first features have 2014 borders.
+        Example 3: ['0:nan_mode=Forbidden,border_count=32,border_type=GreedyLogSum',
+                    '1:nan_mode=Forbidden,border_count=32,border_type=GreedyLogSum'] - defines more quantization properties for first two features.
     input_borders : string, [default=None]
         input file with borders used in numeric features binarization.
     output_borders : string, [default=None]
