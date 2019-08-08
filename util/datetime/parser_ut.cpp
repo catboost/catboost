@@ -424,6 +424,26 @@ Y_UNIT_TEST_SUITE(TDateTimeParseTest) {
             TInstant::Seconds(1253317023) + TDuration::MicroSeconds(12331));
     }
 
+    Y_UNIT_TEST(TestIso8601BigDate) {
+        TVector<std::pair<TString, int>> dates{
+            {"2019-01-01", 17897},
+
+            {"2037-01-01", 24472},
+            {"2050-01-01", 29220},
+
+            {"2099-01-01", 47117},
+            {"2099-12-31", 47481},
+            {"2100-01-01", 47482},
+            {"2100-02-28", 47540},
+            {"2100-03-01", 47541},
+        };
+
+        for (const auto& [date, days] : dates) {
+            TInstant instant = TInstant::ParseIso8601(date + "T00:00:00Z");
+            UNIT_ASSERT_VALUES_EQUAL(instant.Days(), days);
+        }
+    }
+
     Y_UNIT_TEST(TestHttpDate) {
         UNIT_ASSERT_VALUES_EQUAL(
             TInstant::ParseHttp("Sun, 06 Nov 1994 08:49:37 GMT"),

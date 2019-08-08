@@ -496,4 +496,23 @@ Y_UNIT_TEST_SUITE(DateTimeTest) {
 
         UNIT_ASSERT_VALUES_EQUAL(i1, i2);
     }
+
+    Y_UNIT_TEST(TestTimeGmDateConversion) {
+        tm time{};
+        time_t timestamp = 0;
+
+        // Check all days till year 2106 (max year representable if time_t is 32 bit)
+        while (time.tm_year < 2106 - 1900) {
+            timestamp += 86400;
+
+            GmTimeR(&timestamp, &time);
+            time_t newTimestamp = TimeGM(&time);
+
+            UNIT_ASSERT_VALUES_EQUAL_C(
+                    newTimestamp,
+                    timestamp,
+                    "incorrect date " << (1900 + time.tm_year) << "-" << (time.tm_mon + 1) << "-" << time.tm_mday
+            );
+        }
+    }
 }
