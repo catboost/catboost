@@ -23,7 +23,6 @@ class Swig(iw.CustomCommand):
 
         lang_specific_incl_dir = 'perl5' if self._swig_lang == 'perl' else self._swig_lang
         incl_dirs = [
-            'bindings/swiglib',
             'contrib/tools/swig/Lib/' + lang_specific_incl_dir,
             'contrib/tools/swig/Lib',
         ]
