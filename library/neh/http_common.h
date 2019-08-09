@@ -92,7 +92,8 @@ namespace NNeh {
             inline T* GetList(size_t n) {
                 T* volatile* t = T_ + n;
 
-                while (!AtomicGet(*t)) {
+                T* result;
+                while (!(result = AtomicGet(*t))) {
                     TArrayHolder<T> nt(new T[((size_t)1) << n]);
 
                     if (AtomicCas(t, nt.Get(), nullptr)) {
@@ -100,7 +101,7 @@ namespace NNeh {
                     }
                 }
 
-                return *t;
+                return result;
             }
 
         private:
