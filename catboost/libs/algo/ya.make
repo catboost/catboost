@@ -47,6 +47,7 @@ SRCS(
     rand_score.cpp
     roc_curve.cpp
     yetirank_helpers.cpp
+    confusion_matrix.cpp
 )
 
 PEERDIR(

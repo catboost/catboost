@@ -51,6 +51,12 @@ namespace NCB {
         TRestorableFastRng64* rand, // for possible pairs generation
         NPar::TLocalExecutor* localExecutor);
 
+    TProcessedDataProvider CreateClassificationCompatibleDataProvider(
+        const TDataProvider& srcData,
+        const TFullModel& model,
+        TRestorableFastRng64* rand, // for possible pairs generation
+        NPar::TLocalExecutor* localExecutor);
+
 
     TSharedVector<TQueryInfo> MakeGroupInfos(
         const TObjectsGrouping& objectsGrouping,

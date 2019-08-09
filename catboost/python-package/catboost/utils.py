@@ -7,6 +7,7 @@ import warnings
 _catboost = get_catboost_bin_module()
 _eval_metric_util = _catboost._eval_metric_util
 _get_roc_curve = _catboost._get_roc_curve
+_get_confusion_matrix = _catboost._get_confusion_matrix
 _select_threshold = _catboost._select_threshold
 
 compute_wx_test = _catboost.compute_wx_test
@@ -147,6 +148,32 @@ def get_gpu_device_count():
 
 def reset_trace_backend(filename):
     get_catboost_bin_module()._reset_trace_backend(filename)
+
+
+def get_confusion_matrix(model, data, thread_count=-1):
+    """
+    Build confusion matrix.
+
+    Parameters
+    ----------
+    model : catboost.CatBoost
+        The trained model.
+
+    data : catboost.Pool
+        A set of samples to build confusion matrix with.
+
+    thread_count : int (default=-1)
+        Number of threads to work with.
+        If -1, then the number of threads is set to the number of CPU cores.
+
+    Returns
+    -------
+    confusion matrix : array, shape = [n_classes, n_classes]
+    """
+    if not isinstance(data, Pool):
+        raise CatBoostError('data must be a catboost.Pool')
+
+    return _get_confusion_matrix(model._object, data, thread_count);
 
 
 def get_roc_curve(model, data, thread_count=-1, plot=False):

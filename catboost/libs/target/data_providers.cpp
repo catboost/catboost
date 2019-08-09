@@ -9,6 +9,7 @@
 #include <catboost/libs/options/enum_helpers.h>
 #include <catboost/libs/options/json_helper.h>
 #include <catboost/libs/options/multiclass_label_options.h>
+#include <catboost/libs/options/data_processing_options.h>
 #include <catboost/libs/pairs/util.h>
 
 #include <util/generic/cast.h>
@@ -787,6 +788,107 @@ namespace NCB {
             /*datasetName*/ TStringBuf(),
             updatedMetricsDescriptions,
             /*mainLossFunction*/ Nothing(),
+            /*allowConstLabel*/ true,
+            /*metricsThatRequireTargetCanBeSkipped*/ false,
+            /*needTargetDataForCtrs*/ false,
+            (ui32)model.GetDimensionsCount(),
+            classCount,
+            classWeights,
+            &classNames,
+            &labelConverter,
+            &targetBorder,
+            rand,
+            localExecutor,
+            &result.MetaInfo.HasPairs
+        );
+
+        return result;
+    }
+
+    TProcessedDataProvider CreateClassificationCompatibleDataProvider(
+        const TDataProvider& srcData,
+        const TFullModel& model,
+        TRestorableFastRng64* rand,
+        NPar::TLocalExecutor* localExecutor
+    ) {
+        const TString ParamsJsonKey = "params";
+        const TString DataProcessingOptionsJsonKey = "data_processing_options";
+        const TString TargetBorderJsonKey = "target_border";
+        const TString MultiClassParamsJsonKey = "multiclass_params";
+        const TString LossJsonKey = "loss_function";
+
+        NCatboostOptions::TLossDescription lossDescription;
+        if (model.ModelInfo.contains(ParamsJsonKey)) {
+            const auto& params = ReadTJsonValue(model.ModelInfo.at(ParamsJsonKey));
+            if (params.Has(LossJsonKey)) {
+                lossDescription.Load(params[LossJsonKey]);
+            }
+        }
+
+        if (!lossDescription.LossFunction.IsSet()) {
+            auto loss = model.GetDimensionsCount() == 1 ? ELossFunction::Logloss : ELossFunction::MultiClass;
+            lossDescription.LossFunction.Set(loss);
+        }
+
+        CB_ENSURE(IsClassificationObjective(lossDescription.GetLossFunction()),
+                  "Attempt to create classification data provider for non classification model");
+
+        TMaybe<float> targetBorder;
+        TVector<float> classWeights;
+        TVector<TString> classNames;
+        ui32 classCount = 0;
+
+        if (const auto* modelInfoParams = MapFindPtr(model.ModelInfo, ParamsJsonKey)) {
+            NJson::TJsonValue paramsJson = ReadTJsonValue(*modelInfoParams);
+            if (paramsJson.Has(DataProcessingOptionsJsonKey)) {
+                InitClassesParams(
+                    paramsJson[DataProcessingOptionsJsonKey],
+                    &classWeights,
+                    &classNames,
+                    &classCount);
+
+                if (paramsJson[DataProcessingOptionsJsonKey].Has(TargetBorderJsonKey)) {
+                    targetBorder = paramsJson[DataProcessingOptionsJsonKey][TargetBorderJsonKey].GetDouble();
+                }
+            }
+        }
+
+        if (ShouldBinarizeLabel(lossDescription.GetLossFunction()) && !targetBorder) {
+            targetBorder = GetDefaultTargetBorder();
+            CATBOOST_WARNING_LOG << "Cannot restore border parameter, falling to default border = " << *targetBorder << Endl;
+        }
+
+        TLabelConverter labelConverter;
+        if (model.GetDimensionsCount() > 1) {
+            if (model.ModelInfo.contains(MultiClassParamsJsonKey)) {
+                const auto& multiclassParamsJsonAsString = model.ModelInfo.at(MultiClassParamsJsonKey);
+                labelConverter.Initialize(multiclassParamsJsonAsString);
+                TMulticlassLabelOptions multiclassOptions;
+                multiclassOptions.Load(ReadTJsonValue(multiclassParamsJsonAsString));
+                if (multiclassOptions.ClassNames.IsSet()) {
+                    classNames = multiclassOptions.ClassNames;
+                }
+                classCount = GetClassesCount(multiclassOptions.ClassesCount.Get(), classNames);
+            } else {
+                labelConverter.Initialize(model.GetDimensionsCount());
+                classCount = model.GetDimensionsCount();
+            }
+        }
+
+        TVector<NCatboostOptions::TLossDescription> metricsDescriptions = {lossDescription};
+
+        TProcessedDataProvider result;
+        result.MetaInfo = srcData.MetaInfo;
+        result.ObjectsGrouping = srcData.ObjectsGrouping;
+        result.ObjectsData = srcData.ObjectsData;
+        result.TargetData = CreateTargetDataProvider(
+            srcData.RawTargetData,
+            srcData.ObjectsData->GetSubgroupIds(),
+            /*isForGpu*/ false,
+            /*isLearn*/ false,
+            /*datasetName*/ TStringBuf(),
+            metricsDescriptions,
+            &lossDescription,
             /*allowConstLabel*/ true,
             /*metricsThatRequireTargetCanBeSkipped*/ false,
             /*needTargetDataForCtrs*/ false,

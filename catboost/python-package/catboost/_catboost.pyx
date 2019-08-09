@@ -794,6 +794,13 @@ cdef extern from "catboost/libs/algo/apply.h":
 cdef extern from "catboost/libs/algo/helpers.h":
     cdef void ConfigureMalloc() nogil except *
 
+cdef extern from "catboost/libs/algo/confusion_matrix.h":
+    cdef TVector[double] MakeConfusionMatrix(
+        const TFullModel &model,
+        const TDataProviderPtr datasets,
+        int threadCount
+    ) nogil except +ProcessException
+
 cdef extern from "catboost/libs/algo/roc_curve.h":
     cdef cppclass TRocPoint:
         double Boundary
@@ -3737,6 +3744,15 @@ cpdef _eval_metric_util(label_param, approx_param, metric, weight_param, group_i
     thread_count = UpdateThreadCount(thread_count);
 
     return EvalMetricsForUtils(label, approx, to_arcadia_string(metric), weight, group_id, subgroup_id, pairs, thread_count)
+
+
+cpdef _get_confusion_matrix(model, pool, thread_count):
+    thread_count = UpdateThreadCount(thread_count)
+    cdef TVector[double] cm = MakeConfusionMatrix(
+        dereference((<_CatBoost>model).__model), (<_PoolBase>pool).__pool, thread_count
+    )
+    n_classes = int(np.sqrt(cm.size()))
+    return np.array([counter for counter in cm]).reshape((n_classes, n_classes))
 
 
 cpdef _get_roc_curve(model, pools_list, thread_count):
