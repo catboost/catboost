@@ -30,9 +30,6 @@
     - contrib/tools/swig/Lib/cmalloc.i
     - contrib/tools/swig/Lib/perl5/cmalloc.i
     - contrib/tools/swig/Lib/python/cmalloc.i
-  - cni.i:
-    - contrib/tools/swig/Lib/perl5/cni.i
-    - contrib/tools/swig/Lib/python/cni.i
   - complex.i:
     - contrib/tools/swig/Lib/python/complex.i
   - cpointer.i:
@@ -49,6 +46,7 @@
   - defarg.swg:
     - contrib/tools/swig/Lib/python/defarg.swg
   - director.swg:
+    - contrib/tools/swig/Lib/go/director.swg
     - contrib/tools/swig/Lib/java/director.swg
     - contrib/tools/swig/Lib/perl5/director.swg
     - contrib/tools/swig/Lib/python/director.swg
@@ -88,9 +86,6 @@
     - contrib/tools/swig/Lib/java/javahead.swg
   - javakw.swg:
     - contrib/tools/swig/Lib/java/javakw.swg
-  - jstring.i:
-    - contrib/tools/swig/Lib/perl5/jstring.i
-    - contrib/tools/swig/Lib/python/jstring.i
   - perl5.swg:
     - contrib/tools/swig/Lib/perl5/perl5.swg
   - perlerrors.swg:
@@ -218,6 +213,7 @@
     - contrib/tools/swig/Lib/python/std_iostream.i
   - std_list.i:
     - contrib/tools/swig/Lib/go/std_list.i
+    - contrib/tools/swig/Lib/java/std_list.i
     - contrib/tools/swig/Lib/perl5/std_list.i
     - contrib/tools/swig/Lib/python/std_list.i
   - std_map.i:
@@ -235,6 +231,7 @@
     - contrib/tools/swig/Lib/perl5/std_pair.i
     - contrib/tools/swig/Lib/python/std_pair.i
   - std_set.i:
+    - contrib/tools/swig/Lib/java/std_set.i
     - contrib/tools/swig/Lib/python/std_set.i
   - std_shared_ptr.i:
     - contrib/tools/swig/Lib/java/std_shared_ptr.i
@@ -249,12 +246,14 @@
     - contrib/tools/swig/Lib/perl5/std_string.i
     - contrib/tools/swig/Lib/python/std_string.i
   - std_unordered_map.i:
+    - contrib/tools/swig/Lib/java/std_unordered_map.i
     - contrib/tools/swig/Lib/python/std_unordered_map.i
   - std_unordered_multimap.i:
     - contrib/tools/swig/Lib/python/std_unordered_multimap.i
   - std_unordered_multiset.i:
     - contrib/tools/swig/Lib/python/std_unordered_multiset.i
   - std_unordered_set.i:
+    - contrib/tools/swig/Lib/java/std_unordered_set.i
     - contrib/tools/swig/Lib/python/std_unordered_set.i
   - std_vector.i:
     - contrib/tools/swig/Lib/go/std_vector.i
