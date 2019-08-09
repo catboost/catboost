@@ -1676,6 +1676,52 @@ public:
 
         return TDerived() + '"' + EscapeC(*This()) + '"';
     }
+
+    /**
+     * Modifies the case of the string, depending on the operation.
+     * @return false if no changes have been made.
+	 *
+     * @warning when the value_type is char, these methods will not work with non-ASCII letters.
+     */
+    bool to_lower(size_t pos = 0, size_t n = TBase::npos);
+    bool to_upper(size_t pos = 0, size_t n = TBase::npos);
+    bool to_title(size_t pos = 0, size_t n = TBase::npos);
+
+public:
+    /**
+     * Modifies the substring of length `n` starting from `pos`, applying `f` to each position and symbol.
+     *
+     * @return false if no changes have been made.
+     */
+    template <typename T>
+    bool Transform(T&& f, size_t pos = 0, size_t n = TBase::npos) {
+        size_t len = length();
+
+        if (pos > len) {
+            pos = len;
+        }
+
+        if (n > len - pos) {
+            n = len - pos;
+        }
+
+        bool changed = false;
+
+        for (size_t i = pos; i != pos + n; ++i) {
+            auto c = f(i, Data_[i]);
+
+            if (c != Data_[i]) {
+                if (!changed) {
+                    Detach();
+                    changed = true;
+                }
+
+                Data_[i] = c;
+            }
+        }
+
+        return changed;
+    }
 };
 
 class TString: public TBasicString<TString, char, TCharTraits<char>> {
@@ -1719,49 +1765,6 @@ public:
     TString& operator=(const value_type* s) {
         return assign(s);
     }
-
-public:
-    /**
-     * Modifies the substring of length `n` starting from `pos`, applying `f` to each position and symbol.
-     *
-     * @return                          false if no changes have been made.
-     */
-    template <typename T>
-    bool Transform(T&& f, size_t pos = 0, size_t n = TBase::npos) {
-        size_t len = length();
-
-        if (pos > len) {
-            pos = len;
-        }
-
-        if (n > len - pos) {
-            n = len - pos;
-        }
-
-        bool changed = false;
-
-        for (size_t i = pos; i != pos + n; ++i) {
-            char c = f(i, Data_[i]);
-
-            if (c != Data_[i]) {
-                if (!changed) {
-                    Detach();
-                    changed = true;
-                }
-
-                Data_[i] = c;
-            }
-        }
-
-        return changed;
-    }
-
-    /**
-     * @warning these methods do not work with non-ASCII letters.
-     */
-    bool to_lower(size_t pos = 0, size_t n = TBase::npos);
-    bool to_upper(size_t pos = 0, size_t n = TBase::npos);
-    bool to_title(size_t pos = 0, size_t n = TBase::npos);
 };
 std::ostream& operator<<(std::ostream&, const TString&);
 
@@ -1809,16 +1812,6 @@ public:
     TUtf16String& operator=(wchar16 ch) {
         return assign(ch);
     }
-
-    // @{
-    /**
-     * Modifies the case of the string, depending on the operation.
-     * @return false if no changes have been made
-     */
-    bool to_lower(size_t pos = 0, size_t n = TBase::npos);
-    bool to_upper(size_t pos = 0, size_t n = TBase::npos);
-    bool to_title();
-    // @}
 };
 
 class TUtf32String: public TBasicString<TUtf32String, wchar32, TCharTraits<wchar32>> {
@@ -1865,16 +1858,6 @@ public:
     TUtf32String& operator=(wchar32 ch) {
         return assign(ch);
     }
-
-    // @{
-    /**
-    * Modifies the case of the string, depending on the operation.
-    * @return false if no changes have been made
-    */
-    bool to_lower(size_t pos = 0, size_t n = TBase::npos);
-    bool to_upper(size_t pos = 0, size_t n = TBase::npos);
-    bool to_title();
-    // @}
 };
 
 namespace NPrivate {

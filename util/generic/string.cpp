@@ -62,15 +62,18 @@ std::ostream& operator<<(std::ostream& os, const TString& s) {
     return os.write(s.data(), s.size());
 }
 
-bool TString::to_lower(size_t pos, size_t n) {
+template<>
+bool TBasicString<TString, char, TCharTraits<char>>::to_lower(size_t pos, size_t n) {
     return Transform([](size_t, char c) { return AsciiToLower(c); }, pos, n);
 }
 
-bool TString::to_upper(size_t pos, size_t n) {
+template<>
+bool TBasicString<TString, char, TCharTraits<char>>::to_upper(size_t pos, size_t n) {
     return Transform([](size_t, char c) { return AsciiToUpper(c); }, pos, n);
 }
 
-bool TString::to_title(size_t pos, size_t n) {
+template<>
+bool TBasicString<TString, char, TCharTraits<char>>::to_title(size_t pos, size_t n) {
     if (n == 0) {
         return false;
     }
@@ -106,16 +109,19 @@ TBasicString<TUtf16String, wchar16, TCharTraits<wchar16>>::AppendUtf8(const ::TF
     return *This();
 }
 
-bool TUtf16String::to_lower(size_t pos, size_t n) {
-    return ToLower(*this, pos, n);
+template<>
+bool TBasicString<TUtf16String, wchar16, TCharTraits<wchar16>>::to_lower(size_t pos, size_t n) {
+    return ToLower(*This(), pos, n);
 }
 
-bool TUtf16String::to_upper(size_t pos, size_t n) {
-    return ToUpper(*this, pos, n);
+template<>
+bool TBasicString<TUtf16String, wchar16, TCharTraits<wchar16>>::to_upper(size_t pos, size_t n) {
+    return ToUpper(*This(), pos, n);
 }
 
-bool TUtf16String::to_title() {
-    return ToTitle(*this);
+template<>
+bool TBasicString<TUtf16String, wchar16, TCharTraits<wchar16>>::to_title(size_t pos, size_t n) {
+    return ToTitle(*This(), pos, n);
 }
 
 template<>
@@ -162,14 +168,18 @@ TBasicString<TUtf32String, wchar32, TCharTraits<wchar32>>::AppendUtf16(const ::T
     return *This();
 }
 
-bool TUtf32String::to_lower(size_t pos, size_t n) {
-    return ToLower(*this, pos, n);
+
+template<>
+bool TBasicString<TUtf32String, wchar32, TCharTraits<wchar32>>::to_lower(size_t pos, size_t n) {
+    return ToLower(*This(), pos, n);
 }
 
-bool TUtf32String::to_upper(size_t pos, size_t n) {
-    return ToUpper(*this, pos, n);
+template<>
+bool TBasicString<TUtf32String, wchar32, TCharTraits<wchar32>>::to_upper(size_t pos, size_t n) {
+    return ToUpper(*This(), pos, n);
 }
 
-bool TUtf32String::to_title() {
-    return ToTitle(*this);
+template<>
+bool TBasicString<TUtf32String, wchar32, TCharTraits<wchar32>>::to_title(size_t pos, size_t n) {
+    return ToTitle(*This(), pos, n);
 }
