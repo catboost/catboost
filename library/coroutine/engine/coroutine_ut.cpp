@@ -39,6 +39,7 @@ class TCoroTest: public TTestBase {
     UNIT_TEST(TestStackAlignmentLogic);
     UNIT_TEST(TestStackCanaries);
     UNIT_TEST(TestStackPages);
+    UNIT_TEST(TestEventQueue)
     UNIT_TEST_SUITE_END();
 
 public:
@@ -66,6 +67,7 @@ public:
     void TestStackAlignmentLogic();
     void TestStackCanaries();
     void TestStackPages();
+    void TestEventQueue();
 };
 
 void TCoroTest::TestException() {
@@ -858,6 +860,26 @@ void TCoroTest::TestStackPages() {
     UNIT_ASSERT_GE(s.Get().size(), NSystemInfo::GetPageSize());
     UNIT_ASSERT_VALUES_EQUAL(((ptrdiff_t)s.Get().data()) & (NSystemInfo::GetPageSize() - 1), 0);
     memset(s.Get().data(), 0, s.Get().size());
+}
+
+void TCoroTest::TestEventQueue() {
+    NCoro::TEventWaitQueue queue;
+    UNIT_ASSERT(queue.Empty());
+    UNIT_ASSERT_VALUES_EQUAL(queue.WakeTimedout(TInstant()), TInstant());
+    TContExecutor exec(32000);
+    exec.Execute([](TCont* cont, void* arg) {
+        NCoro::TEventWaitQueue* q = (NCoro::TEventWaitQueue*)arg;
+        TTimerEvent ev(cont, TInstant::Max());
+        TTimerEvent ev2(cont, TInstant::Seconds(12345));
+        q->Register(&ev);
+        UNIT_ASSERT_VALUES_EQUAL(q->WakeTimedout(TInstant::Seconds(12344)), TInstant::Max());
+        UNIT_ASSERT_VALUES_EQUAL(q->WakeTimedout(TInstant::Seconds(12344)), TInstant::Max());
+        q->Register(&ev2);
+        UNIT_ASSERT_VALUES_EQUAL(q->WakeTimedout(TInstant::Seconds(12344)), TInstant::Seconds(12345));
+        UNIT_ASSERT_VALUES_EQUAL(q->WakeTimedout(TInstant::Seconds(12344)), TInstant::Seconds(12345));
+        UNIT_ASSERT_VALUES_EQUAL(q->WakeTimedout(TInstant::Seconds(12345)), TInstant::Seconds(12345));
+        UNIT_ASSERT_VALUES_EQUAL(q->WakeTimedout(TInstant::Seconds(12345)), TInstant::Max());
+    }, &queue);
 }
 
 UNIT_TEST_SUITE_REGISTRATION(TCoroTest);

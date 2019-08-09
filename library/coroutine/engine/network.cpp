@@ -227,8 +227,7 @@ namespace NCoro {
     int ConnectD(TCont* cont, TSocketHolder& s, const TNetworkAddress& addr, TInstant deadline) noexcept {
         int ret = EHOSTUNREACH;
 
-        for (TNetworkAddress::TIterator it = addr.Begin(); it != addr.End(); ++it
-            ) {
+        for (auto it = addr.Begin(); it != addr.End(); ++it) {
             ret = ConnectD(cont, s, *it, deadline);
 
             if (ret == 0 || ret == ETIMEDOUT) {
