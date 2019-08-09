@@ -9,6 +9,46 @@
 #include <algorithm>
 #include <utility>
 
+TString TFeature::BuildDescription(const NCB::TFeaturesLayout& layout) const {
+    TStringBuilder result;
+    if (Type == ESplitType::OnlineCtr) {
+        result << "{";
+        int feature_count = 0;
+        auto proj = Ctr.Base.Projection;
+
+        for (const int featureIdx : proj.CatFeatures) {
+            if (feature_count++ > 0) {
+                result << ", ";
+            }
+            result << BuildFeatureDescription(layout, featureIdx, EFeatureType::Categorical);
+        }
+
+        for (const auto& feature : proj.BinFeatures) {
+            if (feature_count++ > 0) {
+                result << ", ";
+            }
+            result << BuildFeatureDescription(layout, feature.FloatFeature, EFeatureType::Float);
+        }
+
+        for (const TOneHotSplit& feature : proj.OneHotFeatures) {
+            if (feature_count++ > 0) {
+                result << ", ";
+            }
+            result << BuildFeatureDescription(layout, feature.CatFeatureIdx, EFeatureType::Categorical);
+        }
+        result << "}";
+        result << " prior_num=" << Ctr.PriorNum;
+        result << " prior_denom=" << Ctr.PriorDenom;
+        result << " targetborder=" << Ctr.TargetBorderIdx;
+        result << " type=" << Ctr.Base.CtrType;
+    } else if (Type == ESplitType::FloatFeature) {
+        result << BuildFeatureDescription(layout, FeatureIdx, EFeatureType::Float);
+    } else {
+        Y_ASSERT(Type == ESplitType::OneHotFeature);
+        result << BuildFeatureDescription(layout, FeatureIdx, EFeatureType::Categorical);
+    }
+    return result;
+}
 
 int GetMaxSrcFeature(const TVector<TMxTree>& trees) {
     int res = -1;
@@ -160,4 +200,21 @@ TVector<TFeaturePairInteractionInfo> CalcMostInteractingFeatures(const TVector<T
     }
 
     return pairsInfo;
+}
+
+TFeature GetFeature(const TModelSplit& split) {
+    TFeature result;
+    result.Type = split.Type;
+    switch(result.Type) {
+        case ESplitType::FloatFeature:
+            result.FeatureIdx = split.FloatFeature.FloatFeature;
+            break;
+        case ESplitType::OneHotFeature:
+            result.FeatureIdx = split.OneHotFeature.CatFeatureIdx;
+            break;
+        case ESplitType::OnlineCtr:
+            result.Ctr = split.OnlineCtr.Ctr;
+            break;
+    }
+    return result;
 }

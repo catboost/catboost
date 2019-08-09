@@ -17,8 +17,6 @@ TVector<TVector<double>> CollectLeavesStatistics(
     const NCB::TDataProvider& dataset,
     const TFullModel& model,
     NPar::TLocalExecutor* localExecutor) {
-    //TODO(eermishkina): support non symmetric trees
-    CB_ENSURE_INTERNAL(model.IsOblivious(), "Is not supported for non symmetric trees");
 
     TConstArrayRef<float> weights;
 
@@ -46,11 +44,18 @@ TVector<TVector<double>> CollectLeavesStatistics(
         }
     }
 
-
-    const size_t treeCount = model.GetTreeCount();
-    TVector<TVector<double>> leavesStatistics(treeCount);
-    for (size_t index = 0; index < treeCount; ++index) {
-        leavesStatistics[index].resize(1 << model.ObliviousTrees->TreeSizes[index]);
+    size_t treeCount;
+    TVector<TVector<double>> leavesStatistics;
+    if (model.IsOblivious()) {
+        treeCount = model.GetTreeCount();
+        leavesStatistics.resize(treeCount);
+        for (size_t index = 0; index < treeCount; ++index) {
+            leavesStatistics[index].resize(1 << model.ObliviousTrees->TreeSizes[index]);
+        }
+    } else {
+        treeCount = 1;
+        leavesStatistics.resize(1);
+        leavesStatistics[0].resize(model.ObliviousTrees->LeafValues.size());
     }
 
     auto binFeatures = MakeQuantizedFeaturesForEvaluator(model, *dataset.ObjectsData.Get());
@@ -77,4 +82,3 @@ TVector<TVector<double>> CollectLeavesStatistics(
     }
     return leavesStatistics;
 }
-

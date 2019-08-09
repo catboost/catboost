@@ -1,5 +1,7 @@
 #pragma once
 
+#include "feature_str.h"
+
 #include <catboost/libs/algo/split.h>
 #include <catboost/libs/data_new/data_provider.h>
 #include <catboost/libs/model/model.h>
@@ -52,46 +54,6 @@ public:
         , FirstFeature{firstFeatureType, firstFeatureIndex}
         , SecondFeature{secondFeatureType, secondFeatureIndex}
     {}
-};
-
-struct TFeature {
-    ESplitType Type;
-    int FeatureIdx;
-    TModelCtr Ctr;
-    static constexpr size_t FloatFeatureBaseHash = 12321;
-    static constexpr size_t CtrBaseHash = 89321;
-    static constexpr size_t OneHotFeatureBaseHash = 517931;
-
-public:
-    TFeature() = default;
-    TFeature(const TFloatFeature& feature) : Type(ESplitType::FloatFeature), FeatureIdx(feature.Position.Index) {}
-    TFeature(const TOneHotFeature& feature) : Type(ESplitType::OneHotFeature), FeatureIdx(feature.CatFeatureIndex) {}
-    TFeature(const TCtrFeature& feature) : Type(ESplitType::OnlineCtr), Ctr(feature.Ctr) {}
-
-    bool operator==(const TFeature& other) const {
-        if (Type != other.Type) {
-            return false;
-        }
-        if (Type == ESplitType::OnlineCtr) {
-            return Ctr == other.Ctr;
-        } else {
-            return FeatureIdx == other.FeatureIdx;
-        }
-    }
-    bool operator!=(const TFeature& other) const {
-        return !(*this == other);
-    }
-    size_t GetHash() const {
-        if (Type == ESplitType::FloatFeature) {
-            return MultiHash(FloatFeatureBaseHash, FeatureIdx);
-        } else if (Type == ESplitType::OnlineCtr) {
-            return MultiHash(CtrBaseHash, Ctr.GetHash());
-        } else {
-            Y_ASSERT(Type == ESplitType::OneHotFeature);
-            return MultiHash(OneHotFeatureBaseHash, FeatureIdx);
-        }
-    }
-    TString BuildDescription(const NCB::TFeaturesLayout& layout) const;
 };
 
 struct TInternalFeatureInteraction {

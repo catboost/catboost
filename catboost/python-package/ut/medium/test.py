@@ -2217,6 +2217,33 @@ def test_feature_importance(task_type):
     return local_canonical_file(fimp_npy_path)
 
 
+@pytest.mark.parametrize('grow_policy', NONSYMMETRIC)
+def test_feature_importance_asymmetric_prediction_value_change(task_type, grow_policy):
+    if task_type == "CPU":
+        return
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    pool_querywise = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
+    fimp_npy_path = test_output_path(FIMP_NPY_PATH)
+
+    model = CatBoost(
+        {
+            "iterations": 5,
+            "learning_rate": 0.03,
+            "task_type": "GPU",
+            "devices": "0",
+            "loss_function": "QueryRMSE",
+            "grow_policy": grow_policy
+        }
+    )
+    model.fit(pool_querywise)
+    assert len(model.feature_importances_.shape) == 0
+    model.fit(pool)
+    assert (model.get_feature_importance() == model.get_feature_importance(type=EFstrType.PredictionValuesChange)).all()
+    np.save(fimp_npy_path, np.array(model.feature_importances_))
+    assert len(model.feature_importances_.shape)
+    return local_canonical_file(fimp_npy_path)
+
+
 def test_feature_importance_explicit(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoostClassifier(iterations=5, learning_rate=0.03, task_type=task_type, devices='0')

@@ -1400,18 +1400,17 @@ class CatBoost(_CatBoostBase):
                 train_params["init_model"]
             )
 
-        if self._object._is_oblivious():
-            # Have property feature_importance possibly set
-            loss = self._object._get_loss_function_name()
-            if loss and is_groupwise_metric(loss):
-                pass  # too expensive
+        # Have property feature_importance possibly set
+        loss = self._object._get_loss_function_name()
+        if loss and is_groupwise_metric(loss):
+            pass  # too expensive
+        else:
+            if not self._object._has_leaf_weights_in_model():
+                if allow_clear_pool:
+                    train_pool = _build_train_pool(X, y, cat_features, pairs, sample_weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, column_description)
+                self.get_feature_importance(data=train_pool, type=EFstrType.PredictionValuesChange)
             else:
-                if not self._object._has_leaf_weights_in_model():
-                    if allow_clear_pool:
-                        train_pool = _build_train_pool(X, y, cat_features, pairs, sample_weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, column_description)
-                    self.get_feature_importance(data=train_pool, type=EFstrType.PredictionValuesChange)
-                else:
-                    self.get_feature_importance(type=EFstrType.PredictionValuesChange)
+                self.get_feature_importance(type=EFstrType.PredictionValuesChange)
 
         return self
 
@@ -1987,8 +1986,6 @@ class CatBoost(_CatBoostBase):
             - Interaction
                 list of length [n_features] of 3-element lists of (first_feature_index, second_feature_index, interaction_score (float))
         """
-        if self.is_fitted() and not self._object._is_oblivious():
-            raise CatBoostError('Feature importance is not supported for non symmetric trees')
 
         if not isinstance(verbose, bool) and not isinstance(verbose, int):
             raise CatBoostError('verbose should be bool or int.')
@@ -2642,6 +2639,11 @@ class CatBoost(_CatBoostBase):
                     node_label = leaf_values[node_num]
                     color = 'red'
                     shape = 'rect'
+
+                try:
+                    node_label = node_label.decode("utf-8")
+                except:
+                    pass
 
                 graph.node(str(current_size), node_label, color=color, shape=shape)
 

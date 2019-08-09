@@ -33,23 +33,6 @@
 using namespace NCB;
 
 
-static TFeature GetFeature(const TModelSplit& split) {
-    TFeature result;
-    result.Type = split.Type;
-    switch(result.Type) {
-        case ESplitType::FloatFeature:
-            result.FeatureIdx = split.FloatFeature.FloatFeature;
-            break;
-        case ESplitType::OneHotFeature:
-            result.FeatureIdx = split.OneHotFeature.CatFeatureIdx;
-            break;
-        case ESplitType::OnlineCtr:
-            result.Ctr = split.OnlineCtr.Ctr;
-            break;
-    }
-    return result;
-}
-
 static TVector<TFeature>  GetCombinationClassFeatures(const TObliviousTrees& forest) {
     NCB::TFeaturesLayout layout(forest.FloatFeatures, forest.CatFeatures);
     TVector<std::pair<TVector<int>, TFeature>> featuresCombinations;
@@ -100,12 +83,6 @@ static TVector<TFeature>  GetCombinationClassFeatures(const TObliviousTrees& for
     return combinationClassFeatures;
 }
 
-struct TFeatureHash {
-    size_t operator()(const TFeature& f) const {
-        return f.GetHash();
-    }
-};
-
 static TVector<TMxTree> BuildTrees(
     const THashMap<TFeature, int, TFeatureHash>& featureToIdx,
     const TFullModel& model)
@@ -137,7 +114,10 @@ static TVector<TMxTree> BuildTrees(
     return trees;
 }
 
-TVector<TMxTree> BuildMatrixnetTrees(const TFullModel& model, TVector<TFeature>* features) {
+static THashMap<TFeature, int, TFeatureHash> GetFeatureToIdxMap(
+    const TFullModel& model,
+    TVector<TFeature>* features)
+{
     THashMap<TFeature, int, TFeatureHash> featureToIdx;
     const auto& modelBinFeatures = model.ObliviousTrees->GetBinFeatures();
     for (auto binSplit : model.ObliviousTrees->TreeSplits) {
@@ -149,8 +129,7 @@ TVector<TMxTree> BuildMatrixnetTrees(const TFullModel& model, TVector<TFeature>*
         featureToIdx[feature] = featureIdx;
         features->push_back(feature);
     }
-
-    return BuildTrees(featureToIdx, model);
+    return featureToIdx;
 }
 
 static const TDataProvider GetSubset(
@@ -189,8 +168,9 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectAverageChange(
     if (model.GetTreeCount() == 0) {
         return TVector<std::pair<double, TFeature>>();
     }
+    TVector<double> effect;
+    TVector<TFeature> features;
 
-    // use only if model.ObliviousTrees->LeafWeights is empty
     TVector<TVector<double>> leavesStatisticsOnPool;
     if (model.ObliviousTrees->LeafWeights.empty()) {
         CB_ENSURE(dataset, "CalcFeatureEffect requires either non-empty LeafWeights in model"
@@ -205,12 +185,20 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectAverageChange(
         }
     }
 
-    TVector<TFeature> features;
-    TVector<TMxTree> trees = BuildMatrixnetTrees(model, &features);
-
-    TVector<double> effect = CalcEffect(
-        trees,
-        model.ObliviousTrees->LeafWeights.empty() ? leavesStatisticsOnPool : model.ObliviousTrees->LeafWeights);
+    THashMap<TFeature, int, TFeatureHash> featureToIdx = GetFeatureToIdxMap(model, &features);
+    if(model.IsOblivious()) {
+        TVector<TMxTree> trees = BuildTrees(featureToIdx, model);
+        effect = CalcEffect(
+            trees,
+            model.ObliviousTrees->LeafWeights.empty() ? leavesStatisticsOnPool : model.ObliviousTrees->LeafWeights
+        );
+    } else {
+        effect = CalcEffect(
+            model,
+            featureToIdx,
+             model.ObliviousTrees->LeafWeights.empty() ? leavesStatisticsOnPool : model.ObliviousTrees->LeafWeights
+        );
+    }
 
     TVector<std::pair<double, int>> effectWithFeature;
     for (int i = 0; i < effect.ysize(); ++i) {
@@ -414,11 +402,10 @@ TVector<std::pair<double, TFeature>> CalcFeatureEffect(
         EFstrType type,
         NPar::TLocalExecutor* localExecutor)
 {
-    //TODO(eermishkina): support non symmetric trees
-    CB_ENSURE(model.IsOblivious(), "Feature importance is supported only for symmetric trees");
     type = GetFeatureImportanceType(model, bool(dataset), type);
     if (type == EFstrType::LossFunctionChange) {
         CB_ENSURE(dataset, "dataset is not provided");
+        CB_ENSURE(model.IsOblivious(), "LossFunctionChange supported only for symmetric trees");
         return CalcFeatureEffectLossChange(model, *dataset.Get(), localExecutor);
     } else {
         return CalcFeatureEffectAverageChange(model, dataset, localExecutor);
@@ -512,7 +499,8 @@ TVector<TInternalFeatureInteraction> CalcInternalFeatureInteraction(const TFullM
     }
 
     TVector<TFeature> features;
-    TVector<TMxTree> trees = BuildMatrixnetTrees(model, &features);
+    THashMap<TFeature, int, TFeatureHash> featureToIdx = GetFeatureToIdxMap(model, &features);
+    TVector<TMxTree> trees = BuildTrees(featureToIdx, model);
 
     TVector<TFeaturePairInteractionInfo> pairwiseEffect = CalcMostInteractingFeatures(trees);
     TVector<TInternalFeatureInteraction> result;
@@ -591,55 +579,12 @@ TVector<TFeatureInteraction> CalcFeatureInteraction(
     return regularFeatureEffect;
 }
 
-TString TFeature::BuildDescription(const TFeaturesLayout& layout) const {
-    TStringBuilder result;
-    if (Type == ESplitType::OnlineCtr) {
-        result << "{";
-        int feature_count = 0;
-        auto proj = Ctr.Base.Projection;
-
-        for (const int featureIdx : proj.CatFeatures) {
-            if (feature_count++ > 0) {
-                result << ", ";
-            }
-            result << BuildFeatureDescription(layout, featureIdx, EFeatureType::Categorical);
-        }
-
-        for (const auto& feature : proj.BinFeatures) {
-            if (feature_count++ > 0) {
-                result << ", ";
-            }
-            result << BuildFeatureDescription(layout, feature.FloatFeature, EFeatureType::Float);
-        }
-
-        for (const TOneHotSplit& feature : proj.OneHotFeatures) {
-            if (feature_count++ > 0) {
-                result << ", ";
-            }
-            result << BuildFeatureDescription(layout, feature.CatFeatureIdx, EFeatureType::Categorical);
-        }
-        result << "}";
-        result << " prior_num=" << Ctr.PriorNum;
-        result << " prior_denom=" << Ctr.PriorDenom;
-        result << " targetborder=" << Ctr.TargetBorderIdx;
-        result << " type=" << Ctr.Base.CtrType;
-    } else if (Type == ESplitType::FloatFeature) {
-        result << BuildFeatureDescription(layout, FeatureIdx, EFeatureType::Float);
-    } else {
-        Y_ASSERT(Type == ESplitType::OneHotFeature);
-        result << BuildFeatureDescription(layout, FeatureIdx, EFeatureType::Categorical);
-    }
-    return result;
-}
-
 static TVector<TVector<double>> CalcFstr(
     const TFullModel& model,
     const TDataProviderPtr dataset,
     EFstrType type,
     NPar::TLocalExecutor* localExecutor)
 {
-    //TODO(eermishkina): support non symmetric trees
-    CB_ENSURE(model.IsOblivious(), "Support feature importance only for symmetric trees");
     CB_ENSURE(
         !model.ObliviousTrees->LeafWeights.empty() || (dataset != nullptr),
         "CalcFstr requires either non-empty LeafWeights in model or provided dataset");
