@@ -6,6 +6,7 @@ namespace NCB {
     static void GetPredictionsOnVaryingFeature(
         const TFullModel& model,
         const size_t featureNum,
+        const TVector<size_t>& ignoredValues, // for cat features, ordered
         const TVector<T>& featureValues,
         const EPredictionType predictionType,
         const int threadCount,
@@ -30,9 +31,15 @@ namespace NCB {
             CB_ENSURE_INTERNAL(FeatureType == EFeatureType::Float, "Unsupported FeatureType");
             initialHolder = std::move(data.ObjectsData.FloatFeatures[featureNum]);
         }
+        size_t ignoreIndex = 0;
+        const size_t ignoreSize = ignoredValues.size();
         float prevBorder = featureValues[0];
         for (size_t numVal = 0; numVal <= featureValues.size(); ++numVal) {
             if constexpr (FeatureType == EFeatureType::Categorical) {
+                if (ignoreIndex < ignoreSize && ignoredValues[ignoreIndex] == numVal) {
+                    ++ignoreIndex;
+                    continue;
+                }
                 if (numVal == featureValues.size()) {
                     break;
                 }
@@ -70,7 +77,7 @@ namespace NCB {
             );
 
             auto pred = ApplyModelMulti(model, *(rawDataProviderPtr->ObjectsData), false, predictionType, 0, 0, threadCount)[0];
-            (*predictions)[numVal] = std::accumulate(pred.begin(), pred.end(), 0.) / static_cast<double>(pred.size());
+            (*predictions)[numVal - ignoreIndex] = std::accumulate(pred.begin(), pred.end(), 0.) / static_cast<double>(pred.size());
             data = TRawBuilderDataHelper::Extract(std::move(*(rawDataProviderPtr.Release())));
         }
 
@@ -209,6 +216,7 @@ namespace NCB {
         GetPredictionsOnVaryingFeature<float, TFloatValuesHolder, EFeatureType::Float>(
             model,
             featureNum,
+            TVector<size_t>(),
             quantizedFeaturesInfo->GetBorders(TFloatFeatureIdx(featureNum)),
             predictionType,
             threadCount,
@@ -323,27 +331,35 @@ namespace NCB {
             }
             --numBins;
         }
-
+        int emptyOffset = 0;
         TVector<size_t> skippedValues;
         for (size_t binNum = 0; binNum < numBins; ++binNum) {
             size_t numObjs = countObjectsPerBin[binNum];
             if (numObjs == 0) {
+                ++emptyOffset;
+                skippedValues.push_back(binNum);
                 continue;
             }
-            countObjectsPerBin[binNum] = countObjectsPerBin[binNum];
-            binNums[binNum] = binNums[binNum];
-            meanTarget[binNum] /= static_cast<float>(numObjs);
-            meanPrediction[binNum] /= static_cast<float>(numObjs);
+            countObjectsPerBin[binNum - emptyOffset] = countObjectsPerBin[binNum];
+            binNums[binNum - emptyOffset] = binNums[binNum];
+            meanTarget[binNum - emptyOffset] = meanTarget[binNum] / static_cast<float>(numObjs);
+            meanPrediction[binNum - emptyOffset] = meanPrediction[binNum] / static_cast<float>(numObjs);
 
             if (useWeights) {
                 double sumWeight = sumWeightsObjectsPerBin[binNum];
-                meanWeightedTarget[binNum] /= sumWeight;
+                meanWeightedTarget[binNum - emptyOffset] = meanWeightedTarget[binNum] / sumWeight;
             }
         }
-        TVector<double> predictionsOnVarying(numBins, 0.);
+        countObjectsPerBin.resize(countObjectsPerBin.size() - emptyOffset);
+        binNums.resize(binNums.size() - emptyOffset);
+        meanTarget.resize(meanTarget.size() - emptyOffset);
+        meanPrediction.resize(meanPrediction.size() - emptyOffset);
+
+        TVector<double> predictionsOnVarying(numBins - emptyOffset, 0.);
         GetPredictionsOnVaryingFeature<int, THashedCatValuesHolder, EFeatureType::Categorical>(
             model,
             featureNum,
+            skippedValues,
             oneHotUniqueValues,
             predictionType,
             threadCount,
