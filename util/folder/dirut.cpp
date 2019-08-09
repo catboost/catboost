@@ -379,7 +379,7 @@ const char* GetDirectorySeparatorS() {
 void RemoveDirWithContents(TString dirName) {
     SlashFolderLocal(dirName);
 
-    TDirIterator dir(dirName);
+    TDirIterator dir(dirName, TDirIterator::TOptions(FTS_NOSTAT));
 
     for (auto it = dir.begin(); it != dir.end(); ++it) {
         switch (it->fts_info) {
