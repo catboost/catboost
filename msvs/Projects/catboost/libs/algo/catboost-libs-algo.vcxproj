@@ -87,6 +87,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\approx_updater_helpers.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\bin_tracker.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\calc_score_cache.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\confusion_matrix.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\ctr_helper.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\custom_objective_descriptor.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\data.cpp"/>
@@ -131,6 +132,7 @@
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\approx_updater_helpers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\bin_tracker.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\calc_score_cache.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\confusion_matrix.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\ctr_helper.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\custom_objective_descriptor.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\data.h"/>
