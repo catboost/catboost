@@ -5,47 +5,47 @@
 #include "utility.h"
 #include "typetraits.h"
 
-template <typename TChar, typename TTraits>
-class TBasicStringBuf: public TFixedString<TChar, TTraits>, public TStringBase<TBasicStringBuf<TChar, TTraits>, TChar, TTraits> {
+template <typename TCharType, typename TTraits>
+class TBasicStringBuf: public TFixedString<TCharType, TTraits>, public TStringBase<TBasicStringBuf<TCharType, TTraits>, TCharType, TTraits> {
     using TdSelf = TBasicStringBuf;
-    using TBaseStr = TFixedString<TChar, TTraits>;
-    using TBase = TStringBase<TdSelf, TChar, TTraits>;
+    using TBaseStr = TFixedString<TCharType, TTraits>;
+    using TBase = TStringBase<TdSelf, TCharType, TTraits>;
 
 public:
-    using char_type = TChar; // TODO: DROP
-    using value_type = TChar;
+    using char_type = TCharType; // TODO: DROP
+    using value_type = TCharType;
     using traits_type = TTraits;
 
-    constexpr inline TBasicStringBuf(const TChar* data, size_t len) noexcept
+    constexpr inline TBasicStringBuf(const TCharType* data, size_t len) noexcept
         : TBaseStr(data, len)
     {
     }
 
-    inline TBasicStringBuf(const TChar* data) noexcept
+    inline TBasicStringBuf(const TCharType* data) noexcept
         : TBaseStr(data, TBase::StrLen(data))
     {
     }
 
-    inline TBasicStringBuf(const TChar* beg, const TChar* end) noexcept
+    inline TBasicStringBuf(const TCharType* beg, const TCharType* end) noexcept
         : TBaseStr(beg, end)
     {
         Y_ASSERT(beg <= end);
     }
 
     template <typename D, typename T>
-    inline TBasicStringBuf(const TStringBase<D, TChar, T>& str) noexcept
+    inline TBasicStringBuf(const TStringBase<D, TCharType, T>& str) noexcept
         : TBaseStr(str)
     {
     }
 
     template <typename T, typename A>
-    inline TBasicStringBuf(const std::basic_string<TChar, T, A>& str) noexcept
+    inline TBasicStringBuf(const std::basic_string<TCharType, T, A>& str) noexcept
         : TBaseStr(str)
     {
     }
 
     template <typename TCharTraits>
-    constexpr TBasicStringBuf(std::basic_string_view<TChar, TCharTraits> view) noexcept
+    constexpr TBasicStringBuf(std::basic_string_view<TCharType, TCharTraits> view) noexcept
         : TBaseStr(view.data(), view.size())
     {
     }
@@ -72,7 +72,7 @@ public:
     }
 
 public: // required by TStringBase
-    constexpr inline const TChar* data() const noexcept {
+    constexpr inline const TCharType* data() const noexcept {
         return Start;
     }
 
@@ -101,7 +101,7 @@ public:
      * @param[out] r                    The second part of split result.
      * @returns                         Whether the split was actually performed.
      */
-    inline bool TrySplit(TChar delim, TdSelf& l, TdSelf& r) const noexcept {
+    inline bool TrySplit(TCharType delim, TdSelf& l, TdSelf& r) const noexcept {
         return TrySplitOn(TBase::find(delim), l, r);
     }
 
@@ -116,7 +116,7 @@ public:
      * @param[out] r                    The second part of split result.
      * @returns                         Whether the split was actually performed.
      */
-    inline bool TryRSplit(TChar delim, TdSelf& l, TdSelf& r) const noexcept {
+    inline bool TryRSplit(TCharType delim, TdSelf& l, TdSelf& r) const noexcept {
         return TrySplitOn(TBase::rfind(delim), l, r);
     }
 
@@ -150,11 +150,11 @@ public:
         return TrySplitOn(TBase::rfind(delim), l, r, delim.size());
     }
 
-    inline void Split(TChar delim, TdSelf& l, TdSelf& r) const noexcept {
+    inline void Split(TCharType delim, TdSelf& l, TdSelf& r) const noexcept {
         SplitTemplate(delim, l, r);
     }
 
-    inline void RSplit(TChar delim, TdSelf& l, TdSelf& r) const noexcept {
+    inline void RSplit(TCharType delim, TdSelf& l, TdSelf& r) const noexcept {
         RSplitTemplate(delim, l, r);
     }
 
@@ -216,25 +216,25 @@ public:
 
 public:
     Y_PURE_FUNCTION
-    inline TdSelf After(TChar c) const noexcept {
+    inline TdSelf After(TCharType c) const noexcept {
         TdSelf l, r;
         return TrySplit(c, l, r) ? r : *this;
     }
 
     Y_PURE_FUNCTION
-    inline TdSelf Before(TChar c) const noexcept {
+    inline TdSelf Before(TCharType c) const noexcept {
         TdSelf l, r;
         return TrySplit(c, l, r) ? l : *this;
     }
 
     Y_PURE_FUNCTION
-    inline TdSelf RAfter(TChar c) const noexcept {
+    inline TdSelf RAfter(TCharType c) const noexcept {
         TdSelf l, r;
         return TryRSplit(c, l, r) ? r : *this;
     }
 
     Y_PURE_FUNCTION
-    inline TdSelf RBefore(TChar c) const noexcept {
+    inline TdSelf RBefore(TCharType c) const noexcept {
         TdSelf l, r;
         return TryRSplit(c, l, r) ? l : *this;
     }
@@ -297,19 +297,19 @@ public:
 */
 
 public:
-    TdSelf SplitOff(TChar delim) {
+    TdSelf SplitOff(TCharType delim) {
         TdSelf tok;
         Split(delim, *this, tok);
         return tok;
     }
 
-    TdSelf RSplitOff(TChar delim) {
+    TdSelf RSplitOff(TCharType delim) {
         TdSelf tok;
         RSplit(delim, tok, *this);
         return tok;
     }
 
-    bool NextTok(TChar delim, TdSelf& tok) {
+    bool NextTok(TCharType delim, TdSelf& tok) {
         return NextTokTemplate(delim, tok);
     }
 
@@ -317,7 +317,7 @@ public:
         return NextTokTemplate(delim, tok);
     }
 
-    bool RNextTok(TChar delim, TdSelf& tok) {
+    bool RNextTok(TCharType delim, TdSelf& tok) {
         return RNextTokTemplate(delim, tok);
     }
 
@@ -337,11 +337,11 @@ public:
         return false;
     }
 
-    TdSelf NextTok(TChar delim) {
+    TdSelf NextTok(TCharType delim) {
         return NextTokTemplate(delim);
     }
 
-    TdSelf RNextTok(TChar delim) {
+    TdSelf RNextTok(TCharType delim) {
         return RNextTokTemplate(delim);
     }
 
@@ -411,11 +411,11 @@ public: // string subsequences
         return TdSelf(*this).RSeek(len);
     }
 
-    TGenericString<TChar> ToString() const {
+    TGenericString<TCharType> ToString() const {
         return {Start, Length};
     }
 
-    TGenericString<TChar> Quote() const {
+    TGenericString<TCharType> Quote() const {
         return ToString().Quote();
     }
 
@@ -494,7 +494,7 @@ static inline TUtf32String ToUtf32String(const TUtf32String wtr) {
     return TUtf32String(wtr);
 }
 
-template <typename TChar, size_t size>
-constexpr inline TBasicStringBuf<TChar> AsStringBuf(const TChar (&str)[size]) noexcept {
-    return TBasicStringBuf<TChar>(str, size - 1);
+template <typename TCharType, size_t size>
+constexpr inline TBasicStringBuf<TCharType> AsStringBuf(const TCharType (&str)[size]) noexcept {
+    return TBasicStringBuf<TCharType>(str, size - 1);
 }

@@ -20,7 +20,7 @@
 
 template <class T>
 class TTempArray;
-using TCharTemp = TTempArray<TChar>;
+using TCharTemp = TTempArray<wchar16>;
 
 namespace NDetail {
     inline TString InStringMsg(const char* s, size_t len) {

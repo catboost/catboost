@@ -134,7 +134,7 @@ Y_UNIT_TEST_SUITE(SplitStringTest) {
         TUtf16String data(ASCIIToWide("qw ab  qwabcab"));
         TUtf16String canonic[] = {ASCIIToWide("qw"), ASCIIToWide("ab"), TUtf16String(), ASCIIToWide("qwabcab")};
         TVector<TUtf16String> good(canonic, canonic + 4);
-        TCharDelimiter<const TChar> delim(' ');
+        TCharDelimiter<const wchar16> delim(' ');
 
         TestDelimiterOnString<TContainerConsumer>(good, data.data(), delim);
         TestDelimiterOnRange<TContainerConsumer>(good, data.data(), data.end(), delim);
@@ -192,7 +192,7 @@ Y_UNIT_TEST_SUITE(SplitStringTest) {
         TUtf16String canonic[] = {ASCIIToWide("qw "), ASCIIToWide(" qw"), TUtf16String(), ASCIIToWide("c"), TUtf16String()};
         TVector<TUtf16String> good(canonic, canonic + 5);
         TUtf16String wideDelim(ASCIIToWide("ab"));
-        TStringDelimiter<const TChar> delim(wideDelim.data());
+        TStringDelimiter<const wchar16> delim(wideDelim.data());
 
         TestDelimiterOnString<TContainerConsumer>(good, data.data(), delim);
         TestDelimiterOnRange<TContainerConsumer>(good, data.data(), data.end(), delim);
@@ -213,7 +213,7 @@ Y_UNIT_TEST_SUITE(SplitStringTest) {
         TUtf16String canonic[] = {ASCIIToWide("q"), ASCIIToWide(" ab q"), ASCIIToWide("abab"), TUtf16String(), ASCIIToWide("ab")};
         TVector<TUtf16String> good(canonic, canonic + 5);
         TUtf16String wideDelim(ASCIIToWide("wc"));
-        TSetDelimiter<const TChar> delim(wideDelim.data());
+        TSetDelimiter<const wchar16> delim(wideDelim.data());
 
         TestDelimiterOnString<TContainerConsumer>(good, data.data(), delim);
     }
@@ -223,7 +223,7 @@ Y_UNIT_TEST_SUITE(SplitStringTest) {
         TUtf16String canonic[] = {ASCIIToWide("q"), ASCIIToWide(" ab q"), ASCIIToWide("abab"), TUtf16String(), ASCIIToWide("ab")};
         TVector<TUtf16String> good(1);
         TUtf16String wideDelim(ASCIIToWide("wc"));
-        TSetDelimiter<const TChar> delim(wideDelim.data());
+        TSetDelimiter<const wchar16> delim(wideDelim.data());
 
         TVector<TUtf16String> test;
         TContainerConsumer<TVector<TUtf16String>> consumer(&test);

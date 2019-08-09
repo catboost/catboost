@@ -27,7 +27,7 @@ struct THash;
 template <class TCharType>
 class TCharTraits;
 
-template <typename TChar, typename TTraits = TCharTraits<TChar>>
+template <typename TCharType, typename TTraits = TCharTraits<TCharType>>
 class TBasicStringBuf;
 
 using TStringBuf = TBasicStringBuf<char>;
