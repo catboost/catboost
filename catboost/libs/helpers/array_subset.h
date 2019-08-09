@@ -392,9 +392,9 @@ namespace NCB {
     };
 
     template <class TS, class TSize>
-    class TDumperVisitor {
+    class TDumperArraySubsetVisitor {
     public:
-        TDumperVisitor(TS& s)
+        TDumperArraySubsetVisitor(TS& s)
             : S(s)
         {}
 
@@ -431,7 +431,7 @@ template <class TSize>
 struct TDumper<NCB::TArraySubsetIndexing<TSize>> {
     template <class S>
     static inline void Dump(S& s, const NCB::TArraySubsetIndexing<TSize>& subset) {
-        Visit(NCB::TDumperVisitor<S, TSize>(s), subset);
+        Visit(NCB::TDumperArraySubsetVisitor<S, TSize>(s), subset);
     }
 };
 
@@ -973,5 +973,45 @@ namespace NCB {
             TInvertedIndexedSubset<TSize>(indexing.Size(), std::move(invertedIndices))
         );
     }
+
+    template <class TS, class TSize>
+    class TDumperArraySubsetInvertedIndexingVisitor {
+    public:
+        TDumperArraySubsetInvertedIndexingVisitor(TS& s)
+            : S(s)
+        {}
+
+        void operator()(const TFullSubset<TSize>& fullSubset) const {
+            S << "FullSubset(size=" << fullSubset.Size << ")\n";
+        }
+
+        void operator()(const TInvertedIndexedSubset<TSize>& invertedIndexedSubset) const {
+            S << "InvertedIndexedSubset(Size=" << invertedIndexedSubset.GetSize() << ", Mapping=[\n";
+
+            TConstArrayRef<TSize> mapping = invertedIndexedSubset.GetMapping();
+            for (auto i : xrange(mapping.size())) {
+                S << "\t" << i << " -> ";
+                if (mapping[i] == TInvertedIndexedSubset<TSize>::NOT_PRESENT) {
+                    S << "NOT_PRESENT";
+                } else {
+                    S << mapping[i];
+                }
+                S << Endl;
+            }
+            S << "])\n";
+        }
+
+    private:
+        TS& S;
+    };
+
 }
+
+template <class TSize>
+struct TDumper<NCB::TArraySubsetInvertedIndexing<TSize>> {
+    template <class S>
+    static inline void Dump(S& s, const NCB::TArraySubsetInvertedIndexing<TSize>& invertedSubset) {
+        Visit(NCB::TDumperArraySubsetInvertedIndexingVisitor<S, TSize>(s), invertedSubset);
+    }
+};
 
