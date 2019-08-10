@@ -4,9 +4,6 @@
 #include <util/generic/fwd.h>
 #include <util/system/compiler.h>
 
-// Test forward declarations, pt 1
-class TString;
-
 // Test template declarations
 template<class T>
 void Func(T&);
