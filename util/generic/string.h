@@ -1217,7 +1217,7 @@ public:
 
     auto AssignUtf16(const ::TFixedString<wchar16>& s) {
         clear();
-        return This()->AppendUtf8(s);
+        return This()->AppendUtf16(s);
     }
 
     TDerived& operator=(const TDerived& s) {
@@ -1680,7 +1680,7 @@ public:
     /**
      * Modifies the case of the string, depending on the operation.
      * @return false if no changes have been made.
-	 *
+     *
      * @warning when the value_type is char, these methods will not work with non-ASCII letters.
      */
     bool to_lower(size_t pos = 0, size_t n = TBase::npos);
