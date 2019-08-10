@@ -1,9 +1,9 @@
 #pragma once
 
-#include "defaults.h"
+#include <util/generic/fwd.h>
+#include <util/system/defaults.h>
 
 class IOutputStream;
-class TString;
 
 size_t BackTrace(void** p, size_t len);
 

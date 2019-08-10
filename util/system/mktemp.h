@@ -1,6 +1,6 @@
 #pragma once
 
-class TString;
+#include <util/generic/fwd.h>
 
 /*
  * Create temp file name in the specified directory.

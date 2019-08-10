@@ -1,10 +1,10 @@
 #pragma once
 
-#include "fhandle.h"
+#include <util/generic/fwd.h>
+#include <util/system/fhandle.h>
 
 class TFile;
 class TFsPath;
-class TString;
 
 struct TFileStat {
     ui32 Mode = 0; /* protection */

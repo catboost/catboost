@@ -1,5 +1,5 @@
 #pragma once
 
-class TString;
+#include <util/generic/fwd.h>
 
 TString GetUsername();

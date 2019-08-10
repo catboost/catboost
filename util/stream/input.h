@@ -1,10 +1,9 @@
 #pragma once
 
+#include <util/generic/fwd.h>
 #include <util/generic/noncopyable.h>
 #include <util/system/defaults.h>
 
-class TString;
-class TUtf16String;
 class IOutputStream;
 
 /**

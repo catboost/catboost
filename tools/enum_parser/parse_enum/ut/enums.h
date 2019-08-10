@@ -1,6 +1,7 @@
 #pragma once
 // Sample file for parse_enum unittests
 
+#include <util/generic/fwd.h>
 #include <util/system/compiler.h>
 
 // Test forward declarations, pt 1

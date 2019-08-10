@@ -1,6 +1,6 @@
 #pragma once
 
-class TString;
+#include <util/generic/fwd.h>
 
 void SetProgramName(const char* argv0);
 

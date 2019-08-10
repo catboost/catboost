@@ -1,9 +1,9 @@
 #pragma once
 
-#include <util/system/defaults.h>
+#include <util/generic/fwd.h>
 #include <util/generic/utility.h>
+#include <util/system/defaults.h>
 
-class TString;
 class TMemoryMap;
 class IInputStream;
 class TFile;

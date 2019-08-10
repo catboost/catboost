@@ -1,10 +1,8 @@
 #pragma once
 
-#include "file.h"
-
+#include <util/generic/fwd.h>
 #include <util/generic/noncopyable.h>
-
-class TString;
+#include <util/system/file.h>
 
 enum class EFileLockType{
     Exclusive,

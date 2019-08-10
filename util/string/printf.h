@@ -1,10 +1,9 @@
 #pragma once
 
+#include <util/generic/fwd.h>
 #include <util/system/compiler.h>
 
 #include <cstdarg>
-
-class TString;
 
 /// formatted print. return printed length:
 int Y_PRINTF_FORMAT(2, 0) vsprintf(TString& s, const char* c, va_list params);
