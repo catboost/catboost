@@ -83,6 +83,7 @@
         "qemu-i386": { "description": "QEMU i386 machine emulator and virtualizer" },
         "qemu-img": { "description": "QEMU disk image utility" },
         "qemu-nbd": { "description": "QEMU disk network block device server" },
+        "vmexec": { "description": "VMEXEC run script inside qemu-vm" },
         "yfm": { "description": "YFM-extended markdown processor for Cloud deploy" },
         "aws": { "description": "Run aws" },
         "sedem": { "description": "SEDEM tool - Service management tool for Maps services" }
@@ -1482,6 +1483,14 @@
                 {"host": {"os": "LINUX"}, "default": true}
             ]
         },
+        "vmexec": {
+            "tools": {
+                "vmexec": { "bottle" : "vmexec", "executable": "vmexec" },
+            },
+            "platforms": [
+                {"host": {"os": "LINUX"}, "default": true}
+            ]
+        },
         "yfm": {
             "tools": {
                 "yfm": { "bottle": "yfm", "executable": "yfm" }
@@ -2423,6 +2432,15 @@
                 "qemu-i386": ["qemu", "bin", "qemu-system-i386"],
                 "qemu-img": ["qemu", "bin", "qemu-img"],
                 "qemu-nbd": ["qemu", "bin", "qemu-nbd"]
+            }
+        },
+        "vmexec": {
+            "formula": {
+                "sandbox_id": [484941564],
+                "match": "infra/qemu/vmexec/vmexec",
+            },
+            "executable": {
+                "vmexec": ["vmexec"]
             }
         },
         "yfm": {
