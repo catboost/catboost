@@ -1584,7 +1584,7 @@
         },
         "sandboxctl": {
             "formula": {
-                "sandbox_id": 474771608,
+                "sandbox_id": 484752013,
                 "match": "tools/sandboxctl/bin/sandboxctl"
             },
             "executable": {
