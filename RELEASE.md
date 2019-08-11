@@ -1,3 +1,19 @@
+# Release 0.16.3
+
+## Breaking changes:
+- Renamed column `Feature Index` to `Feature Id` in prettified output of python method `get_feature_importance()`, because it supports feature names now
+- Renamed option `per_float_feature_binarization` (`--per-float-feature-binarization`) to `per_float_feature_quantization` (`--per-float-feature-quantization`)
+- Removed parameter `inverted` from python `cv` method. Added `type` parameter instead, which can be set to `Inverted`
+- Method `get_features()` now works only for datasets without categorical features
+
+## New features
+- A new multiclass version of AUC metric, called `AUC Mu`, which was proposed by Ross S. Kleiman on NeurIPS 2019, [link](http://proceedings.mlr.press/v97/kleiman19a/kleiman19a.pdf)
+- Added time series cv
+- Added `MeanWeightedTarget` in `fstat`
+- Added `utils.get_confusion_matrix()`
+- Now feature importance can be calculated for non-symmetric trees
+
+
 # Release 0.16.2
 
 ## Breaking changes:
