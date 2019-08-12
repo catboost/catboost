@@ -16,11 +16,9 @@ using namespace NCB;
 
 template <class TFeature, EFeatureType FeatureType>
 static TVector<TFeature> CreateFeatures(
-    const NCB::TQuantizedFeaturesInfo& quantizedFeaturesInfo,
+    const NCB::TFeaturesLayout& featuresLayout,
     std::function<void(TFeature&)> setSpecificDataFunc
 ) {
-    const auto& featuresLayout = *quantizedFeaturesInfo.GetFeaturesLayout();
-
     TVector<TFeature> features;
 
     const auto featuresMetaInfo = featuresLayout.GetExternalFeaturesMetaInfo();
@@ -47,9 +45,12 @@ static TVector<TFeature> CreateFeatures(
 }
 
 
-TVector<TFloatFeature> CreateFloatFeatures(const NCB::TQuantizedFeaturesInfo& quantizedFeaturesInfo) {
+TVector<TFloatFeature> CreateFloatFeatures(
+    const NCB::TFeaturesLayout& featuresLayout,
+    const NCB::TQuantizedFeaturesInfo& quantizedFeaturesInfo) {
+
     return CreateFeatures<TFloatFeature, EFeatureType::Float>(
-        quantizedFeaturesInfo,
+        featuresLayout,
         [&] (TFloatFeature& floatFeature) {
             const auto floatFeatureIdx = TFloatFeatureIdx((ui32)floatFeature.Position.Index);
             auto nanMode = quantizedFeaturesInfo.GetNanMode(floatFeatureIdx);
@@ -66,9 +67,9 @@ TVector<TFloatFeature> CreateFloatFeatures(const NCB::TQuantizedFeaturesInfo& qu
     );
 }
 
-TVector<TCatFeature> CreateCatFeatures(const NCB::TQuantizedFeaturesInfo& quantizedFeaturesInfo) {
+TVector<TCatFeature> CreateCatFeatures(const NCB::TFeaturesLayout& featuresLayout) {
     return CreateFeatures<TCatFeature, EFeatureType::Categorical>(
-        quantizedFeaturesInfo,
+        featuresLayout,
         [&] (TCatFeature&) { }
     );
 }

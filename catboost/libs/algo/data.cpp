@@ -169,7 +169,7 @@ namespace NCB {
             );
 
             // because some features can become unavailable/ignored due to quantization
-            trainingData->MetaInfo.FeaturesLayout = quantizedFeaturesInfo->GetFeaturesLayout();
+            trainingData->MetaInfo.FeaturesLayout = trainingData->ObjectsData->GetFeaturesLayout();
         }
 
         if (unloadCatFeaturePerfectHashFromRamIfPossible) {

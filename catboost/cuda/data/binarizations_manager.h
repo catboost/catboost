@@ -4,6 +4,7 @@
 
 #include <catboost/libs/ctr_description/ctr_config.h>
 #include <catboost/libs/data_new/cat_feature_perfect_hash.h>
+#include <catboost/libs/data_new/features_layout.h>
 #include <catboost/libs/data_new/quantized_features_info.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/options/binarization_options.h>
@@ -22,8 +23,15 @@ namespace NCatboostCuda {
     //WARNING: not thread-safe
     class TBinarizedFeaturesManager {
     public:
+        /*
+         * Separate featuresLayout parameter is necessary because FeaturesLayout in quantizedFeaturesInfo
+         *   contains ignored features information at the moment of quantization but it is possible that
+         *   some additional features are set to be ignored at later processing stages
+         *   (For example, for feature evaluation)
+         */
         TBinarizedFeaturesManager(const NCatboostOptions::TCatFeatureParams& catFeatureOptions,
                                   const NCB::TFeatureEstimators& estimators,
+                                  const NCB::TFeaturesLayout& featuresLayout,
                                   NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo);
 
         TBinarizedFeaturesManager(const TBinarizedFeaturesManager& featureManager, const TVector<ui32>& ignoredFeatureIds);
@@ -303,7 +311,7 @@ namespace NCatboostCuda {
         };
 
         TVector<TUserDefinedCombination> UserCombinations;
-        const TSet<ui32> IgnoredFeatures;
+        TSet<ui32> IgnoredFeatures;
 
     };
 }

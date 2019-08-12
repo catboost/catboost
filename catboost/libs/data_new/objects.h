@@ -332,10 +332,11 @@ namespace NCB {
 
         void Load(
             const TArraySubsetIndexing<ui32>* subsetIndexing,
+            const TFeaturesLayout& featuresLayout,
             TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
             IBinSaver* binSaver
         );
-        void SaveNonSharedPart(IBinSaver* binSaver) const;
+        void SaveNonSharedPart(const TFeaturesLayout& featuresLayout, IBinSaver* binSaver) const;
     };
 
     using TRawObjectsDataProviderPtr = TIntrusivePtr<TRawObjectsDataProvider>;
@@ -413,7 +414,7 @@ namespace NCB {
 
     protected:
         void SaveDataNonSharedPart(IBinSaver* binSaver) const {
-            Data.SaveNonSharedPart(binSaver);
+            Data.SaveNonSharedPart(*GetFeaturesLayout(), binSaver);
         }
 
         bool AllFeaturesDataIsCompressedArrays() const;
@@ -446,7 +447,7 @@ namespace NCB {
 
         // SrcData is not initialized here - create separately
         TExclusiveFeatureBundlesData(
-            const TQuantizedFeaturesInfo& quantizedFeaturesInfo,
+            const NCB::TFeaturesLayout& featuresLayout,
             TVector<TExclusiveFeaturesBundle>&& metaData
         );
 
@@ -473,6 +474,7 @@ namespace NCB {
 
         // does not init data in SrcData elements, it has to be filled later if necessary
         TPackedBinaryFeaturesData(
+            const TFeaturesLayout& featuresLayout,
             const TQuantizedFeaturesInfo& quantizedFeaturesInfo,
             const TExclusiveFeatureBundlesData& exclusiveFeatureBundlesData,
             bool dontPack = false // set true to disable binary features packing
@@ -514,6 +516,7 @@ namespace NCB {
     public:
         void Load(
             const TArraySubsetIndexing<ui32>* subsetIndexing,
+            const TFeaturesLayout& featuresLayout,
             TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
             IBinSaver* binSaver
         );
@@ -654,7 +657,7 @@ namespace NCB {
 
             PackedBinaryFeaturesData.Save(&localExecutor, binSaver);
             ExclusiveFeatureBundlesData.Save(&localExecutor, binSaver);
-            Data.SaveNonSharedPart(binSaver);
+            Data.SaveNonSharedPart(*GetFeaturesLayout(), binSaver);
         }
 
     private:
@@ -717,17 +720,14 @@ namespace NCB {
         ) {
             TCommonObjectsData commonObjectsData;
             commonObjectsData.Load(featuresLayout, objectsGrouping->GetObjectCount(), binSaver);
-            TQuantizedFeaturesInfoPtr quantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
-                *featuresLayout,
-                TConstArrayRef<ui32>(),
-                NCatboostOptions::TBinarizationOptions(),
-                TMap<ui32, NCatboostOptions::TBinarizationOptions>(),
-                false
-            );
-            quantizedFeaturesInfo->LoadNonSharedPart(binSaver);
+
+            TQuantizedFeaturesInfoPtr quantizedFeaturesInfo;
+            AddWithShared(binSaver, &quantizedFeaturesInfo);
+
             typename TObjectsDataProviderType::TData quantizedObjectsData;
             quantizedObjectsData.Load(
                 commonObjectsData.SubsetIndexing.Get(),
+                *featuresLayout,
                 quantizedFeaturesInfo,
                 binSaver
             );
@@ -743,7 +743,10 @@ namespace NCB {
         template <class TObjectsDataProviderType>
         static void SaveNonSharedPart(const TObjectsDataProviderType& objectsData, IBinSaver* binSaver) {
             objectsData.SaveCommonDataNonSharedPart(binSaver);
-            objectsData.GetQuantizedFeaturesInfo()->SaveNonSharedPart(binSaver);
+
+            TQuantizedFeaturesInfoPtr quantizedFeaturesInfo = objectsData.GetQuantizedFeaturesInfo();
+            AddWithShared(binSaver, &quantizedFeaturesInfo);
+
             objectsData.SaveDataNonSharedPart(binSaver);
         }
     };

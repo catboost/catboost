@@ -338,6 +338,7 @@ namespace NCatboostCuda {
 
             TBinarizedFeaturesManager featuresManager(updatedCatboostOptions.CatFeatureParams,
                                                       trainingData.FeatureEstimators,
+                                                      *trainingData.Learn->MetaInfo.FeaturesLayout,
                                                       quantizedFeaturesInfo);
 
 
@@ -474,6 +475,7 @@ namespace NCatboostCuda {
             TFeatureEstimators estimators;
             TBinarizedFeaturesManager featuresManager(updatedCatboostOptions.CatFeatureParams,
                                                       estimators,
+                                                      *trainingData.Learn->MetaInfo.FeaturesLayout,
                                                       quantizedFeaturesInfo);
 
             SetDataDependentDefaultsForGpu(

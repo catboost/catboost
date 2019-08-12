@@ -97,18 +97,19 @@ static_assert(
 );
 
 inline static int CountNonCtrBuckets(
+    const NCB::TFeaturesLayout& featuresLayout,
     const NCB::TQuantizedFeaturesInfo& quantizedFeaturesInfo,
     ui32 oneHotMaxSize
 ) {
     int nonCtrBucketCount = 0;
 
-    quantizedFeaturesInfo.GetFeaturesLayout()->IterateOverAvailableFeatures<EFeatureType::Float>(
+    featuresLayout.IterateOverAvailableFeatures<EFeatureType::Float>(
         [&](NCB::TFloatFeatureIdx floatFeatureIdx) {
             nonCtrBucketCount += int(quantizedFeaturesInfo.GetBorders(floatFeatureIdx).size() + 1);
         }
     );
 
-    quantizedFeaturesInfo.GetFeaturesLayout()->IterateOverAvailableFeatures<EFeatureType::Categorical>(
+    featuresLayout.IterateOverAvailableFeatures<EFeatureType::Categorical>(
         [&](NCB::TCatFeatureIdx catFeatureIdx) {
             const auto uniqueValuesCounts = quantizedFeaturesInfo.GetUniqueValuesCounts(catFeatureIdx);
             if (uniqueValuesCounts.OnLearnOnly <= oneHotMaxSize) {

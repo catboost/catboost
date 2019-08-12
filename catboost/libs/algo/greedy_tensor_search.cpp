@@ -193,13 +193,13 @@ static void CompressCandidates(
         }
         CB_ENSURE_INTERNAL(
             !maybeExclusiveBundleIndex || !maybePackedBinaryIndex,
-            "Feature #" << learnObjectsData.GetQuantizedFeaturesInfo()
-                ->GetFeaturesLayout()->GetExternalFeatureIdx(
-                    splitCandidate.FeatureIdx,
-                    (splitCandidate.Type == ESplitType::FloatFeature) ?
-                        EFeatureType::Float :
-                        EFeatureType::Categorical
-                )
+            "Feature #"
+            << learnObjectsData.GetFeaturesLayout()->GetExternalFeatureIdx(
+                splitCandidate.FeatureIdx,
+                (splitCandidate.Type == ESplitType::FloatFeature) ?
+                    EFeatureType::Float :
+                    EFeatureType::Categorical
+            )
             << " is both in an exclusive bundle and in a binary pack");
 
         if (maybeExclusiveBundleIndex) {

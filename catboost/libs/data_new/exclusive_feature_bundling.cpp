@@ -283,6 +283,7 @@ next_outer_loop_iter:
 
 
     static TVector<TExclusiveFeaturesBundle> CreateExclusiveFeatureBundlesFromGraph(
+        const TFeaturesLayout& featuresLayout,
         const TQuantizedFeaturesInfo& quantizedFeaturesInfo,
         TFeatureIntersectionGraph&& featureIntersectionGraph,
         ui32 objectCount,
@@ -290,7 +291,6 @@ next_outer_loop_iter:
     ) {
         featureIntersectionGraph.MakeSymmetric();
 
-        const auto& featuresLayout = *quantizedFeaturesInfo.GetFeaturesLayout();
         const auto featuresMetaInfo = featuresLayout.GetExternalFeaturesMetaInfo();
 
 
@@ -520,6 +520,7 @@ next_outer_loop_iter:
     TVector<TExclusiveFeaturesBundle> CreateExclusiveFeatureBundles(
         const TRawObjectsData& rawObjectsData,
         const TFeaturesArraySubsetIndexing& rawDataSubsetIndexing,
+        const TFeaturesLayout& featuresLayout,
         const TQuantizedFeaturesInfo& quantizedFeaturesInfo,
         const TExclusiveFeaturesBundlingOptions& options,
         NPar::TLocalExecutor* localExecutor
@@ -529,8 +530,6 @@ next_outer_loop_iter:
         if (objectCount == 0) {
             return {};
         }
-
-        const auto& featuresLayout = *quantizedFeaturesInfo.GetFeaturesLayout();
 
         const auto featureCount = featuresLayout.GetExternalFeatureCount();
         const auto featuresMetaInfo = featuresLayout.GetExternalFeaturesMetaInfo();
@@ -753,6 +752,7 @@ next_outer_loop_iter:
         );
 
         return CreateExclusiveFeatureBundlesFromGraph(
+            featuresLayout,
             quantizedFeaturesInfo,
             std::move(resultFeatureIntersectionGraph),
             rawDataSubsetIndexing.Size(),

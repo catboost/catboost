@@ -302,6 +302,7 @@ static void InitializeSamplingStructures(
         ctx->PrevTreeLevelStats.Create(
             ctx->LearnProgress->Folds,
             CountNonCtrBuckets(
+                *data.Learn->ObjectsData->GetFeaturesLayout(),
                 *data.Learn->ObjectsData->GetQuantizedFeaturesInfo(),
                 ctx->Params.CatFeatureParams->OneHotMaxSize),
             static_cast<int>(ctx->Params.ObliviousTreeOptions->MaxDepth)
@@ -838,7 +839,7 @@ static void TrainModel(
                 *poolLoadOptions,
                 catBoostOptions,
                 *trainingData.Learn->ObjectsGrouping,
-                *quantizedFeaturesInfo->GetFeaturesLayout(),
+                *trainingData.Learn->MetaInfo.FeaturesLayout,
                 &rand
             );
         } else {

@@ -11,12 +11,16 @@
 class TLearnContext;
 
 namespace NCB {
+    class TFeaturesLayout;
     class TQuantizedFeaturesInfo;
 }
 
 
-TVector<TFloatFeature> CreateFloatFeatures(const NCB::TQuantizedFeaturesInfo& quantizedFeaturesInfo);
-TVector<TCatFeature> CreateCatFeatures(const NCB::TQuantizedFeaturesInfo& quantizedFeaturesInfo);
+TVector<TFloatFeature> CreateFloatFeatures(
+    const NCB::TFeaturesLayout& featuresLayout,
+    const NCB::TQuantizedFeaturesInfo& quantizedFeaturesInfo);
+
+TVector<TCatFeature> CreateCatFeatures(const NCB::TFeaturesLayout& featuresLayout);
 
 
 void ConfigureMalloc();

@@ -207,6 +207,7 @@ namespace NCatboostDistributed {
             localData.PrevTreeLevelStats.Create(
                 { plainFold },
                 CountNonCtrBuckets(
+                    *(GetTrainData(trainData)->ObjectsData->GetFeaturesLayout()),
                     *(GetTrainData(trainData)->ObjectsData->GetQuantizedFeaturesInfo()),
                     trainParams.CatFeatureParams->OneHotMaxSize.Get()),
                 trainParams.ObliviousTreeOptions->MaxDepth);

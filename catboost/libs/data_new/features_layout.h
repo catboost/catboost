@@ -178,6 +178,12 @@ namespace NCB {
         const TFeaturesLayout& applyFeaturesLayout,
         const TString& applyDataName
     );
+
+    void CheckCompatibleForQuantize(
+        const TFeaturesLayout& dataFeaturesLayout,
+        const TFeaturesLayout& quantizedFeaturesLayout,
+        const TString& dataName
+    );
 }
 
 

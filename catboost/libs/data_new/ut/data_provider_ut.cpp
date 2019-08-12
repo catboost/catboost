@@ -160,10 +160,11 @@ static void CreateQuantizedObjectsDataProviderTestData(
     }
 
     quantizedObjectsData.ExclusiveFeatureBundlesData = TExclusiveFeatureBundlesData(
-        *quantizedObjectsData.Data.QuantizedFeaturesInfo,
+        *metaInfo->FeaturesLayout,
         TVector<TExclusiveFeaturesBundle>()
     );
     quantizedObjectsData.PackedBinaryFeaturesData = TPackedBinaryFeaturesData(
+        *metaInfo->FeaturesLayout,
         *quantizedObjectsData.Data.QuantizedFeaturesInfo,
         quantizedObjectsData.ExclusiveFeatureBundlesData,
         true

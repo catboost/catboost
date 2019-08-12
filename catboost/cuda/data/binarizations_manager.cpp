@@ -14,11 +14,12 @@ namespace NCatboostCuda {
     TBinarizedFeaturesManager::TBinarizedFeaturesManager(
         const NCatboostOptions::TCatFeatureParams& catFeatureOptions,
         const TFeatureEstimators& estimators,
+        const TFeaturesLayout& featuresLayout,
         TQuantizedFeaturesInfoPtr quantizedFeaturesInfo)
         : CatFeatureOptions(catFeatureOptions)
         , QuantizedFeaturesInfo(quantizedFeaturesInfo)
     {
-        const auto& featuresMetaInfo = QuantizedFeaturesInfo->GetFeaturesLayout()->GetExternalFeaturesMetaInfo();
+        const auto& featuresMetaInfo = featuresLayout.GetExternalFeaturesMetaInfo();
 
         for (auto featureIdx : xrange(featuresMetaInfo.size())) {
             const auto& featureMetaInfo = featuresMetaInfo[featureIdx];
@@ -26,6 +27,9 @@ namespace NCatboostCuda {
                 RegisterDataProviderFloatFeature(featureIdx);
             } else if (featureMetaInfo.Type == EFeatureType::Categorical) {
                 RegisterDataProviderCatFeature(featureIdx);
+            }
+            if (featureMetaInfo.IsIgnored) {
+                IgnoredFeatures.insert(featureIdx);
             }
         }
 

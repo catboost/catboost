@@ -373,3 +373,45 @@ void NCB::CheckCompatibleForApply(
         );
     }
 }
+
+void NCB::CheckCompatibleForQuantize(
+    const TFeaturesLayout& dataFeaturesLayout,
+    const TFeaturesLayout& quantizedFeaturesLayout,
+    const TString& dataName
+) {
+    auto dataFeaturesMetaInfo = dataFeaturesLayout.GetExternalFeaturesMetaInfo();
+    auto quantizedFeaturesMetaInfo = quantizedFeaturesLayout.GetExternalFeaturesMetaInfo();
+
+    auto featuresIntersectionSize = Min(dataFeaturesMetaInfo.size(), quantizedFeaturesMetaInfo.size());
+
+    size_t i = 0;
+    for (; i < featuresIntersectionSize; ++i) {
+        const auto& dataFeatureMetaInfo = dataFeaturesMetaInfo[i];
+        const auto& quantizedFeatureMetaInfo = quantizedFeaturesMetaInfo[i];
+
+        if (!dataFeatureMetaInfo.IsAvailable || dataFeatureMetaInfo.IsIgnored) {
+            continue;
+        }
+
+        // ignored and not available features in quantizedFeaturesData are ok - it means they are constant
+
+        CB_ENSURE(
+            dataFeatureMetaInfo.Type == quantizedFeatureMetaInfo.Type,
+            "Feature #" << i << " has '" << quantizedFeatureMetaInfo.Type << "' type in quantized info, but '"
+            << dataFeatureMetaInfo.Type << "' type in " << dataName
+        );
+        CB_ENSURE(
+            !dataFeatureMetaInfo.Name || !quantizedFeatureMetaInfo.Name ||
+            (dataFeatureMetaInfo.Name == quantizedFeatureMetaInfo.Name),
+            "Feature #" << i << " has '" << quantizedFeatureMetaInfo.Name << "' name in quantized info, but '"
+            << dataFeatureMetaInfo.Name << "' name in " << dataName
+        );
+    }
+    for (; i < dataFeaturesMetaInfo.size(); ++i) {
+        CB_ENSURE(
+            !dataFeaturesMetaInfo[i].IsAvailable || dataFeaturesMetaInfo[i].IsIgnored,
+            "Feature #" << i
+            << " is used in " << dataName << ", but not available in quantized info";
+        );
+    }
+}

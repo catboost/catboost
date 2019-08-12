@@ -257,10 +257,11 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
             expectedData.Objects.QuantizedFeaturesInfo->SetNanMode(TFloatFeatureIdx(0), ENanMode::Forbidden);
             expectedData.Objects.QuantizedFeaturesInfo->SetNanMode(TFloatFeatureIdx(1), ENanMode::Min);
             expectedData.Objects.ExclusiveFeatureBundlesData = TExclusiveFeatureBundlesData(
-                *expectedData.Objects.QuantizedFeaturesInfo,
+                *expectedData.MetaInfo.FeaturesLayout,
                 TVector<TExclusiveFeaturesBundle>()
             );
             expectedData.Objects.PackedBinaryFeaturesData = TPackedBinaryFeaturesData(
+                *expectedData.MetaInfo.FeaturesLayout,
                 *expectedData.Objects.QuantizedFeaturesInfo,
                 expectedData.Objects.ExclusiveFeatureBundlesData
             );
@@ -377,10 +378,11 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
             expectedData.Objects.QuantizedFeaturesInfo->SetNanMode(TFloatFeatureIdx(1), ENanMode::Min);
             expectedData.Objects.QuantizedFeaturesInfo->SetNanMode(TFloatFeatureIdx(2), ENanMode::Forbidden);
             expectedData.Objects.ExclusiveFeatureBundlesData = TExclusiveFeatureBundlesData(
-                *expectedData.Objects.QuantizedFeaturesInfo,
+                *expectedData.MetaInfo.FeaturesLayout,
                 TVector<TExclusiveFeaturesBundle>()
             );
             expectedData.Objects.PackedBinaryFeaturesData = TPackedBinaryFeaturesData(
+                *expectedData.MetaInfo.FeaturesLayout,
                 *expectedData.Objects.QuantizedFeaturesInfo,
                 expectedData.Objects.ExclusiveFeatureBundlesData
             );
@@ -488,10 +490,11 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
             expectedData.Objects.QuantizedFeaturesInfo->SetNanMode(TFloatFeatureIdx(1), ENanMode::Min);
             expectedData.Objects.QuantizedFeaturesInfo->SetNanMode(TFloatFeatureIdx(2), ENanMode::Forbidden);
             expectedData.Objects.ExclusiveFeatureBundlesData = TExclusiveFeatureBundlesData(
-                *expectedData.Objects.QuantizedFeaturesInfo,
+                *expectedData.MetaInfo.FeaturesLayout,
                 TVector<TExclusiveFeaturesBundle>()
             );
             expectedData.Objects.PackedBinaryFeaturesData = TPackedBinaryFeaturesData(
+                *expectedData.MetaInfo.FeaturesLayout,
                 *expectedData.Objects.QuantizedFeaturesInfo,
                 expectedData.Objects.ExclusiveFeatureBundlesData
             );
@@ -612,10 +615,11 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
             expectedData.Objects.QuantizedFeaturesInfo->SetNanMode(TFloatFeatureIdx(1), ENanMode::Min);
             expectedData.Objects.QuantizedFeaturesInfo->SetNanMode(TFloatFeatureIdx(2), ENanMode::Forbidden);
             expectedData.Objects.ExclusiveFeatureBundlesData = TExclusiveFeatureBundlesData(
-                *expectedData.Objects.QuantizedFeaturesInfo,
+                *expectedData.MetaInfo.FeaturesLayout,
                 TVector<TExclusiveFeaturesBundle>()
             );
             expectedData.Objects.PackedBinaryFeaturesData = TPackedBinaryFeaturesData(
+                *expectedData.MetaInfo.FeaturesLayout,
                 *expectedData.Objects.QuantizedFeaturesInfo,
                 expectedData.Objects.ExclusiveFeatureBundlesData
             );
@@ -723,10 +727,11 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
             expectedData.Objects.QuantizedFeaturesInfo->SetNanMode(TFloatFeatureIdx(0), ENanMode::Forbidden);
             expectedData.Objects.QuantizedFeaturesInfo->SetNanMode(TFloatFeatureIdx(2), ENanMode::Forbidden);
             expectedData.Objects.ExclusiveFeatureBundlesData = TExclusiveFeatureBundlesData(
-                *expectedData.Objects.QuantizedFeaturesInfo,
+                *expectedData.MetaInfo.FeaturesLayout,
                 TVector<TExclusiveFeaturesBundle>()
             );
             expectedData.Objects.PackedBinaryFeaturesData = TPackedBinaryFeaturesData(
+                *expectedData.MetaInfo.FeaturesLayout,
                 *expectedData.Objects.QuantizedFeaturesInfo,
                 expectedData.Objects.ExclusiveFeatureBundlesData
             );
@@ -879,10 +884,11 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
             );
         }
         expectedData.Objects.ExclusiveFeatureBundlesData = TExclusiveFeatureBundlesData(
-            *expectedData.Objects.QuantizedFeaturesInfo,
+            *expectedData.MetaInfo.FeaturesLayout,
             TVector<TExclusiveFeaturesBundle>()
         );
         expectedData.Objects.PackedBinaryFeaturesData = TPackedBinaryFeaturesData(
+            *expectedData.MetaInfo.FeaturesLayout,
             *expectedData.Objects.QuantizedFeaturesInfo,
             expectedData.Objects.ExclusiveFeatureBundlesData
         );

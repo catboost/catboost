@@ -257,10 +257,11 @@ Y_UNIT_TEST_SUITE(Quantization) {
             );
 
             expectedData.Objects.ExclusiveFeatureBundlesData = TExclusiveFeatureBundlesData(
-                *expectedData.Objects.QuantizedFeaturesInfo,
+                *expectedData.MetaInfo.FeaturesLayout,
                 TVector<TExclusiveFeaturesBundle>()
             );
             expectedData.Objects.PackedBinaryFeaturesData = TPackedBinaryFeaturesData(
+                *expectedData.MetaInfo.FeaturesLayout,
                 *expectedData.Objects.QuantizedFeaturesInfo,
                 expectedData.Objects.ExclusiveFeatureBundlesData,
                 !packBinaryFeatures
@@ -397,10 +398,11 @@ Y_UNIT_TEST_SUITE(Quantization) {
             }
 
             expectedData.Objects.ExclusiveFeatureBundlesData = TExclusiveFeatureBundlesData(
-                *expectedData.Objects.QuantizedFeaturesInfo,
+                *expectedData.MetaInfo.FeaturesLayout,
                 TVector<TExclusiveFeaturesBundle>()
             );
             expectedData.Objects.PackedBinaryFeaturesData = TPackedBinaryFeaturesData(
+                *expectedData.MetaInfo.FeaturesLayout,
                 *expectedData.Objects.QuantizedFeaturesInfo,
                 expectedData.Objects.ExclusiveFeatureBundlesData,
                 !packBinaryFeatures
@@ -507,10 +509,11 @@ Y_UNIT_TEST_SUITE(Quantization) {
             }
 
             expectedData.Objects.ExclusiveFeatureBundlesData = TExclusiveFeatureBundlesData(
-                *expectedData.Objects.QuantizedFeaturesInfo,
+                *expectedData.MetaInfo.FeaturesLayout,
                 TVector<TExclusiveFeaturesBundle>()
             );
             expectedData.Objects.PackedBinaryFeaturesData = TPackedBinaryFeaturesData(
+                *expectedData.MetaInfo.FeaturesLayout,
                 *expectedData.Objects.QuantizedFeaturesInfo,
                 expectedData.Objects.ExclusiveFeatureBundlesData,
                 !packBinaryFeatures
@@ -695,10 +698,11 @@ Y_UNIT_TEST_SUITE(Quantization) {
             };
 
             expectedData.Objects.ExclusiveFeatureBundlesData = TExclusiveFeatureBundlesData(
-                *expectedData.Objects.QuantizedFeaturesInfo,
+                *expectedData.MetaInfo.FeaturesLayout,
                 TVector<TExclusiveFeaturesBundle>()
             );
             expectedData.Objects.PackedBinaryFeaturesData = TPackedBinaryFeaturesData(
+                *expectedData.MetaInfo.FeaturesLayout,
                 *expectedData.Objects.QuantizedFeaturesInfo,
                 expectedData.Objects.ExclusiveFeatureBundlesData,
                 !packBinaryFeatures
@@ -1010,10 +1014,11 @@ Y_UNIT_TEST_SUITE(Quantization) {
             };
 
             expectedData.Objects.ExclusiveFeatureBundlesData = TExclusiveFeatureBundlesData(
-                *expectedData.Objects.QuantizedFeaturesInfo,
+                *expectedData.MetaInfo.FeaturesLayout,
                 TVector<TExclusiveFeaturesBundle>()
             );
             expectedData.Objects.PackedBinaryFeaturesData = TPackedBinaryFeaturesData(
+                *expectedData.MetaInfo.FeaturesLayout,
                 *expectedData.Objects.QuantizedFeaturesInfo,
                 expectedData.Objects.ExclusiveFeatureBundlesData,
                 !packBinaryFeatures
@@ -1275,10 +1280,11 @@ Y_UNIT_TEST_SUITE(Quantization) {
             expectedData.Objects.CatFeatureUniqueValuesCounts = {{6, 9}, {2, 2}, {7, 9}};
 
             expectedData.Objects.ExclusiveFeatureBundlesData = TExclusiveFeatureBundlesData(
-                *expectedData.Objects.QuantizedFeaturesInfo,
+                *expectedData.MetaInfo.FeaturesLayout,
                 TVector<TExclusiveFeaturesBundle>()
             );
             expectedData.Objects.PackedBinaryFeaturesData = TPackedBinaryFeaturesData(
+                *expectedData.MetaInfo.FeaturesLayout,
                 *expectedData.Objects.QuantizedFeaturesInfo,
                 expectedData.Objects.ExclusiveFeatureBundlesData,
                 !packBinaryFeatures

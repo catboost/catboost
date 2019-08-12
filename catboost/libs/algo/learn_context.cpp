@@ -445,8 +445,13 @@ TLearnProgress::TLearnProgress(
     NCB::TDataProviders initModelApplyCompatiblePools,
     NPar::TLocalExecutor* localExecutor)
     : FoldCreationParamsCheckSum(foldCreationParamsCheckSum)
-    , CatFeatures(CreateCatFeatures(*data.Learn->ObjectsData->GetQuantizedFeaturesInfo()))
-    , FloatFeatures(CreateFloatFeatures(*data.Learn->ObjectsData->GetQuantizedFeaturesInfo()))
+    , CatFeatures(CreateCatFeatures(*data.Learn->ObjectsData->GetFeaturesLayout()))
+    , FloatFeatures(
+        CreateFloatFeatures(
+            *data.Learn->ObjectsData->GetFeaturesLayout(),
+            *data.Learn->ObjectsData->GetQuantizedFeaturesInfo()
+        )
+      )
     , ApproxDimension(approxDimension)
     , LearnAndTestQuantizedFeaturesCheckSum(featuresCheckSum)
     , Rand(randomSeed) {

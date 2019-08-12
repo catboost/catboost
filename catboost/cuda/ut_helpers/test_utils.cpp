@@ -187,6 +187,7 @@ void LoadTrainingData(NCB::TPathWithScheme poolPath,
     *featuresManager = MakeHolder<NCatboostCuda::TBinarizedFeaturesManager>(
         catFeatureParams,
         estimators,
+        *((*trainingData)->MetaInfo.FeaturesLayout),
         (*trainingData)->ObjectsData->GetQuantizedFeaturesInfo());
 
     NCB::TOnCpuGridBuilderFactory gridBuilderFactory;

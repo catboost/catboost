@@ -28,6 +28,7 @@ namespace NCB {
     static_assert(CHAR_BIT == 8, "CatBoost requires CHAR_BIT == 8");
 
     struct TRawObjectsData;
+    class TFeaturesLayout;
     class TQuantizedFeaturesInfo;
 
     using TFeaturesArraySubsetIndexing = TArraySubsetIndexing<ui32>;
@@ -144,6 +145,7 @@ namespace NCB {
     TVector<TExclusiveFeaturesBundle> CreateExclusiveFeatureBundles(
         const TRawObjectsData& rawObjectsData,
         const TFeaturesArraySubsetIndexing& rawDataSubsetIndexing,
+        const TFeaturesLayout& featuresLayout,
         const TQuantizedFeaturesInfo& quantizedFeaturesInfo,
         const TExclusiveFeaturesBundlingOptions& options,
         NPar::TLocalExecutor* localExecutor

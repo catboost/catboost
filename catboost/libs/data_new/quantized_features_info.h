@@ -39,6 +39,8 @@ namespace NCB {
     // TODO(akhropov): try to replace TMap with THashMap - MLTOOLS-2278.
     class TQuantizedFeaturesInfo : public TThrRefBase {
     public:
+        // for BinSaver
+        TQuantizedFeaturesInfo() = default;
 
         // featuresLayout copy is needed because some features might become ignored during quantization
         TQuantizedFeaturesInfo(
@@ -60,6 +62,8 @@ namespace NCB {
 
         bool operator==(const TQuantizedFeaturesInfo& rhs) const;
 
+        int operator&(IBinSaver& binSaver);
+
         // *this contains a superset of quantized features in rhs
         bool IsSupersetOf(const TQuantizedFeaturesInfo& rhs) const;
 
@@ -67,7 +71,11 @@ namespace NCB {
             return RWMutex;
         }
 
-
+        /* Note that availability and ignored status of features represents their state with respect
+         *  to quantization.
+         * When working with datasets use GetFeaturesLayout from their classes because additional
+         *  features might be set as ignored or unavailable there.
+         */
         const TFeaturesLayoutPtr GetFeaturesLayout() const {
             return FeaturesLayout;
         }
@@ -192,9 +200,6 @@ namespace NCB {
         }
 
     private:
-        void LoadNonSharedPart(IBinSaver* binSaver);
-        void SaveNonSharedPart(IBinSaver* binSaver) const;
-
         template <EFeatureType FeatureType>
         void CheckCorrectPerTypeFeatureIdx(TFeatureIdx<FeatureType> perTypeFeatureIdx) const {
             CB_ENSURE_INTERNAL(
@@ -224,7 +229,7 @@ namespace NCB {
         NCatboostOptions::TBinarizationOptions CommonFloatFeaturesBinarization;
         TMap<ui32, NCatboostOptions::TBinarizationOptions> PerFloatFeatureQuantization;
 
-        bool FloatFeaturesAllowNansInTestOnly;
+        bool FloatFeaturesAllowNansInTestOnly = false;
 
         TMap<ui32, TVector<float>> Borders; // [floatFeatureIdx]
         TMap<ui32, ENanMode> NanModes; // [floatFeatureIdx]

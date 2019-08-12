@@ -7,11 +7,14 @@
 
 #include <library/binsaver/bin_saver.h>
 
+#include <util/generic/guid.h>
 #include <util/generic/map.h>
+#include <util/generic/string.h>
 #include <util/generic/typetraits.h>
 #include <util/generic/vector.h>
 #include <util/stream/file.h>
 #include <util/system/fs.h>
+#include <util/system/mktemp.h>
 #include <util/system/spinlock.h>
 #include <util/system/tempfile.h>
 #include <util/system/types.h>
@@ -62,6 +65,11 @@ namespace NCB {
 
     class TCatFeaturesPerfectHash {
     public:
+        // for IBinSaver
+        TCatFeaturesPerfectHash()
+            : StorageTempFile(TString::Join("cat_feature_index.", CreateGuidAsString(), ".tmp"))
+        {}
+
         TCatFeaturesPerfectHash(ui32 catFeatureCount, const TString& storageFile, bool allowWriteFiles)
             : StorageTempFile(storageFile)
             , CatFeatureUniqValuesCountsVector(catFeatureCount)
@@ -149,6 +157,6 @@ namespace NCB {
         TVector<TCatFeatureUniqueValuesCounts> CatFeatureUniqValuesCountsVector; // [catFeatureIdx]
         mutable TVector<TCatFeaturePerfectHash> FeaturesPerfectHash; // [catFeatureIdx]
         mutable bool HasHashInRam = true;
-        bool AllowWriteFiles;
+        bool AllowWriteFiles = true;
     };
 }

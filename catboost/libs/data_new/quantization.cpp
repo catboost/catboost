@@ -32,9 +32,12 @@
 
 
 namespace NCB {
-    static bool NeedToCalcBorders(const TQuantizedFeaturesInfo& quantizedFeaturesInfo) {
+    static bool NeedToCalcBorders(
+        const TFeaturesLayout& featuresLayoutForQuantization,
+        const TQuantizedFeaturesInfo& quantizedFeaturesInfo
+    ) {
         bool needToCalcBorders = false;
-        quantizedFeaturesInfo.GetFeaturesLayout()->IterateOverAvailableFeatures<EFeatureType::Float>(
+        featuresLayoutForQuantization.IterateOverAvailableFeatures<EFeatureType::Float>(
             [&] (TFloatFeatureIdx floatFeatureIdx) {
                 if (!quantizedFeaturesInfo.HasBorders(floatFeatureIdx)) {
                     needToCalcBorders = true;
@@ -48,12 +51,13 @@ namespace NCB {
 
     static TMaybe<TArraySubsetIndexing<ui32>> GetSubsetForBuildBorders(
         const TArraySubsetIndexing<ui32>& srcIndexing,
+        const TFeaturesLayout& featuresLayoutForQuantization,
         const TQuantizedFeaturesInfo& quantizedFeaturesInfo,
         EObjectsOrder srcObjectsOrder,
         const TQuantizationOptions& options,
         TRestorableFastRng64* rand
     ) {
-        if (NeedToCalcBorders(quantizedFeaturesInfo)) {
+        if (NeedToCalcBorders(featuresLayoutForQuantization, quantizedFeaturesInfo)) {
             const ui32 objectCount = srcIndexing.Size();
             const ui32 sampleSize = GetSampleSizeForBorderSelectionType(
                 objectCount,
@@ -102,7 +106,10 @@ namespace NCB {
 
         size_t borderCount;
 
-        if (NeedToCalcBorders(quantizedFeaturesInfo)) {
+        const TFloatFeatureIdx floatFeatureIdx
+            = quantizedFeaturesInfo.GetPerTypeFeatureIdx<EFeatureType::Float>(srcFeature);
+
+        if (!quantizedFeaturesInfo.HasBorders(floatFeatureIdx)) {
             // sampleSize is computed using defaultBinarizationSettings for now
             const auto& defaultBinarizationSettings
                 = quantizedFeaturesInfo.GetFloatFeatureBinarization(Max<ui32>());
@@ -127,8 +134,6 @@ namespace NCB {
                 floatFeatureBinarizationSettings.BorderSelectionType
             );
         } else {
-            const TFloatFeatureIdx floatFeatureIdx
-                = quantizedFeaturesInfo.GetPerTypeFeatureIdx<EFeatureType::Float>(srcFeature);
             borderCount = quantizedFeaturesInfo.GetBorders(floatFeatureIdx).size();
         }
 
@@ -638,6 +643,7 @@ namespace NCB {
     static void ScheduleNonBundledAndNonBinaryFeatures(
         const TFeaturesArraySubsetIndexing& rawDataSubsetIndexing,
         bool clearSrcObjectsData,
+        const TFeaturesLayout& featuresLayout,
         const TFeaturesArraySubsetIndexing* quantizedDataSubsetIndexing,
         NPar::TLocalExecutor* localExecutor,
         TResourceConstrainedExecutor* resourceConstrainedExecutor,
@@ -645,8 +651,6 @@ namespace NCB {
         TQuantizedForCPUObjectsData* quantizedObjectsData
     ) {
         const ui32 objectCount = rawDataSubsetIndexing.Size();
-
-        const auto& featuresLayout = *quantizedObjectsData->Data.QuantizedFeaturesInfo->GetFeaturesLayout();
 
         auto isBinaryPackedOrBundled = [&] (EFeatureType featureType, ui32 perTypeFeatureIdx) {
             const ui32 flatFeatureIdx = featuresLayout.GetExternalFeatureIdx(perTypeFeatureIdx, featureType);
@@ -1190,6 +1194,37 @@ namespace NCB {
         return false;
     }
 
+    static void AddIgnoredFeatures(const TFeaturesLayout& addFromLayout, TFeaturesLayout* updatedLayout) {
+        auto featuresIntersectionSize = Min(
+            addFromLayout.GetExternalFeatureCount(),
+            updatedLayout->GetExternalFeatureCount()
+        );
+
+        for (auto i : xrange(featuresIntersectionSize)) {
+            if (addFromLayout.GetExternalFeaturesMetaInfo()[i].IsIgnored) {
+                updatedLayout->IgnoreExternalFeature(i);
+            }
+        }
+    }
+
+
+    static TFeaturesLayoutPtr InitFeaturesLayoutForQuantizedData(
+        const TFeaturesLayout& rawObjectsDataLayout,
+        const TFeaturesLayout& quantizedFeaturesInfoLayout
+    ) {
+        CheckCompatibleForQuantize(
+            rawObjectsDataLayout,
+            quantizedFeaturesInfoLayout,
+            "data to quantize"
+        );
+
+        TFeaturesLayoutPtr featuresLayout = MakeIntrusive<TFeaturesLayout>(rawObjectsDataLayout);
+
+        AddIgnoredFeatures(quantizedFeaturesInfoLayout, featuresLayout.Get());
+
+        return featuresLayout;
+    }
+
 
     // this is a helper class needed for friend declarations
     class TQuantizationImpl {
@@ -1211,12 +1246,9 @@ namespace NCB {
 
             auto& srcObjectsCommonData = rawDataProvider->ObjectsData->CommonData;
 
-            auto featuresLayout = quantizedFeaturesInfo->GetFeaturesLayout();
-
-            CheckCompatibleForApply(
-                *featuresLayout,
-                *(srcObjectsCommonData.FeaturesLayout),
-                "data to quantize"
+            auto featuresLayout = InitFeaturesLayoutForQuantizedData(
+                *srcObjectsCommonData.FeaturesLayout,
+                *quantizedFeaturesInfo->GetFeaturesLayout()
             );
 
             const bool clearSrcData = rawDataProvider->RefCount() <= 1;
@@ -1243,6 +1275,7 @@ namespace NCB {
             // already composed with rawDataProvider's Subset
             TMaybe<TArraySubsetIndexing<ui32>> subsetForBuildBorders = GetSubsetForBuildBorders(
                 *(srcObjectsCommonData.SubsetIndexing),
+                *featuresLayout,
                 *quantizedFeaturesInfo,
                 srcObjectsCommonData.Order,
                 options,
@@ -1411,6 +1444,9 @@ namespace NCB {
                 return nullptr;
             }
 
+            // update after possibly updated quantizedFeaturesInfo
+            AddIgnoredFeatures(*(quantizedFeaturesInfo->GetFeaturesLayout()), featuresLayout.Get());
+
             CB_ENSURE(
                 featuresLayout->HasAvailableAndNotIgnoredFeatures(),
                 "All features are either constant or ignored."
@@ -1421,10 +1457,11 @@ namespace NCB {
 
             if (bundleExclusiveFeatures) {
                 data->ObjectsData.ExclusiveFeatureBundlesData = TExclusiveFeatureBundlesData(
-                    *(data->ObjectsData.Data.QuantizedFeaturesInfo),
+                    *featuresLayout,
                     CreateExclusiveFeatureBundles(
                         rawDataProvider->ObjectsData->Data,
                         *(srcObjectsCommonData.SubsetIndexing),
+                        *featuresLayout,
                         *(data->ObjectsData.Data.QuantizedFeaturesInfo),
                         options.ExclusiveFeaturesBundlingOptions,
                         localExecutor
@@ -1434,6 +1471,7 @@ namespace NCB {
 
             if (options.CpuCompatibleFormat && options.PackBinaryFeaturesForCpu) {
                 data->ObjectsData.PackedBinaryFeaturesData = TPackedBinaryFeaturesData(
+                    *featuresLayout,
                     *data->ObjectsData.Data.QuantizedFeaturesInfo,
                     data->ObjectsData.ExclusiveFeatureBundlesData
                 );
@@ -1468,6 +1506,7 @@ namespace NCB {
                     ScheduleNonBundledAndNonBinaryFeatures(
                         *(srcObjectsCommonData.SubsetIndexing),
                         clearSrcObjectsData,
+                        *featuresLayout,
                         subsetIndexing.Get(),
                         localExecutor,
                         &resourceConstrainedExecutor,

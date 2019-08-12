@@ -110,6 +110,20 @@ namespace NCB {
                (CatFeaturesPerfectHash == rhs.CatFeaturesPerfectHash);
     }
 
+    int TQuantizedFeaturesInfo::operator&(IBinSaver& binSaver) {
+        AddWithShared(&binSaver, &FeaturesLayout);
+        binSaver.AddMulti(
+            CommonFloatFeaturesBinarization,
+            PerFloatFeatureQuantization,
+            FloatFeaturesAllowNansInTestOnly,
+            Borders,
+            NanModes,
+            CatFeaturesPerfectHash
+        );
+
+        return 0;
+    }
+
     bool TQuantizedFeaturesInfo::IsSupersetOf(const TQuantizedFeaturesInfo& rhs) const {
         if (this == &rhs) { // shortcut
             return true;
@@ -262,30 +276,6 @@ namespace NCB {
         checkSum = UpdateCheckSum(checkSum, Borders);
         checkSum = UpdateCheckSum(checkSum, NanModes);
         return checkSum ^ CatFeaturesPerfectHash.CalcCheckSum();
-    }
-
-    void TQuantizedFeaturesInfo::LoadNonSharedPart(IBinSaver* binSaver) {
-        LoadMulti(
-            binSaver,
-            &CommonFloatFeaturesBinarization,
-            &PerFloatFeatureQuantization,
-            &FloatFeaturesAllowNansInTestOnly,
-            &Borders,
-            &NanModes,
-            &CatFeaturesPerfectHash
-        );
-    }
-
-    void TQuantizedFeaturesInfo::SaveNonSharedPart(IBinSaver* binSaver) const {
-        SaveMulti(
-            binSaver,
-            CommonFloatFeaturesBinarization,
-            PerFloatFeatureQuantization,
-            FloatFeaturesAllowNansInTestOnly,
-            Borders,
-            NanModes,
-            CatFeaturesPerfectHash
-        );
     }
 
 }

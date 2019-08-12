@@ -815,10 +815,11 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
                 );
 
                 data.ExclusiveFeatureBundlesData = TExclusiveFeatureBundlesData(
-                    *data.Data.QuantizedFeaturesInfo,
+                    featuresLayout,
                     TVector<TExclusiveFeaturesBundle>()
                 );
                 data.PackedBinaryFeaturesData = TPackedBinaryFeaturesData(
+                    featuresLayout,
                     *data.Data.QuantizedFeaturesInfo,
                     data.ExclusiveFeatureBundlesData,
                     true

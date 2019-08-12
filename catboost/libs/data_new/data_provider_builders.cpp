@@ -846,11 +846,12 @@ namespace NCB {
             );
 
             Data.ObjectsData.ExclusiveFeatureBundlesData = TExclusiveFeatureBundlesData(
-                *Data.ObjectsData.Data.QuantizedFeaturesInfo,
+                *metaInfo.FeaturesLayout,
                 TVector<TExclusiveFeaturesBundle>() // TODO(akhropov): bundle quantized data
             );
 
             Data.ObjectsData.PackedBinaryFeaturesData = TPackedBinaryFeaturesData(
+                *metaInfo.FeaturesLayout,
                 *Data.ObjectsData.Data.QuantizedFeaturesInfo,
                 Data.ObjectsData.ExclusiveFeatureBundlesData,
 

@@ -1189,12 +1189,13 @@ static void LoadFeatures(
 
 void NCB::TQuantizedObjectsData::Load(
     const TArraySubsetIndexing<ui32>* subsetIndexing,
+    const NCB::TFeaturesLayout& featuresLayout,
     NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
     IBinSaver* binSaver
 ) {
     QuantizedFeaturesInfo = quantizedFeaturesInfo;
     LoadFeatures<EFeatureType::Float>(
-        *QuantizedFeaturesInfo->GetFeaturesLayout(),
+        featuresLayout,
         subsetIndexing,
         /*packedBinaryFeaturesData*/ Nothing(),
         /*exclusiveFeatureBundlesData*/ Nothing(),
@@ -1202,7 +1203,7 @@ void NCB::TQuantizedObjectsData::Load(
         &FloatFeatures
     );
     LoadFeatures<EFeatureType::Categorical>(
-        *QuantizedFeaturesInfo->GetFeaturesLayout(),
+        featuresLayout,
         subsetIndexing,
         /*packedBinaryFeaturesData*/ Nothing(),
         /*exclusiveFeatureBundlesData*/ Nothing(),
@@ -1280,17 +1281,20 @@ static void SaveFeatures(
     );
 }
 
-void NCB::TQuantizedObjectsData::SaveNonSharedPart(IBinSaver* binSaver) const {
+void NCB::TQuantizedObjectsData::SaveNonSharedPart(
+    const TFeaturesLayout& featuresLayout,
+    IBinSaver* binSaver
+) const {
     NPar::TLocalExecutor localExecutor;
 
     SaveFeatures<EFeatureType::Float>(
-        *QuantizedFeaturesInfo->GetFeaturesLayout(),
+        featuresLayout,
         FloatFeatures,
         &localExecutor,
         binSaver
     );
     SaveFeatures<EFeatureType::Categorical>(
-        *QuantizedFeaturesInfo->GetFeaturesLayout(),
+        featuresLayout,
         CatFeatures,
         &localExecutor,
         binSaver
@@ -1303,7 +1307,7 @@ void NCB::DbgDumpQuantizedFeatures(
     const NCB::TQuantizedObjectsDataProvider& quantizedObjectsDataProvider,
     IOutputStream* out
 ) {
-    const auto& featuresLayout = *quantizedObjectsDataProvider.GetQuantizedFeaturesInfo()->GetFeaturesLayout();
+    const auto& featuresLayout = *quantizedObjectsDataProvider.GetFeaturesLayout();
 
     NPar::TLocalExecutor localExecutor;
 
@@ -1334,12 +1338,11 @@ void NCB::DbgDumpQuantizedFeatures(
 
 
 NCB::TExclusiveFeatureBundlesData::TExclusiveFeatureBundlesData(
-    const NCB::TQuantizedFeaturesInfo& quantizedFeaturesInfo,
+    const NCB::TFeaturesLayout& featuresLayout,
     TVector<NCB::TExclusiveFeaturesBundle>&& metaData
 )
     : MetaData(std::move(metaData))
 {
-    const auto& featuresLayout = *quantizedFeaturesInfo.GetFeaturesLayout();
     FlatFeatureIndexToBundlePart.resize(featuresLayout.GetExternalFeatureCount());
 
     for (ui32 bundleIdx : xrange(SafeIntegerCast<ui32>(MetaData.size()))) {
@@ -1412,11 +1415,11 @@ void NCB::TExclusiveFeatureBundlesData::Load(
 
 
 NCB::TPackedBinaryFeaturesData::TPackedBinaryFeaturesData(
+    const TFeaturesLayout& featuresLayout,
     const TQuantizedFeaturesInfo& quantizedFeaturesInfo,
     const TExclusiveFeatureBundlesData& exclusiveFeatureBundlesData,
     bool dontPack
 ) {
-    const auto& featuresLayout = *quantizedFeaturesInfo.GetFeaturesLayout();
     FlatFeatureIndexToPackedBinaryIndex.resize(featuresLayout.GetExternalFeatureCount());
 
     if (dontPack) {
@@ -1529,6 +1532,7 @@ TString NCB::DbgDumpMetaData(const NCB::TPackedBinaryFeaturesData& packedBinaryF
 
 void NCB::TQuantizedForCPUObjectsData::Load(
     const TArraySubsetIndexing<ui32>* subsetIndexing,
+    const TFeaturesLayout& featuresLayout,
     TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
     IBinSaver* binSaver
 ) {
@@ -1536,7 +1540,7 @@ void NCB::TQuantizedForCPUObjectsData::Load(
     ExclusiveFeatureBundlesData.Load(subsetIndexing, binSaver);
     Data.QuantizedFeaturesInfo = quantizedFeaturesInfo;
     LoadFeatures<EFeatureType::Float>(
-        *(quantizedFeaturesInfo->GetFeaturesLayout()),
+        featuresLayout,
         subsetIndexing,
         &PackedBinaryFeaturesData,
         &ExclusiveFeatureBundlesData,
@@ -1544,7 +1548,7 @@ void NCB::TQuantizedForCPUObjectsData::Load(
         &Data.FloatFeatures
     );
     LoadFeatures<EFeatureType::Categorical>(
-        *(quantizedFeaturesInfo->GetFeaturesLayout()),
+        featuresLayout,
         subsetIndexing,
         &PackedBinaryFeaturesData,
         &ExclusiveFeatureBundlesData,

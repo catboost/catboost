@@ -86,8 +86,10 @@ TFullModel TModelConverter::Convert(
         cpuApproxDim = SafeIntegerCast<ui32>(TargetHelper.GetNumClasses());
     }
 
-    TVector<TFloatFeature> floatFeatures = CreateFloatFeatures(*QuantizedFeaturesInfo);
-    TVector<TCatFeature> catFeatures = CreateCatFeatures(*QuantizedFeaturesInfo);
+    TVector<TFloatFeature> floatFeatures = CreateFloatFeatures(
+        *QuantizedFeaturesInfo->GetFeaturesLayout(), // it's ok to get from QuantizedFeaturesInfo
+        *QuantizedFeaturesInfo);
+    TVector<TCatFeature> catFeatures = CreateCatFeatures(*QuantizedFeaturesInfo->GetFeaturesLayout());
 
     TObliviousTreeBuilder obliviousTreeBuilder(
         floatFeatures,
@@ -145,8 +147,10 @@ TFullModel TModelConverter::Convert(
             cpuApproxDim = SafeIntegerCast<ui32>(TargetHelper.GetNumClasses());
         }
 
-        TVector<TFloatFeature> floatFeatures = CreateFloatFeatures(*QuantizedFeaturesInfo);
-        TVector<TCatFeature> catFeatures = CreateCatFeatures(*QuantizedFeaturesInfo);
+        TVector<TFloatFeature> floatFeatures = CreateFloatFeatures(
+            *QuantizedFeaturesInfo->GetFeaturesLayout(), // it's ok to get from QuantizedFeaturesInfo
+            *QuantizedFeaturesInfo);
+        TVector<TCatFeature> catFeatures = CreateCatFeatures(*QuantizedFeaturesInfo->GetFeaturesLayout());
 
         TNonSymmetricTreeModelBuilder treeBuilder(
             floatFeatures,
