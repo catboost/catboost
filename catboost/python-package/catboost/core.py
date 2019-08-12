@@ -4437,7 +4437,7 @@ def _build_binarized_feature_statistics_fig(statistics, feature):
     )
     if (len(statistics['mean_weighted_target']) != 0):
         trace_3 = go.Scatter(
-            y=map_ignored(statistics['mean_weighted_target'])[order],
+            y=statistics['mean_weighted_target'][order],
             mode='lines+markers',
             name='Mean weighted target',
             yaxis='y1',
