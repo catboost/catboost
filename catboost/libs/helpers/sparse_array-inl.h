@@ -259,11 +259,11 @@ namespace NCB {
     }
 
     template <class TSize>
-    TSparseArrayIndexing<TSize> TSparseSubsetIndicesBuilder<TSize>::Build() {
+    TSparseArrayIndexing<TSize> TSparseSubsetIndicesBuilder<TSize>::Build(TMaybe<TSize> size) {
         if (NonOrdered) {
             Sort(Indices);
         }
-        return TSparseArrayIndexing<TSize>(TSparseSubsetIndices<TSize>(std::move(Indices)));
+        return TSparseArrayIndexing<TSize>(TSparseSubsetIndices<TSize>(std::move(Indices)), size);
     }
 
 
@@ -279,7 +279,7 @@ namespace NCB {
     }
 
     template <class TSize>
-    TSparseArrayIndexing<TSize> TSparseSubsetBlocksBuilder<TSize>::Build() {
+    TSparseArrayIndexing<TSize> TSparseSubsetBlocksBuilder<TSize>::Build(TMaybe<TSize> size) {
         if (NonOrdered && (BlockStarts.size() > 1)) {
             TDoubleArrayIterator<TSize, TSize> beginIter{BlockStarts.begin(), BlockLengths.begin()};
             TDoubleArrayIterator<TSize, TSize> endIter{BlockStarts.end(), BlockLengths.end()};
@@ -304,7 +304,8 @@ namespace NCB {
             BlockLengths.shrink_to_fit();
         }
         return TSparseArrayIndexing<TSize>(
-            TSparseSubsetBlocks<TSize>{std::move(BlockStarts), std::move(BlockLengths)}
+            TSparseSubsetBlocks<TSize>{std::move(BlockStarts), std::move(BlockLengths)},
+            size
         );
     }
 
@@ -330,7 +331,7 @@ namespace NCB {
     }
 
     template <class TSize>
-    TSparseArrayIndexing<TSize> TSparseSubsetHybridIndexBuilder<TSize>::Build() {
+    TSparseArrayIndexing<TSize> TSparseSubsetHybridIndexBuilder<TSize>::Build(TMaybe<TSize> size) {
         if (NonOrdered && (BlockIndices.size() > 1)) {
             TDoubleArrayIterator<TSize, ui64> beginIter{BlockIndices.begin(), BlockBitmaps.begin()};
             TDoubleArrayIterator<TSize, ui64> endIter{BlockIndices.end(), BlockBitmaps.end()};
@@ -355,7 +356,8 @@ namespace NCB {
             BlockBitmaps.shrink_to_fit();
         }
         return TSparseArrayIndexing<TSize>(
-            TSparseSubsetHybridIndex<TSize>{std::move(BlockIndices), std::move(BlockBitmaps)}
+            TSparseSubsetHybridIndex<TSize>{std::move(BlockIndices), std::move(BlockBitmaps)},
+            size
         );
     }
 
@@ -633,14 +635,14 @@ namespace NCB {
 
         TIndexingPtr dstIndexing;
         if (sparseArrayIndexingType == ESparseArrayIndexingType::Indices) {
-            dstIndexing = MakeIntrusive<TIndexing>(TSparseSubsetIndices<TSize>(std::move(dstVectorIndexing)));
+            dstIndexing = MakeIntrusive<TIndexing>(TSparseSubsetIndices<TSize>(std::move(dstVectorIndexing)), invertedIndexedSubset.GetSize());
         } else {
             auto builder = CreateSparseArrayIndexingBuilder<TSize>(sparseArrayIndexingType);
             for (auto i : dstVectorIndexing) {
                 builder->AddOrdered(i);
             }
             TVector<TSize>().swap(dstVectorIndexing); // force early CPU RAM release
-            dstIndexing = MakeIntrusive<TIndexing>(builder->Build());
+            dstIndexing = MakeIntrusive<TIndexing>(builder->Build(invertedIndexedSubset.GetSize()));
         }
 
         TValue defaultValueCopy = DefaultValue;

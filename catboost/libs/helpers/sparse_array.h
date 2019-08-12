@@ -253,7 +253,7 @@ namespace NCB {
         virtual void AddNonOrdered(TSize i) = 0;
 
         // this method is intended to be called only once at the end
-        virtual TSparseArrayIndexing<TSize> Build() = 0;
+        virtual TSparseArrayIndexing<TSize> Build(TMaybe<TSize> size = Nothing()) = 0;
     };
 
     template <class TSize>
@@ -267,7 +267,7 @@ namespace NCB {
 
         inline void AddNonOrdered(TSize i) override;
 
-        TSparseArrayIndexing<TSize> Build() override;
+        TSparseArrayIndexing<TSize> Build(TMaybe<TSize> size = Nothing()) override;
 
     private:
         bool NonOrdered = false;
@@ -281,7 +281,7 @@ namespace NCB {
 
         inline void AddNonOrdered(TSize i) override;
 
-        TSparseArrayIndexing<TSize> Build() override;
+        TSparseArrayIndexing<TSize> Build(TMaybe<TSize> size = Nothing()) override;
 
     private:
         inline void AddImpl(TSize i);
@@ -300,7 +300,7 @@ namespace NCB {
 
         inline void AddNonOrdered(TSize i) override;
 
-        TSparseArrayIndexing<TSize> Build() override;
+        TSparseArrayIndexing<TSize> Build(TMaybe<TSize> size = Nothing()) override;
 
     private:
         inline void AddImpl(TSize i);
