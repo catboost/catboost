@@ -148,6 +148,9 @@ ALLOW .* -> vendor/github.com/pmezard/go-difflib
 # statsd client library
 ALLOW .* -> vendor/github.com/smira/go-statsd
 
+# ICMP Ping library
+ALLOW .* -> vendor/github.com/sparrc/go-ping
+
 # safe and easy casting from one type to another
 ALLOW .* -> vendor/github.com/spf13/cast
 
