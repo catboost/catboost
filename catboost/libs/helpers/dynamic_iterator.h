@@ -1,5 +1,7 @@
 #pragma once
 
+#include <catboost/libs/index_range/index_range.h>
+
 #include <util/generic/maybe.h>
 #include <util/generic/ptr.h>
 #include <util/system/compiler.h>
@@ -173,6 +175,27 @@ namespace NCB {
         TBaseIterator End;
     };
 
+
+    template <class TSize>
+    class TRangeIterator final : public IDynamicIterator<TSize> {
+    public:
+        explicit TRangeIterator(TIndexRange<TSize> range)
+            : Current(range.Begin)
+            , End(range.End)
+        {}
+
+        TMaybe<TSize> Next() override {
+            if (Current == End) {
+                return IDynamicIterator<TSize>::END_VALUE;
+            }
+            return Current++;
+        }
+
+    private:
+        TSize Current;
+        const TSize End;
+    };
+
     /*
      * Iterates over (possibly sparse) array returning only non-default (index, value) pairs
      * Mutability of values is not supported yet, but could be implemented
@@ -182,6 +205,33 @@ namespace NCB {
 
     template <class TReturnValue, class TIndex = size_t>
     using IDynamicSparseIteratorPtr = THolder<IDynamicSparseIterator<TReturnValue, TIndex>>;
+
+
+    template <class TValue, class TIndex = size_t>
+    class TDynamicIteratorAsSparseDynamic final
+        : public IDynamicSparseIterator<TValue, TIndex> {
+    public:
+        using IBase = IDynamicSparseIterator<TValue, TIndex>;
+
+    public:
+        explicit TDynamicIteratorAsSparseDynamic(IDynamicIteratorPtr<TValue> valueIterator)
+            : ValueIterator(std::move(valueIterator))
+            , Index(0)
+        {}
+
+        TMaybe<std::pair<TIndex, TValue>> Next() override {
+            const TMaybe<TValue> nextValue = ValueIterator->Next();
+            if (nextValue) {
+                return MakeMaybe(std::pair<TIndex, TValue>(Index++, *nextValue));
+            } else {
+                return IBase::END_VALUE;
+            }
+        }
+
+    private:
+        IDynamicIteratorPtr<TValue> ValueIterator;
+        TIndex Index;
+    };
 
 
     template <class TBaseIterator, class TIndex = size_t>
