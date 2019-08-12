@@ -6,6 +6,9 @@ ALLOW .* -> vendor/github.com/360EntSecGroup-Skylar/excelize/v2
 # in-process redis server for tests
 ALLOW .* -> vendor/github.com/alicebob/miniredis
 
+# AMQP client with RabbitMQ extensions
+ALLOW .* -> vendor/github.com/streadway/amqp
+
 # AWS client libraries
 ALLOW .* -> vendor/github.com/aws/aws-sdk-go
 
