@@ -4,11 +4,26 @@
 
 #include <stlfwd>
 
+//strings
+template <class TCharType>
+class TCharTraits;
+
+template <typename TCharType, typename TTraits = TCharTraits<TCharType>>
+class TBasicString;
+
+using TString = TBasicString<char>;
+using TUtf16String = TBasicString<wchar16>;
+using TUtf32String = TBasicString<wchar32>;
+
+template <typename TCharType, typename TTraits = TCharTraits<TCharType>>
+class TBasicStringBuf;
+
+using TStringBuf = TBasicStringBuf<char>;
+using TWtringBuf = TBasicStringBuf<wchar16>;
+using TUtf32StringBuf = TBasicStringBuf<wchar32>;
+
 //misc
 class TBuffer;
-class TString;
-class TUtf16String;
-class TUtf32String;
 
 //functors
 template <class T = void>
@@ -22,17 +37,6 @@ struct TEqualTo;
 
 template <class T>
 struct THash;
-
-//strings
-template <class TCharType>
-class TCharTraits;
-
-template <typename TCharType, typename TTraits = TCharTraits<TCharType>>
-class TBasicStringBuf;
-
-using TStringBuf = TBasicStringBuf<char>;
-using TWtringBuf = TBasicStringBuf<wchar16>;
-using TUtf32StringBuf = TBasicStringBuf<wchar32>;
 
 //intrusive containers
 template <class T>

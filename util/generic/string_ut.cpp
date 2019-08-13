@@ -1929,7 +1929,7 @@ private:
     void TestLetOperator() {
         TUtf16String str;
 
-        str = 'X';
+        str = wchar16('X');
         UNIT_ASSERT(str == TUtf16String::FromAscii("X"));
 
         const TUtf16String hello = TUtf16String::FromAscii("hello");
@@ -2112,7 +2112,7 @@ private:
     void TestLetOperator() {
         TUtf32String str;
 
-        str = 'X';
+        str = wchar32('X');
         UNIT_ASSERT(str == TUtf32String::FromAscii("X"));
 
         const TUtf32String hello = TUtf32String::FromAscii("hello");

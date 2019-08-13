@@ -63,17 +63,17 @@ std::ostream& operator<<(std::ostream& os, const TString& s) {
 }
 
 template<>
-bool TBasicString<TString, char, TCharTraits<char>>::to_lower(size_t pos, size_t n) {
+bool TBasicString<char, TCharTraits<char>>::to_lower(size_t pos, size_t n) {
     return Transform([](size_t, char c) { return AsciiToLower(c); }, pos, n);
 }
 
 template<>
-bool TBasicString<TString, char, TCharTraits<char>>::to_upper(size_t pos, size_t n) {
+bool TBasicString<char, TCharTraits<char>>::to_upper(size_t pos, size_t n) {
     return Transform([](size_t, char c) { return AsciiToUpper(c); }, pos, n);
 }
 
 template<>
-bool TBasicString<TString, char, TCharTraits<char>>::to_title(size_t pos, size_t n) {
+bool TBasicString<char, TCharTraits<char>>::to_title(size_t pos, size_t n) {
     if (n == 0) {
         return false;
     }
@@ -83,7 +83,7 @@ bool TBasicString<TString, char, TCharTraits<char>>::to_title(size_t pos, size_t
 
 template<>
 TUtf16String&
-TBasicString<TUtf16String, wchar16, TCharTraits<wchar16>>::AppendAscii(const ::TFixedString<char>& s) {
+TBasicString<wchar16, TCharTraits<wchar16>>::AppendAscii(const ::TFixedString<char>& s) {
     ReserveAndResize(size() + s.Length);
 
     auto dst = begin() + size() - s.Length;
@@ -97,7 +97,7 @@ TBasicString<TUtf16String, wchar16, TCharTraits<wchar16>>::AppendAscii(const ::T
 
 template<>
 TUtf16String&
-TBasicString<TUtf16String, wchar16, TCharTraits<wchar16>>::AppendUtf8(const ::TFixedString<char>& s) {
+TBasicString<wchar16, TCharTraits<wchar16>>::AppendUtf8(const ::TFixedString<char>& s) {
     size_t oldSize = size();
     ReserveAndResize(size() + s.Length * 4);
     size_t written = 0;
@@ -110,23 +110,23 @@ TBasicString<TUtf16String, wchar16, TCharTraits<wchar16>>::AppendUtf8(const ::TF
 }
 
 template<>
-bool TBasicString<TUtf16String, wchar16, TCharTraits<wchar16>>::to_lower(size_t pos, size_t n) {
+bool TBasicString<wchar16, TCharTraits<wchar16>>::to_lower(size_t pos, size_t n) {
     return ToLower(*This(), pos, n);
 }
 
 template<>
-bool TBasicString<TUtf16String, wchar16, TCharTraits<wchar16>>::to_upper(size_t pos, size_t n) {
+bool TBasicString<wchar16, TCharTraits<wchar16>>::to_upper(size_t pos, size_t n) {
     return ToUpper(*This(), pos, n);
 }
 
 template<>
-bool TBasicString<TUtf16String, wchar16, TCharTraits<wchar16>>::to_title(size_t pos, size_t n) {
+bool TBasicString<wchar16, TCharTraits<wchar16>>::to_title(size_t pos, size_t n) {
     return ToTitle(*This(), pos, n);
 }
 
 template<>
 TUtf32String&
-TBasicString<TUtf32String, wchar32, TCharTraits<wchar32>>::AppendAscii(const ::TFixedString<char>& s) {
+TBasicString<wchar32, TCharTraits<wchar32>>::AppendAscii(const ::TFixedString<char>& s) {
     ReserveAndResize(size() + s.Length);
 
     auto dst = begin() + size() - s.Length;
@@ -140,7 +140,7 @@ TBasicString<TUtf32String, wchar32, TCharTraits<wchar32>>::AppendAscii(const ::T
 
 template<>
 TUtf32String&
-TBasicString<TUtf32String, wchar32, TCharTraits<wchar32>>::AppendUtf8(const ::TFixedString<char>& s) {
+TBasicString<wchar32, TCharTraits<wchar32>>::AppendUtf8(const ::TFixedString<char>& s) {
     size_t oldSize = size();
     ReserveAndResize(size() + s.Length * 4);
     size_t written = 0;
@@ -154,7 +154,7 @@ TBasicString<TUtf32String, wchar32, TCharTraits<wchar32>>::AppendUtf8(const ::TF
 
 template<>
 TUtf32String&
-TBasicString<TUtf32String, wchar32, TCharTraits<wchar32>>::AppendUtf16(const ::TFixedString<wchar16>& s) {
+TBasicString<wchar32, TCharTraits<wchar32>>::AppendUtf16(const ::TFixedString<wchar16>& s) {
     size_t oldSize = size();
     ReserveAndResize(size() + s.Length * 2);
 
@@ -170,16 +170,16 @@ TBasicString<TUtf32String, wchar32, TCharTraits<wchar32>>::AppendUtf16(const ::T
 
 
 template<>
-bool TBasicString<TUtf32String, wchar32, TCharTraits<wchar32>>::to_lower(size_t pos, size_t n) {
+bool TBasicString<wchar32, TCharTraits<wchar32>>::to_lower(size_t pos, size_t n) {
     return ToLower(*This(), pos, n);
 }
 
 template<>
-bool TBasicString<TUtf32String, wchar32, TCharTraits<wchar32>>::to_upper(size_t pos, size_t n) {
+bool TBasicString<wchar32, TCharTraits<wchar32>>::to_upper(size_t pos, size_t n) {
     return ToUpper(*This(), pos, n);
 }
 
 template<>
-bool TBasicString<TUtf32String, wchar32, TCharTraits<wchar32>>::to_title(size_t pos, size_t n) {
+bool TBasicString<wchar32, TCharTraits<wchar32>>::to_title(size_t pos, size_t n) {
     return ToTitle(*This(), pos, n);
 }

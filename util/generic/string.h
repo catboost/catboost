@@ -743,9 +743,12 @@ private:
 template <typename TDerived, typename TCharType, typename TTraitsType>
 const size_t TStringBase<TDerived, TCharType, TTraitsType>::npos;
 
-template <typename TDerived, typename TCharType, typename TTraits>
-class TBasicString: public TStringBase<TDerived, TCharType, TTraits> {
+template <typename TCharType, typename TTraits>
+class TBasicString: public TStringBase<TBasicString<TCharType, TTraits>, TCharType, TTraits> {
 public:
+    //TODO: remove this typedef, just replace it with TBasicString
+    //WARN (thegeorg): made public because otherwise it drives MSVS crazy
+    using TDerived = TBasicString;
     // TODO: Move to private section
     using TSelf = TBasicString;
     using TBase = TStringBase<TDerived, TCharType, TTraits>;
@@ -966,10 +969,22 @@ public:
     {
     }
 
+    inline TBasicString(::NDetail::TReserveTag rt)
+        : Data_(TDataTraits::GetNull())
+    {
+        reserve(rt.Capacity);
+    }
+
     inline TBasicString(const TDerived& s)
         : Data_(s.Data_)
     {
         Ref();
+    }
+
+    inline TBasicString(TBasicString&& s) noexcept
+        : Data_(TDataTraits::GetNull())
+    {
+        swap(s);
     }
 
     template <typename T, typename A>
@@ -1224,15 +1239,24 @@ public:
         return assign(s);
     }
 
+    TBasicString& operator=(TBasicString&& s) noexcept {
+        swap(s);
+        return *this;
+    }
+
     TDerived& operator=(const TFixedString s) {
         return assign(s);
+    }
+
+    TDerived& operator=(std::initializer_list<TCharType> il) {
+        return assign(il.begin(), il.end());
     }
 
     TDerived& operator=(const TCharType* s) {
         return assign(s);
     }
 
-    TDerived& operator=(TCharType ch) {
+    TDerived& operator=(TExplicitType<TCharType> ch) {
         return assign(ch);
     }
 
@@ -1724,141 +1748,7 @@ public:
     }
 };
 
-class TString: public TBasicString<TString, char, TCharTraits<char>> {
-    using TBase = TBasicString<TString, char, TCharTraits<char>>;
-
-public:
-    using TFixedString = TBase::TFixedString;
-
-    using TBase::TBase;
-
-    TString() {
-    }
-
-    TString(const TString& s)
-        : TBase(s)
-    {
-    }
-
-    TString(::NDetail::TReserveTag rt) {
-        this->reserve(rt.Capacity);
-    }
-
-    TString(TString&& s) noexcept {
-        swap(s);
-    }
-
-    TString& operator=(const TString& s) {
-        return assign(s);
-    }
-
-    TString& operator=(TString&& s) noexcept {
-        swap(s);
-
-        return *this;
-    }
-
-    TString& operator=(const TFixedString s) {
-        return assign(s);
-    }
-
-    TString& operator=(const value_type* s) {
-        return assign(s);
-    }
-};
 std::ostream& operator<<(std::ostream&, const TString&);
-
-class TUtf16String: public TBasicString<TUtf16String, wchar16, TCharTraits<wchar16>> {
-    using TBase = TBasicString<TUtf16String, wchar16, TCharTraits<wchar16>>;
-
-public:
-    using TFixedString = TBase::TFixedString;
-
-    using TBase::TBase;
-
-    TUtf16String() = default;
-
-    TUtf16String(TUtf16String&& s) noexcept {
-        swap(s);
-    }
-
-    TUtf16String(const TUtf16String& s)
-        : TBase(s)
-    {
-    }
-
-    TUtf16String(::NDetail::TReserveTag rt) {
-        this->reserve(rt.Capacity);
-    }
-
-    TUtf16String& operator=(const TUtf16String& s) {
-        return assign(s);
-    }
-
-    TUtf16String& operator=(TUtf16String&& s) noexcept {
-        swap(s);
-
-        return *this;
-    }
-
-    TUtf16String& operator=(const TFixedString s) {
-        return assign(s);
-    }
-
-    TUtf16String& operator=(const value_type* s) {
-        return assign(s);
-    }
-
-    TUtf16String& operator=(wchar16 ch) {
-        return assign(ch);
-    }
-};
-
-class TUtf32String: public TBasicString<TUtf32String, wchar32, TCharTraits<wchar32>> {
-    using TBase = TBasicString<TUtf32String, wchar32, TCharTraits<wchar32>>;
-
-public:
-    using TFixedString = TBase::TFixedString;
-
-    using TBase::TBase;
-
-    TUtf32String() = default;
-
-    TUtf32String(TUtf32String&& s) noexcept {
-        swap(s);
-    }
-
-    TUtf32String(const TUtf32String& s)
-        : TBase(s)
-    {
-    }
-
-    TUtf32String(::NDetail::TReserveTag rt) {
-        this->reserve(rt.Capacity);
-    }
-
-    TUtf32String& operator=(const TUtf32String& s) {
-        return assign(s);
-    }
-
-    TUtf32String& operator=(TUtf32String&& s) noexcept {
-        swap(s);
-
-        return *this;
-    }
-
-    TUtf32String& operator=(const TFixedString s) {
-        return assign(s);
-    }
-
-    TUtf32String& operator=(const value_type* s) {
-        return assign(s);
-    }
-
-    TUtf32String& operator=(wchar32 ch) {
-        return assign(ch);
-    }
-};
 
 namespace NPrivate {
     template <class Char>
@@ -1886,22 +1776,22 @@ namespace NPrivate {
 template <class Char>
 using TGenericString = typename NPrivate::TCharToString<Char>::type;
 
-template<typename TDerived, typename TCharType, typename TTraits>
-TGenericString<TCharType> to_lower(const TBasicString<TDerived, TCharType, TTraits>& s) {
+template<typename TCharType, typename TTraits>
+TGenericString<TCharType> to_lower(const TBasicString<TCharType, TTraits>& s) {
     TGenericString<TCharType> ret(s);
     ret.to_lower();
     return ret;
 }
 
-template<typename TDerived, typename TCharType, typename TTraits>
-TGenericString<TCharType> to_upper(const TBasicString<TDerived, TCharType, TTraits>& s) {
+template<typename TCharType, typename TTraits>
+TGenericString<TCharType> to_upper(const TBasicString<TCharType, TTraits>& s) {
     TGenericString<TCharType> ret(s);
     ret.to_upper();
     return ret;
 }
 
-template<typename TDerived, typename TCharType, typename TTraits>
-TGenericString<TCharType> to_title(const TBasicString<TDerived, TCharType, TTraits>& s) {
+template<typename TCharType, typename TTraits>
+TGenericString<TCharType> to_title(const TBasicString<TCharType, TTraits>& s) {
     TGenericString<TCharType> ret(s);
     ret.to_title();
     return ret;
