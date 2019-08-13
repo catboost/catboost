@@ -82,7 +82,28 @@ public:
     bool IsAbsolute() const;
     bool IsRelative() const;
 
+    /**
+     * TFsPath("/a/b").IsSubpathOf("/a")        -> true
+     *
+     * TFsPath("/a").IsSubpathOf("/a")          -> false
+     *
+     * TFsPath("/a").IsSubpathOf("/other/path") -> false
+     * @param that - presumable parent path of this
+     * @return True if this is a subpath of that and false otherwise.
+     */
     bool IsSubpathOf(const TFsPath& that) const;
+
+    /**
+     * TFsPath("/a/b").IsNonStrictSubpathOf("/a")        -> true
+     *
+     * TFsPath("/a").IsNonStrictSubpathOf("/a")          -> true
+     *
+     * TFsPath("/a").IsNonStrictSubpathOf("/other/path") -> false
+     * @param that - presumable parent path of this
+     * @return True if this is a subpath of that or they are equivalent and false otherwise.
+     */
+    bool IsNonStrictSubpathOf(const TFsPath& that) const;
+    
     bool IsContainerOf(const TFsPath& that) const {
         return that.IsSubpathOf(*this);
     }

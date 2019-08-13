@@ -299,6 +299,47 @@ Y_UNIT_TEST_SUITE(TFsPathTests) {
 #endif
     }
 
+    Y_UNIT_TEST(TestNonStrictSubpathOf) {
+        UNIT_ASSERT(TFsPath("/a/b/c/d").IsNonStrictSubpathOf("/a/b"));
+
+        UNIT_ASSERT(TFsPath("/a").IsNonStrictSubpathOf("/"));
+        UNIT_ASSERT(!TFsPath("/").IsNonStrictSubpathOf("/a"));
+
+        UNIT_ASSERT(TFsPath("/a/b").IsNonStrictSubpathOf("/a"));
+        UNIT_ASSERT(TFsPath("a/b").IsNonStrictSubpathOf("a"));
+        UNIT_ASSERT(!TFsPath("/a/b").IsNonStrictSubpathOf("/b"));
+        UNIT_ASSERT(!TFsPath("a/b").IsNonStrictSubpathOf("b"));
+
+        // mixing absolute/relative
+        UNIT_ASSERT(!TFsPath("a").IsNonStrictSubpathOf("/"));
+        UNIT_ASSERT(!TFsPath("a").IsNonStrictSubpathOf("/a"));
+        UNIT_ASSERT(!TFsPath("/a").IsNonStrictSubpathOf("a"));
+        UNIT_ASSERT(!TFsPath("a/b").IsNonStrictSubpathOf("/a"));
+        UNIT_ASSERT(!TFsPath("/a/b").IsNonStrictSubpathOf("a"));
+
+        // equal paths
+        UNIT_ASSERT(TFsPath("").IsNonStrictSubpathOf(""));
+        UNIT_ASSERT(TFsPath("/").IsNonStrictSubpathOf("/"));
+        UNIT_ASSERT(TFsPath("a").IsNonStrictSubpathOf("a"));
+        UNIT_ASSERT(TFsPath("/a").IsNonStrictSubpathOf("/a"));
+        UNIT_ASSERT(TFsPath("/a").IsNonStrictSubpathOf("/a/"));
+        UNIT_ASSERT(TFsPath("/a/").IsNonStrictSubpathOf("/a"));
+        UNIT_ASSERT(TFsPath("/a/").IsNonStrictSubpathOf("/a/"));
+
+#ifdef _win_
+        UNIT_ASSERT(TFsPath("x:/a/b").IsNonStrictSubpathOf("x:/a"));
+
+        UNIT_ASSERT(TFsPath("x:/a").IsNonStrictSubpathOf("x:/a"));
+        UNIT_ASSERT(TFsPath("x:/a/").IsNonStrictSubpathOf("x:/a"));
+        UNIT_ASSERT(TFsPath("x:/a").IsNonStrictSubpathOf("x:/a/"));
+        UNIT_ASSERT(TFsPath("x:/a/").IsNonStrictSubpathOf("x:/a/"));
+
+        UNIT_ASSERT(!TFsPath("x:/").IsNonStrictSubpathOf("y:/"));
+        UNIT_ASSERT(!TFsPath("x:/a/b").IsNonStrictSubpathOf("y:/a"));
+        UNIT_ASSERT(!TFsPath("x:/a/b").IsNonStrictSubpathOf("a"));
+#endif
+    }
+
     Y_UNIT_TEST(TestRelativePath) {
         UNIT_ASSERT_EQUAL(TFsPath("/a/b/c/d").RelativePath(TFsPath("/a/b")), TFsPath("c/d"));
         UNIT_ASSERT_EQUAL(TFsPath("/a/b/c/d").RelativePath(TFsPath("/a/b/e/f")), TFsPath("../../c/d"));

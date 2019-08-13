@@ -37,6 +37,25 @@ bool TFsPath::IsSubpathOf(const TFsPath& that) const {
     return std::equal(rsplit.begin(), rsplit.end(), split.begin());
 }
 
+bool TFsPath::IsNonStrictSubpathOf(const TFsPath& that) const {
+    const TSplit& split = GetSplit();
+    const TSplit& rsplit = that.GetSplit();
+
+    if (rsplit.IsAbsolute != split.IsAbsolute) {
+        return false;
+    }
+
+    if (rsplit.Drive != split.Drive) {
+        return false;
+    }
+
+    if (rsplit.size() > split.size()) {
+        return false;
+    }
+
+    return std::equal(rsplit.begin(), rsplit.end(), split.begin());
+}
+
 TFsPath TFsPath::RelativeTo(const TFsPath& root) const {
     TSplit split = GetSplit();
     const TSplit& rsplit = root.GetSplit();
