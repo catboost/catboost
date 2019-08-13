@@ -233,6 +233,9 @@ ALLOW .* -> vendor/github.com/google/go-cmp
 # CORS is a net/http handler implementing Cross Origin Resource Sharing W3 specification
 ALLOW .* -> vendor/github.com/rs/cors
 
+# read and write from the serial port as a stream of bytes
+ALLOW .* -> vendor/github.com/tarm/serial
+
 # generation tool and serialization library for MessagePack
 ALLOW .* -> vendor/github.com/tinylib/msgp
 
