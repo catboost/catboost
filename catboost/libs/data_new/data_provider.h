@@ -376,8 +376,10 @@ namespace NCB {
 
         void UpdateMetaInfo() {
             MetaInfo.ObjectCount = GetObjectCount();
-            MetaInfo.MaxCatFeaturesUniqValuesOnLearn =
-                ObjectsData->GetQuantizedFeaturesInfo()->CalcMaxCategoricalFeaturesUniqueValuesCountOnLearn();
+            if (ObjectsData->GetQuantizedFeaturesInfo()) {
+                MetaInfo.MaxCatFeaturesUniqValuesOnLearn =
+                    ObjectsData->GetQuantizedFeaturesInfo()->CalcMaxCategoricalFeaturesUniqueValuesCountOnLearn();
+            }
 
             const auto& targets = TargetData->GetTarget();
             if (targets.Defined() && !targets->empty()) {

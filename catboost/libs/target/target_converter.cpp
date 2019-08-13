@@ -146,17 +146,18 @@ namespace NCB {
     TTargetConverter MakeTargetConverter(bool isClass,
                                          bool isMultiClass,
                                          bool classesCountUnknown,
-                                         TVector<TString>* classNames) {
+                                         const TVector<TString>& inputClassNames,
+                                         TVector<TString>* outputClassNames) {
         EConvertTargetPolicy targetPolicy = EConvertTargetPolicy::CastFloat;
 
-        if (!classNames->empty()) {
+        if (!inputClassNames.empty()) {
             targetPolicy = EConvertTargetPolicy::UseClassNames;
         } else {
             if (isMultiClass && classesCountUnknown) {
                 targetPolicy = EConvertTargetPolicy::MakeClassNames;
             }
         }
-        return NCB::TTargetConverter(isClass, isMultiClass, targetPolicy, *classNames, classNames);
+        return NCB::TTargetConverter(isClass, isMultiClass, targetPolicy, inputClassNames, outputClassNames);
     }
 
 } // NCB

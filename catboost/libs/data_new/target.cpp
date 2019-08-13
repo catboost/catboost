@@ -96,14 +96,16 @@ void NCB::CheckPairs(TConstArrayRef<TPair> pairs, const TObjectsGrouping& object
             CB_ENSURE(pair.WinnerId != pair.LoserId, "WinnerId is equal to LoserId");
             CB_ENSURE(pair.Weight >= 0.0f, "Weight is negative");
 
-            ui32 winnerIdGroupIdx = objectsGrouping.GetGroupIdxForObject(pair.WinnerId);
-            ui32 loserIdGroupIdx = objectsGrouping.GetGroupIdxForObject(pair.LoserId);
+            if (!objectsGrouping.IsTrivial()) {
+                ui32 winnerIdGroupIdx = objectsGrouping.GetGroupIdxForObject(pair.WinnerId);
+                ui32 loserIdGroupIdx = objectsGrouping.GetGroupIdxForObject(pair.LoserId);
 
-            CB_ENSURE(
-                winnerIdGroupIdx == loserIdGroupIdx,
-                "winner id group #" << winnerIdGroupIdx << " is not equal to loser id group #"
-                << loserIdGroupIdx
-            );
+                CB_ENSURE(
+                    winnerIdGroupIdx == loserIdGroupIdx,
+                    "winner id group #" << winnerIdGroupIdx << " is not equal to loser id group #"
+                    << loserIdGroupIdx
+                );
+            }
         } catch (const TCatBoostException& e) {
             // throw, not ythrow to avoid duplication of line info
             throw TCatBoostException() << "Pair #" << pairIdx << ' ' << HumanReadableDescription(pair) << ": "

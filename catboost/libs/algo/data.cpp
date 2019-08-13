@@ -186,6 +186,19 @@ namespace NCB {
 
         bool needTargetDataForCtrs = calcCtrs && CtrsNeedTargetData(params->CatFeatureParams) && isLearnData;
 
+        TInputClassificationInfo inputClassificationInfo {
+            dataProcessingOptions.ClassesCount.Get() ? TMaybe<ui32>(dataProcessingOptions.ClassesCount.Get()) : Nothing(),
+            dataProcessingOptions.ClassWeights.Get(),
+            dataProcessingOptions.ClassNames.Get(),
+            *targetBorder
+        };
+        TOutputClassificationInfo outputClassificationInfo {
+            dataProcessingOptions.ClassNames.Get(),
+            labelConverter,
+            *targetBorder
+        };
+        TOutputPairsInfo outputPairsInfo;
+
         trainingData->TargetData = CreateTargetDataProvider(
             srcData->RawTargetData,
             trainingData->ObjectsData->GetSubgroupIds(),
@@ -198,17 +211,36 @@ namespace NCB {
             /*metricsThatRequireTargetCanBeSkipped*/ !isLearnData,
             /*needTargetDataForCtrs*/ needTargetDataForCtrs,
             /*knownModelApproxDimension*/ Nothing(),
-            dataProcessingOptions.ClassesCount.Get(),
-            dataProcessingOptions.ClassWeights.Get(),
-            &dataProcessingOptions.ClassNames.Get(),
-            labelConverter,
-            targetBorder,
+            inputClassificationInfo,
+            &outputClassificationInfo,
             rand,
             localExecutor,
-            &trainingData->MetaInfo.HasPairs
+            &outputPairsInfo
         );
+        trainingData->MetaInfo.HasPairs = outputPairsInfo.HasPairs;
+        dataProcessingOptions.ClassNames.Get() = outputClassificationInfo.ClassNames;
+        *targetBorder = outputClassificationInfo.TargetBorder;
 
         trainingData->UpdateMetaInfo();
+
+        if (outputPairsInfo.HasFakeGroupIds()) {
+            trainingData = trainingData->GetSubset(
+                TObjectsGroupingSubset(
+                    trainingData->TargetData->GetObjectsGrouping(),
+                    TArraySubsetIndexing<ui32>(TIndexedSubset<ui32>(outputPairsInfo.PermutationForGrouping)),
+                    EObjectsOrder::Undefined
+                ),
+                localExecutor
+            );
+            trainingData->TargetData->UpdateGroupInfos(
+                MakeGroupInfos(
+                    outputPairsInfo.FakeObjectsGrouping,
+                    Nothing(),
+                    TWeights(outputPairsInfo.PermutationForGrouping.size()),
+                    TConstArrayRef<TPair>(outputPairsInfo.PairsInPermutedDataset)
+                )
+            );
+        }
 
         return trainingData;
     }

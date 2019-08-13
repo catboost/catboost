@@ -278,6 +278,10 @@ namespace NCB {
             return GetDataFromMap<TConstArrayRef<TQueryInfo>>(Data.GroupInfos, name);
         }
 
+        void UpdateGroupInfos(TSharedVector<TQueryInfo> queryInfo, const TString& name = "") {
+            Data.GroupInfos.emplace(name, queryInfo);
+        }
+
 
     protected:
         friend class TTargetSerialization;

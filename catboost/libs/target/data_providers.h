@@ -15,6 +15,30 @@
 
 namespace NCB {
 
+    struct TInputClassificationInfo {
+        TMaybe<ui32> KnownClassCount;
+        TConstArrayRef<float> ClassWeights; // [classIdx], empty if not specified
+        TVector<TString> ClassNames;
+        TMaybe<float> TargetBorder;
+    };
+
+    struct TOutputClassificationInfo {
+        TVector<TString> ClassNames;
+        TMaybe<TLabelConverter*> LabelConverter; // needed only for multiclass
+        TMaybe<float> TargetBorder; // TODO(isaf27): delete it from output parameters
+    };
+
+    struct TOutputPairsInfo {
+        bool HasPairs;
+        TObjectsGrouping FakeObjectsGrouping;
+        TVector<ui32> PermutationForGrouping;
+        TVector<TPair> PairsInPermutedDataset;
+
+        bool HasFakeGroupIds() const {
+            return !PermutationForGrouping.empty();
+        }
+    };
+
     TTargetDataProviderPtr CreateTargetDataProvider(
         const TRawTargetDataProvider& rawData,
         TMaybeData<TConstArrayRef<TSubgroupId>> subgroupIds,
@@ -32,14 +56,11 @@ namespace NCB {
         bool metricsThatRequireTargetCanBeSkipped,
         bool needTargetDataForCtrs,
         TMaybe<ui32> knownModelApproxDimension,
-        ui32 knownClassCount, // == 0 if unknown
-        TConstArrayRef<float> classWeights, // [classIdx], empty if not specified
-        TVector<TString>* classNames, // inout parameter
-        TMaybe<TLabelConverter*> labelConverter, // needed only for multiclass
-        TMaybe<float>* targetBorder,
+        const TInputClassificationInfo& inputClassificationInfo,
+        TOutputClassificationInfo* outputClassificationInfo,
         TRestorableFastRng64* rand, // for possible pairs generation
         NPar::TLocalExecutor* localExecutor,
-        bool* hasPairs);
+        TOutputPairsInfo* outputPairsInfo);
 
 
     TProcessedDataProvider CreateModelCompatibleProcessedDataProvider(

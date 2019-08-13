@@ -46,12 +46,13 @@ namespace NCB {
     };
 
     /*
-     * className is inout parameter, if it is nonempty as input, isMultiClass and classCountUnknown
+     *  if inputClassNames is nonempty, isMultiClass and classCountUnknown
      *  are not used
      */
     TTargetConverter MakeTargetConverter(bool isClass,
                                          bool isMultiClass,
                                          bool classCountUnknown,
-                                         TVector<TString>* classNames);
+                                         const TVector<TString>& inputClassNames,
+                                         TVector<TString>* outputClassNames);
 
 }

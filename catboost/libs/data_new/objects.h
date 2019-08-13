@@ -175,6 +175,10 @@ namespace NCB {
             CommonData.SaveNonSharedPart(binSaver);
         }
 
+        virtual TQuantizedFeaturesInfoPtr GetQuantizedFeaturesInfo() const {
+            return nullptr;
+        }
+
     private:
         friend class TQuantizationImpl;
         friend class TRawBuilderDataHelper;

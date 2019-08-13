@@ -507,6 +507,10 @@
         "checksum": "5e10a1972628cf512834809c68c8ce4c",
         "uri": "file://test.test_pairs_generation_with_max_pairs_CPU_/catboost_training.json"
     },
+    "test.test_pairs_without_groupid": {
+        "checksum": "a3ba5eb86c9cf989692d8837658579a0",
+        "uri": "file://test.test_pairs_without_groupid/catboost_training.json"
+    },
     "test.test_pmml_export[binclass]": {
         "checksum": "4ad2935431be9a6939b097700a7b7dcd",
         "uri": "file://test.test_pmml_export_binclass_/model.pmml"

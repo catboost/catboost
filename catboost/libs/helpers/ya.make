@@ -9,6 +9,7 @@ SRCS(
     clear_array.cpp
     compare.cpp
     compression.cpp
+    connected_components.cpp
     cpu_random.cpp
     dbg_output.cpp
     dense_hash.cpp

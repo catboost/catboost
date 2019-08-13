@@ -5099,3 +5099,13 @@ def test_regress_with_per_float_feature_binarization_param(task_type):
     output_model_path = test_output_path(OUTPUT_MODEL_PATH)
     model.save_model(output_model_path)
     return compare_canonical_models(output_model_path)
+
+
+def test_pairs_without_groupid():
+    model = CatBoost(params={'loss_function': 'PairLogit', 'iterations': 10, 'thread_count': 8})
+    pairs = read_csv(QUERYWISE_TRAIN_PAIRS_FILE, delimiter='\t', header=None)
+    df = read_csv(QUERYWISE_TRAIN_FILE, delimiter='\t', header=None)
+    train_target = df.loc[:, 2]
+    train_data = df.drop([0, 1, 2, 3, 4], axis=1).astype(np.float32)
+    model.fit(train_data, train_target, pairs=pairs)
+    return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
