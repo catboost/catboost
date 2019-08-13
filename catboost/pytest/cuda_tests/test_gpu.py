@@ -2560,3 +2560,62 @@ def test_text_processing_options(text_processing, loss_function):
 
     return [local_canonical_file(learn_error_path, diff_tool=diff_tool()),
             local_canonical_file(test_error_path, diff_tool=diff_tool())]
+
+
+@pytest.mark.parametrize('task_type', ['CPU', 'GPU'])
+def test_eval_feature(task_type):
+    output_eval_path = yatest.common.test_output_path('feature.eval')
+    test_err_log = 'test_error.log'
+    cmd = (
+        CATBOOST_PATH,
+        'eval-feature',
+        '--task-type', task_type,
+        '--loss-function', 'RMSE',
+        '-f', data_file('higgs', 'train_small'),
+        '--cd', data_file('higgs', 'train.cd'),
+        '--features-to-evaluate', '0-6;21-27',
+        '--feature-eval-mode', 'OneVsOthers',
+        '-i', '10',
+        '-T', '4',
+        '-w', '0.66',
+        '--feature-eval-output-file', output_eval_path,
+        '--offset', '2',
+        '--fold-count', '2',
+        '--fold-size-unit', 'Object',
+        '--fold-size', '20',
+        '--test-err-log', test_err_log,
+        '--train-dir', '.',
+    )
+    if task_type == 'GPU':
+        cmd += (
+            '--permutations', '1',
+            '--data-partition', 'DocParallel',
+            '--bootstrap-type', 'No',
+            '--random-strength', '0',
+        )
+
+    yatest.common.execute(cmd)
+
+    def get_best_metric(test_err_path):
+        return np.amin(np.loadtxt(test_err_path, skiprows=1)[:, 1])
+
+    best_metrics = [
+        get_best_metric(os.path.join('Baseline_set_1_fold_3', test_err_log)),
+        get_best_metric(os.path.join('Baseline_set_1_fold_2', test_err_log)),
+        get_best_metric(os.path.join('Baseline_set_0_fold_3', test_err_log)),
+        get_best_metric(os.path.join('Baseline_set_0_fold_2', test_err_log)),
+        get_best_metric(os.path.join('Testing_set_1_fold_3', test_err_log)),
+        get_best_metric(os.path.join('Testing_set_1_fold_2', test_err_log)),
+        get_best_metric(os.path.join('Testing_set_0_fold_3', test_err_log)),
+        get_best_metric(os.path.join('Testing_set_0_fold_2', test_err_log)),
+    ]
+
+    best_metrics_path = 'best_metrics.txt'
+    np.savetxt(best_metrics_path, best_metrics)
+
+    return [
+        local_canonical_file(
+            best_metrics_path,
+            diff_tool=get_limited_precision_dsv_diff_tool(2e-2, False)
+        )
+    ]

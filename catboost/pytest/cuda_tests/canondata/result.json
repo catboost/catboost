@@ -439,6 +439,18 @@
             "uri": "file://test_gpu.test_cv_for_query_Plain_/test.eval"
         }
     ],
+    "test_gpu.test_eval_feature[CPU]": [
+        {
+            "checksum": "e569895806a88c08de2b69453e226e58",
+            "uri": "file://test_gpu.test_eval_feature_CPU_/best_metrics.txt"
+        }
+    ],
+    "test_gpu.test_eval_feature[GPU]": [
+        {
+            "checksum": "c5b883fa1ae4f79f7fd557f6a727973f",
+            "uri": "file://test_gpu.test_eval_feature_GPU_/best_metrics.txt"
+        }
+    ],
     "test_gpu.test_eval_metrics_class_names": [
         {
             "checksum": "2e5a54b87618e037587185417dcd2875",

@@ -130,6 +130,11 @@ namespace NCB {
             NPar::TLocalExecutor* localExecutor
         ) const = 0;
 
+        virtual TIntrusivePtr<TObjectsDataProvider> GetFeaturesSubset(
+            const TVector<ui32>& ignoredFeatures,
+            NPar::TLocalExecutor* localExecutor
+        ) const = 0;
+
         // The following Get* functions are common for all implementations, so they're in this base class
 
         TFeaturesLayoutPtr GetFeaturesLayout() const {
@@ -248,6 +253,11 @@ namespace NCB {
 
         TObjectsDataProviderPtr GetSubset(
             const TObjectsGroupingSubset& objectsGroupingSubset,
+            NPar::TLocalExecutor* localExecutor
+        ) const override;
+
+        TObjectsDataProviderPtr GetFeaturesSubset(
+            const TVector<ui32>& ignoredFeatures,
             NPar::TLocalExecutor* localExecutor
         ) const override;
 
@@ -374,6 +384,11 @@ namespace NCB {
 
         TObjectsDataProviderPtr GetSubset(
             const TObjectsGroupingSubset& objectsGroupingSubset,
+            NPar::TLocalExecutor* localExecutor
+        ) const override;
+
+        TObjectsDataProviderPtr GetFeaturesSubset(
+            const TVector<ui32>& ignoredFeatures,
             NPar::TLocalExecutor* localExecutor
         ) const override;
 
@@ -544,6 +559,11 @@ namespace NCB {
 
         TObjectsDataProviderPtr GetSubset(
             const TObjectsGroupingSubset& objectsGroupingSubset,
+            NPar::TLocalExecutor* localExecutor
+        ) const override;
+
+        NCB::TObjectsDataProviderPtr GetFeaturesSubset(
+            const TVector<ui32>& ignoredFeatures,
             NPar::TLocalExecutor* localExecutor
         ) const override;
 

@@ -383,7 +383,7 @@ void Train(
         foldContext->FullModel.Defined() ? foldContext->FullModel.Get() : nullptr,
         TVector<TEvalResult*>{&foldContext->LastUpdateEvalResult},
         &metricsAndTimeHistory,
-        &foldContext->LearnProgress
+        (foldContext->TaskType == ETaskType::CPU) ? &foldContext->LearnProgress : nullptr
     );
     const auto skipMetricOnTrain = GetSkipMetricOnTrain(metrics);
     for (const auto& trainMetrics : metricsAndTimeHistory.LearnMetricsHistory) {

@@ -289,60 +289,92 @@ void Out<ETrainingKind>(IOutputStream& stream, ETrainingKind kind) {
      Y_UNREACHABLE();
 }
 
-static void SetFeaturesAvailability(
-    bool isAvailable,
-    const TVector<ui32>& featureSet,
-    TTrainingDataProviders* foldData
+
+template <typename TObjectsDataProvider> // TQuantizedForCPUObjectsDataProvider or TQuantizedObjectsDataProvider
+TIntrusivePtr<TTrainingDataProvider> MakeFeatureSubsetDataProvider(
+    const TVector<ui32>& ignoredFeatures,
+    NCB::TTrainingDataProviderPtr trainingDataProvider
 ) {
-    for (ui32 featureIdx : featureSet) {
-        foldData->Learn->MetaInfo.FeaturesLayout->SetExternalFeatureAvailability(featureIdx, isAvailable);
-    }
+    TIntrusivePtr<TObjectsDataProvider> newObjects = dynamic_cast<TObjectsDataProvider*>(
+        trainingDataProvider->ObjectsData->GetFeaturesSubset(ignoredFeatures, &NPar::LocalExecutor()).Get());
+    CB_ENSURE(
+        newObjects,
+        "Objects data provider must be TQuantizedForCPUObjectsDataProvider or TQuantizedObjectsDataProvider");
+    TDataMetaInfo newMetaInfo = trainingDataProvider->MetaInfo;
+    newMetaInfo.FeaturesLayout = newObjects->GetFeaturesLayout();
+    return MakeIntrusive<TTrainingDataProvider>(
+        TDataMetaInfo(newMetaInfo),
+        trainingDataProvider->ObjectsGrouping,
+        newObjects,
+        trainingDataProvider->TargetData);
 }
 
 
-static void UpdateIgnoredFeaturesInLearn(
+static TVector<TTrainingDataProviders> UpdateIgnoredFeaturesInLearn(
+    ETaskType taskType,
     const NCatboostOptions::TFeatureEvalOptions& options,
     ETrainingKind trainingKind,
     ui32 testedFeatureSetIdx,
-    TVector<TTrainingDataProviders>* foldsData
+    const TVector<TTrainingDataProviders>& foldsData
 ) {
+    TVector<ui32> ignoredFeatures;
     const auto& testedFeatures = options.FeaturesToEvaluate.Get();
     const auto featureEvalMode = options.FeatureEvalMode;
     if (trainingKind == ETrainingKind::Testing) {
-        for (auto& foldData : *foldsData) {
-            for (ui32 featureSetIdx : xrange(testedFeatures.size())) {
-                SetFeaturesAvailability(
-                    featureSetIdx == testedFeatureSetIdx,
-                    testedFeatures[featureSetIdx],
-                    &foldData);
+        for (ui32 featureSetIdx : xrange(testedFeatures.size())) {
+            if (featureSetIdx != testedFeatureSetIdx) {
+                ignoredFeatures.insert(
+                    ignoredFeatures.end(),
+                    testedFeatures[featureSetIdx].begin(),
+                    testedFeatures[featureSetIdx].end());
             }
         }
     } else if (featureEvalMode == NCB::EFeatureEvalMode::OneVsAll) {
-        for (auto& foldData : *foldsData) {
-            for (const auto& featureSet : testedFeatures) {
-                SetFeaturesAvailability(true, featureSet, &foldData);
-            }
-        }
+        // no additional ignored features
     } else if (featureEvalMode == NCB::EFeatureEvalMode::OneVsOthers) {
-        for (auto& foldData : *foldsData) {
-            for (ui32 featureSetIdx : xrange(testedFeatures.size())) {
-                SetFeaturesAvailability(
-                    featureSetIdx != testedFeatureSetIdx,
-                    testedFeatures[featureSetIdx],
-                    &foldData);
-            }
-        }
+        ignoredFeatures = testedFeatures[testedFeatureSetIdx];
     } else {
         CB_ENSURE(
             featureEvalMode == NCB::EFeatureEvalMode::OneVsNone,
             "Unknown feature evaluation mode " + ToString(featureEvalMode)
         );
-        for (auto& foldData : *foldsData) {
-            for (const auto& featureSet : testedFeatures) {
-                SetFeaturesAvailability(false, featureSet, &foldData);
-            }
+        for (const auto& featureSet : testedFeatures) {
+            ignoredFeatures.insert(
+                ignoredFeatures.end(),
+                featureSet.begin(),
+                featureSet.end());
         }
     }
+    TVector<TTrainingDataProviders> result;
+    result.reserve(foldsData.size());
+    if (taskType == ETaskType::CPU) {
+        for (const auto& foldData : foldsData) {
+            TTrainingDataProviders newTrainingData;
+            newTrainingData.Learn = MakeFeatureSubsetDataProvider<TQuantizedForCPUObjectsDataProvider>(
+                ignoredFeatures,
+                foldData.Learn);
+            newTrainingData.Test.push_back(
+                MakeFeatureSubsetDataProvider<TQuantizedForCPUObjectsDataProvider>(
+                    ignoredFeatures,
+                    foldData.Test[0])
+            );
+            result.push_back(newTrainingData);
+        }
+    } else {
+        for (const auto& foldData : foldsData) {
+            TTrainingDataProviders newTrainingData;
+            newTrainingData.Learn = MakeFeatureSubsetDataProvider<TQuantizedObjectsDataProvider>(
+                ignoredFeatures,
+                foldData.Learn);
+            newTrainingData.Test.push_back(
+                MakeFeatureSubsetDataProvider<TQuantizedObjectsDataProvider>(
+                    ignoredFeatures,
+                    foldData.Test[0])
+            );
+            result.push_back(newTrainingData);
+        }
+    }
+    return result;
 }
 
 
@@ -532,7 +564,10 @@ void EvaluateFeatures(
     float bestPossibleValue;
     metrics.front()->GetBestValue(&bestValueType, &bestPossibleValue);
 
-    const auto trainFullModels = [&] (const TString& trainDirPrefix, TVector<TFoldContext>* foldContexts) {
+    const auto trainFullModels = [&] (
+        const TString& trainDirPrefix,
+        TVector<TTrainingDataProviders>* foldsData,
+        TVector<TFoldContext>* foldContexts) {
         Y_ASSERT(foldContexts->empty());
         const ui32 offset = cvParams.Initialized() ? 0 : featureEvalOptions.Offset.Get();
         for (auto foldIdx : xrange(foldCount)) {
@@ -540,7 +575,7 @@ void EvaluateFeatures(
                 offset + foldIdx,
                 taskType,
                 outputFileOptions,
-                std::move(foldsData[foldIdx]),
+                std::move((*foldsData)[foldIdx]),
                 rand.GenRand(),
                 /*hasFullModel*/true
             );
@@ -554,7 +589,7 @@ void EvaluateFeatures(
                 overfittingDetectorOptions,
                 bestPossibleValue,
                 bestValueType,
-                /*hasTest*/foldsData[foldIdx].Test.size());
+                /*hasTest*/(*foldsData)[foldIdx].Test.size());
 
             const auto foldTrainDir = trainDirPrefix + "fold_" + ToString((*foldContexts)[foldIdx].FoldIdx);
             Train(
@@ -584,7 +619,7 @@ void EvaluateFeatures(
         }
 
         for (auto foldIdx : xrange(foldCount)) {
-            foldsData[foldIdx] = std::move((*foldContexts)[foldIdx].TrainingData);
+            (*foldsData)[foldIdx] = std::move((*foldContexts)[foldIdx].TrainingData);
         }
 
         if (testFoldsData) {
@@ -598,19 +633,29 @@ void EvaluateFeatures(
     for (ui32 featureSetIdx : xrange(featureEvalOptions.FeaturesToEvaluate->size())) {
         const auto haveBaseline = featureSetIdx > 0 && useCommonBaseline;
         if (!haveBaseline) {
-            UpdateIgnoredFeaturesInLearn(featureEvalOptions, ETrainingKind::Baseline, featureSetIdx, &foldsData);
+            auto newFoldsData = UpdateIgnoredFeaturesInLearn(
+                taskType,
+                featureEvalOptions,
+                ETrainingKind::Baseline,
+                featureSetIdx,
+                foldsData);
             baselineFoldContexts.clear();
             auto baselineDirPrefix = TStringBuilder() << "Baseline_";
             if (!useCommonBaseline) {
                 baselineDirPrefix << "set_" << featureSetIdx << "_";
             }
-            trainFullModels(baselineDirPrefix, &baselineFoldContexts);
+            trainFullModels(baselineDirPrefix, &newFoldsData, &baselineFoldContexts);
         }
 
         TVector<TFoldContext> testedFoldContexts;
-        UpdateIgnoredFeaturesInLearn(featureEvalOptions, ETrainingKind::Testing, featureSetIdx, &foldsData);
+        auto newFoldsData = UpdateIgnoredFeaturesInLearn(
+            taskType,
+            featureEvalOptions,
+            ETrainingKind::Testing,
+            featureSetIdx,
+            foldsData);
         const auto testingDirPrefix = TStringBuilder() << "Testing_set_" << featureSetIdx << "_";
-        trainFullModels(testingDirPrefix, &testedFoldContexts);
+        trainFullModels(testingDirPrefix, &newFoldsData, &testedFoldContexts);
 
         results->PushBackWxTestAndDelta(metrics, baselineFoldContexts, testedFoldContexts);
     }

@@ -607,6 +607,12 @@ TObjectsDataProviderPtr NCB::TRawObjectsDataProvider::GetSubset(
     );
 }
 
+TObjectsDataProviderPtr NCB::TRawObjectsDataProvider::GetFeaturesSubset(
+    const TVector<ui32>& /*ignoredFeatures*/,
+    NPar::TLocalExecutor* /*localExecutor*/
+) const {
+    CB_ENSURE(false, "Not implemented");
+}
 
 template <class T, EFeatureValuesType TType>
 static void CreateConsecutiveFeaturesData(
@@ -836,6 +842,48 @@ NCB::TObjectsDataProviderPtr NCB::TQuantizedObjectsDataProvider::GetSubset(
         objectsGroupingSubset,
         localExecutor
     );
+
+    TQuantizedObjectsData subsetData;
+
+    auto createSubsetFeatures = [&] (const auto& srcFeatures, auto* dstFeatures) {
+        CreateSubsetFeatures(
+            MakeConstArrayRef(srcFeatures),
+            subsetCommonData.SubsetIndexing.Get(),
+            dstFeatures
+        );
+    };
+
+    createSubsetFeatures(Data.FloatFeatures, &subsetData.FloatFeatures);
+    createSubsetFeatures(Data.CatFeatures, &subsetData.CatFeatures);
+    createSubsetFeatures(Data.TextFeatures, &subsetData.TextFeatures);
+
+    subsetData.QuantizedFeaturesInfo = Data.QuantizedFeaturesInfo;
+
+    return MakeIntrusive<TQuantizedObjectsDataProvider>(
+        objectsGroupingSubset.GetSubsetGrouping(),
+        std::move(subsetCommonData),
+        std::move(subsetData),
+        true,
+        Nothing()
+    );
+}
+
+
+NCB::TObjectsDataProviderPtr NCB::TQuantizedObjectsDataProvider::GetFeaturesSubset(
+    const TVector<ui32>& ignoredFeatures,
+    NPar::TLocalExecutor* localExecutor
+) const {
+    const auto& objectsGroupingSubset = ::GetGroupingSubsetFromObjectsSubset(
+        ObjectsGrouping,
+        TArraySubsetIndexing(TFullSubset<ui32>(GetObjectCount())),
+        EObjectsOrder::Ordered);
+
+    TCommonObjectsData subsetCommonData = CommonData.GetSubset(
+        objectsGroupingSubset,
+        localExecutor
+    );
+    subsetCommonData.FeaturesLayout = MakeIntrusive<TFeaturesLayout>(*subsetCommonData.FeaturesLayout);
+    subsetCommonData.FeaturesLayout->IgnoreExternalFeatures(ignoredFeatures);
 
     TQuantizedObjectsData subsetData;
 
@@ -1626,6 +1674,76 @@ NCB::TObjectsDataProviderPtr NCB::TQuantizedForCPUObjectsDataProvider::GetSubset
         objectsGroupingSubset,
         localExecutor
     );
+    TQuantizedForCPUObjectsData subsetData;
+
+    auto getSubsetForDataPart = [&] (const auto& srcData, auto* dstSubsetData) {
+        srcData.GetSubset(
+            subsetCommonData.SubsetIndexing.Get(),
+            dstSubsetData
+        );
+    };
+
+    getSubsetForDataPart(PackedBinaryFeaturesData, &subsetData.PackedBinaryFeaturesData);
+    getSubsetForDataPart(ExclusiveFeatureBundlesData, &subsetData.ExclusiveFeatureBundlesData);
+
+    CreateSubsetFeatures(
+        MakeConstArrayRef(Data.FloatFeatures),
+        subsetCommonData.SubsetIndexing.Get(),
+        [&] (ui32 flatFeatureIdx) {
+            return GetPackedOrBundledColumn<ui8, EFeatureValuesType::QuantizedFloat>(
+                subsetData,
+                flatFeatureIdx
+            );
+        },
+        &subsetData.Data.FloatFeatures
+    );
+
+    CreateSubsetFeatures(
+        MakeConstArrayRef(Data.CatFeatures),
+        subsetCommonData.SubsetIndexing.Get(),
+        [&] (ui32 flatFeatureIdx) {
+            return GetPackedOrBundledColumn<ui32, EFeatureValuesType::PerfectHashedCategorical>(
+                subsetData,
+                flatFeatureIdx
+            );
+        },
+        &subsetData.Data.CatFeatures
+    );
+
+    CreateSubsetFeatures(
+        MakeConstArrayRef(Data.TextFeatures),
+        subsetCommonData.SubsetIndexing.Get(),
+        &subsetData.Data.TextFeatures
+    );
+
+    subsetData.Data.QuantizedFeaturesInfo = Data.QuantizedFeaturesInfo;
+
+    return MakeIntrusive<TQuantizedForCPUObjectsDataProvider>(
+        objectsGroupingSubset.GetSubsetGrouping(),
+        std::move(subsetCommonData),
+        std::move(subsetData),
+        true,
+        Nothing()
+    );
+}
+
+
+NCB::TObjectsDataProviderPtr NCB::TQuantizedForCPUObjectsDataProvider::GetFeaturesSubset(
+    const TVector<ui32>& ignoredFeatures,
+    NPar::TLocalExecutor* localExecutor
+) const {
+    const auto& objectsGroupingSubset = ::GetGroupingSubsetFromObjectsSubset(
+        ObjectsGrouping,
+        TArraySubsetIndexing(TFullSubset<ui32>(GetObjectCount())),
+        EObjectsOrder::Ordered);
+
+    TCommonObjectsData subsetCommonData = CommonData.GetSubset(
+        objectsGroupingSubset,
+        localExecutor
+    );
+    subsetCommonData.FeaturesLayout = MakeIntrusive<TFeaturesLayout>(*subsetCommonData.FeaturesLayout);
+    subsetCommonData.FeaturesLayout->IgnoreExternalFeatures(ignoredFeatures);
+
     TQuantizedForCPUObjectsData subsetData;
 
     auto getSubsetForDataPart = [&] (const auto& srcData, auto* dstSubsetData) {

@@ -143,8 +143,6 @@ namespace NCB {
         // indices in list can be outside of range of features in layout - such features are ignored
         void IgnoreExternalFeatures(TConstArrayRef<ui32> ignoredFeatures);
 
-        void SetExternalFeatureAvailability(ui32 externalFeatureIdx, bool isAvailable);
-
         // Function must get one param -  TFeatureIdx<FeatureType>
         template <EFeatureType FeatureType, class Function>
         void IterateOverAvailableFeatures(Function&& f) const {
