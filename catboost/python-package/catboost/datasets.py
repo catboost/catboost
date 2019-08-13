@@ -159,7 +159,7 @@ def epsilon():
 def monotonic1():
     """
     Yandex internal dataset with monotonic constraints.
-    Can be used for regression.
+    Can be used for poisson regression.
     Has several numerical and several categorical features.
     The first column contains target values. Columns with names Cat* contain categorical features.
     Columns with names Num* contain numerical features.
@@ -170,9 +170,9 @@ def monotonic1():
     for a monotonic negative feature M, such that x1[M] > x2[M], then the following inequality must
     hold for predictions: f(x1) <= f(x2)
     """
-    url = 'https://storage.mds.yandex.net/get-devtools-opensource/233854/monotonic1.tar.gz'
-    md5 = '4d9bf62372afd44feb0842fa8b4ed058'
-    dataset_name, train_file, test_file = 'monotonic1', 'train.csv', 'test.csv'
+    url = 'https://storage.mds.yandex.net/get-devtools-opensource/479623/monotonic1.tar.gz'
+    md5 = '1b9d8e15bc3fd6f1498e652e7fc4f4ca'
+    dataset_name, train_file, test_file = 'monotonic1', 'train.tsv', 'test.tsv'
     return _cached_dataset_load_pd(url, md5, dataset_name, train_file, test_file, sep='\t')
 
 
