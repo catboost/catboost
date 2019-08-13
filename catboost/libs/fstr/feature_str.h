@@ -185,8 +185,8 @@ TVector<double> CalcEffect(
 
             TVector<double> parentAvrg;
             for(int dimension = 0; dimension < approxDimension; dimension++) {
-                const double val1 = leftInfo.Values[dimension];
-                const double val2 = rightInfo.Values[dimension];
+                const double val1 = count1 ? leftInfo.Values[dimension] : 0;
+                const double val2 = count2 ? rightInfo.Values[dimension] : 0;
 
                 const double avrg = (val1 * count1 + val2 * count2) / (sumCount ? sumCount : 1);
                 const double dif = Sqr(val1 - avrg) * count1 + Sqr(val2 - avrg) * count2;
