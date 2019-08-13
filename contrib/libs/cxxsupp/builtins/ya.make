@@ -74,4 +74,8 @@ SRCS(
     umodti3.c
 )
 
+IF (OS_DARWIN)
+    SRCS(os_version_check.c)
+ENDIF()
+
 END()
