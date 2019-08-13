@@ -539,9 +539,6 @@ next_outer_loop_iter:
         TVector<ui32> featureIndicesToCalcVector; // needed for random-access during parallel execution
         TVector<TGetNonDefaultValuesMask> getNonDefaultValuesMaskFunctions(featureCount); // [flatFeatureIdx]
 
-        // to allow to use in random order when calculating in parallel
-        TVector<TCalcIntersectionCheckList*> featureIntersectionCheckListVector;
-
         for (auto flatFeatureIdx : xrange(featureCount)) {
             const auto& featureMetaInfo = featuresMetaInfo[flatFeatureIdx];
             if (!featureMetaInfo.IsAvailable || featureMetaInfo.Type == EFeatureType::Text) {
