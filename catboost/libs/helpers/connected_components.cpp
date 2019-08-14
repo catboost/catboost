@@ -33,7 +33,7 @@ namespace NCB {
     void ConstructConnectedComponents(
         ui32 docCount,
         const TConstArrayRef<TPair> pairs,
-        TObjectsGrouping* objectsGrouping,
+        TVector<ui32>* groupBounds,
         TVector<ui32>* permutationForGrouping,
         TVector<TPair>* pairsInPermutedDataset
     ) {
@@ -47,16 +47,13 @@ namespace NCB {
             documents[pair.LoserId].Competitors.emplace_back(&documents[pair.WinnerId]);
         }
         TVector<ui32> newPositions(docCount);
-        TVector<TGroupBounds> groups;
         permutationForGrouping->reserve(docCount);
         for (ui32 i = 0; i < docCount; ++i) {
             if (!documents[i].Used) {
-                ui32 leftBound = permutationForGrouping->size();
                 DepthFirstSearch(&documents[i], permutationForGrouping, &newPositions);
-                groups.emplace_back(leftBound, permutationForGrouping->size());
+                groupBounds->emplace_back(permutationForGrouping->size());
             }
         }
-        *objectsGrouping = TObjectsGrouping(std::move(groups));
         pairsInPermutedDataset->reserve(pairs.size());
         for (const auto& pair : pairs) {
             pairsInPermutedDataset->emplace_back(newPositions[pair.WinnerId], newPositions[pair.LoserId], pair.Weight);

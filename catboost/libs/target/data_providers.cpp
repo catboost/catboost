@@ -667,7 +667,16 @@ namespace NCB {
 
             if (rawData.GetObjectsGrouping()->IsTrivial() && outputPairsInfo->HasPairs) {
                 ui32 docCount = maybeConvertedTarget->size();
-                ConstructConnectedComponents(docCount, pairs, &outputPairsInfo->FakeObjectsGrouping, &outputPairsInfo->PermutationForGrouping, &outputPairsInfo->PairsInPermutedDataset);
+                TVector<ui32> fakeGroupsBounds;
+                ConstructConnectedComponents(docCount, pairs, &fakeGroupsBounds, &outputPairsInfo->PermutationForGrouping, &outputPairsInfo->PairsInPermutedDataset);
+                TVector<TGroupBounds> groups;
+                groups.reserve(fakeGroupsBounds.size());
+                ui32 leftBound = 0;
+                for (const auto& rightBound : fakeGroupsBounds) {
+                    groups.emplace_back(leftBound, rightBound);
+                    leftBound = rightBound;
+                }
+                outputPairsInfo->FakeObjectsGrouping = TObjectsGrouping(std::move(groups));
             }
 
             if (!(rawData.GetObjectsGrouping()->IsTrivial() && outputPairsInfo->HasPairs)) {
