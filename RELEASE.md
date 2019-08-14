@@ -1,3 +1,14 @@
+# Release 0.16.4
+
+## Bug fixes:
+- Versions 0.16.* had a bug in python applier with categorical features for applying on more than 128 documents.
+
+## New features:
+- It is now possible to use pairwise modes for datasets without groups
+
+## Improvements:
+- 1.8x Evaluation speed on asymmetrical trees
+
 # Release 0.16.3
 
 ## Breaking changes:
