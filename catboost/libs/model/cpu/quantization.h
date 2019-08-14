@@ -285,6 +285,7 @@ namespace NCB::NModelEvaluation {
         ui8* resultPtr = result.data();
         std::fill(result.begin(), result.begin() + expectedQuantizedFeaturesLen, 0);
         for (; start < end; start += FORMULA_EVALUATION_BLOCK_SIZE) {
+            ui8* resultPtrForBlockStart = resultPtr;
             ++cpuEvaluatorQuantizedData->BlocksCount;
             auto docCount = Min(end - start, FORMULA_EVALUATION_BLOCK_SIZE);
             for (const auto& floatFeature : trees.FloatFeatures) {
@@ -361,7 +362,7 @@ namespace NCB::NModelEvaluation {
                 if (!trees.GetUsedModelCtrs().empty()) {
                     ctrProvider->CalcCtrs(
                         trees.GetUsedModelCtrs(),
-                        result,
+                        TConstArrayRef<ui8>(resultPtrForBlockStart, docCount * trees.GetEffectiveBinaryFeaturesBucketsCount()),
                         transposedHash,
                         docCount,
                         ctrs
