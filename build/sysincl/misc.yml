@@ -1,3 +1,12 @@
+- includes:
+  # Valgrind PEERDIR and ADDINCL are added only in --valgrind builds,
+  # but we should resolve headers anyway.
+  - valgrind/callgrind.h
+  - valgrind/memcheck.h
+  - valgrind/valgrind.h
+  # DB2_ODBC_CLI
+  - sqlcli1.h
+
 # We have lots of ADDINCLs to contrib/libs/libiconv all around the repo
 # so we need to add it to sysincl for consistent resolving.
 # We can go the other way here and remove iconv.h from all sysincl configs
@@ -6,13 +15,6 @@
 # that use this header
 - includes:
     - iconv.h:       contrib/libs/libiconv/iconv.h
-
-# Valgrind PEERDIR and ADDINCL are added only in --valgrind builds,
-# but we should resolve headers anyway.
-- includes:
-  - valgrind/callgrind.h
-  - valgrind/memcheck.h
-  - valgrind/valgrind.h
 
 - includes:
   - cudnn.h:         contrib/libs/nvidia/cudnn/cudnn.h
