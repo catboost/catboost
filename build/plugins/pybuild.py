@@ -104,7 +104,7 @@ def add_python_lint_checks(unit, py_ver, files):
         resolved_files = []
         for path in files:
             resolved = unit.resolve_arc_path([path])
-            if resolved != path:  # path was resolved
+            if resolved.startswith('$S'):  # path was resolved as source file.
                 resolved_files.append(resolved)
         unit.onadd_check(["PEP8_{}".format(py_ver)] + resolved_files)
         unit.onadd_check(["PYFLAKES_{}".format(py_ver)] + resolved_files)
@@ -190,10 +190,12 @@ def onpy_srcs(unit, *args):
     pyxs_c_api_h = []
     pyxs_cpp = []
     pyxs = pyxs_cpp
+    swigs_c = []
+    swigs_cpp = []
+    swigs = swigs_cpp
     pys = []
     protos = []
     evs = []
-    swigs = []
 
     dump_dir = unit.get('PYTHON_BUILD_DUMP_DIR')
     dump_output = None
@@ -224,6 +226,11 @@ def onpy_srcs(unit, *args):
             cython_directives += ['-X', next(args)]
         elif arg == 'CYTHONIZE_PY':
             cythonize_py = True
+        # SWIG.
+        elif arg == 'SWIG_C':
+            swigs = swigs_c
+        elif arg == 'SWIG_CPP':
+            swigs = swigs_cpp
         # Unsupported but legal PROTO_LIBRARY arguments.
         elif arg == 'GLOBAL' or arg.endswith('.gztproto'):
             pass
@@ -274,7 +281,7 @@ def onpy_srcs(unit, *args):
             elif path.endswith('.ev'):
                 evs.append(pathmod)
             elif path.endswith('.swg'):
-                swigs.append(path)  # ignore mod, use last (and only) ns
+                swigs.append(pathmod)
             else:
                 ymake.report_configure_error('in PY_SRCS: unrecognized arg {!r}'.format(path))
 
@@ -348,6 +355,18 @@ def onpy_srcs(unit, *args):
             for line in sorted('{}/{}={}'.format(prefix, filename, ':'.join(sorted(files))) for filename, files in include_map.iteritems()):
                 data += ['-', line]
             unit.onresource(data)
+
+    for swigs, on_swig_python in [
+            (swigs_c, unit.on_swig_python_c),
+            (swigs_cpp, unit.on_swig_python_cpp),
+    ]:
+        for path, mod in swigs:
+            # Make output prefix basename match swig module name.
+            prefix = path[:path.rfind('/') + 1] + mod.rsplit('.', 1)[-1]
+            swg_py = '{}/{}/{}.py'.format('${ARCADIA_BUILD_ROOT}', upath, prefix)
+            on_swig_python([path, prefix])
+            onpy_register(unit, mod + '_swg')
+            onpy_srcs(unit, swg_py + '=' + mod)
 
     if pys:
         pys_seen = set()
@@ -432,15 +451,6 @@ def onpy_srcs(unit, *args):
                     unit.onjoin_srcs(['join_' + listid(pb_cc_outs_chunk) + '.cpp'] + pb_cc_outs_chunk)
                 else:
                     unit.onjoin_srcs_global(['join_' + listid(pb_cc_outs_chunk) + '.cpp'] + pb_cc_outs_chunk)
-
-    if swigs:
-        unit.onsrcs(swigs)
-        prefix = unit.get('MODULE_PREFIX')  # 'libpy'
-        project = unit.get('REALPRJNAME')
-        onpy_register(unit, ns + prefix + project)
-        path = '${ARCADIA_BUILD_ROOT}/' + '{}/{}.py'.format(upath, project)
-        arg = '{}={}'.format(path, ns + project)
-        onpy_srcs(unit, arg)
 
 
 def _check_test_srcs(*args):

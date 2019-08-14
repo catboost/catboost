@@ -1,4 +1,4 @@
-LIBRARY(doccodes)
+PY_LIBRARY()
 
 
 
