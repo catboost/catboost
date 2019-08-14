@@ -277,8 +277,8 @@ namespace {
 
                 THttpRequestRef req(GetRequest());
                 if (!!req) {
-                    req->Cancel();
                     TSimpleHandle::Cancel();
+                    req->Cancel();
                 }
             }
 
@@ -1931,3 +1931,4 @@ namespace NNeh {
         THttp2Options::ServerInputDeadlineKeepAliveMax = TDuration::Seconds(maxSeconds);
     }
 }
+
