@@ -285,3 +285,27 @@ test_that("model: catboost.cv", {
   expect_true(all(cv_result$train.Logloss.mean >= 0))
   expect_true(all(cv_result$test.Logloss.mean >= 0))
 })
+
+test_that("model: catboost.cv with eval_metric=AUC", {
+  dataset <- matrix(c(sample(1:100, 20, T), 
+                      sample(1:100, 20, T), 
+                      sample(1:100, 20, T)),
+                    nrow = 20, 
+                    ncol = 3, 
+                    byrow = TRUE)
+
+  label_values <- sample(0:1, 20, T)
+  pool <- catboost.load_pool(apply(dataset, 2, as.numeric), label = label_values)
+  cv_result <- catboost.cv(pool,
+                           params = list(iterations = 10, loss_function = 'Logloss', eval_metric='AUC'))
+  print(cv_result)
+
+  expect_true(all(cv_result$train.Logloss.std >= 0))
+  expect_true(all(cv_result$test.Logloss.std >= 0))
+
+  expect_true(all(cv_result$train.Logloss.mean >= 0))
+  expect_true(all(cv_result$test.Logloss.mean >= 0))
+
+  expect_true(all(cv_result$test.AUC.std >= 0))
+  expect_true(all(cv_result$test.AUC.mean >= 0))
+})

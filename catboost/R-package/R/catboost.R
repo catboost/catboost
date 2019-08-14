@@ -1441,7 +1441,7 @@ catboost.train <- function(learn_pool, test_pool = NULL, params = list()) {
 #' @param pool Data to cross-validate on
 #' @param params Parameters for catboost.train
 #' @param fold_count Folds count.
-#' @param inverted Train on the test fold and evaluate the model on the training folds.
+#' @param type is type of cross-validation.
 #' @param partition_random_seed The random seed used for splitting pool into folds.
 #' @param shuffle Shuffle the dataset objects before splitting into folds.
 #' @param stratified Perform stratified sampling.
@@ -1449,7 +1449,7 @@ catboost.train <- function(learn_pool, test_pool = NULL, params = list()) {
 #' @export
 catboost.cv <- function(pool, params = list(),
                         fold_count = 3,
-                        inverted = FALSE,
+                        type = "Classical",
                         partition_random_seed = 0,
                         shuffle = TRUE,
                         stratified = FALSE,
@@ -1467,7 +1467,7 @@ catboost.cv <- function(pool, params = list(),
     }
 
     json_params <- jsonlite::toJSON(params, auto_unbox = TRUE)
-    result <- .Call("CatBoostCV_R", json_params, pool, fold_count, inverted, partition_random_seed, shuffle, stratified)
+    result <- .Call("CatBoostCV_R", json_params, pool, fold_count, type, partition_random_seed, shuffle, stratified)
 
     return(data.frame(result))
 }

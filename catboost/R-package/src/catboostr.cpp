@@ -472,13 +472,14 @@ SEXP CatBoostFit_R(SEXP learnPoolParam, SEXP testPoolParam, SEXP fitParamsAsJson
 SEXP CatBoostCV_R(SEXP fitParamsAsJsonParam,
                   SEXP poolParam,
                   SEXP foldCountParam,
-                  SEXP cvType,
+                  SEXP typeParam,
                   SEXP partitionRandomSeedParam,
                   SEXP shuffleParam,
                   SEXP stratifiedParam) {
 
     SEXP result = NULL;
     size_t metricCount;
+    size_t columnCount;
 
     R_API_BEGIN();
     TPoolPtr pool = reinterpret_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
@@ -489,7 +490,9 @@ SEXP CatBoostCV_R(SEXP fitParamsAsJsonParam,
     cvParams.PartitionRandSeed = asInteger(partitionRandomSeedParam);
     cvParams.Shuffle = asLogical(shuffleParam);
     cvParams.Stratified = asLogical(stratifiedParam);
-    cvParams.Type = *reinterpret_cast<ECrossValidation*>(R_ExternalPtrAddr(cvType));
+
+    CB_ENSURE(TryFromString<ECrossValidation>(CHAR(asChar(typeParam)), cvParams.Type),
+              "unsupported type of cross_validation: 'Classical', 'Inverted', 'TimeSeries' was expected");
 
     TVector<TCVResult> cvResults;
 
@@ -504,41 +507,66 @@ SEXP CatBoostCV_R(SEXP fitParamsAsJsonParam,
     Y_UNUSED(pool.Release());
 
     metricCount = cvResults.size();
-    result = PROTECT(allocVector(VECSXP, metricCount * 4));
-    SEXP columnNames = PROTECT(allocVector(STRSXP, metricCount * 4));
+    TVector<size_t> offsets(metricCount);
+
+    columnCount = 0;
+    size_t currentColumnCount = 0;
+    for (size_t metricIdx = 0; metricIdx < metricCount; ++metricIdx) {
+        offsets[metricIdx] = columnCount;
+        if (cvResults[metricIdx].AverageTrain.size() == 0) {
+            currentColumnCount = 2;
+        } else {
+            currentColumnCount = 4;
+        }
+        columnCount += currentColumnCount;
+    }
+
+    result = PROTECT(allocVector(VECSXP, columnCount));
+    SEXP columnNames = PROTECT(allocVector(STRSXP, columnCount));
 
     for (size_t metricIdx = 0; metricIdx < metricCount; ++metricIdx) {
         TString metricName = cvResults[metricIdx].Metric;
+        size_t numberOfIterations = cvResults[metricIdx].Iterations.size();
 
-        size_t iterationsCount = cvResults[metricIdx].AverageTrain.size();
-
-        SEXP row_test_mean = PROTECT(allocVector(REALSXP, iterationsCount));
-        SEXP row_test_std = PROTECT(allocVector(REALSXP, iterationsCount));
-        SEXP row_train_mean = PROTECT(allocVector(REALSXP, iterationsCount));
-        SEXP row_train_std = PROTECT(allocVector(REALSXP, iterationsCount));
-
-        for (size_t i = 0; i < iterationsCount; ++i) {
-            REAL(row_test_mean)[i] = cvResults[metricIdx].AverageTest[i];
-            REAL(row_test_std)[i] = cvResults[metricIdx].StdDevTest[i];
-            REAL(row_train_mean)[i] = cvResults[metricIdx].AverageTrain[i];
-            REAL(row_train_std)[i] = cvResults[metricIdx].StdDevTrain[i];
+        SEXP row_test_mean = PROTECT(allocVector(REALSXP, numberOfIterations));
+        SEXP row_test_std = PROTECT(allocVector(REALSXP, numberOfIterations));
+        SEXP row_train_mean = NULL;
+        SEXP row_train_std = NULL;
+        const bool haveTrainResult = (cvResults[metricIdx].AverageTrain.size() != 0);
+        if (haveTrainResult) {
+            row_train_mean = PROTECT(allocVector(REALSXP, numberOfIterations));
+            row_train_std = PROTECT(allocVector(REALSXP, numberOfIterations));
         }
 
-        SET_VECTOR_ELT(result, metricIdx * 4 + 0, row_test_mean);
-        SET_VECTOR_ELT(result, metricIdx * 4 + 1, row_test_std);
-        SET_VECTOR_ELT(result, metricIdx * 4 + 2, row_train_mean);
-        SET_VECTOR_ELT(result, metricIdx * 4 + 3, row_train_std);
+        for (size_t i = 0; i < numberOfIterations; ++i) {
+            REAL(row_test_mean)[i] = cvResults[metricIdx].AverageTest[i];
+            REAL(row_test_std)[i] = cvResults[metricIdx].StdDevTest[i];
+            if (haveTrainResult) {
+                REAL(row_train_mean)[i] = cvResults[metricIdx].AverageTrain[i];
+                REAL(row_train_std)[i] = cvResults[metricIdx].StdDevTrain[i];
+            }
+        }
 
-        SET_STRING_ELT(columnNames, metricIdx * 4 + 0, mkChar(("test-" + metricName + "-mean").c_str()));
-        SET_STRING_ELT(columnNames, metricIdx * 4 + 1, mkChar(("test-" + metricName + "-std").c_str()));
-        SET_STRING_ELT(columnNames, metricIdx * 4 + 2, mkChar(("train-" + metricName + "-mean").c_str()));
-        SET_STRING_ELT(columnNames, metricIdx * 4 + 3, mkChar(("train-" + metricName + "-std").c_str()));
+        const size_t offset = offsets[metricIdx];
+
+        SET_VECTOR_ELT(result, offset + 0, row_test_mean);
+        SET_VECTOR_ELT(result, offset + 1, row_test_std);
+
+        SET_STRING_ELT(columnNames, offset + 0, mkChar(("test-" + metricName + "-mean").c_str()));
+        SET_STRING_ELT(columnNames, offset + 1, mkChar(("test-" + metricName + "-std").c_str()));
+        if (haveTrainResult) {
+            SET_VECTOR_ELT(result, offset + 2, row_train_mean);
+            SET_VECTOR_ELT(result, offset + 3, row_train_std);
+
+            SET_STRING_ELT(columnNames, offset + 2, mkChar(("train-" + metricName + "-mean").c_str()));
+            SET_STRING_ELT(columnNames, offset + 3, mkChar(("train-" + metricName + "-std").c_str()));
+        }
     }
 
     setAttrib(result, R_NamesSymbol, columnNames);
 
     R_API_END();
-    UNPROTECT(metricCount * 4 + 2);
+    UNPROTECT(columnCount + 2);
     return result;
 }
 
