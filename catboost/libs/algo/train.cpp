@@ -76,6 +76,7 @@ static void ScaleAllApproxes(
         }
     }
     allApproxes.push_back(&learnProgress->AveragingFold.BodyTailArr[0].Approx);
+    const int learnApproxesCount = SafeIntegerCast<int>(allApproxes.size());
     for (auto& testApprox : learnProgress->TestApprox) {
         allApproxes.push_back(&testApprox);
     }
@@ -84,8 +85,9 @@ static void ScaleAllApproxes(
         *localExecutor,
         0,
         allApproxes.size(),
-        [approxMultiplier, storeExpApprox, localExecutor, &allApproxes](int index) {
-            if (storeExpApprox) {
+        [approxMultiplier, storeExpApprox, learnApproxesCount, localExecutor, &allApproxes](int index) {
+            const bool isLearnApprox = (index < learnApproxesCount);
+            if (storeExpApprox && isLearnApprox) {
                 UpdateApprox(
                     [approxMultiplier](TConstArrayRef<double> /* delta */, TArrayRef<double> approx, size_t idx) {
                         approx[idx] = ApplyLearningRate<true>(approx[idx], approxMultiplier);
