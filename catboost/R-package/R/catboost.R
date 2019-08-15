@@ -1751,7 +1751,7 @@ catboost.get_feature_importance <- function(model, pool = NULL, type = "FeatureI
     if (type == "Interaction") {
         colnames(importances) <- c("feature1_index", "feature2_index", "score")
     } else if (type == "ShapValues") {
-        colnames(importances) <- c(colnames(pool), "<base>")
+        dimnames(importances)[[length(dim(importances))]] <- c(colnames(pool), "<base>")
     } else if (type == "PredictionValuesChange" || type == "FeatureImportance" || type == "LossFunctionChange") {
         if (dim(importances)[1] == length(colnames(pool))) {
             rownames(importances) <- colnames(pool)

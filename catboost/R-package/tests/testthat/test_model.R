@@ -44,6 +44,26 @@ test_that("model: catboost.importance", {
   expect_equal(feature_importance, feature_importance_with_pool)
 })
 
+test_that("model: catboost.importance with shapvalues for multiclass", {
+  classes <- c(0, 1, 2, 3, 4)
+  target <- sample(classes, size = 1000, replace = TRUE)
+  features <- data.frame(f1 = rnorm(length(target), mean = 0, sd = 1),
+                         f2 = rnorm(length(target), mean = 0, sd = 1),
+                         f3 = rnorm(length(target), mean = 0, sd = 1))
+
+  pool <- catboost.load_pool(features, target)
+
+  iterations <- 10
+  params <- list(iterations = iterations,
+                 loss_function = "MultiClass",
+                 random_seed = 12345,
+                 use_best_model = FALSE)
+
+  model <- catboost.train(pool, NULL, params)
+  feature_importance <- catboost.get_feature_importance(model = model, pool = pool, type = 'ShapValues')
+  expect_true(TRUE)  
+})
+
 test_that("model: catboost.train & catboost.predict multiclass", {
   classes <- c(0, 1, 2)
   target <- sample(classes, size = 1000, replace = TRUE)
