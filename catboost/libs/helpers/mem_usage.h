@@ -11,3 +11,14 @@ inline void DumpMemUsage(const TString& msg) {
 }
 
 void OutputWarningIfCpuRamUsageOverLimit(ui64 cpuRamUsage, ui64 cpuRamLimit);
+
+
+namespace NCB {
+
+    /* return Free CPU RAM assuming it is used mostly by current process
+     * TODO(akhropov): proper GetFreeCpuRam in arcadia/util
+     */
+    ui64 GetMonopolisticFreeCpuRam();
+
+}
+

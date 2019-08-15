@@ -1,6 +1,8 @@
 #include "mem_usage.h"
 
 #include <util/stream/format.h>
+#include <util/system/info.h>
+#include <util/system/yassert.h>
 
 
 void OutputWarningIfCpuRamUsageOverLimit(ui64 cpuRamUsage, ui64 cpuRamLimit) {
@@ -10,4 +12,15 @@ void OutputWarningIfCpuRamUsageOverLimit(ui64 cpuRamUsage, ui64 cpuRamLimit) {
             << ") than the limit (" << HumanReadableSize(cpuRamLimit, SF_BYTES)
             << ")\n";
     }
+}
+
+namespace NCB {
+
+    ui64 GetMonopolisticFreeCpuRam() {
+        const ui64 totalMemorySize = (ui64)NSystemInfo::TotalMemorySize();
+        const ui64 currentProcessRSS = NMemInfo::GetMemInfo().RSS;
+        Y_VERIFY(totalMemorySize >= currentProcessRSS, "total memory size < current process RSS");
+        return totalMemorySize - currentProcessRSS;
+    }
+
 }
