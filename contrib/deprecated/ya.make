@@ -4,13 +4,10 @@ RECURSE(
     blackhole
     boost
     boost/libs/test
-    coreapi
-    coreschema
     folly
     glib
     glib/gio
     glibmm
-    itypes
     http-parser
     jsoncpp
     libcds
@@ -25,10 +22,8 @@ RECURSE(
     libxml++
     mimepp
     mongo-cxx-driver
-    pygtrie
-    pygtrie/tests
+    python
     sigc++
-    tornadis
     udns
     uriparser
     wangle
