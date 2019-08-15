@@ -40,6 +40,9 @@ def main():
     args, javac_opts, peers = cmd_parts
     opts, jsrcs = parse_args(args)
 
+    jsrcs += list(filter(lambda x: x.endswith('.jsrc'), peers))
+    peers = list(filter(lambda x: not x.endswith('.jsrc'), peers))
+
     sources_dir = 'src'
     mkdir_p(sources_dir)
     for s in jsrcs:

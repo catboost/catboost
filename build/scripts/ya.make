@@ -14,6 +14,7 @@ TEST_SRCS(
     check_config_h.py
     compile_cuda.py
     compile_java.py
+    compile_jsrc.py
     configure_file.py
     copy_to_dir.py
     coverage-info.py
