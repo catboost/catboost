@@ -21,6 +21,9 @@ namespace NCB::NModelEvaluation {
             const size_t blockSize = Min(FORMULA_EVALUATION_BLOCK_SIZE, docCount);
             auto calcTrees = GetCalcTreesFunction(trees, blockSize);
             std::fill(results.begin(), results.end(), 0.0);
+            if (trees.GetTreeCount() == 0) {
+                return;
+            }
             TVector<TCalcerIndexType> indexesVec(blockSize);
             TEvalResultProcessor resultProcessor(
                 docCount,
