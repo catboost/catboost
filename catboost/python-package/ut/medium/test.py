@@ -2299,7 +2299,7 @@ def test_shap_feature_importance_modes(task_type):
 def test_prediction_diff_feature_importance():
     pool_file = 'higgs'
     pool = Pool(data_file(pool_file, 'train_small'), column_description=data_file(pool_file, 'train.cd'))
-    model = CatBoostClassifier(iterations=5, learning_rate=0.03, max_ctr_complexity=1, devices='0')
+    model = CatBoostClassifier(iterations=110, learning_rate=0.03, max_ctr_complexity=1, devices='0')
     model.fit(pool)
     fimp_npy_path = test_output_path(FIMP_NPY_PATH)
     np.save(fimp_npy_path, np.array(model.get_feature_importance(
@@ -3414,7 +3414,7 @@ def non_decreasing(sequence):
 
 
 # different iteration parameters needed to check less and more accurate models
-@pytest.mark.parametrize('iterations', [5, 20], ids=['iterations=5', 'iterations=20'])
+@pytest.mark.parametrize('iterations', [5, 20, 110], ids=['iterations=5', 'iterations=20', 'iterations=110'])
 def test_roc(task_type, iterations):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)

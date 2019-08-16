@@ -270,7 +270,7 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
     TVector<TMetricHolder> scores(featuresCount + 1);
 
     TConstArrayRef<TQueryInfo> targetQueriesInfo = targetData->GetGroupInfo().GetOrElse(TConstArrayRef<TQueryInfo>());
-    TVector<TVector<double>> approx = ApplyModelMulti(model, objectsData, EPredictionType::RawFormulaVal, 0, documentCount,
+    TVector<TVector<double>> approx = ApplyModelMulti(model, objectsData, EPredictionType::RawFormulaVal, 0, 0,
                                                       localExecutor);
     TVector<TQueryInfo> queriesInfo(targetQueriesInfo.begin(), targetQueriesInfo.end());
 

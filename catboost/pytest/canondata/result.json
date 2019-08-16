@@ -2298,7 +2298,7 @@
         "uri": "file://test.test_fstr_Plain-InternalInteraction_/fstr.tsv"
     },
     "test.test_fstr[Plain-PredictionDiff]": {
-        "checksum": "108054d21216682796ad67f746fdedd1",
+        "checksum": "6d674df1880b82e262c0b8d058d553ba",
         "uri": "file://test.test_fstr_Plain-PredictionDiff_/fstr.tsv"
     },
     "test.test_fstr[Plain-PredictionValuesChange]": {

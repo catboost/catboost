@@ -544,7 +544,7 @@
         "uri": "file://test.test_predict_sklearn_regress_CPU_/model.bin"
     },
     "test.test_prediction_diff_feature_importance": {
-        "checksum": "4ca685a47c43e64294982bd124d25443",
+        "checksum": "d54308ccab9722d2f2b66dbf36c28422",
         "uri": "file://test.test_prediction_diff_feature_importance/feature_importance.npy"
     },
     "test.test_prediction_plot": {
@@ -563,6 +563,16 @@
         "checksum": "7fca591505102bb314b442aa210183ed",
         "uri": "file://test.test_regression_ctr_CPU_/model.bin"
     },
+    "test.test_roc[CPU-iterations=110]": [
+        {
+            "checksum": "f9e0333a74935ccf6994ec6257a3448c",
+            "uri": "file://test.test_roc_CPU-iterations=110_/roc"
+        },
+        {
+            "checksum": "52e554c9184ac53d9b037a0b1dde7b87",
+            "uri": "file://test.test_roc_CPU-iterations=110_/bounds"
+        }
+    ],
     "test.test_roc[CPU-iterations=20]": [
         {
             "checksum": "c52d4c8e7821185374515440a41c7f24",

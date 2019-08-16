@@ -183,7 +183,7 @@ TRocCurve::TRocCurve(const TFullModel& model, const TVector<TDataProviderPtr>& d
                 *processedData.ObjectsData,
                 EPredictionType::RawFormulaVal,
                 0,
-                SafeIntegerCast<int>(processedData.ObjectsData->GetObjectCount()),
+                0,
                 &localExecutor
             )[0];
 

@@ -141,7 +141,7 @@ TVector<TVector<double>> GetPredictionDiff(
         *dataProvider.ObjectsData,
         EPredictionType::RawFormulaVal,
         0,
-        2, // documents count
+        0,
         localExecutor)[0];
 
     TVector<TVector<double>> impact(dataProvider.GetObjectCount());
