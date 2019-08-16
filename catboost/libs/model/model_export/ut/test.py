@@ -95,13 +95,14 @@ def test_cpp_export(dataset):
 def test_read_model_after_train():
     train_path, test_path, cd_path = _get_train_test_cd_path('adult')
     eval_file = yatest.common.test_output_path('eval-file')
-    cmd = [CATBOOST_APP_PATH, 'fit',
-           '-f', train_path,
-           '--cd', cd_path,
-           '-t', test_path,
-           '-i', '100',
-           '--eval-file', eval_file
-       ]
+    cmd = [
+        CATBOOST_APP_PATH, 'fit',
+        '-f', train_path,
+        '--cd', cd_path,
+        '-t', test_path,
+        '-i', '100',
+        '--eval-file', eval_file
+    ]
     try:
         yatest.common.execute(
             cmd + [
