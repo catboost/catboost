@@ -746,17 +746,13 @@ const size_t TStringBase<TDerived, TCharType, TTraitsType>::npos;
 template <typename TCharType, typename TTraits>
 class TBasicString: public TStringBase<TBasicString<TCharType, TTraits>, TCharType, TTraits> {
 public:
-    //TODO: remove this typedef, just replace it with TBasicString
-    //WARN (thegeorg): made public because otherwise it drives MSVS crazy
-    using TDerived = TBasicString;
     // TODO: Move to private section
-    using TSelf = TBasicString;
-    using TBase = TStringBase<TDerived, TCharType, TTraits>;
+    using TBase = TStringBase<TBasicString, TCharType, TTraits>;
     using TDataTraits = ::NDetail::TStringDataTraits<TCharType>;
     using TData = typename TDataTraits::TData;
     using TFixedString = typename TBase::TFixedString;
 
-    using TCharRef = TBasicCharRef<TDerived>; // TODO: reference
+    using TCharRef = TBasicCharRef<TBasicString>; // TODO: reference
     using char_type = TCharType; // TODO: DROP
     using value_type = TCharType;
     using traits_type = TTraits;
@@ -776,12 +772,12 @@ public:
     };
 
 private:
-    TDerived* This() {
-        return static_cast<TDerived*>(this);
+    TBasicString* This() {
+        return static_cast<TBasicString*>(this);
     }
 
-    const TDerived* This() const {
-        return static_cast<const TDerived*>(this);
+    const TBasicString* This() const {
+        return static_cast<const TBasicString*>(this);
     }
 
 protected:
@@ -950,7 +946,7 @@ public:
     }
 
     // ~~~ Size and capacity ~~~
-    TDerived& resize(size_t n, TCharType c = ' ') { // remove or append
+    TBasicString& resize(size_t n, TCharType c = ' ') { // remove or append
         const size_t len = length();
 
         if (n > len) {
@@ -975,7 +971,7 @@ public:
         reserve(rt.Capacity);
     }
 
-    inline TBasicString(const TDerived& s)
+    inline TBasicString(const TBasicString& s)
         : Data_(s.Data_)
     {
         Ref();
@@ -994,7 +990,7 @@ public:
         AssignNoAlias(s.data(), s.length());
     }
 
-    TBasicString(const TDerived& s, size_t pos, size_t n) {
+    TBasicString(const TBasicString& s, size_t pos, size_t n) {
         size_t len = s.length();
         pos = Min(pos, len);
         n = Min(n, len - pos);
@@ -1068,20 +1064,20 @@ public:
      *    Certain invokations of this method will result in link-time error.
      *    You are free to implement corresponding methods in string.cpp if you need them.
      */
-    static TDerived FromAscii(const ::TFixedString<char>& s) {
-        return TDerived().AppendAscii(s);
+    static TBasicString FromAscii(const ::TFixedString<char>& s) {
+        return TBasicString().AppendAscii(s);
     }
 
-    static TDerived FromUtf8(const ::TFixedString<char>& s) {
-        return TDerived().AppendUtf8(s);
+    static TBasicString FromUtf8(const ::TFixedString<char>& s) {
+        return TBasicString().AppendUtf8(s);
     }
 
-    static TDerived FromUtf16(const ::TFixedString<wchar16>& s) {
-        return TDerived().AppendUtf16(s);
+    static TBasicString FromUtf16(const ::TFixedString<wchar16>& s) {
+        return TBasicString().AppendUtf16(s);
     }
 
-    static TDerived Uninitialized(size_t n) {
-        return TDerived(TUninitialized(n));
+    static TBasicString Uninitialized(size_t n) {
+        return TBasicString(TUninitialized(n));
     }
 
 private:
@@ -1130,8 +1126,8 @@ public:
     }
 
     template <typename... R>
-    static inline TDerived Join(const R&... r) {
-        TDerived s;
+    static inline TBasicString Join(const R&... r) {
+        TBasicString s;
 
         s.Data_ = Allocate(SumLength(r...));
         CopyAll(s.Data_, r...);
@@ -1140,25 +1136,25 @@ public:
     }
 
     // ~~~ Assignment ~~~ : FAMILY0(TBasicString&, assign);
-    TDerived& assign(const TDerived& s) {
-        TDerived(s).swap(*This());
+    TBasicString& assign(const TBasicString& s) {
+        TBasicString(s).swap(*This());
 
         return *This();
     }
 
-    TDerived& assign(const TDerived& s, size_t pos, size_t n) {
-        return assign(TDerived(s, pos, n));
+    TBasicString& assign(const TBasicString& s, size_t pos, size_t n) {
+        return assign(TBasicString(s, pos, n));
     }
 
-    TDerived& assign(const TCharType* pc) {
+    TBasicString& assign(const TCharType* pc) {
         return assign(pc, TBase::StrLen(pc));
     }
 
-    TDerived& assign(TCharType ch) {
+    TBasicString& assign(TCharType ch) {
         return assign(&ch, 1);
     }
 
-    TDerived& assign(const TCharType* pc, size_t len) {
+    TBasicString& assign(const TCharType* pc, size_t len) {
 #if defined(address_sanitizer_enabled) || defined(thread_sanitizer_enabled)
         pc = (const TCharType*)HidePointerOrigin((void*)pc);
 #endif
@@ -1175,15 +1171,15 @@ public:
         return *This();
     }
 
-    TDerived& assign(const TCharType* first, const TCharType* last) {
+    TBasicString& assign(const TCharType* first, const TCharType* last) {
         return assign(first, last - first);
     }
 
-    TDerived& assign(const TCharType* pc, size_t pos, size_t n) {
+    TBasicString& assign(const TCharType* pc, size_t pos, size_t n) {
         return assign(pc + pos, n);
     }
 
-    inline TDerived& AssignNoAlias(const TCharType* pc, size_t len) {
+    inline TBasicString& AssignNoAlias(const TCharType* pc, size_t len) {
         if (IsDetached()) {
             ResizeNonShared(len);
         } else {
@@ -1195,23 +1191,23 @@ public:
         return *This();
     }
 
-    inline TDerived& AssignNoAlias(const TCharType* b, const TCharType* e) {
+    inline TBasicString& AssignNoAlias(const TCharType* b, const TCharType* e) {
         return AssignNoAlias(b, e - b);
     }
 
-    TDerived& assign(const TFixedString s) {
+    TBasicString& assign(const TFixedString s) {
         return assign(s.Start, s.Length);
     }
 
-    TDerived& assign(const TFixedString s, size_t spos, size_t sn = TBase::npos) {
+    TBasicString& assign(const TFixedString s, size_t spos, size_t sn = TBase::npos) {
         return assign(s.SubString(spos, sn));
     }
 
-    TDerived& AssignNoAlias(const TFixedString s) {
+    TBasicString& AssignNoAlias(const TFixedString s) {
         return AssignNoAlias(s.Start, s.Length);
     }
 
-    TDerived& AssignNoAlias(const TFixedString s, size_t spos, size_t sn = TBase::npos) {
+    TBasicString& AssignNoAlias(const TFixedString s, size_t spos, size_t sn = TBase::npos) {
         return AssignNoAlias(s.SubString(spos, sn));
     }
 
@@ -1235,7 +1231,7 @@ public:
         return This()->AppendUtf16(s);
     }
 
-    TDerived& operator=(const TDerived& s) {
+    TBasicString& operator=(const TBasicString& s) {
         return assign(s);
     }
 
@@ -1244,19 +1240,19 @@ public:
         return *this;
     }
 
-    TDerived& operator=(const TFixedString s) {
+    TBasicString& operator=(const TFixedString s) {
         return assign(s);
     }
 
-    TDerived& operator=(std::initializer_list<TCharType> il) {
+    TBasicString& operator=(std::initializer_list<TCharType> il) {
         return assign(il.begin(), il.end());
     }
 
-    TDerived& operator=(const TCharType* s) {
+    TBasicString& operator=(const TCharType* s) {
         return assign(s);
     }
 
-    TDerived& operator=(TExplicitType<TCharType> ch) {
+    TBasicString& operator=(TExplicitType<TCharType> ch) {
         return assign(ch);
     }
 
@@ -1272,7 +1268,7 @@ public:
     }
 
     // ~~~ Appending ~~~ : FAMILY0(TBasicString&, append);
-    inline TDerived& append(size_t count, TCharType ch) {
+    inline TBasicString& append(size_t count, TCharType ch) {
         while (count--) {
             append(ch);
         }
@@ -1280,7 +1276,7 @@ public:
         return *This();
     }
 
-    inline TDerived& append(const TDerived& s) {
+    inline TBasicString& append(const TBasicString& s) {
         if (&s != This()) {
             return AppendNoAlias(s.data(), s.size());
         }
@@ -1288,15 +1284,15 @@ public:
         return append(s.data(), s.size());
     }
 
-    inline TDerived& append(const TDerived& s, size_t pos, size_t n) {
+    inline TBasicString& append(const TBasicString& s, size_t pos, size_t n) {
         return append(s.data(), pos, n, s.size());
     }
 
-    inline TDerived& append(const TCharType* pc) {
+    inline TBasicString& append(const TCharType* pc) {
         return append(pc, TBase::StrLen(pc));
     }
 
-    inline TDerived& append(TCharType c) {
+    inline TBasicString& append(TCharType c) {
         const size_t olen = length();
 
         ReserveAndResize(olen + 1);
@@ -1305,11 +1301,11 @@ public:
         return *This();
     }
 
-    inline TDerived& append(const TCharType* first, const TCharType* last) {
+    inline TBasicString& append(const TCharType* first, const TCharType* last) {
         return append(first, last - first);
     }
 
-    inline TDerived& append(const TCharType* pc, size_t len) {
+    inline TBasicString& append(const TCharType* pc, size_t len) {
         if (pc + len <= TBase::begin() || pc >= TBase::end()) {
             return AppendNoAlias(pc, len);
         }
@@ -1325,7 +1321,7 @@ public:
         }
     }
 
-    inline TDerived& AppendNoAlias(const TCharType* pc, size_t len) {
+    inline TBasicString& AppendNoAlias(const TCharType* pc, size_t len) {
         const size_t olen = length();
         const size_t nlen = olen + len;
 
@@ -1335,23 +1331,23 @@ public:
         return *This();
     }
 
-    TDerived& AppendNoAlias(const TFixedString s) {
+    TBasicString& AppendNoAlias(const TFixedString s) {
         return AppendNoAlias(s.Start, s.Length);
     }
 
-    TDerived& AppendNoAlias(const TFixedString s, size_t spos, size_t sn = TBase::npos) {
+    TBasicString& AppendNoAlias(const TFixedString s, size_t spos, size_t sn = TBase::npos) {
         return AppendNoAlias(s.SubString(spos, sn));
     }
 
-    TDerived& append(const TFixedString s) {
+    TBasicString& append(const TFixedString s) {
         return append(s.Start, s.Length);
     }
 
-    TDerived& append(const TFixedString s, size_t spos, size_t sn = TBase::npos) {
+    TBasicString& append(const TFixedString s, size_t spos, size_t sn = TBase::npos) {
         return append(s.SubString(spos, sn));
     }
 
-    inline TDerived& append(const TCharType* pc, size_t pos, size_t n, size_t pc_len = TBase::npos) {
+    inline TBasicString& append(const TCharType* pc, size_t pos, size_t n, size_t pc_len = TBase::npos) {
         return replace(length(), 0, pc, pos, n, pc_len);
     }
 
@@ -1360,24 +1356,24 @@ public:
      *    Certain invokations of this method will result in link-time error.
      *    You are free to implement corresponding methods in string.cpp if you need them.
      */
-    TDerived& AppendAscii(const ::TFixedString<char>& s);
+    TBasicString& AppendAscii(const ::TFixedString<char>& s);
 
-    TDerived& AppendUtf8(const ::TFixedString<char>& s);
+    TBasicString& AppendUtf8(const ::TFixedString<char>& s);
 
-    TDerived& AppendUtf16(const ::TFixedString<wchar16>& s);
+    TBasicString& AppendUtf16(const ::TFixedString<wchar16>& s);
 
     inline void push_back(TCharType c) {
         append(c);
     }
 
     template <class T>
-    TDerived& operator+=(const T& s) {
+    TBasicString& operator+=(const T& s) {
         return append(s);
     }
 
     template <class T>
-    friend TDerived operator*(const TDerived& s, T count) {
-        TDerived result;
+    friend TBasicString operator*(const TBasicString& s, T count) {
+        TBasicString result;
 
         for (T i = 0; i < count; ++i) {
             result += s;
@@ -1387,8 +1383,8 @@ public:
     }
 
     template <class T>
-    TDerived& operator*=(T count) {
-        TDerived temp;
+    TBasicString& operator*=(T count) {
+        TBasicString temp;
 
         for (T i = 0; i < count; ++i) {
             temp += *This();
@@ -1429,17 +1425,17 @@ public:
      * malloc + memcpy + memcpy.
      */
 
-    friend TDerived operator+(TDerived&& s1, const TDerived& s2) Y_WARN_UNUSED_RESULT {
+    friend TBasicString operator+(TBasicString&& s1, const TBasicString& s2) Y_WARN_UNUSED_RESULT {
         s1 += s2;
         return std::move(s1);
     }
 
-    friend TDerived operator+(const TDerived& s1, TDerived&& s2) Y_WARN_UNUSED_RESULT {
+    friend TBasicString operator+(const TBasicString& s1, TBasicString&& s2) Y_WARN_UNUSED_RESULT {
         s2.prepend(s1);
         return std::move(s2);
     }
 
-    friend TDerived operator+(TDerived&& s1, TDerived&& s2) Y_WARN_UNUSED_RESULT {
+    friend TBasicString operator+(TBasicString&& s1, TBasicString&& s2) Y_WARN_UNUSED_RESULT {
         if (!s1.IsDetached() && s2.IsDetached()) {
             s2.prepend(s1);
             return std::move(s2);
@@ -1448,127 +1444,127 @@ public:
         return std::move(s1);
     }
 
-    friend TDerived operator+(TDerived&& s1, const TFixedString s2) Y_WARN_UNUSED_RESULT {
+    friend TBasicString operator+(TBasicString&& s1, const TFixedString s2) Y_WARN_UNUSED_RESULT {
         s1 += s2;
         return std::move(s1);
     }
 
-    friend TDerived operator+(TDerived&& s1, const TCharType* s2) Y_WARN_UNUSED_RESULT {
+    friend TBasicString operator+(TBasicString&& s1, const TCharType* s2) Y_WARN_UNUSED_RESULT {
         s1 += s2;
         return std::move(s1);
     }
 
-    friend TDerived operator+(TDerived&& s1, TCharType s2) Y_WARN_UNUSED_RESULT {
+    friend TBasicString operator+(TBasicString&& s1, TCharType s2) Y_WARN_UNUSED_RESULT {
         s1 += s2;
         return std::move(s1);
     }
 
-    friend TDerived operator+(const TDerived& s1, const TDerived& s2) Y_WARN_UNUSED_RESULT {
+    friend TBasicString operator+(const TBasicString& s1, const TBasicString& s2) Y_WARN_UNUSED_RESULT {
         return Join(s1, s2);
     }
 
-    friend TDerived operator+(const TDerived& s1, const TFixedString s2) Y_WARN_UNUSED_RESULT {
+    friend TBasicString operator+(const TBasicString& s1, const TFixedString s2) Y_WARN_UNUSED_RESULT {
         return Join(s1, s2);
     }
 
-    friend TDerived operator+(const TDerived& s1, const TCharType* s2) Y_WARN_UNUSED_RESULT {
+    friend TBasicString operator+(const TBasicString& s1, const TCharType* s2) Y_WARN_UNUSED_RESULT {
         return Join(s1, s2);
     }
 
-    friend TDerived operator+(const TDerived& s1, TCharType s2) Y_WARN_UNUSED_RESULT {
+    friend TBasicString operator+(const TBasicString& s1, TCharType s2) Y_WARN_UNUSED_RESULT {
         return Join(s1, TFixedString(&s2, 1));
     }
 
-    friend TDerived operator+(const TCharType* s1, TDerived&& s2) Y_WARN_UNUSED_RESULT {
+    friend TBasicString operator+(const TCharType* s1, TBasicString&& s2) Y_WARN_UNUSED_RESULT {
         s2.prepend(s1);
         return std::move(s2);
     }
 
-    friend TDerived operator+(const TFixedString s1, TDerived&& s2) Y_WARN_UNUSED_RESULT {
+    friend TBasicString operator+(const TFixedString s1, TBasicString&& s2) Y_WARN_UNUSED_RESULT {
         s2.prepend(s1);
         return std::move(s2);
     }
 
-    friend TDerived operator+(const TFixedString s1, const TDerived& s2) Y_WARN_UNUSED_RESULT {
+    friend TBasicString operator+(const TFixedString s1, const TBasicString& s2) Y_WARN_UNUSED_RESULT {
         return Join(s1, s2);
     }
 
-    friend TDerived operator+(const TCharType* s1, const TDerived& s2) Y_WARN_UNUSED_RESULT {
+    friend TBasicString operator+(const TCharType* s1, const TBasicString& s2) Y_WARN_UNUSED_RESULT {
         return Join(s1, s2);
     }
 
-    // ~~~ Prepending ~~~ : FAMILY0(TDerived&, prepend);
-    TDerived& prepend(const TDerived& s) {
+    // ~~~ Prepending ~~~ : FAMILY0(TBasicString&, prepend);
+    TBasicString& prepend(const TBasicString& s) {
         return replace(0, 0, s.Data_, 0, TBase::npos, s.length());
     }
 
-    TDerived& prepend(const TDerived& s, size_t pos, size_t n) {
+    TBasicString& prepend(const TBasicString& s, size_t pos, size_t n) {
         return replace(0, 0, s.Data_, pos, n, s.length());
     }
 
-    TDerived& prepend(const TCharType* pc) {
+    TBasicString& prepend(const TCharType* pc) {
         return replace(0, 0, pc);
     }
 
-    TDerived& prepend(size_t n, TCharType c) {
+    TBasicString& prepend(size_t n, TCharType c) {
         return insert(size_t(0), n, c);
     }
 
-    TDerived& prepend(TCharType c) {
+    TBasicString& prepend(TCharType c) {
         return replace(0, 0, &c, 0, 1, 1);
     }
 
-    TDerived& prepend(const TFixedString s, size_t spos = 0, size_t sn = TBase::npos) {
+    TBasicString& prepend(const TFixedString s, size_t spos = 0, size_t sn = TBase::npos) {
         return insert(0, s, spos, sn);
     }
 
-    // ~~~ Insertion ~~~ : FAMILY1(TDerived&, insert, size_t pos);
-    TDerived& insert(size_t pos, const TDerived& s) {
+    // ~~~ Insertion ~~~ : FAMILY1(TBasicString&, insert, size_t pos);
+    TBasicString& insert(size_t pos, const TBasicString& s) {
         return replace(pos, 0, s.Data_, 0, TBase::npos, s.length());
     }
 
-    TDerived& insert(size_t pos, const TDerived& s, size_t pos1, size_t n1) {
+    TBasicString& insert(size_t pos, const TBasicString& s, size_t pos1, size_t n1) {
         return replace(pos, 0, s.Data_, pos1, n1, s.length());
     }
 
-    TDerived& insert(size_t pos, const TCharType* pc) {
+    TBasicString& insert(size_t pos, const TCharType* pc) {
         return replace(pos, 0, pc);
     }
 
-    TDerived& insert(size_t pos, const TCharType* pc, size_t len) {
+    TBasicString& insert(size_t pos, const TCharType* pc, size_t len) {
         return insert(pos, TFixedString(pc, len));
     }
 
-    TDerived& insert(const_iterator pos, const_iterator b, const_iterator e) {
+    TBasicString& insert(const_iterator pos, const_iterator b, const_iterator e) {
         return insert(this->off(pos), b, e - b);
     }
 
-    TDerived& insert(size_t pos, size_t n, TCharType c) {
+    TBasicString& insert(size_t pos, size_t n, TCharType c) {
         if (n == 1) {
             return replace(pos, 0, &c, 0, 1, 1);
         } else {
-            return insert(pos, TDerived(n, c));
+            return insert(pos, TBasicString(n, c));
         }
     }
 
-    TDerived& insert(const_iterator pos, size_t len, TCharType ch) {
+    TBasicString& insert(const_iterator pos, size_t len, TCharType ch) {
         return this->insert(this->off(pos), len, ch);
     }
 
-    TDerived& insert(const_iterator pos, TCharType ch) {
+    TBasicString& insert(const_iterator pos, TCharType ch) {
         return this->insert(pos, 1, ch);
     }
 
-    TDerived& insert(size_t pos, const TFixedString s, size_t spos = 0, size_t sn = TBase::npos) {
+    TBasicString& insert(size_t pos, const TFixedString s, size_t spos = 0, size_t sn = TBase::npos) {
         return replace(pos, 0, s, spos, sn);
     }
 
     // ~~~ Removing ~~~
-    TDerived& remove(size_t pos, size_t n) {
+    TBasicString& remove(size_t pos, size_t n) {
         return replace(pos, n, TDataTraits::GetNull(), 0, 0, 0);
     }
 
-    TDerived& remove(size_t pos = 0) {
+    TBasicString& remove(size_t pos = 0) {
         if (pos < length()) {
             Detach();
             TruncNonShared(pos);
@@ -1577,58 +1573,58 @@ public:
         return *This();
     }
 
-    TDerived& erase(size_t pos = 0, size_t n = TBase::npos) {
+    TBasicString& erase(size_t pos = 0, size_t n = TBase::npos) {
         return remove(pos, n);
     }
 
-    TDerived& erase(const_iterator b, const_iterator e) {
+    TBasicString& erase(const_iterator b, const_iterator e) {
         return erase(this->off(b), e - b);
     }
 
-    TDerived& erase(const_iterator i) {
+    TBasicString& erase(const_iterator i) {
         return erase(i, i + 1);
     }
 
-    TDerived& pop_back() {
+    TBasicString& pop_back() {
         Y_ASSERT(!this->empty());
         return erase(this->length() - 1, 1);
     }
 
-    // ~~~ replacement ~~~ : FAMILY2(TDerived&, replace, size_t pos, size_t n);
-    TDerived& replace(size_t pos, size_t n, const TDerived& s) {
+    // ~~~ replacement ~~~ : FAMILY2(TBasicString&, replace, size_t pos, size_t n);
+    TBasicString& replace(size_t pos, size_t n, const TBasicString& s) {
         return replace(pos, n, s.Data_, 0, TBase::npos, s.length());
     }
 
-    TDerived& replace(size_t pos, size_t n, const TDerived& s, size_t pos1, size_t n1) {
+    TBasicString& replace(size_t pos, size_t n, const TBasicString& s, size_t pos1, size_t n1) {
         return replace(pos, n, s.Data_, pos1, n1, s.length());
     }
 
-    TDerived& replace(size_t pos, size_t n, const TCharType* pc) {
+    TBasicString& replace(size_t pos, size_t n, const TCharType* pc) {
         return replace(pos, n, TFixedString(pc));
     }
 
-    TDerived& replace(size_t pos, size_t n, const TCharType* s, size_t len) {
+    TBasicString& replace(size_t pos, size_t n, const TCharType* s, size_t len) {
         return replace(pos, n, s, 0, len, len);
     }
 
-    TDerived& replace(size_t pos, size_t n, const TCharType* s, size_t spos, size_t sn) {
+    TBasicString& replace(size_t pos, size_t n, const TCharType* s, size_t spos, size_t sn) {
         return replace(pos, n, s, spos, sn, sn);
     }
 
-    TDerived& replace(size_t pos, size_t n1, size_t n2, TCharType c) {
+    TBasicString& replace(size_t pos, size_t n1, size_t n2, TCharType c) {
         if (n2 == 1) {
             return replace(pos, n1, &c, 0, 1, 1);
         } else {
-            return replace(pos, n1, TDerived(n2, c));
+            return replace(pos, n1, TBasicString(n2, c));
         }
     }
 
-    TDerived& replace(size_t pos, size_t n, const TFixedString s, size_t spos = 0, size_t sn = TBase::npos) {
+    TBasicString& replace(size_t pos, size_t n, const TFixedString s, size_t spos = 0, size_t sn = TBase::npos) {
         return replace(pos, n, s.Start, spos, sn, s.Length);
     }
 
     // ~~~ main driver: should be protected (in the future)
-    TDerived& replace(size_t pos, size_t del, const TCharType* pc, size_t pos1, size_t ins, size_t len1) {
+    TBasicString& replace(size_t pos, size_t del, const TCharType* pc, size_t pos1, size_t ins, size_t len1) {
         size_t len = length();
         // 'pc' can point to a single character that is not null terminated, so in this case TTraits::GetLength must not be called
         len1 = pc ? (len1 == TBase::npos ? (ins == TBase::npos ? TTraits::GetLength(pc) : TTraits::GetLength(pc, ins + pos1)) : len1) : 0;
@@ -1687,7 +1683,7 @@ public:
         TTraits::Reverse(Data_, length());
     }
 
-    void swap(TDerived& s) noexcept {
+    void swap(TBasicString& s) noexcept {
         DoSwap(Data_, s.Data_);
     }
 
@@ -1695,10 +1691,10 @@ public:
      * @returns                         String suitable for debug printing (like Python's `repr()`).
      *                                  Format of the string is unspecified and may be changed over time.
      */
-    TDerived Quote() const {
-        extern TDerived EscapeC(const TDerived&);
+    TBasicString Quote() const {
+        extern TBasicString EscapeC(const TBasicString&);
 
-        return TDerived() + '"' + EscapeC(*This()) + '"';
+        return TBasicString() + '"' + EscapeC(*This()) + '"';
     }
 
     /**
