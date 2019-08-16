@@ -44,10 +44,14 @@ void OutputModel(const TFullModel& model, const TStringBuf modelFile) {
     OutputModel(model, &f);
 }
 
+bool IsDeserializableModelFormat(EModelType format) {
+    return NCB::TModelLoaderFactory::Has(format);
+}
+
 TFullModel ReadModel(const TString& modelFile, EModelType format) {
     CB_ENSURE(
         NCB::TModelLoaderFactory::Has(format),
-        "Model format " << format << " deserialiazation not supported or missing. Link with catboost/libs/model/model_export if you need CoreML or JSON"
+        "Model format " << format << " deserialization not supported or missing. Link with catboost/libs/model/model_export if you need CoreML or JSON"
     );
     THolder<NCB::IModelLoader> modelLoader = NCB::TModelLoaderFactory::Construct(format);
     return modelLoader->ReadModel(modelFile);
@@ -56,7 +60,7 @@ TFullModel ReadModel(const TString& modelFile, EModelType format) {
 TFullModel ReadModel(const void* binaryBuffer, size_t binaryBufferSize, EModelType format) {
     CB_ENSURE(
         NCB::TModelLoaderFactory::Has(format),
-        "Model format " << format << " deserialiazation not supported or missing. Link with catboost/libs/model/model_export if you need CoreML or JSON"
+        "Model format " << format << " deserialization not supported or missing. Link with catboost/libs/model/model_export if you need CoreML or JSON"
     );
     THolder<NCB::IModelLoader> modelLoader = NCB::TModelLoaderFactory::Construct(format);
     return modelLoader->ReadModel(binaryBuffer, binaryBufferSize);

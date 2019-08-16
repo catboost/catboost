@@ -905,6 +905,36 @@ void TrainModel(
         "Multiple eval sets not supported for GPU"
     );
 
+    const auto evalOutputFileName = outputOptions.CreateEvalFullPath();
+
+    const auto fstrRegularFileName = outputOptions.CreateFstrRegularFullPath();
+    const auto fstrInternalFileName = outputOptions.CreateFstrIternalFullPath();
+    EGrowPolicy growPolicy = catBoostOptions.ObliviousTreeOptions.Get().GrowPolicy.GetUnchecked();  // GpuOnlyOption
+    bool needFstr = !fstrInternalFileName.empty() || !fstrRegularFileName.empty();
+
+    if (needFstr && ShouldSkipFstrGrowPolicy(growPolicy)) {
+        needFstr = false;
+        CATBOOST_INFO_LOG << "Skip fstr for " << growPolicy << " growPolicy" << Endl;
+    }
+
+    auto modelFormat = outputOptions.GetModelFormats()[0];
+    for (int formatIdx = 1; !IsDeserializableModelFormat(modelFormat) && formatIdx < outputOptions.GetModelFormats().ysize(); ++formatIdx) {
+        modelFormat = outputOptions.GetModelFormats()[formatIdx];
+    }
+    if (!evalOutputFileName.empty()) {
+        CB_ENSURE(
+            IsDeserializableModelFormat(modelFormat),
+            "All chosen model formats not supported deserialization. Add CatboostBinary model-format to save eval-file."
+        );
+    }
+    if (needFstr) {
+        CB_ENSURE(
+            IsDeserializableModelFormat(modelFormat),
+            "All chosen model formats not supported deserialization. Add CatboostBinary model-format to calc fstr."
+        );
+    }
+
+
     NPar::TLocalExecutor executor;
     executor.RunAdditionalThreads(catBoostOptions.SystemOptions.Get().NumThreads.Get() - 1);
 
@@ -920,7 +950,6 @@ void TrainModel(
         &executor,
         &profile);
 
-    const auto evalOutputFileName = outputOptions.CreateEvalFullPath();
     TVector<TString> outputColumns;
     if (!evalOutputFileName.empty() && !pools.Test.empty()) {
         outputColumns = outputOptions.GetOutputColumns(pools.Test[0]->MetaInfo.HasTarget);
@@ -960,14 +989,6 @@ void TrainModel(
             quantizedFeaturesInfo.Get());
     }
 
-    const auto fstrRegularFileName = outputOptions.CreateFstrRegularFullPath();
-    const auto fstrInternalFileName = outputOptions.CreateFstrIternalFullPath();
-    EGrowPolicy growPolicy = catBoostOptions.ObliviousTreeOptions.Get().GrowPolicy.GetUnchecked();  // GpuOnlyOption
-    bool needFstr = !fstrInternalFileName.empty() || !fstrRegularFileName.empty();
-    if (needFstr && ShouldSkipFstrGrowPolicy(growPolicy)) {
-        needFstr = false;
-        CATBOOST_INFO_LOG << "Skip fstr for " << growPolicy << " growPolicy" << Endl;
-    }
     bool needPoolAfterTrain = !evalOutputFileName.empty() || (needFstr && outputOptions.GetFstrType() == EFstrType::LossFunctionChange);
     if (needFstr && outputOptions.GetFstrType() == EFstrType::FeatureImportance && updatedTrainJson.Has("loss_function")) {
         NCatboostOptions::TLossDescription modelLossDescription;
@@ -991,7 +1012,7 @@ void TrainModel(
         /*dstLearnProgress*/ nullptr,
         &executor
     );
-    auto modelFormat = outputOptions.GetModelFormats()[0];
+
     const auto fullModelPath = NCatboostOptions::AddExtension(
         modelFormat,
         outputOptions.CreateResultModelFullPath(),

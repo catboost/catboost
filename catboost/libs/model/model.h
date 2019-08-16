@@ -828,6 +828,8 @@ private:
 void OutputModel(const TFullModel& model, TStringBuf modelFile);
 void OutputModel(const TFullModel& model, IOutputStream* out);
 
+bool IsDeserializableModelFormat(EModelType format);
+
 TFullModel ReadModel(const TString& modelFile, EModelType format = EModelType::CatboostBinary);
 TFullModel ReadModel(
     const void* binaryBuffer,

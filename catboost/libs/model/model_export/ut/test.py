@@ -92,6 +92,43 @@ def test_cpp_export(dataset):
             raise
 
 
+def test_read_model_after_train():
+    train_path, test_path, cd_path = _get_train_test_cd_path('adult')
+    eval_file = yatest.common.test_output_path('eval-file')
+    cmd = [CATBOOST_APP_PATH, 'fit',
+           '-f', train_path,
+           '--cd', cd_path,
+           '-t', test_path,
+           '-i', '100',
+           '--eval-file', eval_file
+       ]
+    try:
+        yatest.common.execute(
+            cmd + [
+                '--model-format', 'CPP',
+                '--model-format', 'Python',
+            ]
+        )
+    except Exception as e:
+        if 'All chosen model formats not supported deserialization' not in str(e):
+            raise
+        yatest.common.execute(
+            cmd + [
+                '--model-format', 'CPP',
+                '--model-format', 'CatboostBinary',
+            ]
+        )
+
+        yatest.common.execute(
+            cmd + [
+                '--model-format', 'CatboostBinary',
+                '--model-format', 'Python',
+            ]
+        )
+        return
+    assert False
+
+
 def _get_target_idx(cd_file_path):
     with open(cd_file_path) as cd_file:
         for l in cd_file:
