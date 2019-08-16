@@ -192,8 +192,8 @@ def monotonic2():
     equal except for a monotonic positive feature MPos, such that x1[MPos] > x2[MPos],
     then the following inequality must hold for predictions: f(x1) >= f(x2)
     """
-    url = 'https://storage.mds.yandex.net/get-devtools-opensource/471749/monotonic2.tar.gz'
-    md5 = 'e8ac054b276f164e57f9bde9cc8da0d9'
+    url = 'https://storage.mds.yandex.net/get-devtools-opensource/250854/monotonic2.tar.gz'
+    md5 = 'ce559e212cb72c156269f6f9a641baca'
     dataset_name, train_file, test_file = 'monotonic2', 'train.tsv', 'test.tsv'
     return _cached_dataset_load_pd(url, md5, dataset_name, train_file, test_file, sep='\t')
 
