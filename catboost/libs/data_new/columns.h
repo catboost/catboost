@@ -310,22 +310,22 @@ namespace NCB {
         TMaybeOwningArrayHolder<T> ExtractValuesT(NPar::TLocalExecutor* localExecutor) const {
             Y_UNUSED(localExecutor);
 
-            TVector<T> dst;
-            dst.yresize(this->GetSize());
-
-            NCB::TBinaryFeaturesPack bitMask = NCB::TBinaryFeaturesPack(1) << BitIdx;
-
-            auto visitor = [&dst, bitIdx = BitIdx, bitMask] (ui32 objectIdx, NCB::TBinaryFeaturesPack pack) {
-                dst[objectIdx] = (pack & bitMask) >> bitIdx;
-            };
-
             if (const auto* packsArrayData = dynamic_cast<const TBinaryPacksArrayHolder*>(PacksData)) {
+                TVector<T> dst;
+                dst.yresize(this->GetSize());
+                TArrayRef<T> dstRef(dst);
+
+                NCB::TBinaryFeaturesPack bitMask = NCB::TBinaryFeaturesPack(1) << BitIdx;
+
+                auto visitor = [dstRef, bitIdx = BitIdx, bitMask](ui32 objectIdx, NCB::TBinaryFeaturesPack pack) {
+                    dstRef[objectIdx] = (pack & bitMask) >> bitIdx;
+                };
                 packsArrayData->ForEach(visitor);
+
+                return TMaybeOwningArrayHolder<T>::CreateOwning(std::move(dst));
             } else {
                 Y_FAIL("PacksData is not TBinaryPacksArrayHolder");
             }
-
-            return TMaybeOwningArrayHolder<T>::CreateOwning(std::move(dst));
         }
 
         TMaybeOwningArrayHolder<T> ExtractValues(NPar::TLocalExecutor* localExecutor) const override {
@@ -403,22 +403,22 @@ namespace NCB {
     private:
         template <class TBundle>
         TMaybeOwningArrayHolder<T> ExtractValuesImpl(NPar::TLocalExecutor* localExecutor) const {
-            TVector<T> dst;
-
-            auto visitor = [&dst, boundsInBundle = BoundsInBundle] (ui32 objectIdx, auto bundle) {
-                dst[objectIdx] = GetBinFromBundle<T>(bundle, boundsInBundle);
-            };
-
             if (const auto* bundlesArrayData
                 = dynamic_cast<const TExclusiveFeatureBundleArrayHolder*>(BundlesData))
             {
+                TVector<T> dst;
                 dst.yresize(this->GetSize());
+                TArrayRef<T> dstRef(dst);
+
+                auto visitor = [dstRef, boundsInBundle = BoundsInBundle] (ui32 objectIdx, auto bundle) {
+                    dstRef[objectIdx] = GetBinFromBundle<T>(bundle, boundsInBundle);
+                };
                 bundlesArrayData->GetArrayData<TBundle>().ParallelForEach(visitor, localExecutor);
+
+                return TMaybeOwningArrayHolder<T>::CreateOwning(std::move(dst));
             } else {
                 Y_FAIL("PacksData is not TBundlesArrayData");
             }
-
-            return TMaybeOwningArrayHolder<T>::CreateOwning(std::move(dst));
         }
 
     private:

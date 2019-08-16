@@ -370,13 +370,14 @@ namespace NCB {
 
         const TBundle defaultValue = parts.back().Bounds.End;
 
+        const TQuantizedFeaturesInfo& quantizedFeaturesInfo = *quantizedObjectsData.Data.QuantizedFeaturesInfo;
         TVector<TGetBinFunction> getBinFunctions;
         for (const auto& part : parts) {
             if (part.FeatureType == EFeatureType::Float) {
                 getBinFunctions.push_back(
                     GetQuantizedFloatFeatureFunction(
                         rawObjectsData,
-                        *quantizedObjectsData.Data.QuantizedFeaturesInfo,
+                        quantizedFeaturesInfo,
                         TFloatFeatureIdx(part.FeatureIdx)
                     )
                 );
@@ -384,7 +385,7 @@ namespace NCB {
                 getBinFunctions.push_back(
                     GetQuantizedCatFeatureFunction(
                         rawObjectsData,
-                        *quantizedObjectsData.Data.QuantizedFeaturesInfo,
+                        quantizedFeaturesInfo,
                         TCatFeatureIdx(part.FeatureIdx)
                     )
                 );

@@ -1917,8 +1917,6 @@ static void EnsureConsecutiveExclusiveFeatureBundles(
     NPar::TLocalExecutor* localExecutor,
     NCB::TExclusiveFeatureBundlesData* exclusiveFeatureBundlesData
 ) {
-    TVector<std::function<void()>> tasks;
-
     for (auto& srcDataElement : exclusiveFeatureBundlesData->SrcData) {
         MakeConsecutiveColumnData(
             newSubsetIndexing,

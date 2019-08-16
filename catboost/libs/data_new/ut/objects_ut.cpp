@@ -11,7 +11,6 @@
 
 #include <util/generic/maybe.h>
 #include <util/generic/hash.h>
-#include <util/random/entropy.h>
 #include <util/random/fast.h>
 #include <util/random/shuffle.h>
 
