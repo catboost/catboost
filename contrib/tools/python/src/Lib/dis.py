@@ -193,6 +193,9 @@ def findlinestarts(code):
                 yield (addr, lineno)
                 lastlineno = lineno
             addr += byte_incr
+        if line_incr >= 0x80:
+            # line_increments is an array of 8-bit signed integers
+            line_incr -= 0x100
         lineno += line_incr
     if lineno != lastlineno:
         yield (addr, lineno)
