@@ -2010,7 +2010,7 @@
         },
         "gdb": {
             "formula": {
-                "sandbox_id": 229911137,
+                "sandbox_id": [487906740, 487906939],
                 "match": "GDB"
             },
             "executable": {
