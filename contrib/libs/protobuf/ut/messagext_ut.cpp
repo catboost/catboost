@@ -334,5 +334,54 @@ Y_UNIT_TEST_SUITE(TProtobufTest) {
             UNIT_ASSERT_EQUAL(parser.ParseFromString(text, &msg), true);
             UNIT_ASSERT_EQUAL(msg.Getff(), "value");
         }
+        {
+            TTestMessage msg;
+            google::protobuf::TextFormat::Parser parser;
+            parser.RecordErrorsTo(&nullErrorCollector);
+            parser.AllowUnknownField(true);
+
+            const TString unknownIntFieldText = 
+                "ff: \"value_1\"\n"
+                "unknownIntField: 12345\n"
+                "unknownIntFieldComma: 12345,\n"
+                "unknownIntFieldSemicolon: 12345,\n";
+            UNIT_ASSERT_EQUAL(parser.ParseFromString(unknownIntFieldText, &msg), true);
+            UNIT_ASSERT_EQUAL(msg.Getff(), "value_1");
+
+            const TString unknownStringFieldText = 
+                "unknownStringField: \"unknown_value\"\n"
+                "ff: \"value_2\"\n"
+                "unknownStringFieldComma: \"unknown_value\",\n"
+                "unknownStringFieldSemicolon: \"unknown_value\";\n";
+            UNIT_ASSERT_EQUAL(parser.ParseFromString(unknownStringFieldText, &msg), true);
+            UNIT_ASSERT_EQUAL(msg.Getff(), "value_2");
+
+            const TString unknownMinusInfFieldText = 
+                "unknownInfField: -inf\n"
+                "unknownInfFieldComma: -inf,\n"
+                "ff: \"value_3\"\n"
+                "unknownInfFieldSemicolon: -inf;\n";
+            UNIT_ASSERT_EQUAL(parser.ParseFromString(unknownMinusInfFieldText, &msg), true);
+            UNIT_ASSERT_EQUAL(msg.Getff(), "value_3");
+
+            const TString unknownTypeIdentifierField = 
+                "unknownTypeIdentifierField: TYPE_IDENTIFIER\n"
+                "unknownTypeIdentifierFieldComma: TYPE_IDENTIFIER,\n"
+                "unknownTypeIdentifierFieldSemicolon: TYPE_IDENTIFIER;\n"
+                "ff: \"value_4\"\n";
+
+            UNIT_ASSERT_EQUAL(parser.ParseFromString(unknownTypeIdentifierField, &msg), true);
+            UNIT_ASSERT_EQUAL(msg.Getff(), "value_4");
+
+            const TString unknownMessage = 
+                "UnknownMessageSemicolon {\n"
+                "   UnknownFieldSemicolon: \"unknown_value\";\n" 
+                "};\n"
+                "\n"
+                "ff: \"value_5\"\n";
+
+            UNIT_ASSERT_EQUAL(parser.ParseFromString(unknownMessage, &msg), true);
+            UNIT_ASSERT_EQUAL(msg.Getff(), "value_5");
+        }
     }
 }
