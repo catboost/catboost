@@ -23,14 +23,6 @@
 using namespace NCB;
 
 
-static bool GetCtrSplit(const TSplit& split, int idxPermuted, const TOnlineCTR& ctr) {
-    ui8 ctrValue = ctr.Feature[split.Ctr.CtrIdx]
-                              [split.Ctr.TargetBorderIdx]
-                              [split.Ctr.PriorIdx]
-                              [idxPermuted];
-    return ctrValue > split.BinBorder;
-}
-
 static inline ui16 GetFeatureSplitIdx(const TSplit& split) {
     return split.BinBorder;
 }
@@ -187,6 +179,11 @@ struct TUpdateIndicesForSplitParams {
 };
 
 
+static TConstArrayRef<ui8> GetCtrValues(const TSplit& split, const TOnlineCTR& ctr) {
+    return ctr.Feature[split.Ctr.CtrIdx][split.Ctr.TargetBorderIdx][split.Ctr.PriorIdx];
+}
+
+
 static void UpdateIndices(
     bool initIndices,
     TConstArrayRef<TUpdateIndicesForSplitParams> params,
@@ -207,10 +204,15 @@ static void UpdateIndices(
         const auto& split = splitParams.Split;
 
         if (split.Type == ESplitType::OnlineCtr) {
+            const auto ctr = splitParams.OnlineCtr;
+            const auto ctrValuesData = GetCtrValues(split, *ctr).data() + onlineCtrObjectOffset;
+            const auto binBorder = split.BinBorder;
             updateBlockCallbacks.push_back(
-                [=, ctr=splitParams.OnlineCtr] (TIndexRange<ui32> indexRange) {
-                    for (auto i : indexRange.Iter()) {
-                        indicesData[i] += GetCtrSplit(split, onlineCtrObjectOffset + i, *ctr) * splitWeight;
+                [=] (TIndexRange<ui32> indexRange) {
+                    const ui32 begin = *indexRange.Iter().begin();
+                    const ui32 end = *indexRange.Iter().end();
+                    for (ui32 i = begin; i < end; ++i) {
+                        indicesData[i] += (ctrValuesData[i] > binBorder) * splitWeight;
                     }
                 });
         } else {

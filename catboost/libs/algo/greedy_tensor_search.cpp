@@ -567,14 +567,6 @@ static void CalcBestScore(
             TVector<TVector<double>> allScores(candidate.Candidates.size());
             ctx->LocalExecutor->ExecRange(
                 [&](int oneCandidate) {
-                    const auto& candidateInfo = candidate.Candidates[oneCandidate];
-                    const auto& splitEnsemble = candidateInfo.SplitEnsemble;
-
-                    if (splitEnsemble.IsSplitOfType(ESplitType::OnlineCtr)) {
-                        const auto& proj = splitEnsemble.SplitCandidate.Ctr.Projection;
-                        Y_ASSERT(!fold->GetCtrRef(proj).Feature.empty());
-                    }
-
                     THolder<IScoreCalcer> scoreCalcer;
                     if (IsPairwiseScoring(ctx->Params.LossFunctionDescription->GetLossFunction())) {
                         scoreCalcer.Reset(new TPairwiseScoreCalcer);
@@ -600,7 +592,7 @@ static void CalcBestScore(
                         fold,
                         pairs,
                         ctx->Params,
-                        candidateInfo,
+                        candidate.Candidates[oneCandidate],
                         currentTree.GetDepth(),
                         ctx->UseTreeLevelCaching(),
                         currTreeMonotonicConstraints,
@@ -610,9 +602,10 @@ static void CalcBestScore(
                         /*stats3d*/nullptr,
                         /*pairwiseStats*/nullptr,
                         scoreCalcer.Get());
-                    allScores[oneCandidate] = scoreCalcer->GetScores();
+                    scoreCalcer->GetScores().swap(allScores[oneCandidate]);
                 },
-                NPar::TLocalExecutor::TExecRangeParams(0, candidate.Candidates.ysize()),
+                0,
+                candidate.Candidates.ysize(),
                 NPar::TLocalExecutor::WAIT_COMPLETE);
 
             if (splitEnsemble.IsSplitOfType(ESplitType::OnlineCtr) && candidate.ShouldDropCtrAfterCalc) {

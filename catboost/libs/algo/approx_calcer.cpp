@@ -816,7 +816,8 @@ static void CalcLeafValuesSimple(
     const int scratchSize = error.GetErrorType() == EErrorType::PerObjectError
         ? APPROX_BLOCK_SIZE * CB_THREAD_LIMIT
         : fold.GetLearnSampleCount();
-    TVector<TDers> weightedDers(scratchSize);
+    TVector<TDers> weightedDers;
+    weightedDers.yresize(scratchSize);
     sumLeafDeltas->assign(1, TVector<double>(leafCount));
 
     const int queryCount = fold.LearnQueriesInfo.ysize();

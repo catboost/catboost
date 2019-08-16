@@ -118,10 +118,11 @@ inline static void SetSingleIndex(
 ) {
     const int docCount = fold.GetDocCount();
     const TIndexType* indices = GetDataPtr(fold.Indices);
+    const TArrayRef<TFullIndexType> singleIdxRef(*singleIdx);
 
     if (bucketIndexing == nullptr) {
         for (int doc : docIndexRange.Iter()) {
-            (*singleIdx)[doc] = indexer.GetIndex(indices[doc], bucketIndex[bucketBeginOffset + doc]);
+            singleIdxRef[doc] = indexer.GetIndex(indices[doc], bucketIndex[bucketBeginOffset + doc]);
         }
     } else if (permBlockSize > 1) {
         const int blockCount = (docCount + permBlockSize - 1) / permBlockSize;
@@ -140,14 +141,14 @@ inline static void SetSingleIndex(
             const int originalBlockIdx = static_cast<int>(bucketIndexing[blockStart]);
             for (int doc = blockStart; doc < nextBlockStart; ++doc) {
                 const int originalDocIdx = originalBlockIdx + doc - blockStart;
-                (*singleIdx)[doc] = indexer.GetIndex(indices[doc], bucketIndex[originalDocIdx]);
+                singleIdxRef[doc] = indexer.GetIndex(indices[doc], bucketIndex[originalDocIdx]);
             }
             blockStart = nextBlockStart;
         }
     } else {
         for (int doc : docIndexRange.Iter()) {
             const ui32 originalDocIdx = bucketIndexing[doc];
-            (*singleIdx)[doc] = indexer.GetIndex(indices[doc], bucketIndex[originalDocIdx]);
+            singleIdxRef[doc] = indexer.GetIndex(indices[doc], bucketIndex[originalDocIdx]);
         }
     }
 }

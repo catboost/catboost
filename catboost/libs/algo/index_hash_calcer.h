@@ -24,7 +24,8 @@ template <class T, NCB::EFeatureValuesType FeatureValuesType, class F> // F args
 inline void ProcessColumnForCalcHashes(
     const NCB::TTypedFeatureValuesHolder<T, FeatureValuesType>& column,
     const NCB::TFeaturesArraySubsetIndexing& featuresSubsetIndexing,
-    F&& f) {
+    F&& f,
+    NPar::TLocalExecutor* localExecutor) {
 
     using TDenseHolder = NCB::TCompressedValuesHolderImpl<T, FeatureValuesType>;
 
@@ -35,10 +36,12 @@ inline void ProcessColumnForCalcHashes(
             compressedArray,
             "ProcessColumnForCalcHashes",
             [&] (const auto* histogram) {
-                featuresSubsetIndexing.ForEach(
+                featuresSubsetIndexing.ParallelForEach(
                     [histogram, f] (ui32 i, ui32 srcIdx) {
                         f(i, histogram[srcIdx]);
-                    }
+                    },
+                    localExecutor,
+                    /*approximateBlockSize*/1000
                 );
             }
         );
@@ -52,14 +55,16 @@ inline void ProcessColumnForCalcHashes(
     const NCB::TTypedFeatureValuesHolder<T, FeatureValuesType>& column,
     const NCB::TFeaturesArraySubsetIndexing& featuresSubsetIndexing,
     TGetBinFromHistogramValue&& getBinFromHistogramValue,
-    F&& f) {
+    F&& f,
+    NPar::TLocalExecutor* localExecutor) {
 
     ProcessColumnForCalcHashes(
         column,
         featuresSubsetIndexing,
         [f, getBinFromHistogramValue] (ui32 i, auto value) {
             f(i, getBinFromHistogramValue(value));
-        });
+        },
+        localExecutor);
 }
 
 template <class T, NCB::EFeatureValuesType FeatureValuesType, class F>
@@ -76,7 +81,8 @@ inline void ProcessFeatureForCalcHashes(
     std::function<const NCB::TExclusiveFeaturesBundle(ui32)>&& getExclusiveFeatureBundleMetaData,
     std::function<const NCB::TExclusiveFeatureBundleHolder*(ui32)>&& getExclusiveFeatureBundle,
     std::function<const NCB::TBinaryPacksHolder*(ui32)>&& getBinaryFeaturesPack,
-    F&& f) {
+    F&& f,
+    NPar::TLocalExecutor* localExecutor) {
 
     if (maybeExclusiveBundleIndex) {
         if (processBundledAndBinaryFeaturesInPacks) {
@@ -99,7 +105,8 @@ inline void ProcessFeatureForCalcHashes(
                 [boundsInBundle] (auto bundleData) {
                     return NCB::GetBinFromBundle<decltype(bundleData)>(bundleData, boundsInBundle);
                 },
-                std::move(f)
+                std::move(f),
+                localExecutor
             );
         }
     } else if (maybeBinaryIndex) {
@@ -119,7 +126,8 @@ inline void ProcessFeatureForCalcHashes(
                 [bitMask, bitIdx] (NCB::TBinaryFeaturesPack featuresPack) {
                     return (featuresPack & bitMask) >> bitIdx;
                 },
-                std::move(f)
+                std::move(f),
+                localExecutor
             );
         }
     } else {
@@ -127,7 +135,8 @@ inline void ProcessFeatureForCalcHashes(
             *getFeatureColumn(),
             featuresSubsetIndexing,
             [] (auto value) { return value; },
-            std::move(f)
+            std::move(f),
+            localExecutor
         );
     }
 }
@@ -150,7 +159,8 @@ void CalcHashes(
     const NCB::TPerfectHashedToHashedCatValuesMap* perfectHashedToHashedCatValuesMap,
     bool processBundledAndBinaryFeaturesInPacks,
     ui64* begin,
-    ui64* end);
+    ui64* end,
+    NPar::TLocalExecutor* localExecutor);
 
 
 /// Compute reindexHash and reindex hash values in range [begin,end).

@@ -16,7 +16,8 @@ void CalcHashes(
     const TPerfectHashedToHashedCatValuesMap* perfectHashedToHashedCatValuesMap,
     bool processBundledAndBinaryFeaturesInPacks,
     ui64* begin,
-    ui64* end) {
+    ui64* end,
+    NPar::TLocalExecutor* localExecutor) {
 
     const size_t sampleCount = end - begin;
     Y_VERIFY((size_t)featuresSubsetIndexing.Size() == sampleCount);
@@ -62,7 +63,8 @@ void CalcHashes(
                 [&](ui32 packIdx) { return &objectsDataProvider.GetBinaryFeaturesPack(packIdx); },
                 [hashArr, &ohv] (ui32 i, ui32 featureValue) {
                     hashArr[i] = CalcHash(hashArr[i], (ui64)(int)ohv[featureValue]);
-                }
+                },
+                localExecutor
             );
         }
     } else {
@@ -85,7 +87,8 @@ void CalcHashes(
                 [&](ui32 packIdx) { return &objectsDataProvider.GetBinaryFeaturesPack(packIdx); },
                 [hashArr] (ui32 i, ui32 featureValue) {
                     hashArr[i] = CalcHash(hashArr[i], (ui64)featureValue + 1);
-                }
+                },
+                localExecutor
             );
         }
     }
@@ -111,7 +114,8 @@ void CalcHashes(
             [feature, hashArr] (ui32 i, ui32 featureValue) {
                 const bool isTrueFeature = IsTrueHistogram((ui16)featureValue, (ui16)feature.SplitIdx);
                 hashArr[i] = CalcHash(hashArr[i], (ui64)isTrueFeature);
-            }
+            },
+            localExecutor
         );
     }
 
@@ -147,7 +151,8 @@ void CalcHashes(
             [feature, hashArr, maxBin] (ui32 i, ui32 featureValue) {
                 const bool isTrueFeature = IsTrueOneHotFeature(Min(featureValue, maxBin), (ui32)feature.Value);
                 hashArr[i] = CalcHash(hashArr[i], (ui64)isTrueFeature);
-            }
+            },
+            localExecutor
         );
     }
 
@@ -181,7 +186,8 @@ void CalcHashes(
             ProcessColumnForCalcHashes(
                 objectsDataProvider.GetExclusiveFeaturesBundle(bundleIdx),
                 featuresSubsetIndexing,
-                std::move(processBundleValue)
+                std::move(processBundleValue),
+                localExecutor
             );
         }
 
@@ -204,7 +210,8 @@ void CalcHashes(
                 std::move(getBinFromHistogramValue),
                 [=] (ui32 i, ui64 b) {
                     hashArr[i] = CalcHash(hashArr[i], b);
-                }
+                },
+                localExecutor
             );
         }
     }
