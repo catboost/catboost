@@ -75,7 +75,7 @@ TVector<double> MakeConfusionMatrix(const TFullModel& model, const TDataProvider
         *processedData.ObjectsData,
         EPredictionType::RawFormulaVal,
         0,
-        SafeIntegerCast<int>(processedData.ObjectsData->GetObjectCount()),
+        SafeIntegerCast<int>(model.GetTreeCount()),
         &localExecutor
     );
 
