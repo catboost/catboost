@@ -148,7 +148,7 @@ namespace {
 }
 
 template <class TChar>
-TGenericString<TChar>& EscapeCImpl(const TChar* str, size_t len, TGenericString<TChar>& r) {
+TBasicString<TChar>& EscapeCImpl(const TChar* str, size_t len, TBasicString<TChar>& r) {
     using TEscapeUtil = ::TEscapeUtil<TChar>;
 
     TChar buffer[TEscapeUtil::ESCAPE_C_BUFFER_SIZE];
@@ -328,7 +328,7 @@ static TStr& DoUnescapeC(const TChar* p, size_t sz, TStr& res) {
 }
 
 template <class TChar>
-TGenericString<TChar>& UnescapeCImpl(const TChar* p, size_t sz, TGenericString<TChar>& res) {
+TBasicString<TChar>& UnescapeCImpl(const TChar* p, size_t sz, TBasicString<TChar>& res) {
     return DoUnescapeC(p, sz, res);
 }
 

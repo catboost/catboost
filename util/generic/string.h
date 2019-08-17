@@ -1746,49 +1746,23 @@ public:
 
 std::ostream& operator<<(std::ostream&, const TString&);
 
-namespace NPrivate {
-    template <class Char>
-    struct TCharToString {
-        // TODO: switch to TBaseString derived type when compilation with nvcc on windows will succeed
-        using type = TFixedString<Char>;
-    };
-
-    template <>
-    struct TCharToString<char> {
-        using type = TString;
-    };
-
-    template <>
-    struct TCharToString<wchar16> {
-        using type = TUtf16String;
-    };
-
-    template <>
-    struct TCharToString<wchar32> {
-        using type = TUtf32String;
-    };
-}
-
-template <class Char>
-using TGenericString = typename NPrivate::TCharToString<Char>::type;
-
 template<typename TCharType, typename TTraits>
-TGenericString<TCharType> to_lower(const TBasicString<TCharType, TTraits>& s) {
-    TGenericString<TCharType> ret(s);
+TBasicString<TCharType> to_lower(const TBasicString<TCharType, TTraits>& s) {
+    TBasicString<TCharType> ret(s);
     ret.to_lower();
     return ret;
 }
 
 template<typename TCharType, typename TTraits>
-TGenericString<TCharType> to_upper(const TBasicString<TCharType, TTraits>& s) {
-    TGenericString<TCharType> ret(s);
+TBasicString<TCharType> to_upper(const TBasicString<TCharType, TTraits>& s) {
+    TBasicString<TCharType> ret(s);
     ret.to_upper();
     return ret;
 }
 
 template<typename TCharType, typename TTraits>
-TGenericString<TCharType> to_title(const TBasicString<TCharType, TTraits>& s) {
-    TGenericString<TCharType> ret(s);
+TBasicString<TCharType> to_title(const TBasicString<TCharType, TTraits>& s) {
+    TBasicString<TCharType> ret(s);
     ret.to_title();
     return ret;
 }

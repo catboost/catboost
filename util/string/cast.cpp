@@ -325,7 +325,7 @@ namespace {
     [[noreturn]] static Y_NO_INLINE void ThrowParseError(EParseStatus status, const TChar* data, size_t len, const TChar* pos) {
         Y_ASSERT(status != PS_OK);
 
-        typedef TGenericString<TChar> TStringType;
+        typedef TBasicString<TChar> TStringType;
 
         switch (status) {
             case PS_EMPTY_STRING:

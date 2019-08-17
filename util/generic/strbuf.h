@@ -411,11 +411,11 @@ public: // string subsequences
         return TdSelf(*this).RSeek(len);
     }
 
-    TGenericString<TCharType> ToString() const {
+    TBasicString<TCharType> ToString() const {
         return {Start, Length};
     }
 
-    TGenericString<TCharType> Quote() const {
+    TBasicString<TCharType> Quote() const {
         return ToString().Quote();
     }
 
