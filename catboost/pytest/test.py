@@ -5755,10 +5755,10 @@ def test_snapshot_without_random_seed():
     progress_path = yatest.common.test_output_path('test.cbp')
     additional_params = ['--snapshot-file', progress_path, '-m', model_path]
 
-    fisrt_line_count = run_catboost(15, eval_path, additional_params=additional_params)
+    first_line_count = run_catboost(15, eval_path, additional_params=additional_params)
     second_line_count = run_catboost(30, eval_path, additional_params=additional_params)
     third_line_count = run_catboost(45, eval_path, additional_params=additional_params)
-    assert fisrt_line_count == second_line_count == third_line_count
+    assert first_line_count == second_line_count == third_line_count
 
     canon_eval_path = yatest.common.test_output_path('canon_test.eval')
     cb_model = catboost.CatBoost()
