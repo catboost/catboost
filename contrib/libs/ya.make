@@ -9,6 +9,7 @@ RECURSE(
     cppdemangle/all
     crcutil
     cxxsupp/libcxx
+    cxxsupp/libcxx-filesystem
     expat
     fastlz
     flatbuffers
