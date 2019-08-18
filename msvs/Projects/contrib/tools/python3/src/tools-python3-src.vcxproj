@@ -665,8 +665,8 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\libcxx\libs-cxxsupp-libcxx.vcxproj">
       <Project>{671FE333-6D0D-E7E3-0E1D-D4CB43CF879D}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\expat\expat.vcxproj">
-      <Project>{4101A82B-19B1-4235-DF65-DD2155721571}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\expat\contrib-libs-expat.vcxproj">
+      <Project>{BF794ED3-B687-CE38-5FC3-A9AC59EC392B}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\libbz2\contrib-libs-libbz2.vcxproj">
       <Project>{22D13723-C5D2-BCB5-73F8-368EA5B1CBE5}</Project>

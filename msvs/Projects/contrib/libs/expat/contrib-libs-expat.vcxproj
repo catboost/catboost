@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{4101A82B-19B1-4235-DF65-DD2155721571}</ProjectGUID>
+    <ProjectGUID>{BF794ED3-B687-CE38-5FC3-A9AC59EC392B}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>expat</ProjectName>
+    <ProjectName>contrib-libs-expat</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>expat</TargetName>
+    <TargetName>contrib-libs-expat</TargetName>
     <TargetExtention>.lib</TargetExtention>
     <OutDir>$(SolutionDir)$(Configuration)\contrib\libs\expat\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\4101A82B-19B1-4235-DF65-DD2155721571\</IntDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\BF794ED3-B687-CE38-5FC3-A9AC59EC392B\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -63,7 +63,7 @@
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
-      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/expat/lib;$(SolutionDir)../contrib/libs/expat;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/expat;$(SolutionDir)../contrib/libs/expat/lib;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -78,6 +78,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\expat\lib\loadlibrary.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\expat\lib\xmlparse.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>

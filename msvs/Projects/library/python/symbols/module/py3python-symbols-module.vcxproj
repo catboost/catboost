@@ -222,8 +222,8 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\double-conversion\contrib-libs-double-conversion.vcxproj">
       <Project>{1BA2A109-73A9-0A33-0C89-68ACB8229C74}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\expat\expat.vcxproj">
-      <Project>{4101A82B-19B1-4235-DF65-DD2155721571}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\expat\contrib-libs-expat.vcxproj">
+      <Project>{BF794ED3-B687-CE38-5FC3-A9AC59EC392B}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\fastlz\contrib-libs-fastlz.vcxproj">
       <Project>{D709661F-2EAC-6991-0421-E9D659AB8256}</Project>
