@@ -102,9 +102,6 @@
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\_ctypes\cfield.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\_ctypes\malloc_closure.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\_ctypes\stgdict.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
