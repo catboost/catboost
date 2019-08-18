@@ -66,7 +66,6 @@ IF (ARCH_X86_64 OR ARCH_I386)
             Modules/_ctypes/callbacks.c
             Modules/_ctypes/callproc.c
             Modules/_ctypes/cfield.c
-            Modules/_ctypes/malloc_closure.c
             Modules/_ctypes/stgdict.c
         )
     ENDIF()
