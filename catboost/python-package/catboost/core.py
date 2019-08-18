@@ -2006,6 +2006,10 @@ class CatBoost(_CatBoostBase):
 
         if type == EFstrType.PredictionDiff:
             if data is None and isinstance(data, Pool):
+                try:
+                    import builtins
+                except ImportError:
+                    import __builtin__ as builtins
                 from builtins import type as typeof
                 raise CatBoostError("Invalid data type={}, must be list or np.array".format(typeof(data)))
 
@@ -2015,6 +2019,10 @@ class CatBoost(_CatBoostBase):
 
         else:
             if data is not None and not isinstance(data, Pool):
+                try:
+                    import builtins
+                except ImportError:
+                    import __builtin__ as builtins
                 from builtins import type as typeof
                 raise CatBoostError("Invalid data type={}, must be catboost.Pool.".format(typeof(data)))
 
