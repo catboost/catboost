@@ -90,6 +90,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\data_provider_builders.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\exclusive_feature_bundling.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\external_columns.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\feature_grouping.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\feature_index.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\features_layout.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\load_data.cpp"/>
@@ -228,6 +229,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\data_provider_builders.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\exclusive_feature_bundling.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\external_columns.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\feature_grouping.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\feature_index.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\features_layout.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\load_data.h"/>
