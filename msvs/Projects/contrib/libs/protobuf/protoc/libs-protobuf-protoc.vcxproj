@@ -93,7 +93,6 @@
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\cpp\cpp_primitive_field.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\cpp\cpp_service.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\cpp\cpp_string_field.cc"/>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\importer.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\java\java_context.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\java\java_doc_comment.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\java\java_enum.cc"/>
@@ -126,8 +125,6 @@
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\java\java_string_field_lite.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\js\js_generator.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\js\well_known_types_embed.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\main.cc"/>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\parser.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\perlxs\perlxs_generator.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\perlxs\perlxs_helpers.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\plugin.cc"/>
