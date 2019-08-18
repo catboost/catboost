@@ -169,6 +169,10 @@ static void CreateQuantizedObjectsDataProviderTestData(
         quantizedObjectsData.ExclusiveFeatureBundlesData,
         true
     );
+    quantizedObjectsData.FeaturesGroupsData = TFeatureGroupsData(
+        *metaInfo->FeaturesLayout,
+        TVector<TFeaturesGroup>()
+    );
 
     if constexpr(std::is_same<TTObjectsDataProvider, TQuantizedForCPUObjectsDataProvider>::value) {
         *objectsData = MakeIntrusive<TQuantizedForCPUObjectsDataProvider>(

@@ -14,6 +14,7 @@ SRCS(
     data_provider_builders.cpp
     exclusive_feature_bundling.cpp
     external_columns.cpp
+    feature_grouping.cpp
     feature_index.cpp
     features_layout.cpp
     load_data.cpp

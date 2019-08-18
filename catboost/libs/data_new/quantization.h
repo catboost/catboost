@@ -2,6 +2,7 @@
 
 #include "data_provider.h"
 #include "exclusive_feature_bundling.h"
+#include "feature_grouping.h"
 #include "quantized_features_info.h"
 
 #include <catboost/libs/helpers/restorable_rng.h>
@@ -26,6 +27,8 @@ namespace NCB {
         bool BundleExclusiveFeaturesForCpu = true;
         TExclusiveFeaturesBundlingOptions ExclusiveFeaturesBundlingOptions{};
         bool PackBinaryFeaturesForCpu = true;
+        bool GroupFeaturesForCpu = false;
+        TFeaturesGroupingOptions FeaturesGroupingOptions{};
         bool AllowWriteFiles = true;
 
         // TODO(akhropov): remove after checking global tests consistency

@@ -2,6 +2,7 @@
 
 #include "columns.h"
 #include "exclusive_feature_bundling.h"
+#include "feature_grouping.h"
 #include "feature_index.h"
 #include "features_layout.h"
 #include "meta_info.h"
@@ -480,6 +481,30 @@ namespace NCB {
     };
 
 
+    struct TFeatureGroupsData {
+        TVector<TMaybe<TFeaturesGroupIndex>> FlatFeatureIndexToGroupPart;
+        TVector<TFeaturesGroup> MetaData;
+        TVector<THolder<TFeaturesGroupHolder>> SrcData; // [groupIdx]
+
+    public:
+        TFeatureGroupsData() = default;
+
+        // SrcData is not initialized here - create separately
+        TFeatureGroupsData(
+            const NCB::TFeaturesLayout& featuresLayout,
+            TVector<TFeaturesGroup>&& metaData
+        );
+
+        void GetSubset(
+            const TFeaturesArraySubsetIndexing* subsetIndexing,
+            TFeatureGroupsData* subsetData
+        ) const;
+
+        void Save(NPar::TLocalExecutor* localExecutor, IBinSaver* binSaver) const;
+        void Load(const TArraySubsetIndexing<ui32>* subsetIndexing, IBinSaver* binSaver);
+    };
+
+
     struct TPackedBinaryFeaturesData {
         // lookups
         TVector<TMaybe<TPackedBinaryIndex>> FlatFeatureIndexToPackedBinaryIndex; // [flatFeatureIdx]
@@ -531,6 +556,7 @@ namespace NCB {
         TQuantizedObjectsData Data;
         TPackedBinaryFeaturesData PackedBinaryFeaturesData;
         TExclusiveFeatureBundlesData ExclusiveFeatureBundlesData;
+        TFeatureGroupsData FeaturesGroupsData;
 
     public:
         void Load(
@@ -580,12 +606,12 @@ namespace NCB {
         }
 
         TMaybeData<const IQuantizedFloatValuesHolder*> GetNonPackedFloatFeature(ui32 floatFeatureIdx) const {
-            CheckFeatureIsNotBinaryPackedOrBundled(EFeatureType::Float, "Float", floatFeatureIdx);
+            CheckFeatureIsNotInAggregated(EFeatureType::Float, "Float", floatFeatureIdx);
             return MakeMaybeData(Data.FloatFeatures[floatFeatureIdx].Get());
         }
 
         TMaybeData<const IQuantizedCatValuesHolder*> GetNonPackedCatFeature(ui32 catFeatureIdx) const {
-            CheckFeatureIsNotBinaryPackedOrBundled(EFeatureType::Categorical, "Cat", catFeatureIdx);
+            CheckFeatureIsNotInAggregated(EFeatureType::Categorical, "Cat", catFeatureIdx);
             return MakeMaybeData(Data.CatFeatures[catFeatureIdx].Get());
         }
 
@@ -681,16 +707,18 @@ namespace NCB {
 
             PackedBinaryFeaturesData.Save(&localExecutor, binSaver);
             ExclusiveFeatureBundlesData.Save(&localExecutor, binSaver);
+            FeaturesGroupsData.Save(&localExecutor, binSaver);
             Data.SaveNonSharedPart(*GetFeaturesLayout(), binSaver);
         }
 
     private:
         void Check(
             const TPackedBinaryFeaturesData& packedBinaryData,
-            const TExclusiveFeatureBundlesData& exclusiveFeatureBundlesData
+            const TExclusiveFeatureBundlesData& exclusiveFeatureBundlesData,
+            const TFeatureGroupsData& featuresGroupsData
         ) const;
 
-        void CheckFeatureIsNotBinaryPackedOrBundled(
+        void CheckFeatureIsNotInAggregated(
             EFeatureType featureType,
             const TStringBuf featureTypeName,
             ui32 perTypeFeatureIdx
@@ -699,6 +727,7 @@ namespace NCB {
     private:
         TPackedBinaryFeaturesData PackedBinaryFeaturesData;
         TExclusiveFeatureBundlesData ExclusiveFeatureBundlesData;
+        TFeatureGroupsData FeaturesGroupsData;
 
         // store directly instead of looking up in Data.QuantizedFeaturesInfo for runtime efficiency
         TVector<TCatFeatureUniqueValuesCounts> CatFeatureUniqueValuesCounts; // [catFeatureIdx]

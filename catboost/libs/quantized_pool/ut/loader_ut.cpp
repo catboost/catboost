@@ -265,6 +265,10 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
                 *expectedData.Objects.QuantizedFeaturesInfo,
                 expectedData.Objects.ExclusiveFeatureBundlesData
             );
+            expectedData.Objects.FeatureGroupsData = TFeatureGroupsData(
+                *expectedData.MetaInfo.FeaturesLayout,
+                TVector<TFeaturesGroup>()
+            );
 
             expectedData.ObjectsGrouping = TObjectsGrouping(5);
 
@@ -386,6 +390,10 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
                 *expectedData.Objects.QuantizedFeaturesInfo,
                 expectedData.Objects.ExclusiveFeatureBundlesData
             );
+            expectedData.Objects.FeatureGroupsData = TFeatureGroupsData(
+                *expectedData.MetaInfo.FeaturesLayout,
+                TVector<TFeaturesGroup>()
+            );
 
             expectedData.ObjectsGrouping = TObjectsGrouping(
                 TVector<TGroupBounds>{{0, 2}, {2, 3}, {3, 6}}
@@ -497,6 +505,10 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
                 *expectedData.MetaInfo.FeaturesLayout,
                 *expectedData.Objects.QuantizedFeaturesInfo,
                 expectedData.Objects.ExclusiveFeatureBundlesData
+            );
+            expectedData.Objects.FeatureGroupsData = TFeatureGroupsData(
+                *expectedData.MetaInfo.FeaturesLayout,
+                TVector<TFeaturesGroup>()
             );
 
             expectedData.ObjectsGrouping = TObjectsGrouping(
@@ -623,6 +635,10 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
                 *expectedData.Objects.QuantizedFeaturesInfo,
                 expectedData.Objects.ExclusiveFeatureBundlesData
             );
+            expectedData.Objects.FeatureGroupsData = TFeatureGroupsData(
+                *expectedData.MetaInfo.FeaturesLayout,
+                TVector<TFeaturesGroup>()
+            );
 
             expectedData.ObjectsGrouping = TObjectsGrouping(
                 TVector<TGroupBounds>{{0, 2}, {2, 3}, {3, 6}}
@@ -734,6 +750,10 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
                 *expectedData.MetaInfo.FeaturesLayout,
                 *expectedData.Objects.QuantizedFeaturesInfo,
                 expectedData.Objects.ExclusiveFeatureBundlesData
+            );
+            expectedData.Objects.FeatureGroupsData = TFeatureGroupsData(
+                *expectedData.MetaInfo.FeaturesLayout,
+                TVector<TFeaturesGroup>()
             );
 
             expectedData.ObjectsGrouping = TObjectsGrouping(
@@ -891,6 +911,10 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
             *expectedData.MetaInfo.FeaturesLayout,
             *expectedData.Objects.QuantizedFeaturesInfo,
             expectedData.Objects.ExclusiveFeatureBundlesData
+        );
+        expectedData.Objects.FeatureGroupsData = TFeatureGroupsData(
+            *expectedData.MetaInfo.FeaturesLayout,
+            TVector<TFeaturesGroup>()
         );
 
         TVector<TGroupBounds> groupsBounds;

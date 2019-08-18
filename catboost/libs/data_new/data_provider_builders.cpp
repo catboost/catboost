@@ -859,6 +859,11 @@ namespace NCB {
                 /*dontPack*/ !Options.CpuCompatibleFormat
             );
 
+            Data.ObjectsData.FeaturesGroupsData = TFeatureGroupsData(
+                *metaInfo.FeaturesLayout,
+                TVector<TFeaturesGroup>() // TODO(ilyzhin): group quantized data
+            );
+
             Data.CommonObjectsData.ResourceHolders = std::move(resourceHolders);
             Data.CommonObjectsData.Order = objectsOrder;
 

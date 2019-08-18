@@ -823,6 +823,10 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
                     data.ExclusiveFeatureBundlesData,
                     true
                 );
+                data.FeaturesGroupsData = TFeatureGroupsData(
+                    featuresLayout,
+                    TVector<TFeaturesGroup>()
+                );
 
                 ui32 featureId = 0;
 

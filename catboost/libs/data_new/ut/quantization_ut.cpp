@@ -266,6 +266,10 @@ Y_UNIT_TEST_SUITE(Quantization) {
                 expectedData.Objects.ExclusiveFeatureBundlesData,
                 !packBinaryFeatures
             );
+            expectedData.Objects.FeatureGroupsData = TFeatureGroupsData(
+                *expectedData.MetaInfo.FeaturesLayout,
+                TVector<TFeaturesGroup>()
+            );
 
             if (packBinaryFeatures) {
                 TVector<TVector<TBinaryFeaturesPack>> packs = {
@@ -407,6 +411,10 @@ Y_UNIT_TEST_SUITE(Quantization) {
                 expectedData.Objects.ExclusiveFeatureBundlesData,
                 !packBinaryFeatures
             );
+            expectedData.Objects.FeatureGroupsData = TFeatureGroupsData(
+                *expectedData.MetaInfo.FeaturesLayout,
+                TVector<TFeaturesGroup>()
+            );
 
             expectedData.ObjectsGrouping = TObjectsGrouping(13);
             expectedData.Target = srcData.TargetData;
@@ -517,6 +525,10 @@ Y_UNIT_TEST_SUITE(Quantization) {
                 *expectedData.Objects.QuantizedFeaturesInfo,
                 expectedData.Objects.ExclusiveFeatureBundlesData,
                 !packBinaryFeatures
+            );
+            expectedData.Objects.FeatureGroupsData = TFeatureGroupsData(
+                *expectedData.MetaInfo.FeaturesLayout,
+                TVector<TFeaturesGroup>()
             );
 
             expectedData.ObjectsGrouping = TObjectsGrouping(9);
@@ -706,6 +718,10 @@ Y_UNIT_TEST_SUITE(Quantization) {
                 *expectedData.Objects.QuantizedFeaturesInfo,
                 expectedData.Objects.ExclusiveFeatureBundlesData,
                 !packBinaryFeatures
+            );
+            expectedData.Objects.FeatureGroupsData = TFeatureGroupsData(
+                *expectedData.MetaInfo.FeaturesLayout,
+                TVector<TFeaturesGroup>()
             );
             if (packBinaryFeatures) {
                 TVector<TVector<TBinaryFeaturesPack>> packs = {
@@ -1023,6 +1039,10 @@ Y_UNIT_TEST_SUITE(Quantization) {
                 expectedData.Objects.ExclusiveFeatureBundlesData,
                 !packBinaryFeatures
             );
+            expectedData.Objects.FeatureGroupsData = TFeatureGroupsData(
+                *expectedData.MetaInfo.FeaturesLayout,
+                TVector<TFeaturesGroup>()
+            );
             if (packBinaryFeatures) {
                 TVector<TVector<TBinaryFeaturesPack>> packs = {
                     TVector<TBinaryFeaturesPack>{ // bits: f9 f8 f7 f6 f5 f3 f2 f1
@@ -1288,6 +1308,10 @@ Y_UNIT_TEST_SUITE(Quantization) {
                 *expectedData.Objects.QuantizedFeaturesInfo,
                 expectedData.Objects.ExclusiveFeatureBundlesData,
                 !packBinaryFeatures
+            );
+            expectedData.Objects.FeatureGroupsData = TFeatureGroupsData(
+                *expectedData.MetaInfo.FeaturesLayout,
+                TVector<TFeaturesGroup>()
             );
             if (packBinaryFeatures) {
                 TVector<TVector<TBinaryFeaturesPack>> packs = {

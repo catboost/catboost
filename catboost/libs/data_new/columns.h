@@ -1,6 +1,7 @@
 #pragma once
 
 #include "exclusive_feature_bundling.h"
+#include "feature_grouping.h"
 #include "features_layout.h"
 #include "packed_binary_features.h"
 
@@ -38,7 +39,8 @@ namespace NCB {
         StringText,                 //unoptimized text feature
         TokenizedText,              //32 bits for each token in string
         BinaryPack,                 //aggregate of binary features
-        ExclusiveFeatureBundle      //aggregate of exclusive quantized features
+        ExclusiveFeatureBundle,     //aggregate of exclusive quantized features
+        FeaturesGroup               //aggregate of several quantized float features
     };
 
     using TFeaturesArraySubsetIndexing = TArraySubsetIndexing<ui32>;
@@ -77,6 +79,7 @@ namespace NCB {
                     return EFeatureType::Text;
                 case EFeatureValuesType::BinaryPack:
                 case EFeatureValuesType::ExclusiveFeatureBundle:
+                case EFeatureValuesType::FeaturesGroup:
                     CB_ENSURE_INTERNAL(false, "GetFeatureType called for Aggregate type");
             }
             Y_FAIL("This place should be inaccessible");
@@ -427,6 +430,78 @@ namespace NCB {
         NCB::TBoundsInBundle BoundsInBundle;
     };
 
+    using TFeaturesGroupHolder
+        = TTypedFeatureValuesHolder<ui8, EFeatureValuesType::FeaturesGroup>;
+    using TFeaturesGroupArrayHolder
+        = TCompressedValuesHolderImpl<ui8, EFeatureValuesType::FeaturesGroup>;
+
+    template <class T, EFeatureValuesType TType> // T - is always ui8 now
+    class TFeaturesGroupPartValuesHolderImpl : public TTypedFeatureValuesHolder<T, TType> {
+    public:
+        using TBase = TTypedFeatureValuesHolder<T, TType>;
+
+    public:
+        TFeaturesGroupPartValuesHolderImpl(ui32 featureId,
+                                           const TFeaturesGroupHolder* groupData,
+                                           ui32 inGroupIdx)
+            : TBase(featureId, groupData->GetSize())
+            , GroupData(groupData)
+            , GroupSizeInBytes(0) // inited below
+            , InGroupIdx(inGroupIdx)
+        {
+            CB_ENSURE_INTERNAL(groupData, "groupData is empty");
+            ui32 bitsPerKey;
+            if (const auto* denseData = dynamic_cast<const TFeaturesGroupArrayHolder*>(GroupData)) {
+                bitsPerKey = denseData->GetBitsPerKey();
+            } else {
+                CB_ENSURE_INTERNAL(false, "Unsupported groupData type");
+            }
+            CB_ENSURE_INTERNAL(
+                (bitsPerKey == CHAR_BIT) || (bitsPerKey == 2 * CHAR_BIT) || (bitsPerKey == 4 * CHAR_BIT),
+                "Unsupported " << LabeledOutput(bitsPerKey)
+            );
+            GroupSizeInBytes = bitsPerKey / CHAR_BIT;
+        }
+
+        TMaybeOwningArrayHolder<T> ExtractValues(NPar::TLocalExecutor* localExecutor) const override {
+            switch(GroupSizeInBytes) {
+                case 1:
+                    return ExtractValuesImpl<ui8>(localExecutor);
+                case 2:
+                    return ExtractValuesImpl<ui16>(localExecutor);
+                case 4:
+                    return ExtractValuesImpl<ui32>(localExecutor);
+                default:
+                    Y_UNREACHABLE();
+            }
+            Y_UNREACHABLE();
+        }
+
+    private:
+        template <typename TGroup>
+        TMaybeOwningArrayHolder<T> ExtractValuesImpl(NPar::TLocalExecutor* localExecutor) const {
+            if (const auto* bundlesArrayData = dynamic_cast<const TFeaturesGroupArrayHolder*>(GroupData)) {
+                TVector<T> dst;
+                dst.yresize(this->GetSize());
+                TArrayRef<T> dstRef(dst);
+
+                auto visitor = [dstRef, firstBitPos = InGroupIdx * CHAR_BIT](ui32 objectIdx, TGroup group) {
+                    dstRef[objectIdx] = (group >> firstBitPos);
+                };
+
+                bundlesArrayData->GetArrayData<TGroup>().ParallelForEach(visitor, localExecutor);
+
+                return TMaybeOwningArrayHolder<T>::CreateOwning(std::move(dst));
+            } else {
+                Y_FAIL("GroupsData is not TFeaturesGroupArrayData");
+            }
+        }
+
+    private:
+        const TFeaturesGroupHolder* GroupData;
+        ui32 GroupSizeInBytes;
+        ui32 InGroupIdx;
+    };
 
     using IQuantizedFloatValuesHolder = TTypedFeatureValuesHolder<ui8, EFeatureValuesType::QuantizedFloat>;
 
@@ -439,6 +514,8 @@ namespace NCB {
         = TPackedBinaryValuesHolderImpl<ui8, EFeatureValuesType::QuantizedFloat>;
     using TQuantizedFloatBundlePartValuesHolder
         = TBundlePartValuesHolderImpl<ui8, EFeatureValuesType::QuantizedFloat>;
+    using TQuantizedFloatGroupPartValuesHolder
+        = TFeaturesGroupPartValuesHolderImpl<ui8, EFeatureValuesType::QuantizedFloat>;
 
 
     using IQuantizedCatValuesHolder

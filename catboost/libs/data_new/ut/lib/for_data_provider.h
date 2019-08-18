@@ -57,6 +57,7 @@ namespace NCB {
 
         TPackedBinaryFeaturesData PackedBinaryFeaturesData;
         TExclusiveFeatureBundlesData ExclusiveFeatureBundlesData;
+        TFeatureGroupsData FeatureGroupsData;
         TMaybe<TVector<TCatFeatureUniqueValuesCounts>> CatFeatureUniqueValuesCounts;
     };
 

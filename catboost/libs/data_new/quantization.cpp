@@ -653,7 +653,7 @@ namespace NCB {
     ) {
         const ui32 objectCount = rawDataSubsetIndexing.Size();
 
-        auto isBinaryPackedOrBundled = [&] (EFeatureType featureType, ui32 perTypeFeatureIdx) {
+        auto isInAggregatedColumn = [&] (EFeatureType featureType, ui32 perTypeFeatureIdx) {
             const ui32 flatFeatureIdx = featuresLayout.GetExternalFeatureIdx(perTypeFeatureIdx, featureType);
 
             if (quantizedObjectsData
@@ -666,12 +666,17 @@ namespace NCB {
             {
                 return true;
             }
+            if (quantizedObjectsData
+                    ->FeaturesGroupsData.FlatFeatureIndexToGroupPart[flatFeatureIdx])
+            {
+                return true;
+            }
             return false;
         };
 
         featuresLayout.IterateOverAvailableFeatures<EFeatureType::Float>(
             [&] (TFloatFeatureIdx floatFeatureIdx) {
-                if (isBinaryPackedOrBundled(EFeatureType::Float, *floatFeatureIdx)) {
+                if (isInAggregatedColumn(EFeatureType::Float, *floatFeatureIdx)) {
                     return;
                 }
 
@@ -713,7 +718,7 @@ namespace NCB {
 
         featuresLayout.IterateOverAvailableFeatures<EFeatureType::Categorical>(
             [&] (TCatFeatureIdx catFeatureIdx) {
-                if (isBinaryPackedOrBundled(EFeatureType::Categorical, *catFeatureIdx)) {
+                if (isInAggregatedColumn(EFeatureType::Categorical, *catFeatureIdx)) {
                     return;
                 }
 
@@ -1226,6 +1231,148 @@ namespace NCB {
         return featuresLayout;
     }
 
+    template <typename TGroup>
+    THolder<TFeaturesGroupHolder> GroupFeatures(
+        const TFeaturesGroup& featuresGroup,
+        const TRawObjectsData& rawObjectsData,
+        const TQuantizedForCPUObjectsData& quantizedObjectsData,
+        const TFeaturesArraySubsetIndexing& rawDataSubsetIndexing,
+        const TFeaturesArraySubsetIndexing* dstSubsetIndexing,
+        NPar::TLocalExecutor* localExecutor
+    ) {
+        const ui32 bitsPerKey = sizeof(TGroup) * CHAR_BIT;
+        const ui32 objectCount = rawDataSubsetIndexing.Size();
+        TCompressedArray dstStorage
+            = TCompressedArray::CreateWithUninitializedData(objectCount, bitsPerKey);
+
+        auto dstData = (TGroup*)dstStorage.GetRawPtr();
+
+        TConstArrayRef<TFeaturesGroupPart> parts = featuresGroup.Parts;
+        const TQuantizedFeaturesInfo& quantizedFeaturesInfo = *quantizedObjectsData.Data.QuantizedFeaturesInfo;
+
+        TVector<TGetBinFunction> getBinFunctions;
+        for (auto partIdx : xrange(parts.size())) {
+            getBinFunctions.push_back(
+                GetQuantizedFloatFeatureFunction(
+                    rawObjectsData,
+                    quantizedFeaturesInfo,
+                    TFloatFeatureIdx(parts[partIdx].FeatureIdx)
+                )
+            );
+        }
+        TConstArrayRef<TGetBinFunction> getBinFunctionsRef(getBinFunctions);
+
+        rawDataSubsetIndexing.ParallelForEach(
+            [dstData, parts, getBinFunctionsRef] (ui32 idx, ui32 srcIdx) {
+                TGroup value = 0;
+                for (auto partIdx : xrange(parts.size())) {
+                    const ui32 bin = getBinFunctionsRef[partIdx](idx, srcIdx);
+                    value |= (bin << (partIdx * CHAR_BIT));
+                }
+                dstData[idx] = value;
+            },
+            localExecutor
+        );
+
+        return MakeHolder<TFeaturesGroupArrayHolder>(
+            0, // unused
+            std::move(dstStorage),
+            dstSubsetIndexing
+        );
+    }
+
+    static void ScheduleGroupFeatures(
+        const TFeaturesArraySubsetIndexing& rawDataSubsetIndexing,
+        bool clearSrcObjectsData,
+        const TFeaturesArraySubsetIndexing* quantizedDataSubsetIndexing,
+        NPar::TLocalExecutor* localExecutor,
+        TResourceConstrainedExecutor* resourceConstrainedExecutor,
+        TRawObjectsData* rawObjectsData,
+        TQuantizedForCPUObjectsData* quantizedObjectsData
+    ) {
+        const auto& metaData = quantizedObjectsData->FeaturesGroupsData.MetaData;
+
+        const auto groupsCount = metaData.size();
+        quantizedObjectsData->FeaturesGroupsData.SrcData.resize(groupsCount);
+
+        const ui32 objectCount = rawDataSubsetIndexing.Size();
+
+        for (auto groupIdx : xrange(groupsCount)) {
+            resourceConstrainedExecutor->Add(
+                {
+                    objectCount * metaData[groupIdx].GetSizeInBytes(),
+
+                    [rawDataSubsetIndexingPtr = &rawDataSubsetIndexing,
+                        clearSrcObjectsData,
+                        quantizedDataSubsetIndexing,
+                        localExecutor,
+                        rawObjectsData,
+                        quantizedObjectsData,
+                        groupIdx] () {
+
+                        auto& featuresGroupsData = quantizedObjectsData->FeaturesGroupsData;
+                        const auto& groupMetadata = featuresGroupsData.MetaData[groupIdx];
+                        auto& groupData = featuresGroupsData.SrcData[groupIdx];
+
+                        switch(groupMetadata.GetSizeInBytes()) {
+                            case 1:
+                                groupData = GroupFeatures<ui8>(
+                                    groupMetadata,
+                                    *rawObjectsData,
+                                    *quantizedObjectsData,
+                                    *rawDataSubsetIndexingPtr,
+                                    quantizedDataSubsetIndexing,
+                                    localExecutor
+                                );
+                                break;
+                            case 2:
+                                groupData = GroupFeatures<ui16>(
+                                    groupMetadata,
+                                    *rawObjectsData,
+                                    *quantizedObjectsData,
+                                    *rawDataSubsetIndexingPtr,
+                                    quantizedDataSubsetIndexing,
+                                    localExecutor
+                                );
+                                break;
+                            case 4:
+                                groupData = GroupFeatures<ui32>(
+                                    groupMetadata,
+                                    *rawObjectsData,
+                                    *quantizedObjectsData,
+                                    *rawDataSubsetIndexingPtr,
+                                    quantizedDataSubsetIndexing,
+                                    localExecutor
+                                );
+                                break;
+                            default:
+                                CB_ENSURE_INTERNAL(
+                                    false,
+                                    "Unsupported featuresGroup size: " << groupMetadata.GetSizeInBytes());
+                        }
+
+                        for (auto partIdx : xrange(groupMetadata.Parts.size())) {
+                            const auto& part = groupMetadata.Parts[partIdx];
+                            if (part.FeatureType == EFeatureType::Float) {
+                                quantizedObjectsData->Data.FloatFeatures[part.FeatureIdx] =
+                                    MakeHolder<TQuantizedFloatGroupPartValuesHolder>(
+                                        rawObjectsData->FloatFeatures[part.FeatureIdx]->GetId(),
+                                        groupData.Get(),
+                                        partIdx
+                                    );
+                                if (clearSrcObjectsData) {
+                                    rawObjectsData->FloatFeatures[part.FeatureIdx].Destroy();
+                                }
+                            } else {
+                                CB_ENSURE(false, "Feature grouping is not supported for features of type " << part.FeatureType);
+                            }
+                        }
+                    }
+                }
+            );
+        }
+    }
+
 
     // this is a helper class needed for friend declarations
     class TQuantizationImpl {
@@ -1294,6 +1441,9 @@ namespace NCB {
                     flatFeatureCount
                 );
                 data->ObjectsData.ExclusiveFeatureBundlesData.FlatFeatureIndexToBundlePart.resize(
+                    flatFeatureCount
+                );
+                data->ObjectsData.FeaturesGroupsData.FlatFeatureIndexToGroupPart.resize(
                     flatFeatureCount
                 );
 
@@ -1477,6 +1627,18 @@ namespace NCB {
                     data->ObjectsData.ExclusiveFeatureBundlesData
                 );
             }
+            if (options.CpuCompatibleFormat && options.GroupFeaturesForCpu) {
+                data->ObjectsData.FeaturesGroupsData = TFeatureGroupsData(
+                    *featuresLayout,
+                    CreateFeatureGroups(
+                        *featuresLayout,
+                        *data->ObjectsData.Data.QuantizedFeaturesInfo,
+                        data->ObjectsData.ExclusiveFeatureBundlesData.FlatFeatureIndexToBundlePart,
+                        data->ObjectsData.PackedBinaryFeaturesData.FlatFeatureIndexToPackedBinaryIndex,
+                        options.FeaturesGroupingOptions
+                    )
+                );
+            }
 
             {
                 ui64 cpuRamUsage = NMemInfo::GetMemInfo().RSS;
@@ -1518,6 +1680,18 @@ namespace NCB {
 
                 if (options.CpuCompatibleFormat && options.PackBinaryFeaturesForCpu) {
                     ScheduleBinarizeFeatures(
+                        *(srcObjectsCommonData.SubsetIndexing),
+                        clearSrcObjectsData,
+                        subsetIndexing.Get(),
+                        localExecutor,
+                        &resourceConstrainedExecutor,
+                        &rawDataProvider->ObjectsData->Data,
+                        &data->ObjectsData
+                    );
+                }
+
+                if (options.CpuCompatibleFormat && options.GroupFeaturesForCpu) {
+                    ScheduleGroupFeatures(
                         *(srcObjectsCommonData.SubsetIndexing),
                         clearSrcObjectsData,
                         subsetIndexing.Get(),
