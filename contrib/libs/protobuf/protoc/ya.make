@@ -42,7 +42,6 @@ SRCS(
     cpp_primitive_field.cc
     cpp_service.cc
     cpp_string_field.cc
-    importer.cc
     java_context.cc
     java_doc_comment.cc
     java_enum.cc
@@ -74,8 +73,6 @@ SRCS(
     java_string_field.cc
     java_string_field_lite.cc
     js_generator.cc
-    main.cc
-    parser.cc
     perlxs_generator.cc
     perlxs_helpers.cc
     plugin.cc
