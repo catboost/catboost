@@ -4,6 +4,9 @@
 #include "fs.h"
 
 #include <library/unittest/registar.h>
+#include <library/unittest/tests_data.h>
+
+#include <util/folder/path.h>
 
 Y_UNIT_TEST_SUITE(TestFileStat) {
     Y_UNIT_TEST(FileTest) {
@@ -57,6 +60,77 @@ Y_UNIT_TEST_SUITE(TestFileStat) {
         UNIT_ASSERT(!fs.IsSymlink());
         UNIT_ASSERT(fs.Size == 0);
         UNIT_ASSERT(fs.CTime == 0);
+    }
+
+    Y_UNIT_TEST(SymlinkToExistingFileTest) {
+        const auto path = GetOutputPath() / "file_1";
+        const auto link = GetOutputPath() / "symlink_1";
+        TFile(path, EOpenModeFlag::CreateNew | EOpenModeFlag::RdWr);
+        UNIT_ASSERT(NFs::SymLink(path, link));
+
+        const TFileStat statNoFollow(link, false);
+        UNIT_ASSERT_VALUES_EQUAL_C(false, statNoFollow.IsNull(), ToString(statNoFollow.Mode));
+        UNIT_ASSERT_VALUES_EQUAL_C(true, statNoFollow.IsFile(), ToString(statNoFollow.Mode));
+        UNIT_ASSERT_VALUES_EQUAL_C(false, statNoFollow.IsSymlink(), ToString(statNoFollow.Mode));
+        UNIT_ASSERT_VALUES_EQUAL_C(false, statNoFollow.IsDir(), ToString(statNoFollow.Mode));
+
+        const TFileStat statFollow(link, true);
+        UNIT_ASSERT_VALUES_EQUAL_C(false, statFollow.IsNull(), ToString(statFollow.Mode));
+        UNIT_ASSERT_VALUES_EQUAL_C(false, statFollow.IsFile(), ToString(statFollow.Mode));
+        UNIT_ASSERT_VALUES_EQUAL_C(true, statFollow.IsSymlink(), ToString(statFollow.Mode));
+        UNIT_ASSERT_VALUES_EQUAL_C(false, statFollow.IsDir(), ToString(statFollow.Mode));
+    }
+
+    Y_UNIT_TEST(SymlinkToNonExistingFileTest) {
+        const auto path = GetOutputPath() / "file_2";
+        const auto link = GetOutputPath() / "symlink_2";
+        UNIT_ASSERT(NFs::SymLink(path, link));
+
+        const TFileStat statNoFollow(link, false);
+        UNIT_ASSERT_VALUES_EQUAL_C(true, statNoFollow.IsNull(), ToString(statNoFollow.Mode));
+        UNIT_ASSERT_VALUES_EQUAL_C(false, statNoFollow.IsFile(), ToString(statNoFollow.Mode));
+        UNIT_ASSERT_VALUES_EQUAL_C(false, statNoFollow.IsSymlink(), ToString(statNoFollow.Mode));
+        UNIT_ASSERT_VALUES_EQUAL_C(false, statNoFollow.IsDir(), ToString(statNoFollow.Mode));
+
+        const TFileStat statFollow(link, true);
+        UNIT_ASSERT_VALUES_EQUAL_C(false, statFollow.IsNull(), ToString(statFollow.Mode));
+        UNIT_ASSERT_VALUES_EQUAL_C(false, statFollow.IsFile(), ToString(statFollow.Mode));
+        UNIT_ASSERT_VALUES_EQUAL_C(true, statFollow.IsSymlink(), ToString(statFollow.Mode));
+        UNIT_ASSERT_VALUES_EQUAL_C(false, statFollow.IsDir(), ToString(statFollow.Mode));
+    }
+
+    Y_UNIT_TEST(SymlinkToFileThatCantExistTest) {
+        const auto path = TFsPath("/path") / "that" / "does" / "not" / "exists";
+        const auto link = GetOutputPath() / "symlink_3";
+        UNIT_ASSERT(NFs::SymLink(path, link));
+
+        const TFileStat statNoFollow(link, false);
+        UNIT_ASSERT_VALUES_EQUAL_C(true, statNoFollow.IsNull(), ToString(statNoFollow.Mode));
+        UNIT_ASSERT_VALUES_EQUAL_C(false, statNoFollow.IsFile(), ToString(statNoFollow.Mode));
+        UNIT_ASSERT_VALUES_EQUAL_C(false, statNoFollow.IsSymlink(), ToString(statNoFollow.Mode));
+        UNIT_ASSERT_VALUES_EQUAL_C(false, statNoFollow.IsDir(), ToString(statNoFollow.Mode));
+
+        const TFileStat statFollow(link, true);
+        UNIT_ASSERT_VALUES_EQUAL_C(false, statFollow.IsNull(), ToString(statFollow.Mode));
+        UNIT_ASSERT_VALUES_EQUAL_C(false, statFollow.IsFile(), ToString(statFollow.Mode));
+        UNIT_ASSERT_VALUES_EQUAL_C(true, statFollow.IsSymlink(), ToString(statFollow.Mode));
+        UNIT_ASSERT_VALUES_EQUAL_C(false, statFollow.IsDir(), ToString(statFollow.Mode));
+    }
+
+    Y_UNIT_TEST(FileDoesNotExistTest) {
+        const auto path = TFsPath("/path") / "that" / "does" / "not" / "exists";
+
+        const TFileStat statNoFollow(path, false);
+        UNIT_ASSERT_VALUES_EQUAL_C(true, statNoFollow.IsNull(), ToString(statNoFollow.Mode));
+        UNIT_ASSERT_VALUES_EQUAL_C(false, statNoFollow.IsFile(), ToString(statNoFollow.Mode));
+        UNIT_ASSERT_VALUES_EQUAL_C(false, statNoFollow.IsSymlink(), ToString(statNoFollow.Mode));
+        UNIT_ASSERT_VALUES_EQUAL_C(false, statNoFollow.IsDir(), ToString(statNoFollow.Mode));
+
+        const TFileStat statFollow(path, true);
+        UNIT_ASSERT_VALUES_EQUAL_C(true, statFollow.IsNull(), ToString(statFollow.Mode));
+        UNIT_ASSERT_VALUES_EQUAL_C(false, statFollow.IsFile(), ToString(statFollow.Mode));
+        UNIT_ASSERT_VALUES_EQUAL_C(false, statFollow.IsSymlink(), ToString(statFollow.Mode));
+        UNIT_ASSERT_VALUES_EQUAL_C(false, statFollow.IsDir(), ToString(statFollow.Mode));
     }
 
 } // TestFileStat

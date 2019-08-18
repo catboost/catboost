@@ -129,23 +129,23 @@ TFileStat::TFileStat(const char* fileName, bool nofollow) {
     MakeFromFileName(fileName, nofollow);
 }
 
-bool TFileStat::IsNull() const {
+bool TFileStat::IsNull() const noexcept {
     return *this == TFileStat();
 }
 
-bool TFileStat::IsFile() const {
+bool TFileStat::IsFile() const noexcept {
     return S_ISREG(Mode);
 }
 
-bool TFileStat::IsDir() const {
+bool TFileStat::IsDir() const noexcept {
     return S_ISDIR(Mode);
 }
 
-bool TFileStat::IsSymlink() const {
+bool TFileStat::IsSymlink() const noexcept {
     return S_ISLNK(Mode);
 }
 
-bool operator==(const TFileStat& l, const TFileStat& r) {
+bool operator==(const TFileStat& l, const TFileStat& r) noexcept {
     return l.Mode == r.Mode &&
            l.Uid == r.Uid &&
            l.Gid == r.Gid &&
@@ -156,7 +156,7 @@ bool operator==(const TFileStat& l, const TFileStat& r) {
            l.CTime == r.CTime;
 }
 
-bool operator!=(const TFileStat& l, const TFileStat& r) {
+bool operator!=(const TFileStat& l, const TFileStat& r) noexcept {
     return !(l == r);
 }
 

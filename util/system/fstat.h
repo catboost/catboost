@@ -22,11 +22,11 @@ struct TFileStat {
 public:
     TFileStat();
 
-    bool IsNull() const;
+    bool IsNull() const noexcept;
 
-    bool IsFile() const;
-    bool IsDir() const;
-    bool IsSymlink() const;
+    bool IsFile() const noexcept;
+    bool IsDir() const noexcept;
+    bool IsSymlink() const noexcept;
 
     explicit TFileStat(const TFile& f);
     explicit TFileStat(FHANDLE f);
@@ -34,8 +34,8 @@ public:
     TFileStat(const TString& fileName, bool nofollow = false);
     TFileStat(const char* fileName, bool nofollow = false);
 
-    friend bool operator==(const TFileStat& l, const TFileStat& r);
-    friend bool operator!=(const TFileStat& l, const TFileStat& r);
+    friend bool operator==(const TFileStat& l, const TFileStat& r) noexcept;
+    friend bool operator!=(const TFileStat& l, const TFileStat& r) noexcept;
 
 private:
     void MakeFromFileName(const char* fileName, bool nofollow);
