@@ -93,8 +93,6 @@ def module_table_write(module_blobs, module_table_file):
     module_table_file.write("\t{0, 0, 0}\n};\n")
     module_table_file.write("\nstruct _frozen *PyImport_FrozenModules = _PyImport_FrozenModules;\n")
 
-    module_table_file.write("\nPy_FrozenFlag = 1;\n")
-
 
 def load_module_list(module_list_path):
     return [line.strip() for line in open(module_list_path)]
