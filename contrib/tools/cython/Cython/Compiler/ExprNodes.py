@@ -198,11 +198,14 @@ def make_dedup_key(outer_type, item_nodes):
     @return: A tuple that can be used as a dict key for deduplication.
     """
     item_keys = [
-        (py_object_type, None) if node is None
-        else make_dedup_key(node.type, node.args) if node.is_sequence_constructor
+        (py_object_type, None, type(None)) if node is None
+        # For sequences and their "mult_factor", see TupleNode.
+        else make_dedup_key(node.type, [node.mult_factor if node.is_literal else None] + node.args) if node.is_sequence_constructor
         else make_dedup_key(node.type, (node.start, node.stop, node.step)) if node.is_slice
-        else (node.type, node.constant_result) if node.has_constant_result()
-        else None
+        # For constants, look at the Python value type if we don't know the concrete Cython type.
+        else (node.type, node.constant_result,
+              type(node.constant_result) if node.type is py_object_type else None) if node.has_constant_result()
+        else None  # something we cannot handle => short-circuit below
         for node in item_nodes
     ]
     if None in item_keys:
@@ -1206,6 +1209,10 @@ class BoolNode(ConstNode):
             return str(int(self.value))
 
     def coerce_to(self, dst_type, env):
+        if dst_type == self.type:
+            return self
+        if dst_type is py_object_type and self.type is Builtin.bool_type:
+            return self
         if dst_type.is_pyobject and self.type.is_int:
             return BoolNode(
                 self.pos, value=self.value,
@@ -1630,7 +1637,7 @@ class UnicodeNode(ConstNode):
                         self.result_code,
                         data_cname,
                         data_cname,
-                        code.error_goto_if_null(self.result_code, self.pos)))
+                        const_code.error_goto_if_null(self.result_code, self.pos)))
                 const_code.put_error_if_neg(
                     self.pos, "__Pyx_PyUnicode_READY(%s)" % self.result_code)
             else:
@@ -7989,7 +7996,9 @@ class TupleNode(SequenceNode):
             return
 
         if self.is_literal or self.is_partly_literal:
-            dedup_key = make_dedup_key(self.type, self.args) if self.is_literal else None
+            # The "mult_factor" is part of the deduplication if it is also constant, i.e. when
+            # we deduplicate the multiplied result.  Otherwise, only deduplicate the constant part.
+            dedup_key = make_dedup_key(self.type, [self.mult_factor if self.is_literal else None] + self.args)
             tuple_target = code.get_py_const(py_object_type, 'tuple', cleanup_level=2, dedup_key=dedup_key)
             const_code = code.get_cached_constants_writer(tuple_target)
             if const_code is not None:
@@ -9457,7 +9466,8 @@ class PyCFunctionNode(ExprNode, ModuleNameMixin):
         if self.defaults_kwdict:
             code.putln('__Pyx_CyFunction_SetDefaultsKwDict(%s, %s);' % (
                 self.result(), self.defaults_kwdict.py_result()))
-        if def_node.defaults_getter:
+        if def_node.defaults_getter and not self.specialized_cpdefs:
+            # Fused functions do not support dynamic defaults, only their specialisations can have them for now.
             code.putln('__Pyx_CyFunction_SetDefaultsGetter(%s, %s);' % (
                 self.result(), def_node.defaults_getter.entry.pyfunc_cname))
         if self.annotations_dict:
@@ -10424,7 +10434,8 @@ class TypecastNode(ExprNode):
                         error(self.pos, "Python objects cannot be cast from pointers of primitive types")
                 else:
                     # Should this be an error?
-                    warning(self.pos, "No conversion from %s to %s, python object pointer used." % (self.operand.type, self.type))
+                    warning(self.pos, "No conversion from %s to %s, python object pointer used." % (
+                        self.operand.type, self.type))
                 self.operand = self.operand.coerce_to_simple(env)
         elif from_py and not to_py:
             if self.type.create_from_py_utility_code(env):
@@ -10433,7 +10444,8 @@ class TypecastNode(ExprNode):
                 if not (self.type.base_type.is_void or self.type.base_type.is_struct):
                     error(self.pos, "Python objects cannot be cast to pointers of primitive types")
             else:
-                warning(self.pos, "No conversion from %s to %s, python object pointer used." % (self.type, self.operand.type))
+                warning(self.pos, "No conversion from %s to %s, python object pointer used." % (
+                    self.type, self.operand.type))
         elif from_py and to_py:
             if self.typecheck:
                 self.operand = PyTypeTestNode(self.operand, self.type, env, notnone=True)
@@ -10445,6 +10457,13 @@ class TypecastNode(ExprNode):
         elif self.operand.type.is_fused:
             self.operand = self.operand.coerce_to(self.type, env)
             #self.type = self.operand.type
+        if self.type.is_ptr and self.type.base_type.is_cfunction and self.type.base_type.nogil:
+            op_type = self.operand.type
+            if op_type.is_ptr:
+                op_type = op_type.base_type
+            if op_type.is_cfunction and not op_type.nogil:
+                warning(self.pos,
+                        "Casting a GIL-requiring function into a nogil function circumvents GIL validation", 1)
         return self
 
     def is_simple(self):
@@ -11515,7 +11534,7 @@ class DivNode(NumBinopNode):
                 self.operand2 = self.operand2.coerce_to_simple(env)
 
     def compute_c_result_type(self, type1, type2):
-        if self.operator == '/' and self.ctruedivision:
+        if self.operator == '/' and self.ctruedivision and not type1.is_cpp_class and not type2.is_cpp_class:
             if not type1.is_float and not type2.is_float:
                 widest_type = PyrexTypes.widest_numeric_type(type1, PyrexTypes.c_double_type)
                 widest_type = PyrexTypes.widest_numeric_type(type2, widest_type)
@@ -11531,9 +11550,11 @@ class DivNode(NumBinopNode):
     def generate_evaluation_code(self, code):
         if not self.type.is_pyobject and not self.type.is_complex:
             if self.cdivision is None:
-                self.cdivision = (code.globalstate.directives['cdivision']
-                                    or not self.type.signed
-                                    or self.type.is_float)
+                self.cdivision = (
+                    code.globalstate.directives['cdivision']
+                    or self.type.is_float
+                    or ((self.type.is_numeric or self.type.is_enum) and not self.type.signed)
+                )
             if not self.cdivision:
                 code.globalstate.use_utility_code(
                     UtilityCode.load_cached("DivInt", "CMath.c").specialize(self.type))
@@ -11604,7 +11625,7 @@ class DivNode(NumBinopNode):
                 code.putln("}")
 
     def calculate_result_code(self):
-        if self.type.is_complex:
+        if self.type.is_complex or self.is_cpp_operation():
             return NumBinopNode.calculate_result_code(self)
         elif self.type.is_float and self.operator == '//':
             return "floor(%s / %s)" % (

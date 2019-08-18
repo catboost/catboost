@@ -2624,7 +2624,8 @@ class MarkClosureVisitor(CythonTransform):
             pos=node.pos, name=node.name, args=node.args,
             star_arg=node.star_arg, starstar_arg=node.starstar_arg,
             doc=node.doc, decorators=node.decorators,
-            gbody=gbody, lambda_name=node.lambda_name)
+            gbody=gbody, lambda_name=node.lambda_name,
+            return_type_annotation=node.return_type_annotation)
         return coroutine
 
     def visit_CFuncDefNode(self, node):
@@ -2714,9 +2715,12 @@ class CreateClosureClasses(CythonTransform):
             node.needs_outer_scope = True
             return
 
+        # entry.cname can contain periods (eg. a derived C method of a class).
+        # We want to use the cname as part of a C struct name, so we replace
+        # periods with double underscores.
         as_name = '%s_%s' % (
             target_module_scope.next_id(Naming.closure_class_prefix),
-            node.entry.cname)
+            node.entry.cname.replace('.','__'))
 
         entry = target_module_scope.declare_c_class(
             name=as_name, pos=node.pos, defining=True,

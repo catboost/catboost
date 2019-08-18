@@ -731,6 +731,9 @@ static PyTypeObject __pyx_CyFunctionType_type = {
 #if PY_VERSION_HEX >= 0x030400a1
     0,                                  /*tp_finalize*/
 #endif
+#if PY_VERSION_HEX >= 0x030800b1
+    0,                                  /*tp_vectorcall*/
+#endif
 };
 
 
@@ -1204,6 +1207,9 @@ static PyTypeObject __pyx_FusedFunctionType_type = {
 #if PY_VERSION_HEX >= 0x030400a1
     0,                                  /*tp_finalize*/
 #endif
+#if PY_VERSION_HEX >= 0x030800b1
+    0,                                  /*tp_vectorcall*/
+#endif
 };
 
 static int __pyx_FusedFunction_init(void) {
@@ -1217,7 +1223,7 @@ static int __pyx_FusedFunction_init(void) {
 //////////////////// ClassMethod.proto ////////////////////
 
 #include "descrobject.h"
-static PyObject* __Pyx_Method_ClassMethod(PyObject *method); /*proto*/
+static CYTHON_UNUSED PyObject* __Pyx_Method_ClassMethod(PyObject *method); /*proto*/
 
 //////////////////// ClassMethod ////////////////////
 

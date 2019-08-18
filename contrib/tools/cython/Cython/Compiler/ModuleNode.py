@@ -694,10 +694,13 @@ class ModuleNode(Nodes.Node, Nodes.BlockNode):
         if c_string_type not in ('bytes', 'bytearray') and not c_string_encoding:
             error(self.pos, "a default encoding must be provided if c_string_type is not a byte type")
         code.putln('#define __PYX_DEFAULT_STRING_ENCODING_IS_ASCII %s' % int(c_string_encoding == 'ascii'))
+        code.putln('#define __PYX_DEFAULT_STRING_ENCODING_IS_UTF8 %s' %
+                int(c_string_encoding.replace('-', '').lower() == 'utf8'))
         if c_string_encoding == 'default':
             code.putln('#define __PYX_DEFAULT_STRING_ENCODING_IS_DEFAULT 1')
         else:
-            code.putln('#define __PYX_DEFAULT_STRING_ENCODING_IS_DEFAULT 0')
+            code.putln('#define __PYX_DEFAULT_STRING_ENCODING_IS_DEFAULT '
+                    '(PY_MAJOR_VERSION >= 3 && __PYX_DEFAULT_STRING_ENCODING_IS_UTF8)')
             code.putln('#define __PYX_DEFAULT_STRING_ENCODING "%s"' % c_string_encoding)
         if c_string_type == 'bytearray':
             c_string_func_name = 'ByteArray'
@@ -2706,11 +2709,11 @@ class ModuleNode(Nodes.Node, Nodes.BlockNode):
 #            if entry.type.is_pyobject and entry.used:
 #                code.putln("Py_DECREF(%s); %s = 0;" % (
 #                    code.entry_as_pyobject(entry), entry.cname))
-        code.putln('#if CYTHON_COMPILING_IN_PYPY')
-        code.putln('Py_CLEAR(%s);' % Naming.builtins_cname)
-        code.putln('#endif')
-        code.put_decref_clear(env.module_dict_cname, py_object_type,
-                              nanny=False, clear_before_decref=True)
+        if Options.pre_import is not None:
+            code.put_decref_clear(Naming.preimport_cname, py_object_type,
+                                  nanny=False, clear_before_decref=True)
+        for cname in [env.module_dict_cname, Naming.cython_runtime_cname, Naming.builtins_cname]:
+            code.put_decref_clear(cname, py_object_type, nanny=False, clear_before_decref=True)
 
     def generate_main_method(self, env, code):
         module_is_main = "%s%s" % (Naming.module_is_main, self.full_module_name.replace('.', '__'))
@@ -2817,13 +2820,12 @@ class ModuleNode(Nodes.Node, Nodes.BlockNode):
             '%s = PyImport_AddModule(__Pyx_BUILTIN_MODULE_NAME); %s' % (
                 Naming.builtins_cname,
                 code.error_goto_if_null(Naming.builtins_cname, self.pos)))
+        code.put_incref(Naming.builtins_cname, py_object_type, nanny=False)
         code.putln(
             '%s = PyImport_AddModule((char *) "cython_runtime"); %s' % (
                 Naming.cython_runtime_cname,
                 code.error_goto_if_null(Naming.cython_runtime_cname, self.pos)))
-        code.putln('#if CYTHON_COMPILING_IN_PYPY')
-        code.putln('Py_INCREF(%s);' % Naming.builtins_cname)
-        code.putln('#endif')
+        code.put_incref(Naming.cython_runtime_cname, py_object_type, nanny=False)
         code.putln(
             'if (PyObject_SetAttrString(%s, "__builtins__", %s) < 0) %s;' % (
                 env.module_cname,
@@ -2835,6 +2837,7 @@ class ModuleNode(Nodes.Node, Nodes.BlockNode):
                     Naming.preimport_cname,
                     Options.pre_import,
                     code.error_goto_if_null(Naming.preimport_cname, self.pos)))
+            code.put_incref(Naming.preimport_cname, py_object_type, nanny=False)
 
     def generate_global_init_code(self, env, code):
         # Generate code to initialise global PyObject *

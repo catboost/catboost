@@ -2653,6 +2653,9 @@ class CFuncDefNode(FuncDefNode):
                 self.generate_arg_none_check(arg, code)
 
     def generate_execution_code(self, code):
+        if code.globalstate.directives['linetrace']:
+            code.mark_pos(self.pos)
+            code.putln("")  # generate line tracing code
         super(CFuncDefNode, self).generate_execution_code(code)
         if self.py_func_stat:
             self.py_func_stat.generate_execution_code(code)
@@ -3443,8 +3446,8 @@ class DefNodeWrapper(FuncDefNode):
             if docstr.is_unicode:
                 docstr = docstr.as_utf8_string()
 
-            code.putln(
-                'static char %s[] = %s;' % (
+            if not (entry.is_special and entry.name in ('__getbuffer__', '__releasebuffer__')):
+                code.putln('static char %s[] = %s;' % (
                     entry.doc_cname,
                     docstr.as_c_string_literal()))
 
@@ -4355,22 +4358,19 @@ class OverrideCheckNode(StatNode):
                        " || (Py_TYPE(%s)->tp_flags & (Py_TPFLAGS_IS_ABSTRACT | Py_TPFLAGS_HEAPTYPE)))) {" % (
                 self_arg, self_arg))
 
-        code.putln("#if CYTHON_USE_DICT_VERSIONS && CYTHON_USE_PYTYPE_LOOKUP")
+        code.putln("#if CYTHON_USE_DICT_VERSIONS && CYTHON_USE_PYTYPE_LOOKUP && CYTHON_USE_TYPE_SLOTS")
+        code.globalstate.use_utility_code(
+            UtilityCode.load_cached("PyDictVersioning", "ObjectHandling.c"))
         # TODO: remove the object dict version check by 'inlining' the getattr implementation for methods.
         # This would allow checking the dict versions around _PyType_Lookup() if it returns a descriptor,
         # and would (tada!) make this check a pure type based thing instead of supporting only a single
         # instance at a time.
-        code.putln("static PY_UINT64_T tp_dict_version = 0, obj_dict_version = 0;")
-        code.putln("if (likely("
-                   "Py_TYPE(%s)->tp_dict && "
-                   "tp_dict_version == __PYX_GET_DICT_VERSION(Py_TYPE(%s)->tp_dict) && "
-                   "(!Py_TYPE(%s)->tp_dictoffset || "
-                   "obj_dict_version == __PYX_GET_DICT_VERSION(_PyObject_GetDictPtr(%s)))"
-                   "));" % (
-            self_arg, self_arg, self_arg, self_arg))
-        code.putln("else {")
-        code.putln("PY_UINT64_T type_dict_guard = (likely(Py_TYPE(%s)->tp_dict)) ? __PYX_GET_DICT_VERSION(Py_TYPE(%s)->tp_dict) : 0;" % (
-            self_arg, self_arg))
+        code.putln("static PY_UINT64_T %s = __PYX_DICT_VERSION_INIT, %s = __PYX_DICT_VERSION_INIT;" % (
+            Naming.tp_dict_version_temp, Naming.obj_dict_version_temp))
+        code.putln("if (unlikely(!__Pyx_object_dict_version_matches(%s, %s, %s))) {" % (
+            self_arg, Naming.tp_dict_version_temp, Naming.obj_dict_version_temp))
+        code.putln("PY_UINT64_T %s = __Pyx_get_tp_dict_version(%s);" % (
+            Naming.type_dict_guard_temp, self_arg))
         code.putln("#endif")
 
         func_node_temp = code.funcstate.allocate_temp(py_object_type, manage_ref=True)
@@ -4393,27 +4393,27 @@ class OverrideCheckNode(StatNode):
         # NOTE: it's not 100% sure that we catch the exact versions here that were used for the lookup,
         # but it is very unlikely that the versions change during lookup, and the type dict safe guard
         # should increase the chance of detecting such a case.
-        code.putln("#if CYTHON_USE_DICT_VERSIONS && CYTHON_USE_PYTYPE_LOOKUP")
-        code.putln("tp_dict_version = likely(Py_TYPE(%s)->tp_dict) ?"
-                   " __PYX_GET_DICT_VERSION(Py_TYPE(%s)->tp_dict) : 0;" % (
-            self_arg, self_arg))
-        code.putln("obj_dict_version = likely(Py_TYPE(%s)->tp_dictoffset) ?"
-                   " __PYX_GET_DICT_VERSION(_PyObject_GetDictPtr(%s)) : 0;" % (
-            self_arg, self_arg))
+        code.putln("#if CYTHON_USE_DICT_VERSIONS && CYTHON_USE_PYTYPE_LOOKUP && CYTHON_USE_TYPE_SLOTS")
+        code.putln("%s = __Pyx_get_tp_dict_version(%s);" % (
+            Naming.tp_dict_version_temp, self_arg))
+        code.putln("%s = __Pyx_get_object_dict_version(%s);" % (
+            Naming.obj_dict_version_temp, self_arg))
         # Safety check that the type dict didn't change during the lookup.  Since CPython looks up the
         # attribute (descriptor) first in the type dict and then in the instance dict or through the
         # descriptor, the only really far-away lookup when we get here is one in the type dict. So we
         # double check the type dict version before and afterwards to guard against later changes of
         # the type dict during the lookup process.
-        code.putln("if (unlikely(type_dict_guard != tp_dict_version)) {")
-        code.putln("tp_dict_version = obj_dict_version = 0;")
+        code.putln("if (unlikely(%s != %s)) {" % (
+            Naming.type_dict_guard_temp, Naming.tp_dict_version_temp))
+        code.putln("%s = %s = __PYX_DICT_VERSION_INIT;" % (
+            Naming.tp_dict_version_temp, Naming.obj_dict_version_temp))
         code.putln("}")
         code.putln("#endif")
 
         code.put_decref_clear(func_node_temp, PyrexTypes.py_object_type)
         code.funcstate.release_temp(func_node_temp)
 
-        code.putln("#if CYTHON_USE_DICT_VERSIONS && CYTHON_USE_PYTYPE_LOOKUP")
+        code.putln("#if CYTHON_USE_DICT_VERSIONS && CYTHON_USE_PYTYPE_LOOKUP && CYTHON_USE_TYPE_SLOTS")
         code.putln("}")
         code.putln("#endif")
 
@@ -4899,7 +4899,10 @@ class CClassDefNode(ClassDefNode):
                     code.error_goto(entry.pos)))
             # Don't inherit tp_print from builtin types, restoring the
             # behavior of using tp_repr or tp_str instead.
+            # ("tp_print" was renamed to "tp_vectorcall_offset" in Py3.8b1)
+            code.putln("#if PY_VERSION_HEX < 0x030800B1")
             code.putln("%s.tp_print = 0;" % typeobj_cname)
+            code.putln("#endif")
 
             # Use specialised attribute lookup for types with generic lookup but no instance dict.
             getattr_slot_func = TypeSlots.get_slot_code_by_name(scope, 'tp_getattro')
@@ -7540,11 +7543,13 @@ class TryFinallyStatNode(StatNode):
 
         code.funcstate.in_try_finally = was_in_try_finally
         code.putln("}")
-        code.set_all_labels(old_labels)
 
         temps_to_clean_up = code.funcstate.all_free_managed_temps()
         code.mark_pos(self.finally_clause.pos)
         code.putln("/*finally:*/ {")
+
+        # Reset labels only after writing out a potential line trace call for correct nogil error handling.
+        code.set_all_labels(old_labels)
 
         def fresh_finally_clause(_next=[self.finally_clause]):
             # generate the original subtree once and always keep a fresh copy
@@ -8440,9 +8445,10 @@ class ParallelStatNode(StatNode, ParallelNode):
         Make any used temporaries private. Before the relevant code block
         code.start_collecting_temps() should have been called.
         """
-        if self.is_parallel:
-            c = self.privatization_insertion_point
+        c = self.privatization_insertion_point
+        self.privatization_insertion_point = None
 
+        if self.is_parallel:
             self.temps = temps = code.funcstate.stop_collecting_temps()
             privates, firstprivates = [], []
             for temp, type in sorted(temps):
@@ -8533,8 +8539,10 @@ class ParallelStatNode(StatNode, ParallelNode):
         If compiled without OpenMP support (at the C level), then we still have
         to acquire the GIL to decref any object temporaries.
         """
+        begin_code = self.begin_of_parallel_block
+        self.begin_of_parallel_block = None
+
         if self.error_label_used:
-            begin_code = self.begin_of_parallel_block
             end_code = code
 
             begin_code.putln("#ifdef _OPENMP")
@@ -8747,6 +8755,8 @@ class ParallelStatNode(StatNode, ParallelNode):
         the for loop.
         """
         c = self.begin_of_parallel_control_block_point
+        self.begin_of_parallel_control_block_point = None
+        self.begin_of_parallel_control_block_point_after_decls = None
 
         # Firstly, always prefer errors over returning, continue or break
         if self.error_label_used:
@@ -9096,8 +9106,6 @@ class ParallelRangeNode(ParallelStatNode):
         code.putln("if (%(step)s == 0) abort();" % fmt_dict)
 
         self.setup_parallel_control_flow_block(code) # parallel control flow block
-
-        self.control_flow_var_code_point = code.insertion_point()
 
         # Note: nsteps is private in an outer scope if present
         code.putln("%(nsteps)s = (%(stop)s - %(start)s + %(step)s - %(step)s/abs(%(step)s)) / %(step)s;" % fmt_dict)

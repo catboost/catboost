@@ -213,7 +213,7 @@
   #undef MASK
   /* Compile-time sanity check that these are indeed equal.  Github issue #2670. */
   #ifdef SIZEOF_VOID_P
-    enum { __pyx_check_sizeof_voidp = 1/(SIZEOF_VOID_P == sizeof(void*)) };
+    enum { __pyx_check_sizeof_voidp = 1 / (int)(SIZEOF_VOID_P == sizeof(void*)) };
   #endif
 #endif
 
@@ -387,8 +387,13 @@ class __Pyx_FakeReference {
   #define __Pyx_DefaultClassType PyClass_Type
 #else
   #define __Pyx_BUILTIN_MODULE_NAME "builtins"
+#if PY_VERSION_HEX >= 0x030800A4 && PY_VERSION_HEX < 0x030800B2
+  #define __Pyx_PyCode_New(a, k, l, s, f, code, c, n, v, fv, cell, fn, name, fline, lnos) \
+          PyCode_New(a, 0, k, l, s, f, code, c, n, v, fv, cell, fn, name, fline, lnos)
+#else
   #define __Pyx_PyCode_New(a, k, l, s, f, code, c, n, v, fv, cell, fn, name, fline, lnos) \
           PyCode_New(a, k, l, s, f, code, c, n, v, fv, cell, fn, name, fline, lnos)
+#endif
   #define __Pyx_DefaultClassType PyType_Type
 #endif
 
@@ -434,27 +439,6 @@ class __Pyx_FakeReference {
 #define __Pyx_PyFastCFunction_Check(func) 0
 #endif
 
-#if CYTHON_USE_DICT_VERSIONS
-#define __PYX_GET_DICT_VERSION(dict)  (((PyDictObject*)(dict))->ma_version_tag)
-#define __PYX_UPDATE_DICT_CACHE(dict, value, cache_var, version_var) \
-    (version_var) = __PYX_GET_DICT_VERSION(dict); \
-    (cache_var) = (value);
-#define __PYX_PY_DICT_LOOKUP_IF_MODIFIED(VAR, DICT, LOOKUP) { \
-        static PY_UINT64_T __pyx_dict_version = 0; \
-        static PyObject *__pyx_dict_cached_value = NULL; \
-        if (likely(__PYX_GET_DICT_VERSION(DICT) == __pyx_dict_version)) { \
-            (VAR) = __pyx_dict_cached_value; \
-        } else { \
-            (VAR) = __pyx_dict_cached_value = (LOOKUP); \
-            __pyx_dict_version = __PYX_GET_DICT_VERSION(DICT); \
-        } \
-    }
-#else
-#define __PYX_GET_DICT_VERSION(dict)  (0)
-#define __PYX_UPDATE_DICT_CACHE(dict, value, cache_var, version_var)
-#define __PYX_PY_DICT_LOOKUP_IF_MODIFIED(VAR, DICT, LOOKUP)  (VAR) = (LOOKUP);
-#endif
-
 #if CYTHON_COMPILING_IN_PYPY && !defined(PyObject_Malloc)
   #define PyObject_Malloc(s)   PyMem_Malloc(s)
   #define PyObject_Free(p)     PyMem_Free(p)
@@ -495,7 +479,7 @@ class __Pyx_FakeReference {
 typedef int Py_tss_t;
 static CYTHON_INLINE int PyThread_tss_create(Py_tss_t *key) {
   *key = PyThread_create_key();
-  return 0; // PyThread_create_key reports success always
+  return 0; /* PyThread_create_key reports success always */
 }
 static CYTHON_INLINE Py_tss_t * PyThread_tss_alloc(void) {
   Py_tss_t *key = (Py_tss_t *)PyObject_Malloc(sizeof(Py_tss_t));
@@ -520,7 +504,7 @@ static CYTHON_INLINE void * PyThread_tss_get(Py_tss_t *key) {
 }
 // PyThread_delete_key_value(key) is equalivalent to PyThread_set_key_value(key, NULL)
 // PyThread_ReInitTLS() is a no-op
-#endif // TSS (Thread Specific Storage) API
+#endif /* TSS (Thread Specific Storage) API */
 
 #if CYTHON_COMPILING_IN_CPYTHON || defined(_PyDict_NewPresized)
 #define __Pyx_PyDict_NewPresized(n)  ((n <= 8) ? PyDict_New() : _PyDict_NewPresized(n))
@@ -1437,8 +1421,9 @@ static CYTHON_INLINE PyThreadState *__Pyx_FastGil_get_tcur(void) {
 
 static PyGILState_STATE __Pyx_FastGil_PyGILState_Ensure(void) {
   int current;
+  PyThreadState *tcur;
   __Pyx_FastGIL_Remember0();
-  PyThreadState *tcur = __Pyx_FastGil_get_tcur();
+  tcur = __Pyx_FastGil_get_tcur();
   if (tcur == NULL) {
     // Uninitialized, need to initialize now.
     return PyGILState_Ensure();

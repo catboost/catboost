@@ -290,7 +290,7 @@ class UtilityCodeBase(object):
             (r'^%(C)s{5,30}\s*(?P<name>(?:\w|\.)+)\s*%(C)s{5,30}|'
              r'^%(C)s+@(?P<tag>\w+)\s*:\s*(?P<value>(?:\w|[.:])+)') %
             {'C': comment}).match
-        match_type = re.compile('(.+)[.](proto(?:[.]\S+)?|impl|init|cleanup)$').match
+        match_type = re.compile(r'(.+)[.](proto(?:[.]\S+)?|impl|init|cleanup)$').match
 
         with closing(Utils.open_source_file(filename, encoding='UTF-8')) as f:
             all_lines = f.readlines()
@@ -906,9 +906,11 @@ class FunctionState(object):
         try-except and try-finally blocks to clean up temps in the
         error case.
         """
-        return [(cname, type)
-                for (type, manage_ref), freelist in self.temps_free.items() if manage_ref
-                for cname in freelist[0]]
+        return sorted([  # Enforce deterministic order.
+            (cname, type)
+            for (type, manage_ref), freelist in self.temps_free.items() if manage_ref
+            for cname in freelist[0]
+        ])
 
     def start_collecting_temps(self):
         """
@@ -2355,7 +2357,7 @@ class CCodeWriter(object):
     def error_goto(self, pos):
         lbl = self.funcstate.error_label
         self.funcstate.use_label(lbl)
-        if not pos:
+        if pos is None:
             return 'goto %s;' % lbl
         return "__PYX_ERR(%s, %s, %s)" % (
             self.lookup_filename(pos[0]),

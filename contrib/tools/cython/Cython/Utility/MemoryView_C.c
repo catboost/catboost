@@ -244,7 +244,7 @@ __pyx_check_suboffsets(Py_buffer *buf, int dim, CYTHON_UNUSED int ndim, int spec
     }
 
     if (spec & __Pyx_MEMVIEW_PTR) {
-        if (!buf->suboffsets || (buf->suboffsets && buf->suboffsets[dim] < 0)) {
+        if (!buf->suboffsets || (buf->suboffsets[dim] < 0)) {
             PyErr_Format(PyExc_ValueError,
                          "Buffer is not indirectly accessible "
                          "in dimension %d.", dim);
@@ -394,11 +394,7 @@ __Pyx_init_memviewslice(struct __pyx_memoryview_obj *memview,
     Py_buffer *buf = &memview->view;
     __Pyx_RefNannySetupContext("init_memviewslice", 0);
 
-    if (!buf) {
-        PyErr_SetString(PyExc_ValueError,
-            "buf is NULL.");
-        goto fail;
-    } else if (memviewslice->memview || memviewslice->data) {
+    if (memviewslice->memview || memviewslice->data) {
         PyErr_SetString(PyExc_ValueError,
             "memviewslice is already initialized!");
         goto fail;
