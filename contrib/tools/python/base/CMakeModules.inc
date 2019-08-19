@@ -1,13 +1,16 @@
 # Generated automatically by ../modules.py
 
+ADDINCL(contrib/libs/expat)
 ADDINCL(contrib/libs/libbz2)
 ADDINCL(contrib/libs/zlib)
+PEERDIR(contrib/libs/expat)
 PEERDIR(contrib/libs/libbz2)
 PEERDIR(contrib/libs/openssl)
 PEERDIR(contrib/libs/zlib)
 SRCS(Modules/_bisectmodule.c
      Modules/_collectionsmodule.c
      Modules/_csv.c
+     Modules/_elementtree.c
      Modules/_functoolsmodule.c
      Modules/_hashopenssl.c
      Modules/_heapqmodule.c
@@ -117,14 +120,8 @@ IF (OS_DARWIN)
 ENDIF()
 
 IF (UNIX)
-    ADDINCL(${PYTHON_SRC_DIR}/Modules/expat)
-    SRCS(Modules/_elementtree.c
-         Modules/_ssl.c
+    SRCS(Modules/_ssl.c
          Modules/cryptmodule.c
-         Modules/expat/loadlibrary.c
-         Modules/expat/xmlparse.c
-         Modules/expat/xmlrole.c
-         Modules/expat/xmltok.c
          Modules/fcntlmodule.c
          Modules/grpmodule.c
          Modules/posixmodule.c
@@ -149,19 +146,12 @@ IF (UNIX)
 ENDIF(UNIX)
 
 IF (OS_WINDOWS)
-    ADDINCL(${PYTHON_SRC_DIR}/Modules/expat)
-
-    SRCS(Modules/_elementtree.c
-         Modules/_multiprocessing/multiprocessing.c
+    SRCS(Modules/_multiprocessing/multiprocessing.c
          Modules/_multiprocessing/pipe_connection.c
          Modules/_multiprocessing/semaphore.c
          Modules/_multiprocessing/socket_connection.c
          Modules/_multiprocessing/win32_functions.c
          Modules/_ssl.c
-         Modules/expat/loadlibrary.c
-         Modules/expat/xmlparse.c
-         Modules/expat/xmlrole.c
-         Modules/expat/xmltok.c
          Modules/posixmodule.c
          Modules/pyexpat.c
          Modules/selectmodule.c

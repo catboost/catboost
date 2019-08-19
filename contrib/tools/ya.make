@@ -2,7 +2,6 @@ RECURSE(
     flatc
     protoc
     python
-    python/src/Modules/expat
     python3
     python3/pycc
     python3/src/Lib/lib2to3

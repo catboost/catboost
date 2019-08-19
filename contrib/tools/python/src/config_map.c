@@ -5,6 +5,7 @@
 {"_bisect", init_bisect},
 {"_collections", init_collections},
 {"_csv", init_csv},
+{"_elementtree", init_elementtree},
 {"_functools", init_functools},
 {"_hashlib", init_hashlib},
 {"_heapq", init_heapq},
@@ -66,7 +67,6 @@
 #endif
 
 #ifdef _UNIX_
-{"_elementtree", init_elementtree},
 {"_socket", init_socket},
 {"crypt", initcrypt},
 {"fcntl", initfcntl},
@@ -81,7 +81,6 @@
 #endif
 
 #ifdef _WIN32_
-{"_elementtree", init_elementtree},
 {"_multiprocessing", init_multiprocessing},
 {"_socket", init_socket},
 {"nt", initnt},

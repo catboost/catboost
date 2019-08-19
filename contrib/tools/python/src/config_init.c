@@ -5,6 +5,7 @@
 extern void init_bisect(void);
 extern void init_collections(void);
 extern void init_csv(void);
+extern void init_elementtree(void);
 extern void init_functools(void);
 extern void init_hashlib(void);
 extern void init_heapq(void);
@@ -66,7 +67,6 @@ extern void init_multiprocessing(void);
 #endif
 
 #ifdef _UNIX_
-extern void init_elementtree(void);
 extern void init_socket(void);
 extern void initcrypt(void);
 extern void initfcntl(void);
@@ -81,7 +81,6 @@ extern void inittermios(void);
 #endif
 
 #ifdef _WIN32_
-extern void init_elementtree(void);
 extern void init_multiprocessing(void);
 extern void init_socket(void);
 extern void initnt(void);
