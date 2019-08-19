@@ -807,6 +807,7 @@ calculate_module_search_path(const _PyCoreConfig *core_config,
     if (!config->module_search_path) {
         config->module_search_path = config->program_full_path;
     }
+    config->module_search_path = _PyMem_RawWcsdup(config->module_search_path);
     return _Py_INIT_OK();
 
     /* Calculate size of return buffer */
