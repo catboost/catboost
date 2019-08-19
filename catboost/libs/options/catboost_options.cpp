@@ -499,9 +499,15 @@ void NCatboostOptions::TCatBoostOptions::Validate() const {
             ObliviousTreeOptions->LeavesEstimationBacktrackingType != ELeavesEstimationStepBacktracking::Armijo,
             "Backtracking type Armijo is supported only on GPU");
         CB_ENSURE(
-            LossFunctionDescription->GetLossFunction() != ELossFunction::PythonUserDefinedPerObject
+            lossFunction != ELossFunction::PythonUserDefinedPerObject
             || ObliviousTreeOptions->LeavesEstimationBacktrackingType == ELeavesEstimationStepBacktracking::No,
             "Backtracking is not supported for custom loss functions on CPU");
+    }
+
+    if (ObliviousTreeOptions->LeavesEstimationBacktrackingType != ELeavesEstimationStepBacktracking::No) {
+        CB_ENSURE(
+            lossFunction != ELossFunction::YetiRank && lossFunction != ELossFunction::YetiRankPairwise,
+            "Backtracking is not supported for yetiRank and YetiRankPairwise loss functions");
     }
 
     ValidateCtrs(CatFeatureParams->SimpleCtrs, lossFunction, false);
@@ -606,6 +612,7 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
             NCatboostOptions::TLossDescription lossDescription;
             lossDescription.Load(LossDescriptionToJson("PFound"));
             MetricOptions->ObjectiveMetric.Set(lossDescription);
+            ObliviousTreeOptions->LeavesEstimationBacktrackingType.SetDefault(ELeavesEstimationStepBacktracking::No);
             break;
         }
         case ELossFunction::PairLogit:
