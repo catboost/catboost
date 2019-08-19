@@ -4031,7 +4031,7 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
         }
         case ELossFunction::NormalizedGini: {
             if (approxDimension == 1) {
-                result.push_back(MakeBinClassAucMetric(border));
+                result.push_back(MakeBinClassNormalizedGiniMetric(border));
                 validParams = {"border"};
             } else {
                 for (int i : xrange(approxDimension)) {
