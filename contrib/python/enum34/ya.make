@@ -25,3 +25,7 @@ RESOURCE_FILES(
 NO_LINT()
 
 END()
+
+RECURSE(
+    tests
+)
