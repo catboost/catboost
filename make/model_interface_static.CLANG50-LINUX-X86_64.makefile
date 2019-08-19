@@ -6386,6 +6386,7 @@ $(BUILD_ROOT)/catboost/libs/model/model_export/model_import.cpp.pic.o\
         $(BUILD_ROOT)/contrib/libs/coreml/SVM.pb.h\
         $(BUILD_ROOT)/contrib/libs/coreml/Scaler.pb.h\
         $(BUILD_ROOT)/contrib/libs/coreml/TreeEnsemble.pb.h\
+        $(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_ml.pb.h\
         $(SOURCE_ROOT)/catboost/libs/model/model_export/model_import.cpp\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/model/model_export'
