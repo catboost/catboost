@@ -2104,18 +2104,21 @@ namespace {
         explicit TAUCMetric(double border = GetDefaultTargetBorder())
             : Border(border)
             , IsMultiClass(false) {
+            UseWeights.SetDefaultValue(false);
         }
 
         explicit TAUCMetric(int positiveClass)
             : PositiveClass(positiveClass)
             , IsMultiClass(true)
             , Type(EAucType::OneVsAll) {
+            UseWeights.SetDefaultValue(false);
         }
 
         explicit TAUCMetric(const TMaybe<TVector<TVector<double>>>& misclassCostMatrix = Nothing())
             : IsMultiClass(true)
             , Type(EAucType::Mu)
             , MisclassCostMatrix(misclassCostMatrix) {
+            UseWeights.SetDefaultValue(false);
         }
 
         TMetricHolder Eval(

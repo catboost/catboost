@@ -129,7 +129,7 @@ struct IMetric {
     virtual ~IMetric() = default;
 
 public:
-    TMetricParam<bool> UseWeights{"use_weights", false};
+    TMetricParam<bool> UseWeights{"use_weights", true};
 };
 
 struct TMetric: public IMetric {

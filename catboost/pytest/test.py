@@ -1948,7 +1948,7 @@ def test_newton_on_pool_with_weights(boosting_type, dev_score_calc_obj_block_siz
         '--column-description', data_file('adult_weight', 'train.cd'),
         '--boosting-type', boosting_type,
         '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
-        '-i', '10',
+        '-i', '40',
         '-T', '4',
         '-m', output_model_path,
         '--leaf-estimation-method', 'Newton',

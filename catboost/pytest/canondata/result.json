@@ -2491,21 +2491,21 @@
     ],
     "test.test_loglikelihood_of_prediction[Ordered]": [
         {
-            "checksum": "d1bcbd722a9c9d0103f7c20455801dd6",
+            "checksum": "dbde244430767f85b6a0823010a81d13",
             "uri": "file://test.test_loglikelihood_of_prediction_Ordered_/learn_error.tsv"
         },
         {
-            "checksum": "9c1f8d2f9d648f99135da777ed9905f2",
+            "checksum": "6c43621ed14507e6b9eb75749651b6e6",
             "uri": "file://test.test_loglikelihood_of_prediction_Ordered_/test_error.tsv"
         }
     ],
     "test.test_loglikelihood_of_prediction[Plain]": [
         {
-            "checksum": "31acb00e752d83089190081a27307e34",
+            "checksum": "d9dd84657b60b1b557f4e0b5b7d02a25",
             "uri": "file://test.test_loglikelihood_of_prediction_Plain_/learn_error.tsv"
         },
         {
-            "checksum": "7804e7203e5910f11c96076894e97cf5",
+            "checksum": "25816e8d4b75926874770ffb2905d806",
             "uri": "file://test.test_loglikelihood_of_prediction_Plain_/test_error.tsv"
         }
     ],
@@ -3137,25 +3137,25 @@
     ],
     "test.test_newton_on_pool_with_weights[calc_block=5000000-Ordered]": [
         {
-            "checksum": "2d8ad29aeab15090525485ccb9adb8dd",
+            "checksum": "95bd2fd133c03b8919f09ddf696a1094",
             "uri": "file://test.test_newton_on_pool_with_weights_calc_block=5000000-Ordered_/test.eval"
         }
     ],
     "test.test_newton_on_pool_with_weights[calc_block=5000000-Plain]": [
         {
-            "checksum": "56be0e7971036a5e0d77f5b0adeef636",
+            "checksum": "8e292c4525d4d0661717d80061a743d9",
             "uri": "file://test.test_newton_on_pool_with_weights_calc_block=5000000-Plain_/test.eval"
         }
     ],
     "test.test_newton_on_pool_with_weights[calc_block=60-Ordered]": [
         {
-            "checksum": "2d8ad29aeab15090525485ccb9adb8dd",
+            "checksum": "95bd2fd133c03b8919f09ddf696a1094",
             "uri": "file://test.test_newton_on_pool_with_weights_calc_block=60-Ordered_/test.eval"
         }
     ],
     "test.test_newton_on_pool_with_weights[calc_block=60-Plain]": [
         {
-            "checksum": "56be0e7971036a5e0d77f5b0adeef636",
+            "checksum": "8e292c4525d4d0661717d80061a743d9",
             "uri": "file://test.test_newton_on_pool_with_weights_calc_block=60-Plain_/test.eval"
         }
     ],
