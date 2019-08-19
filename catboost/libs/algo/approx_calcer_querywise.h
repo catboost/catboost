@@ -1,8 +1,10 @@
 #pragma once
 
-#include "approx_calcer_helpers.h"
 #include "approx_updater_helpers.h"
-#include "error_functions.h"
+
+#include <catboost/libs/algo_helpers/approx_calcer_helpers.h>
+#include <catboost/libs/algo_helpers/error_functions.h>
+#include <catboost/libs/algo_helpers/online_predictor.h>
 
 #include <catboost/libs/data_types/query.h>
 #include <catboost/libs/options/restrictions.h>

@@ -1,13 +1,14 @@
 #include "train.h"
 
 #include "approx_calcer.h"
-#include "error_functions.h"
+#include "approx_updater_helpers.h"
 #include "fold.h"
 #include "greedy_tensor_search.h"
 #include "learn_context.h"
 #include "online_ctr.h"
 #include "tensor_search_helpers.h"
 
+#include <catboost/libs/algo_helpers/error_functions.h>
 #include <catboost/libs/data_new/data_provider.h>
 #include <catboost/libs/distributed/master.h>
 #include <catboost/libs/distributed/worker.h>

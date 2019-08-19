@@ -495,7 +495,7 @@ cdef extern from "catboost/libs/data_new/load_data.h" namespace "NCB":
         bool_t verbose
     ) nogil except +ProcessException
 
-cdef extern from "catboost/libs/algo/hessian.h":
+cdef extern from "catboost/libs/algo_helpers/hessian.h":
     cdef cppclass THessianInfo:
         TVector[double] Data
 
@@ -604,7 +604,7 @@ cdef extern from "catboost/libs/metrics/metric.h":
 cdef extern from "catboost/libs/metrics/metric.h":
     cdef bool_t IsMaxOptimal(const IMetric& metric);
 
-cdef extern from "catboost/libs/algo/ders_holder.h":
+cdef extern from "catboost/libs/algo_helpers/ders_holder.h":
     cdef cppclass TDers:
         double Der1
         double Der2
@@ -650,7 +650,7 @@ cdef extern from "catboost/libs/metrics/metric.h":
     cdef bool_t IsMinOptimal(const TString& metricName) nogil except +ProcessException
 
 
-cdef extern from "catboost/libs/algo/custom_objective_descriptor.h":
+cdef extern from "catboost/libs/algo_helpers/custom_objective_descriptor.h":
     cdef cppclass TCustomObjectiveDescriptor:
         void* CustomData
 

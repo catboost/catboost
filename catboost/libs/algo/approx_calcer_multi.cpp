@@ -2,11 +2,12 @@
 
 #include "approx_calcer_helpers.h"
 #include "approx_updater_helpers.h"
-#include "error_functions.h"
 #include "gradient_walker.h"
 #include "index_calcer.h"
 #include "learn_context.h"
-#include "online_predictor.h"
+
+#include <catboost/libs/algo_helpers/error_functions.h>
+#include <catboost/libs/algo_helpers/online_predictor.h>
 
 #include <library/threading/local_executor/local_executor.h>
 

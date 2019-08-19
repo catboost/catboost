@@ -1,8 +1,8 @@
 #pragma once
 
 #include "fold.h"
-#include "online_predictor.h"
 
+#include <catboost/libs/algo_helpers/online_predictor.h>
 #include <catboost/libs/options/restrictions.h>
 
 class IDerCalcer;

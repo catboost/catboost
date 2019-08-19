@@ -2,17 +2,17 @@
 #include "approx_calcer_helpers.h"
 #include "approx_calcer_multi.h"
 #include "approx_calcer_querywise.h"
-#include "error_functions.h"
 #include "fold.h"
 #include "gradient_walker.h"
 #include "index_calcer.h"
 #include "learn_context.h"
-#include "pairwise_leaves_calculation.h"
 #include "scoring.h"
 #include "split.h"
 #include "yetirank_helpers.h"
 #include "monotonic_constraint_utils.h"
 
+#include <catboost/libs/algo_helpers/error_functions.h>
+#include <catboost/libs/algo_helpers/pairwise_leaves_calculation.h>
 #include <catboost/libs/data_new/data_provider.h>
 #include <catboost/libs/helpers/parallel_tasks.h>
 #include <catboost/libs/logging/logging.h>

@@ -13,16 +13,12 @@ SRCS(
     bin_tracker.cpp
     calc_score_cache.cpp
     ctr_helper.cpp
-    custom_objective_descriptor.cpp
     data.cpp
-    ders_holder.cpp
-    error_functions.cpp
     features_data_helpers.cpp
     fold.cpp
     full_model_saver.cpp
     greedy_tensor_search.cpp
     helpers.cpp
-    hessian.cpp
     index_calcer.cpp
     index_hash_calcer.cpp
     learn_context.cpp
@@ -30,7 +26,6 @@ SRCS(
     monotonic_constraint_utils.cpp
     mvs.cpp
     online_ctr.cpp
-    online_predictor.cpp
     plot.cpp
     preprocess.cpp
     projection.cpp
@@ -42,7 +37,6 @@ SRCS(
     tensor_search_helpers.cpp
     train.cpp
     tree_print.cpp
-    pairwise_leaves_calculation.cpp
     pairwise_scoring.cpp
     rand_score.cpp
     roc_curve.cpp
@@ -51,6 +45,7 @@ SRCS(
 )
 
 PEERDIR(
+    catboost/libs/algo_helpers
     catboost/libs/cat_feature
     catboost/libs/data_new
     catboost/libs/data_types

@@ -1,5 +1,5 @@
 #include <library/unittest/registar.h>
-#include <catboost/libs/algo/pairwise_leaves_calculation.h>
+#include <catboost/libs/algo_helpers/pairwise_leaves_calculation.h>
 
 static TArray2D<double> Convert(const TVector<TVector<double>>& matrix) {
     if (matrix.empty()) {

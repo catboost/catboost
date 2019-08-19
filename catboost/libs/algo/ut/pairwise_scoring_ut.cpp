@@ -1,6 +1,6 @@
 #include <library/unittest/registar.h>
 #include <catboost/libs/algo/pairwise_scoring.h>
-#include <catboost/libs/algo/pairwise_leaves_calculation.h>
+#include <catboost/libs/algo_helpers/pairwise_leaves_calculation.h>
 #include <catboost/libs/helpers/query_info_helper.h>
 
 static double CalculateScore(const TVector<double>& avrg, const TVector<double>& sumDer, const TArray2D<double>& sumWeights) {

@@ -2,12 +2,13 @@
 
 #include <catboost/libs/algo/approx_calcer.h>
 #include <catboost/libs/algo/approx_calcer_multi.h>
+#include <catboost/libs/algo/approx_updater_helpers.h>
 #include <catboost/libs/algo/data.h>
-#include <catboost/libs/algo/error_functions.h>
 #include <catboost/libs/algo/scoring.h>
 #include <catboost/libs/algo/learn_context.h>
 #include <catboost/libs/algo/online_ctr.h>
 #include <catboost/libs/algo/preprocess.h>
+#include <catboost/libs/algo_helpers/error_functions.h>
 #include <catboost/libs/data_new/load_data.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/query_info_helper.h>

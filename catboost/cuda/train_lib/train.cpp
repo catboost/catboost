@@ -8,11 +8,11 @@
 #include <catboost/cuda/gpu_data/pinned_memory_estimation.h>
 
 #include <catboost/libs/algo/approx_dimension.h>
-#include <catboost/libs/algo/custom_objective_descriptor.h>
 #include <catboost/libs/algo/full_model_saver.h>
 #include <catboost/libs/algo/helpers.h>
 #include <catboost/libs/algo/online_ctr.h>
 #include <catboost/libs/algo/preprocess.h>
+#include <catboost/libs/algo_helpers/custom_objective_descriptor.h>
 #include <catboost/libs/eval_result/eval_helpers.h>
 #include <catboost/libs/fstr/output_fstr.h>
 #include <catboost/libs/helpers/exception.h>

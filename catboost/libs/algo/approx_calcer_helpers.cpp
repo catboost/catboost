@@ -6,7 +6,7 @@ static inline double GetMinimizeSign(const THolder<IMetric>& metric) {
     metric->GetBestValue(&bestMetric, &ignoredBestValue);
     switch (bestMetric) {
         case EMetricBestValue::Min: {
-             return 1.0;
+            return 1.0;
         }
         case EMetricBestValue::Max: {
             return -1.0;

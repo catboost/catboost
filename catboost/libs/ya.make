@@ -3,6 +3,7 @@
 RECURSE(
     algo
     algo/ut
+    algo_helpers
     app_helpers
     data_new
     data_new/ut

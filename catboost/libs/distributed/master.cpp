@@ -1,11 +1,12 @@
 #include "master.h"
 #include "mappers.h"
 
+#include <catboost/libs/algo/approx_updater_helpers.h>
 #include <catboost/libs/algo/data.h>
-#include <catboost/libs/algo/error_functions.h>
 #include <catboost/libs/algo/index_calcer.h>
 #include <catboost/libs/algo/score_calcers.h>
 #include <catboost/libs/algo/scoring.h>
+#include <catboost/libs/algo_helpers/error_functions.h>
 #include <catboost/libs/data_new/load_data.h>
 
 #include <library/par/par_settings.h>

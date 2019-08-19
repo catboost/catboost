@@ -4,7 +4,8 @@
 #include "approx_dimension.h"
 #include "approx_updater_helpers.h"
 #include "calc_score_cache.h"
-#include "error_functions.h"
+
+#include <catboost/libs/algo_helpers/error_functions.h>
 #include "helpers.h"
 #include "online_ctr.h"
 

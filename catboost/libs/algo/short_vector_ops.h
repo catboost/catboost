@@ -1,6 +1,7 @@
 #pragma once
 
-#include "online_predictor.h"
+
+#include <catboost/libs/algo_helpers/online_predictor.h>
 
 #include <library/sse/sse.h>
 

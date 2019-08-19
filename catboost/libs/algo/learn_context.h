@@ -2,11 +2,11 @@
 
 #include "calc_score_cache.h"
 #include "ctr_helper.h"
-#include "custom_objective_descriptor.h"
 #include "fold.h"
 #include "online_ctr.h"
 #include "split.h"
 
+#include <catboost/libs/algo_helpers/custom_objective_descriptor.h>
 #include <catboost/libs/data_new/data_provider.h>
 #include <catboost/libs/data_new/features_layout.h>
 #include <catboost/libs/helpers/restorable_rng.h>

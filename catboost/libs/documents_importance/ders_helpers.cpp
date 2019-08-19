@@ -1,7 +1,7 @@
 #include "ders_helpers.h"
 
 #include <catboost/libs/algo/approx_updater_helpers.h>
-#include <catboost/libs/algo/error_functions.h>
+#include <catboost/libs/algo_helpers/error_functions.h>
 #include <catboost/libs/helpers/exception.h>
 
 #include <library/fast_exp/fast_exp.h>

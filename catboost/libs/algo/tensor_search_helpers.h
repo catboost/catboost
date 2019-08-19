@@ -1,8 +1,9 @@
 #pragma once
 
 #include "approx_calcer.h"
-#include "custom_objective_descriptor.h"
-#include "error_functions.h"
+#include <catboost/libs/algo_helpers/custom_objective_descriptor.h>
+
+#include <catboost/libs/algo_helpers/error_functions.h>
 #include "rand_score.h"
 #include "split.h"
 #include "yetirank_helpers.h"

@@ -1,9 +1,9 @@
 #pragma once
 
-#include "custom_objective_descriptor.h"
 #include "projection.h"
 #include "target_classifier.h"
 
+#include <catboost/libs/algo_helpers/custom_objective_descriptor.h>
 #include <catboost/libs/data_new/util.h>
 
 #include <util/generic/array_ref.h>

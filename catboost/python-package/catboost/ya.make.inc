@@ -19,6 +19,7 @@ ADDINCL(
 PEERDIR(
     catboost/libs/train_lib
     catboost/libs/algo
+    catboost/libs/algo_helpers
     catboost/libs/cat_feature
     catboost/libs/data_new
     catboost/libs/data_types

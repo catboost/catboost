@@ -1,6 +1,7 @@
 #include "pairwise_scoring.h"
 
-#include "pairwise_leaves_calculation.h"
+
+#include <catboost/libs/algo_helpers/pairwise_leaves_calculation.h>
 #include "short_vector_ops.h"
 
 #include <util/generic/xrange.h>

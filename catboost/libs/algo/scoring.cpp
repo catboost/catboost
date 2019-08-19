@@ -3,7 +3,8 @@
 #include "calc_score_cache.h"
 #include "fold.h"
 #include "index_calcer.h"
-#include "online_predictor.h"
+
+#include <catboost/libs/algo_helpers/online_predictor.h>
 #include "pairwise_scoring.h"
 #include "split.h"
 #include "monotonic_constraint_utils.h"
