@@ -111,6 +111,12 @@
     <ClCompile Include="$(SolutionDir)..\contrib\libs\zstd\compress\zstd_compress.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\zstd\compress\zstd_compress_literals.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\zstd\compress\zstd_compress_sequences.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\zstd\compress\zstd_double_fast.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
@@ -197,6 +203,8 @@
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\common\zstd_internal.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\compress\hist.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\compress\zstd_compress_internal.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\compress\zstd_compress_literals.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\compress\zstd_compress_sequences.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\compress\zstd_double_fast.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\compress\zstd_fast.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\compress\zstd_lazy.h"/>
