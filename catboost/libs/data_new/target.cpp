@@ -103,7 +103,7 @@ void NCB::CheckPairs(TConstArrayRef<TPair> pairs, const TObjectsGrouping& object
                 CB_ENSURE(
                     winnerIdGroupIdx == loserIdGroupIdx,
                     "winner id group #" << winnerIdGroupIdx << " is not equal to loser id group #"
-                    << loserIdGroupIdx
+                    << loserIdGroupIdx << " (group ids are numbered from 0 to group count - 1 according to their appearance in dataset)"
                 );
             }
         } catch (const TCatBoostException& e) {
