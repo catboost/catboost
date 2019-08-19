@@ -82,6 +82,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\auc_mu.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\balanced_accuracy.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\brier_score.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\caching_metric.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\classification_utils.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\dcg.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\hinge_loss.cpp"/>
@@ -123,8 +124,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\metrics\auc_mu.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\metrics\balanced_accuracy.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\metrics\brier_score.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\metrics\caching_metric.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\metrics\classification_utils.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\metrics\dcg.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\metrics\description_utils.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\metrics\doc_comparator.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\metrics\hinge_loss.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\metrics\kappa.h"/>
