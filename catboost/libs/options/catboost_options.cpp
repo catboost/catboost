@@ -534,6 +534,12 @@ void NCatboostOptions::TCatBoostOptions::Validate() const {
         "If weights are present they will necessarily be used in optimization. " <<
         "It cannot be disabled.");
 
+    if (BoostingOptions->BoostFromAverage.Get()) {
+        CB_ENSURE(lossFunction == ELossFunction::RMSE, "You can use boost_from_average only for RMSE loss function now.");
+        CB_ENSURE(GetTaskType() == ETaskType::CPU, "You can use boost_from_average only on CPU now.");
+        CB_ENSURE(SystemOptions->IsSingleHost(), "You can use boost_from_average only on single host now.");
+    }
+
     if (GetTaskType() == ETaskType::CPU && !ObliviousTreeOptions->MonotoneConstraints.Get().empty()) {
         // validate monotone constraints
         const auto& monotoneConstraints = ObliviousTreeOptions->MonotoneConstraints.Get();

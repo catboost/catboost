@@ -363,6 +363,7 @@ void NCatboostOptions::PlainJsonToOptions(
     CopyOption(plainOptions, "min_fold_size", &boostingOptionsRef, &seenKeys);
     CopyOption(plainOptions, "permutation_count", &boostingOptionsRef, &seenKeys);
     CopyOption(plainOptions, "boosting_type", &boostingOptionsRef, &seenKeys);
+    CopyOption(plainOptions, "boost_from_average", &boostingOptionsRef, &seenKeys);
     CopyOption(plainOptions, "data_partition", &boostingOptionsRef, &seenKeys);
     CopyOption(plainOptions, "dev_model_shrink_rate", &boostingOptionsRef, &seenKeys);
 
@@ -613,6 +614,9 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
 
         CopyOption(boostingOptionsRef, "boosting_type", &plainOptionsJson, &seenKeys);
         DeleteSeenOption(&optionsCopyBoosting, "boosting_type");
+
+        CopyOption(boostingOptionsRef, "boost_from_average", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopyBoosting, "boost_from_average");
 
         CopyOption(boostingOptionsRef, "data_partition", &plainOptionsJson, &seenKeys);
         DeleteSeenOption(&optionsCopyBoosting, "data_partition");

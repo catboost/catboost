@@ -37,7 +37,6 @@ static double SelectTailSize(ui32 oldSize, double multiplier) {
     return ceil(oldSize * multiplier);
 }
 
-
 static void InitPermutationData(
     const NCB::TTrainingForCPUDataProvider& learnData,
     bool shuffle,
@@ -103,6 +102,7 @@ TFold TFold::BuildDynamicFold(
     double multiplier,
     bool storeExpApproxes,
     bool hasPairwiseWeights,
+    TMaybe<double> startingApprox,
     TRestorableFastRng64* rand,
     NPar::TLocalExecutor* localExecutor
 ) {
@@ -146,6 +146,7 @@ TFold TFold::BuildDynamicFold(
         queryIndices,
         learnSampleCount
     );
+    double startingApproxValue = startingApprox ? *startingApprox : GetNeutralApprox(storeExpApproxes);
     while (ff.BodyTailArr.empty() || leftPartLen < learnSampleCount) {
         int bodyFinish = (int)leftPartLen;
         int tailFinish = (int) UpdateSize(
@@ -166,7 +167,7 @@ TFold TFold::BuildDynamicFold(
 
         TFold::TBodyTail bt(bodyQueryFinish, tailQueryFinish, bodyFinish, tailFinish, bodySumWeight);
 
-        bt.Approx.resize(approxDimension, TVector<double>(bt.TailFinish, GetNeutralApprox(storeExpApproxes)));
+        bt.Approx.resize(approxDimension, TVector<double>(bt.TailFinish, startingApproxValue));
         if (baseline) {
             InitApproxFromBaseline(
                 leftPartLen,
@@ -211,6 +212,7 @@ TFold TFold::BuildPlainFold(
     int approxDimension,
     bool storeExpApproxes,
     bool hasPairwiseWeights,
+    TMaybe<double> startingApprox,
     TRestorableFastRng64* rand,
     NPar::TLocalExecutor* localExecutor
 ) {
@@ -249,7 +251,7 @@ TFold TFold::BuildPlainFold(
         ff.GetSumWeight()
     );
 
-    bt.Approx.resize(approxDimension, TVector<double>(learnSampleCount, GetNeutralApprox(storeExpApproxes)));
+    bt.Approx.resize(approxDimension, TVector<double>(learnSampleCount, startingApprox ? *startingApprox : GetNeutralApprox(storeExpApproxes)));
     bt.WeightedDerivatives.resize(approxDimension, TVector<double>(learnSampleCount));
     bt.SampleWeightedDerivatives.resize(approxDimension, TVector<double>(learnSampleCount));
     if (hasPairwiseWeights) {

@@ -1,6 +1,7 @@
 {
     "boosting_options": {
         "approx_on_full_history": false, 
+        "boost_from_average": false, 
         "boosting_type": "Plain", 
         "dev_model_shrink_rate": 0, 
         "fold_len_multiplier": 2, 

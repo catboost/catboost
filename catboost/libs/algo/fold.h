@@ -124,6 +124,7 @@ public:
         double multiplier,
         bool storeExpApproxes,
         bool hasPairwiseWeights,
+        TMaybe<double> startingApprox,
         TRestorableFastRng64* rand,
         NPar::TLocalExecutor* localExecutor
     );
@@ -136,6 +137,7 @@ public:
         int approxDimension,
         bool storeExpApproxes,
         bool hasPairwiseWeights,
+        TMaybe<double> startingApprox,
         TRestorableFastRng64* rand,
         NPar::TLocalExecutor* localExecutor
     );

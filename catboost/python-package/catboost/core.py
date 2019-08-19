@@ -3704,6 +3704,9 @@ class CatBoostRegressor(CatBoost):
         'Poisson'
         'MAPE'
         'Lq:q=value'
+
+    boost_from_average : bool, [default=False]
+        Enables to initialize approx values by average target value at the beginning, if loss function is RMSE.
     """
     def __init__(
         self,
@@ -3740,7 +3743,6 @@ class CatBoostRegressor(CatBoost):
         max_ctr_complexity=None,
         has_time=None,
         allow_const_label=None,
-        target_border=None,
         one_hot_max_size=None,
         random_strength=None,
         name=None,
@@ -3760,6 +3762,7 @@ class CatBoostRegressor(CatBoost):
         final_ctr_computation_mode=None,
         approx_on_full_history=None,
         boosting_type=None,
+        boost_from_average=None,
         simple_ctr=None,
         combinations_ctr=None,
         per_feature_ctr=None,

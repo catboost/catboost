@@ -53,6 +53,7 @@ static int CountLearningFolds(int permutationCount, bool isPermutationNeededForL
 TFoldsCreationParams::TFoldsCreationParams(
     const NCatboostOptions::TCatBoostOptions& params,
     const TQuantizedObjectsDataProvider& learnObjectsData,
+    TMaybe<double> startingApprox,
     bool isForWorkerLocalData)
     : IsOrderedBoosting(!IsPlainMode(params.BoostingOptions->BoostingType))
     , LearningFoldCount(0) // properly inited below
@@ -61,6 +62,8 @@ TFoldsCreationParams::TFoldsCreationParams(
     , HasPairwiseWeights(UsesPairsForCalculation(params.LossFunctionDescription->GetLossFunction()))
     , FoldLenMultiplier(params.BoostingOptions->FoldLenMultiplier)
     , IsAverageFoldPermuted(false) // properly inited below
+    , StartingApprox(startingApprox)
+    , LossFunction(params.LossFunctionDescription->LossFunction.Get())
 {
     const bool hasTime = params.DataProcessingOptions->HasTimeFlag
         || (learnObjectsData.GetOrder() == EObjectsOrder::Ordered);
@@ -227,6 +230,7 @@ TLearnContext::TLearnContext(
     const NCatboostOptions::TOutputFilesOptions& outputOptions,
     const TTrainingForCPUDataProviders& data,
     const TLabelConverter& labelConverter,
+    TMaybe<double> startingApprox,
     TMaybe<const TRestorableFastRng64*> initRand,
     TMaybe<TFullModel*> initModel,
     THolder<TLearnProgress> initLearnProgress, // will be modified if not non-nullptr
@@ -270,7 +274,9 @@ TLearnContext::TLearnContext(
     const TFoldsCreationParams foldsCreationParams(
         params,
         *(data.Learn->ObjectsData),
-        /*isForWorkerLocalData*/ false);
+        startingApprox,
+        /*isForWorkerLocalData*/ false
+    );
     const ui32 foldCreationParamsCheckSum = foldsCreationParams.CalcCheckSum(
         *data.Learn->ObjectsGrouping,
         localExecutor
@@ -445,7 +451,8 @@ TLearnProgress::TLearnProgress(
     TMaybe<TFullModel*> initModel,
     NCB::TDataProviders initModelApplyCompatiblePools,
     NPar::TLocalExecutor* localExecutor)
-    : FoldCreationParamsCheckSum(foldCreationParamsCheckSum)
+    : StartingApprox(foldsCreationParams.StartingApprox)
+    , FoldCreationParamsCheckSum(foldCreationParamsCheckSum)
     , CatFeatures(CreateCatFeatures(*data.Learn->ObjectsData->GetFeaturesLayout()))
     , FloatFeatures(
         CreateFloatFeatures(
@@ -486,6 +493,7 @@ TLearnProgress::TLearnProgress(
                     foldsCreationParams.FoldLenMultiplier,
                     foldsCreationParams.StoreExpApproxes,
                     foldsCreationParams.HasPairwiseWeights,
+                    StartingApprox,
                     &Rand,
                     localExecutor
                 )
@@ -502,6 +510,7 @@ TLearnProgress::TLearnProgress(
                     ApproxDimension,
                     foldsCreationParams.StoreExpApproxes,
                     foldsCreationParams.HasPairwiseWeights,
+                    StartingApprox,
                     &Rand,
                     localExecutor
                 )
@@ -517,11 +526,18 @@ TLearnProgress::TLearnProgress(
         ApproxDimension,
         foldsCreationParams.StoreExpApproxes,
         foldsCreationParams.HasPairwiseWeights,
+        StartingApprox,
         &Rand,
         localExecutor
     );
 
-    AvrgApprox.resize(ApproxDimension, TVector<double>(learnSampleCount));
+    AvrgApprox.resize(
+        ApproxDimension,
+        TVector<double>(
+            learnSampleCount,
+            StartingApprox ? *StartingApprox : 0
+        )
+    );
     TMaybeData<TConstArrayRef<TConstArrayRef<float>>> learnBaseline = data.Learn->TargetData->GetBaseline();
     if (learnBaseline) {
         CB_ENSURE(
@@ -541,7 +557,10 @@ TLearnProgress::TLearnProgress(
         TMaybeData<TConstArrayRef<TConstArrayRef<float>>> testBaseline = testData->TargetData->GetBaseline();
         if (!testBaseline) {
             for (auto& approxDim : TestApprox[testIdx]) {
-                approxDim.resize(testData->GetObjectCount());
+                approxDim.resize(
+                    testData->GetObjectCount(),
+                    StartingApprox ? *StartingApprox : 0
+                );
             }
         } else {
             CB_ENSURE(

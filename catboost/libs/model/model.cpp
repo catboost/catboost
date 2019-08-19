@@ -343,6 +343,18 @@ TVector<ui32> TObliviousTrees::GetTreeLeafCounts() const {
     return treeLeafCounts;
 }
 
+void TObliviousTrees::AddNumberToAllTreeLeafValues(ui32 treeId, double numberToAdd) {
+    const auto& firstLeafOfsets = GetFirstLeafOffsets();
+    if (numberToAdd == 0 || firstLeafOfsets.size() <= treeId) {
+        return;
+    }
+    ui32 begin = firstLeafOfsets[treeId];
+    ui32 end = treeId + 1 == firstLeafOfsets.size() ? LeafValues.size() : firstLeafOfsets[treeId + 1];
+    for (ui32 i = begin; i < end; ++i) {
+        LeafValues[i] += numberToAdd;
+    }
+}
+
 void TObliviousTrees::FBDeserialize(const NCatBoostFbs::TObliviousTrees* fbObj) {
     ApproxDimension = fbObj->ApproxDimension();
     if (fbObj->TreeSplits()) {

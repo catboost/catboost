@@ -39,11 +39,14 @@ struct TFoldsCreationParams {
     bool HasPairwiseWeights;
     float FoldLenMultiplier;
     bool IsAverageFoldPermuted;
+    TMaybe<double> StartingApprox;
+    ELossFunction LossFunction;
 
 public:
     TFoldsCreationParams(
         const NCatboostOptions::TCatBoostOptions& params,
         const NCB::TQuantizedObjectsDataProvider& learnObjectsData,
+        TMaybe<double> startingApprox,
         bool isForWorkerLocalData);
 
     ui32 CalcCheckSum(const NCB::TObjectsGrouping& objectsGrouping, NPar::TLocalExecutor* localExecutor) const;
@@ -56,6 +59,7 @@ struct TLearnProgress {
     TVector<TVector<double>> AvrgApprox;          //       [dim][docIdx]
     TVector<TVector<TVector<double>>> TestApprox; // [test][dim][docIdx]
     TVector<TVector<double>> BestTestApprox;      //       [dim][docIdx]
+    TMaybe<double> StartingApprox;
 
     /* folds and approx data can become invalid if ShrinkModel is called
      * then this data has to be recalculated if training continuation is called
@@ -177,6 +181,7 @@ public:
         const NCatboostOptions::TOutputFilesOptions& outputOptions,
         const NCB::TTrainingForCPUDataProviders& data,
         const TLabelConverter& labelConverter,
+        TMaybe<double> startingApprox,
         TMaybe<const TRestorableFastRng64*> initRand,
         TMaybe<TFullModel*> initModel,
         THolder<TLearnProgress> initLearnProgress, // will be modified if not non-nullptr

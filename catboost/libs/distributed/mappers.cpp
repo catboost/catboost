@@ -161,6 +161,7 @@ namespace NCatboostDistributed {
         const TFoldsCreationParams foldsCreationParams(
             trainParams,
             *trainingDataProviders.Learn->ObjectsData,
+            /*startingApprox*/ Nothing(),
             /*isForWorkerLocalData*/ true);
 
         localData.Progress = MakeHolder<TLearnProgress>(

@@ -30,6 +30,7 @@ namespace NCatboostOptions {
         TOption<ui32> PermutationCount;
         TOption<TOverfittingDetectorOptions> OverfittingDetector;
         TOption<EBoostingType> BoostingType;
+        TOption<bool> BoostFromAverage;
         TCpuOnlyOption<bool> ApproxOnFullHistory;
         TCpuOnlyOption<float> ModelShrinkRate;
 

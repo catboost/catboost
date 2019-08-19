@@ -356,6 +356,9 @@ public:
 
     TVector<ui32> GetTreeLeafCounts() const;
 
+    //TODO(kirillovs): Remove this method and add Bias to the model instead.
+    void AddNumberToAllTreeLeafValues(ui32 treeId, double numberToAdd);
+
 private:
     mutable TMaybe<TRuntimeData> RuntimeData;
 };

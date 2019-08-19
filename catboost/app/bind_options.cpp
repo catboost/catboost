@@ -435,6 +435,14 @@ static void BindBoostingParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue*
             (*plainJsonPtr)["permutation_count"] = blockSize;
         });
 
+    parser
+        .AddLongOption("boost-from-average",
+                       "Enables to initialize approx values by average target value at the beginning, if loss function is RMSE. Possible values: true, false.")
+        .RequiredArgument("bool")
+        .Handler1T<TString>([plainJsonPtr](const TString& param) {
+            (*plainJsonPtr)["boost_from_average"] = FromString<bool>(param);
+        });
+
     const auto boostingTypeHelp = TString::Join(
         "Set boosting type (",
         GetEnumAllNames<EBoostingType>(),

@@ -558,6 +558,9 @@ static void SaveModel(
         }
 
         *modelPtr->ObliviousTrees.GetMutable() = std::move(obliviousTrees);
+        if (ctx.LearnProgress->StartingApprox) {
+            modelPtr->ObliviousTrees.GetMutable()->AddNumberToAllTreeLeafValues(0, *ctx.LearnProgress->StartingApprox);
+        }
         modelPtr->UpdateDynamicData();
         coreModelToFullModelConverter.WithCoreModelFrom(modelPtr);
 
@@ -593,6 +596,34 @@ static void SaveModel(
             );
         }
     }
+}
+
+
+//TODO(isaf27): add baseline to CalcOptimumConstApprox
+static inline TMaybe<double> CalcOptimumConstApprox(
+    const TConstArrayRef<float> targets,
+    const TConstArrayRef<float> weights,
+    ELossFunction lossFunction,
+    bool boostFromAverage
+) {
+    if (lossFunction != ELossFunction::RMSE || !boostFromAverage) {
+        return Nothing();
+    }
+    double summaryWeight = weights.empty() ? targets.size() : 0;
+    if (!weights.empty()) {
+        for (const auto& weight : weights) {
+            summaryWeight += weight;
+        }
+    }
+    double result = 0;
+    for (ui32 i = 0; i < targets.size(); ++i) {
+        if (weights.empty()) {
+            result += targets[i];
+        } else {
+            result += targets[i] * weights[i];
+        }
+    }
+    return result / summaryWeight;
 }
 
 
@@ -648,6 +679,14 @@ namespace {
                 initLearnProgressLearnAndTestQuantizedFeaturesCheckSum = initLearnProgress->LearnAndTestQuantizedFeaturesCheckSum;
             }
 
+            if (catboostOptions.BoostingOptions->BoostFromAverage.Get()) {
+                CB_ENSURE(!initModel, "You can't use boost_from_average with initial model now.");
+                CB_ENSURE(!trainingDataForCpu.Learn->TargetData->GetBaseline(), "You can't use boost_from_average with baseline now.");
+                for (ui32 testIdx = 0; testIdx < trainingDataForCpu.Test.size(); ++testIdx) {
+                    CB_ENSURE(!trainingData.Test[testIdx]->TargetData->GetBaseline(), "You can't use boost_from_average with baseline now.");
+                }
+            }
+
             TLearnContext ctx(
                 catboostOptions,
                 objectiveDescriptor,
@@ -655,6 +694,12 @@ namespace {
                 outputOptions,
                 trainingDataForCpu,
                 labelConverter,
+                CalcOptimumConstApprox(
+                    trainingData.Learn->TargetData->GetTarget().GetOrElse(TConstArrayRef<float>()),
+                    GetWeights(*trainingData.Learn->TargetData),
+                    catboostOptions.LossFunctionDescription->GetLossFunction(),
+                    catboostOptions.BoostingOptions->BoostFromAverage.Get()
+                ),
                 rand,
                 std::move(initModel),
                 std::move(initLearnProgress),
