@@ -1,0 +1,69 @@
+#pragma once
+#include "metric.h"
+
+#include <util/generic/string.h>
+#include <util/string/builder.h>
+#include <util/string/cast.h>
+#include <util/string/split.h>
+#include <util/string/printf.h>
+
+#include <catboost/libs/options/enums.h>
+
+template <typename T>
+static inline TString BuildDescription(const TMetricParam<T>& param) {
+    if (param.IsUserDefined()) {
+        return TStringBuilder() << param.GetName() << "=" << ToString(param.Get());
+    }
+    return {};
+}
+
+template <>
+inline TString BuildDescription<bool>(const TMetricParam<bool>& param) {
+    if (param.IsUserDefined()) {
+        return TStringBuilder() << param.GetName() << "=" << (param.Get() ? "true" : "false");
+    }
+    return {};
+}
+
+template <typename T>
+static inline TString BuildDescription(const char* fmt, const TMetricParam<T>& param) {
+    if (param.IsUserDefined()) {
+        return TStringBuilder() << param.GetName() << "=" << Sprintf(fmt, param.Get());
+    }
+    return {};
+}
+
+template <typename T, typename... TRest>
+static inline TString BuildDescription(const TMetricParam<T>& param, const TRest&... rest) {
+    const TString& head = BuildDescription(param);
+    const TString& tail = BuildDescription(rest...);
+    const TString& sep = (head.empty() || tail.empty()) ? "" : ";";
+    return TStringBuilder() << head << sep << tail;
+}
+
+template <typename T, typename... TRest>
+static inline TString BuildDescription(const char* fmt, const TMetricParam<T>& param, const TRest&... rest) {
+    const TString& head = BuildDescription(fmt, param);
+    const TString& tail = BuildDescription(rest...);
+    const TString& sep = (head.empty() || tail.empty()) ? "" : ";";
+    return TStringBuilder() << head << sep << tail;
+}
+
+template <typename... TParams>
+static inline TString BuildDescription(ELossFunction lossFunction, const TParams&... params) {
+    const TString& tail = BuildDescription(params...);
+    const TString& sep = tail.empty() ? "" : ":";
+    return TStringBuilder() << ToString(lossFunction) << sep << tail;
+}
+
+template <typename... TParams>
+static inline TString BuildDescription(const TString& description, const TParams&... params) {
+    Y_ASSERT(!description.empty());
+    const TString& tail = BuildDescription(params...);
+    const TString& sep = tail.empty() ? "" : description.Contains(':') ? ";" : ":";
+    return TStringBuilder() << description << sep << tail;
+}
+
+static inline TMetricParam<double> MakeBorderParam(double border) {
+    return {"border", border, border != GetDefaultTargetBorder()};
+}

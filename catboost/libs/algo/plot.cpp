@@ -77,20 +77,19 @@ void TMetricsPlotCalcer::ComputeAdditiveMetric(
     TConstArrayRef<TQueryInfo> queriesInfo,
     ui32 plotLineIndex
 ) {
-    for (ui32 metricId = 0; metricId < AdditiveMetrics.size(); ++metricId) {
-        const auto& metric = *AdditiveMetrics[metricId];
-        const auto docCount = static_cast<int>(target.size());
-        const auto queryCount = static_cast<int>(queriesInfo.size());
-        TMetricHolder metricResult;
-        if (metric.GetErrorType() == EErrorType::PerObjectError) {
-            metricResult = metric.Eval(approx, target, weights, queriesInfo, 0, docCount, Executor);
-        } else {
-            CB_ENSURE(
-                metric.GetErrorType() == EErrorType::QuerywiseError ||
-                metric.GetErrorType() == EErrorType::PairwiseError);
-            metricResult = metric.Eval(approx, target, weights, queriesInfo, 0, queryCount, Executor);
-        }
-        AdditiveMetricPlots[metricId][plotLineIndex].Add(metricResult);
+    auto results = EvalErrorsWithCaching(
+        approx,
+        /*approxDelts*/{},
+        /*isExpApprox*/false,
+        target,
+        weights,
+        queriesInfo,
+        AdditiveMetrics,
+        &Executor
+    );
+
+    for (auto metricId : xrange(AdditiveMetrics.size())) {
+        AdditiveMetricPlots[metricId][plotLineIndex].Add(results[metricId]);
     }
 }
 
@@ -281,18 +280,23 @@ TMetricsPlotCalcer& TMetricsPlotCalcer::ProceedDataSet(
 void TMetricsPlotCalcer::ComputeNonAdditiveMetrics(ui32 begin, ui32 end) {
     const auto& target = NonAdditiveMetricsData.Target;
     const auto& weights = NonAdditiveMetricsData.Weights;
-    for (ui32 idx = begin; idx < end; ++idx) {
+    for (auto idx : xrange(begin, end)) {
         auto approx = LoadApprox(idx);
-        for (ui32 metricId = 0; metricId < NonAdditiveMetrics.size(); ++metricId) {
-            NonAdditiveMetricPlots[metricId][idx] = NonAdditiveMetrics[metricId]->Eval(
-                approx,
-                target,
-                weights,
-                {},
-                0,
-                target.size(),
-                Executor);
+        auto results = EvalErrorsWithCaching(
+            approx,
+            /*approxDelts*/{},
+            /*isExpApprox*/false,
+            target,
+            weights,
+            {},
+            NonAdditiveMetrics,
+            &Executor
+        );
+
+        for (auto metricId : xrange(NonAdditiveMetrics.size())) {
+            NonAdditiveMetricPlots[metricId][idx] = results[metricId];
         }
+
         if (idx != 0) {
             DeleteApprox(idx - 1);
         }
@@ -362,16 +366,21 @@ void TMetricsPlotCalcer::ComputeNonAdditiveMetrics(const TVector<TProcessedDataP
             Append(NextApproxBuffer, startDocIdx[poolPartIdx], &curApprox);
         }
 
-        for (ui32 metricId = 0; metricId < NonAdditiveMetrics.size(); ++metricId) {
-            NonAdditiveMetricPlots[metricId][iterationIndex] = NonAdditiveMetrics[metricId]->Eval(
-                curApprox,
-                allTargets,
-                allWeights,
-                {},
-                0,
-                allTargets.size(),
-                Executor);
+        auto results = EvalErrorsWithCaching(
+            curApprox,
+            /*approxDelts*/{},
+            /*isExpApprox*/false,
+            allTargets,
+            allWeights,
+            {},
+            NonAdditiveMetrics,
+            &Executor
+        );
+
+        for (auto metricId : xrange(NonAdditiveMetrics.size())) {
+            NonAdditiveMetricPlots[metricId][iterationIndex] = results[metricId];
         }
+
         begin = end;
     }
 }

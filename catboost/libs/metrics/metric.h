@@ -1,6 +1,7 @@
 #pragma once
 
 #include "metric_holder.h"
+#include "caching_metric.h"
 #include "pfound.h"
 
 #include <catboost/libs/data_types/pair.h>
@@ -10,11 +11,13 @@
 #include <catboost/libs/options/enum_helpers.h>
 #include <catboost/libs/options/loss_description.h>
 #include <catboost/libs/options/metric_options.h>
+#include <catboost/libs/helpers/maybe_data.h>
 
 #include <library/threading/local_executor/local_executor.h>
 #include <library/containers/2d_array/2d_array.h>
 
 #include <util/generic/fwd.h>
+#include <util/generic/array_ref.h>
 
 #include <cmath>
 
@@ -140,6 +143,37 @@ private:
     TMap<TString, TString> Hints;
 };
 
+static inline int GetMinBlockSize(int objectCount) {
+    return objectCount < 100000 ? 1000 : 10000;
+}
+
+template <typename TEvalFunction>
+static TMetricHolder ParallelEvalMetric(TEvalFunction eval, int minBlockSize, int begin, int end, NPar::TLocalExecutor& executor) {
+    NPar::TLocalExecutor::TExecRangeParams blockParams(begin, end);
+
+    const int threadCount = executor.GetThreadCount() + 1;
+    const int effectiveBlockCount = Min(threadCount, (int)ceil((end - begin) * 1.0 / minBlockSize));
+
+    blockParams.SetBlockCount(effectiveBlockCount);
+
+    const int blockSize = blockParams.GetBlockSize();
+    const ui32 blockCount = blockParams.GetBlockCount();
+
+    TVector<TMetricHolder> results(blockCount);
+    NPar::ParallelFor(executor, 0, blockCount, [&](int blockId) {
+        const int from = begin + blockId * blockSize;
+        const int to = Min<int>(begin + (blockId + 1) * blockSize, end);
+        results[blockId] = eval(from, to);
+    });
+
+    TMetricHolder result;
+    for (int i = 0; i < results.ysize(); ++i) {
+        result.Add(results[i]);
+    }
+    return result;
+
+}
+
 template <class TImpl>
 struct TAdditiveMetric: public TMetric {
     TMetricHolder Eval(
@@ -165,33 +199,13 @@ struct TAdditiveMetric: public TMetric {
         int end,
         NPar::TLocalExecutor& executor
     ) const final {
-        NPar::TLocalExecutor::TExecRangeParams blockParams(begin, end);
+        const auto evalMetric = [&](int from, int to) {
+            return static_cast<const TImpl*>(this)->EvalSingleThread(
+                approx, approxDelta, isExpApprox, target, UseWeights.IsIgnored() || UseWeights ? weight : TVector<float>{}, queriesInfo, from, to
+            );
+        };
 
-        const int threadCount = executor.GetThreadCount() + 1;
-        const int MinBlockSize = end - begin < 100000 ? 1000 : 10000;
-        const int effectiveBlockCount = Min(threadCount, (int)ceil((end - begin) * 1.0 / MinBlockSize));
-
-        blockParams.SetBlockCount(effectiveBlockCount);
-
-        const int blockSize = blockParams.GetBlockSize();
-        const ui32 blockCount = blockParams.GetBlockCount();
-
-        TVector<TMetricHolder> results(blockCount);
-        NPar::ParallelFor(executor, 0, blockCount, [&](int blockId) {
-            const int from = begin + blockId * blockSize;
-            const int to = Min<int>(begin + (blockId + 1) * blockSize, end);
-            Y_ASSERT(from < to);
-            if (UseWeights.IsIgnored() || UseWeights)
-                results[blockId] = static_cast<const TImpl*>(this)->EvalSingleThread(approx, approxDelta, isExpApprox, target, weight, queriesInfo, from, to);
-            else
-                results[blockId] = static_cast<const TImpl*>(this)->EvalSingleThread(approx, approxDelta, isExpApprox, target, {}, queriesInfo, from, to);
-        });
-
-        TMetricHolder result;
-        for (int i = 0; i < results.ysize(); ++i) {
-            result.Add(results[i]);
-        }
-        return result;
+        return ParallelEvalMetric(evalMetric, GetMinBlockSize(end - begin), begin, end, executor);
     }
 
     bool IsAdditiveMetric() const final {
@@ -263,13 +277,11 @@ THolder<IMetric> MakeBinClassAucMetric(double border = GetDefaultTargetBorder())
 THolder<IMetric> MakeMultiClassAucMetric(int positiveClass);
 THolder<IMetric> MakeMuAucMetric(const TMaybe<TVector<TVector<double>>>& misclassCostMatrix = Nothing());
 
-THolder<IMetric> MakeAccuracyMetric(double border = GetDefaultTargetBorder());
-
 THolder<IMetric> MakeBinClassPrecisionMetric(double border = GetDefaultTargetBorder());
-THolder<IMetric> MakeMultiClassPrecisionMetric(int positiveClass);
+THolder<IMetric> MakeMultiClassPrecisionMetric(int classesCount, int positiveClass);
 
 THolder<IMetric> MakeBinClassRecallMetric(double border = GetDefaultTargetBorder());
-THolder<IMetric> MakeMultiClassRecallMetric(int positiveClass);
+THolder<IMetric> MakeMultiClassRecallMetric(int classesCount, int positiveClass);
 
 THolder<IMetric> MakeBinClassBalancedAccuracyMetric(double border = GetDefaultTargetBorder());
 
@@ -282,7 +294,7 @@ THolder<IMetric> MakeBinClassWKappaMetric(double border = GetDefaultTargetBorder
 THolder<IMetric> MakeMultiClassWKappaMetric(int classCount = 2);
 
 THolder<IMetric> MakeBinClassF1Metric(double border = GetDefaultTargetBorder());
-THolder<IMetric> MakeMultiClassF1Metric(int positiveClass);
+THolder<IMetric> MakeMultiClassF1Metric(int classesCount, int positiveClass);
 
 THolder<IMetric> MakeTotalF1Metric(int classesCount = 2);
 
@@ -296,9 +308,8 @@ THolder<IMetric> MakeHammingLossMetric(
     double border = GetDefaultTargetBorder(),
     bool isMulticlass = false);
 
-THolder<IMetric> MakeZeroOneLossMetric(
-    double border = GetDefaultTargetBorder(),
-    bool isMultiClass = false);
+THolder<IMetric> MakeZeroOneLossMetric(double border = GetDefaultTargetBorder());
+THolder<IMetric> MakeZeroOneLossMetric(int classCount);
 
 THolder<IMetric> MakePairAccuracyMetric();
 

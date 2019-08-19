@@ -1,4 +1,5 @@
 #include "metric.h"
+#include "caching_metric.h"
 #include "auc.h"
 #include "auc_mu.h"
 #include "balanced_accuracy.h"
@@ -11,6 +12,7 @@
 #include "llp.h"
 #include "pfound.h"
 #include "precision_recall_at_k.h"
+#include "description_utils.h"
 
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/vector_helpers.h>
@@ -20,6 +22,7 @@
 #include <library/fast_exp/fast_exp.h>
 #include <library/fast_log/fast_log.h>
 
+#include <util/generic/array_ref.h>
 #include <util/generic/hash.h>
 #include <util/generic/maybe.h>
 #include <util/generic/string.h>
@@ -31,73 +34,13 @@
 #include <util/system/yassert.h>
 
 #include <limits>
-
-static constexpr int BinaryClassesCount = 2;
+#include <tuple>
 
 /* TMetric */
 
 static inline double OverflowSafeLogitProb(double approx) {
     double expApprox = exp(approx);
     return approx < 200 ? expApprox / (1.0 + expApprox) : 1.0;
-}
-
-template <typename T>
-static inline TString BuildDescription(const TMetricParam<T>& param) {
-    if (param.IsUserDefined()) {
-        return TStringBuilder() << param.GetName() << "=" << ToString(param.Get());
-    }
-    return {};
-}
-
-template <>
-inline TString BuildDescription<bool>(const TMetricParam<bool>& param) {
-    if (param.IsUserDefined()) {
-        return TStringBuilder() << param.GetName() << "=" << (param.Get() ? "true" : "false");
-    }
-    return {};
-}
-
-template <typename T>
-static inline TString BuildDescription(const char* fmt, const TMetricParam<T>& param) {
-    if (param.IsUserDefined()) {
-        return TStringBuilder() << param.GetName() << "=" << Sprintf(fmt, param.Get());
-    }
-    return {};
-}
-
-template <typename T, typename... TRest>
-static inline TString BuildDescription(const TMetricParam<T>& param, const TRest&... rest) {
-    const TString& head = BuildDescription(param);
-    const TString& tail = BuildDescription(rest...);
-    const TString& sep = (head.empty() || tail.empty()) ? "" : ";";
-    return TStringBuilder() << head << sep << tail;
-}
-
-template <typename T, typename... TRest>
-static inline TString BuildDescription(const char* fmt, const TMetricParam<T>& param, const TRest&... rest) {
-    const TString& head = BuildDescription(fmt, param);
-    const TString& tail = BuildDescription(rest...);
-    const TString& sep = (head.empty() || tail.empty()) ? "" : ";";
-    return TStringBuilder() << head << sep << tail;
-}
-
-template <typename... TParams>
-static inline TString BuildDescription(ELossFunction lossFunction, const TParams&... params) {
-    const TString& tail = BuildDescription(params...);
-    const TString& sep = tail.empty() ? "" : ":";
-    return TStringBuilder() << ToString(lossFunction) << sep << tail;
-}
-
-template <typename... TParams>
-static inline TString BuildDescription(const TString& description, const TParams&... params) {
-    Y_ASSERT(!description.empty());
-    const TString& tail = BuildDescription(params...);
-    const TString& sep = tail.empty() ? "" : description.Contains(':') ? ";" : ":";
-    return TStringBuilder() << description << sep << tail;
-}
-
-static inline TMetricParam<double> MakeBorderParam(double border) {
-    return {"border", border, border != GetDefaultTargetBorder()};
 }
 
 EErrorType TMetric::GetErrorType() const {
@@ -2479,235 +2422,6 @@ void TFairLossMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
     *valueType = EMetricBestValue::Min;
 }
 
-/* Accuracy */
-
-namespace {
-    struct TAccuracyMetric : public TAdditiveMetric<TAccuracyMetric> {
-        explicit TAccuracyMetric(double border)
-            : Border(border)
-        {
-        }
-        TMetricHolder EvalSingleThread(
-            const TVector<TVector<double>>& approx,
-            const TVector<TVector<double>>& approxDelta,
-            bool isExpApprox,
-            TConstArrayRef<float> target,
-            TConstArrayRef<float> weight,
-            TConstArrayRef<TQueryInfo> queriesInfo,
-            int begin,
-            int end
-        ) const;
-        TString GetDescription() const override;
-        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
-
-    private:
-        double Border = GetDefaultTargetBorder();
-    };
-}
-
-THolder<IMetric> MakeAccuracyMetric(double border) {
-    return MakeHolder<TAccuracyMetric>(border);
-}
-
-TMetricHolder TAccuracyMetric::EvalSingleThread(
-    const TVector<TVector<double>>& approx,
-    const TVector<TVector<double>>& approxDelta,
-    bool isExpApprox,
-    TConstArrayRef<float> target,
-    TConstArrayRef<float> weight,
-    TConstArrayRef<TQueryInfo> /*queriesInfo*/,
-    int begin,
-    int end
-) const {
-    Y_ASSERT(target.size() == approx[0].size());
-    Y_ASSERT(approxDelta.empty());
-    Y_ASSERT(!isExpApprox);
-    return GetAccuracy(approx, target, weight, begin, end, Border);
-}
-
-TString TAccuracyMetric::GetDescription() const {
-    return BuildDescription(ELossFunction::Accuracy, UseWeights, "%.3g", MakeBorderParam(Border));
-}
-
-void TAccuracyMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
-    *valueType = EMetricBestValue::Max;
-}
-
-/* Precision */
-
-namespace {
-    struct TPrecisionMetric : public TAdditiveMetric<TPrecisionMetric> {
-        explicit TPrecisionMetric(double border)
-                : Border(border) {
-        }
-
-        explicit TPrecisionMetric(int positiveClass)
-            : PositiveClass(positiveClass)
-            , IsMultiClass(true) {
-        }
-
-        TMetricHolder EvalSingleThread(
-            const TVector<TVector<double>>& approx,
-            const TVector<TVector<double>>& approxDelta,
-            bool isExpApprox,
-            TConstArrayRef<float> target,
-            TConstArrayRef<float> weight,
-            TConstArrayRef<TQueryInfo> queriesInfo,
-            int begin,
-            int end
-        ) const;
-        TString GetDescription() const override;
-        double GetFinalError(const TMetricHolder& error) const override;
-        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
-
-    private:
-        int PositiveClass = 1;
-        bool IsMultiClass = false;
-        double Border = GetDefaultTargetBorder();
-    };
-}
-
-THolder<IMetric> MakeBinClassPrecisionMetric(double border) {
-    return MakeHolder<TPrecisionMetric>(border);
-}
-
-THolder<IMetric> MakeMultiClassPrecisionMetric(int positiveClass) {
-    CB_ENSURE(positiveClass >= 0, "Class id should not be negative");
-    return MakeHolder<TPrecisionMetric>(positiveClass);
-}
-
-TMetricHolder TPrecisionMetric::EvalSingleThread(
-    const TVector<TVector<double>>& approx,
-    const TVector<TVector<double>>& approxDelta,
-    bool isExpApprox,
-    TConstArrayRef<float> target,
-    TConstArrayRef<float> weight,
-    TConstArrayRef<TQueryInfo> /*queriesInfo*/,
-    int begin,
-    int end
-) const {
-    Y_ASSERT((approx.size() > 1) == IsMultiClass);
-    Y_ASSERT(approxDelta.empty());
-    Y_ASSERT(!isExpApprox);
-
-    double targetPositive;
-    TMetricHolder error(2); // Stats[0] == truePositive, Stats[1] == approxPositive
-    GetPositiveStats(approx, target, weight, begin, end, PositiveClass, Border,
-                     &error.Stats[0], &targetPositive, &error.Stats[1]);
-
-    return error;
-}
-
-TString TPrecisionMetric::GetDescription() const {
-    if (IsMultiClass) {
-        const TMetricParam<int> positiveClass("class", PositiveClass, /*userDefined*/true);
-        return BuildDescription(ELossFunction::Precision, UseWeights, positiveClass);
-    } else {
-        return BuildDescription(ELossFunction::Precision, UseWeights, "%.3g", MakeBorderParam(Border));
-    }
-}
-
-void TPrecisionMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
-    *valueType = EMetricBestValue::Max;
-}
-
-double TPrecisionMetric::GetFinalError(const TMetricHolder& error) const {
-    return error.Stats[1] != 0 ? error.Stats[0] / error.Stats[1] : 1;
-}
-
-/* Recall */
-
-namespace {
-    struct TRecallMetric: public TAdditiveMetric<TRecallMetric> {
-        explicit TRecallMetric(double border = GetDefaultTargetBorder())
-            : Border(border)
-        {
-        }
-
-        explicit TRecallMetric(int positiveClass)
-            : PositiveClass(positiveClass)
-            , IsMultiClass(true) {
-        }
-
-        TMetricHolder EvalSingleThread(
-            const TVector<TVector<double>>& approx,
-            const TVector<TVector<double>>& approxDelta,
-            bool isExpApprox,
-            TConstArrayRef<float> target,
-            TConstArrayRef<float> weight,
-            TConstArrayRef<TQueryInfo> queriesInfo,
-            int begin,
-            int end
-        ) const;
-        TString GetDescription() const override;
-        double GetFinalError(const TMetricHolder& error) const override;
-        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
-
-    private:
-        int PositiveClass = 1;
-        bool IsMultiClass = false;
-        double Border = GetDefaultTargetBorder();
-    };
-}
-
-THolder<IMetric> MakeBinClassRecallMetric(double border) {
-    return MakeHolder<TRecallMetric>(border);
-}
-
-THolder<IMetric> MakeMultiClassRecallMetric(int positiveClass) {
-    CB_ENSURE(positiveClass >= 0, "Class id should not be negative");
-    return MakeHolder<TRecallMetric>(positiveClass);
-}
-
-TMetricHolder TRecallMetric::EvalSingleThread(
-    const TVector<TVector<double>>& approx,
-    const TVector<TVector<double>>& approxDelta,
-    bool isExpApprox,
-    TConstArrayRef<float> target,
-    TConstArrayRef<float> weight,
-    TConstArrayRef<TQueryInfo> /*queriesInfo*/,
-    int begin,
-    int end
-) const {
-    Y_ASSERT((approx.size() > 1) == IsMultiClass);
-    Y_ASSERT(approxDelta.empty());
-    Y_ASSERT(!isExpApprox);
-
-    double approxPositive;
-    TMetricHolder error(2);  // Stats[0] == truePositive, Stats[1] == targetPositive
-    GetPositiveStats(
-            approx,
-            target,
-            weight,
-            begin,
-            end,
-            PositiveClass,
-            Border,
-            &error.Stats[0],
-            &error.Stats[1],
-            &approxPositive
-    );
-
-    return error;
-}
-
-TString TRecallMetric::GetDescription() const {
-    if (IsMultiClass) {
-        const TMetricParam<int> positiveClass("class", PositiveClass, /*userDefined*/true);
-        return BuildDescription(ELossFunction::Recall, UseWeights, positiveClass);
-    } else {
-        return BuildDescription(ELossFunction::Recall, UseWeights, "%.3g", MakeBorderParam(Border));
-    }
-}
-
-double TRecallMetric::GetFinalError(const TMetricHolder& error) const {
-    return error.Stats[1] != 0 ? error.Stats[0] / error.Stats[1] : 1;
-}
-
-void TRecallMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
-    *valueType = EMetricBestValue::Max;
-}
-
 /* Balanced Accuracy */
 
 namespace {
@@ -2957,329 +2671,6 @@ double TWKappaMetric::GetFinalError(const TMetricHolder& error) const {
     return CalcKappa(error, ClassCount, EKappaMetricType::Weighted);
 }
 
-/* F1 */
-
-namespace {
-    struct TF1Metric: public TAdditiveMetric<TF1Metric> {
-        explicit TF1Metric(double border)
-            : Border(border) {
-        }
-
-        explicit TF1Metric(int positiveClass)
-            : PositiveClass(positiveClass)
-            , IsMultiClass(true) {
-        }
-
-        TMetricHolder EvalSingleThread(
-            const TVector<TVector<double>>& approx,
-            const TVector<TVector<double>>& approxDelta,
-            bool isExpApprox,
-            TConstArrayRef<float> target,
-            TConstArrayRef<float> weight,
-            TConstArrayRef<TQueryInfo> queriesInfo,
-            int begin,
-            int end
-        ) const;
-        TString GetDescription() const override;
-        double GetFinalError(const TMetricHolder& error) const override;
-        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
-        TVector<TString> GetStatDescriptions() const override;
-
-    private:
-        int PositiveClass = 1;
-        bool IsMultiClass = false;
-        double Border = GetDefaultTargetBorder();
-    };
-}
-
-THolder<IMetric> MakeBinClassF1Metric(double border) {
-    return MakeHolder<TF1Metric>(border);
-}
-
-THolder<IMetric> MakeMultiClassF1Metric(int positiveClass) {
-    CB_ENSURE(positiveClass >= 0, "Class id should not be negative");
-    return MakeHolder<TF1Metric>(positiveClass);
-}
-
-TMetricHolder TF1Metric::EvalSingleThread(
-    const TVector<TVector<double>>& approx,
-    const TVector<TVector<double>>& approxDelta,
-    bool isExpApprox,
-    TConstArrayRef<float> target,
-    TConstArrayRef<float> weight,
-    TConstArrayRef<TQueryInfo> /*queriesInfo*/,
-    int begin,
-    int end
-) const {
-    Y_ASSERT((approx.size() > 1) == IsMultiClass);
-    Y_ASSERT(approxDelta.empty());
-    Y_ASSERT(!isExpApprox);
-
-    TMetricHolder error(3); // Stats[0] == truePositive; Stats[1] == targetPositive; Stats[2] == approxPositive;
-    GetPositiveStats(approx, target, weight, begin, end, PositiveClass, Border,
-                     &error.Stats[0], &error.Stats[1], &error.Stats[2]);
-
-    return error;
-}
-
-double TF1Metric::GetFinalError(const TMetricHolder& error) const {
-    double denominator = error.Stats[1] + error.Stats[2];
-    return denominator > 0 ? 2 * error.Stats[0] / denominator : 0;
-}
-
-TVector<TString> TF1Metric::GetStatDescriptions() const {
-    return {"TP", "TP+FN", "TP+FP"};
-}
-
-TString TF1Metric::GetDescription() const {
-    if (IsMultiClass) {
-        const TMetricParam<int> positiveClass("class", PositiveClass, /*userDefined*/true);
-        return BuildDescription(ELossFunction::F1, UseWeights, positiveClass);
-    } else {
-        return BuildDescription(ELossFunction::F1, UseWeights, "%.3g", MakeBorderParam(Border));
-    }
-}
-
-void TF1Metric::GetBestValue(EMetricBestValue* valueType, float*) const {
-    *valueType = EMetricBestValue::Max;
-}
-
-/* TotalF1 */
-
-namespace {
-    struct TTotalF1Metric : public TAdditiveMetric<TTotalF1Metric> {
-        explicit TTotalF1Metric(int classesCount)
-            : ClassCount(classesCount),
-              IsMultiClass(true) {
-        }
-        explicit TTotalF1Metric(double border)
-            : Border(border),
-              IsMultiClass(false) {
-        }
-        TMetricHolder EvalSingleThread(
-            const TVector<TVector<double>>& approx,
-            const TVector<TVector<double>>& approxDelta,
-            bool isExpApprox,
-            TConstArrayRef<float> target,
-            TConstArrayRef<float> weight,
-            TConstArrayRef<TQueryInfo> queriesInfo,
-            int begin,
-            int end
-        ) const;
-        TString GetDescription() const override;
-        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
-        double GetFinalError(const TMetricHolder& error) const override;
-        TVector<TString> GetStatDescriptions() const override;
-
-    private:
-        int ClassCount = BinaryClassesCount;
-        double Border = GetDefaultTargetBorder();
-        bool IsMultiClass = false;
-    };
-}
-
-THolder<IMetric> MakeTotalF1Metric(int classesCount) {
-    return MakeHolder<TTotalF1Metric>(classesCount);
-}
-
-TMetricHolder TTotalF1Metric::EvalSingleThread(
-    const TVector<TVector<double>>& approx,
-    const TVector<TVector<double>>& approxDelta,
-    bool isExpApprox,
-    TConstArrayRef<float> target,
-    TConstArrayRef<float> weight,
-    TConstArrayRef<TQueryInfo> /*queriesInfo*/,
-    int begin,
-    int end
-) const {
-    Y_ASSERT(approxDelta.empty());
-    Y_ASSERT(!isExpApprox);
-    TVector<double> truePositive;
-    TVector<double> targetPositive;
-    TVector<double> approxPositive;
-    GetTotalPositiveStats(approx, target, weight, begin, end,
-                          &truePositive, &targetPositive, &approxPositive, Border);
-
-    int classesCount = truePositive.ysize();
-    Y_VERIFY(classesCount == ClassCount);
-    TMetricHolder error(3 * classesCount); // targetPositive[0], approxPositive[0], truePositive[0], targetPositive[1], ...
-
-    for (int classIdx = 0; classIdx < classesCount; ++classIdx) {
-        error.Stats[3 * classIdx] = targetPositive[classIdx];
-        error.Stats[3 * classIdx + 1] = approxPositive[classIdx];
-        error.Stats[3 * classIdx + 2] = truePositive[classIdx];
-    }
-
-    return error;
-}
-
-TString TTotalF1Metric::GetDescription() const {
-    if (IsMultiClass) {
-        return BuildDescription(ELossFunction::TotalF1, UseWeights);
-    } else {
-        return BuildDescription(ELossFunction::TotalF1, UseWeights, "%.3g", MakeBorderParam(Border));
-    }
-}
-
-void TTotalF1Metric::GetBestValue(EMetricBestValue* valueType, float*) const {
-    *valueType = EMetricBestValue::Max;
-}
-
-double TTotalF1Metric::GetFinalError(const TMetricHolder& error) const {
-    double numerator = 0;
-    double denom = 0;
-    for (int classIdx = 0; classIdx < ClassCount; ++classIdx) {
-        double denominator = error.Stats[3 * classIdx] + error.Stats[3 * classIdx + 1];
-        numerator += denominator > 0 ? 2 * error.Stats[3 * classIdx + 2] / denominator * error.Stats[3 * classIdx] : 0;
-        denom += error.Stats[3 * classIdx];
-    }
-    return numerator / (denom + 1e-38);
-}
-
-TVector<TString> TTotalF1Metric::GetStatDescriptions() const {
-    TVector<TString> result;
-    for (int classIdx = 0; classIdx < ClassCount; ++classIdx) {
-        auto prefix = "Class=" + ToString(classIdx) + ",";
-        result.push_back(prefix + "TP+FN");
-        result.push_back(prefix + "TP+FP");
-        result.push_back(prefix + "TP");
-    }
-    return result;
-}
-
-/* Confusion matrix */
-
-static double& GetValue(TVector<double>& squareMatrix, int i, int j) {
-    int columns = sqrt(squareMatrix.size());
-    Y_ASSERT(columns * columns == squareMatrix.ysize());
-    return squareMatrix[i * columns + j];
-}
-
-static double GetConstValue(const TVector<double>& squareMatrix, int i, int j) {
-    int columns = sqrt(squareMatrix.size());
-    Y_ASSERT(columns * columns == squareMatrix.ysize());
-    return squareMatrix[i * columns + j];
-}
-
-static void BuildConfusionMatrix(
-    const TVector<TVector<double>>& approx,
-    TConstArrayRef<float> target,
-    TConstArrayRef<float> weight,
-    int begin,
-    int end,
-    TVector<double>* confusionMatrix,
-    double border
-) {
-    const bool isMultiClass = approx.size() > 1;
-    const int classesCount = isMultiClass ? approx.size() : BinaryClassesCount;
-
-    confusionMatrix->clear();
-    confusionMatrix->resize(classesCount * classesCount);
-    for (int i = begin; i < end; ++i) {
-        int approxClass = GetApproxClass(approx, i);
-        int targetClass = isMultiClass ? static_cast<int>(target[i]) : target[i] > border;
-        Y_ASSERT(targetClass >= 0 && targetClass < classesCount);
-        float w = weight.empty() ? 1 : weight[i];
-        GetValue(*confusionMatrix, approxClass, targetClass) += w;
-    }
-}
-
-/* MCC */
-
-namespace {
-    struct TMCCMetric : public TAdditiveMetric<TMCCMetric> {
-        explicit TMCCMetric(int classesCount)
-            : ClassesCount(classesCount),
-              IsMultiClass(true) {
-        }
-        explicit TMCCMetric(double border)
-            : Border(border),
-              IsMultiClass(false) {
-        }
-
-        TMetricHolder EvalSingleThread(
-            const TVector<TVector<double>>& approx,
-            const TVector<TVector<double>>& approxDelta,
-            bool isExpApprox,
-            TConstArrayRef<float> target,
-            TConstArrayRef<float> weight,
-            TConstArrayRef<TQueryInfo> queriesInfo,
-            int begin,
-            int end
-        ) const;
-        TString GetDescription() const override;
-        double GetFinalError(const TMetricHolder& error) const override;
-        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
-        TVector<TString> GetStatDescriptions() const override;
-
-    private:
-        int ClassesCount = BinaryClassesCount;
-        double Border = GetDefaultTargetBorder();
-        bool IsMultiClass = false;
-    };
-}
-
-THolder<IMetric> MakeMCCMetric(int classesCount) {
-    return MakeHolder<TMCCMetric>(classesCount);
-}
-
-TMetricHolder TMCCMetric::EvalSingleThread(
-    const TVector<TVector<double>>& approx,
-    const TVector<TVector<double>>& approxDelta,
-    bool isExpApprox,
-    TConstArrayRef<float> target,
-    TConstArrayRef<float> weight,
-    TConstArrayRef<TQueryInfo> /*queriesInfo*/,
-    int begin,
-    int end
-) const {
-    Y_ASSERT(approxDelta.empty());
-    Y_ASSERT(!isExpApprox);
-    TMetricHolder holder;
-    BuildConfusionMatrix(approx, target, weight, begin, end, &holder.Stats, Border);
-    return holder;
-}
-
-double TMCCMetric::GetFinalError(const TMetricHolder& error) const {
-    TVector<double> rowSum(ClassesCount, 0);
-    TVector<double> columnSum(ClassesCount, 0);
-    double totalSum = 0;
-    for (int approxClass = 0; approxClass < ClassesCount; ++approxClass) {
-        for (int tragetClass = 0; tragetClass < ClassesCount; ++tragetClass) {
-            rowSum[approxClass] += GetConstValue(error.Stats, approxClass, tragetClass);
-            columnSum[tragetClass] += GetConstValue(error.Stats, approxClass, tragetClass);
-            totalSum += GetConstValue(error.Stats, approxClass, tragetClass);
-        }
-    }
-
-    double numerator = 0;
-    for (int classIdx = 0; classIdx < ClassesCount; ++classIdx) {
-        numerator += GetConstValue(error.Stats, classIdx, classIdx) * totalSum - rowSum[classIdx] * columnSum[classIdx];
-    }
-
-    double sumSquareRowSums = 0;
-    double sumSquareColumnSums = 0;
-    for (int classIdx = 0; classIdx < ClassesCount; ++classIdx) {
-        sumSquareRowSums += Sqr(rowSum[classIdx]);
-        sumSquareColumnSums += Sqr(columnSum[classIdx]);
-    }
-
-    double denominator = sqrt((Sqr(totalSum) - sumSquareRowSums) * (Sqr(totalSum) - sumSquareColumnSums));
-    return numerator / (denominator + FLT_EPSILON);
-}
-
-TString TMCCMetric::GetDescription() const {
-    if (IsMultiClass) {
-        return BuildDescription(ELossFunction::MCC, UseWeights);
-    } else {
-        return BuildDescription(ELossFunction::MCC, UseWeights, "%.3g", MakeBorderParam(Border));
-    }
-}
-
-void TMCCMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
-    *valueType = EMetricBestValue::Max;
-}
-
 /* Brier Score */
 
 namespace {
@@ -3392,72 +2783,6 @@ double THingeLossMetric::GetFinalError(const TMetricHolder& error) const {
     return error.Stats[1] != 0 ? error.Stats[0] / error.Stats[1] : 0;
 }
 
-/* Zero one loss */
-
-namespace {
-    struct TZeroOneLossMetric : public TAdditiveMetric<TZeroOneLossMetric> {
-        explicit TZeroOneLossMetric(double border, bool isMultiClass);
-        TMetricHolder EvalSingleThread(
-                const TVector<TVector<double>>& approx,
-                const TVector<TVector<double>>& approxDelta,
-                bool isExpApprox,
-                TConstArrayRef<float> target,
-                TConstArrayRef<float> weight,
-                TConstArrayRef<TQueryInfo> queriesInfo,
-                int begin,
-                int end
-        ) const;
-        TString GetDescription() const override;
-        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
-        double GetFinalError(const TMetricHolder& error) const override;
-    private:
-        double Border = GetDefaultTargetBorder();
-        bool IsMultiClass = false;
-    };
-}
-
-THolder<IMetric> MakeZeroOneLossMetric(double border, bool isMultiClass) {
-    return MakeHolder<TZeroOneLossMetric>(border, isMultiClass);
-}
-
-TZeroOneLossMetric::TZeroOneLossMetric(double border, bool isMultiClass)
-        : Border(border)
-        , IsMultiClass(isMultiClass)
-{
-}
-
-TMetricHolder TZeroOneLossMetric::EvalSingleThread(
-    const TVector<TVector<double>>& approx,
-    const TVector<TVector<double>>& approxDelta,
-    bool isExpApprox,
-    TConstArrayRef<float> target,
-    TConstArrayRef<float> weight,
-    TConstArrayRef<TQueryInfo> /*queriesInfo*/,
-    int begin,
-    int end
-) const {
-    Y_ASSERT(approxDelta.empty());
-    Y_ASSERT(!isExpApprox);
-    Y_ASSERT(target.size() == approx[0].size());
-    return GetAccuracy(approx, target, weight, begin, end, Border);
-}
-
-TString TZeroOneLossMetric::GetDescription() const {
-    if (IsMultiClass) {
-        return BuildDescription(ELossFunction::ZeroOneLoss, UseWeights, "%.3g", MakeBorderParam(Border));
-    } else {
-        return BuildDescription(ELossFunction::ZeroOneLoss, UseWeights);
-    }
-}
-
-void TZeroOneLossMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
-    *valueType = EMetricBestValue::Min;
-}
-
-double TZeroOneLossMetric::GetFinalError(const TMetricHolder& error) const {
-    return error.Stats[1] != 0 ? 1 - error.Stats[0] / error.Stats[1] : 0;
-}
-
 /* Hamming loss */
 
 namespace {
@@ -3524,9 +2849,9 @@ TMetricHolder THammingLossMetric::EvalSingleThread(
 
 TString THammingLossMetric::GetDescription() const {
     if (IsMultiClass) {
-        return BuildDescription(ELossFunction::HammingLoss, UseWeights, "%.3g", MakeBorderParam(Border));
-    } else {
         return BuildDescription(ELossFunction::HammingLoss, UseWeights);
+    } else {
+        return BuildDescription(ELossFunction::HammingLoss, UseWeights, "%.3g", MakeBorderParam(Border));
     }
 }
 
@@ -3536,16 +2861,6 @@ void THammingLossMetric::GetBestValue(EMetricBestValue* valueType, float*) const
 
 double THammingLossMetric::GetFinalError(const TMetricHolder& error) const {
     return error.Stats[1] != 0 ? error.Stats[0] / error.Stats[1] : 0;
-}
-
-TVector<TString> TMCCMetric::GetStatDescriptions() const {
-    TVector<TString> result;
-    for (int i = 0; i < ClassesCount; ++i) {
-        for (int j = 0; j < ClassesCount; ++j) {
-            result.push_back("ConfusionMatrix[" + ToString(i) + "][" + ToString(j) + "]");
-        }
-    }
-    return result;
 }
 
 /* PairAccuracy */
@@ -3872,18 +3187,26 @@ namespace {
             NPar::TLocalExecutor& executor
         ) const override;
         TMetricHolder Eval(
-            const TVector<TVector<double>>& /*approx*/,
-            const TVector<TVector<double>>& /*approxDelta*/,
-            bool /*isExpApprox*/,
-            TConstArrayRef<float> /*target*/,
-            TConstArrayRef<float> /*weight*/,
-            TConstArrayRef<TQueryInfo> /*queriesInfo*/,
-            int /*begin*/,
-            int /*end*/,
-            NPar::TLocalExecutor& /*executor*/
+            const TVector<TVector<double>>& approx,
+            const TVector<TVector<double>>& approxDelta,
+            bool isExpApprox,
+            TConstArrayRef<float> target,
+            TConstArrayRef<float> weight,
+            TConstArrayRef<TQueryInfo> queriesInfo,
+            int begin,
+            int end,
+            NPar::TLocalExecutor& executor
         ) const override {
-            CB_ENSURE(false, "Custom metrics do not support approx deltas and exponentiated approxes");
-            return TMetricHolder();
+            CB_ENSURE(!isExpApprox && approxDelta.empty(), "Custom metrics do not support approx deltas and exponentiated approxes");
+            return Eval(
+                approx,
+                target,
+                weight,
+                queriesInfo,
+                begin,
+                end,
+                executor
+            );
         }
         TString GetDescription() const override;
         void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
@@ -4593,36 +3916,6 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
             }
             break;
         }
-        case ELossFunction::Accuracy:
-            result.push_back(MakeAccuracyMetric(border));
-            validParams = {"border"};
-            break;
-        case ELossFunction::CtrFactor:
-            result.push_back(MakeCtrFactorMetric(border));
-            validParams = {"border"};
-            break;
-        case ELossFunction::Precision: {
-            if (approxDimension == 1) {
-                result.emplace_back(MakeBinClassPrecisionMetric(border));
-                validParams = {"border"};
-            } else {
-                for (int i = 0; i < approxDimension; ++i) {
-                    result.emplace_back(MakeMultiClassPrecisionMetric(i));
-                }
-            }
-            break;
-        }
-        case ELossFunction::Recall: {
-            if (approxDimension == 1) {
-                result.emplace_back(MakeBinClassRecallMetric(border));
-                validParams = {"border"};
-            } else {
-                for (int i = 0; i < approxDimension; ++i) {
-                    result.emplace_back(MakeMultiClassRecallMetric(i));
-                }
-            }
-            break;
-        }
         case ELossFunction::BalancedAccuracy: {
             CB_ENSURE(approxDimension == 1, "Balanced accuracy is used only for binary classification problems.");
             validParams = {"border"};
@@ -4653,41 +3946,6 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
             }
             break;
         }
-        case ELossFunction::F1: {
-            if (approxDimension == 1) {
-                result.emplace_back(MakeBinClassF1Metric(border));
-                validParams = {"border"};
-            } else {
-                for (int i = 0; i < approxDimension; ++i) {
-                    result.emplace_back(MakeMultiClassF1Metric(i));
-                }
-            }
-            break;
-        }
-        case ELossFunction::TotalF1:
-            if (approxDimension == 1) {
-                result.emplace_back(MakeHolder<TTotalF1Metric>(border));
-                validParams = {"border"};
-            } else {
-                result.emplace_back(MakeHolder<TTotalF1Metric>(approxDimension));
-            }
-            break;
-        case ELossFunction::MCC:
-            if (approxDimension == 1) {
-                result.emplace_back(MakeHolder<TMCCMetric>(border));
-                validParams = {"border"};
-            } else {
-                result.emplace_back(MakeHolder<TMCCMetric>(approxDimension));
-            }
-            break;
-        case ELossFunction::BrierScore:
-            CB_ENSURE(approxDimension == 1, "Brier Score is used only for binary classification problems.");
-            result.push_back(MakeBrierScoreMetric());
-            break;
-        case ELossFunction::ZeroOneLoss:
-            result.emplace_back(MakeZeroOneLossMetric(border, approxDimension > 1));
-            validParams = {"border"};
-            break;
         case ELossFunction::HammingLoss:
             result.push_back(MakeHammingLossMetric(border, approxDimension > 1));
             validParams = {"border"};
@@ -4782,9 +4040,15 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
             }
             break;
         }
-        default:
-            CB_ENSURE(false, "Unsupported metric: " << metric);
-            return TVector<THolder<IMetric>>();
+        default: {
+            result = CreateCachingMetrics(metric, params, approxDimension, &validParams);
+
+            if (!result) {
+                CB_ENSURE(false, "Unsupported metric: " << metric);
+                return TVector<THolder<IMetric>>();
+            }
+            break;
+        }
     }
 
     validParams.insert("hints");

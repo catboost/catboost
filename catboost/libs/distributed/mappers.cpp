@@ -744,17 +744,28 @@ namespace NCatboostDistributed {
             localData.Progress->ApproxDimension);
         const auto skipMetricOnTrain = GetSkipMetricOnTrain(errors);
         NPar::TCtxPtr<TTrainData> trainData(ctx, SHARED_ID_TRAIN_DATA, hostId);
-        for (int errorIdx = 0; errorIdx < errors.ysize(); ++errorIdx) {
-            if (!skipMetricOnTrain[errorIdx] && errors[errorIdx]->IsAdditiveMetric()) {
-                const TString metricDescription = errors[errorIdx]->GetDescription();
-                (*additiveStats)[metricDescription] = EvalErrors(
-                    localData.Progress->AvrgApprox,
-                    *GetTrainData(trainData)->TargetData->GetTarget(),
-                    GetWeights(*GetTrainData(trainData)->TargetData),
-                    GetTrainData(trainData)->TargetData->GetGroupInfo().GetOrElse(TConstArrayRef<TQueryInfo>()),
-                    *errors[errorIdx],
-                    &NPar::LocalExecutor());
+
+        TVector<IMetric*> selectedMetrics;
+        for (auto i : xrange(errors.size())) {
+            if (!skipMetricOnTrain[i] && errors[i]->IsAdditiveMetric()) {
+                selectedMetrics.push_back(errors[i].Get());
             }
+        }
+
+        auto calculatedErrors = EvalErrorsWithCaching(
+            localData.Progress->AvrgApprox,
+            /*approxDelta*/{},
+            /*isExpApprox*/false,
+            GetTrainData(trainData)->TargetData->GetTarget(),
+            GetWeights(*GetTrainData(trainData)->TargetData),
+            GetTrainData(trainData)->TargetData->GetGroupInfo().GetOrElse(TConstArrayRef<TQueryInfo>()),
+            selectedMetrics,
+            &NPar::LocalExecutor()
+        );
+
+        for (auto i : xrange(selectedMetrics.size())) {
+            const TString metricDescription = selectedMetrics[i]->GetDescription();
+            (*additiveStats)[metricDescription] = calculatedErrors[i];
         }
     }
 

@@ -514,7 +514,7 @@ namespace NCatboostCuda {
                     result.emplace_back(new TGpuPointwiseMetric(MakeBinClassF1Metric(), 1, 2, isMulticlass, metricDescription));
                 } else {
                     for (ui32 i = 0; i < approxDim; ++i) {
-                        result.emplace_back(new TGpuPointwiseMetric(MakeMultiClassF1Metric(i), i, approxDim, isMulticlass, metricDescription));
+                        result.emplace_back(new TGpuPointwiseMetric(MakeMultiClassF1Metric(approxDim, i), i, approxDim, isMulticlass, metricDescription));
                     }
                 }
                 break;
@@ -573,7 +573,7 @@ namespace NCatboostCuda {
                     result.emplace_back(new TGpuPointwiseMetric(MakeBinClassPrecisionMetric(), 1, 2, isMulticlass, metricDescription));
                 } else {
                     for (ui32 i = 0; i < approxDim; ++i) {
-                        result.emplace_back(new TGpuPointwiseMetric(MakeMultiClassPrecisionMetric(i), i, approxDim, isMulticlass, metricDescription));
+                        result.emplace_back(new TGpuPointwiseMetric(MakeMultiClassPrecisionMetric(approxDim, i), i, approxDim, isMulticlass, metricDescription));
                     }
                 }
                 break;
@@ -583,7 +583,7 @@ namespace NCatboostCuda {
                     result.emplace_back(new TGpuPointwiseMetric(MakeBinClassRecallMetric(), 1, 2, isMulticlass, metricDescription));
                 } else {
                     for (ui32 i = 0; i < approxDim; ++i) {
-                        result.emplace_back(new TGpuPointwiseMetric(MakeMultiClassRecallMetric(i), i, approxDim, isMulticlass, metricDescription));
+                        result.emplace_back(new TGpuPointwiseMetric(MakeMultiClassRecallMetric(approxDim, i), i, approxDim, isMulticlass, metricDescription));
                     }
                 }
                 break;

@@ -327,31 +327,31 @@
     ],
     "test_gpu.test_custom_loss_for_classification[Ordered]": [
         {
-            "checksum": "d5d4c6dd4b44d01f33baa8b23a6b1811",
+            "checksum": "e4a22769bf06262ba03625210e28e3db",
             "uri": "file://test_gpu.test_custom_loss_for_classification_Ordered_/learn_error.tsv"
         },
         {
-            "checksum": "3b1bf2e83b1d8964c3e821a94d7b8557",
+            "checksum": "da14edb1140185cd264662b24bd818fa",
             "uri": "file://test_gpu.test_custom_loss_for_classification_Ordered_/test_error.tsv"
         }
     ],
     "test_gpu.test_custom_loss_for_classification[Plain]": [
         {
-            "checksum": "c483ea1d1e1802a1d6262f9d11d5917a",
+            "checksum": "b5778487335613421a6518c32cd19c7b",
             "uri": "file://test_gpu.test_custom_loss_for_classification_Plain_/learn_error.tsv"
         },
         {
-            "checksum": "0be8d94a6480b00f5bce7eae6dcb8886",
+            "checksum": "78176c8b9002aad4e02df4bfc6ddfe87",
             "uri": "file://test_gpu.test_custom_loss_for_classification_Plain_/test_error.tsv"
         }
     ],
     "test_gpu.test_custom_loss_for_multiclassification": [
         {
-            "checksum": "5302b8367c4f0225079c1cc131ca3e66",
+            "checksum": "3cd251ed37683d35452af4da82a3a445",
             "uri": "file://test_gpu.test_custom_loss_for_multiclassification/learn_error.tsv"
         },
         {
-            "checksum": "6e86b7b29e05873a84ea843dadc3f7d9",
+            "checksum": "5b69130d0910824d422c925cbf069193",
             "uri": "file://test_gpu.test_custom_loss_for_multiclassification/test_error.tsv"
         }
     ],
@@ -503,21 +503,21 @@
     ],
     "test_gpu.test_eval_metrics_multiclass[cloudness_lost_class-MultiClass-MCC-1]": [
         {
-            "checksum": "44b26d9b892feca0e297454f2c45070b",
+            "checksum": "286af90ff50c4845c3511d0bcf623835",
             "uri": "file://test_gpu.test_eval_metrics_multiclass_cloudness_lost_class-MultiClass-MCC-1_/learn_error.tsv"
         },
         {
-            "checksum": "c060fbb85426c9cfe463a8ee370280e7",
+            "checksum": "059f7915127a6163b620fc6f4459e14e",
             "uri": "file://test_gpu.test_eval_metrics_multiclass_cloudness_lost_class-MultiClass-MCC-1_/test_error.tsv"
         }
     ],
     "test_gpu.test_eval_metrics_multiclass[cloudness_lost_class-MultiClass-MCC-2]": [
         {
-            "checksum": "b9cda36a3a7e3fbfe00f5cd2f2d2d6b1",
+            "checksum": "c390235168267feb7daea84faf6a3367",
             "uri": "file://test_gpu.test_eval_metrics_multiclass_cloudness_lost_class-MultiClass-MCC-2_/learn_error.tsv"
         },
         {
-            "checksum": "d04d9fc47e32e5768cf33c8cc1be77a0",
+            "checksum": "6f5f33c0b32f4a46b06775cc32e7ccd4",
             "uri": "file://test_gpu.test_eval_metrics_multiclass_cloudness_lost_class-MultiClass-MCC-2_/test_error.tsv"
         }
     ],
@@ -643,21 +643,21 @@
     ],
     "test_gpu.test_eval_metrics_multiclass[cloudness_lost_class-MultiClassOneVsAll-MCC-1]": [
         {
-            "checksum": "a8085976c608067fc9780fd02e73fa00",
+            "checksum": "c94cb1521e7666dc34c596cbc4150540",
             "uri": "file://test_gpu.test_eval_metrics_multiclass_cloudness_lost_class-MultiClassOneVsAll-MCC-1_/learn_error.tsv"
         },
         {
-            "checksum": "b064edad5d5c6f861d7a77c6151336a4",
+            "checksum": "90049fb4c2b6358591773bc3fe97f606",
             "uri": "file://test_gpu.test_eval_metrics_multiclass_cloudness_lost_class-MultiClassOneVsAll-MCC-1_/test_error.tsv"
         }
     ],
     "test_gpu.test_eval_metrics_multiclass[cloudness_lost_class-MultiClassOneVsAll-MCC-2]": [
         {
-            "checksum": "505a6bab22f7f2ed442a68a90163157d",
+            "checksum": "5e504fad9ff4fb92346560daaa967c1c",
             "uri": "file://test_gpu.test_eval_metrics_multiclass_cloudness_lost_class-MultiClassOneVsAll-MCC-2_/learn_error.tsv"
         },
         {
-            "checksum": "3282694209d909f0e1f1ead11ade578f",
+            "checksum": "250630afc58c504e10ffc3ef6c6e7921",
             "uri": "file://test_gpu.test_eval_metrics_multiclass_cloudness_lost_class-MultiClassOneVsAll-MCC-2_/test_error.tsv"
         }
     ],
@@ -783,21 +783,21 @@
     ],
     "test_gpu.test_eval_metrics_multiclass[cloudness_small-MultiClass-MCC-1]": [
         {
-            "checksum": "f3cb270187c1ca6103ae27d314413a8c",
+            "checksum": "a10cb4f636a88683542593a902b19ad1",
             "uri": "file://test_gpu.test_eval_metrics_multiclass_cloudness_small-MultiClass-MCC-1_/learn_error.tsv"
         },
         {
-            "checksum": "4653bd3ff047d557f4085205619c7cad",
+            "checksum": "4b86bbeca863722966922f9c97003192",
             "uri": "file://test_gpu.test_eval_metrics_multiclass_cloudness_small-MultiClass-MCC-1_/test_error.tsv"
         }
     ],
     "test_gpu.test_eval_metrics_multiclass[cloudness_small-MultiClass-MCC-2]": [
         {
-            "checksum": "b600303420e7b41666a15e29365d5488",
+            "checksum": "6ad8f165563ba10f3dcdd31a69b40978",
             "uri": "file://test_gpu.test_eval_metrics_multiclass_cloudness_small-MultiClass-MCC-2_/learn_error.tsv"
         },
         {
-            "checksum": "fa415d6b0f9fc54af9824049c5e75cc9",
+            "checksum": "4a6474dd7f4c9431460a8197b378cc1c",
             "uri": "file://test_gpu.test_eval_metrics_multiclass_cloudness_small-MultiClass-MCC-2_/test_error.tsv"
         }
     ],
@@ -923,7 +923,7 @@
     ],
     "test_gpu.test_eval_metrics_multiclass[cloudness_small-MultiClassOneVsAll-MCC-1]": [
         {
-            "checksum": "f947f5b53e66a3e6c940227ab00b4ed5",
+            "checksum": "911dcd6c2cbeaf96efafea16d27df28b",
             "uri": "file://test_gpu.test_eval_metrics_multiclass_cloudness_small-MultiClassOneVsAll-MCC-1_/learn_error.tsv"
         },
         {
@@ -933,7 +933,7 @@
     ],
     "test_gpu.test_eval_metrics_multiclass[cloudness_small-MultiClassOneVsAll-MCC-2]": [
         {
-            "checksum": "2a0e741755a9219f8dd6a943d75f3fa3",
+            "checksum": "ef3ca9cebc2b4e4386f3780be29ef9e8",
             "uri": "file://test_gpu.test_eval_metrics_multiclass_cloudness_small-MultiClassOneVsAll-MCC-2_/learn_error.tsv"
         },
         {

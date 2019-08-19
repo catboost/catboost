@@ -3,7 +3,7 @@
 #include <catboost/libs/metrics/metric_holder.h>
 
 //The benchmark value was calculated by sklearn.metrics.zero_one_loss
-Y_UNIT_TEST_SUITE(ZeroOneLossMetricTest) {
+Y_UNIT_TEST_SUITE(ZeroOneLossCachingMetricTest) {
 Y_UNIT_TEST(ZeroOneLossTest) {
     {
         TVector<TVector<double>> approx{{0, 1, 1, 0}};
@@ -11,7 +11,7 @@ Y_UNIT_TEST(ZeroOneLossTest) {
         TVector<float> weight{1, 1, 1, 1};
 
         NPar::TLocalExecutor executor;
-        const auto metric = MakeZeroOneLossMetric();
+        const auto metric = std::move(CreateMetricsFromDescription({"ZeroOneLoss"}, approx.size()).front());
         TMetricHolder score = metric->Eval(approx, target, weight, {}, 0, 4, executor);
 
         UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 0, 1e-1);
@@ -22,7 +22,7 @@ Y_UNIT_TEST(ZeroOneLossTest) {
         TVector<float> weight{1, 1, 1, 1};
 
         NPar::TLocalExecutor executor;
-        const auto metric = MakeZeroOneLossMetric();
+        const auto metric = std::move(CreateMetricsFromDescription({"ZeroOneLoss"}, approx.size()).front());
         TMetricHolder score = metric->Eval(approx, target, weight, {}, 0, target.size(), executor);
 
         UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 0.25, 1e-1);
@@ -33,7 +33,7 @@ Y_UNIT_TEST(ZeroOneLossTest) {
         TVector<float> weight{0.26705f, 0.666578f, 0.6702279f, 0.3976618f};
 
         NPar::TLocalExecutor executor;
-        const auto metric = MakeZeroOneLossMetric();
+        const auto metric = std::move(CreateMetricsFromDescription({"ZeroOneLoss"}, approx.size()).front());
         TMetricHolder score = metric->Eval(approx, target, weight, {}, 0, target.size(), executor);
 
         UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 0, 1e-1);
@@ -44,7 +44,7 @@ Y_UNIT_TEST(ZeroOneLossTest) {
         TVector<float> weight{1, 1, 1, 1};
 
         NPar::TLocalExecutor executor;
-        const auto metric = MakeZeroOneLossMetric();
+        const auto metric = std::move(CreateMetricsFromDescription({"ZeroOneLoss"}, approx.size()).front());
         TMetricHolder score = metric->Eval(approx, target, weight, {}, 0, 4, executor);
 
         UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 1, 1e-1);
@@ -55,7 +55,7 @@ Y_UNIT_TEST(ZeroOneLossTest) {
         TVector<float> weight{1, 1, 1, 1};
 
         NPar::TLocalExecutor executor;
-        const auto metric = MakeZeroOneLossMetric();
+        const auto metric = std::move(CreateMetricsFromDescription({"ZeroOneLoss"}, approx.size()).front());
         TMetricHolder score = metric->Eval(approx, target, weight, {}, 0, 4, executor);
 
         UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 0.5, 1e-1);

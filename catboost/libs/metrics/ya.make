@@ -16,6 +16,7 @@ SRCS(
     pfound.cpp
     precision_recall_at_k.cpp
     sample.cpp
+    caching_metric.cpp
 )
 
 PEERDIR(

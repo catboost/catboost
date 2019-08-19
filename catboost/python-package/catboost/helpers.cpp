@@ -142,18 +142,20 @@ TVector<double> EvalMetricsForUtils(
     }
     TVector<double> metricResults;
     metricResults.reserve(metrics.size());
-    for (const auto& metric : metrics) {
-        TMetricHolder metricResult;
-        if (metric->GetErrorType() == EErrorType::PerObjectError) {
-            const int begin = 0, end = label.ysize();
-            metricResult = metric->Eval(approx, label, weight, queriesInfo, begin, end, executor);
-        } else {
-            Y_VERIFY(metric->GetErrorType() == EErrorType::QuerywiseError || metric->GetErrorType() == EErrorType::PairwiseError);
-            CB_ENSURE(!queriesInfo.empty(), "You should provide group_id for groupwise metrics.");
-            const int queryStartIndex = 0, queryEndIndex = queriesInfo.ysize();
-            metricResult = metric->Eval(approx, label, weight, queriesInfo, queryStartIndex, queryEndIndex, executor);
-        }
-        metricResults.push_back(metric->GetFinalError(metricResult));
+
+    auto stats = EvalErrorsWithCaching(
+        approx,
+        /*approxDelts*/{},
+        /*isExpApprox*/false,
+        label,
+        weight,
+        queriesInfo,
+        metrics,
+        &executor
+    );
+
+    for (auto metricIdx : xrange(metrics.size())) {
+        metricResults.push_back(metrics[metricIdx]->GetFinalError(stats[metricIdx]));
     }
     return metricResults;
 }
