@@ -1,9 +1,7 @@
 #include "onnx_helpers.h"
 
-#include <contrib/libs/onnx/onnx/common/constants.h>
-
+#include <catboost/libs/model/model_build_helper.h>
 #include <catboost/libs/cat_feature/cat_feature.h>
-
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/options/enum_helpers.h>
 #include <catboost/libs/options/json_helper.h>
@@ -11,6 +9,9 @@
 #include <catboost/libs/options/multiclass_label_options.h>
 
 #include <library/svnversion/svnversion.h>
+
+#include <contrib/libs/onnx/onnx/common/constants.h>
+#include <contrib/libs/protobuf/repeated_field.h>
 
 #include <util/generic/array_ref.h>
 #include <util/generic/mapfindptr.h>
@@ -21,6 +22,10 @@
 #include <util/system/yassert.h>
 
 #include <numeric>
+
+
+using ENanValueTreatment = TFloatFeature::ENanValueTreatment;
+using EType = NCB::NOnnx::TOnnxNode::EType;
 
 
 void NCB::NOnnx::InitMetadata(
@@ -300,6 +305,52 @@ public:
 
 #undef GET_ATTR
     }
+
+    TTreesAttributes(
+        const bool isClassifierModel,
+        google::protobuf::RepeatedPtrField<onnx::AttributeProto>& attributes) {
+
+#define SET_ATTR(attr, new_attr) \
+        if (new_attr.name() == #attr) { \
+            attr = &new_attr; \
+        }
+        if (isClassifierModel) {
+            target_ids = nullptr;
+            target_nodeids = nullptr;
+            target_treeids = nullptr;
+            target_weights = nullptr;
+        } else {
+            class_ids = nullptr;
+            class_nodeids = nullptr;
+            class_treeids = nullptr;
+            class_weights = nullptr;
+        }
+
+        for (auto& attribute : attributes) {
+            if (isClassifierModel) {
+                SET_ATTR(class_ids, attribute);
+                SET_ATTR(class_nodeids, attribute);
+                SET_ATTR(class_treeids, attribute);
+                SET_ATTR(class_weights, attribute);
+            } else {
+                SET_ATTR(target_ids, attribute);
+                SET_ATTR(target_nodeids, attribute);
+                SET_ATTR(target_treeids, attribute);
+                SET_ATTR(target_weights, attribute);
+            }
+
+            SET_ATTR(nodes_falsenodeids, attribute);
+            SET_ATTR(nodes_featureids, attribute);
+            SET_ATTR(nodes_hitrates, attribute);
+            SET_ATTR(nodes_missing_value_tracks_true, attribute);
+            SET_ATTR(nodes_modes, attribute);
+            SET_ATTR(nodes_nodeids, attribute);
+            SET_ATTR(nodes_treeids, attribute);
+            SET_ATTR(nodes_truenodeids, attribute);
+            SET_ATTR(nodes_values, attribute);
+        }
+#undef SET_ATTR
+    }
 };
 
 
@@ -487,4 +538,179 @@ void NCB::NOnnx::ConvertTreeToOnnxGraph(
     for (auto treeIdx : xrange(trees.GetTreeCount())) {
         AddTree(trees, treeIdx, isClassifierModel, &treesAttributes);
     }
+}
+
+
+static void ConfigureMetaInfo(const onnx::ModelProto& onnxModel, TFullModel* fullModel) {
+    THashMap<TString, TString> modelInfo;
+
+    for (int idx = 0; idx < onnxModel.metadata_props_size(); ++idx) {
+        auto& property = onnxModel.metadata_props(idx);
+        TString key, value;
+        CB_ENSURE(property.has_key(), "Missing key in value info");
+        key = property.key();
+        if (property.has_value()) {
+            value = property.value();
+        }
+        modelInfo[key] = value;
+    }
+
+    fullModel->ModelInfo = modelInfo;
+}
+
+
+static void PrepareTrees(
+    const TTreesAttributes& treesAttributes,
+    const bool isClassifierModel,
+    TVector<THashMap<int, NCB::NOnnx::TOnnxNode>>* trees,
+    int* approxDimension,
+    TVector<TFloatFeature>* floatFeatures /* for adding nanModes and borders */
+) {
+    TVector<TSet<float>> floatFeatureBorders(floatFeatures->size());
+    //consider all nodes
+    for (auto idx = 0; idx < treesAttributes.nodes_treeids->ints_size() ;++idx) {
+        NCB::NOnnx::TOnnxNode node;
+        const size_t treeId = treesAttributes.nodes_treeids->ints(idx);
+        const int nodeId = treesAttributes.nodes_nodeids->ints(idx);
+        node.FalseNodeId = treesAttributes.nodes_falsenodeids->ints(idx);
+        node.TrueNodeId = treesAttributes.nodes_truenodeids->ints(idx);
+
+        if (treesAttributes.nodes_modes->strings(idx) == "LEAF") {
+            node.Type = EType::Leaf;
+        } else {
+            node.Type = EType::Inner;
+
+            TModelSplit split;
+            split.Type = ESplitType::FloatFeature;
+            split.FloatFeature.FloatFeature = treesAttributes.nodes_featureids->ints(idx);
+            split.FloatFeature.Split = treesAttributes.nodes_values->floats(idx);
+
+            //update floatFeatures
+            if (treesAttributes.nodes_missing_value_tracks_true->ints(idx) == 1) {
+                (*floatFeatures)[split.FloatFeature.FloatFeature].NanValueTreatment =
+                ENanValueTreatment::AsTrue;
+            }
+            floatFeatureBorders[split.FloatFeature.FloatFeature].insert(split.FloatFeature.Split);
+
+            node.SplitCondition = split;
+        }
+
+        //add node to tree
+        if (treeId >= trees->size()) {
+            trees->resize(treeId + 1);
+        }
+        (*trees)[treeId][nodeId] = node;
+    }
+
+    //to set borders to floatfeatures
+    for (auto floatFeatureIdx : xrange(floatFeatures->size())) {
+        (*floatFeatures)[floatFeatureIdx].Borders.assign(
+            floatFeatureBorders[floatFeatureIdx].begin(),
+            floatFeatureBorders[floatFeatureIdx].end());
+    }
+
+    //consider leaves
+    auto treatLeafNode = [trees](
+        onnx::AttributeProto* treeIds,
+        onnx::AttributeProto* nodeIds,
+        onnx::AttributeProto* values
+    ) {
+        for (auto idx = 0 ; idx < treeIds->ints_size(); ++idx) {
+            const size_t treeId = treeIds->ints(idx);
+            const int nodeId = nodeIds->ints(idx);
+            const double value = values->floats(idx);
+            CB_ENSURE(treeId < trees->size(), "Invalid class_nodeId " << treeId);
+            (*trees)[treeId][nodeId].Values.emplace_back(value);
+        }
+    };
+    if (isClassifierModel) {
+        treatLeafNode(treesAttributes.class_treeids, treesAttributes.class_nodeids, treesAttributes.class_weights);
+        //setup approxDimension
+        const auto anyIdxNodeIdLeaf = treesAttributes.class_nodeids->ints(0);
+        *approxDimension = static_cast<int>((*trees)[0][anyIdxNodeIdLeaf].Values.size());
+    } else {
+        treatLeafNode(treesAttributes.target_treeids, treesAttributes.target_nodeids, treesAttributes.target_weights);
+    }
+}
+
+
+static THolder<TNonSymmetricTreeNode> BuildNonSymmetricTree(
+    const THashMap<int, NCB::NOnnx::TOnnxNode>& tree,
+    const int nodeId
+) {
+    THolder<TNonSymmetricTreeNode> head = MakeHolder<TNonSymmetricTreeNode>();
+    const auto node = tree.at(nodeId);
+
+    switch (node.Type) {
+        case NCB::NOnnx::TOnnxNode::EType::Leaf: {
+            if (node.Values.size() == 1) {
+                head->Value = node.Values[0];
+            } else {
+                head->Value = node.Values;
+            }
+            return head;
+        }
+        case NCB::NOnnx::TOnnxNode::EType::Inner: {
+            head->Value = TNonSymmetricTreeNode::TEmptyValue();
+            head->SplitCondition = node.SplitCondition;
+            CB_ENSURE(tree.contains(node.FalseNodeId), "unexpected false node id");
+            CB_ENSURE(tree.contains(node.TrueNodeId), "unexpected true node id");
+            head->Left = BuildNonSymmetricTree(tree, node.FalseNodeId);
+            head->Right = BuildNonSymmetricTree(tree, node.TrueNodeId);
+            return head;
+        }
+    }
+}
+
+
+static int GetFloatFeatureCount(const onnx::GraphProto& onnxGraph) {
+    const auto valueInfo = onnxGraph.input()[0];
+    CB_ENSURE(valueInfo.type().tensor_type().shape().dimSize() == 2,
+        "Dimemsion must have format 'FloatTensorType'[0, featuresCount]");
+    const int featuresCount = valueInfo.type().tensor_type().shape().dim(1).dim_value();
+    CB_ENSURE(featuresCount >= 1, "Count of features must be greater than one");
+    return featuresCount;
+}
+
+static void ConfigureSymmetricTrees(const onnx::GraphProto& onnxGraph, TFullModel* fullModel) {
+
+    const auto& nodes = onnxGraph.node();
+    //to treat first node
+    const bool isClassifierModel = (nodes[0].op_type() == "TreeEnsembleClassifier");
+    CB_ENSURE((nodes[0].op_type() == "TreeEnsembleClassifier") ||
+              (nodes[0].op_type() == "TreeEnsembleRegressor"), "unexpected type task " << nodes[0].op_type());
+
+    auto attributes = nodes[0].attribute();
+    TTreesAttributes treesAttributes(isClassifierModel, attributes);
+
+    TVector<TFloatFeature> floatFeatures;
+    const int featuresCount = GetFloatFeatureCount(onnxGraph);
+    //init floatFeatures
+    for (auto idx = 0; idx < featuresCount; ++idx) {
+        floatFeatures.emplace_back(TFloatFeature(false, idx, idx, TVector<float>(0) /*in PrepareTrees it will be update*/,""));
+    }
+
+    TVector<THashMap<int, NCB::NOnnx::TOnnxNode>> trees;
+    int approxDimension = 1;
+    PrepareTrees(treesAttributes, isClassifierModel, &trees, &approxDimension, &floatFeatures);
+
+    TNonSymmetricTreeModelBuilder treeBuilder(floatFeatures, TVector<TCatFeature>(0), approxDimension);
+
+    for (const auto& tree : trees) {
+        treeBuilder.AddTree(BuildNonSymmetricTree(tree, 0));
+    }
+
+    treeBuilder.Build(fullModel->ObliviousTrees.GetMutable());
+
+    fullModel->UpdateDynamicData();
+}
+
+
+
+void NCB::NOnnx::ConvertOnnxToCatboostModel(const onnx::ModelProto& onnxModel, TFullModel* fullModel) {
+    //InitMetaData
+    ConfigureMetaInfo(onnxModel, fullModel);
+
+    onnx::GraphProto onnxGraph = onnxModel.graph();
+    ConfigureSymmetricTrees(onnxGraph, fullModel);
 }

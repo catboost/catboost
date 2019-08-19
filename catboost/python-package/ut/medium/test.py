@@ -875,6 +875,68 @@ def test_onnx_export(problem_type):
 
 
 @pytest.mark.parametrize('problem_type', ['binclass', 'multiclass', 'regression'])
+def test_onnx_import(problem_type):
+    if problem_type == 'binclass':
+        loss_function = 'Logloss'
+        train_path = TRAIN_FILE
+        test_path = TEST_FILE
+        cd_path = CD_FILE
+    elif problem_type == 'multiclass':
+        loss_function = 'MultiClass'
+        train_path = CLOUDNESS_TRAIN_FILE
+        test_path = CLOUDNESS_TEST_FILE
+        cd_path = CLOUDNESS_CD_FILE
+    elif problem_type == 'regression':
+        loss_function = 'RMSE'
+        train_path = TRAIN_FILE
+        test_path = TEST_FILE
+        cd_path = CD_FILE
+    else:
+        raise Exception('Unsupported problem_type: %s' % problem_type)
+
+    train_pool = Pool(train_path, column_description=cd_path)
+    test_pool = Pool(test_path, column_description=cd_path)
+
+    model = CatBoost(
+        {
+            'task_type': 'CPU',
+            'loss_function': loss_function,
+            'iterations': 5,
+            'depth': 4,
+            'ignored_features': train_pool.get_cat_feature_indices()
+        }
+    )
+
+    model.fit(train_pool)
+
+    output_onnx_model_path = test_output_path(OUTPUT_ONNX_MODEL_PATH)
+    model.save_model(
+        output_onnx_model_path,
+        format="onnx",
+        export_parameters={
+            'onnx_domain': 'ai.catboost',
+            'onnx_model_version': 1,
+            'onnx_doc_string': 'test model for problem_type %s' % problem_type,
+            'onnx_graph_name': 'CatBoostModel_for_%s' % problem_type
+        }
+    )
+    model.save_model(output_onnx_model_path, format="onnx")
+    canon_pred = model.predict(test_pool)
+    onnx_loaded_model = CatBoost(
+        {
+            'task_type': 'CPU',
+            'loss_function': loss_function,
+            'iterations': 5,
+            'depth': 4,
+            'ignored_features': train_pool.get_cat_feature_indices()
+        }
+    )
+
+    onnx_loaded_model.load_model(output_onnx_model_path, format="onnx")
+    assert(np.allclose(canon_pred, onnx_loaded_model.predict(test_pool), atol=1e-4))
+
+
+@pytest.mark.parametrize('problem_type', ['binclass', 'multiclass', 'regression'])
 def test_pmml_export(problem_type):
     if problem_type == 'binclass':
         loss_function = 'Logloss'

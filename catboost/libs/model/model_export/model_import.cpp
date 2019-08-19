@@ -3,6 +3,7 @@
 
 #include <catboost/libs/model/model_import_interface.h>
 #include <catboost/libs/options/json_helper.h>
+#include <catboost/libs/model/model_export/onnx_helpers.h>
 
 #include <library/json/json_reader.h>
 
@@ -42,4 +43,18 @@ namespace NCB {
     };
 
     TModelLoaderFactory::TRegistrator<TCoreMLModelLoader> CoreMLModelLoaderRegistrator(EModelType::AppleCoreML);
+
+    class TOnnxModelLoader : public IModelLoader {
+    public:
+        TFullModel ReadModel(IInputStream* modelStream) const override {
+            TFullModel model;
+            onnx::ModelProto onnxModel;
+            CB_ENSURE(onnxModel.ParseFromString(modelStream->ReadAll()), "onnx model deserialization failed");
+            NCB::NOnnx::ConvertOnnxToCatboostModel(onnxModel, &model);
+            CheckModel(&model);
+            return model;
+        }
+    };
+
+    TModelLoaderFactory::TRegistrator<TOnnxModelLoader> OnnxModelLoaderRegistrator(EModelType::Onnx);
 }
