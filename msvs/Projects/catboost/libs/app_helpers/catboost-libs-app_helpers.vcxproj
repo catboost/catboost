@@ -128,6 +128,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\algo\catboost-libs-algo.vcxproj">
       <Project>{B0627422-3EA3-A666-3928-B63AADBE0945}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\algo_helpers\catboost-libs-algo_helpers.vcxproj">
+      <Project>{CB77A63C-4A04-5369-C5C8-08704889BD38}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\cat_feature\catboost-libs-cat_feature.vcxproj">
       <Project>{39CEAA9A-D75F-AA0D-96C0-E8C323B015CB}</Project>
     </ProjectReference>

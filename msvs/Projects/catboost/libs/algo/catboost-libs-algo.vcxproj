@@ -89,16 +89,12 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\calc_score_cache.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\confusion_matrix.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\ctr_helper.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\custom_objective_descriptor.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\data.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\ders_holder.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\error_functions.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\features_data_helpers.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\fold.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\full_model_saver.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\greedy_tensor_search.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\helpers.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\hessian.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\index_calcer.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\index_hash_calcer.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\learn_context.cpp"/>
@@ -106,8 +102,6 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\monotonic_constraint_utils.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\mvs.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\online_ctr.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\online_predictor.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\pairwise_leaves_calculation.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\pairwise_scoring.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\plot.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\preprocess.cpp"/>
@@ -134,17 +128,13 @@
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\calc_score_cache.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\confusion_matrix.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\ctr_helper.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\custom_objective_descriptor.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\data.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\ders_holder.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\error_functions.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\features_data_helpers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\fold.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\full_model_saver.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\gradient_walker.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\greedy_tensor_search.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\helpers.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\hessian.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\index_calcer.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\index_hash_calcer.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\learn_context.h"/>
@@ -152,8 +142,6 @@
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\monotonic_constraint_utils.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\mvs.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\online_ctr.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\online_predictor.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\pairwise_leaves_calculation.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\pairwise_scoring.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\plot.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\preprocess.h"/>
@@ -181,6 +169,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\idl\pool\proto\idl-pool-proto.vcxproj">
       <Project>{DC2F8CD1-9883-449F-5F63-13AE540A462A}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\algo_helpers\catboost-libs-algo_helpers.vcxproj">
+      <Project>{CB77A63C-4A04-5369-C5C8-08704889BD38}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\cat_feature\catboost-libs-cat_feature.vcxproj">
       <Project>{39CEAA9A-D75F-AA0D-96C0-E8C323B015CB}</Project>

@@ -11,16 +11,16 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{DCB837BA-C2A3-4CFA-E077-88E81A37FDAD}</ProjectGUID>
+    <ProjectGUID>{CB77A63C-4A04-5369-C5C8-08704889BD38}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>catboost-libs-train_lib-ut</ProjectName>
+    <ProjectName>catboost-libs-algo_helpers</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.default.props"/>
   <PropertyGroup Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>Multibyte</CharacterSet>
     <PlatformToolset>v141</PlatformToolset>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>catboost-libs-train_lib-ut</TargetName>
-    <TargetExtention>.exe</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\catboost\libs\train_lib\ut\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\DCB837BA-C2A3-4CFA-E077-88E81A37FDAD\</IntDir>
+    <TargetName>catboost-libs-algo_helpers</TargetName>
+    <TargetExtention>.lib</TargetExtention>
+    <OutDir>$(SolutionDir)$(Configuration)\catboost\libs\algo_helpers\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\CB77A63C-4A04-5369-C5C8-08704889BD38\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -57,18 +57,18 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <UseFullPaths>true</UseFullPaths>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DFAKEID=5020880 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ "-I$(CUDA_PATH)/include" -DCATBOOST_OPENSOURCE=yes /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOGDI /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++17  -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DFAKEID=5020880 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ "-I$(CUDA_PATH)/include" -DCATBOOST_OPENSOURCE=yes /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOGDI /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++17  -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DFAKEID=5020880 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ "-I$(CUDA_PATH)/include" /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOGDI /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++17  -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DFAKEID=5020880 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ "-I$(CUDA_PATH)/include" /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOGDI /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++17  -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
-      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../catboost/libs/train_lib;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/double-conversion/include;$(SolutionDir)$(Configuration)/library/unittest;$(SolutionDir)../contrib/libs/libf2c;$(SolutionDir)../contrib/libs/protobuf;$(SolutionDir)../contrib/libs/protobuf/google/protobuf;$(SolutionDir)../contrib/libs/brotli/include;$(SolutionDir)../contrib/libs/openssl/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/double-conversion/include;$(SolutionDir)../contrib/libs/libf2c;$(SolutionDir)../contrib/libs/protobuf;$(SolutionDir)../contrib/libs/protobuf/google/protobuf;$(SolutionDir)../contrib/libs/brotli/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;crypt32.lib;$(SolutionDir)$(Configuration)\MSVS\2C228BC9-6312-D2CC-3CFB-6F34BAB794C9\cb_dsv_loader.obj;$(SolutionDir)$(Configuration)\MSVS\B4A310AF-0E82-DDD5-9A9D-5C5C37155EC0\exists_checker.obj;$(SolutionDir)$(Configuration)\MSVS\B4A310AF-0E82-DDD5-9A9D-5C5C37155EC0\line_data_reader.obj;$(SolutionDir)$(Configuration)\MSVS\FAFB4883-665E-74FC-687B-B3E92B73012E\1cc3e14d43bed0c73ca4b4b233.obj;$(SolutionDir)$(Configuration)\MSVS\FAFB4883-665E-74FC-687B-B3E92B73012E\model_import.obj;$(SolutionDir)$(Configuration)\MSVS\72D6542E-F0C9-DD13-021C-BD29BB4FB496\model_import_interface.obj;$(SolutionDir)$(Configuration)\MSVS\5B6277B4-44BD-6F15-42A1-2BEB2252ED53\loader.obj;$(SolutionDir)$(Configuration)\MSVS\B6361F28-19AC-62AF-82F3-98822E01D227\model_import_snapshot.obj;$(SolutionDir)$(Configuration)\MSVS\B6361F28-19AC-62AF-82F3-98822E01D227\train_model.obj;$(SolutionDir)$(Configuration)\MSVS\2674849B-0330-C348-578B-DB562AA37E65\brotli.obj;$(SolutionDir)$(Configuration)\MSVS\AC376A6B-93D4-59AC-5493-C2308B528517\bzip.obj;$(SolutionDir)$(Configuration)\MSVS\A880DD8B-7948-E7DF-FDDB-6F6C1A23012A\fastlz.obj;$(SolutionDir)$(Configuration)\MSVS\39206ED1-8CD9-0701-178E-0631ABD19D17\legacy_zstd06.obj;$(SolutionDir)$(Configuration)\MSVS\F13B7D24-08DF-93EE-EF06-0A42A67F1F2A\lz4.obj;$(SolutionDir)$(Configuration)\MSVS\005F2BD3-F54E-2F5E-204D-10BBF3ABD244\lzma.obj;$(SolutionDir)$(Configuration)\MSVS\96581D45-46BF-09E3-6477-BFA2BF8C22E1\snappy.obj;$(SolutionDir)$(Configuration)\MSVS\DD085378-CB32-3420-0F56-EB3498FD2743\zlib.obj;$(SolutionDir)$(Configuration)\MSVS\AC7594FF-6F1D-C755-11B7-918627CFBD0B\zstd.obj;$(SolutionDir)$(Configuration)\MSVS\B2E67D35-D818-4BB5-60B7-B6EEC460B8F8\cpu_id_check.obj;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  "/LIBPATH:$(CUDA_PATH)/lib/x64" cublas.lib curand.lib cudart_static.lib cusparse.lib ws2_32.lib</AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  "/LIBPATH:$(CUDA_PATH)/lib/x64" cublas.lib curand.lib cudart_static.lib cusparse.lib ws2_32.lib</AdditionalOptions>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  "/LIBPATH:$(CUDA_PATH)/lib/x64" cublas.lib curand.lib cudart_static.lib cusparse.lib</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  "/LIBPATH:$(CUDA_PATH)/lib/x64" cublas.lib curand.lib cudart_static.lib cusparse.lib</AdditionalOptions>
       <SubSystem Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Console</SubSystem>
       <GenerateDebugInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">DebugFastLink</GenerateDebugInformation>
       <RandomizedBaseAddress Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</RandomizedBaseAddress>
@@ -78,7 +78,22 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\train_lib\ut\train_model_ut.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo_helpers\approx_calcer_helpers.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo_helpers\approx_updater_helpers.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo_helpers\custom_objective_descriptor.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo_helpers\ders_holder.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo_helpers\error_functions.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo_helpers\hessian.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo_helpers\online_predictor.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo_helpers\pairwise_leaves_calculation.cpp"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\algo_helpers\approx_calcer_helpers.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\algo_helpers\approx_updater_helpers.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\algo_helpers\custom_objective_descriptor.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\algo_helpers\ders_holder.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\algo_helpers\error_functions.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\algo_helpers\hessian.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\algo_helpers\online_predictor.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\algo_helpers\pairwise_leaves_calculation.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
@@ -86,20 +101,8 @@
     <ProjectReference Include="$(SolutionDir)Projects\build\platform\cuda\build-platform-cuda.vcxproj">
       <Project>{18ED0C1C-3127-4315-3368-E63B97EFA8F1}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\build\scripts\c_templates\dummy-vcs.vcxproj">
-      <Project>{C7161B5C-139D-1AE8-3502-FC9B47248265}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\idl\pool\flat\idl-pool-flat.vcxproj">
-      <Project>{215B0CED-E132-32D3-B5B5-71B6CD17231C}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\idl\pool\proto\idl-pool-proto.vcxproj">
       <Project>{DC2F8CD1-9883-449F-5F63-13AE540A462A}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\algo\catboost-libs-algo.vcxproj">
-      <Project>{B0627422-3EA3-A666-3928-B63AADBE0945}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\algo_helpers\catboost-libs-algo_helpers.vcxproj">
-      <Project>{CB77A63C-4A04-5369-C5C8-08704889BD38}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\cat_feature\catboost-libs-cat_feature.vcxproj">
       <Project>{39CEAA9A-D75F-AA0D-96C0-E8C323B015CB}</Project>
@@ -122,41 +125,17 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\data_util\catboost-libs-data_util.vcxproj">
       <Project>{B4A310AF-0E82-DDD5-9A9D-5C5C37155EC0}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\distributed\catboost-libs-distributed.vcxproj">
-      <Project>{F6BCA033-DCEE-0EBC-29CD-D9BE4598E359}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\eval_result\catboost-libs-eval_result.vcxproj">
-      <Project>{4721D1FD-2700-CA2E-7C39-1340CCD203BE}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\feature_estimator\catboost-libs-feature_estimator.vcxproj">
       <Project>{0E2E4DB1-7B74-0856-9AE8-A5C39471561D}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\fstr\catboost-libs-fstr.vcxproj">
-      <Project>{E83B3FB9-9F00-AC47-8D5D-2028D57A073D}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\helpers\catboost-libs-helpers.vcxproj">
       <Project>{1ED2E5C8-4D20-BC86-8EEB-C69117E1D3FA}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\helpers\parallel_sort\libs-helpers-parallel_sort.vcxproj">
-      <Project>{3D8525D8-C5BE-2847-94DF-23F1896F6BA1}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\index_range\catboost-libs-index_range.vcxproj">
       <Project>{C7EA1784-4778-7D80-C197-652E8C20DC97}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\labels\catboost-libs-labels.vcxproj">
-      <Project>{EB86A32A-0A4A-7BD0-0414-09B87332B724}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\lapack\catboost-libs-lapack.vcxproj">
-      <Project>{34417530-E016-6BED-C5EA-EFB4E5D0038B}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\loggers\catboost-libs-loggers.vcxproj">
-      <Project>{8AC84D86-0BD7-E573-5982-63BDF5296882}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\logging\catboost-libs-logging.vcxproj">
       <Project>{F83EC464-B188-D6BC-6C08-C75EB8176525}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\metrics\catboost-libs-metrics.vcxproj">
-      <Project>{3E05C3A9-D91C-174C-F5A0-5D363362CFDC}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\model\catboost-libs-model.vcxproj">
       <Project>{A51525C5-634E-FC35-5327-3CD4A8F2B67F}</Project>
@@ -173,23 +152,11 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\options\catboost-libs-options.vcxproj">
       <Project>{D350B71A-438C-3D20-8D8E-292B20D81461}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\overfitting_detector\catboost-libs-overfitting_detector.vcxproj">
-      <Project>{37000E43-2347-88B9-F125-78F4CA4B2776}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\pairs\catboost-libs-pairs.vcxproj">
-      <Project>{6BE76251-8797-21D8-087A-ECBA25DEF163}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\quantization\catboost-libs-quantization.vcxproj">
       <Project>{FB5A55D2-0C31-3068-15EB-9FA55E97086F}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\quantization_schema\catboost-libs-quantization_schema.vcxproj">
       <Project>{DD94FB48-7329-B4E0-9617-51FA31F09621}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\quantized_pool\catboost-libs-quantized_pool.vcxproj">
-      <Project>{5B6277B4-44BD-6F15-42A1-2BEB2252ED53}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\target\catboost-libs-target.vcxproj">
-      <Project>{5B13F9C8-8762-C986-5C05-19D08B360E04}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\text_features\catboost-libs-text_features.vcxproj">
       <Project>{1DC2329C-D17B-1F04-445F-BD55E24DB60E}</Project>
@@ -199,12 +166,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\text_processing\catboost-libs-text_processing.vcxproj">
       <Project>{FFADE371-7C1D-73A4-49BB-7BB88008B40D}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\train_lib\catboost-libs-train_lib.vcxproj">
-      <Project>{B6361F28-19AC-62AF-82F3-98822E01D227}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\validate_fb\catboost-libs-validate_fb.vcxproj">
-      <Project>{5C82988B-62A7-7DFB-0935-AAAD43162232}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\base64\avx2\libs-base64-avx2.vcxproj">
       <Project>{69A3431A-8A49-B198-8E40-2F61C1B0C1BC}</Project>
@@ -296,12 +257,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\onnx\proto\libs-onnx-proto.vcxproj">
       <Project>{53A49A97-A4C2-5A8F-A5D9-DAEC245E36A6}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\openssl\contrib-libs-openssl.vcxproj">
-      <Project>{C09AB4D0-26FB-8670-4A3A-438A55553615}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\openssl\crypto\libs-openssl-crypto.vcxproj">
-      <Project>{0EED471E-D91D-9917-D1A8-550D2EBE46DB}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\protobuf\contrib-libs-protobuf.vcxproj">
       <Project>{18399176-5408-8102-7C5F-8DA029B8F78E}</Project>
     </ProjectReference>
@@ -310,9 +265,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\snappy\contrib-libs-snappy.vcxproj">
       <Project>{31072066-3C10-BD50-C299-F4AF4767798E}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\tensorboard\contrib-libs-tensorboard.vcxproj">
-      <Project>{85643E70-B3E5-4747-7C6D-59B9CF26EE48}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\xxhash\contrib-libs-xxhash.vcxproj">
       <Project>{93F9D338-B2A4-2DC4-8B30-A39701C2F9EE}</Project>
@@ -362,9 +314,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\blockcodecs\library-blockcodecs.vcxproj">
       <Project>{E62EED19-EC2A-B4C3-0650-0923E4030E8B}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\chromium_trace\library-chromium_trace.vcxproj">
-      <Project>{9541389A-C448-428A-BEEE-604F1A02F5EA}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\colorizer\library-colorizer.vcxproj">
       <Project>{439BAFF9-1167-D24B-92A2-3A00BEE420B1}</Project>
     </ProjectReference>
@@ -380,71 +329,23 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\containers\flat_hash\library-containers-flat_hash.vcxproj">
       <Project>{5FD588BE-C0D3-668F-80A4-E122B11CEE84}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\containers\intrusive_rb_tree\library-containers-intrusive_rb_tree.vcxproj">
-      <Project>{53AA6AAE-E388-987D-9719-F611E55F76E8}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\containers\paged_vector\library-containers-paged_vector.vcxproj">
-      <Project>{F2373D22-DBF0-B7E4-B028-8BF674973AED}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\containers\ring_buffer\library-containers-ring_buffer.vcxproj">
-      <Project>{A2C28480-F7EF-BB91-851E-44FEBBF8B8ED}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\containers\stack_array\library-containers-stack_array.vcxproj">
-      <Project>{8FDE35EC-9B80-AF55-62B5-130D5EF3D68A}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\containers\stack_vector\library-containers-stack_vector.vcxproj">
-      <Project>{16887906-E366-16EA-B53A-A081633E4AB5}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\coroutine\engine\library-coroutine-engine.vcxproj">
-      <Project>{810DAE0F-1259-BCE1-AB1B-BB8F715CA0BD}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\coroutine\listener\library-coroutine-listener.vcxproj">
-      <Project>{B4028C7F-B714-C057-20FD-5CC1C3A20526}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\cpuid_check\library-cpuid_check.vcxproj">
-      <Project>{B2E67D35-D818-4BB5-60B7-B6EEC460B8F8}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\dbg_output\library-dbg_output.vcxproj">
       <Project>{806C141C-ADC5-203A-DF01-02F7E1563621}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\diff\library-diff.vcxproj">
-      <Project>{CDAC90AB-9242-5B30-D7E1-EED4B6E4FEAC}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\digest\crc32c\library-digest-crc32c.vcxproj">
       <Project>{60AC81ED-1273-F1B9-1D99-3ED29CC2B4D0}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\digest\lower_case\library-digest-lower_case.vcxproj">
-      <Project>{98B506A2-A065-0821-3BB0-07FDF5C590A5}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\digest\md5\library-digest-md5.vcxproj">
       <Project>{ECB75138-E9C8-5662-6E1E-06BCA3ED01E6}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\dns\library-dns.vcxproj">
-      <Project>{8C356353-67D3-3399-7DA3-792F6D7BF6D5}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\dot_product\library-dot_product.vcxproj">
-      <Project>{C9E27228-EB15-9076-28B8-5DEE405DB9A4}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\fast_exp\library-fast_exp.vcxproj">
       <Project>{E0EC7772-5C0F-6407-290B-3900C3FF324B}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\fast_log\library-fast_log.vcxproj">
-      <Project>{B07A4621-4CF7-3047-5301-F164A4A90693}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\getopt\small\library-getopt-small.vcxproj">
       <Project>{DB9C26F0-E241-89AB-6F12-8CE533A7E012}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\grid_creator\library-grid_creator.vcxproj">
       <Project>{779D8853-F643-71C6-90BD-D7B34A2441E9}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\http\io\library-http-io.vcxproj">
-      <Project>{7AAD42F7-318F-829E-0019-82746753CD46}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\http\misc\library-http-misc.vcxproj">
-      <Project>{673846BF-CACD-8F51-393A-34F2381DAE0C}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\http\push_parser\library-http-push_parser.vcxproj">
-      <Project>{B05B7FF9-4CE5-696B-D8BB-5C8C4EEDBD2C}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\json\common\library-json-common.vcxproj">
       <Project>{3B322F11-1D2A-AEFE-BC14-4F74683E14DB}</Project>
@@ -458,9 +359,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\json\writer\library-json-writer.vcxproj">
       <Project>{C27A0E65-4FDF-D0F0-5127-62A23E33B196}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\lcs\library-lcs.vcxproj">
-      <Project>{E815EB4E-987D-1ECC-5BB6-03920E993386}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\logger\global\library-logger-global.vcxproj">
       <Project>{D1EB170E-C5D0-989C-A93C-B5A2CD895E62}</Project>
     </ProjectReference>
@@ -470,59 +368,14 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\malloc\api\library-malloc-api.vcxproj">
       <Project>{32459880-AE0E-8CCD-4A48-44F805C4FC9B}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\malloc\system\library-malloc-system.vcxproj">
-      <Project>{B5163097-6C21-9F9C-985E-1E21018EDE5E}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\neh\asio\library-neh-asio.vcxproj">
-      <Project>{ACDED067-8B74-5223-7E1A-7937B35A78E1}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\neh\library-neh.vcxproj">
-      <Project>{7FF4A650-AA1E-8970-CED7-751939DB312C}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\netliba\socket\library-netliba-socket.vcxproj">
-      <Project>{F9056049-5115-AB7C-F09D-A4BCA92367DD}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\netliba\v12\library-netliba-v12.vcxproj">
-      <Project>{89AB8FF8-D670-7C29-CED9-549FB45E0AAD}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\netliba\v6\library-netliba-v6.vcxproj">
-      <Project>{CF99E3A7-16F9-8EA9-027D-B9629FC7C3CD}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\object_factory\library-object_factory.vcxproj">
       <Project>{F7622D70-2702-4C7E-04DA-52DC56DF911E}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\openssl\holders\library-openssl-holders.vcxproj">
-      <Project>{8BD519C9-FE74-64B1-416B-3052CA898BD0}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\openssl\init\library-openssl-init.vcxproj">
-      <Project>{0A9ED00A-8390-D6BA-3A2A-7A98AAFFB3E5}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\openssl\method\library-openssl-method.vcxproj">
-      <Project>{EBC3626B-F273-EB61-E7BE-9BBC217D8FB4}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\par\library-par.vcxproj">
-      <Project>{33DA38DE-6DFE-3983-55A4-A689CCC58EFD}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\pop_count\library-pop_count.vcxproj">
       <Project>{5388367D-330A-ED57-0DB7-1F988A5A9B05}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\resource\library-resource.vcxproj">
       <Project>{0182C1FA-B7CF-C21E-561C-06B91159C53A}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\sse\library-sse.vcxproj">
-      <Project>{D4A23E39-75EE-97F4-A50A-283C64388B74}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\statistics\library-statistics.vcxproj">
-      <Project>{898C3811-AD77-869C-24DC-EF6A89FA8399}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\streams\brotli\library-streams-brotli.vcxproj">
-      <Project>{C372D0A1-5406-DEDE-C1E4-5FDC44B12554}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\streams\bzip2\library-streams-bzip2.vcxproj">
-      <Project>{D2BE05C4-A3E9-F005-03A2-D5BA7CA9894C}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\streams\lzma\library-streams-lzma.vcxproj">
-      <Project>{E67D1C28-54CB-F906-6A94-75D8A616C435}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\string_utils\base64\library-string_utils-base64.vcxproj">
       <Project>{137212F6-D2FE-719F-EBE2-99060434BC72}</Project>
@@ -533,38 +386,17 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\svnversion\library-svnversion.vcxproj">
       <Project>{EB1297E8-310F-2F45-45A8-54D412024564}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\terminate_handler\library-terminate_handler.vcxproj">
-      <Project>{4E4966F6-2368-4B6C-B986-DF5B07F94F72}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\text_processing\dictionary\idl\text_processing-dictionary-idl.vcxproj">
       <Project>{939B289A-1787-7277-2983-EC29354F300F}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\text_processing\dictionary\library-text_processing-dictionary.vcxproj">
       <Project>{20E66110-58A2-0F4C-801A-002FF362F425}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\threading\atomic\library-threading-atomic.vcxproj">
-      <Project>{DE3D7773-D32D-01F5-FAE1-0EBED7524579}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\threading\chunk_queue\library-threading-chunk_queue.vcxproj">
-      <Project>{51BCA57C-7E5E-48F9-7D56-FD5809F99DCC}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\threading\future\library-threading-future.vcxproj">
       <Project>{CF2582C4-C4A1-875F-6897-27B28FB8018A}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\threading\local_executor\library-threading-local_executor.vcxproj">
       <Project>{5707A0DE-3EF6-1E74-8DEE-4FDC5C2E6854}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\threading\mux_event\library-threading-mux_event.vcxproj">
-      <Project>{B74D5080-3614-52D8-BADE-8FF788EF3582}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\unittest\library-unittest.vcxproj">
-      <Project>{370FE76E-4632-6C9C-415B-0652D0E1566F}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\unittest\main\library-unittest-main.vcxproj">
-      <Project>{28DC724D-5FFA-AB4B-E6C3-DF0F40AC4B6A}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\yson\library-yson.vcxproj">
-      <Project>{2779E1A2-0D5A-216D-65BF-CE9DF81108EF}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\tools\enum_parser\enum_serialization_runtime\tools-enum_parser-enum_serialization_runtime.vcxproj">
       <Project>{F745D73A-277F-A595-1468-618C82B9B77E}</Project>
