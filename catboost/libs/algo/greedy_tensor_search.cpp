@@ -624,6 +624,86 @@ static void CalcBestScore(
         NPar::TLocalExecutor::WAIT_COMPLETE);
 }
 
+static void DoBootstrap(const TVector<TIndexType>& indices, TFold* fold, TLearnContext* ctx) {
+    if (!ctx->Params.SystemOptions->IsSingleHost()) {
+        MapBootstrap(ctx);
+    } else {
+        Bootstrap(
+            ctx->Params,
+            indices,
+            fold,
+            &ctx->SampledDocs,
+            ctx->LocalExecutor,
+            &ctx->LearnProgress->Rand);
+    }
+}
+
+static void CalcScores(
+    const TTrainingForCPUDataProviders& data,
+    const TSplitTree& currentSplitTree,
+    const double modelLength,
+    TCandidatesContext* candidatesContext,
+    TFold* fold,
+    TLearnContext* ctx) {
+
+    ui32 learnSampleCount = data.Learn->ObjectsData->GetObjectCount();
+    const auto scoreStDev =
+        ctx->Params.ObliviousTreeOptions->RandomStrength
+        * CalcDerivativesStDevFromZero(*fold, ctx->Params.BoostingOptions->BoostingType, ctx->LocalExecutor)
+        * CalcDerivativesStDevFromZeroMultiplier(learnSampleCount, modelLength);
+    if (!ctx->Params.SystemOptions->IsSingleHost()) {
+        if (IsPairwiseScoring(ctx->Params.LossFunctionDescription->GetLossFunction())) {
+            MapRemotePairwiseCalcScore(scoreStDev, candidatesContext, ctx);
+        } else {
+            MapRemoteCalcScore(scoreStDev, candidatesContext, ctx);
+        }
+    } else {
+        const ui64 randSeed = ctx->LearnProgress->Rand.GenRand();
+        CalcBestScore(
+            data,
+            currentSplitTree,
+            randSeed,
+            scoreStDev,
+            candidatesContext,
+            fold,
+            ctx);
+    }
+}
+
+static void SelectBestCandidate(
+    const TLearnContext& ctx,
+    const TCandidatesContext& candidatesContext,
+    size_t maxFeatureValueCount,
+    TFold* fold,
+    double* bestScore,
+    const TCandidateInfo** bestSplitCandidate) {
+
+    for (const auto& subList : candidatesContext.CandidateList) {
+        for (const auto& candidate : subList.Candidates) {
+            double score = candidate.BestScore.GetInstance(ctx.LearnProgress->Rand);
+
+            const auto& splitEnsemble = candidate.SplitEnsemble;
+            if (splitEnsemble.IsSplitOfType(ESplitType::OnlineCtr)) {
+                TProjection projection = splitEnsemble.SplitCandidate.Ctr.Projection;
+                ECtrType ctrType =
+                    ctx.CtrsHelper.GetCtrInfo(projection)[splitEnsemble.SplitCandidate.Ctr.CtrIdx].Type;
+
+                if (!ctx.LearnProgress->UsedCtrSplits.contains(std::make_pair(ctrType, projection)) &&
+                    score != MINIMAL_SCORE) {
+                    score *= pow(
+                        1 + (fold->GetCtrRef(projection).GetUniqueValueCountForType(ctrType) /
+                             static_cast<double>(maxFeatureValueCount)),
+                        -ctx.Params.ObliviousTreeOptions->ModelSizeReg.Get());
+                }
+            }
+            if (score > *bestScore) {
+                *bestScore = score;
+                *bestSplitCandidate = &candidate;
+            }
+        }
+    }
+}
+
 void GreedyTensorSearch(
     const TTrainingForCPUDataProviders& data,
     double modelLength,
@@ -646,16 +726,11 @@ void GreedyTensorSearch(
 
     const bool isSamplingPerTree = IsSamplingPerTree(ctx->Params.ObliviousTreeOptions);
     if (isSamplingPerTree) {
-        if (!ctx->Params.SystemOptions->IsSingleHost()) {
-            MapBootstrap(ctx);
-        } else {
-            Bootstrap(ctx->Params, indices, fold, &ctx->SampledDocs, ctx->LocalExecutor, &ctx->LearnProgress->Rand);
-        }
+        DoBootstrap(indices, fold, ctx);
         if (ctx->UseTreeLevelCaching()) {
             ctx->PrevTreeLevelStats.GarbageCollect();
         }
     }
-    const bool isPairwiseScoring = IsPairwiseScoring(ctx->Params.LossFunctionDescription->GetLossFunction());
 
     for (ui32 curDepth = 0; curDepth < ctx->Params.ObliviousTreeOptions->MaxDepth; ++curDepth) {
         TCandidatesContext candidatesContext;
@@ -692,42 +767,13 @@ void GreedyTensorSearch(
             &candidatesContext.CandidateList);
 
         CheckInterrupted(); // check after long-lasting operation
-        if (!isSamplingPerTree) {
-            if (!ctx->Params.SystemOptions->IsSingleHost()) {
-                MapBootstrap(ctx);
-            } else {
-                Bootstrap(
-                    ctx->Params,
-                    indices,
-                    fold,
-                    &ctx->SampledDocs,
-                    ctx->LocalExecutor,
-                    &ctx->LearnProgress->Rand);
-            }
+
+        if (!isSamplingPerTree) {  // sampling per tree level
+            DoBootstrap(indices, fold, ctx);
         }
         profile.AddOperation(TStringBuilder() << "Bootstrap, depth " << curDepth);
 
-        const auto scoreStDev =
-            ctx->Params.ObliviousTreeOptions->RandomStrength
-            * CalcDerivativesStDevFromZero(*fold, ctx->Params.BoostingOptions->BoostingType, ctx->LocalExecutor)
-            * CalcDerivativesStDevFromZeroMultiplier(learnSampleCount, modelLength);
-        if (!ctx->Params.SystemOptions->IsSingleHost()) {
-            if (isPairwiseScoring) {
-                MapRemotePairwiseCalcScore(scoreStDev, &candidatesContext, ctx);
-            } else {
-                MapRemoteCalcScore(scoreStDev, &candidatesContext, ctx);
-            }
-        } else {
-            const ui64 randSeed = ctx->LearnProgress->Rand.GenRand();
-            CalcBestScore(
-                data,
-                currentSplitTree,
-                randSeed,
-                scoreStDev,
-                &candidatesContext,
-                fold,
-                ctx);
-        }
+        CalcScores(data, currentSplitTree, modelLength, &candidatesContext, fold, ctx);
 
         size_t maxFeatureValueCount = 1;
         for (const auto& candidate : candidatesContext.CandidateList) {
@@ -744,36 +790,9 @@ void GreedyTensorSearch(
         CheckInterrupted(); // check after long-lasting operation
         profile.AddOperation(TStringBuilder() << "Calc scores " << curDepth);
 
-        const TCandidateInfo* bestSplitCandidate = nullptr;
         double bestScore = MINIMAL_SCORE;
-        for (const auto& subList : candidatesContext.CandidateList) {
-            for (const auto& candidate : subList.Candidates) {
-                double score = candidate.BestScore.GetInstance(ctx->LearnProgress->Rand);
-                // CATBOOST_INFO_LOG << BuildDescription(ctx->Layout, candidate.SplitCandidate) << " = "
-                //     << score << "\t";
-
-                const auto& splitEnsemble = candidate.SplitEnsemble;
-                if (splitEnsemble.IsSplitOfType(ESplitType::OnlineCtr)) {
-                    TProjection projection = splitEnsemble.SplitCandidate.Ctr.Projection;
-                    ECtrType ctrType =
-                        ctx->CtrsHelper.GetCtrInfo(projection)[splitEnsemble.SplitCandidate.Ctr.CtrIdx].Type;
-
-                    if (!ctx->LearnProgress->UsedCtrSplits.contains(std::make_pair(ctrType, projection)) &&
-                        score != MINIMAL_SCORE)
-                    {
-                        score *= pow(
-                            1 + (fold->GetCtrRef(projection).GetUniqueValueCountForType(ctrType) /
-                                static_cast<double>(maxFeatureValueCount)),
-                            -ctx->Params.ObliviousTreeOptions->ModelSizeReg.Get());
-                    }
-                }
-                if (score > bestScore) {
-                    bestScore = score;
-                    bestSplitCandidate = &candidate;
-                }
-            }
-        }
-        // CATBOOST_INFO_LOG << Endl;
+        const TCandidateInfo* bestSplitCandidate = nullptr;
+        SelectBestCandidate(*ctx, candidatesContext, maxFeatureValueCount, fold, &bestScore, &bestSplitCandidate);
         if (bestScore == MINIMAL_SCORE) {
             break;
         }
