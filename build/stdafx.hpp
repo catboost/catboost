@@ -262,7 +262,6 @@
 #include <util/string/subst.h>
 #include <util/string/hex.h>
 #include <util/string/printf.h>
-#include <util/string/pcdata.h>
 #include <util/string/ascii.h>
 #include <util/string/url.h>
 #include <util/string/cast.h>

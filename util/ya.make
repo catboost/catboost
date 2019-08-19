@@ -224,7 +224,6 @@ JOIN_SRCS(
     string/hex.cpp
     string/join.cpp
     string/kmp.cpp
-    string/pcdata.cpp
     string/printf.cpp
     string/quote.cpp
     string/scan.cpp

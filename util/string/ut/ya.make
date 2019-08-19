@@ -10,7 +10,6 @@ SRCS(
     string/join_ut.cpp
     string/hex_ut.cpp
     string/kmp_ut.cpp
-    string/pcdata_ut.cpp
     string/printf_ut.cpp
     string/quote_ut.cpp
     string/split_ut.cpp
