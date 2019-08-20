@@ -1,3 +1,21 @@
+# Release 0.16.5
+
+## Breaking changes:
+- All metrics except for AUC metric now use weights by default.
+
+## New features:
+- Added `boost_from_average` parameter for RMSE training on CPU which might give a boost in quality.
+- Added conversion from ONNX to CatBoost. Now you can convert XGBoost or LightGBM model to ONNX, then convert it to CatBoost and use our fast applier. Use `model.load_model(model_path, format="onnx")` for that.
+
+## Speed ups:
+- Training is  ~15% faster for datasets with categorical features.
+
+## Bug fixes:
+- R language: `get_features_importance` with `ShapValues` for `MultiClass`,  #868
+- NormalizedGini was not calculated,  #962
+- Bug in leaf calculation which could result in slightly worse quality if you use weights in binary classification mode
+
+
 # Release 0.16.4
 
 ## Bug fixes:
