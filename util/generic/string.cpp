@@ -92,7 +92,7 @@ TBasicString<wchar16, TCharTraits<wchar16>>::AppendAscii(const ::TFixedString<ch
         *dst = static_cast<wchar16>(*src);
     }
 
-    return *This();
+    return *this;
 }
 
 template<>
@@ -106,22 +106,22 @@ TBasicString<wchar16, TCharTraits<wchar16>>::AppendUtf8(const ::TFixedString<cha
         ythrow yexception() << "failed to decode UTF-8 string at pos " << pos << ::NDetail::InStringMsg(s.Start, s.Length);
     remove(oldSize + written);
 
-    return *This();
+    return *this;
 }
 
 template<>
 bool TBasicString<wchar16, TCharTraits<wchar16>>::to_lower(size_t pos, size_t n) {
-    return ToLower(*This(), pos, n);
+    return ToLower(*this, pos, n);
 }
 
 template<>
 bool TBasicString<wchar16, TCharTraits<wchar16>>::to_upper(size_t pos, size_t n) {
-    return ToUpper(*This(), pos, n);
+    return ToUpper(*this, pos, n);
 }
 
 template<>
 bool TBasicString<wchar16, TCharTraits<wchar16>>::to_title(size_t pos, size_t n) {
-    return ToTitle(*This(), pos, n);
+    return ToTitle(*this, pos, n);
 }
 
 template<>
@@ -135,7 +135,7 @@ TBasicString<wchar32, TCharTraits<wchar32>>::AppendAscii(const ::TFixedString<ch
         *dst = static_cast<wchar32>(*src);
     }
 
-    return *This();
+    return *this;
 }
 
 template<>
@@ -149,7 +149,7 @@ TBasicString<wchar32, TCharTraits<wchar32>>::AppendUtf8(const ::TFixedString<cha
         ythrow yexception() << "failed to decode UTF-8 string at pos " << pos << ::NDetail::InStringMsg(s.Start, s.Length);
     remove(oldSize + written);
 
-    return *This();
+    return *this;
 }
 
 template<>
@@ -165,21 +165,21 @@ TBasicString<wchar32, TCharTraits<wchar32>>::AppendUtf16(const ::TFixedString<wc
 
     remove(oldSize + written);
 
-    return *This();
+    return *this;
 }
 
 
 template<>
 bool TBasicString<wchar32, TCharTraits<wchar32>>::to_lower(size_t pos, size_t n) {
-    return ToLower(*This(), pos, n);
+    return ToLower(*this, pos, n);
 }
 
 template<>
 bool TBasicString<wchar32, TCharTraits<wchar32>>::to_upper(size_t pos, size_t n) {
-    return ToUpper(*This(), pos, n);
+    return ToUpper(*this, pos, n);
 }
 
 template<>
 bool TBasicString<wchar32, TCharTraits<wchar32>>::to_title(size_t pos, size_t n) {
-    return ToTitle(*This(), pos, n);
+    return ToTitle(*this, pos, n);
 }

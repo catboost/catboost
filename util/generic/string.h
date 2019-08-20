@@ -771,15 +771,6 @@ public:
         size_t Size;
     };
 
-private:
-    TBasicString* This() {
-        return static_cast<TBasicString*>(this);
-    }
-
-    const TBasicString* This() const {
-        return static_cast<const TBasicString*>(this);
-    }
-
 protected:
     /**
      * Allocates new string data that fits at least the specified number of characters.
@@ -857,7 +848,7 @@ public:
     inline TCharRef operator[](size_t pos) noexcept {
         Y_ASSERT(pos <= length());
 
-        return TCharRef(*This(), pos);
+        return TCharRef(*this, pos);
     }
 
     using TBase::back;
@@ -866,16 +857,16 @@ public:
         Y_ASSERT(!this->empty());
 
         if (Y_UNLIKELY(this->empty())) {
-            return TCharRef(*This(), 0);
+            return TCharRef(*this, 0);
         }
-        return TCharRef(*This(), length() - 1);
+        return TCharRef(*this, length() - 1);
     }
 
     using TBase::front;
 
     inline TCharRef front() noexcept {
         Y_ASSERT(!this->empty());
-        return TCharRef(*This(), 0);
+        return TCharRef(*this, 0);
     }
 
     inline size_t length() const noexcept {
@@ -953,7 +944,7 @@ public:
             ReserveAndResize(n);
             TTraits::Assign(Data_ + len, n - len, c);
 
-            return *This();
+            return *this;
         }
 
         return remove(n);
@@ -1137,9 +1128,9 @@ public:
 
     // ~~~ Assignment ~~~ : FAMILY0(TBasicString&, assign);
     TBasicString& assign(const TBasicString& s) {
-        TBasicString(s).swap(*This());
+        TBasicString(s).swap(*this);
 
-        return *This();
+        return *this;
     }
 
     TBasicString& assign(const TBasicString& s, size_t pos, size_t n) {
@@ -1168,7 +1159,7 @@ public:
             Relink(TTraits::Copy(Allocate(len), pc, len));
         }
 
-        return *This();
+        return *this;
     }
 
     TBasicString& assign(const TCharType* first, const TCharType* last) {
@@ -1188,7 +1179,7 @@ public:
 
         TTraits::Copy(Data_, pc, len);
 
-        return *This();
+        return *this;
     }
 
     inline TBasicString& AssignNoAlias(const TCharType* b, const TCharType* e) {
@@ -1218,17 +1209,17 @@ public:
      */
     auto AssignAscii(const ::TFixedString<char>& s) {
         clear();
-        return This()->AppendAscii(s);
+        return AppendAscii(s);
     }
 
     auto AssignUtf8(const ::TFixedString<char>& s) {
         clear();
-        return This()->AppendUtf8(s);
+        return AppendUtf8(s);
     }
 
     auto AssignUtf16(const ::TFixedString<wchar16>& s) {
         clear();
-        return This()->AppendUtf16(s);
+        return AppendUtf16(s);
     }
 
     TBasicString& operator=(const TBasicString& s) {
@@ -1273,11 +1264,11 @@ public:
             append(ch);
         }
 
-        return *This();
+        return *this;
     }
 
     inline TBasicString& append(const TBasicString& s) {
-        if (&s != This()) {
+        if (&s != this) {
             return AppendNoAlias(s.data(), s.size());
         }
 
@@ -1298,7 +1289,7 @@ public:
         ReserveAndResize(olen + 1);
         *(Data_ + olen) = c;
 
-        return *This();
+        return *this;
     }
 
     inline TBasicString& append(const TCharType* first, const TCharType* last) {
@@ -1328,7 +1319,7 @@ public:
         ReserveAndResize(nlen);
         TTraits::Copy(Data_ + olen, pc, len);
 
-        return *This();
+        return *this;
     }
 
     TBasicString& AppendNoAlias(const TFixedString s) {
@@ -1387,12 +1378,12 @@ public:
         TBasicString temp;
 
         for (T i = 0; i < count; ++i) {
-            temp += *This();
+            temp += *this;
         }
 
         swap(temp);
 
-        return *This();
+        return *this;
     }
 
     template <class TCharTraits, class Allocator>
@@ -1570,7 +1561,7 @@ public:
             TruncNonShared(pos);
         }
 
-        return *This();
+        return *this;
     }
 
     TBasicString& erase(size_t pos = 0, size_t n = TBase::npos) {
@@ -1643,7 +1634,7 @@ public:
 
         if (!total) {
             clear();
-            return *This();
+            return *this;
         }
 
         size_t rem = len - del - pos;
@@ -1674,7 +1665,7 @@ public:
             TruncNonShared(total);
         }
 
-        return *This();
+        return *this;
     }
 
     // ~~~ Reversion ~~~~
@@ -1694,7 +1685,7 @@ public:
     TBasicString Quote() const {
         extern TBasicString EscapeC(const TBasicString&);
 
-        return TBasicString() + '"' + EscapeC(*This()) + '"';
+        return TBasicString() + '"' + EscapeC(*this) + '"';
     }
 
     /**
