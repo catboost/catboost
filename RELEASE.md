@@ -14,6 +14,7 @@
 - R language: `get_features_importance` with `ShapValues` for `MultiClass`,  #868
 - NormalizedGini was not calculated,  #962
 - Bug in leaf calculation which could result in slightly worse quality if you use weights in binary classification mode
+- Fixed `__builtins__` import in Python3 in PR #957, thanks to @AbhinavanT
 
 
 # Release 0.16.4
