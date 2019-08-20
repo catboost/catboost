@@ -298,11 +298,6 @@
     - webp/decode.h
     - webp/encode.h
 
-- source_filter: "^contrib/libs/libmysql_r"
-  includes:
-    - md5.hpp
-    - sha.hpp
-
 - source_filter: "^contrib/libs/libpcap"
   includes:
     - strerror.h

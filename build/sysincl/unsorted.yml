@@ -171,7 +171,6 @@
   - oslib/osfscontrol.h
   - paper.h
   - pcre_printint.src
-  - pfs_thread_provider.h
   - pire/config.h
   - pngusr.h
   - probes_mysql_dtrace.h
