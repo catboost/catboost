@@ -110,6 +110,9 @@ ALLOW .* -> vendor/github.com/mitchellh/copystructure
 # decoding generic map values to structures and vice versa
 ALLOW .* -> vendor/github.com/mitchellh/mapstructure
 
+# library for detecting and expanding the user's home directory without cgo
+ALLOW .* -> vendor/github.com/mitchellh/go-homedir
+
 # A well tested and comprehensive Golang statistics library package with no dependencies
 ALLOW .* -> vendor/github.com/montanaflynn/stats
 
