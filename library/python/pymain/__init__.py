@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import os
 import sys
 import runpy
@@ -42,7 +44,7 @@ def run():
 
         args_diff = python_args - set(possible_args)
         if args_diff:
-            print >>sys.stderr, '{arg} is not implemented in huge_python'.format(arg=args_diff)
+            print('{arg} is not implemented in huge_python'.format(arg=args_diff), file=sys.stderr)
 
         for p_arg in possible_args:
             if p_arg not in python_args:
