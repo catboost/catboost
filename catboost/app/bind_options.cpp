@@ -1144,6 +1144,27 @@ static void BindCatboostParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue*
         });
 }
 
+static void ParseMetadata(int argc, const char* argv[], NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* plainJsonPtr) {
+    auto& parser = *parserPtr;
+    bool setModelMetadata = false;
+    parser.AddLongOption("set-metadata-from-freeargs", "treat [key value] freeargs pairs as model metadata")
+        .StoreValue(&setModelMetadata, true)
+        .NoArgument();
+
+    NLastGetopt::TOptsParseResult parserResult{&parser, argc, argv};
+    if (!setModelMetadata) {
+        CB_ENSURE(parserResult.GetFreeArgCount() == 0, "use \"--set-metadata-from-freeargs\" to enable freeargs");
+    } else {
+        auto freeArgs = parserResult.GetFreeArgs();
+        auto freeArgCount = freeArgs.size();
+        auto& metadata = (*plainJsonPtr)["metadata"];
+        CB_ENSURE(freeArgCount % 2 == 0, "key-value freeargs count should be even");
+        for (size_t i = 0; i < freeArgCount; i += 2) {
+            metadata[freeArgs[i]] = freeArgs[i + 1];
+        }
+    }
+}
+
 void ParseCommandLine(int argc, const char* argv[],
                       NJson::TJsonValue* plainJsonPtr,
                       TString* paramsPath,
@@ -1186,23 +1207,7 @@ void ParseCommandLine(int argc, const char* argv[],
 
     BindCatboostParams(&parser, plainJsonPtr);
 
-    bool setModelMetadata = false;
-    parser.AddLongOption("set-metadata-from-freeargs", "treat [key value] freeargs pairs as model metadata")
-        .StoreValue(&setModelMetadata, true)
-        .NoArgument();
-
-    NLastGetopt::TOptsParseResult parserResult{&parser, argc, argv};
-    if (!setModelMetadata) {
-        CB_ENSURE(parserResult.GetFreeArgCount() == 0, "use \"--set-metadata-from-freeargs\" to enable freeargs");
-    } else {
-        auto freeArgs = parserResult.GetFreeArgs();
-        auto freeArgCount = freeArgs.size();
-        auto& metadata = (*plainJsonPtr)["metadata"];
-        CB_ENSURE(freeArgCount % 2 == 0, "key-value freeargs count should be even");
-        for (size_t i = 0; i < freeArgCount; i += 2) {
-            metadata[freeArgs[i]] = freeArgs[i + 1];
-        }
-    }
+    ParseMetadata(argc, argv, &parser, plainJsonPtr);
 }
 
 void ParseModelBasedEvalCommandLine(
@@ -1285,5 +1290,5 @@ void ParseFeatureEvalCommandLine(
 
     BindCatboostParams(&parser, plainJsonPtr);
 
-    NLastGetopt::TOptsParseResult parserResult{&parser, argc, argv};
+    ParseMetadata(argc, argv, &parser, plainJsonPtr);
 }

@@ -365,6 +365,10 @@ void Train(
     };
     auto foldOutputOptions = foldContext->OutputOptions;
     foldOutputOptions.SetTrainDir(trainDir);
+    if (foldContext->FullModel.Defined()) {
+        // TrainModel saves model either to memory pointed by dstModel, or to ResultModelPath
+        foldOutputOptions.ResultModelPath = NCatboostOptions::TOption<TString>("result_model_file", "model");
+    }
     TMetricsAndTimeLeftHistory metricsAndTimeHistory;
     modelTrainer->TrainModel(
         internalOptions,
@@ -385,6 +389,10 @@ void Train(
         &metricsAndTimeHistory,
         (foldContext->TaskType == ETaskType::CPU) ? &foldContext->LearnProgress : nullptr
     );
+    if (foldContext->FullModel.Defined()) {
+        TFileOutput modelFile(JoinFsPaths(trainDir, foldContext->OutputOptions.ResultModelPath.Get()));
+        foldContext->FullModel.Save(&modelFile);
+    }
     const auto skipMetricOnTrain = GetSkipMetricOnTrain(metrics);
     for (const auto& trainMetrics : metricsAndTimeHistory.LearnMetricsHistory) {
         foldContext->MetricValuesOnTrain.emplace_back(GetMetricValues(metrics, skipMetricOnTrain, trainMetrics));
