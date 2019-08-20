@@ -214,9 +214,9 @@ namespace NCB {
         using IBase = IDynamicSparseIterator<TValue, TIndex>;
 
     public:
-        explicit TDynamicIteratorAsSparseDynamic(IDynamicIteratorPtr<TValue> valueIterator)
+        explicit TDynamicIteratorAsSparseDynamic(IDynamicIteratorPtr<TValue> valueIterator, TIndex offset = 0)
             : ValueIterator(std::move(valueIterator))
-            , Index(0)
+            , Index(offset)
         {}
 
         TMaybe<std::pair<TIndex, TValue>> Next() override {
