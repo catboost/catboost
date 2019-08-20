@@ -183,7 +183,7 @@ class Plugin(CoveragePlugin):
 
             for c_file in iter_files():
                 if os.path.splitext(c_file)[1] in C_FILE_EXTENSIONS:
-                    self._parse_lines(c_file, source_file)
+                    self._read_source_lines(c_file, source_file)
                     if source_file in self._c_files_map:
                         return
             raise AssertionError((source_file, os.environ.get('PYTHON_COVERAGE_CYTHON_BUILD_ROOT')))
@@ -240,16 +240,12 @@ class Plugin(CoveragePlugin):
             r'(?:struct|union|enum|class)'
             r'(\s+[^:]+|)\s*:'
         ).match
-        # XXX Don't treat def/cdef/cpdef/ctypedef as executable code
-        # Otherwise, it will always be uncovered
-        # See https://github.com/cython/cython/issues/1461 for more info
-        match_definition = re.compile(r'\s*(def|cdef|cpdef|ctypedef).*:').match
 
         code_lines = defaultdict(dict)
         executable_lines = defaultdict(set)
         current_filename = None
 
-        with open(c_file) as lines:
+        with OpenFile(c_file) as lines:
             lines = iter(lines)
             for line in lines:
                 match = match_source_path_line(line)
@@ -267,8 +263,6 @@ class Plugin(CoveragePlugin):
                     if match:
                         code_line = match.group(1).rstrip()
                         if not_executable(code_line):
-                            break
-                        if match_definition(code_line):
                             break
                         code_lines[filename][lineno] = code_line
                         break
