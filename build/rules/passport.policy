@@ -1,6 +1,5 @@
 ## TEMPORARY EXCEPTIONS. TODO: PASSP-24128
 ALLOW mail/ava/daemon -> passport/cpp/libs/utils
-ALLOW mail/libblackbox2 -> passport/cpp/libs/auth_core
 
 
 # PERSISTENT EXCEPTION: 'ya yav' handler
