@@ -559,6 +559,10 @@ namespace NCB {
             return 0;
         }
 
+        if (sparseArrayIndexingType == ESparseArrayIndexingType::Undefined) {
+            sparseArrayIndexingType = Indexing->GetType();
+        }
+
         ui64 ramUsedForDstIndexing;
         switch (sparseArrayIndexingType) {
             case ESparseArrayIndexingType::Indices:
@@ -575,10 +579,6 @@ namespace NCB {
         }
 
         const ui64 ramUsedForDstValues = sizeof(TValue) * GetNonDefaultSize();
-
-        if (sparseArrayIndexingType == ESparseArrayIndexingType::Undefined) {
-            sparseArrayIndexingType = Indexing->GetType();
-        }
 
         ui64 ramUsedDuringBuilding = ramUsedForDstIndexing + ramUsedForDstValues;
         if (sparseArrayIndexingType != ESparseArrayIndexingType::Indices) {
