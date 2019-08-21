@@ -756,6 +756,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\build_info\library-build_info.vcxproj">
       <Project>F14974DD-FCD1-9883-1B38-7294F1EC7341</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cgiparam\library-cgiparam.vcxproj">
+      <Project>AF572C0E-2445-0F56-2E4F-8E4C656C4786</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\chromium_trace\library-chromium_trace.vcxproj">
       <Project>9541389A-C448-428A-BEEE-604F1A02F5EA</Project>
     </ProjectReference>

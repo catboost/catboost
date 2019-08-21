@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{673846BF-CACD-8F51-393A-34F2381DAE0C}</ProjectGUID>
+    <ProjectGUID>{AF572C0E-2445-0F56-2E4F-8E4C656C4786}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>library-http-misc</ProjectName>
+    <ProjectName>library-cgiparam</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>library-http-misc</TargetName>
+    <TargetName>library-cgiparam</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\library\http\misc\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\673846BF-CACD-8F51-393A-34F2381DAE0C\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\library\cgiparam\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\AF572C0E-2445-0F56-2E4F-8E4C656C4786\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,41 +78,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\library\http\misc\httpcodes.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\library\http\misc\httpcodes.h_serialized.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\http\misc\httpdate.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\http\misc\httpreqdata.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\http\misc\parsed_request.cpp"/>
-    <CustomBuild Include="$(SolutionDir)..\library\http\misc\httpcodes.h">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\library\http\misc
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../library/http/misc/httpcodes.h" "--include-path" "library/http/misc/httpcodes.h" "--output" "$(SolutionDir)$(Configuration)/library/http/misc/httpcodes.h_serialized.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\library\http\misc
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../library/http/misc/httpcodes.h" "--include-path" "library/http/misc/httpcodes.h" "--output" "$(SolutionDir)$(Configuration)/library/http/misc/httpcodes.h_serialized.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/http/misc/httpcodes.h_serialized.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\library\http\misc\httpcodes.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\http\misc\httpcodes.h_serialized.cpp;</Outputs>
-    </CustomBuild>
-    <ClInclude Include="$(SolutionDir)..\library\http\misc\httpdate.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\http\misc\httpreqdata.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\http\misc\parsed_request.h"/>
+    <ClCompile Include="$(SolutionDir)..\library\cgiparam\cgiparam.cpp"/>
+    <ClInclude Include="$(SolutionDir)..\library\cgiparam\cgiparam.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
@@ -128,18 +95,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zlib\contrib-libs-zlib.vcxproj">
       <Project>{E8A35EC0-40EE-2D96-1FB2-D065B804958D}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\cgiparam\library-cgiparam.vcxproj">
-      <Project>{AF572C0E-2445-0F56-2E4F-8E4C656C4786}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\digest\lower_case\library-digest-lower_case.vcxproj">
-      <Project>{98B506A2-A065-0821-3BB0-07FDF5C590A5}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\tools\enum_parser\enum_parser\enum_parser.vcxproj">
-      <Project>{F6CDBBB3-9B26-9DC1-90B1-CF3F94F04C9B}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\tools\enum_parser\enum_serialization_runtime\tools-enum_parser-enum_serialization_runtime.vcxproj">
-      <Project>{F745D73A-277F-A595-1468-618C82B9B77E}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\util\charset\util-charset.vcxproj">
       <Project>{44174C28-7454-8F7D-C06B-E2E8E0B4BF9E}</Project>
