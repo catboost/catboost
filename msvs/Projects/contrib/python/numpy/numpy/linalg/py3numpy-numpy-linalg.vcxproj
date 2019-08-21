@@ -79,9 +79,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\linalg\f66ed84d620813addaebd21290.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\numpy\linalg\lapack_lite\python_xerbla.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\numpy\linalg\lapack_litemodule.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>

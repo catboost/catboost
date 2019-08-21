@@ -79,9 +79,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\linalg\8037c96e4f8b37829f01093ab2.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\numpy\linalg\lapack_lite\python_xerbla.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\numpy\linalg\lapack_litemodule.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
@@ -249,7 +246,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)..\contrib\python\numpy\numpy\linalg\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\linalg\__init__.py.yapyc;$(SolutionDir)..\contrib\python\numpy\numpy\linalg\info.py;$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\linalg\info.py.yapyc;$(SolutionDir)..\contrib\python\numpy\numpy\linalg\linalg.py;$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\linalg\linalg.py.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\linalg\_8037c96e4f8b37829f01093ab2.yasm;$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\linalg\_29040d5150aaf301cc33a10eca.rodata;$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\linalg\_50eaf8ddc2907f7b73db6e6ef0.rodata;$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\linalg\_9c34177e68031292c08a3296cd.rodata;$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\linalg\_1a3c02c808373ebf5d73eb5080.rodata;$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\linalg\_07a8eed9dc98363b0d1e82d7a0.rodata;$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\linalg\_c5a1d0b55bf202c2cb467f164b.rodata;</Outputs>
     </CustomBuild>
-    <ClInclude Include="$(SolutionDir)..\contrib\python\numpy\numpy\linalg\lapack_lite\f2c.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
