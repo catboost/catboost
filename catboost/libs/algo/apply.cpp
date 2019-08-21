@@ -64,7 +64,7 @@ static void ApplyBlockImpl(
         }
     };
     if (executor) {
-        executor->ExecRange(applyOnBlock, 0, blockParams.GetBlockCount(), TLocalExecutor::WAIT_COMPLETE);
+        executor->ExecRangeWithThrow(applyOnBlock, 0, blockParams.GetBlockCount(), TLocalExecutor::WAIT_COMPLETE);
     } else {
         applyOnBlock(0);
     }
@@ -171,7 +171,7 @@ void TModelCalcerOnPool::ApplyModelMulti(
         end = Min<int>(end, Model->GetTreeCount());
     }
 
-    Executor->ExecRange(
+    Executor->ExecRangeWithThrow(
         [&, this](int blockId) {
             const int blockFirstId = BlockParams.FirstId + blockId * BlockParams.GetBlockSize();
             const int blockLastId = Min(BlockParams.LastId, blockFirstId + BlockParams.GetBlockSize());
@@ -226,7 +226,7 @@ TModelCalcerOnPool::TModelCalcerOnPool(
     BlockParams.SetBlockCount(threadCount);
     QuantizedDataForThreads.resize(BlockParams.GetBlockCount());
 
-    executor->ExecRange(
+    executor->ExecRangeWithThrow(
         [this, objectsData](int blockId) {
             const int blockFirstIdx = BlockParams.FirstId + blockId * BlockParams.GetBlockSize();
             const int blockLastIdx = Min(BlockParams.LastId, blockFirstIdx + BlockParams.GetBlockSize());
@@ -317,7 +317,7 @@ static void CalcLeafIndexesMultiImpll(
     };
 
     if (executor) {
-        executor->ExecRange(applyOnBlock, 0, blockParams.GetBlockCount(), TLocalExecutor::WAIT_COMPLETE);
+        executor->ExecRangeWithThrow(applyOnBlock, 0, blockParams.GetBlockCount(), TLocalExecutor::WAIT_COMPLETE);
     } else {
         applyOnBlock(0);
     }
