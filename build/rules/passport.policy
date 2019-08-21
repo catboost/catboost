@@ -1,7 +1,3 @@
-## TEMPORARY EXCEPTIONS. TODO: PASSP-24128
-ALLOW mail/ava/daemon -> passport/cpp/libs/utils
-
-
 # PERSISTENT EXCEPTION: 'ya yav' handler
 ALLOW devtools/ya/handlers/yav -> passport/python/vault/cli/yav/vault_client_cli
 
