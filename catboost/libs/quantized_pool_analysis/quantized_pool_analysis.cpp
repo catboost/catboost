@@ -14,15 +14,12 @@ namespace NCB {
         TVector<double>* predictions,
         NPar::TLocalExecutor* executor) {
 
-        TRawDataProvider rawDataProvider(
-            std::move(dataProvider.MetaInfo),
-            std::move(dynamic_cast<TRawObjectsDataProvider*>(dataProvider.ObjectsData.Get())),
-            dataProvider.ObjectsGrouping,
-            std::move(dataProvider.RawTargetData));
-        size_t objectCount = rawDataProvider.GetObjectCount();
+        size_t objectCount = dataProvider.GetObjectCount();
 
-        TIntrusivePtr<TRawDataProvider> rawDataProviderPtr(&rawDataProvider);
-        TRawBuilderData data = TRawBuilderDataHelper::Extract(std::move(*(rawDataProviderPtr.Release())));
+        TIntrusivePtr<TRawDataProvider> rawDataProviderPtr
+            = dataProvider.CastMoveTo<TRawObjectsDataProvider>();
+        CB_ENSURE(rawDataProviderPtr, "Only non-quantized datasets are supported");
+        TRawBuilderData data = TRawBuilderDataHelper::Extract(std::move(*rawDataProviderPtr));
 
         THolder<THolderType> initialHolder;
         if constexpr (FeatureType == EFeatureType::Categorical) {
@@ -78,7 +75,7 @@ namespace NCB {
 
             auto pred = ApplyModelMulti(model, *(rawDataProviderPtr->ObjectsData), false, predictionType, 0, 0, threadCount)[0];
             (*predictions)[numVal - ignoreIndex] = std::accumulate(pred.begin(), pred.end(), 0.) / static_cast<double>(pred.size());
-            data = TRawBuilderDataHelper::Extract(std::move(*(rawDataProviderPtr.Release())));
+            data = TRawBuilderDataHelper::Extract(std::move(*rawDataProviderPtr));
         }
 
         if constexpr (FeatureType == EFeatureType::Categorical) {
@@ -93,13 +90,8 @@ namespace NCB {
             std::move(data),
             false,
             executor);
-        rawDataProvider = *(rawDataProviderPtr.Release());
 
-        dataProvider = TDataProvider(
-            std::move(rawDataProvider.MetaInfo),
-            std::move(rawDataProvider.ObjectsData),
-            rawDataProvider.ObjectsGrouping,
-            std::move(rawDataProvider.RawTargetData));
+        dataProvider = std::move(*(rawDataProviderPtr->CastMoveTo<TObjectsDataProvider>()));
     }
 
     TBinarizedFeatureStatistics GetBinarizedFloatFeatureStatistics(
