@@ -24,7 +24,7 @@ CFLAGS(
 )
 
 SRCS(
-    lapack_lite/python_xerbla.c
+    # lapack_lite/python_xerbla.c is defined in blas.
     lapack_litemodule.c
     umath_linalg.c
 )

@@ -233,14 +233,8 @@ PY_SRCS(
     numpy/version.py
 )
 
-IF (NOT MSVC)
-    SRCS(
-        numpy/core/src/common/python_xerbla.c
-    )
-ENDIF()
-
-
 SRCS(
+    # numpy/core/src/common/python_xerbla.c is defined in blas.
     numpy/core/src/dummymodule.c
     numpy/core/src/common/npy_longdouble.c
     numpy/core/src/common/mem_overlap.c

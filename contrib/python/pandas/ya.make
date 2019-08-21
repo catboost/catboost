@@ -35,16 +35,9 @@ NO_LINT()
 CFLAGS(
     # For pandas.json and pandas.msgpack.
     -D__LITTLE_ENDIAN__=1
-    # Resolve clashes with contrib/python/numpy/numpy/core/src/multiarray/
-    -Dadd_minutes_to_datetimestruct=pandas_add_minutes_to_datetimestruct
-    -Dadd_seconds_to_datetimestruct=pandas_add_seconds_to_datetimestruct
-    -Dconvert_pydatetime_to_datetimestruct=pandas_convert_pydatetime_to_datetimestruct
-    -Dget_datetimestruct_days=pandas_get_datetimestruct_days
-    -Dis_leapyear=pandas_is_leapyear
-    -Dget_datetime_iso_8601_strlen=pandas_get_datetime_iso_8601_strlen
-    -Dmake_iso_8601_datetime=pandas_make_iso_8601_datetime
-    -Dparse_iso_8601_datetime=pandas_parse_iso_8601_datetime
 )
+
+INCLUDE(symbols.cmake)
 
 PY_REGISTER(pandas._libs.json)
 PY_REGISTER(pandas.util._move)
