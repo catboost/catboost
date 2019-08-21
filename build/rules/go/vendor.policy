@@ -294,6 +294,9 @@ ALLOW .* -> vendor/github.com/golang/groupcache
 # Mocking framework for go.
 ALLOW .* -> vendor/github.com/golang/mock
 
+# Go load generator. Can be used as library for custom load tools. CONTRIB-1420
+ALLOW .* -> vendor/github.com/yandex/pandora
+
 #
 # Temporary exceptions.
 #
