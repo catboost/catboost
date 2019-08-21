@@ -8,7 +8,10 @@
 #include <catboost/libs/data_types/text.h>
 #include <catboost/libs/helpers/array_subset.h>
 #include <catboost/libs/helpers/compression.h>
+#include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/maybe_owning_array_holder.h>
+#include <catboost/libs/helpers/resource_constrained_executor.h>
+#include <catboost/libs/helpers/sparse_array.h>
 
 #include <library/threading/local_executor/local_executor.h>
 
@@ -19,6 +22,7 @@
 #include <util/generic/yexception.h>
 #include <util/stream/buffer.h>
 #include <util/stream/labeled.h>
+#include <util/system/compiler.h>
 #include <util/system/yassert.h>
 
 #include <climits>
@@ -44,8 +48,10 @@ namespace NCB {
     };
 
     using TFeaturesArraySubsetIndexing = TArraySubsetIndexing<ui32>;
+    using TFeaturesArraySubsetInvertedIndexing = TArraySubsetInvertedIndexing<ui32>;
     using TCompressedArraySubset = TArraySubset<TCompressedArray, ui32>;
     using TConstCompressedArraySubset = TArraySubset<const TCompressedArray, ui32>;
+    using TFeaturesSparseArrayIndexing = TSparseArrayIndexing<ui32>;
 
     template <class T>
     using TConstPtrArraySubset = TArraySubset<const T*, ui32>;
@@ -56,10 +62,12 @@ namespace NCB {
 
         IFeatureValuesHolder(EFeatureValuesType type,
                              ui32 featureId,
-                             ui32 size)
+                             ui32 size,
+                             bool isSparse)
             : Type(type)
             , FeatureId(featureId)
             , Size(size)
+            , IsSparse(isSparse)
         {
         }
 
@@ -98,10 +106,15 @@ namespace NCB {
             return FeatureId;
         }
 
+        bool GetIsSparse() const {
+            return IsSparse;
+        }
+
     private:
         EFeatureValuesType Type;
         ui32 FeatureId;
         ui32 Size;
+        bool IsSparse;
     };
 
     using TFeatureColumnPtr = THolder<IFeatureValuesHolder>;
@@ -120,8 +133,8 @@ namespace NCB {
 
     template <class T, EFeatureValuesType TType>
     struct TTypedFeatureValuesHolder : public IFeatureValuesHolder {
-        TTypedFeatureValuesHolder(ui32 featureId, ui32 size)
-            : IFeatureValuesHolder(TType, featureId, size)
+        TTypedFeatureValuesHolder(ui32 featureId, ui32 size, bool isSparse)
+            : IFeatureValuesHolder(TType, featureId, size, isSparse)
         {}
 
         virtual TMaybeOwningArrayHolder<T> ExtractValues(NPar::TLocalExecutor* localExecutor) const = 0;
@@ -132,7 +145,7 @@ namespace NCB {
     struct TCloneableWithSubsetIndexingValuesHolder : public TTypedFeatureValuesHolder<T, TType>
     {
         TCloneableWithSubsetIndexingValuesHolder(ui32 featureId, ui32 size)
-            : TTypedFeatureValuesHolder<T, TType>(featureId, size)
+            : TTypedFeatureValuesHolder<T, TType>(featureId, size, /*isSparse*/ false)
         {}
 
         /* note: subsetIndexing is already a composition - this is an optimization to call compose once per
@@ -140,6 +153,24 @@ namespace NCB {
          */
         virtual THolder<TCloneableWithSubsetIndexingValuesHolder> CloneWithNewSubsetIndexing(
             const TFeaturesArraySubsetIndexing* subsetIndexing
+        ) const = 0;
+    };
+
+
+    template <class T, EFeatureValuesType TType>
+    struct TValuesHolderWithScheduleGetSubset : public TTypedFeatureValuesHolder<T, TType>
+    {
+        TValuesHolderWithScheduleGetSubset(ui32 featureId, ui32 size, bool isSparse)
+            : TTypedFeatureValuesHolder<T, TType>(featureId, size, isSparse)
+        {}
+
+        /* getting subset might require additional data, so use TResourceConstrainedExecutor
+         */
+        virtual void ScheduleGetSubset(
+            // pointer to capture in lambda
+            const TFeaturesArraySubsetInvertedIndexing* subsetInvertedIndexing,
+            TResourceConstrainedExecutor* resourceConstrainedExecutor,
+            THolder<TTypedFeatureValuesHolder<T, TType>>* subsetDst
         ) const = 0;
     };
 
@@ -183,14 +214,57 @@ namespace NCB {
     };
 
 
+    template <class T, EFeatureValuesType TType>
+    class TSparseArrayValuesHolder: public TValuesHolderWithScheduleGetSubset<T, TType> {
+    public:
+        TSparseArrayValuesHolder(ui32 featureId, TConstSparseArray<T, ui32>&& data)
+            : TValuesHolderWithScheduleGetSubset<T, TType>(featureId, data.GetSize(), /*isSparse*/ true)
+            , Data(std::move(data))
+        {}
+
+        void ScheduleGetSubset(
+            const TFeaturesArraySubsetInvertedIndexing* subsetInvertedIndexing,
+            TResourceConstrainedExecutor* resourceConstrainedExecutor,
+            THolder<TTypedFeatureValuesHolder<T, TType>>* subsetDst
+        ) const override {
+            resourceConstrainedExecutor->Add(
+                {
+                    Data.EstimateGetSubsetCpuRamUsage(*subsetInvertedIndexing),
+                    [this, subsetInvertedIndexing, subsetDst] () {
+                        *subsetDst = MakeHolder<TSparseArrayValuesHolder>(
+                            this->GetId(),
+                            this->GetData().GetSubset(*subsetInvertedIndexing)
+                        );
+                    }
+                }
+            );
+        }
+
+        const TConstSparseArray<T, ui32>& GetData() const {
+            return Data;
+        }
+
+        TMaybeOwningArrayHolder<T> ExtractValues(NPar::TLocalExecutor* localExecutor) const override {
+            Y_UNUSED(localExecutor);
+            return TMaybeOwningArrayHolder<T>::CreateOwning(Data.ExtractValues());
+        }
+
+    private:
+        TConstSparseArray<T, ui32> Data;
+    };
+
+
     using TFloatValuesHolder = TTypedFeatureValuesHolder<float, EFeatureValuesType::Float>;
     using TFloatArrayValuesHolder = TArrayValuesHolder<float, EFeatureValuesType::Float>;
+    using TFloatSparseValuesHolder = TSparseArrayValuesHolder<float, EFeatureValuesType::Float>;
 
     using THashedCatValuesHolder = TTypedFeatureValuesHolder<ui32, EFeatureValuesType::HashedCategorical>;
     using THashedCatArrayValuesHolder = TArrayValuesHolder<ui32, EFeatureValuesType::HashedCategorical>;
+    using THashedCatSparseValuesHolder = TSparseArrayValuesHolder<ui32, EFeatureValuesType::HashedCategorical>;
 
     using TStringTextValuesHolder = TTypedFeatureValuesHolder<TString, EFeatureValuesType::StringText>;
     using TStringTextArrayValuesHolder = TArrayValuesHolder<TString, EFeatureValuesType::StringText>;
+    using TStringTextSparseValuesHolder = TSparseArrayValuesHolder<TString, EFeatureValuesType::StringText>;
 
 
     /*******************************************************************************************************
@@ -281,6 +355,49 @@ namespace NCB {
         const TFeaturesArraySubsetIndexing* SubsetIndexing;
     };
 
+    template <class T, EFeatureValuesType TType>
+    class TSparseCompressedValuesHolderImpl : public TValuesHolderWithScheduleGetSubset<T, TType> {
+    public:
+        using TBase = TValuesHolderWithScheduleGetSubset<T, TType>;
+
+    public:
+        TSparseCompressedValuesHolderImpl(ui32 featureId, TSparseCompressedArray<T, ui32>&& data)
+            : TBase(featureId, data.GetSize(), /*isSparse*/ true)
+            , Data(std::move(data))
+        {}
+
+        void ScheduleGetSubset(
+            const TFeaturesArraySubsetInvertedIndexing* subsetInvertedIndexing,
+            TResourceConstrainedExecutor* resourceConstrainedExecutor,
+            THolder<TTypedFeatureValuesHolder<T, TType>>* subsetDst
+        ) const override {
+            resourceConstrainedExecutor->Add(
+                {
+                    Data.EstimateGetSubsetCpuRamUsage(*subsetInvertedIndexing),
+                    [this, subsetInvertedIndexing, subsetDst] () {
+                        *subsetDst = MakeHolder<TSparseCompressedValuesHolderImpl<T, TType>>(
+                            this->GetId(),
+                            this->GetData().GetSubset(*subsetInvertedIndexing)
+                        );
+                    }
+                }
+            );
+        }
+
+        TMaybeOwningArrayHolder<T> ExtractValues(NPar::TLocalExecutor* localExecutor) const override {
+            Y_UNUSED(localExecutor);
+            return TMaybeOwningArrayHolder<T>::CreateOwning(Data.ExtractValues());
+        }
+
+        const TSparseCompressedArray<T, ui32>& GetData() const {
+            return Data;
+        }
+
+    private:
+        TSparseCompressedArray<T, ui32> Data;
+    };
+
+
     using TBinaryPacksHolder
         = TTypedFeatureValuesHolder<NCB::TBinaryFeaturesPack, EFeatureValuesType::BinaryPack>;
     using TBinaryPacksArrayHolder
@@ -293,7 +410,7 @@ namespace NCB {
 
     public:
         TPackedBinaryValuesHolderImpl(ui32 featureId, const TBinaryPacksHolder* packsData, ui8 bitIdx)
-            : TBase(featureId, packsData->GetSize())
+            : TBase(featureId, packsData->GetSize(), packsData->GetIsSparse())
             , PacksData(packsData)
             , BitIdx(bitIdx)
         {
@@ -356,7 +473,7 @@ namespace NCB {
         TBundlePartValuesHolderImpl(ui32 featureId,
                                     const TExclusiveFeatureBundleHolder* bundlesData,
                                     NCB::TBoundsInBundle boundsInBundle)
-            : TBase(featureId, bundlesData->GetSize())
+            : TBase(featureId, bundlesData->GetSize(), bundlesData->GetIsSparse())
             , BundlesData(bundlesData)
             , BundleSizeInBytes(0) // inited below
             , BoundsInBundle(boundsInBundle)
@@ -444,7 +561,7 @@ namespace NCB {
         TFeaturesGroupPartValuesHolderImpl(ui32 featureId,
                                            const TFeaturesGroupHolder* groupData,
                                            ui32 inGroupIdx)
-            : TBase(featureId, groupData->GetSize())
+            : TBase(featureId, groupData->GetSize(), groupData->GetIsSparse())
             , GroupData(groupData)
             , GroupSizeInBytes(0) // inited below
             , InGroupIdx(inGroupIdx)
@@ -510,6 +627,8 @@ namespace NCB {
 
     using TQuantizedFloatValuesHolder
         = TCompressedValuesHolderImpl<ui8, EFeatureValuesType::QuantizedFloat>;
+    using TQuantizedFloatSparseValuesHolder
+        = TSparseCompressedValuesHolderImpl<ui8, EFeatureValuesType::QuantizedFloat>;
     using TQuantizedFloatPackedBinaryValuesHolder
         = TPackedBinaryValuesHolderImpl<ui8, EFeatureValuesType::QuantizedFloat>;
     using TQuantizedFloatBundlePartValuesHolder
@@ -526,6 +645,8 @@ namespace NCB {
 
     using TQuantizedCatValuesHolder
         = TCompressedValuesHolderImpl<ui32, EFeatureValuesType::PerfectHashedCategorical>;
+    using TQuantizedCatSparseValuesHolder
+        = TSparseCompressedValuesHolderImpl<ui32, EFeatureValuesType::PerfectHashedCategorical>;
     using TQuantizedCatPackedBinaryValuesHolder
         = TPackedBinaryValuesHolderImpl<ui32, EFeatureValuesType::PerfectHashedCategorical>;
     using TQuantizedCatBundlePartValuesHolder
@@ -534,5 +655,6 @@ namespace NCB {
 
     using TTokenizedTextValuesHolder = TTypedFeatureValuesHolder<TText, EFeatureValuesType::TokenizedText>;
     using TTokenizedTextArrayValuesHolder = TArrayValuesHolder<TText, EFeatureValuesType::TokenizedText>;
+    using TTokenizedTextSparseValuesHolder = TSparseArrayValuesHolder<TText, EFeatureValuesType::TokenizedText>;
 
 }
