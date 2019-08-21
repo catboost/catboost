@@ -21,6 +21,14 @@ namespace NCB {
     struct TFeatureMetaInfo {
         EFeatureType Type;
         TString Name;
+
+        /* Means that the distribution of values of this feature contains a large
+         * probability for a single value (often called default value).
+         * Note that IsSparse == true does not mean that data for this feature will always be stored
+         * as sparse. For some applications dense storage might be necessary/more effective.
+         */
+        bool IsSparse = false;
+
         bool IsIgnored = false;
 
         /* some datasets can contain only part of all features present in the whole dataset
@@ -36,18 +44,20 @@ namespace NCB {
         TFeatureMetaInfo(
             EFeatureType type,
             const TString& name,
+            bool isSparse = false,
             bool isIgnored = false,
             bool isAvailable = true // isIgnored = true overrides this parameter
         )
             : Type(type)
             , Name(name)
+            , IsSparse(isSparse)
             , IsIgnored(isIgnored)
             , IsAvailable(!isIgnored && isAvailable)
         {}
 
         bool operator==(const TFeatureMetaInfo& rhs) const;
 
-        SAVELOAD(Type, Name, IsIgnored, IsAvailable);
+        SAVELOAD(Type, Name, IsSparse, IsIgnored, IsAvailable);
     };
 
 }
@@ -57,6 +67,7 @@ struct TDumper<NCB::TFeatureMetaInfo> {
     template <class S>
     static inline void Dump(S& s, const NCB::TFeatureMetaInfo& featureMetaInfo) {
         s << "Type=" << featureMetaInfo.Type << "\tName=" << featureMetaInfo.Name
+          << "\tIsSparse=" << featureMetaInfo.IsSparse
           << "\tIsIgnored=" << featureMetaInfo.IsIgnored << "\tIsAvailable=" << featureMetaInfo.IsAvailable;
     }
 };
@@ -78,7 +89,8 @@ namespace NCB {
             const ui32 featureCount,
             const TVector<ui32>& catFeatureIndices,
             const TVector<ui32>& textFeatureIndices,
-            const TVector<TString>& featureId);
+            const TVector<TString>& featureId,
+            bool allFeaturesAreSparse = false);
         TFeaturesLayout(
             const TVector<TFloatFeature>& floatFeatures,
             const TVector<TCatFeature>& catFeatures);
@@ -137,6 +149,8 @@ namespace NCB {
         ui32 GetExternalFeatureCount() const;
 
         ui32 GetFeatureCount(EFeatureType type) const;
+
+        bool HasSparseFeatures(bool checkOnlyAvailable = true) const;
 
         void IgnoreExternalFeature(ui32 externalFeatureIdx);
 

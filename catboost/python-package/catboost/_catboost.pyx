@@ -166,6 +166,7 @@ cdef extern from "catboost/libs/data_new/features_layout.h" namespace "NCB":
     cdef cppclass TFeatureMetaInfo:
         EFeatureType Type
         TString Name
+        bool_t IsSparse
         bool_t IsIgnored
         bool_t IsAvailable
 
@@ -177,6 +178,7 @@ cdef extern from "catboost/libs/data_new/features_layout.h" namespace "NCB":
             const TVector[ui32]& catFeatureIndices,
             const TVector[ui32]& textFeatureIndices,
             const TVector[TString]& featureId,
+            bool_t allFeaturesAreSparse
         ) except +ProcessException
 
         TConstArrayRef[TFeatureMetaInfo] GetExternalFeaturesMetaInfo() except +ProcessException
@@ -1656,6 +1658,7 @@ cdef TFeaturesLayout* _init_features_layout(data, cat_features, feature_names) e
     cdef TVector[ui32] cat_features_vector
     cdef TVector[ui32] text_features_vector # TODO(d-kruchinin): support text features in python package
     cdef TVector[TString] feature_names_vector
+    cdef bool_t all_features_are_sparse
 
     if isinstance(data, FeaturesData):
         feature_count = data.get_feature_count()
@@ -1671,12 +1674,15 @@ cdef TFeaturesLayout* _init_features_layout(data, cat_features, feature_names) e
     if feature_names is not None:
         for feature_name in feature_names:
             feature_names_vector.push_back(to_arcadia_string(str(feature_name)))
+            
+    all_features_are_sparse = False
 
     return new TFeaturesLayout(
         <ui32>feature_count,
         cat_features_vector,
         text_features_vector,
-        feature_names_vector)
+        feature_names_vector,
+        all_features_are_sparse)
 
 cdef TVector[bool_t] _get_is_cat_feature_mask(const TFeaturesLayout* featuresLayout):
     cdef TVector[bool_t] mask

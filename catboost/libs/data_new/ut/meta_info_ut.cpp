@@ -10,24 +10,24 @@ using namespace NCB;
 Y_UNIT_TEST_SUITE(TFeatureMetaInfo) {
     Y_UNIT_TEST(Operator_Equal) {
         UNIT_ASSERT_EQUAL(
-            TFeatureMetaInfo(EFeatureType::Float, "A", true, false),
-            TFeatureMetaInfo(EFeatureType::Float, "A", true, false)
+            TFeatureMetaInfo(EFeatureType::Float, "A", /*isSparse*/ false, true, false),
+            TFeatureMetaInfo(EFeatureType::Float, "A", /*isSparse*/ false, true, false)
         );
         UNIT_ASSERT_EQUAL(
-            TFeatureMetaInfo(EFeatureType::Float, "A", true),
-            TFeatureMetaInfo(EFeatureType::Float, "A", true, true)
+            TFeatureMetaInfo(EFeatureType::Float, "A", /*isSparse*/ false, true),
+            TFeatureMetaInfo(EFeatureType::Float, "A", /*isSparse*/ false, true, true)
         );
         UNIT_ASSERT_UNEQUAL(
-            TFeatureMetaInfo(EFeatureType::Categorical, "A", true),
-            TFeatureMetaInfo(EFeatureType::Float, "A", true)
+            TFeatureMetaInfo(EFeatureType::Categorical, "A",/*isSparse*/ false, true),
+            TFeatureMetaInfo(EFeatureType::Float, "A", /*isSparse*/ false, true)
         );
         UNIT_ASSERT_UNEQUAL(
-            TFeatureMetaInfo(EFeatureType::Categorical, "A", true),
-            TFeatureMetaInfo(EFeatureType::Categorical, "A1", true)
+            TFeatureMetaInfo(EFeatureType::Categorical, "A", /*isSparse*/ false, true),
+            TFeatureMetaInfo(EFeatureType::Categorical, "A1", /*isSparse*/ false, true)
         );
         UNIT_ASSERT_UNEQUAL(
-            TFeatureMetaInfo(EFeatureType::Categorical, "A", true),
-            TFeatureMetaInfo(EFeatureType::Categorical, "A", false)
+            TFeatureMetaInfo(EFeatureType::Categorical, "A", /*isSparse*/ false, true),
+            TFeatureMetaInfo(EFeatureType::Categorical, "A", /*isSparse*/ false, false)
         );
     }
 }

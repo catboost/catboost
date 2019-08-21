@@ -18,8 +18,8 @@
 using namespace NCB;
 
 bool TFeatureMetaInfo::operator==(const TFeatureMetaInfo& rhs) const {
-    return std::tie(Type, Name, IsIgnored, IsAvailable) ==
-        std::tie(rhs.Type, rhs.Name, rhs.IsIgnored, rhs.IsAvailable);
+    return std::tie(Type, Name, IsSparse, IsIgnored, IsAvailable) ==
+        std::tie(rhs.Type, rhs.Name, rhs.IsSparse, rhs.IsIgnored, rhs.IsAvailable);
 }
 
 TFeaturesLayout::TFeaturesLayout(const ui32 featureCount)
@@ -30,7 +30,8 @@ TFeaturesLayout::TFeaturesLayout(
     const ui32 featureCount,
     const TVector<ui32>& catFeatureIndices,
     const TVector<ui32>& textFeatureIndices,
-    const TVector<TString>& featureId)
+    const TVector<TString>& featureId,
+    bool allFeaturesAreSparse)
 {
     CheckDataSize(featureId.size(), (size_t)featureCount, "feature Ids", true, "feature count");
 
@@ -39,7 +40,8 @@ TFeaturesLayout::TFeaturesLayout(
         // cat feature will be set later
         ExternalIdxToMetaInfo.emplace_back(
             EFeatureType::Float,
-            !featureId.empty() ? featureId[externalFeatureIdx] : ""
+            !featureId.empty() ? featureId[externalFeatureIdx] : "",
+            allFeaturesAreSparse
         );
     }
     for (auto catFeatureExternalIdx : catFeatureIndices) {
@@ -246,6 +248,15 @@ ui32 TFeaturesLayout::GetFeatureCount(EFeatureType type) const {
         case EFeatureType::Text:
             return GetTextFeatureCount();
     }
+}
+
+bool TFeaturesLayout::HasSparseFeatures(bool checkOnlyAvailable) const {
+    return FindIf(
+        ExternalIdxToMetaInfo,
+        [=] (const TFeatureMetaInfo& metaInfo) {
+            return (!checkOnlyAvailable || metaInfo.IsAvailable) && metaInfo.IsSparse;
+        }
+    );
 }
 
 void TFeaturesLayout::IgnoreExternalFeature(ui32 externalFeatureIdx) {
