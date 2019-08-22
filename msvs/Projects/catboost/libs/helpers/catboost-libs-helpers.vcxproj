@@ -115,7 +115,6 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\set.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\sparse_array.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\helpers\sparse_array.h_serialized.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\vec_list.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\vector_helpers.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\wx_test.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\xml_output.cpp"/>
@@ -182,7 +181,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\serialization.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\set.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\sparse_array-inl.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\vec_list.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\vector_helpers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\wx_test.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\xml_output.h"/>
