@@ -14,10 +14,10 @@ class IOutputStream;
 class THttpInputHeader {
 public:
     /// @param[in] header - строка вида 'параметр: значение'.
-    THttpInputHeader(const TString& header);
+    THttpInputHeader(TStringBuf header);
     /// @param[in] name - имя параметра.
     /// @param[in] value - значение параметра.
-    THttpInputHeader(const TString& name, const TString& value);
+    THttpInputHeader(TString name, TString value);
 
     ~THttpInputHeader();
 
@@ -83,11 +83,11 @@ public:
     }
 
     /// Добавляет заголовок в контейнер.
-    void AddHeader(const THttpInputHeader& header);
+    void AddHeader(THttpInputHeader header);
 
     template <typename ValueType>
-    void AddHeader(const TString& name, const ValueType& value) {
-        AddHeader(THttpInputHeader(name, ToString(value)));
+    void AddHeader(TString name, const ValueType& value) {
+        AddHeader(THttpInputHeader(std::move(name), ToString(value)));
     }
 
     /// Добавляет заголовок в контейнер, если тот не содержит заголовка
@@ -96,14 +96,14 @@ public:
     void AddOrReplaceHeader(const THttpInputHeader& header);
 
     // Проверяет, есть ли такой заголовок
-    bool HasHeader(const TString& header) const;
+    bool HasHeader(TStringBuf header) const;
 
     /// Удаляет заголовок, если он есть.
-    void RemoveHeader(const TString& header);
+    void RemoveHeader(TStringBuf header);
 
     /// Ищет заголовок по указанному имени
     /// Возвращает nullptr, если не нашел
-    const THttpInputHeader* FindHeader(const TString& header) const;
+    const THttpInputHeader* FindHeader(TStringBuf header) const;
 
     /// Записывает все заголовки контейнера в поток.
     /// @details Каждый заголовк записывается в виде "имя параметра: значение\r\n".

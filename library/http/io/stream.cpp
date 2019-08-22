@@ -812,7 +812,7 @@ private:
                 WriteCached();
                 State_ = HeadersSent;
             } else {
-                AddHeader(s);
+                AddHeader(THttpInputHeader(s));
             }
         }
     }

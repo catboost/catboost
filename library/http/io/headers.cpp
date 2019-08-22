@@ -1,30 +1,31 @@
 #include "headers.h"
 #include "stream.h"
 
-#include <util/generic/yexception.h>
 #include <util/generic/strbuf.h>
-#include <util/string/cast.h>
+#include <util/generic/yexception.h>
 #include <util/stream/output.h>
+#include <util/string/ascii.h>
+#include <util/string/cast.h>
 #include <util/string/strip.h>
 
 static inline TStringBuf Trim(const char* b, const char* e) noexcept {
     return StripString(TStringBuf(b, e));
 }
 
-THttpInputHeader::THttpInputHeader(const TString& header) {
+THttpInputHeader::THttpInputHeader(const TStringBuf header) {
     size_t pos = header.find(':');
 
     if (pos == TString::npos) {
         ythrow THttpParseException() << "can not parse http header(" << header.Quote() << ")";
     }
 
-    Name_ = TString(header.begin(), header.begin() + pos);
-    Value_ = ::ToString(Trim(header.begin() + pos + 1, header.end()));
+    Name_ = TString(header.cbegin(), header.cbegin() + pos);
+    Value_ = ::ToString(Trim(header.cbegin() + pos + 1, header.cend()));
 }
 
-THttpInputHeader::THttpInputHeader(const TString& name, const TString& value)
-    : Name_(name)
-    , Value_(value)
+THttpInputHeader::THttpInputHeader(TString name, TString value)
+    : Name_(std::move(name))
+    , Value_(std::move(value))
 {
 }
 
@@ -58,28 +59,28 @@ THttpHeaders::THttpHeaders(IInputStream* stream) {
         if (rdOk && ((line[0] == ' ') || (line[0] == '\t'))) {
             header += line;
         } else {
-            AddHeader(header);
+            AddHeader(THttpInputHeader(header));
             header = line;
         }
     }
 }
 
-bool THttpHeaders::HasHeader(const TString& header) const {
+bool THttpHeaders::HasHeader(const TStringBuf header) const {
     return FindHeader(header);
 }
 
-const THttpInputHeader* THttpHeaders::FindHeader(const TString& header) const {
+const THttpInputHeader* THttpHeaders::FindHeader(const TStringBuf header) const {
     for (const auto& hdr : Headers_) {
-        if (stricmp(hdr.Name().data(), header.data()) == 0) {
+        if (AsciiCompareIgnoreCase(hdr.Name(), header) == 0) {
             return &hdr;
         }
     }
     return nullptr;
 }
 
-void THttpHeaders::RemoveHeader(const TString& header) {
-    for (THeaders::iterator h = Headers_.begin(); h != Headers_.end(); ++h) {
-        if (stricmp(h->Name().data(), header.data()) == 0) {
+void THttpHeaders::RemoveHeader(const TStringBuf header) {
+    for (auto h = Headers_.begin(); h != Headers_.end(); ++h) {
+        if (AsciiCompareIgnoreCase(h->Name(), header) == 0) {
             Headers_.erase(h);
             return;
         }
@@ -87,10 +88,9 @@ void THttpHeaders::RemoveHeader(const TString& header) {
 }
 
 void THttpHeaders::AddOrReplaceHeader(const THttpInputHeader& header) {
-    for (auto& Header : Headers_) {
-        if (stricmp(Header.Name().data(), header.Name().data()) == 0) {
-            Header = header;
-
+    for (auto& hdr : Headers_) {
+        if (AsciiCompareIgnoreCase(hdr.Name(), header.Name()) == 0) {
+            hdr = header;
             return;
         }
     }
@@ -98,8 +98,8 @@ void THttpHeaders::AddOrReplaceHeader(const THttpInputHeader& header) {
     AddHeader(header);
 }
 
-void THttpHeaders::AddHeader(const THttpInputHeader& header) {
-    Headers_.push_back(header);
+void THttpHeaders::AddHeader(THttpInputHeader header) {
+    Headers_.push_back(std::move(header));
 }
 
 THttpHeaders::~THttpHeaders() {
