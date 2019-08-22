@@ -100,6 +100,9 @@ RECURSE(
     unittest/main
     unittest/ut
     yson
+    yson/node
+    yson/node/pybind
+    yson/node/ut
 )
 
 IF (OS_LINUX)
