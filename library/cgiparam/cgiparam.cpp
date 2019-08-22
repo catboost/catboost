@@ -2,7 +2,7 @@
 
 #include <util/generic/singleton.h>
 #include <util/string/scan.h>
-#include <util/string/quote.h>
+#include <library/string_utils/quote/quote.h>
 
 TCgiParameters::TCgiParameters(std::initializer_list<std::pair<TString, TString>> il) {
     for (const auto& item : il) {

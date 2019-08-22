@@ -7,4 +7,8 @@ SRCS(
     cgiparam.h
 )
 
+PEERDIR(
+    library/string_utils/quote
+)
+
 END()
