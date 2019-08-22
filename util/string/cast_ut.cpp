@@ -453,8 +453,8 @@ Y_UNIT_TEST_SUITE(TCastTest) {
         UNIT_ASSERT_VALUES_EQUAL((int)FromString(UTF8ToWide("-100500").data()), -100500);
         UNIT_ASSERT_VALUES_EQUAL((unsigned long long)FromString(TWtringBuf(UTF8ToWide("42").data(), 1)), 4);
         int integer = FromString("125");
-        wchar16 wideCharacter = FromString(UTF8ToWide("125"));
-        UNIT_ASSERT_VALUES_EQUAL(integer, wideCharacter);
+        ui16 wideCharacterCode = FromString(UTF8ToWide("125"));
+        UNIT_ASSERT_VALUES_EQUAL(integer, wideCharacterCode);
     }
 
     static void CheckMessage(TFromStringException & exc, const TString& phrase) {
@@ -570,5 +570,16 @@ Y_UNIT_TEST_SUITE(TCastTest) {
         UNIT_ASSERT_VALUES_EQUAL(ToString(1e+100), "1e+100");
         UNIT_ASSERT_VALUES_EQUAL(ToString(87423.2031250000001), "87423.20313");
         UNIT_ASSERT_VALUES_EQUAL(FloatToString(1.0e60, PREC_POINT_DIGITS_STRIP_ZEROES, 0), "1e+60");
+    }
+
+    Y_UNIT_TEST(TestChar) {
+        // Given a character ch, ToString(ch) returns
+        // the decimal representation of its integral value
+        UNIT_ASSERT_VALUES_EQUAL(ToString('\0'), "0");
+        UNIT_ASSERT_VALUES_EQUAL(ToString('0'), "48");
+
+        UNIT_ASSERT_VALUES_EQUAL(ToString(u'\0'), "0");
+        UNIT_ASSERT_VALUES_EQUAL(ToString(u'0'), "48");
+        UNIT_ASSERT_VALUES_EQUAL(ToString(u'я'), "1103");
     }
 };

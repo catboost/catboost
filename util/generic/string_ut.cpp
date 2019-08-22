@@ -1856,6 +1856,7 @@ public:
     UNIT_TEST(TestDecodingMethods);
     UNIT_TEST(TestIterators);
     UNIT_TEST(TestReverseIterators);
+    UNIT_TEST(TestStringLiterals);
     UNIT_TEST_SUITE_END();
 
 private:
@@ -1938,6 +1939,14 @@ private:
 
         str = hello;
         UNIT_ASSERT(str == hello);
+    }
+
+    void TestStringLiterals() {
+        TUtf16String s1 = u"hello";
+        UNIT_ASSERT_VALUES_EQUAL(s1, TUtf16String::FromAscii("hello"));
+
+        TUtf16String s2 = u"привет";
+        UNIT_ASSERT_VALUES_EQUAL(s2, TUtf16String::FromUtf8("привет"));
     }
 };
 

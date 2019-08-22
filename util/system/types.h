@@ -101,11 +101,13 @@ typedef i64 SUPERLONG;
 #endif
 
 // UNICODE
+#ifdef __cplusplus
 // UCS-2, native byteorder
-typedef ui16 wchar16;
+typedef char16_t wchar16;
 // internal symbol type: UTF-16LE
 typedef wchar16 TChar;
 typedef ui32 wchar32;
+#endif
 
 #if defined(_MSC_VER)
 #include <basetsd.h>

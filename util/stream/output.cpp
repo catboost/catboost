@@ -5,6 +5,7 @@
 #include <util/memory/tempbuf.h>
 #include <util/generic/singleton.h>
 #include <util/generic/yexception.h>
+#include <util/charset/utf8.h>
 #include <util/charset/wide.h>
 
 #if defined(_android_)
@@ -22,6 +23,8 @@
 #if defined(_win_)
 #include <io.h>
 #endif
+
+constexpr size_t MAX_UTF8_BYTES = 4; // UTF-8-encoded code point takes between 1 and 4 bytes
 
 IOutputStream::IOutputStream() noexcept = default;
 
@@ -49,8 +52,17 @@ void IOutputStream::DoWriteC(char ch) {
     DoWrite(&ch, 1);
 }
 
+template <>
+void Out<wchar16>(IOutputStream& o, wchar16 ch) {
+    const wchar32 w32ch = ReadSymbol(&ch, &ch + 1);
+    size_t length;
+    unsigned char buffer[MAX_UTF8_BYTES];
+    WriteUTF8Char(w32ch, length, buffer);
+    o.Write(buffer, length);
+}
+
 static void WriteString(IOutputStream& o, const wchar16* w, size_t n) {
-    const size_t buflen = (n * 4); // * 4 because the conversion functions can convert unicode character into maximum 4 bytes of UTF8
+    const size_t buflen = (n * MAX_UTF8_BYTES); // * 4 because the conversion functions can convert unicode character into maximum 4 bytes of UTF8
     TTempBuf buffer(buflen + 1);
     char* const data = buffer.Data();
     size_t written = 0;
@@ -60,7 +72,7 @@ static void WriteString(IOutputStream& o, const wchar16* w, size_t n) {
 }
 
 static void WriteString(IOutputStream& o, const wchar32* w, size_t n) {
-    const size_t buflen = (n * 4); // * 4 because the conversion functions can convert unicode character into maximum 4 bytes of UTF8
+    const size_t buflen = (n * MAX_UTF8_BYTES); // * 4 because the conversion functions can convert unicode character into maximum 4 bytes of UTF8
     TTempBuf buffer(buflen + 1);
     char* const data = buffer.Data();
     size_t written = 0;
@@ -82,6 +94,11 @@ void Out<std::string>(IOutputStream& o, const std::string& p) {
 template <>
 void Out<std::string_view>(IOutputStream& o, const std::string_view& p) {
     o.Write(p.data(), p.length());
+}
+
+template <>
+void Out<std::u16string_view>(IOutputStream& o, const std::u16string_view& p) {
+    WriteString(o, p.data(), p.length());
 }
 
 template <>

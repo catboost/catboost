@@ -260,11 +260,12 @@ static TStr& DoUnescapeC(const TChar* p, size_t sz, TStr& res) {
                     res.append('\v');
                     break;
                 case 'u': {
-                    wchar16 cp[2];
+                    ui16 cp[2];
 
                     if (ParseHex<4>(p + 1, pe, cp[0])) {
                         if (Y_UNLIKELY(cp[0] >= 0xD800 && cp[0] <= 0xDBFF && ParseHex<4>(p + 7, pe, cp[1]) && p[5] == '\\' && p[6] == 'u')) {
-                            AppendUnicode(res, ReadSymbol(cp, cp + 2));
+                            const wchar16 wbuf[] = {wchar16(cp[0]), wchar16(cp[1])};
+                            AppendUnicode(res, ReadSymbol(wbuf, wbuf + 2));
                             p += 10;
                         } else {
                             AppendUnicode(res, (wchar32)cp[0]);

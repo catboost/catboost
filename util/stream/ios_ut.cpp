@@ -27,6 +27,8 @@ class TStreamsTest: public TTestBase {
     UNIT_TEST(TestReadTo);
     UNIT_TEST(TestWtrokaOutput);
     UNIT_TEST(TestIStreamOperators);
+    UNIT_TEST(TestWchar16Output);
+    UNIT_TEST(TestUtf16StingOutputByChars);
     UNIT_TEST_SUITE_END();
 
 public:
@@ -42,6 +44,8 @@ public:
     void TestWtrokaOutput();
     void TestIStreamOperators();
     void TestReadTo();
+    void TestWchar16Output();
+    void TestUtf16StingOutputByChars();
 };
 
 UNIT_TEST_SUITE_REGISTRATION(TStreamsTest);
@@ -443,4 +447,33 @@ void TStreamsTest::TestWtrokaOutput() {
     }
 
     UNIT_ASSERT(s == Text);
+}
+
+void TStreamsTest::TestWchar16Output() {
+    TString s;
+    TStringOutput os(s);
+    os << wchar16(97); // latin a
+    os << u'\u044E'; // cyrillic ю
+    os << u'я';
+    os << wchar16(0xD801); // high surrogate is printed as replacement character U+FFFD
+    os << u'b';
+
+    UNIT_ASSERT_VALUES_EQUAL(s, "aюя" "\xEF\xBF\xBD" "b");
+}
+
+void TStreamsTest::TestUtf16StingOutputByChars() {
+    TString s = "\xd1\x87\xd0\xb8\xd1\x81\xd1\x82\xd0\xb8\xd1\x87\xd0\xb8\xd1\x81\xd1\x82\xd0\xb8";
+    TUtf16String w = UTF8ToWide(s);
+
+    UNIT_ASSERT_VALUES_EQUAL(w.size(), 10);
+
+    TStringStream stream0;
+    stream0 << w;
+    UNIT_ASSERT_VALUES_EQUAL(stream0.Str(), s);
+
+    TStringStream stream1;
+    for (size_t i = 0; i < 10; i++) {
+        stream1 << w[i];
+    }
+    UNIT_ASSERT_VALUES_EQUAL(stream1.Str(), s);
 }
