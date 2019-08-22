@@ -230,25 +230,31 @@ public:
 
 public:
     const double Alpha;
+    const double Delta;
 
 public:
     explicit TQuantileError(bool isExpApprox)
         : IDerCalcer(isExpApprox)
         , Alpha(0.5)
+        , Delta(1e-6)
     {
         CB_ENSURE(isExpApprox == false, "Approx format does not match");
     }
 
-    TQuantileError(double alpha, bool isExpApprox)
+    TQuantileError(double alpha, double delta, bool isExpApprox)
         : IDerCalcer(isExpApprox)
         , Alpha(alpha)
+        , Delta(delta)
     {
         Y_ASSERT(Alpha > -1e-6 && Alpha < 1.0 + 1e-6);
+        Y_ASSERT(Delta >= 0 && Delta <= 1e-2);
         CB_ENSURE(isExpApprox == false, "Approx format does not match");
     }
 
 private:
     double CalcDer(double approx, float target) const override {
+        const double val = target - approx;
+        if (abs(val) < Delta) return 0;
         return (target - approx > 0) ? Alpha : -(1 - Alpha);
     }
 

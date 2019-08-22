@@ -439,7 +439,7 @@ void TLqMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
 namespace {
     class TQuantileMetric : public TAdditiveMetric<TQuantileMetric> {
     public:
-        explicit TQuantileMetric(ELossFunction lossFunction, double alpha);
+        explicit TQuantileMetric(ELossFunction lossFunction, double alpha, double delta);
         TMetricHolder EvalSingleThread(
             const TVector<TVector<double>>& approx,
             const TVector<TVector<double>>& approxDelta,
@@ -456,17 +456,20 @@ namespace {
     private:
         ELossFunction LossFunction;
         double Alpha;
+        double Delta;
     };
 }
 
-THolder<IMetric> MakeQuantileMetric(ELossFunction lossFunction, double alpha) {
-    return MakeHolder<TQuantileMetric>(lossFunction, alpha);
+THolder<IMetric> MakeQuantileMetric(ELossFunction lossFunction, double alpha, double delta) {
+    return MakeHolder<TQuantileMetric>(lossFunction, alpha, delta);
 }
 
-TQuantileMetric::TQuantileMetric(ELossFunction lossFunction, double alpha)
+TQuantileMetric::TQuantileMetric(ELossFunction lossFunction, double alpha, double delta)
         : LossFunction(lossFunction)
         , Alpha(alpha)
+        , Delta(delta)
 {
+    Y_ASSERT(Delta >= 0 && Delta <= 1e-2);
     Y_ASSERT(lossFunction == ELossFunction::Quantile || lossFunction == ELossFunction::MAE);
     CB_ENSURE(lossFunction == ELossFunction::Quantile || alpha == 0.5, "Alpha parameter should not be used for MAE loss");
     CB_ENSURE(Alpha > -1e-6 && Alpha < 1.0 + 1e-6, "Alpha parameter for quantile metric should be in interval [0, 1]");
@@ -491,7 +494,13 @@ TMetricHolder TQuantileMetric::EvalSingleThread(
             if (hasDelta) {
                 val -= approxDelta[i];
             }
-            const double multiplier = (val > 0) ? alpha : -(1 - alpha);
+            const double multiplier = (abs(val) < Delta) ? 0 : ((val > 0) ? alpha : -(1 - alpha));
+            if (val < -Delta) {
+                val += Delta;
+            } else if (val > Delta) {
+                val -= Delta;
+            }
+
             const float w = hasWeight ? weight[i] : 1;
             error.Stats[0] += (multiplier * val) * w;
             error.Stats[1] += w;
@@ -517,8 +526,13 @@ TMetricHolder TQuantileMetric::EvalSingleThread(
 
 TString TQuantileMetric::GetDescription() const {
     if (LossFunction == ELossFunction::Quantile) {
+        if (Delta == 1e-6) {
+            const TMetricParam<double> alpha("alpha", Alpha, /*userDefined*/true);
+            return BuildDescription(LossFunction, UseWeights, "%.3g", alpha);
+        }
         const TMetricParam<double> alpha("alpha", Alpha, /*userDefined*/true);
-        return BuildDescription(LossFunction, UseWeights, "%.3g", alpha);
+        const TMetricParam<double> delta("delta", Delta, /*userDefined*/true);
+        return BuildDescription(LossFunction, UseWeights, "%.3g", alpha, "%g", delta);
     } else {
         return BuildDescription(LossFunction, UseWeights);
     }
@@ -3781,12 +3795,11 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
             break;
         case ELossFunction::Quantile: {
             auto it = params.find("alpha");
-            if (it != params.end()) {
-                result.push_back(MakeQuantileMetric(ELossFunction::Quantile, FromString<float>(it->second)));
-            } else {
-                result.push_back(MakeQuantileMetric(ELossFunction::Quantile));
-            }
-            validParams = {"alpha"};
+            double alpha = it != params.end() ? FromString<float>(it->second) : 0.5;
+            it = params.find("delta");
+            double delta = it != params.end() ? FromString<float>(it->second) : 1e-6;
+            result.push_back(MakeQuantileMetric(ELossFunction::Quantile, alpha, delta));
+            validParams = {"alpha", "delta"};
             break;
         }
         case ELossFunction::Expectile: {

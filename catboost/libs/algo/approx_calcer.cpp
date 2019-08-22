@@ -1,4 +1,5 @@
 #include "approx_calcer.h"
+
 #include "approx_calcer_helpers.h"
 #include "approx_calcer_multi.h"
 #include "approx_calcer_querywise.h"
@@ -6,10 +7,10 @@
 #include "gradient_walker.h"
 #include "index_calcer.h"
 #include "learn_context.h"
+#include "monotonic_constraint_utils.h"
 #include "scoring.h"
 #include "split.h"
 #include "yetirank_helpers.h"
-#include "monotonic_constraint_utils.h"
 
 #include <catboost/libs/algo_helpers/error_functions.h>
 #include <catboost/libs/algo_helpers/pairwise_leaves_calculation.h>
@@ -22,6 +23,7 @@
 
 #include <library/threading/local_executor/local_executor.h>
 
+#include <util/generic/algorithm.h>
 #include <util/generic/ymath.h>
 
 
@@ -639,6 +641,98 @@ static void UpdateApproxDeltasHistorically(
     );
 }
 
+static double CalcSampleQuantile(
+    TConstArrayRef<double> sample,
+    TConstArrayRef<double> weights,
+    const double alpha,
+    const double delta
+) {
+    if (sample.empty()) {
+        return 0;
+    }
+    size_t sampleSize = sample.size();
+
+    double sumWeight = 0;
+    for (size_t i = 0; i < sampleSize; i++) {
+        sumWeight += weights[i];
+    }
+    double doublePosition = sumWeight * alpha;
+    if (doublePosition <= 0) {
+        return *std::min_element(sample.begin(), sample.end()) - delta;
+    }
+    if (doublePosition >= sumWeight) {
+        return *std::max_element(sample.begin(), sample.end()) + delta;
+    }
+
+    TVector<size_t> indices(sampleSize);
+    for (size_t i = 0; i < sampleSize; i++) {
+        indices[i] = i;
+    }
+
+    std::sort(indices.begin(), indices.end(), [&](size_t i, size_t j) { return sample[i] < sample[j]; });
+
+    size_t position = 0;
+    float sum = 0;
+    while (sum < doublePosition && position < sampleSize) {
+        size_t j = position;
+        float step = 0;
+        while (j < sampleSize && abs(sample[indices[j]] - sample[indices[position]]) < DBL_EPSILON) {
+            step += weights[indices[j]];
+            j++;
+        }
+        if (sum + alpha * step >= doublePosition - DBL_EPSILON) {
+            return sample[indices[position]] - delta;
+        }
+        if (sum + step >= doublePosition + DBL_EPSILON) {
+            return sample[indices[position]] + delta;
+        }
+
+        sum += step;
+        position = j;
+
+        if (sum >= doublePosition - DBL_EPSILON) {
+            if (position >= sampleSize) {
+                return sample[indices[position - 1]] + delta;
+            }
+            return (sample[indices[position - 1]] + delta) * alpha + (sample[indices[position]] - delta) * (1 - alpha);
+        }
+
+    }
+    Y_ASSERT(false);
+    return 0;
+}
+
+static void CalcQuantileLeafDeltas(
+    const size_t leafCount,
+    const TVector<TIndexType>& indices,
+    const TQuantileError& error,
+    const size_t sampleCount,
+    TConstArrayRef<double> approxes,
+    TConstArrayRef<float> targets,
+    TConstArrayRef<float> weights,
+    TVector<double>* leafDeltas
+) {
+    TVector<TVector<double>> leafSamples(leafCount);
+    TVector<TVector<double>> leafWeights(leafCount);
+
+    for (size_t i = 0; i < sampleCount; i++) {
+        Y_ASSERT(indices[i] < leafSamples.size());
+        leafSamples[indices[i]].emplace_back(targets[i] - approxes[i]);
+        leafWeights[indices[i]].emplace_back(weights[i]);
+    }
+
+    Y_ASSERT(leafCount == leafDeltas->size());
+    for (size_t i = 0; i < leafCount; i++) {
+        Y_ASSERT(i < (*leafDeltas).size());
+        Y_ASSERT(i < leafSamples.size());
+        Y_ASSERT(i < leafWeights.size());
+        TVector<double> &weight = leafWeights[i];
+        TVector<double> &sample = leafSamples[i];
+        double &leafDelta = (*leafDeltas)[i];
+        leafDelta = CalcSampleQuantile(MakeConstArrayRef(sample), MakeConstArrayRef(weight), error.Alpha, error.Delta);
+    }
+}
+
 static void CalcApproxDeltaSimple(
     const TFold& fold,
     const TFold::TBodyTail& bt,
@@ -680,6 +774,25 @@ static void CalcApproxDeltaSimple(
         const TVector<TVector<double>>& approxDeltas,
         TVector<TVector<double>>* leafDeltas
     ) {
+        // If loss function is Quantile update leafDeltas specifically for it
+        if (estimationMethod == ELeavesEstimation::Exact) {
+            CB_ENSURE(ctx->Params.LossFunctionDescription->GetLossFunction() == ELossFunction::Quantile);
+            CB_ENSURE(!ctx->Params.BoostingOptions->ApproxOnFullHistory);
+            const auto& quantileError = dynamic_cast<const TQuantileError &>(error);
+            CalcQuantileLeafDeltas(
+                leafCount,
+                indices,
+                quantileError,
+                bt.BodyFinish,
+                bt.Approx[0],
+                fold.LearnTarget,
+                MakeConstArrayRef(fold.SampleWeights),
+                &(*leafDeltas)[0]
+            );
+
+            return;
+        }
+
         CalcLeafDersSimple(
             indices,
             fold,
@@ -846,6 +959,24 @@ static void CalcLeafValuesSimple(
         const TVector<TVector<double>>& approxes,
         TVector<TVector<double>>* leafDeltas
     ) {
+        // If loss function is Quantile update leafDeltas specifically for it
+        if (estimationMethod == ELeavesEstimation::Exact) {
+            CB_ENSURE(ctx->Params.LossFunctionDescription->GetLossFunction() == ELossFunction::Quantile);
+            CB_ENSURE(!ctx->Params.BoostingOptions->ApproxOnFullHistory);
+            const auto& quantileError = dynamic_cast<const TQuantileError &>(error);
+            CalcQuantileLeafDeltas(
+                leafCount,
+                indices,
+                quantileError,
+                bt.BodyFinish,
+                bt.Approx[0],
+                fold.LearnTarget,
+                MakeConstArrayRef(fold.SampleWeights),
+                &(*leafDeltas)[0]
+            );
+            return;
+        }
+
         CalcLeafDersSimple(
             indices,
             fold,

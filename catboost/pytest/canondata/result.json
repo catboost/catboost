@@ -19,7 +19,7 @@
     ],
     "test.test_all_targets[calc_block=5000000-Ordered-MAE]": [
         {
-            "checksum": "dfcb9ba6730c4cf20ee628ec1cbb826e",
+            "checksum": "8ce3c041cbbc3660c523ee34d58ae54e",
             "uri": "file://test.test_all_targets_calc_block=5000000-Ordered-MAE_/test.eval"
         }
     ],
@@ -53,7 +53,7 @@
     ],
     "test.test_all_targets[calc_block=5000000-Ordered-Quantile]": [
         {
-            "checksum": "dfcb9ba6730c4cf20ee628ec1cbb826e",
+            "checksum": "8ce3c041cbbc3660c523ee34d58ae54e",
             "uri": "file://test.test_all_targets_calc_block=5000000-Ordered-Quantile_/test.eval"
         }
     ],
@@ -83,7 +83,7 @@
     ],
     "test.test_all_targets[calc_block=5000000-Plain-MAE]": [
         {
-            "checksum": "ad16a003e3f6eaeae19f7a1b2e9d95d2",
+            "checksum": "7adc40aaeaf639741d351f6612d56205",
             "uri": "file://test.test_all_targets_calc_block=5000000-Plain-MAE_/test.eval"
         }
     ],
@@ -117,7 +117,7 @@
     ],
     "test.test_all_targets[calc_block=5000000-Plain-Quantile]": [
         {
-            "checksum": "ad16a003e3f6eaeae19f7a1b2e9d95d2",
+            "checksum": "7adc40aaeaf639741d351f6612d56205",
             "uri": "file://test.test_all_targets_calc_block=5000000-Plain-Quantile_/test.eval"
         }
     ],
@@ -147,7 +147,7 @@
     ],
     "test.test_all_targets[calc_block=60-Ordered-MAE]": [
         {
-            "checksum": "dfcb9ba6730c4cf20ee628ec1cbb826e",
+            "checksum": "8ce3c041cbbc3660c523ee34d58ae54e",
             "uri": "file://test.test_all_targets_calc_block=60-Ordered-MAE_/test.eval"
         }
     ],
@@ -181,7 +181,7 @@
     ],
     "test.test_all_targets[calc_block=60-Ordered-Quantile]": [
         {
-            "checksum": "dfcb9ba6730c4cf20ee628ec1cbb826e",
+            "checksum": "8ce3c041cbbc3660c523ee34d58ae54e",
             "uri": "file://test.test_all_targets_calc_block=60-Ordered-Quantile_/test.eval"
         }
     ],
@@ -211,7 +211,7 @@
     ],
     "test.test_all_targets[calc_block=60-Plain-MAE]": [
         {
-            "checksum": "ad16a003e3f6eaeae19f7a1b2e9d95d2",
+            "checksum": "7adc40aaeaf639741d351f6612d56205",
             "uri": "file://test.test_all_targets_calc_block=60-Plain-MAE_/test.eval"
         }
     ],
@@ -245,7 +245,7 @@
     ],
     "test.test_all_targets[calc_block=60-Plain-Quantile]": [
         {
-            "checksum": "ad16a003e3f6eaeae19f7a1b2e9d95d2",
+            "checksum": "7adc40aaeaf639741d351f6612d56205",
             "uri": "file://test.test_all_targets_calc_block=60-Plain-Quantile_/test.eval"
         }
     ],
@@ -1051,21 +1051,21 @@
     ],
     "test.test_custom_loss[Ordered-Quantile:alpha=0.9]": [
         {
-            "checksum": "b29acf028da2951eb521040a87991ae7",
+            "checksum": "904adb183b7bfa3af1be51f29017f560",
             "uri": "file://test.test_custom_loss_Ordered-Quantile_alpha=0.9_/learn_error.tsv"
         },
         {
-            "checksum": "41df09a5c0363d4708005499cf837518",
+            "checksum": "f05e4fee9f177ff6b3fa54821cc56ec9",
             "uri": "file://test.test_custom_loss_Ordered-Quantile_alpha=0.9_/test_error.tsv"
         }
     ],
     "test.test_custom_loss[Ordered-RMSE,MAE]": [
         {
-            "checksum": "5a8ff06710b93b82dff4d83744643345",
+            "checksum": "fd1650c6884d2f7452297eccb43a1c09",
             "uri": "file://test.test_custom_loss_Ordered-RMSE_MAE_/learn_error.tsv"
         },
         {
-            "checksum": "12a73d8160a09858f834d2a7a8efae35",
+            "checksum": "9b1d77730ce3e63b03d487b3f4188232",
             "uri": "file://test.test_custom_loss_Ordered-RMSE_MAE_/test_error.tsv"
         }
     ],
@@ -1101,21 +1101,21 @@
     ],
     "test.test_custom_loss[Plain-Quantile:alpha=0.9]": [
         {
-            "checksum": "aaa1fefe78e8df5991822496615b63ad",
+            "checksum": "e6f3e98d106bc543b47fb308521e0bfb",
             "uri": "file://test.test_custom_loss_Plain-Quantile_alpha=0.9_/learn_error.tsv"
         },
         {
-            "checksum": "84c183f34d9be49bbefe8a1babf99aa2",
+            "checksum": "f7b24e2a9ea2e11646afff81c2d7481e",
             "uri": "file://test.test_custom_loss_Plain-Quantile_alpha=0.9_/test_error.tsv"
         }
     ],
     "test.test_custom_loss[Plain-RMSE,MAE]": [
         {
-            "checksum": "03602d7aca905b381a4beb9b543f1052",
+            "checksum": "43a0c46e3dbe3167b4f4869e664e79fb",
             "uri": "file://test.test_custom_loss_Plain-RMSE_MAE_/learn_error.tsv"
         },
         {
-            "checksum": "fedd3cc37f95b958c510c39d0bab787e",
+            "checksum": "2d3e8001828dc66b3c816f371cae363d",
             "uri": "file://test.test_custom_loss_Plain-RMSE_MAE_/test_error.tsv"
         }
     ],
@@ -4025,6 +4025,18 @@
             "uri": "file://test.test_prediction_type_Plain-RawFormulaVal-MultiClass_/test.eval"
         }
     ],
+    "test.test_quantile_categorical[Ordered]": [
+        {
+            "checksum": "5d5337a45d4af9cda68c18e2aa6dc770",
+            "uri": "file://test.test_quantile_categorical_Ordered_/test.eval"
+        }
+    ],
+    "test.test_quantile_categorical[Plain]": [
+        {
+            "checksum": "249aafc0dba929437b986df643a64dd8",
+            "uri": "file://test.test_quantile_categorical_Plain_/test.eval"
+        }
+    ],
     "test.test_quantile_targets[Ordered-LogLinQuantile]": [
         {
             "checksum": "bae30f15ac5fcadf07df0d8639b774ed",
@@ -4033,7 +4045,7 @@
     ],
     "test.test_quantile_targets[Ordered-Quantile]": [
         {
-            "checksum": "821086e803d1f90c77e5105200de945a",
+            "checksum": "03271e07cca11509e5e159d6595dacf7",
             "uri": "file://test.test_quantile_targets_Ordered-Quantile_/test.eval"
         }
     ],
@@ -4045,8 +4057,32 @@
     ],
     "test.test_quantile_targets[Plain-Quantile]": [
         {
-            "checksum": "b5c60ccb64fe53ac4f214339ddce031b",
+            "checksum": "bb04934a3e03ee2173a91c73dab0a0b1",
             "uri": "file://test.test_quantile_targets_Plain-Quantile_/test.eval"
+        }
+    ],
+    "test.test_quantile_targets_exact[Ordered]": [
+        {
+            "checksum": "756da557101e974d64a458e5c40a43c7",
+            "uri": "file://test.test_quantile_targets_exact_Ordered_/test.eval"
+        }
+    ],
+    "test.test_quantile_targets_exact[Plain]": [
+        {
+            "checksum": "47efc994fec975f9740de2ea233e9ef9",
+            "uri": "file://test.test_quantile_targets_exact_Plain_/test.eval"
+        }
+    ],
+    "test.test_quantile_weights[Ordered]": [
+        {
+            "checksum": "c17e0062d5b6fda2d43030204bf19a90",
+            "uri": "file://test.test_quantile_weights_Ordered_/test.eval"
+        }
+    ],
+    "test.test_quantile_weights[Plain]": [
+        {
+            "checksum": "d4976bcfe4d49c8e6c5ba9f63c8ecf0d",
+            "uri": "file://test.test_quantile_weights_Plain_/test.eval"
         }
     ],
     "test.test_quantized_adult_pool[Ordered-CrossEntropy]": [
@@ -4069,7 +4105,7 @@
     ],
     "test.test_quantized_adult_pool[Ordered-MAE]": [
         {
-            "checksum": "aa71e5c01f1b90c3d50c82bd63b2c4be",
+            "checksum": "88e79a0992c8292238940da11074bef8",
             "uri": "file://test.test_quantized_adult_pool_Ordered-MAE_/test.eval"
         }
     ],
@@ -4081,7 +4117,7 @@
     ],
     "test.test_quantized_adult_pool[Ordered-Quantile]": [
         {
-            "checksum": "aa71e5c01f1b90c3d50c82bd63b2c4be",
+            "checksum": "88e79a0992c8292238940da11074bef8",
             "uri": "file://test.test_quantized_adult_pool_Ordered-Quantile_/test.eval"
         }
     ],
@@ -4111,7 +4147,7 @@
     ],
     "test.test_quantized_adult_pool[Plain-MAE]": [
         {
-            "checksum": "70c6321594180601f91278dee9252753",
+            "checksum": "600dd97531c74ddaa37c6fcfd5a33600",
             "uri": "file://test.test_quantized_adult_pool_Plain-MAE_/test.eval"
         }
     ],
@@ -4123,7 +4159,7 @@
     ],
     "test.test_quantized_adult_pool[Plain-Quantile]": [
         {
-            "checksum": "70c6321594180601f91278dee9252753",
+            "checksum": "600dd97531c74ddaa37c6fcfd5a33600",
             "uri": "file://test.test_quantized_adult_pool_Plain-Quantile_/test.eval"
         }
     ],

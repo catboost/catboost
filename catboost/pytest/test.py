@@ -2951,6 +2951,81 @@ def test_quantile_targets(loss_function, boosting_type):
     return [local_canonical_file(output_eval_path)]
 
 
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+def test_quantile_targets_exact(boosting_type):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--use-best-model', 'false',
+        '--loss-function', 'Quantile:alpha=0.9',
+        '-f', data_file('adult', 'train_small'),
+        '-t', data_file('adult', 'test_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '--boosting-type', boosting_type,
+        '-i', '5',
+        '-T', '4',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+        '--leaf-estimation-method', 'Exact'
+    )
+    yatest.common.execute(cmd)
+
+    return [local_canonical_file(output_eval_path)]
+
+
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+def test_quantile_weights(boosting_type):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--use-best-model', 'false',
+        '--loss-function', 'Quantile:alpha=0.9',
+        '-f', data_file('higgs', 'train_small'),
+        '-t', data_file('higgs', 'test_small'),
+        '--column-description', data_file('higgs', 'train_weight.cd'),
+        '--boosting-type', boosting_type,
+        '-i', '5',
+        '-T', '4',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+        '--leaf-estimation-method', 'Exact'
+    )
+    yatest.common.execute(cmd)
+
+    return [local_canonical_file(output_eval_path)]
+
+
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+def test_quantile_categorical(boosting_type):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--use-best-model', 'false',
+        '--loss-function', 'Quantile:alpha=0.9',
+        '-f', data_file('adult_crossentropy', 'train_proba'),
+        '-t', data_file('adult_crossentropy', 'test_proba'),
+        '--column-description', data_file('adult_crossentropy', 'train.cd'),
+        '--boosting-type', boosting_type,
+        '-i', '5',
+        '-T', '4',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+        '--leaf-estimation-method', 'Exact'
+    )
+    yatest.common.execute(cmd)
+
+    return [local_canonical_file(output_eval_path)]
+
+
 CUSTOM_LOSS_FUNCTIONS = ['RMSE,MAE', 'Quantile:alpha=0.9', 'MSLE,MedianAbsoluteError,SMAPE',
                          'NumErrors:greater_than=0.01,NumErrors:greater_than=0.1,NumErrors:greater_than=0.5',
                          'FairLoss:smoothness=0.9']

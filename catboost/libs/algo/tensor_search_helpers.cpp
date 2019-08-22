@@ -95,14 +95,14 @@ THolder<IDerCalcer> BuildError(
         case ELossFunction::MAE:
         case ELossFunction::Quantile: {
             const auto& lossParams = params.LossFunctionDescription->GetLossParams();
-            if (lossParams.empty()) {
-                return MakeHolder<TQuantileError>(isStoreExpApprox);
-            } else {
+            for (auto &param: lossParams) {
                 CB_ENSURE(
-                    lossParams.begin()->first == "alpha",
-                    "Invalid loss description" << ToString(params.LossFunctionDescription.Get()));
-                return MakeHolder<TQuantileError>(FromString<float>(lossParams.at("alpha")), isStoreExpApprox);
+                        param.first == "alpha" || param.first == "delta",
+                        "Invalid loss description" << ToString(params.LossFunctionDescription.Get()));
             }
+            double alpha = lossParams.contains("alpha") ? FromString<float>(lossParams.at("alpha")) : 0.5;
+            double delta = lossParams.contains("delta") ? FromString<float>(lossParams.at("delta")) : 1e-6;
+            return MakeHolder<TQuantileError>(alpha, delta, isStoreExpApprox);
         }
         case ELossFunction::Expectile: {
             const auto& lossParams = params.LossFunctionDescription->GetLossParams();

@@ -802,7 +802,7 @@ static void BindTreeParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* pla
             (*plainJsonPtr)["observations_to_bootstrap"] = type;
         });
 
-     parser
+    parser
         .AddLongOption("monotone-constraints")
         .RequiredArgument("String")
         .Help("Monotone constraints for all features.")

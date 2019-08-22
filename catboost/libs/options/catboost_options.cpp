@@ -191,6 +191,7 @@ void NCatboostOptions::TCatBoostOptions::SetLeavesEstimationDefault() {
                 treeConfig.LeavesEstimationIterations.SetDefault(defaultGradientIterations);
                 break;
             }
+            case ELeavesEstimation::Exact:
             case ELeavesEstimation::Simple: {
                 treeConfig.LeavesEstimationIterations.SetDefault(1);
                 break;

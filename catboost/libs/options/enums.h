@@ -64,6 +64,7 @@ enum class ELoadUnimplementedPolicy {
 enum class ELeavesEstimation {
     Gradient,
     Newton,
+    Exact,
     //Use optimal leaves from structure search for model
     Simple
 };
