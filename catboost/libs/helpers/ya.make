@@ -39,7 +39,6 @@ SRCS(
     serialization.cpp
     set.cpp
     sparse_array.cpp
-    vec_list.cpp
     vector_helpers.cpp
     wx_test.cpp
     xml_output.cpp

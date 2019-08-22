@@ -21,7 +21,6 @@ SRCS(
     resource_holder_ut.cpp
     serialization_ut.cpp
     sparse_array_ut.cpp
-    vec_list_ut.cpp
     wx_test_ut.cpp
     xml_output_ut.cpp
 )
