@@ -581,7 +581,7 @@ Y_UNIT_TEST_SUITE(SparseArray) {
         {
             size_t i = 0;
             auto iterator = sparseArray.GetIterator();
-            while (auto next = iterator->Next()) {
+            while (auto next = iterator.Next()) {
                 auto [nonDefaultIdx, value] = *next;
                 UNIT_ASSERT_VALUES_EQUAL(nonDefaultIdx, expectedNonDefaultIndicesArray[i]);
                 UNIT_ASSERT_VALUES_EQUAL(value, nonDefaultValues[i]);

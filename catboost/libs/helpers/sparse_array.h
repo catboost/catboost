@@ -398,7 +398,7 @@ namespace NCB {
 
         TVector<TNonConstValue> ExtractValues() const;
 
-        TSparseArrayBaseIteratorPtr<TValue, TContainer, TSize> GetIterator();
+        TSparseArrayBaseIterator<TNonConstValue, TContainer, TSize> GetIterator();
 
         size_t EstimateGetSubsetCpuRamUsage(
             const TArraySubsetInvertedIndexing<TSize>& subsetInvertedIndexing,

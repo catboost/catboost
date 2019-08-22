@@ -496,9 +496,9 @@ namespace NCB {
         }
 
     template <class TValue, class TContainer, class TSize>
-    TSparseArrayBaseIteratorPtr<TValue, TContainer, TSize>
+    TSparseArrayBaseIterator<typename std::remove_const<TValue>::type, TContainer, TSize>
         TSparseArrayBase<TValue, TContainer, TSize>::GetIterator() {
-            return MakeHolder<TSparseArrayBaseIterator<TValue, TContainer, TSize>>(
+            return TSparseArrayBaseIterator<TNonConstValue, TContainer, TSize>(
                Indexing->GetIterator(),
                NonDefaultValues);
     }
