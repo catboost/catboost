@@ -1930,7 +1930,7 @@ static void MakeConsecutiveColumnData(
             auto dstBuffer = (ui8*)(storage.data());
 
             srcCompressedValuesHolder->template GetArrayData<ui8>().ParallelForEach(
-                [&](ui32 idx, ui8 value) {
+                [dstBuffer](ui32 idx, ui8 value) {
                     dstBuffer[idx] = value;
                 },
                 localExecutor
@@ -1939,7 +1939,7 @@ static void MakeConsecutiveColumnData(
             auto dstBuffer = (ui16*)(storage.data());
 
             srcCompressedValuesHolder->template GetArrayData<ui16>().ParallelForEach(
-                [&](ui32 idx, ui16 value) {
+                [dstBuffer](ui32 idx, ui16 value) {
                     dstBuffer[idx] = value;
                 },
                 localExecutor
@@ -1948,7 +1948,7 @@ static void MakeConsecutiveColumnData(
             auto dstBuffer = (ui32*)(storage.data());
 
             srcCompressedValuesHolder->template GetArrayData<ui32>().ParallelForEach(
-                [&](ui32 idx, ui32 value) {
+                [dstBuffer](ui32 idx, ui32 value) {
                     dstBuffer[idx] = value;
                 },
                 localExecutor
