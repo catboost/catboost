@@ -9,7 +9,6 @@
 #include <library/binsaver/bin_saver.h>
 #include <library/dbg_output/dump.h>
 
-#include <util/generic/array_ref.h>
 #include <util/generic/bitops.h>
 #include <util/generic/vector.h>
 #include <util/generic/ymath.h>
@@ -139,6 +138,7 @@ namespace NCB {
     struct TExclusiveFeaturesBundlingOptions {
         ui32 MaxBuckets = 1 << 10;
         float MaxConflictFraction = 0.0f;
+        size_t MaxBundleCandidates = 100;
     };
 
 
