@@ -218,7 +218,6 @@ JOIN_SRCS(
     all_string.cpp
     string/ascii.cpp
     string/builder.cpp
-    string/cgiparam.cpp
     string/cstriter.cpp
     string/escape.cpp
     string/hex.cpp

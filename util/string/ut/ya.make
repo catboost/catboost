@@ -5,7 +5,6 @@ UNITTEST_FOR(util)
 SRCS(
     string/builder_ut.cpp
     string/cast_ut.cpp
-    string/cgiparam_ut.cpp
     string/escape_ut.cpp
     string/join_ut.cpp
     string/hex_ut.cpp
