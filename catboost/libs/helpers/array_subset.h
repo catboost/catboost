@@ -974,6 +974,50 @@ namespace NCB {
         );
     }
 
+    template <class TSize = size_t>
+    TArraySubsetInvertedIndexing<TSize> Compose(
+        const TArraySubsetInvertedIndexing<TSize>& src,
+        TArraySubsetInvertedIndexing<TSize>&& srcSubset,
+        NPar::TLocalExecutor* localExecutor
+    ) {
+        CB_ENSURE_INTERNAL(
+            src.GetSize() >= srcSubset.GetSrcSize(),
+            "srcSubset has source mapping size greater than src's size"
+        );
+        if (HoldsAlternative<TFullSubset<TSize>>(src)) {
+            return std::move(srcSubset);
+        }
+        if (HoldsAlternative<TFullSubset<TSize>>(srcSubset)) {
+            return src;
+        }
+
+        TConstArrayRef<TSize> srcIndexing = Get<TInvertedIndexedSubset<TSize>>(src).GetMapping();
+        TConstArrayRef<TSize> srcSubsetIndexing = Get<TInvertedIndexedSubset<TSize>>(srcSubset).GetMapping();
+
+        TVector<TSize> dstIndexing;
+        dstIndexing.yresize(srcIndexing.size());
+
+        TArrayRef<TSize> dstIndexingRef = dstIndexing;
+
+        NPar::ParallelFor(
+            *localExecutor,
+            0,
+            SafeIntegerCast<ui32>(srcIndexing.size()),
+            [srcIndexing, srcSubsetIndexing, dstIndexingRef] (int srcIndex) {
+                auto subsetIndex = srcIndexing[srcIndex];
+                if (subsetIndex < srcSubsetIndexing.size()) {
+                    dstIndexingRef[srcIndex] = srcSubsetIndexing[subsetIndex];
+                } else {
+                    dstIndexingRef[srcIndex] = TInvertedIndexedSubset<TSize>::NOT_PRESENT;
+                }
+            }
+        );
+
+        return TArraySubsetInvertedIndexing<TSize>(
+            TInvertedIndexedSubset<TSize>(srcSubset.GetSize(), std::move(dstIndexing))
+        );
+    }
+
     template <class TS, class TSize>
     class TDumperArraySubsetInvertedIndexingVisitor {
     public:
