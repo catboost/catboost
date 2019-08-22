@@ -453,25 +453,44 @@ public:
     TString FormatLocalTime(const char* format) const noexcept;
     TString FormatGmTime(const char* format) const noexcept;
 
-    static TInstant ParseIso8601(const TStringBuf);
-    static TInstant ParseRfc822(const TStringBuf);
-    static TInstant ParseHttp(const TStringBuf);
-    static TInstant ParseX509Validity(const TStringBuf);
+    /// See #TryParseIso8601.
+    static TInstant ParseIso8601(TStringBuf);
+    /// See #TryParseRfc822.
+    static TInstant ParseRfc822( TStringBuf);
+    /// See #TryParseHttp.
+    static TInstant ParseHttp(TStringBuf);
+    /// See #TryParseX509.
+    static TInstant ParseX509Validity(TStringBuf);
 
-    static bool TryParseIso8601(const TStringBuf input, TInstant& instant);
-    static bool TryParseRfc822(const TStringBuf input, TInstant& instant);
-    static bool TryParseHttp(const TStringBuf input, TInstant& instant);
-    static bool TryParseX509(const TStringBuf input, TInstant& instant);
+    /// ISO 8601 Representation of Dates and Times
+    ///
+    /// @link https://www.iso.org/standard/40874.html Description of format.
+    static bool TryParseIso8601(TStringBuf input, TInstant& instant);
 
-    static TInstant ParseIso8601Deprecated(const TStringBuf);
-    static TInstant ParseRfc822Deprecated(const TStringBuf);
-    static TInstant ParseHttpDeprecated(const TStringBuf);
-    static TInstant ParseX509ValidityDeprecated(const TStringBuf);
+    /// RFC 822 Date and Time specification
+    ///
+    /// @link https://tools.ietf.org/html/rfc822#section-5 Description of format.
+    static bool TryParseRfc822(TStringBuf input, TInstant& instant);
 
-    static bool TryParseIso8601Deprecated(const TStringBuf input, TInstant& instant);
-    static bool TryParseRfc822Deprecated(const TStringBuf input, TInstant& instant);
-    static bool TryParseHttpDeprecated(const TStringBuf input, TInstant& instant);
-    static bool TryParseX509Deprecated(const TStringBuf input, TInstant& instant);
+    /// RFC 2616 3.3.1 Full Date
+    ///
+    /// @link https://tools.ietf.org/html/rfc2616#section-3.3.1 Description of format.
+    static bool TryParseHttp(TStringBuf input, TInstant& instant);
+
+    /// X.509 certificate validity time (see rfc5280 4.1.2.5.*)
+    ///
+    /// @link https://tools.ietf.org/html/rfc5280#section-4.1.2.5 Description of format.
+    static bool TryParseX509(TStringBuf input, TInstant& instant);
+
+    static TInstant ParseIso8601Deprecated(TStringBuf);
+    static TInstant ParseRfc822Deprecated(TStringBuf);
+    static TInstant ParseHttpDeprecated(TStringBuf);
+    static TInstant ParseX509ValidityDeprecated(TStringBuf);
+
+    static bool TryParseIso8601Deprecated(TStringBuf input, TInstant& instant);
+    static bool TryParseRfc822Deprecated(TStringBuf input, TInstant& instant);
+    static bool TryParseHttpDeprecated(TStringBuf input, TInstant& instant);
+    static bool TryParseX509Deprecated(TStringBuf input, TInstant& instant);
 
     template <class T>
     inline TInstant& operator+=(const T& t) noexcept {
