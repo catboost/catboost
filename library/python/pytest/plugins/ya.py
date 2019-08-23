@@ -36,7 +36,29 @@ yatest_logger = logging.getLogger("ya.test")
 
 
 _pytest.main.EXIT_NOTESTSCOLLECTED = 0
+COVERAGE_INSTANCE = [0]
+COVERAGE_ENV_NAME = 'PYTHON_COVERAGE_PREFIX'
 SHUTDOWN_REQUESTED = False
+
+# Start coverage collection as soon as possible to avoid missing coverage for modules imported from plugins
+if COVERAGE_ENV_NAME in os.environ:
+    try:
+        import coverage
+    except ImportError:
+        coverage = None
+        logging.exception("Failed to import coverage module - no coverage will be collected")
+
+    if coverage:
+        cov = coverage.Coverage(
+            data_file=os.environ.get(COVERAGE_ENV_NAME),
+            concurrency=['multiprocessing', 'thread'],
+            auto_data=True,
+            branch=True,
+            # debug=['pid', 'trace', 'sys', 'config'],
+        )
+        cov.start()
+        COVERAGE_INSTANCE[0] = cov
+        logging.info("Coverage will be collected during testing. pid: %d", os.getpid())
 
 
 def to_str(s):
@@ -195,27 +217,9 @@ def pytest_configure(config):
                 os.environ[envvar] = os.environ[envvar + '_ORIGINAL']
 
     config.coverage = None
-    cov_prefix = os.environ.get('PYTHON_COVERAGE_PREFIX')
-    if cov_prefix:
+    if COVERAGE_INSTANCE[0]:
+        cov_prefix = os.environ[COVERAGE_ENV_NAME]
         config.coverage_data_dir = os.path.dirname(cov_prefix)
-
-        try:
-            import coverage
-        except ImportError:
-            coverage = None
-            logging.exception("Failed to import coverage module - no coverage will be collected")
-
-        if coverage:
-            cov = coverage.Coverage(
-                data_file=cov_prefix,
-                concurrency=['multiprocessing', 'thread'],
-                auto_data=True,
-                branch=True,
-                # debug=['pid', 'trace', 'sys', 'config'],
-            )
-            config.coverage = cov
-            config.coverage.start()
-            logging.info("Coverage will be collected during testing. pid: %d", os.getpid())
 
     if config.option.root_dir:
         config.rootdir = config.invocation_dir = py.path.local(config.option.root_dir)
@@ -246,9 +250,8 @@ def pytest_configure(config):
 
 
 def _smooth_shutdown(*args):
-    cov = pytest.config.coverage
-    if cov:
-        cov.stop()
+    if COVERAGE_INSTANCE[0]:
+        COVERAGE_INSTANCE[0].stop()
     pytest.exit("Smooth shutdown requested")
 
 
