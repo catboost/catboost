@@ -296,6 +296,7 @@ void TObliviousTrees::ConvertObliviousToAsymmetric() {
     TVector<ui32> nonSymmetricNodeIdToLeafId;
 
     size_t leafStartOffset = 0;
+    TVector<TVector<double>> leafWeights(1);
     for (size_t treeId = 0; treeId < TreeSizes.size(); ++treeId) {
         size_t treeSize = 0;
         treeStartOffsets.push_back(treeSplits.size());
@@ -316,7 +317,17 @@ void TObliviousTrees::ConvertObliviousToAsymmetric() {
         }
         leafStartOffset += (1u << TreeSizes[treeId]);
         treeSizes.push_back(treeSize);
+
+        if (treeId < LeafWeights.size()) {
+            leafWeights[0].reserve(leafWeights[0].size() + LeafWeights[treeId].size());
+            leafWeights[0].insert(
+                leafWeights[0].end(),
+                LeafWeights[treeId].begin(),
+                LeafWeights[treeId].end()
+            );
+        }
     }
+    LeafWeights = std::move(leafWeights);
     TreeSplits = std::move(treeSplits);
     TreeSizes = std::move(treeSizes);
     TreeStartOffsets = std::move(treeStartOffsets);
