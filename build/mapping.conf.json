@@ -108,6 +108,7 @@
         "1079483975": "https://storage.mds.yandex.net/get-devtools-opensource/250854/1079483975", 
         "1079484150": "https://storage.mds.yandex.net/get-devtools-opensource/233854/1079484150", 
         "1083684320": "https://storage.mds.yandex.net/get-devtools-opensource/250854/1083684320", 
+        "1084734037": "https://storage.mds.yandex.net/get-devtools-opensource/373962/1084734037", 
         "173608101": "https://storage.mds.yandex.net/get-devtools-opensource/233854/173608101", 
         "173608113": "https://storage.mds.yandex.net/get-devtools-opensource/233854/173608113", 
         "173608117": "https://storage.mds.yandex.net/get-devtools-opensource/233854/173608117", 
@@ -1377,6 +1378,9 @@
             "win32": "1079483813"
         }, 
         "491405550": {}, 
+        "491831556": {
+            "Darwin-17.7.0-x86_64-i386-64bit": "1084734037"
+        }, 
         "74052635": {
             "cygwin": "173608101", 
             "darwin": "173608117", 
