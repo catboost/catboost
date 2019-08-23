@@ -101,6 +101,9 @@ ALLOW .* -> vendor/github.com/Masterminds/squirrel
 # isatty for golang
 ALLOW .* -> vendor/github.com/mattn/go-isatty
 
+# go-sqlite3 for golang
+ALLOW .* -> vendor/github.com/mattn/go-sqlite3
+
 # complete and usable DNS library
 ALLOW .* -> vendor/github.com/miekg/dns
 
