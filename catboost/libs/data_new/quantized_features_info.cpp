@@ -245,8 +245,12 @@ namespace NCB {
                     TCatFeatureIdx((ui32)catFeatureIdx)
                 );
                 auto& perFeatureResult = result[catFeatureIdx];
-                perFeatureResult.yresize(catFeaturePerfectHash.size());
-                for (const auto [hashedCatValue, perfectHash] : catFeaturePerfectHash) {
+                perFeatureResult.yresize(catFeaturePerfectHash.GetSize());
+                if (catFeaturePerfectHash.DefaultMap) {
+                    perFeatureResult[catFeaturePerfectHash.DefaultMap->DstValueWithCount.Value]
+                        = catFeaturePerfectHash.DefaultMap->SrcValue;
+                }
+                for (const auto [hashedCatValue, perfectHash] : catFeaturePerfectHash.Map) {
                     perFeatureResult[perfectHash.Value] = hashedCatValue;
                 }
             },

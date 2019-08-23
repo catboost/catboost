@@ -67,16 +67,16 @@ namespace NCB {
         TVector<ui32> result;
         result.yresize(GetSize());
 
+        TArrayRef<ui32> resultRef = result;
+
         const auto catFeatureIdx = QuantizedFeaturesInfo->GetPerTypeFeatureIdx<EFeatureType::Categorical>(
             *this
         );
         const auto& perfectHash = QuantizedFeaturesInfo->GetCategoricalFeaturesPerfectHash(catFeatureIdx);
 
         TMaybeOwningConstArraySubset<ui32, ui32>(&SrcData, SubsetIndexing).ParallelForEach(
-            [&] (ui32 idx, ui32 srcValue) {
-                auto it = perfectHash.find(srcValue); // find is guaranteed to be thread-safe
-                Y_ASSERT(it != perfectHash.end());
-                result[idx] = it->second.Value;
+            [resultRef, &perfectHash] (ui32 idx, ui32 srcValue) {
+                resultRef[idx] = perfectHash.Find(srcValue)->Value;
             },
             localExecutor,
             BINARIZATION_BLOCK_SIZE
@@ -277,9 +277,7 @@ namespace NCB {
         );
         const auto& perfectHash = QuantizedFeaturesInfo->GetCategoricalFeaturesPerfectHash(catFeatureIdx);
 
-        auto defaultValueIt = perfectHash.find(SrcData.GetDefaultValue());
-        Y_ASSERT(defaultValueIt != perfectHash.end());
-        const ui32 defaultPerfectHashValue = defaultValueIt->second.Value;
+        const ui32 defaultPerfectHashValue = perfectHash.Find(SrcData.GetDefaultValue())->Value;
 
         TVector<ui32> result(GetSize(), defaultPerfectHashValue);
 
@@ -287,9 +285,7 @@ namespace NCB {
 
         SrcData.ForEachNonDefault(
             [=, &perfectHash] (ui32 nonDefaultIdx, ui32 srcValue) {
-                auto it = perfectHash.find(srcValue); // find is guaranteed to be thread-safe
-                Y_ASSERT(it != perfectHash.end());
-                resultRef[nonDefaultIdx] = it->second.Value;
+                resultRef[nonDefaultIdx] = perfectHash.Find(srcValue)->Value;
             }
         );
 
@@ -326,9 +322,7 @@ namespace NCB {
                             = this->QuantizedFeaturesInfo->GetCategoricalFeaturesPerfectHash(catFeatureIdx);
 
                         auto getPerfectHashValue = [&] (ui32 srcValue) -> ui32 {
-                            auto it = perfectHash.find(srcValue); // find is guaranteed to be thread-safe;
-                            Y_ASSERT(it != perfectHash.end());
-                            return it->second.Value;
+                            return perfectHash.Find(srcValue)->Value;
                         };
 
                         *subsetDst

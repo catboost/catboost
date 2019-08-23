@@ -4,6 +4,7 @@
 
 #include <util/system/guard.h>
 #include <util/system/yassert.h>
+#include <util/generic/cast.h>
 #include <util/generic/map.h>
 
 #include <util/generic/ylimits.h>
@@ -17,6 +18,8 @@ namespace NCB {
         const TCatFeatureIdx catFeatureIdx,
         TMaybeOwningConstArraySubset<ui32, ui32> hashedCatArraySubset,
         bool mapMostFrequentValueTo0,
+        TMaybe<TDefaultValue<ui32>> hashedCatDefaultValue,
+        TMaybe<float> quantizedDefaultBinFraction,
         TMaybe<TArrayRef<ui32>*> dstBins
     ) {
         QuantizedFeaturesInfo->CheckCorrectPerTypeFeatureIdx(catFeatureIdx);
@@ -41,55 +44,105 @@ namespace NCB {
             if (!featuresHash.HasHashInRam) {
                 featuresHash.Load();
             }
-            perfectHashMap.swap(featuresHash.FeaturesPerfectHash[*catFeatureIdx]);
+            perfectHashMap = std::move(featuresHash.FeaturesPerfectHash[*catFeatureIdx]);
         }
 
         // if perfectHashMap is already non-empty existing mapping can't be modified
-        mapMostFrequentValueTo0 = mapMostFrequentValueTo0 && perfectHashMap.empty();
+        const bool perfectHashMapWasEmptyBeforeUpdate = perfectHashMap.Empty();
 
         constexpr size_t MAX_UNIQ_CAT_VALUES =
             static_cast<size_t>(Max<ui32>()) + ((sizeof(size_t) > sizeof(ui32)) ? 1 : 0);
 
-        hashedCatArraySubset.ForEach(
-            [&] (ui32 idx, ui32 hashedCatValue) {
-                auto it = perfectHashMap.find(hashedCatValue);
-                if (it == perfectHashMap.end()) {
-                    CB_ENSURE(
-                        perfectHashMap.size() != MAX_UNIQ_CAT_VALUES,
-                        "Error: categorical feature with id #" << *catFeatureIdx
-                        << " has more than " << MAX_UNIQ_CAT_VALUES
-                        << " unique values, which is currently unsupported"
-                    );
-                    ui32 bin = (ui32)perfectHashMap.size();
-                    if (dstBins) {
-                        dstBinsValue[idx] = bin;
-                    }
-                    perfectHashMap.emplace_hint(it, hashedCatValue, TValueWithCount{bin, 1});
+        ui32 datasetSize = hashedCatArraySubset.Size();
+
+        if (hashedCatDefaultValue) {
+            datasetSize += SafeIntegerCast<ui32>(hashedCatDefaultValue->Count);
+
+            if (perfectHashMapWasEmptyBeforeUpdate) {
+                ui32 bin = 0;
+
+                const float defaultValueFraction
+                    = float(hashedCatDefaultValue->Count) / float(datasetSize);
+
+                if (quantizedDefaultBinFraction &&
+                    (defaultValueFraction >= (*quantizedDefaultBinFraction)))
+                {
+                    perfectHashMap.DefaultMap = TCatFeaturePerfectHashDefaultValue{
+                        hashedCatDefaultValue->Value,
+                        TValueWithCount{bin, (ui32)hashedCatDefaultValue->Count},
+                        defaultValueFraction
+                    };
                 } else {
-                    if (dstBins) {
-                        dstBinsValue[idx] = it->second.Value;
-                    }
-                    ++(it->second.Count);
+                    perfectHashMap.Map.emplace(
+                        hashedCatDefaultValue->Value,
+                        TValueWithCount{bin, (ui32)hashedCatDefaultValue->Count}
+                    );
                 }
             }
-        );
+        }
 
-        if (mapMostFrequentValueTo0 && !perfectHashMap.empty()) {
-            auto iter = perfectHashMap.begin();
-            auto iterEnd = perfectHashMap.end();
+        auto processNonDefaultValue = [&, dstBins, dstBinsValue] (ui32 idx, ui32 hashedCatValue) {
+            auto it = perfectHashMap.Map.find(hashedCatValue);
+            if (it == perfectHashMap.Map.end()) {
+                CB_ENSURE(
+                    perfectHashMap.Map.size() != MAX_UNIQ_CAT_VALUES,
+                    "Error: categorical feature with id #" << *catFeatureIdx
+                    << " has more than " << MAX_UNIQ_CAT_VALUES
+                    << " unique values, which is currently unsupported"
+                );
+                const ui32 bin = (ui32)perfectHashMap.GetSize();
+                if (dstBins) {
+                    dstBinsValue[idx] = bin;
+                }
+                perfectHashMap.Map.emplace_hint(it, hashedCatValue, TValueWithCount{bin, 1});
+            } else {
+                if (dstBins) {
+                    dstBinsValue[idx] = it->second.Value;
+                }
+                ++(it->second.Count);
+            }
+        };
 
+        if (perfectHashMap.DefaultMap) {
+            const TCatFeaturePerfectHashDefaultValue defaultMap = *perfectHashMap.DefaultMap;
+            const ui32 defaultHashedCatValue = defaultMap.SrcValue;
+            const ui32 defaultMappedValue = defaultMap.DstValueWithCount.Value;
+            hashedCatArraySubset.ForEach(
+                [&, defaultHashedCatValue, defaultMappedValue] (ui32 idx, ui32 hashedCatValue) {
+                    if (hashedCatValue == defaultHashedCatValue) {
+                        if (dstBins) {
+                            dstBinsValue[idx] = defaultMappedValue;
+                        }
+                    } else {
+                        processNonDefaultValue(idx, hashedCatValue);
+                    }
+                }
+            );
+        } else {
+            hashedCatArraySubset.ForEach(processNonDefaultValue);
+        }
+
+        if (perfectHashMapWasEmptyBeforeUpdate &&
+            !perfectHashMap.DefaultMap && // if default map exists it is already mapped to 0
+            (quantizedDefaultBinFraction || mapMostFrequentValueTo0))
+        {
+            auto iter = perfectHashMap.Map.begin();
+            auto iterEnd = perfectHashMap.Map.end();
+
+            ui32 mostFrequentSrcValue = iter->first;
             TValueWithCount* mappedForMostFrequent = &(iter->second);
             TValueWithCount* mappedTo0 = (iter->second.Value == 0) ? &(iter->second) : nullptr;
             for (++iter; iter != iterEnd; ++iter) {
                 TValueWithCount* mapped = &(iter->second);
                 if (mapped->Count > mappedForMostFrequent->Count) {
+                    mostFrequentSrcValue = iter->first;
                     mappedForMostFrequent = mapped;
                 }
                 if (mapped->Value == 0) {
                     mappedTo0 = mapped;
                 }
             }
-            if (mappedTo0 != mappedForMostFrequent) {
+            if (mapMostFrequentValueTo0 && (mappedTo0 != mappedForMostFrequent)) {
                 Y_VERIFY(mappedTo0, "No value mapped to 0");
 
                 if (dstBins) {
@@ -107,16 +160,31 @@ namespace NCB {
 
                 std::swap(mappedTo0->Value, mappedForMostFrequent->Value);
             }
+
+            const float mostFrequentValueFraction
+                = float(mappedForMostFrequent->Count) / float(datasetSize);
+
+            if (quantizedDefaultBinFraction &&
+                (mostFrequentValueFraction >= (*quantizedDefaultBinFraction)))
+            {
+                // move from Map to DefaultMap
+                perfectHashMap.DefaultMap = TCatFeaturePerfectHashDefaultValue{
+                    mostFrequentSrcValue,
+                    TValueWithCount{mappedForMostFrequent->Value, (ui32)mappedForMostFrequent->Count},
+                    mostFrequentValueFraction
+                };
+                perfectHashMap.Map.erase(mostFrequentSrcValue);
+            }
         }
 
         {
             TWriteGuard guard(QuantizedFeaturesInfo->GetRWMutex());
             auto& uniqValuesCounts = featuresHash.CatFeatureUniqValuesCountsVector[*catFeatureIdx];
             if (!uniqValuesCounts.OnAll) {
-                uniqValuesCounts.OnLearnOnly = perfectHashMap.size();
+                uniqValuesCounts.OnLearnOnly = perfectHashMap.GetSize();
             }
-            uniqValuesCounts.OnAll = perfectHashMap.size();
-            featuresHash.FeaturesPerfectHash[*catFeatureIdx].swap(perfectHashMap);
+            uniqValuesCounts.OnAll = perfectHashMap.GetSize();
+            featuresHash.FeaturesPerfectHash[*catFeatureIdx] = std::move(perfectHashMap);
         }
     }
 

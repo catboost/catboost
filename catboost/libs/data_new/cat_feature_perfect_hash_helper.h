@@ -4,6 +4,8 @@
 
 #include <catboost/libs/helpers/array_subset.h>
 
+#include <library/grid_creator/binarization.h>
+
 #include <util/generic/array_ref.h>
 #include <util/generic/maybe.h>
 #include <util/generic/ptr.h>
@@ -30,6 +32,8 @@ namespace NCB {
             const TCatFeatureIdx catFeatureIdx,
             TMaybeOwningConstArraySubset<ui32, ui32> hashedCatArraySubset,
             bool mapMostFrequentValueTo0,
+            TMaybe<TDefaultValue<ui32>> hashedCatDefaultValue,
+            TMaybe<float> quantizedDefaultBinFraction,
             TMaybe<TArrayRef<ui32>*> dstBins
         );
 

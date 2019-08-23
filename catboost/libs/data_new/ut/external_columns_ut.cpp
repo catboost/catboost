@@ -105,7 +105,9 @@ Y_UNIT_TEST_SUITE(ExternalColumns) {
                 TCatFeatureIdx(featureId),
                 arraySubset,
                 mapMostFrequentValueTo0,
-                Nothing()
+                /*hashedCatDefaultValue*/ Nothing(),
+                /*quantizedDefaultBinFraction*/ Nothing(),
+                /*dstBins*/ Nothing()
             );
 
             TExternalCatValuesHolder externalCatValuesHolder(

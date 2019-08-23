@@ -1,6 +1,7 @@
 #include "cat_feature_perfect_hash.h"
 
 #include <util/generic/xrange.h>
+#include <util/generic/ymath.h>
 #include <util/stream/output.h>
 
 
@@ -17,6 +18,11 @@ void Out<NCB::TValueWithCount>(IOutputStream& out, NCB::TValueWithCount valueWit
 
 
 namespace NCB {
+    bool TCatFeaturePerfectHashDefaultValue::operator==(const TCatFeaturePerfectHashDefaultValue& rhs) const {
+        return (SrcValue == rhs.SrcValue) &&
+            (DstValueWithCount == rhs.DstValueWithCount) &&
+            FuzzyEquals(Fraction, rhs.Fraction);
+    }
 
     bool TCatFeaturesPerfectHash::operator==(const TCatFeaturesPerfectHash& rhs) const {
         if (CatFeatureUniqValuesCountsVector != rhs.CatFeatureUniqValuesCountsVector) {
@@ -64,9 +70,23 @@ namespace NCB {
         for (auto catFeatureIdx : xrange(rhsSize)) {
             const auto& featurePerfectHash = FeaturesPerfectHash[catFeatureIdx];
 
-            for (const auto& [hashedCatValue, valueWithCount] : rhs.FeaturesPerfectHash[catFeatureIdx]) {
-                const auto it = featurePerfectHash.find(hashedCatValue);
-                if (it == featurePerfectHash.end()) {
+            if (featurePerfectHash.DefaultMap) {
+                if (!rhs.FeaturesPerfectHash[catFeatureIdx].DefaultMap) {
+                    return false;
+                }
+                const auto& defaultMap = *featurePerfectHash.DefaultMap;
+                const auto& rhsDefaultMap = *rhs.FeaturesPerfectHash[catFeatureIdx].DefaultMap;
+                if (defaultMap.SrcValue != rhsDefaultMap.SrcValue) {
+                    return false;
+                }
+                if (defaultMap.DstValueWithCount.Value != rhsDefaultMap.DstValueWithCount.Value) {
+                    return false;
+                }
+            }
+
+            for (const auto& [hashedCatValue, valueWithCount] : rhs.FeaturesPerfectHash[catFeatureIdx].Map) {
+                const auto it = featurePerfectHash.Map.find(hashedCatValue);
+                if (it == featurePerfectHash.Map.end()) {
                     return false;
                 } else if (valueWithCount.Value != it->second.Value) {
                     return false;
@@ -89,14 +109,14 @@ namespace NCB {
         if (counts.OnAll) {
             // already have some data
             // we must update with data that has not less elements than current
-            Y_VERIFY((size_t)counts.OnAll <= perfectHash.size());
+            Y_VERIFY((size_t)counts.OnAll <= perfectHash.GetSize());
         } else {
             // first initialization
-            counts.OnLearnOnly = (ui32)perfectHash.size();
+            counts.OnLearnOnly = (ui32)perfectHash.GetSize();
         }
 
         // cast is safe because map from ui32 keys can't have more than Max<ui32>() keys
-        counts.OnAll = (ui32)perfectHash.size();
+        counts.OnAll = (ui32)perfectHash.GetSize();
 
         if (!HasHashInRam) {
             Load();

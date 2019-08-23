@@ -267,7 +267,7 @@ namespace NCB {
             = &(quantizedFeaturesInfo.GetCategoricalFeaturesPerfectHash(catFeatureIdx));
 
         return [srcRawData, catFeaturePerfectHashPtr](ui32 /*idx*/, ui32 srcIdx) -> ui32 {
-            return catFeaturePerfectHashPtr->at(srcRawData[srcIdx]).Value;
+            return catFeaturePerfectHashPtr->Find(srcRawData[srcIdx])->Value;
         };
     }
 
@@ -325,13 +325,23 @@ namespace NCB {
         );
         TConstArrayRef<ui32> srcRawData = **denseData.GetArrayData().GetSrc();
 
+        const auto& perfectHash = quantizedFeaturesInfo.GetCategoricalFeaturesPerfectHash(catFeatureIdx);
+
         ui32 hashedCatValueMappedTo0 = 0;
-        for (const auto& [hashedCatValue, valueAndCount]
-             : quantizedFeaturesInfo.GetCategoricalFeaturesPerfectHash(catFeatureIdx))
-        {
-            if (valueAndCount.Value == 0) {
-                hashedCatValueMappedTo0 = hashedCatValue;
-                break;
+
+        bool fromDefaultMap = false;
+        if (perfectHash.DefaultMap) {
+            if (perfectHash.DefaultMap->DstValueWithCount.Value == 0) {
+                fromDefaultMap = true;
+                hashedCatValueMappedTo0 = perfectHash.DefaultMap->SrcValue;
+            }
+        }
+        if (!fromDefaultMap) {
+            for (const auto& [hashedCatValue, valueAndCount] : perfectHash.Map) {
+                if (valueAndCount.Value == 0) {
+                    hashedCatValueMappedTo0 = hashedCatValue;
+                    break;
+                }
             }
         }
 
@@ -610,16 +620,8 @@ namespace NCB {
                 TArrayRef<ui32> quantizedData = quantizedDataStorage.GetRawArray<ui32>();
 
                 srcFeatureData.ParallelForEach(
-                    [&] (ui32 idx, ui32 srcValue) {
-                        auto it = perfectHash.find(srcValue); // find is guaranteed to be thread-safe
-
-                        // TODO(akhropov): replace by assert for performance?
-                        CB_ENSURE(
-                            it != perfectHash.end(),
-                            "Error: hash for feature #" << srcFeature.GetId() << " was not found " << srcValue
-                        );
-
-                        quantizedData[idx] = it->second.Value;
+                    [quantizedData, &perfectHash] (ui32 idx, ui32 srcValue) {
+                        quantizedData[idx] = perfectHash.Find(srcValue)->Value;
                     },
                     localExecutor,
                     BINARIZATION_BLOCK_SIZE
@@ -787,20 +789,31 @@ namespace NCB {
         );
         TConstArrayRef<ui32> srcRawData = **denseData.GetArrayData().GetSrc();
 
-        const auto& catFeaturePerfectHash
+        const auto& perfectHash
             = quantizedObjectsData.QuantizedFeaturesInfo->GetCategoricalFeaturesPerfectHash(catFeatureIdx);
-        Y_ASSERT(catFeaturePerfectHash.size() == 2);
+        Y_ASSERT(perfectHash.GetSize() == 2);
 
-        ui32 hashedCatValueFor1;
-        for (const auto& [hashedCatValue, remappedValueAndCount] : catFeaturePerfectHash) {
-            if (remappedValueAndCount.Value == ui32(1)) {
-                hashedCatValueFor1 = hashedCatValue;
+        ui32 hashedCatValueMappedTo0 = 0;
+
+        bool fromDefaultMap = false;
+        if (perfectHash.DefaultMap) {
+            if (perfectHash.DefaultMap->DstValueWithCount.Value == 0) {
+                fromDefaultMap = true;
+                hashedCatValueMappedTo0 = perfectHash.DefaultMap->SrcValue;
+            }
+        }
+        if (!fromDefaultMap) {
+            for (const auto& [hashedCatValue, valueAndCount] : perfectHash.Map) {
+                if (valueAndCount.Value == 0) {
+                    hashedCatValueMappedTo0 = hashedCatValue;
+                    break;
+                }
             }
         }
 
-        return [srcRawData, hashedCatValueFor1](ui32 /*idx*/, ui32 srcIdx) -> TBinaryFeaturesPack {
-            return srcRawData[srcIdx] == hashedCatValueFor1 ?
-                TBinaryFeaturesPack(1) : TBinaryFeaturesPack(0);
+        return [srcRawData, hashedCatValueMappedTo0](ui32 /*idx*/, ui32 srcIdx) -> TBinaryFeaturesPack {
+            return srcRawData[srcIdx] == hashedCatValueMappedTo0 ?
+                TBinaryFeaturesPack(0) : TBinaryFeaturesPack(1);
         };
     }
 
@@ -1080,6 +1093,8 @@ namespace NCB {
                 catFeatureIdx,
                 srcFeatureData,
                 mapMostFrequentValueTo0,
+                /*hashedCatDefaultValue*/ Nothing(),
+                /*quantizedDefaultBinFraction*/ Nothing(),
                 quantizeData ? TMaybe<TArrayRef<ui32>*>(&quantizedDataValue) : Nothing()
             );
         };

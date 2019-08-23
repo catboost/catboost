@@ -9,6 +9,7 @@
 
 #include <util/generic/guid.h>
 #include <util/generic/map.h>
+#include <util/generic/maybe.h>
 #include <util/generic/string.h>
 #include <util/generic/typetraits.h>
 #include <util/generic/vector.h>
@@ -54,11 +55,59 @@ namespace NCB {
         return UpdateCheckSum(checkSum, data.Count);
     }
 
-    using TCatFeaturePerfectHash = TMap<ui32, TValueWithCount>;
+
+    struct TCatFeaturePerfectHashDefaultValue {
+        ui32 SrcValue;
+        TValueWithCount DstValueWithCount;
+        float Fraction; // on Learn
+
+    public:
+        bool operator==(const TCatFeaturePerfectHashDefaultValue& rhs) const;
+    };
+
+    inline ui32 UpdateCheckSumImpl(ui32 init, const TCatFeaturePerfectHashDefaultValue& data) {
+        return UpdateCheckSum(init, data.SrcValue, data.DstValueWithCount, data.Fraction);
+    }
+
+    struct TCatFeaturePerfectHash {
+        TMaybe<TCatFeaturePerfectHashDefaultValue> DefaultMap;
+        TMap<ui32, TValueWithCount> Map;
+
+    public:
+        bool operator==(const TCatFeaturePerfectHash& rhs) const {
+            return (DefaultMap == rhs.DefaultMap) && (Map == rhs.Map);
+        }
+
+        SAVELOAD(DefaultMap, Map);
+
+        Y_SAVELOAD_DEFINE(DefaultMap, Map);
+
+        size_t GetSize() const {
+            return DefaultMap.Defined() ? (Map.size() + 1) : Map.size();
+        }
+
+        bool Empty() const {
+            return GetSize() == 0;
+        }
+
+        TMaybe<TValueWithCount> Find(ui32 key) const {
+            if (DefaultMap && (DefaultMap->SrcValue == key)) {
+                return DefaultMap->DstValueWithCount;
+            }
+            const auto it = Map.find(key);
+            return (it != Map.end()) ? MakeMaybe(it->second) : Nothing();
+        }
+    };
+
+    inline ui32 UpdateCheckSumImpl(ui32 init, const TCatFeaturePerfectHash& data) {
+        return UpdateCheckSum(init, data.DefaultMap, data.Map);
+    }
+
 }
 
 Y_DECLARE_PODTYPE(NCB::TCatFeatureUniqueValuesCounts);
 Y_DECLARE_PODTYPE(NCB::TValueWithCount);
+Y_DECLARE_PODTYPE(NCB::TCatFeaturePerfectHashDefaultValue);
 
 
 namespace NCB {

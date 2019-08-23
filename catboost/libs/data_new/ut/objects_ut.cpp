@@ -875,7 +875,9 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
                                 &fullSubsetForUpdatingPerfectHash
                             ),
                             /*mapMostFrequentValueTo0*/ false,
-                            Nothing()
+                            /*hashedCatDefaultValue*/ Nothing(),
+                            /*quantizedDefaultBinFraction*/ Nothing(),
+                            /*dstBins*/ Nothing()
                         );
 
                         ui32 bitsPerKey =
@@ -1041,8 +1043,8 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
 
         THashMap<std::pair<bool, bool>, ui32> expectedUsedFeatureTypesToCheckSum = {
             {{true, false}, 330653220},
-            {{false, true}, 2017827640},
-            {{true, true}, 807288048}
+            {{false, true}, 3926288674},
+            {{true, true}, 837687603}
         };
 
         TestSubsetFeatures(
@@ -1098,8 +1100,8 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
 
         THashMap<std::pair<bool, bool>, ui32> expectedUsedFeatureTypesToCheckSum = {
             {{true, false}, 2582600868},
-            {{false, true}, 286218663},
-            {{true, true}, 3140512489}
+            {{false, true}, 2202839997},
+            {{true, true}, 1279137029}
         };
 
 
@@ -1156,8 +1158,8 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
 
         THashMap<std::pair<bool, bool>, ui32> expectedUsedFeatureTypesToCheckSum = {
             {{true, false}, 952444266},
-            {{false, true}, 3987245730},
-            {{true, true}, 372545103}
+            {{false, true}, 2146138296},
+            {{true, true}, 3778734499}
         };
 
         TestSubsetFeatures(
@@ -1229,8 +1231,8 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
 
         THashMap<std::pair<bool, bool>, ui32> expectedUsedFeatureTypesToCheckSum = {
             {{true, false}, 2838800885},
-            {{false, true}, 4122360359},
-            {{true, true}, 2043278342}
+            {{false, true}, 1744160829},
+            {{true, true}, 2395442154}
         };
 
         TestSubsetFeatures(
