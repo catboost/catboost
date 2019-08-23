@@ -12,6 +12,12 @@ public:
         Items.reserve(MaxSize);
     }
 
+    TSimpleRingBuffer(const TSimpleRingBuffer&) = default;
+    TSimpleRingBuffer(TSimpleRingBuffer&&) = default;
+
+    TSimpleRingBuffer& operator=(const TSimpleRingBuffer&) = default;
+    TSimpleRingBuffer& operator=(TSimpleRingBuffer&&) = default;
+
     // First available item
     size_t FirstIndex() const {
         return Begin;
@@ -47,6 +53,11 @@ public:
             Items[RealIndex(Begin)] = t;
             Begin += 1;
         }
+    }
+
+    void Clear() {
+        Items.clear();
+        Begin = 0;
     }
 
 private:
