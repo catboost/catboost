@@ -224,7 +224,6 @@ JOIN_SRCS(
     string/join.cpp
     string/kmp.cpp
     string/printf.cpp
-    string/quote.cpp
     string/scan.cpp
     string/split.cpp
     string/strip.cpp
