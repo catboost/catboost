@@ -66,10 +66,6 @@ int mode_eval_feature(int argc, const char* argv[]) {
     NPar::LocalExecutor().RunAdditionalThreads(catBoostOptions.SystemOptions->NumThreads - 1);
 
     TVector<TString> classNames = catBoostOptions.DataProcessingOptions->ClassNames;
-    CB_ENSURE(
-        !catBoostOptions.DataProcessingOptions->HasTimeFlag.Get(),
-        "Feature evaluation does not support ordered datasets (--has-time)"
-    );
     const auto objectsOrder = EObjectsOrder::Undefined;
     auto pools = NCB::ReadTrainDatasets(
         poolLoadParams,
