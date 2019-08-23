@@ -504,14 +504,14 @@ namespace NCB {
     }
 
 
-    template <class TValue, class TSize>
-    TMaybeOwningArrayHolder<TValue> CreateSubsetContainer(
-        TVector<TValue>&& subsetNonDefaultValues,
-        const TSparseArrayBase<TValue, TMaybeOwningArrayHolder<TValue>, TSize>& parent) {
+    template <class TDstValue, class TSrcValue, class TSize>
+    TMaybeOwningArrayHolder<TDstValue> CreateSubsetContainer(
+        TVector<TSrcValue>&& subsetNonDefaultValues,
+        const TSparseArrayBase<TDstValue, TMaybeOwningArrayHolder<TDstValue>, TSize>& parent) {
 
         Y_UNUSED(parent);
 
-        return TMaybeOwningArrayHolder<TValue>::CreateOwning(std::move(subsetNonDefaultValues));
+        return TMaybeOwningArrayHolder<TDstValue>::CreateOwning(std::move(subsetNonDefaultValues));
     }
 
     // in addition to dstValues passed to CreateSubsetContainer
@@ -525,10 +525,10 @@ namespace NCB {
         return 0;
     }
 
-    template <class TValue, class TSize>
+    template <class TDstValue, class TSrcValue, class TSize>
     TCompressedArray CreateSubsetContainer(
-        TVector<TValue>&& subsetNonDefaultValues,
-        const TSparseArrayBase<TValue, TCompressedArray, TSize>& parent) {
+        TVector<TSrcValue>&& subsetNonDefaultValues,
+        const TSparseArrayBase<TDstValue, TCompressedArray, TSize>& parent) {
 
         const ui32 bitsPerKey = parent.GetNonDefaultValues().GetBitsPerKey();
 
@@ -575,7 +575,7 @@ namespace NCB {
                 ramUsedForDstIndexing = (sizeof(TSize) + sizeof(ui64)) * GetNonDefaultSize();
                 break;
             default:
-                ;
+                Y_UNREACHABLE();
         }
 
         const ui64 ramUsedForDstValues = sizeof(TValue) * GetNonDefaultSize();
@@ -609,8 +609,10 @@ namespace NCB {
 
         TConstArrayRef<TSize> invertedIndicesArray = invertedIndexedSubset.GetMapping();
 
+        using TNonConstValue = typename std::remove_const<TValue>::type;
+
         TVector<TSize> dstVectorIndexing;
-        TVector<TValue> dstValues;
+        TVector<TNonConstValue> dstValues;
 
         TSize nonDefaultValuesIdx = 0;
         Indexing->ForEachNonDefault(
@@ -624,34 +626,67 @@ namespace NCB {
             }
         );
 
-        TDoubleArrayIterator<TSize, TValue> dstBegin{dstVectorIndexing.begin(), dstValues.begin()};
-        TDoubleArrayIterator<TSize, TValue> dstEnd{dstVectorIndexing.end(), dstValues.end()};
-
-        Sort(dstBegin, dstEnd, [](auto lhs, auto rhs) { return lhs.first < rhs.first; });
-
         if (sparseArrayIndexingType == ESparseArrayIndexingType::Undefined) {
             sparseArrayIndexingType = Indexing->GetType();
         }
 
-        TIndexingPtr dstIndexing;
-        if (sparseArrayIndexingType == ESparseArrayIndexingType::Indices) {
-            dstIndexing = MakeIntrusive<TIndexing>(TSparseSubsetIndices<TSize>(std::move(dstVectorIndexing)), invertedIndexedSubset.GetSize());
-        } else {
-            auto builder = CreateSparseArrayIndexingBuilder<TSize>(sparseArrayIndexingType);
-            for (auto i : dstVectorIndexing) {
-                builder->AddOrdered(i);
-            }
-            TVector<TSize>().swap(dstVectorIndexing); // force early CPU RAM release
-            dstIndexing = MakeIntrusive<TIndexing>(builder->Build(invertedIndexedSubset.GetSize()));
-        }
+        std::function<TContainer(TVector<TNonConstValue>&&)> createNonDefaultValuesContainer
+            = [&] (TVector<TNonConstValue>&& dstValues) {
+                return CreateSubsetContainer(std::move(dstValues), *this);
+            };
 
         TValue defaultValueCopy = DefaultValue;
 
-        return TSparseArrayBase<TValue, TContainer, TSize>(
-            std::move(dstIndexing),
-            CreateSubsetContainer(std::move(dstValues), *this),
+        return MakeSparseArrayBase<TValue, TContainer, TSize>(
+            invertedIndexedSubset.GetSize(),
+            std::move(dstVectorIndexing),
+            std::move(dstValues),
+            std::move(createNonDefaultValuesContainer),
+            sparseArrayIndexingType,
+            /*ordered*/ false,
             std::move(defaultValueCopy)
         );
     }
 
+    template <class TValue, class TContainer, class TSize, class TSrcValue>
+    TSparseArrayBase<TValue, TContainer, TSize> MakeSparseArrayBase(
+        TSize size,
+        TVector<TSize>&& indexing,
+        TVector<TSrcValue>&& nonDefaultValues,
+        std::function<TContainer(TVector<TSrcValue>&&)>&& createNonDefaultValuesContainer,
+        ESparseArrayIndexingType sparseArrayIndexingType,
+        bool ordered,
+        TValue&& defaultValue) {
+
+        if (sparseArrayIndexingType == ESparseArrayIndexingType::Undefined) {
+            sparseArrayIndexingType = ESparseArrayIndexingType::Indices;
+        }
+
+        if (!ordered) {
+            TDoubleArrayIterator<TSize, TSrcValue> dstBegin{indexing.begin(), nonDefaultValues.begin()};
+            TDoubleArrayIterator<TSize, TSrcValue> dstEnd{indexing.end(), nonDefaultValues.end()};
+
+            Sort(dstBegin, dstEnd, [](auto lhs, auto rhs) { return lhs.first < rhs.first; });
+        }
+
+        using TIndexing = TSparseArrayIndexing<TSize>;
+
+        TIntrusivePtr<TIndexing> dstIndexing;
+        if (sparseArrayIndexingType == ESparseArrayIndexingType::Indices) {
+            dstIndexing = MakeIntrusive<TIndexing>(TSparseSubsetIndices<TSize>(std::move(indexing)), size);
+        } else {
+            auto builder = CreateSparseArrayIndexingBuilder<TSize>(sparseArrayIndexingType);
+            for (auto i : indexing) {
+                builder->AddOrdered(i);
+            }
+            TVector<TSize>().swap(indexing); // force early CPU RAM release
+            dstIndexing = MakeIntrusive<TIndexing>(builder->Build(size));
+        }
+
+        return TSparseArrayBase<TValue, TContainer, TSize>(
+            std::move(dstIndexing),
+            createNonDefaultValuesContainer(std::move(nonDefaultValues)),
+            std::move(defaultValue)
+        );
+    }
 }

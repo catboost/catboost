@@ -426,6 +426,16 @@ namespace NCB {
         TValue DefaultValue;
     };
 
+    template <class TValue, class TContainer, class TSize, class TSrcValue>
+    TSparseArrayBase<TValue, TContainer, TSize> MakeSparseArrayBase(
+        TSize size,
+        TVector<TSize>&& indexing,
+        TVector<TSrcValue>&& nonDefaultValues,
+        std::function<TContainer(TVector<TSrcValue>&&)>&& createNonDefaultValuesContainer,
+        ESparseArrayIndexingType sparseArrayIndexingType = ESparseArrayIndexingType::Indices,
+        bool ordered = false,
+        TValue&& defaultValue = TValue(0));
+
     template <class TValue, class TSize>
     using TSparseArray = TSparseArrayBase<TValue, TMaybeOwningArrayHolder<TValue>, TSize>;
 
