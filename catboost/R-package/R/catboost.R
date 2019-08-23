@@ -1421,6 +1421,8 @@ catboost.train <- function(learn_pool, test_pool = NULL, params = list()) {
     if (length(params) == 0)
         message("Training catboost with default parameters! See help(catboost.train).")
 
+    params <- prepare_train_params(params)
+
     json_params <- jsonlite::toJSON(params, auto_unbox = TRUE)
     handle <- .Call("CatBoostFit_R", learn_pool, test_pool, json_params)
     raw <- .Call("CatBoostSerializeModel_R", handle)
@@ -1435,6 +1437,18 @@ catboost.train <- function(learn_pool, test_pool = NULL, params = list()) {
     return(model)
 }
 
+prepare_train_params <- function(params) {
+
+    if (!is.null(params$per_float_feature_quantization)) {
+        params$per_float_feature_quantization <- as.list(params$per_float_feature_quantization)
+    }
+
+    if (!is.null(params$ignored_features)) {
+        params$ignored_features <- as.character(params$ignored_features)
+    }
+
+    return(params)
+}
 
 #' Cross-validate model.
 #'

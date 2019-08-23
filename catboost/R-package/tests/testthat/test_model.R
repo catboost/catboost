@@ -25,6 +25,40 @@ test_that("model: catboost.train", {
   expect_equal(prediction_train_test, prediction_train)
 })
 
+test_that("model: catboost.train with per_float_quantization and ignored_features", {
+  target <- sample(c(1, -1), size = 1000, replace = TRUE)
+  features <- data.frame(f1 = rnorm(length(target), mean = 0, sd = 1),
+                         f2 = rnorm(length(target), mean = 0, sd = 1),
+                         f3 = rnorm(length(target), mean = 0, sd = 1),
+                         f4 = rnorm(length(target), mean = 0, sd = 1),
+                         f5 = rnorm(length(target), mean = 0, sd = 1))
+
+  split <- sample(nrow(features), size = floor(0.75 * nrow(features)))
+
+  pool_train <- catboost.load_pool(features[split, ], target[split])
+  pool_test <- catboost.load_pool(features[-split, ], target[-split])
+
+  iterations <- 10
+  params1 <- list(iterations = iterations,
+                 loss_function = "Logloss",
+                 random_seed = 12345,
+                 ignored_features = c(1, 3),
+                 per_float_feature_quantization = c('0:border_count=1024'),
+                 use_best_model = FALSE)
+
+  catboost.train(pool_train, NULL, params1)
+  
+  params2 <- list(iterations = iterations,
+                 loss_function = "Logloss",
+                 random_seed = 12345,
+                 ignored_features = c(1, 3),
+                 per_float_feature_quantization = c('0:border_count=1024', '1:border_count=1024'),
+                 use_best_model = FALSE)
+  catboost.train(pool_train, NULL, params2)
+
+  expect_true(TRUE)
+})
+
 test_that("model: catboost.importance", {
   target <- sample(c(1, -1), size = 1000, replace = TRUE)
   features <- data.frame(f1 = rnorm(length(target), mean = 0, sd = 1),
