@@ -1,5 +1,7 @@
 #include <catboost/libs/helpers/dynamic_iterator.h>
 
+#include <catboost/libs/helpers/vector_helpers.h>
+
 #include <util/generic/algorithm.h>
 #include <util/generic/array_size.h>
 #include <util/generic/xrange.h>
@@ -118,6 +120,39 @@ Y_UNIT_TEST_SUITE(DynamicIterator) {
                 UNIT_ASSERT_VALUES_EQUAL(i, next->first);
                 UNIT_ASSERT_VALUES_EQUAL(data[i], next->second);
             }
+            UNIT_ASSERT(!iterator.Next());
+        }
+    }
+
+    Y_UNIT_TEST(TArrayBlockIterator) {
+        using TIterator = TArrayBlockIterator<int>;
+
+        {
+            TIterator iterator{TConstArrayRef<int>()};
+            UNIT_ASSERT(!iterator.Next());
+        }
+
+        {
+            TVector<int> v = {0, 12, 5, 10, 11};
+            TIterator iterator(v);
+            UNIT_ASSERT(Equal(iterator.Next(), v));
+            UNIT_ASSERT(!iterator.Next());
+        }
+        {
+            TVector<int> v = {0, 12, 5, 10, 11, 3, 7, 18, 2, 1};
+            TIterator iterator(v);
+            UNIT_ASSERT(Equal(iterator.Next(3), TVector<int>{0, 12, 5}));
+            UNIT_ASSERT(Equal(iterator.Next(3), TVector<int>{10, 11, 3}));
+            UNIT_ASSERT(Equal(iterator.Next(3), TVector<int>{7, 18, 2}));
+            UNIT_ASSERT(Equal(iterator.Next(3), TVector<int>{1}));
+            UNIT_ASSERT(!iterator.Next());
+        }
+        {
+            TVector<int> v = {0, 12, 5, 10, 11, 3, 7, 18, 2, 1};
+            TIterator iterator(v);
+            UNIT_ASSERT(Equal(iterator.Next(4), TVector<int>{0, 12, 5, 10}));
+            UNIT_ASSERT(Equal(iterator.Next(1), TVector<int>{11}));
+            UNIT_ASSERT(Equal(iterator.Next(100), TVector<int>{3, 7, 18, 2, 1}));
             UNIT_ASSERT(!iterator.Next());
         }
     }

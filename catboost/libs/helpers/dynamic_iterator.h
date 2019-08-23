@@ -2,8 +2,11 @@
 
 #include <catboost/libs/index_range/index_range.h>
 
+#include <util/generic/array_ref.h>
 #include <util/generic/maybe.h>
 #include <util/generic/ptr.h>
+#include <util/generic/utility.h>
+#include <util/generic/ylimits.h>
 #include <util/system/compiler.h>
 #include <util/system/yassert.h>
 
@@ -28,11 +31,19 @@ namespace NCB {
         constexpr static TValue* VALUE = nullptr;
     };
 
+    template <class TValue>
+    struct IDynamicIteratorEnd<TConstArrayRef<TValue>> {
+        constexpr static TConstArrayRef<TValue> VALUE = TConstArrayRef<TValue>();
+    };
+
 
     /*
      * Use TReturnValue = 'TMaybe<TValue>' for const iteration over light or dynamically generated objects
      * Use TReturnValue = 'const TValue*'/'TValue*' for iteration objects stored somewhere
      *  Use if TValue is either heavy for copying or mutability of objects iterated over is desired
+     *
+     *  Other useful case is TConstArrayRef<T> for both TValue and TReturnValue, empty array will indicate
+     *    the end of iteration
      *
      * Both 'TMaybe<TValue>' and 'const TValue*' support
      *  checking for end of iteration with 'if (returnedValue)' and
@@ -266,4 +277,45 @@ namespace NCB {
         TIndex Index;
     };
 
+
+    template <class T>
+    struct IDynamicBlockIterator : public TThrRefBase {
+    public:
+        using value_type = T;
+
+    public:
+        virtual ~IDynamicBlockIterator() = default;
+
+        /*
+         * returns array with size <= maxBlockSize
+         * returns empty array if exhausted
+         *
+         * array contents are guaranteed to exist only until the next call to Next()
+         */
+        virtual TConstArrayRef<T> Next(size_t maxBlockSize = Max<size_t>()) = 0;
+    };
+
+
+    template <class TValue>
+    using IDynamicBlockIteratorPtr = THolder<IDynamicBlockIterator<TValue>>;
+
+
+    template <class T>
+    class TArrayBlockIterator final : public IDynamicBlockIterator<T> {
+    public:
+        TArrayBlockIterator(TConstArrayRef<T> array)
+            : Current(array.data())
+            , End(array.data() + array.size())
+        {}
+
+        TConstArrayRef<T> Next(size_t maxBlockSize = Max<size_t>()) override {
+            const size_t blockSize = Min(maxBlockSize, size_t(End - Current));
+            TConstArrayRef<T> result(Current, Current + blockSize);
+            Current += blockSize;
+            return result;
+        }
+    private:
+        const T* Current;
+        const T* const End;
+    };
 }
