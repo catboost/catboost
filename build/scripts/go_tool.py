@@ -264,6 +264,7 @@ def do_link_lib(args):
 
 def do_link_exe(args):
     assert args.extld is not None
+    assert args.non_local_peers is not None
     compile_args = copy_args(args)
     compile_args.output = os.path.join(args.output_root, 'main.a')
 
@@ -274,7 +275,7 @@ def do_link_exe(args):
 
     do_link_lib(compile_args)
     cmd = [args.go_link, '-o', args.output]
-    import_config_name = create_import_config(args.peers, args.import_map, args.module_map)
+    import_config_name = create_import_config(args.peers + args.non_local_peers, args.import_map, args.module_map)
     if import_config_name:
         cmd += ['-importcfg', import_config_name]
     if args.link_flags:
@@ -514,6 +515,7 @@ if __name__ == '__main__':
     parser.add_argument('++targ-os', choices=['linux', 'darwin', 'windows'], required=True)
     parser.add_argument('++targ-arch', choices=['amd64', 'x86'], required=True)
     parser.add_argument('++peers', nargs='*')
+    parser.add_argument('++non-local-peers', nargs='*')
     parser.add_argument('++cgo-peers', nargs='*')
     parser.add_argument('++asmhdr', nargs='?', default=None)
     parser.add_argument('++test-import-path', nargs='?')
