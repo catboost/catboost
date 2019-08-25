@@ -16,7 +16,7 @@
 /// for handy datetime utilities include util/datetime/base.h
 
 /// Current time in microseconds since epoch
-ui64 MicroSeconds();
+ui64 MicroSeconds() noexcept;
 /// Current time in milliseconds since epoch
 inline ui64 MilliSeconds() {
     return MicroSeconds() / ui64(1000);
@@ -26,13 +26,13 @@ inline ui64 millisec() {
     return MilliSeconds();
 }
 /// Current time in seconds since epoch
-ui32 Seconds();
+ui32 Seconds() noexcept;
 ///Current thread time in microseconds
-ui64 ThreadCPUUserTime();
-ui64 ThreadCPUSystemTime();
-ui64 ThreadCPUTime();
+ui64 ThreadCPUUserTime() noexcept;
+ui64 ThreadCPUSystemTime() noexcept;
+ui64 ThreadCPUTime() noexcept;
 
-void NanoSleep(ui64 ns);
+void NanoSleep(ui64 ns) noexcept;
 
 // GetCycleCount guarantees to return synchronous values on different cores
 // and provide constant rate only on modern Intel and AMD processors

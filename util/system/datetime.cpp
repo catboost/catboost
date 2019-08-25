@@ -9,30 +9,30 @@
 #include <errno.h>
 #include <string.h>
 
-ui64 ToMicroSeconds(const struct timeval& tv) {
+static ui64 ToMicroSeconds(const struct timeval& tv) {
     return (ui64)tv.tv_sec * 1000000 + (ui64)tv.tv_usec;
 }
 
 #if defined(_linux_) || defined(_freebsd_) || defined(_cygwin_)
-ui64 ToMicroSeconds(const struct timespec& ts) {
+static ui64 ToMicroSeconds(const struct timespec& ts) {
     return (ui64)ts.tv_sec * 1000000 + (ui64)ts.tv_nsec / 1000;
 }
 #endif
 
 #if defined(_win_)
-ui64 ToMicroSeconds(const FILETIME& ft) {
+static ui64 ToMicroSeconds(const FILETIME& ft) {
     return (((ui64)ft.dwHighDateTime << 32) + (ui64)ft.dwLowDateTime) / (ui64)10;
 }
 #endif
 
-ui64 MicroSeconds() {
+ui64 MicroSeconds() noexcept {
     struct timeval tv;
     gettimeofday(&tv, nullptr);
 
     return ToMicroSeconds(tv);
 }
 
-ui64 ThreadCPUUserTime() {
+ui64 ThreadCPUUserTime() noexcept{
 #if defined(_win_)
     FILETIME creationTime, exitTime, kernelTime, userTime;
     GetThreadTimes(GetCurrentThread(), &creationTime, &exitTime, &kernelTime, &userTime);
@@ -42,7 +42,7 @@ ui64 ThreadCPUUserTime() {
 #endif
 }
 
-ui64 ThreadCPUSystemTime() {
+ui64 ThreadCPUSystemTime() noexcept {
 #if defined(_win_)
     FILETIME creationTime, exitTime, kernelTime, userTime;
     GetThreadTimes(GetCurrentThread(), &creationTime, &exitTime, &kernelTime, &userTime);
@@ -52,7 +52,7 @@ ui64 ThreadCPUSystemTime() {
 #endif
 }
 
-ui64 ThreadCPUTime() {
+ui64 ThreadCPUTime() noexcept {
 #if defined(_win_)
     FILETIME creationTime, exitTime, kernelTime, userTime;
     GetThreadTimes(GetCurrentThread(), &creationTime, &exitTime, &kernelTime, &userTime);
@@ -66,13 +66,13 @@ ui64 ThreadCPUTime() {
 #endif
 }
 
-ui32 Seconds() {
+ui32 Seconds() noexcept {
     struct timeval tv;
     gettimeofday(&tv, nullptr);
     return tv.tv_sec;
 }
 
-void NanoSleep(ui64 ns) {
+void NanoSleep(ui64 ns) noexcept {
 #if defined(_win_)
     Sleep(ns / 1000000);
 #else
