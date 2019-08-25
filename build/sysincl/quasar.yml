@@ -38,3 +38,17 @@
   - optional
   - variant
   - msl_utility
+- source_filter: "^quasar/yandex_io/daemons/src/audiod/speex_port/"
+  includes:
+  - fixed_arm4.h
+  - fixed_arm5e.h
+  - fixed_bfin.h
+  - fixed_debug.h
+  - fixed_generic.h
+  - config.h
+  - os_support_custom.h
+- source_filter: "^quasar/yandex_io/daemons/src/wifid/wpa_supplicant/"
+  includes:
+  - private/android_filesystem_config.h
+  - cutils/sockets.h
+  - cutils/properties.h
