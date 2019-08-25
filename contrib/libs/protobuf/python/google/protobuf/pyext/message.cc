@@ -2882,8 +2882,8 @@ PyTypeObject CMessage_Type = {
 
 // --- Exposing the C proto living inside Python proto to C code:
 
-const Message* (*GetCProtoInsidePyProtoPtr)(PyObject* msg);
-Message* (*MutableCProtoInsidePyProtoPtr)(PyObject* msg);
+extern const Message* (*GetCProtoInsidePyProtoPtr)(PyObject* msg);
+extern Message* (*MutableCProtoInsidePyProtoPtr)(PyObject* msg);
 
 static const Message* GetCProtoInsidePyProtoImpl(PyObject* msg) {
   if (!PyObject_TypeCheck(msg, &CMessage_Type)) {
