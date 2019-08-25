@@ -40,7 +40,6 @@ SRCS(
     _ctypes/callbacks.c
     _ctypes/callproc.c
     _ctypes/cfield.c
-    _ctypes/malloc_closure.c
     _ctypes/stgdict.c
     _datetimemodule.c
     _decimal/_decimal.c
