@@ -1,5 +1,6 @@
 {
     "model_based_eval_options" : {
+        "use_evaluated_features_in_baseline_model" : false,
         "experiment_size" : 5,
         "experiment_count" : 200,
         "baseline_model_snapshot" : "baseline_model_snapshot",
@@ -18,6 +19,7 @@
             "type" : "None",
             "stop_pvalue" : 0
         },
+        "boost_from_average" : false,
         "min_fold_size" : 100,
         "permutation_count" : 4,
         "learning_rate" : 0.4402559996
@@ -137,8 +139,8 @@
     },
     "logging_level" : "Verbose",
     "data_processing_options" : {
+        "per_float_feature_quantization" : { },
         "has_time" : false,
-        "per_float_feature_binarization" : { },
         "gpu_cat_features_storage" : "GpuRam",
         "allow_const_label" : false,
         "text_processing" : {
@@ -164,8 +166,7 @@
         "rsm" : 1,
         "random_strength" : 1,
         "leaf_estimation_iterations" : 1,
-        "score_function" : "Correlation",
-        "max_ctr_complexity_for_borders_cache" : 1,
+        "score_function" : "Cosine",
         "leaf_estimation_backtracking" : "AnyImprovement",
         "bayesian_matrix_reg" : 0.1000000015,
         "fold_size_loss_normalization" : false,
@@ -174,6 +175,7 @@
             "bagging_temperature" : 1,
             "type" : "Bayesian"
         },
+        "dev_max_ctr_complexity_for_borders_cache" : 1,
         "observations_to_bootstrap" : "TestOnly",
         "grow_policy" : "SymmetricTree",
         "add_ridge_penalty_to_loss_function" : false,
