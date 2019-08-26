@@ -5190,3 +5190,15 @@ def test_groupwise_sampling_without_groups(task_type):
         return
 
     assert False
+
+
+def test_convert_to_asymmetric(task_type):
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    train_params = {
+        'iterations': 10,
+        'learning_rate': 0.03,
+        'task_type': task_type
+    }
+    model = CatBoost(train_params)
+    model.fit(train_pool)
+    model._convert_to_asymmetric_representation()

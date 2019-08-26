@@ -534,6 +534,7 @@ cdef extern from "catboost/libs/model/model.h":
         TVector[TFloatFeature] FloatFeatures
         void DropUnusedFeatures() except +ProcessException
         TVector[ui32] GetTreeLeafCounts() except +ProcessException
+        void ConvertObliviousToAsymmetric() except +ProcessException
 
     cdef cppclass TCOWTreeWrapper:
         const TObliviousTrees& operator*() except +ProcessException
@@ -3288,6 +3289,9 @@ cdef class _CatBoost:
             for value in feature_names:
                 feature_names_vector.push_back(to_arcadia_string(str(value)))
             SetModelExternalFeatureNames(feature_names_vector, self.__model)
+    
+    cpdef _convert_oblivious_to_asymmetric(self):
+        self.__model.ObliviousTrees.GetMutable().ConvertObliviousToAsymmetric()
 
 
 

@@ -2920,6 +2920,9 @@ class CatBoost(_CatBoostBase):
             stratified=stratified, train_size=train_size, verbose=verbose
         )
 
+    def _convert_to_asymmetric_representation(self):
+        self._object._convert_oblivious_to_asymmetric()
+
 class CatBoostClassifier(CatBoost):
 
     _estimator_type = 'classifier'
