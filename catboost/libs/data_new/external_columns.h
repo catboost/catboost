@@ -5,6 +5,9 @@
 
 #include <catboost/libs/helpers/sparse_array.h>
 
+#include <util/system/compiler.h>
+#include <util/system/yassert.h>
+
 
 namespace NCB {
 
@@ -27,6 +30,15 @@ namespace NCB {
         ) const override;
 
         NCB::TMaybeOwningArrayHolder<ui8> ExtractValues(NPar::TLocalExecutor* localExecutor) const override;
+
+        IDynamicBlockIteratorPtr<ui8> GetBlockIterator(ui32 offset = 0) const override {
+            Y_UNUSED(offset);
+            /* TODO(akhropov): Implement block iterators for external columns.
+             *  Not currently used as external columns are used only in GPU training
+             */
+            Y_FAIL("GetBlockIterator unimplemented for external columns");
+            Y_UNREACHABLE();
+        }
 
     private:
         NCB::TMaybeOwningConstArrayHolder<float> SrcData;
@@ -56,6 +68,15 @@ namespace NCB {
 
         NCB::TMaybeOwningArrayHolder<ui32> ExtractValues(NPar::TLocalExecutor* localExecutor) const override;
 
+        IDynamicBlockIteratorPtr<ui32> GetBlockIterator(ui32 offset = 0) const override {
+            Y_UNUSED(offset);
+            /* TODO(akhropov): Implement block iterators for external columns.
+             *  Not currently used as external columns are used only in GPU training
+             */
+            Y_FAIL("GetBlockIterator unimplemented for external columns");
+            Y_UNREACHABLE();
+        }
+
     private:
         NCB::TMaybeOwningConstArrayHolder<ui32> SrcData;
         const TFeaturesArraySubsetIndexing* SubsetIndexing;
@@ -79,6 +100,15 @@ namespace NCB {
         {}
 
         NCB::TMaybeOwningArrayHolder<ui8> ExtractValues(NPar::TLocalExecutor* localExecutor) const override;
+
+        IDynamicBlockIteratorPtr<ui8> GetBlockIterator(ui32 offset = 0) const override {
+            Y_UNUSED(offset);
+            /* TODO(akhropov): Implement block iterators for external columns.
+            *  Not currently used as external columns are used only in GPU training
+            */
+            Y_FAIL("GetBlockIterator unimplemented for external columns");
+            Y_UNREACHABLE();
+        }
 
         void ScheduleGetSubset(
             // pointer to capture in lambda
@@ -113,6 +143,15 @@ namespace NCB {
         {}
 
         NCB::TMaybeOwningArrayHolder<ui32> ExtractValues(NPar::TLocalExecutor* localExecutor) const override;
+
+        IDynamicBlockIteratorPtr<ui32> GetBlockIterator(ui32 offset = 0) const override {
+            Y_UNUSED(offset);
+            /* TODO(akhropov): Implement block iterators for external columns.
+            *  Not currently used as external columns are used only in GPU training
+            */
+            Y_FAIL("GetBlockIterator unimplemented for external columns");
+            Y_UNREACHABLE();
+        }
 
         void ScheduleGetSubset(
             // pointer to capture in lambda

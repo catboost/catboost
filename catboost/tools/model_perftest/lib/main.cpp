@@ -172,14 +172,28 @@ int DoMain(int argc, char** argv) {
         /*classNames*/ Nothing()
     );
 
-    const auto* rawObjectsData = dynamic_cast<const NCB::TRawObjectsDataProvider*>(dataset->ObjectsData.Get());
-    CB_ENSURE(rawObjectsData, "Not supported for quantized pools");
-    const ui32 consecutiveSubsetBegin = NCB::GetConsecutiveSubsetBegin(*rawObjectsData);
-    auto getFeatureDataBeginPtr = [&](ui32 flatFeatureIdx) -> const float* {
-        return NCB::GetRawFeatureDataBeginPtr(
-            *rawObjectsData,
-            consecutiveSubsetBegin,
-            flatFeatureIdx);
+    THolder<NCB::IFeaturesBlockIterator> featuresBlockIterator
+        = NCB::CreateFeaturesBlockIterator(model, *(dataset->ObjectsData), 0, dataset->GetObjectCount());
+
+    NCB::TRawFeaturesBlockIterator* rawFeaturesBlockIterator
+        = dynamic_cast<NCB::TRawFeaturesBlockIterator*>(featuresBlockIterator.Get());
+
+    CB_ENSURE(rawFeaturesBlockIterator, "Not supported for quantized pools");
+
+    rawFeaturesBlockIterator->NextBlock((size_t)dataset->GetObjectCount());
+
+    const auto& featuresLayout = *dataset->MetaInfo.FeaturesLayout;
+
+    auto getFeatureDataBeginPtr = [&] (size_t flatFeatureIdx) -> const float* {
+        auto featureType = featuresLayout.GetExternalFeatureType(flatFeatureIdx);
+        switch (featureType) {
+            case EFeatureType::Float:
+                return rawFeaturesBlockIterator->GetFloatValues()[flatFeatureIdx].data();
+            case EFeatureType::Categorical:
+                return (const float*)rawFeaturesBlockIterator->GetCatValues()[flatFeatureIdx].data();
+            default:
+                CB_ENSURE(false, "Unsupported column type :" << featureType);
+        }
     };
 
 

@@ -1,4 +1,4 @@
-#include "model_test_helpers.h"
+#include <catboost/libs/model/ut/lib/model_test_helpers.h>
 
 #include <catboost/libs/algo/apply.h>
 #include <catboost/libs/train_lib/train_model.h>

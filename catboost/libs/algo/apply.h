@@ -1,5 +1,7 @@
 #pragma once
 
+#include "features_data_helpers.h"
+
 #include <catboost/libs/data_new/objects.h>
 #include <catboost/libs/options/enums.h>
 #include <catboost/libs/model/fwd.h>
@@ -85,7 +87,23 @@ public:
     TVector<NCB::NModelEvaluation::TCalcerIndexType> Get() const;
 
 private:
-    THolder<NCB::NModelEvaluation::ILeafIndexCalcer> InnerLeafIndexCalcer;
+    void CalcNextBatch();
+
+private:
+    const TFullModel& Model;
+    NCB::NModelEvaluation::TConstModelEvaluatorPtr ModelEvaluator;
+
+    THolder<NCB::IFeaturesBlockIterator> FeaturesBlockIterator;
+
+    TVector<NCB::NModelEvaluation::TCalcerIndexType> CurrentBatchLeafIndexes;
+
+    const size_t DocCount;
+    const size_t TreeStart;
+    const size_t TreeEnd;
+
+    size_t CurrBatchStart;
+    size_t CurrBatchSize;
+    size_t CurrDocIndex;
 };
 
 TVector<ui32> CalcLeafIndexesMulti(

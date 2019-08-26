@@ -1,4 +1,4 @@
-#include "model_test_helpers.h"
+#include <catboost/libs/model/ut/lib/model_test_helpers.h>
 
 #include <catboost/libs/model/model_export/export_helpers.h>
 

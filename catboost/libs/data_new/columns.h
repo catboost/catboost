@@ -8,6 +8,7 @@
 #include <catboost/libs/data_types/text.h>
 #include <catboost/libs/helpers/array_subset.h>
 #include <catboost/libs/helpers/compression.h>
+#include <catboost/libs/helpers/dynamic_iterator.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/maybe_owning_array_holder.h>
 #include <catboost/libs/helpers/resource_constrained_executor.h>
@@ -138,6 +139,8 @@ namespace NCB {
         {}
 
         virtual TMaybeOwningArrayHolder<T> ExtractValues(NPar::TLocalExecutor* localExecutor) const = 0;
+
+        virtual IDynamicBlockIteratorPtr<T> GetBlockIterator(ui32 offset = 0) const = 0;
     };
 
 
@@ -208,6 +211,19 @@ namespace NCB {
             );
         }
 
+        IDynamicBlockIteratorPtr<T> GetBlockIterator(ui32 offset = 0) const override {
+            /* TODO(akhropov): implement  TTypedFeatureValuesHolder::GetIterator that will support
+             *  non-consecutive data as well. MLTOOLS-3185.
+             */
+
+            return MakeHolder<TArrayBlockIterator<T>>(
+                TArrayRef(
+                    SrcData.data() + SubsetIndexing->GetConsecutiveSubsetBeginNonChecked() + offset,
+                    SubsetIndexing->Size() - offset
+                )
+            );
+        }
+
     private:
         TMaybeOwningConstArrayHolder<T> SrcData;
         const TFeaturesArraySubsetIndexing* SubsetIndexing;
@@ -249,6 +265,10 @@ namespace NCB {
             return TMaybeOwningArrayHolder<T>::CreateOwning(Data.ExtractValues());
         }
 
+        IDynamicBlockIteratorPtr<T> GetBlockIterator(ui32 offset = 0) const override {
+            return Data.GetBlockIterator(offset);
+        }
+
     private:
         TConstSparseArray<T, ui32> Data;
     };
@@ -270,6 +290,33 @@ namespace NCB {
     /*******************************************************************************************************
      * Quantized/prepared for quantization data
      */
+
+    // calls generic f with 'const T' pointer to raw data of compressedArray with the appropriate T
+    template <class F>
+    inline void DispatchBitsPerKeyToDataType(
+        const TCompressedArray& compressedArray,
+        const TStringBuf errorMessagePrefix,
+        F&& f
+    ) {
+        const auto bitsPerKey = compressedArray.GetBitsPerKey();
+        const char* rawDataPtr = compressedArray.GetRawPtr();
+        switch (bitsPerKey) {
+            case 8:
+                f((const ui8*)rawDataPtr);
+                break;
+            case 16:
+                f((const ui16*)rawDataPtr);
+                break;
+            case 32:
+                f((const ui32*)rawDataPtr);
+                break;
+            default:
+                CB_ENSURE_INTERNAL(
+                    false,
+                    errorMessagePrefix << "unsupported bitsPerKey: " << bitsPerKey);
+        }
+    }
+
 
     template <class T, EFeatureValuesType TType>
     class TCompressedValuesHolderImpl : public TCloneableWithSubsetIndexingValuesHolder<T, TType> {
@@ -310,6 +357,14 @@ namespace NCB {
             return TMaybeOwningArrayHolder<T2>::CreateOwning(
                 ::NCB::GetSubset<T2>(SrcData, *SubsetIndexing, localExecutor)
             );
+        }
+
+        IDynamicBlockIteratorPtr<T> GetBlockIterator(ui32 offset = 0) const override {
+            /* TODO(akhropov): implement  TTypedFeatureValuesHolder::GetIterator that will support
+             *  non-consecutive data as well. MLTOOLS-3185.
+             */
+
+            return SrcData.GetBlockIterator<T>(SubsetIndexing->GetConsecutiveSubsetBeginNonChecked() + offset);
         }
 
         template <class F>
@@ -389,6 +444,12 @@ namespace NCB {
             return TMaybeOwningArrayHolder<T>::CreateOwning(Data.ExtractValues());
         }
 
+        IDynamicBlockIteratorPtr<T> GetBlockIterator(ui32 offset = 0) const override {
+            return MakeHolder<typename TSparseCompressedArray<T, ui32>::TBlockIterator>(
+                Data.GetBlockIterator(offset)
+            );
+        }
+
         const TSparseCompressedArray<T, ui32>& GetData() const {
             return Data;
         }
@@ -452,6 +513,30 @@ namespace NCB {
             return ExtractValuesT<T>(localExecutor);
         }
 
+        IDynamicBlockIteratorPtr<T> GetBlockIterator(ui32 offset = 0) const override {
+            if (const auto* packsArrayData = dynamic_cast<const TBinaryPacksArrayHolder*>(PacksData)) {
+                auto compressedArrayData = packsArrayData->GetCompressedData();
+                const TCompressedArray& compressedArray = *compressedArrayData.GetSrc();
+                const TFeaturesArraySubsetIndexing* subsetIndexing = compressedArrayData.GetSubsetIndexing();
+
+                NCB::TBinaryFeaturesPack bitMask = NCB::TBinaryFeaturesPack(1) << BitIdx;
+
+                auto transformer = [bitIdx = BitIdx, bitMask](TBinaryFeaturesPack pack) {
+                    return (pack & bitMask) >> bitIdx;
+                };
+
+                return
+                    MakeHolder<TTransformArrayBlockIterator<T, TBinaryFeaturesPack, decltype(transformer)>>(
+                        compressedArray.GetRawArray<const TBinaryFeaturesPack>().subspan(
+                            subsetIndexing->GetConsecutiveSubsetBeginNonChecked() + offset
+                        ),
+                        std::move(transformer)
+                    );
+            } else {
+                Y_FAIL("PacksData is not TBinaryPacksArrayHolder");
+            }
+        }
+
     private:
         const TBinaryPacksHolder* PacksData;
         ui8 BitIdx;
@@ -510,6 +595,42 @@ namespace NCB {
                     Y_UNREACHABLE();
             }
             Y_UNREACHABLE();
+        }
+
+        IDynamicBlockIteratorPtr<T> GetBlockIterator(ui32 offset = 0) const override {
+            if (const auto* bundlesArrayData
+                = dynamic_cast<const TExclusiveFeatureBundleArrayHolder*>(BundlesData))
+            {
+                auto compressedArrayData = bundlesArrayData->GetCompressedData();
+                const TCompressedArray& compressedArray = *compressedArrayData.GetSrc();
+                const TFeaturesArraySubsetIndexing* subsetIndexing = compressedArrayData.GetSubsetIndexing();
+
+                IDynamicBlockIteratorPtr<T> result;
+
+                DispatchBitsPerKeyToDataType(
+                    compressedArray,
+                    "TBundlePartValuesHolderImpl::GetBlockIterator",
+                    [&] (const auto* histogram) {
+                        using TBundle = std::remove_cvref_t<decltype(*histogram)>;
+
+                        auto transformer = [boundsInBundle = BoundsInBundle] (TBundle bundle) {
+                            return GetBinFromBundle<T>(bundle, boundsInBundle);
+                        };
+
+                        result = MakeHolder<TTransformArrayBlockIterator<T, TBundle, decltype(transformer)>>(
+                            TArrayRef(
+                                histogram + subsetIndexing->GetConsecutiveSubsetBeginNonChecked() + offset,
+                                TBase::GetSize() - offset
+                            ),
+                            std::move(transformer)
+                        );
+                    }
+                );
+
+                return result;
+            } else {
+                Y_FAIL("BundlesData is not TBundlesArrayData");
+            }
         }
 
         ui32 GetBundleSizeInBytes() const {
@@ -592,6 +713,40 @@ namespace NCB {
                     Y_UNREACHABLE();
             }
             Y_UNREACHABLE();
+        }
+
+        IDynamicBlockIteratorPtr<T> GetBlockIterator(ui32 offset = 0) const override {
+            if (const auto* groupsArrayData = dynamic_cast<const TFeaturesGroupArrayHolder*>(GroupData)) {
+                auto compressedArrayData = groupsArrayData->GetCompressedData();
+                const TCompressedArray& compressedArray = *compressedArrayData.GetSrc();
+                const TFeaturesArraySubsetIndexing* subsetIndexing = compressedArrayData.GetSubsetIndexing();
+
+                IDynamicBlockIteratorPtr<T> result;
+
+                DispatchBitsPerKeyToDataType(
+                    compressedArray,
+                    "TFeaturesGroupPartValuesHolderImpl::GetBlockIterator",
+                    [&] (const auto* histogram) {
+                        using TGroup = std::remove_cvref_t<decltype(*histogram)>;
+
+                        auto transformer = [firstBitPos = InGroupIdx * CHAR_BIT] (TGroup group) {
+                            return group >> firstBitPos;
+                        };
+
+                        result = MakeHolder<TTransformArrayBlockIterator<T, TGroup, decltype(transformer)>>(
+                            TArrayRef(
+                                histogram + subsetIndexing->GetConsecutiveSubsetBeginNonChecked() + offset,
+                                TBase::GetSize() - offset
+                            ),
+                            std::move(transformer)
+                        );
+                    }
+                );
+
+                return result;
+            } else {
+                Y_FAIL("GroupsData is not TFeaturesGroupArrayData");
+            }
         }
 
     private:

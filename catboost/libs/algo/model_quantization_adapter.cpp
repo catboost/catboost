@@ -2,88 +2,96 @@
 
 #include "features_data_helpers.h"
 
-#include <catboost/libs/data_new/data_provider.h>
 #include <catboost/libs/model/cpu/quantization.h>
 
 using namespace NCB;
 using namespace NCB::NModelEvaluation;
 
-static void BinarizeRawFeatures(
-    const TFullModel& model,
-    const TRawObjectsDataProvider& rawObjectsData,
-    size_t start,
-    size_t end,
-    TCPUEvaluatorQuantizedData* result) {
 
-    THashMap<ui32, ui32> columnReorderMap;
-    CheckModelAndDatasetCompatibility(model, rawObjectsData, &columnReorderMap);
-    const auto docCount = end - start;
-    const auto blockSize = Min(docCount, FORMULA_EVALUATION_BLOCK_SIZE);
-    TVector<ui32> transposedHash(blockSize * model.GetUsedCatFeaturesCount());
-    TVector<float> ctrs(model.ObliviousTrees->GetUsedModelCtrs().size() * blockSize);
-    TRawFeatureAccessor featureAccessor(model, rawObjectsData, columnReorderMap, start, end);
+namespace {
 
-    BinarizeFeatures(
-        *model.ObliviousTrees,
-        model.CtrProvider,
-        featureAccessor.GetFloatAccessor(),
-        featureAccessor.GetCatAccessor(),
-        0,
-        docCount,
-        result,
-        transposedHash,
-        ctrs
-    );
-}
+    class TMakeQuantizedFeaturesVisitor final : public IFeaturesBlockIteratorVisitor {
+    public:
+        TMakeQuantizedFeaturesVisitor(const TFullModel& model, size_t objectsStart, size_t objectsEnd)
+            : Model(model)
+            , ObjectsStart(objectsStart)
+            , ObjectsEnd(objectsEnd)
+            , Result(MakeIntrusive<TCPUEvaluatorQuantizedData>())
+        {
+            Result->QuantizedData = TMaybeOwningArrayHolder<ui8>::CreateOwning(
+                TVector<ui8>(
+                    Model.ObliviousTrees->GetEffectiveBinaryFeaturesBucketsCount()
+                        * (ObjectsEnd - ObjectsStart)));
+        }
 
-static void AssignFeatureBins(
-    const TFullModel& model,
-    const TQuantizedForCPUObjectsDataProvider& quantizedObjectsData,
-    size_t start,
-    size_t end,
-    TCPUEvaluatorQuantizedData* cpuEvaluatorQuantizedData)
-{
-    THashMap<ui32, ui32> columnReorderMap;
-    CheckModelAndDatasetCompatibility(model, quantizedObjectsData, &columnReorderMap);
-    TQuantizedFeatureAccessor quantizedFeatureAccessor(
-        model,
-        quantizedObjectsData,
-        columnReorderMap,
-        start,
-        end
-    );
+        void Visit(const TRawFeaturesBlockIterator& rawFeaturesBlockIterator) override {
+            TRawFeatureAccessor rawFeatureAccessor = rawFeaturesBlockIterator.GetAccessor();
 
-    AssignFeatureBins(
-        *model.ObliviousTrees,
-        quantizedFeatureAccessor.GetFloatAccessor(),
-        quantizedFeatureAccessor.GetCatAccessor(),
-        0,
-        end - start,
-        cpuEvaluatorQuantizedData
-    );
+            const auto docCount = ObjectsEnd - ObjectsStart;
+            const auto blockSize = Min(docCount, FORMULA_EVALUATION_BLOCK_SIZE);
+            TVector<ui32> transposedHash(blockSize * Model.GetUsedCatFeaturesCount());
+            TVector<float> ctrs(Model.ObliviousTrees->GetUsedModelCtrs().size() * blockSize);
+
+            BinarizeFeatures(
+                *Model.ObliviousTrees,
+                Model.CtrProvider,
+                rawFeatureAccessor.GetFloatAccessor(),
+                rawFeatureAccessor.GetCatAccessor(),
+                0,
+                docCount,
+                Result.Get(),
+                transposedHash,
+                ctrs
+            );
+        }
+
+        void Visit(const TQuantizedFeaturesBlockIterator& quantizedFeaturesBlockIterator) override {
+            TQuantizedFeatureAccessor quantizedFeatureAccessor = quantizedFeaturesBlockIterator.GetAccessor();
+            AssignFeatureBins(
+               *Model.ObliviousTrees,
+               quantizedFeatureAccessor.GetFloatAccessor(),
+               quantizedFeatureAccessor.GetCatAccessor(),
+               0,
+               ObjectsEnd - ObjectsStart,
+               Result.Get());
+        }
+
+        TIntrusivePtr<TCPUEvaluatorQuantizedData> GetResult() {
+            return std::move(Result);
+        }
+
+    private:
+        const TFullModel& Model;
+        size_t ObjectsStart;
+        size_t ObjectsEnd;
+        TIntrusivePtr<TCPUEvaluatorQuantizedData> Result;
+    };
+
 }
 
 namespace NCB {
+    TIntrusivePtr<NModelEvaluation::IQuantizedData> MakeQuantizedFeaturesForEvaluator(
+        const TFullModel& model,
+        const IFeaturesBlockIterator& featuresBlockIterator,
+        size_t start,
+        size_t end) {
+
+        TMakeQuantizedFeaturesVisitor visitor(model, start, end);
+        featuresBlockIterator.Accept(&visitor);
+        return visitor.GetResult();
+    }
+
     TIntrusivePtr<NModelEvaluation::IQuantizedData> MakeQuantizedFeaturesForEvaluator(
         const TFullModel& model,
         const TObjectsDataProvider& objectsData,
         size_t start,
         size_t end) {
 
-        TIntrusivePtr<TCPUEvaluatorQuantizedData> result = MakeIntrusive<TCPUEvaluatorQuantizedData>();
-        result->QuantizedData = TMaybeOwningArrayHolder<ui8>::CreateOwning(TVector<ui8>(
-            model.ObliviousTrees->GetEffectiveBinaryFeaturesBucketsCount() * (end - start)
-        ));
-        if (const auto* const rawObjectsData = dynamic_cast<const TRawObjectsDataProvider*>(&objectsData)) {
-            BinarizeRawFeatures(model, *rawObjectsData, start, end, result.Get());
-        } else if (
-            const auto* const quantizedObjectsData
-                = dynamic_cast<const TQuantizedForCPUObjectsDataProvider*>(&objectsData)) {
-            AssignFeatureBins(model, *quantizedObjectsData, start, end, result.Get());
-        } else {
-            ythrow TCatBoostException() << "Unsupported objects data - neither raw nor quantized for CPU";
-        }
-        return result;
+        THolder<IFeaturesBlockIterator> featuresBlockIterator
+            = CreateFeaturesBlockIterator(model, objectsData, start, end);
+        featuresBlockIterator->NextBlock(end - start);
+
+        return MakeQuantizedFeaturesForEvaluator(model, *featuresBlockIterator, start, end);
     }
 
     TIntrusivePtr<NModelEvaluation::IQuantizedData> MakeQuantizedFeaturesForEvaluator(

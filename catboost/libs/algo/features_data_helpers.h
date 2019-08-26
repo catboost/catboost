@@ -1,350 +1,268 @@
 #pragma once
 
-#include <catboost/libs/data_new/objects.h>
 #include <catboost/libs/data_new/model_dataset_compatibility.h>
+#include <catboost/libs/data_new/objects.h>
+#include <catboost/libs/helpers/dynamic_iterator.h>
 #include <catboost/libs/helpers/exception.h>
-#include <catboost/libs/helpers/maybe_owning_array_holder.h>
-#include <catboost/libs/index_range/index_range.h>
-#include <catboost/libs/cat_feature/cat_feature.h>
+#include <catboost/libs/model/model.h>
 
+#include <util/generic/array_ref.h>
 #include <util/generic/cast.h>
-#include <util/stream/labeled.h>
+#include <util/generic/hash.h>
+#include <util/generic/ptr.h>
+#include <util/generic/vector.h>
+#include <util/generic/xrange.h>
 #include <util/system/compiler.h>
-
-#include <climits>
+#include <util/system/types.h>
+#include <util/system/yassert.h>
 
 
 namespace NCB {
-    template <class TDataProvidersTemplate>
-    inline ui32 GetConsecutiveSubsetBegin(const TDataProvidersTemplate& objectsData) {
-        const auto maybeConsecutiveSubsetBegin =
-            objectsData.GetFeaturesArraySubsetIndexing().GetConsecutiveSubsetBegin();
-        CB_ENSURE_INTERNAL(
-            maybeConsecutiveSubsetBegin,
-            "Only consecutive feature data is supported for apply"
-        );
-        return *maybeConsecutiveSubsetBegin;
-    }
 
-    template <class T, EFeatureValuesType FeatureValuesType>
-    inline const float* GetRawFeatureDataBeginPtr(
-        TMaybeData<const TTypedFeatureValuesHolder<T, FeatureValuesType>*> column,
-        ui32 consecutiveSubsetBegin)
-    {
-        const TMaybeOwningArrayHolder<const T> fullData =
-            *((dynamic_cast<const TArrayValuesHolder<T, FeatureValuesType>&>(**column)).GetArrayData()
-                .GetSrc()
-        );
-        return reinterpret_cast<const float*>((*fullData).data()) + consecutiveSubsetBegin;
-    }
+    class TRawFeaturesBlockIterator;
+    class TQuantizedFeaturesBlockIterator;
 
-    // raw data array is returned, in case of compressed data using external bitsPerKey might be necessary
-    template <class T, EFeatureValuesType FeatureValuesType>
-    TMaybeOwningArrayHolder<ui8> GetConsecutiveSubRangeColumnData(
-        const TTypedFeatureValuesHolder<T, FeatureValuesType>& column,
-        ui32 consecutiveSubsetBegin,
-        TIndexRange<ui32> indexRange)
-    {
-        if (const auto* arrayValuesHolder
-                = dynamic_cast<const TArrayValuesHolder<T, FeatureValuesType>*>(&column))
-        {
-            const auto& arrayData = arrayValuesHolder->GetArrayData();
-            const auto& fullDataHolder = *arrayData.GetSrc();
+    class IFeaturesBlockIteratorVisitor {
+    public:
+        virtual ~IFeaturesBlockIteratorVisitor() = default;
 
-            return TMaybeOwningArrayHolder<ui8>::CreateNonOwning(
-                MakeArrayRef(
-                    (ui8*)(fullDataHolder.data() + consecutiveSubsetBegin + indexRange.Begin),
-                    indexRange.GetSize() * sizeof(T)
-                )
-            );
-        } else if (const auto* compressedArrayValuesHolder
-                       = dynamic_cast<const TCompressedValuesHolderImpl<T, FeatureValuesType>*>(&column))
-        {
-            const auto& compressedArrayData = *(compressedArrayValuesHolder->GetCompressedData().GetSrc());
-
-            const ui32 bitsPerKey = compressedArrayData.GetBitsPerKey();
-
-            CB_ENSURE_INTERNAL(!(bitsPerKey % CHAR_BIT), "unsupported " << LabeledOutput(bitsPerKey));
-
-            const ui32 bytesPerKey = bitsPerKey / CHAR_BIT;
-
-            return TMaybeOwningArrayHolder<ui8>::CreateNonOwning(
-                MakeArrayRef(
-                    (ui8*)(
-                        compressedArrayData.GetRawPtr()
-                        + (consecutiveSubsetBegin + indexRange.Begin) * bytesPerKey),
-                    indexRange.GetSize() * bytesPerKey
-                )
-            );
-        } else {
-            CB_ENSURE_INTERNAL(false, "GetConsecutiveSubRangeColumnData: unsupported column type");
+        virtual void Visit(const TRawFeaturesBlockIterator& rawFeaturesBlockIterator) {
+            Y_UNUSED(rawFeaturesBlockIterator);
         }
-        Y_UNREACHABLE();
-    }
 
-
-    inline const float* GetRawFeatureDataBeginPtr(
-        const TRawObjectsDataProvider& rawObjectsData,
-        ui32 consecutiveSubsetBegin,
-        ui32 flatFeatureIdx)
-    {
-        const auto featuresLayout = rawObjectsData.GetFeaturesLayout();
-        const ui32 internalFeatureIdx = featuresLayout->GetInternalFeatureIdx(flatFeatureIdx);
-        if (featuresLayout->GetExternalFeatureType(flatFeatureIdx) == EFeatureType::Float) {
-            return GetRawFeatureDataBeginPtr(
-                rawObjectsData.GetFloatFeature(internalFeatureIdx),
-                consecutiveSubsetBegin
-            );
-        } else {
-            return GetRawFeatureDataBeginPtr(
-                rawObjectsData.GetCatFeature(internalFeatureIdx),
-                consecutiveSubsetBegin
-            );
+        virtual void Visit(const TQuantizedFeaturesBlockIterator& quantizedFeaturesBlockIterator) {
+            Y_UNUSED(quantizedFeaturesBlockIterator);
         }
-    }
+    };
+
+    class IFeaturesBlockIterator {
+    public:
+        virtual ~IFeaturesBlockIterator() = default;
+
+        virtual void NextBlock(size_t size) = 0;
+
+        virtual void Accept(IFeaturesBlockIteratorVisitor* visitor) const = 0;
+    };
 
     namespace NDetail {
-        class TBaseRawFeatureAccessor {
+
+        template <class TObjectsDataProviderType, class TFloatValue, class TCatValue, class TAccessor>
+        class TFeaturesBlockIteratorBase : public IFeaturesBlockIterator {
         public:
-            TBaseRawFeatureAccessor(
-                const TRawObjectsDataProvider& rawObjectsData,
-                const TFullModel& model
-            )
-                : RepackedFeaturesHolder(MakeAtomicShared<TVector<TMaybeOwningArrayHolder<float>>>())
-                , RawObjectsData(rawObjectsData)
-                , ConsecutiveSubsetBegin(GetConsecutiveSubsetBegin(rawObjectsData))
-                , RepackedFeaturesRef(*RepackedFeaturesHolder)
-            {
-                RepackedFeaturesRef.resize(model.ObliviousTrees->GetFlatFeatureVectorExpectedSize());
-            }
-
-            void AddFeature(
-                ui32 sourceFlatFeatureIdx,
-                ui32 repackedFlatFeatureIdx,
-                TIndexRange<ui32> objectRange)
-            {
-                const auto featuresLayout = RawObjectsData.GetFeaturesLayout();
-                const ui32 internalFeatureIdx = featuresLayout->GetInternalFeatureIdx(sourceFlatFeatureIdx);
-
-                TMaybeOwningArrayHolder<ui8> rawData;
-
-                auto getRawData = [&] (const auto& column) {
-                    return GetConsecutiveSubRangeColumnData(column, ConsecutiveSubsetBegin, objectRange);
-                };
-
-                if (featuresLayout->GetExternalFeatureType(sourceFlatFeatureIdx) == EFeatureType::Float) {
-                    rawData = getRawData(**RawObjectsData.GetFloatFeature(internalFeatureIdx));
-                } else {
-                    rawData = getRawData(**RawObjectsData.GetCatFeature(internalFeatureIdx));
-                }
-                if (repackedFlatFeatureIdx >= RepackedFeaturesRef.size()) {
-                    RepackedFeaturesRef.resize(repackedFlatFeatureIdx + 1);
-                }
-                RepackedFeaturesRef[repackedFlatFeatureIdx]
-                    = TMaybeOwningArrayHolder<float>::CreateOwningReinterpretCast(rawData);
-            }
-
-            Y_FORCE_INLINE auto GetFloatAccessor() {
-                return [this](TFeaturePosition position, size_t index) -> float {
-                    Y_ASSERT(SafeIntegerCast<size_t>(position.FlatIndex) < RepackedFeaturesRef.size());
-                    Y_ASSERT(SafeIntegerCast<size_t>(index) <
-                             RepackedFeaturesRef[position.FlatIndex].GetSize());
-                    return RepackedFeaturesRef[position.FlatIndex][index];
-                };
-            }
-
-            Y_FORCE_INLINE auto GetCatAccessor() {
-                 return [this] (TFeaturePosition position, size_t index) -> ui32 {
-                    Y_ASSERT(SafeIntegerCast<size_t>(position.FlatIndex) < RepackedFeaturesRef.size());
-                    Y_ASSERT(SafeIntegerCast<size_t>(index) <
-                    RepackedFeaturesRef[position.FlatIndex].GetSize());
-                    return ConvertFloatCatFeatureToIntHash(
-                        RepackedFeaturesRef[position.FlatIndex][index]);
-
-                };
-            };
-
-        private:
-            TAtomicSharedPtr<TVector<TMaybeOwningArrayHolder<float>>> RepackedFeaturesHolder;
-            const TRawObjectsDataProvider& RawObjectsData;
-            const ui32 ConsecutiveSubsetBegin;
-
-            TVector<TMaybeOwningArrayHolder<float>>& RepackedFeaturesRef;
-        };
-
-        class TBaseQuantizedFeatureAccessor {
-        public:
-            TBaseQuantizedFeatureAccessor(
-                const TQuantizedForCPUObjectsDataProvider& quantizedObjectsData,
-                const TFullModel& model
-            )
-                : HeavyDataHolder(MakeAtomicShared<TQuantizedFeaturesAccessorData>())
-                , BundlesMetaData(quantizedObjectsData.GetExclusiveFeatureBundlesMetaData())
-                , FloatBinsRemapRef(HeavyDataHolder->FloatBinsRemap)
-                , PackedIndexesRef(HeavyDataHolder->PackedIndexes)
-                , BundledIndexesRef(HeavyDataHolder->BundledIndexes)
-                , QuantizedObjectsData(quantizedObjectsData)
-                , ConsecutiveSubsetBegin(GetConsecutiveSubsetBegin(quantizedObjectsData))
-                , RepackedFeaturesRef(HeavyDataHolder->RepackedFeatures)
-            {
-                FloatBinsRemapRef = GetFloatFeaturesBordersRemap(
-                    model, *quantizedObjectsData.GetQuantizedFeaturesInfo().Get());
-                PackedIndexesRef.resize(model.ObliviousTrees->GetFlatFeatureVectorExpectedSize());
-                BundledIndexesRef.resize(model.ObliviousTrees->GetFlatFeatureVectorExpectedSize());
-                RepackedFeaturesRef.resize(model.ObliviousTrees->GetFlatFeatureVectorExpectedSize());
-
-                HeavyDataHolder->RepackedBundleData.resize(
-                    quantizedObjectsData.GetExclusiveFeatureBundlesSize());
-                HeavyDataHolder->RepackedBinaryPacksData.resize(
-                    quantizedObjectsData.GetBinaryFeaturesPacksSize());
-            }
-
-            void AddFeature(
-                ui32 sourceFlatFeatureIdx,
-                ui32 repackedFlatFeatureIdx,
-                TIndexRange<ui32> objectRange)
-            {
-                BundledIndexesRef[repackedFlatFeatureIdx]
-                    = QuantizedObjectsData.GetFloatFeatureToExclusiveBundleIndex(
-                        TFloatFeatureIdx(sourceFlatFeatureIdx));
-                PackedIndexesRef[repackedFlatFeatureIdx]
-                    = QuantizedObjectsData.GetFloatFeatureToPackedBinaryIndex(
-                        TFloatFeatureIdx(sourceFlatFeatureIdx));
-
-                auto getColumnSubRangeData = [&] (const auto& column) {
-                    return GetConsecutiveSubRangeColumnData(column, ConsecutiveSubsetBegin, objectRange);
-                };
-
-                if (BundledIndexesRef[repackedFlatFeatureIdx].Defined()) {
-                    auto bundleIdx = BundledIndexesRef[repackedFlatFeatureIdx]->BundleIdx;
-                    if (!HeavyDataHolder->RepackedBundleData[bundleIdx].GetSize()) {
-                        HeavyDataHolder->RepackedBundleData[bundleIdx] = getColumnSubRangeData(
-                            QuantizedObjectsData.GetExclusiveFeaturesBundle(bundleIdx));
-                    }
-                } else if (PackedIndexesRef[repackedFlatFeatureIdx].Defined()) {
-                    auto packIdx = PackedIndexesRef[repackedFlatFeatureIdx]->PackIdx;
-                    if (!HeavyDataHolder->RepackedBinaryPacksData[packIdx].GetSize()) {
-                        HeavyDataHolder->RepackedBinaryPacksData[packIdx] = getColumnSubRangeData(
-                            QuantizedObjectsData.GetBinaryFeaturesPack(packIdx));
-                    }
-                } else {
-                    const auto& featuresLayout = *QuantizedObjectsData.GetFeaturesLayout();
-                    CB_ENSURE_INTERNAL(
-                        featuresLayout.GetExternalFeatureType(sourceFlatFeatureIdx) == EFeatureType::Float,
-                        "Mismatched feature type");
-                    HeavyDataHolder->RepackedFeatures[repackedFlatFeatureIdx] = getColumnSubRangeData(
-                        **QuantizedObjectsData.GetNonPackedFloatFeature(sourceFlatFeatureIdx));
-                }
-            }
-            Y_FORCE_INLINE auto GetFloatAccessor() {
-                return [this] (TFeaturePosition position, size_t index) -> ui8 {
-                    const auto& bundleIdx = BundledIndexesRef[position.Index];
-                    const auto& packIdx = PackedIndexesRef[position.Index];
-                    ui8 unremappedFeatureBin;
-
-                    if (bundleIdx.Defined()) {
-                        const auto& bundleMetaData = BundlesMetaData[bundleIdx->BundleIdx];
-                        const auto& bundlePart = bundleMetaData.Parts[bundleIdx->InBundleIdx];
-                        auto boundsInBundle = bundlePart.Bounds;
-
-                        const ui8* rawBundlesData
-                            = (*(HeavyDataHolder->RepackedBundleData[bundleIdx->BundleIdx])).data();
-
-                        switch (bundleMetaData.SizeInBytes) {
-                            case 1:
-                                unremappedFeatureBin = GetBinFromBundle<ui8>(rawBundlesData[index],
-                                                                             boundsInBundle);
-                                break;
-                            case 2:
-                                unremappedFeatureBin = GetBinFromBundle<ui8>(
-                                    ((const ui16*)rawBundlesData)[index], boundsInBundle);
-                                break;
-                            default:
-                                CB_ENSURE_INTERNAL(
-                                    false,
-                                    "unsupported Bundle SizeInBytes = " << bundleMetaData.SizeInBytes);
-                        }
-                    } else if (packIdx.Defined()) {
-                        TBinaryFeaturesPack bitIdx = packIdx->BitIdx;
-                        unremappedFeatureBin =
-                            (HeavyDataHolder->RepackedBinaryPacksData[packIdx->PackIdx][index] >> bitIdx) & 1;
-                    } else {
-                        unremappedFeatureBin = RepackedFeaturesRef[position.FlatIndex][index];
-                    }
-
-                    return FloatBinsRemapRef[position.FlatIndex][unremappedFeatureBin];
-                };
-            }
-            Y_FORCE_INLINE auto GetCatAccessor() {
-                return [] (TFeaturePosition , size_t ) -> ui32 {
-                    Y_FAIL();
-                    return 0;
-                };
-            }
-
-        private:
-            struct TQuantizedFeaturesAccessorData {
-                TVector<TVector<ui8>> FloatBinsRemap;
-                TVector<TMaybeOwningArrayHolder<ui8>> RepackedFeatures;
-
-                TVector<TMaybeOwningArrayHolder<ui8>> RepackedBinaryPacksData;
-                TVector<TMaybe<TPackedBinaryIndex>> PackedIndexes;
-
-                TVector<TMaybeOwningArrayHolder<ui8>> RepackedBundleData;
-                TVector<TMaybe<TExclusiveBundleIndex>> BundledIndexes;
-            };
-
-        private:
-            TAtomicSharedPtr<TQuantizedFeaturesAccessorData> HeavyDataHolder;
-            TConstArrayRef<TExclusiveFeaturesBundle> BundlesMetaData;
-            TVector<TVector<ui8>>& FloatBinsRemapRef;
-            TVector<TMaybe<TPackedBinaryIndex>>& PackedIndexesRef;
-            TVector<TMaybe<TExclusiveBundleIndex>>& BundledIndexesRef;
-            const TQuantizedForCPUObjectsDataProvider& QuantizedObjectsData;
-            const ui32 ConsecutiveSubsetBegin;
-
-            TVector<TMaybeOwningArrayHolder<ui8>>& RepackedFeaturesRef;
-        };
-
-        template <class TBaseAccesorType>
-        class TFeatureAccessorTemplate : public TBaseAccesorType {
-        public:
-            template <class TObjectsDataProviderType>
-            TFeatureAccessorTemplate(
+            TFeaturesBlockIteratorBase(
                 const TFullModel& model,
                 const TObjectsDataProviderType& objectsData,
                 const THashMap<ui32, ui32>& columnReorderMap,
-                int objectsBegin,
-                int objectsEnd
+                ui32 objectOffset
             )
-                : TBaseAccesorType(objectsData, model)
+                : ObjectsData(objectsData)
             {
-                TIndexRange<ui32> objectsRange(
-                    SafeIntegerCast<ui32>(objectsBegin),
-                    SafeIntegerCast<ui32>(objectsEnd));
+                size_t flatFeatureCount = model.ObliviousTrees->GetFlatFeatureVectorExpectedSize();
+                FloatBlockIterators.resize(flatFeatureCount);
+                CatBlockIterators.resize(flatFeatureCount);
+                FloatValues.resize(flatFeatureCount);
+                CatValues.resize(flatFeatureCount);
 
-                const auto &featuresLayout = *objectsData.GetFeaturesLayout();
+                for (const auto&[modelFlatFeatureIdx, dataFlatFeatureIdx] : columnReorderMap) {
+                    AddFeature(modelFlatFeatureIdx, dataFlatFeatureIdx, objectOffset);
+                }
+            }
 
-                auto addFeatureIfAvailable = [&] (auto origIdx, auto sourceIdx) {
-                    if (featuresLayout.GetExternalFeaturesMetaInfo()[sourceIdx].IsAvailable) {
-                        TBaseAccesorType::AddFeature(sourceIdx, origIdx, objectsRange);
-                    }
-                };
-
-                if (columnReorderMap.empty()) {
-                    for (size_t i = 0; i < model.ObliviousTrees->GetFlatFeatureVectorExpectedSize(); ++i) {
-                        addFeatureIfAvailable(i, i);
-                    }
-                } else {
-                    for (const auto&[origIdx, sourceIdx] : columnReorderMap) {
-                        addFeatureIfAvailable(origIdx, sourceIdx);
+            void NextBlock(size_t size) override {
+                for (auto flatFeatureIdx : xrange(FloatBlockIterators.size())) {
+                    if (FloatBlockIterators[flatFeatureIdx]) {
+                        Y_ASSERT(!CatBlockIterators[flatFeatureIdx]);
+                        FloatValues[flatFeatureIdx] = FloatBlockIterators[flatFeatureIdx]->Next(size);
+                    } else if (CatBlockIterators[flatFeatureIdx]) {
+                        CatValues[flatFeatureIdx] = CatBlockIterators[flatFeatureIdx]->Next(size);
                     }
                 }
             }
+
+            void AddFeature(ui32 modelFlatFeatureIdx, ui32 dataFlatFeatureIdx, ui32 objectOffset) {
+                const auto featuresLayout = ObjectsData.GetFeaturesLayout();
+                const TFeatureMetaInfo& featureMetaInfo
+                    = featuresLayout->GetExternalFeaturesMetaInfo()[dataFlatFeatureIdx];
+
+                CB_ENSURE(
+                    featureMetaInfo.IsAvailable,
+                    "Required feature #" << dataFlatFeatureIdx << " is not available in dataset"
+                );
+
+                const ui32 internalFeatureIdx = featuresLayout->GetInternalFeatureIdx(dataFlatFeatureIdx);
+
+                if (featureMetaInfo.Type == EFeatureType::Float) {
+                    FloatBlockIterators[modelFlatFeatureIdx]
+                        = (*ObjectsData.GetFloatFeature(internalFeatureIdx))
+                            ->GetBlockIterator(objectOffset);
+                } else if (featureMetaInfo.Type == EFeatureType::Categorical) {
+                    CatBlockIterators[modelFlatFeatureIdx]
+                        = (*ObjectsData.GetCatFeature(internalFeatureIdx))
+                                ->GetBlockIterator(objectOffset);
+                } else {
+                    CB_ENSURE(
+                        false,
+                        "Applier cannot use feature #" << dataFlatFeatureIdx << " with type "
+                            << featureMetaInfo.Type
+                    );
+                }
+            }
+
+            TConstArrayRef<TConstArrayRef<TFloatValue>> GetFloatValues() const {
+                return FloatValues;
+            }
+
+            TConstArrayRef<TConstArrayRef<TCatValue>> GetCatValues() const {
+                return CatValues;
+            }
+
+        private:
+            const TObjectsDataProviderType& ObjectsData;
+
+            TVector<IDynamicBlockIteratorPtr<TFloatValue>> FloatBlockIterators; // [repackedFlatIndex]
+            TVector<IDynamicBlockIteratorPtr<TCatValue>> CatBlockIterators; // [repackedFlatIndex]
+
+            TVector<TConstArrayRef<TFloatValue>> FloatValues; // [repackedFlatIndex][inBlockObjectIdx]
+            TVector<TConstArrayRef<TCatValue>> CatValues; // [repackedFlatIndex][inBlockObjectIdx]
         };
+
     }
 
-    using TRawFeatureAccessor = NDetail::TFeatureAccessorTemplate<NDetail::TBaseRawFeatureAccessor>;
-    using TQuantizedFeatureAccessor = NDetail::TFeatureAccessorTemplate<
-        NDetail::TBaseQuantizedFeatureAccessor>;
+    class TRawFeatureAccessor {
+    public:
+        TRawFeatureAccessor(const TRawFeaturesBlockIterator& rawFeaturesBlockIterator);
+
+        Y_FORCE_INLINE auto GetFloatAccessor() const {
+            return [this](TFeaturePosition position, size_t index) -> float {
+                Y_ASSERT(SafeIntegerCast<size_t>(position.FlatIndex) < FloatValues.size());
+                Y_ASSERT(SafeIntegerCast<size_t>(index) < FloatValues[position.FlatIndex].size());
+                return FloatValues[position.FlatIndex][index];
+            };
+        }
+
+        Y_FORCE_INLINE auto GetCatAccessor() const {
+             return [this] (TFeaturePosition position, size_t index) -> ui32 {
+                Y_ASSERT(SafeIntegerCast<size_t>(position.FlatIndex) < CatValues.size());
+                Y_ASSERT(SafeIntegerCast<size_t>(index) < CatValues[position.FlatIndex].size());
+                return CatValues[position.FlatIndex][index];
+            };
+        };
+    private:
+        TConstArrayRef<TConstArrayRef<float>> FloatValues; // [repackedFlatIndex][inBlockObjectIdx]
+        TConstArrayRef<TConstArrayRef<ui32>> CatValues;  // [repackedFlatIndex][inBlockObjectIdx]
+    };
+
+
+    class TRawFeaturesBlockIterator
+        : public NDetail::TFeaturesBlockIteratorBase<TRawObjectsDataProvider, float, ui32, TRawFeatureAccessor>
+    {
+    public:
+        using TBase
+            = NDetail::TFeaturesBlockIteratorBase<TRawObjectsDataProvider, float, ui32, TRawFeatureAccessor>;
+
+    public:
+        TRawFeaturesBlockIterator(
+            const TFullModel& model,
+            const TRawObjectsDataProvider& objectsData,
+            const THashMap<ui32, ui32>& columnReorderMap,
+            ui32 objectOffset)
+            : TBase(model, objectsData, columnReorderMap, objectOffset)
+        {}
+
+        void Accept(IFeaturesBlockIteratorVisitor* visitor) const override {
+            visitor->Visit(*this);
+        }
+
+        TRawFeatureAccessor GetAccessor() const {
+            return TRawFeatureAccessor(*this);
+        }
+    };
+
+
+    inline TRawFeatureAccessor::TRawFeatureAccessor(const TRawFeaturesBlockIterator& rawFeaturesBlockIterator)
+        : FloatValues(rawFeaturesBlockIterator.GetFloatValues())
+        , CatValues(rawFeaturesBlockIterator.GetCatValues())
+    {}
+
+
+    class TQuantizedFeatureAccessor {
+    public:
+        TQuantizedFeatureAccessor(const TQuantizedFeaturesBlockIterator& quantizedFeaturesBlockIterator);
+
+        Y_FORCE_INLINE auto GetFloatAccessor() const {
+            return [this](TFeaturePosition position, size_t index) -> ui8 {
+                Y_ASSERT(SafeIntegerCast<size_t>(position.FlatIndex) < FloatValues.size());
+                Y_ASSERT(SafeIntegerCast<size_t>(index) < FloatValues[position.FlatIndex].size());
+                return FloatBinsRemap[position.FlatIndex][FloatValues[position.FlatIndex][index]];
+            };
+        }
+
+        Y_FORCE_INLINE auto GetCatAccessor() const {
+             return [] (TFeaturePosition , size_t ) -> ui32 {
+                 Y_FAIL();
+                 return 0;
+            };
+        };
+    private:
+        TConstArrayRef<TConstArrayRef<ui8>> FloatValues; // [repackedFlatIndex][inBlockObjectIdx]
+        TConstArrayRef<TConstArrayRef<ui8>> FloatBinsRemap; // [repackedFlatIndex][binInData]
+    };
+
+
+    class TQuantizedFeaturesBlockIterator
+        : public NDetail::TFeaturesBlockIteratorBase<
+            TQuantizedObjectsDataProvider,
+            ui8,
+            ui32,
+            TQuantizedFeatureAccessor>
+    {
+    public:
+        using TBase = TFeaturesBlockIteratorBase<
+            TQuantizedObjectsDataProvider,
+            ui8,
+            ui32,
+            TQuantizedFeatureAccessor>;
+
+    public:
+        TQuantizedFeaturesBlockIterator(
+            const TFullModel& model,
+            const TQuantizedObjectsDataProvider& objectsData,
+            const THashMap<ui32, ui32>& columnReorderMap,
+            ui32 objectOffset)
+            : TBase(model, objectsData, columnReorderMap, objectOffset)
+            , FloatBinsRemap(GetFloatFeaturesBordersRemap(model, *objectsData.GetQuantizedFeaturesInfo()))
+            , FloatBinsRemapRef(FloatBinsRemap.begin(), FloatBinsRemap.end())
+        {}
+
+        void Accept(IFeaturesBlockIteratorVisitor* visitor) const override {
+            visitor->Visit(*this);
+        }
+
+        TQuantizedFeatureAccessor GetAccessor() const {
+            return TQuantizedFeatureAccessor(*this);
+        }
+
+        TConstArrayRef<TConstArrayRef<ui8>> GetFloatBinsRemap() const {
+            return FloatBinsRemapRef;
+        }
+
+    private:
+        TVector<TVector<ui8>> FloatBinsRemap;
+        TVector<TConstArrayRef<ui8>> FloatBinsRemapRef;
+    };
+
+
+    inline TQuantizedFeatureAccessor::TQuantizedFeatureAccessor(
+        const TQuantizedFeaturesBlockIterator& quantizedFeaturesBlockIterator)
+        : FloatValues(quantizedFeaturesBlockIterator.GetFloatValues())
+        , FloatBinsRemap(quantizedFeaturesBlockIterator.GetFloatBinsRemap())
+    {}
+
+
+    THolder<IFeaturesBlockIterator> CreateFeaturesBlockIterator(
+        const TFullModel& model,
+        const TObjectsDataProvider& objectsData,
+        size_t start,
+        size_t end);
+
 }

@@ -212,6 +212,28 @@ namespace NCB {
             return Nothing(); // just to silence compiler warnings
         }
 
+        // assuming we've checked that subset is consecutive before
+        TSize GetConsecutiveSubsetBeginNonChecked() const {
+            switch (TBase::index()) {
+                case TVariantIndexV<TFullSubset<TSize>, TBase>:
+                    return TSize(0);
+                case TVariantIndexV<TRangesSubset<TSize>, TBase>:
+                    {
+                        const auto& blocks = Get<TRangesSubset<TSize>>().Blocks;
+                        return blocks[0].SrcBegin;
+                    }
+                case TVariantIndexV<TIndexedSubset<TSize>, TBase>:
+                    {
+                        TConstArrayRef<TSize> indices = Get<TIndexedSubset<TSize>>();
+                        if (indices.size() == 0) {
+                            return TSize(0);
+                        }
+                        return indices[0];
+                    }
+            }
+            Y_UNREACHABLE();
+        }
+
         bool IsConsecutive() const {
             return GetConsecutiveSubsetBegin().Defined();
         }

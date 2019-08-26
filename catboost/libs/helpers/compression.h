@@ -1,6 +1,7 @@
 #pragma once
 
 #include "array_subset.h"
+#include "dynamic_iterator.h"
 #include "exception.h"
 #include "maybe_owning_array_holder.h"
 
@@ -195,11 +196,63 @@ public:
         return reinterpret_cast<const char*>((*Storage).data());
     }
 
+    template <class T>
+    NCB::IDynamicBlockIteratorPtr<T> GetBlockIterator(ui64 offset) const;
+
 private:
     ui64 Size = 0;
     TIndexHelper<ui64> IndexHelper;
     NCB::TMaybeOwningArrayHolder<ui64> Storage;
 };
+
+
+template <class T>
+class TGenericCompressedArrayBlockIterator final : public NCB::IDynamicBlockIterator<T> {
+public:
+    TGenericCompressedArrayBlockIterator(TCompressedArray compressedArray, ui64 offset = 0)
+        : CompressedArray(std::move(compressedArray))
+        , Index(offset)
+    {}
+
+    TConstArrayRef<T> Next(size_t size = Max<size_t>()) override {
+        const ui64 blockSize = Min((ui64)size, CompressedArray.GetSize() - Index);
+        UncompressedBuffer.yresize(blockSize);
+        const ui64 blockEnd = Index + blockSize;
+        for (auto i : xrange(Index, blockEnd)) {
+            UncompressedBuffer[i - Index] = CompressedArray.operator[]<T>(i);
+        }
+        Index = blockEnd;
+        return UncompressedBuffer;
+    }
+
+private:
+    TCompressedArray CompressedArray;
+    ui64 Index;
+
+    TVector<T> UncompressedBuffer;
+};
+
+
+template <class T>
+NCB::IDynamicBlockIteratorPtr<T> TCompressedArray::GetBlockIterator(ui64 offset) const {
+    static_assert(std::is_same_v<T, ui8> || std::is_same_v<T, ui16> || std::is_same_v<T, ui32>);
+
+    CB_ENSURE(
+        GetBitsPerKey() <= sizeof(T) * CHAR_BIT,
+        "Compressed array can contain values outside of specified type range"
+    );
+
+    if (GetBitsPerKey() == sizeof(T) * CHAR_BIT) {
+        return MakeHolder<NCB::TArrayBlockIterator<T>>(GetRawArray<T>().subspan(offset));
+    }
+    if (GetBitsPerKey() == 8) {
+        return MakeHolder<NCB::TTypeCastingArrayBlockIterator<T, ui8>>(GetRawArray<ui8>().subspan(offset));
+    }
+    if (GetBitsPerKey() == 16) {
+        return MakeHolder<NCB::TTypeCastingArrayBlockIterator<T, ui16>>(GetRawArray<ui16>().subspan(offset));
+    }
+    return MakeHolder<TGenericCompressedArrayBlockIterator<T>>(*this, offset);
+}
 
 
 template <class TStorageType, class T>

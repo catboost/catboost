@@ -214,14 +214,5 @@ namespace NCB {  // split due to CUDA-compiler inability to parse nested namespa
 
         bool CudaEvaluationPossible(const TFullModel& model);
         TModelEvaluatorPtr CreateGpuEvaluator(const TFullModel& model);
-
-        class ILeafIndexCalcer {
-        public:
-            virtual ~ILeafIndexCalcer() = default;
-
-            virtual bool Next() = 0;
-            virtual bool CanGet() const = 0;
-            virtual TVector<TCalcerIndexType> Get() const = 0;
-        };
     }
 }

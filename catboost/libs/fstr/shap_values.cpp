@@ -2,6 +2,7 @@
 
 #include "util.h"
 
+#include <catboost/libs/algo/features_data_helpers.h>
 #include <catboost/libs/algo/index_calcer.h>
 #include <catboost/libs/data_new/features_layout.h>
 #include <catboost/libs/helpers/exception.h>
@@ -10,6 +11,7 @@
 #include <catboost/libs/options/restrictions.h>
 
 #include <util/generic/algorithm.h>
+#include <util/generic/cast.h>
 #include <util/generic/utility.h>
 #include <util/generic/ymath.h>
 #include <catboost/libs/model/cpu/quantization.h>
@@ -483,7 +485,8 @@ void CalcShapValuesForDocumentMulti(
 
 static void CalcShapValuesForDocumentBlockMulti(
     const TFullModel& model,
-    const TObjectsDataProvider& objectsData,
+    const IFeaturesBlockIterator& featuresBlockIterator,
+    int flatFeatureCount,
     const TShapPreparedTrees& preparedTrees,
     size_t start,
     size_t end,
@@ -492,9 +495,7 @@ static void CalcShapValuesForDocumentBlockMulti(
 ) {
     const size_t documentCount = end - start;
 
-    auto binarizedFeaturesForBlock = MakeQuantizedFeaturesForEvaluator(model, objectsData, start, end);
-
-    const int flatFeatureCount = objectsData.GetFeaturesLayout()->GetExternalFeatureCount();
+    auto binarizedFeaturesForBlock = MakeQuantizedFeaturesForEvaluator(model, featuresBlockIterator, start, end);
 
     const int oldShapValuesSize = shapValuesForAllDocuments->size();
     shapValuesForAllDocuments->resize(oldShapValuesSize + end - start);
@@ -749,6 +750,8 @@ TVector<TVector<TVector<double>>> CalcShapValuesMulti(
     const size_t documentCount = dataset.ObjectsGrouping->GetObjectCount();
     const size_t documentBlockSize = CB_THREAD_LIMIT; // least necessary for threading
 
+    const int flatFeatureCount = SafeIntegerCast<int>(dataset.MetaInfo.GetFeatureCount());
+
     TImportanceLogger documentsLogger(documentCount, "documents processed", "Processing documents...", logPeriod);
 
     TVector<TVector<TVector<double>>> shapValues;
@@ -756,14 +759,20 @@ TVector<TVector<TVector<double>>> CalcShapValuesMulti(
 
     TProfileInfo processDocumentsProfile(documentCount);
 
+    THolder<IFeaturesBlockIterator> featuresBlockIterator
+        = CreateFeaturesBlockIterator(model, *dataset.ObjectsData, 0, documentCount);
+
     for (size_t start = 0; start < documentCount; start += documentBlockSize) {
         size_t end = Min(start + documentBlockSize, documentCount);
 
         processDocumentsProfile.StartIterationBlock();
 
+        featuresBlockIterator->NextBlock(end - start);
+
         CalcShapValuesForDocumentBlockMulti(
             model,
-            *dataset.ObjectsData,
+            *featuresBlockIterator,
+            flatFeatureCount,
             preparedTrees,
             start,
             end,
@@ -832,12 +841,17 @@ void CalcAndOutputShapValues(
         /*calcInternalValues=*/false
     );
 
+    const int flatFeatureCount = SafeIntegerCast<int>(dataset.MetaInfo.GetFeatureCount());
+
     const size_t documentCount = dataset.ObjectsGrouping->GetObjectCount();
     const size_t documentBlockSize = CB_THREAD_LIMIT; // least necessary for threading
 
     TImportanceLogger documentsLogger(documentCount, "documents processed", "Processing documents...", logPeriod);
 
     TProfileInfo processDocumentsProfile(documentCount);
+
+    THolder<IFeaturesBlockIterator> featuresBlockIterator
+        = CreateFeaturesBlockIterator(model, *dataset.ObjectsData, 0, documentCount);
 
     TFileOutput out(outputPath);
     for (size_t start = 0; start < documentCount; start += documentBlockSize) {
@@ -847,9 +861,12 @@ void CalcAndOutputShapValues(
         TVector<TVector<TVector<double>>> shapValuesForBlock;
         shapValuesForBlock.reserve(end - start);
 
+        featuresBlockIterator->NextBlock(end - start);
+
         CalcShapValuesForDocumentBlockMulti(
             model,
-            *dataset.ObjectsData,
+            *featuresBlockIterator,
+            flatFeatureCount,
             preparedTrees,
             start,
             end,

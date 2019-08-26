@@ -319,4 +319,51 @@ namespace NCB {
         const T* Current;
         const T* const End;
     };
+
+    template <class TDst, class TSrc>
+    class TTypeCastingArrayBlockIterator final : public IDynamicBlockIterator<TDst> {
+    public:
+        TTypeCastingArrayBlockIterator(TConstArrayRef<TSrc> array)
+            : Current(array.data())
+            , End(array.data() + array.size())
+        {}
+
+        TConstArrayRef<TDst> Next(size_t maxBlockSize = Max<size_t>()) override {
+            const size_t blockSize = Min(maxBlockSize, size_t(End - Current));
+            DstBuffer.assign(Current, Current + blockSize);
+            Current += blockSize;
+            return DstBuffer;
+        }
+    private:
+        const TSrc* Current;
+        const TSrc* const End;
+
+        TVector<TDst> DstBuffer;
+    };
+
+    template <class TDst, class TSrc, class TTransformer>
+    class TTransformArrayBlockIterator final : public IDynamicBlockIterator<TDst> {
+    public:
+        TTransformArrayBlockIterator(TConstArrayRef<TSrc> array, TTransformer&& transformer)
+            : Current(array.data())
+            , End(array.data() + array.size())
+            , Transformer(std::move(transformer))
+        {}
+
+        TConstArrayRef<TDst> Next(size_t maxBlockSize = Max<size_t>()) override {
+            const size_t blockSize = Min(maxBlockSize, size_t(End - Current));
+            DstBuffer.yresize(blockSize);
+            Transform(Current, Current + blockSize, DstBuffer.begin(), Transformer);
+            Current += blockSize;
+            return DstBuffer;
+        }
+    private:
+        const TSrc* Current;
+        const TSrc* const End;
+
+        TVector<TDst> DstBuffer;
+
+        TTransformer Transformer;
+    };
+
 }

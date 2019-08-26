@@ -12,15 +12,14 @@ SRCS(
     model_metadata_ut.cpp
     model_serialization_ut.cpp
     model_summ_ut.cpp
-    model_test_helpers.cpp
     shrink_model_ut.cpp
 )
 
 PEERDIR(
     catboost/libs/algo
     catboost/libs/data_new
-    catboost/libs/data_new/ut/lib
     catboost/libs/model
+    catboost/libs/model/ut/lib
     catboost/libs/train_lib
 )
 

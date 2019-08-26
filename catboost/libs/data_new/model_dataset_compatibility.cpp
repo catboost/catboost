@@ -46,7 +46,6 @@ namespace NCB {
         {
             return false;
         }
-        bool needRemapping = false;
         for (const TCatFeature& feature : model.ObliviousTrees->CatFeatures) {
             if (!feature.UsedInModel) {
                 continue;
@@ -56,7 +55,6 @@ namespace NCB {
                 datasetCatFeatureFlatIndexes.contains(datasetFlatFeatureIndex),
                 "Feature " << feature.FeatureId << " is categorical in model but marked as numerical in dataset");
             (*columnIndexesReorderMap)[feature.Position.FlatIndex] = datasetFlatFeatureIndex;
-            needRemapping |= (datasetFlatFeatureIndex != SafeIntegerCast<ui32>(feature.Position.FlatIndex));
         }
         for (const TFloatFeature& feature : model.ObliviousTrees->FloatFeatures) {
             if (!feature.UsedInModel()) {
@@ -67,10 +65,6 @@ namespace NCB {
                 !datasetCatFeatureFlatIndexes.contains(datasetFlatFeatureIndex),
                 "Feature " << feature.FeatureId << " is numerical in model but marked as categorical in dataset");
             (*columnIndexesReorderMap)[feature.Position.FlatIndex] = datasetFlatFeatureIndex;
-            needRemapping |= (datasetFlatFeatureIndex != SafeIntegerCast<ui32>(feature.Position.FlatIndex));
-        }
-        if (!needRemapping) {
-            columnIndexesReorderMap->clear();
         }
         return true;
     }
@@ -100,6 +94,8 @@ namespace NCB {
         {
             return;
         }
+
+        columnIndexesReorderMap->clear();
 
         const auto& datasetFeaturesMetaInfo = datasetFeaturesLayout.GetExternalFeaturesMetaInfo();
 
@@ -131,6 +127,9 @@ namespace NCB {
             CB_ENSURE(
                 datasetCatFeatures.contains(catFeature.Position.FlatIndex),
                 "Feature " << featurePoolName << " from pool must be categorical.");
+
+            columnIndexesReorderMap->insert(
+                {catFeature.Position.FlatIndex, catFeature.Position.FlatIndex});
         }
 
         for (const TFloatFeature& floatFeature : model.ObliviousTrees->FloatFeatures) {
@@ -161,6 +160,9 @@ namespace NCB {
             CB_ENSURE(
                 !datasetCatFeatures.contains(floatFeature.Position.FlatIndex),
                 "Feature " << featurePoolName << " from pool must not be categorical.");
+
+            columnIndexesReorderMap->insert(
+                {floatFeature.Position.FlatIndex, floatFeature.Position.FlatIndex});
         }
     }
 

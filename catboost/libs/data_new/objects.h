@@ -734,33 +734,6 @@ namespace NCB {
     };
 
 
-    // calls generic f with 'const T' pointer to raw data of compressedArray with the appropriate T
-    template <class F>
-    inline void DispatchBitsPerKeyToDataType(
-        const TCompressedArray& compressedArray,
-        const TStringBuf errorMessagePrefix,
-        F&& f
-    ) {
-        const auto bitsPerKey = compressedArray.GetBitsPerKey();
-        const char* rawDataPtr = compressedArray.GetRawPtr();
-        switch (bitsPerKey) {
-            case 8:
-                f((const ui8*)rawDataPtr);
-                break;
-            case 16:
-                f((const ui16*)rawDataPtr);
-                break;
-            case 32:
-                f((const ui32*)rawDataPtr);
-                break;
-            default:
-                CB_ENSURE_INTERNAL(
-                    false,
-                    errorMessagePrefix << "unsupported bitsPerKey: " << bitsPerKey);
-        }
-    }
-
-
     // needed to make friends with TObjectsDataProvider s
     class TObjectsSerialization {
     public:

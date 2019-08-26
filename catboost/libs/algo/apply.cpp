@@ -32,42 +32,82 @@ TLocalExecutor::TExecRangeParams GetBlockParams(int executorThreadCount, int doc
     return blockParams;
 };
 
-static void ApplyBlockImpl(
+namespace {
+    class IQuantizedBlockVisitor {
+    public:
+        virtual ~IQuantizedBlockVisitor() = default;
+
+        virtual void Do(
+            const NModelEvaluation::IQuantizedData& quantizedBlock,
+            ui32 objectBlockStart,
+            ui32 objectBlockEnd) = 0;
+    };
+}
+
+
+static void BlockedEvaluation(
     const TFullModel& model,
     const TObjectsDataProvider& objectsData,
-    int begin,
-    int end,
-    const TLocalExecutor::TExecRangeParams& blockParams,
-    TVector<double>* approxesFlat,
-    TLocalExecutor* executor
+    ui32 objectBlockStart,
+    ui32 objectBlockEnd,
+    ui32 subBlockSize,
+    IQuantizedBlockVisitor* visitor
 ) {
-    const int approxDimension = model.GetDimensionsCount();
-    const auto evaluator = model.GetCurrentEvaluator();
-    const auto applyOnBlock = [&](int blockId) {
-        int blockFirstIdx = blockParams.FirstId + blockId * blockParams.GetBlockSize();
-        const int blockLastIdx = Min(blockParams.LastId, blockFirstIdx + blockParams.GetBlockSize());
-        const int subBlockSize = NModelEvaluation::FORMULA_EVALUATION_BLOCK_SIZE * 64;
+    THolder<IFeaturesBlockIterator> featuresBlockIterator
+        = CreateFeaturesBlockIterator(model, objectsData, objectBlockStart, objectBlockEnd);
 
-        for (; blockFirstIdx < blockLastIdx; blockFirstIdx += subBlockSize) {
-            const int currentBlockSize = Min<int>(blockLastIdx - blockFirstIdx, subBlockSize);
-            auto quantizedBlock = MakeQuantizedFeaturesForEvaluator(
-                model,
-                objectsData,
-                blockFirstIdx,
-                blockFirstIdx + currentBlockSize
-            );
-            evaluator->Calc(
-                quantizedBlock.Get(),
-                begin, end,
-                MakeArrayRef(approxesFlat->data() + blockFirstIdx * approxDimension,currentBlockSize * approxDimension)
-            );
-        }
-    };
-    if (executor) {
-        executor->ExecRangeWithThrow(applyOnBlock, 0, blockParams.GetBlockCount(), TLocalExecutor::WAIT_COMPLETE);
-    } else {
-        applyOnBlock(0);
+    for (; objectBlockStart < objectBlockEnd; objectBlockStart += subBlockSize) {
+        const ui32 currentBlockSize = Min(objectBlockEnd - objectBlockStart, subBlockSize);
+
+        featuresBlockIterator->NextBlock((size_t)currentBlockSize);
+
+        auto quantizedBlock = MakeQuantizedFeaturesForEvaluator(
+            model,
+            *featuresBlockIterator,
+            objectBlockStart,
+            objectBlockStart + currentBlockSize);
+
+        visitor->Do(*quantizedBlock, objectBlockStart, objectBlockStart + currentBlockSize);
     }
+}
+
+
+namespace {
+    class TApplyVisitor final : public IQuantizedBlockVisitor {
+    public:
+        TApplyVisitor(
+            const TFullModel& model,
+            int treeBegin,
+            int treeEnd,
+            TArrayRef<double> approxesFlat)
+            : ModelEvaluator(model.GetCurrentEvaluator())
+            , ApproxDimension(model.GetDimensionsCount())
+            , TreeBegin(treeBegin)
+            , TreeEnd(treeEnd)
+            , ApproxesFlat(approxesFlat)
+        {}
+
+        void Do(
+            const NModelEvaluation::IQuantizedData& quantizedBlock,
+            ui32 objectBlockStart,
+            ui32 objectBlockEnd) override
+        {
+            ModelEvaluator->Calc(
+                &quantizedBlock,
+                TreeBegin,
+                TreeEnd,
+                MakeArrayRef(
+                    ApproxesFlat.data() + objectBlockStart * ApproxDimension,
+                    (objectBlockEnd - objectBlockStart) * ApproxDimension));
+        }
+
+    private:
+        NModelEvaluation::TConstModelEvaluatorPtr ModelEvaluator;
+        size_t ApproxDimension;
+        int TreeBegin;
+        int TreeEnd;
+        TArrayRef<double> ApproxesFlat;
+    };
 }
 
 TVector<TVector<double>> ApplyModelMulti(
@@ -86,14 +126,21 @@ TVector<TVector<double>> ApplyModelMulti(
         const int executorThreadCount = executor ? executor->GetThreadCount() : 0;
         auto blockParams = GetBlockParams(executorThreadCount, docCount, begin, end);
 
-        ApplyBlockImpl(
-            model,
-            objectsData,
-            begin,
-            end,
-            blockParams,
-            &approxesFlat,
-            executor);
+        TApplyVisitor visitor(model, begin, end, approxesFlat);
+
+        const ui32 subBlockSize = ui32(NModelEvaluation::FORMULA_EVALUATION_BLOCK_SIZE * 64);
+
+        const auto applyOnBlock = [&](int blockId) {
+            const int blockFirstIdx = blockParams.FirstId + blockId * blockParams.GetBlockSize();
+            const int blockLastIdx = Min(blockParams.LastId, blockFirstIdx + blockParams.GetBlockSize());
+
+            BlockedEvaluation(model, objectsData, (ui32)blockFirstIdx, (ui32)blockLastIdx, subBlockSize, &visitor);
+        };
+        if (executor) {
+            executor->ExecRangeWithThrow(applyOnBlock, 0, blockParams.GetBlockCount(), TLocalExecutor::WAIT_COMPLETE);
+        } else {
+            applyOnBlock(0);
+        }
     }
 
     TVector<TVector<double>> approxes(approxesDimension);
@@ -243,85 +290,110 @@ TLeafIndexCalcerOnPool::TLeafIndexCalcerOnPool(
     NCB::TObjectsDataProviderPtr objectsData,
     int treeStart,
     int treeEnd)
+    : Model(model)
+    , ModelEvaluator(model.GetCurrentEvaluator())
+    , FeaturesBlockIterator(CreateFeaturesBlockIterator(model, *objectsData, 0, objectsData->GetObjectCount()))
+    , DocCount(objectsData->GetObjectCount())
+    , TreeStart(treeStart)
+    , TreeEnd(treeEnd)
+    , CurrBatchStart(0)
+    , CurrBatchSize(Min(DocCount, NModelEvaluation::FORMULA_EVALUATION_BLOCK_SIZE))
+    , CurrDocIndex(0)
 {
     CB_ENSURE(treeStart >= 0);
     CB_ENSURE(treeEnd >= 0);
-    THashMap<ui32, ui32> columnReorderMap;
-    CheckModelAndDatasetCompatibility(model, *objectsData, &columnReorderMap);
-    const size_t docCount = objectsData->GetObjectCount();
-    if (const auto *const rawObjectsData = dynamic_cast<const TRawObjectsDataProvider*>(objectsData.Get())) {
-        TRawFeatureAccessor featureAccessor(
-            model, *rawObjectsData, columnReorderMap, 0, SafeIntegerCast<int>(docCount));
-        InnerLeafIndexCalcer = NModelEvaluation::MakeLeafIndexCalcer(
-            model, featureAccessor.GetFloatAccessor(), featureAccessor.GetCatAccessor(), docCount, treeStart, treeEnd);
-    } else if (
-        const auto *const quantizedObjectsData =
-            dynamic_cast<const TQuantizedForCPUObjectsDataProvider*>(objectsData.Get()))
-    {
-        TQuantizedFeatureAccessor quantizedFeatureAccessor(
-            model, *quantizedObjectsData, columnReorderMap, 0, SafeIntegerCast<int>(docCount));
-        InnerLeafIndexCalcer = NModelEvaluation::MakeLeafIndexCalcer(
-                model, quantizedFeatureAccessor.GetFloatAccessor(), quantizedFeatureAccessor.GetCatAccessor(), docCount, treeStart, treeEnd);
+
+    CurrentBatchLeafIndexes.yresize(CurrBatchSize * (TreeEnd - TreeStart));
+
+    CalcNextBatch();
+}
+
+bool TLeafIndexCalcerOnPool::Next() {
+    ++CurrDocIndex;
+    if (CurrDocIndex < DocCount) {
+        if (CurrDocIndex == CurrBatchStart + CurrBatchSize) {
+            CurrBatchStart += CurrBatchSize;
+            CurrBatchSize = Min(DocCount - CurrDocIndex, NModelEvaluation::FORMULA_EVALUATION_BLOCK_SIZE);
+            CalcNextBatch();
+        }
+        return true;
     } else {
-        ythrow TCatBoostException() << "Unsupported objects data - neither raw nor quantized for CPU";
+        return false;
     }
 }
 
 bool TLeafIndexCalcerOnPool::CanGet() const {
-    return InnerLeafIndexCalcer->CanGet();
+    return CurrDocIndex < DocCount;
 }
 
 TVector<NModelEvaluation::TCalcerIndexType> TLeafIndexCalcerOnPool::Get() const {
-    return InnerLeafIndexCalcer->Get();
-}
-
-bool TLeafIndexCalcerOnPool::Next() {
-    return InnerLeafIndexCalcer->Next();
-}
-
-template <bool IsQuantizedData, class TDataProvider, class TFeatureAccessorType =
-    typename std::conditional<IsQuantizedData, TQuantizedFeatureAccessor, TRawFeatureAccessor>::type>
-static void CalcLeafIndexesMultiImpll(
-    const TFullModel& model,
-    const TDataProvider& objectsData,
-    int treeStart,
-    int treeEnd,
-    NPar::TLocalExecutor* executor, /* = nullptr */
-    TArrayRef<ui32> leafIndexes)
-{
-    THashMap<ui32, ui32> columnReorderMap;
-    CheckModelAndDatasetCompatibility(model, objectsData, &columnReorderMap);
-
-    const int treeCount = treeEnd - treeStart;
-    const int docCount = SafeIntegerCast<int>(objectsData.GetObjectCount());
-    const int executorThreadCount = executor ? executor->GetThreadCount() : 0;
-    auto blockParams = GetBlockParams(executorThreadCount, docCount, treeStart, treeEnd);
-
-    const auto applyOnBlock = [&](int blockId) {
-        const int blockFirstIdx = blockParams.FirstId + blockId * blockParams.GetBlockSize();
-        const int blockLastIdx = Min(blockParams.LastId, blockFirstIdx + blockParams.GetBlockSize());
-        const int blockSize = blockLastIdx - blockFirstIdx;
-        TFeatureAccessorType featureAccessor(
-            model, objectsData, columnReorderMap, blockFirstIdx, blockLastIdx);
-        NModelEvaluation::CalcLeafIndexesGeneric<IsQuantizedData>(
-            *model.ObliviousTrees,
-            model.CtrProvider,
-            featureAccessor.GetFloatAccessor(),
-            featureAccessor.GetCatAccessor(),
-            blockSize,
-            treeStart,
-            treeEnd,
-            MakeArrayRef(leafIndexes.data() + blockFirstIdx * treeCount, blockSize * treeCount),
-            nullptr
-        );
-    };
-
-    if (executor) {
-        executor->ExecRangeWithThrow(applyOnBlock, 0, blockParams.GetBlockCount(), TLocalExecutor::WAIT_COMPLETE);
-    } else {
-        applyOnBlock(0);
+    const auto treeCount = TreeEnd - TreeStart;
+    const auto docIndexInBatch = CurrDocIndex - CurrBatchStart;
+    TVector<NModelEvaluation::TCalcerIndexType> result;
+    result.reserve(treeCount);
+    for (size_t treeNum = 0; treeNum < treeCount; ++treeNum) {
+        result.push_back(CurrentBatchLeafIndexes[docIndexInBatch + treeNum * CurrBatchSize]);
     }
+    return result;
 }
+
+void TLeafIndexCalcerOnPool::CalcNextBatch() {
+    FeaturesBlockIterator->NextBlock(CurrBatchSize);
+
+    auto quantizedBlock = MakeQuantizedFeaturesForEvaluator(
+        Model,
+        *FeaturesBlockIterator,
+        CurrBatchStart,
+        CurrBatchStart + CurrBatchSize);
+
+    ModelEvaluator->CalcLeafIndexes(quantizedBlock.Get(), TreeStart, TreeEnd, CurrentBatchLeafIndexes);
+}
+
+
+namespace {
+    // don't use from different threads because of TransposedLeafIndicesBuffer
+    class TLeafCalcerVisitor final : public IQuantizedBlockVisitor {
+    public:
+        TLeafCalcerVisitor(
+            const TFullModel& model,
+            int treeBegin,
+            int treeEnd,
+            TArrayRef<NModelEvaluation::TCalcerIndexType> leafIndices)
+            : ModelEvaluator(model.GetCurrentEvaluator())
+            , TreeBegin(treeBegin)
+            , TreeEnd(treeEnd)
+            , LeafIndices(leafIndices)
+        {}
+
+        void Do(
+            const NModelEvaluation::IQuantizedData& quantizedBlock,
+            ui32 objectBlockStart,
+            ui32 objectBlockEnd) override
+        {
+            const int treeCount = TreeEnd - TreeBegin;
+            const ui32 objectBlockSize = objectBlockEnd - objectBlockStart;
+            const ui32 indexBlockSize = objectBlockSize * (ui32)treeCount;
+            TransposedLeafIndicesBuffer.yresize(indexBlockSize);
+
+            ModelEvaluator->CalcLeafIndexes(&quantizedBlock, TreeBegin, TreeEnd, TransposedLeafIndicesBuffer);
+
+            NModelEvaluation::Transpose2DArray<NModelEvaluation::TCalcerIndexType>(
+                 TransposedLeafIndicesBuffer,
+                 treeCount,
+                 objectBlockSize,
+                 MakeArrayRef(LeafIndices.data() + objectBlockStart * treeCount, indexBlockSize)
+             );
+        }
+
+    private:
+        NModelEvaluation::TConstModelEvaluatorPtr ModelEvaluator;
+        int TreeBegin;
+        int TreeEnd;
+        TVector<NModelEvaluation::TCalcerIndexType> TransposedLeafIndicesBuffer;
+        TArrayRef<NModelEvaluation::TCalcerIndexType> LeafIndices;
+    };
+}
+
 
 TVector<ui32> CalcLeafIndexesMulti(
     const TFullModel& model,
@@ -339,17 +411,23 @@ TVector<ui32> CalcLeafIndexesMulti(
     TVector<ui32> result(objCount * (treeEnd - treeStart), 0);
 
     if (objCount > 0) {
-        if (const auto* const rawObjectsData =
-            dynamic_cast<const TRawObjectsDataProvider*>(objectsData.Get()))
-        {
-            CalcLeafIndexesMultiImpll<false>(model, *rawObjectsData, treeStart, treeEnd, executor, result);
-        } else if (const auto* const quantizedObjectsData =
-            dynamic_cast<const TQuantizedForCPUObjectsDataProvider*>(objectsData.Get()))
-        {
-            CalcLeafIndexesMultiImpll<true>(
-                model, *quantizedObjectsData, treeStart, treeEnd, executor, result);
+        const int executorThreadCount = executor ? executor->GetThreadCount() : 0;
+        auto blockParams = GetBlockParams(executorThreadCount, objCount, treeStart, treeEnd);
+
+        const ui32 subBlockSize = ui32(NModelEvaluation::FORMULA_EVALUATION_BLOCK_SIZE * 64);
+
+        const auto applyOnBlock = [&](int blockId) {
+            const int blockFirstIdx = blockParams.FirstId + blockId * blockParams.GetBlockSize();
+            const int blockLastIdx = Min(blockParams.LastId, blockFirstIdx + blockParams.GetBlockSize());
+
+            TLeafCalcerVisitor visitor(model, treeStart, treeEnd, result);
+
+            BlockedEvaluation(model, *objectsData, (ui32)blockFirstIdx, (ui32)blockLastIdx, subBlockSize, &visitor);
+        };
+        if (executor) {
+            executor->ExecRangeWithThrow(applyOnBlock, 0, blockParams.GetBlockCount(), TLocalExecutor::WAIT_COMPLETE);
         } else {
-            ythrow TCatBoostException() << "Unsupported objects data - neither raw nor quantized for CPU";
+            applyOnBlock(0);
         }
     }
     return result;
