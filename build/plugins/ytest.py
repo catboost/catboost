@@ -523,6 +523,7 @@ def onadd_check_py_imports(unit, *args):
         'SOURCE-FOLDER-PATH': test_dir,
         'CUSTOM-DEPENDENCIES': '',
         'TEST-DATA': '',
+        'TEST-ENV': prepare_env(unit.get("TEST_ENV_VALUE")),
         'SPLIT-FACTOR': '',
         'FORK-MODE': '',
         'FORK-TEST-FILES': '',

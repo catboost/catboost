@@ -69,6 +69,18 @@ def main():
     skip_names = sys.argv[1:]
 
     os.environ['Y_PYTHON_IMPORT_TEST'] = ''
+
+    # We should initialize Django before importing any applications
+    if os.getenv('DJANGO_SETTINGS_MODULE'):
+        from library.python.django.patch import patch, Version
+        version = os.getenv('DJANGO_VERSION')
+        if version == '1_9':
+            patch(version=Version.V_1_9)
+        elif version == '1_11':
+            patch(version=Version.V_1_11)
+        import django
+        django.setup()
+
     try:
         check_imports(no_check=skip_names)
     except:
