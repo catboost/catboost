@@ -402,7 +402,11 @@ public:
     inline size_t LessCount(const T1& k) const {
         auto x = LowerBound(k);
         if (x == const_cast<TBasePtr>(&this->Data_)) {
-            return Root()->Children_;
+            if (const auto root = Root()) {
+                return root->Children_;
+            } else {
+                return 0;
+            }
         } else {
             return GetIndex(x);
         }
