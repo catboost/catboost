@@ -184,7 +184,7 @@ public:
     template <class T>
     TConstArrayRef<T> GetRawArray() const {
         CheckIfCanBeInterpretedAsRawArray<T>();
-        return TConstArrayRef<T>(reinterpret_cast<T*>((*Storage).data()), Size);
+        return TConstArrayRef<T>(reinterpret_cast<const T*>((*Storage).data()), Size);
     }
 
     char* GetRawPtr() {
