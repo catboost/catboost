@@ -1,4 +1,4 @@
-- source_filter: "^maps/mapsmobi"
+- source_filter: "^maps/mapsmobi|^devtools/experimental/mapsmobi"
   includes:
   - EGL/egl.h
   - QtCore/QCoreApplication
