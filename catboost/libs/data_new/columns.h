@@ -266,7 +266,9 @@ namespace NCB {
         }
 
         IDynamicBlockIteratorPtr<T> GetBlockIterator(ui32 offset = 0) const override {
-            return Data.GetBlockIterator(offset);
+            return MakeHolder<typename TConstSparseArray<T, ui32>::TBlockIterator>(
+                Data.GetBlockIterator(offset)
+            );
         }
 
     private:
