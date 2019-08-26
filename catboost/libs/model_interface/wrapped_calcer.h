@@ -45,6 +45,15 @@ public:
         }
     }
     /**
+     * Switch evaluation backend to CUDA device
+     * @param[in] deviceId - CUDA device id, formula evaluation will be done on that device
+     */
+    void EnableGPUEvaluation(int deviceId = 0) {
+        if (!::EnableGPUEvaluation(CalcerHolder.get(), deviceId)) {
+            throw std::runtime_error(GetErrorString());
+        }
+    }
+    /**
      * Evaluate model on single object flat features vector.
      * Flat here means that float features and categorical feature are in the same float array.
      * Don't work on multiclass models (models with ApproxDimension > 1)
@@ -235,6 +244,7 @@ public:
         const char* value_ptr = GetModelInfoValue(CalcerHolder.get(), key.c_str(), key.size());
         return std::string(value_ptr, value_size);
     }
+
 private:
     using CalcerHolderType = std::unique_ptr<ModelCalcerHandle, std::function<void(ModelCalcerHandle*)>>;
     CalcerHolderType CalcerHolder;
