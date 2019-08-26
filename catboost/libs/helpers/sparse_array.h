@@ -108,6 +108,12 @@ namespace NCB {
     public:
         TSparseSubsetBlocksIterator(const TSparseSubsetBlocks<TSize>& sparseSubsetBlocks);
 
+        TSparseSubsetBlocksIterator(
+            const TSize* blockStartsCurrent,
+            const TSize* blockStartsEnd,
+            const TSize* blockLengthsCurrent,
+            TSize inBlockIdx);
+
         inline TMaybe<TSize> Next() override;
 
     private:
@@ -154,6 +160,12 @@ namespace NCB {
     class TSparseSubsetHybridIndexIterator final : public IDynamicIterator<TSize> {
     public:
         TSparseSubsetHybridIndexIterator(const TSparseSubsetHybridIndex<TSize>& sparseSubsetHybridIndex);
+
+        TSparseSubsetHybridIndexIterator(
+            const TSize* blockIndicesCurrent,
+            const TSize* blockIndicesEnd,
+            const ui64* blockBitmapsCurrent,
+            ui32 inBlockIdx);
 
         inline TMaybe<TSize> Next() override;
 
@@ -231,6 +243,12 @@ namespace NCB {
         inline void ForEach(F&& f) const;
 
         IDynamicIteratorPtr<TSize> GetIterator() const;
+
+        // get iterator and nonDefaultBegin index for subset starting at 'begin'
+        void GetIteratorAndNonDefaultBegin(
+            TSize begin,
+            IDynamicIteratorPtr<TSize>* iterator,
+            TSize* nonDefaultBegin) const;
 
     private:
         void InitSize(TMaybe<TSize> sizeArg, TSize indicesUpperBound);
@@ -321,7 +339,8 @@ namespace NCB {
     public:
         TSparseArrayBaseIterator(
             IDynamicIteratorPtr<TSize> indexingIteratorPtr,
-            const TContainer& nonDefaultValues);
+            const TContainer& nonDefaultValues,
+            TSize nonDefaultOffset = 0);
 
         inline TMaybe<std::pair<TSize, TValue>> Next() override;
 
@@ -333,6 +352,33 @@ namespace NCB {
 
     template <class TValue, class TContainer, class TSize = size_t>
     using TSparseArrayBaseIteratorPtr = THolder<TSparseArrayBaseIterator<TValue, TContainer, TSize>>;
+
+
+    template <class TValue, class TContainer, class TSize = size_t>
+    class TSparseArrayBaseBlockIterator final : public IDynamicBlockIterator<TValue> {
+    public:
+        TSparseArrayBaseBlockIterator(
+            TSize size,
+            IDynamicIteratorPtr<TSize> indexingIteratorPtr,
+            TValue defaultValue,
+            const TContainer& nonDefaultValues,
+            TSize offset,
+            TSize nonDefaultOffset);
+
+        inline TConstArrayRef<TValue> Next(size_t maxBlockSize = Max<size_t>()) override;
+
+    public:
+        TSize Index;
+        TSize Size;
+        IDynamicIteratorPtr<TSize> IndexingIteratorPtr;
+        TMaybe<TSize> NextNonDefault;
+        TValue DefaultValue;
+        TSize NonDefaultIndex;
+        const TContainer& NonDefaultValues;
+
+        TVector<TValue> Buffer;
+    };
+
 
     /*
      * TContainer must implement GetSize and 'operator[]'
@@ -346,6 +392,8 @@ namespace NCB {
         using TIndexingPtr = TIntrusivePtr<TSparseArrayIndexing<TSize>>;
         using TIndexingImpl = typename TIndexing::TImpl;
         using TNonConstValue = typename std::remove_const<TValue>::type;
+        using TIterator = TSparseArrayBaseIterator<TNonConstValue, TContainer, TSize>;
+        using TBlockIterator = TSparseArrayBaseBlockIterator<TNonConstValue, TContainer, TSize>;
 
     public:
         // needed because of IBinSaver
@@ -398,7 +446,9 @@ namespace NCB {
 
         TVector<TNonConstValue> ExtractValues() const;
 
-        TSparseArrayBaseIterator<TNonConstValue, TContainer, TSize> GetIterator();
+        TIterator GetIterator(TSize offset = 0) const;
+
+        TBlockIterator GetBlockIterator(TSize offset = 0) const;
 
         size_t EstimateGetSubsetCpuRamUsage(
             const TArraySubsetInvertedIndexing<TSize>& subsetInvertedIndexing,

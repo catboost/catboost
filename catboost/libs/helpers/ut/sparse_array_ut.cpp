@@ -599,6 +599,23 @@ Y_UNIT_TEST_SUITE(SparseArray) {
                     ++expectedI;
                 });
         }
+
+        {
+            for (size_t maxBlockSize : {1, 2, 5, 10, 100, 1000}) {
+                for (auto offset : xrange(expectedArray.size())) {
+                    size_t i = offset;
+                    auto blockIterator = sparseArray.GetBlockIterator(offset);
+                    while (auto block = blockIterator.Next(maxBlockSize)) {
+                        UNIT_ASSERT(block.size() <= maxBlockSize);
+                        for (auto v : block) {
+                            UNIT_ASSERT_VALUES_EQUAL(v, expectedArray[i]);
+                            ++i;
+                        }
+                    }
+                    UNIT_ASSERT_VALUES_EQUAL(i, expectedArray.size());
+                }
+            }
+        }
     };
 
     Y_UNIT_TEST(TSparseArrayIteration) {
