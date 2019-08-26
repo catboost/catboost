@@ -5171,3 +5171,22 @@ def test_pairs_without_groupid():
     train_data = df.drop([0, 1, 2, 3, 4], axis=1).astype(np.float32)
     model.fit(train_data, train_target, pairs=pairs)
     return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
+
+
+def test_groupwise_sampling_without_groups(task_type):
+    params = {
+        'task_type': task_type,
+        'iterations': 10,
+        'thread_count': 4,
+        'bootstrap_type': 'Bernoulli',
+        'sampling_unit': 'Group',
+        'subsample': 0.5
+    }
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoost(params=params)
+    try:
+        model.fit(train_pool)
+    except CatBoostError:
+        return
+
+    assert False
