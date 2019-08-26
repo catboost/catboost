@@ -112,6 +112,8 @@ namespace NCB {
             ui32 internalFeatureIdx,
             EFeatureType type) const;
 
+        const TFeatureMetaInfo& GetExternalFeatureMetaInfo(ui32 externalFeatureIdx) const;
+
         // prefer this method to GetExternalFeatureIds
         TConstArrayRef<TFeatureMetaInfo> GetExternalFeaturesMetaInfo() const;
 

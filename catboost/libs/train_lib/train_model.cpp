@@ -1,7 +1,6 @@
 #include "train_model.h"
 #include "options_helper.h"
 #include "cross_validation.h"
-#include "feature_names_converter.h"
 
 #include <catboost/libs/algo/approx_dimension.h>
 #include <catboost/libs/algo/data.h>
@@ -11,6 +10,7 @@
 #include <catboost/libs/algo/preprocess.h>
 #include <catboost/libs/algo/train.h>
 #include <catboost/libs/algo/tree_print.h>
+#include <catboost/libs/data_new/feature_names_converter.h>
 #include <catboost/libs/data_new/borders_io.h>
 #include <catboost/libs/data_new/load_data.h>
 #include <catboost/libs/data_util/exists_checker.h>

@@ -300,11 +300,14 @@ cdef extern from "catboost/libs/data_new/objects.h" namespace "NCB":
         void SetSubgroupIds(TConstArrayRef[TStringBuf] subgroupStringIds) except +ProcessException
         TMaybeData[const TFloatValuesHolder*] GetFloatFeature(ui32 floatFeatureIdx) except +ProcessException
 
+    cdef cppclass TQuantizedObjectsDataProvider(TObjectsDataProvider):
+        pass
 
     cdef THashMap[ui32, TString] MergeCatFeaturesHashToString(const TObjectsDataProvider& objectsData) except +ProcessException
 
 cdef extern from *:
     TRawObjectsDataProvider* dynamic_cast_to_TRawObjectsDataProvider "dynamic_cast<NCB::TRawObjectsDataProvider*>" (TObjectsDataProvider*)
+    TQuantizedObjectsDataProvider* dynamic_cast_to_TQuantizedObjectsDataProvider "dynamic_cast<NCB::TQuantizedObjectsDataProvider*>" (TObjectsDataProvider*)
 
 
 cdef extern from "catboost/libs/data_new/weights.h" namespace "NCB":
@@ -337,7 +340,7 @@ cdef extern from "catboost/libs/data_new/target.h" namespace "NCB":
         pass
 
 ctypedef TIntrusivePtr[TTargetDataProvider] TTargetDataProviderPtr
-
+ctypedef TIntrusivePtr[TQuantizedObjectsDataProvider] TQuantizedObjectsDataProviderPtr
 
 cdef extern from "catboost/libs/data_new/data_provider.h" namespace "NCB":
     cdef cppclass TDataProviderTemplate[TTObjectsDataProvider]:
@@ -360,9 +363,10 @@ cdef extern from "catboost/libs/data_new/data_provider.h" namespace "NCB":
         void SetSubgroupIds(TConstArrayRef[TSubgroupId] subgroupIds) except +ProcessException
         void SetWeights(TConstArrayRef[float] weights) except +ProcessException
 
+    ctypedef TDataProviderTemplate[TQuantizedObjectsDataProvider] TQuantizedDataProvider
+
     ctypedef TDataProviderTemplate[TObjectsDataProvider] TDataProvider
     ctypedef TIntrusivePtr[TDataProvider] TDataProviderPtr
-
 
     cdef cppclass TDataProvidersTemplate[TTObjectsDataProvider]:
         TIntrusivePtr[TDataProviderTemplate[TObjectsDataProvider]] Learn
@@ -387,6 +391,10 @@ cdef extern from "catboost/libs/data_new/data_provider.h" namespace "NCB":
         TVector[TIntrusivePtr[TProcessedDataProviderTemplate[TObjectsDataProvider]]] Test
 
     ctypedef TTrainingDataProvidersTemplate[TObjectsDataProvider] TTrainingDataProviders
+
+
+cdef extern from "catboost/libs/quantized_pool/serialization.h" namespace "NCB":
+    cdef void SaveQuantizedPool(const TDataProviderPtr& dataProvider, TString fileName)
 
 
 cdef extern from "catboost/libs/data_util/path_with_scheme.h" namespace "NCB":
@@ -727,6 +735,13 @@ cdef extern from "catboost/libs/train_lib/train_model.h":
         const TVector[TEvalResult*]& testApproxes,
         TMetricsAndTimeLeftHistory* metricsAndTimeHistory,
         THolder[TLearnProgress]* dstLearnProgress
+    ) nogil except +ProcessException
+
+cdef extern from "catboost/libs/data_new/quantization.h"  namespace "NCB":
+    cdef TQuantizedObjectsDataProviderPtr ConstructQuantizedPoolFromRawPool(
+        TDataProviderPtr pool,
+        TJsonValue plainJsonParams,
+        TQuantizedFeaturesInfoPtr quantizedFeaturesInfo
     ) nogil except +ProcessException
 
 cdef extern from "catboost/libs/train_lib/cross_validation.h":
@@ -2341,6 +2356,10 @@ cdef class _PoolBase:
                 baseline
             )
 
+    cpdef _save(self, fname):
+        cdef TString file_name = to_arcadia_string(fname)
+        SaveQuantizedPool(self.__pool, fname)
+
 
     cpdef _set_pairs(self, pairs):
         cdef TVector[TPair] pairs_vector = _make_pairs_vector(pairs)
@@ -2424,6 +2443,21 @@ cdef class _PoolBase:
             TConstArrayRef[TString](feature_names_vector.data(), feature_names_vector.size())
         )
 
+    cpdef _quantize(self, dict params):
+        _input_borders = params.pop("input_borders", None)
+        prep_params = _PreprocessParams(params)
+        cdef TQuantizedFeaturesInfoPtr quantizedFeaturesInfo
+
+        if (_input_borders):
+            quantizedFeaturesInfo = _init_quantized_feature_info(self.__pool, _input_borders)
+
+        with nogil:
+            SetPythonInterruptHandler()
+            try:
+                self.__pool.Get()[0].ObjectsData = ConstructQuantizedPoolFromRawPool(self.__pool, prep_params.tree, quantizedFeaturesInfo)
+            finally:
+                ResetPythonInterruptHandler()
+
     cpdef get_feature_names(self):
         feature_names = []
         cdef bytes pystr
@@ -2477,6 +2511,14 @@ cdef class _PoolBase:
         """
         return tuple([self.num_row(), self.num_col()])
 
+
+    cpdef is_quantized(self):
+        cdef TQuantizedObjectsDataProvider* quantized_objects_data_provider = dynamic_cast_to_TQuantizedObjectsDataProvider(
+            self.__pool.Get()[0].ObjectsData.Get()
+        )
+        if not quantized_objects_data_provider:
+            return False
+        return True
 
     cdef _get_feature(
         self,
@@ -2645,6 +2687,21 @@ cpdef _have_equal_features(_PoolBase pool1, _PoolBase pool2):
     return pool1.__pool.Get()[0].ObjectsData.Get()[0] == pool2.__pool.Get()[0].ObjectsData.Get()[0]
 
 
+cdef TQuantizedFeaturesInfoPtr _init_quantized_feature_info(TDataProviderPtr pool, _input_borders):
+    cdef TQuantizedFeaturesInfoPtr quantizedFeaturesInfo
+    quantizedFeaturesInfo = new TQuantizedFeaturesInfo(
+        dereference(dereference(pool.Get()).MetaInfo.FeaturesLayout.Get()),
+        TConstArrayRef[ui32](),
+        TBinarizationOptions()
+    )
+    input_borders_str = to_arcadia_string(_input_borders)
+    with nogil:
+        LoadBordersAndNanModesFromFromFileInMatrixnetFormat(
+            input_borders_str,
+            quantizedFeaturesInfo.Get())
+    return quantizedFeaturesInfo
+
+
 cdef class _CatBoost:
     cdef TFullModel* __model
     cdef TVector[TEvalResult*] __test_evals
@@ -2712,17 +2769,7 @@ cdef class _CatBoost:
         self._clear_test_evals()
 
         if (_input_borders):
-            quantizedFeaturesInfo = new TQuantizedFeaturesInfo(
-                dereference(dereference(dataProviders.Learn.Get()).MetaInfo.FeaturesLayout.Get()),
-                TConstArrayRef[ui32](),
-                TBinarizationOptions()
-            )
-            input_borders_str = to_arcadia_string(_input_borders)
-            with nogil:
-                LoadBordersAndNanModesFromFromFileInMatrixnetFormat(
-                    input_borders_str,
-                    quantizedFeaturesInfo.Get())
-
+            quantizedFeaturesInfo = _init_quantized_feature_info(dataProviders.Learn, _input_borders)
         if task_type == 'CPU':
             dst_learn_progress_param = &self.__cached_learn_progress
         else:

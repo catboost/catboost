@@ -25,51 +25,9 @@ using namespace NCB::NDataNewUT;
 
 
 Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
-    template <class T>
-    struct TSrcColumn {
-        EColumn Type;
-        TVector<TVector<T>> Data;
-    };
-
-
-    struct TSrcData {
-        size_t DocumentCount;
-
-        TVector<size_t> LocalIndexToColumnIndex; // [localIndex]
-        TPoolQuantizationSchema PoolQuantizationSchema;
-        TVector<TString> ColumnNames;
-
-        // Objects data
-        TMaybe<TSrcColumn<TGroupId>> GroupIds;
-        TMaybe<TSrcColumn<TSubgroupId>> SubgroupIds;
-
-        // TODO(akhropov): not yet supported by quantized pools format. MLTOOLS-2412.
-        // TMaybe<TSrcColumn<ui64>> Timestamp;
-
-        TVector<TMaybe<TSrcColumn<ui8>>> FloatFeatures;
-
-        // TODO(akhropov): not yet supported by quantized pools format. MLTOOLS-1957.
-        // TVector<TMaybe<TSrcColumn<TStringBuf>>> CatFeatures;
-
-        // Target data
-        TMaybe<TSrcColumn<float>> Target;
-        TVector<TSrcColumn<double>> Baseline;
-        TMaybe<TSrcColumn<float>> Weights;
-        TMaybe<TSrcColumn<float>> GroupWeights;
-
-        TStringBuf PairsFileData;
-        TStringBuf GroupWeightsFileData;
-        TStringBuf BaselineFileData;
-
-        TVector<size_t> IgnoredColumnIndices; // saved in quantized pool
-
-        TVector<ui32> IgnoredFeatures; // passed in args to loader
-
-        EObjectsOrder ObjectsOrder = EObjectsOrder::Undefined;
-    };
 
     struct TTestCase {
-        TSrcData SrcData;
+        NCB::TSrcData SrcData;
         TExpectedQuantizedData ExpectedData;
     };
 
@@ -81,90 +39,21 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
         TVector<TString> ClassNames;
     };
 
-    template <class T>
-    static void AddToPool(const TSrcColumn<T>& srcColumn, NCB::TQuantizedPool* quantizedPool) {
-        quantizedPool->ColumnTypes.push_back(srcColumn.Type);
-
-        size_t documentOffset = 0;
-        TVector<NCB::TQuantizedPool::TChunkDescription> chunks;
-        for (const auto& dataPart : srcColumn.Data) {
-            flatbuffers::FlatBufferBuilder builder;
-            builder.Finish(
-                NCB::NIdl::CreateTQuantizedFeatureChunk(
-                    builder,
-                    static_cast<NCB::NIdl::EBitsPerDocumentFeature>(sizeof(T)*8),
-                    builder.CreateVector(
-                        reinterpret_cast<const ui8*>(dataPart.data()),
-                        sizeof(T)*dataPart.size()
-                    )
-                )
-            );
-            quantizedPool->Blobs.push_back(TBlob::Copy(builder.GetBufferPointer(), builder.GetSize()));
-
-            chunks.emplace_back(
-                documentOffset,
-                documentOffset + dataPart.size(),
-                flatbuffers::GetRoot<NCB::NIdl::TQuantizedFeatureChunk>(
-                    quantizedPool->Blobs.back().AsCharPtr()
-                )
-            );
-            documentOffset += dataPart.size();
-        }
-        quantizedPool->Chunks.push_back(std::move(chunks));
-    }
-
-    template <class T>
-    static void AddToPool(const TMaybe<TSrcColumn<T>>& srcColumn, NCB::TQuantizedPool* quantizedPool) {
-        if (srcColumn) {
-            AddToPool(*srcColumn, quantizedPool);
-        }
-    }
 
     void SaveQuantizedPool(
-        const TSrcData& srcData,
+        const NCB::TSrcData& srcData,
         TPathWithScheme* dstPath,
         TVector<THolder<TTempFile>>* srcDataFiles
     ) {
-        NCB::TQuantizedPool pool;
-        pool.DocumentCount = srcData.DocumentCount;
-        for (auto localIndex : xrange(srcData.LocalIndexToColumnIndex.size())) {
-            pool.ColumnIndexToLocalIndex.emplace(srcData.LocalIndexToColumnIndex[localIndex], localIndex);
-        }
-        pool.QuantizationSchema = QuantizationSchemaToProto(srcData.PoolQuantizationSchema);
-        pool.ColumnNames = srcData.ColumnNames;
-        pool.IgnoredColumnIndices = srcData.IgnoredColumnIndices;
-
-        AddToPool(srcData.GroupIds, &pool);
-        AddToPool(srcData.SubgroupIds, &pool);
-
-        for (const auto& floatFeature : srcData.FloatFeatures) {
-            if (floatFeature) {
-                AddToPool(*floatFeature, &pool);
-            } else {
-                AddToPool(TSrcColumn<ui8>{EColumn::Num, {{}}}, &pool);
-            }
-        }
-
-        AddToPool(srcData.Target, &pool);
-
-        for (const auto& oneBaseline : srcData.Baseline) {
-            AddToPool(oneBaseline, &pool);
-        }
-
-        AddToPool(srcData.Weights, &pool);
-        AddToPool(srcData.GroupWeights, &pool);
-
-
         auto tmpFileName = MakeTempName();
-        TFileOutput output(tmpFileName);
-        NCB::SaveQuantizedPool(pool, &output);
+        NCB::SaveQuantizedPool(srcData, tmpFileName);
         *dstPath = TPathWithScheme("quantized://" + tmpFileName);
         srcDataFiles->emplace_back(MakeHolder<TTempFile>(tmpFileName));
     }
 
 
     void SaveSrcData(
-        const TSrcData& srcData,
+        const NCB::TSrcData& srcData,
         TReadDatasetMainParams* readDatasetMainParams,
         TVector<THolder<TTempFile>>* srcDataFiles
     ) {
@@ -216,7 +105,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
 
         {
             TTestCase simpleTestCase;
-            TSrcData srcData;
+            NCB::TSrcData srcData;
 
             srcData.DocumentCount = 5;
             srcData.LocalIndexToColumnIndex = {0, 1, 2};
@@ -282,7 +171,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
 
         {
             TTestCase groupDataTestCase;
-            TSrcData srcData;
+            NCB::TSrcData srcData;
 
             srcData.DocumentCount = 6;
             srcData.LocalIndexToColumnIndex = {1, 2, 3, 4, 5, 0, 6, 7};
@@ -414,7 +303,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
 
         {
             TTestCase pairsOnlyTestCase;
-            TSrcData srcData;
+            NCB::TSrcData srcData;
 
             srcData.DocumentCount = 6;
             srcData.LocalIndexToColumnIndex = {0, 1, 2, 3, 4};
@@ -527,7 +416,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
 
         {
             TTestCase separateGroupWeightsTestCase;
-            TSrcData srcData;
+            NCB::TSrcData srcData;
 
             srcData.DocumentCount = 6;
             srcData.LocalIndexToColumnIndex = {1, 2, 3, 4, 0};
@@ -657,7 +546,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
 
         {
             TTestCase ignoredFeaturesTestCase;
-            TSrcData srcData;
+            NCB::TSrcData srcData;
 
             srcData.DocumentCount = 6;
             srcData.LocalIndexToColumnIndex = {1, 2, 3, 4, 5, 0};
@@ -785,29 +674,13 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
         return result;
     }
 
-    template <class T>
-    TSrcColumn<T> GenerateSrcColumn(TConstArrayRef<T> data, EColumn columnType, size_t avgChunkSize) {
-        TSrcColumn<T> dst;
-        dst.Type = columnType;
-
-        for (size_t idx = 0; idx < data.size(); ) {
-            size_t chunkSize = Min(
-                data.size() - idx,
-                avgChunkSize / 2 + RandomNumber<size_t>(avgChunkSize)
-            );
-            dst.Data.push_back(TVector<T>(data.begin() + idx, data.begin() + idx + chunkSize));
-            idx += chunkSize;
-        }
-        return dst;
-    }
-
 
     Y_UNIT_TEST(ReadDatasetMidSize) {
         TTestCase testCase;
 
         // for this test case we set some srcData from expectedData explicitly, because data is big
 
-        TSrcData srcData;
+        NCB::TSrcData srcData;
         TExpectedQuantizedData expectedData;
 
         const ui32 binCount = 5;
@@ -835,10 +708,9 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
             srcData.DocumentCount,
             [] (ui32 i) { return i / 5; }
         );
-        srcData.GroupIds = GenerateSrcColumn<TGroupId>(
+        srcData.GroupIds = NCB::GenerateSrcColumn<TGroupId>(
             *expectedData.Objects.GroupIds,
-            EColumn::GroupId,
-            5000
+            EColumn::GroupId
         );
 
         for (auto featureIdx : xrange(featureCount)) {
@@ -851,7 +723,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
                 )
             );
             srcData.FloatFeatures.push_back(
-                GenerateSrcColumn<ui8>(*expectedData.Objects.FloatFeatures.back(), EColumn::Num, 5000)
+                NCB::GenerateSrcColumn<ui8>(*expectedData.Objects.FloatFeatures.back(), EColumn::Num)
             );
         }
         srcData.ColumnNames.push_back("Target");
@@ -860,7 +732,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
             srcData.DocumentCount,
             [] (ui32 /*i*/) { return RandomNumber<float>(); }
         );
-        srcData.Target = GenerateSrcColumn<float>(target, EColumn::Label, 5000);
+        srcData.Target = NCB::GenerateSrcColumn<float>(target, EColumn::Label);
 
         size_t sumOfStringSizes = 0;
         expectedData.Target.Target = GenerateData<TString>(

@@ -8,8 +8,11 @@
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/quantized_pool/detail.h>
 #include <catboost/libs/quantization_schema/detail.h>
+#include <catboost/libs/quantization_schema/serialization.h>
 
 #include <contrib/libs/flatbuffers/include/flatbuffers/flatbuffers.h>
+
+#include <catboost/idl/pool/flat/quantized_chunk_t.fbs.h>
 
 #include <util/digest/numeric.h>
 #include <util/folder/path.h>
@@ -29,6 +32,8 @@
 #include <util/stream/output.h>
 #include <util/system/byteorder.h>
 #include <util/system/unaligned_mem.h>
+#include <util/system/info.h>
+
 
 using NCB::NIdl::TPoolMetainfo;
 using NCB::NIdl::TPoolQuantizationSchema;
@@ -774,4 +779,253 @@ NCB::NIdl::TPoolMetainfo NCB::LoadPoolMetainfo(const TStringBuf path) {
     CB_ENSURE(poolMetainfoParsed);
 
     return poolMetainfo;
+}
+
+
+namespace NCB {
+
+    template <class T>
+    static void AddToPool(const TSrcColumn<T>& srcColumn, TQuantizedPool* quantizedPool) {
+        quantizedPool->ColumnTypes.push_back(srcColumn.Type);
+
+        size_t documentOffset = 0;
+        TVector<TQuantizedPool::TChunkDescription> chunks;
+        for (const auto& dataPart : srcColumn.Data) {
+            flatbuffers::FlatBufferBuilder builder;
+            builder.Finish(
+                NIdl::CreateTQuantizedFeatureChunk(
+                    builder,
+                    static_cast<NIdl::EBitsPerDocumentFeature>(sizeof(T)*8),
+                    builder.CreateVector(
+                        reinterpret_cast<const ui8*>(dataPart.data()),
+                        sizeof(T)*dataPart.size()
+                    )
+                )
+            );
+            quantizedPool->Blobs.push_back(TBlob::Copy(builder.GetBufferPointer(), builder.GetSize()));
+
+            chunks.emplace_back(
+                documentOffset,
+                documentOffset + dataPart.size(),
+                flatbuffers::GetRoot<NIdl::TQuantizedFeatureChunk>(
+                    quantizedPool->Blobs.back().AsCharPtr()
+                )
+            );
+            documentOffset += dataPart.size();
+        }
+        quantizedPool->Chunks.push_back(std::move(chunks));
+    }
+
+
+    template <class T>
+    static void AddToPool(const TMaybe<TSrcColumn<T>>& srcColumn, TQuantizedPool* quantizedPool) {
+        if (srcColumn) {
+            AddToPool(*srcColumn, quantizedPool);
+        }
+    }
+
+
+    void SaveQuantizedPool(
+        const TSrcData& srcData,
+        TString fileName
+    ) {
+        TQuantizedPool pool;
+        pool.DocumentCount = srcData.DocumentCount;
+        for (auto localIndex : xrange(srcData.LocalIndexToColumnIndex.size())) {
+            pool.ColumnIndexToLocalIndex.emplace(srcData.LocalIndexToColumnIndex[localIndex], localIndex);
+        }
+        pool.QuantizationSchema = QuantizationSchemaToProto(srcData.PoolQuantizationSchema);
+        pool.ColumnNames = srcData.ColumnNames;
+        pool.IgnoredColumnIndices = srcData.IgnoredColumnIndices;
+
+        AddToPool(srcData.GroupIds, &pool);
+        AddToPool(srcData.SubgroupIds, &pool);
+
+        for (const auto& floatFeature : srcData.FloatFeatures) {
+            if (floatFeature) {
+                AddToPool(*floatFeature, &pool);
+            } else {
+                AddToPool(TSrcColumn<ui8>{EColumn::Num, {{}}}, &pool);
+            }
+        }
+
+        AddToPool(srcData.Target, &pool);
+
+        for (const auto& oneBaseline : srcData.Baseline) {
+            AddToPool(oneBaseline, &pool);
+        }
+
+        AddToPool(srcData.Weights, &pool);
+        AddToPool(srcData.GroupWeights, &pool);
+
+
+        TFileOutput output(fileName);
+        SaveQuantizedPool(pool, &output);
+    }
+
+
+    static constexpr size_t SLICE_COUNT = 512 * 1024;
+
+
+    template <class T>
+    TSrcColumn<T> GenerateSrcColumn(TConstArrayRef<T> data, EColumn columnType) {
+        TSrcColumn<T> dst;
+        dst.Type = columnType;
+
+        for (size_t idx = 0; idx < data.size(); ) {
+            size_t chunkSize = Min(
+                data.size() - idx,
+                SLICE_COUNT
+            );
+            dst.Data.push_back(TVector<T>(data.begin() + idx, data.begin() + idx + chunkSize));
+            idx += chunkSize;
+        }
+        return dst;
+    }
+
+
+    static void BuildSrcDataFromDataProvider(
+        TDataProviderPtr dataProvider,
+        NPar::TLocalExecutor* localExecutor,
+        TSrcData* srcData
+    ) {
+        const auto* const quantizedObjectsData =
+            dynamic_cast<const TQuantizedObjectsDataProvider*>(dataProvider->ObjectsData.Get());
+        CB_ENSURE(quantizedObjectsData, "Pool is not quantized");
+
+        srcData->DocumentCount = dataProvider->GetObjectCount();
+        srcData->ObjectsOrder = quantizedObjectsData->GetOrder();
+
+        TVector<TString> columnNames;
+
+        //groupIds
+        const auto& groupIds = quantizedObjectsData->GetGroupIds();
+        if (groupIds) {
+            srcData->GroupIds = GenerateSrcColumn<TGroupId>(groupIds.GetRef(), EColumn::GroupId);
+            columnNames.push_back("GroupId");
+        }
+
+        //subGroupIds
+        const auto& subGroupIds = quantizedObjectsData->GetSubgroupIds();
+        if (subGroupIds) {
+            srcData->SubgroupIds = GenerateSrcColumn<TSubgroupId>(subGroupIds.GetRef(), EColumn::SubgroupId);
+            columnNames.push_back("SubgroupId");
+        }
+
+        //floatFeatures and quantizationSchema
+        const auto& quantizedFeaturesInfo = quantizedObjectsData->GetQuantizedFeaturesInfo();
+        const auto& featuresLayout = quantizedFeaturesInfo->GetFeaturesLayout();
+
+        TVector<TVector<float>> borders;
+        TVector<ENanMode> nanModes;
+        TVector<size_t> featureIndices;
+
+        for (auto externalFeatureIdx : xrange(featuresLayout->GetExternalFeatureCount())) {
+            const auto featureMetaInfo = featuresLayout->GetExternalFeatureMetaInfo(externalFeatureIdx);
+
+            if (featureMetaInfo.Type == EFeatureType::Float) {
+                const auto floatFeatureIdx =
+                    featuresLayout->GetInternalFeatureIdx<EFeatureType::Float>(externalFeatureIdx);
+
+                //for quantizationSchema
+                borders.push_back(quantizedFeaturesInfo->GetBorders(floatFeatureIdx));
+                nanModes.push_back(quantizedFeaturesInfo->GetNanMode(floatFeatureIdx));
+                featureIndices.push_back(featureIndices.size());
+
+                //for floatFeatures
+                TMaybeData<const IQuantizedFloatValuesHolder*> feature =
+                    quantizedObjectsData->GetFloatFeature(*floatFeatureIdx);
+
+                TMaybe<TSrcColumn<ui8>> maybeFeatureColumn;
+                if (feature) {
+                    CB_ENSURE(quantizedFeaturesInfo->HasBorders(floatFeatureIdx) &&
+                        quantizedFeaturesInfo->HasNanMode(floatFeatureIdx),
+                        "Borders and NaN processing mode are required for numerical features");
+
+                    CB_ENSURE_INTERNAL(feature.GetRef(),
+                        "GetFloatFeature returned nullptr for feature " << externalFeatureIdx << " which is not ignored");
+
+                    //init feature
+                    maybeFeatureColumn = GenerateSrcColumn<ui8>(
+                        static_cast<TConstArrayRef<ui8>>(*feature.GetRef()->ExtractValues(localExecutor)),
+                        EColumn::Num
+                    );
+                } else {
+                    CB_ENSURE_INTERNAL(featureMetaInfo.IsIgnored, "If GetFloatFeature returns Nothing(), feature must be ignored");
+                }
+
+                srcData->FloatFeatures.emplace_back(maybeFeatureColumn);
+                columnNames.push_back(featureMetaInfo.Name);
+            } else {
+                CB_ENSURE(false, "Saving quantization results is supported only for numerical features");
+            }
+        }
+        //target
+        const auto& label = dataProvider->RawTargetData.GetTarget();
+        if (label) {
+            const auto& targetString = label.GetRef();
+            TVector<float> targetFloat(targetString.size());
+
+            for (auto targetIdx : xrange(targetString.size())) {
+                CB_ENSURE(TryFromString<float>(targetString[targetIdx], targetFloat[targetIdx]),
+                    "Cannot parse label element at index " << targetIdx << " as float: " << targetString[targetIdx]);
+            }
+
+            srcData->Target = GenerateSrcColumn<float>(TConstArrayRef<float>(targetFloat), EColumn::Label);
+            columnNames.push_back("Target");
+        }
+
+        //baseline
+        const auto& baseline = dataProvider->RawTargetData.GetBaseline();
+        if (baseline) {
+            for (size_t baselineIdx : xrange(baseline.GetRef().size())) {
+                TSrcColumn<float> currentBaseline = GenerateSrcColumn<float>(baseline.GetRef()[baselineIdx], EColumn::Baseline);
+                srcData->Baseline.emplace_back(currentBaseline);
+                columnNames.push_back("Baseline " + ToString(baselineIdx));
+            }
+        }
+
+        //weights
+        const auto& weights = dataProvider->RawTargetData.GetWeights();
+        if (!weights.IsTrivial()) {
+            srcData->Weights = GenerateSrcColumn<float>(weights.GetNonTrivialData(), EColumn::Weight);
+            columnNames.push_back("Weight");
+        }
+
+        //groupWeights
+        const auto& groupWeights = dataProvider->RawTargetData.GetGroupWeights();
+        if (!groupWeights.IsTrivial()) {
+            srcData->GroupWeights = GenerateSrcColumn<float>(groupWeights.GetNonTrivialData(), EColumn::GroupWeight);
+            columnNames.push_back("GroupWeight");
+        }
+
+        //constuct quantizationSchema
+        TPoolQuantizationSchema quantizationSchema{
+            std::move(featureIndices),
+            std::move(borders),
+            std::move(nanModes),
+            dataProvider->MetaInfo.ClassNames
+        };
+
+        //localIndexToColumnIndex
+        TVector<size_t> localIndexToColumnIndex(columnNames.size());
+        std::iota(localIndexToColumnIndex.begin(), localIndexToColumnIndex.end(), 0);
+
+        //fill other attributes
+        srcData->PoolQuantizationSchema = quantizationSchema;
+        srcData->ColumnNames = columnNames;
+        srcData->LocalIndexToColumnIndex = localIndexToColumnIndex;
+    }
+
+
+    void SaveQuantizedPool(const TDataProviderPtr& dataProvider, TString fileName) {
+        const auto threadCount = NSystemInfo::CachedNumberOfCpus();
+        NPar::TLocalExecutor localExecutor;
+        localExecutor.RunAdditionalThreads(threadCount);
+
+        TSrcData srcData;
+        BuildSrcDataFromDataProvider(dataProvider, &localExecutor, &srcData);
+
+        SaveQuantizedPool(srcData, fileName);
+    }
 }

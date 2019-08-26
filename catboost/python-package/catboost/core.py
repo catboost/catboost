@@ -595,6 +595,139 @@ class Pool(_PoolBase):
         self._set_pairs_weight(pairs_weight)
         return self
 
+    def save(self, fname):
+        """
+        Save the quantized pool to a file.
+
+        Parameters
+        ----------
+        fname : string
+            Output file name.
+        """
+        if not self.is_quantized():
+            raise CatBoostError('Pool is not quantized')
+
+        if not isinstance(fname, STRING_TYPES):
+            raise CatBoostError("Invalid fname type={}: must be str().".format(type(fname)))
+
+        self._save(fname)
+
+    def quantize(self, params=None, ignored_features=None, per_float_feature_quantization=None, border_count=None,
+                 max_bin=None, feature_border_type=None, sparse_features_conflict_fraction=None, dev_efb_max_buckets=None,
+                 nan_mode=None, input_borders=None, simple_ctr=None, combinations_ctr=None, per_feature_ctr=None,
+                 ctr_target_border_count=None, task_type=None, used_ram_limit=None):
+        """
+        Quantize this pool
+
+        Parameters
+        ----------
+        pool : catboost.Pool
+            Data to quantize on.
+
+        params : dict
+            Parameters for CatBoost.
+            CatBoost has many of parameters, all have default values.
+            If  None, all params still defaults.
+            If  dict, overriding some (or all) params.
+
+        TODO(desrcibe other parametres)
+        """
+        if self.is_quantized():
+            raise CatBoostError('Pool is already quantized')
+
+        if params is None:
+            raise CatBoostError("params should be set.")
+
+        params = deepcopy(params)
+        _process_synonyms(params)
+
+        if border_count is None:
+            border_count = max_bin
+
+        self._update_params_quantize_part(params, ignored_features, per_float_feature_quantization, border_count,
+                                          feature_border_type, sparse_features_conflict_fraction, dev_efb_max_buckets,
+                                          nan_mode, input_borders, simple_ctr, combinations_ctr, per_feature_ctr,
+                                          ctr_target_border_count, task_type, used_ram_limit)
+
+        self._quantize(params)
+
+
+
+    def _update_params_quantize_part(self, params, ignored_features, per_float_feature_quantization, border_count,
+                                     feature_border_type, sparse_features_conflict_fraction, dev_efb_max_buckets,
+                                     nan_mode, input_borders, simple_ctr, combinations_ctr, per_feature_ctr,
+                                     ctr_target_border_count, task_type, used_ram_limit):
+        if ignored_features is not None:
+            params.update({
+                'ignored_features': ignored_features
+            })
+
+        if per_float_feature_quantization is not None:
+            params.update({
+                'per_float_feature_quantization': per_float_feature_quantization
+            })
+
+        if border_count is not None:
+            params.update({
+                'border_count': border_count
+            })
+
+        if feature_border_type is not None:
+            params.update({
+                'feature_border_type': feature_border_type
+            })
+
+        if sparse_features_conflict_fraction is not None:
+            params.update({
+                'sparse_features_conflict_fraction': sparse_features_conflict_fraction
+            })
+
+        if dev_efb_max_buckets is not None:
+            params.update({
+                'dev_efb_max_buckets': dev_efb_max_buckets
+            })
+
+        if nan_mode is not None:
+            params.update({
+                'nan_mode': nan_mode
+            })
+
+        if input_borders is not None:
+            params.update({
+                'input_borders': input_borders
+            })
+
+        if simple_ctr is not None:
+            params.update({
+                'simple_ctr': simple_ctr
+            })
+
+        if combinations_ctr is not None:
+            params.update({
+                'combinations_ctr': combinations_ctr
+            })
+
+        if per_feature_ctr is not None:
+            params.update({
+                'per_feature_ctr': per_feature_ctr
+            })
+
+        if ctr_target_border_count is not None:
+            params.update({
+                'ctr_target_border_count': ctr_target_border_count
+            })
+
+        if task_type is not None:
+            params.update({
+                'task_type': task_type
+            })
+
+        if used_ram_limit is not None:
+            params.update({
+                'used_ram_limit': used_ram_limit
+            })
+
+
     def _if_pandas_to_numpy(self, array):
         if isinstance(array, Series):
             array = array.values
@@ -2006,10 +2139,7 @@ class CatBoost(_CatBoostBase):
 
         if type == EFstrType.PredictionDiff:
             if data is None and isinstance(data, Pool):
-                if sys.version_info[0] >= 3:
-                    from builtins import type as typeof
-                else:
-                    from __builtin__ import type as typeof
+                from __builtin__ import type as typeof
                 raise CatBoostError("Invalid data type={}, must be list or np.array".format(typeof(data)))
 
             data, _ = self._process_predict_input_data(data, "get_feature_importance")
@@ -2018,10 +2148,7 @@ class CatBoost(_CatBoostBase):
 
         else:
             if data is not None and not isinstance(data, Pool):
-                if sys.version_info[0] >= 3:
-                    from builtins import type as typeof
-                else:
-                    from __builtin__ import type as typeof
+                from __builtin__ import type as typeof
                 raise CatBoostError("Invalid data type={}, must be catboost.Pool.".format(typeof(data)))
 
         need_meta_info = type == EFstrType.PredictionValuesChange
@@ -3713,9 +3840,6 @@ class CatBoostRegressor(CatBoost):
         'Poisson'
         'MAPE'
         'Lq:q=value'
-
-    boost_from_average : bool, [default=False]
-        Enables to initialize approx values by average target value at the beginning, if loss function is RMSE.
     """
     def __init__(
         self,
@@ -3752,6 +3876,7 @@ class CatBoostRegressor(CatBoost):
         max_ctr_complexity=None,
         has_time=None,
         allow_const_label=None,
+        target_border=None,
         one_hot_max_size=None,
         random_strength=None,
         name=None,
@@ -3771,7 +3896,6 @@ class CatBoostRegressor(CatBoost):
         final_ctr_computation_mode=None,
         approx_on_full_history=None,
         boosting_type=None,
-        boost_from_average=None,
         simple_ctr=None,
         combinations_ctr=None,
         per_feature_ctr=None,

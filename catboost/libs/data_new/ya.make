@@ -17,6 +17,7 @@ SRCS(
     feature_grouping.cpp
     feature_index.cpp
     features_layout.cpp
+    feature_names_converter.cpp
     load_data.cpp
     loader.cpp
     meta_info.cpp

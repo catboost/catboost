@@ -79,6 +79,10 @@ QUERYWISE_TRAIN_PAIRS_FILE = data_file('querywise', 'train.pairs')
 QUERYWISE_TRAIN_PAIRS_FILE_WITH_PAIR_WEIGHT = data_file('querywise', 'train.pairs.weighted')
 QUERYWISE_TEST_PAIRS_FILE = data_file('querywise', 'test.pairs')
 
+QUANTIZED_TRAIN_FILE = data_file('quantized_adult', 'train.qbin')
+QUANTIZED_TEST_FILE = data_file('quantized_adult', 'test.qbin')
+QUANTIZED_CD_FILE = data_file('quantized_adult', 'pool.cd')
+
 AIRLINES_5K_TRAIN_FILE = data_file('airlines_5K', 'train')
 AIRLINES_5K_TEST_FILE = data_file('airlines_5K', 'test')
 AIRLINES_5K_CD_FILE = data_file('airlines_5K', 'cd')
@@ -103,6 +107,7 @@ FIMP_NPY_PATH = 'feature_importance.npy'
 FIMP_TXT_PATH = 'feature_importance.txt'
 OIMP_PATH = 'object_importances.txt'
 JSON_LOG_PATH = 'catboost_info/catboost_training.json'
+OUTPUT_QUANTIZED_POOL_PATH = 'quantized_pool.bin'
 TARGET_IDX = 1
 CAT_FEATURES = [0, 1, 2, 4, 6, 8, 9, 10, 11, 12, 16]
 CAT_COLUMNS = [0, 2, 3, 5, 7, 9, 10, 11, 12, 13, 17]
@@ -5202,3 +5207,72 @@ def test_convert_to_asymmetric(task_type):
     model = CatBoost(train_params)
     model.fit(train_pool)
     model._convert_to_asymmetric_representation()
+
+
+def get_quantized_path(fname):
+    return 'quantized://' + fname
+
+
+def test_pool_is_quantized():
+
+    quantized_pool = Pool(data=get_quantized_path(QUANTIZED_TRAIN_FILE), column_description=QUANTIZED_CD_FILE)
+    assert quantized_pool.is_quantized()
+
+    raw_pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
+    assert not raw_pool.is_quantized()
+
+
+def test_pool_quantize():
+    train_pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
+    test_pool = Pool(QUERYWISE_TEST_FILE, column_description=QUERYWISE_CD_FILE)
+    train_quantized_pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
+    params = {
+        'task_type': 'CPU',
+        'loss_function': 'RMSE',
+        'iterations': 5,
+        'depth': 4,
+    }
+    train_quantized_pool.quantize(params)
+
+    assert(train_quantized_pool.is_quantized())
+
+    model = CatBoost(params=params)
+    model_fitted_with_quantized_pool = CatBoost(params=params)
+
+    model.fit(train_pool)
+    predictions1 = model.predict(test_pool)
+
+    model_fitted_with_quantized_pool.fit(train_quantized_pool)
+    predictions2 = model_fitted_with_quantized_pool.predict(test_pool)
+
+    assert all(predictions1 == predictions2)
+
+
+def test_save_quantized_pool():
+    train_pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
+    test_pool = Pool(QUERYWISE_TEST_FILE, column_description=QUERYWISE_CD_FILE)
+    train_quantized_pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
+    params = {
+        'task_type': 'CPU',
+        'loss_function': 'RMSE',
+        'iterations': 5,
+        'depth': 4,
+    }
+    train_quantized_pool.quantize(params)
+
+    assert(train_quantized_pool.is_quantized())
+
+    train_quantized_pool.save(OUTPUT_QUANTIZED_POOL_PATH)
+
+    train_quantized_load_pool = Pool(get_quantized_path(OUTPUT_QUANTIZED_POOL_PATH))
+
+    model = CatBoost(params=params)
+    model_fitted_with_load_quantized_pool = CatBoost(params=params)
+
+    model.fit(train_pool)
+    predictions1 = model.predict(test_pool)
+
+    model_fitted_with_load_quantized_pool.fit(train_quantized_load_pool)
+    predictions2 = model_fitted_with_load_quantized_pool.predict(test_pool)
+
+    assert all(predictions1 == predictions2)

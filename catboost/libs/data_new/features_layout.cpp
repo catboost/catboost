@@ -168,6 +168,12 @@ const TFeatureMetaInfo& TFeaturesLayout::GetInternalFeatureMetaInfo(
     return ExternalIdxToMetaInfo[GetExternalFeatureIdx(internalFeatureIdx, type)];
 }
 
+const TFeatureMetaInfo& TFeaturesLayout::GetExternalFeatureMetaInfo(ui32 externalFeatureIdx) const
+{
+    Y_ASSERT(IsCorrectExternalFeatureIdx(externalFeatureIdx));
+    return ExternalIdxToMetaInfo[externalFeatureIdx];
+}
+
 TConstArrayRef<TFeatureMetaInfo> TFeaturesLayout::GetExternalFeaturesMetaInfo() const {
     return ExternalIdxToMetaInfo;
 }

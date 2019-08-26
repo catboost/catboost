@@ -7,6 +7,7 @@
 
 #include <catboost/libs/helpers/restorable_rng.h>
 #include <catboost/libs/options/data_processing_options.h>
+#include <catboost/libs/options/catboost_options.h>
 
 #include <library/threading/local_executor/local_executor.h>
 
@@ -89,6 +90,22 @@ namespace NCB {
         TRawDataProviders rawDataProviders,
         TRestorableFastRng64* rand,
         NPar::TLocalExecutor* localExecutor
+    );
+
+    TQuantizedObjectsDataProviderPtr GetQuantizedObjectsData(
+        NCatboostOptions::TCatBoostOptions* params,
+        TDataProviderPtr srcData,
+        const TMaybe<TString>& bordersFile,
+        TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
+        bool allowWriteFiles,
+        NPar::TLocalExecutor* localExecutor,
+        TRestorableFastRng64* rand
+    );
+
+    TQuantizedObjectsDataProviderPtr ConstructQuantizedPoolFromRawPool(
+        TDataProviderPtr pool,
+        NJson::TJsonValue plainJsonParams,
+        TQuantizedFeaturesInfoPtr quantizedFeaturesInfo
     );
 
 }

@@ -1,16 +1,22 @@
 #include "quantization.h"
 
+#include "borders_io.h"
 #include "cat_feature_perfect_hash_helper.h"
 #include "columns.h"
 #include "external_columns.h"
+#include "feature_names_converter.h"
 #include "util.h"
 
+#include <catboost/libs/algo/data.h>
 #include <catboost/libs/helpers/array_subset.h>
 #include <catboost/libs/helpers/compression.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/mem_usage.h>
 #include <catboost/libs/helpers/resource_constrained_executor.h>
 #include <catboost/libs/logging/logging.h>
+#include <catboost/libs/labels/label_converter.h>
+#include <catboost/libs/options/plain_options_helper.h>
+#include <catboost/libs/options/system_options.h>
 #include <catboost/libs/text_processing/text_column_builder.h>
 #include <catboost/libs/quantization/utils.h>
 #include <catboost/libs/quantization_schema/quantize.h>
@@ -1861,5 +1867,121 @@ namespace NCB {
 
         return result;
     }
+
+
+    TQuantizedObjectsDataProviderPtr GetQuantizedObjectsData(
+        NCatboostOptions::TCatBoostOptions* params,
+        TDataProviderPtr srcData,
+        const TMaybe<TString>& bordersFile,
+        TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
+        bool allowWriteFiles,
+        NPar::TLocalExecutor* localExecutor,
+        TRestorableFastRng64* rand) {
+
+        TQuantizationOptions quantizationOptions;
+        if (params->GetTaskType() == ETaskType::CPU) {
+            quantizationOptions.GpuCompatibleFormat = false;
+
+            quantizationOptions.ExclusiveFeaturesBundlingOptions.MaxBuckets
+                = params->ObliviousTreeOptions->DevExclusiveFeaturesBundleMaxBuckets.Get();
+            quantizationOptions.ExclusiveFeaturesBundlingOptions.MaxConflictFraction
+                = params->ObliviousTreeOptions->SparseFeaturesConflictFraction.Get();
+        } else {
+            Y_ASSERT(params->GetTaskType() == ETaskType::GPU);
+
+            /*
+             * if there're any cat features format should be CPU-compatible to enable final CTR
+             * calculations.
+             * TODO(akhropov): compatibility with final CTR calculation should not depend on this flag
+             */
+            quantizationOptions.CpuCompatibleFormat
+                = srcData->MetaInfo.FeaturesLayout->GetCatFeatureCount() != 0;
+            if (quantizationOptions.CpuCompatibleFormat) {
+                /* don't spend time on bundling preprocessing because it won't be used
+                 *
+                 * TODO(akhropov): maybe there are cases where CPU RAM usage reduction is more important
+                 *    than calculation speed so it should be enabled
+                 */
+                quantizationOptions.BundleExclusiveFeaturesForCpu = false;
+            }
+        }
+        quantizationOptions.CpuRamLimit
+            = ParseMemorySizeDescription(params->SystemOptions->CpuUsedRamLimit.Get());
+        quantizationOptions.AllowWriteFiles = allowWriteFiles;
+
+        if (!quantizedFeaturesInfo) {
+            quantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
+                *srcData->MetaInfo.FeaturesLayout,
+                params->DataProcessingOptions->IgnoredFeatures.Get(),
+                params->DataProcessingOptions->FloatFeaturesBinarization.Get(),
+                params->DataProcessingOptions->PerFloatFeatureQuantization.Get(),
+                params->DataProcessingOptions->TextProcessing.Get(),
+                /*allowNansInTestOnly*/true
+            );
+
+            if (bordersFile) {
+                LoadBordersAndNanModesFromFromFileInMatrixnetFormat(
+                    *bordersFile,
+                    quantizedFeaturesInfo.Get());
+            }
+        }
+
+        TRawObjectsDataProviderPtr rawObjectsDataProvider(
+            dynamic_cast<TRawObjectsDataProvider*>(srcData->ObjectsData.Get()));
+        Y_VERIFY(rawObjectsDataProvider);
+
+        if (srcData->RefCount() <= 1) {
+            // can clean up
+            auto dummy = srcData->ObjectsData.Release();
+            Y_UNUSED(dummy);
+        }
+
+        return Quantize(
+            quantizationOptions,
+            std::move(rawObjectsDataProvider),
+            quantizedFeaturesInfo,
+            rand,
+            localExecutor
+        );
+    }
+
+
+    TQuantizedObjectsDataProviderPtr ConstructQuantizedPoolFromRawPool(
+        TDataProviderPtr srcData,
+        NJson::TJsonValue plainJsonParams,
+        TQuantizedFeaturesInfoPtr quantizedFeaturesInfo
+    ) {
+
+        NJson::TJsonValue jsonParams;
+        NJson::TJsonValue outputJsonParams;
+        ConvertIgnoredFeaturesFromStringToIndices(srcData.Get()->MetaInfo, &plainJsonParams);
+        NCatboostOptions::PlainJsonToOptions(plainJsonParams, &jsonParams, &outputJsonParams);
+        NCatboostOptions::TCatBoostOptions catBoostOptions(NCatboostOptions::LoadOptions(jsonParams));
+        NCatboostOptions::TOutputFilesOptions outputFileOptions;
+        outputFileOptions.Load(outputJsonParams);
+
+        const bool allowWriteFiles = outputFileOptions.AllowWriteFiles();
+
+        const ui32 allDataObjectCount = srcData->ObjectsData->GetObjectCount();
+
+        CB_ENSURE(allDataObjectCount != 0, "Pool is empty");
+
+        TRestorableFastRng64 rand(catBoostOptions.RandomSeed.Get());
+
+        NPar::TLocalExecutor localExecutor;
+        localExecutor.RunAdditionalThreads(catBoostOptions.SystemOptions->NumThreads.Get() - 1);
+
+        TLabelConverter labelConverter;
+
+        return GetQuantizedObjectsData(
+            &catBoostOptions,
+            srcData,
+            Nothing(),
+            quantizedFeaturesInfo,
+            allowWriteFiles,
+            &localExecutor,
+            &rand);
+    }
+
 
 }

@@ -120,4 +120,7 @@ void TrainModel(
     THolder<TLearnProgress>* dstLearnProgress = nullptr);
 
 
+NCatboostOptions::TCatBoostOptions GetCatBoostOptions(NCB::TDataProviderPtr pool, NJson::TJsonValue plainJsonParams, int* threadCount);
+
+
 using TTrainerFactory = NObjectFactory::TParametrizedObjectFactory<IModelTrainer, ETaskType>;

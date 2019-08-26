@@ -42,6 +42,7 @@ namespace NCB {
         return result;
     }
 
+
     TTrainingDataProviderPtr GetTrainingData(
         TDataProviderPtr srcData,
         bool isLearnData,
@@ -102,75 +103,18 @@ namespace NCB {
             trainingData->ObjectsData = quantizedObjectsDataProviderPtr;
             trainingData->ObjectsData->GetQuantizedFeaturesInfo()->SetAllowWriteFiles(allowWriteFiles);
         } else {
-            TQuantizationOptions quantizationOptions;
-            if (params->GetTaskType() == ETaskType::CPU) {
-                quantizationOptions.GpuCompatibleFormat = false;
-
-                quantizationOptions.ExclusiveFeaturesBundlingOptions.MaxBuckets
-                    = params->ObliviousTreeOptions->DevExclusiveFeaturesBundleMaxBuckets.Get();
-                quantizationOptions.ExclusiveFeaturesBundlingOptions.MaxConflictFraction
-                    = params->ObliviousTreeOptions->SparseFeaturesConflictFraction.Get();
-            } else {
-                Y_ASSERT(params->GetTaskType() == ETaskType::GPU);
-
-                /*
-                 * if there're any cat features format should be CPU-compatible to enable final CTR
-                 * calculations.
-                 * TODO(akhropov): compatibility with final CTR calculation should not depend on this flag
-                 */
-                quantizationOptions.CpuCompatibleFormat
-                    = srcData->MetaInfo.FeaturesLayout->GetCatFeatureCount() != 0;
-                if (quantizationOptions.CpuCompatibleFormat) {
-                    /* don't spend time on bundling preprocessing because it won't be used
-                     *
-                     * TODO(akhropov): maybe there are cases where CPU RAM usage reduction is more important
-                     *    than calculation speed so it should be enabled
-                     */
-                    quantizationOptions.BundleExclusiveFeaturesForCpu = false;
-                }
-            }
-            quantizationOptions.CpuRamLimit
-                = ParseMemorySizeDescription(params->SystemOptions->CpuUsedRamLimit.Get());
-            quantizationOptions.AllowWriteFiles = allowWriteFiles;
-
-            if (!quantizedFeaturesInfo) {
-                quantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
-                    *srcData->MetaInfo.FeaturesLayout,
-                    params->DataProcessingOptions->IgnoredFeatures.Get(),
-                    params->DataProcessingOptions->FloatFeaturesBinarization.Get(),
-                    params->DataProcessingOptions->PerFloatFeatureQuantization.Get(),
-                    params->DataProcessingOptions->TextProcessing.Get(),
-                    /*allowNansInTestOnly*/true
-                );
-
-                if (bordersFile) {
-                    LoadBordersAndNanModesFromFromFileInMatrixnetFormat(
-                        *bordersFile,
-                        quantizedFeaturesInfo.Get());
-                }
-            }
-
-            TRawObjectsDataProviderPtr rawObjectsDataProvider(
-                dynamic_cast<TRawObjectsDataProvider*>(srcData->ObjectsData.Get()));
-            Y_VERIFY(rawObjectsDataProvider);
-
-            if (srcData->RefCount() <= 1) {
-                // can clean up
-                auto dummy = srcData->ObjectsData.Release();
-                Y_UNUSED(dummy);
-            }
-
-            trainingData->ObjectsData = Quantize(
-                quantizationOptions,
-                std::move(rawObjectsDataProvider),
+            trainingData->ObjectsData = GetQuantizedObjectsData(
+                params,
+                srcData,
+                bordersFile,
                 quantizedFeaturesInfo,
-                rand,
-                localExecutor
-            );
-
-            // because some features can become unavailable/ignored due to quantization
-            trainingData->MetaInfo.FeaturesLayout = trainingData->ObjectsData->GetFeaturesLayout();
+                allowWriteFiles,
+                localExecutor,
+                rand);
         }
+        //(TODO)
+        // because some features can become unavailable/ignored due to quantization
+        trainingData->MetaInfo.FeaturesLayout = trainingData->ObjectsData->GetFeaturesLayout();
 
         if (unloadCatFeaturePerfectHashFromRamIfPossible) {
             trainingData->ObjectsData->GetQuantizedFeaturesInfo()
