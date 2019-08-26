@@ -736,6 +736,7 @@ namespace NCB {
 
     static void ApplyGrouping(
         const TOutputPairsInfo& outputPairsInfo,
+        ui64 cpuRamLimit,
         TProcessedDataProvider* processedDataProvider,
         NPar::TLocalExecutor* localExecutor
     ) {
@@ -745,6 +746,7 @@ namespace NCB {
                 TArraySubsetIndexing<ui32>(TIndexedSubset<ui32>(outputPairsInfo.PermutationForGrouping)),
                 EObjectsOrder::Undefined
             ),
+            cpuRamLimit,
             localExecutor
         );
         processedDataProvider->TargetData->UpdateGroupInfos(
@@ -762,6 +764,7 @@ namespace NCB {
         const TDataProvider& srcData,
         TConstArrayRef<NCatboostOptions::TLossDescription> metricDescriptions,
         const TFullModel& model,
+        ui64 cpuRamLimit,
         TRestorableFastRng64* rand, // for possible pairs generation
         NPar::TLocalExecutor* localExecutor) {
 
@@ -858,7 +861,7 @@ namespace NCB {
         classNames = outputClassificationInfo.ClassNames;
 
         if (outputPairsInfo.HasFakeGroupIds()) {
-            ApplyGrouping(outputPairsInfo, &result, localExecutor);
+            ApplyGrouping(outputPairsInfo, cpuRamLimit, &result, localExecutor);
         }
 
         return result;
@@ -867,6 +870,7 @@ namespace NCB {
     TProcessedDataProvider CreateClassificationCompatibleDataProvider(
         const TDataProvider& srcData,
         const TFullModel& model,
+        ui64 cpuRamLimit,
         TRestorableFastRng64* rand,
         NPar::TLocalExecutor* localExecutor
     ) {
@@ -974,7 +978,7 @@ namespace NCB {
         classNames = outputClassificationInfo.ClassNames;
 
         if (outputPairsInfo.HasFakeGroupIds()) {
-            ApplyGrouping(outputPairsInfo, &result, localExecutor);
+            ApplyGrouping(outputPairsInfo, cpuRamLimit, &result, localExecutor);
         }
 
         return result;

@@ -89,6 +89,7 @@ namespace NCB {
 
         TIntrusivePtr<TDataProviderTemplate> GetSubset(
             const TObjectsGroupingSubset& objectsGroupingSubset,
+            ui64 cpuUsedRamLimit,
             NPar::TLocalExecutor* localExecutor
         ) const {
             TVector<std::function<void()>> tasks;
@@ -99,6 +100,7 @@ namespace NCB {
                 [&, this]() {
                     auto baseObjectsDataSubset = ObjectsData->GetSubset(
                         objectsGroupingSubset,
+                        cpuUsedRamLimit,
                         localExecutor
                     );
                     objectsDataSubset = dynamic_cast<TTObjectsDataProvider*>(baseObjectsDataSubset.Get());
@@ -134,11 +136,12 @@ namespace NCB {
         // for Cython
         TIntrusivePtr<TDataProviderTemplate> GetSubset(
             const TObjectsGroupingSubset& objectsGroupingSubset,
+            ui64 cpuUsedRamLimit,
             int threadCount
         ) const {
             NPar::TLocalExecutor localExecutor;
             localExecutor.RunAdditionalThreads(threadCount);
-            return GetSubset(objectsGroupingSubset, &localExecutor);
+            return GetSubset(objectsGroupingSubset, cpuUsedRamLimit, &localExecutor);
         }
 
         // ObjectsGrouping->GetObjectCount() used a lot, so make it a member here
@@ -324,6 +327,7 @@ namespace NCB {
 
         TIntrusivePtr<TProcessedDataProviderTemplate> GetSubset(
             const TObjectsGroupingSubset& objectsGroupingSubset,
+            ui64 cpuUsedRamLimit,
             NPar::TLocalExecutor* localExecutor
         ) const {
             TVector<std::function<void()>> tasks;
@@ -334,6 +338,7 @@ namespace NCB {
                 [&, this]() {
                     auto baseObjectsDataSubset = ObjectsData->GetSubset(
                         objectsGroupingSubset,
+                        cpuUsedRamLimit,
                         localExecutor
                     );
                     objectsDataSubset = dynamic_cast<TTObjectsDataProvider*>(baseObjectsDataSubset.Get());
@@ -450,8 +455,10 @@ namespace NCB {
         typename TDataProvidersTemplate::TDataPtr srcData,
         NCB::TArraySubsetIndexing<ui32>&& trainIndices,
         NCB::TArraySubsetIndexing<ui32>&& testIndices,
+        ui64 cpuUsedRamLimit,
         NPar::TLocalExecutor* localExecutor
     ) {
+        const ui64 perTaskCpuUsedRamLimit = cpuUsedRamLimit / 2;
 
         const NCB::EObjectsOrder objectsOrder = NCB::EObjectsOrder::Ordered;
         TDataProvidersTemplate result;
@@ -465,6 +472,7 @@ namespace NCB {
                         std::move(trainIndices),
                         objectsOrder
                     ),
+                    perTaskCpuUsedRamLimit,
                     localExecutor
                 );
             }
@@ -478,6 +486,7 @@ namespace NCB {
                             std::move(testIndices),
                             objectsOrder
                         ),
+                        perTaskCpuUsedRamLimit,
                         localExecutor
                     )
                 );

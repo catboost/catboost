@@ -42,14 +42,13 @@ namespace NCB {
         return result;
     }
 
-
     TTrainingDataProviderPtr GetTrainingData(
         TDataProviderPtr srcData,
         bool isLearnData,
         TStringBuf datasetName,
         const TMaybe<TString>& bordersFile,
         bool unloadCatFeaturePerfectHashFromRamIfPossible,
-        bool ensureConsecutiveFeaturesDataForCpu,
+        bool ensureConsecutiveIfDenseFeaturesDataForCpu,
         bool allowWriteFiles,
         TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
         NCatboostOptions::TCatBoostOptions* params,
@@ -57,6 +56,8 @@ namespace NCB {
         TMaybe<float>* targetBorder,
         NPar::TLocalExecutor* localExecutor,
         TRestorableFastRng64* rand) {
+
+        const ui64 cpuRamLimit = ParseMemorySizeDescription(params->SystemOptions->CpuUsedRamLimit.Get());
 
         auto trainingData = MakeIntrusive<TTrainingDataProvider>();
         trainingData->MetaInfo = srcData->MetaInfo;
@@ -77,14 +78,14 @@ namespace NCB {
                  * We need data to be consecutive for efficient blocked permutations
                  * but there're cases (e.g. CV with many folds) when limiting used CPU RAM is more important
                  */
-                if (ensureConsecutiveFeaturesDataForCpu) {
+                if (ensureConsecutiveIfDenseFeaturesDataForCpu) {
                     if (!quantizedForCPUObjectsDataProvider->GetFeaturesArraySubsetIndexing().IsConsecutive()) {
                         // TODO(akhropov): make it work in non-shared case
                         CB_ENSURE_INTERNAL(
                             (srcData->RefCount() <= 1) && (quantizedForCPUObjectsDataProvider->RefCount() <= 1),
                             "Cannot modify QuantizedForCPUObjectsDataProvider because it's shared"
                         );
-                        quantizedForCPUObjectsDataProvider->EnsureConsecutiveFeaturesData(localExecutor);
+                        quantizedForCPUObjectsDataProvider->EnsureConsecutiveIfDenseFeaturesData(localExecutor);
                     }
                 }
             } else { // GPU
@@ -174,6 +175,7 @@ namespace NCB {
                     TArraySubsetIndexing<ui32>(TIndexedSubset<ui32>(outputPairsInfo.PermutationForGrouping)),
                     EObjectsOrder::Undefined
                 ),
+                cpuRamLimit,
                 localExecutor
             );
             trainingData->TargetData->UpdateGroupInfos(
@@ -274,7 +276,7 @@ namespace NCB {
     TTrainingDataProviders GetTrainingData(
         TDataProviders srcData,
         const TMaybe<TString>& bordersFile, // load borders from it if specified
-        bool ensureConsecutiveLearnFeaturesDataForCpu,
+        bool ensureConsecutiveIfDenseLearnFeaturesDataForCpu,
         bool allowWriteFiles,
         TQuantizedFeaturesInfoPtr quantizedFeaturesInfo, // can be nullptr, then create it
         NCatboostOptions::TCatBoostOptions* params,
@@ -291,7 +293,7 @@ namespace NCB {
             "learn",
             bordersFile,
             /*unloadCatFeaturePerfectHashFromRamIfPossible*/ srcData.Test.empty(),
-            ensureConsecutiveLearnFeaturesDataForCpu,
+            ensureConsecutiveIfDenseLearnFeaturesDataForCpu,
             allowWriteFiles,
             quantizedFeaturesInfo,
             params,
@@ -311,7 +313,7 @@ namespace NCB {
                     TStringBuilder() << "test #" << testIdx,
                     Nothing(), // borders already loaded
                     /*unloadCatFeaturePerfectHashFromRamIfPossible*/ (testIdx + 1) == srcData.Test.size(),
-                    /*ensureConsecutiveFeaturesDataForCpu*/ false, // not needed for test
+                    /*ensureConsecutiveIfDenseFeaturesDataForCpu*/ false, // not needed for test
                     allowWriteFiles,
                     quantizedFeaturesInfo,
                     params,

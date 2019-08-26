@@ -4,6 +4,7 @@
 
 #include <catboost/libs/eval_result/eval_helpers.h>
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/helpers/mem_usage.h>
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/target/data_providers.h>
 
@@ -174,6 +175,7 @@ TRocCurve::TRocCurve(const TFullModel& model, const TVector<TDataProviderPtr>& d
                 *datasets[i],
                 TConstArrayRef<NCatboostOptions::TLossDescription>(&logLoss, 1),
                 model,
+                GetMonopolisticFreeCpuRam(),
                 &rand,
                 &localExecutor
             );

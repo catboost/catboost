@@ -1,5 +1,7 @@
 #include "quantized_pool_analysis.h"
 
+#include <catboost/libs/helpers/mem_usage.h>
+
 namespace NCB {
 
     template <class T, class THolderType, EFeatureType FeatureType>
@@ -113,7 +115,7 @@ namespace NCB {
         }
 
         TProcessedDataProvider processedDataProvider = CreateModelCompatibleProcessedDataProvider(
-            dataset, {}, model, &rand, &executor);
+            dataset, {}, model, GetMonopolisticFreeCpuRam(), &rand, &executor);
         TVector<float> target(
             processedDataProvider.TargetData->GetTarget().GetRef().begin(),
             processedDataProvider.TargetData->GetTarget().GetRef().end());
@@ -258,7 +260,7 @@ namespace NCB {
         TRestorableFastRng64 rand(0);
 
         TProcessedDataProvider processedDataProvider = CreateModelCompatibleProcessedDataProvider(
-            dataset, {}, model, &rand, &executor);
+            dataset, {}, model, GetMonopolisticFreeCpuRam(), &rand, &executor);
         TVector<float> target(
             processedDataProvider.TargetData->GetTarget().GetRef().begin(),
             processedDataProvider.TargetData->GetTarget().GetRef().end());

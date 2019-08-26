@@ -229,6 +229,7 @@ namespace {
     TDataProvidersTemplate PrepareTrainTestSplit(
         typename TDataProvidersTemplate::TDataPtr srcData,
         const TTrainTestSplitParams& trainTestSplitParams,
+        ui64 cpuUsedRamLimit,
         NPar::TLocalExecutor* localExecutor) {
 
         CB_ENSURE(
@@ -258,6 +259,7 @@ namespace {
             srcData,
             std::move(trainIndices),
             std::move(testIndices),
+            cpuUsedRamLimit,
             localExecutor
         );
     }
@@ -433,6 +435,7 @@ namespace {
     bool QuantizeAndSplitDataIfNeeded(
         bool allowWriteFiles,
         const TTrainTestSplitParams& trainTestSplitParams,
+        ui64 cpuUsedRamLimit,
         NCB::TFeaturesLayoutPtr featuresLayout,
         NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
         NCB::TDataProviderPtr data,
@@ -464,6 +467,7 @@ namespace {
             *result = PrepareTrainTestSplit<NCB::TTrainingDataProviders>(
                 quantizedData,
                 trainTestSplitParams,
+                cpuUsedRamLimit,
                 localExecutor
             );
             return true;
@@ -569,6 +573,7 @@ namespace {
         const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
         const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
         const TCrossValidationParams& cvParams,
+        ui64 cpuUsedRamLimit,
         NCB::TDataProviderPtr data,
         TProductIteratorBase<TDeque<NJson::TJsonValue>, NJson::TJsonValue>* gridIterator,
         NJson::TJsonValue* modelParamsToBeTried,
@@ -581,7 +586,7 @@ namespace {
 
         if (cvParams.Shuffle) {
             auto objectsGroupingSubset = NCB::Shuffle(data->ObjectsGrouping, 1, &rand);
-            data = data->GetSubset(objectsGroupingSubset, localExecutor);
+            data = data->GetSubset(objectsGroupingSubset, cpuUsedRamLimit, localExecutor);
         }
 
         TSetLogging inThisScope(ELoggingLevel::Debug);
@@ -708,6 +713,7 @@ namespace {
         const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
         const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
         const TTrainTestSplitParams& trainTestSplitParams,
+        ui64 cpuUsedRamLimit,
         NCB::TDataProviderPtr data,
         TProductIteratorBase<TDeque<NJson::TJsonValue>, NJson::TJsonValue>* gridIterator,
         NJson::TJsonValue* modelParamsToBeTried,
@@ -719,7 +725,7 @@ namespace {
 
         if (trainTestSplitParams.Shuffle) {
             auto objectsGroupingSubset = NCB::Shuffle(data->ObjectsGrouping, 1, &rand);
-            data = data->GetSubset(objectsGroupingSubset, localExecutor);
+            data = data->GetSubset(objectsGroupingSubset, cpuUsedRamLimit, localExecutor);
         }
 
         TSetLogging inThisScope(ELoggingLevel::Verbose);
@@ -775,6 +781,7 @@ namespace {
                 QuantizeAndSplitDataIfNeeded(
                     outputFileOptions.AllowWriteFiles(),
                     trainTestSplitParams,
+                    cpuUsedRamLimit,
                     featuresLayout,
                     quantizedFeaturesInfo,
                     data,
@@ -961,6 +968,10 @@ namespace NCB {
             );
 
             TCartesianProductIterator<TDeque<NJson::TJsonValue>, NJson::TJsonValue> gridIterator(paramPossibleValues);
+
+            const ui64 cpuUsedRamLimit
+                = ParseMemorySizeDescription(catBoostOptions.SystemOptions->CpuUsedRamLimit.Get());
+
             double metricValue;
             if (verbose && paramGrids.size() > 1) {
                 TSetLogging inThisScope(ELoggingLevel::Verbose);
@@ -972,6 +983,7 @@ namespace NCB {
                     objectiveDescriptor,
                     evalMetricDescriptor,
                     trainTestSplitParams,
+                    cpuUsedRamLimit,
                     data,
                     &gridIterator,
                     &modelParamsToBeTried,
@@ -985,6 +997,7 @@ namespace NCB {
                     objectiveDescriptor,
                     evalMetricDescriptor,
                     cvParams,
+                    cpuUsedRamLimit,
                     data,
                     &gridIterator,
                     &modelParamsToBeTried,
@@ -1078,6 +1091,10 @@ namespace NCB {
             randDistGenerators.size() > 0
         );
 
+        const ui64 cpuUsedRamLimit
+            = ParseMemorySizeDescription(catBoostOptions.SystemOptions->CpuUsedRamLimit.Get());
+
+
         TGridParamsInfo bestGridParams;
         TVector<TCVResult> cvResult;
         if (isSearchUsingTrainTestSplit) {
@@ -1086,6 +1103,7 @@ namespace NCB {
                 objectiveDescriptor,
                 evalMetricDescriptor,
                 trainTestSplitParams,
+                cpuUsedRamLimit,
                 data,
                 &gridIterator,
                 &modelParamsToBeTried,
@@ -1100,6 +1118,7 @@ namespace NCB {
                 objectiveDescriptor,
                 evalMetricDescriptor,
                 cvParams,
+                cpuUsedRamLimit,
                 data,
                 &gridIterator,
                 &modelParamsToBeTried,

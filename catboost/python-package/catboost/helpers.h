@@ -3,6 +3,7 @@
 #include <catboost/libs/algo/plot.h>
 #include <catboost/libs/data_types/groupid.h>
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/helpers/mem_usage.h>
 #include <catboost/libs/metrics/metric.h>
 #include <catboost/libs/options/loss_description.h>
 #include <catboost/libs/options/plain_options_helper.h>
@@ -107,6 +108,7 @@ public:
             srcData,
             MetricLossDescriptions,
             MetricPlotCalcer.GetModel(),
+            NCB::GetMonopolisticFreeCpuRam(),
             &Rand,
             &Executor
         );

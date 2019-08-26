@@ -21,6 +21,7 @@ void SetTrainDataFromQuantizedPool(
 );
 void SetTrainDataFromMaster(
     NCB::TTrainingForCPUDataProviderPtr trainData,
+    ui64 cpuUsedRamLimit,
     NPar::TLocalExecutor* localExecutor);
 void MapBuildPlainFold(TLearnContext* ctx);
 void MapRestoreApproxFromTreeStruct(TLearnContext* ctx);

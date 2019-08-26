@@ -4,6 +4,7 @@
 #include "enums.h"
 
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/helpers/mem_usage.h>
 #include <catboost/libs/helpers/parallel_tasks.h>
 #include <catboost/libs/logging/logging.h>
 #include <catboost/libs/target/data_providers.h>
@@ -138,6 +139,8 @@ TDStrResult GetDocumentImportances(
     auto localExecutor = MakeAtomicShared<NPar::TLocalExecutor>();
     localExecutor->RunAdditionalThreads(threadCount - 1);
 
+    const ui64 cpuRamLimit = GetMonopolisticFreeCpuRam();
+
     // use maybe to enable delayed initialization
     TMaybe<TProcessedDataProvider> trainProcessedData;
     TMaybe<TProcessedDataProvider> testProcessedData;
@@ -146,14 +149,14 @@ TDStrResult GetDocumentImportances(
     tasks.emplace_back(
         [&] () {
             trainProcessedData.ConstructInPlace(
-                CreateModelCompatibleProcessedDataProvider(trainData, {}, model, &rand, localExecutor.Get())
+                CreateModelCompatibleProcessedDataProvider(trainData, {}, model, cpuRamLimit / 2, &rand, localExecutor.Get())
             );
         }
     );
     tasks.emplace_back(
         [&] () {
             testProcessedData.ConstructInPlace(
-                CreateModelCompatibleProcessedDataProvider(testData, {}, model, &rand, localExecutor.Get())
+                CreateModelCompatibleProcessedDataProvider(testData, {}, model, cpuRamLimit / 2, &rand, localExecutor.Get())
             );
         }
     );

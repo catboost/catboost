@@ -13,6 +13,7 @@
 #include <util/generic/hash.h>
 #include <util/random/fast.h>
 #include <util/random/shuffle.h>
+#include <util/system/info.h>
 
 #include <library/unittest/registar.h>
 
@@ -41,6 +42,7 @@ static TTObjectsDataProvider GetMaybeSubsetDataProvider(
 
         auto subsetDataProvider = objectsDataProvider.GetSubset(
             objectsGroupingSubset,
+            NSystemInfo::TotalMemorySize(),
             localExecutor
         );
         objectsDataProvider = std::move(

@@ -10,6 +10,7 @@
 #include <catboost/libs/algo/yetirank_helpers.h>
 #include <catboost/libs/algo/tree_print.h>
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/helpers/mem_usage.h>
 #include <catboost/libs/helpers/query_info_helper.h>
 #include <catboost/libs/logging/logging.h>
 #include <catboost/libs/logging/profile_info.h>
@@ -25,6 +26,7 @@
 #include <util/string/builder.h>
 #include <util/string/cast.h>
 #include <util/system/compiler.h>
+#include <util/system/info.h>
 
 #include <cmath>
 #include <functional>
@@ -152,6 +154,7 @@ static const TDataProvider GetSubset(
                         std::move(testSubsets[0]),
                         NCB::EObjectsOrder::Ordered
                 ),
+                NSystemInfo::TotalMemorySize(),
                 localExecutor
         );
         return *subset.Get();
@@ -264,7 +267,7 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
     CATBOOST_INFO_LOG << "Selected " << documentCount << " documents from " << totalDocumentCount << " for LossFunctionChange calculation." << Endl;
 
     TRestorableFastRng64 rand(0);
-    auto targetData = CreateModelCompatibleProcessedDataProvider(dataset, {metricDescription}, model, &rand, localExecutor).TargetData;
+    auto targetData = CreateModelCompatibleProcessedDataProvider(dataset, {metricDescription}, model, GetMonopolisticFreeCpuRam(), &rand, localExecutor).TargetData;
     TShapPreparedTrees preparedTrees = PrepareTrees(model, &dataset, 0, EPreCalcShapValues::Auto, localExecutor, true);
 
     TVector<TMetricHolder> scores(featuresCount + 1);

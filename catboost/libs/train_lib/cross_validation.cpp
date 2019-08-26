@@ -502,11 +502,14 @@ void CrossValidate(
         "Cross-validation for Ordered objects data is not yet implemented"
     );
 
+    const ui64 cpuUsedRamLimit =
+        ParseMemorySizeDescription(catBoostOptions.SystemOptions->CpuUsedRamLimit.Get());
+
     TRestorableFastRng64 rand(cvParams.PartitionRandSeed);
 
     if (cvParams.Shuffle && !isAlreadyShuffled) {
         auto objectsGroupingSubset = NCB::Shuffle(trainingData->ObjectsGrouping, 1, &rand);
-        trainingData = trainingData->GetSubset(objectsGroupingSubset, localExecutor);
+        trainingData = trainingData->GetSubset(objectsGroupingSubset, cpuUsedRamLimit, localExecutor);
     }
 
     UpdateYetiRankEvalMetric(trainingData->MetaInfo.TargetStats, Nothing(), &catBoostOptions);
@@ -565,6 +568,7 @@ void CrossValidate(
         cvParams,
         Nothing(),
         /* oldCvStyleSplit */ false,
+        cpuUsedRamLimit,
         localExecutor);
 
     /* ensure that all folds have the same permutation block size because some of them might be consecutive
@@ -841,9 +845,12 @@ void CrossValidate(
     NPar::TLocalExecutor localExecutor;
     localExecutor.RunAdditionalThreads(catBoostOptions.SystemOptions->NumThreads.Get() - 1);
 
+    const ui64 cpuUsedRamLimit =
+        ParseMemorySizeDescription(catBoostOptions.SystemOptions->CpuUsedRamLimit.Get());
+
     if (cvParams.Shuffle) {
         auto objectsGroupingSubset = NCB::Shuffle(data->ObjectsGrouping, 1, &rand);
-        data = data->GetSubset(objectsGroupingSubset, &localExecutor);
+        data = data->GetSubset(objectsGroupingSubset, cpuUsedRamLimit, &localExecutor);
     }
 
     TLabelConverter labelConverter;

@@ -65,6 +65,7 @@ TVector<TDataProvidersTemplate> PrepareCvFolds(
     const TCrossValidationParams& cvParams,
     TMaybe<ui32> foldIdx, // if Nothing() - return data for all folds, if defined - return only one fold
     bool oldCvStyleSplit,
+    ui64 cpuUsedRamLimit,
     NPar::TLocalExecutor* localExecutor) {
 
     // group subsets, groups maybe trivial
@@ -121,12 +122,19 @@ TVector<TDataProvidersTemplate> PrepareCvFolds(
 
     TVector<std::function<void()>> tasks;
 
+    const ui64 perTaskCpuUsedRamLimit = cpuUsedRamLimit / resultFolds.size();
+
     for (ui32 resultIdx : xrange(resultFolds.size())) {
-        result[resultIdx] = NCB::CreateTrainTestSubsets<TDataProvidersTemplate>(
-            srcData,
-            std::move(trainSubsets[resultFolds[resultIdx]]),
-            std::move(testSubsets[resultFolds[resultIdx]]),
-            localExecutor
+        tasks.emplace_back(
+            [&, resultIdx]() {
+                result[resultIdx] = NCB::CreateTrainTestSubsets<TDataProvidersTemplate>(
+                    srcData,
+                    std::move(trainSubsets[resultFolds[resultIdx]]),
+                    std::move(testSubsets[resultFolds[resultIdx]]),
+                    perTaskCpuUsedRamLimit,
+                    localExecutor
+                );
+            }
         );
     }
 

@@ -13,7 +13,10 @@
 
 #include <catboost/libs/data_types/groupid.h>
 #include <catboost/libs/helpers/array_subset.h>
+#include <catboost/libs/helpers/compression.h>
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/helpers/maybe_owning_array_holder.h>
+#include <catboost/libs/helpers/resource_constrained_executor.h>
 #include <catboost/libs/helpers/resource_holder.h>
 #include <catboost/libs/helpers/serialization.h>
 
@@ -126,8 +129,14 @@ namespace NCB {
             return ObjectsGrouping;
         }
 
+        /* Note that this function checks that some data is really stored as sparse columns, not if
+         * some features are potentially Sparse (this information is stored in FeaturesLayout)
+         */
+        virtual bool HasSparseData() const = 0;
+
         virtual TIntrusivePtr<TObjectsDataProvider> GetSubset(
             const TObjectsGroupingSubset& objectsGroupingSubset,
+            ui64 cpuRamLimit,
             NPar::TLocalExecutor* localExecutor
         ) const = 0;
 
@@ -258,8 +267,11 @@ namespace NCB {
 
         TObjectsDataProviderPtr GetSubset(
             const TObjectsGroupingSubset& objectsGroupingSubset,
+            ui64 cpuRamLimit,
             NPar::TLocalExecutor* localExecutor
         ) const override;
+
+        bool HasSparseData() const override;
 
         TObjectsDataProviderPtr GetFeaturesSubset(
             const TVector<ui32>& ignoredFeatures,
@@ -267,7 +279,9 @@ namespace NCB {
         ) const override;
 
         // needed for effective application of models
+        // TODO(akhropov): make effective sparse features support
         TIntrusiveConstPtr<TRawObjectsDataProvider> GetWithPermutedConsecutiveArrayFeaturesData(
+            ui64 cpuRamLimit,
             NPar::TLocalExecutor* localExecutor,
 
             // if result is already in the same order as this return Nothing()
@@ -389,8 +403,11 @@ namespace NCB {
 
         TObjectsDataProviderPtr GetSubset(
             const TObjectsGroupingSubset& objectsGroupingSubset,
+            ui64 cpuRamLimit,
             NPar::TLocalExecutor* localExecutor
         ) const override;
+
+        bool HasSparseData() const override;
 
         TObjectsDataProviderPtr GetFeaturesSubset(
             const TVector<ui32>& ignoredFeatures,
@@ -398,6 +415,7 @@ namespace NCB {
         ) const override;
 
         TIntrusiveConstPtr<TQuantizedObjectsDataProvider> GetWithPermutedConsecutiveArrayFeaturesData(
+            ui64 cpuRamLimit,
             NPar::TLocalExecutor* localExecutor,
             TMaybe<TVector<ui32>>* srcArrayPermutation
         ) const;
@@ -437,7 +455,7 @@ namespace NCB {
             Data.SaveNonSharedPart(*GetFeaturesLayout(), binSaver);
         }
 
-        bool AllFeaturesDataIsCompressedArrays() const;
+        bool HasAggregatedFeaturesData() const;
 
     protected:
         TQuantizedObjectsData Data;
@@ -471,8 +489,13 @@ namespace NCB {
             TVector<TExclusiveFeaturesBundle>&& metaData
         );
 
-        void GetSubset(
+        // Execute tasks added to resourceConstrainedExecutor to complete GetSubset operation
+        void GetSubsetWithScheduling(
             const TFeaturesArraySubsetIndexing* subsetIndexing,
+
+            // needed only for sparse features
+            const TMaybe<TFeaturesArraySubsetInvertedIndexing>& subsetInvertedIndexing,
+            TResourceConstrainedExecutor* resourceConstrainedExecutor,
             TExclusiveFeatureBundlesData* subsetData
         ) const;
 
@@ -495,8 +518,13 @@ namespace NCB {
             TVector<TFeaturesGroup>&& metaData
         );
 
-        void GetSubset(
+        // Execute tasks added to resourceConstrainedExecutor to complete GetSubset operation
+        void GetSubsetWithScheduling(
             const TFeaturesArraySubsetIndexing* subsetIndexing,
+
+            // needed only for sparse features
+            const TMaybe<TFeaturesArraySubsetInvertedIndexing>& subsetInvertedIndexing,
+            TResourceConstrainedExecutor* resourceConstrainedExecutor,
             TFeatureGroupsData* subsetData
         ) const;
 
@@ -524,8 +552,13 @@ namespace NCB {
             bool dontPack = false // set true to disable binary features packing
         );
 
-        void GetSubset(
+        // Execute tasks added to resourceConstrainedExecutor to complete GetSubset operation
+        void GetSubsetWithScheduling(
             const TFeaturesArraySubsetIndexing* subsetIndexing,
+
+            // needed only for sparse features
+            const TMaybe<TFeaturesArraySubsetInvertedIndexing>& subsetInvertedIndexing,
+            TResourceConstrainedExecutor* resourceConstrainedExecutor,
             TPackedBinaryFeaturesData* subsetData
         ) const;
 
@@ -589,6 +622,7 @@ namespace NCB {
 
         TObjectsDataProviderPtr GetSubset(
             const TObjectsGroupingSubset& objectsGroupingSubset,
+            ui64 cpuRamLimit,
             NPar::TLocalExecutor* localExecutor
         ) const override;
 
@@ -597,19 +631,24 @@ namespace NCB {
             NPar::TLocalExecutor* localExecutor
         ) const override;
 
-        // needed for effective calculation with Permutation blocks on CPU
-        void EnsureConsecutiveFeaturesData(NPar::TLocalExecutor* localExecutor);
+
+        /* needed for effective calculation with Permutation blocks on CPU
+         * sparse data is unaffected
+         */
+        void EnsureConsecutiveIfDenseFeaturesData(NPar::TLocalExecutor* localExecutor);
 
         // needed for low-level optimizations in CPU training code
         const TFeaturesArraySubsetIndexing& GetFeaturesArraySubsetIndexing() const {
             return *CommonData.SubsetIndexing;
         }
 
+        // result is TQuantizedFloatValuesHolder or TQuantizedFloatSparseValuesHolder
         TMaybeData<const IQuantizedFloatValuesHolder*> GetNonPackedFloatFeature(ui32 floatFeatureIdx) const {
             CheckFeatureIsNotInAggregated(EFeatureType::Float, "Float", floatFeatureIdx);
             return MakeMaybeData(Data.FloatFeatures[floatFeatureIdx].Get());
         }
 
+        // result is TQuantizedCatValuesHolder or TQuantizedCatSparseValuesHolder
         TMaybeData<const IQuantizedCatValuesHolder*> GetNonPackedCatFeature(ui32 catFeatureIdx) const {
             CheckFeatureIsNotInAggregated(EFeatureType::Categorical, "Cat", catFeatureIdx);
             return MakeMaybeData(Data.CatFeatures[catFeatureIdx].Get());

@@ -83,6 +83,7 @@ static void ShrinkModel(int itCount, const TCtrHelper& ctrsHelper, TLearnProgres
 
 static TDataProviders LoadPools(
     const NCatboostOptions::TPoolLoadParams& loadOptions,
+    ui64 cpuRamLimit,
     EObjectsOrder objectsOrder,
     TDatasetSubset trainDatasetSubset,
     TVector<TString>* classNames,
@@ -103,7 +104,7 @@ static TDataProviders LoadPools(
             TRestorableFastRng64 rand(cvParams.PartitionRandSeed);
 
             auto objectsGroupingSubset = NCB::Shuffle(pools.Learn->ObjectsGrouping, 1, &rand);
-            pools.Learn = pools.Learn->GetSubset(objectsGroupingSubset, executor);
+            pools.Learn = pools.Learn->GetSubset(objectsGroupingSubset, cpuRamLimit, executor);
         }
 
         TVector<TDataProviders> foldPools = PrepareCvFolds<TDataProviders>(
@@ -111,6 +112,7 @@ static TDataProviders LoadPools(
             cvParams,
             cvParams.FoldIdx,
             /* oldCvStyleSplit */ true,
+            cpuRamLimit,
             executor);
         Y_VERIFY(foldPools.size() == 1);
 
@@ -870,7 +872,8 @@ static void TrainModel(
     TTrainingDataProviders trainingData = GetTrainingData(
         needInitModelApplyCompatiblePools ? pools : std::move(pools),
         /* borders */ Nothing(), // borders are already loaded to quantizedFeaturesInfo
-        /*ensureConsecutiveLearnFeaturesDataForCpu*/ !IsDistributedShared(poolLoadOptions, catBoostOptions),
+        /*ensureConsecutiveIfDenseLearnFeaturesDataForCpu*/
+            !IsDistributedShared(poolLoadOptions, catBoostOptions),
         outputOptions.AllowWriteFiles(),
         quantizedFeaturesInfo,
         &catBoostOptions,
@@ -888,7 +891,11 @@ static void TrainModel(
                 &rand
             );
         } else {
-            SetTrainDataFromMaster(trainingData.Cast<TQuantizedForCPUObjectsDataProvider>().Learn, executor);
+            SetTrainDataFromMaster(
+                trainingData.Cast<TQuantizedForCPUObjectsDataProvider>().Learn,
+                ParseMemorySizeDescription(catBoostOptions.SystemOptions->CpuUsedRamLimit.Get()),
+                executor
+            );
         }
     }
 
@@ -989,6 +996,7 @@ void TrainModel(
     const bool hasFeatures = !IsDistributedShared(&loadOptions, catBoostOptions);
     TDataProviders pools = LoadPools(
         loadOptions,
+        ParseMemorySizeDescription(catBoostOptions.SystemOptions->CpuUsedRamLimit.Get()),
         objectsOrder,
         TDatasetSubset::MakeColumns(hasFeatures),
         &classNames,
@@ -1189,7 +1197,7 @@ static void ModelBasedEval(
     TTrainingDataProviders trainingData = GetTrainingData(
         std::move(pools),
         /* borders */ Nothing(), // borders are already loaded to quantizedFeaturesInfo
-        /*ensureConsecutiveLearnFeaturesDataForCpu*/ true,
+        /*ensureConsecutiveIfDenseLearnFeaturesDataForCpu*/ true,
         outputOptions.AllowWriteFiles(),
         quantizedFeaturesInfo,
         &catBoostOptions,
@@ -1244,6 +1252,7 @@ void ModelBasedEval(
 
     TDataProviders pools = LoadPools(
         loadOptions,
+        ParseMemorySizeDescription(catBoostOptions.SystemOptions->CpuUsedRamLimit.Get()),
         catBoostOptions.DataProcessingOptions->HasTimeFlag.Get() ?
             EObjectsOrder::Ordered : EObjectsOrder::Undefined,
         TDatasetSubset::MakeColumns(),

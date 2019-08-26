@@ -181,6 +181,7 @@ static void PrepareFolds(
     typename TDataProvidersTemplate::TDataPtr srcData,
     const TCvDataPartitionParams& cvParams,
     const NCatboostOptions::TFeatureEvalOptions& featureEvalOptions,
+    ui64 cpuUsedRamLimit,
     TVector<TDataProvidersTemplate>* foldsData,
     TVector<TDataProvidersTemplate>* testFoldsData,
     NPar::TLocalExecutor* localExecutor
@@ -227,6 +228,8 @@ static void PrepareFolds(
     // NCB::Split keeps objects order
     const NCB::EObjectsOrder objectsOrder = NCB::EObjectsOrder::Ordered;
 
+    const ui64 perTaskCpuUsedRamLimit = cpuUsedRamLimit / (2 * trainSubsets.size());
+
     for (ui32 foldIdx : xrange(trainSubsets.size())) {
         tasks.emplace_back(
             [&, foldIdx]() {
@@ -236,6 +239,7 @@ static void PrepareFolds(
                         std::move(trainSubsets[foldIdx]),
                         objectsOrder
                     ),
+                    perTaskCpuUsedRamLimit,
                     localExecutor
                 );
             }
@@ -249,6 +253,7 @@ static void PrepareFolds(
                             std::move(testSubsets[foldIdx]),
                             objectsOrder
                         ),
+                        perTaskCpuUsedRamLimit,
                         localExecutor
                     )
                 );
@@ -489,11 +494,14 @@ void EvaluateFeatures(
         "Feature evaluation for ordered objects data is not yet implemented"
     );
 
+    const ui64 cpuUsedRamLimit
+        = ParseMemorySizeDescription(catBoostOptions.SystemOptions->CpuUsedRamLimit.Get());
+
     TRestorableFastRng64 rand(catBoostOptions.RandomSeed);
 
     if (cvParams.Shuffle) {
         auto objectsGroupingSubset = NCB::Shuffle(data->ObjectsGrouping, 1, &rand);
-        data = data->GetSubset(objectsGroupingSubset, &NPar::LocalExecutor());
+        data = data->GetSubset(objectsGroupingSubset, cpuUsedRamLimit, &NPar::LocalExecutor());
     }
 
     TLabelConverter labelConverter;
@@ -546,6 +554,7 @@ void EvaluateFeatures(
         trainingData,
         cvParams,
         featureEvalOptions,
+        cpuUsedRamLimit,
         &foldsData,
         isFixedMlTools3185 ? &testFoldsData : nullptr,
         &NPar::LocalExecutor()

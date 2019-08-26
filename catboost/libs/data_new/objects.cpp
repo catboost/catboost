@@ -5,20 +5,25 @@
 #include <catboost/libs/helpers/checksum.h>
 #include <catboost/libs/helpers/compare.h>
 #include <catboost/libs/helpers/math_utils.h>
+#include <catboost/libs/helpers/mem_usage.h>
 #include <catboost/libs/helpers/parallel_tasks.h>
 #include <catboost/libs/helpers/permutation.h>
+#include <catboost/libs/helpers/resource_constrained_executor.h>
 #include <catboost/libs/helpers/serialization.h>
 #include <catboost/libs/helpers/vector_helpers.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/cast.h>
+#include <util/generic/utility.h>
 #include <util/generic/ylimits.h>
 #include <util/generic/ymath.h>
 #include <util/stream/format.h>
 #include <util/stream/output.h>
+#include <util/system/mem_info.h>
 #include <util/system/yassert.h>
 
 #include <algorithm>
+#include <functional>
 #include <numeric>
 #include <type_traits>
 
@@ -507,10 +512,20 @@ void NCB::TRawObjectsData::Check(
                     );
                 };
 
-                if (const auto* catArrayData
+                if (auto* denseCatFeaturePtr
                         = dynamic_cast<const THashedCatArrayValuesHolder*>(catFeaturePtr))
                 {
-                    catArrayData->GetArrayData().ParallelForEach(checkValue, localExecutor);
+                    denseCatFeaturePtr->GetArrayData().ParallelForEach(checkValue, localExecutor);
+                } else if (auto* sparseCatFeaturePtr
+                               = dynamic_cast<const THashedCatSparseValuesHolder*>(catFeaturePtr))
+                {
+                    const auto& sparseArray = sparseCatFeaturePtr->GetData();
+                    CB_ENSURE_INTERNAL(
+                        hashToStringMap.contains(sparseArray.GetDefaultValue()),
+                        "catFeature #" << catFeatureIdx << ", default value "
+                        << Hex(sparseArray.GetDefaultValue()) << " is missing from CatFeaturesHashToString"
+                    );
+                    sparseArray.ForEachNonDefault(checkValue);
                 } else {
                     CB_ENSURE_INTERNAL(false, "unknown THashedCatValuesHolder subtype");
                 }
@@ -524,59 +539,93 @@ void NCB::TRawObjectsData::Check(
 
 
 template <class T, EFeatureValuesType TType, class TGetAggregatedColumn>
-static void CreateSubsetFeatures(
+static void GetSubsetWithScheduling(
     TConstArrayRef<THolder<TTypedFeatureValuesHolder<T, TType>>> src,
     const TFeaturesArraySubsetIndexing* subsetIndexing,
+
+    // needed only for sparse features
+    const TMaybe<TFeaturesArraySubsetInvertedIndexing>& subsetInvertedIndexing,
 
     /* flatFeatureIdx -> THolder<TTypedFeatureValuesHolder<T, TType>>
      * returns packed or bundled or grouped column data, returns nullptr if not packed or bundled or grouped
      */
     TGetAggregatedColumn&& getAggregatedData,
     //std::function<THolder<TTypedFeatureValuesHolder<T, TType>>(ui32)> getAggregatedData,
+    TResourceConstrainedExecutor* resourceConstrainedExecutor,
     TVector<THolder<TTypedFeatureValuesHolder<T, TType>>>* dst
 ) {
-    dst->clear();
-    dst->reserve(src.size());
-    for (const auto& feature : src) {
-        auto* srcDataPtr = feature.Get();
-        if (srcDataPtr) {
-            THolder<TTypedFeatureValuesHolder<T, TType>> aggregatedColumn
-                = getAggregatedData(srcDataPtr->GetId());
-            if (aggregatedColumn) {
-                dst->push_back(std::move(aggregatedColumn));
-                continue;
-            }
+    dst->clear(); // cleanup old data
+    dst->resize(src.size());
 
-            if (const auto* cloneableSrcDataPtr
+    for (auto i : xrange(src.size())) {
+        auto* srcDataPtr = src[i].Get();
+        if (!srcDataPtr) {
+            continue;
+        }
+
+        (*dst)[i] = getAggregatedData(srcDataPtr->GetId());
+        if ((*dst)[i]) {
+            continue;
+        }
+
+        if (const auto* cloneableSrcDataPtr
                 = dynamic_cast<const TCloneableWithSubsetIndexingValuesHolder<T, TType>*>(srcDataPtr))
-            {
-                dst->push_back( cloneableSrcDataPtr->CloneWithNewSubsetIndexing(subsetIndexing) );
-            } else {
-                CB_ENSURE_INTERNAL(false, "CreateSubsetFeatures: unsupported src column type");
-            }
+        {
+            (*dst)[i] = cloneableSrcDataPtr->CloneWithNewSubsetIndexing(subsetIndexing);
+        } else if (const auto* srcDataWithScheduleGetSubsetPtr
+                       = dynamic_cast<const TValuesHolderWithScheduleGetSubset<T, TType>*>(srcDataPtr))
+        {
+            srcDataWithScheduleGetSubsetPtr->ScheduleGetSubset(
+                &*subsetInvertedIndexing,
+                resourceConstrainedExecutor,
+                &((*dst)[i])
+            );
         } else {
-            dst->push_back(nullptr);
+            CB_ENSURE_INTERNAL(false, "GetSubsetWithScheduling: unsupported src column type");
         }
     }
 }
 
 template <class T, EFeatureValuesType TType>
-static void CreateSubsetFeatures(
+static void GetSubsetWithScheduling(
     TConstArrayRef<THolder<TTypedFeatureValuesHolder<T, TType>>> src,
     const TFeaturesArraySubsetIndexing* subsetIndexing,
+
+    // needed only for sparse features
+    const TMaybe<TFeaturesArraySubsetInvertedIndexing>& subsetInvertedIndexing,
+    TResourceConstrainedExecutor* resourceConstrainedExecutor,
     TVector<THolder<TTypedFeatureValuesHolder<T, TType>>>* dst
 ) {
-    ::CreateSubsetFeatures(
+    ::GetSubsetWithScheduling(
         src,
         subsetIndexing,
+        subsetInvertedIndexing,
         /*getPackedOrBundledData*/ [] (ui32) { return nullptr; },
+        resourceConstrainedExecutor,
         dst
+    );
+}
+
+
+static TResourceConstrainedExecutor CreateCpuRamConstrainedExecutor(
+    ui64 cpuRamLimit,
+    NPar::TLocalExecutor* localExecutor
+) {
+    const ui64 cpuRamUsage = NMemInfo::GetMemInfo().RSS;
+    OutputWarningIfCpuRamUsageOverLimit(cpuRamUsage, cpuRamLimit);
+
+    return TResourceConstrainedExecutor(
+        "CPU RAM",
+        cpuRamLimit - Min(cpuRamUsage, cpuRamLimit),
+        /*lenientMode*/ true,
+        localExecutor
     );
 }
 
 
 TObjectsDataProviderPtr NCB::TRawObjectsDataProvider::GetSubset(
     const TObjectsGroupingSubset& objectsGroupingSubset,
+    ui64 cpuRamLimit,
     NPar::TLocalExecutor* localExecutor
 ) const {
     TCommonObjectsData subsetCommonData = CommonData.GetSubset(
@@ -584,19 +633,34 @@ TObjectsDataProviderPtr NCB::TRawObjectsDataProvider::GetSubset(
         localExecutor
     );
 
+    // needed only for sparse features
+    TMaybe<TFeaturesArraySubsetInvertedIndexing> subsetInvertedIndexing;
+
+    if (CommonData.FeaturesLayout->HasSparseFeatures()) {
+        subsetInvertedIndexing.ConstructInPlace(
+            GetInvertedIndexing(objectsGroupingSubset.GetObjectsIndexing(), GetObjectCount(), localExecutor)
+        );
+    }
+
+    auto resourceConstrainedExecutor = CreateCpuRamConstrainedExecutor(cpuRamLimit, localExecutor);
+
     TRawObjectsData subsetData;
 
-    auto createSubsetFeatures = [&] (const auto& srcFeatures, auto* dstFeatures) {
-        CreateSubsetFeatures(
+    auto getSubsetWithScheduling = [&] (const auto& srcFeatures, auto* dstFeatures) {
+        GetSubsetWithScheduling(
             MakeConstArrayRef(srcFeatures),
             subsetCommonData.SubsetIndexing.Get(),
+            subsetInvertedIndexing,
+            &resourceConstrainedExecutor,
             dstFeatures
         );
     };
 
-    createSubsetFeatures(Data.FloatFeatures, &subsetData.FloatFeatures);
-    createSubsetFeatures(Data.CatFeatures, &subsetData.CatFeatures);
-    createSubsetFeatures(Data.TextFeatures, &subsetData.TextFeatures);
+    getSubsetWithScheduling(Data.FloatFeatures, &subsetData.FloatFeatures);
+    getSubsetWithScheduling(Data.CatFeatures, &subsetData.CatFeatures);
+    getSubsetWithScheduling(Data.TextFeatures, &subsetData.TextFeatures);
+
+    resourceConstrainedExecutor.ExecTasks();
 
     return MakeIntrusive<TRawObjectsDataProvider>(
         objectsGroupingSubset.GetSubsetGrouping(),
@@ -613,6 +677,24 @@ TObjectsDataProviderPtr NCB::TRawObjectsDataProvider::GetFeaturesSubset(
 ) const {
     CB_ENSURE(false, "Not implemented");
 }
+
+template <class T, EFeatureValuesType FeatureValuesType>
+static bool HasSparseData(const TVector<THolder<TTypedFeatureValuesHolder<T, FeatureValuesType>>>& columns) {
+    for (const auto& columnPtr : columns) {
+        if (columnPtr && columnPtr->GetIsSparse()) {
+            return true;
+        }
+    }
+    return false;
+}
+
+
+bool NCB::TRawObjectsDataProvider::HasSparseData() const {
+    return ::HasSparseData(Data.FloatFeatures) ||
+        ::HasSparseData(Data.CatFeatures) ||
+        ::HasSparseData(Data.TextFeatures);
+}
+
 
 template <class T, EFeatureValuesType TType>
 static void CreateConsecutiveFeaturesData(
@@ -665,29 +747,35 @@ static void CreateConsecutiveFeaturesData(
 
 TIntrusiveConstPtr<TRawObjectsDataProvider>
     NCB::TRawObjectsDataProvider::GetWithPermutedConsecutiveArrayFeaturesData(
+        ui64 cpuRamLimit,
         NPar::TLocalExecutor* localExecutor,
         TMaybe<TVector<ui32>>* srcArrayPermutation
     ) const {
-        if (CommonData.SubsetIndexing->IsConsecutive()) {
-            *srcArrayPermutation = Nothing();
-            // TODO(akhropov): proper IntrusivePtr interface to avoid const_cast
-            return TIntrusiveConstPtr<TRawObjectsDataProvider>(const_cast<TRawObjectsDataProvider*>(this));
-        }
+        if (!CommonData.FeaturesLayout->HasSparseFeatures()) {
+            if (CommonData.SubsetIndexing->IsConsecutive()) {
+                *srcArrayPermutation = Nothing();
+                // TODO(akhropov): proper IntrusivePtr interface to avoid const_cast
+                return TIntrusiveConstPtr<TRawObjectsDataProvider>(
+                    const_cast<TRawObjectsDataProvider*>(this)
+                );
+            }
 
-        *srcArrayPermutation = GetSrcArrayPermutation(*CommonData.SubsetIndexing, localExecutor);
-        if (*srcArrayPermutation) {
-            return TIntrusiveConstPtr<TRawObjectsDataProvider>(
-                dynamic_cast<TRawObjectsDataProvider*>(
-                    this->GetSubset(
-                        GetGroupingSubsetFromObjectsSubset(
-                            ObjectsGrouping,
-                            TArraySubsetIndexing<ui32>(TVector<ui32>(**srcArrayPermutation)),
-                            CommonData.Order
-                        ),
-                        localExecutor
-                    ).Get()
-                )
-            );
+            *srcArrayPermutation = GetSrcArrayPermutation(*CommonData.SubsetIndexing, localExecutor);
+            if (*srcArrayPermutation) {
+                return TIntrusiveConstPtr<TRawObjectsDataProvider>(
+                    dynamic_cast<TRawObjectsDataProvider*>(
+                        this->GetSubset(
+                            GetGroupingSubsetFromObjectsSubset(
+                                ObjectsGrouping,
+                                TArraySubsetIndexing<ui32>(TVector<ui32>(**srcArrayPermutation)),
+                                CommonData.Order
+                            ),
+                            cpuRamLimit,
+                            localExecutor
+                        ).Get()
+                    )
+                );
+            }
         }
 
         TCommonObjectsData dstCommonData = CommonData;
@@ -836,6 +924,7 @@ void NCB::TQuantizedObjectsData::Check(
 
 NCB::TObjectsDataProviderPtr NCB::TQuantizedObjectsDataProvider::GetSubset(
     const TObjectsGroupingSubset& objectsGroupingSubset,
+    ui64 cpuRamLimit,
     NPar::TLocalExecutor* localExecutor
 ) const {
     TCommonObjectsData subsetCommonData = CommonData.GetSubset(
@@ -843,19 +932,32 @@ NCB::TObjectsDataProviderPtr NCB::TQuantizedObjectsDataProvider::GetSubset(
         localExecutor
     );
 
+    TMaybe<TFeaturesArraySubsetInvertedIndexing> subsetInvertedIndexing;
+    if (subsetCommonData.FeaturesLayout->HasSparseFeatures()) {
+        subsetInvertedIndexing.ConstructInPlace(
+            GetInvertedIndexing(objectsGroupingSubset.GetObjectsIndexing(), GetObjectCount(), localExecutor)
+        );
+    }
+
     TQuantizedObjectsData subsetData;
 
-    auto createSubsetFeatures = [&] (const auto& srcFeatures, auto* dstFeatures) {
-        CreateSubsetFeatures(
+    auto resourceConstrainedExecutor = CreateCpuRamConstrainedExecutor(cpuRamLimit, localExecutor);
+
+    auto getSubsetWithScheduling = [&] (const auto& srcFeatures, auto* dstFeatures) {
+        GetSubsetWithScheduling(
             MakeConstArrayRef(srcFeatures),
             subsetCommonData.SubsetIndexing.Get(),
+            subsetInvertedIndexing,
+            &resourceConstrainedExecutor,
             dstFeatures
         );
     };
 
-    createSubsetFeatures(Data.FloatFeatures, &subsetData.FloatFeatures);
-    createSubsetFeatures(Data.CatFeatures, &subsetData.CatFeatures);
-    createSubsetFeatures(Data.TextFeatures, &subsetData.TextFeatures);
+    getSubsetWithScheduling(Data.FloatFeatures, &subsetData.FloatFeatures);
+    getSubsetWithScheduling(Data.CatFeatures, &subsetData.CatFeatures);
+    getSubsetWithScheduling(Data.TextFeatures, &subsetData.TextFeatures);
+
+    resourceConstrainedExecutor.ExecTasks();
 
     subsetData.QuantizedFeaturesInfo = Data.QuantizedFeaturesInfo;
 
@@ -868,6 +970,12 @@ NCB::TObjectsDataProviderPtr NCB::TQuantizedObjectsDataProvider::GetSubset(
     );
 }
 
+bool NCB::TQuantizedObjectsDataProvider::HasSparseData() const {
+    return ::HasSparseData(Data.FloatFeatures) ||
+        ::HasSparseData(Data.CatFeatures) ||
+        ::HasSparseData(Data.TextFeatures);
+}
+
 
 NCB::TObjectsDataProviderPtr NCB::TQuantizedObjectsDataProvider::GetFeaturesSubset(
     const TVector<ui32>& ignoredFeatures,
@@ -878,6 +986,8 @@ NCB::TObjectsDataProviderPtr NCB::TQuantizedObjectsDataProvider::GetFeaturesSubs
         TArraySubsetIndexing(TFullSubset<ui32>(GetObjectCount())),
         EObjectsOrder::Ordered);
 
+    TFeaturesArraySubsetInvertedIndexing subsetInvertedIndexing{TFullSubset<ui32>(GetObjectCount())};
+
     TCommonObjectsData subsetCommonData = CommonData.GetSubset(
         objectsGroupingSubset,
         localExecutor
@@ -887,17 +997,26 @@ NCB::TObjectsDataProviderPtr NCB::TQuantizedObjectsDataProvider::GetFeaturesSubs
 
     TQuantizedObjectsData subsetData;
 
-    auto createSubsetFeatures = [&] (const auto& srcFeatures, auto* dstFeatures) {
-        CreateSubsetFeatures(
+    auto resourceConstrainedExecutor = CreateCpuRamConstrainedExecutor(
+        GetMonopolisticFreeCpuRam(), // not really important here, there will be no extra memory usage
+        localExecutor
+    );
+
+    auto getSubsetWithScheduling = [&] (const auto& srcFeatures, auto* dstFeatures) {
+        GetSubsetWithScheduling(
             MakeConstArrayRef(srcFeatures),
             subsetCommonData.SubsetIndexing.Get(),
+            subsetInvertedIndexing,
+            &resourceConstrainedExecutor,
             dstFeatures
         );
     };
 
-    createSubsetFeatures(Data.FloatFeatures, &subsetData.FloatFeatures);
-    createSubsetFeatures(Data.CatFeatures, &subsetData.CatFeatures);
-    createSubsetFeatures(Data.TextFeatures, &subsetData.TextFeatures);
+    getSubsetWithScheduling(Data.FloatFeatures, &subsetData.FloatFeatures);
+    getSubsetWithScheduling(Data.CatFeatures, &subsetData.CatFeatures);
+    getSubsetWithScheduling(Data.TextFeatures, &subsetData.TextFeatures);
+
+    resourceConstrainedExecutor.ExecTasks();
 
     subsetData.QuantizedFeaturesInfo = Data.QuantizedFeaturesInfo;
 
@@ -913,32 +1032,36 @@ NCB::TObjectsDataProviderPtr NCB::TQuantizedObjectsDataProvider::GetFeaturesSubs
 
 TIntrusiveConstPtr<TQuantizedObjectsDataProvider>
     NCB::TQuantizedObjectsDataProvider::GetWithPermutedConsecutiveArrayFeaturesData(
+        ui64 cpuRamLimit,
         NPar::TLocalExecutor* localExecutor,
         TMaybe<TVector<ui32>>* srcArrayPermutation
     ) const {
-        if (CommonData.SubsetIndexing->IsConsecutive()) {
-            *srcArrayPermutation = Nothing();
-            // TODO(akhropov): proper IntrusivePtr interface to avoid const_cast
-            return TIntrusiveConstPtr<TQuantizedObjectsDataProvider>(
-                const_cast<TQuantizedObjectsDataProvider*>(this)
-            );
-        }
-
-        if (AllFeaturesDataIsCompressedArrays()) {
-            *srcArrayPermutation = GetSrcArrayPermutation(*CommonData.SubsetIndexing, localExecutor);
-            if (*srcArrayPermutation) {
+        if (!CommonData.FeaturesLayout->HasSparseFeatures()) {
+            if (CommonData.SubsetIndexing->IsConsecutive()) {
+                *srcArrayPermutation = Nothing();
+                // TODO(akhropov): proper IntrusivePtr interface to avoid const_cast
                 return TIntrusiveConstPtr<TQuantizedObjectsDataProvider>(
-                    dynamic_cast<TQuantizedObjectsDataProvider*>(
-                        this->GetSubset(
-                            GetGroupingSubsetFromObjectsSubset(
-                                ObjectsGrouping,
-                                TArraySubsetIndexing<ui32>(TVector<ui32>(**srcArrayPermutation)),
-                                CommonData.Order
-                            ),
-                            localExecutor
-                        ).Get()
-                    )
+                    const_cast<TQuantizedObjectsDataProvider*>(this)
                 );
+            }
+
+            if (!HasAggregatedFeaturesData()) {
+                *srcArrayPermutation = GetSrcArrayPermutation(*CommonData.SubsetIndexing, localExecutor);
+                if (*srcArrayPermutation) {
+                    return TIntrusiveConstPtr<TQuantizedObjectsDataProvider>(
+                        dynamic_cast<TQuantizedObjectsDataProvider*>(
+                            this->GetSubset(
+                                GetGroupingSubsetFromObjectsSubset(
+                                    ObjectsGrouping,
+                                    TArraySubsetIndexing<ui32>(TVector<ui32>(**srcArrayPermutation)),
+                                    CommonData.Order
+                                ),
+                                cpuRamLimit,
+                                localExecutor
+                            ).Get()
+                        )
+                    );
+                }
             }
         }
 
@@ -1026,6 +1149,23 @@ static ui32 CalcCompressedFeatureChecksum(
     return checkSum;
 }
 
+template <class T, EFeatureValuesType FeatureValuesType>
+static ui32 CalcSparseCompressedFeatureChecksum(
+    ui32 checkSum,
+    const TSparseCompressedValuesHolderImpl<T, FeatureValuesType>& columnData
+) {
+    const TSparseCompressedArray<T, ui32>& data = columnData.GetData();
+
+    constexpr size_t BLOCK_SIZE = 10000;
+    auto blockIterator = data.GetBlockIterator();
+    while (auto block = blockIterator.Next(BLOCK_SIZE)) {
+        checkSum = UpdateCheckSum(checkSum, block);
+    }
+
+    return checkSum;
+}
+
+
 template <EFeatureType FeatureType, class T, EFeatureValuesType FeatureValuesType>
 static ui32 CalcFeatureValuesCheckSum(
     ui32 init,
@@ -1045,11 +1185,20 @@ static ui32 CalcFeatureValuesCheckSum(
                 if (featuresData[perTypeFeatureIdx].Get() == nullptr) {
                     return;
                 }
-                auto compressedValuesFeatureData = dynamic_cast<const TCompressedValuesHolderImpl<T, FeatureValuesType>*>(
-                    featuresData[perTypeFeatureIdx].Get()
-                );
-                if (compressedValuesFeatureData) {
-                    checkSums[perTypeFeatureIdx] = CalcCompressedFeatureChecksum(0, *compressedValuesFeatureData);
+
+                using TDenseData = TCompressedValuesHolderImpl<T, FeatureValuesType>;
+                using TSparseData = TSparseCompressedValuesHolderImpl<T, FeatureValuesType>;
+
+                if (const auto* compressedValuesFeatureData
+                        = dynamic_cast<const TDenseData*>(featuresData[perTypeFeatureIdx].Get()))
+                {
+                    checkSums[perTypeFeatureIdx]
+                        = CalcCompressedFeatureChecksum(0, *compressedValuesFeatureData);
+                } else if (const auto* sparseCompressedValuesFeatureData
+                               = dynamic_cast<const TSparseData*>(featuresData[perTypeFeatureIdx].Get()))
+                {
+                    checkSums[perTypeFeatureIdx]
+                        = CalcSparseCompressedFeatureChecksum(0, *sparseCompressedValuesFeatureData);
                 } else {
                     const auto repackedHolder = featuresData[perTypeFeatureIdx]->ExtractValues(localExecutor);
                     checkSums[perTypeFeatureIdx] = UpdateCheckSum(0, *repackedHolder);
@@ -1089,19 +1238,23 @@ ui32 NCB::TQuantizedObjectsDataProvider::CalcFeaturesCheckSum(NPar::TLocalExecut
     return *Data.CachedFeaturesCheckSum;
 }
 
-bool NCB::TQuantizedObjectsDataProvider::AllFeaturesDataIsCompressedArrays() const {
+bool NCB::TQuantizedObjectsDataProvider::HasAggregatedFeaturesData() const {
     for (const auto& floatFeatureHolder : Data.FloatFeatures) {
-        if (floatFeatureHolder && !dynamic_cast<const TQuantizedFloatValuesHolder*>(floatFeatureHolder.Get())) {
-            return false;
+        if (floatFeatureHolder &&
+            !(dynamic_cast<const TQuantizedFloatValuesHolder*>(floatFeatureHolder.Get()) ||
+              dynamic_cast<const TQuantizedFloatSparseValuesHolder*>(floatFeatureHolder.Get()))) {
+            return true;
         }
     }
     for (const auto& catFeatureHolder : Data.CatFeatures) {
-        if (catFeatureHolder && !dynamic_cast<const TQuantizedCatValuesHolder*>(catFeatureHolder.Get())) {
-            return false;
+        if (catFeatureHolder &&
+            !(dynamic_cast<const TQuantizedCatValuesHolder*>(catFeatureHolder.Get()) ||
+              dynamic_cast<const TQuantizedCatSparseValuesHolder*>(catFeatureHolder.Get()))) {
+            return true;
         }
     }
 
-    return true;
+    return false;
 }
 
 
@@ -1126,6 +1279,7 @@ static TCompressedArray LoadAsCompressedArray(IBinSaver* binSaver) {
 enum class ESavedColumnType : ui8 {
     PackedBinary = 0,
     BundlePart = 1,
+    Sparse = 2,
     Dense = 3
 };
 
@@ -1133,15 +1287,25 @@ enum class ESavedColumnType : ui8 {
 template <class T, EFeatureValuesType FeatureValuesType>
 static void LoadNonBundledColumnData(
     ui32 flatFeatureIdx,
+    bool isSparse,
     const TFeaturesArraySubsetIndexing* newSubsetIndexing,
     IBinSaver* binSaver,
     THolder<TTypedFeatureValuesHolder<T, FeatureValuesType>>* column
 ) {
-    *column = MakeHolder<TCompressedValuesHolderImpl<T, FeatureValuesType>>(
-        flatFeatureIdx,
-        LoadAsCompressedArray(binSaver),
-        newSubsetIndexing
-    );
+    if (isSparse) {
+        TSparseCompressedArray<T, ui32> data;
+        LoadMulti(binSaver, &data);
+        *column = MakeHolder<TSparseCompressedValuesHolderImpl<T, FeatureValuesType>>(
+            flatFeatureIdx,
+            std::move(data)
+        );
+    } else {
+        *column = MakeHolder<TCompressedValuesHolderImpl<T, FeatureValuesType>>(
+            flatFeatureIdx,
+            LoadAsCompressedArray(binSaver),
+            newSubsetIndexing
+        );
+    }
 }
 
 
@@ -1242,6 +1406,7 @@ static void LoadFeatures(
             } else {
                 LoadNonBundledColumnData(
                     flatFeatureIdx,
+                    savedColumnType == ESavedColumnType::Sparse,
                     subsetIndexing,
                     binSaver,
                     &((*dst)[*featureIdx])
@@ -1320,6 +1485,11 @@ static void SaveColumnData(
                    = dynamic_cast<const TBundlePartValuesHolderImpl<T, FeatureValuesType>*>(&column))
     {
         SaveMulti(binSaver, ESavedColumnType::BundlePart, bundlePartValues->GetBoundsInBundle());
+    } else if (
+        auto* sparseValues
+            = dynamic_cast<const TSparseCompressedValuesHolderImpl<T, FeatureValuesType>*>(&column))
+    {
+        SaveMulti(binSaver, ESavedColumnType::Sparse, sparseValues->GetData());
     } else {
         /* TODO(akhropov): specialize for TCompressedValuesHolderImpl
          * useful if in fact bitsPerKey < sizeof(T) * CHAR_BIT
@@ -1424,14 +1594,24 @@ NCB::TExclusiveFeatureBundlesData::TExclusiveFeatureBundlesData(
 }
 
 
-void NCB::TExclusiveFeatureBundlesData::GetSubset(
+void NCB::TExclusiveFeatureBundlesData::GetSubsetWithScheduling(
     const TFeaturesArraySubsetIndexing* subsetIndexing,
+
+    // needed only for sparse features
+    const TMaybe<TFeaturesArraySubsetInvertedIndexing>& subsetInvertedIndexing,
+    TResourceConstrainedExecutor* resourceConstrainedExecutor,
     TExclusiveFeatureBundlesData* subsetData
 ) const {
     subsetData->FlatFeatureIndexToBundlePart = FlatFeatureIndexToBundlePart;
     subsetData->MetaData = MetaData;
 
-    CreateSubsetFeatures(MakeConstArrayRef(SrcData), subsetIndexing, &(subsetData->SrcData));
+    ::GetSubsetWithScheduling(
+        MakeConstArrayRef(SrcData),
+        subsetIndexing,
+        subsetInvertedIndexing,
+        resourceConstrainedExecutor,
+        &(subsetData->SrcData)
+    );
 }
 
 
@@ -1472,6 +1652,7 @@ void NCB::TExclusiveFeatureBundlesData::Load(
         LoadMulti(binSaver, (ui8*)&savedColumnType);
         LoadNonBundledColumnData(
             /*flatFeatureIdx*/ 0, // not actually used later
+            savedColumnType == ESavedColumnType::Sparse,
             subsetIndexing,
             binSaver,
             &srcDataElement
@@ -1501,14 +1682,24 @@ NCB::TFeatureGroupsData::TFeatureGroupsData(
 }
 
 
-void NCB::TFeatureGroupsData::GetSubset(
+void NCB::TFeatureGroupsData::GetSubsetWithScheduling(
     const TFeaturesArraySubsetIndexing* subsetIndexing,
+
+    // needed only for sparse features
+    const TMaybe<TFeaturesArraySubsetInvertedIndexing>& subsetInvertedIndexing,
+    TResourceConstrainedExecutor* resourceConstrainedExecutor,
     TFeatureGroupsData* subsetData
 ) const {
     subsetData->FlatFeatureIndexToGroupPart = FlatFeatureIndexToGroupPart;
     subsetData->MetaData = MetaData;
 
-    CreateSubsetFeatures(MakeConstArrayRef(SrcData), subsetIndexing, &(subsetData->SrcData));
+    ::GetSubsetWithScheduling(
+        MakeConstArrayRef(SrcData),
+        subsetIndexing,
+        subsetInvertedIndexing,
+        resourceConstrainedExecutor,
+        &(subsetData->SrcData)
+    );
 }
 
 
@@ -1549,6 +1740,7 @@ void NCB::TFeatureGroupsData::Load(
         LoadMulti(binSaver, (ui8*)&savedColumnType);
         LoadNonBundledColumnData(
             /*flatFeatureIdx*/ 0, // not actually used later
+            savedColumnType == ESavedColumnType::Sparse,
             subsetIndexing,
             binSaver,
             &srcDataElement
@@ -1595,14 +1787,24 @@ NCB::TPackedBinaryFeaturesData::TPackedBinaryFeaturesData(
     SrcData.resize(CeilDiv(PackedBinaryToSrcIndex.size(), sizeof(TBinaryFeaturesPack) * CHAR_BIT));
 }
 
-void NCB::TPackedBinaryFeaturesData::GetSubset(
+void NCB::TPackedBinaryFeaturesData::GetSubsetWithScheduling(
     const TFeaturesArraySubsetIndexing* subsetIndexing,
+
+    // needed only for sparse features
+    const TMaybe<TFeaturesArraySubsetInvertedIndexing>& subsetInvertedIndexing,
+    TResourceConstrainedExecutor* resourceConstrainedExecutor,
     TPackedBinaryFeaturesData* subsetData
 ) const {
     subsetData->FlatFeatureIndexToPackedBinaryIndex = FlatFeatureIndexToPackedBinaryIndex;
     subsetData->PackedBinaryToSrcIndex = PackedBinaryToSrcIndex;
 
-    CreateSubsetFeatures(MakeConstArrayRef(SrcData), subsetIndexing, &(subsetData->SrcData));
+    ::GetSubsetWithScheduling(
+        MakeConstArrayRef(SrcData),
+        subsetIndexing,
+        subsetInvertedIndexing,
+        resourceConstrainedExecutor,
+        &(subsetData->SrcData)
+    );
 }
 
 void NCB::TPackedBinaryFeaturesData::Save(NPar::TLocalExecutor* localExecutor, IBinSaver* binSaver) const {
@@ -1642,6 +1844,7 @@ void NCB::TPackedBinaryFeaturesData::Load(
         LoadMulti(binSaver, (ui8*)&savedColumnType);
         LoadNonBundledColumnData(
             /*flatFeatureIdx*/ 0, // not actually used later
+            savedColumnType == ESavedColumnType::Sparse,
             subsetIndexing,
             binSaver,
             &srcDataElement
@@ -1776,28 +1979,57 @@ static THolder<TTypedFeatureValuesHolder<T, FeatureValuesType>> GetAggregatedCol
 
 NCB::TObjectsDataProviderPtr NCB::TQuantizedForCPUObjectsDataProvider::GetSubset(
     const TObjectsGroupingSubset& objectsGroupingSubset,
+    ui64 cpuRamLimit,
     NPar::TLocalExecutor* localExecutor
 ) const {
     TCommonObjectsData subsetCommonData = CommonData.GetSubset(
         objectsGroupingSubset,
         localExecutor
     );
+
+    TMaybe<TFeaturesArraySubsetInvertedIndexing> subsetInvertedIndexing;
+    if (subsetCommonData.FeaturesLayout->HasSparseFeatures()) {
+        subsetInvertedIndexing.ConstructInPlace(
+            GetInvertedIndexing(objectsGroupingSubset.GetObjectsIndexing(), GetObjectCount(), localExecutor)
+        );
+    }
+
+    auto resourceConstrainedExecutor = CreateCpuRamConstrainedExecutor(cpuRamLimit, localExecutor);
+
     TQuantizedForCPUObjectsData subsetData;
 
-    auto getSubsetForDataPart = [&] (const auto& srcData, auto* dstSubsetData) {
-        srcData.GetSubset(
+    auto getSubsetWithSchedulingForDataPart = [&] (const auto& srcData, auto* dstSubsetData) {
+        srcData.GetSubsetWithScheduling(
             subsetCommonData.SubsetIndexing.Get(),
+            subsetInvertedIndexing,
+            &resourceConstrainedExecutor,
             dstSubsetData
         );
     };
 
-    getSubsetForDataPart(PackedBinaryFeaturesData, &subsetData.PackedBinaryFeaturesData);
-    getSubsetForDataPart(ExclusiveFeatureBundlesData, &subsetData.ExclusiveFeatureBundlesData);
-    getSubsetForDataPart(FeaturesGroupsData, &subsetData.FeaturesGroupsData);
+    getSubsetWithSchedulingForDataPart(PackedBinaryFeaturesData, &subsetData.PackedBinaryFeaturesData);
+    getSubsetWithSchedulingForDataPart(ExclusiveFeatureBundlesData, &subsetData.ExclusiveFeatureBundlesData);
+    getSubsetWithSchedulingForDataPart(FeaturesGroupsData, &subsetData.FeaturesGroupsData);
 
-    CreateSubsetFeatures(
-        MakeConstArrayRef(Data.FloatFeatures),
-        subsetCommonData.SubsetIndexing.Get(),
+    resourceConstrainedExecutor.ExecTasks();
+
+    auto getSubsetWithSchedulingForFeaturesPart = [&] (
+        const auto& srcData,
+        auto&& getPackedOrBundledData,
+        auto* dstSubsetData) {
+
+            ::GetSubsetWithScheduling(
+                MakeConstArrayRef(srcData),
+                subsetCommonData.SubsetIndexing.Get(),
+                subsetInvertedIndexing,
+                std::move(getPackedOrBundledData),
+                &resourceConstrainedExecutor,
+                dstSubsetData
+            );
+        };
+
+    getSubsetWithSchedulingForFeaturesPart(
+        Data.FloatFeatures,
         [&] (ui32 flatFeatureIdx) {
             return GetAggregatedColumn<ui8, EFeatureValuesType::QuantizedFloat>(
                 subsetData,
@@ -1807,9 +2039,8 @@ NCB::TObjectsDataProviderPtr NCB::TQuantizedForCPUObjectsDataProvider::GetSubset
         &subsetData.Data.FloatFeatures
     );
 
-    CreateSubsetFeatures(
-        MakeConstArrayRef(Data.CatFeatures),
-        subsetCommonData.SubsetIndexing.Get(),
+    getSubsetWithSchedulingForFeaturesPart(
+        Data.CatFeatures,
         [&] (ui32 flatFeatureIdx) {
             return GetAggregatedColumn<ui32, EFeatureValuesType::PerfectHashedCategorical>(
                 subsetData,
@@ -1819,11 +2050,13 @@ NCB::TObjectsDataProviderPtr NCB::TQuantizedForCPUObjectsDataProvider::GetSubset
         &subsetData.Data.CatFeatures
     );
 
-    CreateSubsetFeatures(
-        MakeConstArrayRef(Data.TextFeatures),
-        subsetCommonData.SubsetIndexing.Get(),
+    getSubsetWithSchedulingForFeaturesPart(
+        Data.TextFeatures,
+        [] (ui32) { return nullptr; },
         &subsetData.Data.TextFeatures
     );
+
+    resourceConstrainedExecutor.ExecTasks();
 
     subsetData.Data.QuantizedFeaturesInfo = Data.QuantizedFeaturesInfo;
 
@@ -1846,6 +2079,8 @@ NCB::TObjectsDataProviderPtr NCB::TQuantizedForCPUObjectsDataProvider::GetFeatur
         TArraySubsetIndexing(TFullSubset<ui32>(GetObjectCount())),
         EObjectsOrder::Ordered);
 
+    TFeaturesArraySubsetInvertedIndexing subsetInvertedIndexing{TFullSubset<ui32>(GetObjectCount())};
+
     TCommonObjectsData subsetCommonData = CommonData.GetSubset(
         objectsGroupingSubset,
         localExecutor
@@ -1855,20 +2090,43 @@ NCB::TObjectsDataProviderPtr NCB::TQuantizedForCPUObjectsDataProvider::GetFeatur
 
     TQuantizedForCPUObjectsData subsetData;
 
-    auto getSubsetForDataPart = [&] (const auto& srcData, auto* dstSubsetData) {
-        srcData.GetSubset(
+    auto resourceConstrainedExecutor = CreateCpuRamConstrainedExecutor(
+        GetMonopolisticFreeCpuRam(), // not really important here, there will be no extra memory usage
+        localExecutor
+    );
+
+    auto getSubsetWithSchedulingForDataPart = [&] (const auto& srcData, auto* dstSubsetData) {
+        srcData.GetSubsetWithScheduling(
             subsetCommonData.SubsetIndexing.Get(),
+            subsetInvertedIndexing,
+            &resourceConstrainedExecutor,
             dstSubsetData
         );
     };
 
-    getSubsetForDataPart(PackedBinaryFeaturesData, &subsetData.PackedBinaryFeaturesData);
-    getSubsetForDataPart(ExclusiveFeatureBundlesData, &subsetData.ExclusiveFeatureBundlesData);
-    getSubsetForDataPart(FeaturesGroupsData, &subsetData.FeaturesGroupsData);
+    getSubsetWithSchedulingForDataPart(PackedBinaryFeaturesData, &subsetData.PackedBinaryFeaturesData);
+    getSubsetWithSchedulingForDataPart(ExclusiveFeatureBundlesData, &subsetData.ExclusiveFeatureBundlesData);
+    getSubsetWithSchedulingForDataPart(FeaturesGroupsData, &subsetData.FeaturesGroupsData);
 
-    CreateSubsetFeatures(
-        MakeConstArrayRef(Data.FloatFeatures),
-        subsetCommonData.SubsetIndexing.Get(),
+    resourceConstrainedExecutor.ExecTasks();
+
+    auto getSubsetWithSchedulingForFeaturesPart = [&] (
+        const auto& srcData,
+        auto&& getPackedOrBundledData,
+        auto* dstSubsetData) {
+
+            ::GetSubsetWithScheduling(
+                MakeConstArrayRef(srcData),
+                subsetCommonData.SubsetIndexing.Get(),
+                subsetInvertedIndexing,
+                std::move(getPackedOrBundledData),
+                &resourceConstrainedExecutor,
+                dstSubsetData
+            );
+        };
+
+    getSubsetWithSchedulingForFeaturesPart(
+        Data.FloatFeatures,
         [&] (ui32 flatFeatureIdx) {
             return GetAggregatedColumn<ui8, EFeatureValuesType::QuantizedFloat>(
                 subsetData,
@@ -1878,9 +2136,8 @@ NCB::TObjectsDataProviderPtr NCB::TQuantizedForCPUObjectsDataProvider::GetFeatur
         &subsetData.Data.FloatFeatures
     );
 
-    CreateSubsetFeatures(
-        MakeConstArrayRef(Data.CatFeatures),
-        subsetCommonData.SubsetIndexing.Get(),
+    getSubsetWithSchedulingForFeaturesPart(
+        Data.CatFeatures,
         [&] (ui32 flatFeatureIdx) {
             return GetAggregatedColumn<ui32, EFeatureValuesType::PerfectHashedCategorical>(
                 subsetData,
@@ -1890,11 +2147,13 @@ NCB::TObjectsDataProviderPtr NCB::TQuantizedForCPUObjectsDataProvider::GetFeatur
         &subsetData.Data.CatFeatures
     );
 
-    CreateSubsetFeatures(
-        MakeConstArrayRef(Data.TextFeatures),
-        subsetCommonData.SubsetIndexing.Get(),
+    getSubsetWithSchedulingForFeaturesPart(
+        Data.TextFeatures,
+        [] (ui32) { return nullptr; },
         &subsetData.Data.TextFeatures
     );
+
+    resourceConstrainedExecutor.ExecTasks();
 
     subsetData.Data.QuantizedFeaturesInfo = Data.QuantizedFeaturesInfo;
 
@@ -1909,69 +2168,82 @@ NCB::TObjectsDataProviderPtr NCB::TQuantizedForCPUObjectsDataProvider::GetFeatur
 
 
 template <class T, EFeatureValuesType FeatureValuesType>
-static void MakeConsecutiveColumnData(
+static void MakeConsecutiveIfDenseColumnDataWithScheduling(
     const NCB::TFeaturesArraySubsetIndexing* newSubsetIndexing,
     const TTypedFeatureValuesHolder<T, FeatureValuesType>& src,
     NPar::TLocalExecutor* localExecutor,
+    TVector<std::function<void()>>* tasks,
     THolder<TTypedFeatureValuesHolder<T, FeatureValuesType>>* dst
 ) {
-    using TCompressedValuesHolder = TCompressedValuesHolderImpl<T, FeatureValuesType>;
+    using TDenseHolder = TCompressedValuesHolderImpl<T, FeatureValuesType>;
+    using TSparseHolder = TSparseCompressedValuesHolderImpl<T, FeatureValuesType>;
 
-    if (const auto* srcCompressedValuesHolder = dynamic_cast<const TCompressedValuesHolder*>(&src)) {
-        const ui32 objectCount = srcCompressedValuesHolder->GetSize();
-        const ui32 bitsPerKey = srcCompressedValuesHolder->GetBitsPerKey();
-        TIndexHelper<ui64> indexHelper(bitsPerKey);
-        const ui32 dstStorageSize = indexHelper.CompressedSize(objectCount);
+    if (const auto* srcCompressedValuesHolder = dynamic_cast<const TDenseHolder*>(&src)) {
+        tasks->emplace_back(
+            [srcCompressedValuesHolder, newSubsetIndexing, localExecutor, dst]() {
+                const ui32 objectCount = srcCompressedValuesHolder->GetSize();
+                const ui32 bitsPerKey = srcCompressedValuesHolder->GetBitsPerKey();
+                TIndexHelper<ui64> indexHelper(bitsPerKey);
+                const ui32 dstStorageSize = indexHelper.CompressedSize(objectCount);
 
-        TVector<ui64> storage;
-        storage.yresize(dstStorageSize);
+                TVector<ui64> storage;
+                storage.yresize(dstStorageSize);
 
-        if (bitsPerKey == 8) {
-            auto dstBuffer = (ui8*)(storage.data());
+                if (bitsPerKey == 8) {
+                    auto dstBuffer = (ui8*)(storage.data());
 
-            srcCompressedValuesHolder->template GetArrayData<ui8>().ParallelForEach(
-                [dstBuffer](ui32 idx, ui8 value) {
-                    dstBuffer[idx] = value;
-                },
-                localExecutor
-            );
-        } else if (bitsPerKey == 16) {
-            auto dstBuffer = (ui16*)(storage.data());
+                    srcCompressedValuesHolder->template GetArrayData<ui8>().ParallelForEach(
+                        [dstBuffer](ui32 idx, ui8 value) {
+                            dstBuffer[idx] = value;
+                        },
+                        localExecutor
+                    );
+                } else if (bitsPerKey == 16) {
+                    auto dstBuffer = (ui16*)(storage.data());
 
-            srcCompressedValuesHolder->template GetArrayData<ui16>().ParallelForEach(
-                [dstBuffer](ui32 idx, ui16 value) {
-                    dstBuffer[idx] = value;
-                },
-                localExecutor
-            );
-        } else {
-            auto dstBuffer = (ui32*)(storage.data());
+                    srcCompressedValuesHolder->template GetArrayData<ui16>().ParallelForEach(
+                        [dstBuffer](ui32 idx, ui16 value) {
+                            dstBuffer[idx] = value;
+                        },
+                        localExecutor
+                    );
+                } else {
+                    auto dstBuffer = (ui32*)(storage.data());
 
-            srcCompressedValuesHolder->template GetArrayData<ui32>().ParallelForEach(
-                [dstBuffer](ui32 idx, ui32 value) {
-                    dstBuffer[idx] = value;
-                },
-                localExecutor
+                    srcCompressedValuesHolder->template GetArrayData<ui32>().ParallelForEach(
+                        [dstBuffer](ui32 idx, ui32 value) {
+                            dstBuffer[idx] = value;
+                        },
+                        localExecutor
+                    );
+                }
+
+                *dst = MakeHolder<TDenseHolder>(
+                    srcCompressedValuesHolder->GetId(),
+                    TCompressedArray(
+                        objectCount,
+                        bitsPerKey,
+                        TMaybeOwningArrayHolder<ui64>::CreateOwning(std::move(storage))
+                    ),
+                    newSubsetIndexing
+                );
+            }
+        );
+    } else if (const auto* srcSparseCompressedValuesHolder = dynamic_cast<const TSparseHolder*>(&src)) {
+        if (&src != dst->Get()) {
+            *dst = MakeHolder<TSparseHolder>(
+                srcSparseCompressedValuesHolder->GetId(),
+                TSparseCompressedArray<T, ui32>(srcSparseCompressedValuesHolder->GetData())
             );
         }
-
-        *dst = MakeHolder<TCompressedValuesHolder>(
-            srcCompressedValuesHolder->GetId(),
-            TCompressedArray(
-                objectCount,
-                bitsPerKey,
-                TMaybeOwningArrayHolder<ui64>::CreateOwning(std::move(storage))
-            ),
-            newSubsetIndexing
-        );
     } else {
-        CB_ENSURE_INTERNAL(false, "MakeConsecutiveColumnData: Unsupported column type");
+        CB_ENSURE_INTERNAL(false, "MakeConsecutiveDenseArrayFeatures: Unsupported column type");
     }
 }
 
 
 template <EFeatureType FeatureType, class T, EFeatureValuesType FeatureValuesType>
-static void MakeConsecutiveArrayFeatures(
+static void MakeConsecutiveIfDenseArrayFeatures(
     const TFeaturesLayout& featuresLayout,
     const NCB::TFeaturesArraySubsetIndexing* newSubsetIndexing,
     const TVector<THolder<TTypedFeatureValuesHolder<T, FeatureValuesType>>>& src,
@@ -1985,6 +2257,8 @@ static void MakeConsecutiveArrayFeatures(
         dst->clear();
         dst->resize(featuresLayout.GetFeatureCount(FeatureType));
     }
+
+    TVector<std::function<void()>> tasks;
 
     featuresLayout.IterateOverAvailableFeatures<FeatureType>(
         [&] (TFeatureIdx<FeatureType> featureIdx) {
@@ -2019,68 +2293,86 @@ static void MakeConsecutiveArrayFeatures(
                 );
 
             } else {
-                MakeConsecutiveColumnData(
+                MakeConsecutiveIfDenseColumnDataWithScheduling(
                     newSubsetIndexing,
                     *srcColumn,
                     localExecutor,
+                    &tasks,
                     &((*dst)[*featureIdx])
                 );
             }
         }
     );
+
+    ExecuteTasksInParallel(&tasks, localExecutor);
 }
 
 
 
-static void EnsureConsecutiveExclusiveFeatureBundles(
+static void EnsureConsecutiveIfDenseExclusiveFeatureBundles(
     const NCB::TFeaturesArraySubsetIndexing* newSubsetIndexing,
     NPar::TLocalExecutor* localExecutor,
     NCB::TExclusiveFeatureBundlesData* exclusiveFeatureBundlesData
 ) {
+    TVector<std::function<void()>> tasks;
+
     for (auto& srcDataElement : exclusiveFeatureBundlesData->SrcData) {
-        MakeConsecutiveColumnData(
+        MakeConsecutiveIfDenseColumnDataWithScheduling(
             newSubsetIndexing,
             *srcDataElement,
             localExecutor,
+            &tasks,
             &srcDataElement
         );
     }
+
+    ExecuteTasksInParallel(&tasks, localExecutor);
 }
 
 
-static void EnsureConsecutivePackedBinaryFeatures(
+static void EnsureConsecutiveIfDensePackedBinaryFeatures(
     const NCB::TFeaturesArraySubsetIndexing* newSubsetIndexing,
     NPar::TLocalExecutor* localExecutor,
     TVector<THolder<TBinaryPacksHolder>>* packedBinaryFeatures
 ) {
+    TVector<std::function<void()>> tasks;
+
     for (auto& packedBinaryFeaturesPart : *packedBinaryFeatures) {
-        MakeConsecutiveColumnData(
+        MakeConsecutiveIfDenseColumnDataWithScheduling(
             newSubsetIndexing,
             *packedBinaryFeaturesPart,
             localExecutor,
+            &tasks,
             &packedBinaryFeaturesPart
         );
     }
+
+    ExecuteTasksInParallel(&tasks, localExecutor);
 }
 
 
-static void EnsureConsecutiveFeatureGroups(
+static void EnsureConsecutiveIfDenseFeatureGroups(
     const NCB::TFeaturesArraySubsetIndexing* newSubsetIndexing,
     NPar::TLocalExecutor* localExecutor,
     NCB::TFeatureGroupsData* featureGroupsData
 ) {
+    TVector<std::function<void()>> tasks;
+
     for (auto& srcDataElement : featureGroupsData->SrcData) {
-        MakeConsecutiveColumnData(
+        MakeConsecutiveIfDenseColumnDataWithScheduling(
             newSubsetIndexing,
             *srcDataElement,
             localExecutor,
+            &tasks,
             &srcDataElement
         );
     }
+
+    ExecuteTasksInParallel(&tasks, localExecutor);
 }
 
 
-void NCB::TQuantizedForCPUObjectsDataProvider::EnsureConsecutiveFeaturesData(
+void NCB::TQuantizedForCPUObjectsDataProvider::EnsureConsecutiveIfDenseFeaturesData(
     NPar::TLocalExecutor* localExecutor
 ) {
     if (GetFeaturesArraySubsetIndexing().IsConsecutive()) {
@@ -2096,7 +2388,7 @@ void NCB::TQuantizedForCPUObjectsDataProvider::EnsureConsecutiveFeaturesData(
 
         tasks.emplace_back(
             [&] () {
-                EnsureConsecutiveExclusiveFeatureBundles(
+                EnsureConsecutiveIfDenseExclusiveFeatureBundles(
                     newSubsetIndexing.Get(),
                     localExecutor,
                     &ExclusiveFeatureBundlesData
@@ -2106,7 +2398,7 @@ void NCB::TQuantizedForCPUObjectsDataProvider::EnsureConsecutiveFeaturesData(
 
         tasks.emplace_back(
             [&] () {
-                EnsureConsecutivePackedBinaryFeatures(
+                EnsureConsecutiveIfDensePackedBinaryFeatures(
                     newSubsetIndexing.Get(),
                     localExecutor,
                     &PackedBinaryFeaturesData.SrcData
@@ -2116,7 +2408,7 @@ void NCB::TQuantizedForCPUObjectsDataProvider::EnsureConsecutiveFeaturesData(
 
         tasks.emplace_back(
             [&] () {
-                EnsureConsecutiveFeatureGroups(
+                EnsureConsecutiveIfDenseFeatureGroups(
                     newSubsetIndexing.Get(),
                     localExecutor,
                     &FeaturesGroupsData
@@ -2132,7 +2424,7 @@ void NCB::TQuantizedForCPUObjectsDataProvider::EnsureConsecutiveFeaturesData(
 
         tasks.emplace_back(
             [&] () {
-                MakeConsecutiveArrayFeatures<EFeatureType::Float>(
+                MakeConsecutiveIfDenseArrayFeatures<EFeatureType::Float>(
                     *GetFeaturesLayout(),
                     newSubsetIndexing.Get(),
                     Data.FloatFeatures,
@@ -2146,7 +2438,7 @@ void NCB::TQuantizedForCPUObjectsDataProvider::EnsureConsecutiveFeaturesData(
         );
         tasks.emplace_back(
             [&] () {
-                MakeConsecutiveArrayFeatures<EFeatureType::Categorical>(
+                MakeConsecutiveIfDenseArrayFeatures<EFeatureType::Categorical>(
                     *GetFeaturesLayout(),
                     newSubsetIndexing.Get(),
                     Data.CatFeatures,
@@ -2270,6 +2562,14 @@ static void CheckFeaturesByType(
             CB_ENSURE_INTERNAL(
                 (groupPart.FeatureType == featureType) && (groupPart.FeatureIdx == featureIdx),
                 "Grouped feature: Feature type,index mismatch between metadata and column data"
+            );
+        } else if (dataPtr->GetIsSparse()) {
+            auto requiredTypePtr
+                = dynamic_cast<TSparseCompressedValuesHolderImpl<T, FeatureValuesType>*>(dataPtr);
+            CB_ENSURE_INTERNAL(
+                requiredTypePtr,
+                "Data." << featureType << "Features[" << featureIdx << "] is not of type TQuantized"
+                << featureTypeName << "SparseValuesHolder"
             );
         } else {
             auto requiredTypePtr = dynamic_cast<TCompressedValuesHolderImpl<T, FeatureValuesType>*>(dataPtr);

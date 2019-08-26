@@ -13,6 +13,7 @@
 #include <catboost/libs/logging/logging.h>
 #include <catboost/libs/options/cross_validation_params.h>
 #include <catboost/libs/helpers/int_cast.h>
+#include <catboost/libs/helpers/mem_usage.h>
 #include <catboost/libs/cat_feature/cat_feature.h>
 #include <catboost/libs/model/model_export/model_exporter.h>
 
@@ -377,8 +378,11 @@ SEXP CatBoostPoolSlice_R(SEXP poolParam, SEXP sizeParam, SEXP offsetParam) {
         EObjectsOrder::Ordered
     );
 
-    TObjectsDataProviderPtr sliceObjectsData
-        = rawObjectsData->GetSubset(objectsGroupingSubset, &NPar::LocalExecutor());
+    TObjectsDataProviderPtr sliceObjectsData = rawObjectsData->GetSubset(
+        objectsGroupingSubset,
+        GetMonopolisticFreeCpuRam(),
+        &NPar::LocalExecutor()
+    );
 
     const TRawObjectsDataProvider& sliceRawObjectsData
         = dynamic_cast<const TRawObjectsDataProvider&>(*sliceObjectsData);

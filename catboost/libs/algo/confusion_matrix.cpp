@@ -1,6 +1,7 @@
 #include "confusion_matrix.h"
 
 #include <catboost/libs/algo/apply.h>
+#include <catboost/libs/helpers/mem_usage.h>
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/target/data_providers.h>
 #include <catboost/libs/metrics/classification_utils.h>
@@ -63,6 +64,7 @@ TVector<double> MakeConfusionMatrix(const TFullModel& model, const TDataProvider
     TProcessedDataProvider processedData = CreateClassificationCompatibleDataProvider(
         *dataset,
         model,
+        GetMonopolisticFreeCpuRam(),
         &rand,
         &localExecutor
     );

@@ -3,6 +3,7 @@
 #include <catboost/libs/algo/plot.h>
 #include <catboost/libs/app_helpers/proceed_pool_in_blocks.h>
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/helpers/mem_usage.h>
 #include <catboost/libs/labels/label_converter.h>
 #include <catboost/libs/labels/label_helper_builder.h>
 #include <catboost/libs/logging/logging.h>
@@ -87,6 +88,7 @@ static void ReadDatasetParts(
             *datasetPart,
             metricDescriptions,
             model,
+            GetMonopolisticFreeCpuRam(),
             rand,
             executor);
         processedDatasetParts->push_back(std::move(processedDataProvider));
@@ -165,6 +167,7 @@ int mode_eval_metrics(int argc, const char* argv[]) {
                 *datasetPart,
                 metricDescriptions,
                 model,
+                GetMonopolisticFreeCpuRam(),
                 &rand,
                 &executor);
 
@@ -182,6 +185,7 @@ int mode_eval_metrics(int argc, const char* argv[]) {
                     *datasetPart,
                     metricDescriptions,
                     model,
+                    GetMonopolisticFreeCpuRam(),
                     &rand,
                     &executor);
                 plotCalcer.ProceedDataSetForNonAdditiveMetrics(processedDataProvider);

@@ -124,7 +124,7 @@ namespace NCatboostDistributed {
             GetTrainingData(
                 std::move(pools),
                 /*borders*/ Nothing(), // borders are already loaded to quantizedFeaturesInfo
-                /*ensureConsecutiveLearnFeaturesDataForCpu*/ true,
+                /*ensureConsecutiveIfDenseLearnFeaturesDataForCpu*/ true,
                 /*allowWriteFiles*/ false,
                 quantizedFeaturesInfo,
                 &catBoostOptions,
@@ -177,6 +177,7 @@ namespace NCatboostDistributed {
             params->Data.TargetClassifiers,
             /*featuresCheckSum*/ 0, // unused in case of localData
             /*foldCreationParamsCheckSum*/ 0,
+            ParseMemorySizeDescription(trainParams.SystemOptions->CpuUsedRamLimit.Get()),
             /*initModel*/ Nothing(),
             /*initModelApplyCompatiblePools*/ NCB::TDataProviders(),
             &NPar::LocalExecutor());

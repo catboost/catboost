@@ -75,6 +75,7 @@ TVector<TVector<double>> EvalMetrics(
         srcData,
         metricLossDescriptions,
         model,
+        NCB::GetMonopolisticFreeCpuRam(),
         &rand,
         &executor
     );

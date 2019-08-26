@@ -352,6 +352,7 @@ cdef extern from "catboost/libs/data_new/data_provider.h" namespace "NCB":
         bool_t operator==(const TDataProviderTemplate& rhs)
         TIntrusivePtr[TDataProviderTemplate[TTObjectsDataProvider]] GetSubset(
             const TObjectsGroupingSubset& objectsGroupingSubset,
+            ui64 cpuRamLimit,
             int threadCount
         ) except +ProcessException
         ui32 GetObjectCount()
@@ -600,6 +601,7 @@ cdef extern from "library/containers/2d_array/2d_array.h":
 
 cdef extern from "util/system/info.h" namespace "NSystemInfo":
     cdef size_t CachedNumberOfCpus() except +ProcessException
+    cdef size_t TotalMemorySize() except +ProcessException
 
 cdef extern from "catboost/libs/metrics/metric_holder.h":
     cdef cppclass TMetricHolder:
@@ -2667,6 +2669,7 @@ cdef class _PoolBase:
                 rowIndices,
                 EObjectsOrder_Undefined
             ),
+            TotalMemorySize(),
             thread_count
         )
         self.target_type = pool.target_type

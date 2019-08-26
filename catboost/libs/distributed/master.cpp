@@ -81,7 +81,11 @@ void SetTrainDataFromQuantizedPool(
     );
 }
 
-void SetTrainDataFromMaster(NCB::TTrainingForCPUDataProviderPtr trainData, NPar::TLocalExecutor* localExecutor) {
+void SetTrainDataFromMaster(
+    NCB::TTrainingForCPUDataProviderPtr trainData,
+    ui64 cpuUsedRamLimit,
+    NPar::TLocalExecutor* localExecutor
+) {
     const int workerCount = TMasterEnvironment::GetRef().RootEnvironment->GetSlaveCount();
     auto workerParts = Split(*trainData->ObjectsGrouping, (ui32)workerCount);
     for (int workerIdx = 0; workerIdx < workerCount; ++workerIdx) {
@@ -93,6 +97,7 @@ void SetTrainDataFromMaster(NCB::TTrainingForCPUDataProviderPtr trainData, NPar:
                         trainData->ObjectsGrouping,
                         std::move(workerParts[workerIdx]),
                         EObjectsOrder::Ordered),
+                    cpuUsedRamLimit,
                     localExecutor)),
             NPar::DELETE_RAW_DATA); // only workers
     }

@@ -126,6 +126,7 @@ TDataProviderPtr ReorderByTimestampLearnDataIfNeeded(
                 TArraySubsetIndexing<ui32>(std::move(objectsPermutation)),
                 EObjectsOrder::Ordered
             ),
+            ParseMemorySizeDescription(catBoostOptions.SystemOptions->CpuUsedRamLimit.Get()),
             localExecutor
         );
     }
@@ -171,7 +172,11 @@ TDataProviderPtr ShuffleLearnDataIfNeeded(
         catBoostOptions
     )) {
         auto objectsGroupingSubset = NCB::Shuffle(learnData->ObjectsGrouping, 1, rand);
-        return learnData->GetSubset(objectsGroupingSubset, localExecutor);
+        return learnData->GetSubset(
+            objectsGroupingSubset,
+            ParseMemorySizeDescription(catBoostOptions.SystemOptions->CpuUsedRamLimit.Get()),
+            localExecutor
+        );
     }
     return learnData;
 }

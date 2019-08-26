@@ -340,6 +340,7 @@ TLearnContext::TLearnContext(
             CtrsHelper.GetTargetClassifiers(),
             featuresCheckSum,
             foldCreationParamsCheckSum,
+            ParseMemorySizeDescription(Params.SystemOptions->CpuUsedRamLimit.Get()),
             initModel,
             initModelApplyCompatiblePools,
             LocalExecutor
@@ -448,6 +449,7 @@ TLearnProgress::TLearnProgress(
     const TVector<TTargetClassifier>& targetClassifiers,
     ui32 featuresCheckSum,
     ui32 foldCreationParamsCheckSum,
+    ui64 cpuRamLimit,
     TMaybe<TFullModel*> initModel,
     NCB::TDataProviders initModelApplyCompatiblePools,
     NPar::TLocalExecutor* localExecutor)
@@ -579,6 +581,7 @@ TLearnProgress::TLearnProgress(
             initModelApplyCompatiblePools,
             foldsCreationParams.IsOrderedBoosting,
             foldsCreationParams.StoreExpApproxes,
+            cpuRamLimit,
             localExecutor
         );
     }
@@ -590,6 +593,7 @@ void TLearnProgress::SetSeparateInitModel(
     const TDataProviders& initModelApplyCompatiblePools,
     bool isOrderedBoosting,
     bool storeExpApproxes,
+    ui64 cpuRamLimit,
     NPar::TLocalExecutor* localExecutor) {
 
     CATBOOST_DEBUG_LOG << "TLearnProgress::SetSeparateInitModel\n";
@@ -605,12 +609,17 @@ void TLearnProgress::SetSeparateInitModel(
         TMaybe<TVector<ui32>> srcPermutation;
         if (const auto* rawObjectsData = dynamic_cast<const TRawObjectsDataProvider*>(&objectsData)) {
             objectsDataWithConsecutiveFeaturesData
-                = rawObjectsData->GetWithPermutedConsecutiveArrayFeaturesData(localExecutor, &srcPermutation);
+                = rawObjectsData->GetWithPermutedConsecutiveArrayFeaturesData(
+                    cpuRamLimit,
+                    localExecutor,
+                    &srcPermutation
+                );
         } else if (const auto* quantizedObjectsData
                        = dynamic_cast<const TQuantizedObjectsDataProvider*>(&objectsData))
         {
             objectsDataWithConsecutiveFeaturesData
                 = quantizedObjectsData->GetWithPermutedConsecutiveArrayFeaturesData(
+                    cpuRamLimit,
                     localExecutor,
                     &srcPermutation
                 );

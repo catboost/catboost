@@ -3,6 +3,7 @@
 #include <catboost/libs/algo/features_data_helpers.h>
 #include <catboost/libs/algo/index_calcer.h>
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/helpers/mem_usage.h>
 #include <catboost/libs/model/cpu/evaluator.h>
 #include <catboost/libs/options/json_helper.h>
 #include <catboost/libs/target/data_providers.h>
@@ -29,6 +30,7 @@ TVector<TVector<double>> CollectLeavesStatistics(
                 dataset,
                 {},
                 model,
+                GetMonopolisticFreeCpuRam(),
                 &rand,
                 localExecutor);
 

@@ -69,12 +69,14 @@ namespace NCB {
         // can be empty, then try to get the metric from loss_function parameter of the model
         TConstArrayRef<NCatboostOptions::TLossDescription> metricDescriptions,
         const TFullModel& model,
+        ui64 cpuRamLimit,
         TRestorableFastRng64* rand, // for possible pairs generation
         NPar::TLocalExecutor* localExecutor);
 
     TProcessedDataProvider CreateClassificationCompatibleDataProvider(
         const TDataProvider& srcData,
         const TFullModel& model,
+        ui64 cpuRamLimit,
         TRestorableFastRng64* rand, // for possible pairs generation
         NPar::TLocalExecutor* localExecutor);
 

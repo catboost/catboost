@@ -43,6 +43,7 @@ namespace NCB {
     struct TDataProviderBuilderOptions {
         bool CpuCompatibleFormat = true;
         bool GpuCompatibleFormat = true;
+        ui64 MaxCpuRamUsage = Max<ui64>();
         bool SkipCheck = false; // to increase speed, esp. when applying
     };
 

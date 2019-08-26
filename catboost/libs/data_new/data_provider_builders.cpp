@@ -339,6 +339,7 @@ namespace NCB {
                         ),
                         EObjectsOrder::Ordered
                     ),
+                    Options.MaxCpuRamUsage,
                     LocalExecutor
                 )->CastMoveTo<TObjectsDataProvider>();
 
@@ -380,6 +381,7 @@ namespace NCB {
                     TArraySubsetIndexing<ui32>(TRangesSubset<ui32>(1, std::move(subsetBlocks))),
                     EObjectsOrder::Ordered
                 ),
+                Options.MaxCpuRamUsage,
                 LocalExecutor
             )->CastMoveTo<TObjectsDataProvider>();
         }

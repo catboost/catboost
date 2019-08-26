@@ -118,6 +118,7 @@ public:
         const TVector<TTargetClassifier>& targetClassifiers,
         ui32 featuresCheckSum,
         ui32 foldCreationParamsCheckSum,
+        ui64 cpuRamLimit,
         TMaybe<TFullModel*> initModel,
         NCB::TDataProviders initModelApplyCompatiblePools,
         NPar::TLocalExecutor* localExecutor);
@@ -128,6 +129,7 @@ public:
         const NCB::TDataProviders& initModelApplyCompatiblePools,
         bool isOrderedBoosting,
         bool storeExpApproxes,
+        ui64 cpuRamLimit,
         NPar::TLocalExecutor* localExecutor);
 
     void PrepareForContinuation();
