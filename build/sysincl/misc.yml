@@ -365,7 +365,7 @@
   includes:
     - patchlevel.h
 
-- source_filter: "^contrib/tools/(swig|watchman)"
+- source_filter: "^contrib/tools/watchman"
   includes:
     - pcre.h
 
