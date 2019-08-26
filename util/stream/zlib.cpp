@@ -254,6 +254,18 @@ public:
     }
 
     inline void Flush() {
+        int ret = deflate(Z(), Z_SYNC_FLUSH);
+
+        while (ret == Z_BUF_ERROR) {
+            FlushBuffer();
+            ret = deflate(Z(), Z_SYNC_FLUSH);
+        }
+
+        if (ret != Z_OK) {
+            ythrow TZLibCompressorError() << "deflate flush error(" << GetErrMsg() << ")";
+        }
+
+        FlushBuffer();
     }
 
     inline void FlushBuffer() {
@@ -273,7 +285,7 @@ public:
         if (ret == Z_STREAM_END) {
             Stream_->Write(TmpBuf(), TmpBufLen() - Z()->avail_out);
         } else {
-            ythrow TZLibCompressorError() << "deflate error(" << GetErrMsg() << ")";
+            ythrow TZLibCompressorError() << "deflate finish error(" << GetErrMsg() << ")";
         }
     }
 
