@@ -197,7 +197,7 @@ inline bool WriteSymbol(wchar32 s, wchar32*& dest, const wchar32* destEnd) noexc
 }
 
 template <class T>
-inline void NDetail::WriteSurrogatePair(wchar32 s, T& dest) noexcept {
+inline void ::NDetail::WriteSurrogatePair(wchar32 s, T& dest) noexcept {
     const wchar32 LEAD_OFFSET = 0xD800 - (0x10000 >> 10);
     Y_ASSERT(s > 0xFFFF && s < ::NUnicode::UnicodeInstancesLimit());
 
