@@ -85,9 +85,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\model\ut\model_metadata_ut.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\model\ut\model_serialization_ut.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\model\ut\model_summ_ut.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\model\ut\model_test_helpers.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\model\ut\shrink_model_ut.cpp"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\libs\model\ut\model_test_helpers.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
@@ -181,6 +179,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\model\thin\libs-model-thin.vcxproj">
       <Project>{72D6542E-F0C9-DD13-021C-BD29BB4FB496}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\model\ut\lib\model-ut-lib.vcxproj">
+      <Project>{F4AB4275-04FB-8D97-76D1-A694CC86F722}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\options\catboost-libs-options.vcxproj">
       <Project>{D350B71A-438C-3D20-8D8E-292B20D81461}</Project>

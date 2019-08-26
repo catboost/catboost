@@ -264,6 +264,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\model\thin\libs-model-thin.vcxproj">
       <Project>72D6542E-F0C9-DD13-021C-BD29BB4FB496</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\model\ut\lib\model-ut-lib.vcxproj">
+      <Project>F4AB4275-04FB-8D97-76D1-A694CC86F722</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\model\ut\model_ut.vcxproj">
       <Project>2EB72D65-0AC1-1B22-6EFF-616A28EF7DAE</Project>
     </ProjectReference>
