@@ -95,7 +95,7 @@ def on_go_process_srcs(unit):
             if is_cgo_export:
                 is_cgo_export = False
                 if ext in ('.c', '.cc', '.cpp', '.cxx', '.C'):
-                    unit.oncopy_file_with_deps_no_auto([f, f, 'OUTPUT_INCLUDES', '${BINDIR}/_cgo_export.h'])
+                    unit.oncopy_file([f, f, 'OUTPUT_INCLUDES', '${BINDIR}/_cgo_export.h'])
                     f = '${BINDIR}/' + f
                 else:
                     ymake.report_configure_error('Unmatched CGO_EXPORT keyword in SRCS()/_GO_SRCS() macro')
