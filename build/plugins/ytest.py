@@ -329,11 +329,11 @@ def match_coverage_extractor_requirements(unit):
     # we shouldn't add test if
     return all([
         # tests are not requested
-        unit.get("TESTS_REQUESTED"),
+        unit.get("TESTS_REQUESTED") == "yes",
         # build doesn't imply clang coverage, which supports segment extraction from the binaries
-        unit.get("CLANG_COVERAGE"),
+        unit.get("CLANG_COVERAGE") == "yes",
         # contrib wasn't requested
-        implies(strip_roots(unit.path()).startswith("contrib/"), unit.get("ENABLE_CONTRIB_COVERAGE")),
+        implies(strip_roots(unit.path()).startswith("contrib/"), unit.get("ENABLE_CONTRIB_COVERAGE") == "yes"),
     ])
 
 
