@@ -30,7 +30,6 @@ SRCS(
     gpu_single_worker.cpp
     hwloc_wrapper.cpp
     inter_device_stream_section.cpp
-    kernel/arch.cu
     kernel/kernel.cu
     kernel/reduce.cu
     mapping.cpp
@@ -48,6 +47,7 @@ SRCS(
 )
 
 PEERDIR(
+    catboost/libs/cuda_wrappers
     catboost/libs/helpers
     catboost/libs/logging
     library/blockcodecs

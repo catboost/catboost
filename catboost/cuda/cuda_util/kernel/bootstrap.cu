@@ -1,6 +1,6 @@
 #include "bootstrap.cuh"
 #include "random_gen.cuh"
-#include <catboost/cuda/cuda_lib/kernel/arch.cuh>
+#include <catboost/libs/cuda_wrappers/arch.cuh>
 
 namespace NKernel {
 

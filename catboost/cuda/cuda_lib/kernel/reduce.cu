@@ -1,5 +1,5 @@
 #include "reduce.cuh"
-#include "arch.cuh"
+#include <catboost/libs/cuda_wrappers/arch.cuh>
 
 namespace NKernel {
 

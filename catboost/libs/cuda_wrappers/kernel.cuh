@@ -25,5 +25,11 @@ namespace NKernel {
         return cudaMemsetAsync(reinterpret_cast<char*>(data.data()), 0, data.size() * sizeof(T), stream);
     }
 
+#if __CUDA_ARCH__ < 350
+    template <typename T>
+    __forceinline__ __device__ T __ldg(const T* data) {
+        return data[0];
+    }
+#endif
 
 }

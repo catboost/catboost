@@ -1,6 +1,6 @@
 #include "fill.cuh"
 #include "kernel_helpers.cuh"
-#include <catboost/cuda/cuda_lib/kernel/arch.cuh>
+#include <catboost/libs/cuda_wrappers/arch.cuh>
 #include <catboost/cuda/gpu_data/gpu_structures.h>
 
 namespace NKernel

@@ -4,7 +4,7 @@
 #include "compute_hist_loop_one_stat.cuh"
 
 #include <cooperative_groups.h>
-#include <catboost/cuda/cuda_lib/kernel/arch.cuh>
+#include <catboost/libs/cuda_wrappers/arch.cuh>
 #include <catboost/cuda/cuda_util/kernel/instructions.cuh>
 #include <catboost/cuda/cuda_util/kernel/kernel_helpers.cuh>
 
