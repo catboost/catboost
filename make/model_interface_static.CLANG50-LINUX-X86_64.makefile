@@ -3782,62 +3782,54 @@ $(BUILD_ROOT)/contrib/libs/lzmasdk/libcontrib-libs-lzmasdk.a\
         $(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaDec.c.pic.o\
         $(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaEnc.c.pic.o\
         $(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaLib.c.pic.o\
-        $(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaUtil.c.pic.o\
         $(SOURCE_ROOT)/build/scripts/generate_mf.py\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/lzmasdk'
 	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name contrib-libs-lzmasdk -o contrib/libs/lzmasdk/libcontrib-libs-lzmasdk.a.mf -t LIBRARY -Ya,lics PD -Ya,peers
-	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/lzmasdk/libcontrib-libs-lzmasdk.a' '$(BUILD_ROOT)/contrib/libs/lzmasdk/7zStream.c.pic.o' '$(BUILD_ROOT)/contrib/libs/lzmasdk/Alloc.c.pic.o' '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaDec.c.pic.o' '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaEnc.c.pic.o' '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzFind.c.pic.o' '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaLib.c.pic.o' '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaUtil.c.pic.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/lzmasdk/libcontrib-libs-lzmasdk.a' '$(BUILD_ROOT)/contrib/libs/lzmasdk/7zStream.c.pic.o' '$(BUILD_ROOT)/contrib/libs/lzmasdk/Alloc.c.pic.o' '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaDec.c.pic.o' '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaEnc.c.pic.o' '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzFind.c.pic.o' '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaLib.c.pic.o'
 
 $(BUILD_ROOT)/contrib/libs/lzmasdk/7zStream.c.pic.o\
         ::\
         $(SOURCE_ROOT)/contrib/libs/lzmasdk/7zStream.c\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/lzmasdk'
-	${CC} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lzmasdk/7zStream.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/lzmasdk/7zStream.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -O3 -fPIC -fexceptions -W -Wall -Wno-parentheses -Wno-shadow -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DSSE41_ENABLED=1 -DSSE42_ENABLED=1 -DPOPCNT_ENABLED=1 -DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_7ZIP_ST=1 -nostdinc++ -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mpopcnt -mcx16
+	${CC} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lzmasdk/7zStream.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/lzmasdk/7zStream.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -O3 -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DSSE41_ENABLED=1 -DSSE42_ENABLED=1 -DPOPCNT_ENABLED=1 -DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_7ZIP_ST=1 -nostdinc++ -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mpopcnt -mcx16
 
 $(BUILD_ROOT)/contrib/libs/lzmasdk/Alloc.c.pic.o\
         ::\
         $(SOURCE_ROOT)/contrib/libs/lzmasdk/Alloc.c\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/lzmasdk'
-	${CC} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lzmasdk/Alloc.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/lzmasdk/Alloc.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -O3 -fPIC -fexceptions -W -Wall -Wno-parentheses -Wno-shadow -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DSSE41_ENABLED=1 -DSSE42_ENABLED=1 -DPOPCNT_ENABLED=1 -DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_7ZIP_ST=1 -nostdinc++ -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mpopcnt -mcx16
+	${CC} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lzmasdk/Alloc.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/lzmasdk/Alloc.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -O3 -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DSSE41_ENABLED=1 -DSSE42_ENABLED=1 -DPOPCNT_ENABLED=1 -DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_7ZIP_ST=1 -nostdinc++ -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mpopcnt -mcx16
 
 $(BUILD_ROOT)/contrib/libs/lzmasdk/LzFind.c.pic.o\
         ::\
         $(SOURCE_ROOT)/contrib/libs/lzmasdk/LzFind.c\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/lzmasdk'
-	${CC} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzFind.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/lzmasdk/LzFind.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -O3 -fPIC -fexceptions -W -Wall -Wno-parentheses -Wno-shadow -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DSSE41_ENABLED=1 -DSSE42_ENABLED=1 -DPOPCNT_ENABLED=1 -DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_7ZIP_ST=1 -nostdinc++ -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mpopcnt -mcx16
+	${CC} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzFind.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/lzmasdk/LzFind.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -O3 -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DSSE41_ENABLED=1 -DSSE42_ENABLED=1 -DPOPCNT_ENABLED=1 -DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_7ZIP_ST=1 -nostdinc++ -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mpopcnt -mcx16
 
 $(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaDec.c.pic.o\
         ::\
         $(SOURCE_ROOT)/contrib/libs/lzmasdk/LzmaDec.c\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/lzmasdk'
-	${CC} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaDec.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/lzmasdk/LzmaDec.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -O3 -fPIC -fexceptions -W -Wall -Wno-parentheses -Wno-shadow -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DSSE41_ENABLED=1 -DSSE42_ENABLED=1 -DPOPCNT_ENABLED=1 -DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_7ZIP_ST=1 -nostdinc++ -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mpopcnt -mcx16
+	${CC} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaDec.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/lzmasdk/LzmaDec.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -O3 -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DSSE41_ENABLED=1 -DSSE42_ENABLED=1 -DPOPCNT_ENABLED=1 -DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_7ZIP_ST=1 -nostdinc++ -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mpopcnt -mcx16
 
 $(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaEnc.c.pic.o\
         ::\
         $(SOURCE_ROOT)/contrib/libs/lzmasdk/LzmaEnc.c\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/lzmasdk'
-	${CC} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaEnc.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/lzmasdk/LzmaEnc.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -O3 -fPIC -fexceptions -W -Wall -Wno-parentheses -Wno-shadow -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DSSE41_ENABLED=1 -DSSE42_ENABLED=1 -DPOPCNT_ENABLED=1 -DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_7ZIP_ST=1 -nostdinc++ -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mpopcnt -mcx16
+	${CC} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaEnc.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/lzmasdk/LzmaEnc.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -O3 -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DSSE41_ENABLED=1 -DSSE42_ENABLED=1 -DPOPCNT_ENABLED=1 -DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_7ZIP_ST=1 -nostdinc++ -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mpopcnt -mcx16
 
 $(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaLib.c.pic.o\
         ::\
         $(SOURCE_ROOT)/contrib/libs/lzmasdk/LzmaLib.c\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/lzmasdk'
-	${CC} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaLib.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/lzmasdk/LzmaLib.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -O3 -fPIC -fexceptions -W -Wall -Wno-parentheses -Wno-shadow -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DSSE41_ENABLED=1 -DSSE42_ENABLED=1 -DPOPCNT_ENABLED=1 -DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_7ZIP_ST=1 -nostdinc++ -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mpopcnt -mcx16
-
-$(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaUtil.c.pic.o\
-        ::\
-        $(SOURCE_ROOT)/contrib/libs/lzmasdk/LzmaUtil.c\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/lzmasdk'
-	${CC} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaUtil.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/lzmasdk/LzmaUtil.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -O3 -fPIC -fexceptions -W -Wall -Wno-parentheses -Wno-shadow -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DSSE41_ENABLED=1 -DSSE42_ENABLED=1 -DPOPCNT_ENABLED=1 -DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_7ZIP_ST=1 -nostdinc++ -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mpopcnt -mcx16
+	${CC} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaLib.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/lzmasdk/LzmaLib.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -O3 -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DSSE41_ENABLED=1 -DSSE42_ENABLED=1 -DPOPCNT_ENABLED=1 -DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_7ZIP_ST=1 -nostdinc++ -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mpopcnt -mcx16
 
 $(BUILD_ROOT)/contrib/libs/snappy/libcontrib-libs-snappy.a.mf\
         ::\
@@ -8651,62 +8643,54 @@ $(BUILD_ROOT)/contrib/libs/lzmasdk/libcontrib-libs-lzmasdk.a\
         $(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaDec.c.pic.o\
         $(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaEnc.c.pic.o\
         $(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaLib.c.pic.o\
-        $(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaUtil.c.pic.o\
         $(SOURCE_ROOT)/build/scripts/generate_mf.py\
         $(SOURCE_ROOT)/build/scripts/link_lib.py\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/lzmasdk'
 	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name contrib-libs-lzmasdk -o contrib/libs/lzmasdk/libcontrib-libs-lzmasdk.a.mf -t LIBRARY -Ya,lics PD -Ya,peers
-	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/lzmasdk/libcontrib-libs-lzmasdk.a' '$(BUILD_ROOT)/contrib/libs/lzmasdk/7zStream.c.pic.o' '$(BUILD_ROOT)/contrib/libs/lzmasdk/Alloc.c.pic.o' '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaDec.c.pic.o' '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaEnc.c.pic.o' '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzFind.c.pic.o' '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaLib.c.pic.o' '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaUtil.c.pic.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/lzmasdk/libcontrib-libs-lzmasdk.a' '$(BUILD_ROOT)/contrib/libs/lzmasdk/7zStream.c.pic.o' '$(BUILD_ROOT)/contrib/libs/lzmasdk/Alloc.c.pic.o' '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaDec.c.pic.o' '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaEnc.c.pic.o' '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzFind.c.pic.o' '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaLib.c.pic.o'
 
 $(BUILD_ROOT)/contrib/libs/lzmasdk/7zStream.c.pic.o\
         ::\
         $(SOURCE_ROOT)/contrib/libs/lzmasdk/7zStream.c\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/lzmasdk'
-	${CC} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lzmasdk/7zStream.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/lzmasdk/7zStream.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -Wno-shadow -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DSSE41_ENABLED=1 -DSSE42_ENABLED=1 -DPOPCNT_ENABLED=1 -DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_7ZIP_ST=1 -nostdinc++ -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mpopcnt -mcx16
+	${CC} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lzmasdk/7zStream.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/lzmasdk/7zStream.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DSSE41_ENABLED=1 -DSSE42_ENABLED=1 -DPOPCNT_ENABLED=1 -DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_7ZIP_ST=1 -nostdinc++ -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mpopcnt -mcx16
 
 $(BUILD_ROOT)/contrib/libs/lzmasdk/Alloc.c.pic.o\
         ::\
         $(SOURCE_ROOT)/contrib/libs/lzmasdk/Alloc.c\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/lzmasdk'
-	${CC} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lzmasdk/Alloc.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/lzmasdk/Alloc.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -Wno-shadow -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DSSE41_ENABLED=1 -DSSE42_ENABLED=1 -DPOPCNT_ENABLED=1 -DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_7ZIP_ST=1 -nostdinc++ -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mpopcnt -mcx16
+	${CC} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lzmasdk/Alloc.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/lzmasdk/Alloc.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DSSE41_ENABLED=1 -DSSE42_ENABLED=1 -DPOPCNT_ENABLED=1 -DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_7ZIP_ST=1 -nostdinc++ -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mpopcnt -mcx16
 
 $(BUILD_ROOT)/contrib/libs/lzmasdk/LzFind.c.pic.o\
         ::\
         $(SOURCE_ROOT)/contrib/libs/lzmasdk/LzFind.c\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/lzmasdk'
-	${CC} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzFind.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/lzmasdk/LzFind.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -Wno-shadow -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DSSE41_ENABLED=1 -DSSE42_ENABLED=1 -DPOPCNT_ENABLED=1 -DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_7ZIP_ST=1 -nostdinc++ -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mpopcnt -mcx16
+	${CC} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzFind.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/lzmasdk/LzFind.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DSSE41_ENABLED=1 -DSSE42_ENABLED=1 -DPOPCNT_ENABLED=1 -DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_7ZIP_ST=1 -nostdinc++ -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mpopcnt -mcx16
 
 $(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaDec.c.pic.o\
         ::\
         $(SOURCE_ROOT)/contrib/libs/lzmasdk/LzmaDec.c\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/lzmasdk'
-	${CC} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaDec.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/lzmasdk/LzmaDec.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -Wno-shadow -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DSSE41_ENABLED=1 -DSSE42_ENABLED=1 -DPOPCNT_ENABLED=1 -DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_7ZIP_ST=1 -nostdinc++ -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mpopcnt -mcx16
+	${CC} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaDec.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/lzmasdk/LzmaDec.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DSSE41_ENABLED=1 -DSSE42_ENABLED=1 -DPOPCNT_ENABLED=1 -DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_7ZIP_ST=1 -nostdinc++ -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mpopcnt -mcx16
 
 $(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaEnc.c.pic.o\
         ::\
         $(SOURCE_ROOT)/contrib/libs/lzmasdk/LzmaEnc.c\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/lzmasdk'
-	${CC} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaEnc.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/lzmasdk/LzmaEnc.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -Wno-shadow -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DSSE41_ENABLED=1 -DSSE42_ENABLED=1 -DPOPCNT_ENABLED=1 -DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_7ZIP_ST=1 -nostdinc++ -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mpopcnt -mcx16
+	${CC} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaEnc.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/lzmasdk/LzmaEnc.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DSSE41_ENABLED=1 -DSSE42_ENABLED=1 -DPOPCNT_ENABLED=1 -DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_7ZIP_ST=1 -nostdinc++ -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mpopcnt -mcx16
 
 $(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaLib.c.pic.o\
         ::\
         $(SOURCE_ROOT)/contrib/libs/lzmasdk/LzmaLib.c\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/lzmasdk'
-	${CC} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaLib.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/lzmasdk/LzmaLib.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -Wno-shadow -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DSSE41_ENABLED=1 -DSSE42_ENABLED=1 -DPOPCNT_ENABLED=1 -DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_7ZIP_ST=1 -nostdinc++ -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mpopcnt -mcx16
-
-$(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaUtil.c.pic.o\
-        ::\
-        $(SOURCE_ROOT)/contrib/libs/lzmasdk/LzmaUtil.c\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/lzmasdk'
-	${CC} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaUtil.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/lzmasdk/LzmaUtil.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -Wno-shadow -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DSSE41_ENABLED=1 -DSSE42_ENABLED=1 -DPOPCNT_ENABLED=1 -DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_7ZIP_ST=1 -nostdinc++ -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mpopcnt -mcx16
+	${CC} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaLib.c.pic.o' '$(SOURCE_ROOT)/contrib/libs/lzmasdk/LzmaLib.c' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DSSE41_ENABLED=1 -DSSE42_ENABLED=1 -DPOPCNT_ENABLED=1 -DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_7ZIP_ST=1 -nostdinc++ -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mpopcnt -mcx16
 
 $(BUILD_ROOT)/contrib/libs/nayuki_md5/libcontrib-libs-nayuki_md5.a.mf\
         ::\
@@ -12367,7 +12351,6 @@ clean\
 	rm -f '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaDec.c.pic.o'
 	rm -f '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaEnc.c.pic.o'
 	rm -f '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaLib.c.pic.o'
-	rm -f '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaUtil.c.pic.o'
 	rm -f '$(BUILD_ROOT)/contrib/libs/snappy/libcontrib-libs-snappy.a' '$(BUILD_ROOT)/contrib/libs/snappy/libcontrib-libs-snappy.a.mf'
 	rm -f '$(BUILD_ROOT)/contrib/libs/snappy/snappy-c.cc.pic.o'
 	rm -f '$(BUILD_ROOT)/contrib/libs/snappy/snappy-sinksource.cc.pic.o'
@@ -12910,7 +12893,6 @@ clean\
 	rm -f '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaDec.c.pic.o'
 	rm -f '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaEnc.c.pic.o'
 	rm -f '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaLib.c.pic.o'
-	rm -f '$(BUILD_ROOT)/contrib/libs/lzmasdk/LzmaUtil.c.pic.o'
 	rm -f '$(BUILD_ROOT)/contrib/libs/nayuki_md5/libcontrib-libs-nayuki_md5.a' '$(BUILD_ROOT)/contrib/libs/nayuki_md5/libcontrib-libs-nayuki_md5.a.mf'
 	rm -f '$(BUILD_ROOT)/contrib/libs/nayuki_md5/md5-fast-x8664.S.o'
 	rm -f '$(BUILD_ROOT)/contrib/libs/onnx/libcontrib-libs-onnx.a' '$(BUILD_ROOT)/contrib/libs/onnx/libcontrib-libs-onnx.a.mf'
