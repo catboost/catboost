@@ -1,13 +1,14 @@
-import urllib2
+import itertools
+import json
+import logging
+import optparse
+import os
 import random
+import subprocess
 import sys
 import time
-import os
-import logging
-import subprocess
-import json
-import itertools
-import optparse
+import urllib2
+import uuid
 
 import fetch_from
 
@@ -25,24 +26,12 @@ def parse_args():
     return parser.parse_args()
 
 
-SANDBOX_PROXY_URL = "https://proxy.sandbox.yandex-team.ru/{}?origin=fetch-from-sandbox"
-
-
-class ResourceFetchingError(Exception):
-    pass
-
-
 class ResourceInfoError(Exception):
     pass
 
 
 class UnsupportedProtocolException(Exception):
     pass
-
-
-class PutRequest(urllib2.Request):
-    def get_method(self, *args, **kwargs):
-        return 'PUT'
 
 
 def download_by_skynet(resource_info, file_name):
@@ -82,15 +71,25 @@ def download_by_skynet(resource_info, file_name):
     return os.path.join(temp_dir, file_name)
 
 
-def _urlopen(url, data=None):
+def _urlopen(url, data=None, headers=None):
     n = 10
+    tout = 30
+    started = time.time()
+    reqid = uuid.uuid4()
 
+    request = urllib2.Request(url, data=data, headers=headers or {})
+    request.add_header('X-Request-Timeout', str(tout))
+    request.add_header('X-Request-Id', str(reqid))
+    request.add_header('User-Agent', 'fetch_from_sandbox.py')
     for i in xrange(n):
+        retry_after = i
         try:
-            return urllib2.urlopen(url, timeout=30, data=data).read()
+            request.add_header('X-Request-Duration', str(int(time.time() - started)))
+            return urllib2.urlopen(request, timeout=tout).read()
 
         except urllib2.HTTPError as e:
             logging.error(e)
+            retry_after = int(e.headers.get('Retry-After', str(retry_after)))
 
             if e.code not in (500, 503, 504):
                 raise
@@ -101,27 +100,29 @@ def _urlopen(url, data=None):
         if i + 1 == n:
             raise e
 
-        time.sleep(i)
+        time.sleep(retry_after)
 
 
 def _query(url):
     return json.loads(_urlopen(url))
 
 
-def _query_put(url, data):
-    return _urlopen(PutRequest(url), data)
+_SANDBOX_BASE_URL = 'https://sandbox.yandex-team.ru/api/v1.0'
 
 
-def get_resource_info(resource_id):
-    return _query('https://sandbox.yandex-team.ru/api/v1.0/resource/' + str(resource_id))
-
-
-def update_access_time(resource_id):
-    return _query_put('https://sandbox.yandex-team.ru/api/v1.0/resource/' + str(resource_id), {})
+def get_resource_info(resource_id, touch=False, no_links=False):
+    url = ''.join((_SANDBOX_BASE_URL, '/resource/', str(resource_id)))
+    headers = {}
+    if touch:
+        headers.update({'X-Touch-Resource': '1'})
+    if no_links:
+        headers.update({'X-No-Links': '1'})
+    return _query(url)
 
 
 def get_resource_http_links(resource_id):
-    return [r['url'] + ORIGIN_SUFFIX for r in _query('https://sandbox.yandex-team.ru/api/v1.0/resource/{}/data/http'.format(resource_id))]
+    url = ''.join((_SANDBOX_BASE_URL, '/resource/', str(resource_id), '/data/http'))
+    return [r['url'] + ORIGIN_SUFFIX for r in _query(url)]
 
 
 def fetch_via_script(script, resource_id):
@@ -130,16 +131,11 @@ def fetch_via_script(script, resource_id):
 
 def fetch(resource_id, custom_fetcher):
     try:
-        resource_info = get_resource_info(resource_id)
+        resource_info = get_resource_info(resource_id, touch=True, no_links=True)
     except Exception as e:
         raise ResourceInfoError(str(e))
 
     logging.info('Resource %s info %s', str(resource_id), json.dumps(resource_info))
-
-    try:
-        update_access_time(resource_id)
-    except Exception as e:
-        sys.stderr.write("Failed to update access time for {} resource: {}\n".format(resource_id, e))
 
     resource_file_name = os.path.basename(resource_info["file_name"])
     expected_md5 = resource_info.get('md5')
