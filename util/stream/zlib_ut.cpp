@@ -52,14 +52,14 @@ private:
 };
 
 Y_UNIT_TEST_SUITE(TZLibTest) {
-    static const TString DATA = "8s7d5vc6s5vc67sa4c65ascx6asd4xcv76adsfxv76s";
-    static const TString DATA2 = "cn8wk2bd9vb3vdfif83g1ks94bfiovtwv";
+    static const TString data = "8s7d5vc6s5vc67sa4c65ascx6asd4xcv76adsfxv76s";
+    static const TString data2 = "cn8wk2bd9vb3vdfif83g1ks94bfiovtwv";
 
     Y_UNIT_TEST(Compress) {
         TUnbufferedFileOutput o(ZDATA);
         TZLibCompress c(&o, ZLib::ZLib);
 
-        c.Write(DATA.data(), DATA.size());
+        c.Write(data.data(), data.size());
         c.Finish();
         o.Finish();
     }
@@ -71,7 +71,7 @@ Y_UNIT_TEST_SUITE(TZLibTest) {
             TUnbufferedFileInput i(ZDATA);
             TZLibDecompress d(&i);
 
-            UNIT_ASSERT_EQUAL(d.ReadLine(), DATA);
+            UNIT_ASSERT_EQUAL(d.ReadLine(), data);
         }
     }
 
@@ -96,10 +96,10 @@ Y_UNIT_TEST_SUITE(TZLibTest) {
         {
             TUnbufferedFileOutput o(ZDATA);
             TZLibCompress c1(&o, ZLib::ZLib);
-            c1.Write(DATA.data(), DATA.size());
+            c1.Write(data.data(), data.size());
             c1.Finish();
             TZLibCompress c2(&o, ZLib::ZLib);
-            c2.Write(DATA2.data(), DATA2.size());
+            c2.Write(data2.data(), data2.size());
             c2.Finish();
             o.Finish();
         }
@@ -107,7 +107,7 @@ Y_UNIT_TEST_SUITE(TZLibTest) {
             TUnbufferedFileInput i(ZDATA);
             TZLibDecompress d(&i);
 
-            UNIT_ASSERT_EQUAL(d.ReadLine(), DATA + DATA2);
+            UNIT_ASSERT_EQUAL(d.ReadLine(), data + data2);
         }
     }
 
@@ -132,10 +132,10 @@ Y_UNIT_TEST_SUITE(TZLibTest) {
         {
             TUnbufferedFileOutput o(ZDATA);
             TZLibCompress c1(&o, ZLib::ZLib);
-            c1.Write(DATA.data(), DATA.size());
+            c1.Write(data.data(), data.size());
             c1.Finish();
             TZLibCompress c2(&o, ZLib::ZLib);
-            c2.Write(DATA2.data(), DATA2.size());
+            c2.Write(data2.data(), data2.size());
             c2.Finish();
             o.Finish();
         }
@@ -144,32 +144,7 @@ Y_UNIT_TEST_SUITE(TZLibTest) {
             TZLibDecompress d(&i);
             d.SetAllowMultipleStreams(false);
 
-            UNIT_ASSERT_EQUAL(d.ReadLine(), DATA);
-        }
-    }
-
-    Y_UNIT_TEST(CompressFlush) {
-        TString data = "";
-
-        for (size_t i = 0; i < 20; ++i) {
-            TTempFile tmpFile(ZDATA);
-
-            TUnbufferedFileOutput output(ZDATA);
-            TZLibCompress compressor(&output, ZLib::ZLib);
-
-            compressor.Write(data.data(), data.size());
-            compressor.Flush();
-
-            {
-                TUnbufferedFileInput input(ZDATA);
-                TZLibDecompress decompressor(&input);
-
-                TString s;
-                UNIT_ASSERT_EQUAL(decompressor.ReadLine(s), i);
-                UNIT_ASSERT_EQUAL(s, data);
-            }
-
-            data += 'A' + i;
+            UNIT_ASSERT_EQUAL(d.ReadLine(), data);
         }
     }
 }
