@@ -42,6 +42,53 @@ Y_UNIT_TEST_SUITE(TLazyValueTestSuite) {
         UNIT_ASSERT_EQUAL(*notEmptyCopy, 5)
     }
 
+    struct TCopyCounter {
+        TCopyCounter(size_t& numCopies)
+            : NumCopies(&numCopies)
+        {
+        }
+
+        TCopyCounter() = default;
+
+        TCopyCounter(const TCopyCounter& other)
+            : NumCopies(other.NumCopies)
+        {
+            ++(*NumCopies);
+        }
+
+        TCopyCounter(TCopyCounter&&) = default;
+
+        TCopyCounter& operator=(const TCopyCounter& other) {
+            if (this == &other) {
+                return *this;
+            }
+            NumCopies = other.NumCopies;
+            ++(*NumCopies);
+            return *this;
+        }
+
+        TCopyCounter& operator=(TCopyCounter&&) = default;
+
+        size_t* NumCopies = nullptr;
+    };
+
+    Y_UNIT_TEST(TestLazyValueMoveValueInitialization) {
+        size_t numCopies = 0;
+        TCopyCounter counter{numCopies};
+        TLazyValue<TCopyCounter> value{[v=std::move(counter)]() mutable { return std::move(v); }};
+        value.InitDefault();
+        UNIT_ASSERT_EQUAL(numCopies, 0);
+    }
+
+    Y_UNIT_TEST(TestLazyValueCopyValueInitialization) {
+        size_t numCopies = 0;
+        TCopyCounter counter{numCopies};
+        TLazyValue<TCopyCounter> value{[&counter](){ return counter; }};
+        UNIT_ASSERT_EQUAL(numCopies, 0);
+        value.InitDefault();
+        UNIT_ASSERT_EQUAL(numCopies, 1);
+    }
+
     class TValueProvider {
     public:
         static size_t CountParseDataCalled;

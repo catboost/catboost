@@ -9,8 +9,9 @@ public:
     using TInitializer = std::function<T()>;
 
     TLazyValueBase() = default;
-    TLazyValueBase(const TInitializer& initializer)
-        : Initializer(initializer)
+
+    TLazyValueBase(TInitializer initializer)
+        : Initializer(std::move(initializer))
     {
     }
 
