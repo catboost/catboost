@@ -114,3 +114,6 @@ DENY .* -> contrib/deprecated/boost
 ALLOW contrib/deprecated/python/ruamel.ordereddict/tests -> contrib/deprecated/python/ruamel.ordereddict
 ALLOW contrib/python/ruamel.yaml -> contrib/deprecated/python/ruamel.ordereddict
 DENY .* -> contrib/deprecated/python/ruamel.ordereddict
+
+ALLOW vcs/hg/server -> contrib/deprecated/python/hgsubversion
+DENY .* -> contrib/deprecated/python/hgsubversion
