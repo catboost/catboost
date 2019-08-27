@@ -313,6 +313,14 @@
         "checksum": "2ab4e2b476b91a5797a348adaaf273db",
         "uri": "file://test.test_learning_rate_auto_set_in_cv_GPU_/catboost_training.json"
     },
+    "test.test_loss_function_change_asymmetric[GPU-Depthwise]": {
+        "checksum": "41a9cc63c9e9dd4cdba1c15feb8215b6",
+        "uri": "file://test.test_loss_function_change_asymmetric_GPU-Depthwise_/feature_importance.npy"
+    },
+    "test.test_loss_function_change_asymmetric[GPU-Lossguide]": {
+        "checksum": "e7ab6bbb7d25e09b51b42ad6f9793f5a",
+        "uri": "file://test.test_loss_function_change_asymmetric_GPU-Lossguide_/feature_importance.npy"
+    },
     "test.test_multiclass[GPU]": {
         "checksum": "8c6bd4a8857ab1081c02988bac682e24",
         "uri": "file://test.test_multiclass_GPU_/predictions.npy"
@@ -434,6 +442,14 @@
     "test.test_shap_feature_importance[GPU]": {
         "checksum": "bb93877fdf41addf2af6e4162fef2c09",
         "uri": "file://test.test_shap_feature_importance_GPU_/feature_importance.npy"
+    },
+    "test.test_shap_feature_importance_asymmetric[GPU-Depthwise]": {
+        "checksum": "8de91c54a36b4067d7b9de3acd6ca4ea",
+        "uri": "file://test.test_shap_feature_importance_asymmetric_GPU-Depthwise_/feature_importance.npy"
+    },
+    "test.test_shap_feature_importance_asymmetric[GPU-Lossguide]": {
+        "checksum": "9d3c76ce14eeb6793e79b8afcb604ebc",
+        "uri": "file://test.test_shap_feature_importance_asymmetric_GPU-Lossguide_/feature_importance.npy"
     },
     "test.test_shap_multiclass[GPU]": {
         "checksum": "4b65215cb709e94cbc2b506a77f474bc",

@@ -199,7 +199,7 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectAverageChange(
         effect = CalcEffect(
             model,
             featureToIdx,
-             model.ObliviousTrees->LeafWeights.empty() ? leavesStatisticsOnPool : model.ObliviousTrees->LeafWeights
+            model.ObliviousTrees->LeafWeights.empty() ? leavesStatisticsOnPool : model.ObliviousTrees->LeafWeights
         );
     }
 
@@ -408,7 +408,6 @@ TVector<std::pair<double, TFeature>> CalcFeatureEffect(
     type = GetFeatureImportanceType(model, bool(dataset), type);
     if (type == EFstrType::LossFunctionChange) {
         CB_ENSURE(dataset, "dataset is not provided");
-        CB_ENSURE(model.IsOblivious(), "LossFunctionChange supported only for symmetric trees");
         return CalcFeatureEffectLossChange(model, *dataset.Get(), localExecutor);
     } else {
         return CalcFeatureEffectAverageChange(model, dataset, localExecutor);

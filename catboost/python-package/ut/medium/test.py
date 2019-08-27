@@ -2351,6 +2351,72 @@ def test_shap_feature_importance(task_type):
     return local_canonical_file(fimp_npy_path)
 
 
+def test_shap_feature_importance_asymmetric_and_symmetric(task_type):
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(
+        iterations=5,
+        learning_rate=0.03,
+        max_ctr_complexity=1,
+        task_type=task_type,
+        devices='0')
+    model.fit(pool)
+    shap_symm = np.array(model.get_feature_importance(type=EFstrType.ShapValues, data=pool))
+    model._convert_to_asymmetric_representation()
+    shap_asymm = np.array(model.get_feature_importance(type=EFstrType.ShapValues, data=pool))
+    assert np.all(shap_symm - shap_asymm < 1e-8)
+
+
+def test_loss_function_change_asymmetric_and_symmetric(task_type):
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(
+        iterations=5,
+        learning_rate=0.03,
+        max_ctr_complexity=1,
+        task_type=task_type,
+        devices='0')
+    model.fit(pool)
+    shap_symm = np.array(model.get_feature_importance(type=EFstrType.LossFunctionChange, data=pool))
+    model._convert_to_asymmetric_representation()
+    shap_asymm = np.array(model.get_feature_importance(type=EFstrType.LossFunctionChange, data=pool))
+    assert np.all(shap_symm - shap_asymm < 1e-8)
+
+
+@pytest.mark.parametrize('grow_policy', NONSYMMETRIC)
+def test_shap_feature_importance_asymmetric(task_type, grow_policy):
+    if task_type == 'CPU':
+        return
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(
+        iterations=5,
+        learning_rate=0.03,
+        max_ctr_complexity=1,
+        task_type=task_type,
+        grow_policy=grow_policy,
+        devices='0')
+    model.fit(pool)
+    fimp_npy_path = test_output_path(FIMP_NPY_PATH)
+    np.save(fimp_npy_path, np.array(model.get_feature_importance(type=EFstrType.ShapValues, data=pool)))
+    return local_canonical_file(fimp_npy_path)
+
+
+@pytest.mark.parametrize('grow_policy', NONSYMMETRIC)
+def test_loss_function_change_asymmetric(task_type, grow_policy):
+    if task_type == 'CPU':
+        return
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(
+        iterations=5,
+        learning_rate=0.03,
+        max_ctr_complexity=1,
+        task_type=task_type,
+        grow_policy=grow_policy,
+        devices='0')
+    model.fit(pool)
+    fimp_npy_path = test_output_path(FIMP_NPY_PATH)
+    np.save(fimp_npy_path, np.array(model.get_feature_importance(type=EFstrType.LossFunctionChange, data=pool)))
+    return local_canonical_file(fimp_npy_path)
+
+
 def test_shap_feature_importance_modes(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoostClassifier(iterations=5, task_type=task_type)
