@@ -96,9 +96,9 @@
   includes:
     - unwind.h:      contrib/libs/libunwind/include/unwind.h
 
-- source_filter: "^contrib/libs/clickhouse/contrib/cppkafka"
+- source_filter: "^contrib/libs/cppkafka"
   includes:
-    - error.h:       contrib/libs/clickhouse/contrib/cppkafka/include/cppkafka/error.h
+    - error.h:       contrib/libs/cppkafka/include/cppkafka/error.h
 
 - source_filter: "^contrib/libs/libevent"
   includes:
