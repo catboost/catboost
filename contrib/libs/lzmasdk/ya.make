@@ -2,7 +2,7 @@ LIBRARY()
 
 
 
-VERSION(18.00) # https://www.7-zip.org/sdk.html
+VERSION(19.00) # https://www.7-zip.org/sdk.html
 
 LICENSE(PD)
 
