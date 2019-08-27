@@ -52,6 +52,9 @@ We will describe process of model integration for model trained on Adult dataset
 
 ### C API
 You can find some useful information in doxygen-style documentation in [c_api.h](https://github.com/catboost/catboost/tree/master/catboost/libs/model_interface/c_api.h)
+
+**Note:** if trained model uses only numeric features you, can switch evaluation backend to CUDA supporting GPU with `EnableGPUEvaluation` method both in C API and C++ wrapper.
+
 Sample C code:
 ```cpp
 #include <catboost_model/c_api.h> // this include is valid only for debian
@@ -134,7 +137,7 @@ void catboost_demo() {
 ### C++ wrapper API
 We also provide simple but useful C++ wrapper for C API interface: [wrapped_calcer.h](https://github.com/catboost/catboost/tree/master/catboost/libs/model_interface/wrapped_calcer.h)
 There is a sample CMake project in [catboost/libs/model_interface/cmake_example/CMakeLists.txt](https://github.com/catboost/catboost/tree/master/catboost/libs/model_interface/cmake_example/CMakeLists.txt)
-Using this wrapper is as simple as 
+Using this wrapper is as simple as
 ```cpp
 #include <catboost_model/wrapped_calcer.h>
 #include <iostream>
