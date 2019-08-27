@@ -1262,7 +1262,7 @@
         "uri": "file://test_gpu.test_fstr_Ordered-PredictionValuesChange_/fstr.tsv"
     },
     "test_gpu.test_fstr[Ordered-ShapValues]": {
-        "checksum": "3d62bd5e35d16eb538663a3689f1a656",
+        "checksum": "8668990ee36e0aa37a7b9a421eed3d11",
         "uri": "file://test_gpu.test_fstr_Ordered-ShapValues_/fstr.tsv"
     },
     "test_gpu.test_fstr[Plain-Interaction]": {
@@ -1282,7 +1282,7 @@
         "uri": "file://test_gpu.test_fstr_Plain-PredictionValuesChange_/fstr.tsv"
     },
     "test_gpu.test_fstr[Plain-ShapValues]": {
-        "checksum": "86301bb9572d1001d155ae7a228bb1ee",
+        "checksum": "936dbcfd44b71439f50bb666be7f71af",
         "uri": "file://test_gpu.test_fstr_Plain-ShapValues_/fstr.tsv"
     },
     "test_gpu.test_group_weights_file": [

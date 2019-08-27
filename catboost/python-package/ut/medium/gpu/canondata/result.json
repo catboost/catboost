@@ -432,11 +432,11 @@
         "uri": "file://test.test_shap_complex_ctr_GPU_/feature_importance.txt"
     },
     "test.test_shap_feature_importance[GPU]": {
-        "checksum": "b5338e766afb66aae4f8092090dcac5d",
+        "checksum": "bb93877fdf41addf2af6e4162fef2c09",
         "uri": "file://test.test_shap_feature_importance_GPU_/feature_importance.npy"
     },
     "test.test_shap_multiclass[GPU]": {
-        "checksum": "dde09c3127205a788ab9fc8c8b44d813",
+        "checksum": "4b65215cb709e94cbc2b506a77f474bc",
         "uri": "file://test.test_shap_multiclass_GPU_/feature_importance.txt"
     },
     "test.test_staged_predict[GPU]": {

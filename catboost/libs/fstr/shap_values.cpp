@@ -141,21 +141,21 @@ static void CalcInternalShapValuesForLeafRecursive(
     auto firstLeafPtr = forest.GetFirstLeafPtrForTree(treeIdx);
     if (depth == forest.TreeSizes[treeIdx]) {
         for (size_t elementIdx = 1; elementIdx < featurePath.size(); ++elementIdx) {
-            TVector<TFeaturePathElement> unwoundPath = UnwindFeaturePath(featurePath, elementIdx);
-            double weightSum = 0.0;
-            for (const TFeaturePathElement& unwoundPathElement : unwoundPath) {
-                weightSum += unwoundPathElement.Weight;
-            }
-            const TFeaturePathElement& element = featurePath[elementIdx];
-            const int approxDimension = forest.ApproxDimension;
-            const auto sameFeatureShapValue = FindIf(
-                shapValuesInternal->begin(),
-                shapValuesInternal->end(),
-                [element](const TShapValue& shapValue) {
-                    return shapValue.Feature == element.Feature;
-                }
-            );
-            double coefficient = weightSum * (element.OnePathsFraction - element.ZeroPathsFraction);
+           TVector<TFeaturePathElement> unwoundPath = UnwindFeaturePath(featurePath, elementIdx);
+           double weightSum = 0.0;
+           for (const TFeaturePathElement& unwoundPathElement : unwoundPath) {
+               weightSum += unwoundPathElement.Weight;
+           }
+           const TFeaturePathElement& element = featurePath[elementIdx];
+           const int approxDimension = forest.ApproxDimension;
+           const auto sameFeatureShapValue = FindIf(
+               shapValuesInternal->begin(),
+               shapValuesInternal->end(),
+               [element](const TShapValue& shapValue) {
+                   return shapValue.Feature == element.Feature;
+               }
+           );
+           double coefficient = weightSum * (element.OnePathsFraction - element.ZeroPathsFraction);
            if (sameFeatureShapValue == shapValuesInternal->end()) {
                 shapValuesInternal->emplace_back(element.Feature, approxDimension);
                 for (int dimension = 0; dimension < approxDimension; ++dimension) {
@@ -174,8 +174,9 @@ static void CalcInternalShapValuesForLeafRecursive(
         double newZeroPathsFraction = 1.0;
         double newOnePathsFraction = 1.0;
 
+        const size_t remainingDepth = forest.TreeSizes[treeIdx] - depth - 1;
         const int combinationClass = binFeatureCombinationClass[
-            forest.TreeSplits[forest.TreeStartOffsets[treeIdx] + depth]
+            forest.TreeSplits[forest.TreeStartOffsets[treeIdx] + remainingDepth]
         ];
 
         const auto sameFeatureElement = FindIf(
@@ -193,8 +194,9 @@ static void CalcInternalShapValuesForLeafRecursive(
             featurePath = UnwindFeaturePath(featurePath, sameFeatureIndex);
         }
 
-        const size_t goNodeIdx = nodeIdx | (documentLeafIdx & (size_t(1) << depth));
-        const size_t skipNodeIdx = goNodeIdx ^ (1 << depth);
+        const bool isGoRight = (documentLeafIdx >> remainingDepth) & 1;
+        const size_t goNodeIdx = nodeIdx * 2 + isGoRight;
+        const size_t skipNodeIdx = nodeIdx * 2 + !isGoRight;
 
         if (!FuzzyEquals(1 + subtreeWeights[depth + 1][goNodeIdx], 1 + 0.0)) {
             double newZeroPathsFractionGoNode = newZeroPathsFraction * subtreeWeights[depth + 1][goNodeIdx]
@@ -355,7 +357,7 @@ static TVector<TVector<double>> CalcSubtreeWeightsForTree(const TVector<double>&
         const size_t nodeCount = size_t(1) << depth;
         subtreeWeights[depth].resize(nodeCount);
         for (size_t nodeIdx = 0; nodeIdx < nodeCount; ++nodeIdx) {
-            subtreeWeights[depth][nodeIdx] = subtreeWeights[depth + 1][nodeIdx] + subtreeWeights[depth + 1][nodeIdx ^ (1 << depth)];
+            subtreeWeights[depth][nodeIdx] = subtreeWeights[depth + 1][nodeIdx * 2] + subtreeWeights[depth + 1][nodeIdx * 2 + 1];
         }
     }
     return subtreeWeights;

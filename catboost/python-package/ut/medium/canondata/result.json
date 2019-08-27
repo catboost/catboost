@@ -610,19 +610,19 @@
         }
     ],
     "test.test_shap[CPU]": {
-        "checksum": "f9aef7062a562007b363ac18f6fdb18d",
+        "checksum": "99c9d9088bb7728ff762993dfc7d6a40",
         "uri": "file://test.test_shap_CPU_/feature_importance.txt"
     },
     "test.test_shap_complex_ctr[CPU]": {
-        "checksum": "92ff3c16ba6845774601abf75658187c",
+        "checksum": "6950dc84aeeaa13ee67f11f7536eef14",
         "uri": "file://test.test_shap_complex_ctr_CPU_/feature_importance.txt"
     },
     "test.test_shap_feature_importance[CPU]": {
-        "checksum": "91b764133cd39cfc0d4557ee983ca9b2",
+        "checksum": "54a0e82de60cc249857cff6c0f6fb7f8",
         "uri": "file://test.test_shap_feature_importance_CPU_/feature_importance.npy"
     },
     "test.test_shap_multiclass[CPU]": {
-        "checksum": "c9bc5ded1b74a84ad0454c2e32970a68",
+        "checksum": "cc32c74dcb470897e9614cd39201aae3",
         "uri": "file://test.test_shap_multiclass_CPU_/feature_importance.txt"
     },
     "test.test_staged_predict[CPU]": {
