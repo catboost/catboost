@@ -1591,7 +1591,7 @@ class LD(Linker):
             }''')
 
         exe_flags = [
-            '$C_FLAGS_PLATFORM', '$START_WHOLE_ARCHIVE', self.start_group, '${rootrel:PEERS}', self.end_group, '$END_WHOLE_ARCHIVE',
+            '$C_FLAGS_PLATFORM', '$BEFORE_PEERS', self.start_group, '${rootrel:PEERS}', self.end_group, '$AFTER_PEERS',
             '$EXPORTS_VALUE $LDFLAGS $LDFLAGS_GLOBAL $OBJADDE $OBJADDE_LIB',
             '$C_LIBRARY_PATH $C_SYSTEM_LIBRARIES_INTERCEPT $C_SYSTEM_LIBRARIES $STRIP_FLAG']
 
