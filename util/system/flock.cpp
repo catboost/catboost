@@ -33,22 +33,23 @@ int Flock(void* hdl, int op) {
 
     switch (op & ~LOCK_NB) {
         case LOCK_EX:
+        case LOCK_SH: {
+            auto mode = ((op & ~LOCK_NB) == LOCK_EX) ? LOCKFILE_EXCLUSIVE_LOCK : 0;
             if (op & LOCK_NB) {
-                if (LockFileEx(hdl, LOCKFILE_EXCLUSIVE_LOCK | LOCKFILE_FAIL_IMMEDIATELY, 0, low, high, &io)) {
+                if (LockFileEx(hdl, mode | LOCKFILE_FAIL_IMMEDIATELY, 0, low, high, &io)) {
                     return 0;
-                } else {
+                } else if (GetLastError() == ERROR_LOCK_VIOLATION) {
+                    ClearLastSystemError();
                     errno = EWOULDBLOCK;
                     return -1;
                 }
             } else {
-                if (LockFileEx(hdl, LOCKFILE_EXCLUSIVE_LOCK, 0, low, high, &io))
+                if (LockFileEx(hdl, mode, 0, low, high, &io)) {
                     return 0;
+                }
             }
             break;
-        case LOCK_SH:
-            if (LockFileEx(hdl, ((op & LOCK_NB) ? LOCKFILE_FAIL_IMMEDIATELY : 0), 0, low, high, &io))
-                return 0;
-            break;
+        }
         case LOCK_UN:
             return 0;
             break;
