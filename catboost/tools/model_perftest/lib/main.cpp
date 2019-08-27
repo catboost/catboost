@@ -137,6 +137,26 @@ private:
     TVector<TVector<double>> Results;
 };
 
+
+TVector<bool> GetFeaturesUsedInModel(const TFullModel& model) {
+    TVector<bool> result(model.ObliviousTrees->GetFlatFeatureVectorExpectedSize(), false);
+
+    for (const auto& floatFeature : model.ObliviousTrees->FloatFeatures) {
+        if (floatFeature.UsedInModel()) {
+            result[floatFeature.Position.FlatIndex] = true;
+        }
+    }
+
+    for (const auto& catFeature : model.ObliviousTrees->CatFeatures) {
+        if (catFeature.UsedInModel) {
+            result[catFeature.Position.FlatIndex] = true;
+        }
+    }
+
+    return result;
+}
+
+
 int DoMain(int argc, char** argv) {
     TCMDOptions options;
     auto parser = NLastGetopt::TOpts();
@@ -157,6 +177,9 @@ int DoMain(int argc, char** argv) {
         .Optional();
     NLastGetopt::TOptsParseResult parserResult{&parser, argc, argv};
     TFullModel model = ReadModel(options.ModelPath);
+
+    TVector<bool> featureUsedInModel = GetFeaturesUsedInModel(model);
+
     NCatboostOptions::TDsvPoolFormatParams dsvPoolFormatParams;
     dsvPoolFormatParams.CdFilePath = NCB::TPathWithScheme(options.CdPath, "dsv");
     NCB::TDataProviderPtr dataset = NCB::ReadDataset(
@@ -201,10 +224,11 @@ int DoMain(int argc, char** argv) {
     Y_ENSURE(options.BlockSize > 0, "Empty pool");
     const size_t docsCount = dataset->GetObjectCount();
     const size_t blockCount = (docsCount) / options.BlockSize;
-    const size_t factorsCount = (size_t)dataset->MetaInfo.GetFeatureCount();
+    const size_t factorsCount = featureUsedInModel.size();
 
     CATBOOST_DEBUG_LOG << "Blocks count: " << blockCount << " block size: " << options.BlockSize << Endl;
 
+    TVector<float> ignoredFeatureData(options.BlockSize);
     TVector<TVector<TVector<float>>> nonTransposedPool(blockCount);
     TVector<TVector<TConstArrayRef<float>>> nonTranspFactorsRef(blockCount);
     TVector<TVector<TConstArrayRef<float>>> transpFactorsRef(blockCount);
@@ -215,9 +239,15 @@ int DoMain(int argc, char** argv) {
         CB_ENSURE(docsInCurrBlock >= 0);
         transpFactorsRef[blockId].resize(factorsCount);
         for (size_t i = 0; i < factorsCount; ++i) {
-            transpFactorsRef[blockId][i] = MakeArrayRef<const float>(
-                getFeatureDataBeginPtr(i) + blockStart,
-                docsInCurrBlock);
+            if (featureUsedInModel[i]) {
+                transpFactorsRef[blockId][i] = MakeArrayRef<const float>(
+                    getFeatureDataBeginPtr(i) + blockStart,
+                    docsInCurrBlock);
+            } else {
+                transpFactorsRef[blockId][i] = MakeArrayRef<const float>(
+                    ignoredFeatureData.data(),
+                    docsInCurrBlock);
+            }
         }
 
         nonTransposedPool[blockId].resize(docsInCurrBlock);
@@ -226,7 +256,11 @@ int DoMain(int argc, char** argv) {
             auto &docFacs = nonTransposedPool[blockId][docId];
             docFacs.resize(factorsCount);
             for (size_t featureId = 0; featureId < factorsCount; ++featureId) {
-                docFacs[featureId] = getFeatureDataBeginPtr(featureId)[blockStart + docId];
+                if (featureUsedInModel[featureId]) {
+                    docFacs[featureId] = getFeatureDataBeginPtr(featureId)[blockStart + docId];
+                } else {
+                    docFacs[featureId] = 0.0f;
+                }
             }
             nonTranspFactorsRef[blockId][docId] = MakeArrayRef(docFacs);
         }
