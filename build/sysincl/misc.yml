@@ -157,6 +157,12 @@
     - CL/cl.h:       contrib/libs/intel/FPGA_pro/hld/host/include/CL/cl.h
     - CL/opencl.h:   contrib/libs/intel/FPGA_pro/hld/host/include/CL/opencl.h
 
+- source_filter: "^contrib/libs/intel/mkldnn"
+  includes:
+    - mkl_cblas.h: contrib/libs/intel/mkl/include/mkl_cblas.h
+    - mkl_version.h: contrib/libs/intel/mkl/include/mkl_version.h
+    - mkl_vml_functions.h: contrib/libs/intel/mkl/include/mkl_vml_functions.h
+
 - source_filter: "^contrib/libs/nsync"
   includes:
     - atomic.h:      contrib/libs/nsync/platform/c++11/atomic.h
@@ -341,7 +347,7 @@
     - hwloc.h
     - hwloc/cudart.h
 
-- source_filter: "^contrib/libs/(deprecated|intel|tf)"
+- source_filter: "^contrib/libs/(deprecated|tf)"
   includes:
     - cblas.h
 
