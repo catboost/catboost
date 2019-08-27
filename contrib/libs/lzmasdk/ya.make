@@ -1,16 +1,14 @@
 LIBRARY()
 
-LICENSE(
-    PD
-)
 
 
+VERSION(18.00) # https://www.7-zip.org/sdk.html
+
+LICENSE(PD)
 
 CFLAGS(-D_7ZIP_ST=1)
 
 NO_UTIL()
-
-NO_WSHADOW()
 
 SRCS(
     7zStream.c
@@ -19,7 +17,6 @@ SRCS(
     LzmaEnc.c
     LzFind.c
     LzmaLib.c
-    LzmaUtil.c
 )
 
 END()
