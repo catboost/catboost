@@ -73,11 +73,6 @@ namespace NPrivate {
             }
         }
 
-        using Alloc::address;
-        using Alloc::construct;
-        using Alloc::destroy;
-        using Alloc::max_size;
-
     private:
         std::aligned_storage_t<sizeof(T), alignof(T)> StackBasedStorage[CountOnStack];
         size_t IsStorageUsed = false;

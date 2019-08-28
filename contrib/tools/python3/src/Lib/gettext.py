@@ -50,7 +50,12 @@ import locale
 import os
 import re
 import sys
+import io
 
+try:
+    import __res
+except ImportError:
+    __res = None
 
 __all__ = ['NullTranslations', 'GNUTranslations', 'Catalog',
            'find', 'translation', 'install', 'textdomain', 'bindtextdomain',
@@ -499,7 +504,7 @@ def find(domain, localedir=None, languages=None, all=False):
         if lang == 'C':
             break
         mofile = os.path.join(localedir, lang, 'LC_MESSAGES', '%s.mo' % domain)
-        if os.path.exists(mofile):
+        if __res and __res.resfs_src(mofile.encode('utf-8'), resfs_file=True) or os.path.exists(mofile):
             if all:
                 result.append(mofile)
             else:
@@ -529,8 +534,12 @@ def translation(domain, localedir=None, languages=None,
         key = (class_, os.path.abspath(mofile))
         t = _translations.get(key)
         if t is None:
-            with open(mofile, 'rb') as fp:
-                t = _translations.setdefault(key, class_(fp))
+            mores = __res and __res.resfs_read(mofile.encode('utf-8'))
+            if mores:
+                t = _translations.setdefault(key, class_(io.BytesIO(mores)))
+            else:
+                with open(mofile, 'rb') as fp:
+                    t = _translations.setdefault(key, class_(fp))
         # Copy the translation object to allow setting fallbacks and
         # output charset. All other instance data is shared with the
         # cached object.
