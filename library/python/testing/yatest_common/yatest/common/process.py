@@ -174,14 +174,18 @@ class _Execution(object):
             self._process_progress_listener()
             self._process_progress_listener.close()
         if not self._user_stdout:
-            if self._out_file != subprocess.PIPE:
+            if self._out_file is None:
+                pass
+            elif self._out_file != subprocess.PIPE:
                 self._out_file.flush()
                 self._out_file.seek(0, os.SEEK_SET)
                 self._std_out = self._out_file.read()
             else:
                 self._std_out = self._process.stdout.read()
         if not self._user_stderr:
-            if self._err_file != subprocess.PIPE:
+            if self._err_file is None:
+                pass
+            elif self._err_file != subprocess.PIPE:
                 self._err_file.flush()
                 self._err_file.seek(0, os.SEEK_SET)
                 self._std_err = self._err_file.read()
@@ -199,10 +203,12 @@ class _Execution(object):
         yatest_logger.debug("Command (pid %s) errors:\n%s", self._process.pid, truncate(self._std_err, MAX_OUT_LEN))
 
     def _clean_files(self):
-        if not self._user_stderr and self._err_file != subprocess.PIPE:
+        if self._err_file and not self._user_stderr and self._err_file != subprocess.PIPE:
             self._err_file.close()
-        if not self._user_stdout and self._out_file != subprocess.PIPE:
+            self._err_file = None
+        if self._out_file and not self._user_stdout and self._out_file != subprocess.PIPE:
             self._out_file.close()
+            self._out_file = None
 
     def _recover_core(self):
         core_path = cores.recover_core_dump_file(self.command[0], self._cwd, self.process.pid)
