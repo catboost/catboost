@@ -119,3 +119,8 @@ ALLOW vcs/hg/server -> contrib/deprecated/python/hgsubversion
 DENY .* -> contrib/deprecated/python/hgsubversion
 
 DENY .* -> contrib/deprecated/python/po_file_checker
+
+ALLOW sandbox/projects/CompareYmakeDump -> contrib/deprecated/python/diff2html
+ALLOW sandbox/projects/antirobot/DiffResources -> contrib/deprecated/python/diff2html
+ALLOW yql/udfs/common/python/python_arc -> contrib/deprecated/python/diff2html
+DENY .* -> contrib/deprecated/python/diff2html
