@@ -5814,6 +5814,7 @@ def test_snapshot_without_random_seed():
             '--column-description', data_file('adult', 'train.cd'),
             '-i', str(iters),
             '-T', '4',
+            '--use-best-model', 'False',
             '--eval-file', eval_path,
         ]
         if additional_params:
