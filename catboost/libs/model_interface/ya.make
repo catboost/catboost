@@ -9,8 +9,14 @@ SRCS(
 
 PEERDIR(
     catboost/libs/cat_feature
-    catboost/libs/model/thin
+    catboost/libs/model
 )
+
+IF(HAVE_CUDA)
+    PEERDIR(
+        catboost/libs/model/cuda
+    )
+ENDIF()
 
 STRIP()
 

@@ -13,5 +13,11 @@ PEERDIR(
     catboost/libs/model
 )
 
+IF(HAVE_CUDA)
+    PEERDIR(
+        catboost/libs/model/cuda
+    )
+ENDIF()
+
 END()
 

@@ -594,15 +594,6 @@ void TFullModel::UpdateDynamicData() {
     }
 }
 
-NCB::NModelEvaluation::TModelEvaluatorPtr TFullModel::CreateEvaluator(EFormulaEvaluatorType evaluatorType) const {
-    if (evaluatorType == EFormulaEvaluatorType::CPU) {
-        return NCB::NModelEvaluation::CreateCpuEvaluator(*this);
-    } else {
-        Y_ASSERT(evaluatorType == EFormulaEvaluatorType::GPU);
-        return NCB::NModelEvaluation::CreateGpuEvaluator(*this);
-    }
-}
-
 TVector<TString> GetModelUsedFeaturesNames(const TFullModel& model) {
     TVector<int> featuresIdxs;
     TVector<TString> featuresNames;

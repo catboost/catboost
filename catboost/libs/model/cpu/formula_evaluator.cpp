@@ -476,7 +476,6 @@ namespace NCB::NModelEvaluation {
             TMaybe<TFeatureLayout> ExtFeatureLayout;
         };
     }
-    TModelEvaluatorPtr CreateCpuEvaluator(const TFullModel& model) {
-        return new NDetail::TCpuEvaluator(model);
-    }
+
+    TEvaluationBackendFactory::TRegistrator<NDetail::TCpuEvaluator> CPUEvaluationBackendRegistrator(EFormulaEvaluatorType::CPU);
 }

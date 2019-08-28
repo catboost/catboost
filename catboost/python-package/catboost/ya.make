@@ -13,6 +13,7 @@ PEERDIR(
 IF(HAVE_CUDA)
     PEERDIR(
         catboost/cuda/train_lib
+        catboost/libs/model/cuda
     )
 ENDIF()
 

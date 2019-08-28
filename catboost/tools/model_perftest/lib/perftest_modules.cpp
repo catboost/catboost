@@ -48,7 +48,7 @@ class TCPUCatboostModule : public TBaseCatboostModule {
 public:
     TCPUCatboostModule(const TFullModel& model) {
         Priority = 10;
-        ModelEvaluator = NCB::NModelEvaluation::CreateCpuEvaluator(model);
+        ModelEvaluator = NCB::NModelEvaluation::CreateEvaluator(EFormulaEvaluatorType::CPU, model);
         BaseName = "catboost cpu";
     }
 };
@@ -61,7 +61,7 @@ public:
         CB_ENSURE(model.IsOblivious(), "model is already asymmetrical");
         TFullModel asymmetricalModel = model;
         asymmetricalModel.ObliviousTrees.GetMutable()->ConvertObliviousToAsymmetric();
-        ModelEvaluator = NCB::NModelEvaluation::CreateCpuEvaluator(asymmetricalModel);
+        ModelEvaluator = NCB::NModelEvaluation::CreateEvaluator(EFormulaEvaluatorType::CPU, model);
         BaseName = "catboost cpu asymmetrical";
     }
 };
@@ -71,7 +71,7 @@ TPerftestModuleFactory::TRegistrator<TCPUCatboostAsymmetryModule> CPUCatboostAsy
 class TGPUCatboostModule : public TBaseCatboostModule {
 public:
     TGPUCatboostModule(const TFullModel& model) {
-        ModelEvaluator = NCB::NModelEvaluation::CreateGpuEvaluator(model);
+        ModelEvaluator = NCB::NModelEvaluation::CreateEvaluator(EFormulaEvaluatorType::GPU, model);
         BaseName = "catboost gpu";
     }
 };

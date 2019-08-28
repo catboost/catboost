@@ -25,6 +25,7 @@ PEERDIR(
     catboost/libs/loggers
     catboost/libs/metrics
     catboost/libs/model
+    catboost/libs/model/model_export
     catboost/libs/fstr
     catboost/libs/overfitting_detector
     catboost/libs/pairs

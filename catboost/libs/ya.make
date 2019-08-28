@@ -53,6 +53,7 @@ RECURSE(
 IF (HAVE_CUDA)
     RECURSE(
     cuda_wrappers
+    model/cuda
 )
 ENDIF()
 

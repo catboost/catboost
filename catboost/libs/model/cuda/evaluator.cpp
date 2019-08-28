@@ -17,6 +17,8 @@ namespace NCB::NModelEvaluation {
             explicit TGpuEvaluator(const TFullModel& model)
                 : ObliviousTrees(model.ObliviousTrees)
             {
+                CB_ENSURE(!model.HasCategoricalFeatures(), "Model contains categorical features, gpu evaluation impossible");
+                CB_ENSURE(model.IsOblivious(), "Model is not oblivious, gpu evaluation impossible");
                 TVector<TGPURepackedBin> gpuBins;
                 for (const TRepackedBin& cpuRepackedBin : ObliviousTrees->GetRepackedBins()) {
                     gpuBins.emplace_back(TGPURepackedBin{ static_cast<ui32>(cpuRepackedBin.FeatureIndex * WarpSize), cpuRepackedBin.SplitIdx, cpuRepackedBin.XorMask });
@@ -327,14 +329,6 @@ namespace NCB::NModelEvaluation {
             TGPUCatboostEvaluationContext Ctx;
         };
     }
-    TModelEvaluatorPtr CreateGpuEvaluator(const TFullModel& model) {
-        if (!CudaEvaluationPossible(model)) {
-            CB_ENSURE(!model.HasCategoricalFeatures(), "Model contains categorical features, gpu evaluation impossible");
-            CB_ENSURE(model.IsOblivious(), "Model is not oblivious, gpu evaluation impossible");
-        }
-        return new NDetail::TGpuEvaluator(model);
-    }
-    bool CudaEvaluationPossible(const TFullModel& model) {
-        return !model.HasCategoricalFeatures() && model.IsOblivious();
-    }
+
+    TEvaluationBackendFactory::TRegistrator<NDetail::TGpuEvaluator> GPUEvaluationBackendRegistrator(EFormulaEvaluatorType::GPU);
 }

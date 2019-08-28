@@ -6,6 +6,7 @@ CFLAGS(-DONNX_ML=1 -DONNX_NAMESPACE=onnx)
 
 PEERDIR(
     catboost/libs/model
+    catboost/libs/model/model_export
     contrib/libs/onnx
     contrib/libs/protobuf
     contrib/libs/pugixml

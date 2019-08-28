@@ -10,6 +10,11 @@ namespace NCB { // split due to CUDA-compiler inability to support nested namesp
     }
 }
 
+enum class EFormulaEvaluatorType {
+    CPU,
+    GPU
+};
+
 // TODO(kirillovs): move inside NCB namespace
 enum class EModelType {
     CatboostBinary /* "CatboostBinary", "cbm", "catboost" */,

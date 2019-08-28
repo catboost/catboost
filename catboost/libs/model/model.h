@@ -363,11 +363,6 @@ private:
     mutable TMaybe<TRuntimeData> RuntimeData;
 };
 
-enum class EFormulaEvaluatorType {
-    CPU,
-    GPU
-};
-
 class TCOWTreeWrapper {
 public:
     const TObliviousTrees& operator*() const {
@@ -415,7 +410,7 @@ public:
     void SetEvaluatorType(EFormulaEvaluatorType evaluatorType) {
         with_lock(CurrentEvaluatorLock) {
             if (FormulaEvaluatorType != evaluatorType) {
-                Evaluator = CreateEvaluator(evaluatorType); // we can fail here
+                Evaluator = NCB::NModelEvaluation::CreateEvaluator(evaluatorType, *this); // we can fail here
                 FormulaEvaluatorType = evaluatorType;
             }
         }
@@ -424,7 +419,7 @@ public:
     NCB::NModelEvaluation::TConstModelEvaluatorPtr GetCurrentEvaluator() const {
         with_lock(CurrentEvaluatorLock) {
             if (!Evaluator) {
-                Evaluator = CreateEvaluator(FormulaEvaluatorType);
+                Evaluator = NCB::NModelEvaluation::CreateEvaluator(FormulaEvaluatorType, *this);
             }
             return Evaluator;
         }
@@ -824,8 +819,6 @@ public:
      *  modifications.
      */
     void UpdateDynamicData();
-private:
-    NCB::NModelEvaluation::TModelEvaluatorPtr CreateEvaluator(EFormulaEvaluatorType evaluatorType) const;
 };
 
 void OutputModel(const TFullModel& model, TStringBuf modelFile);

@@ -19,8 +19,7 @@ SRCS(
 
 
 PEERDIR(
-    # better replace thin with model/fat wich will include all catboost model possibilities
-    catboost/libs/model/thin #TODO(kirillovs): invert peerdir logic
+    catboost/libs/model
 
     catboost/libs/ctr_description
     contrib/libs/coreml

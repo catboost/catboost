@@ -4,6 +4,8 @@
 
 #include "features.h"
 
+#include <library/object_factory/object_factory.h>
+
 #include <util/generic/array_ref.h>
 #include <util/generic/maybe.h>
 #include <util/generic/ptr.h>
@@ -210,9 +212,8 @@ namespace NCB {  // split due to CUDA-compiler inability to parse nested namespa
             ) const = 0;
         };
 
-        TModelEvaluatorPtr CreateCpuEvaluator(const TFullModel& model);
+        using TEvaluationBackendFactory = NObjectFactory::TParametrizedObjectFactory<IModelEvaluator, EFormulaEvaluatorType, const TFullModel&>;
 
-        bool CudaEvaluationPossible(const TFullModel& model);
-        TModelEvaluatorPtr CreateGpuEvaluator(const TFullModel& model);
+        TModelEvaluatorPtr CreateEvaluator(EFormulaEvaluatorType formualEvaluatorType, const TFullModel& model);
     }
 }

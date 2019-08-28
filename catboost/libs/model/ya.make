@@ -2,11 +2,44 @@ LIBRARY()
 
 
 
-#TODO(kirillovs): invert include logic
-# better replace thin with model/fat wich will include all catboost model possibilities
-PEERDIR(
-    catboost/libs/model/thin
-    catboost/libs/model/model_export
+SRCS(
+    ctr_data.cpp
+    ctr_helpers.cpp
+    ctr_provider.cpp
+    ctr_value_table.cpp
+    eval_processing.cpp
+    evaluation_interface.cpp
+    features.cpp
+    GLOBAL model_import_interface.cpp
+    model.cpp
+    online_ctr.cpp
+    static_ctr_provider.cpp
+    model_build_helper.cpp
+    cpu/evaluator_impl.cpp
+    GLOBAL cpu/formula_evaluator.cpp
+    cpu/quantization.cpp
 )
+
+PEERDIR(
+    catboost/libs/cat_feature
+    catboost/libs/ctr_description
+    catboost/libs/helpers
+    catboost/libs/logging
+    catboost/libs/model/flatbuffers
+    catboost/libs/options
+    contrib/libs/flatbuffers
+    library/binsaver
+    library/containers/dense_hash
+    library/dbg_output
+    library/fast_exp
+    library/json
+    library/object_factory
+    library/svnversion
+)
+
+GENERATE_ENUM_SERIALIZATION(ctr_provider.h)
+GENERATE_ENUM_SERIALIZATION(enums.h)
+GENERATE_ENUM_SERIALIZATION(features.h)
+GENERATE_ENUM_SERIALIZATION(split.h)
 
 END()
