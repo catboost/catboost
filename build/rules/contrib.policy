@@ -117,3 +117,5 @@ DENY .* -> contrib/deprecated/python/ruamel.ordereddict
 
 ALLOW vcs/hg/server -> contrib/deprecated/python/hgsubversion
 DENY .* -> contrib/deprecated/python/hgsubversion
+
+DENY .* -> contrib/deprecated/python/po_file_checker
