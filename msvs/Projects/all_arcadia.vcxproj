@@ -252,6 +252,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\model\catboost-libs-model.vcxproj">
       <Project>A51525C5-634E-FC35-5327-3CD4A8F2B67F</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\model\cuda\libs-model-cuda.vcxproj">
+      <Project>3B03C733-2186-8088-C630-809F047C70CD</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\model\flatbuffers\libs-model-flatbuffers.vcxproj">
       <Project>2A1F054B-AB2A-66AA-1838-2784A8B46C5D</Project>
     </ProjectReference>
@@ -260,9 +263,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\model\model_export\ut\catboost-libs-model-model_export-ut.vcxproj">
       <Project>4D1B4DDE-18B4-C539-E4F4-F7ACD976972E</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\model\thin\libs-model-thin.vcxproj">
-      <Project>72D6542E-F0C9-DD13-021C-BD29BB4FB496</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\model\ut\lib\model-ut-lib.vcxproj">
       <Project>F4AB4275-04FB-8D97-76D1-A694CC86F722</Project>

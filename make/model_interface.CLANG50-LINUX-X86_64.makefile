@@ -31,8 +31,9 @@ $(BUILD_ROOT)/catboost/libs/model_interface/libcatboostmodel.so.1\
         $(BUILD_ROOT)/catboost/libs/helpers/libcatboost-libs-helpers.a\
         $(BUILD_ROOT)/catboost/libs/index_range/libcatboost-libs-index_range.a\
         $(BUILD_ROOT)/catboost/libs/logging/libcatboost-libs-logging.a\
-        $(BUILD_ROOT)/catboost/libs/model/thin/__/model_import_interface.cpp.pic.o\
-        $(BUILD_ROOT)/catboost/libs/model/thin/liblibs-model-thin.a\
+        $(BUILD_ROOT)/catboost/libs/model/cpu/formula_evaluator.cpp.pic.o\
+        $(BUILD_ROOT)/catboost/libs/model/libcatboost-libs-model.a\
+        $(BUILD_ROOT)/catboost/libs/model/model_import_interface.cpp.pic.o\
         $(BUILD_ROOT)/catboost/libs/model_interface/c_api.cpp.pic.o\
         $(BUILD_ROOT)/catboost/libs/options/libcatboost-libs-options.a\
         $(BUILD_ROOT)/contrib/libs/base64/avx2/liblibs-base64-avx2.a\
@@ -88,10 +89,10 @@ $(BUILD_ROOT)/catboost/libs/model_interface/libcatboostmodel.so.1\
         $(SOURCE_ROOT)/catboost/libs/model_interface/calcer.exports\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/model_interface'
-	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name catboostmodel -o catboost/libs/model_interface/libcatboostmodel.so.1.mf -t DLL -Ya,lics -Ya,peers contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a util/charset/libutil-charset.a contrib/libs/zlib/libcontrib-libs-zlib.a contrib/libs/double-conversion/libcontrib-libs-double-conversion.a util/libyutil.a catboost/libs/cat_feature/libcatboost-libs-cat_feature.a catboost/libs/index_range/libcatboost-libs-index_range.a library/containers/2d_array/liblibrary-containers-2d_array.a library/binsaver/liblibrary-binsaver.a library/containers/dense_hash/liblibrary-containers-dense_hash.a catboost/libs/data_types/libcatboost-libs-data_types.a library/object_factory/liblibrary-object_factory.a catboost/libs/data_util/libcatboost-libs-data_util.a tools/enum_parser/enum_serialization_runtime/libtools-enum_parser-enum_serialization_runtime.a library/logger/liblibrary-logger.a library/logger/global/liblibrary-logger-global.a catboost/libs/logging/libcatboost-libs-logging.a library/colorizer/liblibrary-colorizer.a library/dbg_output/liblibrary-dbg_output.a contrib/libs/crcutil/libcontrib-libs-crcutil.a library/digest/crc32c/liblibrary-digest-crc32c.a contrib/libs/nayuki_md5/libcontrib-libs-nayuki_md5.a contrib/libs/base64/avx2/liblibs-base64-avx2.a contrib/libs/base64/ssse3/liblibs-base64-ssse3.a contrib/libs/base64/neon32/liblibs-base64-neon32.a contrib/libs/base64/neon64/liblibs-base64-neon64.a contrib/libs/base64/plain32/liblibs-base64-plain32.a contrib/libs/base64/plain64/liblibs-base64-plain64.a library/string_utils/base64/liblibrary-string_utils-base64.a library/digest/md5/liblibrary-digest-md5.a library/malloc/api/liblibrary-malloc-api.a library/pop_count/liblibrary-pop_count.a library/threading/local_executor/liblibrary-threading-local_executor.a catboost/libs/helpers/libcatboost-libs-helpers.a catboost/libs/ctr_description/libcatboost-libs-ctr_description.a contrib/libs/flatbuffers/libcontrib-libs-flatbuffers.a library/json/common/liblibrary-json-common.a library/json/fast_sax/liblibrary-json-fast_sax.a library/json/writer/liblibrary-json-writer.a library/string_utils/relaxed_escaper/liblibrary-string_utils-relaxed_escaper.a library/json/liblibrary-json.a library/getopt/small/liblibrary-getopt-small.a library/grid_creator/liblibrary-grid_creator.a library/containers/flat_hash/lib/libcontainers-flat_hash-lib.a library/containers/flat_hash/liblibrary-containers-flat_hash.a library/text_processing/dictionary/liblibrary-text_processing-dictionary.a catboost/libs/options/libcatboost-libs-options.a library/fast_exp/liblibrary-fast_exp.a library/svnversion/liblibrary-svnversion.a catboost/libs/model/thin/liblibs-model-thin.a
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name catboostmodel -o catboost/libs/model_interface/libcatboostmodel.so.1.mf -t DLL -Ya,lics -Ya,peers contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a util/charset/libutil-charset.a contrib/libs/zlib/libcontrib-libs-zlib.a contrib/libs/double-conversion/libcontrib-libs-double-conversion.a util/libyutil.a catboost/libs/cat_feature/libcatboost-libs-cat_feature.a catboost/libs/index_range/libcatboost-libs-index_range.a library/containers/2d_array/liblibrary-containers-2d_array.a library/binsaver/liblibrary-binsaver.a library/containers/dense_hash/liblibrary-containers-dense_hash.a catboost/libs/data_types/libcatboost-libs-data_types.a library/object_factory/liblibrary-object_factory.a catboost/libs/data_util/libcatboost-libs-data_util.a tools/enum_parser/enum_serialization_runtime/libtools-enum_parser-enum_serialization_runtime.a library/logger/liblibrary-logger.a library/logger/global/liblibrary-logger-global.a catboost/libs/logging/libcatboost-libs-logging.a library/colorizer/liblibrary-colorizer.a library/dbg_output/liblibrary-dbg_output.a contrib/libs/crcutil/libcontrib-libs-crcutil.a library/digest/crc32c/liblibrary-digest-crc32c.a contrib/libs/nayuki_md5/libcontrib-libs-nayuki_md5.a contrib/libs/base64/avx2/liblibs-base64-avx2.a contrib/libs/base64/ssse3/liblibs-base64-ssse3.a contrib/libs/base64/neon32/liblibs-base64-neon32.a contrib/libs/base64/neon64/liblibs-base64-neon64.a contrib/libs/base64/plain32/liblibs-base64-plain32.a contrib/libs/base64/plain64/liblibs-base64-plain64.a library/string_utils/base64/liblibrary-string_utils-base64.a library/digest/md5/liblibrary-digest-md5.a library/malloc/api/liblibrary-malloc-api.a library/pop_count/liblibrary-pop_count.a library/threading/local_executor/liblibrary-threading-local_executor.a catboost/libs/helpers/libcatboost-libs-helpers.a catboost/libs/ctr_description/libcatboost-libs-ctr_description.a contrib/libs/flatbuffers/libcontrib-libs-flatbuffers.a library/json/common/liblibrary-json-common.a library/json/fast_sax/liblibrary-json-fast_sax.a library/json/writer/liblibrary-json-writer.a library/string_utils/relaxed_escaper/liblibrary-string_utils-relaxed_escaper.a library/json/liblibrary-json.a library/getopt/small/liblibrary-getopt-small.a library/grid_creator/liblibrary-grid_creator.a library/containers/flat_hash/lib/libcontainers-flat_hash-lib.a library/containers/flat_hash/liblibrary-containers-flat_hash.a library/text_processing/dictionary/liblibrary-text_processing-dictionary.a catboost/libs/options/libcatboost-libs-options.a library/fast_exp/liblibrary-fast_exp.a library/svnversion/liblibrary-svnversion.a catboost/libs/model/libcatboost-libs-model.a
 	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/vcs_info.py' '$(VCS)/vcs.json' '$(BUILD_ROOT)/catboost/libs/model_interface/__vcs_version__.c' '$(SOURCE_ROOT)/build/scripts/c_templates/svn_interface.c'
 	${CC} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model_interface/__vcs_version__.c.pic.o' '$(BUILD_ROOT)/catboost/libs/model_interface/__vcs_version__.c' '-I$(SOURCE_ROOT)' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DSSE41_ENABLED=1 -DSSE42_ENABLED=1 -DPOPCNT_ENABLED=1 -DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -nostdinc++ -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mpopcnt -mcx16
-	cd $(BUILD_ROOT) && '$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_dyn_lib.py' --target '$(BUILD_ROOT)/catboost/libs/model_interface/libcatboostmodel.so.1' --arch=LINUX --soname '$(BUILD_ROOT)/catboost/libs/model_interface/libcatboostmodel.so' --fix-elf '$(BUILD_ROOT)/tools/fix_elf/fix_elf' ${CXX} catboost/libs/data_util/line_data_reader.cpp.pic.o catboost/libs/data_util/exists_checker.cpp.pic.o catboost/libs/model/thin/__/model_import_interface.cpp.pic.o '$(BUILD_ROOT)/catboost/libs/model_interface/__vcs_version__.c.pic.o' '$(BUILD_ROOT)/catboost/libs/model_interface/c_api.cpp.pic.o' -o '$(BUILD_ROOT)/catboost/libs/model_interface/libcatboostmodel.so.1' -shared -Wl,-soname,libcatboostmodel.so.1 --target=x86_64-linux-gnu -Wl,--start-group contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a util/charset/libutil-charset.a contrib/libs/zlib/libcontrib-libs-zlib.a contrib/libs/double-conversion/libcontrib-libs-double-conversion.a util/libyutil.a catboost/libs/cat_feature/libcatboost-libs-cat_feature.a catboost/libs/index_range/libcatboost-libs-index_range.a library/containers/2d_array/liblibrary-containers-2d_array.a library/binsaver/liblibrary-binsaver.a library/containers/dense_hash/liblibrary-containers-dense_hash.a catboost/libs/data_types/libcatboost-libs-data_types.a library/object_factory/liblibrary-object_factory.a catboost/libs/data_util/libcatboost-libs-data_util.a tools/enum_parser/enum_serialization_runtime/libtools-enum_parser-enum_serialization_runtime.a library/logger/liblibrary-logger.a library/logger/global/liblibrary-logger-global.a catboost/libs/logging/libcatboost-libs-logging.a library/colorizer/liblibrary-colorizer.a library/dbg_output/liblibrary-dbg_output.a contrib/libs/crcutil/libcontrib-libs-crcutil.a library/digest/crc32c/liblibrary-digest-crc32c.a contrib/libs/nayuki_md5/libcontrib-libs-nayuki_md5.a contrib/libs/base64/avx2/liblibs-base64-avx2.a contrib/libs/base64/ssse3/liblibs-base64-ssse3.a contrib/libs/base64/neon32/liblibs-base64-neon32.a contrib/libs/base64/neon64/liblibs-base64-neon64.a contrib/libs/base64/plain32/liblibs-base64-plain32.a contrib/libs/base64/plain64/liblibs-base64-plain64.a library/string_utils/base64/liblibrary-string_utils-base64.a library/digest/md5/liblibrary-digest-md5.a library/malloc/api/liblibrary-malloc-api.a library/pop_count/liblibrary-pop_count.a library/threading/local_executor/liblibrary-threading-local_executor.a catboost/libs/helpers/libcatboost-libs-helpers.a catboost/libs/ctr_description/libcatboost-libs-ctr_description.a contrib/libs/flatbuffers/libcontrib-libs-flatbuffers.a library/json/common/liblibrary-json-common.a library/json/fast_sax/liblibrary-json-fast_sax.a library/json/writer/liblibrary-json-writer.a library/string_utils/relaxed_escaper/liblibrary-string_utils-relaxed_escaper.a library/json/liblibrary-json.a library/getopt/small/liblibrary-getopt-small.a library/grid_creator/liblibrary-grid_creator.a library/containers/flat_hash/lib/libcontainers-flat_hash-lib.a library/containers/flat_hash/liblibrary-containers-flat_hash.a library/text_processing/dictionary/liblibrary-text_processing-dictionary.a catboost/libs/options/libcatboost-libs-options.a library/fast_exp/liblibrary-fast_exp.a library/svnversion/liblibrary-svnversion.a catboost/libs/model/thin/liblibs-model-thin.a -Wl,--end-group '-Wl,--version-script=$(SOURCE_ROOT)/catboost/libs/model_interface/calcer.exports' -ldl -lrt -Wl,--no-as-needed -Wl,-z,notext -lpthread -lrt -ldl -nodefaultlibs -lpthread -lc -lm -s
+	cd $(BUILD_ROOT) && '$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_dyn_lib.py' --target '$(BUILD_ROOT)/catboost/libs/model_interface/libcatboostmodel.so.1' --arch=LINUX --soname '$(BUILD_ROOT)/catboost/libs/model_interface/libcatboostmodel.so' --fix-elf '$(BUILD_ROOT)/tools/fix_elf/fix_elf' ${CXX} catboost/libs/data_util/line_data_reader.cpp.pic.o catboost/libs/data_util/exists_checker.cpp.pic.o catboost/libs/model/model_import_interface.cpp.pic.o catboost/libs/model/cpu/formula_evaluator.cpp.pic.o '$(BUILD_ROOT)/catboost/libs/model_interface/__vcs_version__.c.pic.o' '$(BUILD_ROOT)/catboost/libs/model_interface/c_api.cpp.pic.o' -o '$(BUILD_ROOT)/catboost/libs/model_interface/libcatboostmodel.so.1' -shared -Wl,-soname,libcatboostmodel.so.1 --target=x86_64-linux-gnu -Wl,--start-group contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a util/charset/libutil-charset.a contrib/libs/zlib/libcontrib-libs-zlib.a contrib/libs/double-conversion/libcontrib-libs-double-conversion.a util/libyutil.a catboost/libs/cat_feature/libcatboost-libs-cat_feature.a catboost/libs/index_range/libcatboost-libs-index_range.a library/containers/2d_array/liblibrary-containers-2d_array.a library/binsaver/liblibrary-binsaver.a library/containers/dense_hash/liblibrary-containers-dense_hash.a catboost/libs/data_types/libcatboost-libs-data_types.a library/object_factory/liblibrary-object_factory.a catboost/libs/data_util/libcatboost-libs-data_util.a tools/enum_parser/enum_serialization_runtime/libtools-enum_parser-enum_serialization_runtime.a library/logger/liblibrary-logger.a library/logger/global/liblibrary-logger-global.a catboost/libs/logging/libcatboost-libs-logging.a library/colorizer/liblibrary-colorizer.a library/dbg_output/liblibrary-dbg_output.a contrib/libs/crcutil/libcontrib-libs-crcutil.a library/digest/crc32c/liblibrary-digest-crc32c.a contrib/libs/nayuki_md5/libcontrib-libs-nayuki_md5.a contrib/libs/base64/avx2/liblibs-base64-avx2.a contrib/libs/base64/ssse3/liblibs-base64-ssse3.a contrib/libs/base64/neon32/liblibs-base64-neon32.a contrib/libs/base64/neon64/liblibs-base64-neon64.a contrib/libs/base64/plain32/liblibs-base64-plain32.a contrib/libs/base64/plain64/liblibs-base64-plain64.a library/string_utils/base64/liblibrary-string_utils-base64.a library/digest/md5/liblibrary-digest-md5.a library/malloc/api/liblibrary-malloc-api.a library/pop_count/liblibrary-pop_count.a library/threading/local_executor/liblibrary-threading-local_executor.a catboost/libs/helpers/libcatboost-libs-helpers.a catboost/libs/ctr_description/libcatboost-libs-ctr_description.a contrib/libs/flatbuffers/libcontrib-libs-flatbuffers.a library/json/common/liblibrary-json-common.a library/json/fast_sax/liblibrary-json-fast_sax.a library/json/writer/liblibrary-json-writer.a library/string_utils/relaxed_escaper/liblibrary-string_utils-relaxed_escaper.a library/json/liblibrary-json.a library/getopt/small/liblibrary-getopt-small.a library/grid_creator/liblibrary-grid_creator.a library/containers/flat_hash/lib/libcontainers-flat_hash-lib.a library/containers/flat_hash/liblibrary-containers-flat_hash.a library/text_processing/dictionary/liblibrary-text_processing-dictionary.a catboost/libs/options/libcatboost-libs-options.a library/fast_exp/liblibrary-fast_exp.a library/svnversion/liblibrary-svnversion.a catboost/libs/model/libcatboost-libs-model.a -Wl,--end-group '-Wl,--version-script=$(SOURCE_ROOT)/catboost/libs/model_interface/calcer.exports' -ldl -lrt -Wl,--no-as-needed -Wl,-z,notext -lpthread -lrt -ldl -nodefaultlibs -lpthread -lc -lm -s
 
 $(BUILD_ROOT)/catboost/libs/cat_feature/libcatboost-libs-cat_feature.a.mf\
         ::\
@@ -3208,95 +3209,102 @@ $(BUILD_ROOT)/catboost/libs/logging/logging_level.h_serialized.cpp\
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/logging'
 	'$(BUILD_ROOT)/tools/enum_parser/enum_parser/enum_parser' '$(SOURCE_ROOT)/catboost/libs/logging/logging_level.h' --include-path catboost/libs/logging/logging_level.h --output '$(BUILD_ROOT)/catboost/libs/logging/logging_level.h_serialized.cpp'
 
-$(BUILD_ROOT)/catboost/libs/model/thin/__/model_import_interface.cpp.pic.o\
-        ::\
-        $(SOURCE_ROOT)/catboost/libs/model/model_import_interface.cpp\
-
-	mkdir -p '$(BUILD_ROOT)/catboost/libs/model/thin/__'
-	${CXX} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/thin/__/model_import_interface.cpp.pic.o' '$(SOURCE_ROOT)/catboost/libs/model/model_import_interface.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DSSE41_ENABLED=1 -DSSE42_ENABLED=1 -DPOPCNT_ENABLED=1 -DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -nostdinc++ -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mpopcnt -mcx16 -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
-
-$(BUILD_ROOT)/catboost/libs/model/thin/liblibs-model-thin.a.mf\
-        ::\
-        $(BUILD_ROOT)/catboost/libs/model/thin/liblibs-model-thin.a\
-
-$(BUILD_ROOT)/catboost/libs/model/thin/liblibs-model-thin.a\
-        ::\
-        $(BUILD_ROOT)/catboost/libs/model/thin/__/cpu/evaluator_impl.cpp.pic.o\
-        $(BUILD_ROOT)/catboost/libs/model/thin/__/cpu/formula_evaluator.cpp.pic.o\
-        $(BUILD_ROOT)/catboost/libs/model/thin/__/cpu/quantization.cpp.pic.o\
-        $(BUILD_ROOT)/catboost/libs/model/thin/__/ctr_data.cpp.pic.o\
-        $(BUILD_ROOT)/catboost/libs/model/thin/__/ctr_helpers.cpp.pic.o\
-        $(BUILD_ROOT)/catboost/libs/model/thin/__/ctr_provider.cpp.pic.o\
-        $(BUILD_ROOT)/catboost/libs/model/thin/__/ctr_value_table.cpp.pic.o\
-        $(BUILD_ROOT)/catboost/libs/model/thin/__/cuda/no_cuda_stub.cpp.pic.o\
-        $(BUILD_ROOT)/catboost/libs/model/thin/__/eval_processing.cpp.pic.o\
-        $(BUILD_ROOT)/catboost/libs/model/thin/__/features.cpp.pic.o\
-        $(BUILD_ROOT)/catboost/libs/model/thin/__/model.cpp.pic.o\
-        $(BUILD_ROOT)/catboost/libs/model/thin/__/model_build_helper.cpp.pic.o\
-        $(BUILD_ROOT)/catboost/libs/model/thin/__/online_ctr.cpp.pic.o\
-        $(BUILD_ROOT)/catboost/libs/model/thin/__/static_ctr_provider.cpp.pic.o\
-        $(BUILD_ROOT)/catboost/libs/model/thin/ctr_provider.h_serialized.cpp.pic.o\
-        $(BUILD_ROOT)/catboost/libs/model/thin/enums.h_serialized.cpp.pic.o\
-        $(BUILD_ROOT)/catboost/libs/model/thin/features.h_serialized.cpp.pic.o\
-        $(BUILD_ROOT)/catboost/libs/model/thin/split.h_serialized.cpp.pic.o\
-        $(SOURCE_ROOT)/build/scripts/generate_mf.py\
-        $(SOURCE_ROOT)/build/scripts/link_lib.py\
-
-	mkdir -p '$(BUILD_ROOT)/catboost/libs/model/thin'
-	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name libs-model-thin -o catboost/libs/model/thin/liblibs-model-thin.a.mf -t LIBRARY -Ya,lics -Ya,peers
-	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/catboost/libs/model/thin/liblibs-model-thin.a' '$(BUILD_ROOT)/catboost/libs/model/thin/__/ctr_data.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/thin/__/ctr_helpers.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/thin/__/ctr_provider.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/thin/__/ctr_value_table.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/thin/__/eval_processing.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/thin/__/features.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/thin/__/model.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/thin/__/online_ctr.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/thin/__/static_ctr_provider.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/thin/__/model_build_helper.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/thin/__/cpu/evaluator_impl.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/thin/__/cpu/formula_evaluator.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/thin/__/cpu/quantization.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/thin/__/cuda/no_cuda_stub.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/thin/ctr_provider.h_serialized.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/thin/enums.h_serialized.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/thin/features.h_serialized.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/thin/split.h_serialized.cpp.pic.o'
-
-$(BUILD_ROOT)/catboost/libs/model/thin/__/cpu/evaluator_impl.cpp.pic.o\
-        ::\
-        $(SOURCE_ROOT)/catboost/libs/model/cpu/evaluator_impl.cpp\
-
-	mkdir -p '$(BUILD_ROOT)/catboost/libs/model/thin/__/cpu'
-	${CXX} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/thin/__/cpu/evaluator_impl.cpp.pic.o' '$(SOURCE_ROOT)/catboost/libs/model/cpu/evaluator_impl.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DSSE41_ENABLED=1 -DSSE42_ENABLED=1 -DPOPCNT_ENABLED=1 -DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -nostdinc++ -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mpopcnt -mcx16 -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
-
-$(BUILD_ROOT)/catboost/libs/model/thin/__/cpu/formula_evaluator.cpp.pic.o\
+$(BUILD_ROOT)/catboost/libs/model/cpu/formula_evaluator.cpp.pic.o\
         ::\
         $(SOURCE_ROOT)/catboost/libs/model/cpu/formula_evaluator.cpp\
 
-	mkdir -p '$(BUILD_ROOT)/catboost/libs/model/thin/__/cpu'
-	${CXX} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/thin/__/cpu/formula_evaluator.cpp.pic.o' '$(SOURCE_ROOT)/catboost/libs/model/cpu/formula_evaluator.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DSSE41_ENABLED=1 -DSSE42_ENABLED=1 -DPOPCNT_ENABLED=1 -DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -nostdinc++ -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mpopcnt -mcx16 -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
+	mkdir -p '$(BUILD_ROOT)/catboost/libs/model/cpu'
+	${CXX} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/cpu/formula_evaluator.cpp.pic.o' '$(SOURCE_ROOT)/catboost/libs/model/cpu/formula_evaluator.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DSSE41_ENABLED=1 -DSSE42_ENABLED=1 -DPOPCNT_ENABLED=1 -DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -nostdinc++ -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mpopcnt -mcx16 -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
 
-$(BUILD_ROOT)/catboost/libs/model/thin/__/cpu/quantization.cpp.pic.o\
+$(BUILD_ROOT)/catboost/libs/model/libcatboost-libs-model.a.mf\
+        ::\
+        $(BUILD_ROOT)/catboost/libs/model/libcatboost-libs-model.a\
+
+$(BUILD_ROOT)/catboost/libs/model/libcatboost-libs-model.a\
+        ::\
+        $(BUILD_ROOT)/catboost/libs/model/cpu/evaluator_impl.cpp.pic.o\
+        $(BUILD_ROOT)/catboost/libs/model/cpu/quantization.cpp.pic.o\
+        $(BUILD_ROOT)/catboost/libs/model/ctr_data.cpp.pic.o\
+        $(BUILD_ROOT)/catboost/libs/model/ctr_helpers.cpp.pic.o\
+        $(BUILD_ROOT)/catboost/libs/model/ctr_provider.cpp.pic.o\
+        $(BUILD_ROOT)/catboost/libs/model/ctr_provider.h_serialized.cpp.pic.o\
+        $(BUILD_ROOT)/catboost/libs/model/ctr_value_table.cpp.pic.o\
+        $(BUILD_ROOT)/catboost/libs/model/enums.h_serialized.cpp.pic.o\
+        $(BUILD_ROOT)/catboost/libs/model/eval_processing.cpp.pic.o\
+        $(BUILD_ROOT)/catboost/libs/model/evaluation_interface.cpp.pic.o\
+        $(BUILD_ROOT)/catboost/libs/model/features.cpp.pic.o\
+        $(BUILD_ROOT)/catboost/libs/model/features.h_serialized.cpp.pic.o\
+        $(BUILD_ROOT)/catboost/libs/model/model.cpp.pic.o\
+        $(BUILD_ROOT)/catboost/libs/model/model_build_helper.cpp.pic.o\
+        $(BUILD_ROOT)/catboost/libs/model/online_ctr.cpp.pic.o\
+        $(BUILD_ROOT)/catboost/libs/model/split.h_serialized.cpp.pic.o\
+        $(BUILD_ROOT)/catboost/libs/model/static_ctr_provider.cpp.pic.o\
+        $(SOURCE_ROOT)/build/scripts/generate_mf.py\
+        $(SOURCE_ROOT)/build/scripts/link_lib.py\
+
+	mkdir -p '$(BUILD_ROOT)/catboost/libs/model'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name catboost-libs-model -o catboost/libs/model/libcatboost-libs-model.a.mf -t LIBRARY -Ya,lics -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/catboost/libs/model/libcatboost-libs-model.a' '$(BUILD_ROOT)/catboost/libs/model/ctr_data.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/ctr_helpers.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/ctr_provider.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/ctr_value_table.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/eval_processing.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/evaluation_interface.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/features.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/model.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/online_ctr.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/static_ctr_provider.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/model_build_helper.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/cpu/evaluator_impl.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/cpu/quantization.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/ctr_provider.h_serialized.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/enums.h_serialized.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/features.h_serialized.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/split.h_serialized.cpp.pic.o'
+
+$(BUILD_ROOT)/catboost/libs/model/cpu/evaluator_impl.cpp.pic.o\
+        ::\
+        $(SOURCE_ROOT)/catboost/libs/model/cpu/evaluator_impl.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/catboost/libs/model/cpu'
+	${CXX} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/cpu/evaluator_impl.cpp.pic.o' '$(SOURCE_ROOT)/catboost/libs/model/cpu/evaluator_impl.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DSSE41_ENABLED=1 -DSSE42_ENABLED=1 -DPOPCNT_ENABLED=1 -DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -nostdinc++ -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mpopcnt -mcx16 -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/catboost/libs/model/cpu/quantization.cpp.pic.o\
         ::\
         $(SOURCE_ROOT)/catboost/libs/model/cpu/quantization.cpp\
 
-	mkdir -p '$(BUILD_ROOT)/catboost/libs/model/thin/__/cpu'
-	${CXX} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/thin/__/cpu/quantization.cpp.pic.o' '$(SOURCE_ROOT)/catboost/libs/model/cpu/quantization.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DSSE41_ENABLED=1 -DSSE42_ENABLED=1 -DPOPCNT_ENABLED=1 -DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -nostdinc++ -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mpopcnt -mcx16 -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
+	mkdir -p '$(BUILD_ROOT)/catboost/libs/model/cpu'
+	${CXX} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/cpu/quantization.cpp.pic.o' '$(SOURCE_ROOT)/catboost/libs/model/cpu/quantization.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DSSE41_ENABLED=1 -DSSE42_ENABLED=1 -DPOPCNT_ENABLED=1 -DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -nostdinc++ -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mpopcnt -mcx16 -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
 
-$(BUILD_ROOT)/catboost/libs/model/thin/__/ctr_data.cpp.pic.o\
+$(BUILD_ROOT)/catboost/libs/model/ctr_data.cpp.pic.o\
         ::\
         $(SOURCE_ROOT)/catboost/libs/model/ctr_data.cpp\
 
-	mkdir -p '$(BUILD_ROOT)/catboost/libs/model/thin/__'
-	${CXX} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/thin/__/ctr_data.cpp.pic.o' '$(SOURCE_ROOT)/catboost/libs/model/ctr_data.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DSSE41_ENABLED=1 -DSSE42_ENABLED=1 -DPOPCNT_ENABLED=1 -DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -nostdinc++ -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mpopcnt -mcx16 -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
+	mkdir -p '$(BUILD_ROOT)/catboost/libs/model'
+	${CXX} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/ctr_data.cpp.pic.o' '$(SOURCE_ROOT)/catboost/libs/model/ctr_data.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DSSE41_ENABLED=1 -DSSE42_ENABLED=1 -DPOPCNT_ENABLED=1 -DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -nostdinc++ -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mpopcnt -mcx16 -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
 
-$(BUILD_ROOT)/catboost/libs/model/thin/__/ctr_helpers.cpp.pic.o\
+$(BUILD_ROOT)/catboost/libs/model/ctr_helpers.cpp.pic.o\
         ::\
         $(SOURCE_ROOT)/catboost/libs/model/ctr_helpers.cpp\
 
-	mkdir -p '$(BUILD_ROOT)/catboost/libs/model/thin/__'
-	${CXX} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/thin/__/ctr_helpers.cpp.pic.o' '$(SOURCE_ROOT)/catboost/libs/model/ctr_helpers.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DSSE41_ENABLED=1 -DSSE42_ENABLED=1 -DPOPCNT_ENABLED=1 -DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -nostdinc++ -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mpopcnt -mcx16 -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
+	mkdir -p '$(BUILD_ROOT)/catboost/libs/model'
+	${CXX} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/ctr_helpers.cpp.pic.o' '$(SOURCE_ROOT)/catboost/libs/model/ctr_helpers.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DSSE41_ENABLED=1 -DSSE42_ENABLED=1 -DPOPCNT_ENABLED=1 -DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -nostdinc++ -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mpopcnt -mcx16 -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
 
-$(BUILD_ROOT)/catboost/libs/model/thin/__/ctr_provider.cpp.pic.o\
+$(BUILD_ROOT)/catboost/libs/model/ctr_provider.cpp.pic.o\
         ::\
         $(SOURCE_ROOT)/catboost/libs/model/ctr_provider.cpp\
 
-	mkdir -p '$(BUILD_ROOT)/catboost/libs/model/thin/__'
-	${CXX} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/thin/__/ctr_provider.cpp.pic.o' '$(SOURCE_ROOT)/catboost/libs/model/ctr_provider.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DSSE41_ENABLED=1 -DSSE42_ENABLED=1 -DPOPCNT_ENABLED=1 -DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -nostdinc++ -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mpopcnt -mcx16 -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
+	mkdir -p '$(BUILD_ROOT)/catboost/libs/model'
+	${CXX} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/ctr_provider.cpp.pic.o' '$(SOURCE_ROOT)/catboost/libs/model/ctr_provider.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DSSE41_ENABLED=1 -DSSE42_ENABLED=1 -DPOPCNT_ENABLED=1 -DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -nostdinc++ -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mpopcnt -mcx16 -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
 
-$(BUILD_ROOT)/catboost/libs/model/thin/__/ctr_value_table.cpp.pic.o\
+$(BUILD_ROOT)/catboost/libs/model/ctr_provider.h_serialized.cpp.pic.o\
+        ::\
+        $(BUILD_ROOT)/catboost/libs/model/ctr_provider.h_serialized.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/catboost/libs/model'
+	${CXX} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/ctr_provider.h_serialized.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/ctr_provider.h_serialized.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DSSE41_ENABLED=1 -DSSE42_ENABLED=1 -DPOPCNT_ENABLED=1 -DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -nostdinc++ -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mpopcnt -mcx16 -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/catboost/libs/model/ctr_provider.h_serialized.cpp\
+        ::\
+        $(BUILD_ROOT)/tools/enum_parser/enum_parser/enum_parser\
+        $(SOURCE_ROOT)/catboost/libs/model/ctr_provider.h\
+
+	mkdir -p '$(BUILD_ROOT)/catboost/libs/model'
+	'$(BUILD_ROOT)/tools/enum_parser/enum_parser/enum_parser' '$(SOURCE_ROOT)/catboost/libs/model/ctr_provider.h' --include-path catboost/libs/model/ctr_provider.h --output '$(BUILD_ROOT)/catboost/libs/model/ctr_provider.h_serialized.cpp'
+
+$(BUILD_ROOT)/catboost/libs/model/ctr_value_table.cpp.pic.o\
         ::\
         $(BUILD_ROOT)/catboost/libs/model/flatbuffers/ctr_data.fbs.h\
         $(BUILD_ROOT)/catboost/libs/model/flatbuffers/features.fbs.h\
         $(BUILD_ROOT)/catboost/libs/model/flatbuffers/model.fbs.h\
         $(SOURCE_ROOT)/catboost/libs/model/ctr_value_table.cpp\
 
-	mkdir -p '$(BUILD_ROOT)/catboost/libs/model/thin/__'
-	${CXX} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/thin/__/ctr_value_table.cpp.pic.o' '$(SOURCE_ROOT)/catboost/libs/model/ctr_value_table.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DSSE41_ENABLED=1 -DSSE42_ENABLED=1 -DPOPCNT_ENABLED=1 -DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -nostdinc++ -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mpopcnt -mcx16 -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
+	mkdir -p '$(BUILD_ROOT)/catboost/libs/model'
+	${CXX} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/ctr_value_table.cpp.pic.o' '$(SOURCE_ROOT)/catboost/libs/model/ctr_value_table.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DSSE41_ENABLED=1 -DSSE42_ENABLED=1 -DPOPCNT_ENABLED=1 -DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -nostdinc++ -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mpopcnt -mcx16 -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
 
 $(BUILD_ROOT)/catboost/libs/model/flatbuffers/ctr_data.bfbs\
         ::\
@@ -3493,123 +3501,115 @@ $(BUILD_ROOT)/catboost/libs/model/flatbuffers/model.fbs.h\
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/model/flatbuffers'
 	'$(PYTHON)' '$(SOURCE_ROOT)/build/plugins/_unpickler.py' --src-root '$(SOURCE_ROOT)' --build-root '$(BUILD_ROOT)' --data gAJjZmxhdGMKRmxhdGMKcQApgXEBfXECKFUKX2luY2xfZGlyc3EDXXEEKFUCJFNxBVUCJEJxBmVVBV9wYXRocQdVLCRTL2NhdGJvb3N0L2xpYnMvbW9kZWwvZmxhdGJ1ZmZlcnMvbW9kZWwuZmJzcQh1hXEJYi4= --tools 1 '$(BUILD_ROOT)/contrib/tools/flatc/flatc'
 
-$(BUILD_ROOT)/catboost/libs/model/thin/__/cuda/no_cuda_stub.cpp.pic.o\
+$(BUILD_ROOT)/catboost/libs/model/enums.h_serialized.cpp.pic.o\
         ::\
-        $(SOURCE_ROOT)/catboost/libs/model/cuda/no_cuda_stub.cpp\
+        $(BUILD_ROOT)/catboost/libs/model/enums.h_serialized.cpp\
 
-	mkdir -p '$(BUILD_ROOT)/catboost/libs/model/thin/__/cuda'
-	${CXX} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/thin/__/cuda/no_cuda_stub.cpp.pic.o' '$(SOURCE_ROOT)/catboost/libs/model/cuda/no_cuda_stub.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DSSE41_ENABLED=1 -DSSE42_ENABLED=1 -DPOPCNT_ENABLED=1 -DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -nostdinc++ -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mpopcnt -mcx16 -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
+	mkdir -p '$(BUILD_ROOT)/catboost/libs/model'
+	${CXX} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/enums.h_serialized.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/enums.h_serialized.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DSSE41_ENABLED=1 -DSSE42_ENABLED=1 -DPOPCNT_ENABLED=1 -DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -nostdinc++ -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mpopcnt -mcx16 -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
 
-$(BUILD_ROOT)/catboost/libs/model/thin/__/eval_processing.cpp.pic.o\
+$(BUILD_ROOT)/catboost/libs/model/enums.h_serialized.cpp\
+        ::\
+        $(BUILD_ROOT)/tools/enum_parser/enum_parser/enum_parser\
+        $(SOURCE_ROOT)/catboost/libs/model/enums.h\
+
+	mkdir -p '$(BUILD_ROOT)/catboost/libs/model'
+	'$(BUILD_ROOT)/tools/enum_parser/enum_parser/enum_parser' '$(SOURCE_ROOT)/catboost/libs/model/enums.h' --include-path catboost/libs/model/enums.h --output '$(BUILD_ROOT)/catboost/libs/model/enums.h_serialized.cpp'
+
+$(BUILD_ROOT)/catboost/libs/model/eval_processing.cpp.pic.o\
         ::\
         $(SOURCE_ROOT)/catboost/libs/model/eval_processing.cpp\
 
-	mkdir -p '$(BUILD_ROOT)/catboost/libs/model/thin/__'
-	${CXX} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/thin/__/eval_processing.cpp.pic.o' '$(SOURCE_ROOT)/catboost/libs/model/eval_processing.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DSSE41_ENABLED=1 -DSSE42_ENABLED=1 -DPOPCNT_ENABLED=1 -DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -nostdinc++ -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mpopcnt -mcx16 -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
+	mkdir -p '$(BUILD_ROOT)/catboost/libs/model'
+	${CXX} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/eval_processing.cpp.pic.o' '$(SOURCE_ROOT)/catboost/libs/model/eval_processing.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DSSE41_ENABLED=1 -DSSE42_ENABLED=1 -DPOPCNT_ENABLED=1 -DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -nostdinc++ -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mpopcnt -mcx16 -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
 
-$(BUILD_ROOT)/catboost/libs/model/thin/__/features.cpp.pic.o\
+$(BUILD_ROOT)/catboost/libs/model/evaluation_interface.cpp.pic.o\
+        ::\
+        $(SOURCE_ROOT)/catboost/libs/model/evaluation_interface.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/catboost/libs/model'
+	${CXX} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/evaluation_interface.cpp.pic.o' '$(SOURCE_ROOT)/catboost/libs/model/evaluation_interface.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DSSE41_ENABLED=1 -DSSE42_ENABLED=1 -DPOPCNT_ENABLED=1 -DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -nostdinc++ -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mpopcnt -mcx16 -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/catboost/libs/model/features.cpp.pic.o\
         ::\
         $(BUILD_ROOT)/catboost/libs/model/flatbuffers/ctr_data.fbs.h\
         $(BUILD_ROOT)/catboost/libs/model/flatbuffers/features.fbs.h\
         $(BUILD_ROOT)/catboost/libs/model/flatbuffers/model.fbs.h\
         $(SOURCE_ROOT)/catboost/libs/model/features.cpp\
 
-	mkdir -p '$(BUILD_ROOT)/catboost/libs/model/thin/__'
-	${CXX} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/thin/__/features.cpp.pic.o' '$(SOURCE_ROOT)/catboost/libs/model/features.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DSSE41_ENABLED=1 -DSSE42_ENABLED=1 -DPOPCNT_ENABLED=1 -DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -nostdinc++ -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mpopcnt -mcx16 -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
+	mkdir -p '$(BUILD_ROOT)/catboost/libs/model'
+	${CXX} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/features.cpp.pic.o' '$(SOURCE_ROOT)/catboost/libs/model/features.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DSSE41_ENABLED=1 -DSSE42_ENABLED=1 -DPOPCNT_ENABLED=1 -DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -nostdinc++ -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mpopcnt -mcx16 -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
 
-$(BUILD_ROOT)/catboost/libs/model/thin/__/model.cpp.pic.o\
+$(BUILD_ROOT)/catboost/libs/model/features.h_serialized.cpp.pic.o\
+        ::\
+        $(BUILD_ROOT)/catboost/libs/model/features.h_serialized.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/catboost/libs/model'
+	${CXX} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/features.h_serialized.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/features.h_serialized.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DSSE41_ENABLED=1 -DSSE42_ENABLED=1 -DPOPCNT_ENABLED=1 -DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -nostdinc++ -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mpopcnt -mcx16 -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/catboost/libs/model/features.h_serialized.cpp\
+        ::\
+        $(BUILD_ROOT)/tools/enum_parser/enum_parser/enum_parser\
+        $(SOURCE_ROOT)/catboost/libs/model/features.h\
+
+	mkdir -p '$(BUILD_ROOT)/catboost/libs/model'
+	'$(BUILD_ROOT)/tools/enum_parser/enum_parser/enum_parser' '$(SOURCE_ROOT)/catboost/libs/model/features.h' --include-path catboost/libs/model/features.h --output '$(BUILD_ROOT)/catboost/libs/model/features.h_serialized.cpp'
+
+$(BUILD_ROOT)/catboost/libs/model/model.cpp.pic.o\
         ::\
         $(BUILD_ROOT)/catboost/libs/model/flatbuffers/ctr_data.fbs.h\
         $(BUILD_ROOT)/catboost/libs/model/flatbuffers/features.fbs.h\
         $(BUILD_ROOT)/catboost/libs/model/flatbuffers/model.fbs.h\
         $(SOURCE_ROOT)/catboost/libs/model/model.cpp\
 
-	mkdir -p '$(BUILD_ROOT)/catboost/libs/model/thin/__'
-	${CXX} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/thin/__/model.cpp.pic.o' '$(SOURCE_ROOT)/catboost/libs/model/model.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DSSE41_ENABLED=1 -DSSE42_ENABLED=1 -DPOPCNT_ENABLED=1 -DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -nostdinc++ -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mpopcnt -mcx16 -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
+	mkdir -p '$(BUILD_ROOT)/catboost/libs/model'
+	${CXX} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/model.cpp.pic.o' '$(SOURCE_ROOT)/catboost/libs/model/model.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DSSE41_ENABLED=1 -DSSE42_ENABLED=1 -DPOPCNT_ENABLED=1 -DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -nostdinc++ -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mpopcnt -mcx16 -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
 
-$(BUILD_ROOT)/catboost/libs/model/thin/__/model_build_helper.cpp.pic.o\
+$(BUILD_ROOT)/catboost/libs/model/model_build_helper.cpp.pic.o\
         ::\
         $(SOURCE_ROOT)/catboost/libs/model/model_build_helper.cpp\
 
-	mkdir -p '$(BUILD_ROOT)/catboost/libs/model/thin/__'
-	${CXX} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/thin/__/model_build_helper.cpp.pic.o' '$(SOURCE_ROOT)/catboost/libs/model/model_build_helper.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DSSE41_ENABLED=1 -DSSE42_ENABLED=1 -DPOPCNT_ENABLED=1 -DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -nostdinc++ -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mpopcnt -mcx16 -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
+	mkdir -p '$(BUILD_ROOT)/catboost/libs/model'
+	${CXX} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/model_build_helper.cpp.pic.o' '$(SOURCE_ROOT)/catboost/libs/model/model_build_helper.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DSSE41_ENABLED=1 -DSSE42_ENABLED=1 -DPOPCNT_ENABLED=1 -DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -nostdinc++ -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mpopcnt -mcx16 -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
 
-$(BUILD_ROOT)/catboost/libs/model/thin/__/online_ctr.cpp.pic.o\
+$(BUILD_ROOT)/catboost/libs/model/online_ctr.cpp.pic.o\
         ::\
         $(BUILD_ROOT)/catboost/libs/model/flatbuffers/ctr_data.fbs.h\
         $(BUILD_ROOT)/catboost/libs/model/flatbuffers/features.fbs.h\
         $(BUILD_ROOT)/catboost/libs/model/flatbuffers/model.fbs.h\
         $(SOURCE_ROOT)/catboost/libs/model/online_ctr.cpp\
 
-	mkdir -p '$(BUILD_ROOT)/catboost/libs/model/thin/__'
-	${CXX} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/thin/__/online_ctr.cpp.pic.o' '$(SOURCE_ROOT)/catboost/libs/model/online_ctr.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DSSE41_ENABLED=1 -DSSE42_ENABLED=1 -DPOPCNT_ENABLED=1 -DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -nostdinc++ -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mpopcnt -mcx16 -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
+	mkdir -p '$(BUILD_ROOT)/catboost/libs/model'
+	${CXX} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/online_ctr.cpp.pic.o' '$(SOURCE_ROOT)/catboost/libs/model/online_ctr.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DSSE41_ENABLED=1 -DSSE42_ENABLED=1 -DPOPCNT_ENABLED=1 -DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -nostdinc++ -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mpopcnt -mcx16 -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
 
-$(BUILD_ROOT)/catboost/libs/model/thin/__/static_ctr_provider.cpp.pic.o\
+$(BUILD_ROOT)/catboost/libs/model/split.h_serialized.cpp.pic.o\
         ::\
-        $(SOURCE_ROOT)/catboost/libs/model/static_ctr_provider.cpp\
+        $(BUILD_ROOT)/catboost/libs/model/split.h_serialized.cpp\
 
-	mkdir -p '$(BUILD_ROOT)/catboost/libs/model/thin/__'
-	${CXX} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/thin/__/static_ctr_provider.cpp.pic.o' '$(SOURCE_ROOT)/catboost/libs/model/static_ctr_provider.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DSSE41_ENABLED=1 -DSSE42_ENABLED=1 -DPOPCNT_ENABLED=1 -DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -nostdinc++ -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mpopcnt -mcx16 -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
+	mkdir -p '$(BUILD_ROOT)/catboost/libs/model'
+	${CXX} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/split.h_serialized.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/split.h_serialized.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DSSE41_ENABLED=1 -DSSE42_ENABLED=1 -DPOPCNT_ENABLED=1 -DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -nostdinc++ -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mpopcnt -mcx16 -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
 
-$(BUILD_ROOT)/catboost/libs/model/thin/ctr_provider.h_serialized.cpp.pic.o\
-        ::\
-        $(BUILD_ROOT)/catboost/libs/model/thin/ctr_provider.h_serialized.cpp\
-
-	mkdir -p '$(BUILD_ROOT)/catboost/libs/model/thin'
-	${CXX} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/thin/ctr_provider.h_serialized.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/thin/ctr_provider.h_serialized.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DSSE41_ENABLED=1 -DSSE42_ENABLED=1 -DPOPCNT_ENABLED=1 -DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -nostdinc++ -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mpopcnt -mcx16 -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
-
-$(BUILD_ROOT)/catboost/libs/model/thin/ctr_provider.h_serialized.cpp\
-        ::\
-        $(BUILD_ROOT)/tools/enum_parser/enum_parser/enum_parser\
-        $(SOURCE_ROOT)/catboost/libs/model/ctr_provider.h\
-
-	mkdir -p '$(BUILD_ROOT)/catboost/libs/model/thin'
-	'$(BUILD_ROOT)/tools/enum_parser/enum_parser/enum_parser' '$(SOURCE_ROOT)/catboost/libs/model/ctr_provider.h' --include-path catboost/libs/model/ctr_provider.h --output '$(BUILD_ROOT)/catboost/libs/model/thin/ctr_provider.h_serialized.cpp'
-
-$(BUILD_ROOT)/catboost/libs/model/thin/enums.h_serialized.cpp.pic.o\
-        ::\
-        $(BUILD_ROOT)/catboost/libs/model/thin/enums.h_serialized.cpp\
-
-	mkdir -p '$(BUILD_ROOT)/catboost/libs/model/thin'
-	${CXX} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/thin/enums.h_serialized.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/thin/enums.h_serialized.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DSSE41_ENABLED=1 -DSSE42_ENABLED=1 -DPOPCNT_ENABLED=1 -DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -nostdinc++ -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mpopcnt -mcx16 -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
-
-$(BUILD_ROOT)/catboost/libs/model/thin/enums.h_serialized.cpp\
-        ::\
-        $(BUILD_ROOT)/tools/enum_parser/enum_parser/enum_parser\
-        $(SOURCE_ROOT)/catboost/libs/model/enums.h\
-
-	mkdir -p '$(BUILD_ROOT)/catboost/libs/model/thin'
-	'$(BUILD_ROOT)/tools/enum_parser/enum_parser/enum_parser' '$(SOURCE_ROOT)/catboost/libs/model/enums.h' --include-path catboost/libs/model/enums.h --output '$(BUILD_ROOT)/catboost/libs/model/thin/enums.h_serialized.cpp'
-
-$(BUILD_ROOT)/catboost/libs/model/thin/features.h_serialized.cpp.pic.o\
-        ::\
-        $(BUILD_ROOT)/catboost/libs/model/thin/features.h_serialized.cpp\
-
-	mkdir -p '$(BUILD_ROOT)/catboost/libs/model/thin'
-	${CXX} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/thin/features.h_serialized.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/thin/features.h_serialized.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DSSE41_ENABLED=1 -DSSE42_ENABLED=1 -DPOPCNT_ENABLED=1 -DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -nostdinc++ -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mpopcnt -mcx16 -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
-
-$(BUILD_ROOT)/catboost/libs/model/thin/features.h_serialized.cpp\
-        ::\
-        $(BUILD_ROOT)/tools/enum_parser/enum_parser/enum_parser\
-        $(SOURCE_ROOT)/catboost/libs/model/features.h\
-
-	mkdir -p '$(BUILD_ROOT)/catboost/libs/model/thin'
-	'$(BUILD_ROOT)/tools/enum_parser/enum_parser/enum_parser' '$(SOURCE_ROOT)/catboost/libs/model/features.h' --include-path catboost/libs/model/features.h --output '$(BUILD_ROOT)/catboost/libs/model/thin/features.h_serialized.cpp'
-
-$(BUILD_ROOT)/catboost/libs/model/thin/split.h_serialized.cpp.pic.o\
-        ::\
-        $(BUILD_ROOT)/catboost/libs/model/thin/split.h_serialized.cpp\
-
-	mkdir -p '$(BUILD_ROOT)/catboost/libs/model/thin'
-	${CXX} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/thin/split.h_serialized.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/thin/split.h_serialized.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DSSE41_ENABLED=1 -DSSE42_ENABLED=1 -DPOPCNT_ENABLED=1 -DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -nostdinc++ -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mpopcnt -mcx16 -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
-
-$(BUILD_ROOT)/catboost/libs/model/thin/split.h_serialized.cpp\
+$(BUILD_ROOT)/catboost/libs/model/split.h_serialized.cpp\
         ::\
         $(BUILD_ROOT)/tools/enum_parser/enum_parser/enum_parser\
         $(SOURCE_ROOT)/catboost/libs/model/split.h\
 
-	mkdir -p '$(BUILD_ROOT)/catboost/libs/model/thin'
-	'$(BUILD_ROOT)/tools/enum_parser/enum_parser/enum_parser' '$(SOURCE_ROOT)/catboost/libs/model/split.h' --include-path catboost/libs/model/split.h --output '$(BUILD_ROOT)/catboost/libs/model/thin/split.h_serialized.cpp'
+	mkdir -p '$(BUILD_ROOT)/catboost/libs/model'
+	'$(BUILD_ROOT)/tools/enum_parser/enum_parser/enum_parser' '$(SOURCE_ROOT)/catboost/libs/model/split.h' --include-path catboost/libs/model/split.h --output '$(BUILD_ROOT)/catboost/libs/model/split.h_serialized.cpp'
+
+$(BUILD_ROOT)/catboost/libs/model/static_ctr_provider.cpp.pic.o\
+        ::\
+        $(SOURCE_ROOT)/catboost/libs/model/static_ctr_provider.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/catboost/libs/model'
+	${CXX} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/static_ctr_provider.cpp.pic.o' '$(SOURCE_ROOT)/catboost/libs/model/static_ctr_provider.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DSSE41_ENABLED=1 -DSSE42_ENABLED=1 -DPOPCNT_ENABLED=1 -DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -nostdinc++ -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mpopcnt -mcx16 -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/catboost/libs/model/model_import_interface.cpp.pic.o\
+        ::\
+        $(SOURCE_ROOT)/catboost/libs/model/model_import_interface.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/catboost/libs/model'
+	${CXX} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/model_import_interface.cpp.pic.o' '$(SOURCE_ROOT)/catboost/libs/model/model_import_interface.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DSSE41_ENABLED=1 -DSSE42_ENABLED=1 -DPOPCNT_ENABLED=1 -DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -nostdinc++ -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mpopcnt -mcx16 -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
 
 $(BUILD_ROOT)/catboost/libs/model_interface/c_api.cpp.pic.o\
         ::\
@@ -6839,15 +6839,16 @@ clean\
 	rm -f '$(BUILD_ROOT)/catboost/libs/logging/logging.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/catboost/libs/logging/logging_level.h_serialized.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/catboost/libs/logging/logging_level.h_serialized.cpp'
-	rm -f '$(BUILD_ROOT)/catboost/libs/model/thin/__/model_import_interface.cpp.pic.o'
-	rm -f '$(BUILD_ROOT)/catboost/libs/model/thin/liblibs-model-thin.a' '$(BUILD_ROOT)/catboost/libs/model/thin/liblibs-model-thin.a.mf'
-	rm -f '$(BUILD_ROOT)/catboost/libs/model/thin/__/cpu/evaluator_impl.cpp.pic.o'
-	rm -f '$(BUILD_ROOT)/catboost/libs/model/thin/__/cpu/formula_evaluator.cpp.pic.o'
-	rm -f '$(BUILD_ROOT)/catboost/libs/model/thin/__/cpu/quantization.cpp.pic.o'
-	rm -f '$(BUILD_ROOT)/catboost/libs/model/thin/__/ctr_data.cpp.pic.o'
-	rm -f '$(BUILD_ROOT)/catboost/libs/model/thin/__/ctr_helpers.cpp.pic.o'
-	rm -f '$(BUILD_ROOT)/catboost/libs/model/thin/__/ctr_provider.cpp.pic.o'
-	rm -f '$(BUILD_ROOT)/catboost/libs/model/thin/__/ctr_value_table.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/model/cpu/formula_evaluator.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/model/libcatboost-libs-model.a' '$(BUILD_ROOT)/catboost/libs/model/libcatboost-libs-model.a.mf'
+	rm -f '$(BUILD_ROOT)/catboost/libs/model/cpu/evaluator_impl.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/model/cpu/quantization.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/model/ctr_data.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/model/ctr_helpers.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/model/ctr_provider.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/model/ctr_provider.h_serialized.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/model/ctr_provider.h_serialized.cpp'
+	rm -f '$(BUILD_ROOT)/catboost/libs/model/ctr_value_table.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/catboost/libs/model/flatbuffers/ctr_data.fbs.h' '$(BUILD_ROOT)/catboost/libs/model/flatbuffers/ctr_data.bfbs'
 	rm -f '$(BUILD_ROOT)/contrib/tools/flatc/flatc' '$(BUILD_ROOT)/contrib/tools/flatc/flatc.mf'
 	rm -f '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/liblibs-flatbuffers-flatc.a' '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/liblibs-flatbuffers-flatc.a.mf'
@@ -6867,21 +6868,20 @@ clean\
 	rm -f '$(BUILD_ROOT)/contrib/tools/flatc/__/__/libs/flatbuffers/src/flatc_main.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/catboost/libs/model/flatbuffers/features.fbs.h' '$(BUILD_ROOT)/catboost/libs/model/flatbuffers/features.bfbs'
 	rm -f '$(BUILD_ROOT)/catboost/libs/model/flatbuffers/model.fbs.h' '$(BUILD_ROOT)/catboost/libs/model/flatbuffers/model.bfbs'
-	rm -f '$(BUILD_ROOT)/catboost/libs/model/thin/__/cuda/no_cuda_stub.cpp.pic.o'
-	rm -f '$(BUILD_ROOT)/catboost/libs/model/thin/__/eval_processing.cpp.pic.o'
-	rm -f '$(BUILD_ROOT)/catboost/libs/model/thin/__/features.cpp.pic.o'
-	rm -f '$(BUILD_ROOT)/catboost/libs/model/thin/__/model.cpp.pic.o'
-	rm -f '$(BUILD_ROOT)/catboost/libs/model/thin/__/model_build_helper.cpp.pic.o'
-	rm -f '$(BUILD_ROOT)/catboost/libs/model/thin/__/online_ctr.cpp.pic.o'
-	rm -f '$(BUILD_ROOT)/catboost/libs/model/thin/__/static_ctr_provider.cpp.pic.o'
-	rm -f '$(BUILD_ROOT)/catboost/libs/model/thin/ctr_provider.h_serialized.cpp.pic.o'
-	rm -f '$(BUILD_ROOT)/catboost/libs/model/thin/ctr_provider.h_serialized.cpp'
-	rm -f '$(BUILD_ROOT)/catboost/libs/model/thin/enums.h_serialized.cpp.pic.o'
-	rm -f '$(BUILD_ROOT)/catboost/libs/model/thin/enums.h_serialized.cpp'
-	rm -f '$(BUILD_ROOT)/catboost/libs/model/thin/features.h_serialized.cpp.pic.o'
-	rm -f '$(BUILD_ROOT)/catboost/libs/model/thin/features.h_serialized.cpp'
-	rm -f '$(BUILD_ROOT)/catboost/libs/model/thin/split.h_serialized.cpp.pic.o'
-	rm -f '$(BUILD_ROOT)/catboost/libs/model/thin/split.h_serialized.cpp'
+	rm -f '$(BUILD_ROOT)/catboost/libs/model/enums.h_serialized.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/model/enums.h_serialized.cpp'
+	rm -f '$(BUILD_ROOT)/catboost/libs/model/eval_processing.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/model/evaluation_interface.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/model/features.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/model/features.h_serialized.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/model/features.h_serialized.cpp'
+	rm -f '$(BUILD_ROOT)/catboost/libs/model/model.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/model/model_build_helper.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/model/online_ctr.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/model/split.h_serialized.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/model/split.h_serialized.cpp'
+	rm -f '$(BUILD_ROOT)/catboost/libs/model/static_ctr_provider.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/model/model_import_interface.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/catboost/libs/model_interface/c_api.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/catboost/libs/options/libcatboost-libs-options.a' '$(BUILD_ROOT)/catboost/libs/options/libcatboost-libs-options.a.mf'
 	rm -f '$(BUILD_ROOT)/catboost/libs/options/analytical_mode_params.cpp.pic.o'
