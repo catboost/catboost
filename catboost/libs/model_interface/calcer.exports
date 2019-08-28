@@ -5,6 +5,9 @@ C GetErrorString
 
 C LoadFullModelFromFile
 C LoadFullModelFromBuffer
+
+C EnableGPUEvaluation
+
 C CalcModelPrediction
 C CalcModelPredictionSingle
 C CalcModelPredictionFlat
