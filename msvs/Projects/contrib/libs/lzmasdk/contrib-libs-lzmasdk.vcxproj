@@ -81,10 +81,34 @@
     <ClCompile Include="$(SolutionDir)..\contrib\libs\lzmasdk\7zStream.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\lzmasdk\Aes.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\lzmasdk\AesOpt.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\lzmasdk\Alloc.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\lzmasdk\Bra.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\lzmasdk\Bra86.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\lzmasdk\BraIA64.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\lzmasdk\CpuArch.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\lzmasdk\LzFind.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\lzmasdk\Lzma2Dec.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\lzmasdk\Lzma2Enc.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\lzmasdk\LzmaDec.c">
@@ -96,15 +120,28 @@
     <ClCompile Include="$(SolutionDir)..\contrib\libs\lzmasdk\LzmaLib.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\lzmasdk\Sha256.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\lzmasdk\7zTypes.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\lzmasdk\Aes.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\lzmasdk\Alloc.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\lzmasdk\Bra.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\lzmasdk\Compiler.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\lzmasdk\CpuArch.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\lzmasdk\LzFind.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\lzmasdk\LzHash.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\lzmasdk\Lzma2Dec.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\lzmasdk\Lzma2Enc.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\lzmasdk\LzmaDec.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\lzmasdk\LzmaEnc.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\lzmasdk\LzmaLib.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\lzmasdk\MtCoder.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\lzmasdk\MtDec.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\lzmasdk\Precomp.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\lzmasdk\RotateDefs.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\lzmasdk\Sha256.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\lzmasdk\Threads.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
