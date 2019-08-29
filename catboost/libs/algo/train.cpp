@@ -77,6 +77,7 @@ static void ScaleAllApproxes(
         }
     }
     allApproxes.push_back(&learnProgress->AveragingFold.BodyTailArr[0].Approx);
+    allApproxes.push_back(&learnProgress->AvrgApprox);
     const int learnApproxesCount = SafeIntegerCast<int>(allApproxes.size());
     for (auto& testApprox : learnProgress->TestApprox) {
         allApproxes.push_back(&testApprox);
