@@ -164,8 +164,12 @@ static bool IsConstTarget(const NCB::TDataMetaInfo& dataMetaInfo) {
 
 static void UpdateAndValidateMonotoneConstraints(
     const NCB::TFeaturesLayout& featuresLayout,
-    TVector<int>* monotoneConstraints
+    NCatboostOptions::TCatBoostOptions* catBoostOptions
 ) {
+    if (catBoostOptions->GetTaskType() != ETaskType::CPU) {
+        return;
+    }
+    TVector<int>* monotoneConstraints = &catBoostOptions->ObliviousTreeOptions->MonotoneConstraints.Get();
     CB_ENSURE(
         monotoneConstraints->size() <= featuresLayout.GetExternalFeatureCount(),
         "length of monotone constraints vector exceeds number of features."
@@ -197,6 +201,19 @@ static void UpdateAndValidateMonotoneConstraints(
     }
 }
 
+static void WarnIfBaselineUsedWithModelShrinkage(
+    const NCB::TDataMetaInfo& trainDataMetaInfo,
+    NCatboostOptions::TCatBoostOptions* catBoostOptions
+) {
+    if (catBoostOptions->GetTaskType() == ETaskType::CPU) {
+        CB_ENSURE(
+            catBoostOptions->BoostingOptions->ModelShrinkRate.Get() == 0.0f ||
+            trainDataMetaInfo.BaselineCount == 0,
+            "Usage of model_shrink_rate option in combination with baseline column is not implemented yet."
+        );
+    }
+}
+
 void SetDataDependentDefaults(
     const NCB::TDataMetaInfo& trainDataMetaInfo,
     const TMaybe<NCB::TDataMetaInfo>& testDataMetaInfo,
@@ -222,10 +239,6 @@ void SetDataDependentDefaults(
         catBoostOptions
     );
     UpdateLeavesEstimationIterations(trainDataMetaInfo, catBoostOptions);
-    if (catBoostOptions->GetTaskType() == ETaskType::CPU) {
-        UpdateAndValidateMonotoneConstraints(
-            *trainDataMetaInfo.FeaturesLayout.Get(),
-            &catBoostOptions->ObliviousTreeOptions->MonotoneConstraints.Get()
-        );
-    }
+    UpdateAndValidateMonotoneConstraints(*trainDataMetaInfo.FeaturesLayout.Get(), catBoostOptions);
+    WarnIfBaselineUsedWithModelShrinkage(trainDataMetaInfo, catBoostOptions);
 }

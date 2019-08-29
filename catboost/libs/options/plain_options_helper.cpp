@@ -365,7 +365,7 @@ void NCatboostOptions::PlainJsonToOptions(
     CopyOption(plainOptions, "boosting_type", &boostingOptionsRef, &seenKeys);
     CopyOption(plainOptions, "boost_from_average", &boostingOptionsRef, &seenKeys);
     CopyOption(plainOptions, "data_partition", &boostingOptionsRef, &seenKeys);
-    CopyOption(plainOptions, "dev_model_shrink_rate", &boostingOptionsRef, &seenKeys);
+    CopyOption(plainOptions, "model_shrink_rate", &boostingOptionsRef, &seenKeys);
 
     auto& odConfig = boostingOptionsRef["od_config"];
     odConfig.SetType(NJson::JSON_MAP);
@@ -621,8 +621,8 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
         CopyOption(boostingOptionsRef, "data_partition", &plainOptionsJson, &seenKeys);
         DeleteSeenOption(&optionsCopyBoosting, "data_partition");
 
-        CopyOption(boostingOptionsRef, "dev_model_shrink_rate", &plainOptionsJson, &seenKeys);
-        DeleteSeenOption(&optionsCopyBoosting, "dev_model_shrink_rate");
+        CopyOption(boostingOptionsRef, "model_shrink_rate", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopyBoosting, "model_shrink_rate");
 
         if (boostingOptionsRef.Has("od_config")) {
             const auto& odConfig = boostingOptionsRef["od_config"];

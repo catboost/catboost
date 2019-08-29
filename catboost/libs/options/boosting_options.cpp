@@ -16,7 +16,7 @@ NCatboostOptions::TBoostingOptions::TBoostingOptions(ETaskType taskType)
     , BoostingType("boosting_type", EBoostingType::Ordered)
     , BoostFromAverage("boost_from_average", false)
     , ApproxOnFullHistory("approx_on_full_history", false, taskType)
-    , ModelShrinkRate("dev_model_shrink_rate", 0.0f, taskType)
+    , ModelShrinkRate("model_shrink_rate", 0.0f, taskType)
     , MinFoldSize("min_fold_size", 100, taskType)
     , DataPartitionType("data_partition", EDataPartitionType::FeatureParallel, taskType)
 {

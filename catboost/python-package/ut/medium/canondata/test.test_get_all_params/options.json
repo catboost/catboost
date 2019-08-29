@@ -29,6 +29,7 @@
     "learning_rate": 0.02999999933, 
     "loss_function": "RMSE", 
     "max_ctr_complexity": 1, 
+    "model_shrink_rate": 0, 
     "model_size_reg": 0.5, 
     "nan_mode": "Min", 
     "one_hot_max_size": 2, 

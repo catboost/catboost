@@ -3394,6 +3394,12 @@ class CatBoostClassifier(CatBoost):
             - 'No' - never backtrack; supported on CPU and GPU
             - 'AnyImprovement' - reduce the descent step until the value of loss function is less than before the step; supported on CPU and GPU
             - 'Armijo' - reduce the descent step until Armijo condition is satisfied; supported on GPU only
+
+    model_shrink_rate : float, [default=0]
+        CPU only.
+        This parameter enables shrinkage of whole model at the start of each iteration.
+        At i-th iteration (if i > 0) model is multiplied by (1 - model_shrink_rate / i).
+        range : [0, 1)
     """
     def __init__(
         self,
@@ -3493,7 +3499,8 @@ class CatBoostClassifier(CatBoost):
         score_function=None,
         leaf_estimation_backtracking=None,
         ctr_history_unit=None,
-        monotone_constraints=None
+        monotone_constraints=None,
+        model_shrink_rate=None
     ):
         params = {}
         not_params = ["not_params", "self", "params", "__class__"]
@@ -3934,7 +3941,8 @@ class CatBoostRegressor(CatBoost):
         score_function=None,
         leaf_estimation_backtracking=None,
         ctr_history_unit=None,
-        monotone_constraints=None
+        monotone_constraints=None,
+        model_shrink_rate=None
     ):
         params = {}
         not_params = ["not_params", "self", "params", "__class__"]

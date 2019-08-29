@@ -3,11 +3,11 @@
         "approx_on_full_history": false, 
         "boost_from_average": false, 
         "boosting_type": "Plain", 
-        "dev_model_shrink_rate": 0, 
         "fold_len_multiplier": 2, 
         "fold_permutation_block": 0, 
         "iterations": 1000, 
         "learning_rate": 0.02999999933, 
+        "model_shrink_rate": 0, 
         "od_config": {
             "stop_pvalue": 0, 
             "type": "None", 
