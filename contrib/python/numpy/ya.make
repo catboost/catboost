@@ -255,3 +255,19 @@ SRCS(
 )
 
 END()
+
+RECURSE(
+    numpy/f2py
+)
+
+RECURSE_FOR_TESTS(
+    numpy/core/tests
+    numpy/fft/tests
+    numpy/lib/tests
+    numpy/linalg/tests
+    numpy/ma/tests
+    numpy/matrixlib/tests
+    numpy/polynomial/tests
+    numpy/random/tests
+    numpy/testing/tests
+)

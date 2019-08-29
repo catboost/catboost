@@ -30,4 +30,6 @@ PY_SRCS(
     f2py2e.py
 )
 
+NO_LINT()
+
 END()
