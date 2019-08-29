@@ -1602,7 +1602,7 @@
         },
         "golangci-lint": {
             "formula": {
-                "sandbox_id": [381327628, 381318659],
+                "sandbox_id": [495640993, 495641659],
                 "match": "golangci-lint"
             },
             "executable": {
