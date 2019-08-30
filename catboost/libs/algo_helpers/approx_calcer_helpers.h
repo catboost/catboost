@@ -8,6 +8,8 @@
 
 #include <util/generic/ptr.h>
 
+static constexpr int APPROX_BLOCK_SIZE = 500;
+
 template <ELeavesEstimation LeafEstimationType>
 inline void AddMethodDer(const TDers&, double, bool, TSum*);
 
@@ -43,3 +45,22 @@ inline double CalcMethodDelta<ELeavesEstimation::Newton>(
 {
     return CalcDeltaNewton(ss, l2Regularizer, sumAllWeights, allDocCount);
 }
+
+void CreateBacktrackingObjective(
+    int dimensionCount,
+    int leavesEstimationIterations,
+    ELeavesEstimationStepBacktracking leavesEstimationBacktrackingType,
+    const NCatboostOptions::TLossDescription& objectiveMetric,
+    bool* haveBacktrackingObjective,
+    double* minimizationSign,
+    TVector<THolder<IMetric>>* lossFunction
+);
+
+double CalcSampleQuantile(
+    TConstArrayRef<double> sample,
+    TConstArrayRef<double> weights,
+    const double alpha,
+    const double delta
+);
+
+double GetMinimizeSign(const THolder<IMetric>& metric);

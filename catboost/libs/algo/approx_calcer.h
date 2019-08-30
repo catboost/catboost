@@ -29,8 +29,6 @@ void UpdateApproxDeltas(
     TVector<double>* deltasDimension
 );
 
-static constexpr int APPROX_BLOCK_SIZE = 500;
-
 void CalcLeafDersSimple(
     const TVector<TIndexType>& indices,
     const TFold& fold,

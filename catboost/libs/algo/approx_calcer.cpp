@@ -4,7 +4,6 @@
 #include "approx_calcer_multi.h"
 #include "approx_calcer_querywise.h"
 #include "fold.h"
-#include "gradient_walker.h"
 #include "index_calcer.h"
 #include "learn_context.h"
 #include "monotonic_constraint_utils.h"
@@ -12,7 +11,9 @@
 #include "split.h"
 #include "yetirank_helpers.h"
 
+#include <catboost/libs/algo_helpers/approx_calcer_helpers.h>
 #include <catboost/libs/algo_helpers/error_functions.h>
+#include <catboost/libs/algo_helpers/gradient_walker.h>
 #include <catboost/libs/algo_helpers/pairwise_leaves_calculation.h>
 #include <catboost/libs/data_new/data_provider.h>
 #include <catboost/libs/helpers/parallel_tasks.h>
@@ -639,67 +640,6 @@ static void UpdateApproxDeltasHistorically(
         leafDers,
         *approxDeltas
     );
-}
-
-static double CalcSampleQuantile(
-    TConstArrayRef<double> sample,
-    TConstArrayRef<double> weights,
-    const double alpha,
-    const double delta
-) {
-    if (sample.empty()) {
-        return 0;
-    }
-    size_t sampleSize = sample.size();
-
-    double sumWeight = 0;
-    for (size_t i = 0; i < sampleSize; i++) {
-        sumWeight += weights[i];
-    }
-    double doublePosition = sumWeight * alpha;
-    if (doublePosition <= 0) {
-        return *std::min_element(sample.begin(), sample.end()) - delta;
-    }
-    if (doublePosition >= sumWeight) {
-        return *std::max_element(sample.begin(), sample.end()) + delta;
-    }
-
-    TVector<size_t> indices(sampleSize);
-    for (size_t i = 0; i < sampleSize; i++) {
-        indices[i] = i;
-    }
-
-    std::sort(indices.begin(), indices.end(), [&](size_t i, size_t j) { return sample[i] < sample[j]; });
-
-    size_t position = 0;
-    float sum = 0;
-    while (sum < doublePosition && position < sampleSize) {
-        size_t j = position;
-        float step = 0;
-        while (j < sampleSize && abs(sample[indices[j]] - sample[indices[position]]) < DBL_EPSILON) {
-            step += weights[indices[j]];
-            j++;
-        }
-        if (sum + alpha * step >= doublePosition - DBL_EPSILON) {
-            return sample[indices[position]] - delta;
-        }
-        if (sum + step >= doublePosition + DBL_EPSILON) {
-            return sample[indices[position]] + delta;
-        }
-
-        sum += step;
-        position = j;
-
-        if (sum >= doublePosition - DBL_EPSILON) {
-            if (position >= sampleSize) {
-                return sample[indices[position - 1]] + delta;
-            }
-            return (sample[indices[position - 1]] + delta) * alpha + (sample[indices[position]] - delta) * (1 - alpha);
-        }
-
-    }
-    Y_ASSERT(false);
-    return 0;
 }
 
 static void CalcQuantileLeafDeltas(

@@ -8,6 +8,7 @@
 #include <catboost/libs/algo/learn_context.h>
 #include <catboost/libs/algo/online_ctr.h>
 #include <catboost/libs/algo/preprocess.h>
+#include <catboost/libs/algo_helpers/approx_calcer_helpers.h>
 #include <catboost/libs/algo_helpers/error_functions.h>
 #include <catboost/libs/data_new/load_data.h>
 #include <catboost/libs/helpers/exception.h>
