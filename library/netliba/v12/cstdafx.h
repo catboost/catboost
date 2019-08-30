@@ -17,7 +17,7 @@
 
 #include <util/stream/output.h>
 
-#include <util/string/url.h>
+#include <library/string_utils/url/url.h>
 
 #include <library/charset/codepage.h>
 #include <library/charset/recyr.hh>

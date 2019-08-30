@@ -36,7 +36,7 @@ from numpy.testing import (
     assert_, assert_raises, assert_warns, assert_equal, assert_almost_equal,
     assert_array_equal, assert_raises_regex, assert_array_almost_equal,
     assert_allclose, IS_PYPY, HAS_REFCOUNT, assert_array_less, runstring,
-    temppath, suppress_warnings
+    temppath, suppress_warnings, break_cycles,
     )
 from numpy.core.tests._locales import CommaDecimalPointLocale
 
@@ -131,6 +131,7 @@ class TestFlags(object):
         assert_(vals.flags.writeable)
 
     @pytest.mark.skipif(sys.version_info[0] < 3, reason="Python 2 always copies")
+    @pytest.mark.skipif(IS_PYPY, reason="PyPy always copies")
     def test_writeable_pickle(self):
         import pickle
         # Small arrays will be copied without setting base.
@@ -3816,7 +3817,7 @@ class TestPickling(object):
                         a, pickle.loads(pickle.dumps(a, protocol=proto)),
                         err_msg="%r" % a)
             del a, DATA, carray
-            gc.collect()
+            break_cycles()
             # check for reference leaks (gh-12793)
             for ref in refs:
                 assert ref() is None
@@ -3871,6 +3872,17 @@ class TestPickling(object):
         a = np.array([(1, (1, 2))], dtype=[('a', 'i1', (2, 2)), ('b', 'i1', 2)])
         p = self._loads(s)
         assert_equal(a, p)
+
+    def test_datetime64_byteorder(self):
+        original = np.array([['2015-02-24T00:00:00.000000000']], dtype='datetime64[ns]')
+    
+        original_byte_reversed = original.copy(order='K')
+        original_byte_reversed.dtype = original_byte_reversed.dtype.newbyteorder('S')
+        original_byte_reversed.byteswap(inplace=True)
+
+        new = pickle.loads(pickle.dumps(original_byte_reversed))
+    
+        assert_equal(original.dtype, new.dtype)
 
 
 class TestFancyIndexing(object):
@@ -7159,6 +7171,7 @@ def test_array_interface_empty_shape():
     assert_equal(arr1, arr2)
     assert_equal(arr1, arr3)
 
+@pytest.mark.skipif(IS_PYPY, reason='PyDict_GetItemString(.., "data") segfaults')
 def test_array_interface_offset():
     arr = np.array([1, 2, 3], dtype='int32')
     interface = dict(arr.__array_interface__)
@@ -7201,7 +7214,7 @@ class TestMemEventHook(object):
         # needs to be larger then limit of small memory cacher in ctors.c
         a = np.zeros(1000)
         del a
-        gc.collect()
+        break_cycles()
         _multiarray_tests.test_pydatamem_seteventhook_end()
 
 class TestMapIter(object):
@@ -7773,12 +7786,12 @@ class TestCTypes(object):
 
         # `ctypes_ptr` should hold onto `arr`
         del arr
-        gc.collect()
+        break_cycles()
         assert_(arr_ref() is not None, "ctypes pointer did not hold onto a reference")
 
         # but when the `ctypes_ptr` object dies, so should `arr`
         del ctypes_ptr
-        gc.collect()
+        break_cycles()
         assert_(arr_ref() is None, "unknowable whether ctypes pointer holds a reference")
 
 
@@ -7960,15 +7973,15 @@ class TestArrayFinalize(object):
         assert_(isinstance(obj_subarray, RaisesInFinalize))
 
         # reference should still be held by obj_arr
-        gc.collect()
+        break_cycles()
         assert_(obj_ref() is not None, "object should not already be dead")
 
         del obj_arr
-        gc.collect()
+        break_cycles()
         assert_(obj_ref() is not None, "obj_arr should not hold the last reference")
 
         del obj_subarray
-        gc.collect()
+        break_cycles()
         assert_(obj_ref() is None, "no references should remain")
 
 

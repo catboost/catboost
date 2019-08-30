@@ -611,9 +611,9 @@ prepare_index(PyArrayObject *self, PyObject *index,
 
             /* Convert the boolean array into multiple integer ones */
             n = _nonzero_indices((PyObject *)arr, nonzero_result);
-            Py_DECREF(arr);
 
             if (n < 0) {
+                Py_DECREF(arr);
                 goto failed_building_indices;
             }
 
@@ -624,6 +624,7 @@ prepare_index(PyArrayObject *self, PyObject *index,
                 for (i=0; i < n; i++) {
                     Py_DECREF(nonzero_result[i]);
                 }
+                Py_DECREF(arr);
                 goto failed_building_indices;
             }
 
@@ -637,6 +638,7 @@ prepare_index(PyArrayObject *self, PyObject *index,
                 used_ndim += 1;
                 curr_idx += 1;
             }
+            Py_DECREF(arr);
 
             /* All added indices have 1 dimension */
             if (fancy_ndim < 1) {
@@ -1440,7 +1442,7 @@ _get_field_view(PyArrayObject *arr, PyObject *ind, PyArrayObject **view)
     }
     /* next check for a list of field names */
     else if (PySequence_Check(ind) && !PyTuple_Check(ind)) {
-        int seqlen, i;
+        npy_intp seqlen, i;
         PyObject *name = NULL, *tup;
         PyObject *fields, *names;
         PyArray_Descr *view_dtype;

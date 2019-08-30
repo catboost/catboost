@@ -6,7 +6,7 @@ LICENSE(
     BSD3
 )
 
-VERSION(1.16.4)
+VERSION(1.16.5)
 
 NO_COMPILER_WARNINGS()
 
@@ -162,6 +162,7 @@ PY_SRCS(
     numpy/doc/byteswapping.py
     numpy/doc/constants.py
     numpy/doc/creation.py
+    numpy/doc/dispatch.py
     numpy/doc/glossary.py
     numpy/doc/indexing.py
     numpy/doc/internals.py

@@ -8,5 +8,7 @@ RECURSE(
     quote/ut
     relaxed_escaper
     relaxed_escaper/ut
+    url
+    url/ut
     ztstrbuf
 )

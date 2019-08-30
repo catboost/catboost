@@ -470,9 +470,6 @@ _convert_from_array_descr(PyObject *obj, int align)
             else {
                 ret = PyArray_DescrConverter(PyTuple_GET_ITEM(item, 1), &conv);
             }
-            if (ret == NPY_FAIL) {
-                PyObject_Print(PyTuple_GET_ITEM(item, 1), stderr, 0);
-            }
         }
         else if (PyTuple_GET_SIZE(item) == 3) {
             newobj = PyTuple_GetSlice(item, 1, 3);
@@ -490,6 +487,7 @@ _convert_from_array_descr(PyObject *obj, int align)
         if (ret == NPY_FAIL) {
             goto fail;
         }
+
         if ((PyDict_GetItem(fields, name) != NULL)
              || (title
                  && PyBaseString_Check(title)
@@ -1294,6 +1292,12 @@ _convert_from_dict(PyObject *obj, int align)
             goto fail;
         }
     }
+
+    Py_XDECREF(fields);
+    Py_XDECREF(names);
+    Py_XDECREF(descrs);
+    Py_XDECREF(offsets);
+    Py_XDECREF(titles);
     return new;
 
  fail:

@@ -2007,7 +2007,9 @@ array_setstate(PyArrayObject *self, PyObject *args)
             return PyErr_NoMemory();
         }
         fa->strides = PyArray_DIMS(self) + nd;
-        memcpy(PyArray_DIMS(self), dimensions, sizeof(npy_intp)*nd);
+        if (nd) {
+            memcpy(PyArray_DIMS(self), dimensions, sizeof(npy_intp)*nd);
+        }
         _array_fill_strides(PyArray_STRIDES(self), dimensions, nd,
                                PyArray_DESCR(self)->elsize,
                                (is_f_order ? NPY_ARRAY_F_CONTIGUOUS :
@@ -2041,7 +2043,9 @@ array_setstate(PyArrayObject *self, PyObject *args)
                                         PyArray_DESCR(self)->elsize,
                                         datastr, PyArray_DESCR(self)->elsize,
                                         numels, 1, self);
-                if (!PyArray_ISEXTENDED(self)) {
+                if (!(PyArray_ISEXTENDED(self) ||
+                      PyArray_DESCR(self)->metadata ||
+                      PyArray_DESCR(self)->c_metadata)) {
                     fa->descr = PyArray_DescrFromType(
                                     PyArray_DESCR(self)->type_num);
                 }
