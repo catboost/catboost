@@ -254,6 +254,20 @@ public:
     }
 
     inline void Flush() {
+        int ret = deflate(Z(), Z_SYNC_FLUSH);
+
+        while ((ret == Z_OK || ret == Z_BUF_ERROR) && !Z()->avail_out) {
+            FlushBuffer();
+            ret = deflate(Z(), Z_SYNC_FLUSH);
+        }
+
+        if (ret != Z_OK && ret != Z_BUF_ERROR) {
+            ythrow TZLibCompressorError() << "deflate flush error(" << GetErrMsg() << ")";
+        }
+
+        if (Z()->avail_out < TmpBufLen()) {
+            FlushBuffer();
+        }
     }
 
     inline void FlushBuffer() {
@@ -273,7 +287,7 @@ public:
         if (ret == Z_STREAM_END) {
             Stream_->Write(TmpBuf(), TmpBufLen() - Z()->avail_out);
         } else {
-            ythrow TZLibCompressorError() << "deflate error(" << GetErrMsg() << ")";
+            ythrow TZLibCompressorError() << "deflate finish error(" << GetErrMsg() << ")";
         }
     }
 
@@ -311,6 +325,7 @@ size_t TZLibDecompress::DoRead(void* buf, size_t size) {
 }
 
 void TZLibCompress::Init(const TParams& params) {
+    Y_ENSURE(params.BufLen >= 16, "ZLib buffer too small");
     Impl_.Reset(new (params.BufLen) TImpl(params));
 }
 
