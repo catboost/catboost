@@ -161,6 +161,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\netliba\socket\library-netliba-socket.vcxproj">
       <Project>{F9056049-5115-AB7C-F09D-A4BCA92367DD}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\string_utils\url\library-string_utils-url.vcxproj">
+      <Project>{F79D59BA-A429-102B-7C71-A1F895119240}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\threading\chunk_queue\library-threading-chunk_queue.vcxproj">
       <Project>{51BCA57C-7E5E-48F9-7D56-FD5809F99DCC}</Project>
     </ProjectReference>
