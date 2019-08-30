@@ -463,6 +463,8 @@ void NCatboostOptions::PlainJsonToOptions(
     CopyOption(plainOptions, "classes_count", &dataProcessingOptions, &seenKeys);
     CopyOption(plainOptions, "class_names", &dataProcessingOptions, &seenKeys);
     CopyOption(plainOptions, "class_weights", &dataProcessingOptions, &seenKeys);
+    CopyOption(plainOptions, "dev_default_value_fraction_for_sparse", &dataProcessingOptions, &seenKeys);
+    CopyOption(plainOptions, "dev_sparse_array_indexing", &dataProcessingOptions, &seenKeys);
     CopyOption(plainOptions, "gpu_cat_features_storage", &dataProcessingOptions, &seenKeys);
 
     auto& floatFeaturesBinarization = dataProcessingOptions["float_features_binarization"];
@@ -836,6 +838,12 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
 
         CopyOption(dataProcessingOptions, "class_weights", &plainOptionsJson, &seenKeys);
         DeleteSeenOption(&optionsCopyDataProcessing, "class_weights");
+
+        CopyOption(dataProcessingOptions, "dev_default_value_fraction_for_sparse", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopyDataProcessing, "dev_default_value_fraction_for_sparse");
+
+        CopyOption(dataProcessingOptions, "dev_sparse_array_indexing", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopyDataProcessing, "dev_sparse_array_indexing");
 
         CopyOption(dataProcessingOptions, "gpu_cat_features_storage", &plainOptionsJson, &seenKeys);
         DeleteSeenOption(&optionsCopyDataProcessing, "gpu_cat_features_storage");

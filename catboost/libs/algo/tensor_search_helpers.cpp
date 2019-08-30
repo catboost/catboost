@@ -36,12 +36,14 @@ TSplit TCandidateInfo::GetSplit(
                 auto featureInfo = objectsData.GetPackedBinaryFeatureSrcIndex(packedBinaryIndex);
                 TSplitCandidate splitCandidate;
                 splitCandidate.Type
-                    = featureInfo.first == EFeatureType::Float ?
+                    = featureInfo.FeatureType == EFeatureType::Float ?
                         ESplitType::FloatFeature :
                         ESplitType::OneHotFeature;
-                splitCandidate.FeatureIdx = featureInfo.second;
+                splitCandidate.FeatureIdx = featureInfo.FeatureIdx;
 
-                return TSplit(std::move(splitCandidate), (featureInfo.first == EFeatureType::Float) ? 0 : 1);
+                return TSplit(
+                    std::move(splitCandidate),
+                    (featureInfo.FeatureType == EFeatureType::Float) ? 0 : 1);
             }
         case ESplitEnsembleType::ExclusiveBundle:
             {

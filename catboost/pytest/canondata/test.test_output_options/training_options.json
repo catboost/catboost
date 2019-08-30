@@ -134,6 +134,7 @@
     "data_processing_options" : {
         "per_float_feature_quantization" : { },
         "has_time" : false,
+        "dev_default_value_fraction_for_sparse" : 0.8299999833,
         "allow_const_label" : false,
         "text_processing" : {
             "per_feature_text_processing" : { }
@@ -141,6 +142,7 @@
         "class_names" : [ ],
         "class_weights" : [ ],
         "target_border" : null,
+        "dev_sparse_array_indexing" : "Indices",
         "float_features_binarization" : {
             "border_count" : 254,
             "nan_mode" : "Min",

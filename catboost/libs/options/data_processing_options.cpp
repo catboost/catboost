@@ -2,6 +2,8 @@
 #include "json_helper.h"
 #include "restrictions.h"
 
+#include <catboost/libs/helpers/exception.h>
+
 
 NCatboostOptions::TDataProcessingOptions::TDataProcessingOptions(ETaskType type)
     : IgnoredFeatures("ignored_features", TVector<ui32>())
@@ -19,6 +21,8 @@ NCatboostOptions::TDataProcessingOptions::TDataProcessingOptions(ETaskType type)
       , ClassesCount("classes_count", 0)
       , ClassWeights("class_weights", TVector<float>())
       , ClassNames("class_names", TVector<TString>())
+      , DevDefaultValueFractionToEnableSparseStorage("dev_default_value_fraction_for_sparse", 0.83f)
+      , DevSparseArrayIndexingType("dev_sparse_array_indexing", NCB::ESparseArrayIndexingType::Indices)
       , GpuCatFeaturesStorage("gpu_cat_features_storage", EGpuCatFeaturesStorage::GpuRam, type)
 {
     GpuCatFeaturesStorage.ChangeLoadUnimplementedPolicy(ELoadUnimplementedPolicy::SkipWithWarning);
@@ -28,8 +32,12 @@ void NCatboostOptions::TDataProcessingOptions::Load(const NJson::TJsonValue& opt
     CheckedLoad(
         options, &IgnoredFeatures, &HasTimeFlag, &AllowConstLabel, &TargetBorder,
         &FloatFeaturesBinarization, &PerFloatFeatureQuantization, &TextProcessing,
-        &ClassesCount, &ClassWeights, &ClassNames, &GpuCatFeaturesStorage
+        &ClassesCount, &ClassWeights, &ClassNames,
+        &DevDefaultValueFractionToEnableSparseStorage,
+        &DevSparseArrayIndexingType,
+        &GpuCatFeaturesStorage
     );
+    Validate();
     SetPerFeatureMissingSettingToCommonValues();
 }
 
@@ -37,22 +45,40 @@ void NCatboostOptions::TDataProcessingOptions::Save(NJson::TJsonValue* options) 
     SaveFields(
         options, IgnoredFeatures, HasTimeFlag, AllowConstLabel, TargetBorder,
         FloatFeaturesBinarization, PerFloatFeatureQuantization, TextProcessing,
-        ClassesCount, ClassWeights, ClassNames, GpuCatFeaturesStorage
+        ClassesCount, ClassWeights, ClassNames,
+        DevDefaultValueFractionToEnableSparseStorage,
+        DevSparseArrayIndexingType,
+        GpuCatFeaturesStorage
     );
 }
 
 bool NCatboostOptions::TDataProcessingOptions::operator==(const TDataProcessingOptions& rhs) const {
     return std::tie(IgnoredFeatures, HasTimeFlag, AllowConstLabel, TargetBorder,
                     FloatFeaturesBinarization, PerFloatFeatureQuantization, TextProcessing,
-                    ClassesCount, ClassWeights, ClassNames, GpuCatFeaturesStorage) ==
+                    ClassesCount, ClassWeights, ClassNames,
+                    DevDefaultValueFractionToEnableSparseStorage,
+                    DevSparseArrayIndexingType, GpuCatFeaturesStorage) ==
         std::tie(rhs.IgnoredFeatures, rhs.HasTimeFlag, rhs.AllowConstLabel, rhs.TargetBorder,
                  rhs.FloatFeaturesBinarization, rhs.PerFloatFeatureQuantization, rhs.TextProcessing,
-                 rhs.ClassesCount, rhs.ClassWeights, rhs.ClassNames, rhs.GpuCatFeaturesStorage);
+                 rhs.ClassesCount, rhs.ClassWeights,
+ rhs.ClassNames,
+                 rhs.DevDefaultValueFractionToEnableSparseStorage,
+                 rhs.DevSparseArrayIndexingType,
+                 rhs.GpuCatFeaturesStorage);
 }
 
 bool NCatboostOptions::TDataProcessingOptions::operator!=(const TDataProcessingOptions& rhs) const {
     return !(rhs == *this);
 }
+
+void NCatboostOptions::TDataProcessingOptions::Validate() const {
+    CB_ENSURE(
+        (DevDefaultValueFractionToEnableSparseStorage.Get() >= 0.f) &&
+        (DevDefaultValueFractionToEnableSparseStorage.Get() < 1.f),
+        "DevDefaultValueFractionToEnableSparseStorage must be in [0, 1)"
+    );
+}
+
 
 void NCatboostOptions::TDataProcessingOptions::SetPerFeatureMissingSettingToCommonValues() {
     if (!PerFloatFeatureQuantization.IsSet()) {

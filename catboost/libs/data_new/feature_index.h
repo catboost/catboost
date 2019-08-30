@@ -2,6 +2,8 @@
 
 #include <catboost/libs/options/enums.h>
 
+#include <library/binsaver/bin_saver.h>
+
 #include <util/system/types.h>
 #include <util/str_stl.h>
 
@@ -30,6 +32,24 @@ namespace NCB {
     using TFloatFeatureIdx = TFeatureIdx<EFeatureType::Float>;
     using TCatFeatureIdx = TFeatureIdx<EFeatureType::Categorical>;
     using TTextFeatureIdx = TFeatureIdx<EFeatureType::Text>;
+
+
+    struct TFeatureIdxWithType {
+        EFeatureType FeatureType;
+        ui32 FeatureIdx; // per type
+
+    public:
+        explicit TFeatureIdxWithType(EFeatureType featureType = EFeatureType::Float, ui32 featureIndex = 0)
+            : FeatureType(featureType)
+            , FeatureIdx(featureIndex)
+        {}
+
+        bool operator==(const TFeatureIdxWithType& rhs) const {
+            return (FeatureType == rhs.FeatureType) && (FeatureIdx == rhs.FeatureIdx);
+        }
+
+        SAVELOAD(FeatureType, FeatureIdx);
+    };
 
 }
 

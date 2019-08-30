@@ -1,5 +1,7 @@
 #pragma once
 
+#include "feature_index.h"
+
 #include <catboost/libs/helpers/array_subset.h>
 #include <catboost/libs/helpers/dbg_output.h>
 #include <catboost/libs/helpers/exception.h>
@@ -29,8 +31,7 @@ namespace NCB {
     struct TRawObjectsData;
     class TFeaturesLayout;
     class TQuantizedFeaturesInfo;
-
-    using TFeaturesArraySubsetIndexing = TArraySubsetIndexing<ui32>;
+    struct TIncrementalDenseIndexing;
 
 
     /* values are shifted by 1 (because 0 is not stored)
@@ -40,9 +41,7 @@ namespace NCB {
     using TBoundsInBundle = TIndexRange<ui32>;
 
 
-    struct TExclusiveBundlePart {
-        EFeatureType FeatureType;
-        ui32 FeatureIdx; // per type
+    struct TExclusiveBundlePart : public TFeatureIdxWithType {
         TBoundsInBundle Bounds;
 
     public:
@@ -51,15 +50,12 @@ namespace NCB {
             EFeatureType featureType = EFeatureType::Float,
             ui32 featureIdx = 0,
             TBoundsInBundle bounds = TBoundsInBundle(0))
-            : FeatureType(featureType)
-            , FeatureIdx(featureIdx)
+            : TFeatureIdxWithType(featureType, featureIdx)
             , Bounds(bounds)
         {}
 
         bool operator==(const TExclusiveBundlePart& rhs) const {
-            return (FeatureType == rhs.FeatureType) &&
-                (FeatureIdx == rhs.FeatureIdx) &&
-                (Bounds == rhs.Bounds);
+            return TFeatureIdxWithType::operator==(rhs) && (Bounds == rhs.Bounds);
         }
 
         SAVELOAD(FeatureType, FeatureIdx, Bounds);
@@ -144,7 +140,7 @@ namespace NCB {
 
     TVector<TExclusiveFeaturesBundle> CreateExclusiveFeatureBundles(
         const TRawObjectsData& rawObjectsData,
-        const TFeaturesArraySubsetIndexing& rawDataSubsetIndexing,
+        const TIncrementalDenseIndexing& rawObjectsDataIncrementalIndexing,
         const TFeaturesLayout& featuresLayout,
         const TQuantizedFeaturesInfo& quantizedFeaturesInfo,
         const TExclusiveFeaturesBundlingOptions& options,

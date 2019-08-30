@@ -679,6 +679,16 @@ TObjectsDataProviderPtr NCB::TRawObjectsDataProvider::GetFeaturesSubset(
 }
 
 template <class T, EFeatureValuesType FeatureValuesType>
+static bool HasDenseData(const TVector<THolder<TTypedFeatureValuesHolder<T, FeatureValuesType>>>& columns) {
+    for (const auto& columnPtr : columns) {
+        if (columnPtr && !columnPtr->GetIsSparse()) {
+            return true;
+        }
+    }
+    return false;
+}
+
+template <class T, EFeatureValuesType FeatureValuesType>
 static bool HasSparseData(const TVector<THolder<TTypedFeatureValuesHolder<T, FeatureValuesType>>>& columns) {
     for (const auto& columnPtr : columns) {
         if (columnPtr && columnPtr->GetIsSparse()) {
@@ -686,6 +696,12 @@ static bool HasSparseData(const TVector<THolder<TTypedFeatureValuesHolder<T, Fea
         }
     }
     return false;
+}
+
+bool NCB::TRawObjectsDataProvider::HasDenseData() const {
+    return ::HasDenseData(Data.FloatFeatures) ||
+        ::HasDenseData(Data.CatFeatures) ||
+        ::HasDenseData(Data.TextFeatures);
 }
 
 
@@ -968,6 +984,12 @@ NCB::TObjectsDataProviderPtr NCB::TQuantizedObjectsDataProvider::GetSubset(
         true,
         Nothing()
     );
+}
+
+bool NCB::TQuantizedObjectsDataProvider::HasDenseData() const {
+    return ::HasDenseData(Data.FloatFeatures) ||
+        ::HasDenseData(Data.CatFeatures) ||
+        ::HasDenseData(Data.TextFeatures);
 }
 
 bool NCB::TQuantizedObjectsDataProvider::HasSparseData() const {
@@ -1578,6 +1600,7 @@ NCB::TExclusiveFeatureBundlesData::TExclusiveFeatureBundlesData(
     TVector<NCB::TExclusiveFeaturesBundle>&& metaData
 )
     : MetaData(std::move(metaData))
+    , SrcData(MetaData.size())
 {
     FlatFeatureIndexToBundlePart.resize(featuresLayout.GetExternalFeatureCount());
 
@@ -1666,6 +1689,7 @@ NCB::TFeatureGroupsData::TFeatureGroupsData(
     TVector<NCB::TFeaturesGroup>&& metaData
 )
     : MetaData(std::move(metaData))
+    , SrcData(MetaData.size())
 {
     FlatFeatureIndexToGroupPart.resize(featuresLayout.GetExternalFeatureCount());
 
@@ -1866,7 +1890,7 @@ TString NCB::DbgDumpMetaData(const NCB::TPackedBinaryFeaturesData& packedBinaryF
             auto packedBinaryIndex = NCB::TPackedBinaryIndex::FromLinearIdx(linearIdx);
             const auto& srcIndex = packedBinaryToSrcIndex[linearIdx];
             sb << "LinearIdx=" << linearIdx << "," << DbgDump(packedBinaryIndex) << " : FeatureType="
-               << srcIndex.first << ",FeatureIdx=" << srcIndex.second << Endl;
+               << srcIndex.FeatureType << ",FeatureIdx=" << srcIndex.FeatureIdx << Endl;
         }
         sb << Endl;
     }
@@ -2508,12 +2532,12 @@ static void CheckFeaturesByType(
             );
             auto srcFeature = packedBinaryToSrcIndex[linearPackedBinaryFeatureIdx];
             CB_ENSURE_INTERNAL(
-                srcFeature.first == featureType,
+                srcFeature.FeatureType == featureType,
                 "packedBinaryToSrcIndex[" << linearPackedBinaryFeatureIdx << "] type is not "
                 << featureType
             );
             CB_ENSURE_INTERNAL(
-                srcFeature.second == featureIdx,
+                srcFeature.FeatureIdx == featureIdx,
                 "packedBinaryToSrcIndex[" << linearPackedBinaryFeatureIdx << "] feature index is not "
                 << featureIdx
             );

@@ -129,6 +129,11 @@ namespace NCB {
             return ObjectsGrouping;
         }
 
+        /* Note that this function checks that some data is really stored as dense columns, not if
+         * some features are potentially Sparse (this information is stored in FeaturesLayout)
+         */
+        virtual bool HasDenseData() const = 0;
+
         /* Note that this function checks that some data is really stored as sparse columns, not if
          * some features are potentially Sparse (this information is stored in FeaturesLayout)
          */
@@ -271,6 +276,7 @@ namespace NCB {
             NPar::TLocalExecutor* localExecutor
         ) const override;
 
+        bool HasDenseData() const override;
         bool HasSparseData() const override;
 
         TObjectsDataProviderPtr GetFeaturesSubset(
@@ -407,6 +413,7 @@ namespace NCB {
             NPar::TLocalExecutor* localExecutor
         ) const override;
 
+        bool HasDenseData() const override;
         bool HasSparseData() const override;
 
         TObjectsDataProviderPtr GetFeaturesSubset(
@@ -536,7 +543,7 @@ namespace NCB {
     struct TPackedBinaryFeaturesData {
         // lookups
         TVector<TMaybe<TPackedBinaryIndex>> FlatFeatureIndexToPackedBinaryIndex; // [flatFeatureIdx]
-        TVector<std::pair<EFeatureType, ui32>> PackedBinaryToSrcIndex; // [linearPackedBinaryIndex]
+        TVector<TFeatureIdxWithType> PackedBinaryToSrcIndex; // [linearPackedBinaryIndex]
 
         // supported TBinaryPacksHolder types are TBinaryPacksArrayHolder or TBinaryPacksSparseArrayHolder
         TVector<THolder<TBinaryPacksHolder>> SrcData; // [packIdx][objectIdx][bitIdx]
@@ -690,7 +697,7 @@ namespace NCB {
             return GetFeatureToPackedBinaryIndex(featureIdx).Defined();
         }
 
-        std::pair<EFeatureType, ui32> GetPackedBinaryFeatureSrcIndex(
+        TFeatureIdxWithType GetPackedBinaryFeatureSrcIndex(
             TPackedBinaryIndex packedBinaryIndex
         ) const {
             return PackedBinaryFeaturesData.PackedBinaryToSrcIndex[packedBinaryIndex.GetLinearIdx()];

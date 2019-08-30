@@ -10,8 +10,10 @@
 #include <catboost/libs/algo/data.h>
 #include <catboost/libs/helpers/array_subset.h>
 #include <catboost/libs/helpers/compression.h>
+#include <catboost/libs/helpers/double_array_iterator.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/mem_usage.h>
+#include <catboost/libs/helpers/parallel_tasks.h>
 #include <catboost/libs/helpers/resource_constrained_executor.h>
 #include <catboost/libs/logging/logging.h>
 #include <catboost/libs/labels/label_converter.h>
@@ -23,6 +25,7 @@
 
 #include <library/grid_creator/binarization.h>
 
+#include <util/generic/algorithm.h>
 #include <util/generic/cast.h>
 #include <util/generic/maybe.h>
 #include <util/generic/utility.h>
@@ -38,6 +41,42 @@
 
 
 namespace NCB {
+
+    TIncrementalDenseIndexing::TIncrementalDenseIndexing(
+        const TFeaturesArraySubsetIndexing& srcSubsetIndexing,
+        bool hasDenseData,
+        NPar::TLocalExecutor* localExecutor
+    ) {
+        if (hasDenseData && !HoldsAlternative<TFullSubset<ui32>>(srcSubsetIndexing)) {
+            TVector<ui32> srcIndices;
+            srcIndices.yresize(srcSubsetIndexing.Size());
+            TArrayRef<ui32> srcIndicesRef = srcIndices;
+
+            srcSubsetIndexing.ParallelForEach(
+                [=] (ui32 objectIdx, ui32 srcObjectIdx) {
+                    srcIndicesRef[objectIdx] = srcObjectIdx;
+                },
+                localExecutor
+            );
+
+            TVector<ui32> dstIndices;
+            dstIndices.yresize(srcSubsetIndexing.Size());
+            Iota(dstIndices.begin(), dstIndices.end(), ui32(0));
+
+            TDoubleArrayIterator<ui32, ui32> beginIter{srcIndices.begin(), dstIndices.begin()};
+            TDoubleArrayIterator<ui32, ui32> endIter{srcIndices.end(), dstIndices.end()};
+
+            Sort(beginIter, endIter, [](auto lhs, auto rhs) { return lhs.first < rhs.first; });
+
+            SrcSubsetIndexing = TFeaturesArraySubsetIndexing(std::move(srcIndices));
+            DstIndexing = TFeaturesArraySubsetIndexing(std::move(dstIndices));
+        } else {
+            SrcSubsetIndexing = TFeaturesArraySubsetIndexing(TFullSubset<ui32>(srcSubsetIndexing.Size()));
+            DstIndexing = TFeaturesArraySubsetIndexing(TFullSubset<ui32>(srcSubsetIndexing.Size()));
+        }
+    }
+
+
     static bool NeedToCalcBorders(
         const TFeaturesLayout& featuresLayoutForQuantization,
         const TQuantizedFeaturesInfo& quantizedFeaturesInfo
@@ -54,17 +93,28 @@ namespace NCB {
         return needToCalcBorders;
     }
 
+    struct TSubsetIndexingForBuildBorders {
+        // for dense features, already composed with rawDataProvider's Subset
+        TAtomicSharedPtr<TFeaturesArraySubsetIndexing> ComposedSubset;
 
-    static TMaybe<TArraySubsetIndexing<ui32>> GetSubsetForBuildBorders(
-        const TArraySubsetIndexing<ui32>& srcIndexing,
+        // for sparse features
+        TMaybe<TFeaturesArraySubsetInvertedIndexing> InvertedSubset;
+    };
+
+    // TODO(akhropov): maybe use different sample selection logic for sparse data
+    static TSubsetIndexingForBuildBorders GetSubsetForBuildBorders(
+        TAtomicSharedPtr<TFeaturesArraySubsetIndexing> srcIndexing,
         const TFeaturesLayout& featuresLayoutForQuantization,
         const TQuantizedFeaturesInfo& quantizedFeaturesInfo,
         EObjectsOrder srcObjectsOrder,
         const TQuantizationOptions& options,
-        TRestorableFastRng64* rand
+        TRestorableFastRng64* rand,
+        NPar::TLocalExecutor* localExecutor
     ) {
+        TSubsetIndexingForBuildBorders result;
+
         if (NeedToCalcBorders(featuresLayoutForQuantization, quantizedFeaturesInfo)) {
-            const ui32 objectCount = srcIndexing.Size();
+            const ui32 objectCount = srcIndexing->Size();
             const ui32 sampleSize = GetSampleSizeForBorderSelectionType(
                 objectCount,
                 /*TODO(kirillovs): iterate through all per feature binarization settings and select smallest
@@ -74,12 +124,12 @@ namespace NCB {
                 options.MaxSubsetSizeForSlowBuildBordersAlgorithms
             );
             if (sampleSize < objectCount) {
+                TFeaturesArraySubsetIndexing subsetIndexing;
                 if (srcObjectsOrder == EObjectsOrder::RandomShuffled) {
                     // just get first sampleSize elements
                     TVector<TSubsetBlock<ui32>> blocks = {TSubsetBlock<ui32>({0, sampleSize}, 0)};
-                    return Compose(
-                        srcIndexing,
-                        TArraySubsetIndexing<ui32>(TRangesSubset<ui32>(sampleSize, std::move(blocks)))
+                    subsetIndexing = TFeaturesArraySubsetIndexing(
+                        TRangesSubset<ui32>(sampleSize, std::move(blocks))
                     );
                 } else {
                     TIndexedSubset<ui32> randomShuffle;
@@ -93,11 +143,35 @@ namespace NCB {
                         }
                     }
                     randomShuffle.resize(sampleSize);
-                    return Compose(srcIndexing, TArraySubsetIndexing<ui32>(std::move(randomShuffle)));
+                    subsetIndexing = TFeaturesArraySubsetIndexing(std::move(randomShuffle));
                 }
+                result.ComposedSubset = MakeAtomicShared<TFeaturesArraySubsetIndexing>(
+                    Compose(
+                        *srcIndexing,
+                        subsetIndexing
+                    )
+                );
+                result.InvertedSubset = GetInvertedIndexing(subsetIndexing, objectCount, localExecutor);
+            } else {
+                result.ComposedSubset = srcIndexing;
+                result.InvertedSubset.ConstructInPlace(TFullSubset<ui32>(objectCount));
             }
         }
-        return Nothing();
+        return result;
+    }
+
+    template <class T, EFeatureValuesType FeatureValuesType>
+    static ui32 GetNonDefaultValuesCount(const TTypedFeatureValuesHolder<T, FeatureValuesType>& srcFeature) {
+        using TDenseData = TArrayValuesHolder<T, FeatureValuesType>;
+        using TSparseData = TSparseArrayValuesHolder<T, FeatureValuesType>;
+
+        if (const auto* denseData = dynamic_cast<const TDenseData*>(&srcFeature)) {
+            return denseData->GetSize();
+        } else if (const auto* sparseData = dynamic_cast<const TSparseData*>(&srcFeature)) {
+            return sparseData->GetData().GetNonDefaultSize();
+        } else {
+            CB_ENSURE_INTERNAL(false, "GetNonDefaultValuesCount: unsupported column type");
+        }
     }
 
 
@@ -111,6 +185,8 @@ namespace NCB {
         ui64 result = 0;
 
         size_t borderCount;
+
+        ui32 nonDefaultObjectCount = GetNonDefaultValuesCount(srcFeature);
 
         const TFloatFeatureIdx floatFeatureIdx
             = quantizedFeaturesInfo.GetPerTypeFeatureIdx<EFeatureType::Float>(srcFeature);
@@ -126,7 +202,29 @@ namespace NCB {
                 options.MaxSubsetSizeForSlowBuildBordersAlgorithms
             );
 
-            result += sizeof(float) * sampleSize; // for copying to srcFeatureValuesForBuildBorders
+            ui32 nonDefaultSampleSize;
+            TMaybe<TDefaultValue<float>> defaultValue;
+
+            if (const auto* denseData = dynamic_cast<const TFloatArrayValuesHolder*>(&srcFeature)) {
+                nonDefaultSampleSize = sampleSize;
+            } else if (const auto* sparseData = dynamic_cast<const TFloatSparseValuesHolder*>(&srcFeature)) {
+                const auto& sparseArray = sparseData->GetData();
+
+                // random shuffle with select default and non-default values in this proportion
+                nonDefaultSampleSize
+                    = (sampleSize * sparseArray.GetNonDefaultSize()) / sparseArray.GetSize();
+                const ui64 defaultSize = sparseArray.GetSize() - sparseArray.GetNonDefaultSize();
+                if (defaultSize) {
+                    defaultValue.ConstructInPlace(
+                        sparseArray.GetDefaultValue(),
+                        Max((sampleSize * defaultSize) / sparseArray.GetSize(), ui64(1))
+                    );
+                }
+            } else {
+                CB_ENSURE_INTERNAL(false, "EstimateMemUsageForFloatFeature: Unsupported column type");
+            }
+
+            result += sizeof(float) * nonDefaultSampleSize; // for copying to srcFeatureValuesForBuildBorders
 
             const auto& floatFeatureBinarizationSettings
                 = quantizedFeaturesInfo.GetFloatFeatureBinarization(srcFeature.GetId());
@@ -135,8 +233,8 @@ namespace NCB {
 
             result += NSplitSelection::CalcMemoryForFindBestSplit(
                 SafeIntegerCast<int>(borderCount),
-                (size_t)sampleSize,
-                /*defaultValue*/ Nothing(),
+                nonDefaultSampleSize,
+                defaultValue,
                 floatFeatureBinarizationSettings.BorderSelectionType
             );
         } else {
@@ -146,48 +244,89 @@ namespace NCB {
         if (doQuantization && !storeFeaturesDataAsExternalValuesHolder) {
             // for storing quantized data
             TIndexHelper<ui64> indexHelper(CalcHistogramWidthForBorders(borderCount));
-            result += indexHelper.CompressedSize(srcFeature.GetSize()) * sizeof(ui64);
+            result += indexHelper.CompressedSize(nonDefaultObjectCount) * sizeof(ui64);
         }
 
         return result;
     }
 
 
-    static void CalcBordersAndNanMode(
+    static void CalcQuantizationAndNanMode(
         const TFloatValuesHolder& srcFeature,
-        const TFeaturesArraySubsetIndexing* subsetForBuildBorders,
+        const TSubsetIndexingForBuildBorders& subsetIndexingForBuildBorders,
         const TQuantizedFeaturesInfo& quantizedFeaturesInfo,
+        TMaybe<float> quantizedDefaultBinFraction,
         ENanMode* nanMode,
-        TVector<float>* borders
+        NSplitSelection::TQuantization* quantization
     ) {
         const auto& binarizationOptions = quantizedFeaturesInfo.GetFloatFeatureBinarization(srcFeature.GetId());
 
         Y_VERIFY(binarizationOptions.BorderCount > 0);
 
-        // does not contain nans
-        TVector<float> srcFeatureValuesForBuildBorders;
+        const ui32 sampleCount = subsetIndexingForBuildBorders.ComposedSubset->Size();
+
+        // featureValues.Values will not contain nans
+        NSplitSelection::TFeatureValues featureValues{TVector<float>()};
 
         bool hasNans = false;
+
+        auto processNonDefaultValue = [&] (ui32 /*idx*/, float value) {
+            if (IsNan(value)) {
+                hasNans = true;
+            } else {
+                featureValues.Values.push_back(value);
+            }
+        };
 
         if (const auto* denseSrcFeature = dynamic_cast<const TFloatArrayValuesHolder*>(&srcFeature)) {
             TMaybeOwningConstArraySubset<float, ui32> srcFeatureData = denseSrcFeature->GetArrayData();
 
             TMaybeOwningConstArraySubset<float, ui32> srcDataForBuildBorders(
                 srcFeatureData.GetSrc(),
-                subsetForBuildBorders
+                subsetIndexingForBuildBorders.ComposedSubset.Get()
             );
 
-            srcFeatureValuesForBuildBorders.reserve(srcDataForBuildBorders.Size());
+            // does not contain nans
+            featureValues.Values.reserve(sampleCount);
 
-            srcDataForBuildBorders.ForEach(
-                [&] (ui32 /*idx*/, float value) {
-                    if (IsNan(value)) {
-                        hasNans = true;
-                    } else {
-                        srcFeatureValuesForBuildBorders.push_back(value);
+            srcDataForBuildBorders.ForEach(processNonDefaultValue);
+        } else if (const auto* sparseSrcFeature = dynamic_cast<const TFloatSparseValuesHolder*>(&srcFeature)) {
+            const TConstSparseArray<float, ui32>& sparseData = sparseSrcFeature->GetData();
+
+            ui32 nonDefaultValuesInSampleCount = 0;
+
+            if (const auto* invertedIndexedSubset
+                    = GetIf<TInvertedIndexedSubset<ui32>>(&*subsetIndexingForBuildBorders.InvertedSubset))
+            {
+                TConstArrayRef<ui32> invertedMapping = invertedIndexedSubset->GetMapping();
+                sparseData.ForEachNonDefault(
+                    [&, invertedMapping] (ui32 idx, float value) {
+                        if (invertedMapping[idx] != TInvertedIndexedSubset<ui32>::NOT_PRESENT) {
+                            processNonDefaultValue(idx, value);
+                            ++nonDefaultValuesInSampleCount;
+                        }
                     }
+                );
+            } else { // TFullSubset
+                sparseData.ForEachNonDefault(
+                    [&] (ui32 idx, float value) {
+                        processNonDefaultValue(idx, value);
+                    }
+                );
+                nonDefaultValuesInSampleCount = sparseData.GetNonDefaultSize();
+            }
+
+            const ui32 defaultValuesSampleCount = sampleCount - nonDefaultValuesInSampleCount;
+            if (defaultValuesSampleCount) {
+                if (IsNan(sparseData.GetDefaultValue())) {
+                    hasNans = true;
+                } else {
+                    featureValues.DefaultValue.ConstructInPlace(
+                        sparseData.GetDefaultValue(),
+                        defaultValuesSampleCount
+                    );
                 }
-            );
+            }
         } else {
             CB_ENSURE_INTERNAL(false, "CalcQuantizationAndNanMode: Unsupported column type");
         }
@@ -207,328 +346,302 @@ namespace NCB {
             *nanMode = ENanMode::Forbidden;
         }
 
-        THashSet<float> borderSet;
-
         if (nonNanValuesBorderCount > 0) {
-            borderSet = BestSplit(
-                srcFeatureValuesForBuildBorders,
+            *quantization = NSplitSelection::BestSplit(
+                std::move(featureValues),
+                /*featureValuesMayContainNans*/ false,
                 nonNanValuesBorderCount,
-                binarizationOptions.BorderSelectionType
+                binarizationOptions.BorderSelectionType,
+                quantizedDefaultBinFraction
             );
-
-            if (borderSet.contains(-0.0f)) { // BestSplit might add negative zeros
-                borderSet.erase(-0.0f);
-                borderSet.insert(0.0f);
-            }
         }
-
-        borders->assign(borderSet.begin(), borderSet.end());
-        Sort(borders->begin(), borders->end());
 
         if (*nanMode == ENanMode::Min) {
-            borders->insert(borders->begin(), std::numeric_limits<float>::lowest());
+            quantization->Borders.insert(quantization->Borders.begin(), std::numeric_limits<float>::lowest());
         } else if (*nanMode == ENanMode::Max) {
-            borders->push_back(std::numeric_limits<float>::max());
+            quantization->Borders.push_back(std::numeric_limits<float>::max());
         }
     }
 
 
-    using TGetBinFunction = std::function<ui32(size_t, size_t)>;
+    template <class T, EFeatureValuesType FeatureValuesType>
+    class TIsNonDefault {
+    public:
+        Y_FORCE_INLINE bool IsNonDefault(T srcValue) const;
+    };
 
-    TGetBinFunction GetQuantizedFloatFeatureFunction(
-        const TRawObjectsData& rawObjectsData,
-        const TQuantizedFeaturesInfo& quantizedFeaturesInfo,
-        TFloatFeatureIdx floatFeatureIdx
-    ) {
-        const auto& denseData = dynamic_cast<const TFloatArrayValuesHolder&>(
-            *(rawObjectsData.FloatFeatures[*floatFeatureIdx])
-        );
-        TConstArrayRef<float> srcRawData = **denseData.GetArrayData().GetSrc();
+    template <>
+    class TIsNonDefault<float, EFeatureValuesType::Float> {
+    public:
+        TIsNonDefault(const TQuantizedFeaturesInfo& quantizedFeaturesInfo, ui32 flatFeatureIdx)
+            : FlatFeatureIdx(flatFeatureIdx)
+            , NanMode(ENanMode::Forbidden) // properly inited below
+            , AllowNans(false) // properly inited below
+            , DefaultBinLowerBorder(0.0f) // properly inited below
+            , DefaultBinUpperBorder(0.0f) // properly inited below
+        {
+            const TFloatFeatureIdx floatFeatureIdx
+                = quantizedFeaturesInfo.GetFeaturesLayout()->GetInternalFeatureIdx<EFeatureType::Float>(
+                    FlatFeatureIdx
+                );
 
-        auto flatFeatureIdx = quantizedFeaturesInfo.GetFeaturesLayout()->GetExternalFeatureIdx(
-            *floatFeatureIdx,
-            EFeatureType::Float
-        );
-        const auto nanMode = quantizedFeaturesInfo.GetNanMode(floatFeatureIdx);
-        const bool allowNans = (nanMode != ENanMode::Forbidden) ||
-            quantizedFeaturesInfo.GetFloatFeaturesAllowNansInTestOnly();
-        TConstArrayRef<float> borders = quantizedFeaturesInfo.GetBorders(floatFeatureIdx);
+            NanMode = quantizedFeaturesInfo.GetNanMode(floatFeatureIdx);
+            AllowNans = (NanMode != ENanMode::Forbidden) ||
+                quantizedFeaturesInfo.GetFloatFeaturesAllowNansInTestOnly();
 
-        return [=](ui32 /*idx*/, ui32 srcIdx) -> ui32 {
-            return Quantize<ui32>(flatFeatureIdx, allowNans, nanMode, borders, srcRawData[srcIdx]);
-        };
-    }
+            const NSplitSelection::TQuantization& quantization
+                = quantizedFeaturesInfo.GetQuantization(floatFeatureIdx);
 
-    TGetBinFunction GetQuantizedCatFeatureFunction(
-        const TRawObjectsData& rawObjectsData,
-        const TQuantizedFeaturesInfo& quantizedFeaturesInfo,
-        TCatFeatureIdx catFeatureIdx
-    ) {
-        const auto& denseData = dynamic_cast<const THashedCatArrayValuesHolder&>(
-            *(rawObjectsData.CatFeatures[*catFeatureIdx])
-        );
-        TConstArrayRef<ui32> srcRawData = **denseData.GetArrayData().GetSrc();
+            DefaultBinLowerBorder = std::numeric_limits<float>::lowest();
+            DefaultBinUpperBorder = quantization.Borders.front();
+        }
 
-        const auto* catFeaturePerfectHashPtr
-            = &(quantizedFeaturesInfo.GetCategoricalFeaturesPerfectHash(catFeatureIdx));
+        Y_FORCE_INLINE bool IsNonDefault(float srcValue) const {
+            if (IsNan(srcValue)) {
+                CB_ENSURE(
+                    AllowNans,
+                    "There are NaNs in test dataset (feature number "
+                    << FlatFeatureIdx << ") but there were no NaNs in learn dataset"
+                );
+                if (NanMode == ENanMode::Max) {
+                    return true;
+                }
+            } else if ((srcValue <= DefaultBinLowerBorder) || (srcValue > DefaultBinUpperBorder)) {
+                return true;
+            }
+            return false;
+        }
 
-        return [srcRawData, catFeaturePerfectHashPtr](ui32 /*idx*/, ui32 srcIdx) -> ui32 {
-            return catFeaturePerfectHashPtr->Find(srcRawData[srcIdx])->Value;
-        };
-    }
+    private:
+        ui32 FlatFeatureIdx;
+        ENanMode NanMode;
+        bool AllowNans;
+        float DefaultBinLowerBorder;
+        float DefaultBinUpperBorder;
+    };
 
 
-    TGetNonDefaultValuesMask GetQuantizedFloatNonDefaultValuesMaskFunction(
-        const TRawObjectsData& rawObjectsData,
-        const TQuantizedFeaturesInfo& quantizedFeaturesInfo,
-        TFloatFeatureIdx floatFeatureIdx
-    ) {
-        const auto& denseData = dynamic_cast<const TFloatArrayValuesHolder&>(
-            *(rawObjectsData.FloatFeatures[*floatFeatureIdx])
-        );
-        TConstArrayRef<float> srcRawData = **denseData.GetArrayData().GetSrc();
+    template <>
+    class TIsNonDefault<ui32, EFeatureValuesType::HashedCategorical> {
+    public:
+        TIsNonDefault(const TQuantizedFeaturesInfo& quantizedFeaturesInfo, ui32 flatFeatureIdx) {
+            const TCatFeatureIdx catFeatureIdx
+                = quantizedFeaturesInfo.GetFeaturesLayout()
+                    ->GetInternalFeatureIdx<EFeatureType::Categorical>(flatFeatureIdx);
 
-        auto flatFeatureIdx = quantizedFeaturesInfo.GetFeaturesLayout()->GetExternalFeatureIdx(
-            *floatFeatureIdx,
-            EFeatureType::Float
-        );
-        const auto nanMode = quantizedFeaturesInfo.GetNanMode(floatFeatureIdx);
-        const bool allowNans = (nanMode != ENanMode::Forbidden) ||
-            quantizedFeaturesInfo.GetFloatFeaturesAllowNansInTestOnly();
-        float border0 = quantizedFeaturesInfo.GetBorders(floatFeatureIdx)[0];
+            const auto& perfectHash = quantizedFeaturesInfo.GetCategoricalFeaturesPerfectHash(catFeatureIdx);
 
-        return [=](TConstArrayRef<ui32> srcIndices) -> ui64 {
-            Y_ASSERT(srcIndices.size() <= (sizeof(ui64) * CHAR_BIT));
-
-            ui64 result = 0;
-            for (auto i : xrange(srcIndices.size())) {
-                const float srcValue = srcRawData[srcIndices[i]];
-                if (IsNan(srcValue)) {
-                    CB_ENSURE(
-                        allowNans,
-                        "There are NaNs in test dataset (feature number "
-                        << flatFeatureIdx << ") but there were no NaNs in learn dataset"
-                    );
-                    if (nanMode == ENanMode::Max) {
-                        result |= (ui64(1) << i);
+            bool fromDefaultMap = false;
+            if (perfectHash.DefaultMap) {
+                if (perfectHash.DefaultMap->DstValueWithCount.Value == 0) {
+                    fromDefaultMap = true;
+                    HashedCatValueMappedTo0 = perfectHash.DefaultMap->SrcValue;
+                }
+            }
+            if (!fromDefaultMap) {
+                for (const auto& [hashedCatValue, valueAndCount] : perfectHash.Map) {
+                    if (valueAndCount.Value == 0) {
+                        HashedCatValueMappedTo0 = hashedCatValue;
+                        break;
                     }
-                } else if (srcValue > border0) {
-                    result |= (ui64(1) << i);
-                }
-            }
-
-            return result;
-        };
-    }
-
-    TGetNonDefaultValuesMask GetQuantizedCatNonDefaultValuesMaskFunction(
-        const TRawObjectsData& rawObjectsData,
-        const TQuantizedFeaturesInfo& quantizedFeaturesInfo,
-        TCatFeatureIdx catFeatureIdx
-    ) {
-        const auto& denseData = dynamic_cast<const THashedCatArrayValuesHolder&>(
-            *(rawObjectsData.CatFeatures[*catFeatureIdx])
-        );
-        TConstArrayRef<ui32> srcRawData = **denseData.GetArrayData().GetSrc();
-
-        const auto& perfectHash = quantizedFeaturesInfo.GetCategoricalFeaturesPerfectHash(catFeatureIdx);
-
-        ui32 hashedCatValueMappedTo0 = 0;
-
-        bool fromDefaultMap = false;
-        if (perfectHash.DefaultMap) {
-            if (perfectHash.DefaultMap->DstValueWithCount.Value == 0) {
-                fromDefaultMap = true;
-                hashedCatValueMappedTo0 = perfectHash.DefaultMap->SrcValue;
-            }
-        }
-        if (!fromDefaultMap) {
-            for (const auto& [hashedCatValue, valueAndCount] : perfectHash.Map) {
-                if (valueAndCount.Value == 0) {
-                    hashedCatValueMappedTo0 = hashedCatValue;
-                    break;
                 }
             }
         }
 
-        return [srcRawData, hashedCatValueMappedTo0](TConstArrayRef<ui32> srcIndices) -> ui64 {
-            Y_ASSERT(srcIndices.size() <= (sizeof(ui64) * CHAR_BIT));
+        Y_FORCE_INLINE bool IsNonDefault(ui32 srcValue) const {
+            return srcValue != HashedCatValueMappedTo0;
+        }
 
-            ui64 result = 0;
-            for (auto i : xrange(srcIndices.size())) {
-                if (srcRawData[srcIndices[i]] != hashedCatValueMappedTo0) {
-                    result |= (ui64(1) << i);
-                }
-            }
-            return result;
-        };
-    }
+    private:
+        ui32 HashedCatValueMappedTo0 = 0;
+    };
 
 
-    template <class TBundle>
-    THolder<TExclusiveFeatureBundleHolder> BundleFeatures(
-        const TExclusiveFeaturesBundle& exclusiveFeaturesBundle,
-        const TRawObjectsData& rawObjectsData,
-        const TQuantizedForCPUObjectsData& quantizedObjectsData,
-        const TFeaturesArraySubsetIndexing& rawDataSubsetIndexing,
-        const TFeaturesArraySubsetIndexing* dstSubsetIndexing,
-        NPar::TLocalExecutor* localExecutor
-    ) {
-        const ui32 bitsPerKey = sizeof(TBundle) * CHAR_BIT;
-        const ui32 objectCount = rawDataSubsetIndexing.Size();
+    template <class T, EFeatureValuesType FeatureValuesType>
+    class TGetQuantizedNonDefaultValuesMasks {
+    private:
+        constexpr static ui32 BLOCK_SIZE = sizeof(ui64) * CHAR_BIT;
 
-        TCompressedArray dstStorage
-            = TCompressedArray::CreateWithUninitializedData(objectCount, bitsPerKey);
+    public:
+        TGetQuantizedNonDefaultValuesMasks(
+            TIsNonDefault<T, FeatureValuesType>&& isNonDefaultFunctor,
+            TVector<std::pair<ui32, ui64>>* masks,
+            ui32* nonDefaultCount)
+            : IsNonDefaultFunctor(std::move(isNonDefaultFunctor))
+            , DstMasks(masks)
+            , DstNonDefaultCount(nonDefaultCount)
+        {}
 
-        TBundle* dstData = (TBundle*)dstStorage.GetRawPtr();
+        inline void UpdateInIncrementalOrder(
+            ui32 idx,
+            ui32* currentBlockIdx,
+            ui64* currentBlockMask
+        ) const {
+            ++(*DstNonDefaultCount);
 
-        TConstArrayRef<TExclusiveBundlePart> parts = exclusiveFeaturesBundle.Parts;
-
-        const TBundle defaultValue = parts.back().Bounds.End;
-
-        const TQuantizedFeaturesInfo& quantizedFeaturesInfo = *quantizedObjectsData.Data.QuantizedFeaturesInfo;
-        TVector<TGetBinFunction> getBinFunctions;
-        for (const auto& part : parts) {
-            if (part.FeatureType == EFeatureType::Float) {
-                getBinFunctions.push_back(
-                    GetQuantizedFloatFeatureFunction(
-                        rawObjectsData,
-                        quantizedFeaturesInfo,
-                        TFloatFeatureIdx(part.FeatureIdx)
-                    )
-                );
-            } else if (part.FeatureType == EFeatureType::Categorical) {
-                getBinFunctions.push_back(
-                    GetQuantizedCatFeatureFunction(
-                        rawObjectsData,
-                        quantizedFeaturesInfo,
-                        TCatFeatureIdx(part.FeatureIdx)
-                    )
-                );
+            const ui32 blockIdx = idx / BLOCK_SIZE;
+            const ui64 bitMask = ui64(1) << (idx % BLOCK_SIZE);
+            if (blockIdx == *currentBlockIdx) {
+                *currentBlockMask |= bitMask;
             } else {
-                CB_ENSURE(false, "Feature bundling is not supported for features of type " << part.FeatureType);
+                if (*currentBlockIdx != Max<ui32>()) {
+                    DstMasks->push_back(std::pair<ui32, ui64>(*currentBlockIdx, *currentBlockMask));
+                }
+                *currentBlockIdx = blockIdx;
+                *currentBlockMask = bitMask;
             }
         }
 
-        rawDataSubsetIndexing.ParallelForEach(
-            [dstData, parts, defaultValue, &getBinFunctions] (ui32 idx, ui32 srcIdx) {
-                for (auto partIdx : xrange(parts.size())) {
-                    const ui32 partBin = getBinFunctions[partIdx](idx, srcIdx);
-                    if (partBin) {
-                        dstData[idx] = (TBundle)(parts[partIdx].Bounds.Begin + partBin - 1);
-                        return;
-                    }
-                }
-                dstData[idx] = defaultValue;
-            },
-            localExecutor
-        );
+        void ProcessDenseColumn(
+            const TArrayValuesHolder<T, FeatureValuesType>& denseColumn,
+            const TFeaturesArraySubsetIndexing& incrementalIndexing
+        ) const {
+            ui32 currentBlockIdx = Max<ui32>();
+            ui64 currentBlockMask = 0;
 
-        return MakeHolder<TExclusiveFeatureBundleArrayHolder>(
-            0, // unused
-            std::move(dstStorage),
-            dstSubsetIndexing
-        );
-    }
-
-    static void ScheduleBundleFeatures(
-        const TFeaturesArraySubsetIndexing& rawDataSubsetIndexing,
-        bool clearSrcObjectsData,
-        const TFeaturesArraySubsetIndexing* quantizedDataSubsetIndexing,
-        NPar::TLocalExecutor* localExecutor,
-        TResourceConstrainedExecutor* resourceConstrainedExecutor,
-        TRawObjectsData* rawObjectsData,
-        TQuantizedForCPUObjectsData* quantizedObjectsData
-    ) {
-        const auto& metaData = quantizedObjectsData->ExclusiveFeatureBundlesData.MetaData;
-
-        const auto bundleCount = metaData.size();
-        quantizedObjectsData->ExclusiveFeatureBundlesData.SrcData.resize(bundleCount);
-
-        const ui32 objectCount = rawDataSubsetIndexing.Size();
-
-        for (auto bundleIdx : xrange(bundleCount)) {
-            resourceConstrainedExecutor->Add(
-                {
-                    objectCount * metaData[bundleIdx].SizeInBytes,
-
-                    [rawDataSubsetIndexingPtr = &rawDataSubsetIndexing,
-                     clearSrcObjectsData,
-                     quantizedDataSubsetIndexing,
-                     localExecutor,
-                     rawObjectsData,
-                     quantizedObjectsData,
-                     bundleIdx] () {
-
-                        auto& exclusiveFeatureBundlesData = quantizedObjectsData->ExclusiveFeatureBundlesData;
-                        const auto& bundleMetaData = exclusiveFeatureBundlesData.MetaData[bundleIdx];
-                        auto& bundleData = exclusiveFeatureBundlesData.SrcData[bundleIdx];
-
-                        switch (bundleMetaData.SizeInBytes) {
-                            case 1:
-                                bundleData = BundleFeatures<ui8>(
-                                    bundleMetaData,
-                                    *rawObjectsData,
-                                    *quantizedObjectsData,
-                                    *rawDataSubsetIndexingPtr,
-                                    quantizedDataSubsetIndexing,
-                                    localExecutor
-                                );
-                                break;
-                            case 2:
-                                bundleData = BundleFeatures<ui16>(
-                                    bundleMetaData,
-                                    *rawObjectsData,
-                                    *quantizedObjectsData,
-                                    *rawDataSubsetIndexingPtr,
-                                    quantizedDataSubsetIndexing,
-                                    localExecutor
-                                );
-                                break;
-                            default:
-                                CB_ENSURE_INTERNAL(
-                                    false,
-                                    "unsupported Bundle SizeInBytes = " << bundleMetaData.SizeInBytes
-                                );
-                        }
-
-                        for (auto partIdx : xrange(bundleMetaData.Parts.size())) {
-                            const auto& part = bundleMetaData.Parts[partIdx];
-                            if (part.FeatureType == EFeatureType::Float) {
-                                quantizedObjectsData->Data.FloatFeatures[part.FeatureIdx].Reset(
-                                    new TQuantizedFloatBundlePartValuesHolder(
-                                        rawObjectsData->FloatFeatures[part.FeatureIdx]->GetId(),
-                                        bundleData.Get(),
-                                        part.Bounds
-                                    )
-                                );
-                                if (clearSrcObjectsData) {
-                                    rawObjectsData->FloatFeatures[part.FeatureIdx].Destroy();
-                                }
-                            } else if (part.FeatureType == EFeatureType::Categorical) {
-                                quantizedObjectsData->Data.CatFeatures[part.FeatureIdx].Reset(
-                                    new TQuantizedCatBundlePartValuesHolder(
-                                        rawObjectsData->CatFeatures[part.FeatureIdx]->GetId(),
-                                        bundleData.Get(),
-                                        part.Bounds
-                                    )
-                                );
-                                if (clearSrcObjectsData) {
-                                    rawObjectsData->CatFeatures[part.FeatureIdx].Destroy();
-                                }
-                            } else {
-                                CB_ENSURE(false, "Feature bundling is not supported for features of type " << part.FeatureType);
-                            }
-                        }
+            TMaybeOwningConstArraySubset<T, ui32>(
+                denseColumn.GetArrayData().GetSrc(),
+                &incrementalIndexing
+            ).ForEach(
+                [&] (ui32 idx, T srcValue) {
+                    if (IsNonDefaultFunctor.IsNonDefault(srcValue)) {
+                        UpdateInIncrementalOrder(idx, &currentBlockIdx, &currentBlockMask);
                     }
                 }
             );
+            if (currentBlockIdx != Max<ui32>()) {
+                DstMasks->push_back(std::pair<ui32, ui64>(currentBlockIdx, currentBlockMask));
+            }
         }
+
+        void NonDefaultIndicesToMasks(TVector<ui32>&& nonDefaultIndices) const {
+            Sort(nonDefaultIndices);
+
+            ui32 currentBlockIdx = Max<ui32>();
+            ui64 currentBlockMask = 0;
+
+            for (auto idx : nonDefaultIndices) {
+                UpdateInIncrementalOrder(idx, &currentBlockIdx, &currentBlockMask);
+            }
+
+            if (currentBlockIdx != Max<ui32>()) {
+                DstMasks->push_back(std::pair<ui32, ui64>(currentBlockIdx, currentBlockMask));
+            }
+        }
+
+        void ProcessSparseColumn(
+            const TSparseArrayValuesHolder<T, FeatureValuesType>& sparseColumn,
+            const TFeaturesArraySubsetInvertedIndexing& incrementalInvertedIndexing
+        ) const {
+            const auto& sparseArray = sparseColumn.GetData();
+            auto sparseArrayIterator = sparseArray.GetIterator();
+
+            if (const TInvertedIndexedSubset<ui32>* invertedIndexedSubset
+                    = GetIf<TInvertedIndexedSubset<ui32>>(&incrementalInvertedIndexing))
+            {
+                TConstArrayRef<ui32> invertedIndexedSubsetArray = invertedIndexedSubset->GetMapping();
+                TVector<ui32> nonDefaultIndices;
+                nonDefaultIndices.reserve(sparseArray.GetNonDefaultSize());
+
+                while (auto next = sparseArrayIterator.Next()) {
+                    if (IsNonDefaultFunctor.IsNonDefault(next->second)) {
+                        nonDefaultIndices.push_back(invertedIndexedSubsetArray[next->first]);
+                    }
+                }
+
+                NonDefaultIndicesToMasks(std::move(nonDefaultIndices));
+            } else {
+                // TFullSubset
+
+                ui32 currentBlockIdx = Max<ui32>();
+                ui64 currentBlockMask = 0;
+
+                while (auto next = sparseArrayIterator.Next()) {
+                    if (IsNonDefaultFunctor.IsNonDefault(next->second)) {
+                        UpdateInIncrementalOrder(next->first, &currentBlockIdx, &currentBlockMask);
+                    }
+                }
+                if (currentBlockIdx != Max<ui32>()) {
+                    DstMasks->push_back(std::pair<ui32, ui64>(currentBlockIdx, currentBlockMask));
+                }
+            }
+        }
+
+        void ProcessColumn(
+            const TTypedFeatureValuesHolder<T, FeatureValuesType>& column,
+            const TFeaturesArraySubsetIndexing& incrementalIndexing,
+            const TFeaturesArraySubsetInvertedIndexing& invertedIncrementalIndexing
+        ) const {
+            if (const auto* denseColumn
+                    = dynamic_cast<const TArrayValuesHolder<T, FeatureValuesType>*>(&column))
+            {
+                ProcessDenseColumn(*denseColumn, incrementalIndexing);
+            } else if (const auto* sparseColumn
+                           = dynamic_cast<const TSparseArrayValuesHolder<T, FeatureValuesType>*>(&column))
+            {
+                ProcessSparseColumn(*sparseColumn, invertedIncrementalIndexing);
+            } else {
+                CB_ENSURE(false, "Unsupported column type");
+            }
+        }
+
+    private:
+        TIsNonDefault<T, FeatureValuesType> IsNonDefaultFunctor;
+
+        TVector<std::pair<ui32, ui64>>* DstMasks;
+        ui32* DstNonDefaultCount;
+    };
+
+
+    /* GetQuantizedNonDefaultValuesMasks are copy-paste but this way we avoid exposing implementation
+     *   in header
+     */
+
+    void GetQuantizedNonDefaultValuesMasks(
+        const TFloatValuesHolder& floatValuesHolder,
+        const TQuantizedFeaturesInfo& quantizedFeaturesInfo,
+        const TFeaturesArraySubsetIndexing& incrementalIndexing,
+        const TFeaturesArraySubsetInvertedIndexing& invertedIncrementalIndexing,
+        TVector<std::pair<ui32, ui64>>* masks,
+        ui32* nonDefaultCount
+    ) {
+        TGetQuantizedNonDefaultValuesMasks processor(
+            TIsNonDefault<float, EFeatureValuesType::Float>(
+                quantizedFeaturesInfo,
+                floatValuesHolder.GetId()
+            ),
+            masks,
+            nonDefaultCount
+        );
+
+        processor.ProcessColumn(floatValuesHolder, incrementalIndexing, invertedIncrementalIndexing);
     }
+
+    void GetQuantizedNonDefaultValuesMasks(
+        const THashedCatValuesHolder& catValuesHolder,
+        const TQuantizedFeaturesInfo& quantizedFeaturesInfo,
+        const TFeaturesArraySubsetIndexing& incrementalIndexing,
+        const TFeaturesArraySubsetInvertedIndexing& invertedIncrementalIndexing,
+        TVector<std::pair<ui32, ui64>>* masks,
+        ui32* nonDefaultCount
+    ) {
+        TGetQuantizedNonDefaultValuesMasks processor(
+            TIsNonDefault<ui32, EFeatureValuesType::HashedCategorical>(
+                quantizedFeaturesInfo,
+                catValuesHolder.GetId()
+            ),
+            masks,
+            nonDefaultCount
+        );
+
+        processor.ProcessColumn(catValuesHolder, incrementalIndexing, invertedIncrementalIndexing);
+    }
+
 
     template <
         class IQuantizedValuesHolder,
         class TExternalValuesHolder,
+        class TExternalSparseValuesHolder,
         class TSrc,
         EFeatureValuesType SrcFeatureValuesType>
     static THolder<IQuantizedValuesHolder> MakeExternalValuesHolder(
@@ -536,6 +649,7 @@ namespace NCB {
         TQuantizedFeaturesInfoPtr quantizedFeaturesInfo
     ) {
         using TDenseSrcFeature = TArrayValuesHolder<TSrc, SrcFeatureValuesType>;
+        using TSparseSrcFeature = TSparseArrayValuesHolder<TSrc, SrcFeatureValuesType>;
 
         if (const auto* denseSrcFeature = dynamic_cast<const TDenseSrcFeature*>(&srcFeature)){
             const auto arrayData = denseSrcFeature->GetArrayData();
@@ -546,413 +660,1030 @@ namespace NCB {
                 arrayData.GetSubsetIndexing(),
                 quantizedFeaturesInfo
             );
+        } else if (const auto* sparseSrcFeature = dynamic_cast<const TSparseSrcFeature*>(&srcFeature)) {
+            return MakeHolder<TExternalSparseValuesHolder>(
+                sparseSrcFeature->GetId(),
+                sparseSrcFeature->GetData(),
+                quantizedFeaturesInfo
+            );
         } else {
             CB_ENSURE_INTERNAL(false, "MakeExternalValuesHolder: unsupported src feature type");
         }
     }
 
-    static THolder<IQuantizedFloatValuesHolder> MakeQuantizedFloatColumn(
-        const TFloatValuesHolder& srcFeature,
-        ENanMode nanMode,
-        bool allowNans,
-        TConstArrayRef<float> borders,
-        const TFeaturesArraySubsetIndexing* dstSubsetIndexing,
-        NPar::TLocalExecutor* localExecutor
-    ) {
-        const ui32 bitsPerKey = CalcHistogramWidthForBorders(borders.size());
+    template <class TSrcValue, EFeatureValuesType FeatureValuesType>
+    class TValueQuantizer {
+    public:
+        ui32 GetDstBitsPerKey() const;
+        Y_FORCE_INLINE ui32 Quantize(TSrcValue srcValue) const;
+        TMaybe<ui32> GetDefaultBin() const;
+    };
 
-        auto quantizeNonDefaultValues
-            = [&] (TMaybeOwningConstArraySubset<float, ui32> nonDefaultValues) -> TCompressedArray {
-
-                TCompressedArray quantizedDataStorage
-                    = TCompressedArray::CreateWithUninitializedData(nonDefaultValues.Size(), bitsPerKey);
-
-                auto quantizeNonDefaultValuesInner = [&] (auto* dstBegin) {
-                    Quantize(
-                        nonDefaultValues,
-                        allowNans,
-                        nanMode,
-                        srcFeature.GetId(),
-                        borders,
-                        MakeArrayRef(dstBegin, nonDefaultValues.Size()),
-                        localExecutor
-                    );
-                };
-
-                switch (bitsPerKey) {
-                    case 8:
-                        quantizeNonDefaultValuesInner((ui8*)quantizedDataStorage.GetRawPtr());
-                        break;
-                    case 16:
-                        quantizeNonDefaultValuesInner((ui16*)quantizedDataStorage.GetRawPtr());
-                        break;
-                    default:
-                        CB_ENSURE_INTERNAL(
-                            false,
-                            "MakeQuantizedFloatColumn: unsupported " << LabeledOutput(bitsPerKey)
-                        );
-                }
-
-                return quantizedDataStorage;
-            };
-
-        if (const auto* denseSrcFeature = dynamic_cast<const TFloatArrayValuesHolder*>(&srcFeature)){
-            return MakeHolder<TQuantizedFloatValuesHolder>(
-                srcFeature.GetId(),
-                quantizeNonDefaultValues(denseSrcFeature->GetArrayData()),
-                dstSubsetIndexing
-            );
-        } else {
-            CB_ENSURE_INTERNAL(false, "MakeQuantizedFloatColumn: unsupported src feature type");
-        }
-        Y_UNREACHABLE();
-    }
-
-
-    static THolder<IQuantizedCatValuesHolder> MakeQuantizedCatColumn(
-        const THashedCatValuesHolder& srcFeature,
-        const TCatFeaturePerfectHash& perfectHash,
-        const TFeaturesArraySubsetIndexing* dstSubsetIndexing,
-        NPar::TLocalExecutor* localExecutor
-    ) {
-        // TODO(akhropov): support other bitsPerKey. MLTOOLS-2425
-        const ui32 bitsPerKey = 32;
-
-        auto quantizeValues
-            = [&] (TMaybeOwningConstArraySubset<ui32, ui32> srcFeatureData) -> TCompressedArray {
-                TCompressedArray quantizedDataStorage
-                    = TCompressedArray::CreateWithUninitializedData(srcFeatureData.Size(), bitsPerKey);
-
-                TArrayRef<ui32> quantizedData = quantizedDataStorage.GetRawArray<ui32>();
-
-                srcFeatureData.ParallelForEach(
-                    [quantizedData, &perfectHash] (ui32 idx, ui32 srcValue) {
-                        quantizedData[idx] = perfectHash.Find(srcValue)->Value;
-                    },
-                    localExecutor,
-                    BINARIZATION_BLOCK_SIZE
+    template <>
+    class TValueQuantizer<float, EFeatureValuesType::Float> {
+    public:
+        TValueQuantizer(const TQuantizedFeaturesInfo& quantizedFeaturesInfo, ui32 flatFeatureIdx)
+            : FlatFeatureIdx(flatFeatureIdx)
+            , NanMode(ENanMode::Forbidden) // properly inited below
+            , AllowNans(false) // properly inited below
+        {
+            const TFloatFeatureIdx floatFeatureIdx
+                = quantizedFeaturesInfo.GetFeaturesLayout()->GetInternalFeatureIdx<EFeatureType::Float>(
+                    FlatFeatureIdx
                 );
 
-                return quantizedDataStorage;
-            };
+            {
+                // because features can be quantized while quantizedFeaturesInfo is still updating
+                TReadGuard guard(quantizedFeaturesInfo.GetRWMutex());
 
-        if (const auto* arraySrcFeature = dynamic_cast<const THashedCatArrayValuesHolder*>(&srcFeature)) {
-            return MakeHolder<TQuantizedCatValuesHolder>(
-                srcFeature.GetId(),
-                quantizeValues(arraySrcFeature->GetArrayData()),
-                dstSubsetIndexing
+                NanMode = quantizedFeaturesInfo.GetNanMode(floatFeatureIdx);
+                AllowNans = (NanMode != ENanMode::Forbidden) ||
+                    quantizedFeaturesInfo.GetFloatFeaturesAllowNansInTestOnly();
+                const auto& quantization = quantizedFeaturesInfo.GetQuantization(floatFeatureIdx);
+                Borders = quantization.Borders;
+                if (quantization.DefaultQuantizedBin) {
+                    DefaultBin = quantization.DefaultQuantizedBin->Idx;
+                }
+            }
+        }
+
+        TValueQuantizer(const TQuantizedFeaturesInfo& quantizedFeaturesInfo, TFloatFeatureIdx floatFeatureIdx)
+            : TValueQuantizer(
+                quantizedFeaturesInfo,
+                quantizedFeaturesInfo.GetFeaturesLayout()->GetExternalFeatureIdx(
+                    *floatFeatureIdx,
+                    EFeatureType::Float
+                )
+              )
+        {}
+
+        ui32 GetDstBitsPerKey() const {
+            return CalcHistogramWidthForBorders(Borders.size());
+        }
+
+        Y_FORCE_INLINE ui32 Quantize(float srcValue) const {
+            return NCB::Quantize<ui32>(FlatFeatureIdx, AllowNans, NanMode, Borders, srcValue);
+        }
+
+        TMaybe<ui32> GetDefaultBin() const {
+            return DefaultBin;
+        }
+
+    private:
+        ui32 FlatFeatureIdx;
+        ENanMode NanMode;
+        bool AllowNans;
+        TConstArrayRef<float> Borders;
+
+        TMaybe<ui32> DefaultBin;
+    };
+
+    template <>
+    class TValueQuantizer<ui32, EFeatureValuesType::HashedCategorical> {
+    public:
+        TValueQuantizer(const TQuantizedFeaturesInfo& quantizedFeaturesInfo, ui32 flatFeatureIdx) {
+            const TCatFeatureIdx catFeatureIdx
+                = quantizedFeaturesInfo.GetFeaturesLayout()->GetInternalFeatureIdx<EFeatureType::Categorical>(
+                    flatFeatureIdx
+                );
+
+            {
+                // because features can be quantized while quantizedFeaturesInfo is still updating
+                TReadGuard guard(quantizedFeaturesInfo.GetRWMutex());
+
+                PerfectHash = &quantizedFeaturesInfo.GetCategoricalFeaturesPerfectHash(catFeatureIdx);
+            }
+        }
+
+        TValueQuantizer(const TQuantizedFeaturesInfo& quantizedFeaturesInfo, TCatFeatureIdx catFeatureIdx)
+            : TValueQuantizer(
+                quantizedFeaturesInfo,
+                quantizedFeaturesInfo.GetFeaturesLayout()->GetExternalFeatureIdx(
+                    *catFeatureIdx,
+                    EFeatureType::Categorical
+                )
+              )
+        {}
+
+        ui32 GetDstBitsPerKey() const {
+            // TODO(akhropov): support other bitsPerKey. MLTOOLS-2425
+            return 32;
+        }
+
+        Y_FORCE_INLINE ui32 Quantize(ui32 srcValue) const {
+            return PerfectHash->Find(srcValue)->Value;
+        }
+
+        TMaybe<ui32> GetDefaultBin() const {
+            if (PerfectHash->DefaultMap.Defined()) {
+                return PerfectHash->DefaultMap->DstValueWithCount.Value;
+            } else {
+                return Nothing();
+            }
+        }
+
+    private:
+        const TCatFeaturePerfectHash* PerfectHash = nullptr;
+    };
+
+
+    template <
+        class TStoredDstValue,
+        class TDst,
+        EFeatureValuesType DstFeatureValuesType,
+        class TSrc,
+        EFeatureValuesType SrcFeatureValuesType>
+    static void MakeQuantizedColumnWithDefaultBin(
+        const TTypedFeatureValuesHolder<TSrc, SrcFeatureValuesType>& srcFeature,
+        TValueQuantizer<TSrc, SrcFeatureValuesType> valueQuantizer,
+        ESparseArrayIndexingType sparseArrayIndexingType,
+
+        // pass as parameter to enable type deduction
+        THolder<TTypedFeatureValuesHolder<TDst, DstFeatureValuesType>>* dstFeature
+    ) {
+        using TDenseSrcData = TArrayValuesHolder<TSrc, SrcFeatureValuesType>;
+        using TSparseSrcData = TSparseArrayValuesHolder<TSrc, SrcFeatureValuesType>;
+
+        Y_ASSERT(valueQuantizer.GetDstBitsPerKey() == sizeof(TStoredDstValue) * CHAR_BIT);
+
+        ui32 defaultQuantizedBin = *valueQuantizer.GetDefaultBin();
+
+        TSparseArrayIndexingBuilderPtr<ui32> indexingBuilder
+            = CreateSparseArrayIndexingBuilder<ui32>(sparseArrayIndexingType);
+
+        constexpr size_t ALLOC_BLOCK = 8192;
+
+        TVector<ui64> quantizedDataStorage;
+
+        ui32 nonDefaultValuesCount = 0;
+
+        auto onSrcNonDefaultValueCallback = [&, valueQuantizer, defaultQuantizedBin] (ui32 idx, TSrc value) {
+            auto quantizedBin = valueQuantizer.Quantize(value);
+            if (quantizedBin != defaultQuantizedBin) {
+                indexingBuilder->AddOrdered(idx);
+
+                if (nonDefaultValuesCount % (ALLOC_BLOCK * sizeof(ui64) / sizeof(TStoredDstValue)) == 0) {
+                    quantizedDataStorage.yresize(nonDefaultValuesCount + ALLOC_BLOCK);
+                }
+                ((TStoredDstValue*)quantizedDataStorage.data())[nonDefaultValuesCount] = quantizedBin;
+                ++nonDefaultValuesCount;
+            }
+        };
+
+        if (const auto* denseSrcFeature = dynamic_cast<const TDenseSrcData*>(&srcFeature)){
+            denseSrcFeature->GetArrayData().ForEach(onSrcNonDefaultValueCallback);
+        } else if (const auto* sparseSrcFeature = dynamic_cast<const TSparseSrcData*>(&srcFeature)) {
+            const auto& sparseArray = sparseSrcFeature->GetData();
+            sparseArray.ForEachNonDefault(onSrcNonDefaultValueCallback);
+        } else {
+            CB_ENSURE_INTERNAL(false, "MakeQuantizedColumnWithDefaultBin: unsupported src feature type");
+        }
+
+        *dstFeature = MakeHolder<TSparseCompressedValuesHolderImpl<TDst, DstFeatureValuesType>>(
+            srcFeature.GetId(),
+            TSparseCompressedArray<TDst, ui32>(
+                indexingBuilder->Build(srcFeature.GetSize()),
+                TCompressedArray(
+                    nonDefaultValuesCount,
+                    valueQuantizer.GetDstBitsPerKey(),
+                    std::move(quantizedDataStorage)
+                ),
+                std::move(defaultQuantizedBin)
+            )
+        );
+    }
+
+    // TCallback accepts (dstIndex, quantizedValue) arguments
+    template <class TSrc, EFeatureValuesType SrcFeatureValuesType, class TCallback>
+    static void QuantizeNonDefaultValues(
+        const TTypedFeatureValuesHolder<TSrc, SrcFeatureValuesType>& srcFeature,
+        const TIncrementalDenseIndexing& incrementalDenseIndexing,
+        TValueQuantizer<TSrc, SrcFeatureValuesType> valueQuantizer,
+        NPar::TLocalExecutor* localExecutor,
+        TCallback&& callback
+    ) {
+        using TDenseSrcData = TArrayValuesHolder<TSrc, SrcFeatureValuesType>;
+        using TSparseSrcData = TSparseArrayValuesHolder<TSrc, SrcFeatureValuesType>;
+
+        if (const auto* denseSrcFeature = dynamic_cast<const TDenseSrcData*>(&srcFeature)){
+            if (const auto* nontrivialIncrementalIndexing
+                = GetIf<TIndexedSubset<ui32>>(&incrementalDenseIndexing.SrcSubsetIndexing))
+            {
+                TConstArrayRef<ui32> dstIndices
+                    = Get<TIndexedSubset<ui32>>(incrementalDenseIndexing.DstIndexing);
+
+                TMaybeOwningConstArraySubset<TSrc, ui32>(
+                    denseSrcFeature->GetArrayData().GetSrc(),
+                    &incrementalDenseIndexing.SrcSubsetIndexing
+                ).ParallelForEach(
+                    [=] (ui32 i, TSrc srcValue) {
+                        callback(dstIndices[i], valueQuantizer.Quantize(srcValue));
+                    },
+                    localExecutor
+                );
+            } else {
+                denseSrcFeature->GetArrayData().ParallelForEach(
+                    [=] (ui32 dstIdx, TSrc srcValue) {
+                        callback(dstIdx, valueQuantizer.Quantize(srcValue));
+                    },
+                    localExecutor
+                );
+            }
+        } else if (const auto* sparseSrcFeature = dynamic_cast<const TSparseSrcData*>(&srcFeature)) {
+            const auto& sparseArray = sparseSrcFeature->GetData();
+            sparseArray.ForEachNonDefault(
+                [=] (ui32 dstIdx, TSrc srcValue) {
+                    callback(dstIdx, valueQuantizer.Quantize(srcValue));
+                }
             );
         } else {
-            CB_ENSURE_INTERNAL(false, "MakeQuantizedCatColumn: unsupported src feature type");
+            CB_ENSURE_INTERNAL(false, "QuantizeNonDefaultValues: unsupported src feature type");
+        }
+    }
+
+    template <
+        class TStoredDstValue,
+        class TDst,
+        EFeatureValuesType DstFeatureValuesType,
+        class TSrc,
+        EFeatureValuesType SrcFeatureValuesType>
+    static void MakeQuantizedColumnWithoutDefaultBin(
+        const TTypedFeatureValuesHolder<TSrc, SrcFeatureValuesType>& srcFeature,
+        const TIncrementalDenseIndexing& incrementalDenseIndexing,
+        TValueQuantizer<TSrc, SrcFeatureValuesType> valueQuantizer,
+        const TFeaturesArraySubsetIndexing* dstSubsetIndexing,
+        NPar::TLocalExecutor* localExecutor,
+
+        // pass as parameter to enable type deduction
+        THolder<TTypedFeatureValuesHolder<TDst, DstFeatureValuesType>>* dstFeature
+    ) {
+        using TSparseSrcData = TSparseArrayValuesHolder<TSrc, SrcFeatureValuesType>;
+
+        const ui32 dstBitsPerKey = valueQuantizer.GetDstBitsPerKey();
+
+        Y_ASSERT(dstBitsPerKey == sizeof(TStoredDstValue) * CHAR_BIT);
+
+        TCompressedArray dstStorage
+            = TCompressedArray::CreateWithUninitializedData(srcFeature.GetSize(), dstBitsPerKey);
+
+        TArrayRef<TStoredDstValue> dstArrayRef = dstStorage.GetRawArray<TStoredDstValue>();
+
+        if (const auto* sparseSrcFeature = dynamic_cast<const TSparseSrcData*>(&srcFeature)) {
+            const auto& sparseArray = sparseSrcFeature->GetData();
+            if (sparseArray.GetDefaultSize()) {
+                /* this is for consistency with dense data -
+                    is case of cat features default value is not added to CatFeaturesPerfectHash
+                    if it is not present in source data
+                */
+                const TStoredDstValue quantizedSrcDefaultValue
+                    = valueQuantizer.Quantize(sparseArray.GetDefaultValue());
+
+                ParallelFill(quantizedSrcDefaultValue, /*blockSize*/ Nothing(), localExecutor, dstArrayRef);
+            }
+        }
+
+        QuantizeNonDefaultValues(
+            srcFeature,
+            incrementalDenseIndexing,
+            std::move(valueQuantizer),
+            localExecutor,
+            [=] (ui32 dstIdx, ui32 quantizedValue) {
+                dstArrayRef[dstIdx] = (TStoredDstValue)quantizedValue;
+            }
+        );
+
+        *dstFeature = MakeHolder<TCompressedValuesHolderImpl<TDst, DstFeatureValuesType>>(
+            srcFeature.GetId(),
+            std::move(dstStorage),
+            dstSubsetIndexing
+        );
+    }
+
+    template <
+        class TDst,
+        EFeatureValuesType DstFeatureValuesType,
+        class TSrc,
+        EFeatureValuesType SrcFeatureValuesType>
+    static void MakeQuantizedColumn(
+        const TTypedFeatureValuesHolder<TSrc, SrcFeatureValuesType>& srcFeature,
+        const TQuantizedFeaturesInfo& quantizedFeaturesInfo,
+        const TIncrementalDenseIndexing& incrementalDenseIndexing,
+        ESparseArrayIndexingType sparseArrayIndexingType,
+        const TFeaturesArraySubsetIndexing* dstSubsetIndexing,
+        NPar::TLocalExecutor* localExecutor,
+
+        // pass as parameter to enable type deduction
+        THolder<TTypedFeatureValuesHolder<TDst, DstFeatureValuesType>>* dstFeature
+    ) {
+        TValueQuantizer<TSrc, SrcFeatureValuesType> valueQuantizer(quantizedFeaturesInfo, srcFeature.GetId());
+
+        // dispatch by storedDstValueType
+        auto makeQuantizedColumnForStoredDstValue = [&] (auto storedDstValueExample) {
+            if (valueQuantizer.GetDefaultBin()) {
+                MakeQuantizedColumnWithDefaultBin<decltype(storedDstValueExample)>(
+                    srcFeature,
+                    std::move(valueQuantizer),
+                    sparseArrayIndexingType,
+                    dstFeature
+                );
+            } else {
+                MakeQuantizedColumnWithoutDefaultBin<decltype(storedDstValueExample)>(
+                    srcFeature,
+                    incrementalDenseIndexing,
+                    std::move(valueQuantizer),
+                    dstSubsetIndexing,
+                    localExecutor,
+                    dstFeature
+                );
+            }
+        };
+
+        switch (valueQuantizer.GetDstBitsPerKey()) {
+            case 8:
+                makeQuantizedColumnForStoredDstValue(ui8());
+                break;
+            case 16:
+                makeQuantizedColumnForStoredDstValue(ui16());
+                break;
+            case 32:
+                makeQuantizedColumnForStoredDstValue(ui32());
+                break;
+            default:
+                CB_ENSURE_INTERNAL(false, "MakeQuantizedColumn: unsupported bits per key");
+        }
+    }
+
+    TMaybe<ui32> GetDefaultQuantizedValue(
+        const TQuantizedFeaturesInfo& quantizedFeaturesInfo,
+        TFeatureIdxWithType featureWithType
+    ) {
+        switch (featureWithType.FeatureType) {
+            case EFeatureType::Float:
+                return TValueQuantizer<float, EFeatureValuesType::Float>(
+                    quantizedFeaturesInfo,
+                    TFloatFeatureIdx(featureWithType.FeatureIdx)
+                ).GetDefaultBin();
+            case EFeatureType::Categorical:
+                return TValueQuantizer<ui32, EFeatureValuesType::HashedCategorical>(
+                    quantizedFeaturesInfo,
+                    TCatFeatureIdx(featureWithType.FeatureIdx)
+                ).GetDefaultBin();
+            default:
+                CB_ENSURE(
+                    false,
+                    "GetDefaultQuantizedValue is not supported for features of type "
+                    << featureWithType.FeatureType
+                );
         }
         Y_UNREACHABLE();
     }
 
 
-    static void ScheduleNonBundledAndNonBinaryFeatures(
-        const TFeaturesArraySubsetIndexing& rawDataSubsetIndexing,
-        bool clearSrcObjectsData,
-        const TFeaturesLayout& featuresLayout,
-        const TFeaturesArraySubsetIndexing* quantizedDataSubsetIndexing,
-        NPar::TLocalExecutor* localExecutor,
-        TResourceConstrainedExecutor* resourceConstrainedExecutor,
-        TRawObjectsData* rawObjectsData,
-        TQuantizedForCPUObjectsData* quantizedObjectsData
-    ) {
-        const ui32 objectCount = rawDataSubsetIndexing.Size();
+    class TColumnsQuantizer {
+    public:
+        TColumnsQuantizer(
+            bool clearSrcObjectsData,
+            const TQuantizationOptions& options,
+            const TIncrementalDenseIndexing& incrementalDenseIndexing,
+            const TFeaturesLayout& featuresLayout,
+            const TFeaturesArraySubsetIndexing* quantizedDataSubsetIndexing,
+            NPar::TLocalExecutor* localExecutor,
+            TRawObjectsData* rawObjectsData,
+            TQuantizedForCPUObjectsData* quantizedObjectsData
+        )
+            : ClearSrcObjectsData(clearSrcObjectsData)
+            , Options(options)
+            , IncrementalDenseIndexing(incrementalDenseIndexing)
+            , FeaturesLayout(featuresLayout)
+            , QuantizedDataSubsetIndexing(quantizedDataSubsetIndexing)
+            , LocalExecutor(localExecutor)
+            , RawObjectsData(rawObjectsData)
+            , QuantizedObjectsData(quantizedObjectsData)
+        {
+            ui64 cpuRamUsage = NMemInfo::GetMemInfo().RSS;
+            OutputWarningIfCpuRamUsageOverLimit(cpuRamUsage, options.CpuRamLimit);
 
-        auto isInAggregatedColumn = [&] (EFeatureType featureType, ui32 perTypeFeatureIdx) {
-            const ui32 flatFeatureIdx = featuresLayout.GetExternalFeatureIdx(perTypeFeatureIdx, featureType);
+            ResourceConstrainedExecutor.ConstructInPlace(
+                "CPU RAM",
+                options.CpuRamLimit - Min(cpuRamUsage, options.CpuRamLimit),
+                /*lenientMode*/ true,
+                localExecutor
+            );
+        }
 
-            if (quantizedObjectsData
+    public:
+        template <
+            class TSrc,
+            EFeatureValuesType SrcFeatureValuesType,
+            class TDst,
+            EFeatureValuesType DstFeatureValuesType>
+        void QuantizeAndClearSrcData(
+            THolder<TTypedFeatureValuesHolder<TSrc, SrcFeatureValuesType>>* srcColumn,
+            THolder<TTypedFeatureValuesHolder<TDst, DstFeatureValuesType>>* dstColumn
+        ) const {
+            MakeQuantizedColumn(
+                **srcColumn,
+                *QuantizedObjectsData->Data.QuantizedFeaturesInfo,
+                IncrementalDenseIndexing,
+                Options.SparseArrayIndexingType,
+                QuantizedDataSubsetIndexing,
+                LocalExecutor,
+                dstColumn
+            );
+            if (ClearSrcObjectsData) {
+                srcColumn->Destroy();
+            }
+        }
+
+        void QuantizeAndClearSrcData(TFloatFeatureIdx floatFeatureIdx) const {
+            QuantizeAndClearSrcData(
+                &(RawObjectsData->FloatFeatures[*floatFeatureIdx]),
+                &(QuantizedObjectsData->Data.FloatFeatures[*floatFeatureIdx])
+            );
+        }
+
+        void QuantizeAndClearSrcData(TCatFeatureIdx catFeatureIdx) const {
+            QuantizeAndClearSrcData(
+                &(RawObjectsData->CatFeatures[*catFeatureIdx]),
+                &(QuantizedObjectsData->Data.CatFeatures[*catFeatureIdx])
+            );
+        }
+
+        template <class T, EFeatureValuesType FeatureValuesType, class TCallback>
+        void QuantizeNonDefaultValuesAndClearSrcData(
+            THolder<TTypedFeatureValuesHolder<T, FeatureValuesType>>* srcColumn,
+            TCallback&& callback
+        ) const {
+            NCB::QuantizeNonDefaultValues(
+                **srcColumn,
+                IncrementalDenseIndexing,
+                TValueQuantizer<T, FeatureValuesType>(
+                    *QuantizedObjectsData->Data.QuantizedFeaturesInfo,
+                    (*srcColumn)->GetId()
+                ),
+                LocalExecutor,
+                std::move(callback)
+            );
+            if (ClearSrcObjectsData) {
+                srcColumn->Destroy();
+            }
+        }
+
+
+        template <EFeatureValuesType FeatureValuesType>
+        void AggregateFeatures(ui32 aggregateIdx) const;
+
+        template <EFeatureValuesType FeatureValuesType>
+        void ScheduleAggregateFeatures();
+
+
+        bool IsInAggregatedColumn(ui32 flatFeatureIdx) const {
+            if (QuantizedObjectsData
                     ->ExclusiveFeatureBundlesData.FlatFeatureIndexToBundlePart[flatFeatureIdx])
             {
                 return true;
             }
-            if (quantizedObjectsData
+            if (QuantizedObjectsData
                     ->PackedBinaryFeaturesData.FlatFeatureIndexToPackedBinaryIndex[flatFeatureIdx])
             {
                 return true;
             }
-            if (quantizedObjectsData
+            if (QuantizedObjectsData
                     ->FeaturesGroupsData.FlatFeatureIndexToGroupPart[flatFeatureIdx])
             {
                 return true;
             }
             return false;
-        };
-
-        featuresLayout.IterateOverAvailableFeatures<EFeatureType::Float>(
-            [&] (TFloatFeatureIdx floatFeatureIdx) {
-                if (isInAggregatedColumn(EFeatureType::Float, *floatFeatureIdx)) {
-                    return;
-                }
-
-                resourceConstrainedExecutor->Add(
-                    {
-                        objectCount * sizeof(ui8),
-
-                        [clearSrcObjectsData,
-                         quantizedDataSubsetIndexing,
-                         localExecutor,
-                         rawObjectsData,
-                         quantizedObjectsData,
-                         floatFeatureIdx] () {
-                            const auto& quantizedFeaturesInfo
-                                = *quantizedObjectsData->Data.QuantizedFeaturesInfo;
-
-                            const auto nanMode = quantizedFeaturesInfo.GetNanMode(floatFeatureIdx);
-                            const bool allowNans = (nanMode != ENanMode::Forbidden) ||
-                                quantizedFeaturesInfo.GetFloatFeaturesAllowNansInTestOnly();
-
-                            quantizedObjectsData->Data.FloatFeatures[*floatFeatureIdx]
-                                = MakeQuantizedFloatColumn(
-                                    *(rawObjectsData->FloatFeatures[*floatFeatureIdx]),
-                                    nanMode,
-                                    allowNans,
-                                    quantizedFeaturesInfo.GetBorders(floatFeatureIdx),
-                                    quantizedDataSubsetIndexing,
-                                    localExecutor
-                                );
-
-                            if (clearSrcObjectsData) {
-                                rawObjectsData->FloatFeatures[*floatFeatureIdx].Destroy();
-                            }
-                        }
-                    }
-                );
-            }
-        );
-
-        featuresLayout.IterateOverAvailableFeatures<EFeatureType::Categorical>(
-            [&] (TCatFeatureIdx catFeatureIdx) {
-                if (isInAggregatedColumn(EFeatureType::Categorical, *catFeatureIdx)) {
-                    return;
-                }
-
-                resourceConstrainedExecutor->Add(
-                    {
-                        objectCount * sizeof(ui32),
-
-                        [clearSrcObjectsData,
-                         quantizedDataSubsetIndexing,
-                         localExecutor,
-                         rawObjectsData,
-                         quantizedObjectsData,
-                         catFeatureIdx] () {
-                            const auto& quantizedFeaturesInfo
-                                = *quantizedObjectsData->Data.QuantizedFeaturesInfo;
-
-                            quantizedObjectsData->Data.CatFeatures[*catFeatureIdx]
-                                = MakeQuantizedCatColumn(
-                                    *(rawObjectsData->CatFeatures[*catFeatureIdx]),
-                                    quantizedFeaturesInfo.GetCategoricalFeaturesPerfectHash(catFeatureIdx),
-                                    quantizedDataSubsetIndexing,
-                                    localExecutor
-                                );
-
-                            if (clearSrcObjectsData) {
-                                rawObjectsData->CatFeatures[*catFeatureIdx].Destroy();
-                            }
-                        }
-                    }
-                );
-            }
-        );
-    }
-
-
-    /* arguments are idx, srcIdx from rawDataSubsetIndexing
-     * each function returns TBinaryFeaturesPack = 0 or 1
-     */
-    using TGetBitFunction = std::function<TBinaryFeaturesPack(size_t, size_t)>;
-
-    static TGetBitFunction GetBinaryFloatFeatureFunction(
-        const TRawObjectsData& rawObjectsData,
-        const TQuantizedObjectsData& quantizedObjectsData,
-        TFloatFeatureIdx floatFeatureIdx
-    ) {
-        const auto& denseData = dynamic_cast<const TFloatArrayValuesHolder&>(
-            *(rawObjectsData.FloatFeatures[*floatFeatureIdx])
-        );
-        TConstArrayRef<float> srcRawData = **denseData.GetArrayData().GetSrc();
-
-        float border = quantizedObjectsData.QuantizedFeaturesInfo->GetBorders(floatFeatureIdx)[0];
-
-        return [srcRawData, border](ui32 /*idx*/, ui32 srcIdx) -> TBinaryFeaturesPack {
-            return srcRawData[srcIdx] >= border ?
-                TBinaryFeaturesPack(1) : TBinaryFeaturesPack(0);
-        };
-    }
-
-    static TGetBitFunction GetBinaryCatFeatureFunction(
-        const TRawObjectsData& rawObjectsData,
-        const TQuantizedObjectsData& quantizedObjectsData,
-        TCatFeatureIdx catFeatureIdx
-    ) {
-        const auto& denseData = dynamic_cast<const THashedCatArrayValuesHolder&>(
-            *(rawObjectsData.CatFeatures[*catFeatureIdx])
-        );
-        TConstArrayRef<ui32> srcRawData = **denseData.GetArrayData().GetSrc();
-
-        const auto& perfectHash
-            = quantizedObjectsData.QuantizedFeaturesInfo->GetCategoricalFeaturesPerfectHash(catFeatureIdx);
-        Y_ASSERT(perfectHash.GetSize() == 2);
-
-        ui32 hashedCatValueMappedTo0 = 0;
-
-        bool fromDefaultMap = false;
-        if (perfectHash.DefaultMap) {
-            if (perfectHash.DefaultMap->DstValueWithCount.Value == 0) {
-                fromDefaultMap = true;
-                hashedCatValueMappedTo0 = perfectHash.DefaultMap->SrcValue;
-            }
-        }
-        if (!fromDefaultMap) {
-            for (const auto& [hashedCatValue, valueAndCount] : perfectHash.Map) {
-                if (valueAndCount.Value == 0) {
-                    hashedCatValueMappedTo0 = hashedCatValue;
-                    break;
-                }
-            }
         }
 
-        return [srcRawData, hashedCatValueMappedTo0](ui32 /*idx*/, ui32 srcIdx) -> TBinaryFeaturesPack {
-            return srcRawData[srcIdx] == hashedCatValueMappedTo0 ?
-                TBinaryFeaturesPack(0) : TBinaryFeaturesPack(1);
+        template <EFeatureType FeatureType, class TSrcValue, EFeatureValuesType SrcFeatureValuesType>
+        void ScheduleNonAggregatedFeaturesForType() {
+            const ui32 objectCount = QuantizedDataSubsetIndexing->Size();
+
+            const TQuantizedFeaturesInfo& quantizedFeaturesInfo
+                = *QuantizedObjectsData->Data.QuantizedFeaturesInfo;
+
+            FeaturesLayout.IterateOverAvailableFeatures<FeatureType>(
+                [&] (TFeatureIdx<FeatureType> perTypeFeatureIdx) {
+                    const ui32 flatFeatureIdx
+                        = FeaturesLayout.GetExternalFeatureIdx(*perTypeFeatureIdx, FeatureType);
+
+                    if (IsInAggregatedColumn(flatFeatureIdx)) {
+                        return;
+                    }
+
+                    TValueQuantizer<TSrcValue, SrcFeatureValuesType> valueQuantizer(
+                        quantizedFeaturesInfo,
+                        flatFeatureIdx
+                    );
+
+                    ResourceConstrainedExecutor->Add(
+                        {
+                            objectCount * (valueQuantizer.GetDstBitsPerKey() / CHAR_BIT),
+
+                            [this, perTypeFeatureIdx] () {
+                                QuantizeAndClearSrcData(perTypeFeatureIdx);
+                            }
+                        }
+                    );
+                }
+            );
+        }
+
+        void ScheduleNonAggregatedFeatures() {
+            ScheduleNonAggregatedFeaturesForType<EFeatureType::Float, float, EFeatureValuesType::Float>();
+            ScheduleNonAggregatedFeaturesForType<
+                EFeatureType::Categorical,
+                ui32, EFeatureValuesType::HashedCategorical>();
         };
+
+        void Do();
+
+    public: // public to make it easier to access from TColumnsAggregator
+        bool ClearSrcObjectsData;
+        const TQuantizationOptions& Options;
+        const TIncrementalDenseIndexing& IncrementalDenseIndexing;
+        const TFeaturesLayout& FeaturesLayout;
+        const TFeaturesArraySubsetIndexing* QuantizedDataSubsetIndexing;
+        NPar::TLocalExecutor* LocalExecutor;
+        TRawObjectsData* RawObjectsData;
+        TQuantizedForCPUObjectsData* QuantizedObjectsData;
+
+        // TMaybe because of delayed initialization
+        TMaybe<TResourceConstrainedExecutor> ResourceConstrainedExecutor;
+    };
+
+
+    template <EFeatureValuesType FeatureValuesType>
+    class TColumnsAggregator {
+    public:
+        /* TAggregationContext is some small copyable information for (aggregateIdx, partIdx) to use in
+         *  AddToAggregate.
+         *  Redefined in implementations.
+         */
+        using TAggregationContext = TNothing;
+
+    public:
+        ui32 GetAggregateCount() const;
+
+        ui32 GetAggregatePartsCount(ui32 aggregateIdx) const;
+
+        ui32 GetAggregateBitsPerKey(ui32 aggregateIdx) const;
+
+        TFeatureIdxWithType GetSrcPart(ui32 aggregateIdx, ui32 partIdx) const;
+
+        ui32 GetDefaultValue(ui32 aggregateIdx) const;
+
+        TAggregationContext GetAggregationContext(ui32 aggregateIdx, ui32 partIdx) const;
+
+        template <class TDstValue>
+        Y_FORCE_INLINE static void AddToAggregate(
+            TAggregationContext aggregationContext,
+            ui32 quantizedSrcValue,
+            TDstValue *dstValue);
+
+        void SaveData(ui32 aggregateIdx, TCompressedArray&& aggregatedData);
+    };
+
+    template <>
+    class TColumnsAggregator<EFeatureValuesType::ExclusiveFeatureBundle> {
+        using TAggregationContext = ui32; // boundsBegin
+
+    public:
+        TColumnsAggregator(const TColumnsQuantizer& columnsQuantizer)
+            : ColumnsQuantizer(columnsQuantizer)
+            , MetaData(columnsQuantizer.QuantizedObjectsData->ExclusiveFeatureBundlesData.MetaData)
+        {}
+
+        ui32 GetAggregateCount() const {
+            return (ui32)MetaData.size();
+        }
+
+        ui32 GetAggregatePartsCount(ui32 aggregateIdx) const {
+            return (ui32)MetaData[aggregateIdx].Parts.size();
+        }
+
+        ui32 GetAggregateBitsPerKey(ui32 aggregateIdx) const {
+            return (ui32)MetaData[aggregateIdx].SizeInBytes * CHAR_BIT;
+        }
+
+        TFeatureIdxWithType GetSrcPart(ui32 aggregateIdx, ui32 partIdx) const {
+            return MetaData[aggregateIdx].Parts[partIdx];
+        }
+
+        ui32 GetDefaultValue(ui32 aggregateIdx) const {
+            return MetaData[aggregateIdx].Parts.back().Bounds.End;
+        }
+
+        TAggregationContext GetAggregationContext(ui32 aggregateIdx, ui32 partIdx) const {
+            return (ui32)MetaData[aggregateIdx].Parts[partIdx].Bounds.Begin;
+        }
+
+        template <class TDstValue>
+        Y_FORCE_INLINE static void AddToAggregate(
+            TAggregationContext boundsBegin,
+            ui32 quantizedSrcValue,
+            TDstValue *dstValue
+        ) {
+            if (quantizedSrcValue) {
+                *dstValue = (TDstValue)(boundsBegin + quantizedSrcValue - 1);
+            }
+        }
+
+        void SaveData(ui32 aggregateIdx, TCompressedArray&& aggregatedData) {
+            auto& bundleData
+                = ColumnsQuantizer.QuantizedObjectsData->ExclusiveFeatureBundlesData.SrcData[aggregateIdx];
+
+            bundleData = MakeHolder<TExclusiveFeatureBundleArrayHolder>(
+                0, // unused
+                std::move(aggregatedData),
+                ColumnsQuantizer.QuantizedDataSubsetIndexing
+            );
+
+            auto& quantizedData = ColumnsQuantizer.QuantizedObjectsData->Data;
+
+            for (const auto& part : MetaData[aggregateIdx].Parts) {
+                const ui32 flatFeatureIdx = ColumnsQuantizer.FeaturesLayout.GetExternalFeatureIdx(
+                    part.FeatureIdx,
+                    part.FeatureType
+                );
+
+                switch (part.FeatureType) {
+                    case EFeatureType::Float:
+                        quantizedData.FloatFeatures[part.FeatureIdx].Reset(
+                            new TQuantizedFloatBundlePartValuesHolder(
+                                flatFeatureIdx,
+                                bundleData.Get(),
+                                part.Bounds
+                            )
+                        );
+                        break;
+                    case EFeatureType::Categorical:
+                        quantizedData.CatFeatures[part.FeatureIdx].Reset(
+                            new TQuantizedCatBundlePartValuesHolder(
+                                flatFeatureIdx,
+                                bundleData.Get(),
+                                part.Bounds
+                            )
+                        );
+                        break;
+                    default:
+                        Y_FAIL(); // has already been checked above
+                }
+            }
+        }
+
+    private:
+        const TColumnsQuantizer& ColumnsQuantizer;
+        TConstArrayRef<TExclusiveFeaturesBundle> MetaData;
+    };
+
+
+    template <>
+    class TColumnsAggregator<EFeatureValuesType::BinaryPack> {
+        struct TAggregationContext {
+            ui8 BitIdx;
+            ui32 Mask;
+        };
+
+        constexpr static size_t BITS_PER_PACK = sizeof(TBinaryFeaturesPack) * CHAR_BIT;
+
+    public:
+        TColumnsAggregator(const TColumnsQuantizer& columnsQuantizer)
+            : ColumnsQuantizer(columnsQuantizer)
+            , PackedBinaryFeaturesData(columnsQuantizer.QuantizedObjectsData->PackedBinaryFeaturesData)
+            , PackedBinaryToSrcIndex(PackedBinaryFeaturesData.PackedBinaryToSrcIndex)
+        {}
+
+        ui32 GetAggregateCount() const {
+            return (ui32)PackedBinaryFeaturesData.SrcData.size();
+        }
+
+        ui32 GetAggregatePartsCount(ui32 aggregateIdx) const {
+            const size_t startIdx = BITS_PER_PACK * aggregateIdx;
+            return (ui32)Min(BITS_PER_PACK, PackedBinaryToSrcIndex.size() - startIdx);
+        }
+
+        ui32 GetAggregateBitsPerKey(ui32 aggregateIdx) const {
+            Y_UNUSED(aggregateIdx);
+            return (ui32) BITS_PER_PACK;
+        }
+
+        TFeatureIdxWithType GetSrcPart(ui32 aggregateIdx, ui32 partIdx) const {
+            return PackedBinaryToSrcIndex[BITS_PER_PACK * aggregateIdx + partIdx];
+        }
+
+        ui32 GetDefaultValue(ui32 aggregateIdx) const {
+            ui32 result = 0;
+
+            for (auto bitIdx : xrange(GetAggregatePartsCount(aggregateIdx))) {
+                TMaybe<ui32> defaultBin
+                    = GetDefaultQuantizedValue(
+                        *ColumnsQuantizer.QuantizedObjectsData->Data.QuantizedFeaturesInfo,
+                        GetSrcPart(aggregateIdx, bitIdx)
+                    );
+                if (defaultBin) {
+                    Y_ASSERT(*defaultBin <= 1);
+                    result |= *defaultBin << bitIdx;
+                }
+            }
+
+            return result;
+        }
+
+        TAggregationContext GetAggregationContext(ui32 aggregateIdx, ui32 partIdx) const {
+            Y_UNUSED(aggregateIdx);
+            return TAggregationContext{(ui8)partIdx, ~(ui32(1) << partIdx)};
+        }
+
+        template <class TDstValue>
+        Y_FORCE_INLINE static void AddToAggregate(
+            TAggregationContext aggregationContext,
+            ui32 quantizedSrcValue,
+            TDstValue *dstValue
+        ) {
+            Y_ASSERT(quantizedSrcValue <= 1);
+            *dstValue = (TDstValue)((ui32(*dstValue) & aggregationContext.Mask)
+                | (quantizedSrcValue << aggregationContext.BitIdx));
+        }
+
+        void SaveData(ui32 aggregateIdx, TCompressedArray&& aggregatedData) {
+            auto& packedData = PackedBinaryFeaturesData.SrcData[aggregateIdx];
+
+            packedData = MakeHolder<TBinaryPacksArrayHolder>(
+                0, // unused
+                std::move(aggregatedData),
+                ColumnsQuantizer.QuantizedDataSubsetIndexing
+            );
+
+            auto& quantizedData = ColumnsQuantizer.QuantizedObjectsData->Data;
+
+            for (auto bitIdx : xrange(GetAggregatePartsCount(aggregateIdx))) {
+                const auto part = GetSrcPart(aggregateIdx, bitIdx);
+
+                const ui32 flatFeatureIdx = ColumnsQuantizer.FeaturesLayout.GetExternalFeatureIdx(
+                    part.FeatureIdx,
+                    part.FeatureType
+                );
+
+                switch (part.FeatureType) {
+                    case EFeatureType::Float:
+                        quantizedData.FloatFeatures[part.FeatureIdx].Reset(
+                            new TQuantizedFloatPackedBinaryValuesHolder(
+                                flatFeatureIdx,
+                                packedData.Get(),
+                                bitIdx
+                            )
+                        );
+                        break;
+                    case EFeatureType::Categorical:
+                        quantizedData.CatFeatures[part.FeatureIdx].Reset(
+                            new TQuantizedCatPackedBinaryValuesHolder(
+                                flatFeatureIdx,
+                                packedData.Get(),
+                                bitIdx
+                            )
+                        );
+                        break;
+                    default:
+                        Y_FAIL(); // has already been checked above
+                }
+            }
+        }
+
+    private:
+        const TColumnsQuantizer& ColumnsQuantizer;
+        TPackedBinaryFeaturesData& PackedBinaryFeaturesData;
+        TConstArrayRef<TFeatureIdxWithType> PackedBinaryToSrcIndex;
+    };
+
+
+    template <>
+    class TColumnsAggregator<EFeatureValuesType::FeaturesGroup> {
+        using TAggregationContext = ui32; // partShift
+
+    public:
+        TColumnsAggregator(const TColumnsQuantizer& columnsQuantizer)
+            : ColumnsQuantizer(columnsQuantizer)
+            , MetaData(columnsQuantizer.QuantizedObjectsData->FeaturesGroupsData.MetaData)
+        {}
+
+        ui32 GetAggregateCount() const {
+            return (ui32)MetaData.size();
+        }
+
+        ui32 GetAggregatePartsCount(ui32 aggregateIdx) const {
+            return (ui32)MetaData[aggregateIdx].Parts.size();
+        }
+
+        ui32 GetAggregateBitsPerKey(ui32 aggregateIdx) const {
+            return (ui32)MetaData[aggregateIdx].GetSizeInBytes() * CHAR_BIT;
+        }
+
+        TFeatureIdxWithType GetSrcPart(ui32 aggregateIdx, ui32 partIdx) const {
+            return MetaData[aggregateIdx].Parts[partIdx];
+        }
+
+        ui32 GetDefaultValue(ui32 aggregateIdx) const {
+            ui32 result = 0;
+
+            for (auto partIdx : xrange(GetAggregatePartsCount(aggregateIdx))) {
+                TMaybe<ui32> defaultBin
+                    = GetDefaultQuantizedValue(
+                        *ColumnsQuantizer.QuantizedObjectsData->Data.QuantizedFeaturesInfo,
+                        GetSrcPart(aggregateIdx, partIdx)
+                    );
+                if (defaultBin) {
+                    result |= *defaultBin << (partIdx * CHAR_BIT);
+                }
+            }
+
+            return result;
+        }
+
+        TAggregationContext GetAggregationContext(ui32 aggregateIdx, ui32 partIdx) const {
+            Y_UNUSED(aggregateIdx);
+            return (ui32)partIdx * CHAR_BIT;
+        }
+
+        template <class TDstValue>
+        Y_FORCE_INLINE static void AddToAggregate(
+            TAggregationContext partShift,
+            ui32 quantizedSrcValue,
+            TDstValue *dstValue
+        ) {
+            *dstValue |= quantizedSrcValue << partShift;
+        }
+
+        void SaveData(ui32 aggregateIdx, TCompressedArray&& aggregatedData) {
+            auto& groupData = ColumnsQuantizer.QuantizedObjectsData->FeaturesGroupsData.SrcData[aggregateIdx];
+
+            groupData = MakeHolder<TFeaturesGroupArrayHolder>(
+                0, // unused
+                std::move(aggregatedData),
+                ColumnsQuantizer.QuantizedDataSubsetIndexing
+            );
+
+            auto& quantizedData = ColumnsQuantizer.QuantizedObjectsData->Data;
+
+            for (auto partIdx : xrange(GetAggregatePartsCount(aggregateIdx))) {
+                const auto& part = MetaData[aggregateIdx].Parts[partIdx];
+
+                const ui32 flatFeatureIdx = ColumnsQuantizer.FeaturesLayout.GetExternalFeatureIdx(
+                    part.FeatureIdx,
+                    part.FeatureType
+                );
+
+                switch (part.FeatureType) {
+                    case EFeatureType::Float:
+                        quantizedData.FloatFeatures[part.FeatureIdx].Reset(
+                            new TQuantizedFloatGroupPartValuesHolder(flatFeatureIdx, groupData.Get(), partIdx)
+                        );
+                        break;
+                    default:
+                        Y_FAIL(); // has already been checked above
+                }
+            }
+        }
+
+    private:
+        const TColumnsQuantizer& ColumnsQuantizer;
+        TConstArrayRef<TFeaturesGroup> MetaData;
+    };
+
+
+    template <EFeatureValuesType FeatureValuesType>
+    void TColumnsQuantizer::AggregateFeatures(ui32 aggregateIdx) const {
+        TColumnsAggregator<FeatureValuesType> columnsAggregator(*this);
+
+        TCompressedArray dstStorage;
+
+        // dispatch by storedType
+        auto aggregateFeaturesWithStoredValueType = [&] (auto aggregateValueExample) {
+            using TAggregateValue = decltype(aggregateValueExample);
+
+            const ui32 bitsPerKey = sizeof(TAggregateValue) * CHAR_BIT;
+            const ui32 objectCount = QuantizedDataSubsetIndexing->Size();
+
+            dstStorage = TCompressedArray::CreateWithUninitializedData(objectCount, bitsPerKey);
+
+            TArrayRef<TAggregateValue> dstDataRef = dstStorage.GetRawArray<TAggregateValue>();
+
+            const TAggregateValue defaultValue
+                = (TAggregateValue)columnsAggregator.GetDefaultValue(aggregateIdx);
+
+            ParallelFill(defaultValue, /*blockSize*/ Nothing(), LocalExecutor, dstDataRef);
+
+            for (auto partIdx : xrange(columnsAggregator.GetAggregatePartsCount(aggregateIdx))) {
+                const auto aggregationContext = columnsAggregator.GetAggregationContext(aggregateIdx, partIdx);
+
+                const TFeatureIdxWithType part = columnsAggregator.GetSrcPart(aggregateIdx, partIdx);
+
+                switch (part.FeatureType) {
+                    case EFeatureType::Float:
+                        QuantizeNonDefaultValuesAndClearSrcData(
+                            &(RawObjectsData->FloatFeatures[part.FeatureIdx]),
+                            [=] (ui32 dstIdx, ui32 quantizedValue) {
+                                TColumnsAggregator<FeatureValuesType>::AddToAggregate(
+                                    aggregationContext,
+                                    quantizedValue,
+                                    &dstDataRef[dstIdx]
+                                );
+                            }
+                        );
+                        break;
+                    case EFeatureType::Categorical:
+                        QuantizeNonDefaultValuesAndClearSrcData(
+                            &(RawObjectsData->CatFeatures[part.FeatureIdx]),
+                            [=] (ui32 dstIdx, ui32 quantizedValue) {
+                                TColumnsAggregator<FeatureValuesType>::AddToAggregate(
+                                    aggregationContext,
+                                    quantizedValue,
+                                    &dstDataRef[dstIdx]
+                                );
+                            }
+                        );
+                        break;
+                    default:
+                        CB_ENSURE(
+                            false,
+                            "Feature bundling is not supported for features of type " << part.FeatureType
+                        );
+                }
+            }
+        };
+
+        const ui32 bitsPerKey = columnsAggregator.GetAggregateBitsPerKey(aggregateIdx);
+
+        switch (bitsPerKey) {
+            case 8:
+                aggregateFeaturesWithStoredValueType(ui8());
+                break;
+            case 16:
+                aggregateFeaturesWithStoredValueType(ui16());
+                break;
+            case 32:
+                aggregateFeaturesWithStoredValueType(ui32());
+                break;
+            default:
+                CB_ENSURE_INTERNAL(false, "AggregateFeatures: unsupported bitsPerKey = " << bitsPerKey);
+        }
+
+        columnsAggregator.SaveData(aggregateIdx, std::move(dstStorage));
     }
 
-    template <class T, EFeatureValuesType FeatureValuesType>
-    static void SetBinaryFeatureColumn(
-        ui32 featureId,
-        const TBinaryPacksHolder* packsData,
-        ui8 bitIdx,
-        THolder<TTypedFeatureValuesHolder<T, FeatureValuesType>>* featureColumn
-    ) {
-        featureColumn->Reset(
-            new TPackedBinaryValuesHolderImpl<T, FeatureValuesType>(featureId, packsData, bitIdx)
-        );
-    }
+    template <EFeatureValuesType FeatureValuesType>
+    void TColumnsQuantizer::ScheduleAggregateFeatures() {
+        const ui32 objectCount = QuantizedDataSubsetIndexing->Size();
 
-    static void ScheduleBinarizeFeatures(
-        const TFeaturesArraySubsetIndexing& rawDataSubsetIndexing,
-        bool clearSrcObjectsData,
-        const TFeaturesArraySubsetIndexing* quantizedDataSubsetIndexing,
-        NPar::TLocalExecutor* localExecutor,
-        TResourceConstrainedExecutor* resourceConstrainedExecutor,
-        TRawObjectsData* rawObjectsData,
-        TQuantizedForCPUObjectsData* quantizedObjectsData
-    ) {
-        const ui32 objectCount = rawDataSubsetIndexing.Size();
+        TColumnsAggregator<FeatureValuesType> columnsAggregator(*this);
 
-        for (auto packIdx : xrange(quantizedObjectsData->PackedBinaryFeaturesData.SrcData.size())) {
-            resourceConstrainedExecutor->Add(
+        for (auto aggregateIdx : xrange(columnsAggregator.GetAggregateCount())) {
+            ResourceConstrainedExecutor->Add(
                 {
-                    objectCount * sizeof(TBinaryFeaturesPack),
+                    objectCount * (columnsAggregator.GetAggregateBitsPerKey(aggregateIdx) / CHAR_BIT),
 
-                    [rawDataSubsetIndexingPtr = &rawDataSubsetIndexing,
-                     clearSrcObjectsData,
-                     quantizedDataSubsetIndexing,
-                     localExecutor,
-                     rawObjectsData,
-                     quantizedObjectsData,
-                     objectCount,
-                     packIdx] () {
-                        const size_t bitsPerPack = sizeof(TBinaryFeaturesPack) * CHAR_BIT;
-
-                        auto& packedBinaryFeaturesData = quantizedObjectsData->PackedBinaryFeaturesData;
-
-                        const auto& packedBinaryToSrcIndex = packedBinaryFeaturesData.PackedBinaryToSrcIndex;
-
-                        TCompressedArray dstPackedFeaturesDataStorage
-                            = TCompressedArray::CreateWithUninitializedData(objectCount, bitsPerPack);
-
-                        TArrayRef<TBinaryFeaturesPack> dstPackedFeaturesData
-                            = dstPackedFeaturesDataStorage.GetRawArray<TBinaryFeaturesPack>();
-
-                        TVector<TGetBitFunction> getBitFunctions;
-
-                        size_t startIdx = size_t(packIdx)*bitsPerPack;
-                        size_t endIdx = Min(startIdx + bitsPerPack, packedBinaryToSrcIndex.size());
-
-                        auto endIt = packedBinaryToSrcIndex.begin() + endIdx;
-                        for (auto it = packedBinaryToSrcIndex.begin() + startIdx; it != endIt; ++it) {
-                            if (it->first == EFeatureType::Float) {
-                                getBitFunctions.push_back(
-                                    GetBinaryFloatFeatureFunction(
-                                        *rawObjectsData,
-                                        quantizedObjectsData->Data,
-                                        TFloatFeatureIdx(it->second)
-                                    )
-                                );
-                            } else if (it->first == EFeatureType::Categorical) {
-                                getBitFunctions.push_back(
-                                    GetBinaryCatFeatureFunction(
-                                        *rawObjectsData,
-                                        quantizedObjectsData->Data,
-                                        TCatFeatureIdx(it->second)
-                                    )
-                                );
-                            }
-                        }
-
-                        rawDataSubsetIndexingPtr->ParallelForEach(
-                            [&] (ui32 idx, ui32 srcIdx) {
-                                TBinaryFeaturesPack pack = 0;
-                                for (auto bitIdx : xrange(getBitFunctions.size())) {
-                                    pack |= (getBitFunctions[bitIdx](idx, srcIdx) << bitIdx);
-                                }
-                                dstPackedFeaturesData[idx] = pack;
-                            },
-                            localExecutor
-                        );
-
-                        packedBinaryFeaturesData.SrcData[packIdx] = MakeHolder<TBinaryPacksArrayHolder>(
-                            0, // unused
-                            std::move(dstPackedFeaturesDataStorage),
-                            quantizedDataSubsetIndexing
-                        );
-
-                        for (ui8 bitIdx = 0; bitIdx < (endIdx - startIdx); ++bitIdx) {
-                            auto it = packedBinaryToSrcIndex.begin() + startIdx + bitIdx;
-
-                            if (it->first == EFeatureType::Float) {
-                                SetBinaryFeatureColumn(
-                                    rawObjectsData->FloatFeatures[it->second]->GetId(),
-                                    packedBinaryFeaturesData.SrcData[packIdx].Get(),
-                                    bitIdx,
-                                    &(quantizedObjectsData->Data.FloatFeatures[it->second])
-                                );
-                                if (clearSrcObjectsData) {
-                                    rawObjectsData->FloatFeatures[it->second].Destroy();
-                                }
-                            } else if (it->first == EFeatureType::Categorical) {
-                                SetBinaryFeatureColumn(
-                                    rawObjectsData->CatFeatures[it->second]->GetId(),
-                                    packedBinaryFeaturesData.SrcData[packIdx].Get(),
-                                    bitIdx,
-                                    &(quantizedObjectsData->Data.CatFeatures[it->second])
-                                );
-                                if (clearSrcObjectsData) {
-                                    rawObjectsData->CatFeatures[it->second].Destroy();
-                                }
-                            }
-                        }
+                    [this, aggregateIdx] () {
+                        AggregateFeatures<FeatureValuesType>(aggregateIdx);
                     }
                 }
             );
         }
+    }
+
+    void TColumnsQuantizer::Do() {
+        if (Options.CpuCompatibleFormat && Options.BundleExclusiveFeaturesForCpu) {
+            ScheduleAggregateFeatures<EFeatureValuesType::ExclusiveFeatureBundle>();
+
+            /*
+             * call it only if bundleExclusiveFeatures because otherwise they've already been
+             * created during Process(Float|Cat)Feature calls above
+             */
+            ScheduleNonAggregatedFeatures();
+        }
+
+        if (Options.CpuCompatibleFormat && Options.PackBinaryFeaturesForCpu) {
+            ScheduleAggregateFeatures<EFeatureValuesType::BinaryPack>();
+        }
+
+        if (Options.CpuCompatibleFormat && Options.GroupFeaturesForCpu) {
+            ScheduleAggregateFeatures<EFeatureValuesType::FeaturesGroup>();
+        }
+
+        ResourceConstrainedExecutor->ExecTasks();
     }
 
 
     static void ProcessFloatFeature(
         TFloatFeatureIdx floatFeatureIdx,
         const TFloatValuesHolder& srcFeature,
-        const TFeaturesArraySubsetIndexing* subsetForBuildBorders,
+        const TSubsetIndexingForBuildBorders& subsetIndexingForBuildBorders,
         const TQuantizationOptions& options,
-        bool calcBordersAndNanModeOnly,
+        bool calcQuantizationAndNanModeOnly,
         bool storeFeaturesDataAsExternalValuesHolder,
+
+        // can be TNothing if generateBordersOnly
+        const TMaybe<TIncrementalDenseIndexing>& incrementalDenseIndexing,
         const TFeaturesArraySubsetIndexing* dstSubsetIndexing,  // can be nullptr if generateBordersOnly
         NPar::TLocalExecutor* localExecutor,
         TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
@@ -961,9 +1692,9 @@ namespace NCB {
         bool calculateNanMode = true;
         ENanMode nanMode = ENanMode::Forbidden;
 
-        bool calculateBorders = true;
-        TConstArrayRef<float> borders;
-        TVector<float> calculatedBorders;
+        bool calculateQuantization = true;
+        const NSplitSelection::TQuantization* quantization;
+        NSplitSelection::TQuantization calculatedQuantization;
 
         {
             TReadGuard readGuard(quantizedFeaturesInfo->GetRWMutex());
@@ -971,93 +1702,94 @@ namespace NCB {
                 calculateNanMode = false;
                 nanMode = quantizedFeaturesInfo->GetNanMode(floatFeatureIdx);
             }
-            if (quantizedFeaturesInfo->HasBorders(floatFeatureIdx)) {
-                calculateBorders = false;
-                borders = quantizedFeaturesInfo->GetBorders(floatFeatureIdx);
+            if (quantizedFeaturesInfo->HasQuantization(floatFeatureIdx)) {
+                calculateQuantization = false;
+                quantization = &(quantizedFeaturesInfo->GetQuantization(floatFeatureIdx));
             }
         }
 
         CB_ENSURE_INTERNAL(
-            calculateNanMode == calculateBorders,
+            calculateNanMode == calculateQuantization,
             "Feature #" << srcFeature.GetId()
-            << ": NanMode and borders must be specified or not specified together"
+            << ": NanMode and quantization must be specified or not specified together"
         );
 
-        if (calculateNanMode || calculateBorders) {
-            CalcBordersAndNanMode(
+        if (calculateNanMode || calculateQuantization) {
+            CalcQuantizationAndNanMode(
                 srcFeature,
-                subsetForBuildBorders,
+                subsetIndexingForBuildBorders,
                 *quantizedFeaturesInfo,
+                options.DefaultValueFractionToEnableSparseStorage,
                 &nanMode,
-                &calculatedBorders
+                &calculatedQuantization
             );
 
-            borders = calculatedBorders;
+            quantization = &calculatedQuantization;
         }
 
-        if (!calcBordersAndNanModeOnly && !borders.empty()) {
-            if (storeFeaturesDataAsExternalValuesHolder) {
-                // use GPU-only external columns
-                *dstQuantizedFeature =
-                    MakeExternalValuesHolder<
-                        IQuantizedFloatValuesHolder,
-                        TExternalFloatValuesHolder>(
-                            srcFeature,
-                            quantizedFeaturesInfo
-                        );
-            } else if (!options.CpuCompatibleFormat ||
-                !options.PackBinaryFeaturesForCpu ||
-                (borders.size() > 1)) // binary features are binarized later by packs
-            {
-                // it's ok even if it is learn data, for learn nans are checked at CalcBordersAndNanMode stage
-                bool allowNans = (nanMode != ENanMode::Forbidden) ||
-                    quantizedFeaturesInfo->GetFloatFeaturesAllowNansInTestOnly();
+        // save, because calculatedQuantization can be moved to quantizedFeaturesInfo
+        const size_t borderCount = quantization->Borders.size();
 
-                *dstQuantizedFeature = MakeQuantizedFloatColumn(
-                    srcFeature,
-                    nanMode,
-                    allowNans,
-                    borders,
-                    dstSubsetIndexing,
-                    localExecutor
-                );
-            }
-        }
-
-        if (calculateNanMode || calculateBorders) {
+        if (calculateNanMode || calculateQuantization) {
             TWriteGuard writeGuard(quantizedFeaturesInfo->GetRWMutex());
 
             if (calculateNanMode) {
                 quantizedFeaturesInfo->SetNanMode(floatFeatureIdx, nanMode);
             }
-            if (calculateBorders) {
-                if (calculatedBorders.empty()) {
+            if (calculateQuantization) {
+                if (calculatedQuantization.Borders.empty()) {
                     CATBOOST_DEBUG_LOG << "Float Feature #" << srcFeature.GetId() << " is empty" << Endl;
 
                     quantizedFeaturesInfo->GetFeaturesLayout()->IgnoreExternalFeature(srcFeature.GetId());
                 }
 
-                quantizedFeaturesInfo->SetBorders(floatFeatureIdx, std::move(calculatedBorders));
+                quantizedFeaturesInfo->SetQuantization(floatFeatureIdx, std::move(calculatedQuantization));
+            }
+        }
+
+        if (!calcQuantizationAndNanModeOnly && (borderCount != 0)) {
+            if (storeFeaturesDataAsExternalValuesHolder) {
+                // use GPU-only external columns
+                *dstQuantizedFeature =
+                    MakeExternalValuesHolder<
+                        IQuantizedFloatValuesHolder,
+                        TExternalFloatValuesHolder,
+                        TExternalFloatSparseValuesHolder>(srcFeature, quantizedFeaturesInfo);
+            } else if (!options.CpuCompatibleFormat ||
+                !options.PackBinaryFeaturesForCpu ||
+                (borderCount > 1)) // binary features are binarized later by packs
+            {
+                MakeQuantizedColumn(
+                    srcFeature,
+                    *quantizedFeaturesInfo,
+                    *incrementalDenseIndexing,
+                    options.SparseArrayIndexingType,
+                    dstSubsetIndexing,
+                    localExecutor,
+                    dstQuantizedFeature
+                );
             }
         }
     }
 
 
-    static ui64 EstimateMaxMemUsageForCatFeature(
-        ui32 objectCount,
+    static ui64 EstimateMemUsageForCatFeature(
+        const THashedCatValuesHolder& srcFeature,
         bool storeFeaturesDataAsExternalValuesHolder
     ) {
         ui64 result = 0;
 
+        const ui32 nonDefaultObjectCount = GetNonDefaultValuesCount(srcFeature);
+
         constexpr ui32 ESTIMATED_FEATURES_PERFECT_HASH_MAP_NODE_SIZE = 32;
 
         // assuming worst-case that all values will be added to Features Perfect Hash as new.
-        result += ESTIMATED_FEATURES_PERFECT_HASH_MAP_NODE_SIZE * objectCount;
+        result += ESTIMATED_FEATURES_PERFECT_HASH_MAP_NODE_SIZE * nonDefaultObjectCount;
 
         if (!storeFeaturesDataAsExternalValuesHolder) {
             // for storing quantized data
             // TODO(akhropov): support other bitsPerKey. MLTOOLS-2425
-            result += sizeof(ui32) * objectCount;
+            result += sizeof(ui32) * nonDefaultObjectCount;
         }
 
         return result;
@@ -1067,13 +1799,16 @@ namespace NCB {
     static void ProcessCatFeature(
         TCatFeatureIdx catFeatureIdx,
         const THashedCatValuesHolder& srcFeature,
-        bool updatePerfectHashOnly,
+        const TQuantizationOptions& options,
+        bool bundleExclusiveFeatures,
         bool storeFeaturesDataAsExternalValuesHolder,
-        bool mapMostFrequentValueTo0,
+        const TIncrementalDenseIndexing& incrementalDenseIndexing,
         const TFeaturesArraySubsetIndexing* dstSubsetIndexing,
+        NPar::TLocalExecutor* localExecutor,
         TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
         THolder<IQuantizedCatValuesHolder>* dstQuantizedFeature
     ) {
+        const bool updatePerfectHashOnly = bundleExclusiveFeatures;
 
         // GPU-only external columns
         const bool quantizeData = !updatePerfectHashOnly && !storeFeaturesDataAsExternalValuesHolder;
@@ -1081,15 +1816,22 @@ namespace NCB {
 
         TCompressedArray quantizedDataStorage;
 
-        auto processValues = [&] (TMaybeOwningConstArraySubset<ui32, ui32> srcFeatureData) {
+        auto onNonDefaultValues = [&] (
+            TMaybeOwningConstArraySubset<ui32, ui32> srcNonDefaultValues,
+            TMaybe<TDefaultValue<ui32>> srcDefaultValue) {
+
+            // can quantize data at first pass only if default bin value won't be determined
+            const bool quantizeDataAtFirstPass
+                = quantizeData && !options.DefaultValueFractionToEnableSparseStorage.Defined();
+
             TArrayRef<ui32> quantizedDataValue;
 
-            if (quantizeData) {
+            if (quantizeDataAtFirstPass) {
                 // TODO(akhropov): support other bitsPerKey. MLTOOLS-2425
                 const ui32 bitsPerKey = 32;
 
                 quantizedDataStorage
-                    = TCompressedArray::CreateWithUninitializedData(srcFeatureData.Size(), bitsPerKey);
+                    = TCompressedArray::CreateWithUninitializedData(srcFeature.GetSize(), bitsPerKey);
                 quantizedDataValue = quantizedDataStorage.GetRawArray<ui32>();
             }
 
@@ -1097,20 +1839,40 @@ namespace NCB {
 
             catFeaturesPerfectHashHelper.UpdatePerfectHashAndMaybeQuantize(
                 catFeatureIdx,
-                srcFeatureData,
-                mapMostFrequentValueTo0,
-                /*hashedCatDefaultValue*/ Nothing(),
-                /*quantizedDefaultBinFraction*/ Nothing(),
-                quantizeData ? TMaybe<TArrayRef<ui32>*>(&quantizedDataValue) : Nothing()
+                srcNonDefaultValues,
+                /*mapMostFrequentValueTo0*/ bundleExclusiveFeatures,
+                srcDefaultValue,
+                options.DefaultValueFractionToEnableSparseStorage,
+                quantizeDataAtFirstPass ? TMaybe<TArrayRef<ui32>*>(&quantizedDataValue) : Nothing()
             );
         };
 
-        if (const auto* arraySrcFeature = dynamic_cast<const THashedCatArrayValuesHolder*>(&srcFeature)) {
-            processValues(arraySrcFeature->GetArrayData());
+        if (const auto* denseSrcFeature = dynamic_cast<const THashedCatArrayValuesHolder*>(&srcFeature)) {
+            onNonDefaultValues(denseSrcFeature->GetArrayData(), Nothing());
+        } else if (const auto* sparseSrcFeature
+                       = dynamic_cast<const THashedCatSparseValuesHolder*>(&srcFeature))
+        {
+            const TConstSparseArray<ui32, ui32>& sparseArray = sparseSrcFeature->GetData();
+
+            TFeaturesArraySubsetIndexing nonDefaultIndexing(
+                TFullSubset<ui32>(sparseArray.GetNonDefaultSize())
+            );
+
+            TMaybe<TDefaultValue<ui32>> defaultValue;
+            if (sparseArray.GetDefaultSize()) {
+                defaultValue.ConstructInPlace(sparseArray.GetDefaultValue(), sparseArray.GetDefaultSize());
+            }
+
+            onNonDefaultValues(
+                TMaybeOwningConstArraySubset<ui32, ui32>(
+                    &sparseArray.GetNonDefaultValues(),
+                    &nonDefaultIndexing
+                ),
+                defaultValue
+            );
         } else {
             CB_ENSURE_INTERNAL(false, "ProcessCatFeature: unsupported src feature type");
         }
-
 
         auto uniqueValuesCounts = quantizedFeaturesInfo->GetUniqueValuesCounts(catFeatureIdx);
         if (uniqueValuesCounts.OnLearnOnly > 1) {
@@ -1119,16 +1881,24 @@ namespace NCB {
                     *dstQuantizedFeature =
                         MakeExternalValuesHolder<
                             IQuantizedCatValuesHolder,
-                            TExternalCatValuesHolder>(
-                                srcFeature,
-                                quantizedFeaturesInfo
-                            );
+                            TExternalCatValuesHolder,
+                            TExternalCatSparseValuesHolder>(srcFeature, quantizedFeaturesInfo);
                 } else if (quantizedDataStorage.GetSize()) {
                     // was initialized at first pass
                     *dstQuantizedFeature = MakeHolder<TQuantizedCatValuesHolder>(
                         srcFeature.GetId(),
                         std::move(quantizedDataStorage),
                         dstSubsetIndexing
+                    );
+                } else {
+                    MakeQuantizedColumn(
+                        srcFeature,
+                        *quantizedFeaturesInfo,
+                        incrementalDenseIndexing,
+                        options.SparseArrayIndexingType,
+                        dstSubsetIndexing,
+                        localExecutor,
+                        dstQuantizedFeature
                     );
                 }
             }
@@ -1252,148 +2022,6 @@ namespace NCB {
         return featuresLayout;
     }
 
-    template <typename TGroup>
-    THolder<TFeaturesGroupHolder> GroupFeatures(
-        const TFeaturesGroup& featuresGroup,
-        const TRawObjectsData& rawObjectsData,
-        const TQuantizedForCPUObjectsData& quantizedObjectsData,
-        const TFeaturesArraySubsetIndexing& rawDataSubsetIndexing,
-        const TFeaturesArraySubsetIndexing* dstSubsetIndexing,
-        NPar::TLocalExecutor* localExecutor
-    ) {
-        const ui32 bitsPerKey = sizeof(TGroup) * CHAR_BIT;
-        const ui32 objectCount = rawDataSubsetIndexing.Size();
-        TCompressedArray dstStorage
-            = TCompressedArray::CreateWithUninitializedData(objectCount, bitsPerKey);
-
-        auto dstData = (TGroup*)dstStorage.GetRawPtr();
-
-        TConstArrayRef<TFeaturesGroupPart> parts = featuresGroup.Parts;
-        const TQuantizedFeaturesInfo& quantizedFeaturesInfo = *quantizedObjectsData.Data.QuantizedFeaturesInfo;
-
-        TVector<TGetBinFunction> getBinFunctions;
-        for (auto partIdx : xrange(parts.size())) {
-            getBinFunctions.push_back(
-                GetQuantizedFloatFeatureFunction(
-                    rawObjectsData,
-                    quantizedFeaturesInfo,
-                    TFloatFeatureIdx(parts[partIdx].FeatureIdx)
-                )
-            );
-        }
-        TConstArrayRef<TGetBinFunction> getBinFunctionsRef(getBinFunctions);
-
-        rawDataSubsetIndexing.ParallelForEach(
-            [dstData, parts, getBinFunctionsRef] (ui32 idx, ui32 srcIdx) {
-                TGroup value = 0;
-                for (auto partIdx : xrange(parts.size())) {
-                    const ui32 bin = getBinFunctionsRef[partIdx](idx, srcIdx);
-                    value |= (bin << (partIdx * CHAR_BIT));
-                }
-                dstData[idx] = value;
-            },
-            localExecutor
-        );
-
-        return MakeHolder<TFeaturesGroupArrayHolder>(
-            0, // unused
-            std::move(dstStorage),
-            dstSubsetIndexing
-        );
-    }
-
-    static void ScheduleGroupFeatures(
-        const TFeaturesArraySubsetIndexing& rawDataSubsetIndexing,
-        bool clearSrcObjectsData,
-        const TFeaturesArraySubsetIndexing* quantizedDataSubsetIndexing,
-        NPar::TLocalExecutor* localExecutor,
-        TResourceConstrainedExecutor* resourceConstrainedExecutor,
-        TRawObjectsData* rawObjectsData,
-        TQuantizedForCPUObjectsData* quantizedObjectsData
-    ) {
-        const auto& metaData = quantizedObjectsData->FeaturesGroupsData.MetaData;
-
-        const auto groupsCount = metaData.size();
-        quantizedObjectsData->FeaturesGroupsData.SrcData.resize(groupsCount);
-
-        const ui32 objectCount = rawDataSubsetIndexing.Size();
-
-        for (auto groupIdx : xrange(groupsCount)) {
-            resourceConstrainedExecutor->Add(
-                {
-                    objectCount * metaData[groupIdx].GetSizeInBytes(),
-
-                    [rawDataSubsetIndexingPtr = &rawDataSubsetIndexing,
-                        clearSrcObjectsData,
-                        quantizedDataSubsetIndexing,
-                        localExecutor,
-                        rawObjectsData,
-                        quantizedObjectsData,
-                        groupIdx] () {
-
-                        auto& featuresGroupsData = quantizedObjectsData->FeaturesGroupsData;
-                        const auto& groupMetadata = featuresGroupsData.MetaData[groupIdx];
-                        auto& groupData = featuresGroupsData.SrcData[groupIdx];
-
-                        switch(groupMetadata.GetSizeInBytes()) {
-                            case 1:
-                                groupData = GroupFeatures<ui8>(
-                                    groupMetadata,
-                                    *rawObjectsData,
-                                    *quantizedObjectsData,
-                                    *rawDataSubsetIndexingPtr,
-                                    quantizedDataSubsetIndexing,
-                                    localExecutor
-                                );
-                                break;
-                            case 2:
-                                groupData = GroupFeatures<ui16>(
-                                    groupMetadata,
-                                    *rawObjectsData,
-                                    *quantizedObjectsData,
-                                    *rawDataSubsetIndexingPtr,
-                                    quantizedDataSubsetIndexing,
-                                    localExecutor
-                                );
-                                break;
-                            case 4:
-                                groupData = GroupFeatures<ui32>(
-                                    groupMetadata,
-                                    *rawObjectsData,
-                                    *quantizedObjectsData,
-                                    *rawDataSubsetIndexingPtr,
-                                    quantizedDataSubsetIndexing,
-                                    localExecutor
-                                );
-                                break;
-                            default:
-                                CB_ENSURE_INTERNAL(
-                                    false,
-                                    "Unsupported featuresGroup size: " << groupMetadata.GetSizeInBytes());
-                        }
-
-                        for (auto partIdx : xrange(groupMetadata.Parts.size())) {
-                            const auto& part = groupMetadata.Parts[partIdx];
-                            if (part.FeatureType == EFeatureType::Float) {
-                                quantizedObjectsData->Data.FloatFeatures[part.FeatureIdx] =
-                                    MakeHolder<TQuantizedFloatGroupPartValuesHolder>(
-                                        rawObjectsData->FloatFeatures[part.FeatureIdx]->GetId(),
-                                        groupData.Get(),
-                                        partIdx
-                                    );
-                                if (clearSrcObjectsData) {
-                                    rawObjectsData->FloatFeatures[part.FeatureIdx].Destroy();
-                                }
-                            } else {
-                                CB_ENSURE(false, "Feature grouping is not supported for features of type " << part.FeatureType);
-                            }
-                        }
-                    }
-                }
-            );
-        }
-    }
-
 
     // this is a helper class needed for friend declarations
     class TQuantizationImpl {
@@ -1403,11 +2031,11 @@ namespace NCB {
             const TQuantizationOptions& options,
             TRawDataProviderPtr rawDataProvider,
             TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
-            bool calcBordersAndNanModeOnly,
+            bool calcQuantizationAndNanModeOnly,
             TRestorableFastRng64* rand,
             NPar::TLocalExecutor* localExecutor
         ) {
-            CB_ENSURE_INTERNAL(
+             CB_ENSURE_INTERNAL(
                 options.CpuCompatibleFormat || options.GpuCompatibleFormat,
                 "TQuantizationOptions: at least one of CpuCompatibleFormat or GpuCompatibleFormat"
                 "options must be true"
@@ -1441,20 +2069,23 @@ namespace NCB {
 
             TObjectsGroupingPtr objectsGrouping = rawDataProvider->ObjectsGrouping;
 
-            // already composed with rawDataProvider's Subset
-            TMaybe<TArraySubsetIndexing<ui32>> subsetForBuildBorders = GetSubsetForBuildBorders(
-                *(srcObjectsCommonData.SubsetIndexing),
+            TSubsetIndexingForBuildBorders subsetIndexingForBuildBorders = GetSubsetForBuildBorders(
+                srcObjectsCommonData.SubsetIndexing,
                 *featuresLayout,
                 *quantizedFeaturesInfo,
                 srcObjectsCommonData.Order,
                 options,
-                rand
+                rand,
+                localExecutor
             );
+
+            const bool hasDenseSrcData = rawDataProvider->ObjectsData->HasDenseData();
 
             TMaybe<TQuantizedForCPUBuilderData> data;
             TAtomicSharedPtr<TArraySubsetIndexing<ui32>> subsetIndexing;
+            TMaybe<TIncrementalDenseIndexing> incrementalIndexing;
 
-            if (!calcBordersAndNanModeOnly) {
+            if (!calcQuantizationAndNanModeOnly) {
                 data.ConstructInPlace();
 
                 auto flatFeatureCount = featuresLayout->GetExternalFeatureCount();
@@ -1480,6 +2111,11 @@ namespace NCB {
                         TFullSubset<ui32>(objectsGrouping->GetObjectCount())
                     );
                 }
+
+                incrementalIndexing.ConstructInPlace(
+                    *srcObjectsCommonData.SubsetIndexing,
+                    hasDenseSrcData,
+                    localExecutor);
             }
 
             {
@@ -1493,8 +2129,8 @@ namespace NCB {
                     localExecutor
                 );
 
-                const bool calcBordersAndNanModeOnlyInProcessFloatFeatures =
-                    calcBordersAndNanModeOnly || bundleExclusiveFeatures;
+                const bool calcQuantizationAndNanModeOnlyInProcessFloatFeatures =
+                    calcQuantizationAndNanModeOnly || bundleExclusiveFeatures;
 
                 featuresLayout->IterateOverAvailableFeatures<EFeatureType::Float>(
                     [&] (TFloatFeatureIdx floatFeatureIdx) {
@@ -1508,23 +2144,22 @@ namespace NCB {
                                     **srcFloatFeatureHolderPtr,
                                     *quantizedFeaturesInfo,
                                     options,
-                                    !calcBordersAndNanModeOnly,
+                                    !calcQuantizationAndNanModeOnly,
                                     storeFeaturesDataAsExternalValuesHolders
                                 ),
                                 [&, floatFeatureIdx, srcFloatFeatureHolderPtr]() {
                                     ProcessFloatFeature(
                                         floatFeatureIdx,
                                         **srcFloatFeatureHolderPtr,
-                                        subsetForBuildBorders ?
-                                            subsetForBuildBorders.Get()
-                                            : srcObjectsCommonData.SubsetIndexing.Get(),
+                                        subsetIndexingForBuildBorders,
                                         options,
-                                        calcBordersAndNanModeOnlyInProcessFloatFeatures,
+                                        calcQuantizationAndNanModeOnlyInProcessFloatFeatures,
                                         storeFeaturesDataAsExternalValuesHolders,
+                                        incrementalIndexing,
                                         subsetIndexing.Get(),
                                         localExecutor,
                                         quantizedFeaturesInfo,
-                                        calcBordersAndNanModeOnlyInProcessFloatFeatures ?
+                                        calcQuantizationAndNanModeOnlyInProcessFloatFeatures ?
                                             nullptr
                                             : &(data->ObjectsData.Data.FloatFeatures[*floatFeatureIdx])
                                     );
@@ -1532,7 +2167,7 @@ namespace NCB {
                                     // exclusive features are bundled later by bundle,
                                     // binary features are binarized later by packs
                                     if (clearSrcObjectsData &&
-                                        (calcBordersAndNanModeOnly ||
+                                        (calcQuantizationAndNanModeOnly ||
                                          (!bundleExclusiveFeatures &&
                                           !IsFloatFeatureToBeBinarized(
                                               options,
@@ -1548,28 +2183,29 @@ namespace NCB {
                     }
                 );
 
-                if (!calcBordersAndNanModeOnly) {
-                    const ui64 maxMemUsageForCatFeature = EstimateMaxMemUsageForCatFeature(
-                        objectsGrouping->GetObjectCount(),
-                        storeFeaturesDataAsExternalValuesHolders
-                    );
-
+                if (!calcQuantizationAndNanModeOnly) {
                     featuresLayout->IterateOverAvailableFeatures<EFeatureType::Categorical>(
                          [&] (TCatFeatureIdx catFeatureIdx) {
+                            // as pointer to capture in lambda
+                            auto* srcCatFeatureHolderPtr =
+                                &(rawDataProvider->ObjectsData->Data.CatFeatures[*catFeatureIdx]);
+
                             resourceConstrainedExecutor.Add(
                                 {
-                                    maxMemUsageForCatFeature,
-                                    [&, catFeatureIdx]() {
-                                        auto& srcCatFeatureHolder =
-                                            rawDataProvider->ObjectsData->Data.CatFeatures[*catFeatureIdx];
-
+                                    EstimateMemUsageForCatFeature(
+                                        **srcCatFeatureHolderPtr,
+                                        storeFeaturesDataAsExternalValuesHolders
+                                    ),
+                                    [&, catFeatureIdx, srcCatFeatureHolderPtr]() {
                                         ProcessCatFeature(
                                             catFeatureIdx,
-                                            *srcCatFeatureHolder,
-                                            /*updatePerfectHashOnly*/ bundleExclusiveFeatures,
+                                            **srcCatFeatureHolderPtr,
+                                            options,
+                                            bundleExclusiveFeatures,
                                             storeFeaturesDataAsExternalValuesHolders,
-                                            /*mapMostFrequentValueTo0*/ bundleExclusiveFeatures,
+                                            *incrementalIndexing,
                                             subsetIndexing.Get(),
+                                            localExecutor,
                                             quantizedFeaturesInfo,
                                             &(data->ObjectsData.Data.CatFeatures[*catFeatureIdx])
                                         );
@@ -1584,7 +2220,7 @@ namespace NCB {
                                                   catFeatureIdx
                                              )))
                                         {
-                                            srcCatFeatureHolder.Destroy();
+                                            srcCatFeatureHolderPtr->Destroy();
                                         }
                                     }
                                 }
@@ -1612,7 +2248,7 @@ namespace NCB {
                 resourceConstrainedExecutor.ExecTasks();
             }
 
-            if (calcBordersAndNanModeOnly) {
+            if (calcQuantizationAndNanModeOnly) {
                 return nullptr;
             }
 
@@ -1632,7 +2268,7 @@ namespace NCB {
                     *featuresLayout,
                     CreateExclusiveFeatureBundles(
                         rawDataProvider->ObjectsData->Data,
-                        *(srcObjectsCommonData.SubsetIndexing),
+                        *incrementalIndexing,
                         *featuresLayout,
                         *(data->ObjectsData.Data.QuantizedFeaturesInfo),
                         options.ExclusiveFeaturesBundlingOptions,
@@ -1662,68 +2298,18 @@ namespace NCB {
             }
 
             {
-                ui64 cpuRamUsage = NMemInfo::GetMemInfo().RSS;
-                OutputWarningIfCpuRamUsageOverLimit(cpuRamUsage, options.CpuRamLimit);
-
-                TResourceConstrainedExecutor resourceConstrainedExecutor(
-                    "CPU RAM",
-                    options.CpuRamLimit - Min(cpuRamUsage, options.CpuRamLimit),
-                    true,
-                    localExecutor
+                TColumnsQuantizer quantizer(
+                    clearSrcObjectsData,
+                    options,
+                    *incrementalIndexing,
+                    *featuresLayout,
+                    subsetIndexing.Get(),
+                    localExecutor,
+                    &rawDataProvider->ObjectsData->Data,
+                    &data->ObjectsData
                 );
 
-                if (bundleExclusiveFeatures) {
-                    ScheduleBundleFeatures(
-                        *(srcObjectsCommonData.SubsetIndexing),
-                        clearSrcObjectsData,
-                        subsetIndexing.Get(),
-                        localExecutor,
-                        &resourceConstrainedExecutor,
-                        &rawDataProvider->ObjectsData->Data,
-                        &data->ObjectsData
-                    );
-
-                    /*
-                     * call it only if bundleExclusiveFeatures because otherwise they've already been
-                     * created during Process(Float|Cat)Feature calls above
-                     */
-                    ScheduleNonBundledAndNonBinaryFeatures(
-                        *(srcObjectsCommonData.SubsetIndexing),
-                        clearSrcObjectsData,
-                        *featuresLayout,
-                        subsetIndexing.Get(),
-                        localExecutor,
-                        &resourceConstrainedExecutor,
-                        &rawDataProvider->ObjectsData->Data,
-                        &data->ObjectsData
-                    );
-                }
-
-                if (options.CpuCompatibleFormat && options.PackBinaryFeaturesForCpu) {
-                    ScheduleBinarizeFeatures(
-                        *(srcObjectsCommonData.SubsetIndexing),
-                        clearSrcObjectsData,
-                        subsetIndexing.Get(),
-                        localExecutor,
-                        &resourceConstrainedExecutor,
-                        &rawDataProvider->ObjectsData->Data,
-                        &data->ObjectsData
-                    );
-                }
-
-                if (options.CpuCompatibleFormat && options.GroupFeaturesForCpu) {
-                    ScheduleGroupFeatures(
-                        *(srcObjectsCommonData.SubsetIndexing),
-                        clearSrcObjectsData,
-                        subsetIndexing.Get(),
-                        localExecutor,
-                        &resourceConstrainedExecutor,
-                        &rawDataProvider->ObjectsData->Data,
-                        &data->ObjectsData
-                    );
-                }
-
-                resourceConstrainedExecutor.ExecTasks();
+                quantizer.Do();
             }
 
             if (clearSrcData) {
@@ -1886,6 +2472,19 @@ namespace NCB {
                 = params->ObliviousTreeOptions->DevExclusiveFeaturesBundleMaxBuckets.Get();
             quantizationOptions.ExclusiveFeaturesBundlingOptions.MaxConflictFraction
                 = params->ObliviousTreeOptions->SparseFeaturesConflictFraction.Get();
+
+            /* TODO(kirillovs): Sparse features support for GPU
+             * TODO(akhropov): Enable when sparse column scoring is supported
+
+            float defaultValueFractionToEnableSparseStorage
+                = params->DataProcessingOptions->DevDefaultValueFractionToEnableSparseStorage.Get();
+            if (defaultValueFractionToEnableSparseStorage > 0.0f) {
+                quantizationOptions.DefaultValueFractionToEnableSparseStorage
+                    = defaultValueFractionToEnableSparseStorage;
+                quantizationOptions.SparseArrayIndexingType
+                    = params->DataProcessingOptions->DevSparseArrayIndexingType.Get();
+            }
+            */
         } else {
             Y_ASSERT(params->GetTaskType() == ETaskType::GPU);
 

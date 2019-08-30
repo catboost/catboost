@@ -1,10 +1,14 @@
 #pragma once
 
+#include "columns.h"
 #include "data_provider.h"
 #include "exclusive_feature_bundling.h"
 #include "feature_grouping.h"
 #include "quantized_features_info.h"
 
+#include <catboost/libs/index_range/index_range.h>
+#include <catboost/libs/helpers/dynamic_iterator.h>
+#include <catboost/libs/helpers/sparse_array.h>
 #include <catboost/libs/helpers/restorable_rng.h>
 #include <catboost/libs/options/data_processing_options.h>
 #include <catboost/libs/options/catboost_options.h>
@@ -12,10 +16,16 @@
 #include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/array_ref.h>
+#include <util/generic/maybe.h>
 #include <util/generic/ylimits.h>
 #include <util/system/types.h>
 
 #include <functional>
+
+
+namespace NPar {
+    class TLocalExecutor;
+}
 
 
 namespace NCB {
@@ -32,27 +42,55 @@ namespace NCB {
         TFeaturesGroupingOptions FeaturesGroupingOptions{};
         bool AllowWriteFiles = true;
 
+        TMaybe<float> DefaultValueFractionToEnableSparseStorage = Nothing();
+        ESparseArrayIndexingType SparseArrayIndexingType = ESparseArrayIndexingType::Indices;
+
         // TODO(akhropov): remove after checking global tests consistency
         bool CpuCompatibilityShuffleOverFullData = true;
     };
 
+    /*
+     * Used for optimization.
+     * It is number of times more effective to iterate over dense data in incremental order instead of random
+     *   access
+     */
+    struct TIncrementalDenseIndexing {
+        // indices in SrcData for dense features, TFullSubset if there're no dense src data
+        TFeaturesArraySubsetIndexing SrcSubsetIndexing;
+
+        // positions in dst data when iterating over dense SrcData in SrcSubsetIndexing order
+        TFeaturesArraySubsetIndexing DstIndexing;
+    public:
+        TIncrementalDenseIndexing(
+            const TFeaturesArraySubsetIndexing& srcSubsetIndexing,
+            bool hasDenseData,
+            NPar::TLocalExecutor* localExecutor
+        );
+    };
+
 
     /*
-     * argument is src indices for up to 64 documents
-     * the return value is a bit mask whether the corresponding quantized feature value bins are non-default
+     * return values dstMasks will contain pairs:
+     *  pair.first is 64-documents block index
+     *  pair.second is bit mask whether the corresponding quantized feature value bins are non-default
      */
-    using TGetNonDefaultValuesMask = std::function<ui64(TConstArrayRef<ui32>)>;
 
-    TGetNonDefaultValuesMask GetQuantizedFloatNonDefaultValuesMaskFunction(
-        const TRawObjectsData& rawObjectsData,
+    void GetQuantizedNonDefaultValuesMasks(
+        const TFloatValuesHolder& floatValuesHolder,
         const TQuantizedFeaturesInfo& quantizedFeaturesInfo,
-        TFloatFeatureIdx floatFeatureIdx
+        const TFeaturesArraySubsetIndexing& incrementalIndexing,
+        const TFeaturesArraySubsetInvertedIndexing& invertedIncrementalIndexing,
+        TVector<std::pair<ui32, ui64>>* dstMasks,
+        ui32* nonDefaultCount
     );
 
-    TGetNonDefaultValuesMask GetQuantizedCatNonDefaultValuesMaskFunction(
-        const TRawObjectsData& rawObjectsData,
+    void GetQuantizedNonDefaultValuesMasks(
+        const THashedCatValuesHolder& catValuesHolder,
         const TQuantizedFeaturesInfo& quantizedFeaturesInfo,
-        TCatFeatureIdx catFeatureIdx
+        const TFeaturesArraySubsetIndexing& incrementalIndexing,
+        const TFeaturesArraySubsetInvertedIndexing& invertedIncrementalIndexing,
+        TVector<std::pair<ui32, ui64>>* dstMasks,
+        ui32* nonDefaultCount
     );
 
 

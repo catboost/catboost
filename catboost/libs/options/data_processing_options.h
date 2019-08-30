@@ -6,6 +6,8 @@
 #include "text_feature_options.h"
 #include "unimplemented_aware_option.h"
 
+#include <catboost/libs/helpers/sparse_array.h>
+
 #include <library/grid_creator/binarization.h>
 
 #include <util/generic/map.h>
@@ -28,6 +30,8 @@ namespace NCatboostOptions {
         bool operator==(const TDataProcessingOptions& rhs) const;
         bool operator!=(const TDataProcessingOptions& rhs) const;
 
+        void Validate() const;
+
         TOption<TVector<ui32>> IgnoredFeatures;
         TOption<bool> HasTimeFlag;
         TOption<bool> AllowConstLabel;
@@ -38,6 +42,10 @@ namespace NCatboostOptions {
         TOption<ui32> ClassesCount;
         TOption<TVector<float>> ClassWeights;
         TOption<TVector<TString>> ClassNames;
+
+        TOption<float> DevDefaultValueFractionToEnableSparseStorage; // 0 means sparse storage is disabled
+        TOption<NCB::ESparseArrayIndexingType> DevSparseArrayIndexingType;
+
         TGpuOnlyOption<EGpuCatFeaturesStorage> GpuCatFeaturesStorage;
     private:
         void SetPerFeatureMissingSettingToCommonValues();

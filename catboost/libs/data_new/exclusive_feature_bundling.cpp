@@ -4,6 +4,8 @@
 #include "quantization.h"
 #include "quantized_features_info.h"
 
+#include <catboost/libs/helpers/array_subset.h>
+#include <catboost/libs/helpers/double_array_iterator.h>
 #include <catboost/libs/helpers/parallel_tasks.h>
 
 #include <library/pop_count/popcount.h>
@@ -310,13 +312,13 @@ namespace NCB {
 
     TVector<TExclusiveFeaturesBundle> CreateExclusiveFeatureBundles(
         const TRawObjectsData& rawObjectsData,
-        const TFeaturesArraySubsetIndexing& rawDataSubsetIndexing,
+        const TIncrementalDenseIndexing& rawObjectsDataIncrementalIndexing,
         const TFeaturesLayout& featuresLayout,
         const TQuantizedFeaturesInfo& quantizedFeaturesInfo,
         const TExclusiveFeaturesBundlingOptions& options,
         NPar::TLocalExecutor* localExecutor
     ) {
-        const ui32 objectCount = rawDataSubsetIndexing.Size();
+        const ui32 objectCount = rawObjectsDataIncrementalIndexing.SrcSubsetIndexing.Size();
 
         if (objectCount == 0) {
             return {};
@@ -325,8 +327,9 @@ namespace NCB {
         const auto featureCount = featuresLayout.GetExternalFeatureCount();
         const auto featuresMetaInfo = featuresLayout.GetExternalFeaturesMetaInfo();
 
+        bool hasDenseFeatures = false;
+        bool hasSparseFeatures = false;
         TVector<ui32> featureIndicesToCalc;
-        TVector<TGetNonDefaultValuesMask> getNonDefaultValuesMaskFunctions(featureCount); // [flatFeatureIdx]
 
         for (auto flatFeatureIdx : xrange(featureCount)) {
             const auto& featureMetaInfo = featuresMetaInfo[flatFeatureIdx];
@@ -336,37 +339,32 @@ namespace NCB {
 
             featureIndicesToCalc.push_back(flatFeatureIdx);
 
+            const ui32 perTypeFeatureIdx = featuresLayout.GetInternalFeatureIdx(flatFeatureIdx);
+            bool isSparse = false;
             if (featureMetaInfo.Type == EFeatureType::Float) {
-                getNonDefaultValuesMaskFunctions[flatFeatureIdx] = GetQuantizedFloatNonDefaultValuesMaskFunction(
-                    rawObjectsData,
-                    quantizedFeaturesInfo,
-                    TFloatFeatureIdx(featuresLayout.GetInternalFeatureIdx(flatFeatureIdx))
-                );
+                isSparse = rawObjectsData.FloatFeatures[perTypeFeatureIdx]->GetIsSparse();
             } else if (featureMetaInfo.Type == EFeatureType::Categorical) {
-                getNonDefaultValuesMaskFunctions[flatFeatureIdx] = GetQuantizedCatNonDefaultValuesMaskFunction(
-                    rawObjectsData,
-                    quantizedFeaturesInfo,
-                    TCatFeatureIdx(featuresLayout.GetInternalFeatureIdx(flatFeatureIdx))
-                );
+                isSparse = rawObjectsData.CatFeatures[perTypeFeatureIdx]->GetIsSparse();
             } else {
                 CB_ENSURE(false, featureMetaInfo.Type << " is not supported for feature bundles");
             }
+
+            if (isSparse) {
+                hasSparseFeatures = true;
+            } else {
+                hasDenseFeatures = true;
+            }
         }
 
-        TVector<ui32> subsetIndices;
-        subsetIndices.yresize(rawDataSubsetIndexing.Size());
+        TFeaturesArraySubsetInvertedIndexing invertedIncrementalIndexing(TFullSubset<ui32>(0));
 
-        rawDataSubsetIndexing.ParallelForEach(
-            [&] (ui32 objectIdx, ui32 srcObjectIdx) {
-                subsetIndices[objectIdx] = srcObjectIdx;
-            },
-            localExecutor
-        );
-
-        // to improve locality
-        Sort(subsetIndices);
-
-        TSimpleIndexRangesGenerator<ui32> indexBlocks(TIndexRange(objectCount), (ui32)sizeof(ui64) * CHAR_BIT);
+        if (hasSparseFeatures) {
+            invertedIncrementalIndexing = GetInvertedIndexing(
+                rawObjectsDataIncrementalIndexing.DstIndexing,
+                objectCount,
+                localExecutor
+            );
+        }
 
         TVector<TVector<std::pair<ui32, ui64>>> featuresNonDefaultMasks(featureCount);
         TVector<ui32> featuresNonDefaultCount(featureCount);
@@ -374,22 +372,27 @@ namespace NCB {
         localExecutor->ExecRange(
             [&] (int featureIdxToCalc) {
                 const ui32 flatFeatureIdx = featureIndicesToCalc[featureIdxToCalc];
+                const ui32 perTypeFeatureIdx = featuresLayout.GetInternalFeatureIdx(flatFeatureIdx);
 
-                const auto& getNonDefaultValuesMaskFunction = getNonDefaultValuesMaskFunctions[flatFeatureIdx];
                 auto& dstMasks = featuresNonDefaultMasks[flatFeatureIdx];
                 auto& nonDefaultCount = featuresNonDefaultCount[flatFeatureIdx];
 
-                for (auto blockIdx : xrange(indexBlocks.RangesCount())) {
-                    auto blockRange = indexBlocks.GetRange(blockIdx);
-
-                    const ui64 nonDefaultMask = getNonDefaultValuesMaskFunction(
-                        TConstArrayRef<ui32>(subsetIndices.begin() + blockRange.Begin, blockRange.GetSize())
+                auto getQuantizedNonDefaultValuesMasks = [&] (const auto& column) {
+                    GetQuantizedNonDefaultValuesMasks(
+                        column,
+                        quantizedFeaturesInfo,
+                        rawObjectsDataIncrementalIndexing.SrcSubsetIndexing,
+                        invertedIncrementalIndexing,
+                        &dstMasks,
+                        &nonDefaultCount
                     );
+                };
 
-                    if (nonDefaultMask) {
-                        nonDefaultCount += (ui32)PopCount(nonDefaultMask);
-                        dstMasks.push_back(std::make_pair(blockIdx, nonDefaultMask));
-                    }
+                if (featuresMetaInfo[flatFeatureIdx].Type == EFeatureType::Float) {
+                    getQuantizedNonDefaultValuesMasks(*rawObjectsData.FloatFeatures[perTypeFeatureIdx]);
+                } else {
+                    Y_ASSERT(featuresMetaInfo[flatFeatureIdx].Type == EFeatureType::Categorical);
+                    getQuantizedNonDefaultValuesMasks(*rawObjectsData.CatFeatures[perTypeFeatureIdx]);
                 }
             },
             0,

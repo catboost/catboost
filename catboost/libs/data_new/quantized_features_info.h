@@ -14,7 +14,7 @@
 #include <catboost/libs/quantization/utils.h>
 
 #include <library/binsaver/bin_saver.h>
-
+#include <library/grid_creator/binarization.h>
 #include <library/dbg_output/dump.h>
 #include <library/threading/local_executor/local_executor.h>
 
@@ -31,6 +31,18 @@
 namespace NCB {
     // [catFeatureIdx][perfectHashIdx] -> hashedCatValue
     using TPerfectHashedToHashedCatValuesMap = TVector<TVector<ui32>>;
+
+    // because grid_creator library should not depend on binSaver
+    struct TQuantizationWithSerialization : public NSplitSelection::TQuantization {
+    public:
+        TQuantizationWithSerialization() = default;
+
+        explicit TQuantizationWithSerialization(NSplitSelection::TQuantization&& quantization)
+            : NSplitSelection::TQuantization(std::move(quantization))
+        {}
+
+        SAVELOAD(Borders, DefaultQuantizedBin);
+    };
 
 
     //stores expression for quantized features calculations and mapping from this expression to unique ids
@@ -67,7 +79,8 @@ namespace NCB {
         // *this contains a superset of quantized features in rhs
         bool IsSupersetOf(const TQuantizedFeaturesInfo& rhs) const;
 
-        TRWMutex& GetRWMutex() {
+        // const because can be used with TReadGuard without changing the object
+        TRWMutex& GetRWMutex() const {
             return RWMutex;
         }
 
@@ -107,21 +120,34 @@ namespace NCB {
 
         ENanMode GetNanMode(const TFloatFeatureIdx floatFeatureIdx) const;
 
+        bool HasQuantization(const TFloatFeatureIdx floatFeatureIdx) const {
+            CheckCorrectPerTypeFeatureIdx(floatFeatureIdx);
+            return Quantization.contains(*floatFeatureIdx);
+        }
+
+        void SetQuantization(const TFloatFeatureIdx floatFeatureIdx,
+                             NSplitSelection::TQuantization&& quantization) {
+            CheckCorrectPerTypeFeatureIdx(floatFeatureIdx);
+            Quantization[*floatFeatureIdx] = TQuantizationWithSerialization(std::move(quantization));
+        }
+
+        const NSplitSelection::TQuantization& GetQuantization(const TFloatFeatureIdx floatFeatureIdx) const {
+            CheckCorrectPerTypeFeatureIdx(floatFeatureIdx);
+            return Quantization.at(*floatFeatureIdx);
+        }
 
         bool HasBorders(const TFloatFeatureIdx floatFeatureIdx) const {
-            CheckCorrectPerTypeFeatureIdx(floatFeatureIdx);
-            return Borders.contains(*floatFeatureIdx);
+            return HasQuantization(floatFeatureIdx);
         }
 
         void SetBorders(const TFloatFeatureIdx floatFeatureIdx,
                         TVector<float>&& borders) {
-            CheckCorrectPerTypeFeatureIdx(floatFeatureIdx);
-            Borders[*floatFeatureIdx] = std::move(borders);
+            SetQuantization(floatFeatureIdx, NSplitSelection::TQuantization(std::move(borders)));
         }
 
         const TVector<float>& GetBorders(const TFloatFeatureIdx floatFeatureIdx) const {
             CheckCorrectPerTypeFeatureIdx(floatFeatureIdx);
-            return Borders.at(*floatFeatureIdx);
+            return Quantization.at(*floatFeatureIdx).Borders;
         }
 
         const NCatboostOptions::TBinarizationOptions& GetFloatFeatureBinarization(ui32 featureIndex) const {
@@ -140,8 +166,7 @@ namespace NCB {
         }
 
         ui32 GetBinCount(const TFloatFeatureIdx floatFeatureIdx) const {
-            CheckCorrectPerTypeFeatureIdx(floatFeatureIdx);
-            return ui32(Borders.at(*floatFeatureIdx).size() + 1);
+            return ui32(GetBorders(floatFeatureIdx).size() + 1);
         }
 
 
@@ -222,7 +247,7 @@ namespace NCB {
 
     private:
         // use for shared mutable access
-        TRWMutex RWMutex;
+        mutable TRWMutex RWMutex;
 
         TFeaturesLayoutPtr FeaturesLayout;
 
@@ -231,7 +256,7 @@ namespace NCB {
 
         bool FloatFeaturesAllowNansInTestOnly = false;
 
-        TMap<ui32, TVector<float>> Borders; // [floatFeatureIdx]
+        TMap<ui32, TQuantizationWithSerialization> Quantization; // [floatFeatureIdx]
         TMap<ui32, ENanMode> NanModes; // [floatFeatureIdx]
 
         TCatFeaturesPerfectHash CatFeaturesPerfectHash;
@@ -242,6 +267,23 @@ namespace NCB {
 
     using TQuantizedFeaturesInfoPtr = TIntrusivePtr<TQuantizedFeaturesInfo>;
 }
+
+
+template <>
+struct TDumper<NSplitSelection::TQuantization> {
+    template <class S>
+    static inline void Dump(S& s, const NSplitSelection::TQuantization& quantization) {
+        s << "Borders=" << NCB::DbgDumpWithIndices<float>(quantization.Borders, true)
+          << ",DefaultQuantizedBin=";
+        if (quantization.DefaultQuantizedBin) {
+            s << "{Idx=" << quantization.DefaultQuantizedBin->Idx << ",Fraction="
+              << quantization.DefaultQuantizedBin->Fraction << '}';
+        } else {
+            s << '-';
+        }
+        s << Endl;
+    }
+};
 
 
 template <>
@@ -271,10 +313,9 @@ struct TDumper<NCB::TQuantizedFeaturesInfo> {
                 continue;
             }
 
-            s << "floatFeatureIdx=" << *floatFeatureIdx << "\tBorders=";
-            if (quantizedFeaturesInfo.HasBorders(floatFeatureIdx)) {
-                s << '{' << NCB::DbgDumpWithIndices<float>(quantizedFeaturesInfo.GetBorders(floatFeatureIdx))
-                  << '}';
+            s << "floatFeatureIdx=" << *floatFeatureIdx << "\tQuantization=";
+            if (quantizedFeaturesInfo.HasQuantization(floatFeatureIdx)) {
+                s << DbgDump(quantizedFeaturesInfo.GetQuantization(floatFeatureIdx));
             } else {
                 s << '-';
             }

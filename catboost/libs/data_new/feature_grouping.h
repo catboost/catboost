@@ -1,6 +1,7 @@
 #pragma once
 
 #include "exclusive_feature_bundling.h"
+#include "feature_index.h"
 #include "packed_binary_features.h"
 
 #include <catboost/libs/options/enums.h>
@@ -14,22 +15,7 @@
 
 namespace NCB {
 
-    struct TFeaturesGroupPart {
-        EFeatureType FeatureType;
-        ui32 FeatureIdx; // per type
-
-    public:
-        explicit TFeaturesGroupPart(EFeatureType featureType = EFeatureType::Float, ui32 featureIndex = 0)
-            : FeatureType(featureType)
-            , FeatureIdx(featureIndex)
-        {}
-
-        bool operator==(const TFeaturesGroupPart& rhs) const {
-            return (FeatureType == rhs.FeatureType) && (FeatureIdx == rhs.FeatureIdx);
-        }
-
-        SAVELOAD(FeatureType, FeatureIdx);
-    };
+    using TFeaturesGroupPart = TFeatureIdxWithType;
 
     struct TFeaturesGroup {
         TVector<TFeaturesGroupPart> Parts;

@@ -35,9 +35,9 @@ inline int operator&(NCatboostOptions::TBinarizationOptions& binarizationOptions
 
 
 namespace NCB {
-    static bool ApproximatelyEqualBorders(
-        const TMap<ui32, TVector<float>>& lhs,
-        const TMap<ui32, TVector<float>>& rhs
+    static bool ApproximatelyEqualQuantization(
+        const TMap<ui32, TQuantizationWithSerialization>& lhs,
+        const TMap<ui32, TQuantizationWithSerialization>& rhs
     ) {
         constexpr auto EPS = 1.e-6f;
 
@@ -50,7 +50,7 @@ namespace NCB {
             if (!rhsValue) {
                 return false;
             }
-            if (!ApproximatelyEqual<float>(featureIdxAndValue.second, *rhsValue, EPS)) {
+            if (!ApproximatelyEqual<float>(featureIdxAndValue.second.Borders, rhsValue->Borders, EPS)) {
                 return false;
             }
         }
@@ -104,10 +104,10 @@ namespace NCB {
 
     bool TQuantizedFeaturesInfo::operator==(const TQuantizedFeaturesInfo& rhs) const {
         return (*FeaturesLayout == *rhs.FeaturesLayout) &&
-               (CommonFloatFeaturesBinarization == rhs.CommonFloatFeaturesBinarization) &&
-               (PerFloatFeatureQuantization == rhs.PerFloatFeatureQuantization) &&
-               ApproximatelyEqualBorders(Borders, rhs.Borders) && (NanModes == rhs.NanModes) &&
-               (CatFeaturesPerfectHash == rhs.CatFeaturesPerfectHash);
+            (CommonFloatFeaturesBinarization == rhs.CommonFloatFeaturesBinarization) &&
+            (PerFloatFeatureQuantization == rhs.PerFloatFeatureQuantization) &&
+            ApproximatelyEqualQuantization(Quantization, rhs.Quantization) && (NanModes == rhs.NanModes) &&
+            (CatFeaturesPerfectHash == rhs.CatFeaturesPerfectHash);
     }
 
     int TQuantizedFeaturesInfo::operator&(IBinSaver& binSaver) {
@@ -116,7 +116,7 @@ namespace NCB {
             CommonFloatFeaturesBinarization,
             PerFloatFeatureQuantization,
             FloatFeaturesAllowNansInTestOnly,
-            Borders,
+            Quantization,
             NanModes,
             CatFeaturesPerfectHash
         );
@@ -148,12 +148,12 @@ namespace NCB {
 
         constexpr auto EPS = 1.e-6f;
 
-        for (const auto& [floatFeatureIdx, borders] : rhs.Borders) {
-            const auto it = Borders.find(floatFeatureIdx);
-            if (it == Borders.end()) {
+        for (const auto& [floatFeatureIdx, quantization] : rhs.Quantization) {
+            const auto it = Quantization.find(floatFeatureIdx);
+            if (it == Quantization.end()) {
                 return false;
             }
-            if (!ApproximatelyEqual<float>(borders, it->second, EPS)) {
+            if (!ApproximatelyEqual<float>(quantization.Borders, it->second.Borders, EPS)) {
                 return false;
             }
         }
@@ -182,6 +182,13 @@ namespace NCB {
         if (const auto* denseData = dynamic_cast<const TFloatArrayValuesHolder*>(&feature)) {
             hasNans
                 = denseData->GetArrayData().Find([] (size_t /*idx*/, float value) { return IsNan(value); });
+        } else if (const auto* sparseData = dynamic_cast<const TFloatSparseValuesHolder*>(&feature)) {
+            const TConstSparseArray<float, ui32>& sparseArray = sparseData->GetData();
+            if (IsNan(sparseArray.GetDefaultValue())) {
+                hasNans = true;
+            } else {
+                hasNans = FindIf(*sparseArray.GetNonDefaultValues(), IsNan);
+            }
         } else {
             CB_ENSURE_INTERNAL(false, "TQuantizedFeaturesInfo::ComputeNanMode: unsupported column type");
         }
@@ -264,6 +271,11 @@ namespace NCB {
         return result;
     }
 
+
+    static ui32 UpdateCheckSumImpl(ui32 init, const TQuantizationWithSerialization& data) {
+        return UpdateCheckSum(init, data.Borders, data.DefaultQuantizedBin);
+    }
+
     ui32 TQuantizedFeaturesInfo::CalcCheckSum() const {
         ui32 checkSum = 0;
         auto updateCheskSum = [&checkSum] (const NCatboostOptions::TBinarizationOptions& binarizationOptions) {
@@ -277,7 +289,7 @@ namespace NCB {
             updateCheskSum(binarizationOptions);
         }
         checkSum = UpdateCheckSum(checkSum, FloatFeaturesAllowNansInTestOnly);
-        checkSum = UpdateCheckSum(checkSum, Borders);
+        checkSum = UpdateCheckSum(checkSum, Quantization);
         checkSum = UpdateCheckSum(checkSum, NanModes);
         return checkSum ^ CatFeaturesPerfectHash.CalcCheckSum();
     }
