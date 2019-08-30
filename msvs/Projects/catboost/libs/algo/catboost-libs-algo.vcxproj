@@ -132,7 +132,6 @@
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\features_data_helpers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\fold.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\full_model_saver.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\gradient_walker.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\greedy_tensor_search.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\helpers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\index_calcer.h"/>

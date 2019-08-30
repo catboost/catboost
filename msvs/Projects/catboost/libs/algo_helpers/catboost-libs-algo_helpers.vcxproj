@@ -91,6 +91,7 @@
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo_helpers\custom_objective_descriptor.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo_helpers\ders_holder.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo_helpers\error_functions.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\algo_helpers\gradient_walker.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo_helpers\hessian.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo_helpers\online_predictor.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo_helpers\pairwise_leaves_calculation.h"/>
