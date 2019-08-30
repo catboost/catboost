@@ -13,7 +13,6 @@ SRCS(
     datetime_ut.cpp
     holder_vector_ut.cpp
     memory_ut.cpp
-    parse_utils_ut.cpp
 )
 
 INCLUDE(${ARCADIA_ROOT}/util/tests/ya_util_tests.inc)
