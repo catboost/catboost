@@ -30,8 +30,6 @@ namespace {
                 /* TODO(akhropov): there's a possibility of pool format with cat features w/o cd file in the future,
                     so these checks might become wrong and cat features spec in pool should be checked instead
                 */
-                CB_ENSURE(Model.GetUsedCatFeaturesCount() == 0 || Params.DsvPoolFormatParams.CdFilePath.Inited(),
-                          "Model has categorical features. Specify column_description file with correct categorical features.");
                 if (Model.HasCategoricalFeatures()) {
                     CB_ENSURE(Params.DsvPoolFormatParams.CdFilePath.Inited(),
                               "Model has categorical features. Specify column_description file with correct categorical features.");
