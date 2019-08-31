@@ -86,7 +86,8 @@
         "vmexec": { "description": "VMEXEC run script inside qemu-vm" },
         "yfm": { "description": "YFM-extended markdown processor for Cloud deploy" },
         "aws": { "description": "Run aws" },
-        "sedem": { "description": "SEDEM tool - Service management tool for Maps services" }
+        "sedem": { "description": "SEDEM tool - Service management tool for Maps services" },
+	"fio": { "description": "flexible I/O tester" },
     },
     "toolchain": {
         "msvc2017-i686": {
@@ -1483,6 +1484,14 @@
                 {"host": {"os": "LINUX"}, "default": true}
             ]
         },
+        "fio": {
+            "tools": {
+                "fio": { "bottle" : "fio", "executable": "fio" },
+            },
+            "platforms": [
+                {"host": {"os": "LINUX"}, "default": true}
+            ]
+        },
         "vmexec": {
             "tools": {
                 "vmexec": { "bottle" : "vmexec", "executable": "vmexec" },
@@ -2432,6 +2441,15 @@
                 "qemu-i386": ["qemu", "bin", "qemu-system-i386"],
                 "qemu-img": ["qemu", "bin", "qemu-img"],
                 "qemu-nbd": ["qemu", "bin", "qemu-nbd"]
+            }
+        },
+        "fio": {
+            "formula": {
+                "sandbox_id": [498288960],
+                "match": "infra/kernel/tools/fio/build/fio-static.tar.gz"
+            },
+            "executable": {
+                "fio": ["fio", "bin", "fio"],
             }
         },
         "vmexec": {
