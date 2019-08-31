@@ -17,6 +17,6 @@ namespace NDaemonMaker {
         chdirRoot
     };
 
-    void MakeMeDaemon(ECloseDescriptors cd = closeAll, EStdIoDescriptors iod = openDevNull, EChDir chd = chdirRoot);
+    bool MakeMeDaemon(ECloseDescriptors cd = closeAll, EStdIoDescriptors iod = openDevNull, EChDir chd = chdirRoot, bool exitFromParent = true);
     void CloseFrom(int fd);
 }
