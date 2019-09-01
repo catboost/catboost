@@ -319,15 +319,11 @@ def trim_path(path, winepath):
     p = run_subprocess([winepath, '-s', path], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     stdout, stderr = p.communicate()
 
-    stdout = stdout.split('\n')
-    current_string = len(stdout) - 1
+    for line in reversed(stdout.splitlines()):
+        if line.startswith((path[:4], path[:4].upper())):
+            return line
 
-    while current_string >= 0:
-        if stdout[current_string].startswith((path[:4], path[:4].upper())):
-            return stdout[current_string]
-        current_string -= 1
-
-    raise Exception('Cannot trim path {}, error:\n{}'.format(path, stdout))
+    raise Exception('Cannot trim path {}; winepath exit code: {}, stdout:\n{}\n  stderr:\n{}'.format(path, p.returncode, stdout, stderr))
 
 
 def downsize_path(path, short_names):
