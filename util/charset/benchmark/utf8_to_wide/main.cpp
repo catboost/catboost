@@ -26,7 +26,7 @@ namespace {
             unsigned char* textEnd = data.begin();
             for (size_t i = 0; i < N; ++i) {
                 size_t runeLen;
-                WriteUTF8Char(RandomNumber<wchar32>(0x7FF) + 1, runeLen, textEnd);
+                WriteUTF8Char(RandomNumber<ui32>(0x7FF) + 1, runeLen, textEnd);
                 textEnd += runeLen;
             }
             assign(reinterpret_cast<const char*>(data.begin()), reinterpret_cast<const char*>(textEnd));

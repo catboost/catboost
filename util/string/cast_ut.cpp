@@ -575,11 +575,21 @@ Y_UNIT_TEST_SUITE(TCastTest) {
     Y_UNIT_TEST(TestChar) {
         // Given a character ch, ToString(ch) returns
         // the decimal representation of its integral value
+
+        // char
         UNIT_ASSERT_VALUES_EQUAL(ToString('\0'), "0");
         UNIT_ASSERT_VALUES_EQUAL(ToString('0'), "48");
 
+        // wchar16
         UNIT_ASSERT_VALUES_EQUAL(ToString(u'\0'), "0");
         UNIT_ASSERT_VALUES_EQUAL(ToString(u'0'), "48");
         UNIT_ASSERT_VALUES_EQUAL(ToString(u'я'), "1103");
+        UNIT_ASSERT_VALUES_EQUAL(ToString(u'\uFFFF'), "65535");
+
+        // wchar32
+        UNIT_ASSERT_VALUES_EQUAL(ToString(U'\0'), "0");
+        UNIT_ASSERT_VALUES_EQUAL(ToString(U'0'), "48");
+        UNIT_ASSERT_VALUES_EQUAL(ToString(U'я'), "1103");
+        UNIT_ASSERT_VALUES_EQUAL(ToString(U'\U0001F600'), "128512"); // 'GRINNING FACE' (U+1F600)
     }
 };

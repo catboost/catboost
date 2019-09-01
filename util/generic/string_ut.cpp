@@ -1977,6 +1977,7 @@ public:
     UNIT_TEST(TestDecodingMethodsMixedStr);
     UNIT_TEST(TestIterators);
     UNIT_TEST(TestReverseIterators);
+    UNIT_TEST(TestStringLiterals);
     UNIT_TEST_SUITE_END();
 
 private:
@@ -2130,6 +2131,14 @@ private:
 
         str = hello;
         UNIT_ASSERT(str == hello);
+    }
+
+    void TestStringLiterals() {
+        TUtf32String s1 = U"hello";
+        UNIT_ASSERT_VALUES_EQUAL(s1, TUtf32String::FromAscii("hello"));
+
+        TUtf32String s2 = U"привет";
+        UNIT_ASSERT_VALUES_EQUAL(s2, TUtf32String::FromUtf8("привет"));
     }
 };
 

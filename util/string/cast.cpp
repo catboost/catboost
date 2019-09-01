@@ -448,7 +448,8 @@ using TWCharIType = std::conditional_t<std::is_signed<wchar_t>::value, i64, ui64
 
 DEF_INT_SPEC_I(char, TCharIType)
 DEF_INT_SPEC_I(wchar_t, TWCharIType)
-DEF_INT_SPEC_I(wchar16, TWCharIType)
+DEF_INT_SPEC_I(wchar16, ui64) // wchar16 is always unsigned
+DEF_INT_SPEC_I(wchar32, ui64) // wchar32 is always unsigned
 
 #undef DEF_INT_SPEC
 #undef DEF_INT_SPEC_I

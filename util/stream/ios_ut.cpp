@@ -28,6 +28,7 @@ class TStreamsTest: public TTestBase {
     UNIT_TEST(TestWtrokaOutput);
     UNIT_TEST(TestIStreamOperators);
     UNIT_TEST(TestWchar16Output);
+    UNIT_TEST(TestWchar32Output);
     UNIT_TEST(TestUtf16StingOutputByChars);
     UNIT_TEST_SUITE_END();
 
@@ -45,6 +46,7 @@ public:
     void TestIStreamOperators();
     void TestReadTo();
     void TestWchar16Output();
+    void TestWchar32Output();
     void TestUtf16StingOutputByChars();
 };
 
@@ -459,6 +461,18 @@ void TStreamsTest::TestWchar16Output() {
     os << u'b';
 
     UNIT_ASSERT_VALUES_EQUAL(s, "aюя" "\xEF\xBF\xBD" "b");
+}
+
+void TStreamsTest::TestWchar32Output() {
+    TString s;
+    TStringOutput os(s);
+    os << wchar32(97); // latin a
+    os << U'\u044E'; // cyrillic ю
+    os << U'я';
+    os << U'\U0001F600'; // grinning face
+    os << u'b';
+
+    UNIT_ASSERT_VALUES_EQUAL(s, "aюя" "\xF0\x9F\x98\x80" "b");
 }
 
 void TStreamsTest::TestUtf16StingOutputByChars() {

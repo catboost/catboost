@@ -61,6 +61,14 @@ void Out<wchar16>(IOutputStream& o, wchar16 ch) {
     o.Write(buffer, length);
 }
 
+template <>
+void Out<wchar32>(IOutputStream& o, wchar32 ch) {
+    size_t length;
+    unsigned char buffer[MAX_UTF8_BYTES];
+    WriteUTF8Char(ch, length, buffer);
+    o.Write(buffer, length);
+}
+
 static void WriteString(IOutputStream& o, const wchar16* w, size_t n) {
     const size_t buflen = (n * MAX_UTF8_BYTES); // * 4 because the conversion functions can convert unicode character into maximum 4 bytes of UTF8
     TTempBuf buffer(buflen + 1);
@@ -98,6 +106,11 @@ void Out<std::string_view>(IOutputStream& o, const std::string_view& p) {
 
 template <>
 void Out<std::u16string_view>(IOutputStream& o, const std::u16string_view& p) {
+    WriteString(o, p.data(), p.length());
+}
+
+template <>
+void Out<std::u32string_view>(IOutputStream& o, const std::u32string_view& p) {
     WriteString(o, p.data(), p.length());
 }
 

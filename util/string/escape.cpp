@@ -178,7 +178,7 @@ template TUtf16String& EscapeCImpl<TUtf16String::TChar>(const TUtf16String::TCha
 
 namespace {
     template <class TStr>
-    inline void AppendUnicode(TStr& s, ui32 v) {
+    inline void AppendUnicode(TStr& s, wchar32 v) {
         char buf[10];
         size_t sz = 0;
 
@@ -186,7 +186,7 @@ namespace {
         s.AppendNoAlias(buf, sz);
     }
 
-    inline void AppendUnicode(TUtf16String& s, ui32 v) {
+    inline void AppendUnicode(TUtf16String& s, wchar32 v) {
         WriteSymbol(v, s);
     }
 

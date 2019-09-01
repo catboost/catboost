@@ -106,7 +106,7 @@ typedef i64 SUPERLONG;
 typedef char16_t wchar16;
 // internal symbol type: UTF-16LE
 typedef wchar16 TChar;
-typedef ui32 wchar32;
+typedef char32_t wchar32;
 #endif
 
 #if defined(_MSC_VER)
