@@ -26,7 +26,15 @@
 
 using ENanValueTreatment = TFloatFeature::ENanValueTreatment;
 using EType = NCB::NOnnx::TOnnxNode::EType;
+using TModeNode = NCB::NOnnx::TOnnxNode::TTreeNodeBehaviorToOnnxTreeNodeMode;
 
+const TString TModeNode::BRANCH_LEQ = "BRANCH_LEQ";
+const TString TModeNode::BRANCH_LT = "BRANCH_LT";
+const TString TModeNode::BRANCH_GTE = "BRANCH_GTE";
+const TString TModeNode::BRANCH_GT = "BRANCH_GT";
+const TString TModeNode::BRANCH_EQ = "BRANCH_EQ";
+const TString TModeNode::BRANCH_NEQ = "BRANCH_NEQ";
+const TString TModeNode::LEAF = "LEAF";
 
 void NCB::NOnnx::InitMetadata(
     const TFullModel& model,
@@ -360,9 +368,6 @@ static void AddTree(
     bool isClassifierModel,
     TTreesAttributes* treesAttributes) {
 
-    static const TString branchGTEMode = "BRANCH_GTE";
-    static const TString leafMode = "LEAF";
-
     i64 nodeIdx = 0;
 
     // Process splits
@@ -378,7 +383,7 @@ static void AddTree(
         if (split.Type == ESplitType::FloatFeature) {
             const auto& floatFeature = trees.FloatFeatures[split.FloatFeature.FloatFeature];
             splitFlatFeatureIdx = floatFeature.Position.FlatIndex;
-            nodeMode = branchGTEMode;
+            nodeMode = TModeNode::BRANCH_GTE;
             if (floatFeature.NanValueTreatment == TFloatFeature::ENanValueTreatment::AsTrue) {
                 missingValueTracksTrue = 1;
             }
@@ -413,7 +418,7 @@ static void AddTree(
         treesAttributes->nodes_treeids->add_ints(treeIdx);
         treesAttributes->nodes_nodeids->add_ints(nodeIdx);
 
-        treesAttributes->nodes_modes->add_strings(leafMode);
+        treesAttributes->nodes_modes->add_strings(TModeNode::LEAF);
 
         // add dummy values because nodes_* must have equal length
         treesAttributes->nodes_featureids->add_ints(0);
@@ -575,10 +580,18 @@ static void PrepareTrees(
         node.FalseNodeId = treesAttributes.nodes_falsenodeids->ints(idx);
         node.TrueNodeId = treesAttributes.nodes_truenodeids->ints(idx);
 
-        if (treesAttributes.nodes_modes->strings(idx) == "LEAF") {
+        const TString nodeMode = treesAttributes.nodes_modes->strings(idx);
+
+        if (nodeMode == TModeNode::LEAF) {
             node.Type = EType::Leaf;
         } else {
             node.Type = EType::Inner;
+
+            if (nodeMode == TModeNode::BRANCH_LEQ || nodeMode == TModeNode::BRANCH_LT) {
+                std::swap(node.TrueNodeId, node.FalseNodeId);
+            } else {
+                CB_ENSURE(nodeMode == TModeNode::BRANCH_GTE || nodeMode == TModeNode::BRANCH_GT, "Undefined mode of node " << nodeMode);
+            }
 
             TModelSplit split;
             split.Type = ESplitType::FloatFeature;
@@ -642,7 +655,7 @@ static THolder<TNonSymmetricTreeNode> BuildNonSymmetricTree(
     const auto node = tree.at(nodeId);
 
     switch (node.Type) {
-        case NCB::NOnnx::TOnnxNode::EType::Leaf: {
+        case EType::Leaf: {
             if (node.Values.size() == 1) {
                 head->Value = node.Values[0];
             } else {
@@ -650,7 +663,7 @@ static THolder<TNonSymmetricTreeNode> BuildNonSymmetricTree(
             }
             return head;
         }
-        case NCB::NOnnx::TOnnxNode::EType::Inner: {
+        case EType::Inner: {
             head->Value = TNonSymmetricTreeNode::TEmptyValue();
             head->SplitCondition = node.SplitCondition;
             CB_ENSURE(tree.contains(node.FalseNodeId), "unexpected false node id");

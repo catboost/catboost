@@ -29,6 +29,16 @@ namespace NCB {
                 Leaf, Inner
             };
 
+            struct TTreeNodeBehaviorToOnnxTreeNodeMode {
+                static const TString BRANCH_LEQ;
+                static const TString BRANCH_LT;
+                static const TString BRANCH_GTE;
+                static const TString BRANCH_GT;
+                static const TString BRANCH_EQ;
+                static const TString BRANCH_NEQ;
+                static const TString LEAF;
+            };
+
             TOnnxNode() = default;
             int FalseNodeId = 0;
             int TrueNodeId = 0;
