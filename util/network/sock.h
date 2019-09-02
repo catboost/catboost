@@ -372,12 +372,14 @@ protected:
 public:
     ssize_t SendTo(const void* msg, size_t len, const ISockAddr* toAddr) {
         ssize_t ret = toAddr->ResolveAddr();
-        if (ret < 0)
-            return -errno;
+        if (ret < 0) {
+            return -LastSystemError();
+        }
 
         ret = sendto((SOCKET) * this, (const char*)msg, (int)len, 0, toAddr->SockAddr(), toAddr->Len());
-        if (ret < 0)
-            return -errno;
+        if (ret < 0) {
+            return -LastSystemError();
+        }
 
         return ret;
     }
@@ -386,7 +388,7 @@ public:
         socklen_t fromSize = fromAddr->Size();
         const ssize_t ret = recvfrom((SOCKET) * this, (char*)buf, (int)len, 0, fromAddr->SockAddr(), &fromSize);
         if (ret < 0) {
-            return -errno;
+            return -LastSystemError();
         }
 
         return ret;
