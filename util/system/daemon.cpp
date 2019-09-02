@@ -17,14 +17,14 @@
 #ifdef _unix_
 using namespace NDaemonMaker;
 
-static bool Fork(bool exitFromParent) {
+static bool Fork(EParent parent) {
     pid_t pid = fork();
 
     if (pid > 0) {
         int status = 0;
         while (waitpid(pid, &status, 0) < 0 && errno == EINTR) {
         }
-        if (exitFromParent) {
+        if (parent == callExitFromParent) {
             exit(0);
         } else {
             return true;
@@ -71,13 +71,13 @@ static void CloseFromToExcept(int from, int to, const int* except) {
 #endif /* _unix_ */
 }
 
-bool NDaemonMaker::MakeMeDaemon(ECloseDescriptors cd, EStdIoDescriptors iod, EChDir chd, bool exitFromParent) {
+bool NDaemonMaker::MakeMeDaemon(ECloseDescriptors cd, EStdIoDescriptors iod, EChDir chd, EParent parent) {
     (void)cd;
     (void)iod;
     (void)chd;
 
 #ifdef _unix_
-    if (Fork(exitFromParent)) {
+    if (Fork(parent)) {
         return true;
     }
 

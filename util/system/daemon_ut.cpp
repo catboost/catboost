@@ -46,7 +46,7 @@ Y_UNIT_TEST_SUITE(TDaemonTest) {
         int *pages = new int[size];
 
         memset(pages, 0, pagesSize);
-        if (MakeMeDaemon(closeStdIoOnly, openDevNull, chdirNone, false /*do not exit from parent*/)) {
+        if (MakeMeDaemon(closeStdIoOnly, openDevNull, chdirNone, returnFromParent)) {
             sender.Close();
             UNIT_ASSERT(ProcessBuffer([&receiver](char* ptr, size_t sz) -> size_t { return receiver.Recv(ptr, sz); }, &status, sizeof(status)));
             UNIT_ASSERT(ProcessBuffer([&receiver](char* ptr, size_t sz) -> size_t { return receiver.Recv(ptr, sz); }, pages, pagesSize));
@@ -73,7 +73,7 @@ Y_UNIT_TEST_SUITE(TDaemonTest) {
         int status = -1;
         int *pages = new int[size];
         memset(pages, 0, pagesSize);
-        if (MakeMeDaemon(closeStdIoOnly, openDevNull, chdirNone, false /*do not exit from parent*/)) {
+        if (MakeMeDaemon(closeStdIoOnly, openDevNull, chdirNone, returnFromParent)) {
             sender.Close();
             UNIT_ASSERT(ProcessBuffer([&receiver](char* ptr, size_t sz) -> size_t { return receiver.Read(ptr, sz); }, &status, sizeof(status)));
             UNIT_ASSERT(ProcessBuffer([&receiver](char* ptr, size_t sz) -> size_t { return receiver.Read(ptr, sz); }, pages, pagesSize));
