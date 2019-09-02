@@ -1,9 +1,8 @@
 //===------------------------- Unwind-EHABI.hpp ---------------------------===//
 //
-//                     The LLVM Compiler Infrastructure
-//
-// This file is dual licensed under the MIT and the University of Illinois Open
-// Source Licenses. See LICENSE.TXT for details.
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //
 //===----------------------------------------------------------------------===//
@@ -13,7 +12,7 @@
 
 #include <__libunwind_config.h>
 
-#if _LIBUNWIND_ARM_EHABI
+#if defined(_LIBUNWIND_ARM_EHABI)
 
 #include <stdint.h>
 #include <unwind.h>
@@ -46,6 +45,6 @@ extern _Unwind_Reason_Code __aeabi_unwind_cpp_pr2(
 } // extern "C"
 #endif
 
-#endif // _LIBUNWIND_ARM_EHABI
+#endif // defined(_LIBUNWIND_ARM_EHABI)
 
 #endif  // __UNWIND_EHABI_H__

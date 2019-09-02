@@ -1,16 +1,15 @@
 //===--------------------- Unwind_AppleExtras.cpp -------------------------===//
 //
-//                     The LLVM Compiler Infrastructure
-//
-// This file is dual licensed under the MIT and the University of Illinois Open
-// Source Licenses. See LICENSE.TXT for details.
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //
 //===----------------------------------------------------------------------===//
 
 #include "config.h"
+#include "AddressSpace.hpp"
 #include "DwarfParser.hpp"
-#include "unwind_ext.h"
 
 
 // private keymgr stuff
@@ -76,7 +75,7 @@ struct libgcc_object_info {
 #endif
 
 
-#if _LIBUNWIND_BUILD_ZERO_COST_APIS
+#if defined(_LIBUNWIND_BUILD_ZERO_COST_APIS)
 
 //
 // symbols in libSystem.dylib in 10.6 and later, but are in libgcc_s.dylib in
@@ -115,12 +114,12 @@ NEVER_HERE(__register_frame_table)
 NEVER_HERE(__deregister_frame_info)
 NEVER_HERE(__deregister_frame_info_bases)
 
-#endif // _LIBUNWIND_BUILD_ZERO_COST_APIS
+#endif // defined(_LIBUNWIND_BUILD_ZERO_COST_APIS)
 
 
 
 
-#if _LIBUNWIND_BUILD_SJLJ_APIS
+#if defined(_LIBUNWIND_BUILD_SJLJ_APIS)
 //
 // symbols in libSystem.dylib in iOS 5.0 and later, but are in libgcc_s.dylib in
 // earlier versions
@@ -140,7 +139,7 @@ NOT_HERE_BEFORE_5_0(_Unwind_SjLj_RaiseException)
 NOT_HERE_BEFORE_5_0(_Unwind_SjLj_Resume_or_Rethrow)
 NOT_HERE_BEFORE_5_0(_Unwind_SjLj_Unregister)
 
-#endif // _LIBUNWIND_BUILD_SJLJ_APIS
+#endif // defined(_LIBUNWIND_BUILD_SJLJ_APIS)
 
 
 namespace libunwind {
@@ -181,25 +180,4 @@ bool checkKeyMgrRegisteredFDEs(uintptr_t pc, void *&fde) {
 }
 
 }
-
-
-#if !defined(FOR_DYLD) && _LIBUNWIND_BUILD_SJLJ_APIS
-
-#include <System/pthread_machdep.h>
-
-// Accessors to get get/set linked list of frames for sjlj based execeptions.
-_LIBUNWIND_HIDDEN
-struct _Unwind_FunctionContext *__Unwind_SjLj_GetTopOfFunctionStack() {
-  return (struct _Unwind_FunctionContext *)
-    _pthread_getspecific_direct(__PTK_LIBC_DYLD_Unwind_SjLj_Key);
-}
-
-_LIBUNWIND_HIDDEN
-void __Unwind_SjLj_SetTopOfFunctionStack(struct _Unwind_FunctionContext *fc) {
-  _pthread_setspecific_direct(__PTK_LIBC_DYLD_Unwind_SjLj_Key, fc);
-}
-#endif
-
-
-
 

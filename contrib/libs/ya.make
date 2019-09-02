@@ -20,7 +20,6 @@ RECURSE(
     jemalloc
     libbz2
     libunwind_master
-    libunwind_master/ut
     linuxvdso
     lz4
     lz4/generated

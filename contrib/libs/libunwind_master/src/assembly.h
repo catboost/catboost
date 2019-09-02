@@ -1,9 +1,8 @@
 /* ===-- assembly.h - libUnwind assembler support macros -------------------===
  *
- *                     The LLVM Compiler Infrastructure
- *
- * This file is dual licensed under the MIT and the University of Illinois Open
- * Source Licenses. See LICENSE.TXT for details.
+ * Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+ * See https://llvm.org/LICENSE.txt for license information.
+ * SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
  *
  * ===----------------------------------------------------------------------===
  *
@@ -16,18 +15,37 @@
 #ifndef UNWIND_ASSEMBLY_H
 #define UNWIND_ASSEMBLY_H
 
-#if defined(__POWERPC__) || defined(__powerpc__) || defined(__ppc__)
-#define SEPARATOR @
+#if defined(__powerpc64__)
+#define SEPARATOR ;
+#define PPC64_OFFS_SRR0   0
+#define PPC64_OFFS_CR     272
+#define PPC64_OFFS_XER    280
+#define PPC64_OFFS_LR     288
+#define PPC64_OFFS_CTR    296
+#define PPC64_OFFS_VRSAVE 304
+#define PPC64_OFFS_FP     312
+#define PPC64_OFFS_V      824
+#ifdef _ARCH_PWR8
+#define PPC64_HAS_VMX
+#endif
 #elif defined(__arm64__)
 #define SEPARATOR %%
 #else
 #define SEPARATOR ;
 #endif
 
-#if defined(__APPLE__)
-#define HIDDEN_DIRECTIVE .private_extern
+#if defined(__powerpc64__) && (!defined(_CALL_ELF) || _CALL_ELF == 1)
+#define PPC64_OPD1 .section .opd,"aw",@progbits SEPARATOR
+#define PPC64_OPD2 SEPARATOR \
+  .p2align 3 SEPARATOR \
+  .quad .Lfunc_begin0 SEPARATOR \
+  .quad .TOC.@tocbase SEPARATOR \
+  .quad 0 SEPARATOR \
+  .text SEPARATOR \
+.Lfunc_begin0:
 #else
-#define HIDDEN_DIRECTIVE .hidden
+#define PPC64_OPD1
+#define PPC64_OPD2
 #endif
 
 #define GLUE2(a, b) a ## b
@@ -35,31 +53,91 @@
 #define SYMBOL_NAME(name) GLUE(__USER_LABEL_PREFIX__, name)
 
 #if defined(__APPLE__)
+
 #define SYMBOL_IS_FUNC(name)
+#define EXPORT_SYMBOL(name)
+#define HIDDEN_SYMBOL(name) .private_extern name
+#define WEAK_SYMBOL(name) .weak_reference name
+#define WEAK_ALIAS(name, aliasname)                                            \
+  .globl SYMBOL_NAME(aliasname) SEPARATOR                                      \
+  WEAK_SYMBOL(aliasname) SEPARATOR                                             \
+  SYMBOL_NAME(aliasname) = SYMBOL_NAME(name)
+
+#define NO_EXEC_STACK_DIRECTIVE
+
 #elif defined(__ELF__)
+
 #if defined(__arm__)
 #define SYMBOL_IS_FUNC(name) .type name,%function
 #else
 #define SYMBOL_IS_FUNC(name) .type name,@function
 #endif
+#define EXPORT_SYMBOL(name)
+#define HIDDEN_SYMBOL(name) .hidden name
+#define WEAK_SYMBOL(name) .weak name
+#define WEAK_ALIAS(name, aliasname)                                            \
+  WEAK_SYMBOL(aliasname) SEPARATOR                                             \
+  SYMBOL_NAME(aliasname) = SYMBOL_NAME(name)
+
+#if defined(__GNU__) || defined(__FreeBSD__) || defined(__Fuchsia__) || \
+    defined(__linux__)
+#define NO_EXEC_STACK_DIRECTIVE .section .note.GNU-stack,"",%progbits
 #else
+#define NO_EXEC_STACK_DIRECTIVE
+#endif
+
+#elif defined(_WIN32)
+
 #define SYMBOL_IS_FUNC(name)                                                   \
   .def name SEPARATOR                                                          \
     .scl 2 SEPARATOR                                                           \
     .type 32 SEPARATOR                                                         \
   .endef
+#define EXPORT_SYMBOL2(name)                                                   \
+  .section .drectve,"yn" SEPARATOR                                             \
+  .ascii "-export:", #name, "\0" SEPARATOR                                     \
+  .text
+#if defined(_LIBUNWIND_DISABLE_VISIBILITY_ANNOTATIONS)
+#define EXPORT_SYMBOL(name)
+#else
+#define EXPORT_SYMBOL(name) EXPORT_SYMBOL2(name)
+#endif
+#define HIDDEN_SYMBOL(name)
+
+#if defined(__MINGW32__)
+#define WEAK_ALIAS(name, aliasname)                                            \
+  .globl SYMBOL_NAME(aliasname) SEPARATOR                                      \
+  EXPORT_SYMBOL(aliasname) SEPARATOR                                           \
+  SYMBOL_NAME(aliasname) = SYMBOL_NAME(name)
+#else
+#define WEAK_ALIAS3(name, aliasname)                                           \
+  .section .drectve,"yn" SEPARATOR                                             \
+  .ascii "-alternatename:", #aliasname, "=", #name, "\0" SEPARATOR             \
+  .text
+#define WEAK_ALIAS2(name, aliasname)                                           \
+  WEAK_ALIAS3(name, aliasname)
+#define WEAK_ALIAS(name, aliasname)                                            \
+  EXPORT_SYMBOL(SYMBOL_NAME(aliasname)) SEPARATOR                              \
+  WEAK_ALIAS2(SYMBOL_NAME(name), SYMBOL_NAME(aliasname))
 #endif
 
-#define DEFINE_LIBUNWIND_FUNCTION(name)                   \
-  .globl SYMBOL_NAME(name) SEPARATOR                      \
-  SYMBOL_IS_FUNC(SYMBOL_NAME(name)) SEPARATOR             \
-  SYMBOL_NAME(name):
+#define NO_EXEC_STACK_DIRECTIVE
 
-#define DEFINE_LIBUNWIND_PRIVATE_FUNCTION(name)           \
-  .globl SYMBOL_NAME(name) SEPARATOR                      \
-  HIDDEN_DIRECTIVE SYMBOL_NAME(name) SEPARATOR            \
-  SYMBOL_IS_FUNC(SYMBOL_NAME(name)) SEPARATOR             \
-  SYMBOL_NAME(name):
+#elif defined(__sparc__)
+
+#else
+
+#error Unsupported target
+
+#endif
+
+#define DEFINE_LIBUNWIND_FUNCTION(name)                                        \
+  .globl SYMBOL_NAME(name) SEPARATOR                                           \
+  HIDDEN_SYMBOL(SYMBOL_NAME(name)) SEPARATOR                                   \
+  SYMBOL_IS_FUNC(SYMBOL_NAME(name)) SEPARATOR                                  \
+  PPC64_OPD1                                                                   \
+  SYMBOL_NAME(name):                                                           \
+  PPC64_OPD2
 
 #if defined(__arm__)
 #if !defined(__ARM_ARCH)
