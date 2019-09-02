@@ -130,19 +130,10 @@ def test_read_model_after_train():
     assert False
 
 
-def _get_target_idx(cd_file_path):
-    with open(cd_file_path) as cd_file:
-        for l in cd_file:
-            elements = l[:-1].split('\t')
-            if elements[1] in ['Target', 'Label']:
-                return int(elements[0])
-
-
 def _predict_python_on_test(dataset, apply_catboost_model):
     features_data, cat_feature_indices = load_pool_features_as_df(
         data_file(dataset, 'test_small'),
-        data_file(dataset, 'train.cd'),
-        _get_target_idx(data_file(dataset, 'train.cd'))
+        data_file(dataset, 'train.cd')
     )
     float_feature_indices = [i for i in range(features_data.shape[1]) if i not in cat_feature_indices]
 

@@ -9,6 +9,7 @@ from pandas import read_csv
 from copy import deepcopy
 import numpy as np
 from catboost import Pool
+from catboost.utils import read_cd
 __all__ = [
     'DelayedTee',
     'binary_path',
@@ -16,6 +17,7 @@ __all__ = [
     'compare_evals_with_precision',
     'compare_metrics_with_diff',
     'generate_random_labeled_set',
+    'load_dataset_as_dataframe',
     'load_pool_features_as_df',
     'permute_dataset_columns',
     'remove_time_from_json',
@@ -175,8 +177,32 @@ def compare_evals_with_precision(fit_eval, calc_eval, rtol=1e-6, skip_last_colum
     return False
 
 
+def load_dataset_as_dataframe(data_file, columns_metadata, has_header=False):
+    """
+        returns dict with 'features', 'target' keys
+    """
+
+    if 'Label' not in columns_metadata['column_type_to_indices']:
+        raise Exception('no target in dataset')
+
+    df = read_csv(
+        data_file,
+        sep='\t',
+        names=columns_metadata['column_names'],
+        dtype=columns_metadata['column_dtypes'],
+        skiprows=1 if has_header else 0
+    )
+
+    result = {}
+    result['target'] = df.iloc[:, columns_metadata['column_type_to_indices']['Label'][0]].values
+    df.drop(columns=df.columns[columns_metadata['non_feature_column_indices']], inplace=True)
+    result['features'] = df
+
+    return result
+
+
 # returns (features DataFrame, cat_feature_indices)
-def load_pool_features_as_df(pool_file, cd_file, target_idx):
-    data = read_csv(pool_file, header=None, dtype=str, delimiter='\t')
-    data.drop([target_idx], axis=1, inplace=True)
-    return (data, Pool(pool_file, column_description=cd_file).get_cat_feature_indices())
+def load_pool_features_as_df(pool_file, cd_file):
+    columns_metadata = read_cd(cd_file, data_file=pool_file, canonize_column_types=True)
+    data = load_dataset_as_dataframe(pool_file, columns_metadata)
+    return (data['features'], columns_metadata['cat_feature_indices'])

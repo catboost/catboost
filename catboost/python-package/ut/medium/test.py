@@ -3989,8 +3989,8 @@ class TestUseWeights(object):
 
     @pytest.fixture
     def a_regression_learner(self, task_type):
-        train_features_df, cat_features = load_pool_features_as_df(TRAIN_FILE, CD_FILE, TARGET_IDX)
-        test_features_df, _ = load_pool_features_as_df(TEST_FILE, CD_FILE, TARGET_IDX)
+        train_features_df, cat_features = load_pool_features_as_df(TRAIN_FILE, CD_FILE)
+        test_features_df, _ = load_pool_features_as_df(TEST_FILE, CD_FILE)
 
         prng = np.random.RandomState(seed=20181219)
         train_pool = Pool(
@@ -4012,8 +4012,8 @@ class TestUseWeights(object):
 
     @pytest.fixture
     def a_classification_learner(self, task_type):
-        train_features_df, cat_features = load_pool_features_as_df(TRAIN_FILE, CD_FILE, TARGET_IDX)
-        test_features_df, _ = load_pool_features_as_df(TEST_FILE, CD_FILE, TARGET_IDX)
+        train_features_df, cat_features = load_pool_features_as_df(TRAIN_FILE, CD_FILE)
+        test_features_df, _ = load_pool_features_as_df(TEST_FILE, CD_FILE)
 
         prng = np.random.RandomState(seed=20181219)
         train_pool = Pool(
