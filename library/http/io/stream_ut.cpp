@@ -350,7 +350,6 @@ Y_UNIT_TEST_SUITE(THttpTest) {
 
             UNIT_ASSERT_VALUES_EQUAL(str.size(), 0u);
             httpOut << body;
-            httpOut.Flush();
         }
         const char* bodyDelimiter = "\r\n\r\n";
         size_t bodyPos = str.find(bodyDelimiter);
