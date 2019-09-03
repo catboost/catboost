@@ -11,7 +11,7 @@ LICENSE(Apache-2.0)
 DISABLE(USE_LTO)
 
 ADDINCL(
-    contrib/libs/libunwind_master/include
+    contrib/libs/libunwind/include
 )
 
 NO_RUNTIME()

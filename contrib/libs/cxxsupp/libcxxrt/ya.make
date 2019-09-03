@@ -11,7 +11,7 @@ PEERDIR(contrib/libs/cppdemangle)
 IF (CXX_UNWIND STREQUAL "glibcxx_dynamic" OR ARCH_PPC64LE)
     LDFLAGS(-lgcc_s)
 ELSE()
-    PEERDIR(contrib/libs/libunwind_master)
+    PEERDIR(contrib/libs/libunwind)
 ENDIF()
 
 ADDINCL(

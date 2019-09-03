@@ -1,6 +1,6 @@
 #pragma once
 
-#include <contrib/libs/libunwind_master/include/unwind.h>
+#include <contrib/libs/libunwind/include/unwind.h>
 
 #define DECLARE_PERSONALITY_FUNCTION(name) \
 _Unwind_Reason_Code name(int version,\

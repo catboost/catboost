@@ -19,7 +19,7 @@ RECURSE(
     jdk
     jemalloc
     libbz2
-    libunwind_master
+    libunwind
     linuxvdso
     lz4
     lz4/generated

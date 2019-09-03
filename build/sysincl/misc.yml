@@ -89,9 +89,9 @@
 - source_filter: "^contrib/tools/tre"
   includes:
     - regex.h:       contrib/tools/tre/lib/regex.h
-- source_filter: "^contrib/libs/libunwind_master"
+- source_filter: "^contrib/libs/libunwind"
   includes:
-    - unwind.h:      contrib/libs/libunwind_master/include/unwind.h
+    - unwind.h:      contrib/libs/libunwind/include/unwind.h
 
 - source_filter: "^contrib/libs/cppkafka"
   includes:
