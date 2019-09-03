@@ -422,7 +422,7 @@ namespace {
     class TStdErrColors: public TColors {
     public:
         TStdErrColors()
-            : TColors(stdout)
+            : TColors(stderr)
         {
         }
     };
