@@ -1,5 +1,5 @@
 # We want musl to resolve itself without these sysincls, but its test must have them
-- source_filter: "^(?!contrib/libs/musl).*|^contrib/libs/musl-1.1.20/tests"
+- source_filter: "^(?!contrib/libs/musl).*|^contrib/libs/musl/tests"
   includes:
   - aio.h
   - alloca.h

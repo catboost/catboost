@@ -105,10 +105,10 @@
   includes:
     - linux/netlink.h: contrib/libs/libmnl/include/linux/netlink.h
 
-- source_filter: "^contrib/libs/musl-1.1.20"
+- source_filter: "^contrib/libs/musl"
   includes:
-    - atomic.h:      contrib/libs/musl-1.1.20/src/internal/atomic.h
-    - bits/fenv.h:   contrib/libs/musl-1.1.20/arch/x86_64/bits/fenv.h
+    - atomic.h:      contrib/libs/musl/src/internal/atomic.h
+    - bits/fenv.h:   contrib/libs/musl/arch/x86_64/bits/fenv.h
 
 - source_filter: "^contrib/libs/unixodbc"
   includes:

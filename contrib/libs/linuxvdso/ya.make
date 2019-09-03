@@ -25,10 +25,10 @@ ENDIF ()
 
 IF (MUSL)
     ADDINCL(
-        contrib/libs/musl-1.1.20/arch/generic
-        contrib/libs/musl-1.1.20/arch/x86_64
-        contrib/libs/musl-1.1.20/extra
-        contrib/libs/musl-1.1.20/include
+        contrib/libs/musl/arch/generic
+        contrib/libs/musl/arch/x86_64
+        contrib/libs/musl/extra
+        contrib/libs/musl/include
     )
 ENDIF ()
 
