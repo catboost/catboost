@@ -503,6 +503,7 @@
   - altivec.h
   #endif
   #if defined(__vxWorks__)
+  - vxCpuLib.h
   - vxWorks.h
   - sockLib.h
   - hostLib.h
