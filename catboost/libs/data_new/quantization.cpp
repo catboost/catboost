@@ -1820,9 +1820,10 @@ namespace NCB {
             TMaybeOwningConstArraySubset<ui32, ui32> srcNonDefaultValues,
             TMaybe<TDefaultValue<ui32>> srcDefaultValue) {
 
-            // can quantize data at first pass only if default bin value won't be determined
+            // can quantize data at first pass only if data is dense and default bin value won't be determined
             const bool quantizeDataAtFirstPass
-                = quantizeData && !options.DefaultValueFractionToEnableSparseStorage.Defined();
+                = quantizeData && !srcDefaultValue.Defined() &&
+                    !options.DefaultValueFractionToEnableSparseStorage.Defined();
 
             TArrayRef<ui32> quantizedDataValue;
 
@@ -1831,7 +1832,7 @@ namespace NCB {
                 const ui32 bitsPerKey = 32;
 
                 quantizedDataStorage
-                    = TCompressedArray::CreateWithUninitializedData(srcFeature.GetSize(), bitsPerKey);
+                    = TCompressedArray::CreateWithUninitializedData(srcNonDefaultValues.Size(), bitsPerKey);
                 quantizedDataValue = quantizedDataStorage.GetRawArray<ui32>();
             }
 
