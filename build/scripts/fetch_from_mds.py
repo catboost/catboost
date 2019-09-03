@@ -1,7 +1,7 @@
 import os
 import sys
 import logging
-import optparse
+import argparse
 
 import fetch_from
 
@@ -9,11 +9,12 @@ MDS_PREFIX = "https://storage.yandex-team.ru/get-devtools/"
 
 
 def parse_args():
-    parser = optparse.OptionParser(option_list=fetch_from.common_options())
+    parser = argparse.ArgumentParser()
+    fetch_from.add_common_arguments(parser)
 
-    parser.add_option('--key', dest='key')
-    parser.add_option('--rename-to', dest='rename_to')
-    parser.add_option('--log-path', dest='log_path')
+    parser.add_argument('--key', required=True)
+    parser.add_argument('--rename-to')
+    parser.add_argument('--log-path')
 
     return parser.parse_args()
 
@@ -37,31 +38,31 @@ def makedirs(path):
         pass
 
 
-def setup_logging(opts):
-    if opts.log_path:
-        log_file_name = opts.log_path
+def setup_logging(args):
+    if args.log_path:
+        log_file_name = args.log_path
     else:
         log_file_name = os.path.basename(__file__) + ".log"
 
-    opts.abs_log_path = os.path.abspath(log_file_name)
-    makedirs(os.path.dirname(opts.abs_log_path))
-    logging.basicConfig(filename=opts.abs_log_path, level=logging.DEBUG)
+    args.abs_log_path = os.path.abspath(log_file_name)
+    makedirs(os.path.dirname(args.abs_log_path))
+    logging.basicConfig(filename=args.abs_log_path, level=logging.DEBUG)
 
 
-def main(opts, outputs):
-    fetched_file, resource_file_name = fetch(opts.key)
+def main(args):
+    fetched_file, resource_file_name = fetch(args.key)
 
-    fetch_from.process(fetched_file, resource_file_name, opts, outputs)
+    fetch_from.process(fetched_file, resource_file_name, args)
 
 
 if __name__ == '__main__':
-    opts, args = parse_args()
-    setup_logging(opts)
+    args = parse_args()
+    setup_logging(args)
 
     try:
-        main(opts, args)
+        main(args)
     except Exception as e:
         logging.exception(e)
-        print >>sys.stderr, open(opts.abs_log_path).read()
+        print >>sys.stderr, open(args.abs_log_path).read()
         sys.stderr.flush()
         sys.exit(fetch_from.INFRASTRUCTURE_ERROR if fetch_from.is_temporary(e) else 1)

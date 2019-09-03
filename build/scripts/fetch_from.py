@@ -11,7 +11,7 @@ import socket
 import shutil
 import errno
 import datetime as dt
-import optparse
+import argparse
 
 import retry
 
@@ -22,12 +22,11 @@ def make_user_agent():
     return 'fetch_from: {host}'.format(host=socket.gethostname())
 
 
-def common_options():
-    return [
-        optparse.make_option('--copy-to', dest='copy_to'),
-        optparse.make_option('--copy-to-dir', dest='copy_to_dir'),
-        optparse.make_option('--untar-to', dest='untar_to'),
-    ]
+def add_common_arguments(parser):
+    parser.add_argument('--copy-to')
+    parser.add_argument('--copy-to-dir')
+    parser.add_argument('--untar-to')
+    parser.add_argument('outputs', nargs='*')
 
 
 def hardlink_or_copy(src, dst):
@@ -256,24 +255,24 @@ def ensure_outputs_not_directories(outputs):
             raise OutputIsDirectoryError('Output must be a file, not a directory: %s' % full_path)
 
 
-def process(fetched_file, file_name, opts, outputs, remove=True):
+def process(fetched_file, file_name, args, remove=True):
     if not os.path.isfile(fetched_file):
         raise ResourceIsDirectoryError('Resource must be a file, not a directory: %s' % fetched_file)
 
-    if opts.untar_to and not os.path.exists(opts.untar_to):
-        os.makedirs(opts.untar_to)
+    if args.untar_to and not os.path.exists(args.untar_to):
+        os.makedirs(args.untar_to)
 
-    if opts.copy_to_dir and not os.path.exists(opts.copy_to_dir):
-        os.makedirs(opts.copy_to_dir)
+    if args.copy_to_dir and not os.path.exists(args.copy_to_dir):
+        os.makedirs(args.copy_to_dir)
 
-    if opts.copy_to and os.path.dirname(opts.copy_to) and not os.path.exists(os.path.dirname(opts.copy_to)):
-        os.makedirs(os.path.dirname(opts.copy_to))
+    if args.copy_to and os.path.dirname(args.copy_to) and not os.path.exists(os.path.dirname(args.copy_to)):
+        os.makedirs(os.path.dirname(args.copy_to))
 
-    if opts.untar_to:
+    if args.untar_to:
         try:
             with tarfile.open(fetched_file, mode='r:*') as tar:
-                tar.extractall(opts.untar_to)
-            ensure_outputs_not_directories(outputs)
+                tar.extractall(args.untar_to)
+            ensure_outputs_not_directories(args.outputs)
         except tarfile.ReadError as e:
             logging.exception(e)
             raise ResourceUnpackingError('File {} cannot be untared'.format(fetched_file))
@@ -284,13 +283,13 @@ def process(fetched_file, file_name, opts, outputs, remove=True):
             except OSError:
                 pass
 
-    if opts.copy_to:
-        hardlink_or_copy(fetched_file, opts.copy_to)
-        ensure_outputs_not_directories(outputs)
+    if args.copy_to:
+        hardlink_or_copy(fetched_file, args.copy_to)
+        ensure_outputs_not_directories(args.outputs)
 
-    if opts.copy_to_dir:
-        hardlink_or_copy(fetched_file, os.path.join(opts.copy_to_dir, file_name))
-        ensure_outputs_not_directories(outputs)
+    if args.copy_to_dir:
+        hardlink_or_copy(fetched_file, os.path.join(args.copy_to_dir, file_name))
+        ensure_outputs_not_directories(args.outputs)
 
-    if getattr(opts, 'rename_to', False):
-        rename_or_copy_and_remove(fetched_file, opts.rename_to)
+    if getattr(args, 'rename_to', False):
+        rename_or_copy_and_remove(fetched_file, args.rename_to)

@@ -1,7 +1,7 @@
 import itertools
 import json
 import logging
-import optparse
+import argparse
 import os
 import random
 import subprocess
@@ -18,11 +18,10 @@ MDS_PREFIX = 'http://storage-int.mds.yandex.net/get-sandbox/'
 
 
 def parse_args():
-    parser = optparse.OptionParser(option_list=fetch_from.common_options())
-
-    parser.add_option('--resource-id', dest='resource_id')
-    parser.add_option('--custom-fetcher', dest='custom_fetcher')
-
+    parser = argparse.ArgumentParser()
+    fetch_from.add_common_arguments(parser)
+    parser.add_argument('--resource-id', type=int, required=True)
+    parser.add_argument('--custom-fetcher')
     return parser.parse_args()
 
 
@@ -185,12 +184,12 @@ def fetch(resource_id, custom_fetcher):
     return fetched_file, resource_info['file_name']
 
 
-def main(opts, outputs):
+def main(args):
     custom_fetcher = os.environ.get('YA_CUSTOM_FETCHER')
 
-    fetched_file, file_name = fetch(opts.resource_id, custom_fetcher)
+    fetched_file, file_name = fetch(args.resource_id, custom_fetcher)
 
-    fetch_from.process(fetched_file, file_name, opts, outputs, not custom_fetcher)
+    fetch_from.process(fetched_file, file_name, args, not custom_fetcher)
 
 
 if __name__ == '__main__':
@@ -198,10 +197,10 @@ if __name__ == '__main__':
     abs_log_path = os.path.abspath(log_file_name)
     logging.basicConfig(filename=log_file_name, level=logging.DEBUG)
 
-    opts, args = parse_args()
+    args = parse_args()
 
     try:
-        main(opts, args)
+        main(args)
     except Exception as e:
         logging.exception(e)
         print >>sys.stderr, open(abs_log_path).read()
