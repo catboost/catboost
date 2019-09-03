@@ -1602,7 +1602,7 @@
         },
         "sandboxctl": {
             "formula": {
-                "sandbox_id": 484752013,
+                "sandbox_id": [500056571],
                 "match": "tools/sandboxctl/bin/sandboxctl"
             },
             "executable": {
