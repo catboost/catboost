@@ -637,7 +637,13 @@ void EvaluateFeatures(
     };
 
     TVector<TFoldContext> baselineFoldContexts;
-    // TODO(espetrov): support eval feature for folds specified by featureEvalOptions
+
+    if (featureEvalOptions.FeaturesToEvaluate->empty()) {
+        auto baselineDirPrefix = TStringBuilder() << "Baseline_";
+        trainFullModels(baselineDirPrefix, &foldsData, &baselineFoldContexts);
+        return;
+    }
+
     const auto useCommonBaseline = featureEvalOptions.FeatureEvalMode != NCB::EFeatureEvalMode::OneVsOthers;
     for (ui32 featureSetIdx : xrange(featureEvalOptions.FeaturesToEvaluate->size())) {
         const auto haveBaseline = featureSetIdx > 0 && useCommonBaseline;

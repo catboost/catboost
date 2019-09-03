@@ -55,7 +55,6 @@ int mode_eval_feature(int argc, const char* argv[]) {
     featureEvalOptions.Load(featureEvalJsonOptions);
 
     const auto& featuresToEvaluate = featureEvalOptions.FeaturesToEvaluate.Get();
-    CB_ENSURE(!featuresToEvaluate.empty(), "Need some features to evaluate");
     for (const auto& featureSet : featuresToEvaluate) {
         for (ui32 feature : featureSet) {
             CB_ENSURE(Count(poolLoadParams.IgnoredFeatures, feature) == 0, "Tested feature " << feature << " should not be ignored");
