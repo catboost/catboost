@@ -1,0 +1,213 @@
+import argparse
+import os
+import tarfile
+
+AAR_TEMPLATE = """\
+ext.jniLibsDirs = [
+    {jni_libs_dirs}
+]
+
+ext.resDirs = [
+    {res_dirs}
+]
+
+ext.assetsDirs = [
+    {assets_dirs}
+]
+
+ext.javaDirs = [
+    {java_dirs}
+]
+
+def aidlDirs = [
+    {aidl_dirs}
+]
+
+ext.bundles = [
+    {bundles}
+]
+
+ext.androidArs = [
+    {aars}
+]
+
+def minVersion = 15
+def compileVersion = 28
+def targetVersion = 28
+def buildVersion = '28.0.2'
+
+import com.android.build.gradle.LibraryPlugin
+import java.util.regex.Matcher
+import java.util.regex.Pattern
+
+apply plugin: 'com.github.dcendents.android-maven'
+
+buildDir = "$projectDir/build"
+
+if (!ext.has("packageSuffix"))
+    ext.packageSuffix = ""
+
+buildscript {{
+//     repositories {{
+//         jcenter()
+//         mavenCentral()
+//     }}
+    dependencies {{
+        classpath 'com.android.tools.build:gradle:2.3.0+'
+        classpath 'com.github.dcendents:android-maven-gradle-plugin:1.5'
+    }}
+}}
+
+apply plugin: LibraryPlugin
+
+repositories {{
+//     flatDir {{
+//         dirs System.env.PKG_ROOT + '/bundle'
+//     }}
+//     maven {{
+//         url "http://maven.google.com/"
+//     }}
+//     maven {{
+//         url "http://artifactory.yandex.net/artifactory/public/"
+//     }}
+    maven {{
+        url "{maven_repo}"
+    }}
+}}
+
+android {{
+    compileSdkVersion compileVersion
+    buildToolsVersion buildVersion
+
+    defaultConfig {{
+        minSdkVersion minVersion
+        targetSdkVersion targetVersion
+        consumerProguardFiles '{proguard_rules}'
+    }}
+
+    sourceSets {{
+        main  {{
+            manifest.srcFile '{manifest}'
+            jniLibs.srcDirs = jniLibsDirs
+            res.srcDirs = resDirs
+            assets.srcDirs = assetsDirs
+            java.srcDirs = javaDirs
+            aidl.srcDirs = aidlDirs
+        }}
+        // We don't use this feature, so we set it to nonexisting directory
+        androidTest.setRoot('bundle/tests')
+    }}
+
+    dependencies {{
+        for (bundle in bundles)
+            compile("$bundle") {{
+                transitive = true
+            }}
+        for (bundle in androidArs)
+            compile (bundle) {{
+                transitive = true
+            }}
+    }}
+}}
+
+android.libraryVariants.all {{ variant ->
+    def suffix = variant.buildType.name.capitalize()
+    variant.outputs.each {{ output ->
+        def outputFile = output.outputFile
+        if (outputFile != null && outputFile.name.endsWith('.aar')) {{
+           def newName = outputFile.name.replace('-'+suffix.toLowerCase(), packageSuffix)
+           output.outputFile = new File(outputFile.parent, newName)
+        }}
+    }}
+
+    def sourcesJarTask = project.tasks.create(name: "sourcesJar${{suffix}}", type: Jar) {{
+        classifier = 'sources'
+        from android.sourceSets.main.java.srcDirs
+        include '**/*.java'
+    }}
+
+    def manifestFile = android.sourceSets.main.manifest.srcFile
+    def manifestXml = new XmlParser().parse(manifestFile)
+
+    def packageName = manifestXml['@package']
+    def tokens = packageName.tokenize('.')
+    tokens.pop();
+    def groupName = tokens.join('.')
+
+    def androidNs = new groovy.xml.Namespace("http://schemas.android.com/apk/res/android")
+    def packageVersion = manifestXml.attributes()[androidNs.versionName]
+
+    def writePomTask = project.tasks.create(name: "writePom${{suffix}}") {{
+        pom {{
+            project {{
+                groupId groupName
+                version packageVersion
+                packaging 'aar'
+            }}
+        }}.writeTo("$buildDir/${{rootProject.name}}$packageSuffix-pom.xml")
+    }}
+
+    tasks["bundle$suffix"].dependsOn sourcesJarTask
+    tasks["bundle$suffix"].dependsOn writePomTask
+}}
+"""
+
+
+def gen_build_script(args):
+
+    def wrap(items):
+        return ',\n    '.join('"{}"'.format(x) for x in items)
+
+    return AAR_TEMPLATE.format(
+        jni_libs_dirs=wrap(args.jni_libs_dirs),
+        res_dirs=wrap(args.res_dirs),
+        assets_dirs=wrap(args.assets_dirs),
+        java_dirs=wrap(args.java_dirs),
+        aidl_dirs=wrap(args.aidl_dirs),
+        bundles=wrap(args.bundles),
+        aars=wrap(args.aars),
+        proguard_rules=args.proguard_rules,
+        manifest=args.manifest,
+        maven_repo=args.maven_repo,
+    )
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--aidl-dirs', nargs='*', default=[])
+    parser.add_argument('--aars', nargs='*', default=[])
+    parser.add_argument('--assets-dirs', nargs='*', default=[])
+    parser.add_argument('--bundles', nargs='*', default=[])
+    parser.add_argument('--java-dirs', nargs='*', default=[])
+    parser.add_argument('--jni-libs-dirs', nargs='*', default=[])
+    parser.add_argument('--manifest', required=True)
+    parser.add_argument('--maven-repo', required=True)
+    parser.add_argument('--output-dir', required=True)
+    parser.add_argument('--proguard-rules', nargs='?', default=None)
+    parser.add_argument('--bundle-name', nargs='?', default='default-bundle-name')
+    parser.add_argument('--res-dirs', nargs='*', default=[])
+    parser.add_argument('--peers', nargs='*', default=[])
+    args = parser.parse_args()
+
+    if args.proguard_rules is None:
+        args.proguard_rules = os.path.join(args.output_dir, 'proguard-rules.txt')
+        with open(args.proguard_rules, 'w') as f:
+            pass
+
+    for index, jsrc in enumerate(filter(lambda x: x.endswith('.jsrc'), args.peers)):
+        jsrc_dir = os.path.join(args.output_dir, 'jsrc_{}'.format(str(index)))
+        os.makedirs(jsrc_dir)
+        with tarfile.open(jsrc, 'r') as tar:
+            tar.extractall(path=jsrc_dir)
+            args.java_dirs.append(jsrc_dir)
+
+    args.build_gradle = os.path.join(args.output_dir, 'build.gradle')
+    args.settings_gradle = os.path.join(args.output_dir, 'settings.gradle')
+
+    content = gen_build_script(args)
+    with open(args.build_gradle, 'w') as f:
+        f.write(content)
+
+    if args.bundle_name:
+        with open(args.settings_gradle, 'w') as f:
+            f.write('rootProject.name = "{}"'.format(args.bundle_name))

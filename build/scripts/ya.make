@@ -20,6 +20,7 @@ TEST_SRCS(
     copy_to_dir.py
     coverage-info.py
     create_jcoverage_report.py
+    extract_asrc.py
     extract_jacoco_report.py
     f2c.py
     fail_module_cmd.py
@@ -31,11 +32,13 @@ TEST_SRCS(
     find_and_tar.py
     fix_msvc_output.py
     fs_tools.py
+    gen_aar_gradle_script.py
     gen_java_codenav_entry.py
     gen_java_codenav_protobuf.py
     gen_mx_table.py
     gen_py_reg.py
     gen_py3_reg.py
+    gen_test_apk_gradle_script.py
     gen_ub.py
     generate_pom.py
     go_proto_wrapper.py
@@ -43,6 +46,7 @@ TEST_SRCS(
     ios_wrapper.py
     java_pack_to_file.py
     jsrc_to_asrc.py
+    link_asrc.py
     link_dyn_lib.py
     link_exe.py
     link_fat_obj.py
