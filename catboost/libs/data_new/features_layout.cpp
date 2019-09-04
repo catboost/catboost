@@ -6,6 +6,7 @@
 #include <catboost/libs/quantization_schema/schema.h>
 
 #include <util/generic/algorithm.h>
+#include <util/generic/cast.h>
 #include <util/generic/scope.h>
 #include <util/generic/xrange.h>
 #include <util/generic/hash_set.h>
@@ -331,6 +332,34 @@ bool TFeaturesLayout::HasAvailableAndNotIgnoredFeatures() const {
     }
     return false;
 }
+
+void TFeaturesLayout::AddFeature(TFeatureMetaInfo&& featureMetaInfo) {
+    const ui32 externalIdx = SafeIntegerCast<ui32>(ExternalIdxToMetaInfo.size());
+    switch (featureMetaInfo.Type) {
+        case EFeatureType::Float:
+            FeatureExternalIdxToInternalIdx.push_back(
+                SafeIntegerCast<ui32>(FloatFeatureInternalIdxToExternalIdx.size())
+            );
+            FloatFeatureInternalIdxToExternalIdx.push_back(externalIdx);
+            break;
+        case EFeatureType::Categorical:
+            FeatureExternalIdxToInternalIdx.push_back(
+                SafeIntegerCast<ui32>(CatFeatureInternalIdxToExternalIdx.size())
+            );
+            CatFeatureInternalIdxToExternalIdx.push_back(externalIdx);
+            break;
+        case EFeatureType::Text:
+            FeatureExternalIdxToInternalIdx.push_back(
+                SafeIntegerCast<ui32>(TextFeatureInternalIdxToExternalIdx.size())
+            );
+            TextFeatureInternalIdxToExternalIdx.push_back(externalIdx);
+            break;
+        default:
+            Y_FAIL();
+    }
+    ExternalIdxToMetaInfo.push_back(std::move(featureMetaInfo));
+}
+
 
 void NCB::CheckCompatibleForApply(
     const TFeaturesLayout& learnFeaturesLayout,

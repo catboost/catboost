@@ -112,7 +112,7 @@ TDataProviderPtr GetAdultPool() {
         TPathWithScheme(),
         TPathWithScheme(),
         TPathWithScheme(),
-        readDatasetMainParams.DsvPoolFormatParams,
+        readDatasetMainParams.ColumnarPoolFormatParams,
         /*ignoredFeatures*/ {},
         EObjectsOrder::Undefined,
         /*threadCount*/ 16,

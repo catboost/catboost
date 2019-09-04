@@ -180,14 +180,14 @@ int DoMain(int argc, char** argv) {
 
     TVector<bool> featureUsedInModel = GetFeaturesUsedInModel(model);
 
-    NCatboostOptions::TDsvPoolFormatParams dsvPoolFormatParams;
-    dsvPoolFormatParams.CdFilePath = NCB::TPathWithScheme(options.CdPath, "dsv");
+    NCatboostOptions::TColumnarPoolFormatParams columnarPoolFormatParams;
+    columnarPoolFormatParams.CdFilePath = NCB::TPathWithScheme(options.CdPath, "dsv");
     NCB::TDataProviderPtr dataset = NCB::ReadDataset(
         NCB::TPathWithScheme(options.PoolPath, "dsv"),
         NCB::TPathWithScheme(),
         NCB::TPathWithScheme(),
         NCB::TPathWithScheme(),
-        dsvPoolFormatParams,
+        columnarPoolFormatParams,
         TVector<ui32>(),
         NCB::EObjectsOrder::Undefined,
         NSystemInfo::CachedNumberOfCpus(),

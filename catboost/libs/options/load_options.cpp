@@ -2,7 +2,7 @@
 
 #include <catboost/libs/data_util/exists_checker.h>
 
-void NCatboostOptions::TDsvPoolFormatParams::Validate() const {
+void NCatboostOptions::TColumnarPoolFormatParams::Validate() const {
     if (CdFilePath.Inited()) {
         CB_ENSURE(CheckExists(CdFilePath), "CD-file doesn't exist");
     }
@@ -13,11 +13,11 @@ void NCatboostOptions::TPoolLoadParams::Validate() const {
 }
 
 void NCatboostOptions::TPoolLoadParams::Validate(TMaybe<ETaskType> taskType) const {
-    DsvPoolFormatParams.Validate();
+    ColumnarPoolFormatParams.Validate();
 
     CB_ENSURE(LearnSetPath.Inited(), "Error: provide learn dataset");
     CB_ENSURE(CheckExists(LearnSetPath), "Error: features path doesn't exist");
-    ValidatePoolParams(LearnSetPath, DsvPoolFormatParams);
+    ValidatePoolParams(LearnSetPath, ColumnarPoolFormatParams);
 
     if (taskType.Defined()) {
         if (taskType.GetRef() == ETaskType::GPU) {
@@ -26,7 +26,7 @@ void NCatboostOptions::TPoolLoadParams::Validate(TMaybe<ETaskType> taskType) con
     }
     for (const auto& testSetPath : TestSetPaths) {
         CB_ENSURE(CheckExists(testSetPath), "Error: test file '" << testSetPath << "' doesn't exist");
-        ValidatePoolParams(testSetPath, DsvPoolFormatParams);
+        ValidatePoolParams(testSetPath, ColumnarPoolFormatParams);
     }
 
     if (PairsFilePath.Inited()) {
@@ -58,10 +58,10 @@ void NCatboostOptions::TPoolLoadParams::Validate(TMaybe<ETaskType> taskType) con
 
 void NCatboostOptions::ValidatePoolParams(
     const NCB::TPathWithScheme& poolPath,
-    const TDsvPoolFormatParams& poolFormatParams
+    const TColumnarPoolFormatParams& poolFormatParams
 ) {
     CB_ENSURE(
-        poolPath.Scheme == "dsv" || !poolFormatParams.Format.HasHeader,
+        poolPath.Scheme == "dsv" || !poolFormatParams.DsvFormat.HasHeader,
         "HasHeader parameter supported for \"dsv\" pools only."
     );
 }

@@ -23,47 +23,15 @@ using namespace NCB::NDataNewUT;
 
 
 Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
-    struct TTestCase {
-        TSrcData SrcData;
-        TExpectedRawData ExpectedData;
-    };
-
-    void Test(const TTestCase& testCase) {
-        TReadDatasetMainParams readDatasetMainParams;
-
-        // TODO(akhropov): temporarily use THolder until TTempFile move semantic are fixed
-        TVector<THolder<TTempFile>> srcDataFiles;
-
-        SaveSrcData(testCase.SrcData, &readDatasetMainParams, &srcDataFiles);
-
-        NPar::TLocalExecutor localExecutor;
-        localExecutor.RunAdditionalThreads(3);
-
-        TDataProviderPtr dataProvider = ReadDataset(
-            readDatasetMainParams.PoolPath,
-            readDatasetMainParams.PairsFilePath, // can be uninited
-            readDatasetMainParams.GroupWeightsFilePath, // can be uninited
-            readDatasetMainParams.BaselineFilePath, // can be uninited
-            readDatasetMainParams.DsvPoolFormatParams,
-            testCase.SrcData.IgnoredFeatures,
-            testCase.SrcData.ObjectsOrder,
-            TDatasetSubset::MakeColumns(),
-            /*classNames*/Nothing(),
-            &localExecutor
-        );
-
-        Compare<TRawObjectsDataProvider>(std::move(dataProvider), testCase.ExpectedData);
-    }
-
 
     Y_UNIT_TEST(ReadDataset) {
-        TVector<TTestCase> testCases;
+        TVector<TReadDatasetTestCase> testCases;
 
         {
-            TTestCase simpleTestCase;
+            TReadDatasetTestCase simpleTestCase;
             TSrcData srcData;
             srcData.CdFileData = AsStringBuf("0\tTarget");
-            srcData.DsvFileData = AsStringBuf(
+            srcData.DatasetFileData = AsStringBuf(
                 "Target\tFeat0\tFeat1\n"
                 "0\t0.1\t0.2\n"
                 "1\t0.97\t0.82\n"
@@ -101,7 +69,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
         }
 
         {
-            TTestCase groupDataTestCase;
+            TReadDatasetTestCase groupDataTestCase;
             TSrcData srcData;
             srcData.CdFileData = AsStringBuf(
                 "0\tTarget\n"
@@ -113,7 +81,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
                 "6\tNum\tf1\n"
                 "7\tNum\tf2\n"
             );
-            srcData.DsvFileData = AsStringBuf(
+            srcData.DatasetFileData = AsStringBuf(
                 "0.12\tquery0\tsite1\t0.12\t1.0\t0.1\t0.2\t0.11\n"
                 "0.22\tquery0\tsite22\t0.18\t1.0\t0.97\t0.82\t0.33\n"
                 "0.34\tquery1\tSite9\t1.0\t0.0\t0.13\t0.22\t0.23\n"
@@ -183,7 +151,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
         }
 
         {
-            TTestCase pairsOnlyTestCase;
+            TReadDatasetTestCase pairsOnlyTestCase;
             TSrcData srcData;
             srcData.CdFileData = AsStringBuf(
                 "0\tGroupId\n"
@@ -192,7 +160,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
                 "3\tNum\tf1\n"
                 "4\tNum\tf2\n"
             );
-            srcData.DsvFileData = AsStringBuf(
+            srcData.DatasetFileData = AsStringBuf(
                 "query0\tsite1\t0.1\t0.2\t0.11\n"
                 "query0\tsite22\t0.97\t0.82\t0.33\n"
                 "query1\tSite9\t0.13\t0.22\t0.23\n"
@@ -258,7 +226,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
         }
 
         {
-            TTestCase floatAndCatFeaturesTestCase;
+            TReadDatasetTestCase floatAndCatFeaturesTestCase;
             TSrcData srcData;
             srcData.CdFileData = AsStringBuf(
                 "0\tTarget\n"
@@ -269,7 +237,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
                 "5\tCateg\tCountry3\n"
                 "6\tNum\tfloat4\n"
             );
-            srcData.DsvFileData = AsStringBuf(
+            srcData.DatasetFileData = AsStringBuf(
                 "0.12\tquery0\t0.1\tMale\t0.2\tGermany\t0.11\n"
                 "0.22\tquery0\t0.97\tFemale\t0.82\tRussia\t0.33\n"
                 "0.34\tquery1\t0.13\tMale\t0.22\tUSA\t0.23\n"
@@ -330,7 +298,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
         }
 
         {
-            TTestCase separateGroupWeightsTestCase;
+            TReadDatasetTestCase separateGroupWeightsTestCase;
             TSrcData srcData;
             srcData.CdFileData = AsStringBuf(
                 "0\tTarget\n"
@@ -341,7 +309,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
                 "5\tCateg\tCountry3\n"
                 "6\tNum\tfloat4\n"
             );
-            srcData.DsvFileData = AsStringBuf(
+            srcData.DatasetFileData = AsStringBuf(
                 "0.12\tquery0\t0.1\tMale\t0.2\tGermany\t0.11\n"
                 "0.22\tquery0\t0.97\tFemale\t0.82\tRussia\t0.33\n"
                 "0.34\tquery1\t0.13\tMale\t0.22\tUSA\t0.23\n"
@@ -405,7 +373,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
         }
 
         {
-            TTestCase ignoredFeaturesTestCase;
+            TReadDatasetTestCase ignoredFeaturesTestCase;
             TSrcData srcData;
             srcData.CdFileData = AsStringBuf(
                 "0\tTarget\n"
@@ -416,7 +384,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
                 "5\tCateg\tCountry3\n"
                 "6\tNum\tfloat4\n"
             );
-            srcData.DsvFileData = AsStringBuf(
+            srcData.DatasetFileData = AsStringBuf(
                 "0.12\tquery0\t0.1\tMale\t0.2\tGermany\t0.11\n"
                 "0.22\tquery0\t0.97\tFemale\t0.82\tRussia\t0.33\n"
                 "0.34\tquery1\t0.13\tMale\t0.22\tUSA\t0.23\n"
@@ -480,21 +448,21 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
         }
 
         for (const auto& testCase : testCases) {
-            Test(testCase);
+            TestReadDataset(testCase);
         }
     }
 
     Y_UNIT_TEST(ReadDatasetWithTimestamp) {
-        TVector<TTestCase> testCases;
+        TVector<TReadDatasetTestCase> testCases;
 
         {
-            TTestCase orderedByTimestampTestCase;
+            TReadDatasetTestCase orderedByTimestampTestCase;
             TSrcData srcData;
             srcData.CdFileData = AsStringBuf(
                 "0\tTarget\n"
                 "1\tTimestamp"
             );
-            srcData.DsvFileData = AsStringBuf(
+            srcData.DatasetFileData = AsStringBuf(
                 "Target\tTimestamp\tFeat0\tFeat1\n"
                 "0\t10\t0.1\t0.2\n"
                 "1\t10\t0.97\t0.82\n"
@@ -535,13 +503,13 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
         }
 
         {
-            TTestCase notOrderedByTimestampTestCase1;
+            TReadDatasetTestCase notOrderedByTimestampTestCase1;
             TSrcData srcData;
             srcData.CdFileData = AsStringBuf(
                 "0\tTarget\n"
                 "1\tTimestamp"
             );
-            srcData.DsvFileData = AsStringBuf(
+            srcData.DatasetFileData = AsStringBuf(
                 "Target\tTimestamp\tFeat0\tFeat1\n"
                 "0\t20\t0.1\t0.2\n"
                 "1\t10\t0.97\t0.82\n"
@@ -582,13 +550,13 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
         }
 
         {
-            TTestCase notOrderedByTimestampTestCase2;
+            TReadDatasetTestCase notOrderedByTimestampTestCase2;
             TSrcData srcData;
             srcData.CdFileData = AsStringBuf(
                 "0\tTarget\n"
                 "1\tTimestamp"
             );
-            srcData.DsvFileData = AsStringBuf(
+            srcData.DatasetFileData = AsStringBuf(
                 "Target\tTimestamp\tFeat0\tFeat1\n"
                 "0\t20\t0.1\t0.2\n"
                 "1\t20\t0.97\t0.82\n"
@@ -629,15 +597,15 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
         }
 
         for (const auto& testCase : testCases) {
-            Test(testCase);
+            TestReadDataset(testCase);
         }
     }
 
     Y_UNIT_TEST(ReadDatasetWithMissingValues) {
-        TVector<TTestCase> testCases;
+        TVector<TReadDatasetTestCase> testCases;
 
         {
-            TTestCase floatAndCatFeaturesTestCase;
+            TReadDatasetTestCase floatAndCatFeaturesTestCase;
             TSrcData srcData;
             srcData.CdFileData = AsStringBuf(
                 "0\tTarget\n"
@@ -646,7 +614,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
                 "3\tNum\tfloat2\n"
                 "4\tCateg\tCountry3\n"
             );
-            srcData.DsvFileData = AsStringBuf(
+            srcData.DatasetFileData = AsStringBuf(
                 "0.12\t0.1\tNan\t0.2\tGermany\n"
                 "0.22\t\t\tNA\tRussia\n"
                 "0.341\tnan\tMale\t0.22\tN/A\n"
@@ -701,21 +669,21 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
         }
 
         for (const auto& testCase : testCases) {
-            Test(testCase);
+            TestReadDataset(testCase);
         }
     }
 
     Y_UNIT_TEST(ReadDatasetWithTextColumns) {
-        TVector<TTestCase> testCases;
+        TVector<TReadDatasetTestCase> testCases;
 
         {
-            TTestCase oneTextFeatureTestCase;
+            TReadDatasetTestCase oneTextFeatureTestCase;
             TSrcData srcData;
             srcData.CdFileData = AsStringBuf(
                 "0\tTarget\n"
                 "1\tText\ttext0\n"
             );
-            srcData.DsvFileData = AsStringBuf(
+            srcData.DatasetFileData = AsStringBuf(
                 "0.12\tWhat\n"
                 "0.22\tnoise\n"
                 "0.34\tannoys\n"
@@ -756,7 +724,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
             testCases.push_back(std::move(oneTextFeatureTestCase));
         }
         {
-            TTestCase textFloatAndCatFeaturesTestCase;
+            TReadDatasetTestCase textFloatAndCatFeaturesTestCase;
             TSrcData srcData;
             srcData.CdFileData = AsStringBuf(
                 "0\tTarget\n"
@@ -766,7 +734,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
                 "4\tText\tFavouriteMusic\n"
                 "5\tCateg\tGender\n"
             );
-            srcData.DsvFileData = AsStringBuf(
+            srcData.DatasetFileData = AsStringBuf(
                 "0.12\tSpiderman\tUSA\t18\tjazz\tMale\n"
                 "0.22\tWonderwoman\tEngland\t20\tsoul\tFemale\n"
                 "0.34\tBatman\tUSA\t35\tclassical\tMale\n"
@@ -826,7 +794,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
         }
 
         for (const auto& testCase : testCases) {
-            Test(testCase);
+            TestReadDataset(testCase);
         }
     }
 }

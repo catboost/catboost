@@ -88,7 +88,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
             readDatasetMainParams.PairsFilePath, // can be uninited
             readDatasetMainParams.GroupWeightsFilePath, // can be uninited
             readDatasetMainParams.BaselineFilePath, // can be uninited
-            NCatboostOptions::TDsvPoolFormatParams(),
+            NCatboostOptions::TColumnarPoolFormatParams(),
             testCase.SrcData.IgnoredFeatures,
             testCase.SrcData.ObjectsOrder,
             TDatasetSubset::MakeColumns(),
@@ -723,7 +723,10 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
                 )
             );
             srcData.FloatFeatures.push_back(
-                NCB::GenerateSrcColumn<ui8>(*expectedData.Objects.FloatFeatures.back(), EColumn::Num)
+                NCB::GenerateSrcColumn<ui8>(
+                    Get<TVector<ui8>>(*expectedData.Objects.FloatFeatures.back()),
+                    EColumn::Num
+                )
             );
         }
         srcData.ColumnNames.push_back("Target");

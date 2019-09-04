@@ -68,7 +68,7 @@ void NCB::ReadModelAndUpdateParams(
 
     model = ReadModel(params.ModelFileName, params.ModelFormat);
     if (model.HasCategoricalFeatures()) {
-        CB_ENSURE(params.DsvPoolFormatParams.CdFilePath.Inited(),
+        CB_ENSURE(params.ColumnarPoolFormatParams.CdFilePath.Inited(),
                   "Model has categorical features. Specify column_description file with correct categorical features.");
         CB_ENSURE(model.HasValidCtrProvider(),
                   "Model has invalid ctr provider, possibly you are using core model without or with incomplete ctr data");
@@ -135,7 +135,7 @@ void NCB::CalcModelSingleHost(
     TFullModel&& model) {
 
     CB_ENSURE(params.OutputPath.Scheme == "dsv" || params.OutputPath.Scheme == "stream", "Local model evaluation supports only \"dsv\"  and \"stream\" output file schemas.");
-    NCatboostOptions::ValidatePoolParams(params.InputPath, params.DsvPoolFormatParams);
+    NCatboostOptions::ValidatePoolParams(params.InputPath, params.ColumnarPoolFormatParams);
 
     TSetLogging logging(params.OutputPath.Scheme == "dsv" ? ELoggingLevel::Info : ELoggingLevel::Silent);
     THolder<IOutputStream> outputStream;
@@ -156,7 +156,7 @@ void NCB::CalcModelSingleHost(
 
     bool IsFirstBlock = true;
     ui64 docIdOffset = 0;
-    auto poolColumnsPrinter = CreatePoolColumnPrinter(params.InputPath, params.DsvPoolFormatParams.Format);
+    auto poolColumnsPrinter = CreatePoolColumnPrinter(params.InputPath, params.ColumnarPoolFormatParams.DsvFormat);
     const int blockSize = Max<int>(
         32,
         static_cast<int>(10000. / (static_cast<double>(iterationsLimit) / evalPeriod) / model.GetDimensionsCount())

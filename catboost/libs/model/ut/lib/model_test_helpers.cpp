@@ -78,7 +78,7 @@ TFullModel TrainFloatCatboostModel(int iterations, int seed) {
 
 TDataProviderPtr GetAdultPool() {
     TSrcData srcData;
-    srcData.DsvFileData =
+    srcData.DatasetFileData =
         "0\t1\tn\t1\t57.0\tSelf-emp-not-inc\t174760.0\tAssoc-acdm\t12.0\tMarried-spouse-absent\tFarming-fishing\tUnmarried\tAmer-Indian-Eskimo\tMale\t0.0\t0.0\t40.0\tUnited-States\n"
         "0\t1\tn\t1\t26.0\tPrivate\t94392.0\t11th\t7.0\tSeparated\tOther-service\tUnmarried\tWhite\tFemale\t0.0\t0.0\t20.0\tUnited-States\n"
         "0\t1\tn\t1\t55.0\tPrivate\t451603.0\tHS-grad\t9.0\tDivorced\tCraft-repair\tUnmarried\tWhite\tMale\t0.0\t0.0\t40.0\tUnited-States\n"
@@ -112,7 +112,7 @@ TDataProviderPtr GetAdultPool() {
         TPathWithScheme(),
         TPathWithScheme(),
         TPathWithScheme(),
-        readDatasetMainParams.DsvPoolFormatParams,
+        readDatasetMainParams.ColumnarPoolFormatParams,
         /*ignoredFeatures*/ {},
         EObjectsOrder::Undefined,
         /*threadCount*/ 16,

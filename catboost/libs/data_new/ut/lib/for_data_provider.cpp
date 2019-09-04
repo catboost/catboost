@@ -28,14 +28,19 @@ namespace NCB {
 
     void CompareGroupIds(
         const TMaybeData<TConstArrayRef<TGroupId>>& lhs,
-        const TMaybe<TVector<TStringBuf>>& rhs
+        const TMaybe<TVector<TStringBuf>>& rhs,
+        bool treatExpectedDataAsIntegers = false
     ) {
         if (lhs) {
             UNIT_ASSERT(rhs);
             const size_t size = lhs->size();
             UNIT_ASSERT_VALUES_EQUAL(size, rhs->size());
             for (auto i : xrange(size)) {
-                UNIT_ASSERT_VALUES_EQUAL((*lhs)[i], CalcGroupIdFor((*rhs)[i]));
+                if (treatExpectedDataAsIntegers) {
+                    UNIT_ASSERT_VALUES_EQUAL((*lhs)[i], FromString<TGroupId>((*rhs)[i]));
+                } else {
+                    UNIT_ASSERT_VALUES_EQUAL((*lhs)[i], CalcGroupIdFor((*rhs)[i]));
+                }
             }
         } else {
             UNIT_ASSERT(!rhs);
@@ -64,8 +69,8 @@ namespace NCB {
 
         // getFeatureFunc and getExpectedFeatureFunc accept perTypeFeatureIdx as a param
         std::function<TMaybeData<const TFeatureData*>(ui32)> getFeatureFunc,
-        std::function<TMaybe<TVector<TValue>>(ui32)> getExpectedFeatureFunc,
-        std::function<bool(const TVector<TValue>&, const TFeatureData&)> areEqualFunc
+        std::function<TMaybe<TExpectedFeatureColumn<TValue>>(ui32)> getExpectedFeatureFunc,
+        std::function<bool(const TExpectedFeatureColumn<TValue>&, const TFeatureData&)> areEqualFunc
     ) {
         const ui32 perTypeFeatureCount = featuresLayout.GetFeatureCount(FeatureType);
 
@@ -85,6 +90,39 @@ namespace NCB {
         }
     }
 
+    template <class T, EFeatureValuesType FeatureValuesType>
+    bool SimpleEqual(
+        const TExpectedFeatureColumn<T>& lhs,
+        const TTypedFeatureValuesHolder<T, FeatureValuesType>& rhs
+    ) {
+        if (const auto* lhsDenseData = GetIf<TVector<T>>(&lhs)) {
+            return Equal<T>(*rhs.ExtractValues(&NPar::LocalExecutor()), *lhsDenseData);
+        } else {
+            const auto& lhsSparseArray = Get<TConstSparseArray<T, ui32>>(lhs);
+
+            if (const auto* rhsSparseArrayHolder
+                    = dynamic_cast<const TSparseArrayValuesHolder<T, FeatureValuesType>*>(&rhs))
+            {
+                const auto& rhsSparseArray = rhsSparseArrayHolder->GetData();
+                // compare field-by-field because lhsSparseArray and rhsSparseArray have different types (const and non-const)
+                return (*lhsSparseArray.GetIndexing() == *rhsSparseArray.GetIndexing()) &&
+                    (*lhsSparseArray.GetNonDefaultValues() == *rhsSparseArray.GetNonDefaultValues()) &&
+                    (lhsSparseArray.GetDefaultValue() == rhsSparseArray.GetDefaultValue());
+            } else if (const auto* rhsSparseArrayHolder
+                           = dynamic_cast<const TSparseCompressedValuesHolderImpl<T, FeatureValuesType>*>(&rhs))
+            {
+                const auto& rhsSparseArray = rhsSparseArrayHolder->GetData();
+                return (*lhsSparseArray.GetIndexing() == *rhsSparseArray.GetIndexing()) &&
+                    // switch comparison sides because TCompressionArray has operator==(TConstArrayRef<T>)
+                    (rhsSparseArray.GetNonDefaultValues() == *lhsSparseArray.GetNonDefaultValues()) &&
+                    (lhsSparseArray.GetDefaultValue() == rhsSparseArray.GetDefaultValue());
+            } else {
+                UNIT_FAIL("bad column type for sparse data");
+            }
+            Y_UNREACHABLE();
+        }
+    }
+
     void CompareObjectsData(
         const TRawObjectsDataProvider& objectsData,
         const TExpectedRawData& expectedData,
@@ -95,7 +133,11 @@ namespace NCB {
         UNIT_ASSERT_EQUAL(*objectsData.GetFeaturesLayout(), *expectedData.MetaInfo.FeaturesLayout);
         UNIT_ASSERT_VALUES_EQUAL(objectsData.GetOrder(), expectedData.Objects.Order);
 
-        CompareGroupIds(objectsData.GetGroupIds(), expectedData.Objects.GroupIds);
+        CompareGroupIds(
+            objectsData.GetGroupIds(),
+            expectedData.Objects.GroupIds,
+            expectedData.Objects.TreatGroupIdsAsIntegers
+        );
         CompareSubgroupIds(objectsData.GetSubgroupIds(), expectedData.Objects.SubgroupIds);
         Compare(objectsData.GetTimestamp(), expectedData.Objects.Timestamp);
 
@@ -108,9 +150,35 @@ namespace NCB {
                 UNIT_ASSERT(floatFeatureIdx < expectedData.Objects.FloatFeatures.size());
                 return expectedData.Objects.FloatFeatures[floatFeatureIdx];
             },
-            /*areEqualFunc*/ [&](const TVector<float>& lhs, const TFloatValuesHolder& rhs) {
-                auto rhsValues = rhs.ExtractValues(&NPar::LocalExecutor());
-                return std::equal(lhs.begin(), lhs.end(), rhsValues.begin(), rhsValues.end(), EqualWithNans<float>);
+            /*areEqualFunc*/ [&](const TExpectedFeatureColumn<float>& lhs, const TFloatValuesHolder& rhs) {
+                if (const auto* lhsDenseData = GetIf<TVector<float>>(&lhs)) {
+                    auto rhsValues = rhs.ExtractValues(&NPar::LocalExecutor());
+                    return std::equal(
+                        lhsDenseData->begin(),
+                        lhsDenseData->end(),
+                        rhsValues.begin(),
+                        rhsValues.end(),
+                        EqualWithNans<float>
+                    );
+                } else {
+                    const auto& lhsSparseArray = Get<TConstSparseArray<float, ui32>>(lhs);
+
+                    const auto* rhsSparseArrayHolder = dynamic_cast<const TFloatSparseValuesHolder*>(&rhs);
+                    UNIT_ASSERT(rhsSparseArrayHolder);
+                    const auto& rhsSparseArray = rhsSparseArrayHolder->GetData();
+                    if (!(*lhsSparseArray.GetIndexing() == *rhsSparseArray.GetIndexing())) {
+                        return false;
+                    }
+                    const auto& lhsNonDefaultValues = lhsSparseArray.GetNonDefaultValues();
+                    const auto& rhsNonDefaultValues = rhsSparseArray.GetNonDefaultValues();
+                    return std::equal(
+                        lhsNonDefaultValues.begin(),
+                        lhsNonDefaultValues.end(),
+                        rhsNonDefaultValues.begin(),
+                        rhsNonDefaultValues.end(),
+                        EqualWithNans<float>
+                    );
+                }
             }
         );
 
@@ -120,21 +188,48 @@ namespace NCB {
         CompareFeatures<EFeatureType::Categorical, ui32, THashedCatValuesHolder>(
             *objectsData.GetFeaturesLayout(),
             /*getFeatureFunc*/ [&] (ui32 catFeatureIdx) {return objectsData.GetCatFeature(catFeatureIdx);},
-            /*getExpectedFeatureFunc*/ [&] (ui32 catFeatureIdx) -> TMaybe<TVector<ui32>> {
+            /*getExpectedFeatureFunc*/ [&] (ui32 catFeatureIdx) -> TMaybe<TExpectedFeatureColumn<ui32>> {
                 if (expectedData.Objects.CatFeatures[catFeatureIdx]) {
-                    TVector<ui32> hashedCategoricalValues;
-                    for (const auto& stringValue : *expectedData.Objects.CatFeatures[catFeatureIdx]) {
-                        ui32 hashValue = (ui32)CalcCatFeatureHash(stringValue);
-                        expectedCatFeaturesHashToString[catFeatureIdx][hashValue] = TString(stringValue);
-                        hashedCategoricalValues.push_back(hashValue);
+                    if (const auto* denseData = GetIf<TVector<TStringBuf>>(expectedData.Objects.CatFeatures[catFeatureIdx].Get())) {
+                        TVector<ui32> hashedCategoricalValues;
+                        for (const auto& stringValue : *denseData) {
+                            ui32 hashValue = (ui32)CalcCatFeatureHash(stringValue);
+                            expectedCatFeaturesHashToString[catFeatureIdx][hashValue] = TString(stringValue);
+                            hashedCategoricalValues.push_back(hashValue);
+                        }
+                        return hashedCategoricalValues;
+                    } else {
+                        const auto& sparseData = Get<TConstSparseArray<TStringBuf, ui32>>(
+                            *expectedData.Objects.CatFeatures[catFeatureIdx]
+                        );
+
+                        TVector<ui32> hashedNonDefaultCategoricalValues;
+
+                        for (const auto& stringValue : sparseData.GetNonDefaultValues()) {
+                            ui32 hashValue = (ui32)CalcCatFeatureHash(stringValue);
+                            expectedCatFeaturesHashToString[catFeatureIdx][hashValue] = TString(stringValue);
+                            hashedNonDefaultCategoricalValues.push_back(hashValue);
+                        }
+
+                        const TStringBuf stringDefaultValue = sparseData.GetDefaultValue();
+                        const ui32 hashedDefaultValue = (ui32)CalcCatFeatureHash(stringDefaultValue);
+                        expectedCatFeaturesHashToString[catFeatureIdx][hashedDefaultValue]
+                            = TString(stringDefaultValue);
+
+                        return MakeConstSparseArray<ui32>(
+                            sparseData.GetIndexing(),
+                            TMaybeOwningConstArrayHolder<ui32>::CreateOwning(
+                                std::move(hashedNonDefaultCategoricalValues)
+                            ),
+                            ui32(hashedDefaultValue)
+                        );
                     }
-                    return hashedCategoricalValues;
                 } else {
                     return Nothing();
                 }
             },
-            /*areEqualFunc*/ [&](const TVector<ui32>& lhs, const THashedCatValuesHolder& rhs) {
-                return Equal<ui32>(*rhs.ExtractValues(&NPar::LocalExecutor()), lhs);
+            /*areEqualFunc*/ [&](const TExpectedFeatureColumn<ui32>& lhs, const THashedCatValuesHolder& rhs) {
+                return SimpleEqual(lhs, rhs);
             }
         );
 
@@ -158,11 +253,36 @@ namespace NCB {
         CompareFeatures<EFeatureType::Text, TStringBuf, TStringTextValuesHolder>(
             *objectsData.GetFeaturesLayout(),
             /*getFeatureFunc*/ [&](ui32 textFeatureIdx) {return objectsData.GetTextFeature(textFeatureIdx);},
-            /*getExpectedFeatureFunc*/ [&](ui32 textFeatureIdx) -> TMaybe<TVector<TStringBuf>>
+            /*getExpectedFeatureFunc*/ [&](ui32 textFeatureIdx)
                 {return *expectedData.Objects.TextFeatures[textFeatureIdx];},
-            /*areEqualFunc*/ [&](const TVector<TStringBuf>& lhs, const TStringTextValuesHolder& rhs) {
-                TMaybeOwningArrayHolder<TString> rhsValues = rhs.ExtractValues(&NPar::LocalExecutor());
-                return std::equal(lhs.begin(), lhs.end(), rhsValues.begin(), rhsValues.end());
+            /*areEqualFunc*/ [&](const TExpectedFeatureColumn<TStringBuf>& lhs, const TStringTextValuesHolder& rhs) {
+                if (const auto* lhsDenseData = GetIf<TVector<TStringBuf>>(&lhs)) {
+                    TMaybeOwningArrayHolder<TString> rhsValues = rhs.ExtractValues(&NPar::LocalExecutor());
+                    return std::equal(
+                        lhsDenseData->begin(),
+                        lhsDenseData->end(),
+                        rhsValues.begin(),
+                        rhsValues.end()
+                    );
+                } else {
+                    const auto& lhsSparseArray = Get<TConstSparseArray<TStringBuf, ui32>>(lhs);
+                    const auto* rhsSparseArrayHolder = dynamic_cast<const TStringTextSparseValuesHolder*>(&rhs);
+                    UNIT_ASSERT(rhsSparseArrayHolder);
+                    const auto& rhsSparseArray = rhsSparseArrayHolder->GetData();
+                    if (!(*lhsSparseArray.GetIndexing() == *rhsSparseArray.GetIndexing()) ||
+                        (lhsSparseArray.GetDefaultValue() != rhsSparseArray.GetDefaultValue()))
+                    {
+                        return false;
+                    }
+                    const auto& lhsNonDefaultValues = lhsSparseArray.GetNonDefaultValues();
+                    const auto& rhsNonDefaultValues = rhsSparseArray.GetNonDefaultValues();
+                    return std::equal(
+                        lhsNonDefaultValues.begin(),
+                        lhsNonDefaultValues.end(),
+                        rhsNonDefaultValues.begin(),
+                        rhsNonDefaultValues.end()
+                    );
+                }
             }
         );
     }
@@ -191,8 +311,8 @@ namespace NCB {
                 UNIT_ASSERT(floatFeatureIdx < expectedData.Objects.FloatFeatures.size());
                 return expectedData.Objects.FloatFeatures[floatFeatureIdx];
             },
-            /*areEqualFunc*/ [&](const TVector<ui8>& lhs, const IQuantizedFloatValuesHolder& rhs) {
-                return Equal<ui8>(*rhs.ExtractValues(&localExecutor), lhs);
+            /*areEqualFunc*/ [&](const TExpectedFeatureColumn<ui8>& lhs, const IQuantizedFloatValuesHolder& rhs) {
+                return SimpleEqual(lhs, rhs);
             }
         );
 
@@ -203,8 +323,8 @@ namespace NCB {
                 UNIT_ASSERT(catFeatureIdx < expectedData.Objects.CatFeatures.size());
                 return expectedData.Objects.CatFeatures[catFeatureIdx];
             },
-            /*areEqualFunc*/ [&](const TVector<ui32>& lhs, const IQuantizedCatValuesHolder& rhs) {
-                return Equal<ui32>(*rhs.ExtractValues(&localExecutor), lhs);
+            /*areEqualFunc*/ [&](const TExpectedFeatureColumn<ui32>& lhs, const IQuantizedCatValuesHolder& rhs) {
+                return SimpleEqual(lhs, rhs);
             }
         );
         UNIT_ASSERT_EQUAL(

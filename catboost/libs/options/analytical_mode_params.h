@@ -13,7 +13,7 @@
 
 namespace NCB {
     struct TAnalyticalModeCommonParams {
-        NCatboostOptions::TDsvPoolFormatParams DsvPoolFormatParams;
+        NCatboostOptions::TColumnarPoolFormatParams ColumnarPoolFormatParams;
 
         TString ModelFileName;
         EModelType ModelFormat = EModelType::CatboostBinary;
@@ -36,9 +36,9 @@ namespace NCB {
 
     TString BuildModelFormatHelpMessage();
 
-    void BindDsvPoolFormatParams(
+    void BindColumnarPoolFormatParams(
         NLastGetopt::TOpts* parser,
-        NCatboostOptions::TDsvPoolFormatParams* dsvPoolFormatParams);
+        NCatboostOptions::TColumnarPoolFormatParams* columnarPoolFormatParams);
 
     void BindModelFileParams(NLastGetopt::TOpts* parser, TString* modelFileName, EModelType* modelFormat);
 }

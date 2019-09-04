@@ -1,5 +1,7 @@
 #pragma once
 
+#include "for_data_provider.h"
+
 #include <catboost/libs/data_new/order.h>
 
 #include <catboost/libs/data_util/path_with_scheme.h>
@@ -24,8 +26,9 @@ namespace NCB {
     );
 
     struct TSrcData {
+        TStringBuf Scheme;
         TStringBuf CdFileData;
-        TStringBuf DsvFileData;
+        TStringBuf DatasetFileData;
         bool DsvFileHasHeader = false;
         TStringBuf PairsFileData;
         TStringBuf GroupWeightsFileData;
@@ -39,7 +42,7 @@ namespace NCB {
         TPathWithScheme PairsFilePath; // can be uninited
         TPathWithScheme GroupWeightsFilePath; // can be uninited
         TPathWithScheme BaselineFilePath; // can be uninited
-        NCatboostOptions::TDsvPoolFormatParams DsvPoolFormatParams;
+        NCatboostOptions::TColumnarPoolFormatParams ColumnarPoolFormatParams;
     };
 
 
@@ -48,6 +51,13 @@ namespace NCB {
         TReadDatasetMainParams* readDatasetMainParams,
         TVector<THolder<TTempFile>>* srcDataFiles
     );
+
+    struct TReadDatasetTestCase {
+        TSrcData SrcData;
+        TExpectedRawData ExpectedData;
+    };
+
+    void TestReadDataset(const TReadDatasetTestCase& testCase);
 
     }
 }

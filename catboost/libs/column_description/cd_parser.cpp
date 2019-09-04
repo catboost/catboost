@@ -88,7 +88,7 @@ namespace {
         TCdFromFileProvider(const NCB::TPathWithScheme& cdFilePath)
             : CdFilePath(cdFilePath) {}
 
-        TVector<TColumn> GetColumnsDescription(ui32 columnsCount) const override;
+        TVector<TColumn> GetColumnsDescription(TMaybe<ui32> columnsCount) const override;
 
         bool Inited() const override {
             return CdFilePath.Inited();
@@ -102,7 +102,7 @@ namespace {
         TCdFromArrayProvider(const TVector<TColumn>& columnsDescription)
             : ColumnsDescription(columnsDescription) {}
 
-        TVector<TColumn> GetColumnsDescription(ui32) const override {
+        TVector<TColumn> GetColumnsDescription(TMaybe<ui32>) const override {
             return ColumnsDescription;
         }
 
@@ -123,12 +123,20 @@ THolder<ICdProvider> MakeCdProviderFromFile(const NCB::TPathWithScheme& path) {
     return MakeHolder<TCdFromFileProvider>(path);
 }
 
-TVector<TColumn> TCdFromFileProvider::GetColumnsDescription(ui32 columnsCount) const {
+TVector<TColumn> TCdFromFileProvider::GetColumnsDescription(TMaybe<ui32> columnsCount) const {
     TVector<TColumn> columnsDescription;
     if (CdFilePath.Inited()) {
-        columnsDescription = ReadCD(CdFilePath, TCdParserDefaults(EColumn::Num, columnsCount));
+        columnsDescription = ReadCD(
+            CdFilePath,
+            columnsCount.Defined() ?
+                TCdParserDefaults(EColumn::Num, *columnsCount) :
+                TCdParserDefaults(EColumn::Num)
+        );
     } else {
-        columnsDescription.assign(columnsCount, TColumn{EColumn::Num, TString()});
+        columnsDescription.assign(
+            columnsCount.Defined() ? *columnsCount : ui32(0),
+            TColumn{EColumn::Num, TString()}
+        );
         columnsDescription[0].Type = EColumn::Label;
     }
     return columnsDescription;

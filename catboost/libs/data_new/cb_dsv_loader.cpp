@@ -81,7 +81,14 @@ namespace NCB {
                                           ui32 objectCount, ui32 /*offset*/,
                                           IRawObjectsOrderDataVisitor* visitor)
     {
-        visitor->Start(inBlock, DataMetaInfo, objectCount, Args.ObjectsOrder, {});
+        visitor->Start(
+            inBlock,
+            DataMetaInfo,
+            /*haveUnknownNumberOfSparseFeatures*/ false,
+            objectCount,
+            Args.ObjectsOrder,
+            {}
+        );
     }
 
 

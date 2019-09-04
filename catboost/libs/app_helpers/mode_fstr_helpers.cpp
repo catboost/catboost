@@ -31,7 +31,7 @@ namespace {
                     so these checks might become wrong and cat features spec in pool should be checked instead
                 */
                 if (Model.HasCategoricalFeatures()) {
-                    CB_ENSURE(Params.DsvPoolFormatParams.CdFilePath.Inited(),
+                    CB_ENSURE(Params.ColumnarPoolFormatParams.CdFilePath.Inited(),
                               "Model has categorical features. Specify column_description file with correct categorical features.");
                 }
 
@@ -41,7 +41,7 @@ namespace {
                                            Params.PairsFilePath,
                                            /*groupWeightsFilePath=*/NCB::TPathWithScheme(),
                                            /*baselineFilePath=*/ NCB::TPathWithScheme(),
-                                           Params.DsvPoolFormatParams,
+                                           Params.ColumnarPoolFormatParams,
                                            /*ignoredFeatures*/ {},
                                            NCB::EObjectsOrder::Undefined,
                                            NCB::TDatasetSubset::MakeColumns(),
@@ -88,7 +88,7 @@ void NCB::PrepareFstrModeParamsParser(
 
 void NCB::ModeFstrSingleHost(const NCB::TAnalyticalModeCommonParams& params) {
 
-    NCatboostOptions::ValidatePoolParams(params.InputPath, params.DsvPoolFormatParams);
+    NCatboostOptions::ValidatePoolParams(params.InputPath, params.ColumnarPoolFormatParams);
 
     TFullModel model = ReadModel(params.ModelFileName, params.ModelFormat);
     if (model.HasCategoricalFeatures()) {

@@ -142,14 +142,14 @@ void LoadTrainingData(NCB::TPathWithScheme poolPath,
                       THolder<NCatboostCuda::TBinarizedFeaturesManager>* featuresManager) {
     NCB::TDataProviderPtr dataProvider;
     {
-        NCatboostOptions::TDsvPoolFormatParams dsvPoolFormatParams;
-        dsvPoolFormatParams.CdFilePath = cdFilePath;
+        NCatboostOptions::TColumnarPoolFormatParams columnarPoolFormatParams;
+        columnarPoolFormatParams.CdFilePath = cdFilePath;
 
         dataProvider = NCB::ReadDataset(poolPath,
                                         NCB::TPathWithScheme(),
                                         NCB::TPathWithScheme(),
                                         NCB::TPathWithScheme(),
-                                        dsvPoolFormatParams,
+                                        columnarPoolFormatParams,
                                         {},
                                         NCB::EObjectsOrder::Ordered,
                                         16,

@@ -105,7 +105,7 @@ Y_UNIT_TEST_SUITE(ProcessDataBlocksFromDsv) {
         ReadAndProceedPoolInBlocks(
             readDatasetMainParams.PoolPath,
             TDsvFormatOptions{testCase.SrcData.DsvFileHasHeader, '\t'},
-            readDatasetMainParams.DsvPoolFormatParams.CdFilePath,
+            readDatasetMainParams.ColumnarPoolFormatParams.CdFilePath,
             testCase.BlockSize,
             [&] (TDataProviderPtr dataProvider) {
                 Compare<TRawObjectsDataProvider>(
@@ -134,7 +134,7 @@ Y_UNIT_TEST_SUITE(ProcessDataBlocksFromDsv) {
             "8\tCateg\tCountry3\n"
             "9\tNum\tfloat4\n"
         );
-        srcData.DsvFileData = AsStringBuf(
+        srcData.DatasetFileData = AsStringBuf(
             "0.12\t0\t0.0\t0.1\t0.5\t0.1\tMale\t0.2\tGermany\t0.11\n"
             "0.22\t1\t0.12\t0.23\t0.22\t0.97\tFemale\t0.82\tRussia\t0.33\n"
             "0.34\t1\t0.1\t0.11\t0.67\t0.81\tMale\t0.22\tUSA\t0.23\n"
@@ -195,7 +195,7 @@ Y_UNIT_TEST_SUITE(ProcessDataBlocksFromDsv) {
             "11\tCateg\tCountry3\n"
             "12\tNum\tfloat4\n"
         );
-        srcData.DsvFileData = AsStringBuf(
+        srcData.DatasetFileData = AsStringBuf(
             "0.12\t0\tgroup0\tsubgroup0\t1.0\t0.0\t0.1\t0.5\t0.1\tMale\t0.2\tGermany\t0.11\n"
             "0.22\t0\tgroup0\tsubgroup1\t1.0\t0.12\t0.23\t0.22\t0.97\tFemale\t0.82\tRussia\t0.33\n"
             "0.34\t0\tgroup0\tsubgroup0\t1.0\t0.1\t0.11\t0.67\t0.81\tMale\t0.22\tUSA\t0.23\n"

@@ -2,10 +2,14 @@
 
 #include "path_with_scheme.h"
 
+#include <catboost/libs/helpers/exception.h>
+
 #include <library/object_factory/object_factory.h>
 
 #include <util/generic/maybe.h>
 #include <util/generic/string.h>
+
+#include <util/stream/file.h>
 
 
 
@@ -46,5 +50,50 @@ namespace NCB {
 
     THolder<ILineDataReader> GetLineDataReader(const TPathWithScheme& pathWithScheme,
                                                const TDsvFormatOptions& format = {});
+
+
+    int CountLines(const TString& poolFile);
+
+    class TFileLineDataReader : public ILineDataReader {
+    public:
+        TFileLineDataReader(const TLineDataReaderArgs& args)
+            : Args(args)
+            , IFStream(args.PathWithScheme.Path)
+            , HeaderProcessed(!Args.Format.HasHeader)
+        {}
+
+        ui64 GetDataLineCount() override {
+            ui64 nLines = (ui64)CountLines(Args.PathWithScheme.Path);
+            if (Args.Format.HasHeader) {
+                --nLines;
+            }
+            return nLines;
+        }
+
+        TMaybe<TString> GetHeader() override {
+            if (Args.Format.HasHeader) {
+                CB_ENSURE(!HeaderProcessed, "TFileLineDataReader: multiple calls to GetHeader");
+                TString header;
+                CB_ENSURE(IFStream.ReadLine(header), "TFileLineDataReader: no header in file");
+                HeaderProcessed = true;
+                return header;
+            }
+
+            return {};
+        }
+
+        bool ReadLine(TString* line) override {
+            // skip header if it hasn't been read
+            if (!HeaderProcessed) {
+                GetHeader();
+            }
+            return IFStream.ReadLine(*line) != 0;
+        }
+
+    private:
+        TLineDataReaderArgs Args;
+        TIFStream IFStream;
+        bool HeaderProcessed;
+    };
 
 }

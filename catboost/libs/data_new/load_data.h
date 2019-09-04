@@ -25,7 +25,7 @@ namespace NCB {
         const TPathWithScheme& pairsFilePath, // can be uninited
         const TPathWithScheme& groupWeightsFilePath, // can be uninited
         const TPathWithScheme& baselineFilePath, // can be uninited
-        const NCatboostOptions::TDsvPoolFormatParams& dsvPoolFormatParams,
+        const NCatboostOptions::TColumnarPoolFormatParams& columnarPoolFormatParams,
         const TVector<ui32>& ignoredFeatures,
         EObjectsOrder objectsOrder,
         TDatasetSubset loadSubset,
@@ -39,7 +39,7 @@ namespace NCB {
         const TPathWithScheme& pairsFilePath, // can be uninited
         const TPathWithScheme& groupWeightsFilePath, // can be uninited
         const TPathWithScheme& baselineFilePath, // can be uninited
-        const NCatboostOptions::TDsvPoolFormatParams& dsvPoolFormatParams,
+        const NCatboostOptions::TColumnarPoolFormatParams& columnarPoolFormatParams,
         const TVector<ui32>& ignoredFeatures,
         EObjectsOrder objectsOrder,
         int threadCount,

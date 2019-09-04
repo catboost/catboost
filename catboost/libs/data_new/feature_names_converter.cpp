@@ -55,9 +55,9 @@ static void ConvertStringsArrayIntoIndicesArray(const NCatboostOptions::TPoolLoa
     if (IsNumbersOrRangesConvert(*ignoredFeaturesJson)) {
         ConvertStringIndicesIntoIntegerIndices(ignoredFeaturesJson);
     } else {
-        CB_ENSURE(!poolLoadParams.LearnSetPath.Scheme.Contains("quantized") || poolLoadParams.DsvPoolFormatParams.CdFilePath.Inited(),
+        CB_ENSURE(!poolLoadParams.LearnSetPath.Scheme.Contains("quantized") || poolLoadParams.ColumnarPoolFormatParams.CdFilePath.Inited(),
                 "quatized pool without CD file doesn't support ignoring features by names");
-        const TVector<TColumn> columns = ReadCD(poolLoadParams.DsvPoolFormatParams.CdFilePath, TCdParserDefaults(EColumn::Num));
+        const TVector<TColumn> columns = ReadCD(poolLoadParams.ColumnarPoolFormatParams.CdFilePath, TCdParserDefaults(EColumn::Num));
         ui32 currentId = 0;
         TMap<TString, ui32> indicesFromNames;
         for (const auto& column : columns) {

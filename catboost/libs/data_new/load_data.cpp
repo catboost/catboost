@@ -19,7 +19,7 @@ namespace NCB {
         const TPathWithScheme& pairsFilePath, // can be uninited
         const TPathWithScheme& groupWeightsFilePath, // can be uninited
         const TPathWithScheme& baselineFilePath, // can be uninited
-        const NCatboostOptions::TDsvPoolFormatParams& dsvPoolFormatParams,
+        const NCatboostOptions::TColumnarPoolFormatParams& columnarPoolFormatParams,
         const TVector<ui32>& ignoredFeatures,
         EObjectsOrder objectsOrder,
         TDatasetSubset loadSubset,
@@ -42,8 +42,8 @@ namespace NCB {
                     groupWeightsFilePath,
                     baselineFilePath,
                     classNames ? **classNames : TVector<TString>(),
-                    dsvPoolFormatParams.Format,
-                    MakeCdProviderFromFile(dsvPoolFormatParams.CdFilePath),
+                    columnarPoolFormatParams.DsvFormat,
+                    MakeCdProviderFromFile(columnarPoolFormatParams.CdFilePath),
                     ignoredFeatures,
                     objectsOrder,
                     10000, // TODO: make it a named constant
@@ -74,7 +74,7 @@ namespace NCB {
         const TPathWithScheme& pairsFilePath, // can be uninited
         const TPathWithScheme& groupWeightsFilePath, // can be uninited
         const TPathWithScheme& baselineFilePath, // can be uninited
-        const NCatboostOptions::TDsvPoolFormatParams& dsvPoolFormatParams,
+        const NCatboostOptions::TColumnarPoolFormatParams& columnarPoolFormatParams,
         const TVector<ui32>& ignoredFeatures,
         EObjectsOrder objectsOrder,
         int threadCount,
@@ -91,7 +91,7 @@ namespace NCB {
             pairsFilePath,
             groupWeightsFilePath,
             baselineFilePath,
-            dsvPoolFormatParams,
+            columnarPoolFormatParams,
             ignoredFeatures,
             objectsOrder,
             TDatasetSubset::MakeColumns(),
@@ -171,7 +171,7 @@ namespace NCB {
                 loadOptions.PairsFilePath,
                 loadOptions.GroupWeightsFilePath,
                 loadOptions.BaselineFilePath,
-                loadOptions.DsvPoolFormatParams,
+                loadOptions.ColumnarPoolFormatParams,
                 loadOptions.IgnoredFeatures,
                 objectsOrder,
                 trainDatasetSubset,
@@ -201,7 +201,7 @@ namespace NCB {
                     testPairsFilePath,
                     testGroupWeightsFilePath,
                     testBaselineFilePath,
-                    loadOptions.DsvPoolFormatParams,
+                    loadOptions.ColumnarPoolFormatParams,
                     loadOptions.IgnoredFeatures,
                     objectsOrder,
                     TDatasetSubset::MakeColumns(),

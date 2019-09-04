@@ -16,6 +16,7 @@
 #include <util/system/types.h>
 
 #include <climits>
+#include <functional>
 #include <tuple>
 #include <type_traits>
 
@@ -33,19 +34,21 @@ namespace NCB {
 
 
     template <class TSize>
-    struct TSparseSubsetIndices : public TMaybeOwningArrayHolder<TSize> {
+    struct TSparseSubsetIndices : public TMaybeOwningConstArrayHolder<TSize> {
         static_assert(std::is_integral<TSize>::value);
 
     public:
         // needed because of IBinSaver
         TSparseSubsetIndices() = default;
 
-        explicit TSparseSubsetIndices(TMaybeOwningArrayHolder<TSize>&& base)
-            : TMaybeOwningArrayHolder<TSize>(std::move(base))
+        explicit TSparseSubsetIndices(TMaybeOwningConstArrayHolder<TSize>&& base)
+            : TMaybeOwningConstArrayHolder<TSize>(std::move(base))
         {}
 
         explicit TSparseSubsetIndices(TVector<TSize>&& indices)
-            : TMaybeOwningArrayHolder<TSize>(TMaybeOwningArrayHolder<TSize>::CreateOwning(std::move(indices)))
+            : TMaybeOwningConstArrayHolder<TSize>(
+                TMaybeOwningConstArrayHolder<TSize>::CreateOwning(std::move(indices))
+            )
         {}
 
         void Check() const {
@@ -67,23 +70,23 @@ namespace NCB {
         static_assert(std::is_integral<TSize>::value);
 
     public:
-        TMaybeOwningArrayHolder<TSize> BlockStarts;
-        TMaybeOwningArrayHolder<TSize> BlockLengths;
+        TMaybeOwningConstArrayHolder<TSize> BlockStarts;
+        TMaybeOwningConstArrayHolder<TSize> BlockLengths;
 
     public:
         // needed because of IBinSaver
         TSparseSubsetBlocks() = default;
 
         TSparseSubsetBlocks(
-            TMaybeOwningArrayHolder<TSize>&& blockStarts,
-            TMaybeOwningArrayHolder<TSize>&& blockLengths)
+            TMaybeOwningConstArrayHolder<TSize>&& blockStarts,
+            TMaybeOwningConstArrayHolder<TSize>&& blockLengths)
             : BlockStarts(std::move(blockStarts))
             , BlockLengths(std::move(blockLengths))
         {}
 
         TSparseSubsetBlocks(TVector<TSize>&& blockStarts, TVector<TSize>&& blockLengths)
-            : BlockStarts(TMaybeOwningArrayHolder<TSize>::CreateOwning(std::move(blockStarts)))
-            , BlockLengths(TMaybeOwningArrayHolder<TSize>::CreateOwning(std::move(blockLengths)))
+            : BlockStarts(TMaybeOwningConstArrayHolder<TSize>::CreateOwning(std::move(blockStarts)))
+            , BlockLengths(TMaybeOwningConstArrayHolder<TSize>::CreateOwning(std::move(blockLengths)))
         {}
 
         SAVELOAD(BlockStarts, BlockLengths)
@@ -259,6 +262,9 @@ namespace NCB {
         TSize Size;
     };
 
+    template <class TSize>
+    using TSparseArrayIndexingPtr = TIntrusivePtr<TSparseArrayIndexing<TSize>>;
+
 
     template <class TSize>
     struct ISparseArrayIndexingBuilder {
@@ -397,7 +403,9 @@ namespace NCB {
 
     public:
         // needed because of IBinSaver
-        TSparseArrayBase() = default;
+        TSparseArrayBase()
+            : DefaultValue(TValue())
+        {}
 
         TSparseArrayBase(
             TIndexingPtr indexing,
@@ -473,7 +481,7 @@ namespace NCB {
     private:
         TIndexingPtr Indexing;
         TContainer NonDefaultValues;
-        TValue DefaultValue;
+        TNonConstValue DefaultValue;
     };
 
     template <class TValue, class TContainer, class TSize, class TSrcValue>
@@ -491,6 +499,33 @@ namespace NCB {
 
     template <class TValue, class TSize>
     using TConstSparseArray = TSparseArray<const TValue, TSize>;
+
+    // for Cython
+    template <class TSize>
+    TSparseArrayIndexingPtr<TSize> MakeSparseArrayIndexing(
+        TSize size,
+        TMaybeOwningConstArrayHolder<TSize> indices); // already ordered
+
+    template <class TSize>
+    TSparseArrayIndexingPtr<TSize> MakeSparseBlockIndexing(
+        TSize size,
+        TMaybeOwningConstArrayHolder<TSize> blockStarts, // already ordered
+        TMaybeOwningConstArrayHolder<TSize> blockLengths); // already ordered
+
+    template <class TValue, class TSize>
+    TConstSparseArray<TValue, TSize> MakeConstSparseArray(
+        TSparseArrayIndexingPtr<TSize> indexing,
+        TMaybeOwningConstArrayHolder<TValue> nonDefaultValues,
+        TValue defaultValue = TValue());
+
+    template <class TValue, class TSize>
+    TConstSparseArray<TValue, TSize> MakeConstSparseArrayWithArrayIndex(
+        TSize size,
+        TMaybeOwningConstArrayHolder<TSize> indices,
+        TMaybeOwningConstArrayHolder<TValue> nonDefaultValues,
+        bool ordered = false,
+        TValue defaultValue = TValue());
+
 
     template <class TValue, class TSize>
     using TSparseCompressedArray = TSparseArrayBase<TValue, TCompressedArray, TSize>;

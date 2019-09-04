@@ -80,7 +80,7 @@ inline static TVector<TVector<int>> ParseIndexSetsLine(const TStringBuf indicesL
 }
 
 inline static void BindPoolLoadParams(NLastGetopt::TOpts* parser, NCatboostOptions::TPoolLoadParams* loadParamsPtr) {
-    BindDsvPoolFormatParams(parser, &(loadParamsPtr->DsvPoolFormatParams));
+    BindColumnarPoolFormatParams(parser, &(loadParamsPtr->ColumnarPoolFormatParams));
 
     parser->AddLongOption("cv-no-shuffle", "Do not shuffle dataset before cross-validation")
       .NoArgument()

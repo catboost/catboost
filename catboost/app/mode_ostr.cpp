@@ -21,7 +21,7 @@ struct TObjectImportancesParams {
     TString OutputPath;
     TPathWithScheme LearnSetPath;
     TPathWithScheme TestSetPath;
-    NCatboostOptions::TDsvPoolFormatParams DsvPoolFormatParams;
+    NCatboostOptions::TColumnarPoolFormatParams ColumnarPoolFormatParams;
     TString UpdateMethod = ToString(EUpdateType::SinglePoint);
     int ThreadCount = NSystemInfo::CachedNumberOfCpus();
     char Delimiter = '\t';
@@ -37,7 +37,7 @@ struct TObjectImportancesParams {
             .Required()
             .StoreResult(&TestSetPath)
             .RequiredArgument("PATH");
-        BindDsvPoolFormatParams(&parser, &DsvPoolFormatParams);
+        BindColumnarPoolFormatParams(&parser, &ColumnarPoolFormatParams);
         parser.AddLongOption('o', "output-path", "output result path")
             .StoreResult(&OutputPath)
             .DefaultValue("object_importances.tsv");
@@ -58,8 +58,8 @@ int mode_ostr(int argc, const char* argv[]) {
     parser.SetFreeArgsNum(0);
     NLastGetopt::TOptsParseResult parserResult{&parser, argc, argv};
 
-    NCatboostOptions::ValidatePoolParams(params.LearnSetPath, params.DsvPoolFormatParams);
-    NCatboostOptions::ValidatePoolParams(params.TestSetPath, params.DsvPoolFormatParams);
+    NCatboostOptions::ValidatePoolParams(params.LearnSetPath, params.ColumnarPoolFormatParams);
+    NCatboostOptions::ValidatePoolParams(params.TestSetPath, params.ColumnarPoolFormatParams);
 
     TFullModel model = ReadModel(params.ModelFileName, params.ModelFormat);
 
@@ -73,7 +73,7 @@ int mode_ostr(int argc, const char* argv[]) {
                                                        /*pairsFilePath=*/NCB::TPathWithScheme(),
                                                        /*groupWeightsFilePath=*/NCB::TPathWithScheme(),
                                                        /*baselineFilePath=*/NCB::TPathWithScheme(),
-                                                       params.DsvPoolFormatParams,
+                                                       params.ColumnarPoolFormatParams,
                                                        /*ignoredFeatures*/ {},
                                                        EObjectsOrder::Undefined,
                                                        TDatasetSubset::MakeColumns(),
@@ -84,7 +84,7 @@ int mode_ostr(int argc, const char* argv[]) {
                                                       /*pairsFilePath=*/NCB::TPathWithScheme(),
                                                       /*groupWeightsFilePath=*/NCB::TPathWithScheme(),
                                                       /*baselineFilePath=*/NCB::TPathWithScheme(),
-                                                      params.DsvPoolFormatParams,
+                                                      params.ColumnarPoolFormatParams,
                                                       /*ignoredFeatures*/ {},
                                                       EObjectsOrder::Undefined,
                                                       TDatasetSubset::MakeColumns(),

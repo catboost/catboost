@@ -18,6 +18,7 @@ SRCS(
     feature_index.cpp
     features_layout.cpp
     feature_names_converter.cpp
+    GLOBAL libsvm_loader.cpp
     load_data.cpp
     loader.cpp
     meta_info.cpp

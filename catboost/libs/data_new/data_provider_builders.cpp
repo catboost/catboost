@@ -56,6 +56,7 @@ namespace NCB {
         void Start(
             bool inBlock,
             const TDataMetaInfo& metaInfo,
+            bool haveUnknownNumberOfSparseFeatures,
             ui32 objectCount,
             EObjectsOrder objectsOrder,
 
@@ -83,16 +84,32 @@ namespace NCB {
             Cursor = NotSet;
 
             Data.MetaInfo = metaInfo;
-            Data.TargetData.PrepareForInitialization(metaInfo, ObjectCount, prevTailSize);
-            Data.CommonObjectsData.PrepareForInitialization(metaInfo, ObjectCount, prevTailSize);
-            Data.ObjectsData.PrepareForInitialization(metaInfo);
+            if (haveUnknownNumberOfSparseFeatures) {
+                // make a copy because it can be updated
+                Data.MetaInfo.FeaturesLayout = MakeIntrusive<TFeaturesLayout>(*metaInfo.FeaturesLayout);
+            }
+
+            Data.TargetData.PrepareForInitialization(Data.MetaInfo, ObjectCount, prevTailSize);
+            Data.CommonObjectsData.PrepareForInitialization(Data.MetaInfo, ObjectCount, prevTailSize);
+            Data.ObjectsData.PrepareForInitialization(Data.MetaInfo);
 
             Data.CommonObjectsData.ResourceHolders = std::move(resourceHolders);
             Data.CommonObjectsData.Order = objectsOrder;
 
-            FloatFeaturesStorage.PrepareForInitialization(*metaInfo.FeaturesLayout, ObjectCount, prevTailSize);
-            CatFeaturesStorage.PrepareForInitialization(*metaInfo.FeaturesLayout, ObjectCount, prevTailSize);
-            TextFeaturesStorage.PrepareForInitialization(*metaInfo.FeaturesLayout, ObjectCount, prevTailSize);
+            auto prepareFeaturesStorage = [&] (auto& featuresStorage) {
+                featuresStorage.PrepareForInitialization(
+                    *Data.MetaInfo.FeaturesLayout,
+                    haveUnknownNumberOfSparseFeatures,
+                    ObjectCount,
+                    prevTailSize,
+                    /*dataCanBeReusedForNextBlock*/ InBlock && Data.MetaInfo.HasGroupId,
+                    LocalExecutor
+                );
+            };
+
+            prepareFeaturesStorage(FloatFeaturesStorage);
+            prepareFeaturesStorage(CatFeaturesStorage);
+            prepareFeaturesStorage(TextFeaturesStorage);
 
             if (metaInfo.HasWeights) {
                 PrepareForInitialization(ObjectCount, prevTailSize, &WeightsBuffer);
@@ -140,6 +157,15 @@ namespace NCB {
             }
         }
 
+        void AddAllFloatFeatures(ui32 localObjectIdx, TConstSparseArray<float, ui32> features) override {
+            auto objectIdx = Cursor + localObjectIdx;
+            features.ForEachNonDefault(
+                [&] (ui32 perTypeFeatureIdx, float value) {
+                    FloatFeaturesStorage.Set(TFloatFeatureIdx(perTypeFeatureIdx), objectIdx, value);
+                }
+            );
+        }
+
         ui32 GetCatFeatureValue(ui32 flatFeatureIdx, TStringBuf feature) override {
             auto catFeatureIdx = GetInternalFeatureIdx<EFeatureType::Categorical>(flatFeatureIdx);
             ui32 hashVal = CalcCatFeatureHash(feature);
@@ -174,6 +200,20 @@ namespace NCB {
             }
         }
 
+        void AddAllCatFeatures(ui32 localObjectIdx, TConstSparseArray<ui32, ui32> features) override {
+            auto objectIdx = Cursor + localObjectIdx;
+            features.ForEachNonDefault(
+                [&] (ui32 perTypeFeatureIdx, ui32 value) {
+                    CatFeaturesStorage.Set(TCatFeatureIdx(perTypeFeatureIdx), objectIdx, value);
+                }
+            );
+        }
+
+        void AddCatFeatureDefaultValue(ui32 flatFeatureIdx, TStringBuf feature) override {
+            auto catFeatureIdx = GetInternalFeatureIdx<EFeatureType::Categorical>(flatFeatureIdx);
+            CatFeaturesStorage.SetDefaultValue(catFeatureIdx, GetCatFeatureValue(flatFeatureIdx, feature));
+        }
+
         void AddTextFeature(ui32 localObjectIdx, ui32 flatFeatureIdx, const TString& feature) override {
             auto textFeatureIdx = GetInternalFeatureIdx<EFeatureType::Text>(flatFeatureIdx);
             TextFeaturesStorage.Set(
@@ -191,6 +231,14 @@ namespace NCB {
                     features[perTypeFeatureIdx]
                 );
             }
+        }
+        void AddAllTextFeatures(ui32 localObjectIdx, TConstSparseArray<TString, ui32> features) override {
+            auto objectIdx = Cursor + localObjectIdx;
+            features.ForEachNonDefault(
+                [&] (ui32 perTypeFeatureIdx, TString value) {
+                    TextFeaturesStorage.Set(TTextFeatureIdx(perTypeFeatureIdx), objectIdx, std::move(value));
+                }
+            );
         }
 
         // TRawTargetData
@@ -284,17 +332,17 @@ namespace NCB {
                 TFullSubset<ui32>(ObjectCount)
             );
 
-            FloatFeaturesStorage.GetResult(
-                *Data.MetaInfo.FeaturesLayout,
-                Data.CommonObjectsData.SubsetIndexing.Get(),
-                &Data.ObjectsData.FloatFeatures
-            );
+            auto getFeaturesResult = [&] (auto& featuresStorage, auto* dstFeatures) {
+                featuresStorage.GetResult(
+                    Data.CommonObjectsData.SubsetIndexing.Get(),
+                    Options.SparseArrayIndexingType,
+                    Data.MetaInfo.FeaturesLayout.Get(),
+                    dstFeatures
+                );
+            };
 
-            CatFeaturesStorage.GetResult(
-                *Data.MetaInfo.FeaturesLayout,
-                Data.CommonObjectsData.SubsetIndexing.Get(),
-                &Data.ObjectsData.CatFeatures
-            );
+            getFeaturesResult(FloatFeaturesStorage, &Data.ObjectsData.FloatFeatures);
+            getFeaturesResult(CatFeaturesStorage, &Data.ObjectsData.CatFeatures);
 
             if (CatFeatureCount) {
                 auto& catFeaturesHashToString = *Data.CommonObjectsData.CatFeaturesHashToString;
@@ -312,11 +360,7 @@ namespace NCB {
                 }
             }
 
-            TextFeaturesStorage.GetResult(
-                *Data.MetaInfo.FeaturesLayout,
-                Data.CommonObjectsData.SubsetIndexing.Get(),
-                &Data.ObjectsData.TextFeatures
-            );
+            getFeaturesResult(TextFeaturesStorage, &Data.ObjectsData.TextFeatures);
 
             ResultTaken = true;
 
@@ -404,9 +448,7 @@ namespace NCB {
 
         template <EFeatureType FeatureType>
         TFeatureIdx<FeatureType> GetInternalFeatureIdx(ui32 flatFeatureIdx) const {
-            return TFeatureIdx<FeatureType>(
-                Data.MetaInfo.FeaturesLayout->GetInternalFeatureIdx(flatFeatureIdx)
-            );
+            return Data.MetaInfo.FeaturesLayout->GetExpandingInternalFeatureIdx<FeatureType>(flatFeatureIdx);
         }
 
     private:
@@ -414,101 +456,329 @@ namespace NCB {
             TVector<THashMap<ui32, TString>> CatFeatureHashes;
         };
 
-
         template <EFeatureType FeatureType, class T>
-        struct TFeaturesStorage {
-            /* shared between this builder and created data provider for efficiency
-             * (can be reused for cache here if there's no more references to data
-             *  (data provider was freed))
-             */
+        class TFeaturesStorage {
+            struct TSparseIndex2d {
+                ui32 PerTypeFeatureIdx;
+                ui32 ObjectIdx;
+            };
 
-            TVector<TIntrusivePtr<TVectorHolder<T>>> Storage; // [perTypeFeatureIdx]
+            struct TSparsePart {
+                TVector<TSparseIndex2d> Indices;
+                TVector<T> Values;
+            };
 
-            // view into storage for faster access
-            TVector<TArrayRef<T>> DstView; // [perTypeFeatureIdx]
+            struct TSparseDataForBuider {
+                TVector<ui32> ObjectIndices;
+                TVector<T> Values;
+            };
 
-            // copy from Data.MetaInfo.FeaturesLayout for fast access
-            TVector<bool> IsAvailable; // [perTypeFeatureIdx]
+            struct TPerFeatureData {
+                /* shared between this builder and created data provider for efficiency
+                 * (can be reused for cache here if there's no more references to data
+                 *  (data provider was freed))
+                 */
+                TIntrusivePtr<TVectorHolder<T>> DenseDataStorage;
+
+                TArrayRef<T> DenseDstView;
+
+                T DefaultValue; // used only for sparse
+
+                TFeatureMetaInfo MetaInfo;
+
+            public:
+                TPerFeatureData() = default;
+                TPerFeatureData(TFeatureMetaInfo&& metaInfo)
+                    : MetaInfo(std::move(metaInfo))
+                {}
+            };
+
+            typedef void (*TSetCallback)(
+                TFeatureIdx<FeatureType> perTypeFeatureIdx,
+                ui32 objectIdx,
+                T value,
+                TFeaturesStorage* storage
+            );
+
+        private:
+            ui32 ObjectCount = 0;
+            bool HasSparseData = false;
+            bool DataCanBeReusedForNextBlock = false;
+
+            NPar::TLocalExecutor* LocalExecutor = nullptr;
+
+            TVector<TPerFeatureData> PerFeatureData; // [perTypeFeatureIdx]
+
+            std::array<TSparsePart, CB_THREAD_LIMIT> SparseDataParts; // [threadId]
+
+            // [perTypeFeaturesIdx] + extra element for adding new features
+            TVector<TSetCallback> PerFeatureCallbacks;
+
+        private:
+            // set callbacks
+
+            static void SetDenseFeature(
+                TFeatureIdx<FeatureType> perTypeFeatureIdx,
+                ui32 objectIdx,
+                T value,
+                TFeaturesStorage* storage
+            ) {
+                storage->PerFeatureData[*perTypeFeatureIdx].DenseDstView[objectIdx] = value;
+            }
+
+            static void SetSparseFeature(
+                TFeatureIdx<FeatureType> perTypeFeatureIdx,
+                ui32 objectIdx,
+                T value,
+                TFeaturesStorage* storage
+            ) {
+                auto& sparseDataPart = storage->SparseDataParts[storage->LocalExecutor->GetWorkerThreadId()];
+                sparseDataPart.Indices.emplace_back(TSparseIndex2d{*perTypeFeatureIdx, objectIdx});
+                sparseDataPart.Values.emplace_back(value);
+            }
+
+            static void IgnoreFeature(
+                TFeatureIdx<FeatureType> perTypeFeatureIdx,
+                ui32 objectIdx,
+                T value,
+                TFeaturesStorage* storage
+            ) {
+                Y_UNUSED(perTypeFeatureIdx, objectIdx, value, storage);
+            }
+
+            void PrepareForInitializationSparseParts(ui32 prevObjectCount, ui32 prevTailSize) {
+                ui32 objectIdxShift = prevObjectCount - prevTailSize;
+
+                LocalExecutor->ExecRangeWithThrow(
+                    [&, objectIdxShift, prevTailSize] (int partIdx) {
+                        auto& sparseDataPart = SparseDataParts[partIdx];
+                        size_t dstIdx = 0;
+                        if (prevTailSize) {
+                            for (auto i : xrange(sparseDataPart.Indices.size())) {
+                                auto index2d = sparseDataPart.Indices[i];
+                                if (index2d.ObjectIdx >= objectIdxShift) {
+                                    sparseDataPart.Indices[dstIdx].PerTypeFeatureIdx
+                                        = index2d.PerTypeFeatureIdx;
+                                    sparseDataPart.Indices[dstIdx].ObjectIdx
+                                        = index2d.ObjectIdx - objectIdxShift;
+                                    sparseDataPart.Values[dstIdx] = std::move(sparseDataPart.Values[i]);
+                                    ++dstIdx;
+                                }
+                            }
+                        }
+                        sparseDataPart.Indices.resize(dstIdx);
+                        sparseDataPart.Values.resize(dstIdx);
+                    },
+                    0,
+                    (int)SparseDataParts.size(),
+                    NPar::TLocalExecutor::WAIT_COMPLETE
+                );
+            }
+
+
+            TVector<TMaybe<TConstSparseArray<T, ui32>>> CreateSparseArrays(
+                ui32 objectCount,
+                ESparseArrayIndexingType sparseArrayIndexingType,
+                NPar::TLocalExecutor* localExecutor
+            ) {
+                TVector<TSparseDataForBuider> sparseDataForBuilders(PerFeatureData.size()); // [perTypeFeatureIdx]
+
+                for (auto& sparseDataPart : SparseDataParts) {
+                    for (auto i : xrange(sparseDataPart.Indices.size())) {
+                        auto index2d = sparseDataPart.Indices[i];
+                        if (index2d.PerTypeFeatureIdx >= sparseDataForBuilders.size()) {
+                            // add previously unknown features
+                            sparseDataForBuilders.resize(index2d.PerTypeFeatureIdx + 1);
+                        }
+                        auto& dataForBuilder = sparseDataForBuilders[index2d.PerTypeFeatureIdx];
+                        dataForBuilder.ObjectIndices.push_back(index2d.ObjectIdx);
+                        dataForBuilder.Values.push_back(std::move(sparseDataPart.Values[i]));
+                    }
+                    if (!DataCanBeReusedForNextBlock) {
+                        sparseDataPart = TSparsePart();
+                    }
+                }
+
+                TVector<TMaybe<TConstSparseArray<T, ui32>>> result(sparseDataForBuilders.size());
+
+                localExecutor->ExecRangeWithThrow(
+                    [&] (int perTypeFeatureIdx) {
+                        T defaultValue = T();
+                        if ((size_t)perTypeFeatureIdx < PerFeatureData.size()) {
+                            if (!PerFeatureData[perTypeFeatureIdx].MetaInfo.IsSparse) {
+                                return;
+                            }
+                            defaultValue = PerFeatureData[perTypeFeatureIdx].DefaultValue;
+                        }
+
+                        std::function<TMaybeOwningConstArrayHolder<T>(TVector<T>&&)> createNonDefaultValues
+                            = [&] (TVector<T>&& values) {
+                                return TMaybeOwningConstArrayHolder<T>::CreateOwning(std::move(values));
+                            };
+
+                        result[perTypeFeatureIdx].ConstructInPlace(
+                            MakeSparseArrayBase<const T, TMaybeOwningArrayHolder<const T>, ui32>(
+                                objectCount,
+                                std::move(sparseDataForBuilders[perTypeFeatureIdx].ObjectIndices),
+                                std::move(sparseDataForBuilders[perTypeFeatureIdx].Values),
+                                std::move(createNonDefaultValues),
+                                sparseArrayIndexingType,
+                                /*ordered*/ false,
+                                std::move(defaultValue)
+                            )
+                        );
+                    },
+                    0,
+                    SafeIntegerCast<int>(sparseDataForBuilders.size()),
+                    NPar::TLocalExecutor::WAIT_COMPLETE
+                );
+
+                return result;
+            }
 
         public:
             void PrepareForInitialization(
                 const TFeaturesLayout& featuresLayout,
+                bool haveUnknownNumberOfSparseFeatures,
                 ui32 objectCount,
-                ui32 prevTailSize
+                ui32 prevTailSize,
+                bool dataCanBeReusedForNextBlock,
+                NPar::TLocalExecutor* localExecutor
             ) {
-                const size_t featureCount = (size_t) featuresLayout.GetFeatureCount(FeatureType);
-                Storage.resize(featureCount);
-                DstView.resize(featureCount);
-                IsAvailable.yresize(featureCount);
-                for (auto perTypeFeatureIdx : xrange(featureCount)) {
-                    if (featuresLayout.GetInternalFeatureMetaInfo(perTypeFeatureIdx, FeatureType).IsAvailable)
-                    {
-                        auto& maybeSharedStoragePtr = Storage[perTypeFeatureIdx];
+                ui32 prevObjectCount = ObjectCount;
+                ObjectCount = objectCount;
 
-                        if (!maybeSharedStoragePtr) {
-                            Y_VERIFY(!prevTailSize);
-                            maybeSharedStoragePtr = MakeIntrusive<TVectorHolder<T>>();
-                            maybeSharedStoragePtr->Data.yresize(objectCount);
+                DataCanBeReusedForNextBlock = dataCanBeReusedForNextBlock;
+
+                LocalExecutor = localExecutor;
+
+                HasSparseData = haveUnknownNumberOfSparseFeatures;
+
+
+                const size_t featureCount = (size_t) featuresLayout.GetFeatureCount(FeatureType);
+                PerFeatureData.resize(featureCount);
+                PerFeatureCallbacks.resize(featureCount + 1);
+                for (auto perTypeFeatureIdx : xrange(featureCount)) {
+                    auto& perFeatureData = PerFeatureData[perTypeFeatureIdx];
+                    perFeatureData.MetaInfo
+                        = featuresLayout.GetInternalFeatureMetaInfo(perTypeFeatureIdx, FeatureType);
+                    if (perFeatureData.MetaInfo.IsAvailable) {
+                        if (perFeatureData.MetaInfo.IsSparse) {
+                            HasSparseData = true;
+                            PerFeatureCallbacks[perTypeFeatureIdx] = SetSparseFeature;
                         } else {
-                            Y_VERIFY(prevTailSize <= maybeSharedStoragePtr->Data.size());
-                            auto newMaybeSharedStoragePtr = MakeIntrusive<TVectorHolder<T>>();
-                            newMaybeSharedStoragePtr->Data.yresize(objectCount);
-                            if (prevTailSize) {
-                                std::copy(
-                                    maybeSharedStoragePtr->Data.end() - prevTailSize,
-                                    maybeSharedStoragePtr->Data.end(),
-                                    newMaybeSharedStoragePtr->Data.begin()
-                                );
+                            auto& maybeSharedStoragePtr = perFeatureData.DenseDataStorage;
+
+                            if (!maybeSharedStoragePtr) {
+                                Y_VERIFY(!prevTailSize);
+                                maybeSharedStoragePtr = MakeIntrusive<TVectorHolder<T>>();
+                                maybeSharedStoragePtr->Data.yresize(objectCount);
+                            } else {
+                                Y_VERIFY(prevTailSize <= maybeSharedStoragePtr->Data.size());
+                                auto newMaybeSharedStoragePtr = MakeIntrusive<TVectorHolder<T>>();
+                                newMaybeSharedStoragePtr->Data.yresize(objectCount);
+                                if (prevTailSize) {
+                                    std::copy(
+                                        maybeSharedStoragePtr->Data.end() - prevTailSize,
+                                        maybeSharedStoragePtr->Data.end(),
+                                        newMaybeSharedStoragePtr->Data.begin()
+                                    );
+                                }
+                                maybeSharedStoragePtr = std::move(newMaybeSharedStoragePtr);
                             }
-                            maybeSharedStoragePtr = std::move(newMaybeSharedStoragePtr);
+                            perFeatureData.DenseDstView = maybeSharedStoragePtr->Data;
+
+                            PerFeatureCallbacks[perTypeFeatureIdx] = SetDenseFeature;
                         }
-                        DstView[perTypeFeatureIdx] = maybeSharedStoragePtr->Data;
-                        IsAvailable[perTypeFeatureIdx] = true;
                     } else {
-                        Storage[perTypeFeatureIdx] = nullptr;
-                        DstView[perTypeFeatureIdx] = TArrayRef<T>();
-                        IsAvailable[perTypeFeatureIdx] = false;
+                        PerFeatureCallbacks[perTypeFeatureIdx] = IgnoreFeature;
                     }
+                }
+                // for new sparse features
+                PerFeatureCallbacks.back() = SetSparseFeature;
+
+                if (HasSparseData) {
+                    PrepareForInitializationSparseParts(prevObjectCount, prevTailSize);
                 }
             }
 
             void Set(TFeatureIdx<FeatureType> perTypeFeatureIdx, ui32 objectIdx, T value) {
-                if (IsAvailable[*perTypeFeatureIdx]) {
-                    DstView[*perTypeFeatureIdx][objectIdx] = value;
+                PerFeatureCallbacks[Min(size_t(*perTypeFeatureIdx), PerFeatureCallbacks.size() - 1)](
+                    perTypeFeatureIdx,
+                    objectIdx,
+                    value,
+                    this
+                );
+            }
+
+            void SetDefaultValue(TFeatureIdx<FeatureType> perTypeFeatureIdx, T value) {
+                if (*perTypeFeatureIdx >= PerFeatureData.size()) {
+                    for (auto perTypeFeatureIdx : xrange(PerFeatureData.size(), size_t(*perTypeFeatureIdx + 1))) {
+                        Y_UNUSED(perTypeFeatureIdx);
+                        PerFeatureData.emplace_back(
+                            TFeatureMetaInfo(FeatureType, /*name*/ "", /*isSparse*/ true)
+                        );
+                    }
                 }
+                PerFeatureData[*perTypeFeatureIdx].DefaultValue = value;
             }
 
             template <EFeatureValuesType ColumnType>
             void GetResult(
-                const TFeaturesLayout& featuresLayout,
                 const TFeaturesArraySubsetIndexing* subsetIndexing,
+                ESparseArrayIndexingType sparseArrayIndexingType,
+                TFeaturesLayout* featuresLayout,
                 TVector<THolder<TTypedFeatureValuesHolder<T, ColumnType>>>* result
             ) {
-                CB_ENSURE_INTERNAL(Storage.size() == DstView.size(), "Storage is inconsistent with DstView");
-
-                const size_t featureCount = (size_t)featuresLayout.GetFeatureCount(FeatureType);
+                size_t featureCount = (size_t)featuresLayout->GetFeatureCount(FeatureType);
 
                 CB_ENSURE_INTERNAL(
-                    Storage.size() == featureCount,
-                    "Storage is inconsistent with feature Layout"
+                    PerFeatureData.size() >= featureCount,
+                    "PerFeatureData is inconsistent with feature Layout"
                 );
+
+                TVector<TMaybe<TConstSparseArray<T, ui32>>> sparseData = CreateSparseArrays(
+                    subsetIndexing->Size(),
+                    sparseArrayIndexingType,
+                    LocalExecutor
+                );
+
+                // there are some new sparse features
+                for (auto perTypeFeatureIdx : xrange(featureCount, sparseData.size())) {
+                    Y_UNUSED(perTypeFeatureIdx);
+                    featuresLayout->AddFeature(TFeatureMetaInfo(FeatureType, /*name*/ "", /*isSparse*/ true));
+                }
+
+                featureCount = (size_t)featuresLayout->GetFeatureCount(FeatureType);
 
                 result->clear();
                 result->reserve(featureCount);
                 for (auto perTypeFeatureIdx : xrange(featureCount)) {
-                    if (IsAvailable[perTypeFeatureIdx]) {
-                        result->push_back(
-                            MakeHolder<TArrayValuesHolder<T, ColumnType>>(
-                                /* featureId */ (ui32)featuresLayout.GetExternalFeatureIdx(
-                                    perTypeFeatureIdx, FeatureType
-                                ),
-                                TMaybeOwningConstArrayHolder<T>::CreateOwning(
-                                    DstView[perTypeFeatureIdx],
-                                    Storage[perTypeFeatureIdx]
-                                ),
-                                subsetIndexing
-                            )
-                        );
+                    const ui32 flatFeatureIdx = (ui32)featuresLayout->GetExternalFeatureIdx(
+                        perTypeFeatureIdx,
+                        FeatureType
+                    );
+                    const auto& metaInfo = featuresLayout->GetExternalFeatureMetaInfo(flatFeatureIdx);
+                    if (metaInfo.IsAvailable) {
+                        if (metaInfo.IsSparse) {
+                            result->push_back(
+                                MakeHolder<TSparseArrayValuesHolder<T, ColumnType>>(
+                                    /* featureId */ flatFeatureIdx,
+                                    std::move(*(sparseData[perTypeFeatureIdx]))
+                                )
+                            );
+                        } else {
+                            result->push_back(
+                                MakeHolder<TArrayValuesHolder<T, ColumnType>>(
+                                    /* featureId */ flatFeatureIdx,
+                                    TMaybeOwningConstArrayHolder<T>::CreateOwning(
+                                        PerFeatureData[perTypeFeatureIdx].DenseDstView,
+                                        PerFeatureData[perTypeFeatureIdx].DenseDataStorage
+                                    ),
+                                    subsetIndexing
+                                )
+                            );
+                        }
                     } else {
                         result->push_back(nullptr);
                     }
@@ -621,6 +891,14 @@ namespace NCB {
             );
         }
 
+        void AddFloatFeature(ui32 flatFeatureIdx, TConstSparseArray<float, ui32> features) override {
+            auto floatFeatureIdx = GetInternalFeatureIdx<EFeatureType::Float>(flatFeatureIdx);
+            Data.ObjectsData.FloatFeatures[*floatFeatureIdx] = MakeHolder<TFloatSparseValuesHolder>(
+                flatFeatureIdx,
+                std::move(features)
+            );
+        }
+
         void AddCatFeature(ui32 flatFeatureIdx, TConstArrayRef<TString> feature) override {
             AddCatFeatureImpl(flatFeatureIdx, feature);
         }
@@ -637,12 +915,37 @@ namespace NCB {
             );
         }
 
+        void AddCatFeature(ui32 flatFeatureIdx, TConstSparseArray<TString, ui32> features) override {
+            auto catFeatureIdx = GetInternalFeatureIdx<EFeatureType::Categorical>(flatFeatureIdx);
+            Data.ObjectsData.CatFeatures[*catFeatureIdx] = MakeHolder<THashedCatSparseValuesHolder>(
+                flatFeatureIdx,
+                TConstSparseArray<ui32, ui32>(
+                    features.GetIndexing(),
+                    TMaybeOwningConstArrayHolder<ui32>::CreateOwning(
+                        CreateHashedCatValues(catFeatureIdx, *features.GetNonDefaultValues())
+                    ),
+                    std::move(CreateHashedCatValues(
+                        catFeatureIdx,
+                        TConstArrayRef<TString>(&features.GetDefaultValue(), 1)
+                    ).front())
+                )
+            );
+        }
+
         void AddTextFeature(ui32 flatFeatureIdx, TMaybeOwningConstArrayHolder<TString> features) override {
             auto textFeatureIdx = GetInternalFeatureIdx<EFeatureType::Text>(flatFeatureIdx);
             Data.ObjectsData.TextFeatures[*textFeatureIdx] = MakeHolder<TStringTextArrayValuesHolder>(
                 flatFeatureIdx,
                 std::move(features),
                 Data.CommonObjectsData.SubsetIndexing.Get()
+            );
+        }
+
+        void AddTextFeature(ui32 flatFeatureIdx, TConstSparseArray<TString, ui32> features) override {
+            auto textFeatureIdx = GetInternalFeatureIdx<EFeatureType::Text>(flatFeatureIdx);
+            Data.ObjectsData.TextFeatures[*textFeatureIdx] = MakeHolder<TStringTextSparseValuesHolder>(
+                flatFeatureIdx,
+                std::move(features)
             );
         }
 
@@ -732,29 +1035,52 @@ namespace NCB {
         }
 
         template <class TStringLike>
-        void AddCatFeatureImpl(ui32 flatFeatureIdx, TConstArrayRef<TStringLike> feature) {
-            auto catFeatureIdx = GetInternalFeatureIdx<EFeatureType::Categorical>(flatFeatureIdx);
-
+        TVector<ui32> CreateHashedCatValues(
+            TCatFeatureIdx catFeatureIdx,
+            TConstArrayRef<TStringLike> stringValues
+        ) {
             TVector<ui32> hashedCatValues;
-            hashedCatValues.yresize(ObjectCount);
+            hashedCatValues.yresize(stringValues.size());
+
+            NPar::TLocalExecutor::TExecRangeParams params = [&] () {
+                if (stringValues.size() == ObjectCount) {
+                    return *ObjectCalcParams;
+                } else {
+                    NPar::TLocalExecutor::TExecRangeParams params(
+                        0,
+                        SafeIntegerCast<int>(stringValues.size())
+                    );
+                    params.SetBlockSize(OBJECT_CALC_BLOCK_SIZE);
+                    return params;
+                }
+            } ();
 
             LocalExecutor->ExecRange(
                 [&](int objectIdx) {
-                    hashedCatValues[objectIdx] = CalcCatFeatureHash(feature[objectIdx]);
+                    hashedCatValues[objectIdx] = CalcCatFeatureHash(stringValues[objectIdx]);
                 },
-                *ObjectCalcParams,
+                params,
                 NPar::TLocalExecutor::WAIT_COMPLETE
             );
 
             auto& catFeatureHash = (*Data.CommonObjectsData.CatFeaturesHashToString)[*catFeatureIdx];
 
-            for (auto objectIdx : xrange(ObjectCount)) {
+            for (auto objectIdx : xrange(stringValues.size())) {
                 const ui32 hashedValue = hashedCatValues[objectIdx];
                 THashMap<ui32, TString>::insert_ctx insertCtx;
                 if (!catFeatureHash.contains(hashedValue, insertCtx)) {
-                    catFeatureHash.emplace_direct(insertCtx, hashedValue, feature[objectIdx]);
+                    catFeatureHash.emplace_direct(insertCtx, hashedValue, stringValues[objectIdx]);
                 }
             }
+
+            return hashedCatValues;
+        }
+
+        template <class TStringLike>
+        void AddCatFeatureImpl(ui32 flatFeatureIdx, TConstArrayRef<TStringLike> feature) {
+            auto catFeatureIdx = GetInternalFeatureIdx<EFeatureType::Categorical>(flatFeatureIdx);
+
+            TVector<ui32> hashedCatValues = CreateHashedCatValues(catFeatureIdx, feature);
 
             Data.ObjectsData.CatFeatures[*catFeatureIdx] = MakeHolder<THashedCatArrayValuesHolder>(
                 flatFeatureIdx,
@@ -762,7 +1088,6 @@ namespace NCB {
                 Data.CommonObjectsData.SubsetIndexing.Get()
             );
         }
-
 
     private:
         ui32 ObjectCount;
@@ -1179,10 +1504,10 @@ namespace NCB {
              * (can be reused for cache here if there's no more references to data
              *  (data provider was freed))
              */
-            TVector<TIntrusivePtr<TVectorHolder<ui64>>> Storage; // [perTypeFeatureIdx]
+            TVector<TIntrusivePtr<TVectorHolder<ui64>>> DenseDataStorage; // [perTypeFeatureIdx]
 
             // view into storage for faster access
-            TVector<TArrayRef<ui64>> DstView; // [perTypeFeatureIdx]
+            TVector<TArrayRef<ui64>> DenseDstView; // [perTypeFeatureIdx]
 
             TVector<TIndexHelper<ui64>> IndexHelpers; // [perTypeFeatureIdx]
 
@@ -1210,8 +1535,8 @@ namespace NCB {
                 TConstArrayRef<TMaybe<TPackedBinaryIndex>> flatFeatureIndexToPackedBinaryIndex
             ) {
                 const size_t perTypeFeatureCount = (size_t)featuresLayout.GetFeatureCount(FeatureType);
-                Storage.resize(perTypeFeatureCount);
-                DstView.resize(perTypeFeatureCount);
+                DenseDataStorage.resize(perTypeFeatureCount);
+                DenseDstView.resize(perTypeFeatureCount);
                 IsAvailable.resize(perTypeFeatureCount, false); // filled from quantization Schema, then checked
                 IndexHelpers.resize(perTypeFeatureCount, TIndexHelper<ui64>(8));
                 FeatureIdxToPackedBinaryIndex.resize(perTypeFeatureCount);
@@ -1245,20 +1570,20 @@ namespace NCB {
                             << " has no data in quantized pool"
                         );
 
-                        auto& maybeSharedStoragePtr = Storage[perTypeFeatureIdx];
+                        auto& maybeSharedStoragePtr = DenseDataStorage[perTypeFeatureIdx];
                         if (!maybeSharedStoragePtr || (maybeSharedStoragePtr->RefCount() > 1)) {
                             /* storage is either uninited or shared with some other references
                              * so it has to be reset to be reused
                              */
-                            Storage[perTypeFeatureIdx] = MakeIntrusive<TVectorHolder<ui64>>();
+                            DenseDataStorage[perTypeFeatureIdx] = MakeIntrusive<TVectorHolder<ui64>>();
                         }
                         maybeSharedStoragePtr->Data.yresize(
                             IndexHelpers[perTypeFeatureIdx].CompressedSize(objectCount)
                         );
-                        DstView[perTypeFeatureIdx] =  maybeSharedStoragePtr->Data;
+                        DenseDstView[perTypeFeatureIdx] =  maybeSharedStoragePtr->Data;
                     } else {
-                        Storage[perTypeFeatureIdx] = nullptr;
-                        DstView[perTypeFeatureIdx] = TArrayRef<ui64>();
+                        DenseDataStorage[perTypeFeatureIdx] = nullptr;
+                        DenseDstView[perTypeFeatureIdx] = TArrayRef<ui64>();
                     }
                 }
 
@@ -1303,8 +1628,8 @@ namespace NCB {
                     const auto bytesPerDocument = bitsPerDocumentFeature / (sizeof(ui8) * CHAR_BIT);
 
                     const auto dstCapacityInBytes =
-                        DstView[*perTypeFeatureIdx].size() *
-                        sizeof(decltype(*DstView[*perTypeFeatureIdx].data()));
+                        DenseDstView[*perTypeFeatureIdx].size() *
+                        sizeof(decltype(*DenseDstView[*perTypeFeatureIdx].data()));
                     const auto objectOffsetInBytes = objectOffset * bytesPerDocument;
 
                     CB_ENSURE_INTERNAL(
@@ -1316,7 +1641,7 @@ namespace NCB {
 
 
                     memcpy(
-                        ((ui8*)DstView[*perTypeFeatureIdx].data()) + objectOffset,
+                        ((ui8*)DenseDstView[*perTypeFeatureIdx].data()) + objectOffset,
                         featuresPart.data(),
                         featuresPart.size());
                 }
@@ -1331,16 +1656,16 @@ namespace NCB {
                 TVector<THolder<TTypedFeatureValuesHolder<T, FeatureValuesType>>>* result
             ) {
                 CB_ENSURE_INTERNAL(
-                    Storage.size() == DstView.size(),
-                    "Storage is inconsistent with DstView; "
-                    LabeledOutput(Storage.size(), DstView.size()));
+                    DenseDataStorage.size() == DenseDstView.size(),
+                    "DenseDataStorage is inconsistent with DenseDstView; "
+                    LabeledOutput(DenseDataStorage.size(), DenseDstView.size()));
 
                 const size_t featureCount = (size_t)featuresLayout.GetFeatureCount(FeatureType);
 
                 CB_ENSURE_INTERNAL(
-                    Storage.size() == featureCount,
-                    "Storage is inconsistent with feature Layout; "
-                    LabeledOutput(Storage.size(), featureCount));
+                    DenseDataStorage.size() == featureCount,
+                    "DenseDataStorage is inconsistent with feature Layout; "
+                    LabeledOutput(DenseDataStorage.size(), featureCount));
 
                 result->clear();
                 result->reserve(featureCount);
@@ -1366,8 +1691,8 @@ namespace NCB {
                                         objectCount,
                                         IndexHelpers[perTypeFeatureIdx].GetBitsPerKey(),
                                         TMaybeOwningArrayHolder<ui64>::CreateOwning(
-                                            DstView[perTypeFeatureIdx],
-                                            Storage[perTypeFeatureIdx]
+                                            DenseDstView[perTypeFeatureIdx],
+                                            DenseDataStorage[perTypeFeatureIdx]
                                         )
                                     ),
                                     subsetIndexing

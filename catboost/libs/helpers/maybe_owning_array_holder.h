@@ -52,13 +52,15 @@ namespace NCB {
                 serializedSize = SafeIntegerCast<IBinSaver::TStoredSize>(ArrayRef.size());
             }
             binSaver.Add(1, &serializedSize);
+
+            using TNonConstValue = std::remove_const_t<T>;
             if (binSaver.IsReading()) {
-                TVector<T> data;
+                TVector<TNonConstValue> data;
                 data.yresize(serializedSize);
-                LoadArrayData<T>(data, &binSaver);
+                LoadArrayData<TNonConstValue>(data, &binSaver);
                 *this = TMaybeOwningArrayHolder<T>::CreateOwning(std::move(data));
             } else {
-                SaveArrayData<T>(ArrayRef, &binSaver);
+                SaveArrayData<TNonConstValue>(ArrayRef, &binSaver);
             }
             return 0;
         }

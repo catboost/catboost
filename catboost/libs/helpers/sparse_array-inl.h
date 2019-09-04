@@ -897,4 +897,83 @@ namespace NCB {
             std::move(defaultValue)
         );
     }
+
+    template <class TSize>
+    TSparseArrayIndexingPtr<TSize> MakeSparseArrayIndexing(
+        TSize size,
+        TMaybeOwningConstArrayHolder<TSize> indices) {
+
+        return MakeIntrusive<TSparseArrayIndexing<TSize>>(
+            TSparseSubsetIndices<TSize>(std::move(indices)),
+            size
+        );
+    }
+
+    template <class TSize>
+    TSparseArrayIndexingPtr<TSize> MakeSparseBlockIndexing(
+        TSize size,
+        TMaybeOwningConstArrayHolder<TSize> blockStarts, // already ordered
+        TMaybeOwningConstArrayHolder<TSize> blockLengths) {
+
+        return MakeIntrusive<TSparseArrayIndexing<TSize>>(
+            TSparseSubsetBlocks<TSize>(std::move(blockStarts), std::move(blockLengths)),
+            size
+        );
+    }
+
+    template <class TValue, class TSize>
+    TConstSparseArray<TValue, TSize> MakeConstSparseArray(
+        TSparseArrayIndexingPtr<TSize> indexing,
+        TMaybeOwningConstArrayHolder<TValue> nonDefaultValues,
+        TValue defaultValue) {
+
+        return TConstSparseArray<TValue, TSize>(
+            std::move(indexing),
+            std::move(nonDefaultValues),
+            std::move(defaultValue)
+        );
+    }
+
+
+    template <class TValue, class TSize>
+    TConstSparseArray<TValue, TSize> MakeConstSparseArrayWithArrayIndex(
+        TSize size,
+        TMaybeOwningConstArrayHolder<TSize> indexing, // alrady ordered
+        TMaybeOwningConstArrayHolder<TValue> nonDefaultValues,
+        bool ordered,
+        TValue defaultValue) {
+
+        if (ordered) {
+            return TConstSparseArray<TValue, TSize>(
+                MakeIntrusive<TSparseArrayIndexing<TSize>>(
+                    TSparseSubsetIndices<TSize>(std::move(indexing)),
+                    size
+                ),
+                std::move(nonDefaultValues),
+                std::move(defaultValue)
+            );
+        } else {
+            using TNonConstValue = std::remove_const_t<TValue>;
+
+            TVector<TSize> indexingCopy(indexing.begin(), indexing.end());
+            TVector<TNonConstValue> nonDefaultValuesCopy(nonDefaultValues.begin(), nonDefaultValues.end());
+
+            std::function<TMaybeOwningConstArrayHolder<TValue>(TVector<TNonConstValue>&&)>
+                createNonDefaultValues
+                    = [&] (TVector<TNonConstValue>&& values) {
+                        return TMaybeOwningConstArrayHolder<TValue>::CreateOwning(std::move(values));
+                    };
+
+            return MakeSparseArrayBase<const TValue, TMaybeOwningConstArrayHolder<TValue>>(
+                size,
+                std::move(indexingCopy),
+                std::move(nonDefaultValuesCopy),
+                std::move(createNonDefaultValues),
+                ESparseArrayIndexingType::Indices,
+                /*ordered*/ false,
+                std::move(defaultValue)
+            );
+        }
+    }
+
 }

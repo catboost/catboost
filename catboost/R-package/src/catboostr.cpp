@@ -122,14 +122,14 @@ SEXP CatBoostCreateFromFile_R(SEXP poolFileParam,
     SEXP result = NULL;
     R_API_BEGIN();
 
-    NCatboostOptions::TDsvPoolFormatParams dsvPoolFormatParams;
-    dsvPoolFormatParams.Format =
+    NCatboostOptions::TColumnarPoolFormatParams columnarPoolFormatParams;
+    columnarPoolFormatParams.DsvFormat =
         TDsvFormatOptions{static_cast<bool>(asLogical(hasHeaderParam)),
                                CHAR(asChar(delimiterParam))[0]};
 
     TStringBuf cdPathWithScheme(CHAR(asChar(cdFileParam)));
     if (!cdPathWithScheme.empty()) {
-        dsvPoolFormatParams.CdFilePath = TPathWithScheme(cdPathWithScheme, "dsv");
+        columnarPoolFormatParams.CdFilePath = TPathWithScheme(cdPathWithScheme, "dsv");
     }
 
     TStringBuf pairsPathWithScheme(CHAR(asChar(pairsFileParam)));
@@ -139,7 +139,7 @@ SEXP CatBoostCreateFromFile_R(SEXP poolFileParam,
                                                TPathWithScheme(pairsPathWithScheme, "dsv") : TPathWithScheme(),
                                            /*groupWeightsFilePath=*/TPathWithScheme(),
                                            /*baselineFilePath=*/TPathWithScheme(),
-                                           dsvPoolFormatParams,
+                                           columnarPoolFormatParams,
                                            TVector<ui32>(),
                                            EObjectsOrder::Undefined,
                                            UpdateThreadCount(asInteger(threadCountParam)),

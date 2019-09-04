@@ -41,6 +41,7 @@ Y_UNIT_TEST_SUITE(TLeafIndexCalcerOnPool) {
                 visitor->Start(
                     /*inBlock*/false,
                     metaInfo,
+                    /*haveUnknownNumberOfSparseFeatures*/ false,
                     (ui32)featuresData.size(),
                     EObjectsOrder::Undefined,
                     /*resourceHolders*/ {});

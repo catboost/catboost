@@ -6,6 +6,7 @@
 #include "visitor.h"
 
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/helpers/sparse_array.h>
 
 #include <library/threading/local_executor/local_executor.h>
 
@@ -45,6 +46,7 @@ namespace NCB {
         bool GpuCompatibleFormat = true;
         ui64 MaxCpuRamUsage = Max<ui64>();
         bool SkipCheck = false; // to increase speed, esp. when applying
+        ESparseArrayIndexingType SparseArrayIndexingType = ESparseArrayIndexingType::Undefined;
     };
 
     // can return nullptr if IDataProviderBuilder for such visitor type hasn't been implemented yet

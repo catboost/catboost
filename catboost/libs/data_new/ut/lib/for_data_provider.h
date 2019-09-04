@@ -7,18 +7,23 @@
 #include <catboost/libs/data_new/quantized_features_info.h>
 #include <catboost/libs/data_new/target.h>
 #include <catboost/libs/data_types/groupid.h>
+#include <catboost/libs/helpers/sparse_array.h>
 
 #include <library/unittest/registar.h>
 
 #include <util/generic/maybe.h>
 #include <util/generic/ptr.h>
 #include <util/generic/strbuf.h>
+#include <util/generic/variant.h>
 #include <util/generic/vector.h>
 #include <util/system/types.h>
 
 
 namespace NCB {
     namespace NDataNewUT {
+
+    template <class TValue>
+    using TExpectedFeatureColumn = TVariant<TVector<TValue>, TConstSparseArray<TValue, ui32>>;
 
     template <class TGroupIdData, class TSubgroupIdData, class TFloatFeature, class TCatFeature, class TTextFeature>
     struct TExpectedCommonObjectsData {
@@ -29,9 +34,9 @@ namespace NCB {
         TMaybe<TVector<TSubgroupIdData>> SubgroupIds;
         TMaybe<TVector<ui64>> Timestamp;
 
-        TVector<TMaybe<TVector<TFloatFeature>>> FloatFeatures;
-        TVector<TMaybe<TVector<TCatFeature>>> CatFeatures;
-        TVector<TMaybe<TVector<TTextFeature>>> TextFeatures;
+        TVector<TMaybe<TExpectedFeatureColumn<TFloatFeature>>> FloatFeatures;
+        TVector<TMaybe<TExpectedFeatureColumn<TCatFeature>>> CatFeatures;
+        TVector<TMaybe<TExpectedFeatureColumn<TTextFeature>>> TextFeatures;
     };
 
     /*
@@ -41,7 +46,9 @@ namespace NCB {
      */
     struct TExpectedRawObjectsData
         : public TExpectedCommonObjectsData<TStringBuf, TStringBuf, float, TStringBuf, TStringBuf>
-    {};
+    {
+        bool TreatGroupIdsAsIntegers = false;
+    };
 
     // TODO(akhropov): quantized pools might have more complicated features data types in the future
     struct TExpectedQuantizedObjectsData

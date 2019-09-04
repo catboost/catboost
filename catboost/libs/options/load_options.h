@@ -13,21 +13,21 @@
 #include <util/system/types.h>
 
 namespace NCatboostOptions {
-    struct TDsvPoolFormatParams {
-        NCB::TDsvFormatOptions Format;
+    struct TColumnarPoolFormatParams {
+        NCB::TDsvFormatOptions DsvFormat;
         NCB::TPathWithScheme CdFilePath;
 
-        TDsvPoolFormatParams() = default;
+        TColumnarPoolFormatParams() = default;
 
         void Validate() const;
 
-        SAVELOAD(Format, CdFilePath);
+        SAVELOAD(DsvFormat, CdFilePath);
     };
 
     struct TPoolLoadParams {
         TCvDataPartitionParams CvParams;
 
-        TDsvPoolFormatParams DsvPoolFormatParams;
+        TColumnarPoolFormatParams ColumnarPoolFormatParams;
 
         NCB::TPathWithScheme LearnSetPath;
         TVector<NCB::TPathWithScheme> TestSetPaths;
@@ -51,7 +51,7 @@ namespace NCatboostOptions {
         void Validate(TMaybe<ETaskType> taskType) const;
 
         SAVELOAD(
-            CvParams, DsvPoolFormatParams, LearnSetPath, TestSetPaths,
+            CvParams, ColumnarPoolFormatParams, LearnSetPath, TestSetPaths,
             PairsFilePath, TestPairsFilePath, GroupWeightsFilePath, TestGroupWeightsFilePath,
             BaselineFilePath, TestBaselineFilePath, ClassNames, IgnoredFeatures,
             BordersFile
@@ -60,6 +60,6 @@ namespace NCatboostOptions {
 
     void ValidatePoolParams(
         const NCB::TPathWithScheme& poolPath,
-        const TDsvPoolFormatParams& poolFormatParams
+        const TColumnarPoolFormatParams& poolFormatParams
     );
 }

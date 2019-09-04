@@ -1092,7 +1092,7 @@ void TrainModel(
                 &fileStream,
                 testSetPath,
                 {testIdx, pools.Test.ysize()},
-                loadOptions.DsvPoolFormatParams.Format,
+                loadOptions.ColumnarPoolFormatParams.DsvFormat,
                 /*writeHeader*/ testIdx < 1);
         }
 

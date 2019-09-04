@@ -6,6 +6,7 @@
 
 #include <util/stream/fwd.h>
 #include <util/generic/array_ref.h>
+#include <util/generic/maybe.h>
 #include <util/generic/vector.h>
 
 struct TCdParserDefaults {
@@ -25,7 +26,8 @@ struct TCdParserDefaults {
 
 class ICdProvider {
 public:
-    virtual TVector<TColumn> GetColumnsDescription(ui32 columnsCount) const = 0;
+    // if columnsCount is undefined - return all known columns
+    virtual TVector<TColumn> GetColumnsDescription(TMaybe<ui32> columnsCount) const = 0;
     virtual bool Inited() const = 0;
     virtual ~ICdProvider() = 0;
 };

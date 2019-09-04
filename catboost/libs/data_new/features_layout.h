@@ -134,6 +134,27 @@ namespace NCB {
             return TFeatureIdx<FeatureType>(FeatureExternalIdxToInternalIdx[externalFeatureIdx]);
         }
 
+        /* when externalFeatureIdx can be outside known range
+         * return index as if feature of this type as added at the end
+         * WARNING: this is only correct if there is single expanding feature type!
+         */
+        template <EFeatureType FeatureType>
+        TFeatureIdx<FeatureType> GetExpandingInternalFeatureIdx(ui32 externalFeatureIdx) const {
+            if (externalFeatureIdx >= FeatureExternalIdxToInternalIdx.size()) {
+                ui32 otherTypesSize = 0;
+                if constexpr (FeatureType == EFeatureType::Float) {
+                    otherTypesSize = ExternalIdxToMetaInfo.size() - FloatFeatureInternalIdxToExternalIdx.size();
+                } else if constexpr (FeatureType == EFeatureType::Categorical) {
+                    otherTypesSize = ExternalIdxToMetaInfo.size() - CatFeatureInternalIdxToExternalIdx.size();
+                } else {
+                    otherTypesSize = ExternalIdxToMetaInfo.size() - TextFeatureInternalIdxToExternalIdx.size();
+                }
+                return TFeatureIdx<FeatureType>(externalFeatureIdx - otherTypesSize);
+            } else {
+                return TFeatureIdx<FeatureType>(FeatureExternalIdxToInternalIdx[externalFeatureIdx]);
+            }
+        }
+
         EFeatureType GetExternalFeatureType(ui32 externalFeatureIdx) const;
 
         bool IsCorrectExternalFeatureIdx(ui32 externalFeatureIdx) const;
@@ -176,6 +197,8 @@ namespace NCB {
         TConstArrayRef<ui32> GetTextFeatureInternalIdxToExternalIdx() const;
 
         bool HasAvailableAndNotIgnoredFeatures() const;
+
+        void AddFeature(TFeatureMetaInfo&& featureMetaInfo);
 
     private:
         TVector<TFeatureMetaInfo> ExternalIdxToMetaInfo;

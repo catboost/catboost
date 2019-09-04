@@ -412,8 +412,8 @@ cdef extern from "catboost/libs/data_util/line_data_reader.h" namespace "NCB":
         char Delimiter
 
 cdef extern from "catboost/libs/options/load_options.h" namespace "NCatboostOptions":
-    cdef cppclass TDsvPoolFormatParams:
-        TDsvFormatOptions Format
+    cdef cppclass TColumnarPoolFormatParams:
+        TDsvFormatOptions DsvFormat
         TPathWithScheme CdFilePath
 
 
@@ -422,6 +422,7 @@ cdef extern from "catboost/libs/data_new/visitor.h" namespace "NCB":
         void Start(
             bool_t inBlock,
             const TDataMetaInfo& metaInfo,
+            bool_t haveUnknownNumberOfSparseFeatures,
             ui32 objectCount,
             EObjectsOrder objectsOrder,
             TVector[TIntrusivePtr[IResourceHolder]] resourceHolders
@@ -439,7 +440,8 @@ cdef extern from "catboost/libs/data_new/visitor.h" namespace "NCB":
         ui32 GetCatFeatureValue(ui32 flatFeatureIdx, TStringBuf feature) except +ProcessException
         void AddCatFeature(ui32 localObjectIdx, ui32 flatFeatureIdx, TStringBuf feature) except +ProcessException
         void AddAllCatFeatures(ui32 localObjectIdx, TConstArrayRef[ui32] features) except +ProcessException
-
+        void AddCatFeatureDefaultValue(ui32 flatFeatureIdx, TStringBuf feature) except +ProcessException
+        
         void AddTarget(ui32 localObjectIdx, const TString& value) except +ProcessException
         void AddTarget(ui32 localObjectIdx, float value) except +ProcessException
         void AddBaseline(ui32 localObjectIdx, ui32 baselineIdx, float value) except +ProcessException
@@ -499,7 +501,7 @@ cdef extern from "catboost/libs/data_new/load_data.h" namespace "NCB":
         const TPathWithScheme& pairsFilePath,
         const TPathWithScheme& groupWeightsFilePath,
         const TPathWithScheme& baselineFilePath,
-        const TDsvPoolFormatParams& dsvPoolFormatParams,
+        const TColumnarPoolFormatParams& columnarPoolFormatParams,
         const TVector[ui32]& ignoredFeatures,
         EObjectsOrder objectsOrder,
         int threadCount,
@@ -2133,11 +2135,11 @@ cdef class _PoolBase:
         if len(pairs_file):
             pairs_file_path = TPathWithScheme(<TStringBuf>to_arcadia_string(pairs_file), TStringBuf(<char*>'dsv'))
 
-        cdef TDsvPoolFormatParams dsvPoolFormatParams
-        dsvPoolFormatParams.Format.HasHeader = has_header
-        dsvPoolFormatParams.Format.Delimiter = ord(delimiter)
+        cdef TColumnarPoolFormatParams columnarPoolFormatParams
+        columnarPoolFormatParams.DsvFormat.HasHeader = has_header
+        columnarPoolFormatParams.DsvFormat.Delimiter = ord(delimiter)
         if len(cd_file):
-            dsvPoolFormatParams.CdFilePath = TPathWithScheme(<TStringBuf>to_arcadia_string(cd_file), TStringBuf(<char*>'dsv'))
+            columnarPoolFormatParams.CdFilePath = TPathWithScheme(<TStringBuf>to_arcadia_string(cd_file), TStringBuf(<char*>'dsv'))
 
         thread_count = UpdateThreadCount(thread_count)
 
@@ -2148,7 +2150,7 @@ cdef class _PoolBase:
             pairs_file_path,
             TPathWithScheme(),
             TPathWithScheme(),
-            dsvPoolFormatParams,
+            columnarPoolFormatParams,
             emptyIntVec,
             EObjectsOrder_Undefined,
             thread_count,
@@ -2268,6 +2270,7 @@ cdef class _PoolBase:
         builder_visitor[0].Start(
             False,
             data_meta_info,
+            False,
             _get_object_count(data),
             EObjectsOrder_Undefined,
             resource_holders

@@ -1,5 +1,9 @@
 #include "for_loader.h"
 
+#include <catboost/libs/data_new/load_data.h>
+
+#include <library/threading/local_executor/local_executor.h>
+
 #include <util/stream/file.h>
 #include <util/system/mktemp.h>
 
@@ -28,11 +32,12 @@ namespace NCB {
     ) {
         SaveDataToTempFile(
             srcData.CdFileData,
-            &(readDatasetMainParams->DsvPoolFormatParams.CdFilePath),
+            &(readDatasetMainParams->ColumnarPoolFormatParams.CdFilePath),
             srcDataFiles
         );
-        SaveDataToTempFile(srcData.DsvFileData, &(readDatasetMainParams->PoolPath), srcDataFiles);
-        readDatasetMainParams->DsvPoolFormatParams.Format.HasHeader = srcData.DsvFileHasHeader;
+        SaveDataToTempFile(srcData.DatasetFileData, &(readDatasetMainParams->PoolPath), srcDataFiles);
+        readDatasetMainParams->PoolPath.Scheme = srcData.Scheme;
+        readDatasetMainParams->ColumnarPoolFormatParams.DsvFormat.HasHeader = srcData.DsvFileHasHeader;
         SaveDataToTempFile(srcData.PairsFileData, &(readDatasetMainParams->PairsFilePath), srcDataFiles);
         SaveDataToTempFile(
             srcData.GroupWeightsFileData,
@@ -44,6 +49,33 @@ namespace NCB {
             &(readDatasetMainParams->BaselineFilePath),
             srcDataFiles
         );
+    }
+
+    void TestReadDataset(const TReadDatasetTestCase& testCase) {
+        TReadDatasetMainParams readDatasetMainParams;
+
+        // TODO(akhropov): temporarily use THolder until TTempFile move semantic are fixed
+        TVector<THolder<TTempFile>> srcDataFiles;
+
+        SaveSrcData(testCase.SrcData, &readDatasetMainParams, &srcDataFiles);
+
+        NPar::TLocalExecutor localExecutor;
+        localExecutor.RunAdditionalThreads(3);
+
+        TDataProviderPtr dataProvider = ReadDataset(
+            readDatasetMainParams.PoolPath,
+            readDatasetMainParams.PairsFilePath, // can be uninited
+            readDatasetMainParams.GroupWeightsFilePath, // can be uninited
+            readDatasetMainParams.BaselineFilePath, // can be uninited
+            readDatasetMainParams.ColumnarPoolFormatParams,
+            testCase.SrcData.IgnoredFeatures,
+            testCase.SrcData.ObjectsOrder,
+            TDatasetSubset::MakeColumns(),
+            /*classNames*/Nothing(),
+            &localExecutor
+        );
+
+        Compare<TRawObjectsDataProvider>(std::move(dataProvider), testCase.ExpectedData);
     }
 
     }

@@ -7,7 +7,6 @@
 #include <util/generic/utility.h>
 #include <util/generic/ylimits.h>
 #include <util/system/compiler.h>
-#include <util/system/yassert.h>
 
 
 namespace NCB {
