@@ -1972,30 +1972,33 @@ cdef _set_data(data, const TFeaturesLayout* features_layout, IRawObjectsOrderDat
             _set_data_from_generic_matrix(data, features_layout, builder_visitor)
 
 
+cdef TString obj_to_arcadia_string(obj):
+    INT64_MIN = -9223372036854775808
+    INT64_MAX =  9223372036854775807
+    cdef type obj_type = type(obj)
+
+    if obj_type is float or obj_type is _npfloat32 or obj_type is _npfloat64:
+        return ToString[double](<double>obj)
+    elif ((obj_type is int or obj_type is long) and (INT64_MIN <= obj <= INT64_MAX)) or obj_type is _npint32 or obj_type is _npint64:
+        return ToString[i64](<i64>obj)
+    elif obj_type is str or obj_type is unicode or obj_type is bytes or obj_type is _npstring_:
+        return to_arcadia_string(obj)
+    else:
+        return to_arcadia_string(str(obj))
+
+
 cdef _set_label(label, IRawObjectsOrderDataVisitor* builder_visitor):
     for i in range(len(label)):
-        if isinstance(label[i], all_string_types_plus_bytes):
-            builder_visitor[0].AddTarget(
-                <ui32>i,
-                to_arcadia_string(label[i])
-            )
-        else:
-            builder_visitor[0].AddTarget(
-                <ui32>i,
-                to_arcadia_string(str(label[i]))
-            )
+        builder_visitor[0].AddTarget(<ui32>i, obj_to_arcadia_string(label[i]))
 
 
 cdef _set_label_features_order(label, IRawFeaturesOrderDataVisitor* builder_visitor):
     cdef TVector[TString] labelVector
-    cdef TString bytes_string_representation
     labelVector.reserve(len(label))
+
     for i in range(len(label)):
-        if isinstance(label[i], all_string_types_plus_bytes):
-            bytes_string_representation = to_arcadia_string(label[i])
-        else:
-            bytes_string_representation = to_arcadia_string(str(label[i]))
-        labelVector.push_back(bytes_string_representation)
+        labelVector.push_back(obj_to_arcadia_string(label[i]))
+
     builder_visitor[0].AddTarget(<TConstArrayRef[TString]>labelVector)
 
 
@@ -2215,10 +2218,8 @@ cdef class _PoolBase:
                 '[Internal error] wrong data type for _init_features_order_layout_pool: ' + type(data)
             )
 
-        num_class = 2
         if label is not None:
             _set_label_features_order(label, builder_visitor)
-            num_class = len(set(list(label)))
             if len(label) > 0:
                 self.target_type = type(label[0])
         if pairs is not None:
@@ -2275,10 +2276,8 @@ cdef class _PoolBase:
 
         _set_data(data, data_meta_info.FeaturesLayout.Get(), builder_visitor)
 
-        num_class = 2
         if label is not None:
             _set_label(label, builder_visitor)
-            num_class = len(set(list(label)))
             if len(label) > 0:
                 self.target_type = type(label[0])
         if pairs is not None:

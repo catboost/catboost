@@ -548,7 +548,7 @@
         "uri": "file://test.test_prediction_diff_feature_importance/feature_importance.npy"
     },
     "test.test_prediction_plot": {
-        "checksum": "7e85eceef3ae77a6f64e889806a0856f",
+        "checksum": "419f834f5cb76e8f7e7d85ffc0369def",
         "uri": "file://test.test_prediction_plot/predictions.json"
     },
     "test.test_priors[CPU]": {
