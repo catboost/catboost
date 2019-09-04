@@ -94,6 +94,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\feature_index.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\feature_names_converter.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\features_layout.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\libsvm_loader.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\load_data.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\loader.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\meta_info.cpp"/>
@@ -234,6 +235,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\feature_index.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\feature_names_converter.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\features_layout.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\libsvm_loader.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\load_data.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\loader.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\meta_info.h"/>
