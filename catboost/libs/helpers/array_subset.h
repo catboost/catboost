@@ -335,6 +335,32 @@ namespace NCB {
         }
 
 
+// need to be able to use 'break' or 'return' in iteration
+#define LOOP_SUB_RANGE_BLOCKWISE(unitSubRange, BLOCK_MACRO) \
+        switch (TBase::index()) { \
+            case TVariantIndexV<TFullSubset<TSize>, TBase>: \
+                { \
+                    BLOCK_MACRO(unitSubRange.Begin, unitSubRange.End, unitSubRange.Begin, (TSize*)nullptr) \
+                } \
+                break; \
+            case TVariantIndexV<TRangesSubset<TSize>, TBase>: \
+                { \
+                    const auto& blocks = Get<TRangesSubset<TSize>>().Blocks; \
+                    for (TSize blockIndex : unitSubRange.Iter()) { \
+                        const auto block = blocks[blockIndex]; \
+                        BLOCK_MACRO(block.SrcBegin, block.SrcEnd, block.DstBegin, (TSize*)nullptr) \
+                    } \
+                } \
+                break; \
+            case TVariantIndexV<TIndexedSubset<TSize>, TBase>: \
+                { \
+                    const auto& srcIndex = Get<TIndexedSubset<TSize>>(); \
+                    BLOCK_MACRO(unitSubRange.Begin, unitSubRange.End, unitSubRange.Begin, srcIndex.data()) \
+                } \
+                break; \
+        }
+
+
         /* unitSubRange is index range for TFullSubset and TIndexedSubset and ranges range for TRangesSubset
          *
          * for TRangesSubset block sizes might not be equal to approximateBlockSize because
@@ -347,6 +373,21 @@ namespace NCB {
         void ForEachInSubRange(NCB::TIndexRange<TSize> unitSubRange, const F& f) const {
 #define FOR_EACH_BODY(index, subIndex) f(index, subIndex);
             LOOP_SUB_RANGE(unitSubRange, FOR_EACH_BODY)
+#undef FOR_EACH_BODY
+        }
+
+        /* unitSubRange is index range for TFullSubset and TIndexedSubset and ranges range for TRangesSubset
+         *
+         * for TRangesSubset block sizes might not be equal to approximateBlockSize because
+         * block sizes might not be divisible by approximateBlockSize, that's why 'approximate'
+         * is in the name of this block size parameter
+         *
+         * f is a visitor function that will be repeatedly called with (index, srcIndex) arguments
+         */
+        template <class F>
+        void ForEachBlockwiseInSubRange(NCB::TIndexRange<TSize> unitSubRange, const F& f) const {
+#define BLOCK_MACRO(srcBegin, srcEnd, dstBegin, srcIndices) f(srcBegin, srcEnd, dstBegin, srcIndices);
+            LOOP_SUB_RANGE_BLOCKWISE(unitSubRange, BLOCK_MACRO)
 #undef FOR_EACH_BODY
         }
 
@@ -405,6 +446,49 @@ namespace NCB {
             localExecutor->ExecRangeWithThrow(
                 [this, parallelUnitRanges, f = std::move(f)] (int id) {
                     ForEachInSubRange(parallelUnitRanges.GetRange(id), f);
+                },
+                0,
+                (int)parallelUnitRanges.RangesCount(),
+                NPar::TLocalExecutor::WAIT_COMPLETE
+            );
+        }
+
+        /* f is a visitor function that will be repeatedly called with (srcBegin, srcEnd, dstBegin, srcIndices) arguments
+         * for TRangesSubset block sizes might not be equal to approximateBlockSize because
+         * block sizes might not be divisible by approximateBlockSize, that's why 'approximate'
+         * is in the name of this block size parameter
+         * if approximateBlockSize is undefined divide data approximately evenly between localExecutor
+         * threads
+         */
+        template <class F>
+        void ParallelForEachBlockwise(
+            F&& f,
+            NPar::TLocalExecutor* localExecutor,
+            TMaybe<TSize> approximateBlockSize = Nothing()
+        ) const {
+            if (!Size()) {
+                return;
+            }
+
+            if (!approximateBlockSize.Defined()) {
+                TSize localExecutorThreadsPlusCurrentCount = (TSize)localExecutor->GetThreadCount() + 1;
+                approximateBlockSize = CeilDiv(Size(), localExecutorThreadsPlusCurrentCount);
+            }
+
+            const NCB::TSimpleIndexRangesGenerator<TSize> parallelUnitRanges =
+                GetParallelUnitRanges(*approximateBlockSize);
+
+            CB_ENSURE(
+                    (sizeof(TSize) < sizeof(int))
+                 || (parallelUnitRanges.RangesCount() <= (TSize)std::numeric_limits<int>::max()),
+                "Number of parallel processing data ranges (" << parallelUnitRanges.RangesCount()
+                << ") is greater than the max limit for LocalExecutor (" << std::numeric_limits<int>::max()
+                << ')'
+            );
+
+            localExecutor->ExecRangeWithThrow(
+                [this, parallelUnitRanges, f = std::move(f)] (int id) {
+                    ForEachBlockwiseInSubRange(parallelUnitRanges.GetRange(id), f);
                 },
                 0,
                 (int)parallelUnitRanges.RangesCount(),

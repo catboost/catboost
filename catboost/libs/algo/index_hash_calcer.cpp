@@ -42,81 +42,70 @@ void CalcHashes(
         objectsDataProvider.GetBinaryFeaturesPacksSize(),
         TBinaryFeaturesPack(0));
 
-    if (perfectHashedToHashedCatValuesMap) {
-        for (const int featureIdx : proj.CatFeatures) {
-            auto catFeatureIdx = TCatFeatureIdx((ui32)featureIdx);
+    TVector<TCalcHashParams> calcHashParams;
 
-            const auto& ohv = (*perfectHashedToHashedCatValuesMap)[featureIdx];
-
-            ProcessFeatureForCalcHashes<ui32, EFeatureValuesType::PerfectHashedCategorical>(
-                objectsDataProvider.GetCatFeatureToExclusiveBundleIndex(catFeatureIdx),
-                objectsDataProvider.GetCatFeatureToPackedBinaryIndex(catFeatureIdx),
-                featuresSubsetIndexing,
-                /*processBundledAndBinaryFeaturesInPacks*/ false,
-                /*isBinaryFeatureEquals1*/ false, // unused
-                TArrayRef<TVector<TCalcHashInBundleContext>>(), // unused
-                TArrayRef<TBinaryFeaturesPack>(), // unused
-                TArrayRef<TBinaryFeaturesPack>(), // unused
+    for (const int featureIdx : proj.CatFeatures) {
+        auto catFeatureIdx = TCatFeatureIdx((ui32)featureIdx);
+        const auto bundleIdx = objectsDataProvider.GetCatFeatureToExclusiveBundleIndex(catFeatureIdx);
+        const auto packIdx = objectsDataProvider.GetCatFeatureToPackedBinaryIndex(catFeatureIdx);
+        if ((!bundleIdx && !packIdx) || !processBundledAndBinaryFeaturesInPacks || perfectHashedToHashedCatValuesMap) {
+            auto featureCalcHashParams = ExtractColumnLocation<ui32, EFeatureValuesType::PerfectHashedCategorical>(
+                bundleIdx,
+                packIdx,
                 [&]() { return *objectsDataProvider.GetCatFeature(*catFeatureIdx); },
                 [&](ui32 bundleIdx) { return objectsDataProvider.GetExclusiveFeatureBundlesMetaData()[bundleIdx]; },
                 [&](ui32 bundleIdx) { return &objectsDataProvider.GetExclusiveFeaturesBundle(bundleIdx); },
-                [&](ui32 packIdx) { return &objectsDataProvider.GetBinaryFeaturesPack(packIdx); },
-                [hashArr, &ohv] (ui32 i, ui32 featureValue) {
-                    hashArr[i] = CalcHash(hashArr[i], (ui64)(int)ohv[featureValue]);
-                },
-                localExecutor
+                [&](ui32 packIdx) { return &objectsDataProvider.GetBinaryFeaturesPack(packIdx); }
             );
-        }
-    } else {
-        for (const int featureIdx : proj.CatFeatures) {
-            auto catFeatureIdx = TCatFeatureIdx((ui32)featureIdx);
-            ProcessFeatureForCalcHashes<ui32, EFeatureValuesType::PerfectHashedCategorical>(
-                objectsDataProvider.GetCatFeatureToExclusiveBundleIndex(catFeatureIdx),
-                objectsDataProvider.GetCatFeatureToPackedBinaryIndex(catFeatureIdx),
-                featuresSubsetIndexing,
-                processBundledAndBinaryFeaturesInPacks,
+            if (perfectHashedToHashedCatValuesMap) {
+                const auto ohv = MakeArrayRef((*perfectHashedToHashedCatValuesMap)[featureIdx]);
+                featureCalcHashParams.CatValuesDecoder = ohv;
+            }
+            calcHashParams.push_back(featureCalcHashParams);
+        } else {
+            ExtractIndicesAndMasks(
+                bundleIdx,
+                packIdx,
                 /*isBinaryFeatureEquals1*/ true,
                 featuresInBundles,
                 binaryFeaturesBitMasks,
                 projBinaryFeatureValues,
-                [&]() { return *objectsDataProvider.GetCatFeature(*catFeatureIdx); },
-                [&](ui32 bundleIdx) {
-                    return objectsDataProvider.GetExclusiveFeatureBundlesMetaData()[bundleIdx];
-                },
-                [&](ui32 bundleIdx) { return &objectsDataProvider.GetExclusiveFeaturesBundle(bundleIdx); },
-                [&](ui32 packIdx) { return &objectsDataProvider.GetBinaryFeaturesPack(packIdx); },
                 [hashArr] (ui32 i, ui32 featureValue) {
                     hashArr[i] = CalcHash(hashArr[i], (ui64)featureValue + 1);
-                },
-                localExecutor
+                }
             );
         }
     }
 
-
     for (const TBinFeature& feature : proj.BinFeatures) {
         auto floatFeatureIdx = TFloatFeatureIdx((ui32)feature.FloatFeature);
-        ProcessFeatureForCalcHashes<ui8, EFeatureValuesType::QuantizedFloat>(
-            objectsDataProvider.GetFloatFeatureToExclusiveBundleIndex(floatFeatureIdx),
-            objectsDataProvider.GetFloatFeatureToPackedBinaryIndex(floatFeatureIdx),
-            featuresSubsetIndexing,
-            processBundledAndBinaryFeaturesInPacks,
-            /*isBinaryFeatureEquals1*/ 1,
-            featuresInBundles,
-            binaryFeaturesBitMasks,
-            projBinaryFeatureValues,
-            [&]() { return *objectsDataProvider.GetFloatFeature(*floatFeatureIdx); },
-            [&](ui32 bundleIdx) {
-                return objectsDataProvider.GetExclusiveFeatureBundlesMetaData()[bundleIdx];
-            },
-            [&](ui32 bundleIdx) { return &objectsDataProvider.GetExclusiveFeaturesBundle(bundleIdx); },
-            [&](ui32 packIdx) { return &objectsDataProvider.GetBinaryFeaturesPack(packIdx); },
-            [feature, hashArr] (ui32 i, ui32 featureValue) {
-                const bool isTrueFeature = IsTrueHistogram((ui16)featureValue, (ui16)feature.SplitIdx);
-                hashArr[i] = CalcHash(hashArr[i], (ui64)isTrueFeature);
-            },
-            localExecutor
-        );
+        const auto bundleIdx = objectsDataProvider.GetFloatFeatureToExclusiveBundleIndex(floatFeatureIdx);
+        const auto packIdx = objectsDataProvider.GetFloatFeatureToPackedBinaryIndex(floatFeatureIdx);
+        if ((!bundleIdx && !packIdx) || !processBundledAndBinaryFeaturesInPacks) {
+            auto featureCalcHashParams = ExtractColumnLocation<ui8, EFeatureValuesType::QuantizedFloat>(
+                bundleIdx,
+                packIdx,
+                [&]() { return *objectsDataProvider.GetFloatFeature(*floatFeatureIdx); },
+                [&](ui32 bundleIdx) { return objectsDataProvider.GetExclusiveFeatureBundlesMetaData()[bundleIdx]; },
+                [&](ui32 bundleIdx) { return &objectsDataProvider.GetExclusiveFeaturesBundle(bundleIdx); },
+                [&](ui32 packIdx) { return &objectsDataProvider.GetBinaryFeaturesPack(packIdx); }
+            );
+            featureCalcHashParams.SplitIdx = feature.SplitIdx;
+            calcHashParams.push_back(featureCalcHashParams);
+        } else {
+            ExtractIndicesAndMasks(
+                bundleIdx,
+                packIdx,
+                /*isBinaryFeatureEquals1*/ true,
+                featuresInBundles,
+                binaryFeaturesBitMasks,
+                projBinaryFeatureValues,
+                [feature, hashArr] (ui32 i, ui32 featureValue) {
+                    const bool isTrueFeature = IsTrueHistogram((ui16)featureValue, (ui16)feature.SplitIdx);
+                    hashArr[i] = CalcHash(hashArr[i], (ui64)isTrueFeature);
+                }
+            );
+        }
     }
 
     const auto& quantizedFeaturesInfo = *objectsDataProvider.GetQuantizedFeaturesInfo();
@@ -132,25 +121,75 @@ void CalcHashes(
             );
             maxBin = uniqueValuesCounts.OnLearnOnly;
         }
+        const auto bundleIdx = objectsDataProvider.GetCatFeatureToExclusiveBundleIndex(catFeatureIdx);
+        if ((!bundleIdx && !maybeBinaryIndex) || !processBundledAndBinaryFeaturesInPacks) {
+            auto featureCalcHashParams = ExtractColumnLocation<ui32, EFeatureValuesType::PerfectHashedCategorical>(
+                bundleIdx,
+                maybeBinaryIndex,
+                [&]() { return *objectsDataProvider.GetCatFeature(*catFeatureIdx); },
+                [&](ui32 bundleIdx) { return objectsDataProvider.GetExclusiveFeatureBundlesMetaData()[bundleIdx]; },
+                [&](ui32 bundleIdx) { return &objectsDataProvider.GetExclusiveFeaturesBundle(bundleIdx); },
+                [&](ui32 packIdx) { return &objectsDataProvider.GetBinaryFeaturesPack(packIdx); }
+            );
+            featureCalcHashParams.MaxBinAndValue = std::array<ui32, 2>{maxBin, (ui32)feature.Value};
+            calcHashParams.push_back(featureCalcHashParams);
+        } else {
+            ExtractIndicesAndMasks(
+                bundleIdx,
+                maybeBinaryIndex,
+                /*isBinaryFeatureEquals1*/ feature.Value == 1,
+                featuresInBundles,
+                binaryFeaturesBitMasks,
+                projBinaryFeatureValues,
+                [feature, hashArr, maxBin] (ui32 i, ui32 featureValue) {
+                    const bool isTrueFeature = IsTrueOneHotFeature(Min(featureValue, maxBin), (ui32)feature.Value);
+                    hashArr[i] = CalcHash(hashArr[i], (ui64)isTrueFeature);
+                }
+            );
+        }
+    }
 
-        ProcessFeatureForCalcHashes<ui32, EFeatureValuesType::PerfectHashedCategorical>(
-            objectsDataProvider.GetCatFeatureToExclusiveBundleIndex(catFeatureIdx),
-            maybeBinaryIndex,
-            featuresSubsetIndexing,
-            processBundledAndBinaryFeaturesInPacks,
-            /*isBinaryFeatureEquals1*/ feature.Value == 1,
-            featuresInBundles,
-            binaryFeaturesBitMasks,
-            projBinaryFeatureValues,
-            [&]() { return *objectsDataProvider.GetCatFeature(*catFeatureIdx); },
-            [&](ui32 bundleIdx) {
-                return objectsDataProvider.GetExclusiveFeatureBundlesMetaData()[bundleIdx];
-            },
-            [&](ui32 bundleIdx) { return &objectsDataProvider.GetExclusiveFeaturesBundle(bundleIdx); },
-            [&](ui32 packIdx) { return &objectsDataProvider.GetBinaryFeaturesPack(packIdx); },
-            [feature, hashArr, maxBin] (ui32 i, ui32 featureValue) {
-                const bool isTrueFeature = IsTrueOneHotFeature(Min(featureValue, maxBin), (ui32)feature.Value);
-                hashArr[i] = CalcHash(hashArr[i], (ui64)isTrueFeature);
+    if (!calcHashParams.empty()) {
+        featuresSubsetIndexing.ParallelForEachBlockwise(
+            [&] (ui32 srcBegin, ui32 srcEnd, ui32 dstBegin, const auto* srcIndices) {
+                constexpr ui32 MaxUnrollCount = 16;
+                std::array<ui64, MaxUnrollCount> hashes;
+                std::array<ui64, MaxUnrollCount> values;
+                for (ui32 srcIdx = srcBegin, dstIdx = dstBegin; srcIdx < srcEnd; srcIdx += MaxUnrollCount, dstIdx += MaxUnrollCount) {
+                    const ui32 unrollCount = Min(MaxUnrollCount, srcEnd - srcIdx);
+                    hashes.fill(0);
+                    for (const auto& featureCalcHashParams : calcHashParams) {
+                        if (srcIndices) {
+                            featureCalcHashParams.GatherValues(srcIdx, unrollCount, srcIndices, values);
+                        } else {
+                            featureCalcHashParams.GatherValues(srcIdx, unrollCount, values);
+                        }
+
+                        if (featureCalcHashParams.CatValuesDecoder) {
+                            const auto valuesDecoder = featureCalcHashParams.CatValuesDecoder.GetRef();
+                            for (ui32 unrollIdx : xrange(unrollCount)) {
+                                hashes[unrollIdx] = CalcHash(hashes[unrollIdx], (int)valuesDecoder[values[unrollIdx]]);
+                            }
+                        } else if (featureCalcHashParams.SplitIdx) {
+                            const auto splitIdx = featureCalcHashParams.SplitIdx.GetRef();
+                            for (ui32 unrollIdx : xrange(unrollCount)) {
+                                const auto isTrueFeature = IsTrueHistogram<ui16>(values[unrollIdx], splitIdx);
+                                hashes[unrollIdx] = CalcHash(hashes[unrollIdx], isTrueFeature);
+                            }
+                        } else if (featureCalcHashParams.MaxBinAndValue) {
+                            const auto maxBinAndValue = featureCalcHashParams.MaxBinAndValue.GetRef();
+                            for (ui32 unrollIdx : xrange(unrollCount)) {
+                                const auto isTrueFeature = IsTrueOneHotFeature(Min<ui32>(values[unrollIdx], maxBinAndValue[0]), (ui32)maxBinAndValue[1]);
+                                hashes[unrollIdx] = CalcHash(hashes[unrollIdx], isTrueFeature);
+                            }
+                        } else {
+                            for (ui32 unrollIdx : xrange(unrollCount)) {
+                                hashes[unrollIdx] = CalcHash(hashes[unrollIdx], values[unrollIdx] + 1);
+                            }
+                        }
+                    }
+                    Copy(hashes.begin(), hashes.begin() + unrollCount, hashArr + dstIdx);
+                }
             },
             localExecutor
         );

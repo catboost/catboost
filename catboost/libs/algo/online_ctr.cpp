@@ -507,6 +507,46 @@ static inline void CountOnlineCTRTotal(
     }
 }
 
+template <typename TColumn>
+static void CopyCatColumnToHash(
+    const TColumn& catColumn,
+    const TFeaturesArraySubsetIndexing& featuresSubsetIndexing,
+    NPar::TLocalExecutor* localExecutor,
+    ui64* hashArrView
+) {
+    const void* rawColumnPtr;
+    ui32 bitsPerKey;
+    GetRawColumn<ui32, EFeatureValuesType::PerfectHashedCategorical>(
+        catColumn,
+        &rawColumnPtr,
+        &bitsPerKey
+    );
+    if (bitsPerKey == 8) {
+        featuresSubsetIndexing.ParallelForEach(
+            [=] (ui32 dstIdx, ui32 srcIdx) {
+                hashArrView[dstIdx] = (ui64)((const ui8*)rawColumnPtr)[srcIdx] + 1;
+            },
+            localExecutor
+        );
+    } else if (bitsPerKey == 16) {
+        featuresSubsetIndexing.ParallelForEach(
+            [=] (ui32 dstIdx, ui32 srcIdx) {
+                hashArrView[dstIdx] = (ui64)((const ui16*)rawColumnPtr)[srcIdx] + 1;
+            },
+            localExecutor
+        );
+    } else {
+        Y_ASSERT(bitsPerKey == 32);
+        featuresSubsetIndexing.ParallelForEach(
+            [=] (ui32 dstIdx, ui32 srcIdx) {
+                hashArrView[dstIdx] = (ui64)((const ui32*)rawColumnPtr)[srcIdx] + 1;
+            },
+            localExecutor
+        );
+    }
+}
+
+
 void ComputeOnlineCTRs(
     const TTrainingForCPUDataProviders& data,
     const TFold& fold,
@@ -528,63 +568,84 @@ void ComputeOnlineCTRs(
     Y_STATIC_THREAD(THashArr) tlsHashArr;
     Y_STATIC_THREAD(TRehashHash) rehashHashTlsVal;
     TVector<ui64>& hashArr = tlsHashArr.Get();
+    hashArr.yresize(totalSampleCount);
+    ParallelFill<ui64>(/*fillValue*/0, /*blockSize*/Nothing(), ctx->LocalExecutor, MakeArrayRef(hashArr));
     if (proj.IsSingleCatFeature()) {
         // Shortcut for simple ctrs
 
         auto catFeatureIdx = TCatFeatureIdx((ui32)proj.CatFeatures[0]);
+        const auto canUpdateHashOnce = data.Learn->ObjectsData->GetExclusiveFeatureBundlesSize() + data.Learn->ObjectsData->GetBinaryFeaturesPacksSize() == 0;
 
-        Clear(&hashArr, totalSampleCount);
-        TArrayRef<ui64> hashArrView = hashArr;
+        TArrayRef<ui64> hashArrView(hashArr);
         if (learnSampleCount > 0) {
-            ProcessFeatureForCalcHashes<ui32, EFeatureValuesType::PerfectHashedCategorical>(
-                data.Learn->ObjectsData->GetCatFeatureToExclusiveBundleIndex(catFeatureIdx),
-                data.Learn->ObjectsData->GetCatFeatureToPackedBinaryIndex(catFeatureIdx),
-                fold.LearnPermutationFeaturesSubset,
-                /*processBundledAndBinaryFeaturesInPacks*/ false,
-                /*isBinaryFeatureEquals1*/ false, // unused
-                TArrayRef<TVector<TCalcHashInBundleContext>>(), // unused
-                TArrayRef<TBinaryFeaturesPack>(), // unused
-                TArrayRef<TBinaryFeaturesPack>(), // unused
-                [&]() { return *data.Learn->ObjectsData->GetCatFeature(*catFeatureIdx); },
-                [&](ui32 bundleIdx) {
-                    return data.Learn->ObjectsData->GetExclusiveFeatureBundlesMetaData()[bundleIdx];
-                },
-                [&](ui32 bundleIdx) { return &data.Learn->ObjectsData->GetExclusiveFeaturesBundle(bundleIdx); },
-                [&](ui32 packIdx) { return &data.Learn->ObjectsData->GetBinaryFeaturesPack(packIdx); },
-                [hashArrView] (ui32 i, ui32 featureValue) {
-                    hashArrView[i] = (ui64)featureValue + 1;
-                },
-                ctx->LocalExecutor
-            );
+            if (!canUpdateHashOnce) {
+                ProcessFeatureForCalcHashes<ui32, EFeatureValuesType::PerfectHashedCategorical>(
+                    data.Learn->ObjectsData->GetCatFeatureToExclusiveBundleIndex(catFeatureIdx),
+                    data.Learn->ObjectsData->GetCatFeatureToPackedBinaryIndex(catFeatureIdx),
+                    fold.LearnPermutationFeaturesSubset,
+                    /*processBundledAndBinaryFeaturesInPacks*/ false,
+                    /*isBinaryFeatureEquals1*/ false, // unused
+                    TArrayRef<TVector<TCalcHashInBundleContext>>(), // unused
+                    TArrayRef<TBinaryFeaturesPack>(), // unused
+                    TArrayRef<TBinaryFeaturesPack>(), // unused
+                    [&]() { return *data.Learn->ObjectsData->GetCatFeature(*catFeatureIdx); },
+                    [&](ui32 bundleIdx) {
+                        return data.Learn->ObjectsData->GetExclusiveFeatureBundlesMetaData()[bundleIdx];
+                    },
+                    [&](ui32 bundleIdx) { return &data.Learn->ObjectsData->GetExclusiveFeaturesBundle(bundleIdx); },
+                    [&](ui32 packIdx) { return &data.Learn->ObjectsData->GetBinaryFeaturesPack(packIdx); },
+                    [hashArrView] (ui32 i, ui32 featureValue) {
+                        hashArrView[i] = (ui64)featureValue + 1;
+                    },
+                    ctx->LocalExecutor
+                );
+            } else {
+                CopyCatColumnToHash(
+                    **data.Learn->ObjectsData->GetCatFeature(*catFeatureIdx),
+                    fold.LearnPermutationFeaturesSubset,
+                    ctx->LocalExecutor,
+                    hashArrView.data()
+                );
+            }
         }
         for (size_t docOffset = learnSampleCount, testIdx = 0;
              docOffset < totalSampleCount && testIdx < data.Test.size();
              ++testIdx)
         {
             const size_t testSampleCount = data.Test[testIdx]->GetObjectCount();
+            const auto canUpdateHashOnce = data.Test[testIdx]->ObjectsData->GetExclusiveFeatureBundlesSize() + data.Test[testIdx]->ObjectsData->GetBinaryFeaturesPacksSize() == 0;
 
-            ProcessFeatureForCalcHashes<ui32, EFeatureValuesType::PerfectHashedCategorical>(
-                data.Test[testIdx]->ObjectsData->GetCatFeatureToExclusiveBundleIndex(catFeatureIdx),
-                data.Test[testIdx]->ObjectsData->GetCatFeatureToPackedBinaryIndex(catFeatureIdx),
-                data.Test[testIdx]->ObjectsData->GetFeaturesArraySubsetIndexing(),
-                /*processBundledAndBinaryFeaturesInPacks*/ false,
-                /*isBinaryFeatureEquals1*/ false, // unused
-                TArrayRef<TVector<TCalcHashInBundleContext>>(), // unused
-                TArrayRef<TBinaryFeaturesPack>(), // unused
-                TArrayRef<TBinaryFeaturesPack>(), // unused
-                [&]() { return *data.Test[testIdx]->ObjectsData->GetCatFeature(*catFeatureIdx); },
-                [&](ui32 bundleIdx) {
-                    return data.Test[testIdx]->ObjectsData->GetExclusiveFeatureBundlesMetaData()[bundleIdx];
-                },
-                [&](ui32 bundleIdx) {
-                    return &data.Test[testIdx]->ObjectsData->GetExclusiveFeaturesBundle(bundleIdx);
-                },
-                [&](ui32 packIdx) { return &data.Test[testIdx]->ObjectsData->GetBinaryFeaturesPack(packIdx); },
-                [hashArrView, docOffset] (ui32 i, ui32 featureValue) {
-                    hashArrView[docOffset + i] = (ui64)featureValue + 1;
-                },
-                ctx->LocalExecutor
-            );
+            if (!canUpdateHashOnce) {
+                ProcessFeatureForCalcHashes<ui32, EFeatureValuesType::PerfectHashedCategorical>(
+                    data.Test[testIdx]->ObjectsData->GetCatFeatureToExclusiveBundleIndex(catFeatureIdx),
+                    data.Test[testIdx]->ObjectsData->GetCatFeatureToPackedBinaryIndex(catFeatureIdx),
+                    data.Test[testIdx]->ObjectsData->GetFeaturesArraySubsetIndexing(),
+                    /*processBundledAndBinaryFeaturesInPacks*/ false,
+                    /*isBinaryFeatureEquals1*/ false, // unused
+                    TArrayRef<TVector<TCalcHashInBundleContext>>(), // unused
+                    TArrayRef<TBinaryFeaturesPack>(), // unused
+                    TArrayRef<TBinaryFeaturesPack>(), // unused
+                    [&]() { return *data.Test[testIdx]->ObjectsData->GetCatFeature(*catFeatureIdx); },
+                    [&](ui32 bundleIdx) {
+                        return data.Test[testIdx]->ObjectsData->GetExclusiveFeatureBundlesMetaData()[bundleIdx];
+                    },
+                    [&](ui32 bundleIdx) {
+                        return &data.Test[testIdx]->ObjectsData->GetExclusiveFeaturesBundle(bundleIdx);
+                    },
+                    [&](ui32 packIdx) { return &data.Test[testIdx]->ObjectsData->GetBinaryFeaturesPack(packIdx); },
+                    [hashArrView, docOffset] (ui32 i, ui32 featureValue) {
+                        hashArrView[docOffset + i] = (ui64)featureValue + 1;
+                    },
+                    ctx->LocalExecutor
+                );
+            } else {
+                CopyCatColumnToHash(
+                    **data.Test[testIdx]->ObjectsData->GetCatFeature(*catFeatureIdx),
+                    data.Test[testIdx]->ObjectsData->GetFeaturesArraySubsetIndexing(),
+                    ctx->LocalExecutor,
+                    hashArrView.data() + docOffset
+                );
+            }
 
             docOffset += testSampleCount;
         }
@@ -592,7 +653,6 @@ void ComputeOnlineCTRs(
             quantizedFeaturesInfo.GetUniqueValuesCounts(TCatFeatureIdx(proj.CatFeatures[0])).OnLearnOnly
         );
     } else {
-        Clear(&hashArr, totalSampleCount);
         CalcHashes(
             proj,
             *data.Learn->ObjectsData,

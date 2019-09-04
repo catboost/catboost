@@ -1,13 +1,16 @@
 #pragma once
 
+#include <catboost/libs/data_new/exclusive_feature_bundling.h>
 #include <catboost/libs/data_new/objects.h>
 #include <catboost/libs/helpers/clear_array.h>
 
 #include <library/containers/dense_hash/dense_hash.h>
 
+#include <util/generic/array_ref.h>
 #include <util/generic/vector.h>
 #include <util/system/yassert.h>
 
+#include <array>
 #include <functional>
 
 
@@ -65,6 +68,18 @@ inline void ProcessColumnForCalcHashes(
             f(i, getBinFromHistogramValue(value));
         },
         localExecutor);
+}
+
+template <class TValue, NCB::EFeatureValuesType FeatureValuesType, class TColumn>
+inline void GetRawColumn(const TColumn& column, const void** rawPtr, ui32* bitsPerKey) {
+    using TDenseHolder = NCB::TCompressedValuesHolderImpl<TValue, FeatureValuesType>;
+    const auto* denseColumnData = dynamic_cast<const TDenseHolder*>(&column);
+    CB_ENSURE(denseColumnData, "Wrong column type");
+    const TCompressedArray& compressedArray = *denseColumnData->GetCompressedData().GetSrc();
+    *rawPtr = (const void*)compressedArray.GetRawPtr();
+    *bitsPerKey = compressedArray.GetBitsPerKey();
+    CB_ENSURE_INTERNAL(
+        *bitsPerKey <= sizeof(TValue) * 8, "BitsPerKey " << *bitsPerKey << " exceeds maximum width " << sizeof(TValue) * 8);
 }
 
 template <class T, NCB::EFeatureValuesType FeatureValuesType, class F>
@@ -139,6 +154,135 @@ inline void ProcessFeatureForCalcHashes(
             localExecutor
         );
     }
+}
+
+
+template <class F>
+inline void ExtractIndicesAndMasks(
+    TMaybe<NCB::TExclusiveBundleIndex> maybeExclusiveBundleIndex,
+    TMaybe<NCB::TPackedBinaryIndex> maybeBinaryIndex,
+    bool isBinaryFeatureEquals1, // used only if processBinary
+    TArrayRef<TVector<TCalcHashInBundleContext>> featuresInBundles,
+    TArrayRef<NCB::TBinaryFeaturesPack> binaryFeaturesBitMasks,
+    TArrayRef<NCB::TBinaryFeaturesPack> projBinaryFeatureValues,
+    F&& f
+) {
+    if (maybeExclusiveBundleIndex) {
+        TCalcHashInBundleContext calcHashInBundleContext;
+        calcHashInBundleContext.InBundleIdx = maybeExclusiveBundleIndex->InBundleIdx;
+        calcHashInBundleContext.CalcHashCallback = f;
+        featuresInBundles[maybeExclusiveBundleIndex->BundleIdx].push_back(
+            std::move(calcHashInBundleContext)
+        );
+    } else if (maybeBinaryIndex) {
+        NCB::TBinaryFeaturesPack bitMask = NCB::TBinaryFeaturesPack(1) << maybeBinaryIndex->BitIdx;
+        binaryFeaturesBitMasks[maybeBinaryIndex->PackIdx] |= bitMask;
+        if (isBinaryFeatureEquals1) {
+            projBinaryFeatureValues[maybeBinaryIndex->PackIdx] |= bitMask;
+        }
+    }
+}
+
+
+/**
+    Column formats and corresponding parameters for hash calculation
+*/
+struct TCalcHashParams {
+    TMaybe<TConstArrayRef<ui32>> CatValuesDecoder;
+    TMaybe<int> SplitIdx;
+    TMaybe<std::array<ui32, 2>> MaxBinAndValue;
+
+    TMaybe<NCB::TBoundsInBundle> Bounds;
+    TMaybe<ui8> BitIdx;
+
+    const void* RawColumnPtr = nullptr;
+    ui32 BitsPerKey;
+
+    void GatherValues(ui32 srcIdx, ui32 unrollCount, TArrayRef<ui64> values) const {
+        if (BitsPerKey == 8) {
+            for (ui32 unrollIdx : xrange(unrollCount)) {
+                values[unrollIdx] = ((const ui8*)RawColumnPtr)[srcIdx + unrollIdx];
+            }
+        } else if (BitsPerKey == 16) {
+            for (ui32 unrollIdx : xrange(unrollCount)) {
+                values[unrollIdx] = ((const ui16*)RawColumnPtr)[srcIdx + unrollIdx];
+            }
+        } else {
+            Y_ASSERT(BitsPerKey == 32);
+            for (ui32 unrollIdx : xrange(unrollCount)) {
+                values[unrollIdx] = ((const ui32*)RawColumnPtr)[srcIdx + unrollIdx];
+            }
+        }
+        if (Bounds) {
+            for (auto& value : values) {
+                value = NCB::GetBinFromBundle<ui16>(value, Bounds.GetRef());
+            }
+        } else if (BitIdx) {
+            for (auto& value : values) {
+                value = (value >> BitIdx.GetRef()) & 1;
+            }
+        }
+    }
+
+    void GatherValues(ui32 srcIdx, ui32 unrollCount, const ui32* srcIndices, TArrayRef<ui64> values) const {
+        if (BitsPerKey == 8) {
+            for (ui32 unrollIdx : xrange(unrollCount)) {
+                values[unrollIdx] = ((const ui8*)RawColumnPtr)[srcIndices[srcIdx + unrollIdx]];
+            }
+        } else if (BitsPerKey == 16) {
+            for (ui32 unrollIdx : xrange(unrollCount)) {
+                values[unrollIdx] = ((const ui16*)RawColumnPtr)[srcIndices[srcIdx + unrollIdx]];
+            }
+        } else {
+            Y_ASSERT(BitsPerKey == 32);
+            for (ui32 unrollIdx : xrange(unrollCount)) {
+                values[unrollIdx] = ((const ui32*)RawColumnPtr)[srcIndices[srcIdx + unrollIdx]];
+            }
+        }
+        if (Bounds) {
+            for (auto& value : values) {
+                value = NCB::GetBinFromBundle<ui16>(value, Bounds.GetRef());
+            }
+        } else if (BitIdx) {
+            for (auto& value : values) {
+                value = (value >> BitIdx.GetRef()) & 1;
+            }
+        }
+    }
+};
+
+template <class T, NCB::EFeatureValuesType FeatureValuesType>
+inline TCalcHashParams ExtractColumnLocation(
+    TMaybe<NCB::TExclusiveBundleIndex> maybeExclusiveBundleIndex,
+    TMaybe<NCB::TPackedBinaryIndex> maybeBinaryIndex,
+    std::function<const NCB::TTypedFeatureValuesHolder<T, FeatureValuesType>*()>&& getFeatureColumn,
+    std::function<const NCB::TExclusiveFeaturesBundle(ui32)>&& getExclusiveFeatureBundleMetaData,
+    std::function<const NCB::TExclusiveFeatureBundleHolder*(ui32)>&& getExclusiveFeatureBundle,
+    std::function<const NCB::TBinaryPacksHolder*(ui32)>&& getBinaryFeaturesPack
+) {
+    TCalcHashParams calcHashParams;
+    if (maybeExclusiveBundleIndex) {
+        const ui32 bundleIdx = maybeExclusiveBundleIndex->BundleIdx;
+        GetRawColumn<ui16, NCB::EFeatureValuesType::ExclusiveFeatureBundle>(
+            *getExclusiveFeatureBundle(bundleIdx),
+            &calcHashParams.RawColumnPtr,
+            &calcHashParams.BitsPerKey);
+        const auto& metaData = getExclusiveFeatureBundleMetaData(bundleIdx);
+        const auto boundsInBundle = metaData.Parts[maybeExclusiveBundleIndex->InBundleIdx].Bounds;
+        calcHashParams.Bounds = boundsInBundle;
+    } else if (maybeBinaryIndex) {
+        GetRawColumn<ui8, NCB::EFeatureValuesType::BinaryPack>(
+            *getBinaryFeaturesPack(maybeBinaryIndex->PackIdx),
+            &calcHashParams.RawColumnPtr,
+            &calcHashParams.BitsPerKey);
+        calcHashParams.BitIdx = maybeBinaryIndex->BitIdx;
+    } else {
+        GetRawColumn<T, FeatureValuesType>(
+            *getFeatureColumn(),
+            &calcHashParams.RawColumnPtr,
+            &calcHashParams.BitsPerKey);
+    }
+    return calcHashParams;
 }
 
 
