@@ -1,5 +1,5 @@
 import os
-import imp
+import sys
 from itertools import product, starmap
 import distutils.command.install_lib as orig
 
@@ -74,10 +74,10 @@ class install_lib(orig.install_lib):
         yield '__init__.pyc'
         yield '__init__.pyo'
 
-        if not hasattr(imp, 'get_tag'):
+        if not hasattr(sys, 'implementation'):
             return
 
-        base = os.path.join('__pycache__', '__init__.' + imp.get_tag())
+        base = os.path.join('__pycache__', '__init__.' + sys.implementation.cache_tag)
         yield base + '.pyc'
         yield base + '.pyo'
         yield base + '.opt-1.pyc'

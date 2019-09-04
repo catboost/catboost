@@ -52,4 +52,8 @@ class Bytecode_compat:
 Bytecode = getattr(dis, 'Bytecode', Bytecode_compat)
 
 
-unescape = getattr(html, 'unescape', html_parser.HTMLParser().unescape)
+unescape = getattr(html, 'unescape', None)
+if unescape is None:
+    # HTMLParser.unescape is deprecated since Python 3.4, and will be removed
+    # from 3.9.
+    unescape = html_parser.HTMLParser().unescape

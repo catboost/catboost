@@ -6,7 +6,7 @@ LICENSE(
 
 
 
-VERSION(41.0.1)
+VERSION(41.2.0)
 
 PEERDIR(
     library/python/resource
@@ -109,6 +109,7 @@ RESOURCE_FILES(
     PREFIX contrib/python/setuptools/
     .dist-info/METADATA
     .dist-info/entry_points.txt
+    .dist-info/top_level.txt
 )
 
 END()

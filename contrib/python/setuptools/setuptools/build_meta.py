@@ -38,6 +38,7 @@ import distutils
 from setuptools.py31compat import TemporaryDirectory
 
 from pkg_resources import parse_requirements
+from pkg_resources.py31compat import makedirs
 
 __all__ = ['get_requires_for_build_sdist',
            'get_requires_for_build_wheel',
@@ -179,36 +180,38 @@ class _BuildMetaBackend(object):
 
         return dist_infos[0]
 
-    def build_wheel(self, wheel_directory, config_settings=None,
-                    metadata_directory=None):
+    def _build_with_temp_dir(self, setup_command, result_extension,
+                             result_directory, config_settings):
         config_settings = self._fix_config(config_settings)
-        wheel_directory = os.path.abspath(wheel_directory)
+        result_directory = os.path.abspath(result_directory)
 
-        # Build the wheel in a temporary directory, then copy to the target
-        with TemporaryDirectory(dir=wheel_directory) as tmp_dist_dir:
-            sys.argv = (sys.argv[:1] +
-                        ['bdist_wheel', '--dist-dir', tmp_dist_dir] +
+        # Build in a temporary directory, then copy to the target.
+        makedirs(result_directory, exist_ok=True)
+        with TemporaryDirectory(dir=result_directory) as tmp_dist_dir:
+            sys.argv = (sys.argv[:1] + setup_command +
+                        ['--dist-dir', tmp_dist_dir] +
                         config_settings["--global-option"])
             self.run_setup()
 
-            wheel_basename = _file_with_extension(tmp_dist_dir, '.whl')
-            wheel_path = os.path.join(wheel_directory, wheel_basename)
-            if os.path.exists(wheel_path):
-                # os.rename will fail overwriting on non-unix env
-                os.remove(wheel_path)
-            os.rename(os.path.join(tmp_dist_dir, wheel_basename), wheel_path)
+            result_basename = _file_with_extension(tmp_dist_dir, result_extension)
+            result_path = os.path.join(result_directory, result_basename)
+            if os.path.exists(result_path):
+                # os.rename will fail overwriting on non-Unix.
+                os.remove(result_path)
+            os.rename(os.path.join(tmp_dist_dir, result_basename), result_path)
 
-        return wheel_basename
+        return result_basename
+
+
+    def build_wheel(self, wheel_directory, config_settings=None,
+                    metadata_directory=None):
+        return self._build_with_temp_dir(['bdist_wheel'], '.whl',
+                                         wheel_directory, config_settings)
 
     def build_sdist(self, sdist_directory, config_settings=None):
-        config_settings = self._fix_config(config_settings)
-        sdist_directory = os.path.abspath(sdist_directory)
-        sys.argv = sys.argv[:1] + ['sdist', '--formats', 'gztar'] + \
-            config_settings["--global-option"] + \
-            ["--dist-dir", sdist_directory]
-        self.run_setup()
-
-        return _file_with_extension(sdist_directory, '.tar.gz')
+        return self._build_with_temp_dir(['sdist', '--formats', 'gztar'],
+                                         '.tar.gz', sdist_directory,
+                                         config_settings)
 
 
 class _BuildMetaLegacyBackend(_BuildMetaBackend):

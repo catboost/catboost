@@ -1,7 +1,6 @@
 import os
 import sys
 import itertools
-import imp
 from distutils.command.build_ext import build_ext as _du_build_ext
 from distutils.file_util import copy_file
 from distutils.ccompiler import new_compiler
@@ -11,6 +10,13 @@ from distutils import log
 
 from setuptools.extension import Library
 from setuptools.extern import six
+
+if six.PY2:
+    import imp
+
+    EXTENSION_SUFFIXES = [s for s, _, tp in imp.get_suffixes() if tp == imp.C_EXTENSION]
+else:
+    from importlib.machinery import EXTENSION_SUFFIXES
 
 try:
     # Attempt to use Cython for building extensions, if available
@@ -64,7 +70,7 @@ if_dl = lambda s: s if have_rtld else ''
 
 def get_abi3_suffix():
     """Return the file extension for an abi3-compliant Extension()"""
-    for suffix, _, _ in (s for s in imp.get_suffixes() if s[2] == imp.C_EXTENSION):
+    for suffix in EXTENSION_SUFFIXES:
         if '.abi3' in suffix:  # Unix
             return suffix
         elif suffix == '.pyd':  # Windows

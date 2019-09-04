@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: setuptools
-Version: 41.0.1
+Version: 41.2.0
 Summary: Easily download, build, install, upgrade, and uninstall Python packages
 Home-page: https://github.com/pypa/setuptools
 Author: Python Packaging Authority
@@ -29,7 +29,7 @@ Description-Content-Type: text/x-rst; charset=UTF-8
 Provides-Extra: certs
 Requires-Dist: certifi (==2016.9.26) ; extra == 'certs'
 Provides-Extra: ssl
-Requires-Dist: wincertstore (==0.2) ; (sys_platform=='win32') and extra == 'ssl'
+Requires-Dist: wincertstore (==0.2) ; (sys_platform == "win32") and extra == 'ssl'
 
 .. image:: https://img.shields.io/pypi/v/setuptools.svg
    :target: https://pypi.org/project/setuptools
