@@ -1892,7 +1892,7 @@
         },
         "wine": {
             "formula": {
-                "sandbox_id": 252923762,
+                "sandbox_id": 495594294,
                 "match": "Wine"
             },
             "executable": {
