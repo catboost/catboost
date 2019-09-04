@@ -7,7 +7,6 @@
 #include "feature_names_converter.h"
 #include "util.h"
 
-#include <catboost/libs/algo/data.h>
 #include <catboost/libs/helpers/array_subset.h>
 #include <catboost/libs/helpers/compression.h>
 #include <catboost/libs/helpers/double_array_iterator.h>
