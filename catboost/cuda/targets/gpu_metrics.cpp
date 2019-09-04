@@ -521,7 +521,11 @@ namespace NCatboostCuda {
             }
             case ELossFunction::AUC: {
                 if (approxDim == 1) {
-                    result.emplace_back(new TGpuPointwiseMetric(MakeBinClassAucMetric(), 1, 2, isMulticlass, metricDescription));
+                    if (IsClassificationObjective(targetObjective)) {
+                        result.emplace_back(new TGpuPointwiseMetric(MakeBinClassAucMetric(), 1, 2, isMulticlass, metricDescription));
+                    } else {
+                        result.emplace_back(new TCpuFallbackMetric(MakeBinClassAucMetric(), metricDescription));
+                    }
                 } else {
                     CATBOOST_WARNING_LOG << "AUC is not implemented on GPU. Will use CPU for metric computation, this could significantly affect learning time" << Endl;
                     for (ui32 i = 0; i < approxDim; ++i) {

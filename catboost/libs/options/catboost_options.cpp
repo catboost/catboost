@@ -458,6 +458,14 @@ void NCatboostOptions::TCatBoostOptions::Validate() const {
                       "if loss-function is Logloss, then class weights should be given for 0 and 1 classes");
             CB_ENSURE(classesCount == 0 || classesCount == classWeights.size(), "class weights should be specified for each class in range 0, ... , classes_count - 1");
         }
+        if (MetricOptions->EvalMetric.IsSet()) {
+            ValidateIsMetricCalculationSupported(MetricOptions->EvalMetric->GetLossFunction(), lossFunction, GetTaskType());
+        }
+        if (MetricOptions->CustomMetrics.IsSet()) {
+            for (const auto& metricDescription : MetricOptions->CustomMetrics.Get()) {
+                ValidateIsMetricCalculationSupported(metricDescription.GetLossFunction(), lossFunction, GetTaskType());
+            }
+        }
     }
 
     ESamplingUnit samplingUnit = ObliviousTreeOptions->BootstrapConfig->GetSamplingUnit();

@@ -147,6 +147,9 @@ int mode_eval_metrics(int argc, const char* argv[]) {
     TRestorableFastRng64 rand(0);
 
     auto metricDescriptions = CreateMetricDescriptions(plotParams.MetricsDescription);
+    for (const auto& metricDescription : metricDescriptions) {
+        ValidateIsMetricCalculationSupported(metricDescription.GetLossFunction(), ParseLossType(model.GetLossFunctionName()), ETaskType::CPU);
+    }
     auto metrics = CreateMetrics(metricDescriptions, model.GetDimensionsCount());
 
     TMetricsPlotCalcer plotCalcer = CreateMetricCalcer(

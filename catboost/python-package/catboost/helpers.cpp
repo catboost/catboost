@@ -59,6 +59,9 @@ TVector<TVector<double>> EvalMetrics(
     TRestorableFastRng64 rand(0);
 
     auto metricLossDescriptions = CreateMetricLossDescriptions(metricsDescription);
+    for (const auto& metricDescription : metricLossDescriptions) {
+        ValidateIsMetricCalculationSupported(metricDescription.GetLossFunction(), ParseLossType(model.GetLossFunctionName()), ETaskType::CPU);
+    }
     auto metrics = CreateMetrics(metricLossDescriptions, model.GetDimensionsCount());
     TMetricsPlotCalcer plotCalcer = CreateMetricCalcer(
         model,

@@ -296,6 +296,7 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
         }
         blockSize = Min(blockSize, ui32(ceil(20000. / maxQuerySize)));
     }
+    ValidateIsMetricCalculationSupported(metricDescription.GetLossFunction(), lossDescription.GetLossFunction(), ETaskType::CPU);
     THolder<IMetric> metric = std::move(CreateMetricFromDescription(metricDescription, approxDimension)[0]);
     CB_ENSURE(metric->IsAdditiveMetric(), "LossFunctionChange support only additive metric");
 

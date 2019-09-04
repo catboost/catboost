@@ -2668,7 +2668,7 @@ def test_custom_loss_for_classification(loss_function, boosting_type):
             'HingeLoss',
             'NormalizedGini'
         ]
-        if metric != loss_function
+        if metric != loss_function and (metric != 'AUC:hints=skip_train~false' or loss_function != 'CrossEntropy')
     ]
 
     cmd = (
