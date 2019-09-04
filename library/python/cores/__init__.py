@@ -8,6 +8,8 @@ import logging
 import platform
 import subprocess
 
+import six
+
 from library.python.reservoir_sampling import reservoir_sampling
 
 
@@ -122,8 +124,9 @@ def get_gdb_full_backtrace(binary, core, gdb_path):
     ]
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     output, stderr = proc.communicate()
+    output = six.ensure_str(output)
     if stderr:
-        output += "\nstderr >>" + stderr
+        output += "\nstderr >>\n" + six.ensure_str(stderr)
     return output
 
 
