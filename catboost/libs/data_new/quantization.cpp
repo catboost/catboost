@@ -529,11 +529,10 @@ namespace NCB {
             }
         }
 
-        void ProcessSparseColumn(
-            const TSparseArrayValuesHolder<T, FeatureValuesType>& sparseColumn,
+        void ProcessSparseColumnWithSrcDefaultEqualToDstDefault(
+            const TConstSparseArray<T, ui32>& sparseArray,
             const TFeaturesArraySubsetInvertedIndexing& incrementalInvertedIndexing
         ) const {
-            const auto& sparseArray = sparseColumn.GetData();
             auto sparseArrayIterator = sparseArray.GetIterator();
 
             if (const TInvertedIndexedSubset<ui32>* invertedIndexedSubset
@@ -564,6 +563,82 @@ namespace NCB {
                 if (currentBlockIdx != Max<ui32>()) {
                     DstMasks->push_back(std::pair<ui32, ui64>(currentBlockIdx, currentBlockMask));
                 }
+            }
+        }
+
+        void ProcessSparseColumnWithSrcDefaultNotEqualToDstDefault(
+            const TConstSparseArray<T, ui32>& sparseArray,
+            const TFeaturesArraySubsetInvertedIndexing& incrementalInvertedIndexing
+        ) const {
+            auto sparseArrayIterator = sparseArray.GetIterator();
+
+            if (const TInvertedIndexedSubset<ui32>* invertedIndexedSubset
+                    = GetIf<TInvertedIndexedSubset<ui32>>(&incrementalInvertedIndexing))
+            {
+                TConstArrayRef<ui32> invertedIndexedSubsetArray = invertedIndexedSubset->GetMapping();
+                TVector<ui32> nonDefaultIndices;
+                nonDefaultIndices.reserve(sparseArray.GetSize());
+
+                ui32 idx = 0;
+                while (auto next = sparseArrayIterator.Next()) {
+                    auto nextNonDefaultIdx = next->first;
+                    for (; idx < nextNonDefaultIdx; ++idx) {
+                        nonDefaultIndices.push_back(invertedIndexedSubsetArray[idx]);
+                    }
+                    if (IsNonDefaultFunctor.IsNonDefault(next->second)) {
+                        nonDefaultIndices.push_back(invertedIndexedSubsetArray[next->first]);
+                    }
+                    ++idx;
+                }
+                for (; idx < sparseArray.GetSize(); ++idx) {
+                    nonDefaultIndices.push_back(invertedIndexedSubsetArray[idx]);
+                }
+
+                NonDefaultIndicesToMasks(std::move(nonDefaultIndices));
+            } else {
+                // TFullSubset
+
+                ui32 currentBlockIdx = Max<ui32>();
+                ui64 currentBlockMask = 0;
+
+                ui32 idx = 0;
+                while (auto next = sparseArrayIterator.Next()) {
+                    auto nextNonDefaultIdx = next->first;
+                    for (; idx < nextNonDefaultIdx; ++idx) {
+                        UpdateInIncrementalOrder(idx, &currentBlockIdx, &currentBlockMask);
+                    }
+                    if (IsNonDefaultFunctor.IsNonDefault(next->second)) {
+                        UpdateInIncrementalOrder(next->first, &currentBlockIdx, &currentBlockMask);
+                    }
+                    ++idx;
+                }
+                for (; idx < sparseArray.GetSize(); ++idx) {
+                    UpdateInIncrementalOrder(idx, &currentBlockIdx, &currentBlockMask);
+                }
+
+                if (currentBlockIdx != Max<ui32>()) {
+                    DstMasks->push_back(std::pair<ui32, ui64>(currentBlockIdx, currentBlockMask));
+                }
+            }
+        }
+
+        void ProcessSparseColumn(
+            const TSparseArrayValuesHolder<T, FeatureValuesType>& sparseColumn,
+            const TFeaturesArraySubsetInvertedIndexing& incrementalInvertedIndexing
+        ) const {
+            const auto& sparseArray = sparseColumn.GetData();
+            auto sparseArrayIterator = sparseArray.GetIterator();
+
+            if (IsNonDefaultFunctor.IsNonDefault(sparseArray.GetDefaultValue())) {
+                ProcessSparseColumnWithSrcDefaultNotEqualToDstDefault(
+                    sparseArray,
+                    incrementalInvertedIndexing
+                );
+            } else {
+                ProcessSparseColumnWithSrcDefaultEqualToDstDefault(
+                    sparseArray,
+                    incrementalInvertedIndexing
+                );
             }
         }
 
