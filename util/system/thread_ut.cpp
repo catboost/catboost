@@ -168,4 +168,52 @@ Y_UNIT_TEST_SUITE(TSysThreadTest) {
         UNIT_ASSERT(sl.StackBegin);
         UNIT_ASSERT(sl.StackLength > 0);
     }
+
+    Y_UNIT_TEST(TestFunc) {
+        std::atomic_bool flag = {false};
+        TThread thread([&flag]() { flag = true; });
+
+        thread.Start();
+        UNIT_ASSERT_VALUES_EQUAL(thread.Join(), nullptr);
+        UNIT_ASSERT(flag);
+    }
+
+    Y_UNIT_TEST(TestCopyFunc) {
+        std::atomic_bool flag = {false};
+        auto func = [&flag]() { flag = true; };
+
+        TThread thread(func);
+        thread.Start();
+        UNIT_ASSERT_VALUES_EQUAL(thread.Join(), nullptr);
+
+        TThread thread2(func);
+        thread2.Start();
+        UNIT_ASSERT_VALUES_EQUAL(thread2.Join(), nullptr);
+
+        UNIT_ASSERT(flag);
+    }
+
+    Y_UNIT_TEST(TestCallable) {
+        std::atomic_bool flag = {false};
+
+        struct TCallable : TMoveOnly {
+            std::atomic_bool* Flag_;
+
+            TCallable(std::atomic_bool* flag)
+                : Flag_(flag)
+            {
+            }
+
+            void operator()() {
+                *Flag_ = true;
+            }
+        };
+
+        TCallable foo(&flag);
+        TThread thread(std::move(foo));
+
+        thread.Start();
+        UNIT_ASSERT_VALUES_EQUAL(thread.Join(), nullptr);
+        UNIT_ASSERT(flag);
+    }
 };
