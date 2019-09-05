@@ -57,6 +57,9 @@ public:
     using iterator = TIteratorImpl<typename IteratorModifier<Container>::type,
                                    typename IteratorModifier<value_type>::type>;
     using const_iterator = TIteratorImpl<const Container, const value_type>;
+    using allocator_type = typename Container::allocator_type;
+    using pointer = typename Container::pointer;
+    using const_pointer = typename Container::const_pointer;
 
 private:
     TTable(Container buckets)

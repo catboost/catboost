@@ -63,13 +63,13 @@ public:
     using typename TBase::difference_type;
     using typename TBase::hasher;
     using typename TBase::key_equal;
-    // using allocator_type = ... TODO(tender-bum)
     using typename TBase::reference;
     using typename TBase::const_reference;
-    using pointer = value_type*; // TODO(tender-bum): take from alloc
-    using const_pointer = const value_type*; // TODO(tender-bum): take from alloc
     using typename TBase::iterator;
     using typename TBase::const_iterator;
+    using typename TBase::allocator_type;
+    using typename TBase::pointer;
+    using typename TBase::const_pointer;
 
 private:
     static constexpr size_type INIT_SIZE = 8;

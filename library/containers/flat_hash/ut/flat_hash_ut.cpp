@@ -20,6 +20,8 @@ const std::initializer_list<std::pair<const int, TString>> MAP_INPUT_SAMPLE{
 
 template <class Map>
 class TMapTest : public TTestBase {
+    void AllocatorTest();
+
     void SmokingTest() {
         Map mp;
         mp.emplace(5, "abc");
@@ -106,6 +108,7 @@ class TMapTest : public TTestBase {
     }
 
     UNIT_TEST_SUITE_DEMANGLE(TMapTest);
+    UNIT_TEST(AllocatorTest);
     UNIT_TEST(SmokingTest);
     UNIT_TEST(CopyConstructionTest);
     UNIT_TEST(MoveConstructionTest);
@@ -116,6 +119,18 @@ class TMapTest : public TTestBase {
     UNIT_TEST_SUITE_END();
 };
 
+template <>
+void TMapTest<TFlatHashMap<int, TString>>::AllocatorTest() {
+    using Map = TFlatHashMap<int, TString>;
+    Map mp(3, typename Map::allocator_type());
+}
+
+template <>
+void TMapTest<TDenseHashMapStaticMarker<int, TString, -1>>::AllocatorTest() {
+    using Map = TDenseHashMapStaticMarker<int, TString, -1>;
+    Map mp(3, NFlatHash::NMap::TStaticValueMarker<-1, TString>(), typename Map::allocator_type());
+}
+
 using TFlatHashMapTest = TMapTest<TFlatHashMap<int, TString>>;
 using TDenseHashMapTest = TMapTest<TDenseHashMapStaticMarker<int, TString, -1>>;
 
@@ -125,6 +140,7 @@ UNIT_TEST_SUITE_REGISTRATION(TDenseHashMapTest);
 
 template <class Set>
 class TSetTest : public TTestBase {
+    void AllocatorTest();
     void DefaultConstructTest() {
         Set st;
 
@@ -209,6 +225,7 @@ class TSetTest : public TTestBase {
     }
 
     UNIT_TEST_SUITE_DEMANGLE(TSetTest);
+    UNIT_TEST(AllocatorTest);
     UNIT_TEST(DefaultConstructTest);
     UNIT_TEST(InitCapacityConstructTest);
     UNIT_TEST(IteratorsConstructTest);
@@ -220,7 +237,19 @@ class TSetTest : public TTestBase {
     UNIT_TEST_SUITE_END();
 };
 
-using TFlatHashSetTest = TSetTest<TFlatHashSet<int>>;
+template <>
+void TSetTest<TFlatHashSet<int>>::AllocatorTest() {
+    using Map = TFlatHashSet<int>;
+    Map mp(3, typename Map::allocator_type());
+}
+
+template <>
+void TSetTest<TDenseHashSetStaticMarker<int, -1>>::AllocatorTest() {
+    using Map = TDenseHashSetStaticMarker<int, -1>;
+    Map mp(3, NFlatHash::NSet::TStaticValueMarker<-1>(), typename Map::allocator_type());
+}
+
+using TFlatHashSetTest = TSetTest<TFlatHashSet<int, THash<int>>>;
 using TDenseHashSetTest = TSetTest<TDenseHashSetStaticMarker<int, -1>>;
 
 UNIT_TEST_SUITE_REGISTRATION(TFlatHashSetTest);

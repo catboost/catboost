@@ -42,6 +42,11 @@ public:
     {
     }
 
+    inline explicit TVector(size_type count, const typename TBase::allocator_type& a)
+        : TBase(count, a)
+    {
+    }
+
     inline TVector(size_type count, const T& val)
         : TBase(count, val)
     {

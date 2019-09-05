@@ -11,30 +11,31 @@
 
 namespace NPrivate {
 
-template <class Key, class T, class Hash, class KeyEqual, class Probing>
+template <class Key, class T, class Hash, class KeyEqual, class Probing, class Alloc>
 using TFlatHashMapImpl = NFlatHash::TMap<Key, T, Hash, KeyEqual,
-                                         NFlatHash::TFlatContainer<std::pair<const Key, T>>,
+                                         NFlatHash::TFlatContainer<std::pair<const Key, T>, Alloc>,
                                          Probing, NFlatHash::TAndSizeFitter,
                                          NFlatHash::TSimpleExpander>;
 
-template <class Key, class T, auto emptyMarker, class Hash, class KeyEqual, class Probing>
+template <class Key, class T, auto emptyMarker, class Hash, class KeyEqual, class Probing, class Alloc>
 using TDenseHashMapImpl =
     NFlatHash::TMap<Key, T, Hash, KeyEqual,
                     NFlatHash::TDenseContainer<std::pair<const Key, T>,
-                                               NFlatHash::NMap::TStaticValueMarker<emptyMarker, T>>,
+                                               NFlatHash::NMap::TStaticValueMarker<emptyMarker, T>,
+                                               Alloc>,
                     Probing, NFlatHash::TAndSizeFitter, NFlatHash::TSimpleExpander>;
 
 
-template <class T, class Hash, class KeyEqual, class Probing>
+template <class T, class Hash, class KeyEqual, class Probing, class Alloc>
 using TFlatHashSetImpl = NFlatHash::TSet<T, Hash, KeyEqual,
-                                         NFlatHash::TFlatContainer<T>,
+                                         NFlatHash::TFlatContainer<T, Alloc>,
                                          Probing, NFlatHash::TAndSizeFitter,
                                          NFlatHash::TSimpleExpander>;
 
-template <class T, auto emptyMarker, class Hash, class KeyEqual, class Probing>
+template <class T, auto emptyMarker, class Hash, class KeyEqual, class Probing, class Alloc>
 using TDenseHashSetImpl =
     NFlatHash::TSet<T, Hash, KeyEqual,
-                    NFlatHash::TDenseContainer<T, NFlatHash::NSet::TStaticValueMarker<emptyMarker>>,
+                    NFlatHash::TDenseContainer<T, NFlatHash::NSet::TStaticValueMarker<emptyMarker>, Alloc>,
                     Probing, NFlatHash::TAndSizeFitter, NFlatHash::TSimpleExpander>;
 
 }  // namespace NPrivate
@@ -59,8 +60,9 @@ template <class Key,
           class T,
           class Hash = THash<Key>,
           class KeyEqual = std::equal_to<>,
-          class Probing = NFlatHash::TLinearProbing>
-using TFlatHashMap = NPrivate::TFlatHashMapImpl<Key, T, Hash, KeyEqual, Probing>;
+          class Probing = NFlatHash::TLinearProbing,
+          class Alloc = std::allocator<std::pair<const Key, T>>>
+using TFlatHashMap = NPrivate::TFlatHashMapImpl<Key, T, Hash, KeyEqual, Probing, Alloc>;
 
 /* Open addressing table with user specified marker for empty buckets.
  * Currently available probings:
@@ -73,9 +75,10 @@ template <class Key,
           auto emptyMarker,
           class Hash = THash<Key>,
           class KeyEqual = std::equal_to<>,
-          class Probing = NFlatHash::TDenseProbing>
+          class Probing = NFlatHash::TDenseProbing,
+          class Alloc = std::allocator<std::pair<const Key, T>>>
 using TDenseHashMapStaticMarker = NPrivate::TDenseHashMapImpl<Key, T, emptyMarker,
-                                                              Hash, KeyEqual, Probing>;
+                                                              Hash, KeyEqual, Probing, Alloc>;
 
 
 /* flat_set: Fast and highly customizable hash set.
@@ -95,8 +98,9 @@ using TDenseHashMapStaticMarker = NPrivate::TDenseHashMapImpl<Key, T, emptyMarke
 template <class T,
           class Hash = THash<T>,
           class KeyEqual = std::equal_to<>,
-          class Probing = NFlatHash::TLinearProbing>
-using TFlatHashSet = NPrivate::TFlatHashSetImpl<T, Hash, KeyEqual, Probing>;
+          class Probing = NFlatHash::TLinearProbing,
+          class Alloc = std::allocator<T>>
+using TFlatHashSet = NPrivate::TFlatHashSetImpl<T, Hash, KeyEqual, Probing, Alloc>;
 
 /* Open addressing table with user specified marker for empty buckets.
  * Currently available probings:
@@ -108,8 +112,9 @@ template <class T,
           auto emptyMarker,
           class Hash = THash<T>,
           class KeyEqual = std::equal_to<>,
-          class Probing = NFlatHash::TDenseProbing>
+          class Probing = NFlatHash::TDenseProbing,
+          class Alloc = std::allocator<T>>
 using TDenseHashSetStaticMarker = NPrivate::TDenseHashSetImpl<T, emptyMarker,
-                                                              Hash, KeyEqual, Probing>;
+                                                              Hash, KeyEqual, Probing, Alloc>;
 
 }  // namespace NFH

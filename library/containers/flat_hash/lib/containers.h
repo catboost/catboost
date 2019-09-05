@@ -15,12 +15,15 @@ namespace NFlatHash {
 
 /* FLAT CONTAINER */
 
-template <class T>
+template <class T, class Alloc = std::allocator<T>>
 class TFlatContainer {
 public:
     using value_type = T;
     using size_type = size_t;
     using difference_type = ptrdiff_t;
+    using allocator_type = Alloc;
+    using pointer = typename std::allocator_traits<allocator_type>::pointer;
+    using const_pointer = typename std::allocator_traits<allocator_type>::const_pointer;
 
 private:
     class TCage {
@@ -83,8 +86,8 @@ private:
     };
 
 public:
-    explicit TFlatContainer(size_type initSize)
-        : Buckets_(initSize)
+    explicit TFlatContainer(size_type initSize, const allocator_type& alloc = {})
+        : Buckets_(initSize, alloc)
         , Taken_(0)
         , Empty_(initSize) {}
 
@@ -130,10 +133,10 @@ public:
         DoSwap(Empty_, rhs.Empty_);
     }
 
-    TFlatContainer Clone(size_type newSize) const { return TFlatContainer(newSize); }
+    TFlatContainer Clone(size_type newSize) const { return TFlatContainer(newSize, Buckets_.get_allocator()); }
 
 private:
-    TVector<TCage> Buckets_;
+    TVector<TCage, allocator_type> Buckets_;
     size_type Taken_;
     size_type Empty_;
 };
@@ -143,7 +146,7 @@ static_assert(NConcepts::RemovalContainerV<TFlatContainer<int>>);
 
 /* DENSE CONTAINER */
 
-template <class T, class EmptyMarker = NSet::TEqValueMarker<T>>
+template <class T, class EmptyMarker = NSet::TEqValueMarker<T>, class Alloc = std::allocator<T>>
 class TDenseContainer {
     static_assert(NConcepts::ValueMarkerV<EmptyMarker>);
 
@@ -151,10 +154,13 @@ public:
     using value_type = T;
     using size_type = size_t;
     using difference_type = ptrdiff_t;
+    using allocator_type = Alloc;
+    using pointer = typename std::allocator_traits<allocator_type>::pointer;
+    using const_pointer = typename std::allocator_traits<allocator_type>::const_pointer;
 
 public:
-    TDenseContainer(size_type initSize, EmptyMarker emptyMarker = {})
-        : Buckets_(initSize, emptyMarker.Create())
+    TDenseContainer(size_type initSize,  EmptyMarker emptyMarker = {}, const allocator_type& alloc = {})
+        : Buckets_(initSize, emptyMarker.Create(), alloc)
         , Taken_(0)
         , EmptyMarker_(std::move(emptyMarker)) {}
 
@@ -199,10 +205,15 @@ public:
         DoSwap(Taken_, rhs.Taken_);
     }
 
-    TDenseContainer Clone(size_type newSize) const { return { newSize, EmptyMarker_ }; }
+    TDenseContainer Clone(size_type newSize) const { return { newSize, EmptyMarker_, GetAllocator() }; }
 
 protected:
-    TVector<value_type> Buckets_;
+    allocator_type GetAllocator() const {
+        return Buckets_.get_allocator();
+    }
+
+protected:
+    TVector<value_type, allocator_type> Buckets_;
     size_type Taken_;
     EmptyMarker EmptyMarker_;
 };
@@ -211,8 +222,8 @@ static_assert(NConcepts::ContainerV<TDenseContainer<int>>);
 static_assert(!NConcepts::RemovalContainerV<TDenseContainer<int>>);
 
 template <class T, class DeletedMarker = NSet::TEqValueMarker<T>,
-          class EmptyMarker = NSet::TEqValueMarker<T>>
-class TRemovalDenseContainer : private TDenseContainer<T, EmptyMarker> {
+          class EmptyMarker = NSet::TEqValueMarker<T>, class Alloc = std::allocator<T>>
+class TRemovalDenseContainer : private TDenseContainer<T, EmptyMarker, Alloc> {
 private:
     static_assert(NConcepts::ValueMarkerV<DeletedMarker>);
 
@@ -222,13 +233,17 @@ public:
     using typename TBase::value_type;
     using typename TBase::size_type;
     using typename TBase::difference_type;
+    using typename TBase::allocator_type;
+    using typename TBase::pointer;
+    using typename TBase::const_pointer;
 
 public:
     TRemovalDenseContainer(
         size_type initSize,
         DeletedMarker deletedMarker = {},
-        EmptyMarker emptyMarker = {})
-        : TBase(initSize, std::move(emptyMarker))
+        EmptyMarker emptyMarker = {},
+        const allocator_type& alloc = {})
+        : TBase(initSize, std::move(emptyMarker), alloc)
         , DeletedMarker_(std::move(deletedMarker))
         , Empty_(initSize) {}
 
@@ -273,7 +288,7 @@ public:
     }
 
     TRemovalDenseContainer Clone(size_type newSize) const {
-        return { newSize, DeletedMarker_, TBase::EmptyMarker_ };
+        return { newSize, DeletedMarker_, TBase::EmptyMarker_, TBase::GetAllocator() };
     }
 
 private:
