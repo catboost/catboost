@@ -4890,6 +4890,63 @@ def test_ctr_leaf_count_limit(boosting_type, dev_score_calc_obj_block_size):
     return [local_canonical_file(output_eval_path)]
 
 
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+def test_boost_from_average(boosting_type):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path_with_avg = yatest.common.test_output_path('test_avg.eval')
+    output_eval_path_with_baseline = yatest.common.test_output_path('test_baseline.eval')
+    baselined_train = yatest.common.test_output_path('baselined_train')
+    baselined_cd = yatest.common.test_output_path('baselined.cd')
+
+    train_path = data_file('adult', 'train_small')
+    original_cd = data_file('adult', 'train.cd')
+
+    base_cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'RMSE',
+        '--boosting-type', boosting_type,
+        '-i', '30',
+        '-w', '0.03',
+        '-T', '4',
+        '-m', output_model_path,
+    )
+    sum_target = 0.0
+    obj_count = 0.0
+    with open(train_path) as train_f:
+        for line in train_f:
+            obj_count += 1
+            sum_target += float(line.split()[1])
+
+    mean_target_str = str(sum_target / obj_count)
+    with open(train_path) as train_in, open(baselined_train, 'w') as train_out:
+        for line in train_in:
+            tokens = line.rstrip('\n').split('\t')
+            tokens.append(mean_target_str)
+            train_out.write('\t'.join(tokens) + '\n')
+
+    with open(baselined_cd, 'w') as cd_output, open(original_cd) as cd_input:
+        for line in cd_input:
+            cd_output.write(line)
+        cd_output.write('18\tBaseline\n')
+
+    yatest.common.execute(base_cmd + (
+        '-f', baselined_train,
+        '--boost-from-average', '0',
+        '--column-description', baselined_cd,
+        '--eval-file', output_eval_path_with_baseline,
+    ))
+    yatest.common.execute(base_cmd + (
+        '-f', train_path,
+        '--boost-from-average', '1',
+        '--column-description', original_cd,
+        '--eval-file', output_eval_path_with_avg,
+    ))
+
+    assert compare_evals(output_eval_path_with_avg, output_eval_path_with_baseline)
+    return [local_canonical_file(output_eval_path_with_avg)]
+
+
 @pytest.mark.parametrize('eval_period', ['1', '2'])
 def test_eval_non_additive_metric(eval_period):
     output_model_path = yatest.common.test_output_path('model.bin')

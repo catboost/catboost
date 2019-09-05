@@ -423,6 +423,18 @@
             "uri": "file://test.test_baseline_output/test.eval"
         }
     ],
+    "test.test_boost_from_average[Ordered]": [
+        {
+            "checksum": "d41d8cd98f00b204e9800998ecf8427e",
+            "uri": "file://test.test_boost_from_average_Ordered_/test_avg.eval"
+        }
+    ],
+    "test.test_boost_from_average[Plain]": [
+        {
+            "checksum": "d41d8cd98f00b204e9800998ecf8427e",
+            "uri": "file://test.test_boost_from_average_Plain_/test_avg.eval"
+        }
+    ],
     "test.test_bootstrap[calc_block=5000000-Ordered]": [
         {
             "checksum": "e42fb35d239657e8b4137a69fc188b24",

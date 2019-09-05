@@ -551,7 +551,6 @@ void NCatboostOptions::TCatBoostOptions::Validate() const {
 
     if (BoostingOptions->BoostFromAverage.Get()) {
         CB_ENSURE(lossFunction == ELossFunction::RMSE, "You can use boost_from_average only for RMSE loss function now.");
-        CB_ENSURE(GetTaskType() == ETaskType::CPU, "You can use boost_from_average only on CPU now.");
         CB_ENSURE(SystemOptions->IsSingleHost(), "You can use boost_from_average only on single host now.");
     }
 

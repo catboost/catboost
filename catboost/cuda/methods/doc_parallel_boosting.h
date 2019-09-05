@@ -10,12 +10,14 @@
 #include <catboost/cuda/gpu_data/doc_parallel_dataset_builder.h>
 #include <catboost/cuda/models/additive_model.h>
 #include <catboost/cuda/targets/target_func.h>
+
 #include <catboost/libs/helpers/interrupt.h>
 #include <catboost/libs/helpers/progress_helper.h>
 #include <catboost/libs/helpers/vector_helpers.h>
 #include <catboost/libs/options/boosting_options.h>
 #include <catboost/libs/options/loss_description.h>
 #include <catboost/libs/overfitting_detector/overfitting_detector.h>
+#include <catboost/libs/target/target_weighted_average.h>
 
 #include <library/threading/local_executor/local_executor.h>
 
@@ -137,6 +139,17 @@ namespace NCatboostCuda {
             cursors->Cursors.resize(inputData.DataSets.PermutationsCount());
             const ui32 permutationCount = inputData.Targets.size();
             const ui32 approxDim = inputData.Targets[0]->GetDim();
+
+            float startingPoint = 0.0f;
+            if (CatBoostOptions.BoostingOptions->BoostFromAverage.Get()) {
+                // we have already checked that lossfunction is RMSE in boosting_options.cpp
+                CB_ENSURE(!DataProvider->TargetData->GetBaseline(),
+                    "You can't use boost_from_average with baseline now.");
+                CB_ENSURE(!TestDataProvider || !TestDataProvider->TargetData->GetBaseline(),
+                    "You can't use boost_from_average with baseline now.");
+                startingPoint = CalculateWeightedTargetAverage(*DataProvider->TargetData);
+            }
+
             for (ui32 i = 0; i < permutationCount; ++i) {
                 const auto& loadBalancingPermutation = inputData.DataSets.GetLoadBalancingPermutation();
                 cursors->Cursors[i].Reset(inputData.DataSets.GetDataSetForPermutation(0).GetTarget().GetSamplesMapping(), approxDim);
@@ -159,7 +172,7 @@ namespace NCatboostCuda {
                         cursors->Cursors[i].ColumnView(dim).Write(baseline);
                     }
                 } else {
-                    FillBuffer(cursors->Cursors[i], 0.0f);
+                    FillBuffer(cursors->Cursors[i], startingPoint);
                 }
             }
 
@@ -182,7 +195,7 @@ namespace NCatboostCuda {
                         cursors->TestCursor.ColumnView(dim).Write(baseline);
                     }
                 } else {
-                    FillBuffer(cursors->TestCursor, 0.0f);
+                    FillBuffer(cursors->TestCursor, startingPoint);
                 }
             }
 

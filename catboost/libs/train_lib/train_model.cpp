@@ -33,6 +33,7 @@
 #include <catboost/libs/options/system_options.h>
 #include <catboost/libs/pairs/util.h>
 #include <catboost/libs/target/classification_target_helper.h>
+#include <catboost/libs/target/target_weighted_average.h>
 
 #include <library/grid_creator/binarization.h>
 #include <library/json/json_prettifier.h>
@@ -603,29 +604,15 @@ static void SaveModel(
 
 //TODO(isaf27): add baseline to CalcOptimumConstApprox
 static inline TMaybe<double> CalcOptimumConstApprox(
-    const TConstArrayRef<float> targets,
-    const TConstArrayRef<float> weights,
+    const TTargetDataProvider& targetDataProvider,
     ELossFunction lossFunction,
     bool boostFromAverage
 ) {
     if (lossFunction != ELossFunction::RMSE || !boostFromAverage) {
         return Nothing();
     }
-    double summaryWeight = weights.empty() ? targets.size() : 0;
-    if (!weights.empty()) {
-        for (const auto& weight : weights) {
-            summaryWeight += weight;
-        }
-    }
-    double result = 0;
-    for (ui32 i = 0; i < targets.size(); ++i) {
-        if (weights.empty()) {
-            result += targets[i];
-        } else {
-            result += targets[i] * weights[i];
-        }
-    }
-    return result / summaryWeight;
+
+    return CalculateWeightedTargetAverage(targetDataProvider);
 }
 
 
@@ -697,8 +684,7 @@ namespace {
                 trainingDataForCpu,
                 labelConverter,
                 CalcOptimumConstApprox(
-                    trainingData.Learn->TargetData->GetTarget().GetOrElse(TConstArrayRef<float>()),
-                    GetWeights(*trainingData.Learn->TargetData),
+                    *trainingData.Learn->TargetData,
                     catboostOptions.LossFunctionDescription->GetLossFunction(),
                     catboostOptions.BoostingOptions->BoostFromAverage.Get()
                 ),

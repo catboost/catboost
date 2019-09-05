@@ -5,20 +5,23 @@
 #include "random_score_helper.h"
 #include "boosting_progress_tracker.h"
 
-#include <catboost/libs/overfitting_detector/overfitting_detector.h>
 #include <catboost/cuda/targets/target_func.h>
 #include <catboost/cuda/cuda_lib/cuda_profiler.h>
 #include <catboost/cuda/models/additive_model.h>
 #include <catboost/cuda/gpu_data/feature_parallel_dataset.h>
 #include <catboost/cuda/gpu_data/feature_parallel_dataset_builder.h>
-#include <catboost/libs/helpers/progress_helper.h>
-#include <util/stream/format.h>
-#include <catboost/libs/options/boosting_options.h>
-#include <catboost/libs/options/loss_description.h>
+
 #include <catboost/libs/helpers/interrupt.h>
 #include <catboost/libs/helpers/math_utils.h>
+#include <catboost/libs/helpers/progress_helper.h>
+#include <catboost/libs/options/boosting_options.h>
+#include <catboost/libs/options/loss_description.h>
+#include <catboost/libs/overfitting_detector/overfitting_detector.h>
+#include <catboost/libs/target/target_weighted_average.h>
 
 #include <library/threading/local_executor/local_executor.h>
+
+#include <util/stream/format.h>
 
 namespace NCatboostCuda {
     template <template <class TMapping> class TTargetTemplate,
@@ -527,14 +530,14 @@ namespace NCatboostCuda {
             state->DataSets = CreateDataSet();
             state->Targets = CreateTargets(state->DataSets);
 
-            if (TestDataProvider) {
-                state->TestTarget = CreateTarget(state->DataSets.GetTestDataSet());
-                state->TestCursor = TMirrorBuffer<float>::CopyMapping(state->DataSets.GetTestDataSet().GetTarget().GetTargets());
-                if (TestDataProvider->MetaInfo.BaselineCount > 0) {
-                    state->TestCursor.Write((*TestDataProvider->TargetData->GetBaseline())[0]);
-                } else {
-                    FillBuffer(state->TestCursor, 0.0f);
-                }
+            float startingPoint = 0.0f;
+            if (CatBoostOptions.BoostingOptions->BoostFromAverage.Get()) {
+                // we have already checked that lossfunction is RMSE in boosting_options.cpp
+                CB_ENSURE(!DataProvider->TargetData->GetBaseline(),
+                    "You can't use boost_from_average with baseline now.");
+                CB_ENSURE(!TestDataProvider || !TestDataProvider->TargetData->GetBaseline(),
+                    "You can't use boost_from_average with baseline now.");
+                startingPoint = CalculateWeightedTargetAverage(*DataProvider->TargetData);
             }
 
             const ui32 estimationPermutation = state->DataSets.PermutationsCount() - 1;
@@ -551,7 +554,7 @@ namespace NCatboostCuda {
                 if (DataProvider->MetaInfo.BaselineCount > 0) {
                     baseline = permutation.Gather((*DataProvider->TargetData->GetBaseline())[0]);
                 } else {
-                    baseline.resize(DataProvider->GetObjectCount(), 0.0f);
+                    baseline.resize(DataProvider->GetObjectCount(), startingPoint);
                 }
 
                 folds = CreateFolds(state->Targets.GetTarget(i),
@@ -573,12 +576,23 @@ namespace NCatboostCuda {
                 if (DataProvider->MetaInfo.BaselineCount > 0) {
                     baseline = permutation.Gather((*DataProvider->TargetData->GetBaseline())[0]);
                 } else {
-                    baseline.resize(DataProvider->GetObjectCount(), 0.0f);
+                    baseline.resize(DataProvider->GetObjectCount(), startingPoint);
                 }
 
                 state->Cursor.Estimation = TMirrorBuffer<float>::CopyMapping(state->DataSets.GetDataSetForPermutation(estimationPermutation).GetTarget().GetTargets());
                 state->Cursor.Estimation.Write(baseline);
             }
+
+            if (TestDataProvider) {
+                state->TestTarget = CreateTarget(state->DataSets.GetTestDataSet());
+                state->TestCursor = TMirrorBuffer<float>::CopyMapping(state->DataSets.GetTestDataSet().GetTarget().GetTargets());
+                if (TestDataProvider->MetaInfo.BaselineCount > 0) {
+                    state->TestCursor.Write((*TestDataProvider->TargetData->GetBaseline())[0]);
+                } else {
+                    FillBuffer(state->TestCursor, startingPoint);
+                }
+            }
+
             return state;
         }
 

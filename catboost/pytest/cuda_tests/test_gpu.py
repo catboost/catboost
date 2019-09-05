@@ -10,6 +10,7 @@ import yatest.common
 from catboost_pytest_lib import (
     append_params_to_cmdline,
     apply_catboost,
+    compare_evals,
     compare_evals_with_precision,
     compare_metrics_with_diff,
     data_file,
@@ -485,6 +486,67 @@ def test_baseline(boosting_type):
     apply_catboost(output_model_path, test_file, cd_file, output_eval_path)
 
     return [local_canonical_file(output_eval_path, diff_tool=diff_tool())]
+
+
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+def test_boost_from_average(boosting_type):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path_with_avg = yatest.common.test_output_path('test_avg.eval')
+    output_eval_path_with_baseline = yatest.common.test_output_path('test_baseline.eval')
+    baselined_train = yatest.common.test_output_path('baselined_train')
+    baselined_cd = yatest.common.test_output_path('baselined.cd')
+
+    train_path = data_file('adult', 'train_small')
+    original_cd = data_file('adult', 'train.cd')
+
+    sum_target = 0.0
+    obj_count = 0.0
+    with open(train_path) as train_f:
+        for line in train_f:
+            obj_count += 1
+            sum_target += float(line.split()[1])
+
+    mean_target_str = str(sum_target / obj_count)
+    with open(train_path) as train_in, open(baselined_train, 'w') as train_out:
+        for line in train_in:
+            tokens = line.rstrip('\n').split('\t')
+            tokens.append(mean_target_str)
+            train_out.write('\t'.join(tokens) + '\n')
+
+    with open(baselined_cd, 'w') as cd_output, open(original_cd) as cd_input:
+        for line in cd_input:
+            cd_output.write(line)
+        cd_output.write('18\tBaseline\n')
+
+    baseline_boost_params = {
+        '--loss-function': 'RMSE',
+        '--boosting-type': boosting_type,
+        '-i': '30',
+        '-w': '0.03',
+        '-T': '4',
+        '-m': output_model_path,
+        '-f': baselined_train,
+        '--boost-from-average': '0',
+        '--column-description': baselined_cd,
+        '--eval-file': output_eval_path_with_baseline,
+    }
+    avg_boost_params = {
+        '--loss-function': 'RMSE',
+        '--boosting-type': boosting_type,
+        '-i': '30',
+        '-w': '0.03',
+        '-T': '4',
+        '-m': output_model_path,
+
+        '-f': train_path,
+        '--boost-from-average': '1',
+        '--column-description': original_cd,
+        '--eval-file': output_eval_path_with_avg,
+    }
+    fit_catboost_gpu(baseline_boost_params)
+    fit_catboost_gpu(avg_boost_params)
+
+    assert compare_evals(output_eval_path_with_avg, output_eval_path_with_baseline)
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
