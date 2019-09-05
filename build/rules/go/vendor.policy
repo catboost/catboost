@@ -300,6 +300,9 @@ ALLOW .* -> vendor/github.com/golang/mock
 # Go load generator. Can be used as library for custom load tools. CONTRIB-1420
 ALLOW .* -> vendor/github.com/yandex/pandora
 
+# CONTRIB-1450 Apple notifcation service client
+ALLOW .* -> vendor/github.com/sideshow/apns2
+
 #
 # Temporary exceptions.
 #
