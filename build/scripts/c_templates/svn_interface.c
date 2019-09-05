@@ -101,6 +101,14 @@ const char* GetProgramScmData() {
 #endif
 }
 
+const char* GetProgramShortVersionData() {
+#if defined(SVN_REVISION) && defined(SVN_TIME)
+    return STR2(SVN_REVISION) " (" SVN_TIME ")";
+#else
+    return "";
+#endif
+}
+
 const char* GetProgramBuildUser() {
 #if defined(BUILD_USER)
     return BUILD_USER;

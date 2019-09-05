@@ -20,4 +20,5 @@ namespace NLastGetopt {
 
     [[noreturn]] void PrintUsageAndExit(const TOptsParser* parser);
     [[noreturn]] void PrintVersionAndExit(const TOptsParser* parser);
+    [[noreturn]] void PrintShortVersionAndExit(const TString& appName);
 }

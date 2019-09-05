@@ -12,6 +12,10 @@ namespace NLastGetoptPrivate {
         static TString data;
         return data;
     }
+    TString& ShortVersionString() {
+        static TString data;
+        return data;
+    }
 }
 
 namespace {
@@ -56,6 +60,11 @@ namespace NLastGetopt {
     void PrintVersionAndExit(const TOptsParser*) {
         Cout << (NLastGetoptPrivate::VersionString() ? NLastGetoptPrivate::VersionString() : "program version: not linked with library/getopt") << Endl;
         exit(NLastGetoptPrivate::VersionString().empty());
+    }
+
+    void PrintShortVersionAndExit(const TString& appName) {
+        Cout << appName << " version " << (NLastGetoptPrivate::ShortVersionString() ? NLastGetoptPrivate::ShortVersionString() : "not linked with library/getopt") << Endl;
+        exit(NLastGetoptPrivate::ShortVersionString().empty());
     }
 
     // Like TString::Quote(), but does not quote digits-only string

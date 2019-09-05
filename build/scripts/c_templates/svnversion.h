@@ -27,6 +27,7 @@ void PrintSvnVersionAndExit(int argc, char* argv[]) Y_HIDDEN;
 void PrintSvnVersionAndExitEx(int argc, char* argv[], const char* opts) Y_HIDDEN;
 void PrintSvnVersionAndExit0() Y_HIDDEN;
 const char* GetProgramScmData() Y_HIDDEN; // verbose multiline message
+const char* GetProgramShortVersionData() Y_HIDDEN;
 const char* GetProgramBuildUser() Y_HIDDEN;
 const char* GetProgramBuildHost() Y_HIDDEN;
 const char* GetProgramBuildDate() Y_HIDDEN;

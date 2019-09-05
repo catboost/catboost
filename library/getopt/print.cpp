@@ -22,11 +22,18 @@ namespace NLastGetoptPrivate {
         return ts;
     }
 
+    TString InitShortVersionString() {
+        TString ts = GetProgramShortVersionData();
+        return ts;
+    }
+
     TString& VersionString();
+    TString& ShortVersionString();
 
     struct TInit {
         TInit() {
             VersionString() = InitVersionString();
+            ShortVersionString() = InitShortVersionString();
         }
     } Init;
 
