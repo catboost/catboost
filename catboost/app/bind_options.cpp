@@ -487,6 +487,12 @@ static void BindBoostingParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue*
         .Handler1T<EOverfittingDetectorType>([plainJsonPtr](const auto type) {
             (*plainJsonPtr)["od_type"] = ToString(type);
         });
+
+    parser.AddLongOption("model-shrink-rate", "Shrinks model at the start of each iteration. Possible values: [0, 1).")
+        .RequiredArgument("float")
+        .Handler1T<float>([plainJsonPtr](float modelShrinkRate) {
+            (*plainJsonPtr)["model_shrink_rate"] = modelShrinkRate;
+        });
 }
 
 static void BindModelBasedEvalParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* plainJsonPtr) {

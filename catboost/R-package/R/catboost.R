@@ -1006,6 +1006,14 @@ print.catboost.Pool <- function(x, ...) {
 #'       Default value:
 #'
 #'       \code{'PerTreeLevel'}
+#'
+#'     \item model_shrink_rate
+#'
+#'       For i > 0 at the start of i-th iteration multiplies model by (1 - model_shrink_rate / i).
+#'
+#'       Possible values: [0, 1).
+#'
+#'       Default value: 0
 #'   }
 #'   \item CTR settings
 #'   \itemize{
