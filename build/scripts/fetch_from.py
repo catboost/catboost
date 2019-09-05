@@ -11,7 +11,6 @@ import socket
 import shutil
 import errno
 import datetime as dt
-import argparse
 
 import retry
 
@@ -23,13 +22,22 @@ def make_user_agent():
 
 
 def add_common_arguments(parser):
-    parser.add_argument('--copy-to')
+    parser.add_argument('--copy-to')  # used by jbuild in fetch_resource
+    parser.add_argument('--rename-to')  # used by test_node in inject_mds_resource_to_graph
     parser.add_argument('--copy-to-dir')
     parser.add_argument('--untar-to')
+    parser.add_argument('--rename', action='append', default=[], metavar='FILE', help='rename FILE to the corresponding output')
     parser.add_argument('outputs', nargs='*')
 
 
+def ensure_dir(path):
+    if not (path == '' or os.path.isdir(path)):
+        os.makedirs(path)
+
+
 def hardlink_or_copy(src, dst):
+    ensure_dir(os.path.dirname(dst))
+
     if os.name == 'nt':
         shutil.copy(src, dst)
     else:
@@ -46,10 +54,7 @@ def hardlink_or_copy(src, dst):
 
 
 def rename_or_copy_and_remove(src, dst):
-    try:
-        os.makedirs(os.path.dirname(dst))
-    except OSError:
-        pass
+    ensure_dir(os.path.dirname(dst))
 
     try:
         os.rename(src, dst)
@@ -246,50 +251,52 @@ def fetch_url(url, unpack, resource_file_name, expected_md5=None, expected_sha1=
     return tmp_file_name
 
 
-def ensure_outputs_not_directories(outputs):
-    for output in outputs:
-        full_path = os.path.abspath(output)
-        if not os.path.exists(full_path):
-            raise OutputNotExistError('Output does not exist: %s' % full_path)
-        if not os.path.isfile(full_path):
-            raise OutputIsDirectoryError('Output must be a file, not a directory: %s' % full_path)
-
-
 def process(fetched_file, file_name, args, remove=True):
+    assert len(args.rename) <= len(args.outputs), (
+        'too few outputs to rename', args.rename, 'into', args.outputs)
+
     if not os.path.isfile(fetched_file):
         raise ResourceIsDirectoryError('Resource must be a file, not a directory: %s' % fetched_file)
 
-    if args.untar_to and not os.path.exists(args.untar_to):
-        os.makedirs(args.untar_to)
-
-    if args.copy_to_dir and not os.path.exists(args.copy_to_dir):
-        os.makedirs(args.copy_to_dir)
-
-    if args.copy_to and os.path.dirname(args.copy_to) and not os.path.exists(os.path.dirname(args.copy_to)):
-        os.makedirs(os.path.dirname(args.copy_to))
-
-    if args.untar_to:
-        try:
-            with tarfile.open(fetched_file, mode='r:*') as tar:
-                tar.extractall(args.untar_to)
-            ensure_outputs_not_directories(args.outputs)
-        except tarfile.ReadError as e:
-            logging.exception(e)
-            raise ResourceUnpackingError('File {} cannot be untared'.format(fetched_file))
-        # Don't remove resource if fetcher specified - it can cache the resource on the discretion
-        if remove:
-            try:
-                os.remove(fetched_file)
-            except OSError:
-                pass
-
     if args.copy_to:
         hardlink_or_copy(fetched_file, args.copy_to)
-        ensure_outputs_not_directories(args.outputs)
+        if not args.outputs:
+            args.outputs = [args.copy_to]
+
+    if args.rename_to:
+        args.rename.append(fetched_file)
+        if not args.outputs:
+            args.outputs = [args.rename_to]
 
     if args.copy_to_dir:
         hardlink_or_copy(fetched_file, os.path.join(args.copy_to_dir, file_name))
-        ensure_outputs_not_directories(args.outputs)
 
-    if getattr(args, 'rename_to', False):
-        rename_or_copy_and_remove(fetched_file, args.rename_to)
+    if args.untar_to:
+        ensure_dir(args.untar_to)
+        try:
+            with tarfile.open(fetched_file, mode='r:*') as tar:
+                tar.extractall(args.untar_to)
+        except tarfile.ReadError as e:
+            logging.exception(e)
+            raise ResourceUnpackingError('File {} cannot be untared'.format(fetched_file))
+
+    for src, dst in zip(args.rename, args.outputs):
+        if src == 'RESOURCE':
+            src = fetched_file
+        if os.path.samefile(src, fetched_file):
+            logging.info('Copying %s to %s', src, dst)
+            hardlink_or_copy(src, dst)
+        else:
+            logging.info('Renaming %s to %s', src, dst)
+            rename_or_copy_and_remove(src, dst)
+
+    for path in args.outputs:
+        if not os.path.exists(path):
+            raise OutputNotExistError('Output does not exist: %s' % os.path.abspath(path))
+        if not os.path.isfile(path):
+            raise OutputIsDirectoryError('Output must be a file, not a directory: %s' % os.path.abspath(path))
+        if os.path.samefile(path, fetched_file):
+            remove = False
+
+    if remove:
+        os.remove(fetched_file)

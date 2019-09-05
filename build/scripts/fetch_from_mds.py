@@ -13,7 +13,6 @@ def parse_args():
     fetch_from.add_common_arguments(parser)
 
     parser.add_argument('--key', required=True)
-    parser.add_argument('--rename-to')
     parser.add_argument('--log-path')
 
     return parser.parse_args()

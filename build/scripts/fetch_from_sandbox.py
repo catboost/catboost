@@ -189,7 +189,7 @@ def main(args):
 
     fetched_file, file_name = fetch(args.resource_id, custom_fetcher)
 
-    fetch_from.process(fetched_file, file_name, args, not custom_fetcher)
+    fetch_from.process(fetched_file, file_name, args, remove=not custom_fetcher)
 
 
 if __name__ == '__main__':
