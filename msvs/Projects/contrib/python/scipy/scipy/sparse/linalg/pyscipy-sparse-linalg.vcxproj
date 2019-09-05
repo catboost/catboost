@@ -1,0 +1,388 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build" ToolsVersion="4.0">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGUID>{1E0D724B-5559-D294-8A9A-10B7033EE1A7}</ProjectGUID>
+    <Keyword>Win32Proj</Keyword>
+    <Platform>x64</Platform>
+    <ProjectName>pyscipy-sparse-linalg</ProjectName>
+    <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.default.props"/>
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>Multibyte</CharacterSet>
+    <PlatformToolset>v141</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props"/>
+  <ImportGroup Label="ArcadiaProps"/>
+  <ImportGroup Label="ExtensionSettings"/>
+  <ImportGroup Label="PropertySheets"/>
+  <PropertyGroup Label="UserMacros"/>
+  <PropertyGroup>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
+    <TargetName>pyscipy-sparse-linalg</TargetName>
+    <TargetExtention>.lib</TargetExtention>
+    <OutDir>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\1E0D724B-5559-D294-8A9A-10B7033EE1A7\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">EnableFastChecks</BasicRuntimeChecks>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DisableSpecificWarnings>4267;4244</DisableSpecificWarnings>
+      <ErrorReporting>Prompt</ErrorReporting>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Disabled</InlineFunctionExpansion>
+      <InlineFunctionExpansion Condition="'$(Configuration)|$(Platform)'=='Release|x64'">AnySuitable</InlineFunctionExpansion>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Disabled</Optimization>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">MaxSpeed</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">MultiThreadedDebug</RuntimeLibrary>
+      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Release|x64'">MultiThreaded</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <UseFullPaths>true</UseFullPaths>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DFAKEID=5020880 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOGDI /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  -DARCADIA_PYTHON_UNICODE_SIZE=2 /std:c++17  -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DFAKEID=5020880 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOGDI /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  -DARCADIA_PYTHON_UNICODE_SIZE=2 /std:c++17  -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Level4</WarningLevel>
+      <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
+      <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
+      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/python/Include;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/double-conversion/include;$(SolutionDir)../contrib/libs/openssl/include;$(SolutionDir)../contrib/libs/libf2c;$(SolutionDir)../contrib/python/numpy/numpy/core/include;$(SolutionDir)../contrib/python/numpy/numpy/f2py/src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  ws2_32.lib crypt32.lib ws2_32.lib</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  ws2_32.lib crypt32.lib ws2_32.lib</AdditionalOptions>
+      <SubSystem Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Console</SubSystem>
+      <GenerateDebugInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">DebugFastLink</GenerateDebugInformation>
+      <RandomizedBaseAddress Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</RandomizedBaseAddress>
+      <SubSystem Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Console</SubSystem>
+      <GenerateDebugInformation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Debug</GenerateDebugInformation>
+      <RandomizedBaseAddress Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</RandomizedBaseAddress>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\3e4eee9ac253b62d60654bfaec.cpp"/>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\_3e4eee9ac253b62d60654bfaec.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/f2py/src" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/_3e4eee9ac253b62d60654bfaec.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/_3e4eee9ac253b62d60654bfaec.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/f2py/src" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/_3e4eee9ac253b62d60654bfaec.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/_3e4eee9ac253b62d60654bfaec.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/scipy/scipy/sparse/linalg/_3e4eee9ac253b62d60654bfaec.py2.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\_3e4eee9ac253b62d60654bfaec.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\_3e4eee9ac253b62d60654bfaec.py2.obj;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/3e4eee9ac253b62d60654bfaec.cpp" "_d9206306c4295c239566a40126=/py_modules/scipy.sparse.linalg.__init__" "_79534d1504f6ebbb138c5d7b87=resfs/src//py_modules/scipy.sparse.linalg.__init__" "_153309797e09cd8ec8dcd0cb3b=/py_code/scipy.sparse.linalg.__init__" "_4f5b8fd2ed6b13064894fdf239=/py_modules/scipy.sparse.linalg.interface" "_7b862409a8aa3318a5cb1604e7=resfs/src//py_modules/scipy.sparse.linalg.interface" "_7ba25a16f50d159759a3e817ac=/py_code/scipy.sparse.linalg.interface" "_071e650184d4e978a3997b9362=/py_modules/scipy.sparse.linalg._onenormest" "_318ae6a5a28b7de68aa5527039=resfs/src//py_modules/scipy.sparse.linalg._onenormest" "_2284764732d9c75693972e7f67=/py_code/scipy.sparse.linalg._onenormest" "_7a2a71ed0aa3b7b4f94fcbf539=/py_modules/scipy.sparse.linalg.matfuncs" "_5c773e8089f0ebb39bc0e10107=resfs/src//py_modules/scipy.sparse.linalg.matfuncs" "_caaa0809c2c084d88ead60d946=/py_code/scipy.sparse.linalg.matfuncs" "_ae629dfa79058ffe05da254076=/py_modules/scipy.sparse.linalg._norm" "_20ceebf56824aa126d348721b2=resfs/src//py_modules/scipy.sparse.linalg._norm" "_9eec38d560ce0e9874dcfe6395=/py_code/scipy.sparse.linalg._norm" "_58f8161c3c72978f2bc2c144ed=/py_modules/scipy.sparse.linalg._expm_multiply" "_aa3a3e367bb6a5e5fc1e43dd9f=resfs/src//py_modules/scipy.sparse.linalg._expm_multiply" "_ee099a07d9733e10f11a6c0cca=/py_code/scipy.sparse.linalg._expm_multiply"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/3e4eee9ac253b62d60654bfaec.cpp" "_d9206306c4295c239566a40126=/py_modules/scipy.sparse.linalg.__init__" "_79534d1504f6ebbb138c5d7b87=resfs/src//py_modules/scipy.sparse.linalg.__init__" "_153309797e09cd8ec8dcd0cb3b=/py_code/scipy.sparse.linalg.__init__" "_4f5b8fd2ed6b13064894fdf239=/py_modules/scipy.sparse.linalg.interface" "_7b862409a8aa3318a5cb1604e7=resfs/src//py_modules/scipy.sparse.linalg.interface" "_7ba25a16f50d159759a3e817ac=/py_code/scipy.sparse.linalg.interface" "_071e650184d4e978a3997b9362=/py_modules/scipy.sparse.linalg._onenormest" "_318ae6a5a28b7de68aa5527039=resfs/src//py_modules/scipy.sparse.linalg._onenormest" "_2284764732d9c75693972e7f67=/py_code/scipy.sparse.linalg._onenormest" "_7a2a71ed0aa3b7b4f94fcbf539=/py_modules/scipy.sparse.linalg.matfuncs" "_5c773e8089f0ebb39bc0e10107=resfs/src//py_modules/scipy.sparse.linalg.matfuncs" "_caaa0809c2c084d88ead60d946=/py_code/scipy.sparse.linalg.matfuncs" "_ae629dfa79058ffe05da254076=/py_modules/scipy.sparse.linalg._norm" "_20ceebf56824aa126d348721b2=resfs/src//py_modules/scipy.sparse.linalg._norm" "_9eec38d560ce0e9874dcfe6395=/py_code/scipy.sparse.linalg._norm" "_58f8161c3c72978f2bc2c144ed=/py_modules/scipy.sparse.linalg._expm_multiply" "_aa3a3e367bb6a5e5fc1e43dd9f=resfs/src//py_modules/scipy.sparse.linalg._expm_multiply" "_ee099a07d9733e10f11a6c0cca=/py_code/scipy.sparse.linalg._expm_multiply"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/scipy/scipy/sparse/linalg/3e4eee9ac253b62d60654bfaec.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\3e4eee9ac253b62d60654bfaec.cpp;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy/scipy/sparse/linalg/__init__.py-" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/__init__.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy/scipy/sparse/linalg/_expm_multiply.py-" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/_expm_multiply.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/_expm_multiply.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy/scipy/sparse/linalg/_norm.py-" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/_norm.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/_norm.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy/scipy/sparse/linalg/_onenormest.py-" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/_onenormest.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/_onenormest.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy/scipy/sparse/linalg/interface.py-" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/interface.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/interface.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy/scipy/sparse/linalg/matfuncs.py-" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/matfuncs.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/matfuncs.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy/scipy/sparse/linalg/__init__.py-" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/__init__.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy/scipy/sparse/linalg/_expm_multiply.py-" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/_expm_multiply.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/_expm_multiply.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy/scipy/sparse/linalg/_norm.py-" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/_norm.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/_norm.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy/scipy/sparse/linalg/_onenormest.py-" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/_onenormest.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/_onenormest.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy/scipy/sparse/linalg/interface.py-" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/interface.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/interface.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy/scipy/sparse/linalg/matfuncs.py-" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/matfuncs.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/matfuncs.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/scipy/scipy/sparse/linalg/__init__.py.yapyc	$B/contrib/python/scipy/scipy/sparse/linalg/_expm_multiply.py.yapyc	$B/contrib/python/scipy/scipy/sparse/linalg/_norm.py.yapyc	$B/contrib/python/scipy/scipy/sparse/linalg/_onenormest.py.yapyc	$B/contrib/python/scipy/scipy/sparse/linalg/interface.py.yapyc	$B/contrib/python/scipy/scipy/sparse/linalg/matfuncs.py.yapyc	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\py_compile.py;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\__init__.py;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\_expm_multiply.py;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\_norm.py;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\_onenormest.py;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\interface.py;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\matfuncs.py;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\__init__.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\_expm_multiply.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\_norm.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\_onenormest.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\interface.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\matfuncs.py.yapyc;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\__init__.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/_3e4eee9ac253b62d60654bfaec.yasm" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/_d9206306c4295c239566a40126.rodata" "-" "contrib/python/scipy/scipy/sparse/linalg/__init__.py" "_79534d1504f6ebbb138c5d7b87.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/_153309797e09cd8ec8dcd0cb3b.rodata" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/interface.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/_4f5b8fd2ed6b13064894fdf239.rodata" "-" "contrib/python/scipy/scipy/sparse/linalg/interface.py" "_7b862409a8aa3318a5cb1604e7.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/interface.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/_7ba25a16f50d159759a3e817ac.rodata" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/_onenormest.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/_071e650184d4e978a3997b9362.rodata" "-" "contrib/python/scipy/scipy/sparse/linalg/_onenormest.py" "_318ae6a5a28b7de68aa5527039.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/_onenormest.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/_2284764732d9c75693972e7f67.rodata" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/matfuncs.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/_7a2a71ed0aa3b7b4f94fcbf539.rodata" "-" "contrib/python/scipy/scipy/sparse/linalg/matfuncs.py" "_5c773e8089f0ebb39bc0e10107.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/matfuncs.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/_caaa0809c2c084d88ead60d946.rodata" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/_norm.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/_ae629dfa79058ffe05da254076.rodata" "-" "contrib/python/scipy/scipy/sparse/linalg/_norm.py" "_20ceebf56824aa126d348721b2.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/_norm.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/_9eec38d560ce0e9874dcfe6395.rodata" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/_expm_multiply.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/_58f8161c3c72978f2bc2c144ed.rodata" "-" "contrib/python/scipy/scipy/sparse/linalg/_expm_multiply.py" "_aa3a3e367bb6a5e5fc1e43dd9f.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/_expm_multiply.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/_ee099a07d9733e10f11a6c0cca.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/_3e4eee9ac253b62d60654bfaec.yasm" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/_d9206306c4295c239566a40126.rodata" "-" "contrib/python/scipy/scipy/sparse/linalg/__init__.py" "_79534d1504f6ebbb138c5d7b87.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/_153309797e09cd8ec8dcd0cb3b.rodata" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/interface.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/_4f5b8fd2ed6b13064894fdf239.rodata" "-" "contrib/python/scipy/scipy/sparse/linalg/interface.py" "_7b862409a8aa3318a5cb1604e7.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/interface.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/_7ba25a16f50d159759a3e817ac.rodata" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/_onenormest.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/_071e650184d4e978a3997b9362.rodata" "-" "contrib/python/scipy/scipy/sparse/linalg/_onenormest.py" "_318ae6a5a28b7de68aa5527039.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/_onenormest.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/_2284764732d9c75693972e7f67.rodata" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/matfuncs.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/_7a2a71ed0aa3b7b4f94fcbf539.rodata" "-" "contrib/python/scipy/scipy/sparse/linalg/matfuncs.py" "_5c773e8089f0ebb39bc0e10107.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/matfuncs.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/_caaa0809c2c084d88ead60d946.rodata" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/_norm.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/_ae629dfa79058ffe05da254076.rodata" "-" "contrib/python/scipy/scipy/sparse/linalg/_norm.py" "_20ceebf56824aa126d348721b2.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/_norm.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/_9eec38d560ce0e9874dcfe6395.rodata" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/_expm_multiply.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/_58f8161c3c72978f2bc2c144ed.rodata" "-" "contrib/python/scipy/scipy/sparse/linalg/_expm_multiply.py" "_aa3a3e367bb6a5e5fc1e43dd9f.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/_expm_multiply.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/_ee099a07d9733e10f11a6c0cca.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/scipy/scipy/sparse/linalg/_3e4eee9ac253b62d60654bfaec.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\__init__.py.yapyc;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\interface.py;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\interface.py.yapyc;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\_onenormest.py;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\_onenormest.py.yapyc;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\matfuncs.py;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\matfuncs.py.yapyc;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\_norm.py;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\_norm.py.yapyc;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\_expm_multiply.py;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\_expm_multiply.py.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\_3e4eee9ac253b62d60654bfaec.yasm;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\_d9206306c4295c239566a40126.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\_153309797e09cd8ec8dcd0cb3b.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\_4f5b8fd2ed6b13064894fdf239.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\_7ba25a16f50d159759a3e817ac.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\_071e650184d4e978a3997b9362.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\_2284764732d9c75693972e7f67.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\_7a2a71ed0aa3b7b4f94fcbf539.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\_caaa0809c2c084d88ead60d946.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\_ae629dfa79058ffe05da254076.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\_9eec38d560ce0e9874dcfe6395.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\_58f8161c3c72978f2bc2c144ed.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\_ee099a07d9733e10f11a6c0cca.rodata;</Outputs>
+    </CustomBuild>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
+  <ImportGroup Label="ExtensionTargets"/>
+  <ItemGroup>
+    <ProjectReference Include="$(SolutionDir)Projects\certs\certs.vcxproj">
+      <Project>{C092F5EB-6E3B-CBC5-C723-B1E4327CB1A8}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\libffi\contrib-deprecated-libffi.vcxproj">
+      <Project>{32E78DFF-5451-B440-4B35-E627E82B514E}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cblas\contrib-libs-cblas.vcxproj">
+      <Project>{F42B3303-A85B-C579-9BF8-27924B30359B}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\clapack\contrib-libs-clapack.vcxproj">
+      <Project>{04A8455B-4404-6B67-F3CD-6366DEF170FE}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\clapack\part1\libs-clapack-part1.vcxproj">
+      <Project>{6C58A7BD-61C5-1C8D-6C74-836658D88AE1}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\clapack\part2\libs-clapack-part2.vcxproj">
+      <Project>{917DA2BF-AE17-9DD9-93C2-EE8EAF72E9BD}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\contrib-libs-cxxsupp.vcxproj">
+      <Project>{8D7C41B0-2344-C558-29D8-570B39498A2F}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\libcxx\libs-cxxsupp-libcxx.vcxproj">
+      <Project>{671FE333-6D0D-E7E3-0E1D-D4CB43CF879D}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\double-conversion\contrib-libs-double-conversion.vcxproj">
+      <Project>{1BA2A109-73A9-0A33-0C89-68ACB8229C74}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\expat\contrib-libs-expat.vcxproj">
+      <Project>{BF794ED3-B687-CE38-5FC3-A9AC59EC392B}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\libbz2\contrib-libs-libbz2.vcxproj">
+      <Project>{22D13723-C5D2-BCB5-73F8-368EA5B1CBE5}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\libf2c\contrib-libs-libf2c.vcxproj">
+      <Project>{ACC03840-E215-DC54-B209-59FA03988A57}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\openssl\contrib-libs-openssl.vcxproj">
+      <Project>{C09AB4D0-26FB-8670-4A3A-438A55553615}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\openssl\crypto\libs-openssl-crypto.vcxproj">
+      <Project>{0EED471E-D91D-9917-D1A8-550D2EBE46DB}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\python\Include\pylibs-python-Include.vcxproj">
+      <Project>{8E24FF07-6DF8-0FC3-F441-862B08F7F40E}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\python\pycontrib-libs-python.vcxproj">
+      <Project>{FAF7DF94-9999-63CD-ABB9-ED295B68DFD7}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\xxhash\contrib-libs-xxhash.vcxproj">
+      <Project>{93F9D338-B2A4-2DC4-8B30-A39701C2F9EE}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zlib\contrib-libs-zlib.vcxproj">
+      <Project>{E8A35EC0-40EE-2D96-1FB2-D065B804958D}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zstd\contrib-libs-zstd.vcxproj">
+      <Project>{0F7ECE1F-EE4E-A88C-12F5-7D1C49F1BC75}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\numpy\core\src\multiarray\pycore-src-multiarray.vcxproj">
+      <Project>{27240284-1593-7CC6-D071-39FB18DABC88}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\numpy\core\src\umath\pycore-src-umath.vcxproj">
+      <Project>{BF83B640-6F6B-4884-E087-B10DFDBE5504}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\numpy\f2py\src\pynumpy-f2py-src.vcxproj">
+      <Project>{541CE1DA-5138-B21B-EC4D-46FD99D90052}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\numpy\fft\pynumpy-numpy-fft.vcxproj">
+      <Project>{0333D85B-95E8-3188-EEAC-9ECD9E3DA5E1}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\numpy\linalg\pynumpy-numpy-linalg.vcxproj">
+      <Project>{D024E71D-9552-4094-E945-CF72AC4E5BA3}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\numpy\random\mtrand\pynumpy-random-mtrand.vcxproj">
+      <Project>{162DA5F9-DE9F-B82B-1189-842D94DE8923}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\pycontrib-python-numpy.vcxproj">
+      <Project>{A9555690-440C-5A55-6598-B6D1DB12B3ED}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\_build_utils\src\scipy-_build_utils-src.vcxproj">
+      <Project>{9AFA0B40-428F-C48C-E67A-74044B678B53}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\dsolve-SuperLU-SRC.vcxproj">
+      <Project>{AC92B73C-DFD9-89C5-C716-4F75D190323D}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\sparse\linalg\dsolve\pysparse-linalg-dsolve.vcxproj">
+      <Project>{4838AFD7-86DA-1D54-C4B9-63BD8240758F}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\eigen-arpack-ARPACK.vcxproj">
+      <Project>{664C508C-B3CE-09A9-FDFA-7158F797008B}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\pylinalg-eigen-arpack.vcxproj">
+      <Project>{57386648-0A36-D848-8A32-715D7C5D54F4}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\sparse\linalg\eigen\lobpcg\pylinalg-eigen-lobpcg.vcxproj">
+      <Project>{CB545E18-C3D5-987F-CC4F-5C69E3E5C9B5}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\sparse\linalg\eigen\pysparse-linalg-eigen.vcxproj">
+      <Project>{5790F83A-D141-630A-B5E3-B342A0342D6B}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\sparse\linalg\isolve\iterative\pylinalg-isolve-iterative.vcxproj">
+      <Project>{1CBF3342-0D61-7028-D0E1-242E2EBDDF43}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\sparse\linalg\isolve\pysparse-linalg-isolve.vcxproj">
+      <Project>{9BF90929-3C26-7571-9C92-0E250346BCC4}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\base\tools-python-base.vcxproj">
+      <Project>{EFB6D29C-74E4-D7B6-6D91-5CD9197E0E62}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\include\tools-python-include.vcxproj">
+      <Project>{1230701B-DB69-9B51-E24F-A059CB0400B3}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\lib\tools-python-lib.vcxproj">
+      <Project>{F56D05C3-DCE3-DF03-B792-75B4F5F59907}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\yasm\yasm.vcxproj">
+      <Project>{1959E211-4FF5-553B-2DD1-9BDC1CFDC107}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\blockcodecs\codecs\zstd\blockcodecs-codecs-zstd.vcxproj">
+      <Project>{AC7594FF-6F1D-C755-11B7-918627CFBD0B}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\blockcodecs\core\library-blockcodecs-core.vcxproj">
+      <Project>{BC4F6560-AAA9-63AA-0B89-2627FA172162}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\runtime\pylibrary-python-runtime.vcxproj">
+      <Project>{FDE5A173-CB03-B2D7-3278-852097280EF4}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\symbols\libc\python-symbols-libc.vcxproj">
+      <Project>{8E374D9B-CDBD-993F-45A3-F459C9A9C508}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\symbols\module\pypython-symbols-module.vcxproj">
+      <Project>{4AA4F15B-35C8-E419-38D7-A3EFCE482215}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\symbols\python\python-symbols-python.vcxproj">
+      <Project>{652F51EE-85DE-3688-41FA-4C2CDAC4C75A}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\symbols\registry\python-symbols-registry.vcxproj">
+      <Project>{BD115620-103F-AECF-8093-05A7D89F72D6}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\resource\library-resource.vcxproj">
+      <Project>{0182C1FA-B7CF-C21E-561C-06B91159C53A}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\tools\rescompressor\rescompressor.vcxproj">
+      <Project>{659583CA-86AE-A5F2-5BA3-BE5FC38B1B30}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\tools\rorescompiler\rorescompiler.vcxproj">
+      <Project>{138FDCC6-8D99-5FD2-952A-2DA00D63BE45}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\util\charset\util-charset.vcxproj">
+      <Project>{44174C28-7454-8F7D-C06B-E2E8E0B4BF9E}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\util\yutil.vcxproj">
+      <Project>{1C91E826-1D2A-B4DB-C1D2-F89E49E9BDCD}</Project>
+    </ProjectReference>
+  </ItemGroup>
+</Project>
