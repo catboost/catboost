@@ -18,9 +18,12 @@
 
 using namespace NCB;
 
-bool TFeatureMetaInfo::operator==(const TFeatureMetaInfo& rhs) const {
-    return std::tie(Type, Name, IsSparse, IsIgnored, IsAvailable) ==
-        std::tie(rhs.Type, rhs.Name, rhs.IsSparse, rhs.IsIgnored, rhs.IsAvailable);
+bool TFeatureMetaInfo::EqualTo(const TFeatureMetaInfo& rhs, bool ignoreSparsity) const {
+    if (!ignoreSparsity && (IsSparse != rhs.IsSparse)) {
+        return false;
+    }
+    return std::tie(Type, Name, IsIgnored, IsAvailable) ==
+        std::tie(rhs.Type, rhs.Name, rhs.IsIgnored, rhs.IsAvailable);
 }
 
 TFeaturesLayout::TFeaturesLayout(const ui32 featureCount)
@@ -291,15 +294,22 @@ TConstArrayRef<ui32> TFeaturesLayout::GetTextFeatureInternalIdxToExternalIdx() c
 }
 
 
-bool TFeaturesLayout::operator==(const TFeaturesLayout& rhs) const {
+bool TFeaturesLayout::EqualTo(const TFeaturesLayout& rhs, bool ignoreSparsity) const {
+    if (ExternalIdxToMetaInfo.size() != rhs.ExternalIdxToMetaInfo.size()) {
+        return false;
+    }
+    for (auto i : xrange(ExternalIdxToMetaInfo.size())) {
+        if (!ExternalIdxToMetaInfo[i].EqualTo(rhs.ExternalIdxToMetaInfo[i], ignoreSparsity)) {
+            return false;
+        }
+    }
+
     return std::tie(
-            ExternalIdxToMetaInfo,
             FeatureExternalIdxToInternalIdx,
             CatFeatureInternalIdxToExternalIdx,
             FloatFeatureInternalIdxToExternalIdx,
             TextFeatureInternalIdxToExternalIdx
         ) == std::tie(
-            rhs.ExternalIdxToMetaInfo,
             rhs.FeatureExternalIdxToInternalIdx,
             rhs.CatFeatureInternalIdxToExternalIdx,
             rhs.FloatFeatureInternalIdxToExternalIdx,

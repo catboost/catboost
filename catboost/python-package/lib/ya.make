@@ -30,6 +30,9 @@ PEERDIR(
     contrib/python/graphviz
     contrib/python/numpy
     contrib/python/pandas
+    contrib/python/scipy/scipy/integrate
+    contrib/python/scipy/scipy/sparse
+    contrib/python/scipy/scipy/special
 )
 
 IF(PYTHON2)

@@ -57,11 +57,15 @@ namespace NCB {
             , RawTargetData(std::move(rawTargetData))
         {}
 
-        bool operator==(const TDataProviderTemplate& rhs) const {
-            return (MetaInfo == rhs.MetaInfo) && (*ObjectsData == *rhs.ObjectsData) &&
+        bool EqualTo(const TDataProviderTemplate& rhs, bool ignoreSparsity = false) const {
+            return MetaInfo.EqualTo(rhs.MetaInfo, ignoreSparsity) &&
+                ObjectsData->EqualTo(*rhs.ObjectsData, ignoreSparsity) &&
                 (*ObjectsGrouping == *rhs.ObjectsGrouping) && (RawTargetData == rhs.RawTargetData);
         }
 
+        bool operator==(const TDataProviderTemplate& rhs) const {
+            return EqualTo(rhs);
+        }
 
         /*
          * if can be cast as TDataProviderTemplate<TNewObjectsDataProvider> move to object of that type and return

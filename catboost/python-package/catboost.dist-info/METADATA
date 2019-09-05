@@ -14,7 +14,8 @@ Platform: Unix
 Requires-Dist: graphviz
 Requires-Dist: matplotlib
 Requires-Dist: numpy >=1.16.0
-Requires-Dist: pandas >=0.19.1
+Requires-Dist: pandas >=0.24.0
+Requires-Dist: scipy
 Requires-Dist: plotly
 Requires-Dist: six
 {custom_requirements}

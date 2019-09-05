@@ -1,0 +1,92 @@
+LIBRARY()
+
+
+
+PEERDIR(
+    contrib/python/scipy/scipy/_build_utils/src
+)
+
+SRCS(
+    SRC/cnaupd.f
+    SRC/dnaup2.f
+    SRC/sneigh.f
+    SRC/dgetv0.f
+    SRC/snconv.f
+    SRC/znaup2.f
+    SRC/zneigh.f
+    SRC/ssaupd.f
+    SRC/sstatn.f
+    SRC/cnaup2.f
+    SRC/sstqrb.f
+    SRC/snaup2.f
+    SRC/cnaitr.f
+    SRC/dneupd.f
+    SRC/znaupd.f
+    SRC/zstatn.f
+    SRC/dseupd.f
+    SRC/dsgets.f
+    SRC/sstats.f
+    SRC/cnapps.f
+    SRC/zngets.f
+    SRC/dsaupd.f
+    SRC/dngets.f
+    SRC/ssortc.f
+    SRC/cngets.f
+    SRC/dsaitr.f
+    SRC/dnapps.f
+    SRC/zneupd.f
+    SRC/zgetv0.f
+    SRC/snaitr.f
+    SRC/dsortr.f
+    SRC/sseigt.f
+    SRC/dseigt.f
+    SRC/znapps.f
+    SRC/dstqrb.f
+    SRC/dnaitr.f
+    SRC/zsortc.f
+    SRC/cneupd.f
+    SRC/dsaup2.f
+    SRC/cneigh.f
+    SRC/cgetv0.f
+    SRC/ssaup2.f
+    SRC/ssgets.f
+    SRC/dsapps.f
+    SRC/snaupd.f
+    SRC/dsesrt.f
+    SRC/dsortc.f
+    SRC/ssesrt.f
+    SRC/dneigh.f
+    SRC/dsconv.f
+    SRC/ssapps.f
+    SRC/sngets.f
+    SRC/snapps.f
+    SRC/dstats.f
+    SRC/sseupd.f
+    SRC/ssconv.f
+    SRC/dstatn.f
+    SRC/znaitr.f
+    SRC/sgetv0.f
+    SRC/dnconv.f
+    SRC/cstatn.f
+    SRC/sneupd.f
+    SRC/csortc.f
+    SRC/ssaitr.f
+    SRC/ssortr.f
+    SRC/dnaupd.f
+    UTIL/zmout.f
+    UTIL/smout.f
+    UTIL/zvout.f
+    UTIL/svout.f
+    UTIL/icopy.f
+    UTIL/ivout.f
+    UTIL/dvout.f
+    UTIL/icnteq.f
+    UTIL/dmout.f
+    UTIL/iswap.f
+    UTIL/iset.f
+    UTIL/cvout.f
+    UTIL/cmout.f
+    UTIL/second_NONE.f
+)
+
+END()

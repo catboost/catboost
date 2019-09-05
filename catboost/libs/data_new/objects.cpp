@@ -174,10 +174,84 @@ TObjectsGrouping NCB::CreateObjectsGroupingFromGroupIds(
 }
 
 
-bool NCB::TCommonObjectsData::operator==(const NCB::TCommonObjectsData& rhs) const {
-    return (*FeaturesLayout == *rhs.FeaturesLayout) && (Order == rhs.Order) && (GroupIds == rhs.GroupIds) &&
-        (SubgroupIds == rhs.SubgroupIds) && (Timestamp == rhs.Timestamp) &&
-        ArePointeesEqual(CatFeaturesHashToString, rhs.CatFeaturesHashToString);
+static bool HaveMoreThanOneKeyOrAnyValueMismatch(
+    const THashMap<ui32, TString>& lhs,
+    const THashMap<ui32, TString>& rhs,
+    bool* haveKeyMismatch // updated
+) {
+    for (const auto& lhsElement : lhs) {
+        const auto rhsIterator = rhs.find(lhsElement.first);
+        if (rhsIterator == rhs.end()) {
+            if (*haveKeyMismatch) {
+                return true;
+            }
+            *haveKeyMismatch = true;
+        } else if (rhsIterator->second != lhsElement.second) {
+            return true;
+        }
+    }
+    return false;
+}
+
+
+static bool AreCatFeaturesHashToStringEqual(
+    TAtomicSharedPtr<TVector<THashMap<ui32, TString>>> lhsCatFeaturesHashToString,
+    TAtomicSharedPtr<TVector<THashMap<ui32, TString>>> rhsCatFeaturesHashToString,
+    bool ignoreSparsity
+) {
+    if (!lhsCatFeaturesHashToString) {
+        return !rhsCatFeaturesHashToString;
+    }
+    if (!rhsCatFeaturesHashToString) {
+        return false;
+    }
+
+    if (!ignoreSparsity) {
+        return *lhsCatFeaturesHashToString == *rhsCatFeaturesHashToString;
+    }
+
+    // compare with sparsity
+    if (lhsCatFeaturesHashToString->size() != rhsCatFeaturesHashToString->size()) {
+        return false;
+    }
+
+    // allow up to one mismatch, can't check default values precisely because we don't know their values here
+    for (auto catFeatureIdx : xrange(lhsCatFeaturesHashToString->size())) {
+        const auto& lhsCatFeatureHashToString = (*lhsCatFeaturesHashToString)[catFeatureIdx];
+        const auto& rhsCatFeatureHashToString = (*rhsCatFeaturesHashToString)[catFeatureIdx];
+
+        bool haveKeyMismatch = false;
+        if (HaveMoreThanOneKeyOrAnyValueMismatch(
+                lhsCatFeatureHashToString,
+                rhsCatFeatureHashToString,
+                &haveKeyMismatch))
+        {
+            return false;
+        }
+        if (HaveMoreThanOneKeyOrAnyValueMismatch(
+                rhsCatFeatureHashToString,
+                lhsCatFeatureHashToString,
+                &haveKeyMismatch))
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+
+bool NCB::TCommonObjectsData::EqualTo(const NCB::TCommonObjectsData& rhs, bool ignoreSparsity) const {
+    if (!AreCatFeaturesHashToStringEqual(
+        CatFeaturesHashToString,
+        rhs.CatFeaturesHashToString,
+        ignoreSparsity))
+    {
+        return false;
+    }
+
+    return FeaturesLayout->EqualTo(*rhs.FeaturesLayout, ignoreSparsity) && (Order == rhs.Order) &&
+        (GroupIds == rhs.GroupIds) && (SubgroupIds == rhs.SubgroupIds) && (Timestamp == rhs.Timestamp);
 }
 
 

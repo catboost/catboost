@@ -86,10 +86,10 @@ TDataMetaInfo::TDataMetaInfo(
     Validate();
 }
 
-bool TDataMetaInfo::operator==(const TDataMetaInfo& rhs) const {
+bool TDataMetaInfo::EqualTo(const TDataMetaInfo& rhs, bool ignoreSparsity) const {
     if (FeaturesLayout) {
         if (rhs.FeaturesLayout) {
-            if (!(*FeaturesLayout == *rhs.FeaturesLayout)) {
+            if (!FeaturesLayout->EqualTo(*rhs.FeaturesLayout, ignoreSparsity)) {
                 return false;
             }
         } else {

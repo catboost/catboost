@@ -35,6 +35,8 @@ except ImportError:
     class Series(object):
         pass
 
+import scipy.sparse
+
 
 def get_so_paths(dir_name):
     dir_name = os.path.join(os.path.dirname(__file__), dir_name)
@@ -77,6 +79,7 @@ _MetadataHashProxy = _catboost._MetadataHashProxy
 _NumpyAwareEncoder = _catboost._NumpyAwareEncoder
 FeaturesData = _catboost.FeaturesData
 _have_equal_features = _catboost._have_equal_features
+SPARSE_MATRIX_TYPES = _catboost.SPARSE_MATRIX_TYPES
 
 
 from contextlib import contextmanager  # noqa E402
@@ -391,8 +394,11 @@ class Pool(_PoolBase):
         """
         Check type of data.
         """
-        if not isinstance(data, (STRING_TYPES, ARRAY_TYPES, FeaturesData)):
-            raise CatBoostError("Invalid data type={}: data must be list(), np.ndarray(), DataFrame(), Series(), FeaturesData or filename str().".format(type(data)))
+        if not isinstance(data, (STRING_TYPES, ARRAY_TYPES, SPARSE_MATRIX_TYPES, FeaturesData)):
+            raise CatBoostError(
+                "Invalid data type={}: data must be list(), np.ndarray(), DataFrame(), Series(), FeaturesData " +
+                " scipy.sparse matrix or filename str().".format(type(data))
+            )
 
     def _check_data_empty(self, data):
         """
@@ -403,7 +409,7 @@ class Pool(_PoolBase):
         if isinstance(data, STRING_TYPES):
             if not data:
                 raise CatBoostError("Features filename is empty.")
-        elif isinstance(data, ARRAY_TYPES):
+        elif isinstance(data, (ARRAY_TYPES, SPARSE_MATRIX_TYPES)):
             data_shape = np.shape(data)
             if len(data_shape) == 1 and data_shape[0] > 0:
                 if isinstance(data[0], Iterable):
@@ -1353,12 +1359,12 @@ def _params_type_cast(params):
 
 
 def _is_data_single_object(data):
-    if isinstance(data, (Pool, FeaturesData, Series, DataFrame)):
+    if isinstance(data, (Pool, FeaturesData, Series, DataFrame) + SPARSE_MATRIX_TYPES):
         return False
     if not isinstance(data, ARRAY_TYPES):
         raise CatBoostError(
             "Invalid data type={} : must be list, numpy.ndarray, pandas.Series, pandas.DataFrame,"
-            " catboost.FeaturesData or catboost.Pool".format(type(data))
+            " scipy.sparse matrix, catboost.FeaturesData or catboost.Pool".format(type(data))
         )
     return len(np.shape(data)) == 1
 

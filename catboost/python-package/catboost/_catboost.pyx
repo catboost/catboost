@@ -21,13 +21,14 @@ import numpy as np
 cimport numpy as np
 
 import pandas as pd
+import scipy.sparse
 
 np.import_array()
 
 cimport cython
 from cython.operator cimport dereference, preincrement
 
-from libc.math cimport isnan
+from libc.math cimport isnan, modf
 from libc.stdint cimport uint32_t, uint64_t
 from libcpp cimport bool as bool_t
 from libcpp cimport nullptr
@@ -43,6 +44,19 @@ from util.generic.string cimport TString, TStringBuf
 from util.generic.vector cimport TVector
 from util.system.types cimport ui8, ui32, ui64, i64
 from util.string.cast cimport StrToD, TryFromString, ToString
+
+ctypedef const np.float32_t const_float32_t
+ctypedef const np.uint32_t const_ui32_t
+ctypedef const TString const_TString
+
+SPARSE_MATRIX_TYPES = (
+    scipy.sparse.csr_matrix,
+    scipy.sparse.coo_matrix,
+    scipy.sparse.bsr_matrix,
+    scipy.sparse.csc_matrix,
+    scipy.sparse.dok_matrix,
+    scipy.sparse.lil_matrix,
+)
 
 
 class _NumpyAwareEncoder(JSONEncoder):
@@ -121,6 +135,44 @@ cdef extern from "catboost/libs/helpers/maybe_owning_array_holder.h" namespace "
             TIntrusivePtr[IResourceHolder] resourceHolder
         )
 
+        @staticmethod
+        TMaybeOwningConstArrayHolder[T] CreateOwningWithCast[T2](TVector[T2]& data)
+
+    cdef TMaybeOwningConstArrayHolder[TDst] CreateConstOwningWithMaybeTypeCast[TDst, TSrc](
+        TMaybeOwningArrayHolder[TSrc] src
+    )
+
+cdef extern from "catboost/libs/helpers/sparse_array.h" namespace "NCB":
+    cdef cppclass TSparseArrayIndexingPtr[TSize]:
+        pass
+
+    cdef cppclass TConstSparseArray[TValue, TSize]:
+        pass
+
+    cdef TSparseArrayIndexingPtr[TSize] MakeSparseArrayIndexing[TSize](
+        TSize size,
+        TMaybeOwningConstArrayHolder[TSize] indices,
+    ) except +ProcessException
+
+    cdef TSparseArrayIndexingPtr[TSize] MakeSparseBlockIndexing[TSize](
+        TSize size,
+        TMaybeOwningConstArrayHolder[TSize] blockStarts,
+        TMaybeOwningConstArrayHolder[TSize] blockLengths
+    ) except +ProcessException
+
+    cdef TConstSparseArray[TValue, TSize] MakeConstSparseArray[TValue, TSize](
+        TSparseArrayIndexingPtr[TSize] indexing,
+        TMaybeOwningConstArrayHolder[TValue] nonDefaultValues,
+        TValue defaultValue
+    ) except +ProcessException
+
+    cdef TConstSparseArray[TValue, TSize] MakeConstSparseArrayWithArrayIndex[TValue, TSize](
+        TSize size,
+        TMaybeOwningConstArrayHolder[TSize] indexing,
+        TMaybeOwningConstArrayHolder[TValue] nonDefaultValues,
+        bool_t ordered,
+        TValue defaultValue
+    ) except +ProcessException
 
 cdef extern from "catboost/libs/options/binarization_options.h" namespace "NCatboostOptions" nogil:
     cdef cppclass TBinarizationOptions:
@@ -289,7 +341,7 @@ cdef extern from "catboost/libs/data_new/columns.h" namespace "NCB":
 cdef extern from "catboost/libs/data_new/objects.h" namespace "NCB":
     cdef cppclass TObjectsDataProvider:
         ui32 GetObjectCount()
-        bool_t operator==(const TObjectsDataProvider& rhs)
+        bool_t EqualTo(const TObjectsDataProvider& rhs, bool_t ignoreSparsity)
         TMaybeData[TConstArrayRef[TGroupId]] GetGroupIds()
         TMaybeData[TConstArrayRef[TSubgroupId]] GetSubgroupIds()
         TMaybeData[TConstArrayRef[ui64]] GetTimestamp()
@@ -465,10 +517,13 @@ cdef extern from "catboost/libs/data_new/visitor.h" namespace "NCB":
         void AddTimestamp(ui32 objectIdx, ui64 value) except +ProcessException
 
         void AddFloatFeature(ui32 flatFeatureIdx, TMaybeOwningConstArrayHolder[float] features) except +ProcessException
+        void AddFloatFeature(ui32 flatFeatureIdx, TConstSparseArray[float, ui32] features) except +ProcessException
+
         void AddCatFeature(ui32 flatFeatureIdx, TConstArrayRef[TString] feature) except +ProcessException
         void AddCatFeature(ui32 flatFeatureIdx, TConstArrayRef[TStringBuf] feature) except +ProcessException
 
         void AddCatFeature(ui32 flatFeatureIdx, TMaybeOwningConstArrayHolder[ui32] features) except +ProcessException
+        void AddCatFeature(ui32 flatFeatureIdx, TConstSparseArray[TString, ui32] features) except +ProcessException
 
         void AddTarget(TConstArrayRef[TString] value) except +ProcessException
         void AddTarget(TConstArrayRef[float] value) except +ProcessException
@@ -1483,6 +1538,8 @@ cdef all_string_types_plus_bytes = string_types + (bytes,)
 cdef _npstring_ = np.string_
 cdef _npint32 = np.int32
 cdef _npint64 = np.int64
+cdef _npuint32 = np.uint32
+cdef _npuint64 = np.uint64
 cdef _npfloat32 = np.float32
 cdef _npfloat64 = np.float64
 
@@ -1528,6 +1585,8 @@ cdef inline get_id_object_bytes_string_representation(
         bytes_string_buf_representation[0] = to_arcadia_string(id_object)
     elif obj_type is int or obj_type is long or obj_type is _npint32 or obj_type is _npint64:
         bytes_string_buf_representation[0] = ToString[i64](<i64>id_object)
+    elif obj_type is _npuint32 or obj_type is _npuint64:
+        bytes_string_buf_representation[0] = ToString[ui64](<ui64>id_object)
     elif obj_type is float or obj_type is _npfloat32 or obj_type is _npfloat64:
         double_val = <double>id_object
         if isnan(double_val) or <i64>double_val != double_val:
@@ -1541,8 +1600,7 @@ cdef inline get_id_object_bytes_string_representation(
         else:
             if isnan(id_object) or int(id_object) != id_object:
                 raise CatBoostError("bad object for id: {}".format(id_object))
-            bytes_string_buf_representation[0] = ToString[int](int(id_object))
-
+            bytes_string_buf_representation[0] = ToString[i64](int(id_object))
 
 cdef UpdateThreadCount(thread_count):
     if thread_count == -1:
@@ -1696,6 +1754,8 @@ cdef TFeaturesLayout* _init_features_layout(data, cat_features, feature_names) e
             feature_names_vector.push_back(to_arcadia_string(str(feature_name)))
             
     all_features_are_sparse = False
+    if isinstance(data, SPARSE_MATRIX_TYPES):
+        all_features_are_sparse = True
 
     return new TFeaturesLayout(
         <ui32>feature_count,
@@ -1766,41 +1826,59 @@ cdef _set_features_order_data_np(
         builder_visitor[0].AddCatFeature(dst_feature_idx, <TConstArrayRef[TString]>cat_factor_data)
         dst_feature_idx += 1
 
-
-cdef float get_float_feature(ui32 doc_idx, ui32 flat_feature_idx, src_value) except*:
+cdef float get_float_feature(ui32 non_default_doc_idx, ui32 flat_feature_idx, src_value) except*:
     try:
         return _FloatOrNan(src_value)
     except TypeError as e:
         raise CatBoostError(
-            'Bad value for num_feature[{},{}]="{}": {}'.format(
-                doc_idx,
+            'Bad value for num_feature[non_default_doc_idx={},feature_idx={}]="{}": {}'.format(
+                non_default_doc_idx,
                 flat_feature_idx,
                 src_value,
                 e
             )
         )
 
-
-cdef TIntrusivePtr[TVectorHolder[float]] create_num_factor_data(
+# returns new data holders array
+cdef create_num_factor_data(
     ui32 flat_feature_idx,
-    np.ndarray column_values
-) except*:
-    cdef TIntrusivePtr[TVectorHolder[float]] num_factor_data = new TVectorHolder[float]()
+    np.ndarray column_values,
+    TMaybeOwningConstArrayHolder[float] * result
+):
+    # two pointers are needed as a workaround for Cython assignment of derived types restrictions
+    cdef TIntrusivePtr[TVectorHolder[float]] num_factor_data
+    cdef TIntrusivePtr[IResourceHolder] num_factor_data_holder
+
+    cdef np.float32_t[::1] data_view_f32
     cdef ui32 doc_idx
 
-    num_factor_data.Get()[0].Data.resize(len(column_values))
-    for doc_idx in range(len(column_values)):
-        num_factor_data.Get()[0].Data[doc_idx] = get_float_feature(
-            doc_idx,
-            flat_feature_idx,
-            column_values[doc_idx]
+    if len(column_values) == 0:
+        result[0] = TMaybeOwningConstArrayHolder[float].CreateNonOwning(TConstArrayRef[float]())
+        return []
+    elif column_values.dtype == np.float32:
+        data_view_f32 = np.ascontiguousarray(column_values, dtype=np.float32)
+        result[0] = TMaybeOwningConstArrayHolder[float].CreateNonOwning(
+            TConstArrayRef[float](& data_view_f32[0], len(column_values))
         )
-
-    return num_factor_data
-
+        return [column_values]
+    else:
+        num_factor_data = new TVectorHolder[float]()
+        num_factor_data.Get()[0].Data.resize(len(column_values))
+        for doc_idx in range(len(column_values)):
+            num_factor_data.Get()[0].Data[doc_idx] = get_float_feature(
+                doc_idx,
+                flat_feature_idx,
+                column_values[doc_idx]
+            )
+        num_factor_data_holder.Reset(num_factor_data.Get())
+        result[0] = TMaybeOwningConstArrayHolder[float].CreateOwning(
+            <TConstArrayRef[float]>num_factor_data.Get()[0].Data,
+            num_factor_data_holder
+        )
+        return []
 
 cdef get_cat_factor_bytes_representation(
-    ui32 doc_idx,
+    int non_default_doc_idx, # can be -1 - that means default value for sparse data
     ui32 feature_idx,
     object factor,
     TString* factor_strbuf
@@ -1808,12 +1886,123 @@ cdef get_cat_factor_bytes_representation(
     try:
         get_id_object_bytes_string_representation(factor, factor_strbuf)
     except CatBoostError:
+        if non_default_doc_idx == -1:
+            doc_description = 'default value for sparse data'
+        else:
+            doc_description = 'non-default value idx={}'.format(non_default_doc_idx)
+        
         raise CatBoostError(
-            'Invalid type for cat_feature[{},{}]={} :'
+            'Invalid type for cat_feature[{},feature_idx={}]={} :'
             ' cat_features must be integer or string, real number values and NaN values'
-            ' should be converted to string.'.format(doc_idx, feature_idx, factor)
+            ' should be converted to string.'.format(doc_description, feature_idx, factor)
         )
 
+# returns new data holders array
+cdef get_canonical_type_indexing_array(np.ndarray indices, TMaybeOwningConstArrayHolder[ui32] * result):
+    cdef const np.int32_t[::1] ind_view_i32
+    cdef const np.int64_t[::1] ind_view_i64
+    
+    if len(indices) == 0:
+        result[0] = TMaybeOwningConstArrayHolder[ui32].CreateNonOwning(TConstArrayRef[ui32]())
+        return []
+    elif indices.dtype == np.int32:
+        #indices.setflags(write=0)
+        ind_view_i32 = np.ascontiguousarray(indices, dtype=np.int32)
+        result[0] = TMaybeOwningConstArrayHolder[ui32].CreateNonOwning(
+            TConstArrayRef[ui32](<ui32*>&ind_view_i32[0], len(indices))
+        )
+        return [indices]
+    elif indices.dtype == np.int64:
+        ind_view_i64 = np.ascontiguousarray(indices, dtype=np.int64)
+        result[0] = CreateConstOwningWithMaybeTypeCast[ui32, i64](
+            TMaybeOwningArrayHolder[i64].CreateNonOwning(
+                TArrayRef[i64](<i64*>&ind_view_i64[0], len(indices))
+            )
+        )
+        return []
+    else:
+        raise CatBoostError('unsupported index dtype = {}'.format(indices.dtype))
+
+# returns new data holders array
+cdef get_sparse_array_indexing(pandas_sparse_index, ui32 doc_count, TSparseArrayIndexingPtr[ui32] * result):
+    cdef TMaybeOwningConstArrayHolder[ui32] array_indices
+    cdef TMaybeOwningConstArrayHolder[ui32] block_starts
+    cdef TMaybeOwningConstArrayHolder[ui32] block_lengths
+
+    new_data_holders = []
+
+    if isinstance(pandas_sparse_index, pd._libs.sparse.IntIndex):
+        new_data_holders += get_canonical_type_indexing_array(pandas_sparse_index.indices, & array_indices)
+        result[0] = MakeSparseArrayIndexing(doc_count, array_indices)
+    elif isinstance(pandas_sparse_index, pd._libs.sparse.BlockIndex):
+        new_data_holders += get_canonical_type_indexing_array(pandas_sparse_index.blocs, & block_starts)
+        new_data_holders += get_canonical_type_indexing_array(pandas_sparse_index.blengths, & block_lengths)
+        result[0] = MakeSparseBlockIndexing(doc_count, block_starts, block_lengths)
+    else:
+        raise CatBoostError('unknown pandas sparse index type = {}'.format(type(pandas_sparse_index)))
+
+    return new_data_holders
+
+# returns new data holders array
+cdef object _set_features_order_data_pd_data_frame_sparse_column(
+    ui32 doc_count,
+    ui32 flat_feature_idx,
+    bool_t is_cat_feature,
+    object column_values, # pd.SparseArray, but Cython requires cimport to provide type here
+    TVector[TString] * cat_factor_data,  # pass from parent to avoid reallocations
+    IRawFeaturesOrderDataVisitor * builder_visitor
+):
+    cdef TSparseArrayIndexingPtr[ui32] indexing
+
+    cdef TMaybeOwningConstArrayHolder[float] num_factor_data
+
+    cdef TString factor_string
+
+    cdef int non_default_idx
+
+    new_data_holders = []
+
+    new_data_holders += get_sparse_array_indexing(column_values._sparse_index, doc_count, & indexing)
+
+    non_default_values = column_values._sparse_values
+
+    if is_cat_feature:
+        cat_factor_data[0].clear()
+        for non_default_idx in range(non_default_values.shape[0]):
+            get_cat_factor_bytes_representation(
+                non_default_idx,
+                flat_feature_idx,
+                non_default_values[non_default_idx],
+                &factor_string
+            )
+            cat_factor_data[0].push_back(factor_string)
+
+        # get default value
+        get_cat_factor_bytes_representation(
+            -1,
+            flat_feature_idx,
+            column_values.fill_value,
+            &factor_string
+        )
+
+        builder_visitor[0].AddCatFeature(
+            flat_feature_idx,
+            MakeConstSparseArray[TString, ui32](
+                indexing,
+                TMaybeOwningConstArrayHolder[TString].CreateNonOwning(
+                    <TConstArrayRef[TString]> cat_factor_data[0]
+                ),
+                factor_string
+            )
+        )
+    else:
+        new_data_holders += create_num_factor_data(flat_feature_idx, non_default_values, & num_factor_data)
+        builder_visitor[0].AddFloatFeature(
+            flat_feature_idx,
+            MakeConstSparseArray[float, ui32](indexing, num_factor_data, column_values.fill_value)
+        )
+
+    return new_data_holders
 
 # returns new data holders array
 cdef object _set_features_order_data_pd_data_frame(
@@ -1826,9 +2015,7 @@ cdef object _set_features_order_data_pd_data_frame(
 
     cdef TString factor_string
 
-    # two pointers are needed as a workaround for Cython assignment of derived types restrictions
-    cdef TIntrusivePtr[TVectorHolder[float]] num_factor_data
-    cdef TIntrusivePtr[IResourceHolder] num_factor_data_holder
+    cdef TMaybeOwningConstArrayHolder[float] num_factor_data
 
     cdef TVector[TString] cat_factor_data
     cdef ui32 doc_idx
@@ -1841,6 +2028,18 @@ cdef object _set_features_order_data_pd_data_frame(
     new_data_holders = []
     for flat_feature_idx, (column_name, column_data) in enumerate(data_frame.iteritems()):
         column_type_is_pandas_Categorical = column_data.dtype.name == 'category'
+        
+        if isinstance(column_data.dtype, pd.SparseDtype):
+            new_data_holders += _set_features_order_data_pd_data_frame_sparse_column(
+                doc_count,
+                flat_feature_idx,
+                is_cat_feature_mask[flat_feature_idx],
+                column_data.values,
+                &cat_factor_data,
+                builder_visitor
+            )
+            continue
+        
         if not column_type_is_pandas_Categorical:
             column_values = column_data.values
         if is_cat_feature_mask[flat_feature_idx]:
@@ -1854,37 +2053,13 @@ cdef object _set_features_order_data_pd_data_frame(
                 )
                 cat_factor_data.push_back(factor_string)
             builder_visitor[0].AddCatFeature(flat_feature_idx, <TConstArrayRef[TString]>cat_factor_data)
-        elif ((not column_type_is_pandas_Categorical) and
-              (column_values.dtype == np.float32) and
-              column_values.flags.aligned and
-
-              column_values.flags.c_contiguous
-            ):
-
-            new_data_holders.append(column_values)
-            column_values.setflags(write=0)
-
-            builder_visitor[0].AddFloatFeature(
-                flat_feature_idx,
-                TMaybeOwningConstArrayHolder[float].CreateNonOwning(
-                    TConstArrayRef[float](<float*>column_values.data, doc_count)
-                    if doc_count > 0
-                    else TConstArrayRef[float]()
-                )
-            )
         else:
-            num_factor_data = create_num_factor_data(
+            new_data_holders += create_num_factor_data(
                 flat_feature_idx,
-                column_values if not column_type_is_pandas_Categorical else np.asarray(column_data)
+                column_values if not column_type_is_pandas_Categorical else np.asarray(column_data),
+                &num_factor_data
             )
-            num_factor_data_holder.Reset(num_factor_data.Get())
-            builder_visitor[0].AddFloatFeature(
-                flat_feature_idx,
-                TMaybeOwningConstArrayHolder[float].CreateOwning(
-                    <TConstArrayRef[float]>num_factor_data.Get()[0].Data,
-                    num_factor_data_holder
-                )
-            )
+            builder_visitor[0].AddFloatFeature(flat_feature_idx, num_factor_data)
 
     return new_data_holders
 
@@ -1925,6 +2100,400 @@ cdef _set_data_np(
                 <TStringBuf>to_arcadia_string(cat_feature_values[doc_idx, cat_feature_idx])
             )
             dst_feature_idx += 1
+
+# scipy.sparse matrixes always have default value 0
+cdef void _set_cat_features_default_values_for_scipy_sparse(
+    const TFeaturesLayout * features_layout,
+    IRawObjectsOrderDataVisitor * builder_visitor
+):
+    cdef TString default_value = "0"
+    cdef TConstArrayRef[ui32] cat_features_flat_indices = features_layout[0].GetCatFeatureInternalIdxToExternalIdx()
+
+    for flat_feature_idx in cat_features_flat_indices:
+        builder_visitor.AddCatFeatureDefaultValue(flat_feature_idx, default_value)
+
+cdef void _get_categorical_feature_value_from_scipy_sparse(
+    int doc_idx,
+    int feature_idx,
+    value,
+    bool_t is_float_value,
+    TString * factor_string_buf,
+    TString * error_string  # non-emptiness indicates an error)
+):
+    cdef np.float64_t int_part
+    cdef np.float64_t frac_part
+
+    if is_float_value:
+        frac_part = modf(value, & int_part)
+        if frac_part != 0.0:
+            error_string[0] = (
+                TString('Invalid value for cat_feature[') + ToString(doc_idx) + ','
+                +ToString(feature_idx) + ']=' + ToString(<double>value)
+                +' cat_features must be integer or string, real number values and NaN values'
+                +' should be converted to string'
+            )
+            return
+    factor_string_buf[0] = ToString[i64](<i64>value)
+
+cdef void _add_single_feature_value_from_scipy_sparse(
+    int doc_idx,
+    int feature_idx,
+    value,
+    bool_t is_float_value,
+    TConstArrayRef[bool_t] is_cat_feature_mask,
+    TString * factor_string_buf,
+    IRawObjectsOrderDataVisitor * builder_visitor,
+    TString * error_string  # non-emptiness indicates an error
+):
+    if is_cat_feature_mask[feature_idx]:
+        _get_categorical_feature_value_from_scipy_sparse(
+            doc_idx,
+            feature_idx,
+            value,
+            is_float_value,
+            factor_string_buf,
+            error_string
+        )
+        if not error_string[0].empty():
+            return
+        builder_visitor[0].AddCatFeature(doc_idx, feature_idx, <TStringBuf>factor_string_buf[0])
+    else:
+        builder_visitor[0].AddFloatFeature(doc_idx, feature_idx, value)
+
+cdef _set_data_from_scipy_bsr_sparse(
+    data,
+    TConstArrayRef[bool_t] is_cat_feature_mask,
+    IRawObjectsOrderDataVisitor * builder_visitor,
+    TString * error_string
+):
+    data_shape = np.shape(data)
+    cdef int doc_count = data_shape[0]
+    cdef int feature_count = data_shape[1]
+
+    if doc_count == 0:
+        return
+
+    cdef int doc_block_size = data.blocksize[0]
+    cdef int feature_block_size = data.blocksize[1]
+
+    cdef int doc_block_count = doc_count // doc_block_size
+    cdef int feature_block_count = feature_count // feature_block_size
+
+    cdef TString factor_string_buf
+    cdef int doc_block_idx
+    cdef int doc_in_block_idx
+    cdef int doc_block_start_idx
+    cdef int feature_block_idx
+    cdef int feature_in_block_idx
+    cdef int feature_block_start_idx
+
+    cdef bool_t is_float_value = (data.dtype == np.float32) or (data.dtype == np.float64)
+
+    for doc_block_idx in range(doc_block_count):
+        doc_block_start_idx = doc_block_idx * doc_block_size
+        for indptr in range(data.indptr[doc_block_idx], data.indptr[doc_block_idx + 1]):
+            feature_block_idx = data.indices[indptr]
+            feature_block_start_idx = feature_block_idx * feature_block_size
+            values_block = data.data[indptr]
+            for doc_in_block_idx in range(doc_block_size):
+                for feature_in_block_idx in range(feature_block_size):
+                    _add_single_feature_value_from_scipy_sparse(
+                        doc_block_start_idx + doc_in_block_idx,
+                        feature_block_start_idx + feature_in_block_idx,
+                        values_block[doc_in_block_idx, feature_in_block_idx],
+                        is_float_value,
+                        is_cat_feature_mask,
+                        & factor_string_buf,
+                        builder_visitor,
+                        error_string
+                    )
+                    if not error_string[0].empty():
+                        return
+
+cdef _set_data_from_scipy_coo_sparse(
+    data,
+    row,
+    col,
+    TConstArrayRef[bool_t] is_cat_feature_mask,
+    IRawObjectsOrderDataVisitor * builder_visitor,
+    TString * error_string
+):
+    cdef int nonzero_count = data.shape[0]
+
+    cdef TString factor_string_buf
+    cdef int nonzero_idx
+    cdef int doc_idx
+    cdef int feature_idx
+
+    cdef bool_t is_float_value = (data.dtype == np.float32) or (data.dtype == np.float64)
+
+    for nonzero_idx in range(nonzero_count):
+        doc_idx = row[nonzero_idx]
+        feature_idx = col[nonzero_idx]
+        value = data[nonzero_idx]
+        _add_single_feature_value_from_scipy_sparse(
+            doc_idx,
+            feature_idx,
+            value,
+            is_float_value,
+            is_cat_feature_mask,
+            & factor_string_buf,
+            builder_visitor,
+            error_string
+        )
+        if not error_string[0].empty():
+            return
+
+cdef _set_data_from_scipy_csr_sparse(
+    data,
+    indices,
+    indptr,
+    TConstArrayRef[bool_t] is_cat_feature_mask,
+    IRawObjectsOrderDataVisitor * builder_visitor,
+    TString * error_string
+):
+    cdef int doc_count = indptr.shape[0] - 1
+
+    if doc_count == 0:
+        return
+
+    cdef TString factor_string_buf
+    cdef int nonzero_elements_idx
+    cdef int doc_idx
+    cdef int feature_idx
+
+    cdef bool_t is_float_value = (data.dtype == np.float32) or (data.dtype == np.float64)
+
+    for doc_idx in range(doc_count):
+        for nonzero_elements_idx in range(indptr[doc_idx], indptr[doc_idx + 1]):
+            feature_idx = indices[nonzero_elements_idx]
+            value = data[nonzero_elements_idx]
+            _add_single_feature_value_from_scipy_sparse(
+                doc_idx,
+                feature_idx,
+                value,
+                is_float_value,
+                is_cat_feature_mask,
+                & factor_string_buf,
+                builder_visitor,
+                error_string
+            )
+            if not error_string[0].empty():
+                return
+
+cdef _set_data_from_scipy_lil_sparse(
+    data,
+    TConstArrayRef[bool_t] is_cat_feature_mask,
+    IRawObjectsOrderDataVisitor * builder_visitor,
+    TString * error_string
+):
+    data_shape = np.shape(data)
+    cdef int doc_count = data_shape[0]
+
+    if doc_count == 0:
+        return
+
+    cdef TString factor_string_buf
+    cdef int doc_idx
+    cdef int feature_idx
+    cdef int nonzero_column_idx
+
+    cdef bool_t is_float_value = (data.dtype == np.float32) or (data.dtype == np.float64)
+
+    for doc_idx in range(doc_count):
+        row_indices = data.rows[doc_idx]
+        row_data = data.data[doc_idx]
+        for nonzero_column_idx in range(len(row_indices)):
+            feature_idx = row_indices[nonzero_column_idx]
+            value = row_data[nonzero_column_idx]
+            _add_single_feature_value_from_scipy_sparse(
+                doc_idx,
+                feature_idx,
+                value,
+                is_float_value,
+                is_cat_feature_mask,
+                & factor_string_buf,
+                builder_visitor,
+                error_string
+            )
+            if not error_string[0].empty():
+                return
+
+cdef _set_objects_order_data_scipy_sparse_matrix(
+    data,
+    const TFeaturesLayout * features_layout,
+    IRawObjectsOrderDataVisitor * builder_visitor
+):
+    _set_cat_features_default_values_for_scipy_sparse(features_layout, builder_visitor)
+
+    cdef TVector[bool_t] is_cat_feature_mask = _get_is_cat_feature_mask(features_layout)
+
+    cdef TString error_string
+
+    if isinstance(data, scipy.sparse.bsr_matrix):
+        _set_data_from_scipy_bsr_sparse(
+            data,
+            <TConstArrayRef[bool_t]>is_cat_feature_mask,
+            builder_visitor,
+            & error_string
+        )
+    elif isinstance(data, scipy.sparse.coo_matrix):
+        _set_data_from_scipy_coo_sparse(
+            data.data,
+            data.row,
+            data.col,
+            <TConstArrayRef[bool_t]>is_cat_feature_mask,
+            builder_visitor,
+            & error_string
+        )
+    elif isinstance(data, scipy.sparse.csr_matrix):
+        _set_data_from_scipy_csr_sparse(
+            data.data,
+            data.indices,
+            data.indptr,
+            <TConstArrayRef[bool_t]>is_cat_feature_mask,
+            builder_visitor,
+            & error_string
+        )
+    elif isinstance(data, scipy.sparse.dok_matrix):
+        coo_matrix = data.tocoo()
+        _set_data_from_scipy_coo_sparse(
+            coo_matrix.data,
+            coo_matrix.row,
+            coo_matrix.col,
+            <TConstArrayRef[bool_t]>is_cat_feature_mask,
+            builder_visitor,
+            & error_string
+        )
+    elif isinstance(data, scipy.sparse.lil_matrix):
+        _set_data_from_scipy_lil_sparse(
+            data,
+            <TConstArrayRef[bool_t]>is_cat_feature_mask,
+            builder_visitor,
+            & error_string
+        )
+
+    if not error_string.empty():
+        raise CatBoostError(error_string.c_str())
+
+# returns new data holders array
+cdef _set_features_order_data_scipy_sparse_csc_matrix(
+    ui32 doc_count,
+    data,
+    indices,
+    indptr,
+    bool_t has_sorted_indices,
+    bool_t has_num_features,
+    TConstArrayRef[bool_t] is_cat_feature_mask,
+    IRawFeaturesOrderDataVisitor * builder_visitor,
+    TString * error_string
+):
+    cdef np.float32_t float_default_value = 0.0
+    cdef TString cat_default_value = "0"
+
+    cdef ui32 feature_count = indptr.shape[0] - 1
+    cdef ui32 feature_idx
+    cdef ui32 feature_nonzero_count
+    cdef ui32 data_idx
+
+    cdef TMaybeOwningConstArrayHolder[ui32] feature_indices_holder
+
+    cdef TMaybeOwningConstArrayHolder[float] num_factor_data
+
+    cdef TString factor_string_buf
+    cdef TVector[TString] cat_feature_values
+
+    cdef bool_t is_float_value = (data.dtype == np.float32) or (data.dtype == np.float64)
+
+    cdef np.float32_t[::1] data_view_f32
+
+    new_data_holders = []
+
+    if has_num_features and (data.dtype == np.float32):
+        new_data_holders.append(data)
+
+    for feature_idx in range(feature_count):
+        feature_nonzero_count = indptr[feature_idx + 1] - indptr[feature_idx]
+        new_data_holders += get_canonical_type_indexing_array(
+            indices[indptr[feature_idx]:indptr[feature_idx + 1]],
+            &feature_indices_holder
+        )
+
+        if is_cat_feature_mask[feature_idx]:
+            cat_feature_values.clear()
+            for data_idx in range(indptr[feature_idx], indptr[feature_idx + 1]):
+                value = data[data_idx]
+                _get_categorical_feature_value_from_scipy_sparse(
+                    indices[data_idx],
+                    feature_idx,
+                    value,
+                    is_float_value,
+                    &factor_string_buf,
+                    error_string
+                )
+                if not error_string[0].empty():
+                    return
+
+                cat_feature_values.push_back(factor_string_buf)
+
+            builder_visitor[0].AddCatFeature(
+                feature_idx,
+                MakeConstSparseArrayWithArrayIndex[TString, ui32](
+                    doc_count,
+                    feature_indices_holder,
+                    TMaybeOwningConstArrayHolder[TString].CreateNonOwning(
+                        <TConstArrayRef[TString]>cat_feature_values
+                    ),
+                    has_sorted_indices,
+                    cat_default_value
+                )
+            )
+        else:
+            create_num_factor_data(
+                feature_idx,
+                data[indptr[feature_idx]:indptr[feature_idx + 1]],
+                &num_factor_data
+            )
+            builder_visitor[0].AddFloatFeature(
+                feature_idx,
+                MakeConstSparseArrayWithArrayIndex[float, ui32](
+                    doc_count,
+                    feature_indices_holder,
+                    num_factor_data,
+                    has_sorted_indices,
+                    float_default_value
+                )
+            )
+
+    return new_data_holders
+
+# returns new data holders array
+cdef _set_features_order_data_scipy_sparse_matrix(
+    data,
+    const TFeaturesLayout * features_layout,
+    IRawFeaturesOrderDataVisitor * builder_visitor
+):
+    cdef TVector[bool_t] is_cat_feature_mask = _get_is_cat_feature_mask(features_layout)
+    cdef TString error_string
+
+    new_data_holders = []
+
+    if isinstance(data, scipy.sparse.csc_matrix):
+        new_data_holders = _set_features_order_data_scipy_sparse_csc_matrix(
+            data.shape[0],
+            data.data,
+            data.indices,
+            data.indptr,
+            data.has_sorted_indices,
+            features_layout[0].GetFloatFeatureCount() != 0,
+            <TConstArrayRef[bool_t]>is_cat_feature_mask,
+            builder_visitor,
+            &error_string
+        )
+    if not error_string.empty():
+        raise CatBoostError(error_string.c_str())
+
+    return new_data_holders
 
 cdef _set_data_from_generic_matrix(
     data,
@@ -1967,11 +2536,12 @@ cdef _set_data_from_generic_matrix(
 cdef _set_data(data, const TFeaturesLayout* features_layout, IRawObjectsOrderDataVisitor* builder_visitor):
     if isinstance(data, FeaturesData):
         _set_data_np(data.num_feature_data, data.cat_feature_data, builder_visitor)
+    elif isinstance(data, np.ndarray) and data.dtype == np.float32:
+        _set_data_np(data, None, builder_visitor)
+    elif isinstance(data, SPARSE_MATRIX_TYPES):
+        _set_objects_order_data_scipy_sparse_matrix(data, features_layout, builder_visitor)
     else:
-        if isinstance(data, np.ndarray) and data.dtype == np.float32:
-            _set_data_np(data, None, builder_visitor)
-        else:
-            _set_data_from_generic_matrix(data, features_layout, builder_visitor)
+        _set_data_from_generic_matrix(data, features_layout, builder_visitor)
 
 
 cdef TString obj_to_arcadia_string(obj):
@@ -2211,6 +2781,12 @@ cdef class _PoolBase:
                 data_meta_info.FeaturesLayout.Get(),
                 builder_visitor
             )
+        elif isinstance(data, scipy.sparse.spmatrix):
+            new_data_holders = _set_features_order_data_scipy_sparse_matrix(
+                data,
+                data_meta_info.FeaturesLayout.Get(),
+                builder_visitor
+            )
         elif isinstance(data, np.ndarray) and data.dtype == np.float32:
             new_data_holders = data
             data.setflags(write=0)
@@ -2327,6 +2903,8 @@ cdef class _PoolBase:
                ):
                 do_use_raw_data_in_features_order = True
         elif isinstance(data, pd.DataFrame):
+            do_use_raw_data_in_features_order = True
+        elif isinstance(data, scipy.sparse.csc_matrix):
             do_use_raw_data_in_features_order = True
         else:
             if isinstance(data, np.ndarray) and data.dtype == np.float32:
@@ -2688,8 +3266,15 @@ cdef class _PoolBase:
         return self.num_row() == 0
 
 
-cpdef _have_equal_features(_PoolBase pool1, _PoolBase pool2):
-    return pool1.__pool.Get()[0].ObjectsData.Get()[0] == pool2.__pool.Get()[0].ObjectsData.Get()[0]
+cpdef _have_equal_features(_PoolBase pool1, _PoolBase pool2, bool_t ignore_sparsity=False):
+    """
+        ignoreSparsity means don't take into account whether columns are marked as either sparse or dense
+          - only compare values
+    """
+    return pool1.__pool.Get()[0].ObjectsData.Get()[0].EqualTo(
+        pool2.__pool.Get()[0].ObjectsData.Get()[0],
+        ignore_sparsity
+    )
 
 
 cdef TQuantizedFeaturesInfoPtr _init_quantized_feature_info(TDataProviderPtr pool, _input_borders):

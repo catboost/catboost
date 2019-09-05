@@ -80,7 +80,11 @@ namespace NCB {
             const TVector<TString>& classNames = {}
         );
 
-        bool operator==(const TDataMetaInfo& rhs) const;
+        bool EqualTo(const TDataMetaInfo& rhs, bool ignoreSparsity = false) const;
+
+        bool operator==(const TDataMetaInfo& rhs) const {
+            return EqualTo(rhs);
+        }
 
         void Validate() const;
 

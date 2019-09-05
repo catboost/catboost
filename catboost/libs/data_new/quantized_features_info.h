@@ -72,7 +72,11 @@ namespace NCB {
             bool floatFeaturesAllowNansInTestOnly = true,
             bool allowWriteFiles = true);
 
-        bool operator==(const TQuantizedFeaturesInfo& rhs) const;
+        bool EqualTo(const TQuantizedFeaturesInfo& rhs, bool ignoreSparsity = false) const;
+
+        bool operator==(const TQuantizedFeaturesInfo& rhs) const {
+            return EqualTo(rhs);
+        }
 
         int operator&(IBinSaver& binSaver);
 

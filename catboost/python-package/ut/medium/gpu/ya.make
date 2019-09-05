@@ -7,6 +7,9 @@ PYTEST()
 PEERDIR(
     contrib/python/pandas
     contrib/python/numpy
+    contrib/python/scipy/scipy/integrate
+    contrib/python/scipy/scipy/sparse
+    contrib/python/scipy/scipy/special
     library/python/pytest
     catboost/python-package/lib
     catboost/pytest/lib

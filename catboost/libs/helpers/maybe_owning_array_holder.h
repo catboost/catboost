@@ -8,6 +8,8 @@
 #include <util/generic/array_ref.h>
 #include <util/generic/cast.h>
 
+#include <type_traits>
+
 
 namespace NCB {
 
@@ -34,6 +36,13 @@ namespace NCB {
 
         template <class T2>
         static TMaybeOwningArrayHolder CreateOwning(TVector<T2>&& data) {
+            auto vectorHolder = MakeIntrusive<NCB::TVectorHolder<T2>>(std::move(data));
+            return TMaybeOwningArrayHolder(vectorHolder->Data, std::move(vectorHolder));
+        }
+
+        // for Cython that does not support move semantics
+        template <class T2>
+        static TMaybeOwningArrayHolder CreateOwningWithCast(TVector<T2>& data) {
             auto vectorHolder = MakeIntrusive<NCB::TVectorHolder<T2>>(std::move(data));
             return TMaybeOwningArrayHolder(vectorHolder->Data, std::move(vectorHolder));
         }
@@ -137,5 +146,21 @@ namespace NCB {
 
     template <class T>
     using TMaybeOwningConstArrayHolder = TMaybeOwningArrayHolder<const T>;
+
+    template <class TDst, class TSrc>
+    TMaybeOwningArrayHolder<TDst> CreateOwningWithMaybeTypeCast(TMaybeOwningArrayHolder<TSrc> src) {
+        if constexpr (std::is_same_v<std::remove_const_t<TDst>, TSrc>) {
+            return TMaybeOwningArrayHolder<TDst>::CreateOwningReinterpretCast(src);
+        } else {
+            TVector<TDst> dstData(src.begin(), src.end());
+            return TMaybeOwningArrayHolder<TDst>::CreateOwning(std::move(dstData));
+        }
+    }
+
+    // for Cython that has problems with const template parameters
+    template <class TDst, class TSrc>
+    TMaybeOwningArrayHolder<const TDst> CreateConstOwningWithMaybeTypeCast(TMaybeOwningArrayHolder<TSrc> src) {
+        return CreateOwningWithMaybeTypeCast<const TDst, TSrc>(std::move(src));
+    }
 }
 

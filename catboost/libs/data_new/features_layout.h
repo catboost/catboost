@@ -55,7 +55,11 @@ namespace NCB {
             , IsAvailable(!isIgnored && isAvailable)
         {}
 
-        bool operator==(const TFeatureMetaInfo& rhs) const;
+        bool EqualTo(const TFeatureMetaInfo& rhs, bool ignoreSparsity = false) const;
+
+        bool operator==(const TFeatureMetaInfo& rhs) const {
+            return EqualTo(rhs);
+        }
 
         SAVELOAD(Type, Name, IsSparse, IsIgnored, IsAvailable);
     };
@@ -95,7 +99,11 @@ namespace NCB {
             const TVector<TFloatFeature>& floatFeatures,
             const TVector<TCatFeature>& catFeatures);
 
-        bool operator==(const TFeaturesLayout& rhs) const;
+        bool EqualTo(const TFeaturesLayout& rhs, bool ignoreSparsity = false) const;
+
+        bool operator==(const TFeaturesLayout& rhs) const {
+            return EqualTo(rhs);
+        }
 
         SAVELOAD(
             ExternalIdxToMetaInfo,

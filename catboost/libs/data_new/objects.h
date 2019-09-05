@@ -84,7 +84,7 @@ namespace NCB {
         TAtomicSharedPtr<TVector<THashMap<ui32, TString>>> CatFeaturesHashToString; // [catFeatureIdx]
 
     public:
-        bool operator==(const TCommonObjectsData& rhs) const;
+        bool EqualTo(const TCommonObjectsData& rhs, bool ignoreSparsity = false) const;
 
         // not a constructor to enable reuse of allocated data
         void PrepareForInitialization(const TDataMetaInfo& metaInfo, ui32 objectCount, ui32 prevTailCount);
@@ -117,8 +117,17 @@ namespace NCB {
             bool skipCheck
         );
 
-        virtual bool operator==(const TObjectsDataProvider& rhs) const {
-            return (*ObjectsGrouping == *rhs.ObjectsGrouping) && (CommonData == rhs.CommonData);
+        /*
+         * ignoreSparsity means don't take into account whether columns are marked as either sparse or dense
+         *  - only compare values
+         */
+        virtual bool EqualTo(const TObjectsDataProvider& rhs, bool ignoreSparsity = false) const {
+            return (*ObjectsGrouping == *rhs.ObjectsGrouping) &&
+                CommonData.EqualTo(rhs.CommonData, ignoreSparsity);
+        }
+
+        bool operator==(const TObjectsDataProvider& rhs) const {
+            return EqualTo(rhs);
         }
 
         ui32 GetObjectCount() const {
@@ -262,12 +271,12 @@ namespace NCB {
             Data = std::move(data);
         }
 
-        bool operator==(const TObjectsDataProvider& rhs) const override {
+        bool EqualTo(const TObjectsDataProvider& rhs, bool ignoreSparsity = false) const override {
             const auto* rhsRawObjectsData = dynamic_cast<const TRawObjectsDataProvider*>(&rhs);
             if (!rhsRawObjectsData) {
                 return false;
             }
-            return TObjectsDataProvider::operator==(rhs) && (Data == rhsRawObjectsData->Data);
+            return TObjectsDataProvider::EqualTo(rhs, ignoreSparsity) && (Data == rhsRawObjectsData->Data);
         }
 
         TObjectsDataProviderPtr GetSubset(
@@ -350,6 +359,7 @@ namespace NCB {
         mutable TMaybe<ui32> CachedFeaturesCheckSum;
 
     public:
+        // ignores QuantizedFeaturesInfo, compares only features data
         bool operator==(const TQuantizedObjectsData& rhs) const;
 
         // not a constructor to enable reuse of allocated data
@@ -399,12 +409,13 @@ namespace NCB {
             Data = std::move(data);
         }
 
-        bool operator==(const TObjectsDataProvider& rhs) const override {
+        bool EqualTo(const TObjectsDataProvider& rhs, bool ignoreSparsity = false) const override {
             const auto* rhsQuantizedObjectsData = dynamic_cast<const TQuantizedObjectsDataProvider*>(&rhs);
             if (!rhsQuantizedObjectsData) {
                 return false;
             }
-            return TObjectsDataProvider::operator==(rhs) && (Data == rhsQuantizedObjectsData->Data);
+            return TObjectsDataProvider::EqualTo(rhs, ignoreSparsity) &&
+                (Data == rhsQuantizedObjectsData->Data);
         }
 
         TObjectsDataProviderPtr GetSubset(

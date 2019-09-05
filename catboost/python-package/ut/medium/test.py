@@ -1,3 +1,4 @@
+from collections import OrderedDict
 import hashlib
 import math
 import numpy as np
@@ -22,13 +23,14 @@ from catboost import (
     train,
     _have_equal_features,)
 from catboost.eval.catboost_evaluation import CatboostEvaluation, EvalType
-from catboost.utils import eval_metric, create_cd, get_roc_curve, select_threshold
+from catboost.utils import eval_metric, create_cd, read_cd, get_roc_curve, select_threshold
 from catboost.utils import DataMetaInfo, TargetStats, compute_training_options
 import os.path
 import os
-from pandas import read_csv, DataFrame, Series, Categorical
+from pandas import read_csv, DataFrame, Series, Categorical, SparseArray
 from six import PY3
 from six.moves import xrange
+import scipy.sparse
 
 
 from catboost_pytest_lib import (
@@ -40,6 +42,7 @@ from catboost_pytest_lib import (
     remove_time_from_json,
     test_output_path,
     generate_random_labeled_set,
+    load_dataset_as_dataframe,
     load_pool_features_as_df
 )
 
@@ -93,6 +96,14 @@ SMALL_CATEGORIAL_CD_FILE = data_file('small_categorial', 'train.cd')
 BLACK_FRIDAY_TRAIN_FILE = data_file('black_friday', 'train')
 BLACK_FRIDAY_TEST_FILE = data_file('black_friday', 'test')
 BLACK_FRIDAY_CD_FILE = data_file('black_friday', 'cd')
+
+HIGGS_TRAIN_FILE = data_file('higgs', 'train_small')
+HIGGS_TEST_FILE = data_file('higgs', 'test_small')
+HIGGS_CD_FILE = data_file('higgs', 'train.cd')
+
+AIRLINES_ONEHOT_TRAIN_FILE = data_file('airlines_onehot_250', 'train_small')
+AIRLINES_ONEHOT_TEST_FILE = data_file('airlines_onehot_250', 'test_small')
+AIRLINES_ONEHOT_CD_FILE = data_file('airlines_onehot_250', 'train.cd')
 
 OUTPUT_MODEL_PATH = 'model.bin'
 OUTPUT_COREML_MODEL_PATH = 'model.mlmodel'
@@ -5342,3 +5353,252 @@ def test_save_quantized_pool():
     predictions2 = model_fitted_with_load_quantized_pool.predict(test_pool)
 
     assert all(predictions1 == predictions2)
+
+
+# returns dict with 'train_file', 'test_file', 'data_files_have_header', 'cd_file', 'loss_function' keys
+def get_dataset_specification_for_sparse_input_tests():
+    return {
+        'adult': {
+            'train_file': TRAIN_FILE,
+            'test_file': TEST_FILE,
+            'data_files_have_header': False,
+            'cd_file': CD_FILE,
+            'loss_function': 'Logloss'
+        },
+        'airlines_5k': {
+            'train_file': AIRLINES_5K_TRAIN_FILE,
+            'test_file': AIRLINES_5K_TEST_FILE,
+            'data_files_have_header': True,
+            'cd_file': AIRLINES_5K_CD_FILE,
+            'loss_function': 'Logloss'
+        },
+        'airlines_onehot_250': {
+            'train_file': AIRLINES_ONEHOT_TRAIN_FILE,
+            'test_file': AIRLINES_ONEHOT_TEST_FILE,
+            'data_files_have_header': False,
+            'cd_file': AIRLINES_ONEHOT_CD_FILE,
+            'loss_function': 'Logloss'
+        },
+        'black_friday': {
+            'train_file': BLACK_FRIDAY_TRAIN_FILE,
+            'test_file': BLACK_FRIDAY_TEST_FILE,
+            'data_files_have_header': True,
+            'cd_file': BLACK_FRIDAY_CD_FILE,
+            'loss_function': 'RMSE'
+        },
+        'cloudness_small': {
+            'train_file': CLOUDNESS_TRAIN_FILE,
+            'test_file': CLOUDNESS_TEST_FILE,
+            'data_files_have_header': False,
+            'cd_file': CLOUDNESS_CD_FILE,
+            'loss_function': 'MultiClass'
+        },
+        'higgs': {
+            'train_file': HIGGS_TRAIN_FILE,
+            'test_file': HIGGS_TEST_FILE,
+            'data_files_have_header': False,
+            'cd_file': HIGGS_CD_FILE,
+            'loss_function': 'Logloss'
+        },
+        'querywise': {
+            'train_file': QUERYWISE_TRAIN_FILE,
+            'test_file': QUERYWISE_TEST_FILE,
+            'data_files_have_header': False,
+            'cd_file': QUERYWISE_CD_FILE,
+            'loss_function': 'RMSE'
+        },
+    }
+
+
+# this is needed because scipy.sparse matrix types do not support non-numerical data
+def convert_cat_columns_to_hashed(src_features_dataframe):
+    def create_hashed_categorical_column(src_column):
+        hashed_column = []
+        for value in src_column:
+            hashed_column.append(np.uint32(hash(value)))
+        return hashed_column
+
+    new_columns_data = OrderedDict()
+    for column_name, column_data in src_features_dataframe.iteritems():
+        if column_data.dtype.name == 'category':
+            new_columns_data[column_name] = create_hashed_categorical_column(column_data)
+        else:
+            new_columns_data[column_name] = column_data
+
+    return DataFrame(new_columns_data)
+
+
+@pytest.mark.parametrize('dataset', get_dataset_specification_for_sparse_input_tests().keys())
+def test_pools_equal_on_dense_and_scipy_sparse_input(dataset):
+    metadata = get_dataset_specification_for_sparse_input_tests()[dataset]
+
+    columns_metadata = read_cd(
+        metadata['cd_file'],
+        data_file=metadata['train_file'],
+        canonize_column_types=True
+    )
+
+    data = load_dataset_as_dataframe(
+        metadata['train_file'],
+        columns_metadata,
+        has_header=metadata['data_files_have_header']
+    )
+
+    data['features'] = convert_cat_columns_to_hashed(data['features'])
+
+    dense_pool = Pool(
+        data['features'],
+        label=data['target'],
+        cat_features=columns_metadata['cat_feature_indices']
+    )
+
+    canon_sparse_pool = None
+
+    sparse_matrix_types = [
+        scipy.sparse.csr_matrix,
+        scipy.sparse.bsr_matrix,
+        scipy.sparse.coo_matrix,
+        scipy.sparse.csc_matrix,
+        scipy.sparse.dok_matrix,
+        scipy.sparse.lil_matrix
+    ]
+
+    for sparse_matrix_type in sparse_matrix_types:
+        sparse_features = sparse_matrix_type(data['features'])
+
+        sparse_pool = Pool(
+            sparse_features,
+            label=data['target'],
+            feature_names=list(data['features'].columns),
+            cat_features=columns_metadata['cat_feature_indices']
+        )
+
+        if canon_sparse_pool is None:
+            canon_sparse_pool = sparse_pool
+            assert _have_equal_features(dense_pool, sparse_pool, True)
+        else:
+            assert _have_equal_features(sparse_pool, canon_sparse_pool, False)
+
+
+# pandas has NaN value indicating missing values by default,
+# NaNs in categorical values are not supported by CatBoost
+def make_catboost_compatible_categorical_missing_values(src_features_dataframe):
+    new_columns_data = OrderedDict()
+    for column_name, column_data in src_features_dataframe.iteritems():
+        if column_data.dtype.name == 'category':
+            column_data = column_data.cat.add_categories('').fillna('')
+
+        new_columns_data[column_name] = column_data
+
+    return DataFrame(new_columns_data)
+
+
+def convert_to_sparse(src_features_dataframe, indexing_kind):
+    new_columns_data = OrderedDict()
+    for column_name, column_data in src_features_dataframe.iteritems():
+        if column_data.dtype.name == 'category':
+            fill_value = ''
+        else:
+            fill_value = 0.0
+
+        new_columns_data[column_name] = SparseArray(column_data, fill_value=fill_value, kind=indexing_kind)
+
+    return DataFrame(new_columns_data)
+
+
+@pytest.mark.parametrize('dataset', get_dataset_specification_for_sparse_input_tests().keys())
+@pytest.mark.parametrize('indexing_kind', ['integer', 'block'])
+def test_pools_equal_on_pandas_dense_and_sparse_input(dataset, indexing_kind):
+    metadata = get_dataset_specification_for_sparse_input_tests()[dataset]
+
+    columns_metadata = read_cd(
+        metadata['cd_file'],
+        data_file=metadata['train_file'],
+        canonize_column_types=True
+    )
+
+    data = load_dataset_as_dataframe(
+        metadata['train_file'],
+        columns_metadata,
+        has_header=metadata['data_files_have_header']
+    )
+
+    data['features'] = make_catboost_compatible_categorical_missing_values(data['features'])
+
+    dense_pool = Pool(
+        data['features'],
+        label=data['target'],
+        cat_features=columns_metadata['cat_feature_indices']
+    )
+
+    sparse_pool = Pool(
+        convert_to_sparse(data['features'], indexing_kind),
+        label=data['target'],
+        cat_features=columns_metadata['cat_feature_indices']
+    )
+
+    assert _have_equal_features(dense_pool, sparse_pool, True)
+
+
+@pytest.mark.parametrize('dataset', get_dataset_specification_for_sparse_input_tests().keys())
+@pytest.mark.parametrize('indexing_kind', ['integer', 'block'])
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+def test_training_and_prediction_equal_on_pandas_dense_and_sparse_input(task_type, dataset, indexing_kind, boosting_type):
+    metadata = get_dataset_specification_for_sparse_input_tests()[dataset]
+
+    if (task_type == 'GPU') and (boosting_type == 'Ordered') and (metadata['loss_function'] == 'MultiClass'):
+        return pytest.xfail(reason="On GPU loss MultiClass can't be used with ordered boosting")
+
+    columns_metadata = read_cd(
+        metadata['cd_file'],
+        data_file=metadata['train_file'],
+        canonize_column_types=True
+    )
+
+    def get_dense_and_sparse_pools(data_file):
+        data = load_dataset_as_dataframe(
+            data_file,
+            columns_metadata,
+            has_header=metadata['data_files_have_header']
+        )
+
+        data['features'] = make_catboost_compatible_categorical_missing_values(data['features'])
+
+        dense_pool = Pool(
+            data['features'],
+            label=data['target'],
+            cat_features=columns_metadata['cat_feature_indices']
+        )
+
+        sparse_pool = Pool(
+            convert_to_sparse(data['features'], indexing_kind),
+            label=data['target'],
+            feature_names=list(data['features'].columns),
+            cat_features=columns_metadata['cat_feature_indices']
+        )
+
+        return dense_pool, sparse_pool
+
+    dense_train_pool, sparse_train_pool = get_dense_and_sparse_pools(metadata['train_file'])
+    dense_test_pool, sparse_test_pool = get_dense_and_sparse_pools(metadata['test_file'])
+
+    params = {
+        'task_type': task_type,
+        'loss_function': metadata['loss_function'],
+        'iterations': 5,
+        'boosting_type': boosting_type
+    }
+
+    model_on_dense = CatBoost(params=params)
+    model_on_dense.fit(dense_train_pool, eval_set=dense_test_pool)
+    predictions_on_dense = model_on_dense.predict(dense_test_pool)
+
+    model_on_sparse = CatBoost(params=params)
+    model_on_sparse.fit(sparse_train_pool, eval_set=sparse_test_pool)
+    predictions_model_on_sparse_on_dense_pool = model_on_sparse.predict(dense_test_pool)
+
+    assert _check_data(predictions_on_dense, predictions_model_on_sparse_on_dense_pool)
+
+    predictions_model_on_sparse_on_sparse_pool = model_on_sparse.predict(sparse_test_pool)
+
+    assert _check_data(predictions_on_dense, predictions_model_on_sparse_on_sparse_pool)

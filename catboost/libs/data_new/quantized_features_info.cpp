@@ -102,8 +102,8 @@ namespace NCB {
     }
 
 
-    bool TQuantizedFeaturesInfo::operator==(const TQuantizedFeaturesInfo& rhs) const {
-        return (*FeaturesLayout == *rhs.FeaturesLayout) &&
+    bool TQuantizedFeaturesInfo::EqualTo(const TQuantizedFeaturesInfo& rhs, bool ignoreSparsity) const {
+        return FeaturesLayout->EqualTo(*rhs.FeaturesLayout, ignoreSparsity) &&
             (CommonFloatFeaturesBinarization == rhs.CommonFloatFeaturesBinarization) &&
             (PerFloatFeatureQuantization == rhs.PerFloatFeatureQuantization) &&
             ApproximatelyEqualQuantization(Quantization, rhs.Quantization) && (NanModes == rhs.NanModes) &&
