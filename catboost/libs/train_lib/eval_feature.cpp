@@ -11,6 +11,7 @@
 #include <catboost/libs/algo/preprocess.h>
 #include <catboost/libs/algo/roc_curve.h>
 #include <catboost/libs/algo/train.h>
+#include <catboost/libs/fstr/output_fstr.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/parallel_tasks.h>
 #include <catboost/libs/helpers/restorable_rng.h>
@@ -592,6 +593,8 @@ void EvaluateFeatures(
 
         const auto iterationCount = catBoostOptions.BoostingOptions->IterationCount.Get();
         const auto topLevelTrainDir = outputFileOptions.GetTrainDir();
+        const bool isCalcFstr = outputFileOptions.CreateFstrRegularFullPath() || outputFileOptions.CreateFstrIternalFullPath();
+
         for (auto foldIdx : xrange(foldCount)) {
             THPTimer timer;
             TErrorTracker errorTracker = CreateErrorTracker(
@@ -625,6 +628,21 @@ void EvaluateFeatures(
             );
             CATBOOST_INFO_LOG << "Fold " << (*foldContexts)[foldIdx].FoldIdx << ": model built in " <<
                 FloatToString(timer.Passed(), PREC_NDIGITS, 2) << " sec" << Endl;
+
+            if (isCalcFstr) {
+                auto foldOutputOptions = outputFileOptions;
+                foldOutputOptions.SetTrainDir(JoinFsPaths(topLevelTrainDir, foldTrainDir));
+                const auto foldRegularFstrPath = foldOutputOptions.CreateFstrRegularFullPath();
+                const auto foldInternalFstrPath = foldOutputOptions.CreateFstrIternalFullPath();
+                const auto& model = (*foldContexts)[foldIdx].FullModel.GetRef();
+                CalcAndOutputFstr(
+                    model,
+                    /*dataset*/nullptr,
+                    &NPar::LocalExecutor(),
+                    foldRegularFstrPath ? &foldRegularFstrPath : nullptr,
+                    foldInternalFstrPath ? &foldInternalFstrPath : nullptr,
+                    outputFileOptions.GetFstrType());
+            }
         }
 
         for (auto foldIdx : xrange(foldCount)) {
