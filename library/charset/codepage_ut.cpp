@@ -365,58 +365,58 @@ static void TestCanEncodeEach(const TWtringBuf& text, ECharset encoding, bool ex
 void TCodepageTest::TestCanEncode() {
     TestCanEncodeEmpty();
 
-    const TUtf16String lat = TUtf16String::FromAscii("AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz");
+    const TUtf16String lat = u"AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz";
     TestCanEncodeEach(lat, CODES_WIN, true);
     TestCanEncodeEach(lat, CODES_YANDEX, true);
     TestCanEncodeEach(lat, CODES_UTF8, true);
 
-    const TUtf16String rus = TUtf16String::FromUtf8("АаБбВвГгДдЕеЁёЖжЗзИиЙйКкЛлМмНнОоПпРрСсТтУуФфХхЦцЧчШшЩщЪъЫыЬьЭэЮюЯя");
+    const TUtf16String rus = u"АаБбВвГгДдЕеЁёЖжЗзИиЙйКкЛлМмНнОоПпРрСсТтУуФфХхЦцЧчШшЩщЪъЫыЬьЭэЮюЯя";
     TestCanEncodeEach(rus, CODES_WIN, true);
     TestCanEncodeEach(rus, CODES_YANDEX, true);
     TestCanEncodeEach(rus, CODES_UTF8, true);
 
-    const TUtf16String ukr = TUtf16String::FromUtf8("ҐґЄєІіЇї");
+    const TUtf16String ukr = u"ҐґЄєІіЇї";
     TestCanEncodeEach(ukr, CODES_WIN, true);
     TestCanEncodeEach(ukr, CODES_YANDEX, true);
     TestCanEncodeEach(ukr, CODES_UTF8, true);
 
-    const TUtf16String pol = TUtf16String::FromUtf8("ĄĆĘŁŃÓŚŹŻąćęłńóśźż");
+    const TUtf16String pol = u"ĄĆĘŁŃÓŚŹŻąćęłńóśźż";
     TestCanEncodeEach(pol, CODES_WIN, false);
     TestCanEncodeEach(pol, CODES_YANDEX, true);
     TestCanEncodeEach(pol, CODES_UTF_16BE, true);
 
-    const TUtf16String ger = TUtf16String::FromUtf8("ÄäÖöÜüß");
+    const TUtf16String ger = u"ÄäÖöÜüß";
     TestCanEncodeEach(ger, CODES_WIN, false);
     TestCanEncodeEach(ger, CODES_YANDEX, true);
     TestCanEncodeEach(ger, CODES_UTF_16LE, true);
 
-    const TUtf16String fra1 = TUtf16String::FromUtf8("éàèùâêîôûëïç"); // supported in yandex cp
-    const TUtf16String fra2 = TUtf16String::FromUtf8("ÉÀÈÙÂÊÎÔÛËÏŸÿÇ");
-    const TUtf16String fra3 = TUtf16String::FromUtf8("ÆæŒœ");
+    const TUtf16String fra1 = u"éàèùâêîôûëïç"; // supported in yandex cp
+    const TUtf16String fra2 = u"ÉÀÈÙÂÊÎÔÛËÏŸÿÇ";
+    const TUtf16String fra3 = u"ÆæŒœ";
     TestCanEncodeEach(fra1 + fra2 + fra3, CODES_WIN, false);
     TestCanEncodeEach(fra1, CODES_YANDEX, true);
     TestCanEncodeEach(fra2 + fra3, CODES_YANDEX, false);
     TestCanEncodeEach(fra1 + fra2 + fra3, CODES_UTF8, true);
 
-    const TUtf16String kaz = TUtf16String::FromUtf8("ӘәҒғҚқҢңӨөҰұҮүҺһ");
+    const TUtf16String kaz = u"ӘәҒғҚқҢңӨөҰұҮүҺһ";
     TestCanEncodeEach(kaz, CODES_WIN, false);
     TestCanEncodeEach(kaz, CODES_YANDEX, false);
     TestCanEncodeEach(kaz, CODES_UTF8, true);
     TestCanEncodeEach(kaz, CODES_KAZWIN, true);
 
-    const TUtf16String tur1 = TUtf16String::FromUtf8("ĞİŞğş");
-    const TUtf16String tur = tur1 + TUtf16String::FromUtf8("ı");
+    const TUtf16String tur1 = u"ĞİŞğş";
+    const TUtf16String tur = tur1 + u"ı";
     TestCanEncodeEach(tur, CODES_WIN, false);
     TestCanEncodeEach(tur, CODES_YANDEX, false);
     TestCanEncodeEach(tur, CODES_UTF8, true);
 
-    const TUtf16String chi = TUtf16String::FromUtf8("新隶体新隸體");
+    const TUtf16String chi = u"新隶体新隸體";
     TestCanEncodeEach(chi, CODES_WIN, false);
     TestCanEncodeEach(chi, CODES_YANDEX, false);
     TestCanEncodeEach(chi, CODES_UTF8, true);
     TestCanEncodeEach(chi, CODES_UTF_16LE, true);
 
-    const TUtf16String jap = TUtf16String::FromUtf8("漢字仮字交じり文");
+    const TUtf16String jap = u"漢字仮字交じり文";
     TestCanEncodeEach(jap, CODES_WIN, false);
     TestCanEncodeEach(jap, CODES_YANDEX, false);
     TestCanEncodeEach(jap, CODES_UTF8, true);
