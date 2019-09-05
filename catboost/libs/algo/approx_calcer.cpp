@@ -21,12 +21,12 @@
 #include <catboost/libs/logging/profile_info.h>
 #include <catboost/libs/options/catboost_options.h>
 #include <catboost/libs/options/enum_helpers.h>
+#include <catboost/libs/functools/forward_as_const.h>
 
 #include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/ymath.h>
-
 
 template <bool StoreExpApprox, int VectorWidth>
 inline void UpdateApproxKernel(const double* leafDeltas, const TIndexType* indices, double* deltasDimension) {
@@ -499,61 +499,15 @@ static void UpdateApproxDeltasHistoricallyImpl(
             approxDeltas[rowIdx] = UpdateApprox<UseExpApprox>(approxDeltas[rowIdx], approxDelta);
         }
     };
-    constexpr auto encodeParams = [] (ELeavesEstimation method, bool useExpApprox, bool useWeights) {
-        return (method == ELeavesEstimation::Newton) * 4 + useExpApprox * 2 + useWeights;
-    };
-    Y_ASSERT(estimationMethod == ELeavesEstimation::Gradient || estimationMethod == ELeavesEstimation::Newton);
-    switch (encodeParams(estimationMethod, useExpApprox, !weights.empty())) {
-        case encodeParams(ELeavesEstimation::Gradient, false, false):
-            return impl(
-                std::integral_constant<ELeavesEstimation, ELeavesEstimation::Gradient>(),
-                std::false_type(),
-                std::false_type()
-            );
-        case encodeParams(ELeavesEstimation::Gradient, false, true):
-            return impl(
-                std::integral_constant<ELeavesEstimation, ELeavesEstimation::Gradient>(),
-                std::false_type(),
-                std::true_type()
-            );
-        case encodeParams(ELeavesEstimation::Gradient, true, false):
-            return impl(
-                std::integral_constant<ELeavesEstimation, ELeavesEstimation::Gradient>(),
-                std::true_type(),
-                std::false_type()
-            );
-        case encodeParams(ELeavesEstimation::Gradient, true, true):
-            return impl(
-                std::integral_constant<ELeavesEstimation, ELeavesEstimation::Gradient>(),
-                std::true_type(),
-                std::true_type()
-            );
-        case encodeParams(ELeavesEstimation::Newton, false, false):
-            return impl(
-                std::integral_constant<ELeavesEstimation, ELeavesEstimation::Newton>(),
-                std::false_type(),
-                std::false_type()
-            );
-        case encodeParams(ELeavesEstimation::Newton, false, true):
-            return impl(
-                std::integral_constant<ELeavesEstimation, ELeavesEstimation::Newton>(),
-                std::false_type(),
-                std::true_type()
-            );
-        case encodeParams(ELeavesEstimation::Newton, true, false):
-            return impl(
-                std::integral_constant<ELeavesEstimation, ELeavesEstimation::Newton>(),
-                std::true_type(),
-                std::false_type()
-            );
-        case encodeParams(ELeavesEstimation::Newton, true, true):
-            return impl(
-                std::integral_constant<ELeavesEstimation, ELeavesEstimation::Newton>(),
-                std::true_type(),
-                std::true_type()
-            );
-    }
-    Y_ASSERT(false);
+    using TAllowedLeavesEstimation = TIntOption<
+        ELeavesEstimation, ELeavesEstimation::Newton, ELeavesEstimation::Gradient
+    >;
+    return ForwardArgsAsIntegralConst(
+        impl,
+        TAllowedLeavesEstimation(estimationMethod),
+        useExpApprox,
+        !weights.empty()
+    );
 }
 
 static void UpdateApproxDeltasHistorically(
