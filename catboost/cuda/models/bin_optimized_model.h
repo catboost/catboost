@@ -13,6 +13,7 @@ namespace NCatboostCuda {
         virtual ui32 OutputDim() const = 0;
 
         virtual void Rescale(double scale) = 0;
+        virtual void ShiftLeafValues(double shift) = 0;
 
         virtual void UpdateWeights(const TVector<double>& newWeights) = 0;
         virtual void UpdateLeaves(const TVector<float>& newLeaves) = 0;

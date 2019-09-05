@@ -140,9 +140,15 @@ namespace NCatboostCuda {
             return ModelStructure;
         }
 
-        void Rescale(double scale) {
+        void Rescale(double scale) override final {
             for (ui32 i = 0; i < LeafValues.size(); ++i) {
                 LeafValues[i] *= scale;
+            }
+        }
+
+        void ShiftLeafValues(double shift) override final {
+            for (ui32 i = 0; i < LeafValues.size(); ++i) {
+                LeafValues[i] += shift;
             }
         }
 

@@ -519,6 +519,7 @@ namespace NCatboostCuda {
             TVector<TVector<TFold>> PermutationFolds;
 
             THolder<TVec> BestTestCursor;
+            TMaybe<float> StartingPoint;
 
             ui32 GetEstimationPermutation() const {
                 return DataSets.PermutationsCount() - 1;
@@ -530,14 +531,13 @@ namespace NCatboostCuda {
             state->DataSets = CreateDataSet();
             state->Targets = CreateTargets(state->DataSets);
 
-            float startingPoint = 0.0f;
             if (CatBoostOptions.BoostingOptions->BoostFromAverage.Get()) {
                 // we have already checked that lossfunction is RMSE in boosting_options.cpp
                 CB_ENSURE(!DataProvider->TargetData->GetBaseline(),
                     "You can't use boost_from_average with baseline now.");
                 CB_ENSURE(!TestDataProvider || !TestDataProvider->TargetData->GetBaseline(),
                     "You can't use boost_from_average with baseline now.");
-                startingPoint = CalculateWeightedTargetAverage(*DataProvider->TargetData);
+                state->StartingPoint = CalculateWeightedTargetAverage(*DataProvider->TargetData);
             }
 
             const ui32 estimationPermutation = state->DataSets.PermutationsCount() - 1;
@@ -554,7 +554,7 @@ namespace NCatboostCuda {
                 if (DataProvider->MetaInfo.BaselineCount > 0) {
                     baseline = permutation.Gather((*DataProvider->TargetData->GetBaseline())[0]);
                 } else {
-                    baseline.resize(DataProvider->GetObjectCount(), startingPoint);
+                    baseline.resize(DataProvider->GetObjectCount(), state->StartingPoint.GetOrElse(0.0f));
                 }
 
                 folds = CreateFolds(state->Targets.GetTarget(i),
@@ -576,7 +576,7 @@ namespace NCatboostCuda {
                 if (DataProvider->MetaInfo.BaselineCount > 0) {
                     baseline = permutation.Gather((*DataProvider->TargetData->GetBaseline())[0]);
                 } else {
-                    baseline.resize(DataProvider->GetObjectCount(), startingPoint);
+                    baseline.resize(DataProvider->GetObjectCount(), state->StartingPoint.GetOrElse(0.0f));
                 }
 
                 state->Cursor.Estimation = TMirrorBuffer<float>::CopyMapping(state->DataSets.GetDataSetForPermutation(estimationPermutation).GetTarget().GetTargets());
@@ -589,7 +589,7 @@ namespace NCatboostCuda {
                 if (TestDataProvider->MetaInfo.BaselineCount > 0) {
                     state->TestCursor.Write((*TestDataProvider->TargetData->GetBaseline())[0]);
                 } else {
-                    FillBuffer(state->TestCursor, startingPoint);
+                    FillBuffer(state->TestCursor, state->StartingPoint.GetOrElse(0.0f));
                 }
             }
 
@@ -630,6 +630,7 @@ namespace NCatboostCuda {
                 TestDataProvider ? &state->TestCursor : nullptr,
                 state->BestTestCursor.Get(),
                 resultModel.Get());
+            resultModel->ShiftFirstWeakModelValues(state->StartingPoint.GetOrElse(0.0f));
             return resultModel;
         }
 

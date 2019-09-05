@@ -73,6 +73,8 @@ namespace NCatboostCuda {
             TVector<TCursor> Cursors;
             TVec TestCursor;
             THolder<TVec> BestTestCursor;
+            TMaybe<float> StartingPoint;
+
             void CopyFrom(const TBoostingCursors& other) {
                 Cursors.resize(other.Cursors.size());
                 for (ui32 idx : xrange(other.Cursors.size())) {
@@ -140,14 +142,13 @@ namespace NCatboostCuda {
             const ui32 permutationCount = inputData.Targets.size();
             const ui32 approxDim = inputData.Targets[0]->GetDim();
 
-            float startingPoint = 0.0f;
             if (CatBoostOptions.BoostingOptions->BoostFromAverage.Get()) {
                 // we have already checked that lossfunction is RMSE in boosting_options.cpp
                 CB_ENSURE(!DataProvider->TargetData->GetBaseline(),
                     "You can't use boost_from_average with baseline now.");
                 CB_ENSURE(!TestDataProvider || !TestDataProvider->TargetData->GetBaseline(),
                     "You can't use boost_from_average with baseline now.");
-                startingPoint = CalculateWeightedTargetAverage(*DataProvider->TargetData);
+                cursors->StartingPoint = CalculateWeightedTargetAverage(*DataProvider->TargetData);
             }
 
             for (ui32 i = 0; i < permutationCount; ++i) {
@@ -172,7 +173,7 @@ namespace NCatboostCuda {
                         cursors->Cursors[i].ColumnView(dim).Write(baseline);
                     }
                 } else {
-                    FillBuffer(cursors->Cursors[i], startingPoint);
+                    FillBuffer(cursors->Cursors[i], cursors->StartingPoint.GetOrElse(0.0f));
                 }
             }
 
@@ -195,7 +196,7 @@ namespace NCatboostCuda {
                         cursors->TestCursor.ColumnView(dim).Write(baseline);
                     }
                 } else {
-                    FillBuffer(cursors->TestCursor, startingPoint);
+                    FillBuffer(cursors->TestCursor, cursors->StartingPoint.GetOrElse(0.0f));
                 }
             }
 
@@ -497,8 +498,9 @@ namespace NCatboostCuda {
                 &models,
                 cursors->BestTestCursor.Get()
             );
-
-            return new TResultModel(models[inputData->GetEstimationPermutation()]);
+            auto& modelToExport = models[inputData->GetEstimationPermutation()];
+            modelToExport.ShiftFirstWeakModelValues(cursors->StartingPoint.GetOrElse(0.0f));
+            return new TResultModel(modelToExport);
         }
 
         void RunModelBasedEval() {

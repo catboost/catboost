@@ -27,6 +27,12 @@ namespace NCatboostCuda {
             }
         }
 
+        void ShiftFirstWeakModelValues(double shift) {
+            if (!WeakModels.empty()) {
+                WeakModels.front().ShiftLeafValues(shift);
+            }
+        }
+
         void AddWeakModel(TInner&& weak) {
             WeakModels.push_back(std::move(weak));
         }
