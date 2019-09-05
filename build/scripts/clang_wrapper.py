@@ -3,11 +3,6 @@ import sys
 
 
 def fix(s):
-    # We use Clang 3.7 for generating bytecode but take CFLAGS from current compiler
-    # We should filter new flags unknown to the old compiler
-    if s == '-Wno-undefined-var-template':
-        return None
-
     # disable dbg DEVTOOLS-2744
     if s == '-g':
         return None
@@ -20,10 +15,6 @@ def fix(s):
 
     # strip gcc toolchain flags (appear when crosscompiling)
     if s.startswith('-fabi-version'):
-        return None
-
-    # clang 5 option
-    if s == '-Wno-c++17-extensions':
         return None
 
     # Paths under .ya/tools/v3/.../msvc/include are divided with '\'
@@ -56,4 +47,3 @@ if __name__ == '__main__':
 
     rc = subprocess.call(cmd, shell=False, stderr=sys.stderr, stdout=sys.stdout)
     sys.exit(rc)
-
