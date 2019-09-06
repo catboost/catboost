@@ -10,7 +10,6 @@ import yatest.common
 from catboost_pytest_lib import (
     append_params_to_cmdline,
     apply_catboost,
-    compare_evals,
     compare_evals_with_precision,
     compare_metrics_with_diff,
     data_file,
@@ -491,12 +490,15 @@ def test_baseline(boosting_type):
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 def test_boost_from_average(boosting_type):
     output_model_path = yatest.common.test_output_path('model.bin')
+    output_calc_eval_path = yatest.common.test_output_path('test_calc.eval')
     output_eval_path_with_avg = yatest.common.test_output_path('test_avg.eval')
     output_eval_path_with_baseline = yatest.common.test_output_path('test_baseline.eval')
     baselined_train = yatest.common.test_output_path('baselined_train')
+    baselined_test = yatest.common.test_output_path('baselined_test')
     baselined_cd = yatest.common.test_output_path('baselined.cd')
 
     train_path = data_file('adult', 'train_small')
+    test_path = data_file('adult', 'test_small')
     original_cd = data_file('adult', 'train.cd')
 
     sum_target = 0.0
@@ -507,11 +509,16 @@ def test_boost_from_average(boosting_type):
             sum_target += float(line.split()[1])
 
     mean_target_str = str(sum_target / obj_count)
-    with open(train_path) as train_in, open(baselined_train, 'w') as train_out:
-        for line in train_in:
-            tokens = line.rstrip('\n').split('\t')
-            tokens.append(mean_target_str)
-            train_out.write('\t'.join(tokens) + '\n')
+
+    def append_baseline_to_pool(source, target):
+        with open(source) as source_f, open(target, 'w') as target_f:
+            for line in source_f:
+                tokens = line.rstrip('\n').split('\t')
+                tokens.append(mean_target_str)
+                target_f.write('\t'.join(tokens) + '\n')
+
+    append_baseline_to_pool(train_path, baselined_train)
+    append_baseline_to_pool(test_path, baselined_test)
 
     with open(baselined_cd, 'w') as cd_output, open(original_cd) as cd_input:
         for line in cd_input:
@@ -526,6 +533,7 @@ def test_boost_from_average(boosting_type):
         '-T': '4',
         '-m': output_model_path,
         '-f': baselined_train,
+        '-t': baselined_test,
         '--boost-from-average': '0',
         '--column-description': baselined_cd,
         '--eval-file': output_eval_path_with_baseline,
@@ -537,8 +545,8 @@ def test_boost_from_average(boosting_type):
         '-w': '0.03',
         '-T': '4',
         '-m': output_model_path,
-
         '-f': train_path,
+        '-t': test_path,
         '--boost-from-average': '1',
         '--column-description': original_cd,
         '--eval-file': output_eval_path_with_avg,
@@ -546,7 +554,10 @@ def test_boost_from_average(boosting_type):
     fit_catboost_gpu(baseline_boost_params)
     fit_catboost_gpu(avg_boost_params)
 
-    assert compare_evals(output_eval_path_with_avg, output_eval_path_with_baseline)
+    apply_catboost(output_model_path, test_path, original_cd, output_calc_eval_path)
+
+    assert compare_evals_with_precision(output_eval_path_with_avg, output_eval_path_with_baseline, skip_last_column_in_fit=False)
+    assert compare_evals_with_precision(output_eval_path_with_avg, output_calc_eval_path)
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)

@@ -4901,13 +4901,40 @@ def test_ctr_leaf_count_limit(boosting_type, dev_score_calc_obj_block_size):
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 def test_boost_from_average(boosting_type):
     output_model_path = yatest.common.test_output_path('model.bin')
+    output_calc_eval_path = yatest.common.test_output_path('test_calc.eval')
     output_eval_path_with_avg = yatest.common.test_output_path('test_avg.eval')
     output_eval_path_with_baseline = yatest.common.test_output_path('test_baseline.eval')
     baselined_train = yatest.common.test_output_path('baselined_train')
+    baselined_test = yatest.common.test_output_path('baselined_test')
     baselined_cd = yatest.common.test_output_path('baselined.cd')
 
     train_path = data_file('adult', 'train_small')
+    test_path = data_file('adult', 'test_small')
     original_cd = data_file('adult', 'train.cd')
+
+    sum_target = 0.0
+    obj_count = 0.0
+    with open(train_path) as train_f:
+        for line in train_f:
+            obj_count += 1
+            sum_target += float(line.split()[1])
+
+    mean_target_str = str(sum_target / obj_count)
+
+    def append_baseline_to_pool(source, target):
+        with open(source) as source_f, open(target, 'w') as target_f:
+            for line in source_f:
+                tokens = line.rstrip('\n').split('\t')
+                tokens.append(mean_target_str)
+                target_f.write('\t'.join(tokens) + '\n')
+
+    append_baseline_to_pool(train_path, baselined_train)
+    append_baseline_to_pool(test_path, baselined_test)
+
+    with open(baselined_cd, 'w') as cd_output, open(original_cd) as cd_input:
+        for line in cd_input:
+            cd_output.write(line)
+        cd_output.write('18\tBaseline\n')
 
     base_cmd = (
         CATBOOST_PATH,
@@ -4919,39 +4946,32 @@ def test_boost_from_average(boosting_type):
         '-T', '4',
         '-m', output_model_path,
     )
-    sum_target = 0.0
-    obj_count = 0.0
-    with open(train_path) as train_f:
-        for line in train_f:
-            obj_count += 1
-            sum_target += float(line.split()[1])
-
-    mean_target_str = str(sum_target / obj_count)
-    with open(train_path) as train_in, open(baselined_train, 'w') as train_out:
-        for line in train_in:
-            tokens = line.rstrip('\n').split('\t')
-            tokens.append(mean_target_str)
-            train_out.write('\t'.join(tokens) + '\n')
-
-    with open(baselined_cd, 'w') as cd_output, open(original_cd) as cd_input:
-        for line in cd_input:
-            cd_output.write(line)
-        cd_output.write('18\tBaseline\n')
 
     yatest.common.execute(base_cmd + (
         '-f', baselined_train,
+        '-t', baselined_test,
         '--boost-from-average', '0',
         '--column-description', baselined_cd,
         '--eval-file', output_eval_path_with_baseline,
     ))
     yatest.common.execute(base_cmd + (
         '-f', train_path,
+        '-t', test_path,
         '--boost-from-average', '1',
         '--column-description', original_cd,
         '--eval-file', output_eval_path_with_avg,
     ))
+    yatest.common.execute((
+        CATBOOST_PATH, 'calc',
+        '--cd', original_cd,
+        '--input-path', test_path,
+        '-m', output_model_path,
+        '-T', '1',
+        '--output-path', output_calc_eval_path,
+    ))
 
-    assert compare_evals(output_eval_path_with_avg, output_eval_path_with_baseline)
+    assert filecmp.cmp(output_eval_path_with_avg, output_eval_path_with_baseline)
+    assert compare_evals(output_eval_path_with_avg, output_calc_eval_path)
     return [local_canonical_file(output_eval_path_with_avg)]
 
 
