@@ -1674,10 +1674,11 @@ $(BUILD_ROOT)/util/all_stream.cpp\
         $(SOURCE_ROOT)/util/stream/trace.cpp\
         $(SOURCE_ROOT)/util/stream/walk.cpp\
         $(SOURCE_ROOT)/util/stream/zerocopy.cpp\
+        $(SOURCE_ROOT)/util/stream/zerocopy_output.cpp\
         $(SOURCE_ROOT)/util/stream/zlib.cpp\
 
 	mkdir -p '$(BUILD_ROOT)/util'
-	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/gen_join_srcs.py' '$(BUILD_ROOT)/util/all_stream.cpp' util/stream/aligned.cpp util/stream/buffer.cpp util/stream/buffered.cpp util/stream/debug.cpp util/stream/direct_io.cpp util/stream/file.cpp util/stream/format.cpp util/stream/fwd.cpp util/stream/hex.cpp util/stream/holder.cpp util/stream/input.cpp util/stream/labeled.cpp util/stream/length.cpp util/stream/mem.cpp util/stream/multi.cpp util/stream/null.cpp util/stream/output.cpp util/stream/pipe.cpp util/stream/printf.cpp util/stream/str.cpp util/stream/tee.cpp util/stream/tempbuf.cpp util/stream/tokenizer.cpp util/stream/trace.cpp util/stream/walk.cpp util/stream/zerocopy.cpp util/stream/zlib.cpp
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/gen_join_srcs.py' '$(BUILD_ROOT)/util/all_stream.cpp' util/stream/aligned.cpp util/stream/buffer.cpp util/stream/buffered.cpp util/stream/debug.cpp util/stream/direct_io.cpp util/stream/file.cpp util/stream/format.cpp util/stream/fwd.cpp util/stream/hex.cpp util/stream/holder.cpp util/stream/input.cpp util/stream/labeled.cpp util/stream/length.cpp util/stream/mem.cpp util/stream/multi.cpp util/stream/null.cpp util/stream/output.cpp util/stream/pipe.cpp util/stream/printf.cpp util/stream/str.cpp util/stream/tee.cpp util/stream/tempbuf.cpp util/stream/tokenizer.cpp util/stream/trace.cpp util/stream/walk.cpp util/stream/zerocopy.cpp util/stream/zerocopy_output.cpp util/stream/zlib.cpp
 
 $(BUILD_ROOT)/util/all_string.cpp.pic.o\
         ::\
