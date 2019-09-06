@@ -279,11 +279,12 @@ static TStr& DoUnescapeC(const TChar* p, size_t sz, TStr& res) {
                 }
 
                 case 'U':
-                    if (CountHex<8>(p + 1, pe) != 8)
+                    if (CountHex<8>(p + 1, pe) != 8) {
                         res.append(*p);
-                    else
-                        // TODO(pg): bug here, missing p += 8 ? need test
+                    } else {
                         AppendUnicode(res, IntFromString<ui32, 16>(p + 1, 8));
+                        p += 8;
+                    }
                     break;
                 case 'x':
                     if (ui32 v = CountHex<2>(p + 1, pe)) {

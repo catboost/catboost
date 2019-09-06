@@ -138,4 +138,9 @@ Y_UNIT_TEST_SUITE(TEscapeCTest) {
             UNIT_ASSERT_VALUES_EQUAL(x.Source, TStringBuf(buf, end));
         }
     }
+
+    Y_UNIT_TEST(TestCapitalUEscapes) {
+        UNIT_ASSERT_VALUES_EQUAL(UnescapeC("\\U00000020"), " ");
+        UNIT_ASSERT_VALUES_EQUAL(UnescapeC("\\Uxxx"), "Uxxx");
+    }
 }
