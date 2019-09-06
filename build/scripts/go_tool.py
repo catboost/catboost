@@ -195,7 +195,7 @@ def _do_compile_go(args):
     cmd += ['-goversion', 'go' + args.goversion]
     if is_std_module:
         cmd.append('-std')
-        if import_path == 'runtime':
+        if import_path == 'runtime' or import_path.startswith('runtime/internal/'):
             cmd.append('-+')
     import_config_name = create_import_config(args.peers, args.import_map, args.module_map)
     if import_config_name:
@@ -210,7 +210,9 @@ def _do_compile_go(args):
     if compare_versions('1.12', args.goversion) >= 0:
         if args.symabis:
             cmd += ['-symabis'] + args.symabis
-        if import_path in ('runtime', 'runtime/internal/atomic'):
+        if compare_versions('1.13', args.goversion) >= 0:
+            pass
+        elif import_path in ('runtime', 'runtime/internal/atomic'):
             cmd.append('-allabis')
     compile_workers = '4'
     if args.compile_flags:
@@ -267,6 +269,7 @@ def do_link_exe(args):
     assert args.non_local_peers is not None
     compile_args = copy_args(args)
     compile_args.output = os.path.join(args.output_root, 'main.a')
+    compile_args.import_path = 'main'
 
     if args.vcs and os.path.isfile(compile_args.vcs):
         build_info = os.path.join('library', 'go', 'core', 'buildinfo')
