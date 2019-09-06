@@ -27,6 +27,7 @@ def add_common_arguments(parser):
     parser.add_argument('--copy-to-dir')
     parser.add_argument('--untar-to')
     parser.add_argument('--rename', action='append', default=[], metavar='FILE', help='rename FILE to the corresponding output')
+    parser.add_argument('--executable', action='store_true', help='make outputs executable')
     parser.add_argument('outputs', nargs='*')
 
 
@@ -295,6 +296,8 @@ def process(fetched_file, file_name, args, remove=True):
             raise OutputNotExistError('Output does not exist: %s' % os.path.abspath(path))
         if not os.path.isfile(path):
             raise OutputIsDirectoryError('Output must be a file, not a directory: %s' % os.path.abspath(path))
+        if args.executable:
+            os.chmod(path, os.stat(path).st_mode | 0o111)
         if os.path.samefile(path, fetched_file):
             remove = False
 
