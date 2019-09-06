@@ -74,14 +74,16 @@ def resfs_src(key, resfs_file=False):
 
 def resfs_read(path, builtin=None):
     """
-    Return the bytes of the resouce file at path, or None.
-    If builtin is True, do not look for it in Y_PYTHON_SOURCE_ROOT.
+    Return the bytes of the resource file at path, or None.
+    If builtin is True, do not look for it on the filesystem.
     If builtin is False, do not look in the builtin resources.
     """
     if builtin is not True:
-        abspath = resfs_resolve(resfs_src(path, resfs_file=True))
-        if abspath:
-            return file_bytes(abspath)
+        arcpath = resfs_src(path, resfs_file=True)
+        if arcpath:
+            fspath = resfs_resolve(arcpath)
+            if fspath:
+                return file_bytes(fspath)
 
     if builtin is not False:
         return __resource.find('resfs/file/' + path)

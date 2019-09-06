@@ -1,8 +1,8 @@
 Traceback (most recent call last):
   File "<string>", line 2, in <module>
-  File "library/python/runtime/importer.pxi", line 262, in __res.ResourceImporter.run_main
+  File "library/python/runtime/importer.pxi", line 264, in __res.ResourceImporter.run_main
     self.load_module(entry_point, fix_name='__main__')
-  File "library/python/runtime/importer.pxi", line 233, in __res.ResourceImporter.load_module
+  File "library/python/runtime/importer.pxi", line 235, in __res.ResourceImporter.load_module
     exec code in mod.__dict__
   File "library/python/runtime/test/traceback/__main__.py", line 8, in <module>
     main()

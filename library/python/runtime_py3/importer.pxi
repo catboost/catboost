@@ -94,9 +94,11 @@ def resfs_read(path, builtin=None):
     If builtin is False, do not look in the builtin resources.
     """
     if builtin is not True:
-        abspath = resfs_resolve(resfs_src(path, resfs_file=True))
-        if abspath:
-            return file_bytes(abspath)
+        arcpath = resfs_src(path, resfs_file=True)
+        if arcpath:
+            fspath = resfs_resolve(arcpath)
+            if fspath:
+                return file_bytes(fspath)
 
     if builtin is not False:
         return __resource.find(b'resfs/file/' + path)

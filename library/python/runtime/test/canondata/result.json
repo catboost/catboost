@@ -1,7 +1,7 @@
 {
     "test_traceback.test_traceback[custom-default]": {
         "stderr": {
-            "checksum": "4a9e2fa5a5b54ce9057c64f15b13d568",
+            "checksum": "f688b5e1fa4b955b15d7c9e24dd806a7",
             "uri": "file://test_traceback.test_traceback_custom-default_/stderr.txt"
         },
         "stdout": {
@@ -11,7 +11,7 @@
     },
     "test_traceback.test_traceback[custom-ultratb_color]": {
         "stderr": {
-            "checksum": "72095a37cdcf31d672986f61cd7d278e",
+            "checksum": "d6d19908f46fc624cbccbc31b3e094b2",
             "uri": "file://test_traceback.test_traceback_custom-ultratb_color_/stderr.txt"
         },
         "stdout": {
@@ -21,7 +21,7 @@
     },
     "test_traceback.test_traceback[custom-ultratb_verbose]": {
         "stderr": {
-            "checksum": "4d380b06cffef0d4629364a831ba34cf",
+            "checksum": "8bf8318e2086bdf4f0a806395d51976c",
             "uri": "file://test_traceback.test_traceback_custom-ultratb_verbose_/stderr.txt"
         },
         "stdout": {
@@ -31,7 +31,7 @@
     },
     "test_traceback.test_traceback[main-default]": {
         "stderr": {
-            "checksum": "0b783afa4adf7ad77e63e4637029eceb",
+            "checksum": "e10756d9b67b1310147dae315aa1d2a5",
             "uri": "file://test_traceback.test_traceback_main-default_/stderr.txt"
         },
         "stdout": {
@@ -41,7 +41,7 @@
     },
     "test_traceback.test_traceback[main-ultratb_color]": {
         "stderr": {
-            "checksum": "d9a0a36e438bad50f89a5ffaf9c2e0c3",
+            "checksum": "52f013ab4b60cd6bd7abcd7a822afc40",
             "uri": "file://test_traceback.test_traceback_main-ultratb_color_/stderr.txt"
         },
         "stdout": {
@@ -51,7 +51,7 @@
     },
     "test_traceback.test_traceback[main-ultratb_verbose]": {
         "stderr": {
-            "checksum": "d42b21eb917253fba86675d11579185d",
+            "checksum": "f5ac41e3fcbea67f513a2146324e3fd9",
             "uri": "file://test_traceback.test_traceback_main-ultratb_verbose_/stderr.txt"
         },
         "stdout": {
