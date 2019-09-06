@@ -51,6 +51,7 @@ PEERDIR(
     catboost/libs/data_types
     catboost/libs/eval_result
     catboost/libs/feature_estimator
+    catboost/libs/functools
     catboost/libs/helpers
     catboost/libs/index_range
     catboost/libs/labels
