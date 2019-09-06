@@ -166,7 +166,7 @@ void* NPar::TLocalExecutor::TImpl::HostWorkerThread(void* p) {
     static const int FAST_ITERATIONS = 200;
 
     auto* const ctx = (TImpl*)p;
-    TThread::CurrentThreadSetName("ParLocalExecutor");
+    TThread::SetCurrentThreadName("ParLocalExecutor");
     ctx->WorkerThreadId = AtomicAdd(ctx->ThreadId, 1);
     for (bool cont = true; cont;) {
         TSingleJob job;

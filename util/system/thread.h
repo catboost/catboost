@@ -26,7 +26,7 @@ public:
         void* Data;
         size_t StackSize;
         void* StackPointer;
-        // See comments for `CurrentThreadSetName`
+        // See comments for `SetCurrentThreadName`
         TString Name = GetProgramName();
 
         inline TParams()
@@ -107,12 +107,12 @@ public:
     //
     // NOTE: On Linux thread name is limited to 15 symbols which is probably the smallest one among
     // all platforms. If you'll provide name longer than 15 symbols it will be cut. So if you expect
-    // `CurrentThreadGetName` to return the same name as `name` make sure it's not longer than 15
+    // `CurrentThreadName` to return the same name as `name` make sure it's not longer than 15
     // symbols.
-    static void CurrentThreadSetName(const char* name);
+    static void SetCurrentThreadName(const char* name);
 
     // NOTE: May return empty string for platforms different from Darwin or Linux.
-    static TString CurrentThreadGetName();
+    static TString CurrentThreadName();
 
 private:
     struct TCallableBase {

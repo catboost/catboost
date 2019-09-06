@@ -41,7 +41,7 @@ Y_UNIT_TEST_SUITE(TSysThreadTest) {
     }
 
     void* ThreadProc(void*) {
-        TThread::CurrentThreadSetName("CurrentThreadSetNameTest");
+        TThread::SetCurrentThreadName("CurrentThreadSetNameTest");
         return nullptr;
     }
 
@@ -50,16 +50,16 @@ Y_UNIT_TEST_SUITE(TSysThreadTest) {
     }
 
     void* ThreadProc3(void*) {
-        const auto name = TThread::CurrentThreadGetName();
+        const auto name = TThread::CurrentThreadName();
         Y_FAKE_READ(name);
         return nullptr;
     }
 
     void* ThreadProc4(void*) {
         const TString setName = "ThreadName";
-        TThread::CurrentThreadSetName(setName.data());
+        TThread::SetCurrentThreadName(setName.data());
 
-        const auto getName = TThread::CurrentThreadGetName();
+        const auto getName = TThread::CurrentThreadName();
 #if defined(_darwin_) || defined(_linux_)
         UNIT_ASSERT_VALUES_EQUAL(setName, getName);
 #endif
@@ -67,7 +67,7 @@ Y_UNIT_TEST_SUITE(TSysThreadTest) {
     }
 
     void* ThreadProcChild(void*) {
-        const auto name = TThread::CurrentThreadGetName();
+        const auto name = TThread::CurrentThreadName();
         const auto defaultName = GetProgramName();
 
         (void)name;
@@ -81,14 +81,14 @@ Y_UNIT_TEST_SUITE(TSysThreadTest) {
 
     void* ThreadProcParent(void*) {
         const TString setName = "Parent";
-        TThread::CurrentThreadSetName(setName.data());
+        TThread::SetCurrentThreadName(setName.data());
 
         TThread thread(&ThreadProcChild, nullptr);
 
         thread.Start();
         thread.Join();
 
-        const auto getName = TThread::CurrentThreadGetName();
+        const auto getName = TThread::CurrentThreadName();
 #if defined(_darwin_) || defined(_linux_)
         UNIT_ASSERT_VALUES_EQUAL(setName, getName);
 #endif

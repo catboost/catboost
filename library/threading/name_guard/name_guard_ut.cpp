@@ -9,16 +9,16 @@ Y_UNIT_TEST_SUITE(ThreadNameGuardTests) {
         const TString nameBefore = "nameBefore";
         const TString nameToSet = "nameToSet";
         SystemThreadFactory()->Run([&] {
-            TThread::CurrentThreadSetName(nameBefore.c_str());
+            TThread::SetCurrentThreadName(nameBefore.c_str());
 
             {
                 Y_THREAD_NAME_GUARD(nameToSet);
-                const auto name = TThread::CurrentThreadGetName();
+                const auto name = TThread::CurrentThreadName();
 
                 UNIT_ASSERT_VALUES_EQUAL(nameToSet, name);
             }
 
-            const auto name = TThread::CurrentThreadGetName();
+            const auto name = TThread::CurrentThreadName();
             UNIT_ASSERT_VALUES_EQUAL(nameBefore, name);
         })->Join();
     }

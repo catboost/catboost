@@ -35,7 +35,7 @@ namespace {
     inline void SetThrName(const TParams& p) {
         try {
             if (p.Name) {
-                TThread::CurrentThreadSetName(p.Name.data());
+                TThread::SetCurrentThreadName(p.Name.data());
             }
         } catch (...) {
             // ¯\_(ツ)_/¯
@@ -367,7 +367,7 @@ static void WindowsCurrentSetThreadName(DWORD dwThreadID, const char* threadName
 }
 #endif
 
-void TThread::CurrentThreadSetName(const char* name) {
+void TThread::SetCurrentThreadName(const char* name) {
     (void)name;
 
 #if defined(_freebsd_)
@@ -384,7 +384,7 @@ void TThread::CurrentThreadSetName(const char* name) {
 #endif // OS
 }
 
-TString TThread::CurrentThreadGetName() {
+TString TThread::CurrentThreadName() {
 #if defined(_freebsd_)
 // FreeBSD doesn't seem to have an API to get thread name.
 #elif defined(_linux_)
