@@ -676,6 +676,17 @@ namespace {
                 }
             }
 
+            if (catboostOptions.BoostingOptions->ModelShrinkRate.Get() != 0.0f) {
+                CB_ENSURE(!initModel,
+                    "Usage of model_shrink_rate option in combination with learning continuation is unimplemented yet."
+                );
+                auto errMessage = "Usage of model_shrink_rate option in combination with baseline is unimplemented yet.";
+                CB_ENSURE(!trainingDataForCpu.Learn->TargetData->GetBaseline(), errMessage);
+                for (ui32 testIdx = 0; testIdx < trainingDataForCpu.Test.size(); ++testIdx) {
+                    CB_ENSURE(!trainingData.Test[testIdx]->TargetData->GetBaseline(), errMessage);
+                }
+            }
+
             TLearnContext ctx(
                 catboostOptions,
                 objectiveDescriptor,
