@@ -38,6 +38,20 @@ void TMemoryInput::DoUndo(size_t len) {
 
 TMemoryOutput::~TMemoryOutput() = default;
 
+size_t TMemoryOutput::DoNext(void** ptr) {
+    Y_ENSURE(Buf_ < End_, AsStringBuf("memory output stream exhausted"));
+    *ptr = Buf_;
+
+    return End_ - Buf_;
+}
+
+void TMemoryOutput::DoAdvance(size_t len) {
+    char* end = Buf_ + len;
+    Y_ENSURE(end <= End_, AsStringBuf("trying to advance past the buffer"));
+
+    Buf_ = end;
+}
+
 void TMemoryOutput::DoWrite(const void* buf, size_t len) {
     char* end = Buf_ + len;
     Y_ENSURE(end <= End_, AsStringBuf("memory output stream exhausted"));

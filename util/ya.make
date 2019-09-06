@@ -211,6 +211,7 @@ JOIN_SRCS(
     stream/trace.cpp
     stream/walk.cpp
     stream/zerocopy.cpp
+    stream/zerocopy_output.cpp
     stream/zlib.cpp
 )
 

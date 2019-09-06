@@ -20,6 +20,7 @@ SRCS(
     stream/str_ut.cpp
     stream/tokenizer_ut.cpp
     stream/walk_ut.cpp
+    stream/zerocopy_output_ut.cpp
     stream/zlib_ut.cpp
 )
 

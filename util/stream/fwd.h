@@ -7,6 +7,7 @@ class IOutputStream;
 
 class IZeroCopyInput;
 class IZeroCopyInputFastReadTo;
+class IZeroCopyOutput;
 
 using TStreamManipulator = void (*)(IOutputStream&);
 

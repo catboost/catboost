@@ -1,7 +1,7 @@
 #pragma once
 
-#include "output.h"
 #include "zerocopy.h"
+#include "zerocopy_output.h"
 
 #include <util/generic/strbuf.h>
 
@@ -108,7 +108,7 @@ private:
 /**
  * Output stream that writes data to a memory block.
  */
-class TMemoryOutput: public IOutputStream {
+class TMemoryOutput: public IZeroCopyOutput {
 public:
     /**
      * Constructs a stream that writes to the provided memory block. It's up
@@ -174,6 +174,8 @@ public:
     }
 
 private:
+    size_t DoNext(void** ptr) override;
+    void DoAdvance(size_t len) override;
     void DoWrite(const void* buf, size_t len) override;
     void DoWriteC(char c) override;
 

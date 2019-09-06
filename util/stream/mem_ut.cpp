@@ -14,6 +14,30 @@ Y_UNIT_TEST_SUITE(TestMemIO) {
         UNIT_ASSERT_VALUES_EQUAL(t, "89abc");
     }
 
+    Y_UNIT_TEST(NextAndAdvance) {
+        char buffer[20];
+        TMemoryOutput output(buffer, sizeof(buffer));
+        char* ptr;
+        output.Next(&ptr);
+        *ptr = '1';
+        output.Advance(1);
+        output.Next(&ptr);
+        *ptr = '2';
+        *(ptr + 1) = '2';
+        output.Advance(2);
+        output.Next(&ptr);
+        *ptr = '3';
+        *(ptr + 1) = '3';
+        *(ptr + 2) = '3';
+        output.Advance(3);
+        output.Finish();
+
+        const char* const result = "1"
+                                   "22"
+                                   "333";
+        UNIT_ASSERT(0 == memcmp(buffer, result, strlen(result)));
+    }
+
     Y_UNIT_TEST(Write) {
         char buffer[20];
         TMemoryOutput output(buffer, sizeof(buffer));
