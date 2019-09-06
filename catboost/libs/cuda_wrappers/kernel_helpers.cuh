@@ -649,16 +649,26 @@ template <int BlockSize>
 __forceinline__ __device__ float4 SharedReduce4(float4 val, float* tmp) {
     Float4ToSharedMemory<BlockSize>(val, tmp, threadIdx.x);
     __syncthreads();
-
-    for (int s = BlockSize / 2; s > 0; s >>= 1) {
+    if (BlockSize > 32) {
+        for (int s = BlockSize / 2; s >= 32; s >>= 1) {
+            if (threadIdx.x < s) {
+                for (int k = 0; k < 4; ++k) {
+                    tmp[threadIdx.x + BlockSize * k] += tmp[threadIdx.x + s + BlockSize * k];
+                }
+            }
+            __syncthreads();
+        }
+    }
+    for (int s = 16; s > 0; s >>= 1) {
         if (threadIdx.x < s) {
             for (int k = 0; k < 4; ++k) {
                 tmp[threadIdx.x + BlockSize * k] += tmp[threadIdx.x + s + BlockSize * k];
             }
         }
-        __syncthreads();
-    }
+        __syncwarp();
 
+    }
+    __syncthreads();
     float4 result = Float4FromSharedMemory<BlockSize>(tmp, 0);
     __syncthreads();
     return result;
