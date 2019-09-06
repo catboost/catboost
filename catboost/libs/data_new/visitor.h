@@ -154,6 +154,7 @@ namespace NCB {
         virtual void AddFloatFeature(ui32 flatFeatureIdx, TMaybeOwningConstArrayHolder<float> features) = 0;
         virtual void AddFloatFeature(ui32 flatFeatureIdx, TConstSparseArray<float, ui32> features) = 0;
 
+        virtual ui32 GetCatFeatureValue(ui32 flatFeatureIdx, TStringBuf feature) = 0;
         virtual void AddCatFeature(ui32 flatFeatureIdx, TConstArrayRef<TString> feature) = 0;
         virtual void AddCatFeature(ui32 flatFeatureIdx, TConstArrayRef<TStringBuf> feature) = 0;
         virtual void AddCatFeature(ui32 flatFeatureIdx, TConstSparseArray<TString, ui32> features) = 0;

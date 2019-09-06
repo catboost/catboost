@@ -899,6 +899,18 @@ namespace NCB {
             );
         }
 
+        ui32 GetCatFeatureValue(ui32 flatFeatureIdx, TStringBuf feature) override {
+            auto catFeatureIdx = GetInternalFeatureIdx<EFeatureType::Categorical>(flatFeatureIdx);
+            auto& catFeatureHash = (*Data.CommonObjectsData.CatFeaturesHashToString)[*catFeatureIdx];
+
+            ui32 hashedValue = CalcCatFeatureHash(feature);
+            THashMap<ui32, TString>::insert_ctx insertCtx;
+            if (!catFeatureHash.contains(hashedValue, insertCtx)) {
+                catFeatureHash.emplace_direct(insertCtx, hashedValue, TString(feature));
+            }
+            return hashedValue;
+        }
+
         void AddCatFeature(ui32 flatFeatureIdx, TConstArrayRef<TString> feature) override {
             AddCatFeatureImpl(flatFeatureIdx, feature);
         }

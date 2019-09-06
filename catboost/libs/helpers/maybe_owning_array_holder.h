@@ -42,7 +42,7 @@ namespace NCB {
 
         // for Cython that does not support move semantics
         template <class T2>
-        static TMaybeOwningArrayHolder CreateOwningWithCast(TVector<T2>& data) {
+        static TMaybeOwningArrayHolder CreateOwningMovedFrom(TVector<T2>& data) {
             auto vectorHolder = MakeIntrusive<NCB::TVectorHolder<T2>>(std::move(data));
             return TMaybeOwningArrayHolder(vectorHolder->Data, std::move(vectorHolder));
         }

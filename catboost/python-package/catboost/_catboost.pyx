@@ -42,7 +42,7 @@ from util.generic.maybe cimport TMaybe
 from util.generic.ptr cimport THolder, TIntrusivePtr, MakeHolder
 from util.generic.string cimport TString, TStringBuf
 from util.generic.vector cimport TVector
-from util.system.types cimport ui8, ui32, ui64, i64
+from util.system.types cimport ui8, ui32, ui64, i32, i64
 from util.string.cast cimport StrToD, TryFromString, ToString
 
 ctypedef const np.float32_t const_float32_t
@@ -136,7 +136,7 @@ cdef extern from "catboost/libs/helpers/maybe_owning_array_holder.h" namespace "
         )
 
         @staticmethod
-        TMaybeOwningConstArrayHolder[T] CreateOwningWithCast[T2](TVector[T2]& data)
+        TMaybeOwningConstArrayHolder[T] CreateOwningMovedFrom[T2](TVector[T2]& data)
 
     cdef TMaybeOwningConstArrayHolder[TDst] CreateConstOwningWithMaybeTypeCast[TDst, TSrc](
         TMaybeOwningArrayHolder[TSrc] src
@@ -519,6 +519,7 @@ cdef extern from "catboost/libs/data_new/visitor.h" namespace "NCB":
         void AddFloatFeature(ui32 flatFeatureIdx, TMaybeOwningConstArrayHolder[float] features) except +ProcessException
         void AddFloatFeature(ui32 flatFeatureIdx, TConstSparseArray[float, ui32] features) except +ProcessException
 
+        ui32 GetCatFeatureValue(ui32 flatFeatureIdx, TStringBuf feature) except +ProcessException
         void AddCatFeature(ui32 flatFeatureIdx, TConstArrayRef[TString] feature) except +ProcessException
         void AddCatFeature(ui32 flatFeatureIdx, TConstArrayRef[TStringBuf] feature) except +ProcessException
 
@@ -2004,6 +2005,109 @@ cdef object _set_features_order_data_pd_data_frame_sparse_column(
 
     return new_data_holders
 
+
+# returns new data holders array
+cdef void _set_features_order_data_pd_data_frame_categorical_column(
+    ui32 flat_feature_idx,
+    bool_t is_cat_feature,
+    object column_values, # pd.Categorical, but Cython requires cimport to provide type here
+    TString* factor_string,
+
+    # array of [dst_value_for_missing_value, dst_value_for_cateory0, dst_value_for_category1 ...]
+    TVector[float]* categories_with_missing_value_as_float_values,
+
+    # array of [dst_value_for_cateory0, dst_value_for_category1 ...]
+    TVector[ui32]* categories_as_hashed_cat_values,
+
+    IRawFeaturesOrderDataVisitor* builder_visitor
+):
+    cdef np.ndarray categories_values = column_values.categories.values
+    cdef ui32 categories_values_size = categories_values.shape[0]
+
+    cdef np.ndarray categories_codes = column_values.codes
+    cdef ui32 doc_count = categories_codes.shape[0]
+
+    # access through TArrayRef is faster
+    cdef TArrayRef[float] categories_with_missing_value_as_float_values_ref
+    cdef TArrayRef[ui32] categories_as_hashed_cat_values_ref
+
+    cdef TVector[float] float_feature_values
+    cdef TVector[ui32] hashed_cat_values
+
+    cdef ui32 category_idx
+    cdef ui32 doc_idx
+    cdef i32 category_code
+
+    if is_cat_feature:
+        # TODO(akhropov): make yresize accessible in Cython
+        categories_as_hashed_cat_values[0].resize(categories_values_size)
+        categories_as_hashed_cat_values_ref = <TArrayRef[ui32]>categories_as_hashed_cat_values[0]
+        for category_idx in range(categories_values_size):
+            try:
+                get_id_object_bytes_string_representation(categories_values[category_idx], factor_string)
+            except CatBoostError:
+                raise CatBoostError(
+                    'Invalid type for cat_feature category for [feature_idx={}]={} :'
+                    ' cat_features must be integer or string, real number values and NaN values'
+                    ' should be converted to string.'.format(flat_feature_idx, categories_values[category_idx])
+                )
+
+            categories_as_hashed_cat_values_ref[category_idx]  = builder_visitor[0].GetCatFeatureValue(
+                flat_feature_idx,
+                factor_string[0]
+            )
+
+        # TODO(akhropov): make yresize accessible in Cython
+        hashed_cat_values.resize(doc_count)
+        for doc_idx in range(doc_count):
+            category_code = categories_codes[doc_idx]
+            if category_code == -1:
+                raise CatBoostError(
+                    'Invalid type for cat_feature[object_idx={},feature_idx={}]=NaN :'
+                    ' cat_features must be integer or string, real number values and NaN values'
+                    ' should be converted to string.'.format(doc_idx, flat_feature_idx)
+                )
+
+            hashed_cat_values[doc_idx] = categories_as_hashed_cat_values_ref[category_code]
+
+        builder_visitor[0].AddCatFeature(
+            flat_feature_idx,
+            TMaybeOwningConstArrayHolder[ui32].CreateOwningMovedFrom(hashed_cat_values)
+        )
+    else:
+        # TODO(akhropov): make yresize accessible in Cython
+        categories_with_missing_value_as_float_values.resize(categories_values_size + 1)
+        categories_with_missing_value_as_float_values_ref = (
+            <TArrayRef[float]>categories_with_missing_value_as_float_values[0]
+        )
+        categories_with_missing_value_as_float_values_ref[0] = _FLOAT_NAN
+        for category_idx in range(categories_values_size):
+            try:
+                categories_with_missing_value_as_float_values_ref[category_idx + 1] = (
+                    _FloatOrNan(categories_values[category_idx])
+                )
+            except TypeError as e:
+                raise CatBoostError(
+                    'Bad value for category for [feature_idx={}]="{}": {}'.format(
+                        flat_feature_idx,
+                        categories_values[category_idx],
+                        e
+                    )
+                )
+
+        # TODO(akhropov): make yresize accessible in Cython
+        float_feature_values.resize(doc_count)
+        for doc_idx in range(doc_count):
+            float_feature_values[doc_idx] = (
+                categories_with_missing_value_as_float_values_ref[categories_codes[doc_idx] + 1]
+            )
+
+        builder_visitor[0].AddFloatFeature(
+            flat_feature_idx,
+            TMaybeOwningConstArrayHolder[float].CreateOwningMovedFrom(float_feature_values)
+        )
+
+
 # returns new data holders array
 cdef object _set_features_order_data_pd_data_frame(
     data_frame,
@@ -2018,17 +2122,25 @@ cdef object _set_features_order_data_pd_data_frame(
     cdef TMaybeOwningConstArrayHolder[float] num_factor_data
 
     cdef TVector[TString] cat_factor_data
+    
+    
+    # this buffers for categorical processing are here to avoid reallocations in 
+    # _set_features_order_data_pd_data_frame_categorical_column
+
+    # array of [dst_value_for_missing_value, dst_value_for_cateory0, dst_value_for_category1 ...]
+    cdef TVector[float] categories_with_missing_value_as_float_values 
+
+    # array of [dst_value_for_cateory0, dst_value_for_category1 ...]
+    cdef TVector[ui32] categories_as_hashed_cat_values
+
     cdef ui32 doc_idx
     cdef ui32 flat_feature_idx
-    cdef np.ndarray column_values # for columns that are not of type pandas.Categorical
-    cdef bool_t column_type_is_pandas_Categorical
+    cdef np.ndarray column_values # for columns that are not Sparse or Categorical
 
     cat_factor_data.reserve(doc_count)
 
     new_data_holders = []
     for flat_feature_idx, (column_name, column_data) in enumerate(data_frame.iteritems()):
-        column_type_is_pandas_Categorical = column_data.dtype.name == 'category'
-        
         if isinstance(column_data.dtype, pd.SparseDtype):
             new_data_holders += _set_features_order_data_pd_data_frame_sparse_column(
                 doc_count,
@@ -2038,28 +2150,36 @@ cdef object _set_features_order_data_pd_data_frame(
                 &cat_factor_data,
                 builder_visitor
             )
-            continue
-        
-        if not column_type_is_pandas_Categorical:
-            column_values = column_data.values
-        if is_cat_feature_mask[flat_feature_idx]:
-            cat_factor_data.clear()
-            for doc_idx in range(doc_count):
-                get_cat_factor_bytes_representation(
-                    doc_idx,
-                    flat_feature_idx,
-                    column_data.iloc[doc_idx] if column_type_is_pandas_Categorical else column_values[doc_idx],
-                    &factor_string
-                )
-                cat_factor_data.push_back(factor_string)
-            builder_visitor[0].AddCatFeature(flat_feature_idx, <TConstArrayRef[TString]>cat_factor_data)
-        else:
-            new_data_holders += create_num_factor_data(
+        elif column_data.dtype.name == 'category':
+            _set_features_order_data_pd_data_frame_categorical_column(
                 flat_feature_idx,
-                column_values if not column_type_is_pandas_Categorical else np.asarray(column_data),
-                &num_factor_data
+                is_cat_feature_mask[flat_feature_idx],
+                column_data.values,
+                &factor_string,
+                &categories_with_missing_value_as_float_values,
+                &categories_as_hashed_cat_values,
+                builder_visitor
             )
-            builder_visitor[0].AddFloatFeature(flat_feature_idx, num_factor_data)
+        else:
+            column_values = column_data.values
+            if is_cat_feature_mask[flat_feature_idx]:
+                cat_factor_data.clear()
+                for doc_idx in range(doc_count):
+                    get_cat_factor_bytes_representation(
+                        doc_idx,
+                        flat_feature_idx,
+                        column_values[doc_idx],
+                        &factor_string
+                    )
+                    cat_factor_data.push_back(factor_string)
+                builder_visitor[0].AddCatFeature(flat_feature_idx, <TConstArrayRef[TString]>cat_factor_data)
+            else:
+                new_data_holders += create_num_factor_data(
+                    flat_feature_idx,
+                    column_values,
+                    &num_factor_data
+                )
+                builder_visitor[0].AddFloatFeature(flat_feature_idx, num_factor_data)
 
     return new_data_holders
 
