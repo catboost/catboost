@@ -354,6 +354,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\fstr\catboost-libs-fstr.vcxproj">
       <Project>{E83B3FB9-9F00-AC47-8D5D-2028D57A073D}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\functools\catboost-libs-functools.vcxproj">
+      <Project>{28BD79FF-3694-9990-18EC-977E3029F9E6}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\gpu_config\interface\libs-gpu_config-interface.vcxproj">
       <Project>{F8F093C9-FBBE-5DBB-F4BF-56E91E44C829}</Project>
     </ProjectReference>
