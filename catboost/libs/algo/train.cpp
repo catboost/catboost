@@ -87,8 +87,24 @@ static void ScaleAllApproxes(
         *localExecutor,
         0,
         allApproxes.size(),
-        [approxMultiplier, storeExpApprox, learnApproxesCount, localExecutor, &allApproxes](int index) {
+        [approxMultiplier, storeExpApprox, learnApproxesCount, localExecutor, learnProgress, &allApproxes](int index) {
             const bool isLearnApprox = (index < learnApproxesCount);
+            if (learnProgress->StartingApprox) {
+                CB_ENSURE(!storeExpApprox);
+                const double addend = (1 - approxMultiplier) * (*learnProgress->StartingApprox);
+                UpdateApprox(
+                    [approxMultiplier, addend](
+                        TConstArrayRef<double> /* delta */,
+                        TArrayRef<double> approx,
+                        size_t idx)
+                    {
+                        approx[idx] = addend + approx[idx] * approxMultiplier;
+                    },
+                    *allApproxes[index], // stub deltas
+                    allApproxes[index],
+                    localExecutor
+                );
+            }
             if (storeExpApprox && isLearnApprox) {
                 UpdateApprox(
                     [approxMultiplier](TConstArrayRef<double> /* delta */, TArrayRef<double> approx, size_t idx) {

@@ -693,6 +693,13 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
             }
         }
     }
+    if (TaskType == ETaskType::CPU) {
+        if (!ObliviousTreeOptions->MonotoneConstraints->empty() &&
+            !BoostingOptions->ModelShrinkRate.IsSet())
+        {
+            BoostingOptions->ModelShrinkRate = 0.2;
+        }
+    }
 
     SetLeavesEstimationDefault();
     SetCtrDefaults();

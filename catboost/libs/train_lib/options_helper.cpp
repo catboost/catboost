@@ -203,14 +203,21 @@ static void UpdateAndValidateMonotoneConstraints(
 
 static void WarnIfBaselineUsedWithModelShrinkage(
     const NCB::TDataMetaInfo& trainDataMetaInfo,
-    NCatboostOptions::TCatBoostOptions* catBoostOptions
+    bool learningContinuation,
+    const NCatboostOptions::TCatBoostOptions* catBoostOptions
 ) {
     if (catBoostOptions->GetTaskType() == ETaskType::CPU) {
-        CB_ENSURE(
-            catBoostOptions->BoostingOptions->ModelShrinkRate.Get() == 0.0f ||
-            trainDataMetaInfo.BaselineCount == 0,
-            "Usage of model_shrink_rate option in combination with baseline column is not implemented yet."
-        );
+        if (catBoostOptions->BoostingOptions->ModelShrinkRate.Get() != 0.0f) {
+            CB_ENSURE(
+                trainDataMetaInfo.BaselineCount == 0,
+                "Usage of model_shrink_rate option in combination with baseline column is not implemented yet."
+            );
+            CB_ENSURE(
+                !learningContinuation,
+                "Usage of model_shrink_rate option in combination with learning continuation is not implemented."
+            );
+        }
+
     }
 }
 
@@ -240,5 +247,5 @@ void SetDataDependentDefaults(
     );
     UpdateLeavesEstimationIterations(trainDataMetaInfo, catBoostOptions);
     UpdateAndValidateMonotoneConstraints(*trainDataMetaInfo.FeaturesLayout.Get(), catBoostOptions);
-    WarnIfBaselineUsedWithModelShrinkage(trainDataMetaInfo, catBoostOptions);
+    WarnIfBaselineUsedWithModelShrinkage(trainDataMetaInfo, learningContinuation, catBoostOptions);
 }
