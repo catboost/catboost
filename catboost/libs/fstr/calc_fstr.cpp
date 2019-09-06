@@ -326,7 +326,7 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
             );
         }
         scores.back().Add(
-            metric->Eval(approx, *targetData->GetTarget(), GetWeights(*targetData), queriesInfo, queryBegin, queryEnd, *localExecutor)
+            metric->Eval(approx, targetData->GetTarget().GetOrElse(TConstArrayRef<float>()), GetWeights(*targetData), queriesInfo, queryBegin, queryEnd, *localExecutor)
         );
         TVector<TVector<TVector<double>>> shapValues;
         CalcShapValuesInternalForFeature(
@@ -349,7 +349,7 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
                 }
             }, blockParams, NPar::TLocalExecutor::WAIT_COMPLETE);
             scores[featureIdx].Add(
-                    metric->Eval(approx, *targetData->GetTarget(), GetWeights(*targetData), queriesInfo, queryBegin, queryEnd,
+                    metric->Eval(approx, targetData->GetTarget().GetOrElse(TConstArrayRef<float>()), GetWeights(*targetData), queriesInfo, queryBegin, queryEnd,
                                  *localExecutor)
             );
             localExecutor->ExecRange([&](ui32 docIdx) {

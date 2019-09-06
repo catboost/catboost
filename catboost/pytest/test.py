@@ -2107,14 +2107,23 @@ def test_loss_change_fstr(loss_function):
     output_fstr_path = yatest.common.test_output_path('fstr.tsv')
     train_fstr_path = yatest.common.test_output_path('t_fstr.tsv')
 
-    cmd = (
+    def add_loss_specific_params(cmd, fstr_mode):
+        if loss_function in ['PairLogit', 'PairLogitPairwise']:
+            cmd += ('--column-description', data_file('querywise', 'train.cd.no_target'))
+            if fstr_mode:
+                cmd += ('--input-pairs', data_file('querywise', 'train.pairs'))
+            else:
+                cmd += ('--learn-pairs', data_file('querywise', 'train.pairs'))
+        else:
+            cmd += ('--column-description', data_file('querywise', 'train.cd'))
+        return cmd
+
+    cmd_prefix = (
         CATBOOST_PATH,
         'fit',
         '--use-best-model', 'false',
         '--loss-function', loss_function,
         '--learn-set', data_file('querywise', 'train'),
-        '--column-description', data_file('querywise', 'train.cd'),
-        '--learn-pairs', data_file('querywise', 'train.pairs'),
         '--boosting-type', 'Plain',
         '-i', '10',
         '-w', '0.03',
@@ -2123,20 +2132,19 @@ def test_loss_change_fstr(loss_function):
         '--fstr-file', train_fstr_path,
         '--fstr-type', 'LossFunctionChange',
         '--model-file', model_path
-
     )
+    cmd = add_loss_specific_params(cmd_prefix, fstr_mode=False)
     yatest.common.execute(cmd)
 
-    fstr_cmd = (
+    fstr_cmd_prefix = (
         CATBOOST_PATH,
         'fstr',
         '--input-path', data_file('querywise', 'train'),
-        '--column-description', data_file('querywise', 'train.cd'),
-        '--input-pairs', data_file('querywise', 'train.pairs'),
         '--model-file', model_path,
         '--output-path', output_fstr_path,
         '--fstr-type', 'LossFunctionChange',
     )
+    fstr_cmd = add_loss_specific_params(fstr_cmd_prefix, fstr_mode=True)
     yatest.common.execute(fstr_cmd)
 
     fit_otuput = np.loadtxt(train_fstr_path, dtype='float', delimiter='\t')
