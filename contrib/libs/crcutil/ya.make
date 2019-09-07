@@ -18,7 +18,6 @@ IF (ARCH_I386 OR ARCH_X86_64)
     IF (OS_WINDOWS)
         SRCS(
             multiword_64_64_cl_i386_mmx.cc
-            crc32c_sse4.cc
         )
     ELSEIF(OS_ANDROID AND ARCH_I386)
         # 32-bit Android has some problems with register allocation, so we fall back to default implementation
@@ -43,9 +42,12 @@ IF (ARCH_I386 OR ARCH_X86_64)
             multiword_128_64_gcc_amd64_sse2.cc
             multiword_64_64_gcc_amd64_asm.cc
         )
-        SRC_CPP_SSE4(
-            crc32c_sse4.cc
-        )
+    ENDIF()
+
+    IF (OS_WINDOWS)
+        SRCS(crc32c_sse4.cc)
+    ELSE()
+        SRC_CPP_SSE4(crc32c_sse4.cc)
     ENDIF()
 ENDIF ()
 
