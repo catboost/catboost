@@ -32,6 +32,10 @@ def iteritems(prefix='', strip_prefix=False):
         yield key, value
 
 
+def resfs_file_exists(path):
+    return resfs_src(path, resfs_file=True) is not None
+
+
 def resfs_files(prefix=''):
     decode = lambda s: s
     if isinstance(prefix, six.text_type):
