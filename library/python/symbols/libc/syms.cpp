@@ -14,6 +14,7 @@
 #include <pwd.h>
 #include <sched.h>
 #include <signal.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
@@ -23,6 +24,7 @@
 
 #if defined(_linux_)
 #include <sys/prctl.h>
+#include <sys/ptrace.h>
 #include <sys/sendfile.h>
 #else
 #include <sys/types.h>
@@ -105,6 +107,7 @@ SYM(getnameinfo)
 SYM(getpwnam)
 SYM(inet_ntop)
 SYM(opendir)
+SYM(printf)
 SYM(pthread_kill)
 SYM(pthread_self)
 SYM(readdir_r)
@@ -116,6 +119,7 @@ SYM_2("__errno_location", ErrnoLocation)
 
 #if defined(_linux_)
 SYM(prctl)
+SYM(ptrace)
 SYM(sched_getaffinity)
 SYM(sched_setaffinity)
 SYM(inotify_init)
