@@ -7,10 +7,12 @@ from _io import FileIO
 
 import __res as __resource
 
+_b = lambda x: x if isinstance(x, bytes) else utf_8_encode(x)[0]
+_s = lambda x: x if isinstance(x, str) else utf_8_decode(x)[0]
 env_entry_point = b'Y_PYTHON_ENTRY_POINT'
 env_source_root = b'Y_PYTHON_SOURCE_ROOT'
 executable = sys.executable or 'Y_PYTHON'
-path_sep = utf_8_encode(path_sep)[0]
+path_sep = _b(path_sep)
 sys.modules['run_import_hook'] = __resource
 
 # This is the prefix in contrib/tools/python3/src/Lib/ya.make.
@@ -28,11 +30,9 @@ def _print(*xs):
     """
     parts = []
     for s in xs:
-        if isinstance(s, bytes):
-            s = utf_8_decode(s)[0]
-        if not isinstance(s, str):
+        if not isinstance(s, (bytes, str)):
             s = str(s)
-        parts.append(s)
+        parts.append(_s(s))
     sys.stderr.write(' '.join(parts) + '\n')
 
 
@@ -53,7 +53,7 @@ def iter_keys(prefix):
 def iter_py_modules(with_keys=False):
     for key, path in iter_keys(b'resfs/file/' + py_prefix):
         if path.endswith(b'.py'):  # It may also end with '.pyc'.
-            mod = utf_8_decode(path[:-3].replace(b'/', b'.'))[0]
+            mod = _s(path[:-3].replace(b'/', b'.'))
             if with_keys:
                 yield key, mod
             else:
@@ -71,6 +71,7 @@ def resfs_resolve(path):
     """
     Return the absolute path of a root-relative path if it exists.
     """
+    path = _b(path)
     if Y_PYTHON_SOURCE_ROOT:
         if not path.startswith(Y_PYTHON_SOURCE_ROOT):
             path = path_sep.join((Y_PYTHON_SOURCE_ROOT, path))
@@ -83,8 +84,8 @@ def resfs_src(key, resfs_file=False):
     Return the root-relative file path of a resource key.
     """
     if resfs_file:
-        key = b'resfs/file/' + key
-    return __resource.find(b'resfs/src/' + key)
+        key = b'resfs/file/' + _b(key)
+    return __resource.find(b'resfs/src/' + _b(key))
 
 
 def resfs_read(path, builtin=None):
@@ -101,21 +102,21 @@ def resfs_read(path, builtin=None):
                 return file_bytes(fspath)
 
     if builtin is not False:
-        return __resource.find(b'resfs/file/' + path)
+        return __resource.find(b'resfs/file/' + _b(path))
 
 
-def resfs_files():
+def resfs_files(prefix=b''):
     """
     List builtin resource file paths.
     """
-    return [path for _, path in iter_keys(b'resfs/file/')]
+    return [key[11:] for key, _ in iter_keys(b'resfs/file/' + _b(prefix))]
 
 
 def mod_path(mod):
     """
     Return the resfs path to the source code of the module with the given name.
     """
-    return py_prefix + utf_8_encode(mod.replace('.', '/') + '.py')[0]
+    return py_prefix + _b(mod).replace(b'.', b'/') + b'.py'
 
 
 class ResourceImporter(object):
@@ -166,8 +167,7 @@ class ResourceImporter(object):
 
     # PEP-302 extension 1 of 3: data loader.
     def get_data(self, path):
-        if isinstance(path, str):
-            path = utf_8_encode(path)[0]
+        path = _b(path)
         abspath = resfs_resolve(path)
         if abspath:
             return file_bytes(abspath)
@@ -183,7 +183,7 @@ class ResourceImporter(object):
             fullname += '.__init__'
         relpath = resfs_src(mod_path(fullname), resfs_file=True)
         if isinstance(relpath, bytes):
-            relpath = utf_8_decode(relpath)[0]
+            relpath = _s(relpath)
         return relpath or modname
 
     # PEP-302 extension 3 of 3: packaging introspection.
@@ -196,11 +196,11 @@ class ResourceImporter(object):
 
         relpath = self.get_filename(fullname)
         if relpath:
-            abspath = resfs_resolve(utf_8_encode(relpath)[0])
+            abspath = resfs_resolve(relpath)
             if abspath:
-                return utf_8_decode(file_bytes(abspath))[0]
+                return _s(file_bytes(abspath))
         data = resfs_read(mod_path(fullname))
-        return utf_8_decode(data)[0] if data else ''
+        return _s(data) if data else ''
 
     def get_code(self, fullname):
         modname = fullname
@@ -213,7 +213,7 @@ class ResourceImporter(object):
             abspath = resfs_resolve(relpath)
             if abspath:
                 data = file_bytes(abspath)
-                return compile(data, utf_8_decode(abspath)[0], 'exec', dont_inherit=True)
+                return compile(data, _s(abspath), 'exec', dont_inherit=True)
 
         yapyc_path = path + b'.yapyc3'
         yapyc_data = resfs_read(yapyc_path, builtin=True)
@@ -222,7 +222,7 @@ class ResourceImporter(object):
         else:
             py_data = resfs_read(path, builtin=True)
             if py_data:
-                return compile(py_data, utf_8_decode(relpath)[0], 'exec', dont_inherit=True)
+                return compile(py_data, _s(relpath), 'exec', dont_inherit=True)
             else:
                 # This covers packages with no __init__.py in resources.
                 return compile('', modname, 'exec', dont_inherit=True)
@@ -249,9 +249,8 @@ class ResourceImporter(object):
         if filename in self.source_map:
             return self.source_map[filename]
 
-        filename = utf_8_encode(filename)[0]
         if resfs_read(filename, builtin=True) is not None:
-            return b'resfs/file/' + filename
+            return b'resfs/file/' + _b(filename)
 
         return b''
 

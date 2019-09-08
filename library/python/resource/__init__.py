@@ -1,5 +1,5 @@
-from __res import find as __find, count, key_by_index, resfs_read as __resfs_read
-from __res import resfs_resolve, resfs_src  # noqa
+from __res import find as __find, count, key_by_index, resfs_files as __resfs_files
+from __res import resfs_read, resfs_resolve, resfs_src  # noqa
 
 import six
 
@@ -32,14 +32,11 @@ def iteritems(prefix='', strip_prefix=False):
         yield key, value
 
 
-def resfs_files():
-    return iterkeys('resfs/file/', strip_prefix=True)
-
-
-def resfs_read(path, builtin=None):
-    if isinstance(path, six.text_type):
-        path = path.encode('utf-8')
-    return __resfs_read(path, builtin)
+def resfs_files(prefix=''):
+    decode = lambda s: s
+    if isinstance(prefix, six.text_type):
+        decode = lambda s: s.decode('utf-8')
+    return [decode(s) for s in __resfs_files(prefix=prefix)]
 
 
 def find(path):

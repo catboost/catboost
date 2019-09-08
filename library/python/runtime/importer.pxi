@@ -89,11 +89,11 @@ def resfs_read(path, builtin=None):
         return __resource.find('resfs/file/' + path)
 
 
-def resfs_files():
+def resfs_files(prefix=''):
     """
     List builtin resource file paths.
     """
-    return [path for _, path in iter_keys('resfs/file/')]
+    return [key[11:] for key, _ in iter_keys('resfs/file/' + prefix)]
 
 
 class ResourceImporter(object):
