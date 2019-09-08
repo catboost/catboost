@@ -1035,6 +1035,10 @@ IN tabnanny.py
 IN tarfile.py
 IN telnetlib.py
 IN tempfile.py
+IN test/__init__.py
+IN test/support/__init__.py
+IN test/support/script_helper.py
+IN test/test_support.py
 IN textwrap.py
 IN this.py
 IN threading.py

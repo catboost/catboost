@@ -582,6 +582,10 @@ tabnanny
 tarfile
 telnetlib
 tempfile
+test
+test.support
+test.support.script_helper
+test.test_support
 textwrap
 this
 threading
