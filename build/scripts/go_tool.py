@@ -47,11 +47,9 @@ def get_import_path(module_path):
     is_std_module = import_path.startswith(std_lib_prefix)
     if is_std_module:
         import_path = import_path[len(std_lib_prefix):]
-    index = get_vendor_index(import_path)
-    if index >= 0:
-        index += len(vendor_prefix)
-        import_path = import_path[index:]
-    elif not is_std_module:
+    elif import_path.startswith(vendor_prefix):
+        import_path = import_path[len(vendor_prefix):]
+    else:
         import_path = arc_project_prefix + import_path
     assert len(import_path) > 0
     return import_path, is_std_module
@@ -70,16 +68,18 @@ def classify_srcs(srcs, args):
     args.sysos = list(filter(lambda x: x.endswith('.syso'), srcs))
 
 
-def get_import_config_info(peers, import_map={}, module_map={}):
+def get_import_config_info(peers, gen_importmap, import_map={}, module_map={}):
     info = {'importmap': [], 'packagefile': [], 'standard': {}}
-    for key, value in import_map.items():
-        info['importmap'].append((key, value))
+    if gen_importmap:
+        for key, value in import_map.items():
+            info['importmap'].append((key, value))
     for peer in peers:
         peer_import_path, is_std = get_import_path(os.path.dirname(peer))
-        index = get_vendor_index(peer_import_path)
-        if index >= 0:
-            index += len(vendor_prefix)
-            info['importmap'].append((peer_import_path[index:], peer_import_path))
+        if gen_importmap:
+            index = get_vendor_index(peer_import_path)
+            if index >= 0:
+                index += len(vendor_prefix)
+                info['importmap'].append((peer_import_path[index:], peer_import_path))
         info['packagefile'].append((peer_import_path, os.path.join(args.build_root, peer)))
         if is_std:
             info['standard'][peer_import_path] = True
@@ -88,9 +88,9 @@ def get_import_config_info(peers, import_map={}, module_map={}):
     return info
 
 
-def create_import_config(peers, import_map={}, module_map={}):
+def create_import_config(peers, gen_importmap, import_map={}, module_map={}):
     lines = []
-    info = get_import_config_info(peers, import_map, module_map)
+    info = get_import_config_info(peers, gen_importmap, import_map, module_map)
     for key in ('importmap', 'packagefile'):
         for item in info[key]:
             lines.append('{} {}={}'.format(key, *item))
@@ -118,7 +118,7 @@ def get_source_path(args):
 
 def gen_vet_info(args):
     import_path = args.import_path
-    info = get_import_config_info(args.peers, args.import_map, args.module_map)
+    info = get_import_config_info(args.peers, True, args.import_map, args.module_map)
 
     import_map = dict(info['importmap'])
     # FIXME(snermolaev): it seems that adding import map for 'fake' package
@@ -197,7 +197,7 @@ def _do_compile_go(args):
         cmd.append('-std')
         if import_path == 'runtime' or import_path.startswith('runtime/internal/'):
             cmd.append('-+')
-    import_config_name = create_import_config(args.peers, args.import_map, args.module_map)
+    import_config_name = create_import_config(args.peers, True, args.import_map, args.module_map)
     if import_config_name:
         cmd += ['-importcfg', import_config_name]
     else:
@@ -278,7 +278,7 @@ def do_link_exe(args):
 
     do_link_lib(compile_args)
     cmd = [args.go_link, '-o', args.output]
-    import_config_name = create_import_config(args.peers + args.non_local_peers, args.import_map, args.module_map)
+    import_config_name = create_import_config(args.peers + args.non_local_peers, False, args.import_map, args.module_map)
     if import_config_name:
         cmd += ['-importcfg', import_config_name]
     if args.link_flags:
