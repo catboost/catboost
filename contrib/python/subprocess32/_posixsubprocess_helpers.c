@@ -2,6 +2,12 @@
    This file is #included by _posixsubprocess.c and the functions
    are declared static to avoid exposing them outside this module. */
 
+/* _posixsubprocess_config.h was already included by _posixsubprocess.c
+ * which is #include'ing us despite the .c name.  HAVE_SIGNAL_H comes
+ * from there.  Yes, confusing! */
+#ifdef HAVE_SIGNAL_H
+#include <signal.h>
+#endif
 #include "unicodeobject.h"
 
 #if (PY_VERSION_HEX < 0x02050000)
@@ -109,6 +115,11 @@ _PySequence_BytesToCharpArray(PyObject* self)
     argc = PySequence_Size(self);
     if (argc == -1)
         return NULL;
+    /* Avoid 32-bit overflows to malloc() from unreasonable values. */
+    if (argc > 0x10000000) {
+        PyErr_NoMemory();
+        return NULL;
+    }
 
     array = malloc((argc + 1) * sizeof(char *));
     if (array == NULL) {

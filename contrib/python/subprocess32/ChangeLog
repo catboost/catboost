@@ -1,0 +1,185 @@
+-----------------
+2019-05-20 3.5.4
+-----------------
+ * Promoted 3.5.4rc2 to become 3.5.4.
+
+-----------------
+2019-05-13 3.5.4rc2
+-----------------
+ * GitHub [#57]: TimeoutExpired and CalledProcessError exceptions can now
+   be unpickled.
+
+-----------------
+2019-05-10 3.5.4rc1
+-----------------
+* GitHub [#61]: Backport the fixes for https://bugs.python.org/issue10963,
+  https://bugs.python.org/issue19612, and https://bugs.python.org/issue30418.
+  When a child process was so short lived it dies or closes its pipes before
+  you call communicate().  When supplying stdin or reading its output in
+  this scenario, do not raise an unexpected broken pipe or interrupted
+  system call exception.
+
+-----------------
+2018-10-09 3.5.3
+-----------------
+* Disallow ridiculously large numbers (millions) of arguments.  [#54]
+
+-----------------
+2018-06-07 3.5.2
+-----------------
+* Explicitly include <signal.h> in _posixsubprocess_helpers.c; it already
+  gets configure checked and pulled in via Python's own <Python.h> in many
+  circumstances but it is better to be explicit.  #IWYU
+  If you were using subprocess32 on a Python interpreter built *without*
+  the --with-fpectl configure option enabled, restore_signals is now
+  useful rather than a no-op.  I do not know if such builds were common.
+* Adds a functional test for restore_signals=True behavior.
+
+-----------------
+2018-05-21 3.5.1
+-----------------
+* Fix AttributeError: 'module' object has no attribute 'Signals' when
+  constructing a CalledProcessError exception.  [#49]
+
+-----------------
+2018-05-13 3.5.0 (3.5.0rc3)
+-----------------
+
+* Fixed the packaging problem where the stdlib python3_redirect shim is
+  supposed to be installed on Python 3.
+* Renamed _posixsubprocess to _posixsubprocess32 for consistency.
+* Unset CLOEXEC on file descriptors given to Popen pass_fds. (GH #4)
+* Drop support for Python 2.4 and 2.5.
+* Adds a configure script - run by setup.py - to supply the missing feature
+  #define's for the _posixsubprocess32 extension module for the things that
+  Python 2's own configure generated pyconfig.h does not already provide.
+
+-----------------
+2017-10-18 3.5.0rc1
+-----------------
+
+* Backport the new subprocess.run() API from Python 3.5.
+* Backport subprocess.DEVNULL support from 3.3.
+* Allow stderr to be redirected to stdout even when stdout is not redirected.
+  https://bugs.python.org/issue22274 
+* Fix subprocess.Popen.wait() when the child process has exited to a
+  a stopped instead of terminated state (ex: when under ptrace).
+  https://bugs.python.org/issue29335 
+* Include the private API needed by the multiprocessing module for people who
+  want to drop subprocess32 in as a replacement for their standard library
+  subprocess module.
+* Fix a compilation issue regarding O_CLOEXEC not being defined on ancient
+  Linux distros such as RHEL 5.
+
+-----------------
+2015-11-15 3.2.7
+-----------------
+
+* Issue #6973: When we know a subprocess.Popen process has died, do
+  not allow the send_signal(), terminate(), or kill() methods to do
+  anything as they could potentially signal a different process.
+* Issue #23564: Fixed a partially broken sanity check in the _posixsubprocess
+  internals regarding how fds_to_pass were passed to the child.  The bug had
+  no actual impact as subprocess32.py already avoided it.
+
+-----------------
+2015-11-14 3.2.7rc2
+-----------------
+
+* Moved the repository from code.google.com to github.
+* Added a _WAIT_TIMEOUT to satisfy the unsupported people entirely on
+  their own trying to use this on Windows.
+* Similarly: Updated setup.py to not build the extension on non-posix.
+
+-----------------
+2014-06-01 3.2.7rc1
+-----------------
+
+* Issue #21618: The subprocess module could fail to close open fds that were
+  inherited by the calling process and already higher than POSIX resource
+  limits would otherwise allow.  On systems with a functioning /proc/self/fd
+  or /dev/fd interface the max is now ignored and all fds are closed.
+
+-----------------
+2014-04-23 3.2.6
+-----------------
+
+* Fixes issue #21291: Popen.wait() is now thread safe so that multiple
+  threads may be calling wait() or poll() on a Popen instance at the same time
+  without losing the Popen.returncode value.
+* Fixes issue #14396: Handle the odd rare case of waitpid returning 0 when not
+  expected in Popen.wait().
+* Fixes issue #16962: Use getdents64 instead of the obsolete getdents syscall
+  on Linux.  Some architectures do not implement the latter.
+
+-----------------
+2013-12-10 3.2.5
+-----------------
+
+* Fixes issue #15798: subprocess.Popen() no longer fails if file
+  descriptor 0, 1 or 2 is closed.
+* Fixes issue #18763: close_fd file descriptors are now closed after
+  any preexec_fn call.
+
+-----------------
+2013-06-15 3.2.5rc1
+-----------------
+
+* Fixes issue #16650 - Don't reference ECHILD from outside the local scope.
+* Unittests no longer spew any test data for human verification to stdout.
+* Remove a bare print to stdout that could have happened if the child process
+  wrote garbage to its pre-exec error pipe.
+* Fixes issue #16327 - the subprocess module no longer leaks file descriptors
+  used for stdin/stdout/stderr pipes to the child when the fork() fails.  It
+  also no longer potentially double closes these pipe fds.
+* Correct the Python version check around use of imp_module to specify 2.6.3
+  as the minimum version that exists in. Why is anyone using such an old 2.6?
+* Fixes Issue #16114: The subprocess module no longer provides a misleading
+  error message stating that args[0] did not exist when either the cwd or
+  executable keyword arguments specified a path that did not exist.
+* Add more Popen cwd tests.
+* Handle errno.ECHILD in poll.
+* Don't leak a reference to the gc module on capi use error.
+* Check return value to avoid a crash if the capi were misused.
+* Check result of PyObject_IsTrue().
+* Adds test_universal_newlines_communicate_input_none.
+* Most everything above consists of backports.  See the hg logs for their
+  upstream hg.python.org cpython revision numbers.
+
+----------------
+2012-06-10 3.2.3
+----------------
+
+* Fixes the references to the 'surrogateescape' unicode encoding error
+  handler that does not exist in Python 2.x.  'strict' is used so that
+  a UnicodeEncodeError exception is raised in these situations.  These
+  MAY occur if your sys.getfilesystemencoding() is not UTF-8 and
+  attempt to use a non-ascii executable, args or env values.  Prior to
+  this change, those would result in a hard to debug LookupError for
+  surrogateescape.
+* Issue #15000: Support the "unique" x32 architecture in _posixsubprocess.c.
+* Fix a compilation problem when O_CLOEXEC is not defined.
+
+------------------
+2012-02-18 3.2.3b1
+------------------
+
+This release brings in the last year and a half's worth of bugfixes and
+improvements to Python 3.2's subprocess module:
+
+Off the top of my head, some major bugfix highlights include:
+ * Timeout support on the APIs.
+ * close_fds=True is now the default (as it is in 3.2) and performs much faster.
+ * Fixed EINTR handling.
+ * Fixed SIGCHLD handling.
+ * Fixed several race conditions.
+ * Many more bug fixes too numerous to list.
+
+You can grep out the full list of improvements related to subprocess in:
+ http://hg.python.org/cpython/file/9ce5d456138b/Misc/NEWS
+
+-------------
+2010-06 3.2.0
+-------------
+
+This was the first release. Roughly equivalent to Python 3.2.0a1.

@@ -1,19 +1,22 @@
 /* Authors: Gregory P. Smith & Jeffrey Yasskin */
+
+/* We use our own small autoconf to fill in for things that were not checked
+ * for in Python 2's configure and thus pyconfig.h.
+ *
+ * This comes before Python.h on purpose.  2.7's Python.h redefines critical
+ * defines such as _POSIX_C_SOURCE with undesirable old values impacting system
+ * which header defines are available.
+ */
+#include "_posixsubprocess_config.h"
+#ifdef HAVE_SYS_CDEFS_H
+#include <sys/cdefs.h>
+#endif
+
 #define PY_SSIZE_T_CLEAN
 #include "Python.h"
-#if defined(__linux__) && !defined(HAVE_PIPE2)
-# define HAVE_PIPE2 1  /* From 3.2's configure script, undef if you don't. */
-#endif
-#if defined(HAVE_PIPE2) && !defined(_GNU_SOURCE)
-# define _GNU_SOURCE
-#endif
+
 #include <unistd.h>
 #include <fcntl.h>
-#ifdef __linux__
-# define HAVE_SYS_TYPES_H 1  /* From 3.2's configure script, undef if reqd. */
-# define HAVE_SYS_SYSCALL_H 1  /* From 3.2's configure script, undef if reqd. */
-# define HAVE_SYS_DIRENT_H 1  /* From 3.2's configure script, undef if reqd. */
-#endif
 #ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
 #endif
@@ -26,6 +29,8 @@
 #ifdef HAVE_DIRENT_H
 #include <dirent.h>
 #endif
+
+/* TODO: Some platform conditions below could move into configure.ac. */
 
 #if defined(__ANDROID__) && !defined(SYS_getdents64)
 /* Android doesn't expose syscalls, add the definition manually. */
@@ -104,7 +109,7 @@ _is_fdescfs_mounted_on_dev_fd()
     if (stat("/dev", &dev_stat) != 0)
         return 0;
     if (stat(FD_DIR, &dev_fd_stat) != 0)
-        return 0;
+        return 0; 
     if (dev_stat.st_dev == dev_fd_stat.st_dev)
         return 0;  /* / == /dev == /dev/fd means it is static. #fail */
     return 1;
@@ -175,6 +180,35 @@ safe_get_max_fd(void)
     return local_max_fd;
 }
 
+/* While uncommon in Python 2 applications, this makes sure the
+ * close on exec flag is unset on the subprocess32.Popen pass_fds.
+ * https://github.com/google/python-subprocess32/issues/4.
+ */
+static void
+_unset_cloexec_on_fds(PyObject *py_fds_to_keep, int errpipe_write)
+{
+#ifdef FD_CLOEXEC
+    Py_ssize_t num_fds_to_keep = PySequence_Length(py_fds_to_keep);
+    Py_ssize_t keep_seq_idx;
+    /* As py_fds_to_keep is sorted we can loop through the list closing
+     * fds inbetween any in the keep list falling within our range. */
+    for (keep_seq_idx = 0; keep_seq_idx < num_fds_to_keep; ++keep_seq_idx) {
+        PyObject* py_keep_fd = PySequence_Fast_GET_ITEM(py_fds_to_keep,
+                                                        keep_seq_idx);
+        // We just keep going on errors below, there is nothing we can
+        // usefully do to report them.  This is best effort.
+        long fd = PyLong_AsLong(py_keep_fd);
+        if (fd < 0) continue;
+        if (fd == errpipe_write) continue;  // This one keeps its CLOEXEC.
+        // We could use ioctl FIONCLEX, but that is a more modern API
+        // not available everywhere and we are a single threaded child.
+        int old_flags = fcntl(fd, F_GETFD);
+        if (old_flags != -1) {
+            fcntl(fd, F_SETFD, old_flags & ~FD_CLOEXEC);
+        }
+    }
+#endif
+}
 
 /* Close all file descriptors in the range from start_fd and higher
  * except for those in py_fds_to_keep.  If the range defined by
@@ -263,8 +297,7 @@ _close_open_fds_safe(int start_fd, PyObject* py_fds_to_keep)
         _close_fds_by_brute_force(start_fd, py_fds_to_keep);
         return;
     } else {
-        char buffer[sizeof(struct linux_dirent64)];
-        memset(buffer, 0, sizeof(buffer));
+        char buffer[sizeof(struct linux_dirent64)] = {0};
         int bytes;
         while ((bytes = syscall(SYS_getdents64, fd_dir_fd,
                                 (struct linux_dirent64 *)buffer,
@@ -476,6 +509,7 @@ child_exec(char *const exec_array[],
         /* Py_DECREF(result); - We're about to exec so why bother? */
     }
 
+    _unset_cloexec_on_fds(py_fds_to_keep, errpipe_write);
     if (close_fds) {
         /* TODO HP-UX could use pstat_getproc() if anyone cares about it. */
         _close_open_fds(3, py_fds_to_keep);
@@ -760,7 +794,7 @@ subprocess_cloexec_pipe(PyObject *self, PyObject *noargs)
     int fds[2];
     int res, saved_errno;
     long oldflags;
-#ifdef HAVE_PIPE2
+#if (defined(HAVE_PIPE2) && defined(O_CLOEXEC))
     Py_BEGIN_ALLOW_THREADS
     res = pipe2(fds, O_CLOEXEC);
     Py_END_ALLOW_THREADS
@@ -785,7 +819,7 @@ subprocess_cloexec_pipe(PyObject *self, PyObject *noargs)
         }
         if (res == 0)
             res = fcntl(fds[1], F_SETFD, oldflags | FD_CLOEXEC);
-#ifdef HAVE_PIPE2
+#if (defined(HAVE_PIPE2) && defined(O_CLOEXEC))
     }
 #endif
     if (res == 0 && fds[1] < 3) {
@@ -877,7 +911,7 @@ static PyMethodDef module_methods[] = {
 
 
 PyMODINIT_FUNC
-init_posixsubprocess(void)
+init_posixsubprocess32(void)
 {
     PyObject *m;
 
@@ -887,7 +921,7 @@ init_posixsubprocess(void)
         return;
 #endif
 
-    m = Py_InitModule3("_posixsubprocess", module_methods, module_doc);
+    m = Py_InitModule3("_posixsubprocess32", module_methods, module_doc);
     if (m == NULL)
         return;
 }

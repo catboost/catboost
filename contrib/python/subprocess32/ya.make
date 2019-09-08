@@ -1,10 +1,10 @@
-LIBRARY()
+PY_LIBRARY() # Backport from Python 3.
 
 
 
 LICENSE(PSFv2)
 
-VERSION(3.2.7)
+VERSION(3.5.4)
 
 COPY_FILE(subprocess32.py subprocess.py)
 
@@ -20,7 +20,7 @@ IF (NOT OS_WINDOWS)
         _posixsubprocess.c
     )
 
-    PY_REGISTER(_posixsubprocess)
+    PY_REGISTER(_posixsubprocess32)
 
     PY_SRCS(
         TOP_LEVEL
