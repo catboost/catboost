@@ -31,3 +31,7 @@ ENDIF ()
 NO_LINT()
 
 END()
+
+RECURSE_FOR_TESTS(
+    testdata
+)
