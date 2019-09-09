@@ -425,7 +425,7 @@
     ],
     "test.test_boost_from_average[Ordered]": [
         {
-            "checksum": "d41d8cd98f00b204e9800998ecf8427e",
+            "checksum": "4ff71a14c1d2f13e64b3ca28532fe142",
             "uri": "file://test.test_boost_from_average_Ordered_/test_avg.eval"
         }
     ],

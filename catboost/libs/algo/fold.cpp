@@ -146,7 +146,6 @@ TFold TFold::BuildDynamicFold(
         queryIndices,
         learnSampleCount
     );
-    double startingApproxValue = startingApprox ? *startingApprox : GetNeutralApprox(storeExpApproxes);
     while (ff.BodyTailArr.empty() || leftPartLen < learnSampleCount) {
         int bodyFinish = (int)leftPartLen;
         int tailFinish = (int) UpdateSize(
@@ -167,7 +166,13 @@ TFold TFold::BuildDynamicFold(
 
         TFold::TBodyTail bt(bodyQueryFinish, tailQueryFinish, bodyFinish, tailFinish, bodySumWeight);
 
-        bt.Approx.resize(approxDimension, TVector<double>(bt.TailFinish, startingApproxValue));
+        TVector<double> initialApprox(bt.TailFinish, GetNeutralApprox(storeExpApproxes));
+        if (startingApprox) {
+            for (ui32 i = leftPartLen; i < (ui32)bt.TailFinish; ++i) {
+                initialApprox[i] = *startingApprox;
+            }
+        }
+        bt.Approx.resize(approxDimension, initialApprox);
         if (baseline) {
             InitApproxFromBaseline(
                 leftPartLen,
