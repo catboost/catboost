@@ -596,7 +596,7 @@ cdef extern from "catboost/libs/model/model.h":
     cdef cppclass TObliviousTrees:
         int ApproxDimension
         TVector[double] LeafValues
-        TVector[TVector[double]] LeafWeights
+        TVector[double] LeafWeights
         TVector[TCatFeature] CatFeatures
         TVector[TFloatFeature] FloatFeatures
         void DropUnusedFeatures() except +ProcessException
@@ -4018,12 +4018,10 @@ cdef class _CatBoost:
     cpdef _get_leaf_weights(self):
         result = np.empty(self.__model.ObliviousTrees.Get().LeafValues.size(), dtype=_npfloat64)
         cdef size_t curr_index = 0
-        cdef TConstArrayRef[double] arrayView
-        for i in xrange(self.__model.ObliviousTrees.Get().LeafWeights.size()):
-            arrayView = <TConstArrayRef[double]>self.__model.ObliviousTrees.Get().LeafWeights[i]
-            for val in arrayView:
-                result[curr_index] = val
-                curr_index += 1
+        cdef TConstArrayRef[double] arrayView = <TConstArrayRef[double]>self.__model.ObliviousTrees.Get().LeafWeights
+        for val in arrayView:
+            result[curr_index] = val
+            curr_index += 1
         assert curr_index == 0 or curr_index == self.__model.ObliviousTrees.Get().LeafValues.size(), (
             "wrong number of leaf weights")
         return result

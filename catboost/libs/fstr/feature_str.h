@@ -123,7 +123,7 @@ template <class T>
 TVector<double> CalcEffect(
     const TFullModel& model,
     const THashMap<TFeature, int, TFeatureHash>& featureToIdx,
-    const TVector<TVector<T>>& weightedDocCountInLeaf) {
+    const TVector<T>& weightedDocCountInLeaf) {
 
     const auto& binFeatures = model.ObliviousTrees->GetBinFeatures();
     const auto& leafValues = model.ObliviousTrees->LeafValues;
@@ -149,7 +149,7 @@ TVector<double> CalcEffect(
                     leafValues.begin() + leafValueIndex + approxDimension);
                 nodeIdxToInfo[nodeIdx] = TNodeInfo{
                     values,
-                    weightedDocCountInLeaf[0][leafValueIndex]
+                    weightedDocCountInLeaf[leafValueIndex]
                 };
             } else {
                 const int split = model.ObliviousTrees->TreeSplits[nodeIdx];
@@ -201,10 +201,10 @@ TVector<double> CalcEffect(
     return res;
 }
 
-template <class T>
+template <typename T>
 TVector<double> CalcEffect(
     const TVector<TMxTree>& trees,
-    const TVector<TVector<T>>& weightedDocCountInLeaf) {
+    const TVector<TConstArrayRef<T>>& weightedDocCountInLeaf) {
 
     int featureCount = GetMaxSrcFeature(trees) + 1;
     TVector<double> res(featureCount, 0);
@@ -239,4 +239,18 @@ TVector<double> CalcEffect(
     }
     ConvertToPercents(res);
     return res;
+}
+
+template <typename T>
+TVector<double> CalcEffect(
+    const TVector<TMxTree>& trees,
+    const TVector<TVector<T>>& weightedDocCountInLeaf) {
+
+    TVector<TConstArrayRef<T>> weightInLeafArrRef;
+    for (const auto& treeWeights: weightedDocCountInLeaf) {
+        weightInLeafArrRef.push_back(TConstArrayRef<T>(
+            treeWeights.begin(),
+            treeWeights.size()));
+    }
+    return CalcEffect(trees, weightInLeafArrRef);
 }

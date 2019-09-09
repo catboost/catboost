@@ -285,16 +285,13 @@ int main(int argc, char** argv) {
         }
         if (!result.StructureIsDifferent) {
             Y_ASSERT(trees1.LeafWeights.size() == trees2.LeafWeights.size());
+            const TVector<double>& weights1 = trees1.LeafWeights;
+            const TVector<double>& weights2 = trees2.LeafWeights;
             for (int i = 0; i < trees1.LeafWeights.ysize(); ++i) {
-                const TVector<double>& weights1 = trees1.LeafWeights[i];
-                const TVector<double>& weights2 = trees2.LeafWeights[i];
-                Y_ASSERT(weights1.size() == weights2.size());
-                for (int j = 0; j < weights1.ysize(); ++j) {
-                    if (result.Update(Diff(weights1[j], weights2[j]))) {
-                        Cerr << "ObliviousTrees.LeafWeights[" << i << "][" << j << "] differ: "
-                            << weights1[j] << " vs " << weights2[j]
-                            << ", diff = " << result.MaxElementwiseDiff << Endl;
-                    }
+                if (result.Update(Diff(weights1[i], weights2[i]))) {
+                    Clog << "ObliviousTrees.LeafWeights[" << i << "] differ: "
+                        << weights1[i] << " vs " << weights2[i]
+                        << ", diff = " << result.MaxElementwiseDiff << Endl;
                 }
             }
         }

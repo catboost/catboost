@@ -153,7 +153,7 @@ public:
      *
      *  layout: [treeIndex][leafId]
      */
-    TVector<TVector<double>> LeafWeights;
+    TVector<double> LeafWeights;
 
     //! Categorical features, used in model in OneHot conditions or/and in CTR feature combinations
     TVector<TCatFeature> CatFeatures;

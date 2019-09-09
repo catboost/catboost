@@ -35,7 +35,7 @@ struct TShapPreparedTrees {
     TVector<TVector<int>> CombinationClassFeatures;
     bool CalcShapValuesByLeafForAllTrees;
     bool CalcInternalValues;
-    TVector<TVector<double>> LeafWeightsForAllTrees;
+    TVector<double> LeafWeightsForAllTrees;
     TVector<TVector<TVector<double>>> SubtreeWeightsForAllTrees;
 
 public:

@@ -523,7 +523,7 @@ static TVector<double> CalcMeanValueForTree(
                 size_t leafIdx = forest.NonSymmetricNodeIdToLeafId[nodeIdx];
                 if (leafIdx < forest.LeafValues.size()) {
                     meanValue[dimension] += forest.LeafValues[leafIdx + dimension]
-                                        * forest.LeafWeights[0][leafIdx + dimension];
+                                        * forest.LeafWeights[leafIdx / forest.ApproxDimension];
                 }
             }
         }
@@ -611,11 +611,16 @@ static TVector<TVector<double>> CalcSubtreeWeightsForTree(
     const TVector<double>& leafWeights,
     int treeIdx
 ) {
+    TVector<TVector<double>> subtreeWeights;
     if (forest.IsOblivious()) {
         const int treeDepth = forest.TreeSizes[treeIdx];
-        TVector<TVector<double>> subtreeWeights(treeDepth + 1);
+        subtreeWeights.resize(treeDepth + 1);
+        subtreeWeights[treeDepth].resize(size_t(1) << treeDepth);
+        const int weightOffset = forest.GetFirstLeafOffsets()[treeIdx] / forest.ApproxDimension;
 
-        subtreeWeights[treeDepth] = leafWeights;
+        for (size_t nodeIdx = 0; nodeIdx < size_t(1) << treeDepth; ++nodeIdx) {
+            subtreeWeights[treeDepth][nodeIdx] = leafWeights[weightOffset + nodeIdx];
+        }
 
         for (int depth = treeDepth - 1; depth >= 0; --depth) {
             const size_t nodeCount = size_t(1) << depth;
@@ -624,21 +629,24 @@ static TVector<TVector<double>> CalcSubtreeWeightsForTree(
                 subtreeWeights[depth][nodeIdx] = subtreeWeights[depth + 1][nodeIdx * 2] + subtreeWeights[depth + 1][nodeIdx * 2 + 1];
             }
         }
-        return subtreeWeights;
     } else {
         const int startOffset = forest.TreeStartOffsets[treeIdx];
         TVector<size_t> reversedTree = GetReversedSubtreeForNonObliviousTree(forest, treeIdx);
-        TVector<TVector<double>> subtreeWeights(1); // with respect to NonSymmetric format of TObliviousTree
+        subtreeWeights.resize(1); // with respect to NonSymmetric format of TObliviousTree
         subtreeWeights[0].resize(reversedTree.size(), 0);
-        for (size_t localIdx = reversedTree.size() - 1; localIdx > 0; --localIdx) {
-            size_t leafIdx = forest.NonSymmetricNodeIdToLeafId[startOffset + localIdx];
-            if (leafIdx < leafWeights.size()) {
-                subtreeWeights[0][localIdx] += leafWeights[leafIdx];
+        if (reversedTree.size() == 1) {
+            subtreeWeights[0][0] = leafWeights[forest.NonSymmetricNodeIdToLeafId[startOffset] / forest.ApproxDimension];
+        } else {
+            for (size_t localIdx = reversedTree.size() - 1; localIdx > 0; --localIdx) {
+                size_t leafIdx = forest.NonSymmetricNodeIdToLeafId[startOffset + localIdx] / forest.ApproxDimension;
+                if (leafIdx < leafWeights.size()) {
+                    subtreeWeights[0][localIdx] += leafWeights[leafIdx];
+                }
+                subtreeWeights[0][reversedTree[localIdx] - startOffset] += subtreeWeights[0][localIdx];
             }
-            subtreeWeights[0][reversedTree[localIdx] - startOffset] += subtreeWeights[0][localIdx];
         }
-        return subtreeWeights;
     }
+    return subtreeWeights;
 }
 
 static void MapBinFeaturesToClasses(
@@ -821,7 +829,7 @@ static void CalcShapValuesForDocumentBlockMulti(
 
 static void CalcShapValuesByLeafForTreeBlock(
     const TObliviousTrees& forest,
-    const TVector<TVector<double>>& leafWeights,
+    const TVector<double>& leafWeights,
     int start,
     int end,
     bool calcInternalValues,
@@ -835,11 +843,7 @@ static void CalcShapValuesByLeafForTreeBlock(
     localExecutor->ExecRange([&] (size_t treeIdx) {
         const bool isOblivious = forest.NonSymmetricStepNodes.empty() && forest.NonSymmetricNodeIdToLeafId.empty();
         TVector<TVector<double>> subtreeWeights;
-        if (isOblivious) {
-            subtreeWeights = CalcSubtreeWeightsForTree(forest, leafWeights[treeIdx], treeIdx);
-        } else {
-            subtreeWeights = CalcSubtreeWeightsForTree(forest, leafWeights[0], treeIdx);
-        }
+        subtreeWeights = CalcSubtreeWeightsForTree(forest, leafWeights, treeIdx);
         if (preparedTrees->CalcShapValuesByLeafForAllTrees && isOblivious) {
             const size_t leafCount = (size_t(1) << forest.TreeSizes[treeIdx]);
             TVector<TVector<TShapValue>>& shapValuesByLeaf = preparedTrees->ShapValuesByLeafForAllTrees[treeIdx];
@@ -905,7 +909,7 @@ TShapPreparedTrees PrepareTrees(
     TImportanceLogger treesLogger(treeCount, "trees processed", "Processing trees...", logPeriod);
 
     // use only if model.ObliviousTrees->LeafWeights is empty
-    TVector<TVector<double>> leafWeights;
+    TVector<double> leafWeights;
     if (model.ObliviousTrees->LeafWeights.empty()) {
         CB_ENSURE(
                 dataset,

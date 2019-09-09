@@ -103,15 +103,25 @@ static TFullModel SaveLoadCoreML(const TFullModel& trainedModel) {
     return deserializedModel;
 }
 
-static void CheckWeights(const TWeights<float>& docWeights, const TVector<TVector<double>>& leafWeights) {
+static void CheckWeights(const TWeights<float>& docWeights, const TFullModel& model) {
+    if (model.ObliviousTrees->LeafWeights.empty()) {
+        return;
+    }
+
     double trueWeightSum = 0;
     for (auto i : xrange(docWeights.GetSize())) {
         trueWeightSum += docWeights[i];
     }
-    for (const auto& leafWeightsInTree : leafWeights) {
+
+    const auto& weights = model.ObliviousTrees->LeafWeights;
+    const auto& treeSizes = model.ObliviousTrees->TreeSizes;
+    const int approxDimension = model.ObliviousTrees->ApproxDimension;
+    auto leafOffsetPtr = model.ObliviousTrees->GetFirstLeafOffsets();
+    for (size_t treeIdx = 0; treeIdx < model.GetTreeCount(); ++treeIdx) {
         double weightSumInTree = 0;
-        for (const auto& weight : leafWeightsInTree) {
-            weightSumInTree += weight;
+        const size_t offset = leafOffsetPtr[treeIdx] / approxDimension;
+        for (size_t leafId = offset; leafId < offset + (1u << treeSizes[treeIdx]); ++leafId) {
+            weightSumInTree += weights[leafId];
         }
         UNIT_ASSERT_EQUAL(trueWeightSum, weightSumInTree);
     }
@@ -130,7 +140,7 @@ static void RunTestWithParams(EWeightsMode addWeights, ETargetDimMode multiclass
         deserializedModel = SaveLoadCoreML(trainedModel);
     }
     if (exportToCBM) {
-        CheckWeights(floatPool->RawTargetData.GetWeights(), deserializedModel.ObliviousTrees->LeafWeights);
+        CheckWeights(floatPool->RawTargetData.GetWeights(), deserializedModel);
     } else {
         UNIT_ASSERT(deserializedModel.ObliviousTrees->LeafWeights.empty());
     }

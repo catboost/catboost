@@ -14,7 +14,7 @@
 using namespace NCB;
 
 
-TVector<TVector<double>> CollectLeavesStatistics(
+TVector<double> CollectLeavesStatistics(
     const NCB::TDataProvider& dataset,
     const TFullModel& model,
     NPar::TLocalExecutor* localExecutor) {
@@ -46,26 +46,18 @@ TVector<TVector<double>> CollectLeavesStatistics(
         }
     }
 
-    size_t treeCount;
-    TVector<TVector<double>> leavesStatistics;
-    if (model.IsOblivious()) {
-        treeCount = model.GetTreeCount();
-        leavesStatistics.resize(treeCount);
-        for (size_t index = 0; index < treeCount; ++index) {
-            leavesStatistics[index].resize(1 << model.ObliviousTrees->TreeSizes[index]);
-        }
-    } else {
-        treeCount = 1;
-        leavesStatistics.resize(1);
-        leavesStatistics[0].resize(model.ObliviousTrees->LeafValues.size());
-    }
+    size_t treeCount = model.GetTreeCount();
+    const int approxDimension = model.ObliviousTrees->ApproxDimension;
+    TVector<double> leavesStatistics(
+        model.ObliviousTrees->LeafValues.size() / approxDimension
+    );
 
     auto binFeatures = MakeQuantizedFeaturesForEvaluator(model, *dataset.ObjectsData.Get());
 
     const auto documentsCount = dataset.GetObjectCount();
     for (size_t treeIdx = 0; treeIdx < treeCount; ++treeIdx) {
         TVector<TIndexType> indices = BuildIndicesForBinTree(model, binFeatures.Get(), treeIdx);
-
+        const int offset = model.ObliviousTrees->GetFirstLeafOffsets()[treeIdx] / approxDimension;
         if (indices.empty()) {
             continue;
         }
@@ -73,12 +65,12 @@ TVector<TVector<double>> CollectLeavesStatistics(
         if (weights.empty()) {
             for (size_t doc = 0; doc < documentsCount; ++doc) {
                 const TIndexType valueIndex = indices[doc];
-                leavesStatistics[treeIdx][valueIndex] += 1.0;
+                leavesStatistics[offset + valueIndex] += 1.0;
             }
         } else {
             for (size_t doc = 0; doc < documentsCount; ++doc) {
                 const TIndexType valueIndex = indices[doc];
-                leavesStatistics[treeIdx][valueIndex] += weights[doc];
+                leavesStatistics[offset + valueIndex] += weights[doc];
             }
         }
     }

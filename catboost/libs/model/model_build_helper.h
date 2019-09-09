@@ -46,7 +46,7 @@ public:
 private:
     TVector<TVector<TModelSplit>> Trees;
     TVector<double> LeafValues;
-    TVector<TVector<double>> LeafWeights;
+    TVector<double> LeafWeights;
 };
 
 class TNonSymmetricTreeNode {

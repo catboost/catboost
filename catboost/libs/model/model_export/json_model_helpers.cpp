@@ -79,14 +79,6 @@ static TVector<T> JsonToVector(const TJsonValue& jsonValue) {
     return result;
 }
 
-static TJsonValue VectorToJson(const TVector<double>& array) {
-    TJsonValue jsonValue;
-    for (const auto& value: array) {
-        jsonValue.AppendValue(float(value));
-    }
-    return jsonValue;
-}
-
 static TJsonValue ToJson(const TFloatSplit& floatSplit) {
     TJsonValue jsonValue;
     jsonValue.InsertValue("float_feature_index", floatSplit.FloatFeature);
@@ -352,20 +344,25 @@ static void GetFeaturesInfo(const TJsonValue& jsonValue, TObliviousTrees* oblivi
 }
 
 static TJsonValue GetObliviousTreesJson(const TObliviousTrees& obliviousTrees) {
-    int leafOffset = 0;
+    int leafValuesOffset = 0;
+    int leafWeightsOffset = 0;
     TJsonValue jsonValue;
     const auto& binFeatures = obliviousTrees.GetBinFeatures();
     for (int treeIdx = 0; treeIdx < obliviousTrees.TreeSizes.ysize(); ++treeIdx) {
         TJsonValue tree;
-        size_t treeLeafCount = (1uLL <<  obliviousTrees.TreeSizes[treeIdx]) * obliviousTrees.ApproxDimension;
+        const size_t treeLeafCount = (1uLL <<  obliviousTrees.TreeSizes[treeIdx]) * obliviousTrees.ApproxDimension;
+        const size_t treeWeightsCount = (1uLL <<  obliviousTrees.TreeSizes[treeIdx]);
         if (!obliviousTrees.LeafWeights.empty()) {
-            tree.InsertValue("leaf_weights", VectorToJson(obliviousTrees.LeafWeights[treeIdx]));
+            for (size_t idx = 0; idx < treeWeightsCount; ++idx) {
+                tree["leaf_weights"].AppendValue(obliviousTrees.LeafWeights[leafWeightsOffset + idx]);
+            }
         }
         tree.InsertValue("leaf_values", TJsonValue());
         for (size_t idx = 0; idx < treeLeafCount; ++idx) {
-            tree["leaf_values"].AppendValue(obliviousTrees.LeafValues[leafOffset + idx]);
+            tree["leaf_values"].AppendValue(obliviousTrees.LeafValues[leafValuesOffset + idx]);
         }
-        leafOffset += treeLeafCount;
+        leafValuesOffset += treeLeafCount;
+        leafWeightsOffset += treeWeightsCount;
         int treeSplitEnd;
         if (treeIdx + 1 < obliviousTrees.TreeStartOffsets.ysize()) {
             treeSplitEnd = obliviousTrees.TreeStartOffsets[treeIdx + 1];
@@ -396,7 +393,9 @@ static void GetObliviousTrees(const TJsonValue& jsonValue, TObliviousTrees* obli
             obliviousTrees->TreeSplits.push_back(split["split_index"].GetInteger());
         }
         if (value.Has("leaf_weights")) {
-            obliviousTrees->LeafWeights.push_back(JsonToVector<double>(value["leaf_weights"]));
+            for (const auto& weight: value["leaf_weights"].GetArray()) {
+                obliviousTrees->LeafWeights.push_back(weight.GetDouble());
+            }
         }
     }
     obliviousTrees->TreeStartOffsets.pop_back();

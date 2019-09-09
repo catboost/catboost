@@ -137,12 +137,15 @@ EXPORT bool CopyTree(
 
             size_t treeLeafCount = (1uLL << obliviousTrees->TreeSizes[treeIndex]) * obliviousTrees->ApproxDimension;
             auto srcLeafValues = obliviousTrees->GetFirstLeafPtrForTree(treeIndex);
-            const auto& srcWeights = obliviousTrees->LeafWeights[treeIndex];
+            const auto& srcWeights = obliviousTrees->LeafWeights;
+
             for (size_t idx = 0; idx < treeLeafCount; ++idx) {
                 leaves[idx] = (float) srcLeafValues[idx];
             }
+
+            const size_t weightOffset = obliviousTrees->GetFirstLeafOffsets()[treeIndex] / obliviousTrees->ApproxDimension;
             for (size_t idx = 0; idx < (1uLL << obliviousTrees->TreeSizes[treeIndex]); ++idx) {
-                weights[idx] = (float) srcWeights[idx];
+                weights[idx] = (float) srcWeights[idx + weightOffset];
             }
 
             int treeSplitEnd;

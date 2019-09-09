@@ -7,7 +7,7 @@
 
 #include <util/generic/vector.h>
 
-TVector<TVector<double>> CollectLeavesStatistics(
+TVector<double> CollectLeavesStatistics(
     const NCB::TDataProvider& dataset,
     const TFullModel& model,
     NPar::TLocalExecutor* localExecutor);

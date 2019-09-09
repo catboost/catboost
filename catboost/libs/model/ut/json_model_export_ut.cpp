@@ -27,10 +27,9 @@ Y_UNIT_TEST_SUITE(TJsonModelExport) {
     }
     Y_UNIT_TEST(TestEmptyLeafWeights) {
         TFullModel model = TrainFloatCatboostModel();
-        model.ObliviousTrees.GetMutable()->LeafWeights[0].clear();
+        model.ObliviousTrees.GetMutable()->LeafWeights.clear();
         ExportModel(model, "model.json", EModelType::Json);
         model = ReadModel("model.json", EModelType::Json);
-        UNIT_ASSERT(model.ObliviousTrees->LeafWeights[0].empty());
-        UNIT_ASSERT(!model.ObliviousTrees->LeafWeights[1].empty());
+        UNIT_ASSERT(model.ObliviousTrees->LeafWeights.empty());
     }
 }

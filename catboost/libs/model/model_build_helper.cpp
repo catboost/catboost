@@ -119,7 +119,7 @@ void TObliviousTreeBuilder::AddTree(const TVector<TModelSplit>& modelSplits,
     LeafValues.insert(LeafValues.end(), treeLeafValues.begin(), treeLeafValues.end());
     if (!treeLeafWeights.empty()) {
         CB_ENSURE((1u << modelSplits.size()) == treeLeafWeights.size());
-        LeafWeights.emplace_back(treeLeafWeights.begin(), treeLeafWeights.end());
+        LeafWeights.insert(LeafWeights.end(), treeLeafWeights.begin(), treeLeafWeights.end());
     }
     Trees.emplace_back(modelSplits);
 }
@@ -184,7 +184,7 @@ void TNonSymmetricTreeModelBuilder::Build(TObliviousTrees* result) {
     }
     result->TreeSizes = std::move(TreeSizes);
     result->TreeStartOffsets = std::move(TreeStartOffsets);
-    result->LeafWeights.emplace_back(std::move(LeafWeights));
+    result->LeafWeights = std::move(LeafWeights);
     result->UpdateRuntimeData();
 }
 
