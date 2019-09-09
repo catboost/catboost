@@ -12,7 +12,8 @@ void UpdateYetiRankEvalMetric(
 void SetDataDependentDefaults(
     const NCB::TDataMetaInfo& trainDataMetaInfo,
     const TMaybe<NCB::TDataMetaInfo>& testDataMetaInfo,
-    bool learningContinuation,
+    bool continueFromModel,
+    bool continueFromProgress,
     NCatboostOptions::TOption<bool>* useBestModel,
     NCatboostOptions::TCatBoostOptions* catBoostOptions
 );

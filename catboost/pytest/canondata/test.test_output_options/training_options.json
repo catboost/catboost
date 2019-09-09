@@ -12,7 +12,7 @@
             "type" : "None",
             "stop_pvalue" : 0
         },
-        "boost_from_average" : false,
+        "boost_from_average" : true,
         "permutation_count" : 4,
         "learning_rate" : 0.4402559996
     },

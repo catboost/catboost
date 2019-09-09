@@ -3,7 +3,7 @@
     "bagging_temperature": 1, 
     "bayesian_matrix_reg": 0.1000000015, 
     "best_model_min_trees": 1, 
-    "boost_from_average": false, 
+    "boost_from_average": true, 
     "boosting_type": "Plain", 
     "bootstrap_type": "Bayesian", 
     "border_count": 254, 

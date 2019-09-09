@@ -903,7 +903,8 @@ static void TrainModel(
         trainingData.Test.size() > 0 ?
             TMaybe<NCB::TDataMetaInfo>(trainingData.Test[0]->MetaInfo) :
             Nothing(),
-        initModel.Defined() || initLearnProgress,
+        initModel.Defined(),
+        !!initLearnProgress,
         &updatedOutputOptions.UseBestModel,
         &catBoostOptions
     );
@@ -1210,7 +1211,8 @@ static void ModelBasedEval(
         trainingData.Test.size() > 0 ?
             TMaybe<NCB::TDataMetaInfo>(trainingData.Test[0]->MetaInfo) :
             Nothing(),
-        /*learningContinuation*/ false,
+        /*continueFromModel*/ false,
+        /*continueFromProgress*/ false,
         &updatedOutputOptions.UseBestModel,
         &catBoostOptions
     );

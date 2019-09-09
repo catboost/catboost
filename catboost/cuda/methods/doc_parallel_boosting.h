@@ -143,12 +143,13 @@ namespace NCatboostCuda {
             const ui32 approxDim = inputData.Targets[0]->GetDim();
 
             if (CatBoostOptions.BoostingOptions->BoostFromAverage.Get()) {
-                // we have already checked that lossfunction is RMSE in boosting_options.cpp
                 CB_ENSURE(!DataProvider->TargetData->GetBaseline(),
                     "You can't use boost_from_average with baseline now.");
                 CB_ENSURE(!TestDataProvider || !TestDataProvider->TargetData->GetBaseline(),
                     "You can't use boost_from_average with baseline now.");
-                cursors->StartingPoint = CalculateWeightedTargetAverage(*DataProvider->TargetData);
+                if (CatBoostOptions.LossFunctionDescription->GetLossFunction() == ELossFunction::RMSE) {
+                    cursors->StartingPoint = CalculateWeightedTargetAverage(*DataProvider->TargetData);
+                }
             }
 
             for (ui32 i = 0; i < permutationCount; ++i) {

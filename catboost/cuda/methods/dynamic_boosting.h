@@ -532,12 +532,13 @@ namespace NCatboostCuda {
             state->Targets = CreateTargets(state->DataSets);
 
             if (CatBoostOptions.BoostingOptions->BoostFromAverage.Get()) {
-                // we have already checked that lossfunction is RMSE in boosting_options.cpp
                 CB_ENSURE(!DataProvider->TargetData->GetBaseline(),
                     "You can't use boost_from_average with baseline now.");
                 CB_ENSURE(!TestDataProvider || !TestDataProvider->TargetData->GetBaseline(),
                     "You can't use boost_from_average with baseline now.");
-                state->StartingPoint = CalculateWeightedTargetAverage(*DataProvider->TargetData);
+                if (CatBoostOptions.LossFunctionDescription->GetLossFunction() == ELossFunction::RMSE) {
+                    state->StartingPoint = CalculateWeightedTargetAverage(*DataProvider->TargetData);
+                }
             }
 
             const ui32 estimationPermutation = state->DataSets.PermutationsCount() - 1;

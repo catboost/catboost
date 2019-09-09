@@ -174,7 +174,14 @@ NJson::TJsonValue GetTrainingOptions(
     NCatboostOptions::PlainJsonToOptions(plainJsonParams, &trainOptionsJson, &outputFilesOptionsJson);
     NCatboostOptions::TCatBoostOptions catboostOptions(NCatboostOptions::LoadOptions(trainOptionsJson));
     NCatboostOptions::TOption<bool> useBestModelOption("use_best_model", false);
-    SetDataDependentDefaults(trainDataMetaInfo, testDataMetaInfo, /*learningContinuation*/ false, &useBestModelOption, &catboostOptions);
+    SetDataDependentDefaults(
+        trainDataMetaInfo,
+        testDataMetaInfo,
+        /*continueFromModel*/ false,
+        /*learningContinuation*/ false,
+        &useBestModelOption,
+        &catboostOptions
+    );
     NJson::TJsonValue catboostOptionsJson;
     catboostOptions.Save(&catboostOptionsJson);
     return catboostOptionsJson;

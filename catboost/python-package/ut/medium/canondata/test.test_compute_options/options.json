@@ -1,7 +1,7 @@
 {
     "boosting_options": {
         "approx_on_full_history": false, 
-        "boost_from_average": false, 
+        "boost_from_average": true, 
         "boosting_type": "Plain", 
         "fold_len_multiplier": 2, 
         "fold_permutation_block": 0, 

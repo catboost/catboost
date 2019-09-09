@@ -550,8 +550,13 @@ void NCatboostOptions::TCatBoostOptions::Validate() const {
         "It cannot be disabled.");
 
     if (BoostingOptions->BoostFromAverage.Get()) {
+        // we may adjust non-set BoostFromAverage in data dependant tuning
         CB_ENSURE(lossFunction == ELossFunction::RMSE, "You can use boost_from_average only for RMSE loss function now.");
         CB_ENSURE(SystemOptions->IsSingleHost(), "You can use boost_from_average only on single host now.");
+        CB_ENSURE(
+            lossFunction == ELossFunction::RMSE,
+            "You can use explicit boost_from_average with RMSE loss function only for now."
+        );
     }
 
     if (GetTaskType() == ETaskType::CPU && !ObliviousTreeOptions->MonotoneConstraints.Get().empty()) {

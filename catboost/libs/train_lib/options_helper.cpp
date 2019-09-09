@@ -222,10 +222,28 @@ static void DropModelShrinkageIfBaselineUsed(
     }
 }
 
+static void AdjustBoostFromAverageDefaultValue(
+    const NCB::TDataMetaInfo& trainDataMetaInfo,
+    const TMaybe<NCB::TDataMetaInfo>& testDataMetaInfo,
+    bool continueFromModel,
+    NCatboostOptions::TCatBoostOptions* catBoostOptions
+) {
+    if (catBoostOptions->BoostingOptions->BoostFromAverage.IsSet()) {
+        return;
+    }
+    if (catBoostOptions->SystemOptions->IsSingleHost() && !continueFromModel) {
+        catBoostOptions->BoostingOptions->BoostFromAverage.Set(true);
+    }
+    if (trainDataMetaInfo.BaselineCount != 0 || (testDataMetaInfo.Defined() && testDataMetaInfo->BaselineCount != 0)) {
+        catBoostOptions->BoostingOptions->BoostFromAverage.Set(false);
+    }
+}
+
 void SetDataDependentDefaults(
     const NCB::TDataMetaInfo& trainDataMetaInfo,
     const TMaybe<NCB::TDataMetaInfo>& testDataMetaInfo,
-    bool learningContinuation,
+    bool continueFromModel,
+    bool continueFromProgress,
     NCatboostOptions::TOption<bool>* useBestModel,
     NCatboostOptions::TCatBoostOptions* catBoostOptions
 ) {
@@ -233,7 +251,7 @@ void SetDataDependentDefaults(
     const ui64 testPoolSize = testDataMetaInfo.Defined() ? testDataMetaInfo->ObjectCount : 0;
     const bool isConstTestTarget = testDataMetaInfo.Defined() && IsConstTarget(*testDataMetaInfo);
     const bool hasTestPairs = testDataMetaInfo.Defined() && testDataMetaInfo->HasPairs;
-    UpdateUseBestModel(learningContinuation, testPoolSize, isConstTestTarget, hasTestPairs, useBestModel);
+    UpdateUseBestModel(continueFromModel || continueFromProgress, testPoolSize, isConstTestTarget, hasTestPairs, useBestModel);
     UpdateBoostingTypeOption(learnPoolSize, catBoostOptions);
     UpdateLearningRate(learnPoolSize, useBestModel->Get(), catBoostOptions);
     UpdateOneHotMaxSize(
@@ -248,5 +266,6 @@ void SetDataDependentDefaults(
     );
     UpdateLeavesEstimationIterations(trainDataMetaInfo, catBoostOptions);
     UpdateAndValidateMonotoneConstraints(*trainDataMetaInfo.FeaturesLayout.Get(), catBoostOptions);
-    DropModelShrinkageIfBaselineUsed(trainDataMetaInfo, learningContinuation, catBoostOptions);
+    DropModelShrinkageIfBaselineUsed(trainDataMetaInfo, continueFromModel || continueFromProgress, catBoostOptions);
+    AdjustBoostFromAverageDefaultValue(trainDataMetaInfo, testDataMetaInfo, continueFromModel, catBoostOptions);
 }
