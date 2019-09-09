@@ -108,8 +108,8 @@ void NCatboostOptions::TCatBoostOptions::SetLeavesEstimationDefault() {
             break;
         }
         case ELossFunction::Poisson: {
-            defaultEstimationMethod = ELeavesEstimation::Gradient;
-            defaultNewtonIterations = 1;
+            defaultEstimationMethod = ELeavesEstimation::Newton;
+            defaultNewtonIterations = 10;
             defaultGradientIterations = 1;
             break;
         }

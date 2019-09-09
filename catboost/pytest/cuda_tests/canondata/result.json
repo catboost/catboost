@@ -31,7 +31,7 @@
     ],
     "test_gpu.test_all_targets[Ordered-Poisson]": [
         {
-            "checksum": "64d87a835ae71e752e61f18988673e08",
+            "checksum": "0ce2c2dc1a09cdf6ecdc5a860d7e6d4b",
             "uri": "file://test_gpu.test_all_targets_Ordered-Poisson_/test.eval"
         }
     ],
@@ -79,7 +79,7 @@
     ],
     "test_gpu.test_all_targets[Plain-Poisson]": [
         {
-            "checksum": "cde96b8655d2da5e03eb537b5a9961e9",
+            "checksum": "177d2a3fd422ae091b357d4e827c5bb1",
             "uri": "file://test_gpu.test_all_targets_Plain-Poisson_/test.eval"
         }
     ],
@@ -3077,7 +3077,7 @@
     ],
     "test_gpu.test_quantized_pool[Ordered-Poisson]": [
         {
-            "checksum": "c8b297b1383e087db5b0d0820306962c",
+            "checksum": "e3a7661a402fa88822571fbfd04308d7",
             "uri": "file://test_gpu.test_quantized_pool_Ordered-Poisson_/test.eval"
         }
     ],
@@ -3119,7 +3119,7 @@
     ],
     "test_gpu.test_quantized_pool[Plain-Poisson]": [
         {
-            "checksum": "356d483e1a7e625cb3cb6ecb55ef325b",
+            "checksum": "bf0d31bcbf9b81950a3aeca0fc21dcac",
             "uri": "file://test_gpu.test_quantized_pool_Plain-Poisson_/test.eval"
         }
     ],
