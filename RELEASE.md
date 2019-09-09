@@ -1,3 +1,18 @@
+# Release 0.17
+
+## New features:
+- Sparse data support
+- We've implemented and set to default `boost_from_average` in RMSE mode. It gives a boost in quality especially for a small number of iterations.
+
+## Improvements:
+- Quantile regression on CPU
+- default parameters for Poisson regression
+
+## Speedups:
+- A number of speedups for training on CPU
+- Huge speedups for loading datasets with categorical features represented as `pandas.Categorical`.
+Hint: use `pandas.Categorical` instead of object to speed up loading up to 200x.
+
 # Release 0.16.5
 
 ## Breaking changes:
