@@ -124,3 +124,8 @@ ALLOW sandbox/projects/CompareYmakeDump -> contrib/deprecated/python/diff2html
 ALLOW sandbox/projects/antirobot/DiffResources -> contrib/deprecated/python/diff2html
 ALLOW yql/udfs/common/python/python_arc -> contrib/deprecated/python/diff2html
 DENY .* -> contrib/deprecated/python/diff2html
+
+# Sophos SDK and engine are distributed under proprietary license hence
+# usage restriction
+ALLOW yweb/antimalware/ -> contrib/libs/sophos
+DENY .* -> contrib/libs/sophos
