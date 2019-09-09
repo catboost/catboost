@@ -105,6 +105,10 @@ AIRLINES_ONEHOT_TRAIN_FILE = data_file('airlines_onehot_250', 'train_small')
 AIRLINES_ONEHOT_TEST_FILE = data_file('airlines_onehot_250', 'test_small')
 AIRLINES_ONEHOT_CD_FILE = data_file('airlines_onehot_250', 'train.cd')
 
+CONVERT_LIGHT_GBM_PREDICTIONS = data_file('convertions_models', 'predict')
+CONVERT_RANDOM_GENERATED_TEST = data_file('convertions_models', 'test')
+CONVERT_MODEL_ONNX = data_file('convertions_models', 'model_gbm.onnx')
+
 OUTPUT_MODEL_PATH = 'model.bin'
 OUTPUT_COREML_MODEL_PATH = 'model.mlmodel'
 OUTPUT_CPP_MODEL_PATH = 'model.cpp'
@@ -950,6 +954,15 @@ def test_onnx_import(problem_type):
 
     onnx_loaded_model.load_model(output_onnx_model_path, format="onnx")
     assert(np.allclose(canon_pred, onnx_loaded_model.predict(test_pool), atol=1e-4))
+
+
+def test_onnx_export_lightgbm_import_catboost():
+    lightgbm_predict = np.loadtxt(CONVERT_LIGHT_GBM_PREDICTIONS)
+    test = np.loadtxt(CONVERT_RANDOM_GENERATED_TEST)
+    model = CatBoostRegressor()
+    model.load_model(CONVERT_MODEL_ONNX, format='onnx')
+    catboost_predict = model.predict(test.astype(np.float32))
+    assert(np.allclose(lightgbm_predict, catboost_predict, atol=1e-4))
 
 
 @pytest.mark.parametrize('problem_type', ['binclass', 'multiclass', 'regression'])
