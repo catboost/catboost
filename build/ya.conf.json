@@ -1204,6 +1204,17 @@
             },
             "platforms": [{"host": {"os": "LINUX"}, "default": true}]
         },
+        "idea_run_plugin": {
+            "tools": {
+                "idea_run_plugin": { "bottle": "idea_run_plugin" }
+            },
+            "platforms": [
+                  {"host": {"os": "LINUX"}, "default": true},
+                  {"host": {"os": "FREEBSD"}, "default": true},
+                  {"host": {"os": "WIN"}, "default": true},
+                  {"host": {"os": "DARWIN"}, "default": true}
+            ]
+        },
         "idea_style_config": {
             "tools": {
                 "idea_style_config": { "bottle": "idea_style_config" }
@@ -1799,6 +1810,12 @@
             "formula": {
                 "sandbox_id": [29625981],
                 "match": "CUDA"
+            }
+        },
+        "idea_run_plugin": {
+            "formula": {
+                "sandbox_id": [98817148],
+                "match": "ya runner idea plugin"
             }
         },
         "idea_style_config": {
