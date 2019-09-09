@@ -303,6 +303,9 @@ ALLOW .* -> vendor/github.com/yandex/pandora
 # CONTRIB-1450 Apple notifcation service client
 ALLOW .* -> vendor/github.com/sideshow/apns2
 
+# CONTRIB-1459 Merging same-type structs with exported fields initialized as zero value of their type and same-types maps
+ALLOW .* -> vendor/github.com/imdario/mergo
+
 #
 # Temporary exceptions.
 #
