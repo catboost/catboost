@@ -158,7 +158,7 @@ def epsilon():
 
 def monotonic1():
     """
-    Yandex internal dataset with monotonic constraints.
+    Dataset with monotonic constraints.
     Can be used for poisson regression.
     Has several numerical and several categorical features.
     The first column contains target values. Columns with names Cat* contain categorical features.
@@ -178,7 +178,7 @@ def monotonic1():
 
 def monotonic2():
     """
-    Yandex internal dataset with monotonic constraints.
+    Dataset with monotonic constraints.
     Can be used for regression.
     The first column contains target values.
     Other columns contain contain numerical features, for which monotonic constraints must hold.
