@@ -24,7 +24,7 @@ namespace NCatboostCuda {
                                    const TDataPermutation& permutation)
             : Permutation(permutation)
         {
-            if (dataProvider.MetaInfo.HasGroupId) {
+            if (dataProvider.MetaInfo.HasGroupId && dataProvider.ObjectsGrouping->GetGroupCount() < dataProvider.ObjectsGrouping->GetObjectCount()) {
                 TVector<ui32> objectsOrder;
                 Permutation.FillOrder(objectsOrder);
                 auto samplesGrouping = MakeHolder<TQueriesGrouping>(objectsOrder,
