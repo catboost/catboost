@@ -2433,8 +2433,8 @@
         },
         "qemu": {
             "formula": {
-                "sandbox_id": 474756450,
-                "match": "infra/qemu/build/resource.tar.gz"
+                "sandbox_id": [504011268],
+                "match": "Build executable"
             },
             "executable": {
                 "qemu": ["qemu", "bin", "qemu-system-x86_64"],
