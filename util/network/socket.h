@@ -140,11 +140,17 @@ void SetNonBlock(SOCKET fd, bool nonBlock = true);
 
 struct addrinfo;
 
+
 class TNetworkResolutionError: public yexception {
 public:
     // @param error error code (EAI_XXX) returned by getaddrinfo or getnameinfo (not errno)
     TNetworkResolutionError(int error);
+    int Status() const noexcept;
+private:
+    /// FIXME(mvel): inherit TNetworkResolutionError from TSystemError ?
+    int Status_ = 0;  // aka Status_ in TSystemError
 };
+
 
 class TNetworkAddress {
     friend class TSocket;

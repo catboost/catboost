@@ -1046,7 +1046,9 @@ struct addrinfo* TNetworkAddress::Info() const noexcept {
     return Impl_->Info();
 }
 
-TNetworkResolutionError::TNetworkResolutionError(int error) {
+TNetworkResolutionError::TNetworkResolutionError(int error)
+    : Status_(error)
+{
     const char* errMsg = nullptr;
 #ifdef _win_
     errMsg = LastSystemErrorText(error); // gai_strerror is not thread-safe on Windows
@@ -1055,6 +1057,11 @@ TNetworkResolutionError::TNetworkResolutionError(int error) {
 #endif
     (*this) << errMsg;
 }
+
+int TNetworkResolutionError::Status() const noexcept {
+    return Status_;
+}
+
 
 #if defined(_unix_)
 static inline int GetFlags(int fd) {
