@@ -274,9 +274,9 @@ public:
         return Probing::FindBucket(SizeFitter_, hs, bucket_count(), [&](size_type idx) {
             if constexpr (NConcepts::RemovalContainerV<Container>) {
                 return Buckets_.IsEmpty(idx) ||
-                       Buckets_.IsTaken(idx) && key_eq()(key, KeyGetter::Apply(Buckets_.Node(idx)));
+                       Buckets_.IsTaken(idx) && key_eq()(KeyGetter::Apply(Buckets_.Node(idx)), key);
             } else {
-                return Buckets_.IsEmpty(idx) || key_eq()(key, KeyGetter::Apply(Buckets_.Node(idx)));
+                return Buckets_.IsEmpty(idx) || key_eq()(KeyGetter::Apply(Buckets_.Node(idx)), key);
             }
         });
     }

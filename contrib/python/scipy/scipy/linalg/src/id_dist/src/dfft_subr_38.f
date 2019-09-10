@@ -1,0 +1,8 @@
+      SUBROUTINE DFFTB (N,R,WSAVE)
+	IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+      DIMENSION       R(*)       ,WSAVE(*)
+      IF (N .EQ. 1) RETURN
+      CALL DFFTB1 (N,R,WSAVE,WSAVE(N+1),WSAVE(2*N+1))
+      RETURN
+      END
+
