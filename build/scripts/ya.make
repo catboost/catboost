@@ -12,7 +12,6 @@ TEST_SRCS(
     build_pln_header.py
     cat.py
     check_config_h.py
-    compile_asrc.py
     compile_cuda.py
     compile_java.py
     compile_jsrc.py
@@ -45,7 +44,6 @@ TEST_SRCS(
     go_tool.py
     ios_wrapper.py
     java_pack_to_file.py
-    jsrc_to_asrc.py
     link_asrc.py
     link_dyn_lib.py
     link_exe.py
