@@ -1346,8 +1346,10 @@ def _check_param_types(params):
                 params['monotone_constraints'] = list(map(int, param[1: -1].split(',')))
             except ValueError:
                 raise CatBoostError("Invalid `monotone_constraints` string format")
+        elif isinstance(param, ARRAY_TYPES):
+            param = list(param)
         if not isinstance(param, Sequence):
-            raise CatBoostError("Invalid `monotone_constraints` type={} : must be string or list of integers.".format(type(params['monotone_constraints'])))
+            raise CatBoostError("Invalid `monotone_constraints` type={} : must be string or list of ints in range {-1, 0, 1}.".format(type(params['monotone_constraints'])))
 
 
 def _params_type_cast(params):
@@ -3311,7 +3313,7 @@ class CatBoostClassifier(CatBoost):
     subsample : float, [default=None]
         Sample rate for bagging. This parameter can be used Poisson or Bernoully bootstrap types.
 
-    monotone_constraints : list or string, [default=None]
+    monotone_constraints : list or numpy.array or string, [default=None]
         Monotone constraints for all features.
 
     sampling_frequency : string, [default=PerTree]

@@ -5615,3 +5615,24 @@ def test_training_and_prediction_equal_on_pandas_dense_and_sparse_input(task_typ
     predictions_model_on_sparse_on_sparse_pool = model_on_sparse.predict(sparse_test_pool)
 
     assert _check_data(predictions_on_dense, predictions_model_on_sparse_on_sparse_pool)
+
+
+def test_param_array_monotonic_constrains():
+    from catboost.datasets import monotonic2
+    monotonic2_train, monotonic2_test = monotonic2()
+    train_pool = Pool(data=monotonic2_train.drop(columns=['Target']), label=monotonic2_train['Target'])
+    test_pool = Pool(data=monotonic2_test.drop(columns=['Target']), label=monotonic2_test['Target'])
+
+    monotone_constraints_array = np.array([-1, 1, -1, 1])
+    monotone_constraints_list = [-1, 1, -1, 1]
+
+    model1 = CatBoostRegressor(iterations=50, monotone_constraints=monotone_constraints_array)
+    model2 = CatBoostRegressor(iterations=50, monotone_constraints=monotone_constraints_list)
+
+    model1.fit(train_pool)
+    model2.fit(train_pool)
+
+    predections1 = model1.predict(test_pool)
+    predections2 = model2.predict(test_pool)
+
+    assert all(predections1 == predections2)
