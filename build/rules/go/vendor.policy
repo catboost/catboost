@@ -326,5 +326,6 @@ ALLOW yt/jaeger/plugin -> vendor/github.com/uber/jaeger-lib
 ALLOW yt/jaeger/plugin -> vendor/github.com/uber/jaeger-client-go
 ALLOW yt/jaeger/plugin -> vendor/github.com/spf13/viper
 ALLOW yt/jaeger/plugin -> vendor/github.com/gorilla
+ALLOW yt/jaeger/plugin -> vendor/github.com/gogo
 
 DENY .* -> vendor/
