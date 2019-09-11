@@ -306,6 +306,9 @@ ALLOW .* -> vendor/github.com/sideshow/apns2
 # CONTRIB-1459 Merging same-type structs with exported fields initialized as zero value of their type and same-types maps
 ALLOW .* -> vendor/github.com/imdario/mergo
 
+# CONTRIB-1468 Terminal interactive progress bar
+ALLOW .* -> vendor/github.com/vbauerster/mpb
+
 #
 # Temporary exceptions.
 #
