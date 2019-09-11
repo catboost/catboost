@@ -284,7 +284,7 @@ def process(fetched_file, file_name, args, remove=True):
     for src, dst in zip(args.rename, args.outputs):
         if src == 'RESOURCE':
             src = fetched_file
-        if os.path.samefile(src, fetched_file):
+        if os.path.abspath(src) == os.path.abspath(fetched_file):
             logging.info('Copying %s to %s', src, dst)
             hardlink_or_copy(src, dst)
         else:
@@ -298,7 +298,7 @@ def process(fetched_file, file_name, args, remove=True):
             raise OutputIsDirectoryError('Output must be a file, not a directory: %s' % os.path.abspath(path))
         if args.executable:
             os.chmod(path, os.stat(path).st_mode | 0o111)
-        if os.path.samefile(path, fetched_file):
+        if os.path.abspath(path) == os.path.abspath(fetched_file):
             remove = False
 
     if remove:
