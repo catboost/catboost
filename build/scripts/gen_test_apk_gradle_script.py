@@ -60,7 +60,7 @@ android {{
     defaultConfig {{
         minSdkVersion 15
         targetSdkVersion 28
-        applicationId "com.yandex.maps.unittests"
+        applicationId "{app_id}"
     }}
 
     sourceSets {{
@@ -74,7 +74,7 @@ android {{
 
     applicationVariants.all {{ variant ->
         variant.outputs.each {{ output ->
-            output.outputFile = file("$projectDir/output/com.yandex.maps.unittests.apk")
+            output.outputFile = file("$projectDir/output/{app_id}.apk")
         }}
     }}
 
@@ -104,6 +104,7 @@ def gen_build_script(args):
         return ',\n    '.join('"{}"'.format(x) for x in items)
 
     return TEST_APK_TEMPLATE.format(
+        app_id=args.app_id,
         jni_libs_dirs=wrap(args.jni_libs_dirs),
         res_dirs=wrap(args.res_dirs),
         java_dirs=wrap(args.java_dirs),
@@ -116,6 +117,7 @@ def gen_build_script(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--aars', nargs='*', default=[])
+    parser.add_argument('--app-id', required=True)
     parser.add_argument('--assets-dirs', nargs='*', default=[])
     parser.add_argument('--bundles', nargs='*', default=[])
     parser.add_argument('--bundles-dirs', nargs='+', default=[])
