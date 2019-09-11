@@ -14,6 +14,7 @@ RECURSE(
     documents_importance
     eval_result
     fstr
+    functools
     gpu_config
     helpers
     helpers/ut
