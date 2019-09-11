@@ -695,7 +695,7 @@ static void BindTreeParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* pla
         .Handler1T<float>([plainJsonPtr](float randomStrength) {
             (*plainJsonPtr)["random_strength"] = randomStrength;
         })
-        .Help("score stdandart deviation multiplier");
+        .Help("score standard deviation multiplier");
 
     const auto leafEstimationMethodHelp = TString::Join(
         "Must be one of: ",
