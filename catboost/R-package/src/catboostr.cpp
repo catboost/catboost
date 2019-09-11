@@ -258,7 +258,7 @@ SEXP CatBoostCreateFromMatrix_R(SEXP matrixParam,
                 for (ui32 i = 0; i < dataRows; ++i) {
                     floatValues[i] = static_cast<float>(REAL(matrixParam)[i + dataRows * j]);
                 }
-                visitor->AddFloatFeature(j, TMaybeOwningConstArrayHolder<float>::CreateOwning(std::move(floatValues)));
+                visitor->AddFloatFeature(j, MakeTypeCastArrayHolderFromVector<float, float>(floatValues));
             }
         }
 
@@ -403,7 +403,7 @@ SEXP CatBoostPoolSlice_R(SEXP poolParam, SEXP sizeParam, SEXP offsetParam) {
             = rawObjectsData->GetFloatFeature(flatFeatureIdx);
         if (maybeFeatureData) {
             if (const auto* arrayColumn = dynamic_cast<const TFloatArrayValuesHolder*>(*maybeFeatureData)) {
-                arrayColumn->GetArrayData().ForEach(
+                arrayColumn->GetData()->ForEach(
                     [&] (ui32 i, float value) {
                         rows[i][flatFeatureIdx + 2] = value;
                     }

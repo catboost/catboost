@@ -98,23 +98,27 @@ namespace NCB {
         if (const auto* lhsDenseData = GetIf<TVector<T>>(&lhs)) {
             return Equal<T>(*rhs.ExtractValues(&NPar::LocalExecutor()), *lhsDenseData);
         } else {
-            const auto& lhsSparseArray = Get<TConstSparseArray<T, ui32>>(lhs);
+            const auto& lhsSparseArray = Get<TConstPolymorphicValuesSparseArray<T, ui32>>(lhs);
 
             if (const auto* rhsSparseArrayHolder
-                    = dynamic_cast<const TSparseArrayValuesHolder<T, FeatureValuesType>*>(&rhs))
+                    = dynamic_cast<const TSparsePolymorphicArrayValuesHolder<T, FeatureValuesType>*>(&rhs))
             {
                 const auto& rhsSparseArray = rhsSparseArrayHolder->GetData();
                 // compare field-by-field because lhsSparseArray and rhsSparseArray have different types (const and non-const)
                 return (*lhsSparseArray.GetIndexing() == *rhsSparseArray.GetIndexing()) &&
-                    (*lhsSparseArray.GetNonDefaultValues() == *rhsSparseArray.GetNonDefaultValues()) &&
+                    AreBlockedSequencesEqual<T, T>(
+                        lhsSparseArray.GetNonDefaultValues().GetImpl().GetBlockIterator(),
+                        rhsSparseArray.GetNonDefaultValues().GetImpl().GetBlockIterator()
+                    ) &&
                     (lhsSparseArray.GetDefaultValue() == rhsSparseArray.GetDefaultValue());
             } else if (const auto* rhsSparseArrayHolder
                            = dynamic_cast<const TSparseCompressedValuesHolderImpl<T, FeatureValuesType>*>(&rhs))
             {
                 const auto& rhsSparseArray = rhsSparseArrayHolder->GetData();
+                TVector<T> lhsValues = lhsSparseArray.ExtractValues();
                 return (*lhsSparseArray.GetIndexing() == *rhsSparseArray.GetIndexing()) &&
                     // switch comparison sides because TCompressionArray has operator==(TConstArrayRef<T>)
-                    (rhsSparseArray.GetNonDefaultValues() == *lhsSparseArray.GetNonDefaultValues()) &&
+                    (rhsSparseArray.GetNonDefaultValues() == TConstArrayRef<T>(lhsValues)) &&
                     (lhsSparseArray.GetDefaultValue() == rhsSparseArray.GetDefaultValue());
             } else {
                 UNIT_FAIL("bad column type for sparse data");
@@ -161,7 +165,7 @@ namespace NCB {
                         EqualWithNans<float>
                     );
                 } else {
-                    const auto& lhsSparseArray = Get<TConstSparseArray<float, ui32>>(lhs);
+                    const auto& lhsSparseArray = Get<TConstPolymorphicValuesSparseArray<float, ui32>>(lhs);
 
                     const auto* rhsSparseArrayHolder = dynamic_cast<const TFloatSparseValuesHolder*>(&rhs);
                     UNIT_ASSERT(rhsSparseArrayHolder);
@@ -171,11 +175,9 @@ namespace NCB {
                     }
                     const auto& lhsNonDefaultValues = lhsSparseArray.GetNonDefaultValues();
                     const auto& rhsNonDefaultValues = rhsSparseArray.GetNonDefaultValues();
-                    return std::equal(
-                        lhsNonDefaultValues.begin(),
-                        lhsNonDefaultValues.end(),
-                        rhsNonDefaultValues.begin(),
-                        rhsNonDefaultValues.end(),
+                    return AreBlockedSequencesEqual<float, float>(
+                        lhsNonDefaultValues.GetImpl().GetBlockIterator(),
+                        rhsNonDefaultValues.GetImpl().GetBlockIterator(),
                         EqualWithNans<float>
                     );
                 }
@@ -199,24 +201,26 @@ namespace NCB {
                         }
                         return hashedCategoricalValues;
                     } else {
-                        const auto& sparseData = Get<TConstSparseArray<TStringBuf, ui32>>(
+                        const auto& sparseData = Get<TConstPolymorphicValuesSparseArray<TStringBuf, ui32>>(
                             *expectedData.Objects.CatFeatures[catFeatureIdx]
                         );
 
                         TVector<ui32> hashedNonDefaultCategoricalValues;
 
-                        for (const auto& stringValue : sparseData.GetNonDefaultValues()) {
-                            ui32 hashValue = (ui32)CalcCatFeatureHash(stringValue);
-                            expectedCatFeaturesHashToString[catFeatureIdx][hashValue] = TString(stringValue);
-                            hashedNonDefaultCategoricalValues.push_back(hashValue);
-                        }
+                        sparseData.GetNonDefaultValues().GetImpl().ForEach(
+                            [&] (TStringBuf stringValue) {
+                                ui32 hashValue = (ui32)CalcCatFeatureHash(stringValue);
+                                expectedCatFeaturesHashToString[catFeatureIdx][hashValue] = TString(stringValue);
+                                hashedNonDefaultCategoricalValues.push_back(hashValue);
+                            }
+                        );
 
                         const TStringBuf stringDefaultValue = sparseData.GetDefaultValue();
                         const ui32 hashedDefaultValue = (ui32)CalcCatFeatureHash(stringDefaultValue);
                         expectedCatFeaturesHashToString[catFeatureIdx][hashedDefaultValue]
                             = TString(stringDefaultValue);
 
-                        return MakeConstSparseArray<ui32>(
+                        return MakeConstPolymorphicValuesSparseArray<ui32>(
                             sparseData.GetIndexing(),
                             TMaybeOwningConstArrayHolder<ui32>::CreateOwning(
                                 std::move(hashedNonDefaultCategoricalValues)
@@ -265,7 +269,7 @@ namespace NCB {
                         rhsValues.end()
                     );
                 } else {
-                    const auto& lhsSparseArray = Get<TConstSparseArray<TStringBuf, ui32>>(lhs);
+                    const auto& lhsSparseArray = Get<TConstPolymorphicValuesSparseArray<TStringBuf, ui32>>(lhs);
                     const auto* rhsSparseArrayHolder = dynamic_cast<const TStringTextSparseValuesHolder*>(&rhs);
                     UNIT_ASSERT(rhsSparseArrayHolder);
                     const auto& rhsSparseArray = rhsSparseArrayHolder->GetData();
@@ -276,11 +280,9 @@ namespace NCB {
                     }
                     const auto& lhsNonDefaultValues = lhsSparseArray.GetNonDefaultValues();
                     const auto& rhsNonDefaultValues = rhsSparseArray.GetNonDefaultValues();
-                    return std::equal(
-                        lhsNonDefaultValues.begin(),
-                        lhsNonDefaultValues.end(),
-                        rhsNonDefaultValues.begin(),
-                        rhsNonDefaultValues.end()
+                    return AreBlockedSequencesEqual<TStringBuf, TString>(
+                        lhsNonDefaultValues.GetImpl().GetBlockIterator(),
+                        rhsNonDefaultValues.GetImpl().GetBlockIterator()
                     );
                 }
             }

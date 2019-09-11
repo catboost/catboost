@@ -589,7 +589,7 @@ void NCB::TRawObjectsData::Check(
                 if (auto* denseCatFeaturePtr
                         = dynamic_cast<const THashedCatArrayValuesHolder*>(catFeaturePtr))
                 {
-                    denseCatFeaturePtr->GetArrayData().ParallelForEach(checkValue, localExecutor);
+                    denseCatFeaturePtr->GetData()->ParallelForEach(checkValue, localExecutor);
                 } else if (auto* sparseCatFeaturePtr
                                = dynamic_cast<const THashedCatSparseValuesHolder*>(catFeaturePtr))
                 {
@@ -808,7 +808,7 @@ static void CreateConsecutiveFeaturesData(
                 (TType == EFeatureValuesType::StringText) ||
                 (TType == EFeatureValuesType::TokenizedText))
             {
-                (*dstFeatures)[featureIdx] = MakeHolder<TArrayValuesHolder<T, TType>>(
+                (*dstFeatures)[featureIdx] = MakeHolder<TPolymorphicArrayValuesHolder<T, TType>>(
                     srcDataPtr->GetId(),
                     TMaybeOwningArrayHolder<const T>::CreateOwningReinterpretCast(dstStorage),
                     subsetIndexing

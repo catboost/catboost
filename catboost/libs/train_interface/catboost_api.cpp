@@ -52,7 +52,9 @@ static TDataProviderPtr MakeDataProvider(
 
     for (ui32 f = 0; f < fCount; ++f) {
         auto valHolder =
-            TMaybeOwningConstArrayHolder<float>::CreateNonOwning(features.Slice(f * samplesCount, samplesCount));
+            MakeIntrusive<TTypeCastArrayHolder<float, float>>(
+                TMaybeOwningConstArrayHolder<float>::CreateNonOwning(
+                    features.Slice(f * samplesCount, samplesCount)));
         builderVisitor->AddFloatFeature(f, valHolder);
     }
 

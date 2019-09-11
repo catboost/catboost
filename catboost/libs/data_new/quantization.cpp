@@ -161,8 +161,8 @@ namespace NCB {
 
     template <class T, EFeatureValuesType FeatureValuesType>
     static ui32 GetNonDefaultValuesCount(const TTypedFeatureValuesHolder<T, FeatureValuesType>& srcFeature) {
-        using TDenseData = TArrayValuesHolder<T, FeatureValuesType>;
-        using TSparseData = TSparseArrayValuesHolder<T, FeatureValuesType>;
+        using TDenseData = TPolymorphicArrayValuesHolder<T, FeatureValuesType>;
+        using TSparseData = TSparsePolymorphicArrayValuesHolder<T, FeatureValuesType>;
 
         if (const auto* denseData = dynamic_cast<const TDenseData*>(&srcFeature)) {
             return denseData->GetSize();
@@ -278,19 +278,18 @@ namespace NCB {
         };
 
         if (const auto* denseSrcFeature = dynamic_cast<const TFloatArrayValuesHolder*>(&srcFeature)) {
-            TMaybeOwningConstArraySubset<float, ui32> srcFeatureData = denseSrcFeature->GetArrayData();
+            ITypedArraySubsetPtr<float> srcFeatureData = denseSrcFeature->GetData();
 
-            TMaybeOwningConstArraySubset<float, ui32> srcDataForBuildBorders(
-                srcFeatureData.GetSrc(),
+            ITypedArraySubsetPtr<float> srcDataForBuildBorders = srcFeatureData->CloneWithNewSubsetIndexing(
                 subsetIndexingForBuildBorders.ComposedSubset.Get()
             );
 
             // does not contain nans
             featureValues.Values.reserve(sampleCount);
 
-            srcDataForBuildBorders.ForEach(processNonDefaultValue);
+            srcDataForBuildBorders->ForEach(processNonDefaultValue);
         } else if (const auto* sparseSrcFeature = dynamic_cast<const TFloatSparseValuesHolder*>(&srcFeature)) {
-            const TConstSparseArray<float, ui32>& sparseData = sparseSrcFeature->GetData();
+            const TConstPolymorphicValuesSparseArray<float, ui32>& sparseData = sparseSrcFeature->GetData();
 
             ui32 nonDefaultValuesInSampleCount = 0;
 
@@ -492,16 +491,13 @@ namespace NCB {
         }
 
         void ProcessDenseColumn(
-            const TArrayValuesHolder<T, FeatureValuesType>& denseColumn,
+            const TPolymorphicArrayValuesHolder<T, FeatureValuesType>& denseColumn,
             const TFeaturesArraySubsetIndexing& incrementalIndexing
         ) const {
             ui32 currentBlockIdx = Max<ui32>();
             ui64 currentBlockMask = 0;
 
-            TMaybeOwningConstArraySubset<T, ui32>(
-                denseColumn.GetArrayData().GetSrc(),
-                &incrementalIndexing
-            ).ForEach(
+            denseColumn.GetData()->CloneWithNewSubsetIndexing(&incrementalIndexing)->ForEach(
                 [&] (ui32 idx, T srcValue) {
                     if (IsNonDefaultFunctor.IsNonDefault(srcValue)) {
                         UpdateInIncrementalOrder(idx, &currentBlockIdx, &currentBlockMask);
@@ -529,11 +525,9 @@ namespace NCB {
         }
 
         void ProcessSparseColumnWithSrcDefaultEqualToDstDefault(
-            const TConstSparseArray<T, ui32>& sparseArray,
+            const TConstPolymorphicValuesSparseArray<T, ui32>& sparseArray,
             const TFeaturesArraySubsetInvertedIndexing& incrementalInvertedIndexing
         ) const {
-            auto sparseArrayIterator = sparseArray.GetIterator();
-
             if (const TInvertedIndexedSubset<ui32>* invertedIndexedSubset
                     = GetIf<TInvertedIndexedSubset<ui32>>(&incrementalInvertedIndexing))
             {
@@ -541,11 +535,13 @@ namespace NCB {
                 TVector<ui32> nonDefaultIndices;
                 nonDefaultIndices.reserve(sparseArray.GetNonDefaultSize());
 
-                while (auto next = sparseArrayIterator.Next()) {
-                    if (IsNonDefaultFunctor.IsNonDefault(next->second)) {
-                        nonDefaultIndices.push_back(invertedIndexedSubsetArray[next->first]);
+                sparseArray.ForEachNonDefault(
+                    [&] (ui32 nonDefaultIdx, T srcNonDefaultValue) {
+                        if (IsNonDefaultFunctor.IsNonDefault(srcNonDefaultValue)) {
+                            nonDefaultIndices.push_back(invertedIndexedSubsetArray[nonDefaultIdx]);
+                        }
                     }
-                }
+                );
 
                 NonDefaultIndicesToMasks(std::move(nonDefaultIndices));
             } else {
@@ -554,11 +550,14 @@ namespace NCB {
                 ui32 currentBlockIdx = Max<ui32>();
                 ui64 currentBlockMask = 0;
 
-                while (auto next = sparseArrayIterator.Next()) {
-                    if (IsNonDefaultFunctor.IsNonDefault(next->second)) {
-                        UpdateInIncrementalOrder(next->first, &currentBlockIdx, &currentBlockMask);
+                sparseArray.ForEachNonDefault(
+                    [&] (ui32 nonDefaultIdx, T srcNonDefaultValue) {
+                        if (IsNonDefaultFunctor.IsNonDefault(srcNonDefaultValue)) {
+                            UpdateInIncrementalOrder(nonDefaultIdx, &currentBlockIdx, &currentBlockMask);
+                        }
                     }
-                }
+                );
+
                 if (currentBlockIdx != Max<ui32>()) {
                     DstMasks->push_back(std::pair<ui32, ui64>(currentBlockIdx, currentBlockMask));
                 }
@@ -566,11 +565,9 @@ namespace NCB {
         }
 
         void ProcessSparseColumnWithSrcDefaultNotEqualToDstDefault(
-            const TConstSparseArray<T, ui32>& sparseArray,
+            const TConstPolymorphicValuesSparseArray<T, ui32>& sparseArray,
             const TFeaturesArraySubsetInvertedIndexing& incrementalInvertedIndexing
         ) const {
-            auto sparseArrayIterator = sparseArray.GetIterator();
-
             if (const TInvertedIndexedSubset<ui32>* invertedIndexedSubset
                     = GetIf<TInvertedIndexedSubset<ui32>>(&incrementalInvertedIndexing))
             {
@@ -579,16 +576,17 @@ namespace NCB {
                 nonDefaultIndices.reserve(sparseArray.GetSize());
 
                 ui32 idx = 0;
-                while (auto next = sparseArrayIterator.Next()) {
-                    auto nextNonDefaultIdx = next->first;
-                    for (; idx < nextNonDefaultIdx; ++idx) {
-                        nonDefaultIndices.push_back(invertedIndexedSubsetArray[idx]);
+                sparseArray.ForEachNonDefault(
+                    [&] (ui32 nonDefaultIdx, T srcNonDefaultValue) {
+                        for (; idx < nonDefaultIdx; ++idx) {
+                            nonDefaultIndices.push_back(invertedIndexedSubsetArray[idx]);
+                        }
+                        if (IsNonDefaultFunctor.IsNonDefault(srcNonDefaultValue)) {
+                            nonDefaultIndices.push_back(invertedIndexedSubsetArray[nonDefaultIdx]);
+                        }
+                        ++idx;
                     }
-                    if (IsNonDefaultFunctor.IsNonDefault(next->second)) {
-                        nonDefaultIndices.push_back(invertedIndexedSubsetArray[next->first]);
-                    }
-                    ++idx;
-                }
+                );
                 for (; idx < sparseArray.GetSize(); ++idx) {
                     nonDefaultIndices.push_back(invertedIndexedSubsetArray[idx]);
                 }
@@ -601,16 +599,18 @@ namespace NCB {
                 ui64 currentBlockMask = 0;
 
                 ui32 idx = 0;
-                while (auto next = sparseArrayIterator.Next()) {
-                    auto nextNonDefaultIdx = next->first;
-                    for (; idx < nextNonDefaultIdx; ++idx) {
-                        UpdateInIncrementalOrder(idx, &currentBlockIdx, &currentBlockMask);
+
+                sparseArray.ForEachNonDefault(
+                    [&] (ui32 nonDefaultIdx, T srcNonDefaultValue) {
+                        for (; idx < nonDefaultIdx; ++idx) {
+                            UpdateInIncrementalOrder(idx, &currentBlockIdx, &currentBlockMask);
+                        }
+                        if (IsNonDefaultFunctor.IsNonDefault(srcNonDefaultValue)) {
+                            UpdateInIncrementalOrder(nonDefaultIdx, &currentBlockIdx, &currentBlockMask);
+                        }
+                        ++idx;
                     }
-                    if (IsNonDefaultFunctor.IsNonDefault(next->second)) {
-                        UpdateInIncrementalOrder(next->first, &currentBlockIdx, &currentBlockMask);
-                    }
-                    ++idx;
-                }
+                );
                 for (; idx < sparseArray.GetSize(); ++idx) {
                     UpdateInIncrementalOrder(idx, &currentBlockIdx, &currentBlockMask);
                 }
@@ -622,12 +622,10 @@ namespace NCB {
         }
 
         void ProcessSparseColumn(
-            const TSparseArrayValuesHolder<T, FeatureValuesType>& sparseColumn,
+            const TSparsePolymorphicArrayValuesHolder<T, FeatureValuesType>& sparseColumn,
             const TFeaturesArraySubsetInvertedIndexing& incrementalInvertedIndexing
         ) const {
             const auto& sparseArray = sparseColumn.GetData();
-            auto sparseArrayIterator = sparseArray.GetIterator();
-
             if (IsNonDefaultFunctor.IsNonDefault(sparseArray.GetDefaultValue())) {
                 ProcessSparseColumnWithSrcDefaultNotEqualToDstDefault(
                     sparseArray,
@@ -647,11 +645,11 @@ namespace NCB {
             const TFeaturesArraySubsetInvertedIndexing& invertedIncrementalIndexing
         ) const {
             if (const auto* denseColumn
-                    = dynamic_cast<const TArrayValuesHolder<T, FeatureValuesType>*>(&column))
+                    = dynamic_cast<const TPolymorphicArrayValuesHolder<T, FeatureValuesType>*>(&column))
             {
                 ProcessDenseColumn(*denseColumn, incrementalIndexing);
             } else if (const auto* sparseColumn
-                           = dynamic_cast<const TSparseArrayValuesHolder<T, FeatureValuesType>*>(&column))
+                           = dynamic_cast<const TSparsePolymorphicArrayValuesHolder<T, FeatureValuesType>*>(&column))
             {
                 ProcessSparseColumn(*sparseColumn, invertedIncrementalIndexing);
             } else {
@@ -722,16 +720,13 @@ namespace NCB {
         const TTypedFeatureValuesHolder<TSrc, SrcFeatureValuesType>& srcFeature,
         TQuantizedFeaturesInfoPtr quantizedFeaturesInfo
     ) {
-        using TDenseSrcFeature = TArrayValuesHolder<TSrc, SrcFeatureValuesType>;
-        using TSparseSrcFeature = TSparseArrayValuesHolder<TSrc, SrcFeatureValuesType>;
+        using TDenseSrcFeature = TPolymorphicArrayValuesHolder<TSrc, SrcFeatureValuesType>;
+        using TSparseSrcFeature = TSparsePolymorphicArrayValuesHolder<TSrc, SrcFeatureValuesType>;
 
         if (const auto* denseSrcFeature = dynamic_cast<const TDenseSrcFeature*>(&srcFeature)){
-            const auto arrayData = denseSrcFeature->GetArrayData();
-
             return MakeHolder<TExternalValuesHolder>(
                 denseSrcFeature->GetId(),
-                *arrayData.GetSrc(),
-                arrayData.GetSubsetIndexing(),
+                denseSrcFeature->GetData(),
                 quantizedFeaturesInfo
             );
         } else if (const auto* sparseSrcFeature = dynamic_cast<const TSparseSrcFeature*>(&srcFeature)) {
@@ -875,8 +870,8 @@ namespace NCB {
         // pass as parameter to enable type deduction
         THolder<TTypedFeatureValuesHolder<TDst, DstFeatureValuesType>>* dstFeature
     ) {
-        using TDenseSrcData = TArrayValuesHolder<TSrc, SrcFeatureValuesType>;
-        using TSparseSrcData = TSparseArrayValuesHolder<TSrc, SrcFeatureValuesType>;
+        using TDenseSrcData = TPolymorphicArrayValuesHolder<TSrc, SrcFeatureValuesType>;
+        using TSparseSrcData = TSparsePolymorphicArrayValuesHolder<TSrc, SrcFeatureValuesType>;
 
         Y_ASSERT(valueQuantizer.GetDstBitsPerKey() == sizeof(TStoredDstValue) * CHAR_BIT);
 
@@ -905,7 +900,7 @@ namespace NCB {
         };
 
         if (const auto* denseSrcFeature = dynamic_cast<const TDenseSrcData*>(&srcFeature)){
-            denseSrcFeature->GetArrayData().ForEach(onSrcNonDefaultValueCallback);
+            denseSrcFeature->GetData()->ForEach(onSrcNonDefaultValueCallback);
         } else if (const auto* sparseSrcFeature = dynamic_cast<const TSparseSrcData*>(&srcFeature)) {
             const auto& sparseArray = sparseSrcFeature->GetData();
             sparseArray.ForEachNonDefault(onSrcNonDefaultValueCallback);
@@ -936,8 +931,8 @@ namespace NCB {
         NPar::TLocalExecutor* localExecutor,
         TCallback&& callback
     ) {
-        using TDenseSrcData = TArrayValuesHolder<TSrc, SrcFeatureValuesType>;
-        using TSparseSrcData = TSparseArrayValuesHolder<TSrc, SrcFeatureValuesType>;
+        using TDenseSrcData = TPolymorphicArrayValuesHolder<TSrc, SrcFeatureValuesType>;
+        using TSparseSrcData = TSparsePolymorphicArrayValuesHolder<TSrc, SrcFeatureValuesType>;
 
         if (const auto* denseSrcFeature = dynamic_cast<const TDenseSrcData*>(&srcFeature)){
             if (const auto* nontrivialIncrementalIndexing
@@ -946,17 +941,16 @@ namespace NCB {
                 TConstArrayRef<ui32> dstIndices
                     = Get<TIndexedSubset<ui32>>(incrementalDenseIndexing.DstIndexing);
 
-                TMaybeOwningConstArraySubset<TSrc, ui32>(
-                    denseSrcFeature->GetArrayData().GetSrc(),
+                denseSrcFeature->GetData()->CloneWithNewSubsetIndexing(
                     &incrementalDenseIndexing.SrcSubsetIndexing
-                ).ParallelForEach(
+                )->ParallelForEach(
                     [=] (ui32 i, TSrc srcValue) {
                         callback(dstIndices[i], valueQuantizer.Quantize(srcValue));
                     },
                     localExecutor
                 );
             } else {
-                denseSrcFeature->GetArrayData().ParallelForEach(
+                denseSrcFeature->GetData()->ParallelForEach(
                     [=] (ui32 dstIdx, TSrc srcValue) {
                         callback(dstIdx, valueQuantizer.Quantize(srcValue));
                     },
@@ -991,7 +985,7 @@ namespace NCB {
         // pass as parameter to enable type deduction
         THolder<TTypedFeatureValuesHolder<TDst, DstFeatureValuesType>>* dstFeature
     ) {
-        using TSparseSrcData = TSparseArrayValuesHolder<TSrc, SrcFeatureValuesType>;
+        using TSparseSrcData = TSparsePolymorphicArrayValuesHolder<TSrc, SrcFeatureValuesType>;
 
         const ui32 dstBitsPerKey = valueQuantizer.GetDstBitsPerKey();
 
@@ -1891,7 +1885,7 @@ namespace NCB {
         TCompressedArray quantizedDataStorage;
 
         auto onNonDefaultValues = [&] (
-            TMaybeOwningConstArraySubset<ui32, ui32> srcNonDefaultValues,
+            const ITypedArraySubset<ui32>& srcNonDefaultValues,
             TMaybe<TDefaultValue<ui32>> srcDefaultValue) {
 
             // can quantize data at first pass only if data is dense and default bin value won't be determined
@@ -1906,7 +1900,7 @@ namespace NCB {
                 const ui32 bitsPerKey = 32;
 
                 quantizedDataStorage
-                    = TCompressedArray::CreateWithUninitializedData(srcNonDefaultValues.Size(), bitsPerKey);
+                    = TCompressedArray::CreateWithUninitializedData(srcNonDefaultValues.GetSize(), bitsPerKey);
                 quantizedDataValue = quantizedDataStorage.GetRawArray<ui32>();
             }
 
@@ -1923,11 +1917,11 @@ namespace NCB {
         };
 
         if (const auto* denseSrcFeature = dynamic_cast<const THashedCatArrayValuesHolder*>(&srcFeature)) {
-            onNonDefaultValues(denseSrcFeature->GetArrayData(), Nothing());
+            onNonDefaultValues(*denseSrcFeature->GetData(), Nothing());
         } else if (const auto* sparseSrcFeature
                        = dynamic_cast<const THashedCatSparseValuesHolder*>(&srcFeature))
         {
-            const TConstSparseArray<ui32, ui32>& sparseArray = sparseSrcFeature->GetData();
+            const TConstPolymorphicValuesSparseArray<ui32, ui32>& sparseArray = sparseSrcFeature->GetData();
 
             TFeaturesArraySubsetIndexing nonDefaultIndexing(
                 TFullSubset<ui32>(sparseArray.GetNonDefaultSize())
@@ -1939,10 +1933,7 @@ namespace NCB {
             }
 
             onNonDefaultValues(
-                TMaybeOwningConstArraySubset<ui32, ui32>(
-                    &sparseArray.GetNonDefaultValues(),
-                    &nonDefaultIndexing
-                ),
+                *sparseArray.GetNonDefaultValues().GetImpl().GetSubset(&nonDefaultIndexing),
                 defaultValue
             );
         } else {
@@ -1995,7 +1986,7 @@ namespace NCB {
         const TStringTextArrayValuesHolder& srcDenseFeature
             = dynamic_cast<const TStringTextArrayValuesHolder&>(srcFeature);
 
-        TMaybeOwningConstArraySubset<TString, ui32> srcFeatureData = srcDenseFeature.GetArrayData();
+        ITypedArraySubsetPtr<TString> srcFeatureData = srcDenseFeature.GetData();
         const auto &textProcessingOptions = quantizedFeaturesInfo->GetTextFeatureProcessing(srcFeature.GetId());
         const TTokenizerPtr tokenizer = CreateTokenizer(textProcessingOptions.TokenizerType);
 
@@ -2005,8 +1996,8 @@ namespace NCB {
         }
 
         const TDictionaryPtr dictionary = quantizedFeaturesInfo->GetDictionary(textFeatureIdx);
-        TTextColumnBuilder textColumnBuilder(tokenizer, dictionary, srcFeatureData.Size());
-        srcFeatureData.ForEach([&](ui32 index, TStringBuf phrase) {
+        TTextColumnBuilder textColumnBuilder(tokenizer, dictionary, srcFeatureData->GetSize());
+        srcFeatureData->ForEach([&](ui32 index, TStringBuf phrase) {
             textColumnBuilder.AddText(index, phrase);
         });
 

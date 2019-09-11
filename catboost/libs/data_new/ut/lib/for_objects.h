@@ -25,7 +25,7 @@ namespace NCB {
     ) {
         for (auto i : xrange(src.size())) {
             dst->emplace_back(
-                MakeHolder<TArrayValuesHolder<T, TType>>(
+                MakeHolder<TPolymorphicArrayValuesHolder<T, TType>>(
                     featureIds[i],
                     TMaybeOwningConstArrayHolder<T>::CreateOwning( TVector<T>(src[i]) ),
                     &indexing

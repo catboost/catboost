@@ -211,12 +211,19 @@ namespace NCB {
         }
     }
 
-    static TTextDataSetPtr CreateTextDataSet(const TQuantizedObjectsDataProvider& dataProvider, TTextFeatureIdx textFeatureIdx) {
+    static TTextDataSetPtr CreateTextDataSet(
+        const TQuantizedObjectsDataProvider& dataProvider,
+        TTextFeatureIdx textFeatureIdx,
+        NPar::TLocalExecutor* localExecutor) {
+
         auto dictionary = dataProvider.GetQuantizedFeaturesInfo()->GetDictionary(textFeatureIdx);
 
         const TTokenizedTextValuesHolder* textColumn = *dataProvider.GetTextFeature(textFeatureIdx.Idx);
         if (const auto* denseData = dynamic_cast<const TTokenizedTextArrayValuesHolder*>(textColumn)) {
-            return MakeIntrusive<TTextDataSet>(*denseData->GetArrayData().GetSrc(), dictionary);
+            TMaybeOwningArrayHolder<TText> textData = denseData->ExtractValues(localExecutor);
+            TMaybeOwningConstArrayHolder<TText> constTextData
+                = TMaybeOwningConstArrayHolder<TText>::CreateOwning(*textData, textData.GetResourceHolder());
+            return MakeIntrusive<TTextDataSet>(std::move(constTextData), dictionary);
         } else {
             CB_ENSURE_INTERNAL(false, "CreateTextDataSet: unsupported column type");
         }
@@ -238,7 +245,8 @@ namespace NCB {
 
     static TFeatureEstimators CreateEstimators(
         TConstArrayRef<EFeatureCalcerType> estimatorsTypes,
-        TTrainingDataProviders pools) {
+        TTrainingDataProviders pools,
+        NPar::TLocalExecutor* localExecutor) {
 
         TFeatureEstimators estimators;
         CB_ENSURE(
@@ -248,12 +256,13 @@ namespace NCB {
 
         auto learnTarget = CreateTextClassificationTarget(*pools.Learn->TargetData);
         pools.Learn->MetaInfo.FeaturesLayout->IterateOverAvailableFeatures<EFeatureType::Text>(
-            [&estimators, &estimatorsTypes, &pools, &learnTarget](TTextFeatureIdx textFeatureIdx){
-                auto learnTexts = CreateTextDataSet(*pools.Learn->ObjectsData, textFeatureIdx);
+            [&estimators, &estimatorsTypes, &pools, &learnTarget, localExecutor](TTextFeatureIdx textFeatureIdx){
+                auto learnTexts = CreateTextDataSet(*pools.Learn->ObjectsData, textFeatureIdx, localExecutor);
 
                 TVector<TTextDataSetPtr> testTexts;
                 for (const auto& testDataProvider : pools.Test) {
-                    testTexts.emplace_back(CreateTextDataSet(*testDataProvider->ObjectsData, textFeatureIdx));
+                    testTexts.emplace_back(
+                        CreateTextDataSet(*testDataProvider->ObjectsData, textFeatureIdx, localExecutor));
                 }
 
                 TEmbeddingPtr embedding;
@@ -332,7 +341,10 @@ namespace NCB {
                 IsClassificationObjective(params->LossFunctionDescription->LossFunction),
                 "Computation of online text features is supported only for classification task"
             );
-            trainingData.FeatureEstimators = CreateEstimators(params->TextFeatureOptions->FeatureEstimators.Get(), trainingData);
+            trainingData.FeatureEstimators = CreateEstimators(
+                params->TextFeatureOptions->FeatureEstimators.Get(),
+                trainingData,
+                localExecutor);
         }
 
         if (params->MetricOptions->EvalMetric.IsSet() && (srcData.Test.size() > 0)) {

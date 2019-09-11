@@ -2,7 +2,7 @@
 
 #include "tokenizer.h"
 
-#include <catboost/libs/helpers/array_subset.h>
+#include <catboost/libs/helpers/polymorphic_type_containers.h>
 #include <catboost/libs/options/text_feature_options.h>
 
 #include <library/text_processing/dictionary/dictionary.h>
@@ -32,18 +32,18 @@ namespace NCB {
     };
 
     template <>
-    class TIterableTextFeature<TMaybeOwningConstArraySubset<TString, ui32>> {
+    class TIterableTextFeature<ITypedArraySubsetPtr<TString>> {
     public:
-        TIterableTextFeature(const TMaybeOwningConstArraySubset<TString, ui32>& textFeature)
-        : TextFeature(textFeature)
+        TIterableTextFeature(ITypedArraySubsetPtr<TString> textFeature)
+        : TextFeature(std::move(textFeature))
         {}
 
         template <class F>
         void ForEach(F&& visitor) const {
-            TextFeature.ForEach([&visitor](ui32 /*index*/, TStringBuf phrase){visitor(phrase);});
+            TextFeature->ForEach([&visitor](ui32 /*index*/, TStringBuf phrase){visitor(phrase);});
         }
     private:
-        const TMaybeOwningConstArraySubset<TString, ui32>& TextFeature;
+        ITypedArraySubsetPtr<TString> TextFeature;
     };
 
     template <class TTextFeatureType>

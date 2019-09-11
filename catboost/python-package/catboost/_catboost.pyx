@@ -59,6 +59,40 @@ SPARSE_MATRIX_TYPES = (
 )
 
 
+ctypedef fused numpy_indices_dtype:
+    np.int32_t
+    np.int64_t
+    np.uint32_t
+    np.uint64_t
+
+
+ctypedef fused numpy_num_dtype:
+    np.int8_t
+    np.int16_t
+    np.int32_t
+    np.int64_t
+    np.uint8_t
+    np.uint16_t
+    np.uint32_t
+    np.uint64_t
+    np.float32_t
+    np.float64_t
+
+
+numpy_num_dtype_list = [
+    np.int8,
+    np.int16,
+    np.int32,
+    np.int64,
+    np.uint8,
+    np.uint16,
+    np.uint32,
+    np.uint64,
+    np.float32,
+    np.float64
+]
+
+
 class _NumpyAwareEncoder(JSONEncoder):
     bool_types = (np.bool_)
     tolist_types = (np.ndarray,)
@@ -141,12 +175,87 @@ cdef extern from "catboost/libs/helpers/maybe_owning_array_holder.h" namespace "
     cdef TMaybeOwningConstArrayHolder[TDst] CreateConstOwningWithMaybeTypeCast[TDst, TSrc](
         TMaybeOwningArrayHolder[TSrc] src
     )
+    
+cdef extern from "catboost/libs/helpers/polymorphic_type_containers.h" namespace "NCB":
+    cdef cppclass ITypedSequencePtr[T]:
+        pass
+    
+    cdef cppclass TTypeCastArrayHolder[TInterfaceValue, TStoredValue](ITypedSequencePtr[TInterfaceValue]):
+        TTypeCastArrayHolder(TMaybeOwningConstArrayHolder[TStoredValue] values) except +ProcessException
+        
+    cdef ITypedSequencePtr[TInterfaceValue] MakeTypeCastArrayHolder[TInterfaceValue, TStoredValue](
+        TMaybeOwningConstArrayHolder[TStoredValue] values
+    ) except +ProcessException
+        
+    cdef ITypedSequencePtr[TInterfaceValue] MakeNonOwningTypeCastArrayHolder[TInterfaceValue, TStoredValue](
+        const TStoredValue* begin,
+        const TStoredValue* end
+    ) except +ProcessException
+    
+    cdef ITypedSequencePtr[TInterfaceValue] MakeTypeCastArrayHolderFromVector[TInterfaceValue, TStoredValue](
+        TVector[TStoredValue]& values
+    ) except +ProcessException
+
+
+cdef class Py_ITypedSequencePtr:
+    cdef ITypedSequencePtr[np.float32_t] result
+    
+    def __cinit__(self):
+        pass
+
+    cdef set_result(self, ITypedSequencePtr[np.float32_t] result):
+        self.result = result
+        
+    cdef get_result(self, ITypedSequencePtr[np.float32_t]* result):
+        result[0] = self.result
+
+    def __dealloc__(self):
+        pass
+
+
+
+def make_non_owning_type_cast_array_holder(numpy_num_dtype[:] array):
+    cdef const numpy_num_dtype* array_begin = <const numpy_num_dtype*>nullptr
+    cdef const numpy_num_dtype* array_end = <const numpy_num_dtype*>nullptr
+    
+    if array.shape[0] != 0:
+        array_begin = &array[0]
+        array_end = array_begin + array.shape[0]
+        
+    cdef Py_ITypedSequencePtr py_result = Py_ITypedSequencePtr()
+    cdef ITypedSequencePtr[np.float32_t] result
+    
+    if numpy_num_dtype is np.int8_t:
+        result = MakeNonOwningTypeCastArrayHolder[np.float32_t, np.int8_t](array_begin, array_end)
+    if numpy_num_dtype is np.int16_t:
+        result = MakeNonOwningTypeCastArrayHolder[np.float32_t, np.int16_t](array_begin, array_end)
+    if numpy_num_dtype is np.int32_t:
+        result = MakeNonOwningTypeCastArrayHolder[np.float32_t, np.int32_t](array_begin, array_end)
+    if numpy_num_dtype is np.int64_t:
+        result = MakeNonOwningTypeCastArrayHolder[np.float32_t, np.int64_t](array_begin, array_end)
+    if numpy_num_dtype is np.uint8_t:
+        result = MakeNonOwningTypeCastArrayHolder[np.float32_t, np.uint8_t](array_begin, array_end)
+    if numpy_num_dtype is np.uint16_t:
+        result = MakeNonOwningTypeCastArrayHolder[np.float32_t, np.uint16_t](array_begin, array_end)
+    if numpy_num_dtype is np.uint32_t:
+        result = MakeNonOwningTypeCastArrayHolder[np.float32_t, np.uint32_t](array_begin, array_end)
+    if numpy_num_dtype is np.uint64_t:
+        result = MakeNonOwningTypeCastArrayHolder[np.float32_t, np.uint64_t](array_begin, array_end)
+    if numpy_num_dtype is np.float32_t:
+        result = MakeNonOwningTypeCastArrayHolder[np.float32_t, np.float32_t](array_begin, array_end)
+    if numpy_num_dtype is np.float64_t:
+        result = MakeNonOwningTypeCastArrayHolder[np.float32_t, np.float64_t](array_begin, array_end)
+    
+    py_result.set_result(result)
+    
+    return py_result
+
 
 cdef extern from "catboost/libs/helpers/sparse_array.h" namespace "NCB":
     cdef cppclass TSparseArrayIndexingPtr[TSize]:
         pass
 
-    cdef cppclass TConstSparseArray[TValue, TSize]:
+    cdef cppclass TConstPolymorphicValuesSparseArray[TValue, TSize]:
         pass
 
     cdef TSparseArrayIndexingPtr[TSize] MakeSparseArrayIndexing[TSize](
@@ -160,18 +269,32 @@ cdef extern from "catboost/libs/helpers/sparse_array.h" namespace "NCB":
         TMaybeOwningConstArrayHolder[TSize] blockLengths
     ) except +ProcessException
 
-    cdef TConstSparseArray[TValue, TSize] MakeConstSparseArray[TValue, TSize](
+    cdef TConstPolymorphicValuesSparseArray[TDstValue, TSize] MakeConstPolymorphicValuesSparseArrayGeneric[TDstValue, TSize](
         TSparseArrayIndexingPtr[TSize] indexing,
-        TMaybeOwningConstArrayHolder[TValue] nonDefaultValues,
-        TValue defaultValue
+        ITypedSequencePtr[TDstValue] nonDefaultValues,
+        TDstValue defaultValue
     ) except +ProcessException
 
-    cdef TConstSparseArray[TValue, TSize] MakeConstSparseArrayWithArrayIndex[TValue, TSize](
+    cdef TConstPolymorphicValuesSparseArray[TDstValue, TSize] MakeConstPolymorphicValuesSparseArray[TDstValue, TSrcValue, TSize](
+        TSparseArrayIndexingPtr[TSize] indexing,
+        TMaybeOwningConstArrayHolder[TSrcValue] nonDefaultValues,
+        TDstValue defaultValue
+    ) except +ProcessException
+    
+    cdef TConstPolymorphicValuesSparseArray[TDstValue, TSize] MakeConstPolymorphicValuesSparseArrayWithArrayIndexGeneric[TDstValue, TSize](
         TSize size,
         TMaybeOwningConstArrayHolder[TSize] indexing,
-        TMaybeOwningConstArrayHolder[TValue] nonDefaultValues,
+        ITypedSequencePtr[TDstValue] nonDefaultValues,
         bool_t ordered,
-        TValue defaultValue
+        TDstValue defaultValue
+    ) except +ProcessException
+
+    cdef TConstPolymorphicValuesSparseArray[TDstValue, TSize] MakeConstPolymorphicValuesSparseArrayWithArrayIndex[TDstValue, TSrcValue, TSize](
+        TSize size,
+        TMaybeOwningConstArrayHolder[TSize] indexing,
+        TMaybeOwningConstArrayHolder[TSrcValue] nonDefaultValues,
+        bool_t ordered,
+        TDstValue defaultValue
     ) except +ProcessException
 
 cdef extern from "catboost/libs/options/binarization_options.h" namespace "NCatboostOptions" nogil:
@@ -516,15 +639,15 @@ cdef extern from "catboost/libs/data_new/visitor.h" namespace "NCB":
         void AddSubgroupId(ui32 objectIdx, TSubgroupId value) except +ProcessException
         void AddTimestamp(ui32 objectIdx, ui64 value) except +ProcessException
 
-        void AddFloatFeature(ui32 flatFeatureIdx, TMaybeOwningConstArrayHolder[float] features) except +ProcessException
-        void AddFloatFeature(ui32 flatFeatureIdx, TConstSparseArray[float, ui32] features) except +ProcessException
+        void AddFloatFeature(ui32 flatFeatureIdx, ITypedSequencePtr[float] features) except +ProcessException
+        void AddFloatFeature(ui32 flatFeatureIdx, TConstPolymorphicValuesSparseArray[float, ui32] features) except +ProcessException
 
         ui32 GetCatFeatureValue(ui32 flatFeatureIdx, TStringBuf feature) except +ProcessException
         void AddCatFeature(ui32 flatFeatureIdx, TConstArrayRef[TString] feature) except +ProcessException
         void AddCatFeature(ui32 flatFeatureIdx, TConstArrayRef[TStringBuf] feature) except +ProcessException
 
         void AddCatFeature(ui32 flatFeatureIdx, TMaybeOwningConstArrayHolder[ui32] features) except +ProcessException
-        void AddCatFeature(ui32 flatFeatureIdx, TConstSparseArray[TString, ui32] features) except +ProcessException
+        void AddCatFeature(ui32 flatFeatureIdx, TConstPolymorphicValuesSparseArray[TString, ui32] features) except +ProcessException
 
         void AddTarget(TConstArrayRef[TString] value) except +ProcessException
         void AddTarget(TConstArrayRef[float] value) except +ProcessException
@@ -549,6 +672,29 @@ cdef extern from "catboost/libs/data_new/data_provider_builders.h" namespace "NC
         THolder[IDataProviderBuilder]* dataProviderBuilder,
         IVisitor** loader
     ) except +ProcessException
+
+
+cdef class Py_FeaturesOrderBuilderVisitor:
+    cdef TDataProviderBuilderOptions options
+    cdef THolder[IDataProviderBuilder] data_provider_builder
+    cdef IRawFeaturesOrderDataVisitor* builder_visitor
+    cdef const TFeaturesLayout* features_layout
+    
+    def __cinit__(self):
+        CreateDataProviderBuilderAndVisitor(self.options, &self.data_provider_builder, &self.builder_visitor)
+        #self.features_layout = features_layout
+
+    cdef get_raw_features_order_data_visitor(self, IRawFeaturesOrderDataVisitor** builder_visitor):
+        builder_visitor[0] = self.builder_visitor
+        
+    cdef set_features_layout(self, const TFeaturesLayout* features_layout):
+        self.features_layout = features_layout
+        
+    cdef get_features_layout(self, const TFeaturesLayout** features_layout):
+        features_layout[0] = self.features_layout
+
+    def __dealloc__(self):
+        pass
 
 
 cdef extern from "catboost/libs/data_new/load_data.h" namespace "NCB":
@@ -1782,11 +1928,16 @@ cdef _get_object_count(data):
     else:
         return np.shape(data)[0]
 
-cdef _set_features_order_data_np(
-    const float [:,:] num_feature_values,
-    object [:,:] cat_feature_values, # cannot be const due to https://github.com/cython/cython/issues/2485
-    IRawFeaturesOrderDataVisitor* builder_visitor
+# num_feature_values and cat_feature values cannot be const due to 
+# https://github.com/cython/cython/issues/2485
+def _set_features_order_data_np(
+    numpy_num_dtype [:,:] num_feature_values,
+    object [:,:] cat_feature_values, 
+    Py_FeaturesOrderBuilderVisitor py_builder_visitor
 ):
+    cdef IRawFeaturesOrderDataVisitor* builder_visitor
+    py_builder_visitor.get_raw_features_order_data_visitor(&builder_visitor)
+    
     if (num_feature_values is None) and (cat_feature_values is None):
         raise CatBoostError('both num_feature_values and cat_feature_values are empty')
 
@@ -1796,6 +1947,9 @@ cdef _set_features_order_data_np(
 
     cdef ui32 num_feature_count = <ui32>(num_feature_values.shape[1] if num_feature_values is not None else 0)
     cdef ui32 cat_feature_count = <ui32>(cat_feature_values.shape[1] if cat_feature_values is not None else 0)
+    
+    cdef Py_ITypedSequencePtr py_num_factor_data
+    cdef ITypedSequencePtr[np.float32_t] num_factor_data
 
     cdef TString factor_string
     cdef TVector[TString] cat_factor_data
@@ -1810,14 +1964,10 @@ cdef _set_features_order_data_np(
 
     dst_feature_idx = 0
     for num_feature_idx in range(num_feature_count):
-        builder_visitor[0].AddFloatFeature(
-            dst_feature_idx,
-            TMaybeOwningConstArrayHolder[float].CreateNonOwning(
-                TConstArrayRef[float](&num_feature_values[0, num_feature_idx], doc_count)
-                if doc_count > 0
-                else TConstArrayRef[float]()
-            )
-        )
+        py_num_factor_data = make_non_owning_type_cast_array_holder(num_feature_values[:,num_feature_idx])
+        py_num_factor_data.get_result(&num_factor_data)
+        builder_visitor[0].AddFloatFeature(dst_feature_idx, num_factor_data)
+        
         dst_feature_idx += 1
     for cat_feature_idx in range(cat_feature_count):
         cat_factor_data.clear()
@@ -1844,23 +1994,25 @@ cdef float get_float_feature(ui32 non_default_doc_idx, ui32 flat_feature_idx, sr
 cdef create_num_factor_data(
     ui32 flat_feature_idx,
     np.ndarray column_values,
-    TMaybeOwningConstArrayHolder[float] * result
+    ITypedSequencePtr[np.float32_t]* result
 ):
     # two pointers are needed as a workaround for Cython assignment of derived types restrictions
     cdef TIntrusivePtr[TVectorHolder[float]] num_factor_data
     cdef TIntrusivePtr[IResourceHolder] num_factor_data_holder
+    
+    cdef Py_ITypedSequencePtr py_num_factor_data
 
-    cdef np.float32_t[::1] data_view_f32
     cdef ui32 doc_idx
 
     if len(column_values) == 0:
-        result[0] = TMaybeOwningConstArrayHolder[float].CreateNonOwning(TConstArrayRef[float]())
-        return []
-    elif column_values.dtype == np.float32:
-        data_view_f32 = np.ascontiguousarray(column_values, dtype=np.float32)
-        result[0] = TMaybeOwningConstArrayHolder[float].CreateNonOwning(
-            TConstArrayRef[float](& data_view_f32[0], len(column_values))
+        result[0] = MakeNonOwningTypeCastArrayHolder[np.float32_t, np.float32_t](
+            <const np.float32_t*>nullptr,
+            <const np.float32_t*>nullptr
         )
+        return []
+    elif column_values.dtype in numpy_num_dtype_list: # Cython cannot use fused type lists in normal code
+        py_num_factor_data = make_non_owning_type_cast_array_holder(column_values)
+        py_num_factor_data.get_result(result)
         return [column_values]
     else:
         num_factor_data = new TVectorHolder[float]()
@@ -1872,10 +2024,13 @@ cdef create_num_factor_data(
                 column_values[doc_idx]
             )
         num_factor_data_holder.Reset(num_factor_data.Get())
-        result[0] = TMaybeOwningConstArrayHolder[float].CreateOwning(
-            <TConstArrayRef[float]>num_factor_data.Get()[0].Data,
-            num_factor_data_holder
+        result[0] = MakeTypeCastArrayHolder[np.float32_t, np.float32_t](
+            TMaybeOwningConstArrayHolder[np.float32_t].CreateOwning(
+                <TConstArrayRef[np.float32_t]>num_factor_data.Get()[0].Data,
+                num_factor_data_holder
+            )
         )
+
         return []
 
 cdef get_cat_factor_bytes_representation(
@@ -1950,12 +2105,12 @@ cdef object _set_features_order_data_pd_data_frame_sparse_column(
     ui32 flat_feature_idx,
     bool_t is_cat_feature,
     object column_values, # pd.SparseArray, but Cython requires cimport to provide type here
-    TVector[TString] * cat_factor_data,  # pass from parent to avoid reallocations
-    IRawFeaturesOrderDataVisitor * builder_visitor
+    TVector[TString]* cat_factor_data,  # pass from parent to avoid reallocations
+    IRawFeaturesOrderDataVisitor* builder_visitor
 ):
     cdef TSparseArrayIndexingPtr[ui32] indexing
 
-    cdef TMaybeOwningConstArrayHolder[float] num_factor_data
+    cdef ITypedSequencePtr[np.float32_t] num_factor_data
 
     cdef TString factor_string
 
@@ -1988,7 +2143,7 @@ cdef object _set_features_order_data_pd_data_frame_sparse_column(
 
         builder_visitor[0].AddCatFeature(
             flat_feature_idx,
-            MakeConstSparseArray[TString, ui32](
+            MakeConstPolymorphicValuesSparseArray[TString, TString, ui32](
                 indexing,
                 TMaybeOwningConstArrayHolder[TString].CreateNonOwning(
                     <TConstArrayRef[TString]> cat_factor_data[0]
@@ -1997,10 +2152,14 @@ cdef object _set_features_order_data_pd_data_frame_sparse_column(
             )
         )
     else:
-        new_data_holders += create_num_factor_data(flat_feature_idx, non_default_values, & num_factor_data)
+        new_data_holders += create_num_factor_data(flat_feature_idx, non_default_values, &num_factor_data)
         builder_visitor[0].AddFloatFeature(
             flat_feature_idx,
-            MakeConstSparseArray[float, ui32](indexing, num_factor_data, column_values.fill_value)
+            MakeConstPolymorphicValuesSparseArrayGeneric[float, ui32](
+                indexing,
+                num_factor_data,
+                column_values.fill_value
+            )
         )
 
     return new_data_holders
@@ -2104,7 +2263,7 @@ cdef void _set_features_order_data_pd_data_frame_categorical_column(
 
         builder_visitor[0].AddFloatFeature(
             flat_feature_idx,
-            TMaybeOwningConstArrayHolder[float].CreateOwningMovedFrom(float_feature_values)
+            MakeTypeCastArrayHolderFromVector[float, float](float_feature_values)
         )
 
 
@@ -2119,7 +2278,7 @@ cdef object _set_features_order_data_pd_data_frame(
 
     cdef TString factor_string
 
-    cdef TMaybeOwningConstArrayHolder[float] num_factor_data
+    cdef ITypedSequencePtr[np.float32_t] num_factor_data
 
     cdef TVector[TString] cat_factor_data
     
@@ -2497,17 +2656,23 @@ cdef _set_objects_order_data_scipy_sparse_matrix(
         raise CatBoostError(error_string.c_str())
 
 # returns new data holders array
-cdef _set_features_order_data_scipy_sparse_csc_matrix(
+def _set_features_order_data_scipy_sparse_csc_matrix(
     ui32 doc_count,
-    data,
-    indices,
-    indptr,
+    numpy_num_dtype [:] data,
+    numpy_indices_dtype [:] indices,
+    numpy_indices_dtype [:] indptr,
     bool_t has_sorted_indices,
     bool_t has_num_features,
-    TConstArrayRef[bool_t] is_cat_feature_mask,
-    IRawFeaturesOrderDataVisitor * builder_visitor,
-    TString * error_string
+    Py_FeaturesOrderBuilderVisitor py_builder_visitor
 ):
+    cdef IRawFeaturesOrderDataVisitor* builder_visitor
+    py_builder_visitor.get_raw_features_order_data_visitor(&builder_visitor)
+
+    cdef const TFeaturesLayout* features_layout
+    py_builder_visitor.get_features_layout(&features_layout)
+
+    cdef TVector[bool_t] is_cat_feature_mask = _get_is_cat_feature_mask(features_layout)
+
     cdef np.float32_t float_default_value = 0.0
     cdef TString cat_default_value = "0"
 
@@ -2518,24 +2683,24 @@ cdef _set_features_order_data_scipy_sparse_csc_matrix(
 
     cdef TMaybeOwningConstArrayHolder[ui32] feature_indices_holder
 
-    cdef TMaybeOwningConstArrayHolder[float] num_factor_data
+    cdef ITypedSequencePtr[np.float32_t] num_factor_data
 
     cdef TString factor_string_buf
     cdef TVector[TString] cat_feature_values
+    
+    cdef TString error_string
 
-    cdef bool_t is_float_value = (data.dtype == np.float32) or (data.dtype == np.float64)
+    cdef bool_t is_float_value = False
+    
+    if (numpy_num_dtype is np.float32_t) or (numpy_num_dtype is np.float64_t):
+        is_float_value = True
 
-    cdef np.float32_t[::1] data_view_f32
-
-    new_data_holders = []
-
-    if has_num_features and (data.dtype == np.float32):
-        new_data_holders.append(data)
+    new_data_holders = [data]
 
     for feature_idx in range(feature_count):
         feature_nonzero_count = indptr[feature_idx + 1] - indptr[feature_idx]
         new_data_holders += get_canonical_type_indexing_array(
-            indices[indptr[feature_idx]:indptr[feature_idx + 1]],
+            np.asarray(indices[indptr[feature_idx]:indptr[feature_idx + 1]]),
             &feature_indices_holder
         )
 
@@ -2549,16 +2714,16 @@ cdef _set_features_order_data_scipy_sparse_csc_matrix(
                     value,
                     is_float_value,
                     &factor_string_buf,
-                    error_string
+                    &error_string
                 )
-                if not error_string[0].empty():
-                    return
+                if not error_string.empty():
+                    raise CatBoostError(error_string.c_str())
 
                 cat_feature_values.push_back(factor_string_buf)
 
             builder_visitor[0].AddCatFeature(
                 feature_idx,
-                MakeConstSparseArrayWithArrayIndex[TString, ui32](
+                MakeConstPolymorphicValuesSparseArrayWithArrayIndex[TString, TString, ui32](
                     doc_count,
                     feature_indices_holder,
                     TMaybeOwningConstArrayHolder[TString].CreateNonOwning(
@@ -2571,12 +2736,12 @@ cdef _set_features_order_data_scipy_sparse_csc_matrix(
         else:
             create_num_factor_data(
                 feature_idx,
-                data[indptr[feature_idx]:indptr[feature_idx + 1]],
+                np.asarray(data[indptr[feature_idx]:indptr[feature_idx + 1]]),
                 &num_factor_data
             )
             builder_visitor[0].AddFloatFeature(
                 feature_idx,
-                MakeConstSparseArrayWithArrayIndex[float, ui32](
+                MakeConstPolymorphicValuesSparseArrayWithArrayIndexGeneric[float, ui32](
                     doc_count,
                     feature_indices_holder,
                     num_factor_data,
@@ -2590,12 +2755,9 @@ cdef _set_features_order_data_scipy_sparse_csc_matrix(
 # returns new data holders array
 cdef _set_features_order_data_scipy_sparse_matrix(
     data,
-    const TFeaturesLayout * features_layout,
-    IRawFeaturesOrderDataVisitor * builder_visitor
+    const TFeaturesLayout* features_layout,
+    Py_FeaturesOrderBuilderVisitor py_builder_visitor
 ):
-    cdef TVector[bool_t] is_cat_feature_mask = _get_is_cat_feature_mask(features_layout)
-    cdef TString error_string
-
     new_data_holders = []
 
     if isinstance(data, scipy.sparse.csc_matrix):
@@ -2606,12 +2768,8 @@ cdef _set_features_order_data_scipy_sparse_matrix(
             data.indptr,
             data.has_sorted_indices,
             features_layout[0].GetFloatFeatureCount() != 0,
-            <TConstArrayRef[bool_t]>is_cat_feature_mask,
-            builder_visitor,
-            &error_string
+            py_builder_visitor
         )
-    if not error_string.empty():
-        raise CatBoostError(error_string.c_str())
 
     return new_data_holders
 
@@ -2863,11 +3021,9 @@ cdef class _PoolBase:
         pairs_weight,
         baseline):
 
-        cdef TDataProviderBuilderOptions options
-        cdef THolder[IDataProviderBuilder] data_provider_builder
-        cdef IRawFeaturesOrderDataVisitor* builder_visitor
-
-        CreateDataProviderBuilderAndVisitor(options, &data_provider_builder, &builder_visitor)
+        cdef Py_FeaturesOrderBuilderVisitor py_builder_visitor = Py_FeaturesOrderBuilderVisitor()
+        cdef IRawFeaturesOrderDataVisitor* builder_visitor = py_builder_visitor.builder_visitor
+        py_builder_visitor.set_features_layout(data_meta_info.FeaturesLayout.Get())
 
         cdef TVector[TIntrusivePtr[IResourceHolder]] resource_holders
         builder_visitor[0].Start(
@@ -2881,13 +3037,15 @@ cdef class _PoolBase:
             new_data_holders = data
 
             # needed because of https://github.com/cython/cython/issues/2485
+            if data.num_feature_data is not None:
+                data.num_feature_data.setflags(write=1)
             if data.cat_feature_data is not None:
                 data.cat_feature_data.setflags(write=1)
 
             _set_features_order_data_np(
                 data.num_feature_data,
                 data.cat_feature_data,
-                builder_visitor)
+                py_builder_visitor)
 
             # set after _set_features_order_data_np call because we can't pass const cat_feature_data to it
             # https://github.com/cython/cython/issues/2485
@@ -2905,12 +3063,12 @@ cdef class _PoolBase:
             new_data_holders = _set_features_order_data_scipy_sparse_matrix(
                 data,
                 data_meta_info.FeaturesLayout.Get(),
-                builder_visitor
+                py_builder_visitor
             )
-        elif isinstance(data, np.ndarray) and data.dtype == np.float32:
+        elif isinstance(data, np.ndarray):
             new_data_holders = data
             data.setflags(write=0)
-            _set_features_order_data_np(data, None, builder_visitor)
+            _set_features_order_data_np(data, None, py_builder_visitor)
         else:
             raise CatBoostError(
                 '[Internal error] wrong data type for _init_features_order_layout_pool: ' + type(data)
@@ -2937,7 +3095,7 @@ cdef class _PoolBase:
 
         builder_visitor[0].Finish()
 
-        self.__pool = data_provider_builder.Get()[0].GetResult()
+        self.__pool = py_builder_visitor.data_provider_builder.Get()[0].GetResult()
         self.__data_holders = new_data_holders
 
 
@@ -3027,7 +3185,7 @@ cdef class _PoolBase:
         elif isinstance(data, scipy.sparse.csc_matrix):
             do_use_raw_data_in_features_order = True
         else:
-            if isinstance(data, np.ndarray) and data.dtype == np.float32:
+            if isinstance(data, np.ndarray) and (data.dtype in numpy_num_dtype_list):
                 if data.flags.aligned and data.flags.f_contiguous:
                     do_use_raw_data_in_features_order = True
 

@@ -29,6 +29,7 @@ SRCS(
     maybe_owning_array_holder.cpp
     mem_usage.cpp
     parallel_tasks.cpp
+    polymorphic_type_containers.cpp
     power_hash.cpp
     progress_helper.cpp
     permutation.cpp

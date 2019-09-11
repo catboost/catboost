@@ -293,6 +293,10 @@
         "checksum": "a91dd032647c36bc2da3fbcb586efea7",
         "uri": "file://test.test_feature_importance_prettified_GPU_/feature_importance.txt"
     },
+    "test.test_fit_and_predict_on_sliced_pools[GPU]": {
+        "checksum": "e544981c40f5bbd87f078765b65c5b71",
+        "uri": "file://test.test_fit_and_predict_on_sliced_pools_GPU_/predictions.npy"
+    },
     "test.test_fit_data[GPU]": {
         "checksum": "e440705b70b8caa5c1fe86753e5e3891",
         "uri": "file://test.test_fit_data_GPU_/predictions.npy"

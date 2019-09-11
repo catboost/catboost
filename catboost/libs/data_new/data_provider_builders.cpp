@@ -157,7 +157,7 @@ namespace NCB {
             }
         }
 
-        void AddAllFloatFeatures(ui32 localObjectIdx, TConstSparseArray<float, ui32> features) override {
+        void AddAllFloatFeatures(ui32 localObjectIdx, TConstPolymorphicValuesSparseArray<float, ui32> features) override {
             auto objectIdx = Cursor + localObjectIdx;
             features.ForEachNonDefault(
                 [&] (ui32 perTypeFeatureIdx, float value) {
@@ -200,7 +200,7 @@ namespace NCB {
             }
         }
 
-        void AddAllCatFeatures(ui32 localObjectIdx, TConstSparseArray<ui32, ui32> features) override {
+        void AddAllCatFeatures(ui32 localObjectIdx, TConstPolymorphicValuesSparseArray<ui32, ui32> features) override {
             auto objectIdx = Cursor + localObjectIdx;
             features.ForEachNonDefault(
                 [&] (ui32 perTypeFeatureIdx, ui32 value) {
@@ -232,7 +232,7 @@ namespace NCB {
                 );
             }
         }
-        void AddAllTextFeatures(ui32 localObjectIdx, TConstSparseArray<TString, ui32> features) override {
+        void AddAllTextFeatures(ui32 localObjectIdx, TConstPolymorphicValuesSparseArray<TString, ui32> features) override {
             auto objectIdx = Cursor + localObjectIdx;
             features.ForEachNonDefault(
                 [&] (ui32 perTypeFeatureIdx, TString value) {
@@ -576,7 +576,7 @@ namespace NCB {
             }
 
 
-            TVector<TMaybe<TConstSparseArray<T, ui32>>> CreateSparseArrays(
+            TVector<TMaybe<TConstPolymorphicValuesSparseArray<T, ui32>>> CreateSparseArrays(
                 ui32 objectCount,
                 ESparseArrayIndexingType sparseArrayIndexingType,
                 NPar::TLocalExecutor* localExecutor
@@ -599,7 +599,9 @@ namespace NCB {
                     }
                 }
 
-                TVector<TMaybe<TConstSparseArray<T, ui32>>> result(sparseDataForBuilders.size());
+                TVector<TMaybe<TConstPolymorphicValuesSparseArray<T, ui32>>> result(
+                    sparseDataForBuilders.size()
+                );
 
                 localExecutor->ExecRangeWithThrow(
                     [&] (int perTypeFeatureIdx) {
@@ -611,13 +613,17 @@ namespace NCB {
                             defaultValue = PerFeatureData[perTypeFeatureIdx].DefaultValue;
                         }
 
-                        std::function<TMaybeOwningConstArrayHolder<T>(TVector<T>&&)> createNonDefaultValues
+                        std::function<TTypedSequenceContainer<T>(TVector<T>&&)> createNonDefaultValues
                             = [&] (TVector<T>&& values) {
-                                return TMaybeOwningConstArrayHolder<T>::CreateOwning(std::move(values));
+                                return TTypedSequenceContainer<T>(
+                                    MakeIntrusive<TTypeCastArrayHolder<T, T>>(
+                                        TMaybeOwningConstArrayHolder<T>::CreateOwning(std::move(values))
+                                    )
+                                );
                             };
 
                         result[perTypeFeatureIdx].ConstructInPlace(
-                            MakeSparseArrayBase<const T, TMaybeOwningArrayHolder<const T>, ui32>(
+                            MakeSparseArrayBase<const T, TTypedSequenceContainer<T>, ui32>(
                                 objectCount,
                                 std::move(sparseDataForBuilders[perTypeFeatureIdx].ObjectIndices),
                                 std::move(sparseDataForBuilders[perTypeFeatureIdx].Values),
@@ -737,7 +743,7 @@ namespace NCB {
                     "PerFeatureData is inconsistent with feature Layout"
                 );
 
-                TVector<TMaybe<TConstSparseArray<T, ui32>>> sparseData = CreateSparseArrays(
+                TVector<TMaybe<TConstPolymorphicValuesSparseArray<T, ui32>>> sparseData = CreateSparseArrays(
                     subsetIndexing->Size(),
                     sparseArrayIndexingType,
                     LocalExecutor
@@ -762,14 +768,14 @@ namespace NCB {
                     if (metaInfo.IsAvailable) {
                         if (metaInfo.IsSparse) {
                             result->push_back(
-                                MakeHolder<TSparseArrayValuesHolder<T, ColumnType>>(
+                                MakeHolder<TSparsePolymorphicArrayValuesHolder<T, ColumnType>>(
                                     /* featureId */ flatFeatureIdx,
                                     std::move(*(sparseData[perTypeFeatureIdx]))
                                 )
                             );
                         } else {
                             result->push_back(
-                                MakeHolder<TArrayValuesHolder<T, ColumnType>>(
+                                MakeHolder<TPolymorphicArrayValuesHolder<T, ColumnType>>(
                                     /* featureId */ flatFeatureIdx,
                                     TMaybeOwningConstArrayHolder<T>::CreateOwning(
                                         PerFeatureData[perTypeFeatureIdx].DenseDstView,
@@ -882,16 +888,15 @@ namespace NCB {
         }
 
         // TRawObjectsData
-        void AddFloatFeature(ui32 flatFeatureIdx, TMaybeOwningConstArrayHolder<float> features) override {
+        void AddFloatFeature(ui32 flatFeatureIdx, ITypedSequencePtr<float> features) override {
             auto floatFeatureIdx = GetInternalFeatureIdx<EFeatureType::Float>(flatFeatureIdx);
             Data.ObjectsData.FloatFeatures[*floatFeatureIdx] = MakeHolder<TFloatArrayValuesHolder>(
                 flatFeatureIdx,
-                std::move(features),
-                Data.CommonObjectsData.SubsetIndexing.Get()
+                features->GetSubset(Data.CommonObjectsData.SubsetIndexing.Get())
             );
         }
 
-        void AddFloatFeature(ui32 flatFeatureIdx, TConstSparseArray<float, ui32> features) override {
+        void AddFloatFeature(ui32 flatFeatureIdx, TConstPolymorphicValuesSparseArray<float, ui32> features) override {
             auto floatFeatureIdx = GetInternalFeatureIdx<EFeatureType::Float>(flatFeatureIdx);
             Data.ObjectsData.FloatFeatures[*floatFeatureIdx] = MakeHolder<TFloatSparseValuesHolder>(
                 flatFeatureIdx,
@@ -927,19 +932,16 @@ namespace NCB {
             );
         }
 
-        void AddCatFeature(ui32 flatFeatureIdx, TConstSparseArray<TString, ui32> features) override {
+        void AddCatFeature(ui32 flatFeatureIdx, TConstPolymorphicValuesSparseArray<TString, ui32> features) override {
             auto catFeatureIdx = GetInternalFeatureIdx<EFeatureType::Categorical>(flatFeatureIdx);
             Data.ObjectsData.CatFeatures[*catFeatureIdx] = MakeHolder<THashedCatSparseValuesHolder>(
                 flatFeatureIdx,
-                TConstSparseArray<ui32, ui32>(
+                MakeConstPolymorphicValuesSparseArray(
                     features.GetIndexing(),
                     TMaybeOwningConstArrayHolder<ui32>::CreateOwning(
-                        CreateHashedCatValues(catFeatureIdx, *features.GetNonDefaultValues())
+                        CreateHashedCatValues(catFeatureIdx, features.GetNonDefaultValues().GetImpl())
                     ),
-                    std::move(CreateHashedCatValues(
-                        catFeatureIdx,
-                        TConstArrayRef<TString>(&features.GetDefaultValue(), 1)
-                    ).front())
+                    GetCatFeatureValue(flatFeatureIdx, features.GetDefaultValue())
                 )
             );
         }
@@ -953,7 +955,7 @@ namespace NCB {
             );
         }
 
-        void AddTextFeature(ui32 flatFeatureIdx, TConstSparseArray<TString, ui32> features) override {
+        void AddTextFeature(ui32 flatFeatureIdx, TConstPolymorphicValuesSparseArray<TString, ui32> features) override {
             auto textFeatureIdx = GetInternalFeatureIdx<EFeatureType::Text>(flatFeatureIdx);
             Data.ObjectsData.TextFeatures[*textFeatureIdx] = MakeHolder<TStringTextSparseValuesHolder>(
                 flatFeatureIdx,
@@ -1049,39 +1051,45 @@ namespace NCB {
         template <class TStringLike>
         TVector<ui32> CreateHashedCatValues(
             TCatFeatureIdx catFeatureIdx,
-            TConstArrayRef<TStringLike> stringValues
+            const ITypedSequence<TStringLike>& stringValues
         ) {
             TVector<ui32> hashedCatValues;
-            hashedCatValues.yresize(stringValues.size());
+            hashedCatValues.yresize(stringValues.GetSize());
+            TArrayRef<ui32> hashedCatValuesRef = hashedCatValues;
 
-            NPar::TLocalExecutor::TExecRangeParams params = [&] () {
-                if (stringValues.size() == ObjectCount) {
-                    return *ObjectCalcParams;
-                } else {
-                    NPar::TLocalExecutor::TExecRangeParams params(
-                        0,
-                        SafeIntegerCast<int>(stringValues.size())
-                    );
-                    params.SetBlockSize(OBJECT_CALC_BLOCK_SIZE);
-                    return params;
-                }
-            } ();
+            TSimpleIndexRangesGenerator<ui32> indexRanges(
+                TIndexRange<ui32>(stringValues.GetSize()),
+                (ui32)OBJECT_CALC_BLOCK_SIZE
+            );
 
             LocalExecutor->ExecRange(
-                [&](int objectIdx) {
-                    hashedCatValues[objectIdx] = CalcCatFeatureHash(stringValues[objectIdx]);
+                [&, hashedCatValuesRef](int subRangeIdx) {
+                    TIndexRange<ui32> subRange = indexRanges.GetRange((ui32)subRangeIdx);
+                    auto blockIterator = stringValues.GetBlockIterator(subRange);
+                    ui32 objectIdx = subRange.Begin;
+                    while (auto block = blockIterator->Next()) {
+                        for (auto stringValue : block) {
+                            hashedCatValuesRef[objectIdx++] = CalcCatFeatureHash(stringValue);
+                        }
+                    }
                 },
-                params,
+                0,
+                SafeIntegerCast<int>(indexRanges.RangesCount()),
                 NPar::TLocalExecutor::WAIT_COMPLETE
             );
 
             auto& catFeatureHash = (*Data.CommonObjectsData.CatFeaturesHashToString)[*catFeatureIdx];
 
-            for (auto objectIdx : xrange(stringValues.size())) {
-                const ui32 hashedValue = hashedCatValues[objectIdx];
-                THashMap<ui32, TString>::insert_ctx insertCtx;
-                if (!catFeatureHash.contains(hashedValue, insertCtx)) {
-                    catFeatureHash.emplace_direct(insertCtx, hashedValue, stringValues[objectIdx]);
+            auto blockIterator = stringValues.GetBlockIterator();
+            ui32 objectIdx = 0;
+            while (auto block = blockIterator->Next()) {
+                for (auto stringValue : block) {
+                    const ui32 hashedValue = hashedCatValues[objectIdx];
+                    THashMap<ui32, TString>::insert_ctx insertCtx;
+                    if (!catFeatureHash.contains(hashedValue, insertCtx)) {
+                        catFeatureHash.emplace_direct(insertCtx, hashedValue, stringValue);
+                    }
+                    ++objectIdx;
                 }
             }
 
@@ -1092,7 +1100,12 @@ namespace NCB {
         void AddCatFeatureImpl(ui32 flatFeatureIdx, TConstArrayRef<TStringLike> feature) {
             auto catFeatureIdx = GetInternalFeatureIdx<EFeatureType::Categorical>(flatFeatureIdx);
 
-            TVector<ui32> hashedCatValues = CreateHashedCatValues(catFeatureIdx, feature);
+            TVector<ui32> hashedCatValues = CreateHashedCatValues(
+                catFeatureIdx,
+                TTypeCastArrayHolder<TStringLike, TStringLike>(
+                    TMaybeOwningConstArrayHolder<TStringLike>::CreateNonOwning(feature)
+                )
+            );
 
             Data.ObjectsData.CatFeatures[*catFeatureIdx] = MakeHolder<THashedCatArrayValuesHolder>(
                 flatFeatureIdx,

@@ -3,6 +3,7 @@
 #include "compression.h"
 #include "dynamic_iterator.h"
 #include "maybe_owning_array_holder.h"
+#include "polymorphic_type_containers.h"
 
 #include <library/binsaver/bin_saver.h>
 
@@ -34,6 +35,16 @@ namespace NCB {
 
 
     template <class TSize>
+    class ISparseArrayIndexingBlockIterator : public IDynamicBlockIterator<TSize> {
+    public:
+        virtual TConstArrayRef<TSize> NextUpToBound(TSize upperBound) = 0;
+    };
+
+    template <class TSize>
+    using ISparseArrayIndexingBlockIteratorPtr = THolder<ISparseArrayIndexingBlockIterator<TSize>>;
+
+
+    template <class TSize>
     struct TSparseSubsetIndices : public TMaybeOwningConstArrayHolder<TSize> {
         static_assert(std::is_integral<TSize>::value);
 
@@ -62,6 +73,19 @@ namespace NCB {
         TSize GetUpperBound() const {
             return (**this).empty() ? 0 : ((**this).back() + 1);
         }
+    };
+
+    template <class TSize>
+    class TSparseSubsetIndicesBlockIterator final : public ISparseArrayIndexingBlockIterator<TSize> {
+    public:
+        TSparseSubsetIndicesBlockIterator(const TSize* current, const TSize* end);
+
+        TConstArrayRef<TSize> Next(size_t maxBlockSize = Max<size_t>()) override;
+        TConstArrayRef<TSize> NextUpToBound(TSize upperBound) override;
+
+    private:
+        const TSize* Current;
+        const TSize* const End;
     };
 
 
@@ -106,24 +130,39 @@ namespace NCB {
         }
     };
 
+
+    template <class TSize>
+    struct TSparseSubsetBlocksIteratorData {
+        const TSize* BlockStartsCurrent = nullptr;
+        const TSize* BlockStartsEnd = nullptr;
+        const TSize* BlockLengthsCurrent = nullptr;
+        TSize InBlockIdx = 0;
+    };
+
     template <class TSize>
     class TSparseSubsetBlocksIterator final : public IDynamicIterator<TSize> {
     public:
         TSparseSubsetBlocksIterator(const TSparseSubsetBlocks<TSize>& sparseSubsetBlocks);
 
-        TSparseSubsetBlocksIterator(
-            const TSize* blockStartsCurrent,
-            const TSize* blockStartsEnd,
-            const TSize* blockLengthsCurrent,
-            TSize inBlockIdx);
+        TSparseSubsetBlocksIterator(TSparseSubsetBlocksIteratorData<TSize>&& data);
 
         inline TMaybe<TSize> Next() override;
 
     private:
-        const TSize* BlockStartsCurrent;
-        const TSize* BlockStartsEnd;
-        const TSize* BlockLengthsCurrent;
-        TSize InBlockIdx;
+        TSparseSubsetBlocksIteratorData<TSize> Data;
+    };
+
+    template <class TSize>
+    class TSparseSubsetBlocksBlockIterator final : public ISparseArrayIndexingBlockIterator<TSize> {
+    public:
+        TSparseSubsetBlocksBlockIterator(TSparseSubsetBlocksIteratorData<TSize>&& data);
+
+        TConstArrayRef<TSize> Next(size_t maxBlockSize = Max<size_t>()) override;
+        TConstArrayRef<TSize> NextUpToBound(TSize upperBound) override;
+
+    private:
+        TSparseSubsetBlocksIteratorData<TSize> Data;
+        TVector<TSize> Buffer;
     };
 
 
@@ -158,25 +197,39 @@ namespace NCB {
         TSize GetUpperBound() const;
     };
 
+    template <class TSize>
+    struct TSparseSubsetHybridIndexIteratorData {
+        const TSize* BlockIndicesCurrent = nullptr;
+        const TSize* BlockIndicesEnd = nullptr;
+        const ui64* BlockBitmapsCurrent = nullptr;
+        ui32 InBlockIdx = 0;
+    };
+
 
     template <class TSize>
     class TSparseSubsetHybridIndexIterator final : public IDynamicIterator<TSize> {
     public:
         TSparseSubsetHybridIndexIterator(const TSparseSubsetHybridIndex<TSize>& sparseSubsetHybridIndex);
 
-        TSparseSubsetHybridIndexIterator(
-            const TSize* blockIndicesCurrent,
-            const TSize* blockIndicesEnd,
-            const ui64* blockBitmapsCurrent,
-            ui32 inBlockIdx);
+        TSparseSubsetHybridIndexIterator(TSparseSubsetHybridIndexIteratorData<TSize>&& data);
 
         inline TMaybe<TSize> Next() override;
 
     private:
-        const TSize* BlockIndicesCurrent;
-        const TSize* BlockIndicesEnd;
-        const ui64* BlockBitmapsCurrent;
-        ui32 InBlockIdx;
+        TSparseSubsetHybridIndexIteratorData<TSize> Data;
+    };
+
+    template <class TSize>
+    class TSparseSubsetHybridIndexBlockIterator final : public ISparseArrayIndexingBlockIterator<TSize> {
+    public:
+        TSparseSubsetHybridIndexBlockIterator(TSparseSubsetHybridIndexIteratorData<TSize>&& data);
+
+        TConstArrayRef<TSize> Next(size_t maxBlockSize = Max<size_t>()) override;
+        TConstArrayRef<TSize> NextUpToBound(TSize upperBound) override;
+
+    private:
+        TSparseSubsetHybridIndexIteratorData<TSize> Data;
+        TVector<TSize> Buffer;
     };
 
 
@@ -251,6 +304,12 @@ namespace NCB {
         void GetIteratorAndNonDefaultBegin(
             TSize begin,
             IDynamicIteratorPtr<TSize>* iterator,
+            TSize* nonDefaultBegin) const;
+
+        // get block iterator and nonDefaultBegin index for subset starting at 'begin'
+        void GetBlockIteratorAndNonDefaultBegin(
+            TSize begin,
+            ISparseArrayIndexingBlockIteratorPtr<TSize>* iterator,
             TSize* nonDefaultBegin) const;
 
     private:
@@ -340,54 +399,39 @@ namespace NCB {
     TSparseArrayIndexingBuilderPtr<TSize> CreateSparseArrayIndexingBuilder(ESparseArrayIndexingType type);
 
 
-    template <class TValue, class TContainer, class TSize = size_t>
-    class TSparseArrayBaseIterator final : public IDynamicSparseIterator<TValue, TSize> {
+    template <class TValue, class TContainer>
+    class TNonDefaultValuesBlockIterator final : public IDynamicExactBlockIterator<TValue> {
     public:
-        TSparseArrayBaseIterator(
-            IDynamicIteratorPtr<TSize> indexingIteratorPtr,
-            const TContainer& nonDefaultValues,
-            TSize nonDefaultOffset = 0);
-
-        inline TMaybe<std::pair<TSize, TValue>> Next() override;
-
-    private:
-        IDynamicIteratorPtr<TSize> IndexingIteratorPtr;
-        TSize NonDefaultIndex;
-        const TContainer& NonDefaultValues;
+        explicit TNonDefaultValuesBlockIterator(const TContainer& container, size_t offset = 0);
+        inline TConstArrayRef<TValue> NextExact(size_t exactBlockSize) override;
     };
-
-    template <class TValue, class TContainer, class TSize = size_t>
-    using TSparseArrayBaseIteratorPtr = THolder<TSparseArrayBaseIterator<TValue, TContainer, TSize>>;
-
 
     template <class TValue, class TContainer, class TSize = size_t>
     class TSparseArrayBaseBlockIterator final : public IDynamicBlockIterator<TValue> {
     public:
         TSparseArrayBaseBlockIterator(
             TSize size,
-            IDynamicIteratorPtr<TSize> indexingIteratorPtr,
+            ISparseArrayIndexingBlockIteratorPtr<TSize> indexingBlockIteratorPtr,
             TValue defaultValue,
-            const TContainer& nonDefaultValues,
-            TSize offset,
-            TSize nonDefaultOffset);
+            TNonDefaultValuesBlockIterator<TValue, TContainer>&& nonDefaultValuesBlockIterator,
+            TSize offset);
 
         inline TConstArrayRef<TValue> Next(size_t maxBlockSize = Max<size_t>()) override;
 
     public:
         TSize Index;
         TSize Size;
-        IDynamicIteratorPtr<TSize> IndexingIteratorPtr;
-        TMaybe<TSize> NextNonDefault;
+        ISparseArrayIndexingBlockIteratorPtr<TSize> IndexingBlockIteratorPtr;
+        TNonDefaultValuesBlockIterator<TValue, TContainer> NonDefaultValuesBlockIterator;
         TValue DefaultValue;
-        TSize NonDefaultIndex;
-        const TContainer& NonDefaultValues;
 
         TVector<TValue> Buffer;
     };
 
 
     /*
-     * TContainer must implement GetSize and 'operator[]'
+     * TContainer must implement operator&(IBinSaver&), GetSize, EqualTo(rhs, strict)
+     *  and TNonDefaultValuesBlockIterator<TContainer> must be defined
      */
     template <class TValue, class TContainer, class TSize = size_t>
     class TSparseArrayBase final : public TThrRefBase {
@@ -398,13 +442,13 @@ namespace NCB {
         using TIndexingPtr = TIntrusivePtr<TSparseArrayIndexing<TSize>>;
         using TIndexingImpl = typename TIndexing::TImpl;
         using TNonConstValue = typename std::remove_const<TValue>::type;
-        using TIterator = TSparseArrayBaseIterator<TNonConstValue, TContainer, TSize>;
         using TBlockIterator = TSparseArrayBaseBlockIterator<TNonConstValue, TContainer, TSize>;
 
     public:
         // needed because of IBinSaver
         TSparseArrayBase()
-            : DefaultValue(TValue())
+            : NonDefaultValues(TContainer())
+            , DefaultValue(TValue())
         {}
 
         TSparseArrayBase(
@@ -446,15 +490,9 @@ namespace NCB {
 
         // f is a visitor function that will be repeatedly called with (index, value) arguments
         template <class F>
-        inline void ForEachNonDefault(F&& f) const;
-
-        // f is a visitor function that will be repeatedly called with (index, value) arguments
-        template <class F>
-        inline void ForEach(F&& f) const;
+        inline void ForEachNonDefault(F&& f, TSize maxBlockSize = TSize(128)) const;
 
         TVector<TNonConstValue> ExtractValues() const;
-
-        TIterator GetIterator(TSize offset = 0) const;
 
         TBlockIterator GetBlockIterator(TSize offset = 0) const;
 
@@ -500,6 +538,45 @@ namespace NCB {
     template <class TValue, class TSize>
     using TConstSparseArray = TSparseArray<const TValue, TSize>;
 
+
+    // TSparseArrayBase TContainer - compatible wrapper for ITypedSequencePtr<TValue>
+    template <class T>
+    class TTypedSequenceContainer {
+    public:
+        // needed for BinSaver and Cython
+        TTypedSequenceContainer() = default;
+
+        explicit TTypedSequenceContainer(ITypedSequencePtr<T>&& impl)
+            : Impl(std::move(impl))
+        {}
+
+        int operator&(IBinSaver& binSaver) {
+            return Impl & binSaver;
+        }
+
+        // if strict is true compare bit-by-bit, else compare values
+        bool EqualTo(const TTypedSequenceContainer<T>& rhs, bool strict = true) const {
+            return Impl->EqualTo(*(rhs->Impl), strict);
+        }
+
+        ui32 GetSize() const {
+            return Impl->GetSize();
+        }
+
+        const ITypedSequence<T>& GetImpl() const {
+            return *Impl;
+        }
+
+    private:
+        ITypedSequencePtr<T> Impl;
+    };
+
+
+    template <class TValue, class TSize>
+    using TConstPolymorphicValuesSparseArray
+        = TSparseArrayBase<const TValue, TTypedSequenceContainer<TValue>, TSize>;
+
+
     // for Cython
     template <class TSize>
     TSparseArrayIndexingPtr<TSize> MakeSparseArrayIndexing(
@@ -512,19 +589,33 @@ namespace NCB {
         TMaybeOwningConstArrayHolder<TSize> blockStarts, // already ordered
         TMaybeOwningConstArrayHolder<TSize> blockLengths); // already ordered
 
-    template <class TValue, class TSize>
-    TConstSparseArray<TValue, TSize> MakeConstSparseArray(
+    template <class TDstValue, class TSize>
+    TConstPolymorphicValuesSparseArray<TDstValue, TSize> MakeConstPolymorphicValuesSparseArrayGeneric(
         TSparseArrayIndexingPtr<TSize> indexing,
-        TMaybeOwningConstArrayHolder<TValue> nonDefaultValues,
-        TValue defaultValue = TValue());
+        ITypedSequencePtr<TDstValue> nonDefaultValues,
+        TDstValue defaultValue = TDstValue());
 
-    template <class TValue, class TSize>
-    TConstSparseArray<TValue, TSize> MakeConstSparseArrayWithArrayIndex(
+    template <class TDstValue, class TSrcValue, class TSize>
+    TConstPolymorphicValuesSparseArray<TDstValue, TSize> MakeConstPolymorphicValuesSparseArray(
+        TSparseArrayIndexingPtr<TSize> indexing,
+        TMaybeOwningConstArrayHolder<TSrcValue> nonDefaultValues,
+        TDstValue defaultValue = TDstValue());
+
+    template <class TDstValue, class TSize>
+    TConstPolymorphicValuesSparseArray<TDstValue, TSize> MakeConstPolymorphicValuesSparseArrayWithArrayIndexGeneric(
         TSize size,
         TMaybeOwningConstArrayHolder<TSize> indices,
-        TMaybeOwningConstArrayHolder<TValue> nonDefaultValues,
+        ITypedSequencePtr<TDstValue> nonDefaultValues,
         bool ordered = false,
-        TValue defaultValue = TValue());
+        TDstValue defaultValue = TDstValue());
+
+    template <class TDstValue, class TSrcValue, class TSize>
+    TConstPolymorphicValuesSparseArray<TDstValue, TSize> MakeConstPolymorphicValuesSparseArrayWithArrayIndex(
+        TSize size,
+        TMaybeOwningConstArrayHolder<TSize> indices,
+        TMaybeOwningConstArrayHolder<TSrcValue> nonDefaultValues,
+        bool ordered = false,
+        TDstValue defaultValue = TDstValue());
 
 
     template <class TValue, class TSize>

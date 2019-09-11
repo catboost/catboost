@@ -181,13 +181,25 @@ namespace NCB {
 
         if (const auto* denseData = dynamic_cast<const TFloatArrayValuesHolder*>(&feature)) {
             hasNans
-                = denseData->GetArrayData().Find([] (size_t /*idx*/, float value) { return IsNan(value); });
+                = denseData->GetData()->Find([] (size_t /*idx*/, float value) { return IsNan(value); });
         } else if (const auto* sparseData = dynamic_cast<const TFloatSparseValuesHolder*>(&feature)) {
-            const TConstSparseArray<float, ui32>& sparseArray = sparseData->GetData();
+            const TConstPolymorphicValuesSparseArray<float, ui32>& sparseArray = sparseData->GetData();
             if (IsNan(sparseArray.GetDefaultValue())) {
                 hasNans = true;
             } else {
-                hasNans = FindIf(*sparseArray.GetNonDefaultValues(), IsNan);
+                hasNans = false;
+                auto blockIterator = sparseArray.GetNonDefaultValues().GetImpl().GetBlockIterator();
+                while (auto block = blockIterator->Next()) {
+                    for (auto element : block) {
+                        if (IsNan(element)) {
+                            hasNans = true;
+                            break;
+                        }
+                    }
+                    if (hasNans) {
+                        break;
+                    }
+                }
             }
         } else {
             CB_ENSURE_INTERNAL(false, "TQuantizedFeaturesInfo::ComputeNanMode: unsupported column type");

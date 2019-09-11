@@ -280,7 +280,7 @@ namespace NCB {
 
 
     template <class T>
-    struct IDynamicBlockIterator : public TThrRefBase {
+    struct IDynamicBlockIterator {
     public:
         using value_type = T;
 
@@ -300,9 +300,75 @@ namespace NCB {
     template <class TValue>
     using IDynamicBlockIteratorPtr = THolder<IDynamicBlockIterator<TValue>>;
 
+    template <class TLeft, class TRight, class TComparer = std::equal_to<TLeft>>
+    bool AreBlockedSequencesEqual(
+        IDynamicBlockIteratorPtr<TLeft> lhs,
+        IDynamicBlockIteratorPtr<TRight> rhs,
+        TComparer&& comparer = TComparer(), // returns true if values are equal
+        size_t maxBlockSize = Max<size_t>()) {
+
+        TConstArrayRef<TLeft> lBlock = lhs->Next(maxBlockSize);
+        TConstArrayRef<TRight> rBlock = rhs->Next(maxBlockSize);
+
+        while (true) {
+            size_t blockIntersectionSize = Min(lBlock.size(), rBlock.size());
+            if (!blockIntersectionSize) {
+                return lBlock.empty() && rBlock.empty();
+            }
+
+            if (!::Equal(lBlock.begin(), lBlock.begin() + blockIntersectionSize, rBlock.begin(), comparer)) {
+                return false;
+            }
+            if (lBlock.size() == blockIntersectionSize) {
+                lBlock = lhs->Next(maxBlockSize);
+            } else {
+                lBlock = lBlock.Slice(blockIntersectionSize);
+            }
+            if (rBlock.size() == blockIntersectionSize) {
+                rBlock = rhs->Next(maxBlockSize);
+            } else {
+                rBlock = rBlock.Slice(blockIntersectionSize);
+            }
+        }
+        Y_UNREACHABLE();
+    }
+
 
     template <class T>
-    class TArrayBlockIterator final : public IDynamicBlockIterator<T> {
+    struct IDynamicExactBlockIterator {
+    public:
+        using value_type = T;
+
+    public:
+        virtual ~IDynamicExactBlockIterator() = default;
+
+        /*
+         * returns array with size == exactBlockSize
+         * caller must know that at least exactBlockSize elements are still available
+         * array contents are guaranteed to exist only until the next call to Next()
+         */
+        virtual TConstArrayRef<T> NextExact(size_t exactBlockSize) = 0;
+    };
+
+    template <class TValue>
+    using IDynamicExactBlockIteratorPtr = THolder<IDynamicExactBlockIterator<TValue>>;
+
+
+    template <class T>
+    struct IDynamicBlockWithExactIterator
+        : public IDynamicBlockIterator<T>
+        , public IDynamicExactBlockIterator<T>
+    {
+    public:
+        using value_type = T;
+    };
+
+    template <class TValue>
+    using IDynamicBlockWithExactIteratorPtr = THolder<IDynamicBlockWithExactIterator<TValue>>;
+
+
+    template <class T>
+    class TArrayBlockIterator final : public IDynamicBlockWithExactIterator<T> {
     public:
         TArrayBlockIterator(TConstArrayRef<T> array)
             : Current(array.data())
@@ -310,9 +376,12 @@ namespace NCB {
         {}
 
         TConstArrayRef<T> Next(size_t maxBlockSize = Max<size_t>()) override {
-            const size_t blockSize = Min(maxBlockSize, size_t(End - Current));
-            TConstArrayRef<T> result(Current, Current + blockSize);
-            Current += blockSize;
+            return NextExact(Min(maxBlockSize, size_t(End - Current)));
+        }
+
+        TConstArrayRef<T> NextExact(size_t exactBlockSize) override {
+            TConstArrayRef<T> result(Current, Current + exactBlockSize);
+            Current += exactBlockSize;
             return result;
         }
     private:
@@ -321,7 +390,7 @@ namespace NCB {
     };
 
     template <class TDst, class TSrc>
-    class TTypeCastingArrayBlockIterator final : public IDynamicBlockIterator<TDst> {
+    class TTypeCastingArrayBlockIterator final : public IDynamicBlockWithExactIterator<TDst> {
     public:
         TTypeCastingArrayBlockIterator(TConstArrayRef<TSrc> array)
             : Current(array.data())
@@ -329,9 +398,12 @@ namespace NCB {
         {}
 
         TConstArrayRef<TDst> Next(size_t maxBlockSize = Max<size_t>()) override {
-            const size_t blockSize = Min(maxBlockSize, size_t(End - Current));
-            DstBuffer.assign(Current, Current + blockSize);
-            Current += blockSize;
+            return NextExact(Min(maxBlockSize, size_t(End - Current)));
+        }
+
+        TConstArrayRef<TDst> NextExact(size_t exactBlockSize) override {
+            DstBuffer.assign(Current, Current + exactBlockSize);
+            Current += exactBlockSize;
             return DstBuffer;
         }
     private:
@@ -342,7 +414,7 @@ namespace NCB {
     };
 
     template <class TDst, class TSrc, class TTransformer>
-    class TTransformArrayBlockIterator final : public IDynamicBlockIterator<TDst> {
+    class TTransformArrayBlockIterator final : public IDynamicBlockWithExactIterator<TDst> {
     public:
         TTransformArrayBlockIterator(TConstArrayRef<TSrc> array, TTransformer&& transformer)
             : Current(array.data())
@@ -351,10 +423,13 @@ namespace NCB {
         {}
 
         TConstArrayRef<TDst> Next(size_t maxBlockSize = Max<size_t>()) override {
-            const size_t blockSize = Min(maxBlockSize, size_t(End - Current));
-            DstBuffer.yresize(blockSize);
-            Transform(Current, Current + blockSize, DstBuffer.begin(), Transformer);
-            Current += blockSize;
+            return NextExact(Min(maxBlockSize, size_t(End - Current)));
+        }
+
+        TConstArrayRef<TDst> NextExact(size_t exactBlockSize) override {
+            DstBuffer.yresize(exactBlockSize);
+            Transform(Current, Current + exactBlockSize, DstBuffer.begin(), Transformer);
+            Current += exactBlockSize;
             return DstBuffer;
         }
     private:

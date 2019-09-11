@@ -23,7 +23,7 @@ namespace NCB {
     namespace NDataNewUT {
 
     template <class TValue>
-    using TExpectedFeatureColumn = TVariant<TVector<TValue>, TConstSparseArray<TValue, ui32>>;
+    using TExpectedFeatureColumn = TVariant<TVector<TValue>, TConstPolymorphicValuesSparseArray<TValue, ui32>>;
 
     template <class TGroupIdData, class TSubgroupIdData, class TFloatFeature, class TCatFeature, class TTextFeature>
     struct TExpectedCommonObjectsData {

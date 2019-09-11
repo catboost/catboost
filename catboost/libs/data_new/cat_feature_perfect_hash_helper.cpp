@@ -16,7 +16,7 @@ namespace NCB {
 
     void TCatFeaturesPerfectHashHelper::UpdatePerfectHashAndMaybeQuantize(
         const TCatFeatureIdx catFeatureIdx,
-        TMaybeOwningConstArraySubset<ui32, ui32> hashedCatArraySubset,
+        const ITypedArraySubset<ui32>& hashedCatArraySubset,
         bool mapMostFrequentValueTo0,
         TMaybe<TDefaultValue<ui32>> hashedCatDefaultValue,
         TMaybe<float> quantizedDefaultBinFraction,
@@ -30,7 +30,7 @@ namespace NCB {
             dstBinsValue = **dstBins;
             CheckDataSize(
                 dstBinsValue.size(),
-                (size_t)hashedCatArraySubset.Size(),
+                (size_t)hashedCatArraySubset.GetSize(),
                 /*dataName*/ "dstBins",
                 /*dataCanBeEmpty*/ false,
                 /*expectedSizeName*/ "hashedCatArraySubset",
@@ -53,7 +53,7 @@ namespace NCB {
         constexpr size_t MAX_UNIQ_CAT_VALUES =
             static_cast<size_t>(Max<ui32>()) + ((sizeof(size_t) > sizeof(ui32)) ? 1 : 0);
 
-        ui32 datasetSize = hashedCatArraySubset.Size();
+        ui32 datasetSize = hashedCatArraySubset.GetSize();
 
         if (hashedCatDefaultValue) {
             datasetSize += SafeIntegerCast<ui32>(hashedCatDefaultValue->Count);

@@ -40,15 +40,15 @@ static TDataProviderPtr SmallFloatPool(EWeightsMode addWeights, ETargetDimMode m
 
             visitor->AddFloatFeature(
                 0,
-                TMaybeOwningConstArrayHolder<float>::CreateOwning(TVector<float>{+0.5f, +1.5f, -2.5f})
+                MakeIntrusive<TTypeCastArrayHolder<float, float>>(TVector<float>{+0.5f, +1.5f, -2.5f})
             );
             visitor->AddFloatFeature(
                 1,
-                TMaybeOwningConstArrayHolder<float>::CreateOwning(TVector<float>{+0.7f, +6.4f, +2.4f})
+                MakeIntrusive<TTypeCastArrayHolder<float, float>>(TVector<float>{+0.7f, +6.4f, +2.4f})
             );
             visitor->AddFloatFeature(
                 2,
-                TMaybeOwningConstArrayHolder<float>::CreateOwning(TVector<float>{-2.0f, -1.0f, +6.0f})
+                MakeIntrusive<TTypeCastArrayHolder<float, float>>(TVector<float>{-2.0f, -1.0f, +6.0f})
             );
 
             if (multiclass) {

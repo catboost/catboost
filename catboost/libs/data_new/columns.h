@@ -11,6 +11,7 @@
 #include <catboost/libs/helpers/dynamic_iterator.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/maybe_owning_array_holder.h>
+#include <catboost/libs/helpers/polymorphic_type_containers.h>
 #include <catboost/libs/helpers/resource_constrained_executor.h>
 #include <catboost/libs/helpers/sparse_array.h>
 
@@ -183,57 +184,64 @@ namespace NCB {
      */
 
     template <class T, EFeatureValuesType TType>
-    class TArrayValuesHolder: public TCloneableWithSubsetIndexingValuesHolder<T, TType> {
+    class TPolymorphicArrayValuesHolder: public TCloneableWithSubsetIndexingValuesHolder<T, TType> {
     public:
-        TArrayValuesHolder(ui32 featureId,
-                           TMaybeOwningConstArrayHolder<T> srcData,
-                           const TFeaturesArraySubsetIndexing* subsetIndexing)
-            : TCloneableWithSubsetIndexingValuesHolder<T, TType>(featureId, subsetIndexing->Size())
-            , SrcData(std::move(srcData))
-            , SubsetIndexing(subsetIndexing)
-        {
-            CB_ENSURE(SubsetIndexing, "subsetIndexing is empty");
-        }
+        TPolymorphicArrayValuesHolder(ui32 featureId,
+                                      ITypedArraySubsetPtr<T>&& data)
+            : TCloneableWithSubsetIndexingValuesHolder<T, TType>(featureId, data->GetSize())
+            , Data(std::move(data))
+        {}
 
-        const TMaybeOwningConstArraySubset<T, ui32> GetArrayData() const {
-            return {&SrcData, SubsetIndexing};
-        }
+        TPolymorphicArrayValuesHolder(ui32 featureId,
+                                      TMaybeOwningConstArrayHolder<T> srcData,
+                                      const TFeaturesArraySubsetIndexing* subsetIndexing)
+            : TPolymorphicArrayValuesHolder(
+                featureId,
+                MakeIntrusive<TTypeCastArraySubset<T, T>>(std::move(srcData), subsetIndexing)
+            )
+        {}
+
 
         THolder<TCloneableWithSubsetIndexingValuesHolder<T, TType>> CloneWithNewSubsetIndexing(
             const TFeaturesArraySubsetIndexing* subsetIndexing
         ) const override {
-            return MakeHolder<TArrayValuesHolder>(this->GetId(), SrcData, subsetIndexing);
+            return MakeHolder<TPolymorphicArrayValuesHolder>(
+                this->GetId(),
+                Data->CloneWithNewSubsetIndexing(subsetIndexing)
+            );
         }
 
         TMaybeOwningArrayHolder<T> ExtractValues(NPar::TLocalExecutor* localExecutor) const override {
-            return TMaybeOwningArrayHolder<T>::CreateOwning(
-                GetSubset<T>(*SrcData, *SubsetIndexing, localExecutor)
+            TVector<T> result;
+            result.yresize(Data->GetSize());
+            TArrayRef<T> resultRef = result;
+
+            Data->ParallelForEach(
+                [=] (ui32 dstIdx, T value) {
+                    resultRef[dstIdx] = value;
+                },
+                localExecutor
             );
+            return TMaybeOwningArrayHolder<T>::CreateOwning(std::move(result));
         }
 
         IDynamicBlockIteratorPtr<T> GetBlockIterator(ui32 offset = 0) const override {
-            /* TODO(akhropov): implement  TTypedFeatureValuesHolder::GetIterator that will support
-             *  non-consecutive data as well. MLTOOLS-3185.
-             */
+            return Data->GetBlockIterator(offset);
+        }
 
-            return MakeHolder<TArrayBlockIterator<T>>(
-                TArrayRef(
-                    SrcData.data() + SubsetIndexing->GetConsecutiveSubsetBeginNonChecked() + offset,
-                    SubsetIndexing->Size() - offset
-                )
-            );
+        ITypedArraySubsetPtr<T> GetData() const {
+            return Data;
         }
 
     private:
-        TMaybeOwningConstArrayHolder<T> SrcData;
-        const TFeaturesArraySubsetIndexing* SubsetIndexing;
+        ITypedArraySubsetPtr<T> Data;
     };
 
 
     template <class T, EFeatureValuesType TType>
-    class TSparseArrayValuesHolder: public TValuesHolderWithScheduleGetSubset<T, TType> {
+    class TSparsePolymorphicArrayValuesHolder: public TValuesHolderWithScheduleGetSubset<T, TType> {
     public:
-        TSparseArrayValuesHolder(ui32 featureId, TConstSparseArray<T, ui32>&& data)
+        TSparsePolymorphicArrayValuesHolder(ui32 featureId, TConstPolymorphicValuesSparseArray<T, ui32>&& data)
             : TValuesHolderWithScheduleGetSubset<T, TType>(featureId, data.GetSize(), /*isSparse*/ true)
             , Data(std::move(data))
         {}
@@ -247,7 +255,7 @@ namespace NCB {
                 {
                     Data.EstimateGetSubsetCpuRamUsage(*subsetInvertedIndexing),
                     [this, subsetInvertedIndexing, subsetDst] () {
-                        *subsetDst = MakeHolder<TSparseArrayValuesHolder>(
+                        *subsetDst = MakeHolder<TSparsePolymorphicArrayValuesHolder>(
                             this->GetId(),
                             this->GetData().GetSubset(*subsetInvertedIndexing)
                         );
@@ -256,37 +264,37 @@ namespace NCB {
             );
         }
 
-        const TConstSparseArray<T, ui32>& GetData() const {
-            return Data;
-        }
-
         TMaybeOwningArrayHolder<T> ExtractValues(NPar::TLocalExecutor* localExecutor) const override {
             Y_UNUSED(localExecutor);
             return TMaybeOwningArrayHolder<T>::CreateOwning(Data.ExtractValues());
         }
 
         IDynamicBlockIteratorPtr<T> GetBlockIterator(ui32 offset = 0) const override {
-            return MakeHolder<typename TConstSparseArray<T, ui32>::TBlockIterator>(
+            return MakeHolder<typename TConstPolymorphicValuesSparseArray<T, ui32>::TBlockIterator>(
                 Data.GetBlockIterator(offset)
             );
         }
 
+        const TConstPolymorphicValuesSparseArray<T, ui32>& GetData() const {
+            return Data;
+        }
+
     private:
-        TConstSparseArray<T, ui32> Data;
+        TConstPolymorphicValuesSparseArray<T, ui32> Data;
     };
 
 
     using TFloatValuesHolder = TTypedFeatureValuesHolder<float, EFeatureValuesType::Float>;
-    using TFloatArrayValuesHolder = TArrayValuesHolder<float, EFeatureValuesType::Float>;
-    using TFloatSparseValuesHolder = TSparseArrayValuesHolder<float, EFeatureValuesType::Float>;
+    using TFloatArrayValuesHolder = TPolymorphicArrayValuesHolder<float, EFeatureValuesType::Float>;
+    using TFloatSparseValuesHolder = TSparsePolymorphicArrayValuesHolder<float, EFeatureValuesType::Float>;
 
     using THashedCatValuesHolder = TTypedFeatureValuesHolder<ui32, EFeatureValuesType::HashedCategorical>;
-    using THashedCatArrayValuesHolder = TArrayValuesHolder<ui32, EFeatureValuesType::HashedCategorical>;
-    using THashedCatSparseValuesHolder = TSparseArrayValuesHolder<ui32, EFeatureValuesType::HashedCategorical>;
+    using THashedCatArrayValuesHolder = TPolymorphicArrayValuesHolder<ui32, EFeatureValuesType::HashedCategorical>;
+    using THashedCatSparseValuesHolder = TSparsePolymorphicArrayValuesHolder<ui32, EFeatureValuesType::HashedCategorical>;
 
     using TStringTextValuesHolder = TTypedFeatureValuesHolder<TString, EFeatureValuesType::StringText>;
-    using TStringTextArrayValuesHolder = TArrayValuesHolder<TString, EFeatureValuesType::StringText>;
-    using TStringTextSparseValuesHolder = TSparseArrayValuesHolder<TString, EFeatureValuesType::StringText>;
+    using TStringTextArrayValuesHolder = TPolymorphicArrayValuesHolder<TString, EFeatureValuesType::StringText>;
+    using TStringTextSparseValuesHolder = TSparsePolymorphicArrayValuesHolder<TString, EFeatureValuesType::StringText>;
 
 
     /*******************************************************************************************************
@@ -811,7 +819,7 @@ namespace NCB {
 
 
     using TTokenizedTextValuesHolder = TTypedFeatureValuesHolder<TText, EFeatureValuesType::TokenizedText>;
-    using TTokenizedTextArrayValuesHolder = TArrayValuesHolder<TText, EFeatureValuesType::TokenizedText>;
-    using TTokenizedTextSparseValuesHolder = TSparseArrayValuesHolder<TText, EFeatureValuesType::TokenizedText>;
+    using TTokenizedTextArrayValuesHolder = TPolymorphicArrayValuesHolder<TText, EFeatureValuesType::TokenizedText>;
+    using TTokenizedTextSparseValuesHolder = TSparsePolymorphicArrayValuesHolder<TText, EFeatureValuesType::TokenizedText>;
 
 }

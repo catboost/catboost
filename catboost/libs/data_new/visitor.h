@@ -9,6 +9,7 @@
 #include <catboost/libs/data_types/groupid.h>
 #include <catboost/libs/data_types/pair.h>
 #include <catboost/libs/helpers/maybe_owning_array_holder.h>
+#include <catboost/libs/helpers/polymorphic_type_containers.h>
 #include <catboost/libs/helpers/resource_holder.h>
 #include <catboost/libs/helpers/sparse_array.h>
 #include <catboost/libs/helpers/vector_helpers.h>
@@ -92,21 +93,30 @@ namespace NCB {
         // TRawObjectsData
         virtual void AddFloatFeature(ui32 localObjectIdx, ui32 flatFeatureIdx, float feature) = 0;
         virtual void AddAllFloatFeatures(ui32 localObjectIdx, TConstArrayRef<float> features) = 0;
-        virtual void AddAllFloatFeatures(ui32 localObjectIdx, TConstSparseArray<float, ui32> features) = 0;
+        virtual void AddAllFloatFeatures(
+            ui32 localObjectIdx,
+            TConstPolymorphicValuesSparseArray<float, ui32> features
+        ) = 0;
 
         // for sparse float features default value is always assumed to be 0.0f
 
         virtual ui32 GetCatFeatureValue(ui32 flatFeatureIdx, TStringBuf feature) = 0;
         virtual void AddCatFeature(ui32 localObjectIdx, ui32 flatFeatureIdx, TStringBuf feature) = 0;
         virtual void AddAllCatFeatures(ui32 localObjectIdx, TConstArrayRef<ui32> features) = 0;
-        virtual void AddAllCatFeatures(ui32 localObjectIdx, TConstSparseArray<ui32, ui32> features) = 0;
+        virtual void AddAllCatFeatures(
+            ui32 localObjectIdx,
+            TConstPolymorphicValuesSparseArray<ui32, ui32> features
+        ) = 0;
 
         // for sparse data
         virtual void AddCatFeatureDefaultValue(ui32 flatFeatureIdx, TStringBuf feature) = 0;
 
         virtual void AddTextFeature(ui32 localObjectIdx, ui32 flatFeatureIdx, const TString& feature) = 0;
         virtual void AddAllTextFeatures(ui32 localObjectIdx, TConstArrayRef<TString> features) = 0;
-        virtual void AddAllTextFeatures(ui32 localObjectIdx, TConstSparseArray<TString, ui32> features) = 0;
+        virtual void AddAllTextFeatures(
+            ui32 localObjectIdx,
+            TConstPolymorphicValuesSparseArray<TString, ui32> features
+        ) = 0;
 
         // TRawTargetData
 
@@ -151,20 +161,29 @@ namespace NCB {
         // TRawObjectsData
 
         // shared ownership is passed to IRawFeaturesOrderDataVisitor
-        virtual void AddFloatFeature(ui32 flatFeatureIdx, TMaybeOwningConstArrayHolder<float> features) = 0;
-        virtual void AddFloatFeature(ui32 flatFeatureIdx, TConstSparseArray<float, ui32> features) = 0;
+        virtual void AddFloatFeature(ui32 flatFeatureIdx, ITypedSequencePtr<float> features) = 0;
+        virtual void AddFloatFeature(
+            ui32 flatFeatureIdx,
+            TConstPolymorphicValuesSparseArray<float, ui32> features
+        ) = 0;
 
         virtual ui32 GetCatFeatureValue(ui32 flatFeatureIdx, TStringBuf feature) = 0;
         virtual void AddCatFeature(ui32 flatFeatureIdx, TConstArrayRef<TString> feature) = 0;
         virtual void AddCatFeature(ui32 flatFeatureIdx, TConstArrayRef<TStringBuf> feature) = 0;
-        virtual void AddCatFeature(ui32 flatFeatureIdx, TConstSparseArray<TString, ui32> features) = 0;
+        virtual void AddCatFeature(
+            ui32 flatFeatureIdx,
+            TConstPolymorphicValuesSparseArray<TString, ui32> features
+        ) = 0;
 
         // when hashes already computed
         // shared ownership is passed to IRawFeaturesOrderDataVisitor
         virtual void AddCatFeature(ui32 flatFeatureIdx, TMaybeOwningConstArrayHolder<ui32> features) = 0;
 
         virtual void AddTextFeature(ui32 flatFeatureIdx, TMaybeOwningConstArrayHolder<TString> feature) = 0;
-        virtual void AddTextFeature(ui32 flatFeatureIdx, TConstSparseArray<TString, ui32> features) = 0;
+        virtual void AddTextFeature(
+            ui32 flatFeatureIdx,
+            TConstPolymorphicValuesSparseArray<TString, ui32> features
+        ) = 0;
 
         // TRawTargetData
 

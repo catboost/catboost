@@ -50,7 +50,7 @@ Y_UNIT_TEST_SUITE(TTrainTest) {
                 for (auto factorId : xrange(FactorCount)) {
                     visitor->AddFloatFeature(
                         factorId,
-                        TMaybeOwningConstArrayHolder<float>::CreateOwning(TVector<float>(features[factorId]))
+                        MakeIntrusive<TTypeCastArrayHolder<float, float>>(TVector<float>(features[factorId]))
                     );
                 }
                 visitor->AddTarget(target);
@@ -67,7 +67,7 @@ Y_UNIT_TEST_SUITE(TTrainTest) {
                     for (auto factorId : xrange(FactorCount)) {
                         visitor->AddFloatFeature(
                             factorId,
-                            TMaybeOwningConstArrayHolder<float>::CreateOwning(TVector<float>())
+                            MakeIntrusive<TTypeCastArrayHolder<float, float>>(TVector<float>())
                         );
                     }
 

@@ -14,16 +14,12 @@ namespace NCB {
     class TExternalFloatValuesHolder: public ICloneableQuantizedFloatValuesHolder {
     public:
         TExternalFloatValuesHolder(ui32 featureId,
-                                   NCB::TMaybeOwningConstArrayHolder<float> srcData,
-                                   const TFeaturesArraySubsetIndexing* subsetIndexing,
+                                   ITypedArraySubsetPtr<float> srcData,
                                    TQuantizedFeaturesInfoPtr quantizedFeaturesInfo)
-            : ICloneableQuantizedFloatValuesHolder(featureId, subsetIndexing->Size())
+            : ICloneableQuantizedFloatValuesHolder(featureId, srcData->GetSize())
             , SrcData(std::move(srcData))
-            , SubsetIndexing(subsetIndexing)
             , QuantizedFeaturesInfo(std::move(quantizedFeaturesInfo))
-        {
-            CB_ENSURE(SubsetIndexing, "subsetIndexing is empty");
-        }
+        {}
 
         THolder<ICloneableQuantizedFloatValuesHolder> CloneWithNewSubsetIndexing(
             const TFeaturesArraySubsetIndexing* subsetIndexing
@@ -41,9 +37,7 @@ namespace NCB {
         }
 
     private:
-        NCB::TMaybeOwningConstArrayHolder<float> SrcData;
-        const TFeaturesArraySubsetIndexing* SubsetIndexing;
-
+        ITypedArraySubsetPtr<float> SrcData;
         TQuantizedFeaturesInfoPtr QuantizedFeaturesInfo;
     };
 
@@ -51,16 +45,12 @@ namespace NCB {
     class TExternalCatValuesHolder: public ICloneableQuantizedCatValuesHolder {
     public:
         TExternalCatValuesHolder(ui32 featureId,
-                                 NCB::TMaybeOwningConstArrayHolder<ui32> srcData,
-                                 const TFeaturesArraySubsetIndexing* subsetIndexing,
+                                 ITypedArraySubsetPtr<ui32> srcData,
                                  TQuantizedFeaturesInfoPtr quantizedFeaturesInfo)
-            : ICloneableQuantizedCatValuesHolder(featureId, subsetIndexing->Size())
+            : ICloneableQuantizedCatValuesHolder(featureId, srcData->GetSize())
             , SrcData(std::move(srcData))
-            , SubsetIndexing(subsetIndexing)
             , QuantizedFeaturesInfo(std::move(quantizedFeaturesInfo))
-        {
-            CB_ENSURE(SubsetIndexing, "subsetIndexing is empty");
-        }
+        {}
 
         THolder<ICloneableQuantizedCatValuesHolder> CloneWithNewSubsetIndexing(
             const TFeaturesArraySubsetIndexing* subsetIndexing
@@ -78,9 +68,7 @@ namespace NCB {
         }
 
     private:
-        NCB::TMaybeOwningConstArrayHolder<ui32> SrcData;
-        const TFeaturesArraySubsetIndexing* SubsetIndexing;
-
+        ITypedArraySubsetPtr<ui32> SrcData;
         TQuantizedFeaturesInfoPtr QuantizedFeaturesInfo;
     };
 
@@ -88,7 +76,7 @@ namespace NCB {
         : public TValuesHolderWithScheduleGetSubset<ui8, EFeatureValuesType::QuantizedFloat> {
     public:
         TExternalFloatSparseValuesHolder(ui32 featureId,
-                                         TConstSparseArray<float, ui32> srcData,
+                                         TConstPolymorphicValuesSparseArray<float, ui32> srcData,
                                          TQuantizedFeaturesInfoPtr quantizedFeaturesInfo)
             : TValuesHolderWithScheduleGetSubset<ui8, EFeatureValuesType::QuantizedFloat>(
                 featureId,
@@ -122,7 +110,7 @@ namespace NCB {
         }
 
     private:
-        TConstSparseArray<float, ui32> SrcData;
+        TConstPolymorphicValuesSparseArray<float, ui32> SrcData;
         TQuantizedFeaturesInfoPtr QuantizedFeaturesInfo;
     };
 
@@ -131,7 +119,7 @@ namespace NCB {
         : public TValuesHolderWithScheduleGetSubset<ui32, EFeatureValuesType::PerfectHashedCategorical> {
     public:
         TExternalCatSparseValuesHolder(ui32 featureId,
-                                       TConstSparseArray<ui32, ui32> srcData,
+                                       TConstPolymorphicValuesSparseArray<ui32, ui32> srcData,
                                        TQuantizedFeaturesInfoPtr quantizedFeaturesInfo)
             : TValuesHolderWithScheduleGetSubset<ui32, EFeatureValuesType::PerfectHashedCategorical>(
                 featureId,
@@ -165,7 +153,7 @@ namespace NCB {
         }
 
     private:
-        TConstSparseArray<ui32, ui32> SrcData;
+        TConstPolymorphicValuesSparseArray<ui32, ui32> SrcData;
         TQuantizedFeaturesInfoPtr QuantizedFeaturesInfo;
     };
 

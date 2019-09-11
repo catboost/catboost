@@ -16,8 +16,7 @@ namespace NCB {
     ) const {
         return MakeHolder<TExternalFloatValuesHolder>(
             GetId(),
-            SrcData,
-            subsetIndexing,
+            SrcData->CloneWithNewSubsetIndexing(subsetIndexing),
             QuantizedFeaturesInfo
         );
     }
@@ -36,7 +35,7 @@ namespace NCB {
             QuantizedFeaturesInfo->GetFloatFeaturesAllowNansInTestOnly();
 
         Quantize(
-            TMaybeOwningConstArraySubset<float, ui32>(&SrcData, SubsetIndexing),
+            *SrcData,
             allowNans,
             nanMode,
             GetId(),
@@ -54,8 +53,7 @@ namespace NCB {
     ) const {
         return MakeHolder<TExternalCatValuesHolder>(
             GetId(),
-            SrcData,
-            subsetIndexing,
+            SrcData->CloneWithNewSubsetIndexing(subsetIndexing),
             QuantizedFeaturesInfo
         );
     }
@@ -73,7 +71,7 @@ namespace NCB {
         );
         const auto& perfectHash = QuantizedFeaturesInfo->GetCategoricalFeaturesPerfectHash(catFeatureIdx);
 
-        TMaybeOwningConstArraySubset<ui32, ui32>(&SrcData, SubsetIndexing).ParallelForEach(
+        SrcData->ParallelForEach(
             [resultRef, &perfectHash] (ui32 idx, ui32 srcValue) {
                 resultRef[idx] = perfectHash.Find(srcValue)->Value;
             },
@@ -163,28 +161,23 @@ namespace NCB {
     template <class TDst, EFeatureValuesType DstFeatureValuesType, class TSrc, class TQuantizeValueFunction>
     static THolder<TTypedFeatureValuesHolder<TDst, DstFeatureValuesType>> CreateQuantizedSparseSubset(
         ui32 featureId,
-        const TSparseArray<TSrc, ui32>& srcData,
+        const TConstPolymorphicValuesSparseArray<TSrc, ui32>& srcData,
         const TInvertedIndexedSubset<ui32>& invertedIndexedSubset,
         TQuantizeValueFunction&& quantizeValueFunction,
         ui32 bitsPerKey
     ) {
-        auto srcIndexing = srcData.GetIndexing();
-        TConstArrayRef<TSrc> srcNonDefaultValues = *srcData.GetNonDefaultValues();
-
         TConstArrayRef<ui32> invertedIndicesArray = invertedIndexedSubset.GetMapping();
 
         TVector<ui32> dstVectorIndexing;
         TVector<TDst> dstValues;
 
-        ui32 nonDefaultValuesIdx = 0;
-        srcIndexing->ForEachNonDefault(
-            [&](ui32 srcIdx) {
+        srcData.ForEachNonDefault(
+            [&](ui32 srcIdx, TSrc value) {
                 auto dstIdx = invertedIndicesArray[srcIdx];
                 if (dstIdx != TInvertedIndexedSubset<ui32>::NOT_PRESENT) {
                     dstVectorIndexing.push_back(dstIdx);
-                    dstValues.push_back(quantizeValueFunction(srcNonDefaultValues[nonDefaultValuesIdx]));
+                    dstValues.push_back(quantizeValueFunction(value));
                 }
-                ++nonDefaultValuesIdx;
             }
         );
 
@@ -204,7 +197,7 @@ namespace NCB {
                 std::move(dstVectorIndexing),
                 std::move(dstValues),
                 std::move(createNonDefaultValuesContainer),
-                /*sparseArrayIndexingType*/ srcIndexing->GetType(),
+                /*sparseArrayIndexingType*/ srcData.GetIndexing()->GetType(),
                 /*ordered*/ false,
                 quantizeValueFunction(srcData.GetDefaultValue())
             )

@@ -3451,6 +3451,43 @@ def test_slice_pool():
         assert sliced_pool.get_label() == list(rindex)
 
 
+def test_fit_and_predict_on_sliced_pools(task_type):
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    test_pool = Pool(TEST_FILE, column_description=CD_FILE)
+
+    np.random.seed(42)
+
+    train_subset_indices = np.random.choice(
+        train_pool.num_row(),
+        size=int(train_pool.num_row() * 0.6),
+        replace=False
+    )
+
+    train_subset_pool = train_pool.slice(train_subset_indices)
+
+    test_subset_indices = np.random.choice(
+        test_pool.num_row(),
+        size=int(test_pool.num_row() * 0.4),
+        replace=False
+    )
+
+    test_subset_pool = train_pool.slice(test_subset_indices)
+
+    args = {
+        'iterations': 10,
+        'loss_function': 'Logloss',
+        'task_type': task_type
+    }
+
+    model = CatBoostClassifier(**args)
+    model.fit(train_subset_pool, eval_set=test_subset_pool)
+
+    pred = model.predict(test_subset_pool)
+    preds_path = test_output_path(PREDS_PATH)
+    np.save(preds_path, np.array(pred))
+    return local_canonical_file(preds_path)
+
+
 def test_str_metrics_in_eval_metrics(task_type):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)
@@ -5636,3 +5673,50 @@ def test_param_array_monotonic_constrains():
     predections2 = model2.predict(test_pool)
 
     assert all(predections1 == predections2)
+
+
+def test_same_values_with_different_types(task_type):
+    data_types = [
+        np.int8,
+        np.int16,
+        np.int32,
+        np.int64,
+        np.uint8,
+        np.uint16,
+        np.uint32,
+        np.uint64,
+        np.float32,
+        np.float64
+    ]
+
+    # take integers from [0, 127] because they can be represented by any of this types
+
+    canon_predictions = None
+
+    n_features = 20
+    n_objects = 500
+
+    params = {
+        'task_type': task_type,
+        'loss_function': 'Logloss',
+        'iterations': 5
+    }
+
+    labels = np.random.randint(0, 2, size=n_objects)
+
+    canon_features = np.random.randint(0, 127, size=(n_objects, n_features), dtype=np.int8)
+
+    for data_type in data_types:
+        features_df = DataFrame()
+
+        for feature_idx in range(n_features):
+            features_df['feature_%i' % feature_idx] = canon_features[:, feature_idx].astype(data_type)
+
+        model = CatBoost(params)
+        model.fit(features_df, labels)
+        predictions = model.predict(features_df)
+
+        if canon_predictions is None:
+            canon_predictions = predictions
+        else:
+            _check_data(canon_predictions, predictions)

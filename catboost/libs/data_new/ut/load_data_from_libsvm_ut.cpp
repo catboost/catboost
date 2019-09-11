@@ -11,13 +11,13 @@ using namespace NCB::NDataNewUT;
 
 Y_UNIT_TEST_SUITE(LoadDataFromLibSvm) {
     template <class T>
-    TConstSparseArray<T, ui32> MakeConstSparseArray(
+    TConstPolymorphicValuesSparseArray<T, ui32> MakeConstPolymorphicValuesSparseArray(
         ui32 size,
         TVector<ui32>&& indices,
         TVector<T>&& values,
         T defaultValue = T()
     ) {
-        return MakeConstSparseArrayWithArrayIndex(
+        return MakeConstPolymorphicValuesSparseArrayWithArrayIndex(
             size,
             TMaybeOwningConstArrayHolder<ui32>::CreateOwning(std::move(indices)),
             TMaybeOwningConstArrayHolder<T>::CreateOwning(std::move(values)),
@@ -54,14 +54,14 @@ Y_UNIT_TEST_SUITE(LoadDataFromLibSvm) {
             expectedData.MetaInfo.HasTarget = true;
 
             expectedData.Objects.FloatFeatures = {
-                MakeConstSparseArray<float>(3, {0}, {0.1f}), // 0
-                MakeConstSparseArray<float>(3, {1}, {0.97f}), // 1
-                MakeConstSparseArray<float>(3, {0, 2}, {0.2f, 0.13f}), // 2
-                MakeConstSparseArray<float>(3, {}, {}), // 3
-                MakeConstSparseArray<float>(3, {1}, {0.82f}), // 4
-                MakeConstSparseArray<float>(3, {1}, {0.11f}), // 5
-                MakeConstSparseArray<float>(3, {2}, {0.22f}), // 6
-                MakeConstSparseArray<float>(3, {1, 2}, {1.2f, 0.17f}), // 7
+                MakeConstPolymorphicValuesSparseArray<float>(3, {0}, {0.1f}), // 0
+                MakeConstPolymorphicValuesSparseArray<float>(3, {1}, {0.97f}), // 1
+                MakeConstPolymorphicValuesSparseArray<float>(3, {0, 2}, {0.2f, 0.13f}), // 2
+                MakeConstPolymorphicValuesSparseArray<float>(3, {}, {}), // 3
+                MakeConstPolymorphicValuesSparseArray<float>(3, {1}, {0.82f}), // 4
+                MakeConstPolymorphicValuesSparseArray<float>(3, {1}, {0.11f}), // 5
+                MakeConstPolymorphicValuesSparseArray<float>(3, {2}, {0.22f}), // 6
+                MakeConstPolymorphicValuesSparseArray<float>(3, {1, 2}, {1.2f, 0.17f}), // 7
             };
 
             expectedData.ObjectsGrouping = TObjectsGrouping(3);
@@ -125,21 +125,21 @@ Y_UNIT_TEST_SUITE(LoadDataFromLibSvm) {
             expectedData.MetaInfo.HasTarget = true;
 
             expectedData.Objects.FloatFeatures = {
-                MakeConstSparseArray<float>(3, {0}, {0.1f}), // 0
-                MakeConstSparseArray<float>(3, {1}, {0.97f}), // 1
-                MakeConstSparseArray<float>(3, {}, {}), // 3
-                MakeConstSparseArray<float>(3, {1}, {0.82f}), // 4
-                MakeConstSparseArray<float>(3, {1}, {0.11f}), // 5
-                MakeConstSparseArray<float>(3, {2}, {0.22f}), // 6
-                MakeConstSparseArray<float>(3, {1, 2}, {1.2f, 0.17f}), // 7
-                MakeConstSparseArray<float>(3, {}, {}), // 9
-                MakeConstSparseArray<float>(3, {0}, {0.66f}), // 11
+                MakeConstPolymorphicValuesSparseArray<float>(3, {0}, {0.1f}), // 0
+                MakeConstPolymorphicValuesSparseArray<float>(3, {1}, {0.97f}), // 1
+                MakeConstPolymorphicValuesSparseArray<float>(3, {}, {}), // 3
+                MakeConstPolymorphicValuesSparseArray<float>(3, {1}, {0.82f}), // 4
+                MakeConstPolymorphicValuesSparseArray<float>(3, {1}, {0.11f}), // 5
+                MakeConstPolymorphicValuesSparseArray<float>(3, {2}, {0.22f}), // 6
+                MakeConstPolymorphicValuesSparseArray<float>(3, {1, 2}, {1.2f, 0.17f}), // 7
+                MakeConstPolymorphicValuesSparseArray<float>(3, {}, {}), // 9
+                MakeConstPolymorphicValuesSparseArray<float>(3, {0}, {0.66f}), // 11
             };
 
             expectedData.Objects.CatFeatures = {
-                MakeConstSparseArray<TStringBuf>(3, {0, 2}, {"0", "1"}, "0"), // 2
-                MakeConstSparseArray<TStringBuf>(3, {0, 2}, {"12", "0"}, "0"), // 8
-                MakeConstSparseArray<TStringBuf>(3, {1, 2}, {"7", "2"}, "0"), // 10
+                MakeConstPolymorphicValuesSparseArray<TStringBuf>(3, {0, 2}, {"0", "1"}, "0"), // 2
+                MakeConstPolymorphicValuesSparseArray<TStringBuf>(3, {0, 2}, {"12", "0"}, "0"), // 8
+                MakeConstPolymorphicValuesSparseArray<TStringBuf>(3, {1, 2}, {"7", "2"}, "0"), // 10
             };
 
             expectedData.ObjectsGrouping = TObjectsGrouping(3);
@@ -191,14 +191,14 @@ Y_UNIT_TEST_SUITE(LoadDataFromLibSvm) {
             };
             expectedData.Objects.TreatGroupIdsAsIntegers = true;
             expectedData.Objects.FloatFeatures = {
-                MakeConstSparseArray<float>(3, {0}, {0.1f}), // 0
-                MakeConstSparseArray<float>(3, {1}, {0.97f}), // 1
-                MakeConstSparseArray<float>(3, {0, 2}, {0.2f, 0.13f}), // 2
-                MakeConstSparseArray<float>(3, {}, {}), // 3
-                MakeConstSparseArray<float>(3, {1}, {0.82f}), // 4
-                MakeConstSparseArray<float>(3, {1}, {0.11f}), // 5
-                MakeConstSparseArray<float>(3, {2}, {0.22f}), // 6
-                MakeConstSparseArray<float>(3, {1, 2}, {1.2f, 0.17f}), // 7
+                MakeConstPolymorphicValuesSparseArray<float>(3, {0}, {0.1f}), // 0
+                MakeConstPolymorphicValuesSparseArray<float>(3, {1}, {0.97f}), // 1
+                MakeConstPolymorphicValuesSparseArray<float>(3, {0, 2}, {0.2f, 0.13f}), // 2
+                MakeConstPolymorphicValuesSparseArray<float>(3, {}, {}), // 3
+                MakeConstPolymorphicValuesSparseArray<float>(3, {1}, {0.82f}), // 4
+                MakeConstPolymorphicValuesSparseArray<float>(3, {1}, {0.11f}), // 5
+                MakeConstPolymorphicValuesSparseArray<float>(3, {2}, {0.22f}), // 6
+                MakeConstPolymorphicValuesSparseArray<float>(3, {1, 2}, {1.2f, 0.17f}), // 7
             };
 
             expectedData.ObjectsGrouping = TObjectsGrouping(

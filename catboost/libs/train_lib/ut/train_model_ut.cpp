@@ -48,15 +48,15 @@ static TDataProviderPtr SmallFloatPool() {
 
             visitor->AddFloatFeature(
                 0,
-                TMaybeOwningConstArrayHolder<float>::CreateOwning(TVector<float>{+0.5f, +1.5f, -2.5f})
+                MakeIntrusive<TTypeCastArrayHolder<float, float>>(TVector<float>{+0.5f, +1.5f, -2.5f})
             );
             visitor->AddFloatFeature(
                 1,
-                TMaybeOwningConstArrayHolder<float>::CreateOwning(TVector<float>{+0.7f, +6.4f, +2.4f})
+                MakeIntrusive<TTypeCastArrayHolder<float, float>>(TVector<float>{+0.7f, +6.4f, +2.4f})
             );
             visitor->AddFloatFeature(
                 2,
-                TMaybeOwningConstArrayHolder<float>::CreateOwning(TVector<float>{-2.0f, -1.0f, +6.0f})
+                MakeIntrusive<TTypeCastArrayHolder<float, float>>(TVector<float>{-2.0f, -1.0f, +6.0f})
             );
 
             visitor->AddTarget(TVector<float>{1.0f, 0.0f, 0.2f});
@@ -87,17 +87,17 @@ Y_UNIT_TEST_SUITE(TrainModelTests) {
 
                     visitor->AddFloatFeature(
                         0,
-                        TMaybeOwningConstArrayHolder<float>::CreateOwning(
+                        MakeIntrusive<TTypeCastArrayHolder<float, float>>(
                             TVector<float>{std::numeric_limits<float>::quiet_NaN()}
                         )
                     );
                     visitor->AddFloatFeature(
                         1,
-                        TMaybeOwningConstArrayHolder<float>::CreateOwning(TVector<float>{+1.5f})
+                        MakeIntrusive<TTypeCastArrayHolder<float, float>>(TVector<float>{+1.5f})
                     );
                     visitor->AddFloatFeature(
                         2,
-                        TMaybeOwningConstArrayHolder<float>::CreateOwning(TVector<float>{-2.5f})
+                        MakeIntrusive<TTypeCastArrayHolder<float, float>>(TVector<float>{-2.5f})
                     );
                     visitor->AddTarget(TVector<float>{1.0f});
 
@@ -209,7 +209,7 @@ Y_UNIT_TEST_SUITE(TrainModelTests) {
                     for (auto featureIdx : xrange(numericFeatureCount)) {
                         visitor->AddFloatFeature(
                             featureIdx,
-                            TMaybeOwningConstArrayHolder<float>::CreateOwning(std::move(factors[featureIdx]))
+                            MakeIntrusive<TTypeCastArrayHolder<float, float>>(std::move(factors[featureIdx]))
                         );
                     }
                     visitor->AddTarget(target);

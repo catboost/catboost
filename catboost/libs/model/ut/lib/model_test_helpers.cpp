@@ -39,7 +39,7 @@ TFullModel TrainFloatCatboostModel(int iterations, int seed) {
                 }
                 visitor->AddFloatFeature(
                     factorId,
-                    TMaybeOwningConstArrayHolder<float>::CreateOwning(std::move(vec))
+                    MakeIntrusive<TTypeCastArrayHolder<float, float>>(std::move(vec))
                 );
             }
 

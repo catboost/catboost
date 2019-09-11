@@ -1,6 +1,7 @@
 #pragma once
 
 #include "dbg_output.h"
+#include "dynamic_iterator.h"
 #include "exception.h"
 #include "math_utils.h"
 #include "maybe_owning_array_holder.h"
@@ -90,6 +91,82 @@ namespace NCB {
             return !(*this == lhs);
         }
     };
+
+    template <class TSize>
+    class TRangesSubsetIterator final : public IDynamicIterator<TSize> {
+    public:
+        TRangesSubsetIterator(
+            const TSubsetBlock<TSize>* startBlock,
+            TSize startInBlockIdx,
+            const TSubsetBlock<TSize>* endBlock,
+            TSize lastBlockEndInBlockIdx)
+            : CurrentBlock(startBlock)
+            , CurrentIdx(0) // properly inited below
+            , EndIdx(0) // properly inited below
+            , EndBlock(endBlock)
+            , LastBlockInBlockEndIdx(lastBlockEndInBlockIdx)
+        {
+            if (startBlock != endBlock) {
+                CurrentIdx = startBlock->SrcBegin + startInBlockIdx;
+                if (startBlock + 1 == endBlock) {
+                    EndIdx = startBlock->SrcBegin + lastBlockEndInBlockIdx;
+                } else {
+                    EndIdx = startBlock->SrcEnd;
+                }
+            }
+        }
+
+        TRangesSubsetIterator(const TRangesSubset<TSize>& rangesSubset, TSize offset = 0)
+            : CurrentBlock(nullptr) // properly inited below
+            , CurrentIdx(0) // properly inited below
+            , EndIdx(0) // properly inited below
+            , EndBlock(rangesSubset.Blocks.data() + rangesSubset.Blocks.size())
+            , LastBlockInBlockEndIdx(0) // properly inited below
+        {
+            const auto& blocks = rangesSubset.Blocks;
+            CurrentBlock = LowerBound(
+                blocks.begin(),
+                blocks.end(),
+                offset,
+                [] (const TSubsetBlock<TSize>& block, TSize offset) {
+                    return block.GetDstEnd() <= offset;
+                }
+            );
+            if (CurrentBlock != EndBlock) {
+                CurrentIdx = CurrentBlock->SrcBegin + (offset - CurrentBlock->DstBegin);
+                EndIdx = CurrentBlock->SrcEnd;
+                LastBlockInBlockEndIdx = rangesSubset.Blocks.back().GetSize();
+            }
+        }
+
+
+        inline TMaybe<TSize> Next() override {
+            if (CurrentBlock == EndBlock) {
+                return IDynamicIterator<TSize>::END_VALUE;
+            }
+            if (CurrentIdx == EndIdx) {
+                ++CurrentBlock;
+                if (CurrentBlock == EndBlock) {
+                    return IDynamicIterator<TSize>::END_VALUE;
+                } else if (CurrentBlock + 1 == EndBlock) {
+                    EndIdx = CurrentBlock->SrcBegin + LastBlockInBlockEndIdx;
+                } else {
+                    EndIdx = CurrentBlock->SrcEnd;
+                }
+                CurrentIdx = CurrentBlock->SrcBegin + 1;
+                return CurrentBlock->SrcBegin;
+            }
+            return CurrentIdx++;
+        }
+
+    private:
+        const TSubsetBlock<TSize>* CurrentBlock;
+        TSize CurrentIdx; // src idx
+        TSize EndIdx; // src idx, in current block
+        const TSubsetBlock<TSize>* const EndBlock;
+        TSize LastBlockInBlockEndIdx;
+    };
+
 
     template <class TSize>
     using TIndexedSubset = TVector<TSize>; // index in src data
@@ -965,6 +1042,43 @@ namespace NCB {
 
     template <class T, class TSize=size_t>
     using TMaybeOwningConstArraySubset = TArraySubset<const TMaybeOwningArrayHolder<const T>, TSize>;
+
+
+    /* TArrayLike must have O(1) random-access operator[] and be lightweight copyable like
+     *      T* or TArrayRef<T> or TMaybeOwningArrayHolder<T>
+     *  it's elements type is not necessarily required to be equal to TDstValue, only convertible to it
+     *
+     *  SubsetIndexingIterator is a template parameter instead of IDynamicIteratorPtr to allow inlining
+     *    for concrete iterator types to avoid double dynamic dispatch.
+     */
+    template <class TDstValue, class TArrayLike, class TSubsetIndexingIterator>
+    class TArraySubsetBlockIterator final : public IDynamicBlockIterator<TDstValue> {
+    public:
+        TArraySubsetBlockIterator(
+            TArrayLike src,
+            size_t subsetSize,
+            TSubsetIndexingIterator&& subsetIndexingIterator)
+            : Src(std::move(src))
+            , RemainingSize(subsetSize)
+            , SubsetIndexingIterator(std::move(subsetIndexingIterator))
+        {}
+
+        TConstArrayRef<TDstValue> Next(size_t maxBlockSize = Max<size_t>()) override {
+            const size_t dstBlockSize = Min(maxBlockSize, RemainingSize);
+            Buffer.yresize(dstBlockSize);
+            for (auto& dstElement : Buffer) {
+                dstElement = Src[*SubsetIndexingIterator.Next()];
+            }
+            RemainingSize -= dstBlockSize;
+            return Buffer;
+        }
+
+    private:
+        TArrayLike Src;
+        size_t RemainingSize;
+        TSubsetIndexingIterator SubsetIndexingIterator;
+        TVector<TDstValue> Buffer;
+    };
 
 
     // index in dst data or NOT_PRESENT if not present in subset

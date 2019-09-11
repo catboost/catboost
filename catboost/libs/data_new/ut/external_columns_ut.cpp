@@ -50,8 +50,10 @@ Y_UNIT_TEST_SUITE(ExternalColumns) {
 
         TExternalFloatValuesHolder externalFloatValuesHolder(
             featureId,
-            TMaybeOwningConstArrayHolder<float>::CreateOwning(std::move(v)),
-            &vSubsetIndexing,
+            MakeIntrusive<TTypeCastArraySubset<float, float>>(
+                TMaybeOwningConstArrayHolder<float>::CreateOwning(std::move(v)),
+                &vSubsetIndexing
+            ),
             quantizedFeaturesInfo
         );
 
@@ -80,10 +82,7 @@ Y_UNIT_TEST_SUITE(ExternalColumns) {
 
         NCB::TArraySubsetIndexing<ui32> vSubsetIndexing( NCB::TFullSubset<ui32>{(ui32)hashedCatValues.size()} );
 
-        TMaybeOwningConstArraySubset<ui32, ui32> arraySubset(
-            &hashedArrayNonOwningHolder,
-            &vSubsetIndexing
-        );
+        TTypeCastArraySubset<ui32, ui32> arraySubset(hashedArrayNonOwningHolder, &vSubsetIndexing);
 
         const NCatboostOptions::TBinarizationOptions binarizationOptions;
 
@@ -112,8 +111,10 @@ Y_UNIT_TEST_SUITE(ExternalColumns) {
 
             TExternalCatValuesHolder externalCatValuesHolder(
                 featureId,
-                TMaybeOwningConstArrayHolder<ui32>::CreateOwning(TVector<ui32>(hashedCatValues)),
-                &vSubsetIndexing,
+                MakeIntrusive<TTypeCastArraySubset<ui32, ui32>>(
+                    TMaybeOwningConstArrayHolder<ui32>::CreateOwning(TVector<ui32>(hashedCatValues)),
+                    &vSubsetIndexing
+                ),
                 quantizedFeaturesInfo
             );
 

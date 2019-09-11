@@ -2,7 +2,7 @@
 
 #include "quantized_features_info.h"
 
-#include <catboost/libs/helpers/array_subset.h>
+#include <catboost/libs/helpers/polymorphic_type_containers.h>
 
 #include <library/grid_creator/binarization.h>
 
@@ -30,7 +30,7 @@ namespace NCB {
         // thread-safe w.r.t. QuantizedFeaturesInfo
         void UpdatePerfectHashAndMaybeQuantize(
             const TCatFeatureIdx catFeatureIdx,
-            TMaybeOwningConstArraySubset<ui32, ui32> hashedCatArraySubset,
+            const ITypedArraySubset<ui32>& hashedCatArraySubset,
             bool mapMostFrequentValueTo0,
             TMaybe<TDefaultValue<ui32>> hashedCatDefaultValue,
             TMaybe<float> quantizedDefaultBinFraction,

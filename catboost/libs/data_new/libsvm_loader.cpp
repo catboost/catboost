@@ -212,7 +212,7 @@ namespace NCB {
                     const ui32 floatFeatureCount = floatFeatureIndices.back() + 1;
                     visitor->AddAllFloatFeatures(
                         lineIdx,
-                        MakeConstSparseArrayWithArrayIndex<float, ui32>(
+                        MakeConstPolymorphicValuesSparseArrayWithArrayIndex<float, float, ui32>(
                             /*size*/ floatFeatureCount,
                             TMaybeOwningConstArrayHolder<ui32>::CreateOwning(std::move(floatFeatureIndices)),
                             TMaybeOwningConstArrayHolder<float>::CreateOwning(std::move(floatFeatureValues))
@@ -224,7 +224,7 @@ namespace NCB {
                     const ui32 catFeatureCount = catFeatureIndices.back() + 1;
                     visitor->AddAllCatFeatures(
                         lineIdx,
-                        MakeConstSparseArrayWithArrayIndex<ui32, ui32>(
+                        MakeConstPolymorphicValuesSparseArrayWithArrayIndex<ui32, ui32, ui32>(
                             /*size*/ catFeatureCount,
                             TMaybeOwningConstArrayHolder<ui32>::CreateOwning(std::move(catFeatureIndices)),
                             TMaybeOwningConstArrayHolder<ui32>::CreateOwning(std::move(catFeatureValues))

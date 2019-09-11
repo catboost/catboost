@@ -872,8 +872,8 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
 
                         catFeaturesPerfectHashHelper.UpdatePerfectHashAndMaybeQuantize(
                             TCatFeatureIdx(catFeatureIdx),
-                            TMaybeOwningConstArraySubset<ui32, ui32>(
-                                &hashedCatValues,
+                            TTypeCastArraySubset<ui32, ui32>(
+                                hashedCatValues,
                                 &fullSubsetForUpdatingPerfectHash
                             ),
                             /*mapMostFrequentValueTo0*/ false,

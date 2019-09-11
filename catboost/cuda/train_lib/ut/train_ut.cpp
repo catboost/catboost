@@ -35,13 +35,13 @@ Y_UNIT_TEST_SUITE(TrainModelTests) {
 
                 visitor->AddFloatFeature(
                     0,
-                    TMaybeOwningConstArrayHolder<float>::CreateOwning(TVector<float>{+0.5f, +1.5f, -2.5f, 0.3f}));
+                    MakeIntrusive<TTypeCastArrayHolder<float, float>>(TVector<float>{+0.5f, +1.5f, -2.5f, 0.3f}));
                 visitor->AddFloatFeature(
                     1,
-                    TMaybeOwningConstArrayHolder<float>::CreateOwning(TVector<float>{+0.7f, +6.4f, +2.4f, 0.7f}));
+                    MakeIntrusive<TTypeCastArrayHolder<float, float>>(TVector<float>{+0.7f, +6.4f, +2.4f, 0.7f}));
                 visitor->AddFloatFeature(
                     2,
-                    TMaybeOwningConstArrayHolder<float>::CreateOwning(TVector<float>{-2.0f, -1.0f, +6.0f, -1.2f}));
+                    MakeIntrusive<TTypeCastArrayHolder<float, float>>(TVector<float>{-2.0f, -1.0f, +6.0f, -1.2f}));
 
                 visitor->AddTarget(TVector<float>{1.0f, 0.0f, 0.2f, 0.0f});
 
@@ -55,14 +55,14 @@ Y_UNIT_TEST_SUITE(TrainModelTests) {
 
                     visitor->AddFloatFeature(
                         0,
-                        TMaybeOwningConstArrayHolder<float>::CreateOwning(
+                        MakeIntrusive<TTypeCastArrayHolder<float, float>>(
                             TVector<float>{std::numeric_limits<float>::quiet_NaN()}));
                     visitor->AddFloatFeature(
                         1,
-                        TMaybeOwningConstArrayHolder<float>::CreateOwning(TVector<float>{+1.5f}));
+                        MakeIntrusive<TTypeCastArrayHolder<float, float>>(TVector<float>{+1.5f}));
                     visitor->AddFloatFeature(
                         2,
-                        TMaybeOwningConstArrayHolder<float>::CreateOwning(TVector<float>{-2.5f}));
+                        MakeIntrusive<TTypeCastArrayHolder<float, float>>(TVector<float>{-2.5f}));
                     visitor->AddTarget(TVector<float>{1.0f});
 
                     visitor->Finish();

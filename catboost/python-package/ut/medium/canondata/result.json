@@ -403,6 +403,10 @@
         "checksum": "188bb6582ea6a5645edad17cb9a6ba21",
         "uri": "file://test.test_feature_names_from_model/feature_names"
     },
+    "test.test_fit_and_predict_on_sliced_pools[CPU]": {
+        "checksum": "e544981c40f5bbd87f078765b65c5b71",
+        "uri": "file://test.test_fit_and_predict_on_sliced_pools_CPU_/predictions.npy"
+    },
     "test.test_fit_data[CPU]": {
         "checksum": "1b2da73a44d73ca1efc3b65c6037e0a9",
         "uri": "file://test.test_fit_data_CPU_/predictions.npy"

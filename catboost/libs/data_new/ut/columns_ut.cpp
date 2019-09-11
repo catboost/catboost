@@ -28,7 +28,7 @@ Y_UNIT_TEST_SUITE(Columns) {
         UNIT_ASSERT_EQUAL(floatValuesHolder.GetId(), 10);
 
         TVector<bool> visitedIndices(vCopy.size(), false);
-        floatValuesHolder.GetArrayData().ForEach(
+        floatValuesHolder.GetData()->ForEach(
             [&](ui32 idx, float value) {
                 UNIT_ASSERT_EQUAL(vCopy[idx], value);
                 UNIT_ASSERT(!visitedIndices[idx]);

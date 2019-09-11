@@ -1,7 +1,7 @@
 #pragma once
 
-#include <catboost/libs/helpers/array_subset.h>
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/helpers/polymorphic_type_containers.h>
 
 #include <catboost/libs/options/binarization_options.h>
 #include <catboost/libs/options/enums.h>
@@ -80,8 +80,8 @@ namespace NCB {
     }
 
 
-    template <class TArrayLike, typename TQuantizedBin>
-    void Quantize(TArraySubset<TArrayLike, ui32> srcFeatureData,
+    template <typename TQuantizedBin>
+    void Quantize(const ITypedArraySubset<float>& srcFeatureData,
                   bool allowNans,
                   ENanMode nanMode,
                   ui32 featureIdx, // for error message

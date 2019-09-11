@@ -7,6 +7,7 @@
 
 #include <util/generic/array_ref.h>
 #include <util/generic/cast.h>
+#include <util/system/compiler.h>
 
 #include <type_traits>
 
@@ -16,6 +17,7 @@ namespace NCB {
     template <class T>
     class TMaybeOwningArrayHolder {
     public:
+        using value_type = T;
         using iterator = typename TArrayRef<T>::iterator;
         using const_iterator = typename TArrayRef<T>::const_iterator;
 
@@ -74,8 +76,15 @@ namespace NCB {
             return 0;
         }
 
-        bool operator==(const TMaybeOwningArrayHolder& rhs) const {
+        // if strict is true compare bit-by-bit, else compare values
+        // implemented here for interface uniformity
+        bool EqualTo(const TMaybeOwningArrayHolder& rhs, bool strict = true) const {
+            Y_UNUSED(strict);
             return ArrayRef == rhs.ArrayRef;
+        }
+
+        bool operator==(const TMaybeOwningArrayHolder& rhs) const {
+            return EqualTo(rhs);
         }
 
         TArrayRef<T> operator*() {

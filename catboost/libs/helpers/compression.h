@@ -197,7 +197,7 @@ public:
     }
 
     template <class T>
-    NCB::IDynamicBlockIteratorPtr<T> GetBlockIterator(ui64 offset) const;
+    NCB::IDynamicBlockWithExactIteratorPtr<T> GetBlockIterator(ui64 offset) const;
 
 private:
     ui64 Size = 0;
@@ -207,7 +207,7 @@ private:
 
 
 template <class T>
-class TGenericCompressedArrayBlockIterator final : public NCB::IDynamicBlockIterator<T> {
+class TGenericCompressedArrayBlockIterator final : public NCB::IDynamicBlockWithExactIterator<T> {
 public:
     TGenericCompressedArrayBlockIterator(TCompressedArray compressedArray, ui64 offset = 0)
         : CompressedArray(std::move(compressedArray))
@@ -215,9 +215,12 @@ public:
     {}
 
     TConstArrayRef<T> Next(size_t size = Max<size_t>()) override {
-        const ui64 blockSize = Min((ui64)size, CompressedArray.GetSize() - Index);
-        UncompressedBuffer.yresize(blockSize);
-        const ui64 blockEnd = Index + blockSize;
+        return NextExact(Min((ui64)size, CompressedArray.GetSize() - Index));
+    }
+
+    TConstArrayRef<T> NextExact(size_t exactBlockSize) override {
+        UncompressedBuffer.yresize(exactBlockSize);
+        const ui64 blockEnd = Index + exactBlockSize;
         for (auto i : xrange(Index, blockEnd)) {
             UncompressedBuffer[i - Index] = CompressedArray.operator[]<T>(i);
         }
@@ -234,7 +237,7 @@ private:
 
 
 template <class T>
-NCB::IDynamicBlockIteratorPtr<T> TCompressedArray::GetBlockIterator(ui64 offset) const {
+NCB::IDynamicBlockWithExactIteratorPtr<T> TCompressedArray::GetBlockIterator(ui64 offset) const {
     static_assert(std::is_same_v<T, ui8> || std::is_same_v<T, ui16> || std::is_same_v<T, ui32>);
 
     CB_ENSURE(

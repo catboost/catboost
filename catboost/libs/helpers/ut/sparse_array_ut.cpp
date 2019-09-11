@@ -8,6 +8,7 @@
 #include <util/random/shuffle.h>
 #include <util/system/compiler.h>
 
+#include <cmath>
 #include <type_traits>
 
 #include <library/unittest/registar.h>
@@ -561,7 +562,10 @@ Y_UNIT_TEST_SUITE(SparseArray) {
         TContainer&& nonDefaultValues,
         TValue defaultValue,
         const TVector<TValue>& expectedArray,
-        const TVector<ui32>& expectedNonDefaultIndicesArray) {
+        const TVector<ui32>& expectedNonDefaultIndicesArray,
+        const TVector<TValue>& expectedNonDefaultValuesArray,
+        std::function<bool(TValue, TValue)>&& areValuesEqual
+            = [](TValue lhs, TValue rhs) { return lhs == rhs; }) {
 
         TSparseArrayBase<TValue, TContainer, ui32> sparseArray(
             MakeIntrusive<TSparseArrayIndexing<ui32>>(std::move(indexing)),
@@ -573,31 +577,10 @@ Y_UNIT_TEST_SUITE(SparseArray) {
             sparseArray.ForEachNonDefault(
                 [&] (ui32 nonDefaultIdx, TValue v) {
                     UNIT_ASSERT_VALUES_EQUAL(nonDefaultIdx, expectedNonDefaultIndicesArray[i]);
-                    UNIT_ASSERT_VALUES_EQUAL(v, nonDefaultValues[i]);
+                    UNIT_ASSERT(areValuesEqual(v, expectedNonDefaultValuesArray[i]));
                     ++i;
                 });
-            UNIT_ASSERT_VALUES_EQUAL(i, nonDefaultValues.GetSize());
-        }
-        {
-            size_t i = 0;
-            auto iterator = sparseArray.GetIterator();
-            while (auto next = iterator.Next()) {
-                auto [nonDefaultIdx, value] = *next;
-                UNIT_ASSERT_VALUES_EQUAL(nonDefaultIdx, expectedNonDefaultIndicesArray[i]);
-                UNIT_ASSERT_VALUES_EQUAL(value, nonDefaultValues[i]);
-                ++i;
-            }
-            UNIT_ASSERT_VALUES_EQUAL(i, nonDefaultValues.GetSize());
-        }
-
-        {
-            ui32 expectedI = 0;
-            sparseArray.ForEach(
-                [&] (ui32 i, TValue v) {
-                    UNIT_ASSERT_VALUES_EQUAL(i, expectedI);
-                    UNIT_ASSERT_VALUES_EQUAL(v, expectedArray[i]);
-                    ++expectedI;
-                });
+            UNIT_ASSERT_VALUES_EQUAL(i, expectedNonDefaultValuesArray.size());
         }
 
         {
@@ -608,7 +591,7 @@ Y_UNIT_TEST_SUITE(SparseArray) {
                     while (auto block = blockIterator.Next(maxBlockSize)) {
                         UNIT_ASSERT(block.size() <= maxBlockSize);
                         for (auto v : block) {
-                            UNIT_ASSERT_VALUES_EQUAL(v, expectedArray[i]);
+                            UNIT_ASSERT(areValuesEqual(v, expectedArray[i]));
                             ++i;
                         }
                     }
@@ -628,10 +611,11 @@ Y_UNIT_TEST_SUITE(SparseArray) {
         ) {
             CheckSparseArrayBaseIteration(
                 std::move(indexing),
-                TMaybeOwningArrayHolder<float>::CreateOwning(std::move(nonDefaultValues)),
+                TMaybeOwningArrayHolder<float>::CreateOwning(TVector<float>(nonDefaultValues)),
                 defaultValue,
                 expectedArray,
-                expectedNonDefaultIndicesArray);
+                expectedNonDefaultIndicesArray,
+                nonDefaultValues);
         };
 
         {
@@ -745,6 +729,99 @@ Y_UNIT_TEST_SUITE(SparseArray) {
 
     }
 
+    template <class TIndexing, class TInterfaceValue, class TStoredValue>
+    void TestConstPolymorphicValuesSparseArrayIterationCase(
+        TIndexing&& indexing,
+        TVector<TStoredValue>&& nonDefaultValues,
+        TInterfaceValue defaultValue,
+        const TVector<TInterfaceValue>& expectedArray,
+        const TVector<ui32>& expectedNonDefaultIndicesArray
+    ) {
+        TVector<TInterfaceValue> expectedNonDefaultValues(
+            nonDefaultValues.begin(),
+            nonDefaultValues.end()
+        );
+
+        std::function<bool(TInterfaceValue, TInterfaceValue)> areValuesEqual
+            = [](TInterfaceValue lhs, TInterfaceValue rhs) -> bool {
+                return std::abs((double)lhs - (double)rhs) < 1.e13;
+            };
+
+        CheckSparseArrayBaseIteration(
+            std::move(indexing),
+            TTypedSequenceContainer<TInterfaceValue>(
+                MakeTypeCastArrayHolderFromVector<TInterfaceValue>(nonDefaultValues)
+            ),
+            (const TInterfaceValue)defaultValue,
+            expectedArray,
+            expectedNonDefaultIndicesArray,
+            expectedNonDefaultValues,
+            std::move(areValuesEqual));
+    }
+
+
+    Y_UNIT_TEST(TConstPolymorphicValuesSparseArrayIteration) {
+        {
+            TVector<ui32> indices = {1, 3, 12};
+            TestConstPolymorphicValuesSparseArrayIterationCase(
+                TSparseSubsetIndices<ui32>(TVector<ui32>(indices)),
+                /*nonDefaultValues*/ TVector<float>{0.1f, 0.2f, 1.0f},
+                0.0,
+                /*expectedArray*/ TVector<double>{
+                    0.0,
+                    0.1,
+                    0.0,
+                    0.2,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0},
+                /*expectedNonDefaultIndices*/ indices);
+        }
+        {
+            TVector<ui32> indices = {0, 1, 6};
+            TestConstPolymorphicValuesSparseArrayIterationCase(
+                TSparseArrayIndexing<ui32>(
+                    TSparseSubsetIndices<ui32>(TVector<ui32>(indices)),
+                    10),
+                /*nonDefaultValues*/ TVector<i64>{31, 22, 10},
+                ui32(0),
+                /*expectedArray*/ TVector<ui32>{31, 22, 0, 0, 0, 0, 10, 0, 0, 0},
+                /*expectedNonDefaultIndices*/ indices);
+        }
+
+        {
+            TVector<ui32> blockStarts = {1, 3, 9};
+            TVector<ui32> blockLengths = {0, 4, 2};
+
+            TestConstPolymorphicValuesSparseArrayIterationCase(
+                TSparseSubsetBlocks<ui32>(std::move(blockStarts), std::move(blockLengths)),
+                /*nonDefaultValues*/ TVector<ui32>{31, 22, 10, 73, 88, 612},
+                0.0f,
+                /*expectedArray*/TVector<float> {
+                    0.0f,
+                    0.0f,
+                    0.0f,
+                    31.0f,
+                    22.0f,
+                    10.0f,
+                    73.0f,
+                    0.0f,
+                    0.0f,
+                    88.0f,
+                    612.0f
+                },
+                /*expectedNonDefaultIndices*/ {3, 4, 5, 6, 9, 10});
+        }
+
+    }
+
+
     Y_UNIT_TEST(TSparseCompressedArrayIteration) {
         auto checkIteration = [] (
             auto&& indexing,
@@ -762,7 +839,8 @@ Y_UNIT_TEST_SUITE(SparseArray) {
                     CompressVector<ui64>(nonDefaultValues, bitsPerKey)),
                 defaultValue,
                 expectedArray,
-                expectedNonDefaultIndicesArray);
+                expectedNonDefaultIndicesArray,
+                nonDefaultValues);
         };
 
         {
@@ -1024,6 +1102,112 @@ Y_UNIT_TEST_SUITE(SparseArray) {
                 subsetSparseArray,
                 TVector<float>{3.0f, 0.1f, 9.0f, 0.2f, 10.f, 4.2f, 2.11f, 0.88f}
             );
+        }
+    }
+
+    template <class TIndexing, class TInterfaceValue, class TStoredValue, class TArraySubsetIndexingArg>
+    TConstPolymorphicValuesSparseArray<TInterfaceValue, ui32>
+        DoTConstPolymorphicValuesSparseArrayGetSubset(
+            TIndexing&& srcIndexingArg,
+            TVector<TStoredValue> srcNonDefaultValues,
+            TInterfaceValue defaultValue,
+            TArraySubsetIndexingArg subsetIndexingArg,
+            ESparseArrayIndexingType subsetSparseIndexingType
+        ) {
+            TConstPolymorphicValuesSparseArray<TInterfaceValue, ui32> sparseArray
+                = MakeConstPolymorphicValuesSparseArray<TInterfaceValue, TStoredValue>(
+                    MakeIntrusive<TSparseArrayIndexing<ui32>>(std::move(srcIndexingArg)),
+                    TMaybeOwningConstArrayHolder<TStoredValue>::CreateOwning(std::move(srcNonDefaultValues)),
+                    defaultValue
+                );
+
+            TArraySubsetInvertedIndexing<ui32> subsetInvertedIndexing = GetInvertedIndexing(
+                TArraySubsetIndexing<ui32>(std::move(subsetIndexingArg)),
+                sparseArray.GetSize(),
+                &NPar::LocalExecutor()
+            );
+
+            return sparseArray.GetSubset(subsetInvertedIndexing, subsetSparseIndexingType);
+        }
+
+    template <class TInterfaceValue, class TStoredValue>
+    void CheckNonDefaultValues(
+        const TConstPolymorphicValuesSparseArray<TInterfaceValue, ui32>& sparseArray,
+        const TVector<TStoredValue>& expectedNonDefaultValues
+    ) {
+        TVector<TInterfaceValue> expectedNonDefaultValuesWithDstType(
+            expectedNonDefaultValues.begin(),
+            expectedNonDefaultValues.end()
+        );
+
+        auto expectedValueIter = expectedNonDefaultValuesWithDstType.begin();
+        sparseArray.ForEachNonDefault(
+            [&] (ui32 i, TInterfaceValue value) {
+                Y_UNUSED(i);
+                UNIT_ASSERT_VALUES_EQUAL(value, *expectedValueIter);
+                ++expectedValueIter;
+            }
+        );
+        UNIT_ASSERT_EQUAL(expectedValueIter, expectedNonDefaultValuesWithDstType.end());
+    }
+
+
+    Y_UNIT_TEST(TConstPolymorphicValuesSparseArrayGetSubset) {
+
+        {
+            TVector<ui32> sparseSubsetIndices{1, 7, 12, 13};
+            TVector<ui8> nonDefaultValues{1, 255, 12, 122};
+
+            auto subsetSparseArray = DoTConstPolymorphicValuesSparseArrayGetSubset(
+                TSparseSubsetIndices<ui32>(TVector<ui32>(sparseSubsetIndices)),
+                nonDefaultValues,
+                ui32(0),
+                TFullSubset<ui32>(14),
+                ESparseArrayIndexingType::Undefined
+            );
+
+            auto indices = Get<TSparseSubsetIndices<ui32>>(subsetSparseArray.GetIndexing()->GetImpl());
+            UNIT_ASSERT(Equal<ui32>(*indices, sparseSubsetIndices));
+            CheckNonDefaultValues(subsetSparseArray, nonDefaultValues);
+        }
+        {
+            auto subsetSparseArray = DoTConstPolymorphicValuesSparseArrayGetSubset(
+                TSparseArrayIndexing<ui32>(TSparseSubsetIndices<ui32>(TVector<ui32>{1, 7, 12, 13}), 16),
+                TVector<ui32>{1, 255, 12, 122},
+                float(0.0f),
+                TIndexedSubset<ui32>{0, 3, 14},
+                ESparseArrayIndexingType::Undefined
+            );
+
+            auto indices = Get<TSparseSubsetIndices<ui32>>(subsetSparseArray.GetIndexing()->GetImpl());
+            UNIT_ASSERT((*indices).empty());
+            CheckNonDefaultValues(subsetSparseArray, TVector<ui32>());
+        }
+        {
+            auto subsetSparseArray = DoTConstPolymorphicValuesSparseArrayGetSubset(
+                TSparseArrayIndexing<ui32>(TSparseSubsetIndices<ui32>(TVector<ui32>{1, 7, 12, 13}), 25),
+                TVector<double>{0.22, 0.17, 1.0, 0.0},
+                float(0.0f),
+                TIndexedSubset<ui32>{7, 13, 22},
+                ESparseArrayIndexingType::Undefined
+            );
+
+            auto indices = Get<TSparseSubsetIndices<ui32>>(subsetSparseArray.GetIndexing()->GetImpl());
+            UNIT_ASSERT(Equal<ui32>(*indices, TVector<ui32>{0, 1}));
+            CheckNonDefaultValues(subsetSparseArray, TVector<float>{0.17f, 0.0f});
+        }
+        {
+            auto subsetSparseArray = DoTConstPolymorphicValuesSparseArrayGetSubset(
+                TSparseArrayIndexing<ui32>(TSparseSubsetIndices<ui32>(TVector<ui32>{1, 7, 12, 13}), 25),
+                TVector<float>{0.22f, 0.17f, 1.0f, 0.0f},
+                float(0.0),
+                TIndexedSubset<ui32>{7, 13, 22},
+                ESparseArrayIndexingType::Undefined
+            );
+
+            auto indices = Get<TSparseSubsetIndices<ui32>>(subsetSparseArray.GetIndexing()->GetImpl());
+            UNIT_ASSERT(Equal<ui32>(*indices, TVector<ui32>{0, 1}));
+            CheckNonDefaultValues(subsetSparseArray, TVector<float>{0.17f, 0.0f});
         }
     }
 

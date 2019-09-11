@@ -107,7 +107,7 @@ TVector<TVector<double>> GetPredictionDiff(
             = rawObjectsData->GetFloatFeature(feature.Position.FlatIndex);
 
         if (const auto* arrayColumn = dynamic_cast<const TFloatArrayValuesHolder*>(*featureData)) {
-            arrayColumn->GetArrayData().ParallelForEach(
+            arrayColumn->GetData()->ParallelForEach(
                 [&] (ui32 docId, float value) {
                     docBorders[docId].push_back(0);
                     for (const auto& border: feature.Borders) {
