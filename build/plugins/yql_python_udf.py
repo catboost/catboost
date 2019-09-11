@@ -27,6 +27,7 @@ def onregister_yql_python_udf(unit, *args):
             'yql/udfs/common/python/main'
         ] if not py3 else [
             'library/python/runtime_py3',
+            'yql/udfs/common/python/main_py3'
         ])
     else:
         flavor = 'System'
