@@ -68,6 +68,7 @@
         "arc": { "description": "Arcadia command-line client" },
         "graphs_difference": { "description": "Run graphs_difference tool", "visible": false },
         "contexts_difference": { "description": "Run contexts_difference tool", "visible": false },
+        "ygdiff": { "description": "Run ygdiff tool", "visible": false },
         "crypta": { "description": "Run Crypta client" },
         "go": { "description": "Run go tool (1.12.9)" },
         "godoc": { "description": "Run godoc tool (1.12.9)" },
@@ -1429,6 +1430,16 @@
                 {"host": {"os": "WIN"}, "default": true}
             ]
         },
+        "ygdiff": {
+            "tools": {
+                "ygdiff": {"bottle": "ygdiff", "executable": "ygdiff"}
+            },
+            "platforms": [
+                {"host": {"os": "LINUX"}, "default": true},
+                {"host": {"os": "DARWIN"}, "default": true},
+                {"host": {"os": "WIN"}, "default": true}
+            ]
+        },
         "crypta": {
             "tools": {
                 "crypta": {"bottle": "crypta", "executable": "crypta"}
@@ -2396,6 +2407,15 @@
             },
             "executable": {
                 "contexts_difference": ["contexts_difference"]
+            }
+        },
+        "ygdiff": {
+            "formula": {
+                "sandbox_id": 505015799,
+                "match": "ygdiff"
+            },
+            "executable": {
+                "ygdiff": ["ygdiff"]
             }
         },
         "crypta": {
