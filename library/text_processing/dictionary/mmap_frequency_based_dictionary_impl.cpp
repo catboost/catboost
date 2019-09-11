@@ -82,7 +82,7 @@ void TMMapUnigramDictionaryImpl::Load(IInputStream* stream) {
     ReadLittleEndian(&tokenToIdSize, stream);
     ReadLittleEndian(&TokenToIdSeed, stream);
     TokenToIdBuffer.resize(tokenToIdSize / sizeof(TBucket));
-    stream->Read(TokenToIdBuffer.data(), tokenToIdSize);
+    stream->LoadOrFail(TokenToIdBuffer.data(), tokenToIdSize);
     TokenToId = MakeConstArrayRef(TokenToIdBuffer);
 }
 

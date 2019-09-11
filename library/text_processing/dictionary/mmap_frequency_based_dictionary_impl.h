@@ -202,14 +202,14 @@ namespace NTextProcessing::NDictionary {
             ReadLittleEndian(&tokenToInternalIdSize, stream);
             ReadLittleEndian(&TokenToInternalIdSeed, stream);
             TokenToInternalIdBuffer.resize(tokenToInternalIdSize / sizeof(TBucket));
-            stream->Read(TokenToInternalIdBuffer.data(), tokenToInternalIdSize);
+            stream->LoadOrFail(TokenToInternalIdBuffer.data(), tokenToInternalIdSize);
             TokenToInternalId = MakeConstArrayRef(TokenToInternalIdBuffer);
 
             ui64 internalIdsToIdSize;
             ReadLittleEndian(&internalIdsToIdSize, stream);
             ReadLittleEndian(&InternalIdsToIdSeed, stream);
             InternalIdsToIdBuffer.resize(internalIdsToIdSize / sizeof(TBucket));
-            stream->Read(InternalIdsToIdBuffer.data(), internalIdsToIdSize);
+            stream->LoadOrFail(InternalIdsToIdBuffer.data(), internalIdsToIdSize);
             InternalIdsToId = MakeConstArrayRef(InternalIdsToIdBuffer);
         }
 

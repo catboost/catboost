@@ -384,7 +384,7 @@ void TMMapBpeDictionary::Save(IOutputStream* stream) const {
 
 void TMMapBpeDictionary::Load(IInputStream* stream) {
     char magic[BPE_MAGIC_SIZE];
-    stream->Read(magic, BPE_MAGIC_SIZE);
+    stream->LoadOrFail(magic, BPE_MAGIC_SIZE);
     Y_ENSURE(!std::memcmp(magic, BPE_MAGIC, BPE_MAGIC_SIZE));
     SkipPadding(16 - BPE_MAGIC_SIZE, stream);
 
@@ -396,7 +396,7 @@ void TMMapBpeDictionary::Load(IInputStream* stream) {
     ReadLittleEndian(&SourceTokenIdsToTokenIdSeed, stream);
 
     SourceTokenIdsToTokenIdBuffer.resize(sourceTokenIdsToTokenIdSize / sizeof(TBucket));
-    stream->Read(SourceTokenIdsToTokenIdBuffer.data(), sourceTokenIdsToTokenIdSize);
+    stream->LoadOrFail(SourceTokenIdsToTokenIdBuffer.data(), sourceTokenIdsToTokenIdSize);
     SourceTokenIdsToTokenId = MakeArrayRef(SourceTokenIdsToTokenIdBuffer);
 }
 

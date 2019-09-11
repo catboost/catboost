@@ -93,7 +93,7 @@ void TMMapDictionary::Save(IOutputStream* stream) const {
 
 void TMMapDictionary::Load(IInputStream* stream) {
     char magic[MAGIC_SIZE];
-    stream->Read(magic, MAGIC_SIZE);
+    stream->LoadOrFail(magic, MAGIC_SIZE);
     Y_ENSURE(!std::memcmp(magic, MAGIC, MAGIC_SIZE));
     SkipPadding(16 - MAGIC_SIZE, stream);
 
@@ -102,7 +102,7 @@ void TMMapDictionary::Load(IInputStream* stream) {
     ReadLittleEndian(&totalSize, stream);
     ReadLittleEndian(&dictionaryMetaInfoBufferSize, stream);
     TVector<ui8> dictionaryMetaInfoBuffer(dictionaryMetaInfoBufferSize);
-    stream->Read(dictionaryMetaInfoBuffer.data(), dictionaryMetaInfoBufferSize);
+    stream->LoadOrFail(dictionaryMetaInfoBuffer.data(), dictionaryMetaInfoBufferSize);
 
     const auto* dictionaryMetaInfo= NTextProcessingFbs::GetTDictionaryMetaInfo(dictionaryMetaInfoBuffer.data());
     const auto tokenLevelType = FromFbs(dictionaryMetaInfo->DictionaryOptions()->TokenLevelType());
