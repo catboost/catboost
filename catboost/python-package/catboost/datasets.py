@@ -132,6 +132,26 @@ def msrank():
     return _cached_dataset_load_pd(url, md5, dataset_name, train_file, test_file, header=None)
 
 
+def rotten_tomatoes():
+    """
+    Contains information from kaggle [1], which is made available here under the Open Database License (ODbL) [2].
+
+    Download "rotten_tomatoes" [1] data set.
+
+    Will return two pandas.DataFrame-s, first with train part (rotten_tomatoes.data) and second with test part
+    (rotten_tomatoes.test) of the dataset.
+
+    NOTE: This is a preprocessed version of the dataset.
+
+    [1]: https://www.kaggle.com/rpnuser8182/rotten-tomatoes
+    [2]: https://opendatacommons.org/licenses/odbl/1-0/index.html
+    """
+    url = 'https://storage.mds.yandex.net/get-devtools-opensource/233854/rotten_tomatoes.tar.gz'
+    md5 = 'f5f1412a048ebf67b3ca853568ec081d'
+    dataset_name, train_file, test_file = 'rotten_tomatoes', 'train.csv', 'test.csv'
+    return _cached_dataset_load_pd(url, md5, dataset_name, train_file, test_file, sep='\t')
+
+
 def epsilon():
     """
     Download "epsilon" [1] data set.
