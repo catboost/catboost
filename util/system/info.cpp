@@ -1,5 +1,7 @@
 #include "info.h"
 
+#include "error.h"
+
 #include <cstdlib>
 
 #if defined(_linux_) || defined(_cygwin_)
@@ -24,12 +26,14 @@ static int getloadavg(double* loadavg, int nelem) {
 
     return nelem;
 }
-#elif defined(_unix_)
+#elif defined(_unix_) || defined(_darwin_)
 #include <sys/types.h>
 #include <sys/sysctl.h>
 #endif
 
+#include <util/generic/yexception.h>
 #include <util/string/ascii.h>
+
 
 size_t NSystemInfo::NumberOfCpus() {
 #if defined(_win_)
@@ -155,6 +159,26 @@ size_t NSystemInfo::TotalMemorySize() {
     struct sysinfo info;
     sysinfo(&info);
     return info.totalram;
+#elif defined (_darwin_)
+    int mib[2];
+    int64_t memSize;
+    size_t length;
+
+    // Get the Physical memory size
+    mib[0] = CTL_HW;
+    mib[1] = HW_MEMSIZE;
+    length = sizeof(int64_t);
+    if (sysctl(mib, 2, &memSize, &length, NULL, 0) != 0) {
+        ythrow yexception() << "sysctl failed: " << LastSystemErrorText();
+    }
+    return (size_t)memSize;
+#elif defined (_win_)
+    MEMORYSTATUSEX memoryStatusEx;
+    memoryStatusEx.dwLength = sizeof(memoryStatusEx);
+    if (!GlobalMemoryStatusEx(&memoryStatusEx)) {
+        ythrow yexception() << "GlobalMemoryStatusEx failed: " << LastSystemErrorText();
+    }
+    return (size_t)memoryStatusEx.ullTotalPhys;
 #else
     return 0;
 #endif
