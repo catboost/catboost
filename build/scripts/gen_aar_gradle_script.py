@@ -2,6 +2,8 @@ import argparse
 import os
 import tarfile
 
+FLAT_DIRS_REPO_TEMPLATE='repositories {{ flatDir {{ dirs {dirs} }} }}'
+
 AAR_TEMPLATE = """\
 ext.jniLibsDirs = [
     {jni_libs_dirs}
@@ -46,6 +48,8 @@ buildDir = "$projectDir/build"
 
 if (!ext.has("packageSuffix"))
     ext.packageSuffix = ""
+
+{flat_dirs_repo}
 
 buildscript {{
 //     repositories {{
@@ -158,17 +162,33 @@ def gen_build_script(args):
     def wrap(items):
         return ',\n    '.join('"{}"'.format(x) for x in items)
 
+    bundles = []
+    bundles_dirs = set()
+    for bundle in args.bundles:
+        dir_name, base_name = os.path.split(bundle)
+        assert(len(dir_name) > 0 and len(base_name) > 0)
+        name, ext = os.path.splitext(base_name)
+        assert(len(name) > 0 and ext == '.aar')
+        bundles_dirs.add(dir_name)
+        bundles.append('com.yandex:{}@aar'.format(name))
+
+    if len(bundles_dirs) > 0:
+        flat_dirs_repo = FLAT_DIRS_REPO_TEMPLATE.format(dirs=wrap(bundles_dirs))
+    else:
+        flat_dirs_repo = ''
+
     return AAR_TEMPLATE.format(
         jni_libs_dirs=wrap(args.jni_libs_dirs),
         res_dirs=wrap(args.res_dirs),
         assets_dirs=wrap(args.assets_dirs),
         java_dirs=wrap(args.java_dirs),
         aidl_dirs=wrap(args.aidl_dirs),
-        bundles=wrap(args.bundles),
         aars=wrap(args.aars),
         proguard_rules=args.proguard_rules,
         manifest=args.manifest,
         maven_repo=args.maven_repo,
+        bundles=wrap(bundles),
+        flat_dirs_repo=flat_dirs_repo,
     )
 
 

@@ -3,6 +3,7 @@ import os
 import tarfile
 import xml.etree.ElementTree as etree
 
+FLAT_DIRS_REPO_TEMPLATE='repositories {{ flatDir {{ dirs {dirs} }} }}'
 
 TEST_APK_TEMPLATE = """\
 ext.jniLibsDirs = [
@@ -18,7 +19,7 @@ ext.bundles = [
     {bundles}
 ]
 
-repositories {{ flatDir {{ dirs {bundles_dirs} }} }}
+{flat_dirs_repo}
 
 buildscript {{
 //    repositories {{
@@ -103,14 +104,29 @@ def gen_build_script(args):
     def wrap(items):
         return ',\n    '.join('"{}"'.format(x) for x in items)
 
+    bundles = []
+    bundles_dirs = set()
+    for bundle in args.bundles:
+        dir_name, base_name = os.path.split(bundle)
+        assert(len(dir_name) > 0 and len(base_name) > 0)
+        name, ext = os.path.splitext(base_name)
+        assert(len(name) > 0 and ext == '.aar')
+        bundles_dirs.add(dir_name)
+        bundles.append('com.yandex:{}@aar'.format(name))
+
+    if len(bundles_dirs) > 0:
+        flat_dirs_repo = FLAT_DIRS_REPO_TEMPLATE.format(dirs=wrap(bundles_dirs))
+    else:
+        flat_dirs_repo = ''
+
     return TEST_APK_TEMPLATE.format(
         app_id=args.app_id,
         jni_libs_dirs=wrap(args.jni_libs_dirs),
         res_dirs=wrap(args.res_dirs),
         java_dirs=wrap(args.java_dirs),
-        bundles=wrap(args.bundles),
-        bundles_dirs=wrap(args.bundles_dirs),
         maven_repo=args.maven_repo,
+        bundles=wrap(bundles),
+        flat_dirs_repo=flat_dirs_repo
     )
 
 
@@ -120,7 +136,6 @@ if __name__ == '__main__':
     parser.add_argument('--app-id', required=True)
     parser.add_argument('--assets-dirs', nargs='*', default=[])
     parser.add_argument('--bundles', nargs='*', default=[])
-    parser.add_argument('--bundles-dirs', nargs='+', default=[])
     parser.add_argument('--bundle-name', nargs='?', default=None)
     parser.add_argument('--java-dirs', nargs='*', default=[])
     parser.add_argument('--jni-libs-dirs', nargs='*', default=[])
