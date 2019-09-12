@@ -105,7 +105,7 @@ const char* GetProgramShortVersionData() {
 #if defined(SVN_REVISION) && defined(SVN_TIME)
     return STR2(SVN_REVISION) " (" SVN_TIME ")";
 #else
-    return "";
+    return GetProgramHash();
 #endif
 }
 
