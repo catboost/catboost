@@ -1147,7 +1147,8 @@ class GnuCompiler(Compiler):
         if self.target.is_ios:
             self.c_defines.extend(['-D_XOPEN_SOURCE', '-D_DARWIN_C_SOURCE'])
             if self.tc.version_at_least(7):
-                self.c_foptions.append('-faligned-allocation')
+                if not preset('MAPSMOBI_BUILD_TARGET'):
+                    self.c_foptions.append('-faligned-allocation')
             else:
                 self.c_warnings.append('-Wno-aligned-allocation-unavailable')
 
