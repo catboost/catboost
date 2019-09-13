@@ -309,6 +309,9 @@ ALLOW .* -> vendor/github.com/imdario/mergo
 # CONTRIB-1468 Terminal interactive progress bar
 ALLOW .* -> vendor/github.com/vbauerster/mpb
 
+# CONTRIB-1451 Google firebase library
+ALLOW .* -> vendor/firebase.google.com/go
+
 #
 # Temporary exceptions.
 #
