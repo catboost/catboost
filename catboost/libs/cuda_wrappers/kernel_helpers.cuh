@@ -676,6 +676,37 @@ __forceinline__ __device__ float4 SharedReduce4(float4 val, float* tmp) {
 
 
 template <int BlockSize>
+__forceinline__ __device__ void SharedReduce8(float4* val0, float4* val1, float* tmp) {
+    Float4ToSharedMemory<BlockSize>(*val0, tmp, threadIdx.x);
+    Float4ToSharedMemory<BlockSize>(*val1, tmp + 4 * BlockSize, threadIdx.x);
+    __syncthreads();
+    if (BlockSize > 32) {
+        for (int s = BlockSize / 2; s >= 32; s >>= 1) {
+            if (threadIdx.x < s) {
+                for (int k = 0; k < 8; ++k) {
+                    tmp[threadIdx.x + BlockSize * k] += tmp[threadIdx.x + s + BlockSize * k];
+                }
+            }
+            __syncthreads();
+        }
+    }
+    for (int s = 16; s > 0; s >>= 1) {
+        if (threadIdx.x < s) {
+            for (int k = 0; k < 8; ++k) {
+                tmp[threadIdx.x + BlockSize * k] += tmp[threadIdx.x + s + BlockSize * k];
+            }
+        }
+        __syncwarp();
+
+    }
+    __syncthreads();
+    (*val0) = Float4FromSharedMemory<BlockSize>(tmp, 0);
+    (*val1) = Float4FromSharedMemory<BlockSize>(tmp + 4 * BlockSize, 0);
+    __syncthreads();
+}
+
+
+template <int BlockSize>
 __forceinline__ __device__ void SharedPartReduce4(float4 val0, float4 val1, float* tmp, int tileSize) {
     Float4ToSharedMemory<BlockSize>(val0, tmp, threadIdx.x);
     Float4ToSharedMemory<BlockSize>(val1, tmp + 4 * BlockSize, threadIdx.x);
