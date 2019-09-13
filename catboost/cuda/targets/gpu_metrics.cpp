@@ -521,7 +521,7 @@ namespace NCatboostCuda {
             }
             case ELossFunction::AUC: {
                 if (approxDim == 1) {
-                    if (IsClassificationObjective(targetObjective)) {
+                    if (IsClassificationObjective(targetObjective) || targetObjective == ELossFunction::QueryCrossEntropy) {
                         result.emplace_back(new TGpuPointwiseMetric(MakeBinClassAucMetric(), 1, 2, isMulticlass, metricDescription));
                     } else {
                         result.emplace_back(new TCpuFallbackMetric(MakeBinClassAucMetric(), metricDescription));
