@@ -3942,12 +3942,14 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
             EAucType aucType = approxDimension == 1 ? EAucType::Classic : EAucType::Mu;
             if (params.contains("type")) {
                 const TString name = params.at("type");
-                if (approxDimension == 1) {
-                    CB_ENSURE(name == "Ranking", "There is no singleclass AUC type named \"" << name << "\". Possible type is \"Ranking\".");
-                } else {
-                    CB_ENSURE(name == "Mu" || name == "OneVsAll", "There is no multiclass AUC type named \"" << name << "\". Possible types are \"Mu\" and \"OneVsAll\".");
-                }
                 aucType = FromString<EAucType>(name);
+                if (approxDimension == 1) {
+                    CB_ENSURE(aucType == EAucType::Classic || aucType == EAucType::Ranking,
+                        "AUC type \"" << aucType << "\" isn't a singleclass AUC type");
+                } else {
+                    CB_ENSURE(aucType == EAucType::Mu || aucType == EAucType::OneVsAll,
+                        "AUC type \"" << aucType << "\" isn't a multiclass AUC type");
+                }
             }
             switch (aucType) {
                 case EAucType::Classic: {
