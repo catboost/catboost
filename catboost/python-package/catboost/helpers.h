@@ -95,9 +95,6 @@ public:
             tmpDir,
             Metrics,
             &Executor)) {
-        for (const auto& metricDescription : MetricLossDescriptions) {
-            ValidateIsMetricCalculationSupported(metricDescription.GetLossFunction(), ParseLossType(model.GetLossFunctionName()), ETaskType::CPU);
-        }
         Executor.RunAdditionalThreads(threadCount - 1);
         MetricPlotCalcer.SetDeleteTmpDirOnExit(deleteTempDirOnExit);
     }

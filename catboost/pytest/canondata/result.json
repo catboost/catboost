@@ -1133,11 +1133,11 @@
     ],
     "test.test_custom_loss_for_classification[Ordered-CrossEntropy]": [
         {
-            "checksum": "71afa2c8669c5980f6df8124d36c3175",
+            "checksum": "299366bc60e7e8712c579ac7a003ca86",
             "uri": "file://test.test_custom_loss_for_classification_Ordered-CrossEntropy_/learn_error.tsv"
         },
         {
-            "checksum": "481c49853777921fc3dc8e47e8fe6b12",
+            "checksum": "7d5da759f6d08953aeb84036f0a2fa1e",
             "uri": "file://test.test_custom_loss_for_classification_Ordered-CrossEntropy_/test_error.tsv"
         }
     ],
@@ -1153,11 +1153,11 @@
     ],
     "test.test_custom_loss_for_classification[Plain-CrossEntropy]": [
         {
-            "checksum": "b7dca1e1d105948da441709562db0b5c",
+            "checksum": "608d8e461d45eb61b437b7fe434ea42a",
             "uri": "file://test.test_custom_loss_for_classification_Plain-CrossEntropy_/learn_error.tsv"
         },
         {
-            "checksum": "756b42800b06a2c4c6d2fbdfd947f885",
+            "checksum": "f45031a349c8cbe5b6e0c46709acd751",
             "uri": "file://test.test_custom_loss_for_classification_Plain-CrossEntropy_/test_error.tsv"
         }
     ],
@@ -2111,16 +2111,16 @@
             "uri": "file://test.test_eval_metrics_multiclass_with_baseline_Accuracy-2_/output.tsv"
         }
     ],
-    "test.test_eval_metrics_with_baseline[AUC-1]": [
+    "test.test_eval_metrics_with_baseline[AUC:type=Ranking-1]": [
         {
-            "checksum": "fb817a0e6fece66438b676ca638b62d6",
-            "uri": "file://test.test_eval_metrics_with_baseline_AUC-1_/output.tsv"
+            "checksum": "c4f835843bc0ea892b72743b6389dee6",
+            "uri": "file://test.test_eval_metrics_with_baseline_AUC_type=Ranking-1_/output.tsv"
         }
     ],
-    "test.test_eval_metrics_with_baseline[AUC-2]": [
+    "test.test_eval_metrics_with_baseline[AUC:type=Ranking-2]": [
         {
-            "checksum": "453fb834384c0a856382c340cb315dc2",
-            "uri": "file://test.test_eval_metrics_with_baseline_AUC-2_/output.tsv"
+            "checksum": "7e96b8779ac3600b4445e33599578515",
+            "uri": "file://test.test_eval_metrics_with_baseline_AUC_type=Ranking-2_/output.tsv"
         }
     ],
     "test.test_eval_metrics_with_baseline[Accuracy-1]": [

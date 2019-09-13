@@ -79,15 +79,3 @@ bool IsAnyOfObjectiveOrMetrics(
 
     return result;
 }
-
-void ValidateIsMetricCalculationSupported(
-    ELossFunction metric,
-    ELossFunction lossFunction,
-    ETaskType taskType
-) {
-    CB_ENSURE(
-        taskType != ETaskType::CPU || lossFunction != ELossFunction::CrossEntropy || metric != ELossFunction::AUC,
-        ToString(metric) << " calculation on " << ToString(taskType)
-        << " doesn't supported if loss function is " << ToString(lossFunction) << "."
-    );
-}

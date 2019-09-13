@@ -273,7 +273,8 @@ THolder<IMetric> MakeQuerySoftMaxMetric();
 
 THolder<IMetric> MakeFilteredDcgMetric(ENdcgMetricType type, ENdcgDenominatorType denominator);
 
-THolder<IMetric> MakeBinClassAucMetric(double border = GetDefaultTargetBorder());
+THolder<IMetric> MakeBinClassAucMetric();
+THolder<IMetric> MakeRankingAucMetric();
 THolder<IMetric> MakeMultiClassAucMetric(int positiveClass);
 THolder<IMetric> MakeMuAucMetric(const TMaybe<TVector<TVector<double>>>& misclassCostMatrix = Nothing());
 

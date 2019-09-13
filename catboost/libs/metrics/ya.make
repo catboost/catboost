@@ -32,6 +32,6 @@ PEERDIR(
     library/threading/local_executor
 )
 
-GENERATE_ENUM_SERIALIZATION(metric.h)
+GENERATE_ENUM_SERIALIZATION(enums.h)
 
 END()

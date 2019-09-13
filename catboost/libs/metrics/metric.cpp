@@ -13,6 +13,7 @@
 #include "pfound.h"
 #include "precision_recall_at_k.h"
 #include "description_utils.h"
+#include "enums.h"
 
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/vector_helpers.h>
@@ -2124,28 +2125,20 @@ void TR2Metric::GetBestValue(EMetricBestValue* valueType, float*) const {
 /* AUC */
 
 namespace {
-    enum class EAucType {
-        Mu,
-        OneVsAll
-    };
-
     struct TAUCMetric: public TNonAdditiveMetric {
-        explicit TAUCMetric(double border = GetDefaultTargetBorder())
-            : Border(border)
-            , IsMultiClass(false) {
+        explicit TAUCMetric(EAucType singleClassType)
+            : Type(singleClassType) {
             UseWeights.SetDefaultValue(false);
         }
 
         explicit TAUCMetric(int positiveClass)
             : PositiveClass(positiveClass)
-            , IsMultiClass(true)
             , Type(EAucType::OneVsAll) {
             UseWeights.SetDefaultValue(false);
         }
 
         explicit TAUCMetric(const TMaybe<TVector<TVector<double>>>& misclassCostMatrix = Nothing())
-            : IsMultiClass(true)
-            , Type(EAucType::Mu)
+            : Type(EAucType::Mu)
             , MisclassCostMatrix(misclassCostMatrix) {
             UseWeights.SetDefaultValue(false);
         }
@@ -2175,15 +2168,17 @@ namespace {
 
     private:
         int PositiveClass = 1;
-        double Border = GetDefaultTargetBorder();
-        bool IsMultiClass = false;
         EAucType Type;
         TMaybe<TVector<TVector<double>>> MisclassCostMatrix = Nothing();
     };
 }
 
-THolder<IMetric> MakeBinClassAucMetric(double border) {
-    return MakeHolder<TAUCMetric>(border);
+THolder<IMetric> MakeBinClassAucMetric() {
+    return MakeHolder<TAUCMetric>(EAucType::Classic);
+}
+
+THolder<IMetric> MakeRankingAucMetric() {
+    return MakeHolder<TAUCMetric>(EAucType::Ranking);
 }
 
 THolder<IMetric> MakeMultiClassAucMetric(int positiveClass) {
@@ -2211,13 +2206,13 @@ TMetricHolder TAUCMetric::Eval(
     NPar::TLocalExecutor& executor
 ) const {
     Y_ASSERT(!isExpApprox);
-    Y_ASSERT((approx.size() > 1) == IsMultiClass);
+    Y_ASSERT((approx.size() > 1) == (Type == EAucType::Mu || Type == EAucType::OneVsAll));
     Y_ASSERT(approx.front().size() == target.size());
-    if (IsMultiClass && Type == EAucType::Mu && MisclassCostMatrix) {
+    if (Type == EAucType::Mu && MisclassCostMatrix) {
         CB_ENSURE(MisclassCostMatrix->size() == approx.size(), "Number of classes should be equal to the size of the misclass cost matrix.");
     }
 
-    if (IsMultiClass && Type == EAucType::Mu) {
+    if (Type == EAucType::Mu) {
         TVector<TVector<double>> currentApprox(approx);
         if (!approxDelta.empty()) {
             for (ui32 i = 0; i < approx.size(); ++i) {
@@ -2233,20 +2228,33 @@ TMetricHolder TAUCMetric::Eval(
     }
 
     const auto realApprox = [&](int idx) {
-        return approx[IsMultiClass ? PositiveClass : 0][idx]
-        + (approxDelta.empty() ? 0.0 : approxDelta[IsMultiClass ? PositiveClass : 0][idx]);
+        return approx[Type == EAucType::OneVsAll ? PositiveClass : 0][idx]
+        + (approxDelta.empty() ? 0.0 : approxDelta[Type == EAucType::OneVsAll ? PositiveClass : 0][idx]);
     };
     const auto realWeight = [&](int idx) {
         return UseWeights && !weight.empty() ? weight[idx] : 1.0;
     };
     const auto realTarget = [&](int idx) {
-        return IsMultiClass ? target[idx] == static_cast<double>(PositiveClass) : target[idx] > Border;
+        return Type == EAucType::OneVsAll ? target[idx] == static_cast<double>(PositiveClass) : target[idx];
     };
 
     TVector<NMetrics::TSample> samples;
     samples.reserve(end - begin);
-    for (int i : xrange(begin, end)) {
-        samples.emplace_back(realTarget(i), realApprox(i), realWeight(i));
+    if (Type == EAucType::Ranking) {
+        for (int i : xrange(begin, end)) {
+            samples.emplace_back(realTarget(i), realApprox(i), realWeight(i));
+        }
+    } else {
+        for (int i : xrange(begin, end)) {
+            const auto currentTarget = realTarget(i);
+            CB_ENSURE(0 <= currentTarget && currentTarget <= 1, "All target values should be in the segment [0, 1], for Ranking AUC please use type=Ranking.");
+            if (currentTarget < 1) {
+                samples.emplace_back(0, realApprox(i), (1 - currentTarget) * realWeight(i));
+            }
+            if (currentTarget > 0) {
+                samples.emplace_back(1, realApprox(i), currentTarget * realWeight(i));
+            }
+        }
     }
 
     TMetricHolder error(2);
@@ -2270,20 +2278,28 @@ static TString ConstructDescriptionOfSquareMatrix(const TVector<TVector<T>>& mat
 }
 
 TString TAUCMetric::GetDescription() const {
-    if (IsMultiClass) {
-        if (Type == EAucType::OneVsAll) {
+    switch (Type) {
+        case EAucType::OneVsAll: {
             const TMetricParam<int> positiveClass("class", PositiveClass, /*userDefined*/true);
             return BuildDescription(ELossFunction::AUC, UseWeights, positiveClass);
-        } else {
-            TMetricParam<TString> aucType("type", "Mu", true);
+        }
+        case EAucType::Mu: {
+            TMetricParam<TString> aucType("type", ToString(EAucType::Mu), /*userDefined*/true);
             if (MisclassCostMatrix) {
-                TMetricParam<TString> misclassCostMatrix("misclass_cost_matrix", ConstructDescriptionOfSquareMatrix<double>(*MisclassCostMatrix), true);
+                TMetricParam<TString> misclassCostMatrix("misclass_cost_matrix", ConstructDescriptionOfSquareMatrix<double>(*MisclassCostMatrix), /*UserDefined*/true);
                 return BuildDescription(ELossFunction::AUC, UseWeights, aucType, misclassCostMatrix);
             }
             return BuildDescription(ELossFunction::AUC, UseWeights, aucType);
         }
-    } else {
-        return BuildDescription(ELossFunction::AUC, UseWeights, "%.3g", MakeBorderParam(Border));
+        case EAucType::Classic: {
+            return BuildDescription(ELossFunction::AUC, UseWeights);
+        }
+        case EAucType::Ranking: {
+            return BuildDescription(ELossFunction::AUC, UseWeights, TMetricParam<TString>("type", ToString(EAucType::Ranking), /*userDefined*/true));
+        }
+        default: {
+            Y_VERIFY(false);
+        }
     }
 }
 
@@ -3922,27 +3938,43 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
             break;
         }
         case ELossFunction::AUC: {
-            if (approxDimension == 1) {
-                result.push_back(MakeBinClassAucMetric(border));
-            } else {
-                validParams = {"type"};
-                bool isMu = true;
-                if (params.contains("type")) {
-                    TString aucType = params.at("type");
-                    CB_ENSURE(aucType == "Mu" || aucType == "OneVsAll", "There is no multiclass AUC type named \"" << aucType << "\". Possible types are \"Mu\" and \"OneVsAll\".");
-                    isMu = (aucType == "Mu");
+            validParams = {"type"};
+            EAucType aucType = approxDimension == 1 ? EAucType::Classic : EAucType::Mu;
+            if (params.contains("type")) {
+                const TString name = params.at("type");
+                if (approxDimension == 1) {
+                    CB_ENSURE(name == "Ranking", "There is no singleclass AUC type named \"" << name << "\". Possible type is \"Ranking\".");
+                } else {
+                    CB_ENSURE(name == "Mu" || name == "OneVsAll", "There is no multiclass AUC type named \"" << name << "\". Possible types are \"Mu\" and \"OneVsAll\".");
                 }
-                if (isMu) {
+                aucType = FromString<EAucType>(name);
+            }
+            switch (aucType) {
+                case EAucType::Classic: {
+                    result.push_back(MakeBinClassAucMetric());
+                    break;
+                }
+                case EAucType::Ranking: {
+                    result.push_back(MakeRankingAucMetric());
+                    break;
+                }
+                case EAucType::Mu: {
                     validParams.insert("misclass_cost_matrix");
                     TMaybe<TVector<TVector<double>>> misclassCostMatrix = Nothing();
                     if (params.contains("misclass_cost_matrix")) {
                         misclassCostMatrix.ConstructInPlace(ConstructSquareMatrix<double>(params.at("misclass_cost_matrix")));
                     }
                     result.push_back(MakeMuAucMetric(misclassCostMatrix));
-                } else {
+                    break;
+                }
+                case EAucType::OneVsAll: {
                     for (int i = 0; i < approxDimension; ++i) {
                         result.push_back(MakeMultiClassAucMetric(i));
                     }
+                    break;
+                }
+                default: {
+                    Y_VERIFY(false);
                 }
             }
             break;
@@ -4152,10 +4184,10 @@ TVector<THolder<IMetric>> CreateMetrics(
 
 
 TVector<THolder<IMetric>> CreateMetrics(
-        const NCatboostOptions::TOption<NCatboostOptions::TMetricOptions>& evalMetricOptions,
-        const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
-        int approxDimension
-) {
+    const NCatboostOptions::TOption<NCatboostOptions::TMetricOptions>& evalMetricOptions,
+    const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
+    int approxDimension) {
+
     TVector<THolder<IMetric>> errors;
     THashSet<TString> usedDescriptions;
 

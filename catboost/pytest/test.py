@@ -2676,7 +2676,7 @@ def test_custom_loss_for_classification(loss_function, boosting_type):
             'HingeLoss',
             'NormalizedGini'
         ]
-        if metric != loss_function and (metric != 'AUC:hints=skip_train~false' or loss_function != 'CrossEntropy')
+        if metric != loss_function
     ]
 
     cmd = (
@@ -4762,7 +4762,7 @@ def test_eval_metrics_class_names():
 
 
 @pytest.mark.parametrize('metric_period', ['1', '2'])
-@pytest.mark.parametrize('metric', ['Accuracy', 'AUC'])
+@pytest.mark.parametrize('metric', ['Accuracy', 'AUC:type=Ranking'])
 def test_eval_metrics_with_baseline(metric_period, metric):
     train = data_file('adult_weight', 'train_weight')
     test = data_file('adult_weight', 'test_weight')

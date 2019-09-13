@@ -52,8 +52,3 @@ bool IsAnyOfObjectiveOrMetrics(
     const NCatboostOptions::TMetricOptions& metricOptions,
     std::function<bool(ELossFunction)> predicate);
 
-
-void ValidateIsMetricCalculationSupported(
-    ELossFunction metric,
-    ELossFunction lossFunction,
-    ETaskType taskType);
