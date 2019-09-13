@@ -85,19 +85,19 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\caching_metric.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\classification_utils.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\dcg.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\metrics\enums.h_serialized.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\hinge_loss.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\kappa.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\llp.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\metric.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\metrics\metric.h_serialized.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\pfound.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\precision_recall_at_k.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\sample.cpp"/>
-    <CustomBuild Include="$(SolutionDir)..\catboost\libs\metrics\metric.h">
+    <CustomBuild Include="$(SolutionDir)..\catboost\libs\metrics\enums.h">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\libs\metrics
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../catboost/libs/metrics/metric.h" "--include-path" "catboost/libs/metrics/metric.h" "--output" "$(SolutionDir)$(Configuration)/catboost/libs/metrics/metric.h_serialized.cpp"
+"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../catboost/libs/metrics/enums.h" "--include-path" "catboost/libs/metrics/enums.h" "--output" "$(SolutionDir)$(Configuration)/catboost/libs/metrics/enums.h_serialized.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -108,7 +108,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\libs\metrics
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../catboost/libs/metrics/metric.h" "--include-path" "catboost/libs/metrics/metric.h" "--output" "$(SolutionDir)$(Configuration)/catboost/libs/metrics/metric.h_serialized.cpp"
+"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../catboost/libs/metrics/enums.h" "--include-path" "catboost/libs/metrics/enums.h" "--output" "$(SolutionDir)$(Configuration)/catboost/libs/metrics/enums.h_serialized.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -116,9 +116,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/catboost/libs/metrics/metric.h_serialized.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\catboost\libs\metrics\metric.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\metrics\metric.h_serialized.cpp;</Outputs>
+      <Message>$B/catboost/libs/metrics/enums.h_serialized.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)..\catboost\libs\metrics\enums.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\metrics\enums.h_serialized.cpp;</Outputs>
     </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\metrics\auc.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\metrics\auc_mu.h"/>
@@ -132,6 +132,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\metrics\hinge_loss.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\metrics\kappa.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\metrics\llp.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\metrics\metric.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\metrics\metric_holder.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\metrics\pfound.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\metrics\precision_recall_at_k.h"/>
