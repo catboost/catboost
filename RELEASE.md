@@ -1,3 +1,19 @@
+# Release 0.17.1
+
+## Bugs fixed:
+- Incorrect estimation of total RAM size on Windows and Mac OS, #989
+- Failure when dataset is a `numpy.ndarray` with `order='F'`
+- Disable `boost_from_average` when baseline is specified
+
+## Improvements:
+- Polymorphic raw features storage (2x---25x faster data preparation for numeric features in non-float32 columns as either `pandas.DataFrame` or `numpy.ndarray` with `order='F'`).
+- Support AUC metric for `CrossEntropy` loss on CPU
+- Added `datasets.rotten_tomatoes()`, a textual dataset
+- Usability of `monotone_constraints`, #950
+
+## Speedups:
+- Optimized computation of `CrossEntropy` metric on CPUs with SSE3
+
 # Release 0.17
 
 ## New features:
@@ -23,7 +39,7 @@ Hint: use `pandas.Categorical` instead of object to speed up loading up to 200x.
 - Added conversion from ONNX to CatBoost. Now you can convert XGBoost or LightGBM model to ONNX, then convert it to CatBoost and use our fast applier. Use `model.load_model(model_path, format="onnx")` for that.
 
 ## Speed ups:
-- Training is  ~15% faster for datasets with categorical features.
+- Training is  \~15% faster for datasets with categorical features.
 
 ## Bug fixes:
 - R language: `get_features_importance` with `ShapValues` for `MultiClass`,  #868
