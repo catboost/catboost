@@ -399,6 +399,35 @@ def test_dataframe_with_pandas_categorical_columns():
     return local_canonical_file(preds_path)
 
 
+def test_equivalence_of_pools_from_pandas_dataframe_with_different_cat_features_column_types():
+    df = DataFrame()
+    df['num_feat_0'] = [0, 1, 0, 2, 3, 1, 2]
+    df['num_feat_1'] = [0.12, 0.8, 0.33, 0.11, 0.0, 1.0, 0.0]
+    df['cat_feat_2'] = ['A', 'B', 'A', 'C', 'A', 'A', 'A']
+    df['cat_feat_3'] = ['x', 'x', 'y', 'y', 'y', 'x', 'x']
+    df['cat_feat_4'] = ['large', 'small', 'medium', 'large', 'small', 'small', 'medium']
+    df['cat_feat_5'] = [0, 1, 0, 2, 3, 1, 2]
+
+    labels = [0, 1, 1, 0, 1, 0, 1]
+
+    cat_features = ['cat_feat_%i' % i for i in range(2, 6)]
+
+    pool_from_df = Pool(df, labels, cat_features=cat_features)
+
+    for cat_features_dtype in ['object', 'category']:
+        columns_for_new_df = OrderedDict()
+        for column_name, column_data in df.iteritems():
+            if column_name in cat_features:
+                column_data = column_data.astype(cat_features_dtype)
+            columns_for_new_df.setdefault(column_name, column_data)
+
+        new_df = DataFrame(columns_for_new_df)
+
+        pool_from_new_df = Pool(new_df, labels, cat_features=cat_features)
+
+        assert _have_equal_features(pool_from_df, pool_from_new_df)
+
+
 # feature_matrix is (doc_count x feature_count)
 def get_features_data_from_matrix(feature_matrix, cat_feature_indices, order='C'):
     object_count = len(feature_matrix)
