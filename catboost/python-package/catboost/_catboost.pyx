@@ -2168,12 +2168,8 @@ cdef object _set_features_order_data_pd_data_frame_sparse_column(
 # returns new data holders array
 cdef void _set_features_order_data_pd_data_frame_categorical_column(
     ui32 flat_feature_idx,
-    bool_t is_cat_feature,
     object column_values, # pd.Categorical, but Cython requires cimport to provide type here
     TString* factor_string,
-
-    # array of [dst_value_for_missing_value, dst_value_for_cateory0, dst_value_for_category1 ...]
-    TVector[float]* categories_with_missing_value_as_float_values,
 
     # array of [dst_value_for_cateory0, dst_value_for_category1 ...]
     TVector[ui32]* categories_as_hashed_cat_values,
@@ -2187,84 +2183,49 @@ cdef void _set_features_order_data_pd_data_frame_categorical_column(
     cdef ui32 doc_count = categories_codes.shape[0]
 
     # access through TArrayRef is faster
-    cdef TArrayRef[float] categories_with_missing_value_as_float_values_ref
     cdef TArrayRef[ui32] categories_as_hashed_cat_values_ref
-
-    cdef TVector[float] float_feature_values
     cdef TVector[ui32] hashed_cat_values
 
     cdef ui32 category_idx
     cdef ui32 doc_idx
     cdef i32 category_code
 
-    if is_cat_feature:
-        # TODO(akhropov): make yresize accessible in Cython
-        categories_as_hashed_cat_values[0].resize(categories_values_size)
-        categories_as_hashed_cat_values_ref = <TArrayRef[ui32]>categories_as_hashed_cat_values[0]
-        for category_idx in range(categories_values_size):
-            try:
-                get_id_object_bytes_string_representation(categories_values[category_idx], factor_string)
-            except CatBoostError:
-                raise CatBoostError(
-                    'Invalid type for cat_feature category for [feature_idx={}]={} :'
-                    ' cat_features must be integer or string, real number values and NaN values'
-                    ' should be converted to string.'.format(flat_feature_idx, categories_values[category_idx])
-                )
 
-            categories_as_hashed_cat_values_ref[category_idx]  = builder_visitor[0].GetCatFeatureValue(
-                flat_feature_idx,
-                factor_string[0]
+    # TODO(akhropov): make yresize accessible in Cython
+    categories_as_hashed_cat_values[0].resize(categories_values_size)
+    categories_as_hashed_cat_values_ref = <TArrayRef[ui32]>categories_as_hashed_cat_values[0]
+    for category_idx in range(categories_values_size):
+        try:
+            get_id_object_bytes_string_representation(categories_values[category_idx], factor_string)
+        except CatBoostError:
+            raise CatBoostError(
+                'Invalid type for cat_feature category for [feature_idx={}]={} :'
+                ' cat_features must be integer or string, real number values and NaN values'
+                ' should be converted to string.'.format(flat_feature_idx, categories_values[category_idx])
             )
 
-        # TODO(akhropov): make yresize accessible in Cython
-        hashed_cat_values.resize(doc_count)
-        for doc_idx in range(doc_count):
-            category_code = categories_codes[doc_idx]
-            if category_code == -1:
-                raise CatBoostError(
-                    'Invalid type for cat_feature[object_idx={},feature_idx={}]=NaN :'
-                    ' cat_features must be integer or string, real number values and NaN values'
-                    ' should be converted to string.'.format(doc_idx, flat_feature_idx)
-                )
-
-            hashed_cat_values[doc_idx] = categories_as_hashed_cat_values_ref[category_code]
-
-        builder_visitor[0].AddCatFeature(
+        categories_as_hashed_cat_values_ref[category_idx]  = builder_visitor[0].GetCatFeatureValue(
             flat_feature_idx,
-            TMaybeOwningConstArrayHolder[ui32].CreateOwningMovedFrom(hashed_cat_values)
+            factor_string[0]
         )
-    else:
-        # TODO(akhropov): make yresize accessible in Cython
-        categories_with_missing_value_as_float_values.resize(categories_values_size + 1)
-        categories_with_missing_value_as_float_values_ref = (
-            <TArrayRef[float]>categories_with_missing_value_as_float_values[0]
-        )
-        categories_with_missing_value_as_float_values_ref[0] = _FLOAT_NAN
-        for category_idx in range(categories_values_size):
-            try:
-                categories_with_missing_value_as_float_values_ref[category_idx + 1] = (
-                    _FloatOrNan(categories_values[category_idx])
-                )
-            except TypeError as e:
-                raise CatBoostError(
-                    'Bad value for category for [feature_idx={}]="{}": {}'.format(
-                        flat_feature_idx,
-                        categories_values[category_idx],
-                        e
-                    )
-                )
 
-        # TODO(akhropov): make yresize accessible in Cython
-        float_feature_values.resize(doc_count)
-        for doc_idx in range(doc_count):
-            float_feature_values[doc_idx] = (
-                categories_with_missing_value_as_float_values_ref[categories_codes[doc_idx] + 1]
+    # TODO(akhropov): make yresize accessible in Cython
+    hashed_cat_values.resize(doc_count)
+    for doc_idx in range(doc_count):
+        category_code = categories_codes[doc_idx]
+        if category_code == -1:
+            raise CatBoostError(
+                'Invalid type for cat_feature[object_idx={},feature_idx={}]=NaN :'
+                ' cat_features must be integer or string, real number values and NaN values'
+                ' should be converted to string.'.format(doc_idx, flat_feature_idx)
             )
 
-        builder_visitor[0].AddFloatFeature(
-            flat_feature_idx,
-            MakeTypeCastArrayHolderFromVector[float, float](float_feature_values)
-        )
+        hashed_cat_values[doc_idx] = categories_as_hashed_cat_values_ref[category_code]
+
+    builder_visitor[0].AddCatFeature(
+        flat_feature_idx,
+        TMaybeOwningConstArrayHolder[ui32].CreateOwningMovedFrom(hashed_cat_values)
+    )
 
 
 # returns new data holders array
@@ -2281,13 +2242,10 @@ cdef object _set_features_order_data_pd_data_frame(
     cdef ITypedSequencePtr[np.float32_t] num_factor_data
 
     cdef TVector[TString] cat_factor_data
-    
-    
-    # this buffers for categorical processing are here to avoid reallocations in 
-    # _set_features_order_data_pd_data_frame_categorical_column
 
-    # array of [dst_value_for_missing_value, dst_value_for_cateory0, dst_value_for_category1 ...]
-    cdef TVector[float] categories_with_missing_value_as_float_values 
+
+    # this buffer for categorical processing is here to avoid reallocations in 
+    # _set_features_order_data_pd_data_frame_categorical_column
 
     # array of [dst_value_for_cateory0, dst_value_for_category1 ...]
     cdef TVector[ui32] categories_as_hashed_cat_values
@@ -2310,12 +2268,16 @@ cdef object _set_features_order_data_pd_data_frame(
                 builder_visitor
             )
         elif column_data.dtype.name == 'category':
+            if not is_cat_feature_mask[flat_feature_idx]:
+                raise CatBoostError(
+                    ("features data: pandas.DataFrame column '%s' has dtype 'category' but is not in "
+                    + " cat_features list") % column_name
+                )
+
             _set_features_order_data_pd_data_frame_categorical_column(
                 flat_feature_idx,
-                is_cat_feature_mask[flat_feature_idx],
                 column_data.values,
                 &factor_string,
-                &categories_with_missing_value_as_float_values,
                 &categories_as_hashed_cat_values,
                 builder_visitor
             )

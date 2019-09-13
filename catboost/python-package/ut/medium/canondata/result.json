@@ -187,9 +187,9 @@
         "checksum": "ec52962f36dd7132f703eba54a8f93eb",
         "uri": "file://test.test_cv_with_not_binarized_target_CPU_/catboost_training.json"
     },
-    "test.test_dataframe_with_pandas_categorical_columns": {
+    "test.test_dataframe_with_pandas_categorical_columns[cat_features_specified=True]": {
         "checksum": "dc20d50c7ea6789dbfea93ad190b831c",
-        "uri": "file://test.test_dataframe_with_pandas_categorical_columns/predictions.txt"
+        "uri": "file://test.test_dataframe_with_pandas_categorical_columns_cat_features_specified=True_/predictions.txt"
     },
     "test.test_early_stopping_rounds[CPU]": [
         {

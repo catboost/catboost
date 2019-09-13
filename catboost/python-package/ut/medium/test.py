@@ -375,7 +375,12 @@ def test_load_dumps():
     assert pool1.get_label() == [int(label) for label in pool2.get_label()]
 
 
-def test_dataframe_with_pandas_categorical_columns():
+@pytest.mark.parametrize(
+    'cat_features_specified',
+    [False, True],
+    ids=['cat_features_specified=False', 'cat_features_specified=True']
+)
+def test_dataframe_with_pandas_categorical_columns(cat_features_specified):
     df = DataFrame()
     df['num_feat_0'] = [0, 1, 0, 2, 3, 1, 2]
     df['num_feat_1'] = [0.12, 0.8, 0.33, 0.11, 0.0, 1.0, 0.0]
@@ -391,12 +396,16 @@ def test_dataframe_with_pandas_categorical_columns():
     labels = [0, 1, 1, 0, 1, 0, 1]
 
     model = CatBoostClassifier(iterations=2)
-    model.fit(X=df, y=labels, cat_features=[2, 3, 4, 5])
-    pred = model.predict(df)
+    if cat_features_specified:
+        model.fit(X=df, y=labels, cat_features=[2, 3, 4, 5])
+        pred = model.predict(df)
 
-    preds_path = test_output_path(PREDS_TXT_PATH)
-    np.savetxt(preds_path, np.array(pred), fmt='%.8f')
-    return local_canonical_file(preds_path)
+        preds_path = test_output_path(PREDS_TXT_PATH)
+        np.savetxt(preds_path, np.array(pred), fmt='%.8f')
+        return local_canonical_file(preds_path)
+    else:
+        with pytest.raises(CatBoostError):
+            model.fit(X=df, y=labels)
 
 
 def test_equivalence_of_pools_from_pandas_dataframe_with_different_cat_features_column_types():
