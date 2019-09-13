@@ -1013,3 +1013,8 @@
   - zone.h
   - netpacket/if_packet.h
   # end libpcap files
+
+- source_filter: "^ml/tensorflow/ytensorflow/cpp"
+  includes:
+  # tensorflow 1.14 header, doesn't exist in current arcadia tensorflow 1.10
+    - tensorflow/core/util/gpu_kernel_helper.h
