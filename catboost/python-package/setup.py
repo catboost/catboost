@@ -22,7 +22,7 @@ def version():
 install_requires=[
     'graphviz',
     'matplotlib',
-    'numpy >= 1.11.1',
+    'numpy >= 1.16.0',
     'pandas >= 0.24.0',
     'scipy',
     'plotly',
