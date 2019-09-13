@@ -311,6 +311,8 @@ ALLOW .* -> vendor/github.com/vbauerster/mpb
 
 # CONTRIB-1451 Google firebase library
 ALLOW .* -> vendor/firebase.google.com/go
+#transitive dependency for firebase
+ALLOW .* -> vendor/google.golang.org/api/option
 
 #
 # Temporary exceptions.
