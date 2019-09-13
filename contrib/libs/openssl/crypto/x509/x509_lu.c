@@ -298,8 +298,6 @@ int X509_STORE_CTX_get_by_subject(X509_STORE_CTX *vs, X509_LOOKUP_TYPE type,
         return 0;
 
     stmp.type = X509_LU_NONE;
-
-    stmp.type = X509_LU_NONE;
     stmp.data.ptr = NULL;
 
     CRYPTO_THREAD_write_lock(ctx->lock);
