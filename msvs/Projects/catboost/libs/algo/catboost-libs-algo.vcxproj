@@ -110,7 +110,6 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\roc_curve.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\score_calcers.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\scoring.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\short_vector_ops.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\split.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\target_classifier.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\tensor_search_helpers.cpp"/>
@@ -149,7 +148,6 @@
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\roc_curve.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\score_calcers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\scoring.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\short_vector_ops.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\split.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\target_classifier.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\tensor_search_helpers.h"/>

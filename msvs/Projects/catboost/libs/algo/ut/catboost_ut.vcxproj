@@ -83,7 +83,6 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\ut\mvs_gen_weights_ut.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\ut\pairwise_scoring_ut.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\ut\quantile_ut.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\ut\short_vector_ops_ut.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\ut\train_ut.cpp"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>

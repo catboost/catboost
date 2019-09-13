@@ -114,6 +114,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\restorable_rng.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\serialization.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\set.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\short_vector_ops.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\sparse_array.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\helpers\sparse_array.h_serialized.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\vector_helpers.cpp"/>
@@ -182,6 +183,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\restorable_rng.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\serialization.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\set.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\short_vector_ops.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\sparse_array-inl.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\vector_helpers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\wx_test.h"/>
