@@ -83,7 +83,8 @@ THashMap<size_t, size_t> GetColumnIndexToNumericFeatureIndexMap(const NCB::TQuan
 NCB::TDataMetaInfo GetDataMetaInfo(
     const NCB::TQuantizedPool& pool,
     bool hasAdditionalGroupWeight,
-    bool hasPairs
+    bool hasPairs,
+    TMaybe<ui32> baselineCount
 ) {
     const size_t columnsCount = pool.ColumnIndexToLocalIndex.size();
     NCB::TDataColumnsMetaInfo dataColumnsMetaInfo;
@@ -94,7 +95,7 @@ NCB::TDataMetaInfo GetDataMetaInfo(
         dataColumnsMetaInfo.Columns[columnIndex].Id = pool.ColumnNames[localIndex];
     }
 
-    NCB::TDataMetaInfo metaInfo(std::move(dataColumnsMetaInfo), hasAdditionalGroupWeight, hasPairs, Nothing(), Nothing());
+    NCB::TDataMetaInfo metaInfo(std::move(dataColumnsMetaInfo), hasAdditionalGroupWeight, hasPairs, baselineCount, Nothing());
     metaInfo.Validate();
     return metaInfo;
 }

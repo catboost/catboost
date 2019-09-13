@@ -3,6 +3,7 @@
 
 #include <catboost/idl/pool/flat/quantized_chunk_t.fbs.h>
 #include <catboost/libs/column_description/column.h>
+#include <catboost/libs/data_new/baseline.h>
 #include <catboost/libs/data_new/meta_info.h>
 #include <catboost/libs/data_new/unaligned_mem.h>
 #include <catboost/libs/data_util/exists_checker.h>
@@ -61,7 +62,8 @@ NCB::TCBQuantizedDataLoader::TCBQuantizedDataLoader(TDatasetLoaderPullArgs&& arg
     CB_ENSURE(!BaselinePath.Inited() || CheckExists(BaselinePath),
         "TCBQuantizedDataLoader:BaselineFilePath does not exist");
 
-    DataMetaInfo = GetDataMetaInfo(QuantizedPool, GroupWeightsPath.Inited(), PairsPath.Inited());
+    const NCB::TBaselineReader baselineReader(BaselinePath, args.CommonArgs.ClassNames);
+    DataMetaInfo = GetDataMetaInfo(QuantizedPool, GroupWeightsPath.Inited(), PairsPath.Inited(), baselineReader.GetBaselineCount());
 
     CB_ENSURE(DataMetaInfo.GetFeatureCount() > 0, "Pool should have at least one factor");
 

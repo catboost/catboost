@@ -21,7 +21,8 @@ THashMap<size_t, size_t> GetColumnIndexToNumericFeatureIndexMap(const NCB::TQuan
 NCB::TDataMetaInfo GetDataMetaInfo(
     const NCB::TQuantizedPool& pool,
     bool hasAdditionalGroupWeight,
-    bool hasPairs);
+    bool hasPairs,
+    TMaybe<ui32> baselineCount);
 
 // Returns flat indices of all categorical features
 // Sorted from min to max
