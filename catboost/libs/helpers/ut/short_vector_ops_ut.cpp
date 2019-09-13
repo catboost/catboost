@@ -1,6 +1,6 @@
 #include <library/unittest/registar.h>
 
-#include <catboost/libs/algo/short_vector_ops.h>
+#include <catboost/libs/helpers/short_vector_ops.h>
 
 #include <library/sse/sse.h>
 

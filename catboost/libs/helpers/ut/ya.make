@@ -21,6 +21,7 @@ SRCS(
     resource_constrained_executor_ut.cpp
     resource_holder_ut.cpp
     serialization_ut.cpp
+    short_vector_ops_ut.cpp
     sparse_array_ut.cpp
     wx_test_ut.cpp
     xml_output_ut.cpp

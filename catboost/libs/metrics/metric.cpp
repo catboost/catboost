@@ -16,6 +16,7 @@
 
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/vector_helpers.h>
+#include <catboost/libs/helpers/short_vector_ops.h>
 #include <catboost/libs/options/enum_helpers.h>
 #include <catboost/libs/options/loss_description.h>
 
@@ -102,7 +103,7 @@ namespace {
         ELossFunction LossFunction;
         double Border;
     };
-}
+} // anonymous namespace
 
 THolder<IMetric> MakeCrossEntropyMetric(ELossFunction lossFunction, double border) {
     return MakeHolder<TCrossEntropyMetric>(lossFunction, border);
@@ -136,9 +137,23 @@ TMetricHolder TCrossEntropyMetric::EvalSingleThread(
     // p*log(val) - log(val+1)
 
     CB_ENSURE(approx.size() == 1, "Metric logloss supports only single-dimensional data");
+
     const auto impl = [=] (auto isExpApprox, auto hasDelta, auto hasWeight, auto isLogloss, float border, TConstArrayRef<double> approx, TConstArrayRef<double> approxDelta) {
-        TMetricHolder holder(2);
-        for (int i : xrange(begin, end)) {
+        int tailBegin;
+        auto holder = NMixedSimdOps::EvalCrossEntropyVectorized(
+            isExpApprox,
+            hasDelta,
+            hasWeight,
+            isLogloss,
+            approx,
+            approxDelta,
+            target,
+            weight,
+            border,
+            begin,
+            end,
+            &tailBegin);
+        for (int i = tailBegin; i < end; ++i) {
             const float w = hasWeight ? weight[i] : 1;
             const float prob = isLogloss ? target[i] > border : target[i];
             if (isExpApprox) {

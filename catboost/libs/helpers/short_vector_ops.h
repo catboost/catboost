@@ -2,6 +2,7 @@
 
 
 #include <catboost/libs/algo_helpers/online_predictor.h>
+#include <catboost/libs/metrics/metric_holder.h>
 
 #include <library/sse/sse.h>
 
@@ -212,3 +213,98 @@ namespace NSimdOps {
     using NGenericSimdOps::UpdateScoreBinKernelOrdered;
 }
 #endif
+
+namespace NMixedSimdOps {
+#ifdef _sse3_
+    inline __m128 VectorFastLogf(__m128d x0, __m128d x2) {
+        const __m128i x4 = _mm_castps_si128(_mm_shuffle_ps(_mm_cvtpd_ps(x0), _mm_cvtpd_ps(x2), 0x44));
+        const __m128 i4 = _mm_castsi128_ps(_mm_or_si128(_mm_and_si128(x4, _mm_set1_epi32(0x007fffff)), _mm_set1_epi32(0x3f000000)));
+        const __m128 y4 = _mm_mul_ps(_mm_cvtepi32_ps(x4), _mm_set1_ps(1.1920928955078125e-7f));
+        const __m128 log4 = _mm_sub_ps(_mm_sub_ps(_mm_sub_ps(y4, _mm_set1_ps(124.22551499f)), _mm_mul_ps(i4, _mm_set1_ps(1.498030302f))), _mm_div_ps(_mm_set1_ps(1.72587999f), _mm_add_ps(i4, _mm_set1_ps(0.3520887068f))));
+        return _mm_mul_ps(log4, _mm_set1_ps(0.69314718f));
+    }
+#endif
+
+    template <typename TIsExpApprox, typename THasDelta, typename THasWeight, typename TIsLogloss>
+    inline TMetricHolder EvalCrossEntropyVectorized(
+        TIsExpApprox isExpApprox,
+        THasDelta hasDelta,
+        THasWeight hasWeight,
+        TIsLogloss isLogloss,
+        TConstArrayRef<double> approx,
+        TConstArrayRef<double> approxDelta,
+        TConstArrayRef<float> target,
+        TConstArrayRef<float> weight,
+        float border,
+        int begin,
+        int end,
+        int* tailBegin
+    ) {
+        TMetricHolder result(2);
+        *tailBegin = begin;
+#ifndef _sse3_
+        Y_UNUSED(isExpApprox);
+        Y_UNUSED(hasDelta);
+        Y_UNUSED(hasWeight);
+        Y_UNUSED(isLogloss);
+        Y_UNUSED(approx);
+        Y_UNUSED(approxDelta);
+        Y_UNUSED(target);
+        Y_UNUSED(weight);
+        Y_UNUSED(border);
+        Y_UNUSED(end);
+        return result;
+#else
+        if (!isExpApprox) {
+            return result;
+        }
+        __m128 stat0 = _mm_setzero_ps();
+        __m128 stat1 = _mm_setzero_ps();
+        int idx = begin;
+        for (; idx + 4 <= end; idx += 4) {
+            __m128 prob = _mm_undefined_ps();
+            if (isLogloss) {
+                prob = _mm_and_ps(_mm_cmpgt_ps(_mm_loadu_ps(&target[idx]), _mm_set1_ps(border)), _mm_set1_ps(1.0f));
+            } else {
+                prob = _mm_loadu_ps(&target[idx]);
+            }
+            __m128d expApprox0 = _mm_loadu_pd(&approx[idx + 0]);
+            __m128d expApprox2 = _mm_loadu_pd(&approx[idx + 2]);
+            __m128 nonExpApprox = VectorFastLogf(expApprox0, expApprox2);
+            if (hasDelta) {
+                const __m128d approxDelta0 = _mm_loadu_pd(&approxDelta[idx + 0]);
+                const __m128d approxDelta2 = _mm_loadu_pd(&approxDelta[idx + 2]);
+                expApprox0 = _mm_mul_pd(expApprox0, approxDelta0);
+                expApprox2 = _mm_mul_pd(expApprox2, approxDelta2);
+                const __m128 nonExpApproxDelta = VectorFastLogf(approxDelta0, approxDelta2);
+                nonExpApprox = _mm_add_ps(nonExpApprox, nonExpApproxDelta);
+            }
+            const __m128 isNotFinite0 = _mm_castpd_ps(_mm_cmpgt_pd(expApprox0, _mm_set1_pd(std::numeric_limits<double>::max())));
+            const __m128 isNotFinite2 = _mm_castpd_ps(_mm_cmpgt_pd(expApprox2, _mm_set1_pd(std::numeric_limits<double>::max())));
+            const __m128 isNotFinite = _mm_shuffle_ps(isNotFinite0, isNotFinite2, 0x88);
+            const __m128 nonExpApprox1 = VectorFastLogf(
+                _mm_add_pd(expApprox0, _mm_set1_pd(1.0)),
+                _mm_add_pd(expApprox2, _mm_set1_pd(1.0)));
+            const __m128 probTimesNonExp = _mm_mul_ps(prob, nonExpApprox);
+            const __m128 nonExp1MinusProbNonExp = _mm_andnot_ps(isNotFinite, _mm_sub_ps(nonExpApprox1, probTimesNonExp));
+            const __m128 negProbTimesNonExp = _mm_and_ps(isNotFinite, _mm_mul_ps(_mm_sub_ps(_mm_set1_ps(1.0f), prob), nonExpApprox));
+            __m128 w = _mm_undefined_ps();
+            if (hasWeight) {
+                w = _mm_loadu_ps(&weight[idx]);
+            } else {
+                w = _mm_set1_ps(1.0f);
+            }
+            stat0 = _mm_add_ps(stat0, _mm_mul_ps(w, _mm_or_ps(nonExp1MinusProbNonExp, negProbTimesNonExp)));
+            stat1 = _mm_add_ps(stat1, w);
+        }
+        stat0 = _mm_hadd_ps(stat0, stat0);
+        stat0 = _mm_hadd_ps(stat0, stat0);
+        result.Stats[0] += _mm_cvtss_f32(stat0);
+        stat1 = _mm_hadd_ps(stat1, stat1);
+        stat1 = _mm_hadd_ps(stat1, stat1);
+        result.Stats[1] += _mm_cvtss_f32(stat1);
+        *tailBegin = idx;
+        return result;
+#endif
+    }
+}

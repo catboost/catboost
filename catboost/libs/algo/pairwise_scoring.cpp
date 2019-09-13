@@ -2,7 +2,7 @@
 
 
 #include <catboost/libs/algo_helpers/pairwise_leaves_calculation.h>
-#include "short_vector_ops.h"
+#include <catboost/libs/helpers/short_vector_ops.h>
 
 #include <util/generic/xrange.h>
 #include <util/system/yassert.h>

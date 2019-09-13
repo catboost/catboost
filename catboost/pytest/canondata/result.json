@@ -2479,7 +2479,7 @@
     ],
     "test.test_learning_rate_auto_set[false-Ordered]": [
         {
-            "checksum": "f2d272360072c75249fdd84aca6380ec",
+            "checksum": "037bfb2157bfc775a1da8e0af9d023a9",
             "uri": "file://test.test_learning_rate_auto_set_false-Ordered_/test.eval"
         }
     ],
@@ -2837,13 +2837,13 @@
     ],
     "test.test_mvs_bootstrap_head_frac[Ordered]": [
         {
-            "checksum": "0272db3dd8159bef2becfd2d0991ce35",
+            "checksum": "46dd21a1a0376c0e8d784ff7f7eb6a6d",
             "uri": "file://test.test_mvs_bootstrap_head_frac_Ordered_/test.eval"
         }
     ],
     "test.test_mvs_bootstrap_head_frac[Plain]": [
         {
-            "checksum": "e0285235396068dcfa60afa45faf385b",
+            "checksum": "d49a804c732e708b7773adb17e66562a",
             "uri": "file://test.test_mvs_bootstrap_head_frac_Plain_/test.eval"
         }
     ],

@@ -1,7 +1,8 @@
 #include "score_calcers.h"
 
-#include "short_vector_ops.h"
 #include "split.h"
+
+#include <catboost/libs/helpers/short_vector_ops.h>
 
 #include <util/generic/bitops.h>
 #include <util/generic/cast.h>

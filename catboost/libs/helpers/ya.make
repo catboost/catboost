@@ -39,6 +39,7 @@ SRCS(
     restorable_rng.cpp
     serialization.cpp
     set.cpp
+    short_vector_ops.cpp
     sparse_array.cpp
     vector_helpers.cpp
     wx_test.cpp
