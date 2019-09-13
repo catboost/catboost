@@ -1,0 +1,20 @@
+RESOURCES_LIBRARY()
+
+
+
+IF (NOT OS_ANDROID)
+    MESSAGE(FATAL_ERROR Unsupported platform)
+ENDIF()
+
+IF (HOST_OS_LINUX)
+    # Android SDK for linux: Build-Tools 28.0.0, Build-Tools 28.0.2, Platform 28, Tools 26.1.1
+    DECLARE_EXTERNAL_HOST_RESOURCES_BUNDLE(
+        ANDROID_SDK
+        sbr:1113177054 FOR LINUX
+    )
+    DECLARE_EXTERNAL_RESOURCE(ANDROID_AVD sbr:1113208990)
+ELSE()
+    MESSAGE(FATAL_ERROR Unsupported host platform)
+ENDIF()
+
+END()

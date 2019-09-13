@@ -385,6 +385,7 @@ def onadd_ytest(unit, *args):
         'SKIP_TEST': unit.get('SKIP_TEST_VALUE') or '',
         'TEST_IOS_DEVICE_TYPE': unit.get('TEST_IOS_DEVICE_TYPE_VALUE') or '',
         'TEST_IOS_RUNTIME_TYPE': unit.get('TEST_IOS_RUNTIME_TYPE_VALUE') or '',
+        'ANDROID_APK_TEST_ACTIVITY': unit.get('ANDROID_APK_TEST_ACTIVITY_VALUE') or '',
     }
 
     if flat_args[1] == 'fuzz.test' and unit.get('FUZZING') == 'yes':
