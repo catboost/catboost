@@ -91,67 +91,65 @@ IF (OS_WINDOWS AND ARCH_X86_64)
     )
 ENDIF()
 
-SRCDIR(contrib/libs/openssl)
-
 SRCS(
-    apps/app_rand.c
-    apps/apps.c
-    apps/asn1pars.c
-    apps/bf_prefix.c
-    apps/ca.c
-    apps/ciphers.c
-    apps/cms.c
-    apps/crl.c
-    apps/crl2p7.c
-    apps/dgst.c
-    apps/dhparam.c
-    apps/dsa.c
-    apps/dsaparam.c
-    apps/ec.c
-    apps/ecparam.c
-    apps/enc.c
-    apps/engine.c
-    apps/errstr.c
-    apps/gendsa.c
-    apps/genpkey.c
-    apps/genrsa.c
-    apps/nseq.c
-    apps/ocsp.c
-    apps/openssl.c
-    apps/opt.c
-    apps/passwd.c
-    apps/pkcs12.c
-    apps/pkcs7.c
-    apps/pkcs8.c
-    apps/pkey.c
-    apps/pkeyparam.c
-    apps/pkeyutl.c
-    apps/prime.c
-    apps/rand.c
-    apps/rehash.c
-    apps/req.c
-    apps/rsa.c
-    apps/rsautl.c
-    apps/s_cb.c
-    apps/s_client.c
-    apps/s_server.c
-    apps/s_socket.c
-    apps/s_time.c
-    apps/sess_id.c
-    apps/smime.c
-    apps/speed.c
-    apps/spkac.c
-    apps/srp.c
-    apps/storeutl.c
-    apps/ts.c
-    apps/verify.c
-    apps/version.c
-    apps/x509.c
+    app_rand.c
+    apps.c
+    asn1pars.c
+    bf_prefix.c
+    ca.c
+    ciphers.c
+    cms.c
+    crl.c
+    crl2p7.c
+    dgst.c
+    dhparam.c
+    dsa.c
+    dsaparam.c
+    ec.c
+    ecparam.c
+    enc.c
+    engine.c
+    errstr.c
+    gendsa.c
+    genpkey.c
+    genrsa.c
+    nseq.c
+    ocsp.c
+    openssl.c
+    opt.c
+    passwd.c
+    pkcs12.c
+    pkcs7.c
+    pkcs8.c
+    pkey.c
+    pkeyparam.c
+    pkeyutl.c
+    prime.c
+    rand.c
+    rehash.c
+    req.c
+    rsa.c
+    rsautl.c
+    s_cb.c
+    s_client.c
+    s_server.c
+    s_socket.c
+    s_time.c
+    sess_id.c
+    smime.c
+    speed.c
+    spkac.c
+    srp.c
+    storeutl.c
+    ts.c
+    verify.c
+    version.c
+    x509.c
 )
 
 IF (OS_WINDOWS AND ARCH_X86_64)
     SRCS(
-        apps/win32_init.c
+        win32_init.c
     )
 ENDIF()
 
