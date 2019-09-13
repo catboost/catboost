@@ -19,6 +19,7 @@
 #include <openssl/bio.h>
 #include <openssl/opensslconf.h>
 #include "internal/thread_once.h"
+#include "internal/ctype.h"
 #include "internal/constant_time_locl.h"
 #include "e_os.h"
 
@@ -183,8 +184,8 @@ static ERR_STRING_DATA *int_err_get_item(const ERR_STRING_DATA *d)
 }
 
 #ifndef OPENSSL_NO_ERR
-/* A measurement on Linux 2018-11-21 showed about 3.5kib */
-# define SPACE_SYS_STR_REASONS 4 * 1024
+/* 2019-05-21: Russian and Ukrainian locales on Linux require more than 6,5 kB */
+# define SPACE_SYS_STR_REASONS 8 * 1024
 # define NUM_SYS_STR_REASONS 127
 
 static ERR_STRING_DATA SYS_str_reasons[NUM_SYS_STR_REASONS + 1];
@@ -218,15 +219,28 @@ static void build_SYS_str_reasons(void)
         ERR_STRING_DATA *str = &SYS_str_reasons[i - 1];
 
         str->error = ERR_PACK(ERR_LIB_SYS, 0, i);
-        if (str->string == NULL) {
+        /*
+         * If we have used up all the space in strerror_pool,
+         * there's no point in calling openssl_strerror_r()
+         */
+        if (str->string == NULL && cnt < sizeof(strerror_pool)) {
             if (openssl_strerror_r(i, cur, sizeof(strerror_pool) - cnt)) {
-                size_t l = strlen(cur) + 1;
+                size_t l = strlen(cur);
 
                 str->string = cur;
                 cnt += l;
-                if (cnt > sizeof(strerror_pool))
-                    cnt = sizeof(strerror_pool);
                 cur += l;
+
+                /*
+                 * VMS has an unusual quirk of adding spaces at the end of
+                 * some (most? all?) messages. Lets trim them off.
+                 */
+                while (cur > strerror_pool && ossl_isspace(cur[-1])) {
+                    cur--;
+                    cnt--;
+                }
+                *cur++ = '\0';
+                cnt++;
             }
         }
         if (str->string == NULL)

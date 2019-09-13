@@ -49,8 +49,6 @@ ENDIF()
 
 IF (OS_DARWIN AND ARCH_X86_64 OR OS_LINUX AND ARCH_X86_64 OR OS_WINDOWS AND ARCH_X86_64)
     CFLAGS(
-        -DAES_ASM
-        -DBSAES_ASM
         -DGHASH_ASM
         -DL_ENDIAN
         -DMD5_ASM
@@ -106,7 +104,9 @@ IF (OS_WINDOWS AND ARCH_X86_64)
 ENDIF()
 
 SRCS(
+    aes/aes_cbc.c
     aes/aes_cfb.c
+    aes/aes_core.c
     aes/aes_ecb.c
     aes/aes_ige.c
     aes/aes_misc.c
@@ -753,12 +753,10 @@ ENDIF()
 
 IF (OS_DARWIN AND ARCH_X86_64)
     SRCS(
-        ../asm/darwin/crypto/aes/aes-x86_64.s
         ../asm/darwin/crypto/aes/aesni-mb-x86_64.s
         ../asm/darwin/crypto/aes/aesni-sha1-x86_64.s
         ../asm/darwin/crypto/aes/aesni-sha256-x86_64.s
         ../asm/darwin/crypto/aes/aesni-x86_64.s
-        ../asm/darwin/crypto/aes/bsaes-x86_64.s
         ../asm/darwin/crypto/aes/vpaes-x86_64.s
         ../asm/darwin/crypto/bn/rsaz-avx2.s
         ../asm/darwin/crypto/bn/rsaz-x86_64.s
@@ -844,12 +842,10 @@ ENDIF()
 
 IF (OS_LINUX AND ARCH_X86_64)
     SRCS(
-        ../asm/linux/crypto/aes/aes-x86_64.s
         ../asm/linux/crypto/aes/aesni-mb-x86_64.s
         ../asm/linux/crypto/aes/aesni-sha1-x86_64.s
         ../asm/linux/crypto/aes/aesni-sha256-x86_64.s
         ../asm/linux/crypto/aes/aesni-x86_64.s
-        ../asm/linux/crypto/aes/bsaes-x86_64.s
         ../asm/linux/crypto/aes/vpaes-x86_64.s
         ../asm/linux/crypto/bn/rsaz-avx2.s
         ../asm/linux/crypto/bn/rsaz-x86_64.s
@@ -879,12 +875,10 @@ ENDIF()
 
 IF (OS_WINDOWS AND ARCH_X86_64)
     SRCS(
-        ../asm/windows/crypto/aes/aes-x86_64.asm
         ../asm/windows/crypto/aes/aesni-mb-x86_64.asm
         ../asm/windows/crypto/aes/aesni-sha1-x86_64.asm
         ../asm/windows/crypto/aes/aesni-sha256-x86_64.asm
         ../asm/windows/crypto/aes/aesni-x86_64.asm
-        ../asm/windows/crypto/aes/bsaes-x86_64.asm
         ../asm/windows/crypto/aes/vpaes-x86_64.asm
         ../asm/windows/crypto/bn/rsaz-avx2.asm
         ../asm/windows/crypto/bn/rsaz-x86_64.asm
