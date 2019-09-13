@@ -3036,9 +3036,11 @@ cdef class _PoolBase:
         if isinstance(data, FeaturesData):
             new_data_holders = data
 
-            # needed because of https://github.com/cython/cython/issues/2485
+            # needed because of https://github.com/cython/cython/issues/1772
             if data.num_feature_data is not None:
                 data.num_feature_data.setflags(write=1)
+                
+            # needed because of https://github.com/cython/cython/issues/2485
             if data.cat_feature_data is not None:
                 data.cat_feature_data.setflags(write=1)
 
@@ -3047,8 +3049,7 @@ cdef class _PoolBase:
                 data.cat_feature_data,
                 py_builder_visitor)
 
-            # set after _set_features_order_data_np call because we can't pass const cat_feature_data to it
-            # https://github.com/cython/cython/issues/2485
+            # set after _set_features_order_data_np call because we can't pass const data to it
             if data.num_feature_data is not None:
                 data.num_feature_data.setflags(write=0)
             if data.cat_feature_data is not None:
@@ -3067,8 +3068,14 @@ cdef class _PoolBase:
             )
         elif isinstance(data, np.ndarray):
             new_data_holders = data
-            data.setflags(write=0)
+
+            # needed because of https://github.com/cython/cython/issues/1772
+            data.setflags(write=1)
+
             _set_features_order_data_np(data, None, py_builder_visitor)
+
+            # set after _set_features_order_data_np call because we can't pass const data to it
+            data.setflags(write=0)
         else:
             raise CatBoostError(
                 '[Internal error] wrong data type for _init_features_order_layout_pool: ' + type(data)

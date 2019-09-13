@@ -238,23 +238,51 @@ def test_load_list():
     assert _check_shape(Pool(features_data, labels, CAT_FEATURES), 101, 17)
 
 
-def test_load_ndarray():
-    features_data = np.empty((101, 17), dtype=object)
-    labels = np.empty(101, dtype=str)
-    with open(TRAIN_FILE) as train_file:
-        for line_idx, l in enumerate(train_file.readlines()):
+@pytest.mark.parametrize(
+    'dtype',
+    [np.float32, np.float64, object],
+    ids=['dtype=np.float32', 'dtype=np.float64', 'dtype=object']
+)
+@pytest.mark.parametrize('order', ['C', 'F'], ids=['order=C', 'order=F'])
+def test_load_ndarray_vs_load_from_file(dtype, order):
+    if dtype is object:  # mixed numeric and categorical features data
+        n_features = 17
+        n_objects = 101
+        train_file = TRAIN_FILE
+        cd_file = CD_FILE
+        target_column_idx = TARGET_IDX
+        cat_column_indices = CAT_COLUMNS
+        cat_feature_indices = CAT_FEATURES
+    else:
+        n_features = 28
+        n_objects = 101
+        train_file = HIGGS_TRAIN_FILE
+        cd_file = HIGGS_CD_FILE
+        target_column_idx = 0
+        cat_column_indices = []
+        cat_feature_indices = []
+
+    pool_from_file = Pool(train_file, column_description=cd_file)
+
+    features_data = np.empty((n_objects, n_features), dtype=dtype, order=order)
+    labels = np.empty(n_objects, dtype=float)
+    with open(train_file) as train_input:
+        for line_idx, l in enumerate(train_input.readlines()):
             elements = l[:-1].split('\t')
             feature_idx = 0
             for column_idx, element in enumerate(elements):
-                if column_idx == TARGET_IDX:
-                    labels[line_idx] = element
+                if column_idx == target_column_idx:
+                    labels[line_idx] = float(element)
                 else:
                     features_data[line_idx, feature_idx] = (
-                        element if column_idx in CAT_COLUMNS else float(element)
+                        element if (dtype is object) or (column_idx in cat_column_indices) else dtype(element)
                     )
                     feature_idx += 1
 
-    assert _check_shape(Pool(features_data, labels, CAT_FEATURES), 101, 17)
+    pool_from_ndarray = Pool(features_data, labels, cat_features=cat_feature_indices)
+
+    assert _have_equal_features(pool_from_file, pool_from_ndarray)
+    assert _check_data([float(label) for label in pool_from_file.get_label()], pool_from_ndarray.get_label())
 
 
 @pytest.mark.parametrize('dataset', ['adult', 'adult_nan', 'querywise'])
