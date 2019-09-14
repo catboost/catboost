@@ -1,7 +1,12 @@
 import os
+import re
 
 import _import_wrapper as iw
 import _common as common
+
+
+def init():
+    iw.addrule('swg', Swig)
 
 
 class Swig(iw.CustomCommand):
@@ -13,7 +18,10 @@ class Swig(iw.CustomCommand):
         self._input_name = common.stripext(os.path.basename(self._path))
 
         relpath = os.path.relpath(os.path.dirname(self._path), unit.path())
-        self._main_out = os.path.join(self._bindir, '' if relpath == '.' else relpath.replace('..', '__'), self._input_name + '_wrap.c')
+        self._main_out = os.path.join(
+            self._bindir,
+            '' if relpath == '.' else relpath.replace('..', '__'),
+            self._input_name + '_wrap.c')
 
         if not path.endswith('.c.swg'):
             self._flags += ['-c++']
@@ -69,10 +77,10 @@ class Swig(iw.CustomCommand):
         return [
             (self._main_out, []),
             (common.join_intl_paths(self._bindir, self._out_name), (['noauto', 'add_to_outs'] if self._swig_lang != 'java' else [])),
-        ] + ([(self._out_header,  [])] if self._swig_lang == 'java' else [])
+        ] + ([(self._out_header, [])] if self._swig_lang == 'java' else [])
 
     def output_includes(self):
-        return [(self._out_header,  [])] if self._swig_lang == 'java' else []
+        return [(self._out_header, [])] if self._swig_lang == 'java' else []
 
     def run(self, binary):
         return self.do_run(binary, self._path) if self._swig_lang != 'java' else self.do_run_java(binary, self._path)
@@ -87,12 +95,27 @@ class Swig(iw.CustomCommand):
         ] + self._incl_flags() + [self.resolve_path(path)])
 
     def do_run_java(self, binary, path):
-        cmd = common.get_interpreter_path() + ['$S/build/scripts/run_swig_java.py', '--tool', binary, '--src', self.resolve_path(path)]
-        for flag in self._incl_flags():
-            cmd.append('--flag=' + flag)
-        cmd += ['--cpp-out', self._main_out, '--jsrc-out', '/'.join([self.resolve_path(self._bindir), self._out_name]), '--package', self._package]
-        self.call(cmd)
+        import tarfile
 
+        outdir = self.resolve_path(self._bindir)
+        java_srcs_dir = os.path.join(outdir, self._package.replace('.', '/'))
+        if not os.path.exists(java_srcs_dir):
+            os.makedirs(java_srcs_dir)
 
-def init():
-    iw.addrule('swg', Swig)
+        flags = self._incl_flags()
+        src = self.resolve_path(path)
+        with open(src, 'r') as f:
+            if not re.search(r'(?m)^%module\b', f.read()):
+                flags += ['-module', os.path.splitext(os.path.basename(src))[0]]
+
+        self.call([
+            binary, '-c++', '-o', self._main_out, '-outdir', java_srcs_dir,
+            '-java', '-package', self._package,
+        ] + flags + [src])
+
+        with tarfile.open(os.path.join(outdir, self._out_name), 'a') as tf:
+            tf.add(java_srcs_dir, arcname=self._package.replace('.', '/'))
+
+        header = os.path.splitext(self.resolve_path(self._main_out))[0] + '.h'
+        if not os.path.exists(header):
+            open(header, 'w').close()

@@ -64,7 +64,6 @@ TEST_SRCS(
     run_javac.py
     run_llvm_dsymutil.py
     run_msvc_wine.py
-    run_swig_java.py
     run_tool.py
     stdout2stderr.py
     svn_version_gen.py
