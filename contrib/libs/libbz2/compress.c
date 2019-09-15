@@ -8,8 +8,8 @@
    This file is part of bzip2/libbzip2, a program and library for
    lossless, block-sorting data compression.
 
-   bzip2/libbzip2 version 1.0.5 of 10 December 2007
-   Copyright (C) 1996-2007 Julian Seward <jseward@bzip.org>
+   bzip2/libbzip2 version 1.0.6 of 6 September 2010
+   Copyright (C) 1996-2010 Julian Seward <jseward@bzip.org>
 
    Please read the WARNING, DISCLAIMER and PATENTS sections in the 
    README file.
@@ -187,15 +187,15 @@ void generateMTFValues ( EState* s )
             zPend = 0;
          }
          {
-            UChar  rtmp;
-            UChar* ryy_j;
-            UChar  rll_i;
+            register UChar  rtmp;
+            register UChar* ryy_j;
+            register UChar  rll_i;
             rtmp  = yy[1];
             yy[1] = yy[0];
             ryy_j = &(yy[1]);
             rll_i = ll_i;
             while ( rll_i != rtmp ) {
-               UChar rtmp2;
+               register UChar rtmp2;
                ryy_j++;
                rtmp2  = rtmp;
                rtmp   = *ryy_j;
@@ -357,8 +357,8 @@ void sendMTFValues ( EState* s )
 
          if (nGroups == 6 && 50 == ge-gs+1) {
             /*--- fast track the common case ---*/
-            UInt32 cost01, cost23, cost45;
-            UInt16 icv;
+            register UInt32 cost01, cost23, cost45;
+            register UInt16 icv;
             cost01 = cost23 = cost45 = 0;
 
 #           define BZ_ITER(nn)                \

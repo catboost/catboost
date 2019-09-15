@@ -19,13 +19,13 @@ public:
     }
 
     inline void Init() {
-        if (ArcBZ2_bzDecompressInit(&BzStream_, 0, 0) != BZ_OK) {
+        if (BZ2_bzDecompressInit(&BzStream_, 0, 0) != BZ_OK) {
             ythrow TBZipDecompressError() << "can not init bzip engine";
         }
     }
 
     inline void Clear() noexcept {
-        ArcBZ2_bzDecompressEnd(&BzStream_);
+        BZ2_bzDecompressEnd(&BzStream_);
     }
 
     inline size_t Read(void* buf, size_t size) {
@@ -39,7 +39,7 @@ public:
                 }
             }
 
-            switch (ArcBZ2_bzDecompress(&BzStream_)) {
+            switch (BZ2_bzDecompress(&BzStream_)) {
                 case BZ_STREAM_END: {
                     Clear();
                     Init();
@@ -92,7 +92,7 @@ public:
     {
         Zero(BzStream_);
 
-        if (ArcBZ2_bzCompressInit(&BzStream_, level, 0, 0) != BZ_OK) {
+        if (BZ2_bzCompressInit(&BzStream_, level, 0, 0) != BZ_OK) {
             ythrow TBZipCompressError() << "can not init bzip engine";
         }
 
@@ -101,7 +101,7 @@ public:
     }
 
     inline ~TImpl() {
-        ArcBZ2_bzCompressEnd(&BzStream_);
+        BZ2_bzCompressEnd(&BzStream_);
     }
 
     inline void Write(const void* buf, size_t size) {
@@ -114,7 +114,7 @@ public:
         };
 
         while (BzStream_.avail_in) {
-            const int ret = ArcBZ2_bzCompress(&BzStream_, BZ_RUN);
+            const int ret = BZ2_bzCompress(&BzStream_, BZ_RUN);
 
             switch (ret) {
                 case BZ_RUN_OK:
@@ -141,14 +141,14 @@ public:
     }
 
     inline void Finish() {
-        int ret = ArcBZ2_bzCompress(&BzStream_, BZ_FINISH);
+        int ret = BZ2_bzCompress(&BzStream_, BZ_FINISH);
 
         while (ret != BZ_STREAM_END) {
             Stream_->Write(TmpBuf(), TmpBufLen() - BzStream_.avail_out);
             BzStream_.next_out = TmpBuf();
             BzStream_.avail_out = TmpBufLen();
 
-            ret = ArcBZ2_bzCompress(&BzStream_, BZ_FINISH);
+            ret = BZ2_bzCompress(&BzStream_, BZ_FINISH);
         }
 
         Stream_->Write(TmpBuf(), TmpBufLen() - BzStream_.avail_out);
