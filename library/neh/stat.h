@@ -8,13 +8,12 @@
 namespace NNeh {
     class TStatCollector;
 
-    //neh service workability statistic collector
-    //by default using TServiceStat disabled
-    //for enabling, use TServiceStat::ConfigureValidator() for set maxContinuousErrors diff from zero
+    /// NEH service workability statistics collector.
+    ///
+    /// Disabled by default, use `TServiceStat::ConfigureValidator` to set `maxContinuousErrors`
+    /// different from zero.
     class TServiceStat: public TThrRefBase {
     public:
-        TServiceStat();
-
         static void ConfigureValidator(unsigned maxContinuousErrors, unsigned reSendValidatorPeriod) noexcept {
             AtomicSet(MaxContinuousErrors_, maxContinuousErrors);
             AtomicSet(ReSendValidatorPeriod_, reSendValidatorPeriod);
@@ -44,18 +43,17 @@ namespace NNeh {
         static TAtomic MaxContinuousErrors_;
         static TAtomic ReSendValidatorPeriod_;
         TAtomicCounter RequestsInProcess_;
-        TAtomic LastContinuousErrors_;
-        TAtomic SendValidatorCounter_;
+        TAtomic LastContinuousErrors_ = 0;
+        TAtomic SendValidatorCounter_ = 0;
     };
 
-    typedef TIntrusivePtr<TServiceStat> TServiceStatRef;
+    using TServiceStatRef = TIntrusivePtr<TServiceStat>;
 
     //thread safe (race protected) service stat updater
     class TStatCollector {
     public:
         TStatCollector(TServiceStatRef& ss)
             : SS_(ss)
-            , CanInformSS_(1)
         {
             ss->OnBegin();
         }
@@ -86,13 +84,13 @@ namespace NNeh {
 
     private:
         inline bool CanInformSS() noexcept {
-            return CanInformSS_ && AtomicCas(&CanInformSS_, 0, 1);
+            return AtomicGet(CanInformSS_) && AtomicCas(&CanInformSS_, 0, 1);
         }
 
         TServiceStatRef SS_;
-        TAtomic CanInformSS_;
+        TAtomic CanInformSS_ = 1;
     };
 
-    TServiceStatRef GetServiceStat(const TString& addr);
+    TServiceStatRef GetServiceStat(TStringBuf addr);
 
 }

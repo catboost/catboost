@@ -1,5 +1,6 @@
 #pragma once
 
+#include <util/generic/array_ref.h>
 #include <util/generic/flags.h>
 #include <util/generic/ptr.h>
 #include <util/generic/vector.h>
@@ -223,28 +224,27 @@ namespace NNeh {
 
         static constexpr ERequestType DefaultRequestType = ERequestType::Any;
 
-        extern const TString DefaultContentType;
+        extern const TStringBuf DefaultContentType;
 
-        /*
-        @brief  MakeFullRequest transmutes http/post/http2/post2 message to full/full2 with additional HTTP headers
-                                and/or content data.
+        /// @brief `MakeFullRequest` transmutes http/post/http2/post2 message to full/full2 with
+        /// additional HTTP headers and/or content data.
+        ///
+        /// If reqType is `Any`, then request type is POST, unless content is empty and schema
+        /// prefix is http/https/http2, in that case request type is GET.
+        ///
+        /// @msg[in]        Will get URL from `msg.Data`.
+        bool MakeFullRequest(TMessage& msg, TStringBuf headers, TStringBuf content, TStringBuf contentType = DefaultContentType, ERequestType reqType = DefaultRequestType, ERequestFlags flags = ERequestFlag::None);
 
-        @note   If reqType is Any, then request type is POST, unless content is empty and schema prefix is http/https/http2,
-                in that case request type is GET.
-     */
-        bool MakeFullRequest(TMessage& msg //will get url from msg.Data
-                             ,
-                             const TStringBuf headers, const TStringBuf content, const TStringBuf contentType = DefaultContentType, ERequestType reqType = DefaultRequestType, ERequestFlags flags = ERequestFlag::None);
+        /// @see `MakeFullrequest`.
+        ///
+        /// @urlParts[in]       Will construct url from `urlParts`, `msg.Data` is not used.
+        bool MakeFullRequest(TMessage& msg, TConstArrayRef<TString> urlParts, TStringBuf headers, TStringBuf content, TStringBuf contentType = DefaultContentType, ERequestType reqType = DefaultRequestType, ERequestFlags flags = ERequestFlag::None);
 
-        bool MakeFullRequest(TMessage& msg, const TVector<TString>& urlParts //will construct url from urlParts, msg.Data is not used
-                             ,
-                             const TStringBuf headers, const TStringBuf content, const TStringBuf contentType = DefaultContentType, ERequestType reqType = DefaultRequestType, ERequestFlags flags = ERequestFlag::None);
-
-        size_t GetUrlPartsLength(const TVector<TString>& urlParts);
+        size_t GetUrlPartsLength(TConstArrayRef<TString> urlParts);
         //part1&part2&...
-        void JoinUrlParts(const TVector<TString>& urlParts, IOutputStream& out);
+        void JoinUrlParts(TConstArrayRef<TString> urlParts, IOutputStream& out);
         //'?' + JoinUrlParts
-        void WriteUrlParts(const TVector<TString>& urlParts, IOutputStream& out);
+        void WriteUrlParts(TConstArrayRef<TString> urlParts, IOutputStream& out);
 
         bool IsHttpScheme(TStringBuf scheme);
     }

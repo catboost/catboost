@@ -1,21 +1,15 @@
 #include "stat.h"
 #include "neh.h"
 
-#include <util/system/tls.h>
-#include <util/system/mutex.h>
-#include <util/generic/singleton.h>
 #include <util/generic/hash.h>
+#include <util/generic/singleton.h>
+#include <util/system/spinlock.h>
+#include <util/system/tls.h>
 
 using namespace NNeh;
 
 volatile TAtomic NNeh::TServiceStat::MaxContinuousErrors_ = 0; //by default disabled
 volatile TAtomic NNeh::TServiceStat::ReSendValidatorPeriod_ = 100;
-
-NNeh::TServiceStat::TServiceStat()
-    : LastContinuousErrors_(0)
-    , SendValidatorCounter_(0)
-{
-}
 
 NNeh::TServiceStat::EStatus NNeh::TServiceStat::GetStatus() {
     if (!AtomicGet(MaxContinuousErrors_) || AtomicGet(LastContinuousErrors_) < AtomicGet(MaxContinuousErrors_)) {
@@ -36,10 +30,10 @@ NNeh::TServiceStat::EStatus NNeh::TServiceStat::GetStatus() {
 }
 
 void NNeh::TServiceStat::DbgOut(IOutputStream& out) const {
-    out << "----------------------------------------------------" << Endl;
-    out << "RequestsInProcess: " << RequestsInProcess_.Val() << Endl;
-    out << "LastContinuousErrors: " << AtomicGet(LastContinuousErrors_) << Endl;
-    out << "SendValidatorCounter: " << AtomicGet(SendValidatorCounter_) << Endl;
+    out << "----------------------------------------------------" << '\n';;
+    out << "RequestsInProcess: " << RequestsInProcess_.Val() << '\n';
+    out << "LastContinuousErrors: " << AtomicGet(LastContinuousErrors_) << '\n';
+    out << "SendValidatorCounter: " << AtomicGet(SendValidatorCounter_) << '\n';
     out << "ReSendValidatorPeriod: " << AtomicGet(ReSendValidatorPeriod_) << Endl;
 }
 
@@ -66,8 +60,8 @@ void NNeh::TServiceStat::OnFail() {
 namespace {
     class TGlobalServicesStat {
     public:
-        inline TServiceStatRef ServiceStat(const TString& addr) noexcept {
-            TGuard<TMutex> guard(Mutex_);
+        inline TServiceStatRef ServiceStat(const TStringBuf addr) noexcept {
+            const auto guard = Guard(Lock_);
 
             TServiceStatRef& ss = SS_[addr];
 
@@ -80,13 +74,13 @@ namespace {
         }
 
     protected:
-        TMutex Mutex_;
+        TAdaptiveLock Lock_;
         THashMap<TString, TServiceStatRef> SS_;
     };
 
     class TServicesStat {
     public:
-        inline TServiceStatRef ServiceStat(const TString& addr) noexcept {
+        inline TServiceStatRef ServiceStat(const TStringBuf addr) noexcept {
             TServiceStatRef& ss = SS_[addr];
 
             if (!ss) {
@@ -116,6 +110,6 @@ namespace {
     }
 }
 
-TServiceStatRef NNeh::GetServiceStat(const TString& addr) {
+TServiceStatRef NNeh::GetServiceStat(const TStringBuf addr) {
     return ThrServiceStat()->ServiceStat(addr);
 }

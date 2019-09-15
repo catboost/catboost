@@ -3,11 +3,12 @@
 #include "location.h"
 #include "http_headers.h"
 
-#include <util/stream/str.h>
+#include <util/generic/array_ref.h>
+#include <util/generic/singleton.h>
 #include <util/stream/length.h>
 #include <util/stream/null.h>
+#include <util/stream/str.h>
 #include <util/string/ascii.h>
-#include <util/generic/singleton.h>
 
 using NNeh::NHttp::ERequestType;
 
@@ -20,11 +21,11 @@ namespace {
         out << url;
     }
 
-    bool IsEmpty(const TVector<TString>& urlParts) {
+    bool IsEmpty(const TConstArrayRef<TString> urlParts) {
         return urlParts.empty();
     }
 
-    void WriteImpl(const TVector<TString>& urlParts, IOutputStream& out) {
+    void WriteImpl(const TConstArrayRef<TString> urlParts, IOutputStream& out) {
         NNeh::NHttp::JoinUrlParts(urlParts, out);
     }
 
@@ -46,10 +47,10 @@ namespace {
 
 namespace NNeh {
     namespace NHttp {
-        size_t GetUrlPartsLength(const TVector<TString>& urlParts) {
+        size_t GetUrlPartsLength(const TConstArrayRef<TString> urlParts) {
             size_t res = 0;
 
-            for (const TString& u : urlParts) {
+            for (const auto& u : urlParts) {
                 res += u.length();
             }
 
@@ -60,7 +61,7 @@ namespace NNeh {
             return res;
         }
 
-        void JoinUrlParts(const TVector<TString>& urlParts, IOutputStream& out) {
+        void JoinUrlParts(const TConstArrayRef<TString> urlParts, IOutputStream& out) {
             if (urlParts.empty()) {
                 return;
             }
@@ -72,7 +73,7 @@ namespace NNeh {
             }
         }
 
-        void WriteUrlParts(const TVector<TString>& urlParts, IOutputStream& out) {
+        void WriteUrlParts(const TConstArrayRef<TString> urlParts, IOutputStream& out) {
             WriteUrl(urlParts, out);
         }
     }
@@ -158,7 +159,7 @@ namespace {
 
 namespace NNeh {
     namespace NHttp {
-        const TString DefaultContentType = "application/x-www-form-urlencoded";
+        const TStringBuf DefaultContentType = "application/x-www-form-urlencoded";
 
         template <typename T>
         bool MakeFullRequestImpl(TMessage& msg, const T& urlParams, const TStringBuf headers, const TStringBuf content, const TStringBuf contentType, ERequestType reqType, ERequestFlags reqFlags) {
@@ -206,7 +207,7 @@ namespace NNeh {
             return MakeFullRequestImpl(msg, msg.Data, headers, content, contentType, reqType, reqFlags);
         }
 
-        bool MakeFullRequest(TMessage& msg, const TVector<TString>& urlParts, const TStringBuf headers, const TStringBuf content, const TStringBuf contentType, ERequestType reqType, ERequestFlags reqFlags) {
+        bool MakeFullRequest(TMessage& msg, const TConstArrayRef<TString> urlParts, const TStringBuf headers, const TStringBuf content, const TStringBuf contentType, ERequestType reqType, ERequestFlags reqFlags) {
             return MakeFullRequestImpl(msg, urlParts, headers, content, contentType, reqType, reqFlags);
         }
 
