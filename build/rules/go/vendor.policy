@@ -254,6 +254,9 @@ ALLOW .* -> vendor/github.com/grpc-ecosystem/grpc-gateway
 # tus: the open protocol for resumable file uploads
 ALLOW .* -> vendor/github.com/tus/tusd
 
+# Fast, fully fledged murmur3 in Go.
+ALLOW .* -> vendor/github.com/twmb/murmur3
+
 # gopsutil: psutil for golang
 ALLOW .* -> vendor/github.com/shirou/gopsutil
 
