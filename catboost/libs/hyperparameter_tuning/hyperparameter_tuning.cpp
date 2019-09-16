@@ -604,6 +604,7 @@ namespace {
         // Other parameters
         NCB::TTrainingDataProviderPtr quantizedData;
         TQuantizationParamsInfo lastQuantizationParamsSet;
+        TLabelConverter labelConverter;
         int iterationIdx = 0;
         int bestIterationIdx = 0;
         TProfileInfo profile(gridIterator->GetTotalElementsCount());
@@ -632,7 +633,6 @@ namespace {
             NCatboostOptions::TOutputFilesOptions outputFileOptions;
             outputFileOptions.Load(outputJsonParams);
 
-            TLabelConverter labelConverter;
             NCB::TFeaturesLayoutPtr featuresLayout = data->MetaInfo.FeaturesLayout;
             NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo;
 
@@ -743,6 +743,7 @@ namespace {
         // Other parameters
         NCB::TTrainingDataProviders trainTestData;
         TQuantizationParamsInfo lastQuantizationParamsSet;
+        TLabelConverter labelConverter;
         int iterationIdx = 0;
         int bestIterationIdx = 0;
         TProfileInfo profile(gridIterator->GetTotalElementsCount());
@@ -771,7 +772,6 @@ namespace {
             NCatboostOptions::TOutputFilesOptions outputFileOptions;
             outputFileOptions.Load(outputJsonParams);
 
-            TLabelConverter labelConverter;
             NCB::TFeaturesLayoutPtr featuresLayout = data->MetaInfo.FeaturesLayout;
             NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo;
 

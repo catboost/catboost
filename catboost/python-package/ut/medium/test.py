@@ -2112,6 +2112,20 @@ def test_grid_search(task_type):
     assert results['params']['border_count'] in border_count_list, "wrong 'border_count_list' value"
 
 
+def test_grid_search_for_multiclass():
+    pool = Pool(CLOUDNESS_TRAIN_FILE, column_description=CLOUDNESS_CD_FILE)
+    model = CatBoostClassifier(iterations=10)
+    grid = {
+        'learning_rate': [0.03, 0.1],
+        'depth': [4, 6, 10],
+        'l2_leaf_reg': [1, 3, 5, 7, 9]
+    }
+
+    results = model.grid_search(grid, pool, shuffle=False, verbose=False)
+    for key, value in results["params"].iteritems():
+        assert value in grid[key]
+
+
 def test_randomized_search(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoost(
