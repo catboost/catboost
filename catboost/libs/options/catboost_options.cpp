@@ -556,10 +556,6 @@ void NCatboostOptions::TCatBoostOptions::Validate() const {
         // we may adjust non-set BoostFromAverage in data dependant tuning
         CB_ENSURE(lossFunction == ELossFunction::RMSE, "You can use boost_from_average only for RMSE loss function now.");
         CB_ENSURE(SystemOptions->IsSingleHost(), "You can use boost_from_average only on single host now.");
-        CB_ENSURE(
-            lossFunction == ELossFunction::RMSE,
-            "You can use explicit boost_from_average with RMSE loss function only for now."
-        );
     }
 
     if (GetTaskType() == ETaskType::CPU && !ObliviousTreeOptions->MonotoneConstraints.Get().empty()) {
@@ -702,11 +698,22 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
         }
     }
     if (TaskType == ETaskType::CPU) {
+        auto& shrinkRate = BoostingOptions->ModelShrinkRate;
         if (!ObliviousTreeOptions->MonotoneConstraints->empty() &&
-            !BoostingOptions->ModelShrinkRate.IsSet())
+            !shrinkRate.IsSet())
         {
-            BoostingOptions->ModelShrinkRate = 0.2;
+            shrinkRate = 0.2;
         }
+
+        if (shrinkRate.IsSet() && !BoostingOptions->BoostFromAverage.IsSet()) {
+            BoostingOptions->BoostFromAverage.Set(false);
+        }
+
+        // TODO(nikitxskv): Remove it after MLTOOLS-4158.
+        CB_ENSURE(
+            !shrinkRate.IsSet() || shrinkRate == 0.0f || !BoostingOptions->BoostFromAverage.Get(),
+            "You cannot use boost from average with specified model_shrink_rate option (automatic specified for monotonic constraints)."
+        );
     }
 
     SetLeavesEstimationDefault();

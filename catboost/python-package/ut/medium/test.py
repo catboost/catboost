@@ -5734,7 +5734,8 @@ def test_training_and_prediction_equal_on_pandas_dense_and_sparse_input(task_typ
     assert _check_data(predictions_on_dense, predictions_model_on_sparse_on_sparse_pool)
 
 
-def test_param_array_monotonic_constrains():
+@pytest.mark.parametrize('model_shrink_rate', [None, 0, 0.2])
+def test_param_array_monotonic_constrains(model_shrink_rate):
     from catboost.datasets import monotonic2
     monotonic2_train, monotonic2_test = monotonic2()
     train_pool = Pool(data=monotonic2_train.drop(columns=['Target']), label=monotonic2_train['Target'])
@@ -5743,8 +5744,9 @@ def test_param_array_monotonic_constrains():
     monotone_constraints_array = np.array([-1, 1, -1, 1])
     monotone_constraints_list = [-1, 1, -1, 1]
 
-    model1 = CatBoostRegressor(iterations=50, monotone_constraints=monotone_constraints_array)
-    model2 = CatBoostRegressor(iterations=50, monotone_constraints=monotone_constraints_list)
+    common_options = dict(iterations=50, model_shrink_rate=model_shrink_rate)
+    model1 = CatBoostRegressor(monotone_constraints=monotone_constraints_array, **common_options)
+    model2 = CatBoostRegressor(monotone_constraints=monotone_constraints_list, **common_options)
 
     model1.fit(train_pool)
     model2.fit(train_pool)
@@ -5753,6 +5755,7 @@ def test_param_array_monotonic_constrains():
     predections2 = model2.predict(test_pool)
 
     assert all(predections1 == predections2)
+    assert abs(model1.evals_result_['learn']['RMSE'][-1] - model1.eval_metrics(train_pool, 'RMSE')['RMSE'][-1]) < 1e-9
 
 
 def test_same_values_with_different_types(task_type):
