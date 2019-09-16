@@ -111,6 +111,13 @@ extern "C" void* realloc(void* old_ptr, size_t new_size) {
     return new_ptr;
 }
 
+extern "C" size_t malloc_usable_size(void* ptr) {
+    if (ptr == nullptr) {
+        return 0;
+    }
+    return LFGetSize(ptr);
+}
+
 #if defined(_MSC_VER) && !defined(_DEBUG)
 extern "C" size_t _msize(void* memblock) {
     return LFGetSize(memblock);
