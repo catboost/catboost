@@ -7,6 +7,7 @@
 #include <util/charset/wide_specific.h>
 #include <util/system/compat.h>
 #include <util/system/yassert.h>
+#include <util/system/platform.h>
 
 #include <cstring>
 
@@ -289,8 +290,13 @@ public:
 #if defined(_win_)
         return TBase::Find(s1, l1, s2, l2);
 #else
+#if defined(_darwin_)
+        if(l2 == 0) {
+            return s1;
+        }
+#endif // _darwin
         return (const char*)memmem(s1, l1, s2, l2);
-#endif
+#endif // !_win_
     }
     using TBase::RFind;
     static const char* RFind(const char* s, char c) {
