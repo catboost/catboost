@@ -1,3 +1,9 @@
+libcatboostmodel (0.16.5ubuntu1) unstable; urgency=medium
+
+  * GPU release 
+
+ -- Kirillov Stanislav <kirillovs@yandex-team.ru>  Fri, 06 Sep 2019 16:34:08 +0000
+
 libcatboostmodel (0.1) unstable; urgency=low
 
   * Initial release
