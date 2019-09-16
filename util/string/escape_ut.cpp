@@ -88,9 +88,9 @@ Y_UNIT_TEST_SUITE(TEscapeCTest) {
             UNIT_ASSERT_VALUES_EQUAL(source, actual2);
         }
 
-        UNIT_ASSERT_VALUES_EQUAL(UTF8ToWide("http://ya.ru/\\x17\\n\\u1234"), EscapeC(UTF8ToWide("http://ya.ru/\x17\n") + wchar16(0x1234)));
-        UNIT_ASSERT_VALUES_EQUAL(ASCIIToWide("h"), EscapeC(wchar16('h')));
-        UNIT_ASSERT_VALUES_EQUAL(UTF8ToWide("\\xFF"), EscapeC(wchar16(255)));
+        UNIT_ASSERT_VALUES_EQUAL(u"http://ya.ru/\\x17\\n\\u1234", EscapeC(u"http://ya.ru/\x17\n\u1234"));
+        UNIT_ASSERT_VALUES_EQUAL(u"h", EscapeC(u'h'));
+        UNIT_ASSERT_VALUES_EQUAL(u"\\xFF", EscapeC(wchar16(255)));
     }
 
     Y_UNIT_TEST(TestEscapeTrigraphs) {

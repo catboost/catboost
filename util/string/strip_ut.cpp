@@ -94,17 +94,17 @@ Y_UNIT_TEST_SUITE(TStripStringTest) {
     }
 
     Y_UNIT_TEST(TestWtrokaStrip) {
-        UNIT_ASSERT_EQUAL(StripString(ASCIIToWide(" abc ")), ASCIIToWide("abc"));
-        UNIT_ASSERT_EQUAL(StripStringLeft(ASCIIToWide(" abc ")), ASCIIToWide("abc "));
-        UNIT_ASSERT_EQUAL(StripStringRight(ASCIIToWide(" abc ")), ASCIIToWide(" abc"));
+        UNIT_ASSERT_EQUAL(StripString(AsStringBuf(u" abc ")), u"abc");
+        UNIT_ASSERT_EQUAL(StripStringLeft(AsStringBuf(u" abc ")), u"abc ");
+        UNIT_ASSERT_EQUAL(StripStringRight(AsStringBuf(u" abc ")), u" abc");
     }
 
     Y_UNIT_TEST(TestWtrokaCustomStrip) {
         UNIT_ASSERT_EQUAL(
             StripString(
-                ASCIIToWide("/abc/"),
-                EqualsStripAdapter(TUtf16String::TChar('/'))),
-            ASCIIToWide("abc"));
+                AsStringBuf(u"/abc/"),
+                EqualsStripAdapter(u'/')),
+            u"abc");
     }
 
     Y_UNIT_TEST(TestCollapse) {

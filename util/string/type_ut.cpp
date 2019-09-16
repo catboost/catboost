@@ -45,11 +45,11 @@ Y_UNIT_TEST_SUITE(TStringClassify) {
         UNIT_ASSERT(!IsNumber("foobar"));
         UNIT_ASSERT(!IsNumber(""));
 
-        UNIT_ASSERT(IsNumber(UTF8ToWide("0")));
-        UNIT_ASSERT(IsNumber(UTF8ToWide("12345678901234567890")));
-        UNIT_ASSERT(!IsNumber(UTF8ToWide("1234567890a")));
-        UNIT_ASSERT(!IsNumber(UTF8ToWide("12345xx67890a")));
-        UNIT_ASSERT(!IsNumber(UTF8ToWide("foobar")));
+        UNIT_ASSERT(IsNumber(u"0"));
+        UNIT_ASSERT(IsNumber(u"12345678901234567890"));
+        UNIT_ASSERT(!IsNumber(u"1234567890a"));
+        UNIT_ASSERT(!IsNumber(u"12345xx67890a"));
+        UNIT_ASSERT(!IsNumber(u"foobar"));
     }
 
     Y_UNIT_TEST(TestIsHexNumber) {
@@ -62,13 +62,13 @@ Y_UNIT_TEST_SUITE(TStringClassify) {
         UNIT_ASSERT(!IsHexNumber("foobar"));
         UNIT_ASSERT(!IsHexNumber(TString()));
 
-        UNIT_ASSERT(IsHexNumber(UTF8ToWide("0")));
-        UNIT_ASSERT(IsHexNumber(UTF8ToWide("aaaadddAAAAA")));
-        UNIT_ASSERT(IsHexNumber(UTF8ToWide("0123456789ABCDEFabcdef")));
-        UNIT_ASSERT(IsHexNumber(UTF8ToWide("12345678901234567890")));
-        UNIT_ASSERT(IsHexNumber(UTF8ToWide("1234567890a")));
-        UNIT_ASSERT(!IsHexNumber(UTF8ToWide("12345xx67890a")));
-        UNIT_ASSERT(!IsHexNumber(UTF8ToWide("foobar")));
+        UNIT_ASSERT(IsHexNumber(u"0"));
+        UNIT_ASSERT(IsHexNumber(u"aaaadddAAAAA"));
+        UNIT_ASSERT(IsHexNumber(u"0123456789ABCDEFabcdef"));
+        UNIT_ASSERT(IsHexNumber(u"12345678901234567890"));
+        UNIT_ASSERT(IsHexNumber(u"1234567890a"));
+        UNIT_ASSERT(!IsHexNumber(u"12345xx67890a"));
+        UNIT_ASSERT(!IsHexNumber(u"foobar"));
         UNIT_ASSERT(!IsHexNumber(TUtf16String()));
     }
 }

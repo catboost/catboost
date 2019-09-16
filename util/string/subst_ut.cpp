@@ -161,9 +161,9 @@ Y_UNIT_TEST_SUITE(TStringSubst) {
     }
 
     Y_UNIT_TEST(TestSubstCharGlobal) {
-        TUtf16String w = TUtf16String::FromAscii("abcdabcd");
+        TUtf16String w = u"abcdabcd";
         SubstGlobal(w, wchar16('b'), wchar16('B'), 3);
-        UNIT_ASSERT_EQUAL(w, TUtf16String::FromAscii("abcdaBcd"));
+        UNIT_ASSERT_EQUAL(w, u"abcdaBcd");
 
         TString s = "aaa";
         SubstGlobal(s, 'a', 'b', 1);
@@ -171,9 +171,9 @@ Y_UNIT_TEST_SUITE(TStringSubst) {
     }
 
     Y_UNIT_TEST(TestSubstCharGlobalRet) {
-        const TUtf16String w1 = TUtf16String::FromAscii("abcdabcd");
+        const TUtf16String w1 = u"abcdabcd";
         const TUtf16String w2 = SubstGlobalCopy(w1, wchar16('b'), wchar16('B'), 3);
-        UNIT_ASSERT_EQUAL(w2, TUtf16String::FromAscii("abcdaBcd"));
+        UNIT_ASSERT_EQUAL(w2, u"abcdaBcd");
 
         const TString s1 = "aaa";
         const TString s2 = SubstGlobalCopy(s1, 'a', 'b', 1);

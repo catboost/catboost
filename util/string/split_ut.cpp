@@ -131,8 +131,8 @@ Y_UNIT_TEST_SUITE(SplitStringTest) {
     }
 
     Y_UNIT_TEST(TestWideSingleDelimiter) {
-        TUtf16String data(ASCIIToWide("qw ab  qwabcab"));
-        TUtf16String canonic[] = {ASCIIToWide("qw"), ASCIIToWide("ab"), TUtf16String(), ASCIIToWide("qwabcab")};
+        TUtf16String data(u"qw ab  qwabcab");
+        TUtf16String canonic[] = {u"qw", u"ab", TUtf16String(), u"qwabcab"};
         TVector<TUtf16String> good(canonic, canonic + 4);
         TCharDelimiter<const wchar16> delim(' ');
 
@@ -188,10 +188,10 @@ Y_UNIT_TEST_SUITE(SplitStringTest) {
     }
 
     Y_UNIT_TEST(TestWideStringDelimiter) {
-        TUtf16String data(ASCIIToWide("qw ab qwababcab"));
-        TUtf16String canonic[] = {ASCIIToWide("qw "), ASCIIToWide(" qw"), TUtf16String(), ASCIIToWide("c"), TUtf16String()};
+        TUtf16String data(u"qw ab qwababcab");
+        TUtf16String canonic[] = {u"qw ", u" qw", TUtf16String(), u"c", TUtf16String()};
         TVector<TUtf16String> good(canonic, canonic + 5);
-        TUtf16String wideDelim(ASCIIToWide("ab"));
+        TUtf16String wideDelim(u"ab");
         TStringDelimiter<const wchar16> delim(wideDelim.data());
 
         TestDelimiterOnString<TContainerConsumer>(good, data.data(), delim);
@@ -209,20 +209,20 @@ Y_UNIT_TEST_SUITE(SplitStringTest) {
     }
 
     Y_UNIT_TEST(TestWideSetDelimiter) {
-        TUtf16String data(ASCIIToWide("qw ab qwababccab"));
-        TUtf16String canonic[] = {ASCIIToWide("q"), ASCIIToWide(" ab q"), ASCIIToWide("abab"), TUtf16String(), ASCIIToWide("ab")};
+        TUtf16String data(u"qw ab qwababccab");
+        TUtf16String canonic[] = {u"q", u" ab q", u"abab", TUtf16String(), u"ab"};
         TVector<TUtf16String> good(canonic, canonic + 5);
-        TUtf16String wideDelim(ASCIIToWide("wc"));
+        TUtf16String wideDelim(u"wc");
         TSetDelimiter<const wchar16> delim(wideDelim.data());
 
         TestDelimiterOnString<TContainerConsumer>(good, data.data(), delim);
     }
 
     Y_UNIT_TEST(TestWideSetDelimiterRange) {
-        TUtf16String data(ASCIIToWide("qw ab qwababccab"));
-        TUtf16String canonic[] = {ASCIIToWide("q"), ASCIIToWide(" ab q"), ASCIIToWide("abab"), TUtf16String(), ASCIIToWide("ab")};
+        TUtf16String data(u"qw ab qwababccab");
+        TUtf16String canonic[] = {u"q", u" ab q", u"abab", TUtf16String(), u"ab"};
         TVector<TUtf16String> good(1);
-        TUtf16String wideDelim(ASCIIToWide("wc"));
+        TUtf16String wideDelim(u"wc");
         TSetDelimiter<const wchar16> delim(wideDelim.data());
 
         TVector<TUtf16String> test;

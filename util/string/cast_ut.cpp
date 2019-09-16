@@ -346,13 +346,13 @@ Y_UNIT_TEST_SUITE(TCastTest) {
 #endif
 
     Y_UNIT_TEST(TestWide) {
-        TUtf16String iw = UTF8ToWide("-100500");
+        TUtf16String iw = u"-100500";
         int iv = 0;
         UNIT_ASSERT_VALUES_EQUAL(TryFromString(iw, iv), true);
         UNIT_ASSERT_VALUES_EQUAL(iv, -100500);
 
         ui64 uv = 0;
-        TUtf16String uw = UTF8ToWide("21474836470");
+        TUtf16String uw = u"21474836470";
         UNIT_ASSERT_VALUES_EQUAL(TryFromString(uw, uv), true);
         UNIT_ASSERT_VALUES_EQUAL(uv, 21474836470ull);
 
@@ -406,7 +406,7 @@ Y_UNIT_TEST_SUITE(TCastTest) {
         int res2 = 0;
         const int def2 = -6;
 
-        TUtf16String s3 = UTF8ToWide("-100500");
+        TUtf16String s3 = u"-100500";
         UNIT_ASSERT_VALUES_EQUAL(TryFromStringWithDefault(s3, res2, def2), true);
         UNIT_ASSERT_VALUES_EQUAL(res2, -100500);
 
@@ -417,7 +417,7 @@ Y_UNIT_TEST_SUITE(TCastTest) {
         UNIT_ASSERT_VALUES_EQUAL(FromStringWithDefault(s3, def2), -100500);
         UNIT_ASSERT_VALUES_EQUAL(FromStringWithDefault<size_t>(s3), size_t());
 
-        TUtf16String s4 = UTF8ToWide("-f100500");
+        TUtf16String s4 = u"-f100500";
         UNIT_ASSERT_VALUES_EQUAL(TryFromStringWithDefault(s4, res2, def2), false);
         UNIT_ASSERT_VALUES_EQUAL(res2, def2);
 
@@ -449,11 +449,11 @@ Y_UNIT_TEST_SUITE(TCastTest) {
         UNIT_ASSERT_DOUBLES_EQUAL((float)FromString(TString("10E-5")), 10E-5, EPS);
         UNIT_ASSERT_VALUES_EQUAL((bool)FromString("da"), true);
         UNIT_ASSERT_VALUES_EQUAL((bool)FromString("no"), false);
-        UNIT_ASSERT_VALUES_EQUAL((short)FromString(UTF8ToWide("9000")), 9000);
-        UNIT_ASSERT_VALUES_EQUAL((int)FromString(UTF8ToWide("-100500").data()), -100500);
-        UNIT_ASSERT_VALUES_EQUAL((unsigned long long)FromString(TWtringBuf(UTF8ToWide("42").data(), 1)), 4);
+        UNIT_ASSERT_VALUES_EQUAL((short)FromString(u"9000"), 9000);
+        UNIT_ASSERT_VALUES_EQUAL((int)FromString(u"-100500"), -100500);
+        UNIT_ASSERT_VALUES_EQUAL((unsigned long long)FromString(TWtringBuf(u"42", 1)), 4);
         int integer = FromString("125");
-        ui16 wideCharacterCode = FromString(UTF8ToWide("125"));
+        ui16 wideCharacterCode = FromString(u"125");
         UNIT_ASSERT_VALUES_EQUAL(integer, wideCharacterCode);
     }
 
@@ -523,7 +523,7 @@ Y_UNIT_TEST_SUITE(TCastTest) {
             UNIT_ASSERT_VALUES_EQUAL(empty, out);
         }
         {
-            const auto hello = ASCIIToWide("hello");
+            const auto hello = u"hello";
             TWtringBuf out;
             UNIT_ASSERT(TryFromString(hello, out));
             UNIT_ASSERT_VALUES_EQUAL(hello, out);

@@ -30,7 +30,7 @@ Y_UNIT_TEST_SUITE(TStringJoinTest) {
     }
 
     Y_UNIT_TEST(TestJoinWStrings) {
-        const TUtf16String str = UTF8ToWide("Яндекс");
+        const TUtf16String str = u"Яндекс";
         const TVector<TUtf16String> v(1, str);
 
         UNIT_ASSERT_EQUAL(JoinStrings(v, TUtf16String()), str);
