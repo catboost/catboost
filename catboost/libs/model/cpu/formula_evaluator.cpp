@@ -360,6 +360,7 @@ namespace NCB::NModelEvaluation {
                 CB_ENSURE(
                     cpuQuantizedFeatures->BlockStride % ObliviousTrees->GetEffectiveBinaryFeaturesBucketsCount() == 0,
                     "Unexpected block stride: " << cpuQuantizedFeatures->BlockStride
+                    << " (EffectiveBinaryFeaturesBucketsCount == " << ObliviousTrees->GetEffectiveBinaryFeaturesBucketsCount() << " )"
                 );
                 CB_ENSURE(cpuQuantizedFeatures->BlocksCount * FORMULA_EVALUATION_BLOCK_SIZE >= cpuQuantizedFeatures->ObjectsCount);
                 std::fill(results.begin(), results.end(), 0.0);
@@ -397,6 +398,7 @@ namespace NCB::NModelEvaluation {
                 CB_ENSURE(
                     cpuQuantizedFeatures->BlockStride % ObliviousTrees->GetEffectiveBinaryFeaturesBucketsCount() == 0,
                     "Unexpected block stride: " << cpuQuantizedFeatures->BlockStride
+                    << " (EffectiveBinaryFeaturesBucketsCount == " << ObliviousTrees->GetEffectiveBinaryFeaturesBucketsCount() << " )"
                 );
                 CB_ENSURE(cpuQuantizedFeatures->BlocksCount * FORMULA_EVALUATION_BLOCK_SIZE >= cpuQuantizedFeatures->ObjectsCount);
                 auto calcFunction = GetCalcTreesFunction(
