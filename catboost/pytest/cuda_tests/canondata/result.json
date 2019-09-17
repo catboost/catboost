@@ -157,41 +157,41 @@
     ],
     "test_gpu.test_class_names_multiclass[MultiClassOneVsAll]": [
         {
-            "checksum": "15d1ee8110b0230300e7ae4a294d7203",
+            "checksum": "4a7011020e3dda00f55cff81cda2c222",
             "uri": "file://test_gpu.test_class_names_multiclass_MultiClassOneVsAll_/learn_error.tsv"
         },
         {
-            "checksum": "a7a535e6e5983a4d6254bc9479ef76c3",
+            "checksum": "38a31cca925838f28e977c4fc448d9db",
             "uri": "file://test_gpu.test_class_names_multiclass_MultiClassOneVsAll_/test_error.tsv"
         }
     ],
     "test_gpu.test_class_names_multiclass[MultiClass]": [
         {
-            "checksum": "b1908e41958913bcac6ed5204d819035",
+            "checksum": "143c43509fc1fe9638d01aacd167340f",
             "uri": "file://test_gpu.test_class_names_multiclass_MultiClass_/learn_error.tsv"
         },
         {
-            "checksum": "7909b09472411f775e4263d7a9915593",
+            "checksum": "a893f3561e024922c354b13d06dbfba4",
             "uri": "file://test_gpu.test_class_names_multiclass_MultiClass_/test_error.tsv"
         }
     ],
     "test_gpu.test_class_weight_multiclass[MultiClassOneVsAll]": [
         {
-            "checksum": "9f5d3e030beb00d9500e0bc57fbaa618",
+            "checksum": "221b078916093759fa2e38091ab8c3a5",
             "uri": "file://test_gpu.test_class_weight_multiclass_MultiClassOneVsAll_/learn_error.tsv"
         },
         {
-            "checksum": "4b5de53070e240132fface1de2d623f1",
+            "checksum": "bd43b8700a80c2611d85881ce0f0e12c",
             "uri": "file://test_gpu.test_class_weight_multiclass_MultiClassOneVsAll_/test_error.tsv"
         }
     ],
     "test_gpu.test_class_weight_multiclass[MultiClass]": [
         {
-            "checksum": "33ab5796780d729c6b1304b533862d01",
+            "checksum": "247d138dabf79a36f06e2db44f90293c",
             "uri": "file://test_gpu.test_class_weight_multiclass_MultiClass_/learn_error.tsv"
         },
         {
-            "checksum": "51a37ca1462e6c8db17d0f87a88f78c6",
+            "checksum": "5b6f4ccac19eaf58eee14fe632c167e2",
             "uri": "file://test_gpu.test_class_weight_multiclass_MultiClass_/test_error.tsv"
         }
     ],
@@ -221,11 +221,11 @@
     ],
     "test_gpu.test_ctr_buckets": [
         {
-            "checksum": "07f2047b7aeefa369d0757ea6cf51137",
+            "checksum": "b3b1b4202622c08932cac111e3a26dd2",
             "uri": "file://test_gpu.test_ctr_buckets/learn_error.tsv"
         },
         {
-            "checksum": "02270046a99002c324a6309b1b6f209e",
+            "checksum": "8dd59adba7933d5618f85af5ddd1c1de",
             "uri": "file://test_gpu.test_ctr_buckets/test_error.tsv"
         }
     ],
@@ -1029,7 +1029,7 @@
     ],
     "test_gpu.test_extract_multiclass_labels_from_class_names": [
         {
-            "checksum": "1e45b8ef5fd3a0ca1c7814a64117c093",
+            "checksum": "5faf939793269f96d468ae67f7878d8d",
             "uri": "file://test_gpu.test_extract_multiclass_labels_from_class_names/test_error.tsv"
         }
     ],
@@ -1135,7 +1135,7 @@
     ],
     "test_gpu.test_fit_multiclass_with_class_names": [
         {
-            "checksum": "1e45b8ef5fd3a0ca1c7814a64117c093",
+            "checksum": "5faf939793269f96d468ae67f7878d8d",
             "uri": "file://test_gpu.test_fit_multiclass_with_class_names/test_error.tsv"
         }
     ],
@@ -2787,22 +2787,42 @@
     ],
     "test_gpu.test_lost_class[MultiClassOneVsAll]": [
         {
-            "checksum": "68bbb1229c476dcee78f6dc890b0c8ca",
+            "checksum": "35458820ab270628710c17c5d4ae7784",
             "uri": "file://test_gpu.test_lost_class_MultiClassOneVsAll_/learn_error.tsv"
         },
         {
-            "checksum": "cc46feab95a7cb50526cc46c6ebe1cd4",
+            "checksum": "7ff6da6a9e4221023994a98590b91446",
             "uri": "file://test_gpu.test_lost_class_MultiClassOneVsAll_/test_error.tsv"
         }
     ],
     "test_gpu.test_lost_class[MultiClass]": [
         {
-            "checksum": "89f25458ba6dcafc757c3c295145d4be",
+            "checksum": "0efae3d4bd5fdd3b29e0281ca22c76c5",
             "uri": "file://test_gpu.test_lost_class_MultiClass_/learn_error.tsv"
         },
         {
-            "checksum": "116649831587522140cfad63fb89b17b",
+            "checksum": "03acb35dd8148015c11f543081d70916",
             "uri": "file://test_gpu.test_lost_class_MultiClass_/test_error.tsv"
+        }
+    ],
+    "test_gpu.test_metric_description[dataset_has_weights=False]": [
+        {
+            "checksum": "5a65e49d67aeea5e78456730f1a222bf",
+            "uri": "file://test_gpu.test_metric_description_dataset_has_weights=False_/learn_error.tsv"
+        },
+        {
+            "checksum": "6931cb4a37744c2bbaacc020d3603110",
+            "uri": "file://test_gpu.test_metric_description_dataset_has_weights=False_/test_error.tsv"
+        }
+    ],
+    "test_gpu.test_metric_description[dataset_has_weights=True]": [
+        {
+            "checksum": "ae45281e0e2f93ee679e040841dbb12c",
+            "uri": "file://test_gpu.test_metric_description_dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "5d7321bb5c9cc51dbb6406562f4ef8c8",
+            "uri": "file://test_gpu.test_metric_description_dataset_has_weights=True_/test_error.tsv"
         }
     ],
     "test_gpu.test_model_based_eval[adult]": [
@@ -2875,61 +2895,61 @@
     ],
     "test_gpu.test_multi_leaf_estimation_method[Gradient]": [
         {
-            "checksum": "7bdf85c5c1f3ec6c2a4846ee6451658f",
+            "checksum": "96b791ced1ca566caa90de2181d469e5",
             "uri": "file://test_gpu.test_multi_leaf_estimation_method_Gradient_/learn_error.tsv"
         },
         {
-            "checksum": "96e5b9a48ace14cf10e26ba28dc89f41",
+            "checksum": "7b40a61f9d0ce2a7f0c6401764638fd7",
             "uri": "file://test_gpu.test_multi_leaf_estimation_method_Gradient_/test_error.tsv"
         }
     ],
     "test_gpu.test_multi_leaf_estimation_method[Newton]": [
         {
-            "checksum": "731abf501f117714838bf6c07c1bd3d2",
+            "checksum": "cd727fd736db5d80af4eeea3b41d93be",
             "uri": "file://test_gpu.test_multi_leaf_estimation_method_Newton_/learn_error.tsv"
         },
         {
-            "checksum": "58042f82e6e12c08d9205498fe722428",
+            "checksum": "1c56f707caa70fefa2ffce184e07f3c4",
             "uri": "file://test_gpu.test_multi_leaf_estimation_method_Newton_/test_error.tsv"
         }
     ],
     "test_gpu.test_multi_targets[MultiClassOneVsAll]": [
         {
-            "checksum": "639143e44ddbb048508aab437cd6b40a",
+            "checksum": "b91c8361a51afe964831958cfe0df9db",
             "uri": "file://test_gpu.test_multi_targets_MultiClassOneVsAll_/learn_error.tsv"
         },
         {
-            "checksum": "3155c1bfd940698b11d09a583a45a5ed",
+            "checksum": "77beabc936bd1e03303aef9037e5baa3",
             "uri": "file://test_gpu.test_multi_targets_MultiClassOneVsAll_/test_error.tsv"
         }
     ],
     "test_gpu.test_multi_targets[MultiClass]": [
         {
-            "checksum": "f3a523476ec67ac653dba1f0ea20926c",
+            "checksum": "40d368909df99f1831b7a86674278c40",
             "uri": "file://test_gpu.test_multi_targets_MultiClass_/learn_error.tsv"
         },
         {
-            "checksum": "bb7d727c73fe147a1e5c45aefb2c7675",
+            "checksum": "bf419638ccad8beff823d5af08e07661",
             "uri": "file://test_gpu.test_multi_targets_MultiClass_/test_error.tsv"
         }
     ],
     "test_gpu.test_multiclass_baseline[MultiClassOneVsAll]": [
         {
-            "checksum": "4687603a9e827e9b0de62c419bc7fe4f",
+            "checksum": "77b927d56a69843f641d2cce4933a431",
             "uri": "file://test_gpu.test_multiclass_baseline_MultiClassOneVsAll_/learn_error.tsv"
         },
         {
-            "checksum": "742dcc24e9d1656ab3c06d38dd627d8b",
+            "checksum": "26b0283d53cfb3edc4f17f2c50db9537",
             "uri": "file://test_gpu.test_multiclass_baseline_MultiClassOneVsAll_/test_error.tsv"
         }
     ],
     "test_gpu.test_multiclass_baseline[MultiClass]": [
         {
-            "checksum": "a3702a3b467eb06a5390a02cb9d7e576",
+            "checksum": "823f9b42b32179966a34a71c03beec91",
             "uri": "file://test_gpu.test_multiclass_baseline_MultiClass_/learn_error.tsv"
         },
         {
-            "checksum": "0355008f347f413ebe3cec2e41c96dd7",
+            "checksum": "7f6ed3f90ea407b87b5f11798058c48a",
             "uri": "file://test_gpu.test_multiclass_baseline_MultiClass_/test_error.tsv"
         }
     ],

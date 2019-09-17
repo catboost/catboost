@@ -1386,7 +1386,8 @@ NO_RANDOM_PARAMS = {
     '--set-metadata-from-freeargs': ''
 }
 
-METRIC_CHECKING_MULTICLASS = 'Accuracy:use_weights=false'
+METRIC_CHECKING_MULTICLASS_NO_WEIGHTS = 'Accuracy'
+METRIC_CHECKING_MULTICLASS_WITH_WEIGHTS = 'Accuracy:use_weights=false'
 
 CAT_COMPARE_PARAMS = {
     '--counter-calc-method': 'SkipTest',
@@ -1435,15 +1436,15 @@ def test_class_weight_multiclass(loss_function):
         '--class-weights': '0.5,2',
         '--learn-err-log': learn_error_path,
         '--test-err-log': test_error_path,
-        '--custom-metric': METRIC_CHECKING_MULTICLASS
+        '--custom-metric': METRIC_CHECKING_MULTICLASS_WITH_WEIGHTS
     }
 
     fit_params.update(CAT_COMPARE_PARAMS)
 
     fit_catboost_gpu(fit_params)
 
-    eval_metric(model_path, METRIC_CHECKING_MULTICLASS, test_path, cd_path, eval_error_path)
-    compare_metrics_with_diff(METRIC_CHECKING_MULTICLASS, test_error_path, eval_error_path)
+    eval_metric(model_path, METRIC_CHECKING_MULTICLASS_WITH_WEIGHTS, test_path, cd_path, eval_error_path)
+    compare_metrics_with_diff(METRIC_CHECKING_MULTICLASS_WITH_WEIGHTS, test_error_path, eval_error_path)
 
     return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
 
@@ -1473,14 +1474,14 @@ def test_multi_leaf_estimation_method(leaf_estimation_method):
         '--use-best-model': 'false',
         '--learn-err-log': learn_error_path,
         '--test-err-log': test_error_path,
-        '--custom-metric': METRIC_CHECKING_MULTICLASS
+        '--custom-metric': METRIC_CHECKING_MULTICLASS_NO_WEIGHTS
     }
 
     fit_params.update(CAT_COMPARE_PARAMS)
     fit_catboost_gpu(fit_params)
 
-    eval_metric(output_model_path, METRIC_CHECKING_MULTICLASS, test_path, cd_path, eval_test_error_path)
-    compare_metrics_with_diff(METRIC_CHECKING_MULTICLASS, test_error_path, eval_test_error_path)
+    eval_metric(output_model_path, METRIC_CHECKING_MULTICLASS_NO_WEIGHTS, test_path, cd_path, eval_test_error_path)
+    compare_metrics_with_diff(METRIC_CHECKING_MULTICLASS_NO_WEIGHTS, test_error_path, eval_test_error_path)
 
     return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
 
@@ -1514,7 +1515,7 @@ def test_multiclass_baseline(loss_function):
         '-T': '4',
         '--use-best-model': 'false',
         '--classes-count': '4',
-        '--custom-metric': METRIC_CHECKING_MULTICLASS,
+        '--custom-metric': METRIC_CHECKING_MULTICLASS_NO_WEIGHTS,
         '--test-err-log': eval_error_path
     }
 
@@ -1526,7 +1527,7 @@ def test_multiclass_baseline(loss_function):
     fit_params['--test-err-log'] = test_error_path
     fit_catboost_gpu(fit_params)
 
-    compare_metrics_with_diff(METRIC_CHECKING_MULTICLASS, test_error_path, eval_error_path)
+    compare_metrics_with_diff(METRIC_CHECKING_MULTICLASS_NO_WEIGHTS, test_error_path, eval_error_path)
     return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
 
 
@@ -1591,16 +1592,16 @@ def test_ctr_buckets():
         '-m': model_path,
         '--learn-err-log': learn_error_path,
         '--test-err-log': test_error_path,
-        '--custom-metric': METRIC_CHECKING_MULTICLASS
+        '--custom-metric': METRIC_CHECKING_MULTICLASS_NO_WEIGHTS
     }
 
     fit_params.update(CAT_COMPARE_PARAMS)
 
     fit_catboost_gpu(fit_params)
 
-    eval_metric(model_path, METRIC_CHECKING_MULTICLASS, test_path, cd_path, eval_error_path)
+    eval_metric(model_path, METRIC_CHECKING_MULTICLASS_NO_WEIGHTS, test_path, cd_path, eval_error_path)
 
-    compare_metrics_with_diff(METRIC_CHECKING_MULTICLASS, test_error_path, eval_error_path)
+    compare_metrics_with_diff(METRIC_CHECKING_MULTICLASS_NO_WEIGHTS, test_error_path, eval_error_path)
     return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
 
 
@@ -1627,15 +1628,15 @@ def test_multi_targets(loss_function):
         '-m': model_path,
         '--learn-err-log': learn_error_path,
         '--test-err-log': test_error_path,
-        '--custom-metric': METRIC_CHECKING_MULTICLASS
+        '--custom-metric': METRIC_CHECKING_MULTICLASS_NO_WEIGHTS
     }
 
     fit_params.update(CAT_COMPARE_PARAMS)
     fit_catboost_gpu(fit_params)
 
-    eval_metric(model_path, METRIC_CHECKING_MULTICLASS, test_path, cd_path, eval_error_path)
+    eval_metric(model_path, METRIC_CHECKING_MULTICLASS_NO_WEIGHTS, test_path, cd_path, eval_error_path)
 
-    compare_metrics_with_diff(METRIC_CHECKING_MULTICLASS, test_error_path, eval_error_path)
+    compare_metrics_with_diff(METRIC_CHECKING_MULTICLASS_NO_WEIGHTS, test_error_path, eval_error_path)
     return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
 
 
@@ -1772,15 +1773,15 @@ def test_class_names_multiclass(loss_function):
         '-m': model_path,
         '--learn-err-log': learn_error_path,
         '--test-err-log': test_error_path,
-        '--custom-metric': METRIC_CHECKING_MULTICLASS,
+        '--custom-metric': METRIC_CHECKING_MULTICLASS_NO_WEIGHTS,
         '--class-names': '0.,0.5,1.,0.25,0.75'
     }
 
     fit_params.update(CAT_COMPARE_PARAMS)
     fit_catboost_gpu(fit_params)
 
-    eval_metric(model_path, METRIC_CHECKING_MULTICLASS, test_path, cd_path, eval_error_path)
-    compare_metrics_with_diff(METRIC_CHECKING_MULTICLASS, test_error_path, eval_error_path)
+    eval_metric(model_path, METRIC_CHECKING_MULTICLASS_NO_WEIGHTS, test_path, cd_path, eval_error_path)
+    compare_metrics_with_diff(METRIC_CHECKING_MULTICLASS_NO_WEIGHTS, test_error_path, eval_error_path)
 
     return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
 
@@ -1806,7 +1807,7 @@ def test_lost_class(loss_function):
         '-i': '10',
         '-T': '4',
         '-m': model_path,
-        '--custom-metric': METRIC_CHECKING_MULTICLASS,
+        '--custom-metric': METRIC_CHECKING_MULTICLASS_NO_WEIGHTS,
         '--learn-err-log': learn_error_path,
         '--test-err-log': test_error_path,
         '--classes-count': '3'
@@ -1815,8 +1816,8 @@ def test_lost_class(loss_function):
     fit_params.update(CAT_COMPARE_PARAMS)
     fit_catboost_gpu(fit_params)
 
-    eval_metric(model_path, METRIC_CHECKING_MULTICLASS, test_path, cd_path, eval_error_path)
-    compare_metrics_with_diff(METRIC_CHECKING_MULTICLASS, test_error_path, eval_error_path)
+    eval_metric(model_path, METRIC_CHECKING_MULTICLASS_NO_WEIGHTS, test_path, cd_path, eval_error_path)
+    compare_metrics_with_diff(METRIC_CHECKING_MULTICLASS_NO_WEIGHTS, test_error_path, eval_error_path)
 
     return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
 
@@ -1845,14 +1846,14 @@ def test_class_weight_with_lost_class():
         '--class-weights': '0.5,2,2',
         '--learn-err-log': learn_error_path,
         '--test-err-log': test_error_path,
-        '--custom-metric': METRIC_CHECKING_MULTICLASS
+        '--custom-metric': METRIC_CHECKING_MULTICLASS_NO_WEIGHTS+':use_weights=false'
     }
 
     fit_params.update(CAT_COMPARE_PARAMS)
     fit_catboost_gpu(fit_params)
 
-    eval_metric(model_path, METRIC_CHECKING_MULTICLASS, test_path, cd_path, eval_error_path)
-    compare_metrics_with_diff(METRIC_CHECKING_MULTICLASS, test_error_path, eval_error_path)
+    eval_metric(model_path, METRIC_CHECKING_MULTICLASS_NO_WEIGHTS+':use_weights=false', test_path, cd_path, eval_error_path)
+    compare_metrics_with_diff(METRIC_CHECKING_MULTICLASS_NO_WEIGHTS+':use_weights=false', test_error_path, eval_error_path)
 
     return [local_canonical_file(eval_error_path)]
 
@@ -1974,7 +1975,7 @@ def test_fit_multiclass_with_class_names():
     fit_params = {
         '--loss-function': 'MultiClass',
         '--boosting-type': 'Plain',
-        '--custom-metric': METRIC_CHECKING_MULTICLASS,
+        '--custom-metric': METRIC_CHECKING_MULTICLASS_NO_WEIGHTS,
         '--class-names': ','.join(labels),
         '-f': learn_path,
         '-t': test_path,
@@ -1988,9 +1989,9 @@ def test_fit_multiclass_with_class_names():
 
     fit_catboost_gpu(fit_params)
 
-    eval_metric(model_path, METRIC_CHECKING_MULTICLASS, test_path, cd_path, eval_error_path)
+    eval_metric(model_path, METRIC_CHECKING_MULTICLASS_NO_WEIGHTS, test_path, cd_path, eval_error_path)
 
-    compare_metrics_with_diff(METRIC_CHECKING_MULTICLASS, test_error_path, eval_error_path)
+    compare_metrics_with_diff(METRIC_CHECKING_MULTICLASS_NO_WEIGHTS, test_error_path, eval_error_path)
 
     return [local_canonical_file(test_error_path)]
 
@@ -2018,7 +2019,7 @@ def test_extract_multiclass_labels_from_class_names():
         '--loss-function': 'MultiClass',
         '--class-names': ','.join(labels),
         '--boosting-type': 'Plain',
-        '--custom-metric': METRIC_CHECKING_MULTICLASS,
+        '--custom-metric': METRIC_CHECKING_MULTICLASS_NO_WEIGHTS,
         '-f': train_path,
         '-t': test_path,
         '--column-description': cd_path,
@@ -2031,8 +2032,8 @@ def test_extract_multiclass_labels_from_class_names():
 
     fit_catboost_gpu(fit_params)
 
-    eval_metric(model_path, METRIC_CHECKING_MULTICLASS, test_path, cd_path, eval_error_path)
-    compare_metrics_with_diff(METRIC_CHECKING_MULTICLASS, test_error_path, eval_error_path)
+    eval_metric(model_path, METRIC_CHECKING_MULTICLASS_NO_WEIGHTS, test_path, cd_path, eval_error_path)
+    compare_metrics_with_diff(METRIC_CHECKING_MULTICLASS_NO_WEIGHTS, test_error_path, eval_error_path)
 
     py_catboost = catboost.CatBoost()
     py_catboost.load_model(model_path)
@@ -2692,3 +2693,50 @@ def test_eval_feature(task_type):
             diff_tool=get_limited_precision_dsv_diff_tool(2e-2, False)
         )
     ]
+
+
+@pytest.mark.parametrize('dataset_has_weights', [True, False], ids=['dataset_has_weights=True', 'dataset_has_weights=False'])
+def test_metric_description(dataset_has_weights):
+    learn_error_path = yatest.common.test_output_path('learn_error.tsv')
+    test_error_path = yatest.common.test_output_path('test_error.tsv')
+    if dataset_has_weights:
+        train_pool_filename = data_file('adult_weight', 'train_weight')
+        test_pool_filename = data_file('adult_weight', 'test_weight')
+        pool_cd_filename = data_file('adult_weight', 'train.cd')
+    else:
+        train_pool_filename = data_file('adult', 'train_small')
+        test_pool_filename = data_file('adult', 'test_small')
+        pool_cd_filename = data_file('adult', 'train.cd')
+    eval_metric = 'AUC:hints=skip_train~false'
+
+    custom_metric_loss = 'Precision'
+    custom_metric = 'Precision'
+
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'Logloss',
+        '-f', train_pool_filename,
+        '-t', test_pool_filename,
+        '--cd', pool_cd_filename,
+        '-i', '10',
+        '--learn-err-log', learn_error_path,
+        '--test-err-log', test_error_path,
+        '--eval-metric', eval_metric,
+        '--custom-metric', custom_metric
+    )
+    yatest.common.execute(cmd)
+    for filename in [learn_error_path, test_error_path]:
+        with open(filename, 'r') as f:
+            metrics_descriptions = f.readline().split('\t')[1:]  # without 'iter' column
+            metrics_descriptions[-1] = metrics_descriptions[-1][:-1]
+            unique_metrics_descriptions = set([s.lower() for s in metrics_descriptions])
+            assert len(metrics_descriptions) == len(unique_metrics_descriptions)
+            expected_objective_metric_description = 'Logloss'
+            expected_eval_metric_description = 'AUC'
+            if dataset_has_weights:
+                expected_custom_metrics_descriptions = [custom_metric_loss + ':use_weights=False', custom_metric_loss + ':use_weights=True']
+            else:
+                expected_custom_metrics_descriptions = [custom_metric_loss]
+            assert unique_metrics_descriptions == set(s.lower() for s in [expected_objective_metric_description] + [expected_eval_metric_description] + expected_custom_metrics_descriptions)
+    return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]

@@ -615,43 +615,90 @@ namespace NCatboostCuda {
         return result;
     }
 
+    static inline bool ShouldConsiderWeightsByDefault(const THolder<IGpuMetric>& metric) {
+        return metric->GetCpuMetric().GetDescription() != "AUC" && !metric->GetUseWeights().IsUserDefined() &&
+               !metric->GetUseWeights().IsIgnored();
+    }
+
     TVector<THolder<IGpuMetric>> CreateGpuMetrics(const NCatboostOptions::TOption<NCatboostOptions::TMetricOptions>& metricOptions,
-                                                  ui32 cpuApproxDim) {
-        TVector<THolder<IGpuMetric>> metrics;
-        THashSet<TString> usedDescriptions;
+                                                  ui32 cpuApproxDim, bool hasWeights) {
+        CB_ENSURE(metricOptions->ObjectiveMetric.IsSet(), "Objective metric must be set.");
+        const NCatboostOptions::TLossDescription& objectiveMetricDescription = metricOptions->ObjectiveMetric.Get();
+        const bool haveEvalMetricFromUser = metricOptions->EvalMetric.IsSet();
+        const NCatboostOptions::TLossDescription& evalMetricDescription =
+                haveEvalMetricFromUser ? metricOptions->EvalMetric.Get() : objectiveMetricDescription;
+        CB_ENSURE(objectiveMetricDescription.GetLossFunction() != ELossFunction::PythonUserDefinedPerObject, "Error: GPU doesn't support user-defined loss");
+        CB_ENSURE(evalMetricDescription.GetLossFunction() != ELossFunction::PythonUserDefinedPerObject, "Error: GPU doesn't support custom metrics");
 
-        if (metricOptions->EvalMetric.IsSet()) {
-            if (metricOptions->EvalMetric->GetLossFunction() == ELossFunction::PythonUserDefinedPerObject) {
-                CB_ENSURE(false, "Error: GPU doesn't support custom metrics");
-            } else {
-                TVector<THolder<IGpuMetric>> createdMetrics = CreateGpuMetricFromDescription(metricOptions->ObjectiveMetric->GetLossFunction(),
-                                                                                             metricOptions->EvalMetric,
-                                                                                             cpuApproxDim);
-                CB_ENSURE(createdMetrics.size() == 1, "Eval metric should have a single value. Metric " << ToString(metricOptions->EvalMetric->GetLossFunction()) << " provides a value for each class, thus it cannot be used as "
-                                                                                                        << "a single value to select best iteration or to detect overfitting. "
-                                                                                                        << "If you just want to look on the values of this metric use custom_metric parameter.");
-                metrics.push_back(std::move(createdMetrics.front()));
-                usedDescriptions.insert(metrics.back()->GetCpuMetric().GetDescription());
-            }
-        }
 
-        CB_ENSURE(metricOptions->ObjectiveMetric->GetLossFunction() != ELossFunction::PythonUserDefinedPerObject, "Error: GPU doesn't support user-defined loss");
-
-        for (auto&& metric : CreateGpuMetricFromDescription(metricOptions->ObjectiveMetric->GetLossFunction(),
-                                                            metricOptions->ObjectiveMetric, cpuApproxDim)) {
-            const TString& description = metric->GetCpuMetric().GetDescription();
-            if (!usedDescriptions.contains(description)) {
-                usedDescriptions.insert(description);
-                metrics.push_back(std::move(metric));
-                if (!metrics.back()->GetUseWeights().IsIgnored()) {
-                    metrics.back()->GetUseWeights().SetDefaultValue(true);
+        TVector<THolder<IGpuMetric>> createdObjectiveMetrics = CreateGpuMetricFromDescription(
+                objectiveMetricDescription.GetLossFunction(),
+                objectiveMetricDescription,
+                cpuApproxDim);
+        if (hasWeights) {
+            for (auto&& metric : createdObjectiveMetrics) {
+                const auto& useWeights = metric->GetUseWeights();
+                if (!useWeights.IsIgnored() && !useWeights.IsUserDefined()){
+                    metric->GetUseWeights() = true;
                 }
             }
         }
 
+        TVector<THolder<IGpuMetric>> metrics;
+        THashSet<TString> usedDescriptions;
+
+        metrics = CreateGpuMetricFromDescription(
+                objectiveMetricDescription.GetLossFunction(),
+                evalMetricDescription,
+                cpuApproxDim);
+        CB_ENSURE(metrics.size() == 1, "Eval metric should have a single value. Metric "
+                << ToString(objectiveMetricDescription.GetLossFunction())
+                << " provides a value for each class, thus it cannot be used as "
+                << "a single value to select best iteration or to detect overfitting. "
+                << "If you just want to look on the values of this metric use custom_metric parameter.");
+
+        if (hasWeights && !metrics.back()->GetUseWeights().IsIgnored()) {
+            if (!haveEvalMetricFromUser) {
+                metrics.back()->GetUseWeights() = createdObjectiveMetrics.back()->GetUseWeights();
+            } else if (ShouldConsiderWeightsByDefault(metrics.back())) {
+                metrics.back()->GetUseWeights() = true;
+                CATBOOST_INFO_LOG << "Note: eval_metric is using sample weights by default. " <<
+                                  "Set MetricName:use_weights=False to calculate unweighted metric.";
+            }
+        }
+        usedDescriptions.insert(metrics.back()->GetCpuMetric().GetDescription());
+
+        for (auto&& metric : createdObjectiveMetrics) {
+            const TString& description = metric->GetCpuMetric().GetDescription();
+            if (!usedDescriptions.contains(description)) {
+                usedDescriptions.insert(description);
+                metrics.push_back(std::move(metric));
+            }
+        }
+        // if custom metric is set without 'use_weights' parameter and we have non-default weights, we calculate both versions of metric.
         for (const auto& description : metricOptions->CustomMetrics.Get()) {
-            for (auto&& metric : CreateGpuMetricFromDescription(metricOptions->ObjectiveMetric->GetLossFunction(),
-                                                                description, cpuApproxDim)) {
+            TVector<THolder<IGpuMetric>> createdCustomMetrics =
+                    CreateGpuMetricFromDescription(metricOptions->ObjectiveMetric->GetLossFunction(),
+                                                   description,
+                                                   cpuApproxDim);
+            if (hasWeights) {
+                TVector<THolder<IGpuMetric>> createdCustomMetricsCopy =
+                        CreateGpuMetricFromDescription(metricOptions->ObjectiveMetric->GetLossFunction(),
+                                                       description,
+                                                       cpuApproxDim);
+                auto iter = createdCustomMetricsCopy.begin();
+                ui32 initialVectorSize = createdCustomMetrics.size();
+                for (ui32 ind = 0; ind < initialVectorSize; ++ind) {
+                    auto& metric = createdCustomMetrics[ind];
+                    if (ShouldConsiderWeightsByDefault(metric)) {
+                        metric->GetUseWeights() = true;
+                        (*iter)->GetUseWeights() = false;
+                        createdCustomMetrics.emplace_back(std::move(*iter));
+                    }
+                    ++iter;
+                }
+            }
+            for (auto&& metric : createdCustomMetrics) {
                 const TString& description = metric->GetCpuMetric().GetDescription();
                 if (!usedDescriptions.contains(description)) {
                     usedDescriptions.insert(description);
@@ -660,7 +707,12 @@ namespace NCatboostCuda {
             }
         }
 
+        if (!hasWeights) {
+            for (const auto& metric : metrics) {
+                CB_ENSURE(!metric->GetUseWeights().IsUserDefined(),
+                          "If non-default weights for objects are not set, the 'use_weights' parameter must not be specified.");
+            }
+        }
         return metrics;
     }
-
 }

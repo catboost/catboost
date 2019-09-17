@@ -315,7 +315,8 @@ void MapCalcErrors(TLearnContext* ctx) {
     const auto metrics = CreateMetrics(
         ctx->Params.MetricOptions,
         ctx->EvalMetricDescriptor,
-        ctx->LearnProgress->ApproxDimension
+        ctx->LearnProgress->ApproxDimension,
+        ctx->GetHasWeights()
     );
     const auto skipMetricOnTrain = GetSkipMetricOnTrain(metrics);
     Y_VERIFY(

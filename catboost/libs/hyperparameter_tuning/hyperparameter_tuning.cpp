@@ -669,7 +669,8 @@ namespace {
             const TVector<THolder<IMetric>> metrics = CreateMetrics(
                 catBoostOptions.MetricOptions,
                 evalMetricDescriptor,
-                approxDimension
+                approxDimension,
+                quantizedData->MetaInfo.HasWeights
             );
             double bestMetricValue = cvResult[0].AverageTest.back(); //[testId][lossDescription]
             if (iterationIdx == 0) {
@@ -833,7 +834,8 @@ namespace {
             const TVector<THolder<IMetric>> metrics = CreateMetrics(
                 catBoostOptions.MetricOptions,
                 evalMetricDescriptor,
-                approxDimension
+                approxDimension,
+                data->MetaInfo.HasWeights
             );
 
             const TString& lossDescription = metrics[0]->GetDescription();

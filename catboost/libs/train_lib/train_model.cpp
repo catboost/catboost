@@ -158,7 +158,8 @@ static void InitializeAndCheckMetricData(
     metrics = CreateMetrics(
         ctx.Params.MetricOptions,
         ctx.EvalMetricDescriptor,
-        approxDimension
+        approxDimension,
+        ctx.GetHasWeights()
     );
     CheckMetrics(metrics, ctx.Params.LossFunctionDescription.Get().GetLossFunction());
     if (!ctx.Params.SystemOptions->IsSingleHost()) {

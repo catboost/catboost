@@ -2503,21 +2503,21 @@
     ],
     "test.test_loglikelihood_of_prediction[Ordered]": [
         {
-            "checksum": "3ef3b5905fa0da5c07c7a38088a6af7d",
+            "checksum": "7ff8101f5faae30e99b3a5f37fa8594f",
             "uri": "file://test.test_loglikelihood_of_prediction_Ordered_/learn_error.tsv"
         },
         {
-            "checksum": "67b74b893651adc83d3952041ce7aa83",
+            "checksum": "2a728f03900330950b5a600b5b293bc9",
             "uri": "file://test.test_loglikelihood_of_prediction_Ordered_/test_error.tsv"
         }
     ],
     "test.test_loglikelihood_of_prediction[Plain]": [
         {
-            "checksum": "28313cb9b54d255fcd6fb3d831de6531",
+            "checksum": "517c27d4968ce370540fa09c098b33dd",
             "uri": "file://test.test_loglikelihood_of_prediction_Plain_/learn_error.tsv"
         },
         {
-            "checksum": "376de8e909cfc5fadfc99b3d5c599a21",
+            "checksum": "22a5ed6838236330012d1dadca46395e",
             "uri": "file://test.test_loglikelihood_of_prediction_Plain_/test_error.tsv"
         }
     ],
@@ -2629,6 +2629,906 @@
         {
             "checksum": "58553654199614f5399865811a27431a",
             "uri": "file://test.test_mapk_Plain_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=False-custom_metric_loss=AUC-eval_metric_use_weights=False-eval_metric_loss=AUC-dataset_has_weights=True]": [
+        {
+            "checksum": "541ce79b63ea04f9ebbd93d4e9624c0d",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=False-custom_metric_loss=AUC-eval_metric_use_weights=False-eval_metric_loss=AUC-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "4cf9babbb25c1b5056bfbd6034255d9b",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=False-custom_metric_loss=AUC-eval_metric_use_weights=False-eval_metric_loss=AUC-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=False-custom_metric_loss=AUC-eval_metric_use_weights=False-eval_metric_loss=Logloss-dataset_has_weights=True]": [
+        {
+            "checksum": "3f7584239d5e589b8889ea75eb9c76bc",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=False-custom_metric_loss=AUC-eval_metric_use_weights=False-eval_metric_loss=Logloss-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "55193622a2486f9ea627dcc629c8a7c7",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=False-custom_metric_loss=AUC-eval_metric_use_weights=False-eval_metric_loss=Logloss-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=False-custom_metric_loss=AUC-eval_metric_use_weights=False-eval_metric_loss=Precision-dataset_has_weights=True]": [
+        {
+            "checksum": "45d57346cc973bf700066ca3cfa5b9ec",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=False-custom_metric_loss=AUC-eval_metric_use_weights=False-eval_metric_loss=Precision-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "91611c3251dba21aec928934b6fef1b6",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=False-custom_metric_loss=AUC-eval_metric_use_weights=False-eval_metric_loss=Precision-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=False-custom_metric_loss=AUC-eval_metric_use_weights=None-eval_metric_loss=AUC-dataset_has_weights=True]": [
+        {
+            "checksum": "c07351fd088bee2403d1a991f579050e",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=False-custom_metric_loss=AUC-eval_metric_use_weights=None-eval_metric_loss=AUC-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "4737dcdcf839184078593944f20b2c49",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=False-custom_metric_loss=AUC-eval_metric_use_weights=None-eval_metric_loss=AUC-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=False-custom_metric_loss=AUC-eval_metric_use_weights=None-eval_metric_loss=Logloss-dataset_has_weights=True]": [
+        {
+            "checksum": "f4c6681008b154ea3068fbb0b344dd96",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=False-custom_metric_loss=AUC-eval_metric_use_weights=None-eval_metric_loss=Logloss-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "4b6b82ae19f20b02e2d01db64c1268af",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=False-custom_metric_loss=AUC-eval_metric_use_weights=None-eval_metric_loss=Logloss-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=False-custom_metric_loss=AUC-eval_metric_use_weights=None-eval_metric_loss=Precision-dataset_has_weights=True]": [
+        {
+            "checksum": "b7658481b15894a93ca411b8fa22879c",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=False-custom_metric_loss=AUC-eval_metric_use_weights=None-eval_metric_loss=Precision-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "6e3edec41cf32ba6c4e3c1515be98a43",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=False-custom_metric_loss=AUC-eval_metric_use_weights=None-eval_metric_loss=Precision-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=False-custom_metric_loss=AUC-eval_metric_use_weights=True-eval_metric_loss=AUC-dataset_has_weights=True]": [
+        {
+            "checksum": "65ef840139929123f2ee9e2fe237e8c5",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=False-custom_metric_loss=AUC-eval_metric_use_weights=True-eval_metric_loss=AUC-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "23159bd1e525f269fbd27e050ccef60f",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=False-custom_metric_loss=AUC-eval_metric_use_weights=True-eval_metric_loss=AUC-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=False-custom_metric_loss=AUC-eval_metric_use_weights=True-eval_metric_loss=Logloss-dataset_has_weights=True]": [
+        {
+            "checksum": "5d404fadac2bca024a81e9179cd0d34f",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=False-custom_metric_loss=AUC-eval_metric_use_weights=True-eval_metric_loss=Logloss-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "c11be4d80ca61ccd3e7e0fd12ec7a660",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=False-custom_metric_loss=AUC-eval_metric_use_weights=True-eval_metric_loss=Logloss-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=False-custom_metric_loss=AUC-eval_metric_use_weights=True-eval_metric_loss=Precision-dataset_has_weights=True]": [
+        {
+            "checksum": "309518beb7ee038feb7b629bc9cbc454",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=False-custom_metric_loss=AUC-eval_metric_use_weights=True-eval_metric_loss=Precision-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "b108d8eb5df9201430264685abac8793",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=False-custom_metric_loss=AUC-eval_metric_use_weights=True-eval_metric_loss=Precision-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=False-custom_metric_loss=Logloss-eval_metric_use_weights=False-eval_metric_loss=AUC-dataset_has_weights=True]": [
+        {
+            "checksum": "724d47ead853e007594303e9e2a9400e",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=False-custom_metric_loss=Logloss-eval_metric_use_weights=False-eval_metric_loss=AUC-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "5f1c28749ef2eac0c7bf97a7ebe57879",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=False-custom_metric_loss=Logloss-eval_metric_use_weights=False-eval_metric_loss=AUC-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=False-custom_metric_loss=Logloss-eval_metric_use_weights=False-eval_metric_loss=Logloss-dataset_has_weights=True]": [
+        {
+            "checksum": "e4119c06fa8d311d7cde4ea155afb6a0",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=False-custom_metric_loss=Logloss-eval_metric_use_weights=False-eval_metric_loss=Logloss-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "e1e5a48a14c3e70d16feaee1034bf9bb",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=False-custom_metric_loss=Logloss-eval_metric_use_weights=False-eval_metric_loss=Logloss-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=False-custom_metric_loss=Logloss-eval_metric_use_weights=False-eval_metric_loss=Precision-dataset_has_weights=True]": [
+        {
+            "checksum": "86f08608d9a7116dab8789096697e2fc",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=False-custom_metric_loss=Logloss-eval_metric_use_weights=False-eval_metric_loss=Precision-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "c8865d5cb763a4ba82647662132e3c30",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=False-custom_metric_loss=Logloss-eval_metric_use_weights=False-eval_metric_loss=Precision-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=False-custom_metric_loss=Logloss-eval_metric_use_weights=None-eval_metric_loss=AUC-dataset_has_weights=True]": [
+        {
+            "checksum": "2419b96be5ed03b3fd8ee228327cb6c8",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=False-custom_metric_loss=Logloss-eval_metric_use_weights=None-eval_metric_loss=AUC-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "72c1ce4df76e47b9793bb46d22486556",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=False-custom_metric_loss=Logloss-eval_metric_use_weights=None-eval_metric_loss=AUC-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=False-custom_metric_loss=Logloss-eval_metric_use_weights=None-eval_metric_loss=Logloss-dataset_has_weights=True]": [
+        {
+            "checksum": "e76cd332f103a8a80cf9f94cca388eb8",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=False-custom_metric_loss=Logloss-eval_metric_use_weights=None-eval_metric_loss=Logloss-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "4b97114e8f366a7107fcaa0d71f8a87f",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=False-custom_metric_loss=Logloss-eval_metric_use_weights=None-eval_metric_loss=Logloss-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=False-custom_metric_loss=Logloss-eval_metric_use_weights=None-eval_metric_loss=Precision-dataset_has_weights=True]": [
+        {
+            "checksum": "e35e616b62e1a05eec444875f30360d8",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=False-custom_metric_loss=Logloss-eval_metric_use_weights=None-eval_metric_loss=Precision-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "0d6b0f9fee23dbeeb33d06752909d85a",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=False-custom_metric_loss=Logloss-eval_metric_use_weights=None-eval_metric_loss=Precision-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=False-custom_metric_loss=Logloss-eval_metric_use_weights=True-eval_metric_loss=AUC-dataset_has_weights=True]": [
+        {
+            "checksum": "161ab5885fd1462b5b84ff6b95441eba",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=False-custom_metric_loss=Logloss-eval_metric_use_weights=True-eval_metric_loss=AUC-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "14c361db6e40544859a4cd435c710621",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=False-custom_metric_loss=Logloss-eval_metric_use_weights=True-eval_metric_loss=AUC-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=False-custom_metric_loss=Logloss-eval_metric_use_weights=True-eval_metric_loss=Logloss-dataset_has_weights=True]": [
+        {
+            "checksum": "6d25a1c93c9d8a0f1ad663ef28c3c982",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=False-custom_metric_loss=Logloss-eval_metric_use_weights=True-eval_metric_loss=Logloss-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "14b0ab24e1895559de8bdbfc713cf805",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=False-custom_metric_loss=Logloss-eval_metric_use_weights=True-eval_metric_loss=Logloss-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=False-custom_metric_loss=Logloss-eval_metric_use_weights=True-eval_metric_loss=Precision-dataset_has_weights=True]": [
+        {
+            "checksum": "7cf6773eb84c915cc566be6a554eabd9",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=False-custom_metric_loss=Logloss-eval_metric_use_weights=True-eval_metric_loss=Precision-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "3a83fc6e2f4911dc394f6f7e021e35c8",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=False-custom_metric_loss=Logloss-eval_metric_use_weights=True-eval_metric_loss=Precision-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=False-custom_metric_loss=Precision-eval_metric_use_weights=False-eval_metric_loss=AUC-dataset_has_weights=True]": [
+        {
+            "checksum": "38c0f30ca454cb2b65f828e5de80e337",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=False-custom_metric_loss=Precision-eval_metric_use_weights=False-eval_metric_loss=AUC-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "e065c494d3967de766cdaa0d4eae043c",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=False-custom_metric_loss=Precision-eval_metric_use_weights=False-eval_metric_loss=AUC-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=False-custom_metric_loss=Precision-eval_metric_use_weights=False-eval_metric_loss=Logloss-dataset_has_weights=True]": [
+        {
+            "checksum": "48b2c5d61159099038459964fb2ba6ca",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=False-custom_metric_loss=Precision-eval_metric_use_weights=False-eval_metric_loss=Logloss-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "5d4cb236fd57c691cbf546f554413d69",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=False-custom_metric_loss=Precision-eval_metric_use_weights=False-eval_metric_loss=Logloss-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=False-custom_metric_loss=Precision-eval_metric_use_weights=False-eval_metric_loss=Precision-dataset_has_weights=True]": [
+        {
+            "checksum": "fd5adfb7a9ffb7e87ab81e9db3ebf7d3",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=False-custom_metric_loss=Precision-eval_metric_use_weights=False-eval_metric_loss=Precision-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "79845813618c98522dcc620c49d479a8",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=False-custom_metric_loss=Precision-eval_metric_use_weights=False-eval_metric_loss=Precision-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=False-custom_metric_loss=Precision-eval_metric_use_weights=None-eval_metric_loss=AUC-dataset_has_weights=True]": [
+        {
+            "checksum": "912a1358f71f9b458d7141d28905359d",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=False-custom_metric_loss=Precision-eval_metric_use_weights=None-eval_metric_loss=AUC-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "c13062315f13f75946d2ee96b5f51681",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=False-custom_metric_loss=Precision-eval_metric_use_weights=None-eval_metric_loss=AUC-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=False-custom_metric_loss=Precision-eval_metric_use_weights=None-eval_metric_loss=Logloss-dataset_has_weights=True]": [
+        {
+            "checksum": "a0d326957752cd0338db4ee4e4168f59",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=False-custom_metric_loss=Precision-eval_metric_use_weights=None-eval_metric_loss=Logloss-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "56f27d1c601ad9a08fdf781c9803e15e",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=False-custom_metric_loss=Precision-eval_metric_use_weights=None-eval_metric_loss=Logloss-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=False-custom_metric_loss=Precision-eval_metric_use_weights=None-eval_metric_loss=Precision-dataset_has_weights=True]": [
+        {
+            "checksum": "6e33ccbe16d3ae236babfe2b46a851b0",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=False-custom_metric_loss=Precision-eval_metric_use_weights=None-eval_metric_loss=Precision-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "804a8c32912ef626d4c8086c5c55b6f1",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=False-custom_metric_loss=Precision-eval_metric_use_weights=None-eval_metric_loss=Precision-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=False-custom_metric_loss=Precision-eval_metric_use_weights=True-eval_metric_loss=AUC-dataset_has_weights=True]": [
+        {
+            "checksum": "cabdb203b5f1d4afe7afc279c98f7cdd",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=False-custom_metric_loss=Precision-eval_metric_use_weights=True-eval_metric_loss=AUC-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "fa5fb9a83ebf6b9019410f227e3a9cd0",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=False-custom_metric_loss=Precision-eval_metric_use_weights=True-eval_metric_loss=AUC-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=False-custom_metric_loss=Precision-eval_metric_use_weights=True-eval_metric_loss=Logloss-dataset_has_weights=True]": [
+        {
+            "checksum": "c0448296f7a43cf6298cf582920960cc",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=False-custom_metric_loss=Precision-eval_metric_use_weights=True-eval_metric_loss=Logloss-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "385b18f022c87cfd756e2f97f40ea2f7",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=False-custom_metric_loss=Precision-eval_metric_use_weights=True-eval_metric_loss=Logloss-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=False-custom_metric_loss=Precision-eval_metric_use_weights=True-eval_metric_loss=Precision-dataset_has_weights=True]": [
+        {
+            "checksum": "69db8a6d9d2d8f98da77dc7e734e446f",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=False-custom_metric_loss=Precision-eval_metric_use_weights=True-eval_metric_loss=Precision-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "ad76ff02ffa3151185ab9b21338ccb96",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=False-custom_metric_loss=Precision-eval_metric_use_weights=True-eval_metric_loss=Precision-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=None-custom_metric_loss=AUC-eval_metric_use_weights=False-eval_metric_loss=AUC-dataset_has_weights=True]": [
+        {
+            "checksum": "bee9a6893eb107c3963af3064fdc6553",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=AUC-eval_metric_use_weights=False-eval_metric_loss=AUC-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "44d29fbe3fda4596fc9678e0ba1a7f15",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=AUC-eval_metric_use_weights=False-eval_metric_loss=AUC-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=None-custom_metric_loss=AUC-eval_metric_use_weights=False-eval_metric_loss=Logloss-dataset_has_weights=True]": [
+        {
+            "checksum": "1099a19f08f2d8d7c8c1f0ddda73a95a",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=AUC-eval_metric_use_weights=False-eval_metric_loss=Logloss-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "bcf529d36dbd7a605bf87633a26b8cc8",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=AUC-eval_metric_use_weights=False-eval_metric_loss=Logloss-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=None-custom_metric_loss=AUC-eval_metric_use_weights=False-eval_metric_loss=Precision-dataset_has_weights=True]": [
+        {
+            "checksum": "090d8bc54a2ce9f9be160e7e6b62bd04",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=AUC-eval_metric_use_weights=False-eval_metric_loss=Precision-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "67f4feb8a4914ad9bba813c86530c8a2",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=AUC-eval_metric_use_weights=False-eval_metric_loss=Precision-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=None-custom_metric_loss=AUC-eval_metric_use_weights=None-eval_metric_loss=AUC-dataset_has_weights=False]": [
+        {
+            "checksum": "78ac404c4cbd7c1907322737bf0c3fc9",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=AUC-eval_metric_use_weights=None-eval_metric_loss=AUC-dataset_has_weights=False_/learn_error.tsv"
+        },
+        {
+            "checksum": "021ee83bd17d2b56da1c63d5f6655d59",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=AUC-eval_metric_use_weights=None-eval_metric_loss=AUC-dataset_has_weights=False_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=None-custom_metric_loss=AUC-eval_metric_use_weights=None-eval_metric_loss=AUC-dataset_has_weights=True]": [
+        {
+            "checksum": "06588f0e2aa18555e07fa1050002bb21",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=AUC-eval_metric_use_weights=None-eval_metric_loss=AUC-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "a50b37d349c1b2e15001e9f8ce4d0b82",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=AUC-eval_metric_use_weights=None-eval_metric_loss=AUC-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=None-custom_metric_loss=AUC-eval_metric_use_weights=None-eval_metric_loss=Logloss-dataset_has_weights=False]": [
+        {
+            "checksum": "126618ae3293f81bca815f291a98412c",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=AUC-eval_metric_use_weights=None-eval_metric_loss=Logloss-dataset_has_weights=False_/learn_error.tsv"
+        },
+        {
+            "checksum": "afbce1185d27c6d89c84257676a405c0",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=AUC-eval_metric_use_weights=None-eval_metric_loss=Logloss-dataset_has_weights=False_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=None-custom_metric_loss=AUC-eval_metric_use_weights=None-eval_metric_loss=Logloss-dataset_has_weights=True]": [
+        {
+            "checksum": "8d58f3364a19cdb781ff6b6e8db24957",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=AUC-eval_metric_use_weights=None-eval_metric_loss=Logloss-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "45e66e3254d7f7b948aa38ae0d256717",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=AUC-eval_metric_use_weights=None-eval_metric_loss=Logloss-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=None-custom_metric_loss=AUC-eval_metric_use_weights=None-eval_metric_loss=Precision-dataset_has_weights=False]": [
+        {
+            "checksum": "fa6948fae7787b869ca9116c17c85433",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=AUC-eval_metric_use_weights=None-eval_metric_loss=Precision-dataset_has_weights=False_/learn_error.tsv"
+        },
+        {
+            "checksum": "5160048d1c76d3a32759343fa0675fc2",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=AUC-eval_metric_use_weights=None-eval_metric_loss=Precision-dataset_has_weights=False_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=None-custom_metric_loss=AUC-eval_metric_use_weights=None-eval_metric_loss=Precision-dataset_has_weights=True]": [
+        {
+            "checksum": "ffecad0c34de90a456376adca4d15b20",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=AUC-eval_metric_use_weights=None-eval_metric_loss=Precision-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "2bed33f202a0bd199a35eea7bb7f3e68",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=AUC-eval_metric_use_weights=None-eval_metric_loss=Precision-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=None-custom_metric_loss=AUC-eval_metric_use_weights=True-eval_metric_loss=AUC-dataset_has_weights=True]": [
+        {
+            "checksum": "8f02a05d4e64a8bacccab739ce4548fd",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=AUC-eval_metric_use_weights=True-eval_metric_loss=AUC-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "740f40ff5f1a851bcfe942dfc2360499",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=AUC-eval_metric_use_weights=True-eval_metric_loss=AUC-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=None-custom_metric_loss=AUC-eval_metric_use_weights=True-eval_metric_loss=Logloss-dataset_has_weights=True]": [
+        {
+            "checksum": "168b99932bcae8d2f1fa6aee3b9c30cf",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=AUC-eval_metric_use_weights=True-eval_metric_loss=Logloss-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "f95d5033f210ddbab74e8ccd1b9d3302",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=AUC-eval_metric_use_weights=True-eval_metric_loss=Logloss-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=None-custom_metric_loss=AUC-eval_metric_use_weights=True-eval_metric_loss=Precision-dataset_has_weights=True]": [
+        {
+            "checksum": "318b60f2d0d0b3651233b9c1073d20c0",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=AUC-eval_metric_use_weights=True-eval_metric_loss=Precision-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "bf5824fa68f531c18a6777c1f6ca954e",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=AUC-eval_metric_use_weights=True-eval_metric_loss=Precision-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=None-custom_metric_loss=Logloss-eval_metric_use_weights=False-eval_metric_loss=AUC-dataset_has_weights=True]": [
+        {
+            "checksum": "1115d0abaecf144cc4f9a6f65fcb31fa",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=Logloss-eval_metric_use_weights=False-eval_metric_loss=AUC-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "26dfe8b795a439c77a3c4d5502c86276",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=Logloss-eval_metric_use_weights=False-eval_metric_loss=AUC-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=None-custom_metric_loss=Logloss-eval_metric_use_weights=False-eval_metric_loss=Logloss-dataset_has_weights=True]": [
+        {
+            "checksum": "69af7c30fc23901f15564737d545f21b",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=Logloss-eval_metric_use_weights=False-eval_metric_loss=Logloss-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "18348ac8379db0d0f38d14dc9b587d1c",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=Logloss-eval_metric_use_weights=False-eval_metric_loss=Logloss-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=None-custom_metric_loss=Logloss-eval_metric_use_weights=False-eval_metric_loss=Precision-dataset_has_weights=True]": [
+        {
+            "checksum": "6d155dbe4008d552ba0500c74238df05",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=Logloss-eval_metric_use_weights=False-eval_metric_loss=Precision-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "b228776e3d5dbdc810cb2e4e7d0cf471",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=Logloss-eval_metric_use_weights=False-eval_metric_loss=Precision-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=None-custom_metric_loss=Logloss-eval_metric_use_weights=None-eval_metric_loss=AUC-dataset_has_weights=False]": [
+        {
+            "checksum": "78ac404c4cbd7c1907322737bf0c3fc9",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=Logloss-eval_metric_use_weights=None-eval_metric_loss=AUC-dataset_has_weights=False_/learn_error.tsv"
+        },
+        {
+            "checksum": "021ee83bd17d2b56da1c63d5f6655d59",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=Logloss-eval_metric_use_weights=None-eval_metric_loss=AUC-dataset_has_weights=False_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=None-custom_metric_loss=Logloss-eval_metric_use_weights=None-eval_metric_loss=AUC-dataset_has_weights=True]": [
+        {
+            "checksum": "04bc57cbe840eee87d39e9e50ffd3d33",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=Logloss-eval_metric_use_weights=None-eval_metric_loss=AUC-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "dca6e525aaacbe37d736be82d7b65fe6",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=Logloss-eval_metric_use_weights=None-eval_metric_loss=AUC-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=None-custom_metric_loss=Logloss-eval_metric_use_weights=None-eval_metric_loss=Logloss-dataset_has_weights=False]": [
+        {
+            "checksum": "331dd13509abc9fcdde3f7d43a7f1042",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=Logloss-eval_metric_use_weights=None-eval_metric_loss=Logloss-dataset_has_weights=False_/learn_error.tsv"
+        },
+        {
+            "checksum": "71a33933f9bc89938f58fdaf9e91d96d",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=Logloss-eval_metric_use_weights=None-eval_metric_loss=Logloss-dataset_has_weights=False_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=None-custom_metric_loss=Logloss-eval_metric_use_weights=None-eval_metric_loss=Logloss-dataset_has_weights=True]": [
+        {
+            "checksum": "eea6b5bd142eec6239af3b07fa5d2bb2",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=Logloss-eval_metric_use_weights=None-eval_metric_loss=Logloss-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "0de92f9fcaf06a076802e3a51623c717",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=Logloss-eval_metric_use_weights=None-eval_metric_loss=Logloss-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=None-custom_metric_loss=Logloss-eval_metric_use_weights=None-eval_metric_loss=Precision-dataset_has_weights=False]": [
+        {
+            "checksum": "871c3e9e7fc2de88203fbbc6af10bc8d",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=Logloss-eval_metric_use_weights=None-eval_metric_loss=Precision-dataset_has_weights=False_/learn_error.tsv"
+        },
+        {
+            "checksum": "763c6133e481813a7e7a9edb6dad3186",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=Logloss-eval_metric_use_weights=None-eval_metric_loss=Precision-dataset_has_weights=False_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=None-custom_metric_loss=Logloss-eval_metric_use_weights=None-eval_metric_loss=Precision-dataset_has_weights=True]": [
+        {
+            "checksum": "4fec541c2ecb47e45615b16aa79b2114",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=Logloss-eval_metric_use_weights=None-eval_metric_loss=Precision-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "1f8b3e874ab7f07426b961e9f3c8392f",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=Logloss-eval_metric_use_weights=None-eval_metric_loss=Precision-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=None-custom_metric_loss=Logloss-eval_metric_use_weights=True-eval_metric_loss=AUC-dataset_has_weights=True]": [
+        {
+            "checksum": "25507b69a8a7401ba7578cd610ca4ff4",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=Logloss-eval_metric_use_weights=True-eval_metric_loss=AUC-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "436b84bee53b584f4a9768fd0a620690",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=Logloss-eval_metric_use_weights=True-eval_metric_loss=AUC-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=None-custom_metric_loss=Logloss-eval_metric_use_weights=True-eval_metric_loss=Logloss-dataset_has_weights=True]": [
+        {
+            "checksum": "6d25a1c93c9d8a0f1ad663ef28c3c982",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=Logloss-eval_metric_use_weights=True-eval_metric_loss=Logloss-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "14b0ab24e1895559de8bdbfc713cf805",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=Logloss-eval_metric_use_weights=True-eval_metric_loss=Logloss-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=None-custom_metric_loss=Logloss-eval_metric_use_weights=True-eval_metric_loss=Precision-dataset_has_weights=True]": [
+        {
+            "checksum": "fc6015a6c5b32cc392fe155d02d7a26a",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=Logloss-eval_metric_use_weights=True-eval_metric_loss=Precision-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "7daf3c1c001a72f42664a5e711944dac",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=Logloss-eval_metric_use_weights=True-eval_metric_loss=Precision-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=None-custom_metric_loss=Precision-eval_metric_use_weights=False-eval_metric_loss=AUC-dataset_has_weights=True]": [
+        {
+            "checksum": "e3056be846d03a577a37c7eb01f85ee5",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=Precision-eval_metric_use_weights=False-eval_metric_loss=AUC-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "8cdcf022b2eb2c9e8f80a7bde43085b1",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=Precision-eval_metric_use_weights=False-eval_metric_loss=AUC-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=None-custom_metric_loss=Precision-eval_metric_use_weights=False-eval_metric_loss=Logloss-dataset_has_weights=True]": [
+        {
+            "checksum": "a512c90023de7bfbd87e20bdf2f77561",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=Precision-eval_metric_use_weights=False-eval_metric_loss=Logloss-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "7643b0042149a93470c8c54dfcf5d2f5",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=Precision-eval_metric_use_weights=False-eval_metric_loss=Logloss-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=None-custom_metric_loss=Precision-eval_metric_use_weights=False-eval_metric_loss=Precision-dataset_has_weights=True]": [
+        {
+            "checksum": "dc78b0e884a52601dc8a92d17c12db33",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=Precision-eval_metric_use_weights=False-eval_metric_loss=Precision-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "917e2e8543219f3c77a0583e95870307",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=Precision-eval_metric_use_weights=False-eval_metric_loss=Precision-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=None-custom_metric_loss=Precision-eval_metric_use_weights=None-eval_metric_loss=AUC-dataset_has_weights=False]": [
+        {
+            "checksum": "5a65e49d67aeea5e78456730f1a222bf",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=Precision-eval_metric_use_weights=None-eval_metric_loss=AUC-dataset_has_weights=False_/learn_error.tsv"
+        },
+        {
+            "checksum": "6931cb4a37744c2bbaacc020d3603110",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=Precision-eval_metric_use_weights=None-eval_metric_loss=AUC-dataset_has_weights=False_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=None-custom_metric_loss=Precision-eval_metric_use_weights=None-eval_metric_loss=AUC-dataset_has_weights=True]": [
+        {
+            "checksum": "ae45281e0e2f93ee679e040841dbb12c",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=Precision-eval_metric_use_weights=None-eval_metric_loss=AUC-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "5d7321bb5c9cc51dbb6406562f4ef8c8",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=Precision-eval_metric_use_weights=None-eval_metric_loss=AUC-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=None-custom_metric_loss=Precision-eval_metric_use_weights=None-eval_metric_loss=Logloss-dataset_has_weights=False]": [
+        {
+            "checksum": "77f94922581ff6399dd3635f47d75f74",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=Precision-eval_metric_use_weights=None-eval_metric_loss=Logloss-dataset_has_weights=False_/learn_error.tsv"
+        },
+        {
+            "checksum": "647ba9db53fd96413f188f970796cf5b",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=Precision-eval_metric_use_weights=None-eval_metric_loss=Logloss-dataset_has_weights=False_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=None-custom_metric_loss=Precision-eval_metric_use_weights=None-eval_metric_loss=Logloss-dataset_has_weights=True]": [
+        {
+            "checksum": "04703f6721acd9def70f7e0230962047",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=Precision-eval_metric_use_weights=None-eval_metric_loss=Logloss-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "adac72d70a5cfab6dd8f809df24c6b2c",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=Precision-eval_metric_use_weights=None-eval_metric_loss=Logloss-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=None-custom_metric_loss=Precision-eval_metric_use_weights=None-eval_metric_loss=Precision-dataset_has_weights=False]": [
+        {
+            "checksum": "871c3e9e7fc2de88203fbbc6af10bc8d",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=Precision-eval_metric_use_weights=None-eval_metric_loss=Precision-dataset_has_weights=False_/learn_error.tsv"
+        },
+        {
+            "checksum": "763c6133e481813a7e7a9edb6dad3186",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=Precision-eval_metric_use_weights=None-eval_metric_loss=Precision-dataset_has_weights=False_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=None-custom_metric_loss=Precision-eval_metric_use_weights=None-eval_metric_loss=Precision-dataset_has_weights=True]": [
+        {
+            "checksum": "bea97fa7595b5aa3f830f0695e0991a4",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=Precision-eval_metric_use_weights=None-eval_metric_loss=Precision-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "074297ef676e950c94b1a569d35a2540",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=Precision-eval_metric_use_weights=None-eval_metric_loss=Precision-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=None-custom_metric_loss=Precision-eval_metric_use_weights=True-eval_metric_loss=AUC-dataset_has_weights=True]": [
+        {
+            "checksum": "72ac8f10395e682947ff1df009c50317",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=Precision-eval_metric_use_weights=True-eval_metric_loss=AUC-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "f39a546fbb71dc6b351178cf1a9e82a3",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=Precision-eval_metric_use_weights=True-eval_metric_loss=AUC-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=None-custom_metric_loss=Precision-eval_metric_use_weights=True-eval_metric_loss=Logloss-dataset_has_weights=True]": [
+        {
+            "checksum": "3153e9aee5b66185ab0fd4549c785995",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=Precision-eval_metric_use_weights=True-eval_metric_loss=Logloss-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "dca9e83ff1b877cc384927ff2133a5f0",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=Precision-eval_metric_use_weights=True-eval_metric_loss=Logloss-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=None-custom_metric_loss=Precision-eval_metric_use_weights=True-eval_metric_loss=Precision-dataset_has_weights=True]": [
+        {
+            "checksum": "69db8a6d9d2d8f98da77dc7e734e446f",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=Precision-eval_metric_use_weights=True-eval_metric_loss=Precision-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "ad76ff02ffa3151185ab9b21338ccb96",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=None-custom_metric_loss=Precision-eval_metric_use_weights=True-eval_metric_loss=Precision-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=True-custom_metric_loss=AUC-eval_metric_use_weights=False-eval_metric_loss=AUC-dataset_has_weights=True]": [
+        {
+            "checksum": "b3c5e7521c9e74eb2285b5be727901cc",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=True-custom_metric_loss=AUC-eval_metric_use_weights=False-eval_metric_loss=AUC-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "aef8678147376059db944e7ba911a4ba",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=True-custom_metric_loss=AUC-eval_metric_use_weights=False-eval_metric_loss=AUC-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=True-custom_metric_loss=AUC-eval_metric_use_weights=False-eval_metric_loss=Logloss-dataset_has_weights=True]": [
+        {
+            "checksum": "2fc21ddda66e7a3ee6d930a198d8fee8",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=True-custom_metric_loss=AUC-eval_metric_use_weights=False-eval_metric_loss=Logloss-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "f8ef469dcd279ea6ff9761555caeb79b",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=True-custom_metric_loss=AUC-eval_metric_use_weights=False-eval_metric_loss=Logloss-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=True-custom_metric_loss=AUC-eval_metric_use_weights=False-eval_metric_loss=Precision-dataset_has_weights=True]": [
+        {
+            "checksum": "bacbfe6142bb226e54b21463f7339cd7",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=True-custom_metric_loss=AUC-eval_metric_use_weights=False-eval_metric_loss=Precision-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "c90b53167ebf8ff367be41603b33e5e4",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=True-custom_metric_loss=AUC-eval_metric_use_weights=False-eval_metric_loss=Precision-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=True-custom_metric_loss=AUC-eval_metric_use_weights=None-eval_metric_loss=AUC-dataset_has_weights=True]": [
+        {
+            "checksum": "c2915d3dd7c2498262c2cce86355eed0",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=True-custom_metric_loss=AUC-eval_metric_use_weights=None-eval_metric_loss=AUC-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "cf1cdad796f1fcdeff40d68b86d00f8c",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=True-custom_metric_loss=AUC-eval_metric_use_weights=None-eval_metric_loss=AUC-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=True-custom_metric_loss=AUC-eval_metric_use_weights=None-eval_metric_loss=Logloss-dataset_has_weights=True]": [
+        {
+            "checksum": "7b119913689e9e9b71596258e6dadb47",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=True-custom_metric_loss=AUC-eval_metric_use_weights=None-eval_metric_loss=Logloss-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "b64e24df1f9d0fccd9073762f33ffc72",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=True-custom_metric_loss=AUC-eval_metric_use_weights=None-eval_metric_loss=Logloss-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=True-custom_metric_loss=AUC-eval_metric_use_weights=None-eval_metric_loss=Precision-dataset_has_weights=True]": [
+        {
+            "checksum": "bfc95f798675e3ea93dafa7ef14c3b61",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=True-custom_metric_loss=AUC-eval_metric_use_weights=None-eval_metric_loss=Precision-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "4d8852bc58aa7102a6a6b4985ae4eccf",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=True-custom_metric_loss=AUC-eval_metric_use_weights=None-eval_metric_loss=Precision-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=True-custom_metric_loss=AUC-eval_metric_use_weights=True-eval_metric_loss=AUC-dataset_has_weights=True]": [
+        {
+            "checksum": "5696c16b01cdc3a4183cb6983644519b",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=True-custom_metric_loss=AUC-eval_metric_use_weights=True-eval_metric_loss=AUC-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "e0b6268aa138dcb59e2d24f3cc0f3ec3",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=True-custom_metric_loss=AUC-eval_metric_use_weights=True-eval_metric_loss=AUC-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=True-custom_metric_loss=AUC-eval_metric_use_weights=True-eval_metric_loss=Logloss-dataset_has_weights=True]": [
+        {
+            "checksum": "9c483bb7950551c73656b78a33c5a936",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=True-custom_metric_loss=AUC-eval_metric_use_weights=True-eval_metric_loss=Logloss-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "3d13fdb81458f4938e7b4a9f381a02a7",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=True-custom_metric_loss=AUC-eval_metric_use_weights=True-eval_metric_loss=Logloss-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=True-custom_metric_loss=AUC-eval_metric_use_weights=True-eval_metric_loss=Precision-dataset_has_weights=True]": [
+        {
+            "checksum": "3d38b00cfb31c2df6cc53cdce5b65b2e",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=True-custom_metric_loss=AUC-eval_metric_use_weights=True-eval_metric_loss=Precision-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "b18b687ec17b66f3c82eaef1a7318078",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=True-custom_metric_loss=AUC-eval_metric_use_weights=True-eval_metric_loss=Precision-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=True-custom_metric_loss=Logloss-eval_metric_use_weights=False-eval_metric_loss=AUC-dataset_has_weights=True]": [
+        {
+            "checksum": "ff9e023c3d877fab8dab2ae47d11bb6a",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=True-custom_metric_loss=Logloss-eval_metric_use_weights=False-eval_metric_loss=AUC-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "5b1d7d3bae32bea9ec1c6bf175859164",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=True-custom_metric_loss=Logloss-eval_metric_use_weights=False-eval_metric_loss=AUC-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=True-custom_metric_loss=Logloss-eval_metric_use_weights=False-eval_metric_loss=Logloss-dataset_has_weights=True]": [
+        {
+            "checksum": "69af7c30fc23901f15564737d545f21b",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=True-custom_metric_loss=Logloss-eval_metric_use_weights=False-eval_metric_loss=Logloss-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "18348ac8379db0d0f38d14dc9b587d1c",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=True-custom_metric_loss=Logloss-eval_metric_use_weights=False-eval_metric_loss=Logloss-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=True-custom_metric_loss=Logloss-eval_metric_use_weights=False-eval_metric_loss=Precision-dataset_has_weights=True]": [
+        {
+            "checksum": "795685619b3a9eed50f645759e1b50e2",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=True-custom_metric_loss=Logloss-eval_metric_use_weights=False-eval_metric_loss=Precision-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "90a5c03827898afdbc9ff31fc3200717",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=True-custom_metric_loss=Logloss-eval_metric_use_weights=False-eval_metric_loss=Precision-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=True-custom_metric_loss=Logloss-eval_metric_use_weights=None-eval_metric_loss=AUC-dataset_has_weights=True]": [
+        {
+            "checksum": "0dc4043489108a5e796d5c0c5a1ca2d4",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=True-custom_metric_loss=Logloss-eval_metric_use_weights=None-eval_metric_loss=AUC-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "35abfecf3110ef27893937a9070780e7",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=True-custom_metric_loss=Logloss-eval_metric_use_weights=None-eval_metric_loss=AUC-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=True-custom_metric_loss=Logloss-eval_metric_use_weights=None-eval_metric_loss=Logloss-dataset_has_weights=True]": [
+        {
+            "checksum": "8c3f0345fd9e5be9dd214478005ecbab",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=True-custom_metric_loss=Logloss-eval_metric_use_weights=None-eval_metric_loss=Logloss-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "fb63533ea99a493ad69e7d78ca059177",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=True-custom_metric_loss=Logloss-eval_metric_use_weights=None-eval_metric_loss=Logloss-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=True-custom_metric_loss=Logloss-eval_metric_use_weights=None-eval_metric_loss=Precision-dataset_has_weights=True]": [
+        {
+            "checksum": "89c0091addb0dc101f0bc4189c48a4a1",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=True-custom_metric_loss=Logloss-eval_metric_use_weights=None-eval_metric_loss=Precision-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "9d81b2899bfe38b252b220f4387313b3",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=True-custom_metric_loss=Logloss-eval_metric_use_weights=None-eval_metric_loss=Precision-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=True-custom_metric_loss=Logloss-eval_metric_use_weights=True-eval_metric_loss=AUC-dataset_has_weights=True]": [
+        {
+            "checksum": "02102bd309bb117391362f8ba722a5de",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=True-custom_metric_loss=Logloss-eval_metric_use_weights=True-eval_metric_loss=AUC-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "85bee401ade4d088ec3f74e01670c6f4",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=True-custom_metric_loss=Logloss-eval_metric_use_weights=True-eval_metric_loss=AUC-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=True-custom_metric_loss=Logloss-eval_metric_use_weights=True-eval_metric_loss=Logloss-dataset_has_weights=True]": [
+        {
+            "checksum": "07c7d3208bf6dc43cb26f19c866666b6",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=True-custom_metric_loss=Logloss-eval_metric_use_weights=True-eval_metric_loss=Logloss-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "7d81ef5e9fa4b8dc14a8f6106203614f",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=True-custom_metric_loss=Logloss-eval_metric_use_weights=True-eval_metric_loss=Logloss-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=True-custom_metric_loss=Logloss-eval_metric_use_weights=True-eval_metric_loss=Precision-dataset_has_weights=True]": [
+        {
+            "checksum": "7b0c904e25e376afa799ad31d4862843",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=True-custom_metric_loss=Logloss-eval_metric_use_weights=True-eval_metric_loss=Precision-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "842b5ab7a5cb2765c3608248bd51dd05",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=True-custom_metric_loss=Logloss-eval_metric_use_weights=True-eval_metric_loss=Precision-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=True-custom_metric_loss=Precision-eval_metric_use_weights=False-eval_metric_loss=AUC-dataset_has_weights=True]": [
+        {
+            "checksum": "2003685ff8e98dd4f1c6477c9d0f873d",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=True-custom_metric_loss=Precision-eval_metric_use_weights=False-eval_metric_loss=AUC-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "d81aa1b5b818408098066ba388ebef18",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=True-custom_metric_loss=Precision-eval_metric_use_weights=False-eval_metric_loss=AUC-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=True-custom_metric_loss=Precision-eval_metric_use_weights=False-eval_metric_loss=Logloss-dataset_has_weights=True]": [
+        {
+            "checksum": "d420ef7eeb10473241c61b37463c3c83",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=True-custom_metric_loss=Precision-eval_metric_use_weights=False-eval_metric_loss=Logloss-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "707c764c99dabe7d2b393b97a3adce2f",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=True-custom_metric_loss=Precision-eval_metric_use_weights=False-eval_metric_loss=Logloss-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=True-custom_metric_loss=Precision-eval_metric_use_weights=False-eval_metric_loss=Precision-dataset_has_weights=True]": [
+        {
+            "checksum": "dc78b0e884a52601dc8a92d17c12db33",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=True-custom_metric_loss=Precision-eval_metric_use_weights=False-eval_metric_loss=Precision-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "917e2e8543219f3c77a0583e95870307",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=True-custom_metric_loss=Precision-eval_metric_use_weights=False-eval_metric_loss=Precision-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=True-custom_metric_loss=Precision-eval_metric_use_weights=None-eval_metric_loss=AUC-dataset_has_weights=True]": [
+        {
+            "checksum": "47c5d4a62aff24cf89d316c0a22932be",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=True-custom_metric_loss=Precision-eval_metric_use_weights=None-eval_metric_loss=AUC-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "850b28941f3d022e0045067744bd8c41",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=True-custom_metric_loss=Precision-eval_metric_use_weights=None-eval_metric_loss=AUC-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=True-custom_metric_loss=Precision-eval_metric_use_weights=None-eval_metric_loss=Logloss-dataset_has_weights=True]": [
+        {
+            "checksum": "5fa2fde3fea7fb848440777e3f5b90dd",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=True-custom_metric_loss=Precision-eval_metric_use_weights=None-eval_metric_loss=Logloss-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "0b064de398d144a65d8142c00608926a",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=True-custom_metric_loss=Precision-eval_metric_use_weights=None-eval_metric_loss=Logloss-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=True-custom_metric_loss=Precision-eval_metric_use_weights=None-eval_metric_loss=Precision-dataset_has_weights=True]": [
+        {
+            "checksum": "9fe14f5be843ed6195d34af1243a607d",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=True-custom_metric_loss=Precision-eval_metric_use_weights=None-eval_metric_loss=Precision-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "00b07a9073909e91b2a585fd4ffe6133",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=True-custom_metric_loss=Precision-eval_metric_use_weights=None-eval_metric_loss=Precision-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=True-custom_metric_loss=Precision-eval_metric_use_weights=True-eval_metric_loss=AUC-dataset_has_weights=True]": [
+        {
+            "checksum": "74953dccbfc6f7038e483ae353c3c6fb",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=True-custom_metric_loss=Precision-eval_metric_use_weights=True-eval_metric_loss=AUC-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "a0cc5ed003195238bb8112673b3180d9",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=True-custom_metric_loss=Precision-eval_metric_use_weights=True-eval_metric_loss=AUC-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=True-custom_metric_loss=Precision-eval_metric_use_weights=True-eval_metric_loss=Logloss-dataset_has_weights=True]": [
+        {
+            "checksum": "81f9631c33e70cd8b14b0884b6d4d7c1",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=True-custom_metric_loss=Precision-eval_metric_use_weights=True-eval_metric_loss=Logloss-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "79d9a9bb62432a78df7c42e12fb98817",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=True-custom_metric_loss=Precision-eval_metric_use_weights=True-eval_metric_loss=Logloss-dataset_has_weights=True_/test_error.tsv"
+        }
+    ],
+    "test.test_metric_description[custom_metric_use_weights=True-custom_metric_loss=Precision-eval_metric_use_weights=True-eval_metric_loss=Precision-dataset_has_weights=True]": [
+        {
+            "checksum": "8f764e8f39f68ba19e7f7f91ad369c1d",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=True-custom_metric_loss=Precision-eval_metric_use_weights=True-eval_metric_loss=Precision-dataset_has_weights=True_/learn_error.tsv"
+        },
+        {
+            "checksum": "322a7887e44cb7f7aa48a85d271a9d2c",
+            "uri": "file://test.test_metric_description_custom_metric_use_weights=True-custom_metric_loss=Precision-eval_metric_use_weights=True-eval_metric_loss=Precision-dataset_has_weights=True_/test_error.tsv"
         }
     ],
     "test.test_mode_roc": {

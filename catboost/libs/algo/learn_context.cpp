@@ -248,7 +248,8 @@ TLearnContext::TLearnContext(
     , Files(outputOptions, fileNamesPrefix)
     , Profile((int)Params.BoostingOptions->IterationCount)
     , LearnAndTestDataPackingAreCompatible(false)
-    , UseTreeLevelCachingFlag(false) {
+    , UseTreeLevelCachingFlag(false)
+    , HasWeights(data.Learn->MetaInfo.HasWeights) {
 
     ETaskType taskType = Params.GetTaskType();
     CB_ENSURE(taskType == ETaskType::CPU, "Error: expect learn on CPU task type, got " << taskType);
@@ -810,6 +811,10 @@ ui32 TLearnProgress::GetInitModelTreesSize() const {
 
 bool TLearnContext::UseTreeLevelCaching() const {
     return UseTreeLevelCachingFlag;
+}
+
+bool TLearnContext::GetHasWeights() const {
+    return HasWeights;
 }
 
 bool NeedToUseTreeLevelCaching(

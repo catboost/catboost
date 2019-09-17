@@ -350,7 +350,8 @@ TVector<THolder<IMetric>> CreateMetrics(
 TVector<THolder<IMetric>> CreateMetrics(
     const NCatboostOptions::TOption<NCatboostOptions::TMetricOptions>& evalMetricOptions,
     const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
-    int approxDimension);
+    int approxDimension,
+    bool hasWeights);
 
 TVector<TString> GetMetricsDescription(const TVector<const IMetric*>& metrics);
 TVector<TString> GetMetricsDescription(const TVector<THolder<IMetric>>& metrics);

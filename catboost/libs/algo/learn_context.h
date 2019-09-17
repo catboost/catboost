@@ -196,6 +196,7 @@ public:
     void SaveProgress();
     bool TryLoadProgress();
     bool UseTreeLevelCaching() const;
+    bool GetHasWeights() const;
 
 public:
     THolder<TLearnProgress> LearnProgress;
@@ -211,6 +212,7 @@ public:
 
 private:
     bool UseTreeLevelCachingFlag;
+    bool HasWeights;
 };
 
 bool NeedToUseTreeLevelCaching(

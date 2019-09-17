@@ -24,11 +24,12 @@ namespace NCatboostCuda {
                                                        bool hasTest,
                                                        bool testHasTarget,
                                                        ui32 cpuApproxDim,
-                                                       const TMaybe<std::function<bool(const TMetricsAndTimeLeftHistory&)>>& onEndIterationCallback)
+                                                       const TMaybe<std::function<bool(const TMetricsAndTimeLeftHistory&)>>& onEndIterationCallback,
+                                                       bool hasWeights)
         : CatboostOptions(catBoostOptions)
         , OutputOptions(outputFilesOptions)
         , OutputFiles(outputFilesOptions, "")
-        , Metrics(CreateGpuMetrics(catBoostOptions.MetricOptions, cpuApproxDim))
+        , Metrics(CreateGpuMetrics(catBoostOptions.MetricOptions, cpuApproxDim, hasWeights))
         , ErrorTracker(CreateErrorTracker(catBoostOptions.BoostingOptions->OverfittingDetector, Metrics.at(0)->GetCpuMetric(), hasTest))
         , BestModelMinTreesTracker(CreateErrorTracker(catBoostOptions.BoostingOptions->OverfittingDetector, Metrics.at(0)->GetCpuMetric(), hasTest))
         , OnEndIterationCallback(onEndIterationCallback)
@@ -43,6 +44,7 @@ namespace NCatboostCuda {
         , IsSkipOnTrainFlags(GetSkipMetricOnTrain(GetCpuMetrics(Metrics)))
         , IsSkipOnTestFlags(GetSkipMetricOnTest(testHasTarget, GetCpuMetrics(Metrics)))
         , CalcEvalMetricOnEveryIteration(forceCalcEvalMetricOnEveryIteration || ErrorTracker.IsActive())
+        , HasWeights(hasWeights)
     {
         if (OutputOptions.AllowWriteFiles()) {
             InitializeFileLoggers(CatboostOptions,

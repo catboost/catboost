@@ -545,7 +545,8 @@ void CrossValidate(
     TVector<THolder<IMetric>> metrics = CreateMetrics(
         catBoostOptions.MetricOptions,
         evalMetricDescriptor,
-        approxDimension
+        approxDimension,
+        trainingData->MetaInfo.HasWeights
     );
     CheckMetrics(metrics, catBoostOptions.LossFunctionDescription.Get().GetLossFunction());
 

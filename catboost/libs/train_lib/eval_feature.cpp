@@ -577,7 +577,8 @@ void EvaluateFeatures(
     TVector<THolder<IMetric>> metrics = CreateMetrics(
         catBoostOptions.MetricOptions,
         evalMetricDescriptor,
-        GetApproxDimension(catBoostOptions, labelConverter)
+        GetApproxDimension(catBoostOptions, labelConverter),
+        trainingData->MetaInfo.HasWeights
     );
     CheckMetrics(metrics, catBoostOptions.LossFunctionDescription.Get().GetLossFunction());
 

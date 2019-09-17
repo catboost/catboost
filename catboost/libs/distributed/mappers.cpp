@@ -741,13 +741,13 @@ namespace NCatboostDistributed {
         TOutput* additiveStats
     ) const {
         const auto& localData = TLocalTensorSearchData::GetRef();
+        NPar::TCtxPtr<TTrainData> trainData(ctx, SHARED_ID_TRAIN_DATA, hostId);
         const auto errors = CreateMetrics(
             localData.Params.MetricOptions,
             /*evalMetricDescriptor*/Nothing(),
-            localData.Progress->ApproxDimension);
+            localData.Progress->ApproxDimension,
+            GetTrainData(trainData)->MetaInfo.HasWeights);
         const auto skipMetricOnTrain = GetSkipMetricOnTrain(errors);
-        NPar::TCtxPtr<TTrainData> trainData(ctx, SHARED_ID_TRAIN_DATA, hostId);
-
         TVector<IMetric*> selectedMetrics;
         for (auto i : xrange(errors.size())) {
             if (!skipMetricOnTrain[i] && errors[i]->IsAdditiveMetric()) {

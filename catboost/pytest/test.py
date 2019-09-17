@@ -4480,7 +4480,7 @@ def test_dist_train_auc_weight(loss_func):
             train='train_small',
             test='test_small',
             cd='train_weight.cd',
-            other_options=('--eval-metric', 'AUC')),
+            other_options=('--eval-metric', 'AUC', '--boost-from-average', '0')),
         output_file_switch='--test-err-log'))]
 
 
@@ -7229,3 +7229,83 @@ def test_eval_feature():
         local_canonical_file(os.path.join('Testing_set_0_fold_3', test_err_log), diff_tool=diff_tool()),
         local_canonical_file(os.path.join('Testing_set_0_fold_2', test_err_log), diff_tool=diff_tool()),
     ]
+
+TEST_METRIC_DESCRIPTION_METRICS_LIST = ['Logloss', 'Precision', 'AUC']
+@pytest.mark.parametrize('dataset_has_weights', [True, False], ids=['dataset_has_weights=True', 'dataset_has_weights=False'])
+@pytest.mark.parametrize('eval_metric_loss', TEST_METRIC_DESCRIPTION_METRICS_LIST,
+                         ids=['eval_metric_loss=' + mode for mode in TEST_METRIC_DESCRIPTION_METRICS_LIST])
+@pytest.mark.parametrize('eval_metric_use_weights', [True, False, None],
+                         ids=['eval_metric_use_weights=' + str(mode) for mode in [True, False, None]])
+@pytest.mark.parametrize('custom_metric_loss', TEST_METRIC_DESCRIPTION_METRICS_LIST,
+                         ids=['custom_metric_loss=' + mode for mode in TEST_METRIC_DESCRIPTION_METRICS_LIST])
+@pytest.mark.parametrize('custom_metric_use_weights', [True, False, None],
+                         ids=['custom_metric_use_weights=' + str(mode) for mode in [True, False, None]])
+def test_metric_description(dataset_has_weights, eval_metric_loss, eval_metric_use_weights, custom_metric_loss, custom_metric_use_weights):
+    learn_error_path = yatest.common.test_output_path('learn_error.tsv')
+    test_error_path = yatest.common.test_output_path('test_error.tsv')
+    if dataset_has_weights:
+        train_pool_filename = data_file('adult_weight', 'train_weight')
+        test_pool_filename = data_file('adult_weight', 'test_weight')
+        pool_cd_filename = data_file('adult_weight', 'train.cd')
+    else:
+        train_pool_filename = data_file('adult', 'train_small')
+        test_pool_filename = data_file('adult', 'test_small')
+        pool_cd_filename = data_file('adult', 'train.cd')
+
+    eval_metric = eval_metric_loss
+    if eval_metric == 'AUC':
+        eval_metric += ':hints=skip_train~false'
+    if eval_metric_use_weights is not None:
+        eval_metric += ';' if eval_metric_loss == 'AUC' else ':'
+        eval_metric += 'use_weights=' + str(eval_metric_use_weights)
+
+    custom_metric = custom_metric_loss
+    if custom_metric == 'AUC':
+        custom_metric += ':hints=skip_train~false'
+    if custom_metric_use_weights is not None:
+        custom_metric += ';' if custom_metric_loss == 'AUC' else ':'
+        custom_metric += 'use_weights=' + str(custom_metric_use_weights)
+
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'Logloss',
+        '-f', train_pool_filename,
+        '-t', test_pool_filename,
+        '--cd', pool_cd_filename,
+        '-i', '10',
+        '--learn-err-log', learn_error_path,
+        '--test-err-log', test_error_path,
+        '--eval-metric', eval_metric,
+        '--custom-metric', custom_metric
+        )
+    should_fail = not dataset_has_weights and (eval_metric_use_weights is not None or custom_metric_use_weights is not None)
+    try:
+        yatest.common.execute(cmd)
+    except ExecutionError:
+        assert should_fail
+        return
+    for filename in [learn_error_path, test_error_path]:
+        with open(filename, 'r') as f:
+            metrics_descriptions = f.readline().split('\t')[1:]                   # without 'iter' column
+            metrics_descriptions[-1] = metrics_descriptions[-1][:-1]              # remove '\n' symbol
+            unique_metrics_descriptions = set([s.lower() for s in metrics_descriptions])
+            assert len(metrics_descriptions) == len(unique_metrics_descriptions)
+            expected_objective_metric_description = 'Logloss'
+
+            if dataset_has_weights:
+                expected_eval_metric_description = \
+                    eval_metric_loss if eval_metric_use_weights is None else eval_metric_loss + ':use_weights=' + str(eval_metric_use_weights)
+
+                if custom_metric_loss == 'AUC':
+                    expected_custom_metrics_descriptions = \
+                        ['AUC' if custom_metric_use_weights is None else 'AUC:use_weights=' + str(custom_metric_use_weights)]
+                else:
+                    expected_custom_metrics_descriptions = \
+                        [custom_metric_loss + ':use_weights=False', custom_metric_loss + ':use_weights=True'] if custom_metric_use_weights is None \
+                        else [custom_metric_loss + ':use_weights=' + str(custom_metric_use_weights)]
+            else:
+                expected_eval_metric_description = eval_metric_loss
+                expected_custom_metrics_descriptions = [custom_metric_loss]
+            assert unique_metrics_descriptions == set(s.lower() for s in [expected_objective_metric_description] + [expected_eval_metric_description] + expected_custom_metrics_descriptions)
+    return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]

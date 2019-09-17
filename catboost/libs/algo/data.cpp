@@ -163,6 +163,7 @@ namespace NCB {
             &outputPairsInfo
         );
         trainingData->MetaInfo.HasPairs = outputPairsInfo.HasPairs;
+        trainingData->MetaInfo.HasWeights |= !inputClassificationInfo.ClassWeights.empty();
         dataProcessingOptions.ClassNames.Get() = outputClassificationInfo.ClassNames;
         *targetBorder = outputClassificationInfo.TargetBorder;
 

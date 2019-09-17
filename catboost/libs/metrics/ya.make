@@ -23,6 +23,7 @@ PEERDIR(
     catboost/libs/data_types
     catboost/libs/eval_result
     catboost/libs/helpers
+    catboost/libs/logging
     catboost/libs/options
     catboost/libs/helpers/parallel_sort
     library/binsaver

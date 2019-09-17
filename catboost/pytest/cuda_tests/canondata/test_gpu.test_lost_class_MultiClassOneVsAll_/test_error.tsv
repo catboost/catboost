@@ -1,4 +1,4 @@
-iter	MultiClassOneVsAll	Accuracy:use_weights=false
+iter	MultiClassOneVsAll	Accuracy
 0	0.6882612776	0.7227722772
 1	0.6821335141	0.801980198
 2	0.6770950922	0.801980198

@@ -18,6 +18,7 @@
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/vector_helpers.h>
 #include <catboost/libs/helpers/short_vector_ops.h>
+#include <catboost/libs/logging/logging.h>
 #include <catboost/libs/options/enum_helpers.h>
 #include <catboost/libs/options/loss_description.h>
 
@@ -26,6 +27,7 @@
 
 #include <util/generic/array_ref.h>
 #include <util/generic/hash.h>
+#include <util/generic/hash_set.h>
 #include <util/generic/maybe.h>
 #include <util/generic/string.h>
 #include <util/generic/ymath.h>
@@ -4184,56 +4186,109 @@ TVector<THolder<IMetric>> CreateMetrics(
     return metrics;
 }
 
+static inline bool ShouldConsiderWeightsByDefault(const THolder<IMetric>& metric) {
+    return ParseLossType(metric->GetDescription()) != ELossFunction::AUC && !metric->UseWeights.IsUserDefined() && !metric->UseWeights.IsIgnored();
+}
 
 TVector<THolder<IMetric>> CreateMetrics(
-    const NCatboostOptions::TOption<NCatboostOptions::TMetricOptions>& evalMetricOptions,
-    const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
-    int approxDimension) {
+        const NCatboostOptions::TOption<NCatboostOptions::TMetricOptions>& evalMetricOptions,
+        const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
+        int approxDimension,
+        bool hasWeights) {
 
-    TVector<THolder<IMetric>> errors;
-    THashSet<TString> usedDescriptions;
-
-    if (evalMetricOptions->EvalMetric.IsSet()) {
-        if (evalMetricOptions->EvalMetric->GetLossFunction() == ELossFunction::PythonUserDefinedPerObject) {
-            errors.emplace_back(MakeCustomMetric(*evalMetricDescriptor));
-        } else {
-            TVector<THolder<IMetric>> createdMetrics = CreateMetricFromDescription(evalMetricOptions->EvalMetric, approxDimension);
-            CB_ENSURE(createdMetrics.size() == 1, "Eval metric should have a single value. Metric " <<
-                ToString(evalMetricOptions->EvalMetric->GetLossFunction()) <<
-                " provides a value for each class, thus it cannot be used as " <<
-                "a single value to select best iteration or to detect overfitting. " <<
-                "If you just want to look on the values of this metric use custom_metric parameter.");
-            errors.push_back(std::move(createdMetrics.front()));
-        }
-        usedDescriptions.insert(errors.back()->GetDescription());
+    CB_ENSURE(evalMetricOptions->ObjectiveMetric.IsSet(), "Objective metric must be set.");
+    const NCatboostOptions::TLossDescription& objectiveMetricDescription = evalMetricOptions->ObjectiveMetric.Get();
+    const bool haveEvalMetricFromUser = evalMetricOptions->EvalMetric.IsSet();
+    const NCatboostOptions::TLossDescription& evalMetricDescription =
+        haveEvalMetricFromUser ? evalMetricOptions->EvalMetric.Get() : objectiveMetricDescription;
+    // set the eval metric if not specified by user
+    if (!haveEvalMetricFromUser) {
+        CB_ENSURE(objectiveMetricDescription.GetLossFunction() != ELossFunction::PythonUserDefinedPerObject,
+                  "If loss function is a user defined object, then the eval metric must be specified.");
     }
 
-    if (evalMetricOptions.Get().ObjectiveMetric->GetLossFunction() != ELossFunction::PythonUserDefinedPerObject) {
-        TVector<THolder<IMetric>> createdMetrics = CreateMetricFromDescription(
-            evalMetricOptions.Get().ObjectiveMetric,
+    TVector<THolder<IMetric>> createdObjectiveMetrics;
+    if (objectiveMetricDescription.GetLossFunction() != ELossFunction::PythonUserDefinedPerObject) {
+        createdObjectiveMetrics = CreateMetricFromDescription(
+            objectiveMetricDescription,
             approxDimension);
-        for (auto& metric : createdMetrics) {
-            if (!usedDescriptions.contains(metric->GetDescription())) {
-                usedDescriptions.insert(metric->GetDescription());
-                errors.push_back(std::move(metric));
-                if (!errors.back()->UseWeights.IsIgnored()) {
-                    errors.back()->UseWeights.SetDefaultValue(true);
+        if (hasWeights) {
+            for (auto& metric : createdObjectiveMetrics) {
+                if (!metric->UseWeights.IsIgnored() && !metric->UseWeights.IsUserDefined()) {
+                    metric->UseWeights.SetDefaultValue(true);
                 }
             }
         }
     }
 
-    for (const auto& description : evalMetricOptions->CustomMetrics.Get()) {
-        TVector<THolder<IMetric>> createdMetrics = CreateMetricFromDescription(description, approxDimension);
-        for (auto& metric : createdMetrics) {
-            if (!usedDescriptions.contains(metric->GetDescription())) {
-                usedDescriptions.insert(metric->GetDescription());
-                errors.push_back(std::move(metric));
+    TVector<THolder<IMetric>> metrics;
+    THashSet<TString> usedDescriptions;
+
+    if (evalMetricDescription.GetLossFunction() == ELossFunction::PythonUserDefinedPerObject) {
+        metrics.emplace_back(MakeCustomMetric(*evalMetricDescriptor));
+    } else {
+        metrics = CreateMetricFromDescription(evalMetricDescription, approxDimension);
+        CB_ENSURE(metrics.size() == 1, "Eval metric should have a single value. Metric " <<
+            ToString(evalMetricDescription.GetLossFunction()) <<
+            " provides a value for each class, thus it cannot be used as " <<
+            "a single value to select best iteration or to detect overfitting. " <<
+            "If you just want to look on the values of this metric use custom_metric parameter.");
+        if (hasWeights && !metrics.back()->UseWeights.IsIgnored()) {
+            if (!haveEvalMetricFromUser) {
+                if (createdObjectiveMetrics.back()->UseWeights.IsUserDefined()) {
+                    metrics.back()->UseWeights = createdObjectiveMetrics.back()->UseWeights.Get();
+                } else {
+                    metrics.back()->UseWeights.SetDefaultValue(true);
+                }
+            } else if (ShouldConsiderWeightsByDefault(metrics.back())) {
+                metrics.back()->UseWeights.SetDefaultValue(true);
+                CATBOOST_INFO_LOG << "Note: eval_metric is using sample weights by default. " <<
+                    "Set MetricName:use_weights=False to calculate unweighted metric.";
             }
         }
     }
+    usedDescriptions.insert(metrics.back()->GetDescription());
 
-    return errors;
+    for (auto& metric : createdObjectiveMetrics) {
+        const auto& description = metric->GetDescription();
+        if (!usedDescriptions.contains(description)) {
+            usedDescriptions.insert(description);
+            metrics.emplace_back(std::move(metric));
+        }
+    }
+
+    // if custom metric is set without 'use_weights' parameter and we have non-default weights, we calculate both versions of metric.
+    for (const auto& description : evalMetricOptions->CustomMetrics.Get()) {
+        TVector<THolder<IMetric>> createdCustomMetrics = CreateMetricFromDescription(description, approxDimension);
+        if (hasWeights) {
+            TVector<THolder<IMetric>> createdCustomMetricsCopy = CreateMetricFromDescription(description, approxDimension);
+            auto iter = createdCustomMetricsCopy.begin();
+            ui32 initialVectorSize = createdCustomMetrics.size();
+            for (ui32 ind = 0; ind < initialVectorSize; ++ind) {
+                auto& metric = createdCustomMetrics[ind];
+                if (ShouldConsiderWeightsByDefault(metric)) {
+                    metric->UseWeights = true;
+                    (*iter)->UseWeights = false;
+                    createdCustomMetrics.emplace_back(std::move(*iter));
+                }
+                ++iter;
+            }
+        }
+        for (auto& metric : createdCustomMetrics) {
+            const auto& description = metric->GetDescription();
+            if (!usedDescriptions.contains(description)) {
+                usedDescriptions.insert(description);
+                metrics.push_back(std::move(metric));
+            }
+        }
+    }
+    if (!hasWeights) {
+        for (const auto& metric : metrics) {
+            CB_ENSURE(!metric->UseWeights.IsUserDefined(),
+                      "If non-default weights for objects are not set, the 'use_weights' parameter must not be specified.");
+        }
+    }
+    return metrics;
 }
 
 TVector<TString> GetMetricsDescription(const TVector<const IMetric*>& metrics) {

@@ -30,7 +30,8 @@ namespace NCatboostCuda {
                                  bool hasTest,
                                  bool testHasTarget,
                                  ui32 cpuApproxDim,
-                                 const TMaybe<std::function<bool(const TMetricsAndTimeLeftHistory&)>>& onEndIterationCallback);
+                                 const TMaybe<std::function<bool(const TMetricsAndTimeLeftHistory&)>>& onEndIterationCallback,
+                                 bool hasWeights);
 
         const TErrorTracker& GetErrorTracker() const {
             return ErrorTracker;
@@ -99,7 +100,8 @@ namespace NCatboostCuda {
                 HasTest,
                 HasTestTarget,
                 CpuApproxDim,
-                /*onEndIterationCallback*/ Nothing()
+                /*onEndIterationCallback*/ Nothing(),
+                HasWeights
             );
         }
 
@@ -184,6 +186,7 @@ namespace NCatboostCuda {
         TInstant LastSnapshotTime = Now();
         bool FirstCall = true;
         bool ContinueTraining = true;
+        bool HasWeights;
     };
 
     class TOneIterationProgressTracker {
