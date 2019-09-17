@@ -231,7 +231,6 @@ JOIN_SRCS(
     string/strspn.cpp
     string/subst.cpp
     string/type.cpp
-    string/url.cpp
     string/util.cpp
     string/vector.cpp
 )

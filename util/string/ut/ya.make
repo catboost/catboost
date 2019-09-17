@@ -14,7 +14,6 @@ SRCS(
     string/strip_ut.cpp
     string/subst_ut.cpp
     string/type_ut.cpp
-    string/url_ut.cpp
     string/util_ut.cpp
     string/vector_ut.cpp
     string/ascii_ut.cpp

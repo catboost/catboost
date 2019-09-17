@@ -260,7 +260,6 @@
 #include <util/string/hex.h>
 #include <util/string/printf.h>
 #include <util/string/ascii.h>
-#include <util/string/url.h>
 #include <util/string/cast.h>
 #include <library/deprecated/split/split_iterator.h>
 #include <util/string/util.h>
