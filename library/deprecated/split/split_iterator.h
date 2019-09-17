@@ -1,6 +1,6 @@
 #pragma once
 
-#include <util/string/kmp.h>
+#include <library/deprecated/kmp/kmp.h>
 #include <util/string/cast.h>
 #include <util/string/util.h>
 #include <util/string/builder.h>
