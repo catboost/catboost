@@ -3,12 +3,12 @@ RuntimeErrorTraceback (most recent call last)
 <string> in <module>()
 
 library/python/runtime/importer.pxi in __res.ResourceImporter.run_main()
-    257             mod = importlib.import_module(mod_name)
-    258             func = getattr(mod, func_name)
---> 259             return func()
+    258             mod = importlib.import_module(mod_name)
+    259             func = getattr(mod, func_name)
+--> 260             return func()
         global func = undefined
-    260 
-    261         if entry_point not in self.memory:
+    261 
+    262         if entry_point not in self.memory:
 
 library/python/runtime/test/traceback/crash.py in main()
      44 

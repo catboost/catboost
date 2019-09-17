@@ -12,7 +12,6 @@ _s = lambda x: x if isinstance(x, str) else utf_8_decode(x)[0]
 env_entry_point = b'Y_PYTHON_ENTRY_POINT'
 env_source_root = b'Y_PYTHON_SOURCE_ROOT'
 executable = sys.executable or 'Y_PYTHON'
-path_sep = _b(path_sep)
 sys.modules['run_import_hook'] = __resource
 
 # This is the prefix in contrib/tools/python3/src/Lib/ya.make.
@@ -74,7 +73,7 @@ def resfs_resolve(path):
     path = _b(path)
     if Y_PYTHON_SOURCE_ROOT:
         if not path.startswith(Y_PYTHON_SOURCE_ROOT):
-            path = path_sep.join((Y_PYTHON_SOURCE_ROOT, path))
+            path = _b(path_sep).join((Y_PYTHON_SOURCE_ROOT, path))
         if _path_isfile(path):
             return path
 
@@ -161,7 +160,7 @@ class ResourceImporter(object):
         code = self.get_code(module.__name__)
         module.__file__ = code.co_filename
         if self.is_package(module.__name__):
-            module.__path__= [executable + '/' + module.__name__]
+            module.__path__= [executable + path_sep + module.__name__.replace('.', path_sep)]
         # exec(code, module.__dict__)
         _call_with_frames_removed(exec, code, module.__dict__)
 
@@ -292,8 +291,8 @@ def executable_path_hook(path):
     if path == executable:
         return importer
 
-    if path.startswith(executable + '/'):
-        return importer.for_package(path[len(executable) + 1:])
+    if path.startswith(executable + path_sep):
+        return importer.for_package(path[len(executable + path_sep):].replace(path_sep, '.'))
 
     raise ImportError(path)
 

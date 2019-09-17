@@ -6,6 +6,7 @@ import os
 import re
 import sys
 import traceback
+from os.path import sep as path_sep
 
 import __res as __resource
 
@@ -219,7 +220,7 @@ class ResourceImporter(object):
         mod.__file__ = code.co_filename
 
         if is_package:
-            mod.__path__ = [executable + '/' + mod_name]
+            mod.__path__ = [executable + path_sep + mod_name.replace('.', path_sep)]
             mod.__package__ = mod_name
         else:
             mod.__package__ = mod_name.rpartition('.')[0]
@@ -272,8 +273,8 @@ def executable_path_hook(path):
     if path == executable:
         return importer
 
-    if path.startswith(executable + '/'):
-        return importer.for_package(path[len(executable) + 1:])
+    if path.startswith(executable + path_sep):
+        return importer.for_package(path[len(executable + path_sep):].replace(path_sep, '.'))
 
     raise ImportError(path)
 
