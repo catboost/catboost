@@ -68,6 +68,9 @@ ALLOW .* -> vendor/github.com/golang/snappy
 # API for sentry
 ALLOW .* -> vendor/github.com/getsentry/raven-go
 
+# Parser and generator of M3U8-playlists for Apple HLS
+ALLOW .* -> vendor/github.com/grafov/m3u8
+
 # configuration library
 ALLOW .* -> vendor/github.com/heetch/confita
 
