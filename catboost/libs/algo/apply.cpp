@@ -329,12 +329,10 @@ bool TLeafIndexCalcerOnPool::CanGet() const {
 TVector<NModelEvaluation::TCalcerIndexType> TLeafIndexCalcerOnPool::Get() const {
     const auto treeCount = TreeEnd - TreeStart;
     const auto docIndexInBatch = CurrDocIndex - CurrBatchStart;
-    TVector<NModelEvaluation::TCalcerIndexType> result;
-    result.reserve(treeCount);
-    for (size_t treeNum = 0; treeNum < treeCount; ++treeNum) {
-        result.push_back(CurrentBatchLeafIndexes[docIndexInBatch + treeNum * CurrBatchSize]);
-    }
-    return result;
+    return TVector<NModelEvaluation::TCalcerIndexType>(
+        CurrentBatchLeafIndexes.begin() + treeCount * docIndexInBatch,
+        CurrentBatchLeafIndexes.begin() + treeCount * (docIndexInBatch + 1)
+    );
 }
 
 void TLeafIndexCalcerOnPool::CalcNextBatch() {
@@ -373,23 +371,14 @@ namespace {
             const int treeCount = TreeEnd - TreeBegin;
             const ui32 objectBlockSize = objectBlockEnd - objectBlockStart;
             const ui32 indexBlockSize = objectBlockSize * (ui32)treeCount;
-            TransposedLeafIndicesBuffer.yresize(indexBlockSize);
 
-            ModelEvaluator->CalcLeafIndexes(&quantizedBlock, TreeBegin, TreeEnd, TransposedLeafIndicesBuffer);
-
-            NModelEvaluation::Transpose2DArray<NModelEvaluation::TCalcerIndexType>(
-                 TransposedLeafIndicesBuffer,
-                 treeCount,
-                 objectBlockSize,
-                 MakeArrayRef(LeafIndices.data() + objectBlockStart * treeCount, indexBlockSize)
-             );
+            ModelEvaluator->CalcLeafIndexes(&quantizedBlock, TreeBegin, TreeEnd, MakeArrayRef(LeafIndices.data() + objectBlockStart * treeCount, indexBlockSize));
         }
 
     private:
         NModelEvaluation::TConstModelEvaluatorPtr ModelEvaluator;
         int TreeBegin;
         int TreeEnd;
-        TVector<NModelEvaluation::TCalcerIndexType> TransposedLeafIndicesBuffer;
         TArrayRef<NModelEvaluation::TCalcerIndexType> LeafIndices;
     };
 }

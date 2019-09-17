@@ -67,6 +67,7 @@ void CalcShapValuesForDocumentMulti(
     const TShapPreparedTrees& preparedTrees,
     const NCB::NModelEvaluation::IQuantizedData* binarizedFeaturesForBlock,
     int flatFeatureCount,
+    TConstArrayRef<NCB::NModelEvaluation::TCalcerIndexType> docIndexes,
     size_t documentIdx,
     TVector<TVector<double>>* shapValues
 );

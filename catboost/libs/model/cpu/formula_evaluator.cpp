@@ -408,17 +408,29 @@ namespace NCB::NModelEvaluation {
                 );
                 size_t treeCount = treeEnd - treeStart;
                 CB_ENSURE(indexes.size() == treeCount * cpuQuantizedFeatures->ObjectsCount);
+                TVector<TCalcerIndexType> tmpLeafIndexHolder(
+                    (cpuQuantizedFeatures->BlockStride / ObliviousTrees->GetEffectiveBinaryFeaturesBucketsCount()) * treeCount);
+                TCalcerIndexType* transposedLeafIndexesPtr = tmpLeafIndexHolder.data();
+                TCalcerIndexType* indexesWritePtr = indexes.data();
                 for (size_t blockId = 0; blockId < cpuQuantizedFeatures->BlocksCount; ++blockId) {
                     auto subBlock = cpuQuantizedFeatures->ExtractBlock(blockId);
                     calcFunction(
                         *ObliviousTrees,
                         &subBlock,
                         subBlock.ObjectsCount,
-                        indexes.data() + blockId * FORMULA_EVALUATION_BLOCK_SIZE * treeCount,
+                        transposedLeafIndexesPtr,
                         treeStart,
                         treeEnd,
                         /*results*/ nullptr
                     );
+                    const size_t indexCountInBlock = subBlock.GetObjectsCount() * treeCount;
+                    Transpose2DArray<TCalcerIndexType>(
+                        {transposedLeafIndexesPtr, indexCountInBlock},
+                        treeCount,
+                        subBlock.GetObjectsCount(),
+                        {indexesWritePtr, indexCountInBlock}
+                    );
+                    indexesWritePtr += indexCountInBlock;
                 }
             }
 

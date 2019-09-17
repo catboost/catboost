@@ -160,29 +160,33 @@ namespace NCB::NModelEvaluation {
         }
         TVector<TCalcerIndexType> tmpLeafIndexHolder(blockSize * treeCount);
         TCalcerIndexType* transposedLeafIndexesPtr = tmpLeafIndexHolder.data();
-        ProcessDocsInBlocks<IsQuantizedFeaturesData>(trees, ctrProvider, floatFeatureAccessor, catFeaturesAccessor,
-                                                     docCount, blockSize,
-                                                     [&](size_t docCountInBlock,
-                                                         const TCPUEvaluatorQuantizedData* quantizedData) {
-                                                         calcTrees(
-                                                             trees,
-                                                             quantizedData,
-                                                             docCountInBlock,
-                                                             transposedLeafIndexesPtr,
-                                                             treeStart,
-                                                             treeEnd,
-                                                             nullptr
-                                                         );
-                                                         const size_t indexCountInBlock = docCountInBlock * treeCount;
-                                                         Transpose2DArray<TCalcerIndexType>(
-                                                             {transposedLeafIndexesPtr, indexCountInBlock},
-                                                             treeCount,
-                                                             docCountInBlock,
-                                                             {indexesWritePtr, indexCountInBlock}
-                                                         );
-                                                         indexesWritePtr += indexCountInBlock;
-                                                     },
-                                                     featureInfo
+        ProcessDocsInBlocks<IsQuantizedFeaturesData>(
+            trees,
+            ctrProvider,
+            floatFeatureAccessor,
+            catFeaturesAccessor,
+            docCount,
+            blockSize,
+            [&](size_t docCountInBlock, const TCPUEvaluatorQuantizedData* quantizedData) {
+                calcTrees(
+                    trees,
+                    quantizedData,
+                    docCountInBlock,
+                    transposedLeafIndexesPtr,
+                    treeStart,
+                    treeEnd,
+                    nullptr
+                );
+                const size_t indexCountInBlock = docCountInBlock * treeCount;
+                Transpose2DArray<TCalcerIndexType>(
+                    {transposedLeafIndexesPtr, indexCountInBlock},
+                    treeCount,
+                    docCountInBlock,
+                    {indexesWritePtr, indexCountInBlock}
+                );
+                indexesWritePtr += indexCountInBlock;
+            },
+            featureInfo
         );
     }
 }
