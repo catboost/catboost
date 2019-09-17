@@ -173,9 +173,7 @@ namespace {
                     NPar::ParallelFor(
                         executor, 0, samplesCount, [&](ui32 line) {
                             const bool hasToken = ds.GetText(line).Has(TTokenId(tokenId));
-                            if (hasToken) {
-                                singleFeature[line] = 1.0;
-                            }
+                            singleFeature[line] = static_cast<float>(hasToken);
                         }
                     );
                     visitors[id](tokenId, singleFeature);
