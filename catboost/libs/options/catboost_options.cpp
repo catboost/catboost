@@ -72,6 +72,7 @@ void NCatboostOptions::TCatBoostOptions::SetLeavesEstimationDefault() {
             defaultGradientIterations = 10;
             break;
         }
+        case ELossFunction::MAE:
         case ELossFunction::Quantile: {
             if (TaskType == ETaskType::CPU) {
                 defaultEstimationMethod = ELeavesEstimation::Exact;
@@ -84,7 +85,6 @@ void NCatboostOptions::TCatBoostOptions::SetLeavesEstimationDefault() {
             }
             break;
         }
-        case ELossFunction::MAE:
         case ELossFunction::LogLinQuantile:
         case ELossFunction::MAPE: {
             defaultNewtonIterations = 1;

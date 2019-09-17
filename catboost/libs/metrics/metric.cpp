@@ -4649,3 +4649,7 @@ bool IsMaxOptimal(TStringBuf lossFunction) {
 bool IsMinOptimal(TStringBuf lossFunction) {
     return GetOptimumType(lossFunction) == EMetricBestValue::Min;
 }
+
+bool IsQuantileLoss(const ELossFunction& loss) {
+    return loss == ELossFunction::Quantile || loss == ELossFunction::MAE;
+}

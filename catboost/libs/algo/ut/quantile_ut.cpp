@@ -205,12 +205,13 @@ Y_UNIT_TEST_SUITE(TCalcQuantile) {
     Y_UNIT_TEST(TCalcQuantileLeafDeltas) {
         TVector<TIndexType> indices = {0, 1, 1, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1};
         TVector<float> targets = {5, 21, 24, 7, 30, 28, 4, 1, 9, 23, 22, 3, 27, 8, 10, 25, 2, 29, 6, 26};
-        TQuantileError error(false);
         size_t sampleCount = indices.size();
         TVector<double> approxes(sampleCount);
         TVector<float> weights1(sampleCount, 1);
         TVector<double> leafDeltas(2);
-        CalcQuantileLeafDeltas(2, indices, error, sampleCount, MakeConstArrayRef(approxes), MakeConstArrayRef(targets), MakeConstArrayRef(weights1), &leafDeltas);
+        double alpha = 0.5;
+        double delta = 1e-6;
+        CalcQuantileLeafDeltas(2, indices, alpha, delta, sampleCount, MakeConstArrayRef(approxes), MakeConstArrayRef(targets), MakeConstArrayRef(weights1), &leafDeltas);
         UNIT_ASSERT_DOUBLES_EQUAL(leafDeltas[0], 5 + eps, 1e-6);
         UNIT_ASSERT_DOUBLES_EQUAL(leafDeltas[1], 25 + eps, 1e-6);
     }

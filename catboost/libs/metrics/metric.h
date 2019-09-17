@@ -400,3 +400,5 @@ void CheckPreprocessedTarget(
 );
 
 void CheckMetrics(const TVector<THolder<IMetric>>& metrics, const ELossFunction modelLoss);
+
+bool IsQuantileLoss(const ELossFunction& loss);

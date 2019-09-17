@@ -7,7 +7,6 @@
 
 #include <util/generic/ptr.h>
 
-
 void CreateBacktrackingObjective(
     const TLearnContext& ctx,
     bool* haveBacktrackingObjective,
