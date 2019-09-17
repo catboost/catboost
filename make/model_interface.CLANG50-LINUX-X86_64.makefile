@@ -1708,12 +1708,11 @@ $(BUILD_ROOT)/util/all_string.cpp\
         $(SOURCE_ROOT)/util/string/strspn.cpp\
         $(SOURCE_ROOT)/util/string/subst.cpp\
         $(SOURCE_ROOT)/util/string/type.cpp\
-        $(SOURCE_ROOT)/util/string/url.cpp\
         $(SOURCE_ROOT)/util/string/util.cpp\
         $(SOURCE_ROOT)/util/string/vector.cpp\
 
 	mkdir -p '$(BUILD_ROOT)/util'
-	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/gen_join_srcs.py' '$(BUILD_ROOT)/util/all_string.cpp' util/string/ascii.cpp util/string/builder.cpp util/string/cstriter.cpp util/string/escape.cpp util/string/hex.cpp util/string/join.cpp util/string/kmp.cpp util/string/printf.cpp util/string/scan.cpp util/string/split.cpp util/string/strip.cpp util/string/strspn.cpp util/string/subst.cpp util/string/type.cpp util/string/url.cpp util/string/util.cpp util/string/vector.cpp
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/gen_join_srcs.py' '$(BUILD_ROOT)/util/all_string.cpp' util/string/ascii.cpp util/string/builder.cpp util/string/cstriter.cpp util/string/escape.cpp util/string/hex.cpp util/string/join.cpp util/string/kmp.cpp util/string/printf.cpp util/string/scan.cpp util/string/split.cpp util/string/strip.cpp util/string/strspn.cpp util/string/subst.cpp util/string/type.cpp util/string/util.cpp util/string/vector.cpp
 
 $(BUILD_ROOT)/util/all_system_1.cpp.pic.o\
         ::\
