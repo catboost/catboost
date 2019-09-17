@@ -201,13 +201,24 @@ static void PrepareFolds(
         CB_ENSURE(foldSize > 0, "Fold size must be positive integer");
         // group subsets, groups maybe trivial
         const auto foldSizeUnit = featureEvalOptions.FoldSizeUnit.Get();
-        testSubsets = foldSizeUnit == ESamplingUnit::Object
+        const bool isObjectwise = foldSizeUnit == ESamplingUnit::Object;
+        testSubsets = isObjectwise
             ? NCB::SplitByObjects(objectsGrouping, foldSize)
             : NCB::SplitByGroups(objectsGrouping, foldSize);
         const ui32 offset = featureEvalOptions.Offset.Get();
-        CB_ENSURE(offset + foldCount <= testSubsets.size(),
-            "Dataset contains only " << testSubsets.size() << " folds of " << foldSize << " units of type " << foldSizeUnit
-            << " which are not enough to create folds [" << offset << ", " << offset + foldCount << ")");
+        if (offset + foldCount > testSubsets.size()) {
+            TStringBuilder exceptionMessage;
+            exceptionMessage << "Dataset contains only ";
+            if (isObjectwise) {
+                exceptionMessage << objectsGrouping.GetObjectCount() << " objects ";
+            } else {
+                exceptionMessage << objectsGrouping.GetGroupCount() << " groups ";
+            }
+            exceptionMessage << "which are not enough to create folds ["
+                << offset << ", " << offset + foldCount << ") of size "
+                << foldSize << ". Please decrease fold-size, or offset, or fold-count.";
+            CB_ENSURE(false, exceptionMessage);
+        }
     }
     // group subsets, maybe trivial
     TVector<NCB::TArraySubsetIndexing<ui32>> trainSubsets
