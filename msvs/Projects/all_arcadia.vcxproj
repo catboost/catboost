@@ -1026,6 +1026,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\dbg_output\library-dbg_output.vcxproj">
       <Project>806C141C-ADC5-203A-DF01-02F7E1563621</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\deprecated\kmp\library-deprecated-kmp.vcxproj">
+      <Project>AF639D4C-6FAA-3F1F-F7B8-051F73807FEE</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\deprecated\split\library-deprecated-split.vcxproj">
       <Project>12DB8983-9B49-8E6F-8DFD-6A13F0FD9BF7</Project>
     </ProjectReference>
