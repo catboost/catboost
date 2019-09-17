@@ -21,7 +21,7 @@
  * Hyper-threaded CPUs may need a special instruction inside spin loops in
  * order to yield to another virtual CPU.
  */
-#if defined(__arm__) || defined(__ARM_NEON) || defined(__aarch64__)
+#if defined(__arm__) || defined(__ARM_NEON) || defined(__aarch64__) || defined(__ppc__)
 #define CPU_SPINWAIT
 #else
 #define CPU_SPINWAIT __asm__ volatile("pause")
