@@ -11,6 +11,7 @@ SRCS(
    kernel.cu
    kernel_helpers.cu
    arch.cu
+   stream_pool.cpp
 )
 IF (CUDA_VERSION STREQUAL "10.1")
     SRCS(
