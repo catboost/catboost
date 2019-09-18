@@ -193,16 +193,13 @@ def main(args):
 
 
 if __name__ == '__main__':
-    log_file_name = os.path.basename(__file__) + '.log'
-    abs_log_path = os.path.abspath(log_file_name)
-    logging.basicConfig(filename=log_file_name, level=logging.DEBUG)
-
     args = parse_args()
+    fetch_from.setup_logging(args, os.path.basename(__file__))
 
     try:
         main(args)
     except Exception as e:
         logging.exception(e)
-        print >>sys.stderr, open(abs_log_path).read()
+        print >>sys.stderr, open(args.abs_log_path).read()
         sys.stderr.flush()
         sys.exit(fetch_from.INFRASTRUCTURE_ERROR if fetch_from.is_temporary(e) else 1)

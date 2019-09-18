@@ -28,6 +28,7 @@ def add_common_arguments(parser):
     parser.add_argument('--untar-to')
     parser.add_argument('--rename', action='append', default=[], metavar='FILE', help='rename FILE to the corresponding output')
     parser.add_argument('--executable', action='store_true', help='make outputs executable')
+    parser.add_argument('--log-path')
     parser.add_argument('outputs', nargs='*')
 
 
@@ -86,6 +87,23 @@ class OutputIsDirectoryError(Exception):
 
 class OutputNotExistError(Exception):
     pass
+
+
+def setup_logging(args, base_name):
+    def makedirs(path):
+        try:
+            os.makedirs(path)
+        except OSError:
+            pass
+
+    if args.log_path:
+        log_file_name = args.log_path
+    else:
+        log_file_name = base_name + ".log"
+
+    args.abs_log_path = os.path.abspath(log_file_name)
+    makedirs(os.path.dirname(args.abs_log_path))
+    logging.basicConfig(filename=args.abs_log_path, level=logging.DEBUG)
 
 
 def is_temporary(e):
@@ -289,7 +307,10 @@ def process(fetched_file, file_name, args, remove=True):
             hardlink_or_copy(src, dst)
         else:
             logging.info('Renaming %s to %s', src, dst)
-            rename_or_copy_and_remove(src, dst)
+            if remove:
+                rename_or_copy_and_remove(src, dst)
+            else:
+                shutil.copy(src, dst)
 
     for path in args.outputs:
         if not os.path.exists(path):

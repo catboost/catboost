@@ -13,7 +13,6 @@ def parse_args():
     fetch_from.add_common_arguments(parser)
 
     parser.add_argument('--key', required=True)
-    parser.add_argument('--log-path')
 
     return parser.parse_args()
 
@@ -30,24 +29,6 @@ def fetch(key):
     return fetched_file, file_name
 
 
-def makedirs(path):
-    try:
-        os.makedirs(path)
-    except OSError:
-        pass
-
-
-def setup_logging(args):
-    if args.log_path:
-        log_file_name = args.log_path
-    else:
-        log_file_name = os.path.basename(__file__) + ".log"
-
-    args.abs_log_path = os.path.abspath(log_file_name)
-    makedirs(os.path.dirname(args.abs_log_path))
-    logging.basicConfig(filename=args.abs_log_path, level=logging.DEBUG)
-
-
 def main(args):
     fetched_file, resource_file_name = fetch(args.key)
 
@@ -56,7 +37,7 @@ def main(args):
 
 if __name__ == '__main__':
     args = parse_args()
-    setup_logging(args)
+    fetch_from.setup_logging(args, os.path.basename(__file__))
 
     try:
         main(args)
