@@ -3,6 +3,7 @@ import os
 import tarfile
 
 FLAT_DIRS_REPO_TEMPLATE='repositories {{ flatDir {{ dirs {dirs} }} }}'
+MAVEN_REPO_TEMPLATE='maven {{ url "{repo}" }}\n'
 
 AAR_TEMPLATE = """\
 ext.jniLibsDirs = [
@@ -74,9 +75,7 @@ repositories {{
 //     maven {{
 //         url "http://artifactory.yandex.net/artifactory/public/"
 //     }}
-    maven {{
-        url "{maven_repo}"
-    }}
+{maven_repos}
 }}
 
 android {{
@@ -177,6 +176,8 @@ def gen_build_script(args):
     else:
         flat_dirs_repo = ''
 
+    maven_repos = ''.join(MAVEN_REPO_TEMPLATE.format(repo=repo) for repo in args.maven_repos)
+
     return AAR_TEMPLATE.format(
         jni_libs_dirs=wrap(args.jni_libs_dirs),
         res_dirs=wrap(args.res_dirs),
@@ -186,7 +187,7 @@ def gen_build_script(args):
         aars=wrap(args.aars),
         proguard_rules=args.proguard_rules,
         manifest=args.manifest,
-        maven_repo=args.maven_repo,
+        maven_repos=maven_repos,
         bundles=wrap(bundles),
         flat_dirs_repo=flat_dirs_repo,
     )
@@ -201,7 +202,7 @@ if __name__ == '__main__':
     parser.add_argument('--java-dirs', nargs='*', default=[])
     parser.add_argument('--jni-libs-dirs', nargs='*', default=[])
     parser.add_argument('--manifest', required=True)
-    parser.add_argument('--maven-repo', required=True)
+    parser.add_argument('--maven-repos', nargs='*', default=[])
     parser.add_argument('--output-dir', required=True)
     parser.add_argument('--proguard-rules', nargs='?', default=None)
     parser.add_argument('--bundle-name', nargs='?', default='default-bundle-name')
