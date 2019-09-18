@@ -78,13 +78,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc\48f05afb36a7219aa363c7b7b7.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc\ecf7fe3a165af89fddc7ad5a77.cpp"/>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc\_48f05afb36a7219aa363c7b7b7.yasm">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc\3052f88d2a9869bf175c48adbc.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc\c06378c3697e16a7ee42acc363.cpp"/>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc\_3052f88d2a9869bf175c48adbc.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/_48f05afb36a7219aa363c7b7b7.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/_48f05afb36a7219aa363c7b7b7.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/_3052f88d2a9869bf175c48adbc.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/_3052f88d2a9869bf175c48adbc.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -95,7 +95,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/_48f05afb36a7219aa363c7b7b7.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/_48f05afb36a7219aa363c7b7b7.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/_3052f88d2a9869bf175c48adbc.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/_3052f88d2a9869bf175c48adbc.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -103,15 +103,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/scipy/scipy/misc/_48f05afb36a7219aa363c7b7b7.py2.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc\_48f05afb36a7219aa363c7b7b7.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc\_48f05afb36a7219aa363c7b7b7.py2.obj;</Outputs>
+      <Message>$B/contrib/python/scipy/scipy/misc/_3052f88d2a9869bf175c48adbc.py2.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc\_3052f88d2a9869bf175c48adbc.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc\_3052f88d2a9869bf175c48adbc.py2.obj;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc\_ecf7fe3a165af89fddc7ad5a77.yasm">
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc\_c06378c3697e16a7ee42acc363.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/_ecf7fe3a165af89fddc7ad5a77.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/_ecf7fe3a165af89fddc7ad5a77.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/_c06378c3697e16a7ee42acc363.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/_c06378c3697e16a7ee42acc363.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -122,7 +122,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/_ecf7fe3a165af89fddc7ad5a77.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/_ecf7fe3a165af89fddc7ad5a77.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/_c06378c3697e16a7ee42acc363.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/_c06378c3697e16a7ee42acc363.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -130,15 +130,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/scipy/scipy/misc/_ecf7fe3a165af89fddc7ad5a77.py2.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc\_ecf7fe3a165af89fddc7ad5a77.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc\_ecf7fe3a165af89fddc7ad5a77.py2.obj;</Outputs>
+      <Message>$B/contrib/python/scipy/scipy/misc/_c06378c3697e16a7ee42acc363.py2.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc\_c06378c3697e16a7ee42acc363.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc\_c06378c3697e16a7ee42acc363.py2.obj;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/_48f05afb36a7219aa363c7b7b7.yasm" "-" "scipy.misc.__init__" "_9f3b9e71e4ff9f26b4ac576849.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/_c06378c3697e16a7ee42acc363.yasm" "-" "scipy.misc.pilutil" "_4483c8770d73a1beda94c65ebb.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -149,7 +149,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/_48f05afb36a7219aa363c7b7b7.yasm" "-" "scipy.misc.__init__" "_9f3b9e71e4ff9f26b4ac576849.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/_c06378c3697e16a7ee42acc363.yasm" "-" "scipy.misc.pilutil" "_4483c8770d73a1beda94c65ebb.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -157,19 +157,19 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/scipy/scipy/misc/_48f05afb36a7219aa363c7b7b7.yasm	</Message>
+      <Message>$B/contrib/python/scipy/scipy/misc/_c06378c3697e16a7ee42acc363.yasm	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc\_48f05afb36a7219aa363c7b7b7.yasm;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc\_c06378c3697e16a7ee42acc363.yasm;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/48f05afb36a7219aa363c7b7b7.cpp" "_9f3b9e71e4ff9f26b4ac576849=py/no_check_imports/6q7dppnctinjeceur272y3usxe"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/3052f88d2a9869bf175c48adbc.cpp" "_3a16415cee45d06f61ed634813=/py_modules/scipy.misc.__init__" "_e9976ab045c795547484d270e4=resfs/src//py_modules/scipy.misc.__init__" "_fb519b481725ff1a05887635e5=/py_code/scipy.misc.__init__" "_509093649dea534b8129a5faac=/py_modules/scipy.misc.common" "_176104744968e2c6cf274ec6c9=resfs/src//py_modules/scipy.misc.common" "_20e31eb0ba4462328038ebf80f=/py_code/scipy.misc.common" "_1d187c6669d0fa2fbca4df5916=/py_modules/scipy.misc.doccer" "_614238210a514ecad27dc453c2=resfs/src//py_modules/scipy.misc.doccer" "_d81e006b637ea5cf79f47fd030=/py_code/scipy.misc.doccer" "_a1bf92d3b974eff6a2d424ebb3=/py_modules/scipy.misc.pilutil" "_dcc99ed36faa1f355f32a2b214=resfs/src//py_modules/scipy.misc.pilutil" "_2aa6064dc245034fa94350322d=/py_code/scipy.misc.pilutil"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/ecf7fe3a165af89fddc7ad5a77.cpp" "_3a16415cee45d06f61ed634813=/py_modules/scipy.misc.__init__" "_e9976ab045c795547484d270e4=resfs/src//py_modules/scipy.misc.__init__" "_fb519b481725ff1a05887635e5=/py_code/scipy.misc.__init__" "_509093649dea534b8129a5faac=/py_modules/scipy.misc.common" "_176104744968e2c6cf274ec6c9=resfs/src//py_modules/scipy.misc.common" "_20e31eb0ba4462328038ebf80f=/py_code/scipy.misc.common" "_1d187c6669d0fa2fbca4df5916=/py_modules/scipy.misc.doccer" "_614238210a514ecad27dc453c2=resfs/src//py_modules/scipy.misc.doccer" "_d81e006b637ea5cf79f47fd030=/py_code/scipy.misc.doccer"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/c06378c3697e16a7ee42acc363.cpp" "_4483c8770d73a1beda94c65ebb=py/no_check_imports/wioucumagzhjnse3axmuf6cefm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -180,11 +180,11 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/48f05afb36a7219aa363c7b7b7.cpp" "_9f3b9e71e4ff9f26b4ac576849=py/no_check_imports/6q7dppnctinjeceur272y3usxe"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/3052f88d2a9869bf175c48adbc.cpp" "_3a16415cee45d06f61ed634813=/py_modules/scipy.misc.__init__" "_e9976ab045c795547484d270e4=resfs/src//py_modules/scipy.misc.__init__" "_fb519b481725ff1a05887635e5=/py_code/scipy.misc.__init__" "_509093649dea534b8129a5faac=/py_modules/scipy.misc.common" "_176104744968e2c6cf274ec6c9=resfs/src//py_modules/scipy.misc.common" "_20e31eb0ba4462328038ebf80f=/py_code/scipy.misc.common" "_1d187c6669d0fa2fbca4df5916=/py_modules/scipy.misc.doccer" "_614238210a514ecad27dc453c2=resfs/src//py_modules/scipy.misc.doccer" "_d81e006b637ea5cf79f47fd030=/py_code/scipy.misc.doccer" "_a1bf92d3b974eff6a2d424ebb3=/py_modules/scipy.misc.pilutil" "_dcc99ed36faa1f355f32a2b214=resfs/src//py_modules/scipy.misc.pilutil" "_2aa6064dc245034fa94350322d=/py_code/scipy.misc.pilutil"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/ecf7fe3a165af89fddc7ad5a77.cpp" "_3a16415cee45d06f61ed634813=/py_modules/scipy.misc.__init__" "_e9976ab045c795547484d270e4=resfs/src//py_modules/scipy.misc.__init__" "_fb519b481725ff1a05887635e5=/py_code/scipy.misc.__init__" "_509093649dea534b8129a5faac=/py_modules/scipy.misc.common" "_176104744968e2c6cf274ec6c9=resfs/src//py_modules/scipy.misc.common" "_20e31eb0ba4462328038ebf80f=/py_code/scipy.misc.common" "_1d187c6669d0fa2fbca4df5916=/py_modules/scipy.misc.doccer" "_614238210a514ecad27dc453c2=resfs/src//py_modules/scipy.misc.doccer" "_d81e006b637ea5cf79f47fd030=/py_code/scipy.misc.doccer"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/c06378c3697e16a7ee42acc363.cpp" "_4483c8770d73a1beda94c65ebb=py/no_check_imports/wioucumagzhjnse3axmuf6cefm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -192,9 +192,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/scipy/scipy/misc/48f05afb36a7219aa363c7b7b7.cpp	$B/contrib/python/scipy/scipy/misc/ecf7fe3a165af89fddc7ad5a77.cpp	</Message>
+      <Message>$B/contrib/python/scipy/scipy/misc/3052f88d2a9869bf175c48adbc.cpp	$B/contrib/python/scipy/scipy/misc/c06378c3697e16a7ee42acc363.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc\48f05afb36a7219aa363c7b7b7.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc\ecf7fe3a165af89fddc7ad5a77.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc\3052f88d2a9869bf175c48adbc.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc\c06378c3697e16a7ee42acc363.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -210,6 +210,10 @@ cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc
 if %errorlevel% neq 0 goto :cmEnd
 "python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy/scipy/misc/doccer.py-" "$(SolutionDir)../contrib/python/scipy/scipy/misc/doccer.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/doccer.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy/scipy/misc/pilutil.py-" "$(SolutionDir)../contrib/python/scipy/scipy/misc/pilutil.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/pilutil.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 :cmErrorLevel
@@ -229,21 +233,25 @@ cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc
 if %errorlevel% neq 0 goto :cmEnd
 "python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy/scipy/misc/doccer.py-" "$(SolutionDir)../contrib/python/scipy/scipy/misc/doccer.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/doccer.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy/scipy/misc/pilutil.py-" "$(SolutionDir)../contrib/python/scipy/scipy/misc/pilutil.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/pilutil.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 :cmErrorLevel
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/scipy/scipy/misc/__init__.py.yapyc	$B/contrib/python/scipy/scipy/misc/common.py.yapyc	$B/contrib/python/scipy/scipy/misc/doccer.py.yapyc	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\py_compile.py;$(SolutionDir)..\contrib\python\scipy\scipy\misc\__init__.py;$(SolutionDir)..\contrib\python\scipy\scipy\misc\common.py;$(SolutionDir)..\contrib\python\scipy\scipy\misc\doccer.py;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc\__init__.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc\common.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc\doccer.py.yapyc;</Outputs>
+      <Message>$B/contrib/python/scipy/scipy/misc/__init__.py.yapyc	$B/contrib/python/scipy/scipy/misc/common.py.yapyc	$B/contrib/python/scipy/scipy/misc/doccer.py.yapyc	$B/contrib/python/scipy/scipy/misc/pilutil.py.yapyc	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\py_compile.py;$(SolutionDir)..\contrib\python\scipy\scipy\misc\__init__.py;$(SolutionDir)..\contrib\python\scipy\scipy\misc\common.py;$(SolutionDir)..\contrib\python\scipy\scipy\misc\doccer.py;$(SolutionDir)..\contrib\python\scipy\scipy\misc\pilutil.py;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc\__init__.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc\common.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc\doccer.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc\pilutil.py.yapyc;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\python\scipy\scipy\misc\__init__.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/_ecf7fe3a165af89fddc7ad5a77.yasm" "$(SolutionDir)../contrib/python/scipy/scipy/misc/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/_3a16415cee45d06f61ed634813.rodata" "-" "contrib/python/scipy/scipy/misc/__init__.py" "_e9976ab045c795547484d270e4.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/_fb519b481725ff1a05887635e5.rodata" "$(SolutionDir)../contrib/python/scipy/scipy/misc/common.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/_509093649dea534b8129a5faac.rodata" "-" "contrib/python/scipy/scipy/misc/common.py" "_176104744968e2c6cf274ec6c9.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/common.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/_20e31eb0ba4462328038ebf80f.rodata" "$(SolutionDir)../contrib/python/scipy/scipy/misc/doccer.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/_1d187c6669d0fa2fbca4df5916.rodata" "-" "contrib/python/scipy/scipy/misc/doccer.py" "_614238210a514ecad27dc453c2.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/doccer.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/_d81e006b637ea5cf79f47fd030.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/_3052f88d2a9869bf175c48adbc.yasm" "$(SolutionDir)../contrib/python/scipy/scipy/misc/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/_3a16415cee45d06f61ed634813.rodata" "-" "contrib/python/scipy/scipy/misc/__init__.py" "_e9976ab045c795547484d270e4.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/_fb519b481725ff1a05887635e5.rodata" "$(SolutionDir)../contrib/python/scipy/scipy/misc/common.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/_509093649dea534b8129a5faac.rodata" "-" "contrib/python/scipy/scipy/misc/common.py" "_176104744968e2c6cf274ec6c9.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/common.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/_20e31eb0ba4462328038ebf80f.rodata" "$(SolutionDir)../contrib/python/scipy/scipy/misc/doccer.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/_1d187c6669d0fa2fbca4df5916.rodata" "-" "contrib/python/scipy/scipy/misc/doccer.py" "_614238210a514ecad27dc453c2.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/doccer.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/_d81e006b637ea5cf79f47fd030.rodata" "$(SolutionDir)../contrib/python/scipy/scipy/misc/pilutil.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/_a1bf92d3b974eff6a2d424ebb3.rodata" "-" "contrib/python/scipy/scipy/misc/pilutil.py" "_dcc99ed36faa1f355f32a2b214.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/pilutil.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/_2aa6064dc245034fa94350322d.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -254,7 +262,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/_ecf7fe3a165af89fddc7ad5a77.yasm" "$(SolutionDir)../contrib/python/scipy/scipy/misc/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/_3a16415cee45d06f61ed634813.rodata" "-" "contrib/python/scipy/scipy/misc/__init__.py" "_e9976ab045c795547484d270e4.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/_fb519b481725ff1a05887635e5.rodata" "$(SolutionDir)../contrib/python/scipy/scipy/misc/common.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/_509093649dea534b8129a5faac.rodata" "-" "contrib/python/scipy/scipy/misc/common.py" "_176104744968e2c6cf274ec6c9.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/common.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/_20e31eb0ba4462328038ebf80f.rodata" "$(SolutionDir)../contrib/python/scipy/scipy/misc/doccer.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/_1d187c6669d0fa2fbca4df5916.rodata" "-" "contrib/python/scipy/scipy/misc/doccer.py" "_614238210a514ecad27dc453c2.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/doccer.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/_d81e006b637ea5cf79f47fd030.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/_3052f88d2a9869bf175c48adbc.yasm" "$(SolutionDir)../contrib/python/scipy/scipy/misc/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/_3a16415cee45d06f61ed634813.rodata" "-" "contrib/python/scipy/scipy/misc/__init__.py" "_e9976ab045c795547484d270e4.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/_fb519b481725ff1a05887635e5.rodata" "$(SolutionDir)../contrib/python/scipy/scipy/misc/common.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/_509093649dea534b8129a5faac.rodata" "-" "contrib/python/scipy/scipy/misc/common.py" "_176104744968e2c6cf274ec6c9.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/common.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/_20e31eb0ba4462328038ebf80f.rodata" "$(SolutionDir)../contrib/python/scipy/scipy/misc/doccer.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/_1d187c6669d0fa2fbca4df5916.rodata" "-" "contrib/python/scipy/scipy/misc/doccer.py" "_614238210a514ecad27dc453c2.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/doccer.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/_d81e006b637ea5cf79f47fd030.rodata" "$(SolutionDir)../contrib/python/scipy/scipy/misc/pilutil.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/_a1bf92d3b974eff6a2d424ebb3.rodata" "-" "contrib/python/scipy/scipy/misc/pilutil.py" "_dcc99ed36faa1f355f32a2b214.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/pilutil.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/misc/_2aa6064dc245034fa94350322d.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -262,9 +270,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/scipy/scipy/misc/_ecf7fe3a165af89fddc7ad5a77.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\scipy\scipy\misc\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc\__init__.py.yapyc;$(SolutionDir)..\contrib\python\scipy\scipy\misc\common.py;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc\common.py.yapyc;$(SolutionDir)..\contrib\python\scipy\scipy\misc\doccer.py;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc\doccer.py.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc\_ecf7fe3a165af89fddc7ad5a77.yasm;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc\_3a16415cee45d06f61ed634813.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc\_fb519b481725ff1a05887635e5.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc\_509093649dea534b8129a5faac.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc\_20e31eb0ba4462328038ebf80f.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc\_1d187c6669d0fa2fbca4df5916.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc\_d81e006b637ea5cf79f47fd030.rodata;</Outputs>
+      <Message>$B/contrib/python/scipy/scipy/misc/_3052f88d2a9869bf175c48adbc.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\scipy\scipy\misc\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc\__init__.py.yapyc;$(SolutionDir)..\contrib\python\scipy\scipy\misc\common.py;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc\common.py.yapyc;$(SolutionDir)..\contrib\python\scipy\scipy\misc\doccer.py;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc\doccer.py.yapyc;$(SolutionDir)..\contrib\python\scipy\scipy\misc\pilutil.py;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc\pilutil.py.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc\_3052f88d2a9869bf175c48adbc.yasm;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc\_3a16415cee45d06f61ed634813.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc\_fb519b481725ff1a05887635e5.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc\_509093649dea534b8129a5faac.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc\_20e31eb0ba4462328038ebf80f.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc\_1d187c6669d0fa2fbca4df5916.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc\_d81e006b637ea5cf79f47fd030.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc\_a1bf92d3b974eff6a2d424ebb3.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\misc\_2aa6064dc245034fa94350322d.rodata;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
