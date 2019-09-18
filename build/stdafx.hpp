@@ -252,7 +252,6 @@
 #include <util/string/type.h>
 #include <util/string/join.h>
 #include <util/string/vector.h>
-#include <util/string/kmp.h>
 #include <util/string/split.h>
 #include <util/string/cstriter.h>
 #include <util/string/strspn.h>

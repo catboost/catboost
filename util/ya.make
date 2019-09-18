@@ -223,7 +223,6 @@ JOIN_SRCS(
     string/escape.cpp
     string/hex.cpp
     string/join.cpp
-    string/kmp.cpp
     string/printf.cpp
     string/scan.cpp
     string/split.cpp

@@ -8,7 +8,6 @@ SRCS(
     string/escape_ut.cpp
     string/join_ut.cpp
     string/hex_ut.cpp
-    string/kmp_ut.cpp
     string/printf_ut.cpp
     string/split_ut.cpp
     string/strip_ut.cpp
