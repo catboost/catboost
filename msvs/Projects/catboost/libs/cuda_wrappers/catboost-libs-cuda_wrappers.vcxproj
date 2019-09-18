@@ -82,6 +82,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\cuda_wrappers\cuda_event.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\cuda_wrappers\exception.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\cuda_wrappers\run_gpu_program.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\cuda_wrappers\stream_pool.cpp"/>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\compile_cuda.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\libs\cuda_wrappers
@@ -130,6 +131,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\cuda_wrappers\cuda_vec.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\cuda_wrappers\exception.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\cuda_wrappers\run_gpu_program.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\cuda_wrappers\stream_pool.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
