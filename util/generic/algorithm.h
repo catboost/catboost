@@ -552,15 +552,61 @@ inline void ForEach(TI f, TI l, TOp op) {
 
 namespace NPrivate {
     template <class T, class TOp, size_t... Is>
-    void ForEachImpl(T&& t, TOp&& op, std::index_sequence<Is...>) {
+    constexpr bool AllOfImpl(T&& t, TOp&& op, std::index_sequence<Is...>) {
+#if _LIBCPP_STD_VER >= 17
+        return (true && ... && op(std::get<Is>(std::forward<T>(t))));
+#else
+        bool result = true;
+        auto wrapper = [&result, &op](auto&& x) { result = result && op(std::forward<decltype(x)>(x)); };
+        int dummy[] = {(wrapper(std::get<Is>(std::forward<T>(t))), 0)...};
+        Y_UNUSED(dummy);
+        return result;
+#endif
+    }
+
+    template <class T, class TOp, size_t... Is>
+    constexpr bool AnyOfImpl(T&& t, TOp&& op, std::index_sequence<Is...>) {
+#if _LIBCPP_STD_VER >= 17
+        return (false || ... || op(std::get<Is>(std::forward<T>(t))));
+#else
+        bool result = false;
+        auto wrapper = [&result, &op](auto&& x) { result = result || op(std::forward<decltype(x)>(x)); };
+        int dummy[] = {(wrapper(std::get<Is>(std::forward<T>(t))), 0)...};
+        Y_UNUSED(dummy);
+        return result;
+#endif
+    }
+
+    template <class T, class TOp, size_t... Is>
+    constexpr void ForEachImpl(T&& t, TOp&& op, std::index_sequence<Is...>) {
+#if _LIBCPP_STD_VER >= 17
+        (..., op(std::get<Is>(std::forward<T>(t))));
+#else
         ::ApplyToMany(std::forward<TOp>(op), std::get<Is>(std::forward<T>(t))...);
+#endif
     }
 }
 
+// check that TOp return true for all of element from tuple T
 template <class T, class TOp>
-std::enable_if_t< ::TIsSpecializationOf<std::tuple, std::decay_t<T>>::value ||
-                 ::TIsSpecializationOf<std::pair, std::decay_t<T>>::value>
-ForEach(T&& t, TOp&& op) {
+constexpr ::TEnableIfTuple<T, bool> AllOf(T&& t, TOp&& op) {
+    return ::NPrivate::AllOfImpl(
+            std::forward<T>(t),
+            std::forward<TOp>(op),
+            std::make_index_sequence<std::tuple_size<std::decay_t<T>>::value>{});
+}
+
+// check that TOp return true for at least one element from tuple T
+template <class T, class TOp>
+constexpr ::TEnableIfTuple<T, bool> AnyOf(T&& t, TOp&& op) {
+    return ::NPrivate::AnyOfImpl(
+            std::forward<T>(t),
+            std::forward<TOp>(op),
+            std::make_index_sequence<std::tuple_size<std::decay_t<T>>::value>{});
+}
+
+template <class T, class TOp>
+constexpr ::TEnableIfTuple<T> ForEach(T&& t, TOp&& op) {
     ::NPrivate::ForEachImpl(
         std::forward<T>(t),
         std::forward<TOp>(op),

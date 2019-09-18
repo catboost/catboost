@@ -314,3 +314,12 @@ struct TIsSpecializationOf<T, T<Ts...>> : std::true_type {};
  */
 template <typename T>
 struct TDependentFalse : public std::false_type {};
+
+
+/*
+ * shortcut for std::enable_if_t<...> which checks that T is std::tuple or std::pair
+ */
+template <class T, class R = void>
+using TEnableIfTuple = std::enable_if_t<::TDisjunction<::TIsSpecializationOf<std::tuple, std::decay_t<T>>,
+                                                       ::TIsSpecializationOf<std::pair, std::decay_t<T>>>::value, R>;
+

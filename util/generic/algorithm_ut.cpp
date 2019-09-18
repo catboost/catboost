@@ -714,9 +714,40 @@ Y_UNIT_TEST_SUITE(TAlgorithm) {
     }
 
     Y_UNIT_TEST(TestTupleForEach) {
+        ForEach(std::tuple<>{}, [&](auto) { UNIT_ASSERT(false); });
         auto t = std::make_tuple(5, 6, 2, 3, 6);
         ForEach(t, [](auto& v) { v *= -1; });
         UNIT_ASSERT_EQUAL(t, std::make_tuple(-5, -6, -2, -3, -6));
+    }
+
+    Y_UNIT_TEST(TestTupleAllOf) {
+        UNIT_ASSERT(AllOf(std::tuple<>{}, [](auto) { return false; }));
+        UNIT_ASSERT(!AllOf(std::make_tuple(1, 2, 0, 4, 5), [&](auto v) { UNIT_ASSERT_LT(v, 3); return 0 != v; }));
+        UNIT_ASSERT(AllOf(std::make_tuple(1, 2, 3, 4, 5), [](auto v) { return 0 != v; }));
+        {
+            auto pred = std::function<bool(int)>([x = TVector<int>(1, 0)](auto v) { return x.front() != v; });
+            UNIT_ASSERT(AllOf(std::make_tuple(1, 2), pred));
+            UNIT_ASSERT(AllOf(std::make_tuple(1, 2), pred));
+        }
+        {
+            auto ts = std::make_tuple(TString{"foo"}, TString{"bar"});
+            auto pred = [](auto s) { return s.size() == 3; };
+            UNIT_ASSERT_VALUES_EQUAL(AllOf(ts, pred), AllOf(ts, pred));
+        }
+   }
+
+    Y_UNIT_TEST(TestTupleAnyOf) {
+        UNIT_ASSERT(!AnyOf(std::tuple<>{}, [](auto) { return true; }));
+        UNIT_ASSERT(AnyOf(std::make_tuple(0, 1, 2, 3, 4), [&](auto v) { UNIT_ASSERT_LT(v, 2); return 1 == v; }));
+        UNIT_ASSERT(AnyOf(std::make_tuple(1, 2, 3, 4, 5), [](auto v) { return 5 == v; }));
+        auto pred = std::function<bool(int)>([x = TVector<int>(1, 0)](auto v) { return x.front() == v; });
+        UNIT_ASSERT(!AnyOf(std::make_tuple(1, 2), pred));
+        UNIT_ASSERT(!AnyOf(std::make_tuple(1, 2), pred));
+        {
+            auto ts = std::make_tuple(TString{"f"}, TString{"bar"});
+            auto pred = [](auto s) { return s.size() == 3; };
+            UNIT_ASSERT_VALUES_EQUAL(AnyOf(ts, pred), AnyOf(ts, pred));
+        }
     }
 
     Y_UNIT_TEST(FindIfForContainer) {
