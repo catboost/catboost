@@ -3,7 +3,7 @@ PY23_LIBRARY()
 
 
 NO_CHECK_IMPORTS(
-    scipy.misc.__init__ # XXX: fixme
+    scipy.misc.pilutil
 )
 
 PY_SRCS(
@@ -12,7 +12,7 @@ PY_SRCS(
     __init__.py
     common.py
     doccer.py
-#    pilutil.py
+    pilutil.py
 )
 
 END()
