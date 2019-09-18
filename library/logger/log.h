@@ -65,7 +65,7 @@ public:
     ELogPriority FiltrationLevel() const noexcept;
 
     template <class T>
-    inline TLogElement operator<<(const T& t) {
+    inline TLogElement operator<<(const T& t) const {
         TLogElement ret(this);
         ret << t;
         return ret;
