@@ -7233,13 +7233,13 @@ def test_eval_feature():
 TEST_METRIC_DESCRIPTION_METRICS_LIST = ['Logloss', 'Precision', 'AUC']
 @pytest.mark.parametrize('dataset_has_weights', [True, False], ids=['dataset_has_weights=True', 'dataset_has_weights=False'])
 @pytest.mark.parametrize('eval_metric_loss', TEST_METRIC_DESCRIPTION_METRICS_LIST,
-                         ids=['eval_metric_loss=' + mode for mode in TEST_METRIC_DESCRIPTION_METRICS_LIST])
+                         ids=['eval_loss=' + mode for mode in TEST_METRIC_DESCRIPTION_METRICS_LIST])
 @pytest.mark.parametrize('eval_metric_use_weights', [True, False, None],
-                         ids=['eval_metric_use_weights=' + str(mode) for mode in [True, False, None]])
+                         ids=['eval_weights=' + str(mode) for mode in [True, False, None]])
 @pytest.mark.parametrize('custom_metric_loss', TEST_METRIC_DESCRIPTION_METRICS_LIST,
-                         ids=['custom_metric_loss=' + mode for mode in TEST_METRIC_DESCRIPTION_METRICS_LIST])
+                         ids=['custom_loss=' + mode for mode in TEST_METRIC_DESCRIPTION_METRICS_LIST])
 @pytest.mark.parametrize('custom_metric_use_weights', [True, False, None],
-                         ids=['custom_metric_use_weights=' + str(mode) for mode in [True, False, None]])
+                         ids=['custom_weights=' + str(mode) for mode in [True, False, None]])
 def test_metric_description(dataset_has_weights, eval_metric_loss, eval_metric_use_weights, custom_metric_loss, custom_metric_use_weights):
     learn_error_path = yatest.common.test_output_path('learn_error.tsv')
     test_error_path = yatest.common.test_output_path('test_error.tsv')
