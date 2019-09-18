@@ -4190,6 +4190,21 @@ static inline bool ShouldConsiderWeightsByDefault(const THolder<IMetric>& metric
     return ParseLossType(metric->GetDescription()) != ELossFunction::AUC && !metric->UseWeights.IsUserDefined() && !metric->UseWeights.IsIgnored();
 }
 
+static void SetHintToCalcMetricOnTrain(const THashSet<TString>& metricsToCalcOnTrain, TVector<THolder<IMetric>>* errors) {
+    for (auto& error : *errors) {
+        if (metricsToCalcOnTrain.contains(error->GetDescription())) {
+            error->AddHint("skip_train", "false");
+        }
+    }
+}
+
+static bool HintedToEvalOnTrain(const NCatboostOptions::TLossDescription& metricDescription) {
+    const auto& params = metricDescription.GetLossParams();
+    const bool hasHints = params.contains("hints");
+    const auto& hints = hasHints ? ParseHintsDescription(params.at("hints")) : TMap<TString, TString>();
+    return hasHints && hints.contains("skip_train") && hints.at("skip_train") == "false";
+}
+
 TVector<THolder<IMetric>> CreateMetrics(
         const NCatboostOptions::TOption<NCatboostOptions::TMetricOptions>& evalMetricOptions,
         const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
@@ -4223,6 +4238,7 @@ TVector<THolder<IMetric>> CreateMetrics(
 
     TVector<THolder<IMetric>> metrics;
     THashSet<TString> usedDescriptions;
+    THashSet<TString> metricsToCalcOnTrain;
 
     if (evalMetricDescription.GetLossFunction() == ELossFunction::PythonUserDefinedPerObject) {
         metrics.emplace_back(MakeCustomMetric(*evalMetricDescriptor));
@@ -4248,6 +4264,9 @@ TVector<THolder<IMetric>> CreateMetrics(
         }
     }
     usedDescriptions.insert(metrics.back()->GetDescription());
+    if (HintedToEvalOnTrain(evalMetricDescription)) {
+            metricsToCalcOnTrain.insert(metrics.back()->GetDescription());
+    }
 
     for (auto& metric : createdObjectiveMetrics) {
         const auto& description = metric->GetDescription();
@@ -4266,6 +4285,9 @@ TVector<THolder<IMetric>> CreateMetrics(
             ui32 initialVectorSize = createdCustomMetrics.size();
             for (ui32 ind = 0; ind < initialVectorSize; ++ind) {
                 auto& metric = createdCustomMetrics[ind];
+                if (HintedToEvalOnTrain(evalMetricOptions->ObjectiveMetric.Get())) {
+                    metricsToCalcOnTrain.insert(metric->GetDescription());
+                }
                 if (ShouldConsiderWeightsByDefault(metric)) {
                     metric->UseWeights = true;
                     (*iter)->UseWeights = false;
@@ -4275,6 +4297,9 @@ TVector<THolder<IMetric>> CreateMetrics(
             }
         }
         for (auto& metric : createdCustomMetrics) {
+            if (HintedToEvalOnTrain(description)) {
+                metricsToCalcOnTrain.insert(metric->GetDescription());
+            }
             const auto& description = metric->GetDescription();
             if (!usedDescriptions.contains(description)) {
                 usedDescriptions.insert(description);
@@ -4288,6 +4313,7 @@ TVector<THolder<IMetric>> CreateMetrics(
                       "If non-default weights for objects are not set, the 'use_weights' parameter must not be specified.");
         }
     }
+    SetHintToCalcMetricOnTrain(metricsToCalcOnTrain, &metrics);
     return metrics;
 }
 

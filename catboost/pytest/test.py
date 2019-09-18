@@ -2648,6 +2648,47 @@ def test_custom_overfitting_detector_metric(boosting_type):
             local_canonical_file(test_error_path)]
 
 
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+def test_same_metric_skip_different(boosting_type):
+    model_path = yatest.common.test_output_path('adult_model.bin')
+    test_error_path = yatest.common.test_output_path('test_error.tsv')
+    learn_error_path = yatest.common.test_output_path('learn_error.tsv')
+    test_error_path_with_custom_metric = yatest.common.test_output_path('test_error_with_custom_metric.tsv')
+    learn_error_path_with_custom_metric = yatest.common.test_output_path('learn_error_with_custom_metric.tsv')
+
+    cmd = [
+        CATBOOST_PATH,
+        'fit',
+        '--use-best-model', 'false',
+        '--loss-function', 'Logloss',
+        '-f', data_file('adult', 'train_small'),
+        '-t', data_file('adult', 'test_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '--boosting-type', boosting_type,
+        '-i', '10',
+        '-w', '0.03',
+        '-T', '4',
+        '-m', model_path,
+    ]
+
+    cmd_without_custom_metric = cmd + [
+        '--eval-metric', 'AUC:hints=skip_train~false',
+        '--learn-err-log', learn_error_path,
+        '--test-err-log', test_error_path,
+    ]
+    cmd_with_custom_metric = cmd + [
+        '--eval-metric', 'AUC:hints=skip_train~true',
+        '--custom-metric', 'AUC:hints=skip_train~false',
+        '--learn-err-log', learn_error_path_with_custom_metric,
+        '--test-err-log', test_error_path_with_custom_metric,
+    ]
+
+    yatest.common.execute(cmd_without_custom_metric)
+    yatest.common.execute(cmd_with_custom_metric)
+
+    assert filecmp.cmp(learn_error_path_with_custom_metric, learn_error_path)
+
+
 @pytest.mark.parametrize('loss_function', BINCLASS_LOSSES)
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 def test_custom_loss_for_classification(loss_function, boosting_type):
