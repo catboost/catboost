@@ -502,6 +502,9 @@ void NCatboostOptions::TCatBoostOptions::Validate() const {
     CB_ENSURE(!(IsPlainOnlyModeLoss(lossFunction) && (BoostingOptions->BoostingType == EBoostingType::Ordered)),
         "Boosting type should be Plain for loss functions " << lossFunction);
 
+    CB_ENSURE(!(!SystemOptions->IsSingleHost() && (BoostingOptions->BoostingType == EBoostingType::Ordered)),
+        "Boosting type should be Plain in distributed mode");
+
     if (GetTaskType() == ETaskType::CPU) {
         CB_ENSURE(lossFunction != ELossFunction::QueryCrossEntropy,
                   ELossFunction::QueryCrossEntropy << " loss function is not supported for CPU learning");
@@ -587,6 +590,10 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
     if (IsPlainOnlyModeLoss(LossFunctionDescription->GetLossFunction())) {
         BoostingOptions->BoostingType.SetDefault(EBoostingType::Plain);
         CB_ENSURE(BoostingOptions->BoostingType.IsDefault(), "Boosting type should be plain for " << LossFunctionDescription->GetLossFunction());
+    }
+
+    if (BoostingOptions->BoostingType.NotSet() && !SystemOptions->IsSingleHost()) {
+        BoostingOptions->BoostingType.SetDefault(EBoostingType::Plain);
     }
 
     switch (LossFunctionDescription->GetLossFunction()) {

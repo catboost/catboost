@@ -1,4 +1,16 @@
 {
+    "large_dist_test.test_dist_train_many_trees[calc_block=5000000]": [
+        {
+            "checksum": "416bd773d38d0b016415283d30a8348c",
+            "uri": "file://large_dist_test.test_dist_train_many_trees_calc_block=5000000_/test.eval"
+        }
+    ],
+    "large_dist_test.test_dist_train_many_trees[calc_block=60]": [
+        {
+            "checksum": "416bd773d38d0b016415283d30a8348c",
+            "uri": "file://large_dist_test.test_dist_train_many_trees_calc_block=60_/test.eval"
+        }
+    ],
     "test.test_all_targets[calc_block=5000000-Ordered-CrossEntropy]": [
         {
             "checksum": "439734aed790bc4e904fe7a77073980c",

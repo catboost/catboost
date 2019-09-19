@@ -4,6 +4,7 @@ PYTEST()
 
 TEST_SRCS(
     test.py
+    large_dist_test.py
 )
 
 DEPENDS(
