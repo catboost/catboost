@@ -7,7 +7,7 @@
 
 bool GlobalLogInitialized();
 void DoInitGlobalLog(const TString& logType, const int logLevel, const bool rotation, const bool startAsDaemon);
-void DoInitGlobalLog(TAutoPtr<TLogBackend> backend);
+void DoInitGlobalLog(THolder<TLogBackend> backend);
 
 inline void InitGlobalLog2Null() {
     DoInitGlobalLog("null", TLOG_EMERG, false, false);
@@ -24,8 +24,8 @@ public:
     {
     }
 
-    TGlobalLog(TAutoPtr<TLogBackend> backend)
-        : TLog(backend)
+    TGlobalLog(THolder<TLogBackend> backend)
+        : TLog(std::move(backend))
     {
     }
 };
@@ -40,8 +40,8 @@ public:
     {
     }
 
-    TNullLog(TAutoPtr<TLogBackend> backend)
-        : TLog(backend)
+    TNullLog(THolder<TLogBackend> backend)
+        : TLog(std::move(backend))
     {
     }
 };

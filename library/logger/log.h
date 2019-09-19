@@ -29,15 +29,15 @@ public:
     /*
      * construct any type of logger :)
      */
-    TLog(TAutoPtr<TLogBackend> backend);
+    TLog(THolder<TLogBackend> backend);
 
     ~TLog();
 
     /*
      * NOT thread-safe
      */
-    void ResetBackend(TAutoPtr<TLogBackend> backend) noexcept;
-    TAutoPtr<TLogBackend> ReleaseBackend() noexcept;
+    void ResetBackend(THolder<TLogBackend> backend) noexcept;
+    THolder<TLogBackend> ReleaseBackend() noexcept;
     bool IsNullLog() const noexcept;
 
     void Write(const char* data, size_t len) const;
@@ -79,6 +79,6 @@ private:
     TLogFormatter Formatter;
 };
 
-TAutoPtr<TLogBackend> CreateLogBackend(const TString& fname, ELogPriority priority = LOG_MAX_PRIORITY, bool threaded = false);
-TAutoPtr<TLogBackend> CreateFilteredOwningThreadedLogBackend(const TString& fname, ELogPriority priority = LOG_MAX_PRIORITY, size_t queueLen = 0);
-TAutoPtr<TOwningThreadedLogBackend> CreateOwningThreadedLogBackend(const TString& fname, size_t queueLen = 0);
+THolder<TLogBackend> CreateLogBackend(const TString& fname, ELogPriority priority = LOG_MAX_PRIORITY, bool threaded = false);
+THolder<TLogBackend> CreateFilteredOwningThreadedLogBackend(const TString& fname, ELogPriority priority = LOG_MAX_PRIORITY, size_t queueLen = 0);
+THolder<TOwningThreadedLogBackend> CreateOwningThreadedLogBackend(const TString& fname, size_t queueLen = 0);

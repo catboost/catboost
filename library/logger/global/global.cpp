@@ -4,8 +4,8 @@ void DoInitGlobalLog(const TString& logType, const int logLevel, const bool rota
     NLoggingImpl::InitLogImpl<TGlobalLog>(logType, logLevel, rotation, startAsDaemon);
 }
 
-void DoInitGlobalLog(TAutoPtr<TLogBackend> backend) {
-    TLoggerOperator<TGlobalLog>::Set(new TGlobalLog(backend));
+void DoInitGlobalLog(THolder<TLogBackend> backend) {
+    TLoggerOperator<TGlobalLog>::Set(new TGlobalLog(std::move(backend)));
 }
 
 bool GlobalLogInitialized() {

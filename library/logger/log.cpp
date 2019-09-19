@@ -12,7 +12,7 @@
 #include <util/generic/scope.h>
 #include <util/generic/yexception.h>
 
-static inline TAutoPtr<TLogBackend> BackendFactory(const TString& logType, ELogPriority priority) {
+static inline THolder<TLogBackend> BackendFactory(const TString& logType, ELogPriority priority) {
     try {
         if (priority != LOG_MAX_PRIORITY) {
             if (logType == "console") {
@@ -53,18 +53,18 @@ static inline TAutoPtr<TLogBackend> BackendFactory(const TString& logType, ELogP
     return new TStreamLogBackend(&Cerr);
 }
 
-TAutoPtr<TLogBackend> CreateLogBackend(const TString& fname, ELogPriority priority, bool threaded) {
+THolder<TLogBackend> CreateLogBackend(const TString& fname, ELogPriority priority, bool threaded) {
     if (!threaded) {
         return BackendFactory(fname, priority);
     }
     return CreateFilteredOwningThreadedLogBackend(fname, priority);
 }
 
-TAutoPtr<TLogBackend> CreateFilteredOwningThreadedLogBackend(const TString& fname, ELogPriority priority, size_t queueLen) {
+THolder<TLogBackend> CreateFilteredOwningThreadedLogBackend(const TString& fname, ELogPriority priority, size_t queueLen) {
     return new TFilteredLogBackend<TOwningThreadedLogBackend>(CreateOwningThreadedLogBackend(fname, queueLen).Release(), priority);
 }
 
-TAutoPtr<TOwningThreadedLogBackend> CreateOwningThreadedLogBackend(const TString& fname, size_t queueLen) {
+THolder<TOwningThreadedLogBackend> CreateOwningThreadedLogBackend(const TString& fname, size_t queueLen) {
     return new TOwningThreadedLogBackend(BackendFactory(fname, LOG_MAX_PRIORITY).Release(), queueLen);
 }
 
@@ -87,8 +87,8 @@ class TLog::TImpl: public TAtomicRefCount<TImpl> {
     };
 
 public:
-    inline TImpl(TAutoPtr<TLogBackend> backend)
-        : BackEnd_(backend)
+    inline TImpl(THolder<TLogBackend> backend)
+        : BackEnd_(std::move(backend))
         , DefaultPriority_(LOG_DEF_PRIORITY)
     {
     }
@@ -122,11 +122,11 @@ public:
         Printf(ls, format, args);
     }
 
-    inline void ResetBackend(TAutoPtr<TLogBackend> backend) noexcept {
+    inline void ResetBackend(THolder<TLogBackend> backend) noexcept {
         BackEnd_.Reset(backend.Release());
     }
 
-    inline TAutoPtr<TLogBackend> ReleaseBackend() noexcept {
+    inline THolder<TLogBackend> ReleaseBackend() noexcept {
         return BackEnd_.Release();
     }
 
@@ -175,11 +175,11 @@ TLog::TLog()
 TLog::TLog(const TString& fname, ELogPriority priority) {
     THolder<TLogBackend> backend(BackendFactory(fname, priority));
 
-    Impl_ = new TImpl(backend);
+    Impl_ = new TImpl(std::move(backend));
 }
 
-TLog::TLog(TAutoPtr<TLogBackend> backend)
-    : Impl_(new TImpl(backend))
+TLog::TLog(THolder<TLogBackend> backend)
+    : Impl_(new TImpl(std::move(backend)))
 {
 }
 
@@ -256,15 +256,15 @@ bool TLog::OpenLog(const char* path, ELogPriority lp) {
     return true;
 }
 
-void TLog::ResetBackend(TAutoPtr<TLogBackend> backend) noexcept {
-    Impl_->ResetBackend(backend);
+void TLog::ResetBackend(THolder<TLogBackend> backend) noexcept {
+    Impl_->ResetBackend(std::move(backend));
 }
 
 bool TLog::IsNullLog() const noexcept {
     return Impl_->IsNullLog();
 }
 
-TAutoPtr<TLogBackend> TLog::ReleaseBackend() noexcept {
+THolder<TLogBackend> TLog::ReleaseBackend() noexcept {
     return Impl_->ReleaseBackend();
 }
 

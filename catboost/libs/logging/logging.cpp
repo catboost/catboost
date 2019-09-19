@@ -78,11 +78,11 @@ public:
         , HighPriorityLog(highPriorityBackend)
     {}
     void ResetBackend(THolder<TLogBackend>&& lowPriorityBackend, THolder<TLogBackend>&& highPriorityBackend) {
-        LowPriorityLog.ResetBackend(lowPriorityBackend);
-        HighPriorityLog.ResetBackend(highPriorityBackend);
+        LowPriorityLog.ResetBackend(std::move(lowPriorityBackend));
+        HighPriorityLog.ResetBackend(std::move(highPriorityBackend));
     }
     void ResetTraceBackend(THolder<TLogBackend>&& traceBackend) {
-        TraceLog.ResetBackend(traceBackend);
+        TraceLog.ResetBackend(std::move(traceBackend));
     }
     void WriteRegularLog(const TCatboostLogEntry& entry, bool outputExtendedInfo) {
         const size_t regularOffset = outputExtendedInfo ? 0 : entry.GetRegularMessageStartOffset();
