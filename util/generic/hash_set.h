@@ -253,9 +253,6 @@ public:
     size_type bucket_count() const {
         return rep.bucket_count();
     }
-    size_type max_bucket_count() const {
-        return rep.max_bucket_count();
-    }
     size_type bucket_size(size_type n) const {
         return rep.bucket_size(n);
     }
@@ -455,9 +452,6 @@ public:
     }
     size_type bucket_count() const {
         return rep.bucket_count();
-    }
-    size_type max_bucket_count() const {
-        return rep.max_bucket_count();
     }
     size_type bucket_size(size_type n) const {
         return rep.bucket_size(n);
