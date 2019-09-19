@@ -71,6 +71,7 @@ public:
     /// любые типы кодирования, выбирается gzip. В противном случае
     /// из списка типов кодирования выбирается лучший из поддерживаемых сервером.
     TString BestCompressionScheme() const;
+    TString BestCompressionScheme(const char** codings, size_t len) const;
 
     /// Если заголовки содержат Content-Length, возвращает true и
     /// записывает значение из заголовка в value

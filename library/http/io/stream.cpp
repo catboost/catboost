@@ -520,20 +520,29 @@ bool THttpInput::AcceptEncoding(const TString& coding) const {
     return Impl_->AcceptEncoding(coding);
 }
 
-TString THttpInput::BestCompressionScheme() const {
-    const auto& bestCodings = TCodecFactory::Instance().BestCodecs;
-
-    if (AcceptEncoding("*")) {
-        return bestCodings[0];
+TString THttpInput::BestCompressionScheme(const char** codings, size_t len) const {
+    if (codings == nullptr || len == 0) {
+        return "identity";
     }
 
-    for (const auto& bestCoding : bestCodings) {
-        if (AcceptEncoding(bestCoding)) {
-            return bestCoding;
+    if (AcceptEncoding("*")) {
+        return codings[0];
+    }
+
+    for (size_t i = 0; i < len; ++i) {
+        if (AcceptEncoding(codings[i])) {
+            return codings[i];
         }
     }
 
     return "identity";
+}
+
+TString THttpInput::BestCompressionScheme() const {
+    auto& bestCodecs = TCodecFactory::Instance().BestCodecs;
+    const char** codings = static_cast<const char**>(bestCodecs.data());
+
+    return BestCompressionScheme(codings, bestCodecs.size());
 }
 
 bool THttpInput::GetContentLength(ui64& value) const noexcept {
@@ -863,7 +872,7 @@ private:
 
         if (IsHttpResponse()) {
             if (Request_ && IsCompressionEnabled() && HasResponseBody()) {
-                TString scheme = Request_->BestCompressionScheme();
+                TString scheme = Request_->BestCompressionScheme(ComprSchemas_, ComprSchemasLen_);
                 if (scheme != "identity") {
                     AddOrReplaceHeader(THttpInputHeader("Content-Encoding", scheme));
                     RemoveHeader("Content-Length");
