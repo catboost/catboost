@@ -1,3 +1,15 @@
+# Release 0.17.2
+
+## Improvements:
+- For metric MAE on CPU default value of `leaf-estimation-method` is now `Exact`
+- Speed up `LossFunctionChange` feature strength computation
+
+## Bugs fixed:
+- Broken label converter in grid search for multiclassification, #993
+- Incorrect prediction with monotonic constraint, #994
+- Invalid value of `eval_metric` in output of `get_all_params()`, #940
+- Train AUC is not computed because hint `skip_train~false` is ignored, #970
+
 # Release 0.17.1
 
 ## Bugs fixed:
