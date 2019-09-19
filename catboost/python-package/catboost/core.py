@@ -1320,6 +1320,14 @@ class _CatBoostBase(object):
         self._object._set_feature_names(feature_names)
 
 
+def _cast_value_to_list_of_strings(params, key):
+    if key in params:
+        if isinstance(params[key], STRING_TYPES):
+            params[key] = [params[key]]
+        if not isinstance(params[key], Sequence):
+            raise CatBoostError("Invalid `" + key + "` type={} : must be string or list of strings.".format(type(params[key])))
+
+
 def _check_param_types(params):
     if not isinstance(params, (Mapping, MutableMapping)):
         raise CatBoostError("Invalid params type={}: must be dict().".format(type(params)))
@@ -1329,16 +1337,9 @@ def _check_param_types(params):
     if 'ctr_target_border_count' in params:
         if not isinstance(params['ctr_target_border_count'], INTEGER_TYPES):
             raise CatBoostError('Invalid ctr_target_border_count type={} : must be integer type'.format(type(params['ctr_target_border_count'])))
-    if 'custom_loss' in params:
-        if isinstance(params['custom_loss'], STRING_TYPES):
-            params['custom_loss'] = [params['custom_loss']]
-        if not isinstance(params['custom_loss'], Sequence):
-            raise CatBoostError("Invalid `custom_loss` type={} : must be string or list of strings.".format(type(params['custom_loss'])))
-    if 'custom_metric' in params:
-        if isinstance(params['custom_metric'], STRING_TYPES):
-            params['custom_metric'] = [params['custom_metric']]
-        if not isinstance(params['custom_metric'], Sequence):
-            raise CatBoostError("Invalid `custom_metric` type={} : must be string or list of strings.".format(type(params['custom_metric'])))
+    _cast_value_to_list_of_strings(params, 'custom_loss')
+    _cast_value_to_list_of_strings(params, 'custom_metric')
+    _cast_value_to_list_of_strings(params, 'per_float_feature_quantization')
     if 'monotone_constraints' in params:
         param = params['monotone_constraints']
         if isinstance(param, STRING_TYPES):
