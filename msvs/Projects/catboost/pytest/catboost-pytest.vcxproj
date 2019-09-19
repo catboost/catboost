@@ -78,35 +78,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\pytest\07428a18d6546f0ab027a8aacc.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\pytest\1204c9a5db0a366fa0204390af.cpp"/>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\catboost\pytest\_07428a18d6546f0ab027a8aacc.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\catboost\pytest
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/libs/protobuf" "-I" "$(SolutionDir)../contrib/libs/protobuf/google/protobuf" "-I" "$(SolutionDir)../contrib/libs/brotli/include" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/f2py/src" "-o" "$(SolutionDir)$(Configuration)/catboost/pytest/_07428a18d6546f0ab027a8aacc.obj" "$(SolutionDir)$(Configuration)/catboost/pytest/_07428a18d6546f0ab027a8aacc.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\catboost\pytest
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/libs/protobuf" "-I" "$(SolutionDir)../contrib/libs/protobuf/google/protobuf" "-I" "$(SolutionDir)../contrib/libs/brotli/include" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/f2py/src" "-o" "$(SolutionDir)$(Configuration)/catboost/pytest/_07428a18d6546f0ab027a8aacc.obj" "$(SolutionDir)$(Configuration)/catboost/pytest/_07428a18d6546f0ab027a8aacc.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/catboost/pytest/_07428a18d6546f0ab027a8aacc.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\catboost\pytest\_07428a18d6546f0ab027a8aacc.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\pytest\_07428a18d6546f0ab027a8aacc.obj;</Outputs>
-    </CustomBuild>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\pytest\a956dfdaf7e86d00a82fc0ca74.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\catboost\pytest\_1204c9a5db0a366fa0204390af.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\pytest
@@ -133,6 +106,33 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/catboost/pytest/_1204c9a5db0a366fa0204390af.obj	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\catboost\pytest\_1204c9a5db0a366fa0204390af.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\pytest\_1204c9a5db0a366fa0204390af.obj;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\catboost\pytest\_a956dfdaf7e86d00a82fc0ca74.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/libs/protobuf" "-I" "$(SolutionDir)../contrib/libs/protobuf/google/protobuf" "-I" "$(SolutionDir)../contrib/libs/brotli/include" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/f2py/src" "-o" "$(SolutionDir)$(Configuration)/catboost/pytest/_a956dfdaf7e86d00a82fc0ca74.obj" "$(SolutionDir)$(Configuration)/catboost/pytest/_a956dfdaf7e86d00a82fc0ca74.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/libs/protobuf" "-I" "$(SolutionDir)../contrib/libs/protobuf/google/protobuf" "-I" "$(SolutionDir)../contrib/libs/brotli/include" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/f2py/src" "-o" "$(SolutionDir)$(Configuration)/catboost/pytest/_a956dfdaf7e86d00a82fc0ca74.obj" "$(SolutionDir)$(Configuration)/catboost/pytest/_a956dfdaf7e86d00a82fc0ca74.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/catboost/pytest/_a956dfdaf7e86d00a82fc0ca74.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\catboost\pytest\_a956dfdaf7e86d00a82fc0ca74.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\pytest\_a956dfdaf7e86d00a82fc0ca74.obj;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -165,11 +165,11 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/pytest/07428a18d6546f0ab027a8aacc.cpp" "_ecf3bab2fbd291c305e5645890=/py_modules/__tests__.test" "_999e39ea550a3cd497ea9899f4=resfs/src//py_modules/__tests__.test" "_4de4d800074e288cd2d20343e8=/py_code/__tests__.test"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/pytest/1204c9a5db0a366fa0204390af.cpp" "_a2d6fdd9d4ba6b9da2fa2b8794=PY_MAIN"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/pytest/1204c9a5db0a366fa0204390af.cpp" "_a2d6fdd9d4ba6b9da2fa2b8794=PY_MAIN"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/pytest/a956dfdaf7e86d00a82fc0ca74.cpp" "_ecf3bab2fbd291c305e5645890=/py_modules/__tests__.test" "_999e39ea550a3cd497ea9899f4=resfs/src//py_modules/__tests__.test" "_4de4d800074e288cd2d20343e8=/py_code/__tests__.test" "_de179e42dbf6858561f20701ab=/py_modules/__tests__.large_dist_test" "_fb1739d9f37b88e2bf808fc38f=resfs/src//py_modules/__tests__.large_dist_test" "_8b821a55086aec92bfa810198f=/py_code/__tests__.large_dist_test"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -180,11 +180,11 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/pytest/07428a18d6546f0ab027a8aacc.cpp" "_ecf3bab2fbd291c305e5645890=/py_modules/__tests__.test" "_999e39ea550a3cd497ea9899f4=resfs/src//py_modules/__tests__.test" "_4de4d800074e288cd2d20343e8=/py_code/__tests__.test"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/pytest/1204c9a5db0a366fa0204390af.cpp" "_a2d6fdd9d4ba6b9da2fa2b8794=PY_MAIN"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/pytest/1204c9a5db0a366fa0204390af.cpp" "_a2d6fdd9d4ba6b9da2fa2b8794=PY_MAIN"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/pytest/a956dfdaf7e86d00a82fc0ca74.cpp" "_ecf3bab2fbd291c305e5645890=/py_modules/__tests__.test" "_999e39ea550a3cd497ea9899f4=resfs/src//py_modules/__tests__.test" "_4de4d800074e288cd2d20343e8=/py_code/__tests__.test" "_de179e42dbf6858561f20701ab=/py_modules/__tests__.large_dist_test" "_fb1739d9f37b88e2bf808fc38f=resfs/src//py_modules/__tests__.large_dist_test" "_8b821a55086aec92bfa810198f=/py_code/__tests__.large_dist_test"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -192,14 +192,18 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/catboost/pytest/07428a18d6546f0ab027a8aacc.cpp	$B/catboost/pytest/1204c9a5db0a366fa0204390af.cpp	</Message>
+      <Message>$B/catboost/pytest/1204c9a5db0a366fa0204390af.cpp	$B/catboost/pytest/a956dfdaf7e86d00a82fc0ca74.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\pytest\07428a18d6546f0ab027a8aacc.cpp;$(SolutionDir)$(Configuration)\catboost\pytest\1204c9a5db0a366fa0204390af.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\pytest\1204c9a5db0a366fa0204390af.cpp;$(SolutionDir)$(Configuration)\catboost\pytest\a956dfdaf7e86d00a82fc0ca74.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\pytest
 if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/pytest/large_dist_test.py-" "$(SolutionDir)../catboost/pytest/large_dist_test.py" "$(SolutionDir)$(Configuration)/catboost/pytest/large_dist_test.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\catboost\pytest
+if %errorlevel% neq 0 goto :cmEnd
 "python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/pytest/test.py-" "$(SolutionDir)../catboost/pytest/test.py" "$(SolutionDir)$(Configuration)/catboost/pytest/test.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
@@ -211,6 +215,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\pytest
 if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/pytest/large_dist_test.py-" "$(SolutionDir)../catboost/pytest/large_dist_test.py" "$(SolutionDir)$(Configuration)/catboost/pytest/large_dist_test.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\catboost\pytest
+if %errorlevel% neq 0 goto :cmEnd
 "python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/pytest/test.py-" "$(SolutionDir)../catboost/pytest/test.py" "$(SolutionDir)$(Configuration)/catboost/pytest/test.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
@@ -219,15 +227,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/catboost/pytest/test.py.yapyc	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\py_compile.py;$(SolutionDir)..\catboost\pytest\test.py;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\pytest\test.py.yapyc;</Outputs>
+      <Message>$B/catboost/pytest/large_dist_test.py.yapyc	$B/catboost/pytest/test.py.yapyc	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\py_compile.py;$(SolutionDir)..\catboost\pytest\large_dist_test.py;$(SolutionDir)..\catboost\pytest\test.py;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\pytest\large_dist_test.py.yapyc;$(SolutionDir)$(Configuration)\catboost\pytest\test.py.yapyc;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\catboost\pytest\test.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/pytest/_07428a18d6546f0ab027a8aacc.yasm" "$(SolutionDir)../catboost/pytest/test.py" "$(SolutionDir)$(Configuration)/catboost/pytest/_ecf3bab2fbd291c305e5645890.rodata" "-" "catboost/pytest/test.py" "_999e39ea550a3cd497ea9899f4.rodata" "$(SolutionDir)$(Configuration)/catboost/pytest/test.py.yapyc" "$(SolutionDir)$(Configuration)/catboost/pytest/_4de4d800074e288cd2d20343e8.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/pytest/_a956dfdaf7e86d00a82fc0ca74.yasm" "$(SolutionDir)../catboost/pytest/test.py" "$(SolutionDir)$(Configuration)/catboost/pytest/_ecf3bab2fbd291c305e5645890.rodata" "-" "catboost/pytest/test.py" "_999e39ea550a3cd497ea9899f4.rodata" "$(SolutionDir)$(Configuration)/catboost/pytest/test.py.yapyc" "$(SolutionDir)$(Configuration)/catboost/pytest/_4de4d800074e288cd2d20343e8.rodata" "$(SolutionDir)../catboost/pytest/large_dist_test.py" "$(SolutionDir)$(Configuration)/catboost/pytest/_de179e42dbf6858561f20701ab.rodata" "-" "catboost/pytest/large_dist_test.py" "_fb1739d9f37b88e2bf808fc38f.rodata" "$(SolutionDir)$(Configuration)/catboost/pytest/large_dist_test.py.yapyc" "$(SolutionDir)$(Configuration)/catboost/pytest/_8b821a55086aec92bfa810198f.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -238,7 +246,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/pytest/_07428a18d6546f0ab027a8aacc.yasm" "$(SolutionDir)../catboost/pytest/test.py" "$(SolutionDir)$(Configuration)/catboost/pytest/_ecf3bab2fbd291c305e5645890.rodata" "-" "catboost/pytest/test.py" "_999e39ea550a3cd497ea9899f4.rodata" "$(SolutionDir)$(Configuration)/catboost/pytest/test.py.yapyc" "$(SolutionDir)$(Configuration)/catboost/pytest/_4de4d800074e288cd2d20343e8.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/pytest/_a956dfdaf7e86d00a82fc0ca74.yasm" "$(SolutionDir)../catboost/pytest/test.py" "$(SolutionDir)$(Configuration)/catboost/pytest/_ecf3bab2fbd291c305e5645890.rodata" "-" "catboost/pytest/test.py" "_999e39ea550a3cd497ea9899f4.rodata" "$(SolutionDir)$(Configuration)/catboost/pytest/test.py.yapyc" "$(SolutionDir)$(Configuration)/catboost/pytest/_4de4d800074e288cd2d20343e8.rodata" "$(SolutionDir)../catboost/pytest/large_dist_test.py" "$(SolutionDir)$(Configuration)/catboost/pytest/_de179e42dbf6858561f20701ab.rodata" "-" "catboost/pytest/large_dist_test.py" "_fb1739d9f37b88e2bf808fc38f.rodata" "$(SolutionDir)$(Configuration)/catboost/pytest/large_dist_test.py.yapyc" "$(SolutionDir)$(Configuration)/catboost/pytest/_8b821a55086aec92bfa810198f.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -246,9 +254,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/catboost/pytest/_07428a18d6546f0ab027a8aacc.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\catboost\pytest\test.py;$(SolutionDir)$(Configuration)\catboost\pytest\test.py.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\pytest\_07428a18d6546f0ab027a8aacc.yasm;$(SolutionDir)$(Configuration)\catboost\pytest\_ecf3bab2fbd291c305e5645890.rodata;$(SolutionDir)$(Configuration)\catboost\pytest\_4de4d800074e288cd2d20343e8.rodata;</Outputs>
+      <Message>$B/catboost/pytest/_a956dfdaf7e86d00a82fc0ca74.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\catboost\pytest\test.py;$(SolutionDir)$(Configuration)\catboost\pytest\test.py.yapyc;$(SolutionDir)..\catboost\pytest\large_dist_test.py;$(SolutionDir)$(Configuration)\catboost\pytest\large_dist_test.py.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\pytest\_a956dfdaf7e86d00a82fc0ca74.yasm;$(SolutionDir)$(Configuration)\catboost\pytest\_ecf3bab2fbd291c305e5645890.rodata;$(SolutionDir)$(Configuration)\catboost\pytest\_4de4d800074e288cd2d20343e8.rodata;$(SolutionDir)$(Configuration)\catboost\pytest\_de179e42dbf6858561f20701ab.rodata;$(SolutionDir)$(Configuration)\catboost\pytest\_8b821a55086aec92bfa810198f.rodata;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
