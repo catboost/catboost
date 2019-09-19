@@ -412,13 +412,25 @@ def _flush_std_streams():
 # Start a program with only specified fds kept open
 #
 
+
+def _env_list():
+    # Based on fork_exec in subprocess.py.
+    env = os.environ.copy()
+    env['Y_PYTHON_ENTRY_POINT'] = ':main'
+    env_list = []
+    for k, v in env.items():
+        if '=' not in k:
+            env_list.append(os.fsencode(k) + b'=' + os.fsencode(v))
+    return env_list
+
+
 def spawnv_passfds(path, args, passfds):
     import _posixsubprocess
     passfds = tuple(sorted(map(int, passfds)))
     errpipe_read, errpipe_write = os.pipe()
     try:
         return _posixsubprocess.fork_exec(
-            args, [os.fsencode(path)], True, passfds, None, None,
+            args, [os.fsencode(path)], True, passfds, None, _env_list(),
             -1, -1, -1, -1, -1, -1, errpipe_read, errpipe_write,
             False, False, None)
     finally:

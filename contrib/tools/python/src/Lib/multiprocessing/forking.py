@@ -257,8 +257,10 @@ else:
             # start process
             cmd = get_command_line() + [rhandle]
             cmd = ' '.join('"%s"' % x for x in cmd)
+            env = os.environ.copy()
+            env['Y_PYTHON_ENTRY_POINT'] = ':main'
             hp, ht, pid, tid = _subprocess.CreateProcess(
-                _python_exe, cmd, None, None, 1, 0, None, None, None
+                _python_exe, cmd, None, None, 1, 0, env, None, None
                 )
             ht.Close()
             close(rhandle)
@@ -357,7 +359,7 @@ else:
             The "freeze_support()" line can be omitted if the program
             is not going to be frozen to produce a Windows executable.''')
 
-        if getattr(sys, 'frozen', False):
+        if False and getattr(sys, 'frozen', False):
             return [sys.executable, '--multiprocessing-fork']
         else:
             prog = 'from multiprocessing.forking import main; main()'

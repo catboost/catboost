@@ -62,7 +62,8 @@ class Popen(object):
             env = os.environ.copy()
             env["__PYVENV_LAUNCHER__"] = sys.executable
         else:
-            env = None
+            env = os.environ.copy()
+        env['Y_PYTHON_ENTRY_POINT'] = ':main'
 
         with open(wfd, 'wb', closefd=True) as to_child:
             # start process

@@ -79,7 +79,7 @@ def get_command_line(**kwds):
     '''
     Returns prefix of command line used for spawning a child process
     '''
-    if getattr(sys, 'frozen', False):
+    if False and getattr(sys, 'frozen', False):
         return ([sys.executable, '--multiprocessing-fork'] +
                 ['%s=%r' % item for item in kwds.items()])
     else:
