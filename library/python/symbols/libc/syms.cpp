@@ -13,6 +13,7 @@
 #include <pthread.h>
 #include <pwd.h>
 #include <sched.h>
+#include <semaphore.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -112,6 +113,13 @@ SYM(printf)
 SYM(pthread_kill)
 SYM(pthread_self)
 SYM(readdir_r)
+SYM(sem_close)
+SYM(sem_getvalue)
+SYM(sem_open)
+SYM(sem_post)
+SYM(sem_trywait)
+SYM(sem_unlink)
+SYM(sem_wait)
 SYM(siginterrupt)
 SYM(strdup)
 SYM(sendfile)
@@ -123,6 +131,7 @@ SYM(prctl)
 SYM(ptrace)
 SYM(sched_getaffinity)
 SYM(sched_setaffinity)
+SYM(sem_timedwait)
 SYM(inotify_init)
 SYM(inotify_add_watch)
 SYM(inotify_rm_watch)
