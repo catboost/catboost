@@ -24,7 +24,8 @@ THashSet<float> BestSplit(
     int maxBordersCount,
     EBorderSelectionType type,
     bool filterNans = false,
-    bool featuresAreSorted = false);
+    bool featuresAreSorted = false,
+    const TMaybe<TVector<float>>& initialBorders = Nothing());
 
 THashSet<float> BestWeightedSplit(
     TVector<float>&& featureValues,
@@ -116,9 +117,9 @@ namespace NSplitSelection {
         bool featureValuesMayContainNans,
         int maxBordersCount,
         EBorderSelectionType type,
-
         // if defined - calculate DefaultQuantizedBin
-        TMaybe<float> quantizedDefaultBinFraction = Nothing());
+        TMaybe<float> quantizedDefaultBinFraction = Nothing(),
+        const TMaybe<TVector<float>>& initialBorders = Nothing());
 
 
     class IBinarizer {
@@ -128,7 +129,8 @@ namespace NSplitSelection {
         virtual TQuantization BestSplit(
             TFeatureValues&& features,
             int maxBordersCount,
-            TMaybe<float> quantizedDefaultBinFraction = Nothing()) const = 0;
+            TMaybe<float> quantizedDefaultBinFraction = Nothing(),
+            const TMaybe<TVector<float>>& initialBorders = Nothing()) const = 0;
     };
 
     THolder<IBinarizer> MakeBinarizer(EBorderSelectionType borderSelectionType);

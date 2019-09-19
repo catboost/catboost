@@ -877,7 +877,8 @@ static void TrainModel(
         &catBoostOptions,
         &labelConverter,
         executor,
-        &rand);
+        &rand,
+        initModel);
     if (catBoostOptions.SystemOptions->IsMaster()) {
         InitializeMaster(catBoostOptions.SystemOptions);
         if (isQuantizedLearn && IsSharedFs(poolLoadOptions->LearnSetPath)) {

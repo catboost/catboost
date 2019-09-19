@@ -144,7 +144,7 @@ void TestScoreInequalities() {
                     size_t expectedBordersCount = Min(maxBordersCount, valueCount - 1);
                     auto valuesCopy = values;
                     const auto medianBorders = BestSplit(valuesCopy, maxBordersCount,
-                                                         EBorderSelectionType::Median, false, false);
+                        EBorderSelectionType::Median, false, false);
                     const auto optimalBorders = BestWeightedSplit<penaltyType>(TVector<float>(values), weights,
                         maxBordersCount, EOptimizationType::Exact, false, false);
                     const auto greedyBorders = BestWeightedSplit<penaltyType>(TVector<float>(values), weights,
@@ -179,6 +179,18 @@ void AssertApproximateEquality(const TVector<float>& lhs, const TVector<float>& 
     for (auto lhsValue : lhs) {
         EXPECT_DOUBLE_EQ(lhsValue, *rhsIter++);
     }
+}
+
+static TVector<ui32> getDivisionByBorders(const TVector<float>& features, const THashSet<float>& borders) {
+    TVector<float> sortedFeatures = features;
+    Sort(sortedFeatures.begin(), sortedFeatures.end());
+    TVector<ui32> grounds;
+    for (const auto& border : borders) {
+        grounds.push_back(UpperBound(sortedFeatures.begin(), sortedFeatures.end(), border) - sortedFeatures.begin());
+    }
+    Sort(grounds.begin(), grounds.end());
+    grounds.resize(Unique(grounds.begin(), grounds.end()) - grounds.begin());
+    return grounds;
 }
 
 Y_UNIT_TEST_SUITE(ValuePreprocessingTests) {
@@ -504,5 +516,38 @@ Y_UNIT_TEST_SUITE(WeightedBinarizationTests) {
         TestScoreInequalities<EPenaltyType::MaxSumLog>();
         TestScoreInequalities<EPenaltyType::MinEntropy>();
         TestScoreInequalities<EPenaltyType::W2>();
+    }
+}
+
+Y_UNIT_TEST_SUITE(InitialBordersTest) {
+    Y_UNIT_TEST(RandomTest) {
+        TVector<ui32> featuresCounts = {0, 1, 2, 5, 10, 50, 100};
+        TVector<ui32> initialBordersCounts = {0, 1, 2, 5, 10, 50, 100};
+        TVector<ui32> maxBorderCounts = {0, 1, 2, 5, 10, 50, 100};
+        float maxCoordinate = 1e6;
+        for (ui32 seed : xrange<ui32>(10)) {
+            TFastRng64 gen(seed);
+            for (ui32 featuresCount : featuresCounts) {
+                for (ui32 initialBordersCount : initialBordersCounts) {
+                    for (ui32 maxBorderCount : maxBorderCounts) {
+                        TVector<float> features;
+                        for (ui32 i = 0; i < featuresCount; ++i) {
+                            features.push_back(gen.GenRandReal1() * maxCoordinate);
+                        }
+                        TVector<float> initialBorders;
+                        for (ui32 i = 0; i < initialBordersCount; i++) {
+                            initialBorders.push_back(gen.GenRandReal1() * maxCoordinate);
+                        }
+                        for (auto borderSelectionType : BORDER_SELECTION_TYPES) {
+                            TVector<float> firstFeatures(features);
+                            const auto usualBorders = BestSplit(firstFeatures, maxBorderCount, borderSelectionType, false, false);
+                            TVector<float> secondFeatures(features);
+                            const auto bordersWithInitial = BestSplit(secondFeatures, maxBorderCount, borderSelectionType, false, false, initialBorders);
+                            UNIT_ASSERT_EQUAL(getDivisionByBorders(features, usualBorders), getDivisionByBorders(features, bordersWithInitial));
+                        }
+                    }
+                }
+            }
+        }
     }
 }

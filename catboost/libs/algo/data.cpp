@@ -42,6 +42,20 @@ namespace NCB {
         return result;
     }
 
+    using TInitialBorders = TMaybe<TVector<TConstArrayRef<float>>>;
+
+    static TInitialBorders GetInitialBorders(TMaybe<TFullModel*> initModel) {
+        if (!initModel) {
+            return Nothing();
+        }
+        TVector<TConstArrayRef<float>> bordersInInitModel;
+        bordersInInitModel.reserve((*initModel)->ObliviousTrees.GetMutable()->FloatFeatures.size());
+        for (const auto& floatFeature : (*initModel)->ObliviousTrees.GetMutable()->FloatFeatures) {
+            bordersInInitModel.emplace_back(floatFeature.Borders.begin(), floatFeature.Borders.end());
+        }
+        return bordersInInitModel;
+    }
+
     TTrainingDataProviderPtr GetTrainingData(
         TDataProviderPtr srcData,
         bool isLearnData,
@@ -55,7 +69,8 @@ namespace NCB {
         TLabelConverter* labelConverter,
         TMaybe<float>* targetBorder,
         NPar::TLocalExecutor* localExecutor,
-        TRestorableFastRng64* rand) {
+        TRestorableFastRng64* rand,
+        TMaybe<TFullModel*> initModel) {
 
         const ui64 cpuRamLimit = ParseMemorySizeDescription(params->SystemOptions->CpuUsedRamLimit.Get());
 
@@ -111,7 +126,8 @@ namespace NCB {
                 quantizedFeaturesInfo,
                 allowWriteFiles,
                 localExecutor,
-                rand);
+                rand,
+                GetInitialBorders(initModel));
         }
         //(TODO)
         // because some features can become unavailable/ignored due to quantization
@@ -292,7 +308,8 @@ namespace NCB {
         NCatboostOptions::TCatBoostOptions* params,
         TLabelConverter* labelConverter,
         NPar::TLocalExecutor* localExecutor,
-        TRestorableFastRng64* rand) {
+        TRestorableFastRng64* rand,
+        TMaybe<TFullModel*> initModel) {
 
         TTrainingDataProviders trainingData;
 
@@ -310,7 +327,8 @@ namespace NCB {
             labelConverter,
             &targetBorder,
             localExecutor,
-            rand
+            rand,
+            initModel
         );
 
         quantizedFeaturesInfo = trainingData.Learn->ObjectsData->GetQuantizedFeaturesInfo();

@@ -30,6 +30,8 @@ namespace NPar {
 
 namespace NCB {
 
+    using TInitialBorders = TMaybe<TVector<TConstArrayRef<float>>>;
+
     struct TQuantizationOptions {
         bool CpuCompatibleFormat = true;
         bool GpuCompatibleFormat = true;
@@ -108,7 +110,8 @@ namespace NCB {
         TRawObjectsDataProviderPtr rawObjectsDataProvider,
         TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
         TRestorableFastRng64* rand,
-        NPar::TLocalExecutor* localExecutor
+        NPar::TLocalExecutor* localExecutor,
+        const TInitialBorders& initialBorders = Nothing()
     );
 
 
@@ -117,7 +120,8 @@ namespace NCB {
         TRawDataProviderPtr rawDataProvider,
         TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
         TRestorableFastRng64* rand,
-        NPar::TLocalExecutor* localExecutor
+        NPar::TLocalExecutor* localExecutor,
+        const TInitialBorders& initialBorders = Nothing()
     );
 
     TQuantizedDataProviders Quantize(
@@ -137,7 +141,8 @@ namespace NCB {
         TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
         bool allowWriteFiles,
         NPar::TLocalExecutor* localExecutor,
-        TRestorableFastRng64* rand
+        TRestorableFastRng64* rand,
+        const TInitialBorders& initialBorders = Nothing()
     );
 
     TQuantizedObjectsDataProviderPtr ConstructQuantizedPoolFromRawPool(

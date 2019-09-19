@@ -254,6 +254,7 @@ namespace NCB {
         const TFloatValuesHolder& srcFeature,
         const TSubsetIndexingForBuildBorders& subsetIndexingForBuildBorders,
         const TQuantizedFeaturesInfo& quantizedFeaturesInfo,
+        const TMaybe<TVector<float>>& initialBorders,
         TMaybe<float> quantizedDefaultBinFraction,
         ENanMode* nanMode,
         NSplitSelection::TQuantization* quantization
@@ -350,7 +351,8 @@ namespace NCB {
                 /*featureValuesMayContainNans*/ false,
                 nonNanValuesBorderCount,
                 binarizationOptions.BorderSelectionType,
-                quantizedDefaultBinFraction
+                quantizedDefaultBinFraction,
+                initialBorders
             );
         }
 
@@ -1747,6 +1749,7 @@ namespace NCB {
         const TFloatValuesHolder& srcFeature,
         const TSubsetIndexingForBuildBorders& subsetIndexingForBuildBorders,
         const TQuantizationOptions& options,
+        const TInitialBorders& initialBorders,
         bool calcQuantizationAndNanModeOnly,
         bool storeFeaturesDataAsExternalValuesHolder,
 
@@ -1783,10 +1786,15 @@ namespace NCB {
         );
 
         if (calculateNanMode || calculateQuantization) {
+            TMaybe<TVector<float>> initialBordersForFeature = Nothing();
+            if (initialBorders) {
+                initialBordersForFeature.ConstructInPlace(TVector<float>((*initialBorders)[floatFeatureIdx.Idx].begin(), (*initialBorders)[floatFeatureIdx.Idx].end()));
+            }
             CalcQuantizationAndNanMode(
                 srcFeature,
                 subsetIndexingForBuildBorders,
                 *quantizedFeaturesInfo,
+                initialBordersForFeature,
                 options.DefaultValueFractionToEnableSparseStorage,
                 &nanMode,
                 &calculatedQuantization
@@ -2099,7 +2107,8 @@ namespace NCB {
             TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
             bool calcQuantizationAndNanModeOnly,
             TRestorableFastRng64* rand,
-            NPar::TLocalExecutor* localExecutor
+            NPar::TLocalExecutor* localExecutor,
+            const TInitialBorders& initialBorders = Nothing()
         ) {
              CB_ENSURE_INTERNAL(
                 options.CpuCompatibleFormat || options.GpuCompatibleFormat,
@@ -2219,6 +2228,7 @@ namespace NCB {
                                         **srcFloatFeatureHolderPtr,
                                         subsetIndexingForBuildBorders,
                                         options,
+                                        initialBorders,
                                         calcQuantizationAndNanModeOnlyInProcessFloatFeatures,
                                         storeFeaturesDataAsExternalValuesHolders,
                                         incrementalIndexing,
@@ -2436,7 +2446,8 @@ namespace NCB {
         TRawObjectsDataProviderPtr rawObjectsDataProvider,
         TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
         TRestorableFastRng64* rand,
-        NPar::TLocalExecutor* localExecutor
+        NPar::TLocalExecutor* localExecutor,
+        const TInitialBorders& initialBorders
     ) {
         TDataMetaInfo dataMetaInfo;
         dataMetaInfo.FeaturesLayout = rawObjectsDataProvider->GetFeaturesLayout();
@@ -2458,7 +2469,8 @@ namespace NCB {
             std::move(rawDataProvider),
             quantizedFeaturesInfo,
             rand,
-            localExecutor
+            localExecutor,
+            initialBorders
         );
 
         return quantizedDataProvider->ObjectsData;
@@ -2470,7 +2482,8 @@ namespace NCB {
         TRawDataProviderPtr rawDataProvider,
         TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
         TRestorableFastRng64* rand,
-        NPar::TLocalExecutor* localExecutor
+        NPar::TLocalExecutor* localExecutor,
+        const TInitialBorders& initialBorders
     ) {
         return TQuantizationImpl::Do(
             options,
@@ -2478,7 +2491,8 @@ namespace NCB {
             quantizedFeaturesInfo,
             false,
             rand,
-            localExecutor
+            localExecutor,
+            initialBorders
         );
     }
 
@@ -2528,7 +2542,8 @@ namespace NCB {
         TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
         bool allowWriteFiles,
         NPar::TLocalExecutor* localExecutor,
-        TRestorableFastRng64* rand) {
+        TRestorableFastRng64* rand,
+        const TInitialBorders& initialBorders) {
 
         TQuantizationOptions quantizationOptions;
         if (params->GetTaskType() == ETaskType::CPU) {
@@ -2606,7 +2621,8 @@ namespace NCB {
             std::move(rawObjectsDataProvider),
             quantizedFeaturesInfo,
             rand,
-            localExecutor
+            localExecutor,
+            initialBorders
         );
     }
 

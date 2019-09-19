@@ -34,7 +34,8 @@ namespace NCB {
         TLabelConverter* labelConverter,
         TMaybe<float>* targetBorder,
         NPar::TLocalExecutor* localExecutor,
-        TRestorableFastRng64* rand);
+        TRestorableFastRng64* rand,
+        TMaybe<TFullModel*> initModel = Nothing());
 
     TTrainingDataProviders GetTrainingData(
         TDataProviders srcData,
@@ -45,7 +46,8 @@ namespace NCB {
         NCatboostOptions::TCatBoostOptions* params,
         TLabelConverter* labelConverter,
         NPar::TLocalExecutor* localExecutor,
-        TRestorableFastRng64* rand);
+        TRestorableFastRng64* rand,
+        TMaybe<TFullModel*> initModel = Nothing());
 
     TConstArrayRef<TString> GetTargetForStratifiedSplit(const NCB::TDataProvider& dataProvider);
     TConstArrayRef<float> GetTargetForStratifiedSplit(const NCB::TTrainingDataProvider& dataProvider);
