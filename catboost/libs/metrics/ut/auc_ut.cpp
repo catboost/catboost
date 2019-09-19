@@ -118,7 +118,7 @@ static double SortAndCountInversions(TVector<TSample>* samples, TVector<TSample>
     return leftCount + rightCount + mergeCount;
 }
 
-static double CalcAUCSingleThread(TVector<TSample>* samples, double* outWeightSum = nullptr, double* outPairWeightSum = nullptr) {
+static double CalcAucSingleThread(TVector<TSample>* samples, double* outWeightSum = nullptr, double* outPairWeightSum = nullptr) {
     double weightSum = 0;
     double pairWeightSum = 0;
     Sort(samples->begin(), samples->end(), [](const TSample& left, const TSample& right) {
@@ -171,10 +171,56 @@ Y_UNIT_TEST_SUITE(AUCMetricTests) {
             samples.emplace_back(target[i], prediction[i], weight[i]);
         }
         double scoreParallel = CalcAUC(&samples, &executor);
+        Shuffle(samples.begin(), samples.end());
         double score = CalcAUC(&samples);
+        Shuffle(samples.begin(), samples.end());
         UNIT_ASSERT_DOUBLES_EQUAL(scoreParallel, MyAUC(prediction, target, weight), eps);
-        UNIT_ASSERT_DOUBLES_EQUAL(scoreParallel, CalcAUCSingleThread(&samples), eps);
+        Shuffle(samples.begin(), samples.end());
+        UNIT_ASSERT_DOUBLES_EQUAL(scoreParallel, CalcAucSingleThread(&samples), eps);
         UNIT_ASSERT_DOUBLES_EQUAL(scoreParallel, score, eps);
+    }
+
+    static void TestBinClassAuc(
+        const TVector<double>& prediction,
+        const TVector<bool>& target,
+        const TVector<double>& weight,
+        const double eps
+    ) {
+        NPar::TLocalExecutor executor;
+        executor.RunAdditionalThreads(31);
+        TVector<NMetrics::TSample> samples;
+        samples.reserve(target.size());
+        TVector<double> doubleTarget;
+        doubleTarget.reserve(target.size());
+        TVector<NMetrics::TBinClassSample> positiveSamples, negativeSamples;
+        for (ui32 i = 0; i < prediction.size(); ++i) {
+            doubleTarget.emplace_back((double)target[i]);
+            samples.emplace_back((double)target[i], prediction[i], weight[i]);
+            if (target[i]) {
+                positiveSamples.emplace_back(prediction[i], weight[i]);
+            } else {
+                negativeSamples.emplace_back(prediction[i], weight[i]);
+            }
+        }
+        double scoreParallel = CalcBinClassAuc(&positiveSamples, &negativeSamples, &executor);
+        Shuffle(positiveSamples.begin(), positiveSamples.end());
+        Shuffle(negativeSamples.begin(), negativeSamples.end());
+        double scoreOneThread = CalcBinClassAuc(&positiveSamples, &negativeSamples);
+        Shuffle(positiveSamples.begin(), positiveSamples.end());
+        Shuffle(negativeSamples.begin(), negativeSamples.end());
+        double scoreManyThreads = CalcBinClassAuc(&positiveSamples, &negativeSamples, 32);
+        double usualAucScore = CalcAUC(&samples, &executor);
+        Shuffle(samples.begin(), samples.end());
+        double usualAucScoreOneThread = CalcAUC(&samples);
+        double naiveRealizationScore = MyAUC(prediction, doubleTarget, weight);
+        Shuffle(samples.begin(), samples.end());
+        double singleThreadScore = CalcAucSingleThread(&samples);
+        UNIT_ASSERT_DOUBLES_EQUAL(scoreParallel, scoreOneThread, eps);
+        UNIT_ASSERT_DOUBLES_EQUAL(scoreParallel, scoreManyThreads, eps);
+        UNIT_ASSERT_DOUBLES_EQUAL(scoreParallel, usualAucScore, eps);
+        UNIT_ASSERT_DOUBLES_EQUAL(scoreParallel, usualAucScoreOneThread, eps);
+        UNIT_ASSERT_DOUBLES_EQUAL(scoreParallel, naiveRealizationScore, eps);
+        UNIT_ASSERT_DOUBLES_EQUAL(scoreParallel, singleThreadScore, eps);
     }
 
     static void TestAucRandom(
@@ -189,6 +235,30 @@ Y_UNIT_TEST_SUITE(AUCMetricTests) {
         TVector<double> target = RandomVector(size, differentTargets, rnd, rng);
         TVector<double> weight = RandomVector(size, size, rnd, rng);
         TestAuc(
+            prediction,
+            target,
+            weight,
+            eps
+        );
+    }
+
+    static void TestBinClassAucRandom(
+        ui32 size,
+        ui32 differentPredictions,
+        bool isEqualTargets,
+        double eps
+    ) {
+        TFastRng<ui64> rng(239);
+        TRandom rnd(239);
+        TVector<double> prediction = RandomVector(size, differentPredictions, rnd, rng);
+        TVector<double> weight = RandomVector(size, size, rnd, rng);
+        TVector<bool> target;
+        target.reserve(size);
+        bool defaultValue = rnd(2);
+        for (ui32 i = 0; i < size; ++i) {
+            target.emplace_back(isEqualTargets ? defaultValue : rnd(2));
+        }
+        TestBinClassAuc(
             prediction,
             target,
             weight,
@@ -382,5 +452,26 @@ Y_UNIT_TEST_SUITE(AUCMetricTests) {
         TVector<double> target{0, 1, 0};
         TVector<double> weight{1, 1, 1};
         TestAuc(approx, target, weight, EPS);
+    }
+
+    Y_UNIT_TEST(BinClassAucEqualTargetsTest) {
+        TRandom rnd(239);
+        for (ui32 iter = 0; iter < 20; ++iter) {
+            TestBinClassAucRandom(1000, rnd(1000) + 1, true, EPS);
+        }
+    }
+
+    Y_UNIT_TEST(BinClassAucTest) {
+        ui32 size = 239;
+        for (ui32 i = 1; i <= size; ++i) {
+            TestBinClassAucRandom(size, i, false, EPS);
+        }
+    }
+
+    Y_UNIT_TEST(BigBinClassAucTest) {
+        TestBinClassAucRandom(2000, 10, false, EPS);
+        TestBinClassAucRandom(2000, 239, false, EPS);
+        TestBinClassAucRandom(2000, 1000, false, EPS);
+        TestBinClassAucRandom(2000, 2000, false, EPS);
     }
 }

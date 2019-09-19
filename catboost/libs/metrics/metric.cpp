@@ -2240,28 +2240,31 @@ TMetricHolder TAUCMetric::Eval(
         return Type == EAucType::OneVsAll ? target[idx] == static_cast<double>(PositiveClass) : target[idx];
     };
 
-    TVector<NMetrics::TSample> samples;
-    samples.reserve(end - begin);
+    TMetricHolder error(2);
+    error.Stats[1] = 1.0;
+
     if (Type == EAucType::Ranking) {
+        TVector<NMetrics::TSample> samples;
+        samples.reserve(end - begin);
         for (int i : xrange(begin, end)) {
             samples.emplace_back(realTarget(i), realApprox(i), realWeight(i));
         }
+        error.Stats[0] = CalcAUC(&samples, &executor);
     } else {
+        TVector<NMetrics::TBinClassSample> positiveSamples, negativeSamples;
         for (int i : xrange(begin, end)) {
             const auto currentTarget = realTarget(i);
             CB_ENSURE(0 <= currentTarget && currentTarget <= 1, "All target values should be in the segment [0, 1], for Ranking AUC please use type=Ranking.");
-            if (currentTarget < 1) {
-                samples.emplace_back(0, realApprox(i), (1 - currentTarget) * realWeight(i));
-            }
             if (currentTarget > 0) {
-                samples.emplace_back(1, realApprox(i), currentTarget * realWeight(i));
+                positiveSamples.emplace_back(realApprox(i), currentTarget * realWeight(i));
+            }
+            if (currentTarget < 1) {
+                negativeSamples.emplace_back(realApprox(i), (1 - currentTarget) * realWeight(i));
             }
         }
+        error.Stats[0] = CalcBinClassAuc(&positiveSamples, &negativeSamples, &executor);
     }
 
-    TMetricHolder error(2);
-    error.Stats[0] = CalcAUC(&samples, &executor);
-    error.Stats[1] = 1.0;
     return error;
 }
 

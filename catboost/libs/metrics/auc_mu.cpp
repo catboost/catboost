@@ -1,3 +1,4 @@
+#include "auc.h"
 #include "auc_mu.h"
 
 #include <catboost/libs/helpers/parallel_sort/parallel_sort.h>
@@ -7,57 +8,7 @@
 #include <util/generic/vector.h>
 #include <util/generic/maybe.h>
 
-namespace {
-    struct TElement {
-        bool IsFirst;
-        double Prediction;
-        double Weight;
-    };
-}
-
-static bool CompareByPrediction(const TElement& left, const TElement& right) {
-    return std::tie(right.Prediction, left.IsFirst) < std::tie(left.Prediction, right.IsFirst);
-}
-
-static double CalcAucBetweenTwoClasses(
-    const double signSum,
-    TVector<TElement>* elements,
-    NPar::TLocalExecutor* localExecutor
-) {
-    if (signSum == 0) {
-        return 0.5;
-    }
-    if (signSum < 0) {
-        for (auto& element : *elements) {
-            element.Prediction = -element.Prediction;
-        }
-    }
-    double result = 0;
-    NCB::ParallelMergeSort(CompareByPrediction, elements, localExecutor);
-    double firstWeightSum = 0;
-    double secondWeightSum = 0;
-    double currentFirstWeightSum = 0;
-    double currentSecondWeightSum = 0;
-    double deltaSum = 0;
-    for (ui32 i = 0; i < elements->size(); ++i) {
-        const auto& element = (*elements)[i];
-        if (element.IsFirst) {
-            result += element.Weight * secondWeightSum;
-            firstWeightSum += element.Weight;
-            currentFirstWeightSum += element.Weight;
-        } else {
-            secondWeightSum += element.Weight;
-            currentSecondWeightSum += element.Weight;
-        }
-        if (i + 1 == elements->size() || (*elements)[i].Prediction != (*elements)[i + 1].Prediction) {
-            deltaSum += currentFirstWeightSum * currentSecondWeightSum;
-            currentFirstWeightSum = 0;
-            currentSecondWeightSum = 0;
-        }
-    }
-    result -= deltaSum / 2.0;
-    return result / (firstWeightSum * secondWeightSum);
-}
+using NMetrics::TBinClassSample;
 
 double CalcMuAuc(
     const TVector<TVector<double>>& approx,
@@ -111,19 +62,28 @@ double CalcMuAuc(
             const auto realWeight = [&](ui32 index) {
                 return weight.empty() ? 1.0 : weight[index];
             };
-            TVector<TElement> elements;
-            elements.reserve(indicesByTarget[i].size() + indicesByTarget[j].size());
-            for (ui32 index : indicesByTarget[i]) {
-                elements.emplace_back(TElement{true, dotProducts[i][index] - dotProducts[j][index], realWeight(index)});
-            }
-            for (ui32 index : indicesByTarget[j]) {
-                elements.emplace_back(TElement{false, dotProducts[i][index] - dotProducts[j][index], realWeight(index)});
-            }
             double signSum = 2;
             if (misclassCostMatrix) {
                 signSum = (*misclassCostMatrix)[i][j] + (*misclassCostMatrix)[j][i];
             }
-            result += CalcAucBetweenTwoClasses(signSum, &elements, localExecutor);
+            if (signSum == 0) {
+                result += 0.5;
+                continue;
+            }
+            const auto getApprox = [&](ui32 index) {
+                return (signSum < 0 ? dotProducts[i][index] - dotProducts[j][index] : dotProducts[j][index] - dotProducts[i][index]);
+            };
+            TVector<TBinClassSample> positiveSamples;
+            positiveSamples.reserve(indicesByTarget[i].size());
+            for (ui32 index : indicesByTarget[i]) {
+                positiveSamples.emplace_back(getApprox(index), realWeight(index));
+            }
+            TVector<TBinClassSample> negativeSamples;
+            negativeSamples.reserve(indicesByTarget[j].size());
+            for (ui32 index : indicesByTarget[j]) {
+                negativeSamples.emplace_back(getApprox(index), realWeight(index));
+            }
+            result += CalcBinClassAuc(&positiveSamples, &negativeSamples, localExecutor);
         }
     }
     return (2.0 * result) / (classCount * (classCount - 1));

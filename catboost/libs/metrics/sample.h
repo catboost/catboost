@@ -45,4 +45,16 @@ namespace NMetrics {
             TConstArrayRef<double> predictions,
             TConstArrayRef<double> weights);
     };
+
+    struct TBinClassSample {
+        double Prediction = 0;
+        double Weight = 0;
+
+        TBinClassSample() = default;
+
+        TBinClassSample(double prediction, double weight = 1)
+            : Prediction(prediction)
+            , Weight(weight)
+        {}
+    };
 }  // NMetrics

@@ -1,12 +1,14 @@
 #include "auc.h"
 
 #include <catboost/libs/helpers/parallel_sort/parallel_sort.h>
+#include <catboost/libs/index_range/index_range.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/array_ref.h>
 #include <util/generic/vector.h>
 
 using NMetrics::TSample;
+using NMetrics::TBinClassSample;
 using NCB::TMergeData;
 
 static double MergeAndCountInversions(
@@ -227,4 +229,76 @@ double CalcAUC(TVector<TSample>* samples, double* outWeightSum, double* outPairW
     NPar::TLocalExecutor localExecutor;
     localExecutor.RunAdditionalThreads(threadCount - 1);
     return CalcAUC(samples, &localExecutor, outWeightSum, outPairWeightSum);
+}
+
+static bool CompareBinClassSamplesByPrediction(const TBinClassSample& left, const TBinClassSample& right) {
+    return left.Prediction < right.Prediction;
+}
+
+double CalcBinClassAuc(
+    TVector<TBinClassSample>* positiveSamples,
+    TVector<TBinClassSample>* negativeSamples,
+    NPar::TLocalExecutor* localExecutor
+) {
+    if (positiveSamples->empty() || negativeSamples->empty()) {
+        return 0;
+    }
+    bool needSwap = false;
+    if (positiveSamples->size() > negativeSamples->size()) {
+        std::swap(positiveSamples, negativeSamples);
+        needSwap = true;
+    }
+    TVector<TBinClassSample> buf(positiveSamples->begin(), positiveSamples->end());
+    NCB::ParallelMergeSort(CompareBinClassSamplesByPrediction, positiveSamples, localExecutor, &buf);
+    TVector<ui32> equalPredictionPositions(positiveSamples->size());
+    for (ui32 i = positiveSamples->size(); i > 0; --i) {
+        equalPredictionPositions[i - 1] = i;
+        if (i < positiveSamples->size() && (*positiveSamples)[i - 1].Prediction == (*positiveSamples)[i].Prediction) {
+            equalPredictionPositions[i - 1] = equalPredictionPositions[i];
+        }
+    }
+    TVector<double> prefixSumOfWeights(positiveSamples->size() + 1, 0);
+    for (ui32 i = 0; i < positiveSamples->size(); ++i) {
+        prefixSumOfWeights[i + 1] = prefixSumOfWeights[i] + (*positiveSamples)[i].Weight;
+    }
+    const ui32 threadCount = Min((ui32)localExecutor->GetThreadCount() + 1, (ui32)negativeSamples->size());
+    NCB::TEqualRangesGenerator<ui32> rangesGenerator({0, (ui32)negativeSamples->size()}, threadCount);
+    TVector<double> weightSumData(threadCount, 0);
+    TVector<double> pairWeightSumData(threadCount, 0);
+    NPar::ParallelFor(
+        *localExecutor,
+        0,
+        threadCount,
+        [&](int blockId) {
+            for (ui32 i : rangesGenerator.GetRange(blockId).Iter()) {
+                weightSumData[blockId] += (*negativeSamples)[i].Weight;
+                ui32 position = LowerBound(positiveSamples->begin(), positiveSamples->end(), (*negativeSamples)[i], CompareBinClassSamplesByPrediction) - positiveSamples->begin();
+                pairWeightSumData[blockId] += (*negativeSamples)[i].Weight * prefixSumOfWeights[position];
+                if (position < positiveSamples->size() && (*positiveSamples)[position].Prediction == (*negativeSamples)[i].Prediction) {
+                    pairWeightSumData[blockId] += (*negativeSamples)[i].Weight * ((prefixSumOfWeights[equalPredictionPositions[position]] - prefixSumOfWeights[position]) / 2.0);
+                }
+            }
+        }
+    );
+    const double negativeWeightSum = Accumulate(weightSumData, 0.0);
+    const double pairWeightSum = Accumulate(pairWeightSumData, 0.0);
+    double positiveWeightSum = 0;
+    for (const auto& sample : *positiveSamples) {
+        positiveWeightSum += sample.Weight;
+    }
+    double result = pairWeightSum / (positiveWeightSum * negativeWeightSum);
+    if (!needSwap) {
+        result = 1 - result;
+    }
+    return result;
+}
+
+double CalcBinClassAuc(
+    TVector<NMetrics::TBinClassSample>* positiveSamples,
+    TVector<NMetrics::TBinClassSample>* negativeSamples,
+    int threadCount
+) {
+    NPar::TLocalExecutor localExecutor;
+    localExecutor.RunAdditionalThreads(threadCount - 1);
+    return CalcBinClassAuc(positiveSamples, negativeSamples, &localExecutor);
 }
