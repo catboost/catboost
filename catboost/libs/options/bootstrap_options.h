@@ -13,7 +13,7 @@ namespace NCatboostOptions {
         explicit TBootstrapConfig(ETaskType taskType)
             : TakenFraction("subsample", 0.66f)
             , BaggingTemperature("bagging_temperature", 1.0)
-            , MvsHeadFraction("mvs_head_fraction", 1.0f, ETaskType::CPU)
+            , MvsReg("mvs_reg", 1e-5, ETaskType::CPU)
             , BootstrapType("type", EBootstrapType::Bayesian)
             , SamplingUnit("sampling_unit", ESamplingUnit::Object)
             , TaskType(taskType)
@@ -41,8 +41,12 @@ namespace NCatboostOptions {
             return BaggingTemperature.Get();
         }
 
-        float GetMvsHeadFraction() const {
-            return MvsHeadFraction.Get();
+        float GetMvsReg() const {
+            return MvsReg.Get();
+        }
+
+        bool MvsRegIsSet() const {
+            return !MvsReg.NotSet();
         }
 
         void Validate() const;
@@ -55,8 +59,8 @@ namespace NCatboostOptions {
             return BaggingTemperature;
         }
 
-        TOption<float>& GetMvsHeadFraction() {
-            return MvsHeadFraction;
+        TOption<float>& GetMvsReg() {
+            return MvsReg;
         }
 
         TOption<EBootstrapType>& GetBootstrapType() {
@@ -64,7 +68,7 @@ namespace NCatboostOptions {
         }
 
         void Load(const NJson::TJsonValue& options) {
-            CheckedLoad(options, &TakenFraction, &BaggingTemperature, &MvsHeadFraction, &BootstrapType, &SamplingUnit);
+            CheckedLoad(options, &TakenFraction, &BaggingTemperature, &MvsReg, &BootstrapType, &SamplingUnit);
         }
 
         void Save(NJson::TJsonValue* options) const {
@@ -78,7 +82,7 @@ namespace NCatboostOptions {
                     break;
                 }
                 case EBootstrapType::MVS: {
-                    SaveFields(options, MvsHeadFraction, BootstrapType);
+                    SaveFields(options, MvsReg, BootstrapType);
                     break;
                 }
                 default: {
@@ -89,8 +93,8 @@ namespace NCatboostOptions {
         }
 
         bool operator==(const TBootstrapConfig& rhs) const {
-            return std::tie(TakenFraction, BaggingTemperature, MvsHeadFraction, BootstrapType) ==
-                   std::tie(rhs.TakenFraction, rhs.BaggingTemperature, rhs.MvsHeadFraction, rhs.BootstrapType);
+            return std::tie(TakenFraction, BaggingTemperature, MvsReg, BootstrapType) ==
+                   std::tie(rhs.TakenFraction, rhs.BaggingTemperature, rhs.MvsReg, rhs.BootstrapType);
         }
 
         bool operator!=(const TBootstrapConfig& rhs) const {
@@ -101,7 +105,7 @@ namespace NCatboostOptions {
     private:
         TOption<float> TakenFraction;
         TOption<float> BaggingTemperature;
-        TCpuOnlyOption<float> MvsHeadFraction;
+        TCpuOnlyOption<float> MvsReg;
         TOption<EBootstrapType> BootstrapType;
         TOption<ESamplingUnit> SamplingUnit;
         ETaskType TaskType;

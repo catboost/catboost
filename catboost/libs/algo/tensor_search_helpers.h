@@ -87,6 +87,7 @@ struct TCandidatesContext {
 void Bootstrap(
     const NCatboostOptions::TCatBoostOptions& params,
     const TVector<TIndexType>& indices,
+    const TVector<TVector<TVector<double>>>& leafValues,
     TFold* fold,
     TCalcScoreFold* sampledDocs,
     NPar::TLocalExecutor* localExecutor,

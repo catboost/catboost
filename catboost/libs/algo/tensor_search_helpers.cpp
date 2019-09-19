@@ -351,6 +351,7 @@ static void CalcWeightedData(
 void Bootstrap(
     const NCatboostOptions::TCatBoostOptions& params,
     const TVector<TIndexType>& indices,
+    const TVector<TVector<TVector<double>>>& leafValues,
     TFold* fold,
     TCalcScoreFold* sampledDocs,
     NPar::TLocalExecutor* localExecutor,
@@ -363,7 +364,8 @@ void Bootstrap(
     const float baggingTemperature = params.ObliviousTreeOptions->BootstrapConfig->GetBaggingTemperature();
     const float takenFraction = params.ObliviousTreeOptions->BootstrapConfig->GetTakenFraction();
     const bool isPairwiseScoring = IsPairwiseScoring(params.LossFunctionDescription->GetLossFunction());
-    const float headFraction = params.ObliviousTreeOptions->BootstrapConfig->GetMvsHeadFraction();
+    const float mvsReg = params.ObliviousTreeOptions->BootstrapConfig->GetMvsReg();
+    const bool mvsRegIsSet = params.ObliviousTreeOptions->BootstrapConfig->MvsRegIsSet();
     bool isCoinFlipping = true;
     switch (bootstrapType) {
         case EBootstrapType::Bernoulli:
@@ -389,8 +391,8 @@ void Bootstrap(
         case EBootstrapType::MVS:
             if (!isPairwiseScoring) {
                 isCoinFlipping = false;
-                TMvsSampler sampler(learnSampleCount, headFraction);
-                sampler.GenSampleWeights(boostingType, rand, localExecutor, fold);
+                TMvsSampler sampler(learnSampleCount, takenFraction, mvsReg, mvsRegIsSet);
+                sampler.GenSampleWeights(boostingType, leafValues, rand, localExecutor, fold);
             }
             break;
         case EBootstrapType::No:

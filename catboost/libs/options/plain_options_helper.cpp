@@ -405,7 +405,7 @@ void NCatboostOptions::PlainJsonToOptions(
     CopyOptionWithNewKey(plainOptions, "bootstrap_type", "type", &bootstrapOptions, &seenKeys);
     CopyOption(plainOptions, "bagging_temperature", &bootstrapOptions, &seenKeys);
     CopyOption(plainOptions, "subsample", &bootstrapOptions, &seenKeys);
-    CopyOption(plainOptions, "mvs_head_fraction", &bootstrapOptions, &seenKeys);
+    CopyOption(plainOptions, "mvs_reg", &bootstrapOptions, &seenKeys);
     CopyOption(plainOptions, "sampling_unit", &bootstrapOptions, &seenKeys);
 
     //feature evaluation options
@@ -727,8 +727,8 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
             CopyOption(bootstrapOptions, "subsample", &plainOptionsJson, &seenKeys);
             DeleteSeenOption(&optionsCopyTreeBootstrap, "subsample");
 
-            CopyOption(bootstrapOptions, "mvs_head_fraction", &plainOptionsJson, &seenKeys);
-            DeleteSeenOption(&optionsCopyTreeBootstrap, "mvs_head_fraction");
+            CopyOption(bootstrapOptions, "mvs_reg", &plainOptionsJson, &seenKeys);
+            DeleteSeenOption(&optionsCopyTreeBootstrap, "mvs_reg");
 
             CB_ENSURE(optionsCopyTreeBootstrap.GetMapSafe().empty(), "bootstrap: key " + optionsCopyTreeBootstrap.GetMapSafe().begin()->first + " wasn't added to plain options.");
             DeleteSeenOption(&optionsCopyTree, "bootstrap");
