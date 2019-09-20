@@ -272,7 +272,6 @@
 
 - source_filter: "^contrib/libs/ImageMagick"
   includes:
-    - ft2build.h
     - ltdl.h
 
 - source_filter: "^contrib/libs/authparser"
