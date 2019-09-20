@@ -1,14 +1,6 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
-    <ProjectConfiguration Include="Debug|Win32">
-      <Configuration>Debug</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Release|Win32">
-      <Configuration>Release</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
     <ProjectConfiguration Include="Debug|x64">
       <Configuration>Debug</Configuration>
       <Platform>x64</Platform>
@@ -24,16 +16,6 @@
     <Keyword>Win32Proj</Keyword>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>Makefile</ConfigurationType>
-    <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>Makefile</ConfigurationType>
-    <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Makefile</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
@@ -49,12 +31,6 @@
   </ImportGroup>
   <ImportGroup Label="Shared">
   </ImportGroup>
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
@@ -63,31 +39,23 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <NMakeBuildCommandLine>call "$(VCInstallDir)\Auxiliary\Build\vcvars64.bat" &amp;&amp; "$(SolutionDir)../../ya" make "$(SolutionDir)../../catboost/libs/model_interface" --output "$(ProjectDir)lib/$(Platform)/$(Configuration)" --verbose</NMakeBuildCommandLine>
+    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
+    <IntDir>$(Configuration)\</IntDir>
+    <NMakeBuildCommandLine>call "$(VCInstallDir)\Auxiliary\Build\vcvars64.bat" &amp;&amp; "$(SolutionDir)../../ya" make -d "$(SolutionDir)../../catboost/libs/model_interface" --install $(OutDir)</NMakeBuildCommandLine>
     <NMakePreprocessorDefinitions>_DEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
-    <OutDir>$(ProjectDir)lib/$(Platform)/$(Configuration)</OutDir>
-    <NMakeReBuildCommandLine>call "$(VCInstallDir)\Auxiliary\Build\vcvars64.bat" &amp;&amp; "$(SolutionDir)../../ya" make "$(SolutionDir)../../catboost/libs/model_interface" --output "$(ProjectDir)lib/$(Platform)/$(Configuration)" --verbose --rebuild</NMakeReBuildCommandLine>
-    <NMakeOutput>$(ProjectDir)lib/$(Platform)/$(Configuration)/catboost/libs/model_interface/catboostmodel.dl</NMakeOutput>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <NMakeBuildCommandLine>"$(SolutionDir)../../ya" make "$(SolutionDir)../../catboost/libs/model_interface" --output "$(OutDir)" --verbose</NMakeBuildCommandLine>
-    <NMakePreprocessorDefinitions>WIN32;_DEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <NMakeBuildCommandLine>"$(SolutionDir)../../ya" make "$(SolutionDir)../../catboost/libs/model_interface" --output "$(OutDir)" --verbose</NMakeBuildCommandLine>
-    <NMakePreprocessorDefinitions>WIN32;NDEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
+    <NMakeReBuildCommandLine>call "$(VCInstallDir)\Auxiliary\Build\vcvars64.bat" &amp;&amp; "$(SolutionDir)../../ya" make -d "$(SolutionDir)../../catboost/libs/model_interface" --install $(OutDir) --rebuild</NMakeReBuildCommandLine>
+    <NMakeOutput>$(OutDir)catboostmodel.lib</NMakeOutput>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <NMakeBuildCommandLine>call "$(VCInstallDir)\Auxiliary\Build\vcvars64.bat" &amp;&amp; "$(SolutionDir)../../ya" make -r "$(SolutionDir)../../catboost/libs/model_interface" --output "$(ProjectDir)lib/$(Platform)/$(Configuration)" --verbose</NMakeBuildCommandLine>
+    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
+    <IntDir>$(Configuration)\</IntDir>
+    <NMakeBuildCommandLine>call "$(VCInstallDir)\Auxiliary\Build\vcvars64.bat" &amp;&amp; "$(SolutionDir)../../ya" make -r "$(SolutionDir)../../catboost/libs/model_interface" --install $(OutDir)</NMakeBuildCommandLine>
     <NMakePreprocessorDefinitions>NDEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
-    <OutDir>$(ProjectDir)lib/$(Platform)/$(Configuration)</OutDir>
-    <NMakeReBuildCommandLine>call "$(VCInstallDir)\Auxiliary\Build\vcvars64.bat" &amp;&amp; "$(SolutionDir)../../ya" make -r "$(SolutionDir)../../catboost/libs/model_interface" --output "$(ProjectDir)lib/$(Platform)/$(Configuration)" --verbose --rebuild</NMakeReBuildCommandLine>
-    <NMakeOutput>$(ProjectDir)lib/$(Platform)/$(Configuration)/catboost/libs/model_interface/catboostmodel.dl</NMakeOutput>
+    <NMakeReBuildCommandLine>call "$(VCInstallDir)\Auxiliary\Build\vcvars64.bat" &amp;&amp; "$(SolutionDir)../../ya" make -r "$(SolutionDir)../../catboost/libs/model_interface" --install $(OutDir) --rebuild</NMakeReBuildCommandLine>
+    <NMakeOutput>$(OutDir)catboostmodel.lib</NMakeOutput>
   </PropertyGroup>
   <ItemDefinitionGroup>
   </ItemDefinitionGroup>
-  <ItemGroup>
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

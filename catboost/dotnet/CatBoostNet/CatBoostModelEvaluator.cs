@@ -98,7 +98,7 @@ namespace CatBoostNet
         /// </param>
         /// <returns>2D array with model predictions for all samples in the batch</returns>
         public double[,] EvaluateBatch(float[,] floatFeatures, string[,] catFeatures)
-        {   
+        {
             if (floatFeatures.GetLength(0) != catFeatures.GetLength(0))
             {
                 if (floatFeatures.GetLength(0) > 0 && catFeatures.GetLength(0) > 0)

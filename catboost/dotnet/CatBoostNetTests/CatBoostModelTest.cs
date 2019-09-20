@@ -134,7 +134,7 @@ namespace CatBoostNetTests
             {
                 Assert.Fail("Failed to download Mushroom dataset");
             }
-            
+
             MLContext mlContext = new MLContext();
 
             var model = new CatBoostModel(

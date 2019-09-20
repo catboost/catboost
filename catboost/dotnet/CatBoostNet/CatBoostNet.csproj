@@ -28,7 +28,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="$(SolutionDir)LibraryBuilder\lib\x64\$(ConfigurationName)\catboost\libs\model_interface\catboostmodel.dll">
+    <Content Include="$(SolutionDir)$(Configuration)\catboostmodel.dll">
       <PackagePath>runtimes/win/native/catboostmodel.dll</PackagePath>
       <Pack>true</Pack>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
