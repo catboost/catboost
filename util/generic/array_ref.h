@@ -94,39 +94,39 @@ public:
         return (S_ == 0);
     }
 
-    inline iterator begin() const noexcept {
+    constexpr inline iterator begin() const noexcept {
         return T_;
     }
 
-    inline iterator end() const noexcept {
+    constexpr inline iterator end() const noexcept {
         return (T_ + S_);
     }
 
-    inline const_iterator cbegin() const noexcept {
+    constexpr inline const_iterator cbegin() const noexcept {
         return T_;
     }
 
-    inline const_iterator cend() const noexcept {
+    constexpr inline const_iterator cend() const noexcept {
         return (T_ + S_);
     }
 
-    inline reverse_iterator rbegin() const noexcept {
+    constexpr inline reverse_iterator rbegin() const noexcept {
         return reverse_iterator(T_ + S_);
     }
 
-    inline reverse_iterator rend() const noexcept {
+    constexpr inline reverse_iterator rend() const noexcept {
         return reverse_iterator(T_);
     }
 
-    inline const_reverse_iterator crbegin() const noexcept {
+    constexpr inline const_reverse_iterator crbegin() const noexcept {
         return const_reverse_iterator(T_ + S_);
     }
 
-    inline const_reverse_iterator crend() const noexcept {
+    constexpr inline const_reverse_iterator crend() const noexcept {
         return const_reverse_iterator(T_);
     }
 
-    inline reference front() const noexcept {
+    constexpr inline reference front() const noexcept {
         return *T_;
     }
 
@@ -150,7 +150,7 @@ public:
         return (*this)[n];
     }
 
-    inline explicit operator bool() const noexcept {
+    constexpr inline explicit operator bool() const noexcept {
         return (S_ > 0);
     }
 
@@ -216,7 +216,7 @@ public:
         return TArrayRef(T_ + offset, size);
     }
 
-    inline yssize_t ysize() const noexcept {
+    constexpr inline yssize_t ysize() const noexcept {
         return static_cast<yssize_t>(this->size());
     }
 
