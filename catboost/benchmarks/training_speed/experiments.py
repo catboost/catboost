@@ -117,9 +117,9 @@ EXPERIMENT_TYPE = {
 
 EXPERIMENTS = {
     name: Experiment(name, experiment_type[0], experiment_type[1])
-    for name, experiment_type in EXPERIMENT_TYPE.iteritems()
+    for name, experiment_type in EXPERIMENT_TYPE.items()
 }
 
 
 def params_to_str(params):
-    return ''.join(map(lambda (key, value): '{}[{}]'.format(key, str(value)), params.items()))
+    return ''.join(map(lambda item: '{}[{}]'.format(item[0], str(item[1])), params.items()))
