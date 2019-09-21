@@ -2129,10 +2129,14 @@ class MSVCLinker(MSVC, Linker):
 
         emit('LINK_EXE_FLAGS', '$LINK_EXE_FLAGS_PER_TYPE')
 
+        emit('LINK_IMPLIB_VALUE')
+
         # TODO(nslus): DEVTOOLS-1868 remove restriction.
         if self.tc.under_wine:
             emit('LINK_EXTRA_OUTPUT')
+            emit('LINK_IMPLIB')
         else:
+            emit('LINK_IMPLIB', '/IMPLIB:${output;noext;rootrel:REALPRJNAME.lib}')
             emit('LINK_EXTRA_OUTPUT', '/PDB:${output;noext;rootrel:REALPRJNAME.pdb}')
 
         if not self.tc.under_wine:
@@ -2152,6 +2156,7 @@ class MSVCLinker(MSVC, Linker):
 
         emit_big('''
             when ($EXPORTS_FILE) {
+                LINK_IMPLIB_VALUE=$LINK_IMPLIB
                 EXPORTS_VALUE=/DEF:${input:EXPORTS_FILE}
             }
 
@@ -2163,7 +2168,7 @@ class MSVCLinker(MSVC, Linker):
             ${qe;rootrel:PEERS} ${hide;kv:"soe"} ${hide;kv:"p LD"} ${hide;kv:"pc blue"}
 
             LINK_DYN_LIB=${GENERATE_MF} && $GENERATE_VCS_C_INFO_NODEP && ${TOOLCHAIN_ENV} ${cwd:ARCADIA_BUILD_ROOT} ${LINK_WRAPPER} ${LINK_WRAPPER_DYNLIB} ${LINK_EXE_CMD} \
-            /DLL /OUT:${qe;rootrel:TARGET} ${LINK_EXTRA_OUTPUT} ${EXPORTS_VALUE} \
+            ${LINK_IMPLIB_VALUE} /DLL /OUT:${qe;rootrel:TARGET} ${LINK_EXTRA_OUTPUT} ${EXPORTS_VALUE} \
             ${qe;rootrel:SRCS_GLOBAL} ${VCS_C_OBJ_RR} ${qe;rootrel:AUTO_INPUT} ${qe;rootrel:PEERS} \
             $LINK_EXE_FLAGS $LINK_STDLIBS $LDFLAGS $LDFLAGS_GLOBAL $OBJADDE ${hide;kv:"soe"} ${hide;kv:"p LD"} ${hide;kv:"pc blue"}
 
