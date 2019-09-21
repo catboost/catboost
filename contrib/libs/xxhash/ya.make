@@ -4,7 +4,7 @@ LIBRARY()
 
 
 
-VERSION(0.7.0+70)
+VERSION(0.7.1)
 
 LICENSE(BSD-2-Clause)
 
