@@ -1,7 +1,7 @@
 CatBoost Python Package
 ======================
 
-[![PyPI version](https://badge.fury.io/py/catboost.svg)](https://badge.fury.io/py/catboost)
+[![PyPI version](https://badge.fury.io/py/catboost.svg)](https://pypi.org/project/catboost)
 
 Installation
 ------------
@@ -16,9 +16,9 @@ For up-to-date version, please install from github.
 
 Examples
 --------
--  Refer to examples <https://tech.yandex.com/catboost/doc/dg/concepts/python-usages-examples-docpage/>
+-  Refer to examples <https://catboost.ai/docs/concepts/python-usages-examples.html>
 
 
 Documentation
 -------------
--  Refer to documentation <https://tech.yandex.com/catboost/doc/dg/concepts/python-quickstart-docpage/>
+-  Refer to documentation <https://catboost.ai/docs/concepts/python-quickstart.html>
