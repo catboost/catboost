@@ -34,7 +34,11 @@ IF(HAVE_CUDA)
     )
 ENDIF()
 
-ALLOCATOR(LF)
+IF (NOT OS_WINDOWS)
+    ALLOCATOR(LF)
+ELSE()
+    ALLOCATOR(J)
+ENDIF()
 
 INCLUDE(${ARCADIA_ROOT}/catboost/cuda/cuda_lib/default_nvcc_flags.make.inc)
 

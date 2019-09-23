@@ -19,5 +19,9 @@ IF(HAVE_CUDA)
     )
 ENDIF()
 
+IF (OS_WINDOWS)
+    ALLOCATOR(J)
+ENDIF()
+
 END()
 
