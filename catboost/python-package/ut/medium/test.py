@@ -5439,7 +5439,7 @@ def test_pool_quantize():
         'iterations': 5,
         'depth': 4,
     }
-    train_quantized_pool.quantize(params)
+    train_quantized_pool.quantize()
 
     assert(train_quantized_pool.is_quantized())
 
@@ -5465,7 +5465,7 @@ def test_save_quantized_pool():
         'iterations': 5,
         'depth': 4,
     }
-    train_quantized_pool.quantize(params)
+    train_quantized_pool.quantize()
 
     assert(train_quantized_pool.is_quantized())
 

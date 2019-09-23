@@ -618,7 +618,7 @@ class Pool(_PoolBase):
 
         self._save(fname)
 
-    def quantize(self, params=None, ignored_features=None, per_float_feature_quantization=None, border_count=None,
+    def quantize(self, ignored_features=None, per_float_feature_quantization=None, border_count=None,
                  max_bin=None, feature_border_type=None, sparse_features_conflict_fraction=None, dev_efb_max_buckets=None,
                  nan_mode=None, input_borders=None, simple_ctr=None, combinations_ctr=None, per_feature_ctr=None,
                  ctr_target_border_count=None, task_type=None, used_ram_limit=None):
@@ -628,23 +628,92 @@ class Pool(_PoolBase):
         Parameters
         ----------
         pool : catboost.Pool
-            Data to quantize on.
+            Dataset to quantize.
 
-        params : dict
-            Parameters for CatBoost.
-            CatBoost has many of parameters, all have default values.
-            If  None, all params still defaults.
-            If  dict, overriding some (or all) params.
+        ignored_features : list, [default=None]
+            Indices or names of features that should be excluded when training.
 
-        TODO(desrcibe other parametres)
+        per_float_feature_quantization : list of strings, [default=None]
+            List of float binarization descriptions.
+            Format : described in documentation on catboost.ai
+            Example 1: ['0:1024'] means that feature 0 will have 1024 borders.
+            Example 2: ['0:border_count=1024', '1:border_count=1024', ...] means that two first features have 2014 borders.
+            Example 3: ['0:nan_mode=Forbidden,border_count=32,border_type=GreedyLogSum',
+                        '1:nan_mode=Forbidden,border_count=32,border_type=GreedyLogSum'] - defines more quantization properties for first two features.
+
+        border_count : int, [default = 254 for training on CPU or 128 for training on GPU]
+            The number of partitions in numeric features binarization. Used in the preliminary calculation.
+            range: (0,+inf]
+
+        max_bin : float, synonym for border_count.
+
+        feature_border_type : string, [default='GreedyLogSum']
+            The binarization mode in numeric features binarization. Used in the preliminary calculation.
+            Possible values:
+                - 'Median'
+                - 'Uniform'
+                - 'UniformAndQuantiles'
+                - 'GreedyLogSum'
+                - 'MaxLogSum'
+                - 'MinEntropy'
+
+        sparse_features_conflict_fraction : float, [default=0.0]
+            CPU only. Maximum allowed fraction of conflicting non-default values for features in exclusive features bundle.
+            Should be a real value in [0, 1) interval.
+
+        dev_efb_max_buckets : int, [default=1024]
+            CPU only. Maximum bucket count in exclusive features bundle. Should be in an integer between 0 and 65536.
+            Used only for learning speed tuning.
+
+        nan_mode : string, [default=None]
+            Way to process missing values for numeric features.
+            Possible values:
+                - 'Forbidden' - raises an exception if there is a missing value for a numeric feature in a dataset.
+                - 'Min' - each missing value will be processed as the minimum numerical value.
+                - 'Max' - each missing value will be processed as the maximum numerical value.
+            If None, then nan_mode=Min.
+
+        input_borders : string, [default=None]
+            input file with borders used in numeric features binarization.
+
+        simple_ctr: list of strings, [default=None]
+            Binarization settings for categorical features.
+                Format : see documentation
+                Example: ['Borders:CtrBorderCount=5:Prior=0:Prior=0.5', 'BinarizedTargetMeanValue:TargetBorderCount=10:TargetBorderType=MinEntropy', ...]
+                CTR types:
+                    CPU and GPU
+                    - 'Borders'
+                    - 'Buckets'
+                    CPU only
+                    - 'BinarizedTargetMeanValue'
+                    - 'Counter'
+                    GPU only
+                    - 'FloatTargetMeanValue'
+                    - 'FeatureFreq'
+                Number_of_borders, binarization type, target borders and binarizations, priors are optional parametrs
+
+        combinations_ctr: list of strings, [default=None]
+
+        per_feature_ctr: list of strings, [default=None]
+
+        ctr_target_border_count: int, [default=None]
+            Maximum number of borders used in target binarization for categorical features that need it.
+            If TargetBorderCount is specified in 'simple_ctr', 'combinations_ctr' or 'per_feature_ctr' option it
+            overrides this value.
+            range: [1, 255]
+
+        task_type : string, [default=None]
+            The calcer type used to train the model.
+            Possible values:
+                - 'CPU'
+                - 'GPU'
+
+        used_ram_limit=None
         """
         if self.is_quantized():
             raise CatBoostError('Pool is already quantized')
 
-        if params is None:
-            raise CatBoostError("params should be set.")
-
-        params = deepcopy(params)
+        params = {}
         _process_synonyms(params)
 
         if border_count is None:
