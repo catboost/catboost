@@ -120,10 +120,9 @@
 
 - source_filter: "^contrib/libs/curl"
   includes:
+    - http.h:        contrib/libs/curl/lib/http.h
+    - inet_ntop.h:   contrib/libs/curl/lib/inet_ntop.h
     - share.h:       contrib/libs/curl/lib/share.h
-    - libssh2.h
-    - libssh2_sftp.h
-    - nghttp2/nghttp2.h
 
 - source_filter: "^contrib/libs/gdal"
   includes:
