@@ -71,10 +71,10 @@
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  ws2_32.lib "/LIBPATH:$(CUDA_PATH)/lib/x64" cublas.lib curand.lib cudart_static.lib cusparse.lib</AdditionalOptions>
       <SubSystem Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Console</SubSystem>
       <GenerateDebugInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">DebugFastLink</GenerateDebugInformation>
-      <RandomizedBaseAddress Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</RandomizedBaseAddress>
+      <RandomizedBaseAddress Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</RandomizedBaseAddress>
       <SubSystem Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Console</SubSystem>
       <GenerateDebugInformation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Debug</GenerateDebugInformation>
-      <RandomizedBaseAddress Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</RandomizedBaseAddress>
+      <RandomizedBaseAddress Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</RandomizedBaseAddress>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -540,9 +540,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\json\writer\library-json-writer.vcxproj">
       <Project>{C27A0E65-4FDF-D0F0-5127-62A23E33B196}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\lfalloc\library-lfalloc.vcxproj">
-      <Project>{E22C8A39-34B3-848D-FFAB-D6FD254429F6}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\logger\global\library-logger-global.vcxproj">
       <Project>{D1EB170E-C5D0-989C-A93C-B5A2CD895E62}</Project>
     </ProjectReference>
@@ -551,6 +548,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\malloc\api\library-malloc-api.vcxproj">
       <Project>{32459880-AE0E-8CCD-4A48-44F805C4FC9B}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\malloc\system\library-malloc-system.vcxproj">
+      <Project>{B5163097-6C21-9F9C-985E-1E21018EDE5E}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\neh\asio\library-neh-asio.vcxproj">
       <Project>{ACDED067-8B74-5223-7E1A-7937B35A78E1}</Project>
