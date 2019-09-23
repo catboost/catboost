@@ -625,8 +625,12 @@
         "checksum": "54a0e82de60cc249857cff6c0f6fb7f8",
         "uri": "file://test.test_shap_feature_importance_CPU_/feature_importance.npy"
     },
+    "test.test_shap_feature_importance_multiclass[CPU]": {
+        "checksum": "c6ded6beecdffab389953d2d96300e46",
+        "uri": "file://test.test_shap_feature_importance_multiclass_CPU_/feature_importance.npy"
+    },
     "test.test_shap_multiclass[CPU]": {
-        "checksum": "cc32c74dcb470897e9614cd39201aae3",
+        "checksum": "ac49de03a67776218f4927fcf6c80f73",
         "uri": "file://test.test_shap_multiclass_CPU_/feature_importance.txt"
     },
     "test.test_staged_predict[CPU]": {

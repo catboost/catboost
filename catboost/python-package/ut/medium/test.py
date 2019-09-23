@@ -2455,6 +2455,15 @@ def test_shap_feature_importance(task_type):
     return local_canonical_file(fimp_npy_path)
 
 
+def test_shap_feature_importance_multiclass(task_type):
+    pool = Pool(AIRLINES_5K_TRAIN_FILE, column_description=AIRLINES_5K_CD_FILE, has_header=True)
+    model = CatBoostClassifier(iterations=5, learning_rate=0.03, task_type=task_type, devices='0', loss_function='MultiClass')
+    model.fit(pool)
+    fimp_npy_path = test_output_path(FIMP_NPY_PATH)
+    np.save(fimp_npy_path, np.array(model.get_feature_importance(type=EFstrType.ShapValues, data=pool)))
+    return local_canonical_file(fimp_npy_path)
+
+
 def test_shap_feature_importance_asymmetric_and_symmetric(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoostClassifier(
@@ -2759,7 +2768,6 @@ def test_shap(task_type):
     assert(len(predictions) == len(shap_values))
     for pred_idx in range(len(predictions)):
         assert(abs(sum(shap_values[pred_idx]) - predictions[pred_idx]) < 1e-9)
-
     fimp_txt_path = test_output_path(FIMP_TXT_PATH)
     np.savetxt(fimp_txt_path, shap_values)
     return local_canonical_file(fimp_txt_path)
@@ -2773,7 +2781,6 @@ def test_shap_complex_ctr(task_type):
     assert(len(predictions) == len(shap_values))
     for pred_idx in range(len(predictions)):
         assert(abs(sum(shap_values[pred_idx]) - predictions[pred_idx]) < 1e-9)
-
     fimp_txt_path = test_output_path(FIMP_TXT_PATH)
     np.savetxt(fimp_txt_path, shap_values)
     return local_canonical_file(fimp_txt_path)
@@ -3403,28 +3410,25 @@ def test_learning_rate_auto_set_in_cv(task_type):
 
 def test_shap_multiclass(task_type):
     pool = Pool(CLOUDNESS_TRAIN_FILE, column_description=CLOUDNESS_CD_FILE)
-    classifier = CatBoostClassifier(iterations=10, loss_function='MultiClass', thread_count=8, task_type=task_type, devices='0')
+    classifier = CatBoostClassifier(iterations=50, loss_function='MultiClass', thread_count=8, task_type=task_type, devices='0')
     classifier.fit(pool)
-    pred = classifier.predict(pool, prediction_type='RawFormulaVal')
+    pred = classifier.predict(pool, prediction_type='Probability')
+
     shap_values = classifier.get_feature_importance(
         type=EFstrType.ShapValues,
         data=pool,
         thread_count=8
     )
     features_count = pool.num_col()
-    assert len(pred) == len(shap_values)
-    result = []
-    for i in range(len(pred)):
-        result_for_doc = []
-        for j in range(len(pred[i])):
-            result_for_doc = result_for_doc + list(shap_values[i][j])
-            assert len(shap_values[i][j]) == features_count + 1
-            s = sum(shap_values[i][j])
-            assert abs(s - pred[i][j]) < EPS
-        result.append(result_for_doc)
-    result = np.array([np.array([value for value in doc]) for doc in result])
+    classes_count = 3
+    assert pred.shape == (len(pred), classes_count)
+    assert shap_values.shape == (len(pred), classes_count, features_count + 1)
     fimp_txt_path = test_output_path(FIMP_TXT_PATH)
-    np.savetxt(fimp_txt_path, result)
+    np.savetxt(fimp_txt_path, shap_values.reshape(len(pred), -1))
+    shap_values = np.sum(shap_values, axis=2)
+    for doc_id in range(len(pred)):
+        shap_probas = np.exp(shap_values[doc_id]) / np.sum(np.exp(shap_values[doc_id]))
+        assert np.allclose(shap_probas, pred[doc_id])
     return local_canonical_file(fimp_txt_path)
 
 

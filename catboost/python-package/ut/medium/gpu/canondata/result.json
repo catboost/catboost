@@ -474,15 +474,19 @@
         "uri": "file://test.test_shap_feature_importance_GPU_/feature_importance.npy"
     },
     "test.test_shap_feature_importance_asymmetric[GPU-Depthwise]": {
-        "checksum": "b4cb38bfce187d4da4241e6efeb6627d",
+        "checksum": "8de91c54a36b4067d7b9de3acd6ca4ea",
         "uri": "file://test.test_shap_feature_importance_asymmetric_GPU-Depthwise_/feature_importance.npy"
     },
     "test.test_shap_feature_importance_asymmetric[GPU-Lossguide]": {
-        "checksum": "598a84574889994dbafdb1c0bf559e88",
+        "checksum": "9d3c76ce14eeb6793e79b8afcb604ebc",
         "uri": "file://test.test_shap_feature_importance_asymmetric_GPU-Lossguide_/feature_importance.npy"
     },
+    "test.test_shap_feature_importance_multiclass[GPU]": {
+        "checksum": "4bc7fc73e3986fd01ffc486983ea023d",
+        "uri": "file://test.test_shap_feature_importance_multiclass_GPU_/feature_importance.npy"
+    },
     "test.test_shap_multiclass[GPU]": {
-        "checksum": "4b65215cb709e94cbc2b506a77f474bc",
+        "checksum": "df6bdff54cd619d2111d0c42b832461a",
         "uri": "file://test.test_shap_multiclass_GPU_/feature_importance.txt"
     },
     "test.test_staged_predict[GPU]": {

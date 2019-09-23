@@ -31,6 +31,7 @@ public:
 struct TShapPreparedTrees {
     TVector<TVector<TVector<TShapValue>>> ShapValuesByLeafForAllTrees; // [treeIdx][leafIdx][shapFeature] trees * 2^d * d
     TVector<TVector<double>> MeanValuesForAllTrees;
+    TVector<double> AverageApproxByTree;
     TVector<int> BinFeatureCombinationClass;
     TVector<TVector<int>> CombinationClassFeatures;
     bool CalcShapValuesByLeafForAllTrees;
@@ -53,6 +54,7 @@ public:
     Y_SAVELOAD_DEFINE(
         ShapValuesByLeafForAllTrees,
         MeanValuesForAllTrees,
+        AverageApproxByTree,
         BinFeatureCombinationClass,
         CombinationClassFeatures,
         CalcShapValuesByLeafForAllTrees,

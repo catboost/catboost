@@ -76,3 +76,16 @@ TVector<double> CollectLeavesStatistics(
     }
     return leavesStatistics;
 }
+
+bool TryGetLossDescription(const TFullModel& model, NCatboostOptions::TLossDescription& lossDescription) {
+    if (!(model.ModelInfo.contains("loss_function") ||  model.ModelInfo.contains("params") && ReadTJsonValue(model.ModelInfo.at("params")).Has("loss_function"))) {
+        return false;
+    }
+    if (model.ModelInfo.contains("loss_function")) {
+        lossDescription.Load(ReadTJsonValue(model.ModelInfo.at("loss_function")));
+    } else {
+        lossDescription.Load(ReadTJsonValue(model.ModelInfo.at("params"))["loss_function"]);
+    }
+    return true;
+}
+
