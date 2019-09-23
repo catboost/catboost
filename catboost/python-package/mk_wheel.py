@@ -241,7 +241,12 @@ def build(arc_root, out_root, tail_args):
     py_trait = PythonTrait(arc_root, out_root, tail_args)
     ver = get_version(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'version.py'))
     pkg_name = os.environ.get('CATBOOST_PACKAGE_NAME', 'catboost')
-    for task_type in ('GPU', 'CPU'):
+
+    try_to_build_gpu_version = True
+    if '-DHAVE_CUDA=no' in tail_args:
+        try_to_build_gpu_version = False
+
+    for task_type in (['GPU', 'CPU'] if try_to_build_gpu_version else ['CPU']):
         try:
             print('Trying to build {} version'.format(task_type), file=sys.stderr)
             cmd = py_trait.gen_cmd() + (['-DHAVE_CUDA=yes'] if task_type == 'GPU' else ['-DHAVE_CUDA=no'])
