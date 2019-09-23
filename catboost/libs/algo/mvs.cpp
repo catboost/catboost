@@ -18,7 +18,7 @@ inline static double GetSingleProbability(double derivativeAbsoluteValue, double
     return (derivativeAbsoluteValue > threshold) ? 1.0 : (derivativeAbsoluteValue / threshold);
 }
 
-inline static double CalculateLastIterMeanLeafValue(const TVector<TVector<TVector<double>>>& leafValues) {
+static double CalculateLastIterMeanLeafValue(const TVector<TVector<TVector<double>>>& leafValues) {
     const ui32 lastIter = leafValues.ysize();
     const TVector<double>& lastIterValues = leafValues[lastIter - 1][0]; // one dimensional approx
     double sumOfAbsoluteValues = 0.0;
@@ -28,7 +28,7 @@ inline static double CalculateLastIterMeanLeafValue(const TVector<TVector<TVecto
     return sumOfAbsoluteValues / lastIterValues.ysize();
 }
 
-static double CalculateMeanGradValue(const double* derivatives, ui32 cnt, NPar::TLocalExecutor* localExecutor) {
+static double CalculateMeanGradValue(TConstArrayRef<double> derivatives, ui32 cnt, NPar::TLocalExecutor* localExecutor) {
         NPar::TLocalExecutor::TExecRangeParams blockParams(0, cnt);
         blockParams.SetBlockCount(CB_THREAD_LIMIT);
         TVector<double> gradSumInBlock(blockParams.GetBlockCount(), 0.0);
@@ -40,9 +40,9 @@ static double CalculateMeanGradValue(const double* derivatives, ui32 cnt, NPar::
                     cnt - blockOffset
                 );
                 const ui32 blockFinish = blockOffset + blockSize;
-                const double* derivatives_begin = derivatives + blockOffset;
-                const double* derivatives_end = derivatives + blockFinish;
-                for (auto it = derivatives_begin; it != derivatives_end; ++it) {
+                const auto derivativesBlockBegin = derivatives.begin() + blockOffset;
+                const auto derivativesBlockEnd = derivatives.begin() + blockFinish;
+                for (auto it = derivativesBlockBegin; it != derivativesBlockEnd; ++it) {
                     gradSumInBlock[blockId] += Abs(*it);
                 }
             },
@@ -51,19 +51,19 @@ static double CalculateMeanGradValue(const double* derivatives, ui32 cnt, NPar::
             NPar::TLocalExecutor::WAIT_COMPLETE
         );
 
-        const double sum_gradients = Accumulate(gradSumInBlock.begin(), gradSumInBlock.end(), 0.0);
-        return sum_gradients / cnt;
+        const double sumOfGradients = Accumulate(gradSumInBlock.begin(), gradSumInBlock.end(), 0.0);
+        return sumOfGradients / cnt;
 }
 
 double TMvsSampler::GetLambda(
-    const double* derivatives,
+    TConstArrayRef<double> derivatives,
     const TVector<TVector<TVector<double>>>& leafValues,
     NPar::TLocalExecutor* localExecutor) const {
 
-    if (LambdaIsSet) {
-        return Lambda;
+    if (Lambda.Defined()) {
+        return Lambda.GetRef();
     }
-    const double mean = (leafValues.ysize() > 0)
+    const double mean = (!leafValues.empty())
         ? CalculateLastIterMeanLeafValue(leafValues)
         : CalculateMeanGradValue(derivatives, SampleCount, localExecutor);
     return mean * mean;
@@ -72,37 +72,38 @@ double TMvsSampler::GetLambda(
 double TMvsSampler::CalculateThreshold(
     TVector<double>::iterator candidatesBegin,
     TVector<double>::iterator candidatesEnd,
-    double sumSmall,
-    ui32 nLarge,
+    double sumOfSmallCurrent,
+    ui32 numberOfLargeCurrent,
     double sampleSize) const {
 
     double threshold = *candidatesBegin;
-    auto middleBegin = std::partition(candidatesBegin, candidatesEnd, [threshold](double cand) {
-        return cand < threshold;
+    auto middleBegin = std::partition(candidatesBegin, candidatesEnd, [threshold](double candidate) {
+        return candidate < threshold;
     });
-    auto middleEnd = std::partition(middleBegin, candidatesEnd, [threshold](double cand) {
-        return cand <= threshold;
+    auto middleEnd = std::partition(middleBegin, candidatesEnd, [threshold](double candidate) {
+        return candidate <= threshold;
     });
 
-    double sumLeft = Accumulate(candidatesBegin, middleBegin, 0.0);
-    ui32 nRight = candidatesEnd - middleEnd;
-    ui32 nMiddle = middleEnd - middleBegin;
-    double sumMiddle = nMiddle * threshold;
+    double sumOfSmallUpdate = Accumulate(candidatesBegin, middleBegin, 0.0);
+    ui32 numberOfLargeUpdate = candidatesEnd - middleEnd;
+    ui32 numberOfMiddle = middleEnd - middleBegin;
+    double sumOfMiddle = numberOfMiddle * threshold;
 
-    double estimatedSampleSize = (sumSmall + sumLeft) / threshold + nLarge + nRight + nMiddle;
+    double estimatedSampleSize = 
+        (sumOfSmallCurrent + sumOfSmallUpdate) / threshold + numberOfLargeCurrent + numberOfLargeUpdate + numberOfMiddle;
     if (estimatedSampleSize > sampleSize) {
         if (middleEnd != candidatesEnd) {
-            sumSmall += sumMiddle + sumLeft;
-            return CalculateThreshold(middleEnd, candidatesEnd, sumSmall, nLarge, sampleSize);
+            sumOfSmallCurrent += sumOfMiddle + sumOfSmallUpdate;
+            return CalculateThreshold(middleEnd, candidatesEnd, sumOfSmallCurrent, numberOfLargeCurrent, sampleSize);
         } else {
-            return (sumSmall + sumLeft + sumMiddle) / (sampleSize - nLarge);
+            return (sumOfSmallCurrent + sumOfSmallUpdate + sumOfMiddle) / (sampleSize - numberOfLargeCurrent);
         }
     } else {
         if (middleBegin != candidatesBegin) {
-            nLarge += nRight + nMiddle;
-            return CalculateThreshold(candidatesBegin, middleBegin, sumSmall, nLarge, sampleSize);
+            numberOfLargeCurrent += numberOfLargeUpdate + numberOfMiddle;
+            return CalculateThreshold(candidatesBegin, middleBegin, sumOfSmallCurrent, numberOfLargeCurrent, sampleSize);
         } else {
-            return sumSmall / (sampleSize - nLarge - nMiddle - nRight);
+            return sumOfSmallCurrent / (sampleSize - numberOfLargeCurrent - numberOfMiddle - numberOfLargeUpdate);
         }
     }
 }
@@ -114,7 +115,7 @@ void TMvsSampler::GenSampleWeights(
     NPar::TLocalExecutor* localExecutor,
     TFold* fold) const {
 
-    if (GetSampleRate() == 1.0f) {
+    if (SampleRate == 1.0f) {
         Fill(fold->SampleWeights.begin(), fold->SampleWeights.end(), 1.0f);
     } else {
         CB_ENSURE_INTERNAL(
@@ -122,23 +123,23 @@ void TMvsSampler::GenSampleWeights(
             "MVS bootstrap mode is not implemented for multi-dimensional approxes"
         );
         TVector<double> tailDerivatives;
-        const double* derivatives = fold->BodyTailArr[0].WeightedDerivatives[0].data();
+        TConstArrayRef<double> derivatives = fold->BodyTailArr[0].WeightedDerivatives[0];
         if (boostingType == EBoostingType::Ordered) {
             tailDerivatives.yresize(SampleCount);
             localExecutor->ExecRange(
                 [&](ui32 bodyTailId) {
                     const TFold::TBodyTail& bt = fold->BodyTailArr[bodyTailId];
-                    const double* bodyTailDerivatives = bt.WeightedDerivatives[0].data();
+                    TConstArrayRef<double> bodyTailDerivatives = bt.WeightedDerivatives[0];
                     if (bodyTailId == 0) {
                         Copy(
-                            bodyTailDerivatives,
-                            bodyTailDerivatives + bt.TailFinish,
+                            bodyTailDerivatives.begin(),
+                            bodyTailDerivatives.begin() + bt.TailFinish,
                             tailDerivatives.begin()
                         );
                     } else {
                         Copy(
-                            bodyTailDerivatives + bt.BodyFinish,
-                            bodyTailDerivatives + bt.TailFinish,
+                            bodyTailDerivatives.begin() + bt.BodyFinish,
+                            bodyTailDerivatives.begin() + bt.TailFinish,
                             tailDerivatives.begin() + bt.BodyFinish
                         );
                     }
@@ -147,7 +148,7 @@ void TMvsSampler::GenSampleWeights(
                 fold->BodyTailArr.size(),
                 NPar::TLocalExecutor::WAIT_COMPLETE
             );
-            derivatives = tailDerivatives.data();
+            derivatives = tailDerivatives;
         }
 
         double lambda = GetLambda(derivatives, leafValues, localExecutor);
@@ -168,8 +169,8 @@ void TMvsSampler::GenSampleWeights(
 
                 TVector<double> thresholdCandidates(blockSize);
                 Transform(
-                    derivatives + blockOffset,
-                    derivatives + blockFinish,
+                    derivatives.begin() + blockOffset,
+                    derivatives.begin() + blockFinish,
                     thresholdCandidates.begin(),
                     [lambda](double grad) {
                         return sqrt(grad * grad + lambda);
@@ -180,7 +181,6 @@ void TMvsSampler::GenSampleWeights(
                     0,
                     0,
                     SampleRate * blockSize);
-
                 for (ui32 i = blockOffset; i < blockFinish; ++i) {
                     const double grad = derivatives[i];
                     const double probability = GetSingleProbability(sqrt(grad * grad + lambda), threshold);

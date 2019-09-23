@@ -5,6 +5,7 @@
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/logging/logging.h>
 #include <util/generic/yexception.h>
+#include <util/generic/maybe.h>
 #include <cmath>
 
 namespace NCatboostOptions {
@@ -13,7 +14,7 @@ namespace NCatboostOptions {
         explicit TBootstrapConfig(ETaskType taskType)
             : TakenFraction("subsample", 0.66f)
             , BaggingTemperature("bagging_temperature", 1.0)
-            , MvsReg("mvs_reg", 1e-5, ETaskType::CPU)
+            , MvsReg("mvs_reg", Nothing(), ETaskType::CPU)
             , BootstrapType("type", EBootstrapType::Bayesian)
             , SamplingUnit("sampling_unit", ESamplingUnit::Object)
             , TaskType(taskType)
@@ -41,12 +42,8 @@ namespace NCatboostOptions {
             return BaggingTemperature.Get();
         }
 
-        float GetMvsReg() const {
+        TMaybe<float> GetMvsReg() const {
             return MvsReg.Get();
-        }
-
-        bool MvsRegIsSet() const {
-            return !MvsReg.NotSet();
         }
 
         void Validate() const;
@@ -59,7 +56,7 @@ namespace NCatboostOptions {
             return BaggingTemperature;
         }
 
-        TOption<float>& GetMvsReg() {
+        TOption<TMaybe<float>>& GetMvsReg() {
             return MvsReg;
         }
 
@@ -105,7 +102,7 @@ namespace NCatboostOptions {
     private:
         TOption<float> TakenFraction;
         TOption<float> BaggingTemperature;
-        TCpuOnlyOption<float> MvsReg;
+        TCpuOnlyOption<TMaybe<float>> MvsReg;
         TOption<EBootstrapType> BootstrapType;
         TOption<ESamplingUnit> SamplingUnit;
         ETaskType TaskType;
