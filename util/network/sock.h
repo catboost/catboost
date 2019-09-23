@@ -265,6 +265,10 @@ struct TSockAddrInet: public sockaddr_in, public ISockAddr {
     TIpPort GetPort() const noexcept {
         return InetToHost(sin_port);
     }
+
+    void SetPort(TIpPort port) noexcept {
+        sin_port = HostToInet(port);
+    }
 };
 
 struct TSockAddrInet6: public sockaddr_in6, public ISockAddr {
@@ -328,6 +332,10 @@ struct TSockAddrInet6: public sockaddr_in6, public ISockAddr {
 
     TIpPort GetPort() const noexcept {
         return InetToHost(sin6_port);
+    }
+
+    void SetPort(TIpPort port) noexcept {
+        sin6_port = HostToInet(port);
     }
 };
 
