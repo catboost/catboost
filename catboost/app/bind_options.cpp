@@ -26,6 +26,7 @@
 #include <util/string/split.h>
 #include <util/stream/file.h>
 #include <util/system/fs.h>
+#include <util/system/execpath.h>
 #include <util/system/yassert.h>
 
 
@@ -1156,7 +1157,10 @@ static void ParseMetadata(int argc, const char* argv[], NLastGetopt::TOpts* pars
     parser.AddLongOption("set-metadata-from-freeargs", "treat [key value] freeargs pairs as model metadata")
         .StoreValue(&setModelMetadata, true)
         .NoArgument();
-
+    if (argc == 1) {
+        parser.PrintUsage(GetExecPath(), Cerr);
+        std::exit(-1);
+    }
     NLastGetopt::TOptsParseResult parserResult{&parser, argc, argv};
     if (!setModelMetadata) {
         CB_ENSURE(parserResult.GetFreeArgCount() == 0, "use \"--set-metadata-from-freeargs\" to enable freeargs");

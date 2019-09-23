@@ -40,7 +40,7 @@ int mode_fit(int argc, const char* argv[]) {
     #endif
     NCatboostOptions::TPoolLoadParams poolLoadParams;
     TString paramsFile;
-    NJson::TJsonValue catBoostFlatJsonOptions;
+    NJson::TJsonValue catBoostFlatJsonOptions(NJson::JSON_MAP);
     ParseCommandLine(argc, argv, &catBoostFlatJsonOptions, &paramsFile, &poolLoadParams);
     NJson::TJsonValue catBoostJsonOptions;
     NJson::TJsonValue outputOptionsJson;
