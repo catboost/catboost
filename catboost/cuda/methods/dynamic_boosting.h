@@ -608,7 +608,6 @@ namespace NCatboostCuda {
                 state->BestTestCursor = MakeHolder<TVec>();
                 (*state->BestTestCursor).Reset(state->TestCursor.GetMapping());
             }
-
             ProgressTracker->MaybeRestoreFromSnapshot([&](IInputStream* in) {
                 TDynamicBoostingProgress<TResultModel> progress;
                 ::Load(in, progress);

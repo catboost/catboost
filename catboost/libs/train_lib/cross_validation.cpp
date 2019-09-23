@@ -514,6 +514,8 @@ void CrossValidate(
 
     UpdateYetiRankEvalMetric(trainingData->MetaInfo.TargetStats, Nothing(), &catBoostOptions);
 
+    InitializeEvalMetricIfNotSet(catBoostOptions.MetricOptions->ObjectiveMetric,
+                                 &catBoostOptions.MetricOptions->EvalMetric);
     NJson::TJsonValue updatedTrainOptionsJson = jsonParams;
     // disable overfitting detector on folds training, it will work on average values
     const auto overfittingDetectorOptions = catBoostOptions.BoostingOptions->OverfittingDetector;

@@ -22,7 +22,7 @@
             "params" : { }
         },
         "eval_metric" : {
-            "type" : "RMSE",
+            "type" : "Logloss",
             "params" : { }
         },
         "custom_metrics" : [ ]

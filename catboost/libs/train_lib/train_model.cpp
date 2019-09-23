@@ -26,6 +26,7 @@
 #include <catboost/libs/loggers/catboost_logger_helpers.h>
 #include <catboost/libs/loggers/logger.h>
 #include <catboost/libs/logging/profile_info.h>
+#include <catboost/libs/metrics/metric.h>
 #include <catboost/libs/model/ctr_data.h>
 #include <catboost/libs/model/model_build_helper.h>
 #include <catboost/libs/options/catboost_options.h>
@@ -911,6 +912,9 @@ static void TrainModel(
         &catBoostOptions
     );
 
+    // Eval metric may not be set. If that's the case, we assign it to objective metric
+    InitializeEvalMetricIfNotSet(catBoostOptions.MetricOptions->ObjectiveMetric, &catBoostOptions.MetricOptions->EvalMetric);
+
     CreateDirIfNotExist(outputOptions.GetTrainDir());
 
     if (outputOptions.NeedSaveBorders()) {
@@ -1218,7 +1222,7 @@ static void ModelBasedEval(
         &updatedOutputOptions.UseBestModel,
         &catBoostOptions
     );
-
+    InitializeEvalMetricIfNotSet(catBoostOptions.MetricOptions->ObjectiveMetric, &catBoostOptions.MetricOptions->EvalMetric);
     CreateDirIfNotExist(updatedOutputOptions.GetTrainDir());
 
     modelTrainerHolder->ModelBasedEval(

@@ -540,6 +540,10 @@ void EvaluateFeatures(
 
     UpdateYetiRankEvalMetric(trainingData->MetaInfo.TargetStats, Nothing(), &catBoostOptions);
 
+    // If eval metric is not set, we assign it to objective metric
+    InitializeEvalMetricIfNotSet(catBoostOptions.MetricOptions->ObjectiveMetric,
+                                 &catBoostOptions.MetricOptions->EvalMetric);
+
     // disable overfitting detector on folds training, it will work on average values
     const auto overfittingDetectorOptions = catBoostOptions.BoostingOptions->OverfittingDetector;
     catBoostOptions.BoostingOptions->OverfittingDetector->OverfittingDetectorType = EOverfittingDetectorType::None;

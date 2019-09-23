@@ -633,6 +633,7 @@ namespace {
             NCatboostOptions::TOutputFilesOptions outputFileOptions;
             outputFileOptions.Load(outputJsonParams);
 
+            InitializeEvalMetricIfNotSet(catBoostOptions.MetricOptions->ObjectiveMetric, &catBoostOptions.MetricOptions->EvalMetric);
             NCB::TFeaturesLayoutPtr featuresLayout = data->MetaInfo.FeaturesLayout;
             NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo;
 
@@ -773,6 +774,7 @@ namespace {
             NCatboostOptions::TOutputFilesOptions outputFileOptions;
             outputFileOptions.Load(outputJsonParams);
 
+            InitializeEvalMetricIfNotSet(catBoostOptions.MetricOptions->ObjectiveMetric, &catBoostOptions.MetricOptions->EvalMetric);
             NCB::TFeaturesLayoutPtr featuresLayout = data->MetaInfo.FeaturesLayout;
             NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo;
 
@@ -937,6 +939,8 @@ namespace NCB {
         outputFileOptions.Load(outputJsonParams);
         CB_ENSURE(!outputJsonParams["save_snapshot"].GetBoolean(), "Snapshots are not yet supported for GridSearchCV");
 
+        InitializeEvalMetricIfNotSet(catBoostOptions.MetricOptions->ObjectiveMetric, &catBoostOptions.MetricOptions->EvalMetric);
+
         NPar::TLocalExecutor localExecutor;
         localExecutor.RunAdditionalThreads(catBoostOptions.SystemOptions->NumThreads.Get() - 1);
 
@@ -1061,6 +1065,7 @@ namespace NCB {
         outputFileOptions.Load(outputJsonParams);
         CB_ENSURE(!outputJsonParams["save_snapshot"].GetBoolean(), "Snapshots are not yet supported for RandomizedSearchCV");
 
+        InitializeEvalMetricIfNotSet(catBoostOptions.MetricOptions->ObjectiveMetric, &catBoostOptions.MetricOptions->EvalMetric);
         NPar::TLocalExecutor localExecutor;
         localExecutor.RunAdditionalThreads(catBoostOptions.SystemOptions->NumThreads.Get() - 1);
 

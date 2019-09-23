@@ -5803,3 +5803,13 @@ def test_same_values_with_different_types(task_type):
             canon_predictions = predictions
         else:
             _check_data(canon_predictions, predictions)
+
+
+@pytest.mark.parametrize('loss_function', ['Logloss', 'MultiClass'])
+def test_default_eval_metric(loss_function):
+    X = np.array([[1, 2, 3], [5, 4, 23], [8954, 4, 22]])
+    y = np.array([1, 0, 1])
+    p = Pool(X, y)
+    model = CatBoostClassifier(task_type='CPU', loss_function=loss_function, iterations=15, metric_period=100)
+    model.fit(p)
+    assert model.get_all_params()["eval_metric"] == loss_function

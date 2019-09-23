@@ -4208,6 +4208,19 @@ static bool HintedToEvalOnTrain(const NCatboostOptions::TLossDescription& metric
     return hasHints && hints.contains("skip_train") && hints.at("skip_train") == "false";
 }
 
+void InitializeEvalMetricIfNotSet(
+    const NCatboostOptions::TOption<NCatboostOptions::TLossDescription>& objectiveMetric,
+    NCatboostOptions::TOption<NCatboostOptions::TLossDescription>* evalMetric){
+
+    CB_ENSURE(objectiveMetric.IsSet(), "Objective metric must be set.");
+    const NCatboostOptions::TLossDescription& objectiveMetricDescription = objectiveMetric.Get();
+    if (evalMetric->NotSet()) {
+        CB_ENSURE(objectiveMetricDescription.GetLossFunction() != ELossFunction::PythonUserDefinedPerObject,
+                  "If loss function is a user defined object, then the eval metric must be specified.");
+        evalMetric->Set(objectiveMetricDescription);
+    }
+}
+
 TVector<THolder<IMetric>> CreateMetrics(
         const NCatboostOptions::TOption<NCatboostOptions::TMetricOptions>& evalMetricOptions,
         const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
@@ -4215,15 +4228,9 @@ TVector<THolder<IMetric>> CreateMetrics(
         bool hasWeights) {
 
     CB_ENSURE(evalMetricOptions->ObjectiveMetric.IsSet(), "Objective metric must be set.");
+    CB_ENSURE(evalMetricOptions->EvalMetric.IsSet(), "Eval metric must be set");
     const NCatboostOptions::TLossDescription& objectiveMetricDescription = evalMetricOptions->ObjectiveMetric.Get();
-    const bool haveEvalMetricFromUser = evalMetricOptions->EvalMetric.IsSet();
-    const NCatboostOptions::TLossDescription& evalMetricDescription =
-        haveEvalMetricFromUser ? evalMetricOptions->EvalMetric.Get() : objectiveMetricDescription;
-    // set the eval metric if not specified by user
-    if (!haveEvalMetricFromUser) {
-        CB_ENSURE(objectiveMetricDescription.GetLossFunction() != ELossFunction::PythonUserDefinedPerObject,
-                  "If loss function is a user defined object, then the eval metric must be specified.");
-    }
+    const NCatboostOptions::TLossDescription& evalMetricDescription = evalMetricOptions->EvalMetric.Get();
 
     TVector<THolder<IMetric>> createdObjectiveMetrics;
     if (objectiveMetricDescription.GetLossFunction() != ELossFunction::PythonUserDefinedPerObject) {
@@ -4252,18 +4259,8 @@ TVector<THolder<IMetric>> CreateMetrics(
             " provides a value for each class, thus it cannot be used as " <<
             "a single value to select best iteration or to detect overfitting. " <<
             "If you just want to look on the values of this metric use custom_metric parameter.");
-        if (hasWeights && !metrics.back()->UseWeights.IsIgnored()) {
-            if (!haveEvalMetricFromUser) {
-                if (createdObjectiveMetrics.back()->UseWeights.IsUserDefined()) {
-                    metrics.back()->UseWeights = createdObjectiveMetrics.back()->UseWeights.Get();
-                } else {
-                    metrics.back()->UseWeights.SetDefaultValue(true);
-                }
-            } else if (ShouldConsiderWeightsByDefault(metrics.back())) {
-                metrics.back()->UseWeights.SetDefaultValue(true);
-                CATBOOST_INFO_LOG << "Note: eval_metric is using sample weights by default. " <<
-                    "Set MetricName:use_weights=False to calculate unweighted metric.";
-            }
+        if (hasWeights && !metrics.back()->UseWeights.IsIgnored() && ShouldConsiderWeightsByDefault(metrics.back())) {
+            metrics.back()->UseWeights.SetDefaultValue(true);
         }
     }
     usedDescriptions.insert(metrics.back()->GetDescription());
