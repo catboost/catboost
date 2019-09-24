@@ -25,6 +25,18 @@
 - includes:
   - _cgo_export.h
 
+# Resolve jni.h from swig/Lib/java/javahead.swg when building non-java .swg
+# since they do not peerdir contrib/libs/jdk.
+- source_filter: "[.]swg$"
+  includes:
+  - jni.h:           contrib/libs/jdk/include/jni.h
+- source_filter: "^contrib/libs/jdk/include/jni[.]h$"
+  includes:
+  - jni_md.h:
+    - contrib/libs/jdk/include/darwin/jni_md.h
+    - contrib/libs/jdk/include/linux/jni_md.h
+    - contrib/libs/jdk/include/win32/jni_md.h
+
 # libunistring has its own libc header wrappers that are added to ADDINCL and
 # need to be added here for consistensy between ADDINCL and sysincl resolving.
 # Btw: we don't parse include_next, so we might lose real dependency to musl,
