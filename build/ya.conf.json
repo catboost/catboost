@@ -757,6 +757,29 @@
                 "gcc_version": "6.0"
             }
         },
+        "gcc63-armv7a": {
+            "name": "gcc63",
+            "tools": {
+                "cc": { "bottle": "gcc63-armv7a", "executable": "cc" },
+                "c++": { "bottle": "gcc63-armv7a", "executable": "c++" },
+                "gcov": { "bottle": "gcc63-armv7a", "executable": "gcov" },
+                "c++filt": { "bottle": "gcc63-armv7a", "executable": "c++filt" },
+                "strip": { "bottle": "gcc63-armv7a", "executable": "strip" },
+                "nm": { "bottle": "gcc63-armv7a", "executable": "nm" }
+            },
+            "platforms": [
+                {"host": {"os": "LINUX"}, "target": {"os": "LINUX", "arch": "armv7a"}, "default": true}
+            ],
+            "params": {
+                "type": "gnu",
+                "match_root": "GCC",
+                "werror_mode": "compiler_specific",
+                "c_compiler": "$(GCC)/gcc-linaro-6.3.1-2017.05-x86_64_arm-linux-gnueabihf/bin/arm-linux-gnueabihf-gcc",
+                "cxx_compiler": "$(GCC)/gcc-linaro-6.3.1-2017.05-x86_64_arm-linux-gnueabihf/bin/arm-linux-gnueabihf-g++",
+                "ar": "$(GCC)/gcc-linaro-6.3.1-2017.05-x86_64_arm-linux-gnueabihf/bin/arm-linux-gnueabihf-ar",
+                "gcc_version": "6.3"
+            }
+        },
         "bloat": {
             "tools": {
                 "bloat": { "bottle": "bloat", "executable": "bloat2" }
@@ -1831,6 +1854,20 @@
                 "llvm-profdata": ["bin", "llvm-profdata"],
                 "llvm-symbolizer": ["bin", "llvm-symbolizer"],
                 "nm": ["bin", "aarch64-linux-android-nm"]
+            }
+        },
+        "gcc63-armv7a": {
+            "formula": {
+                "sandbox_id": ["306585614"],
+                "match": "GCC"
+            },
+            "executable": {
+                "c++": ["bin", "arm-linux-gnueabihf-g++"],
+                "cc": ["bin", "arm-linux-gnueabihf-gcc"],
+                "gcov": ["bin", "arm-linux-gnueabihf-gcov"],
+                "c++filt": ["bin", "arm-linux-gnueabihf-c++filt"],
+                "strip": ["bin", "arm-linux-gnueabihf-strip"], 
+                "nm": ["bin", "arm-linux-gnueabihf-nm"]
             }
         },
         "cuda": {
