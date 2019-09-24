@@ -113,7 +113,7 @@ def vet_report_output_name(path):
 
 
 def get_source_path(args):
-    return args.test_import_path or args.output_root[len(args.build_root):]
+    return args.test_import_path or args.module_path
 
 
 def gen_vet_info(args):
@@ -450,7 +450,7 @@ def do_link_test(args):
     assert args.srcs or args.xtest_srcs
     assert args.test_miner is not None
 
-    test_module_path = args.test_import_path or args.module_path
+    test_module_path = get_source_path(args)
     test_import_path, _ = get_import_path(test_module_path)
 
     test_lib_args = None

@@ -184,7 +184,9 @@ def on_go_process_srcs(unit):
     cgo_cflags = []
     if len(c_files) + len(cxx_files) + len(s_files) + len(cgo_files) > 0:
         if is_test_module:
-            cgo_cflags.append(os.path.join('-I${ARCADIA_ROOT}', unit.get('GO_TEST_FOR_DIR')[3:]))
+            go_test_for_dir = unit.get('GO_TEST_FOR_DIR')
+            if go_test_for_dir and go_test_for_dir.startswith('$S/'):
+                cgo_cflags.append(os.path.join('-I${ARCADIA_ROOT}', go_test_for_dir[3:]))
         cgo_cflags.append('-I$CURDIR')
         unit.oncgo_cflags(cgo_cflags)
         cgo_cflags = get_appended_values(unit, 'CGO_CFLAGS_VALUE')
