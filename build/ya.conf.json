@@ -71,10 +71,10 @@
         "ygdiff": { "description": "Run ygdiff tool", "visible": false },
         "crypta": { "description": "Run Crypta client" },
         "go": { "description": "Run go tool (1.12.9)" },
-        "godoc": { "description": "Run godoc tool (1.12.9)" },
         "gofmt": { "description": "Run gofmt tool (1.12.9)" },
         "go_1.13": { "description": "Run go tool (1.13)" },
         "gofmt_1.13": { "description": "Run gofmt tool (1.13)" },
+        "godoc": { "description": "Arcadia version of godoc" },
         "yo": { "description": "Tool for managing vendor/ directory" },
         "tvmknife": { "description": "Tool for debugging and testing with TVM tickets" },
         "sandboxctl": { "description": "Tool to run tasks in Sandbox" },
@@ -1453,7 +1453,6 @@
             "tools": {
                 "golang": {"bottle": "golang_1.12.9",  "executable": "golang_1.12.9"},
                 "go": {"bottle": "golang_1.12.9",  "executable": "go_1.12.9"},
-                "godoc": {"bottle": "golang_1.12.9",  "executable": "godoc_1.12.9"},
                 "gofmt": {"bottle": "golang_1.12.9",  "executable": "gofmt_1.12.9"}
             },
             "platforms": [
@@ -1481,6 +1480,16 @@
                 "type": "golang",
                 "version": "1.13"
             }
+        },
+        "godoc": {
+            "tools": {
+                "godoc": { "bottle": "godoc", "executable": "godoc" }
+            },
+            "platforms": [
+                {"host": {"os": "LINUX"}, "default": true},
+                {"host": {"os": "DARWIN"}, "default": true},
+                {"host": {"os": "WIN"}, "default": true}
+            ]
         },
         "qemu": {
             "tools": {
@@ -1589,6 +1598,15 @@
             },
             "executable": {
                 "arc": ["arc"]
+            }
+        },
+        "godoc": {
+            "formula": {
+                "sandbox_id": 511821444,
+                "match": "godoc"
+            },
+            "executable": {
+                "godoc": ["godoc"]
             }
         },
         "yo": {
@@ -2434,7 +2452,6 @@
             },
             "executable": {
                 "go_1.12.9": ["bin", "go"],
-                "godoc_1.12.9": ["bin", "godoc"],
                 "gofmt_1.12.9": ["bin", "gofmt"]
             }
         },
