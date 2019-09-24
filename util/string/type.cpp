@@ -1,6 +1,8 @@
 #include "type.h"
 #include "ascii.h"
 
+#include <array>
+
 bool IsSpace(const char* s, size_t len) noexcept {
     if (len == 0)
         return false;
@@ -55,16 +57,38 @@ bool IsHexNumber(const TWtringBuf s) noexcept {
     return IsHexNumberT(s);
 }
 
-bool IsTrue(const TStringBuf v) noexcept {
-    if (!v)
+namespace {
+    template <size_t N>
+    bool IsCaseInsensitiveAnyOf(TStringBuf str, const std::array<TStringBuf, N>& options) {
+        for (auto option : options) {
+            if (str.size() == option.size() && ::strnicmp(str.data(), option.data(), str.size()) == 0) {
+                return true;
+            }
+        }
         return false;
+    }
+} //anonymous namespace
 
-    return !strnicmp(v.data(), "da", v.length()) || !strnicmp(v.data(), "yes", v.length()) || !strnicmp(v.data(), "on", v.length()) || !strnicmp(v.data(), "1", v.length()) || !strnicmp(v.data(), "true", v.length());
+bool IsTrue(const TStringBuf v) noexcept {
+    static constexpr std::array<TStringBuf, 7> trueOptions{
+        AsStringBuf("true"),
+        AsStringBuf("t"),
+        AsStringBuf("yes"),
+        AsStringBuf("y"),
+        AsStringBuf("on"),
+        AsStringBuf("1"),
+        AsStringBuf("da")};
+    return IsCaseInsensitiveAnyOf(v, trueOptions);
 }
 
 bool IsFalse(const TStringBuf v) noexcept {
-    if (!v)
-        return false;
-
-    return !strnicmp(v.data(), "net", v.length()) || !strnicmp(v.data(), "no", v.length()) || !strnicmp(v.data(), "off", v.length()) || !strnicmp(v.data(), "0", v.length()) || !strnicmp(v.data(), "false", v.length());
+    static constexpr std::array<TStringBuf, 7> falseOptions{
+        AsStringBuf("false"),
+        AsStringBuf("f"),
+        AsStringBuf("no"),
+		AsStringBuf("n"),
+        AsStringBuf("off"),
+        AsStringBuf("0"),
+        AsStringBuf("net")};
+    return IsCaseInsensitiveAnyOf(v, falseOptions);
 }

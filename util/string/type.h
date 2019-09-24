@@ -25,12 +25,26 @@ bool IsHexNumber(const TStringBuf s) noexcept;
 Y_PURE_FUNCTION
 bool IsHexNumber(const TWtringBuf s) noexcept;
 
-/// Returns "true" if the given sting is equal to one of "yes", "on", "1", "true", "da".
-/// @details case-insensitive.
+/* Tests if the given string is case insensitive equal to one of:
+ * - "true",
+ * - "t",
+ * - "yes",
+ * - "y",
+ * - "on",
+ * - "1",
+ * - "da".
+ */
 Y_PURE_FUNCTION
 bool IsTrue(const TStringBuf value) noexcept;
 
-/// Returns "false" if the given sting is equal to one of "no", "off", "0", "false", "net"
-/// @details case-insensitive.
+/* Tests if the given string is case insensitive equal to one of:
+ *  - "false",
+ *  - "f",
+ *  - "no",
+ *  - "n",
+ *  - "off",
+ *  - "0",
+ *  - "net".
+ */
 Y_PURE_FUNCTION
 bool IsFalse(const TStringBuf value) noexcept;
