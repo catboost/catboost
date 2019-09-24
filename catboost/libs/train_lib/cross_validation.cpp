@@ -617,6 +617,10 @@ void CrossValidate(
     TString learnToken = "learn";
     TString testToken = "test";
 
+    if (cvParams.IsCalledFromSearchHyperparameters) {
+        outputFileOptions.SetAllowWriteFiles(false);
+    }
+
     if (outputFileOptions.AllowWriteFiles()) {
         // TODO(akhropov): compatibility name
         TString namesPrefix = "fold_0_";
@@ -642,6 +646,7 @@ void CrossValidate(
                 GetConstPointers(metrics),
                 learnSetNames,
                 testSetNames,
+                /*parametersName=*/ "",
                 ELaunchMode::CV),
             outputFileOptions.GetMetricPeriod(),
             &logger
@@ -781,6 +786,16 @@ void CrossValidate(
                 oneIterLogger.OutputProfile(profile.GetProfileResults());
                 batchStartIteration = iteration;
                 break;
+            }
+        }
+    }
+
+    if (cvParams.IsCalledFromSearchHyperparameters) {
+        const int lastIteration = iteration - 1;
+        for (int metricIdx = 0; metricIdx < metrics.ysize(); ++metricIdx) {
+            for (const auto& foldContext : foldContexts) {
+                (*results)[metricIdx].LastTrainEvalMetric.push_back(foldContext.MetricValuesOnTrain[lastIteration][metricIdx]);
+                (*results)[metricIdx].LastTestEvalMetric.push_back(foldContext.MetricValuesOnTest[lastIteration][metricIdx]);;
             }
         }
     }

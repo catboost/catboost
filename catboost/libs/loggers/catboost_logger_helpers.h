@@ -113,11 +113,13 @@ NJson::TJsonValue GetJsonMeta(
         const TVector<const IMetric*>& metrics,
         const TVector<TString>& learnSetNames,
         const TVector<TString>& testSetNames,
+        const TString& parametersName,
         ELaunchMode launchMode
 );
 
 TString GetTrainModelLearnToken();
 TVector<const TString> GetTrainModelTestTokens(int testCount);
+TString GetParametersToken();
 
 
 void InitializeFileLoggers(const NCatboostOptions::TCatBoostOptions& catboostOptions,

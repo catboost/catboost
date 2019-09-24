@@ -91,6 +91,10 @@ namespace NCatboostOptions {
 
         TString GetRocOutputPath() const;
 
+        void SetAllowWriteFiles(bool flag) {
+            AllowWriteFilesFlag.Set(flag);
+        }
+
         void SetSaveSnapshotFlag(bool flag) {
             SaveSnapshotFlag.Set(flag);
         }

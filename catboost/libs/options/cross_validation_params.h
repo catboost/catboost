@@ -21,6 +21,7 @@ struct TCrossValidationParams : public TSplitParams {
     double MaxTimeSpentOnFixedCostRatio = 0.05;
     ui32 DevMaxIterationsBatchSize = 100000; // useful primarily for tests
     ECrossValidation Type = ECrossValidation::Classical;
+    bool IsCalledFromSearchHyperparameters = false;
 
 public:
     bool Initialized() const {

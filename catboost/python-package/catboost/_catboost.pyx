@@ -901,6 +901,7 @@ cdef extern from "catboost/libs/options/cross_validation_params.h":
         TMaybe[TVector[TVector[ui32]]] customTestSubsets
         double MaxTimeSpentOnFixedCostRatio
         ui32 DevMaxIterationsBatchSize
+        bool_t IsCalledFromSearchHyperparameters
 
 cdef extern from "catboost/libs/options/split_params.h":
     cdef cppclass TTrainTestSplitParams:
@@ -4004,6 +4005,7 @@ cdef class _CatBoost:
         cvParams.Shuffle = shuffle
         cvParams.Stratified = stratified
         cvParams.Type = ECrossValidation_Classical
+        cvParams.IsCalledFromSearchHyperparameters = True;
 
         cdef TMaybe[TCustomTrainTestSubsets] custom_train_test_subset
         if custom_folds is not None:

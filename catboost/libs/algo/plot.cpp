@@ -520,6 +520,7 @@ static TLogger CreateLogger(
         metrics,
         /*learnSetNames=*/ {},
         { token },
+        /*parametersName=*/ "",
         ELaunchMode::Eval);
     logger.AddBackend(
         token,

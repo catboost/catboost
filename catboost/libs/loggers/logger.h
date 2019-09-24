@@ -81,6 +81,7 @@ private:
 class ILoggingBackend : public TThrRefBase {
 public:
     virtual void OutputMetric(const TString& /*sourceName*/, const IMetricEvalResult& /*evalResult*/) {}
+    virtual void OutputParameters(const TString& /*sourceName*/, const NJson::TJsonValue& /*parameters*/) {}
     virtual void OutputProfile(const TProfileResults& /*profileResults*/) {}
     virtual void Flush(const int currentIteration) = 0;
 };
@@ -107,6 +108,10 @@ public:
         } else {
             IterationJson[sourceName].AppendValue(ToString<double>(metricValue));
         }
+    }
+
+    void OutputParameters(const TString& sourceName, const NJson::TJsonValue& parameters) {
+        IterationJson[sourceName].AppendValue(parameters);
     }
 
     void OutputProfile(const TProfileResults& profileResults) {
@@ -408,6 +413,12 @@ private:
         }
     }
 
+    void OutputParameters(const TString& sourceName, const NJson::TJsonValue& parameters) {
+        for (auto& backend : Backends[sourceName]) {
+            backend->OutputParameters(sourceName, parameters);
+        }
+    }
+
     void OutputProfile(const TProfileResults& profileResults) {
         for (auto& backend : ProfileOutputBackends) {
             backend->OutputProfile(profileResults);
@@ -450,6 +461,10 @@ public:
 
     void OutputMetric(const TString& sourceName, const IMetricEvalResult& evalResult) {
         Logger.OutputMetric(sourceName, evalResult);
+    }
+
+    void OutputParameters(const TString& sourceName, const NJson::TJsonValue& parameters) {
+        Logger.OutputParameters(sourceName, parameters);
     }
 
     void OutputProfile(const TProfileResults& profileResults) {

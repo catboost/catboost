@@ -132,6 +132,8 @@ void AddFileLoggers(
         logger->AddProfileBackend(TIntrusivePtr<ILoggingBackend>(new TProfileLoggingBackend(profileLogFile)));
         logger->AddProfileBackend(TIntrusivePtr<ILoggingBackend>(new TJsonProfileLoggingBackend(profileLogFile + ".json")));
     }
+    TString parametersToken = metaJson["parameters"].GetString();
+    logger->AddBackend(parametersToken, jsonLoggingBackend);
 }
 
 void AddConsoleLogger(
@@ -217,6 +219,7 @@ NJson::TJsonValue GetJsonMeta(
         const TVector<const IMetric*>& metrics,
         const TVector<TString>& learnSetNames,
         const TVector<TString>& testSetNames,
+        const TString& parametersName,
         ELaunchMode launchMode
 ) {
     NJson::TJsonValue meta;
@@ -259,6 +262,7 @@ NJson::TJsonValue GetJsonMeta(
         }
     }
 
+    meta.InsertValue("parameters", parametersName);
     meta.InsertValue("launch_mode", ToString<ELaunchMode>(launchMode));
     return meta;
 }
@@ -266,6 +270,10 @@ NJson::TJsonValue GetJsonMeta(
 
 TString GetTrainModelLearnToken() {
     return "learn";
+}
+
+TString GetParametersToken() {
+    return "parameters";
 }
 
 TVector<const TString> GetTrainModelTestTokens(int testCount) {
@@ -309,6 +317,7 @@ void InitializeFileLoggers(
                     metrics,
                     learnSetNames,
                     testSetNames,
+                    /*parametersName=*/ "",
                     ELaunchMode::Train),
             metricPeriod,
             logger

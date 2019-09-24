@@ -100,6 +100,7 @@ CatboostIpython.prototype.init = function() {
         }
     */
 
+    this.hovertextParameters = [];
     this.chartsToRedraw = {};
     this.lastIndexes = {};
     this.smoothness = -1;
@@ -520,6 +521,7 @@ CatboostIpython.prototype.addPoints = function(parent, data) {
             for (var i = 0; i < metrics.length; i++) {
                 var nameOfMetric = metrics[i].name,
                     cvAdded = false;
+                    hovertextParametersAdded = false;
 
                 self.lossFuncs[nameOfMetric] = metrics[i].best_value;
 
@@ -576,7 +578,19 @@ CatboostIpython.prototype.addPoints = function(parent, data) {
                         trace.x[pointIndex] = pointIndex;
                         trace.y[pointIndex] = valuesOfSet[i];
                         trace.hovertext[pointIndex] = nameOfSet + ': ' + valuesOfSet[i].toPrecision(7);
-
+                        if (item.hasOwnProperty('parameters')) {
+                            self.hovertextParameters[pointIndex] = '';
+                            for (var parameter in item.parameters[0]) {
+                                if (item.parameters[0].hasOwnProperty(parameter)) {
+                                    valueOfParameter = item.parameters[0][parameter];
+                                    self.hovertextParameters[pointIndex] += '<br>' + parameter + ' : ' + valueOfParameter;
+                                }
+                            }
+                        }
+                        if (!hovertextParametersAdded && type === 'test') {
+                            hovertextParametersAdded = true;
+                            trace.hovertext[pointIndex] += self.hovertextParameters[pointIndex];
+                        }
                         smoothedTrace.x[pointIndex] = pointIndex;
                     }
 
@@ -1169,10 +1183,13 @@ CatboostIpython.prototype.cvStdDevFunc = function(origTraces, firstTrace, lastTr
         firstTrace.x[i] = i;
         firstTrace.y[i] = avg - std;
         firstTrace.hovertext[i] = firstTrace._params.type + ' std: ' + avg.toFixed(7) + '-' + std.toFixed(7);
-
         lastTrace.x[i] = i;
         lastTrace.y[i] = avg + std;
         lastTrace.hovertext[i] = lastTrace._params.type + ' std: ' + avg.toFixed(7) + '+' + std.toFixed(7);
+        if (this.hovertextParameters.length > i) {
+            firstTrace.hovertext[i] += this.hovertextParameters[i];
+            lastTrace.hovertext[i] += this.hovertextParameters[i];
+        }
     }
 };
 
@@ -1230,7 +1247,8 @@ CatboostIpython.prototype.highlightSmoothedTrace = function(trace, smoothedTrace
 CatboostIpython.prototype.smoothFunc = function(origTrace, smoothedTrace) {
     var data = origTrace.y,
         smoothedPoints = this.smooth(data, this.getSmoothness()),
-        smoothedIndex = 0;
+        smoothedIndex = 0,
+        self = this;
 
     if (smoothedPoints.length) {
         data.forEach(function (d, index) {
@@ -1246,7 +1264,9 @@ CatboostIpython.prototype.smoothFunc = function(origTrace, smoothedTrace) {
 
             smoothedTrace.y[index] = smoothedPoints[smoothedIndex];
             smoothedTrace.hovertext[index] = nameOfSet + '`: ' + smoothedPoints[smoothedIndex].toPrecision(7);
-
+            if (self.hovertextParameters.length > index) {
+                smoothedTrace.hovertext[index] += self.hovertextParameters[index];
+            }
             smoothedIndex++;
         });
     }

@@ -38,6 +38,10 @@ struct TCVResult {
     TVector<double> AverageTest;
     TVector<double> StdDevTest;
 
+    //for painting
+    TVector<double> LastTrainEvalMetric;//[foldIdx]
+    TVector<double> LastTestEvalMetric;//[foldIdx]
+
     void AppendOneIterationResults(ui32 iteration, const TCVIterationResults& results) {
         Iterations.push_back(iteration);
         if (results.AverageTrain.Defined()) {

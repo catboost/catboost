@@ -25,6 +25,7 @@ namespace {
     const TVector<TString> NanModeParamAliaces {"nan_mode"};
     const TVector<TString> BorderCountParamAliaces {"border_count", "max_bin"};
     const TVector<TString> BorderTypeParamAliaces {"feature_border_type"};
+    constexpr ui32 IndexOfFirstTrainingParameter = 3;
 
     // TEnumeratedSet - type of sets, TValue - type of values in sets
     // Set should have access to elements by index and size() method
@@ -568,11 +569,120 @@ namespace {
         return false;
     }
 
+    static TString GetNamesPrefix(ui32 foldIdx) {
+        return "fold_" + ToString(foldIdx) + "_";
+    }
+
+    static void InitializeFilesLoggers(
+        const TVector<THolder<IMetric>>& metrics,
+        const TOutputFiles& outputFiles,
+        const int iterationCount,
+        const ELaunchMode launchMode,
+        const int foldCountOrTestSize,
+        const TString& parametersToken,
+        TLogger* logger
+    ) {
+        TVector<TString> learnSetNames;
+        TVector<TString> testSetNames;
+        switch (launchMode) {
+            case ELaunchMode::CV: {
+                for (auto foldIdx : xrange(foldCountOrTestSize)) {
+                    learnSetNames.push_back("fold_" + ToString(foldIdx) + "_learn");
+                    testSetNames.push_back("fold_" + ToString(foldIdx) + "_test");
+                }
+                break;
+            }
+            case ELaunchMode::Train: {
+                const auto& learnToken = GetTrainModelLearnToken();
+                const auto& testTokens = GetTrainModelTestTokens(foldCountOrTestSize);
+                learnSetNames = { outputFiles.NamesPrefix + learnToken };
+                for (int testIdx = 0; testIdx < testTokens.ysize(); ++testIdx) {
+                    testSetNames.push_back({ outputFiles.NamesPrefix + testTokens[testIdx] });
+                }
+                break;
+            }
+            default: CB_ENSURE(false, "unexpected launchMode" << launchMode);
+        }
+
+        AddFileLoggers(
+            false,
+            outputFiles.LearnErrorLogFile,
+            outputFiles.TestErrorLogFile,
+            outputFiles.TimeLeftLogFile,
+            outputFiles.JsonLogFile,
+            outputFiles.ProfileLogFile,
+            outputFiles.TrainDir,
+            GetJsonMeta(
+                iterationCount,
+                outputFiles.ExperimentName,
+                GetConstPointers(metrics),
+                learnSetNames,
+                testSetNames,
+                parametersToken,
+                launchMode),
+                /*metric period*/ 1,
+                logger
+        );
+    }
+
+    static void LogTrainTest(
+        const TString& lossDescription,
+        TOneInterationLogger& oneIterLogger,
+        const TMaybe<double> bestLearnResult,
+        const double bestTestResult,
+        const TString& learnToken,
+        const TString& testToken,
+        bool isMainMetric) {
+        if (bestLearnResult.Defined()) {
+            oneIterLogger.OutputMetric(
+                learnToken,
+                TMetricEvalResult(
+                    lossDescription,
+                    *bestLearnResult,
+                    isMainMetric
+                )
+            );
+        }
+        oneIterLogger.OutputMetric(
+            testToken,
+            TMetricEvalResult(
+                lossDescription,
+                bestTestResult,
+                isMainMetric
+            )
+        );
+    }
+
+    static void LogParameters(
+        const TVector<TString>& paramNames,
+        TConstArrayRef<NJson::TJsonValue> paramsSet,
+        const TString& parametersToken,
+        const TGeneralQuatizationParamsInfo& generalQuantizeParamsInfo,
+        TOneInterationLogger& oneIterLogger) {
+        NJson::TJsonValue jsonParams;
+        // paramsSet: {border_count, feature_border_type, nan_mode, [others]}
+        if (generalQuantizeParamsInfo.IsBordersCountInGrid) {
+            jsonParams.InsertValue(generalQuantizeParamsInfo.BordersCountParamName, paramsSet[0]);
+        }
+        if (generalQuantizeParamsInfo.IsBorderTypeInGrid) {
+            jsonParams.InsertValue(generalQuantizeParamsInfo.BorderTypeParamName, paramsSet[1]);
+        }
+        if (generalQuantizeParamsInfo.IsNanModeInGrid) {
+            jsonParams.InsertValue(generalQuantizeParamsInfo.NanModeParamName, paramsSet[2]);
+        }
+        for (size_t idx = IndexOfFirstTrainingParameter; idx < paramsSet.size(); ++idx) {
+            const auto key = paramNames[idx - IndexOfFirstTrainingParameter];
+            jsonParams.InsertValue(key, paramsSet[idx]);
+        }
+        oneIterLogger.OutputParameters(parametersToken, jsonParams);
+    }
+
     double TuneHyperparamsCV(
         const TVector<TString>& paramNames,
         const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
         const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
         const TCrossValidationParams& cvParams,
+        const TGeneralQuatizationParamsInfo& generalQuantizeParamsInfo,
         ui64 cpuUsedRamLimit,
         NCB::TDataProviderPtr data,
         TProductIteratorBase<TDeque<NJson::TJsonValue>, NJson::TJsonValue>* gridIterator,
@@ -591,6 +701,7 @@ namespace {
 
         TSetLogging inThisScope(ELoggingLevel::Debug);
         TLogger logger;
+        const auto parametersToken = GetParametersToken();
         TString searchToken = "loss";
         AddConsoleLogger(
             searchToken,
@@ -619,7 +730,7 @@ namespace {
             AssignOptionsToJson(
                 TConstArrayRef<TString>(paramNames),
                 TConstArrayRef<NJson::TJsonValue>(
-                    paramsSet->begin() + 3,
+                    paramsSet->begin() + IndexOfFirstTrainingParameter,
                     paramsSet->end()
                 ), // Ignoring quantization params
                 randDistGenerators,
@@ -677,6 +788,20 @@ namespace {
             if (iterationIdx == 0) {
                 // We guarantee to update the parameters on the first iteration
                 bestParamsSetMetricValue = cvResult[0].AverageTest.back() + GetSignForMetricMinimization(metrics[0]);
+                if (outputFileOptions.AllowWriteFiles()) {
+                    // Initialize Files Loggers
+                    TString namesPrefix = "fold_0_";
+                    TOutputFiles outputFiles(outputFileOptions, namesPrefix);
+                    InitializeFilesLoggers(
+                        metrics,
+                        outputFiles,
+                        gridIterator->GetTotalElementsCount(),
+                        ELaunchMode::CV,
+                        cvParams.FoldCount,
+                        parametersToken,
+                        &logger
+                    );
+                }
             }
             bool isUpdateBest = SetBestParamsAndUpdateMetricValueIfNeeded(
                 bestMetricValue,
@@ -703,6 +828,32 @@ namespace {
                     true
                 )
             );
+            if (outputFileOptions.AllowWriteFiles()) {
+                //log metrics
+                const auto& skipMetricOnTrain = GetSkipMetricOnTrain(metrics);
+                for (auto foldIdx : xrange((size_t)cvParams.FoldCount)) {
+                    for (auto metricIdx : xrange(metrics.size())) {
+                        LogTrainTest(
+                            metrics[metricIdx]->GetDescription(),
+                            oneIterLogger,
+                            skipMetricOnTrain[metricIdx] ? Nothing() :
+                                MakeMaybe<double>(cvResult[metricIdx].LastTrainEvalMetric[foldIdx]),
+                            cvResult[metricIdx].LastTestEvalMetric[foldIdx],
+                            GetNamesPrefix(foldIdx) + "learn",
+                            GetNamesPrefix(foldIdx) + "test",
+                            metricIdx == 0
+                        );
+                    }
+                }
+                //log parameters
+                LogParameters(
+                    paramNames,
+                    *paramsSet,
+                    parametersToken,
+                    generalQuantizeParamsInfo,
+                    oneIterLogger
+                );
+            }
             profile.FinishIterationBlock(1);
             oneIterLogger.OutputProfile(profile.GetProfileResults());
             iterationIdx++;
@@ -715,6 +866,7 @@ namespace {
         const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
         const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
         const TTrainTestSplitParams& trainTestSplitParams,
+        const TGeneralQuatizationParamsInfo& generalQuantizeParamsInfo,
         ui64 cpuUsedRamLimit,
         NCB::TDataProviderPtr data,
         TProductIteratorBase<TDeque<NJson::TJsonValue>, NJson::TJsonValue>* gridIterator,
@@ -733,6 +885,7 @@ namespace {
         TSetLogging inThisScope(ELoggingLevel::Verbose);
         TLogger logger;
         TString searchToken = "loss";
+        const auto parametersToken = GetParametersToken();
         AddConsoleLogger(
             searchToken,
             {},
@@ -760,7 +913,7 @@ namespace {
             AssignOptionsToJson(
                 TConstArrayRef<TString>(paramNames),
                 TConstArrayRef<NJson::TJsonValue>(
-                    paramsSet->begin() + 3,
+                    paramsSet->begin() + IndexOfFirstTrainingParameter,
                     paramsSet->end()
                 ), // Ignoring quantization params
                 randDistGenerators,
@@ -773,6 +926,7 @@ namespace {
             NCatboostOptions::TCatBoostOptions catBoostOptions(NCatboostOptions::LoadOptions(jsonParams));
             NCatboostOptions::TOutputFilesOptions outputFileOptions;
             outputFileOptions.Load(outputJsonParams);
+            static const bool allowWriteFiles = outputFileOptions.AllowWriteFiles();
 
             InitializeEvalMetricIfNotSet(catBoostOptions.MetricOptions->ObjectiveMetric, &catBoostOptions.MetricOptions->EvalMetric);
             NCB::TFeaturesLayoutPtr featuresLayout = data->MetaInfo.FeaturesLayout;
@@ -782,7 +936,7 @@ namespace {
             {
                 TSetLogging inThisScope(catBoostOptions.LoggingLevel);
                 QuantizeAndSplitDataIfNeeded(
-                    outputFileOptions.AllowWriteFiles(),
+                    allowWriteFiles,
                     trainTestSplitParams,
                     cpuUsedRamLimit,
                     featuresLayout,
@@ -810,6 +964,7 @@ namespace {
                 internalOptions.CalcMetricsOnly = true;
                 internalOptions.ForceCalcEvalMetricOnEveryIteration = false;
                 internalOptions.OffsetMetricPeriodByInitModelSize = true;
+                outputFileOptions.SetAllowWriteFiles(false);
                 // Training model
                 modelTrainerHolder->TrainModel(
                     internalOptions,
@@ -845,6 +1000,20 @@ namespace {
             if (iterationIdx == 0) {
                 // We guarantee to update the parameters on the first iteration
                 bestParamsSetMetricValue = bestMetricValue + GetSignForMetricMinimization(metrics[0]);
+                outputFileOptions.SetAllowWriteFiles(allowWriteFiles);
+                if (allowWriteFiles) {
+                    // Initialize Files Loggers
+                    TOutputFiles outputFiles(outputFileOptions, "");
+                    InitializeFilesLoggers(
+                        metrics,
+                        outputFiles,
+                        gridIterator->GetTotalElementsCount(),
+                        ELaunchMode::Train,
+                        trainTestData.Test.ysize(),
+                        parametersToken,
+                        &logger
+                    );
+                }
             }
             bool isUpdateBest = SetBestParamsAndUpdateMetricValueIfNeeded(
                 bestMetricValue,
@@ -869,6 +1038,33 @@ namespace {
                     true
                 )
             );
+            if (allowWriteFiles) {
+                //log metrics
+                const auto& skipMetricOnTrain = GetSkipMetricOnTrain(metrics);
+                auto& learnErrors = metricsAndTimeHistory.LearnBestError;
+                auto& testErrors = metricsAndTimeHistory.TestBestError[0];
+                for (auto metricIdx : xrange(metrics.size())) {
+                    const auto& lossDescription = metrics[metricIdx]->GetDescription();
+                    LogTrainTest(
+                        lossDescription,
+                        oneIterLogger,
+                        skipMetricOnTrain[metricIdx] ? Nothing() :
+                            MakeMaybe<double>(learnErrors.at(lossDescription)),
+                        testErrors.at(lossDescription),
+                        "learn",
+                        "test",
+                        metricIdx == 0
+                    );
+                }
+                //log parameters
+                LogParameters(
+                    paramNames,
+                    *paramsSet,
+                    parametersToken,
+                    generalQuantizeParamsInfo,
+                    oneIterLogger
+                );
+            }
             profile.FinishIterationBlock(1);
             oneIterLogger.OutputProfile(profile.GetProfileResults());
             iterationIdx++;
@@ -989,6 +1185,7 @@ namespace NCB {
                     objectiveDescriptor,
                     evalMetricDescriptor,
                     trainTestSplitParams,
+                    generalQuantizeParamsInfo,
                     cpuUsedRamLimit,
                     data,
                     &gridIterator,
@@ -1003,6 +1200,7 @@ namespace NCB {
                     objectiveDescriptor,
                     evalMetricDescriptor,
                     cvParams,
+                    generalQuantizeParamsInfo,
                     cpuUsedRamLimit,
                     data,
                     &gridIterator,
@@ -1110,6 +1308,7 @@ namespace NCB {
                 objectiveDescriptor,
                 evalMetricDescriptor,
                 trainTestSplitParams,
+                generalQuantizeParamsInfo,
                 cpuUsedRamLimit,
                 data,
                 &gridIterator,
@@ -1125,6 +1324,7 @@ namespace NCB {
                 objectiveDescriptor,
                 evalMetricDescriptor,
                 cvParams,
+                generalQuantizeParamsInfo,
                 cpuUsedRamLimit,
                 data,
                 &gridIterator,

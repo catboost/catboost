@@ -2871,7 +2871,7 @@ class CatBoost(_CatBoostBase):
 
     def _tune_hyperparams(self, param_grid, X, y=None, cv=3, n_iter=10, partition_random_seed=0,
                           calc_cv_statistics=True, search_by_train_test_split=True,
-                          refit=True, shuffle=True, stratified=None, train_size=0.8, verbose=1):
+                          refit=True, shuffle=True, stratified=None, train_size=0.8, verbose=1, plot=False):
 
         currently_not_supported_params = {
             'ignored_features',
@@ -2929,7 +2929,7 @@ class CatBoost(_CatBoostBase):
             loss_function = params.get('loss_function', None)
             stratified = isinstance(loss_function, STRING_TYPES) and is_cv_stratified_objective(loss_function)
 
-        with log_fixup():
+        with log_fixup(), plot_wrapper(plot, [_get_train_dir(params)]):
             cv_result = self._object._tune_hyperparams(
                 param_grid, train_params["train_pool"], params, n_iter,
                 fold_count, partition_random_seed, shuffle, stratified, train_size,
@@ -2943,7 +2943,7 @@ class CatBoost(_CatBoostBase):
 
     def grid_search(self, param_grid, X, y=None, cv=3, partition_random_seed=0,
                     calc_cv_statistics=True, search_by_train_test_split=True,
-                    refit=True, shuffle=True, stratified=None, train_size=0.8, verbose=True):
+                    refit=True, shuffle=True, stratified=None, train_size=0.8, verbose=True, plot=False):
         """
         Exhaustive search over specified parameter values for a model.
         Aafter calling this method model is fitted and can be used, if not specified otherwise (refit=False).
@@ -3007,6 +3007,9 @@ class CatBoost(_CatBoostBase):
             If verbose is int, it determines the frequency of writing metrics to output
             verbose==True is equal to verbose==1
             When verbose==False, there is no messages
+
+        plot : bool, optional (default=False)
+            If True, draw train and eval error for every set of parameters in Jupyter notebook
         Returns
         -------
         dict with two fields:
@@ -3027,12 +3030,12 @@ class CatBoost(_CatBoostBase):
             param_grid=param_grid, X=X, y=y, cv=cv, n_iter=-1,
             partition_random_seed=partition_random_seed, calc_cv_statistics=calc_cv_statistics,
             search_by_train_test_split=search_by_train_test_split, refit=refit, shuffle=shuffle,
-            stratified=stratified, train_size=train_size, verbose=verbose
+            stratified=stratified, train_size=train_size, verbose=verbose, plot=plot
         )
 
     def randomized_search(self, param_distributions, X, y=None, cv=3, n_iter=10, partition_random_seed=0,
-                          calc_cv_statistics=True, search_by_train_test_split=True,
-                          refit=True, shuffle=True, stratified=None, train_size=0.8, verbose=True):
+                          calc_cv_statistics=True, search_by_train_test_split=True, refit=True,
+                          shuffle=True, stratified=None, train_size=0.8, verbose=True, plot=False):
         """
         Randomized search on hyper parameters.
         After calling this method model is fitted and can be used, if not specified otherwise (refit=False).
@@ -3103,6 +3106,9 @@ class CatBoost(_CatBoostBase):
             If verbose is int, it determines the frequency of writing metrics to output
             verbose==True is equal to verbose==1
             When verbose==False, there is no messages
+
+        plot : bool, optional (default=False)
+            If True, draw train and eval error for every set of parameters in Jupyter notebook
         Returns
         -------
         dict with two fields:
@@ -3122,7 +3128,7 @@ class CatBoost(_CatBoostBase):
             param_grid=param_distributions, X=X, y=y, cv=cv, n_iter=n_iter,
             partition_random_seed=partition_random_seed, calc_cv_statistics=calc_cv_statistics,
             search_by_train_test_split=search_by_train_test_split, refit=refit, shuffle=shuffle,
-            stratified=stratified, train_size=train_size, verbose=verbose
+            stratified=stratified, train_size=train_size, verbose=verbose, plot=plot
         )
 
     def _convert_to_asymmetric_representation(self):

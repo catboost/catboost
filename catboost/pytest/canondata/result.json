@@ -2479,13 +2479,13 @@
     ],
     "test.test_json_logging": [
         {
-            "checksum": "0169e37fba622096faffbb9aa667eeae",
+            "checksum": "5456ae54bd2e77dff1c4bdb1ffafde88",
             "uri": "file://test.test_json_logging/catboost_training.json"
         }
     ],
     "test.test_json_logging_metric_period": [
         {
-            "checksum": "5893144fc944b55822c7c0324586947c",
+            "checksum": "ed2ea75a2b4be736d40bc089acffffbe",
             "uri": "file://test.test_json_logging_metric_period/catboost_training.json"
         }
     ],
@@ -3743,7 +3743,7 @@
             "uri": "file://test.test_multiple_eval_sets_err_log/test-err.log"
         },
         {
-            "checksum": "cb8fa32a4b9a179b3cf228df6fc65a81",
+            "checksum": "f668df7cef0e37571b1cf07a579ad04b",
             "uri": "file://test.test_multiple_eval_sets_err_log/json.log"
         }
     ],
@@ -5709,7 +5709,7 @@
             "uri": "file://test.test_skip_train/test_error.tsv"
         },
         {
-            "checksum": "b6390e74a615c92c76267c72dcef1567",
+            "checksum": "f5841bc48dee18bed27708d5f4de2d95",
             "uri": "file://test.test_skip_train/json_log.json"
         }
     ],
