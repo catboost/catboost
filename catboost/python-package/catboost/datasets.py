@@ -63,8 +63,20 @@ def _cached_download(url, md5, dst):
             url=u, expected=md5, got=dst_md5))
 
 
+_cache_path = None
+
+
 def _get_cache_path():
-    return os.path.join(os.getcwd(), 'catboost_cached_datasets')
+    global _cache_path
+    if _cache_path is None:
+         _cache_path = os.path.join(os.getcwd(), 'catboost_cached_datasets')
+    return _cache_path
+
+
+def set_cache_path(path):
+    assert isinstance(path, str), 'expected string'
+    global _cache_path
+    _cache_path = path
 
 
 def _cached_dataset_download(url, md5, dataset_name, train_file, test_file):
