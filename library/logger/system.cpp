@@ -4,6 +4,7 @@
 #include <util/system/yassert.h>
 #include <util/system/defaults.h>
 #include <util/generic/singleton.h>
+#include <util/generic/utility.h>
 
 #if defined(_unix_)
 #include <syslog.h>
@@ -63,8 +64,12 @@ void TSysLogBackend::ReopenLog() {
 }
 
 int TSysLogBackend::ELogPriority2SyslogPriority(ELogPriority priority) {
+#if defined(_unix_)
+     return Min(int(priority), (int)LOG_PRIMASK);
+#else
     // trivial conversion
     return int(priority);
+#endif
 }
 
 namespace {
