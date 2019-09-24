@@ -37,16 +37,14 @@ Y_UNIT_TEST_SUITE(mvs) {
         sampler.GenSampleWeights(boostingType, {}, &rand, &executor, &ff);
 
         for (ui32 j = 0; j < CB_THREAD_LIMIT; ++j) {
-            ui32 takenSamples
             for (ui32 i = 0; i < 20; ++i) {
-                const double weight = ff.SampleWeights[j * CB_THREAD_LIMIT + i];
+                const double weight = ff.SampleWeights[j * 20 + i];
                 if (i + 1 > 11) {
-                    Y_ASSERT_DOUBLES_EQUAL(weight, 1.0, 1e-6);
+                    UNIT_ASSERT_DOUBLES_EQUAL(weight, 1.0, 1e-6);
                 } else {
-                    Y_ASSERT(Abs(weight - 11. / (i + 1)) < 1e-6 || Abs(weight) < 1e-6);
+                    UNIT_ASSERT(Abs(weight - 11. / (i + 1)) < 1e-6 || Abs(weight) < 1e-6);
                 }
             }
-            UNIT_ASSERT();
         }
     }
 
@@ -79,16 +77,14 @@ Y_UNIT_TEST_SUITE(mvs) {
         sampler.GenSampleWeights(boostingType, {{{0, 1, 2},},}, &rand, &executor, &ff);
 
         for (ui32 j = 0; j < CB_THREAD_LIMIT; ++j) {
-            ui32 takenSamples
             for (ui32 i = 0; i < 20; ++i) {
-                const double weight = ff.SampleWeights[j * CB_THREAD_LIMIT + i];
+                const double weight = ff.SampleWeights[j * 20 + i];
                 if (i + 1 > 11) {
-                    Y_ASSERT_DOUBLES_EQUAL(weight, 1.0, 1e-6);
+                    UNIT_ASSERT_DOUBLES_EQUAL(weight, 1.0, 1e-6);
                 } else {
-                    Y_ASSERT(Abs(weight - 11. / (i + 1)) < 1e-6 || Abs(weight) < 1e-6);
+                    UNIT_ASSERT(Abs(weight - 11. / (i + 1)) < 1e-6 || Abs(weight) < 1e-6);
                 }
             }
-            UNIT_ASSERT();
         }
     }
 
