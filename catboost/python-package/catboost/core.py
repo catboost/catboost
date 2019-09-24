@@ -229,6 +229,7 @@ class Pool(_PoolBase):
             If FeaturesData - see FeaturesData description for details, 'cat_features' and 'feature_names'
               parameters must be equal to None in this case
             If string, giving the path to the file with data in catboost format.
+              If path starts with "quantized://", the file has to contain quantized dataset saved with Pool.save().
 
         label : list or numpy.arrays or pandas.DataFrame or pandas.Series, optional (default=None)
             Label of the training data.
