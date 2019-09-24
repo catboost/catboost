@@ -1,3 +1,17 @@
+# Release 0.17.3
+
+## Improvements:
+- New visualization for parameter tuning. Use `plot=True` parameter in `grid_search` and `randomized_search` methods to show plots in jupyter notebook
+- Switched to jemalloc allocator instead of LFalloc in CLI and model interfaces to fix some problems on Windows 7 machines
+- Calculation of binary class AUC is faster up to 1.3x
+- Added tutorial on using ONNX models in CatBoost
+
+## Bugs fixed:
+- Shap values for `MultiClass` objective don't give constant 0 value for the last class in case of GPU training.
+  Shap values for `MultiClass` objective are now calculated in the following way. First, predictions are normalized so that the average of all predictions is zero in each tree. The normalized predictions produce the same probabilities as the non-normalized ones. Then the shap values are calculated for every class separately. Note that since the shap values are calculated on the normalized predictions, their sum for every class is equal to the normalized prediction
+- Fixed bug in rangking tutorial, #955
+- Allow string value for `per_float_feature_quantization` parameter, #996
+
 # Release 0.17.2
 
 ## Improvements:
