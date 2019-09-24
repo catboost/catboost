@@ -108,6 +108,8 @@ ALLOW weather/grid_api/lib -> contrib/libs/boost
 ALLOW weather/grid_api/lib -> contrib/deprecated/boost
 ALLOW yabs/telephony -> contrib/libs/boost
 ALLOW yabs/telephony -> contrib/deprecated/boost
+ALLOW yweb/robot/js -> contrib/libs/boost
+ALLOW yweb/robot/js -> contrib/deprecated/boost
 DENY .* -> contrib/libs/boost
 DENY .* -> contrib/deprecated/boost
 
