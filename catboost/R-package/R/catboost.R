@@ -1494,6 +1494,56 @@ catboost.cv <- function(pool, params = list(),
     return(data.frame(result))
 }
 
+#' Sum models.
+#'
+#' @param models Models for the summation.
+#'
+#' Default value: Required argument
+#' @param weights The weights of the models.
+#'
+#' Default value: NULL (use weight 1 for every model)
+#' @param ctr_merge_policy The counters merging policy.
+#' Possible values:
+#' \itemize{
+#'   \item 'FailIfCtrsIntersects'
+#'     Ensure that the models have zero intersecting counters
+#'   \item 'LeaveMostDiversifiedTable'
+#'     Use the most diversified counters by the count of unique hash values
+#'   \item 'IntersectingCountersAverage'
+#'     Use the average ctr counter values in the intersecting bins
+#' }
+#' 
+#' Default value: 'IntersectingCountersAverage'
+#'
+#' @export
+catboost.sum_models <- function(models, weights = NULL, ctr_merge_policy = 'IntersectingCountersAverage') {
+    if (is.null(weights)) {
+        weights = rep(1.0, length(models));
+    } else if (length(models) != length(weights)) {
+        stop("The length of this list must be equal to the number of blended models.");
+    }
+
+    i <- 1
+    modelsVector <- list()
+    for (model in models) {
+        if (class(model) != "catboost.Model")
+            stop("Expected catboost.Model, got: ", class(model))
+        if (is.null.handle(model$handle))
+            model$handle <- .Call("CatBoostDeserializeModel_R", model$raw)
+
+        modelsVector[[i]] <- model$handle
+        i <- i + 1
+    }
+    handle <- .Call("CatBoostSumModels_R", modelsVector, weights, ctr_merge_policy)
+    raw <- .Call("CatBoostSerializeModel_R", handle)
+    model <- list(handle = handle, raw = raw)
+
+    model$random_seed <- 0
+    model$learning_rate <- 0
+    
+    class(model) <- "catboost.Model"
+    return(model)
+}
 
 #' Load the model
 #'

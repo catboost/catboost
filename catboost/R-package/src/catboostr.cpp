@@ -58,6 +58,7 @@ typedef TDataProviderPtr TPoolPtr;
 
 typedef TFullModel* TFullModelHandle;
 typedef std::unique_ptr<TFullModel> TFullModelPtr;
+typedef const TFullModel* TFullModelConstPtr;
 
 
 class TRPackageInitializer {
@@ -465,6 +466,31 @@ SEXP CatBoostFit_R(SEXP learnPoolParam, SEXP testPoolParam, SEXP fitParamsAsJson
         );
     }
     Y_UNUSED(pools.Learn.Release());
+    result = PROTECT(R_MakeExternalPtr(modelPtr.get(), R_NilValue, R_NilValue));
+    R_RegisterCFinalizerEx(result, _Finalizer<TFullModelHandle>, TRUE);
+    modelPtr.release();
+    R_API_END();
+    UNPROTECT(1);
+    return result;
+}
+
+SEXP CatBoostSumModels_R(SEXP modelsParam,
+                         SEXP weightsParam,
+                         SEXP ctrMergePolicyParam) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+    const auto& weights = GetVectorFromSEXP<double>(weightsParam);
+    ECtrTableMergePolicy mergePolicy;
+    CB_ENSURE(TryFromString<ECtrTableMergePolicy>(CHAR(asChar(ctrMergePolicyParam)), mergePolicy),
+        "Unknown value of ctr_table_merge_policy: " << CHAR(asChar(ctrMergePolicyParam)));
+
+    TVector<TFullModelConstPtr> models;
+    for (int idx = 0; idx < length(modelsParam); ++idx) {
+        TFullModelHandle model = reinterpret_cast<TFullModelHandle>(R_ExternalPtrAddr(VECTOR_ELT(modelsParam, idx)));
+        models.push_back(model);
+    }
+    TFullModelPtr modelPtr = std::make_unique<TFullModel>();
+    SumModels(models, weights, mergePolicy).Swap(*modelPtr);
     result = PROTECT(R_MakeExternalPtr(modelPtr.get(), R_NilValue, R_NilValue));
     R_RegisterCFinalizerEx(result, _Finalizer<TFullModelHandle>, TRUE);
     modelPtr.release();

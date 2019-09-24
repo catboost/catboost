@@ -363,3 +363,26 @@ test_that("model: catboost.cv with eval_metric=AUC", {
   expect_true(all(cv_result$test.AUC.std >= 0))
   expect_true(all(cv_result$test.AUC.mean >= 0))
 })
+
+test_that("model: catboost.sum_models", {
+    target_train <- sample(c(0, 1), size = 20, replace = TRUE)
+    features_train <- data.frame(f1 = rnorm(length(target_train), mean = 0, sd = 1),
+                                 f2 = rnorm(length(target_train), mean = 0, sd = 1))
+
+    target_test <- sample(c(0, 1, 3, 4), size = 10, replace = TRUE)
+    features_test <- data.frame(f1 = rnorm(length(target_test), mean = 0, sd = 1),
+                                f2 = rnorm(length(target_test), mean = 0, sd = 1))
+    pool_train <- catboost.load_pool(features_train, target_train)
+    pool_test <- catboost.load_pool(features_test, target_test)
+    params <- list(iterations=100,
+                   depth=4)
+    model_train <- catboost.train(pool_train, pool_test, params)
+    model_test <- catboost.train(pool_train, pool_test, params)
+
+    list_models <- list(model_train, model_test)
+    sum_mod <- catboost.sum_models(list_models, weights=rep(1.0 / length(list_models), length(list_models)))
+
+    prediction_sum_models <- catboost.predict(model_train, pool_test, prediction_type='RawFormulaVal')
+    prediction_one_model <- catboost.predict(sum_mod, pool_test, prediction_type='RawFormulaVal')
+    expect_equal(prediction_sum_models, prediction_one_model)
+})
