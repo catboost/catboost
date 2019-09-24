@@ -1,6 +1,7 @@
 #pragma once
 
 #include <catboost/libs/options/enums.h>
+#include <catboost/libs/data_new/cat_feature_perfect_hash.h>
 
 #include <util/generic/vector.h>
 #include <util/generic/string.h>
@@ -22,5 +23,13 @@ namespace NCB {
         // Class names for multi-classification
         // ClassNames[i] is name of class i
         TVector<TString> ClassNames;
+
+        // Flat indices of categorical non-ignored features
+        // Sorted from min to max
+        TVector<size_t> CatFeatureIndices;
+
+        // For building perfect hash
+        // FeaturesPerfectHash[i] are hashes for cat feature CatFeatureIndices[i]
+        TVector<TMap<ui32, TValueWithCount>> FeaturesPerfectHash; // [catFeatureIdx]
     };
 }

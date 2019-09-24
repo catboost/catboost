@@ -267,8 +267,10 @@ static void PrintHumanReadable(
         featureIndex += columnType == EColumn::Num || columnType == EColumn::Categ;
         const auto chunks = GetChunksSortedByOffset(pool.Chunks.at(localIndex));
 
-        const auto& featureIndexToSchema = pool.QuantizationSchema.GetFeatureIndexToSchema();
-        if (columnType == EColumn::Num && featureIndexToSchema.count(featureIndex) == 0) {
+        const auto& floatFeatureIndexToSchema = pool.QuantizationSchema.GetFeatureIndexToSchema();
+        const auto& catFeatureIndexToSchema = pool.QuantizationSchema.GetCatFeatureIndexToSchema();
+        if ((columnType == EColumn::Num && floatFeatureIndexToSchema.count(featureIndex) == 0) ||
+            (columnType == EColumn::Categ && catFeatureIndexToSchema.count(featureIndex) == 0)) {
             // The feature schema is missing when the feature is ignored.
             continue;
         }
@@ -284,14 +286,20 @@ static void PrintHumanReadable(
 
         (*output) << '\n';
 
-        if (columnType == EColumn::Categ || columnType == EColumn::Sparse || columnType == EColumn::Auxiliary) {
+        if (columnType == EColumn::Sparse || columnType == EColumn::Auxiliary) {
             CB_ENSURE(chunks.empty(), LabeledOutput(columnIndex));
             continue;
         } if (columnType == EColumn::Num) {
-            const auto& quantizationSchema = featureIndexToSchema.at(featureIndex);
+            const auto& quantizationSchema = floatFeatureIndexToSchema.at(featureIndex);
             PrintHumanReadableNumericChunks(
                 chunks,
                 resolveBorders ? &quantizationSchema : nullptr,
+                chunkWise,
+                output);
+        } else if (columnType == EColumn::Categ) { //TODO(ivankozlov98) write print catfeature schema
+            PrintHumanReadableNumericChunks(
+                chunks,
+                nullptr,
                 chunkWise,
                 output);
         } else if (IsRequiredColumn(columnType)) {

@@ -1229,6 +1229,13 @@ namespace NCB {
                     BinaryFeaturesStorage,
                     Data.ObjectsData.PackedBinaryFeaturesData.FlatFeatureIndexToPackedBinaryIndex
                 );
+                CategoricalFeaturesStorage.PrepareForInitialization(
+                    *metaInfo.FeaturesLayout,
+                    objectCount,
+                    Data.ObjectsData.Data.QuantizedFeaturesInfo,
+                    BinaryFeaturesStorage,
+                    Data.ObjectsData.PackedBinaryFeaturesData.FlatFeatureIndexToPackedBinaryIndex
+                );
             }
 
             if (metaInfo.HasWeights) {
@@ -1283,12 +1290,16 @@ namespace NCB {
         void AddCatFeaturePart(
             ui32 flatFeatureIdx,
             ui32 objectOffset,
+            ui8 bitsPerDocumentFeature,
             TMaybeOwningConstArrayHolder<ui8> featuresPart // per-feature data size depends on BitsPerKey
         ) override {
-            Y_UNUSED(flatFeatureIdx);
-            Y_UNUSED(objectOffset);
-            Y_UNUSED(featuresPart);
-            CB_ENSURE(false, "Categorical features are not yet supported in serialized quantized pools");
+            CategoricalFeaturesStorage.Set(
+                GetInternalFeatureIdx<EFeatureType::Categorical>(flatFeatureIdx),
+                objectOffset,
+                bitsPerDocumentFeature,
+                *featuresPart,
+                LocalExecutor
+            );
         }
 
         // TRawTargetData
@@ -1388,6 +1399,14 @@ namespace NCB {
                     Data.ObjectsData.PackedBinaryFeaturesData.SrcData,
                     &Data.ObjectsData.Data.FloatFeatures
                 );
+
+                CategoricalFeaturesStorage.GetResult(
+                    ObjectCount,
+                    *Data.MetaInfo.FeaturesLayout,
+                    Data.CommonObjectsData.SubsetIndexing.Get(),
+                    Data.ObjectsData.PackedBinaryFeaturesData.SrcData,
+                    &Data.ObjectsData.Data.CatFeatures
+                );
             }
 
             ResultTaken = true;
@@ -1455,7 +1474,26 @@ namespace NCB {
 
                 info->SetBorders(typedFeatureIdx, TVector<float>(schema.Borders[i]));
                 info->SetNanMode(typedFeatureIdx, nanMode);
+            }
 
+            for (size_t i = 0, iEnd = schema.CatFeatureIndices.size(); i < iEnd; ++i) {
+                const auto flatFeatureIdx = schema.CatFeatureIndices[i];
+                const auto& metaInfo = metaInfos[flatFeatureIdx];
+                CB_ENSURE(
+                    metaInfo.Type == EFeatureType::Categorical,
+                    "quantization schema's feature type for feature " LabeledOutput(flatFeatureIdx)
+                    << " (categorical) is inconsistent with features layout");
+                if (!metaInfo.IsAvailable) {
+                    continue;
+                }
+
+                const auto typedFeatureIdx = featuresLayout.GetInternalFeatureIdx<EFeatureType::Categorical>(
+                    flatFeatureIdx);
+                TCatFeaturePerfectHash perfectHash{
+                    Nothing(),
+                    schema.FeaturesPerfectHash[i]
+                };
+                info->UpdateCategoricalFeaturesPerfectHash(typedFeatureIdx, std::move(perfectHash));
             }
         }
 
@@ -1520,7 +1558,8 @@ namespace NCB {
         template <EFeatureType FeatureType>
         class TFeaturesStorage {
         private:
-            static_assert(FeatureType == EFeatureType::Float, "Only float features are currently supported");
+            static_assert(FeatureType == EFeatureType::Float || FeatureType == EFeatureType::Categorical,
+                "Only float and categorical features are currently supported");
 
             /******************************************************************************************/
             // non-binary features
@@ -1567,18 +1606,33 @@ namespace NCB {
                 FeatureIdxToPackedBinaryIndex.resize(perTypeFeatureCount);
 
                 const auto metaInfos = featuresLayout.GetExternalFeaturesMetaInfo();
-                for (size_t flatFeatureIdx = 0; flatFeatureIdx < metaInfos.size(); ++flatFeatureIdx) {
+
+                const bool isFloatType = (FeatureType == EFeatureType::Float);
+                for (auto perTypeFeatureIdx : xrange(perTypeFeatureCount)) {
+                    const auto flatFeatureIdx = featuresLayout.GetExternalFeatureIdx(perTypeFeatureIdx, FeatureType);
                     if (!metaInfos[flatFeatureIdx].IsAvailable) {
                         continue;
                     }
 
-                    const auto typedFeatureIdx = featuresLayout.GetInternalFeatureIdx<FeatureType>(
-                        flatFeatureIdx);
+                    ui8 bitsPerFeature;
+                    if (isFloatType) {
+                        bitsPerFeature = CalcHistogramWidthForBorders(
+                            quantizedFeaturesInfoPtr->GetBorders(TFloatFeatureIdx(perTypeFeatureIdx)).size());
+                    } else {
+                        const ui32 countUnique =
+                            quantizedFeaturesInfoPtr->GetUniqueValuesCounts(TCatFeatureIdx(perTypeFeatureIdx)).OnAll;
+                        if (countUnique <= 1ULL << 8) {
+                            bitsPerFeature = 8;
+                        } else if (countUnique <= 1ULL << 16) {
+                            bitsPerFeature = 16;
+                        } else { //TODO
+                            bitsPerFeature = 32;
+                        }
+                    }
 
-                    IsAvailable[typedFeatureIdx.Idx] = true;
-                    ui8 bitsPerFeature = CalcHistogramWidthForBorders(quantizedFeaturesInfoPtr->GetBorders(typedFeatureIdx).size());
-                    IndexHelpers[typedFeatureIdx.Idx] = TIndexHelper<ui64>(bitsPerFeature);
-                    FeatureIdxToPackedBinaryIndex[typedFeatureIdx.Idx]
+                    IsAvailable[perTypeFeatureIdx] = true;
+                    IndexHelpers[perTypeFeatureIdx] = TIndexHelper<ui64>(bitsPerFeature);
+                    FeatureIdxToPackedBinaryIndex[perTypeFeatureIdx]
                         = flatFeatureIndexToPackedBinaryIndex[flatFeatureIdx];
                 }
 
@@ -1751,6 +1805,7 @@ namespace NCB {
         TVector<float> GroupWeightsBuffer;
 
         TFeaturesStorage<EFeatureType::Float> FloatFeaturesStorage;
+        TFeaturesStorage<EFeatureType::Categorical> CategoricalFeaturesStorage;
         TBinaryFeaturesStorage BinaryFeaturesStorage;
 
         TDataProviderBuilderOptions Options;

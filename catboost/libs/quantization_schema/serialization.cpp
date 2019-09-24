@@ -195,6 +195,34 @@ void NCB::SaveQuantizationSchema(
     return NCB::SaveQuantizationSchema(schema, format, &output);
 }
 
+
+void BuildFeaturePerfectHash(
+    const google::protobuf::Map<google::protobuf::uint32, NCB::NIdl::TValueWithCount>& protoPerfectHashes,
+    TMap<ui32, NCB::TValueWithCount>* perfectHashes) {
+    for (const auto& kv : protoPerfectHashes) {
+        //init value with count
+        NCB::TValueWithCount valueWithCount;
+        valueWithCount.Value = kv.second.GetValue();
+        valueWithCount.Count = kv.second.GetCount();
+        perfectHashes->insert({kv.first, valueWithCount});
+    }
+}
+
+
+void BuildProtoFeaturePerfectHash(
+    const TMap<ui32, NCB::TValueWithCount>& perfectHashes,
+    google::protobuf::Map<google::protobuf::uint32, NCB::NIdl::TValueWithCount>* protoPerfectHashes
+    ) {
+    for (const auto& kv : perfectHashes) {
+        //init value with count
+        NCB::NIdl::TValueWithCount valueWithCount;
+        valueWithCount.SetValue(kv.second.Value);
+        valueWithCount.SetCount(kv.second.Count);
+        protoPerfectHashes->insert({kv.first, std::move(valueWithCount)});
+    }
+}
+
+
 NCB::TPoolQuantizationSchema NCB::QuantizationSchemaFromProto(
     const NIdl::TPoolQuantizationSchema& proto) {
 
@@ -218,6 +246,22 @@ NCB::TPoolQuantizationSchema NCB::QuantizationSchemaFromProto(
 
     const auto& classNames = proto.GetClassNames();
     schema.ClassNames.assign(classNames.begin(), classNames.end());
+
+    // for categorical features
+
+    schema.CatFeatureIndices.reserve(proto.GetCatFeatureIndexToSchema().size());
+    for (const auto& kv : proto.GetCatFeatureIndexToSchema()) {
+        schema.CatFeatureIndices.push_back(kv.first);
+    }
+
+    Sort(schema.CatFeatureIndices);
+
+    schema.FeaturesPerfectHash.resize(schema.CatFeatureIndices.size());
+    for (size_t i = 0; i < schema.CatFeatureIndices.size(); ++i) {
+        const auto& featureSchema = proto.GetCatFeatureIndexToSchema().at(schema.CatFeatureIndices[i]);
+        BuildFeaturePerfectHash(featureSchema.GetPerfectHashes(), &schema.FeaturesPerfectHash[i]);
+    }
+
 
     return schema;
 }
@@ -243,6 +287,14 @@ NCB::NIdl::TPoolQuantizationSchema NCB::QuantizationSchemaToProto(
     proto.MutableClassNames()->Reserve(schema.ClassNames.size());
     for (const auto className : schema.ClassNames) {
         proto.AddClassNames(className);
+    }
+
+    for (size_t i = 0; i < schema.CatFeatureIndices.size(); ++i) {
+        NIdl::TCatFeatureQuantizationSchema catFeatureSchema;
+        BuildProtoFeaturePerfectHash(schema.FeaturesPerfectHash[i], catFeatureSchema.MutablePerfectHashes());
+        proto.MutableCatFeatureIndexToSchema()->insert({
+            static_cast<ui32>(schema.CatFeatureIndices[i]),
+            std::move(catFeatureSchema)});
     }
 
     return proto;

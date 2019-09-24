@@ -30,6 +30,11 @@ namespace NCB {
             const size_t flatFeatureIdx,
             IQuantizedFeaturesDataVisitor* visitor) const;
 
+        void AddQuantizedCatFeatureChunk(
+            const TQuantizedPool::TChunkDescription& chunk,
+            const size_t flatFeatureIdx,
+            IQuantizedFeaturesDataVisitor* visitor) const;
+
         TConstArrayRef<ui8> ClipByDatasetSubset(const TQuantizedPool::TChunkDescription& chunk) const;
         ui32 GetDatasetOffset(const TQuantizedPool::TChunkDescription& chunk) const;
 

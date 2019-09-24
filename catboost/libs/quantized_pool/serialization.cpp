@@ -1004,7 +1004,9 @@ namespace NCB {
             std::move(featureIndices),
             std::move(borders),
             std::move(nanModes),
-            dataProvider->MetaInfo.ClassNames
+            dataProvider->MetaInfo.ClassNames,
+            TVector<size_t>(),//TODO
+            TVector<TMap<ui32, TValueWithCount>>()//TODO
         };
 
         //localIndexToColumnIndex

@@ -1,6 +1,7 @@
 #include "quantized.h"
 
 #include <catboost/libs/column_description/column.h>
+#include <catboost/libs/helpers/exception.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/cast.h>
@@ -134,14 +135,23 @@ TVector<ui32> GetIgnoredFlatIndices(const NCB::TQuantizedPool& pool) {
             continue;
         }
 
-        const auto it = pool.QuantizationSchema.GetFeatureIndexToSchema().find(featureIndex);
-        if (it == pool.QuantizationSchema.GetFeatureIndexToSchema().end()) {
-            // categorical features are not quantized right now
-            indices.push_back(SafeIntegerCast<ui32>(featureIndex));
-            continue;
-        } else if (it->second.GetBorders().empty()) {
-            indices.push_back(SafeIntegerCast<ui32>(featureIndex));
-            continue;
+        if (columnType == EColumn::Num) {
+            const auto it = pool.QuantizationSchema.GetFeatureIndexToSchema().find(featureIndex);
+
+            if (it != pool.QuantizationSchema.GetFeatureIndexToSchema().end() &&
+                    it->second.GetBorders().empty()) {
+                indices.push_back(SafeIntegerCast<ui32>(featureIndex));
+                continue;
+            }
+        } else {
+            CB_ENSURE(columnType == EColumn::Categ);
+            const auto it = pool.QuantizationSchema.GetCatFeatureIndexToSchema().find(featureIndex);
+
+            if (it != pool.QuantizationSchema.GetCatFeatureIndexToSchema().end() &&
+                    it->second.GetPerfectHashes().empty()) {
+                indices.push_back(SafeIntegerCast<ui32>(featureIndex));
+                continue;
+            }
         }
     }
 

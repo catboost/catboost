@@ -207,6 +207,24 @@ void NCB::TCBQuantizedDataLoader::AddQuantizedFeatureChunk(
         TMaybeOwningConstArrayHolder<ui8>::CreateNonOwning(quants));
 }
 
+ void NCB::TCBQuantizedDataLoader::AddQuantizedCatFeatureChunk(
+    const TQuantizedPool::TChunkDescription& chunk,
+    const size_t flatFeatureIdx,
+    IQuantizedFeaturesDataVisitor* const visitor) const
+{
+    const auto quants = ClipByDatasetSubset(chunk);
+
+    if (quants.empty()) {
+        return;
+    }
+
+    visitor->AddCatFeaturePart(
+        flatFeatureIdx,
+        GetDatasetOffset(chunk),
+        chunk.Chunk->BitsPerDocument(),
+        TMaybeOwningConstArrayHolder<ui8>::CreateNonOwning(quants));
+}
+
 void NCB::TCBQuantizedDataLoader::AddChunk(
     const TQuantizedPool::TChunkDescription& chunk,
     const EColumn columnType,
@@ -246,10 +264,12 @@ void NCB::TCBQuantizedDataLoader::AddChunk(
         } case EColumn::SubgroupId: {
             visitor->AddSubgroupIdPart(GetDatasetOffset(chunk), TUnalignedArrayBuf<ui32>(quants));
             break;
-        } case EColumn::SampleId:
+        } case EColumn::Categ: {
+            AddQuantizedCatFeatureChunk(chunk, *flatFeatureIdx, visitor);
+            break;
+        }
+        case EColumn::SampleId:
             // Are skipped in a caller
-        case EColumn::Categ:
-            // TODO(yazevnul): categorical feature quantization on YT is still in progress
         case EColumn::Auxiliary:
         case EColumn::Text:
             // Should not be present in quantized pool

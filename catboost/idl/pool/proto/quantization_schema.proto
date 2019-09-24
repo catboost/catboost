@@ -16,8 +16,21 @@ message TFeatureQuantizationSchema {
     optional ENanMode NanMode = 2;
 }
 
+//TODO(ivankozlov98): duplicates `TValueWithCount` from `catboost/libs/data_new/cat_feature_perfect_hash.h`
+message TValueWithCount {
+    optional uint32 Value = 1; // by default = 0
+    optional uint32 Count = 2; // by default = 0
+}
+
+message TCatFeatureQuantizationSchema {
+    map<uint32, TValueWithCount> PerfectHashes = 1;
+}
+
 message TPoolQuantizationSchema {
     map<uint32, TFeatureQuantizationSchema> FeatureIndexToSchema = 1;
+
+    // [column index] -> ([hashCategorical] -> [perfectHash(number), count of this hashCategorical])
+    map<uint32, TCatFeatureQuantizationSchema> CatFeatureIndexToSchema = 3;
 
     // List of class names; see {--class-names} for `catboost fit`;
     // Makes sense only for multiclassification.
