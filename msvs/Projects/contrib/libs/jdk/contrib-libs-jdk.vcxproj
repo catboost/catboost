@@ -79,7 +79,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\build\scripts\_fake_src.cpp"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\jdk\include\darwin\jni_md.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\jdk\include\jni.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\jdk\include\linux\jni_md.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\jdk\include\win32\jni_md.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
