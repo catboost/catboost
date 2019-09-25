@@ -82,11 +82,7 @@ void TBM25::LoadParametersFromFB(const NCatBoostFbs::TFeatureCalcer* calcer) {
     ClassTotalTokens.yresize(classTotalTokens->size());
 
     static_assert(sizeof(uint64_t) == sizeof(ui64));
-    Copy(
-        reinterpret_cast<const ui64*>(classTotalTokens->data()),
-        reinterpret_cast<const ui64*>(classTotalTokens->size()),
-        ClassTotalTokens.begin()
-    );
+    Copy(classTotalTokens->begin(), classTotalTokens->end(), ClassTotalTokens.begin());
 }
 
 void TBM25::SaveLargeParameters(IOutputStream* stream) const {
