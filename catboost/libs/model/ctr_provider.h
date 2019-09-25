@@ -120,7 +120,7 @@ inline void CalcHashes(
 }
 
 enum class ECtrTableMergePolicy {
-    FailIfCtrsIntersects,
+    FailIfCtrIntersects,
     LeaveMostDiversifiedTable,
     IntersectingCountersAverage
 };

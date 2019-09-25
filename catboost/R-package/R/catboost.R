@@ -1505,7 +1505,7 @@ catboost.cv <- function(pool, params = list(),
 #' @param ctr_merge_policy The counters merging policy.
 #' Possible values:
 #' \itemize{
-#'   \item 'FailIfCtrsIntersects'
+#'   \item 'FailIfCtrIntersects'
 #'     Ensure that the models have zero intersecting counters
 #'   \item 'LeaveMostDiversifiedTable'
 #'     Use the most diversified counters by the count of unique hash values
