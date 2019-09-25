@@ -49,7 +49,15 @@ class IniConfig(object):
     def __init__(self, path, data=None):
         self.path = str(path)  # convenience
         if data is None:
-            f = open(self.path)
+            if self.path.startswith('pkg:'):
+                import pkgutil
+                from cStringIO import StringIO
+
+                _, package, resource = self.path.split(':')
+                content = pkgutil.get_data(package, resource)
+                f = StringIO(content)
+            else:
+                f = open(self.path)
             try:
                 tokens = self._parse(iter(f))
             finally:

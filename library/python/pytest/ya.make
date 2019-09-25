@@ -3,6 +3,7 @@ PY23_LIBRARY()
 
 
 PY_SRCS(
+    __init__.py
     main.py
     rewrite.py
     yatest_tools.py
@@ -18,5 +19,10 @@ PEERDIR(
 )
 
 NO_LINT()
+
+RESOURCE_FILES(
+    PREFIX library/python/pytest/
+    pytest.yatest.ini
+)
 
 END()
