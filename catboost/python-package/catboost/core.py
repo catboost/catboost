@@ -638,13 +638,13 @@ class Pool(_PoolBase):
             List of float binarization descriptions.
             Format : described in documentation on catboost.ai
             Example 1: ['0:1024'] means that feature 0 will have 1024 borders.
-            Example 2: ['0:border_count=1024', '1:border_count=1024', ...] means that two first features have 2014 borders.
+            Example 2: ['0:border_count=1024', '1:border_count=1024', ...] means that two first features have 1024 borders.
             Example 3: ['0:nan_mode=Forbidden,border_count=32,border_type=GreedyLogSum',
                         '1:nan_mode=Forbidden,border_count=32,border_type=GreedyLogSum'] - defines more quantization properties for first two features.
 
         border_count : int, [default = 254 for training on CPU or 128 for training on GPU]
             The number of partitions in numeric features binarization. Used in the preliminary calculation.
-            range: (0,+inf]
+            range: [1,65535] on CPU, [1,255] on GPU
 
         max_bin : float, synonym for border_count.
 
@@ -3169,7 +3169,7 @@ class CatBoostClassifier(CatBoost):
         If object, it shall provide methods 'calc_ders_range' or 'calc_ders_multi'.
     border_count : int, [default = 254 for training on CPU or 128 for training on GPU]
         The number of partitions in numeric features binarization. Used in the preliminary calculation.
-        range: (0,+inf]
+        range: [1,65535] on CPU, [1,255] on GPU
     feature_border_type : string, [default='GreedyLogSum']
         The binarization mode in numeric features binarization. Used in the preliminary calculation.
         Possible values:
@@ -3183,7 +3183,7 @@ class CatBoostClassifier(CatBoost):
         List of float binarization descriptions.
         Format : described in documentation on catboost.ai
         Example 1: ['0:1024'] means that feature 0 will have 1024 borders.
-        Example 2: ['0:border_count=1024', '1:border_count=1024', ...] means that two first features have 2014 borders.
+        Example 2: ['0:border_count=1024', '1:border_count=1024', ...] means that two first features have 1024 borders.
         Example 3: ['0:nan_mode=Forbidden,border_count=32,border_type=GreedyLogSum',
                     '1:nan_mode=Forbidden,border_count=32,border_type=GreedyLogSum'] - defines more quantization properties for first two features.
     input_borders : string, [default=None]
