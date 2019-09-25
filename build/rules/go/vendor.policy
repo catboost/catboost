@@ -323,6 +323,9 @@ ALLOW .* -> vendor/firebase.google.com/go
 #transitive dependency for firebase
 ALLOW .* -> vendor/google.golang.org/api/option
 
+# CONTRIB-1497 Go package to encode and decode ITU-T G.711 sound data
+ALLOW .* -> vendor/github.com/zaf/g711
+
 #
 # Temporary exceptions.
 #
