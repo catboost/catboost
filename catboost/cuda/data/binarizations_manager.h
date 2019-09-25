@@ -64,9 +64,7 @@ namespace NCatboostCuda {
             return (tensor.GetComplexity() < CatFeatureOptions.MaxTensorComplexity);
         }
 
-        bool UseForTreeCtr(const TFeatureTensor& tensor) const {
-            return (tensor.GetComplexity() <= CatFeatureOptions.MaxTensorComplexity);
-        }
+        bool UseForTreeCtr(const TFeatureTensor& tensor) const;
 
         bool IsCtr(ui32 featureId) const {
             CB_ENSURE(featureId < Cursor);

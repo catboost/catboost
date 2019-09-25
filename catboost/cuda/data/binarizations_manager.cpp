@@ -104,11 +104,26 @@ namespace NCatboostCuda {
     }
 
     bool TBinarizedFeaturesManager::UseForCtr(ui32 featureId) const {
+        if (IsEstimatedFeature(featureId)) {
+            return false;
+        }
         return !UseForOneHotEncoding(featureId);
     }
 
     bool TBinarizedFeaturesManager::UseForTreeCtr(ui32 featureId) const {
+        if (IsEstimatedFeature(featureId)) {
+            return false;
+        }
         return UseForCtr(featureId) && (CatFeatureOptions.MaxTensorComplexity > 1);
+    }
+
+    bool TBinarizedFeaturesManager::UseForTreeCtr(const TFeatureTensor& tensor) const  {
+        for (auto split : tensor.GetSplits()) {
+            if (IsEstimatedFeature(split.FeatureId)) {
+                return false;
+            }
+        }
+        return (tensor.GetComplexity() <= CatFeatureOptions.MaxTensorComplexity);
     }
 
     bool TBinarizedFeaturesManager::IsPermutationDependent(const TCtr& ctr) const {
