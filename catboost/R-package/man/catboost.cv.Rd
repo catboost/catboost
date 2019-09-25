@@ -4,9 +4,9 @@
 \alias{catboost.cv}
 \title{Cross-validate model.}
 \usage{
-catboost.cv(pool, params = list(), fold_count = 3, inverted = FALSE,
-  partition_random_seed = 0, shuffle = TRUE, stratified = FALSE,
-  early_stopping_rounds = NULL)
+catboost.cv(pool, params = list(), fold_count = 3,
+  type = "Classical", partition_random_seed = 0, shuffle = TRUE,
+  stratified = FALSE, early_stopping_rounds = NULL)
 }
 \arguments{
 \item{pool}{Data to cross-validate on}
@@ -15,7 +15,7 @@ catboost.cv(pool, params = list(), fold_count = 3, inverted = FALSE,
 
 \item{fold_count}{Folds count.}
 
-\item{inverted}{Train on the test fold and evaluate the model on the training folds.}
+\item{type}{is type of cross-validation.}
 
 \item{partition_random_seed}{The random seed used for splitting pool into folds.}
 

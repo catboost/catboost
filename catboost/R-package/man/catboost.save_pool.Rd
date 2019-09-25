@@ -42,6 +42,6 @@ Files with the following data are created:
     \item Column descriptions
 }
 Use the catboost.load_pool function to read the resulting files.
-These files can also be used in the \href{https://tech.yandex.com/catboost/doc/dg/concepts/cli-installation-docpage/}{Command-line version}
-and the \href{https://tech.yandex.com/catboost/doc/dg/concepts/python-installation-docpage/}{Python library}.
+These files can also be used in the \href{https://catboost.ai/docs/concepts/cli-installation.html}{Command-line version}
+and the \href{https://catboost.ai/docs/concepts/python-installation.html}{Python library}.
 }

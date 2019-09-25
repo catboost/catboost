@@ -51,12 +51,13 @@ Default value: 'FeatureImportance'}
 Allows you to optimize the speed of execution. This parameter doesn't affect results.
 
 Default value: -1}
+
 \item{fstr_type}{Deprecated parameter, use 'type' instead.}
 }
 \description{
-Calculate the feature importances (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/fstr-docpage/#fstr})
+Calculate the feature importances (see \url{https://catboost.ai/docs/concepts/fstr.html#fstr})
 (Regular feature importance, ShapValues, and Feature interaction strength).
 }
 \seealso{
-\url{https://tech.yandex.com/catboost/doc/dg/features/feature-importances-calculation-docpage}
+\url{https://catboost.ai/docs/features/feature-importances-calculation.html}
 }

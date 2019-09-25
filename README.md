@@ -15,10 +15,10 @@ CatBoost is a machine learning method based on [gradient boosting](https://en.wi
 
 Main advantages of CatBoost:
   - Superior quality when [compared](https://github.com/catboost/benchmarks/blob/master/README.md) with other GBDT libraries on many datasets.
-  - Best in class [prediction](https://tech.yandex.com/catboost/doc/dg/concepts/c-plus-plus-api-docpage/) speed.
-  - Support for both [numerical and categorical](https://tech.yandex.com/catboost/doc/dg/concepts/algorithm-main-stages-docpage/) features.
+  - Best in class [prediction](https://catboost.ai/docs/concepts/c-plus-plus-api.html) speed.
+  - Support for both [numerical and categorical](https://catboost.ai/docs/concepts/algorithm-main-stages.html) features.
   - Fast GPU and multi-GPU support for training out of the box.
-  - Visualization tools [included](https://tech.yandex.com/catboost/doc/dg/features/visualization-docpage/).
+  - Visualization tools [included](https://catboost.ai/docs/features/visualization.html).
 
 Gradient Boosting Survey
 --------------
@@ -26,7 +26,7 @@ We want to make the best Gradient Boosting library in the world. Please, help us
 
 Get Started and Documentation
 --------------
-All CatBoost documentation is available [here](https://tech.yandex.com/catboost/doc/dg/concepts/about-docpage/).
+All CatBoost documentation is available [here](https://catboost.ai/docs/concepts/about.html).
 
 Install CatBoost by following the guide for the
  * [Python package](https://catboost.ai/docs/concepts/python-installation.html)
@@ -34,11 +34,11 @@ Install CatBoost by following the guide for the
  * [command line](https://catboost.ai/docs/concepts/cli-installation.html)
 
 Next you may want to investigate:
-* [Tutorials](https://github.com/catboost/tutorials)
+* [Tutorials](https://github.com/catboost/tutorials/#readme)
 * [Training modes and metrics](https://catboost.ai/docs/concepts/loss-functions.html)
 * [Cross-validation](https://catboost.ai/docs/features/cross-validation.html#cross-validation)
 * [Parameters tuning](https://catboost.ai/docs/concepts/parameter-tuning.html)
-* [Feature importance calculation](https://catboost.ai/docs/features/feature-importances-calculation.html#fe%20ature-importances-calculation)
+* [Feature importance calculation](https://catboost.ai/docs/features/feature-importances-calculation.html)
 * [Regular](https://catboost.ai/docs/features/prediction.html#prediction) and [staged](https://catboost.ai/docs/features/staged-prediction.html#staged-prediction) predictions
 
 Catboost models in production

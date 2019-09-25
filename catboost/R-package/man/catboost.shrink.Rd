@@ -19,5 +19,5 @@ Default value: 0}
 Shrink the model
 }
 \seealso{
-\url{https://tech.yandex.com/catboost/doc/dg/concepts/r-reference_catboost-shrink-docpage/}
+\url{https://catboost.ai/docs/concepts/r-reference_catboost-shrink.html}
 }

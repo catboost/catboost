@@ -224,8 +224,8 @@ catboost.from_data_frame <- function(data, label = NULL, pairs = NULL, weight = 
 #'     \item Column descriptions
 #' }
 #' Use the catboost.load_pool function to read the resulting files.
-#' These files can also be used in the \href{https://tech.yandex.com/catboost/doc/dg/concepts/cli-installation-docpage/}{Command-line version}
-#' and the \href{https://tech.yandex.com/catboost/doc/dg/concepts/python-installation-docpage/}{Python library}.
+#' These files can also be used in the \href{https://catboost.ai/docs/concepts/cli-installation.html}{Command-line version}
+#' and the \href{https://catboost.ai/docs/concepts/python-installation.html}{Python library}.
 #'
 #' @param data A data.frame with features.
 #' The following column types are supported:
@@ -439,7 +439,7 @@ print.catboost.Pool <- function(x, ...) {
 #'       FALSE (not used)
 #'     \item loss_function
 #'
-#'       The loss function (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/loss-functions-docpage/#loss-functions})
+#'       The loss function (see \url{https://catboost.ai/docs/concepts/loss-functions.html#loss-functions})
 #'       to use in training. The specified value also determines the machine learning problem to solve.
 #'
 #'       Format:
@@ -482,7 +482,7 @@ print.catboost.Pool <- function(x, ...) {
 #'       'RMSE'
 #'     \item custom_loss
 #'
-#'       Loss function (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/loss-functions-docpage/#loss-functions})
+#'       Loss function (see \url{https://catboost.ai/docs/concepts/loss-functions.html#loss-functions})
 #'       values to output during training.
 #'       These functions are not used for optimization and are displayed for informational purposes only.
 #'
@@ -549,7 +549,7 @@ print.catboost.Pool <- function(x, ...) {
 #'       c('CrossEntropy') or simply 'CrossEntropy'.
 #'
 #'       Values of all custom loss functions for learning and test datasets are saved to the Loss function
-#'       (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/output-data_loss-function-docpage/#output-data_loss-function})
+#'       (see \url{https://catboost.ai/docs/concepts/output-data_loss-function.html#output-data_loss-function})
 #'       output files (learn_error.tsv and test_error.tsv respectively). The catalog for these files is specified in the train-dir (train_dir) parameter.
 #'
 #'       Default value:
@@ -709,7 +709,7 @@ print.catboost.Pool <- function(x, ...) {
 #'
 #'     \item od_pval
 #'
-#'       Use the Overfitting detector (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/overfitting-detector-docpage/#overfitting-detector})
+#'       Use the Overfitting detector (see \url{https://catboost.ai/docs/concepts/overfitting-detector.html#overfitting-detector})
 #'       to stop training when the threshold is reached.
 #'       Requires that a test dataset was input.
 #'
@@ -857,7 +857,7 @@ print.catboost.Pool <- function(x, ...) {
 #'
 #'     \item name
 #'
-#'       The experiment name to display in visualization tools (see \url{https://tech.yandex.com/catboost/doc/dg/features/visualization-docpage/#visualization}).
+#'       The experiment name to display in visualization tools (see \url{https://catboost.ai/docs/features/visualization.html#visualization}).
 #'
 #'       Default value:
 #'
@@ -1019,7 +1019,7 @@ print.catboost.Pool <- function(x, ...) {
 #'   \itemize{
 #'     \item simple_ctr
 #'
-#'       Binarization settings for categorical features (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/algorithm-main-stages_cat-to-numberic-docpage/#algorithm-main-stages_cat-to-numberic}).
+#'       Binarization settings for categorical features (see \url{https://catboost.ai/docs/concepts/algorithm-main-stages_cat-to-numberic.html}).
 #'
 #'       Format:
 #'
@@ -1041,10 +1041,10 @@ print.catboost.Pool <- function(x, ...) {
 #'           \item \code{'FeatureFreq'}
 #'           \item \code{'FloatTargetMeanValue'}
 #'         }
-#'         \item The number of borders for label value binarization. (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/binarization-docpage/#binarization})
+#'         \item The number of borders for label value binarization. (see \url{https://catboost.ai/docs/concepts/quantization.html})
 #'         Only used for regression problems. Allowed values are integers from 1 to 255 inclusively. The default value is 1.
 #'         This option is available for training on CPU only.
-#'         \item The binarization (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/binarization-docpage/#binarization})
+#'         \item The binarization (see \url{https://catboost.ai/docs/concepts/quantization.html})
 #'         type for the label value. Only used for regression problems.
 #'
 #'         Possible values:
@@ -1085,7 +1085,7 @@ print.catboost.Pool <- function(x, ...) {
 #'
 #'     \item combinations_ctr
 #'
-#'       Binarization settings for combinations of categorical features (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/algorithm-main-stages_cat-to-numberic-docpage/#algorithm-main-stages_cat-to-numberic}).
+#'       Binarization settings for combinations of categorical features (see \url{https://catboost.ai/docs/concepts/algorithm-main-stages_cat-to-numberic.html}).
 #'
 #'       Format:
 #'
@@ -1107,10 +1107,10 @@ print.catboost.Pool <- function(x, ...) {
 #'           \item \code{'FeatureFreq'}
 #'           \item \code{'FloatTargetMeanValue'}
 #'         }
-#'         \item The number of borders for target binarization. (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/binarization-docpage/#binarization})
+#'         \item The number of borders for target binarization. (see \url{https://catboost.ai/docs/concepts/quantization.html})
 #'         Only used for regression problems. Allowed values are integers from 1 to 255 inclusively. The default value is 1.
 #'         This option is available for training on CPU only.
-#'         \item The binarization (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/binarization-docpage/#binarization})
+#'         \item The binarization (see \url{https://catboost.ai/docs/concepts/quantization.html})
 #'         type for the target. Only used for regression problems.
 #'
 #'         Possible values:
@@ -1225,7 +1225,7 @@ print.catboost.Pool <- function(x, ...) {
 #'
 #'     \item feature_border_type
 #'
-#'       The binarization mode (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/binarization-docpage/#binarization})
+#'       The binarization mode (see \url{https://catboost.ai/docs/concepts/quantization.html})
 #'       for numerical features.
 #'
 #'       Possible values:
@@ -1297,7 +1297,7 @@ print.catboost.Pool <- function(x, ...) {
 #'     \item snapshot_file
 #'
 #'       Settings for recovering training after an interruption (see
-#'       \url{https://tech.yandex.com/catboost/doc/dg/features/snapshots-docpage/#snapshots}).
+#'       \url{https://catboost.ai/docs/features/snapshots.html}).
 #'
 #'       Depending on whether the file specified exists in the file system:
 #'       \itemize{
@@ -1420,7 +1420,7 @@ print.catboost.Pool <- function(x, ...) {
 #'     train_dir = 'train_dir')
 #' model <- catboost.train(train_pool, test_pool, fit_params)
 #' @export
-#' @seealso \url{https://tech.yandex.com/catboost/doc/dg/concepts/r-reference_catboost-train-docpage/}
+#' @seealso \url{https://catboost.ai/docs/concepts/r-reference_catboost-train.html}
 catboost.train <- function(learn_pool, test_pool = NULL, params = list()) {
     if (class(learn_pool) != "catboost.Pool")
         stop("Expected catboost.Pool, got: ", class(learn_pool))
@@ -1549,7 +1549,7 @@ catboost.sum_models <- function(models, weights = NULL, ctr_merge_policy = 'Inte
 #'
 #' Load the model from a file.
 #'
-#' Note: Feature importance (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/fstr-docpage/#fstr}) is not saved when using this function.
+#' Note: Feature importance (see \url{https://catboost.ai/docs/concepts/fstr.html#fstr}) is not saved when using this function.
 #' @param model_path The path to the model.
 #'
 #' Default value: Required argument
@@ -1557,7 +1557,7 @@ catboost.sum_models <- function(models, weights = NULL, ctr_merge_policy = 'Inte
 #'
 #' Default value: 'cbm'
 #' @export
-#' @seealso \url{https://tech.yandex.com/catboost/doc/dg/concepts/r-reference_catboost-load_model-docpage/}
+#' @seealso \url{https://catboost.ai/docs/concepts/r-reference_catboost-load_model.html}
 catboost.load_model <- function(model_path, file_format = "cbm") {
     handle <- .Call("CatBoostReadModel_R", model_path, file_format)
     raw <- .Call("CatBoostSerializeModel_R", handle)
@@ -1571,7 +1571,7 @@ catboost.load_model <- function(model_path, file_format = "cbm") {
 #'
 #' Save the model to a file.
 #'
-#' Note: Feature importance (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/fstr-docpage/#fstr}) is not saved when using this function.
+#' Note: Feature importance (see \url{https://catboost.ai/docs/concepts/fstr.html#fstr}) is not saved when using this function.
 #' @param model The model to be saved.
 #'
 #' Default value: Required argument
@@ -1593,7 +1593,7 @@ catboost.load_model <- function(model_path, file_format = "cbm") {
 #'   \item 'cpp'
 #'     To export as C++ code
 #'   \item 'python'
-#'     To export as Python code. 
+#'     To export as Python code.
 #' }
 #'
 #' Default value: 'cbm'
@@ -1634,7 +1634,7 @@ catboost.save_model <- function(model, model_path,
 #'
 #' Default value: FALSE (not used)
 #' @param prediction_type The format for displaying approximated values in output data
-#' (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/output-data-docpage/#output-data}).
+#' (see \url{https://catboost.ai/docs/concepts/output-data.html}).
 #'
 #' Possible values:
 #' \itemize{
@@ -1656,7 +1656,7 @@ catboost.save_model <- function(model, model_path,
 #'
 #' Default value: 1
 #' @export
-#' @seealso \url{https://tech.yandex.com/catboost/doc/dg/concepts/r-reference_catboost-predict-docpage/}
+#' @seealso \url{https://catboost.ai/docs/concepts/r-reference_catboost-predict.html}
 catboost.predict <- function(model, pool,
                              verbose = FALSE, prediction_type = "RawFormulaVal",
                              ntree_start = 0, ntree_end = 0, thread_count = -1) {
@@ -1693,7 +1693,7 @@ catboost.predict <- function(model, pool,
 #'
 #' Default value: FALSE (not used)
 #' @param prediction_type The format for displaying approximated values in output data
-#' (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/output-data-docpage/#output-data}).
+#' (see \url{https://catboost.ai/docs/concepts/output-data.html}).
 #'
 #' Possible values:
 #' \itemize{
@@ -1718,7 +1718,7 @@ catboost.predict <- function(model, pool,
 #'
 #' Default value: 1
 #' @export
-#' @seealso \url{https://tech.yandex.com/catboost/doc/dg/concepts/r-reference_catboost-staged_predict-docpage/}
+#' @seealso \url{https://catboost.ai/docs/concepts/r-reference_catboost-staged_predict.html}
 catboost.staged_predict <- function(model, pool, verbose = FALSE, prediction_type = "RawFormulaVal",
                                     ntree_start = 0, ntree_end = 0, eval_period = 1, thread_count = -1) {
     if (class(model) != "catboost.Model")
@@ -1757,7 +1757,7 @@ catboost.staged_predict <- function(model, pool, verbose = FALSE, prediction_typ
 
 #' Calculate the feature importances
 #'
-#' Calculate the feature importances (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/fstr-docpage/#fstr})
+#' Calculate the feature importances (see \url{https://catboost.ai/docs/concepts/fstr.html#fstr})
 #' (Regular feature importance, ShapValues, and Feature interaction strength).
 #'
 #' @param model The model obtained as the result of training.
@@ -1802,7 +1802,7 @@ catboost.staged_predict <- function(model, pool, verbose = FALSE, prediction_typ
 #' Default value: -1
 #' @param fstr_type Deprecated parameter, use 'type' instead.
 #' @export
-#' @seealso \url{https://tech.yandex.com/catboost/doc/dg/features/feature-importances-calculation-docpage}
+#' @seealso \url{https://catboost.ai/docs/features/feature-importances-calculation.html}
 catboost.get_feature_importance <- function(model, pool = NULL, type = "FeatureImportance", thread_count = -1, fstr_type = NULL) {
     if (!is.null(fstr_type)) {
         type <- fstr_type
@@ -1837,7 +1837,7 @@ catboost.get_feature_importance <- function(model, pool = NULL, type = "FeatureI
 
 #' Calculate the object importances
 #'
-#' Calculate the object importances (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/about-docpage/}).
+#' Calculate the object importances (see \url{https://catboost.ai/docs/concepts/ostr.html}).
 #' This is the implementation of the LeafInfluence algorithm from the following paper: https://arxiv.org/pdf/1802.06640.pdf
 #'
 #' @param model The model obtained as the result of training.
@@ -1884,7 +1884,7 @@ catboost.get_feature_importance <- function(model, pool = NULL, type = "FeatureI
 #' Default value: -1
 #' @param ostr_type Deprecated parameter, use 'type' instead.
 #' @export
-#' @seealso \url{https://tech.yandex.com/catboost/doc/dg/concepts/}
+#' @seealso \url{https://catboost.ai/docs/concepts/r-reference_catboost-get_object_importance.html}
 catboost.get_object_importance <- function(
     model,
     pool,
@@ -1931,7 +1931,7 @@ catboost.get_object_importance <- function(
 #'
 #' Default value: 0
 #' @export
-#' @seealso \url{https://tech.yandex.com/catboost/doc/dg/concepts/r-reference_catboost-shrink-docpage/}
+#' @seealso \url{https://catboost.ai/docs/concepts/r-reference_catboost-shrink.html}
 catboost.shrink <- function(model, ntree_end, ntree_start = 0) {
     if (class(model) != "catboost.Model")
         stop("Expected catboost.Model, got: ", class(model))
@@ -1996,7 +1996,7 @@ catboost._is_oblivious <- function(model) {
 #'
 #' Default value: Required argument
 #' @export
-#' @seealso \url{https://tech.yandex.com/catboost/doc/dg/concepts/r-reference_catboost-get_model_params-docpage/}
+#' @seealso \url{https://catboost.ai/docs/concepts/r-reference_catboost-get_model_params.html}
 catboost.get_model_params <- function(model) {
     if (class(model) != "catboost.Model")
         stop("Expected catboost.Model, got: ", class(model))

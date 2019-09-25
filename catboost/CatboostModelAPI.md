@@ -22,7 +22,7 @@ model.predict(object_features)
 ```
 If your data is bigger than 1000 objects we recommend you to use ```catboost.TPool``` class to get full performance.
 
-Read python API documentation [here](https://tech.yandex.com/catboost/doc/dg/concepts/python-usages-examples-docpage/) for more information.
+Read python API documentation [here](https://catboost.ai/docs/concepts/python-quickstart.html) for more information.
 
 
 ## Dynamic library ```libcatboostmodel.(so|dll|dylib)```

@@ -81,7 +81,7 @@ Default value:
 FALSE (not used)
     \item loss_function
 
-The loss function (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/loss-functions-docpage/#loss-functions})
+The loss function (see \url{https://catboost.ai/docs/concepts/loss-functions.html#loss-functions})
       to use in training. The specified value also determines the machine learning problem to solve.
 
 Format:
@@ -124,7 +124,7 @@ Default value:
 'RMSE'
     \item custom_loss
 
-Loss function (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/loss-functions-docpage/#loss-functions})
+Loss function (see \url{https://catboost.ai/docs/concepts/loss-functions.html#loss-functions})
       values to output during training.
       These functions are not used for optimization and are displayed for informational purposes only.
 
@@ -191,7 +191,7 @@ For example, if you need to calculate the value of CrossEntropy and Quantile wit
 c('CrossEntropy') or simply 'CrossEntropy'.
 
 Values of all custom loss functions for learning and test datasets are saved to the Loss function
-      (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/output-data_loss-function-docpage/#output-data_loss-function})
+      (see \url{https://catboost.ai/docs/concepts/output-data_loss-function.html#output-data_loss-function})
       output files (learn_error.tsv and test_error.tsv respectively). The catalog for these files is specified in the train-dir (train_dir) parameter.
 
 Default value:
@@ -351,7 +351,7 @@ Default value:
 
 \item od_pval
 
-Use the Overfitting detector (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/overfitting-detector-docpage/#overfitting-detector})
+Use the Overfitting detector (see \url{https://catboost.ai/docs/concepts/overfitting-detector.html#overfitting-detector})
       to stop training when the threshold is reached.
       Requires that a test dataset was input.
 
@@ -499,7 +499,7 @@ FALSE
 
 \item name
 
-The experiment name to display in visualization tools (see \url{https://tech.yandex.com/catboost/doc/dg/features/visualization-docpage/#visualization}).
+The experiment name to display in visualization tools (see \url{https://catboost.ai/docs/features/visualization.html#visualization}).
 
 Default value:
 
@@ -648,12 +648,20 @@ Possible values:
 Default value:
 
 \code{'PerTreeLevel'}
+
+\item model_shrink_rate
+
+For i > 0 at the start of i-th iteration multiplies model by (1 - model_shrink_rate / i).
+
+Possible values: [0, 1).
+
+Default value: 0
   }
   \item CTR settings
   \itemize{
     \item simple_ctr
 
-Binarization settings for categorical features (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/algorithm-main-stages_cat-to-numberic-docpage/#algorithm-main-stages_cat-to-numberic}).
+Binarization settings for categorical features (see \url{https://catboost.ai/docs/concepts/algorithm-main-stages_cat-to-numberic.html}).
 
 Format:
 
@@ -675,10 +683,10 @@ Components:
           \item \code{'FeatureFreq'}
           \item \code{'FloatTargetMeanValue'}
         }
-        \item The number of borders for label value binarization. (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/binarization-docpage/#binarization})
+        \item The number of borders for label value binarization. (see \url{https://catboost.ai/docs/concepts/quantization.html})
         Only used for regression problems. Allowed values are integers from 1 to 255 inclusively. The default value is 1.
         This option is available for training on CPU only.
-        \item The binarization (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/binarization-docpage/#binarization})
+        \item The binarization (see \url{https://catboost.ai/docs/concepts/quantization.html})
         type for the label value. Only used for regression problems.
 
 Possible values:
@@ -717,7 +725,7 @@ Possible values:
 
 \item combinations_ctr
 
-Binarization settings for combinations of categorical features (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/algorithm-main-stages_cat-to-numberic-docpage/#algorithm-main-stages_cat-to-numberic}).
+Binarization settings for combinations of categorical features (see \url{https://catboost.ai/docs/concepts/algorithm-main-stages_cat-to-numberic.html}).
 
 Format:
 
@@ -739,10 +747,10 @@ Components:
           \item \code{'FeatureFreq'}
           \item \code{'FloatTargetMeanValue'}
         }
-        \item The number of borders for target binarization. (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/binarization-docpage/#binarization})
+        \item The number of borders for target binarization. (see \url{https://catboost.ai/docs/concepts/quantization.html})
         Only used for regression problems. Allowed values are integers from 1 to 255 inclusively. The default value is 1.
         This option is available for training on CPU only.
-        \item The binarization (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/binarization-docpage/#binarization})
+        \item The binarization (see \url{https://catboost.ai/docs/concepts/quantization.html})
         type for the target. Only used for regression problems.
 
 Possible values:
@@ -854,7 +862,7 @@ Default value:
 
 \item feature_border_type
 
-The binarization mode (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/binarization-docpage/#binarization})
+The binarization mode (see \url{https://catboost.ai/docs/concepts/quantization.html})
       for numerical features.
 
 Possible values:
@@ -926,7 +934,7 @@ None
 \item snapshot_file
 
 Settings for recovering training after an interruption (see
-      \url{https://tech.yandex.com/catboost/doc/dg/features/snapshots-docpage/#snapshots}).
+      \url{https://catboost.ai/docs/features/snapshots.html}).
 
 Depending on whether the file specified exists in the file system:
       \itemize{
@@ -995,7 +1003,7 @@ Default value:
 
 1024
 
-\item efb_max_conflict_fraction
+\item sparse_features_conflict_fraction
 
 CPU only. Maximum allowed fraction of conflicting non-default values for features in exclusive features bundle.
      Should be a real value in [0, 1) interval.
@@ -1037,5 +1045,5 @@ fit_params <- list(
 model <- catboost.train(train_pool, test_pool, fit_params)
 }
 \seealso{
-\url{https://tech.yandex.com/catboost/doc/dg/concepts/r-reference_catboost-train-docpage/}
+\url{https://catboost.ai/docs/concepts/r-reference_catboost-train.html}
 }

@@ -4,7 +4,8 @@
 \alias{catboost.save_model}
 \title{Save the model}
 \usage{
-catboost.save_model(model, model_path)
+catboost.save_model(model, model_path, file_format = "cbm",
+  export_parameters = NULL, pool = NULL)
 }
 \arguments{
 \item{model}{The model to be saved.
@@ -15,13 +16,36 @@ Default value: Required argument}
 Used for solving other machine learning problems (for instance, applying a model).
 
 Default value: Required argument}
+
+\item{file_format}{specified format model from a file.
+Possible values:
+\itemize{
+  \item 'cbm'
+    For catboost binary format
+  \item 'coreml'
+    To export into Apple CoreML format
+  \item 'onnx'
+    To export into ONNX-ML format
+  \item 'pmml'
+    To export into PMML format
+  \item 'cpp'
+    To export as C++ code
+  \item 'python'
+    To export as Python code.
+}
+
+Default value: 'cbm'}
+
+\item{export_parameters}{are a parameters for CoreML or PMML export.}
+
+\item{pool}{is training pool.}
 }
 \description{
 Save the model to a file.
 }
 \details{
-Note: Feature importance (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/fstr-docpage/#fstr}) is not saved when using this function.
+Note: Feature importance (see \url{https://catboost.ai/docs/concepts/fstr.html#fstr}) is not saved when using this function.
 }
 \seealso{
-\url{https://tech.yandex.com/catboost/doc/dg/concepts/r-reference_catboost-save_model-docpage/}
+\url{https://catboost.ai/docs/features/export-model-to-core-ml.html}
 }

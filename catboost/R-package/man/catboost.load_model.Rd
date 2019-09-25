@@ -4,19 +4,23 @@
 \alias{catboost.load_model}
 \title{Load the model}
 \usage{
-catboost.load_model(model_path)
+catboost.load_model(model_path, file_format = "cbm")
 }
 \arguments{
 \item{model_path}{The path to the model.
 
 Default value: Required argument}
+
+\item{file_format}{Format of the model file.
+
+Default value: 'cbm'}
 }
 \description{
 Load the model from a file.
 }
 \details{
-Note: Feature importance (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/fstr-docpage/#fstr}) is not saved when using this function.
+Note: Feature importance (see \url{https://catboost.ai/docs/concepts/fstr.html#fstr}) is not saved when using this function.
 }
 \seealso{
-\url{https://tech.yandex.com/catboost/doc/dg/concepts/r-reference_catboost-load_model-docpage/}
+\url{https://catboost.ai/docs/concepts/r-reference_catboost-load_model.html}
 }

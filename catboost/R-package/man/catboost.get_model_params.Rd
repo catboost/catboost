@@ -15,5 +15,5 @@ Default value: Required argument}
 Return the model parameters.
 }
 \seealso{
-\url{https://tech.yandex.com/catboost/doc/dg/concepts/r-reference_catboost-get_model_params-docpage/}
+\url{https://catboost.ai/docs/concepts/r-reference_catboost-get_model_params.html}
 }

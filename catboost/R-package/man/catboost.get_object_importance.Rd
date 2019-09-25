@@ -59,9 +59,9 @@ Default value: -1}
 Default value: 'Average'}
 }
 \description{
-Calculate the object importances (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/about-docpage/}).
+Calculate the object importances (see \url{https://catboost.ai/docs/concepts/ostr.html}).
 This is the implementation of the LeafInfluence algorithm from the following paper: https://arxiv.org/pdf/1802.06640.pdf
 }
 \seealso{
-\url{https://tech.yandex.com/catboost/doc/dg/concepts/}
+\url{https://catboost.ai/docs/concepts/r-reference_catboost-get_object_importance.html}
 }

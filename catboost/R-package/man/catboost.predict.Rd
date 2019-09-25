@@ -22,7 +22,7 @@ Default value: Required argument}
 Default value: FALSE (not used)}
 
 \item{prediction_type}{The format for displaying approximated values in output data
-(see \url{https://tech.yandex.com/catboost/doc/dg/concepts/output-data-docpage/#output-data}).
+(see \url{https://catboost.ai/docs/concepts/output-data.html}).
 
 Possible values:
 \itemize{
@@ -55,5 +55,5 @@ Peculiarities: In case of multiclassification the prediction is returned in the 
 Each line of this matrix contains the predictions for one object of the input dataset.
 }
 \seealso{
-\url{https://tech.yandex.com/catboost/doc/dg/concepts/r-reference_catboost-predict-docpage/}
+\url{https://catboost.ai/docs/concepts/r-reference_catboost-predict.html}
 }

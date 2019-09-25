@@ -2,9 +2,9 @@
 
 ## Improvements:
 - New visualization for parameter tuning. Use `plot=True` parameter in `grid_search` and `randomized_search` methods to show plots in jupyter notebook
-- Switched to jemalloc allocator instead of LFalloc in CLI and model interfaces to fix some problems on Windows 7 machines
+- Switched to jemalloc allocator instead of LFalloc in CLI and model interfaces to fix some problems on Windows 7 machines, #881
 - Calculation of binary class AUC is faster up to 1.3x
-- Added tutorial on using ONNX models in CatBoost
+- Added [tutorial](https://github.com/catboost/tutorials/blob/master/convert_onnx_model/tutorial_convert_onnx_models.ipynb) on using fast CatBoost applier with LightGBM models
 
 ## Bugs fixed:
 - Shap values for `MultiClass` objective don't give constant 0 value for the last class in case of GPU training.
