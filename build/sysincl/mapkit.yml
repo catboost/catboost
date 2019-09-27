@@ -41,6 +41,9 @@
   - QtWidgets/QTextEdit
   - QtWidgets/QVBoxLayout
   - QtWidgets/QWidget
+  - QtQuick/QQuickWindow
+  - QtQuick/QQuickFramebufferObject
+  - QtQuickWidgets/QQuickWidget
   - android/bitmap.h
   - google/protobuf/descriptor.h
   - google/protobuf/io/coded_stream.h
