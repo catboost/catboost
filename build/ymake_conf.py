@@ -66,6 +66,7 @@ class Platform(object):
         self.is_linux = self.os == 'linux'
         self.is_linux_x86_64 = self.is_linux and self.is_x86_64
         self.is_linux_armv8 = self.is_linux and self.is_armv8
+        self.is_linux_armv7 = self.is_linux and self.is_armv7
 
         self.is_macos = self.os == 'macos'
         self.is_macos_x86_64 = self.is_macos and self.is_x86_64
@@ -1125,9 +1126,12 @@ class GnuCompiler(Compiler):
         self.c_warnings = ['-W', '-Wall', '-Wno-parentheses']
         self.cxx_warnings = [
             '-Woverloaded-virtual', '-Wno-invalid-offsetof', '-Wno-attributes',
-            '-Wno-dynamic-exception-spec',  # IGNIETFERRO-282 some problems with lucid
-            '-Wno-register',  # IGNIETFERRO-722 needed for contrib
         ]
+        if not (self.tc.is_gcc and not self.tc.version_at_least(7)):
+            self.cxx_warnings.extend([
+                '-Wno-dynamic-exception-spec',  # IGNIETFERRO-282 some problems with lucid
+                '-Wno-register',  # IGNIETFERRO-722 needed for contrib
+            ])
         self.c_defines = [
             '-DFAKEID=$CPP_FAKEID', '-DARCADIA_ROOT=${ARCADIA_ROOT}', '-DARCADIA_BUILD_ROOT=${ARCADIA_BUILD_ROOT}',
             '-D_THREAD_SAFE', '-D_PTHREADS', '-D_REENTRANT', '-D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES',
@@ -1366,6 +1370,8 @@ class Linker(object):
         if self.tc.is_from_arcadia and self.build.host.is_linux and not (self.build.target.is_apple or self.build.target.is_android or self.build.target.is_windows):
             if self.tc.is_clang and not (is_positive('USE_LTO') or self.build.target.is_linux_armv8 or self.build.target.is_ppc64le):  # TODO: try to enable PPC64 with LLD>=6
                 self.type = Linker.LLD
+            elif self.tc.is_gcc and self.build.target.is_linux_armv7:
+                self.type = Linker.BFD
             else:
                 self.type = Linker.GOLD
         else:
