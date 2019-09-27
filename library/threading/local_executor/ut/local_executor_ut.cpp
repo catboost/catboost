@@ -324,3 +324,48 @@ Y_UNIT_TEST(NestedParallelExceptionsDoNotLeak) {
 }
 }
 ;
+
+Y_UNIT_TEST_SUITE(ExecLargeRangeWithThrow){
+
+    constexpr int LARGE_COUNT = 128 * (1 << 20);
+
+    static auto IsValue(char v) {
+        return [=](char c) { return c == v; };
+    }
+
+    Y_UNIT_TEST(ExecLargeRangeNoExceptions) {
+        TVector<char> tasks(LARGE_COUNT);
+
+        TLocalExecutor localExecutor;
+        localExecutor.RunAdditionalThreads(DefaultThreadsCount);
+
+        localExecutor.ExecRangeBlockedWithThrow([&tasks](int i) {
+            tasks[i] = 1;
+        }, 0, tasks.size(), 0, TLocalExecutor::EFlags::WAIT_COMPLETE);
+        UNIT_ASSERT(AllOf(tasks, IsValue(1)));
+
+
+        localExecutor.ExecRangeBlockedWithThrow([&tasks](int i) {
+            tasks[i] += 1;
+        }, 0, tasks.size(), 128, TLocalExecutor::EFlags::WAIT_COMPLETE);
+        UNIT_ASSERT(AllOf(tasks, IsValue(2)));
+    }
+
+    Y_UNIT_TEST(ExecLargeRangeWithException) {
+        TVector<char> tasks(LARGE_COUNT);
+
+        TLocalExecutor localExecutor;
+        localExecutor.RunAdditionalThreads(DefaultThreadsCount);
+
+        Fill(tasks.begin(), tasks.end(), 0);
+        UNIT_ASSERT_EXCEPTION(
+            localExecutor.ExecRangeBlockedWithThrow([&tasks](int i) {
+                tasks[i] += 1;
+                if (i == LARGE_COUNT / 2) {
+                    throw TTestException();
+                }
+            }, 0, tasks.size(), 0, TLocalExecutor::EFlags::WAIT_COMPLETE),
+            TTestException
+        );
+    }
+};

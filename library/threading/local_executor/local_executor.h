@@ -185,6 +185,34 @@ namespace NPar {
             ExecRange(BlockedLoopBody(params, body), 0, params.GetBlockCount(), flags);
         }
 
+        template <typename TBody>
+        inline void ExecRangeBlockedWithThrow(TBody&& body, int firstId, int lastId, int batchSizeOrZeroForAutoBatchSize, int flags) {
+            if (firstId >= lastId) {
+                return;
+            }
+            const int threadCount = GetThreadCount();
+            const int batchSize = batchSizeOrZeroForAutoBatchSize
+                ? batchSizeOrZeroForAutoBatchSize
+                : (lastId - firstId + threadCount - 1) / threadCount;
+            const int batchCount = (lastId - firstId + batchSize - 1) / batchSize;
+            const int batchCountPerThread = (batchCount + threadCount - 1) / threadCount;
+            auto states = ExecRangeWithFutures(
+                [=](int threadId) {
+                    for (int batchIdPerThread = 0; batchIdPerThread < batchCountPerThread; ++batchIdPerThread) {
+                        int batchId = batchIdPerThread * threadCount + threadId;
+                        int begin = firstId + batchId * batchSize;
+                        int end = Min(begin + batchSize, lastId);
+                        for (int i = begin; i < end; ++i) {
+                            body(i);
+                        }
+                    }
+                },
+                0, threadCount, flags);
+            for (auto& state: states) {
+                state.GetValueSync(); // Re-throw exception if any.
+            }
+        }
+
     private:
         class TImpl;
         THolder<TImpl> Impl_;
