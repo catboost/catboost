@@ -86,6 +86,7 @@
   - mutex
   - new
   - numeric
+  - optional
   - ostream
   - queue
   - random
@@ -112,4 +113,5 @@
   - use_ansi.h
   - utility
   - valarray
+  - variant
   - vector

@@ -35,8 +35,6 @@
   - builtins.h
   - _cygwin.h
   - kfuncs.h
-  - optional
-  - variant
   - msl_utility
 - source_filter: "^quasar/yandex_io/daemons/src/audiod/speex_port/"
   includes:
